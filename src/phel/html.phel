@@ -4,7 +4,11 @@
 (defstruct raw-string [s])
 
 (defn escape-html
-  "Escapes the string that may contain HTML."
+  "Escapes HTML special characters to prevent XSS.
+
+  Example:
+    (escape-html \"<div>\")
+    # => \"&lt;div&gt;\""
   [s]
   (php/htmlspecialchars s (bit-or php/ENT_QUOTES php/ENT_SUBSTITUTE)))
 
@@ -151,7 +155,13 @@
 (defn- compile-html [& content]
   `(str ,@(compile-seq content)))
 
-(defmacro html [& content]
+(defmacro html
+  "Compiles Phel vectors to HTML strings.
+
+  Example:
+    (html [:div \"Hello\"])
+    # => \"<div>Hello</div>\""
+  [& content]
   (apply compile-html content))
 
 (def- doctypes
@@ -163,5 +173,11 @@
                             "\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n")
    :html5              "<!DOCTYPE html>\n"})
 
-(defn doctype [type]
+(defn doctype
+  "Returns an HTML doctype declaration.
+
+  Example:
+    (doctype :html5)
+    # => \"<!DOCTYPE html>\\n\""
+  [type]
   (raw-string (get doctypes type (:html5 doctypes))))

@@ -54,19 +54,35 @@
 # --------------------------------------------
 
 (def list
-  "```phel\n(list & xs)\n```\nCreates a new list. If no argument is provided, an empty list is created."
+  "Creates a new list from the given arguments. Shortcut: '()
+
+  Example:
+    (list 1 2 3)
+    # => (1 2 3)"
   (fn [& xs] (php/:: Phel (list (apply php/array xs)))))
 
 (def vector
-  "```phel\n(vector & xs)\n```\nCreates a new vector. If no argument is provided, an empty vector is created."
+  "Creates a new vector from the given arguments. Shortcut: []
+
+  Example:
+    (vector 1 2 3)
+    # => [1 2 3]"
   (fn [& xs] (php/:: Phel (vector (apply php/array xs)))))
 
 (def hash-map
-  "```phel\n(hash-map & xs)\n```\nCreates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even."
+  "Creates a new hash map from key-value pairs. Shortcut: {}
+
+  Example:
+    (hash-map :a 1 :b 2)
+    # => {:a 1 :b 2}"
   (fn [& xs] (php/:: Phel (map (apply php/array xs)))))
 
 (def next
-  "```phel\n(next xs)\n```\nReturns the sequence of elements after the first element. If there are no elements, returns nil."
+  "Returns the sequence after the first element, or nil if empty.
+
+  Example:
+    (next [1 2 3])
+    # => [2 3]"
   (fn [xs]
     (if (php/=== xs nil)
       nil
@@ -81,7 +97,11 @@
                           (php/. "cannot call 'next on " (php/gettype xs)))))))))
 
 (def first
-  "```phel\n(first xs)\n```\nReturns the first element of an indexed sequence or nil."
+  "Returns the first element of a sequence, or nil if empty.
+
+  Example:
+    (first [1 2 3])
+    # => 1"
   (fn [xs]
     (if (php/instanceof xs FirstInterface)
       (php/-> xs (first))
@@ -101,7 +121,7 @@
           xs)))))
 
 (def concat
-  "```phel\n(concat arr & xs)\n```\nConcatenates multiple sequential data structures."
+  "Concatenates multiple sequential data structures."
   (fn [arr & others]
     (if (php/=== nil arr)
       '()
@@ -139,7 +159,7 @@
 
 (def meta
   {:macro true
-   :doc "```phel\n(meta obj)\n```\nGets the metadata of the given object or definition."}
+   :doc "Gets the metadata of the given object or definition."}
   (fn [obj]
     (let [sym (if (symbol? obj)
                 obj
@@ -161,7 +181,7 @@
              nil))))))
 
 (def set-meta!
-  "```phel\n(set-meta! obj)\n```\nSets the metadata to a given object."
+  "Sets the metadata to a given object."
   (fn [obj meta]
     (php/-> obj (withMeta meta))))
 
@@ -205,17 +225,17 @@
 
 (def defn
   {:macro true
-   :doc "```phel\n(defn name & fdecl)\n```\nDefine a new global function."}
+   :doc "Define a new global function."}
   (fn [name & fdecl] (apply defn-builder name {} fdecl)))
 
 (def def-
   {:macro true
-   :doc "```phel\n(def- name value)\n```\nDefine a private value that will not be exported."}
+   :doc "Define a private value that will not be exported."}
   (fn [name value] `(def ,name {:private true} ,value)))
 
 (def defmacro
   {:macro true
-   :doc "```phel\n(defmacro name & fdecl)\n```\nDefine a macro."}
+   :doc "Define a macro."}
   (fn [name & fdecl] (apply defn-builder name {:macro true} fdecl)))
 
 (defmacro defn-
@@ -296,7 +316,11 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 # ------------------
 
 (defn set
-  "Creates a new Set. If no argument is provided, an empty Set is created."
+  "Creates a new Set from the given arguments. Shortcut: #{}
+
+  Example:
+    (set 1 2 3)
+    # => #{1 2 3}"
   [& xs]
   (php/:: Phel (set (apply php/array xs))))
 
@@ -334,7 +358,11 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     (php/=== a b)))
 
 (defn cons
-  "Prepends `x` to the beginning of `coll`."
+  "Prepends an element to the beginning of a collection.
+
+  Example:
+    (cons 0 [1 2 3])
+    # => [0 1 2 3]"
   [x coll]
   (if (php/is_array coll)
     (do
@@ -353,12 +381,20 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   (first (first coll)))
 
 (defn second
-  "Returns the second element of an indexed sequence or nil."
+  "Returns the second element of a sequence, or nil if not present.
+
+  Example:
+    (second [1 2 3])
+    # => 2"
   [coll]
   (first (next coll)))
 
 (defn rest
-  "Returns the sequence of elements after the first element. If there are no elements, returns an empty sequence."
+  "Returns the sequence after the first element, or empty sequence if none.
+
+  Example:
+    (rest [1 2 3])
+    # => [2 3]"
   [coll]
   (if (php/instanceof coll RestInterface)
     (php/-> coll (rest))
@@ -377,7 +413,31 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   (next (next coll)))
 
 (defn count
-  "Counts the number of elements in a sequence. Can be used on everything that implements the PHP Countable interface."
+  "Counts the number of elements in a sequence. Can be used on everything that implements the PHP Countable interface.
+
+  Works with lists, vectors, hash-maps, sets, and PHP arrays.
+  Returns 0 for nil. Throws an exception for strings (use `php/strlen` or `php/mb_strlen` instead).
+
+  Examples:
+    (count [1 2 3])
+    # => 3
+
+    (count '(:a :b))
+    # => 2
+
+    (count {:name \"Alice\" :age 30})
+    # => 2
+
+    (count #{1 2 3 4})
+    # => 4
+
+    (count [])
+    # => 0
+
+    (count nil)
+    # => 0
+
+  See also: empty?, seq"
   [coll]
   (if (php/instanceof coll Countable)
     (php/-> coll (count))
@@ -394,25 +454,38 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 # ------------------
 
 (defmacro if-not
-  "Shorthand for `(if (not condition) else then)`."
+  "Evaluates then if test is false, else otherwise.
+
+  Example:
+    (if-not (< 5 3) \"not less\" \"less\")
+    # => \"not less\""
   [test then & [else]]
   `(if ,test ,else ,then))
 
 (defmacro when
-  "Evaluates `test` and if that is logical true, evaluates `body`."
+  "Evaluates body if test is true, otherwise returns nil.
+
+  Example:
+    (when (> 10 5) \"greater\")
+    # => \"greater\""
   [test & body]
   `(if ,test (do ,@body)))
 
 (defmacro when-not
-  "Evaluates `test` and if that is logical false, evaluates `body`."
+  "Evaluates body if test is false, otherwise returns nil.
+
+  Example:
+    (when-not (empty? [1 2 3]) \"has items\")
+    # => \"has items\""
   [test & body]
   `(if ,test nil (do ,@body)))
 
 (defmacro cond
-  "Takes a set of test/expression pairs. Evaluates each test one at a time.
-  If a test returns logically true, the expression is evaluated and returned.
-  If no test matches a final last expression can be provided that is then
-  evaluated and returned. Otherwise, nil is returned."
+  "Evaluates test/expression pairs, returning the first matching expression.
+
+  Example:
+    (cond (< x 0) \"negative\" (> x 0) \"positive\" \"zero\")
+    # => \"negative\", \"positive\", or \"zero\" depending on x"
   [& pairs]
   (let [cnt (count pairs)]
     (if (php/=== cnt 0)
@@ -425,11 +498,14 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
               (cons 'cond (apply list (next (next pairs)))))))))
 
 (defmacro case
-  "Takes an expression `e` and a set of test-content/expression pairs. First
-  evaluates `e` and then finds the first pair where the test-constant matches
-  the result of `e`. The associated expression is then evaluated and returned.
-  If no matches can be found a final last expression can be provided that is
-  then evaluated and returned. Otherwise, nil is returned."
+  "Evaluates expression and matches it against constant test values, returning the associated result.
+
+  Example:
+    (case x
+      1 \"one\"
+      2 \"two\"
+      \"other\")
+    # => \"one\" (when x is 1)"
   [e & pairs]
   (if (next pairs)
     (let [v (gensym)]
@@ -444,10 +520,11 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 # -----------------
 
 (defmacro or
-  "Evaluates each expression one at a time, from left to right. If a form
-returns a logical true value, or returns that value and doesn't evaluate any of
-the other expressions, otherwise, it returns the value of the last expression.
-Calling or without arguments, returns nil."
+  "Evaluates expressions left to right, returning the first truthy value or the last value.
+
+  Example:
+    (or false nil 42 100)
+    # => 42"
   [& args]
   (case (count args)
     0 nil
@@ -457,10 +534,11 @@ Calling or without arguments, returns nil."
          (if ,v ,v (or ,@(next args)))))))
 
 (defmacro and
-  "Evaluates each expression one at a time, from left to right. If a form
-returns logical false, `and` returns that value and doesn't evaluate any of the
-other expressions, otherwise, it returns the value of the last expression.
-Calling the `and` function without arguments returns true."
+  "Evaluates expressions left to right, returning the first falsy value or the last value.
+
+  Example:
+    (and true 1 \"hello\")
+    # => \"hello\""
   [& args]
   (case (count args)
     0 'true
@@ -485,7 +563,11 @@ Calling the `and` function without arguments returns true."
       false)))
 
 (defn =
-  "Checks if all values are equal. Same as `a == b` in PHP."
+  "Checks if all values are equal (value equality, not identity).
+
+  Example:
+    (= [1 2 3] [1 2 3])
+    # => true"
   [a & more]
   (case (count more)
     0 true
@@ -495,7 +577,11 @@ Calling the `and` function without arguments returns true."
       false)))
 
 (defn not
-  "The `not` function returns `true` if the given value is logical false and `false` otherwise."
+  "Returns true if value is falsy (nil or false), false otherwise.
+
+  Example:
+    (not nil)
+    # => true"
   [x]
   (if x false true))
 
@@ -508,7 +594,11 @@ Calling the `and` function without arguments returns true."
     (not (apply = a more))))
 
 (defn <
-  "Checks if each argument is strictly less than the following argument. Returns a boolean."
+  "Checks if each argument is strictly less than the following argument.
+
+  Example:
+    (< 1 2 3 4)
+    # => true"
   {:inline (fn [a b] `(php/< ,a ,b))
    :inline-arity (fn [n] (php/=== n 2))}
   [a & more]
@@ -532,7 +622,11 @@ Calling the `and` function without arguments returns true."
       false)))
 
 (defn >
-  "Checks if each argument is strictly greater than the following argument. Returns a boolean."
+  "Checks if each argument is strictly greater than the following argument.
+
+  Example:
+    (> 4 3 2 1)
+    # => true"
   {:inline (fn [a b] `(php/> ,a ,b))
    :inline-arity (fn [n] (php/=== n 2))}
   [a & more]
@@ -568,8 +662,11 @@ Calling the `and` function without arguments returns true."
   (php/<=> b a))
 
 (defn all?
-  "Returns true if `(pred x)` is logical true for every `x` in collection `coll`
-   or if `coll` is empty. Otherwise returns false."
+  "Returns true if predicate is true for every element in collection, false otherwise.
+
+  Example:
+    (all? even? [2 4 6 8])
+    # => true"
   [pred coll]
   (cond
     (php/=== (count coll) 0) true
@@ -592,7 +689,11 @@ Calling the `and` function without arguments returns true."
 (declare name)
 
 (defn some?
-  "Returns true if `(pred x)` is logical true for at least one `x` in `coll`, else false."
+  "Returns true if predicate is true for at least one element in collection, false otherwise.
+
+  Example:
+    (some? even? [1 3 5 6 7])
+    # => true"
   [pred coll]
   (if (empty? coll)
     false
@@ -607,7 +708,11 @@ Calling the `and` function without arguments returns true."
   (not (some? pred coll)))
 
 (defn some
-  "Returns the first logical true value of `(pred x)` for any `x` in `coll`, else nil."
+  "Returns the first truthy value of applying predicate to elements, or nil if none found.
+
+  Example:
+    (some #(when (> % 10) %) [5 15 8])
+    # => 15"
   [pred coll]
   (if (empty? coll)
     nil
@@ -617,7 +722,11 @@ Calling the `and` function without arguments returns true."
         (recur pred (next coll))))))
 
 (defn true?
-  "Checks if `x` is true. Same as `x === true` in PHP."
+  "Checks if value is exactly true (not just truthy).
+
+  Example:
+    (true? 1)
+    # => false"
   [x]
   (id x true))
 
@@ -627,12 +736,20 @@ Calling the `and` function without arguments returns true."
   (php/:: Truthy (isTruthy x)))
 
 (defn false?
-  "Checks if `x` is false. Same as `x === false` in PHP."
+  "Checks if value is exactly false (not just falsy).
+
+  Example:
+    (false? nil)
+    # => false"
   [x]
   (id x false))
 
 (defn nil?
-  "Returns true if `x` is nil, false otherwise."
+  "Returns true if value is nil, false otherwise.
+
+  Example:
+    (nil? (get {:a 1} :b))
+    # => true"
   [x]
   (id x nil))
 
@@ -643,7 +760,11 @@ Calling the `and` function without arguments returns true."
   (php/str_contains str s))
 
 (defn contains?
-  "Returns true if key is present in the given collection, otherwise returns false."
+  "Returns true if key is present in collection (checks keys/indices, not values).
+
+  Example:
+    (contains? [10 20 30] 1)
+    # => true"
   [coll key]
   (cond
     (php/instanceof coll ContainsInterface) (php/-> coll (contains key))
@@ -864,8 +985,11 @@ Calling the `and` function without arguments returns true."
     (throw (php/new InvalidArgumentException "Cannot remove"))))
 
 (defn get
-  "Get the value mapped to `key` from the datastructure `ds`.
-  Returns `opt` or nil if the value cannot be found."
+  "Gets the value at key in a collection. Returns default if not found.
+
+  Example:
+    (get {:a 1} :a)
+    # => 1"
   [ds k & [opt]]
   (cond
     (or (set? ds)
@@ -894,7 +1018,11 @@ Calling the `and` function without arguments returns true."
         res))))
 
 (defn assoc
-  "Associates `value` with `key` in the datastructure `ds`. Returns `ds`."
+  "Associates a value with a key in a collection.
+
+  Example:
+    (assoc {:a 1} :b 2)
+    # => {:a 1 :b 2}"
   [ds key value]
   (cond
     (php-array? ds)
@@ -991,9 +1119,11 @@ Calling the `and` function without arguments returns true."
                       generator)))
 
 (defn range
-  "Create a lazy sequence of values `[start, end)`. If the function has one argument then
-  the range `[0, end)` is returned. With two arguments, returns `[start, end)`.
-  The third argument is an optional step width (default 1)."
+  "Creates a lazy sequence of numbers from start to end (exclusive).
+
+  Example:
+    (range 5)
+    # => (0 1 2 3 4)"
   [a & rest]
   (case (count rest)
     0 (lazy-seq-from-generator (php/:: Generators (range 0 a 1)))
@@ -1106,7 +1236,29 @@ Calling the `and` function without arguments returns true."
 
 (defn map
   "Returns a lazy sequence of the result of applying `f` to all of the first items in each coll,
-   followed by applying `f` to all the second items in each coll until anyone of the colls is exhausted."
+   followed by applying `f` to all the second items in each coll until anyone of the colls is exhausted.
+
+  When given a single collection, applies the function to each element.
+  With multiple collections, applies the function to corresponding elements from each collection,
+  stopping when the shortest collection is exhausted.
+
+  Examples:
+    (map inc [1 2 3])
+    # => (2 3 4)
+
+    (map #(* % 2) [1 2 3 4])
+    # => (2 4 6 8)
+
+    (map + [1 2 3] [10 20 30])
+    # => (11 22 33)
+
+    (map str [\"a\" \"b\" \"c\"] [1 2 3])
+    # => (\"a1\" \"b2\" \"c3\")
+
+    (map list [1 2] [3 4] [5 6])
+    # => ((1 3 5) (2 4 6))
+
+  See also: filter, reduce, map-indexed, mapcat"
   [f & colls]
   (case (count colls)
     0 (throw (php/new InvalidArgumentException "expected at least one indexed collection in map"))
@@ -1123,14 +1275,21 @@ Calling the `and` function without arguments returns true."
         (with-meta (first colls) result)))))
 
 (defn map-indexed
-  "Applies `f` to each element in `coll`. `f` is a two-argument function. The first argument
-  is an index of the element in the sequence and the second element is the element itself."
+  "Applies function to each element with its index, returning a lazy sequence.
+
+  Example:
+    (map-indexed (fn [i x] [i x]) [\"a\" \"b\" \"c\"])
+    # => ([0 \"a\"] [1 \"b\"] [2 \"c\"])"
   [f coll]
   (let [result (for [[k v] :pairs coll] (f k v))]
     (with-meta coll result)))
 
 (defn mapcat
-  "Applies `f` on all colls and concatenate the result."
+  "Applies function to collections and concatenates the results.
+
+  Example:
+    (mapcat reverse [[1 2] [3 4]])
+    # => (2 1 4 3)"
   [f & colls]
   (let [result (apply concat [] (apply map f colls))]
     (if (empty? colls)
@@ -1138,10 +1297,11 @@ Calling the `and` function without arguments returns true."
       (with-meta (first colls) result))))
 
 (defn reduce
-  "(reduce f coll) (reduce f val coll)
-    f should be a function of 2 arguments. If val is not supplied, returns the result of applying f to the first 2 items in coll, then applying f to that result and the 3rd item, etc.
-    If coll contains no items, f must accept no arguments as well, and reduce returns the result of calling f with no arguments. If coll has only 1 item, it is returned and f is not called.
-    If val is supplied, returns the result of applying f to val and the first item in coll, then applying f to that result and the 2nd item, etc. If coll contains no items, returns val and f is not called."
+  "Reduces collection to a single value by repeatedly applying function to accumulator and elements.
+
+  Example:
+    (reduce + [1 2 3 4])
+    # => 10"
   [f & args]
   (case (count args)
     1 (let [coll (first args)]
@@ -1353,11 +1513,11 @@ Calling the `and` function without arguments returns true."
       (with-meta coll (or result [])))))
 
 (defn filter
-  "Returns a lazy sequence of elements of `coll` where `(pred x)` is true.
+  "Returns a lazy sequence of elements where predicate returns true.
 
-  Note: Metadata preservation works with inline calls but may be lost when binding
-  to variables. Use inline calls or force realization with doall if metadata needed.
-  See local/investigate-metadata-binding-issue.md for details."
+  Example:
+    (filter even? [1 2 3 4 5 6])
+    # => (2 4 6)"
   [pred coll]
   (let [result (lazy-seq-from-generator (php/:: Generators (filter pred coll)))]
     (if (nil? result)
@@ -1365,7 +1525,11 @@ Calling the `and` function without arguments returns true."
       (with-meta coll result))))
 
 (defn keep
-  "Returns a lazy sequence of non-nil results of `(pred x)`."
+  "Returns a lazy sequence of non-nil results of applying function to elements.
+
+  Example:
+    (keep #(when (even? %) (* % %)) [1 2 3 4 5])
+    # => (4 16)"
   [pred coll]
   (if (nil? coll)
     []
@@ -1456,13 +1620,21 @@ Calling the `and` function without arguments returns true."
     (with-meta coll result)))
 
 (defn keys
-  "Gets the keys of an associative data structure."
+  "Returns a sequence of all keys in a map.
+
+  Example:
+    (keys {:a 1 :b 2})
+    # => (:a :b)"
   [coll]
   (let [result (for [k :keys coll] k)]
     (with-meta coll result)))
 
 (defn values
-  "Gets the values of an associative data structure."
+  "Returns a sequence of all values in a map.
+
+  Example:
+    (values {:a 1 :b 2})
+    # => (1 2)"
   [coll]
   (let [result (for [x :in coll] x)]
     (with-meta coll result)))
@@ -1595,12 +1767,7 @@ Calling the `and` function without arguments returns true."
     (throw (php/new InvalidArgumentException "repeatedly expects one or two arguments"))))
 
 (defmacro lazy-seq
-  "Takes a body of expressions that returns a sequence or nil, and yields
-  a LazySeq that will invoke the body only the first time the sequence is accessed,
-  caching the result for subsequent accesses.
-
-  This is the fundamental building block for creating custom lazy sequences.
-  The body should return either a sequence (list, vector, or another lazy-seq) or nil.
+  "Creates a lazy sequence that evaluates the body only when accessed.
 
   Example:
     (defn my-range [n]
@@ -1613,21 +1780,11 @@ Calling the `and` function without arguments returns true."
             (fn [] ,@body)))
 
 (defmacro lazy-cat
-  "Concatenates the supplied collections into a lazy sequence.
-
-  Note: This macro simply expands to `concat`, so all arguments are evaluated
-  eagerly before concatenation. It is suitable for combining already-realized
-  or finite lazy sequences, but NOT for building recursive infinite sequences.
-
-  For recursive infinite sequences, use `cons` within `lazy-seq` instead.
+  "Concatenates collections into a lazy sequence (expands to concat).
 
   Example:
-    (lazy-cat [1 2] [3 4])           # => (1 2 3 4)
-    (lazy-cat (range 3) (range 3 6)) # => (0 1 2 3 4 5)
-
-    # For recursive sequences, use cons:
-    (defn ints [n] (lazy-seq (cons n (ints (inc n)))))
-    (take 5 (ints 0))  # => [0 1 2 3 4]"
+    (lazy-cat [1 2] [3 4])
+    # => (1 2 3 4)"
   [& colls]
   (apply list 'concat colls))
 
@@ -1644,11 +1801,11 @@ Calling the `and` function without arguments returns true."
     (lazy-seq-from-generator (php/:: Generators (cycle coll)))))
 
 (def concat
-  "Concatenates multiple sequential data structures. Returns a lazy sequence.
+  "Concatenates multiple collections into a lazy sequence.
 
-  When given no arguments, returns an empty list.
-  When given one or more collections, lazily yields all elements from each in order.
-  Works with infinite sequences."
+  Example:
+    (concat [1 2] [3 4])
+    # => (1 2 3 4)"
   (fn [& colls]
     (if (php/=== nil colls)
       '()
@@ -1732,9 +1889,10 @@ Calling the `and` function without arguments returns true."
 
 (defn doall
   "Forces realization of a lazy sequence and returns it as a vector.
-  Useful when you need to force side effects or ensure computation happens immediately.
 
-  Example: (doall (map println [1 2 3])) ; ensures println executes"
+  Example:
+    (doall (map println [1 2 3]))
+    # => [nil nil nil]"
   [coll]
   (if (php/instanceof coll LazySeqInterface)
     (let [arr (php/-> coll (toArray))]
@@ -1744,10 +1902,11 @@ Calling the `and` function without arguments returns true."
     coll))
 
 (defn dorun
-  "Forces realization of a lazy sequence for side effects only, returns nil.
-  More efficient than doall when you don't need the results.
+  "Forces realization of a lazy sequence for side effects, returns nil.
 
-  Example: (dorun (map println [1 2 3])) ; ensures println executes, returns nil"
+  Example:
+    (dorun (map println [1 2 3]))
+    # => nil"
   [coll]
   (if (php/instanceof coll LazySeqInterface)
     (do
@@ -1757,9 +1916,10 @@ Calling the `and` function without arguments returns true."
 
 (defn realized?
   "Returns true if a lazy sequence has been realized, false otherwise.
-  Non-lazy collections (vectors, lists, etc.) always return true.
 
-  Example: (realized? (take 5 (iterate inc 1))) ; => false initially"
+  Example:
+    (realized? (take 5 (iterate inc 1)))
+    # => false"
   [coll]
   (if (php/instanceof coll LazySeqInterface)
     (php/-> coll (isRealized))
@@ -1845,12 +2005,11 @@ Calling the `and` function without arguments returns true."
     true (lazy-seq-from-generator (php/:: Generators (dedupe coll)))))
 
 (defn partition
-  "Partitions a collection into chunks of size n. Returns a lazy sequence.
+  "Partitions collection into chunks of size n, dropping incomplete final partition.
 
-  Only yields complete partitions. If the final partition has fewer than n elements,
-  it is dropped. Works with infinite sequences.
-
-  Example: (partition 3 [1 2 3 4 5 6 7]) ; => ([1 2 3] [4 5 6])"
+  Example:
+    (partition 3 [1 2 3 4 5 6 7])
+    # => ([1 2 3] [4 5 6])"
   [n coll]
   (let [result (lazy-seq-from-generator
                 (php/call_user_func_array
@@ -1861,12 +2020,11 @@ Calling the `and` function without arguments returns true."
       (with-meta coll result))))
 
 (defn partition-all
-  "Partitions a collection into chunks of size n. Returns a lazy sequence.
+  "Partitions collection into chunks of size n, including incomplete final partition.
 
-  Yields all partitions including the final incomplete partition if present.
-  Works with infinite sequences.
-
-  Example: (partition-all 3 [1 2 3 4 5 6 7]) ; => ([1 2 3] [4 5 6] [7])"
+  Example:
+    (partition-all 3 [1 2 3 4 5 6 7])
+    # => ([1 2 3] [4 5 6] [7])"
   [n coll]
   (let [result (lazy-seq-from-generator
                 (php/call_user_func_array
@@ -2011,12 +2169,11 @@ Calling the `and` function without arguments returns true."
         (with-meta root (persistent ret))))))
 
 (defn flatten
-  "Takes a nested sequential data structure (tree) and returns a lazy sequence of all leaf values.
+  "Flattens nested sequential structure into a lazy sequence of all leaf values.
 
-  Walks the tree structure and yields all non-indexed (scalar) values.
-  Returns a lazy sequence that works with infinite nested structures.
-
-  Example: (flatten [[1 2] [3 [4 5]] 6]) ; => (1 2 3 4 5 6)"
+  Example:
+    (flatten [[1 2] [3 [4 5]] 6])
+    # => (1 2 3 4 5 6)"
   [coll]
   (filter
    (complement indexed?)
@@ -2388,16 +2545,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     content))
 
 (defn slurp
-  "Reads entire file or URL into a string. Accepts both file paths and URLs
-  (http://, https://, ftp://). Accepts `opts` map for overriding default
-  PHP file_get_contents arguments.
+  "Reads entire file or URL into a string.
 
-  Examples:
+  Example:
     (slurp \"file.txt\")
-    (slurp \"https://example.com/data.txt\")
-    (slurp \"file.txt\" {:encoding \"UTF-8\"})
-
-  See PHP's [file_get_contents](https://www.php.net/manual/en/function.file-get-contents.php) for more information."
+    # => \"file contents\""
   [path & [opts]]
   (let [is-url? (php/preg_match "/^(https?|ftp):\/\//i" path)]
     # Validate for non-URLs
@@ -2439,13 +2591,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (when (int? result) result)))
 
 (defn line-seq
-  "Returns a lazy sequence of lines from a file. Each line is a string with
-  line endings removed. The file is read lazily and the file handle is
-  automatically closed when the sequence is fully consumed or if an error occurs.
+  "Returns a lazy sequence of lines from a file.
 
-  Works with infinite sequences like tailable log files or named pipes.
-
-  Example: (take 10 (line-seq \"large-file.txt\"))"
+  Example:
+    (take 10 (line-seq \"large-file.txt\"))
+    # => [\"line1\" \"line2\" ...]"
   [filename]
   (let [result (lazy-seq-from-generator
                 (php/call_user_func_array
@@ -2457,13 +2607,10 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 
 (defn file-seq
   "Returns a lazy sequence of all files and directories in a directory tree.
-  Walks the directory recursively, yielding paths as strings. If given a file
-  path, returns a sequence containing just that file.
 
-  The sequence includes both files and directories. Follows symbolic links but
-  tracks visited inodes to prevent infinite cycles.
-
-  Example: (filter |(php/str_ends_with $ \".phel\") (file-seq \"src/\"))"
+  Example:
+    (filter |(php/str_ends_with $ \".phel\") (file-seq \"src/\"))
+    # => [\"src/file1.phel\" \"src/file2.phel\" ...]"
   [path]
   (let [result (lazy-seq-from-generator
                 (php/call_user_func_array
@@ -2474,18 +2621,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
       result)))
 
 (defn read-file-lazy
-  "Returns a lazy sequence of byte string chunks from a file. The file is read
-  in chunks of the specified size (default 8192 bytes). The file handle is
-  automatically closed when the sequence is fully consumed or if an error occurs.
+  "Returns a lazy sequence of byte chunks from a file.
 
-  Useful for processing large binary files, streaming file content, or reading
-  files where line-based processing doesn't make sense.
-
-  The optional chunk-size parameter controls how many bytes to read at a time.
-  Smaller chunks use less memory but make more system calls; larger chunks are
-  more efficient but use more memory.
-
-  Example: (take 5 (read-file-lazy \"large-file.bin\" 1024))"
+  Example:
+    (take 5 (read-file-lazy \"large-file.bin\" 1024))
+    # => [\"chunk1\" \"chunk2\" ...]"
   ([filename]
    (read-file-lazy filename 8192))
   ([filename chunk-size]
@@ -2498,20 +2638,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
        result))))
 
 (defn csv-seq
-  "Returns a lazy sequence of rows from a CSV file. Each row is a tuple (vector)
-  of string values. The file is read lazily and the file handle is automatically
-  closed when the sequence is fully consumed or if an error occurs.
+  "Returns a lazy sequence of rows from a CSV file.
 
-  Supports optional parameters for custom CSV formats:
-  - separator: field delimiter (default: ',')
-  - enclosure: quote character (default: '\"')
-  - escape: escape character (default: '\\\\')
-
-  Works with RFC 4180 compliant CSV files and handles quoted fields, embedded
-  commas, and newlines within quoted fields.
-
-  Example: (take 10 (csv-seq \"data.csv\"))
-  Example: (csv-seq \"data.tsv\" {:separator \"\\t\"})"
+  Example:
+    (take 10 (csv-seq \"data.csv\"))
+    # => [[\"col1\" \"col2\"] [\"val1\" \"val2\"] ...]"
   ([filename]
    (csv-seq filename {}))
   ([filename options]

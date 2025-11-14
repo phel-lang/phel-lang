@@ -30,7 +30,13 @@
 (defn- should-report-println? [total-columns]
   (= (% (get-in (deref stats) [:counts :total]) total-columns) 0))
 
-(defn report [data]
+(defn report
+  "Records test results and prints status indicators.
+
+  Example:
+    (report {:state :pass})
+    # Prints: ."
+  [data]
   (let [{:state state :type type} data
         ok (= state :pass)
         total-columns 80]
@@ -181,7 +187,11 @@
     (assert-any form message)))
 
 (defmacro is
-  "Generic assertion macro."
+  "Asserts that an expression is true.
+
+  Example:
+    (is (= 4 (+ 2 2)))
+    # Passes if equal"
   [form & [message]]
   (let [loc (location form) e (gensym)]
     `(try ,(assert-expr form message)
@@ -197,7 +207,11 @@
 # --------------
 
 (defmacro deftest
-  "Defines a test function with no arguments."
+  "Defines a test function.
+
+  Example:
+    (deftest test-add
+      (is (= 4 (+ 2 2))))"
   [test-name & body]
   `(defn ,test-name {:test true :test-name ,(name test-name)} []
      (binding [*current-test-name* ,(name test-name)]
@@ -287,7 +301,11 @@
     :failed (print-failure data)))
 
 (defn print-summary
-  "Prints the summary of the test suite."
+  "Prints test results summary.
+
+  Example:
+    (print-summary)
+    # Prints: Passed: 10, Failed: 2"
   []
   (println)
   (println)
@@ -323,7 +341,11 @@
       (test))))
 
 (defn run-tests
-  "Runs all test functions in the given namespaces."
+  "Runs all tests in the given namespaces.
+
+  Example:
+    (run-tests {} 'my-app\test)
+    # Runs all tests"
   [options & namespaces]
   (set! testdox? (:testdox options))
   (dofor [namespace :in namespaces
@@ -332,7 +354,11 @@
   (print-summary))
 
 (defn successful?
-  "Checks if all tests have passed."
+  "Checks if all tests passed.
+
+  Example:
+    (successful?)
+    # => true"
   []
   (let [{:failed failed :error error} (get (deref stats) :counts)]
     (zero? (+ failed error))))

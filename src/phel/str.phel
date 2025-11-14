@@ -3,22 +3,30 @@
   (:use InvalidArgumentException))
 
 (defn split
-  "Splits string on a regular expression.  Optional argument limit is
-  the maximum number of parts. Not lazy. Returns vector of the parts.
-  Trailing empty strings are not returned - pass limit of -1 to return all."
+  "Splits string on a regular expression, returning a vector of parts.
+
+  Example:
+    (split \"hello world foo bar\" #\"\\s+\")
+    # => [\"hello\" \"world\" \"foo\" \"bar\"]"
   [s re & [limit]]
   (values (php/preg_split re s (or limit -1))))
 
 (defn join
-  "Returns a string of all elements in coll, as returned by (seq coll),
-   separated by an optional separator."
+  "Returns a string of all elements in coll, separated by an optional separator.
+
+  Example:
+    (join \", \" [\"apple\" \"banana\" \"cherry\"])
+    # => \"apple, banana, cherry\""
   [separator & [coll]]
   (let [[coll separator] (if (nil? coll) [separator ""] [coll separator])]
     (php/implode separator (to-php-array coll))))
 
 (defn subs
-  "Returns the substring of `s` from `start` (inclusive) to `end` (exclusive).
-   If `end` is omitted, the substring extends to the end of `s`."
+  "Returns the substring of s from start (inclusive) to end (exclusive).
+
+  Example:
+    (subs \"hello world\" 0 5)
+    # => \"hello\""
   [s start & [end]]
   (let [len (php/mb_strlen s)
         end (or end len)]
@@ -27,34 +35,30 @@
     (php/mb_substr s start (- end start))))
 
 (defn reverse
-  "Returns s with its characters reversed."
+  "Returns s with its characters reversed.
+
+  Example:
+    (reverse \"hello\")
+    # => \"olleh\""
   [s]
   (let [chars (php/mb_str_split s)]
     (join (core/reverse chars))))
 
 (defn repeat
-  "Returns a string containing n copies of s."
+  "Returns a string containing n copies of s.
+
+  Example:
+    (repeat \"ha\" 3)
+    # => \"hahaha\""
   [s n]
   (php/str_repeat s n))
 
 (defn replace
-  "Replaces all instance of match with replacement in s.
+  "Replaces all instances of match with replacement in s.
 
-   match/replacement can be:
-
-   string / string
-   pattern / (string or function of match).
-
-   See also replace-first.
-
-   The replacement is literal (i.e. none of its characters are treated
-   specially) for all cases above except pattern / string.
-
-   For pattern / string, $1, $2, etc. in the replacement string are
-   substituted with the string that matched the corresponding
-   parenthesized group in the pattern.  If you wish your replacement
-   string r to be used literally, use (re-quote-replacement r) as the
-   replacement argument."
+  Example:
+    (replace \"hello world\" \"world\" \"there\")
+    # => \"hello there\""
   [s match replacement]
   (let [match (if (and
                    (> (php/mb_strlen match) 1)
@@ -72,27 +76,9 @@
 (defn replace-first
   "Replaces the first instance of match with replacement in s.
 
-   match/replacement can be:
-
-   char / char
-   string / string
-   pattern / (string or function of match).
-
-   See also replace.
-
-   The replacement is literal (i.e. none of its characters are treated
-   specially) for all cases above except pattern / string.
-
-   For pattern / string, $1, $2, etc. in the replacement string are
-   substituted with the string that matched the corresponding
-   parenthesized group in the pattern.  If you wish your replacement
-   string r to be used literally, use (re-quote-replacement r) as the
-   replacement argument.
-
-   Example:
-   (str/replace-first \"swap first two words\"
-                                 #\"(\\w+)(\\s+)(\\w+)\" \"$3$2$1\")
-   -> \"first swap two words\""
+  Example:
+    (replace-first \"hello world world\" \"world\" \"there\")
+    # => \"hello there world\""
   [s match replacement]
   (let [match (if (and
                    (> (php/mb_strlen match) 1)
@@ -108,8 +94,11 @@
       (php/preg_replace match replacement s 1))))
 
 (defn trim-newline
-  "Removes all trailing newline \\n or return \\r characters from
-  string.  Similar to Perl's chomp."
+  "Removes all trailing newline or return characters from string.
+
+  Example:
+    (trim-newline \"hello\\n\\n\")
+    # => \"hello\""
   [s]
   (loop [index (php/mb_strlen s)]
     (if (zero? index)
@@ -120,8 +109,11 @@
           (php/mb_substr s 0 index))))))
 
 (defn capitalize
-  "Converts first character of the string to upper-case, all other
-  characters to lower-case. Handles multibyte characters."
+  "Converts first character to upper-case and all other characters to lower-case.
+
+  Example:
+    (capitalize \"hELLO wORLD\")
+    # => \"Hello world\""
   [s]
   (let [first-char (php/mb_substr s 0 1)
         rest (php/mb_substr s 1)]
@@ -129,12 +121,20 @@
          (php/mb_strtolower rest))))
 
 (defn lower-case
-  "Converts string to all lower-case. Handles multibyte characters."
+  "Converts string to all lower-case.
+
+  Example:
+    (lower-case \"HELLO World\")
+    # => \"hello world\""
   [s]
   (php/mb_strtolower s))
 
 (defn upper-case
-  "Converts string to all upper-case. Handles multibyte characters."
+  "Converts string to all upper-case.
+
+  Example:
+    (upper-case \"hello World\")
+    # => \"HELLO WORLD\""
   [s]
   (php/mb_strtoupper s))
 
@@ -186,18 +186,20 @@
   (php/str_contains s substr))
 
 (defn re-quote-replacement
-  "Given a replacement string that you wish to be a literal
-   replacement for a pattern match in replace or replace-first, do the
-   necessary escaping of special characters in the replacement."
+  "Escapes special characters in a replacement string for literal use.
+
+  Example:
+    (re-quote-replacement \"$1.00\")
+    # => \"\\$1.00\""
   [replacement]
   (php/preg_replace "/([\\\$])/" "\$1" replacement))
 
 (defn escape
-  "Return a new string, using cmap to escape each character ch
-   from s as follows:
+  "Returns a new string with each character escaped according to cmap.
 
-   If (cmap ch) is nil, append ch to the new string.
-   If (cmap ch) is non-nil, append (str (cmap ch)) instead."
+  Example:
+    (escape \"hello\" {\"h\" \"H\" \"o\" \"O\"})
+    # => \"HellO\""
   [s cmap]
   (loop [index 0
          buffer ""]
@@ -208,8 +210,11 @@
           (recur (inc index) (format "%s%s" buffer ch)))))))
 
 (defn index-of
-  "Return index of value (string or char) in s, optionally searching
-  forward from from-index. Return nil if value not found."
+  "Returns the index of value in s, or nil if not found.
+
+  Example:
+    (index-of \"hello world\" \"world\")
+    # => 6"
   [s value & [from-index]]
   (let [from-index (or from-index 0)
         from-index (let [abs (php/abs from-index)
@@ -223,8 +228,11 @@
       result)))
 
 (defn last-index-of
-  "Return last index of value (string or char) in s, optionally
-  searching backward from from-index. Return nil if value not found."
+  "Returns the last index of value in s, or nil if not found.
+
+  Example:
+    (last-index-of \"hello world world\" \"world\")
+    # => 12"
   [s value & [from-index]]
   (let [max-index (dec (php/mb_strlen s))
         from-index (or from-index max-index)
@@ -249,19 +257,28 @@
   (split s "/\\r?\\n/"))
 
 (defn pad-left
-  "Returns a string padded on the left side to length `len`.
-   If `pad-str` is omitted it defaults to a single space."
+  "Returns a string padded on the left side to length len.
+
+  Example:
+    (pad-left \"hello\" 10)
+    # => \"     hello\""
   [s len & [pad-str]]
   (php/str_pad s len (or pad-str " ") php/STR_PAD_LEFT))
 
 (defn pad-right
-  "Returns a string padded on the right side to length `len`.
-   If `pad-str` is omitted it defaults to a single space."
+  "Returns a string padded on the right side to length len.
+
+  Example:
+    (pad-right \"hello\" 10)
+    # => \"hello     \""
   [s len & [pad-str]]
   (php/str_pad s len (or pad-str " ") php/STR_PAD_RIGHT))
 
 (defn pad-both
-  "Returns a string padded on both sides to length `len`.
-   If `pad-str` is omitted it defaults to a single space."
+  "Returns a string padded on both sides to length len.
+
+  Example:
+    (pad-both \"hello\" 11)
+    # => \"   hello   \""
   [s len & [pad-str]]
   (php/str_pad s len (or pad-str " ") php/STR_PAD_BOTH))

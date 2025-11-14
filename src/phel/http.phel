@@ -51,7 +51,11 @@
       [server-name server-port])))
 
 (defn uri-from-globals
-  "Extracts the URI from the `$_SERVER` variable."
+  "Extracts the URI from the `$_SERVER` variable.
+
+  Example:
+    (uri-from-globals)
+    # => (uri \"https\" nil \"example.com\" 443 \"/path\" \"foo=bar\" nil)"
   [& [server]]
   (let [server (or server php/$_SERVER)
         scheme (cond
@@ -74,7 +78,11 @@
    url))
 
 (defn uri-from-string
-  "Create a uri struct from a string"
+  "Create a uri struct from a string.
+
+  Example:
+    (uri-from-string \"https://example.com/path?foo=bar\")
+    # => (uri \"https\" nil \"example.com\" nil \"/path\" \"foo=bar\" nil)"
   [url]
   (let [matches (php/array)
         [prefix url] (if (one? (php/preg_match "%^(.*://\\[[0-9:a-f]+\\])(.*?)$%" url matches))
@@ -141,7 +149,11 @@
     (persistent res)))
 
 (defn files-from-globals
-  "Extracts the files from `$_FILES` and normalizes them to a map of \"uploaded-file\"."
+  "Extracts the files from `$_FILES` and normalizes them to a map of \"uploaded-file\".
+
+  Example:
+    (files-from-globals)
+    # => {:avatar (uploaded-file \"/tmp/phpYzdqkD\" 1024 0 \"photo.jpg\" \"image/jpeg\")}"
   [& [files]]
   (normalize-files (or files php/$_FILES)))
 
@@ -150,7 +162,11 @@
 # -------
 
 (defn headers-from-server
-  "Extracts all headers from the `$_SERVER` variable."
+  "Extracts all headers from the `$_SERVER` variable.
+
+  Example:
+    (headers-from-server)
+    # => {:host \"example.com\" :content-type \"application/json\"}"
   [& [server]]
   (let [headers (transient {})
         server (or server php/$_SERVER)]
@@ -201,7 +217,11 @@
      (php/in_array types (php/array "application/x-www-form-urlencoded" "multipart/form-data")))))
 
 (defn request-from-globals-args
-  "Extracts a request from args."
+  "Extracts a request from args.
+
+  Example:
+    (request-from-globals-args php/$_SERVER php/$_GET php/$_POST php/$_COOKIE php/$_FILES)
+    # => (request \"GET\" (uri ...) {...} nil {...} {...} {...} {...} \"1.1\" {})"
   [server get-parameter post-parameter cookies files]
   (let [method (get-method-from-globals server)
         uri (uri-from-globals server)
@@ -223,11 +243,20 @@
      {})))
 
 (defn request-from-globals
-  "Extracts a request from `$_SERVER`, `$_GET`, `$_POST`, `$_COOKIE` and `$_FILES`."
+  "Extracts a request from `$_SERVER`, `$_GET`, `$_POST`, `$_COOKIE` and `$_FILES`.
+
+  Example:
+    (request-from-globals)
+    # => (request \"GET\" (uri ...) {...} nil {...} {...} {...} {...} \"1.1\" {})"
   []
   (request-from-globals-args php/$_SERVER php/$_GET php/$_POST php/$_COOKIE php/$_FILES))
 
 (defn request-from-map
+  "Creates a request struct from a map with optional keys :method, :uri, :headers, etc.
+
+  Example:
+    (request-from-map {:method \"POST\" :uri \"https://api.example.com/users\"})
+    # => (request \"POST\" (uri ...) {} nil {} {} {} [] \"1.1\" {})"
   [{:method method
     :uri uri
     :headers headers
@@ -324,12 +353,11 @@
                         511 "Network Authentication Required"})
 
 (defn response-from-map
-  "Creates a response struct from a map. The map can have the following keys:
-  * `:status` The HTTP Status (default 200)
-  * `:headers` A map of HTTP Headers (default: empty map)
-  * `:body` The body of the response (default: empty string)
-  * `:version` The HTTP Version (default: 1.1)
-  * `:reason` The HTTP status reason. If not provided a common status reason is taken"
+  "Creates a response struct from a map with optional keys :status, :headers, :body, :version, and :reason.
+
+  Example:
+    (response-from-map {:status 200 :body \"Hello World\"})
+    # => (response 200 {} \"Hello World\" \"1.1\" \"OK\")"
   [{:status status :headers headers :body body :version version :reason reason}]
   (let [status (or status 200)
         headers (or headers {})
@@ -341,7 +369,11 @@
 (def create-response-from-map {:deprecated "Use response-from-map"} response-from-map)
 
 (defn response-from-string
-  "Create a response from a string."
+  "Create a response from a string.
+
+  Example:
+    (response-from-string \"Hello World\")
+    # => (response 200 {} \"Hello World\" \"1.1\" \"OK\")"
   [s]
   (create-response-from-map {:body s}))
 
@@ -387,7 +419,11 @@
           (php/header (php/sprintf "%s: %s" normalized-name (assert-no-crlf value)) replace status))))))
 
 (defn emit-response
-  "Emits the response."
+  "Emits the response by sending headers and outputting the body.
+
+  Example:
+    (emit-response (response-from-string \"Hello World\"))
+    # => nil"
   [response]
   (emit-status-line response)
   (emit-headers response)

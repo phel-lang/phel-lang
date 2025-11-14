@@ -2,17 +2,29 @@
   (:require phel\str :as s))
 
 (defn encode
-  "Returns the Base64 representation of `s`."
+  "Encodes a string to Base64.
+
+  Example:
+    (encode \"Hello\")
+    # => \"SGVsbG8=\""
   [s]
   (php/base64_encode s))
 
 (defn decode
-  "Decodes the Base64 encoded string `s`. If `strict?` is true invalid characters trigger an error."
+  "Decodes a Base64 string. Optional `strict?` flag validates characters.
+
+  Example:
+    (decode \"SGVsbG8=\")
+    # => \"Hello\""
   [s & [strict?]]
   (php/base64_decode s (or strict? false)))
 
 (defn encode-url
-  "Returns the URL safe Base64 representation of `s`. Padding is removed."
+  "Encodes a string to URL-safe Base64 (no padding).
+
+  Example:
+    (encode-url \"Hello\")
+    # => \"SGVsbG8\""
   [s]
   (-> (encode s)
       (s/replace "+" "-")
@@ -20,7 +32,11 @@
       (s/replace "=" "")))
 
 (defn decode-url
-  "Decodes a Base64 URL encoded string `s`. If `strict?` is true invalid characters trigger an error."
+  "Decodes a URL-safe Base64 string. Adds padding automatically.
+
+  Example:
+    (decode-url \"SGVsbG8\")
+    # => \"Hello\""
   [s & [strict?]]
   (let [s (s/replace s "-" "+")
         s (s/replace s "_" "/")
