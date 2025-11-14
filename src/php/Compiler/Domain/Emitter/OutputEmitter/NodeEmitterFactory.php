@@ -82,10 +82,31 @@ use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 
 final class NodeEmitterFactory
 {
+    /** @var array<string, NodeEmitterInterface> */
+    private array $emitterCache = [];
+
+    /** @var array<int, MethodEmitter> */
+    private array $methodEmitterCache = [];
+
     public function createNodeEmitter(
         OutputEmitterInterface $outputEmitter,
         string $astNodeClassName,
     ): NodeEmitterInterface {
+        $cacheKey = spl_object_id($outputEmitter) . ':' . $astNodeClassName;
+
+        if (!isset($this->emitterCache[$cacheKey])) {
+            $this->emitterCache[$cacheKey] = $this->instantiateEmitter($outputEmitter, $astNodeClassName);
+        }
+
+        return $this->emitterCache[$cacheKey];
+    }
+
+    private function instantiateEmitter(
+        OutputEmitterInterface $outputEmitter,
+        string $astNodeClassName,
+    ): NodeEmitterInterface {
+        $methodEmitter = $this->getMethodEmitter($outputEmitter);
+
         return match ($astNodeClassName) {
             NsNode::class => new NsEmitter($outputEmitter),
             InNsNode::class => new InNsEmitter($outputEmitter),
@@ -93,7 +114,7 @@ final class NodeEmitterFactory
             DefNode::class => new DefEmitter($outputEmitter),
             LiteralNode::class => new LiteralEmitter($outputEmitter),
             QuoteNode::class => new QuoteEmitter($outputEmitter),
-            FnNode::class => new FnAsClassEmitter($outputEmitter, new MethodEmitter($outputEmitter)),
+            FnNode::class => new FnAsClassEmitter($outputEmitter, $methodEmitter),
             DoNode::class => new DoEmitter($outputEmitter),
             LetNode::class => new LetEmitter($outputEmitter),
             LocalVarNode::class => new LocalVarEmitter($outputEmitter),
@@ -116,7 +137,7 @@ final class NodeEmitterFactory
             PhpClassNameNode::class => new PhpClassNameEmitter($outputEmitter),
             PhpArrayPushNode::class => new PhpArrayPushEmitter($outputEmitter),
             ForeachNode::class => new ForeachEmitter($outputEmitter),
-            DefStructNode::class => new DefStructEmitter($outputEmitter, new MethodEmitter($outputEmitter)),
+            DefStructNode::class => new DefStructEmitter($outputEmitter, $methodEmitter),
             DefExceptionNode::class => new DefExceptionEmitter($outputEmitter),
             PhpObjectSetNode::class => new PhpObjectSetEmitter($outputEmitter),
             MapNode::class => new MapEmitter($outputEmitter),
@@ -125,5 +146,16 @@ final class NodeEmitterFactory
             MultiFnNode::class => new MultiFnAsClassEmitter($outputEmitter),
             default => throw NotSupportedAstException::withClassName($astNodeClassName),
         };
+    }
+
+    private function getMethodEmitter(OutputEmitterInterface $outputEmitter): MethodEmitter
+    {
+        $key = spl_object_id($outputEmitter);
+
+        if (!isset($this->methodEmitterCache[$key])) {
+            $this->methodEmitterCache[$key] = new MethodEmitter($outputEmitter);
+        }
+
+        return $this->methodEmitterCache[$key];
     }
 }
