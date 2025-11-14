@@ -1594,6 +1594,43 @@ Calling the `and` function without arguments returns true."
         (for [i :range [n]] (f)))
     (throw (php/new InvalidArgumentException "repeatedly expects one or two arguments"))))
 
+(defmacro lazy-seq
+  "Takes a body of expressions that returns a sequence or nil, and yields
+  a LazySeq that will invoke the body only the first time the sequence is accessed,
+  caching the result for subsequent accesses.
+
+  This is the fundamental building block for creating custom lazy sequences.
+  The body should return either a sequence (list, vector, or another lazy-seq) or nil.
+
+  Example:
+    (defn my-range [n]
+      (when (> n 0)
+        (lazy-seq (cons n (my-range (dec n))))))"
+  [& body]
+  `(php/new \Phel\Lang\Collections\LazySeq\LazySeq
+            (php/new \Phel\Lang\Hasher)
+            (php/new \Phel\Lang\Equalizer)
+            (fn [] ,@body)))
+
+(defmacro lazy-cat
+  "Concatenates the supplied collections into a lazy sequence.
+
+  Note: This macro simply expands to `concat`, so all arguments are evaluated
+  eagerly before concatenation. It is suitable for combining already-realized
+  or finite lazy sequences, but NOT for building recursive infinite sequences.
+
+  For recursive infinite sequences, use `cons` within `lazy-seq` instead.
+
+  Example:
+    (lazy-cat [1 2] [3 4])           # => (1 2 3 4)
+    (lazy-cat (range 3) (range 3 6)) # => (0 1 2 3 4 5)
+
+    # For recursive sequences, use cons:
+    (defn ints [n] (lazy-seq (cons n (ints (inc n)))))
+    (take 5 (ints 0))  # => [0 1 2 3 4]"
+  [& colls]
+  (apply list 'concat colls))
+
 (defn iterate
   "Returns an infinite lazy sequence of x, (f x), (f (f x)), and so on."
   [f x]

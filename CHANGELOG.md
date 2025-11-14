@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
-- Add mocking framework in `phel\mock` namespace for test doubles
+- Add a mocking framework in `phel\mock` namespace for test doubles
 - Add URL support to `slurp` function (http://, https://, ftp://)
 - Add `partition-all` for lazy partitioning with support for infinite sequences
 - Add `line-seq` for lazy line-by-line file reading with automatic resource cleanup
@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - Add `read-file-lazy` for lazy chunked file reading
 - Add `csv-seq` for lazy CSV parsing
 - Make `concat`, `mapcat`, `interpose`, `map-indexed`, `interleave`, variadic `map`, and `partition` fully lazy with infinite sequence support
+- Add `lazy-seq` and `lazy-cat` macros for user-defined lazy sequences
 
 ### Changed
 - Rename collection parameters from `xs` to `coll` throughout core functions

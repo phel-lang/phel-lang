@@ -677,3 +677,155 @@
   (let [result (partition-all 2 [1 2 3 4 5])]
     (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
         "partition-all should return a lazy sequence")))
+
+# Helper functions for lazy-seq tests
+(defn my-range [n]
+  (when (> n 0)
+    (lazy-seq (cons n (my-range (dec n))))))
+
+(defn naturals [n]
+  (lazy-seq (cons n (naturals (inc n)))))
+
+(defn fib-seq
+  ([] (fib-seq 0 1))
+  ([a b] (lazy-seq (cons a (fib-seq b (+ a b))))))
+
+# Tests for lazy-seq macro
+(deftest test-lazy-seq-basic
+  (is (= [1 2 3] (doall (lazy-seq [1 2 3])))
+      "lazy-seq should wrap a simple vector"))
+
+(deftest test-lazy-seq-returns-lazy-seq
+  (let [result (lazy-seq [1 2 3])]
+    (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeq))
+        "lazy-seq should return a LazySeq instance")))
+
+(deftest test-lazy-seq-defers-evaluation
+  (let [side-effect (var 0)
+        lazy-result (lazy-seq (do (swap! side-effect inc) [1 2 3]))]
+    (is (= 0 (deref side-effect)) "lazy-seq should not evaluate body immediately")
+    (first lazy-result)
+    (is (= 1 (deref side-effect)) "lazy-seq should evaluate body when accessed")))
+
+(deftest test-lazy-seq-caches-result
+  (let [side-effect (var 0)
+        lazy-result (lazy-seq (do (swap! side-effect inc) [1 2 3]))]
+    (doall lazy-result)
+    (is (= 1 (deref side-effect)) "lazy-seq should evaluate once")
+    (doall lazy-result)
+    (is (= 1 (deref side-effect)) "lazy-seq should cache result and not re-evaluate")))
+
+(deftest test-lazy-seq-with-nil
+  (is (= nil (doall (lazy-seq nil)))
+      "lazy-seq with nil should return nil"))
+
+(deftest test-lazy-seq-recursive-range
+  (is (= [5 4 3 2 1] (doall (my-range 5)))
+      "lazy-seq should work in recursive functions"))
+
+(deftest test-lazy-seq-infinite-naturals
+  (is (= [0 1 2 3 4] (take 5 (naturals 0)))
+      "lazy-seq should support infinite sequences"))
+
+(deftest test-lazy-seq-fibonacci
+  (is (= [0 1 1 2 3 5 8 13] (take 8 (fib-seq)))
+      "lazy-seq should work for fibonacci sequence"))
+
+(deftest test-lazy-seq-with-cons
+  (let [result (lazy-seq (cons 1 (cons 2 (cons 3 nil))))]
+    (is (= 1 (first result)) "first element should be 1")
+    (is (= 2 (first (rest result))) "second element should be 2")
+    (is (= 3 (first (rest (rest result)))) "third element should be 3")))
+
+(deftest test-lazy-seq-empty-collection
+  (is (= nil (doall (lazy-seq [])))
+      "lazy-seq with empty vector should return nil"))
+
+(deftest test-lazy-seq-single-element
+  (is (= [42] (doall (lazy-seq [42])))
+      "lazy-seq with single element should work"))
+
+(deftest test-lazy-seq-with-list
+  (is (= [1 2 3] (doall (lazy-seq '(1 2 3))))
+      "lazy-seq should work with lists"))
+
+(deftest test-lazy-seq-nested
+  (is (= [1 2 3 4] (doall (lazy-seq (lazy-seq [1 2 3 4]))))
+      "nested lazy-seq should work correctly"))
+
+# Tests for lazy-cat macro
+(deftest test-lazy-cat-basic
+  (is (= [1 2 3 4 5 6] (doall (lazy-cat [1 2 3] [4 5 6])))
+      "lazy-cat should concatenate two vectors"))
+
+(deftest test-lazy-cat-returns-lazy-seq
+  (let [result (lazy-cat [1 2] [3 4])]
+    (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+        "lazy-cat should return a lazy sequence")))
+
+(deftest test-lazy-cat-three-collections
+  (is (= [1 2 3 4 5 6 7 8 9] (doall (lazy-cat [1 2 3] [4 5 6] [7 8 9])))
+      "lazy-cat should concatenate three collections"))
+
+(deftest test-lazy-cat-with-empty-collections
+  (is (= [1 2 3] (doall (lazy-cat [] [1 2 3] [])))
+      "lazy-cat should handle empty collections"))
+
+(deftest test-lazy-cat-single-collection
+  (is (= [1 2 3] (doall (lazy-cat [1 2 3])))
+      "lazy-cat with single collection should return that collection"))
+
+(deftest test-lazy-cat-no-arguments
+  (is (= [] (doall (lazy-cat)))
+      "lazy-cat with no arguments should return empty"))
+
+(deftest test-lazy-cat-with-lazy-seqs
+  (is (= [0 1 2 3 4 5 6 7] (take 8 (lazy-cat (range 5) (range 5 10))))
+      "lazy-cat should work with lazy sequences"))
+
+(deftest test-lazy-cat-infinite-sequences
+  (is (= [1 1 1 0 1 2 3 4] (take 8 (lazy-cat (repeat 3 1) (iterate inc 0))))
+      "lazy-cat should work with infinite sequences"))
+
+(deftest test-lazy-cat-with-lists
+  (is (= [1 2 3 4 5 6] (doall (lazy-cat '(1 2 3) '(4 5 6))))
+      "lazy-cat should work with lists"))
+
+(deftest test-lazy-cat-mixed-types
+  (is (= [1 2 3 4 5 6] (doall (lazy-cat [1 2] '(3 4) [5 6])))
+      "lazy-cat should work with mixed collection types"))
+
+(deftest test-lazy-cat-with-take
+  (is (= [1 2 3 4 5] (take 5 (lazy-cat [1 2 3] [4 5 6 7 8])))
+      "lazy-cat should work with take"))
+
+(deftest test-lazy-cat-with-nil-result
+  (is (= [1 2] (doall (lazy-cat [1 2] nil)))
+      "lazy-cat should handle nil as empty"))
+
+(deftest test-lazy-cat-with-range
+  (is (= [0 1 2 3 4 5 6 7 8 9] (doall (lazy-cat (range 5) (range 5 10))))
+      "lazy-cat should work with range function"))
+
+(deftest test-lazy-cat-composition
+  (is (= [1 2 3 4 5 6 7 8 9]
+         (doall (lazy-cat (take 3 (range 1 10))
+                         (take 3 (range 4 10))
+                         (take 3 (range 7 10)))))
+      "lazy-cat should compose with other lazy operations"))
+
+(defn- test-ints [n]
+  (lazy-seq (cons n (test-ints (inc n)))))
+
+(deftest test-lazy-seq-cons-recursion
+  (is (= [0 1 2 3 4] (take 5 (test-ints 0)))
+      "lazy-seq with cons should work for recursive infinite sequences")
+  (is (= [10 11 12] (take 3 (test-ints 10)))
+      "lazy-seq recursive sequences should work from any starting point"))
+
+(deftest test-lazy-cat-with-finite-sequences
+  (is (= [0 1 2 10 11 12] (lazy-cat (take 3 (range 100)) (take 3 (range 10 20))))
+      "lazy-cat should work with finite lazy sequences")
+  (is (= [1 2 3 4 5 6] (lazy-cat [1 2 3] [4 5 6]))
+      "lazy-cat should work with vectors"))
+
