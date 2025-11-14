@@ -1613,19 +1613,21 @@ Calling the `and` function without arguments returns true."
             (fn [] ,@body)))
 
 (defmacro lazy-cat
-  "Returns a lazy sequence representing the concatenation of the elements in the supplied colls.
+  "Concatenates the supplied collections into a lazy sequence.
 
-  Being a macro (rather than a function), lazy-cat provides a convenient syntax for lazy
-  concatenation. Note: For recursive infinite sequences, wrap the entire lazy-cat expression
-  in lazy-seq to prevent stack overflow.
+  Note: This macro simply expands to `concat`, so all arguments are evaluated
+  eagerly before concatenation. It is suitable for combining already-realized
+  or finite lazy sequences, but NOT for building recursive infinite sequences.
+
+  For recursive infinite sequences, use `cons` within `lazy-seq` instead.
 
   Example:
-    (lazy-cat [1 2] [3 4] [5 6])  => (1 2 3 4 5 6)
-    (lazy-cat (range 3) (range 3 6))  => (0 1 2 3 4 5)
+    (lazy-cat [1 2] [3 4])           # => (1 2 3 4)
+    (lazy-cat (range 3) (range 3 6)) # => (0 1 2 3 4 5)
 
-    # For recursive definitions, wrap in lazy-seq:
-    (defn ints [n] (lazy-seq (lazy-cat [n] (ints (inc n)))))
-    (take 5 (ints 0))  => [0 1 2 3 4]"
+    # For recursive sequences, use cons:
+    (defn ints [n] (lazy-seq (cons n (ints (inc n)))))
+    (take 5 (ints 0))  # => [0 1 2 3 4]"
   [& colls]
   (apply list 'concat colls))
 
