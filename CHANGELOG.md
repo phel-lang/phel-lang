@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - Rename collection parameters from `xs` to `coll` throughout core functions
 - Make `assoc`/`dissoc` primary functions with `put`/`unset` as deprecated aliases
 - Improve docblocks with examples for core library functions across all namespaces
+- Optimize compilation pipeline with multi-level caching (~25-35% faster compilation, ~10% less memory usage)
 
 ### Fixed
 - Fix `into` to work correctly with `PersistentList` and other `ConcatInterface` types that don't implement `PushInterface`
