@@ -30,7 +30,19 @@
 (defn- should-report-println? [total-columns]
   (= (% (get-in (deref stats) [:counts :total]) total-columns) 0))
 
-(defn report [data]
+(defn report
+  "Records test results and prints status indicators.
+
+  Called internally by test assertions to track passes, failures, and errors.
+  Updates global test statistics and prints progress indicators.
+
+  Example:
+    (report {:state :pass :type :binary :message \"test passed\"})
+    # Prints: .
+
+    (report {:state :failed :type :predicate :message \"test failed\"})
+    # Prints: F"
+  [data]
   (let [{:state state :type type} data
         ok (= state :pass)
         total-columns 80]
@@ -181,7 +193,26 @@
     (assert-any form message)))
 
 (defmacro is
-  "Generic assertion macro."
+  "Generic assertion macro for testing.
+
+  Evaluates the form and reports success or failure. Supports various assertion patterns:
+  - Binary predicates: (= expected actual)
+  - Unary predicates: (even? value)
+  - Negation: (not (= x y))
+  - Exception throwing: (thrown? ExceptionType (code))
+
+  Examples:
+    (is (= 4 (+ 2 2)))
+    # Passes if (+ 2 2) equals 4
+
+    (is (even? 4) \"checking evenness\")
+    # Passes with custom message
+
+    (is (not (= 3 4)))
+    # Passes if values are not equal
+
+    (is (thrown? \InvalidArgumentException (throw (php/new \InvalidArgumentException))))
+    # Passes if exception is thrown"
   [form & [message]]
   (let [loc (location form) e (gensym)]
     `(try ,(assert-expr form message)
@@ -197,7 +228,22 @@
 # --------------
 
 (defmacro deftest
-  "Defines a test function with no arguments."
+  "Defines a test function with no arguments.
+
+  Creates a function marked as a test that can be discovered and run by run-tests.
+  Test functions should contain one or more assertions using the `is` macro.
+
+  Examples:
+    (deftest test-addition
+      (is (= 4 (+ 2 2)))
+      (is (= 10 (+ 5 5))))
+
+    (deftest test-strings
+      (is (= \"hello\" (str \"hel\" \"lo\")))
+      (is (not (= \"foo\" \"bar\"))))
+
+    (deftest test-exceptions
+      (is (thrown? \Exception (throw (php/new \Exception)))))"
   [test-name & body]
   `(defn ,test-name {:test true :test-name ,(name test-name)} []
      (binding [*current-test-name* ,(name test-name)]
@@ -287,7 +333,18 @@
     :failed (print-failure data)))
 
 (defn print-summary
-  "Prints the summary of the test suite."
+  "Prints the summary of the test suite.
+
+  Displays all failures and errors with details, followed by overall statistics.
+  Called automatically by run-tests at the end of the test run.
+
+  Example:
+    (print-summary)
+    # Prints:
+    # Passed: 15
+    # Failed: 2
+    # Error: 0
+    # Total: 17"
   []
   (println)
   (println)
@@ -323,7 +380,24 @@
       (test))))
 
 (defn run-tests
-  "Runs all test functions in the given namespaces."
+  "Runs all test functions in the given namespaces.
+
+  Discovers and executes all functions marked with :test metadata in the
+  specified namespaces. Prints progress and summary at the end.
+
+  Options map can include:
+  - :testdox - Use testdox output format
+  - :filter - Filter tests by name substring
+
+  Examples:
+    (run-tests {} 'my-app\core-test)
+    # Runs all tests in my-app\\core-test namespace
+
+    (run-tests {:testdox true} 'my-app\core-test 'my-app\util-test)
+    # Runs tests in both namespaces with testdox format
+
+    (run-tests {:filter \"addition\"} 'my-app\math-test)
+    # Runs only tests with \"addition\" in their name"
   [options & namespaces]
   (set! testdox? (:testdox options))
   (dofor [namespace :in namespaces
@@ -332,7 +406,20 @@
   (print-summary))
 
 (defn successful?
-  "Checks if all tests have passed."
+  "Checks if all tests have passed.
+
+  Returns true if there were no failures or errors, false otherwise.
+  Useful for CI/CD scripts to determine exit codes.
+
+  Examples:
+    (successful?)
+    # => true (if all tests passed)
+
+    (successful?)
+    # => false (if any test failed or errored)
+
+    (when-not (successful?)
+      (php/exit 1))"
   []
   (let [{:failed failed :error error} (get (deref stats) :counts)]
     (zero? (+ failed error))))

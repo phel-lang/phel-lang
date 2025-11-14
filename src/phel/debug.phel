@@ -8,7 +8,11 @@
 
 (defn set-trace-id-padding!
   "Sets the number of digits used to left-pad trace IDs.
-  Call this once before tracing begins to ensure aligned output."
+  Call this once before tracing begins to ensure aligned output.
+
+  Example:
+    (set-trace-id-padding! 3)
+    # Sets trace IDs to use 3 digits (001, 002, etc.)"
   [estimated-id-padding]
   (swap! *max-trace-digits* (fn [_] estimated-id-padding)))
 
@@ -16,7 +20,21 @@
   (swap! *trace-id* inc))
 
 (defn dotrace
-  "Wrap `f` so each call and result are printed with indentation."
+  "Wrap `f` so each call and result are printed with indentation.
+
+  Useful for debugging recursive functions by showing call hierarchy.
+  Each call is assigned an ID and indented based on recursion depth.
+
+  Example:
+    (def factorial (dotrace \"factorial\" (fn [n] (if (<= n 1) 1 (* n (factorial (- n 1)))))))
+    (factorial 3)
+    # Prints:
+    # TRACE t01: (factorial 3)
+    # TRACE t02: |    (factorial 2)
+    # TRACE t03: |    |    (factorial 1)
+    # TRACE t03: |    |    => 1
+    # TRACE t02: |    => 2
+    # TRACE t01: => 6"
   [name f]
   (fn [& args]
     (let [id (next-id)
@@ -34,7 +52,13 @@
         res))))
 
 (defn reset-trace-state!
-  "Resets the internal counters used for tracing."
+  "Resets the internal counters used for tracing.
+
+  Call this between debugging sessions to restart trace IDs from 01.
+
+  Example:
+    (reset-trace-state!)
+    # Resets trace level to 0, trace ID to 0, and padding to 2 digits"
   []
   (do
     (set! *trace-level* 0)
@@ -43,7 +67,18 @@
 
 (defmacro dbg
   "Evaluates `expr`, prints the expression and the resulting value.
-   Returns the value of `expr`."
+   Returns the value of `expr`.
+
+  Useful for debugging by showing both the code and its result.
+
+  Example:
+    (dbg (+ 1 2))
+    # Prints: (+ 1 2) => 3
+    # Returns: 3
+
+    (let [x (dbg (* 5 6))])
+    # Prints: (* 5 6) => 30
+    # Binds x to 30"
   [expr]
   (let [res (gensym)]
     `(let [,res ,expr]
@@ -51,7 +86,21 @@
        ,res)))
 
 (defmacro spy
-  "Evaluates `expr`, prints the resulting value with an optional label, and returns it."
+  "Evaluates `expr`, prints the resulting value with an optional label, and returns it.
+
+  Similar to dbg but with a \"SPY\" prefix. Can include a custom label.
+
+  Examples:
+    (spy (+ 1 2))
+    # Prints: SPY (+ 1 2) => 3
+    # Returns: 3
+
+    (spy \"sum\" (+ 1 2))
+    # Prints: SPY \"sum\" => 3
+    # Returns: 3
+
+    (map (fn [x] (spy \"doubled\" (* x 2))) [1 2 3])
+    # Prints SPY for each value and returns [2 4 6]"
   ([expr]
    (let [res (gensym)]
      `(let [,res ,expr]
@@ -67,7 +116,22 @@
 
 (defn tap
   "Executes optional side-effects on `value` and returns it unchanged.
-  Without a handler function the value is printed using `print-str`."
+  Without a handler function the value is printed using `print-str`.
+
+  Useful for inspecting values in a pipeline without breaking the flow.
+
+  Examples:
+    (-> 5
+        (tap)
+        (* 2)
+        (tap))
+    # Prints: TAP => 5
+    # Prints: TAP => 10
+    # Returns: 10
+
+    (tap 42 (fn [x] (println \"Custom:\" x)))
+    # Prints: Custom: 42
+    # Returns: 42"
   ([value]
    (println (str "TAP => " (print-str value)))
    value)

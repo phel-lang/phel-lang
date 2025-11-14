@@ -5,20 +5,71 @@
 (defn split
   "Splits string on a regular expression.  Optional argument limit is
   the maximum number of parts. Not lazy. Returns vector of the parts.
-  Trailing empty strings are not returned - pass limit of -1 to return all."
+  Trailing empty strings are not returned - pass limit of -1 to return all.
+
+  Examples:
+    (split \"hello world foo bar\" #\"\\s+\")
+    # => [\"hello\" \"world\" \"foo\" \"bar\"]
+
+    (split \"a,b,c,d\" #\",\")
+    # => [\"a\" \"b\" \"c\" \"d\"]
+
+    (split \"one two three four\" #\"\\s+\" 2)
+    # => [\"one\" \"two three four\"]
+
+    (split \"apple,banana,cherry,\" #\",\" -1)
+    # => [\"apple\" \"banana\" \"cherry\" \"\"]  ; includes trailing empty string
+
+  See also: join, replace"
   [s re & [limit]]
   (values (php/preg_split re s (or limit -1))))
 
 (defn join
   "Returns a string of all elements in coll, as returned by (seq coll),
-   separated by an optional separator."
+   separated by an optional separator.
+
+  Can be called with one argument (the collection) to join with no separator,
+  or with two arguments (separator and collection) to join with the separator.
+
+  Examples:
+    (join \", \" [\"apple\" \"banana\" \"cherry\"])
+    # => \"apple, banana, cherry\"
+
+    (join [\"hello\" \"world\"])
+    # => \"helloworld\"
+
+    (join \"-\" [1 2 3 4])
+    # => \"1-2-3-4\"
+
+    (join \" | \" [:a :b :c])
+    # => \"a | b | c\"
+
+  See also: split, str"
   [separator & [coll]]
   (let [[coll separator] (if (nil? coll) [separator ""] [coll separator])]
     (php/implode separator (to-php-array coll))))
 
 (defn subs
   "Returns the substring of `s` from `start` (inclusive) to `end` (exclusive).
-   If `end` is omitted, the substring extends to the end of `s`."
+   If `end` is omitted, the substring extends to the end of `s`.
+
+  Uses multibyte string functions to properly handle Unicode characters.
+  Throws an exception if indices are out of bounds.
+
+  Examples:
+    (subs \"hello world\" 0 5)
+    # => \"hello\"
+
+    (subs \"hello world\" 6)
+    # => \"world\"
+
+    (subs \"programming\" 3 7)
+    # => \"gram\"
+
+    (subs \"café\" 2 4)
+    # => \"fé\"  ; handles Unicode correctly
+
+  See also: slice, take, drop"
   [s start & [end]]
   (let [len (php/mb_strlen s)
         end (or end len)]
@@ -27,13 +78,45 @@
     (php/mb_substr s start (- end start))))
 
 (defn reverse
-  "Returns s with its characters reversed."
+  "Returns s with its characters reversed.
+
+  Uses multibyte string functions to properly handle Unicode characters.
+
+  Examples:
+    (reverse \"hello\")
+    # => \"olleh\"
+
+    (reverse \"racecar\")
+    # => \"racecar\"
+
+    (reverse \"Phel\")
+    # => \"lehP\"
+
+    (reverse \"café\")
+    # => \"éfac\"  ; handles Unicode correctly
+
+  See also: join, split"
   [s]
   (let [chars (php/mb_str_split s)]
     (join (core/reverse chars))))
 
 (defn repeat
-  "Returns a string containing n copies of s."
+  "Returns a string containing n copies of s.
+
+  Examples:
+    (repeat \"ha\" 3)
+    # => \"hahaha\"
+
+    (repeat \"*\" 5)
+    # => \"*****\"
+
+    (repeat \"abc\" 2)
+    # => \"abcabc\"
+
+    (repeat \"x\" 0)
+    # => \"\"
+
+  See also: join, str"
   [s n]
   (php/str_repeat s n))
 

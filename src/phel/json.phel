@@ -2,7 +2,22 @@
   (:use \JsonException))
 
 (defn valid-key?
-  "Checks if `v` is a valid JSON key or can be converted to a JSON key."
+  "Checks if `v` is a valid JSON key or can be converted to a JSON key.
+
+  Valid JSON keys are integers, floats, symbols, keywords, or strings.
+
+  Examples:
+    (valid-key? \"name\")
+    # => true
+
+    (valid-key? :age)
+    # => true
+
+    (valid-key? 42)
+    # => true
+
+    (valid-key? [1 2 3])
+    # => false"
   [v]
   (or (int? v) (float? v) (symbol? v) (keyword? v) (string? v)))
 
@@ -17,7 +32,22 @@
     arr))
 
 (defn encode-value
-  "Convert a Phel data type to a 'json compatible' value."
+  "Convert a Phel data type to a 'json compatible' value.
+
+  Converts Phel types to JSON-compatible PHP types:
+  - Keywords and symbols are converted to their string names
+  - Floats are converted to strings
+  - Iterables are recursively converted
+
+  Examples:
+    (encode-value :name)
+    # => \"name\"
+
+    (encode-value 'symbol)
+    # => \"symbol\"
+
+    (encode-value 3.14)
+    # => \"3.14\""
   [x]
   (cond
     (php/is_iterable x) (encode-value-iterable x)
@@ -27,7 +57,23 @@
     true x))
 
 (defn encode
-  "Returns the JSON representation of a value."
+  "Returns the JSON representation of a value.
+
+  Converts Phel data structures to JSON strings. Keywords become strings,
+  hash maps become JSON objects, vectors become JSON arrays.
+
+  Examples:
+    (encode {:name \"Alice\" :age 30})
+    # => \"{\\\"name\\\":\\\"Alice\\\",\\\"age\\\":30}\"
+
+    (encode [1 2 3])
+    # => \"[1,2,3]\"
+
+    (encode \"hello\")
+    # => \"\\\"hello\\\"\"
+
+    (encode {:flags 128})  ; JSON_PRETTY_PRINT
+    # Returns formatted JSON"
   [value & [{:flags flags :depth depth}]]
   (let [flags (or flags 0)
         depth (or depth 512)]
@@ -38,7 +84,19 @@
     (php/json_encode (encode-value value) flags depth)))
 
 (defn decode-value
-  "Convert a json data structure to a 'phel compatible' value."
+  "Convert a json data structure to a 'phel compatible' value.
+
+  Converts JSON data to Phel types:
+  - JSON objects become hash maps with keyword keys
+  - JSON arrays become vectors
+  - Recursively processes nested structures
+
+  Examples:
+    (decode-value (php/array \"name\" \"Alice\"))
+    # => {:name \"Alice\"}
+
+    (decode-value [1 2 3])
+    # => [1 2 3]"
   [x]
   (cond
     (indexed? x) (for [v :in x] (decode-value v))
@@ -49,7 +107,22 @@
     true x))
 
 (defn decode
-  "Decodes a JSON string."
+  "Decodes a JSON string.
+
+  Parses JSON into Phel data structures. Object keys become keywords.
+
+  Examples:
+    (decode \"{\\\"name\\\":\\\"Alice\\\",\\\"age\\\":30}\")
+    # => {:name \"Alice\" :age 30}
+
+    (decode \"[1,2,3]\")
+    # => [1 2 3]
+
+    (decode \"\\\"hello\\\"\")
+    # => \"hello\"
+
+    (decode \"true\")
+    # => true"
   [json & [{:flags flags :depth depth}]]
   (let [flags (or flags 0)
         depth (or depth 512)]
