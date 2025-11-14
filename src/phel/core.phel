@@ -54,7 +54,7 @@
 # --------------------------------------------
 
 (def list
-  "Creates a new list from the given arguments.
+  "Creates a new list from the given arguments. Shortcut: '()
 
   Example:
     (list 1 2 3)
@@ -62,7 +62,7 @@
   (fn [& xs] (php/:: Phel (list (apply php/array xs)))))
 
 (def vector
-  "Creates a new vector from the given arguments.
+  "Creates a new vector from the given arguments. Shortcut: []
 
   Example:
     (vector 1 2 3)
@@ -70,7 +70,11 @@
   (fn [& xs] (php/:: Phel (vector (apply php/array xs)))))
 
 (def hash-map
-  "Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even."
+  "Creates a new hash map from key-value pairs. Shortcut: {}
+
+  Example:
+    (hash-map :a 1 :b 2)
+    # => {:a 1 :b 2}"
   (fn [& xs] (php/:: Phel (map (apply php/array xs)))))
 
 (def next
@@ -312,7 +316,11 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 # ------------------
 
 (defn set
-  "Creates a new Set. If no argument is provided, an empty Set is created."
+  "Creates a new Set from the given arguments. Shortcut: #{}
+
+  Example:
+    (set 1 2 3)
+    # => #{1 2 3}"
   [& xs]
   (php/:: Phel (set (apply php/array xs))))
 
