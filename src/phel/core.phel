@@ -54,7 +54,7 @@
 # --------------------------------------------
 
 (def list
-  "```phel\n(list & xs)\n```\nCreates a new list. If no argument is provided, an empty list is created.
+  "Creates a new list. If no argument is provided, an empty list is created.
 
   Lists are immutable sequential collections optimized for adding elements at the front.
   They are evaluated as function calls in Phel code unless quoted.
@@ -74,7 +74,7 @@
   (fn [& xs] (php/:: Phel (list (apply php/array xs)))))
 
 (def vector
-  "```phel\n(vector & xs)\n```\nCreates a new vector. If no argument is provided, an empty vector is created.
+  "Creates a new vector. If no argument is provided, an empty vector is created.
 
   Vectors are immutable sequential collections with efficient random access and updates.
   Use vectors when you need indexed access to elements.
@@ -94,11 +94,11 @@
   (fn [& xs] (php/:: Phel (vector (apply php/array xs)))))
 
 (def hash-map
-  "```phel\n(hash-map & xs)\n```\nCreates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even."
+  "Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even."
   (fn [& xs] (php/:: Phel (map (apply php/array xs)))))
 
 (def next
-  "```phel\n(next xs)\n```\nReturns the sequence of elements after the first element. If there are no elements, returns nil.
+  "Returns the sequence of elements after the first element. If there are no elements, returns nil.
 
   Unlike `rest`, `next` returns nil when there are no remaining elements rather than an empty sequence.
   This makes it useful in recursive operations where you want to detect the end of a sequence.
@@ -134,7 +134,7 @@
                           (php/. "cannot call 'next on " (php/gettype xs)))))))))
 
 (def first
-  "```phel\n(first xs)\n```\nReturns the first element of an indexed sequence or nil.
+  "Returns the first element of an indexed sequence or nil.
 
   Works with lists, vectors, arrays, and any collection implementing FirstInterface.
   Returns nil if the sequence is empty or nil.
@@ -170,7 +170,7 @@
           xs)))))
 
 (def concat
-  "```phel\n(concat arr & xs)\n```\nConcatenates multiple sequential data structures."
+  "Concatenates multiple sequential data structures."
   (fn [arr & others]
     (if (php/=== nil arr)
       '()
@@ -208,7 +208,7 @@
 
 (def meta
   {:macro true
-   :doc "```phel\n(meta obj)\n```\nGets the metadata of the given object or definition."}
+   :doc "Gets the metadata of the given object or definition."}
   (fn [obj]
     (let [sym (if (symbol? obj)
                 obj
@@ -230,7 +230,7 @@
              nil))))))
 
 (def set-meta!
-  "```phel\n(set-meta! obj)\n```\nSets the metadata to a given object."
+  "Sets the metadata to a given object."
   (fn [obj meta]
     (php/-> obj (withMeta meta))))
 
@@ -266,25 +266,22 @@
                   fdecl)
           args (if (php/instanceof (php/aget fdecl 0) PersistentVectorInterface)
                  (php/aget fdecl 0)
-                 (php/aget (php/aget fdecl 0) 0))
-          docstring (php/aget meta :doc)
-          docstring (php/. "```phel\n(" name " " (php/implode " " (apply php/array args)) ")\n```\n" docstring)
-          meta (php/-> meta (put :doc docstring))]
+                 (php/aget (php/aget fdecl 0) 0))]
       `(def ,name ,meta (fn ,@fdecl)))))
 
 (def defn
   {:macro true
-   :doc "```phel\n(defn name & fdecl)\n```\nDefine a new global function."}
+   :doc "Define a new global function."}
   (fn [name & fdecl] (apply defn-builder name {} fdecl)))
 
 (def def-
   {:macro true
-   :doc "```phel\n(def- name value)\n```\nDefine a private value that will not be exported."}
+   :doc "Define a private value that will not be exported."}
   (fn [name value] `(def ,name {:private true} ,value)))
 
 (def defmacro
   {:macro true
-   :doc "```phel\n(defmacro name & fdecl)\n```\nDefine a macro."}
+   :doc "Define a macro."}
   (fn [name & fdecl] (apply defn-builder name {:macro true} fdecl)))
 
 (defmacro defn-
@@ -1349,29 +1346,11 @@ Calling the `and` function without arguments returns true.
     (throw (php/new InvalidArgumentException "Cannot remove"))))
 
 (defn get
-  "Get the value mapped to `key` from the datastructure `ds`.
-  Returns `opt` or nil if the value cannot be found.
+  "Gets the value at key in a collection. Returns default if not found.
 
-  Works with hash-maps, vectors (using index), sets, and lazy sequences.
-  The optional third argument is a default value to return if key is not found.
-
-  Examples:
-    (get {:a 1 :b 2} :a)
-    # => 1
-
-    (get {:a 1 :b 2} :c)
-    # => nil
-
-    (get {:a 1 :b 2} :c \"default\")
-    # => \"default\"
-
-    (get [10 20 30] 1)
-    # => 20
-
-    (get #{:a :b :c} :b)
-    # => :b
-
-  See also: get-in, assoc, contains?"
+  Example:
+    (get {:a 1} :a)
+    # => 1"
   [ds k & [opt]]
   (cond
     (or (set? ds)
@@ -1400,26 +1379,11 @@ Calling the `and` function without arguments returns true.
         res))))
 
 (defn assoc
-  "Associates `value` with `key` in the datastructure `ds`. Returns `ds`.
+  "Associates a value with a key in a collection.
 
-  For maps and structs, adds or updates a key-value pair.
-  For vectors, updates the value at the given index.
-  Returns a new immutable collection with the modification.
-
-  Examples:
+  Example:
     (assoc {:a 1} :b 2)
-    # => {:a 1 :b 2}
-
-    (assoc {:a 1 :b 2} :a 10)
-    # => {:a 10 :b 2}
-
-    (assoc [1 2 3] 1 20)
-    # => [1 20 3]
-
-    (assoc {} :name \"Alice\" :age 30)
-    # => {:name \"Alice\" :age 30}
-
-  See also: dissoc, assoc-in, get, put"
+    # => {:a 1 :b 2}"
   [ds key value]
   (cond
     (php-array? ds)
@@ -1516,30 +1480,11 @@ Calling the `and` function without arguments returns true.
                       generator)))
 
 (defn range
-  "Create a lazy sequence of values `[start, end)`. If the function has one argument then
-  the range `[0, end)` is returned. With two arguments, returns `[start, end)`.
-  The third argument is an optional step width (default 1).
+  "Creates a lazy sequence of numbers from start to end (exclusive).
 
-  The sequence is lazily generated, so it doesn't create all values at once.
-  The end value is exclusive (not included in the result).
-
-  Examples:
+  Example:
     (range 5)
-    # => (0 1 2 3 4)
-
-    (range 2 7)
-    # => (2 3 4 5 6)
-
-    (range 0 10 2)
-    # => (0 2 4 6 8)
-
-    (range 10 0 -1)
-    # => (10 9 8 7 6 5 4 3 2 1)
-
-    (take 5 (range 100))
-    # => (0 1 2 3 4)  ; Only generates first 5 values
-
-  See also: take, repeat, iterate"
+    # => (0 1 2 3 4)"
   [a & rest]
   (case (count rest)
     0 (lazy-seq-from-generator (php/:: Generators (range 0 a 1)))
@@ -2112,43 +2057,21 @@ Calling the `and` function without arguments returns true.
     (with-meta coll result)))
 
 (defn keys
-  "Gets the keys of an associative data structure.
+  "Returns a sequence of all keys in a map.
 
-  Returns a sequence of all keys in the map or struct.
-  The order is not guaranteed.
-
-  Examples:
-    (keys {:a 1 :b 2 :c 3})
-    # => (:a :b :c)
-
-    (keys {\"name\" \"Alice\" \"age\" 30})
-    # => (\"name\" \"age\")
-
-    (keys {})
-    # => ()
-
-  See also: values, pairs, get"
+  Example:
+    (keys {:a 1 :b 2})
+    # => (:a :b)"
   [coll]
   (let [result (for [k :keys coll] k)]
     (with-meta coll result)))
 
 (defn values
-  "Gets the values of an associative data structure.
+  "Returns a sequence of all values in a map.
 
-  Returns a sequence of all values in the map or struct.
-  The order corresponds to the order of keys.
-
-  Examples:
-    (values {:a 1 :b 2 :c 3})
-    # => (1 2 3)
-
-    (values {\"name\" \"Alice\" \"age\" 30})
-    # => (\"Alice\" 30)
-
-    (values {})
-    # => ()
-
-  See also: keys, pairs, get"
+  Example:
+    (values {:a 1 :b 2})
+    # => (1 2)"
   [coll]
   (let [result (for [x :in coll] x)]
     (with-meta coll result)))

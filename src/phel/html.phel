@@ -4,19 +4,11 @@
 (defstruct raw-string [s])
 
 (defn escape-html
-  "Escapes the string that may contain HTML.
+  "Escapes HTML special characters to prevent XSS.
 
-  Converts special characters to HTML entities to prevent XSS attacks.
-
-  Examples:
-    (escape-html \"<script>alert('xss')</script>\")
-    # => \"&lt;script&gt;alert(&#039;xss&#039;)&lt;/script&gt;\"
-
-    (escape-html \"Hello & goodbye\")
-    # => \"Hello &amp; goodbye\"
-
-    (escape-html \"quote: \\\"test\\\"\")
-    # => \"quote: &quot;test&quot;\""
+  Example:
+    (escape-html \"<div>\")
+    # => \"&lt;div&gt;\""
   [s]
   (php/htmlspecialchars s (bit-or php/ENT_QUOTES php/ENT_SUBSTITUTE)))
 
@@ -164,26 +156,11 @@
   `(str ,@(compile-seq content)))
 
 (defmacro html
-  "Compiles Phel data structures into HTML at compile time.
+  "Compiles Phel vectors to HTML strings.
 
-  Takes vectors representing HTML elements and compiles them to efficient string
-  concatenation. Attributes are specified as maps, content as subsequent elements.
-
-  Examples:
+  Example:
     (html [:div \"Hello\"])
-    # => \"<div>Hello</div>\"
-
-    (html [:p {:class \"intro\"} \"Welcome\"])
-    # => \"<p class=\\\"intro\\\">Welcome</p>\"
-
-    (html [:ul [:li \"One\"] [:li \"Two\"]])
-    # => \"<ul><li>One</li><li>Two</li></ul>\"
-
-    (html [:img {:src \"logo.png\"}])
-    # => \"<img src=\\\"logo.png\\\" />\"
-
-    (html [:div {:style {:color \"red\" :font-size \"14px\"}} \"Styled\"])
-    # => \"<div style=\\\"color:red;font-size:14px;\\\">Styled</div>\""
+    # => \"<div>Hello</div>\""
   [& content]
   (apply compile-html content))
 
@@ -197,19 +174,10 @@
    :html5              "<!DOCTYPE html>\n"})
 
 (defn doctype
-  "Returns the appropriate doctype declaration for the specified HTML version.
+  "Returns an HTML doctype declaration.
 
-  Supported types: :html4, :xhtml-strict, :xhtml-transitional, :html5
-  Defaults to :html5 if type is not recognized.
-
-  Examples:
+  Example:
     (doctype :html5)
-    # => \"<!DOCTYPE html>\\n\"
-
-    (doctype :html4)
-    # => \"<!DOCTYPE html PUBLIC \\\"-//W3C//DTD HTML 4.01//EN\\\" ...\\n\"
-
-    (doctype :xhtml-strict)
-    # => \"<!DOCTYPE html PUBLIC \\\"-//W3C//DTD XHTML 1.0 Strict//EN\\\" ...\\n\""
+    # => \"<!DOCTYPE html>\\n\""
   [type]
   (raw-string (get doctypes type (:html5 doctypes))))
