@@ -14,15 +14,16 @@ final class ApiConfig extends AbstractConfig
     public static function allNamespaces(): array
     {
         return [
+            'phel\\base64',
             'phel\\core',
             'phel\\debug',
-            'phel\\repl',
-            'phel\\http',
             'phel\\html',
-            'phel\\test',
+            'phel\\http',
             'phel\\json',
+            'phel\\mock',
+            'phel\\repl',
             'phel\\str',
-            'phel\\base64',
+            'phel\\test',
         ];
     }
 }
