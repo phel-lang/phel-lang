@@ -9,6 +9,7 @@ use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use RuntimeException;
+use Stringable;
 
 use function count;
 
@@ -17,7 +18,7 @@ use function count;
  *
  * @implements TransientVectorInterface<T>
  */
-final class TransientVector implements TransientVectorInterface
+final class TransientVector implements TransientVectorInterface, Stringable
 {
     private int $tailSize;
 
@@ -36,6 +37,11 @@ final class TransientVector implements TransientVectorInterface
         private array $tail,
     ) {
         $this->tailSize = count($tail);
+    }
+
+    public function __toString(): string
+    {
+        return '<TransientVector count=' . $this->count . '>';
     }
 
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self

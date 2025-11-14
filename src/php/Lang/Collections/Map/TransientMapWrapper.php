@@ -4,19 +4,26 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\Map;
 
+use Stringable;
+
 /**
  * @template K
  * @template V
  *
  * @implements TransientMapInterface<K, V>
  */
-final class TransientMapWrapper implements TransientMapInterface
+final class TransientMapWrapper implements TransientMapInterface, Stringable
 {
     /**
      * @param TransientMapInterface<K, V> $internal
      */
     public function __construct(private TransientMapInterface $internal)
     {
+    }
+
+    public function __toString(): string
+    {
+        return '<TransientMap count=' . $this->count() . '>';
     }
 
     public function contains($key): bool

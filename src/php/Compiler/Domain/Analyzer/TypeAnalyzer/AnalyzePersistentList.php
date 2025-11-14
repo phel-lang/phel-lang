@@ -47,13 +47,16 @@ use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 
-final readonly class AnalyzePersistentList
+final class AnalyzePersistentList
 {
     private const string EMPTY_SYMBOL_NAME = '';
 
+    /** @var array<string, SpecialFormAnalyzerInterface> */
+    private array $symbolAnalyzerCache = [];
+
     public function __construct(
-        private AnalyzerInterface $analyzer,
-        private bool $assertsEnabled,
+        private readonly AnalyzerInterface $analyzer,
+        private readonly bool $assertsEnabled,
     ) {
     }
 
@@ -79,7 +82,11 @@ final readonly class AnalyzePersistentList
 
     private function createSymbolAnalyzerByName(string $symbolName): SpecialFormAnalyzerInterface
     {
-        return match ($symbolName) {
+        if (isset($this->symbolAnalyzerCache[$symbolName])) {
+            return $this->symbolAnalyzerCache[$symbolName];
+        }
+
+        $analyzer = match ($symbolName) {
             Symbol::NAME_DEF => new DefSymbol($this->analyzer),
             Symbol::NAME_NS => new NsSymbol($this->analyzer),
             Symbol::NAME_IN_NS => new InNsSymbol($this->analyzer),
@@ -113,5 +120,9 @@ final readonly class AnalyzePersistentList
             Symbol::NAME_DEF_INTERFACE => new DefInterfaceSymbol($this->analyzer),
             default => new InvokeSymbol($this->analyzer),
         };
+
+        $this->symbolAnalyzerCache[$symbolName] = $analyzer;
+
+        return $analyzer;
     }
 }

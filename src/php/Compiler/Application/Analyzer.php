@@ -29,11 +29,21 @@ use function is_float;
 use function is_int;
 use function is_string;
 
-final readonly class Analyzer implements AnalyzerInterface
+final class Analyzer implements AnalyzerInterface
 {
+    private ?AnalyzePersistentList $listAnalyzer = null;
+
+    private ?AnalyzeSymbol $symbolAnalyzer = null;
+
+    private ?AnalyzePersistentVector $vectorAnalyzer = null;
+
+    private ?AnalyzePersistentSet $setAnalyzer = null;
+
+    private ?AnalyzePersistentMap $mapAnalyzer = null;
+
     public function __construct(
-        private GlobalEnvironmentInterface $globalEnvironment,
-        private bool $assertsEnabled = true,
+        private readonly GlobalEnvironmentInterface $globalEnvironment,
+        private readonly bool $assertsEnabled = true,
     ) {
     }
 
@@ -108,23 +118,28 @@ final readonly class Analyzer implements AnalyzerInterface
         }
 
         if ($x instanceof Symbol) {
-            return (new AnalyzeSymbol($this))->analyze($x, $env);
+            $this->symbolAnalyzer ??= new AnalyzeSymbol($this);
+            return $this->symbolAnalyzer->analyze($x, $env);
         }
 
         if ($x instanceof PersistentListInterface) {
-            return (new AnalyzePersistentList($this, $this->assertsEnabled))->analyze($x, $env);
+            $this->listAnalyzer ??= new AnalyzePersistentList($this, $this->assertsEnabled);
+            return $this->listAnalyzer->analyze($x, $env);
         }
 
         if ($x instanceof PersistentVectorInterface) {
-            return (new AnalyzePersistentVector($this))->analyze($x, $env);
+            $this->vectorAnalyzer ??= new AnalyzePersistentVector($this);
+            return $this->vectorAnalyzer->analyze($x, $env);
         }
 
         if ($x instanceof PersistentHashSetInterface) {
-            return (new AnalyzePersistentSet($this))->analyze($x, $env);
+            $this->setAnalyzer ??= new AnalyzePersistentSet($this);
+            return $this->setAnalyzer->analyze($x, $env);
         }
 
         if ($x instanceof PersistentMapInterface) {
-            return (new AnalyzePersistentMap($this))->analyze($x, $env);
+            $this->mapAnalyzer ??= new AnalyzePersistentMap($this);
+            return $this->mapAnalyzer->analyze($x, $env);
         }
 
         throw new AnalyzerException('Unhandled type: ' . var_export($x, true));

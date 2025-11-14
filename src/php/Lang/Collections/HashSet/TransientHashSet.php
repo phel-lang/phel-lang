@@ -6,18 +6,24 @@ namespace Phel\Lang\Collections\HashSet;
 
 use Phel\Lang\Collections\Map\TransientMapInterface;
 use Phel\Lang\HasherInterface;
+use Stringable;
 
 /**
  * @template V
  *
  * @implements TransientHashSetInterface<V>
  */
-final readonly class TransientHashSet implements TransientHashSetInterface
+final readonly class TransientHashSet implements TransientHashSetInterface, Stringable
 {
     public function __construct(
         private HasherInterface $hasher,
         private TransientMapInterface $transientMap,
     ) {
+    }
+
+    public function __toString(): string
+    {
+        return '<TransientSet count=' . $this->transientMap->count() . '>';
     }
 
     public function count(): int
