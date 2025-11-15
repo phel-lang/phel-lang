@@ -85,6 +85,31 @@
   (is (= #{1 2 3 4} (conj #{1 3 4} 2)) "conj on a set adds elements")
   (is (= (list 1) (conj nil 1)) "conj on nil with a value returns a single-item list"))
 
+(deftest test-conj-php-arrays
+  (is (= (php/array 1 2 3) (conj (php/array 1 2) 3)) "conj on PHP array appends element")
+  (is (= (php/array 1 2 3 4) (conj (php/array 1 2) 3 4)) "conj on PHP array with multiple values"))
+
+(deftest test-conj-transients
+  (is (= [1 2 3] (persistent (conj (transient [1 2]) 3))) "conj on transient vector appends")
+  (is (= #{1 2 3} (persistent (conj (transient #{1 2}) 3))) "conj on transient set adds element")
+  (is (= {:a 1} (persistent (conj (transient {}) [:a 1]))) "conj on transient map with [key value] pair"))
+
+(deftest test-conj-empty-collections
+  (is (= {:a 1} (conj {} [:a 1])) "conj on empty map with [key value] pair")
+  (is (= #{1} (conj #{} 1)) "conj on empty set adds element")
+  (is (= [1 2 3] (conj [] 1 2 3)) "conj on empty vector with multiple values"))
+
+(deftest test-conj-edge-cases
+  (is (= #{1 2} (conj #{1 2} 1)) "conj on set with duplicate element keeps set unchanged")
+  (is (= {:a 1 :b 2} (conj {} [:a 1] [:b 2])) "conj on map with multiple [key value] pairs")
+  (is (= {1 2 3 4} (conj {1 2} {3 4})) "conj merges two maps"))
+
+(deftest test-conj-error-cases
+  (is (thrown? \InvalidArgumentException (conj {} [1])) "conj on map with single-element vector throws error")
+  (is (thrown? \InvalidArgumentException (conj {} [1 2 3])) "conj on map with three-element vector throws error")
+  (is (thrown? \InvalidArgumentException (conj {} "invalid")) "conj on map with non-indexed, non-associative entry throws error")
+  (is (thrown? \InvalidArgumentException (conj "string" 1)) "conj on invalid collection type throws error"))
+
 (deftest test-pop
   (let [x (php/array 1 2)
         y (pop x)]
