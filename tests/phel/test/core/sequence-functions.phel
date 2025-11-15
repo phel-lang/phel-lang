@@ -212,7 +212,20 @@
   (is (= ["a" "," "b" "," "c"] (interpose "," ["a" "b" "c"])) "interpose"))
 
 (deftest test-frequencies
-  (is (= {1 2 2 3 3 2 4 1} (frequencies [1 1 2 3 2 2 3 4])) "frequencies"))
+  (is (= {1 2 2 3 3 2 4 1} (frequencies [1 1 2 3 2 2 3 4])) "frequencies on vector")
+  (is (= {"h" 1 "e" 1 "l" 2 "o" 1} (frequencies "hello")) "frequencies on string"))
+
+(deftest test-seq
+  (is (= ["h" "e" "l" "l" "o"] (seq "hello")) "seq on string")
+  (is (= [1 2 3] (seq [1 2 3])) "seq on vector")
+  (is (nil? (seq "")) "seq on empty string")
+  (is (nil? (seq nil)) "seq on nil")
+  (is (nil? (seq [])) "seq on empty vector"))
+
+(deftest test-count-string
+  (is (= 5 (count "hello")) "count string")
+  (is (= 0 (count "")) "count empty string")
+  (is (= 4 (count "café")) "count multibyte string"))
 
 (deftest test-keys
   (is (= [:a :b :c] (keys {:a 1 :b 2 :c 3})) "keys of map")

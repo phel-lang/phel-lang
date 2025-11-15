@@ -84,6 +84,12 @@ final readonly class ProjectCompiler
             );
 
             touch($targetFile, $this->getFileMtime($info->getFile()));
+
+            // After compiling, load the file so top-level expressions execute
+            BuildFacade::enableBuildMode();
+            /** @psalm-suppress UnresolvableInclude */
+            require_once $targetFile;
+            BuildFacade::disableBuildMode();
         }
 
         if ($this->config->shouldCreateEntryPointPhpFile()) {

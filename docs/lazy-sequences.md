@@ -168,6 +168,10 @@ Many Phel core functions return lazy sequences:
      (map (fn [x] (* x x)))
      (take 5))
 # => [0 4 16 36 64]
+
+# Lazy string processing
+(take 3 (map php/strtoupper "hello world"))
+# => ("H" "E" "L")
 ```
 
 ## Performance Considerations

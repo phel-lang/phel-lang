@@ -5,6 +5,7 @@ This guide covers all functions for manipulating Phel's immutable data structure
 ## Table of Contents
 
 - [Introduction](#introduction)
+- [String Iteration](#string-iteration-)
 - [Adding & Building Collections](#adding--building-collections)
 - [Accessing Elements](#accessing-elements)
 - [Modifying Collections](#modifying-collections)
@@ -23,6 +24,63 @@ Phel's data structures are **immutable** and **persistent**. Operations return n
 ### Clojure Compatibility
 
 Phel aims for strong compatibility with Clojure. Most functions work identically to their Clojure counterparts. Where differences exist, they're noted inline with **"Clojure note:"** annotations.
+
+---
+
+## String Iteration 🎉
+
+**New in Phel 0.25.0:** Strings are now iterable sequences, just like in Clojure!
+
+You can use any sequence function directly on strings:
+
+```phel
+# Iterate with for
+(for [c :in "hello"] c)
+# => ["h" "e" "l" "l" "o"]
+
+# Count frequency of characters
+(frequencies "hello")
+# => {"h" 1 "e" 1 "l" 2 "o" 1}
+
+# Map over characters
+(map php/strtoupper "hello")
+# => ("H" "E" "L" "L" "O")
+
+# Filter characters
+(filter |(not= $ "l") "hello")
+# => ("h" "e" "o")
+
+# Count characters
+(count "café")
+# => 4
+```
+
+### String Conversion Functions
+
+**`seq`** - Convert string to vector of characters (explicit conversion):
+```phel
+(seq "hello")
+# => ["h" "e" "l" "l" "o"]
+```
+
+**`phel\str/chars`** - Convenience function for string → character vector:
+```phel
+(use phel\str)
+(chars "hello")
+# => ["h" "e" "l" "l" "o"]
+```
+
+### Unicode Support
+
+All string operations properly handle multibyte UTF-8 characters:
+
+```phel
+(count "café")      # => 4
+(frequencies "🎉🎉🎊")  # => {"🎉" 2 "🎊" 1}
+(seq "日本語")       # => ["日" "本" "語"]
+```
+
+**Clojure note:** Identical to Clojure's string sequence behavior!
 
 ---
 
@@ -448,13 +506,13 @@ Returns a map of items to the number of times they appear.
 (frequencies [:a :b :a :c :b :a])
 # => {:a 3 :b 2 :c 1}
 
-(frequencies [1 2 1 3 2 1])
-# => {1 3 2 2 3 1}
+(frequencies "hello")
+# => {"h" 1 "e" 1 "l" 2 "o" 1}
 ```
 
 **Signature:** `[coll]`
 
-**Clojure note:** Identical behavior to Clojure's `frequencies`.
+**Clojure note:** Identical behavior to Clojure's `frequencies`. Phel supports strings as iterable sequences!
 
 ---
 

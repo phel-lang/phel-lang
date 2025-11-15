@@ -416,8 +416,8 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 (defn count
   "Counts the number of elements in a sequence. Can be used on everything that implements the PHP Countable interface.
 
-  Works with lists, vectors, hash-maps, sets, and PHP arrays.
-  Returns 0 for nil. Throws an exception for strings (use `php/strlen` or `php/mb_strlen` instead).
+  Works with lists, vectors, hash-maps, sets, strings, and PHP arrays.
+  Returns 0 for nil.
 
   Examples:
     (count [1 2 3])
@@ -432,6 +432,9 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     (count #{1 2 3 4})
     # => 4
 
+    (count \"hello\")
+    # => 5
+
     (count [])
     # => 0
 
@@ -445,7 +448,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     (if (php/is_array coll)
       (php/count coll)
       (if (php/is_string coll)
-        (throw (php/new InvalidArgumentException "strings are not supported. Consider using native PHP functions like `php/strlen` or `php/mb_strlen`."))
+        (php/mb_strlen coll)
         (if (php/=== coll nil)
           0
           (throw (php/new InvalidArgumentException (str "object is not countable: " coll))))))))
@@ -917,6 +920,42 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     nil
     coll))
 
+(defn seq
+  "Returns a seq on the collection. Strings are converted to a vector of characters.
+  Collections are unchanged. Returns nil if coll is empty or nil.
+
+  This function is useful for explicitly converting strings to sequences of characters,
+  enabling sequence operations like map, filter, and frequencies.
+
+  Examples:
+    (seq \"hello\")
+    # => [\"h\" \"e\" \"l\" \"l\" \"o\"]
+
+    (seq [1 2 3])
+    # => [1 2 3]
+
+    (seq \"\")
+    # => nil
+
+    (seq nil)
+    # => nil
+
+  See also: chars, count"
+  [coll]
+  (cond
+    (php/is_string coll)
+    (let [chars (php/mb_str_split coll)]
+      (if (php/empty chars) nil (apply vector chars)))
+
+    (php/=== coll nil)
+    nil
+
+    (and (php/instanceof coll Countable) (= 0 (count coll)))
+    nil
+
+    true
+    coll))
+
 (defn- indexed-php-array?
   [x]
   (and
@@ -1186,7 +1225,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   in let and `:verb` is one of the following keywords:
 
   * `:range` loop over a range by using the range function.
-  * `:in` loops over all values of a collection.
+  * `:in` loops over all values of a collection (including strings).
   * `:keys` loops over all keys/indexes of a collection.
   * `:pairs` loops over all key-value pairs of a collection.
 
@@ -1201,7 +1240,17 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
   * `:reduce [accumulator initial-value]` Instead of returning a list,
      it reduces the values into `accumulator`. Initially `accumulator`
-     is bound to `initial-value`."
+     is bound to `initial-value`.
+
+  Examples:
+    (for [x :in [1 2 3]] (* x 2))
+    # => [2 4 6]
+
+    (for [c :in \"hello\"] (php/strtoupper c))
+    # => [\"H\" \"E\" \"L\" \"L\" \"O\"]
+
+    (for [x :range [0 5] :when (even? x)] x)
+    # => [0 2 4]"
   [head & body]
   (let [res-sym (gensym "res__")
         acc-sym (gensym "acc__")
@@ -1666,7 +1715,16 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     (with-meta coll result)))
 
 (defn frequencies
-  "Returns a map from distinct items in `coll` to the number of times they appear."
+  "Returns a map from distinct items in `coll` to the number of times they appear.
+
+  Works with vectors, lists, sets, and strings.
+
+  Examples:
+    (frequencies [:a :b :a :c :b :a])
+    # => {:a 3 :b 2 :c 1}
+
+    (frequencies \"hello\")
+    # => {\"h\" 1 \"e\" 1 \"l\" 2 \"o\" 1}"
   [coll]
   (let [result (for [x :in coll
                      :reduce [res {}]]

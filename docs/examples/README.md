@@ -14,7 +14,7 @@ bin/phel run docs/examples/<file>.phel
 2. **arithmetic.phel** – Crunch numbers with helper functions for common operations.
 3. **control-flow.phel** – Use `cond` and `case` for branching logic.
 4. **functions-recursion.phel** – Build reusable helpers and recursive algorithms.
-5. **data-structures.phel** – Traverse vectors and maps with destructuring patterns.
+5. **data-structures.phel** – Traverse vectors, maps, and strings with destructuring and iteration patterns.
 6. **data-pipeline.phel** – Compose sequence operations with higher-order helpers and threading.
 7. **macro-playground.phel** – Craft a macro to generate structured launch plans.
 8. **interfaces.phel** – Model behaviour with interfaces and multiple implementations.

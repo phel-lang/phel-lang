@@ -6,7 +6,7 @@ use Phel\Config\PhelBuildConfig;
 use Phel\Config\PhelConfig;
 
 return (new PhelConfig())
-    ->setSrcDirs([__DIR__ . '/../'])
+    ->setSrcDirs([__DIR__ . '/src'])
     ->setVendorDir('')
     ->setBuildConfig((new PhelBuildConfig())
         ->setMainPhelNamespace('test-ns\hello')

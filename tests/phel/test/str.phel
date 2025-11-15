@@ -2,6 +2,12 @@
   (:require phel\test :refer [deftest is thrown?])
   (:require phel\str :as s))
 
+(deftest test-chars
+  (is (= ["h" "e" "l" "l" "o"] (s/chars "hello")) "chars basic")
+  (is (= ["c" "a" "f" "é"] (s/chars "café")) "chars multibyte")
+  (is (= [] (s/chars "")) "chars empty string")
+  (is (vector? (s/chars "abc")) "chars returns vector"))
+
 (deftest test-split
   (is (= ["a" "b"] (s/split "a-b" "/-/")))
   (is (= ["a" "b-c"] (s/split "a-b-c" "/-/" 2)))
