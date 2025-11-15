@@ -365,3 +365,21 @@
     (php/aset inner "b" 2)
     (php/aset m "a" (php/array 1 inner))
     (is (= m (phel->php (php->phel m))) "php->phel -> phel->php roundtrip")))
+
+# Regression tests for string iteration - verify that sequence functions
+# require explicit seq conversion and fail on raw strings
+(deftest test-map-with-string-requires-seq
+  (is (= ["H" "I"] (map php/strtoupper (seq "hi"))) "map works with (seq string)")
+  (is (thrown? \TypeError (map php/strtoupper "hi")) "map fails with raw string"))
+
+(deftest test-filter-with-string-requires-seq
+  (is (= ["h" "e" "o"] (filter |(not= $ "l") (seq "hello"))) "filter works with (seq string)")
+  (is (thrown? \TypeError (filter |(not= $ "l") "hello")) "filter fails with raw string"))
+
+(deftest test-take-with-string-requires-seq
+  (is (= ["h" "i"] (take 2 (seq "hi"))) "take works with (seq string)")
+  (is (thrown? \TypeError (take 2 "hi")) "take fails with raw string"))
+
+(deftest test-drop-with-string-requires-seq
+  (is (= ["l" "o"] (drop 3 (seq "hello"))) "drop works with (seq string)")
+  (is (thrown? \TypeError (drop 3 "hello")) "drop fails with raw string"))
