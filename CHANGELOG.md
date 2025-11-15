@@ -14,10 +14,12 @@ All notable changes to this project will be documented in this file.
 - Add `csv-seq` for lazy CSV parsing
 - Make `concat`, `mapcat`, `interpose`, `map-indexed`, `interleave`, variadic `map`, and `partition` fully lazy with infinite sequence support
 - Add `lazy-seq` and `lazy-cat` macros for user-defined lazy sequences
+- Add `conj` function for Clojure-compatible collection building
 
 ### Changed
 - Rename collection parameters from `xs` to `coll` throughout core functions
 - Make `assoc`/`dissoc` primary functions with `put`/`unset` as deprecated aliases
+- Deprecate `push` in favor of `conj`
 - Improve docblocks with examples for core library functions across all namespaces
 - Optimize compilation pipeline with multi-level caching (~25-35% faster compilation, ~10% less memory usage)
 
