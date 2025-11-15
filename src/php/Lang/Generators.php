@@ -143,16 +143,16 @@ final class Generators
 
     /**
      * Maps a function over an iterable and concatenates the results.
-     * The function should return an iterable for each input element.
+     * The function can return an iterable or string for each input element.
      * Yields all elements from each resulting iterable in sequence.
      *
      * @template T
      * @template U
      *
-     * @param callable(T): (iterable<U>|null) $f        The mapping function
-     * @param iterable<T>|string              $iterable The input sequence
+     * @param callable(T): (iterable<U>|string|null) $f        The mapping function
+     * @param iterable<T>|string                     $iterable The input sequence
      *
-     * @return Generator<int, U>
+     * @return Generator<int, string|U>
      */
     public static function mapcat(callable $f, mixed $iterable): Generator
     {
@@ -162,7 +162,7 @@ final class Generators
                 continue;
             }
 
-            foreach ($result as $item) {
+            foreach (self::toIterable($result) as $item) {
                 yield $item;
             }
         }
@@ -847,16 +847,14 @@ final class Generators
     }
 
     /**
-     * Converts an iterable to an Iterator.
+     * Converts an iterable or string to an Iterator.
      *
-     * @template T
-     *
-     * @param iterable<T> $iterable
-     *
-     * @return Iterator<int|string, T>
+     * @return Iterator<int|string, mixed>
      */
-    private static function toIterator(iterable $iterable): Iterator
+    private static function toIterator(mixed $value): Iterator
     {
+        $iterable = self::toIterable($value);
+
         if ($iterable instanceof Iterator) {
             return $iterable;
         }

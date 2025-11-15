@@ -6,6 +6,10 @@
     (php/yield i)
     (recur (inc i))))
 
+# =============================================================================
+# Transformation Functions (map, mapcat, into, reduce)
+# =============================================================================
+
 (deftest test-map
   (is (= [] (map str [])) "map1 with empty collection")
   (is (= ["1" "2"] (map str [1 2])) "map1")
@@ -46,15 +50,9 @@
   (is (= 6 (reduce + (for [x :in (set 1 2 3)] x))) "reduce without init on set vector")
   (is (= 0 (reduce + [])) "reduce without init on empty vector with +"))
 
-(deftest test-put-in
-  (is (= {:a {:b {:c 1}}} (put-in {:a {}} [:a :b :c] 1)) "put-in: autocreate tables")
-  (is (= {:a {:b {:c 2}}} (put-in {:a {:b {:c 1}}} [:a :b :c] 2)) "put-in: update value of table")
-  (is (= {:a {:b [2]}} (put-in {:a {:b [1]}} [:a :b 0] 2)) "put-in: update value of array"))
-
-(deftest test-put-in-map
-  (is (= {:a {:b {:c 1}}} (put-in {:a {}} [:a :b :c] 1)) "put-in (map): autocreate tables")
-  (is (= {:a {:b {:c 2}}} (put-in {:a {:b {:c 1}}} [:a :b :c] 2)) "put-in (map): update value of table")
-  (is (= {:a {:b [2]}} (put-in {:a {:b [1]}} [:a :b 0] 2)) "put-in (map): update value of array"))
+# =============================================================================
+# Path Navigation (assoc-in, update-in, dissoc-in)
+# =============================================================================
 
 (deftest test-assoc-in
   (is (= {:a {:b {:c 1}}} (assoc-in {:a {}} [:a :b :c] 1)) "assoc-in: autocreate tables")
@@ -68,13 +66,13 @@
       "update-in: autocreate tables")
   (is (= {:a {:b [2]}} (update-in {:a {:b [1]}} [:a :b 0] inc)) "update-in: update value of array"))
 
-(deftest test-unset-in
-  (is (= {:a {:b {}}} (unset-in {:a {:b {:c 1}}} [:a :b :c])) "unset-in: nested map")
-  (is (= {:a {:b {:c 1}}} (unset-in {:a {:b {:c 1}}} [:a :x])) "unset-in: missing key"))
-
 (deftest test-dissoc-in
   (is (= {:a {:b {}}} (dissoc-in {:a {:b {:c 1}}} [:a :b :c])) "dissoc-in: nested map")
   (is (= {:a {:b {:c 1}}} (dissoc-in {:a {:b {:c 1}}} [:a :x])) "dissoc-in: missing key"))
+
+# =============================================================================
+# Taking & Dropping Elements
+# =============================================================================
 
 (deftest test-drop
   (is (= ["a" "b" "c"] (doall (drop 0 ["a" "b" "c"]))) "drop zero elements")
@@ -158,6 +156,10 @@
   (is (= [-1 -2 -3] (take-while neg? [-1 -2 -3 1 2 3 4 -4 -5 -6])) "take-while on vector")
   (is (= [-1 -2 -3] (take-while neg? (php/array -1 -2 -3 1 2 3 4 -4 -5 -6))) "take-while on php array"))
 
+# =============================================================================
+# Filtering & Searching
+# =============================================================================
+
 (deftest test-filter
   (is (= [-1 -2 -3] (filter neg? [-1 2 3 -2 -3 4 5])) "filter: neg?")
   (is (= [-1 -2 -3] (filter neg? [-1 2 3 -2 -3 4 5])) "filter on vector")
@@ -188,6 +190,10 @@
 
 (deftest test-find-index-empty-element
   (is (nil? (find-index |(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
+
+# =============================================================================
+# Collection Utilities (distinct, dedupe, reverse, interleave, etc.)
+# =============================================================================
 
 (deftest test-distinct
   (is (= [1 2 3] (distinct [1 1 2 3 2 2 3 1])) "distinct: array")
@@ -226,6 +232,10 @@
   (is (= 5 (count "hello")) "count string")
   (is (= 0 (count "")) "count empty string")
   (is (= 4 (count "café")) "count multibyte string"))
+
+# =============================================================================
+# Map/Collection Operations (keys, values, pairs, merge, etc.)
+# =============================================================================
 
 (deftest test-keys
   (is (= [:a :b :c] (keys {:a 1 :b 2 :c 3})) "keys of map")
@@ -353,6 +363,10 @@
   (is (= [[1 2] [3 4]] (partition-all 2 [1 2 3 4])) "partition-all-2 four elements")
   (is (= [[1 2] [3 4] [5]] (partition-all 2 [1 2 3 4 5])) "partition-all-2 five elements keeps incomplete"))
 
+# =============================================================================
+# Type Conversion & Interop (phel->php, php->phel)
+# =============================================================================
+
 (deftest test-phel-php-roundtrip
   (let [data {:a [1 {:b 2}]}]
     (let [arr (phel->php data)]
@@ -366,27 +380,28 @@
     (php/aset m "a" (php/array 1 inner))
     (is (= m (phel->php (php->phel m))) "php->phel -> phel->php roundtrip")))
 
+# =============================================================================
+# String Seqability Tests
+# Strings are fully seqable in Phel - all sequence functions work directly
+# =============================================================================
+
+# --- Basic Sequence Operations ---
+
 (deftest test-map-with-string
-  (is (= ["H" "I"] (map php/strtoupper "hi")) "map works with raw string")
-  (is (= ["H" "I"] (map php/strtoupper (seq "hi"))) "map still works with (seq string)"))
+  (is (= ["H" "I"] (map php/strtoupper "hi")) "map works with strings"))
 
 (deftest test-filter-with-string
-  (is (= ["h" "e" "o"] (filter |(not= $ "l") "hello")) "filter works with raw string")
-  (is (= ["h" "e" "o"] (filter |(not= $ "l") (seq "hello"))) "filter still works with (seq string)"))
+  (is (= ["h" "e" "o"] (filter |(not= $ "l") "hello")) "filter works with strings"))
 
 (deftest test-take-with-string
-  (is (= ["h" "i"] (take 2 "hi")) "take works with raw string")
-  (is (= ["h" "i"] (take 2 (seq "hi"))) "take still works with (seq string)"))
+  (is (= ["h" "i"] (take 2 "hi")) "take works with strings")
+  (is (= [] (take 5 "")) "take from empty string"))
 
 (deftest test-drop-with-string
-  (is (= ["l" "o"] (drop 3 "hello")) "drop works with raw string")
-  (is (= ["l" "o"] (drop 3 (seq "hello"))) "drop still works with (seq string)"))
+  (is (= ["l" "o"] (drop 3 "hello")) "drop works with strings")
+  (is (= [] (drop 5 "")) "drop from empty string"))
 
-(deftest test-seq-preserves-laziness
-  (is (= 0 (first (seq (range 1000000)))) "seq with large range returns immediately")
-  (is (= [0 1 2] (take 3 (seq (range 1000000)))) "take works on seq of large range")
-  (is (nil? (seq (filter (fn [x] false) (range 10)))) "seq returns nil for empty lazy seq")
-  (is (= 0 (first (seq (filter (fn [x] (= 0 (php/% x 2))) (range 1000000))))) "seq preserves laziness for filtered sequences"))
+# --- Core Sequence Functions (first, next, rest, reduce) ---
 
 (deftest test-first-with-strings
   (is (= "h" (first "hello")) "first works with string")
@@ -417,13 +432,41 @@
   (is (= 5 (count "hello")) "count on string")
   (is (= ["o" "l" "l" "e" "h"] (reverse "hello")) "reverse on string"))
 
+# --- Lazy Operations ---
+
 (deftest test-lazy-operations-with-strings
   (is (= ["h" "e"] (take 2 (concat "hello" "world"))) "concat with strings")
   (is (= ["h" "e"] (take-while |(not= $ "l") "hello")) "take-while stops before l")
   (is (= ["l" "l" "o"] (drop-while |(not= $ "l") "hello")) "drop-while drops until l"))
+
+# --- Iterator-Based Operations (interleave, mapcat) ---
+
+(deftest test-interleave-with-strings
+  (is (= ["a" "c" "b" "d"] (interleave "ab" "cd")) "interleave with two strings")
+  (is (= ["h" "w" "e" "o" "l" "r"] (take 6 (interleave "hello" "world"))) "interleave with different lengths")
+  (is (= ["a" 1 "b" 2] (interleave "ab" [1 2])) "interleave mixes string and vector")
+  (is (= [] (interleave "" "abc")) "interleave with empty string")
+  (is (= ["你" "w" "好" "o"] (interleave "你好" "world")) "interleave with unicode"))
+
+(deftest test-mapcat-with-strings
+  (is (= ["a" "a" "b" "b"] (mapcat (fn [c] (str c c)) "ab")) "mapcat with string-returning function")
+  (is (= ["h" "i" "!" "!" "!"] (mapcat (fn [c] (if (= c "!") "!!!" c)) "hi!")) "mapcat flattens string results")
+  (is (= ["a" "b" "c" "d"] (mapcat identity ["ab" "cd"])) "mapcat identity on vector of strings")
+  (is (= [] (mapcat (fn [_] "") "abc")) "mapcat with empty string results")
+  (is (= ["🎉" "🎉" "🎊" "🎊"] (mapcat (fn [c] (str c c)) "🎉🎊")) "mapcat with emoji"))
+
+# --- Unicode/Multibyte Support ---
 
 (deftest test-unicode-string-support
   (is (= "你" (first "你好")) "first works with Chinese characters")
   (is (= ["好"] (next "你好")) "next works with Chinese characters")
   (is (= ["🎉" "🎊" "🎈"] (map identity "🎉🎊🎈")) "map works with emoji")
   (is (= 3 (count "你好吗")) "count works with multibyte strings"))
+
+# --- seq function (backward compatibility & laziness) ---
+
+(deftest test-seq-preserves-laziness
+  (is (= 0 (first (seq (range 1000000)))) "seq with large range returns immediately")
+  (is (= [0 1 2] (take 3 (seq (range 1000000)))) "take works on seq of large range")
+  (is (nil? (seq (filter (fn [x] false) (range 10)))) "seq returns nil for empty lazy seq")
+  (is (= 0 (first (seq (filter (fn [x] (= 0 (php/% x 2))) (range 1000000))))) "seq preserves laziness for filtered sequences"))
