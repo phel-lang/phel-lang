@@ -156,6 +156,7 @@
 (declare symbol?)
 (declare list?)
 (declare second)
+(declare conj)
 
 (def meta
   {:macro true
@@ -957,6 +958,15 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   (php/aget coll (php/- (count coll) 1)))
 
 
+(defn push
+  "Inserts `x` at the end of the sequence `coll`.
+
+  Deprecated: Use `conj` instead for Clojure compatibility."
+  {:deprecated "0.25.0"
+   :superseded-by "conj"}
+  [coll x]
+  (conj coll x))
+
 (defn pop
   "Removes the last element of the array `coll`. If the array is empty returns nil."
   [^:reference coll]
@@ -1418,15 +1428,6 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
    (conj-single coll value))
   ([coll value & more]
    (reduce conj-single (conj-single coll value) more)))
-
-(defn push
-  "Inserts `x` at the end of the sequence `coll`.
-
-  Deprecated: Use `conj` instead for Clojure compatibility."
-  {:deprecated "0.25.0"
-   :superseded-by "conj"}
-  [coll x]
-  (conj coll x))
 
 (defn slice
   "Extract a slice of `coll`."
