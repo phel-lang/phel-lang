@@ -29,45 +29,60 @@ Phel aims for strong compatibility with Clojure. Most functions work identically
 
 ## String Iteration
 
-**New in Phel 0.25.0:** Basic string iteration support!
-
-Strings work directly in `foreach` loops and with certain functions:
+Strings work directly with all sequence functions, just like Clojure:
 
 ```phel
 # Iterate with for
 (for [c :in "hello"] c)
 # => ["h" "e" "l" "l" "o"]
 
+# Map over characters directly
+(map php/strtoupper "hello")
+# => ["H" "E" "L" "L" "O"]
+
+# Filter characters
+(filter |(not= $ "l") "hello")
+# => ["h" "e" "o"]
+
+# Take and drop work directly
+(take 3 "hello")
+# => ["h" "e" "l"]
+
+(drop 2 "hello")
+# => ["l" "l" "o"]
+
 # Count frequency of characters
 (frequencies "hello")
 # => {"h" 1 "e" 1 "l" 2 "o" 1}
-
-# Count characters (with proper UTF-8 support)
-(count "café")
-# => 4
 ```
 
-### Using Sequence Functions with Strings
+### Sequence Operations on Strings
 
-Most sequence functions require converting the string first using `seq`:
+All core sequence functions work directly with strings:
 
 ```phel
-# Map over characters - use seq
-(map php/strtoupper (seq "hello"))
-# => ("H" "E" "L" "L" "O")
+# first, next, rest
+(first "hello")   # => "h"
+(next "hello")    # => ["e" "l" "l" "o"]
+(rest "hello")    # => ["e" "l" "l" "o"]
 
-# Filter characters - use seq
-(filter |(not= $ "l") (seq "hello"))
-# => ("h" "e" "o")
+# Lazy operations
+(take-while |(not= $ "l") "hello")  # => ["h" "e"]
+(drop-while |(not= $ "l") "hello")  # => ["l" "l" "o"]
 
-# Take first n characters - use seq
-(take 3 (seq "hello"))
-# => ("h" "e" "l")
+# Reduce over characters
+(reduce str "" "hello")  # => "hello"
+
+# Distinct characters
+(distinct "hheelloo")    # => ["h" "e" "l" "o"]
+
+# Reverse characters
+(reverse "hello")        # => ["o" "l" "l" "e" "h"]
 ```
 
 ### String Conversion Functions
 
-**`seq`** - Convert string to vector of characters:
+**`seq`** - Convert string to vector of characters (optional, for backward compatibility):
 ```phel
 (seq "hello")
 # => ["h" "e" "l" "l" "o"]
@@ -87,10 +102,11 @@ All string operations properly handle multibyte UTF-8 characters:
 ```phel
 (count "café")      # => 4
 (frequencies "🎉🎉🎊")  # => {"🎉" 2 "🎊" 1}
-(seq "日本語")       # => ["日" "本" "語"]
+(first "日本語")     # => "日"
+(map identity "🎉🎊🎈")  # => ["🎉" "🎊" "🎈"]
 ```
 
-**Note:** Unlike Clojure, where strings are fully seqable, Phel currently requires explicit `seq` conversion for most sequence operations. Direct iteration works in `foreach` loops and with `count`/`frequencies`.
+**Note:** Phel strings are now fully seqable, matching Clojure's behavior. The `seq` function is still available for backward compatibility and explicit conversion when needed.
 
 ---
 

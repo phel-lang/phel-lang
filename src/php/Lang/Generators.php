@@ -93,14 +93,14 @@ final class Generators
     /**
      * @template T
      *
-     * @param iterable<T> $iterable
+     * @param iterable<T>|string $iterable
      *
      * @return Generator<int, T>
      */
-    public static function cycle(iterable $iterable): Generator
+    public static function cycle(mixed $iterable): Generator
     {
         $values = [];
-        foreach ($iterable as $value) {
+        foreach (self::toIterable($iterable) as $value) {
             $values[] = $value;
             yield $value;
         }
@@ -124,18 +124,18 @@ final class Generators
      *
      * @template T
      *
-     * @param iterable<T>|null ...$iterables
+     * @param iterable<T>|string|null ...$iterables
      *
      * @return Generator<int, T>
      */
-    public static function concat(iterable|null ...$iterables): Generator
+    public static function concat(mixed ...$iterables): Generator
     {
         foreach ($iterables as $iterable) {
             if ($iterable === null) {
                 continue;
             }
 
-            foreach ($iterable as $value) {
+            foreach (self::toIterable($iterable) as $value) {
                 yield $value;
             }
         }
@@ -143,26 +143,26 @@ final class Generators
 
     /**
      * Maps a function over an iterable and concatenates the results.
-     * The function should return an iterable for each input element.
+     * The function can return an iterable or string for each input element.
      * Yields all elements from each resulting iterable in sequence.
      *
      * @template T
      * @template U
      *
-     * @param callable(T): (iterable<U>|null) $f        The mapping function
-     * @param iterable<T>                     $iterable The input sequence
+     * @param callable(T): (iterable<U>|string|null) $f        The mapping function
+     * @param iterable<T>|string                     $iterable The input sequence
      *
-     * @return Generator<int, U>
+     * @return Generator<int, string|U>
      */
-    public static function mapcat(callable $f, iterable $iterable): Generator
+    public static function mapcat(callable $f, mixed $iterable): Generator
     {
-        foreach ($iterable as $value) {
+        foreach (self::toIterable($iterable) as $value) {
             $result = $f($value);
             if ($result === null) {
                 continue;
             }
 
-            foreach ($result as $item) {
+            foreach (self::toIterable($result) as $item) {
                 yield $item;
             }
         }
@@ -175,15 +175,15 @@ final class Generators
      * @template T
      * @template S
      *
-     * @param S           $separator The separator to insert between elements
-     * @param iterable<T> $iterable  The input sequence
+     * @param S                  $separator The separator to insert between elements
+     * @param iterable<T>|string $iterable  The input sequence
      *
      * @return Generator<int, S|T>
      */
-    public static function interpose(mixed $separator, iterable $iterable): Generator
+    public static function interpose(mixed $separator, mixed $iterable): Generator
     {
         $first = true;
-        foreach ($iterable as $value) {
+        foreach (self::toIterable($iterable) as $value) {
             if (!$first) {
                 yield $separator;
             }
@@ -201,14 +201,14 @@ final class Generators
      * @template U
      *
      * @param callable(int, T): U $f        The mapping function that takes index and value
-     * @param iterable<T>         $iterable The input sequence
+     * @param iterable<T>|string  $iterable The input sequence
      *
      * @return Generator<int, U>
      */
-    public static function mapIndexed(callable $f, iterable $iterable): Generator
+    public static function mapIndexed(callable $f, mixed $iterable): Generator
     {
         $index = 0;
-        foreach ($iterable as $value) {
+        foreach (self::toIterable($iterable) as $value) {
             yield $f($index, $value);
             ++$index;
         }
@@ -219,13 +219,11 @@ final class Generators
      * Returns elements by taking one from each iterable in turn.
      * Continues until the first iterable is exhausted, padding others with null.
      *
-     * @template T
+     * @param mixed ...$iterables The sequences to interleave
      *
-     * @param iterable<T> ...$iterables The sequences to interleave
-     *
-     * @return Generator<int, T|null>
+     * @return Generator<int, mixed>
      */
-    public static function interleave(iterable ...$iterables): Generator
+    public static function interleave(mixed ...$iterables): Generator
     {
         if ($iterables === []) {
             return;
@@ -255,14 +253,12 @@ final class Generators
      * Applies the function to corresponding elements from each iterable.
      * Stops when the shortest iterable is exhausted.
      *
-     * @template T
-     *
-     * @param callable    $f            The mapping function
-     * @param iterable<T> ...$iterables The sequences to map over
+     * @param callable $f            The mapping function
+     * @param mixed    ...$iterables The sequences to map over
      *
      * @return Generator<int, mixed>
      */
-    public static function mapMulti(callable $f, iterable ...$iterables): Generator
+    public static function mapMulti(callable $f, mixed ...$iterables): Generator
     {
         if ($iterables === []) {
             return;
@@ -315,14 +311,14 @@ final class Generators
      * @template T
      * @template U
      *
-     * @param callable(T):U $f
-     * @param iterable<T>   $iterable
+     * @param callable(T):U      $f
+     * @param iterable<T>|string $iterable
      *
      * @return Generator<int, U>
      */
-    public static function map(callable $f, iterable $iterable): Generator
+    public static function map(callable $f, mixed $iterable): Generator
     {
-        foreach ($iterable as $value) {
+        foreach (self::toIterable($iterable) as $value) {
             yield $f($value);
         }
     }
@@ -330,14 +326,14 @@ final class Generators
     /**
      * @template T
      *
-     * @param callable(T):bool $predicate
-     * @param iterable<T>      $iterable
+     * @param callable(T):bool   $predicate
+     * @param iterable<T>|string $iterable
      *
      * @return Generator<int, T>
      */
-    public static function filter(callable $predicate, iterable $iterable): Generator
+    public static function filter(callable $predicate, mixed $iterable): Generator
     {
-        foreach ($iterable as $value) {
+        foreach (self::toIterable($iterable) as $value) {
             if ($predicate($value)) {
                 yield $value;
             }
@@ -348,14 +344,14 @@ final class Generators
      * @template T
      * @template U
      *
-     * @param callable(T):?U $f
-     * @param iterable<T>    $iterable
+     * @param callable(T):?U     $f
+     * @param iterable<T>|string $iterable
      *
      * @return Generator<int, U>
      */
-    public static function keep(callable $f, iterable $iterable): Generator
+    public static function keep(callable $f, mixed $iterable): Generator
     {
-        foreach ($iterable as $value) {
+        foreach (self::toIterable($iterable) as $value) {
             $result = $f($value);
             if ($result !== null) {
                 yield $result;
@@ -368,14 +364,14 @@ final class Generators
      * @template U
      *
      * @param callable(int, T):?U $f
-     * @param iterable<T>         $iterable
+     * @param iterable<T>|string  $iterable
      *
      * @return Generator<int, U>
      */
-    public static function keepIndexed(callable $f, iterable $iterable): Generator
+    public static function keepIndexed(callable $f, mixed $iterable): Generator
     {
         $index = 0;
-        foreach ($iterable as $value) {
+        foreach (self::toIterable($iterable) as $value) {
             $result = $f($index, $value);
             if ($result !== null) {
                 yield $result;
@@ -388,14 +384,14 @@ final class Generators
     /**
      * @template T
      *
-     * @param iterable<T> $iterable
+     * @param iterable<T>|string $iterable
      *
      * @return Generator<int, T>
      */
-    public static function take(int $n, iterable $iterable): Generator
+    public static function take(int $n, mixed $iterable): Generator
     {
         $count = 0;
-        foreach ($iterable as $value) {
+        foreach (self::toIterable($iterable) as $value) {
             if ($count >= $n) {
                 break;
             }
@@ -408,14 +404,14 @@ final class Generators
     /**
      * @template T
      *
-     * @param callable(T):bool $predicate
-     * @param iterable<T>      $iterable
+     * @param callable(T):bool   $predicate
+     * @param iterable<T>|string $iterable
      *
      * @return Generator<int, T>
      */
-    public static function takeWhile(callable $predicate, iterable $iterable): Generator
+    public static function takeWhile(callable $predicate, mixed $iterable): Generator
     {
-        foreach ($iterable as $value) {
+        foreach (self::toIterable($iterable) as $value) {
             if (!$predicate($value)) {
                 break;
             }
@@ -427,14 +423,14 @@ final class Generators
     /**
      * @template T
      *
-     * @param iterable<T> $iterable
+     * @param iterable<T>|string $iterable
      *
      * @return Generator<int, T>
      */
-    public static function takeNth(int $n, iterable $iterable): Generator
+    public static function takeNth(int $n, mixed $iterable): Generator
     {
         $index = 0;
-        foreach ($iterable as $value) {
+        foreach (self::toIterable($iterable) as $value) {
             if ($index % $n === 0) {
                 yield $value;
             }
@@ -446,14 +442,14 @@ final class Generators
     /**
      * @template T
      *
-     * @param iterable<T> $iterable
+     * @param iterable<T>|string $iterable
      *
      * @return Generator<int, T>
      */
-    public static function drop(int $n, iterable $iterable): Generator
+    public static function drop(int $n, mixed $iterable): Generator
     {
         $count = 0;
-        foreach ($iterable as $value) {
+        foreach (self::toIterable($iterable) as $value) {
             if ($count >= $n) {
                 yield $value;
             }
@@ -465,15 +461,15 @@ final class Generators
     /**
      * @template T
      *
-     * @param callable(T):bool $predicate
-     * @param iterable<T>      $iterable
+     * @param callable(T):bool   $predicate
+     * @param iterable<T>|string $iterable
      *
      * @return Generator<int, T>
      */
-    public static function dropWhile(callable $predicate, iterable $iterable): Generator
+    public static function dropWhile(callable $predicate, mixed $iterable): Generator
     {
         $dropping = true;
-        foreach ($iterable as $value) {
+        foreach (self::toIterable($iterable) as $value) {
             if ($dropping && $predicate($value)) {
                 continue;
             }
@@ -486,17 +482,17 @@ final class Generators
     /**
      * @template T
      *
-     * @param iterable<T> $iterable
+     * @param iterable<T>|string $iterable
      *
      * @return Generator<int, T>
      */
-    public static function distinct(iterable $iterable): Generator
+    public static function distinct(mixed $iterable): Generator
     {
         $hasher = new Hasher();
         $equalizer = new Equalizer();
         $seen = [];
 
-        foreach ($iterable as $value) {
+        foreach (self::toIterable($iterable) as $value) {
             $hash = $hasher->hash($value);
 
             // Check if we've seen an equal value with this hash
@@ -520,17 +516,17 @@ final class Generators
     /**
      * @template T
      *
-     * @param iterable<T> $iterable
+     * @param iterable<T>|string $iterable
      *
      * @return Generator<int, T>
      */
-    public static function dedupe(iterable $iterable): Generator
+    public static function dedupe(mixed $iterable): Generator
     {
         $equalizer = new Equalizer();
         $first = true;
         $prev = null;
 
-        foreach ($iterable as $value) {
+        foreach (self::toIterable($iterable) as $value) {
             if ($first || !$equalizer->equals($value, $prev)) {
                 yield $value;
                 $prev = $value;
@@ -545,19 +541,19 @@ final class Generators
      *
      * @template T
      *
-     * @param int         $n        The partition size
-     * @param iterable<T> $iterable The input sequence
+     * @param int                $n        The partition size
+     * @param iterable<T>|string $iterable The input sequence
      *
      * @return Generator<int, PersistentVectorInterface>
      */
-    public static function partition(int $n, iterable $iterable): Generator
+    public static function partition(int $n, mixed $iterable): Generator
     {
         if ($n <= 0) {
             return;
         }
 
         $partition = [];
-        foreach ($iterable as $value) {
+        foreach (self::toIterable($iterable) as $value) {
             $partition[] = $value;
 
             if (count($partition) === $n) {
@@ -573,19 +569,19 @@ final class Generators
      *
      * @template T
      *
-     * @param int         $n        The partition size
-     * @param iterable<T> $iterable The input sequence
+     * @param int                $n        The partition size
+     * @param iterable<T>|string $iterable The input sequence
      *
      * @return Generator<int, PersistentVectorInterface>
      */
-    public static function partitionAll(int $n, iterable $iterable): Generator
+    public static function partitionAll(int $n, mixed $iterable): Generator
     {
         if ($n <= 0) {
             return;
         }
 
         $partition = [];
-        foreach ($iterable as $value) {
+        foreach (self::toIterable($iterable) as $value) {
             $partition[] = $value;
 
             if (count($partition) === $n) {
@@ -602,19 +598,19 @@ final class Generators
     /**
      * @template T
      *
-     * @param callable(T):mixed $f
-     * @param iterable<T>       $iterable
+     * @param callable(T):mixed  $f
+     * @param iterable<T>|string $iterable
      *
      * @return Generator<int, PersistentVectorInterface>
      */
-    public static function partitionBy(callable $f, iterable $iterable): Generator
+    public static function partitionBy(callable $f, mixed $iterable): Generator
     {
         $equalizer = new Equalizer();
         $partition = [];
         $prevKey = null;
         $first = true;
 
-        foreach ($iterable as $value) {
+        foreach (self::toIterable($iterable) as $value) {
             $key = $f($value);
 
             if ($first || $equalizer->equals($key, $prevKey)) {
@@ -851,16 +847,14 @@ final class Generators
     }
 
     /**
-     * Converts an iterable to an Iterator.
+     * Converts an iterable or string to an Iterator.
      *
-     * @template T
-     *
-     * @param iterable<T> $iterable
-     *
-     * @return Iterator<int|string, T>
+     * @return Iterator<int|string, mixed>
      */
-    private static function toIterator(iterable $iterable): Iterator
+    private static function toIterator(mixed $value): Iterator
     {
+        $iterable = self::toIterable($value);
+
         if ($iterable instanceof Iterator) {
             return $iterable;
         }
