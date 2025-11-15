@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Run;
 
-use Override;
 use Phel\Phel;
 use Phel\Run\Infrastructure\Command\RunCommand;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
@@ -13,11 +12,9 @@ use Symfony\Component\Console\Input\InputInterface;
 
 final class RunCommandTest extends AbstractTestCommand
 {
-    #[Override]
-    protected function setUp(): void
+    public static function setUpBeforeClass(): void
     {
-        parent::setUp(); // This clears GlobalEnvironmentSingleton
-        Phel::bootstrap(__DIR__); // Re-bootstrap after clearing
+        Phel::bootstrap(__DIR__);
     }
 
     public function test_file_not_found(): void
