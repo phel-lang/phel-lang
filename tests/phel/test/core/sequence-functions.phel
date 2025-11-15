@@ -366,25 +366,64 @@
     (php/aset m "a" (php/array 1 inner))
     (is (= m (phel->php (php->phel m))) "php->phel -> phel->php roundtrip")))
 
-# require explicit seq conversion and fail on raw strings
-(deftest test-map-with-string-requires-seq
-  (is (= ["H" "I"] (map php/strtoupper (seq "hi"))) "map works with (seq string)")
-  (is (thrown? \TypeError (map php/strtoupper "hi")) "map fails with raw string"))
+(deftest test-map-with-string
+  (is (= ["H" "I"] (map php/strtoupper "hi")) "map works with raw string")
+  (is (= ["H" "I"] (map php/strtoupper (seq "hi"))) "map still works with (seq string)"))
 
-(deftest test-filter-with-string-requires-seq
-  (is (= ["h" "e" "o"] (filter |(not= $ "l") (seq "hello"))) "filter works with (seq string)")
-  (is (thrown? \TypeError (filter |(not= $ "l") "hello")) "filter fails with raw string"))
+(deftest test-filter-with-string
+  (is (= ["h" "e" "o"] (filter |(not= $ "l") "hello")) "filter works with raw string")
+  (is (= ["h" "e" "o"] (filter |(not= $ "l") (seq "hello"))) "filter still works with (seq string)"))
 
-(deftest test-take-with-string-requires-seq
-  (is (= ["h" "i"] (take 2 (seq "hi"))) "take works with (seq string)")
-  (is (thrown? \TypeError (take 2 "hi")) "take fails with raw string"))
+(deftest test-take-with-string
+  (is (= ["h" "i"] (take 2 "hi")) "take works with raw string")
+  (is (= ["h" "i"] (take 2 (seq "hi"))) "take still works with (seq string)"))
 
-(deftest test-drop-with-string-requires-seq
-  (is (= ["l" "o"] (drop 3 (seq "hello"))) "drop works with (seq string)")
-  (is (thrown? \TypeError (drop 3 "hello")) "drop fails with raw string"))
+(deftest test-drop-with-string
+  (is (= ["l" "o"] (drop 3 "hello")) "drop works with raw string")
+  (is (= ["l" "o"] (drop 3 (seq "hello"))) "drop still works with (seq string)"))
 
 (deftest test-seq-preserves-laziness
   (is (= 0 (first (seq (range 1000000)))) "seq with large range returns immediately")
   (is (= [0 1 2] (take 3 (seq (range 1000000)))) "take works on seq of large range")
   (is (nil? (seq (filter (fn [x] false) (range 10)))) "seq returns nil for empty lazy seq")
   (is (= 0 (first (seq (filter (fn [x] (= 0 (php/% x 2))) (range 1000000))))) "seq preserves laziness for filtered sequences"))
+
+(deftest test-first-with-strings
+  (is (= "h" (first "hello")) "first works with string")
+  (is (nil? (first "")) "first returns nil for empty string")
+  (is (= "🎉" (first "🎉🎊")) "first works with multibyte UTF-8"))
+
+(deftest test-next-with-strings
+  (is (= ["e" "l" "l" "o"] (next "hello")) "next works with string")
+  (is (nil? (next "a")) "next returns nil for single character")
+  (is (nil? (next "")) "next returns nil for empty string")
+  (is (= ["i"] (next "hi")) "next returns vector for remaining chars"))
+
+(deftest test-rest-with-strings
+  (is (= ["e" "l" "l" "o"] (rest "hello")) "rest works with string")
+  (is (= [] (rest "a")) "rest returns empty vector for single character")
+  (is (= [] (rest "")) "rest returns empty vector for empty string"))
+
+(deftest test-reduce-with-strings
+  (is (= "hello" (reduce str "" "hello")) "reduce works with string")
+  (is (= "HELLO" (reduce (fn [acc c] (str acc (php/strtoupper c))) "" "hello")) "reduce can transform string chars"))
+
+(deftest test-sequence-ops-with-strings
+  (is (= ["h" "e" "l" "l" "o"] (map identity "hello")) "map identity on string")
+  (is (= ["l" "l"] (filter |(= $ "l") "hello")) "filter on string")
+  (is (= ["h" "e"] (take 2 "hello")) "take from string")
+  (is (= ["l" "l" "o"] (drop 2 "hello")) "drop from string")
+  (is (= ["h" "e" "l" "o"] (distinct "hheelloo")) "distinct removes duplicate chars")
+  (is (= 5 (count "hello")) "count on string")
+  (is (= ["o" "l" "l" "e" "h"] (reverse "hello")) "reverse on string"))
+
+(deftest test-lazy-operations-with-strings
+  (is (= ["h" "e"] (take 2 (concat "hello" "world"))) "concat with strings")
+  (is (= ["h" "e"] (take-while |(not= $ "l") "hello")) "take-while stops before l")
+  (is (= ["l" "l" "o"] (drop-while |(not= $ "l") "hello")) "drop-while drops until l"))
+
+(deftest test-unicode-string-support
+  (is (= "你" (first "你好")) "first works with Chinese characters")
+  (is (= ["好"] (next "你好")) "next works with Chinese characters")
+  (is (= ["🎉" "🎊" "🎈"] (map identity "🎉🎊🎈")) "map works with emoji")
+  (is (= 3 (count "你好吗")) "count works with multibyte strings"))

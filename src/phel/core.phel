@@ -88,13 +88,18 @@
       nil
       (if (php/instanceof xs CdrInterface)
         (php/-> xs (cdr))
-        (if (php/is_array xs)
-          (let [sliced (php/array_slice xs 1)]
-            (if (php/empty sliced)
+        (if (php/is_string xs)
+          (let [chars (php/mb_str_split xs)]
+            (if (php/<= (php/count chars) 1)
               nil
-              sliced))
-          (throw (php/new InvalidArgumentException
-                          (php/. "cannot call 'next on " (php/gettype xs)))))))))
+              (apply vector (php/array_slice chars 1))))
+          (if (php/is_array xs)
+            (let [sliced (php/array_slice xs 1)]
+              (if (php/empty sliced)
+                nil
+                sliced))
+            (throw (php/new InvalidArgumentException
+                            (php/. "cannot call 'next on " (php/gettype xs))))))))))
 
 (def first
   "Returns the first element of a sequence, or nil if empty.
@@ -105,7 +110,11 @@
   (fn [xs]
     (if (php/instanceof xs FirstInterface)
       (php/-> xs (first))
-      (php/aget xs 0))))
+      (if (php/is_string xs)
+        (if (php/=== "" xs)
+          nil
+          (php/mb_substr xs 0 1))
+        (php/aget xs 0)))))
 
 (def concat1
   {:private true
@@ -399,9 +408,11 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   [coll]
   (if (php/instanceof coll RestInterface)
     (php/-> coll (rest))
-    (if (php/is_array coll)
-      (php/array_slice coll 1)
-      (throw (php/new InvalidArgumentException "cannot do rest")))))
+    (if (php/is_string coll)
+      (apply vector (php/array_slice (php/mb_str_split coll) 1))
+      (if (php/is_array coll)
+        (php/array_slice coll 1)
+        (throw (php/new InvalidArgumentException "cannot do rest"))))))
 
 (defn nfirst
   "Same as `(next (first coll))`."
