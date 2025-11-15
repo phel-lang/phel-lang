@@ -11,6 +11,26 @@
   [s re & [limit]]
   (values (php/preg_split re s (or limit -1))))
 
+(defn chars
+  "Returns a vector of characters from string s.
+
+  This is a convenience function for converting strings to character sequences.
+  Properly handles multibyte UTF-8 characters.
+
+  Examples:
+    (chars \"hello\")
+    # => [\"h\" \"e\" \"l\" \"l\" \"o\"]
+
+    (chars \"café\")
+    # => [\"c\" \"a\" \"f\" \"é\"]
+
+    (chars \"\")
+    # => []
+
+  See also: seq, split"
+  [s]
+  (apply vector (php/mb_str_split s)))
+
 (defn join
   "Returns a string of all elements in coll, separated by an optional separator.
 

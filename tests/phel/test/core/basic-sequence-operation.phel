@@ -63,4 +63,4 @@
   (is (= 1 (count ["a"])) "count of one element vector")
   (is (= 1 (count (php/array "a"))) "count of one element php array")
   (is (= 1 (count {:a 1})) "count of one element hash map")
-  (is (thrown? \InvalidArgumentException (count "str")) "strings are not supported"))
+  (is (= 3 (count "str")) "strings are now supported"))

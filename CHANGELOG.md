@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Basic string iteration support
+  - Strings work directly in `foreach` loops and with `count`/`frequencies`
+  - Add `seq` function and `phel\str/chars` to convert strings to character vectors
+  - Most sequence functions require `(seq string)` conversion
+  - Full UTF-8/multibyte support
 - Add a mocking framework in `phel\mock` namespace for test doubles
 - Add URL support to `slurp` function (http://, https://, ftp://)
 - Add `partition-all` for lazy partitioning with support for infinite sequences

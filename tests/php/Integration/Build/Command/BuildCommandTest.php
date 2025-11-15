@@ -73,6 +73,9 @@ final class BuildCommandTest extends TestCase
         );
         $string = ob_get_clean();
 
+        // Both files should print during build:
+        // - no-cache.phel: always recompiled (in no-cache list), executes during compilation
+        // - hello.phel: cache invalid (touched), gets recompiled, executes during compilation
         self::assertMatchesRegularExpression('/This is printed from no-cache.phel/', $string);
         self::assertMatchesRegularExpression('/This is printed from hello.phel/', $string);
 

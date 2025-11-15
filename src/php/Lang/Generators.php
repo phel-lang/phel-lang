@@ -18,9 +18,31 @@ use UnexpectedValueException;
 
 use function count;
 use function is_array;
+use function is_string;
+use function mb_str_split;
 
 final class Generators
 {
+    /**
+     * Converts a value to an iterable for use with foreach.
+     * Strings are split into an array of characters using mb_str_split.
+     * Other values are returned as-is (or empty array if null).
+     *
+     * @template T
+     *
+     * @param iterable<T>|string|null $value
+     *
+     * @return iterable<string|T>
+     */
+    public static function toIterable(mixed $value): iterable
+    {
+        if (is_string($value)) {
+            return mb_str_split($value);
+        }
+
+        return $value ?? [];
+    }
+
     /**
      * @template T
      *
