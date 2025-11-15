@@ -950,6 +950,11 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     (php/=== coll nil)
     nil
 
+    # For lazy sequences, don't force them - just check if first element exists
+    (php/instanceof coll LazySeqInterface)
+    (if (php/=== nil (php/-> coll (first))) nil coll)
+
+    # For other countable collections, check count (won't force lazy seqs)
     (and (php/instanceof coll Countable) (= 0 (count coll)))
     nil
 

@@ -366,7 +366,6 @@
     (php/aset m "a" (php/array 1 inner))
     (is (= m (phel->php (php->phel m))) "php->phel -> phel->php roundtrip")))
 
-# Regression tests for string iteration - verify that sequence functions
 # require explicit seq conversion and fail on raw strings
 (deftest test-map-with-string-requires-seq
   (is (= ["H" "I"] (map php/strtoupper (seq "hi"))) "map works with (seq string)")
@@ -383,3 +382,9 @@
 (deftest test-drop-with-string-requires-seq
   (is (= ["l" "o"] (drop 3 (seq "hello"))) "drop works with (seq string)")
   (is (thrown? \TypeError (drop 3 "hello")) "drop fails with raw string"))
+
+(deftest test-seq-preserves-laziness
+  (is (= 0 (first (seq (range 1000000)))) "seq with large range returns immediately")
+  (is (= [0 1 2] (take 3 (seq (range 1000000)))) "take works on seq of large range")
+  (is (nil? (seq (filter (fn [x] false) (range 10)))) "seq returns nil for empty lazy seq")
+  (is (= 0 (first (seq (filter (fn [x] (= 0 (php/% x 2))) (range 1000000))))) "seq preserves laziness for filtered sequences"))
