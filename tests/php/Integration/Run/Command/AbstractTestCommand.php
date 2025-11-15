@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Run\Command;
 
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Filesystem\Infrastructure\RealFilesystem;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Formatter\OutputFormatter;
 use Symfony\Component\Console\Formatter\OutputFormatterInterface;
@@ -15,6 +16,8 @@ abstract class AbstractTestCommand extends TestCase
     protected function setUp(): void
     {
         GlobalEnvironmentSingleton::initializeNew();
+        RealFilesystem::reset();
+        $this->clearGacelaCache();
     }
 
     protected function stubOutput(): OutputInterface
@@ -80,5 +83,28 @@ abstract class AbstractTestCommand extends TestCase
                 return new OutputFormatter();
             }
         };
+    }
+
+    private function clearGacelaCache(): void
+    {
+        $cacheDir = sys_get_temp_dir() . '/gacela';
+        if (is_dir($cacheDir)) {
+            $this->deleteDirRecursive($cacheDir);
+        }
+    }
+
+    private function deleteDirRecursive(string $dir): void
+    {
+        if (!is_dir($dir)) {
+            return;
+        }
+
+        $files = array_diff(scandir($dir) ?: [], ['.', '..']);
+        foreach ($files as $file) {
+            $path = $dir . '/' . $file;
+            is_dir($path) ? $this->deleteDirRecursive($path) : unlink($path);
+        }
+
+        rmdir($dir);
     }
 }

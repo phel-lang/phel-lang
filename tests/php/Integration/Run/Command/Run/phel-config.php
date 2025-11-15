@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 return [
     'src-dirs' => [
-        '/../../../../../../src/phel/',
+        __DIR__ . '/../../../../../../src/phel/',
         __DIR__ . '/Fixtures',
     ],
     'test-dirs' => [],
