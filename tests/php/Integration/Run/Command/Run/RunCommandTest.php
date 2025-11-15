@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Run;
 
+use Override;
+use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Filesystem\Infrastructure\RealFilesystem;
 use Phel\Phel;
 use Phel\Run\Infrastructure\Command\RunCommand;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
@@ -14,7 +17,15 @@ final class RunCommandTest extends AbstractTestCommand
 {
     public static function setUpBeforeClass(): void
     {
+        GlobalEnvironmentSingleton::initializeNew();
+        RealFilesystem::reset();
         Phel::bootstrap(__DIR__);
+    }
+
+    #[Override]
+    protected function setUp(): void
+    {
+        parent::setUp();
     }
 
     public function test_file_not_found(): void
