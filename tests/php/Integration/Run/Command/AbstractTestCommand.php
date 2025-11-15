@@ -17,7 +17,7 @@ abstract class AbstractTestCommand extends TestCase
     {
         GlobalEnvironmentSingleton::initializeNew();
         RealFilesystem::reset();
-        $this->clearGacelaCache();
+        $this->setTestSpecificGacelaCache();
     }
 
     protected function stubOutput(): OutputInterface
@@ -85,26 +85,16 @@ abstract class AbstractTestCommand extends TestCase
         };
     }
 
-    private function clearGacelaCache(): void
+    /**
+     * Use a test-specific Gacela cache directory to prevent cache pollution
+     * between tests without breaking Gacela's file cache initialization.
+     */
+    private function setTestSpecificGacelaCache(): void
     {
-        $cacheDir = sys_get_temp_dir() . '/gacela';
-        if (is_dir($cacheDir)) {
-            $this->deleteDirRecursive($cacheDir);
-        }
-    }
-
-    private function deleteDirRecursive(string $dir): void
-    {
-        if (!is_dir($dir)) {
-            return;
-        }
-
-        $files = array_diff(scandir($dir) ?: [], ['.', '..']);
-        foreach ($files as $file) {
-            $path = $dir . '/' . $file;
-            is_dir($path) ? $this->deleteDirRecursive($path) : unlink($path);
-        }
-
-        rmdir($dir);
+        // Use process ID to create a unique cache directory for this test run
+        // This prevents cache pollution while avoiding race conditions from deleting the cache
+        $testCacheDir = sys_get_temp_dir() . '/gacela-test-' . getmypid();
+        putenv('GACELA_CACHE_DIR=' . $testCacheDir);
+        $_ENV['GACELA_CACHE_DIR'] = $testCacheDir;
     }
 }
