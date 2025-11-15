@@ -156,6 +156,7 @@
 (declare symbol?)
 (declare list?)
 (declare second)
+(declare conj)
 
 (def meta
   {:macro true
@@ -958,15 +959,13 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 
 (defn push
-  "Inserts `x` at the end of the sequence `coll`."
+  "Inserts `x` at the end of the sequence `coll`.
+
+  Deprecated: Use `conj` instead for Clojure compatibility."
+  {:deprecated "0.25.0"
+   :superseded-by "conj"}
   [coll x]
-  (cond
-    (php-array? coll) (do (php/apush coll x) coll)
-    (or (vector? coll) (php/instanceof coll TransientVectorInterface)) (php/-> coll (append x))
-    (or (set? coll) (php/instanceof coll TransientHashSetInterface)) (php/-> coll (add x))
-    (php/instanceof coll PushInterface) (php/-> coll (push x))
-    (throw (php/new InvalidArgumentException
-                    (str "Cannot push on type " (type coll))))))
+  (conj coll x))
 
 (defn pop
   "Removes the last element of the array `coll`. If the array is empty returns nil."
@@ -1210,7 +1209,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
         swap-body (if (:reduce options)
                     (let [[sym _] (:reduce options)]
                       `(swap! ,res-sym (fn [,sym] (do ,@body))))
-                    `(swap! ,res-sym (fn [,acc-sym] (push ,acc-sym (do ,@body)))))
+                    `(swap! ,res-sym (fn [,acc-sym] (conj ,acc-sym (do ,@body)))))
         init (if (:reduce options)
                (second (:reduce options))
                [])
@@ -1352,17 +1351,17 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
               (php/instanceof to TransientVectorInterface)
               (for [value :in entries
                     :reduce [acc to]]
-                (push acc value))
+                (conj acc value))
 
               (php/instanceof to TransientHashSetInterface)
               (for [value :in entries
                     :reduce [acc to]]
-                (push acc value))
+                (conj acc value))
 
               (php/instanceof to PushInterface)
               (for [value :in entries
                     :reduce [acc to]]
-                (push acc value))
+                (conj acc value))
 
               (php/instanceof to ConcatInterface)
               (php/-> to (concat (apply php/array entries)))
@@ -1373,6 +1372,62 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
               (throw (php/new InvalidArgumentException
                               (php/. "Cannot convert into type " (type to))))))))
     (throw (php/new InvalidArgumentException "into expects one or two arguments"))))
+
+(defn- conj-map-entry
+  [coll entry]
+  (let [assign (fn [acc key value]
+                 (if (php-array? acc)
+                   (do
+                     (php/aset acc key value)
+                     acc)
+                   (php/-> acc (put key value))))]
+    (cond
+      (indexed? entry)
+      (if (php/!= (count entry) 2)
+        (throw (php/new InvalidArgumentException
+                        "conj on a map expects entries of length 2"))
+        (assign coll (first entry) (second entry)))
+
+      (associative? entry)
+      (for [[key value] :pairs entry
+            :reduce [acc coll]]
+        (assign acc key value))
+
+      :else
+      (throw (php/new InvalidArgumentException
+                      "conj on a map expects a [key value] pair or an associative collection")))))
+
+(defn- conj-single
+  [coll value]
+  (cond
+    (php/=== coll nil) (list value)
+    (list? coll) (cons value coll)
+    (php-array? coll) (do (php/apush coll value) coll)
+    (or (vector? coll) (php/instanceof coll TransientVectorInterface)) (php/-> coll (append value))
+    (or (set? coll) (php/instanceof coll TransientHashSetInterface)) (php/-> coll (add value))
+    (or (hash-map? coll)
+        (struct? coll)
+        (php/instanceof coll TransientMapInterface)) (conj-map-entry coll value)
+    (php/instanceof coll PushInterface) (php/-> coll (push value))
+    :else
+    (throw (php/new InvalidArgumentException
+                    (str "Cannot conj on type " (type coll))))))
+
+(defn conj
+    "Returns a new collection with values added. Appends to vectors/sets, prepends to lists.
+
+    Examples:
+      (conj [1 2] 3)
+      # => [1 2 3]
+
+      (conj {:a 1} [:b 2])
+      # => {:a 1 :b 2}"
+  ([] [])
+  ([coll] coll)
+  ([coll value]
+   (conj-single coll value))
+  ([coll value & more]
+   (reduce conj-single (conj-single coll value) more)))
 
 (defn slice
   "Extract a slice of `coll`."
@@ -1580,7 +1635,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   (let [result
         (for [i :range [(php/- (count coll) 1) -1 -1]
               :reduce [ret []]]
-          (push ret (get coll i)))]
+          (conj ret (get coll i)))]
     (with-meta coll result)))
 
 (defn interleave
@@ -1606,8 +1661,8 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
          (for [[k v] :pairs coll
                :reduce [res (transient [])]]
            (when (> k 0)
-             (push res sep v))
-           (push res v)))]
+             (conj res sep v))
+           (conj res v)))]
     (with-meta coll result)))
 
 (defn frequencies
@@ -1652,8 +1707,8 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
         (persistent
          (for [[k v] :pairs coll
                :reduce [res (transient [])]]
-           (push res k)
-           (push res v)))]
+           (conj res k)
+           (conj res v)))]
     (with-meta coll result)))
 
 (defn to-php-array
@@ -1707,7 +1762,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     (indexed-php-array? x)
     (let [res (transient [])]
       (foreach [v x]
-        (push res (php->phel v)))
+        (conj res (php->phel v)))
       (persistent res))
 
     (php-array? x)
@@ -2120,7 +2175,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   [& fs]
   (fn [& args]
     (reduce
-     |(push $1 (apply $2 args))
+     |(conj $1 (apply $2 args))
      []
      fs)))
 
@@ -2159,7 +2214,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     (loop [stack (php/array root)]
       (if (> (count stack) 0)
         (let [node (pop stack)]
-          (push ret node)
+          (conj ret node)
           (if (branch? node)
             (let [reversed-children (reverse (children node))]
               (foreach [child reversed-children]
