@@ -17,7 +17,6 @@ abstract class AbstractTestCommand extends TestCase
     {
         GlobalEnvironmentSingleton::initializeNew();
         RealFilesystem::reset();
-        $this->setTestSpecificGacelaCache();
     }
 
     protected function stubOutput(): OutputInterface
@@ -83,18 +82,5 @@ abstract class AbstractTestCommand extends TestCase
                 return new OutputFormatter();
             }
         };
-    }
-
-    /**
-     * Use a test-specific Gacela cache directory to prevent cache pollution
-     * between tests without breaking Gacela's file cache initialization.
-     */
-    private function setTestSpecificGacelaCache(): void
-    {
-        // Use process ID to create a unique cache directory for this test run
-        // This prevents cache pollution while avoiding race conditions from deleting the cache
-        $testCacheDir = sys_get_temp_dir() . '/gacela-test-' . getmypid();
-        putenv('GACELA_CACHE_DIR=' . $testCacheDir);
-        $_ENV['GACELA_CACHE_DIR'] = $testCacheDir;
     }
 }

@@ -13,6 +13,7 @@
 >
     <php>
         <ini name="error_reporting" value="-1"/>
+        <env name="GACELA_CACHE_DIR" value=".phpunit.cache/gacela"/>
     </php>
     <testsuites>
         <testsuite name="integration">
