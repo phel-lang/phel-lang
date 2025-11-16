@@ -8,7 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ForeachNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
-use Phel\Lang\Generators;
+use Phel\Lang\Seq;
 use Phel\Lang\Symbol;
 
 use function assert;
@@ -26,7 +26,7 @@ final class ForeachEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
         }
 
-        $this->outputEmitter->emitStr('foreach (\\' . Generators::class . '::toIterable(', $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr('foreach (\\' . Seq::class . '::toIterable(', $node->getStartSourceLocation());
         $this->outputEmitter->emitNode($node->getListExpr());
         $this->outputEmitter->emitStr(') as ', $node->getStartSourceLocation());
         if ($node->getKeySymbol() instanceof Symbol) {
