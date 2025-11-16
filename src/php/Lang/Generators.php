@@ -5,18 +5,13 @@ declare(strict_types=1);
 namespace Phel\Lang;
 
 use ArrayIterator;
-use FilesystemIterator;
 use Generator;
-use InvalidArgumentException;
 use Iterator;
-use Phel;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use RuntimeException;
-use UnexpectedValueException;
+use Phel\Lang\Generators\FileGenerators;
+use Phel\Lang\Generators\InfiniteGenerators;
+use Phel\Lang\Generators\PartitionGenerators;
 
-use function count;
 use function is_array;
 use function is_string;
 use function mb_str_split;
@@ -48,14 +43,13 @@ final class Generators
      *
      * @param T $value
      *
+     * @deprecated Use InfiniteGenerators::repeat() instead
+     *
      * @return Generator<int, T>
      */
     public static function repeat(mixed $value): Generator
     {
-        // @phpstan-ignore-next-line while.alwaysTrue
-        while (true) {
-            yield $value;
-        }
+        return InfiniteGenerators::repeat($value);
     }
 
     /**
@@ -63,14 +57,13 @@ final class Generators
      *
      * @param callable():T $f
      *
+     * @deprecated Use InfiniteGenerators::repeatedly() instead
+     *
      * @return Generator<int, T>
      */
     public static function repeatedly(callable $f): Generator
     {
-        // @phpstan-ignore-next-line while.alwaysTrue
-        while (true) {
-            yield $f();
-        }
+        return InfiniteGenerators::repeatedly($f);
     }
 
     /**
@@ -79,15 +72,13 @@ final class Generators
      * @param callable(T):T $f
      * @param T             $x
      *
+     * @deprecated Use InfiniteGenerators::iterate() instead
+     *
      * @return Generator<int, T>
      */
     public static function iterate(callable $f, mixed $x): Generator
     {
-        // @phpstan-ignore-next-line while.alwaysTrue
-        while (true) {
-            yield $x;
-            $x = $f($x);
-        }
+        return InfiniteGenerators::iterate($f, $x);
     }
 
     /**
@@ -95,26 +86,13 @@ final class Generators
      *
      * @param iterable<T>|string $iterable
      *
+     * @deprecated Use InfiniteGenerators::cycle() instead
+     *
      * @return Generator<int, T>
      */
     public static function cycle(mixed $iterable): Generator
     {
-        $values = [];
-        foreach (self::toIterable($iterable) as $value) {
-            $values[] = $value;
-            yield $value;
-        }
-
-        if ($values === []) {
-            return;
-        }
-
-        // @phpstan-ignore-next-line while.alwaysTrue
-        while (true) {
-            foreach ($values as $value) {
-                yield $value;
-            }
-        }
+        return InfiniteGenerators::cycle($iterable);
     }
 
     /**
@@ -544,23 +522,13 @@ final class Generators
      * @param int                $n        The partition size
      * @param iterable<T>|string $iterable The input sequence
      *
+     * @deprecated Use PartitionGenerators::partition() instead
+     *
      * @return Generator<int, PersistentVectorInterface>
      */
     public static function partition(int $n, mixed $iterable): Generator
     {
-        if ($n <= 0) {
-            return;
-        }
-
-        $partition = [];
-        foreach (self::toIterable($iterable) as $value) {
-            $partition[] = $value;
-
-            if (count($partition) === $n) {
-                yield Phel::vector($partition);
-                $partition = [];
-            }
-        }
+        return PartitionGenerators::partition($n, $iterable);
     }
 
     /**
@@ -572,27 +540,13 @@ final class Generators
      * @param int                $n        The partition size
      * @param iterable<T>|string $iterable The input sequence
      *
+     * @deprecated Use PartitionGenerators::partitionAll() instead
+     *
      * @return Generator<int, PersistentVectorInterface>
      */
     public static function partitionAll(int $n, mixed $iterable): Generator
     {
-        if ($n <= 0) {
-            return;
-        }
-
-        $partition = [];
-        foreach (self::toIterable($iterable) as $value) {
-            $partition[] = $value;
-
-            if (count($partition) === $n) {
-                yield Phel::vector($partition);
-                $partition = [];
-            }
-        }
-
-        if ($partition !== []) {
-            yield Phel::vector($partition);
-        }
+        return PartitionGenerators::partitionAll($n, $iterable);
     }
 
     /**
@@ -601,32 +555,13 @@ final class Generators
      * @param callable(T):mixed  $f
      * @param iterable<T>|string $iterable
      *
+     * @deprecated Use PartitionGenerators::partitionBy() instead
+     *
      * @return Generator<int, PersistentVectorInterface>
      */
     public static function partitionBy(callable $f, mixed $iterable): Generator
     {
-        $equalizer = new Equalizer();
-        $partition = [];
-        $prevKey = null;
-        $first = true;
-
-        foreach (self::toIterable($iterable) as $value) {
-            $key = $f($value);
-
-            if ($first || $equalizer->equals($key, $prevKey)) {
-                $partition[] = $value;
-                $prevKey = $key;
-                $first = false;
-            } else {
-                yield Phel::vector($partition);
-                $partition = [$value];
-                $prevKey = $key;
-            }
-        }
-
-        if ($partition !== []) {
-            yield Phel::vector($partition);
-        }
+        return PartitionGenerators::partitionBy($f, $iterable);
     }
 
     /**
@@ -634,36 +569,13 @@ final class Generators
      * Yields each line as a string with line endings removed.
      * Automatically closes the file handle when done or on error.
      *
+     * @deprecated Use FileGenerators::fileLines() instead
+     *
      * @return Generator<int, string>
      */
     public static function fileLines(string $filename): Generator
     {
-        if (!is_file($filename)) {
-            throw new InvalidArgumentException(
-                'Argument filename should be a valid path to a file: ' . $filename,
-            );
-        }
-
-        if (!is_readable($filename)) {
-            throw new InvalidArgumentException(
-                'File is not readable: ' . $filename,
-            );
-        }
-
-        $handle = fopen($filename, 'r');
-        if ($handle === false) {
-            throw new RuntimeException(
-                'Failed to open file: ' . $filename,
-            );
-        }
-
-        try {
-            while (($line = fgets($handle)) !== false) {
-                yield rtrim($line, "\r\n");
-            }
-        } finally {
-            fclose($handle);
-        }
+        return FileGenerators::fileLines($filename);
     }
 
     /**
@@ -671,67 +583,13 @@ final class Generators
      * Returns all files and directories recursively.
      * Follows symbolic links but tracks visited inodes to prevent infinite cycles.
      *
+     * @deprecated Use FileGenerators::fileSeq() instead
+     *
      * @return Generator<int, string>
      */
     public static function fileSeq(string $path): Generator
     {
-        if (!file_exists($path)) {
-            throw new InvalidArgumentException(
-                'Path does not exist: ' . $path,
-            );
-        }
-
-        if (!is_readable($path)) {
-            throw new InvalidArgumentException(
-                'Path is not readable: ' . $path,
-            );
-        }
-
-        // If it's a file, just yield it
-        if (is_file($path)) {
-            yield $path;
-            return;
-        }
-
-        // If it's a directory, walk it recursively with cycle detection
-        if (is_dir($path)) {
-            $visited = [];
-
-            try {
-                $iterator = new RecursiveIteratorIterator(
-                    new RecursiveDirectoryIterator(
-                        $path,
-                        FilesystemIterator::SKIP_DOTS | FilesystemIterator::FOLLOW_SYMLINKS,
-                    ),
-                    RecursiveIteratorIterator::SELF_FIRST,
-                );
-
-                foreach ($iterator as $fileInfo) {
-                    $pathname = $fileInfo->getPathname();
-
-                    // Get real path to detect cycles via inode tracking
-                    $realPath = $fileInfo->getRealPath();
-
-                    // Skip if we've already visited this inode (cycle detection)
-                    if ($realPath !== false) {
-                        $stat = @stat($realPath);
-                        if ($stat !== false) {
-                            $inode = $stat['dev'] . ':' . $stat['ino'];
-
-                            if (isset($visited[$inode])) {
-                                continue;
-                            }
-
-                            $visited[$inode] = true;
-                        }
-                    }
-
-                    yield $pathname;
-                }
-            } catch (UnexpectedValueException $e) {
-                throw new RuntimeException('Error reading directory: ' . $path . ' - ' . $e->getMessage(), $e->getCode(), $e);
-            }
-        }
+        return FileGenerators::fileSeq($path);
     }
 
     /**
@@ -742,54 +600,13 @@ final class Generators
      * @param string $filename  The path to the file to read
      * @param int    $chunkSize The size of each chunk in bytes (default: 8192)
      *
-     * @throws InvalidArgumentException if the file doesn't exist, is not readable, or chunk size is invalid
-     * @throws RuntimeException         if the file cannot be opened
+     * @deprecated Use FileGenerators::readFileChunks() instead
      *
      * @return Generator<int, string>
      */
     public static function readFileChunks(string $filename, int $chunkSize = 8192): Generator
     {
-        if ($chunkSize <= 0) {
-            throw new InvalidArgumentException(
-                'Chunk size must be positive, got: ' . $chunkSize,
-            );
-        }
-
-        if (!is_file($filename)) {
-            throw new InvalidArgumentException(
-                'Argument filename should be a valid path to a file: ' . $filename,
-            );
-        }
-
-        if (!is_readable($filename)) {
-            throw new InvalidArgumentException(
-                'File is not readable: ' . $filename,
-            );
-        }
-
-        $handle = fopen($filename, 'rb');
-        if ($handle === false) {
-            throw new RuntimeException(
-                'Failed to open file: ' . $filename,
-            );
-        }
-
-        try {
-            while (!feof($handle)) {
-                $chunk = fread($handle, $chunkSize);
-                if ($chunk === false) {
-                    throw new RuntimeException(
-                        'Failed to read from file: ' . $filename,
-                    );
-                }
-
-                if ($chunk !== '') {
-                    yield $chunk;
-                }
-            }
-        } finally {
-            fclose($handle);
-        }
+        return FileGenerators::readFileChunks($filename, $chunkSize);
     }
 
     /**
@@ -802,8 +619,7 @@ final class Generators
      * @param string $enclosure The field enclosure character (default: '"')
      * @param string $escape    The escape character (default: '\\')
      *
-     * @throws InvalidArgumentException if the file doesn't exist or is not readable
-     * @throws RuntimeException         if the file cannot be opened
+     * @deprecated Use FileGenerators::csvLines() instead
      *
      * @return Generator<int, PersistentVectorInterface>
      */
@@ -813,37 +629,7 @@ final class Generators
         string $enclosure = '"',
         string $escape = '\\',
     ): Generator {
-        if (!is_file($filename)) {
-            throw new InvalidArgumentException(
-                'Argument filename should be a valid path to a file: ' . $filename,
-            );
-        }
-
-        if (!is_readable($filename)) {
-            throw new InvalidArgumentException(
-                'File is not readable: ' . $filename,
-            );
-        }
-
-        $handle = fopen($filename, 'r');
-        if ($handle === false) {
-            throw new RuntimeException(
-                'Failed to open file: ' . $filename,
-            );
-        }
-
-        try {
-            $typeFactory = TypeFactory::getInstance();
-            while (($row = fgetcsv($handle, 0, $separator, $enclosure, $escape)) !== false) {
-                // fgetcsv returns list<string|null>|false
-                // Convert null values to empty strings for consistency
-                /** @psalm-var list<string|null> $row */
-                $cleanRow = array_map(static fn (?string $val): string => $val ?? '', $row);
-                yield $typeFactory->persistentVectorFromArray($cleanRow);
-            }
-        } finally {
-            fclose($handle);
-        }
+        return FileGenerators::csvLines($filename, $separator, $enclosure, $escape);
     }
 
     /**
