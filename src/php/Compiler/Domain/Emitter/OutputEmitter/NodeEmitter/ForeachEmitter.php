@@ -8,7 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ForeachNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
-use Phel\Lang\SequenceGenerator;
+use Phel\Lang\Generators\SequenceGenerator;
 use Phel\Lang\Symbol;
 
 use function assert;

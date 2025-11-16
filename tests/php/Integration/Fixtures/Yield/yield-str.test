@@ -11,7 +11,7 @@
 
     public function __invoke() {
       return (function() {
-        foreach (\Phel\Lang\SequenceGenerator::toIterable((\Phel::getDefinition("phel\\core", "range"))(...((\Phel::vector([0, 3])) ?? []))) as $i) {
+        foreach (\Phel\Lang\Generators\SequenceGenerator::toIterable((\Phel::getDefinition("phel\\core", "range"))(...((\Phel::vector([0, 3])) ?? []))) as $i) {
           yield $i;
         }
         return null;
