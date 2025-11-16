@@ -2,13 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.26.0](https://github.com/phel-lang/phel-lang/compare/v0.25.0...v0.26.0) - 2025-11-16
 
 ### Added
 - Basic string iteration support
   - Strings work directly in `foreach` loops and with `count`/`frequencies`
-  - Add `seq` function and `phel\str/chars` to convert strings to character vectors
-  - Most sequence functions require `(seq string)` conversion
+  - Sequence functions work directly on strings without explicit conversion
+  - Add `seq` function and `phel\str/chars` for explicitly converting strings to character vectors when needed
   - Full UTF-8/multibyte support
 - Add a mocking framework in `phel\mock` namespace for test doubles
 - Add URL support to `slurp` function (http://, https://, ftp://)
@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - Fix `into` to work correctly with `PersistentList` and other `ConcatInterface` types that don't implement `PushInterface`
+- Fix `contains?` to use character count instead of byte count for multibyte UTF-8 strings
 
 ## [0.25.0](https://github.com/phel-lang/phel-lang/compare/v0.24.0...v0.25.0) - 2025-11-09
 
