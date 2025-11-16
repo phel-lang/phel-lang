@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - Make `concat`, `mapcat`, `interpose`, `map-indexed`, `interleave`, variadic `map`, and `partition` fully lazy with infinite sequence support
 - Add `lazy-seq` and `lazy-cat` macros for user-defined lazy sequences
 - Add `conj` function for Clojure-compatible collection building
+- Add string index support to `contains?` for Clojure compatibility
 
 ### Changed
 - Rename collection parameters from `xs` to `coll` throughout core functions

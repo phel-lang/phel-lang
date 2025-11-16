@@ -209,6 +209,14 @@
   (is (true? (contains? (set 1) 1)))
   (is (false? (contains? (set 1) 2))))
 
+(deftest test-contains?-string
+  (is (false? (contains? "" 0)) "empty string has no indices")
+  (is (true? (contains? "hello" 0)) "first index")
+  (is (true? (contains? "hello" 4)) "last valid index")
+  (is (false? (contains? "hello" 5)) "index out of bounds")
+  (is (false? (contains? "hello" -1)) "negative index")
+  (is (false? (contains? "hello" "e")) "non-integer key"))
+
 (deftest test-contains-value?-php-indexed-array
   (is (false? (contains-value? (php-indexed-array) 1)))
   (is (false? (contains-value? (php-indexed-array 1) 2)))
