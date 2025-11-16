@@ -33,7 +33,7 @@
   (:use Phel\Lang\Symbol)
   (:use Phel\Lang\Truthy)
   (:use Phel\Lang\Variable)
-  (:use Phel\Lang\Generators\SequenceGenerator)
+  (:use Phel\Lang\Seq)
   (:use Phel\Lang\Hasher)
   (:use Phel\Lang\Equalizer)
   (:use Phel\Lang\Collections\LazySeq\LazySeq)
@@ -1180,9 +1180,9 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     # => (0 1 2 3 4)"
   [a & rest]
   (case (count rest)
-    0 (lazy-seq-from-generator (php/:: SequenceGenerator (range 0 a 1)))
-    1 (lazy-seq-from-generator (php/:: SequenceGenerator (range a (get rest 0) 1)))
-    2 (lazy-seq-from-generator (php/:: SequenceGenerator (range a (get rest 0) (get rest 1))))
+    0 (lazy-seq-from-generator (php/:: Seq (range 0 a 1)))
+    1 (lazy-seq-from-generator (php/:: Seq (range a (get rest 0) 1)))
+    2 (lazy-seq-from-generator (php/:: Seq (range a (get rest 0) (get rest 1))))
     (throw (php/new InvalidArgumentException "Range function expects one, two or three arguments"))))
 
 (def- for-options (set :reduce))
@@ -1329,10 +1329,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     1 (let [coll (first colls)]
         (if (empty? coll)
           []
-          (with-meta coll (lazy-seq-from-generator (php/:: SequenceGenerator (map f coll))))))
+          (with-meta coll (lazy-seq-from-generator (php/:: Seq (map f coll))))))
     (let [result (lazy-seq-from-generator
                   (php/call_user_func_array
-                   (php/array "\\Phel\\Lang\\Generators\\SequenceGenerator" "mapMulti")
+                   (php/array "\\Phel\\Lang\\Seq" "mapMulti")
                    (php/array_merge (php/array f) (apply php/array colls))))]
       (if (php/=== nil result)
         []
@@ -1564,7 +1564,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     (let [n (if (php/< n 0) 0 n)]
       (if (php/=== n 0)
         coll
-        (let [result (lazy-seq-from-generator (php/:: SequenceGenerator (drop n coll)))]
+        (let [result (lazy-seq-from-generator (php/:: Seq (drop n coll)))]
           (with-meta coll (or result [])))))))
 
 (defn drop-last
@@ -1591,7 +1591,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   [pred coll]
   (if (nil? coll)
     []
-    (let [result (lazy-seq-from-generator (php/:: SequenceGenerator (dropWhile pred coll)))]
+    (let [result (lazy-seq-from-generator (php/:: Seq (dropWhile pred coll)))]
       (with-meta coll (or result [])))))
 
 (defn take
@@ -1604,7 +1604,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   (let [n (if (php/< n 0) 0 n)]
     (if (php/=== n 0)
       []
-      (let [result (lazy-seq-from-generator (php/:: SequenceGenerator (take n coll)))]
+      (let [result (lazy-seq-from-generator (php/:: Seq (take n coll)))]
         (if (nil? result)
           []
           (with-meta coll result))))))
@@ -1619,7 +1619,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   [pred coll]
   (if (nil? coll)
     []
-    (let [result (lazy-seq-from-generator (php/:: SequenceGenerator (takeWhile pred coll)))]
+    (let [result (lazy-seq-from-generator (php/:: Seq (takeWhile pred coll)))]
       (with-meta coll (or result [])))))
 
 (defn take-nth
@@ -1629,7 +1629,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     (throw (php/new InvalidArgumentException "First argument of 'take-nth must be greater than 0")))
   (if (nil? coll)
     []
-    (let [result (lazy-seq-from-generator (php/:: SequenceGenerator (takeNth n coll)))]
+    (let [result (lazy-seq-from-generator (php/:: Seq (takeNth n coll)))]
       (with-meta coll (or result [])))))
 
 (defn filter
@@ -1639,7 +1639,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     (filter even? [1 2 3 4 5 6])
     # => (2 4 6)"
   [pred coll]
-  (let [result (lazy-seq-from-generator (php/:: SequenceGenerator (filter pred coll)))]
+  (let [result (lazy-seq-from-generator (php/:: Seq (filter pred coll)))]
     (if (nil? result)
       []
       (with-meta coll result))))
@@ -1653,7 +1653,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   [pred coll]
   (if (nil? coll)
     []
-    (let [result (lazy-seq-from-generator (php/:: SequenceGenerator (keep pred coll)))]
+    (let [result (lazy-seq-from-generator (php/:: Seq (keep pred coll)))]
       (with-meta coll (or result [])))))
 
 (defn keep-indexed
@@ -1661,7 +1661,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   [pred coll]
   (if (nil? coll)
     []
-    (let [result (lazy-seq-from-generator (php/:: SequenceGenerator (keepIndexed pred coll)))]
+    (let [result (lazy-seq-from-generator (php/:: Seq (keepIndexed pred coll)))]
       (with-meta coll (or result [])))))
 
 (defn find
@@ -1690,7 +1690,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   [coll]
   (if (nil? coll)
     []
-    (let [result (lazy-seq-from-generator (php/:: SequenceGenerator (distinct coll)))]
+    (let [result (lazy-seq-from-generator (php/:: Seq (distinct coll)))]
       (with-meta coll (or result [])))))
 
 
@@ -1880,7 +1880,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   With one argument returns an infinite lazy sequence of x."
   [a & rest]
   (case (count rest)
-    0 (lazy-seq-from-generator (php/:: SequenceGenerator (repeat a)))
+    0 (lazy-seq-from-generator (php/:: Seq (repeat a)))
     1 (for [i :range [a]] (get rest 0))
     (throw (php/new InvalidArgumentException "repeat expects one or two arguments"))))
 
@@ -1889,7 +1889,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   With one argument returns an infinite lazy sequence of calls to f."
   [a & rest]
   (case (count rest)
-    0 (lazy-seq-from-generator (php/:: SequenceGenerator (repeatedly a)))
+    0 (lazy-seq-from-generator (php/:: Seq (repeatedly a)))
     1 (let [n a
             f (get rest 0)]
         (for [i :range [n]] (f)))
@@ -1920,14 +1920,14 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 (defn iterate
   "Returns an infinite lazy sequence of x, (f x), (f (f x)), and so on."
   [f x]
-  (lazy-seq-from-generator (php/:: SequenceGenerator (iterate f x))))
+  (lazy-seq-from-generator (php/:: Seq (iterate f x))))
 
 (defn cycle
   "Returns an infinite lazy sequence that cycles through the elements of collection."
   [coll]
   (if (empty? coll)
     []
-    (lazy-seq-from-generator (php/:: SequenceGenerator (cycle coll)))))
+    (lazy-seq-from-generator (php/:: Seq (cycle coll)))))
 
 (def concat
   "Concatenates multiple collections into a lazy sequence.
@@ -1940,7 +1940,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
       '()
       (let [result (lazy-seq-from-generator
                     (php/call_user_func_array
-                     (php/array "\\Phel\\Lang\\Generators\\SequenceGenerator" "concat")
+                     (php/array "\\Phel\\Lang\\Seq" "concat")
                      (apply php/array colls)))]
         (if (php/=== nil result)
           '()
@@ -1958,7 +1958,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     (if (php/=== nil coll)
       '()
       (let [result (lazy-seq-from-generator
-                    (php/:: \Phel\Lang\SequenceGenerator (mapcat f coll)))]
+                    (php/:: \Phel\Lang\Seq (mapcat f coll)))]
         (if (php/=== nil result)
           '()
           (with-meta coll result))))))
@@ -1974,7 +1974,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     (if (php/=== nil coll)
       '()
       (let [result (lazy-seq-from-generator
-                    (php/:: \Phel\Lang\SequenceGenerator (interpose sep coll)))]
+                    (php/:: \Phel\Lang\Seq (interpose sep coll)))]
         (if (php/=== nil result)
           '()
           (with-meta coll result))))))
@@ -1991,7 +1991,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     (if (php/=== nil coll)
       '()
       (let [result (lazy-seq-from-generator
-                    (php/:: \Phel\Lang\SequenceGenerator (mapIndexed f coll)))]
+                    (php/:: \Phel\Lang\Seq (mapIndexed f coll)))]
         (if (php/=== nil result)
           '()
           (with-meta coll result))))))
@@ -2010,7 +2010,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
       '()
       (let [result (lazy-seq-from-generator
                     (php/call_user_func_array
-                     (php/array "\\Phel\\Lang\\Generators\\SequenceGenerator" "interleave")
+                     (php/array "\\Phel\\Lang\\Seq" "interleave")
                      (apply php/array colls)))]
         (if (php/=== nil result)
           '()
@@ -2123,7 +2123,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   (cond
     (nil? coll) []
     (and (indexed? coll) (= 0 (count coll))) []
-    true (lazy-seq-from-generator (php/:: SequenceGenerator (partitionBy f coll)))))
+    true (lazy-seq-from-generator (php/:: Seq (partitionBy f coll)))))
 
 (defn dedupe
   "Returns a lazy sequence with consecutive duplicate values removed in `coll`."
@@ -2131,7 +2131,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   (cond
     (nil? coll) []
     (and (indexed? coll) (= 0 (count coll))) []
-    true (lazy-seq-from-generator (php/:: SequenceGenerator (dedupe coll)))))
+    true (lazy-seq-from-generator (php/:: Seq (dedupe coll)))))
 
 (defn partition
   "Partitions collection into chunks of size n, dropping incomplete final partition.
@@ -2142,7 +2142,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   [n coll]
   (let [result (lazy-seq-from-generator
                 (php/call_user_func_array
-                 (php/array "\\Phel\\Lang\\Generators\\SequenceGenerator" "partition")
+                 (php/array "\\Phel\\Lang\\Seq" "partition")
                  (php/array n coll)))]
     (if (php/=== nil result)
       '()
@@ -2157,7 +2157,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   [n coll]
   (let [result (lazy-seq-from-generator
                 (php/call_user_func_array
-                 (php/array "\\Phel\\Lang\\Generators\\SequenceGenerator" "partitionAll")
+                 (php/array "\\Phel\\Lang\\Seq" "partitionAll")
                  (php/array n coll)))]
     (if (php/=== nil result)
       '()
@@ -2728,7 +2728,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [filename]
   (let [result (lazy-seq-from-generator
                 (php/call_user_func_array
-                 (php/array "\\Phel\\Lang\\Generators\\SequenceGenerator" "fileLines")
+                 (php/array "\\Phel\\Lang\\Seq" "fileLines")
                  (php/array filename)))]
     (if (php/=== nil result)
       '()
@@ -2743,7 +2743,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [path]
   (let [result (lazy-seq-from-generator
                 (php/call_user_func_array
-                 (php/array "\\Phel\\Lang\\Generators\\SequenceGenerator" "fileSeq")
+                 (php/array "\\Phel\\Lang\\Seq" "fileSeq")
                  (php/array path)))]
     (if (php/=== nil result)
       '()
@@ -2760,7 +2760,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   ([filename chunk-size]
    (let [result (lazy-seq-from-generator
                  (php/call_user_func_array
-                  (php/array "\\Phel\\Lang\\Generators\\SequenceGenerator" "readFileChunks")
+                  (php/array "\\Phel\\Lang\\Seq" "readFileChunks")
                   (php/array filename chunk-size)))]
      (if (php/=== nil result)
        '()
@@ -2780,7 +2780,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
          escape (get options :escape "\\")
          result (lazy-seq-from-generator
                  (php/call_user_func_array
-                  (php/array "\\Phel\\Lang\\Generators\\SequenceGenerator" "csvLines")
+                  (php/array "\\Phel\\Lang\\Seq" "csvLines")
                   (php/array filename separator enclosure escape)))]
      (if (php/=== nil result)
        '()

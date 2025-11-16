@@ -7,7 +7,6 @@ namespace Phel\Lang\Generators;
 use ArrayIterator;
 use Generator;
 use Iterator;
-use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Equalizer;
 use Phel\Lang\Hasher;
 
@@ -35,63 +34,6 @@ final class SequenceGenerator
         }
 
         return $value ?? [];
-    }
-
-    /**
-     * @template T
-     *
-     * @param T $value
-     *
-     * @deprecated Use InfiniteGenerator::repeat() instead
-     *
-     * @return Generator<int, T>
-     */
-    public static function repeat(mixed $value): Generator
-    {
-        return InfiniteGenerator::repeat($value);
-    }
-
-    /**
-     * @template T
-     *
-     * @param callable():T $f
-     *
-     * @deprecated Use InfiniteGenerator::repeatedly() instead
-     *
-     * @return Generator<int, T>
-     */
-    public static function repeatedly(callable $f): Generator
-    {
-        return InfiniteGenerator::repeatedly($f);
-    }
-
-    /**
-     * @template T
-     *
-     * @param callable(T):T $f
-     * @param T             $x
-     *
-     * @deprecated Use InfiniteGenerator::iterate() instead
-     *
-     * @return Generator<int, T>
-     */
-    public static function iterate(callable $f, mixed $x): Generator
-    {
-        return InfiniteGenerator::iterate($f, $x);
-    }
-
-    /**
-     * @template T
-     *
-     * @param iterable<T>|string $iterable
-     *
-     * @deprecated Use InfiniteGenerator::cycle() instead
-     *
-     * @return Generator<int, T>
-     */
-    public static function cycle(mixed $iterable): Generator
-    {
-        return InfiniteGenerator::cycle($iterable);
     }
 
     /**
@@ -510,125 +452,6 @@ final class SequenceGenerator
                 $first = false;
             }
         }
-    }
-
-    /**
-     * Partitions an iterable into chunks of size n.
-     * Only yields complete partitions (drops incomplete final partition).
-     *
-     * @template T
-     *
-     * @param int                $n        The partition size
-     * @param iterable<T>|string $iterable The input sequence
-     *
-     * @deprecated Use PartitionGenerator::partition() instead
-     *
-     * @return Generator<int, PersistentVectorInterface>
-     */
-    public static function partition(int $n, mixed $iterable): Generator
-    {
-        return PartitionGenerator::partition($n, $iterable);
-    }
-
-    /**
-     * Partitions an iterable into chunks of size n.
-     * Yields all partitions including incomplete final partition.
-     *
-     * @template T
-     *
-     * @param int                $n        The partition size
-     * @param iterable<T>|string $iterable The input sequence
-     *
-     * @deprecated Use PartitionGenerator::partitionAll() instead
-     *
-     * @return Generator<int, PersistentVectorInterface>
-     */
-    public static function partitionAll(int $n, mixed $iterable): Generator
-    {
-        return PartitionGenerator::partitionAll($n, $iterable);
-    }
-
-    /**
-     * @template T
-     *
-     * @param callable(T):mixed  $f
-     * @param iterable<T>|string $iterable
-     *
-     * @deprecated Use PartitionGenerator::partitionBy() instead
-     *
-     * @return Generator<int, PersistentVectorInterface>
-     */
-    public static function partitionBy(callable $f, mixed $iterable): Generator
-    {
-        return PartitionGenerator::partitionBy($f, $iterable);
-    }
-
-    /**
-     * Lazily reads a file line by line.
-     * Yields each line as a string with line endings removed.
-     * Automatically closes the file handle when done or on error.
-     *
-     * @deprecated Use FileGenerator::fileLines() instead
-     *
-     * @return Generator<int, string>
-     */
-    public static function fileLines(string $filename): Generator
-    {
-        return FileGenerator::fileLines($filename);
-    }
-
-    /**
-     * Lazily walks a directory tree, yielding file paths.
-     * Returns all files and directories recursively.
-     * Follows symbolic links but tracks visited inodes to prevent infinite cycles.
-     *
-     * @deprecated Use FileGenerator::fileSeq() instead
-     *
-     * @return Generator<int, string>
-     */
-    public static function fileSeq(string $path): Generator
-    {
-        return FileGenerator::fileSeq($path);
-    }
-
-    /**
-     * Lazily reads a file in chunks of a specified size.
-     * Yields byte strings of the specified chunk size (or smaller for the last chunk).
-     * The file handle is automatically closed when the generator finishes or an error occurs.
-     *
-     * @param string $filename  The path to the file to read
-     * @param int    $chunkSize The size of each chunk in bytes (default: 8192)
-     *
-     * @deprecated Use FileGenerator::readFileChunks() instead
-     *
-     * @return Generator<int, string>
-     */
-    public static function readFileChunks(string $filename, int $chunkSize = 8192): Generator
-    {
-        return FileGenerator::readFileChunks($filename, $chunkSize);
-    }
-
-    /**
-     * Lazily reads a CSV file line by line.
-     * Yields each row as a PersistentVector of string values.
-     * The file handle is automatically closed when the generator finishes or an error occurs.
-     *
-     * @param string $filename  The path to the CSV file to read
-     * @param string $separator The field separator (default: ',')
-     * @param string $enclosure The field enclosure character (default: '"')
-     * @param string $escape    The escape character (default: '\\')
-     *
-     * @deprecated Use FileGenerator::csvLines() instead
-     *
-     * @return Generator<int, PersistentVectorInterface>
-     */
-    public static function csvLines(
-        string $filename,
-        string $separator = ',',
-        string $enclosure = '"',
-        string $escape = '\\',
-    ): Generator {
-        return FileGenerator::csvLines($filename, $separator, $enclosure, $escape);
     }
 
     /**
