@@ -4,19 +4,31 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command;
 
+use Override;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Filesystem\Infrastructure\RealFilesystem;
+use Phel\Phel;
 use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 use Symfony\Component\Console\Formatter\OutputFormatter;
 use Symfony\Component\Console\Formatter\OutputFormatterInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function dirname;
+
 abstract class AbstractTestCommand extends TestCase
 {
+    #[Override]
     protected function setUp(): void
     {
         GlobalEnvironmentSingleton::initializeNew();
         RealFilesystem::reset();
+
+        // Bootstrap from the child class's directory
+        // This allows each test class to use its own phel-config.php
+        $reflection = new ReflectionClass($this);
+        $childDir = dirname($reflection->getFileName());
+        Phel::bootstrap($childDir);
     }
 
     protected function stubOutput(): OutputInterface
