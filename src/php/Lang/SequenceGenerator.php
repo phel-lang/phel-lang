@@ -8,9 +8,9 @@ use ArrayIterator;
 use Generator;
 use Iterator;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
-use Phel\Lang\Generators\FileGenerators;
-use Phel\Lang\Generators\InfiniteGenerators;
-use Phel\Lang\Generators\PartitionGenerators;
+use Phel\Lang\Generators\FileGenerator;
+use Phel\Lang\Generators\InfiniteGenerator;
+use Phel\Lang\Generators\PartitionGenerator;
 
 use function is_array;
 use function is_string;
@@ -43,13 +43,13 @@ final class SequenceGenerator
      *
      * @param T $value
      *
-     * @deprecated Use InfiniteGenerators::repeat() instead
+     * @deprecated Use InfiniteGenerator::repeat() instead
      *
      * @return Generator<int, T>
      */
     public static function repeat(mixed $value): Generator
     {
-        return InfiniteGenerators::repeat($value);
+        return InfiniteGenerator::repeat($value);
     }
 
     /**
@@ -57,13 +57,13 @@ final class SequenceGenerator
      *
      * @param callable():T $f
      *
-     * @deprecated Use InfiniteGenerators::repeatedly() instead
+     * @deprecated Use InfiniteGenerator::repeatedly() instead
      *
      * @return Generator<int, T>
      */
     public static function repeatedly(callable $f): Generator
     {
-        return InfiniteGenerators::repeatedly($f);
+        return InfiniteGenerator::repeatedly($f);
     }
 
     /**
@@ -72,13 +72,13 @@ final class SequenceGenerator
      * @param callable(T):T $f
      * @param T             $x
      *
-     * @deprecated Use InfiniteGenerators::iterate() instead
+     * @deprecated Use InfiniteGenerator::iterate() instead
      *
      * @return Generator<int, T>
      */
     public static function iterate(callable $f, mixed $x): Generator
     {
-        return InfiniteGenerators::iterate($f, $x);
+        return InfiniteGenerator::iterate($f, $x);
     }
 
     /**
@@ -86,13 +86,13 @@ final class SequenceGenerator
      *
      * @param iterable<T>|string $iterable
      *
-     * @deprecated Use InfiniteGenerators::cycle() instead
+     * @deprecated Use InfiniteGenerator::cycle() instead
      *
      * @return Generator<int, T>
      */
     public static function cycle(mixed $iterable): Generator
     {
-        return InfiniteGenerators::cycle($iterable);
+        return InfiniteGenerator::cycle($iterable);
     }
 
     /**
@@ -522,13 +522,13 @@ final class SequenceGenerator
      * @param int                $n        The partition size
      * @param iterable<T>|string $iterable The input sequence
      *
-     * @deprecated Use PartitionGenerators::partition() instead
+     * @deprecated Use PartitionGenerator::partition() instead
      *
      * @return Generator<int, PersistentVectorInterface>
      */
     public static function partition(int $n, mixed $iterable): Generator
     {
-        return PartitionGenerators::partition($n, $iterable);
+        return PartitionGenerator::partition($n, $iterable);
     }
 
     /**
@@ -540,13 +540,13 @@ final class SequenceGenerator
      * @param int                $n        The partition size
      * @param iterable<T>|string $iterable The input sequence
      *
-     * @deprecated Use PartitionGenerators::partitionAll() instead
+     * @deprecated Use PartitionGenerator::partitionAll() instead
      *
      * @return Generator<int, PersistentVectorInterface>
      */
     public static function partitionAll(int $n, mixed $iterable): Generator
     {
-        return PartitionGenerators::partitionAll($n, $iterable);
+        return PartitionGenerator::partitionAll($n, $iterable);
     }
 
     /**
@@ -555,13 +555,13 @@ final class SequenceGenerator
      * @param callable(T):mixed  $f
      * @param iterable<T>|string $iterable
      *
-     * @deprecated Use PartitionGenerators::partitionBy() instead
+     * @deprecated Use PartitionGenerator::partitionBy() instead
      *
      * @return Generator<int, PersistentVectorInterface>
      */
     public static function partitionBy(callable $f, mixed $iterable): Generator
     {
-        return PartitionGenerators::partitionBy($f, $iterable);
+        return PartitionGenerator::partitionBy($f, $iterable);
     }
 
     /**
@@ -569,13 +569,13 @@ final class SequenceGenerator
      * Yields each line as a string with line endings removed.
      * Automatically closes the file handle when done or on error.
      *
-     * @deprecated Use FileGenerators::fileLines() instead
+     * @deprecated Use FileGenerator::fileLines() instead
      *
      * @return Generator<int, string>
      */
     public static function fileLines(string $filename): Generator
     {
-        return FileGenerators::fileLines($filename);
+        return FileGenerator::fileLines($filename);
     }
 
     /**
@@ -583,13 +583,13 @@ final class SequenceGenerator
      * Returns all files and directories recursively.
      * Follows symbolic links but tracks visited inodes to prevent infinite cycles.
      *
-     * @deprecated Use FileGenerators::fileSeq() instead
+     * @deprecated Use FileGenerator::fileSeq() instead
      *
      * @return Generator<int, string>
      */
     public static function fileSeq(string $path): Generator
     {
-        return FileGenerators::fileSeq($path);
+        return FileGenerator::fileSeq($path);
     }
 
     /**
@@ -600,13 +600,13 @@ final class SequenceGenerator
      * @param string $filename  The path to the file to read
      * @param int    $chunkSize The size of each chunk in bytes (default: 8192)
      *
-     * @deprecated Use FileGenerators::readFileChunks() instead
+     * @deprecated Use FileGenerator::readFileChunks() instead
      *
      * @return Generator<int, string>
      */
     public static function readFileChunks(string $filename, int $chunkSize = 8192): Generator
     {
-        return FileGenerators::readFileChunks($filename, $chunkSize);
+        return FileGenerator::readFileChunks($filename, $chunkSize);
     }
 
     /**
@@ -619,7 +619,7 @@ final class SequenceGenerator
      * @param string $enclosure The field enclosure character (default: '"')
      * @param string $escape    The escape character (default: '\\')
      *
-     * @deprecated Use FileGenerators::csvLines() instead
+     * @deprecated Use FileGenerator::csvLines() instead
      *
      * @return Generator<int, PersistentVectorInterface>
      */
@@ -629,7 +629,7 @@ final class SequenceGenerator
         string $enclosure = '"',
         string $escape = '\\',
     ): Generator {
-        return FileGenerators::csvLines($filename, $separator, $enclosure, $escape);
+        return FileGenerator::csvLines($filename, $separator, $enclosure, $escape);
     }
 
     /**

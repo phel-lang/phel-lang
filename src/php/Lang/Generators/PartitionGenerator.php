@@ -13,20 +13,14 @@ use function count;
 use function is_string;
 use function mb_str_split;
 
-/**
- * Partitioning generators.
- * Provides generators for partitioning sequences into chunks.
- */
-final class PartitionGenerators
+final class PartitionGenerator
 {
     /**
-     * Partitions an iterable into chunks of size n.
      * Only yields complete partitions (drops incomplete final partition).
      *
      * @template T
      *
-     * @param int                $n        The partition size
-     * @param iterable<T>|string $iterable The input sequence
+     * @param iterable<T>|string $iterable
      *
      * @return Generator<int, PersistentVectorInterface>
      */
@@ -48,13 +42,11 @@ final class PartitionGenerators
     }
 
     /**
-     * Partitions an iterable into chunks of size n.
      * Yields all partitions including incomplete final partition.
      *
      * @template T
      *
-     * @param int                $n        The partition size
-     * @param iterable<T>|string $iterable The input sequence
+     * @param iterable<T>|string $iterable
      *
      * @return Generator<int, PersistentVectorInterface>
      */
@@ -82,7 +74,6 @@ final class PartitionGenerators
     /**
      * @template T
      *
-     * @param callable(T):mixed  $f
      * @param iterable<T>|string $iterable
      *
      * @return Generator<int, PersistentVectorInterface>
@@ -114,10 +105,6 @@ final class PartitionGenerators
     }
 
     /**
-     * Converts a value to an iterable for use with foreach.
-     * Strings are split into an array of characters using mb_str_split.
-     * Other values are returned as-is (or empty array if null).
-     *
      * @template T
      *
      * @param iterable<T>|string|null $value
