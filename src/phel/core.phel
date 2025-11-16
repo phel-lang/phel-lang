@@ -779,11 +779,14 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
   Example:
     (contains? [10 20 30] 1)
+    # => true
+    (contains? \"hello\" 0)
     # => true"
   [coll key]
   (cond
     (php/instanceof coll ContainsInterface) (php/-> coll (contains key))
     (php/is_array coll) (php/array_key_exists key coll)
+    (php/is_string coll) (and (php/is_int key) (php/>= key 0) (php/< key (php/mb_strlen coll)))
     (throw (php/new InvalidArgumentException (php/. "cannot call 'contains?' on " (php/get_class coll))))))
 
 (defn compare

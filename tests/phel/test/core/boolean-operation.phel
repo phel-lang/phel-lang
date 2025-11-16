@@ -209,6 +209,26 @@
   (is (true? (contains? (set 1) 1)))
   (is (false? (contains? (set 1) 2))))
 
+(deftest test-contains?-string
+  (is (false? (contains? "" 0)) "empty string has no indices")
+  (is (true? (contains? "hello" 0)) "first index")
+  (is (true? (contains? "hello" 4)) "last valid index")
+  (is (false? (contains? "hello" 5)) "index out of bounds")
+  (is (false? (contains? "hello" -1)) "negative index")
+  (is (false? (contains? "hello" "e")) "non-integer key"))
+
+(deftest test-contains?-string-multibyte
+  (is (true? (contains? "🎉" 0)) "emoji first index")
+  (is (false? (contains? "🎉" 1)) "emoji has only 1 character despite 4 bytes")
+  (is (true? (contains? "café" 3)) "last index of UTF-8 string")
+  (is (false? (contains? "café" 4)) "out of bounds for UTF-8 string")
+  (is (true? (contains? "🎉🎊" 0)) "first emoji in multi-emoji string")
+  (is (true? (contains? "🎉🎊" 1)) "second emoji in multi-emoji string")
+  (is (false? (contains? "🎉🎊" 2)) "out of bounds for multi-emoji string")
+  (is (true? (contains? "你好" 0)) "Chinese characters first index")
+  (is (true? (contains? "你好" 1)) "Chinese characters second index")
+  (is (false? (contains? "你好" 2)) "Chinese characters out of bounds"))
+
 (deftest test-contains-value?-php-indexed-array
   (is (false? (contains-value? (php-indexed-array) 1)))
   (is (false? (contains-value? (php-indexed-array 1) 2)))
