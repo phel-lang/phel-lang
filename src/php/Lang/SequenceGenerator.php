@@ -16,7 +16,7 @@ use function is_array;
 use function is_string;
 use function mb_str_split;
 
-final class Generators
+final class SequenceGenerator
 {
     /**
      * Converts a value to an iterable for use with foreach.
