@@ -28,6 +28,7 @@ OFFICIAL_RELEASE="${OFFICIAL_RELEASE:-}"
 # Error Handling
 # ============================================================================
 error() {
+    # shellcheck disable=SC2145
     echo "Error: $@" >&2
     exit 1
 }
@@ -166,3 +167,7 @@ rm -rf "$WORK_DIR"
 if [[ ! -x "$PHAR_FILE" ]]; then
     error "PHAR file is not executable"
 fi
+
+# Print final location
+echo ""
+echo "📍  Final Location:   $PHAR_FILE"

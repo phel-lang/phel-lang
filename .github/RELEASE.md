@@ -7,7 +7,7 @@ Guide to creating a new release.
 3. Commit and push these changes
 4. Create a [new release](https://github.com/phel-lang/phel-lang/releases/new) from GitHub
    1. Create the tag from the main branch (the commits from step 3)
-   2. Build the PHAR with official release flag and attach it to the release:
+   2. Build the PHAR with an official release flag and attach it to the release:
       ```bash
       OFFICIAL_RELEASE=true build/phar.sh
       ```

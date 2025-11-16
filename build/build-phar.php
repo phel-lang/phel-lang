@@ -264,7 +264,6 @@ EOF;
 
         $report = "{$typeEmoji}  PHAR Build Complete\n\n";
         $report .= "📦  Release Type:    {$typeLabel}\n";
-        $report .= "📍  Location:        {$this->pharFile}\n";
         $report .= "\n";
         $report .= "📊  Build Metrics:\n";
         $report .= "   • Files Added:      {$this->stats['files_added']}\n";
