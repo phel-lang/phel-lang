@@ -12,7 +12,6 @@ use Phel\Command\Domain\Exceptions\ExceptionArgsPrinter;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractor;
 use Phel\Command\Infrastructure\SourceMapExtractor;
 use Phel\Compiler\Application\Munge;
-use Phel\Phel;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
 use Phel\Run\Domain\Repl\ColorStyle;
@@ -40,12 +39,10 @@ final class ReplTestCommand extends AbstractTestCommand
     #[Override]
     protected function setUp(): void
     {
-        parent::setUp();
+        parent::setUp(); // This now handles the bootstrap
 
         $this->previousCwd = getcwd() ?: '';
         chdir(__DIR__);
-
-        Phel::bootstrap(__DIR__);
     }
 
     #[Override]
