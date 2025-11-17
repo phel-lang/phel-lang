@@ -10,8 +10,9 @@ use Iterator;
 use Phel\Lang\Equalizer;
 use Phel\Lang\Hasher;
 
-use function in_array;
+use function count;
 use function is_array;
+use function is_object;
 use function is_string;
 use function mb_str_split;
 
@@ -514,8 +515,48 @@ final class SequenceGenerator
     {
         $valuesToRemove = $values === [] ? [null] : $values;
 
+        // Optimize for common single-value case (e.g., just removing null)
+        if (count($valuesToRemove) === 1) {
+            $singleValue = $valuesToRemove[0];
+            foreach (self::toIterable($iterable) as $item) {
+                if ($item !== $singleValue) {
+                    yield $item;
+                }
+            }
+
+            return;
+        }
+
+        // For multiple values, use hash lookup for O(1) checks on scalars
+        // Objects require identity comparison and can't be hashed
+        $scalarLookup = [];
+        $objectsToRemove = [];
+
+        foreach ($valuesToRemove as $value) {
+            if (is_object($value)) {
+                $objectsToRemove[] = $value;
+            } else {
+                // Use var_export for a unique key that respects type
+                $scalarLookup[var_export($value, true)] = true;
+            }
+        }
+
         foreach (self::toIterable($iterable) as $item) {
-            if (!in_array($item, $valuesToRemove, true)) {
+            $shouldRemove = false;
+
+            if (is_object($item)) {
+                // Objects require identity check (===)
+                foreach ($objectsToRemove as $obj) {
+                    if ($item === $obj) {
+                        $shouldRemove = true;
+                        break;
+                    }
+                }
+            } elseif (isset($scalarLookup[var_export($item, true)])) {
+                $shouldRemove = true;
+            }
+
+            if (!$shouldRemove) {
                 yield $item;
             }
         }

@@ -144,4 +144,95 @@ final class SequenceGeneratorTest extends TestCase
         self::assertSame($obj1, $resultArray[0]);
         self::assertSame($obj3, $resultArray[1]);
     }
+
+    public function test_compact_single_value_optimization_with_objects(): void
+    {
+        // Test single-value path with object
+        $obj1 = (object)['id' => 1];
+        $obj2 = (object)['id' => 2];
+        $obj3 = (object)['id' => 3];
+
+        $result = SequenceGenerator::compact([$obj1, $obj2, $obj3], $obj2);
+
+        $resultArray = iterator_to_array($result, false);
+        self::assertCount(2, $resultArray);
+        self::assertSame($obj1, $resultArray[0]);
+        self::assertSame($obj3, $resultArray[1]);
+    }
+
+    public function test_compact_multiple_values_with_mixed_scalars_and_objects(): void
+    {
+        // Test hash lookup path with mixed types
+        $obj1 = (object)['id' => 1];
+        $obj2 = (object)['id' => 2];
+
+        $result = SequenceGenerator::compact(
+            [1, $obj1, null, 2, $obj2, false, 3],
+            null,
+            false,
+            $obj1,
+        );
+
+        $resultArray = iterator_to_array($result, false);
+        self::assertSame([1, 2, $obj2, 3], $resultArray);
+    }
+
+    public function test_compact_multiple_objects_removal(): void
+    {
+        // Test multiple object removals
+        $obj1 = (object)['id' => 1];
+        $obj2 = (object)['id' => 2];
+        $obj3 = (object)['id' => 3];
+        $obj4 = (object)['id' => 4];
+
+        $result = SequenceGenerator::compact(
+            [$obj1, $obj2, $obj3, $obj4],
+            $obj2,
+            $obj4,
+        );
+
+        $resultArray = iterator_to_array($result, false);
+        self::assertSame([$obj1, $obj3], $resultArray);
+    }
+
+    public function test_compact_arrays_as_values(): void
+    {
+        // Test that arrays are correctly handled as scalars
+        $arr1 = [1, 2];
+        $arr2 = [3, 4];
+        $arr3 = [5, 6];
+
+        $result = SequenceGenerator::compact(
+            [$arr1, $arr2, $arr3],
+            $arr2,
+        );
+
+        $resultArray = iterator_to_array($result, false);
+        self::assertCount(2, $resultArray);
+        self::assertSame($arr1, $resultArray[0]);
+        self::assertSame($arr3, $resultArray[1]);
+    }
+
+    public function test_compact_negative_zero_vs_positive_zero(): void
+    {
+        // PHP treats -0.0 and 0.0 as equal with ===, but var_export shows the difference
+        // This test verifies our implementation handles edge cases correctly
+        $result = SequenceGenerator::compact([0, 0.0, -0.0, 1], 0);
+
+        // 0 (int) should be removed, but 0.0 and -0.0 (floats) should remain
+        $resultArray = iterator_to_array($result, false);
+        self::assertSame([0.0, -0.0, 1], $resultArray);
+    }
+
+    public function test_compact_empty_array_vs_false_vs_zero(): void
+    {
+        // Test distinction between empty array, false, and 0
+        $result = SequenceGenerator::compact(
+            [[], false, 0, '', null, 1],
+            [],
+        );
+
+        $resultArray = iterator_to_array($result, false);
+        self::assertSame([false, 0, '', null, 1], $resultArray);
+    }
 }
