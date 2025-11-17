@@ -10,6 +10,7 @@ use Iterator;
 use Phel\Lang\Equalizer;
 use Phel\Lang\Hasher;
 
+use function in_array;
 use function is_array;
 use function is_string;
 use function mb_str_split;
@@ -39,7 +40,15 @@ final class SequenceGenerator
     /**
      * Concatenates multiple iterables into a single lazy sequence.
      * Yields all elements from the first iterable, then all from the second, etc.
-     * Handles null values by skipping them.
+     *
+     * IMPORTANT: Null arguments are skipped (they contribute nothing to concatenation).
+     * This matches Clojure semantics where (concat [1 2] nil [3]) => (1 2 3).
+     * However, null VALUES inside collections are preserved.
+     *
+     * Examples:
+     *   concat([1, 2], [3, 4])        // => [1, 2, 3, 4]
+     *   concat([1, 2], null, [3, 4])  // => [1, 2, 3, 4]  - null arg skipped
+     *   concat([1, null, 2], [3])     // => [1, null, 2, 3] - null value kept
      *
      * @template T
      *
@@ -50,6 +59,7 @@ final class SequenceGenerator
     public static function concat(mixed ...$iterables): Generator
     {
         foreach ($iterables as $iterable) {
+            // Skip null arguments - cannot concatenate null
             if ($iterable === null) {
                 continue;
             }
@@ -61,9 +71,22 @@ final class SequenceGenerator
     }
 
     /**
-     * Maps a function over an iterable and concatenates the results.
-     * The function can return an iterable or string for each input element.
-     * Yields all elements from each resulting iterable in sequence.
+     * Maps a function over an iterable and concatenates (flattens) the results.
+     *
+     * This is equivalent to: (apply concat (apply map f coll))
+     *
+     * IMPORTANT: If the mapping function returns null or an empty iterable for an
+     * element, that element contributes nothing to the output. This is a FEATURE
+     * (matching Clojure semantics) that allows selective filtering during mapping:
+     *
+     *   // Example: flatten only even numbers
+     *   mapcat(fn($x) => $x % 2 === 0 ? [$x, $x] : null, [1, 2, 3, 4])
+     *   // => [2, 2, 4, 4]
+     *
+     * If you need to preserve null values or want explicit filtering, use:
+     *   - filter() + mapcat() for predicate-based filtering
+     *   - keep() for mapping with automatic null-removal
+     *   - compact() for removing nulls from existing collections
      *
      * @template T
      * @template U
@@ -77,6 +100,8 @@ final class SequenceGenerator
     {
         foreach (self::toIterable($iterable) as $value) {
             $result = $f($value);
+
+            // Skip null results - they contribute nothing to concatenation
             if ($result === null) {
                 continue;
             }
@@ -450,6 +475,48 @@ final class SequenceGenerator
                 yield $value;
                 $prev = $value;
                 $first = false;
+            }
+        }
+    }
+
+    /**
+     * Removes null values (and optionally other specified values) from an iterable.
+     *
+     * This provides an explicit, composable way to filter out unwanted sentinel values
+     * from a collection. Inspired by loophp/collection's Compact operation.
+     *
+     * Uses strict comparison (===) to preserve type safety. For example:
+     *   - null and '' (empty string) are distinct
+     *   - 0 (int) and '0' (string) are distinct
+     *   - false and 0 are distinct
+     *
+     * Examples:
+     *   compact([1, null, 2, null, 3])
+     *   // => [1, 2, 3]
+     *
+     *   compact([1, null, 2, false, 3], null, false)
+     *   // => [1, 2, 3]
+     *
+     *   compact([null, '', 0, false], null)
+     *   // => ['', 0, false]  - only null removed, not similar values
+     *
+     * Unlike filter(), compact() is specifically designed for removing unwanted
+     * sentinel values, making intent clearer in code.
+     *
+     * @template T
+     *
+     * @param iterable<T>|string $iterable  The input sequence
+     * @param mixed              ...$values Values to remove (default: just null)
+     *
+     * @return Generator<int, T>
+     */
+    public static function compact(mixed $iterable, mixed ...$values): Generator
+    {
+        $valuesToRemove = $values === [] ? [null] : $values;
+
+        foreach (self::toIterable($iterable) as $item) {
+            if (!in_array($item, $valuesToRemove, true)) {
+                yield $item;
             }
         }
     }
