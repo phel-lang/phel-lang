@@ -36,7 +36,7 @@ final class RunCommandTest extends AbstractTestCommand
         $this->expectOutputRegex('~hello world~');
 
         $this->createRunCommand()->run(
-            $this->stubInput(__DIR__ . '/Fixtures/test-script.phel'),
+            $this->stubInput(__DIR__ . '/Fixtures/test/test-script.phel'),
             $this->stubOutput(),
         );
     }

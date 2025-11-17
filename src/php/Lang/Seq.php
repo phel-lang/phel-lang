@@ -230,6 +230,14 @@ final class Seq
     }
 
     /**
+     * @return Generator<int, mixed>
+     */
+    public static function compact(mixed $iterable, mixed ...$values): Generator
+    {
+        return SequenceGenerator::compact($iterable, ...$values);
+    }
+
+    /**
      * @return Generator<int, PersistentVectorInterface>
      */
     public static function partition(int $n, mixed $iterable): Generator
