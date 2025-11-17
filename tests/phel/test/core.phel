@@ -36,6 +36,14 @@
   (is (= '() (concat nil nil)) "concat two nil")
   (is (= [1 2 3 4 5 6] (concat [1 2 3] nil [4 5 6])) "concat vectors and nil"))
 
+(deftest test-compact
+  (is (= [1 2 3] (compact [1 nil 2 nil 3])) "compact removes nil by default")
+  (is (= [1 2 3] (compact [1 0 2 false 3] 0 false)) "compact removes specified values")
+  (is (= [] (compact nil)) "compact nil returns empty vector")
+  (is (= [] (compact [])) "compact empty vector returns empty vector")
+  (is (= [1 false 2 3] (compact [1 false 2 nil 3] nil)) "compact preserves non-matching falsy values")
+  (is (= [1 2 3] (compact [1 nil 2 false 3 0] nil false 0)) "compact removes multiple specified values"))
+
 (deftest test-set-push
   (let [s1 (set 1 2)
         s2 (push s1 3)]

@@ -2136,6 +2136,25 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     (and (indexed? coll) (= 0 (count coll))) []
     true (lazy-seq-from-generator (php/:: Seq (dedupe coll)))))
 
+(defn compact
+  "Returns a lazy sequence with specified values removed from `coll`.
+  If no values are specified, removes nil values by default.
+
+  Example:
+    (compact [1 nil 2 nil 3])
+    # => (1 2 3)
+
+    (compact [1 0 2 false 3] 0 false)
+    # => (1 2 3)"
+  [coll & values]
+  (cond
+    (nil? coll) []
+    (and (indexed? coll) (= 0 (count coll))) []
+    true (lazy-seq-from-generator
+           (php/call_user_func_array
+            (php/array "\\Phel\\Lang\\Seq" "compact")
+            (php/array_merge (php/array coll) (apply php/array values))))))
+
 (defn partition
   "Partitions collection into chunks of size n, dropping incomplete final partition.
 
