@@ -4,13 +4,8 @@
 (defstruct raw-string [s])
 
 (defn escape-html
-  "Escapes HTML special characters to prevent XSS.
-
-  Example:
-    ```phel
-    (escape-html \"<div>\")
-    # => \"&lt;div&gt;\"
-    ```"
+  "Escapes HTML special characters to prevent XSS."
+  {:example "(escape-html \"<div>\") # => \"&lt;div&gt;\""}
   [s]
   (php/htmlspecialchars s (bit-or php/ENT_QUOTES php/ENT_SUBSTITUTE)))
 
@@ -158,13 +153,8 @@
   `(str ,@(compile-seq content)))
 
 (defmacro html
-  "Compiles Phel vectors to HTML strings.
-
-  Example:
-    ```phel
-    (html [:div \"Hello\"])
-    # => \"<div>Hello</div>\"
-    ```"
+  "Compiles Phel vectors to HTML strings."
+  {:example "(html [:div \"Hello\"]) # => \"<div>Hello</div>\""}
   [& content]
   (apply compile-html content))
 
@@ -178,12 +168,7 @@
    :html5              "<!DOCTYPE html>\n"})
 
 (defn doctype
-  "Returns an HTML doctype declaration.
-
-  Example:
-    ```phel
-    (doctype :html5)
-    # => \"<!DOCTYPE html>\\n\"
-    ```"
+  "Returns an HTML doctype declaration."
+  {:example "(doctype :html5) # => \"<!DOCTYPE html>\\n\""}
   [type]
   (raw-string (get doctypes type (:html5 doctypes))))

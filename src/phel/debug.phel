@@ -7,13 +7,8 @@
 (def- *max-trace-digits* (var 2)) ; default to 2 digits unless overridden
 
 (defn set-trace-id-padding!
-  "Sets the number of digits for trace ID padding.
-
-  Example:
-    ```phel
-    (set-trace-id-padding! 3)
-    # Uses 3 digits: 001, 002, etc.
-    ```"
+  "Sets the number of digits for trace ID padding."
+  {:example "(set-trace-id-padding! 3)"}
   [estimated-id-padding]
   (swap! *max-trace-digits* (fn [_] estimated-id-padding)))
 
@@ -21,15 +16,8 @@
   (swap! *trace-id* inc))
 
 (defn dotrace
-  "Wraps a function to print each call and result with indentation.
-
-  Example:
-    ```phel
-    (def add (dotrace \"add\" +))
-    (add 2 3)
-    # Prints: TRACE t01: (add 2 3)
-    # Prints: TRACE t01: => 5
-    ```"
+  "Wraps a function to print each call and result with indentation."
+  {:example "(def add (dotrace \"add\" +))"}
   [name f]
   (fn [& args]
     (let [id (next-id)
@@ -47,13 +35,8 @@
         res))))
 
 (defn reset-trace-state!
-  "Resets trace counters to initial values.
-
-  Example:
-    ```phel
-    (reset-trace-state!)
-    # Trace IDs restart from 01
-    ```"
+  "Resets trace counters to initial values."
+  {:example "(reset-trace-state!)"}
   []
   (do
     (set! *trace-level* 0)
@@ -61,14 +44,8 @@
     (set! *max-trace-digits* 2)))
 
 (defmacro dbg
-  "Evaluates an expression and prints it with its result.
-
-  Example:
-    ```phel
-    (dbg (+ 1 2))
-    # Prints: (+ 1 2) => 3
-    # => 3
-    ```"
+  "Evaluates an expression and prints it with its result."
+  {:example "(dbg (+ 1 2))"}
   [expr]
   (let [res (gensym)]
     `(let [,res ,expr]
@@ -76,14 +53,8 @@
        ,res)))
 
 (defmacro spy
-  "Evaluates an expression and prints it with an optional label.
-
-  Example:
-    ```phel
-    (spy (+ 1 2))
-    # Prints: SPY (+ 1 2) => 3
-    # => 3
-    ```"
+  "Evaluates an expression and prints it with an optional label."
+  {:example "(spy (+ 1 2))"}
   ([expr]
    (let [res (gensym)]
      `(let [,res ,expr]
@@ -98,14 +69,8 @@
         ,res))))
 
 (defn tap
-  "Prints a value and returns it unchanged. Useful in pipelines.
-
-  Example:
-    ```phel
-    (-> 5 (tap) (* 2))
-    # Prints: TAP => 5
-    # => 10
-    ```"
+  "Prints a value and returns it unchanged. Useful in pipelines."
+  {:example "(-> 5 (tap) (* 2))"}
   ([value]
    (println (str "TAP => " (print-str value)))
    value)

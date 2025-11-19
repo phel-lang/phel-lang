@@ -31,13 +31,8 @@
   (= (% (get-in (deref stats) [:counts :total]) total-columns) 0))
 
 (defn report
-  "Records test results and prints status indicators.
-
-  Example:
-    ```phel
-    (report {:state :pass})
-    # Prints: .
-    ```"
+  "Records test results and prints status indicators."
+  {:example "(report {:state :pass})"}
   [data]
   (let [{:state state :type type} data
         ok (= state :pass)
@@ -189,13 +184,8 @@
     (assert-any form message)))
 
 (defmacro is
-  "Asserts that an expression is true.
-
-  Example:
-    ```phel
-    (is (= 4 (+ 2 2)))
-    # Passes if equal
-    ```"
+  "Asserts that an expression is true."
+  {:example "(is (= 4 (+ 2 2)))"}
   [form & [message]]
   (let [loc (location form) e (gensym)]
     `(try ,(assert-expr form message)
@@ -211,13 +201,8 @@
 # --------------
 
 (defmacro deftest
-  "Defines a test function.
-
-  Example:
-    ```phel
-    (deftest test-add
-      (is (= 4 (+ 2 2))))
-    ```"
+  "Defines a test function."
+  {:example "(deftest test-add"}
   [test-name & body]
   `(defn ,test-name {:test true :test-name ,(name test-name)} []
      (binding [*current-test-name* ,(name test-name)]
@@ -307,13 +292,8 @@
     :failed (print-failure data)))
 
 (defn print-summary
-  "Prints test results summary.
-
-  Example:
-    ```phel
-    (print-summary)
-    # Prints: Passed: 10, Failed: 2
-    ```"
+  "Prints test results summary."
+  {:example "(print-summary)"}
   []
   (println)
   (println)
@@ -349,13 +329,8 @@
       (test))))
 
 (defn run-tests
-  "Runs all tests in the given namespaces.
-
-  Example:
-    ```phel
-    (run-tests {} 'my-app\test)
-    # Runs all tests
-    ```"
+  "Runs all tests in the given namespaces."
+  {:example "(run-tests {} 'my-app\test)"}
   [options & namespaces]
   (set! testdox? (:testdox options))
   (dofor [namespace :in namespaces
@@ -364,13 +339,8 @@
   (print-summary))
 
 (defn successful?
-  "Checks if all tests passed.
-
-  Example:
-    ```phel
-    (successful?)
-    # => true
-    ```"
+  "Checks if all tests passed."
+  {:example "(successful?) # => true"}
   []
   (let [{:failed failed :error error} (get (deref stats) :counts)]
     (zero? (+ failed error))))

@@ -16,13 +16,8 @@
   (php/:: GlobalEnvironmentSingleton (getInstance)))
 
 (defn loaded-namespaces
-  "Returns all namespaces currently loaded in the REPL.
-
-  Example:
-    ```phel
-    (loaded-namespaces)
-    # => [\"phel\\core\" \"phel\\repl\"]
-    ```"
+  "Returns all namespaces currently loaded in the REPL."
+  {:example "(loaded-namespaces) # => [\"phel\\core\" \"phel\\repl\"]"}
   []
   (php/:: Phel (getNamespaces)))
 
@@ -36,13 +31,8 @@
         (eval-file (php/-> dep (getFile)))))))
 
 (defn resolve
-  "Resolves the given symbol in the current environment and returns a resolved Symbol with the absolute namespace or nil if it cannot be resolved.
-
-  Example:
-    ```phel
-    (resolve 'map)
-    # => phel\\core/map
-    ```"
+  "Resolves the given symbol in the current environment and returns a resolved Symbol with the absolute namespace or nil if it cannot be resolved."
+  {:example "(resolve 'map) # => phel\\core/map"}
   [sym]
   (-> (get-global-env)
       (php/-> (resolveAsSymbol sym (php/:: NodeEnvironment (empty))))))
@@ -61,13 +51,8 @@
         (clean-doc message)))))
 
 (defmacro doc
-  "Prints the documentation for the given symbol.
-
-  Example:
-    ```phel
-    (doc map)
-    # Prints: \"Applies function f to each element...\"
-    ```"
+  "Prints the documentation for the given symbol."
+  {:example "(doc map)"}
   [sym]
   (let [resolved-sym (resolve sym)]
     (when resolved-sym
@@ -96,13 +81,8 @@
     namespace))
 
 (defmacro require
-  "Requires a Phel module into the environment.
-
-  Example:
-    ```phel
-    (require phel\http :as http :refer [request])
-    # => phel\\http
-    ```"
+  "Requires a Phel module into the environment."
+  {:example "(require phel\http :as http :refer [request]) # => phel\\http"}
   [sym & args]
   (let [options (apply hash-map args)
         alias (extract-alias sym options)
@@ -115,13 +95,8 @@
   namespace)
 
 (defmacro use
-  "Adds a use statement to the environment.
-
-  Example:
-    ```phel
-    (use DateTime :as DT)
-    # => DateTime
-    ```"
+  "Adds a use statement to the environment."
+  {:example "(use DateTime :as DT) # => DateTime"}
   [sym & args]
   (let [options (apply hash-map args)
         alias (extract-alias sym options)]
@@ -143,38 +118,23 @@
           res)))))
 
 (defn print-colorful
-  "Prints arguments with colored output.
-
-  Example:
-    ```phel
-    (print-colorful [1 2 3])
-    # Prints: [1 2 3] (with color)
-    ```"
+  "Prints arguments with colored output."
+  {:example "(print-colorful [1 2 3])"}
   [& xs]
   (php/print (apply print-colorful-str xs))
   nil)
 
 (defn println-colorful
-  "Prints arguments with colored output followed by a newline.
-
-  Example:
-    ```phel
-    (println-colorful [1 2 3])
-    # Prints: [1 2 3]\n (with color)
-    ```"
+  "Prints arguments with colored output followed by a newline."
+  {:example "(println-colorful [1 2 3])"}
   [& xs]
   (apply print-colorful xs)
   (php/print "\n")
   nil)
 
 (defn compile-str
-  "Compiles a Phel expression string to PHP code.
-
-  Example:
-    ```phel
-    (compile-str \"(+ 1 2)\")
-    # => \"(1 + 2)\"
-    ```"
+  "Compiles a Phel expression string to PHP code."
+  {:example "(compile-str \"(+ 1 2)\") # => \"(1 + 2)\""}
   [s]
   (let [cf (php/new CompilerFacade)
         opts (php/new CompileOptions)

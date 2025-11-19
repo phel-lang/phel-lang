@@ -27,14 +27,8 @@
 # -----------
 
 (defn mock
-  "Creates a mock function that returns a fixed value and tracks all calls.
-
-  Examples:
-    ```phel
-    (def my-mock (mock :return-value))
-    (my-mock 1 2 3)  # => :return-value
-    (calls my-mock)  # => [[1 2 3]]
-    ```"
+  "Creates a mock function that returns a fixed value and tracks all calls."
+  {:example "(def my-mock (mock :return-value))"}
   [return-value]
   (let [call-history (var [])]
     (register-mock!
@@ -44,14 +38,8 @@
       call-history)))
 
 (defn mock-fn
-  "Creates a mock function with custom behavior that tracks all calls.
-
-  Examples:
-    ```phel
-    (def my-mock (mock-fn (fn [x] (* x 2))))
-    (my-mock 5)      # => 10
-    (calls my-mock)  # => [[5]]
-    ```"
+  "Creates a mock function with custom behavior that tracks all calls."
+  {:example "(def my-mock (mock-fn (fn [x] (* x 2))))"}
   [f]
   (let [call-history (var [])]
     (register-mock!
@@ -61,30 +49,15 @@
       call-history)))
 
 (defn spy
-  "Wraps an existing function to track calls while preserving original behavior.
-
-  Examples:
-    ```phel
-    (def original-fn (fn [x] (* x 2)))
-    (def spied (spy original-fn))
-    (spied 5)        # => 10 (calls original)
-    (calls spied)    # => [[5]]
-    ```"
+  "Wraps an existing function to track calls while preserving original behavior."
+  {:example "(def original-fn (fn [x] (* x 2)))"}
   [f]
   (mock-fn f))
 
 (defn mock-returning
   "Creates a mock that returns different values for consecutive calls.
-  After exhausting values, returns the last value.
-
-  Examples:
-    ```phel
-    (def my-mock (mock-returning [1 2 3]))
-    (my-mock)  # => 1
-    (my-mock)  # => 2
-    (my-mock)  # => 3
-    (my-mock)  # => 3
-    ```"
+  After exhausting values, returns the last value."
+  {:example "(def my-mock (mock-returning [1 2 3]))"}
   [values]
   (let [call-history (var [])
         index (var 0)
@@ -102,13 +75,8 @@
       reset-fn)))
 
 (defn mock-throwing
-  "Creates a mock that throws an exception when called.
-
-  Examples:
-    ```phel
-    (def my-mock (mock-throwing (php/new \\RuntimeException \"API unavailable\")))
-    (my-mock)  # throws RuntimeException
-    ```"
+  "Creates a mock that throws an exception when called."
+  {:example "(def my-mock (mock-throwing (php/new \\RuntimeException \"API unavailable\")))"}
   [exception]
   (let [call-history (var [])]
     (register-mock!
@@ -127,15 +95,8 @@
   (contains? (deref mock-registry) f))
 
 (defn calls
-  "Returns a list of all argument lists the mock was called with.
-
-  Examples:
-    ```phel
-    (def my-mock (mock :result))
-    (my-mock 1 2)
-    (my-mock 3)
-    (calls my-mock)  # => [[1 2] [3]]
-    ```"
+  "Returns a list of all argument lists the mock was called with."
+  {:example "(def my-mock (mock :result))"}
   [mock-fn]
   (let [call-history (get-mock-calls mock-fn)]
     (if call-history
@@ -143,125 +104,58 @@
       [])))
 
 (defn call-count
-  "Returns the number of times the mock was called.
-
-  Examples:
-    ```phel
-    (def my-mock (mock :result))
-    (my-mock 1)
-    (my-mock 2)
-    (call-count my-mock)  # => 2
-    ```"
+  "Returns the number of times the mock was called."
+  {:example "(def my-mock (mock :result))"}
   [mock-fn]
   (count (calls mock-fn)))
 
 (defn called?
-  "Returns true if the mock was called at least once.
-
-  Examples:
-    ```phel
-    (def my-mock (mock :result))
-    (called? my-mock)     # => false
-    (my-mock)
-    (called? my-mock)     # => true
-    ```"
+  "Returns true if the mock was called at least once."
+  {:example "(def my-mock (mock :result))"}
   [mock-fn]
   (> (call-count mock-fn) 0))
 
 (defn called-with?
-  "Returns true if the mock was called with the exact arguments.
-
-  Examples:
-    ```phel
-    (def my-mock (mock :result))
-    (my-mock 1 2 3)
-    (called-with? my-mock 1 2 3)  # => true
-    (called-with? my-mock 1 2)    # => false
-    ```"
+  "Returns true if the mock was called with the exact arguments."
+  {:example "(def my-mock (mock :result))"}
   [mock-fn & expected-args]
   (let [all-calls (calls mock-fn)]
     (some? (fn [call] (= call expected-args)) all-calls)))
 
 (defn called-once?
-  "Returns true if the mock was called exactly once.
-
-  Examples:
-    ```phel
-    (def my-mock (mock :result))
-    (my-mock)
-    (called-once? my-mock)  # => true
-    (my-mock)
-    (called-once? my-mock)  # => false
-    ```"
+  "Returns true if the mock was called exactly once."
+  {:example "(def my-mock (mock :result))"}
   [mock-fn]
   (= 1 (call-count mock-fn)))
 
 (defn called-times?
-  "Returns true if the mock was called exactly n times.
-
-  Examples:
-    ```phel
-    (def my-mock (mock :result))
-    (my-mock)
-    (my-mock)
-    (called-times? my-mock 2)  # => true
-    ```"
+  "Returns true if the mock was called exactly n times."
+  {:example "(def my-mock (mock :result))"}
   [mock-fn n]
   (= n (call-count mock-fn)))
 
 (defn never-called?
-  "Returns true if the mock was never called.
-
-  Examples:
-    ```phel
-    (def my-mock (mock :result))
-    (never-called? my-mock)  # => true
-    (my-mock)
-    (never-called? my-mock)  # => false
-    ```"
+  "Returns true if the mock was never called."
+  {:example "(def my-mock (mock :result))"}
   [mock-fn]
   (= 0 (call-count mock-fn)))
 
 (defn last-call
-  "Returns the arguments from the most recent call.
-
-  Examples:
-    ```phel
-    (def my-mock (mock :result))
-    (my-mock 1 2)
-    (my-mock 3 4)
-    (last-call my-mock)  # => [3 4]
-    ```"
+  "Returns the arguments from the most recent call."
+  {:example "(def my-mock (mock :result))"}
   [mock-fn]
   (last (calls mock-fn)))
 
 (defn first-call
-  "Returns the arguments from the first call.
-
-  Examples:
-    ```phel
-    (def my-mock (mock :result))
-    (my-mock 1 2)
-    (my-mock 3 4)
-    (first-call my-mock)  # => [1 2]
-    ```"
+  "Returns the arguments from the first call."
+  {:example "(def my-mock (mock :result))"}
   [mock-fn]
   (first (calls mock-fn)))
 
 (defn reset-mock!
   "Resets the call history of a mock without removing it from the registry.
-  The mock can continue to be used and track new calls.
-
-  Examples:
-    ```phel
-    (def my-mock (mock :result))
-    (my-mock 1)
-    (call-count my-mock)   # => 1
-    (reset-mock! my-mock)
-    (call-count my-mock)   # => 0
-    (my-mock 2)
-    (call-count my-mock)   # => 1
-    ```"
+  The mock can continue to be used and track new calls."
+  {:example "(def my-mock (mock :result))"}
   [mock-fn]
   (let [mock-data (get (deref mock-registry) mock-fn)]
     (when mock-data
@@ -273,12 +167,8 @@
 
 (defn clear-all-mocks!
   "Clears the entire mock registry.
-  Useful for cleanup between test suites in long-running processes.
-
-  Examples:
-    ```phel
-    (clear-all-mocks!)  # All mocks removed from registry
-    ```"
+  Useful for cleanup between test suites in long-running processes."
+  {:example "(clear-all-mocks!)  # All mocks removed from registry"}
   []
   (set! mock-registry {}))
 
@@ -332,22 +222,13 @@
       body...)
     ```
 
-  Example:
-    ```phel
-    (let [mock-http (mock {:status 200})]
-      (with-mock-wrapper [symfony-service mock-http
-                          (fn [args] (mock-http (adapt-args args)))]
-        (symfony-service {:key \"value\"})
-        (is (called-once? mock-http))))
-      # mock-http is automatically reset here
-    ```
-
   Multiple wrappers:
     ```phel
     (with-mock-wrapper [service-a mock-a (fn [x] (mock-a (inc x)))
                         service-b mock-b (fn [y] (mock-b (dec y)))]
       ...)
     ```"
+  {:example "(with-mock-wrapper [http mock-http identity] (http \"test\"))"}
   [bindings & body]
   (let [grouped (partition 3 bindings)
         symbols (map first grouped)
