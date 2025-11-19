@@ -7,6 +7,9 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Add `compact` function for removing nil values
 
+### Changed
+- Standardize docblock examples with triple backtick code fencing for better IDE rendering and syntax highlighting
+
 ## [0.26.0](https://github.com/phel-lang/phel-lang/compare/v0.25.0...v0.26.0) - 2025-11-16
 
 ### Added

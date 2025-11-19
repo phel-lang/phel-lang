@@ -7,8 +7,10 @@
   "Escapes HTML special characters to prevent XSS.
 
   Example:
+    ```phel
     (escape-html \"<div>\")
-    # => \"&lt;div&gt;\""
+    # => \"&lt;div&gt;\"
+    ```"
   [s]
   (php/htmlspecialchars s (bit-or php/ENT_QUOTES php/ENT_SUBSTITUTE)))
 
@@ -159,8 +161,10 @@
   "Compiles Phel vectors to HTML strings.
 
   Example:
+    ```phel
     (html [:div \"Hello\"])
-    # => \"<div>Hello</div>\""
+    # => \"<div>Hello</div>\"
+    ```"
   [& content]
   (apply compile-html content))
 
@@ -177,7 +181,9 @@
   "Returns an HTML doctype declaration.
 
   Example:
+    ```phel
     (doctype :html5)
-    # => \"<!DOCTYPE html>\\n\""
+    # => \"<!DOCTYPE html>\\n\"
+    ```"
   [type]
   (raw-string (get doctypes type (:html5 doctypes))))

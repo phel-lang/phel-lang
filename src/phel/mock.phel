@@ -30,9 +30,11 @@
   "Creates a mock function that returns a fixed value and tracks all calls.
 
   Examples:
+    ```phel
     (def my-mock (mock :return-value))
     (my-mock 1 2 3)  # => :return-value
-    (calls my-mock)  # => [[1 2 3]]"
+    (calls my-mock)  # => [[1 2 3]]
+    ```"
   [return-value]
   (let [call-history (var [])]
     (register-mock!
@@ -45,9 +47,11 @@
   "Creates a mock function with custom behavior that tracks all calls.
 
   Examples:
+    ```phel
     (def my-mock (mock-fn (fn [x] (* x 2))))
     (my-mock 5)      # => 10
-    (calls my-mock)  # => [[5]]"
+    (calls my-mock)  # => [[5]]
+    ```"
   [f]
   (let [call-history (var [])]
     (register-mock!
@@ -60,10 +64,12 @@
   "Wraps an existing function to track calls while preserving original behavior.
 
   Examples:
+    ```phel
     (def original-fn (fn [x] (* x 2)))
     (def spied (spy original-fn))
     (spied 5)        # => 10 (calls original)
-    (calls spied)    # => [[5]]"
+    (calls spied)    # => [[5]]
+    ```"
   [f]
   (mock-fn f))
 
@@ -72,11 +78,13 @@
   After exhausting values, returns the last value.
 
   Examples:
+    ```phel
     (def my-mock (mock-returning [1 2 3]))
     (my-mock)  # => 1
     (my-mock)  # => 2
     (my-mock)  # => 3
-    (my-mock)  # => 3"
+    (my-mock)  # => 3
+    ```"
   [values]
   (let [call-history (var [])
         index (var 0)
@@ -97,8 +105,10 @@
   "Creates a mock that throws an exception when called.
 
   Examples:
+    ```phel
     (def my-mock (mock-throwing (php/new \\RuntimeException \"API unavailable\")))
-    (my-mock)  # throws RuntimeException"
+    (my-mock)  # throws RuntimeException
+    ```"
   [exception]
   (let [call-history (var [])]
     (register-mock!
@@ -120,10 +130,12 @@
   "Returns a list of all argument lists the mock was called with.
 
   Examples:
+    ```phel
     (def my-mock (mock :result))
     (my-mock 1 2)
     (my-mock 3)
-    (calls my-mock)  # => [[1 2] [3]]"
+    (calls my-mock)  # => [[1 2] [3]]
+    ```"
   [mock-fn]
   (let [call-history (get-mock-calls mock-fn)]
     (if call-history
@@ -134,10 +146,12 @@
   "Returns the number of times the mock was called.
 
   Examples:
+    ```phel
     (def my-mock (mock :result))
     (my-mock 1)
     (my-mock 2)
-    (call-count my-mock)  # => 2"
+    (call-count my-mock)  # => 2
+    ```"
   [mock-fn]
   (count (calls mock-fn)))
 
@@ -145,10 +159,12 @@
   "Returns true if the mock was called at least once.
 
   Examples:
+    ```phel
     (def my-mock (mock :result))
     (called? my-mock)     # => false
     (my-mock)
-    (called? my-mock)     # => true"
+    (called? my-mock)     # => true
+    ```"
   [mock-fn]
   (> (call-count mock-fn) 0))
 
@@ -156,10 +172,12 @@
   "Returns true if the mock was called with the exact arguments.
 
   Examples:
+    ```phel
     (def my-mock (mock :result))
     (my-mock 1 2 3)
     (called-with? my-mock 1 2 3)  # => true
-    (called-with? my-mock 1 2)    # => false"
+    (called-with? my-mock 1 2)    # => false
+    ```"
   [mock-fn & expected-args]
   (let [all-calls (calls mock-fn)]
     (some? (fn [call] (= call expected-args)) all-calls)))
@@ -168,11 +186,13 @@
   "Returns true if the mock was called exactly once.
 
   Examples:
+    ```phel
     (def my-mock (mock :result))
     (my-mock)
     (called-once? my-mock)  # => true
     (my-mock)
-    (called-once? my-mock)  # => false"
+    (called-once? my-mock)  # => false
+    ```"
   [mock-fn]
   (= 1 (call-count mock-fn)))
 
@@ -180,10 +200,12 @@
   "Returns true if the mock was called exactly n times.
 
   Examples:
+    ```phel
     (def my-mock (mock :result))
     (my-mock)
     (my-mock)
-    (called-times? my-mock 2)  # => true"
+    (called-times? my-mock 2)  # => true
+    ```"
   [mock-fn n]
   (= n (call-count mock-fn)))
 
@@ -191,10 +213,12 @@
   "Returns true if the mock was never called.
 
   Examples:
+    ```phel
     (def my-mock (mock :result))
     (never-called? my-mock)  # => true
     (my-mock)
-    (never-called? my-mock)  # => false"
+    (never-called? my-mock)  # => false
+    ```"
   [mock-fn]
   (= 0 (call-count mock-fn)))
 
@@ -202,10 +226,12 @@
   "Returns the arguments from the most recent call.
 
   Examples:
+    ```phel
     (def my-mock (mock :result))
     (my-mock 1 2)
     (my-mock 3 4)
-    (last-call my-mock)  # => [3 4]"
+    (last-call my-mock)  # => [3 4]
+    ```"
   [mock-fn]
   (last (calls mock-fn)))
 
@@ -213,10 +239,12 @@
   "Returns the arguments from the first call.
 
   Examples:
+    ```phel
     (def my-mock (mock :result))
     (my-mock 1 2)
     (my-mock 3 4)
-    (first-call my-mock)  # => [1 2]"
+    (first-call my-mock)  # => [1 2]
+    ```"
   [mock-fn]
   (first (calls mock-fn)))
 
@@ -225,13 +253,15 @@
   The mock can continue to be used and track new calls.
 
   Examples:
+    ```phel
     (def my-mock (mock :result))
     (my-mock 1)
     (call-count my-mock)   # => 1
     (reset-mock! my-mock)
     (call-count my-mock)   # => 0
     (my-mock 2)
-    (call-count my-mock)   # => 1"
+    (call-count my-mock)   # => 1
+    ```"
   [mock-fn]
   (let [mock-data (get (deref mock-registry) mock-fn)]
     (when mock-data
@@ -246,7 +276,9 @@
   Useful for cleanup between test suites in long-running processes.
 
   Examples:
-    (clear-all-mocks!)  # All mocks removed from registry"
+    ```phel
+    (clear-all-mocks!)  # All mocks removed from registry
+    ```"
   []
   (set! mock-registry {}))
 
@@ -259,20 +291,26 @@
   Automatically resets mocks after the body executes.
 
   Works with inline mock creation:
+    ```phel
     (with-mocks [http-get (mock {:status 200})]
       (http-get)
       # Mock is automatically reset after this block)
+    ```
 
   Also works with pre-defined mocks:
+    ```phel
     (let [my-mock (mock :result)]
       (with-mocks [some-fn my-mock]
         (some-fn)))
+    ```
 
   If you need to wrap the mock in a function (e.g., to adapt arguments),
   you'll need to manually reset:
+    ```phel
     (with-mocks [some-fn (fn [& args] (my-mock (transform args)))]
       (some-fn)
-      (reset-mock! my-mock))"
+      (reset-mock! my-mock))
+    ```"
   [bindings & body]
   (let [symbols (take-nth 2 bindings)
         values (take-nth 2 (drop 1 bindings))
@@ -289,21 +327,27 @@
   Automatically resets the underlying mock even when wrapped in an adapter function.
 
   Usage:
+    ```phel
     (with-mock-wrapper [fn-symbol underlying-mock wrapper-fn]
       body...)
+    ```
 
   Example:
+    ```phel
     (let [mock-http (mock {:status 200})]
       (with-mock-wrapper [symfony-service mock-http
                           (fn [args] (mock-http (adapt-args args)))]
         (symfony-service {:key \"value\"})
         (is (called-once? mock-http))))
       # mock-http is automatically reset here
+    ```
 
   Multiple wrappers:
+    ```phel
     (with-mock-wrapper [service-a mock-a (fn [x] (mock-a (inc x)))
                         service-b mock-b (fn [y] (mock-b (dec y)))]
-      ...)"
+      ...)
+    ```"
   [bindings & body]
   (let [grouped (partition 3 bindings)
         symbols (map first grouped)

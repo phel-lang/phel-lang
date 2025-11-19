@@ -34,8 +34,10 @@
   "Records test results and prints status indicators.
 
   Example:
+    ```phel
     (report {:state :pass})
-    # Prints: ."
+    # Prints: .
+    ```"
   [data]
   (let [{:state state :type type} data
         ok (= state :pass)
@@ -190,8 +192,10 @@
   "Asserts that an expression is true.
 
   Example:
+    ```phel
     (is (= 4 (+ 2 2)))
-    # Passes if equal"
+    # Passes if equal
+    ```"
   [form & [message]]
   (let [loc (location form) e (gensym)]
     `(try ,(assert-expr form message)
@@ -210,8 +214,10 @@
   "Defines a test function.
 
   Example:
+    ```phel
     (deftest test-add
-      (is (= 4 (+ 2 2))))"
+      (is (= 4 (+ 2 2))))
+    ```"
   [test-name & body]
   `(defn ,test-name {:test true :test-name ,(name test-name)} []
      (binding [*current-test-name* ,(name test-name)]
@@ -304,8 +310,10 @@
   "Prints test results summary.
 
   Example:
+    ```phel
     (print-summary)
-    # Prints: Passed: 10, Failed: 2"
+    # Prints: Passed: 10, Failed: 2
+    ```"
   []
   (println)
   (println)
@@ -344,8 +352,10 @@
   "Runs all tests in the given namespaces.
 
   Example:
+    ```phel
     (run-tests {} 'my-app\test)
-    # Runs all tests"
+    # Runs all tests
+    ```"
   [options & namespaces]
   (set! testdox? (:testdox options))
   (dofor [namespace :in namespaces
@@ -357,8 +367,10 @@
   "Checks if all tests passed.
 
   Example:
+    ```phel
     (successful?)
-    # => true"
+    # => true
+    ```"
   []
   (let [{:failed failed :error error} (get (deref stats) :counts)]
     (zero? (+ failed error))))
