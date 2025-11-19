@@ -125,7 +125,7 @@
                         "error" (get-in files ["error" k])
                         "name" (get-in files ["name" k])
                         "type" (get-in files ["type" k]))]]
-      (put res k (create-uploaded-file-from-spec spec)))
+      (assoc res k (create-uploaded-file-from-spec spec)))
     (persistent res)))
 
 (defn- create-uploaded-file-from-spec [value]
@@ -143,11 +143,11 @@
     (foreach [k v files]
       (cond
         (uploaded-file? v)
-        (put res k v)
+        (assoc res k v)
         (and (php/is_array v) (get v "tmp_name"))
-        (put res k (create-uploaded-file-from-spec v))
+        (assoc res k (create-uploaded-file-from-spec v))
         (indexed? v)
-        (put res k (normalize-files v))
+        (assoc res k (normalize-files v))
 
         (throw (php/new InvalidArgumentException "Invalid value in files specification"))))
     (persistent res)))
@@ -187,10 +187,10 @@
       (cond
         (and v (id 0 (php/strpos k "HTTP_")))
         (let [name (php/strtr (php/strtolower (php/substr k 5)) "_" "-")]
-          (put headers (keyword name) v))
+          (assoc headers (keyword name) v))
         (and v (id 0 (php/strpos k "CONTENT_")))
         (let [name (str "content-" (php/strtolower (php/substr k 8)))]
-          (put headers (keyword name) v))))
+          (assoc headers (keyword name) v))))
     (persistent headers)))
 
 # -------
