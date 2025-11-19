@@ -159,22 +159,41 @@
   (php/mb_strtoupper s))
 
 (defn trim
-  "Removes whitespace from both ends of string."
+  "Removes whitespace from both ends of string.
+
+  Example:
+    (trim \"  hello  \")
+    # => \"hello\""
   [s]
   (php/preg_replace "/^[\s]+|[\s]+$/u" "" s))
 
 (defn triml
-  "Removes whitespace from the left side of string."
+  "Removes whitespace from the left side of string.
+
+  Example:
+    (triml \"  hello  \")
+    # => \"hello  \""
   [s]
   (php/preg_replace "/^[\s]+/u" "" s))
 
 (defn trimr
-  "Removes whitespace from the right side of string."
+  "Removes whitespace from the right side of string.
+
+  Example:
+    (trimr \"  hello  \")
+    # => \"  hello\""
   [s]
   (php/preg_replace "/[\s]+$/u" "" s))
 
 (defn blank?
-  "True if s is nil, empty, or contains only whitespace."
+  "True if s is nil, empty, or contains only whitespace.
+
+  Example:
+    (blank? \"   \")
+    # => true
+
+    (blank? \"hello\")
+    # => false"
   [s]
   (if s
     (loop [index 0]
@@ -186,22 +205,38 @@
     true))
 
 (defn starts-with?
-  "True if s starts with substr."
+  "True if s starts with substr.
+
+  Example:
+    (starts-with? \"hello world\" \"hello\")
+    # => true"
   [s substr]
   (php/str_starts_with s substr))
 
 (defn ends-with?
-  "True if s ends with substr."
+  "True if s ends with substr.
+
+  Example:
+    (ends-with? \"hello world\" \"world\")
+    # => true"
   [s substr]
   (php/str_ends_with s substr))
 
 (defn contains?
-  "True if s contains substr."
+  "True if s contains substr.
+
+  Example:
+    (contains? \"hello world\" \"lo wo\")
+    # => true"
   [s substr]
   (php/str_contains s substr))
 
 (defn includes?
-  "True if s includes substr."
+  "True if s includes substr.
+
+  Example:
+    (includes? \"hello world\" \"world\")
+    # => true"
   [s substr]
   (php/str_contains s substr))
 
@@ -272,7 +307,11 @@
             (recur s value (dec from-index))))))))
 
 (defn split-lines
-  "Splits s on \\n or \\r\\n. Trailing empty lines are not returned."
+  "Splits s on \\n or \\r\\n. Trailing empty lines are not returned.
+
+  Example:
+    (split-lines \"hello\\nworld\\ntest\")
+    # => [\"hello\" \"world\" \"test\"]"
   [s]
   (split s "/\\r?\\n/"))
 
