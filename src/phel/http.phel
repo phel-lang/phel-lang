@@ -54,8 +54,10 @@
   "Extracts the URI from the `$_SERVER` variable.
 
   Example:
+    ```phel
     (uri-from-globals)
-    # => (uri \"https\" nil \"example.com\" 443 \"/path\" \"foo=bar\" nil)"
+    # => (uri \"https\" nil \"example.com\" 443 \"/path\" \"foo=bar\" nil)
+    ```"
   [& [server]]
   (let [server (or server php/$_SERVER)
         scheme (cond
@@ -81,8 +83,10 @@
   "Create a uri struct from a string.
 
   Example:
+    ```phel
     (uri-from-string \"https://example.com/path?foo=bar\")
-    # => (uri \"https\" nil \"example.com\" nil \"/path\" \"foo=bar\" nil)"
+    # => (uri \"https\" nil \"example.com\" nil \"/path\" \"foo=bar\" nil)
+    ```"
   [url]
   (let [matches (php/array)
         [prefix url] (if (one? (php/preg_match "%^(.*://\\[[0-9:a-f]+\\])(.*?)$%" url matches))
@@ -152,8 +156,10 @@
   "Extracts the files from `$_FILES` and normalizes them to a map of \"uploaded-file\".
 
   Example:
+    ```phel
     (files-from-globals)
-    # => {:avatar (uploaded-file \"/tmp/phpYzdqkD\" 1024 0 \"photo.jpg\" \"image/jpeg\")}"
+    # => {:avatar (uploaded-file \"/tmp/phpYzdqkD\" 1024 0 \"photo.jpg\" \"image/jpeg\")}
+    ```"
   [& [files]]
   (normalize-files (or files php/$_FILES)))
 
@@ -165,8 +171,10 @@
   "Extracts all headers from the `$_SERVER` variable.
 
   Example:
+    ```phel
     (headers-from-server)
-    # => {:host \"example.com\" :content-type \"application/json\"}"
+    # => {:host \"example.com\" :content-type \"application/json\"}
+    ```"
   [& [server]]
   (let [headers (transient {})
         server (or server php/$_SERVER)]
@@ -220,8 +228,10 @@
   "Extracts a request from args.
 
   Example:
+    ```phel
     (request-from-globals-args php/$_SERVER php/$_GET php/$_POST php/$_COOKIE php/$_FILES)
-    # => (request \"GET\" (uri ...) {...} nil {...} {...} {...} {...} \"1.1\" {})"
+    # => (request \"GET\" (uri ...) {...} nil {...} {...} {...} {...} \"1.1\" {})
+    ```"
   [server get-parameter post-parameter cookies files]
   (let [method (get-method-from-globals server)
         uri (uri-from-globals server)
@@ -246,8 +256,10 @@
   "Extracts a request from `$_SERVER`, `$_GET`, `$_POST`, `$_COOKIE` and `$_FILES`.
 
   Example:
+    ```phel
     (request-from-globals)
-    # => (request \"GET\" (uri ...) {...} nil {...} {...} {...} {...} \"1.1\" {})"
+    # => (request \"GET\" (uri ...) {...} nil {...} {...} {...} {...} \"1.1\" {})
+    ```"
   []
   (request-from-globals-args php/$_SERVER php/$_GET php/$_POST php/$_COOKIE php/$_FILES))
 
@@ -255,8 +267,10 @@
   "Creates a request struct from a map with optional keys :method, :uri, :headers, etc.
 
   Example:
+    ```phel
     (request-from-map {:method \"POST\" :uri \"https://api.example.com/users\"})
-    # => (request \"POST\" (uri ...) {} nil {} {} {} [] \"1.1\" {})"
+    # => (request \"POST\" (uri ...) {} nil {} {} {} [] \"1.1\" {})
+    ```"
   [{:method method
     :uri uri
     :headers headers
@@ -356,8 +370,10 @@
   "Creates a response struct from a map with optional keys :status, :headers, :body, :version, and :reason.
 
   Example:
+    ```phel
     (response-from-map {:status 200 :body \"Hello World\"})
-    # => (response 200 {} \"Hello World\" \"1.1\" \"OK\")"
+    # => (response 200 {} \"Hello World\" \"1.1\" \"OK\")
+    ```"
   [{:status status :headers headers :body body :version version :reason reason}]
   (let [status (or status 200)
         headers (or headers {})
@@ -372,8 +388,10 @@
   "Create a response from a string.
 
   Example:
+    ```phel
     (response-from-string \"Hello World\")
-    # => (response 200 {} \"Hello World\" \"1.1\" \"OK\")"
+    # => (response 200 {} \"Hello World\" \"1.1\" \"OK\")
+    ```"
   [s]
   (create-response-from-map {:body s}))
 
@@ -422,8 +440,10 @@
   "Emits the response by sending headers and outputting the body.
 
   Example:
+    ```phel
     (emit-response (response-from-string \"Hello World\"))
-    # => nil"
+    # => nil
+    ```"
   [response]
   (emit-status-line response)
   (emit-headers response)

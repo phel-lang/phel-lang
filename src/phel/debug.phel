@@ -10,8 +10,10 @@
   "Sets the number of digits for trace ID padding.
 
   Example:
+    ```phel
     (set-trace-id-padding! 3)
-    # Uses 3 digits: 001, 002, etc."
+    # Uses 3 digits: 001, 002, etc.
+    ```"
   [estimated-id-padding]
   (swap! *max-trace-digits* (fn [_] estimated-id-padding)))
 
@@ -22,10 +24,12 @@
   "Wraps a function to print each call and result with indentation.
 
   Example:
+    ```phel
     (def add (dotrace \"add\" +))
     (add 2 3)
     # Prints: TRACE t01: (add 2 3)
-    # Prints: TRACE t01: => 5"
+    # Prints: TRACE t01: => 5
+    ```"
   [name f]
   (fn [& args]
     (let [id (next-id)
@@ -46,8 +50,10 @@
   "Resets trace counters to initial values.
 
   Example:
+    ```phel
     (reset-trace-state!)
-    # Trace IDs restart from 01"
+    # Trace IDs restart from 01
+    ```"
   []
   (do
     (set! *trace-level* 0)
@@ -58,9 +64,11 @@
   "Evaluates an expression and prints it with its result.
 
   Example:
+    ```phel
     (dbg (+ 1 2))
     # Prints: (+ 1 2) => 3
-    # => 3"
+    # => 3
+    ```"
   [expr]
   (let [res (gensym)]
     `(let [,res ,expr]
@@ -71,9 +79,11 @@
   "Evaluates an expression and prints it with an optional label.
 
   Example:
+    ```phel
     (spy (+ 1 2))
     # Prints: SPY (+ 1 2) => 3
-    # => 3"
+    # => 3
+    ```"
   ([expr]
    (let [res (gensym)]
      `(let [,res ,expr]
@@ -91,9 +101,11 @@
   "Prints a value and returns it unchanged. Useful in pipelines.
 
   Example:
+    ```phel
     (-> 5 (tap) (* 2))
     # Prints: TAP => 5
-    # => 10"
+    # => 10
+    ```"
   ([value]
    (println (str "TAP => " (print-str value)))
    value)

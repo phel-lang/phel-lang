@@ -5,8 +5,10 @@
   "Encodes a string to Base64.
 
   Example:
+    ```phel
     (encode \"Hello\")
-    # => \"SGVsbG8=\""
+    # => \"SGVsbG8=\"
+    ```"
   [s]
   (php/base64_encode s))
 
@@ -14,8 +16,10 @@
   "Decodes a Base64 string. Optional `strict?` flag validates characters.
 
   Example:
+    ```phel
     (decode \"SGVsbG8=\")
-    # => \"Hello\""
+    # => \"Hello\"
+    ```"
   [s & [strict?]]
   (php/base64_decode s (or strict? false)))
 
@@ -23,8 +27,10 @@
   "Encodes a string to URL-safe Base64 (no padding).
 
   Example:
+    ```phel
     (encode-url \"Hello\")
-    # => \"SGVsbG8\""
+    # => \"SGVsbG8\"
+    ```"
   [s]
   (-> (encode s)
       (s/replace "+" "-")
@@ -35,8 +41,10 @@
   "Decodes a URL-safe Base64 string. Adds padding automatically.
 
   Example:
+    ```phel
     (decode-url \"SGVsbG8\")
-    # => \"Hello\""
+    # => \"Hello\"
+    ```"
   [s & [strict?]]
   (let [s (s/replace s "-" "+")
         s (s/replace s "_" "/")

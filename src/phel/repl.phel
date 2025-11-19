@@ -19,8 +19,10 @@
   "Returns all namespaces currently loaded in the REPL.
 
   Example:
+    ```phel
     (loaded-namespaces)
-    # => [\"phel\\core\" \"phel\\repl\"]"
+    # => [\"phel\\core\" \"phel\\repl\"]
+    ```"
   []
   (php/:: Phel (getNamespaces)))
 
@@ -37,8 +39,10 @@
   "Resolves the given symbol in the current environment and returns a resolved Symbol with the absolute namespace or nil if it cannot be resolved.
 
   Example:
+    ```phel
     (resolve 'map)
-    # => phel\\core/map"
+    # => phel\\core/map
+    ```"
   [sym]
   (-> (get-global-env)
       (php/-> (resolveAsSymbol sym (php/:: NodeEnvironment (empty))))))
@@ -60,8 +64,10 @@
   "Prints the documentation for the given symbol.
 
   Example:
+    ```phel
     (doc map)
-    # Prints: \"Applies function f to each element...\""
+    # Prints: \"Applies function f to each element...\"
+    ```"
   [sym]
   (let [resolved-sym (resolve sym)]
     (when resolved-sym
@@ -93,8 +99,10 @@
   "Requires a Phel module into the environment.
 
   Example:
+    ```phel
     (require phel\http :as http :refer [request])
-    # => phel\\http"
+    # => phel\\http
+    ```"
   [sym & args]
   (let [options (apply hash-map args)
         alias (extract-alias sym options)
@@ -110,8 +118,10 @@
   "Adds a use statement to the environment.
 
   Example:
+    ```phel
     (use DateTime :as DT)
-    # => DateTime"
+    # => DateTime
+    ```"
   [sym & args]
   (let [options (apply hash-map args)
         alias (extract-alias sym options)]
@@ -136,8 +146,10 @@
   "Prints arguments with colored output.
 
   Example:
+    ```phel
     (print-colorful [1 2 3])
-    # Prints: [1 2 3] (with color)"
+    # Prints: [1 2 3] (with color)
+    ```"
   [& xs]
   (php/print (apply print-colorful-str xs))
   nil)
@@ -146,8 +158,10 @@
   "Prints arguments with colored output followed by a newline.
 
   Example:
+    ```phel
     (println-colorful [1 2 3])
-    # Prints: [1 2 3]\n (with color)"
+    # Prints: [1 2 3]\n (with color)
+    ```"
   [& xs]
   (apply print-colorful xs)
   (php/print "\n")
@@ -157,8 +171,10 @@
   "Compiles a Phel expression string to PHP code.
 
   Example:
+    ```phel
     (compile-str \"(+ 1 2)\")
-    # => \"(1 + 2)\""
+    # => \"(1 + 2)\"
+    ```"
   [s]
   (let [cf (php/new CompilerFacade)
         opts (php/new CompileOptions)

@@ -57,32 +57,40 @@
   "Creates a new list from the given arguments. Shortcut: '()
 
   Example:
+    ```phel
     (list 1 2 3)
-    # => (1 2 3)"
+    # => (1 2 3)
+    ```"
   (fn [& xs] (php/:: Phel (list (apply php/array xs)))))
 
 (def vector
   "Creates a new vector from the given arguments. Shortcut: []
 
   Example:
+    ```phel
     (vector 1 2 3)
-    # => [1 2 3]"
+    # => [1 2 3]
+    ```"
   (fn [& xs] (php/:: Phel (vector (apply php/array xs)))))
 
 (def hash-map
   "Creates a new hash map from key-value pairs. Shortcut: {}
 
   Example:
+    ```phel
     (hash-map :a 1 :b 2)
-    # => {:a 1 :b 2}"
+    # => {:a 1 :b 2}
+    ```"
   (fn [& xs] (php/:: Phel (map (apply php/array xs)))))
 
 (def next
   "Returns the sequence after the first element, or nil if empty.
 
   Example:
+    ```phel
     (next [1 2 3])
-    # => [2 3]"
+    # => [2 3]
+    ```"
   (fn [xs]
     (if (php/=== xs nil)
       nil
@@ -105,8 +113,10 @@
   "Returns the first element of a sequence, or nil if empty.
 
   Example:
+    ```phel
     (first [1 2 3])
-    # => 1"
+    # => 1
+    ```"
   (fn [xs]
     (if (php/instanceof xs FirstInterface)
       (php/-> xs (first))
@@ -293,11 +303,13 @@
   With two arguments, creates a symbol in the given namespace.
 
   Examples:
+    ```phel
     (symbol \"foo\")
     # => foo
 
     (symbol \"my-ns\" \"bar\")
-    # => my-ns/bar"
+    # => my-ns/bar
+    ```"
   [name-or-ns & [name]]
   (if name
     (php/:: Symbol (createForNamespace name-or-ns name))
@@ -327,10 +339,12 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   Use `persistent` to convert back.
 
   Example:
+    ```phel
     (def t (transient []))
     (conj t 1)
     (persistent t)
     # => [1]
+    ```
 
   See also: persistent"
   [coll]
@@ -340,10 +354,12 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Converts a transient collection back to a persistent collection.
 
   Example:
+    ```phel
     (def t (transient {}))
     (assoc t :a 1)
     (persistent t)
     # => {:a 1}
+    ```
 
   See also: transient"
   [coll]
@@ -357,8 +373,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Creates a new Set from the given arguments. Shortcut: #{}
 
   Example:
+    ```phel
     (set 1 2 3)
-    # => #{1 2 3}"
+    # => #{1 2 3}
+    ```"
   [& xs]
   (php/:: Phel (set (apply php/array xs))))
 
@@ -366,8 +384,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Creates a new Keyword from a given string.
 
   Example:
+    ```phel
     (keyword \"name\")
-    # => :name"
+    # => :name
+    ```"
   [x]
   (php/:: Keyword (create x)))
 
@@ -375,8 +395,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Creates a PHP indexed array from the given values.
 
   Example:
+    ```phel
     (php-indexed-array 1 2 3)
-    # => (PHP array [1, 2, 3])"
+    # => (PHP array [1, 2, 3])
+    ```"
   [& xs]
   (apply php/array xs))
 
@@ -387,8 +409,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     Key-value pairs (must be even number of arguments)
 
   Example:
+    ```phel
     (php-associative-array \"name\" \"Alice\" \"age\" 30)
-    # => (PHP array [\"name\" => \"Alice\", \"age\" => 30])"
+    # => (PHP array [\"name\" => \"Alice\", \"age\" => 30])
+    ```"
   [& xs]
   (let [cnt (php/count xs)
         res (php/array)]
@@ -414,8 +438,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Prepends an element to the beginning of a collection.
 
   Example:
+    ```phel
     (cons 0 [1 2 3])
-    # => [0 1 2 3]"
+    # => [0 1 2 3]
+    ```"
   [x coll]
   (if (php/is_array coll)
     (do
@@ -437,8 +463,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns the second element of a sequence, or nil if not present.
 
   Example:
+    ```phel
     (second [1 2 3])
-    # => 2"
+    # => 2
+    ```"
   [coll]
   (first (next coll)))
 
@@ -446,8 +474,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns the sequence after the first element, or empty sequence if none.
 
   Example:
+    ```phel
     (rest [1 2 3])
-    # => [2 3]"
+    # => [2 3]
+    ```"
   [coll]
   (if (php/instanceof coll RestInterface)
     (php/-> coll (rest))
@@ -474,6 +504,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   Returns 0 for nil.
 
   Examples:
+    ```phel
     (count [1 2 3])
     # => 3
 
@@ -494,6 +525,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
     (count nil)
     # => 0
+    ```
 
   See also: empty?, seq"
   [coll]
@@ -515,8 +547,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Evaluates then if test is false, else otherwise.
 
   Example:
+    ```phel
     (if-not (< 5 3) \"not less\" \"less\")
-    # => \"not less\""
+    # => \"not less\"
+    ```"
   [test then & [else]]
   `(if ,test ,else ,then))
 
@@ -524,8 +558,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Evaluates body if test is true, otherwise returns nil.
 
   Example:
+    ```phel
     (when (> 10 5) \"greater\")
-    # => \"greater\""
+    # => \"greater\"
+    ```"
   [test & body]
   `(if ,test (do ,@body)))
 
@@ -533,8 +569,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Evaluates body if test is false, otherwise returns nil.
 
   Example:
+    ```phel
     (when-not (empty? [1 2 3]) \"has items\")
-    # => \"has items\""
+    # => \"has items\"
+    ```"
   [test & body]
   `(if ,test nil (do ,@body)))
 
@@ -542,8 +580,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Evaluates test/expression pairs, returning the first matching expression.
 
   Example:
+    ```phel
     (cond (< x 0) \"negative\" (> x 0) \"positive\" \"zero\")
-    # => \"negative\", \"positive\", or \"zero\" depending on x"
+    # => \"negative\", \"positive\", or \"zero\" depending on x
+    ```"
   [& pairs]
   (let [cnt (count pairs)]
     (if (php/=== cnt 0)
@@ -559,11 +599,13 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Evaluates expression and matches it against constant test values, returning the associated result.
 
   Example:
+    ```phel
     (case x
       1 \"one\"
       2 \"two\"
       \"other\")
-    # => \"one\" (when x is 1)"
+    # => \"one\" (when x is 1)
+    ```"
   [e & pairs]
   (if (next pairs)
     (let [v (gensym)]
@@ -581,8 +623,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Evaluates expressions left to right, returning the first truthy value or the last value.
 
   Example:
+    ```phel
     (or false nil 42 100)
-    # => 42"
+    # => 42
+    ```"
   [& args]
   (case (count args)
     0 nil
@@ -595,8 +639,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Evaluates expressions left to right, returning the first falsy value or the last value.
 
   Example:
+    ```phel
     (and true 1 \"hello\")
-    # => \"hello\""
+    # => \"hello\"
+    ```"
   [& args]
   (case (count args)
     0 'true
@@ -624,8 +670,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Checks if all values are equal (value equality, not identity).
 
   Example:
+    ```phel
     (= [1 2 3] [1 2 3])
-    # => true"
+    # => true
+    ```"
   [a & more]
   (case (count more)
     0 true
@@ -638,8 +686,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns true if value is falsy (nil or false), false otherwise.
 
   Example:
+    ```phel
     (not nil)
-    # => true"
+    # => true
+    ```"
   [x]
   (if x false true))
 
@@ -655,8 +705,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Checks if each argument is strictly less than the following argument.
 
   Example:
+    ```phel
     (< 1 2 3 4)
-    # => true"
+    # => true
+    ```"
   {:inline (fn [a b] `(php/< ,a ,b))
    :inline-arity (fn [n] (php/=== n 2))}
   [a & more]
@@ -683,8 +735,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Checks if each argument is strictly greater than the following argument.
 
   Example:
+    ```phel
     (> 4 3 2 1)
-    # => true"
+    # => true
+    ```"
   {:inline (fn [a b] `(php/> ,a ,b))
    :inline-arity (fn [n] (php/=== n 2))}
   [a & more]
@@ -723,8 +777,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns true if predicate is true for every element in collection, false otherwise.
 
   Example:
+    ```phel
     (all? even? [2 4 6 8])
-    # => true"
+    # => true
+    ```"
   [pred coll]
   (cond
     (php/=== (count coll) 0) true
@@ -750,8 +806,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns true if predicate is true for at least one element in collection, false otherwise.
 
   Example:
+    ```phel
     (some? even? [1 3 5 6 7])
-    # => true"
+    # => true
+    ```"
   [pred coll]
   (if (empty? coll)
     false
@@ -769,8 +827,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns the first truthy value of applying predicate to elements, or nil if none found.
 
   Example:
+    ```phel
     (some #(when (> % 10) %) [5 15 8])
-    # => 15"
+    # => 15
+    ```"
   [pred coll]
   (if (empty? coll)
     nil
@@ -783,8 +843,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Checks if value is exactly true (not just truthy).
 
   Example:
+    ```phel
     (true? 1)
-    # => false"
+    # => false
+    ```"
   [x]
   (id x true))
 
@@ -797,8 +859,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Checks if value is exactly false (not just falsy).
 
   Example:
+    ```phel
     (false? nil)
-    # => false"
+    # => false
+    ```"
   [x]
   (id x false))
 
@@ -806,8 +870,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns true if value is nil, false otherwise.
 
   Example:
+    ```phel
     (nil? (get {:a 1} :b))
-    # => true"
+    # => true
+    ```"
   [x]
   (id x nil))
 
@@ -821,10 +887,12 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns true if key is present in collection (checks keys/indices, not values).
 
   Example:
+    ```phel
     (contains? [10 20 30] 1)
     # => true
     (contains? \"hello\" 0)
-    # => true"
+    # => true
+    ```"
   [coll key]
   (cond
     (php/instanceof coll ContainsInterface) (php/-> coll (contains key))
@@ -985,6 +1053,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   enabling sequence operations like map, filter, and frequencies.
 
   Examples:
+    ```phel
     (seq \"hello\")
     # => [\"h\" \"e\" \"l\" \"l\" \"o\"]
 
@@ -996,6 +1065,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
     (seq nil)
     # => nil
+    ```
 
   See also: chars, count"
   [coll]
@@ -1032,11 +1102,13 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   Indexed sequences include lists, vectors, and indexed PHP arrays.
 
   Example:
+    ```phel
     (indexed? [1 2 3])
     # => true
 
     (indexed? {:a 1})
-    # => false"
+    # => false
+    ```"
   [x]
   (let [t (type x)]
     (or
@@ -1050,11 +1122,13 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   Associative data structures include hash maps, structs, and associative PHP arrays.
 
   Example:
+    ```phel
     (associative? {:a 1})
     # => true
 
     (associative? [1 2 3])
-    # => false"
+    # => false
+    ```"
   [x]
   (let [t (type x)]
     (or
@@ -1075,8 +1149,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns the last element of a sequence.
 
   Example:
+    ```phel
     (peek [1 2 3])
-    # => 3"
+    # => 3
+    ```"
   [coll]
   (php/aget coll (php/- (count coll) 1)))
 
@@ -1102,8 +1178,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Removes up to `n` elements from array `coll` starting at index `offset`.
 
   Example:
+    ```phel
     (remove my-array 1 2)
-    # Removes 2 elements starting at index 1"
+    # Removes 2 elements starting at index 1
+    ```"
   [^:reference coll offset & [n]]
   (cond
     (php-array? coll) (if n (php/array_splice coll offset n) (php/array_splice coll offset))
@@ -1114,8 +1192,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Gets the value at key in a collection. Returns default if not found.
 
   Example:
+    ```phel
     (get {:a 1} :a)
-    # => 1"
+    # => 1
+    ```"
   [ds k & [opt]]
   (cond
     (or (set? ds)
@@ -1147,8 +1227,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Associates a value with a key in a collection.
 
   Example:
+    ```phel
     (assoc {:a 1} :b 2)
-    # => {:a 1 :b 2}"
+    # => {:a 1 :b 2}
+    ```"
   [ds key value]
   (cond
     (php-array? ds)
@@ -1177,8 +1259,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Dissociates `key` from the datastructure `ds`. Returns `ds` without `key`.
 
   Example:
+    ```phel
     (dissoc {:a 1 :b 2} :b)
-    # => {:a 1}"
+    # => {:a 1}
+    ```"
   [ds key]
   (cond
     (php-array? ds)
@@ -1213,10 +1297,12 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   Variables provide mutable state that can be updated with `set!` and `swap!`.
 
   Example:
+    ```phel
     (def counter (var 0))
     (swap! counter inc)
     (deref counter)
     # => 1
+    ```
 
   See also: set!, deref, swap!"
   [value]
@@ -1231,10 +1317,12 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Sets a new value to the given variable.
 
   Example:
+    ```phel
     (def x (var 10))
     (set! x 20)
     (deref x)
     # => 20
+    ```
 
   See also: var, deref, swap!"
   [variable value]
@@ -1244,9 +1332,11 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns the current value inside the variable.
 
   Example:
+    ```phel
     (def x (var 42))
     (deref x)
     # => 42
+    ```
 
   See also: var, set!, swap!"
   [variable]
@@ -1258,11 +1348,13 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   Returns the new value after the swap.
 
   Example:
+    ```phel
     (def counter (var 0))
     (swap! counter + 10)
     # => 10
     (swap! counter * 2)
     # => 20
+    ```
 
   See also: var, set!, deref"
   [variable f & args]
@@ -1288,8 +1380,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Creates a lazy sequence of numbers from start to end (exclusive).
 
   Example:
+    ```phel
     (range 5)
-    # => (0 1 2 3 4)"
+    # => (0 1 2 3 4)
+    ```"
   [a & rest]
   (case (count rest)
     0 (lazy-seq-from-generator (php/:: Seq (range 0 a 1)))
@@ -1371,6 +1465,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
      is bound to `initial-value`.
 
   Examples:
+    ```phel
     (for [x :in [1 2 3]] (* x 2))
     # => [2 4 6]
 
@@ -1378,7 +1473,8 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     # => [\"H\" \"E\" \"L\" \"L\" \"O\"]
 
     (for [x :range [0 5] :when (even? x)] x)
-    # => [0 2 4]"
+    # => [0 2 4]
+    ```"
   [head & body]
   (let [res-sym (gensym "res__")
         acc-sym (gensym "acc__")
@@ -1419,6 +1515,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   stopping when the shortest collection is exhausted.
 
   Examples:
+    ```phel
     (map inc [1 2 3])
     # => (2 3 4)
 
@@ -1433,6 +1530,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
     (map list [1 2] [3 4] [5 6])
     # => ((1 3 5) (2 4 6))
+    ```
 
   See also: filter, reduce, map-indexed, mapcat"
   [f & colls]
@@ -1454,8 +1552,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Applies function to each element with its index, returning a lazy sequence.
 
   Example:
+    ```phel
     (map-indexed (fn [i x] [i x]) [\"a\" \"b\" \"c\"])
-    # => ([0 \"a\"] [1 \"b\"] [2 \"c\"])"
+    # => ([0 \"a\"] [1 \"b\"] [2 \"c\"])
+    ```"
   [f coll]
   (let [result (for [[k v] :pairs coll] (f k v))]
     (with-meta coll result)))
@@ -1464,8 +1564,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Applies function to collections and concatenates the results.
 
   Example:
+    ```phel
     (mapcat reverse [[1 2] [3 4]])
-    # => (2 1 4 3)"
+    # => (2 1 4 3)
+    ```"
   [f & colls]
   (let [result (apply concat [] (apply map f colls))]
     (if (empty? colls)
@@ -1476,8 +1578,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Reduces collection to a single value by repeatedly applying function to accumulator and elements.
 
   Example:
+    ```phel
     (reduce + [1 2 3 4])
-    # => 10"
+    # => 10
+    ```"
   [f & args]
   (case (count args)
     1 (let [coll (first args)]
@@ -1497,11 +1601,13 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   Supports persistent and transient collections.
 
   Examples:
+    ```phel
     (into [] '(1 2 3))
     # => [1 2 3]
 
     (into {:a 1} {:b 2 :c 3})
     # => {:a 1 :b 2 :c 3}
+    ```
 
   See also: conj, concat"
   [to & rest]
@@ -1603,11 +1709,13 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     "Returns a new collection with values added. Appends to vectors/sets, prepends to lists.
 
     Examples:
+      ```phel
       (conj [1 2] 3)
       # => [1 2 3]
 
       (conj {:a 1} [:b 2])
-      # => {:a 1 :b 2}"
+      # => {:a 1 :b 2}
+      ```"
   ([] [])
   ([coll] coll)
   ([coll value]
@@ -1619,8 +1727,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Extracts a slice of `coll` starting at `offset` with optional `length`.
 
   Example:
+    ```phel
     (slice [1 2 3 4 5] 1 3)
-    # => [2 3 4]"
+    # => [2 3 4]
+    ```"
   [coll & [offset & [length]]]
   (cond
     (php-array? coll) (php/array_slice coll offset length)
@@ -1633,11 +1743,13 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   Returns `opt` (default nil) if the path doesn't exist.
 
   Example:
+    ```phel
     (get-in {:a {:b {:c 42}}} [:a :b :c])
     # => 42
 
     (get-in {:a 1} [:b :c] :not-found)
     # => :not-found
+    ```
 
   See also: assoc-in, update-in"
   [ds ks & [opt]]
@@ -1650,11 +1762,13 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   Creates intermediate maps if they don't exist.
 
   Example:
+    ```phel
     (assoc-in {:a {:b 1}} [:a :c] 2)
     # => {:a {:b 1 :c 2}}
 
     (assoc-in {} [:a :b :c] 42)
     # => {:a {:b {:c 42}}}
+    ```
 
   See also: get-in, update-in, dissoc-in"
   [ds [k & ks] v]
@@ -1675,11 +1789,13 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Updates a value in a datastructure by applying `f` to the current value.
 
   Example:
+    ```phel
     (update {:count 5} :count inc)
     # => {:count 6}
 
     (update [1 2 3] 1 * 10)
     # => [1 20 3]
+    ```
 
   See also: update-in, assoc"
   [ds k f & args]
@@ -1689,11 +1805,13 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Updates a value in a nested data structure by applying `f` to the value at path.
 
   Example:
+    ```phel
     (update-in {:a {:b 5}} [:a :b] inc)
     # => {:a {:b 6}}
 
     (update-in {:user {:age 30}} [:user :age] + 5)
     # => {:user {:age 35}}
+    ```
 
   See also: get-in, assoc-in, update"
   [ds [k & ks] f & args]
@@ -1706,8 +1824,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Dissociates a value from a nested data structure at the given path.
 
   Example:
+    ```phel
     (dissoc-in {:a {:b 1 :c 2}} [:a :b])
     # => {:a {:c 2}}
+    ```
 
   See also: dissoc, assoc-in, get-in"
   [ds [k & ks]]
@@ -1731,8 +1851,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Drops the first `n` elements of `coll`. Returns a lazy sequence.
 
   Example:
+    ```phel
     (drop 2 [1 2 3 4 5])
     # => (3 4 5)
+    ```
 
   See also: take, drop-last"
   [n coll]
@@ -1748,8 +1870,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Drops the last `n` elements of `coll`.
 
   Example:
+    ```phel
     (drop-last 2 [1 2 3 4 5])
     # => [1 2 3]
+    ```
 
   See also: drop, butlast"
   [n coll]
@@ -1761,8 +1885,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns the last element of `coll` or nil if `coll` is empty or nil.
 
   Example:
+    ```phel
     (last [1 2 3])
     # => 3
+    ```
 
   See also: first, peek, butlast"
   [coll]
@@ -1774,8 +1900,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns all but the last item in `coll`.
 
   Example:
+    ```phel
     (butlast [1 2 3 4])
     # => [1 2 3]
+    ```
 
   See also: last, drop-last"
   [coll]
@@ -1785,8 +1913,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Drops all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence.
 
   Example:
+    ```phel
     (drop-while #(< % 5) [1 2 3 4 5 6 3 2 1])
     # => (5 6 3 2 1)
+    ```
 
   See also: take-while, drop"
   [pred coll]
@@ -1814,8 +1944,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Takes the last `n` elements of `coll`.
 
   Example:
+    ```phel
     (take-last 3 [1 2 3 4 5])
     # => [3 4 5]
+    ```
 
   See also: take, drop-last"
   [n coll]
@@ -1825,8 +1957,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Takes all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence.
 
   Example:
+    ```phel
     (take-while #(< % 5) [1 2 3 4 5 6 3 2 1])
     # => (1 2 3 4)
+    ```
 
   See also: drop-while, take"
   [pred coll]
@@ -1839,8 +1973,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns every nth item in `coll`. Returns a lazy sequence.
 
   Example:
+    ```phel
     (take-nth 2 [0 1 2 3 4 5 6 7 8])
     # => (0 2 4 6 8)
+    ```
 
   See also: take, filter"
   [n coll]
@@ -1855,8 +1991,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a lazy sequence of elements where predicate returns true.
 
   Example:
+    ```phel
     (filter even? [1 2 3 4 5 6])
-    # => (2 4 6)"
+    # => (2 4 6)
+    ```"
   [pred coll]
   (let [result (lazy-seq-from-generator (php/:: Seq (filter pred coll)))]
     (if (nil? result)
@@ -1867,8 +2005,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a lazy sequence of non-nil results of applying function to elements.
 
   Example:
+    ```phel
     (keep #(when (even? %) (* % %)) [1 2 3 4 5])
-    # => (4 16)"
+    # => (4 16)
+    ```"
   [pred coll]
   (if (nil? coll)
     []
@@ -1879,8 +2019,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a lazy sequence of non-nil results of `(pred i x)`.
 
   Example:
+    ```phel
     (keep-indexed #(when (even? %1) %2) [\"a\" \"b\" \"c\" \"d\"])
     # => (\"a\" \"c\")
+    ```
 
   See also: keep, map-indexed"
   [pred coll]
@@ -1893,8 +2035,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns the first item in `coll` where `(pred item)` evaluates to true.
 
   Example:
+    ```phel
     (find #(> % 5) [1 2 3 6 7 8])
     # => 6
+    ```
 
   See also: find-index, filter, some?"
   [pred coll]
@@ -1909,8 +2053,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns the index of the first item in `coll` where `(pred item)` evaluates to true.
 
   Example:
+    ```phel
     (find-index #(> % 5) [1 2 3 6 7 8])
     # => 3
+    ```
 
   See also: find, filter"
   [pred coll]
@@ -1926,8 +2072,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a lazy sequence with duplicated values removed in `coll`.
 
   Example:
+    ```phel
     (distinct [1 2 1 3 2 4 3])
     # => (1 2 3 4)
+    ```
 
   See also: frequencies, set"
   [coll]
@@ -1941,8 +2089,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Reverses the order of the elements in the given sequence.
 
   Example:
+    ```phel
     (reverse [1 2 3 4])
-    # => [4 3 2 1]"
+    # => [4 3 2 1]
+    ```"
   [coll]
   (let [result
         (for [i :range [(php/- (count coll) 1) -1 -1]
@@ -1954,8 +2104,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a vector with the first items of each col, then the second items, etc.
 
   Example:
+    ```phel
     (interleave [1 2 3] [:a :b :c])
     # => [1 :a 2 :b 3 :c]
+    ```
 
   See also: interpose"
   [& colls]
@@ -1975,8 +2127,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a vector of elements separated by `sep`.
 
   Example:
+    ```phel
     (interpose :x [1 2 3 4])
     # => [1 :x 2 :x 3 :x 4]
+    ```
 
   See also: interleave"
   [sep coll]
@@ -1995,11 +2149,13 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   Works with vectors, lists, sets, and strings.
 
   Examples:
+    ```phel
     (frequencies [:a :b :a :c :b :a])
     # => {:a 3 :b 2 :c 1}
 
     (frequencies \"hello\")
-    # => {\"h\" 1 \"e\" 1 \"l\" 2 \"o\" 1}"
+    # => {\"h\" 1 \"e\" 1 \"l\" 2 \"o\" 1}
+    ```"
   [coll]
   (let [result (for [x :in coll
                      :reduce [res {}]]
@@ -2011,8 +2167,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a sequence of all keys in a map.
 
   Example:
+    ```phel
     (keys {:a 1 :b 2})
-    # => (:a :b)"
+    # => (:a :b)
+    ```"
   [coll]
   (let [result (for [k :keys coll] k)]
     (with-meta coll result)))
@@ -2021,8 +2179,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a sequence of all values in a map.
 
   Example:
+    ```phel
     (values {:a 1 :b 2})
-    # => (1 2)"
+    # => (1 2)
+    ```"
   [coll]
   (let [result (for [x :in coll] x)]
     (with-meta coll result)))
@@ -2031,8 +2191,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Gets the pairs of an associative data structure.
 
   Example:
+    ```phel
     (pairs {:a 1 :b 2})
     # => ([:a 1] [:b 2])
+    ```
 
   See also: keys, values, kvs"
   [coll]
@@ -2043,8 +2205,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a vector of key-value pairs like `[k1 v1 k2 v2 k3 v3 ...]`.
 
   Example:
+    ```phel
     (kvs {:a 1 :b 2})
     # => [:a 1 :b 2]
+    ```
 
   See also: pairs, keys, values"
   [coll]
@@ -2060,8 +2224,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Creates a PHP Array from a sequential data structure.
 
   Example:
+    ```phel
     (to-php-array [1 2 3])
     # => (PHP array [1, 2, 3])
+    ```
 
   See also: php-array-to-map, phel->php"
   [coll]
@@ -2071,8 +2237,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Converts a PHP Array to a Phel map.
 
   Example:
+    ```phel
     (php-array-to-map (php-associative-array \"a\" 1 \"b\" 2))
     # => {\"a\" 1 \"b\" 2}
+    ```
 
   See also: to-php-array, php->phel"
   [arr]
@@ -2086,8 +2254,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Recursively converts a Phel data structure to a PHP array.
 
   Example:
+    ```phel
     (phel->php {:a [1 2 3] :b {:c 4}})
     # => (PHP array [\"a\" => [1, 2, 3], \"b\" => [\"c\" => 4]])
+    ```
 
   See also: php->phel"
   [x]
@@ -2124,8 +2294,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   Indexed PHP arrays become vectors, associative PHP arrays become maps.
 
   Example:
+    ```phel
     (php->phel (php-associative-array \"a\" 1 \"b\" 2))
     # => {\"a\" 1 \"b\" 2}
+    ```
 
   See also: phel->php"
   [x]
@@ -2148,8 +2320,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns true if the value is present in the given collection, otherwise returns false.
 
   Example:
+    ```phel
     (contains-value? {:a 1 :b 2} 2)
     # => true
+    ```
 
   See also: contains?, some?"
   [coll val]
@@ -2159,8 +2333,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a sorted vector. If no comparator is supplied compare is used.
 
   Example:
+    ```phel
     (sort [3 1 4 1 5 9 2 6])
     # => [1 1 2 3 4 5 6 9]
+    ```
 
   See also: sort-by, compare"
   [coll & [comp]]
@@ -2174,8 +2350,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   If no comparator is supplied compare is used.
 
   Example:
+    ```phel
     (sort-by count [\"aaa\" \"c\" \"bb\"])
     # => [\"c\" \"bb\" \"aaa\"]
+    ```
 
   See also: sort, compare"
   [keyfn coll & [comp]]
@@ -2188,8 +2366,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a random permutation of coll.
 
   Example:
+    ```phel
     (shuffle [1 2 3 4 5])
-    # => [3 1 5 2 4] (random order)"
+    # => [3 1 5 2 4] (random order)
+    ```"
   [coll]
   (let [php-array (to-php-array coll)]
     (php/shuffle php-array)
@@ -2201,11 +2381,13 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   With one argument returns an infinite lazy sequence of x.
 
   Examples:
+    ```phel
     (repeat 3 :a)
     # => [:a :a :a]
 
     (take 5 (repeat :x))
     # => (:x :x :x :x :x)
+    ```
 
   See also: repeatedly, cycle"
   [a & rest]
@@ -2220,11 +2402,13 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   With one argument returns an infinite lazy sequence of calls to f.
 
   Examples:
+    ```phel
     (repeatedly 3 rand)
     # => [0.234 0.892 0.456] (random values)
 
     (take 3 (repeatedly #(rand-int 10)))
     # => (5 2 8) (random values)
+    ```
 
   See also: repeat, iterate"
   [a & rest]
@@ -2239,9 +2423,11 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Creates a lazy sequence that evaluates the body only when accessed.
 
   Example:
+    ```phel
     (defn my-range [n]
       (when (> n 0)
-        (lazy-seq (cons n (my-range (dec n))))))"
+        (lazy-seq (cons n (my-range (dec n))))))
+    ```"
   [& body]
   `(php/new \Phel\Lang\Collections\LazySeq\LazySeq
             (php/new \Phel\Lang\Hasher)
@@ -2252,8 +2438,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Concatenates collections into a lazy sequence (expands to concat).
 
   Example:
+    ```phel
     (lazy-cat [1 2] [3 4])
-    # => (1 2 3 4)"
+    # => (1 2 3 4)
+    ```"
   [& colls]
   (apply list 'concat colls))
 
@@ -2261,8 +2449,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns an infinite lazy sequence of x, (f x), (f (f x)), and so on.
 
   Example:
+    ```phel
     (take 5 (iterate inc 0))
     # => (0 1 2 3 4)
+    ```
 
   See also: repeatedly, cycle"
   [f x]
@@ -2272,8 +2462,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns an infinite lazy sequence that cycles through the elements of collection.
 
   Example:
+    ```phel
     (take 7 (cycle [1 2 3]))
     # => (1 2 3 1 2 3 1)
+    ```
 
   See also: iterate, repeat"
   [coll]
@@ -2285,8 +2477,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Concatenates multiple collections into a lazy sequence.
 
   Example:
+    ```phel
     (concat [1 2] [3 4])
-    # => (1 2 3 4)"
+    # => (1 2 3 4)
+    ```"
   (fn [& colls]
     (if (php/=== nil colls)
       '()
@@ -2305,7 +2499,11 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   All resulting collections are concatenated into a single lazy sequence.
   Works with infinite sequences.
 
-  Example: (mapcat reverse [[1 2] [3 4]]) ; => (2 1 4 3)"
+  Example:
+    ```phel
+    (mapcat reverse [[1 2] [3 4]])
+    # => (2 1 4 3)
+    ```"
   (fn [f coll]
     (if (php/=== nil coll)
       '()
@@ -2321,7 +2519,11 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   Inserts `sep` between each element of the collection.
   Works with infinite sequences.
 
-  Example: (interpose 0 [1 2 3]) ; => (1 0 2 0 3)"
+  Example:
+    ```phel
+    (interpose 0 [1 2 3])
+    # => (1 0 2 0 3)
+    ```"
   (fn [sep coll]
     (if (php/=== nil coll)
       '()
@@ -2338,7 +2540,11 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   the first argument is the index (0-based) and the second is the element itself.
   Works with infinite sequences.
 
-  Example: (map-indexed vector [:a :b :c]) ; => ([0 :a] [1 :b] [2 :c])"
+  Example:
+    ```phel
+    (map-indexed vector [:a :b :c])
+    # => ([0 :a] [1 :b] [2 :c])
+    ```"
   (fn [f coll]
     (if (php/=== nil coll)
       '()
@@ -2356,7 +2562,11 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   Pads with nil when collections have different lengths.
   Works with infinite sequences.
 
-  Example: (interleave [1 2 3] [:a :b :c]) ; => (1 :a 2 :b 3 :c)"
+  Example:
+    ```phel
+    (interleave [1 2 3] [:a :b :c])
+    # => (1 :a 2 :b 3 :c)
+    ```"
   (fn [& colls]
     (if (php/=== nil colls)
       '()
@@ -2372,8 +2582,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Forces realization of a lazy sequence and returns it as a vector.
 
   Example:
+    ```phel
     (doall (map println [1 2 3]))
-    # => [nil nil nil]"
+    # => [nil nil nil]
+    ```"
   [coll]
   (if (php/instanceof coll LazySeqInterface)
     (let [arr (php/-> coll (toArray))]
@@ -2386,8 +2598,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Forces realization of a lazy sequence for side effects, returns nil.
 
   Example:
+    ```phel
     (dorun (map println [1 2 3]))
-    # => nil"
+    # => nil
+    ```"
   [coll]
   (if (php/instanceof coll LazySeqInterface)
     (do
@@ -2399,8 +2613,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns true if a lazy sequence has been realized, false otherwise.
 
   Example:
+    ```phel
     (realized? (take 5 (iterate inc 1)))
-    # => false"
+    # => false
+    ```"
   [coll]
   (if (php/instanceof coll LazySeqInterface)
     (php/-> coll (isRealized))
@@ -2410,8 +2626,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a map of the elements of coll keyed by the result of `f` on each element.
 
   Example:
+    ```phel
     (group-by count [\"a\" \"bb\" \"c\" \"ddd\" \"ee\"])
     # => {1 [\"a\" \"c\"] 2 [\"bb\" \"ee\"] 3 [\"ddd\"]}
+    ```
 
   See also: partition-by, frequencies"
   [f coll]
@@ -2427,8 +2645,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Creates a map from two sequential data structures. Returns a new map.
 
   Example:
+    ```phel
     (zipcoll [:a :b :c] [1 2 3])
     # => {:a 1 :b 2 :c 3}
+    ```
 
   See also: zipmap, interleave"
   [a b]
@@ -2440,8 +2660,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   Stops when the shorter of `keys` or `vals` is exhausted.
 
   Example:
+    ```phel
     (zipmap [:a :b :c] [1 2 3])
     # => {:a 1 :b 2 :c 3}
+    ```
 
   See also: zipcoll"
   [keys vals]
@@ -2458,8 +2680,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   If a key appears in more than one collection, later values replace previous ones.
 
   Example:
+    ```phel
     (merge {:a 1 :b 2} {:b 3 :c 4})
-    # => {:a 1 :b 3 :c 4}"
+    # => {:a 1 :b 3 :c 4}
+    ```"
   [& maps]
   (for [map :in maps
         [k v] :pairs map
@@ -2470,8 +2694,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a new map including key value pairs from `m` selected with keys `ks`.
 
   Example:
+    ```phel
     (select-keys {:a 1 :b 2 :c 3} [:a :c])
     # => {:a 1 :c 3}
+    ```
 
   See also: dissoc"
   [m ks]
@@ -2487,8 +2713,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   If map has duplicated values, some keys will be ignored.
 
   Example:
+    ```phel
     (invert {:a 1 :b 2 :c 3})
-    # => {1 :a 2 :b 3 :c}"
+    # => {1 :a 2 :b 3 :c}
+    ```"
   [map]
   (for [[k v] :pairs map
         :reduce [res {}]]
@@ -2498,8 +2726,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a vector of `[(take n coll) (drop n coll)]`.
 
   Example:
+    ```phel
     (split-at 2 [1 2 3 4 5])
     # => [[1 2] [3 4 5]]
+    ```
 
   See also: split-with, take, drop"
   [n coll]
@@ -2509,8 +2739,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a vector of `[(take-while pred coll) (drop-while pred coll)]`.
 
   Example:
+    ```phel
     (split-with #(< % 4) [1 2 3 4 5 6])
     # => [[1 2 3] [4 5 6]]
+    ```
 
   See also: split-at, take-while, drop-while"
   [f coll]
@@ -2520,8 +2752,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a lazy sequence of partitions. Applies `f` to each value in `coll`, splitting them each time the return value changes.
 
   Example:
+    ```phel
     (partition-by #(< % 3) [1 2 3 4 5 1 2])
     # => [[1 2] [3 4 5] [1 2]]
+    ```
 
   See also: group-by, partition"
   [f coll]
@@ -2534,8 +2768,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a lazy sequence with consecutive duplicate values removed in `coll`.
 
   Example:
+    ```phel
     (dedupe [1 1 2 2 2 3 1 1])
     # => (1 2 3 1)
+    ```
 
   See also: distinct"
   [coll]
@@ -2549,11 +2785,13 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   If no values are specified, removes nil values by default.
 
   Example:
+    ```phel
     (compact [1 nil 2 nil 3])
     # => (1 2 3)
 
     (compact [1 0 2 false 3] 0 false)
-    # => (1 2 3)"
+    # => (1 2 3)
+    ```"
   [coll & values]
   (cond
     (nil? coll) []
@@ -2567,8 +2805,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Partitions collection into chunks of size n, dropping incomplete final partition.
 
   Example:
+    ```phel
     (partition 3 [1 2 3 4 5 6 7])
-    # => ([1 2 3] [4 5 6])"
+    # => ([1 2 3] [4 5 6])
+    ```"
   [n coll]
   (let [result (lazy-seq-from-generator
                 (php/call_user_func_array
@@ -2582,8 +2822,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Partitions collection into chunks of size n, including incomplete final partition.
 
   Example:
+    ```phel
     (partition-all 3 [1 2 3 4 5 6 7])
-    # => ([1 2 3] [4 5 6] [7])"
+    # => ([1 2 3] [4 5 6] [7])
+    ```"
   [n coll]
   (let [result (lazy-seq-from-generator
                 (php/call_user_func_array
@@ -3107,8 +3349,10 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   "Reads entire file or URL into a string.
 
   Example:
+    ```phel
     (slurp \"file.txt\")
-    # => \"file contents\""
+    # => \"file contents\"
+    ```"
   [path & [opts]]
   (let [is-url? (php/preg_match "/^(https?|ftp):\/\//i" path)]
     # Validate for non-URLs
@@ -3153,8 +3397,10 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   "Returns a lazy sequence of lines from a file.
 
   Example:
+    ```phel
     (take 10 (line-seq \"large-file.txt\"))
-    # => [\"line1\" \"line2\" ...]"
+    # => [\"line1\" \"line2\" ...]
+    ```"
   [filename]
   (let [result (lazy-seq-from-generator
                 (php/call_user_func_array
@@ -3168,8 +3414,10 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   "Returns a lazy sequence of all files and directories in a directory tree.
 
   Example:
+    ```phel
     (filter |(php/str_ends_with $ \".phel\") (file-seq \"src/\"))
-    # => [\"src/file1.phel\" \"src/file2.phel\" ...]"
+    # => [\"src/file1.phel\" \"src/file2.phel\" ...]
+    ```"
   [path]
   (let [result (lazy-seq-from-generator
                 (php/call_user_func_array
@@ -3183,8 +3431,10 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   "Returns a lazy sequence of byte chunks from a file.
 
   Example:
+    ```phel
     (take 5 (read-file-lazy \"large-file.bin\" 1024))
-    # => [\"chunk1\" \"chunk2\" ...]"
+    # => [\"chunk1\" \"chunk2\" ...]
+    ```"
   ([filename]
    (read-file-lazy filename 8192))
   ([filename chunk-size]
@@ -3200,8 +3450,10 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   "Returns a lazy sequence of rows from a CSV file.
 
   Example:
+    ```phel
     (take 10 (csv-seq \"data.csv\"))
-    # => [[\"col1\" \"col2\"] [\"val1\" \"val2\"] ...]"
+    # => [[\"col1\" \"col2\"] [\"val1\" \"val2\"] ...]
+    ```"
   ([filename]
    (csv-seq filename {}))
   ([filename options]
