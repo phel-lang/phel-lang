@@ -12,10 +12,9 @@
   "Returns a vector of characters from string s.
 
   This is a convenience function for converting strings to character sequences.
-  Properly handles multibyte UTF-8 characters.
-
-  See also: seq, split"
-  {:example "(chars \"hello\") # => [\"h\" \"e\" \"l\" \"l\" \"o\"]"}
+  Properly handles multibyte UTF-8 characters."
+  {:example "(chars \"hello\") # => [\"h\" \"e\" \"l\" \"l\" \"o\"]"
+   :see-also '[seq split]}
   [s]
   (apply vector (php/mb_str_split s)))
 
