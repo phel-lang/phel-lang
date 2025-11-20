@@ -14,7 +14,7 @@
   This is a convenience function for converting strings to character sequences.
   Properly handles multibyte UTF-8 characters."
   {:example "(chars \"hello\") # => [\"h\" \"e\" \"l\" \"l\" \"o\"]"
-   :see-also '[seq split]}
+   :see-also '[seq]}
   [s]
   (apply vector (php/mb_str_split s)))
 
