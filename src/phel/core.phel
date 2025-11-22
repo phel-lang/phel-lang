@@ -664,7 +664,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn some
   "Returns the first truthy value of applying predicate to elements, or nil if none found."
-  {:example "(some #(when (> % 10) %) [5 15 8]) # => 15"}
+  {:example "(some |(when (> % 10) %) [5 15 8]) # => 15"}
   [pred coll]
   (if (empty? coll)
     nil
@@ -1498,7 +1498,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn drop-while
   "Drops all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence."
-  {:example "(drop-while #(< % 5) [1 2 3 4 5 6 3 2 1]) # => (5 6 3 2 1)"
+  {:example "(drop-while |(< % 5) [1 2 3 4 5 6 3 2 1]) # => (5 6 3 2 1)"
    :see-also ["take-while" "drop"]}
   [pred coll]
   (if (nil? coll)
@@ -1530,7 +1530,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn take-while
   "Takes all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence."
-  {:example "(take-while #(< % 5) [1 2 3 4 5 6 3 2 1]) # => (1 2 3 4)"
+  {:example "(take-while |(< % 5) [1 2 3 4 5 6 3 2 1]) # => (1 2 3 4)"
    :see-also ["drop-while" "take"]}
   [pred coll]
   (if (nil? coll)
@@ -1561,7 +1561,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn keep
   "Returns a lazy sequence of non-nil results of applying function to elements."
-  {:example "(keep #(when (even? %) (* % %)) [1 2 3 4 5]) # => (4 16)"}
+  {:example "(keep |(when (even? %) (* % %)) [1 2 3 4 5]) # => (4 16)"}
   [pred coll]
   (if (nil? coll)
     []
@@ -1570,7 +1570,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn keep-indexed
   "Returns a lazy sequence of non-nil results of `(pred i x)`."
-  {:example "(keep-indexed #(when (even? %1) %2) [\"a\" \"b\" \"c\" \"d\"]) # => (\"a\" \"c\")"
+  {:example "(keep-indexed |(when (even? %1) %2) [\"a\" \"b\" \"c\" \"d\"]) # => (\"a\" \"c\")"
    :see-also ["keep" "map-indexed"]}
   [pred coll]
   (if (nil? coll)
@@ -1580,7 +1580,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn find
   "Returns the first item in `coll` where `(pred item)` evaluates to true."
-  {:example "(find #(> % 5) [1 2 3 6 7 8]) # => 6"
+  {:example "(find |(> % 5) [1 2 3 6 7 8]) # => 6"
    :see-also ["find-index" "filter" "some?"]}
   [pred coll]
   (loop [s coll]
@@ -1592,7 +1592,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn find-index
   "Returns the index of the first item in `coll` where `(pred item)` evaluates to true."
-  {:example "(find-index #(> % 5) [1 2 3 6 7 8]) # => 3"
+  {:example "(find-index |(> % 5) [1 2 3 6 7 8]) # => 3"
    :see-also ["find" "filter"]}
   [pred coll]
   (loop [s coll
@@ -2044,14 +2044,14 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn split-with
   "Returns a vector of `[(take-while pred coll) (drop-while pred coll)]`."
-  {:example "(split-with #(< % 4) [1 2 3 4 5 6]) # => [[1 2 3] [4 5 6]]"
+  {:example "(split-with |(< % 4) [1 2 3 4 5 6]) # => [[1 2 3] [4 5 6]]"
    :see-also ["split-at" "take-while" "drop-while"]}
   [f coll]
   [(take-while f coll) (drop-while f coll)])
 
 (defn partition-by
   "Returns a lazy sequence of partitions. Applies `f` to each value in `coll`, splitting them each time the return value changes."
-  {:example "(partition-by #(< % 3) [1 2 3 4 5 1 2]) # => [[1 2] [3 4 5] [1 2]]"
+  {:example "(partition-by |(< % 3) [1 2 3 4 5 1 2]) # => [[1 2] [3 4 5] [1 2]]"
    :see-also ["group-by" "partition"]}
   [f coll]
   (cond
