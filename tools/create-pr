@@ -1,0 +1,559 @@
+#!/bin/bash
+# src/check_os.sh
+set -o allexport
+
+# shellcheck disable=SC2034
+_OS="Unknown"
+
+if [[ "$(uname)" == "Linux" ]]; then
+  _OS="Linux"
+elif [[ "$(uname)" == "Darwin" ]]; then
+  _OS="OSX"
+elif [[ $(uname) == *"MINGW"* ]]; then
+  _OS="Windows"
+fi
+
+# src/console_header.sh
+set -o allexport
+
+function console_header::print_version() {
+  printf "%s\n" "$CREATE_PR_VERSION"
+}
+
+function console_header::print_help() {
+    cat <<EOF
+create-pr [arguments] [options]
+
+Arguments:
+  * GitHub: https://cli.github.com/manual/gh_pr_create
+  * GitLab: https://gitlab.com/gitlab-org/cli/-/tree/main/docs/source/mr
+
+Options:
+  --debug
+    Print all executed shell commands to the terminal
+
+  --dry-run
+    Display the used data without creating the PR
+
+  -e|--env <file-path>
+    Load a custom env file overriding the .env environment variables
+
+  -t|--title <PR title> <branch prefix>
+    Generate a branch name based on the PR title
+    <branch prefix> "feat" by default
+
+  -v|--version
+    Displays the current version
+
+  -h|--help
+    This message
+
+See source code: https://github.com/Chemaclass/create-pr
+EOF
+}
+
+# src/env_configuration.sh
+set -o allexport
+
+# shellcheck source=/dev/null
+[[ -f ".env" ]] && source .env set
+set +o allexport
+
+APP_CREATE_PR_ROOT_DIR=${APP_CREATE_PR_ROOT_DIR:-"$(git rev-parse --show-toplevel)"} \
+  || error_and_exit "This directory is not a git repository"
+PR_LINK_PREFIX_TEXT=${PR_LINK_PREFIX_TEXT:-""}
+PR_TICKET_LINK_PREFIX=${PR_TICKET_LINK_PREFIX:-""}
+PR_TEMPLATE_PATH=${PR_TEMPLATE_PATH:-".github/PULL_REQUEST_TEMPLATE.md"}
+PR_TEMPLATE="$APP_CREATE_PR_ROOT_DIR/$PR_TEMPLATE_PATH"
+PR_TITLE_TEMPLATE=${PR_TITLE_TEMPLATE:-"{{TICKET_KEY}}-{{TICKET_NUMBER}} {{PR_TITLE}}"}
+PR_TITLE_REMOVE_PREFIX=${PR_TITLE_REMOVE_PREFIX:-"be,fe"}
+PR_ASSIGNEE=${PR_ASSIGNEE:-${ASSIGNEE:-"@me"}}
+PR_REVIEWER=${PR_REVIEWER:-${REVIEWER:-""}}
+PR_RUN_AFTER_CREATION=${PR_RUN_AFTER_CREATION:-""}
+TARGET_BRANCH=${TARGET_BRANCH:-"main"}
+CURRENT_BRANCH=${CURRENT_BRANCH:-"$(git rev-parse --abbrev-ref HEAD 2>/dev/null)"} \
+  || error_and_exit "Failed to get the current branch name."
+
+REMOTE_URL=${REMOTE_URL:-"$(git config --get remote.origin.url)"}
+if [[ "$REMOTE_URL" == *"github.com"* ]]; then
+  PR_USING_CLIENT="github"
+elif [[ "$REMOTE_URL" == *"gitlab.com"* ]]; then
+  PR_USING_CLIENT="gitlab"
+else
+  echo "Unsupported $REMOTE_URL. Please submit a PR or an issue - so we can work on it."
+  exit
+fi
+
+export REMOTE_URL
+export PR_USING_CLIENT
+export PR_TITLE_TEMPLATE
+export PR_TITLE_REMOVE_PREFIX
+export PR_TEMPLATE
+export PR_ASSIGNEE
+export PR_REVIEWER
+export PR_RUN_AFTER_CREATION
+export TARGET_BRANCH
+export CURRENT_BRANCH
+
+# src/helpers.sh
+set -o allexport
+
+function helpers::generate_branch_name() {
+  local input="$1"
+  local prefix="${2:-feat}"
+
+  local lowercase
+  lowercase=$(echo "$input" | tr '[:upper:]' '[:lower:]')
+
+  local branch_name
+  branch_name=$(echo "$lowercase" | tr ' ' '-')
+
+  echo "${prefix}/${branch_name}"
+}
+
+# src/main.sh
+set -euo pipefail
+
+function main::create_pr() {
+  validate::target_branch_exists
+  validate::branch_has_commits
+  validate::current_branch_is_not_target
+
+  # Push the current branch
+  if ! git push -u origin "$CURRENT_BRANCH"; then
+      error_and_exit "Failed to push the current branch to the remote repository."\
+        "Please check your git remote settings."
+  fi
+
+  if [[ "$PR_USING_CLIENT" == "gitlab" ]]; then
+    main::create_pr_gitlab
+  else
+    main::create_pr_github
+  fi
+}
+
+function main::create_pr_gitlab() {
+  validate::glab_cli_is_installed
+
+  local glab_command=(
+    glab mr create
+      --title "$PR_TITLE"
+      --target-branch "$TARGET_BRANCH"
+      --source-branch "$CURRENT_BRANCH"
+      --assignee "$PR_ASSIGNEE"
+      --reviewer "$PR_REVIEWER"
+      --label "$PR_LABEL"
+      --description "$PR_BODY"
+  )
+
+  if [[ ${#EXTRA_ARGS[@]} -gt 0 ]]; then
+    glab_command+=("${EXTRA_ARGS[@]}")
+  fi
+
+  if ! "${glab_command[@]}"; then
+    error_and_exit "Failed to create the Merge Request." \
+      "Ensure you have the correct permissions and the repository is properly configured."
+  fi
+
+  main::run_after_creation_script
+}
+
+function main::create_pr_github() {
+  validate::gh_cli_is_installed
+
+  local gh_command=(
+    gh pr create
+      --title "$PR_TITLE"
+      --base "$TARGET_BRANCH"
+      --head "$CURRENT_BRANCH"
+      --assignee "$PR_ASSIGNEE"
+      --reviewer "$PR_REVIEWER"
+      --label "$PR_LABEL"
+      --body "$PR_BODY"
+  )
+
+  if [[ ${#EXTRA_ARGS[@]} -gt 0 ]]; then
+    gh_command+=("${EXTRA_ARGS[@]}")
+  fi
+
+  if ! "${gh_command[@]}"; then
+      error_and_exit "Failed to create the Pull Request." \
+        "Ensure you have the correct permissions and the repository is properly configured."
+  fi
+
+  main::run_after_creation_script
+}
+
+function main::run_after_creation_script() {
+  # Skip if PR_RUN_AFTER_CREATION is not set or empty
+  if [[ -z "${PR_RUN_AFTER_CREATION:-}" ]]; then
+    return 0
+  fi
+
+  echo "Running post-creation script..."
+
+  # Execute the command and capture exit status
+  local exit_code=0
+  eval "$PR_RUN_AFTER_CREATION" || exit_code=$?
+
+  # Report failure but don't fail the overall PR creation
+  if [[ $exit_code -ne 0 ]]; then
+    echo "Warning: Post-creation script exited with code $exit_code, but PR was created successfully." >&2
+    return 0
+  fi
+
+  echo "Post-creation script completed successfully."
+  return 0
+}
+
+# src/pr_body.sh
+set -o allexport
+
+_CURRENT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+# shellcheck disable=SC1091
+[ -f "$_CURRENT_DIR/pr_ticket.sh" ] && source "$_CURRENT_DIR/pr_ticket.sh"
+
+# shellcheck disable=SC2001
+function pr_body() {
+  local branch_name=$1
+  local pr_template=$2
+
+  if [ -z "$pr_template" ]; then
+    echo "PR_TEMPLATE is empty; therefore not a valid path."
+    return
+  fi
+
+  if [ ! -f "$pr_template" ]; then
+    echo "$pr_template is not a valid template path."
+    return
+  fi
+
+  local ticket_key
+  ticket_key=$(pr_ticket::key "$branch_name")
+  local ticket_number
+  ticket_number=$(pr_ticket::number "$branch_name")
+  local with_link=false
+  if [[ -n "${PR_TICKET_LINK_PREFIX:-}" && -n "${ticket_number}" ]]; then
+    with_link=true
+  fi
+
+  # {{TICKET_LINK}}
+  local ticket_link="Nope"
+  if [[ "$with_link" == true ]]; then
+    if [[ -z "$ticket_key" ]]; then
+      ticket_link="${PR_TICKET_LINK_PREFIX}${ticket_number}"
+    else
+      ticket_link="${PR_TICKET_LINK_PREFIX}${ticket_key}-${ticket_number}"
+    fi
+    ticket_link="${PR_LINK_PREFIX_TEXT}${ticket_link}"
+  fi
+
+  local result
+  result=$(perl -pe 's/<!--\s*{{\s*(.*?)\s*}}\s*-->/{{ $1 }}/g' "$pr_template")
+  result=$(echo "$result" | sed "s|{{[[:space:]]*TICKET_LINK[[:space:]]*}}|$ticket_link|g")
+
+  # {{BACKGROUND}}
+  local background_text="Provide some context to the reviewer before jumping in the code."
+  if [[ "$with_link" == true ]]; then
+    background_text="Details in the ticket."
+  fi
+  result=$(echo "$result" | sed "s|{{[[:space:]]*BACKGROUND[[:space:]]*}}|$background_text|g")
+
+  # Trim leading and trailing whitespace from result
+  result=$(echo "$result" | awk '{$1=$1};1')
+
+  echo "${result:-Description is currently empty}"
+}
+
+# src/pr_label.sh
+set -o allexport
+
+# Find the default label based on the branch prefix
+function pr_label() {
+  local branch_name=$1
+  local mapping=${2:-"feat|feature:enhancement;\
+  fix|bug|bugfix:bug;\
+  docs|documentation:documentation;\
+  default:enhancement"}
+  # Remove empty spaces due to indentation
+  mapping=${mapping// /}
+  # Extract the prefix (the part before the first slash or dash)
+  local prefix
+  prefix=$(echo "$branch_name" | sed -E 's@^([^/-]+).*@\1@')
+  # Default label
+  local default_label="enhancement"
+
+  # Loop through the mapping string to find a match
+  IFS=';' # Split mapping entries by semicolon
+  for entry in $mapping; do
+    # Split each entry into keys and value
+    IFS=':' read -r keys value <<< "$entry"
+
+    # Check if the prefix matches any of the keys
+    IFS='|' # Split keys by pipe symbol
+    for key in $keys; do
+      if [[ "$prefix" == "$key" ]]; then
+        echo "$value"
+        return
+      fi
+    done
+
+    # Set the default label if found
+    if [[ "$keys" == "default" ]]; then
+      default_label="$value"
+    fi
+  done
+
+  # Return the default label if no match is found
+  echo "$default_label"
+}
+
+# src/pr_ticket.sh
+set -o allexport
+
+# $1 = branch_name
+function pr_ticket::number() {
+  branch_name=$1
+
+  # Remove optional prefix and split the branch name by hyphens
+  stripped_branch=${branch_name#*/}
+  # shellcheck disable=SC2206
+  parts=(${stripped_branch//-/ })
+
+  # Check if the first or second part contains a number and print it; otherwise, print an empty string
+  if [[ ${parts[0]} =~ ^[0-9]+$ ]]; then
+    echo "${parts[0]}"
+  elif [[ ${parts[1]} =~ ^[0-9]+$ ]]; then
+    echo "${parts[1]}"
+  else
+    echo ""
+  fi
+}
+
+# $1 = branch_name
+function pr_ticket::key() {
+  branch_name=$1
+
+  # Check if the branch name contains a '/'
+  if [[ "$branch_name" == *"/"* ]]; then
+    # Extract the part after the first '/' and process it
+    branch_suffix="${branch_name#*/}"
+    # Try to extract the pattern "KEY-NUMBER" and stop after the first occurrence
+    ticket_key=$(echo "$branch_suffix" | grep -oE "[A-Za-z]+-[0-9]+" | head -n 1 | sed 's/-[0-9]*$//')
+
+    # If no ticket key is found, ensure there's no ticket-like pattern and use the prefix if it's uppercase
+    if [[ -z "$ticket_key" ]]; then
+      first_part=$(echo "$branch_name" | cut -d'/' -f2 | grep -oE "^[A-Z]+")
+      if [[ -n "$first_part" ]]; then
+        ticket_key="$first_part"
+      fi
+    fi
+  else
+    # For branch names without '/'
+    ticket_key=$(echo "$branch_name" | grep -oE "^[A-Za-z]+" | head -n 1)
+  fi
+
+  # If no ticket key is found, ensure there's no ticket-like pattern and return empty
+  if [[ -z "$ticket_key" ]]; then
+    if ! echo "$branch_name" | grep -qE "[A-Za-z]+-[0-9]+"; then
+      echo ""
+      return
+    fi
+  fi
+
+  echo "$ticket_key" | tr '[:lower:]' '[:upper:]'
+}
+
+# src/pr_title.sh
+set -o allexport
+
+_CURRENT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+# shellcheck disable=SC1091
+[ -f "$_CURRENT_DIR/pr_ticket.sh" ] && source "$_CURRENT_DIR/pr_ticket.sh"
+
+function pr_title() {
+  local branch_name="$1"
+  branch_name="${branch_name#*/}"
+  # Trim any Unicode characters from the branch name
+  branch_name=$(printf '%s' "$branch_name" | LC_ALL=C tr -cd "$(printf '\t\n\r') -~")
+  local ticket_key
+  ticket_key=$(pr_ticket::key "$branch_name")
+
+  local ticket_number
+  ticket_number=$(pr_ticket::number "$branch_name")
+
+  if [[ -z "$ticket_key" || -z "$ticket_number" ]]; then
+    pr_title::without_ticket "$branch_name"
+    return
+  fi
+
+  local title
+  title=$(echo "$branch_name" | cut -d'-' -f3- | tr '-' ' '| tr '_' ' ')
+  title="$(echo "${title:0:1}" | tr '[:lower:]' '[:upper:]')${title:1}"
+
+  # Normalize the template by removing spaces around placeholders
+  local normalized_template
+  normalized_template=$(echo "$PR_TITLE_TEMPLATE" | sed -E 's/\{\{[[:space:]]*([^[:space:]]+)[[:space:]]*\}\}/{{\1}}/g')
+
+  # Replace placeholders with actual values
+  local formatted
+  formatted="${normalized_template//\{\{TICKET_KEY\}\}/$ticket_key}"
+  formatted="${formatted//\{\{TICKET_NUMBER\}\}/$ticket_number}"
+
+  local new_title="$title"
+
+  if [[ -n "$PR_TITLE_REMOVE_PREFIX" ]]; then
+    # Split PR_TITLE_REMOVE_PREFIX into an array
+    IFS=',' read -ra prefixes <<< "$PR_TITLE_REMOVE_PREFIX"
+    # Loop through each prefix and remove it from the start if it matches
+    for prefix in "${prefixes[@]}"; do
+      # shellcheck disable=SC2001
+      new_title="$(echo "$new_title" | sed -e "s/^${prefix}//I")"
+    done
+
+    # Trim leading whitespace and capitalize the first letter
+    new_title=$(echo "$new_title" \
+      | sed 's/^ *//' \
+      | awk '{ print toupper(substr($0,1,1)) tolower(substr($0,2)) }')
+  fi
+
+  formatted="${formatted//\{\{PR_TITLE\}\}/$new_title}"
+
+  echo "$formatted"
+}
+
+function pr_title::without_ticket() {
+  input="$1"
+  # Remove any Unicode characters from the input
+  input=$(printf '%s' "$input" | LC_ALL=C tr -cd "$(printf '\t\n\r') -~")
+  # Remove leading digits followed by a hyphen (e.g., "27-")
+  input="${input#[0-9]*-}"
+
+  result=$(echo "$input" | awk '
+      {
+          gsub(/_/, " ", $0)  # Replace underscores with spaces
+          for (i = 1; i <= NF; i++) {
+              # Capitalize first letter and lowercase the rest
+              $i = toupper(substr($i, 1, 1)) tolower(substr($i, 2))
+          }
+          gsub(/-/, " ", $0)  # Replace hyphens with spaces
+          print
+      }' | sed 's/[[:space:]]*$//')
+
+  echo "$result"
+}
+
+# src/validate.sh
+set -o allexport
+
+GH_CLI_INSTALLATION_URL="https://cli.github.com/"
+GLAB_CLI_INSTALLATION_URL="https://gitlab.com/gitlab-org/cli/"
+
+function error_and_exit() {
+    echo "Error: $1" >&2
+    exit 1
+}
+
+function validate::target_branch_exists() {
+  if ! git show-ref --verify --quiet "refs/heads/$TARGET_BRANCH"; then
+    error_and_exit "Base branch '$TARGET_BRANCH' does not exist. Check the base branch name or create it."
+  fi
+}
+
+function validate::branch_has_commits() {
+  if [ "$(git rev-list --count "$CURRENT_BRANCH")" -eq 0 ]; then
+    error_and_exit "The current branch has no commits. Make sure the branch is not empty."
+  fi
+}
+
+function validate::current_branch_is_not_target() {
+  if [ "$CURRENT_BRANCH" = "$TARGET_BRANCH" ]; then
+    error_and_exit "You are on the same branch as target -> $CURRENT_BRANCH"
+  fi
+}
+
+function validate::gh_cli_is_installed() {
+  if ! command -v gh &> /dev/null; then
+    error_and_exit "gh CLI is not installed. Please install it from $GH_CLI_INSTALLATION_URL and try again."
+  fi
+}
+
+function validate::glab_cli_is_installed() {
+  if ! command -v glab &> /dev/null; then
+    error_and_exit "glab CLI is not installed. Please install it from $GLAB_CLI_INSTALLATION_URL and try again."
+  fi
+}
+
+#!/bin/bash
+set -euo pipefail
+
+# shellcheck disable=SC2034
+declare -r CREATE_PR_VERSION="0.10.0"
+
+CREATE_PR_ROOT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+export CREATE_PR_ROOT_DIR
+
+
+DRY_RUN=${DRY_RUN:-false}
+EXTRA_ARGS=()
+
+while [[ $# -gt 0 ]]; do
+  argument="$1"
+  case $argument in
+    --debug)
+      set -x
+      ;;
+    --dry-run)
+      DRY_RUN=true
+      ;;
+    -e|--env)
+      # shellcheck disable=SC1090
+      source "$2"
+      shift
+      ;;
+    -t|--title)
+      helpers::generate_branch_name "$2" "${3:-}"
+      trap '' EXIT && exit 0
+      ;;
+    -h|--help)
+      console_header::print_help
+      trap '' EXIT && exit 0
+      ;;
+    -v|--version)
+      console_header::print_version
+      trap '' EXIT && exit 0
+      ;;
+    *)
+      EXTRA_ARGS+=("$argument")
+  esac
+  shift
+done
+
+PR_LABEL=${PR_LABEL:-${LABEL:-$(pr_label "$CURRENT_BRANCH" "${PR_LABEL_MAPPING:-}")}}
+PR_TITLE=$(pr_title "$CURRENT_BRANCH")
+PR_BODY=$(pr_body "$CURRENT_BRANCH" "$PR_TEMPLATE")
+
+if [[ "$DRY_RUN" == true ]]; then
+  if [ ${#EXTRA_ARGS[@]} -gt 0 ]; then
+    printf "EXTRA_ARGS: %s\n" "${EXTRA_ARGS[@]}"
+  else
+    printf "EXTRA_ARGS: empty\n"
+  fi
+  printf "REMOTE_URL: %s\n" "$REMOTE_URL"
+  printf "TARGET_BRANCH: %s\n" "$TARGET_BRANCH"
+  printf "CURRENT_BRANCH: %s\n" "$CURRENT_BRANCH"
+  printf "PR_USING_CLIENT: %s\n" "$PR_USING_CLIENT"
+  printf "PR_TEMPLATE: %s\n" "$PR_TEMPLATE"
+  printf "PR_LABEL: %s\n" "$PR_LABEL"
+  printf "PR_TITLE: %s\n" "$PR_TITLE"
+  printf "PR_BODY:\n%s\n" "$PR_BODY"
+  exit 0
+fi
+
+export PR_LABEL
+export PR_TITLE
+export PR_BODY
+
+main::create_pr
+
+echo "Script finished successfully."

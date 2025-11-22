@@ -98,6 +98,7 @@
             "@psalm",
             "@phpstan",
             "@rectorrun"
-        ]
+        ],
+        "create-pr": "./tools/create-pr"
     }
 }

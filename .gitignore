@@ -15,6 +15,7 @@ build/workdir/
 
 !PhelGenerated/.gitkeep
 *.cache
+.env
 .php-cs-fixer.php
 .phel-repl-history
 phel-debug.log
