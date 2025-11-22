@@ -2,24 +2,13 @@
 
 ## Welcome!
 
-We look forward to your contributions! Here are some examples how you can contribute:
+We look forward to your contributions! Here's how you can contribute:
 
 * [Report a bug](https://github.com/phel-lang/phel-lang/issues/new?labels=bug&template=BUG.md)
 * [Propose a new feature](https://github.com/phel-lang/phel-lang/issues/new?labels=enhancement&template=FEATURE_REQUEST.md)
 * [Send a pull request](https://github.com/phel-lang/phel-lang/pulls)
 
-### Substantial changes
-
-Substantial changes are architecture decisions, documentation restructuring, breaking changes, etc.
-But not Bug Reports, Bug Fixes, Unit Tests, etc.
-
-#### How to contribute a substantial change
-
-In order to make a substantial change it is a good practice to discuss the idea before implementing it.
-
-- An Architecture Decision Record (ADR) or Request for Comments (RFC) can be proposed with an issue.
-- The issue is the place to discuss everything.
-- The result of the issue can be an ADR file (under the [adrs](../adrs) directory), but also just as CS Fixer rule to check then during CI.
+For substantial changes (architecture decisions, breaking changes, etc.), please open an issue first to discuss your proposal.
 
 ## We have a Code of Conduct
 
@@ -46,94 +35,66 @@ In your bug report, please provide the following:
 Please post code and output as text ([using proper markup](https://guides.github.com/features/mastering-markdown/)).
 Do not post screenshots of code or output.
 
-## Workflow for Pull Requests
-
-1. Fork the repository.
-2. Create your branch from `main` if you plan to implement new functionality or change existing code significantly;
-   create your branch from the oldest branch that is affected by the bug if you plan to fix a bug.
-3. Implement your change and add tests for it.
-4. Ensure the test suite passes.
-5. Ensure the code complies with our coding guidelines (see below).
-6. Send that pull request!
-
-Please make sure you have [set up your username and email address](https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup) for use with Git.
-Strings such as `silly nick name <root@localhost>` look really stupid in the commit history of a project.
-
-## Coding Guidelines
-
-This project comes with configuration files (located at `/psalm.xml` and `/phpstan.neon` in the repository) that you can use to perform static analysis (with a focus on type checking):
-
-```bash
-$ ./vendor/bin/psalm
-$ ./vendor/bin/phpstan
-```
-
-This project comes with PHP CS Fixer and Rector, with which you can use to (re)format your source code for compliance with this project's coding guidelines:
-
-```bash
-$ ./vendor/bin/php-cs-fixer fix
-$ ./vendor/bin/rector process
-```
-
-Please understand that we will not accept a pull request when its changes violate this project's coding guidelines.
-
-## Development
+## Quick Start
 
 ### Requirements
 
-Phel requires PHP 8.2 or higher and Composer.
+- PHP 8.2 or higher
+- Composer
 
-### Running Phel's test suites
+### Setup
 
-Phel has two test suites. The first test suite runs PHPUnit to test the compiler itself. The second test suite runs tests against Phel's core library.
+1. Fork and clone the repository
+2. Install dependencies: `composer install`
+3. (Optional) Set up environment: `cp .env.example .env`
+   - Configure `PR_RUN_AFTER_CREATION` to run commands after PR creation
+   - Example: `PR_RUN_AFTER_CREATION="claude -p 'using gh update the current PR in this branch description following the template, keep it simple'"`
 
-#### Testing the PHP compiler
+### Pull Request Workflow
 
-Phel uses PHPUnit to test its compiler.
+1. Create your branch from `main`
+2. Make your changes and add tests
+3. Run tests: `composer test`
+4. Format code: `composer fix`
+5. Create PR: `composer create-pr` (or manually with `gh pr create`)
+6. Ensure CI passes
+
+Make sure you have [set up your Git username and email](https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup) properly.
+
+## Development Commands
+
+### Essential Commands
 
 ```bash
-$ vendor/bin/phpunit --testsuite unit
-$ vendor/bin/phpunit --testsuite integration
+composer test          # Run all tests (compiler + core library)
+composer fix           # Auto-format code (PHP CS Fixer + Rector)
+composer create-pr     # Create a pull request using the CLI tool
 ```
 
-#### Testing the core library
-
-Phel has its own [testing framework](https://phel-lang.org/documentation/testing/).
+### Individual Test Suites
 
 ```bash
-./bin/phel test
+composer test-compiler # Run PHPUnit tests (unit + integration)
+composer test-core     # Run Phel core library tests
+composer psalm         # Run Psalm static analysis
+composer phpstan       # Run PHPStan static analysis
 ```
 
-### Coding Guidelines and Tests
+### Git Hooks (Optional)
 
-These are the composer scripts that might help you to run the all test suites:
+Enable git hooks to run tests before commits:
 
 ```bash
-composer psalm         # Run Psalm
-> vendor/bin/psalm
-
-composer phpstan       # Run PhpStan
-> vendor/bin/phpstan
-
-composer test-compiler # test the compiler
-> vendor/bin/phpunit --testsuite unit
-> vendor/bin/phpunit --testsuite integration
-
-composer test-core     # test core library
-> ./bin/phel test
-
-composer test-all      # clear cache, php-cs-fixer, psalm, phpstan, rector, compiler & core tests after each other
-> composer static-clear-cache
-> composer csrun
-> composer psalm
-> composer phpstan
-> composer rectorrun
-> composer test-compiler
-> composer test-core
+tools/git-hooks/init.sh
 ```
 
-### Git Hooks
+You can skip hooks with `git commit --no-verify` if needed, but ensure you run `composer test` before pushing.
 
-Enable the git hooks with `tools/git-hooks/init.sh`
+## Testing
 
-This will help you to trigger all tests before a commit, to make sure you didn't break any existing behaviour. You can use `-n|--no-verify` flag when doing a commit to avoid running the tests, but be aware that you should run `composer test` before pushing something that could be broken.  
+Phel has two test suites:
+
+1. **PHP Compiler Tests**: PHPUnit tests for the compiler (`composer test-compiler`)
+2. **Core Library Tests**: Phel's own [testing framework](https://phel-lang.org/documentation/testing/) (`composer test-core`)
+
+Run both with `composer test`.  
