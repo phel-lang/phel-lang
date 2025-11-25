@@ -202,7 +202,7 @@
 
 (defmacro deftest
   "Defines a test function."
-  {:example "(deftest test-add"}
+  {:example "(deftest test-add)"}
   [test-name & body]
   `(defn ,test-name {:test true :test-name ,(name test-name)} []
      (binding [*current-test-name* ,(name test-name)]
