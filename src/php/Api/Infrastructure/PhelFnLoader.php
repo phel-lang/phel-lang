@@ -51,7 +51,7 @@ Calls the function with the given arguments. The last argument must be a list of
             'signature' => '(apply f expr*)',
             'desc' => 'Calls the function with the given arguments. The last argument must be a list of values, which are passed as separate arguments, rather than a single list. Apply returns the result of the calling function.',
         ],
-//      Symbol::NAME_CONCAT => [ # this is already in core.phel:97
+//      Symbol::NAME_CONCAT => [ # this is already in core.phel:120
         Symbol::NAME_DEF => [
             'doc' => '```phel
 (def name meta? value)
@@ -96,9 +96,16 @@ Defines a function. A function consists of a list of parameters and a list of ex
             'signature' => '(fn [params*] expr*)',
             'desc' => 'Defines a function. A function consists of a list of parameters and a list of expression. The value of the last expression is returned as the result of the function. All other expression are only evaluated for side effects. If no expression is given, the function returns nil.',
         ],
-        'for' => [
-            'docUrl' => '/documentation/control-flow/#for',
+        'conj' => [
+            'doc' => '```phel
+(conj coll x)
+```
+Returns a new collection with values added. Appends to vectors/sets, prepends to lists.',
+            'signature' => '(conj coll x)',
+            'desc' => 'Returns a new collection with values added. Appends to vectors/sets, prepends to lists.',
+            'docUrl' => '/documentation/data-structures/#adding-elements-with-conj',
         ],
+//      for => [ # this is already in core.phel:1162
         Symbol::NAME_FOREACH => [
             'doc' => '```phel
 (foreach [value valueExpr] expr*)
