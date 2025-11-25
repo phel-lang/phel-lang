@@ -17,7 +17,7 @@
 
 (defn loaded-namespaces
   "Returns all namespaces currently loaded in the REPL."
-  {:example "(loaded-namespaces) # => [\"phel\\core\" \"phel\\repl\"]"}
+  {:example "(loaded-namespaces) ; => [\"phel\\core\" \"phel\\repl\"]"}
   []
   (php/:: Phel (getNamespaces)))
 
@@ -32,7 +32,7 @@
 
 (defn resolve
   "Resolves the given symbol in the current environment and returns a resolved Symbol with the absolute namespace or nil if it cannot be resolved."
-  {:example "(resolve 'map) # => phel\\core/map"}
+  {:example "(resolve 'map) ; => phel\\core/map"}
   [sym]
   (-> (get-global-env)
       (php/-> (resolveAsSymbol sym (php/:: NodeEnvironment (empty))))))
@@ -82,7 +82,7 @@
 
 (defmacro require
   "Requires a Phel module into the environment."
-  {:example "(require phel\http :as http :refer [request]) # => phel\\http"}
+  {:example "(require phel\http :as http :refer [request]) ; => phel\\http"}
   [sym & args]
   (let [options (apply hash-map args)
         alias (extract-alias sym options)
@@ -96,7 +96,7 @@
 
 (defmacro use
   "Adds a use statement to the environment."
-  {:example "(use DateTime :as DT) # => DateTime"}
+  {:example "(use DateTime :as DT) ; => DateTime"}
   [sym & args]
   (let [options (apply hash-map args)
         alias (extract-alias sym options)]
@@ -134,7 +134,7 @@
 
 (defn compile-str
   "Compiles a Phel expression string to PHP code."
-  {:example "(compile-str \"(+ 1 2)\") # => \"(1 + 2)\""}
+  {:example "(compile-str \"(+ 1 2)\") ; => \"(1 + 2)\""}
   [s]
   (let [cf (php/new CompilerFacade)
         opts (php/new CompileOptions)

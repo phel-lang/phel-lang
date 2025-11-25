@@ -3,7 +3,7 @@
 
 (defn valid-key?
   "Checks if a value can be used as a JSON key."
-  {:example "(valid-key? :name) # => true"}
+  {:example "(valid-key? :name) ; => true"}
   [v]
   (or (int? v) (float? v) (symbol? v) (keyword? v) (string? v)))
 
@@ -19,7 +19,7 @@
 
 (defn encode-value
   "Converts a Phel value to JSON-compatible format."
-  {:example "(encode-value :name) # => \"name\""}
+  {:example "(encode-value :name) ; => \"name\""}
   [x]
   (cond
     (php/is_iterable x) (encode-value-iterable x)
@@ -30,7 +30,7 @@
 
 (defn encode
   "Encodes a Phel value to a JSON string."
-  {:example "(encode {:name \"Alice\"}) # => \"{\\\"name\\\":\\\"Alice\\\"}\""}
+  {:example "(encode {:name \"Alice\"}) ; => \"{\\\"name\\\":\\\"Alice\\\"}\""}
   [value & [{:flags flags :depth depth}]]
   (let [flags (or flags 0)
         depth (or depth 512)]
@@ -42,7 +42,7 @@
 
 (defn decode-value
   "Converts a JSON value to Phel format."
-  {:example "(decode-value [1 2 3]) # => [1 2 3]"}
+  {:example "(decode-value [1 2 3]) ; => [1 2 3]"}
   [x]
   (cond
     (indexed? x) (for [v :in x] (decode-value v))
@@ -54,7 +54,7 @@
 
 (defn decode
   "Decodes a JSON string to a Phel value."
-  {:example "(decode \"{\\\"name\\\":\\\"Alice\\\"}\") # => {:name \"Alice\"}"}
+  {:example "(decode \"{\\\"name\\\":\\\"Alice\\\"}\") ; => {:name \"Alice\"}"}
   [json & [{:flags flags :depth depth}]]
   (let [flags (or flags 0)
         depth (or depth 512)]

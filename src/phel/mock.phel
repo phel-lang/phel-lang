@@ -168,7 +168,7 @@
 (defn clear-all-mocks!
   "Clears the entire mock registry.
   Useful for cleanup between test suites in long-running processes."
-  {:example "(clear-all-mocks!)  # All mocks removed from registry"}
+  {:example "(clear-all-mocks!) ; All mocks removed from registry"}
   []
   (set! mock-registry {}))
 

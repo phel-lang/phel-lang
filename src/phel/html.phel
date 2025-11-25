@@ -5,7 +5,7 @@
 
 (defn escape-html
   "Escapes HTML special characters to prevent XSS."
-  {:example "(escape-html \"<div>\") # => \"&lt;div&gt;\""}
+  {:example "(escape-html \"<div>\") ; => \"&lt;div&gt;\""}
   [s]
   (php/htmlspecialchars s (bit-or php/ENT_QUOTES php/ENT_SUBSTITUTE)))
 
@@ -154,7 +154,7 @@
 
 (defmacro html
   "Compiles Phel vectors to HTML strings."
-  {:example "(html [:div \"Hello\"]) # => \"<div>Hello</div>\""}
+  {:example "(html [:div \"Hello\"]) ; => \"<div>Hello</div>\""}
   [& content]
   (apply compile-html content))
 
@@ -169,6 +169,6 @@
 
 (defn doctype
   "Returns an HTML doctype declaration."
-  {:example "(doctype :html5) # => \"<!DOCTYPE html>\\n\""}
+  {:example "(doctype :html5) ; => \"<!DOCTYPE html>\\n\""}
   [type]
   (raw-string (get doctypes type (:html5 doctypes))))
