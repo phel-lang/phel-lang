@@ -810,8 +810,8 @@
 (deftest test-lazy-cat-composition
   (is (= [1 2 3 4 5 6 7 8 9]
          (doall (lazy-cat (take 3 (range 1 10))
-                         (take 3 (range 4 10))
-                         (take 3 (range 7 10)))))
+                          (take 3 (range 4 10))
+                          (take 3 (range 7 10)))))
       "lazy-cat should compose with other lazy operations"))
 
 (defn- test-ints [n]
@@ -828,4 +828,3 @@
       "lazy-cat should work with finite lazy sequences")
   (is (= [1 2 3 4 5 6] (lazy-cat [1 2 3] [4 5 6]))
       "lazy-cat should work with vectors"))
-

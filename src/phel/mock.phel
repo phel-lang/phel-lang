@@ -13,7 +13,7 @@
    (register-mock! mock-fn call-history nil))
   ([mock-fn call-history reset-fn]
    (swap! mock-registry assoc mock-fn {:call-history call-history
-                                        :reset-fn reset-fn})
+                                       :reset-fn reset-fn})
    mock-fn))
 
 (defn- get-mock-calls [mock-fn]
@@ -32,10 +32,10 @@
   [return-value]
   (let [call-history (var [])]
     (register-mock!
-      (fn [& args]
-        (swap! call-history push args)
-        return-value)
-      call-history)))
+     (fn [& args]
+       (swap! call-history push args)
+       return-value)
+     call-history)))
 
 (defn mock-fn
   "Creates a mock function with custom behavior that tracks all calls."
@@ -43,10 +43,10 @@
   [f]
   (let [call-history (var [])]
     (register-mock!
-      (fn [& args]
-        (swap! call-history push args)
-        (apply f args))
-      call-history)))
+     (fn [& args]
+       (swap! call-history push args)
+       (apply f args))
+     call-history)))
 
 (defn spy
   "Wraps an existing function to track calls while preserving original behavior."
@@ -64,15 +64,15 @@
         max-index (dec (count values))
         reset-fn (fn [] (set! index 0))]
     (register-mock!
-      (fn [& args]
-        (swap! call-history push args)
-        (let [current-index (deref index)
-              result (get values (min current-index max-index))]
-          (when (< current-index max-index)
-            (swap! index inc))
-          result))
-      call-history
-      reset-fn)))
+     (fn [& args]
+       (swap! call-history push args)
+       (let [current-index (deref index)
+             result (get values (min current-index max-index))]
+         (when (< current-index max-index)
+           (swap! index inc))
+         result))
+     call-history
+     reset-fn)))
 
 (defn mock-throwing
   "Creates a mock that throws an exception when called."
@@ -80,10 +80,10 @@
   [exception]
   (let [call-history (var [])]
     (register-mock!
-      (fn [& args]
-        (swap! call-history push args)
-        (throw exception))
-      call-history)))
+     (fn [& args]
+       (swap! call-history push args)
+       (throw exception))
+     call-history)))
 
 # -----------
 # Mock Inspection
@@ -207,10 +207,10 @@
         mock-syms (map (fn [_] (gensym "mock")) values)]
     `(let [,@(interleave mock-syms values)]
        (binding [,@(interleave symbols mock-syms)]
-         (try
-           (do ,@body)
-           (finally
-             ,@(map (fn [m] `(reset-mock! ,m)) mock-syms)))))))
+                (try
+                  (do ,@body)
+                  (finally
+                    ,@(map (fn [m] `(reset-mock! ,m)) mock-syms)))))))
 
 (defmacro with-mock-wrapper
   "Like with-mocks but for wrapped mocks (interop scenarios).
@@ -240,7 +240,7 @@
     `(let [,@(interleave mock-syms mocks)
            ,@(interleave wrapper-syms wrappers)]
        (binding [,@(interleave symbols wrapper-syms)]
-         (try
-           (do ,@body)
-           (finally
-             ,@reset-forms))))))
+                (try
+                  (do ,@body)
+                  (finally
+                    ,@reset-forms))))))
