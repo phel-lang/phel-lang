@@ -4,7 +4,7 @@
 
 (defn split
   "Splits string on a regular expression, returning a vector of parts."
-  {:example "(split \"hello world foo bar\" #\"\\s+\") # => [\"hello\" \"world\" \"foo\" \"bar\"]"}
+  {:example "(split \"hello world foo bar\" #\"\\s+\") ; => [\"hello\" \"world\" \"foo\" \"bar\"]"}
   [s re & [limit]]
   (values (php/preg_split re s (or limit -1))))
 
@@ -13,21 +13,21 @@
 
   This is a convenience function for converting strings to character sequences.
   Properly handles multibyte UTF-8 characters."
-  {:example "(chars \"hello\") # => [\"h\" \"e\" \"l\" \"l\" \"o\"]"
+  {:example "(chars \"hello\") ; => [\"h\" \"e\" \"l\" \"l\" \"o\"]"
    :see-also ["seq"]}
   [s]
   (apply vector (php/mb_str_split s)))
 
 (defn join
   "Returns a string of all elements in coll, separated by an optional separator."
-  {:example "(join \", \" [\"apple\" \"banana\" \"cherry\"]) # => \"apple, banana, cherry\""}
+  {:example "(join \", \" [\"apple\" \"banana\" \"cherry\"]) ; => \"apple, banana, cherry\""}
   [separator & [coll]]
   (let [[coll separator] (if (nil? coll) [separator ""] [coll separator])]
     (php/implode separator (to-php-array coll))))
 
 (defn subs
   "Returns the substring of s from start (inclusive) to end (exclusive)."
-  {:example "(subs \"hello world\" 0 5) # => \"hello\""}
+  {:example "(subs \"hello world\" 0 5) ; => \"hello\""}
   [s start & [end]]
   (let [len (php/mb_strlen s)
         end (or end len)]
@@ -37,20 +37,20 @@
 
 (defn reverse
   "Returns s with its characters reversed."
-  {:example "(reverse \"hello\") # => \"olleh\""}
+  {:example "(reverse \"hello\") ; => \"olleh\""}
   [s]
   (let [chars (php/mb_str_split s)]
     (join (core/reverse chars))))
 
 (defn repeat
   "Returns a string containing n copies of s."
-  {:example "(repeat \"ha\" 3) # => \"hahaha\""}
+  {:example "(repeat \"ha\" 3) ; => \"hahaha\""}
   [s n]
   (php/str_repeat s n))
 
 (defn replace
   "Replaces all instances of match with replacement in s."
-  {:example "(replace \"hello world\" \"world\" \"there\") # => \"hello there\""}
+  {:example "(replace \"hello world\" \"world\" \"there\") ; => \"hello there\""}
   [s match replacement]
   (let [match (if (and
                    (> (php/mb_strlen match) 1)
@@ -67,7 +67,7 @@
 
 (defn replace-first
   "Replaces the first instance of match with replacement in s."
-  {:example "(replace-first \"hello world world\" \"world\" \"there\") # => \"hello there world\""}
+  {:example "(replace-first \"hello world world\" \"world\" \"there\") ; => \"hello there world\""}
   [s match replacement]
   (let [match (if (and
                    (> (php/mb_strlen match) 1)
@@ -84,7 +84,7 @@
 
 (defn trim-newline
   "Removes all trailing newline or return characters from string."
-  {:example "(trim-newline \"hello\\n\\n\") # => \"hello\""}
+  {:example "(trim-newline \"hello\\n\\n\") ; => \"hello\""}
   [s]
   (loop [index (php/mb_strlen s)]
     (if (zero? index)
@@ -96,7 +96,7 @@
 
 (defn capitalize
   "Converts first character to upper-case and all other characters to lower-case."
-  {:example "(capitalize \"hELLO wORLD\") # => \"Hello world\""}
+  {:example "(capitalize \"hELLO wORLD\") ; => \"Hello world\""}
   [s]
   (let [first-char (php/mb_substr s 0 1)
         rest (php/mb_substr s 1)]
@@ -105,37 +105,37 @@
 
 (defn lower-case
   "Converts string to all lower-case."
-  {:example "(lower-case \"HELLO World\") # => \"hello world\""}
+  {:example "(lower-case \"HELLO World\") ; => \"hello world\""}
   [s]
   (php/mb_strtolower s))
 
 (defn upper-case
   "Converts string to all upper-case."
-  {:example "(upper-case \"hello World\") # => \"HELLO WORLD\""}
+  {:example "(upper-case \"hello World\") ; => \"HELLO WORLD\""}
   [s]
   (php/mb_strtoupper s))
 
 (defn trim
   "Removes whitespace from both ends of string."
-  {:example "(trim \"  hello  \") # => \"hello\""}
+  {:example "(trim \"  hello  \") ; => \"hello\""}
   [s]
   (php/preg_replace "/^[\s]+|[\s]+$/u" "" s))
 
 (defn triml
   "Removes whitespace from the left side of string."
-  {:example "(triml \"  hello  \") # => \"hello  \""}
+  {:example "(triml \"  hello  \") ; => \"hello  \""}
   [s]
   (php/preg_replace "/^[\s]+/u" "" s))
 
 (defn trimr
   "Removes whitespace from the right side of string."
-  {:example "(trimr \"  hello  \") # => \"  hello\""}
+  {:example "(trimr \"  hello  \") ; => \"  hello\""}
   [s]
   (php/preg_replace "/[\s]+$/u" "" s))
 
 (defn blank?
   "True if s is nil, empty, or contains only whitespace."
-  {:example "(blank? \"   \") # => true"}
+  {:example "(blank? \"   \") ; => true"}
   [s]
   (if s
     (loop [index 0]
@@ -148,37 +148,37 @@
 
 (defn starts-with?
   "True if s starts with substr."
-  {:example "(starts-with? \"hello world\" \"hello\") # => true"}
+  {:example "(starts-with? \"hello world\" \"hello\") ; => true"}
   [s substr]
   (php/str_starts_with s substr))
 
 (defn ends-with?
   "True if s ends with substr."
-  {:example "(ends-with? \"hello world\" \"world\") # => true"}
+  {:example "(ends-with? \"hello world\" \"world\") ; => true"}
   [s substr]
   (php/str_ends_with s substr))
 
 (defn contains?
   "True if s contains substr."
-  {:example "(contains? \"hello world\" \"lo wo\") # => true"}
+  {:example "(contains? \"hello world\" \"lo wo\") ; => true"}
   [s substr]
   (php/str_contains s substr))
 
 (defn includes?
   "True if s includes substr."
-  {:example "(includes? \"hello world\" \"world\") # => true"}
+  {:example "(includes? \"hello world\" \"world\") ; => true"}
   [s substr]
   (php/str_contains s substr))
 
 (defn re-quote-replacement
   "Escapes special characters in a replacement string for literal use."
-  {:example "(re-quote-replacement \"$1.00\") # => \"\\$1.00\""}
+  {:example "(re-quote-replacement \"$1.00\") ; => \"\\$1.00\""}
   [replacement]
   (php/preg_replace "/([\\\$])/" "\$1" replacement))
 
 (defn escape
   "Returns a new string with each character escaped according to cmap."
-  {:example "(escape \"hello\" {\"h\" \"H\" \"o\" \"O\"}) # => \"HellO\""}
+  {:example "(escape \"hello\" {\"h\" \"H\" \"o\" \"O\"}) ; => \"HellO\""}
   [s cmap]
   (loop [index 0
          buffer ""]
@@ -190,7 +190,7 @@
 
 (defn index-of
   "Returns the index of value in s, or nil if not found."
-  {:example "(index-of \"hello world\" \"world\") # => 6"}
+  {:example "(index-of \"hello world\" \"world\") ; => 6"}
   [s value & [from-index]]
   (let [from-index (or from-index 0)
         from-index (let [abs (php/abs from-index)
@@ -205,7 +205,7 @@
 
 (defn last-index-of
   "Returns the last index of value in s, or nil if not found."
-  {:example "(last-index-of \"hello world world\" \"world\") # => 12"}
+  {:example "(last-index-of \"hello world world\" \"world\") ; => 12"}
   [s value & [from-index]]
   (let [max-index (dec (php/mb_strlen s))
         from-index (or from-index max-index)
@@ -226,24 +226,24 @@
 
 (defn split-lines
   "Splits s on \\n or \\r\\n. Trailing empty lines are not returned."
-  {:example "(split-lines \"hello\\nworld\\ntest\") # => [\"hello\" \"world\" \"test\"]"}
+  {:example "(split-lines \"hello\\nworld\\ntest\") ; => [\"hello\" \"world\" \"test\"]"}
   [s]
   (split s "/\\r?\\n/"))
 
 (defn pad-left
   "Returns a string padded on the left side to length len."
-  {:example "(pad-left \"hello\" 10) # => \"     hello\""}
+  {:example "(pad-left \"hello\" 10) ; => \"     hello\""}
   [s len & [pad-str]]
   (php/str_pad s len (or pad-str " ") php/STR_PAD_LEFT))
 
 (defn pad-right
   "Returns a string padded on the right side to length len."
-  {:example "(pad-right \"hello\" 10) # => \"hello     \""}
+  {:example "(pad-right \"hello\" 10) ; => \"hello     \""}
   [s len & [pad-str]]
   (php/str_pad s len (or pad-str " ") php/STR_PAD_RIGHT))
 
 (defn pad-both
   "Returns a string padded on both sides to length len."
-  {:example "(pad-both \"hello\" 11) # => \"   hello   \""}
+  {:example "(pad-both \"hello\" 11) ; => \"   hello   \""}
   [s len & [pad-str]]
   (php/str_pad s len (or pad-str " ") php/STR_PAD_BOTH))

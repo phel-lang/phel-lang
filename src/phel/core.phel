@@ -55,25 +55,25 @@
 
 (def list
   {:doc "Creates a new list from the given arguments. Shortcut: '()"
-   :example "(list 1 2 3) # => (1 2 3)"}
+   :example "(list 1 2 3) ; => (1 2 3)"}
   (fn [& xs]
     (php/:: Phel (list (apply php/array xs)))))
 
 (def vector
   {:doc "Creates a new vector from the given arguments. Shortcut: []"
-   :example "(vector 1 2 3) # => [1 2 3]"}
+   :example "(vector 1 2 3) ; => [1 2 3]"}
   (fn [& xs]
     (php/:: Phel (vector (apply php/array xs)))))
 
 (def hash-map
   {:doc "Creates a new hash map from key-value pairs. Shortcut: {}"
-   :example "(hash-map :a 1 :b 2) # => {:a 1 :b 2}"}
+   :example "(hash-map :a 1 :b 2) ; => {:a 1 :b 2}"}
   (fn [& xs]
     (php/:: Phel (map (apply php/array xs)))))
 
 (def next
   {:doc "Returns the sequence after the first element, or nil if empty."
-   :example "(next [1 2 3]) # => [2 3]"}
+   :example "(next [1 2 3]) ; => [2 3]"}
   (fn [xs]
     (if (php/=== xs nil)
       nil
@@ -94,7 +94,7 @@
 
 (def first
   {:doc "Returns the first element of a sequence, or nil if empty."
-   :example "(first [1 2 3]) # => 1"}
+   :example "(first [1 2 3]) ; => 1"}
   (fn [xs]
     (if (php/instanceof xs FirstInterface)
       (php/-> xs (first))
@@ -291,7 +291,7 @@
 
   With one argument, creates a symbol without namespace.
   With two arguments, creates a symbol in the given namespace."
-  {:example "(symbol \"foo\") # => foo"}
+  {:example "(symbol \"foo\") ; => foo"}
   [name-or-ns & [name]]
   (if name
     (php/:: Symbol (createForNamespace name-or-ns name))
@@ -337,19 +337,19 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn set
   "Creates a new Set from the given arguments. Shortcut: #{}"
-  {:example "(set 1 2 3) # => #{1 2 3}"}
+  {:example "(set 1 2 3) ; => #{1 2 3}"}
   [& xs]
   (php/:: Phel (set (apply php/array xs))))
 
 (defn keyword
   "Creates a new Keyword from a given string."
-  {:example "(keyword \"name\") # => :name"}
+  {:example "(keyword \"name\") ; => :name"}
   [x]
   (php/:: Keyword (create x)))
 
 (defn php-indexed-array
   "Creates a PHP indexed array from the given values."
-  {:example "(php-indexed-array 1 2 3) # => (PHP array [1, 2, 3])"}
+  {:example "(php-indexed-array 1 2 3) ; => (PHP array [1, 2, 3])"}
   [& xs]
   (apply php/array xs))
 
@@ -358,7 +358,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
   Arguments:
     Key-value pairs (must be even number of arguments)"
-  {:example "(php-associative-array \"name\" \"Alice\" \"age\" 30) # => (PHP array [\"name\" => \"Alice\", \"age\" => 30])"}
+  {:example "(php-associative-array \"name\" \"Alice\" \"age\" 30) ; => (PHP array [\"name\" => \"Alice\", \"age\" => 30])"}
   [& xs]
   (let [cnt (php/count xs)
         res (php/array)]
@@ -382,7 +382,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn cons
   "Prepends an element to the beginning of a collection."
-  {:example "(cons 0 [1 2 3]) # => [0 1 2 3]"}
+  {:example "(cons 0 [1 2 3]) ; => [0 1 2 3]"}
   [x coll]
   (if (php/is_array coll)
     (do
@@ -402,13 +402,13 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn second
   "Returns the second element of a sequence, or nil if not present."
-  {:example "(second [1 2 3]) # => 2"}
+  {:example "(second [1 2 3]) ; => 2"}
   [coll]
   (first (next coll)))
 
 (defn rest
   "Returns the sequence after the first element, or empty sequence if none."
-  {:example "(rest [1 2 3]) # => [2 3]"}
+  {:example "(rest [1 2 3]) ; => [2 3]"}
   [coll]
   (if (php/instanceof coll RestInterface)
     (php/-> coll (rest))
@@ -433,7 +433,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
   Works with lists, vectors, hash-maps, sets, strings, and PHP arrays.
   Returns 0 for nil."
-  {:example "(count [1 2 3]) # => 3"
+  {:example "(count [1 2 3]) ; => 3"
    :see-also ["empty?" "seq"]}
   [coll]
   (if (php/instanceof coll Countable)
@@ -452,25 +452,25 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defmacro if-not
   "Evaluates then if test is false, else otherwise."
-  {:example "(if-not (< 5 3) \"not less\" \"less\") # => \"not less\""}
+  {:example "(if-not (< 5 3) \"not less\" \"less\") ; => \"not less\""}
   [test then & [else]]
   `(if ,test ,else ,then))
 
 (defmacro when
   "Evaluates body if test is true, otherwise returns nil."
-  {:example "(when (> 10 5) \"greater\") # => \"greater\""}
+  {:example "(when (> 10 5) \"greater\") ; => \"greater\""}
   [test & body]
   `(if ,test (do ,@body)))
 
 (defmacro when-not
   "Evaluates body if test is false, otherwise returns nil."
-  {:example "(when-not (empty? [1 2 3]) \"has items\") # => \"has items\""}
+  {:example "(when-not (empty? [1 2 3]) \"has items\") ; => \"has items\""}
   [test & body]
   `(if ,test nil (do ,@body)))
 
 (defmacro cond
   "Evaluates test/expression pairs, returning the first matching expression."
-  {:example "(cond (< x 0) \"negative\" (> x 0) \"positive\" \"zero\") # => \"negative\", \"positive\", or \"zero\" depending on x"}
+  {:example "(cond (< x 0) \"negative\" (> x 0) \"positive\" \"zero\") ; => \"negative\", \"positive\", or \"zero\" depending on x"}
   [& pairs]
   (let [cnt (count pairs)]
     (if (php/=== cnt 0)
@@ -484,7 +484,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defmacro case
   "Evaluates expression and matches it against constant test values, returning the associated result."
-  {:example "(case x 1 \"one\" 2 \"two\" \"other\") # => \"one\" (when x is 1)"}
+  {:example "(case x 1 \"one\" 2 \"two\" \"other\") ; => \"one\" (when x is 1)"}
   [e & pairs]
   (if (next pairs)
     (let [v (gensym)]
@@ -500,7 +500,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defmacro or
   "Evaluates expressions left to right, returning the first truthy value or the last value."
-  {:example "(or false nil 42 100) # => 42"}
+  {:example "(or false nil 42 100) ; => 42"}
   [& args]
   (case (count args)
     0 nil
@@ -511,7 +511,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defmacro and
   "Evaluates expressions left to right, returning the first falsy value or the last value."
-  {:example "(and true 1 \"hello\") # => \"hello\""}
+  {:example "(and true 1 \"hello\") ; => \"hello\""}
   [& args]
   (case (count args)
     0 'true
@@ -537,7 +537,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn =
   "Checks if all values are equal (value equality, not identity)."
-  {:example "(= [1 2 3] [1 2 3]) # => true"}
+  {:example "(= [1 2 3] [1 2 3]) ; => true"}
   [a & more]
   (case (count more)
     0 true
@@ -548,7 +548,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn not
   "Returns true if value is falsy (nil or false), false otherwise."
-  {:example "(not nil) # => true"}
+  {:example "(not nil) ; => true"}
   [x]
   (if x false true))
 
@@ -564,7 +564,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Checks if each argument is strictly less than the following argument."
   {:inline (fn [a b] `(php/< ,a ,b))
    :inline-arity (fn [n] (php/=== n 2))
-   :example "(< 1 2 3 4) # => true"}
+   :example "(< 1 2 3 4) ; => true"}
   [a & more]
   (case (count more)
     0 true
@@ -589,7 +589,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Checks if each argument is strictly greater than the following argument."
   {:inline (fn [a b] `(php/> ,a ,b))
    :inline-arity (fn [n] (php/=== n 2))
-   :example "(> 4 3 2 1) # => true"}
+   :example "(> 4 3 2 1) ; => true"}
   [a & more]
   (case (count more)
     0 true
@@ -624,7 +624,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn all?
   "Returns true if predicate is true for every element in collection, false otherwise."
-  {:example "(all? even? [2 4 6 8]) # => true"}
+  {:example "(all? even? [2 4 6 8]) ; => true"}
   [pred coll]
   (cond
     (php/=== (count coll) 0) true
@@ -648,7 +648,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn some?
   "Returns true if predicate is true for at least one element in collection, false otherwise."
-  {:example "(some? even? [1 3 5 6 7]) # => true"}
+  {:example "(some? even? [1 3 5 6 7]) ; => true"}
   [pred coll]
   (if (empty? coll)
     false
@@ -664,7 +664,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn some
   "Returns the first truthy value of applying predicate to elements, or nil if none found."
-  {:example "(some |(when (> % 10) %) [5 15 8]) # => 15"}
+  {:example "(some |(when (> % 10) %) [5 15 8]) ; => 15"}
   [pred coll]
   (if (empty? coll)
     nil
@@ -675,7 +675,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn true?
   "Checks if value is exactly true (not just truthy)."
-  {:example "(true? 1) # => false"}
+  {:example "(true? 1) ; => false"}
   [x]
   (id x true))
 
@@ -686,13 +686,13 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn false?
   "Checks if value is exactly false (not just falsy)."
-  {:example "(false? nil) # => false"}
+  {:example "(false? nil) ; => false"}
   [x]
   (id x false))
 
 (defn nil?
   "Returns true if value is nil, false otherwise."
-  {:example "(nil? (get {:a 1} :b)) # => true"}
+  {:example "(nil? (get {:a 1} :b)) ; => true"}
   [x]
   (id x nil))
 
@@ -704,7 +704,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn contains?
   "Returns true if key is present in collection (checks keys/indices, not values)."
-  {:example "(contains? [10 20 30] 1) # => true"}
+  {:example "(contains? [10 20 30] 1) ; => true"}
   [coll key]
   (cond
     (php/instanceof coll ContainsInterface) (php/-> coll (contains key))
@@ -863,7 +863,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
   This function is useful for explicitly converting strings to sequences of characters,
   enabling sequence operations like map, filter, and frequencies."
-  {:example "(seq \"hello\") # => [\"h\" \"e\" \"l\" \"l\" \"o\"]"
+  {:example "(seq \"hello\") ; => [\"h\" \"e\" \"l\" \"l\" \"o\"]"
    :see-also ["count"]}
   [coll]
   (cond
@@ -897,7 +897,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns true if `x` is an indexed sequence, false otherwise.
 
   Indexed sequences include lists, vectors, and indexed PHP arrays."
-  {:example "(indexed? [1 2 3]) # => true"}
+  {:example "(indexed? [1 2 3]) ; => true"}
   [x]
   (let [t (type x)]
     (or
@@ -909,7 +909,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns true if `x` is an associative data structure, false otherwise.
 
   Associative data structures include hash maps, structs, and associative PHP arrays."
-  {:example "(associative? {:a 1}) # => true"}
+  {:example "(associative? {:a 1}) ; => true"}
   [x]
   (let [t (type x)]
     (or
@@ -928,7 +928,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn peek
   "Returns the last element of a sequence."
-  {:example "(peek [1 2 3]) # => 3"}
+  {:example "(peek [1 2 3]) ; => 3"}
   [coll]
   (php/aget coll (php/- (count coll) 1)))
 
@@ -961,7 +961,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn get
   "Gets the value at key in a collection. Returns default if not found."
-  {:example "(get {:a 1} :a) # => 1"}
+  {:example "(get {:a 1} :a) ; => 1"}
   [ds k & [opt]]
   (cond
     (or (set? ds)
@@ -991,7 +991,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn assoc
   "Associates a value with a key in a collection."
-  {:example "(assoc {:a 1} :b 2) # => {:a 1 :b 2}"}
+  {:example "(assoc {:a 1} :b 2) ; => {:a 1 :b 2}"}
   [ds key value]
   (cond
     (php-array? ds)
@@ -1018,7 +1018,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn dissoc
   "Dissociates `key` from the datastructure `ds`. Returns `ds` without `key`."
-  {:example "(dissoc {:a 1 :b 2} :b) # => {:a 1}"}
+  {:example "(dissoc {:a 1 :b 2} :b) ; => {:a 1}"}
   [ds key]
   (cond
     (php-array? ds)
@@ -1102,7 +1102,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn range
   "Creates a lazy sequence of numbers from start to end (exclusive)."
-  {:example "(range 5) # => (0 1 2 3 4)"}
+  {:example "(range 5) ; => (0 1 2 3 4)"}
   [a & rest]
   (case (count rest)
     0 (lazy-seq-from-generator (php/:: Seq (range 0 a 1)))
@@ -1182,7 +1182,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   * `:reduce [accumulator initial-value]` Instead of returning a list,
      it reduces the values into `accumulator`. Initially `accumulator`
      is bound to `initial-value`."
-  {:example "(for [x :in [1 2 3]] (* x 2)) # => [2 4 6]"}
+  {:example "(for [x :in [1 2 3]] (* x 2)) ; => [2 4 6]"}
   [head & body]
   (let [res-sym (gensym "res__")
         acc-sym (gensym "acc__")
@@ -1221,7 +1221,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   When given a single collection, applies the function to each element.
   With multiple collections, applies the function to corresponding elements from each collection,
   stopping when the shortest collection is exhausted."
-  {:example "(map inc [1 2 3]) # => (2 3 4)"
+  {:example "(map inc [1 2 3]) ; => (2 3 4)"
    :see-also ["filter" "reduce" "map-indexed" "mapcat"]}
   [f & colls]
   (case (count colls)
@@ -1240,14 +1240,14 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn map-indexed
   "Applies function to each element with its index, returning a lazy sequence."
-  {:example "(map-indexed (fn [i x] [i x]) [\"a\" \"b\" \"c\"]) # => ([0 \"a\"] [1 \"b\"] [2 \"c\"])"}
+  {:example "(map-indexed (fn [i x] [i x]) [\"a\" \"b\" \"c\"]) ; => ([0 \"a\"] [1 \"b\"] [2 \"c\"])"}
   [f coll]
   (let [result (for [[k v] :pairs coll] (f k v))]
     (with-meta coll result)))
 
 (defn mapcat
   "Applies function to collections and concatenates the results."
-  {:example "(mapcat reverse [[1 2] [3 4]]) # => (2 1 4 3)"}
+  {:example "(mapcat reverse [[1 2] [3 4]]) ; => (2 1 4 3)"}
   [f & colls]
   (let [result (apply concat [] (apply map f colls))]
     (if (empty? colls)
@@ -1256,7 +1256,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn reduce
   "Reduces collection to a single value by repeatedly applying function to accumulator and elements."
-  {:example "(reduce + [1 2 3 4]) # => 10"}
+  {:example "(reduce + [1 2 3 4]) ; => 10"}
   [f & args]
   (case (count args)
     1 (let [coll (first args)]
@@ -1274,7 +1274,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
   When `from` is associative, it is treated as a sequence of key-value pairs.
   Supports persistent and transient collections."
-  {:example "(into [] '(1 2 3)) # => [1 2 3]"
+  {:example "(into [] '(1 2 3)) ; => [1 2 3]"
    :see-also ["conj" "concat"]}
   [to & rest]
   (case (count rest)
@@ -1373,7 +1373,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn conj
   "Returns a new collection with values added. Appends to vectors/sets, prepends to lists."
-  {:example "(conj [1 2] 3) # => [1 2 3]"}
+  {:example "(conj [1 2] 3) ; => [1 2 3]"}
   ([] [])
   ([coll] coll)
   ([coll value]
@@ -1383,7 +1383,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn slice
   "Extracts a slice of `coll` starting at `offset` with optional `length`."
-  {:example "(slice [1 2 3 4 5] 1 3) # => [2 3 4]"}
+  {:example "(slice [1 2 3 4 5] 1 3) ; => [2 3 4]"}
   [coll & [offset & [length]]]
   (cond
     (php-array? coll) (php/array_slice coll offset length)
@@ -1394,7 +1394,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Accesses a value in a nested data structure via a sequence of keys.
 
   Returns `opt` (default nil) if the path doesn't exist."
-  {:example "(get-in {:a {:b {:c 42}}} [:a :b :c]) # => 42"
+  {:example "(get-in {:a {:b {:c 42}}} [:a :b :c]) ; => 42"
    :see-also ["assoc-in" "update-in"]}
   [ds ks & [opt]]
   (let [res (reduce get ds ks)]
@@ -1404,7 +1404,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Associates a value in a nested data structure at the given path.
 
   Creates intermediate maps if they don't exist."
-  {:example "(assoc-in {:a {:b 1}} [:a :c] 2) # => {:a {:b 1 :c 2}}"
+  {:example "(assoc-in {:a {:b 1}} [:a :c] 2) ; => {:a {:b 1 :c 2}}"
    :see-also ["get-in" "update-in" "dissoc-in"]}
   [ds [k & ks] v]
   (if-not (nil? ks)
@@ -1422,14 +1422,14 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn update
   "Updates a value in a datastructure by applying `f` to the current value."
-  {:example "(update {:count 5} :count inc) # => {:count 6}"
+  {:example "(update {:count 5} :count inc) ; => {:count 6}"
    :see-also ["update-in" "assoc"]}
   [ds k f & args]
   (assoc ds k (apply f (get ds k) args)))
 
 (defn update-in
   "Updates a value in a nested data structure by applying `f` to the value at path."
-  {:example "(update-in {:a {:b 5}} [:a :b] inc) # => {:a {:b 6}}"
+  {:example "(update-in {:a {:b 5}} [:a :b] inc) ; => {:a {:b 6}}"
    :see-also ["get-in" "assoc-in" "update"]}
   [ds [k & ks] f & args]
   (if ks
@@ -1439,7 +1439,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn dissoc-in
   "Dissociates a value from a nested data structure at the given path."
-  {:example "(dissoc-in {:a {:b 1 :c 2}} [:a :b]) # => {:a {:c 2}}"
+  {:example "(dissoc-in {:a {:b 1 :c 2}} [:a :b]) ; => {:a {:c 2}}"
    :see-also ["dissoc" "assoc-in" "get-in"]}
   [ds [k & ks]]
   (if ks
@@ -1460,7 +1460,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn drop
   "Drops the first `n` elements of `coll`. Returns a lazy sequence."
-  {:example "(drop 2 [1 2 3 4 5]) # => (3 4 5)"
+  {:example "(drop 2 [1 2 3 4 5]) ; => (3 4 5)"
    :see-also ["take" "drop-last"]}
   [n coll]
   (if (nil? coll)
@@ -1473,7 +1473,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn drop-last
   "Drops the last `n` elements of `coll`."
-  {:example "(drop-last 2 [1 2 3 4 5]) # => [1 2 3]"
+  {:example "(drop-last 2 [1 2 3 4 5]) ; => [1 2 3]"
    :see-also ["drop" "butlast"]}
   [n coll]
   (let [n (if (php/< n 0) 0 n)
@@ -1482,7 +1482,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn last
   "Returns the last element of `coll` or nil if `coll` is empty or nil."
-  {:example "(last [1 2 3]) # => 3"
+  {:example "(last [1 2 3]) ; => 3"
    :see-also ["first" "peek" "butlast"]}
   [coll]
   (if (or (php/=== coll nil) (empty? coll))
@@ -1491,14 +1491,14 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn butlast
   "Returns all but the last item in `coll`."
-  {:example "(butlast [1 2 3 4]) # => [1 2 3]"
+  {:example "(butlast [1 2 3 4]) ; => [1 2 3]"
    :see-also ["last" "drop-last"]}
   [coll]
   (drop-last 1 coll))
 
 (defn drop-while
   "Drops all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence."
-  {:example "(drop-while |(< % 5) [1 2 3 4 5 6 3 2 1]) # => (5 6 3 2 1)"
+  {:example "(drop-while |(< % 5) [1 2 3 4 5 6 3 2 1]) ; => (5 6 3 2 1)"
    :see-also ["take-while" "drop"]}
   [pred coll]
   (if (nil? coll)
@@ -1523,14 +1523,14 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn take-last
   "Takes the last `n` elements of `coll`."
-  {:example "(take-last 3 [1 2 3 4 5]) # => [3 4 5]"
+  {:example "(take-last 3 [1 2 3 4 5]) ; => [3 4 5]"
    :see-also ["take" "drop-last"]}
   [n coll]
   (if (php/<= n 0) [] (slice coll (php/* -1 n))))
 
 (defn take-while
   "Takes all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence."
-  {:example "(take-while |(< % 5) [1 2 3 4 5 6 3 2 1]) # => (1 2 3 4)"
+  {:example "(take-while |(< % 5) [1 2 3 4 5 6 3 2 1]) ; => (1 2 3 4)"
    :see-also ["drop-while" "take"]}
   [pred coll]
   (if (nil? coll)
@@ -1540,7 +1540,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn take-nth
   "Returns every nth item in `coll`. Returns a lazy sequence."
-  {:example "(take-nth 2 [0 1 2 3 4 5 6 7 8]) # => (0 2 4 6 8)"
+  {:example "(take-nth 2 [0 1 2 3 4 5 6 7 8]) ; => (0 2 4 6 8)"
    :see-also ["take" "filter"]}
   [n coll]
   (when (< n 1)
@@ -1552,7 +1552,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn filter
   "Returns a lazy sequence of elements where predicate returns true."
-  {:example "(filter even? [1 2 3 4 5 6]) # => (2 4 6)"}
+  {:example "(filter even? [1 2 3 4 5 6]) ; => (2 4 6)"}
   [pred coll]
   (let [result (lazy-seq-from-generator (php/:: Seq (filter pred coll)))]
     (if (nil? result)
@@ -1561,7 +1561,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn keep
   "Returns a lazy sequence of non-nil results of applying function to elements."
-  {:example "(keep |(when (even? %) (* % %)) [1 2 3 4 5]) # => (4 16)"}
+  {:example "(keep |(when (even? %) (* % %)) [1 2 3 4 5]) ; => (4 16)"}
   [pred coll]
   (if (nil? coll)
     []
@@ -1570,7 +1570,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn keep-indexed
   "Returns a lazy sequence of non-nil results of `(pred i x)`."
-  {:example "(keep-indexed |(when (even? %1) %2) [\"a\" \"b\" \"c\" \"d\"]) # => (\"a\" \"c\")"
+  {:example "(keep-indexed |(when (even? %1) %2) [\"a\" \"b\" \"c\" \"d\"]) ; => (\"a\" \"c\")"
    :see-also ["keep" "map-indexed"]}
   [pred coll]
   (if (nil? coll)
@@ -1580,7 +1580,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn find
   "Returns the first item in `coll` where `(pred item)` evaluates to true."
-  {:example "(find |(> % 5) [1 2 3 6 7 8]) # => 6"
+  {:example "(find |(> % 5) [1 2 3 6 7 8]) ; => 6"
    :see-also ["find-index" "filter" "some?"]}
   [pred coll]
   (loop [s coll]
@@ -1592,7 +1592,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn find-index
   "Returns the index of the first item in `coll` where `(pred item)` evaluates to true."
-  {:example "(find-index |(> % 5) [1 2 3 6 7 8]) # => 3"
+  {:example "(find-index |(> % 5) [1 2 3 6 7 8]) ; => 3"
    :see-also ["find" "filter"]}
   [pred coll]
   (loop [s coll
@@ -1605,7 +1605,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn distinct
   "Returns a lazy sequence with duplicated values removed in `coll`."
-  {:example "(distinct [1 2 1 3 2 4 3]) # => (1 2 3 4)"
+  {:example "(distinct [1 2 1 3 2 4 3]) ; => (1 2 3 4)"
    :see-also ["frequencies" "set"]}
   [coll]
   (if (nil? coll)
@@ -1616,7 +1616,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn reverse
   "Reverses the order of the elements in the given sequence."
-  {:example "(reverse [1 2 3 4]) # => [4 3 2 1]"}
+  {:example "(reverse [1 2 3 4]) ; => [4 3 2 1]"}
   [coll]
   (let [result
         (for [i :range [(php/- (count coll) 1) -1 -1]
@@ -1626,7 +1626,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn interleave
   "Returns a vector with the first items of each col, then the second items, etc."
-  {:example "(interleave [1 2 3] [:a :b :c]) # => [1 :a 2 :b 3 :c]"
+  {:example "(interleave [1 2 3] [:a :b :c]) ; => [1 :a 2 :b 3 :c]"
    :see-also ["interpose"]}
   [& colls]
   (if (empty? colls)
@@ -1643,7 +1643,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn interpose
   "Returns a vector of elements separated by `sep`."
-  {:example "(interpose :x [1 2 3 4]) # => [1 :x 2 :x 3 :x 4]"
+  {:example "(interpose :x [1 2 3 4]) ; => [1 :x 2 :x 3 :x 4]"
    :see-also ["interleave"]}
   [sep coll]
   (let [result
@@ -1659,7 +1659,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a map from distinct items in `coll` to the number of times they appear.
 
   Works with vectors, lists, sets, and strings."
-  {:example "(frequencies [:a :b :a :c :b :a]) # => {:a 3 :b 2 :c 1}"}
+  {:example "(frequencies [:a :b :a :c :b :a]) ; => {:a 3 :b 2 :c 1}"}
   [coll]
   (let [result (for [x :in coll
                      :reduce [res {}]]
@@ -1669,21 +1669,21 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn keys
   "Returns a sequence of all keys in a map."
-  {:example "(keys {:a 1 :b 2}) # => (:a :b)"}
+  {:example "(keys {:a 1 :b 2}) ; => (:a :b)"}
   [coll]
   (let [result (for [k :keys coll] k)]
     (with-meta coll result)))
 
 (defn values
   "Returns a sequence of all values in a map."
-  {:example "(values {:a 1 :b 2}) # => (1 2)"}
+  {:example "(values {:a 1 :b 2}) ; => (1 2)"}
   [coll]
   (let [result (for [x :in coll] x)]
     (with-meta coll result)))
 
 (defn pairs
   "Gets the pairs of an associative data structure."
-  {:example "(pairs {:a 1 :b 2}) # => ([:a 1] [:b 2])"
+  {:example "(pairs {:a 1 :b 2}) ; => ([:a 1] [:b 2])"
    :see-also ["keys" "values" "kvs"]}
   [coll]
   (let [result (for [p :pairs coll] p)]
@@ -1691,7 +1691,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn kvs
   "Returns a vector of key-value pairs like `[k1 v1 k2 v2 k3 v3 ...]`."
-  {:example "(kvs {:a 1 :b 2}) # => [:a 1 :b 2]"
+  {:example "(kvs {:a 1 :b 2}) ; => [:a 1 :b 2]"
    :see-also ["pairs" "keys" "values"]}
   [coll]
   (let [result
@@ -1704,7 +1704,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn php-array-to-map
   "Converts a PHP Array to a Phel map."
-  {:example "(php-array-to-map (php-associative-array \"a\" 1 \"b\" 2)) # => {\"a\" 1 \"b\" 2}"
+  {:example "(php-array-to-map (php-associative-array \"a\" 1 \"b\" 2)) ; => {\"a\" 1 \"b\" 2}"
    :see-also ["to-php-array" "php->phel"]}
   [arr]
   (let [res (transient {})]
@@ -1715,7 +1715,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn phel->php
   "Recursively converts a Phel data structure to a PHP array."
-  {:example "(phel->php {:a [1 2 3] :b {:c 4}}) # => (PHP array [\"a\" => [1, 2, 3], \"b\" => [\"c\" => 4]])"
+  {:example "(phel->php {:a [1 2 3] :b {:c 4}}) ; => (PHP array [\"a\" => [1, 2, 3], \"b\" => [\"c\" => 4]])"
    :see-also ["php->phel"]}
   [x]
   (cond
@@ -1749,7 +1749,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Recursively converts a PHP array to Phel data structures.
 
   Indexed PHP arrays become vectors, associative PHP arrays become maps."
-  {:example "(php->phel (php-associative-array \"a\" 1 \"b\" 2)) # => {\"a\" 1 \"b\" 2}"
+  {:example "(php->phel (php-associative-array \"a\" 1 \"b\" 2)) ; => {\"a\" 1 \"b\" 2}"
    :see-also ["phel->php"]}
   [x]
   (cond
@@ -1769,14 +1769,14 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn contains-value?
   "Returns true if the value is present in the given collection, otherwise returns false."
-  {:example "(contains-value? {:a 1 :b 2} 2) # => true"
+  {:example "(contains-value? {:a 1 :b 2} 2) ; => true"
    :see-also ["contains?" "some?"]}
   [coll val]
   (some? |(= $ val) (values coll)))
 
 (defn sort
   "Returns a sorted vector. If no comparator is supplied compare is used."
-  {:example "(sort [3 1 4 1 5 9 2 6]) # => [1 1 2 3 4 5 6 9]"
+  {:example "(sort [3 1 4 1 5 9 2 6]) ; => [1 1 2 3 4 5 6 9]"
    :see-also ["sort-by" "compare"]}
   [coll & [comp]]
   (let [php-array (to-php-array coll)]
@@ -1787,7 +1787,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a sorted vector where the sort order is determined by comparing `(keyfn item)`.
 
   If no comparator is supplied compare is used."
-  {:example "(sort-by count [\"aaa\" \"c\" \"bb\"]) # => [\"c\" \"bb\" \"aaa\"]"
+  {:example "(sort-by count [\"aaa\" \"c\" \"bb\"]) ; => [\"c\" \"bb\" \"aaa\"]"
    :see-also ["sort" "compare"]}
   [keyfn coll & [comp]]
   (let [php-array (to-php-array coll)
@@ -1797,7 +1797,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn shuffle
   "Returns a random permutation of coll."
-  {:example "(shuffle [1 2 3 4 5]) # => [3 1 5 2 4] (random order)"}
+  {:example "(shuffle [1 2 3 4 5]) ; => [3 1 5 2 4] (random order)"}
   [coll]
   (let [php-array (to-php-array coll)]
     (php/shuffle php-array)
@@ -1807,7 +1807,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a vector of length n where every element is x.
 
   With one argument returns an infinite lazy sequence of x."
-  {:example "(repeat 3 :a) # => [:a :a :a]"
+  {:example "(repeat 3 :a) ; => [:a :a :a]"
    :see-also ["repeatedly" "cycle"]}
   [a & rest]
   (case (count rest)
@@ -1819,7 +1819,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a vector of length n with values produced by repeatedly calling f.
 
   With one argument returns an infinite lazy sequence of calls to f."
-  {:example "(repeatedly 3 rand) # => [0.234 0.892 0.456] (random values)"
+  {:example "(repeatedly 3 rand) ; => [0.234 0.892 0.456] (random values)"
    :see-also ["repeat" "iterate"]}
   [a & rest]
   (case (count rest)
@@ -1831,7 +1831,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defmacro lazy-seq
   "Creates a lazy sequence that evaluates the body only when accessed."
-  {:example "(lazy-seq (cons 1 (lazy-seq nil))) # => (1)"}
+  {:example "(lazy-seq (cons 1 (lazy-seq nil))) ; => (1)"}
   [& body]
   `(php/new \Phel\Lang\Collections\LazySeq\LazySeq
             (php/new \Phel\Lang\Hasher)
@@ -1840,20 +1840,20 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defmacro lazy-cat
   "Concatenates collections into a lazy sequence (expands to concat)."
-  {:example "(lazy-cat [1 2] [3 4]) # => (1 2 3 4)"}
+  {:example "(lazy-cat [1 2] [3 4]) ; => (1 2 3 4)"}
   [& colls]
   (apply list 'concat colls))
 
 (defn iterate
   "Returns an infinite lazy sequence of x, (f x), (f (f x)), and so on."
-  {:example "(take 5 (iterate inc 0)) # => (0 1 2 3 4)"
+  {:example "(take 5 (iterate inc 0)) ; => (0 1 2 3 4)"
    :see-also ["repeatedly" "cycle"]}
   [f x]
   (lazy-seq-from-generator (php/:: Seq (iterate f x))))
 
 (defn cycle
   "Returns an infinite lazy sequence that cycles through the elements of collection."
-  {:example "(take 7 (cycle [1 2 3])) # => (1 2 3 1 2 3 1)"
+  {:example "(take 7 (cycle [1 2 3])) ; => (1 2 3 1 2 3 1)"
    :see-also ["iterate" "repeat"]}
   [coll]
   (if (empty? coll)
@@ -1862,7 +1862,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn concat
   "Concatenates multiple collections into a lazy sequence."
-  {:example "(concat [1 2] [3 4]) # => (1 2 3 4)"}
+  {:example "(concat [1 2] [3 4]) ; => (1 2 3 4)"}
   [& colls]
   (if (php/=== nil colls)
     '()
@@ -1880,7 +1880,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   Applies `f` to each element of the collection, where `f` should return a collection.
   All resulting collections are concatenated into a single lazy sequence.
   Works with infinite sequences."
-  {:example "(mapcat reverse [[1 2] [3 4]]) # => (2 1 4 3)"}
+  {:example "(mapcat reverse [[1 2] [3 4]]) ; => (2 1 4 3)"}
   [f coll]
   (if (php/=== nil coll)
     '()
@@ -1895,7 +1895,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
   Inserts `sep` between each element of the collection.
   Works with infinite sequences."
-  {:example "(interpose 0 [1 2 3]) # => (1 0 2 0 3)"}
+  {:example "(interpose 0 [1 2 3]) ; => (1 0 2 0 3)"}
   [sep coll]
   (if (php/=== nil coll)
     '()
@@ -1911,7 +1911,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   Applies `f` to each element in `xs`. `f` is a two-argument function where
   the first argument is the index (0-based) and the second is the element itself.
   Works with infinite sequences."
-  {:example "(map-indexed vector [:a :b :c]) # => ([0 :a] [1 :b] [2 :c])"}
+  {:example "(map-indexed vector [:a :b :c]) ; => ([0 :a] [1 :b] [2 :c])"}
   [f coll]
   (if (php/=== nil coll)
     '()
@@ -1928,7 +1928,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   Returns elements by taking one from each collection in turn.
   Pads with nil when collections have different lengths.
   Works with infinite sequences."
-  {:example "(interleave [1 2 3] [:a :b :c]) # => (1 :a 2 :b 3 :c)"}
+  {:example "(interleave [1 2 3] [:a :b :c]) ; => (1 :a 2 :b 3 :c)"}
   [& colls]
   (if (php/=== nil colls)
     '()
@@ -1942,7 +1942,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn doall
   "Forces realization of a lazy sequence and returns it as a vector."
-  {:example "(doall (map println [1 2 3])) # => [nil nil nil]"}
+  {:example "(doall (map println [1 2 3])) ; => [nil nil nil]"}
   [coll]
   (if (php/instanceof coll LazySeqInterface)
     (let [arr (php/-> coll (toArray))]
@@ -1953,7 +1953,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn dorun
   "Forces realization of a lazy sequence for side effects, returns nil."
-  {:example "(dorun (map println [1 2 3])) # => nil"}
+  {:example "(dorun (map println [1 2 3])) ; => nil"}
   [coll]
   (if (php/instanceof coll LazySeqInterface)
     (do
@@ -1963,7 +1963,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn realized?
   "Returns true if a lazy sequence has been realized, false otherwise."
-  {:example "(realized? (take 5 (iterate inc 1))) # => false"}
+  {:example "(realized? (take 5 (iterate inc 1))) ; => false"}
   [coll]
   (if (php/instanceof coll LazySeqInterface)
     (php/-> coll (isRealized))
@@ -1971,7 +1971,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn group-by
   "Returns a map of the elements of coll keyed by the result of `f` on each element."
-  {:example "(group-by count [\"a\" \"bb\" \"c\" \"ddd\" \"ee\"]) # => {1 [\"a\" \"c\"] 2 [\"bb\" \"ee\"] 3 [\"ddd\"]}"
+  {:example "(group-by count [\"a\" \"bb\" \"c\" \"ddd\" \"ee\"]) ; => {1 [\"a\" \"c\"] 2 [\"bb\" \"ee\"] 3 [\"ddd\"]}"
    :see-also ["partition-by" "frequencies"]}
   [f coll]
   (persistent
@@ -1984,7 +1984,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn zipcoll
   "Creates a map from two sequential data structures. Returns a new map."
-  {:example "(zipcoll [:a :b :c] [1 2 3]) # => {:a 1 :b 2 :c 3}"
+  {:example "(zipcoll [:a :b :c] [1 2 3]) ; => {:a 1 :b 2 :c 3}"
    :see-also ["zipmap" "interleave"]}
   [a b]
   (apply hash-map (interleave a b)))
@@ -1993,7 +1993,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a new map with the keys mapped to the corresponding values.
 
   Stops when the shorter of `keys` or `vals` is exhausted."
-  {:example "(zipmap [:a :b :c] [1 2 3]) # => {:a 1 :b 2 :c 3}"
+  {:example "(zipmap [:a :b :c] [1 2 3]) ; => {:a 1 :b 2 :c 3}"
    :see-also ["zipcoll"]}
   [keys vals]
   (loop [ks keys
@@ -2007,7 +2007,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Merges multiple maps into one new map.
 
   If a key appears in more than one collection, later values replace previous ones."
-  {:example "(merge {:a 1 :b 2} {:b 3 :c 4}) # => {:a 1 :b 3 :c 4}"}
+  {:example "(merge {:a 1 :b 2} {:b 3 :c 4}) ; => {:a 1 :b 3 :c 4}"}
   [& maps]
   (for [map :in maps
         [k v] :pairs map
@@ -2016,7 +2016,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn select-keys
   "Returns a new map including key value pairs from `m` selected with keys `ks`."
-  {:example "(select-keys {:a 1 :b 2 :c 3} [:a :c]) # => {:a 1 :c 3}"
+  {:example "(select-keys {:a 1 :b 2 :c 3} [:a :c]) ; => {:a 1 :c 3}"
    :see-also ["dissoc"]}
   [m ks]
   (let [result (for [[k v] :pairs m
@@ -2029,7 +2029,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Returns a new map where the keys and values are swapped.
 
   If map has duplicated values, some keys will be ignored."
-  {:example "(invert {:a 1 :b 2 :c 3}) # => {1 :a 2 :b 3 :c}"}
+  {:example "(invert {:a 1 :b 2 :c 3}) ; => {1 :a 2 :b 3 :c}"}
   [map]
   (for [[k v] :pairs map
         :reduce [res {}]]
@@ -2037,21 +2037,21 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn split-at
   "Returns a vector of `[(take n coll) (drop n coll)]`."
-  {:example "(split-at 2 [1 2 3 4 5]) # => [[1 2] [3 4 5]]"
+  {:example "(split-at 2 [1 2 3 4 5]) ; => [[1 2] [3 4 5]]"
    :see-also ["split-with" "take" "drop"]}
   [n coll]
   [(take n coll) (drop n coll)])
 
 (defn split-with
   "Returns a vector of `[(take-while pred coll) (drop-while pred coll)]`."
-  {:example "(split-with |(< % 4) [1 2 3 4 5 6]) # => [[1 2 3] [4 5 6]]"
+  {:example "(split-with |(< % 4) [1 2 3 4 5 6]) ; => [[1 2 3] [4 5 6]]"
    :see-also ["split-at" "take-while" "drop-while"]}
   [f coll]
   [(take-while f coll) (drop-while f coll)])
 
 (defn partition-by
   "Returns a lazy sequence of partitions. Applies `f` to each value in `coll`, splitting them each time the return value changes."
-  {:example "(partition-by |(< % 3) [1 2 3 4 5 1 2]) # => [[1 2] [3 4 5] [1 2]]"
+  {:example "(partition-by |(< % 3) [1 2 3 4 5 1 2]) ; => [[1 2] [3 4 5] [1 2]]"
    :see-also ["group-by" "partition"]}
   [f coll]
   (cond
@@ -2061,7 +2061,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn dedupe
   "Returns a lazy sequence with consecutive duplicate values removed in `coll`."
-  {:example "(dedupe [1 1 2 2 2 3 1 1]) # => (1 2 3 1)"
+  {:example "(dedupe [1 1 2 2 2 3 1 1]) ; => (1 2 3 1)"
    :see-also ["distinct"]}
   [coll]
   (cond
@@ -2072,7 +2072,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 (defn compact
   "Returns a lazy sequence with specified values removed from `coll`.
   If no values are specified, removes nil values by default."
-  {:example "(compact [1 nil 2 nil 3]) # => (1 2 3)"}
+  {:example "(compact [1 nil 2 nil 3]) ; => (1 2 3)"}
   [coll & values]
   (cond
     (nil? coll) []
@@ -2084,7 +2084,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn partition
   "Partitions collection into chunks of size n, dropping incomplete final partition."
-  {:example "(partition 3 [1 2 3 4 5 6 7]) # => ([1 2 3] [4 5 6])"}
+  {:example "(partition 3 [1 2 3 4 5 6 7]) ; => ([1 2 3] [4 5 6])"}
   [n coll]
   (let [result (lazy-seq-from-generator
                 (php/call_user_func_array
@@ -2096,7 +2096,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn partition-all
   "Partitions collection into chunks of size n, including incomplete final partition."
-  {:example "(partition-all 3 [1 2 3 4 5 6 7]) # => ([1 2 3] [4 5 6] [7])"}
+  {:example "(partition-all 3 [1 2 3 4 5 6 7]) ; => ([1 2 3] [4 5 6] [7])"}
   [n coll]
   (let [result (lazy-seq-from-generator
                 (php/call_user_func_array
@@ -2241,11 +2241,8 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
         (with-meta root (persistent ret))))))
 
 (defn flatten
-  "Flattens nested sequential structure into a lazy sequence of all leaf values.
-
-  Example:
-    (flatten [[1 2] [3 [4 5]] 6])
-    # => (1 2 3 4 5 6)"
+  "Flattens nested sequential structure into a lazy sequence of all leaf values."
+  {:example "(flatten [[1 2] [3 [4 5]] 6]) ; => (1 2 3 4 5 6)"}
   [coll]
   (filter
    (complement indexed?)
@@ -2618,7 +2615,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 
 (defn slurp
   "Reads entire file or URL into a string."
-  {:example "(slurp \"file.txt\") # => \"file contents\""}
+  {:example "(slurp \"file.txt\") ; => \"file contents\""}
   [path & [opts]]
   (let [is-url? (php/preg_match "/^(https?|ftp):\/\//i" path)]
     # Validate for non-URLs
@@ -2661,7 +2658,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 
 (defn line-seq
   "Returns a lazy sequence of lines from a file."
-  {:example "(take 10 (line-seq \"large-file.txt\")) # => [\"line1\" \"line2\" ...]"}
+  {:example "(take 10 (line-seq \"large-file.txt\")) ; => [\"line1\" \"line2\" ...]"}
   [filename]
   (let [result (lazy-seq-from-generator
                 (php/call_user_func_array
@@ -2673,7 +2670,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 
 (defn file-seq
   "Returns a lazy sequence of all files and directories in a directory tree."
-  {:example "(filter |(php/str_ends_with $ \".phel\") (file-seq \"src/\")) # => [\"src/file1.phel\" \"src/file2.phel\" ...]"}
+  {:example "(filter |(php/str_ends_with $ \".phel\") (file-seq \"src/\")) ; => [\"src/file1.phel\" \"src/file2.phel\" ...]"}
   [path]
   (let [result (lazy-seq-from-generator
                 (php/call_user_func_array
@@ -2685,7 +2682,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 
 (defn read-file-lazy
   "Returns a lazy sequence of byte chunks from a file."
-  {:example "(take 5 (read-file-lazy \"large-file.bin\" 1024)) # => [\"chunk1\" \"chunk2\" ...]"}
+  {:example "(take 5 (read-file-lazy \"large-file.bin\" 1024)) ; => [\"chunk1\" \"chunk2\" ...]"}
   ([filename]
    (read-file-lazy filename 8192))
   ([filename chunk-size]
@@ -2699,7 +2696,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 
 (defn csv-seq
   "Returns a lazy sequence of rows from a CSV file."
-  {:example "(take 10 (csv-seq \"data.csv\")) # => [[\"col1\" \"col2\"] [\"val1\" \"val2\"] ...]"}
+  {:example "(take 10 (csv-seq \"data.csv\")) ; => [[\"col1\" \"col2\"] [\"val1\" \"val2\"] ...]"}
   ([filename]
    (csv-seq filename {}))
   ([filename options]
