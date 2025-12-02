@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Add `compact` function for removing nil values
+- Add persistent namespace cache with mtime invalidation for ~99% faster warm runs
 
 ### Changed
 - Standardize docblock examples with triple backtick code fencing for better IDE rendering and syntax highlighting
