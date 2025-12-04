@@ -128,4 +128,14 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
             ->getCommandFacade()
             ->writeStackTrace($output, $e);
     }
+
+    /**
+     * @return list<string> List of cleared paths
+     */
+    public function clearCache(): array
+    {
+        return $this->getFactory()
+            ->createCacheClearer()
+            ->clearAll();
+    }
 }

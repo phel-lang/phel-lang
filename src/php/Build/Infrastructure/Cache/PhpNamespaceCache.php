@@ -21,13 +21,13 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
 
     private bool $shutdownRegistered = false;
 
-    /**
-     * @param array<string, NamespaceCacheEntry> $entries
-     */
+    /** @var array<string, NamespaceCacheEntry> */
+    private array $entries;
+
     public function __construct(
         private readonly string $cacheFile,
-        private array $entries = [],
     ) {
+        $this->entries = $this->loadEntriesFromFile();
     }
 
     public function get(string $file): ?NamespaceCacheEntry
@@ -114,33 +114,6 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
         if (file_exists($this->cacheFile)) {
             @unlink($this->cacheFile);
         }
-    }
-
-    public static function load(string $cacheFile): self
-    {
-        if (!file_exists($cacheFile)) {
-            return new self($cacheFile);
-        }
-
-        $data = @include $cacheFile;
-        if (!is_array($data) || !isset($data['version']) || $data['version'] !== self::VERSION) {
-            return new self($cacheFile);
-        }
-
-        $entries = [];
-        foreach ($data['entries'] ?? [] as $file => $entryData) {
-            if (is_array($entryData)
-                && isset($entryData['mtime'], $entryData['namespace'], $entryData['dependencies'])
-                && is_int($entryData['mtime'])
-                && is_string($entryData['namespace'])
-                && is_array($entryData['dependencies'])
-            ) {
-                /** @var array{mtime: int, namespace: string, dependencies: list<string>} $entryData */
-                $entries[$file] = NamespaceCacheEntry::fromArray($file, $entryData);
-            }
-        }
-
-        return new self($cacheFile, $entries);
     }
 
     /**

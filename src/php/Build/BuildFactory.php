@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Build;
 
 use Gacela\Framework\AbstractFactory;
+use Phel\Build\Application\CacheClearer;
 use Phel\Build\Application\CachedNamespaceExtractor;
 use Phel\Build\Application\DependenciesForNamespace;
 use Phel\Build\Application\FileCompiler;
@@ -30,8 +31,6 @@ use Phel\Shared\Facade\CompilerFacadeInterface;
  */
 final class BuildFactory extends AbstractFactory
 {
-    private static ?NamespaceCacheInterface $namespaceCache = null;
-
     public function createProjectCompiler(): ProjectCompiler
     {
         return new ProjectCompiler(
@@ -87,18 +86,12 @@ final class BuildFactory extends AbstractFactory
         );
     }
 
-    public function createNamespaceCache(): NamespaceCacheInterface
+    public function createCacheClearer(): CacheClearer
     {
-        if (!self::$namespaceCache instanceof NamespaceCacheInterface) {
-            self::$namespaceCache = PhpNamespaceCache::load($this->getConfig()->getNamespaceCacheFile());
-        }
-
-        return self::$namespaceCache;
-    }
-
-    public static function clearNamespaceCacheInstance(): void
-    {
-        self::$namespaceCache = null;
+        return new CacheClearer(
+            $this->getConfig()->getTempDir(),
+            $this->getConfig()->getCacheDir(),
+        );
     }
 
     public function getCompilerFacade(): CompilerFacadeInterface
@@ -109,6 +102,11 @@ final class BuildFactory extends AbstractFactory
     public function getCommandFacade(): CommandFacadeInterface
     {
         return $this->getProvidedDependency(BuildProvider::FACADE_COMMAND);
+    }
+
+    private function createNamespaceCache(): NamespaceCacheInterface
+    {
+        return new PhpNamespaceCache($this->getConfig()->getNamespaceCacheFile());
     }
 
     private function createMainPhpEntryPointFile(): EntryPointPhpFileInterface
