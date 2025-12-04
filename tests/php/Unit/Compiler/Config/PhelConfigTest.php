@@ -38,6 +38,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::FORMAT_DIRS => ['src', 'tests'],
             PhelConfig::ASSERTS_ENABLED => true,
             PhelConfig::ENABLE_NAMESPACE_CACHE => true,
+            PhelConfig::CACHE_DIR => 'cache',
         ];
 
         self::assertSame($expected, $config->jsonSerialize());
@@ -62,7 +63,8 @@ final class PhelConfigTest extends TestCase
             ->setKeepGeneratedTempFiles(true)
             ->setTempDir('/tmp/custom')
             ->setFormatDirs(['src', 'tests', 'phel'])
-            ->setEnableAsserts(false);
+            ->setEnableAsserts(false)
+            ->setCacheDir('.cache');
 
         $expected = [
             PhelConfig::SRC_DIRS => ['some/directory'],
@@ -87,6 +89,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::FORMAT_DIRS => ['src', 'tests', 'phel'],
             PhelConfig::ASSERTS_ENABLED => false,
             PhelConfig::ENABLE_NAMESPACE_CACHE => true,
+            PhelConfig::CACHE_DIR => '.cache',
         ];
 
         self::assertSame($expected, $config->jsonSerialize());

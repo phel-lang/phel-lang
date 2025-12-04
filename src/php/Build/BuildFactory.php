@@ -20,7 +20,7 @@ use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Domain\IO\FileIoInterface;
-use Phel\Build\Infrastructure\Cache\JsonNamespaceCache;
+use Phel\Build\Infrastructure\Cache\PhpNamespaceCache;
 use Phel\Build\Infrastructure\IO\SystemFileIo;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
@@ -90,7 +90,7 @@ final class BuildFactory extends AbstractFactory
     public function createNamespaceCache(): NamespaceCacheInterface
     {
         if (!self::$namespaceCache instanceof NamespaceCacheInterface) {
-            self::$namespaceCache = JsonNamespaceCache::load($this->getConfig()->getNamespaceCacheFile());
+            self::$namespaceCache = PhpNamespaceCache::load($this->getConfig()->getNamespaceCacheFile());
         }
 
         return self::$namespaceCache;

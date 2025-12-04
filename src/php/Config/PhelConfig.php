@@ -34,6 +34,8 @@ final class PhelConfig implements JsonSerializable
 
     public const string ENABLE_NAMESPACE_CACHE = 'enable-namespace-cache';
 
+    public const string CACHE_DIR = 'cache-dir';
+
     /** @var list<string> */
     private array $srcDirs = ['src'];
 
@@ -58,6 +60,8 @@ final class PhelConfig implements JsonSerializable
 
     private string $tempDir;
 
+    private string $cacheDir;
+
     /** @var list<string> */
     private array $formatDirs = ['src', 'tests'];
 
@@ -69,7 +73,8 @@ final class PhelConfig implements JsonSerializable
     {
         $this->exportConfig = new PhelExportConfig();
         $this->buildConfig = new PhelBuildConfig();
-        $this->tempDir = sys_get_temp_dir() . '/phel';
+        $this->tempDir = sys_get_temp_dir() . '/phel/tmp';
+        $this->cacheDir = sys_get_temp_dir() . '/phel/cache';
     }
 
     /**
@@ -185,6 +190,13 @@ final class PhelConfig implements JsonSerializable
         return $this;
     }
 
+    public function setCacheDir(string $dir): self
+    {
+        $this->cacheDir = rtrim($dir, DIRECTORY_SEPARATOR);
+
+        return $this;
+    }
+
     public function jsonSerialize(): array
     {
         return [
@@ -201,6 +213,7 @@ final class PhelConfig implements JsonSerializable
             self::FORMAT_DIRS => $this->formatDirs,
             self::ASSERTS_ENABLED => $this->enableAsserts,
             self::ENABLE_NAMESPACE_CACHE => $this->enableNamespaceCache,
+            self::CACHE_DIR => $this->cacheDir,
         ];
     }
 }
