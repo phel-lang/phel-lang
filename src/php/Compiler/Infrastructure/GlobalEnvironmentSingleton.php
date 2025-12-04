@@ -26,6 +26,20 @@ final class GlobalEnvironmentSingleton
     }
 
     /**
+     * Ensures the GlobalEnvironment is initialized.
+     * If already initialized, returns the existing instance.
+     * If not, initializes a new one (which clears the Phel registry).
+     */
+    public static function ensureInitialized(): GlobalEnvironmentInterface
+    {
+        if (self::$instance instanceof GlobalEnvironmentInterface) {
+            return self::$instance;
+        }
+
+        return self::initializeNew();
+    }
+
+    /**
      * @throws GlobalEnvironmentNotInitializedException
      */
     public static function getInstance(): GlobalEnvironmentInterface

@@ -14,8 +14,6 @@ use RecursiveIteratorIterator;
 use RegexIterator;
 use UnexpectedValueException;
 
-use function in_array;
-
 final readonly class CachedNamespaceExtractor implements NamespaceExtractorInterface
 {
     public function __construct(
@@ -51,14 +49,6 @@ final readonly class CachedNamespaceExtractor implements NamespaceExtractorInter
     public function getNamespacesFromDirectories(array $directories): array
     {
         $allFiles = $this->findAllPhelFiles($directories);
-        $cachedFiles = $this->cache->getAllFiles();
-
-        // Prune deleted files from cache
-        foreach ($cachedFiles as $cachedFile) {
-            if (!in_array($cachedFile, $allFiles, true)) {
-                $this->cache->remove($cachedFile);
-            }
-        }
 
         /** @var array<string, NamespaceInformation> $namespaces */
         $namespaces = [];
