@@ -18,6 +18,7 @@ return RectorConfig::configure()
         __DIR__ . '/tests/php',
     ])
     ->withSkip([
+        __DIR__ . '/**/namespace-cache.php',
         __DIR__ . '/tests/php/*/out/*',
         __DIR__ . '/tests/php/*/PhelGenerated/*',
         __DIR__ . '/tests/php/*/gacela-class-names.php',
