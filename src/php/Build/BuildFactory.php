@@ -5,18 +5,23 @@ declare(strict_types=1);
 namespace Phel\Build;
 
 use Gacela\Framework\AbstractFactory;
+use Phel\Build\Application\CacheClearer;
+use Phel\Build\Application\CachedNamespaceExtractor;
 use Phel\Build\Application\DependenciesForNamespace;
 use Phel\Build\Application\FileCompiler;
 use Phel\Build\Application\FileEvaluator;
 use Phel\Build\Application\NamespaceExtractor;
 use Phel\Build\Application\ProjectCompiler;
+use Phel\Build\Domain\Cache\NamespaceCacheInterface;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFile;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
 use Phel\Build\Domain\Compile\Output\NamespacePathTransformer;
+use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Domain\IO\FileIoInterface;
+use Phel\Build\Infrastructure\Cache\PhpNamespaceCache;
 use Phel\Build\Infrastructure\IO\SystemFileIo;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
@@ -62,12 +67,30 @@ final class BuildFactory extends AbstractFactory
         );
     }
 
-    public function createNamespaceExtractor(): NamespaceExtractor
+    public function createNamespaceExtractor(): NamespaceExtractorInterface
     {
-        return new NamespaceExtractor(
+        $innerExtractor = new NamespaceExtractor(
             $this->getCompilerFacade(),
             $this->createNamespaceSorter(),
             $this->createFileIo(),
+        );
+
+        if (!$this->getConfig()->isNamespaceCacheEnabled()) {
+            return $innerExtractor;
+        }
+
+        return new CachedNamespaceExtractor(
+            $innerExtractor,
+            $this->createNamespaceCache(),
+            $this->createNamespaceSorter(),
+        );
+    }
+
+    public function createCacheClearer(): CacheClearer
+    {
+        return new CacheClearer(
+            $this->getConfig()->getTempDir(),
+            $this->getConfig()->getCacheDir(),
         );
     }
 
@@ -79,6 +102,11 @@ final class BuildFactory extends AbstractFactory
     public function getCommandFacade(): CommandFacadeInterface
     {
         return $this->getProvidedDependency(BuildProvider::FACADE_COMMAND);
+    }
+
+    private function createNamespaceCache(): NamespaceCacheInterface
+    {
+        return new PhpNamespaceCache($this->getConfig()->getNamespaceCacheFile());
     }
 
     private function createMainPhpEntryPointFile(): EntryPointPhpFileInterface

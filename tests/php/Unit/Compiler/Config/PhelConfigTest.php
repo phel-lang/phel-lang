@@ -34,9 +34,11 @@ final class PhelConfigTest extends TestCase
             PhelConfig::IGNORE_WHEN_BUILDING => ['ignore-when-building.phel'],
             PhelConfig::NO_CACHE_WHEN_BUILDING => [],
             PhelConfig::KEEP_GENERATED_TEMP_FILES => false,
-            PhelConfig::TEMP_DIR => sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'phel',
+            PhelConfig::TEMP_DIR => sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'phel/tmp',
             PhelConfig::FORMAT_DIRS => ['src', 'tests'],
             PhelConfig::ASSERTS_ENABLED => true,
+            PhelConfig::ENABLE_NAMESPACE_CACHE => true,
+            PhelConfig::CACHE_DIR => sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'phel/cache',
         ];
 
         self::assertSame($expected, $config->jsonSerialize());
@@ -61,7 +63,8 @@ final class PhelConfigTest extends TestCase
             ->setKeepGeneratedTempFiles(true)
             ->setTempDir('/tmp/custom')
             ->setFormatDirs(['src', 'tests', 'phel'])
-            ->setEnableAsserts(false);
+            ->setEnableAsserts(false)
+            ->setCacheDir('.cache');
 
         $expected = [
             PhelConfig::SRC_DIRS => ['some/directory'],
@@ -85,6 +88,8 @@ final class PhelConfigTest extends TestCase
             PhelConfig::TEMP_DIR => '/tmp/custom',
             PhelConfig::FORMAT_DIRS => ['src', 'tests', 'phel'],
             PhelConfig::ASSERTS_ENABLED => false,
+            PhelConfig::ENABLE_NAMESPACE_CACHE => true,
+            PhelConfig::CACHE_DIR => '.cache',
         ];
 
         self::assertSame($expected, $config->jsonSerialize());

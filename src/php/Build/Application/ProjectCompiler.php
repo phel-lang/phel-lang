@@ -12,6 +12,7 @@ use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
+use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use RuntimeException;
@@ -55,6 +56,11 @@ final readonly class ProjectCompiler
      */
     private function compileFromTo(array $srcDirectories, string $dest, BuildOptions $buildOptions): array
     {
+        // Initialize the GlobalEnvironment before loading cached files.
+        // This ensures Phel::clear() is called before any definitions are registered,
+        // preventing definitions from being lost when compilation is triggered later.
+        GlobalEnvironmentSingleton::ensureInitialized();
+
         $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($srcDirectories);
         /** @var list<CompiledFile> $result */
         $result = [];
