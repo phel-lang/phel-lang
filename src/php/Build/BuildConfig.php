@@ -35,4 +35,31 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
     {
         return PhelBuildConfig::fromArray((array)$this->get('out', []));
     }
+
+    public function isNamespaceCacheEnabled(): bool
+    {
+        return (bool)$this->get(PhelConfig::ENABLE_NAMESPACE_CACHE, true);
+    }
+
+    public function getTempDir(): string
+    {
+        return (string)$this->get(PhelConfig::TEMP_DIR, sys_get_temp_dir() . '/phel');
+    }
+
+    public function getCacheDir(): string
+    {
+        $cacheDir = (string)$this->get(PhelConfig::CACHE_DIR, 'cache');
+
+        // If absolute path, use as-is; otherwise relative to app root
+        if (str_starts_with($cacheDir, '/') || str_starts_with($cacheDir, 'phar://')) {
+            return $cacheDir;
+        }
+
+        return $this->getAppRootDir() . '/' . $cacheDir;
+    }
+
+    public function getNamespaceCacheFile(): string
+    {
+        return $this->getCacheDir() . '/namespace-cache.php';
+    }
 }

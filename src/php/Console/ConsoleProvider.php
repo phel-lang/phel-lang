@@ -9,6 +9,7 @@ use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Container\Container;
 use Phel\Api\Infrastructure\Command\DocCommand;
 use Phel\Build\Infrastructure\Command\BuildCommand;
+use Phel\Build\Infrastructure\Command\CacheClearCommand;
 use Phel\Console\Application\VersionFinder;
 use Phel\Filesystem\FilesystemFacade;
 use Phel\Formatter\Infrastructure\Command\FormatCommand;
@@ -59,6 +60,7 @@ final class ConsoleProvider extends AbstractProvider
             new TestCommand(),
             new DocCommand(),
             new BuildCommand(),
+            new CacheClearCommand(),
             new DoctorCommand(),
         ]);
     }

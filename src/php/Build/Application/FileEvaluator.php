@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Build\Application;
 
 use Phel\Build\Domain\Compile\CompiledFile;
+use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use RuntimeException;
@@ -15,7 +16,7 @@ final readonly class FileEvaluator
 {
     public function __construct(
         private CompilerFacadeInterface $compilerFacade,
-        private NamespaceExtractor $namespaceExtractor,
+        private NamespaceExtractorInterface $namespaceExtractor,
     ) {
     }
 
