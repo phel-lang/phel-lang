@@ -66,7 +66,19 @@ use Phel\Console\ConsoleFacade;
     // We re-register with prepend=false to ensure PHAR's loader has priority.
     if ($runningInPhar) {
         $hostAutoload = $appRootDir . '/vendor/autoload.php';
-        if (is_file($hostAutoload)) {
+        $hostAutoloadReal = $appRootDir . '/vendor/composer/autoload_real.php';
+
+        // Only load if the host has a different autoloader than the PHAR's bundled one.
+        // This prevents "class already declared" errors when running from the phel-lang directory.
+        $shouldLoadHostAutoloader = false;
+        if (is_file($hostAutoload) && is_file($hostAutoloadReal)) {
+            $autoloadRealContent = file_get_contents($hostAutoloadReal);
+            if (preg_match('/class\s+(ComposerAutoloaderInit[a-f0-9]+)/', $autoloadRealContent, $matches)) {
+                $shouldLoadHostAutoloader = !class_exists($matches[1], false);
+            }
+        }
+
+        if ($shouldLoadHostAutoloader) {
             /** @var \Composer\Autoload\ClassLoader $hostLoader */
             $hostLoader = require $hostAutoload;
             // Host's autoloader was registered with prepend=true by Composer.
