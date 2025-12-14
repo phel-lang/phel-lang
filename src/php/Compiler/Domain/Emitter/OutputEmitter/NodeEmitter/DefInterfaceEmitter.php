@@ -33,6 +33,10 @@ final class DefInterfaceEmitter implements NodeEmitterInterface
             );
         }
 
+        $fqcn = $this->outputEmitter->mungeEncodeNs($node->getNamespace())
+            . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
+        $this->outputEmitter->emitLine("if (!interface_exists('" . $fqcn . "')) {", $node->getStartSourceLocation());
+
         $this->outputEmitter->emitLine(
             'interface ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' {',
             $node->getStartSourceLocation(),
@@ -71,6 +75,7 @@ final class DefInterfaceEmitter implements NodeEmitterInterface
     private function emitClassEnd(DefInterfaceNode $node): void
     {
         $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
         $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
     }
 }

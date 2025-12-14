@@ -8,9 +8,11 @@
   (foo-bar [this] v)
   (bar [this a b] (+ a b v)))
 --PHP--
+if (!interface_exists('user\MyInterface')) {
 interface MyInterface {
   public function foo_bar();
   public function bar($a, $b);
+}
 }
 if (!class_exists('user\my_type_with_one_interface')) {
 class my_type_with_one_interface extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct implements \user\MyInterface {

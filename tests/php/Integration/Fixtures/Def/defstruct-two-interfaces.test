@@ -13,12 +13,16 @@
   MySecondInterface
   (foobar [this] (php/-> this (foo))))
 --PHP--
+if (!interface_exists('user\MyFirstInterface')) {
 interface MyFirstInterface {
   public function foo();
   public function bar($a, $b);
 }
+}
+if (!interface_exists('user\MySecondInterface')) {
 interface MySecondInterface {
   public function foobar();
+}
 }
 if (!class_exists('user\my_type_with_two_interfaces')) {
 class my_type_with_two_interfaces extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct implements \user\MyFirstInterface, \user\MySecondInterface {
