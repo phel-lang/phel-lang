@@ -30,6 +30,8 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
 
     public const string NAME_NS = 'ns';
 
+    public const string NAME_CONJ = 'conj';
+
     public const string NAME_PHP_ARRAY_GET = 'php/aget';
 
     public const string NAME_PHP_ARRAY_PUSH = 'php/apush';
@@ -63,6 +65,10 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
     public const string NAME_THROW = 'throw';
 
     public const string NAME_TRY = 'try';
+
+    public const string NAME_CATCH = 'catch';
+
+    public const string NAME_FINALLY = 'finally';
 
     public const string NAME_PHP_OBJECT_SET = 'php/oset';
 

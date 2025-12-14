@@ -46,7 +46,7 @@
   "\\phel\\core")
 
 (def *file*
-  {:doc "Returns the path to the current source file."}
+  {:doc "Returns the path of the current source file."}
   "")
 
 # --------------------------------------------
@@ -54,19 +54,19 @@
 # --------------------------------------------
 
 (def list
-  {:doc "Creates a new list from the given arguments. Shortcut: '()"
-   :example "(list 1 2 3) ; => (1 2 3)"}
+  {:doc "Creates a new list. If no argument is provided, an empty list is created. Shortcut: '()"
+   :example "(list 1 2 3) ; => '(1 2 3)"}
   (fn [& xs]
     (php/:: Phel (list (apply php/array xs)))))
 
 (def vector
-  {:doc "Creates a new vector from the given arguments. Shortcut: []"
+  {:doc "Creates a new vector. If no argument is provided, an empty vector is created. Shortcut: []"
    :example "(vector 1 2 3) ; => [1 2 3]"}
   (fn [& xs]
     (php/:: Phel (vector (apply php/array xs)))))
 
 (def hash-map
-  {:doc "Creates a new hash map from key-value pairs. Shortcut: {}"
+  {:doc "Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even. Shortcut: {}"
    :example "(hash-map :a 1 :b 2) ; => {:a 1 :b 2}"}
   (fn [& xs]
     (php/:: Phel (map (apply php/array xs)))))
@@ -259,7 +259,7 @@
   (apply defn-builder name {:macro true :private true} fdecl))
 
 (defmacro defstruct
-  "Define a new struct."
+  "A Struct is a special kind of Map. It only supports a predefined number of keys and is associated to a global name. The Struct not only defines itself but also a predicate function."
   [name keys & implementations]
   (let [name-str (php/-> name (getName))
         munge (php/new Munge)
@@ -934,9 +934,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 
 (defn push
-  "Inserts `x` at the end of the sequence `coll`.
-
-  Deprecated: Use `conj` instead for Clojure compatibility."
+  "Inserts `x` at the end of the sequence `coll`."
   {:deprecated "0.25.0"
    :superseded-by "conj"}
   [coll x]
@@ -1008,9 +1006,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
       ds)))
 
 (defn put
-  "Puts `value` mapped to `key` on the datastructure `ds`. Returns `ds`.
-
-  Deprecated: Use `assoc` instead."
+  "Puts `value` mapped to `key` on the datastructure `ds`. Returns `ds`."
   {:deprecated "0.25.0"
    :superseded-by "assoc"}
   [ds key value]
@@ -1035,9 +1031,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
       x)))
 
 (defn unset
-  "Returns `ds` without `key`.
-
-  Deprecated: Use `dissoc` instead."
+  "Returns `ds` without `key`."
   {:deprecated "0.25.0"
    :superseded-by "dissoc"}
   [ds key]
@@ -1050,7 +1044,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 (defn var
   "Creates a new variable with the given value.
 
-  Variables provide mutable state that can be updated with `set!` and `swap!`."
+  Variables provide a way to manage mutable state that can be updated with `set!` and `swap!`. Each variable contains a single value. To create a variable use the var function."
   {:example "(def counter (var 0))"
    :see-also ["set!" "deref" "swap!"]}
   [value]
@@ -1412,9 +1406,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     (assoc ds k v)))
 
 (defn put-in
-  "Puts a value into a nested data structure.
-
-  Deprecated: Use `assoc-in` instead."
+  "Puts a value into a nested data structure."
   {:deprecated "0.25.0"
    :superseded-by "assoc-in"}
   [ds ks v]
@@ -1450,9 +1442,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     (dissoc ds k)))
 
 (defn unset-in
-  "Removes a value from a nested data structure.
-
-  Deprecated: Use `dissoc-in` instead."
+  "Removes a value from a nested data structure."
   {:deprecated "0.25.0"
    :superseded-by "dissoc-in"}
   [ds ks]
@@ -2187,8 +2177,8 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   |(not (apply f $&)))
 
 (defn juxt
-  "Takes a list of functions and returns a new function that is the juxtaposition of those functions.
-  `((juxt a b c) x) => [(a x) (b x) (c x)]`."
+  "Takes a list of functions and returns a new function that is the juxtaposition of those functions."
+  {:example "((juxt a b c) x) => [(a x) (b x) (c x)]"}
   [& fs]
   (fn [& args]
     (reduce
@@ -2644,7 +2634,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 (defn spit
   "Writes data to file, returning number of bytest that were written or `nil`
   on failure. Accepts `opts` map for overriding default PHP file_put_contents
-  arguments, as example to append to file use {:flags php/FILE_APPEND}.
+  arguments, as example to append to file use `{:flags php/FILE_APPEND}`.
+
   See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-contents.php) for more information."
   [filename data & [opts]]
   (when (php/is_dir filename)
@@ -2859,7 +2850,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 # ----------
 
 (defmacro definterface
-  "Defines an interface."
+  "An interface in Phel defines an abstract set of functions. It is directly mapped to a PHP interface. An interface can be defined by using the definterface macro."
+  {:example "(definterface name & fns)"}
   [name & fns]
   (let [name-str (php/-> name (getName))
         munge (php/new Munge)
