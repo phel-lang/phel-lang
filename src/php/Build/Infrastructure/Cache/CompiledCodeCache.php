@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Infrastructure\Cache;
 
+use function count;
 use function function_exists;
 use function is_array;
 use function is_string;
@@ -15,13 +16,15 @@ final class CompiledCodeCache
 {
     private const string VERSION = '1.0';
 
-    /** @var array<string, array{source_hash: string, compiled_path: string}> */
+    /** @var array<string, array{source_hash: string, compiled_path: string, last_accessed: int}> */
     private array $entries = [];
 
     private bool $loaded = false;
 
     public function __construct(
         private readonly string $cacheDir,
+        private readonly string $phelVersion = '',
+        private readonly int $maxEntries = 500,
     ) {
     }
 
@@ -52,6 +55,9 @@ final class CompiledCodeCache
             return null;
         }
 
+        // Update last_accessed timestamp for LRU tracking
+        $this->entries[$namespace]['last_accessed'] = time();
+
         return $entry['compiled_path'];
     }
 
@@ -73,14 +79,25 @@ final class CompiledCodeCache
         // relies on PHP's implicit type coercion (e.g., float to int for str_repeat).
         $fullPhpCode = "<?php\n" . $phpCode;
 
-        if (file_put_contents($compiledPath, $fullPhpCode) === false) {
+        // Use atomic write: write to temp file then rename (atomic on POSIX)
+        $tempPath = $compiledPath . '.tmp.' . uniqid('', true);
+        if (file_put_contents($tempPath, $fullPhpCode) === false) {
+            return;
+        }
+
+        if (!rename($tempPath, $compiledPath)) {
+            @unlink($tempPath);
             return;
         }
 
         $this->entries[$namespace] = [
             'source_hash' => $sourceHash,
             'compiled_path' => $compiledPath,
+            'last_accessed' => time(),
         ];
+
+        // Evict LRU entries if we exceed max capacity
+        $this->evictLRU();
 
         $this->saveEntries();
 
@@ -138,6 +155,15 @@ final class CompiledCodeCache
         $this->saveEntries();
     }
 
+    /**
+     * Returns the cache version string combining internal format version and Phel version.
+     * This ensures cache is invalidated when either changes.
+     */
+    private function getCacheVersion(): string
+    {
+        return self::VERSION . ':' . $this->phelVersion;
+    }
+
     private function loadEntries(): void
     {
         if ($this->loaded) {
@@ -152,7 +178,7 @@ final class CompiledCodeCache
         }
 
         $data = @include $indexFile;
-        if (!is_array($data) || !isset($data['version']) || $data['version'] !== self::VERSION) {
+        if (!is_array($data) || !isset($data['version']) || $data['version'] !== $this->getCacheVersion()) {
             $this->entries = [];
             $this->loaded = true;
             return;
@@ -168,6 +194,7 @@ final class CompiledCodeCache
                 $entries[$namespace] = [
                     'source_hash' => $entryData['source_hash'],
                     'compiled_path' => $entryData['compiled_path'],
+                    'last_accessed' => $entryData['last_accessed'] ?? time(),
                 ];
             }
         }
@@ -200,7 +227,7 @@ final class CompiledCodeCache
             ftruncate($handle, 0);
             rewind($handle);
             $content = '<?php return ' . var_export([
-                'version' => self::VERSION,
+                'version' => $this->getCacheVersion(),
                 'entries' => $this->entries,
             ], true) . ';';
             fwrite($handle, $content);
@@ -229,6 +256,38 @@ final class CompiledCodeCache
             } finally {
                 umask($oldUmask);
             }
+        }
+    }
+
+    /**
+     * Evicts least recently used entries when cache exceeds max capacity.
+     * Removes approximately 10% of oldest entries to make room for new ones.
+     */
+    private function evictLRU(): void
+    {
+        if (count($this->entries) <= $this->maxEntries) {
+            return;
+        }
+
+        // Sort entries by last_accessed (oldest first)
+        uasort($this->entries, static fn ($a, $b): int => $a['last_accessed'] <=> $b['last_accessed']);
+
+        // Calculate how many to evict (10% of max, minimum 1)
+        $evictCount = max(1, (int) floor($this->maxEntries / 10));
+
+        // Evict oldest entries
+        $evicted = 0;
+        foreach ($this->entries as $namespace => $entry) {
+            if ($evicted >= $evictCount) {
+                break;
+            }
+
+            if (file_exists($entry['compiled_path'])) {
+                @unlink($entry['compiled_path']);
+            }
+
+            unset($this->entries[$namespace]);
+            ++$evicted;
         }
     }
 }
