@@ -68,6 +68,7 @@ final readonly class FileEvaluator
 
             // Execute the cached code to register definitions in GlobalEnvironment
             $cachedPath = $this->compiledCodeCache->getCompiledPath($namespace);
+            /** @psalm-suppress UnresolvableInclude */
             require $cachedPath;
 
             return new CompiledFile($src, $cachedPath, $namespace);
