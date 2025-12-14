@@ -2,6 +2,7 @@
 .claude/
 .phpbench/
 .vscode/
+/cache/
 data/
 out/
 PhelGenerated/
@@ -12,6 +13,9 @@ vendor/
 build/.phar-cache/
 build/out/
 build/workdir/
+
+# Test cache directories
+tests/**/cache/
 
 !PhelGenerated/.gitkeep
 *.cache

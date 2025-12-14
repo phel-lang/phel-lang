@@ -10,6 +10,8 @@ final readonly class OutputEmitterOptions
 
     public const string EMIT_MODE_STATEMENT = 'EMIT_MODE_STATEMENT';
 
+    public const string EMIT_MODE_CACHE = 'EMIT_MODE_CACHE';
+
     public function __construct(
         private string $emitMode = self::EMIT_MODE_STATEMENT,
     ) {
@@ -23,5 +25,10 @@ final readonly class OutputEmitterOptions
     public function isStatementEmitMode(): bool
     {
         return $this->emitMode === self::EMIT_MODE_STATEMENT;
+    }
+
+    public function isCacheEmitMode(): bool
+    {
+        return $this->emitMode === self::EMIT_MODE_CACHE;
     }
 }

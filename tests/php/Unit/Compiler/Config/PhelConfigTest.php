@@ -38,6 +38,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::FORMAT_DIRS => ['src', 'tests'],
             PhelConfig::ASSERTS_ENABLED => true,
             PhelConfig::ENABLE_NAMESPACE_CACHE => true,
+            PhelConfig::ENABLE_COMPILED_CODE_CACHE => true,
             PhelConfig::CACHE_DIR => sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'phel/cache',
         ];
 
@@ -89,6 +90,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::FORMAT_DIRS => ['src', 'tests', 'phel'],
             PhelConfig::ASSERTS_ENABLED => false,
             PhelConfig::ENABLE_NAMESPACE_CACHE => true,
+            PhelConfig::ENABLE_COMPILED_CODE_CACHE => true,
             PhelConfig::CACHE_DIR => '.cache',
         ];
 

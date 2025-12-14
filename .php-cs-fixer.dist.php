@@ -10,7 +10,7 @@ $finder = Finder::create()
     ->files()
     ->in(__DIR__.'/src/php')
     ->in(__DIR__.'/tests/php')
-    ->exclude(['out', 'PhelGenerated']);
+    ->exclude(['cache', 'out', 'PhelGenerated']);
 
 return (new Config())
     ->setUnsupportedPhpVersionAllowed(true)

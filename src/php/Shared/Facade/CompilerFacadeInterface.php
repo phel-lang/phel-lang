@@ -66,6 +66,19 @@ interface CompilerFacadeInterface
     public function compile(string $phelCode, CompileOptions $compileOptions): EmitterResult;
 
     /**
+     * Compiles the given phel code to PHP code suitable for caching.
+     * Uses statement emit mode (no require_once statements for dependencies).
+     *
+     * @param string         $phelCode       The phel code that should be compiled
+     * @param CompileOptions $compileOptions The compilation options
+     *
+     * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     */
+    public function compileForCache(string $phelCode, CompileOptions $compileOptions): EmitterResult;
+
+    /**
      * @throws LexerValueException
      */
     public function lexString(string $code, string $source = Lexer::DEFAULT_SOURCE, bool $withLocation = true, int $startingLine = 1): TokenStream;

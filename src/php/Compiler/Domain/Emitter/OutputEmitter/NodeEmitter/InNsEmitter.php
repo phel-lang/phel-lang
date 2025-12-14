@@ -23,12 +23,12 @@ final class InNsEmitter implements NodeEmitterInterface
 
         // Set the namespace in the global environment
         $this->outputEmitter->emitLine(
-            GlobalEnvironmentSingleton::class . '::getInstance()->setNs("' . addslashes($node->getNamespace()) . '");',
+            '\\' . GlobalEnvironmentSingleton::class . '::getInstance()->setNs("' . addslashes($node->getNamespace()) . '");',
             $node->getStartSourceLocation(),
         );
 
         // Update *file* definition to ensure subsequent loads resolve relative paths correctly
-        $this->outputEmitter->emitLine(Phel::class . '::addDefinition(');
+        $this->outputEmitter->emitLine('\\' . Phel::class . '::addDefinition(');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitStr('"');
         $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\core')));
@@ -44,7 +44,7 @@ final class InNsEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine(');');
 
         // Update *ns* definition
-        $this->outputEmitter->emitLine(Phel::class . '::addDefinition(');
+        $this->outputEmitter->emitLine('\\' . Phel::class . '::addDefinition(');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitStr('"');
         $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\core')));
