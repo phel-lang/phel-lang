@@ -66,11 +66,11 @@ final readonly class FileEvaluator
             $result = $this->compilerFacade->compileForCache($code, $options);
             $this->compiledCodeCache->put($namespace, $sourceHash, $result->getPhpCode());
 
-            return new CompiledFile(
-                $src,
-                $this->compiledCodeCache->getCompiledPath($namespace),
-                $namespace,
-            );
+            // Execute the cached code to register definitions in GlobalEnvironment
+            $cachedPath = $this->compiledCodeCache->getCompiledPath($namespace);
+            require $cachedPath;
+
+            return new CompiledFile($src, $cachedPath, $namespace);
         }
 
         // No cache - use original behavior
