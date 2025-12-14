@@ -71,6 +71,19 @@ final class CompilerFactory extends AbstractFactory
         );
     }
 
+    public function createCodeCompilerForCache(CompileOptions $compileOptions): CodeCompilerInterface
+    {
+        return new CodeCompiler(
+            $this->createLexer(),
+            $this->createParser(),
+            $this->createReader(),
+            $this->createAnalyzer(),
+            $this->createStatementEmitter($compileOptions->isSourceMapsEnabled()),
+            $this->createFileEmitterForCache($compileOptions->isSourceMapsEnabled()),
+            $this->createEvaluator(),
+        );
+    }
+
     public function createLexer(bool $withLocation = true): LexerInterface
     {
         return new Lexer($withLocation);
@@ -150,6 +163,21 @@ final class CompilerFactory extends AbstractFactory
     public function createParenthesesChecker(): ParenthesesChecker
     {
         return new ParenthesesChecker();
+    }
+
+    private function createFileEmitterForCache(bool $enableSourceMaps = false): FileEmitterInterface
+    {
+        return new FileEmitter(
+            new SourceMapGenerator(),
+            new OutputEmitter(
+                $enableSourceMaps,
+                new NodeEmitterFactory(),
+                $this->createMunge(),
+                Printer::readable(),
+                new SourceMapState(),
+                new OutputEmitterOptions(OutputEmitterOptions::EMIT_MODE_CACHE),
+            ),
+        );
     }
 
     private function getFilesystemFacade(): FilesystemFacadeInterface

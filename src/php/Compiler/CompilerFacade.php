@@ -84,6 +84,20 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
      * @throws CompiledCodeIsMalformedException
      * @throws FileException
      */
+    public function compileForCache(
+        string $phelCode,
+        CompileOptions $compileOptions = new CompileOptions(),
+    ): EmitterResult {
+        return $this->getFactory()
+            ->createCodeCompilerForCache($compileOptions)
+            ->compileString($phelCode, $compileOptions);
+    }
+
+    /**
+     * @throws CompilerException
+     * @throws CompiledCodeIsMalformedException
+     * @throws FileException
+     */
     public function compileForm(
         float|bool|int|string|TypeInterface|null $form,
         CompileOptions $compileOptions = new CompileOptions(),

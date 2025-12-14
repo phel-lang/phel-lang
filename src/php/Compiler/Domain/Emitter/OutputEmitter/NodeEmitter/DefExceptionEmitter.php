@@ -28,6 +28,10 @@ final readonly class DefExceptionEmitter implements NodeEmitterInterface
             );
         }
 
+        $fqcn = $this->outputEmitter->mungeEncodeNs($node->getNamespace())
+            . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
+        $this->outputEmitter->emitLine("if (!class_exists('" . $fqcn . "')) {", $node->getStartSourceLocation());
+
         $this->outputEmitter->emitStr(
             'class ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' extends ',
             $node->getStartSourceLocation(),
@@ -43,6 +47,7 @@ final readonly class DefExceptionEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('}');
 
         $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
         $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
     }
 }

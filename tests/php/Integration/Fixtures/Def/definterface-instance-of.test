@@ -19,9 +19,11 @@ require_once __DIR__ . '/phel/core.php';
   "*ns*",
   "interface_instance"
 );
+if (!interface_exists('interface_instance\IPlayer')) {
 interface IPlayer {
   public function choose();
   public function update_strategy($me, $you);
+}
 }
 
 \Phel::addDefinition(

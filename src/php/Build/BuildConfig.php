@@ -41,6 +41,11 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
         return (bool)$this->get(PhelConfig::ENABLE_NAMESPACE_CACHE, true);
     }
 
+    public function isCompiledCodeCacheEnabled(): bool
+    {
+        return (bool)$this->get(PhelConfig::ENABLE_COMPILED_CODE_CACHE, true);
+    }
+
     public function getTempDir(): string
     {
         return (string)$this->get(PhelConfig::TEMP_DIR, sys_get_temp_dir() . '/phel');

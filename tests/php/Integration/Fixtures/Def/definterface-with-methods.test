@@ -15,5 +15,7 @@ require_once __DIR__ . '/phel/core.php';
   "*ns*",
   "user"
 );
+if (!interface_exists('user\IFoo')) {
 interface IFoo {
+}
 }

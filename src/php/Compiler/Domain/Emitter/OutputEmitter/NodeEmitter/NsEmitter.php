@@ -28,7 +28,10 @@ final class NsEmitter implements NodeEmitterInterface
 
     private function emitNamespace(NsNode $node): void
     {
-        if ($this->outputEmitter->getOptions()->isFileEmitMode()) {
+        // Both FILE and CACHE modes need PHP namespace declaration for struct classes
+        if ($this->outputEmitter->getOptions()->isFileEmitMode()
+            || $this->outputEmitter->getOptions()->isCacheEmitMode()
+        ) {
             $this->outputEmitter->emitStr('namespace ', $node->getStartSourceLocation());
             $this->outputEmitter->emitStr($this->outputEmitter->mungeEncodeNs($node->getNamespace()), $node->getStartSourceLocation());
             $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
@@ -60,6 +63,9 @@ final class NsEmitter implements NodeEmitterInterface
                     $ns->getStartLocation(),
                 );
             }
+        } elseif ($this->outputEmitter->getOptions()->isCacheEmitMode()) {
+            // In cache mode, don't emit any dependency loading code.
+            // Dependencies are loaded in order by the test framework.
         } else {
             $this->outputEmitter->emitLine('$__phelBuildFacade = new \\Phel\\Build\\BuildFacade();');
             $this->outputEmitter->emitLine('$__phelSrcDirs = \\Phel::getDefinition(');

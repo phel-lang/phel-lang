@@ -21,8 +21,10 @@ use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Domain\IO\FileIoInterface;
+use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
 use Phel\Build\Infrastructure\Cache\PhpNamespaceCache;
 use Phel\Build\Infrastructure\IO\SystemFileIo;
+use Phel\Console\Application\VersionFinder;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
@@ -64,6 +66,7 @@ final class BuildFactory extends AbstractFactory
         return new FileEvaluator(
             $this->getCompilerFacade(),
             $this->createNamespaceExtractor(),
+            $this->createCompiledCodeCache(),
         );
     }
 
@@ -102,6 +105,18 @@ final class BuildFactory extends AbstractFactory
     public function getCommandFacade(): CommandFacadeInterface
     {
         return $this->getProvidedDependency(BuildProvider::FACADE_COMMAND);
+    }
+
+    private function createCompiledCodeCache(): ?CompiledCodeCache
+    {
+        if (!$this->getConfig()->isCompiledCodeCacheEnabled()) {
+            return null;
+        }
+
+        return new CompiledCodeCache(
+            $this->getConfig()->getCacheDir(),
+            VersionFinder::LATEST_VERSION,
+        );
     }
 
     private function createNamespaceCache(): NamespaceCacheInterface

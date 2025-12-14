@@ -43,7 +43,7 @@ final class LoadEmitter implements NodeEmitterInterface
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitStr('})(');
         $this->outputEmitter->emitLiteral($filePath);
-        $this->outputEmitter->emitStr(', ' . Phel::class . '::getDefinition(');
+        $this->outputEmitter->emitStr(', \\' . Phel::class . '::getDefinition(');
         $this->outputEmitter->emitStr('"');
         $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\core')));
         $this->outputEmitter->emitStr('", "');
@@ -58,16 +58,16 @@ final class LoadEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('}');
 
         // Store the current namespace
-        $this->outputEmitter->emitLine('$__phelPrevNs = ' . GlobalEnvironmentSingleton::class . '::getInstance()->getNs();');
+        $this->outputEmitter->emitLine('$__phelPrevNs = \\' . GlobalEnvironmentSingleton::class . '::getInstance()->getNs();');
         $this->outputEmitter->emitLine('$__phelLoadedNs = $__phelPrevNs;');
 
         // Evaluate the file
         $this->outputEmitter->emitLine('$__phelBuildFacade = new \\Phel\\Build\\BuildFacade();');
-        $this->outputEmitter->emitLine(BuildFacade::class . '::enableBuildMode();');
+        $this->outputEmitter->emitLine('\\' . BuildFacade::class . '::enableBuildMode();');
         $this->outputEmitter->emitLine('try {');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitLine('$__phelBuildFacade->evalFile($__phelLoadPath);');
-        $this->outputEmitter->emitLine('$__phelLoadedNs = ' . GlobalEnvironmentSingleton::class . '::getInstance()->getNs();');
+        $this->outputEmitter->emitLine('$__phelLoadedNs = \\' . GlobalEnvironmentSingleton::class . '::getInstance()->getNs();');
         $this->outputEmitter->emitStr('if ($__phelLoadedNs !== ');
         $this->outputEmitter->emitLiteral($node->getCallerNamespace());
         $this->outputEmitter->emitLine(') {');
@@ -86,8 +86,8 @@ final class LoadEmitter implements NodeEmitterInterface
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine('} finally {');
         $this->outputEmitter->increaseIndentLevel();
-        $this->outputEmitter->emitLine(BuildFacade::class . '::disableBuildMode();');
-        $this->outputEmitter->emitLine(GlobalEnvironmentSingleton::class . '::getInstance()->setNs($__phelPrevNs);');
+        $this->outputEmitter->emitLine('\\' . BuildFacade::class . '::disableBuildMode();');
+        $this->outputEmitter->emitLine('\\' . GlobalEnvironmentSingleton::class . '::getInstance()->setNs($__phelPrevNs);');
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine('}');
     }
