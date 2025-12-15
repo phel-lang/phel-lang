@@ -7,10 +7,13 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Add `compact` function for removing nil values
 - Add a persistent namespace cache with mtime invalidation for ~99% faster warm runs
+- Add `cache:clear` command for clearing namespace and compiled code caches
+- Add compiled code cache for significantly faster test execution
 
 ### Changed
 - Standardize docblock examples with triple backtick code fencing for better IDE rendering and syntax highlighting
 - Optimize `:see-also` metadata by using string vectors instead of quoted vectors for better performance
+- Improve compiled code cache with version-based invalidation, LRU eviction, and atomic writes
 
 ### Fixed
 - Load host project's vendor autoloader in PHAR mode for PHP class dependencies
