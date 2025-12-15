@@ -67,4 +67,14 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
     {
         return $this->getCacheDir() . '/namespace-cache.php';
     }
+
+    public function getDependencyGraphCacheFile(): string
+    {
+        return $this->getCacheDir() . '/dependency-graph.php';
+    }
+
+    public function isDependencyGraphCacheEnabled(): bool
+    {
+        return (bool)$this->get(PhelConfig::ENABLE_DEPENDENCY_GRAPH_CACHE, true);
+    }
 }

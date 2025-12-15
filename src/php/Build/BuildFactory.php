@@ -10,6 +10,8 @@ use Phel\Build\Application\CachedNamespaceExtractor;
 use Phel\Build\Application\DependenciesForNamespace;
 use Phel\Build\Application\FileCompiler;
 use Phel\Build\Application\FileEvaluator;
+use Phel\Build\Application\FileSetDiffCalculator;
+use Phel\Build\Application\IncrementalNamespaceExtractor;
 use Phel\Build\Application\NamespaceExtractor;
 use Phel\Build\Application\ProjectCompiler;
 use Phel\Build\Domain\Cache\NamespaceCacheInterface;
@@ -20,8 +22,10 @@ use Phel\Build\Domain\Compile\Output\NamespacePathTransformer;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
+use Phel\Build\Domain\Graph\DependencyGraphCacheInterface;
 use Phel\Build\Domain\IO\FileIoInterface;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
+use Phel\Build\Infrastructure\Cache\PhpDependencyGraphCache;
 use Phel\Build\Infrastructure\Cache\PhpNamespaceCache;
 use Phel\Build\Infrastructure\IO\SystemFileIo;
 use Phel\Console\Application\VersionFinder;
@@ -82,9 +86,20 @@ final class BuildFactory extends AbstractFactory
             return $innerExtractor;
         }
 
-        return new CachedNamespaceExtractor(
+        $cachedExtractor = new CachedNamespaceExtractor(
             $innerExtractor,
             $this->createNamespaceCache(),
+            $this->createNamespaceSorter(),
+        );
+
+        if (!$this->getConfig()->isDependencyGraphCacheEnabled()) {
+            return $cachedExtractor;
+        }
+
+        return new IncrementalNamespaceExtractor(
+            $cachedExtractor,
+            $this->createDependencyGraphCache(),
+            $this->createFileSetDiffCalculator(),
             $this->createNamespaceSorter(),
         );
     }
@@ -122,6 +137,19 @@ final class BuildFactory extends AbstractFactory
     private function createNamespaceCache(): NamespaceCacheInterface
     {
         return new PhpNamespaceCache($this->getConfig()->getNamespaceCacheFile());
+    }
+
+    private function createDependencyGraphCache(): DependencyGraphCacheInterface
+    {
+        return new PhpDependencyGraphCache(
+            $this->getConfig()->getDependencyGraphCacheFile(),
+            VersionFinder::LATEST_VERSION,
+        );
+    }
+
+    private function createFileSetDiffCalculator(): FileSetDiffCalculator
+    {
+        return new FileSetDiffCalculator();
     }
 
     private function createMainPhpEntryPointFile(): EntryPointPhpFileInterface

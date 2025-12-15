@@ -36,6 +36,8 @@ final class PhelConfig implements JsonSerializable
 
     public const string ENABLE_COMPILED_CODE_CACHE = 'enable-compiled-code-cache';
 
+    public const string ENABLE_DEPENDENCY_GRAPH_CACHE = 'enable-dependency-graph-cache';
+
     public const string CACHE_DIR = 'cache-dir';
 
     /** @var list<string> */
@@ -72,6 +74,8 @@ final class PhelConfig implements JsonSerializable
     private bool $enableNamespaceCache = true;
 
     private bool $enableCompiledCodeCache = true;
+
+    private bool $enableDependencyGraphCache = true;
 
     public function __construct()
     {
@@ -201,6 +205,13 @@ final class PhelConfig implements JsonSerializable
         return $this;
     }
 
+    public function setEnableDependencyGraphCache(bool $flag): self
+    {
+        $this->enableDependencyGraphCache = $flag;
+
+        return $this;
+    }
+
     public function setCacheDir(string $dir): self
     {
         $this->cacheDir = rtrim($dir, DIRECTORY_SEPARATOR);
@@ -225,6 +236,7 @@ final class PhelConfig implements JsonSerializable
             self::ASSERTS_ENABLED => $this->enableAsserts,
             self::ENABLE_NAMESPACE_CACHE => $this->enableNamespaceCache,
             self::ENABLE_COMPILED_CODE_CACHE => $this->enableCompiledCodeCache,
+            self::ENABLE_DEPENDENCY_GRAPH_CACHE => $this->enableDependencyGraphCache,
             self::CACHE_DIR => $this->cacheDir,
         ];
     }
