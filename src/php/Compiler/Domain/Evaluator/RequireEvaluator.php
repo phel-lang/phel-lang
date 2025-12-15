@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Evaluator;
 
+use ParseError;
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
 use Phel\Filesystem\FilesystemFacadeInterface;
 use Phel\Run\Infrastructure\Service\DebugLineTap;
-use Throwable;
 
 use function function_exists;
 use function md5;
@@ -78,8 +78,9 @@ final class RequireEvaluator implements EvaluatorInterface
             self::$processCache[$hash] = $result;
 
             return $result;
-        } catch (Throwable $throwable) {
-            throw CompiledCodeIsMalformedException::fromThrowable($throwable);
+        } catch (ParseError $parseError) {
+            // Parse errors indicate malformed generated PHP code
+            throw CompiledCodeIsMalformedException::fromThrowable($parseError);
         }
     }
 

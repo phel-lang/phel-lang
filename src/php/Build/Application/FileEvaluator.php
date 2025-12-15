@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Phel\Build\Application;
 
+use ParseError;
 use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Shared\Facade\CompilerFacadeInterface;
+
 use RuntimeException;
 
 use Throwable;
@@ -52,9 +54,13 @@ final readonly class FileEvaluator
                     require $cachedPath;
 
                     return new CompiledFile($src, $cachedPath, $namespace);
-                } catch (Throwable) {
-                    // Cache file is corrupt - invalidate and fall through to recompile
+                } catch (ParseError) {
+                    // Parse errors indicate corrupt cache file - invalidate and recompile
                     $this->compiledCodeCache->invalidate($namespace);
+                } catch (Throwable $e) {
+                    // Other exceptions are user code errors - invalidate cache but re-throw
+                    $this->compiledCodeCache->invalidate($namespace);
+                    throw $e;
                 }
             }
 
