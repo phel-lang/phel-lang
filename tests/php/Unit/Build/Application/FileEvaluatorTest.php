@@ -13,6 +13,7 @@ use Phel\Shared\Facade\CompilerFacadeInterface;
 use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use RuntimeException;
 
 final class FileEvaluatorTest extends TestCase
 {
@@ -173,6 +174,59 @@ final class FileEvaluatorTest extends TestCase
         $result = $evaluator->evalFile($sourceFile);
 
         self::assertSame($sourceFile, $result->getSourceFile());
+    }
+
+    public function test_eval_file_recovers_from_corrupt_cache(): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        $sourceCode = '(ns test\\namespace)';
+        file_put_contents($sourceFile, $sourceCode);
+        $cacheDir = $this->tempDir . '/cache';
+        $namespace = 'test\\namespace';
+
+        // Put corrupt PHP (syntax error) in cache
+        $cache = new CompiledCodeCache($cacheDir);
+        $cache->put($namespace, md5($sourceCode), 'this is not valid php syntax {{{');
+
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade->method('compileForCache')
+            ->willReturn(new EmitterResult(false, '$result = 42;', '', ''));
+
+        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel\\core']),
+        );
+
+        $evaluator = new FileEvaluator($compilerFacade, $namespaceExtractor, $cache);
+        $result = $evaluator->evalFile($sourceFile);
+
+        self::assertSame($namespace, $result->getNamespace());
+    }
+
+    public function test_eval_file_propagates_user_code_exceptions(): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        $sourceCode = '(ns test\\namespace)';
+        file_put_contents($sourceFile, $sourceCode);
+        $cacheDir = $this->tempDir . '/cache';
+        $namespace = 'test\\namespace';
+
+        // Put code that throws a user exception in cache
+        $cache = new CompiledCodeCache($cacheDir);
+        $cache->put($namespace, md5($sourceCode), 'throw new \\RuntimeException("User code error");');
+
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel\\core']),
+        );
+
+        $evaluator = new FileEvaluator($compilerFacade, $namespaceExtractor, $cache);
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('User code error');
+
+        $evaluator->evalFile($sourceFile);
     }
 
     private function removeDir(string $dir): void

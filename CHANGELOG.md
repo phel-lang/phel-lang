@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - Load host project's vendor autoloader in PHAR mode for PHP class dependencies
+- Fix exceptions being hidden in `phel run` when nested requires have errors (#926)
 
 ## [0.26.0](https://github.com/phel-lang/phel-lang/compare/v0.25.0...v0.26.0) - 2025-11-16
 
