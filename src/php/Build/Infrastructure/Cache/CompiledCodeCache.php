@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace Phel\Build\Infrastructure\Cache;
 
+use ParseError;
+
 use function count;
 use function function_exists;
 use function is_array;
 use function is_string;
+use function token_get_all;
+
+use const TOKEN_PARSE;
 
 /**
  * Caches compiled PHP code indexed by namespace with content-hash validation.
@@ -78,6 +83,11 @@ final class CompiledCodeCache
         // first-run compilation) doesn't use strict types, and some Phel code
         // relies on PHP's implicit type coercion (e.g., float to int for str_repeat).
         $fullPhpCode = "<?php\n" . $phpCode;
+
+        // Validate PHP syntax before caching to avoid storing malformed code
+        if (!$this->isValidPhp($fullPhpCode)) {
+            return;
+        }
 
         // Use atomic write: write to temp file then rename (atomic on POSIX)
         $tempPath = $compiledPath . '.tmp.' . uniqid('', true);
@@ -256,6 +266,21 @@ final class CompiledCodeCache
             } finally {
                 umask($oldUmask);
             }
+        }
+    }
+
+    /**
+     * Validates that the given PHP code has valid syntax.
+     * Uses PHP's tokenizer which will throw ParseError for invalid syntax.
+     */
+    private function isValidPhp(string $phpCode): bool
+    {
+        try {
+            // @phpstan-ignore function.resultUnused (we only care if it throws)
+            token_get_all($phpCode, TOKEN_PARSE);
+            return true;
+        } catch (ParseError) {
+            return false;
         }
     }
 
