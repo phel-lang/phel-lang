@@ -2206,6 +2206,46 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
             (set! memoize-cache (assoc c args res))
             res))))))
 
+(defn memoize-lru
+  "Returns a memoized version of the function `f` with an LRU (Least Recently Used)
+  cache limited to `max-size` entries. When the cache exceeds `max-size`, the
+  least recently used entry is evicted. This prevents unbounded memory growth
+  in long-running processes.
+
+  Without arguments, uses a default cache size of 128 entries."
+  {:example "(def fib-memo (memoize-lru fib 100))"
+   :see-also ["memoize"]}
+  ([f] (memoize-lru f 128))
+  ([f max-size]
+   (let [cache (var {})       ; {args -> {:value val :accessed time}}
+         tick (var 0)]        ; access counter (monotonically increasing)
+     (fn [& args]
+       (let [c (deref cache)
+             t (swap! tick |(php/+ 1 $))]
+         (if (contains? c args)
+           ;; Cache hit - update access time and return cached value
+           (let [entry (get c args)]
+             (set! cache (assoc c args {:value (get entry :value) :accessed t}))
+             (get entry :value))
+           ;; Cache miss - compute value, add to cache, evict if necessary
+           (let [res (apply f args)
+                 new-entry {:value res :accessed t}
+                 new-cache (assoc c args new-entry)]
+             ;; Evict LRU entry if over capacity
+             (if (php/> (count new-cache) max-size)
+               (let [;; Find the key with the smallest access time
+                     lru-key (reduce
+                               (fn [oldest-key current-key]
+                                 (if (php/< (get (get new-cache current-key) :accessed)
+                                            (get (get new-cache oldest-key) :accessed))
+                                   current-key
+                                   oldest-key))
+                               (first (keys new-cache))
+                               (keys new-cache))]
+                 (set! cache (dissoc new-cache lru-key)))
+               (set! cache new-cache))
+             res)))))))
+
 # -----------------------
 # More sequence operation
 # -----------------------

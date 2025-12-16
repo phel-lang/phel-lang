@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Add a persistent namespace cache with mtime invalidation for ~99% faster warm runs
 - Add `cache:clear` command for clearing namespace and compiled code caches
 - Add compiled code cache for significantly faster test execution
+- Add `memoize-lru` function with configurable cache size to prevent unbounded memory growth
 
 ### Changed
 - Standardize docblock examples with triple backtick code fencing for better IDE rendering and syntax highlighting
