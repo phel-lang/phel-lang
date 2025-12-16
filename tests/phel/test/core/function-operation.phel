@@ -30,3 +30,48 @@
     (is (= 2 (f 1)) "cached call")
     (is (= 3 (f 2)) "different arg")
     (is (= 2 (deref counter)) "function executed twice")))
+
+(deftest test-memoize-lru-basic
+  (let [counter (var 0)
+        f (memoize-lru (fn [x] (swap! counter inc) (+ x 1)) 10)]
+    (is (= 2 (f 1)) "first call returns correct value")
+    (is (= 2 (f 1)) "cached call returns same value")
+    (is (= 3 (f 2)) "different arg returns correct value")
+    (is (= 2 (deref counter)) "function executed only twice")))
+
+(deftest test-memoize-lru-eviction
+  (let [counter (var 0)
+        f (memoize-lru (fn [x] (swap! counter inc) (* x 10)) 3)]
+    ;; Fill the cache with 3 entries
+    (is (= 10 (f 1)) "first entry")
+    (is (= 20 (f 2)) "second entry")
+    (is (= 30 (f 3)) "third entry")
+    (is (= 3 (deref counter)) "three calls executed")
+    ;; Access first entry to make it recently used
+    (is (= 10 (f 1)) "re-access first entry (from cache)")
+    (is (= 3 (deref counter)) "no new call for cached entry")
+    ;; Add fourth entry - should evict entry 2 (least recently used)
+    (is (= 40 (f 4)) "fourth entry triggers eviction")
+    (is (= 4 (deref counter)) "fourth call executed")
+    ;; Entry 1 should still be cached (was recently accessed)
+    (is (= 10 (f 1)) "entry 1 still cached")
+    (is (= 4 (deref counter)) "entry 1 from cache, no new call")
+    ;; Entry 2 should have been evicted
+    (is (= 20 (f 2)) "entry 2 was evicted, recomputed")
+    (is (= 5 (deref counter)) "entry 2 required new call")))
+
+(deftest test-memoize-lru-default-size
+  (let [counter (var 0)
+        f (memoize-lru (fn [x] (swap! counter inc) x))]
+    ;; Test that default size works (should be 128)
+    (is (= 1 (f 1)) "first call works")
+    (is (= 1 (f 1)) "cached call works")
+    (is (= 1 (deref counter)) "only one execution")))
+
+(deftest test-memoize-lru-multi-arg
+  (let [counter (var 0)
+        f (memoize-lru (fn [x y] (swap! counter inc) (+ x y)) 5)]
+    (is (= 3 (f 1 2)) "multi-arg call")
+    (is (= 3 (f 1 2)) "cached multi-arg call")
+    (is (= 7 (f 3 4)) "different multi-arg call")
+    (is (= 2 (deref counter)) "two executions")))
