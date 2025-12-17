@@ -9,7 +9,6 @@ use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
 use Phel\Compiler\Infrastructure\CompileOptions;
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
 use RuntimeException;
@@ -45,9 +44,7 @@ final readonly class FileEvaluator
 
             if ($cachedPath !== null) {
                 // Cache hit - ensure GlobalEnvironment is initialized then require
-                if (!GlobalEnvironmentSingleton::isInitialized()) {
-                    GlobalEnvironmentSingleton::initializeNew();
-                }
+                $this->compilerFacade->initializeGlobalEnvironment();
 
                 try {
                     /** @psalm-suppress UnresolvableInclude */

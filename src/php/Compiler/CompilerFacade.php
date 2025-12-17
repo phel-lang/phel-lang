@@ -22,6 +22,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
@@ -170,5 +171,15 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
         return $this->getFactory()
             ->createParenthesesChecker()
             ->hasBalancedParentheses($this->lexString($code));
+    }
+
+    public function initializeGlobalEnvironment(): void
+    {
+        GlobalEnvironmentSingleton::ensureInitialized();
+    }
+
+    public function resetGlobalEnvironment(): void
+    {
+        GlobalEnvironmentSingleton::reset();
     }
 }

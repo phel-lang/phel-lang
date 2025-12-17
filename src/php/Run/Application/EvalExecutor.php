@@ -9,8 +9,8 @@ use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Printer\PrinterInterface;
-use Phel\Run\Domain\Repl\ColorStyleInterface;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
+use Phel\Shared\ColorStyleInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Throwable;
 

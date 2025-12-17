@@ -17,7 +17,7 @@ use Phel\Interop\Domain\Generator\Builder\CompiledPhpClassBuilder;
 use Phel\Interop\Domain\Generator\Builder\CompiledPhpMethodBuilder;
 use Phel\Interop\Domain\Generator\Builder\WrapperRelativeFilenamePathBuilder;
 use Phel\Interop\Domain\Generator\WrapperGenerator;
-use Phel\Interop\Infrastructure\Io\FileSystemIo;
+use Phel\Interop\Infrastructure\IO\FileSystemIo;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 
