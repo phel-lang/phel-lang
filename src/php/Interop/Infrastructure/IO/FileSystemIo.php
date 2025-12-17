@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Interop\Infrastructure\Io;
+namespace Phel\Interop\Infrastructure\IO;
 
 use Phel\Interop\Domain\FileCreator\FileIoInterface;
 use RuntimeException;

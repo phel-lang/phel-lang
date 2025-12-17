@@ -13,7 +13,7 @@ use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Phel\Lang\FnInterface;
 use Phel\Lang\SourceLocation;
-use Phel\Run\Domain\Repl\ColorStyleInterface;
+use Phel\Shared\ColorStyleInterface;
 use ReflectionClass;
 use Throwable;
 

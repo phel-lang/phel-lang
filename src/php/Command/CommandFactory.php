@@ -20,7 +20,7 @@ use Phel\Command\Infrastructure\ErrorLog;
 use Phel\Command\Infrastructure\SourceMapExtractor;
 use Phel\Compiler\Application\Munge;
 use Phel\Printer\Printer;
-use Phel\Run\Domain\Repl\ColorStyle;
+use Phel\Shared\ColorStyle;
 
 /**
  * @extends AbstractFactory<CommandConfig>

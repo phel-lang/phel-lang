@@ -103,4 +103,16 @@ interface CompilerFacadeInterface
     public function encodeNs(string $namespace): string;
 
     public function hasBalancedParentheses(string $code): bool;
+
+    /**
+     * Ensures the GlobalEnvironment is initialized.
+     * If already initialized, returns without action.
+     * If not, initializes a new one (which clears the Phel registry).
+     */
+    public function initializeGlobalEnvironment(): void;
+
+    /**
+     * Resets the GlobalEnvironment to an uninitialized state.
+     */
+    public function resetGlobalEnvironment(): void;
 }

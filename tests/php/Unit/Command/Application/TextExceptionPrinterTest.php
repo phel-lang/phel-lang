@@ -13,7 +13,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
-use Phel\Run\Domain\Repl\ColorStyleInterface;
+use Phel\Shared\ColorStyleInterface;
 use PHPUnit\Framework\TestCase;
 
 final class TextExceptionPrinterTest extends TestCase
