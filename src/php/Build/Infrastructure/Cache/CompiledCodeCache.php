@@ -10,6 +10,7 @@ use function count;
 use function function_exists;
 use function is_array;
 use function is_string;
+use function sprintf;
 use function token_get_all;
 
 use const TOKEN_PARSE;
@@ -92,10 +93,18 @@ final class CompiledCodeCache
         // Use atomic write: write to temp file then rename (atomic on POSIX)
         $tempPath = $compiledPath . '.tmp.' . uniqid('', true);
         if (file_put_contents($tempPath, $fullPhpCode) === false) {
+            trigger_error(
+                sprintf('Phel cache: failed to write temp file "%s"', $tempPath),
+                E_USER_WARNING,
+            );
             return;
         }
 
         if (!rename($tempPath, $compiledPath)) {
+            trigger_error(
+                sprintf('Phel cache: failed to rename "%s" to "%s"', $tempPath, $compiledPath),
+                E_USER_WARNING,
+            );
             @unlink($tempPath);
             return;
         }

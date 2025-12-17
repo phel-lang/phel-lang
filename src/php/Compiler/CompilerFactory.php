@@ -125,27 +125,13 @@ final class CompilerFactory extends AbstractFactory
     {
         return new FileEmitter(
             new SourceMapGenerator(),
-            new OutputEmitter(
-                $enableSourceMaps,
-                new NodeEmitterFactory(),
-                $this->createMunge(),
-                Printer::readable(),
-                new SourceMapState(),
-                new OutputEmitterOptions(OutputEmitterOptions::EMIT_MODE_FILE),
-            ),
+            $this->createOutputEmitterWithMode(OutputEmitterOptions::EMIT_MODE_FILE, $enableSourceMaps),
         );
     }
 
     public function createOutputEmitter(bool $enableSourceMaps = true): OutputEmitterInterface
     {
-        return new OutputEmitter(
-            $enableSourceMaps,
-            new NodeEmitterFactory(),
-            $this->createMunge(),
-            Printer::readable(),
-            new SourceMapState(),
-            new OutputEmitterOptions(OutputEmitterOptions::EMIT_MODE_STATEMENT),
-        );
+        return $this->createOutputEmitterWithMode(OutputEmitterOptions::EMIT_MODE_STATEMENT, $enableSourceMaps);
     }
 
     public function createEvaluator(): EvaluatorInterface
@@ -169,14 +155,19 @@ final class CompilerFactory extends AbstractFactory
     {
         return new FileEmitter(
             new SourceMapGenerator(),
-            new OutputEmitter(
-                $enableSourceMaps,
-                new NodeEmitterFactory(),
-                $this->createMunge(),
-                Printer::readable(),
-                new SourceMapState(),
-                new OutputEmitterOptions(OutputEmitterOptions::EMIT_MODE_CACHE),
-            ),
+            $this->createOutputEmitterWithMode(OutputEmitterOptions::EMIT_MODE_CACHE, $enableSourceMaps),
+        );
+    }
+
+    private function createOutputEmitterWithMode(string $emitMode, bool $enableSourceMaps): OutputEmitter
+    {
+        return new OutputEmitter(
+            $enableSourceMaps,
+            new NodeEmitterFactory(),
+            $this->createMunge(),
+            Printer::readable(),
+            new SourceMapState(),
+            new OutputEmitterOptions($emitMode),
         );
     }
 

@@ -28,9 +28,14 @@ final readonly class FileEvaluator
 
     public function evalFile(string $src): CompiledFile
     {
-        $code = file_get_contents($src);
+        $code = @file_get_contents($src);
         if ($code === false) {
-            throw new RuntimeException(sprintf('Unable to read file "%s".', $src));
+            $error = error_get_last();
+            throw new RuntimeException(sprintf(
+                'Unable to read file "%s": %s',
+                $src,
+                $error['message'] ?? 'unknown error',
+            ));
         }
 
         // Get namespace info (uses namespace cache if available)
