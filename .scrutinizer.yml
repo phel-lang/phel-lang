@@ -1,0 +1,32 @@
+build:
+  nodes:
+    analysis:
+      environment:
+        php:
+          version: 8.3
+          ini:
+            memory_limit: 512M
+        variables:
+          XDEBUG_MODE: 'coverage'
+      tests:
+        override:
+          - php-scrutinizer-run
+          -
+            command: 'vendor/bin/phpunit --testsuite=unit,integration --coverage-clover=coverage.clover'
+            coverage:
+              file: 'coverage.clover'
+              format: 'clover'
+
+filter:
+  paths:
+    - 'src/'
+  excluded_paths:
+    - 'tests/'
+    - 'vendor/'
+    - 'docs/'
+    - 'build/'
+
+checks:
+  php:
+    code_rating: true
+    duplication: true
