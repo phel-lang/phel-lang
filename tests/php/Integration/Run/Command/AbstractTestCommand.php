@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command;
 
+use Gacela\Framework\Bootstrap\GacelaConfig;
+use Gacela\Framework\Gacela;
 use Override;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Filesystem\Infrastructure\RealFilesystem;
-use Phel\Phel;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Symfony\Component\Console\Formatter\OutputFormatter;
@@ -28,7 +29,13 @@ abstract class AbstractTestCommand extends TestCase
         // This allows each test class to use its own phel-config.php
         $reflection = new ReflectionClass($this);
         $childDir = dirname($reflection->getFileName());
-        Phel::bootstrap($childDir);
+
+        // Reset Gacela's cache and bootstrap with test-specific config
+        Gacela::bootstrap($childDir, static function (GacelaConfig $config): void {
+            $config->resetInMemoryCache();
+            $config->enableFileCache('');
+            $config->addAppConfig('phel-config.php');
+        });
     }
 
     protected function stubOutput(): OutputInterface
