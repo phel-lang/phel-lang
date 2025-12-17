@@ -32,8 +32,11 @@ final readonly class FileCompiler implements FileCompilerInterface
             ->setIsEnabledSourceMaps($enableSourceMaps);
 
         BuildFacade::enableBuildMode();
-        $result = $this->compilerFacade->compile($phelCode, $options);
-        BuildFacade::disableBuildMode();
+        try {
+            $result = $this->compilerFacade->compile($phelCode, $options);
+        } finally {
+            BuildFacade::disableBuildMode();
+        }
 
         $phpCode = "<?php declare(strict_types=1);\n" . $result->getPhpCode();
 
