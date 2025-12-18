@@ -55,17 +55,20 @@ final readonly class CachedNamespaceExtractor implements NamespaceExtractorInter
 
         /** @var array<string, NamespaceInformation> $namespaces */
         $namespaces = [];
-        /** @var array<string, list<string>> $allLocations */
-        $allLocations = [];
+        /** @var array<string, list<string>> $primaryDefinitions */
+        $primaryDefinitions = [];
 
         foreach ($allFiles as $file) {
             $info = $this->getNamespaceFromFile($file);
             $namespace = $info->getNamespace();
-            $allLocations[$namespace][] = $info->getFile();
+            if ($info->isPrimaryDefinition()) {
+                $primaryDefinitions[$namespace][] = $info->getFile();
+            }
+
             $namespaces[$namespace] = $info;
         }
 
-        $this->warnAboutDuplicateNamespaces($allLocations);
+        $this->warnAboutDuplicateNamespaces($primaryDefinitions);
 
         return $this->sortNamespaceInformationList(array_values($namespaces));
     }
@@ -102,6 +105,7 @@ final readonly class CachedNamespaceExtractor implements NamespaceExtractorInter
             $mtime,
             $info->getNamespace(),
             $info->getDependencies(),
+            $info->isPrimaryDefinition(),
         );
 
         $this->cache->put($file, $entry);

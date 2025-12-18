@@ -1,4 +1,4 @@
-(in-ns example\main)
+(in-ns loadinns\main)
 
 # This file uses in-ns to join the main namespace
 # It then tries to load another file with a relative path

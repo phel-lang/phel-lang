@@ -1,2 +1,2 @@
-(ns example\main
-  (:require example\game))
+(ns buildmode\main
+  (:require buildmode\game))

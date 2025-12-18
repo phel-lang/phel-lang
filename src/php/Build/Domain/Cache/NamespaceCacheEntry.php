@@ -16,6 +16,7 @@ final readonly class NamespaceCacheEntry
         public int $mtime,
         public string $namespace,
         public array $dependencies,
+        public bool $isPrimaryDefinition = true,
     ) {
     }
 
@@ -36,11 +37,12 @@ final readonly class NamespaceCacheEntry
             $this->file,
             $this->namespace,
             $this->dependencies,
+            $this->isPrimaryDefinition,
         );
     }
 
     /**
-     * @return array{mtime: int, namespace: string, dependencies: list<string>}
+     * @return array{mtime: int, namespace: string, dependencies: list<string>, isPrimaryDefinition: bool}
      */
     public function toArray(): array
     {
@@ -48,11 +50,12 @@ final readonly class NamespaceCacheEntry
             'mtime' => $this->mtime,
             'namespace' => $this->namespace,
             'dependencies' => $this->dependencies,
+            'isPrimaryDefinition' => $this->isPrimaryDefinition,
         ];
     }
 
     /**
-     * @param array{mtime: int, namespace: string, dependencies: list<string>} $data
+     * @param array{mtime: int, namespace: string, dependencies: list<string>, isPrimaryDefinition?: bool} $data
      */
     public static function fromArray(string $file, array $data): self
     {
@@ -61,6 +64,7 @@ final readonly class NamespaceCacheEntry
             $data['mtime'],
             $data['namespace'],
             $data['dependencies'],
+            $data['isPrimaryDefinition'] ?? true,
         );
     }
 }

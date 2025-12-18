@@ -138,7 +138,7 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
                 && is_string($entryData['namespace'])
                 && is_array($entryData['dependencies'])
             ) {
-                /** @var array{mtime: int, namespace: string, dependencies: list<string>} $entryData */
+                /** @var array{mtime: int, namespace: string, dependencies: list<string>, isPrimaryDefinition?: bool} $entryData */
                 $entries[$file] = NamespaceCacheEntry::fromArray($file, $entryData);
             }
         }
@@ -147,7 +147,7 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
     }
 
     /**
-     * @return array{version: string, entries: array<string, array{mtime: int, namespace: string, dependencies: list<string>}>}
+     * @return array{version: string, entries: array<string, array{mtime: int, namespace: string, dependencies: list<string>, isPrimaryDefinition: bool}>}
      */
     private function toArray(): array
     {

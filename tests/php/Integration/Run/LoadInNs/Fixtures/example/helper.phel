@@ -1,4 +1,4 @@
-(in-ns example\main)
+(in-ns loadinns\main)
 
 # This file should be loaded successfully when util.phel loads it
 # The relative path should be resolved from util.phel's directory, not main.phel's

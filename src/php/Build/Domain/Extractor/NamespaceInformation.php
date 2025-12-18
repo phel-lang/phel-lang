@@ -8,11 +8,14 @@ final readonly class NamespaceInformation
 {
     /**
      * @param list<string> $dependencies
+     * @param bool         $isPrimaryDefinition True if this file uses `ns` to define the namespace,
+     *                                          false if it uses `in-ns` to join an existing namespace
      */
     public function __construct(
         private string $file,
         private string $namespace,
         private array $dependencies,
+        private bool $isPrimaryDefinition = true,
     ) {
     }
 
@@ -32,5 +35,10 @@ final readonly class NamespaceInformation
     public function getDependencies(): array
     {
         return $this->dependencies;
+    }
+
+    public function isPrimaryDefinition(): bool
+    {
+        return $this->isPrimaryDefinition;
     }
 }

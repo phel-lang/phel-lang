@@ -68,6 +68,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
                         static fn (Symbol $s): string => $s->getFullName(),
                         $node->getRequireNs(),
                     )),
+                    isPrimaryDefinition: true,
                 );
             }
 
@@ -79,6 +80,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
                     $realFile !== false ? $realFile : $path,
                     $namespace,
                     ($namespace === 'phel\\core') ? [] : ['phel\\core'],
+                    isPrimaryDefinition: false,
                 );
             }
 
@@ -99,18 +101,21 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
     {
         /** @var array<string, NamespaceInformation> $namespaces */
         $namespaces = [];
-        /** @var array<string, list<string>> $allLocations */
-        $allLocations = [];
+        /** @var array<string, list<string>> $primaryDefinitions */
+        $primaryDefinitions = [];
 
         foreach ($directories as $directory) {
             foreach ($this->findAllNs($directory) as $ns) {
                 $namespace = $ns->getNamespace();
-                $allLocations[$namespace][] = $ns->getFile();
+                if ($ns->isPrimaryDefinition()) {
+                    $primaryDefinitions[$namespace][] = $ns->getFile();
+                }
+
                 $namespaces[$namespace] = $ns;
             }
         }
 
-        $this->warnAboutDuplicateNamespaces($allLocations);
+        $this->warnAboutDuplicateNamespaces($primaryDefinitions);
 
         return $this->sortNamespaceInformationList(array_values($namespaces));
     }

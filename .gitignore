@@ -16,6 +16,7 @@ build/workdir/
 
 # Test cache directories
 tests/**/cache/
+tests/**/out/
 
 !PhelGenerated/.gitkeep
 *.cache

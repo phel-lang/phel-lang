@@ -1,4 +1,4 @@
-(ns example\game)
+(ns buildmode\game)
 
 (def executed-file (str (php/constant "__DIR__") "/executed.txt"))
 
