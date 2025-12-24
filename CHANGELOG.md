@@ -16,12 +16,14 @@ All notable changes to this project will be documented in this file.
 - Standardize docblock examples with triple backtick code fencing for better IDE rendering and syntax highlighting
 - Optimize `:see-also` metadata by using string vectors instead of quoted vectors for better performance
 - Improve compiled code cache with version-based invalidation, LRU eviction, and atomic writes
+- **Breaking**: `PhelFunction::fromArray()` now requires `signatures` (plural) instead of `signature` (singular) to properly support multi-arity functions
+- Multi-arity function signatures are now properly extracted and displayed in documentation (e.g., `csv-seq`, `memoize-lru`, `conj`)
 
 ### Fixed
 - Load host project's vendor autoloader in PHAR mode for PHP class dependencies
 - Fix exceptions being hidden in `phel run` when nested requires have errors (#926)
 - Fix notation for arguments in the anonymous function of docblocks examples (#1070)
-
+- Fix `defn-builder` to generate all signatures for multi-arity functions instead of only the first arity
 
 ## [0.26.0](https://github.com/phel-lang/phel-lang/compare/v0.25.0...v0.26.0) - 2025-11-16
 

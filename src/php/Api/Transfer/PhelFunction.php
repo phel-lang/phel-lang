@@ -9,14 +9,14 @@ use function sprintf;
 final readonly class PhelFunction
 {
     /**
-     * @param list<string>         $signature
+     * @param list<string>         $signatures
      * @param array<string, mixed> $meta
      */
     public function __construct(
         public string $namespace,
         public string $name,
         public string $doc,
-        public array $signature,
+        public array $signatures,
         public string $description,
         public string $groupKey = '',
         public string $githubUrl = '',
@@ -32,7 +32,7 @@ final readonly class PhelFunction
      *     namespace?: string,
      *     name?: string,
      *     doc?: string,
-     *     signature?: list<string>,
+     *     signatures?: list<string>,
      *     desc?: string,
      *     groupKey?: string,
      *     githubUrl?: string,
@@ -48,7 +48,7 @@ final readonly class PhelFunction
             $array['namespace'] ?? '',
             $array['name'] ?? '',
             $array['doc'] ?? '',
-            $array['signature'] ?? [],
+            $array['signatures'] ?? [],
             $array['desc'] ?? '',
             $array['groupKey'] ?? '',
             $array['githubUrl'] ?? '',
@@ -85,23 +85,21 @@ final readonly class PhelFunction
     }
 
     /**
-     * @deprecated in favor of the signature attribute
+     * @deprecated in favor of the signatures attribute
      *
      * @return list<string>
      */
-    public function fnSignature(): array
+    public function fnSignatures(): array
     {
-        return $this->signature;
+        return $this->signatures;
     }
 
     /**
-     * @deprecated in favor of the signature attribute
-     *
-     * @return list<string>
+     * @deprecated in favor of the signatures attribute
      */
-    public function signature(): array
+    public function signature(): string
     {
-        return $this->signature;
+        return $this->signatures[0];
     }
 
     /**

@@ -103,7 +103,7 @@ final class DocCommand extends Command
      *     percent:int,
      *     namespace:string,
      *     name:string,
-     *     signature:list<string>,
+     *     signatures:list<string>,
      *     doc:string,
      *     description:string,
      *     githubUrl:string,
@@ -122,7 +122,7 @@ final class DocCommand extends Command
             ->setColumnMaxWidth(2, $width3);
 
         foreach ($phelFunctions as $func) {
-            $table->addRow([$func['name'], implode(', ', $func['signature']), $func['description']]);
+            $table->addRow([$func['name'], implode(', ', $func['signatures']), $func['description']]);
         }
 
         $table->render();
@@ -133,7 +133,7 @@ final class DocCommand extends Command
      *     percent:int,
      *     namespace:string,
      *     name:string,
-     *     signature:list<string>,
+     *     signatures:list<string>,
      *     doc:string,
      *     description:string,
      *     githubUrl:string,
@@ -176,7 +176,7 @@ final class DocCommand extends Command
      *   percent: int,
      *   namespace: string,
      *   name: string,
-     *   signature: list<string>,
+     *   signatures: list<string>,
      *   doc: string,
      *   description: string,
      *   githubUrl: string,
@@ -201,7 +201,7 @@ final class DocCommand extends Command
             $normalized[] = [
                 'namespace' => $phelFunction->namespace,
                 'name' => $fnName,
-                'signature' => $phelFunction->signature,
+                'signatures' => $phelFunction->signatures,
                 'doc' => $phelFunction->doc,
                 'description' => $description,
                 'example' => (string)($phelFunction->meta['example'] ?? ''),

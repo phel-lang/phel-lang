@@ -70,7 +70,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 namespace: $namespace,
                 name: $this->extractNameWithoutNamespace($fnName),
                 doc: $doc,
-                signature: $signature,
+                signatures: $signature,
                 description: $description,
                 groupKey: $groupKey,
                 githubUrl: $this->toGithubUrl($file, $line),
@@ -158,14 +158,14 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             $original = $originalNormalizedFns[$name] ?? null;
             $namespace = $this->extractNamespace($name);
 
-            $customSignature = $custom['signature'] ?? [];
-            $signature = $customSignature !== [] ? $customSignature : ($original->signature ?? []);
+            $customSignature = $custom['signatures'] ?? [];
+            $signature = $customSignature !== [] ? $customSignature : ($original->signatures ?? []);
 
             $result[] = new PhelFunction(
                 namespace: $namespace,
                 name: $this->extractNameWithoutNamespace($name),
                 doc: $custom['doc'] ?? $original->doc ?? '',
-                signature: $signature,
+                signatures: $signature,
                 description: $custom['desc'] ?? $original->description ?? '',
                 groupKey: $this->phelFnGroupKeyGenerator->generateGroupKey($namespace, $name),
                 githubUrl: $this->toGithubUrl($file, $line),
