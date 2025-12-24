@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Unreleased
+## [0.27.0](https://github.com/phel-lang/phel-lang/compare/v0.26.0...v0.27.0) - 2025-12-24
 
 ### Added
 - Add duplicate namespace detection warning to help diagnose config issues
