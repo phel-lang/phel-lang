@@ -30,14 +30,14 @@
     "require-dev": {
         "ext-readline": "*",
         "ergebnis/composer-normalize": "^2.48",
-        "friendsofphp/php-cs-fixer": "^3.89",
+        "friendsofphp/php-cs-fixer": "^3.92",
         "phpbench/phpbench": "^1.4",
         "phpstan/phpstan": "^2.1",
         "phpunit/phpunit": "^10.5",
         "psalm/plugin-phpunit": "^0.19",
         "rector/rector": "^2.2",
-        "symfony/var-dumper": "^7.3",
-        "vimeo/psalm": "^6.13"
+        "symfony/var-dumper": "^7.4",
+        "vimeo/psalm": "^6.14"
     },
     "autoload": {
         "psr-4": {
