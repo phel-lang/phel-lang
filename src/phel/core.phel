@@ -208,23 +208,23 @@
 (def defn-builder
   {:macro true :private true}
   (fn [name meta & fdecl]
-    (let [meta (if (php/is_string (php/aget fdecl 0))
-                 (php/-> meta (put :doc (php/aget fdecl 0)))
+    (let [meta (if (php/is_string (first fdecl))
+                 (php/-> meta (put :doc (first fdecl)))
                  meta)
-          fdecl (if (php/is_string (php/aget fdecl 0))
+          fdecl (if (php/is_string (first fdecl))
                   (next fdecl)
                   fdecl)
-          meta (if (php/instanceof (php/aget fdecl 0) PersistentMapInterface)
-                 (php/-> meta (merge (php/aget fdecl 0)))
+          meta (if (php/instanceof (first fdecl) PersistentMapInterface)
+                 (php/-> meta (merge (first fdecl)))
                  meta)
-          fdecl (if (php/instanceof (php/aget fdecl 0) PersistentMapInterface)
+          fdecl (if (php/instanceof (first fdecl) PersistentMapInterface)
                   (next fdecl)
                   fdecl)
-          is-single-arity (php/instanceof (php/aget fdecl 0) PersistentVectorInterface)
+          is-single-arity (php/instanceof (first fdecl) PersistentVectorInterface)
           docstring (php/aget meta :doc)
           signatures (if is-single-arity
                        # Single arity: just one signature
-                       (let [args (php/aget fdecl 0)
+                       (let [args (first fdecl)
                              args-array (if (php/is_array args)
                                           args
                                           (apply php/array args))]
@@ -236,7 +236,7 @@
                              sigs (php/array)]
                          (foreach [arity arities]
                            (if (php/instanceof arity PersistentListInterface)
-                             (let [args (php/aget arity 0)
+                             (let [args (first arity)
                                    args-array (if (php/is_array args)
                                                 args
                                                 (apply php/array args))]
