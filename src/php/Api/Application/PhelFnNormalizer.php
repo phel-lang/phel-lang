@@ -51,7 +51,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             preg_match('#(```phel\n(?<signature>.*)\n```\n)?(?<desc>.*)#s', $doc, $matches);
 
             $signatureBlock = $matches['signature'] ?? '';
-            $signature = $this->parseSignatures($signatureBlock);
+            $signatures = $this->parseSignatures($signatureBlock);
             $description = $matches['desc'] ?? '';
 
             $namespace = $this->extractNamespace($fnName);
@@ -70,7 +70,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 namespace: $namespace,
                 name: $this->extractNameWithoutNamespace($fnName),
                 doc: $doc,
-                signatures: $signature,
+                signatures: $signatures,
                 description: $description,
                 groupKey: $groupKey,
                 githubUrl: $this->toGithubUrl($file, $line),
@@ -159,13 +159,13 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             $namespace = $this->extractNamespace($name);
 
             $customSignature = $custom['signatures'] ?? [];
-            $signature = $customSignature !== [] ? $customSignature : ($original->signatures ?? []);
+            $signatures = $customSignature !== [] ? $customSignature : ($original->signatures ?? []);
 
             $result[] = new PhelFunction(
                 namespace: $namespace,
                 name: $this->extractNameWithoutNamespace($name),
                 doc: $custom['doc'] ?? $original->doc ?? '',
-                signatures: $signature,
+                signatures: $signatures,
                 description: $custom['desc'] ?? $original->description ?? '',
                 groupKey: $this->phelFnGroupKeyGenerator->generateGroupKey($namespace, $name),
                 githubUrl: $this->toGithubUrl($file, $line),
