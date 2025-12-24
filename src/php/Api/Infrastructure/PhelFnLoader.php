@@ -31,7 +31,7 @@ final readonly class PhelFnLoader implements PhelFnLoaderInterface
 *file*
 ```
 Returns the path of the current source file.',
-            'signature' => '*file*',
+            'signature' => ['*file*'],
             'desc' => 'Returns the path of the current source file.',
         ],
         '*ns*' => [ # this is already in core.phel
@@ -39,7 +39,7 @@ Returns the path of the current source file.',
 *ns*
 ```
 Returns the namespace in the current scope.',
-            'signature' => '*ns*',
+            'signature' => ['*ns*'],
             'desc' => 'Returns the namespace in the current scope.',
         ],
         Symbol::NAME_APPLY => [
@@ -48,7 +48,7 @@ Returns the namespace in the current scope.',
 ```
 Calls the function with the given arguments. The last argument must be a list of values, which are passed as separate arguments, rather than a single list. Apply returns the result of the calling function.',
             'docUrl' => '/documentation/functions-and-recursion/#apply-functions',
-            'signature' => '(apply f expr*)',
+            'signature' => ['(apply f expr*)'],
             'desc' => 'Calls the function with the given arguments. The last argument must be a list of values, which are passed as separate arguments, rather than a single list. Apply returns the result of the calling function.',
         ],
         Symbol::NAME_CATCH => [
@@ -57,15 +57,18 @@ Calls the function with the given arguments. The last argument must be a list of
 ```
 Handle exceptions thrown in a `try` block by matching on the provided exception type. The caught exception is bound to `exception-name` while evaluating the expressions.',
             'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
-            'signature' => '(catch exception-type exception-name expr*)',
+            'signature' => ['(catch exception-type exception-name expr*)'],
             'desc' => 'Handle exceptions thrown in a `try` block by matching on the provided exception type. The caught exception is bound to exception-name while evaluating the expressions.',
         ],
         Symbol::NAME_CONJ => [ # this is already in core.phel
             'doc' => '```phel
-(conj [1 2] 3) ; => [1 2 3]
+(conj)
+(conj coll)
+(conj coll value)
+(conj coll value & more)
 ```
 Returns a new collection with values added. Appends to vectors/sets, prepends to lists.',
-            'signature' => '(conj coll x)',
+            'signature' => ['(conj)', '(conj coll)', '(conj coll value)', '(conj coll value & more)'],
             'desc' => 'Returns a new collection with values added. Appends to vectors/sets, prepends to lists.',
             'docUrl' => '/documentation/data-structures/#adding-elements-with-conj',
         ],
@@ -75,7 +78,7 @@ Returns a new collection with values added. Appends to vectors/sets, prepends to
 ```
 This special form binds a value to a global symbol.',
             'docUrl' => '/documentation/global-and-local-bindings/#definition-def',
-            'signature' => '(def name meta? value)',
+            'signature' => ['(def name meta? value)'],
             'desc' => 'This special form binds a value to a global symbol.',
         ],
         Symbol::NAME_DO => [
@@ -84,7 +87,7 @@ This special form binds a value to a global symbol.',
 ```
 Evaluates the expressions in order and returns the value of the last expression. If no expression is given, nil is returned.',
             'docUrl' => '/documentation/control-flow/#statements-do',
-            'signature' => '(do expr*)',
+            'signature' => ['(do expr*)'],
             'desc' => 'Evaluates the expressions in order and returns the value of the last expression. If no expression is given, nil is returned.',
         ],
         Symbol::NAME_DEF_EXCEPTION => [ # this is already in core.phel
@@ -93,7 +96,7 @@ Evaluates the expressions in order and returns the value of the last expression.
 ```
 Define a new exception.',
             'docUrl' => '/documentation/exceptions',
-            'signature' => '(defexception name)',
+            'signature' => ['(defexception name)'],
             'desc' => 'Defines a new exception.',
         ],
         Symbol::NAME_DEF_INTERFACE => [ # this is already in core.phel
@@ -102,7 +105,7 @@ Define a new exception.',
 ```
 An interface in Phel defines an abstract set of functions. It is directly mapped to a PHP interface. An interface can be defined by using the definterface macro.',
             'docUrl' => '/documentation/interfaces/#defining-interfaces',
-            'signature' => '(definterface name & fns)',
+            'signature' => ['(definterface name & fns)'],
             'desc' => 'An interface in Phel defines an abstract set of functions. It is directly mapped to a PHP interface. An interface can be defined by using the definterface macro.',
         ],
         Symbol::NAME_DEF_STRUCT => [ # this is already in core.phel
@@ -111,7 +114,7 @@ An interface in Phel defines an abstract set of functions. It is directly mapped
 ```
 A Struct is a special kind of Map. It only supports a predefined number of keys and is associated to a global name. The Struct not only defines itself but also a predicate function.',
             'docUrl' => '/documentation/data-structures/#structs',
-            'signature' => '(defstruct my-struct [a b c])',
+            'signature' => ['(defstruct name [keys*])'],
             'desc' => 'A Struct is a special kind of Map. It only supports a predefined number of keys and is associated to a global name. The Struct not only defines itself but also a predicate function.',
         ],
         Symbol::NAME_FINALLY => [
@@ -120,7 +123,7 @@ A Struct is a special kind of Map. It only supports a predefined number of keys 
 ```
 Evaluate expressions after the try body and all matching catches have completed. The finally block runs regardless of whether an exception was thrown.',
             'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
-            'signature' => '(finally expr*)',
+            'signature' => ['(finally expr*)'],
             'desc' => 'Evaluate expressions after the try body and all matching catches have completed. The finally block runs regardless of whether an exception was thrown.',
         ],
         Symbol::NAME_FN => [
@@ -129,7 +132,7 @@ Evaluate expressions after the try body and all matching catches have completed.
 ```
 Defines a function. A function consists of a list of parameters and a list of expression. The value of the last expression is returned as the result of the function. All other expression are only evaluated for side effects. If no expression is given, the function returns nil.',
             'docUrl' => '/documentation/functions-and-recursion/#anonymous-function-fn',
-            'signature' => '(fn [params*] expr*)',
+            'signature' => ['(fn [params*] expr*)'],
             'desc' => 'Defines a function. A function consists of a list of parameters and a list of expression. The value of the last expression is returned as the result of the function. All other expression are only evaluated for side effects. If no expression is given, the function returns nil.',
         ],
         Symbol::NAME_FOREACH => [
@@ -138,7 +141,7 @@ Defines a function. A function consists of a list of parameters and a list of ex
 (foreach [key value valueExpr] expr*)
 ```
 The foreach special form can be used to iterate over all kind of PHP datastructures. The return value of foreach is always nil. The loop special form should be preferred of the foreach special form whenever possible.',
-            'signature' => '(foreach [value valueExpr] expr*)<br />(foreach [key value valueExpr] expr*)',
+            'signature' => ['(foreach [value valueExpr] expr*)', '(foreach [key value valueExpr] expr*)'],
             'desc' => 'The foreach special form can be used to iterate over all kind of PHP datastructures. The return value of foreach is always nil. The loop special form should be preferred of the foreach special form whenever possible.',
             'docUrl' => '/documentation/control-flow/#foreach',
         ],
@@ -150,7 +153,7 @@ A control flow structure. First evaluates test. If test evaluates to true, only 
 
 The test evaluates to false if its value is false or equal to nil. Every other value evaluates to true. In sense of PHP this means (test != null && test !== false).',
             'docUrl' => '/documentation/control-flow/#if',
-            'signature' => '(if test then else?)',
+            'signature' => ['(if test then else?)'],
             'desc' => 'A control flow structure. First evaluates test. If test evaluates to true, only the then form is evaluated and the result is returned. If test evaluates to false only the else form is evaluated and the result is returned. If no else form is given, nil will be returned.',
         ],
         Symbol::NAME_LET => [
@@ -159,7 +162,7 @@ The test evaluates to false if its value is false or equal to nil. Every other v
 ```
 Creates a new lexical context with assignments defined in bindings. Afterwards the list of expressions is evaluated and the value of the last expression is returned. If no expression is given nil is returned.',
             'docUrl' => '/documentation/global-and-local-bindings/#local-bindings-let',
-            'signature' => '(let [bindings*] expr*)',
+            'signature' => ['(let [bindings*] expr*)'],
             'desc' => 'Creates a new lexical context with assignments defined in bindings. Afterwards the list of expressions is evaluated and the value of the last expression is returned. If no expression is given nil is returned.',
         ],
         Symbol::NAME_LIST => [ # this is already in core.phel
@@ -168,7 +171,7 @@ Creates a new lexical context with assignments defined in bindings. Afterwards t
 ```
 Creates a new list. If no argument is provided, an empty list is created. Shortcut: \'()',
             'docUrl' => '/documentation/data-structures/#lists',
-            'signature' => "(list & xs) ; '(& xs)",
+            'signature' => ['(list & xs)'],
             'desc' => 'Creates a new list. If no argument is provided, an empty list is created.',
         ],
         Symbol::NAME_LOOP => [
@@ -176,7 +179,7 @@ Creates a new list. If no argument is provided, an empty list is created. Shortc
 (loop [bindings*] expr*)
 ```
 Creates a new lexical context with variables defined in bindings and defines a recursion point at the top of the loop.',
-            'signature' => '(loop [bindings*] expr*)',
+            'signature' => ['(loop [bindings*] expr*)'],
             'desc' => 'Creates a new lexical context with variables defined in bindings and defines a recursion point at the top of the loop.',
         ],
         Symbol::NAME_MAP => [ # this is already in core.phel
@@ -185,7 +188,7 @@ Creates a new lexical context with variables defined in bindings and defines a r
 ```
 Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even. Shortcut: {}',
             'docUrl' => '/documentation/data-structures/#maps',
-            'signature' => '(hash-map & xs) ; {& xs}',
+            'signature' => ['(hash-map & xs)'],
             'desc' => 'Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even.',
         ],
         Symbol::NAME_NS => [
@@ -194,7 +197,7 @@ Creates a new hash map. If no argument is provided, an empty hash map is created
 ```
 Defines the namespace for the current file and adds imports to the environment. Imports can either be uses or requires. The keyword `:use` is used to import PHP classes, the keyword `:require` is used to import Phel modules and the keyword `:require-file` is used to load php files.',
             'docUrl' => '/documentation/namespaces/#namespace-ns',
-            'signature' => '(ns name imports*)',
+            'signature' => ['(ns name imports*)'],
             'desc' => 'Defines the namespace for the current file and adds imports to the environment. Imports can either be uses or requires. The keyword :use is used to import PHP classes, the keyword :require is used to import Phel modules and the keyword :require-file is used to load php files.',
         ],
         Symbol::NAME_PHP_ARRAY_GET => [
@@ -203,7 +206,7 @@ Defines the namespace for the current file and adds imports to the environment. 
 ```
 Equivalent to PHP\'s `arr[index] ?? null`.',
             'docUrl' => '/documentation/php-interop/#get-php-array-value',
-            'signature' => '(php/aget arr index)',
+            'signature' => ['(php/aget arr index)'],
             'desc' => "Equivalent to PHP's `arr[index] ?? null`.",
         ],
         Symbol::NAME_PHP_ARRAY_GET_IN => [
@@ -212,7 +215,7 @@ Equivalent to PHP\'s `arr[index] ?? null`.',
 ```
 Equivalent to PHP\'s `arr[k1][k2][k...] ?? null`.',
             'docUrl' => '/documentation/php-interop/#get-php-array-value',
-            'signature' => '(php/aget-in arr ks)',
+            'signature' => ['(php/aget-in arr ks)'],
             'desc' => "Equivalent to PHP's `arr[k1][k2][k...] ?? null`.",
         ],
         Symbol::NAME_PHP_ARRAY_SET => [
@@ -221,7 +224,7 @@ Equivalent to PHP\'s `arr[k1][k2][k...] ?? null`.',
 ```
 Equivalent to PHP\'s `arr[index] = value`.',
             'docUrl' => '/documentation/php-interop/#set-php-array-value',
-            'signature' => '(php/aset arr index value)',
+            'signature' => ['(php/aset arr index value)'],
             'desc' => "Equivalent to PHP's `arr[index] = value`.",
         ],
         Symbol::NAME_PHP_ARRAY_SET_IN => [
@@ -230,7 +233,7 @@ Equivalent to PHP\'s `arr[index] = value`.',
 ```
 Equivalent to PHP\'s `arr[k1][k2][k...] = value`.',
             'docUrl' => '/documentation/php-interop/#set-php-array-value',
-            'signature' => '(php/aset-in arr ks value)',
+            'signature' => ['(php/aset-in arr ks value)'],
             'desc' => "Equivalent to PHP's `arr[k1][k2][k...] = value`.",
         ],
         Symbol::NAME_PHP_ARRAY_PUSH => [
@@ -239,7 +242,7 @@ Equivalent to PHP\'s `arr[k1][k2][k...] = value`.',
 ```
 Equivalent to PHP\'s `arr[] = value`.',
             'docUrl' => '/documentation/php-interop/#append-php-array-value',
-            'signature' => '(php/apush arr value)',
+            'signature' => ['(php/apush arr value)'],
             'desc' => "Equivalent to PHP's arr[] = value.",
         ],
         Symbol::NAME_PHP_ARRAY_PUSH_IN => [
@@ -248,7 +251,7 @@ Equivalent to PHP\'s `arr[] = value`.',
 ```
 Equivalent to PHP\'s `arr[k1][k2][k...][] = value`.',
             'docUrl' => '/documentation/php-interop/#append-php-array-value',
-            'signature' => '(php/apush-in arr ks value)',
+            'signature' => ['(php/apush-in arr ks value)'],
             'desc' => "Equivalent to PHP's `arr[k1][k2][k...][] = value`.",
         ],
         Symbol::NAME_PHP_ARRAY_UNSET => [
@@ -257,7 +260,7 @@ Equivalent to PHP\'s `arr[k1][k2][k...][] = value`.',
 ```
 Equivalent to PHP\'s `unset(arr[index])`.',
             'docUrl' => '/documentation/php-interop/#unset-php-array-value',
-            'signature' => '(php/aunset arr index)',
+            'signature' => ['(php/aunset arr index)'],
             'desc' => "Equivalent to PHP's `unset(arr[index])`.",
         ],
         Symbol::NAME_PHP_ARRAY_UNSET_IN => [
@@ -266,7 +269,7 @@ Equivalent to PHP\'s `unset(arr[index])`.',
 ```
 Equivalent to PHP\'s `unset(arr[k1][k2][k...])`.',
             'docUrl' => '/documentation/php-interop/#unset-php-array-value',
-            'signature' => '(php/aunset-in arr ks)',
+            'signature' => ['(php/aunset-in arr ks)'],
             'desc' => "Equivalent to PHP's `unset(arr[k1][k2][k...])`.",
         ],
         Symbol::NAME_PHP_NEW => [
@@ -275,7 +278,7 @@ Equivalent to PHP\'s `unset(arr[k1][k2][k...])`.',
 ```
 Evaluates expr and creates a new PHP class using the arguments. The instance of the class is returned.',
             'docUrl' => '/documentation/php-interop/#php-class-instantiation',
-            'signature' => '(php/new expr args*)',
+            'signature' => ['(php/new expr args*)'],
             'desc' => 'Evaluates expr and creates a new PHP class using the arguments. The instance of the class is returned.',
         ],
         Symbol::NAME_PHP_OBJECT_CALL => [
@@ -285,7 +288,7 @@ Evaluates expr and creates a new PHP class using the arguments. The instance of 
 ```
 Access to an object property or result of chained calls.',
             'docUrl' => '/documentation/php-interop/#php-set-object-properties',
-            'signature' => '(php/-> object call*)<br />(php/:: class call*)',
+            'signature' => ['(php/-> object call*)', '(php/:: class call*)'],
             'desc' => 'Access to an object property or result of chained calls.',
         ],
         Symbol::NAME_PHP_OBJECT_SET => [
@@ -295,7 +298,7 @@ Access to an object property or result of chained calls.',
 ```
 Use `php/oset` to set a value to a class/object property.',
             'docUrl' => '/documentation/php-interop/#php-set-object-properties',
-            'signature' => '(php/oset (php/-> object property) value)<br />(php/oset (php/:: class property) value)',
+            'signature' => ['(php/oset (php/-> object property) value)', '(php/oset (php/:: class property) value)'],
             'desc' => 'Use `php/oset` to set a value to a class/object property.',
         ],
         Symbol::NAME_PHP_OBJECT_STATIC_CALL => [
@@ -305,15 +308,16 @@ Use `php/oset` to set a value to a class/object property.',
 ```
 Calls a static method or property from a PHP class. Both method-name and property must be symbols and cannot be an evaluated value.',
             'docUrl' => '/documentation/php-interop/#php-static-method-and-property-call',
-            'signature' => '(php/:: class (method-name expr*))<br />(php/:: class call*)',
+            'signature' => ['(php/:: class (method-name expr*))', '(php/:: class call*)'],
             'desc' => 'Calls a static method or property from a PHP class. Both method-name and property must be symbols and cannot be an evaluated value.',
         ],
         Symbol::NAME_QUOTE => [
             'doc' => '```phel
-(NAME_QUOTE)
-```',
-            'signature' => '(NAME_QUOTE)',
-            'desc' => 'NAME_QUOTE description',
+(quote form)
+```
+Returns the unevaluated form.',
+            'signature' => ['(quote form)'],
+            'desc' => 'Returns the unevaluated form.',
         ],
         Symbol::NAME_RECUR => [
             'doc' => '```phel
@@ -321,7 +325,7 @@ Calls a static method or property from a PHP class. Both method-name and propert
 ```
 Internally recur is implemented as a PHP while loop and therefore prevents the Maximum function nesting level errors.',
             'docUrl' => '/documentation/global-and-local-bindings/#local-bindings-let',
-            'signature' => '(recur expr*)',
+            'signature' => ['(recur expr*)'],
             'desc' => 'Internally recur is implemented as a PHP while loop and therefore prevents the Maximum function nesting level errors.',
         ],
         Symbol::NAME_SET_VAR => [
@@ -330,7 +334,7 @@ Internally recur is implemented as a PHP while loop and therefore prevents the M
 ```
 Variables provide a way to manage mutable state that can be updated with `set!` and `swap!`. Each variable contains a single value. To create a variable use the var function.',
             'docUrl' => '/documentation/global-and-local-bindings/#variables',
-            'signature' => '(var value)',
+            'signature' => ['(var value)'],
             'desc' => 'Variables provide a way to manage mutable state that can be updated with `set!` and `swap!`. Each variable contains a single value. To create a variable use the var function.',
         ],
         Symbol::NAME_THROW => [
@@ -340,7 +344,7 @@ Variables provide a way to manage mutable state that can be updated with `set!` 
 Throw an exception.
 See [try-catch](/documentation/control-flow/#try-catch-and-finally).',
             'docUrl' => '',
-            'signature' => '(throw exception)',
+            'signature' => ['(throw exception)'],
             'desc' => 'Throw an exception.',
         ],
         Symbol::NAME_TRY => [
@@ -349,7 +353,7 @@ See [try-catch](/documentation/control-flow/#try-catch-and-finally).',
 ```
 All expressions are evaluated and if no exception is thrown the value of the last expression is returned. If an exception occurs and a matching catch-clause is provided, its expression is evaluated and the value is returned. If no matching catch-clause can be found the exception is propagated out of the function. Before returning normally or abnormally the optionally finally-clause is evaluated.',
             'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
-            'signature' => '(try expr* catch-clause* finally-clause?)',
+            'signature' => ['(try expr* catch-clause* finally-clause?)'],
             'desc' => 'All expressions are evaluated and if no exception is thrown the value of the last expression is returned. If an exception occurs and a matching catch-clause is provided, its expression is evaluated and the value is returned. If no matching catch-clause can be found the exception is propagated out of the function. Before returning normally or abnormally the optionally finally-clause is evaluated.',
         ],
         Symbol::NAME_UNQUOTE => [
@@ -359,7 +363,7 @@ All expressions are evaluated and if no exception is thrown the value of the las
 ```
 Values that should be evaluated in a macro are marked with the unquote function. Shortcut: `,`',
             'docUrl' => '/documentation/macros/#quasiquote',
-            'signature' => '(unquote my-sym)',
+            'signature' => ['(unquote expr)'],
             'desc' => 'Values that should be evaluated in a macro are marked with the unquote function. Shortcut: ,',
         ],
         Symbol::NAME_UNQUOTE_SPLICING => [
@@ -369,7 +373,7 @@ Values that should be evaluated in a macro are marked with the unquote function.
 ```
 Values that should be evaluated in a macro are marked with the unquote function. Shortcut: `,@`',
             'docUrl' => '/documentation/macros/#quasiquote',
-            'signature' => '(unquote-splicing my-sym)',
+            'signature' => ['(unquote-splicing expr)'],
             'desc' => 'Values that should be evaluated in a macro are marked with the unquote function. Shortcut: ,@',
         ],
         Symbol::NAME_VECTOR => [ # this is already in core.phel
@@ -378,7 +382,7 @@ Values that should be evaluated in a macro are marked with the unquote function.
 ```
 Creates a new vector. If no argument is provided, an empty vector is created. Shortcut: []',
             'docUrl' => '/documentation/data-structures/#vectors',
-            'signature' => '(vector & xs) ; [& xs]',
+            'signature' => ['(vector & xs)'],
             'desc' => 'Creates a new vector. If no argument is provided, an empty vector is created.',
         ],
     ];
@@ -391,7 +395,7 @@ Creates a new vector. If no argument is provided, an empty vector is created. Sh
     /**
      * @return array<string,array{
      *     doc?: string,
-     *     signature?: string,
+     *     signature?: list<string>,
      *     desc?: string,
      *     docUrl?: string,
      *     file?: string,

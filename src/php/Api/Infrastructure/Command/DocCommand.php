@@ -101,12 +101,14 @@ final class DocCommand extends Command
     /**
      * @param list<array{
      *     percent:int,
+     *     namespace:string,
      *     name:string,
-     *     signature:string,
+     *     signature:list<string>,
      *     doc:string,
      *     description:string,
      *     githubUrl:string,
-     *     docUrl:string
+     *     docUrl:string,
+     *     example:string
      * }> $phelFunctions
      */
     private function printFunctionsAsTable(OutputInterface $output, array $phelFunctions): void
@@ -120,7 +122,7 @@ final class DocCommand extends Command
             ->setColumnMaxWidth(2, $width3);
 
         foreach ($phelFunctions as $func) {
-            $table->addRow([$func['name'], $func['signature'], $func['description']]);
+            $table->addRow([$func['name'], implode(', ', $func['signature']), $func['description']]);
         }
 
         $table->render();
@@ -129,12 +131,14 @@ final class DocCommand extends Command
     /**
      * @param list<array{
      *     percent:int,
+     *     namespace:string,
      *     name:string,
-     *     signature:string,
+     *     signature:list<string>,
      *     doc:string,
      *     description:string,
      *     githubUrl:string,
-     *     docUrl:string
+     *     docUrl:string,
+     *     example:string,
      * }> $phelFunctions
      */
     private function printFunctionsAsJson(OutputInterface $output, array $phelFunctions): void
@@ -170,12 +174,14 @@ final class DocCommand extends Command
      *
      * @return list<array{
      *   percent: int,
+     *   namespace: string,
      *   name: string,
-     *   signature: string,
+     *   signature: list<string>,
      *   doc: string,
      *   description: string,
      *   githubUrl: string,
      *   docUrl: string,
+     *   example: string,
      * }>
      */
     private function normalizeGroupedFunctions(array $phelFunctions, string $search): array
@@ -193,13 +199,18 @@ final class DocCommand extends Command
             $description = preg_replace('/\r?\n/', '', $phelFunction->description) ?? '';
 
             $normalized[] = [
-                'percent' => (int) round($percent),
+                'namespace' => $phelFunction->namespace,
                 'name' => $fnName,
-                'signature' => $phelFunction->signature,
+                'signature' => array_map(
+                    static fn (string $sig): string => preg_replace('/\s+\)$/', ')', $sig) ?? $sig,
+                    $phelFunction->signature,
+                ),
                 'doc' => $phelFunction->doc,
                 'description' => $description,
+                'example' => (string)($phelFunction->meta['example'] ?? ''),
                 'githubUrl' => $phelFunction->githubUrl,
                 'docUrl' => $phelFunction->docUrl,
+                'percent' => (int) round($percent),
             ];
         }
 

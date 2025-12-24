@@ -50,7 +50,8 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             $doc = (string)($meta[Keyword::create('doc')] ?? '');
             preg_match('#(```phel\n(?<signature>.*)\n```\n)?(?<desc>.*)#s', $doc, $matches);
 
-            $signature = $matches['signature'] ?? '';
+            $signatureBlock = $matches['signature'] ?? '';
+            $signature = $this->parseSignatures($signatureBlock);
             $description = $matches['desc'] ?? '';
 
             $namespace = $this->extractNamespace($fnName);
@@ -157,11 +158,14 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             $original = $originalNormalizedFns[$name] ?? null;
             $namespace = $this->extractNamespace($name);
 
+            $customSignature = $custom['signature'] ?? [];
+            $signature = $customSignature !== [] ? $customSignature : ($original->signature ?? []);
+
             $result[] = new PhelFunction(
                 namespace: $namespace,
                 name: $this->extractNameWithoutNamespace($name),
                 doc: $custom['doc'] ?? $original->doc ?? '',
-                signature: $custom['signature'] ?? $original->signature ?? '',
+                signature: $signature,
                 description: $custom['desc'] ?? $original->description ?? '',
                 groupKey: $this->phelFnGroupKeyGenerator->generateGroupKey($namespace, $name),
                 githubUrl: $this->toGithubUrl($file, $line),
@@ -222,5 +226,30 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         }
 
         return $url;
+    }
+
+    /**
+     * Parse a signature block into a list of individual signatures.
+     * Multi-arity functions have multiple lines, each representing one arity.
+     *
+     * @return list<string>
+     */
+    private function parseSignatures(string $signatureBlock): array
+    {
+        if ($signatureBlock === '') {
+            return [];
+        }
+
+        $lines = explode("\n", $signatureBlock);
+        $signatures = [];
+
+        foreach ($lines as $line) {
+            $line = trim($line);
+            if ($line !== '') {
+                $signatures[] = $line;
+            }
+        }
+
+        return $signatures;
     }
 }

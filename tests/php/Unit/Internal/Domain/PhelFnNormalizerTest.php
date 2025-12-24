@@ -39,7 +39,7 @@ final class PhelFnNormalizerTest extends TestCase
             PhelFunction::fromArray([
                 'name' => 'fn-name',
                 'doc' => '',
-                'signature' => '',
+                'signature' => [],
                 'desc' => '',
                 'groupKey' => 'fn-name',
                 'namespace' => 'core',
@@ -64,7 +64,7 @@ final class PhelFnNormalizerTest extends TestCase
             PhelFunction::fromArray([
                 'name' => 'fn-name-1',
                 'doc' => '',
-                'signature' => '',
+                'signature' => [],
                 'desc' => '',
                 'groupKey' => 'fn-name-1',
                 'namespace' => 'core',
@@ -72,7 +72,7 @@ final class PhelFnNormalizerTest extends TestCase
             PhelFunction::fromArray([
                 'name' => 'fn-name-2',
                 'doc' => '',
-                'signature' => '',
+                'signature' => [],
                 'desc' => '',
                 'groupKey' => 'fn-name-2',
                 'namespace' => 'core',
@@ -97,7 +97,7 @@ final class PhelFnNormalizerTest extends TestCase
             PhelFunction::fromArray([
                 'name' => 'fn-name',
                 'doc' => '',
-                'signature' => '',
+                'signature' => [],
                 'desc' => '',
                 'groupKey' => 'fn-name',
                 'namespace' => 'core',
@@ -105,7 +105,7 @@ final class PhelFnNormalizerTest extends TestCase
             PhelFunction::fromArray([
                 'name' => 'fn-name?',
                 'doc' => '',
-                'signature' => '',
+                'signature' => [],
                 'desc' => '',
                 'groupKey' => 'fn-name',
                 'namespace' => 'core',
@@ -130,7 +130,7 @@ final class PhelFnNormalizerTest extends TestCase
             PhelFunction::fromArray([
                 'name' => 'fn-name-',
                 'doc' => '',
-                'signature' => '',
+                'signature' => [],
                 'desc' => '',
                 'groupKey' => 'fn-name',
                 'namespace' => 'core',
@@ -138,7 +138,7 @@ final class PhelFnNormalizerTest extends TestCase
             PhelFunction::fromArray([
                 'name' => 'fn-name?',
                 'doc' => '',
-                'signature' => '',
+                'signature' => [],
                 'desc' => '',
                 'groupKey' => 'fn-name',
                 'namespace' => 'core',
@@ -163,7 +163,7 @@ final class PhelFnNormalizerTest extends TestCase
             PhelFunction::fromArray([
                 'name' => 'FN-NAME',
                 'doc' => '',
-                'signature' => '',
+                'signature' => [],
                 'desc' => '',
                 'groupKey' => 'fn-name',
                 'namespace' => 'core',
@@ -171,7 +171,7 @@ final class PhelFnNormalizerTest extends TestCase
             PhelFunction::fromArray([
                 'name' => 'fn-name-',
                 'doc' => '',
-                'signature' => '',
+                'signature' => [],
                 'desc' => '',
                 'groupKey' => 'fn-name',
                 'namespace' => 'core',
@@ -214,7 +214,7 @@ final class PhelFnNormalizerTest extends TestCase
             PhelFunction::fromArray([
                 'name' => '*build-mode*',
                 'doc' => '',
-                'signature' => '',
+                'signature' => [],
                 'desc' => '',
                 'groupKey' => 'build-mode',
                 'namespace' => 'core',
@@ -243,7 +243,7 @@ final class PhelFnNormalizerTest extends TestCase
             PhelFunction::fromArray([
                 'name' => 'NAN',
                 'doc' => 'Constant for Not a Number (NAN) values.',
-                'signature' => '',
+                'signature' => [],
                 'desc' => 'Constant for Not a Number (NAN) values.',
                 'groupKey' => 'nan',
                 'namespace' => 'core',
@@ -275,7 +275,7 @@ final class PhelFnNormalizerTest extends TestCase
             PhelFunction::fromArray([
                 'name' => 'array',
                 'doc' => "```phel\n(array & xs)\n```\nCreates a new Array.",
-                'signature' => '(array & xs)',
+                'signature' => ['(array & xs)'],
                 'desc' => 'Creates a new Array.',
                 'groupKey' => 'array',
                 'namespace' => 'core',
@@ -307,7 +307,7 @@ final class PhelFnNormalizerTest extends TestCase
             PhelFunction::fromArray([
                 'name' => 'format',
                 'doc' => "```phel\n(array & xs)\n```\nReturns a formatted string. See PHP's [sprintf](https://example.com) for more information.",
-                'signature' => '(array & xs)',
+                'signature' => ['(array & xs)'],
                 'desc' => "Returns a formatted string. See PHP's [sprintf](https://example.com) for more information.",
                 'groupKey' => 'format',
                 'namespace' => 'core',
@@ -339,7 +339,7 @@ final class PhelFnNormalizerTest extends TestCase
             PhelFunction::fromArray([
                 'name' => 'old-fn',
                 'doc' => '',
-                'signature' => '',
+                'signature' => [],
                 'desc' => '',
                 'groupKey' => 'old-fn',
                 'namespace' => 'core',
@@ -376,7 +376,7 @@ final class PhelFnNormalizerTest extends TestCase
             PhelFunction::fromArray([
                 'name' => 'fn-name',
                 'doc' => '',
-                'signature' => '',
+                'signature' => [],
                 'desc' => '',
                 'groupKey' => 'fn-name',
                 'githubUrl' => 'https://github.com/phel-lang/phel-lang/blob/main/src/phel/my-file.phel#L5',
@@ -414,12 +414,44 @@ final class PhelFnNormalizerTest extends TestCase
             PhelFunction::fromArray([
                 'name' => 'apply',
                 'doc' => '',
-                'signature' => '',
+                'signature' => [],
                 'desc' => '',
                 'groupKey' => 'apply',
                 'githubUrl' => '',
                 'docUrl' => 'https://docs',
                 'namespace' => 'core',
+            ]),
+        ];
+
+        self::assertEquals($expected, $actual);
+    }
+
+    public function test_multi_arity_function_signature(): void
+    {
+        $symbol = Phel::map(
+            Keyword::create('doc'),
+            "```phel\n(conj coll x)\n(conj coll x & xs)\n```\nReturns a new collection with elements added.",
+        );
+
+        $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
+        $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([
+            'conj' => $symbol,
+        ]);
+
+        $normalizer = new PhelFnNormalizer($phelFnLoader, new PhelFnGroupKeyGenerator());
+        $actual = $normalizer->getPhelFunctions();
+
+        $expected = [
+            PhelFunction::fromArray([
+                'name' => 'conj',
+                'doc' => "```phel\n(conj coll x)\n(conj coll x & xs)\n```\nReturns a new collection with elements added.",
+                'signature' => ['(conj coll x)', '(conj coll x & xs)'],
+                'desc' => 'Returns a new collection with elements added.',
+                'groupKey' => 'conj',
+                'namespace' => 'core',
+                'meta' => [
+                    'doc' => "```phel\n(conj coll x)\n(conj coll x & xs)\n```\nReturns a new collection with elements added.",
+                ],
             ]),
         ];
 

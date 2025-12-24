@@ -220,16 +220,28 @@
           fdecl (if (php/instanceof (php/aget fdecl 0) PersistentMapInterface)
                   (next fdecl)
                   fdecl)
-          args (if (php/instanceof (php/aget fdecl 0) PersistentVectorInterface)
-                 (php/aget fdecl 0)
-                 (php/aget (php/aget fdecl 0) 0))
+          is-single-arity (php/instanceof (php/aget fdecl 0) PersistentVectorInterface)
           docstring (php/aget meta :doc)
-          args-array (if (php/is_array args)
-                       args
-                       (if (php/instanceof args PersistentVectorInterface)
-                         (apply php/array args)
-                         (apply php/array args)))
-          docstring (php/. "```phel\n(" name " " (php/implode " " args-array) ")\n```\n" docstring)
+          signatures (if is-single-arity
+                       # Single arity: just one signature
+                       (let [args (php/aget fdecl 0)
+                             args-array (if (php/is_array args)
+                                          args
+                                          (apply php/array args))]
+                         (php/. "(" name " " (php/implode " " args-array) ")"))
+                       # Multi-arity: generate signature for each arity
+                       (let [arities fdecl
+                             sigs (php/array)]
+                         (foreach [arity arities]
+                           (if (php/instanceof arity PersistentListInterface)
+                             (let [args (php/aget arity 0)
+                                   args-array (if (php/is_array args)
+                                                args
+                                                (apply php/array args))]
+                               (php/apush sigs (php/. "(" name " " (php/implode " " args-array) ")")))
+                             nil))
+                         (php/implode "\n" sigs)))
+          docstring (php/. "```phel\n" signatures "\n```\n" docstring)
           meta (php/-> meta (put :doc docstring))]
       `(def ,name ,meta (fn ,@fdecl)))))
 
