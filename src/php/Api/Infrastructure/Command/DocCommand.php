@@ -201,10 +201,7 @@ final class DocCommand extends Command
             $normalized[] = [
                 'namespace' => $phelFunction->namespace,
                 'name' => $fnName,
-                'signature' => array_map(
-                    static fn (string $sig): string => preg_replace('/\s+\)$/', ')', $sig) ?? $sig,
-                    $phelFunction->signature,
-                ),
+                'signature' => $phelFunction->signature,
                 'doc' => $phelFunction->doc,
                 'description' => $description,
                 'example' => (string)($phelFunction->meta['example'] ?? ''),

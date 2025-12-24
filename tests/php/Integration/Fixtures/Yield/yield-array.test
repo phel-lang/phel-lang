@@ -19,7 +19,7 @@
     }
   },
   \Phel::map(
-    \Phel::keyword("doc"), "```phel\n(yield_generator_array )\n```\n",
+    \Phel::keyword("doc"), "```phel\n(yield_generator_array)\n```\n",
     \Phel::keyword("start-location"), \Phel::map(
       \Phel::keyword("file"), "Yield/yield-array.test",
       \Phel::keyword("line"), 1,

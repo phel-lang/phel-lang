@@ -229,9 +229,6 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
     }
 
     /**
-     * Parse a signature block into a list of individual signatures.
-     * Multi-arity functions have multiple lines, each representing one arity.
-     *
      * @return list<string>
      */
     private function parseSignatures(string $signatureBlock): array

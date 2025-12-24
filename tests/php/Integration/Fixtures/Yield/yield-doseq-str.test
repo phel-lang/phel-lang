@@ -19,7 +19,7 @@
     }
   },
   \Phel::map(
-    \Phel::keyword("doc"), "```phel\n(yield_generator_str )\n```\n",
+    \Phel::keyword("doc"), "```phel\n(yield_generator_str)\n```\n",
     \Phel::keyword("start-location"), \Phel::map(
       \Phel::keyword("file"), "Yield/yield-doseq-str.test",
       \Phel::keyword("line"), 1,

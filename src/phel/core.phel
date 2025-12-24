@@ -228,7 +228,9 @@
                              args-array (if (php/is_array args)
                                           args
                                           (apply php/array args))]
-                         (php/. "(" name " " (php/implode " " args-array) ")"))
+                         (if (php/> (php/count args-array) 0)
+                           (php/. "(" name " " (php/implode " " args-array) ")")
+                           (php/. "(" name ")")))
                        # Multi-arity: generate signature for each arity
                        (let [arities fdecl
                              sigs (php/array)]
@@ -238,7 +240,9 @@
                                    args-array (if (php/is_array args)
                                                 args
                                                 (apply php/array args))]
-                               (php/apush sigs (php/. "(" name " " (php/implode " " args-array) ")")))
+                               (php/apush sigs (if (php/> (php/count args-array) 0)
+                                                 (php/. "(" name " " (php/implode " " args-array) ")")
+                                                 (php/. "(" name ")"))))
                              nil))
                          (php/implode "\n" sigs)))
           docstring (php/. "```phel\n" signatures "\n```\n" docstring)
