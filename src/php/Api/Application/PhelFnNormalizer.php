@@ -172,6 +172,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 docUrl: $custom['docUrl'] ?? '',
                 file: $file,
                 line: $line,
+                meta: ['example' => $custom['example'] ?? ''],
             );
         }
 

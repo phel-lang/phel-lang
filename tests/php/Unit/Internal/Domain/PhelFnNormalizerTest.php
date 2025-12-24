@@ -420,6 +420,7 @@ final class PhelFnNormalizerTest extends TestCase
                 'githubUrl' => '',
                 'docUrl' => 'https://docs',
                 'namespace' => 'core',
+                'meta' => ['example' => ''],
             ]),
         ];
 

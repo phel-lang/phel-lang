@@ -21,6 +21,7 @@ interface PhelFnLoaderInterface
      *     signature?: list<string>,
      *     desc?: string,
      *     docUrl?: string,
+     *     example?: string,
      *     file?: string,
      *     line?: int,
      * }>
