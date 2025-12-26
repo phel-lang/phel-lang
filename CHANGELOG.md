@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Fixed
+- Fix `defexception` macro failing with parse error due to invalid `apply php/new` usage
+
 ## [0.27.0](https://github.com/phel-lang/phel-lang/compare/v0.26.0...v0.27.0) - 2025-12-24
 
 ### Added

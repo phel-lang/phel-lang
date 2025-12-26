@@ -295,7 +295,9 @@
         is-name (php/:: Symbol (create (php/. name-str "?")))]
     `(do
        (defexception* ,name)
-       (defn ,name ,(php/. "Creates a new " name " exception.") [& args] (apply php/new ,class-name-str args))
+       (defn ,name ,(php/. "Creates a new " name " exception.") [& args]
+         (php/-> (php/new \ReflectionClass ,class-name-str)
+                 (newInstanceArgs (to-php-array args))))
        (defn ,is-name ,(php/. "Checks if `x` is an instance of the " name " exception.") [x] (php/is_a x ,class-name-str)))))
 
 (defmacro comment

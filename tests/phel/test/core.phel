@@ -77,6 +77,18 @@
   (let [x (my-struct true 1 "str" {:a 1} [:b :c])]
     (is (= x (my-struct true 1 "str" {:a 1} [:b :c])) "structs with same data")))
 
+(defexception my-exception)
+
+(deftest test-defexception
+  (let [ex (my-exception "test message" 42)]
+    (is (= "test message" (php/-> ex (getMessage))) "exception: get message")
+    (is (= 42 (php/-> ex (getCode))) "exception: get code")
+    (is (true? (my-exception? ex)) "exception: predicate returns true")
+    (is (false? (my-exception? "not an exception")) "exception: predicate returns false for non-exception"))
+  (let [ex (my-exception)]
+    (is (= "" (php/-> ex (getMessage))) "exception: default message is empty string")
+    (is (= 0 (php/-> ex (getCode))) "exception: default code is 0")))
+
 (deftest test-__FILE__
   (is (true? (>= (php/strpos __FILE__ "tests/phel/test/core.phel") 0)) "__FILE__"))
 
