@@ -27,7 +27,6 @@
   (:use Phel\Lang\MetaInterface)
   (:use Phel\Lang\PopInterface)
   (:use Phel\Lang\PushInterface)
-  (:use Phel\Lang\RemoveInterface)
   (:use Phel\Lang\RestInterface)
   (:use Phel\Lang\SliceInterface)
   (:use Phel\Lang\Symbol)
