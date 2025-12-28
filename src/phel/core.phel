@@ -27,7 +27,6 @@
   (:use Phel\Lang\MetaInterface)
   (:use Phel\Lang\PopInterface)
   (:use Phel\Lang\PushInterface)
-  (:use Phel\Lang\RemoveInterface)
   (:use Phel\Lang\RestInterface)
   (:use Phel\Lang\SliceInterface)
   (:use Phel\Lang\Symbol)
@@ -966,15 +965,6 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     (php/instanceof coll PopInterface) (php/-> coll (pop))
     (throw (php/new InvalidArgumentException "Cannot pop"))))
 
-(defn remove
-  "Removes up to `n` elements from array `coll` starting at index `offset`."
-  {:example "(remove my-array 1 2)"}
-  [^:reference coll offset & [n]]
-  (cond
-    (php-array? coll) (if n (php/array_splice coll offset n) (php/array_splice coll offset))
-    (php/instanceof coll RemoveInterface) (php/-> coll (remove offset n))
-    (throw (php/new InvalidArgumentException "Cannot remove"))))
-
 (defn get
   "Gets the value at key in a collection. Returns default if not found."
   {:example "(get {:a 1} :a) ; => 1"}
@@ -1566,6 +1556,14 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     (if (nil? result)
       []
       (with-meta coll result))))
+
+(defn remove
+  "Returns a lazy sequence of elements where predicate returns false.
+   Opposite of filter."
+  {:example "(remove even? [1 2 3 4 5 6]) ; => (1 3 5)"
+   :see-also ["filter"]}
+  [pred coll]
+  (filter |(not (pred $)) coll))
 
 (defn keep
   "Returns a lazy sequence of non-nil results of applying function to elements."

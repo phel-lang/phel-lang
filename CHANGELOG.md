@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Changed
+- **Breaking**: `remove` now uses Clojure `(remove pred coll)` instead of Janet-style `(remove coll offset &[n])`
+
 ### Fixed
 - Fix `defexception` macro failing with parse error due to invalid `apply php/new` usage
 
