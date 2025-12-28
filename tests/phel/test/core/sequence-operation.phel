@@ -117,15 +117,12 @@
     (is (= 2 y) "pop on PHP array: last element is returned")))
 
 (deftest test-remove
-  (let [xs (php/array 1 2 3 4)
-        removed (remove xs 2)]
-    (is (= (php/array 1 2) xs) "remove on PHP array: elements are removed")
-    (is (= (php/array 3 4) removed) "remove on PHP array: correct value is returned"))
-
-  (let [xs (php/array 1 2 3 4)
-        removed (remove xs 2 1)]
-    (is (= (php/array 1 2 4) xs) "remove with length on PHP array: elements are removed")
-    (is (= (php/array 3) removed) "remove with length on PHP array: correct value is returned")))
+  (is (= [1 3 5] (into [] (remove even? [1 2 3 4 5 6]))) "remove even numbers from vector")
+  (is (= [-2 -1 0] (into [] (remove pos? [1 -2 2 -1 3 7 0]))) "remove positive numbers")
+  (is (= [1 2 3] (into [] (remove nil? [1 nil 2 nil 3 nil]))) "remove nil values")
+  (is (= [:b :c :d :e :f] (into [] (remove #{:a} [:b :c :d :a :e :a :f]))) "remove with set as predicate")
+  (is (= [nil false] (into [] (remove identity [nil false]))) "remove keeps falsy values")
+  (is (= [nil false] (into [] (remove identity [nil false true 1]))) "remove truthy values"))
 
 (deftest test-slice
   (is (= [3 4] (slice [1 2 3 4] 2)) "slice on vector")
