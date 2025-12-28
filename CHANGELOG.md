@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - Fix `defexception` macro failing with parse error due to invalid `apply php/new` usage
+- Improve docblocks example code on the API page to make it REPL-friendly. (#1075)
 
 ## [0.27.0](https://github.com/phel-lang/phel-lang/compare/v0.26.0...v0.27.0) - 2025-12-24
 
