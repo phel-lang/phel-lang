@@ -2194,7 +2194,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 
 (defn juxt
   "Takes a list of functions and returns a new function that is the juxtaposition of those functions."
-  {:example "((juxt a b c) x) => [(a x) (b x) (c x)]"}
+  {:example "((juxt inc dec |(* $ 2)) 10) => [11 9 20]"}
   [& fs]
   (fn [& args]
     (reduce
@@ -2212,7 +2212,12 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 (defn memoize
   "Returns a memoized version of the function `f`. The memoized function
   caches the return value for each set of arguments."
-  {:example "(def f-memo (memoize f))"
+  {:example (str 
+              "(defn fact [n]" php/PHP_EOL
+              "  (if (zero? n)" php/PHP_EOL
+              "    1" php/PHP_EOL
+              "    (* n (fact (dec n)))))" php/PHP_EOL
+              "(def f-memo (memoize f))")
    :see-also ["memoize-lru"]}
   [f]
   (let [memoize-cache (var {})]
@@ -2231,7 +2236,12 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   in long-running processes.
 
   Without arguments, uses a default cache size of 128 entries."
-  {:example "(def fib-memo (memoize-lru fib 100))"
+  {:example (str 
+              "(defn fact [n]" php/PHP_EOL
+              "  (if (zero? n)" php/PHP_EOL
+              "    1" php/PHP_EOL
+              "    (* n (fact (dec n)))))" php/PHP_EOL
+              "(def fact-memo (memoize-lru fact 100))")
    :see-also ["memoize"]}
   ([f] (memoize-lru f 128))
   ([f max-size]
