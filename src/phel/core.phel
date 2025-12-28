@@ -2217,7 +2217,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
               "  (if (zero? n)" php/PHP_EOL
               "    1" php/PHP_EOL
               "    (* n (fact (dec n)))))" php/PHP_EOL
-              "(def f-memo (memoize f))")
+              "(def fact-memo (memoize fact))")
    :see-also ["memoize-lru"]}
   [f]
   (let [memoize-cache (var {})]
