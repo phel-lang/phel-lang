@@ -62,7 +62,7 @@ Handle exceptions thrown in a `try` block by matching on the provided exception 
             'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
             'signatures' => ['(catch exception-type exception-name expr*)'],
             'desc' => 'Handle exceptions thrown in a `try` block by matching on the provided exception type. The caught exception is bound to exception-name while evaluating the expressions.',
-            'example' => '(try (throw (php/new Exception "error")) (catch Exception e (php/-> e (getMessage))))',
+            'example' => '(try (throw (php/new \Exception "error")) (catch \Exception e (php/-> e (getMessage))))',
         ],
         Symbol::NAME_CONJ => [
             'doc' => '```phel
@@ -135,7 +135,9 @@ Evaluate expressions after the try body and all matching catches have completed.
             'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
             'signatures' => ['(finally expr*)'],
             'desc' => 'Evaluate expressions after the try body and all matching catches have completed. The finally block runs regardless of whether an exception was thrown.',
-            'example' => '(try (risky-operation) (catch Exception e nil) (finally (cleanup)))',
+            'example' => '(defn risky-operation [] (throw (php/new \Exception "Error!")))' . PHP_EOL .
+                '(defn cleanup [] (println "Cleanup!"))' . PHP_EOL .
+                '(try (risky-operation) (catch \Exception e nil) (finally (cleanup)))',
         ],
         Symbol::NAME_FN => [
             'doc' => '```phel
@@ -381,7 +383,7 @@ Throw an exception.',
             'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
             'signatures' => ['(throw exception)'],
             'desc' => 'Throw an exception.',
-            'example' => '(throw (php/new InvalidArgumentException "Invalid input"))',
+            'example' => '(throw (php/new \InvalidArgumentException "Invalid input"))',
         ],
         Symbol::NAME_TRY => [
             'doc' => '```phel
@@ -391,7 +393,7 @@ All expressions are evaluated and if no exception is thrown the value of the las
             'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
             'signatures' => ['(try expr* catch-clause* finally-clause?)'],
             'desc' => 'All expressions are evaluated and if no exception is thrown the value of the last expression is returned. If an exception occurs and a matching catch-clause is provided, its expression is evaluated and the value is returned. If no matching catch-clause can be found the exception is propagated out of the function. Before returning normally or abnormally the optionally finally-clause is evaluated.',
-            'example' => '(try (/ 1 0) (catch Exception e "error"))',
+            'example' => '(try (/ 1 0) (catch \Exception e "error"))',
         ],
         Symbol::NAME_UNQUOTE => [
             'doc' => '```phel
