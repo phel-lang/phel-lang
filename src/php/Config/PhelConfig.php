@@ -39,10 +39,10 @@ final class PhelConfig implements JsonSerializable
     public const string CACHE_DIR = 'cache-dir';
 
     /** @var list<string> */
-    private array $srcDirs = ['src'];
+    private array $srcDirs = ['src/phel'];
 
     /** @var list<string> */
-    private array $testDirs = ['tests'];
+    private array $testDirs = ['tests/phel'];
 
     private string $vendorDir = 'vendor';
 
@@ -53,7 +53,7 @@ final class PhelConfig implements JsonSerializable
     private PhelBuildConfig $buildConfig;
 
     /** @var list<string> */
-    private array $ignoreWhenBuilding = ['ignore-when-building.phel'];
+    private array $ignoreWhenBuilding = [];
 
     /** @var list<string> */
     private array $noCacheWhenBuilding = [];
@@ -65,7 +65,7 @@ final class PhelConfig implements JsonSerializable
     private string $cacheDir;
 
     /** @var list<string> */
-    private array $formatDirs = ['src', 'tests'];
+    private array $formatDirs = ['src/phel', 'tests/phel'];
 
     private bool $enableAsserts = true;
 
@@ -79,6 +79,109 @@ final class PhelConfig implements JsonSerializable
         $this->buildConfig = new PhelBuildConfig();
         $this->tempDir = sys_get_temp_dir() . '/phel/tmp';
         $this->cacheDir = sys_get_temp_dir() . '/phel/cache';
+    }
+
+    /**
+     * Quick factory for typical project setup with conventional layout.
+     *
+     * Example:
+     *   return PhelConfig::forProject('my-app\core');
+     */
+    public static function forProject(string $mainNamespace): self
+    {
+        return (new self())
+            ->setMainPhelNamespace($mainNamespace);
+    }
+
+    /**
+     * Use conventional directory layout: src/phel and tests/phel.
+     * This is the recommended structure for Phel projects.
+     */
+    public function useConventionalLayout(): self
+    {
+        $this->srcDirs = ['src/phel'];
+        $this->testDirs = ['tests/phel'];
+        $this->formatDirs = ['src/phel', 'tests/phel'];
+        $this->exportConfig->setFromDirectories(['src/phel']);
+
+        return $this;
+    }
+
+    /**
+     * Use flat directory layout: src and tests (for simpler projects).
+     */
+    public function useFlatLayout(): self
+    {
+        $this->srcDirs = ['src'];
+        $this->testDirs = ['tests'];
+        $this->formatDirs = ['src', 'tests'];
+        $this->exportConfig->setFromDirectories(['src']);
+
+        return $this;
+    }
+
+    /**
+     * Direct setter for the main Phel namespace (convenience method).
+     * Automatically configures build output to out/index.php.
+     */
+    public function setMainPhelNamespace(string $namespace): self
+    {
+        $this->buildConfig->setMainPhelNamespace($namespace);
+        if ($this->buildConfig->getMainPhpPath() === 'out/index.php' || $this->buildConfig->getMainPhpPath() === '') {
+            $this->buildConfig->setMainPhpPath('out/index.php');
+        }
+
+        return $this;
+    }
+
+    /**
+     * Direct setter for the main PHP output path (convenience method).
+     */
+    public function setMainPhpPath(string $path): self
+    {
+        $this->buildConfig->setMainPhpPath($path);
+
+        return $this;
+    }
+
+    /**
+     * Direct setter for the build destination directory (convenience method).
+     */
+    public function setBuildDestDir(string $dir): self
+    {
+        $this->buildConfig->setDestDir($dir);
+
+        return $this;
+    }
+
+    /**
+     * Direct setter for export namespace prefix (convenience method).
+     */
+    public function setExportNamespacePrefix(string $prefix): self
+    {
+        $this->exportConfig->setNamespacePrefix($prefix);
+
+        return $this;
+    }
+
+    /**
+     * Direct setter for export target directory (convenience method).
+     */
+    public function setExportTargetDirectory(string $dir): self
+    {
+        $this->exportConfig->setTargetDirectory($dir);
+
+        return $this;
+    }
+
+    /**
+     * Direct setter for export from directories (convenience method).
+     */
+    public function setExportFromDirectories(array $dirs): self
+    {
+        $this->exportConfig->setFromDirectories($dirs);
+
+        return $this;
     }
 
     /**

@@ -4,7 +4,20 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+- Add `phel init` command for quick project scaffolding with minimal configuration
+- Add `PhelConfig::forProject()` static factory for one-liner configuration
+- Add `useConventionalLayout()` and `useFlatLayout()` helper methods to PhelConfig
+- Add direct setters on PhelConfig: `setMainPhelNamespace()`, `setMainPhpPath()`, `setBuildDestDir()`, `setExportNamespacePrefix()`, `setExportTargetDirectory()`, `setExportFromDirectories()`
+- Add zero-config support with automatic project structure detection when `phel-config.php` is missing
+- Add `ConfigValidator` for helpful warnings about missing directories
+
 ### Changed
+- **Breaking**: Default `srcDirs` changed from `['src']` to `['src/phel']` (conventional layout)
+- **Breaking**: Default `testDirs` changed from `['tests']` to `['tests/phel']` (conventional layout)
+- **Breaking**: Default `formatDirs` changed from `['src', 'tests']` to `['src/phel', 'tests/phel']`
+- **Breaking**: Default `ignoreWhenBuilding` changed from `['ignore-when-building.phel']` to `[]`
+- **Breaking**: Default export `fromDirectories` changed from `['src']` to `['src/phel']`
 - **Breaking**: `remove` now uses Clojure `(remove pred coll)` instead of Janet-style `(remove coll offset &[n])`
 
 ### Fixed
