@@ -66,7 +66,7 @@ class Phel
             self::$autoDetectedConfig = self::detectProjectStructure($projectRootDir);
         }
 
-        Gacela::bootstrap($projectRootDir, self::configFn($projectRootDir));
+        Gacela::bootstrap($projectRootDir, self::configFn());
     }
 
     /**
@@ -142,7 +142,7 @@ class Phel
     /**
      * @return Closure(GacelaConfig):void
      */
-    public static function configFn(?string $projectRootDir = null): callable
+    public static function configFn(): callable
     {
         return static function (GacelaConfig $config): void {
             $config->enableFileCache(self::FILE_CACHE_DIR);

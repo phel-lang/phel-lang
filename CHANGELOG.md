@@ -10,7 +10,6 @@ All notable changes to this project will be documented in this file.
 - Add `useConventionalLayout()` and `useFlatLayout()` helper methods to PhelConfig
 - Add direct setters on PhelConfig: `setMainPhelNamespace()`, `setMainPhpPath()`, `setBuildDestDir()`, `setExportNamespacePrefix()`, `setExportTargetDirectory()`, `setExportFromDirectories()`
 - Add zero-config support with automatic project structure detection when `phel-config.php` is missing
-- Add `ConfigValidator` for helpful warnings about missing directories
 
 ### Changed
 - **Breaking**: Default `srcDirs` changed from `['src']` to `['src/phel']` (conventional layout)
