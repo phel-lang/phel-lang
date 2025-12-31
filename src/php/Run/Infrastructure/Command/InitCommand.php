@@ -18,6 +18,8 @@ final class InitCommand extends Command
 
     private const string OPT_FLAT = 'flat';
 
+    private const string DIR_OUT = 'out';
+
     protected function configure(): void
     {
         $this->setName('init')
@@ -50,65 +52,93 @@ final class InitCommand extends Command
 
         $srcDir = $useFlat ? 'src' : 'src/phel';
         $testDir = $useFlat ? 'tests' : 'tests/phel';
+        $namespace = $this->toNamespace($projectName);
 
-        // Create directory structure
-        $directories = [
-            $cwd . '/' . $srcDir,
-            $cwd . '/' . $testDir,
-            $cwd . '/out',
-        ];
+        if (!$this->createDirectories($cwd, [$srcDir, $testDir, self::DIR_OUT], $output)) {
+            return Command::FAILURE;
+        }
 
+        if (!$this->createFileIfNotExists(
+            $cwd . '/phel-config.php',
+            $this->generateConfig($namespace, $useFlat),
+            'phel-config.php',
+            $output,
+        )) {
+            return Command::FAILURE;
+        }
+
+        if (!$this->createFileIfNotExists(
+            $cwd . '/' . $srcDir . '/core.phel',
+            $this->generateCoreFile($namespace),
+            $srcDir . '/core.phel',
+            $output,
+        )) {
+            return Command::FAILURE;
+        }
+
+        $this->createFileIfNotExists(
+            $cwd . '/.gitignore',
+            $this->generateGitignore(),
+            '.gitignore',
+            $output,
+            skipExistsMessage: true,
+        );
+
+        $this->printNextSteps($output, $srcDir);
+
+        return Command::SUCCESS;
+    }
+
+    private function toNamespace(string $projectName): string
+    {
+        return str_replace('-', '', $projectName) . '\\core';
+    }
+
+    /**
+     * @param list<string> $directories
+     */
+    private function createDirectories(string $basePath, array $directories, OutputInterface $output): bool
+    {
         foreach ($directories as $dir) {
-            if (!is_dir($dir) && !mkdir($dir, 0755, true)) {
-                $output->writeln(sprintf('<error>Failed to create directory: %s</error>', $dir));
+            $fullPath = $basePath . '/' . $dir;
+            if (!is_dir($fullPath) && !mkdir($fullPath, 0755, true)) {
+                $output->writeln(sprintf('<error>Failed to create directory: %s</error>', $fullPath));
 
-                return Command::FAILURE;
+                return false;
             }
         }
 
-        // Create phel-config.php
-        $configPath = $cwd . '/phel-config.php';
-        if (!file_exists($configPath)) {
-            $configContent = $this->generateConfig($projectName, $useFlat);
-            if (file_put_contents($configPath, $configContent) === false) {
-                $output->writeln('<error>Failed to create phel-config.php</error>');
+        return true;
+    }
 
-                return Command::FAILURE;
+    private function createFileIfNotExists(
+        string $path,
+        string $content,
+        string $displayName,
+        OutputInterface $output,
+        bool $skipExistsMessage = false,
+    ): bool {
+        if (file_exists($path)) {
+            if (!$skipExistsMessage) {
+                $output->writeln(sprintf('<comment>%s already exists, skipping</comment>', $displayName));
             }
 
-            $output->writeln('<info>Created phel-config.php</info>');
-        } else {
-            $output->writeln('<comment>phel-config.php already exists, skipping</comment>');
+            return true;
         }
 
-        // Create core.phel
-        $coreFile = $cwd . '/' . $srcDir . '/core.phel';
-        if (!file_exists($coreFile)) {
-            $coreContent = $this->generateCoreFile($projectName);
-            if (file_put_contents($coreFile, $coreContent) === false) {
-                $output->writeln('<error>Failed to create core.phel</error>');
+        if (file_put_contents($path, $content) === false) {
+            $output->writeln(sprintf('<error>Failed to create %s</error>', $displayName));
 
-                return Command::FAILURE;
-            }
-
-            $output->writeln(sprintf('<info>Created %s/core.phel</info>', $srcDir));
-        } else {
-            $output->writeln(sprintf('<comment>%s/core.phel already exists, skipping</comment>', $srcDir));
+            return false;
         }
 
-        // Create .gitignore if it doesn't exist
-        $gitignorePath = $cwd . '/.gitignore';
-        if (!file_exists($gitignorePath)) {
-            $gitignoreContent = $this->generateGitignore();
-            if (file_put_contents($gitignorePath, $gitignoreContent) === false) {
-                $output->writeln('<error>Failed to create .gitignore</error>');
+        $output->writeln(sprintf('<info>Created %s</info>', $displayName));
 
-                return Command::FAILURE;
-            }
+        return true;
+    }
 
-            $output->writeln('<info>Created .gitignore</info>');
-        }
-
+    private function printNextSteps(OutputInterface $output, string $srcDir): void
+    {
         $output->writeln('');
         $output->writeln('<info>Phel project initialized successfully!</info>');
         $output->writeln('');
@@ -116,14 +146,10 @@ final class InitCommand extends Command
         $output->writeln(sprintf('  1. Run your code:  <comment>./vendor/bin/phel run %s/core.phel</comment>', $srcDir));
         $output->writeln('  2. Start the REPL: <comment>./vendor/bin/phel repl</comment>');
         $output->writeln('  3. Build for production: <comment>./vendor/bin/phel build</comment>');
-
-        return Command::SUCCESS;
     }
 
-    private function generateConfig(string $projectName, bool $useFlat): string
+    private function generateConfig(string $namespace, bool $useFlat): string
     {
-        $namespace = str_replace('-', '', $projectName) . '\\core';
-
         if ($useFlat) {
             return <<<PHP
 <?php
@@ -150,10 +176,8 @@ return PhelConfig::forProject('{$namespace}');
 PHP;
     }
 
-    private function generateCoreFile(string $projectName): string
+    private function generateCoreFile(string $namespace): string
     {
-        $namespace = str_replace('-', '', $projectName) . '\\core';
-
         return <<<PHEL
 (ns {$namespace})
 
