@@ -9,6 +9,7 @@ use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Phar;
 use Phel\Config\PhelConfig;
+use Phel\Config\ProjectLayout;
 use Phel\Filesystem\FilesystemFacade;
 use Phel\Run\RunFacade;
 use RuntimeException;
@@ -77,39 +78,24 @@ class Phel
     {
         $config = new PhelConfig();
 
-        // Detect source directories (prefer src/phel over src)
-        $srcDirs = [];
-        if (is_dir($projectRootDir . '/src/phel')) {
-            $srcDirs[] = 'src/phel';
-        } elseif (is_dir($projectRootDir . '/src')) {
-            $srcDirs[] = 'src';
+        // Single scan of top-level directory to minimize syscalls
+        $topLevel = @scandir($projectRootDir) ?: [];
+        $hasSrc = in_array('src', $topLevel, true);
+        $hasTests = in_array('tests', $topLevel, true);
+        $hasVendor = in_array('vendor', $topLevel, true);
+
+        // Check for conventional layout (src/phel, tests/phel) only if parent exists
+        $hasSrcPhel = $hasSrc && is_dir($projectRootDir . '/src/phel');
+        $hasTestsPhel = $hasTests && is_dir($projectRootDir . '/tests/phel');
+
+        // Determine layout based on detected structure
+        if ($hasSrcPhel || $hasTestsPhel) {
+            $config->useLayout(ProjectLayout::Conventional);
+        } elseif ($hasSrc || $hasTests) {
+            $config->useLayout(ProjectLayout::Flat);
         }
 
-        if ($srcDirs !== []) {
-            $config->setSrcDirs($srcDirs);
-            $config->setExportFromDirectories($srcDirs);
-        }
-
-        // Detect test directories (prefer tests/phel over tests)
-        $testDirs = [];
-        if (is_dir($projectRootDir . '/tests/phel')) {
-            $testDirs[] = 'tests/phel';
-        } elseif (is_dir($projectRootDir . '/tests')) {
-            $testDirs[] = 'tests';
-        }
-
-        if ($testDirs !== []) {
-            $config->setTestDirs($testDirs);
-        }
-
-        // Set format dirs based on detected structure
-        $formatDirs = array_merge($srcDirs, $testDirs);
-        if ($formatDirs !== []) {
-            $config->setFormatDirs($formatDirs);
-        }
-
-        // Detect vendor directory
-        if (is_dir($projectRootDir . '/vendor')) {
+        if ($hasVendor) {
             $config->setVendorDir('vendor');
         }
 
