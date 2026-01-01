@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Init;
 
+use Phel\Config\ProjectLayout;
+
 final class ProjectTemplateGenerator
 {
-    public function generateConfig(string $namespace, bool $useFlatLayout): string
+    public function generateConfig(string $namespace, ProjectLayout $layout): string
     {
-        if ($useFlatLayout) {
+        if ($layout === ProjectLayout::Flat) {
             return <<<PHP
 <?php
 

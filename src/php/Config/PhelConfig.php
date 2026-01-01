@@ -94,17 +94,25 @@ final class PhelConfig implements JsonSerializable
     }
 
     /**
+     * Apply a project layout (conventional or flat).
+     */
+    public function useLayout(ProjectLayout $layout): self
+    {
+        $this->srcDirs = [$layout->getSrcDir()];
+        $this->testDirs = [$layout->getTestDir()];
+        $this->formatDirs = $layout->getFormatDirs();
+        $this->exportConfig->setFromDirectories($layout->getExportFromDirs());
+
+        return $this;
+    }
+
+    /**
      * Use conventional directory layout: src/phel and tests/phel.
      * This is the recommended structure for Phel projects.
      */
     public function useConventionalLayout(): self
     {
-        $this->srcDirs = ['src/phel'];
-        $this->testDirs = ['tests/phel'];
-        $this->formatDirs = ['src/phel', 'tests/phel'];
-        $this->exportConfig->setFromDirectories(['src/phel']);
-
-        return $this;
+        return $this->useLayout(ProjectLayout::Conventional);
     }
 
     /**
@@ -112,12 +120,7 @@ final class PhelConfig implements JsonSerializable
      */
     public function useFlatLayout(): self
     {
-        $this->srcDirs = ['src'];
-        $this->testDirs = ['tests'];
-        $this->formatDirs = ['src', 'tests'];
-        $this->exportConfig->setFromDirectories(['src']);
-
-        return $this;
+        return $this->useLayout(ProjectLayout::Flat);
     }
 
     /**

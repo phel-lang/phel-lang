@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Run\Domain\Init;
 
+use Phel\Config\ProjectLayout;
 use Phel\Run\Domain\Init\ProjectTemplateGenerator;
 use PHPUnit\Framework\TestCase;
 
@@ -18,7 +19,7 @@ final class ProjectTemplateGeneratorTest extends TestCase
 
     public function test_generate_config_conventional_layout(): void
     {
-        $config = $this->generator->generateConfig('myapp\\core', false);
+        $config = $this->generator->generateConfig('myapp\\core', ProjectLayout::Conventional);
 
         self::assertStringContainsString("PhelConfig::forProject('myapp\\core')", $config);
         self::assertStringNotContainsString('useFlatLayout', $config);
@@ -27,7 +28,7 @@ final class ProjectTemplateGeneratorTest extends TestCase
 
     public function test_generate_config_flat_layout(): void
     {
-        $config = $this->generator->generateConfig('myapp\\core', true);
+        $config = $this->generator->generateConfig('myapp\\core', ProjectLayout::Flat);
 
         self::assertStringContainsString("PhelConfig::forProject('myapp\\core')", $config);
         self::assertStringContainsString('->useFlatLayout()', $config);

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Run\Infrastructure\Command;
 
+use Phel\Config\ProjectLayout;
 use Phel\Run\Domain\Init\NamespaceNormalizer;
 use Phel\Run\Domain\Init\ProjectTemplateGenerator;
 use Symfony\Component\Console\Command\Command;
@@ -50,7 +51,9 @@ final class InitCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $projectName = (string) $input->getArgument(self::ARG_PROJECT_NAME);
-        $useFlat = (bool) $input->getOption(self::OPT_FLAT);
+        $layout = $input->getOption(self::OPT_FLAT)
+            ? ProjectLayout::Flat
+            : ProjectLayout::Conventional;
 
         $cwd = getcwd();
         if ($cwd === false) {
@@ -59,8 +62,8 @@ final class InitCommand extends Command
             return Command::FAILURE;
         }
 
-        $srcDir = $useFlat ? 'src' : 'src/phel';
-        $testDir = $useFlat ? 'tests' : 'tests/phel';
+        $srcDir = $layout->getSrcDir();
+        $testDir = $layout->getTestDir();
         $namespace = $this->namespaceNormalizer->normalize($projectName);
 
         if (!$this->createDirectories($cwd, [$srcDir, $testDir, self::DIR_OUT], $output)) {
@@ -69,7 +72,7 @@ final class InitCommand extends Command
 
         if (!$this->createFileIfNotExists(
             $cwd . '/phel-config.php',
-            $this->templateGenerator->generateConfig($namespace, $useFlat),
+            $this->templateGenerator->generateConfig($namespace, $layout),
             'phel-config.php',
             $output,
         )) {
