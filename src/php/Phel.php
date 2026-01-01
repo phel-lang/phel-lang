@@ -46,19 +46,7 @@ class Phel
         }
 
         if (str_starts_with(__FILE__, 'phar://')) {
-            $cwd = getcwd();
-            if ($cwd === false) {
-                throw new RuntimeException('Unable to determine current working directory.');
-            }
-
-            $currentDirConfig = $cwd . '/' . self::PHEL_CONFIG_FILE_NAME;
-            if (file_exists($currentDirConfig)) {
-                $projectRootDir = $cwd;
-            } elseif (file_exists(dirname(Phar::running(false)) . '/' . self::PHEL_CONFIG_FILE_NAME)) {
-                $projectRootDir = dirname(Phar::running(false));
-            } else {
-                $projectRootDir = Phar::running(true);
-            }
+            $projectRootDir = self::resolvePharProjectRoot();
         }
 
         // Zero-config support: auto-detect project structure if no config file exists
@@ -150,6 +138,32 @@ class Phel
     public static function resetAutoDetectedConfig(): void
     {
         self::$autoDetectedConfig = null;
+    }
+
+    /**
+     * Resolve the project root directory when running from a PHAR.
+     * Priority: 1) CWD with config, 2) PHAR directory with config, 3) Inside PHAR
+     */
+    private static function resolvePharProjectRoot(): string
+    {
+        $cwd = getcwd();
+        if ($cwd === false) {
+            throw new RuntimeException('Unable to determine current working directory.');
+        }
+
+        // Check CWD first
+        if (file_exists($cwd . '/' . self::PHEL_CONFIG_FILE_NAME)) {
+            return $cwd;
+        }
+
+        // Check PHAR's directory
+        $pharDir = dirname(Phar::running(false));
+        if (file_exists($pharDir . '/' . self::PHEL_CONFIG_FILE_NAME)) {
+            return $pharDir;
+        }
+
+        // Fall back to inside the PHAR
+        return Phar::running(true);
     }
 
     /**
