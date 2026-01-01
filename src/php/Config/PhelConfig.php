@@ -6,6 +6,8 @@ namespace Phel\Config;
 
 use JsonSerializable;
 
+use function sprintf;
+
 final class PhelConfig implements JsonSerializable
 {
     public const string SRC_DIRS = 'src-dirs';
@@ -37,6 +39,8 @@ final class PhelConfig implements JsonSerializable
     public const string ENABLE_COMPILED_CODE_CACHE = 'enable-compiled-code-cache';
 
     public const string CACHE_DIR = 'cache-dir';
+
+    private const string PHEL_TEMP_SUBDIR = '/phel';
 
     /** @var list<string> */
     private array $srcDirs = ['src/phel'];
@@ -77,8 +81,11 @@ final class PhelConfig implements JsonSerializable
     {
         $this->exportConfig = new PhelExportConfig();
         $this->buildConfig = new PhelBuildConfig();
-        $this->tempDir = sys_get_temp_dir() . '/phel/tmp';
-        $this->cacheDir = sys_get_temp_dir() . '/phel/cache';
+
+        // Single syscall for temp directory
+        $baseTemp = sys_get_temp_dir() . self::PHEL_TEMP_SUBDIR;
+        $this->tempDir = $baseTemp . '/tmp';
+        $this->cacheDir = $baseTemp . '/cache';
     }
 
     /**
@@ -92,6 +99,104 @@ final class PhelConfig implements JsonSerializable
         return (new self())
             ->setMainPhelNamespace($mainNamespace);
     }
+
+    // ========================================
+    // Getters
+    // ========================================
+
+    /**
+     * @return list<string>
+     */
+    public function getSrcDirs(): array
+    {
+        return $this->srcDirs;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getTestDirs(): array
+    {
+        return $this->testDirs;
+    }
+
+    public function getVendorDir(): string
+    {
+        return $this->vendorDir;
+    }
+
+    public function getErrorLogFile(): string
+    {
+        return $this->errorLogFile;
+    }
+
+    public function getBuildConfig(): PhelBuildConfig
+    {
+        return $this->buildConfig;
+    }
+
+    public function getExportConfig(): PhelExportConfig
+    {
+        return $this->exportConfig;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getIgnoreWhenBuilding(): array
+    {
+        return $this->ignoreWhenBuilding;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getNoCacheWhenBuilding(): array
+    {
+        return $this->noCacheWhenBuilding;
+    }
+
+    public function getKeepGeneratedTempFiles(): bool
+    {
+        return $this->keepGeneratedTempFiles;
+    }
+
+    public function getTempDir(): string
+    {
+        return $this->tempDir;
+    }
+
+    public function getCacheDir(): string
+    {
+        return $this->cacheDir;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getFormatDirs(): array
+    {
+        return $this->formatDirs;
+    }
+
+    public function isAssertsEnabled(): bool
+    {
+        return $this->enableAsserts;
+    }
+
+    public function isNamespaceCacheEnabled(): bool
+    {
+        return $this->enableNamespaceCache;
+    }
+
+    public function isCompiledCodeCacheEnabled(): bool
+    {
+        return $this->enableCompiledCodeCache;
+    }
+
+    // ========================================
+    // Layout Configuration
+    // ========================================
 
     /**
      * Apply a project layout (conventional or flat).
@@ -122,6 +227,10 @@ final class PhelConfig implements JsonSerializable
     {
         return $this->useLayout(ProjectLayout::Flat);
     }
+
+    // ========================================
+    // Convenience Setters
+    // ========================================
 
     /**
      * Direct setter for the main Phel namespace (convenience method).
@@ -186,6 +295,10 @@ final class PhelConfig implements JsonSerializable
 
         return $this;
     }
+
+    // ========================================
+    // Standard Setters
+    // ========================================
 
     /**
      * @param list<string> $list
@@ -283,6 +396,7 @@ final class PhelConfig implements JsonSerializable
     public function setNoCacheWhenBuilding(array $list): self
     {
         $this->noCacheWhenBuilding = $list;
+
         return $this;
     }
 
@@ -313,6 +427,42 @@ final class PhelConfig implements JsonSerializable
 
         return $this;
     }
+
+    // ========================================
+    // Validation
+    // ========================================
+
+    /**
+     * Validate the configuration and return any errors found.
+     *
+     * @return list<string> List of validation errors (empty if valid)
+     */
+    public function validate(): array
+    {
+        $errors = [];
+
+        foreach ($this->srcDirs as $dir) {
+            if (str_starts_with($dir, '/')) {
+                $errors[] = sprintf("Source directory '%s' should be relative, not absolute", $dir);
+            }
+        }
+
+        foreach ($this->testDirs as $dir) {
+            if (str_starts_with($dir, '/')) {
+                $errors[] = sprintf("Test directory '%s' should be relative, not absolute", $dir);
+            }
+        }
+
+        if ($this->vendorDir !== '' && str_starts_with($this->vendorDir, '/')) {
+            $errors[] = sprintf("Vendor directory '%s' should be relative, not absolute", $this->vendorDir);
+        }
+
+        return $errors;
+    }
+
+    // ========================================
+    // Serialization
+    // ========================================
 
     public function jsonSerialize(): array
     {

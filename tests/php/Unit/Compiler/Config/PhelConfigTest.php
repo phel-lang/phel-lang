@@ -34,12 +34,12 @@ final class PhelConfigTest extends TestCase
             PhelConfig::IGNORE_WHEN_BUILDING => [],
             PhelConfig::NO_CACHE_WHEN_BUILDING => [],
             PhelConfig::KEEP_GENERATED_TEMP_FILES => false,
-            PhelConfig::TEMP_DIR => sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'phel/tmp',
+            PhelConfig::TEMP_DIR => sys_get_temp_dir() . '/phel/tmp',
             PhelConfig::FORMAT_DIRS => ['src/phel', 'tests/phel'],
             PhelConfig::ASSERTS_ENABLED => true,
             PhelConfig::ENABLE_NAMESPACE_CACHE => true,
             PhelConfig::ENABLE_COMPILED_CODE_CACHE => true,
-            PhelConfig::CACHE_DIR => sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'phel/cache',
+            PhelConfig::CACHE_DIR => sys_get_temp_dir() . '/phel/cache',
         ];
 
         self::assertSame($expected, $config->jsonSerialize());
@@ -159,5 +159,78 @@ final class PhelConfigTest extends TestCase
         ];
 
         self::assertSame($expected, $config->jsonSerialize());
+    }
+
+    public function test_getters(): void
+    {
+        $config = new PhelConfig();
+
+        self::assertSame(['src/phel'], $config->getSrcDirs());
+        self::assertSame(['tests/phel'], $config->getTestDirs());
+        self::assertSame('vendor', $config->getVendorDir());
+        self::assertSame('/tmp/phel-error.log', $config->getErrorLogFile());
+        self::assertInstanceOf(PhelBuildConfig::class, $config->getBuildConfig());
+        self::assertInstanceOf(PhelExportConfig::class, $config->getExportConfig());
+        self::assertSame([], $config->getIgnoreWhenBuilding());
+        self::assertSame([], $config->getNoCacheWhenBuilding());
+        self::assertFalse($config->getKeepGeneratedTempFiles());
+        self::assertSame(['src/phel', 'tests/phel'], $config->getFormatDirs());
+        self::assertTrue($config->isAssertsEnabled());
+        self::assertTrue($config->isNamespaceCacheEnabled());
+        self::assertTrue($config->isCompiledCodeCacheEnabled());
+    }
+
+    public function test_validate_passes_for_relative_paths(): void
+    {
+        $config = new PhelConfig();
+        $errors = $config->validate();
+
+        self::assertSame([], $errors);
+    }
+
+    public function test_validate_fails_for_absolute_src_dir(): void
+    {
+        $config = new PhelConfig();
+        $config->setSrcDirs(['/absolute/path']);
+
+        $errors = $config->validate();
+
+        self::assertCount(1, $errors);
+        self::assertStringContainsString('should be relative', $errors[0]);
+    }
+
+    public function test_validate_fails_for_absolute_test_dir(): void
+    {
+        $config = new PhelConfig();
+        $config->setTestDirs(['/absolute/tests']);
+
+        $errors = $config->validate();
+
+        self::assertCount(1, $errors);
+        self::assertStringContainsString('Test directory', $errors[0]);
+    }
+
+    public function test_validate_fails_for_absolute_vendor_dir(): void
+    {
+        $config = new PhelConfig();
+        $config->setVendorDir('/absolute/vendor');
+
+        $errors = $config->validate();
+
+        self::assertCount(1, $errors);
+        self::assertStringContainsString('Vendor directory', $errors[0]);
+    }
+
+    public function test_temp_dir_uses_single_base_path(): void
+    {
+        $config = new PhelConfig();
+
+        $tempDir = $config->getTempDir();
+        $cacheDir = $config->getCacheDir();
+
+        self::assertStringContainsString('/phel/', $tempDir);
+        self::assertStringContainsString('/phel/', $cacheDir);
+        self::assertStringEndsWith('/tmp', $tempDir);
+        self::assertStringEndsWith('/cache', $cacheDir);
     }
 }
