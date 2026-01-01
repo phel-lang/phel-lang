@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Run\Infrastructure\Command;
 
+use Phel\Run\Domain\Init\ProjectTemplateGenerator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,6 +20,12 @@ final class InitCommand extends Command
     private const string OPT_FLAT = 'flat';
 
     private const string DIR_OUT = 'out';
+
+    public function __construct(
+        private readonly ProjectTemplateGenerator $templateGenerator = new ProjectTemplateGenerator(),
+    ) {
+        parent::__construct();
+    }
 
     protected function configure(): void
     {
@@ -60,7 +67,7 @@ final class InitCommand extends Command
 
         if (!$this->createFileIfNotExists(
             $cwd . '/phel-config.php',
-            $this->generateConfig($namespace, $useFlat),
+            $this->templateGenerator->generateConfig($namespace, $useFlat),
             'phel-config.php',
             $output,
         )) {
@@ -69,7 +76,7 @@ final class InitCommand extends Command
 
         if (!$this->createFileIfNotExists(
             $cwd . '/' . $srcDir . '/core.phel',
-            $this->generateCoreFile($namespace),
+            $this->templateGenerator->generateCoreFile($namespace),
             $srcDir . '/core.phel',
             $output,
         )) {
@@ -78,7 +85,7 @@ final class InitCommand extends Command
 
         $this->createFileIfNotExists(
             $cwd . '/.gitignore',
-            $this->generateGitignore(),
+            $this->templateGenerator->generateGitignore(),
             '.gitignore',
             $output,
             skipExistsMessage: true,
@@ -146,59 +153,5 @@ final class InitCommand extends Command
         $output->writeln(sprintf('  1. Run your code:  <comment>./vendor/bin/phel run %s/core.phel</comment>', $srcDir));
         $output->writeln('  2. Start the REPL: <comment>./vendor/bin/phel repl</comment>');
         $output->writeln('  3. Build for production: <comment>./vendor/bin/phel build</comment>');
-    }
-
-    private function generateConfig(string $namespace, bool $useFlat): string
-    {
-        if ($useFlat) {
-            return <<<PHP
-<?php
-
-declare(strict_types=1);
-
-use Phel\Config\PhelConfig;
-
-return PhelConfig::forProject('{$namespace}')
-    ->useFlatLayout();
-
-PHP;
-        }
-
-        return <<<PHP
-<?php
-
-declare(strict_types=1);
-
-use Phel\Config\PhelConfig;
-
-return PhelConfig::forProject('{$namespace}');
-
-PHP;
-    }
-
-    private function generateCoreFile(string $namespace): string
-    {
-        return <<<PHEL
-(ns {$namespace})
-
-(defn main []
-  (println "Hello from Phel!"))
-
-(main)
-
-PHEL;
-    }
-
-    private function generateGitignore(): string
-    {
-        return <<<GITIGNORE
-/vendor/
-/out/
-/src/PhelGenerated/
-*.phar
-.phpunit.result.cache
-phel-config-local.php
-
-GITIGNORE;
     }
 }
