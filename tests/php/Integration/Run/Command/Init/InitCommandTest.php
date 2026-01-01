@@ -268,6 +268,21 @@ final class InitCommandTest extends TestCase
         self::assertStringContainsString('use --force to overwrite', $output->fetch());
     }
 
+    public function test_no_gitignore_option_skips_gitignore(): void
+    {
+        $command = new InitCommand();
+        $output = new BufferedOutput();
+
+        chdir($this->testDir);
+        $command->run(new ArrayInput([
+            'project-name' => 'my-app',
+            '--no-gitignore' => true,
+        ]), $output);
+
+        self::assertFileDoesNotExist($this->testDir . '/.gitignore');
+        self::assertFileExists($this->testDir . '/phel-config.php');
+    }
+
     private function removeDirectory(string $dir): void
     {
         if (!is_dir($dir)) {

@@ -25,6 +25,8 @@ final class InitCommand extends Command
 
     private const string OPT_DRY_RUN = 'dry-run';
 
+    private const string OPT_NO_GITIGNORE = 'no-gitignore';
+
     private const string DIR_OUT = 'out';
 
     public function __construct(
@@ -61,6 +63,12 @@ final class InitCommand extends Command
                 null,
                 InputOption::VALUE_NONE,
                 'Show what would be created without making changes',
+            )
+            ->addOption(
+                self::OPT_NO_GITIGNORE,
+                null,
+                InputOption::VALUE_NONE,
+                'Skip .gitignore file creation',
             );
     }
 
@@ -72,6 +80,7 @@ final class InitCommand extends Command
             : ProjectLayout::Conventional;
         $force = (bool) $input->getOption(self::OPT_FORCE);
         $dryRun = (bool) $input->getOption(self::OPT_DRY_RUN);
+        $noGitignore = (bool) $input->getOption(self::OPT_NO_GITIGNORE);
 
         $cwd = getcwd();
         if ($cwd === false) {
@@ -115,15 +124,17 @@ final class InitCommand extends Command
             return Command::FAILURE;
         }
 
-        $this->createFile(
-            $cwd . '/.gitignore',
-            $this->templateGenerator->generateGitignore(),
-            '.gitignore',
-            $output,
-            $force,
-            $dryRun,
-            skipExistsMessage: true,
-        );
+        if (!$noGitignore) {
+            $this->createFile(
+                $cwd . '/.gitignore',
+                $this->templateGenerator->generateGitignore(),
+                '.gitignore',
+                $output,
+                $force,
+                $dryRun,
+                skipExistsMessage: true,
+            );
+        }
 
         if (!$dryRun) {
             $this->printNextSteps($output, $srcDir);
