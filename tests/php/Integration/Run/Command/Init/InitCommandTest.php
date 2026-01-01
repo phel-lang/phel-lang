@@ -212,6 +212,62 @@ final class InitCommandTest extends TestCase
         self::assertStringNotContainsString('.gitignore already exists', $outputContent);
     }
 
+    public function test_dry_run_does_not_create_files(): void
+    {
+        $command = new InitCommand();
+        $output = new BufferedOutput();
+
+        chdir($this->testDir);
+        $result = $command->run(new ArrayInput([
+            'project-name' => 'my-app',
+            '--dry-run' => true,
+        ]), $output);
+
+        self::assertSame(Command::SUCCESS, $result);
+        self::assertFileDoesNotExist($this->testDir . '/phel-config.php');
+        self::assertDirectoryDoesNotExist($this->testDir . '/src/phel');
+
+        $outputContent = $output->fetch();
+
+        self::assertStringContainsString('Dry run mode', $outputContent);
+        self::assertStringContainsString('[DRY-RUN] Would create', $outputContent);
+    }
+
+    public function test_force_overwrites_existing_files(): void
+    {
+        $existingConfig = '<?php return [];';
+        mkdir($this->testDir . '/src/phel', 0755, true);
+        file_put_contents($this->testDir . '/phel-config.php', $existingConfig);
+
+        $command = new InitCommand();
+        $output = new BufferedOutput();
+
+        chdir($this->testDir);
+        $command->run(new ArrayInput([
+            'project-name' => 'my-app',
+            '--force' => true,
+        ]), $output);
+
+        $configContent = file_get_contents($this->testDir . '/phel-config.php');
+
+        self::assertNotSame($existingConfig, $configContent);
+        self::assertStringContainsString('PhelConfig::forProject', (string) $configContent);
+        self::assertStringContainsString('Overwrote', $output->fetch());
+    }
+
+    public function test_skipping_message_mentions_force_option(): void
+    {
+        file_put_contents($this->testDir . '/phel-config.php', '<?php return [];');
+
+        $command = new InitCommand();
+        $output = new BufferedOutput();
+
+        chdir($this->testDir);
+        $command->run(new ArrayInput(['project-name' => 'my-app']), $output);
+
+        self::assertStringContainsString('use --force to overwrite', $output->fetch());
+    }
+
     private function removeDirectory(string $dir): void
     {
         if (!is_dir($dir)) {
