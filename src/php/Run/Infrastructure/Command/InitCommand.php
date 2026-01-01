@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Run\Infrastructure\Command;
 
+use Phel\Run\Domain\Init\NamespaceNormalizer;
 use Phel\Run\Domain\Init\ProjectTemplateGenerator;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -23,6 +24,7 @@ final class InitCommand extends Command
 
     public function __construct(
         private readonly ProjectTemplateGenerator $templateGenerator = new ProjectTemplateGenerator(),
+        private readonly NamespaceNormalizer $namespaceNormalizer = new NamespaceNormalizer(),
     ) {
         parent::__construct();
     }
@@ -59,7 +61,7 @@ final class InitCommand extends Command
 
         $srcDir = $useFlat ? 'src' : 'src/phel';
         $testDir = $useFlat ? 'tests' : 'tests/phel';
-        $namespace = $this->toNamespace($projectName);
+        $namespace = $this->namespaceNormalizer->normalize($projectName);
 
         if (!$this->createDirectories($cwd, [$srcDir, $testDir, self::DIR_OUT], $output)) {
             return Command::FAILURE;
@@ -94,11 +96,6 @@ final class InitCommand extends Command
         $this->printNextSteps($output, $srcDir);
 
         return Command::SUCCESS;
-    }
-
-    private function toNamespace(string $projectName): string
-    {
-        return str_replace('-', '', $projectName) . '\\core';
     }
 
     /**
