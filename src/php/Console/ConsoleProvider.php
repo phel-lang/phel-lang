@@ -16,6 +16,7 @@ use Phel\Formatter\Infrastructure\Command\FormatCommand;
 use Phel\Interop\Infrastructure\Command\ExportCommand;
 use Phel\Run\Infrastructure\Command\DoctorCommand;
 use Phel\Run\Infrastructure\Command\EvalCommand;
+use Phel\Run\Infrastructure\Command\InitCommand;
 use Phel\Run\Infrastructure\Command\NsCommand;
 use Phel\Run\Infrastructure\Command\ReplCommand;
 use Phel\Run\Infrastructure\Command\RunCommand;
@@ -51,6 +52,7 @@ final class ConsoleProvider extends AbstractProvider
     private function addCommands(Container $container): void
     {
         $container->set(self::COMMANDS, static fn (): array => [
+            new InitCommand(),
             new ExportCommand(),
             new FormatCommand(),
             new NsCommand(),

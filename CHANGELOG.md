@@ -4,8 +4,35 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+- Add `phel init` command for quick project scaffolding with minimal configuration
+  - `--flat` option for flat directory layout (src/ instead of src/phel/)
+  - `--force` option to overwrite existing files
+  - `--dry-run` option to preview changes without creating files
+  - `--no-gitignore` option to skip .gitignore file creation
+- Add `PhelConfig::forProject()` static factory for one-liner configuration
+- Add `useConventionalLayout()` and `useFlatLayout()` helper methods to PhelConfig
+- Add `useLayout(ProjectLayout)` method for type-safe layout configuration
+- Add `ProjectLayout` enum with `Conventional` and `Flat` variants
+- Add getter methods to `PhelConfig` for all properties (`getSrcDirs()`, `getTestDirs()`, etc.)
+- Add boolean getters with `is` prefix (`isAssertsEnabled()`, `isNamespaceCacheEnabled()`, etc.)
+- Add `PhelConfig::validate()` method to check for configuration errors (e.g., absolute paths)
+- Add direct setters on PhelConfig: `setMainPhelNamespace()`, `setMainPhpPath()`, `setBuildDestDir()`, `setExportNamespacePrefix()`, `setExportTargetDirectory()`, `setExportFromDirectories()`
+- Add zero-config support with automatic project structure detection when `phel-config.php` is missing
+- Add comprehensive tests for InitCommand
+
 ### Changed
+- **Breaking**: Default `srcDirs` changed from `['src']` to `['src/phel']` (conventional layout)
+- **Breaking**: Default `testDirs` changed from `['tests']` to `['tests/phel']` (conventional layout)
+- **Breaking**: Default `formatDirs` changed from `['src', 'tests']` to `['src/phel', 'tests/phel']`
+- **Breaking**: Default `ignoreWhenBuilding` changed from `['ignore-when-building.phel']` to `[]`
+- **Breaking**: Default export `fromDirectories` changed from `['src']` to `['src/phel']`
 - **Breaking**: `remove` now uses Clojure `(remove pred coll)` instead of Janet-style `(remove coll offset &[n])`
+- Extract `ProjectTemplateGenerator` for template generation in InitCommand
+- Extract `NamespaceNormalizer` for consistent namespace conversion
+- Optimize `PhelConfig` constructor to use single `sys_get_temp_dir()` call
+- Optimize `detectProjectStructure()` to use single `scandir()` for better performance
+- Extract `resolvePharProjectRoot()` for cleaner PHAR bootstrap logic
 
 ### Fixed
 - Fix `defexception` macro failing with parse error due to invalid `apply php/new` usage

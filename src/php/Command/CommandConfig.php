@@ -13,9 +13,9 @@ final class CommandConfig extends AbstractConfig
 {
     private const string DEFAULT_VENDOR_DIR = 'vendor';
 
-    private const array DEFAULT_SRC_DIRS = ['src'];
+    private const array DEFAULT_SRC_DIRS = ['src/phel'];
 
-    private const array DEFAULT_TEST_DIRS = ['tests'];
+    private const array DEFAULT_TEST_DIRS = ['tests/phel'];
 
     private const string DEFAULT_OUTPUT_DIR = 'out';
 

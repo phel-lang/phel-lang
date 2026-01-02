@@ -10,7 +10,7 @@ use Phel\Config\PhelExportConfig;
 
 final class InteropConfig extends AbstractConfig
 {
-    private const array DEFAULT_EXPORT_DIRECTORIES = ['src'];
+    private const array DEFAULT_EXPORT_DIRECTORIES = ['src/phel'];
 
     private const string DEFAULT_EXPORT_NAMESPACE_PREFIX = 'PhelGenerated';
 

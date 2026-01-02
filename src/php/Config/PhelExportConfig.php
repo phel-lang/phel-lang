@@ -15,7 +15,7 @@ final class PhelExportConfig implements JsonSerializable
     public const string TARGET_DIRECTORY = 'target-directory';
 
     /** @var list<string> */
-    private array $fromDirectories = ['src'];
+    private array $fromDirectories = ['src/phel'];
 
     private string $namespacePrefix = 'PhelGenerated';
 
