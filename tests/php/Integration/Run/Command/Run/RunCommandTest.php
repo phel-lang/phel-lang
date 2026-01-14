@@ -58,10 +58,43 @@ final class RunCommandTest extends AbstractTestCommand
 
     public function test_pass_flag_arguments_to_script(): void
     {
-        $this->expectOutputRegex('~--myarg~');
+        $this->expectOutputRegex('~first:--myarg~');
 
         $this->createRunCommand()->run(
-            new ArgvInput([__DIR__ . '/Fixtures/argv-script.phel', '--', '--myarg']),
+            new ArgvInput(['run', __DIR__ . '/Fixtures/argv-script.phel', '--', '--myarg']),
+            $this->stubOutput(),
+        );
+    }
+
+    public function test_program_contains_script_path(): void
+    {
+        $scriptPath = __DIR__ . '/Fixtures/argv-script.phel';
+        $this->expectOutputRegex('~program:' . preg_quote($scriptPath, '~') . '~');
+
+        $this->createRunCommand()->run(
+            new ArgvInput(['run', $scriptPath, '--', 'arg1']),
+            $this->stubOutput(),
+        );
+    }
+
+    public function test_argv_does_not_contain_script_name(): void
+    {
+        $scriptPath = __DIR__ . '/Fixtures/argv-script.phel';
+        // argv should be ["arg1" "arg2"], not contain the script path
+        $this->expectOutputRegex('~argv:\["arg1" "arg2"\]~');
+
+        $this->createRunCommand()->run(
+            new ArgvInput(['run', $scriptPath, '--', 'arg1', 'arg2']),
+            $this->stubOutput(),
+        );
+    }
+
+    public function test_argv_first_element_is_first_user_arg(): void
+    {
+        $this->expectOutputRegex('~first:--verbose~');
+
+        $this->createRunCommand()->run(
+            new ArgvInput(['run', __DIR__ . '/Fixtures/argv-script.phel', '--', '--verbose', 'file.txt']),
             $this->stubOutput(),
         );
     }
