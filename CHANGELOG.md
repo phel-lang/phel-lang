@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Add `*program*` variable containing the script path or namespace being executed
+- Add `Phel::setupRuntimeArgs()`, `Phel::getProgram()`, `Phel::getArgv()` API for runtime argument management
 - Add `phel init` command for quick project scaffolding with minimal configuration
   - `--flat` option for flat directory layout (src/ instead of src/phel/)
   - `--force` option to overwrite existing files
@@ -22,6 +24,7 @@ All notable changes to this project will be documented in this file.
 - Add comprehensive tests for InitCommand
 
 ### Changed
+- **Breaking**: `argv` now contains only user arguments (excludes script/namespace name). Use `*program*` to get the script path or namespace.
 - **Breaking**: Default `srcDirs` changed from `['src']` to `['src/phel']` (conventional layout)
 - **Breaking**: Default `testDirs` changed from `['tests']` to `['tests/phel']` (conventional layout)
 - **Breaking**: Default `formatDirs` changed from `['src', 'tests']` to `['src/phel', 'tests/phel']`
