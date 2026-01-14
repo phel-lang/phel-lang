@@ -42,6 +42,9 @@ final readonly class EntryPointPhpFile implements EntryPointPhpFileInterface
 
 require_once dirname(__DIR__) . "/vendor/autoload.php";
 
+// Normalize argv: program is $argv[0], user args are the rest
+\Phel\Phel::setupRuntimeArgs($argv[0] ?? __FILE__, array_slice($argv ?? [], 1));
+
 $compiledFile = __DIR__ . "/{{OUTPUT_MAIN_PHEL_PATH}}.php";
 
 require_once $compiledFile;

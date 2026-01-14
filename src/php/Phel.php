@@ -17,8 +17,6 @@ use RuntimeException;
 use function dirname;
 use function getcwd;
 use function in_array;
-use function is_array;
-use function is_string;
 
 /**
  * @internal use \Phel instead
@@ -39,9 +37,40 @@ class Phel
 
     private static ?PhelConfig $autoDetectedConfig = null;
 
-    public static function bootstrap(string $projectRootDir, array|string|null $argv = null): void
+    /**
+     * Set up Phel runtime argv and program globals.
+     * This normalizes argument handling so argv contains only user arguments.
+     *
+     * @param string       $program The script path or namespace being executed
+     * @param list<string> $argv    User arguments (without script name)
+     */
+    public static function setupRuntimeArgs(string $program, array $argv): void
     {
-        if ($argv !== null) {
+        $GLOBALS['__phel_program'] = $program;
+        $GLOBALS['__phel_argv'] = $argv;
+    }
+
+    /**
+     * Get the current program (script path or namespace).
+     */
+    public static function getProgram(): string
+    {
+        return $GLOBALS['__phel_program'] ?? '';
+    }
+
+    /**
+     * Get user arguments (without script name).
+     *
+     * @return list<string>
+     */
+    public static function getArgv(): array
+    {
+        return $GLOBALS['__phel_argv'] ?? [];
+    }
+
+    public static function bootstrap(string $projectRootDir, ?array $argv = null): void
+    {
+        if ($argv !== null && $argv !== []) {
             self::updateGlobalArgv($argv);
         }
 
@@ -101,11 +130,14 @@ class Phel
     /**
      * This function helps to unify the running execution for a custom phel project.
      *
-     * @param list<string>|string|null $argv
+     * @param list<string>|null $argv User arguments (not including program name)
      */
-    public static function run(string $projectRootDir, string $namespace, array|string|null $argv = null): void
+    public static function run(string $projectRootDir, string $namespace, ?array $argv = null): void
     {
-        self::bootstrap($projectRootDir, $argv);
+        // Set up normalized runtime args (program + user-only argv)
+        self::setupRuntimeArgs($namespace, $argv ?? []);
+
+        self::bootstrap($projectRootDir);
 
         $runFacade = new RunFacade();
         $runFacade->runNamespace($namespace);
@@ -167,22 +199,14 @@ class Phel
     }
 
     /**
-     * @param list<string>|string $argv
+     * @param list<string> $argv
      */
-    private static function updateGlobalArgv(array|string $argv): void
+    private static function updateGlobalArgv(array $argv): void
     {
-        $updateGlobals = static function (array $list): void {
-            foreach (array_filter($list) as $value) {
-                if (!in_array($value, $GLOBALS['argv'], true)) {
-                    $GLOBALS['argv'][] = $value;
-                }
+        foreach (array_filter($argv) as $value) {
+            if (!in_array($value, $GLOBALS['argv'], true)) {
+                $GLOBALS['argv'][] = $value;
             }
-        };
-
-        if (is_string($argv) && $argv !== '') {
-            $updateGlobals(explode(' ', $argv));
-        } elseif (is_array($argv) && $argv !== []) {
-            $updateGlobals($argv);
         }
     }
 }

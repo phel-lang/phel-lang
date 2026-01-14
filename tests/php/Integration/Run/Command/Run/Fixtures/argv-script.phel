@@ -1,3 +1,8 @@
 (ns test\argv-script)
 
-(php/print (last (php->phel argv)))
+;; Print program and argv for testing
+(php/print (str "program:" *program* "\n"))
+(php/print (str "count:" (php/count argv) "\n"))
+(php/print (str "first:" (php/aget argv 0) "\n"))
+(when (php/>= (php/count argv) 2)
+  (php/print (str "second:" (php/aget argv 1) "\n")))
