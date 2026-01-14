@@ -137,9 +137,16 @@
     `(def ,name nil)))
 
 (declare nil?)
+
+(def *program*
+  "The script path or namespace being executed."
+  (let [prog (php/aget php/$GLOBALS "__phel_program")]
+    (if (php/=== prog nil) "" prog)))
+
 (def argv
-  "Vector of arguments passed to the script."
-  (let [argv-raw (php/aget php/$GLOBALS "argv")]
+  "Vector of user arguments passed to the script (excludes program name).
+  Use *program* to get the script path or namespace."
+  (let [argv-raw (php/aget php/$GLOBALS "__phel_argv")]
     (if (php/=== argv-raw nil)
       []
       (php/:: Phel (vector argv-raw)))))

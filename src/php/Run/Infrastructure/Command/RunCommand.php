@@ -7,6 +7,7 @@ namespace Phel\Run\Infrastructure\Command;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
+use Phel\Phel;
 use Phel\Run\Infrastructure\Service\DebugLineTap;
 use Phel\Run\RunFacade;
 use RuntimeException;
@@ -19,6 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
 use function function_exists;
+use function is_array;
 use function is_string;
 use function sprintf;
 
@@ -84,6 +86,14 @@ final class RunCommand extends Command
         try {
             /** @var string $path */
             $path = $input->getArgument('path');
+
+            /** @var list<string>|string|null $rawArgv */
+            $rawArgv = $input->getArgument('argv');
+            $userArgv = is_array($rawArgv) ? $rawArgv : [];
+
+            // Set up normalized runtime args before executing the script
+            Phel::setupRuntimeArgs($path, $userArgv);
+
             $result = file_exists($path) ? $this->executeFile($path) : $this->executeNamespace($path);
 
             $identifier = $path;

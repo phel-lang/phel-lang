@@ -39,6 +39,37 @@ class Phel
 
     private static ?PhelConfig $autoDetectedConfig = null;
 
+    /**
+     * Set up Phel runtime argv and program globals.
+     * This normalizes argument handling so argv contains only user arguments.
+     *
+     * @param string       $program The script path or namespace being executed
+     * @param list<string> $argv    User arguments (without script name)
+     */
+    public static function setupRuntimeArgs(string $program, array $argv): void
+    {
+        $GLOBALS['__phel_program'] = $program;
+        $GLOBALS['__phel_argv'] = $argv;
+    }
+
+    /**
+     * Get the current program (script path or namespace).
+     */
+    public static function getProgram(): string
+    {
+        return $GLOBALS['__phel_program'] ?? '';
+    }
+
+    /**
+     * Get user arguments (without script name).
+     *
+     * @return list<string>
+     */
+    public static function getArgv(): array
+    {
+        return $GLOBALS['__phel_argv'] ?? [];
+    }
+
     public static function bootstrap(string $projectRootDir, array|string|null $argv = null): void
     {
         if ($argv !== null) {
@@ -101,11 +132,22 @@ class Phel
     /**
      * This function helps to unify the running execution for a custom phel project.
      *
-     * @param list<string>|string|null $argv
+     * @param list<string>|string|null $argv User arguments (not including program name)
      */
     public static function run(string $projectRootDir, string $namespace, array|string|null $argv = null): void
     {
-        self::bootstrap($projectRootDir, $argv);
+        // Convert string argv to array
+        $argvArray = [];
+        if (is_string($argv) && $argv !== '') {
+            $argvArray = explode(' ', $argv);
+        } elseif (is_array($argv)) {
+            $argvArray = $argv;
+        }
+
+        // Set up normalized runtime args (program + user-only argv)
+        self::setupRuntimeArgs($namespace, $argvArray);
+
+        self::bootstrap($projectRootDir);
 
         $runFacade = new RunFacade();
         $runFacade->runNamespace($namespace);
