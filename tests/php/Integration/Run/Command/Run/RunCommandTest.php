@@ -6,7 +6,6 @@ namespace PhelTest\Integration\Run\Command\Run;
 
 use Phel\Run\Infrastructure\Command\RunCommand;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
-use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Input\InputInterface;
 
 final class RunCommandTest extends AbstractTestCommand
@@ -58,45 +57,57 @@ final class RunCommandTest extends AbstractTestCommand
 
     public function test_pass_flag_arguments_to_script(): void
     {
-        $this->expectOutputRegex('~first:--myarg~');
-
-        $this->createRunCommand()->run(
-            new ArgvInput(['run', __DIR__ . '/Fixtures/argv-script.phel', '--', '--myarg']),
-            $this->stubOutput(),
+        $output = $this->captureRunOutput(
+            __DIR__ . '/Fixtures/argv-script.phel',
+            ['--myarg'],
         );
+
+        self::assertMatchesRegularExpression('~first:--myarg~', $output);
     }
 
     public function test_program_contains_script_path(): void
     {
         $scriptPath = __DIR__ . '/Fixtures/argv-script.phel';
-        $this->expectOutputRegex('~program:' . preg_quote($scriptPath, '~') . '~');
 
-        $this->createRunCommand()->run(
-            new ArgvInput(['run', $scriptPath, '--', 'arg1']),
-            $this->stubOutput(),
+        $output = $this->captureRunOutput($scriptPath, ['arg1']);
+
+        self::assertMatchesRegularExpression(
+            '~program:' . preg_quote($scriptPath, '~') . '~',
+            $output,
         );
     }
 
     public function test_argv_does_not_contain_script_name(): void
     {
         $scriptPath = __DIR__ . '/Fixtures/argv-script.phel';
-        // argv should be ["arg1" "arg2"], not contain the script path
-        $this->expectOutputRegex('~argv:\["arg1" "arg2"\]~');
 
-        $this->createRunCommand()->run(
-            new ArgvInput(['run', $scriptPath, '--', 'arg1', 'arg2']),
-            $this->stubOutput(),
-        );
+        $output = $this->captureRunOutput($scriptPath, ['arg1', 'arg2']);
+
+        // argv should contain only user args, not the script path
+        self::assertStringContainsString('count:2', $output);
+        self::assertStringContainsString('first:arg1', $output);
+        self::assertStringContainsString('second:arg2', $output);
     }
 
     public function test_argv_first_element_is_first_user_arg(): void
     {
-        $this->expectOutputRegex('~first:--verbose~');
+        $output = $this->captureRunOutput(
+            __DIR__ . '/Fixtures/argv-script.phel',
+            ['--verbose', 'file.txt'],
+        );
 
+        self::assertMatchesRegularExpression('~first:--verbose~', $output);
+    }
+
+    private function captureRunOutput(string $path, array $argv = []): string
+    {
+        ob_start();
         $this->createRunCommand()->run(
-            new ArgvInput(['run', __DIR__ . '/Fixtures/argv-script.phel', '--', '--verbose', 'file.txt']),
+            $this->stubInput($path, $argv),
             $this->stubOutput(),
         );
+
+        return ob_get_clean() ?: '';
     }
 
     private function createRunCommand(): RunCommand
@@ -104,10 +115,16 @@ final class RunCommandTest extends AbstractTestCommand
         return new RunCommand();
     }
 
-    private function stubInput(string $path): InputInterface
+    private function stubInput(string $path, array $argv = []): InputInterface
     {
         $input = $this->createStub(InputInterface::class);
-        $input->method('getArgument')->willReturn($path);
+        $input->method('getArgument')->willReturnCallback(
+            static fn (string $name): string|array => match ($name) {
+                'path' => $path,
+                'argv' => $argv,
+                default => '',
+            },
+        );
 
         return $input;
     }
