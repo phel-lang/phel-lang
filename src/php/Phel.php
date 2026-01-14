@@ -17,8 +17,6 @@ use RuntimeException;
 use function dirname;
 use function getcwd;
 use function in_array;
-use function is_array;
-use function is_string;
 
 /**
  * @internal use \Phel instead
@@ -70,9 +68,9 @@ class Phel
         return $GLOBALS['__phel_argv'] ?? [];
     }
 
-    public static function bootstrap(string $projectRootDir, array|string|null $argv = null): void
+    public static function bootstrap(string $projectRootDir, ?array $argv = null): void
     {
-        if ($argv !== null) {
+        if ($argv !== null && $argv !== []) {
             self::updateGlobalArgv($argv);
         }
 
@@ -132,20 +130,12 @@ class Phel
     /**
      * This function helps to unify the running execution for a custom phel project.
      *
-     * @param list<string>|string|null $argv User arguments (not including program name)
+     * @param list<string>|null $argv User arguments (not including program name)
      */
-    public static function run(string $projectRootDir, string $namespace, array|string|null $argv = null): void
+    public static function run(string $projectRootDir, string $namespace, ?array $argv = null): void
     {
-        // Convert string argv to array
-        $argvArray = [];
-        if (is_string($argv) && $argv !== '') {
-            $argvArray = explode(' ', $argv);
-        } elseif (is_array($argv)) {
-            $argvArray = $argv;
-        }
-
         // Set up normalized runtime args (program + user-only argv)
-        self::setupRuntimeArgs($namespace, $argvArray);
+        self::setupRuntimeArgs($namespace, $argv ?? []);
 
         self::bootstrap($projectRootDir);
 
@@ -209,22 +199,14 @@ class Phel
     }
 
     /**
-     * @param list<string>|string $argv
+     * @param list<string> $argv
      */
-    private static function updateGlobalArgv(array|string $argv): void
+    private static function updateGlobalArgv(array $argv): void
     {
-        $updateGlobals = static function (array $list): void {
-            foreach (array_filter($list) as $value) {
-                if (!in_array($value, $GLOBALS['argv'], true)) {
-                    $GLOBALS['argv'][] = $value;
-                }
+        foreach (array_filter($argv) as $value) {
+            if (!in_array($value, $GLOBALS['argv'], true)) {
+                $GLOBALS['argv'][] = $value;
             }
-        };
-
-        if (is_string($argv) && $argv !== '') {
-            $updateGlobals(explode(' ', $argv));
-        } elseif (is_array($argv) && $argv !== []) {
-            $updateGlobals($argv);
         }
     }
 }

@@ -9,9 +9,9 @@ use PHPUnit\Framework\TestCase;
 
 final class PhelTest extends TestCase
 {
-    public function test_globals_argv_as_string_via_run(): void
+    public function test_globals_argv_as_array_with_multiple_args_via_run(): void
     {
-        Phel::run(__DIR__ . '/../../../../', 'phel\\testing-argv', 'k1=v1 additional');
+        Phel::run(__DIR__ . '/../../../../', 'phel\\testing-argv', ['k1=v1', 'additional']);
 
         self::assertContains('k1=v1', $GLOBALS['__phel_argv']);
         self::assertContains('additional', $GLOBALS['__phel_argv']);

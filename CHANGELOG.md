@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - **Breaking**: `argv` now contains only user arguments (excludes script/namespace name). Use `*program*` to get the script path or namespace.
+- **Breaking**: `Phel::run()` and `Phel::bootstrap()` no longer accept string `$argv`. Pass an array instead. String parsing via `explode(' ')` was broken for arguments containing spaces.
 - **Breaking**: Default `srcDirs` changed from `['src']` to `['src/phel']` (conventional layout)
 - **Breaking**: Default `testDirs` changed from `['tests']` to `['tests/phel']` (conventional layout)
 - **Breaking**: Default `formatDirs` changed from `['src', 'tests']` to `['src/phel', 'tests/phel']`
