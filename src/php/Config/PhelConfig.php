@@ -40,10 +40,13 @@ final class PhelConfig implements JsonSerializable
 
     public const string CACHE_DIR = 'cache-dir';
 
+    /** @var list<string> */
+    public const array DEFAULT_SRC_DIRS = ['src/phel'];
+
     private const string PHEL_TEMP_SUBDIR = '/phel';
 
     /** @var list<string> */
-    private array $srcDirs = ['src/phel'];
+    private array $srcDirs = self::DEFAULT_SRC_DIRS;
 
     /** @var list<string> */
     private array $testDirs = ['tests/phel'];
