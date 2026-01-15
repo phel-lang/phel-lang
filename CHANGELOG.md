@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
   - `--force` option to overwrite existing files
   - `--dry-run` option to preview changes without creating files
   - `--no-gitignore` option to skip .gitignore file creation
+  - Generated `phel-config.php` is now a single line (namespace auto-detected from source files)
 - Add `PhelConfig::forProject()` static factory for one-liner configuration
 - Add `useConventionalLayout()` and `useFlatLayout()` helper methods to PhelConfig
 - Add `useLayout(ProjectLayout)` method for type-safe layout configuration
@@ -21,6 +22,8 @@ All notable changes to this project will be documented in this file.
 - Add `PhelConfig::validate()` method to check for configuration errors (e.g., absolute paths)
 - Add direct setters on PhelConfig: `setMainPhelNamespace()`, `setMainPhpPath()`, `setBuildDestDir()`, `setExportNamespacePrefix()`, `setExportTargetDirectory()`, `setExportFromDirectories()`
 - Add zero-config support with automatic project structure detection when `phel-config.php` is missing
+- Add automatic namespace detection from `core.phel` or `main.phel` for build command (no manual configuration needed)
+- Add automatic entry point detection for `phel run` command (run without arguments to auto-detect `core.phel` or `main.phel`)
 - Add comprehensive tests for InitCommand
 
 ### Changed

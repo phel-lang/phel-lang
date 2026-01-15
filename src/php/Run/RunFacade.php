@@ -125,4 +125,26 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
             ->createNamespaceLoader()
             ->loadPhelNamespaces($replStartupFile);
     }
+
+    /**
+     * Auto-detect the main entry point file from conventional locations.
+     * Looks for core.phel or main.phel in source directories.
+     *
+     * @return string|null File path if found, null otherwise
+     */
+    public function autoDetectEntryPoint(): ?string
+    {
+        $srcDirs = $this->getFactory()->getCommandFacade()->getSourceDirectories();
+
+        foreach ($srcDirs as $srcDir) {
+            foreach (['core.phel', 'main.phel'] as $entryFile) {
+                $path = $srcDir . '/' . $entryFile;
+                if (file_exists($path)) {
+                    return $path;
+                }
+            }
+        }
+
+        return null;
+    }
 }

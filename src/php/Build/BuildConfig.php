@@ -84,6 +84,7 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
      */
     private function autoDetectMainNamespace(): string
     {
+        /** @var list<string> $srcDirs */
         $srcDirs = (array)$this->get(PhelConfig::SRC_DIRS, ['src/phel']);
         $appRoot = $this->getAppRootDir();
 

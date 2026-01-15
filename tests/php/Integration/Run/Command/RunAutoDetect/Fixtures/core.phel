@@ -1,0 +1,3 @@
+(ns auto-detect-test\core)
+
+(php/print "auto-detected core\n")
