@@ -93,11 +93,16 @@ final class PhelConfig implements JsonSerializable
      *
      * Example:
      *   return PhelConfig::forProject('my-app\core');
+     *   return PhelConfig::forProject(); // zero-config, auto-detects namespace for build
      */
-    public static function forProject(string $mainNamespace): self
+    public static function forProject(string $mainNamespace = ''): self
     {
-        return (new self())
-            ->setMainPhelNamespace($mainNamespace);
+        $config = new self();
+        if ($mainNamespace !== '') {
+            $config->setMainPhelNamespace($mainNamespace);
+        }
+
+        return $config;
     }
 
     // ========================================

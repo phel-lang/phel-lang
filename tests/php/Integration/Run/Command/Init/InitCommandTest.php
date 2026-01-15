@@ -60,7 +60,7 @@ final class InitCommandTest extends TestCase
         self::assertFileExists($this->testDir . '/src/core.phel');
     }
 
-    public function test_generated_config_contains_namespace(): void
+    public function test_generated_config_is_minimal(): void
     {
         $command = new InitCommand();
         $output = new BufferedOutput();
@@ -70,7 +70,8 @@ final class InitCommandTest extends TestCase
 
         $configContent = file_get_contents($this->testDir . '/phel-config.php');
 
-        self::assertStringContainsString("PhelConfig::forProject('myapp\\core')", (string) $configContent);
+        self::assertStringContainsString('PhelConfig::forProject()', (string) $configContent);
+        self::assertStringNotContainsString('useFlatLayout', (string) $configContent);
     }
 
     public function test_generated_config_uses_flat_layout(): void
@@ -146,9 +147,13 @@ final class InitCommandTest extends TestCase
         chdir($this->testDir);
         $command->run(new ArrayInput([]), $output);
 
+        // Config is now minimal (namespace auto-detected from core.phel)
         $configContent = file_get_contents($this->testDir . '/phel-config.php');
+        self::assertStringContainsString('PhelConfig::forProject()', (string) $configContent);
 
-        self::assertStringContainsString("PhelConfig::forProject('app\\core')", (string) $configContent);
+        // Default namespace is in the core.phel file
+        $coreContent = file_get_contents($this->testDir . '/src/phel/core.phel');
+        self::assertStringContainsString('(ns app\\core)', (string) $coreContent);
     }
 
     public function test_namespace_conversion_removes_hyphens(): void
