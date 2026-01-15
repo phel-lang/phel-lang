@@ -47,16 +47,33 @@ we should use "phel" once GitHub accept phel coloring too
 
 ## Documentation
 
-- [Website](https://phel-lang.org)  
-  Discover features, tutorials, exercises, and the latest blog posts.
-- [Installation](https://phel-lang.org/documentation/getting-started/)  
-  Get started quickly with scaffolding or manual installation.
-- [Packagist](https://packagist.org/packages/phel-lang/phel-lang)  
-  Find Phel on the official PHP package repository.
-- [Internals](docs/internals/compiler.md)  
-  Learn more about the compiler’s inner workings.
-- [Examples](docs/examples/README.md)  
-  Explore practical scripts you can run directly with the Phel CLI.
+### Getting Started
+- [Quick Start Tutorial](docs/quickstart.md)
+  Get up and running in 5 minutes with your first Phel application.
+- [Installation](https://phel-lang.org/documentation/getting-started/)
+  Detailed installation guide and project setup.
+
+### Learning Resources
+- [Common Patterns](docs/patterns.md)
+  Idiomatic Phel code patterns for everyday tasks.
+- [PHP/Phel Interop](docs/php-interop.md)
+  Complete guide to working between PHP and Phel code.
+- [Reader Shortcuts](docs/reader-shortcuts.md)
+  Reference for all special syntax and reader macros.
+- [Lazy Sequences](docs/lazy-sequences.md)
+  Performance patterns and common pitfalls.
+- [Mocking Guide](docs/mocking-guide.md)
+  Testing with mocks and test doubles.
+- [Examples](docs/examples/README.md)
+  Runnable code samples covering key features.
+
+### Reference
+- [Website](https://phel-lang.org)
+  Official website with tutorials, exercises, and blog posts.
+- [Packagist](https://packagist.org/packages/phel-lang/phel-lang)
+  Official PHP package repository.
+- [Internals](docs/internals/compiler.md)
+  Deep dive into the compiler architecture.
 
 ## Build PHAR
 
