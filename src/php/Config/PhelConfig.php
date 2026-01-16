@@ -40,10 +40,13 @@ final class PhelConfig implements JsonSerializable
 
     public const string CACHE_DIR = 'cache-dir';
 
+    /** @var list<string> */
+    public const array DEFAULT_SRC_DIRS = ['src/phel'];
+
     private const string PHEL_TEMP_SUBDIR = '/phel';
 
     /** @var list<string> */
-    private array $srcDirs = ['src/phel'];
+    private array $srcDirs = self::DEFAULT_SRC_DIRS;
 
     /** @var list<string> */
     private array $testDirs = ['tests/phel'];
@@ -93,11 +96,16 @@ final class PhelConfig implements JsonSerializable
      *
      * Example:
      *   return PhelConfig::forProject('my-app\core');
+     *   return PhelConfig::forProject(); // zero-config, auto-detects namespace for build
      */
-    public static function forProject(string $mainNamespace): self
+    public static function forProject(string $mainNamespace = ''): self
     {
-        return (new self())
-            ->setMainPhelNamespace($mainNamespace);
+        $config = new self();
+        if ($mainNamespace !== '') {
+            $config->setMainPhelNamespace($mainNamespace);
+        }
+
+        return $config;
     }
 
     // ========================================

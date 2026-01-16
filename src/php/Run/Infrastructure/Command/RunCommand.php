@@ -38,8 +38,8 @@ final class RunCommand extends Command
             ->setDescription('Runs a script')
             ->addArgument(
                 'path',
-                InputArgument::REQUIRED,
-                'The file path or namespace to execute',
+                InputArgument::OPTIONAL,
+                'The file path or namespace to execute (auto-detects core.phel or main.phel if omitted)',
             )->addArgument(
                 'argv',
                 InputArgument::IS_ARRAY | InputArgument::OPTIONAL,
@@ -84,8 +84,21 @@ final class RunCommand extends Command
         }
 
         try {
-            /** @var string $path */
+            /** @var string|null $path */
             $path = $input->getArgument('path');
+
+            // Auto-detect entry point if no path provided
+            if ($path === null || $path === '') {
+                $path = $this->getFacade()->autoDetectEntryPoint();
+                if ($path === null) {
+                    $output->writeln('<error>No entry point found. Create src/phel/core.phel or specify a path.</error>');
+                    return self::FAILURE;
+                }
+
+                if ($output->isVerbose()) {
+                    $output->writeln(sprintf('<info>Auto-detected entry point: %s</info>', $path));
+                }
+            }
 
             /** @var list<string>|string|null $rawArgv */
             $rawArgv = $input->getArgument('argv');

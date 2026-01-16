@@ -33,7 +33,17 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
 
     public function getPhelBuildConfig(): PhelBuildConfig
     {
-        return PhelBuildConfig::fromArray((array)$this->get('out', []));
+        $config = PhelBuildConfig::fromArray((array)$this->get('out', []));
+
+        // Auto-detect namespace from core.phel if not explicitly configured
+        if ($config->getMainPhelNamespace() === '') {
+            $detected = $this->autoDetectMainNamespace();
+            if ($detected !== '') {
+                $config->setMainPhelNamespace($detected);
+            }
+        }
+
+        return $config;
     }
 
     public function isNamespaceCacheEnabled(): bool
@@ -66,5 +76,48 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
     public function getNamespaceCacheFile(): string
     {
         return $this->getCacheDir() . '/namespace-cache.php';
+    }
+
+    /**
+     * Auto-detect the main namespace from conventional entry point files.
+     * Looks for core.phel or main.phel in source directories.
+     */
+    private function autoDetectMainNamespace(): string
+    {
+        /** @var list<string> $srcDirs */
+        $srcDirs = (array)$this->get(PhelConfig::SRC_DIRS, PhelConfig::DEFAULT_SRC_DIRS);
+        $appRoot = $this->getAppRootDir();
+
+        foreach ($srcDirs as $srcDir) {
+            foreach (['core.phel', 'main.phel'] as $entryFile) {
+                $path = $appRoot . '/' . $srcDir . '/' . $entryFile;
+                if (file_exists($path)) {
+                    $namespace = $this->parseNamespaceFromFile($path);
+                    if ($namespace !== '') {
+                        return $namespace;
+                    }
+                }
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * Parse the namespace from a Phel file's (ns ...) declaration.
+     */
+    private function parseNamespaceFromFile(string $path): string
+    {
+        $content = file_get_contents($path);
+        if ($content === false) {
+            return '';
+        }
+
+        // Match (ns namespace-name) at the start of the file
+        if (preg_match('/^\s*\(ns\s+([^\s\)]+)/', $content, $matches)) {
+            return $matches[1];
+        }
+
+        return '';
     }
 }

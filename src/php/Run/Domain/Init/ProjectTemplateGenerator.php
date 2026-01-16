@@ -11,27 +11,14 @@ final class ProjectTemplateGenerator
     public function generateConfig(string $namespace, ProjectLayout $layout): string
     {
         if ($layout === ProjectLayout::Flat) {
-            return <<<PHP
-<?php
-
-declare(strict_types=1);
-
-use Phel\Config\PhelConfig;
-
-return PhelConfig::forProject('{$namespace}')
-    ->useFlatLayout();
+            return <<<'PHP'
+<?php return \Phel\Config\PhelConfig::forProject()->useFlatLayout();
 
 PHP;
         }
 
-        return <<<PHP
-<?php
-
-declare(strict_types=1);
-
-use Phel\Config\PhelConfig;
-
-return PhelConfig::forProject('{$namespace}');
+        return <<<'PHP'
+<?php return \Phel\Config\PhelConfig::forProject();
 
 PHP;
     }

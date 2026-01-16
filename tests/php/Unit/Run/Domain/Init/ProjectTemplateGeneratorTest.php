@@ -21,16 +21,15 @@ final class ProjectTemplateGeneratorTest extends TestCase
     {
         $config = $this->generator->generateConfig('myapp\\core', ProjectLayout::Conventional);
 
-        self::assertStringContainsString("PhelConfig::forProject('myapp\\core')", $config);
+        self::assertStringContainsString('PhelConfig::forProject()', $config);
         self::assertStringNotContainsString('useFlatLayout', $config);
-        self::assertStringContainsString('declare(strict_types=1)', $config);
     }
 
     public function test_generate_config_flat_layout(): void
     {
         $config = $this->generator->generateConfig('myapp\\core', ProjectLayout::Flat);
 
-        self::assertStringContainsString("PhelConfig::forProject('myapp\\core')", $config);
+        self::assertStringContainsString('PhelConfig::forProject()', $config);
         self::assertStringContainsString('->useFlatLayout()', $config);
     }
 
