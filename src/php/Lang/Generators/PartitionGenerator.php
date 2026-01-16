@@ -7,7 +7,7 @@ namespace Phel\Lang\Generators;
 use Generator;
 use Phel;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
-use Phel\Lang\Equalizer;
+use Phel\Lang\TypeFactory;
 
 use function count;
 use function is_string;
@@ -80,7 +80,7 @@ final class PartitionGenerator
      */
     public static function partitionBy(callable $f, mixed $iterable): Generator
     {
-        $equalizer = new Equalizer();
+        $equalizer = TypeFactory::getInstance()->getEqualizer();
         $partition = [];
         $prevKey = null;
         $first = true;

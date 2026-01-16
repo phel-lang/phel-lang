@@ -27,6 +27,8 @@ All notable changes to this project will be documented in this file.
 - Add comprehensive tests for InitCommand
 
 ### Changed
+- Refactor `SequenceGenerator` and `PartitionGenerator` to use proper dependency injection
+- Improve `SequenceGenerator` code quality with extracted helpers and comprehensive tests
 - **Breaking**: `argv` now contains only user arguments (excludes script/namespace name). Use `*program*` to get the script path or namespace.
 - **Breaking**: `Phel::run()` and `Phel::bootstrap()` no longer accept string `$argv`. Pass an array instead. String parsing via `explode(' ')` was broken for arguments containing spaces.
 - **Breaking**: Default `srcDirs` changed from `['src']` to `['src/phel']` (conventional layout)

@@ -7,10 +7,10 @@ namespace Phel\Lang\Generators;
 use ArrayIterator;
 use Generator;
 use Iterator;
-use Phel\Lang\Equalizer;
-use Phel\Lang\Hasher;
+use Phel\Lang\TypeFactory;
 
 use function count;
+use function in_array;
 use function is_array;
 use function is_object;
 use function is_string;
@@ -117,6 +117,11 @@ final class SequenceGenerator
      * Returns elements from an iterable with a separator between them.
      * The separator is not added before the first element or after the last element.
      *
+     * Examples:
+     *   interpose(',', [1, 2, 3])  // => [1, ',', 2, ',', 3]
+     *   interpose('-', 'abc')      // => ['a', '-', 'b', '-', 'c']
+     *   interpose(',', [1])        // => [1]
+     *
      * @template T
      * @template S
      *
@@ -142,6 +147,10 @@ final class SequenceGenerator
      * Maps a function over an iterable with index.
      * Applies the function to each element along with its index (0-based).
      *
+     * Examples:
+     *   mapIndexed(fn($i, $v) => "$i:$v", ['a', 'b', 'c'])  // => ['0:a', '1:b', '2:c']
+     *   mapIndexed(fn($i, $v) => $i * $v, [1, 2, 3])        // => [0, 2, 6]
+     *
      * @template T
      * @template U
      *
@@ -163,6 +172,11 @@ final class SequenceGenerator
      * Interleaves multiple iterables.
      * Returns elements by taking one from each iterable in turn.
      * Continues until the first iterable is exhausted, padding others with null.
+     *
+     * Examples:
+     *   interleave([1, 2, 3], ['a', 'b', 'c'])  // => [1, 'a', 2, 'b', 3, 'c']
+     *   interleave([1, 2], ['a', 'b'], ['x', 'y'])  // => [1, 'a', 'x', 2, 'b', 'y']
+     *   interleave([1, 2, 3], ['a', 'b'])  // => [1, 'a', 2, 'b', 3, null]
      *
      * @param mixed ...$iterables The sequences to interleave
      *
@@ -198,6 +212,11 @@ final class SequenceGenerator
      * Applies the function to corresponding elements from each iterable.
      * Stops when the shortest iterable is exhausted.
      *
+     * Examples:
+     *   mapMulti(fn($a, $b) => $a + $b, [1, 2, 3], [10, 20, 30])  // => [11, 22, 33]
+     *   mapMulti(fn($a, $b) => $a . $b, ['a', 'b'], ['1', '2'])   // => ['a1', 'b2']
+     *   mapMulti(fn($a, $b) => $a + $b, [1, 2, 3], [10, 20])      // => [11, 22] (stops at shortest)
+     *
      * @param callable $f            The mapping function
      * @param mixed    ...$iterables The sequences to map over
      *
@@ -211,31 +230,20 @@ final class SequenceGenerator
 
         $iterators = array_map(self::toIterator(...), $iterables);
 
-        while (true) {
-            $allValid = true;
-            foreach ($iterators as $iterator) {
-                if (!$iterator->valid()) {
-                    $allValid = false;
-                    break;
-                }
-            }
-
-            if (!$allValid) {
-                break;
-            }
-
-            $values = [];
-            foreach ($iterators as $iterator) {
-                $values[] = $iterator->current();
-                $iterator->next();
-            }
-
+        while (self::allIteratorsValid($iterators)) {
+            $values = self::extractCurrentValues($iterators);
             yield $f(...$values);
         }
     }
 
     /**
      * Generates a range of numbers [start, end) with given step.
+     *
+     * Examples:
+     *   range(0, 5, 1)     // => [0, 1, 2, 3, 4]
+     *   range(0, 10, 2)    // => [0, 2, 4, 6, 8]
+     *   range(5, 0, -1)    // => [5, 4, 3, 2, 1]
+     *   range(0.0, 1.0, 0.25)  // => [0.0, 0.25, 0.5, 0.75]
      *
      * @return Generator<int, float|int>
      *
@@ -253,6 +261,12 @@ final class SequenceGenerator
     }
 
     /**
+     * Applies a function to each element of an iterable, returning the results.
+     *
+     * Examples:
+     *   map(fn($x) => $x * 2, [1, 2, 3])      // => [2, 4, 6]
+     *   map(fn($c) => strtoupper($c), 'abc')  // => ['A', 'B', 'C']
+     *
      * @template T
      * @template U
      *
@@ -269,6 +283,12 @@ final class SequenceGenerator
     }
 
     /**
+     * Returns elements for which the predicate returns true.
+     *
+     * Examples:
+     *   filter(fn($x) => $x > 2, [1, 2, 3, 4, 5])  // => [3, 4, 5]
+     *   filter(fn($c) => $c !== 'b', 'abc')        // => ['a', 'c']
+     *
      * @template T
      *
      * @param callable(T):bool   $predicate
@@ -286,6 +306,13 @@ final class SequenceGenerator
     }
 
     /**
+     * Applies a function to each element and returns non-null results.
+     * Unlike filter(), keep() both transforms and filters in one operation.
+     *
+     * Examples:
+     *   keep(fn($x) => $x > 2 ? $x * 10 : null, [1, 2, 3, 4])  // => [30, 40]
+     *   keep(fn($x) => $x % 2 === 0 ? $x : null, [1, 2, 3, 4]) // => [2, 4]
+     *
      * @template T
      * @template U
      *
@@ -305,6 +332,12 @@ final class SequenceGenerator
     }
 
     /**
+     * Like keep(), but the function also receives the element's index.
+     *
+     * Examples:
+     *   keepIndexed(fn($i, $v) => $i % 2 === 0 ? $v : null, ['a', 'b', 'c', 'd'])  // => ['a', 'c']
+     *   keepIndexed(fn($i, $v) => $i > 0 ? "$i:$v" : null, ['a', 'b', 'c'])        // => ['1:b', '2:c']
+     *
      * @template T
      * @template U
      *
@@ -327,6 +360,13 @@ final class SequenceGenerator
     }
 
     /**
+     * Returns the first n elements from an iterable.
+     *
+     * Examples:
+     *   take(3, [1, 2, 3, 4, 5])  // => [1, 2, 3]
+     *   take(10, [1, 2, 3])       // => [1, 2, 3] (fewer than n available)
+     *   take(0, [1, 2, 3])        // => []
+     *
      * @template T
      *
      * @param iterable<T>|string $iterable
@@ -347,6 +387,13 @@ final class SequenceGenerator
     }
 
     /**
+     * Returns elements while the predicate returns true; stops at first false.
+     *
+     * Examples:
+     *   takeWhile(fn($x) => $x < 4, [1, 2, 3, 4, 5])  // => [1, 2, 3]
+     *   takeWhile(fn($x) => $x < 0, [1, 2, 3])        // => []
+     *   takeWhile(fn($x) => $x > 0, [1, 2, 3])        // => [1, 2, 3]
+     *
      * @template T
      *
      * @param callable(T):bool   $predicate
@@ -366,6 +413,13 @@ final class SequenceGenerator
     }
 
     /**
+     * Returns every nth element from an iterable (starting at index 0).
+     *
+     * Examples:
+     *   takeNth(2, [1, 2, 3, 4, 5, 6])  // => [1, 3, 5]
+     *   takeNth(3, [1, 2, 3, 4, 5, 6])  // => [1, 4]
+     *   takeNth(1, [1, 2, 3])           // => [1, 2, 3]
+     *
      * @template T
      *
      * @param iterable<T>|string $iterable
@@ -385,6 +439,13 @@ final class SequenceGenerator
     }
 
     /**
+     * Skips the first n elements and returns the rest.
+     *
+     * Examples:
+     *   drop(2, [1, 2, 3, 4, 5])  // => [3, 4, 5]
+     *   drop(10, [1, 2, 3])       // => []
+     *   drop(0, [1, 2, 3])        // => [1, 2, 3]
+     *
      * @template T
      *
      * @param iterable<T>|string $iterable
@@ -404,6 +465,13 @@ final class SequenceGenerator
     }
 
     /**
+     * Skips elements while the predicate returns true; returns the rest.
+     *
+     * Examples:
+     *   dropWhile(fn($x) => $x < 3, [1, 2, 3, 4, 5])  // => [3, 4, 5]
+     *   dropWhile(fn($x) => $x < 0, [1, 2, 3])        // => [1, 2, 3]
+     *   dropWhile(fn($x) => $x > 0, [1, 2, 3])        // => []
+     *
      * @template T
      *
      * @param callable(T):bool   $predicate
@@ -425,6 +493,13 @@ final class SequenceGenerator
     }
 
     /**
+     * Returns unique elements from an iterable, preserving first occurrence order.
+     * Uses hash-based equality checking for efficient deduplication.
+     *
+     * Examples:
+     *   distinct([1, 2, 1, 3, 2, 4])  // => [1, 2, 3, 4]
+     *   distinct('abracadabra')       // => ['a', 'b', 'r', 'c', 'd']
+     *
      * @template T
      *
      * @param iterable<T>|string $iterable
@@ -433,8 +508,9 @@ final class SequenceGenerator
      */
     public static function distinct(mixed $iterable): Generator
     {
-        $hasher = new Hasher();
-        $equalizer = new Equalizer();
+        $typeFactory = TypeFactory::getInstance();
+        $hasher = $typeFactory->getHasher();
+        $equalizer = $typeFactory->getEqualizer();
         $seen = [];
 
         foreach (self::toIterable($iterable) as $value) {
@@ -459,6 +535,14 @@ final class SequenceGenerator
     }
 
     /**
+     * Removes consecutive duplicate elements from an iterable.
+     * Unlike distinct(), only removes duplicates that are adjacent to each other.
+     *
+     * Examples:
+     *   dedupe([1, 1, 2, 2, 2, 3, 1, 1])  // => [1, 2, 3, 1]
+     *   dedupe('aabbcc')                  // => ['a', 'b', 'c']
+     *   dedupe([1, 2, 3, 4])              // => [1, 2, 3, 4] (no consecutive dupes)
+     *
      * @template T
      *
      * @param iterable<T>|string $iterable
@@ -467,7 +551,7 @@ final class SequenceGenerator
      */
     public static function dedupe(mixed $iterable): Generator
     {
-        $equalizer = new Equalizer();
+        $equalizer = TypeFactory::getInstance()->getEqualizer();
         $first = true;
         $prev = null;
 
@@ -515,51 +599,109 @@ final class SequenceGenerator
     {
         $valuesToRemove = $values === [] ? [null] : $values;
 
-        // Optimize for common single-value case (e.g., just removing null)
         if (count($valuesToRemove) === 1) {
-            $singleValue = $valuesToRemove[0];
-            foreach (self::toIterable($iterable) as $item) {
-                if ($item !== $singleValue) {
-                    yield $item;
-                }
-            }
-
+            yield from self::compactSingleValue($iterable, $valuesToRemove[0]);
             return;
         }
 
-        // For multiple values, use hash lookup for O(1) checks on scalars
-        // Objects require identity comparison and can't be hashed
+        $lookups = self::prepareCompactLookups($valuesToRemove);
+
+        foreach (self::toIterable($iterable) as $item) {
+            if (!self::shouldRemoveItem($item, $lookups['scalarLookup'], $lookups['objects'])) {
+                yield $item;
+            }
+        }
+    }
+
+    /**
+     * Checks if all iterators in the array are still valid.
+     *
+     * @param Iterator<mixed, mixed>[] $iterators
+     */
+    private static function allIteratorsValid(array $iterators): bool
+    {
+        foreach ($iterators as $iterator) {
+            if (!$iterator->valid()) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Extracts current values from all iterators and advances them.
+     *
+     * @param Iterator<mixed, mixed>[] $iterators
+     *
+     * @return array<mixed>
+     */
+    private static function extractCurrentValues(array &$iterators): array
+    {
+        $values = [];
+        foreach ($iterators as $iterator) {
+            $values[] = $iterator->current();
+            $iterator->next();
+        }
+
+        return $values;
+    }
+
+    /**
+     * Optimized path for removing a single value from an iterable.
+     *
+     * @template T
+     *
+     * @param iterable<T>|string $iterable
+     *
+     * @return Generator<int, T>
+     */
+    private static function compactSingleValue(mixed $iterable, mixed $valueToRemove): Generator
+    {
+        foreach (self::toIterable($iterable) as $item) {
+            if ($item !== $valueToRemove) {
+                yield $item;
+            }
+        }
+    }
+
+    /**
+     * Prepares lookup structures for efficient value removal.
+     * Separates scalars (hashable) from objects (identity comparison).
+     *
+     * @param array<mixed> $valuesToRemove
+     *
+     * @return array{scalarLookup: array<string, true>, objects: array<object>}
+     */
+    private static function prepareCompactLookups(array $valuesToRemove): array
+    {
         $scalarLookup = [];
-        $objectsToRemove = [];
+        $objects = [];
 
         foreach ($valuesToRemove as $value) {
             if (is_object($value)) {
-                $objectsToRemove[] = $value;
+                $objects[] = $value;
             } else {
-                // Use var_export for a unique key that respects type
                 $scalarLookup[var_export($value, true)] = true;
             }
         }
 
-        foreach (self::toIterable($iterable) as $item) {
-            $shouldRemove = false;
+        return ['scalarLookup' => $scalarLookup, 'objects' => $objects];
+    }
 
-            if (is_object($item)) {
-                // Objects require identity check (===)
-                foreach ($objectsToRemove as $obj) {
-                    if ($item === $obj) {
-                        $shouldRemove = true;
-                        break;
-                    }
-                }
-            } elseif (isset($scalarLookup[var_export($item, true)])) {
-                $shouldRemove = true;
-            }
-
-            if (!$shouldRemove) {
-                yield $item;
-            }
+    /**
+     * Determines if an item should be removed based on lookup structures.
+     *
+     * @param array<string, true> $scalarLookup
+     * @param array<object>       $objectsToRemove
+     */
+    private static function shouldRemoveItem(mixed $item, array $scalarLookup, array $objectsToRemove): bool
+    {
+        if (is_object($item)) {
+            return in_array($item, $objectsToRemove, true);
         }
+
+        return isset($scalarLookup[var_export($item, true)]);
     }
 
     /**
