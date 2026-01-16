@@ -3,7 +3,7 @@ build:
     analysis:
       environment:
         php:
-          version: 8.3
+          version: 8.3.3
           ini:
             memory_limit: 512M
         variables:
