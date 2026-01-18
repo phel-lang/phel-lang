@@ -308,16 +308,57 @@ git_push() {
 # =============================================================================
 # GitHub Release
 # =============================================================================
+map_to_github_username() {
+    local name="$1"
+    # Map known contributors to their GitHub usernames
+    case "$name" in
+        "Jose M. Valera Reales"|"JesusValera"|"Jesus Valera") echo "JesusValeraDev" ;;
+        "Chema"|"Jose Maria Valera Reales"|"Chemaclass") echo "Chemaclass" ;;
+        *) echo "$name" | sed 's/ //g' ;;  # Remove spaces for unknown names
+    esac
+}
+
+get_contributors() {
+    local prev_version="$1"
+    local repo_root="$2"
+
+    # Get unique contributor names from commits since last tag and map to GitHub usernames
+    git -C "$repo_root" log "v$prev_version"..HEAD --format='%aN' 2>/dev/null \
+        | sort -u \
+        | while read -r name; do
+            map_to_github_username "$name"
+        done \
+        | sed 's/^/@/' \
+        | sort -u \
+        | tr '\n' ' ' \
+        | sed 's/ $//'
+}
+
 create_github_release() {
     local version="$1"
     local changelog_file="$2"
     local phar_output="$3"
     local skip_phar="$4"
     local release_name="${5:-}"
+    local prev_version="${6:-}"
+    local repo_root="${7:-$(pwd)}"
 
     local release_notes
     release_notes=$(extract_release_notes "$version" "$changelog_file")
     [[ -z "$release_notes" ]] && release_notes="Release v$version"
+
+    # Add contributors and full changelog link
+    local contributors
+    contributors=$(get_contributors "$prev_version" "$repo_root")
+
+    release_notes="$release_notes
+
+---
+
+👥 **Contributors**
+$contributors
+
+**Full Changelog**: https://github.com/$REPO_NAME/compare/v$prev_version...v$version"
 
     # Build title: "0.28.0" or "0.28.0 - Release Name" (no v prefix in title)
     local title="$version"

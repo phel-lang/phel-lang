@@ -227,10 +227,12 @@ main() {
         log "[DRY-RUN] Would: create GitHub release \"$title\" (tag: v$NEW_VERSION)"
         local notes
         notes=$(extract_release_notes "$NEW_VERSION" "$CHANGELOG_FILE" 2>/dev/null || echo "Release v$NEW_VERSION")
-        log "[DRY-RUN] Release notes:\n$notes"
+        local contributors
+        contributors=$(get_contributors "$current_version" "$REPO_ROOT")
+        log "[DRY-RUN] Release notes:\n$notes\n\n## Contributors\n$contributors\n\n**Full Changelog**: https://github.com/$REPO_NAME/compare/v$current_version...v$NEW_VERSION"
         [[ $SKIP_PHAR -eq 0 ]] && log "[DRY-RUN] Would: attach PHAR"
     else
-        create_github_release "$NEW_VERSION" "$CHANGELOG_FILE" "$PHAR_OUTPUT" "$SKIP_PHAR" "$RELEASE_NAME"
+        create_github_release "$NEW_VERSION" "$CHANGELOG_FILE" "$PHAR_OUTPUT" "$SKIP_PHAR" "$RELEASE_NAME" "$current_version" "$REPO_ROOT"
     fi
 
     # Done
