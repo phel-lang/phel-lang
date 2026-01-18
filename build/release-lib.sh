@@ -11,6 +11,7 @@ DRY_RUN=0
 FORCE=0
 SKIP_PHAR=0
 NEW_VERSION=""
+RELEASE_NAME=""
 
 # Colors
 RED='\033[0;31m'
@@ -87,12 +88,25 @@ parse_args() {
     FORCE=0
     SKIP_PHAR=0
     NEW_VERSION=""
+    RELEASE_NAME=""
 
     while [[ $# -gt 0 ]]; do
         case "$1" in
             --dry-run) DRY_RUN=1; shift ;;
             --force) FORCE=1; shift ;;
             --skip-phar) SKIP_PHAR=1; shift ;;
+            --name)
+                if [[ -z "${2:-}" ]]; then
+                    log_err "--name requires a value"
+                    return 1
+                fi
+                RELEASE_NAME="$2"
+                shift 2
+                ;;
+            --name=*)
+                RELEASE_NAME="${1#*=}"
+                shift
+                ;;
             -h|--help) return 2 ;;
             -*)
                 log_err "Unknown option: $1"
@@ -299,18 +313,26 @@ create_github_release() {
     local changelog_file="$2"
     local phar_output="$3"
     local skip_phar="$4"
+    local release_name="${5:-}"
 
     local release_notes
     release_notes=$(extract_release_notes "$version" "$changelog_file")
     [[ -z "$release_notes" ]] && release_notes="Release v$version"
 
-    local gh_cmd="gh release create v$version --repo $REPO_NAME --title \"v$version\" --notes-file -"
+    # Build title: "0.28.0" or "0.28.0 - Release Name" (no v prefix in title)
+    local title="$version"
+    if [[ -n "$release_name" ]]; then
+        title="$version - $release_name"
+    fi
+
+    # Tag uses v prefix, title does not
+    local gh_cmd="gh release create v$version --repo $REPO_NAME --title \"$title\" --notes-file -"
     if [[ "$skip_phar" -eq 0 ]] && [[ -f "$phar_output" ]]; then
         gh_cmd="$gh_cmd \"$phar_output\""
     fi
 
     if echo "$release_notes" | eval "$gh_cmd"; then
-        log_ok "Created GitHub release v$version"
+        log_ok "Created GitHub release: $title"
         log "Release URL: https://github.com/$REPO_NAME/releases/tag/v$version"
     else
         log_err "Failed to create GitHub release"
@@ -332,15 +354,18 @@ ARGUMENTS:
     VERSION         Semantic version number (e.g., 0.28.0)
 
 OPTIONS:
+    --name NAME     Release name (1-3 words). If omitted and claude is installed,
+                    you'll be prompted with AI-generated suggestions
     --dry-run       Preview all changes without modifying anything
     --force         Skip confirmation prompts (for CI automation)
     --skip-phar     Skip PHAR build step
     -h, --help      Show this help message
 
 EXAMPLES:
-    release.sh 0.28.0              # Standard release
-    release.sh --dry-run 0.28.0    # Preview changes
-    release.sh --force 0.28.0      # Skip prompts (CI)
+    release.sh 0.28.0                      # Standard release (prompts for name if claude available)
+    release.sh --name "Config Overhaul" 0.28.0  # Release with custom name
+    release.sh --dry-run 0.28.0            # Preview changes
+    release.sh --force 0.28.0              # Skip prompts (CI)
 
 WORKFLOW:
     1. Validate version format and increment
@@ -349,4 +374,100 @@ WORKFLOW:
     4. Commit, build PHAR, tag, push
     5. Create GitHub release with PHAR attachment
 EOF
+}
+
+# =============================================================================
+# Release Name Functions
+# =============================================================================
+check_claude_installed() {
+    command -v claude &>/dev/null
+}
+
+get_unreleased_content() {
+    local changelog_file="$1"
+    # Extract content between "## Unreleased" and next "## [" heading
+    sed -n '/^## Unreleased/,/^## \[/p' "$changelog_file" | tail -n +2 | sed '$d'
+}
+
+generate_release_names() {
+    local unreleased_content="$1"
+    local prompt="Based on these changelog notes for a programming language release, suggest exactly 5 short release names (1-3 words each). Each name should capture the theme or main feature.
+
+RULES:
+- Output ONLY the 5 names, one per line
+- No numbering, no bullets, no prefixes
+- No preamble like \"Here are...\"
+- No explanation or commentary
+- Just 5 lines, each containing only the release name
+
+$unreleased_content"
+
+    # Filter: skip lines with colons (preamble), take first 5 non-empty name lines
+    claude --print "$prompt" 2>/dev/null | grep -v ':' | grep -v '^[0-9]' | head -5
+}
+
+prompt_release_name() {
+    local changelog_file="$1"
+
+    # If --force is set, skip prompting (use empty name)
+    if [[ $FORCE -eq 1 ]]; then
+        return 0
+    fi
+
+    # Check if claude is available
+    if ! check_claude_installed; then
+        log "[INFO] Claude Code not installed - skipping release name suggestions"
+        return 0
+    fi
+
+    log "\n${BOLD}Generating release name suggestions...${NC}"
+
+    local unreleased_content
+    unreleased_content=$(get_unreleased_content "$changelog_file")
+
+    if [[ -z "$unreleased_content" ]]; then
+        log "[WARN] No unreleased content found"
+        return 0
+    fi
+
+    local suggestions
+    suggestions=$(generate_release_names "$unreleased_content")
+
+    if [[ -z "$suggestions" ]]; then
+        log "[WARN] Could not generate suggestions"
+        return 0
+    fi
+
+    # Convert to array
+    local -a names=()
+    while IFS= read -r line; do
+        [[ -n "$line" ]] && names+=("$line")
+    done <<< "$suggestions"
+
+    if [[ ${#names[@]} -eq 0 ]]; then
+        log "[WARN] No suggestions generated"
+        return 0
+    fi
+
+    echo ""
+    log "${BOLD}Select a release name:${NC}"
+    local i=1
+    for name in "${names[@]}"; do
+        echo "  $i) $name"
+        ((i++))
+    done
+    echo ""
+
+    local choice
+    read -rp "Pick [1-${#names[@]}] or type custom name: " choice
+
+    if [[ -z "$choice" ]]; then
+        log "[INFO] No release name selected"
+    elif [[ "$choice" =~ ^[1-5]$ ]] && (( choice <= ${#names[@]} )); then
+        RELEASE_NAME="${names[$((choice-1))]}"
+        log_ok "Selected: $RELEASE_NAME"
+    else
+        RELEASE_NAME="$choice"
+        log_ok "Custom name: $RELEASE_NAME"
+    fi
 }

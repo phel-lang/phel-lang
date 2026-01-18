@@ -71,6 +71,7 @@ confirm_release() {
 
     echo ""
     log "${BOLD}Release: v$current_version → v$version${NC}"
+    [[ -n "$RELEASE_NAME" ]] && log "Name: $RELEASE_NAME"
     log "Files: VersionFinder.php, CHANGELOG.md"
     log "Actions: update files, commit, build PHAR, tag, push, create release"
     echo ""
@@ -157,6 +158,11 @@ main() {
     # Pre-flight checks
     run_preflight_checks
 
+    # Prompt for release name if not provided
+    if [[ -z "$RELEASE_NAME" ]]; then
+        prompt_release_name "$CHANGELOG_FILE"
+    fi
+
     # Confirm (unless --force or --dry-run)
     [[ $DRY_RUN -eq 0 ]] && confirm_release "$NEW_VERSION" "$current_version"
 
@@ -216,13 +222,15 @@ main() {
     # GitHub release
     log "\n${BOLD}Creating GitHub release${NC}"
     if [[ $DRY_RUN -eq 1 ]]; then
-        log "[DRY-RUN] Would: create GitHub release v$NEW_VERSION"
+        local title="$NEW_VERSION"
+        [[ -n "$RELEASE_NAME" ]] && title="$NEW_VERSION - $RELEASE_NAME"
+        log "[DRY-RUN] Would: create GitHub release \"$title\" (tag: v$NEW_VERSION)"
         local notes
         notes=$(extract_release_notes "$NEW_VERSION" "$CHANGELOG_FILE" 2>/dev/null || echo "Release v$NEW_VERSION")
         log "[DRY-RUN] Release notes:\n$notes"
         [[ $SKIP_PHAR -eq 0 ]] && log "[DRY-RUN] Would: attach PHAR"
     else
-        create_github_release "$NEW_VERSION" "$CHANGELOG_FILE" "$PHAR_OUTPUT" "$SKIP_PHAR"
+        create_github_release "$NEW_VERSION" "$CHANGELOG_FILE" "$PHAR_OUTPUT" "$SKIP_PHAR" "$RELEASE_NAME"
     fi
 
     # Done

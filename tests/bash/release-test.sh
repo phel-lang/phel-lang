@@ -220,6 +220,87 @@ function test_parse_args_help_returns_2() {
     assert_equals "2" "$result"
 }
 
+function test_parse_args_name() {
+    parse_args --name "Config Overhaul" "1.2.3"
+    assert_equals "Config Overhaul" "$RELEASE_NAME"
+    assert_equals "1.2.3" "$NEW_VERSION"
+}
+
+function test_parse_args_name_equals() {
+    parse_args --name="Zero Config" "1.2.3"
+    assert_equals "Zero Config" "$RELEASE_NAME"
+    assert_equals "1.2.3" "$NEW_VERSION"
+}
+
+function test_parse_args_name_missing_value() {
+    local result=0
+    parse_args --name 2>/dev/null || result=$?
+    assert_equals "1" "$result"
+}
+
+function test_parse_args_all_flags_with_name() {
+    parse_args --dry-run --force --skip-phar --name "Big Release" "1.2.3"
+    assert_equals "1" "$DRY_RUN"
+    assert_equals "1" "$FORCE"
+    assert_equals "1" "$SKIP_PHAR"
+    assert_equals "Big Release" "$RELEASE_NAME"
+    assert_equals "1.2.3" "$NEW_VERSION"
+}
+
+# =============================================================================
+# Release Name Functions Tests
+# =============================================================================
+
+function test_check_claude_installed() {
+    # This test just verifies the function exists and returns a valid exit code
+    local result=0
+    check_claude_installed || result=$?
+    # Result should be 0 (installed) or 1 (not installed) - both are valid
+    assert_matches "^[01]$" "$result"
+}
+
+function test_get_unreleased_content() {
+    local changelog_file="$TEMP_DIR/CHANGELOG.md"
+    cat > "$changelog_file" << 'EOF'
+# Changelog
+
+## Unreleased
+
+### Added
+- New feature
+- Another feature
+
+### Fixed
+- Bug fix
+
+## [0.27.0](link) - 2024-01-01
+
+### Fixed
+- Old fix
+EOF
+
+    local result
+    result=$(get_unreleased_content "$changelog_file")
+    assert_contains "New feature" "$result"
+    assert_contains "Bug fix" "$result"
+    assert_not_contains "Old fix" "$result"
+}
+
+function test_get_unreleased_content_empty() {
+    local changelog_file="$TEMP_DIR/CHANGELOG.md"
+    cat > "$changelog_file" << 'EOF'
+# Changelog
+
+## Unreleased
+
+## [0.27.0](link) - 2024-01-01
+EOF
+
+    local result
+    result=$(get_unreleased_content "$changelog_file")
+    assert_empty "$result"
+}
+
 # =============================================================================
 # File Update Tests
 # =============================================================================
