@@ -36,7 +36,7 @@ rollback() {
 
 trap_handler() {
     local exit_code=$?
-    if [[ $exit_code -ne 0 ]] && [[ $DRY_RUN -eq 0 ]]; then
+    if [[ $exit_code -ne 0 ]]; then
         rollback
     fi
     cleanup_backup
@@ -160,25 +160,25 @@ main() {
     # Confirm (unless --force or --dry-run)
     [[ $DRY_RUN -eq 0 ]] && confirm_release "$NEW_VERSION" "$current_version"
 
-    # Backup
+    # Backup (always create, even in dry-run, so we can restore after showing changes)
     log "\n${BOLD}Creating backup${NC}"
     BACKUP_DIR=$(mktemp -d)
+    create_backup "$BACKUP_DIR" "$VERSION_FILE" "$CHANGELOG_FILE"
     if [[ $DRY_RUN -eq 1 ]]; then
-        log "[DRY-RUN] Would: backup files to $BACKUP_DIR"
+        log "[DRY-RUN] Backup created: $BACKUP_DIR"
     else
-        create_backup "$BACKUP_DIR" "$VERSION_FILE" "$CHANGELOG_FILE"
         log_ok "Backup created: $BACKUP_DIR"
     fi
 
-    # Update files
+    # Update files (always update, even in dry-run, to show accurate release notes)
     log "\n${BOLD}Updating files${NC}"
+    update_version_finder "$NEW_VERSION" "$VERSION_FILE"
+    update_changelog "$NEW_VERSION" "$CHANGELOG_FILE" "$current_version"
     if [[ $DRY_RUN -eq 1 ]]; then
-        log "[DRY-RUN] Would: update VersionFinder.php to v$NEW_VERSION"
-        log "[DRY-RUN] Would: update CHANGELOG.md"
+        log "[DRY-RUN] Updated VersionFinder.php to v$NEW_VERSION"
+        log "[DRY-RUN] Updated CHANGELOG.md"
     else
-        update_version_finder "$NEW_VERSION" "$VERSION_FILE"
         log_ok "Updated VersionFinder.php"
-        update_changelog "$NEW_VERSION" "$CHANGELOG_FILE" "$current_version"
         log_ok "Updated CHANGELOG.md"
     fi
 
@@ -226,11 +226,14 @@ main() {
     fi
 
     # Done
-    cleanup_backup
     echo ""
     if [[ $DRY_RUN -eq 1 ]]; then
-        log_ok "Dry-run complete - no changes made"
+        # Restore files in dry-run mode
+        restore_backup "$BACKUP_DIR" "$VERSION_FILE" "$CHANGELOG_FILE"
+        cleanup_backup
+        log_ok "Dry-run complete - files restored, no changes made"
     else
+        cleanup_backup
         log_ok "Release v$NEW_VERSION complete!"
     fi
 }

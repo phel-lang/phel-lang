@@ -5,47 +5,21 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
-- Add `*program*` variable containing the script path or namespace being executed
-- Add `Phel::setupRuntimeArgs()`, `Phel::getProgram()`, `Phel::getArgv()` API for runtime argument management
-- Add `phel init` command for quick project scaffolding with minimal configuration
-  - `--flat` option for flat directory layout (src/ instead of src/phel/)
-  - `--force` option to overwrite existing files
-  - `--dry-run` option to preview changes without creating files
-  - `--no-gitignore` option to skip .gitignore file creation
-  - Generated `phel-config.php` is now a single line (namespace auto-detected from source files)
-- Add `PhelConfig::forProject()` static factory for one-liner configuration
-- Add `useConventionalLayout()` and `useFlatLayout()` helper methods to PhelConfig
-- Add `useLayout(ProjectLayout)` method for type-safe layout configuration
-- Add `ProjectLayout` enum with `Conventional` and `Flat` variants
-- Add getter methods to `PhelConfig` for all properties (`getSrcDirs()`, `getTestDirs()`, etc.)
-- Add boolean getters with `is` prefix (`isAssertsEnabled()`, `isNamespaceCacheEnabled()`, etc.)
-- Add `PhelConfig::validate()` method to check for configuration errors (e.g., absolute paths)
-- Add direct setters on PhelConfig: `setMainPhelNamespace()`, `setMainPhpPath()`, `setBuildDestDir()`, `setExportNamespacePrefix()`, `setExportTargetDirectory()`, `setExportFromDirectories()`
-- Add zero-config support with automatic project structure detection when `phel-config.php` is missing
-- Add automatic namespace detection from `core.phel` or `main.phel` for build command (no manual configuration needed)
-- Add automatic entry point detection for `phel run` command (run without arguments to auto-detect `core.phel` or `main.phel`)
-- Add comprehensive tests for InitCommand
+- Add `*program*` variable and `Phel::setupRuntimeArgs()`, `getProgram()`, `getArgv()` for runtime argument management
+- Add `phel init` command with `--flat`, `--force`, `--dry-run`, `--no-gitignore` options
+- Add `PhelConfig` improvements: `forProject()` factory, `ProjectLayout` enum, layout helpers, getters, setters, and `validate()` method
+- Add zero-config support with automatic project structure and namespace detection
 
 ### Changed
-- Refactor `SequenceGenerator` and `PartitionGenerator` to use proper dependency injection
-- Improve `SequenceGenerator` code quality with extracted helpers and comprehensive tests
-- **Breaking**: `argv` now contains only user arguments (excludes script/namespace name). Use `*program*` to get the script path or namespace.
-- **Breaking**: `Phel::run()` and `Phel::bootstrap()` no longer accept string `$argv`. Pass an array instead. String parsing via `explode(' ')` was broken for arguments containing spaces.
-- **Breaking**: Default `srcDirs` changed from `['src']` to `['src/phel']` (conventional layout)
-- **Breaking**: Default `testDirs` changed from `['tests']` to `['tests/phel']` (conventional layout)
-- **Breaking**: Default `formatDirs` changed from `['src', 'tests']` to `['src/phel', 'tests/phel']`
-- **Breaking**: Default `ignoreWhenBuilding` changed from `['ignore-when-building.phel']` to `[]`
-- **Breaking**: Default export `fromDirectories` changed from `['src']` to `['src/phel']`
-- **Breaking**: `remove` now uses Clojure `(remove pred coll)` instead of Janet-style `(remove coll offset &[n])`
-- Extract `ProjectTemplateGenerator` for template generation in InitCommand
-- Extract `NamespaceNormalizer` for consistent namespace conversion
-- Optimize `PhelConfig` constructor to use single `sys_get_temp_dir()` call
-- Optimize `detectProjectStructure()` to use single `scandir()` for better performance
-- Extract `resolvePharProjectRoot()` for cleaner PHAR bootstrap logic
+- **Breaking**: `argv` now excludes script/namespace name; use `*program*` instead
+- **Breaking**: `Phel::run()` and `Phel::bootstrap()` no longer accept string `$argv`
+- **Breaking**: Default directories changed to conventional layout (`src/phel/`, `tests/phel/`)
+- **Breaking**: `remove` now uses Clojure semantics `(remove pred coll)`
+- Refactor `SequenceGenerator` and `PartitionGenerator` with dependency injection and extracted helpers
 
 ### Fixed
 - Fix `defexception` macro failing with parse error due to invalid `apply php/new` usage
-- Improve docblocks example code on the API page to make it REPL-friendly. (#1075)
+- Improve docblocks example code on the API page to make it REPL-friendly
 
 ## [0.27.0](https://github.com/phel-lang/phel-lang/compare/v0.26.0...v0.27.0) - 2025-12-24
 

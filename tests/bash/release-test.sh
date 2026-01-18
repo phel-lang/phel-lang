@@ -11,12 +11,6 @@ REPO_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
 # Source the release library
 source "$REPO_ROOT/build/release-lib.sh"
 
-# Mock external commands to prevent real operations
-function git() { echo "mocked"; }
-function gh() { echo "mocked"; }
-function curl() { return 0; }
-export -f git gh curl
-
 # Test fixtures
 TEMP_DIR=""
 
@@ -26,15 +20,6 @@ function set_up() {
 
 function tear_down() {
     [[ -n "$TEMP_DIR" ]] && rm -rf "$TEMP_DIR"
-}
-
-# Helper to check if a command fails (returns non-zero)
-assert_fails() {
-    local result=0
-    eval "$1" 2>/dev/null || result=$?
-    if [[ $result -eq 0 ]]; then
-        fail "Expected command to fail: $1"
-    fi
 }
 
 # =============================================================================
