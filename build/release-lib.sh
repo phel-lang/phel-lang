@@ -220,7 +220,8 @@ check_required_files() {
 check_changelog_unreleased() {
     local changelog_file="$1"
     local unreleased_content
-    unreleased_content=$(sed -n '/^## Unreleased/,/^## \[/p' "$changelog_file" | tail -n +2 | head -n -1 | grep -v '^$' || true)
+    # Use sed '$d' instead of head -n -1 for macOS compatibility
+    unreleased_content=$(sed -n '/^## Unreleased/,/^## \[/p' "$changelog_file" | tail -n +2 | sed '$d' | grep -v '^$' || true)
     if [[ -z "$unreleased_content" ]]; then
         log_err "No content in Unreleased section of CHANGELOG.md"
         return 1
