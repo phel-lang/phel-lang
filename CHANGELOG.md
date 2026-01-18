@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.28.0](https://github.com/phel-lang/phel-lang/compare/v0.27.0...v0.28.0) - 2026-01-18
+
 ### Added
 - Add `*program*` variable and `Phel::setupRuntimeArgs()`, `getProgram()`, `getArgv()` for runtime argument management
 - Add `phel init` command with `--flat`, `--force`, `--dry-run`, `--no-gitignore` options
