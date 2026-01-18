@@ -17,6 +17,7 @@ RELEASE_NAME=""
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+GRAY='\033[0;90m'
 BOLD='\033[1m'
 NC='\033[0m'
 
@@ -342,20 +343,32 @@ create_github_release() {
     local release_name="${5:-}"
     local prev_version="${6:-}"
     local repo_root="${7:-$(pwd)}"
+    local unreleased_content="${8:-}"
 
     local release_notes
     release_notes=$(extract_release_notes "$version" "$changelog_file")
     [[ -z "$release_notes" ]] && release_notes="Release v$version"
 
+    # Generate TL;DR if Claude is available and we have unreleased content
+    local tldr=""
+    if check_claude_installed && [[ -n "$unreleased_content" ]]; then
+        tldr=$(generate_tldr "$unreleased_content")
+    fi
+
     # Add contributors and full changelog link
     local contributors
     contributors=$(get_contributors "$prev_version" "$repo_root")
 
+    # Build final release notes
+    if [[ -n "$tldr" ]]; then
+        release_notes="$tldr
+
+$release_notes"
+    fi
+
     release_notes="$release_notes
 
----
-
-👥 **Contributors**
+## Contributors
 $contributors
 
 **Full Changelog**: https://github.com/$REPO_NAME/compare/v$prev_version...v$version"
@@ -447,6 +460,28 @@ $unreleased_content"
     claude --print "$prompt" 2>/dev/null | grep -v ':' | grep -v '^[0-9]' | head -5
 }
 
+generate_tldr() {
+    local unreleased_content="$1"
+    local prompt="Write a single-line TL;DR summary for this programming language release changelog.
+
+Examples of good TL;DRs:
+- \"~99% faster warm runs with persistent namespace cache, plus better multi-arity function docs and memoize-lru.\"
+- \"String iteration + lazy file IO + more lazy seq functions + mocking framework + compiler optimizations\"
+- \"Lazy sequences + memory efficiency + infinite sequence support + simpler releases + bug fixes\"
+
+RULES:
+- One line only, under 120 characters
+- Highlight 2-4 main features/improvements
+- Use + or commas to separate items
+- Be concise and punchy, no fluff
+- No preamble, just the summary line itself
+
+Changelog:
+$unreleased_content"
+
+    claude --print "$prompt" 2>/dev/null | head -1
+}
+
 prompt_release_name() {
     local changelog_file="$1"
 
@@ -494,16 +529,23 @@ prompt_release_name() {
     log "${BOLD}Select a release name:${NC}"
     local i=1
     for name in "${names[@]}"; do
-        echo "  $i) $name"
+        if [[ $i -eq 1 ]]; then
+            echo -e "  $i) $name ${GRAY}(default)${NC}"
+        else
+            echo "  $i) $name"
+        fi
         ((i++))
     done
     echo ""
 
     local choice
-    read -rp "Pick [1-${#names[@]}] or type custom name: " choice
+    echo -en "Pick [1-${#names[@]}] or type custom name ${GRAY}[1]${NC}: "
+    read -r choice
 
     if [[ -z "$choice" ]]; then
-        log "[INFO] No release name selected"
+        # Default to first option
+        RELEASE_NAME="${names[0]}"
+        log_ok "Selected: $RELEASE_NAME"
     elif [[ "$choice" =~ ^[1-5]$ ]] && (( choice <= ${#names[@]} )); then
         RELEASE_NAME="${names[$((choice-1))]}"
         log_ok "Selected: $RELEASE_NAME"

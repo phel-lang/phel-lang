@@ -166,6 +166,10 @@ main() {
     # Confirm (unless --force or --dry-run)
     [[ $DRY_RUN -eq 0 ]] && confirm_release "$NEW_VERSION" "$current_version"
 
+    # Capture unreleased content BEFORE updating changelog (needed for TL;DR generation)
+    local unreleased_content=""
+    unreleased_content=$(get_unreleased_content "$CHANGELOG_FILE")
+
     # Backup (always create, even in dry-run, so we can restore after showing changes)
     log "\n${BOLD}Creating backup${NC}"
     BACKUP_DIR=$(mktemp -d)
@@ -225,14 +229,28 @@ main() {
         local title="$NEW_VERSION"
         [[ -n "$RELEASE_NAME" ]] && title="$NEW_VERSION - $RELEASE_NAME"
         log "[DRY-RUN] Would: create GitHub release \"$title\" (tag: v$NEW_VERSION)"
+
+        # Generate TL;DR if Claude is available (using pre-captured unreleased_content)
+        local tldr=""
+        if check_claude_installed && [[ -n "$unreleased_content" ]]; then
+            log "[DRY-RUN] Generating TL;DR..."
+            tldr=$(generate_tldr "$unreleased_content")
+        fi
+
         local notes
         notes=$(extract_release_notes "$NEW_VERSION" "$CHANGELOG_FILE" 2>/dev/null || echo "Release v$NEW_VERSION")
         local contributors
         contributors=$(get_contributors "$current_version" "$REPO_ROOT")
-        log "[DRY-RUN] Release notes:\n$notes\n\n## Contributors\n$contributors\n\n**Full Changelog**: https://github.com/$REPO_NAME/compare/v$current_version...v$NEW_VERSION"
+
+        # Build preview
+        local preview=""
+        [[ -n "$tldr" ]] && preview="$tldr\n\n"
+        preview="${preview}$notes\n\n---\n\n## Contributors\n$contributors\n\n**Full Changelog**: https://github.com/$REPO_NAME/compare/v$current_version...v$NEW_VERSION"
+
+        log "[DRY-RUN] Release notes:\n$preview"
         [[ $SKIP_PHAR -eq 0 ]] && log "[DRY-RUN] Would: attach PHAR"
     else
-        create_github_release "$NEW_VERSION" "$CHANGELOG_FILE" "$PHAR_OUTPUT" "$SKIP_PHAR" "$RELEASE_NAME" "$current_version" "$REPO_ROOT"
+        create_github_release "$NEW_VERSION" "$CHANGELOG_FILE" "$PHAR_OUTPUT" "$SKIP_PHAR" "$RELEASE_NAME" "$current_version" "$REPO_ROOT" "$unreleased_content"
     fi
 
     # Done
