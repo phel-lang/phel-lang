@@ -29,7 +29,8 @@
       \Phel::keyword("line"), 1,
       \Phel::keyword("column"), 38
     ),
-    "min-arity", 1
+    "min-arity", 1,
+    "is-variadic", false
   )
 );
 (1 + 1);

@@ -40,15 +40,42 @@ final class AnalyzerException extends AbstractLocatedException
         return self::withLocation($message, $type);
     }
 
-    public static function notEnoughArgsProvided(GlobalVarNode $f, PersistentListInterface $list, int $minArity): self
-    {
+    public static function notEnoughArgsProvided(
+        GlobalVarNode $f,
+        PersistentListInterface $list,
+        int $minArity,
+        bool $isVariadic = false,
+        ?int $maxArity = null,
+    ): self {
+        $gotCount = count($list->rest());
+        $fnName = sprintf('%s\\%s', $f->getNamespace(), $f->getName()->getName());
+
         return self::withLocation(
             sprintf(
-                'Not enough arguments provided to function "%s\\%s". Got: %d Expected: %d',
-                $f->getNamespace(),
-                $f->getName()->getName(),
-                count($list->rest()),
-                $minArity,
+                'Wrong number of arguments to function "%s". Got: %d. Expected: %s',
+                $fnName,
+                $gotCount,
+                self::formatExpectedArity($minArity, $isVariadic, $maxArity),
+            ),
+            $list,
+        );
+    }
+
+    public static function tooManyArgsProvided(
+        GlobalVarNode $f,
+        PersistentListInterface $list,
+        int $minArity,
+        int $maxArity,
+    ): self {
+        $gotCount = count($list->rest());
+        $fnName = sprintf('%s\\%s', $f->getNamespace(), $f->getName()->getName());
+
+        return self::withLocation(
+            sprintf(
+                'Wrong number of arguments to function "%s". Got: %d. Expected: %s',
+                $fnName,
+                $gotCount,
+                self::formatExpectedArity($minArity, false, $maxArity),
             ),
             $list,
         );
@@ -86,6 +113,24 @@ final class AnalyzerException extends AbstractLocatedException
             $list,
             $exception,
         );
+    }
+
+    private static function formatExpectedArity(int $minArity, bool $isVariadic, ?int $maxArity): string
+    {
+        if ($isVariadic) {
+            return sprintf('at least %d', $minArity);
+        }
+
+        if ($maxArity === null || $minArity === $maxArity) {
+            return (string) $minArity;
+        }
+
+        // For bounded arities (like if that takes 2 or 3 args)
+        if ($maxArity === $minArity + 1) {
+            return sprintf('%d or %d', $minArity, $maxArity);
+        }
+
+        return sprintf('%d to %d', $minArity, $maxArity);
     }
 
     /**
