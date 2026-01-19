@@ -231,15 +231,20 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_macro_expand_failure(): void
     {
-        $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Error in expanding macro "user\\my-failed-macro": my-failed-macro message');
-
         $list = Phel::list([
             Symbol::createForNamespace('user', 'my-failed-macro'),
             Phel::vector([1]),
         ]);
         $env = NodeEnvironment::empty();
-        (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+
+        try {
+            (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+            self::fail('Expected AnalyzerException to be thrown');
+        } catch (AnalyzerException $analyzerException) {
+            self::assertStringContainsString('Error in expanding macro "user\\my-failed-macro"', $analyzerException->getMessage());
+            self::assertStringContainsString('Expanding: (my-failed-macro [1])', $analyzerException->getMessage());
+            self::assertStringContainsString('Cause: my-failed-macro message', $analyzerException->getMessage());
+        }
     }
 
     public function test_macro_undefined_macro(): void

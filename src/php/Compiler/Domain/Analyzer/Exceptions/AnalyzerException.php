@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Domain\Exceptions\ErrorCode;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\TypeInterface;
+use Phel\Printer\Printer;
 
 use function count;
 use function implode;
@@ -97,10 +98,11 @@ final class AnalyzerException extends AbstractLocatedException
         Exception $exception,
     ): self {
         $e = self::withLocation(
-            sprintf(
-                'Error in expanding inline function of "%s\\%s": %s',
+            self::formatMacroExpansionError(
+                'inline function',
                 $node->getNamespace(),
                 $node->getName()->getName(),
+                $list,
                 $exception->getMessage(),
             ),
             $list,
@@ -117,10 +119,11 @@ final class AnalyzerException extends AbstractLocatedException
         Exception $exception,
     ): self {
         $e = self::withLocation(
-            sprintf(
-                'Error in expanding macro "%s\\%s": %s',
+            self::formatMacroExpansionError(
+                'macro',
                 $node->getNamespace(),
                 $node->getName()->getName(),
+                $list,
                 $exception->getMessage(),
             ),
             $list,
@@ -147,6 +150,25 @@ final class AnalyzerException extends AbstractLocatedException
         }
 
         return sprintf('%d to %d', $minArity, $maxArity);
+    }
+
+    private static function formatMacroExpansionError(
+        string $type,
+        string $namespace,
+        string $name,
+        PersistentListInterface $form,
+        string $causeMessage,
+    ): string {
+        $formString = Printer::readable()->print($form);
+
+        return sprintf(
+            "Error in expanding %s \"%s\\%s\"\n  Expanding: %s\n  Cause: %s",
+            $type,
+            $namespace,
+            $name,
+            $formString,
+            $causeMessage,
+        );
     }
 
     /**
