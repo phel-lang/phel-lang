@@ -64,6 +64,23 @@ version_gt() {
     return 1
 }
 
+get_latest_tag_version() {
+    local repo_root="${1:-.}"
+    # Get latest semver tag, strip 'v' prefix
+    git -C "$repo_root" tag -l 'v[0-9]*.[0-9]*.[0-9]*' \
+        | sort -V \
+        | tail -1 \
+        | sed 's/^v//'
+}
+
+increment_minor_version() {
+    local version="$1"
+    local major minor
+    major=$(echo "$version" | cut -d. -f1)
+    minor=$(echo "$version" | cut -d. -f2)
+    echo "$major.$((minor + 1)).0"
+}
+
 get_current_version() {
     local version_file="$1"
     if [[ ! -f "$version_file" ]]; then
@@ -126,8 +143,15 @@ parse_args() {
     done
 
     if [[ -z "$NEW_VERSION" ]]; then
-        log_err "Version argument required"
-        return 1
+        # Auto-detect next version from latest tag
+        local latest
+        latest=$(get_latest_tag_version)
+        if [[ -z "$latest" ]]; then
+            log_err "No version provided and no existing tags found"
+            return 1
+        fi
+        NEW_VERSION=$(increment_minor_version "$latest")
+        log "[INFO] Auto-detected next version: $NEW_VERSION (from v$latest)"
     fi
     return 0
 }
@@ -416,10 +440,11 @@ show_help() {
 Phel Release Automation Script
 
 USAGE:
-    release.sh [OPTIONS] VERSION
+    release.sh [OPTIONS] [VERSION]
 
 ARGUMENTS:
-    VERSION         Semantic version number (e.g., 0.28.0)
+    VERSION         Semantic version number (e.g., 0.29.0)
+                    If omitted, auto-increments minor version from latest tag
 
 OPTIONS:
     --name NAME     Release name (1-3 words). If omitted and claude is installed,

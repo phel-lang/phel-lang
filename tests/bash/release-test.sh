@@ -113,6 +113,98 @@ function test_version_gt_minor_less() {
 }
 
 # =============================================================================
+# Minor Version Increment Tests
+# =============================================================================
+
+function test_increment_minor_version_basic() {
+    local result
+    result=$(increment_minor_version "0.28.0")
+    assert_equals "0.29.0" "$result"
+}
+
+function test_increment_minor_version_resets_patch() {
+    local result
+    result=$(increment_minor_version "1.5.9")
+    assert_equals "1.6.0" "$result"
+}
+
+function test_increment_minor_version_large_numbers() {
+    local result
+    result=$(increment_minor_version "10.99.5")
+    assert_equals "10.100.0" "$result"
+}
+
+function test_increment_minor_version_zeros() {
+    local result
+    result=$(increment_minor_version "0.0.0")
+    assert_equals "0.1.0" "$result"
+}
+
+# =============================================================================
+# Latest Tag Version Tests
+# =============================================================================
+
+function test_get_latest_tag_version_returns_latest() {
+    # Create a test git repo with tags
+    local test_repo="$TEMP_DIR/test-repo"
+    mkdir -p "$test_repo"
+    git -C "$test_repo" init --quiet
+    git -C "$test_repo" config user.email "test@test.com"
+    git -C "$test_repo" config user.name "Test"
+    git -C "$test_repo" config tag.gpgsign false
+    touch "$test_repo/file.txt"
+    git -C "$test_repo" add .
+    git -C "$test_repo" commit -m "initial" --quiet
+
+    # Create tags in non-sorted order
+    git -C "$test_repo" tag v0.1.0
+    git -C "$test_repo" tag v0.10.0
+    git -C "$test_repo" tag v0.2.0
+    git -C "$test_repo" tag v1.0.0
+
+    local result
+    result=$(get_latest_tag_version "$test_repo")
+    assert_equals "1.0.0" "$result"
+}
+
+function test_get_latest_tag_version_ignores_non_semver() {
+    local test_repo="$TEMP_DIR/test-repo"
+    mkdir -p "$test_repo"
+    git -C "$test_repo" init --quiet
+    git -C "$test_repo" config user.email "test@test.com"
+    git -C "$test_repo" config user.name "Test"
+    git -C "$test_repo" config tag.gpgsign false
+    touch "$test_repo/file.txt"
+    git -C "$test_repo" add .
+    git -C "$test_repo" commit -m "initial" --quiet
+
+    git -C "$test_repo" tag v0.5.0
+    git -C "$test_repo" tag latest
+    git -C "$test_repo" tag release-candidate
+
+    local result
+    result=$(get_latest_tag_version "$test_repo")
+    assert_equals "0.5.0" "$result"
+}
+
+function test_get_latest_tag_version_empty_repo() {
+    local test_repo="$TEMP_DIR/test-repo"
+    mkdir -p "$test_repo"
+    git -C "$test_repo" init --quiet
+    git -C "$test_repo" config user.email "test@test.com"
+    git -C "$test_repo" config user.name "Test"
+    git -C "$test_repo" config tag.gpgsign false
+    touch "$test_repo/file.txt"
+    git -C "$test_repo" add .
+    git -C "$test_repo" commit -m "initial" --quiet
+    # No tags created - should return empty
+
+    local result
+    result=$(get_latest_tag_version "$test_repo")
+    assert_empty "$result"
+}
+
+# =============================================================================
 # Version Extraction Tests
 # =============================================================================
 
@@ -202,10 +294,25 @@ function test_parse_args_all_flags() {
     assert_equals "1.2.3" "$NEW_VERSION"
 }
 
-function test_parse_args_missing_version() {
-    local result=0
-    parse_args 2>/dev/null || result=$?
-    assert_equals "1" "$result"
+function test_parse_args_auto_detects_version() {
+    # Create a test repo with tags to test auto-detection
+    local test_repo="$TEMP_DIR/test-repo"
+    mkdir -p "$test_repo"
+    git -C "$test_repo" init --quiet
+    git -C "$test_repo" config user.email "test@test.com"
+    git -C "$test_repo" config user.name "Test"
+    git -C "$test_repo" config tag.gpgsign false
+    touch "$test_repo/file.txt"
+    git -C "$test_repo" add .
+    git -C "$test_repo" commit -m "initial" --quiet
+    git -C "$test_repo" tag v0.5.0
+
+    # Run parse_args from within the test repo
+    pushd "$test_repo" > /dev/null
+    parse_args 2>/dev/null
+    popd > /dev/null
+
+    assert_equals "0.6.0" "$NEW_VERSION"
 }
 
 function test_parse_args_unknown_option() {
