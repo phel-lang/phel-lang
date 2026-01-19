@@ -43,7 +43,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
 
         $nameSymbol = $list->get(1);
         if (!($nameSymbol instanceof Symbol)) {
-            throw AnalyzerException::withLocation("First argument of 'def must be a Symbol.", $list);
+            throw AnalyzerException::wrongArgumentType("First argument of 'def", 'Symbol', $nameSymbol, $list);
         }
 
         $namespace = $this->analyzer->getNamespace();
@@ -164,7 +164,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
             return $meta;
         }
 
-        throw AnalyzerException::withLocation('Metadata must be a String, Keyword or Map', $list);
+        throw AnalyzerException::wrongArgumentType('Metadata', ['String', 'Keyword', 'Map'], $meta, $list);
     }
 
     private function getInitialMetaAndInit(PersistentListInterface $list): array

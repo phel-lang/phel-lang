@@ -13,7 +13,9 @@ use Phel\Lang\TypeInterface;
 use Phel\Printer\Printer;
 
 use function count;
+use function get_debug_type;
 use function implode;
+use function is_array;
 use function sprintf;
 
 final class AnalyzerException extends AbstractLocatedException
@@ -41,6 +43,32 @@ final class AnalyzerException extends AbstractLocatedException
 
         $e = self::withLocation($message, $type);
         $e->setErrorCode(ErrorCode::UNDEFINED_SYMBOL);
+
+        return $e;
+    }
+
+    /**
+     * Creates a type error exception with information about expected vs received type.
+     *
+     * @param array<string>|string $expectedTypes Expected type name(s)
+     */
+    public static function wrongArgumentType(
+        string $context,
+        string|array $expectedTypes,
+        mixed $actualValue,
+        TypeInterface $location,
+    ): self {
+        $expectedList = is_array($expectedTypes)
+            ? implode(', ', $expectedTypes)
+            : $expectedTypes;
+
+        $actualType = self::formatTypeName($actualValue);
+
+        $e = self::withLocation(
+            sprintf('%s, got %s', $context . ' must be a ' . $expectedList, $actualType),
+            $location,
+        );
+        $e->setErrorCode(ErrorCode::TYPE_ERROR);
 
         return $e;
     }
@@ -191,5 +219,28 @@ final class AnalyzerException extends AbstractLocatedException
         $quotedSuggestions = array_map(static fn (string $s): string => sprintf("'%s'", $s), $suggestions);
 
         return implode(', ', $quotedSuggestions) . sprintf(", or '%s'", $lastSuggestion);
+    }
+
+    /**
+     * Formats a type name for display in error messages.
+     * Strips namespace prefixes for Phel types to make messages more readable.
+     */
+    private static function formatTypeName(mixed $value): string
+    {
+        $type = get_debug_type($value);
+
+        // Strip Phel\Lang\ prefix for cleaner display
+        if (str_starts_with($type, 'Phel\\Lang\\')) {
+            return substr($type, 10);
+        }
+
+        // Strip Phel\Lang\Collections\ prefix
+        if (str_starts_with($type, 'Phel\\Lang\\Collections\\')) {
+            $parts = explode('\\', $type);
+
+            return end($parts);
+        }
+
+        return $type;
     }
 }
