@@ -373,6 +373,34 @@ EOF
     assert_contains "New feature" "$result"
     assert_contains "Bug fix" "$result"
     assert_not_contains "Old fix" "$result"
+    # Verify emoji headers are applied
+    assert_contains "## 🎉 Added" "$result"
+    assert_contains "## 🐛 Fixed" "$result"
+}
+
+function test_format_release_notes() {
+    local input="### Added
+- Feature one
+### Changed
+- Change one
+### Fixed
+- Fix one
+### Deprecated
+- Deprecated item
+### Removed
+- Removed item
+### Security
+- Security fix"
+
+    local result
+    result=$(format_release_notes "$input")
+    assert_contains "## 🎉 Added" "$result"
+    assert_contains "## ⚖️ Changed" "$result"
+    assert_contains "## 🐛 Fixed" "$result"
+    assert_contains "## ⚠️ Deprecated" "$result"
+    assert_contains "## 🗑️ Removed" "$result"
+    assert_contains "## 🔒 Security" "$result"
+    assert_not_contains "### " "$result"
 }
 
 function test_extract_release_notes_empty() {

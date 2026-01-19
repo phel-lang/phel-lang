@@ -245,7 +245,7 @@ main() {
         # Build preview
         local preview=""
         [[ -n "$tldr" ]] && preview="$tldr\n\n"
-        preview="${preview}$notes\n\n---\n\n## Contributors\n$contributors\n\n**Full Changelog**: https://github.com/$REPO_NAME/compare/v$current_version...v$NEW_VERSION"
+        preview="${preview}$notes\n\n## 👥 Contributors\n$contributors\n\n**Full Changelog**: https://github.com/$REPO_NAME/compare/v$current_version...v$NEW_VERSION"
 
         log "[DRY-RUN] Release notes:\n$preview"
         [[ $SKIP_PHAR -eq 0 ]] && log "[DRY-RUN] Would: attach PHAR"

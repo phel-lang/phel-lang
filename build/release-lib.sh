@@ -163,7 +163,21 @@ extract_release_notes() {
     local content
     content=$(sed -n "/^## \[$version\]/,/^## \[/p" "$changelog_file" | tail -n +2)
     # Remove last line (next version heading) and empty lines - compatible with macOS
-    echo "$content" | sed '$d' | sed '/^$/d'
+    content=$(echo "$content" | sed '$d' | sed '/^$/d')
+    # Transform h3 headers to h2 with emojis
+    content=$(format_release_notes "$content")
+    echo "$content"
+}
+
+format_release_notes() {
+    local content="$1"
+    echo "$content" | sed \
+        -e 's/^### Added$/## 🎉 Added/' \
+        -e 's/^### Changed$/## ⚖️ Changed/' \
+        -e 's/^### Fixed$/## 🐛 Fixed/' \
+        -e 's/^### Deprecated$/## ⚠️ Deprecated/' \
+        -e 's/^### Removed$/## 🗑️ Removed/' \
+        -e 's/^### Security$/## 🔒 Security/'
 }
 
 # =============================================================================
@@ -368,7 +382,7 @@ $release_notes"
 
     release_notes="$release_notes
 
-## Contributors
+## 👥 Contributors
 $contributors
 
 **Full Changelog**: https://github.com/$REPO_NAME/compare/v$prev_version...v$version"
