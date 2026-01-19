@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Analyzer\Exceptions;
 use Exception;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
+use Phel\Compiler\Domain\Exceptions\ErrorCode;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\TypeInterface;
 
@@ -37,7 +38,10 @@ final class AnalyzerException extends AbstractLocatedException
             $message .= sprintf('. Did you mean %s?', self::formatSuggestions($suggestions));
         }
 
-        return self::withLocation($message, $type);
+        $e = self::withLocation($message, $type);
+        $e->setErrorCode(ErrorCode::UNDEFINED_SYMBOL);
+
+        return $e;
     }
 
     public static function notEnoughArgsProvided(
@@ -50,7 +54,7 @@ final class AnalyzerException extends AbstractLocatedException
         $gotCount = count($list->rest());
         $fnName = sprintf('%s\\%s', $f->getNamespace(), $f->getName()->getName());
 
-        return self::withLocation(
+        $e = self::withLocation(
             sprintf(
                 'Wrong number of arguments to function "%s". Got: %d. Expected: %s',
                 $fnName,
@@ -59,6 +63,9 @@ final class AnalyzerException extends AbstractLocatedException
             ),
             $list,
         );
+        $e->setErrorCode(ErrorCode::ARITY_ERROR);
+
+        return $e;
     }
 
     public static function tooManyArgsProvided(
@@ -70,7 +77,7 @@ final class AnalyzerException extends AbstractLocatedException
         $gotCount = count($list->rest());
         $fnName = sprintf('%s\\%s', $f->getNamespace(), $f->getName()->getName());
 
-        return self::withLocation(
+        $e = self::withLocation(
             sprintf(
                 'Wrong number of arguments to function "%s". Got: %d. Expected: %s',
                 $fnName,
@@ -79,6 +86,9 @@ final class AnalyzerException extends AbstractLocatedException
             ),
             $list,
         );
+        $e->setErrorCode(ErrorCode::ARITY_ERROR);
+
+        return $e;
     }
 
     public static function whenExpandingInlineFn(
@@ -86,7 +96,7 @@ final class AnalyzerException extends AbstractLocatedException
         GlobalVarNode $node,
         Exception $exception,
     ): self {
-        throw self::withLocation(
+        $e = self::withLocation(
             sprintf(
                 'Error in expanding inline function of "%s\\%s": %s',
                 $node->getNamespace(),
@@ -96,6 +106,9 @@ final class AnalyzerException extends AbstractLocatedException
             $list,
             $exception,
         );
+        $e->setErrorCode(ErrorCode::INLINE_EXPANSION_ERROR);
+
+        throw $e;
     }
 
     public static function whenExpandingMacro(
@@ -103,7 +116,7 @@ final class AnalyzerException extends AbstractLocatedException
         GlobalVarNode $node,
         Exception $exception,
     ): self {
-        throw self::withLocation(
+        $e = self::withLocation(
             sprintf(
                 'Error in expanding macro "%s\\%s": %s',
                 $node->getNamespace(),
@@ -113,6 +126,9 @@ final class AnalyzerException extends AbstractLocatedException
             $list,
             $exception,
         );
+        $e->setErrorCode(ErrorCode::MACRO_EXPANSION_ERROR);
+
+        throw $e;
     }
 
     private static function formatExpectedArity(int $minArity, bool $isVariadic, ?int $maxArity): string
