@@ -23,10 +23,12 @@ use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Domain\IO\FileIoInterface;
+use Phel\Build\Domain\Port\FileDiscovery\PhelFileDiscoveryPort;
 use Phel\Build\Domain\Port\FileSystem\FileSystemPort;
 use Phel\Build\Domain\Service\CacheEligibilityChecker;
 use Phel\Build\Domain\Service\NamespaceFilter;
 use Phel\Build\Domain\ValueObject\BuildContext;
+use Phel\Build\Infrastructure\Adapter\FileDiscovery\RecursivePhelFileDiscovery;
 use Phel\Build\Infrastructure\Adapter\FileSystem\LocalFileSystemAdapter;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
 use Phel\Build\Infrastructure\Cache\PhpNamespaceCache;
@@ -98,10 +100,13 @@ final class BuildFactory extends AbstractFactory
 
     public function createNamespaceExtractor(): NamespaceExtractorInterface
     {
+        $fileDiscovery = $this->createPhelFileDiscoveryPort();
+
         $innerExtractor = new NamespaceExtractor(
             $this->getCompilerFacade(),
             $this->createNamespaceSorter(),
             $this->createFileIo(),
+            $fileDiscovery,
         );
 
         if (!$this->getConfig()->isNamespaceCacheEnabled()) {
@@ -112,6 +117,7 @@ final class BuildFactory extends AbstractFactory
             $innerExtractor,
             $this->createNamespaceCache(),
             $this->createNamespaceSorter(),
+            $fileDiscovery,
         );
     }
 
@@ -146,6 +152,11 @@ final class BuildFactory extends AbstractFactory
     public function createFileSystemPort(): FileSystemPort
     {
         return new LocalFileSystemAdapter();
+    }
+
+    public function createPhelFileDiscoveryPort(): PhelFileDiscoveryPort
+    {
+        return new RecursivePhelFileDiscovery();
     }
 
     public function getCompilerFacade(): CompilerFacadeInterface
