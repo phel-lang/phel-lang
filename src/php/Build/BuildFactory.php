@@ -23,12 +23,14 @@ use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Domain\IO\FileIoInterface;
+use Phel\Build\Domain\Port\Compiler\PhelCompilerPort;
 use Phel\Build\Domain\Port\EventDispatcher\BuildEventDispatcherPort;
 use Phel\Build\Domain\Port\FileDiscovery\PhelFileDiscoveryPort;
 use Phel\Build\Domain\Port\FileSystem\FileSystemPort;
 use Phel\Build\Domain\Service\CacheEligibilityChecker;
 use Phel\Build\Domain\Service\NamespaceFilter;
 use Phel\Build\Domain\ValueObject\BuildContext;
+use Phel\Build\Infrastructure\Adapter\Compiler\FacadeCompilerAdapter;
 use Phel\Build\Infrastructure\Adapter\EventDispatcher\NullBuildEventDispatcher;
 use Phel\Build\Infrastructure\Adapter\FileDiscovery\RecursivePhelFileDiscovery;
 use Phel\Build\Infrastructure\Adapter\FileSystem\LocalFileSystemAdapter;
@@ -86,10 +88,17 @@ final class BuildFactory extends AbstractFactory
     public function createFileCompiler(): FileCompilerInterface
     {
         return new FileCompiler(
-            $this->getCompilerFacade(),
+            $this->createPhelCompilerPort(),
             $this->createNamespaceExtractor(),
             $this->createFileIo(),
             $this->createBuildContext(),
+        );
+    }
+
+    public function createPhelCompilerPort(): PhelCompilerPort
+    {
+        return new FacadeCompilerAdapter(
+            $this->getCompilerFacade(),
         );
     }
 

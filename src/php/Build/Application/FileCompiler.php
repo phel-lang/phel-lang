@@ -8,17 +8,16 @@ use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\IO\FileIoInterface;
+use Phel\Build\Domain\Port\Compiler\PhelCompilerPort;
+use Phel\Build\Domain\Transfer\CompilationResultTransfer;
 use Phel\Build\Domain\ValueObject\BuildContext;
-use Phel\Compiler\Domain\Emitter\EmitterResult;
-use Phel\Compiler\Domain\ValueObject\CompileOptions;
-use Phel\Shared\Facade\CompilerFacadeInterface;
 
 use function function_exists;
 
 final readonly class FileCompiler implements FileCompilerInterface
 {
     public function __construct(
-        private CompilerFacadeInterface $compilerFacade,
+        private PhelCompilerPort $compilerPort,
         private NamespaceExtractorInterface $namespaceExtractor,
         private FileIoInterface $fileIo,
         private BuildContext $buildContext,
@@ -29,19 +28,15 @@ final readonly class FileCompiler implements FileCompilerInterface
     {
         $phelCode = $this->fileIo->getContents($src);
 
-        $options = (new CompileOptions())
-            ->setSource($src)
-            ->setIsEnabledSourceMaps($enableSourceMaps);
-
         $result = $this->buildContext->executeInBuildMode(
-            fn (): EmitterResult => $this->compilerFacade->compile($phelCode, $options),
+            fn (): CompilationResultTransfer => $this->compilerPort->compile($phelCode, $src, $enableSourceMaps),
         );
 
-        $phpCode = "<?php declare(strict_types=1);\n" . $result->getPhpCode();
+        $phpCode = "<?php declare(strict_types=1);\n" . $result->phpCode;
 
         $this->fileIo->putContents($dest, $phpCode);
         $this->writeSourceReference($dest, $phelCode);
-        $this->writeSourceMap($dest, $result->getSourceMap(), $enableSourceMaps);
+        $this->writeSourceMap($dest, $result->sourceMap, $enableSourceMaps);
         $this->compileWithOpcache($dest);
 
         $namespaceInfo = $this->namespaceExtractor->getNamespaceFromFile($src);
