@@ -6,7 +6,6 @@ namespace Phel\Build\Application\UseCase;
 
 use Phel\Build\Application\Port\CompileProjectUseCase;
 use Phel\Build\BuildConfigInterface;
-use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Compile\BuildOptions;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
@@ -14,6 +13,7 @@ use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Service\CacheEligibilityChecker;
 use Phel\Build\Domain\Service\NamespaceFilter;
 use Phel\Build\Domain\Transfer\CompiledFileTransfer;
+use Phel\Build\Domain\ValueObject\BuildContext;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use RuntimeException;
@@ -38,6 +38,7 @@ final readonly class CompileProjectHandler implements CompileProjectUseCase
         private BuildConfigInterface $config,
         private NamespaceFilter $namespaceFilter,
         private CacheEligibilityChecker $cacheEligibilityChecker,
+        private BuildContext $buildContext,
     ) {
     }
 
@@ -83,13 +84,10 @@ final readonly class CompileProjectHandler implements CompileProjectUseCase
             }
 
             if ($this->cacheEligibilityChecker->canUseCache($buildOptions, $targetFile, $info)) {
-                BuildFacade::enableBuildMode();
-                try {
+                $this->buildContext->executeInBuildMode(static function () use ($targetFile): void {
                     /** @psalm-suppress UnresolvableInclude */
                     require_once $targetFile;
-                } finally {
-                    BuildFacade::disableBuildMode();
-                }
+                });
 
                 continue;
             }

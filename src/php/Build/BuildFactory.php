@@ -26,6 +26,7 @@ use Phel\Build\Domain\IO\FileIoInterface;
 use Phel\Build\Domain\Port\FileSystem\FileSystemPort;
 use Phel\Build\Domain\Service\CacheEligibilityChecker;
 use Phel\Build\Domain\Service\NamespaceFilter;
+use Phel\Build\Domain\ValueObject\BuildContext;
 use Phel\Build\Infrastructure\Adapter\FileSystem\LocalFileSystemAdapter;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
 use Phel\Build\Infrastructure\Cache\PhpNamespaceCache;
@@ -50,6 +51,7 @@ final class BuildFactory extends AbstractFactory
             $this->getConfig(),
             $this->createNamespaceFilter(),
             $this->createCacheEligibilityChecker(),
+            $this->createBuildContext(),
         );
     }
 
@@ -64,6 +66,7 @@ final class BuildFactory extends AbstractFactory
             $this->getConfig(),
             $this->createNamespaceFilter(),
             $this->createCacheEligibilityChecker(),
+            $this->createBuildContext(),
         );
     }
 
@@ -80,6 +83,7 @@ final class BuildFactory extends AbstractFactory
             $this->getCompilerFacade(),
             $this->createNamespaceExtractor(),
             $this->createFileIo(),
+            $this->createBuildContext(),
         );
     }
 
@@ -132,6 +136,11 @@ final class BuildFactory extends AbstractFactory
             $this->createFileSystemPort(),
             $this->getConfig()->getPathsToAvoidCache(),
         );
+    }
+
+    public function createBuildContext(): BuildContext
+    {
+        return new BuildContext();
     }
 
     public function createFileSystemPort(): FileSystemPort

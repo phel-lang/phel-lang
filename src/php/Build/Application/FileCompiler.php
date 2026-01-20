@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Build\Application;
 
-use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\IO\FileIoInterface;
+use Phel\Build\Domain\ValueObject\BuildContext;
+use Phel\Compiler\Domain\Emitter\EmitterResult;
 use Phel\Compiler\Domain\ValueObject\CompileOptions;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
@@ -20,6 +21,7 @@ final readonly class FileCompiler implements FileCompilerInterface
         private CompilerFacadeInterface $compilerFacade,
         private NamespaceExtractorInterface $namespaceExtractor,
         private FileIoInterface $fileIo,
+        private BuildContext $buildContext,
     ) {
     }
 
@@ -31,12 +33,9 @@ final readonly class FileCompiler implements FileCompilerInterface
             ->setSource($src)
             ->setIsEnabledSourceMaps($enableSourceMaps);
 
-        BuildFacade::enableBuildMode();
-        try {
-            $result = $this->compilerFacade->compile($phelCode, $options);
-        } finally {
-            BuildFacade::disableBuildMode();
-        }
+        $result = $this->buildContext->executeInBuildMode(
+            fn (): EmitterResult => $this->compilerFacade->compile($phelCode, $options),
+        );
 
         $phpCode = "<?php declare(strict_types=1);\n" . $result->getPhpCode();
 
