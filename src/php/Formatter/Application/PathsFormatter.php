@@ -9,8 +9,8 @@ use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Formatter\Domain\Exception\FilePathException;
 use Phel\Formatter\Domain\FormatterInterface;
 use Phel\Formatter\Domain\PathFilterInterface;
+use Phel\Formatter\Domain\Port\FileSystem\FileSystemPort;
 use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
-use Phel\Formatter\Infrastructure\IO\FileIoInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
@@ -21,7 +21,7 @@ final readonly class PathsFormatter
         private CommandFacadeInterface $commandFacade,
         private FormatterInterface $formatter,
         private PathFilterInterface $pathFilter,
-        private FileIoInterface $fileIo,
+        private FileSystemPort $fileSystem,
     ) {
     }
 
@@ -58,11 +58,11 @@ final readonly class PathsFormatter
      */
     private function formatFile(string $filename): bool
     {
-        $this->fileIo->checkIfValid($filename);
+        $this->fileSystem->checkIfValid($filename);
 
-        $code = $this->fileIo->getContents($filename);
+        $code = $this->fileSystem->getContents($filename);
         $formattedCode = $this->formatter->format($code, $filename);
-        $this->fileIo->putContents($filename, $formattedCode);
+        $this->fileSystem->putContents($filename, $formattedCode);
 
         return (bool)strcmp($formattedCode, $code);
     }

@@ -2,14 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Phel\Formatter\Infrastructure\IO;
+namespace Phel\Formatter\Infrastructure\Adapter\FileSystem;
 
 use Phel\Formatter\Domain\Exception\FilePathException;
+use Phel\Formatter\Domain\Port\FileSystem\FileSystemPort;
 use RuntimeException;
 
 use function sprintf;
 
-final class SystemFileIo implements FileIoInterface
+/**
+ * Local file system adapter implementing FileSystemPort.
+ */
+final class LocalFileSystemAdapter implements FileSystemPort
 {
     /**
      * @throws FilePathException

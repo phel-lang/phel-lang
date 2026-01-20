@@ -9,7 +9,7 @@ use Phel;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
-use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Compiler\Domain\ValueObject\CompileOptions;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\Attributes\DataProvider;

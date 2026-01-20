@@ -8,7 +8,7 @@ use Phel;
 use Phel\Api\Application\PhelFnGroupKeyGenerator;
 use Phel\Api\Application\PhelFnNormalizer;
 use Phel\Api\Domain\PhelFnLoaderInterface;
-use Phel\Api\Transfer\PhelFunction;
+use Phel\Api\Domain\Transfer\PhelFunction;
 use Phel\Lang\Keyword;
 use PHPUnit\Framework\TestCase;
 

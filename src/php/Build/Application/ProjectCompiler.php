@@ -11,15 +11,19 @@ use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
-use Phel\Build\Domain\Extractor\NamespaceInformation;
+use Phel\Build\Domain\Service\CacheEligibilityChecker;
+use Phel\Build\Domain\Service\NamespaceFilter;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use RuntimeException;
 
 use function dirname;
-use function filemtime;
 use function sprintf;
 
+/**
+ * Application service for compiling Phel projects.
+ * Orchestrates the build process by delegating to domain services.
+ */
 final readonly class ProjectCompiler
 {
     private const string TARGET_FILE_EXTENSION = '.php';
@@ -31,6 +35,8 @@ final readonly class ProjectCompiler
         private CommandFacadeInterface $commandFacade,
         private EntryPointPhpFileInterface $entryPointPhpFile,
         private BuildConfigInterface $config,
+        private NamespaceFilter $namespaceFilter,
+        private CacheEligibilityChecker $cacheEligibilityChecker,
     ) {
     }
 
@@ -51,6 +57,8 @@ final readonly class ProjectCompiler
     }
 
     /**
+     * @param list<string> $srcDirectories
+     *
      * @return list<CompiledFile>
      */
     private function compileFromTo(array $srcDirectories, string $dest, BuildOptions $buildOptions): array
@@ -64,7 +72,7 @@ final readonly class ProjectCompiler
         /** @var list<CompiledFile> $result */
         $result = [];
         foreach ($namespaceInformation as $info) {
-            if ($this->shouldIgnoreNs($info)) {
+            if ($this->namespaceFilter->shouldIgnore($info)) {
                 continue;
             }
 
@@ -74,7 +82,7 @@ final readonly class ProjectCompiler
                 throw new RuntimeException(sprintf('Directory "%s" was not created', $targetDir));
             }
 
-            if ($this->canUseCache($buildOptions, $targetFile, $info)) {
+            if ($this->cacheEligibilityChecker->canUseCache($buildOptions, $targetFile, $info)) {
                 // Load cached file to register definitions and execute top-level expressions
                 BuildFacade::enableBuildMode();
                 try {
@@ -103,43 +111,11 @@ final readonly class ProjectCompiler
         return $result;
     }
 
-    private function shouldIgnoreNs(NamespaceInformation $info): bool
-    {
-        foreach ($this->config->getPathsToIgnore() as $path) {
-            if (str_contains($info->getFile(), $path)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
     private function getTargetFileFromNamespace(string $namespace): string
     {
         $mungedNamespace = $this->compilerFacade->encodeNs($namespace);
 
         return implode(DIRECTORY_SEPARATOR, explode('\\', $mungedNamespace)) . self::TARGET_FILE_EXTENSION;
-    }
-
-    private function canUseCache(
-        BuildOptions $buildOptions,
-        string $targetFile,
-        NamespaceInformation $info,
-    ): bool {
-        if (!$buildOptions->isCacheEnabled()
-            || !file_exists($targetFile)
-            || $this->getFileMtime($targetFile) !== $this->getFileMtime($info->getFile())
-        ) {
-            return false;
-        }
-
-        foreach ($this->config->getPathsToAvoidCache() as $path) {
-            if (str_contains($targetFile, $path)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     private function getFileMtime(string $file): int

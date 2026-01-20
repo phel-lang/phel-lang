@@ -11,7 +11,9 @@ use Phel\Build\Application\DependenciesForNamespace;
 use Phel\Build\Application\FileCompiler;
 use Phel\Build\Application\FileEvaluator;
 use Phel\Build\Application\NamespaceExtractor;
+use Phel\Build\Application\Port\CompileProjectUseCase;
 use Phel\Build\Application\ProjectCompiler;
+use Phel\Build\Application\UseCase\CompileProjectHandler;
 use Phel\Build\Domain\Cache\NamespaceCacheInterface;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFile;
@@ -21,6 +23,10 @@ use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Domain\IO\FileIoInterface;
+use Phel\Build\Domain\Port\FileSystem\FileSystemPort;
+use Phel\Build\Domain\Service\CacheEligibilityChecker;
+use Phel\Build\Domain\Service\NamespaceFilter;
+use Phel\Build\Infrastructure\Adapter\FileSystem\LocalFileSystemAdapter;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
 use Phel\Build\Infrastructure\Cache\PhpNamespaceCache;
 use Phel\Build\Infrastructure\IO\SystemFileIo;
@@ -42,6 +48,22 @@ final class BuildFactory extends AbstractFactory
             $this->getCommandFacade(),
             $this->createMainPhpEntryPointFile(),
             $this->getConfig(),
+            $this->createNamespaceFilter(),
+            $this->createCacheEligibilityChecker(),
+        );
+    }
+
+    public function createCompileProjectHandler(): CompileProjectUseCase
+    {
+        return new CompileProjectHandler(
+            $this->createNamespaceExtractor(),
+            $this->createFileCompiler(),
+            $this->getCompilerFacade(),
+            $this->getCommandFacade(),
+            $this->createMainPhpEntryPointFile(),
+            $this->getConfig(),
+            $this->createNamespaceFilter(),
+            $this->createCacheEligibilityChecker(),
         );
     }
 
@@ -95,6 +117,26 @@ final class BuildFactory extends AbstractFactory
             $this->getConfig()->getTempDir(),
             $this->getConfig()->getCacheDir(),
         );
+    }
+
+    public function createNamespaceFilter(): NamespaceFilter
+    {
+        return new NamespaceFilter(
+            $this->getConfig()->getPathsToIgnore(),
+        );
+    }
+
+    public function createCacheEligibilityChecker(): CacheEligibilityChecker
+    {
+        return new CacheEligibilityChecker(
+            $this->createFileSystemPort(),
+            $this->getConfig()->getPathsToAvoidCache(),
+        );
+    }
+
+    public function createFileSystemPort(): FileSystemPort
+    {
+        return new LocalFileSystemAdapter();
     }
 
     public function getCompilerFacade(): CompilerFacadeInterface
