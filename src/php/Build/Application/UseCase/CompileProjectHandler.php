@@ -9,7 +9,11 @@ use Phel\Build\BuildConfigInterface;
 use Phel\Build\Domain\Compile\BuildOptions;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
+use Phel\Build\Domain\Event\BuildCompletedEvent;
+use Phel\Build\Domain\Event\BuildStartedEvent;
+use Phel\Build\Domain\Event\FileCompiledEvent;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
+use Phel\Build\Domain\Port\EventDispatcher\BuildEventDispatcherPort;
 use Phel\Build\Domain\Service\CacheEligibilityChecker;
 use Phel\Build\Domain\Service\NamespaceFilter;
 use Phel\Build\Domain\Transfer\CompiledFileTransfer;
@@ -18,6 +22,7 @@ use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use RuntimeException;
 
+use function count;
 use function dirname;
 use function sprintf;
 
@@ -39,6 +44,7 @@ final readonly class CompileProjectHandler implements CompileProjectUseCase
         private NamespaceFilter $namespaceFilter,
         private CacheEligibilityChecker $cacheEligibilityChecker,
         private BuildContext $buildContext,
+        private BuildEventDispatcherPort $eventDispatcher,
     ) {
     }
 
@@ -64,12 +70,17 @@ final readonly class CompileProjectHandler implements CompileProjectUseCase
      */
     private function compileFromTo(array $srcDirectories, string $dest, BuildOptions $buildOptions): array
     {
+        $this->eventDispatcher->dispatch(new BuildStartedEvent($srcDirectories, $dest));
+
         // Initialize the GlobalEnvironment before loading cached files.
         $this->compilerFacade->initializeGlobalEnvironment();
 
         $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($srcDirectories);
         /** @var list<CompiledFileTransfer> $result */
         $result = [];
+        /** @var list<string> $compiledFiles */
+        $compiledFiles = [];
+        $cachedFiles = 0;
 
         foreach ($namespaceInformation as $info) {
             if ($this->namespaceFilter->shouldIgnore($info)) {
@@ -89,6 +100,8 @@ final readonly class CompileProjectHandler implements CompileProjectUseCase
                     require_once $targetFile;
                 });
 
+                ++$cachedFiles;
+
                 continue;
             }
 
@@ -105,11 +118,24 @@ final readonly class CompileProjectHandler implements CompileProjectUseCase
             );
 
             touch($targetFile, $this->getFileMtime($info->getFile()));
+
+            $compiledFiles[] = $info->getFile();
+            $this->eventDispatcher->dispatch(new FileCompiledEvent(
+                $info->getFile(),
+                $targetFile,
+                $info->getNamespace(),
+            ));
         }
 
         if ($this->config->shouldCreateEntryPointPhpFile()) {
             $this->entryPointPhpFile->createFile();
         }
+
+        $this->eventDispatcher->dispatch(new BuildCompletedEvent(
+            count($namespaceInformation),
+            $compiledFiles,
+            $cachedFiles,
+        ));
 
         return $result;
     }

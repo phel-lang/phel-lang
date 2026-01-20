@@ -9,7 +9,11 @@ use Phel\Build\Domain\Compile\BuildOptions;
 use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
+use Phel\Build\Domain\Event\BuildCompletedEvent;
+use Phel\Build\Domain\Event\BuildStartedEvent;
+use Phel\Build\Domain\Event\FileCompiledEvent;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
+use Phel\Build\Domain\Port\EventDispatcher\BuildEventDispatcherPort;
 use Phel\Build\Domain\Service\CacheEligibilityChecker;
 use Phel\Build\Domain\Service\NamespaceFilter;
 use Phel\Build\Domain\ValueObject\BuildContext;
@@ -17,6 +21,7 @@ use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use RuntimeException;
 
+use function count;
 use function dirname;
 use function sprintf;
 
@@ -38,6 +43,7 @@ final readonly class ProjectCompiler
         private NamespaceFilter $namespaceFilter,
         private CacheEligibilityChecker $cacheEligibilityChecker,
         private BuildContext $buildContext,
+        private BuildEventDispatcherPort $eventDispatcher,
     ) {
     }
 
@@ -64,6 +70,8 @@ final readonly class ProjectCompiler
      */
     private function compileFromTo(array $srcDirectories, string $dest, BuildOptions $buildOptions): array
     {
+        $this->eventDispatcher->dispatch(new BuildStartedEvent($srcDirectories, $dest));
+
         // Initialize the GlobalEnvironment before loading cached files.
         // This ensures Phel::clear() is called before any definitions are registered,
         // preventing definitions from being lost when compilation is triggered later.
@@ -72,6 +80,10 @@ final readonly class ProjectCompiler
         $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($srcDirectories);
         /** @var list<CompiledFile> $result */
         $result = [];
+        /** @var list<string> $compiledFiles */
+        $compiledFiles = [];
+        $cachedFiles = 0;
+
         foreach ($namespaceInformation as $info) {
             if ($this->namespaceFilter->shouldIgnore($info)) {
                 continue;
@@ -90,6 +102,8 @@ final readonly class ProjectCompiler
                     require_once $targetFile;
                 });
 
+                ++$cachedFiles;
+
                 continue;
             }
 
@@ -100,11 +114,24 @@ final readonly class ProjectCompiler
             );
 
             touch($targetFile, $this->getFileMtime($info->getFile()));
+
+            $compiledFiles[] = $info->getFile();
+            $this->eventDispatcher->dispatch(new FileCompiledEvent(
+                $info->getFile(),
+                $targetFile,
+                $info->getNamespace(),
+            ));
         }
 
         if ($this->config->shouldCreateEntryPointPhpFile()) {
             $this->entryPointPhpFile->createFile();
         }
+
+        $this->eventDispatcher->dispatch(new BuildCompletedEvent(
+            count($namespaceInformation),
+            $compiledFiles,
+            $cachedFiles,
+        ));
 
         return $result;
     }
