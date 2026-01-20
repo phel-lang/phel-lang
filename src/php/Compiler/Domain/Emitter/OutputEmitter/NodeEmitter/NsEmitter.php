@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
+use Phel\Compiler\Domain\Emitter\RuntimeClassReference;
 
 use function addslashes;
 use function assert;
@@ -67,8 +68,8 @@ final class NsEmitter implements NodeEmitterInterface
             // In cache mode, don't emit any dependency loading code.
             // Dependencies are loaded in order by the test framework.
         } else {
-            $this->outputEmitter->emitLine('$__phelBuildFacade = new \\Phel\\Build\\BuildFacade();');
-            $this->outputEmitter->emitLine('$__phelSrcDirs = \\Phel::getDefinition(');
+            $this->outputEmitter->emitLine('$__phelBuildFacade = new ' . RuntimeClassReference::BUILD_FACADE . '();');
+            $this->outputEmitter->emitLine('$__phelSrcDirs = ' . RuntimeClassReference::PHEL . '::getDefinition(');
             $this->outputEmitter->increaseIndentLevel();
             $this->outputEmitter->emitStr('"');
             $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\repl')));
@@ -85,12 +86,12 @@ final class NsEmitter implements NodeEmitterInterface
                 );
                 $this->outputEmitter->emitLine('foreach ($__phelNsInfos as $__phelNsInfo) {');
                 $this->outputEmitter->increaseIndentLevel();
-                $this->outputEmitter->emitLine('if (!in_array($__phelNsInfo->getNamespace(), \\Phel::getNamespaces(), true)) {');
+                $this->outputEmitter->emitLine('if (!in_array($__phelNsInfo->getNamespace(), ' . RuntimeClassReference::PHEL . '::getNamespaces(), true)) {');
                 $this->outputEmitter->increaseIndentLevel();
-                $this->outputEmitter->emitLine('\\Phel\\Build\\BuildFacade::enableBuildMode();');
+                $this->outputEmitter->emitLine(RuntimeClassReference::BUILD_FACADE . '::enableBuildMode();');
                 $this->outputEmitter->emitLine('$__phelBuildFacade->evalFile($__phelNsInfo->getFile());');
-                $this->outputEmitter->emitLine('\\Phel\\Build\\BuildFacade::disableBuildMode();');
-                $this->outputEmitter->emitLine('\\Phel\\Compiler\\Infrastructure\\GlobalEnvironmentSingleton::getInstance()->setNs("' . addslashes($node->getNamespace()) . '");');
+                $this->outputEmitter->emitLine(RuntimeClassReference::BUILD_FACADE . '::disableBuildMode();');
+                $this->outputEmitter->emitLine(RuntimeClassReference::GLOBAL_ENVIRONMENT_SINGLETON . '::getInstance()->setNs("' . addslashes($node->getNamespace()) . '");');
                 $this->outputEmitter->decreaseIndentLevel();
                 $this->outputEmitter->emitLine('}');
                 $this->outputEmitter->decreaseIndentLevel();
@@ -103,12 +104,12 @@ final class NsEmitter implements NodeEmitterInterface
     {
         if (!$this->outputEmitter->getOptions()->isFileEmitMode()) {
             $this->outputEmitter->emitLine(
-                '\Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton::getInstance()->setNs("' . addslashes($node->getNamespace()) . '");',
+                RuntimeClassReference::GLOBAL_ENVIRONMENT_SINGLETON . '::getInstance()->setNs("' . addslashes($node->getNamespace()) . '");',
                 $node->getStartSourceLocation(),
             );
         }
 
-        $this->outputEmitter->emitLine('\\Phel::addDefinition(');
+        $this->outputEmitter->emitLine(RuntimeClassReference::PHEL . '::addDefinition(');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitStr('"');
         $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\core')));
@@ -123,7 +124,7 @@ final class NsEmitter implements NodeEmitterInterface
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine(');');
 
-        $this->outputEmitter->emitLine('\\Phel::addDefinition(');
+        $this->outputEmitter->emitLine(RuntimeClassReference::PHEL . '::addDefinition(');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitStr('"');
         $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\core')));
