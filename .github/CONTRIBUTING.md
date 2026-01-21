@@ -1,100 +1,111 @@
 # Contributing to Phel
 
-## Welcome!
+Want to contribute? Here's how:
 
-We look forward to your contributions! Here's how you can contribute:
+- [Report a bug](https://github.com/phel-lang/phel-lang/issues/new?labels=bug&template=BUG.md)
+- [Propose a feature](https://github.com/phel-lang/phel-lang/issues/new?labels=enhancement&template=FEATURE_REQUEST.md)
+- [Open a pull request](https://github.com/phel-lang/phel-lang/pulls)
 
-* [Report a bug](https://github.com/phel-lang/phel-lang/issues/new?labels=bug&template=BUG.md)
-* [Propose a new feature](https://github.com/phel-lang/phel-lang/issues/new?labels=enhancement&template=FEATURE_REQUEST.md)
-* [Send a pull request](https://github.com/phel-lang/phel-lang/pulls)
-
-For substantial changes (architecture decisions, breaking changes, etc.), please open an issue first to discuss your proposal.
-
-## We have a Code of Conduct
-
-Please note that this project is released with a [Contributor Code of Conduct](CODE_OF_CONDUCT.md).
-By participating in this project you agree to abide by its terms.
-
-## Any contributions you make will be under the MIT License
-
-When you submit code changes, your submissions are understood to be under the same [MIT](https://github.com/phel-lang/phel-lang/blob/master/LICENSE) that covers the project.
-By contributing to this project, you agree that your contributions will be licensed under its MIT.
-
-## Write bug reports with detail, background, and sample code
-
-In your bug report, please provide the following:
-
-* A quick summary and/or background.
-* Steps to reproduce:
-    * Be specific!
-    * Give sample code if you can.
-* What you expected would happen.
-* What actually happens.
-* Notes (possibly including why you think this might be happening, or stuff you tried that didn't work).
-
-Please post code and output as text ([using proper markup](https://guides.github.com/features/mastering-markdown/)).
-Do not post screenshots of code or output.
+For bigger changes, open an issue first so we can discuss.
 
 ## Quick Start
 
-### Requirements
-
-- PHP 8.2 or higher
-- Composer
-
-### Setup
-
-1. Fork and clone the repository
-2. Install dependencies: `composer install`
-3. (Optional) Set up environment: `cp .env.example .env`
-   - Configure `PR_RUN_AFTER_CREATION` to run commands after PR creation
-   - Example: `PR_RUN_AFTER_CREATION="claude -p 'using gh update the current PR in this branch description following the template, keep it simple'"`
-
-### Pull Request Workflow
-
-1. Create your branch from `main`
-2. Make your changes and add tests
-3. Run tests: `composer test`
-4. Format code: `composer fix`
-5. Create PR: `composer create-pr` (or manually with `gh pr create`)
-6. Ensure CI passes
-
-Make sure you have [set up your Git username and email](https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup) properly.
-
-## Development Commands
-
-### Essential Commands
+You'll need PHP 8.3+ and Composer.
 
 ```bash
-composer test          # Run all tests (compiler + core library)
-composer fix           # Auto-format code (PHP CS Fixer + Rector)
-composer create-pr     # Create a pull request using the CLI tool
+# Fork and clone, then:
+composer install
 ```
 
-### Individual Test Suites
+## Making Changes
+
+1. Branch from `main`
+2. Write your code (and tests!)
+3. Run `composer test`
+4. Run `composer fix` to format
+5. Open a PR
+
+## Project Layout
+
+```
+src/php/      → Compiler (PHP)
+src/phel/     → Core library (Phel)
+tests/php/    → PHPUnit tests
+tests/phel/   → Phel tests
+```
+
+## Commands
+
+**Day-to-day:**
 
 ```bash
-composer test-compiler # Run PHPUnit tests (unit + integration)
-composer test-core     # Run Phel core library tests
-composer psalm         # Run Psalm static analysis
-composer phpstan       # Run PHPStan static analysis
+composer test       # Run everything
+composer fix        # Auto-format code
+composer create-pr  # Open a PR
 ```
 
-### Git Hooks (Optional)
+**Testing:**
 
-Enable git hooks to run tests before commits:
+```bash
+composer test-compiler  # PHPUnit (unit + integration)
+composer test-core      # Phel's own test framework
+composer test-quality   # Static analysis + linting
+```
+
+**Static analysis:**
+
+```bash
+composer psalm      # Psalm
+composer phpstan    # PHPStan
+composer csrun      # Code style check
+composer rector     # Rector check
+```
+
+**Benchmarks:**
+
+```bash
+composer phpbench       # Run benchmarks
+composer phpbench-base  # Create baseline
+composer phpbench-ref   # Compare to baseline
+```
+
+## Tests
+
+We have two test suites:
+
+- **Compiler tests** (PHPUnit) in `tests/php/`
+- **Core library tests** (Phel) in `tests/phel/` — see the [testing docs](https://phel-lang.org/documentation/testing/)
+
+Changed the compiler? Add PHPUnit tests. Changed the core library? Add Phel tests.
+
+## Git Hooks
+
+Optional but handy:
 
 ```bash
 tools/git-hooks/init.sh
 ```
 
-You can skip hooks with `git commit --no-verify` if needed, but ensure you run `composer test` before pushing.
+You can skip them with `--no-verify`, but run `composer test` before pushing.
 
-## Testing
+## Reporting Bugs
 
-Phel has two test suites:
+Include:
 
-1. **PHP Compiler Tests**: PHPUnit tests for the compiler (`composer test-compiler`)
-2. **Core Library Tests**: Phel's own [testing framework](https://phel-lang.org/documentation/testing/) (`composer test-core`)
+- What happened vs what you expected
+- Steps to reproduce (code samples help)
+- Anything else you've tried
 
-Run both with `composer test`.  
+Post code as text, not screenshots.
+
+## Code of Conduct
+
+We follow the [Contributor Code of Conduct](CODE_OF_CONDUCT.md).
+
+## License
+
+Contributions are under the [MIT License](https://github.com/phel-lang/phel-lang/blob/master/LICENSE).
+
+## Questions?
+
+Open a [discussion](https://github.com/phel-lang/phel-lang/discussions) or reach out.
