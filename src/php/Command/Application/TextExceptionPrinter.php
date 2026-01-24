@@ -10,6 +10,7 @@ use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
+use Phel\Compiler\Domain\Exceptions\ErrorCode;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Phel\Lang\FnInterface;
 use Phel\Lang\SourceLocation;
@@ -52,7 +53,10 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
         $errorFirstLine = $errorStartLocation->getLine();
         $codeFirstLine = $codeSnippet->getStartLocation()->getLine();
 
-        $str .= $this->style->blue($e->getMessage()) . PHP_EOL;
+        $errorCode = $e->getErrorCode();
+        $errorPrefix = $errorCode instanceof ErrorCode ? sprintf('[%s] ', $errorCode->value) : '';
+
+        $str .= $this->style->blue($errorPrefix . $e->getMessage()) . PHP_EOL;
         $str .= 'in ' . $errorStartLocation->getFile() . ':' . $errorFirstLine . PHP_EOL . PHP_EOL;
 
         $lines = explode(PHP_EOL, $codeSnippet->getCode());

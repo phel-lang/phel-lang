@@ -62,7 +62,7 @@ final class DefSymbolTest extends TestCase
     public function test_first_argument_must_be_symbol(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("First argument of 'def must be a Symbol.");
+        $this->expectExceptionMessage("First argument of 'def must be a Symbol, got string");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF),
@@ -285,7 +285,7 @@ final class DefSymbolTest extends TestCase
     public function test_invalid_meta(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Metadata must be a String, Keyword or Map');
+        $this->expectExceptionMessage('Metadata must be a String, Keyword, Map, got int');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF),

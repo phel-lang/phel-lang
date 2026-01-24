@@ -43,7 +43,7 @@ final class DefExceptionSymbolTest extends TestCase
     public function test_first_arg_is_not_symbol(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("First argument of 'defexception must be a Symbol.");
+        $this->expectExceptionMessage("First argument of 'defexception must be a Symbol, got string");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF_EXCEPTION),

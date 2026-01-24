@@ -41,4 +41,12 @@ interface GlobalEnvironmentInterface
     public function addLevelToAllowPrivateAccess(): void;
 
     public function removeLevelToAllowPrivateAccess(): void;
+
+    /**
+     * Returns all available symbol names that can be resolved in the current namespace.
+     * This includes definitions, refers, and aliases.
+     *
+     * @return array<string> List of available symbol names
+     */
+    public function getAllDefinitions(): array;
 }

@@ -37,4 +37,11 @@ interface AnalyzerInterface
     public function addDefinition(string $ns, Symbol $symbol): void;
 
     public function addInterface(string $ns, Symbol $name): void;
+
+    /**
+     * Returns all available symbol names that can be resolved in the current namespace.
+     *
+     * @return array<string> List of available symbol names
+     */
+    public function getAvailableSymbols(): array;
 }

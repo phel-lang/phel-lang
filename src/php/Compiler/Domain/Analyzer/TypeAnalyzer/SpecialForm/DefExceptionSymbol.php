@@ -26,7 +26,7 @@ final class DefExceptionSymbol implements SpecialFormAnalyzerInterface
 
         $name = $list->get(1);
         if (!$name instanceof Symbol) {
-            throw AnalyzerException::withLocation("First argument of 'defexception must be a Symbol.", $list);
+            throw AnalyzerException::wrongArgumentType("First argument of 'defexception", 'Symbol', $name, $list);
         }
 
         $parent = new PhpClassNameNode(

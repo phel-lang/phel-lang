@@ -40,12 +40,12 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
 
         $structSymbol = $list->get(1);
         if (!($structSymbol instanceof Symbol)) {
-            throw AnalyzerException::withLocation("First argument of 'defstruct must be a Symbol.", $list);
+            throw AnalyzerException::wrongArgumentType("First argument of 'defstruct", 'Symbol', $structSymbol, $list);
         }
 
         $structParams = $list->get(2);
         if (!($structParams instanceof PersistentVectorInterface)) {
-            throw AnalyzerException::withLocation("Second argument of 'defstruct must be a vector.", $list);
+            throw AnalyzerException::wrongArgumentType("Second argument of 'defstruct", 'Vector', $structParams, $list);
         }
 
         $params = $this->params($structParams);
@@ -154,10 +154,11 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
         array $expectedMethodIndex,
     ): DefStructMethod {
         $methodName = $list->get(0);
-        $mungedMethodName = $this->munge->encode($methodName->getName());
         if (!$methodName instanceof Symbol) {
-            throw AnalyzerException::withLocation('Method name must be a Symbol', $list);
+            throw AnalyzerException::wrongArgumentType('Method name', 'Symbol', $methodName, $list);
         }
+
+        $mungedMethodName = $this->munge->encode($methodName->getName());
 
         if (!isset($expectedMethodIndex[$mungedMethodName])) {
             throw AnalyzerException::withLocation("The interface doesn't support this method: " . $methodName->getName(), $list);

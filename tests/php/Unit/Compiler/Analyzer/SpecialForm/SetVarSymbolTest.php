@@ -27,7 +27,7 @@ final class SetVarSymbolTest extends TestCase
     public function test_first_argument_must_be_symbol(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("First argument of 'def must be a Symbol.");
+        $this->expectExceptionMessage("First argument of 'def must be a Symbol, got string");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_SET_VAR),
