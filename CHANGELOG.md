@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+- Add "Did you mean?" suggestions for undefined symbols using Levenshtein distance
+- Add error codes (PHEL001-399) for documentation lookup and categorized error types
+- Add type hints in error messages with clean type names (e.g., `Symbol` instead of `Phel\Lang\Symbol`)
+- Add arity ranges in function call errors (e.g., "Expected: 2 or 3" or "at least 2")
+- Add macro expansion context showing the macro name and form being expanded when errors occur
+- Add parser error context showing the line where unterminated constructs started
+
 ### Changed
 - Add emoji headers to GitHub release notes in `release.sh`
 
