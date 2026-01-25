@@ -15,6 +15,9 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Add emoji headers to GitHub release notes in `release.sh`
 
+### Fixed
+- Fix `re-seq` doesn't return capture groups (#1086)
+
 ## [0.28.0](https://github.com/phel-lang/phel-lang/compare/v0.27.0...v0.28.0) - 2026-01-18
 
 ### Added

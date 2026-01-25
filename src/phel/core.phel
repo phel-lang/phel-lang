@@ -2889,8 +2889,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   "Returns a sequence of successive matches of pattern in string."
   [re s]
   (let [matches (php/array)
-        match-result (php/preg_match_all re s matches)]
-    (apply vector (php/aget matches 0))))
+        match-result (php/preg_match_all re s matches)
+        matches (php->phel matches)]
+    (if (= (count matches) 1)
+      (first matches)
+      (doall (apply map vector matches)))))
 
 # -------
 # Binding
