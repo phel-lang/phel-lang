@@ -2,14 +2,17 @@
 
 declare(strict_types=1);
 
-namespace Phel\Interop\Infrastructure\IO;
+namespace Phel\Interop\Infrastructure\Adapter\FileSystem;
 
-use Phel\Interop\Domain\FileCreator\FileIoInterface;
+use Phel\Interop\Domain\Port\FileSystem\FileSystemPort;
 use RuntimeException;
 
 use function sprintf;
 
-final class FileSystemIo implements FileIoInterface
+/**
+ * Local file system adapter implementing FileSystemPort.
+ */
+final class LocalFileSystemAdapter implements FileSystemPort
 {
     public function createDirectory(string $directory): void
     {

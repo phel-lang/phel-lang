@@ -12,12 +12,12 @@ use Phel\Interop\Domain\ExportFinder\FunctionsToExportFinder;
 use Phel\Interop\Domain\ExportFinder\FunctionsToExportFinderInterface;
 use Phel\Interop\Domain\FileCreator\FileCreator;
 use Phel\Interop\Domain\FileCreator\FileCreatorInterface;
-use Phel\Interop\Domain\FileCreator\FileIoInterface;
 use Phel\Interop\Domain\Generator\Builder\CompiledPhpClassBuilder;
 use Phel\Interop\Domain\Generator\Builder\CompiledPhpMethodBuilder;
 use Phel\Interop\Domain\Generator\Builder\WrapperRelativeFilenamePathBuilder;
 use Phel\Interop\Domain\Generator\WrapperGenerator;
-use Phel\Interop\Infrastructure\IO\FileSystemIo;
+use Phel\Interop\Domain\Port\FileSystem\FileSystemPort;
+use Phel\Interop\Infrastructure\Adapter\FileSystem\LocalFileSystemAdapter;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 
@@ -52,7 +52,7 @@ final class InteropFactory extends AbstractFactory
     {
         return new FileCreator(
             $this->getConfig()->getExportTargetDirectory(),
-            $this->createFileSystemIo(),
+            $this->createFileSystemPort(),
         );
     }
 
@@ -96,8 +96,8 @@ final class InteropFactory extends AbstractFactory
         return $this->getProvidedDependency(InteropProvider::FACADE_BUILD);
     }
 
-    private function createFileSystemIo(): FileIoInterface
+    private function createFileSystemPort(): FileSystemPort
     {
-        return new FileSystemIo();
+        return new LocalFileSystemAdapter();
     }
 }

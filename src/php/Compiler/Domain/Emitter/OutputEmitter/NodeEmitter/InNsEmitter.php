@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\InNsNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Compiler\Domain\Emitter\RuntimeClassReference;
 
 use function addslashes;
 use function assert;
@@ -23,12 +22,12 @@ final class InNsEmitter implements NodeEmitterInterface
 
         // Set the namespace in the global environment
         $this->outputEmitter->emitLine(
-            '\\' . GlobalEnvironmentSingleton::class . '::getInstance()->setNs("' . addslashes($node->getNamespace()) . '");',
+            RuntimeClassReference::GLOBAL_ENVIRONMENT_SINGLETON . '::getInstance()->setNs("' . addslashes($node->getNamespace()) . '");',
             $node->getStartSourceLocation(),
         );
 
         // Update *file* definition to ensure subsequent loads resolve relative paths correctly
-        $this->outputEmitter->emitLine('\\' . Phel::class . '::addDefinition(');
+        $this->outputEmitter->emitLine(RuntimeClassReference::PHEL . '::addDefinition(');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitStr('"');
         $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\core')));
@@ -44,7 +43,7 @@ final class InNsEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine(');');
 
         // Update *ns* definition
-        $this->outputEmitter->emitLine('\\' . Phel::class . '::addDefinition(');
+        $this->outputEmitter->emitLine(RuntimeClassReference::PHEL . '::addDefinition(');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitStr('"');
         $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\core')));

@@ -7,7 +7,7 @@ namespace PhelTest\Integration\Api;
 use Phel;
 use Phel\Api\ApiConfig;
 use Phel\Api\ApiFacade;
-use Phel\Api\Transfer\PhelFunction;
+use Phel\Api\Domain\Transfer\PhelFunction;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;

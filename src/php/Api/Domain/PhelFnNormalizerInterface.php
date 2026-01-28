@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Api\Domain;
 
-use Phel\Api\Transfer\PhelFunction;
+use Phel\Api\Domain\Transfer\PhelFunction;
 
 interface PhelFnNormalizerInterface
 {

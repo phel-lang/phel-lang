@@ -36,7 +36,7 @@ use Phel\Compiler\Domain\Parser\ParserInterface;
 use Phel\Compiler\Domain\Reader\ExpressionReaderFactory;
 use Phel\Compiler\Domain\Reader\QuasiquoteTransformer;
 use Phel\Compiler\Domain\Reader\ReaderInterface;
-use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Compiler\Domain\ValueObject\CompileOptions;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Filesystem\FilesystemFacadeInterface;
 use Phel\Printer\Printer;
