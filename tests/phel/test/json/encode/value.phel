@@ -38,10 +38,10 @@
        (json/encode (list 1 2 "string"))))
   (is (=
        "[1,2,[1,2,3]]"
-       (json/encode (list 1 2 (set 1 2 3)))))
+       (json/encode (list 1 2 (hash-set 1 2 3)))))
   (is (=
        "[1,2,[1,2,[1,2]]]"
-       (json/encode (list 1 2 (set 1 2 (set 1 2))))))
+       (json/encode (list 1 2 (hash-set 1 2 (hash-set 1 2))))))
   (is (=
        "[1,2,{\"year\":2020,\"planet\":\"Earth\"}]"
        (json/encode (list 1 2 {:year 2020
@@ -57,8 +57,8 @@
   (is (= "[1,2,[1,2]]" (json/encode [1 2 [1 2]]))))
 
 (deftest test-json-encode-set
-  (is (= "[1,2,3]" (json/encode (set 1 2 3))))
-  (is (= "[1,2,[1,2]]" (json/encode (set 1 2 (set 1 2))))))
+  (is (= "[1,2,3]" (json/encode (hash-set 1 2 3))))
+  (is (= "[1,2,[1,2]]" (json/encode (hash-set 1 2 (hash-set 1 2))))))
 
 (defstruct book [title pages year])
 
@@ -71,17 +71,17 @@
        "{\"key1\":\"value1\",\"key2\":\"value2\",\"set\":[1,2]}"
        (json/encode {"key1" "value1"
                      "key2" "value2"
-                     "set" (set 1 2)})))
+                     "set" (hash-set 1 2)})))
   (is (=
        "{\"key1\":\"value1\",\"key2\":\"value2\",\"set\":[1,2,[3,4]]}"
        (json/encode {"key1" "value1"
                      "key2" "value2"
-                     "set" (set 1 2 (set 3 4))})))
+                     "set" (hash-set 1 2 (hash-set 3 4))})))
   (is (=
        "{\"key1\":\"value1\",\"key2\":\"value2\",\"set\":[1,2,[\"three\",4]]}"
        (json/encode {"key1" "value1"
                      "key2" "value2"
-                     "set" (set 1 2 (set 'three 4))})))
+                     "set" (hash-set 1 2 (hash-set 'three 4))})))
   (is (=
        "{\"key1\":[\"value0\",\"value1\"],\"key2\":\"value2\"}"
        (json/encode {"key1" ["value0" :value1]

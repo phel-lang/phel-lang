@@ -24,7 +24,7 @@
   (is
    (thrown-with-msg?
     Exception "Key can only be an integer, float, symbol, keyword or a string."
-    (json/encode {(set 1 2 3) "Set"}))
+    (json/encode {(hash-set 1 2 3) "Set"}))
    "It tests if set is a valid key.")
   (is
    (thrown-with-msg?

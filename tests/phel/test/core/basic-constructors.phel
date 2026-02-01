@@ -13,8 +13,27 @@
 (deftest create-hash-map
   (is (= {:a 1 :b 2} (hash-map :a 1 :b 2)) "construct hash-map"))
 
-(deftest create-set
-  (is (= (set 1 2 3 :a :b :c) (set :a 1 2 :b 3 :c :c 1 2 3)) "construct set"))
+(deftest create-hash-set
+  (is (= (hash-set 1 2 3 :a :b :c) (hash-set :a 1 2 :b 3 :c :c 1 2 3)) "construct hash-set"))
+
+(deftest test-vec
+  (is (= [1 2 3] (vec '(1 2 3))) "vec from list")
+  (is (= [1 2 3] (vec [1 2 3])) "vec from vector")
+  (is (= [] (vec '())) "vec from empty list")
+  (is (= [] (vec nil)) "vec from nil")
+  (is (vector? (vec '(1 2 3))) "vec returns vector type"))
+
+(deftest test-set-coercion
+  (is (= #{1 2 3} (set [1 2 3])) "set from vector")
+  (is (= #{1 2 3} (set '(1 2 3))) "set from list")
+  (is (= #{1 2 3} (set [1 2 3 2 1])) "set removes duplicates")
+  (is (= #{} (set [])) "set from empty")
+  (is (= #{} (set nil)) "set from nil")
+  (is (set? (set [1 2 3])) "set returns set type"))
+
+(deftest test-hash-set-creation
+  (is (= #{1 2 3} (hash-set 1 2 3)) "hash-set from args")
+  (is (= #{} (hash-set)) "empty hash-set"))
 
 (deftest create-php-indexed-array
   (let [arr (php-indexed-array "a" "b")]

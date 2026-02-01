@@ -2,20 +2,20 @@
   (:require phel\test :refer [deftest is]))
 
 (deftest test-set-union
-  (is (= (set) (union)) "set 0-ary union")
-  (is (= (set 0 1 2 3) (union (set 1 2) (set 0 3))) "set union")
-  (is (= (set 0 1 2 3) (union (set 1 2) (set 0 1 2 3))) "set union with common values"))
+  (is (= (hash-set) (union)) "set 0-ary union")
+  (is (= (hash-set 0 1 2 3) (union (hash-set 1 2) (hash-set 0 3))) "set union")
+  (is (= (hash-set 0 1 2 3) (union (hash-set 1 2) (hash-set 0 1 2 3))) "set union with common values"))
 
 (deftest test-intersection
-  (is (= (set) (intersection (set 1 2) (set 0 3))) "set intersection")
-  (is (= (set 1 2) (intersection (set 1 2) (set 0 1 2 3))) "set intersection with common values"))
+  (is (= (hash-set) (intersection (hash-set 1 2) (hash-set 0 3))) "set intersection")
+  (is (= (hash-set 1 2) (intersection (hash-set 1 2) (hash-set 0 1 2 3))) "set intersection with common values"))
 
 (deftest test-difference
-  (is (= (set 1 2) (difference (set 1 2) (set 0 3))) "set difference")
-  (is (= (set) (difference (set 1 2) (set 0 1 2 3))) "set difference")
-  (is (= (set "1") (difference (set "1" 2) (set 0 1 2 3))) "set difference type checks")
-  (is (= (set 0 3) (difference (set 0 1 2 3) (set 1 2))) "set difference with common values"))
+  (is (= (hash-set 1 2) (difference (hash-set 1 2) (hash-set 0 3))) "set difference")
+  (is (= (hash-set) (difference (hash-set 1 2) (hash-set 0 1 2 3))) "set difference")
+  (is (= (hash-set "1") (difference (hash-set "1" 2) (hash-set 0 1 2 3))) "set difference type checks")
+  (is (= (hash-set 0 3) (difference (hash-set 0 1 2 3) (hash-set 1 2))) "set difference with common values"))
 
 (deftest test-symmetric-difference
-  (is (= (set 0 1 2 3) (symmetric-difference (set 1 2) (set 0 3))) "set symmetric-difference")
-  (is (= (set 0 3) (symmetric-difference (set 1 2) (set 0 1 2 3))) "set symmetric-difference with common values"))
+  (is (= (hash-set 0 1 2 3) (symmetric-difference (hash-set 1 2) (hash-set 0 3))) "set symmetric-difference")
+  (is (= (hash-set 0 3) (symmetric-difference (hash-set 1 2) (hash-set 0 1 2 3))) "set symmetric-difference with common values"))

@@ -359,9 +359,9 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 # Basic constructors
 # ------------------
 
-(defn set
+(defn hash-set
   "Creates a new Set from the given arguments. Shortcut: #{}"
-  {:example "(set 1 2 3) ; => #{1 2 3}"}
+  {:example "(hash-set 1 2 3) ; => #{1 2 3}"}
   [& xs]
   (php/:: Phel (set (apply php/array xs))))
 
@@ -1119,7 +1119,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     2 (lazy-seq-from-generator (php/:: Seq (range a (get rest 0) (get rest 1))))
     (throw (php/new InvalidArgumentException "Range function expects one, two or three arguments"))))
 
-(def- for-options (set :reduce))
+(def- for-options (hash-set :reduce))
 
 (defn- for-builder-options [head i initial-options]
   (if (<= (count head) i)
@@ -1398,6 +1398,25 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     (php-array? coll) (php/array_slice coll offset length)
     (php/instanceof coll SliceInterface) (php/-> coll (slice offset length))
     (throw (php/new InvalidArgumentException "Cannot slice"))))
+
+(defn set
+  "Coerces a collection to a set. Returns a set containing the distinct elements of `coll`.
+  For creating sets from arguments, use `hash-set`."
+  {:example "(set [1 2 3 2 1]) ; => #{1 2 3}"
+   :see-also ["hash-set" "vec" "into"]}
+  [coll]
+  (if (php/=== nil coll)
+    #{}
+    (for [x :in coll :reduce [acc #{}]] (conj acc x))))
+
+(defn vec
+  "Coerces a collection to a vector. Returns a vector containing all elements of `coll`."
+  {:example "(vec '(1 2 3)) ; => [1 2 3]"
+   :see-also ["vector" "set" "into"]}
+  [coll]
+  (if (php/=== nil coll)
+    []
+    (for [x :in coll :reduce [acc []]] (conj acc x))))
 
 (defn get-in
   "Accesses a value in a nested data structure via a sequence of keys.
@@ -2126,7 +2145,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 (defn union
   "Union multiple sets into a new one."
   [& sets]
-  (let [target (transient (set))]
+  (let [target (transient (hash-set))]
     (foreach [s sets]
       (foreach [v s]
         (php/-> target (add v))))

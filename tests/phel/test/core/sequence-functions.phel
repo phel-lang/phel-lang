@@ -31,7 +31,7 @@
 (deftest test-into
   (is (= [1 2 3 4] (into [] '(1 2 3 4))) "into vector from list")
   (is (= [1 2 3 4 5] (into [1 2] [3 4 5])) "into vector from vector")
-  (is (= (set 1 2 3) (into (set) [1 2 3 2 1])) "into set removes duplicates")
+  (is (= (hash-set 1 2 3) (into (hash-set) [1 2 3 2 1])) "into set removes duplicates")
   (is (= {:a 1 :b 2} (into {} [[:a 1] [:b 2]])) "into map from pairs")
   (is (= [[:a 1] [:b 2]] (into [] {:a 1 :b 2})) "into vector from map")
   (is (= {:a 1 :b 2 :c 3} (into {:a 1} {:b 2 :c 3})) "into map from map"))
@@ -40,14 +40,14 @@
   (is (= "abc" (reduce str "" ["a" "b" "c"])) "reduce three elements vector")
   (is (= "abc" (reduce str "" [nil "a" "b" "c"])) "reduce vector containing a nil value")
   (is (= "x" (reduce str "x" [])) "reduce empty vector")
-  (is (= 6 (reduce + 0 (for [x :in (set 1 2 3)] x))) "reduce on set"))
+  (is (= 6 (reduce + 0 (for [x :in (hash-set 1 2 3)] x))) "reduce on set"))
 
 (deftest test-reduce-without-init
   (is (= "abc" (reduce str ["a" "b" "c"])) "reduce without init three elements vector")
   (is (= "abc" (reduce str [nil "a" "b" "c"])) "reduce without init vector containing a nil value")
   (is (= "a" (reduce str ["a"])) "reduce without init one element vector")
   (is (= "" (reduce str [])) "reduce without init empty vector")
-  (is (= 6 (reduce + (for [x :in (set 1 2 3)] x))) "reduce without init on set vector")
+  (is (= 6 (reduce + (for [x :in (hash-set 1 2 3)] x))) "reduce without init on set vector")
   (is (= 0 (reduce + [])) "reduce without init on empty vector with +"))
 
 # =============================================================================
@@ -312,7 +312,7 @@
   (is (= {:a {:b 1 :c 3}} (deep-merge {:a {:b 1 :c 2}} {:a {:c 3}}))))
 
 (deftest test-inner-set-deep-merge
-  (is (= {:a (set :b :c :d)} (deep-merge {:a (set :b :c)} {:a (set :c :d)}))))
+  (is (= {:a (hash-set :b :c :d)} (deep-merge {:a (hash-set :b :c)} {:a (hash-set :c :d)}))))
 
 (deftest test-inner-vector-deep-merge
   (is (= {:a [:b :c :d]} (deep-merge {:a [:b :c]} {:a [:d]}))))
@@ -323,7 +323,7 @@
 (deftest test-collection-stay-the-same-in-deep-merge
   (is (hash-map? (deep-merge {:a :b} {:c :d})))
   (is (vector? (deep-merge [:a :b] [:c])))
-  (is (set? (deep-merge (set :a :b) (set :c))))
+  (is (set? (deep-merge (hash-set :a :b) (hash-set :c))))
   (is (list? (deep-merge '(:a :b) '(:c)))))
 
 (deftest test-different-args-in-deep-merge
