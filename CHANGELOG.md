@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.29.0](https://github.com/phel-lang/phel-lang/compare/v0.28.0...v0.29.0) - 2026-02-01
+
 ### Added
 - Add "Did you mean?" suggestions for undefined symbols using Levenshtein distance
 - Add error codes (PHEL001-399) for documentation lookup and categorized error types
