@@ -18,7 +18,7 @@ Phel provides several reader shortcuts and special syntax forms for concise code
 
 ### Sets `#{}`
 ```phel
-#{1 2 3}          # Shortcut for (set 1 2 3)
+#{1 2 3}          # Shortcut for (hash-set 1 2 3)
 #{}               # Empty set
 ```
 
@@ -148,6 +148,7 @@ Attaches metadata to the following form:
 
 ## See Also
 
-- Core library functions: `vector`, `hash-map`, `set`, `list`
+- Core library functions: `vector`, `hash-map`, `hash-set`, `list`
+- Coercion functions: `vec`, `set`
 - Quote functions: `quote`, `quasiquote`, `unquote`
 - Function definition: `fn`, `defn`

@@ -56,16 +56,16 @@
   (is (false? (= [1] [1 2])) "vectors with different size are not equals"))
 
 (deftest test-=-set
-  (is (true? (= (set) (set))) "two empty sets are equal")
-  (is (true? (= (set "hello") (set "hello"))) "two sets with the same values")
-  (is (false? (= (set "hello") (set 0))) "two sets with different values")
-  (is (false? (= (set "1") (set 1))) "two sets with the same value but different types")
-  (is (true? (= (set :a :b) (set :a :b))) "two sets with keywords are equal")
-  (is (true? (= (set :a :b) (set :b :a))) "two sets with unordered keywords are equal")
-  (is (true? (= (set 1 (set :b)) (set 1 (set :b)))) "nested sets are equal")
-  (is (true? (= (set 1 (set :b)) (set (set :b) 1))) "nested sets in different order are equal")
-  (is (false? (= (set :a (set "1")) (set :a (set 1)))) "nested sets with different types are not equal")
-  (is (false? (= (set 1) (set 1 2))) "sets with different size are not equals"))
+  (is (true? (= (hash-set) (hash-set))) "two empty sets are equal")
+  (is (true? (= (hash-set "hello") (hash-set "hello"))) "two sets with the same values")
+  (is (false? (= (hash-set "hello") (hash-set 0))) "two sets with different values")
+  (is (false? (= (hash-set "1") (hash-set 1))) "two sets with the same value but different types")
+  (is (true? (= (hash-set :a :b) (hash-set :a :b))) "two sets with keywords are equal")
+  (is (true? (= (hash-set :a :b) (hash-set :b :a))) "two sets with unordered keywords are equal")
+  (is (true? (= (hash-set 1 (hash-set :b)) (hash-set 1 (hash-set :b)))) "nested sets are equal")
+  (is (true? (= (hash-set 1 (hash-set :b)) (hash-set (hash-set :b) 1))) "nested sets in different order are equal")
+  (is (false? (= (hash-set :a (hash-set "1")) (hash-set :a (hash-set 1)))) "nested sets with different types are not equal")
+  (is (false? (= (hash-set 1) (hash-set 1 2))) "sets with different size are not equals"))
 
 (deftest test-=-on-map
   (is (true? (= {} {})) "two empty hash maps are equal")
@@ -205,9 +205,9 @@
   (is (false? (contains? [1] 1))))
 
 (deftest test-contains?-set
-  (is (false? (contains? (set) 1)))
-  (is (true? (contains? (set 1) 1)))
-  (is (false? (contains? (set 1) 2))))
+  (is (false? (contains? (hash-set) 1)))
+  (is (true? (contains? (hash-set 1) 1)))
+  (is (false? (contains? (hash-set 1) 2))))
 
 (deftest test-contains?-string
   (is (false? (contains? "" 0)) "empty string has no indices")
@@ -255,10 +255,10 @@
     (is (false? (contains-value? [f] g)))))
 
 (deftest test-contains-value?-set
-  (is (false? (contains-value? (set) 1)))
-  (is (false? (contains-value? (set 1) 0)))
-  (is (true? (contains-value? (set 1) 1)))
-  (is (true? (contains-value? (set nil) nil))))
+  (is (false? (contains-value? (hash-set) 1)))
+  (is (false? (contains-value? (hash-set 1) 0)))
+  (is (true? (contains-value? (hash-set 1) 1)))
+  (is (true? (contains-value? (hash-set nil) nil))))
 
 (deftest test-contains-value?-map
   (let [full-name {:first-name "Marco" :last-name "Polo" :street nil}]

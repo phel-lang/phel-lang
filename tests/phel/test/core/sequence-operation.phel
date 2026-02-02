@@ -62,9 +62,9 @@
 
   (is (= [1] (push [] 1)) "push on vector")
 
-  (let [x (set)]
+  (let [x (hash-set)]
     (push x 1)
-    (is (= (set) x) "push on existing set, keeps initial state because it's immutable"))
+    (is (= (hash-set) x) "push on existing set, keeps initial state because it's immutable"))
 
   (is (= #{1} (push #{} 1)) "push on set"))
 

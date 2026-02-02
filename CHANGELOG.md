@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+- Add `vec` function to coerce collections to vectors: `(vec '(1 2 3))` => `[1 2 3]`
+- Add `hash-set` function to create sets from arguments (like Clojure's `hash-set`)
+
+### Changed
+- **BREAKING**: `set` now coerces a collection to a set (Clojure alignment): `(set [1 2 3])` => `#{1 2 3}`
+- Use `hash-set` for creating sets from arguments: `(hash-set 1 2 3)` => `#{1 2 3}`
+
 ## [0.29.0](https://github.com/phel-lang/phel-lang/compare/v0.28.0...v0.29.0) - 2026-02-01
 
 ### Added
