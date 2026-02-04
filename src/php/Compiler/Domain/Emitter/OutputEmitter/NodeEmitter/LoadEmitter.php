@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel;
-use Phel\Build\BuildFacade;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LoadNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Compiler\Domain\Emitter\RuntimeClassReference;
 
 use function addslashes;
 use function assert;
@@ -43,7 +41,7 @@ final class LoadEmitter implements NodeEmitterInterface
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitStr('})(');
         $this->outputEmitter->emitLiteral($filePath);
-        $this->outputEmitter->emitStr(', \\' . Phel::class . '::getDefinition(');
+        $this->outputEmitter->emitStr(', ' . RuntimeClassReference::PHEL . '::getDefinition(');
         $this->outputEmitter->emitStr('"');
         $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\core')));
         $this->outputEmitter->emitStr('", "');
@@ -58,16 +56,16 @@ final class LoadEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('}');
 
         // Store the current namespace
-        $this->outputEmitter->emitLine('$__phelPrevNs = \\' . GlobalEnvironmentSingleton::class . '::getInstance()->getNs();');
+        $this->outputEmitter->emitLine('$__phelPrevNs = ' . RuntimeClassReference::GLOBAL_ENVIRONMENT_SINGLETON . '::getInstance()->getNs();');
         $this->outputEmitter->emitLine('$__phelLoadedNs = $__phelPrevNs;');
 
         // Evaluate the file
-        $this->outputEmitter->emitLine('$__phelBuildFacade = new \\Phel\\Build\\BuildFacade();');
-        $this->outputEmitter->emitLine('\\' . BuildFacade::class . '::enableBuildMode();');
+        $this->outputEmitter->emitLine('$__phelBuildFacade = new ' . RuntimeClassReference::BUILD_FACADE . '();');
+        $this->outputEmitter->emitLine(RuntimeClassReference::BUILD_FACADE . '::enableBuildMode();');
         $this->outputEmitter->emitLine('try {');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitLine('$__phelBuildFacade->evalFile($__phelLoadPath);');
-        $this->outputEmitter->emitLine('$__phelLoadedNs = \\' . GlobalEnvironmentSingleton::class . '::getInstance()->getNs();');
+        $this->outputEmitter->emitLine('$__phelLoadedNs = ' . RuntimeClassReference::GLOBAL_ENVIRONMENT_SINGLETON . '::getInstance()->getNs();');
         $this->outputEmitter->emitStr('if ($__phelLoadedNs !== ');
         $this->outputEmitter->emitLiteral($node->getCallerNamespace());
         $this->outputEmitter->emitLine(') {');
@@ -86,8 +84,8 @@ final class LoadEmitter implements NodeEmitterInterface
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine('} finally {');
         $this->outputEmitter->increaseIndentLevel();
-        $this->outputEmitter->emitLine('\\' . BuildFacade::class . '::disableBuildMode();');
-        $this->outputEmitter->emitLine('\\' . GlobalEnvironmentSingleton::class . '::getInstance()->setNs($__phelPrevNs);');
+        $this->outputEmitter->emitLine(RuntimeClassReference::BUILD_FACADE . '::disableBuildMode();');
+        $this->outputEmitter->emitLine(RuntimeClassReference::GLOBAL_ENVIRONMENT_SINGLETON . '::getInstance()->setNs($__phelPrevNs);');
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine('}');
     }

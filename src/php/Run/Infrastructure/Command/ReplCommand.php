@@ -10,7 +10,7 @@ use Phel;
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
-use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Compiler\Domain\ValueObject\CompileOptions;
 use Phel\Printer\PrinterInterface;
 use Phel\Run\Domain\Repl\ExitException;
 use Phel\Run\Domain\Repl\InputResult;

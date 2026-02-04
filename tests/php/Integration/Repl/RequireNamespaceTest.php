@@ -7,7 +7,7 @@ namespace PhelTest\Integration\Repl;
 use Phel;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\CompilerFacade;
-use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Compiler\Domain\ValueObject\CompileOptions;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 

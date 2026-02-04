@@ -9,6 +9,7 @@ use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\IO\FileIoInterface;
+use Phel\Build\Domain\Port\FileDiscovery\PhelFileDiscoveryPort;
 use Phel\Compiler\Domain\Analyzer\Ast\InNsNode;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -19,10 +20,6 @@ use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\Symbol;
 use Phel\Shared\Facade\CompilerFacadeInterface;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use RegexIterator;
-use UnexpectedValueException;
 
 use function count;
 use function sprintf;
@@ -33,6 +30,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
         private CompilerFacadeInterface $compilerFacade,
         private NamespaceSorterInterface $namespaceSorter,
         private FileIoInterface $fileIo,
+        private PhelFileDiscoveryPort $fileDiscovery,
     ) {
     }
 
@@ -99,20 +97,21 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
      */
     public function getNamespacesFromDirectories(array $directories): array
     {
+        $allFiles = $this->fileDiscovery->findPhelFiles($directories);
+
         /** @var array<string, NamespaceInformation> $namespaces */
         $namespaces = [];
         /** @var array<string, list<string>> $primaryDefinitions */
         $primaryDefinitions = [];
 
-        foreach ($directories as $directory) {
-            foreach ($this->findAllNs($directory) as $ns) {
-                $namespace = $ns->getNamespace();
-                if ($ns->isPrimaryDefinition()) {
-                    $primaryDefinitions[$namespace][] = $ns->getFile();
-                }
-
-                $namespaces[$namespace] = $ns;
+        foreach ($allFiles as $file) {
+            $ns = $this->getNamespaceFromFile($file);
+            $namespace = $ns->getNamespace();
+            if ($ns->isPrimaryDefinition()) {
+                $primaryDefinitions[$namespace][] = $ns->getFile();
             }
+
+            $namespaces[$namespace] = $ns;
         }
 
         $this->warnAboutDuplicateNamespaces($primaryDefinitions);
@@ -162,49 +161,5 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
         }
 
         return $result;
-    }
-
-    /**
-     * @throws ExtractorException
-     */
-    private function findAllNs(string $directory): array
-    {
-        $realpath = $this->resolvePath($directory);
-        if ($realpath === null) {
-            return [];
-        }
-
-        if (!is_dir($realpath)) {
-            return [];
-        }
-
-        try {
-            $directoryIterator = new RecursiveDirectoryIterator($realpath);
-            $iterator = new RecursiveIteratorIterator($directoryIterator);
-            $phelIterator = new RegexIterator($iterator, '/^.+\.phel$/i', RegexIterator::GET_MATCH);
-
-            $result = [];
-            foreach ($phelIterator as $file) {
-                $result[] = $this->getNamespaceFromFile($file[0]);
-            }
-        } catch (UnexpectedValueException) {
-            // Skip directories that cannot be read (e.g., permission denied)
-            // This can happen with system-protected directories in temp paths
-            return [];
-        }
-
-        return $result;
-    }
-
-    private function resolvePath(string $path): ?string
-    {
-        // Support PHAR paths
-        if (str_starts_with($path, 'phar://')) {
-            return $path;
-        }
-
-        // Normal file system
-        $real = realpath($path);
-        return $real !== false ? $real : null;
     }
 }

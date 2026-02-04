@@ -9,10 +9,7 @@ use Phel\Build\Domain\Cache\NamespaceCacheInterface;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use RegexIterator;
-use UnexpectedValueException;
+use Phel\Build\Domain\Port\FileDiscovery\PhelFileDiscoveryPort;
 
 use function count;
 use function sprintf;
@@ -23,12 +20,13 @@ final readonly class CachedNamespaceExtractor implements NamespaceExtractorInter
         private NamespaceExtractorInterface $innerExtractor,
         private NamespaceCacheInterface $cache,
         private NamespaceSorterInterface $namespaceSorter,
+        private PhelFileDiscoveryPort $fileDiscovery,
     ) {
     }
 
     public function getNamespaceFromFile(string $path): NamespaceInformation
     {
-        $realPath = $this->resolvePath($path);
+        $realPath = $this->fileDiscovery->resolvePath($path);
         if ($realPath === null) {
             return $this->innerExtractor->getNamespaceFromFile($path);
         }
@@ -51,7 +49,7 @@ final readonly class CachedNamespaceExtractor implements NamespaceExtractorInter
      */
     public function getNamespacesFromDirectories(array $directories): array
     {
-        $allFiles = $this->findAllPhelFiles($directories);
+        $allFiles = $this->fileDiscovery->findPhelFiles($directories);
 
         /** @var array<string, NamespaceInformation> $namespaces */
         $namespaces = [];
@@ -112,45 +110,6 @@ final readonly class CachedNamespaceExtractor implements NamespaceExtractorInter
     }
 
     /**
-     * @param list<string> $directories
-     *
-     * @return list<string>
-     */
-    private function findAllPhelFiles(array $directories): array
-    {
-        $files = [];
-
-        foreach ($directories as $directory) {
-            $realpath = $this->resolvePath($directory);
-            if ($realpath === null) {
-                continue;
-            }
-
-            if (!is_dir($realpath)) {
-                continue;
-            }
-
-            try {
-                $directoryIterator = new RecursiveDirectoryIterator($realpath);
-                $iterator = new RecursiveIteratorIterator($directoryIterator);
-                $phelIterator = new RegexIterator($iterator, '/^.+\.phel$/i', RegexIterator::GET_MATCH);
-
-                foreach ($phelIterator as $file) {
-                    $resolvedFile = $this->resolvePath($file[0]);
-                    if ($resolvedFile !== null) {
-                        $files[] = $resolvedFile;
-                    }
-                }
-            } catch (UnexpectedValueException) {
-                // Skip directories that cannot be read
-                continue;
-            }
-        }
-
-        return array_unique($files);
-    }
-
-    /**
      * @param list<NamespaceInformation> $namespaceInformationList
      *
      * @return list<NamespaceInformation>
@@ -175,17 +134,5 @@ final readonly class CachedNamespaceExtractor implements NamespaceExtractorInter
         }
 
         return $result;
-    }
-
-    private function resolvePath(string $path): ?string
-    {
-        // Support PHAR paths
-        if (str_starts_with($path, 'phar://')) {
-            return $path;
-        }
-
-        // Normal file system
-        $real = realpath($path);
-        return $real !== false ? $real : null;
     }
 }

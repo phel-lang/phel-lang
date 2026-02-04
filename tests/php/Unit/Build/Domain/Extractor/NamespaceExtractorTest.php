@@ -8,6 +8,7 @@ use Phel\Build\Application\NamespaceExtractor;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
+use Phel\Build\Infrastructure\Adapter\FileDiscovery\RecursivePhelFileDiscovery;
 use Phel\Build\Infrastructure\IO\SystemFileIo;
 use Phel\Compiler\CompilerFacade;
 use Phel\Phel;
@@ -77,6 +78,7 @@ final class NamespaceExtractorTest extends TestCase
             new CompilerFacade(),
             new TopologicalNamespaceSorter(),
             new SystemFileIo(),
+            new RecursivePhelFileDiscovery(),
         );
 
         return $nsExtractor->getNamespaceFromFile($filePath);
