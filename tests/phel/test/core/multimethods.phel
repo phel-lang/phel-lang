@@ -1,0 +1,71 @@
+(ns phel-test\test\core\multimethods
+  (:require phel\test :refer [deftest is]))
+
+# --------
+# defmulti
+# --------
+
+(defmulti greeting :language)
+
+(defmethod greeting :english [_] "Hello!")
+(defmethod greeting :spanish [_] "Hola!")
+(defmethod greeting :french [_] "Bonjour!")
+(defmethod greeting :default [m] (str "Unknown language: " (get m :language)))
+
+(deftest test-defmulti-basic-dispatch
+  (is (= "Hello!" (greeting {:language :english})) "dispatches to :english")
+  (is (= "Hola!" (greeting {:language :spanish})) "dispatches to :spanish")
+  (is (= "Bonjour!" (greeting {:language :french})) "dispatches to :french"))
+
+(deftest test-defmulti-default
+  (is (= "Unknown language: :german" (greeting {:language :german}))
+      "falls back to :default"))
+
+# ---------------------------------
+# Multimethod with custom dispatch
+# ---------------------------------
+
+(defmulti area (fn [shape] (get shape :type)))
+
+(defmethod area :circle [shape]
+  (let [r (get shape :radius)]
+    (* r r)))
+
+(defmethod area :rectangle [shape]
+  (let [w (get shape :width)
+        h (get shape :height)]
+    (* w h)))
+
+(deftest test-area-dispatch
+  (is (= 9 (area {:type :circle :radius 3})) "circle area (r squared)")
+  (is (= 20 (area {:type :rectangle :width 4 :height 5})) "rectangle area"))
+
+# --------------------------------
+# Multimethod with type dispatch
+# --------------------------------
+
+(defmulti describe type)
+
+(defmethod describe :string [x] (str "a string: " x))
+(defmethod describe :int [x] (str "an int: " x))
+(defmethod describe :keyword [x] (str "a keyword: " x))
+(defmethod describe :default [x] (str "something else"))
+
+(deftest test-type-dispatch
+  (is (= "a string: hello" (describe "hello")) "dispatches on string")
+  (is (= "an int: 42" (describe 42)) "dispatches on int")
+  (is (= "a keyword: :foo" (describe :foo)) "dispatches on keyword")
+  (is (= "something else" (describe [1 2 3])) "falls back to default"))
+
+# --------------------------------
+# Multimethod error on no match
+# --------------------------------
+
+(defmulti strict-fn identity)
+
+(defmethod strict-fn :a [_] "matched a")
+
+(deftest test-no-match-throws
+  (is (= "matched a" (strict-fn :a)) "matches known value")
+  (let [error-thrown (try (strict-fn :b) (catch \InvalidArgumentException e true))]
+    (is (= true error-thrown) "throws on unknown dispatch value without default")))
