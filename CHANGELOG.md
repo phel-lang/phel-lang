@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file.
 - Use `hash-set` for creating sets from arguments: `(hash-set 1 2 3)` => `#{1 2 3}`
 
 ### Fixed
-- Functions used in string concatenation (e.g. `(str "Hello, " name "!")`) no longer crash with a PHP error; they now render as `<function>`
+- Functions used in string concatenation (e.g. `(str "Hello, " name "!")`) no longer crash with a PHP error; they now render as `<function:name>`
 
 ## [0.29.0](https://github.com/phel-lang/phel-lang/compare/v0.28.0...v0.29.0) - 2026-02-01
 
