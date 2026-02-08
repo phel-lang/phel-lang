@@ -2024,14 +2024,15 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 (defn zipmap
   "Returns a new map with the keys mapped to the corresponding values.
 
-  Stops when the shorter of `keys` or `vals` is exhausted."
+  Stops when the shorter of `keys` or `vals` is exhausted.
+  Works safely with infinite lazy sequences."
   {:example "(zipmap [:a :b :c] [1 2 3]) ; => {:a 1 :b 2 :c 3}"
    :see-also ["zipcoll"]}
   [keys vals]
-  (loop [ks keys
-         vs vals
+  (loop [ks (seq keys)
+         vs (seq vals)
          res {}]
-    (if (or (empty? ks) (empty? vs))
+    (if (or (nil? ks) (nil? vs))
       res
       (recur (next ks) (next vs) (assoc res (first ks) (first vs))))))
 
@@ -3012,6 +3013,47 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     `(do
        (definterface* ,name ,@fns)
        ,@defs)))
+
+# ------------
+# Multimethods
+# ------------
+
+(defmacro defmulti
+  "Defines a multimethod. `dispatch-fn` is called on the arguments to
+  produce a dispatch value, which is then used to select the appropriate
+  method registered via `defmethod`.
+
+  If no method matches the dispatch value, the `:default` method is used
+  (if defined), otherwise an error is thrown."
+  {:example "(defmulti area :shape)"}
+  [name dispatch-fn]
+  (let [methods-name (php/:: Symbol (create (php/. (php/-> name (getName)) "-methods")))
+        dispatch-name (php/:: Symbol (create (php/. (php/-> name (getName)) "-dispatch")))]
+    `(do
+       (def ,methods-name {:private true} (var {}))
+       (def ,dispatch-name {:private true} ,dispatch-fn)
+       (defn ,name [& args]
+         (let [dispatch-val (apply ,dispatch-name args)
+               methods (deref ,methods-name)
+               method (get methods dispatch-val)]
+           (if method
+             (apply method args)
+             (let [default-method (get methods :default)]
+               (if default-method
+                 (apply default-method args)
+                 (throw (php/new \InvalidArgumentException
+                                 (str "No method for dispatch value: " dispatch-val)))))))))))
+
+(defmacro defmethod
+  "Registers a method implementation for a multimethod.
+
+  `multi-name` is the name of the multimethod defined by `defmulti`.
+  `dispatch-val` is the value that triggers this method.
+  `args` and `body` define the function implementation."
+  {:example "(defmethod area :circle [{:radius r}] (* 3.14159 r r))"}
+  [multi-name dispatch-val & fn-tail]
+  (let [methods-name (php/:: Symbol (create (php/. (php/-> multi-name (getName)) "-methods")))]
+    `(swap! ,methods-name assoc ,dispatch-val (fn ,@fn-tail))))
 
 (defmacro if-let
   "If test is true, evaluates then with binding-form bound to the value of test,

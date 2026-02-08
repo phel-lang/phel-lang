@@ -77,3 +77,52 @@
   ([value handler]
    (handler value)
    value))
+
+# ---------------------------
+# Tap> system (global handlers)
+# ---------------------------
+
+(def- *tap-handlers* (var []))
+
+(defn add-tap
+  "Registers a function as a tap handler. All values sent via `tap>` will be
+  passed to every registered handler. Returns nil."
+  {:doc "Register a global tap handler function."
+   :see-also ["remove-tap" "tap>"]
+   :example "(add-tap println)"}
+  [f]
+  (swap! *tap-handlers* |(conj $ f))
+  nil)
+
+(defn remove-tap
+  "Removes a previously registered tap handler. Returns nil."
+  {:doc "Unregister a global tap handler function."
+   :see-also ["add-tap" "tap>"]
+   :example "(remove-tap println)"}
+  [f]
+  (swap! *tap-handlers* |(vec (filter (fn [h] (not (= h f))) $)))
+  nil)
+
+(defn tap>
+  "Sends a value to all registered tap handlers. Each handler is called with
+  the value. Returns true if there are handlers, false otherwise."
+  {:doc "Send a value to all registered tap handlers."
+   :see-also ["add-tap" "remove-tap"]
+   :example "(tap> {:debug \"some value\"})"}
+  [value]
+  (let [handlers (deref *tap-handlers*)]
+    (if (empty? handlers)
+      false
+      (do
+        (foreach [handler handlers]
+          (handler value))
+        true))))
+
+(defn reset-taps!
+  "Removes all registered tap handlers. Returns nil."
+  {:doc "Clear all tap handlers."
+   :see-also ["add-tap" "remove-tap"]
+   :example "(reset-taps!)"}
+  []
+  (set! *tap-handlers* [])
+  nil)

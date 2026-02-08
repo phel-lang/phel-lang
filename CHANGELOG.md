@@ -12,6 +12,9 @@ All notable changes to this project will be documented in this file.
 - Add `vec` function to coerce collections to vectors: `(vec '(1 2 3))` => `[1 2 3]`
 - Add `hash-set` function to create sets from arguments (like Clojure's `hash-set`)
 - Add `phel\pprint` module with `pprint` and `pprint-str` for pretty-printing nested data structures with configurable width
+- Add `tap>`, `add-tap`, `remove-tap`, and `reset-taps!` to `phel\debug` for a global tap handler system
+- Add `dir`, `apropos`, and `search-doc` to `phel\repl` for namespace exploration and documentation search
+- Add `defmulti` and `defmethod` macros for runtime polymorphism via dispatch functions
 
 ### Changed
 - **BREAKING**: `set` now coerces a collection to a set (Clojure alignment): `(set [1 2 3])` => `#{1 2 3}`
@@ -19,6 +22,8 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - Functions used in string concatenation (e.g. `(str "Hello, " name "!")`) no longer crash with a PHP error; they now render as `<function:name>`
+- Fix `zipmap` causing out-of-memory error when used with infinite lazy sequences (e.g. `(zipmap keys (repeat val))`)
+- Fix excessive blank lines in test output between test dots and summary
 
 ## [0.29.0](https://github.com/phel-lang/phel-lang/compare/v0.28.0...v0.29.0) - 2026-02-01
 
