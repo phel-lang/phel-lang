@@ -43,6 +43,22 @@
     (is (= "DateTime" (php/get_class dt)))
     (is (= "2026-02-09 13:00:00" (php/-> dt (format "Y-m-d H:i:s"))))))
 
+(deftest test-cond->
+  (is (= 1 (cond-> 1)) "identity when no clauses")
+  (is (= 2 (cond-> 1 true inc)) "threads when test is true")
+  (is (= 1 (cond-> 1 false inc)) "skips when test is false")
+  (is (= 6 (cond-> 1 true inc false (* 42) true (* 3)))
+      "threads selectively based on tests")
+  (is (= 3 (cond-> {:a 1 :b 2} true (assoc :c 3) false (dissoc :a) true count))
+      "works with map operations"))
+
+(deftest test-cond->>
+  (is (= 1 (cond->> 1)) "identity when no clauses")
+  (is (= [2 3 4] (cond->> [1 2 3] true (map inc))) "threads when test is true")
+  (is (= [1 2 3] (cond->> [1 2 3] false (map inc))) "skips when test is false")
+  (is (= [2 4] (cond->> (range 1 6) true (filter even?) false (map inc)))
+      "threads selectively"))
+
 (deftest threading-macros-preserve-form-metadata
   (let [m {:line 1}]
     (let [form (set-meta! '(+ 2) m)
