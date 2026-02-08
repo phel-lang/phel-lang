@@ -2,6 +2,7 @@
   (:use Phel)
   (:use Phel\Lang\Symbol)
   (:use Phel\Build\BuildFacade)
+  (:use Phel\Compiler\Application\Munge)
   (:use Phel\Compiler\CompilerFacade)
   (:use Phel\Compiler\Infrastructure\CompileOptions)
   (:use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton)
@@ -140,3 +141,68 @@
         opts (php/new CompileOptions)
         res (php/-> cf (compile s opts))]
     (php/-> res (getCode))))
+
+(defn- munge-ns
+  "Encodes a namespace string for registry lookup."
+  [ns-str]
+  (let [munge (php/new Munge)]
+    (php/-> munge (encodeNs ns-str))))
+
+(defn dir
+  "Prints all public definitions in the given namespace string.
+
+  Returns nil. Prints one name per line, sorted alphabetically."
+  {:example "(dir \"phel\\core\")"}
+  [ns-str]
+  (let [encoded (munge-ns ns-str)
+        defs (php/:: Phel (getDefinitionInNamespace encoded))
+        munge (php/new Munge)
+        names (for [fn-name :keys defs
+                    :let [meta (php/:: Phel (getDefinitionMetaData encoded fn-name))]
+                    :when (not (get meta :private))]
+                (php/-> munge (decodeNs fn-name)))]
+    (foreach [n (sort names)]
+      (println n))
+    nil))
+
+(defn apropos
+  "Returns a vector of symbols whose name contains the given search string.
+  Searches across all loaded namespaces."
+  {:example "(apropos \"map\") ; => [phel\\core/flat-map phel\\core/map ...]"}
+  [search]
+  (let [munge (php/new Munge)
+        results (transient [])]
+    (foreach [ns (loaded-namespaces)]
+      (let [defs (php/:: Phel (getDefinitionInNamespace ns))
+            fn-names (php/array_keys defs)]
+        (foreach [fn-name fn-names]
+          (let [decoded (php/-> munge (decodeNs fn-name))
+                meta (php/:: Phel (getDefinitionMetaData ns fn-name))]
+            (when (and (not (get meta :private))
+                       (php/str_contains decoded search))
+              (conj results (str (php/-> munge (decodeNs ns)) "/" decoded)))))))
+    (sort (persistent results))))
+
+(defn search-doc
+  "Searches docstrings across all loaded namespaces for the given string.
+  Prints matching function names and their documentation."
+  {:example "(search-doc \"reduce\")"}
+  [search]
+  (let [munge (php/new Munge)
+        search-lower (php/strtolower search)]
+    (foreach [ns (loaded-namespaces)]
+      (let [defs (php/:: Phel (getDefinitionInNamespace ns))
+            fn-names (php/array_keys defs)]
+        (foreach [fn-name fn-names]
+          (let [meta (php/:: Phel (getDefinitionMetaData ns fn-name))]
+            (when meta
+              (let [doc (or (get meta :doc) "")
+                    doc-lower (php/strtolower doc)
+                    decoded-name (php/-> munge (decodeNs fn-name))
+                    decoded-ns (php/-> munge (decodeNs ns))]
+                (when (and (not (get meta :private))
+                           (php/str_contains doc-lower search-lower))
+                  (println (str "--- " decoded-ns "/" decoded-name " ---"))
+                  (println (clean-doc doc))
+                  (println))))))))
+    nil))
