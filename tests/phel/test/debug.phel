@@ -1,5 +1,6 @@
 (ns phel-test\test\debug
-  (:require phel\debug :refer [dotrace dbg reset-trace-state! spy tap])
+  (:require phel\debug :refer [dotrace dbg reset-trace-state! spy tap
+                                add-tap remove-tap tap> reset-taps!])
   (:require phel\str :as s)
   (:require phel\test :refer [deftest is]))
 
@@ -61,3 +62,49 @@
         out (with-output-buffer (set! captured (tap value |(println (str "handler=>" $)))))]
     (is (= value (deref captured)) "tap returns value when handler provided")
     (is (= "handler=>10\n" out) "handler can observe value")))
+
+# ---------------------
+# Tap> system (global)
+# ---------------------
+
+(deftest tap>-returns-false-with-no-handlers
+  (reset-taps!)
+  (is (= false (tap> 42)) "tap> returns false when no handlers"))
+
+(deftest tap>-sends-to-registered-handler
+  (reset-taps!)
+  (let [captured (var nil)]
+    (add-tap (fn [v] (set! captured v)))
+    (let [result (tap> :hello)]
+      (is (= true result) "tap> returns true when handlers exist")
+      (is (= :hello (deref captured)) "handler receives the value"))
+    (reset-taps!)))
+
+(deftest tap>-sends-to-multiple-handlers
+  (reset-taps!)
+  (let [log1 (var nil)
+        log2 (var nil)]
+    (add-tap (fn [v] (set! log1 v)))
+    (add-tap (fn [v] (set! log2 v)))
+    (tap> "multi")
+    (is (= "multi" (deref log1)) "first handler receives value")
+    (is (= "multi" (deref log2)) "second handler receives value")
+    (reset-taps!)))
+
+(deftest remove-tap-unregisters-handler
+  (reset-taps!)
+  (let [captured (var nil)
+        handler (fn [v] (set! captured v))]
+    (add-tap handler)
+    (tap> :before)
+    (is (= :before (deref captured)) "handler active before removal")
+    (remove-tap handler)
+    (tap> :after)
+    (is (= :before (deref captured)) "handler not called after removal")
+    (reset-taps!)))
+
+(deftest reset-taps-clears-all
+  (reset-taps!)
+  (add-tap println)
+  (reset-taps!)
+  (is (= false (tap> 42)) "no handlers after reset"))
