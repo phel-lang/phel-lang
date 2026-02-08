@@ -2190,6 +2190,24 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   [set & sets]
   (reduce |(union (difference $1 $2) (difference $2 $1)) set sets))
 
+(defn subset?
+  "Returns true if `s1` is a subset of `s2`, i.e. every element in `s1` is also in `s2`."
+  {:example "(subset? (hash-set 1 2) (hash-set 1 2 3)) ; => true"}
+  [s1 s2]
+  (if (> (count s1) (count s2))
+    false
+    (let [result (var true)]
+      (foreach [item s1]
+        (when-not (php/-> s2 (contains item))
+          (set! result false)))
+      (deref result))))
+
+(defn superset?
+  "Returns true if `s1` is a superset of `s2`, i.e. every element in `s2` is also in `s1`."
+  {:example "(superset? (hash-set 1 2 3) (hash-set 1 2)) ; => true"}
+  [s1 s2]
+  (subset? s2 s1))
+
 # ------------------
 # Function operation
 # ------------------
@@ -2899,6 +2917,40 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                   (with-meta f `(,f ,gx))))
               forms)
        ,gx)))
+
+(defmacro cond->
+  "Takes an expression and a set of test/form pairs. Threads `expr` (via `->`)
+  through each form for which the corresponding test expression is true.
+  Note that, unlike `cond` branching, `cond->` threading does not short-circuit
+  after the first true test expression."
+  {:example "(cond-> 1 true inc false (* 42) true (* 3)) ; => 6"}
+  [expr & clauses]
+  (let [g (gensym)
+        steps (map (fn [pair]
+                     (let [test (first pair)
+                           step (second pair)]
+                       `(if ,test (-> ,g ,step) ,g)))
+                   (partition 2 clauses))]
+    `(let [,g ,expr
+           ,@(interleave (repeat (count steps) g) steps)]
+       ,g)))
+
+(defmacro cond->>
+  "Takes an expression and a set of test/form pairs. Threads `expr` (via `->>`)
+  through each form for which the corresponding test expression is true.
+  Note that, unlike `cond` branching, `cond->>` threading does not short-circuit
+  after the first true test expression."
+  {:example "(cond->> [1 2 3] true (map inc) false (filter odd?)) ; => [2 3 4]"}
+  [expr & clauses]
+  (let [g (gensym)
+        steps (map (fn [pair]
+                     (let [test (first pair)
+                           step (second pair)]
+                       `(if ,test (->> ,g ,step) ,g)))
+                   (partition 2 clauses))]
+    `(let [,g ,expr
+           ,@(interleave (repeat (count steps) g) steps)]
+       ,g)))
 
 # ---------------
 # Regex functions
