@@ -6,6 +6,7 @@ namespace Phel\Build\Application;
 
 use ParseError;
 use Phel\Build\Domain\Compile\CompiledFile;
+use Phel\Build\Domain\Extractor\FirstFormExtractor;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -19,8 +20,6 @@ use RuntimeException;
 use Throwable;
 
 use function sprintf;
-use function strlen;
-use function substr;
 
 final readonly class FileEvaluator
 {
@@ -28,6 +27,7 @@ final readonly class FileEvaluator
         private CompilerFacadeInterface $compilerFacade,
         private NamespaceExtractorInterface $namespaceExtractor,
         private ?CompiledCodeCache $compiledCodeCache = null,
+        private FirstFormExtractor $firstFormExtractor = new FirstFormExtractor(),
     ) {
     }
 
@@ -111,7 +111,7 @@ final readonly class FileEvaluator
         try {
             // Only lex the ns form, not the entire file, to avoid memory
             // exhaustion on large files like phel\core.
-            $nsFormText = $this->extractFirstFormText($code);
+            $nsFormText = $this->firstFormExtractor->extract($code);
             $tokenStream = $this->compilerFacade->lexString($nsFormText, $src);
 
             while (true) {
@@ -138,55 +138,5 @@ final readonly class FileEvaluator
             // Analysis failure is non-fatal — the cached PHP will still execute.
             // The only consequence is missing refers/aliases in the GlobalEnvironment.
         }
-    }
-
-    /**
-     * Extracts the text of the first top-level form (the ns declaration)
-     * from source code by matching balanced parentheses, skipping strings
-     * and comments. This avoids lexing the entire file content.
-     */
-    private function extractFirstFormText(string $code): string
-    {
-        $len = strlen($code);
-        $depth = 0;
-        $inString = false;
-
-        for ($i = 0; $i < $len; ++$i) {
-            $c = $code[$i];
-
-            if ($inString) {
-                if ($c === '\\') {
-                    ++$i;
-                } elseif ($c === '"') {
-                    $inString = false;
-                }
-
-                continue;
-            }
-
-            if ($c === '#') {
-                $newline = strpos($code, "\n", $i);
-                $i = $newline === false ? $len : $newline;
-
-                continue;
-            }
-
-            if ($c === '"') {
-                $inString = true;
-
-                continue;
-            }
-
-            if ($c === '(') {
-                ++$depth;
-            } elseif ($c === ')') {
-                --$depth;
-                if ($depth === 0) {
-                    return substr($code, 0, $i + 1);
-                }
-            }
-        }
-
-        return $code;
     }
 }
