@@ -5,9 +5,17 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Add `subset?` predicate for sets: `(subset? (hash-set 1 2) (hash-set 1 2 3))` => `true`
+- Add `superset?` predicate for sets: `(superset? (hash-set 1 2 3) (hash-set 1 2))` => `true`
+- Add `cond->` macro for conditional thread-first: `(cond-> 1 true inc false (* 42)) ; => 2`
+- Add `cond->>` macro for conditional thread-last: `(cond->> [1 2 3] true (map inc)) ; => [2 3 4]`
 - Add `vec` function to coerce collections to vectors: `(vec '(1 2 3))` => `[1 2 3]`
 - Add `hash-set` function to create sets from arguments (like Clojure's `hash-set`)
 - Add `phel\walk` module with `walk`, `postwalk`, `prewalk`, `postwalk-replace`, `prewalk-replace`, `keywordize-keys`, and `stringify-keys`
+- Add `phel\pprint` module with `pprint` and `pprint-str` for pretty-printing nested data structures with configurable width
+- Add `tap>`, `add-tap`, `remove-tap`, and `reset-taps!` to `phel\debug` for a global tap handler system
+- Add `dir`, `apropos`, and `search-doc` to `phel\repl` for namespace exploration and documentation search
+- Add `defmulti` and `defmethod` macros for runtime polymorphism via dispatch functions
 
 ### Changed
 - **BREAKING**: `set` now coerces a collection to a set (Clojure alignment): `(set [1 2 3])` => `#{1 2 3}`
@@ -15,6 +23,8 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - Functions used in string concatenation (e.g. `(str "Hello, " name "!")`) no longer crash with a PHP error; they now render as `<function:name>`
+- Fix `zipmap` causing out-of-memory error when used with infinite lazy sequences (e.g. `(zipmap keys (repeat val))`)
+- Fix excessive blank lines in test output between test dots and summary
 
 ## [0.29.0](https://github.com/phel-lang/phel-lang/compare/v0.28.0...v0.29.0) - 2026-02-01
 

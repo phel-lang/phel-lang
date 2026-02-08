@@ -1,0 +1,103 @@
+(ns phel\pprint
+  (:require phel\core)
+  (:use Phel\Printer\Printer))
+
+(def- *default-width* 72)
+
+(defn- print-value
+  "Prints a scalar or non-collection value using the standard readable printer."
+  [x]
+  (php/-> (php/:: Printer (readable)) (print x)))
+
+(defn- fits-on-line?
+  "Returns true if the flat representation of `form` fits within `available` chars."
+  [form available]
+  (let [flat (print-value form)]
+    (<= (count flat) available)))
+
+(defn- pp-str
+  "Pretty-prints `form` to a string with the given indent level and max width."
+  [form indent width]
+  (let [t (type form)
+        available (- width indent)]
+    (cond
+      (= t :vector)
+      (if (fits-on-line? form available)
+        (print-value form)
+        (let [prefix "["
+              suffix "]"
+              inner-indent (+ indent 1)
+              pad (php/str_repeat " " inner-indent)
+              parts (for [x :in form] (pp-str x inner-indent width))]
+          (str prefix
+               (php/implode (str "\n" pad) (apply php-indexed-array parts))
+               suffix)))
+
+      (= t :list)
+      (if (fits-on-line? form available)
+        (print-value form)
+        (let [prefix "("
+              suffix ")"
+              inner-indent (+ indent 1)
+              pad (php/str_repeat " " inner-indent)
+              parts (for [x :in form] (pp-str x inner-indent width))]
+          (str prefix
+               (php/implode (str "\n" pad) (apply php-indexed-array parts))
+               suffix)))
+
+      (= t :hash-map)
+      (if (fits-on-line? form available)
+        (print-value form)
+        (let [prefix "{"
+              suffix "}"
+              inner-indent (+ indent 1)
+              pad (php/str_repeat " " inner-indent)
+              pairs (for [[k v] :pairs form]
+                      (str (print-value k) " " (pp-str v (+ inner-indent (count (print-value k)) 1) width)))
+              joined (php/implode (str "\n" pad) (apply php-indexed-array pairs))]
+          (str prefix joined suffix)))
+
+      (= t :set)
+      (if (fits-on-line? form available)
+        (print-value form)
+        (let [prefix "#{"
+              suffix "}"
+              inner-indent (+ indent 2)
+              pad (php/str_repeat " " inner-indent)
+              parts (for [x :in form] (pp-str x inner-indent width))]
+          (str prefix
+               (php/implode (str "\n" pad) (apply php-indexed-array parts))
+               suffix)))
+
+      (= t :struct)
+      (if (fits-on-line? form available)
+        (print-value form)
+        (let [prefix "{"
+              suffix "}"
+              inner-indent (+ indent 1)
+              pad (php/str_repeat " " inner-indent)
+              pairs (for [[k v] :pairs form]
+                      (str (print-value k) " " (pp-str v (+ inner-indent (count (print-value k)) 1) width)))
+              joined (php/implode (str "\n" pad) (apply php-indexed-array pairs))]
+          (str prefix joined suffix)))
+
+      (print-value form))))
+
+(defn pprint-str
+  "Pretty-prints `form` to a string with optional `width` (default 72)."
+  {:doc "Pretty-print a data structure to a string with line breaks and indentation."
+   :see-also ["pprint"]
+   :example "(pprint-str {:a [1 2 3] :b {:c 4 :d 5}})"}
+  [form & [width]]
+  (let [w (or width *default-width*)]
+    (pp-str form 0 w)))
+
+(defn pprint
+  "Pretty-prints `form` to stdout with optional `width` (default 72)."
+  {:doc "Pretty-print a data structure to stdout with line breaks and indentation."
+   :see-also ["pprint-str"]
+   :example "(pprint {:a [1 2 3] :b {:c 4 :d 5}})"}
+  [form & [width]]
+  (php/print (pprint-str form width))
+  (php/print "\n")
+  nil)
