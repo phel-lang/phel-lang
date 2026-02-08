@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - Add `vec` function to coerce collections to vectors: `(vec '(1 2 3))` => `[1 2 3]`
 - Add `hash-set` function to create sets from arguments (like Clojure's `hash-set`)
+- Add `phel\walk` module with `walk`, `postwalk`, `prewalk`, `postwalk-replace`, `prewalk-replace`, `keywordize-keys`, and `stringify-keys`
 
 ### Changed
 - **BREAKING**: `set` now coerces a collection to a set (Clojure alignment): `(set [1 2 3])` => `#{1 2 3}`
