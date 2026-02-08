@@ -1,0 +1,22 @@
+{
+    "permissions": {
+        "allow": [
+            "Bash(composer *)",
+            "Bash(./bin/phel *)",
+            "Bash(./vendor/bin/*)",
+            "Bash(git *)",
+            "Bash(gh *)",
+            "Bash(timeout *)",
+            "Bash(ls *)",
+            "Bash(wc *)"
+        ],
+        "deny": [
+            "Bash(rm -rf:*)",
+            "Bash(rm -fr:*)",
+            "Bash(sudo:*)",
+            "Bash(shutdown:*)",
+            "Bash(reboot:*)",
+            "Bash(mkfs:*)"
+        ]
+    }
+}
