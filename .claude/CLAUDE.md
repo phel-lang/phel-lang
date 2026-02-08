@@ -1,11 +1,6 @@
 # Phel Language
 
-Phel is a functional programming language that compiles to PHP. It is a dialect of Lisp inspired by Clojure and Janet.
-
-- Website: https://phel-lang.org
-- Repository: https://github.com/phel-lang/phel-lang
-- License: MIT
-- Requires: PHP >= 8.3
+Phel is a functional programming language that compiles to PHP. A Lisp dialect inspired by Clojure and Janet.
 
 ## Architecture
 
@@ -31,14 +26,3 @@ composer test-compiler     # PHPUnit unit + integration tests
 composer test-core         # Phel core tests (./bin/phel test)
 composer fix               # Auto-fix: rector + cs-fixer
 ```
-
-## Git Conventions
-
-- **Commits**: conventional commits (`feat:`, `fix:`, `ref:`, `chore:`, `docs:`, `test:`)
-- **Branches**: `feat/`, `fix/`, `ref/`, `docs/` prefixes
-- **CHANGELOG**: update the `## Unreleased` section in CHANGELOG.md for user-facing changes
-- **PRs**: follow `.github/PULL_REQUEST_TEMPLATE.md`, assign author, add labels
-
-### GitHub Labels
-
-`bug`, `enhancement`, `refactoring`, `documentation`, `pure testing`, `dependencies`

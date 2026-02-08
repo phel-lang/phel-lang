@@ -1,13 +1,33 @@
-Run project tests.
+# Quick Test Runner
 
-Usage: /test [scope]
+Run tests with smart filtering.
 
-Scopes:
-- `all` (default): `composer test` — full suite (quality + compiler + core)
-- `quality`: `composer test-quality` — static analysis (cs-fixer, psalm, phpstan, rector)
-- `compiler`: `composer test-compiler` — PHPUnit unit + integration tests
-- `core`: `composer test-core` — Phel core tests (./bin/phel test)
-- `quick`: `composer test-compiler && composer test-core` — skip static analysis
+## Arguments
+- `$ARGUMENTS` - Optional: scope or filter
 
-Run the appropriate command based on $ARGUMENTS (default: all).
-Report the results concisely: pass/fail counts, any errors.
+## Instructions
+
+1. If `$ARGUMENTS` is empty or `all`, run full suite:
+   ```bash
+   composer test
+   ```
+
+2. If `$ARGUMENTS` is a known scope:
+   - `quality` → `composer test-quality`
+   - `compiler` → `composer test-compiler`
+   - `core` → `composer test-core`
+   - `quick` → `composer test-compiler && composer test-core` (skip static analysis)
+
+3. If `$ARGUMENTS` looks like a test class or method name:
+   ```bash
+   ./vendor/bin/phpunit --filter "$ARGUMENTS"
+   ```
+
+4. If `$ARGUMENTS` looks like a file path:
+   ```bash
+   ./vendor/bin/phpunit "$ARGUMENTS"
+   # or for Phel tests:
+   ./bin/phel test "$ARGUMENTS"
+   ```
+
+5. Report results clearly with pass/fail count.

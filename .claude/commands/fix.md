@@ -1,5 +1,29 @@
-Auto-fix code style issues.
+# Fix All Code Quality Issues
 
-Run `composer fix` which executes rector and php-cs-fixer.
+Auto-fix all code quality issues in sequence.
 
-Report what was changed.
+## Arguments
+- `$ARGUMENTS` - Optional: file path to fix a specific file instead of the whole project
+
+## Instructions
+
+1. Run rector + cs-fixer:
+   ```bash
+   composer fix
+   ```
+   Or for a specific file:
+   ```bash
+   ./vendor/bin/php-cs-fixer fix "$ARGUMENTS"
+   ```
+
+2. Run static analysis to check for remaining issues:
+   ```bash
+   composer phpstan
+   ```
+
+3. Run tests to verify nothing broke:
+   ```bash
+   composer test-compiler
+   ```
+
+4. Summarize what was fixed and any remaining issues.
