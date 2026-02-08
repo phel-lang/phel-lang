@@ -1,0 +1,35 @@
+(ns phel-test\test\repl
+  (:require phel\repl :refer [apropos dir search-doc])
+  (:require phel\str :as s)
+  (:require phel\test :refer [deftest is]))
+
+# -------
+# apropos
+# -------
+
+(deftest test-apropos-finds-matching-symbols
+  (let [results (apropos "map")]
+    (is (> (count results) 0) "apropos finds symbols containing 'map'")
+    (is (indexed? results) "apropos returns a vector")))
+
+(deftest test-apropos-no-matches
+  (let [results (apropos "zzz_nonexistent_zzz")]
+    (is (= 0 (count results)) "apropos returns empty for no matches")))
+
+# ---
+# dir
+# ---
+
+(deftest test-dir-prints-definitions
+  (let [out (with-output-buffer (dir "phel\\core"))]
+    (is (s/contains? out "map") "dir lists 'map'")
+    (is (s/contains? out "reduce") "dir lists 'reduce'")
+    (is (s/contains? out "filter") "dir lists 'filter'")))
+
+# --------
+# find-doc
+# --------
+
+(deftest test-search-doc-searches-docstrings
+  (let [out (with-output-buffer (search-doc "concatenat"))]
+    (is (s/contains? out "str") "search-doc matches 'str' for 'concatenat'")))
