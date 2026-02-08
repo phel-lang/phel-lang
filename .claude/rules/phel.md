@@ -1,5 +1,5 @@
 ---
-description: Phel language conventions
+description: Phel language conventions for source and test files
 globs: src/phel/**,tests/phel/**
 ---
 
@@ -7,16 +7,19 @@ globs: src/phel/**,tests/phel/**
 
 ## Naming
 
-- Use kebab-case for functions and variables: `my-function`, `my-variable`
+- kebab-case for functions and variables: `my-function`, `my-variable`
+- `defn-` for private functions (not exported)
 - Namespace names match directory structure: `phel\core`, `phel\str`
 
 ## Docstrings
 
-- Use `:doc` metadata for documentation
-- Use `:see-also` to reference related functions (as strings)
-- Use `:example` to provide inline usage examples
+Every public function should have metadata:
+- `:doc` — description of what the function does
+- `:see-also` — related functions (as strings): `["map" "filter"]`
+- `:example` — inline usage example
 
 ## Semantics
 
 - Follow Clojure-aligned semantics where possible
 - Prefer `conj` over `put` for collection operations
+- Use `defstruct` for data types, not PHP classes
