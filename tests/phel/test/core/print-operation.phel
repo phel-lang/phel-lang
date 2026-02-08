@@ -14,7 +14,9 @@
   (is (= "1" (str 1)) "str on number")
   (is (= "1" (str true)) "str on true")
   (is (= "" (str false)) "str on false")
-  (is (= "" (str nil nil)) "str on nil"))
+  (is (= "" (str nil nil)) "str on nil")
+  (is (= "<function:name>" (str name)) "str on function")
+  (is (= "Hello, <function:name>!" (str "Hello, " name "!")) "str with function in middle"))
 
 (deftest test-print-str
   (is (= "" (print-str)) "print-str with no arg")

@@ -113,12 +113,12 @@ final readonly class Printer implements PrinterInterface
             return new SymbolPrinter($this->withColor);
         }
 
-        if (method_exists($form, '__toString')) {
-            return new ToStringPrinter();
-        }
-
         if ($form instanceof FnInterface) {
             return new FnPrinter();
+        }
+
+        if (method_exists($form, '__toString')) {
+            return new ToStringPrinter();
         }
 
         if ((new ReflectionClass($form))->isAnonymous()) {
