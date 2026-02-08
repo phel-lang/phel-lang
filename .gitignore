@@ -1,7 +1,7 @@
 .idea/
-.claude/
 .phpbench/
 .vscode/
+.claude/settings.local.json
 /cache/
 data/
 out/
