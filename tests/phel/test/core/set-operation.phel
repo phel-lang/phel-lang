@@ -19,3 +19,19 @@
 (deftest test-symmetric-difference
   (is (= (hash-set 0 1 2 3) (symmetric-difference (hash-set 1 2) (hash-set 0 3))) "set symmetric-difference")
   (is (= (hash-set 0 3) (symmetric-difference (hash-set 1 2) (hash-set 0 1 2 3))) "set symmetric-difference with common values"))
+
+(deftest test-subset?
+  (is (subset? (hash-set) (hash-set)) "empty sets")
+  (is (subset? (hash-set) (hash-set 1 2)) "empty is subset of any")
+  (is (subset? (hash-set 1 2) (hash-set 1 2 3)) "proper subset")
+  (is (subset? (hash-set 1 2 3) (hash-set 1 2 3)) "equal sets are subsets")
+  (is (= false (subset? (hash-set 1 2 3) (hash-set 1 2))) "superset is not subset")
+  (is (= false (subset? (hash-set 4) (hash-set 1 2 3))) "disjoint is not subset"))
+
+(deftest test-superset?
+  (is (superset? (hash-set) (hash-set)) "empty sets")
+  (is (superset? (hash-set 1 2) (hash-set)) "any is superset of empty")
+  (is (superset? (hash-set 1 2 3) (hash-set 1 2)) "proper superset")
+  (is (superset? (hash-set 1 2 3) (hash-set 1 2 3)) "equal sets are supersets")
+  (is (= false (superset? (hash-set 1 2) (hash-set 1 2 3))) "subset is not superset")
+  (is (= false (superset? (hash-set 1 2 3) (hash-set 4))) "disjoint is not superset"))

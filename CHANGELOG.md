@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Add `subset?` predicate for sets: `(subset? (hash-set 1 2) (hash-set 1 2 3))` => `true`
+- Add `superset?` predicate for sets: `(superset? (hash-set 1 2 3) (hash-set 1 2))` => `true`
 - Add `vec` function to coerce collections to vectors: `(vec '(1 2 3))` => `[1 2 3]`
 - Add `hash-set` function to create sets from arguments (like Clojure's `hash-set`)
 
