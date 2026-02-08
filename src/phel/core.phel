@@ -2900,6 +2900,40 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
               forms)
        ,gx)))
 
+(defmacro cond->
+  "Takes an expression and a set of test/form pairs. Threads `expr` (via `->`)
+  through each form for which the corresponding test expression is true.
+  Note that, unlike `cond` branching, `cond->` threading does not short-circuit
+  after the first true test expression."
+  {:example "(cond-> 1 true inc false (* 42) true (* 3)) ; => 6"}
+  [expr & clauses]
+  (let [g (gensym)
+        steps (map (fn [pair]
+                     (let [test (first pair)
+                           step (second pair)]
+                       `(if ,test (-> ,g ,step) ,g)))
+                   (partition 2 clauses))]
+    `(let [,g ,expr
+           ,@(interleave (repeat (count steps) g) steps)]
+       ,g)))
+
+(defmacro cond->>
+  "Takes an expression and a set of test/form pairs. Threads `expr` (via `->>`)
+  through each form for which the corresponding test expression is true.
+  Note that, unlike `cond` branching, `cond->>` threading does not short-circuit
+  after the first true test expression."
+  {:example "(cond->> [1 2 3] true (map inc) false (filter odd?)) ; => [2 3 4]"}
+  [expr & clauses]
+  (let [g (gensym)
+        steps (map (fn [pair]
+                     (let [test (first pair)
+                           step (second pair)]
+                       `(if ,test (->> ,g ,step) ,g)))
+                   (partition 2 clauses))]
+    `(let [,g ,expr
+           ,@(interleave (repeat (count steps) g) steps)]
+       ,g)))
+
 # ---------------
 # Regex functions
 # ---------------
