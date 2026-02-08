@@ -1,0 +1,70 @@
+(ns phel-test\test\pprint
+  (:require phel\test :refer [deftest is])
+  (:require phel\pprint :refer [pprint-str]))
+
+# ---------------------------
+# Scalar values (no wrapping)
+# ---------------------------
+
+(deftest test-pprint-scalar
+  (is (= "42" (pprint-str 42)) "integer")
+  (is (= "\"hello\"" (pprint-str "hello")) "string")
+  (is (= ":foo" (pprint-str :foo)) "keyword")
+  (is (= "nil" (pprint-str nil)) "nil")
+  (is (= "true" (pprint-str true)) "boolean"))
+
+# -----------------------------------
+# Small collections (fit on one line)
+# -----------------------------------
+
+(deftest test-pprint-small-vector
+  (is (= "[1 2 3]" (pprint-str [1 2 3])) "small vector fits on one line"))
+
+(deftest test-pprint-small-map
+  (is (= "{:a 1, :b 2}" (pprint-str {:a 1 :b 2})) "small map fits on one line"))
+
+(deftest test-pprint-small-list
+  (is (= "(1 2 3)" (pprint-str '(1 2 3))) "small list fits on one line"))
+
+# --------------------------------
+# Large collections (multi-line)
+# --------------------------------
+
+(deftest test-pprint-wide-vector
+  (let [result (pprint-str [1 2 3 4 5] 10)]
+    (is (str-contains? result "\n") "wide vector wraps to multiple lines")))
+
+(deftest test-pprint-wide-map
+  (let [result (pprint-str {:alpha "one" :beta "two" :gamma "three"} 20)]
+    (is (str-contains? result "\n") "wide map wraps to multiple lines")))
+
+# --------------------------------
+# Nested structures
+# --------------------------------
+
+(deftest test-pprint-nested
+  (let [result (pprint-str {:a [1 2 3] :b {:c 4 :d 5}} 20)]
+    (is (str-contains? result "\n") "nested structure wraps")))
+
+(deftest test-pprint-deeply-nested
+  (let [data {:a {:b {:c [1 2 3]}}}
+        result (pprint-str data 15)]
+    (is (str-contains? result "\n") "deeply nested structure wraps")))
+
+# --------------------------------
+# Custom width
+# --------------------------------
+
+(deftest test-pprint-custom-width
+  (is (= "[1 2 3]" (pprint-str [1 2 3] 80)) "wide enough stays on one line")
+  (let [result (pprint-str [1 2 3] 5)]
+    (is (str-contains? result "\n") "narrow width forces wrapping")))
+
+# --------------------------------
+# Empty collections
+# --------------------------------
+
+(deftest test-pprint-empty
+  (is (= "[]" (pprint-str [])) "empty vector")
+  (is (= "{}" (pprint-str {})) "empty map")
+  (is (= "()" (pprint-str '())) "empty list"))

@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - Add `cond->>` macro for conditional thread-last: `(cond->> [1 2 3] true (map inc)) ; => [2 3 4]`
 - Add `vec` function to coerce collections to vectors: `(vec '(1 2 3))` => `[1 2 3]`
 - Add `hash-set` function to create sets from arguments (like Clojure's `hash-set`)
+- Add `phel\pprint` module with `pprint` and `pprint-str` for pretty-printing nested data structures with configurable width
 - Add `tap>`, `add-tap`, `remove-tap`, and `reset-taps!` to `phel\debug` for a global tap handler system
 - Add `dir`, `apropos`, and `search-doc` to `phel\repl` for namespace exploration and documentation search
 - Add `defmulti` and `defmethod` macros for runtime polymorphism via dispatch functions
