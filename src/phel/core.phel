@@ -2024,14 +2024,15 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 (defn zipmap
   "Returns a new map with the keys mapped to the corresponding values.
 
-  Stops when the shorter of `keys` or `vals` is exhausted."
+  Stops when the shorter of `keys` or `vals` is exhausted.
+  Works safely with infinite lazy sequences."
   {:example "(zipmap [:a :b :c] [1 2 3]) ; => {:a 1 :b 2 :c 3}"
    :see-also ["zipcoll"]}
   [keys vals]
-  (loop [ks keys
-         vs vals
+  (loop [ks (seq keys)
+         vs (seq vals)
          res {}]
-    (if (or (empty? ks) (empty? vs))
+    (if (or (nil? ks) (nil? vs))
       res
       (recur (next ks) (next vs) (assoc res (first ks) (first vs))))))
 
