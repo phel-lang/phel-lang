@@ -1,0 +1,102 @@
+(ns phel\walk
+  (:require phel\core))
+
+(defn walk
+  "Traverses `form`, an arbitrary data structure. Applies `inner` to each
+  element of `form`, building up a data structure of the same type, then
+  applies `outer` to the result. Recognizes vectors, lists, hash-maps,
+  and hash-sets. Other types are returned as-is."
+  {:doc "Generic tree walker for nested data structures."
+   :see-also ["postwalk" "prewalk"]
+   :example "(walk inc identity [1 2 3]) ; => [2 3 4]"}
+  [inner outer form]
+  (let [t (type form)]
+    (outer
+      (cond
+        (= t :list)
+        (apply list (map inner form))
+
+        (= t :vector)
+        (vec (map inner form))
+
+        (= t :hash-map)
+        (into {} (map |(let [k (first $) v (second $)] [(inner k) (inner v)])
+                      (for [p :pairs form] p)))
+
+        (= t :set)
+        (into (hash-set) (map inner (for [x :in form] x)))
+
+        (= t :struct)
+        (into {} (map |(let [k (first $) v (second $)] [(inner k) (inner v)])
+                      (for [p :pairs form] p)))
+
+        form))))
+
+(defn postwalk
+  "Performs a depth-first, post-order traversal of `form`. Calls `f` on each
+  sub-form, uses `f`'s return value in place of the original. Walks into
+  vectors, lists, hash-maps, and hash-sets."
+  {:doc "Bottom-up tree walk — applies f after recursing into children."
+   :see-also ["prewalk" "walk" "postwalk-replace"]
+   :example "(postwalk inc [1 [2 3]]) ; => [2 [3 4]]"}
+  [f form]
+  (walk |(postwalk f $) f form))
+
+(defn prewalk
+  "Like `postwalk`, but does a pre-order traversal (applies `f` before recursing
+  into children)."
+  {:doc "Top-down tree walk — applies f before recursing into children."
+   :see-also ["postwalk" "walk" "prewalk-replace"]
+   :example "(prewalk identity [1 [2 3]]) ; => [1 [2 3]]"}
+  [f form]
+  (walk |(prewalk f $) identity (f form)))
+
+(defn postwalk-replace
+  "Recursively transforms `form` by replacing every occurrence of a key in
+  `smap` with the corresponding value. Applies replacements bottom-up."
+  {:doc "Replace values bottom-up using a substitution map."
+   :see-also ["prewalk-replace" "postwalk"]
+   :example "(postwalk-replace {:a :b} [:a :c]) ; => [:b :c]"}
+  [smap form]
+  (postwalk (fn [x] (if (contains? smap x) (get smap x) x)) form))
+
+(defn prewalk-replace
+  "Recursively transforms `form` by replacing every occurrence of a key in
+  `smap` with the corresponding value. Applies replacements top-down."
+  {:doc "Replace values top-down using a substitution map."
+   :see-also ["postwalk-replace" "prewalk"]
+   :example "(prewalk-replace {:a :b} [:a :c]) ; => [:b :c]"}
+  [smap form]
+  (prewalk (fn [x] (if (contains? smap x) (get smap x) x)) form))
+
+(defn keywordize-keys
+  "Recursively transforms all string keys in hash-maps to keywords."
+  {:doc "Convert string map keys to keywords, recursively."
+   :see-also ["stringify-keys"]
+   :example "(keywordize-keys {\"name\" \"phel\"}) ; => {:name \"phel\"}"}
+  [m]
+  (postwalk
+    (fn [form]
+      (if (= (type form) :hash-map)
+        (into {}
+          (map |(let [k (first $) v (second $)]
+                  [(if (string? k) (keyword k) k) v])
+               (for [p :pairs form] p)))
+        form))
+    m))
+
+(defn stringify-keys
+  "Recursively transforms all keyword keys in hash-maps to strings."
+  {:doc "Convert keyword map keys to strings, recursively."
+   :see-also ["keywordize-keys"]
+   :example "(stringify-keys {:name \"phel\"}) ; => {\"name\" \"phel\"}"}
+  [m]
+  (postwalk
+    (fn [form]
+      (if (= (type form) :hash-map)
+        (into {}
+          (map |(let [k (first $) v (second $)]
+                  [(if (keyword? k) (name k) k) v])
+               (for [p :pairs form] p)))
+        form))
+    m))

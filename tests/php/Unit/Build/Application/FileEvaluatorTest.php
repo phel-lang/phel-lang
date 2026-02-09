@@ -229,6 +229,63 @@ final class FileEvaluatorTest extends TestCase
         $evaluator->evalFile($sourceFile);
     }
 
+    public function test_cache_hit_calls_initialize_global_environment_and_lex_string(): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        $sourceCode = '(ns test\\namespace)';
+        file_put_contents($sourceFile, $sourceCode);
+        $cacheDir = $this->tempDir . '/cache';
+        $namespace = 'test\\namespace';
+
+        $cache = new CompiledCodeCache($cacheDir);
+        $cache->put($namespace, md5($sourceCode), '$result = 1;');
+
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade->expects($this->once())->method('initializeGlobalEnvironment');
+        $compilerFacade->expects($this->once())
+            ->method('lexString')
+            ->with($sourceCode, $sourceFile)
+            ->willThrowException(new RuntimeException('lex failure'));
+
+        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel\\core']),
+        );
+
+        $evaluator = new FileEvaluator($compilerFacade, $namespaceExtractor, $cache);
+        $result = $evaluator->evalFile($sourceFile);
+
+        self::assertSame($namespace, $result->getNamespace());
+    }
+
+    public function test_cache_hit_survives_analysis_failure(): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        $sourceCode = '(ns test\\namespace)';
+        file_put_contents($sourceFile, $sourceCode);
+        $cacheDir = $this->tempDir . '/cache';
+        $namespace = 'test\\namespace';
+
+        $cache = new CompiledCodeCache($cacheDir);
+        $cache->put($namespace, md5($sourceCode), '$result = 1;');
+
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade->method('lexString')
+            ->willThrowException(new RuntimeException('analysis failure'));
+
+        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel\\core']),
+        );
+
+        $evaluator = new FileEvaluator($compilerFacade, $namespaceExtractor, $cache);
+        $result = $evaluator->evalFile($sourceFile);
+
+        // evalFile succeeds despite analysis failure
+        self::assertSame($sourceFile, $result->getSourceFile());
+        self::assertSame($namespace, $result->getNamespace());
+    }
+
     private function removeDir(string $dir): void
     {
         if (!is_dir($dir)) {
