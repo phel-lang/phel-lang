@@ -194,11 +194,11 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
     private function validateCatchArguments(mixed $type, mixed $name, PersistentListInterface $catch): void
     {
         if (!($type instanceof Symbol)) {
-            throw AnalyzerException::withLocation("First argument of 'catch must be a Symbol", $catch);
+            throw AnalyzerException::wrongArgumentType("First argument of 'catch", 'Symbol', $type, $catch);
         }
 
         if (!($name instanceof Symbol)) {
-            throw AnalyzerException::withLocation("Second argument of 'catch must be a Symbol", $catch);
+            throw AnalyzerException::wrongArgumentType("Second argument of 'catch", 'Symbol', $name, $catch);
         }
     }
 

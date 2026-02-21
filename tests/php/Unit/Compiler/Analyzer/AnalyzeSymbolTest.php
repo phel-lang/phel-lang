@@ -94,4 +94,34 @@ final class AnalyzeSymbolTest extends TestCase
             $symbolAnalyzer->analyze(Symbol::create('a'), $env),
         );
     }
+
+    public function test_undefined_symbol_with_did_you_mean_suggestion(): void
+    {
+        $globalEnv = new GlobalEnvironment();
+        $globalEnv->setNs('test');
+        $globalEnv->addDefinition('test', Symbol::create('print'));
+
+        $symbolAnalyzer = new AnalyzeSymbol(new Analyzer($globalEnv));
+
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage("Cannot resolve symbol 'prnt'. Did you mean 'print'?");
+
+        $env = NodeEnvironment::empty();
+        $symbolAnalyzer->analyze(Symbol::create('prnt'), $env);
+    }
+
+    public function test_undefined_symbol_without_suggestion_when_no_similar_symbols(): void
+    {
+        $globalEnv = new GlobalEnvironment();
+        $globalEnv->setNs('test');
+        $globalEnv->addDefinition('test', Symbol::create('foo'));
+
+        $symbolAnalyzer = new AnalyzeSymbol(new Analyzer($globalEnv));
+
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage("Cannot resolve symbol 'zzzzzzzzzzz'");
+
+        $env = NodeEnvironment::empty();
+        $symbolAnalyzer->analyze(Symbol::create('zzzzzzzzzzz'), $env);
+    }
 }

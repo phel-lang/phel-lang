@@ -6,7 +6,7 @@
   (is (= :vector (type [])) "type of vector")
   (is (= :list (type '())) "type of list")
   (is (= :hash-map (type {})) "type of map")
-  (is (= :set (type (set))) "type of set")
+  (is (= :set (type (hash-set))) "type of set")
   (is (= :keyword (type :test)) "type of keyword")
   (is (= :symbol (type 'x)) "type of symbol")
   (is (= :int (type 10)) "type of int")

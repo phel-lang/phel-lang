@@ -40,7 +40,7 @@ TXT;
     {
         $nsSymbol = $list->get(1);
         if (!($nsSymbol instanceof Symbol)) {
-            throw AnalyzerException::withLocation("First argument of 'ns must be a Symbol", $list);
+            throw AnalyzerException::wrongArgumentType("First argument of 'ns", 'Symbol', $nsSymbol, $list);
         }
 
         $ns = $nsSymbol->getName();
@@ -149,12 +149,12 @@ TXT;
 
                 if ($option->getName() === 'as') {
                     if ($i >= $count) {
-                        throw AnalyzerException::withLocation('Alias must be a Symbol', $import);
+                        throw AnalyzerException::wrongArgumentType('Alias', 'Symbol', null, $import);
                     }
 
                     $aliasCandidate = $elements[$i];
                     if (!($aliasCandidate instanceof Symbol)) {
-                        throw AnalyzerException::withLocation('Alias must be a Symbol', $import);
+                        throw AnalyzerException::wrongArgumentType('Alias', 'Symbol', $aliasCandidate, $import);
                     }
 
                     $aliasValue = $aliasCandidate;
@@ -187,7 +187,7 @@ TXT;
         /** @var PersistentListInterface<mixed> $refer */
         foreach ($refer as $ref) {
             if (!$ref instanceof Symbol) {
-                throw AnalyzerException::withLocation('Each refer element must be a Symbol', $import);
+                throw AnalyzerException::wrongArgumentType('Each refer element', 'Symbol', $ref, $import);
             }
 
             $result[] = $ref;
@@ -241,12 +241,12 @@ TXT;
 
                 if ($option->getName() === 'as') {
                     if ($i >= $count) {
-                        throw AnalyzerException::withLocation('Alias must be a Symbol', $import);
+                        throw AnalyzerException::wrongArgumentType('Alias', 'Symbol', null, $import);
                     }
 
                     $aliasCandidate = $elements[$i];
                     if (!($aliasCandidate instanceof Symbol)) {
-                        throw AnalyzerException::withLocation('Alias must be a Symbol', $import);
+                        throw AnalyzerException::wrongArgumentType('Alias', 'Symbol', $aliasCandidate, $import);
                     }
 
                     $aliasValue = $aliasCandidate;

@@ -296,14 +296,14 @@
   {:example "(print-summary)"}
   []
   (println)
+  (let [failures (get (deref stats) :failed)]
+    (when (not (empty? failures))
+      (println)
+      (for [data :in failures]
+        (println "~~~~~~~~~~")
+        (print-failure-or-error data))
+      (println)))
   (println)
-  (for [data :in (get (deref stats) :failed)]
-    (println "~~~~~~~~~~")
-    (print-failure-or-error data))
-
-  (println)
-  (println)
-
   (let [{:failed failed :error error :pass pass} (get (deref stats) :counts)
         total (+ failed error pass)]
     (println "Passed:" pass)

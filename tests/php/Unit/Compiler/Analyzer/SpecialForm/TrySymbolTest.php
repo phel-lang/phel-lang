@@ -23,7 +23,7 @@ final class TrySymbolTest extends TestCase
     public function test_requires_symbol_as_first_argument_of_catch(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("First argument of 'catch must be a Symbol");
+        $this->expectExceptionMessage("First argument of 'catch must be a Symbol, got string");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_TRY),
@@ -42,7 +42,7 @@ final class TrySymbolTest extends TestCase
     public function test_requires_symbol_as_second_argument_of_catch(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("Second argument of 'catch must be a Symbol");
+        $this->expectExceptionMessage("Second argument of 'catch must be a Symbol, got string");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_TRY),

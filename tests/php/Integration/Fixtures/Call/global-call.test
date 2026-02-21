@@ -24,7 +24,8 @@
       \Phel::keyword("line"), 1,
       \Phel::keyword("column"), 18
     ),
-    "min-arity", 1
+    "min-arity", 1,
+    "is-variadic", false
   )
 );
 (\Phel::getDefinition("user", "x"))(1);

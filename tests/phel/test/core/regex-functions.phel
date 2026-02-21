@@ -5,3 +5,18 @@
   (let [input "Hello, 1 regex 2 test"]
     (is (= ["1" "2"] (re-seq "/\d+/" input)) "regex [0-9]")
     (is (= ["Hello" "1" "regex" "2" "test"] (re-seq "/\w+/" input)) "regex [a-zA-Z0-9_]")))
+
+(deftest test-re-seq-doesnt-match
+  (let [input "Hello, one regex two test"]
+    (is (= [] (re-seq "/\d+/" input)) "regex [0-9] doesn't match")))
+
+(deftest test-re-seq-with-capture
+  (let [input "one=1 two=2 none="
+        expected [["one=1" "one" "1"]
+                  ["two=2" "two" "2"]
+                  ["none=" "none" ""]]]
+    (is (= expected (re-seq "/(\w+)=(\w*)/" input)) "regex with capture")))
+
+(deftest test-re-seq-with-capture-doesnt-match
+  (let [input "one,1 two,2 none,"]
+    (is (= [] (re-seq "/(\w+)=(\w*)/" input)) "regex with capture doesn't match")))

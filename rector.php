@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Rector\CodingStyle\Rector\String_\UseClassKeywordForClassNameResolutionRector;
+use Rector\Php55\Rector\String_\StringClassNameToClassConstantRector;
 use Rector\Config\RectorConfig;
 use Rector\PHPUnit\CodeQuality\Rector\Class_\PreferPHPUnitThisCallRector;
 use Rector\PHPUnit\Set\PHPUnitSetList;
@@ -30,7 +31,11 @@ return RectorConfig::configure()
         ReturnTypeFromStrictConstantReturnRector::class => [
             __DIR__ . '/tests/php/Unit/Interop/Generator/CompiledPhpMethodBuilderTest.php',
         ],
+        StringClassNameToClassConstantRector::class => [
+            __DIR__ . '/src/php/Compiler/Domain/Emitter/RuntimeClassReference.php',
+        ],
         UseClassKeywordForClassNameResolutionRector::class => [
+            __DIR__ . '/src/php/Compiler/Domain/Emitter/RuntimeClassReference.php',
             __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/LiteralEmitter.php',
             __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/DefEmitter',
             __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/GlobalVarEmitter.php',

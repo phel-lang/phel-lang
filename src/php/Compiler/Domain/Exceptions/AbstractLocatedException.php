@@ -10,6 +10,8 @@ use RuntimeException;
 
 abstract class AbstractLocatedException extends RuntimeException
 {
+    private ?ErrorCode $errorCode = null;
+
     public function __construct(
         string $message,
         private readonly ?SourceLocation $startLocation = null,
@@ -27,5 +29,15 @@ abstract class AbstractLocatedException extends RuntimeException
     public function getEndLocation(): ?SourceLocation
     {
         return $this->endLocation;
+    }
+
+    public function getErrorCode(): ?ErrorCode
+    {
+        return $this->errorCode;
+    }
+
+    protected function setErrorCode(ErrorCode $errorCode): void
+    {
+        $this->errorCode = $errorCode;
     }
 }

@@ -194,11 +194,27 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
     {
         $nodeName = $f->getName()->getName();
         $data = Phel::getDefinitionMetaData($f->getNamespace(), $nodeName);
-        if ($data instanceof PersistentMapInterface) {
-            $minArity = $data->find('min-arity');
-            if ($minArity && count($list->rest()) < $minArity) {
-                throw AnalyzerException::notEnoughArgsProvided($f, $list, $minArity);
-            }
+
+        if (!$data instanceof PersistentMapInterface) {
+            return;
+        }
+
+        $minArity = $data->find('min-arity');
+
+        if ($minArity === null) {
+            return;
+        }
+
+        $gotCount = count($list->rest());
+        $isVariadic = (bool) $data->find('is-variadic');
+        $maxArity = $data->find('max-arity');
+
+        if ($gotCount < $minArity) {
+            throw AnalyzerException::notEnoughArgsProvided($f, $list, $minArity, $isVariadic, $maxArity);
+        }
+
+        if (!$isVariadic && $maxArity !== null && $gotCount > $maxArity) {
+            throw AnalyzerException::tooManyArgsProvided($f, $list, $minArity, $maxArity);
         }
     }
 }

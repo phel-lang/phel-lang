@@ -9,13 +9,14 @@ use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Compiler\Domain\Analyzer\SymbolSuggestionProvider;
 use Phel\Lang\Symbol;
-
-use function sprintf;
 
 final class AnalyzeSymbol
 {
     use WithAnalyzerTrait;
+
+    private ?SymbolSuggestionProvider $suggestionProvider = null;
 
     public function analyze(Symbol $symbol, NodeEnvironmentInterface $env): AbstractNode
     {
@@ -48,9 +49,19 @@ final class AnalyzeSymbol
         $globalResolve = $this->analyzer->resolve($symbol, $env);
 
         if (!$globalResolve instanceof AbstractNode) {
-            throw AnalyzerException::withLocation(sprintf("Cannot resolve symbol '%s'", $symbol->getFullName()), $symbol);
+            $suggestions = $this->getSuggestionProvider()->findSimilar(
+                $symbol->getName(),
+                $this->analyzer->getAvailableSymbols(),
+            );
+
+            throw AnalyzerException::cannotResolveSymbol($symbol->getFullName(), $symbol, $suggestions);
         }
 
         return $globalResolve;
+    }
+
+    private function getSuggestionProvider(): SymbolSuggestionProvider
+    {
+        return $this->suggestionProvider ??= new SymbolSuggestionProvider();
     }
 }

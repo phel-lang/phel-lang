@@ -92,6 +92,11 @@ final class Analyzer implements AnalyzerInterface
         $this->globalEnvironment->addInterface($ns, $name);
     }
 
+    public function getAvailableSymbols(): array
+    {
+        return $this->globalEnvironment->getAllDefinitions();
+    }
+
     /**
      * @throws AnalyzerException
      */

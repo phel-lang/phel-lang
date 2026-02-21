@@ -78,7 +78,8 @@ class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
       \Phel::keyword("line"), 7,
       \Phel::keyword("column"), 19
     ),
-    "min-arity", 1
+    "min-arity", 1,
+    "is-variadic", false
   )
 );
 
@@ -104,6 +105,7 @@ class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
       \Phel::keyword("line"), 7,
       \Phel::keyword("column"), 19
     ),
-    "min-arity", 1
+    "min-arity", 1,
+    "is-variadic", false
   )
 );

@@ -18,7 +18,6 @@ use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\InvokeSymbol;
-use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
@@ -36,7 +35,23 @@ final class InvokeSymbolTest extends TestCase
             'user',
             'my-global-fn',
             static fn ($a, $b): int => $a + $b,
-            Phel::map('min-arity', 2),
+            Phel::map('min-arity', 2, 'is-variadic', false),
+        );
+
+        $env->addDefinition('user', Symbol::create('my-variadic-fn'));
+        Phel::addDefinition(
+            'user',
+            'my-variadic-fn',
+            static fn ($a, ...$rest): int => $a,
+            Phel::map('min-arity', 1, 'is-variadic', true),
+        );
+
+        $env->addDefinition('user', Symbol::create('my-bounded-fn'));
+        Phel::addDefinition(
+            'user',
+            'my-bounded-fn',
+            static fn ($a, $b = null): int => $a,
+            Phel::map('min-arity', 1, 'is-variadic', false, 'max-arity', 2),
         );
 
         $env->addDefinition('user', Symbol::create('my-macro'));
@@ -84,27 +99,54 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_not_enough_args_provided_then_error(): void
     {
-        $env = NodeEnvironment::empty();
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Wrong number of arguments to function "user\\my-global-fn". Got: 1. Expected: 2');
 
         $list = Phel::list([
             Symbol::createForNamespace('user', 'my-global-fn'),
             '1arg',
         ]);
 
-        $this->expectExceptionObject(
-            AnalyzerException::notEnoughArgsProvided(
-                new GlobalVarNode(
-                    $env,
-                    'user',
-                    Symbol::create('my-global-fn'),
-                    $this->createStub(PersistentMapInterface::class),
-                ),
-                $list,
-                minArity: 2,
-            ),
-        );
+        (new InvokeSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+    }
 
-        (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+    public function test_variadic_function_error_message(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Wrong number of arguments to function "user\\my-variadic-fn". Got: 0. Expected: at least 1');
+
+        $list = Phel::list([
+            Symbol::createForNamespace('user', 'my-variadic-fn'),
+        ]);
+
+        (new InvokeSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+    }
+
+    public function test_bounded_function_too_few_args(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Wrong number of arguments to function "user\\my-bounded-fn". Got: 0. Expected: 1 or 2');
+
+        $list = Phel::list([
+            Symbol::createForNamespace('user', 'my-bounded-fn'),
+        ]);
+
+        (new InvokeSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+    }
+
+    public function test_bounded_function_too_many_args(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Wrong number of arguments to function "user\\my-bounded-fn". Got: 3. Expected: 1 or 2');
+
+        $list = Phel::list([
+            Symbol::createForNamespace('user', 'my-bounded-fn'),
+            '1arg',
+            '2arg',
+            '3arg',
+        ]);
+
+        (new InvokeSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_valid_enough_args_provided(): void
@@ -189,15 +231,20 @@ final class InvokeSymbolTest extends TestCase
 
     public function test_macro_expand_failure(): void
     {
-        $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Error in expanding macro "user\\my-failed-macro": my-failed-macro message');
-
         $list = Phel::list([
             Symbol::createForNamespace('user', 'my-failed-macro'),
             Phel::vector([1]),
         ]);
         $env = NodeEnvironment::empty();
-        (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+
+        try {
+            (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+            self::fail('Expected AnalyzerException to be thrown');
+        } catch (AnalyzerException $analyzerException) {
+            self::assertStringContainsString('Error in expanding macro "user\\my-failed-macro"', $analyzerException->getMessage());
+            self::assertStringContainsString('Expanding: (my-failed-macro [1])', $analyzerException->getMessage());
+            self::assertStringContainsString('Cause: my-failed-macro message', $analyzerException->getMessage());
+        }
     }
 
     public function test_macro_undefined_macro(): void

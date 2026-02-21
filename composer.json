@@ -69,7 +69,7 @@
         "csfix": "./vendor/bin/php-cs-fixer fix",
         "csrun": "./vendor/bin/php-cs-fixer fix --dry-run",
         "fix": [
-            "@rector",
+            "@rector:fix",
             "@csfix"
         ],
         "phpbench": "./vendor/bin/phpbench run --report=aggregate --ansi",
@@ -77,8 +77,8 @@
         "phpbench-ref": "./vendor/bin/phpbench run --ref=baseline --report=aggregate --progress=plain --ansi",
         "phpstan": "./vendor/bin/phpstan --memory-limit=1G",
         "psalm": "./vendor/bin/psalm --no-cache",
-        "rector": "./vendor/bin/rector process",
-        "rectorrun": "./vendor/bin/rector process --dry-run",
+        "rector": "./vendor/bin/rector process --dry-run",
+        "rector:fix": "./vendor/bin/rector process",
         "static-clear-cache": [
             "vendor/bin/psalm --clear-cache",
             "vendor/bin/phpstan clear-result-cache"
@@ -97,7 +97,7 @@
             "@csrun",
             "@psalm",
             "@phpstan",
-            "@rectorrun"
+            "@rector"
         ],
         "create-pr": "./tools/create-pr"
     }

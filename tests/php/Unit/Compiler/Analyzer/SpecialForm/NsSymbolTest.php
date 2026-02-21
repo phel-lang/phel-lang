@@ -39,7 +39,7 @@ final class NsSymbolTest extends TestCase
     public function test_first_argument_must_be_symbol(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("First argument of 'ns must be a Symbol");
+        $this->expectExceptionMessage("First argument of 'ns must be a Symbol, got string");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -143,7 +143,7 @@ final class NsSymbolTest extends TestCase
     public function test_use_alias_must_be_symbol(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Alias must be a Symbol');
+        $this->expectExceptionMessage('Alias must be a Symbol, got string');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -179,7 +179,7 @@ final class NsSymbolTest extends TestCase
     public function test_require_alias_must_be_symbol(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Alias must be a Symbol');
+        $this->expectExceptionMessage('Alias must be a Symbol, got string');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -217,7 +217,7 @@ final class NsSymbolTest extends TestCase
     public function test_require_refer_elements_must_be_symbol(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Each refer element must be a Symbol');
+        $this->expectExceptionMessage('Each refer element must be a Symbol, got string');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),

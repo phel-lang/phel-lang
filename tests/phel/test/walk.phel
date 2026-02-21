@@ -1,0 +1,116 @@
+(ns phel-test\test\walk
+  (:require phel\test :refer [deftest is])
+  (:require phel\walk :refer [walk postwalk prewalk postwalk-replace
+                               prewalk-replace keywordize-keys stringify-keys]))
+
+(defstruct point [x y])
+
+# ----
+# walk
+# ----
+
+(deftest test-walk-vector
+  (is (= [2 3 4] (walk inc identity [1 2 3]))
+      "walk applies inner to vector elements"))
+
+(deftest test-walk-list
+  (is (= '(2 3 4) (walk inc identity '(1 2 3)))
+      "walk applies inner to list elements"))
+
+(deftest test-walk-outer
+  (is (= [2 4 6] (walk identity (fn [coll] (map (fn [x] (* x 2)) coll)) [1 2 3]))
+      "walk applies outer to the result"))
+
+(deftest test-walk-hash-map
+  (is (= {2 3 4 5} (walk inc identity {1 2 3 4}))
+      "walk applies inner to map keys and values"))
+
+(deftest test-walk-hash-set
+  (is (= (hash-set 2 3 4) (walk inc identity (hash-set 1 2 3)))
+      "walk applies inner to set elements"))
+
+(deftest test-walk-struct
+  (let [p (point 1 2)
+        result (walk |(if (number? $) (inc $) $) identity p)]
+    (is (= {:x 2 :y 3} result)
+        "walk applies inner to struct values")))
+
+(deftest test-walk-non-collection
+  (is (= 42 (walk inc identity 42))
+      "walk returns non-collections as-is"))
+
+# --------
+# postwalk
+# --------
+
+(deftest test-postwalk-inc
+  (is (= [2 [3 4]] (postwalk |(if (number? $) (inc $) $) [1 [2 3]]))
+      "postwalk increments all nested numbers"))
+
+(deftest test-postwalk-identity
+  (is (= [1 [2 {:a 3}]] (postwalk identity [1 [2 {:a 3}]]))
+      "postwalk identity preserves structure"))
+
+(deftest test-postwalk-nested-map
+  (is (= {:a 2 :b {:c 4}}
+         (postwalk |(if (number? $) (* $ 2) $) {:a 1 :b {:c 2}}))
+      "postwalk transforms values in nested maps"))
+
+(deftest test-postwalk-hash-set
+  (is (= (hash-set 2 3 4)
+         (postwalk |(if (number? $) (inc $) $) (hash-set 1 2 3)))
+      "postwalk transforms values in sets"))
+
+# -------
+# prewalk
+# -------
+
+(deftest test-prewalk-identity
+  (is (= [1 [2 3]] (prewalk identity [1 [2 3]]))
+      "prewalk identity preserves structure"))
+
+(deftest test-prewalk-inc
+  (is (= [2 [3 4]] (prewalk |(if (number? $) (inc $) $) [1 [2 3]]))
+      "prewalk increments all nested numbers"))
+
+# -----------------
+# postwalk-replace
+# -----------------
+
+(deftest test-postwalk-replace
+  (is (= [:b :d :e] (postwalk-replace {:a :b :c :d :d :e} [:a :c :d]))
+      "postwalk-replace substitutes values")
+  (is (= [1 [2 99]] (postwalk-replace {3 99} [1 [2 3]]))
+      "postwalk-replace works in nested structures"))
+
+# ----------------
+# prewalk-replace
+# ----------------
+
+(deftest test-prewalk-replace
+  (is (= [:b :c] (prewalk-replace {:a :b} [:a :c]))
+      "prewalk-replace substitutes values"))
+
+# ----------------
+# keywordize-keys
+# ----------------
+
+(deftest test-keywordize-keys
+  (is (= {:name "phel" :version "0.29"}
+         (keywordize-keys {"name" "phel" "version" "0.29"}))
+      "keywordize-keys converts string keys to keywords")
+  (is (= {:a {:b 1}}
+         (keywordize-keys {"a" {"b" 1}}))
+      "keywordize-keys works recursively"))
+
+# ---------------
+# stringify-keys
+# ---------------
+
+(deftest test-stringify-keys
+  (is (= {"name" "phel" "version" "0.29"}
+         (stringify-keys {:name "phel" :version "0.29"}))
+      "stringify-keys converts keyword keys to strings")
+  (is (= {"a" {"b" 1}}
+         (stringify-keys {:a {:b 1}}))
+      "stringify-keys works recursively"))

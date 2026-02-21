@@ -19,6 +19,7 @@ use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFile;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
 use Phel\Build\Domain\Compile\Output\NamespacePathTransformer;
+use Phel\Build\Domain\Extractor\FirstFormExtractor;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
@@ -108,6 +109,7 @@ final class BuildFactory extends AbstractFactory
             $this->getCompilerFacade(),
             $this->createNamespaceExtractor(),
             $this->createCompiledCodeCache(),
+            $this->createFirstFormExtractor(),
         );
     }
 
@@ -226,5 +228,10 @@ final class BuildFactory extends AbstractFactory
     private function createNamespacePathTransformer(): NamespacePathTransformer
     {
         return new NamespacePathTransformer();
+    }
+
+    private function createFirstFormExtractor(): FirstFormExtractor
+    {
+        return new FirstFormExtractor();
     }
 }

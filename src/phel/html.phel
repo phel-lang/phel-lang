@@ -16,13 +16,13 @@
     (nil? x)     ""
     (str x)))
 
-(def- void-tags (set
+(def- void-tags (hash-set
                  "area" "base" "br" "col" "command" "embed"
                  "hr" "img" "input" "keygen" "link" "meta" "param"
                  "source" "track" "wbr"))
 
 (defn- contains? [s x]
-  (> (count (intersection s (set x))) 0))
+  (> (count (intersection s (hash-set x))) 0))
 
 (defn- container-tag? [tag content]
   (or content (not (contains? void-tags tag))))

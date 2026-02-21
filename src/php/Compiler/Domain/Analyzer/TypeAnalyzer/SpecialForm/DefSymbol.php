@@ -43,7 +43,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
 
         $nameSymbol = $list->get(1);
         if (!($nameSymbol instanceof Symbol)) {
-            throw AnalyzerException::withLocation("First argument of 'def must be a Symbol.", $list);
+            throw AnalyzerException::wrongArgumentType("First argument of 'def", 'Symbol', $nameSymbol, $list);
         }
 
         $namespace = $this->analyzer->getNamespace();
@@ -53,8 +53,13 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         [$metaMap, $init] = $this->createMetaMapAndInit($list);
 
         $initNode = $this->analyzeInit($init, $env, $namespace, $nameSymbol);
-        if ($initNode instanceof FnNode || $initNode instanceof MultiFnNode) {
+        if ($initNode instanceof FnNode) {
             $metaMap = $metaMap->put('min-arity', $initNode->getMinArity());
+            $metaMap = $metaMap->put('is-variadic', $initNode->isVariadic());
+        } elseif ($initNode instanceof MultiFnNode) {
+            $metaMap = $metaMap->put('min-arity', $initNode->getMinArity());
+            $metaMap = $metaMap->put('is-variadic', $initNode->isVariadic());
+            $metaMap = $metaMap->put('max-arity', $initNode->getMaxArity());
         }
 
         $meta = $this->analyzer->analyze($metaMap, $env->withExpressionContext());
@@ -159,7 +164,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
             return $meta;
         }
 
-        throw AnalyzerException::withLocation('Metadata must be a String, Keyword or Map', $list);
+        throw AnalyzerException::wrongArgumentType('Metadata', ['String', 'Keyword', 'Map'], $meta, $list);
     }
 
     private function getInitialMetaAndInit(PersistentListInterface $list): array

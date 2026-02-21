@@ -45,17 +45,17 @@
   (is (= [1 2 3] (compact [1 nil 2 false 3 0] nil false 0)) "compact removes multiple specified values"))
 
 (deftest test-set-push
-  (let [s1 (set 1 2)
+  (let [s1 (hash-set 1 2)
         s2 (push s1 3)]
-    (is (= (set 1 2 3) s2) "set push"))
-  (let [s1 (set 1 2)
+    (is (= (hash-set 1 2 3) s2) "set push"))
+  (let [s1 (hash-set 1 2)
         s2 (push s1 2)]
-    (is (= (set 1 2) s2) "set push existing value")))
+    (is (= (hash-set 1 2) s2) "set push existing value")))
 
 (deftest test-set-concat
-  (is (= (set 0 1 2 3) (into (set) (concat (set 1 2) [0 3]))) "set concat vector using into")
-  (is (= (set 0 1 2 3) (into (set) (concat (set 1 2) [0 1 2 3]))) "set concat vector with common values using into")
-  (is (= (set 0 1 2) (into (set) (concat (set 1 2) (set 0 1)))) "set concat using into"))
+  (is (= (hash-set 0 1 2 3) (into (hash-set) (concat (hash-set 1 2) [0 3]))) "set concat vector using into")
+  (is (= (hash-set 0 1 2 3) (into (hash-set) (concat (hash-set 1 2) [0 1 2 3]))) "set concat vector with common values using into")
+  (is (= (hash-set 0 1 2) (into (hash-set) (concat (hash-set 1 2) (hash-set 0 1)))) "set concat using into"))
 
 (deftest list-as-function
   (let [xs (list 1 2 3)]

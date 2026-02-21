@@ -54,7 +54,8 @@ interface IPlayer {
       \Phel::keyword("line"), 5,
       \Phel::keyword("column"), 31
     ),
-    "min-arity", 1
+    "min-arity", 1,
+    "is-variadic", false
   )
 );
 
@@ -88,6 +89,7 @@ interface IPlayer {
       \Phel::keyword("line"), 5,
       \Phel::keyword("column"), 31
     ),
-    "min-arity", 3
+    "min-arity", 3,
+    "is-variadic", false
   )
 );
