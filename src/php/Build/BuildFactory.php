@@ -11,9 +11,7 @@ use Phel\Build\Application\DependenciesForNamespace;
 use Phel\Build\Application\FileCompiler;
 use Phel\Build\Application\FileEvaluator;
 use Phel\Build\Application\NamespaceExtractor;
-use Phel\Build\Application\Port\CompileProjectUseCase;
 use Phel\Build\Application\ProjectCompiler;
-use Phel\Build\Application\UseCase\CompileProjectHandler;
 use Phel\Build\Domain\Cache\NamespaceCacheInterface;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFile;
@@ -25,14 +23,12 @@ use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Domain\IO\FileIoInterface;
 use Phel\Build\Domain\Port\Compiler\PhelCompilerPort;
-use Phel\Build\Domain\Port\EventDispatcher\BuildEventDispatcherPort;
 use Phel\Build\Domain\Port\FileDiscovery\PhelFileDiscoveryPort;
 use Phel\Build\Domain\Port\FileSystem\FileSystemPort;
 use Phel\Build\Domain\Service\CacheEligibilityChecker;
 use Phel\Build\Domain\Service\NamespaceFilter;
 use Phel\Build\Domain\ValueObject\BuildContext;
 use Phel\Build\Infrastructure\Adapter\Compiler\FacadeCompilerAdapter;
-use Phel\Build\Infrastructure\Adapter\EventDispatcher\NullBuildEventDispatcher;
 use Phel\Build\Infrastructure\Adapter\FileDiscovery\RecursivePhelFileDiscovery;
 use Phel\Build\Infrastructure\Adapter\FileSystem\LocalFileSystemAdapter;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
@@ -59,23 +55,6 @@ final class BuildFactory extends AbstractFactory
             $this->createNamespaceFilter(),
             $this->createCacheEligibilityChecker(),
             $this->createBuildContext(),
-            $this->createBuildEventDispatcher(),
-        );
-    }
-
-    public function createCompileProjectHandler(): CompileProjectUseCase
-    {
-        return new CompileProjectHandler(
-            $this->createNamespaceExtractor(),
-            $this->createFileCompiler(),
-            $this->getCompilerFacade(),
-            $this->getCommandFacade(),
-            $this->createMainPhpEntryPointFile(),
-            $this->getConfig(),
-            $this->createNamespaceFilter(),
-            $this->createCacheEligibilityChecker(),
-            $this->createBuildContext(),
-            $this->createBuildEventDispatcher(),
         );
     }
 
@@ -172,11 +151,6 @@ final class BuildFactory extends AbstractFactory
     public function createPhelFileDiscoveryPort(): PhelFileDiscoveryPort
     {
         return new RecursivePhelFileDiscovery();
-    }
-
-    public function createBuildEventDispatcher(): BuildEventDispatcherPort
-    {
-        return new NullBuildEventDispatcher();
     }
 
     public function getCompilerFacade(): CompilerFacadeInterface
