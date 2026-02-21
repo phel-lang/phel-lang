@@ -2,4 +2,6 @@
 (ns user
   (:require phel\repl :refer [doc require use print-colorful println-colorful
                                dir apropos search-doc])
-  (:require phel\pprint :refer [pprint pprint-str]))
+  (:require phel\pprint :refer [pprint pprint-str])
+  (:require phel\walk :refer [walk postwalk prewalk postwalk-replace
+                               prewalk-replace keywordize-keys stringify-keys]))
