@@ -8,7 +8,7 @@ use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use InvalidArgumentException;
 use Phel\Api\ApiFacade;
-use Phel\Api\Transfer\PhelFunction;
+use Phel\Api\Domain\Transfer\PhelFunction;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;

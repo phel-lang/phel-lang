@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Interop\Domain\FileCreator;
 
+use Phel\Interop\Domain\Port\FileSystem\FileSystemPort;
 use Phel\Interop\Domain\ReadModel\Wrapper;
 
 use function dirname;
@@ -12,7 +13,7 @@ final readonly class FileCreator implements FileCreatorInterface
 {
     public function __construct(
         private string $destinationDir,
-        private FileIoInterface $io,
+        private FileSystemPort $fileSystem,
     ) {
     }
 
@@ -22,9 +23,9 @@ final readonly class FileCreator implements FileCreatorInterface
         $dir = dirname($wrapperPath);
 
         if (!is_dir($dir)) {
-            $this->io->createDirectory($dir);
+            $this->fileSystem->createDirectory($dir);
         }
 
-        $this->io->filePutContents($wrapperPath, $wrapper->compiledPhp());
+        $this->fileSystem->filePutContents($wrapperPath, $wrapper->compiledPhp());
     }
 }

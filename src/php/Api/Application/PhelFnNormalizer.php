@@ -7,7 +7,7 @@ namespace Phel\Api\Application;
 use Phel\Api\Domain\PhelFnGroupKeyGeneratorInterface;
 use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Api\Domain\PhelFnNormalizerInterface;
-use Phel\Api\Transfer\PhelFunction;
+use Phel\Api\Domain\Transfer\PhelFunction;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 
