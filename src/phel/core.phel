@@ -951,10 +951,22 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
 # ------------------
 
 (defn peek
-  "Returns the last element of a sequence."
+  "Returns the last element of a sequence, or nil if empty or nil.
+  Works on vectors, PHP arrays, lists, and lazy sequences."
   {:example "(peek [1 2 3]) ; => 3"}
   [coll]
-  (php/aget coll (php/- (count coll) 1)))
+  (cond
+    (nil? coll)
+    nil
+
+    (php/instanceof coll LazySeqInterface)
+    (loop [s coll last-val nil]
+      (if (nil? (seq s))
+        last-val
+        (recur (next s) (first s))))
+
+    :else
+    (php/aget coll (php/- (count coll) 1))))
 
 
 (defn push
