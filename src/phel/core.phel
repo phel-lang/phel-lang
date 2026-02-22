@@ -1002,9 +1002,8 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
         opt
         res))))
 
-(defn assoc
-  "Associates a value with a key in a collection."
-  {:example "(assoc {:a 1} :b 2) ; => {:a 1 :b 2}"}
+(defn- assoc-pair
+  "Associates a single key-value pair with a collection."
   [ds key value]
   (cond
     (php-array? ds)
@@ -1019,6 +1018,23 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     (do
       (php/aset ds key value)
       ds)))
+
+(defn assoc
+  "Associates one or more key-value pairs with a collection.
+  Additional key-value pairs beyond the first are applied in order.
+  Throws if an odd number of extra arguments is provided."
+  {:example "(assoc {:a 1} :b 2) ; => {:a 1 :b 2}\n(assoc {:a 1} :b 2 :c 3) ; => {:a 1 :b 2 :c 3}"}
+  [ds key value & more]
+  (when (php/!== 0 (php/& (count more) 1))
+    (throw (php/new InvalidArgumentException
+                    (str "assoc expects an even number of extra arguments (key-value pairs), got "
+                         (count more)))))
+  (loop [acc (assoc-pair ds key value)
+         remaining more]
+    (if (empty? remaining)
+      acc
+      (recur (assoc-pair acc (first remaining) (second remaining))
+             (rest (rest remaining))))))
 
 (defn put
   "Puts `value` mapped to `key` on the datastructure `ds`. Returns `ds`."
