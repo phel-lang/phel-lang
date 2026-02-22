@@ -4,15 +4,15 @@ declare(strict_types=1);
 
 namespace Phel\Interop\Infrastructure\Adapter\FileSystem;
 
-use Phel\Interop\Domain\Port\FileSystem\FileSystemPort;
+use Phel\Interop\Domain\Port\FileSystem\FileSystemInterface;
 use RuntimeException;
 
 use function sprintf;
 
 /**
- * Local file system adapter implementing FileSystemPort.
+ * Local file system adapter implementing FileSystemInterface.
  */
-final class LocalFileSystemAdapter implements FileSystemPort
+final class LocalFileSystemAdapter implements FileSystemInterface
 {
     public function createDirectory(string $directory): void
     {

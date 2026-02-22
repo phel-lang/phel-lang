@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Port\FileSystem;
 
-interface FileSystemPort
+interface FileSystemInterface
 {
     public function read(string $path): string;
 

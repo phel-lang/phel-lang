@@ -8,7 +8,7 @@ namespace Phel\Build\Domain\Port\FileDiscovery;
  * Driven port for discovering Phel source files in directories.
  * Abstracts file system operations for locating .phel files.
  */
-interface PhelFileDiscoveryPort
+interface PhelFileDiscoveryInterface
 {
     /**
      * Find all Phel files in the given directories.

@@ -8,7 +8,7 @@ use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\IO\FileIoInterface;
-use Phel\Build\Domain\Port\Compiler\PhelCompilerPort;
+use Phel\Build\Domain\Port\Compiler\PhelCompilerInterface;
 use Phel\Build\Domain\Transfer\CompilationResultTransfer;
 use Phel\Build\Domain\ValueObject\BuildContext;
 
@@ -17,7 +17,7 @@ use function function_exists;
 final readonly class FileCompiler implements FileCompilerInterface
 {
     public function __construct(
-        private PhelCompilerPort $compilerPort,
+        private PhelCompilerInterface $compilerPort,
         private NamespaceExtractorInterface $namespaceExtractor,
         private FileIoInterface $fileIo,
         private BuildContext $buildContext,

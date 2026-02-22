@@ -16,7 +16,7 @@ use Phel\Interop\Domain\Generator\Builder\CompiledPhpClassBuilder;
 use Phel\Interop\Domain\Generator\Builder\CompiledPhpMethodBuilder;
 use Phel\Interop\Domain\Generator\Builder\WrapperRelativeFilenamePathBuilder;
 use Phel\Interop\Domain\Generator\WrapperGenerator;
-use Phel\Interop\Domain\Port\FileSystem\FileSystemPort;
+use Phel\Interop\Domain\Port\FileSystem\FileSystemInterface;
 use Phel\Interop\Infrastructure\Adapter\FileSystem\LocalFileSystemAdapter;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
@@ -96,7 +96,7 @@ final class InteropFactory extends AbstractFactory
         return $this->getProvidedDependency(InteropProvider::FACADE_BUILD);
     }
 
-    private function createFileSystemPort(): FileSystemPort
+    private function createFileSystemPort(): FileSystemInterface
     {
         return new LocalFileSystemAdapter();
     }

@@ -7,7 +7,7 @@ namespace Phel\Interop\Domain\Port\FileSystem;
 /**
  * Driven port (secondary port) for file system operations in interop.
  */
-interface FileSystemPort
+interface FileSystemInterface
 {
     /**
      * Creates a directory (recursively if needed).

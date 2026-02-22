@@ -9,7 +9,7 @@ use Phel\Formatter\Domain\Exception\FilePathException;
 /**
  * Driven port (secondary port) for file system operations in formatting.
  */
-interface FileSystemPort
+interface FileSystemInterface
 {
     /**
      * Validates that the file path is valid and accessible.

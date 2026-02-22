@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Infrastructure\Adapter\FileDiscovery;
 
-use Phel\Build\Domain\Port\FileDiscovery\PhelFileDiscoveryPort;
+use Phel\Build\Domain\Port\FileDiscovery\PhelFileDiscoveryInterface;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RegexIterator;
@@ -15,7 +15,7 @@ use function is_dir;
 /**
  * Infrastructure adapter for discovering Phel files using PHP's recursive directory iterator.
  */
-final readonly class RecursivePhelFileDiscovery implements PhelFileDiscoveryPort
+final readonly class RecursivePhelFileDiscovery implements PhelFileDiscoveryInterface
 {
     private const string PHEL_FILE_PATTERN = '/^.+\.phel$/i';
 

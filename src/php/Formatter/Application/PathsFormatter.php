@@ -9,7 +9,7 @@ use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Formatter\Domain\Exception\FilePathException;
 use Phel\Formatter\Domain\FormatterInterface;
 use Phel\Formatter\Domain\PathFilterInterface;
-use Phel\Formatter\Domain\Port\FileSystem\FileSystemPort;
+use Phel\Formatter\Domain\Port\FileSystem\FileSystemInterface;
 use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -21,7 +21,7 @@ final readonly class PathsFormatter
         private CommandFacadeInterface $commandFacade,
         private FormatterInterface $formatter,
         private PathFilterInterface $pathFilter,
-        private FileSystemPort $fileSystem,
+        private FileSystemInterface $fileSystem,
     ) {
     }
 

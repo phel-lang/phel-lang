@@ -11,7 +11,7 @@ use Phel\Formatter\Application\PathsFormatter;
 use Phel\Formatter\Application\PhelPathFilter;
 use Phel\Formatter\Domain\FormatterInterface;
 use Phel\Formatter\Domain\PathFilterInterface;
-use Phel\Formatter\Domain\Port\FileSystem\FileSystemPort;
+use Phel\Formatter\Domain\Port\FileSystem\FileSystemInterface;
 use Phel\Formatter\Domain\Rules\Indenter\BlockIndenter;
 use Phel\Formatter\Domain\Rules\Indenter\InnerIndenter;
 use Phel\Formatter\Domain\Rules\IndentRule;
@@ -107,7 +107,7 @@ final class FormatterFactory extends AbstractFactory
         return $this->getProvidedDependency(FormatterProvider::FACADE_COMMAND);
     }
 
-    private function createFileSystemPort(): FileSystemPort
+    private function createFileSystemPort(): FileSystemInterface
     {
         return new LocalFileSystemAdapter();
     }

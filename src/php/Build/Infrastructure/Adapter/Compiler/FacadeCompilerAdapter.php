@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Phel\Build\Infrastructure\Adapter\Compiler;
 
-use Phel\Build\Domain\Port\Compiler\PhelCompilerPort;
+use Phel\Build\Domain\Port\Compiler\PhelCompilerInterface;
 use Phel\Build\Domain\Transfer\CompilationResultTransfer;
 use Phel\Compiler\Domain\ValueObject\CompileOptions;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
 /**
- * Adapter implementing PhelCompilerPort using the CompilerFacade.
+ * Adapter implementing PhelCompilerInterface using the CompilerFacade.
  * Translates between Build module's domain language and Compiler module's interface.
  */
-final readonly class FacadeCompilerAdapter implements PhelCompilerPort
+final readonly class FacadeCompilerAdapter implements PhelCompilerInterface
 {
     public function __construct(
         private CompilerFacadeInterface $compilerFacade,

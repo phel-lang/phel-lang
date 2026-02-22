@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Build\Infrastructure\Adapter\FileSystem;
 
-use Phel\Build\Domain\Port\FileSystem\FileSystemPort;
+use Phel\Build\Domain\Port\FileSystem\FileSystemInterface;
 use RuntimeException;
 
 use function sprintf;
 
-final readonly class LocalFileSystemAdapter implements FileSystemPort
+final readonly class LocalFileSystemAdapter implements FileSystemInterface
 {
     public function read(string $path): string
     {

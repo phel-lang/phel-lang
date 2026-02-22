@@ -9,7 +9,7 @@ use Phel\Build\Domain\Cache\NamespaceCacheInterface;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
-use Phel\Build\Domain\Port\FileDiscovery\PhelFileDiscoveryPort;
+use Phel\Build\Domain\Port\FileDiscovery\PhelFileDiscoveryInterface;
 
 use function count;
 use function sprintf;
@@ -20,7 +20,7 @@ final readonly class CachedNamespaceExtractor implements NamespaceExtractorInter
         private NamespaceExtractorInterface $innerExtractor,
         private NamespaceCacheInterface $cache,
         private NamespaceSorterInterface $namespaceSorter,
-        private PhelFileDiscoveryPort $fileDiscovery,
+        private PhelFileDiscoveryInterface $fileDiscovery,
     ) {
     }
 

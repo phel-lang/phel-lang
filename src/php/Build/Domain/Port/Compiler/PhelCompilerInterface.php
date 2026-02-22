@@ -10,7 +10,7 @@ use Phel\Build\Domain\Transfer\CompilationResultTransfer;
  * Port interface for Phel code compilation.
  * Abstracts the Compiler module behind a Build-specific contract.
  */
-interface PhelCompilerPort
+interface PhelCompilerInterface
 {
     /**
      * Compiles Phel source code to PHP.

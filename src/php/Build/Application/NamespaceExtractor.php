@@ -9,7 +9,7 @@ use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\IO\FileIoInterface;
-use Phel\Build\Domain\Port\FileDiscovery\PhelFileDiscoveryPort;
+use Phel\Build\Domain\Port\FileDiscovery\PhelFileDiscoveryInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\InNsNode;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -30,7 +30,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
         private CompilerFacadeInterface $compilerFacade,
         private NamespaceSorterInterface $namespaceSorter,
         private FileIoInterface $fileIo,
-        private PhelFileDiscoveryPort $fileDiscovery,
+        private PhelFileDiscoveryInterface $fileDiscovery,
     ) {
     }
 

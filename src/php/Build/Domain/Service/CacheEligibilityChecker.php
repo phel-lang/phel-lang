@@ -6,7 +6,7 @@ namespace Phel\Build\Domain\Service;
 
 use Phel\Build\Domain\Compile\BuildOptions;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
-use Phel\Build\Domain\Port\FileSystem\FileSystemPort;
+use Phel\Build\Domain\Port\FileSystem\FileSystemInterface;
 
 /**
  * Domain service for determining cache eligibility during builds.
@@ -18,7 +18,7 @@ final readonly class CacheEligibilityChecker
      * @param list<string> $pathsToAvoidCache
      */
     public function __construct(
-        private FileSystemPort $fileSystem,
+        private FileSystemInterface $fileSystem,
         private array $pathsToAvoidCache,
     ) {
     }

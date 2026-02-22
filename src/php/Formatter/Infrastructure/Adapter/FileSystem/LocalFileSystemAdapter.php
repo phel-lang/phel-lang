@@ -5,15 +5,15 @@ declare(strict_types=1);
 namespace Phel\Formatter\Infrastructure\Adapter\FileSystem;
 
 use Phel\Formatter\Domain\Exception\FilePathException;
-use Phel\Formatter\Domain\Port\FileSystem\FileSystemPort;
+use Phel\Formatter\Domain\Port\FileSystem\FileSystemInterface;
 use RuntimeException;
 
 use function sprintf;
 
 /**
- * Local file system adapter implementing FileSystemPort.
+ * Local file system adapter implementing FileSystemInterface.
  */
-final class LocalFileSystemAdapter implements FileSystemPort
+final class LocalFileSystemAdapter implements FileSystemInterface
 {
     /**
      * @throws FilePathException
