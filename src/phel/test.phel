@@ -168,9 +168,9 @@
 (defn- assert-expr [form message]
   (cond
     (and (list? form) (= (first form) 'not) (list? (second form)) (= 3 (count (second form))))
-    (assert-binary form message true)
+    (assert-binary (second form) message true)
     (and (list? form) (= (first form) 'not) (list? (second form)) (= 2 (count (second form))))
-    (assert-predicate form message true)
+    (assert-predicate (second form) message true)
     (and (list? form) (= (first form) 'thrown?))
     (assert-thrown form message)
     (and (list? form) (= (first form) 'thrown-with-msg?))

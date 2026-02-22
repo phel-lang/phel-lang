@@ -141,7 +141,7 @@
     (loop [index 0]
       (if (= (php/mb_strlen s) index)
         true
-        (if (php/preg_match "/^\s$/u" (php/mb_substr s index 1))
+        (if (not= 0 (php/preg_match "/^\s$/u" (php/mb_substr s index 1)))
           (recur (inc index))
           false)))
     true))
