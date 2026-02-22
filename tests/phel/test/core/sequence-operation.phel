@@ -5,7 +5,12 @@
   (is (= 3 (peek [1 2 3])) "peek on vector")
   (is (nil? (peek [])) "peek on empty vector")
   (is (= 3 (peek (php/array 1 2 3))) "peek on php array")
-  (is (nil? (peek (php/array))) "peek on empty php array"))
+  (is (nil? (peek (php/array))) "peek on empty php array")
+  (is (nil? (peek nil)) "peek on nil")
+  # Lazy sequences (produced by filter, map, etc.) must also be supported
+  (is (= 3 (peek (filter |(> $ 0) [1 2 3]))) "peek on lazy seq from filter")
+  (is (= 6 (peek (map |(* $ 2) [1 2 3]))) "peek on lazy seq from map")
+  (is (nil? (peek (filter false? [1 2 3]))) "peek on empty lazy seq"))
 
 (def- testing-set-global-array (php/array 1 2 3))
 
@@ -160,7 +165,13 @@
 (deftest test-assoc
   (is (= {:a nil :b 2} (assoc {:a 1 :b 2} :a nil)) "assoc: nil on map")
   (is (= {:a 3 :b 2} (assoc {:a 1 :b 2} :a 3)) "assoc: replace entry on map")
-  (is (= {:a 1 :b 2 :c 3} (assoc {:a 1 :b 2} :c 3)) "assoc: append entry on map"))
+  (is (= {:a 1 :b 2 :c 3} (assoc {:a 1 :b 2} :c 3)) "assoc: append entry on map")
+  # Variadic k-v pairs
+  (is (= {:a 1 :b 2 :c 3} (assoc {} :a 1 :b 2 :c 3)) "assoc: multiple pairs on empty map")
+  (is (= {:a 9 :b 9 :c 9} (assoc {:a 1 :b 2 :c 3} :a 9 :b 9 :c 9)) "assoc: replace multiple entries")
+  (is (= [10 2 3] (assoc [1 2 3] 0 10)) "assoc: single pair on vector unchanged")
+  (is (= [10 20 3] (assoc [1 2 3] 0 10 1 20)) "assoc: multiple pairs on vector")
+  (is (thrown? \InvalidArgumentException (assoc {} :a 1 :b)) "assoc: odd extra args throws"))
 
 (deftest test-unset
   (is (= {:b 2} (unset {:a 1 :b 2} :a)) "unset: remove key from map"))
