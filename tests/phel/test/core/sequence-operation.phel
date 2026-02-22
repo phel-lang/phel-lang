@@ -5,7 +5,12 @@
   (is (= 3 (peek [1 2 3])) "peek on vector")
   (is (nil? (peek [])) "peek on empty vector")
   (is (= 3 (peek (php/array 1 2 3))) "peek on php array")
-  (is (nil? (peek (php/array))) "peek on empty php array"))
+  (is (nil? (peek (php/array))) "peek on empty php array")
+  (is (nil? (peek nil)) "peek on nil")
+  # Lazy sequences (produced by filter, map, etc.) must also be supported
+  (is (= 3 (peek (filter |(> $ 0) [1 2 3]))) "peek on lazy seq from filter")
+  (is (= 6 (peek (map |(* $ 2) [1 2 3]))) "peek on lazy seq from map")
+  (is (nil? (peek (filter false? [1 2 3]))) "peek on empty lazy seq"))
 
 (def- testing-set-global-array (php/array 1 2 3))
 
