@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - Add `tap>`, `add-tap`, `remove-tap`, and `reset-taps!` to `phel\debug` for a global tap handler system
 - Add `dir`, `apropos`, and `search-doc` to `phel\repl` for namespace exploration and documentation search
 - Add `defmulti` and `defmethod` macros for runtime polymorphism via dispatch functions
+- Add `--fail-fast` option to `phel test` to stop on first failure or error
 
 ### Changed
 - REPL and eval now use in-memory evaluation (`eval()`) instead of writing temp files, significantly reducing I/O overhead and startup time
