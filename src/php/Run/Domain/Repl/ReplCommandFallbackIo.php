@@ -6,44 +6,43 @@ namespace Phel\Run\Domain\Repl;
 
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
-use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Throwable;
 
-final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
+use const PHP_EOL;
+
+/**
+ * Fallback REPL I/O when the readline extension is not available.
+ * Uses fgets(STDIN) for input — no tab completion or history persistence.
+ */
+final readonly class ReplCommandFallbackIo implements ReplCommandIoInterface
 {
     public function __construct(
-        private string $historyFile,
         private CommandFacadeInterface $commandFacade,
-        private ApiFacadeInterface $apiFacade,
     ) {
-        readline_completion_function(
-            $this->apiFacade->replComplete(...),
-        );
     }
 
     public function readHistory(): void
     {
-        readline_clear_history();
-        readline_read_history($this->historyFile);
     }
 
     public function addHistory(string $line): void
     {
-        readline_add_history($line);
-        readline_write_history($this->historyFile);
     }
 
     public function readline(?string $prompt = null): ?string
     {
-        /** @var false|string $line */
-        $line = readline($prompt);
+        if ($prompt !== null) {
+            $this->write($prompt);
+        }
+
+        $line = fgets(STDIN);
 
         if ($line === false) {
             return null;
         }
 
-        return $line;
+        return rtrim($line, "\n\r");
     }
 
     public function writeStackTrace(Throwable $e): void
@@ -86,9 +85,6 @@ final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
 
     public function isBracketedPasteSupported(): bool
     {
-        $haystack = readline_info('library_version') ?? '';
-
-        return stripos($haystack, 'editline') === false;
+        return false;
     }
-
 }

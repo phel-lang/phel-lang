@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - Add `defmulti` and `defmethod` macros for runtime polymorphism via dispatch functions
 
 ### Changed
+- REPL now gracefully falls back to `fgets(STDIN)` when the readline extension is unavailable (Docker, CI)
 - `assoc` now accepts multiple key-value pairs in a single call (Clojure alignment): `(assoc m :a 1 :b 2 :c 3)`
 - **BREAKING**: `set` now coerces a collection to a set (Clojure alignment): `(set [1 2 3])` => `#{1 2 3}`
 - Use `hash-set` for creating sets from arguments: `(hash-set 1 2 3)` => `#{1 2 3}`
