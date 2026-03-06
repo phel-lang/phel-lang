@@ -31,7 +31,7 @@ interface IPlayer {
     public const BOUND_TO = "user\\choose";
 
     public function __invoke($p) {
-      if (\Phel\Lang\Truthy::isTruthy(is_a($p, "user\\IPlayer"))) {
+      if (($__truthy = is_a($p, "user\\IPlayer")) !== null && $__truthy !== false) {
         return (function() use($p) {
           $target_1 = $p;
           return $target_1->choose();
@@ -66,7 +66,7 @@ interface IPlayer {
     public const BOUND_TO = "user\\update_strategy";
 
     public function __invoke($p, $me, $you) {
-      if (\Phel\Lang\Truthy::isTruthy(is_a($p, "user\\IPlayer"))) {
+      if (($__truthy = is_a($p, "user\\IPlayer")) !== null && $__truthy !== false) {
         return (function() use($p,$me,$you) {
           $target_2 = $p;
           return $target_2->update_strategy($me, $you);

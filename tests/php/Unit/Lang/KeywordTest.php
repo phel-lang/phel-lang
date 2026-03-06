@@ -93,6 +93,27 @@ final class KeywordTest extends TestCase
         $this->assertTrue($keyword2->identical($keyword1));
     }
 
+    public function test_interned_same_instance(): void
+    {
+        $keyword1 = Keyword::create('interned');
+        $keyword2 = Keyword::create('interned');
+        $this->assertSame($keyword1, $keyword2);
+    }
+
+    public function test_interned_same_instance_with_namespace(): void
+    {
+        $keyword1 = Keyword::create('interned', 'ns');
+        $keyword2 = Keyword::create('interned', 'ns');
+        $this->assertSame($keyword1, $keyword2);
+    }
+
+    public function test_interned_different_instances_for_different_names(): void
+    {
+        $keyword1 = Keyword::create('a');
+        $keyword2 = Keyword::create('b');
+        $this->assertNotSame($keyword1, $keyword2);
+    }
+
     public function test_to_string(): void
     {
         $keyword = Keyword::create('test');

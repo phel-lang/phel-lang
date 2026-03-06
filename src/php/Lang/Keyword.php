@@ -10,6 +10,9 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
 {
     use MetaTrait;
 
+    /** @var array<string, self> */
+    private static array $internPool = [];
+
     private readonly int $hash;
 
     private function __construct(
@@ -30,7 +33,11 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
 
     public static function create(string $name, ?string $namespace = null): self
     {
-        return new self($namespace, $name);
+        $key = $namespace !== null && $namespace !== ''
+            ? $namespace . '/' . $name
+            : $name;
+
+        return self::$internPool[$key] ??= new self($namespace, $name);
     }
 
     /**
@@ -38,7 +45,7 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
      */
     public static function createForNamespace(string $namespace, string $name): self
     {
-        return new self($namespace, $name);
+        return self::create($name, $namespace);
     }
 
     public function getName(): string
@@ -72,8 +79,6 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
 
     public function identical(mixed $other): bool
     {
-        return ($other instanceof self)
-            && $this->name === $other->getName()
-            && $this->namespace === $other->getNamespace();
+        return $this === $other;
     }
 }

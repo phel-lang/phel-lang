@@ -16,18 +16,23 @@ All notable changes to this project will be documented in this file.
 - Add `tap>`, `add-tap`, `remove-tap`, and `reset-taps!` to `phel\debug` for a global tap handler system
 - Add `dir`, `apropos`, and `search-doc` to `phel\repl` for namespace exploration and documentation search
 - Add `defmulti` and `defmethod` macros for runtime polymorphism via dispatch functions
+- Add `--fail-fast` option to `phel test` to stop on first failure or error
 
 ### Changed
 - REPL now gracefully falls back to `fgets(STDIN)` when the readline extension is unavailable (Docker, CI)
+- Inline truthy checks at emit time — eliminates `Truthy::isTruthy()` static method call overhead on every conditional
+- REPL and eval now use in-memory evaluation (`eval()`) instead of writing temp files, significantly reducing I/O overhead and startup time
 - `assoc` now accepts multiple key-value pairs in a single call (Clojure alignment): `(assoc m :a 1 :b 2 :c 3)`
 - **BREAKING**: `set` now coerces a collection to a set (Clojure alignment): `(set [1 2 3])` => `#{1 2 3}`
 - Use `hash-set` for creating sets from arguments: `(hash-set 1 2 3)` => `#{1 2 3}`
+- Keywords are now interned (flyweight pattern) — same name/namespace returns the same instance, enabling `===` identity checks and reducing GC pressure
 
 ### Fixed
 - Functions used in string concatenation (e.g. `(str "Hello, " name "!")`) no longer crash with a PHP error; they now render as `<function:name>`
 - Fix `zipmap` causing out-of-memory error when used with infinite lazy sequences (e.g. `(zipmap keys (repeat val))`)
 - Fix `peek` crashing when used on lazy sequences (e.g. from `filter` or `map`)
 - Fix excessive blank lines in test output between test dots and summary
+- Fix REPL catch-all error handler showing raw PHP traces instead of source-mapped Phel stack traces
 
 ## [0.29.0](https://github.com/phel-lang/phel-lang/compare/v0.28.0...v0.29.0) - 2026-02-01
 
