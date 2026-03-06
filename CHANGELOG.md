@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - Add `tap>`, `add-tap`, `remove-tap`, and `reset-taps!` to `phel\debug` for a global tap handler system
 - Add `dir`, `apropos`, and `search-doc` to `phel\repl` for namespace exploration and documentation search
 - Add `defmulti` and `defmethod` macros for runtime polymorphism via dispatch functions
+- Add `--fail-fast` option to `phel test` to stop on first failure or error
 
 ### Changed
 - `assoc` now accepts multiple key-value pairs in a single call (Clojure alignment): `(assoc m :a 1 :b 2 :c 3)`

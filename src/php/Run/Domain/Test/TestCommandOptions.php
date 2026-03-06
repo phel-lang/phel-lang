@@ -14,9 +14,12 @@ final readonly class TestCommandOptions
 
     public const string TESTDOX = 'testdox';
 
+    public const string FAIL_FAST = 'fail-fast';
+
     private function __construct(
         private ?string $filter,
         private bool $testdox,
+        private bool $failFast,
     ) {
     }
 
@@ -30,6 +33,7 @@ final readonly class TestCommandOptions
         return new self(
             $options[self::FILTER] ?? null,
             !empty($options[self::TESTDOX]),
+            !empty($options[self::FAIL_FAST]),
         );
     }
 
@@ -42,9 +46,10 @@ final readonly class TestCommandOptions
             : $printer->print($this->filter);
 
         return sprintf(
-            '{:filter %s :testdox %s}',
+            '{:filter %s :testdox %s :fail-fast %s}',
             $filter,
             $printer->print($this->testdox),
+            $printer->print($this->failFast),
         );
     }
 }
