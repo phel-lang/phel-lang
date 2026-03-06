@@ -28,9 +28,9 @@ final class IfEmitter implements NodeEmitterInterface
 
     private function emitTernaryCondition(IfNode $node): void
     {
-        $this->outputEmitter->emitStr('((\Phel\Lang\Truthy::isTruthy(', $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr('(($__truthy = ', $node->getStartSourceLocation());
         $this->outputEmitter->emitNode($node->getTestExpr());
-        $this->outputEmitter->emitStr(')) ? ', $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr(') !== null && $__truthy !== false ? ', $node->getStartSourceLocation());
         $this->outputEmitter->emitNode($node->getThenExpr());
         $this->outputEmitter->emitStr(' : ', $node->getStartSourceLocation());
         $this->outputEmitter->emitNode($node->getElseExpr());
@@ -39,9 +39,9 @@ final class IfEmitter implements NodeEmitterInterface
 
     private function emitIfElseCondition(IfNode $node): void
     {
-        $this->outputEmitter->emitStr('if (\Phel\Lang\Truthy::isTruthy(', $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr('if (($__truthy = ', $node->getStartSourceLocation());
         $this->outputEmitter->emitNode($node->getTestExpr());
-        $this->outputEmitter->emitLine(')) {', $node->getStartSourceLocation());
+        $this->outputEmitter->emitLine(') !== null && $__truthy !== false) {', $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitNode($node->getThenExpr());
         $this->outputEmitter->decreaseIndentLevel();
