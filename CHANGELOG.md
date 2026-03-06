@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 - Fix `zipmap` causing out-of-memory error when used with infinite lazy sequences (e.g. `(zipmap keys (repeat val))`)
 - Fix `peek` crashing when used on lazy sequences (e.g. from `filter` or `map`)
 - Fix excessive blank lines in test output between test dots and summary
+- Fix REPL catch-all error handler showing raw PHP traces instead of source-mapped Phel stack traces
 
 ## [0.29.0](https://github.com/phel-lang/phel-lang/compare/v0.28.0...v0.29.0) - 2026-02-01
 
