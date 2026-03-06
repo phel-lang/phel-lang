@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - `assoc` now accepts multiple key-value pairs in a single call (Clojure alignment): `(assoc m :a 1 :b 2 :c 3)`
 - **BREAKING**: `set` now coerces a collection to a set (Clojure alignment): `(set [1 2 3])` => `#{1 2 3}`
 - Use `hash-set` for creating sets from arguments: `(hash-set 1 2 3)` => `#{1 2 3}`
+- Keywords are now interned (flyweight pattern) — same name/namespace returns the same instance, enabling `===` identity checks and reducing GC pressure
 
 ### Fixed
 - Functions used in string concatenation (e.g. `(str "Hello, " name "!")`) no longer crash with a PHP error; they now render as `<function:name>`
