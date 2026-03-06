@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - Add `--fail-fast` option to `phel test` to stop on first failure or error
 
 ### Changed
+- REPL now gracefully falls back to `fgets(STDIN)` when the readline extension is unavailable (Docker, CI)
 - Inline truthy checks at emit time — eliminates `Truthy::isTruthy()` static method call overhead on every conditional
 - REPL and eval now use in-memory evaluation (`eval()`) instead of writing temp files, significantly reducing I/O overhead and startup time
 - `assoc` now accepts multiple key-value pairs in a single call (Clojure alignment): `(assoc m :a 1 :b 2 :c 3)`
