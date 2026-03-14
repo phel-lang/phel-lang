@@ -96,13 +96,27 @@ final class NodeEnvironment implements NodeEnvironmentInterface
 
     public function withMergedLocals(array $locals): NodeEnvironmentInterface
     {
-        $allLocalSymbols = [...$this->locals, ...array_map(
-            static fn (Symbol $s): Symbol => Symbol::create($s->getName()),
-            $locals,
-        )];
+        $seen = [];
+        $allLocalSymbols = [];
+
+        foreach ($this->locals as $local) {
+            $name = $local->getName();
+            if (!isset($seen[$name])) {
+                $seen[$name] = true;
+                $allLocalSymbols[] = $local;
+            }
+        }
+
+        foreach ($locals as $local) {
+            $name = $local->getName();
+            if (!isset($seen[$name])) {
+                $seen[$name] = true;
+                $allLocalSymbols[] = $local;
+            }
+        }
 
         return $this
-            ->withLocals(array_unique($allLocalSymbols))
+            ->withLocals($allLocalSymbols)
             ->withoutShadowedLocals($locals);
     }
 
