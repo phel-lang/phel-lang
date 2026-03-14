@@ -210,68 +210,25 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     {
         $symbols = [];
 
-        // Add definitions from the current namespace
-        if (isset($this->definitions[$this->ns])) {
-            foreach (array_keys($this->definitions[$this->ns]) as $name) {
-                $symbols[] = $name;
+        $sources = [
+            $this->definitions[$this->ns] ?? [],
+            $this->definitions[CompilerConstants::PHEL_CORE_NAMESPACE] ?? [],
+            $this->refers[$this->ns] ?? [],
+            $this->requireAliases[$this->ns] ?? [],
+            $this->useAliases[$this->ns] ?? [],
+            $this->interfaces[$this->ns] ?? [],
+            $this->interfaces[CompilerConstants::PHEL_CORE_NAMESPACE] ?? [],
+            Phel::getDefinitionInNamespace($this->mungeEncodeNs($this->ns)),
+            Phel::getDefinitionInNamespace($this->mungeEncodeNs(CompilerConstants::PHEL_CORE_NAMESPACE)),
+        ];
+
+        foreach ($sources as $source) {
+            foreach (array_keys($source) as $name) {
+                $symbols[$name] = true;
             }
         }
 
-        // Add definitions from phel\core namespace
-        if (isset($this->definitions[CompilerConstants::PHEL_CORE_NAMESPACE])) {
-            foreach (array_keys($this->definitions[CompilerConstants::PHEL_CORE_NAMESPACE]) as $name) {
-                $symbols[] = $name;
-            }
-        }
-
-        // Add referred symbols in the current namespace
-        if (isset($this->refers[$this->ns])) {
-            foreach (array_keys($this->refers[$this->ns]) as $name) {
-                $symbols[] = $name;
-            }
-        }
-
-        // Add require aliases in the current namespace
-        if (isset($this->requireAliases[$this->ns])) {
-            foreach (array_keys($this->requireAliases[$this->ns]) as $name) {
-                $symbols[] = $name;
-            }
-        }
-
-        // Add use aliases in the current namespace
-        if (isset($this->useAliases[$this->ns])) {
-            foreach (array_keys($this->useAliases[$this->ns]) as $name) {
-                $symbols[] = $name;
-            }
-        }
-
-        // Add interfaces from the current namespace
-        if (isset($this->interfaces[$this->ns])) {
-            foreach (array_keys($this->interfaces[$this->ns]) as $name) {
-                $symbols[] = $name;
-            }
-        }
-
-        // Add interfaces from phel\core namespace
-        if (isset($this->interfaces[CompilerConstants::PHEL_CORE_NAMESPACE])) {
-            foreach (array_keys($this->interfaces[CompilerConstants::PHEL_CORE_NAMESPACE]) as $name) {
-                $symbols[] = $name;
-            }
-        }
-
-        // Get definitions from Phel runtime for current namespace
-        $runtimeSymbols = Phel::getDefinitionInNamespace($this->mungeEncodeNs($this->ns));
-        foreach (array_keys($runtimeSymbols) as $name) {
-            $symbols[] = $name;
-        }
-
-        // Get definitions from Phel runtime for phel\core namespace
-        $coreSymbols = Phel::getDefinitionInNamespace($this->mungeEncodeNs(CompilerConstants::PHEL_CORE_NAMESPACE));
-        foreach (array_keys($coreSymbols) as $name) {
-            $symbols[] = $name;
-        }
-
-        return array_values(array_unique($symbols));
+        return array_keys($symbols);
     }
 
     private function initializeNamespace(string $namespace): void
