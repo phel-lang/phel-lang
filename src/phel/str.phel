@@ -198,22 +198,24 @@
   "Returns the last index of value in s, or nil if not found."
   {:example "(last-index-of \"hello world world\" \"world\") ; => 12"}
   [s value & [from-index]]
-  (let [max-index (dec (php/mb_strlen s))
+  (let [len (php/mb_strlen s)
+        max-index (dec len)
         from-index (or from-index max-index)
         from-index (let [abs (php/abs from-index)
                          v (min abs max-index)]
                      (if (< from-index 0)
                        (- max-index v)
-                       v))]
-    (loop [s s
-           value value
-           from-index from-index]
-      (if (< from-index 0)
-        nil
-        (let [target (php/mb_substr s from-index)]
-          (if (includes? target value)
-            from-index
-            (recur s value (dec from-index))))))))
+                       v))
+        result (php/mb_strrpos s value 0)]
+    (if (php/=== result false)
+      nil
+      (if (<= result from-index)
+        result
+        (let [sub (php/mb_substr s 0 (php/+ from-index 1))
+              result (php/mb_strrpos sub value 0)]
+          (if (php/=== result false)
+            nil
+            result))))))
 
 (defn split-lines
   "Splits s on \\n or \\r\\n. Trailing empty lines are not returned."
