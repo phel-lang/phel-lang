@@ -25,6 +25,9 @@ final class OutputEmitter implements OutputEmitterInterface
 {
     private int $indentLevel = 0;
 
+    /** @var array<int, string> */
+    private array $indentCache = [];
+
     public function __construct(
         private readonly bool $enableSourceMaps,
         private readonly NodeEmitterFactory $nodeEmitterFactory,
@@ -76,8 +79,9 @@ final class OutputEmitter implements OutputEmitterInterface
     public function emitStr(string $str, ?SourceLocation $sl = null): void
     {
         if ($this->sourceMapState->getGeneratedColumns() === 0) {
-            $this->sourceMapState->incGeneratedColumns($this->indentLevel * 2);
-            echo str_repeat(' ', $this->indentLevel * 2);
+            $indent = $this->indentLevel * 2;
+            $this->sourceMapState->incGeneratedColumns($indent);
+            echo $this->indentCache[$this->indentLevel] ??= str_repeat(' ', $indent);
         }
 
         if ($this->enableSourceMaps && $sl instanceof SourceLocation) {
