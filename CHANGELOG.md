@@ -32,6 +32,10 @@ All notable changes to this project will be documented in this file.
 - Optimize `PersistentList::get()` — early bounds check, loop only to target index
 - Eliminate double hash lookup in `PersistentHashSet::add()`/`remove()`
 - Optimize `PersistentVector::cons()` — use `TransientVector` instead of full array rebuild
+- Deduplicate `GlobalEnvironment::getAllDefinitions()` via hash keys instead of `array_unique`
+- Optimize `NodeEnvironment::withMergedLocals()` — avoid `array_unique` on Symbol objects
+- Use 2-level nested cache in `NodeEmitterFactory` to avoid string concatenation per node
+- Cache indentation strings in `OutputEmitter`
 - REPL now gracefully falls back to `fgets(STDIN)` when the readline extension is unavailable (Docker, CI)
 - Inline truthy checks at emit time — eliminates `Truthy::isTruthy()` static method call overhead on every conditional
 - REPL and eval now use in-memory evaluation (`eval()`) instead of writing temp files, significantly reducing I/O overhead and startup time
