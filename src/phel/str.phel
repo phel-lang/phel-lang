@@ -48,17 +48,23 @@
   [s n]
   (php/str_repeat s n))
 
+(defn- as-pattern
+  "Ensures match is a regex pattern. If it looks like a delimited regex
+  (first and last chars match), returns as-is; otherwise wraps as literal."
+  [match]
+  (if (and
+       (> (php/mb_strlen match) 1)
+       (=
+        (php/substr match 0 1)
+        (php/substr match -1 1)))
+    match
+    (format "/%s/" (php/preg_quote match "/"))))
+
 (defn replace
   "Replaces all instances of match with replacement in s."
   {:example "(replace \"hello world\" \"world\" \"there\") ; => \"hello there\""}
   [s match replacement]
-  (let [match (if (and
-                   (> (php/mb_strlen match) 1)
-                   (=
-                    (php/substr match 0 1)
-                    (php/substr match -1 1)))
-                match
-                (format "/%s/" (php/preg_quote match "/")))]
+  (let [match (as-pattern match)]
     (if (function? replacement)
       (php/preg_replace_callback match (fn [x]
                                          (let [x (values (php-array-to-map x))]
@@ -69,13 +75,7 @@
   "Replaces the first instance of match with replacement in s."
   {:example "(replace-first \"hello world world\" \"world\" \"there\") ; => \"hello there world\""}
   [s match replacement]
-  (let [match (if (and
-                   (> (php/mb_strlen match) 1)
-                   (=
-                    (php/substr match 0 1)
-                    (php/substr match -1 1)))
-                match
-                (format "/%s/" (php/preg_quote match "/")))]
+  (let [match (as-pattern match)]
     (if (function? replacement)
       (php/preg_replace_callback match (fn [x]
                                          (let [x (values (php-array-to-map x))]
