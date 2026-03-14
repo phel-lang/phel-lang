@@ -138,12 +138,7 @@
   {:example "(blank? \"   \") ; => true"}
   [s]
   (if s
-    (loop [index 0]
-      (if (= (php/mb_strlen s) index)
-        true
-        (if (not= 0 (php/preg_match "/^\s$/u" (php/mb_substr s index 1)))
-          (recur (inc index))
-          false)))
+    (not= 0 (php/preg_match "/^\\s*$/u" s))
     true))
 
 (defn starts-with?
