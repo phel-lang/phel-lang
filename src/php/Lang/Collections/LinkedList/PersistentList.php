@@ -109,18 +109,18 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
      */
     public function get(int $i)
     {
-        $list = $this;
-        for ($j = 0; $j < $this->count; ++$j) {
-            if ($j === $i) {
-                /** @var T $result */
-                $result = $list->first();
-                return $result;
-            }
+        if ($i < 0 || $i >= $this->count) {
+            throw new IndexOutOfBoundsException('Index out of bounds');
+        }
 
+        $list = $this;
+        for ($j = 0; $j < $i; ++$j) {
             $list = $list->rest();
         }
 
-        throw new IndexOutOfBoundsException('Index out of bounds');
+        /** @var T $result */
+        $result = $list->first();
+        return $result;
     }
 
     public function equals(mixed $other): bool
