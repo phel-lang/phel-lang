@@ -19,6 +19,11 @@ All notable changes to this project will be documented in this file.
 - Add `--fail-fast` option to `phel test` to stop on first failure or error
 
 ### Changed
+- Optimize `str/blank?`: single regex pass instead of character-by-character loop
+- Optimize `str/escape`: `array_map` + `implode` instead of O(n²) string concatenation
+- Optimize `str/last-index-of`: native `mb_strrpos` instead of O(n²) loop
+- Optimize `core/reverse`: native `array_reverse` instead of element-by-element `conj`
+- Optimize `core/interleave`: `reduce` + `conj` instead of repeated `concat`
 - REPL now gracefully falls back to `fgets(STDIN)` when the readline extension is unavailable (Docker, CI)
 - Inline truthy checks at emit time — eliminates `Truthy::isTruthy()` static method call overhead on every conditional
 - REPL and eval now use in-memory evaluation (`eval()`) instead of writing temp files, significantly reducing I/O overhead and startup time
