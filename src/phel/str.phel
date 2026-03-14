@@ -175,13 +175,9 @@
   "Returns a new string with each character escaped according to cmap."
   {:example "(escape \"hello\" {\"h\" \"H\" \"o\" \"O\"}) ; => \"HellO\""}
   [s cmap]
-  (loop [index 0
-         buffer ""]
-    (if (= (php/mb_strlen s) index)
-      buffer
-      (let [ch (php/mb_substr s index 1)]
-        (let [ch (or (cmap ch) ch)]
-          (recur (inc index) (format "%s%s" buffer ch)))))))
+  (let [chars (php/mb_str_split s)
+        mapped (php/array_map (fn [ch] (or (cmap ch) ch)) chars)]
+    (php/implode "" mapped)))
 
 (defn index-of
   "Returns the index of value in s, or nil if not found."
