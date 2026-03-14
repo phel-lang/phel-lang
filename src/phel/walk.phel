@@ -20,15 +20,13 @@
         (vec (map inner form))
 
         (= t :hash-map)
-        (into {} (map |(let [k (first $) v (second $)] [(inner k) (inner v)])
-                      (for [p :pairs form] p)))
+        (into {} (for [[k v] :pairs form] [(inner k) (inner v)]))
 
         (= t :set)
-        (into (hash-set) (map inner (for [x :in form] x)))
+        (into (hash-set) (map inner form))
 
         (= t :struct)
-        (into {} (map |(let [k (first $) v (second $)] [(inner k) (inner v)])
-                      (for [p :pairs form] p)))
+        (into {} (for [[k v] :pairs form] [(inner k) (inner v)]))
 
         form))))
 
@@ -79,9 +77,8 @@
     (fn [form]
       (if (= (type form) :hash-map)
         (into {}
-          (map |(let [k (first $) v (second $)]
-                  [(if (string? k) (keyword k) k) v])
-               (for [p :pairs form] p)))
+          (for [[k v] :pairs form]
+            [(if (string? k) (keyword k) k) v]))
         form))
     m))
 
@@ -95,8 +92,7 @@
     (fn [form]
       (if (= (type form) :hash-map)
         (into {}
-          (map |(let [k (first $) v (second $)]
-                  [(if (keyword? k) (name k) k) v])
-               (for [p :pairs form] p)))
+          (for [[k v] :pairs form]
+            [(if (keyword? k) (name k) k) v]))
         form))
     m))
