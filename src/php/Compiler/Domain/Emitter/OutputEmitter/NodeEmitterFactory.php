@@ -82,7 +82,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 
 final class NodeEmitterFactory
 {
-    /** @var array<string, NodeEmitterInterface> */
+    /** @var array<int, array<string, NodeEmitterInterface>> */
     private array $emitterCache = [];
 
     /** @var array<int, MethodEmitter> */
@@ -92,13 +92,10 @@ final class NodeEmitterFactory
         OutputEmitterInterface $outputEmitter,
         string $astNodeClassName,
     ): NodeEmitterInterface {
-        $cacheKey = spl_object_id($outputEmitter) . ':' . $astNodeClassName;
+        $objId = spl_object_id($outputEmitter);
 
-        if (!isset($this->emitterCache[$cacheKey])) {
-            $this->emitterCache[$cacheKey] = $this->instantiateEmitter($outputEmitter, $astNodeClassName);
-        }
-
-        return $this->emitterCache[$cacheKey];
+        return $this->emitterCache[$objId][$astNodeClassName]
+            ??= $this->instantiateEmitter($outputEmitter, $astNodeClassName);
     }
 
     private function instantiateEmitter(
