@@ -1678,10 +1678,7 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
   "Reverses the order of the elements in the given sequence."
   {:example "(reverse [1 2 3 4]) ; => [4 3 2 1]"}
   [coll]
-  (let [result
-        (for [i :range [(php/- (count coll) 1) -1 -1]
-              :reduce [ret []]]
-          (conj ret (get coll i)))]
+  (let [result (apply vector (php/array_reverse (to-php-array coll)))]
     (with-meta coll result)))
 
 (defn interleave
