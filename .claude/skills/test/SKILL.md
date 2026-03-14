@@ -1,13 +1,13 @@
+---
+description: Run tests with smart filtering by scope, class, or file path
+argument-hint: "[scope-or-filter]"
+disable-model-invocation: true
+allowed-tools: "Bash(composer *), Bash(./vendor/bin/phpunit *), Bash(./bin/phel *)"
+---
+
 # Quick Test Runner
 
-Run tests with smart filtering.
-
-## Arguments
-- `$ARGUMENTS` - Optional: scope or filter
-
-## Instructions
-
-1. If `$ARGUMENTS` is empty or `all`, run full suite:
+1. If `$ARGUMENTS` is empty or `all`:
    ```bash
    composer test
    ```

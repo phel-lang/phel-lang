@@ -1,9 +1,11 @@
+---
+description: Auto-fix all code quality issues with rector, cs-fixer, and phpstan
+argument-hint: "[file-path]"
+disable-model-invocation: true
+allowed-tools: "Read, Edit, Bash(composer *), Bash(./vendor/bin/*)"
+---
+
 # Fix All Code Quality Issues
-
-Auto-fix all code quality issues in sequence.
-
-## Arguments
-- `$ARGUMENTS` - Optional: file path to fix a specific file instead of the whole project
 
 ## Instructions
 

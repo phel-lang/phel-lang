@@ -12,15 +12,10 @@ tests/phel/    → Phel test files
 build/         → PHAR build scripts, release tooling
 ```
 
-## Code Style
-
-- **PHP**: PSR-12 via php-cs-fixer + rector. Run `composer fix` to auto-fix.
-- **Phel**: kebab-case for functions/variables. Clojure-aligned semantics.
-
 ## Testing
 
 ```bash
-composer test              # Run all tests (quality + compiler + core)
+composer test              # All tests (quality + compiler + core)
 composer test-quality      # Static analysis: cs-fixer, psalm, phpstan, rector
 composer test-compiler     # PHPUnit unit + integration tests
 composer test-core         # Phel core tests (./bin/phel test)
