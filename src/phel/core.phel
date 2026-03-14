@@ -656,15 +656,21 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
     false))
 
 (defn every?
-  "Alias for `all?`."
+  "Returns true if predicate is true for every element in collection, false otherwise.
+  Alias for `all?`."
+  {:example "(every? even? [2 4 6 8]) ; => true"
+   :see-also ["all?" "not-every?"]}
   [pred coll]
-  (all? pred coll))
+  (cond
+    (php/=== (count coll) 0) true
+    (pred (first coll))     (recur pred (next coll))
+    false))
 
 (defn not-every?
   "Returns false if `(pred x)` is logical true for every `x` in collection `coll`
    or if `coll` is empty. Otherwise returns true."
   [pred coll]
-  (not (every? pred coll)))
+  (not (all? pred coll)))
 
 (declare empty?)
 (declare truthy?)
