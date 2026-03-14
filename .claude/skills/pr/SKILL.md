@@ -33,19 +33,12 @@ allowed-tools: "Read, Edit, Bash(git *), Bash(gh *)"
    - PR title format: `<type>(<scope>): <short description>` (conventional commit style, under 70 chars)
    - Derive the type from the branch prefix (`feat/` → feat, `fix/` → fix, `docs/` → docs)
 
-4. **Read `.github/PULL_REQUEST_TEMPLATE.md`** and follow its structure for the PR body.
+4. **Read `.github/PULL_REQUEST_TEMPLATE.md`** and use its **exact section headers** (including emojis) for the PR body. Do NOT hardcode headers — always read the template file first.
 
-5. **Create PR**:
+5. **Create PR** using the headers from the template:
    ```bash
    gh pr create --title "<title>" --assignee @me --label "<label>" --body "$(cat <<'EOF'
-   ## Background
-   <context for the reviewer>
-
-   ## Goal
-   <what this PR achieves, from a user perspective>
-
-   ## Changes
-   <list of individual changes>
+   <paste exact headers from .github/PULL_REQUEST_TEMPLATE.md>
 
    Closes #<issue-number>
    EOF
