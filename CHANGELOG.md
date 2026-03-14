@@ -27,6 +27,11 @@ All notable changes to this project will be documented in this file.
 - Eliminate redundant iterations in `walk`, `keywordize-keys`, and `stringify-keys`
 - Cache `print-value` result in `pprint` to avoid redundant calls
 - Extract `as-pattern` helper to deduplicate `str/replace` and `str/replace-first`
+- Add identity fast-path (`===`) in `Equalizer::equals()` to skip `instanceof` for identical values
+- Optimize `NodeEnvironment::hasLocal()` — direct name comparison instead of `Symbol::create()` + `in_array`
+- Optimize `PersistentList::get()` — early bounds check, loop only to target index
+- Eliminate double hash lookup in `PersistentHashSet::add()`/`remove()`
+- Optimize `PersistentVector::cons()` — use `TransientVector` instead of full array rebuild
 - REPL now gracefully falls back to `fgets(STDIN)` when the readline extension is unavailable (Docker, CI)
 - Inline truthy checks at emit time — eliminates `Truthy::isTruthy()` static method call overhead on every conditional
 - REPL and eval now use in-memory evaluation (`eval()`) instead of writing temp files, significantly reducing I/O overhead and startup time
