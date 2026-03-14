@@ -1,6 +1,8 @@
 ---
 description: Analyze code for SOLID violations, clean code issues, and architecture compliance
 argument-hint: "[file-or-directory]"
+context: fork
+agent: Explore
 allowed-tools: "Read, Glob, Grep"
 ---
 

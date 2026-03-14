@@ -20,5 +20,42 @@
             "Bash(reboot:*)",
             "Bash(mkfs:*)"
         ]
+    },
+    "hooks": {
+        "PostToolUse": [
+            {
+                "matcher": "Edit|Write",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": ".claude/hooks/format-php.sh",
+                        "timeout": 30
+                    }
+                ]
+            }
+        ],
+        "PreToolUse": [
+            {
+                "matcher": "Edit|Write",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": ".claude/hooks/protect-files.sh",
+                        "timeout": 5
+                    }
+                ]
+            }
+        ],
+        "SessionStart": [
+            {
+                "matcher": "compact",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": ".claude/hooks/compact-context.sh"
+                    }
+                ]
+            }
+        ]
     }
 }

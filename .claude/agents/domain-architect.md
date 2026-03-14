@@ -2,6 +2,7 @@
 name: domain-architect
 description: Expert on Phel's modular architecture. Use for architecture reviews, module boundary decisions, placing new features, or dependency analysis.
 model: opus
+memory: project
 allowed_tools:
   - Read
   - Glob

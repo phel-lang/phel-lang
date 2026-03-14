@@ -2,6 +2,7 @@
 name: explorer
 description: Fast read-only codebase exploration. Use for finding files, searching usages, mapping dependencies, or summarizing structures.
 model: haiku
+maxTurns: 10
 allowed_tools:
   - Read
   - Glob
