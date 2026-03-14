@@ -1695,10 +1695,10 @@ This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
           size (count first-coll)
           result (loop [i 0
                         res []]
-                   (let [nths (apply vector (map |(get $ i) colls))]
-                     (if (<= size i)
-                       res
-                       (recur (php/+ i 1) (concat res nths)))))]
+                   (if (<= size i)
+                     res
+                     (recur (php/+ i 1)
+                            (reduce |(conj $1 (get $2 i)) res colls))))]
       (with-meta first-coll result))))
 
 (defn interpose
