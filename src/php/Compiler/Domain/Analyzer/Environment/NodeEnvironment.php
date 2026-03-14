@@ -9,7 +9,6 @@ use Phel\Lang\Symbol;
 
 use function array_key_exists;
 use function count;
-use function in_array;
 
 final class NodeEnvironment implements NodeEnvironmentInterface
 {
@@ -56,7 +55,14 @@ final class NodeEnvironment implements NodeEnvironmentInterface
 
     public function hasLocal(Symbol $x): bool
     {
-        return in_array(Symbol::create($x->getName()), $this->locals, false);
+        $name = $x->getName();
+        foreach ($this->locals as $local) {
+            if ($local->getName() === $name) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
