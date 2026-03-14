@@ -17,10 +17,14 @@ final class Equalizer implements EqualizerInterface
      */
     public function equals(mixed $a, mixed $b): bool
     {
+        if ($a === $b) {
+            return true;
+        }
+
         if ($a instanceof EqualsInterface) {
             return $a->equals($b);
         }
 
-        return $a === $b;
+        return false;
     }
 }
