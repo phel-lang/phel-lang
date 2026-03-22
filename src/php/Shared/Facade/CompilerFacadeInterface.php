@@ -115,4 +115,28 @@ interface CompilerFacadeInterface
      * Resets the GlobalEnvironment to an uninitialized state.
      */
     public function resetGlobalEnvironment(): void;
+
+    /**
+     * Extracts the current GlobalEnvironment state for a namespace
+     * in a serializable plain-array format.
+     *
+     * @return array{
+     *     refers: array<string, array{ns: ?string, name: string}>,
+     *     require_aliases: array<string, array{ns: ?string, name: string}>,
+     *     use_aliases: array<string, array{ns: ?string, name: string}>,
+     * }
+     */
+    public function getNamespaceEnvironmentData(string $namespace): array;
+
+    /**
+     * Restores GlobalEnvironment state for a namespace from
+     * previously serialized environment data.
+     *
+     * @param array{
+     *     refers: array<string, array{ns: ?string, name: string}>,
+     *     require_aliases: array<string, array{ns: ?string, name: string}>,
+     *     use_aliases: array<string, array{ns: ?string, name: string}>,
+     * } $envData
+     */
+    public function restoreNamespaceEnvironmentData(string $namespace, array $envData): void;
 }

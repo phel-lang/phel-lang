@@ -182,4 +182,18 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
     {
         GlobalEnvironmentSingleton::reset();
     }
+
+    public function getNamespaceEnvironmentData(string $namespace): array
+    {
+        return $this->getFactory()
+            ->createNamespaceEnvironmentSerializer()
+            ->capture($namespace);
+    }
+
+    public function restoreNamespaceEnvironmentData(string $namespace, array $envData): void
+    {
+        $this->getFactory()
+            ->createNamespaceEnvironmentSerializer()
+            ->restore($namespace, $envData);
+    }
 }
