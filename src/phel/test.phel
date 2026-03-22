@@ -11,6 +11,8 @@
 
 (def- testdox? (var false))
 
+(def- fail-fast? (var false))
+
 (def- *current-test-name* nil)
 
 (def- stats (var {:failed []
@@ -29,6 +31,11 @@
 
 (defn- should-report-println? [total-columns]
   (= (% (get-in (deref stats) [:counts :total]) total-columns) 0))
+
+(defn- should-stop? []
+  (and (deref fail-fast?)
+       (let [{:failed f :error e} (get (deref stats) :counts)]
+         (pos? (+ f e)))))
 
 (defn report
   "Records test results and prints status indicators."
@@ -168,9 +175,9 @@
 (defn- assert-expr [form message]
   (cond
     (and (list? form) (= (first form) 'not) (list? (second form)) (= 3 (count (second form))))
-    (assert-binary form message true)
+    (assert-binary (second form) message true)
     (and (list? form) (= (first form) 'not) (list? (second form)) (= 2 (count (second form))))
-    (assert-predicate form message true)
+    (assert-predicate (second form) message true)
     (and (list? form) (= (first form) 'thrown?))
     (assert-thrown form message)
     (and (list? form) (= (first form) 'thrown-with-msg?))
@@ -325,7 +332,8 @@
 
 (defn- run-test [options ns]
   (let [tests (find-test-fns ns options)]
-    (dofor [test :in tests]
+    (dofor [test :in tests
+            :when (not (should-stop?))]
       (test))))
 
 (defn run-tests
@@ -333,8 +341,10 @@
   {:example "(run-tests {} 'my-app\test)"}
   [options & namespaces]
   (set! testdox? (:testdox options))
+  (set! fail-fast? (:fail-fast options))
   (dofor [namespace :in namespaces
-          :let [ns-name (name namespace)]]
+          :let [ns-name (name namespace)]
+          :when (not (should-stop?))]
     (run-test options ns-name))
   (print-summary))
 

@@ -63,11 +63,12 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
      */
     public function add($value): PersistentHashSetInterface
     {
-        if ($this->contains($value)) {
+        $newMap = $this->map->put($value, $value);
+        if ($newMap === $this->map) {
             return $this;
         }
 
-        return new self($this->hasher, $this->meta, $this->map->put($value, $value));
+        return new self($this->hasher, $this->meta, $newMap);
     }
 
     /**
@@ -75,11 +76,12 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
      */
     public function remove($value): PersistentHashSetInterface
     {
-        if ($this->contains($value)) {
-            return new self($this->hasher, $this->meta, $this->map->remove($value));
+        $newMap = $this->map->remove($value);
+        if ($newMap === $this->map) {
+            return $this;
         }
 
-        return $this;
+        return new self($this->hasher, $this->meta, $newMap);
     }
 
     public function count(): int

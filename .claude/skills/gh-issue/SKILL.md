@@ -1,9 +1,14 @@
+---
+description: Fetch a GitHub issue, create a branch, implement with TDD, and open a PR
+argument-hint: "[issue-number]"
+disable-model-invocation: true
+---
+
 # GitHub Issue Workflow
 
-Fetch a GitHub issue, create a branch, implement it end-to-end, and open a PR.
+## Context
 
-## Arguments
-- `$ARGUMENTS` - Issue number (e.g., `2` or `#2`)
+!`gh issue view ${ARGUMENTS#\#} --json title,body,labels,assignees,state 2>/dev/null || echo "Provide an issue number"`
 
 ## Instructions
 
@@ -11,17 +16,12 @@ Fetch a GitHub issue, create a branch, implement it end-to-end, and open a PR.
 
 1. **Parse the issue number** from `$ARGUMENTS` (strip `#` if present)
 
-2. **Fetch issue details**:
-   ```bash
-   gh issue view <number> --json title,body,labels,assignees,state
-   ```
-
-3. **Assign yourself if unassigned**:
+2. **Assign yourself if unassigned**:
    ```bash
    gh issue edit <number> --add-assignee @me
    ```
 
-4. **Create a branch** from `main` based on the issue type:
+3. **Create a branch** from `main` based on the issue type:
 
    Determine the branch prefix from labels:
    - `bug` → `fix/`
@@ -36,19 +36,15 @@ Fetch a GitHub issue, create a branch, implement it end-to-end, and open a PR.
    git checkout -b <branch-name>
    ```
 
-   **Example:** Issue #42 "Add user notifications" with `enhancement` label → `feat/42-add-user-notifications`
-
 ### Phase 2: Plan
 
-5. **Analyze the issue**: Understand requirements from title and body
-
-6. **Enter Plan Mode** to design the implementation:
+4. **Enter Plan Mode** to design the implementation:
    - Explore the codebase to understand affected areas
    - Identify files that need changes
    - Consider the module architecture (Gacela facades, module boundaries)
    - Plan the TDD approach (what tests to write first)
 
-7. **Create implementation plan** with:
+5. **Create implementation plan** with:
    - Summary of what the issue requires
    - List of files to create/modify
    - Test strategy (unit, integration)
@@ -56,12 +52,12 @@ Fetch a GitHub issue, create a branch, implement it end-to-end, and open a PR.
 
 ### Phase 3: Implement
 
-8. **After plan approval**, implement following TDD:
+6. **After plan approval**, implement following TDD:
    - Write failing tests first
    - Implement minimum code to pass
    - Refactor while keeping tests green
 
-9. **Run full test suite**:
+7. **Run full test suite**:
    ```bash
    composer test
    ```
@@ -69,50 +65,17 @@ Fetch a GitHub issue, create a branch, implement it end-to-end, and open a PR.
 
 ### Phase 4: Ship
 
-10. **Update CHANGELOG.md** — add entry under `## Unreleased`
+8. **Update CHANGELOG.md** — add entry under `## Unreleased`
 
-11. **Commit changes**:
-    ```bash
-    git add <specific-files>
-    git commit -m "<type>(<scope>): <description>
+9. **Commit changes**:
+   ```bash
+   git add <specific-files>
+   git commit -m "<type>(<scope>): <description>
 
-    Related to #<issue-number>"
-    ```
+   Related to #<issue-number>"
+   ```
 
-    Commit guidelines:
-    - Use conventional commit format
-    - Reference the issue with "Related to #X"
-    - **NEVER include AI references in commits**
-
-12. **Create PR** using the `/pr` command:
-    ```
-    /pr #<issue-number>
-    ```
-
-## Example Usage
-
-```
-/gh-issue 2
-/gh-issue #15
-```
-
-## Output Format
-
-After fetching, present:
-
-```
-## Issue #<number>: <title>
-
-**Labels:** <labels>
-**State:** <state>
-**Branch:** <branch-name>
-
-### Description
-<body content>
-
-### Implementation Plan
-1. ...
-```
+10. **Create PR** using `/pr #<issue-number>`
 
 ## Checklist
 - [ ] Issue fetched and understood

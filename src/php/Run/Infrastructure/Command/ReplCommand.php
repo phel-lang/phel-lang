@@ -138,8 +138,7 @@ final class ReplCommand extends Command
                 break;
             } catch (Throwable $e) {
                 $this->inputBuffer = [];
-                $this->io->writeln($this->style->red($e->getMessage()));
-                $this->io->writeln($e->getTraceAsString());
+                $this->io->writeStackTrace($e);
             }
         }
 

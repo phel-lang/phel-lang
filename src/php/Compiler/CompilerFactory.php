@@ -30,6 +30,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 use Phel\Compiler\Domain\Emitter\StatementEmitter;
 use Phel\Compiler\Domain\Emitter\StatementEmitterInterface;
 use Phel\Compiler\Domain\Evaluator\EvaluatorInterface;
+use Phel\Compiler\Domain\Evaluator\InMemoryEvaluator;
 use Phel\Compiler\Domain\Evaluator\RequireEvaluator;
 use Phel\Compiler\Domain\Lexer\LexerInterface;
 use Phel\Compiler\Domain\Parser\ExpressionParserFactory;
@@ -55,7 +56,7 @@ final class CompilerFactory extends AbstractFactory
             $this->createReader(),
             $this->createAnalyzer(),
             $this->createStatementEmitter(),
-            $this->createEvaluator(),
+            new InMemoryEvaluator(),
         );
     }
 

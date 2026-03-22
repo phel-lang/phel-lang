@@ -3,6 +3,8 @@
   (:require phel\walk :refer [walk postwalk prewalk postwalk-replace
                                prewalk-replace keywordize-keys stringify-keys]))
 
+(defstruct point [x y])
+
 # ----
 # walk
 # ----
@@ -22,6 +24,16 @@
 (deftest test-walk-hash-map
   (is (= {2 3 4 5} (walk inc identity {1 2 3 4}))
       "walk applies inner to map keys and values"))
+
+(deftest test-walk-hash-set
+  (is (= (hash-set 2 3 4) (walk inc identity (hash-set 1 2 3)))
+      "walk applies inner to set elements"))
+
+(deftest test-walk-struct
+  (let [p (point 1 2)
+        result (walk |(if (number? $) (inc $) $) identity p)]
+    (is (= {:x 2 :y 3} result)
+        "walk applies inner to struct values")))
 
 (deftest test-walk-non-collection
   (is (= 42 (walk inc identity 42))
@@ -43,6 +55,11 @@
   (is (= {:a 2 :b {:c 4}}
          (postwalk |(if (number? $) (* $ 2) $) {:a 1 :b {:c 2}}))
       "postwalk transforms values in nested maps"))
+
+(deftest test-postwalk-hash-set
+  (is (= (hash-set 2 3 4)
+         (postwalk |(if (number? $) (inc $) $) (hash-set 1 2 3)))
+      "postwalk transforms values in sets"))
 
 # -------
 # prewalk

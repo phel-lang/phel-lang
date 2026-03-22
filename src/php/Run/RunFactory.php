@@ -11,6 +11,7 @@ use Phel\Run\Application\EvalExecutor;
 use Phel\Run\Application\NamespaceLoader;
 use Phel\Run\Application\NamespaceRunner;
 use Phel\Run\Application\NamespacesLoader;
+use Phel\Run\Domain\Repl\ReplCommandFallbackIo;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Domain\Repl\ReplCommandSystemIo;
 use Phel\Run\Domain\Runner\NamespaceCollector;
@@ -22,6 +23,8 @@ use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Facade\ConsoleFacadeInterface;
+
+use function extension_loaded;
 
 /**
  * @extends AbstractFactory<RunConfig>
@@ -71,10 +74,16 @@ class RunFactory extends AbstractFactory
 
     public function createReplCommandIo(): ReplCommandIoInterface
     {
-        return new ReplCommandSystemIo(
-            $this->getConfig()->getPhelReplHistory(),
+        if (extension_loaded('readline')) {
+            return new ReplCommandSystemIo(
+                $this->getConfig()->getPhelReplHistory(),
+                $this->getCommandFacade(),
+                $this->getApiFacade(),
+            );
+        }
+
+        return new ReplCommandFallbackIo(
             $this->getCommandFacade(),
-            $this->getApiFacade(),
         );
     }
 

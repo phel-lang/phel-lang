@@ -48,17 +48,23 @@
   [s n]
   (php/str_repeat s n))
 
+(defn- as-pattern
+  "Ensures match is a regex pattern. If it looks like a delimited regex
+  (first and last chars match), returns as-is; otherwise wraps as literal."
+  [match]
+  (if (and
+       (> (php/mb_strlen match) 1)
+       (=
+        (php/substr match 0 1)
+        (php/substr match -1 1)))
+    match
+    (format "/%s/" (php/preg_quote match "/"))))
+
 (defn replace
   "Replaces all instances of match with replacement in s."
   {:example "(replace \"hello world\" \"world\" \"there\") ; => \"hello there\""}
   [s match replacement]
-  (let [match (if (and
-                   (> (php/mb_strlen match) 1)
-                   (=
-                    (php/substr match 0 1)
-                    (php/substr match -1 1)))
-                match
-                (format "/%s/" (php/preg_quote match "/")))]
+  (let [match (as-pattern match)]
     (if (function? replacement)
       (php/preg_replace_callback match (fn [x]
                                          (let [x (values (php-array-to-map x))]
@@ -69,13 +75,7 @@
   "Replaces the first instance of match with replacement in s."
   {:example "(replace-first \"hello world world\" \"world\" \"there\") ; => \"hello there world\""}
   [s match replacement]
-  (let [match (if (and
-                   (> (php/mb_strlen match) 1)
-                   (=
-                    (php/substr match 0 1)
-                    (php/substr match -1 1)))
-                match
-                (format "/%s/" (php/preg_quote match "/")))]
+  (let [match (as-pattern match)]
     (if (function? replacement)
       (php/preg_replace_callback match (fn [x]
                                          (let [x (values (php-array-to-map x))]
@@ -138,12 +138,7 @@
   {:example "(blank? \"   \") ; => true"}
   [s]
   (if s
-    (loop [index 0]
-      (if (= (php/mb_strlen s) index)
-        true
-        (if (php/preg_match "/^\s$/u" (php/mb_substr s index 1))
-          (recur (inc index))
-          false)))
+    (not= 0 (php/preg_match "/^\\s*$/u" s))
     true))
 
 (defn starts-with?
@@ -180,13 +175,9 @@
   "Returns a new string with each character escaped according to cmap."
   {:example "(escape \"hello\" {\"h\" \"H\" \"o\" \"O\"}) ; => \"HellO\""}
   [s cmap]
-  (loop [index 0
-         buffer ""]
-    (if (= (php/mb_strlen s) index)
-      buffer
-      (let [ch (php/mb_substr s index 1)]
-        (let [ch (or (cmap ch) ch)]
-          (recur (inc index) (format "%s%s" buffer ch)))))))
+  (let [chars (php/mb_str_split s)
+        mapped (php/array_map (fn [ch] (or (cmap ch) ch)) chars)]
+    (php/implode "" mapped)))
 
 (defn index-of
   "Returns the index of value in s, or nil if not found."
@@ -207,22 +198,24 @@
   "Returns the last index of value in s, or nil if not found."
   {:example "(last-index-of \"hello world world\" \"world\") ; => 12"}
   [s value & [from-index]]
-  (let [max-index (dec (php/mb_strlen s))
+  (let [len (php/mb_strlen s)
+        max-index (dec len)
         from-index (or from-index max-index)
         from-index (let [abs (php/abs from-index)
                          v (min abs max-index)]
                      (if (< from-index 0)
                        (- max-index v)
-                       v))]
-    (loop [s s
-           value value
-           from-index from-index]
-      (if (< from-index 0)
-        nil
-        (let [target (php/mb_substr s from-index)]
-          (if (includes? target value)
-            from-index
-            (recur s value (dec from-index))))))))
+                       v))
+        result (php/mb_strrpos s value 0)]
+    (if (php/=== result false)
+      nil
+      (if (<= result from-index)
+        result
+        (let [sub (php/mb_substr s 0 (php/+ from-index 1))
+              result (php/mb_strrpos sub value 0)]
+          (if (php/=== result false)
+            nil
+            result))))))
 
 (defn split-lines
   "Splits s on \\n or \\r\\n. Trailing empty lines are not returned."

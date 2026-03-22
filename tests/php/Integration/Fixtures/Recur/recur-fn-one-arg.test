@@ -9,7 +9,7 @@ new class() extends \Phel\Lang\AbstractFn {
 
   public function __invoke($x) {
     while (true) {
-      if (\Phel\Lang\Truthy::isTruthy(($x == 0))) {
+      if (($__truthy = ($x == 0)) !== null && $__truthy !== false) {
         return $x;
       } else {
         $__phel_1 = ($x - 1);

@@ -321,7 +321,13 @@ final class PersistentVector extends AbstractPersistentVector
 
     public function cons(mixed $x): PersistentVectorInterface
     {
-        return self::fromArray($this->hasher, $this->equalizer, [$x, ...$this->toArray()]);
+        $transient = TransientVector::empty($this->hasher, $this->equalizer);
+        $transient->append($x);
+        foreach ($this as $item) {
+            $transient->append($item);
+        }
+
+        return $transient->persistent();
     }
 
     protected function sliceNormalized(int $start, int $end): PersistentVectorInterface

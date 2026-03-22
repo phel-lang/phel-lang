@@ -37,6 +37,8 @@ final class TestCommand extends Command
 
     private const string OPT_TESTDOX = 'testdox';
 
+    private const string OPT_FAIL_FAST = 'fail-fast';
+
     protected function configure(): void
     {
         $this->setName(self::COMMAND_NAME)
@@ -58,6 +60,11 @@ final class TestCommand extends Command
                 null,
                 InputOption::VALUE_NONE,
                 'Report test execution progress in TestDox format.',
+            )->addOption(
+                self::OPT_FAIL_FAST,
+                null,
+                InputOption::VALUE_NONE,
+                'Stop running tests after the first failure or error.',
             );
     }
 
@@ -116,6 +123,7 @@ final class TestCommand extends Command
             TestCommandOptions::fromArray([
                 TestCommandOptions::FILTER => (string) $input->getOption(self::OPT_FILTER),
                 TestCommandOptions::TESTDOX => (bool) $input->getOption(self::OPT_TESTDOX),
+                TestCommandOptions::FAIL_FAST => (bool) $input->getOption(self::OPT_FAIL_FAST),
             ])->asPhelHashMap(),
             $this->namespacesAsString($namespacesInformation),
         );

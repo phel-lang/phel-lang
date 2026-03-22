@@ -10,8 +10,6 @@ use Phel\Shared\Facade\ApiFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Throwable;
 
-use function extension_loaded;
-
 final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
 {
     public function __construct(
@@ -19,10 +17,6 @@ final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
         private CommandFacadeInterface $commandFacade,
         private ApiFacadeInterface $apiFacade,
     ) {
-        if (!extension_loaded('readline')) {
-            throw MissingDependencyException::missingExtension('readline');
-        }
-
         readline_completion_function(
             $this->apiFacade->replComplete(...),
         );
