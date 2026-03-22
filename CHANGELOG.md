@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - Use `hash-set` for creating sets from arguments: `(hash-set 1 2 3)` => `#{1 2 3}`
 
 ### Fixed
+- Restore GlobalEnvironment refers/aliases when loading from compiled code cache
 - Functions used in string concatenation (e.g. `(str "Hello, " name "!")`) no longer crash with a PHP error; they now render as `<function:name>`
 - Fix `zipmap` causing out-of-memory error when used with infinite lazy sequences (e.g. `(zipmap keys (repeat val))`)
 - Fix excessive blank lines in test output between test dots and summary
