@@ -57,9 +57,15 @@ final readonly class FileEvaluator
                 $this->compilerFacade->initializeGlobalEnvironment();
 
                 try {
-                    // Analyze the ns form to restore refers/aliases in GlobalEnvironment,
-                    // which are only registered as analyzer side effects during compilation.
-                    $this->analyzeNsForm($code, $src);
+                    // Restore refers/aliases in GlobalEnvironment from cached env data
+                    // when available, falling back to ns form analysis for old cache entries.
+                    $envData = $this->compiledCodeCache->getEnvironment($namespace);
+
+                    if ($envData !== null) {
+                        $this->compilerFacade->restoreNamespaceEnvironmentData($namespace, $envData);
+                    } else {
+                        $this->analyzeNsForm($code, $src);
+                    }
 
                     /** @psalm-suppress UnresolvableInclude */
                     require $cachedPath;
@@ -82,6 +88,9 @@ final readonly class FileEvaluator
 
             $result = $this->compilerFacade->compileForCache($code, $options);
             $this->compiledCodeCache->put($namespace, $sourceHash, $result->getPhpCode());
+
+            $envData = $this->compilerFacade->getNamespaceEnvironmentData($namespace);
+            $this->compiledCodeCache->putEnvironment($namespace, $envData);
 
             // Execute the cached code to register definitions in GlobalEnvironment
             $cachedPath = $this->compiledCodeCache->getCompiledPath($namespace);

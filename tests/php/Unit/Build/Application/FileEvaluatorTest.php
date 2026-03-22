@@ -229,6 +229,110 @@ final class FileEvaluatorTest extends TestCase
         $evaluator->evalFile($sourceFile);
     }
 
+    public function test_cache_hit_with_env_data_restores_environment(): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        $sourceCode = '(ns test\\namespace)';
+        file_put_contents($sourceFile, $sourceCode);
+        $cacheDir = $this->tempDir . '/cache';
+        $namespace = 'test\\namespace';
+
+        $cache = new CompiledCodeCache($cacheDir);
+        $cache->put($namespace, md5($sourceCode), '$result = 1;');
+
+        $envData = [
+            'refers' => ['map' => ['ns' => null, 'name' => 'phel\\core']],
+            'require_aliases' => [],
+            'use_aliases' => [],
+        ];
+        $cache->putEnvironment($namespace, $envData);
+
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade->expects($this->once())->method('initializeGlobalEnvironment');
+        $compilerFacade->expects($this->once())
+            ->method('restoreNamespaceEnvironmentData')
+            ->with($namespace, $envData);
+        // analyzeNsForm path should NOT be used when env data is present
+        $compilerFacade->expects($this->never())->method('lexString');
+
+        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel\\core']),
+        );
+
+        $evaluator = new FileEvaluator($compilerFacade, $namespaceExtractor, $cache);
+        $result = $evaluator->evalFile($sourceFile);
+
+        self::assertSame($namespace, $result->getNamespace());
+    }
+
+    public function test_cache_hit_without_env_data_falls_back_to_analyze_ns_form(): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        $sourceCode = '(ns test\\namespace)';
+        file_put_contents($sourceFile, $sourceCode);
+        $cacheDir = $this->tempDir . '/cache';
+        $namespace = 'test\\namespace';
+
+        $cache = new CompiledCodeCache($cacheDir);
+        $cache->put($namespace, md5($sourceCode), '$result = 1;');
+        // No putEnvironment call - simulating old cache without env data
+
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade->expects($this->once())->method('initializeGlobalEnvironment');
+        // restoreNamespaceEnvironmentData should NOT be called without env data
+        $compilerFacade->expects($this->never())->method('restoreNamespaceEnvironmentData');
+        // lexString should be called as fallback (analyzeNsForm path)
+        $compilerFacade->expects($this->once())->method('lexString');
+
+        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel\\core']),
+        );
+
+        $evaluator = new FileEvaluator($compilerFacade, $namespaceExtractor, $cache);
+        $result = $evaluator->evalFile($sourceFile);
+
+        self::assertSame($namespace, $result->getNamespace());
+    }
+
+    public function test_cache_miss_stores_environment_data(): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        $sourceCode = '(ns test\\namespace)';
+        file_put_contents($sourceFile, $sourceCode);
+        $cacheDir = $this->tempDir . '/cache';
+        $namespace = 'test\\namespace';
+
+        $cache = new CompiledCodeCache($cacheDir);
+        $envData = [
+            'refers' => [],
+            'require_aliases' => ['str' => ['ns' => null, 'name' => 'phel\\str']],
+            'use_aliases' => [],
+        ];
+
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade->expects($this->once())
+            ->method('compileForCache')
+            ->willReturn(new EmitterResult(false, '$compiled = true;', '', ''));
+        $compilerFacade->expects($this->once())
+            ->method('getNamespaceEnvironmentData')
+            ->with($namespace)
+            ->willReturn($envData);
+
+        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel\\core']),
+        );
+
+        $evaluator = new FileEvaluator($compilerFacade, $namespaceExtractor, $cache);
+        $evaluator->evalFile($sourceFile);
+
+        // Verify env data was stored in cache
+        $storedEnvData = $cache->getEnvironment($namespace);
+        self::assertSame($envData, $storedEnvData);
+    }
+
     public function test_cache_hit_calls_initialize_global_environment_and_lex_string(): void
     {
         $sourceFile = $this->tempDir . '/test.phel';

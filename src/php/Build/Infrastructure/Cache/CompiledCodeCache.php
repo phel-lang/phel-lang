@@ -20,7 +20,7 @@ use const TOKEN_PARSE;
  */
 final class CompiledCodeCache
 {
-    private const string VERSION = '1.0';
+    private const string VERSION = '1.1';
 
     /** @var array<string, array{source_hash: string, compiled_path: string, last_accessed: int}> */
     private array $entries = [];
@@ -90,22 +90,7 @@ final class CompiledCodeCache
             return;
         }
 
-        // Use atomic write: write to temp file then rename (atomic on POSIX)
-        $tempPath = $compiledPath . '.tmp.' . uniqid('', true);
-        if (file_put_contents($tempPath, $fullPhpCode) === false) {
-            trigger_error(
-                sprintf('Phel cache: failed to write temp file "%s"', $tempPath),
-                E_USER_WARNING,
-            );
-            return;
-        }
-
-        if (!rename($tempPath, $compiledPath)) {
-            trigger_error(
-                sprintf('Phel cache: failed to rename "%s" to "%s"', $tempPath, $compiledPath),
-                E_USER_WARNING,
-            );
-            @unlink($tempPath);
+        if (!$this->atomicWrite($compiledPath, $fullPhpCode)) {
             return;
         }
 
@@ -131,8 +116,49 @@ final class CompiledCodeCache
      */
     public function getCompiledPath(string $namespace): string
     {
-        $mungedNamespace = str_replace(['\\', '/'], '_', $namespace);
-        return $this->cacheDir . '/compiled/' . $mungedNamespace . '.php';
+        return $this->getCachePath($namespace, '.php');
+    }
+
+    /**
+     * Gets the path where the environment data for a namespace would be stored.
+     */
+    public function getEnvironmentPath(string $namespace): string
+    {
+        return $this->getCachePath($namespace, '.env.php');
+    }
+
+    /**
+     * Stores environment data for a namespace.
+     *
+     * @param string $namespace The Phel namespace
+     * @param array  $envData   The environment data to persist
+     */
+    public function putEnvironment(string $namespace, array $envData): void
+    {
+        $this->ensureCacheDir();
+
+        $envPath = $this->getEnvironmentPath($namespace);
+        $content = '<?php return ' . var_export($envData, true) . ';';
+
+        $this->atomicWrite($envPath, $content);
+    }
+
+    /**
+     * Loads environment data for a namespace.
+     *
+     * @param string $namespace The Phel namespace
+     *
+     * @return array|null The environment data, or null if not cached
+     */
+    public function getEnvironment(string $namespace): ?array
+    {
+        $envPath = $this->getEnvironmentPath($namespace);
+
+        if (!file_exists($envPath)) {
+            return null;
+        }
+
+        return require $envPath;
     }
 
     /**
@@ -149,6 +175,11 @@ final class CompiledCodeCache
         $compiledPath = $this->entries[$namespace]['compiled_path'];
         if (file_exists($compiledPath)) {
             @unlink($compiledPath);
+        }
+
+        $envPath = $this->getEnvironmentPath($namespace);
+        if (file_exists($envPath)) {
+            @unlink($envPath);
         }
 
         unset($this->entries[$namespace]);
@@ -265,6 +296,40 @@ final class CompiledCodeCache
         return $this->cacheDir . '/compiled-index.php';
     }
 
+    private function getCachePath(string $namespace, string $suffix): string
+    {
+        $mungedNamespace = str_replace(['\\', '/'], '_', $namespace);
+        return $this->cacheDir . '/compiled/' . $mungedNamespace . $suffix;
+    }
+
+    /**
+     * Writes content to a file atomically via temp file + rename.
+     *
+     * @return bool True on success, false on failure
+     */
+    private function atomicWrite(string $path, string $content): bool
+    {
+        $tempPath = $path . '.tmp.' . uniqid('', true);
+        if (file_put_contents($tempPath, $content) === false) {
+            trigger_error(
+                sprintf('Phel cache: failed to write temp file "%s"', $tempPath),
+                E_USER_WARNING,
+            );
+            return false;
+        }
+
+        if (!rename($tempPath, $path)) {
+            trigger_error(
+                sprintf('Phel cache: failed to rename "%s" to "%s"', $tempPath, $path),
+                E_USER_WARNING,
+            );
+            @unlink($tempPath);
+            return false;
+        }
+
+        return true;
+    }
+
     private function ensureCacheDir(): void
     {
         $compiledDir = $this->cacheDir . '/compiled';
@@ -318,6 +383,11 @@ final class CompiledCodeCache
 
             if (file_exists($entry['compiled_path'])) {
                 @unlink($entry['compiled_path']);
+            }
+
+            $envPath = $this->getEnvironmentPath($namespace);
+            if (file_exists($envPath)) {
+                @unlink($envPath);
             }
 
             unset($this->entries[$namespace]);
