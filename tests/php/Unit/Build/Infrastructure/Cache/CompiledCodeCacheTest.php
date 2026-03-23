@@ -244,6 +244,84 @@ final class CompiledCodeCacheTest extends TestCase
         }
     }
 
+    public function test_put_environment_and_get_environment_round_trip(): void
+    {
+        $cache = new CompiledCodeCache($this->cacheDir);
+        $envData = [
+            'refers' => ['map' => ['ns' => null, 'name' => 'phel\\core']],
+            'require_aliases' => ['str' => ['ns' => null, 'name' => 'phel\\str']],
+            'use_aliases' => ['Exception' => ['ns' => null, 'name' => 'Exception']],
+        ];
+
+        $cache->putEnvironment('test\\namespace', $envData);
+
+        $result = $cache->getEnvironment('test\\namespace');
+        self::assertSame($envData, $result);
+    }
+
+    public function test_get_environment_returns_null_when_no_env_file(): void
+    {
+        $cache = new CompiledCodeCache($this->cacheDir);
+
+        $result = $cache->getEnvironment('nonexistent\\namespace');
+
+        self::assertNull($result);
+    }
+
+    public function test_get_environment_path_munges_namespace(): void
+    {
+        $cache = new CompiledCodeCache($this->cacheDir);
+
+        $path = $cache->getEnvironmentPath('my\\test\\namespace');
+
+        self::assertStringContainsString('my_test_namespace.env.php', $path);
+    }
+
+    public function test_invalidate_removes_env_file(): void
+    {
+        $cache = new CompiledCodeCache($this->cacheDir);
+        $cache->put('test\\namespace', 'hash', '// code');
+        $cache->putEnvironment('test\\namespace', ['refers' => [], 'require_aliases' => [], 'use_aliases' => []]);
+
+        $envPath = $cache->getEnvironmentPath('test\\namespace');
+        self::assertFileExists($envPath);
+
+        $cache->invalidate('test\\namespace');
+
+        self::assertFileDoesNotExist($envPath);
+    }
+
+    public function test_put_environment_persists_across_instances(): void
+    {
+        $cache1 = new CompiledCodeCache($this->cacheDir);
+        $envData = [
+            'refers' => ['x' => ['ns' => null, 'name' => 'foo']],
+            'require_aliases' => [],
+            'use_aliases' => [],
+        ];
+        $cache1->putEnvironment('test\\namespace', $envData);
+
+        $cache2 = new CompiledCodeCache($this->cacheDir);
+        $result = $cache2->getEnvironment('test\\namespace');
+
+        self::assertSame($envData, $result);
+    }
+
+    public function test_put_environment_with_empty_data(): void
+    {
+        $cache = new CompiledCodeCache($this->cacheDir);
+        $envData = [
+            'refers' => [],
+            'require_aliases' => [],
+            'use_aliases' => [],
+        ];
+
+        $cache->putEnvironment('test\\namespace', $envData);
+
+        $result = $cache->getEnvironment('test\\namespace');
+        self::assertSame($envData, $result);
+    }
+
     private function removeDir(string $dir): void
     {
         if (!is_dir($dir)) {

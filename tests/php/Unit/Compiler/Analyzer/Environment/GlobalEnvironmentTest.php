@@ -375,6 +375,74 @@ final class GlobalEnvironmentTest extends TestCase
         );
     }
 
+    public function test_get_refers_returns_empty_array_for_unknown_namespace(): void
+    {
+        $env = new GlobalEnvironment();
+
+        $this->assertSame([], $env->getRefers('unknown'));
+    }
+
+    public function test_get_refers_returns_added_refers(): void
+    {
+        $env = new GlobalEnvironment();
+        $env->addRefer('foo', Symbol::create('x'), Symbol::create('bar'));
+        $env->addRefer('foo', Symbol::create('y'), Symbol::create('baz'));
+
+        $refers = $env->getRefers('foo');
+
+        $this->assertCount(2, $refers);
+        $this->assertSame('bar', $refers['x']->getName());
+        $this->assertSame('baz', $refers['y']->getName());
+    }
+
+    public function test_get_require_aliases_returns_empty_array_for_unknown_namespace(): void
+    {
+        $env = new GlobalEnvironment();
+
+        $this->assertSame([], $env->getRequireAliases('unknown'));
+    }
+
+    public function test_get_require_aliases_returns_added_aliases(): void
+    {
+        $env = new GlobalEnvironment();
+        $env->addRequireAlias('foo', Symbol::create('b'), Symbol::create('bar'));
+        $env->addRequireAlias('foo', Symbol::create('z'), Symbol::create('baz'));
+
+        $aliases = $env->getRequireAliases('foo');
+
+        $this->assertCount(2, $aliases);
+        $this->assertSame('bar', $aliases['b']->getName());
+        $this->assertSame('baz', $aliases['z']->getName());
+    }
+
+    public function test_get_use_aliases_returns_empty_array_for_unknown_namespace(): void
+    {
+        $env = new GlobalEnvironment();
+
+        $this->assertSame([], $env->getUseAliases('unknown'));
+    }
+
+    public function test_get_use_aliases_returns_added_aliases(): void
+    {
+        $env = new GlobalEnvironment();
+        $env->addUseAlias('foo', Symbol::create('b'), Symbol::create('bar'));
+        $env->addUseAlias('foo', Symbol::create('z'), Symbol::create('baz'));
+
+        $aliases = $env->getUseAliases('foo');
+
+        $this->assertCount(2, $aliases);
+        $this->assertSame('bar', $aliases['b']->getName());
+        $this->assertSame('baz', $aliases['z']->getName());
+    }
+
+    public function test_get_refers_does_not_leak_across_namespaces(): void
+    {
+        $env = new GlobalEnvironment();
+        $env->addRefer('foo', Symbol::create('x'), Symbol::create('bar'));
+
+        $this->assertSame([], $env->getRefers('other'));
+    }
+
     public function test_has_definition_with_hyphenated_namespace(): void
     {
         $env = new GlobalEnvironment();

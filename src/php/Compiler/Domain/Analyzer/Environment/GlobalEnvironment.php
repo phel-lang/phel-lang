@@ -135,6 +135,21 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         $this->refers[$inNamespace][$fnName->getName()] = $ns;
     }
 
+    public function getRefers(string $namespace): array
+    {
+        return $this->refers[$namespace] ?? [];
+    }
+
+    public function getRequireAliases(string $namespace): array
+    {
+        return $this->requireAliases[$namespace] ?? [];
+    }
+
+    public function getUseAliases(string $namespace): array
+    {
+        return $this->useAliases[$namespace] ?? [];
+    }
+
     public function resolveAsSymbol(Symbol $name, NodeEnvironment $env): ?Symbol
     {
         $node = $this->resolve($name, $env);

@@ -45,6 +45,7 @@ All notable changes to this project will be documented in this file.
 - Keywords are now interned (flyweight pattern) — same name/namespace returns the same instance, enabling `===` identity checks and reducing GC pressure
 
 ### Fixed
+- Restore GlobalEnvironment refers/aliases when loading from compiled code cache
 - Functions used in string concatenation (e.g. `(str "Hello, " name "!")`) no longer crash with a PHP error; they now render as `<function:name>`
 - Fix `zipmap` causing out-of-memory error when used with infinite lazy sequences (e.g. `(zipmap keys (repeat val))`)
 - Fix `peek` crashing when used on lazy sequences (e.g. from `filter` or `map`)

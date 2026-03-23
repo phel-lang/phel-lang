@@ -30,6 +30,21 @@ interface GlobalEnvironmentInterface
 
     public function addRefer(string $inNamespace, Symbol $fnName, Symbol $ns): void;
 
+    /**
+     * @return array<string, Symbol>
+     */
+    public function getRefers(string $namespace): array;
+
+    /**
+     * @return array<string, Symbol>
+     */
+    public function getRequireAliases(string $namespace): array;
+
+    /**
+     * @return array<string, Symbol>
+     */
+    public function getUseAliases(string $namespace): array;
+
     public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode;
 
     public function resolveAlias(string $alias): ?string;

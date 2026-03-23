@@ -10,6 +10,7 @@ use Phel\Compiler\Application\CodeCompiler;
 use Phel\Compiler\Application\EvalCompiler;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\Application\Munge;
+use Phel\Compiler\Application\NamespaceEnvironmentSerializer;
 use Phel\Compiler\Application\ParenthesesChecker;
 use Phel\Compiler\Application\Parser;
 use Phel\Compiler\Application\Reader;
@@ -139,6 +140,13 @@ final class CompilerFactory extends AbstractFactory
     {
         return new RequireEvaluator(
             $this->getFilesystemFacade(),
+        );
+    }
+
+    public function createNamespaceEnvironmentSerializer(): NamespaceEnvironmentSerializer
+    {
+        return new NamespaceEnvironmentSerializer(
+            $this->getGlobalEnvironment(),
         );
     }
 
