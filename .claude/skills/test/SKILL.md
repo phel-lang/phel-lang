@@ -17,6 +17,7 @@ allowed-tools: "Bash(composer *), Bash(./vendor/bin/phpunit *), Bash(./bin/phel 
    - `compiler` → `composer test-compiler`
    - `core` → `composer test-core`
    - `quick` → `composer test-compiler && composer test-core` (skip static analysis)
+   - `bench` → `composer phpbench`
 
 3. If `$ARGUMENTS` looks like a test class or method name:
    ```bash
