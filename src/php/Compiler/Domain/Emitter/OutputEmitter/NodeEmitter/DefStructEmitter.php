@@ -8,7 +8,6 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DefStructNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
-use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 
 use function assert;
@@ -118,9 +117,6 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('parent::__construct();');
 
         foreach ($params as $param) {
-            $keyword = Keyword::create($param->getName());
-            $keyword->setStartLocation($node->getStartSourceLocation());
-
             $propertyName = $this->outputEmitter->mungeEncode($param->getName());
 
             $this->outputEmitter->emitStr('$this->' . $propertyName . ' = ', $node->getStartSourceLocation());
