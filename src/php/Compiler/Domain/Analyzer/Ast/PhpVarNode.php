@@ -72,11 +72,11 @@ final class PhpVarNode extends AbstractNode
 
     public function isInfix(): bool
     {
-        return in_array($this->name, self::INFIX_OPERATORS);
+        return in_array($this->name, self::INFIX_OPERATORS, true);
     }
 
     public function isCallable(): bool
     {
-        return is_callable($this->name) || in_array($this->name, self::CALLABLE_KEYWORDS);
+        return is_callable($this->name) || in_array($this->name, self::CALLABLE_KEYWORDS, true);
     }
 }

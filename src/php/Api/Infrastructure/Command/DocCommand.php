@@ -84,7 +84,7 @@ final class DocCommand extends Command
     private function normalizeNamespaces(array $namespaces): array
     {
         array_walk($namespaces, static function (string &$ns): void {
-            if (!in_array($ns, ['core', 'http', 'html', 'test', 'json'])) {
+            if (!in_array($ns, ['core', 'http', 'html', 'test', 'json'], true)) {
                 return;
             }
 

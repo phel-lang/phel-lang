@@ -86,7 +86,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     {
         $listSize = count($list);
 
-        if (!in_array($listSize, self::POSSIBLE_TUPLE_SIZES)) {
+        if (!in_array($listSize, self::POSSIBLE_TUPLE_SIZES, true)) {
             throw AnalyzerException::withLocation(
                 "Two or three arguments are required for 'def. Got " . $listSize,
                 $list,

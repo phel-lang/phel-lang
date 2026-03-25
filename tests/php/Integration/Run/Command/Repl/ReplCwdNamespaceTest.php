@@ -35,23 +35,19 @@ final class ReplCwdNamespaceTest extends AbstractTestCommand
 
     private string $tempDir = '';
 
-    #[Override]
     protected function setUp(): void
     {
         parent::setUp();
-
         $this->previousCwd = getcwd() ?: '';
         $this->tempDir = sys_get_temp_dir() . '/phel-repl-cwd-' . uniqid('', true);
         mkdir($this->tempDir, 0777, true);
         chdir($this->tempDir);
-
         file_put_contents('my-module.phel', <<<'PHEL'
 (ns my-module)
 
 (defn hello [x]
   (str "(module.phel at cwd): " x))
 PHEL);
-
         Gacela::bootstrap($this->tempDir, static function (GacelaConfig $config): void {
             $config->resetInMemoryCache();
         });

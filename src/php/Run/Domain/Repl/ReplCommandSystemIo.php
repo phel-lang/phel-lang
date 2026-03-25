@@ -36,7 +36,6 @@ final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
 
     public function readline(?string $prompt = null): ?string
     {
-        /** @var false|string $line */
         $line = readline($prompt);
 
         if ($line === false) {

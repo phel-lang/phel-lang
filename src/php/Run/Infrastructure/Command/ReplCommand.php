@@ -165,7 +165,7 @@ final class ReplCommand extends Command
         if ($input === null && $isInitialInput) {
             // Ctrl+D will exit the repl
             $this->inputBuffer[] = self::EXIT_REPL;
-        } elseif ($input === null && !$isInitialInput) {
+        } elseif ($input === null) {
             // Ctrl+D will empty the buffer
             $this->inputBuffer = [];
             $this->io->writeln();

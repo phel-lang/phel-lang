@@ -36,11 +36,10 @@ final class ReplTestCommand extends AbstractTestCommand
         parent::__construct(self::class);
     }
 
-    #[Override]
     protected function setUp(): void
     {
-        parent::setUp(); // This now handles the bootstrap
-
+        parent::setUp();
+        // This now handles the bootstrap
         $this->previousCwd = getcwd() ?: '';
         chdir(__DIR__);
     }
