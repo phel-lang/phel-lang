@@ -15,6 +15,12 @@ user-invocable: false
 | `http.phel` | HTTP request/response |
 | `json.phel` | JSON encoding/decoding |
 | `test.phel` | Test framework (deftest, is, are) |
+| `pprint.phel` | Pretty printing |
+| `walk.phel` | Tree walking (postwalk, prewalk) |
+| `mock.phel` | Mocking utilities for tests |
+| `debug.phel` | Debugging utilities |
+| `repl.phel` | REPL functionality |
+| `base64.phel` | Base64 encoding/decoding |
 
 ## Common Idioms
 

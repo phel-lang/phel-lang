@@ -38,12 +38,14 @@ Run each step in order. Stop and fix issues before continuing.
    composer test-compiler
    ```
 
-5. **Core tests**:
+5. **Core tests** (only if `.phel` files changed):
    ```bash
-   composer test-core
+   git diff --cached --name-only | grep -q '\.phel$' && composer test-core
    ```
 
 If any step fails, fix the issue and re-run from that step. Do NOT proceed to commit with failures.
+
+> Note: The pre-commit hook runs `composer test-all` on commit. These gates catch issues early to avoid a slow hook failure.
 
 ### Phase 3: Commit
 
