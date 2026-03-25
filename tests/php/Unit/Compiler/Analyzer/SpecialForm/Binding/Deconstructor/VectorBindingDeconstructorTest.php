@@ -28,7 +28,7 @@ final class VectorBindingDeconstructorTest extends TestCase
 
         $this->deconstructor = new VectorBindingDeconstructor(
             new Deconstructor(
-                $this->createMock(BindingValidatorInterface::class),
+                $this->createStub(BindingValidatorInterface::class),
             ),
         );
     }

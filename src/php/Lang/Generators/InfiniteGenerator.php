@@ -20,7 +20,6 @@ final class InfiniteGenerator
      */
     public static function repeat(mixed $value): Generator
     {
-        // @phpstan-ignore-next-line while.alwaysTrue
         while (true) {
             yield $value;
         }
@@ -35,7 +34,6 @@ final class InfiniteGenerator
      */
     public static function repeatedly(callable $f): Generator
     {
-        // @phpstan-ignore-next-line while.alwaysTrue
         while (true) {
             yield $f();
         }
@@ -51,7 +49,6 @@ final class InfiniteGenerator
      */
     public static function iterate(callable $f, mixed $x): Generator
     {
-        // @phpstan-ignore-next-line while.alwaysTrue
         while (true) {
             yield $x;
             $x = $f($x);
@@ -77,7 +74,6 @@ final class InfiniteGenerator
             return;
         }
 
-        // @phpstan-ignore-next-line while.alwaysTrue
         while (true) {
             foreach ($values as $value) {
                 yield $value;

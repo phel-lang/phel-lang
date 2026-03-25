@@ -215,7 +215,7 @@ final class FileEvaluatorTest extends TestCase
         $cache = new CompiledCodeCache($cacheDir);
         $cache->put($namespace, md5($sourceCode), 'throw new \\RuntimeException("User code error");');
 
-        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade = $this->createStub(CompilerFacadeInterface::class);
         $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
         $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
             new NamespaceInformation($sourceFile, $namespace, ['phel\\core']),

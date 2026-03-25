@@ -58,10 +58,10 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         $finally = null;
 
         for ($forms = $list->cdr(); $forms instanceof PersistentListInterface; $forms = $forms->cdr()) {
-            /** @var mixed $form */
             $form = $forms->first();
 
             if ($this->isCatchForm($form)) {
+                /** @psalm-suppress PossiblyNullArgument -- $form is mixed from first(); null is valid here */
                 $state = $this->handleCatchForm($state, $form, $catches, $list);
             } elseif ($this->isFinallyForm($form)) {
                 $state = $this->handleFinallyForm($state, $form, $finally, $list);

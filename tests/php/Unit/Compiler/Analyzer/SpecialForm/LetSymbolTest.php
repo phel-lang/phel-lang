@@ -36,7 +36,7 @@ final class LetSymbolTest extends TestCase
         $list = Phel::list([Symbol::create('unknown')]);
         $env = NodeEnvironment::empty();
 
-        $analyzer = new LetSymbol($this->analyzer, $this->createMock(DeconstructorInterface::class));
+        $analyzer = new LetSymbol($this->analyzer, $this->createStub(DeconstructorInterface::class));
 
         $analyzer->analyze($list, $env);
     }
