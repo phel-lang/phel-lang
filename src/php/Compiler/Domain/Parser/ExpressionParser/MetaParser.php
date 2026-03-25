@@ -11,9 +11,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 
 final readonly class MetaParser
 {
-    public function __construct(private Parser $parser)
-    {
-    }
+    public function __construct(private Parser $parser) {}
 
     public function parse(TokenStream $tokenStream): MetaNode
     {

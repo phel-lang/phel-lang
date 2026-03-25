@@ -114,7 +114,7 @@ final class PhelBuildConfig implements JsonSerializable
 
     public function shouldCreateEntryPointPhpFile(): bool
     {
-        return (bool)$this->mainPhelNamespace;
+        return (bool) $this->mainPhelNamespace;
     }
 
     private function getDestDir(): string

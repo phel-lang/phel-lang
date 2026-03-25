@@ -10,8 +10,7 @@ final readonly class ErrorLog implements ErrorLogInterface
 {
     public function __construct(
         private string $filepath,
-    ) {
-    }
+    ) {}
 
     public function writeln(string $text): void
     {

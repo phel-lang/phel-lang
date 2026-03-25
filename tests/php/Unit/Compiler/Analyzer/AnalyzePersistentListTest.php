@@ -77,7 +77,7 @@ final class AnalyzePersistentListTest extends TestCase
     {
         $list = Phel::list([
             Symbol::create(Symbol::NAME_QUOTE),
-             'any text',
+            'any text',
         ]);
         self::assertInstanceOf(QuoteNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }

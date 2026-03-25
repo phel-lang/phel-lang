@@ -6,6 +6,4 @@ namespace Phel\Lang\Collections\Exceptions;
 
 use Exception;
 
-final class IndexOutOfBoundsException extends Exception
-{
-}
+final class IndexOutOfBoundsException extends Exception {}

@@ -108,7 +108,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
     public function getAllowedKeys(): array
     {
         return array_map(
-            static fn (string $k): Keyword => Phel::keyword($k),
+            static fn(string $k): Keyword => Phel::keyword($k),
             static::ALLOWED_KEYS,
         );
     }

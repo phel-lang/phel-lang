@@ -10,8 +10,7 @@ final readonly class CompiledFile
         private string $sourceFile,
         private string $targetFile,
         private string $namespace,
-    ) {
-    }
+    ) {}
 
     public function getSourceFile(): string
     {

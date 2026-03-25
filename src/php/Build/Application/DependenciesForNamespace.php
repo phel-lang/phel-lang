@@ -16,8 +16,7 @@ final readonly class DependenciesForNamespace
 {
     public function __construct(
         private NamespaceExtractorInterface $namespaceExtractor,
-    ) {
-    }
+    ) {}
 
     /**
      * @return list<NamespaceInformation>

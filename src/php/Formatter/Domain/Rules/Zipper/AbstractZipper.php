@@ -29,8 +29,7 @@ abstract class AbstractZipper
         protected array $rightSiblings = [],
         protected bool $hasChanged = false,
         protected bool $isEnd = false,
-    ) {
-    }
+    ) {}
 
     /**
      * @return list<T>

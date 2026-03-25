@@ -18,7 +18,7 @@ final class ArrayPrinterTest extends TestCase
         $printer = new class() implements PrinterInterface {
             public function print($form): string
             {
-                return (string)$form;
+                return (string) $form;
             }
         };
 

@@ -37,8 +37,7 @@ final class NodeEnvironment implements NodeEnvironmentInterface
         private array $shadowed,
         private array $recurFrames,
         private string $boundTo = '',
-    ) {
-    }
+    ) {}
 
     public static function empty(): NodeEnvironmentInterface
     {

@@ -34,7 +34,7 @@ final class InvokeSymbolTest extends TestCase
         Phel::addDefinition(
             'user',
             'my-global-fn',
-            static fn ($a, $b): int => $a + $b,
+            static fn($a, $b): int => $a + $b,
             Phel::map('min-arity', 2, 'is-variadic', false),
         );
 
@@ -42,7 +42,7 @@ final class InvokeSymbolTest extends TestCase
         Phel::addDefinition(
             'user',
             'my-variadic-fn',
-            static fn ($a, ...$rest): int => $a,
+            static fn($a, ...$rest): int => $a,
             Phel::map('min-arity', 1, 'is-variadic', true),
         );
 
@@ -50,7 +50,7 @@ final class InvokeSymbolTest extends TestCase
         Phel::addDefinition(
             'user',
             'my-bounded-fn',
-            static fn ($a, $b = null): int => $a,
+            static fn($a, $b = null): int => $a,
             Phel::map('min-arity', 1, 'is-variadic', false, 'max-arity', 2),
         );
 
@@ -58,7 +58,7 @@ final class InvokeSymbolTest extends TestCase
         Phel::addDefinition(
             'user',
             'my-macro',
-            static fn ($a) => $a,
+            static fn($a) => $a,
             Phel::map(Keyword::create('macro'), true),
         );
 
@@ -66,7 +66,7 @@ final class InvokeSymbolTest extends TestCase
         Phel::addDefinition(
             'user',
             'my-failed-macro',
-            static fn ($a) => throw new Exception('my-failed-macro message'),
+            static fn($a) => throw new Exception('my-failed-macro message'),
             Phel::map(Keyword::create('macro'), true),
         );
 
@@ -74,10 +74,10 @@ final class InvokeSymbolTest extends TestCase
         Phel::addDefinition(
             'user',
             'my-inline-fn',
-            static fn ($a): int => 1,
+            static fn($a): int => 1,
             Phel::map(
                 Keyword::create('inline'),
-                static fn ($a): int => 2,
+                static fn($a): int => 2,
             ),
         );
 
@@ -85,12 +85,12 @@ final class InvokeSymbolTest extends TestCase
         Phel::addDefinition(
             'user',
             'my-inline-fn-with-arity',
-            static fn ($a, $b): int => 1,
+            static fn($a, $b): int => 1,
             Phel::map(
                 Keyword::create('inline'),
-                static fn ($a, $b): int => 2,
+                static fn($a, $b): int => 2,
                 Keyword::create('inline-arity'),
-                static fn ($n): bool => $n === 2,
+                static fn($n): bool => $n === 2,
             ),
         );
 
@@ -308,9 +308,9 @@ final class InvokeSymbolTest extends TestCase
                     Symbol::create('my-inline-fn-with-arity'),
                     Phel::map(
                         Keyword::create('inline'),
-                        static fn ($a, $b): int => 2,
+                        static fn($a, $b): int => 2,
                         Keyword::create('inline-arity'),
-                        static fn ($n): bool => $n === 2,
+                        static fn($n): bool => $n === 2,
                     ),
                 ),
                 [
@@ -332,7 +332,7 @@ final class InvokeSymbolTest extends TestCase
         Phel::addDefinition(
             $mungedNs,
             $macroName,
-            static fn ($x) => $x,
+            static fn($x) => $x,
             Phel::map(Keyword::create('macro'), true),
         );
 

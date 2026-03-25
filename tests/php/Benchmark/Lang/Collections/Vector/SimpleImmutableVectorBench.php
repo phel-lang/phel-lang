@@ -65,9 +65,7 @@ final class SimpleImmutableVectorBench
         $seedData = range(0, $size - 1);
 
         $this->vector = new readonly class($seedData) {
-            public function __construct(private array $data)
-            {
-            }
+            public function __construct(private array $data) {}
 
             public function append($value): self
             {

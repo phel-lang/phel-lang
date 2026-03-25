@@ -18,8 +18,7 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
 {
     public function __construct(
         private OutputEmitterInterface $outputEmitter,
-    ) {
-    }
+    ) {}
 
     public function emit(AbstractNode $node): void
     {

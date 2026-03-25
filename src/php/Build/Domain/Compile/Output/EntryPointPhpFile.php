@@ -15,8 +15,7 @@ final readonly class EntryPointPhpFile implements EntryPointPhpFileInterface
         private PhelBuildConfig $phelBuildConfig,
         private NamespacePathTransformer $namespacePathTransformer,
         private string $appRootDir,
-    ) {
-    }
+    ) {}
 
     public function createFile(): void
     {

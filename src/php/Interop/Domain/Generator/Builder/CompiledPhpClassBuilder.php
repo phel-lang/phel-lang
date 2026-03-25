@@ -11,8 +11,7 @@ final readonly class CompiledPhpClassBuilder
     public function __construct(
         private string $prefixNamespace,
         private CompiledPhpMethodBuilder $methodBuilder,
-    ) {
-    }
+    ) {}
 
     /**
      * @param list<FunctionToExport> $functionsToExport

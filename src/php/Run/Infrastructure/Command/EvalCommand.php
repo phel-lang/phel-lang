@@ -42,7 +42,7 @@ final class EvalCommand extends Command
 
         $result = $this->getFactory()
             ->createEvalExecutor()
-            ->execute((string)$expression);
+            ->execute((string) $expression);
 
         return $result ? self::SUCCESS : self::FAILURE;
     }

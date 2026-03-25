@@ -17,8 +17,7 @@ final class FileEmitter implements FileEmitterInterface
     public function __construct(
         private readonly SourceMapGenerator $sourceMapGenerator,
         private readonly OutputEmitterInterface $outputEmitter,
-    ) {
-    }
+    ) {}
 
     public function startFile(string $source): void
     {

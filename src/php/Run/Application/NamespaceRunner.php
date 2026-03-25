@@ -13,8 +13,7 @@ final readonly class NamespaceRunner implements NamespaceRunnerInterface
     public function __construct(
         private CommandFacadeInterface $commandFacade,
         private BuildFacadeInterface $buildFacade,
-    ) {
-    }
+    ) {}
 
     public function run(string $namespace): void
     {

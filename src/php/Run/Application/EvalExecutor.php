@@ -25,8 +25,7 @@ final readonly class EvalExecutor
         private ColorStyleInterface $style,
         private PrinterInterface $printer,
         private CompilerFacadeInterface $compilerFacade,
-    ) {
-    }
+    ) {}
 
     public function execute(string $input): bool
     {

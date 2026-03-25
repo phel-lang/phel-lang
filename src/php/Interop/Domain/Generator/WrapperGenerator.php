@@ -14,8 +14,7 @@ final readonly class WrapperGenerator implements WrapperGeneratorInterface
     public function __construct(
         private CompiledPhpClassBuilder $classBuilder,
         private WrapperRelativeFilenamePathBuilder $relativeFilenamePathBuilder,
-    ) {
-    }
+    ) {}
 
     /**
      * @param list<FunctionToExport> $functionsToExport

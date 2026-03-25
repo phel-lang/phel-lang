@@ -9,6 +9,4 @@ use Phel\Lang\Keyword;
 /**
  * @extends AbstractAtomNode<Keyword>
  */
-final class KeywordNode extends AbstractAtomNode
-{
-}
+final class KeywordNode extends AbstractAtomNode {}

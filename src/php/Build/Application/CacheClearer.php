@@ -14,8 +14,7 @@ final readonly class CacheClearer
     public function __construct(
         private string $tempDir,
         private string $cacheDir,
-    ) {
-    }
+    ) {}
 
     /**
      * @return list<string> List of cleared paths

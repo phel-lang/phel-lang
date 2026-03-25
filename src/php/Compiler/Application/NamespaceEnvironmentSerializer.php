@@ -15,8 +15,7 @@ final readonly class NamespaceEnvironmentSerializer
 {
     public function __construct(
         private GlobalEnvironmentInterface $globalEnvironment,
-    ) {
-    }
+    ) {}
 
     /**
      * Captures the current GlobalEnvironment state for a namespace
@@ -30,8 +29,8 @@ final readonly class NamespaceEnvironmentSerializer
      */
     public function capture(string $namespace): array
     {
-        $toArray = static fn (array $symbols): array => array_map(
-            static fn (Symbol $symbol): array => [
+        $toArray = static fn(array $symbols): array => array_map(
+            static fn(Symbol $symbol): array => [
                 'ns' => $symbol->getNamespace(),
                 'name' => $symbol->getName(),
             ],

@@ -218,7 +218,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         $exprs = [
             Symbol::create(Symbol::NAME_DO),
             ...$catch->rest()->rest()->rest()->toArray(),
-            ];
+        ];
 
         return $this->analyzer->analyze(
             Phel::list($exprs),

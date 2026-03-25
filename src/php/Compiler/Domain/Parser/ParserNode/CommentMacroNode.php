@@ -11,8 +11,7 @@ final readonly class CommentMacroNode implements TriviaNodeInterface
     public function __construct(
         private NodeInterface $node,
         private SourceLocation $startLocation,
-    ) {
-    }
+    ) {}
 
     public function getNode(): NodeInterface
     {

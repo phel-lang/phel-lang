@@ -13,8 +13,7 @@ final readonly class FileCreator implements FileCreatorInterface
     public function __construct(
         private string $destinationDir,
         private FileIoInterface $io,
-    ) {
-    }
+    ) {}
 
     public function createFromWrapper(Wrapper $wrapper): void
     {

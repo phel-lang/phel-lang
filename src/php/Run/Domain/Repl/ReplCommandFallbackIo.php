@@ -19,16 +19,11 @@ final readonly class ReplCommandFallbackIo implements ReplCommandIoInterface
 {
     public function __construct(
         private CommandFacadeInterface $commandFacade,
-    ) {
-    }
+    ) {}
 
-    public function readHistory(): void
-    {
-    }
+    public function readHistory(): void {}
 
-    public function addHistory(string $line): void
-    {
-    }
+    public function addHistory(string $line): void {}
 
     public function readline(?string $prompt = null): ?string
     {

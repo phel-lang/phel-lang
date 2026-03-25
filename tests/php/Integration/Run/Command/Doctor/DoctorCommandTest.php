@@ -27,9 +27,9 @@ final class DoctorCommandTest extends TestCase
     {
         $output = $this->createStub(OutputInterface::class);
         $output->method('writeln')
-            ->willReturnCallback(static fn (string $str): int => print $str . PHP_EOL);
+            ->willReturnCallback(static fn(string $str): int => print $str . PHP_EOL);
         $output->method('write')
-            ->willReturnCallback(static fn (string $str): int => print $str);
+            ->willReturnCallback(static fn(string $str): int => print $str);
 
         return $output;
     }

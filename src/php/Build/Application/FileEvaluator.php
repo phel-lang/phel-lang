@@ -28,8 +28,7 @@ final readonly class FileEvaluator
         private NamespaceExtractorInterface $namespaceExtractor,
         private ?CompiledCodeCache $compiledCodeCache = null,
         private FirstFormExtractor $firstFormExtractor = new FirstFormExtractor(),
-    ) {
-    }
+    ) {}
 
     public function evalFile(string $src): CompiledFile
     {

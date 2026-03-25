@@ -14,8 +14,7 @@ final readonly class StatementEmitter implements StatementEmitterInterface
     public function __construct(
         private SourceMapGenerator $sourceMapGenerator,
         private OutputEmitterInterface $outputEmitter,
-    ) {
-    }
+    ) {}
 
     public function emitNode(AbstractNode $node, bool $enableSourceMaps): EmitterResult
     {

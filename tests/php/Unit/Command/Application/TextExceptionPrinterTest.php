@@ -63,8 +63,8 @@ MSG;
     private function stubColorStyle(): ColorStyleInterface
     {
         $colorStyle = $this->createStub(ColorStyleInterface::class);
-        $colorStyle->method('blue')->willReturnCallback(static fn (string $msg): string => $msg);
-        $colorStyle->method('red')->willReturnCallback(static fn (string $msg): string => $msg);
+        $colorStyle->method('blue')->willReturnCallback(static fn(string $msg): string => $msg);
+        $colorStyle->method('red')->willReturnCallback(static fn(string $msg): string => $msg);
 
         return $colorStyle;
     }

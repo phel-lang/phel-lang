@@ -28,8 +28,7 @@ final readonly class StringPrinter implements TypePrinterInterface
     public function __construct(
         private bool $readable,
         private bool $withColor = false,
-    ) {
-    }
+    ) {}
 
     public static function nonReadable(bool $withColor = false): self
     {

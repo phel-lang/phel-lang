@@ -11,6 +11,6 @@ final class CompilerConfig extends AbstractConfig
 {
     public function assertsEnabled(): bool
     {
-        return (bool)$this->get(PhelConfig::ASSERTS_ENABLED, true);
+        return (bool) $this->get(PhelConfig::ASSERTS_ENABLED, true);
     }
 }

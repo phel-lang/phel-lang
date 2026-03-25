@@ -21,8 +21,7 @@ final readonly class Deconstructor implements DeconstructorInterface
 {
     public function __construct(
         private BindingValidatorInterface $bindingValidator,
-    ) {
-    }
+    ) {}
 
     public function deconstruct(PersistentVectorInterface $form): array
     {

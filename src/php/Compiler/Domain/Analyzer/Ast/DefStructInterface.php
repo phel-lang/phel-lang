@@ -12,8 +12,7 @@ final readonly class DefStructInterface
     public function __construct(
         private string $absoluteInterfaceName,
         private array $methods,
-    ) {
-    }
+    ) {}
 
     public function getAbsoluteInterfaceName(): string
     {

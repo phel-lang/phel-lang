@@ -16,8 +16,7 @@ final readonly class NamespaceInformation
         private string $namespace,
         private array $dependencies,
         private bool $isPrimaryDefinition = true,
-    ) {
-    }
+    ) {}
 
     public function getFile(): string
     {

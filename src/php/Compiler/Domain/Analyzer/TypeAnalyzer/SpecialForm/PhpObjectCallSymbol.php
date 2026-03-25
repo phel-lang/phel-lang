@@ -21,8 +21,7 @@ final readonly class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
     public function __construct(
         private AnalyzerInterface $analyzer,
         private bool $isStatic,
-    ) {
-    }
+    ) {}
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): PhpObjectCallNode
     {

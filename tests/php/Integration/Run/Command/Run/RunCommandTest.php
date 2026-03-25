@@ -119,7 +119,7 @@ final class RunCommandTest extends AbstractTestCommand
     {
         $input = $this->createStub(InputInterface::class);
         $input->method('getArgument')->willReturnCallback(
-            static fn (string $name): string|array => match ($name) {
+            static fn(string $name): string|array => match ($name) {
                 'path' => $path,
                 'argv' => $argv,
                 default => '',

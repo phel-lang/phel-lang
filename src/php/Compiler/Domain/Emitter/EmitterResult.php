@@ -11,8 +11,7 @@ final readonly class EmitterResult
         private string $phpCode,
         private string $sourceMap,
         private string $source,
-    ) {
-    }
+    ) {}
 
     public function getPhpCode(): string
     {

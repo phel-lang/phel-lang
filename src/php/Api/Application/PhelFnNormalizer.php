@@ -24,8 +24,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         private PhelFnLoaderInterface $phelFnLoader,
         private PhelFnGroupKeyGeneratorInterface $phelFnGroupKeyGenerator,
         private array $allNamespaces = [],
-    ) {
-    }
+    ) {}
 
     /**
      * @param list<string> $namespaces
@@ -47,7 +46,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 continue;
             }
 
-            $doc = (string)($meta[Keyword::create('doc')] ?? '');
+            $doc = (string) ($meta[Keyword::create('doc')] ?? '');
             preg_match('#(```phel\n(?<signature>.*)\n```\n)?(?<desc>.*)#s', $doc, $matches);
 
             $signatureBlock = $matches['signature'] ?? '';
@@ -74,7 +73,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
                 description: $description,
                 groupKey: $groupKey,
                 githubUrl: $this->toGithubUrl($file, $line),
-                docUrl: (string)($meta[Keyword::create('docUrl')] ?? ''),
+                docUrl: (string) ($meta[Keyword::create('docUrl')] ?? ''),
                 file: $file,
                 line: $line,
                 meta: $this->metaToArray($meta),
@@ -137,7 +136,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
 
     private function sortingPhelFunctionsCallback(): callable
     {
-        return static fn (PhelFunction $a, PhelFunction $b): int => (($a->namespace <=> $b->namespace) !== 0)
+        return static fn(PhelFunction $a, PhelFunction $b): int => (($a->namespace <=> $b->namespace) !== 0)
             ? $a->namespace <=> $b->namespace
             : ($a->name <=> $b->name);
     }

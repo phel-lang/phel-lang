@@ -26,8 +26,7 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
     public function __construct(
         private AnalyzerInterface $analyzer,
         private MungeInterface $munge,
-    ) {
-    }
+    ) {}
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): DefStructNode
     {

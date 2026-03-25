@@ -33,8 +33,7 @@ final class ReplCompleter implements ReplCompleterInterface
     public function __construct(
         private readonly PhelFnLoaderInterface $phelFnLoader,
         private readonly array $allNamespaces = [],
-    ) {
-    }
+    ) {}
 
     /**
      * Complete input from either PHP or Phel context.
@@ -79,17 +78,17 @@ final class ReplCompleter implements ReplCompleterInterface
 
         $functions = array_filter(
             self::$phpFunctions,
-            static fn (string $fn): bool => str_starts_with($fn, $prefix),
+            static fn(string $fn): bool => str_starts_with($fn, $prefix),
         );
 
         $classes = array_filter(
             self::$phpClasses,
-            static fn (string $class): bool => str_starts_with($class, $prefix),
+            static fn(string $class): bool => str_starts_with($class, $prefix),
         );
 
         $matches = [
-            ...array_map(static fn (string $fn): string => 'php/' . $fn, $functions),
-            ...array_map(static fn (string $class): string => 'php/' . $class, $classes),
+            ...array_map(static fn(string $fn): string => 'php/' . $fn, $functions),
+            ...array_map(static fn(string $class): string => 'php/' . $class, $classes),
         ];
 
         sort($matches);

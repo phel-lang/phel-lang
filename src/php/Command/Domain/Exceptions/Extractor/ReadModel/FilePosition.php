@@ -9,8 +9,7 @@ final readonly class FilePosition
     public function __construct(
         private string $filename,
         private int $line,
-    ) {
-    }
+    ) {}
 
     public function filename(): string
     {

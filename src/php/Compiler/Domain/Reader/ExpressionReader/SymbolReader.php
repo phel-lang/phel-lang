@@ -55,7 +55,7 @@ final class SymbolReader
         }
 
         if (preg_match('/\$([1-9]\d*)/', $word, $matches)) {
-            $number = (int)$matches[1];
+            $number = (int) $matches[1];
             if (isset($fnArgs[$number])) {
                 return Symbol::create($fnArgs[$number]->getName());
             }

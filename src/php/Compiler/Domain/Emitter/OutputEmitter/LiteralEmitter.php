@@ -27,8 +27,7 @@ final readonly class LiteralEmitter
     public function __construct(
         private OutputEmitterInterface $outputEmitter,
         private PrinterInterface $printer,
-    ) {
-    }
+    ) {}
 
     public function emitLiteral(TypeInterface|array|string|float|bool|int|null $x): void
     {
@@ -66,18 +65,18 @@ final readonly class LiteralEmitter
     private function emitFloat(float $x): void
     {
         /** @psalm-suppress InvalidCast */
-        $float = ((int)$x == $x)
+        $float = ((int) $x == $x)
             // (string) 10.0 will return 10 and not 10.0
             // so, we just add a .0 at the end
             ? ($x) . '.0'
-            : ((string)$x);
+            : ((string) $x);
 
         $this->outputEmitter->emitStr($float);
     }
 
     private function emitInt(int $x): void
     {
-        $this->outputEmitter->emitStr((string)$x);
+        $this->outputEmitter->emitStr((string) $x);
     }
 
     private function emitStr(string $x): void

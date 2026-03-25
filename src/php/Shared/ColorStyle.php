@@ -20,8 +20,7 @@ final class ColorStyle implements ColorStyleInterface
 
     private function __construct(
         private array $styles,
-    ) {
-    }
+    ) {}
 
     public static function withStyles(array $styles = []): self
     {

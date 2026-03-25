@@ -130,7 +130,7 @@ final class DebugLineTap
 
     private function formatTimestamp(): string
     {
-        $milliseconds = ((int)(microtime(true) * 1000.0)) % 1000;
+        $milliseconds = ((int) (microtime(true) * 1000.0)) % 1000;
 
         return date('H:i:s.') . sprintf('%03d', $milliseconds);
     }
@@ -141,7 +141,7 @@ final class DebugLineTap
         $header = sprintf(
             "=== Phel Debug Trace - Started at %s (PID: %s) ===\n",
             date('Y-m-d H:i:s'),
-            $pid === false ? 'unknown' : (string)$pid,
+            $pid === false ? 'unknown' : (string) $pid,
         );
 
         if ($this->phelFileFilter !== null) {

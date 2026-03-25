@@ -60,7 +60,7 @@ final class DocCommand extends Command
         $search = $input->getArgument('search');
         $normalized = $this->normalizeGroupedFunctions($phelFunctions, $search);
 
-        $format = strtolower((string)$input->getOption(self::OPTION_FORMAT));
+        $format = strtolower((string) $input->getOption(self::OPTION_FORMAT));
         if (!in_array($format, self::AVAILABLE_FORMATS, true)) {
             $message = sprintf(
                 'Invalid format "%s". Allowed values: %s',
@@ -157,13 +157,13 @@ final class DocCommand extends Command
     private function calculateWithProportionalToCurrentScreen(): array
     {
         $colCount = (new Terminal())->getWidth();
-        $colCountFloat = (float)$colCount;
+        $colCountFloat = (float) $colCount;
         $proportion1 = 25;
         $proportion2 = 40;
         $proportion3 = 50;
-        $totalProportion = (float)($proportion1 + $proportion2 + $proportion3);
-        $width1 = (int)(((float)$proportion1 / $totalProportion) * $colCountFloat) - 5;
-        $width2 = (int)(((float)$proportion2 / $totalProportion) * $colCountFloat) - 5;
+        $totalProportion = (float) ($proportion1 + $proportion2 + $proportion3);
+        $width1 = (int) (((float) $proportion1 / $totalProportion) * $colCountFloat) - 5;
+        $width2 = (int) (((float) $proportion2 / $totalProportion) * $colCountFloat) - 5;
         $width3 = $colCount - ($width1 + $width2 + 10);
 
         return [$width1, $width2, $width3];
@@ -204,14 +204,14 @@ final class DocCommand extends Command
                 'signatures' => $phelFunction->signatures,
                 'doc' => $phelFunction->doc,
                 'description' => $description,
-                'example' => (string)($phelFunction->meta['example'] ?? ''),
+                'example' => (string) ($phelFunction->meta['example'] ?? ''),
                 'githubUrl' => $phelFunction->githubUrl,
                 'docUrl' => $phelFunction->docUrl,
                 'percent' => (int) round($percent),
             ];
         }
 
-        usort($normalized, static fn (array $a, array $b): int => $b['percent'] <=> $a['percent']);
+        usort($normalized, static fn(array $a, array $b): int => $b['percent'] <=> $a['percent']);
 
         return $normalized;
     }

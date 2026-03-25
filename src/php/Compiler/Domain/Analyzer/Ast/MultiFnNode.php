@@ -35,7 +35,7 @@ final class MultiFnNode extends AbstractNode
 
     public function getMinArity(): int
     {
-        return min(array_map(static fn (FnNode $n): int => $n->getMinArity(), $this->fnNodes));
+        return min(array_map(static fn(FnNode $n): int => $n->getMinArity(), $this->fnNodes));
     }
 
     /**
@@ -47,7 +47,7 @@ final class MultiFnNode extends AbstractNode
             return null;
         }
 
-        return max(array_map(static fn (FnNode $n): int => $n->getMinArity(), $this->fnNodes));
+        return max(array_map(static fn(FnNode $n): int => $n->getMinArity(), $this->fnNodes));
     }
 
     /**
@@ -57,7 +57,7 @@ final class MultiFnNode extends AbstractNode
     {
         return array_reduce(
             $this->fnNodes,
-            static fn (bool $carry, FnNode $n): bool => $carry || $n->isVariadic(),
+            static fn(bool $carry, FnNode $n): bool => $carry || $n->isVariadic(),
             false,
         );
     }

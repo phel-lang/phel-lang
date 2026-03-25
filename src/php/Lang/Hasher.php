@@ -83,7 +83,7 @@ final class Hasher implements HasherInterface
     private function hashFloat(float $value): int
     {
         if (is_finite($value)) {
-            return (int)($value);
+            return (int) ($value);
         }
 
         if ($value === INF) {

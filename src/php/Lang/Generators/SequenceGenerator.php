@@ -252,8 +252,8 @@ final class SequenceGenerator
     public static function range(int|float $start, int|float $end, int|float $step): Generator
     {
         $cmp = $step < 0
-            ? static fn (int|float $i, int|float $e): bool => $i > $e
-            : static fn (int|float $i, int|float $e): bool => $i < $e;
+            ? static fn(int|float $i, int|float $e): bool => $i > $e
+            : static fn(int|float $i, int|float $e): bool => $i < $e;
 
         for ($i = $start; $cmp($i, $end); $i += $step) {
             yield $i;
@@ -721,6 +721,6 @@ final class SequenceGenerator
             return new ArrayIterator($iterable);
         }
 
-        return (static fn () => yield from $iterable)();
+        return (static fn() => yield from $iterable)();
     }
 }

@@ -32,8 +32,7 @@ final class Reader implements ReaderInterface
     public function __construct(
         private readonly ExpressionReaderFactoryInterface $readerFactory,
         private readonly QuasiquoteTransformerInterface $quasiquoteTransformer,
-    ) {
-    }
+    ) {}
 
     /**
      * Reads the next expression from the token stream.

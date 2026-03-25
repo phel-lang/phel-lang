@@ -104,7 +104,7 @@ final class LazySeqTest extends TestCase
         $lazySeq = new LazySeq(
             $this->hasher,
             $this->equalizer,
-            static fn (): null => null,
+            static fn(): null => null,
         );
 
         $this->assertNull($lazySeq->first());

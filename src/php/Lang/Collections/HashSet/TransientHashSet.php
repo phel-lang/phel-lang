@@ -18,8 +18,7 @@ final readonly class TransientHashSet implements TransientHashSetInterface, Stri
     public function __construct(
         private HasherInterface $hasher,
         private TransientMapInterface $transientMap,
-    ) {
-    }
+    ) {}
 
     public function __toString(): string
     {

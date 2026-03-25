@@ -13,9 +13,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 
 final readonly class ListReader
 {
-    public function __construct(private Reader $reader)
-    {
-    }
+    public function __construct(private Reader $reader) {}
 
     public function read(ListNode $node, NodeInterface $root): PersistentListInterface
     {

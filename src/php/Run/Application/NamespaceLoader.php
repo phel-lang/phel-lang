@@ -21,8 +21,7 @@ final class NamespaceLoader
         private readonly BuildFacadeInterface $buildFacade,
         private readonly CommandFacadeInterface $commandFacade,
         private readonly string $defaultReplStartupFile,
-    ) {
-    }
+    ) {}
 
     public static function reset(): void
     {

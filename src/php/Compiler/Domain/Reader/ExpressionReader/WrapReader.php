@@ -13,9 +13,7 @@ use Phel\Lang\Symbol;
 
 final readonly class WrapReader
 {
-    public function __construct(private Reader $reader)
-    {
-    }
+    public function __construct(private Reader $reader) {}
 
     public function read(QuoteNode $node, string $wrapFn, NodeInterface $root): PersistentListInterface
     {

@@ -11,8 +11,7 @@ final readonly class DefStructMethod
     public function __construct(
         private Symbol $name,
         private FnNode $fnNode,
-    ) {
-    }
+    ) {}
 
     public function getName(): Symbol
     {

@@ -9,8 +9,7 @@ final readonly class BuildOptions
     public function __construct(
         private bool $enableCache,
         private bool $enableSourceMap,
-    ) {
-    }
+    ) {}
 
     public function isCacheEnabled(): bool
     {

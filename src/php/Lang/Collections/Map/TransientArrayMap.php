@@ -22,8 +22,7 @@ final class TransientArrayMap implements TransientMapInterface
         private readonly HasherInterface $hasher,
         private readonly EqualizerInterface $equalizer,
         private array $array,
-    ) {
-    }
+    ) {}
 
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {

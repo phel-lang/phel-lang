@@ -12,8 +12,7 @@ abstract class AbstractNode
     public function __construct(
         private readonly NodeEnvironmentInterface $env,
         private readonly ?SourceLocation $startSourceLocation = null,
-    ) {
-    }
+    ) {}
 
     public function getEnv(): NodeEnvironmentInterface
     {

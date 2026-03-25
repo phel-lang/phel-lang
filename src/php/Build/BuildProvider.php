@@ -25,7 +25,7 @@ final class BuildProvider extends AbstractProvider
     {
         $container->set(
             self::FACADE_COMPILER,
-            static fn (Container $container) => $container->getLocator()->get(CompilerFacade::class),
+            static fn(Container $container) => $container->getLocator()->get(CompilerFacade::class),
         );
     }
 
@@ -33,7 +33,7 @@ final class BuildProvider extends AbstractProvider
     {
         $container->set(
             self::FACADE_COMMAND,
-            static fn (Container $container) => $container->getLocator()->get(CommandFacade::class),
+            static fn(Container $container) => $container->getLocator()->get(CommandFacade::class),
         );
     }
 }

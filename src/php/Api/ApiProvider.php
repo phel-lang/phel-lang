@@ -21,7 +21,7 @@ final class ApiProvider extends AbstractProvider
     {
         $container->set(
             self::FACADE_RUN,
-            static fn (Container $container) => $container->getLocator()->get(RunFacade::class),
+            static fn(Container $container) => $container->getLocator()->get(RunFacade::class),
         );
     }
 }

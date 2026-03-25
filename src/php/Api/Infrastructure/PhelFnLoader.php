@@ -135,9 +135,9 @@ Evaluate expressions after the try body and all matching catches have completed.
             'docUrl' => '/documentation/control-flow/#try-catch-and-finally',
             'signatures' => ['(finally expr*)'],
             'desc' => 'Evaluate expressions after the try body and all matching catches have completed. The finally block runs regardless of whether an exception was thrown.',
-            'example' => '(defn risky-operation [] (throw (php/new \Exception "Error!")))' . PHP_EOL .
-                '(defn cleanup [] (println "Cleanup!"))' . PHP_EOL .
-                '(try (risky-operation) (catch \Exception e nil) (finally (cleanup)))',
+            'example' => '(defn risky-operation [] (throw (php/new \Exception "Error!")))' . PHP_EOL
+                . '(defn cleanup [] (println "Cleanup!"))' . PHP_EOL
+                . '(try (risky-operation) (catch \Exception e nil) (finally (cleanup)))',
         ],
         Symbol::NAME_FN => [
             'doc' => '```phel
@@ -431,8 +431,7 @@ Creates a new vector. If no argument is provided, an empty vector is created. Sh
 
     public function __construct(
         private RunFacadeInterface $runFacade,
-    ) {
-    }
+    ) {}
 
     /**
      * @return array<string,array{

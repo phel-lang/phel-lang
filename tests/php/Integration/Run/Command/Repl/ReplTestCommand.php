@@ -177,9 +177,7 @@ final class ReplTestCommand extends AbstractTestCommand
         Gacela::overrideExistingResolvedClass(
             RunFactory::class,
             new class($io) extends RunFactory {
-                public function __construct(private readonly ReplCommandIoInterface $io)
-                {
-                }
+                public function __construct(private readonly ReplCommandIoInterface $io) {}
 
                 public function createColorStyle(): ColorStyleInterface
                 {

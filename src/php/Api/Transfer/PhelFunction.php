@@ -24,8 +24,7 @@ final readonly class PhelFunction
         public string $file = '',
         public int $line = 0,
         public array $meta = [],
-    ) {
-    }
+    ) {}
 
     /**
      * @param  array{

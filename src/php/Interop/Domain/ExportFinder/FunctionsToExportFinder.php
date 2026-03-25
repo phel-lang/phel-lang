@@ -22,8 +22,7 @@ final readonly class FunctionsToExportFinder implements FunctionsToExportFinderI
         private BuildFacadeInterface $buildFacade,
         private CommandFacadeInterface $commandFacade,
         private array $exportDirs,
-    ) {
-    }
+    ) {}
 
     /**
      * @throws ExtractorException
@@ -52,7 +51,7 @@ final readonly class FunctionsToExportFinder implements FunctionsToExportFinderI
             ->getNamespaceFromDirectories($this->exportDirs);
 
         $namespaces = array_map(
-            static fn (NamespaceInformation $info): string => $info->getNamespace(),
+            static fn(NamespaceInformation $info): string => $info->getNamespace(),
             $namespaceFromDirectories,
         );
 
@@ -94,6 +93,6 @@ final readonly class FunctionsToExportFinder implements FunctionsToExportFinderI
         $meta = Phel::getDefinitionMetaData($ns, $fnName)
             ?? Phel::list();
 
-        return (bool)($meta[Keyword::create('export')] ?? false);
+        return (bool) ($meta[Keyword::create('export')] ?? false);
     }
 }

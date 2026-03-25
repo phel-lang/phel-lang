@@ -10,8 +10,7 @@ final class SourceLocation
         private string $file,
         private int $line,
         private int $column,
-    ) {
-    }
+    ) {}
 
     public function getFile(): string
     {

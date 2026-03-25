@@ -23,8 +23,7 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
 
     public function __construct(
         private readonly Deconstructor $deconstructor,
-    ) {
-    }
+    ) {}
 
     /**
      * @param PersistentMapInterface                   $binding The binding form

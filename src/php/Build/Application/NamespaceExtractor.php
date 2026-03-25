@@ -33,8 +33,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
         private CompilerFacadeInterface $compilerFacade,
         private NamespaceSorterInterface $namespaceSorter,
         private FileIoInterface $fileIo,
-    ) {
-    }
+    ) {}
 
     /**
      * @throws ExtractorException
@@ -65,7 +64,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
                     $realFile !== false ? $realFile : $path,
                     $node->getNamespace(),
                     array_unique(array_map(
-                        static fn (Symbol $s): string => $s->getFullName(),
+                        static fn(Symbol $s): string => $s->getFullName(),
                         $node->getRequireNs(),
                     )),
                     isPrimaryDefinition: true,
@@ -127,10 +126,10 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
     {
         foreach ($allLocations as $namespace => $files) {
             if (count($files) > 1) {
-                $fileList = implode("\n", array_map(static fn (string $f): string => '  - ' . $f, $files));
+                $fileList = implode("\n", array_map(static fn(string $f): string => '  - ' . $f, $files));
                 fwrite(STDERR, sprintf(
-                    "\nWARNING: Namespace '%s' is defined in multiple locations:\n%s\n" .
-                    "The last one will be used. Check your phel-config.php srcDirs/testDirs settings.\n",
+                    "\nWARNING: Namespace '%s' is defined in multiple locations:\n%s\n"
+                    . "The last one will be used. Check your phel-config.php srcDirs/testDirs settings.\n",
                     $namespace,
                     $fileList,
                 ));

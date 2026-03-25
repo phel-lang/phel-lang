@@ -21,9 +21,7 @@ final readonly class ListParser
         Token::T_CLOSE_BRACE => '}',
     ];
 
-    public function __construct(private Parser $parser)
-    {
-    }
+    public function __construct(private Parser $parser) {}
 
     /**
      * @throws UnfinishedParserException

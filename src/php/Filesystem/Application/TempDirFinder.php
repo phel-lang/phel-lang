@@ -14,8 +14,7 @@ final class TempDirFinder
     public function __construct(
         private readonly FileIoInterface $fileIo,
         private readonly string $configTempDir,
-    ) {
-    }
+    ) {}
 
     /**
      * Returns the configured temporary directory. If it doesn't exist,

@@ -25,8 +25,7 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
     public function __construct(
         private AnalyzerInterface $analyzer,
         private BindingValidator $bindingValidator,
-    ) {
-    }
+    ) {}
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): LetNode
     {

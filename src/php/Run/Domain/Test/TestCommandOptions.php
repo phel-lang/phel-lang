@@ -20,8 +20,7 @@ final readonly class TestCommandOptions
         private ?string $filter,
         private bool $testdox,
         private bool $failFast,
-    ) {
-    }
+    ) {}
 
     public static function empty(): self
     {

@@ -14,8 +14,7 @@ final readonly class NamespaceCollector
     public function __construct(
         private BuildFacadeInterface $buildFacade,
         private CommandFacadeInterface $commandFacade,
-    ) {
-    }
+    ) {}
 
     /**
      * @return list<NamespaceInformation>
@@ -52,13 +51,13 @@ final readonly class NamespaceCollector
             );
 
             return array_map(
-                static fn (NamespaceInformation $info): string => $info->getNamespace(),
+                static fn(NamespaceInformation $info): string => $info->getNamespace(),
                 $namespaces,
             );
         }
 
         return array_map(
-            fn (string $filename): string => $this
+            fn(string $filename): string => $this
                 ->buildFacade
                 ->getNamespaceFromFile($filename)
                 ->getNamespace(),

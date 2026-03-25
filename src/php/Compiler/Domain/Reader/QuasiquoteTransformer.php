@@ -29,8 +29,7 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
 {
     public function __construct(
         private GlobalEnvironmentInterface $env,
-    ) {
-    }
+    ) {}
 
     /**
      * @param bool|float|int|string|TypeInterface|null $form The form to quasiqoute

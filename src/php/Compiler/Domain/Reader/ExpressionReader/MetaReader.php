@@ -19,9 +19,7 @@ use function is_string;
 
 final readonly class MetaReader
 {
-    public function __construct(private Reader $reader)
-    {
-    }
+    public function __construct(private Reader $reader) {}
 
     /**
      * @throws ReaderException

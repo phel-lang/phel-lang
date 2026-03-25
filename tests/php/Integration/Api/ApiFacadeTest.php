@@ -42,7 +42,7 @@ final class ApiFacadeTest extends TestCase
     {
         $loadedNamespaces = array_unique(array_column($functions, 'namespace'));
         $expectedNamespaces = array_map(
-            static fn (string $ns): string => str_replace('phel\\', '', $ns),
+            static fn(string $ns): string => str_replace('phel\\', '', $ns),
             ApiConfig::allNamespaces(),
         );
 

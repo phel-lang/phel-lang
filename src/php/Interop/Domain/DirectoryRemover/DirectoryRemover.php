@@ -11,9 +11,7 @@ use Symfony\Component\Finder\SplFileInfo;
 
 final readonly class DirectoryRemover implements DirectoryRemoverInterface
 {
-    public function __construct(private string $targetDir)
-    {
-    }
+    public function __construct(private string $targetDir) {}
 
     public function removeDir(): void
     {

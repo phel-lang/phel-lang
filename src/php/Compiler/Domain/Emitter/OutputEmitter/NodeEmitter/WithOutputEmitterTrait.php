@@ -8,7 +8,5 @@ use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 
 trait WithOutputEmitterTrait
 {
-    public function __construct(private OutputEmitterInterface $outputEmitter)
-    {
-    }
+    public function __construct(private OutputEmitterInterface $outputEmitter) {}
 }
