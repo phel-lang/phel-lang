@@ -10,11 +10,7 @@
             "Bash(gh *)",
             "Bash(timeout *)",
             "Bash(ls *)",
-            "Bash(wc *)",
-            "WebFetch(domain:phel-lang.org)",
-            "WebFetch(domain:clojure.org)",
-            "WebFetch(domain:clojuredocs.org)",
-            "WebFetch(domain:janet-lang.org)"
+            "Bash(wc *)"
         ],
         "deny": [
             "Bash(rm -rf:*)",

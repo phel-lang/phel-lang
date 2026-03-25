@@ -7,7 +7,7 @@ globs: src/php/**,tests/php/**
 
 ## Code Style
 
-- PSR-12 enforced by php-cs-fixer + rector (auto-formats via PostToolUse hook — no manual run needed)
+- PER 3.0 enforced by php-cs-fixer + rector (auto-formats via PostToolUse hook — no manual run needed)
 - PHPStan level 5, Psalm level 1
 - Prefer `final` classes unless inheritance is explicitly needed
 - Use `readonly` properties where possible
