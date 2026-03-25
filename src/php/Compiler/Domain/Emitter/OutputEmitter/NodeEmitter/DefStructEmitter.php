@@ -119,7 +119,6 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
 
         foreach ($params as $param) {
             $keyword = Keyword::create($param->getName());
-            $keyword->setStartLocation($node->getStartSourceLocation());
 
             $propertyName = $this->outputEmitter->mungeEncode($param->getName());
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use Override;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 
 final class Keyword extends AbstractType implements IdenticalInterface, FnInterface, NamedInterface
@@ -80,5 +81,21 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
     public function identical(mixed $other): bool
     {
         return $this === $other;
+    }
+
+    /**
+     * Interned keywords are shared instances — source location is
+     * per-occurrence, not per-keyword, so mutation must be suppressed.
+     */
+    #[Override]
+    public function setStartLocation(?SourceLocation $startLocation): static
+    {
+        return $this;
+    }
+
+    #[Override]
+    public function setEndLocation(?SourceLocation $endLocation): static
+    {
+        return $this;
     }
 }
