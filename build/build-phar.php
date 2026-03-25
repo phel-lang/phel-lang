@@ -22,7 +22,7 @@ final class PharBuilder
     private array $excludeDirs = [
         '', '.', '..',
         '.git', '.github', '.idea', '.claude', '.vscode',
-        'docs', 'tests', 'docker', 'local', 'build', 'tools', 'examples', 'fixtures',
+        'docs', 'tests', 'docker', 'local', 'build', 'tools', 'examples', 'fixtures', 'out',
         '.phel-cache', '.phpunit.cache',
     ];
 
@@ -126,12 +126,96 @@ final class PharBuilder
     }
 
     /**
+     * Pre-compile all stdlib .phel modules into cache/compiled/ so the PHAR
+     * ships ready-to-run code. Without this, modules other than phel\core
+     * would fail to compile at runtime when phar.readonly=On.
+     */
+    public function preCompileStdlib(): void
+    {
+        $cacheDir = $this->root . '/cache';
+        $compiledDir = $cacheDir . '/compiled';
+
+        // Clean previous compiled cache to avoid stale entries
+        if (is_dir($compiledDir)) {
+            $files = glob($compiledDir . '/*');
+            if ($files !== false) {
+                foreach ($files as $file) {
+                    @unlink($file);
+                }
+            }
+        }
+
+        // Build the project using Phel's build command — this compiles all
+        // stdlib modules through the normal pipeline, populating the temp cache.
+        $exitCode = 0;
+        passthru(
+            sprintf('cd %s && php bin/phel build --quiet 2>&1', escapeshellarg($this->root)),
+            $exitCode,
+        );
+
+        if ($exitCode !== 0) {
+            echo "⚠️  phel build exited with code {$exitCode}, attempting to continue\n";
+        }
+
+        // Copy the compiled cache from the temp dir to the project-local cache/
+        // so the files get bundled into the PHAR.
+        $tempCacheDir = sys_get_temp_dir() . '/phel/cache';
+
+        if (!is_dir($tempCacheDir . '/compiled')) {
+            echo "⚠️  No compiled cache found at {$tempCacheDir}/compiled\n";
+            return;
+        }
+
+        if (!is_dir($compiledDir)) {
+            mkdir($compiledDir, 0755, true);
+        }
+
+        // Copy only stdlib compiled files (phel_* prefix)
+        $compiledFiles = glob($tempCacheDir . '/compiled/phel_*');
+        if ($compiledFiles === false) {
+            return;
+        }
+
+        $copiedCount = 0;
+        foreach ($compiledFiles as $file) {
+            $basename = basename($file);
+            if (copy($file, $compiledDir . '/' . $basename)) {
+                $copiedCount++;
+            }
+        }
+
+        // Copy the compiled index (filtered to only stdlib entries)
+        $indexFile = $tempCacheDir . '/compiled-index.php';
+        if (file_exists($indexFile)) {
+            $indexData = @include $indexFile;
+            if (is_array($indexData) && isset($indexData['entries'])) {
+                $stdlibEntries = [];
+                foreach ($indexData['entries'] as $namespace => $entry) {
+                    if (str_starts_with($namespace, 'phel\\')) {
+                        // Rewrite compiled_path to be relative to phar cache dir
+                        $entry['compiled_path'] = $compiledDir . '/' . basename($entry['compiled_path']);
+                        $stdlibEntries[$namespace] = $entry;
+                    }
+                }
+                $indexData['entries'] = $stdlibEntries;
+                file_put_contents(
+                    $cacheDir . '/compiled-index.php',
+                    '<?php return ' . var_export($indexData, true) . ';',
+                );
+            }
+        }
+
+        echo "📦  Pre-compiled {$copiedCount} stdlib module(s) into cache/compiled/\n";
+    }
+
+    /**
      * Build the PHAR archive
      */
     public function build(): void
     {
         $this->validate();
         $this->prepareReleaseConfig();
+        $this->preCompileStdlib();
         $this->cleanup();
 
         try {
