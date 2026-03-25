@@ -25,8 +25,7 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
         protected HasherInterface $hasher,
         protected EqualizerInterface $equalizer,
         protected ?PersistentMapInterface $meta,
-    ) {
-    }
+    ) {}
 
     /**
      * @param K $key

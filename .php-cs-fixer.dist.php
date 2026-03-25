@@ -8,8 +8,8 @@ use PhpCsFixer\Runner\Parallel\ParallelConfigFactory;
 
 $finder = Finder::create()
     ->files()
-    ->in(__DIR__.'/src/php')
-    ->in(__DIR__.'/tests/php')
+    ->in(__DIR__ . '/src/php')
+    ->in(__DIR__ . '/tests/php')
     ->exclude(['cache', 'out', 'PhelGenerated']);
 
 return (new Config())
@@ -19,9 +19,10 @@ return (new Config())
     ->setRiskyAllowed(true)
     ->setRules([
         // ------------------------------------------------------------------
-        // Base preset
+        // Base preset: PER Coding Style 3.0
         // ------------------------------------------------------------------
-        '@PSR12' => true,
+        '@PER-CS3.0' => true,
+        '@PER-CS3.0:risky' => true,
 
         // ------------------------------------------------------------------
         // Language level & typing

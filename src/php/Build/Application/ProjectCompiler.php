@@ -31,8 +31,7 @@ final readonly class ProjectCompiler
         private CommandFacadeInterface $commandFacade,
         private EntryPointPhpFileInterface $entryPointPhpFile,
         private BuildConfigInterface $config,
-    ) {
-    }
+    ) {}
 
     /**
      * @return list<CompiledFile>

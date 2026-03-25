@@ -18,8 +18,7 @@ final readonly class ExceptionArgsPrinter implements ExceptionArgsPrinterInterfa
 {
     public function __construct(
         private PrinterInterface $printer,
-    ) {
-    }
+    ) {}
 
     public function parseArgsAsString(array $frameArgs): string
     {
@@ -83,6 +82,6 @@ final readonly class ExceptionArgsPrinter implements ExceptionArgsPrinterInterfa
             return 'Resource id #' . get_resource_id($arg);
         }
 
-        return (string)$arg;
+        return (string) $arg;
     }
 }

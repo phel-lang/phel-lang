@@ -216,7 +216,7 @@ final class AnalyzerException extends AbstractLocatedException
 
         /** @var string $lastSuggestion */
         $lastSuggestion = array_pop($suggestions);
-        $quotedSuggestions = array_map(static fn (string $s): string => sprintf("'%s'", $s), $suggestions);
+        $quotedSuggestions = array_map(static fn(string $s): string => sprintf("'%s'", $s), $suggestions);
 
         return implode(', ', $quotedSuggestions) . sprintf(", or '%s'", $lastSuggestion);
     }

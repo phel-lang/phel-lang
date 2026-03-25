@@ -104,6 +104,6 @@ final class PrinterTest extends TestCase
         $tokenStream = $this->compilerFacade->lexString($string);
         $parseTree = $this->compilerFacade->parseNext($tokenStream);
 
-        return (string)$this->compilerFacade->read($parseTree)->getAst();
+        return (string) $this->compilerFacade->read($parseTree)->getAst();
     }
 }

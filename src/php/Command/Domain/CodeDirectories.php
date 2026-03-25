@@ -14,8 +14,7 @@ final readonly class CodeDirectories
         private array $srcDirs,
         private array $testDirs,
         private string $outputDir,
-    ) {
-    }
+    ) {}
 
     /**
      * @return list<string>

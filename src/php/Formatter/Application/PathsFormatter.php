@@ -22,8 +22,7 @@ final readonly class PathsFormatter
         private FormatterInterface $formatter,
         private PathFilterInterface $pathFilter,
         private FileIoInterface $fileIo,
-    ) {
-    }
+    ) {}
 
     /**
      * @return list<string> successful formatted file paths
@@ -64,6 +63,6 @@ final readonly class PathsFormatter
         $formattedCode = $this->formatter->format($code, $filename);
         $this->fileIo->putContents($filename, $formattedCode);
 
-        return (bool)strcmp($formattedCode, $code);
+        return (bool) strcmp($formattedCode, $code);
     }
 }

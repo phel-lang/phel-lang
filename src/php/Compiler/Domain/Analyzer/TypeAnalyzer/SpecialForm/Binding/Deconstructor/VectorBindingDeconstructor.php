@@ -38,8 +38,7 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
 
     public function __construct(
         private readonly Deconstructor $deconstructor,
-    ) {
-    }
+    ) {}
 
     /**
      * @param mixed $binding

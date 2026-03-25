@@ -45,7 +45,7 @@ final class RunProvider extends AbstractProvider
     {
         $container->set(
             self::FACADE_COMMAND,
-            static fn (Container $container) => $container->getLocator()->get(CommandFacade::class),
+            static fn(Container $container) => $container->getLocator()->get(CommandFacade::class),
         );
     }
 
@@ -53,7 +53,7 @@ final class RunProvider extends AbstractProvider
     {
         $container->set(
             self::FACADE_COMPILER,
-            static fn (Container $container) => $container->getLocator()->get(CompilerFacade::class),
+            static fn(Container $container) => $container->getLocator()->get(CompilerFacade::class),
         );
     }
 
@@ -61,7 +61,7 @@ final class RunProvider extends AbstractProvider
     {
         $container->set(
             self::FACADE_FORMATTER,
-            static fn (Container $container) => $container->getLocator()->get(FormatterFacade::class),
+            static fn(Container $container) => $container->getLocator()->get(FormatterFacade::class),
         );
     }
 
@@ -69,7 +69,7 @@ final class RunProvider extends AbstractProvider
     {
         $container->set(
             self::FACADE_INTEROP,
-            static fn (Container $container) => $container->getLocator()->get(InteropFacade::class),
+            static fn(Container $container) => $container->getLocator()->get(InteropFacade::class),
         );
     }
 
@@ -77,7 +77,7 @@ final class RunProvider extends AbstractProvider
     {
         $container->set(
             self::FACADE_BUILD,
-            static fn (Container $container) => $container->getLocator()->get(BuildFacade::class),
+            static fn(Container $container) => $container->getLocator()->get(BuildFacade::class),
         );
     }
 
@@ -85,7 +85,7 @@ final class RunProvider extends AbstractProvider
     {
         $container->set(
             self::FACADE_API,
-            static fn (Container $container) => $container->getLocator()->get(ApiFacade::class),
+            static fn(Container $container) => $container->getLocator()->get(ApiFacade::class),
         );
     }
 
@@ -93,7 +93,7 @@ final class RunProvider extends AbstractProvider
     {
         $container->set(
             self::FACADE_CONSOLE,
-            static fn (Container $container) => $container->getLocator()->get(ConsoleFacade::class),
+            static fn(Container $container) => $container->getLocator()->get(ConsoleFacade::class),
         );
     }
 }

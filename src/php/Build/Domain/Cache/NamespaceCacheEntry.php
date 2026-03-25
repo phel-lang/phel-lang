@@ -17,8 +17,7 @@ final readonly class NamespaceCacheEntry
         public string $namespace,
         public array $dependencies,
         public bool $isPrimaryDefinition = true,
-    ) {
-    }
+    ) {}
 
     public function isValid(): bool
     {

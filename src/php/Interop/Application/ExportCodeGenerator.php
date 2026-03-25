@@ -19,8 +19,7 @@ final readonly class ExportCodeGenerator
         private WrapperGeneratorInterface $wrapperGenerator,
         private FunctionsToExportFinderInterface $functionsToExportFinder,
         private FileCreatorInterface $fileCreator,
-    ) {
-    }
+    ) {}
 
     /**
      * @throws CompilerException

@@ -8,9 +8,7 @@ use Phel\Lang\FnInterface;
 
 final readonly class FunctionToExport
 {
-    public function __construct(private FnInterface $fn)
-    {
-    }
+    public function __construct(private FnInterface $fn) {}
 
     public function fn(): FnInterface
     {

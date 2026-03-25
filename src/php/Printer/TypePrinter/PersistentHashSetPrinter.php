@@ -12,9 +12,7 @@ use Phel\Printer\PrinterInterface;
  */
 final readonly class PersistentHashSetPrinter implements TypePrinterInterface
 {
-    public function __construct(private PrinterInterface $printer)
-    {
-    }
+    public function __construct(private PrinterInterface $printer) {}
 
     /**
      * @param PersistentHashSetInterface $form

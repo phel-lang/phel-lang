@@ -36,8 +36,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
         private readonly mixed $first,
         private $rest,
         private readonly int $count,
-    ) {
-    }
+    ) {}
 
     /**
      * @return T

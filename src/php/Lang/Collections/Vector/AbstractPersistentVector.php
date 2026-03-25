@@ -28,8 +28,7 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
         protected HasherInterface $hasher,
         protected EqualizerInterface $equalizer,
         protected ?PersistentMapInterface $meta,
-    ) {
-    }
+    ) {}
 
     /**
      * @return T

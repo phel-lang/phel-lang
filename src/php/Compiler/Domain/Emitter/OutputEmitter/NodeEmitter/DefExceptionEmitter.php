@@ -13,9 +13,7 @@ use function assert;
 
 final readonly class DefExceptionEmitter implements NodeEmitterInterface
 {
-    public function __construct(private OutputEmitterInterface $outputEmitter)
-    {
-    }
+    public function __construct(private OutputEmitterInterface $outputEmitter) {}
 
     public function emit(AbstractNode $node): void
     {

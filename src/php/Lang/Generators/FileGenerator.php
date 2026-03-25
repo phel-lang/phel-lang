@@ -193,7 +193,7 @@ final class FileGenerator
             $typeFactory = TypeFactory::getInstance();
             while (($row = fgetcsv($handle, 0, $separator, $enclosure, $escape)) !== false) {
                 /** @psalm-var list<string|null> $row */
-                $cleanRow = array_map(static fn (?string $val): string => $val ?? '', $row);
+                $cleanRow = array_map(static fn(?string $val): string => $val ?? '', $row);
                 yield $typeFactory->persistentVectorFromArray($cleanRow);
             }
         } finally {

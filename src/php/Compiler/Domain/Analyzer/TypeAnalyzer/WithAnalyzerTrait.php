@@ -10,6 +10,5 @@ trait WithAnalyzerTrait
 {
     public function __construct(
         private readonly AnalyzerInterface $analyzer,
-    ) {
-    }
+    ) {}
 }

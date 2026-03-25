@@ -35,8 +35,7 @@ final class OutputEmitter implements OutputEmitterInterface
         private readonly PrinterInterface $printer,
         private readonly SourceMapState $sourceMapState,
         private readonly OutputEmitterOptions $options,
-    ) {
-    }
+    ) {}
 
     public function getOptions(): OutputEmitterOptions
     {

@@ -57,8 +57,7 @@ final class AnalyzePersistentList
     public function __construct(
         private readonly AnalyzerInterface $analyzer,
         private readonly bool $assertsEnabled,
-    ) {
-    }
+    ) {}
 
     /**
      * @throws AbstractLocatedException|AnalyzerException

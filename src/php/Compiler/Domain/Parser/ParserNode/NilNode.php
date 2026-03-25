@@ -7,6 +7,4 @@ namespace Phel\Compiler\Domain\Parser\ParserNode;
 /**
  * @extends AbstractAtomNode<null>
  */
-final class NilNode extends AbstractAtomNode
-{
-}
+final class NilNode extends AbstractAtomNode {}

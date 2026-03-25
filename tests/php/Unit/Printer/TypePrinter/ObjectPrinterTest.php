@@ -30,7 +30,7 @@ final class ObjectPrinterTest extends TestCase
 
         yield 'array to object cast' => [
             '<PHP-Object(stdClass)>',
-            (object)[],
+            (object) [],
         ];
     }
 }

@@ -17,8 +17,7 @@ final readonly class QuoasiquoteReader
     public function __construct(
         private Reader $reader,
         private QuasiquoteTransformerInterface $quasiquoteTransformer,
-    ) {
-    }
+    ) {}
 
     /**
      * @throws ReaderException

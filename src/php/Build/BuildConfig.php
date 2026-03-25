@@ -33,7 +33,7 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
 
     public function getPhelBuildConfig(): PhelBuildConfig
     {
-        $config = PhelBuildConfig::fromArray((array)$this->get('out', []));
+        $config = PhelBuildConfig::fromArray((array) $this->get('out', []));
 
         // Auto-detect namespace from core.phel if not explicitly configured
         if ($config->getMainPhelNamespace() === '') {
@@ -48,22 +48,22 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
 
     public function isNamespaceCacheEnabled(): bool
     {
-        return (bool)$this->get(PhelConfig::ENABLE_NAMESPACE_CACHE, true);
+        return (bool) $this->get(PhelConfig::ENABLE_NAMESPACE_CACHE, true);
     }
 
     public function isCompiledCodeCacheEnabled(): bool
     {
-        return (bool)$this->get(PhelConfig::ENABLE_COMPILED_CODE_CACHE, true);
+        return (bool) $this->get(PhelConfig::ENABLE_COMPILED_CODE_CACHE, true);
     }
 
     public function getTempDir(): string
     {
-        return (string)$this->get(PhelConfig::TEMP_DIR, sys_get_temp_dir() . '/phel');
+        return (string) $this->get(PhelConfig::TEMP_DIR, sys_get_temp_dir() . '/phel');
     }
 
     public function getCacheDir(): string
     {
-        $cacheDir = (string)$this->get(PhelConfig::CACHE_DIR, 'cache');
+        $cacheDir = (string) $this->get(PhelConfig::CACHE_DIR, 'cache');
 
         // If absolute path, use as-is; otherwise relative to app root
         if (str_starts_with($cacheDir, '/') || str_starts_with($cacheDir, 'phar://')) {
@@ -85,7 +85,7 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
     private function autoDetectMainNamespace(): string
     {
         /** @var list<string> $srcDirs */
-        $srcDirs = (array)$this->get(PhelConfig::SRC_DIRS, PhelConfig::DEFAULT_SRC_DIRS);
+        $srcDirs = (array) $this->get(PhelConfig::SRC_DIRS, PhelConfig::DEFAULT_SRC_DIRS);
         $appRoot = $this->getAppRootDir();
 
         foreach ($srcDirs as $srcDir) {

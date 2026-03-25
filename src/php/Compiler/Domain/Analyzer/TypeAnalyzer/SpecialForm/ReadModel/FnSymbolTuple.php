@@ -34,8 +34,7 @@ final class FnSymbolTuple
 
     private function __construct(
         private readonly PersistentListInterface $parentList,
-    ) {
-    }
+    ) {}
 
     public static function createWithTuple(PersistentListInterface $list): self
     {

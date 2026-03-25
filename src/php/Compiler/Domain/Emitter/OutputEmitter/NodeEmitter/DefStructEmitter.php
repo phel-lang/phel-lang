@@ -19,8 +19,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
     public function __construct(
         private OutputEmitterInterface $outputEmitter,
         private MethodEmitter $methodEmitter,
-    ) {
-    }
+    ) {}
 
     public function emit(AbstractNode $node): void
     {

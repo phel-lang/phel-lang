@@ -20,8 +20,7 @@ final readonly class Formatter implements FormatterInterface
     public function __construct(
         private CompilerFacadeInterface $compilerFacade,
         private array $rules,
-    ) {
-    }
+    ) {}
 
     /**
      * @throws AbstractParserException

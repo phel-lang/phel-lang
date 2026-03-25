@@ -14,8 +14,7 @@ final readonly class DirectoryFinder implements DirectoryFinderInterface
         private string $applicationRootDir,
         private CodeDirectories $codeDirectories,
         private VendorDirectoriesFinderInterface $vendorDirectoriesFinder,
-    ) {
-    }
+    ) {}
 
     /**
      * @return list<string>

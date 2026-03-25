@@ -168,11 +168,11 @@ final class RunCommand extends Command
         $output->writeln(
             <<<EOF
             <error>No rendered output after running namespace: "{$identifier}"</>
-            
+
             <comment>Please verify that at least one of the following applies:
             - The file exists
             - The namespace exists</>
-            
+
             You can ignore this message with `-q|--quiet`
             EOF
         );

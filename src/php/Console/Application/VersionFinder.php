@@ -16,8 +16,7 @@ final class VersionFinder
         private readonly string $tagCommitHash,
         private readonly string $currentCommit,
         private readonly bool $isOfficialRelease = false,
-    ) {
-    }
+    ) {}
 
     public function getVersion(): string
     {

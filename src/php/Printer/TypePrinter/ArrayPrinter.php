@@ -17,8 +17,7 @@ final readonly class ArrayPrinter implements TypePrinterInterface
     public function __construct(
         private PrinterInterface $printer,
         private bool $withColor = false,
-    ) {
-    }
+    ) {}
 
     /**
      * @param array $form

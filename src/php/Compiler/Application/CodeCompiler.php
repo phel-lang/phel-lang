@@ -38,8 +38,7 @@ final readonly class CodeCompiler implements CodeCompilerInterface
         private StatementEmitterInterface $statementEmitter,
         private FileEmitterInterface $fileEmitter,
         private EvaluatorInterface $evaluator,
-    ) {
-    }
+    ) {}
 
     /**
      * @throws CompilerException

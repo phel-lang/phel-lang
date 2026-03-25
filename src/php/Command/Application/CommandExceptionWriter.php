@@ -19,8 +19,7 @@ final readonly class CommandExceptionWriter implements CommandExceptionWriterInt
     public function __construct(
         private ExceptionPrinterInterface $exceptionPrinter,
         private ErrorLogInterface $errorLog,
-    ) {
-    }
+    ) {}
 
     public function writeStackTrace(
         OutputInterface $output,

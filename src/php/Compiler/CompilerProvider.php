@@ -16,7 +16,7 @@ final class CompilerProvider extends AbstractProvider
     {
         $container->set(
             self::FACADE_FILESYSTEM,
-            static fn (Container $container) => $container->getLocator()->get(FilesystemFacade::class),
+            static fn(Container $container) => $container->getLocator()->get(FilesystemFacade::class),
         );
     }
 }

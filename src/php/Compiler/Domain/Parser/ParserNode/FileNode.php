@@ -17,8 +17,7 @@ final class FileNode implements InnerNodeInterface
         private readonly SourceLocation $startLocation,
         private readonly SourceLocation $endLocation,
         private array $children,
-    ) {
-    }
+    ) {}
 
     /**
      * @param list<NodeInterface> $children

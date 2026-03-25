@@ -78,7 +78,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
                 return (new self(
                     $hasher,
                     $equalizer,
-                    static fn (): LazySeq => self::fromGenerator($hasher, $equalizer, $generator),
+                    static fn(): LazySeq => self::fromGenerator($hasher, $equalizer, $generator),
                 ))->cons($value);
             },
             $meta,
@@ -141,7 +141,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
         return (new self(
             $hasher,
             $equalizer,
-            static fn (): ?LazySeq => self::fromArray($hasher, $equalizer, $array),
+            static fn(): ?LazySeq => self::fromArray($hasher, $equalizer, $array),
             $meta,
         ))->cons($first);
     }
@@ -168,7 +168,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     /**
      * @return LazySeqInterface<T>|null
      */
-    public function cdr(): null|LazySeqInterface|self
+    public function cdr(): LazySeqInterface|self|null
     {
         $seq = $this->realize();
 
@@ -197,7 +197,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
         }
 
         /** @phpstan-ignore return.type */
-        return new self($this->hasher, $this->equalizer, static fn (): SeqInterface => $rest);
+        return new self($this->hasher, $this->equalizer, static fn(): SeqInterface => $rest);
     }
 
     /**
@@ -209,7 +209,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
 
         if (!$cdr instanceof LazySeqInterface) {
             // Return empty LazySeq
-            return new self($this->hasher, $this->equalizer, static fn (): null => null);
+            return new self($this->hasher, $this->equalizer, static fn(): null => null);
         }
 
         return $cdr;
@@ -228,13 +228,12 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
             $this->hasher,
             $this->equalizer,
             /** @psalm-suppress InvalidReturnType, InvalidReturnStatement */
-            static fn (): SeqInterface => // Create a simple cons cell
-            new readonly class($x, $self) implements SeqInterface {
+            static fn(): SeqInterface // Create a simple cons cell
+            => new readonly class($x, $self) implements SeqInterface {
                 public function __construct(
                     private mixed $first,
                     private LazySeqInterface $rest,
-                ) {
-                }
+                ) {}
 
                 public function first()
                 {

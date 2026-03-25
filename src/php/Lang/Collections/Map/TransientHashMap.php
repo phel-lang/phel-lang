@@ -29,8 +29,7 @@ final class TransientHashMap implements TransientMapInterface
         private ?HashMapNodeInterface $root,
         private bool $hasNull,
         private $nullValue,
-    ) {
-    }
+    ) {}
 
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {

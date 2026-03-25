@@ -10,9 +10,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\QuoteNode;
 
 final readonly class QuoteParser
 {
-    public function __construct(private Parser $parser)
-    {
-    }
+    public function __construct(private Parser $parser) {}
 
     public function parse(TokenStream $tokenStream, int $tokenType): QuoteNode
     {

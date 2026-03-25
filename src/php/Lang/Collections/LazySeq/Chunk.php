@@ -26,8 +26,7 @@ final readonly class Chunk
     public function __construct(
         private array $values,
         private int $offset = 0,
-    ) {
-    }
+    ) {}
 
     /**
      * Gets the value at the specified index within this chunk.

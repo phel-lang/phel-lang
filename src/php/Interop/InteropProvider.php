@@ -25,7 +25,7 @@ final class InteropProvider extends AbstractProvider
     {
         $container->set(
             self::FACADE_COMMAND,
-            static fn (Container $container) => $container->getLocator()->get(CommandFacade::class),
+            static fn(Container $container) => $container->getLocator()->get(CommandFacade::class),
         );
     }
 
@@ -33,7 +33,7 @@ final class InteropProvider extends AbstractProvider
     {
         $container->set(
             self::FACADE_BUILD,
-            static fn (Container $container) => $container->getLocator()->get(BuildFacade::class),
+            static fn(Container $container) => $container->getLocator()->get(BuildFacade::class),
         );
     }
 }

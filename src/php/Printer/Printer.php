@@ -44,8 +44,7 @@ final readonly class Printer implements PrinterInterface
     public function __construct(
         private bool $readable,
         private bool $withColor = false,
-    ) {
-    }
+    ) {}
 
     public static function readable(): self
     {

@@ -15,7 +15,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_mapcat_skips_null_results(): void
     {
         $result = SequenceGenerator::mapcat(
-            static fn ($x): ?array => $x > 0 ? [$x, $x] : null,
+            static fn($x): ?array => $x > 0 ? [$x, $x] : null,
             [1, -1, 2, -2, 3],
         );
 
@@ -25,7 +25,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_mapcat_preserves_null_values_in_collections(): void
     {
         $result = SequenceGenerator::mapcat(
-            static fn ($x): array => [$x, null],
+            static fn($x): array => [$x, null],
             [1, 2, 3],
         );
 
@@ -35,7 +35,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_mapcat_with_string_iterable(): void
     {
         $result = SequenceGenerator::mapcat(
-            static fn ($char): ?array => $char === 'a' ? [$char, $char] : null,
+            static fn($char): ?array => $char === 'a' ? [$char, $char] : null,
             'abac',
         );
 
@@ -45,7 +45,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_mapcat_all_null_results_returns_empty(): void
     {
         $result = SequenceGenerator::mapcat(
-            static fn ($x): null => null,
+            static fn($x): null => null,
             [1, 2, 3],
         );
 
@@ -136,9 +136,9 @@ final class SequenceGeneratorTest extends TestCase
 
     public function test_compact_handles_objects(): void
     {
-        $obj1 = (object)['id' => 1];
-        $obj2 = (object)['id' => 2];
-        $obj3 = (object)['id' => 3];
+        $obj1 = (object) ['id' => 1];
+        $obj2 = (object) ['id' => 2];
+        $obj3 = (object) ['id' => 3];
 
         $result = SequenceGenerator::compact([$obj1, $obj2, $obj3], $obj2);
 
@@ -151,9 +151,9 @@ final class SequenceGeneratorTest extends TestCase
     public function test_compact_single_value_optimization_with_objects(): void
     {
         // Test single-value path with object
-        $obj1 = (object)['id' => 1];
-        $obj2 = (object)['id' => 2];
-        $obj3 = (object)['id' => 3];
+        $obj1 = (object) ['id' => 1];
+        $obj2 = (object) ['id' => 2];
+        $obj3 = (object) ['id' => 3];
 
         $result = SequenceGenerator::compact([$obj1, $obj2, $obj3], $obj2);
 
@@ -166,8 +166,8 @@ final class SequenceGeneratorTest extends TestCase
     public function test_compact_multiple_values_with_mixed_scalars_and_objects(): void
     {
         // Test hash lookup path with mixed types
-        $obj1 = (object)['id' => 1];
-        $obj2 = (object)['id' => 2];
+        $obj1 = (object) ['id' => 1];
+        $obj2 = (object) ['id' => 2];
 
         $result = SequenceGenerator::compact(
             [1, $obj1, null, 2, $obj2, false, 3],
@@ -183,10 +183,10 @@ final class SequenceGeneratorTest extends TestCase
     public function test_compact_multiple_objects_removal(): void
     {
         // Test multiple object removals
-        $obj1 = (object)['id' => 1];
-        $obj2 = (object)['id' => 2];
-        $obj3 = (object)['id' => 3];
-        $obj4 = (object)['id' => 4];
+        $obj1 = (object) ['id' => 1];
+        $obj2 = (object) ['id' => 2];
+        $obj3 = (object) ['id' => 3];
+        $obj4 = (object) ['id' => 4];
 
         $result = SequenceGenerator::compact(
             [$obj1, $obj2, $obj3, $obj4],
@@ -287,7 +287,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_map_basic(): void
     {
         $result = SequenceGenerator::map(
-            static fn ($x): int => $x * 2,
+            static fn($x): int => $x * 2,
             [1, 2, 3],
         );
 
@@ -297,7 +297,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_map_empty_iterable(): void
     {
         $result = SequenceGenerator::map(
-            static fn ($x): int => $x * 2,
+            static fn($x): int => $x * 2,
             [],
         );
 
@@ -307,7 +307,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_map_with_string(): void
     {
         $result = SequenceGenerator::map(
-            static fn ($char): string => strtoupper((string) $char),
+            static fn($char): string => strtoupper((string) $char),
             'abc',
         );
 
@@ -336,7 +336,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_map_indexed_basic(): void
     {
         $result = SequenceGenerator::mapIndexed(
-            static fn (int $idx, $val): string => sprintf('%d:%s', $idx, $val),
+            static fn(int $idx, $val): string => sprintf('%d:%s', $idx, $val),
             ['a', 'b', 'c'],
         );
 
@@ -346,7 +346,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_map_indexed_empty(): void
     {
         $result = SequenceGenerator::mapIndexed(
-            static fn (int $idx, $val): string => sprintf('%d:%s', $idx, $val),
+            static fn(int $idx, $val): string => sprintf('%d:%s', $idx, $val),
             [],
         );
 
@@ -358,7 +358,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_map_multi_basic(): void
     {
         $result = SequenceGenerator::mapMulti(
-            static fn ($a, $b): int => $a + $b,
+            static fn($a, $b): int => $a + $b,
             [1, 2, 3],
             [10, 20, 30],
         );
@@ -369,7 +369,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_map_multi_stops_at_shortest(): void
     {
         $result = SequenceGenerator::mapMulti(
-            static fn ($a, $b): int => $a + $b,
+            static fn($a, $b): int => $a + $b,
             [1, 2, 3, 4, 5],
             [10, 20],
         );
@@ -380,7 +380,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_map_multi_empty_iterables(): void
     {
         $result = SequenceGenerator::mapMulti(
-            static fn ($a, $b): int => $a + $b,
+            static fn($a, $b): int => $a + $b,
         );
 
         self::assertSame([], iterator_to_array($result, false));
@@ -389,7 +389,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_map_multi_three_iterables(): void
     {
         $result = SequenceGenerator::mapMulti(
-            static fn ($a, $b, $c): int => $a + $b + $c,
+            static fn($a, $b, $c): int => $a + $b + $c,
             [1, 2],
             [10, 20],
             [100, 200],
@@ -403,7 +403,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_filter_basic(): void
     {
         $result = SequenceGenerator::filter(
-            static fn ($x): bool => $x > 2,
+            static fn($x): bool => $x > 2,
             [1, 2, 3, 4, 5],
         );
 
@@ -413,7 +413,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_filter_none_match(): void
     {
         $result = SequenceGenerator::filter(
-            static fn ($x): bool => $x > 10,
+            static fn($x): bool => $x > 10,
             [1, 2, 3],
         );
 
@@ -423,7 +423,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_filter_all_match(): void
     {
         $result = SequenceGenerator::filter(
-            static fn ($x): bool => $x > 0,
+            static fn($x): bool => $x > 0,
             [1, 2, 3],
         );
 
@@ -433,7 +433,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_filter_with_string(): void
     {
         $result = SequenceGenerator::filter(
-            static fn ($char): bool => $char !== 'b',
+            static fn($char): bool => $char !== 'b',
             'abc',
         );
 
@@ -445,7 +445,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_keep_basic(): void
     {
         $result = SequenceGenerator::keep(
-            static fn ($x): ?int => $x > 2 ? $x * 10 : null,
+            static fn($x): ?int => $x > 2 ? $x * 10 : null,
             [1, 2, 3, 4, 5],
         );
 
@@ -455,7 +455,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_keep_all_null(): void
     {
         $result = SequenceGenerator::keep(
-            static fn ($x): null => null,
+            static fn($x): null => null,
             [1, 2, 3],
         );
 
@@ -465,7 +465,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_keep_preserves_falsy_non_null(): void
     {
         $result = SequenceGenerator::keep(
-            static fn ($x): mixed => $x % 2 === 0 ? 0 : null,
+            static fn($x): mixed => $x % 2 === 0 ? 0 : null,
             [1, 2, 3, 4],
         );
 
@@ -477,7 +477,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_keep_indexed_basic(): void
     {
         $result = SequenceGenerator::keepIndexed(
-            static fn (int $idx, $val): ?string => $idx % 2 === 0 ? $val : null,
+            static fn(int $idx, $val): ?string => $idx % 2 === 0 ? $val : null,
             ['a', 'b', 'c', 'd', 'e'],
         );
 
@@ -487,7 +487,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_keep_indexed_empty(): void
     {
         $result = SequenceGenerator::keepIndexed(
-            static fn (int $idx, $val): ?string => $val,
+            static fn(int $idx, $val): ?string => $val,
             [],
         );
 
@@ -538,7 +538,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_take_while_basic(): void
     {
         $result = SequenceGenerator::takeWhile(
-            static fn ($x): bool => $x < 4,
+            static fn($x): bool => $x < 4,
             [1, 2, 3, 4, 5],
         );
 
@@ -548,7 +548,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_take_while_none_match(): void
     {
         $result = SequenceGenerator::takeWhile(
-            static fn ($x): bool => $x < 0,
+            static fn($x): bool => $x < 0,
             [1, 2, 3],
         );
 
@@ -558,7 +558,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_take_while_all_match(): void
     {
         $result = SequenceGenerator::takeWhile(
-            static fn ($x): bool => $x > 0,
+            static fn($x): bool => $x > 0,
             [1, 2, 3],
         );
 
@@ -616,7 +616,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_drop_while_basic(): void
     {
         $result = SequenceGenerator::dropWhile(
-            static fn ($x): bool => $x < 3,
+            static fn($x): bool => $x < 3,
             [1, 2, 3, 4, 5],
         );
 
@@ -626,7 +626,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_drop_while_none_match(): void
     {
         $result = SequenceGenerator::dropWhile(
-            static fn ($x): bool => $x < 0,
+            static fn($x): bool => $x < 0,
             [1, 2, 3],
         );
 
@@ -636,7 +636,7 @@ final class SequenceGeneratorTest extends TestCase
     public function test_drop_while_all_match(): void
     {
         $result = SequenceGenerator::dropWhile(
-            static fn ($x): bool => $x > 0,
+            static fn($x): bool => $x > 0,
             [1, 2, 3],
         );
 
@@ -772,9 +772,9 @@ final class SequenceGeneratorTest extends TestCase
 
     public function test_distinct_with_objects(): void
     {
-        $obj1 = (object)['id' => 1];
-        $obj2 = (object)['id' => 2];
-        $obj3 = (object)['id' => 1]; // Same content but different object
+        $obj1 = (object) ['id' => 1];
+        $obj2 = (object) ['id' => 2];
+        $obj3 = (object) ['id' => 1]; // Same content but different object
 
         $result = SequenceGenerator::distinct([$obj1, $obj2, $obj1, $obj3]);
 

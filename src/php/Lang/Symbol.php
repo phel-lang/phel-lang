@@ -95,8 +95,7 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
     public function __construct(
         private readonly ?string $namespace,
         private readonly string $name,
-    ) {
-    }
+    ) {}
 
     public static function create(string $name): self
     {

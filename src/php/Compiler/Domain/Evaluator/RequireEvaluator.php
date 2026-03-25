@@ -31,8 +31,7 @@ final class RequireEvaluator implements EvaluatorInterface
 
     public function __construct(
         private readonly FilesystemFacadeInterface $filesystemFacade,
-    ) {
-    }
+    ) {}
 
     /**
      * Clears the process-local memory cache.

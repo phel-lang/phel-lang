@@ -54,9 +54,7 @@ abstract class AbstractTestCommand extends TestCase
                 $this->write($messages, true, $options);
             }
 
-            public function setVerbosity(int $level): void
-            {
-            }
+            public function setVerbosity(int $level): void {}
 
             public function getVerbosity(): int
             {
@@ -83,18 +81,14 @@ abstract class AbstractTestCommand extends TestCase
                 return false;
             }
 
-            public function setDecorated(bool $decorated): void
-            {
-            }
+            public function setDecorated(bool $decorated): void {}
 
             public function isDecorated(): bool
             {
                 return false;
             }
 
-            public function setFormatter(OutputFormatterInterface $formatter): void
-            {
-            }
+            public function setFormatter(OutputFormatterInterface $formatter): void {}
 
             public function getFormatter(): OutputFormatterInterface
             {

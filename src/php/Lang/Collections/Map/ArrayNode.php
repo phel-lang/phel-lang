@@ -25,8 +25,7 @@ final class ArrayNode implements HashMapNodeInterface, Countable
         private readonly EqualizerInterface $equalizer,
         private readonly int $count,
         private array $childNodes,
-    ) {
-    }
+    ) {}
 
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {

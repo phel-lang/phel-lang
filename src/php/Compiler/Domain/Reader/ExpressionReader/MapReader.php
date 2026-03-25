@@ -13,9 +13,7 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 
 final readonly class MapReader
 {
-    public function __construct(private Reader $reader)
-    {
-    }
+    public function __construct(private Reader $reader) {}
 
     public function read(ListNode $node, NodeInterface $root): PersistentMapInterface
     {

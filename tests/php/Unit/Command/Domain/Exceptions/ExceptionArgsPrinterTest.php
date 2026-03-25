@@ -63,7 +63,7 @@ final class ExceptionArgsPrinterTest extends TestCase
         $resource = tmpfile();
         yield 'resource' => [
             [$resource],
-            (string)$resource,
+            (string) $resource,
         ];
     }
 
@@ -75,7 +75,7 @@ final class ExceptionArgsPrinterTest extends TestCase
     private function stubPrinter(): PrinterInterface
     {
         $printer = $this->createMock(PrinterInterface::class);
-        $printer->method('print')->willReturnCallback(static fn ($arg): string => $arg);
+        $printer->method('print')->willReturnCallback(static fn($arg): string => $arg);
 
         return $printer;
     }

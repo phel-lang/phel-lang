@@ -15,8 +15,7 @@ final class QuoteNode implements InnerNodeInterface
         private readonly SourceLocation $startLocation,
         private readonly SourceLocation $endLocation,
         private NodeInterface $expression,
-    ) {
-    }
+    ) {}
 
     /**
      * @return list<NodeInterface>

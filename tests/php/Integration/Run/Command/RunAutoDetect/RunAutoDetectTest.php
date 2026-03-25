@@ -39,7 +39,7 @@ final class RunAutoDetectTest extends AbstractTestCommand
     {
         $input = $this->createStub(InputInterface::class);
         $input->method('getArgument')->willReturnCallback(
-            static fn (string $name): string|array|null => match ($name) {
+            static fn(string $name): string|array|null => match ($name) {
                 'path' => null,
                 'argv' => $argv,
                 default => '',

@@ -11,8 +11,7 @@ final readonly class Wrapper
     public function __construct(
         private string $relativeFilenamePath,
         private string $compiledPhp,
-    ) {
-    }
+    ) {}
 
     public function compiledPhp(): string
     {

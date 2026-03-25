@@ -10,8 +10,7 @@ final readonly class ModuloHasher implements HasherInterface
 {
     public function __construct(
         private int $modulo = 10000,
-    ) {
-    }
+    ) {}
 
     public function hash(mixed $value): int
     {

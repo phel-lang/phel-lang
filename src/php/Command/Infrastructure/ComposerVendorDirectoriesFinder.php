@@ -23,8 +23,7 @@ final class ComposerVendorDirectoriesFinder implements VendorDirectoriesFinderIn
 
     public function __construct(
         private readonly string $vendorDirectory,
-    ) {
-    }
+    ) {}
 
     /**
      * @return list<string>

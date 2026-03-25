@@ -43,8 +43,7 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
         private readonly Chunk $chunk,
         private readonly ?MemoizedThunk $thunk,
         private readonly ?PersistentMapInterface $meta = null,
-    ) {
-    }
+    ) {}
 
     /**
      * Creates a ChunkedSeq from a Generator, realizing elements in chunks.
@@ -78,7 +77,7 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
 
         // Create memoized thunk for the rest
         $thunk = new MemoizedThunk(
-            static fn (): ?ChunkedSeq => self::fromGenerator($hasher, $equalizer, $generator, $chunkSize),
+            static fn(): ?ChunkedSeq => self::fromGenerator($hasher, $equalizer, $generator, $chunkSize),
         );
 
         return new self($hasher, $equalizer, $chunk, $thunk, $meta);
@@ -114,7 +113,7 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
         $thunk = $remaining === []
             ? null
             : new MemoizedThunk(
-                static fn (): ?ChunkedSeq => self::fromArray($hasher, $equalizer, $remaining, $chunkSize),
+                static fn(): ?ChunkedSeq => self::fromArray($hasher, $equalizer, $remaining, $chunkSize),
             );
 
         return new self($hasher, $equalizer, $chunk, $thunk, $meta);
@@ -137,7 +136,7 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
     /**
      * @return LazySeqInterface<T>|null
      */
-    public function cdr(): self|null|LazySeqInterface|LazySeq
+    public function cdr(): self|LazySeqInterface|LazySeq|null
     {
         if ($this->chunk->count() > 1) {
             // Still have elements in current chunk
@@ -183,7 +182,7 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
 
         if (!$cdr instanceof LazySeqInterface) {
             // Return empty LazySeq
-            return new LazySeq($this->hasher, $this->equalizer, static fn (): null => null);
+            return new LazySeq($this->hasher, $this->equalizer, static fn(): null => null);
         }
 
         return $cdr;

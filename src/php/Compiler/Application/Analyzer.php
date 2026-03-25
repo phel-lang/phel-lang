@@ -44,8 +44,7 @@ final class Analyzer implements AnalyzerInterface
     public function __construct(
         private readonly GlobalEnvironmentInterface $globalEnvironment,
         private readonly bool $assertsEnabled = true,
-    ) {
-    }
+    ) {}
 
     public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
     {

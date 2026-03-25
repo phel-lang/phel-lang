@@ -17,9 +17,7 @@ final class TransientMapWrapper implements TransientMapInterface, Stringable
     /**
      * @param TransientMapInterface<K, V> $internal
      */
-    public function __construct(private TransientMapInterface $internal)
-    {
-    }
+    public function __construct(private TransientMapInterface $internal) {}
 
     public function __toString(): string
     {

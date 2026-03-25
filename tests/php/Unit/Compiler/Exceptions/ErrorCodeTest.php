@@ -13,7 +13,7 @@ final class ErrorCodeTest extends TestCase
 {
     public function test_error_code_values_are_unique(): void
     {
-        $values = array_map(static fn (ErrorCode $code): string => $code->value, ErrorCode::cases());
+        $values = array_map(static fn(ErrorCode $code): string => $code->value, ErrorCode::cases());
 
         self::assertCount(count($values), array_unique($values), 'Error codes should be unique');
     }

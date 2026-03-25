@@ -31,8 +31,7 @@ final class CompiledCodeCache
         private readonly string $cacheDir,
         private readonly string $phelVersion = '',
         private readonly int $maxEntries = 500,
-    ) {
-    }
+    ) {}
 
     /**
      * Returns the path to the cached compiled PHP file if it exists and is valid.
@@ -369,7 +368,7 @@ final class CompiledCodeCache
         }
 
         // Sort entries by last_accessed (oldest first)
-        uasort($this->entries, static fn ($a, $b): int => $a['last_accessed'] <=> $b['last_accessed']);
+        uasort($this->entries, static fn($a, $b): int => $a['last_accessed'] <=> $b['last_accessed']);
 
         // Calculate how many to evict (10% of max, minimum 1)
         $evictCount = max(1, (int) floor($this->maxEntries / 10));

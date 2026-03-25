@@ -36,8 +36,7 @@ final readonly class EvalCompiler implements EvalCompilerInterface
         private AnalyzerInterface $analyzer,
         private StatementEmitterInterface $emitter,
         private EvaluatorInterface $evaluator,
-    ) {
-    }
+    ) {}
 
     /**
      * Evaluates a provided Phel code.

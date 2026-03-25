@@ -9,6 +9,4 @@ use Phel\Lang\Symbol;
 /**
  * @extends AbstractAtomNode<Symbol>
  */
-final class SymbolNode extends AbstractAtomNode
-{
-}
+final class SymbolNode extends AbstractAtomNode {}

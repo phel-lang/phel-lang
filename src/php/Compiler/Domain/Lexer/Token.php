@@ -53,8 +53,7 @@ final readonly class Token
         private string $code,
         private SourceLocation $startLocation,
         private SourceLocation $endLocation,
-    ) {
-    }
+    ) {}
 
     public function getType(): int
     {

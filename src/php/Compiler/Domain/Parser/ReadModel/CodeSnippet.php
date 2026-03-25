@@ -13,8 +13,7 @@ final readonly class CodeSnippet
         private SourceLocation $startLocation,
         private SourceLocation $endLocation,
         private string $code,
-    ) {
-    }
+    ) {}
 
     public static function fromNode(NodeInterface $node): self
     {

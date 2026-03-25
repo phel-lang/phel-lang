@@ -13,9 +13,7 @@ use Phel\Lang\Symbol;
 
 final readonly class ListFnReader
 {
-    public function __construct(private Reader $reader)
-    {
-    }
+    public function __construct(private Reader $reader) {}
 
     /**
      * @param array<int, Symbol>|null $fnArgs

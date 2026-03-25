@@ -44,8 +44,7 @@ final readonly class Munge implements MungeInterface
     public function __construct(
         private array $mapping = self::DEFAULT_MAPPING,
         private array $nsMapping = self::DEFAULT_NS_MAPPING,
-    ) {
-    }
+    ) {}
 
     public function encode(string $str): string
     {

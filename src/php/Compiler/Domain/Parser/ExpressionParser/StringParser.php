@@ -53,7 +53,7 @@ final class StringParser
                 return $this->codePointToUtf8(hexdec((string) $matches[2]));
             }
 
-            return chr((int)octdec((string) $str));
+            return chr((int) octdec((string) $str));
         };
 
         $result = preg_replace_callback(

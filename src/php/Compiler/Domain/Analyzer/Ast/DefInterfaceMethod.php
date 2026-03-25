@@ -18,8 +18,7 @@ final readonly class DefInterfaceMethod
         private Symbol $name,
         private array $arguments,
         private ?string $comment = null,
-    ) {
-    }
+    ) {}
 
     public function getName(): Symbol
     {

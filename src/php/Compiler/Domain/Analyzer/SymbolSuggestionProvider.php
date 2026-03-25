@@ -37,7 +37,7 @@ final class SymbolSuggestionProvider
             }
         }
 
-        usort($suggestions, static fn (array $a, array $b): int => $a['distance'] <=> $b['distance']);
+        usort($suggestions, static fn(array $a, array $b): int => $a['distance'] <=> $b['distance']);
 
         $result = [];
         $count = 0;

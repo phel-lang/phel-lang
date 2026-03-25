@@ -13,9 +13,7 @@ use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 
 final readonly class SetReader
 {
-    public function __construct(private Reader $reader)
-    {
-    }
+    public function __construct(private Reader $reader) {}
 
     public function read(ListNode $node, NodeInterface $root): PersistentHashSetInterface
     {

@@ -6,6 +6,4 @@ namespace Phel\Compiler\Domain\Analyzer\Exceptions;
 
 use Exception;
 
-final class GlobalEnvironmentAlreadyInitializedException extends Exception
-{
-}
+final class GlobalEnvironmentAlreadyInitializedException extends Exception {}

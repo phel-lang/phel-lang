@@ -11,8 +11,7 @@ final readonly class InputLine implements Stringable
     public function __construct(
         private string $prompt,
         private string $content,
-    ) {
-    }
+    ) {}
 
     public function __toString(): string
     {

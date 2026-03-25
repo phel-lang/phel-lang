@@ -27,8 +27,7 @@ final class HashCollisionNode implements HashMapNodeInterface
         private readonly int $hash,
         private readonly int $count,
         private array $objects,
-    ) {
-    }
+    ) {}
 
     /**
      * @param K $key

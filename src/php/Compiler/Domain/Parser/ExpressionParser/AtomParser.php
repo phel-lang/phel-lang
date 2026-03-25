@@ -30,9 +30,7 @@ final readonly class AtomParser
 
     private const string REGEX_DECIMAL_NUMBER = '/^(?:([+-])?\d+(_\d+)*[\.(_\d+]?|0)$/';
 
-    public function __construct(private GlobalEnvironmentInterface $globalEnvironment)
-    {
-    }
+    public function __construct(private GlobalEnvironmentInterface $globalEnvironment) {}
 
     public function parse(Token $token): AbstractAtomNode
     {
@@ -67,7 +65,7 @@ final readonly class AtomParser
         }
 
         if (is_numeric($word)) {
-            $value = strpbrk($word, '.eE') !== false ? (float)$word : (int)$word;
+            $value = strpbrk($word, '.eE') !== false ? (float) $word : (int) $word;
 
             return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
         }
@@ -121,7 +119,7 @@ final readonly class AtomParser
     private function parseBinaryNumber(array $matches, string $word, Token $token): NumberNode
     {
         $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
-        $unsignedInteger = (string)($matches[2] ?? $word);
+        $unsignedInteger = (string) ($matches[2] ?? $word);
         $value = bindec(str_replace('_', '', $unsignedInteger));
 
         if ($sign === -1) {
@@ -134,7 +132,7 @@ final readonly class AtomParser
     private function parseHexadecimalNumber(array $matches, string $word, Token $token): NumberNode
     {
         $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
-        $unsignedInteger = (string)($matches[2] ?? $word);
+        $unsignedInteger = (string) ($matches[2] ?? $word);
         $value = hexdec(str_replace('_', '', $unsignedInteger));
 
         if ($sign === -1) {
@@ -147,7 +145,7 @@ final readonly class AtomParser
     private function parseOctalNumber(array $matches, string $word, Token $token): NumberNode
     {
         $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
-        $unsignedInteger = (string)($matches[2] ?? $word);
+        $unsignedInteger = (string) ($matches[2] ?? $word);
         $value = octdec(str_replace('_', '', $unsignedInteger));
 
         if ($sign === -1) {
@@ -160,7 +158,7 @@ final readonly class AtomParser
     private function parseDecimalNumber(array $matches, string $word, Token $token): NumberNode
     {
         $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
-        $value = (int)str_replace('_', '', $word);
+        $value = (int) str_replace('_', '', $word);
 
         if ($sign === -1) {
             $value = -$value;

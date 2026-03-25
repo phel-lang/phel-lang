@@ -23,8 +23,7 @@ final readonly class CachedNamespaceExtractor implements NamespaceExtractorInter
         private NamespaceExtractorInterface $innerExtractor,
         private NamespaceCacheInterface $cache,
         private NamespaceSorterInterface $namespaceSorter,
-    ) {
-    }
+    ) {}
 
     public function getNamespaceFromFile(string $path): NamespaceInformation
     {
@@ -80,10 +79,10 @@ final readonly class CachedNamespaceExtractor implements NamespaceExtractorInter
     {
         foreach ($allLocations as $namespace => $files) {
             if (count($files) > 1) {
-                $fileList = implode("\n", array_map(static fn (string $f): string => '  - ' . $f, $files));
+                $fileList = implode("\n", array_map(static fn(string $f): string => '  - ' . $f, $files));
                 fwrite(STDERR, sprintf(
-                    "\nWARNING: Namespace '%s' is defined in multiple locations:\n%s\n" .
-                    "The last one will be used. Check your phel-config.php srcDirs/testDirs settings.\n",
+                    "\nWARNING: Namespace '%s' is defined in multiple locations:\n%s\n"
+                    . "The last one will be used. Check your phel-config.php srcDirs/testDirs settings.\n",
                     $namespace,
                     $fileList,
                 ));

@@ -9,8 +9,7 @@ final readonly class SourceMapInformation
     public function __construct(
         private string $filename,
         private string $sourceMap,
-    ) {
-    }
+    ) {}
 
     public function filename(): string
     {

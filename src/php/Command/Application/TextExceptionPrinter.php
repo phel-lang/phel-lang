@@ -31,8 +31,7 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
         private MungeInterface $munge,
         private FilePositionExtractorInterface $filePositionExtractor,
         private ErrorLogInterface $errorLog,
-    ) {
-    }
+    ) {}
 
     public function printError(string $error): void
     {
@@ -60,11 +59,11 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
         $str .= 'in ' . $errorStartLocation->getFile() . ':' . $errorFirstLine . PHP_EOL . PHP_EOL;
 
         $lines = explode(PHP_EOL, $codeSnippet->getCode());
-        $endLineLength = strlen((string)$codeSnippet->getEndLocation()->getLine());
-        $padLength = $endLineLength - strlen((string)$codeFirstLine);
+        $endLineLength = strlen((string) $codeSnippet->getEndLocation()->getLine());
+        $padLength = $endLineLength - strlen((string) $codeFirstLine);
 
         foreach ($lines as $index => $line) {
-            $str .= str_pad((string)($codeFirstLine + $index), $padLength, ' ', STR_PAD_LEFT);
+            $str .= str_pad((string) ($codeFirstLine + $index), $padLength, ' ', STR_PAD_LEFT);
             if ($line !== '') {
                 $str .= '| ' . $line . PHP_EOL;
             } else {

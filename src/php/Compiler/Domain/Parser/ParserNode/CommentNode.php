@@ -13,8 +13,7 @@ final readonly class CommentNode implements TriviaNodeInterface
         private string $code,
         private SourceLocation $startLocation,
         private SourceLocation $endLocation,
-    ) {
-    }
+    ) {}
 
     public static function createWithToken(Token $token): self
     {

@@ -20,8 +20,7 @@ final readonly class FileCompiler implements FileCompilerInterface
         private CompilerFacadeInterface $compilerFacade,
         private NamespaceExtractorInterface $namespaceExtractor,
         private FileIoInterface $fileIo,
-    ) {
-    }
+    ) {}
 
     public function compileFile(string $src, string $dest, bool $enableSourceMaps): CompiledFile
     {

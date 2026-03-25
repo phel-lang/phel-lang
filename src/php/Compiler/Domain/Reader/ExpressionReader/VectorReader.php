@@ -13,9 +13,7 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 
 final readonly class VectorReader
 {
-    public function __construct(private Reader $reader)
-    {
-    }
+    public function __construct(private Reader $reader) {}
 
     public function read(ListNode $node, NodeInterface $root): PersistentVectorInterface
     {

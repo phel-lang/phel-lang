@@ -24,8 +24,7 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
     public function __construct(
         private AnalyzerInterface $analyzer,
         private DeconstructorInterface $deconstructor,
-    ) {
-    }
+    ) {}
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): LetNode
     {

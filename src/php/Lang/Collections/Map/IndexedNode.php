@@ -29,8 +29,7 @@ final readonly class IndexedNode implements HashMapNodeInterface
         private HasherInterface $hasher,
         private EqualizerInterface $equalizer,
         private array $objects,
-    ) {
-    }
+    ) {}
 
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {

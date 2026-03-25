@@ -14,8 +14,7 @@ final readonly class OutputEmitterOptions
 
     public function __construct(
         private string $emitMode = self::EMIT_MODE_STATEMENT,
-    ) {
-    }
+    ) {}
 
     public function isFileEmitMode(): bool
     {

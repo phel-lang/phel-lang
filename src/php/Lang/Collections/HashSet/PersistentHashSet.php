@@ -27,8 +27,7 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
         private readonly HasherInterface $hasher,
         private readonly ?PersistentMapInterface $meta,
         private readonly PersistentMapInterface $map,
-    ) {
-    }
+    ) {}
 
     /**
      * @param V $key

@@ -6,7 +6,5 @@ namespace Phel\Printer\TypePrinter;
 
 trait WithColorTrait
 {
-    public function __construct(private bool $withColor = false)
-    {
-    }
+    public function __construct(private bool $withColor = false) {}
 }

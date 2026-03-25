@@ -45,13 +45,13 @@ final class ConsoleProvider extends AbstractProvider
     {
         $container->set(
             self::FACADE_FILESYSTEM,
-            static fn (Container $container) => $container->getLocator()->get(FilesystemFacade::class),
+            static fn(Container $container) => $container->getLocator()->get(FilesystemFacade::class),
         );
     }
 
     private function addCommands(Container $container): void
     {
-        $container->set(self::COMMANDS, static fn (): array => [
+        $container->set(self::COMMANDS, static fn(): array => [
             new InitCommand(),
             new ExportCommand(),
             new FormatCommand(),

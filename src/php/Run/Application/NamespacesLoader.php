@@ -15,8 +15,7 @@ final readonly class NamespacesLoader implements NamespacesLoaderInterface
     public function __construct(
         private CommandFacadeInterface $commandFacade,
         private BuildFacadeInterface $buildFacade,
-    ) {
-    }
+    ) {}
 
     /**
      * @return list<NamespaceInformation>

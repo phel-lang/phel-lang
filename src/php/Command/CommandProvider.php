@@ -16,7 +16,7 @@ final class CommandProvider extends AbstractProvider
     {
         $container->set(
             self::PHP_CONFIG_READER,
-            static fn (Container $container) => $container->getLocator()->get(PhpConfigReader::class),
+            static fn(Container $container) => $container->getLocator()->get(PhpConfigReader::class),
         );
     }
 }

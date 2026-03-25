@@ -15,8 +15,7 @@ final class RecurFrame
      */
     public function __construct(
         private readonly array $params,
-    ) {
-    }
+    ) {}
 
     public function setIsActive(bool $isActive): void
     {

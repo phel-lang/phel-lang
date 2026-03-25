@@ -6,6 +6,4 @@ namespace Phel\Compiler\Domain\Parser\Exceptions;
 
 use RuntimeException;
 
-final class StringParserException extends RuntimeException
-{
-}
+final class StringParserException extends RuntimeException {}

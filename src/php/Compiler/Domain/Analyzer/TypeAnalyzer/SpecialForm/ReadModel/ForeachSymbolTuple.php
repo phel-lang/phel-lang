@@ -16,8 +16,7 @@ final readonly class ForeachSymbolTuple
         private AbstractNode $listExpr,
         private Symbol $valueSymbol,
         private ?Symbol $keySymbol = null,
-    ) {
-    }
+    ) {}
 
     public function lets(): array
     {

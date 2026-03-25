@@ -27,8 +27,7 @@ final class EmptyList extends AbstractType implements PersistentListInterface
         private readonly HasherInterface $hasher,
         private readonly EqualizerInterface $equalizer,
         private readonly ?PersistentMapInterface $meta,
-    ) {
-    }
+    ) {}
 
     public function getMeta(): ?PersistentMapInterface
     {

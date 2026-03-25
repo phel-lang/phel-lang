@@ -15,9 +15,7 @@ final readonly class InputResult
 
     private const string LAST_RESULT_PLACEHOLDER = '$_';
 
-    private function __construct(private mixed $lastResult)
-    {
-    }
+    private function __construct(private mixed $lastResult) {}
 
     public static function fromAny(mixed $result): self
     {
@@ -62,6 +60,6 @@ final readonly class InputResult
             return 'nil';
         }
 
-        return (string)$this->lastResult;
+        return (string) $this->lastResult;
     }
 }

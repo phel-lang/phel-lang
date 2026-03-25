@@ -12,8 +12,7 @@ final readonly class FilePositionExtractor implements FilePositionExtractorInter
 {
     public function __construct(
         private SourceMapExtractorInterface $sourceMapExtractor,
-    ) {
-    }
+    ) {}
 
     public function getOriginal(string $filename, int $line): FilePosition
     {
