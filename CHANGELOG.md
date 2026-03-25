@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.30.0](https://github.com/phel-lang/phel-lang/compare/v0.29.0...v0.30.0) - 2026-03-25
+
 ### Added
 - Add `subset?` predicate for sets: `(subset? (hash-set 1 2) (hash-set 1 2 3))` => `true`
 - Add `superset?` predicate for sets: `(superset? (hash-set 1 2 3) (hash-set 1 2))` => `true`
