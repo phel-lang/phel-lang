@@ -148,6 +148,48 @@
   (let [munge (php/new Munge)]
     (php/-> munge (encodeNs ns-str))))
 
+(defn get-symbol-info
+  "Returns a hash-map of structured metadata for the definition identified by
+  namespace and name strings. Returns nil if no such definition exists.
+
+  Keys: :doc, :file, :line, :column, :end-line, :end-column, :private,
+        :deprecated, :min-arity, :max-arity, :is-variadic, :ns, :name"
+  {:example "(get-symbol-info \"phel\\core\" \"map\")"}
+  [ns-str name-str]
+  (let [encoded-ns (munge-ns ns-str)
+        munge (php/new Munge)
+        encoded-name (php/-> munge (encode name-str))
+        meta (php/:: Phel (getDefinitionMetaData encoded-ns encoded-name))]
+    (when meta
+      (let [start-loc (get meta :start-location)
+            end-loc (get meta :end-location)]
+        {:doc (get meta :doc)
+         :file (when start-loc (get start-loc :file))
+         :line (when start-loc (get start-loc :line))
+         :column (when start-loc (get start-loc :column))
+         :end-line (when end-loc (get end-loc :line))
+         :end-column (when end-loc (get end-loc :column))
+         :private (or (get meta :private) false)
+         :deprecated (get meta :deprecated)
+         :min-arity (get meta "min-arity")
+         :max-arity (get meta "max-arity")
+         :is-variadic (or (get meta "is-variadic") false)
+         :ns ns-str
+         :name name-str}))))
+
+(defmacro symbol-info
+  "Returns a hash-map of structured metadata for the given symbol, or nil if
+  the symbol cannot be resolved.
+
+  Keys: :doc, :file, :line, :column, :end-line, :end-column, :private,
+        :deprecated, :min-arity, :max-arity, :is-variadic, :ns, :name"
+  {:example "(symbol-info map) ; => {:doc \"...\" :ns \"phel\\core\" :name \"map\" ...}"
+   :see-also ["doc" "dir" "apropos"]}
+  [sym]
+  (let [resolved-sym (resolve sym)]
+    (when resolved-sym
+      `(get-symbol-info ,(namespace resolved-sym) ,(name resolved-sym)))))
+
 (defn dir
   "Prints all public definitions in the given namespace string.
 

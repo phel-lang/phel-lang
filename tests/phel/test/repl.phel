@@ -1,5 +1,5 @@
 (ns phel-test\test\repl
-  (:require phel\repl :refer [apropos dir search-doc])
+  (:require phel\repl :refer [apropos dir search-doc get-symbol-info])
   (:require phel\str :as s)
   (:require phel\test :refer [deftest is]))
 
@@ -33,3 +33,32 @@
 (deftest test-search-doc-searches-docstrings
   (let [out (with-output-buffer (search-doc "concatenat"))]
     (is (s/contains? out "str") "search-doc matches 'str' for 'concatenat'")))
+
+# -----------
+# symbol-info
+# -----------
+
+(deftest test-get-symbol-info-returns-map-for-known-symbol
+  (let [info (get-symbol-info "phel\\core" "map")]
+    (is (hash-map? info) "get-symbol-info returns a map for a known symbol")
+    (is (string? (get info :doc)) "info contains :doc as a string")
+    (is (= "phel\\core" (get info :ns)) "info contains :ns")
+    (is (= "map" (get info :name)) "info contains :name")))
+
+(deftest test-get-symbol-info-has-arity-keys
+  (let [info (get-symbol-info "phel\\core" "inc")]
+    (is (not (nil? (get info :min-arity))) "info contains :min-arity for inc")
+    (is (= false (get info :is-variadic)) "inc is not variadic")))
+
+(deftest test-get-symbol-info-has-location-keys
+  (let [info (get-symbol-info "phel\\core" "map")]
+    (is (not (nil? (get info :file))) "info contains :file")
+    (is (not (nil? (get info :line))) "info contains :line")))
+
+(deftest test-get-symbol-info-returns-nil-for-unknown
+  (is (nil? (get-symbol-info "phel\\core" "zzz_nonexistent_zzz"))
+      "get-symbol-info returns nil for unknown symbol"))
+
+(deftest test-get-symbol-info-private-flag
+  (let [info (get-symbol-info "phel\\core" "map")]
+    (is (= false (get info :private)) "public function has :private false")))

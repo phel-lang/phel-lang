@@ -28,6 +28,7 @@ final class ReplReferInjector
                 Symbol::create('use'),
                 Symbol::create('print-colorful'),
                 Symbol::create('println-colorful'),
+                Symbol::create('symbol-info'),
             ],
             $replSymbol,
         );
