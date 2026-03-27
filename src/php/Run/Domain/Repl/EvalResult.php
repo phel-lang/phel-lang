@@ -71,6 +71,7 @@ final readonly class EvalResult
                 codeSnippet: $snippet->getCode(),
                 stackTrace: $nested->getTraceAsString(),
                 phase: 'compile',
+                frames: self::extractFrames($nested),
             ), $output);
         } catch (CompiledCodeIsMalformedException $e) {
             $output = (string) ob_get_clean();
@@ -88,6 +89,7 @@ final readonly class EvalResult
                 codeSnippet: null,
                 stackTrace: $prev->getTraceAsString(),
                 phase: 'eval',
+                frames: self::extractFrames($prev),
             ), $output);
         } catch (Throwable $e) {
             $output = (string) ob_get_clean();
@@ -104,7 +106,38 @@ final readonly class EvalResult
                 codeSnippet: null,
                 stackTrace: $e->getTraceAsString(),
                 phase: 'runtime',
+                frames: self::extractFrames($e),
             ), $output);
         }
+    }
+
+    /**
+     * @return list<StackFrame>
+     */
+    private static function extractFrames(Throwable $e): array
+    {
+        $frames = [];
+
+        /** @var array{file?: string, line?: int, class?: string, function?: string} $entry */
+        foreach ($e->getTrace() as $entry) {
+            $file = $entry['file'] ?? null;
+            $line = $entry['line'] ?? null;
+            if ($file === null) {
+                continue;
+            }
+
+            if ($line === null) {
+                continue;
+            }
+
+            $frames[] = new StackFrame(
+                file: $file,
+                line: $line,
+                class: $entry['class'] ?? null,
+                function: $entry['function'] ?? null,
+            );
+        }
+
+        return $frames;
     }
 }

@@ -13,7 +13,9 @@ use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Lang\SourceLocation;
+use Phel\Run\Domain\Repl\EvalError;
 use Phel\Run\Domain\Repl\EvalResult;
+use Phel\Run\Domain\Repl\StackFrame;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -29,6 +31,34 @@ final class EvalResultTest extends TestCase
         self::assertSame(42, $result->value);
         self::assertNull($result->error);
         self::assertSame('', $result->output);
+    }
+
+    public function test_stack_frame_value_object(): void
+    {
+        $frame = new StackFrame(
+            file: '/path/to/file.php',
+            line: 42,
+            class: 'MyClass',
+            function: 'myMethod',
+        );
+
+        self::assertSame('/path/to/file.php', $frame->file);
+        self::assertSame(42, $frame->line);
+        self::assertSame('MyClass', $frame->class);
+        self::assertSame('myMethod', $frame->function);
+    }
+
+    public function test_stack_frame_with_nullable_fields(): void
+    {
+        $frame = new StackFrame(
+            file: '/path/to/file.php',
+            line: 10,
+            class: null,
+            function: null,
+        );
+
+        self::assertNull($frame->class);
+        self::assertNull($frame->function);
     }
 
     public function test_success_result_with_output(): void
@@ -195,5 +225,95 @@ final class EvalResultTest extends TestCase
 
         self::assertSame('inner', $result->output);
         self::assertSame('outer-before::outer-after', $outerOutput);
+    }
+
+    public function test_runtime_exception_produces_non_empty_frames(): void
+    {
+        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade->method('eval')->willThrowException(new RuntimeException('division by zero'));
+
+        $result = EvalResult::fromEval($facade, '(/ 1 0)');
+
+        self::assertNotNull($result->error);
+        self::assertNotEmpty($result->error->frames);
+        self::assertContainsOnlyInstancesOf(StackFrame::class, $result->error->frames);
+    }
+
+    public function test_runtime_exception_frames_have_file_and_line(): void
+    {
+        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade->method('eval')->willThrowException(new RuntimeException('error'));
+
+        $result = EvalResult::fromEval($facade, '(error)');
+
+        self::assertNotNull($result->error);
+        $firstFrame = $result->error->frames[0];
+        self::assertNotEmpty($firstFrame->file);
+        self::assertGreaterThan(0, $firstFrame->line);
+    }
+
+    public function test_compiler_exception_produces_frames(): void
+    {
+        $startLoc = new SourceLocation('test.phel', 3, 5);
+        $endLoc = new SourceLocation('test.phel', 3, 10);
+
+        $nested = new AnalyzerException(
+            'Cannot resolve symbol',
+            $startLoc,
+            $endLoc,
+        );
+
+        $snippet = new CodeSnippet($startLoc, $endLoc, '(unknown-fn)');
+        $compilerException = new CompilerException($nested, $snippet);
+
+        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade->method('eval')->willThrowException($compilerException);
+
+        $result = EvalResult::fromEval($facade, '(unknown-fn)');
+
+        self::assertNotNull($result->error);
+        self::assertIsArray($result->error->frames);
+        self::assertContainsOnlyInstancesOf(StackFrame::class, $result->error->frames);
+    }
+
+    public function test_malformed_code_exception_produces_frames(): void
+    {
+        $prev = new ParseError('syntax error', 0);
+        $exception = CompiledCodeIsMalformedException::fromThrowable($prev);
+
+        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade->method('eval')->willThrowException($exception);
+
+        $result = EvalResult::fromEval($facade, 'bad code');
+
+        self::assertNotNull($result->error);
+        self::assertIsArray($result->error->frames);
+        self::assertContainsOnlyInstancesOf(StackFrame::class, $result->error->frames);
+    }
+
+    public function test_success_result_has_no_frames(): void
+    {
+        $result = EvalResult::success(42);
+
+        self::assertNull($result->error);
+    }
+
+    public function test_failure_with_default_empty_frames(): void
+    {
+        $error = new EvalError(
+            exceptionClass: 'TestException',
+            message: 'test',
+            errorCode: null,
+            file: null,
+            line: null,
+            column: null,
+            endLine: null,
+            endColumn: null,
+            codeSnippet: null,
+            stackTrace: '',
+            phase: 'runtime',
+        );
+
+        self::assertSame([], $error->frames);
     }
 }

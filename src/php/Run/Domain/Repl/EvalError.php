@@ -6,6 +6,9 @@ namespace Phel\Run\Domain\Repl;
 
 final readonly class EvalError
 {
+    /**
+     * @param list<StackFrame> $frames
+     */
     public function __construct(
         public string $exceptionClass,
         public string $message,
@@ -18,5 +21,6 @@ final readonly class EvalError
         public ?string $codeSnippet,
         public string $stackTrace,
         public string $phase,
+        public array $frames = [],
     ) {}
 }
