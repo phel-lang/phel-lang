@@ -33,6 +33,7 @@ final class ReplReferInjector
                 Symbol::create('source'),
                 Symbol::create('test-ns'),
                 Symbol::create('eval-str'),
+                Symbol::create('ns-list'),
             ],
             $replSymbol,
         );
