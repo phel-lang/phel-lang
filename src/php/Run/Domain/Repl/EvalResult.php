@@ -18,21 +18,22 @@ final readonly class EvalResult
         public bool $incomplete,
         public mixed $value,
         public ?EvalError $error,
+        public string $output,
     ) {}
 
-    public static function success(mixed $value): self
+    public static function success(mixed $value, string $output = ''): self
     {
-        return new self(success: true, incomplete: false, value: $value, error: null);
+        return new self(success: true, incomplete: false, value: $value, error: null, output: $output);
     }
 
-    public static function incomplete(): self
+    public static function incomplete(string $output = ''): self
     {
-        return new self(success: false, incomplete: true, value: null, error: null);
+        return new self(success: false, incomplete: true, value: null, error: null, output: $output);
     }
 
-    public static function failure(EvalError $error): self
+    public static function failure(EvalError $error, string $output = ''): self
     {
-        return new self(success: false, incomplete: false, value: null, error: $error);
+        return new self(success: false, incomplete: false, value: null, error: $error, output: $output);
     }
 
     public static function fromEval(
@@ -40,13 +41,19 @@ final readonly class EvalResult
         string $phelCode,
         CompileOptions $compileOptions = new CompileOptions(),
     ): self {
+        ob_start();
+
         try {
             $result = $compilerFacade->eval($phelCode, $compileOptions);
+            $output = (string) ob_get_clean();
 
-            return self::success($result);
+            return self::success($result, $output);
         } catch (UnfinishedParserException) {
-            return self::incomplete();
+            $output = (string) ob_get_clean();
+
+            return self::incomplete($output);
         } catch (CompilerException $e) {
+            $output = (string) ob_get_clean();
             $nested = $e->getNestedException();
             $snippet = $e->getCodeSnippet();
             $startLoc = $nested->getStartLocation();
@@ -64,8 +71,9 @@ final readonly class EvalResult
                 codeSnippet: $snippet->getCode(),
                 stackTrace: $nested->getTraceAsString(),
                 phase: 'compile',
-            ));
+            ), $output);
         } catch (CompiledCodeIsMalformedException $e) {
+            $output = (string) ob_get_clean();
             $prev = $e->getPrevious() instanceof Throwable ? $e->getPrevious() : $e;
 
             return self::failure(new EvalError(
@@ -80,8 +88,10 @@ final readonly class EvalResult
                 codeSnippet: null,
                 stackTrace: $prev->getTraceAsString(),
                 phase: 'eval',
-            ));
+            ), $output);
         } catch (Throwable $e) {
+            $output = (string) ob_get_clean();
+
             return self::failure(new EvalError(
                 exceptionClass: array_reverse(explode('\\', $e::class))[0],
                 message: $e->getMessage(),
@@ -94,7 +104,7 @@ final readonly class EvalResult
                 codeSnippet: null,
                 stackTrace: $e->getTraceAsString(),
                 phase: 'runtime',
-            ));
+            ), $output);
         }
     }
 }

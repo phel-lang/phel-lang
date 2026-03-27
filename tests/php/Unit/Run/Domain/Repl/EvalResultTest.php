@@ -28,6 +28,16 @@ final class EvalResultTest extends TestCase
         self::assertFalse($result->incomplete);
         self::assertSame(42, $result->value);
         self::assertNull($result->error);
+        self::assertSame('', $result->output);
+    }
+
+    public function test_success_result_with_output(): void
+    {
+        $result = EvalResult::success(null, "hello\n");
+
+        self::assertTrue($result->success);
+        self::assertNull($result->value);
+        self::assertSame("hello\n", $result->output);
     }
 
     public function test_incomplete_result(): void
@@ -38,6 +48,7 @@ final class EvalResultTest extends TestCase
         self::assertTrue($result->incomplete);
         self::assertNull($result->value);
         self::assertNull($result->error);
+        self::assertSame('', $result->output);
     }
 
     public function test_from_eval_success(): void
@@ -49,6 +60,23 @@ final class EvalResultTest extends TestCase
 
         self::assertTrue($result->success);
         self::assertSame(42, $result->value);
+        self::assertSame('', $result->output);
+    }
+
+    public function test_from_eval_captures_printed_output(): void
+    {
+        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade->method('eval')->willReturnCallback(static function (): mixed {
+            echo "hello\n";
+
+            return null;
+        });
+
+        $result = EvalResult::fromEval($facade, '(println "hello")');
+
+        self::assertTrue($result->success);
+        self::assertNull($result->value);
+        self::assertSame("hello\n", $result->output);
     }
 
     public function test_from_eval_incomplete(): void
@@ -132,5 +160,40 @@ final class EvalResultTest extends TestCase
         self::assertSame('RuntimeException', $result->error->exceptionClass);
         self::assertSame('division by zero', $result->error->message);
         self::assertSame('runtime', $result->error->phase);
+        self::assertSame('', $result->output);
+    }
+
+    public function test_from_eval_captures_output_on_failure(): void
+    {
+        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade->method('eval')->willReturnCallback(static function (): never {
+            echo 'partial output';
+            throw new RuntimeException('boom');
+        });
+
+        $result = EvalResult::fromEval($facade, '(do (print "partial output") (/ 1 0))');
+
+        self::assertFalse($result->success);
+        self::assertNotNull($result->error);
+        self::assertSame('partial output', $result->output);
+    }
+
+    public function test_from_eval_preserves_nested_output_buffering(): void
+    {
+        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade->method('eval')->willReturnCallback(static function (): mixed {
+            echo 'inner';
+
+            return null;
+        });
+
+        ob_start();
+        echo 'outer-before:';
+        $result = EvalResult::fromEval($facade, '(print "inner")');
+        echo ':outer-after';
+        $outerOutput = ob_get_clean();
+
+        self::assertSame('inner', $result->output);
+        self::assertSame('outer-before::outer-after', $outerOutput);
     }
 }
