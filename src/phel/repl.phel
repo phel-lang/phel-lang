@@ -237,6 +237,32 @@
               (conj results (str (php/-> munge (decodeNs ns)) "/" decoded)))))))
     (sort (persistent results))))
 
+(defn get-source-code
+  "Returns the source code of the definition identified by namespace and name
+  strings, or nil if the source file cannot be found or metadata is missing."
+  {:example "(get-source-code \"phel\\core\" \"map\")"
+   :see-also ["source" "get-symbol-info"]}
+  [ns-str name-str]
+  (let [info (get-symbol-info ns-str name-str)]
+    (when info
+      (let [file (get info :file)
+            start-line (get info :line)
+            end-line (get info :end-line)]
+        (when (and file start-line end-line (php/file_exists file))
+          (let [content (php/file_get_contents file)
+                lines (php/explode "\n" content)
+                extracted (php/array_slice lines (php/- start-line 1) (php/+ (php/- end-line start-line) 1))]
+            (php/implode "\n" extracted)))))))
+
+(defmacro source
+  "Returns the source code of the given symbol as a string, or nil if unavailable."
+  {:example "(source map)"
+   :see-also ["doc" "symbol-info"]}
+  [sym]
+  (let [resolved-sym (resolve sym)]
+    (when resolved-sym
+      `(get-source-code ,(namespace resolved-sym) ,(name resolved-sym)))))
+
 (defn search-doc
   "Searches docstrings across all loaded namespaces for the given string.
   Prints matching function names and their documentation."
