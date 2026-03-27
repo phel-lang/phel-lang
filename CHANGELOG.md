@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Add `eval-str` function to `phel\repl` for evaluating Phel code strings and returning the result
 - Add GlobalEnvironment snapshot/restore to rollback state on REPL eval errors, preventing dirty state from partial evaluations
 - Add `find-fn` function to `phel\repl` for structured function search across all loaded namespaces, returning maps with `:ns`, `:name`, `:doc`, `:private`, `:min-arity`, `:max-arity`, `:is-variadic`
 - Add structured stack frames (`StackFrame` objects) to `EvalError` for nREPL stacktrace middleware support

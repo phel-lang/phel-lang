@@ -1,5 +1,5 @@
 (ns phel-test\test\repl
-  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers find-fn test-ns])
+  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers find-fn test-ns eval-str])
   (:require phel\str :as s)
   (:require phel\test :refer [deftest is]))
 
@@ -173,3 +173,23 @@
     (is (> (get result :pass) 0) "test-framework tests have passing tests")
     (is (= 0 (get result :fail)) "test-framework tests have no failures")
     (is (= 0 (get result :error)) "test-framework tests have no errors")))
+
+# --------
+# eval-str
+# --------
+
+(deftest test-eval-str-arithmetic
+  (is (= 3 (eval-str "(+ 1 2)")) "eval-str evaluates arithmetic"))
+
+(deftest test-eval-str-string-concatenation
+  (is (= "hello world" (eval-str "(str \"hello\" \" \" \"world\")"))
+      "eval-str evaluates string concatenation"))
+
+(deftest test-eval-str-def-defines-var
+  (do (eval-str "(def test-eval-var 42)")
+    (is (= 42 (eval-str "test-eval-var"))
+        "eval-str def defines a var accessible in subsequent eval")))
+
+(deftest test-eval-str-multiple-expressions
+  (is (= 10 (eval-str "(+ 1 2) (+ 3 7)"))
+      "eval-str with multiple expressions returns last result"))
