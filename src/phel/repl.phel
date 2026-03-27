@@ -24,6 +24,16 @@
   []
   (php/:: Phel (getNamespaces)))
 
+(defn ns-list
+  "Returns a sorted vector of all loaded namespace names, decoded to
+  human-readable form (hyphens restored instead of underscores)."
+  {:example "(ns-list) ; => [\"phel\\core\" \"phel\\repl\" ...]"
+   :see-also ["loaded-namespaces" "dir" "ns-publics"]}
+  []
+  (let [munge (php/new Munge)]
+    (sort (for [ns :in (loaded-namespaces)]
+            (php/-> munge (decodeNs ns))))))
+
 (defn- eval-file [file]
   (php/-> build-facade (evalFile file)))
 

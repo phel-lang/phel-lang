@@ -1,5 +1,5 @@
 (ns phel-test\test\repl
-  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers find-fn test-ns macroexpand-1-form macroexpand-form])
+  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers find-fn test-ns macroexpand-1-form macroexpand-form ns-list loaded-namespaces])
   (:require phel\str :as s)
   (:require phel\test :refer [deftest is]))
 
@@ -206,3 +206,24 @@
   (let [form '(php/+ 1 2)
         expanded (macroexpand-form form)]
     (is (= form expanded) "non-macro form is returned unchanged")))
+
+# -------
+# ns-list
+# -------
+
+(deftest test-ns-list-returns-vector
+  (let [results (ns-list)]
+    (is (indexed? results) "ns-list returns a vector")))
+
+(deftest test-ns-list-contains-known-namespaces
+  (let [results (ns-list)]
+    (is (some? |(= $ "phel\\core") results) "ns-list contains phel\\core")
+    (is (some? |(= $ "phel\\repl") results) "ns-list contains phel\\repl")))
+
+(deftest test-ns-list-is-sorted
+  (let [results (ns-list)]
+    (is (= results (sort results)) "ns-list returns sorted results")))
+
+(deftest test-ns-list-count-matches-loaded-namespaces
+  (is (= (count (ns-list)) (count (loaded-namespaces)))
+      "ns-list count matches loaded-namespaces count"))
