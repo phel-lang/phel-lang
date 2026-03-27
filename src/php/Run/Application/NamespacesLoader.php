@@ -10,6 +10,8 @@ use Phel\Run\Domain\NamespacesLoaderInterface;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 
+use function in_array;
+
 final readonly class NamespacesLoader implements NamespacesLoaderInterface
 {
     public function __construct(
