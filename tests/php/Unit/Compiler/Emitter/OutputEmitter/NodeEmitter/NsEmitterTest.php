@@ -7,6 +7,7 @@ namespace PhelTest\Unit\Compiler\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\NsEmitter;
+use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 
 final class NsEmitterTest extends TestCase
@@ -51,5 +52,25 @@ final class NsEmitterTest extends TestCase
         $output = ob_get_clean();
 
         self::assertStringContainsString('"app\\\\module"', $output);
+    }
+
+    public function test_ns_with_requires_emits_src_dirs_fallback(): void
+    {
+        $node = new NsNode('my\\app', [Symbol::create('phel\\str')], []);
+
+        ob_start();
+        $this->nsEmitter->emit($node);
+        $output = ob_get_clean();
+
+        self::assertStringContainsString(
+            'if ($__phelSrcDirs === []) {',
+            $output,
+            'Should emit fallback when src-dirs is empty',
+        );
+        self::assertStringContainsString(
+            'CommandFacade',
+            $output,
+            'Fallback should use CommandFacade to resolve directories',
+        );
     }
 }

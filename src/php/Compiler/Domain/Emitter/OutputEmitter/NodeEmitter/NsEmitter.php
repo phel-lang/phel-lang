@@ -76,6 +76,13 @@ final class NsEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitStr('"src-dirs"');
             $this->outputEmitter->emitLine(') ?? [];');
             $this->outputEmitter->decreaseIndentLevel();
+            $this->outputEmitter->emitLine('if ($__phelSrcDirs === []) {');
+            $this->outputEmitter->increaseIndentLevel();
+            $this->outputEmitter->emitLine('$__phelSrcDirs = (new \\Phel\\Command\\CommandFacade())->getAllPhelDirectories();');
+            $this->outputEmitter->emitLine('$__phelCwd = getcwd();');
+            $this->outputEmitter->emitLine('if ($__phelCwd !== false) { $__phelSrcDirs[] = $__phelCwd; }');
+            $this->outputEmitter->decreaseIndentLevel();
+            $this->outputEmitter->emitLine('}');
 
             foreach ($node->getRequireNs() as $ns) {
                 $this->outputEmitter->emitLine(
