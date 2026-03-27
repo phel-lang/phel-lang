@@ -468,4 +468,119 @@ final class GlobalEnvironmentTest extends TestCase
 
         $env->addDefinition('foo', $sym);
     }
+
+    public function test_snapshot_captures_current_state(): void
+    {
+        $env = new GlobalEnvironment();
+        $env->setNs('test-ns');
+        $env->addDefinition('test-ns', Symbol::create('x'));
+        $env->addRefer('test-ns', Symbol::create('y'), Symbol::create('other'));
+        $env->addRequireAlias('test-ns', Symbol::create('a'), Symbol::create('alias-ns'));
+        $env->addUseAlias('test-ns', Symbol::create('MyClass'), Symbol::create('\\Full\\MyClass'));
+        $env->addInterface('test-ns', Symbol::create('IFoo'));
+
+        $snapshot = $env->snapshot();
+
+        $this->assertSame('test-ns', $snapshot['ns']);
+        $this->assertArrayHasKey('test-ns', $snapshot['definitions']);
+        $this->assertTrue($snapshot['definitions']['test-ns']['x']);
+        $this->assertArrayHasKey('test-ns', $snapshot['refers']);
+        $this->assertSame('other', $snapshot['refers']['test-ns']['y']->getName());
+        $this->assertArrayHasKey('test-ns', $snapshot['requireAliases']);
+        $this->assertSame('alias-ns', $snapshot['requireAliases']['test-ns']['a']->getName());
+        $this->assertArrayHasKey('test-ns', $snapshot['useAliases']);
+        $this->assertSame('\\Full\\MyClass', $snapshot['useAliases']['test-ns']['MyClass']->getName());
+        $this->assertArrayHasKey('test-ns', $snapshot['interfaces']);
+        $this->assertSame('IFoo', $snapshot['interfaces']['test-ns']['IFoo']->getName());
+    }
+
+    public function test_restore_rolls_back_namespace(): void
+    {
+        $env = new GlobalEnvironment();
+        $env->setNs('original');
+
+        $snapshot = $env->snapshot();
+
+        $env->setNs('changed');
+        $this->assertSame('changed', $env->getNs());
+
+        $env->restore($snapshot);
+        $this->assertSame('original', $env->getNs());
+    }
+
+    public function test_restore_rolls_back_added_definitions(): void
+    {
+        $env = new GlobalEnvironment();
+        $env->setNs('test-ns');
+
+        $snapshot = $env->snapshot();
+
+        $env->addDefinition('test-ns', Symbol::create('new-def'));
+        $this->assertTrue($env->hasDefinition('test-ns', Symbol::create('new-def')));
+
+        $env->restore($snapshot);
+        $this->assertFalse($env->hasDefinition('test-ns', Symbol::create('new-def')));
+    }
+
+    public function test_restore_rolls_back_added_require_alias(): void
+    {
+        $env = new GlobalEnvironment();
+        $env->setNs('test-ns');
+
+        $snapshot = $env->snapshot();
+
+        $env->addRequireAlias('test-ns', Symbol::create('a'), Symbol::create('alias-ns'));
+        $this->assertTrue($env->hasRequireAlias('test-ns', Symbol::create('a')));
+
+        $env->restore($snapshot);
+        $this->assertFalse($env->hasRequireAlias('test-ns', Symbol::create('a')));
+    }
+
+    public function test_restore_rolls_back_added_use_alias(): void
+    {
+        $env = new GlobalEnvironment();
+        $env->setNs('test-ns');
+
+        $snapshot = $env->snapshot();
+
+        $env->addUseAlias('test-ns', Symbol::create('MyClass'), Symbol::create('\\Full\\MyClass'));
+        $this->assertTrue($env->hasUseAlias('test-ns', Symbol::create('MyClass')));
+
+        $env->restore($snapshot);
+        $this->assertFalse($env->hasUseAlias('test-ns', Symbol::create('MyClass')));
+    }
+
+    public function test_restore_rolls_back_added_refers(): void
+    {
+        $env = new GlobalEnvironment();
+        $env->setNs('test-ns');
+
+        $snapshot = $env->snapshot();
+
+        $env->addRefer('test-ns', Symbol::create('y'), Symbol::create('other'));
+        $this->assertCount(1, $env->getRefers('test-ns'));
+
+        $env->restore($snapshot);
+        $this->assertSame([], $env->getRefers('test-ns'));
+    }
+
+    public function test_restore_preserves_pre_existing_state(): void
+    {
+        $env = new GlobalEnvironment();
+        $env->setNs('test-ns');
+        $env->addDefinition('test-ns', Symbol::create('existing'));
+        $env->addRequireAlias('test-ns', Symbol::create('b'), Symbol::create('bar'));
+
+        $snapshot = $env->snapshot();
+
+        $env->addDefinition('test-ns', Symbol::create('new-def'));
+        $env->addRequireAlias('test-ns', Symbol::create('c'), Symbol::create('baz'));
+
+        $env->restore($snapshot);
+
+        $this->assertTrue($env->hasDefinition('test-ns', Symbol::create('existing')));
+        $this->assertFalse($env->hasDefinition('test-ns', Symbol::create('new-def')));
+        $this->assertTrue($env->hasRequireAlias('test-ns', Symbol::create('b')));
+        $this->assertFalse($env->hasRequireAlias('test-ns', Symbol::create('c')));
+    }
 }

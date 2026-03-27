@@ -221,6 +221,28 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         $this->interfaces[$namespace][$name->getName()] = $name;
     }
 
+    public function snapshot(): array
+    {
+        return [
+            'ns' => $this->ns,
+            'definitions' => $this->definitions,
+            'refers' => $this->refers,
+            'requireAliases' => $this->requireAliases,
+            'useAliases' => $this->useAliases,
+            'interfaces' => $this->interfaces,
+        ];
+    }
+
+    public function restore(array $snapshot): void
+    {
+        $this->ns = $snapshot['ns'];
+        $this->definitions = $snapshot['definitions'];
+        $this->refers = $snapshot['refers'];
+        $this->requireAliases = $snapshot['requireAliases'];
+        $this->useAliases = $snapshot['useAliases'];
+        $this->interfaces = $snapshot['interfaces'];
+    }
+
     public function getAllDefinitions(): array
     {
         $symbols = [];

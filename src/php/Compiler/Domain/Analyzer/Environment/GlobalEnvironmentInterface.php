@@ -64,4 +64,33 @@ interface GlobalEnvironmentInterface
      * @return array<string> List of available symbol names
      */
     public function getAllDefinitions(): array;
+
+    /**
+     * Takes a snapshot of the current environment state.
+     * Used by the REPL to rollback on eval errors.
+     *
+     * @return array{
+     *     ns: string,
+     *     definitions: array<string, array<string, bool>>,
+     *     refers: array<string, array<string, Symbol>>,
+     *     requireAliases: array<string, array<string, Symbol>>,
+     *     useAliases: array<string, array<string, Symbol>>,
+     *     interfaces: array<string, array<string, Symbol>>,
+     * }
+     */
+    public function snapshot(): array;
+
+    /**
+     * Restores the environment state from a previously taken snapshot.
+     *
+     * @param array{
+     *     ns: string,
+     *     definitions: array<string, array<string, bool>>,
+     *     refers: array<string, array<string, Symbol>>,
+     *     requireAliases: array<string, array<string, Symbol>>,
+     *     useAliases: array<string, array<string, Symbol>>,
+     *     interfaces: array<string, array<string, Symbol>>,
+     * } $snapshot
+     */
+    public function restore(array $snapshot): void;
 }
