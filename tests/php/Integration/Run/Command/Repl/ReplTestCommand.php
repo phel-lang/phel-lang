@@ -36,6 +36,7 @@ final class ReplTestCommand extends AbstractTestCommand
         parent::__construct(self::class);
     }
 
+    #[Override]
     protected function setUp(): void
     {
         parent::setUp();

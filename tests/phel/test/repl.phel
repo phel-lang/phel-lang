@@ -1,5 +1,5 @@
 (ns phel-test\test\repl
-  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers find-fn])
+  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers find-fn test-ns])
   (:require phel\str :as s)
   (:require phel\test :refer [deftest is]))
 
@@ -152,3 +152,24 @@
   (let [results (find-fn "concatenat")
         names (for [r :in results] (get r :name))]
     (is (> (count results) 0) "find-fn finds functions by docstring match")))
+
+# -------
+# test-ns
+# -------
+
+(deftest test-test-ns-returns-result-map
+  (let [result (with-output-buffer (test-ns "phel-test\\test\\test-framework"))]
+    (is (s/contains? result "Passed:") "test-ns output contains Passed summary")
+    (is (s/contains? result "Failed:") "test-ns output contains Failed summary")))
+
+(deftest test-test-ns-result-has-expected-keys
+  (let [result (let [r (var nil)]
+                 (with-output-buffer (set! r (test-ns "phel-test\\test\\test-framework")))
+                 (deref r))]
+    (is (hash-map? result) "test-ns returns a hash-map")
+    (is (not (nil? (get result :pass))) "result contains :pass key")
+    (is (not (nil? (get result :fail))) "result contains :fail key")
+    (is (not (nil? (get result :error))) "result contains :error key")
+    (is (> (get result :pass) 0) "test-framework tests have passing tests")
+    (is (= 0 (get result :fail)) "test-framework tests have no failures")
+    (is (= 0 (get result :error)) "test-framework tests have no errors")))

@@ -348,9 +348,32 @@
     (run-test options ns-name))
   (print-summary))
 
+(defn reset-stats
+  "Resets the test statistics to their initial state.
+  Call this before running a new batch of tests to get fresh results."
+  {:example "(reset-stats)"}
+  []
+  (set! stats {:failed []
+               :counts {:failed 0
+                        :error 0
+                        :pass 0
+                        :total 0}}))
+
 (defn successful?
   "Checks if all tests passed."
   {:example "(successful?) # => true"}
   []
   (let [{:failed failed :error error} (get (deref stats) :counts)]
     (zero? (+ failed error))))
+
+(defn get-stats
+  "Returns the current test statistics as a hash-map with :failed and :counts keys."
+  {:example "(get-stats) ; => {:failed [] :counts {:failed 0 :error 0 :pass 0 :total 0}}"}
+  []
+  (deref stats))
+
+(defn restore-stats
+  "Restores test statistics from a previously saved state."
+  {:example "(restore-stats saved)"}
+  [saved]
+  (set! stats saved))

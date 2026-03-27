@@ -31,6 +31,7 @@ final class ReplReferInjector
                 Symbol::create('symbol-info'),
                 Symbol::create('load-file'),
                 Symbol::create('source'),
+                Symbol::create('test-ns'),
             ],
             $replSymbol,
         );
