@@ -1,5 +1,5 @@
 (ns phel-test\test\repl
-  (:require phel\repl :refer [apropos dir search-doc get-symbol-info])
+  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code])
   (:require phel\str :as s)
   (:require phel\test :refer [deftest is]))
 
@@ -62,3 +62,21 @@
 (deftest test-get-symbol-info-private-flag
   (let [info (get-symbol-info "phel\\core" "map")]
     (is (= false (get info :private)) "public function has :private false")))
+
+# ------
+# source
+# ------
+
+(deftest test-get-source-code-returns-string-for-known-symbol
+  (let [src (get-source-code "phel\\core" "map")]
+    (is (string? src) "get-source-code returns a string for a known symbol")
+    (is (> (php/strlen src) 0) "get-source-code returns a non-empty string")
+    (is (s/contains? src "defn") "source code contains 'defn'")))
+
+(deftest test-get-source-code-returns-nil-for-unknown-symbol
+  (is (nil? (get-source-code "phel\\core" "zzz_nonexistent_zzz"))
+      "get-source-code returns nil for unknown symbol"))
+
+(deftest test-get-source-code-contains-function-name
+  (let [src (get-source-code "phel\\core" "map")]
+    (is (s/contains? src "map") "source code contains the function name")))
