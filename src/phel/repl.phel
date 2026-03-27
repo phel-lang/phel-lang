@@ -363,6 +363,33 @@
                   (println))))))))
     nil))
 
+(defn eval-capturing
+  "Evaluates a string of Phel code while capturing stdout. Returns a hash-map
+  with :value (the result), :out (captured stdout), :success (boolean), and
+  :error (error message or nil).
+
+  Useful for nREPL and other tooling that needs to separate printed output from
+  return values."
+  {:example "(eval-capturing \"(do (println \\\"hello\\\") 42)\") ; => {:value 42 :out \"hello\\n\" :success true :error nil}"
+   :see-also ["compile-str" "load-file"]}
+  [code-str]
+  (php/ob_start)
+  (try
+    (let [cf (php/new CompilerFacade)
+          opts (php/new CompileOptions)
+          value (php/-> cf (eval code-str opts))
+          out (php/ob_get_clean)]
+      {:value value
+       :out out
+       :success true
+       :error nil})
+    (catch \Throwable e
+      (let [out (php/ob_get_clean)]
+        {:value nil
+         :out out
+         :success false
+         :error (php/-> e (getMessage))}))))
+
 (defn test-ns
   "Runs all tests in a given namespace from the REPL.
   Requires the namespace if not already loaded, finds all deftest definitions,

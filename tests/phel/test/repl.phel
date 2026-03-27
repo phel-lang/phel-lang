@@ -1,5 +1,5 @@
 (ns phel-test\test\repl
-  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers find-fn test-ns])
+  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers find-fn test-ns eval-capturing])
   (:require phel\str :as s)
   (:require phel\test :refer [deftest is]))
 
@@ -173,3 +173,32 @@
     (is (> (get result :pass) 0) "test-framework tests have passing tests")
     (is (= 0 (get result :fail)) "test-framework tests have no failures")
     (is (= 0 (get result :error)) "test-framework tests have no errors")))
+
+# --------------
+# eval-capturing
+# --------------
+
+(deftest test-eval-capturing-simple-expression
+  (let [result (eval-capturing "(+ 1 2)")]
+    (is (= 3 (get result :value)) "eval-capturing returns correct value")
+    (is (= "" (get result :out)) "eval-capturing has empty output for pure expression")
+    (is (= true (get result :success)) "eval-capturing reports success")
+    (is (nil? (get result :error)) "eval-capturing has nil error on success")))
+
+(deftest test-eval-capturing-captures-stdout
+  (let [result (eval-capturing "(println \"hello\")")]
+    (is (= "hello\n" (get result :out)) "eval-capturing captures println output")
+    (is (= true (get result :success)) "eval-capturing reports success")))
+
+(deftest test-eval-capturing-captures-output-and-value
+  (let [result (eval-capturing "(do (println \"side\") 42)")]
+    (is (= 42 (get result :value)) "eval-capturing returns last expression value")
+    (is (= "side\n" (get result :out)) "eval-capturing captures side-effect output")
+    (is (= true (get result :success)) "eval-capturing reports success")))
+
+(deftest test-eval-capturing-error-case
+  (let [result (eval-capturing "(throw (php/new \\Exception \"boom\"))")]
+    (is (= false (get result :success)) "eval-capturing reports failure on error")
+    (is (= nil (get result :value)) "eval-capturing has nil value on error")
+    (is (string? (get result :error)) "eval-capturing has error message string")
+    (is (s/contains? (get result :error) "boom") "eval-capturing error contains message")))
