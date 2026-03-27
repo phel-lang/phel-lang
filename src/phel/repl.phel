@@ -8,7 +8,8 @@
   (:use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton)
   (:use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment)
   (:use Phel\Lang\FnInterface)
-  (:use Phel\Printer\Printer))
+  (:use Phel\Printer\Printer)
+  (:require phel\test :as t))
 
 (def build-facade (php/new BuildFacade))
 
@@ -361,3 +362,23 @@
                   (println (clean-doc doc))
                   (println))))))))
     nil))
+
+(defn test-ns
+  "Runs all tests in a given namespace from the REPL.
+  Requires the namespace if not already loaded, finds all deftest definitions,
+  runs them, prints results, and returns a hash-map with :pass, :fail, and :error counts.
+  Preserves outer test state so it can be safely called during a test run."
+  {:example "(test-ns \"phel-test\\test\\core\")"
+   :see-also ["dir" "loaded-namespaces"]}
+  [ns-str]
+  (eval-namespace ns-str)
+  (let [saved-stats (t/get-stats)]
+    (t/reset-stats)
+    (let [sym (php/:: Symbol (create ns-str))]
+      (t/run-tests {} sym)
+      (let [{:counts counts} (t/get-stats)
+            result {:pass (get counts :pass)
+                    :fail (get counts :failed)
+                    :error (get counts :error)}]
+        (t/restore-stats saved-stats)
+        result))))

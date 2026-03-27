@@ -8,6 +8,8 @@ use Phel;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Infrastructure\CompileOptions;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 
 final class LoadFileTest extends TestCase
@@ -21,9 +23,12 @@ final class LoadFileTest extends TestCase
         Phel::bootstrap(__DIR__);
         Phel::addDefinition('phel\\repl', 'src-dirs', [__DIR__ . '/../../../../src']);
 
+        $srcDir = __DIR__ . '/../../../../src';
         $build = new BuildFacade();
-        $build->evalFile(__DIR__ . '/../../../../src/phel/core.phel');
-        $build->evalFile(__DIR__ . '/../../../../src/phel/repl.phel');
+        $deps = $build->getDependenciesForNamespace([$srcDir], ['phel\\repl']);
+        foreach ($deps as $dep) {
+            $build->evalFile($dep->getFile());
+        }
     }
 
     protected function tearDown(): void
@@ -35,6 +40,8 @@ final class LoadFileTest extends TestCase
         parent::tearDown();
     }
 
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function test_load_file_evaluates_phel_source(): void
     {
         $this->tempFile = tempnam(sys_get_temp_dir(), 'phel_') . '.phel';
@@ -49,6 +56,8 @@ final class LoadFileTest extends TestCase
         self::assertSame(3, $result);
     }
 
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function test_load_file_returns_last_expression(): void
     {
         $this->tempFile = tempnam(sys_get_temp_dir(), 'phel_') . '.phel';
@@ -63,6 +72,8 @@ final class LoadFileTest extends TestCase
         self::assertSame(5, $result);
     }
 
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function test_load_file_returns_nil_for_nonexistent_file(): void
     {
         $facade = new CompilerFacade();
