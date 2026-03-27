@@ -109,8 +109,8 @@ final class ReplCompleter implements ReplCompleterInterface
         $matches = [];
 
         // Alias-based completion: input like "h/htm" resolves alias "h" to its namespace
-        if ($this->globalEnvironment instanceof GlobalEnvironmentInterface && str_contains($input, '/')) {
-            $slashPos = strpos($input, '/');
+        $slashPos = strpos($input, '/');
+        if ($this->globalEnvironment instanceof GlobalEnvironmentInterface && $slashPos !== false) {
             $aliasPrefix = substr($input, 0, $slashPos);
             $fnPrefix = substr($input, $slashPos + 1);
 
