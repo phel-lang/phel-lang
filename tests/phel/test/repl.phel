@@ -1,5 +1,5 @@
 (ns phel-test\test\repl
-  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code])
+  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code find-fn])
   (:require phel\str :as s)
   (:require phel\test :refer [deftest is]))
 
@@ -80,3 +80,30 @@
 (deftest test-get-source-code-contains-function-name
   (let [src (get-source-code "phel\\core" "map")]
     (is (s/contains? src "map") "source code contains the function name")))
+
+# -------
+# find-fn
+# -------
+
+(deftest test-find-fn-returns-non-empty-vector
+  (let [results (find-fn "map")]
+    (is (> (count results) 0) "find-fn finds functions matching 'map'")
+    (is (indexed? results) "find-fn returns a vector")))
+
+(deftest test-find-fn-results-have-required-keys
+  (let [results (find-fn "map")
+        first-result (first results)]
+    (is (not (nil? (get first-result :ns))) "result contains :ns key")
+    (is (not (nil? (get first-result :name))) "result contains :name key")
+    (is (string? (get first-result :doc)) "result contains :doc as string")
+    (is (not (nil? (get first-result :private))) "result contains :private key")
+    (is (not (nil? (get first-result :is-variadic))) "result contains :is-variadic key")))
+
+(deftest test-find-fn-no-matches
+  (let [results (find-fn "zzz-nonexistent-xxx")]
+    (is (= 0 (count results)) "find-fn returns empty vector for no matches")))
+
+(deftest test-find-fn-searches-docstrings
+  (let [results (find-fn "concatenat")
+        names (for [r :in results] (get r :name))]
+    (is (> (count results) 0) "find-fn finds functions by docstring match")))
