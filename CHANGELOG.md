@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Add structured stack frames (`StackFrame` objects) to `EvalError` for nREPL stacktrace middleware support
 - Store parameter names as `:arglists` in function metadata during compilation for IDE signature help and nREPL support
 - Add `symbol-info` macro and `get-symbol-info` function to `phel\repl` for structured metadata lookup (doc, location, arity, deprecation)
 - Add stdout capture to `EvalResult` via `$output` field, separating printed output from return values for nREPL support
