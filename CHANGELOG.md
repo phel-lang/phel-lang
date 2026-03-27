@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Store parameter names as `:arglists` in function metadata during compilation for IDE signature help and nREPL support
 - Add `symbol-info` macro and `get-symbol-info` function to `phel\repl` for structured metadata lookup (doc, location, arity, deprecation)
 - Add stdout capture to `EvalResult` via `$output` field, separating printed output from return values for nREPL support
 - Add `structuredEval()` to `RunFacade` returning structured `EvalResult` with error details for external tooling

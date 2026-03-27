@@ -25,6 +25,7 @@
       \Phel::keyword("column"), 36
     ),
     "min-arity", 1,
-    "is-variadic", false
+    "is-variadic", false,
+    "arglists", "[x]"
   )
 );
