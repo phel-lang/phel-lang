@@ -363,10 +363,6 @@
                   (println))))))))
     nil))
 
-# -------
-# test-ns
-# -------
-
 (defn test-ns
   "Runs all tests in a given namespace from the REPL.
   Requires the namespace if not already loaded, finds all deftest definitions,
