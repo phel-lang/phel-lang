@@ -21,8 +21,10 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 
+use function array_map;
 use function assert;
 use function count;
+use function implode;
 use function in_array;
 use function is_scalar;
 use function is_string;
@@ -56,10 +58,12 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         if ($initNode instanceof FnNode) {
             $metaMap = $metaMap->put('min-arity', $initNode->getMinArity());
             $metaMap = $metaMap->put('is-variadic', $initNode->isVariadic());
+            $metaMap = $metaMap->put('arglists', $this->buildFnNodeArglist($initNode));
         } elseif ($initNode instanceof MultiFnNode) {
             $metaMap = $metaMap->put('min-arity', $initNode->getMinArity());
             $metaMap = $metaMap->put('is-variadic', $initNode->isVariadic());
             $metaMap = $metaMap->put('max-arity', $initNode->getMaxArity());
+            $metaMap = $metaMap->put('arglists', $this->buildMultiFnNodeArglists($initNode));
         }
 
         $meta = $this->analyzer->analyze($metaMap, $env->withExpressionContext());
@@ -189,5 +193,39 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
             ->withDefAllowed(false);
 
         return $this->analyzer->analyze($init, $initEnv);
+    }
+
+    private function buildFnNodeArglist(FnNode $fnNode): string
+    {
+        return $this->formatParamsVector($fnNode->getParams(), $fnNode->isVariadic());
+    }
+
+    private function buildMultiFnNodeArglists(MultiFnNode $multiFnNode): string
+    {
+        $vectors = [];
+        foreach ($multiFnNode->getFnNodes() as $fnNode) {
+            $vectors[] = $this->formatParamsVector($fnNode->getParams(), $fnNode->isVariadic());
+        }
+
+        return '(' . implode(' ', $vectors) . ')';
+    }
+
+    /**
+     * @param list<Symbol> $params
+     */
+    private function formatParamsVector(array $params, bool $isVariadic): string
+    {
+        $names = array_map(
+            static fn(Symbol $s): string => $s->getName(),
+            $params,
+        );
+
+        if ($isVariadic && $names !== []) {
+            $restParam = array_pop($names);
+            $names[] = '&';
+            $names[] = $restParam;
+        }
+
+        return '[' . implode(' ', $names) . ']';
     }
 }

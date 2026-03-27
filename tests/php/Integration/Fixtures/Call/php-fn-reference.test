@@ -25,7 +25,8 @@
       \Phel::keyword("column"), 37
     ),
     "min-arity", 2,
-    "is-variadic", false
+    "is-variadic", false,
+    "arglists", "[f xs]"
   )
 );
 (\Phel::getDefinition("user", "reduce"))((function(...$args) { return array(...$args);}), \Phel::vector([1, 2, 3]));

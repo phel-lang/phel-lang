@@ -55,7 +55,8 @@ interface IPlayer {
       \Phel::keyword("column"), 31
     ),
     "min-arity", 1,
-    "is-variadic", false
+    "is-variadic", false,
+    "arglists", "[p]"
   )
 );
 
@@ -90,6 +91,7 @@ interface IPlayer {
       \Phel::keyword("column"), 31
     ),
     "min-arity", 3,
-    "is-variadic", false
+    "is-variadic", false,
+    "arglists", "[p me you]"
   )
 );

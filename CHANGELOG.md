@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Store parameter names as `:arglists` in function metadata during compilation for IDE signature help and nREPL support
 - Add `structuredEval()` to `RunFacade` returning structured `EvalResult` with error details for external tooling
 - Add alias-based and referred-symbol completion to `ReplCompleter`
 - Auto-inject REPL utilities (`doc`, `require`, `use`) on `(in-ns ...)` namespace changes

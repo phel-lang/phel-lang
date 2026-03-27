@@ -296,4 +296,127 @@ final class DefSymbolTest extends TestCase
         $env = NodeEnvironment::empty();
         (new DefSymbol($this->analyzer))->analyze($list, $env);
     }
+
+    public function test_arglists_for_single_arity_fn(): void
+    {
+        // (def my-fn (fn [x y] x))
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_DEF),
+            Symbol::create('my-fn'),
+            Phel::list([
+                Symbol::create(Symbol::NAME_FN),
+                Phel::vector([
+                    Symbol::create('x'),
+                    Symbol::create('y'),
+                ]),
+                Symbol::create('x'),
+            ]),
+        ]);
+
+        $env = NodeEnvironment::empty();
+        $defNode = (new DefSymbol($this->analyzer))->analyze($list, $env);
+
+        self::assertSame('[x y]', $this->findMetaValue($defNode, 'arglists'));
+    }
+
+    public function test_arglists_for_variadic_fn(): void
+    {
+        // (def my-fn (fn [x & rest] x))
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_DEF),
+            Symbol::create('my-fn'),
+            Phel::list([
+                Symbol::create(Symbol::NAME_FN),
+                Phel::vector([
+                    Symbol::create('x'),
+                    Symbol::create('&'),
+                    Symbol::create('rest'),
+                ]),
+                Symbol::create('x'),
+            ]),
+        ]);
+
+        $env = NodeEnvironment::empty();
+        $defNode = (new DefSymbol($this->analyzer))->analyze($list, $env);
+
+        self::assertSame('[x & rest]', $this->findMetaValue($defNode, 'arglists'));
+    }
+
+    public function test_arglists_for_multi_arity_fn(): void
+    {
+        // (def f (fn ([] 1) ([x] x)))
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_DEF),
+            Symbol::create('f'),
+            Phel::list([
+                Symbol::create(Symbol::NAME_FN),
+                Phel::list([
+                    Phel::vector([]),
+                    1,
+                ]),
+                Phel::list([
+                    Phel::vector([
+                        Symbol::create('x'),
+                    ]),
+                    Symbol::create('x'),
+                ]),
+            ]),
+        ]);
+
+        $env = NodeEnvironment::empty();
+        $defNode = (new DefSymbol($this->analyzer))->analyze($list, $env);
+
+        self::assertSame('([] [x])', $this->findMetaValue($defNode, 'arglists'));
+    }
+
+    public function test_arglists_for_zero_arity_fn(): void
+    {
+        // (def my-fn (fn [] 42))
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_DEF),
+            Symbol::create('my-fn'),
+            Phel::list([
+                Symbol::create(Symbol::NAME_FN),
+                Phel::vector([]),
+                42,
+            ]),
+        ]);
+
+        $env = NodeEnvironment::empty();
+        $defNode = (new DefSymbol($this->analyzer))->analyze($list, $env);
+
+        self::assertSame('[]', $this->findMetaValue($defNode, 'arglists'));
+    }
+
+    public function test_no_arglists_for_non_fn_def(): void
+    {
+        // (def name "any value")
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_DEF),
+            Symbol::create('name'),
+            'any value',
+        ]);
+
+        $env = NodeEnvironment::empty();
+        $defNode = (new DefSymbol($this->analyzer))->analyze($list, $env);
+
+        self::assertNull($this->findMetaValue($defNode, 'arglists'));
+    }
+
+    private function findMetaValue(DefNode $defNode, string $key): mixed
+    {
+        $meta = $defNode->getMeta()->getKeyValues();
+        $counter = count($meta);
+        for ($i = 0; $i < $counter; $i += 2) {
+            $metaKey = $meta[$i];
+            if ($metaKey instanceof LiteralNode && $metaKey->getValue() === $key) {
+                $value = $meta[$i + 1];
+                self::assertInstanceOf(LiteralNode::class, $value);
+
+                return $value->getValue();
+            }
+        }
+
+        return null;
+    }
 }
