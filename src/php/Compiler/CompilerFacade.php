@@ -183,6 +183,30 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
         GlobalEnvironmentSingleton::reset();
     }
 
+    /**
+     * Expands a macro form once. Returns the expanded Phel form,
+     * or the original form unchanged if it is not a macro call.
+     */
+    public function macroexpand1(
+        TypeInterface|string|float|int|bool|null $form,
+    ): TypeInterface|string|float|int|bool|null {
+        return $this->getFactory()
+            ->createMacroExpander()
+            ->macroexpand1($form);
+    }
+
+    /**
+     * Repeatedly expands a macro form until it is no longer a macro call.
+     * Returns the fully expanded Phel form.
+     */
+    public function macroexpand(
+        TypeInterface|string|float|int|bool|null $form,
+    ): TypeInterface|string|float|int|bool|null {
+        return $this->getFactory()
+            ->createMacroExpander()
+            ->macroexpand($form);
+    }
+
     public function getNamespaceEnvironmentData(string $namespace): array
     {
         return $this->getFactory()

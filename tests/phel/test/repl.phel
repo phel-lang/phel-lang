@@ -1,5 +1,5 @@
 (ns phel-test\test\repl
-  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers find-fn test-ns])
+  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers find-fn test-ns macroexpand-1-form macroexpand-form])
   (:require phel\str :as s)
   (:require phel\test :refer [deftest is]))
 
@@ -173,3 +173,36 @@
     (is (> (get result :pass) 0) "test-framework tests have passing tests")
     (is (= 0 (get result :fail)) "test-framework tests have no failures")
     (is (= 0 (get result :error)) "test-framework tests have no errors")))
+
+# ----------------
+# macroexpand-1-form
+# ----------------
+
+(deftest test-macroexpand-1-form-expands-defn
+  (let [expanded (macroexpand-1-form '(defn foo [x] x))]
+    (is (list? expanded) "macroexpand-1-form returns a list")
+    (is (not (= 'defn (first expanded))) "defn macro is expanded (head is no longer defn)")))
+
+(deftest test-macroexpand-1-form-non-macro-unchanged
+  (let [form '(php/+ 1 2)
+        expanded (macroexpand-1-form form)]
+    (is (= form expanded) "non-macro form is returned unchanged")))
+
+(deftest test-macroexpand-1-form-scalar-unchanged
+  (is (= 42 (macroexpand-1-form 42)) "scalar is returned unchanged")
+  (is (= "hello" (macroexpand-1-form "hello")) "string is returned unchanged")
+  (is (nil? (macroexpand-1-form nil)) "nil is returned unchanged"))
+
+# ---------------
+# macroexpand-form
+# ---------------
+
+(deftest test-macroexpand-form-fully-expands
+  (let [expanded (macroexpand-form '(defn foo [x] x))]
+    (is (list? expanded) "macroexpand-form returns a list")
+    (is (= 'def (first expanded)) "defn fully expands to def")))
+
+(deftest test-macroexpand-form-non-macro-unchanged
+  (let [form '(php/+ 1 2)
+        expanded (macroexpand-form form)]
+    (is (= form expanded) "non-macro form is returned unchanged")))
