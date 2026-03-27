@@ -7,7 +7,9 @@ namespace PhelTest\Unit\Run\Domain\Repl;
 use Phel;
 use Phel\Api\Application\ReplCompleter;
 use Phel\Api\Domain\PhelFnLoaderInterface;
+use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Lang\FnInterface;
+use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 
 final class ReplCompleterTest extends TestCase
@@ -52,5 +54,49 @@ final class ReplCompleterTest extends TestCase
         $matches = $this->completer->complete('php/DateT');
 
         self::assertContains('php/DateTime', $matches);
+    }
+
+    public function test_alias_based_completion(): void
+    {
+        $fn = self::createStub(FnInterface::class);
+        Phel::addDefinition('phel\\html', 'html', $fn);
+        Phel::addDefinition('phel\\html', 'div', $fn);
+
+        $globalEnv = new GlobalEnvironment();
+        $globalEnv->setNs('user');
+        $globalEnv->addRequireAlias(
+            'user',
+            Symbol::create('h'),
+            Symbol::create('phel\\html'),
+        );
+
+        $phelFnLoader = self::createStub(PhelFnLoaderInterface::class);
+        $completer = new ReplCompleter($phelFnLoader, [], $globalEnv);
+
+        $matches = $completer->complete('h/ht');
+
+        self::assertContains('h/html', $matches);
+        self::assertNotContains('h/div', $matches);
+    }
+
+    public function test_referred_symbol_completion(): void
+    {
+        $fn = self::createStub(FnInterface::class);
+        Phel::addDefinition('phel\\html', 'html', $fn);
+
+        $globalEnv = new GlobalEnvironment();
+        $globalEnv->setNs('user');
+        $globalEnv->addRefer(
+            'user',
+            Symbol::create('html'),
+            Symbol::create('phel\\html'),
+        );
+
+        $phelFnLoader = self::createStub(PhelFnLoaderInterface::class);
+        $completer = new ReplCompleter($phelFnLoader, [], $globalEnv);
+
+        $matches = $completer->complete('htm');
+
+        self::assertContains('html', $matches);
     }
 }

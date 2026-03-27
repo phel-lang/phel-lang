@@ -7,6 +7,7 @@ namespace Phel\Api\Application;
 use Phel;
 use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Api\Domain\ReplCompleterInterface;
+use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Lang\FnInterface;
 
 use function get_declared_classes;
@@ -33,6 +34,7 @@ final class ReplCompleter implements ReplCompleterInterface
     public function __construct(
         private readonly PhelFnLoaderInterface $phelFnLoader,
         private readonly array $allNamespaces = [],
+        private readonly ?GlobalEnvironmentInterface $globalEnvironment = null,
     ) {}
 
     /**
@@ -106,6 +108,19 @@ final class ReplCompleter implements ReplCompleterInterface
     {
         $matches = [];
 
+        // Alias-based completion: input like "h/htm" resolves alias "h" to its namespace
+        if ($this->globalEnvironment instanceof GlobalEnvironmentInterface && str_contains($input, '/')) {
+            $slashPos = strpos($input, '/');
+            $aliasPrefix = substr($input, 0, $slashPos);
+            $fnPrefix = substr($input, $slashPos + 1);
+
+            $resolvedNs = $this->globalEnvironment->resolveAlias($aliasPrefix);
+            if ($resolvedNs !== null) {
+                $matches = $this->completeFromNamespace($resolvedNs, $fnPrefix, $aliasPrefix . '/');
+            }
+        }
+
+        // Referred symbol completion and fully qualified completion
         foreach (Phel::getNamespaces() as $namespace) {
             foreach (Phel::getDefinitionInNamespace($namespace) as $name => $definition) {
                 if (!$definition instanceof FnInterface) {
@@ -121,7 +136,40 @@ final class ReplCompleter implements ReplCompleterInterface
             }
         }
 
+        // Referred symbol names (short names available in current namespace)
+        if ($this->globalEnvironment instanceof GlobalEnvironmentInterface) {
+            $currentNs = $this->globalEnvironment->getNs();
+            foreach (array_keys($this->globalEnvironment->getRefers($currentNs)) as $name) {
+                if (str_starts_with($name, $input)) {
+                    $matches[] = $name;
+                }
+            }
+        }
+
+        $matches = array_unique($matches);
         sort($matches);
+
+        return $matches;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function completeFromNamespace(string $namespace, string $prefix, string $displayPrefix): array
+    {
+        $matches = [];
+        $mungedNs = str_replace('-', '_', $namespace);
+
+        foreach (Phel::getDefinitionInNamespace($mungedNs) as $name => $definition) {
+            if (!$definition instanceof FnInterface) {
+                continue;
+            }
+
+            if (str_starts_with($name, $prefix)) {
+                $matches[] = $displayPrefix . $name;
+            }
+        }
+
         return $matches;
     }
 }
