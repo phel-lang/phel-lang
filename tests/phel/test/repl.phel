@@ -1,5 +1,9 @@
 (ns phel-test\test\repl
+<<<<<<< feat/repl-ns-introspection
   (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers])
+=======
+  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code find-fn])
+>>>>>>> main
   (:require phel\str :as s)
   (:require phel\test :refer [deftest is]))
 
@@ -81,6 +85,7 @@
   (let [src (get-source-code "phel\\core" "map")]
     (is (s/contains? src "map") "source code contains the function name")))
 
+<<<<<<< feat/repl-ns-introspection
 # ----------
 # ns-publics
 # ----------
@@ -125,3 +130,31 @@
   (let [refers (ns-refers "phel-test\\test\\repl")]
     (is (= "phel\\repl" (get refers "apropos")) "ns-refers contains 'apropos' from phel\\repl")
     (is (= "phel\\test" (get refers "deftest")) "ns-refers contains 'deftest' from phel\\test")))
+=======
+# -------
+# find-fn
+# -------
+
+(deftest test-find-fn-returns-non-empty-vector
+  (let [results (find-fn "map")]
+    (is (> (count results) 0) "find-fn finds functions matching 'map'")
+    (is (indexed? results) "find-fn returns a vector")))
+
+(deftest test-find-fn-results-have-required-keys
+  (let [results (find-fn "map")
+        first-result (first results)]
+    (is (not (nil? (get first-result :ns))) "result contains :ns key")
+    (is (not (nil? (get first-result :name))) "result contains :name key")
+    (is (string? (get first-result :doc)) "result contains :doc as string")
+    (is (not (nil? (get first-result :private))) "result contains :private key")
+    (is (not (nil? (get first-result :is-variadic))) "result contains :is-variadic key")))
+
+(deftest test-find-fn-no-matches
+  (let [results (find-fn "zzz-nonexistent-xxx")]
+    (is (= 0 (count results)) "find-fn returns empty vector for no matches")))
+
+(deftest test-find-fn-searches-docstrings
+  (let [results (find-fn "concatenat")
+        names (for [r :in results] (get r :name))]
+    (is (> (count results) 0) "find-fn finds functions by docstring match")))
+>>>>>>> main

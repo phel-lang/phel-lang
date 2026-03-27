@@ -7,6 +7,7 @@
   (:use Phel\Compiler\Infrastructure\CompileOptions)
   (:use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton)
   (:use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment)
+  (:use Phel\Lang\FnInterface)
   (:use Phel\Printer\Printer))
 
 (def build-facade (php/new BuildFacade))
@@ -236,6 +237,38 @@
                        (php/str_contains decoded search))
               (conj results (str (php/-> munge (decodeNs ns)) "/" decoded)))))))
     (sort (persistent results))))
+
+(defn find-fn
+  "Searches for functions whose name or docstring contains the search string.
+  Returns a vector of maps with :ns, :name, :doc, :private, :min-arity, :max-arity, :is-variadic."
+  {:example "(find-fn \"map\") ; => [{:ns \"phel\\core\" :name \"map\" ...} ...]"
+   :see-also ["apropos" "search-doc" "get-symbol-info"]}
+  [search]
+  (let [munge (php/new Munge)
+        search-lower (php/strtolower search)
+        results (transient [])]
+    (foreach [ns (loaded-namespaces)]
+      (let [defs (php/:: Phel (getDefinitionInNamespace ns))
+            fn-names (php/array_keys defs)]
+        (foreach [fn-name fn-names]
+          (let [definition (php/:: Phel (getDefinition ns fn-name))]
+            (when (php/instanceof definition FnInterface)
+              (let [meta (php/:: Phel (getDefinitionMetaData ns fn-name))
+                    decoded-name (php/-> munge (decodeNs fn-name))
+                    decoded-ns (php/-> munge (decodeNs ns))
+                    doc (or (get meta :doc) "")
+                    name-lower (php/strtolower decoded-name)
+                    doc-lower (php/strtolower doc)]
+                (when (or (php/str_contains name-lower search-lower)
+                          (php/str_contains doc-lower search-lower))
+                  (conj results {:ns decoded-ns
+                                 :name decoded-name
+                                 :doc doc
+                                 :private (or (get meta :private) false)
+                                 :min-arity (get meta "min-arity")
+                                 :max-arity (get meta "max-arity")
+                                 :is-variadic (or (get meta "is-variadic") false)}))))))))
+    (persistent results)))
 
 (defn get-source-code
   "Returns the source code of the definition identified by namespace and name
