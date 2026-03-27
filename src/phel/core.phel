@@ -178,7 +178,7 @@
         (let [ns (php/-> sym (getNamespace))]
           (if ns
             `(php/:: \Phel (getDefinitionMetaData ,ns ,(php/-> sym (getName))))
-            `(php/:: \Phel (getDefinitionMetaData *ns* ,(php/-> sym (getName))))))
+            `(php/:: \Phel (getDefinitionMetaData (php/str_replace "-" "_" *ns*) ,(php/-> sym (getName))))))
         `(let [obj-meta ,obj]
            (if (php/instanceof obj-meta \Phel\Lang\MetaInterface)
              (php/-> obj-meta (getMeta))
@@ -285,7 +285,7 @@
   [name keys & implementations]
   (let [name-str (php/-> name (getName))
         munge (php/new Munge)
-        class-name-str (php/. *ns* "\\" (php/-> munge (encode name-str)))
+        class-name-str (php/. (php/-> munge (encodeNs *ns*)) "\\" (php/-> munge (encode name-str)))
         is-name (php/:: Symbol (create (php/. name-str "?")))]
     `(do
        (defstruct* ,name ,keys ,@implementations)
@@ -297,7 +297,7 @@
   [name]
   (let [name-str (php/-> name (getName))
         munge (php/new Munge)
-        class-name-str (php/. *ns* "\\" (php/-> munge (encode name-str)))
+        class-name-str (php/. (php/-> munge (encodeNs *ns*)) "\\" (php/-> munge (encode name-str)))
         is-name (php/:: Symbol (create (php/. name-str "?")))]
     `(do
        (defexception* ,name)
@@ -3035,7 +3035,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [name & fns]
   (let [name-str (php/-> name (getName))
         munge (php/new Munge)
-        class-name-str (php/. *ns* "\\" (php/-> munge (encode name-str)))
+        class-name-str (php/. (php/-> munge (encodeNs *ns*)) "\\" (php/-> munge (encode name-str)))
         defs (for [[fn-name args doc] :in fns
                    :let [fn-name-str (php/-> fn-name (getName))
                          munged-fn-name (php/-> munge (encode fn-name-str))

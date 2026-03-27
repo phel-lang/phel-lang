@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Fixed
+- Fix REPL: `*ns*` now preserves hyphens instead of munging to underscores (#766)
+- Fix REPL: `(ns ...)` form requires no longer silently fail when `src-dirs` is empty (#766)
 - Fix PHAR: deduplicate stdlib source directory in namespace resolution
 - Fix PHAR: pre-compile all stdlib modules during phar build
 - Fix cache: resolve compiled paths from current cache dir, not stored paths

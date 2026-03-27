@@ -76,6 +76,19 @@ final class NsEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitStr('"src-dirs"');
             $this->outputEmitter->emitLine(') ?? [];');
             $this->outputEmitter->decreaseIndentLevel();
+            $this->outputEmitter->emitLine('if ($__phelSrcDirs === [] && \\Phel::getDefinition(');
+            $this->outputEmitter->increaseIndentLevel();
+            $this->outputEmitter->emitStr('"');
+            $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\core')));
+            $this->outputEmitter->emitLine('",');
+            $this->outputEmitter->emitStr('"');
+            $this->outputEmitter->emitStr(addslashes('*repl-mode*'));
+            $this->outputEmitter->emitLine('")) {');
+            $this->outputEmitter->emitLine('$__phelSrcDirs = (new \\Phel\\Command\\CommandFacade())->getAllPhelDirectories();');
+            $this->outputEmitter->emitLine('$__phelCwd = getcwd();');
+            $this->outputEmitter->emitLine('if ($__phelCwd !== false) { $__phelSrcDirs[] = $__phelCwd; }');
+            $this->outputEmitter->decreaseIndentLevel();
+            $this->outputEmitter->emitLine('}');
 
             foreach ($node->getRequireNs() as $ns) {
                 $this->outputEmitter->emitLine(
@@ -131,7 +144,7 @@ final class NsEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('"');
         $this->outputEmitter->emitStr(addslashes('*ns*'));
         $this->outputEmitter->emitLine('",');
-        $this->outputEmitter->emitLiteral($this->outputEmitter->mungeEncodeNs($node->getNamespace()));
+        $this->outputEmitter->emitLiteral($node->getNamespace());
         $this->outputEmitter->emitLine();
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine(');');

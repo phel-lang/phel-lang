@@ -18,7 +18,7 @@ require_once __DIR__ . '/my_namespace/core.php';
 \Phel::addDefinition(
   "phel\\core",
   "*ns*",
-  "hello_world"
+  "hello-world"
 );
 \Phel::addDefinition(
   "hello_world",

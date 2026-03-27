@@ -52,7 +52,7 @@ final class InNsEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('"');
         $this->outputEmitter->emitStr(addslashes('*ns*'));
         $this->outputEmitter->emitLine('",');
-        $this->outputEmitter->emitLiteral($this->outputEmitter->mungeEncodeNs($node->getNamespace()));
+        $this->outputEmitter->emitLiteral($node->getNamespace());
         $this->outputEmitter->emitLine();
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine(');');
