@@ -28,7 +28,7 @@ final class NsEmitterTest extends TestCase
 
         ob_start();
         $this->nsEmitter->emit($node);
-        $output = ob_get_clean();
+        $output = (string) ob_get_clean();
 
         self::assertStringContainsString(
             '"my-great\\\\ns"',
@@ -49,23 +49,23 @@ final class NsEmitterTest extends TestCase
 
         ob_start();
         $this->nsEmitter->emit($node);
-        $output = ob_get_clean();
+        $output = (string) ob_get_clean();
 
         self::assertStringContainsString('"app\\\\module"', $output);
     }
 
-    public function test_ns_with_requires_emits_src_dirs_fallback(): void
+    public function test_ns_with_requires_emits_repl_gated_fallback(): void
     {
         $node = new NsNode('my\\app', [Symbol::create('phel\\str')], []);
 
         ob_start();
         $this->nsEmitter->emit($node);
-        $output = ob_get_clean();
+        $output = (string) ob_get_clean();
 
         self::assertStringContainsString(
-            'if ($__phelSrcDirs === []) {',
+            '*repl-mode*',
             $output,
-            'Should emit fallback when src-dirs is empty',
+            'Fallback should be gated on REPL mode',
         );
         self::assertStringContainsString(
             'CommandFacade',

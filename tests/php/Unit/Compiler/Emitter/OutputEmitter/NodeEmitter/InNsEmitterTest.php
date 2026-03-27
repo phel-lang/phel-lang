@@ -27,7 +27,7 @@ final class InNsEmitterTest extends TestCase
 
         ob_start();
         $this->inNsEmitter->emit($node);
-        $output = ob_get_clean();
+        $output = (string) ob_get_clean();
 
         self::assertStringContainsString(
             '"my-great\\\\ns"',
@@ -48,7 +48,7 @@ final class InNsEmitterTest extends TestCase
 
         ob_start();
         $this->inNsEmitter->emit($node);
-        $output = ob_get_clean();
+        $output = (string) ob_get_clean();
 
         self::assertStringContainsString('"app\\\\module"', $output);
     }
