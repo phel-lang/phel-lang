@@ -8,6 +8,7 @@ use Gacela\Framework\AbstractFacade;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Run\Domain\Repl\EvalResult;
 use Phel\Shared\Facade\RunFacadeInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
@@ -75,6 +76,15 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
         return $this->getFactory()
             ->getCompilerFacade()
             ->eval($phelCode, $compileOptions);
+    }
+
+    public function structuredEval(string $phelCode, CompileOptions $compileOptions = new CompileOptions()): EvalResult
+    {
+        return EvalResult::fromEval(
+            $this->getFactory()->getCompilerFacade(),
+            $phelCode,
+            $compileOptions,
+        );
     }
 
     public function writeLocatedException(OutputInterface $output, CompilerException $e): void

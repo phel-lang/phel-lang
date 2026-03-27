@@ -7,6 +7,7 @@ namespace Phel\Shared\Facade;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Run\Domain\Repl\EvalResult;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
@@ -20,6 +21,12 @@ interface RunFacadeInterface
      * @return mixed The result of the executed code
      */
     public function eval(string $phelCode, CompileOptions $compileOptions): mixed;
+
+    /**
+     * Evaluate Phel code returning a structured result with error details.
+     * Unlike eval(), this never throws — errors are captured in EvalResult.
+     */
+    public function structuredEval(string $phelCode, CompileOptions $compileOptions): EvalResult;
 
     /**
      * @return list<string>
