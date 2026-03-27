@@ -55,15 +55,20 @@ final class CompiledCodeCache
             return null;
         }
 
+        // Resolve the compiled path from the current cache dir rather than
+        // using the stored absolute path. This ensures cache hits work inside
+        // a PHAR where the original build-time paths no longer exist.
+        $compiledPath = $this->getCompiledPath($namespace);
+
         // Validate compiled file still exists
-        if (!file_exists($entry['compiled_path'])) {
+        if (!file_exists($compiledPath)) {
             return null;
         }
 
         // Update last_accessed timestamp for LRU tracking
         $this->entries[$namespace]['last_accessed'] = time();
 
-        return $entry['compiled_path'];
+        return $compiledPath;
     }
 
     /**
@@ -171,7 +176,7 @@ final class CompiledCodeCache
             return;
         }
 
-        $compiledPath = $this->entries[$namespace]['compiled_path'];
+        $compiledPath = $this->getCompiledPath($namespace);
         if (file_exists($compiledPath)) {
             @unlink($compiledPath);
         }
@@ -375,13 +380,14 @@ final class CompiledCodeCache
 
         // Evict oldest entries
         $evicted = 0;
-        foreach ($this->entries as $namespace => $entry) {
+        foreach (array_keys($this->entries) as $namespace) {
             if ($evicted >= $evictCount) {
                 break;
             }
 
-            if (file_exists($entry['compiled_path'])) {
-                @unlink($entry['compiled_path']);
+            $compiledPath = $this->getCompiledPath($namespace);
+            if (file_exists($compiledPath)) {
+                @unlink($compiledPath);
             }
 
             $envPath = $this->getEnvironmentPath($namespace);

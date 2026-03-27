@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+- Fix PHAR: deduplicate stdlib source directory in namespace resolution
+- Fix PHAR: pre-compile all stdlib modules during phar build
+- Fix cache: resolve compiled paths from current cache dir, not stored paths
+
 ## [0.30.0](https://github.com/phel-lang/phel-lang/compare/v0.29.0...v0.30.0) - 2026-03-25
 
 ### Added
