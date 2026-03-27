@@ -1,9 +1,5 @@
 (ns phel-test\test\repl
-<<<<<<< feat/repl-ns-introspection
-  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers])
-=======
-  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code find-fn])
->>>>>>> main
+  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers find-fn])
   (:require phel\str :as s)
   (:require phel\test :refer [deftest is]))
 
@@ -85,7 +81,6 @@
   (let [src (get-source-code "phel\\core" "map")]
     (is (s/contains? src "map") "source code contains the function name")))
 
-<<<<<<< feat/repl-ns-introspection
 # ----------
 # ns-publics
 # ----------
@@ -130,7 +125,7 @@
   (let [refers (ns-refers "phel-test\\test\\repl")]
     (is (= "phel\\repl" (get refers "apropos")) "ns-refers contains 'apropos' from phel\\repl")
     (is (= "phel\\test" (get refers "deftest")) "ns-refers contains 'deftest' from phel\\test")))
-=======
+
 # -------
 # find-fn
 # -------
@@ -157,4 +152,3 @@
   (let [results (find-fn "concatenat")
         names (for [r :in results] (get r :name))]
     (is (> (count results) 0) "find-fn finds functions by docstring match")))
->>>>>>> main
