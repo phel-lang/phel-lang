@@ -402,3 +402,40 @@
                     :error (get counts :error)}]
         (t/restore-stats saved-stats)
         result))))
+
+(defn macroexpand-1-form
+  "Expands the given form once if it is a macro call.
+  Takes a quoted form and returns the expanded form, or the original
+  form unchanged if it is not a macro call. Uses the CompilerFacade
+  to perform the expansion without going through analyze+emit."
+  {:example "(macroexpand-1-form '(defn foo [x] x))"
+   :see-also ["macroexpand-form" "macroexpand-1" "macroexpand"]}
+  [form]
+  (let [cf (php/new CompilerFacade)]
+    (php/-> cf (macroexpand1 form))))
+
+(defn macroexpand-form
+  "Recursively expands the given form until it is no longer a macro call.
+  Takes a quoted form and returns the fully expanded form. Uses the
+  CompilerFacade to perform the expansion without going through analyze+emit."
+  {:example "(macroexpand-form '(defn foo [x] x))"
+   :see-also ["macroexpand-1-form" "macroexpand-1" "macroexpand"]}
+  [form]
+  (let [cf (php/new CompilerFacade)]
+    (php/-> cf (macroexpand form))))
+
+(defmacro macroexpand-1
+  "Expands the given form once. The form is automatically quoted.
+  Returns the expanded form, or the original if it is not a macro call."
+  {:example "(macroexpand-1 (defn foo [x] x))"
+   :see-also ["macroexpand" "macroexpand-1-form" "macroexpand-form"]}
+  [form]
+  `(macroexpand-1-form ',form))
+
+(defmacro macroexpand
+  "Recursively expands the given form until it is no longer a macro call.
+  The form is automatically quoted. Returns the fully expanded form."
+  {:example "(macroexpand (defn foo [x] x))"
+   :see-also ["macroexpand-1" "macroexpand-1-form" "macroexpand-form"]}
+  [form]
+  `(macroexpand-form ',form))

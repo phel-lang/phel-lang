@@ -9,6 +9,7 @@ use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Application\CodeCompiler;
 use Phel\Compiler\Application\EvalCompiler;
 use Phel\Compiler\Application\Lexer;
+use Phel\Compiler\Application\MacroExpander;
 use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Application\NamespaceEnvironmentSerializer;
 use Phel\Compiler\Application\ParenthesesChecker;
@@ -153,6 +154,13 @@ final class CompilerFactory extends AbstractFactory
     public function createMunge(): MungeInterface
     {
         return new Munge();
+    }
+
+    public function createMacroExpander(): MacroExpander
+    {
+        return new MacroExpander(
+            $this->getGlobalEnvironment(),
+        );
     }
 
     public function createParenthesesChecker(): ParenthesesChecker

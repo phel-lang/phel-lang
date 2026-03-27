@@ -1,5 +1,5 @@
 (ns phel-test\test\repl
-  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers find-fn test-ns eval-str ns-list loaded-namespaces])
+  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers find-fn test-ns eval-str macroexpand-1-form macroexpand-form ns-list loaded-namespaces])
   (:require phel\str :as s)
   (:require phel\test :refer [deftest is]))
 
@@ -193,6 +193,39 @@
 (deftest test-eval-str-multiple-expressions
   (is (= 10 (eval-str "(+ 1 2) (+ 3 7)"))
       "eval-str with multiple expressions returns last result"))
+
+# ----------------
+# macroexpand-1-form
+# ----------------
+
+(deftest test-macroexpand-1-form-expands-defn
+  (let [expanded (macroexpand-1-form '(defn foo [x] x))]
+    (is (list? expanded) "macroexpand-1-form returns a list")
+    (is (not (= 'defn (first expanded))) "defn macro is expanded (head is no longer defn)")))
+
+(deftest test-macroexpand-1-form-non-macro-unchanged
+  (let [form '(php/+ 1 2)
+        expanded (macroexpand-1-form form)]
+    (is (= form expanded) "non-macro form is returned unchanged")))
+
+(deftest test-macroexpand-1-form-scalar-unchanged
+  (is (= 42 (macroexpand-1-form 42)) "scalar is returned unchanged")
+  (is (= "hello" (macroexpand-1-form "hello")) "string is returned unchanged")
+  (is (nil? (macroexpand-1-form nil)) "nil is returned unchanged"))
+
+# ---------------
+# macroexpand-form
+# ---------------
+
+(deftest test-macroexpand-form-fully-expands
+  (let [expanded (macroexpand-form '(defn foo [x] x))]
+    (is (list? expanded) "macroexpand-form returns a list")
+    (is (= 'def (first expanded)) "defn fully expands to def")))
+
+(deftest test-macroexpand-form-non-macro-unchanged
+  (let [form '(php/+ 1 2)
+        expanded (macroexpand-form form)]
+    (is (= form expanded) "non-macro form is returned unchanged")))
 
 # -------
 # ns-list
