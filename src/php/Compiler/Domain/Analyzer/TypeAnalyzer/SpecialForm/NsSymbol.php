@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
-use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
@@ -14,8 +13,6 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
-use Phel\Shared\CompilerConstants;
-use Phel\Shared\ReplConstants;
 
 use function count;
 use function explode;
@@ -85,21 +82,7 @@ TXT;
             }
         }
 
-        if (Phel::getDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE)) {
-            $replSymbol = Symbol::create('phel\\repl');
-            $this->analyzer->addRequireAlias($ns, Symbol::create('repl'), $replSymbol);
-            $this->analyzer->addRefers(
-                $ns,
-                [
-                    Symbol::create('doc'),
-                    Symbol::create('require'),
-                    Symbol::create('use'),
-                    Symbol::create('print-colorful'),
-                    Symbol::create('println-colorful'),
-                ],
-                $replSymbol,
-            );
-        }
+        ReplReferInjector::injectIfReplMode($this->analyzer, $ns);
 
         return new NsNode($ns, $requireNs, $requireFiles, $list->getStartLocation());
     }

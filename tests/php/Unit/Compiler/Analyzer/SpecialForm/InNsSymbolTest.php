@@ -15,8 +15,11 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\InNsSymbol;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
+use Phel\Shared\CompilerConstants;
+use Phel\Shared\ReplConstants;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+use ReflectionProperty;
 
 final class InNsSymbolTest extends TestCase
 {
@@ -161,8 +164,56 @@ final class InNsSymbolTest extends TestCase
         self::assertSame($list->getStartLocation(), $node->getStartSourceLocation());
     }
 
+    public function test_injects_repl_refers_when_repl_mode_active(): void
+    {
+        Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE, true);
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_IN_NS),
+            Symbol::create('my\\new-ns'),
+        ]);
+
+        $this->analyze($list);
+
+        $globalEnv = $this->getGlobalEnvironment();
+
+        $aliases = $globalEnv->getRequireAliases('my\\new-ns');
+        self::assertArrayHasKey('repl', $aliases, 'repl alias should be registered after in-ns in REPL mode');
+        self::assertSame('phel\\repl', $aliases['repl']->getName());
+
+        $refers = $globalEnv->getRefers('my\\new-ns');
+        self::assertArrayHasKey('doc', $refers, 'doc should be referred after in-ns in REPL mode');
+        self::assertArrayHasKey('require', $refers, 'require should be referred after in-ns in REPL mode');
+        self::assertArrayHasKey('use', $refers, 'use should be referred after in-ns in REPL mode');
+    }
+
+    public function test_does_not_inject_repl_refers_when_repl_mode_inactive(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_IN_NS),
+            Symbol::create('my\\other-ns'),
+        ]);
+
+        $this->analyze($list);
+
+        $globalEnv = $this->getGlobalEnvironment();
+
+        $aliases = $globalEnv->getRequireAliases('my\\other-ns');
+        self::assertArrayNotHasKey('repl', $aliases, 'repl alias should not exist when not in REPL mode');
+
+        $refers = $globalEnv->getRefers('my\\other-ns');
+        self::assertEmpty($refers, 'No refers should be injected when not in REPL mode');
+    }
+
     private function analyze(PersistentListInterface $list): InNsNode
     {
         return (new InNsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+    }
+
+    private function getGlobalEnvironment(): GlobalEnvironment
+    {
+        $ref = new ReflectionProperty(Analyzer::class, 'globalEnvironment');
+
+        return $ref->getValue($this->analyzer);
     }
 }
