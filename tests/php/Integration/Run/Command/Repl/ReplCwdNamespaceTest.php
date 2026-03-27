@@ -35,7 +35,6 @@ final class ReplCwdNamespaceTest extends AbstractTestCommand
 
     private string $tempDir = '';
 
-    #[Override]
     protected function setUp(): void
     {
         parent::setUp();

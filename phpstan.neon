@@ -10,4 +10,6 @@ parameters:
         - %currentWorkingDirectory%/src/
     ignoreErrors:
         - identifier: trait.unused
-        - identifier: while.alwaysTrue
+        -
+            identifier: while.alwaysTrue
+            reportUnmatched: false
