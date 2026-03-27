@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+- Add `structuredEval()` to `RunFacade` returning structured `EvalResult` with error details for external tooling
+- Add alias-based and referred-symbol completion to `ReplCompleter`
+- Auto-inject REPL utilities (`doc`, `require`, `use`) on `(in-ns ...)` namespace changes
+
 ### Fixed
 - Fix REPL: `*ns*` now preserves hyphens instead of munging to underscores (#766)
 - Fix REPL: `(ns ...)` form requires no longer silently fail when `src-dirs` is empty (#766)

@@ -44,6 +44,8 @@ final class InNsSymbol implements SpecialFormAnalyzerInterface
         // Set the namespace for the analyzer
         $this->analyzer->setNamespace($ns);
 
+        ReplReferInjector::injectIfReplMode($this->analyzer, $ns);
+
         return new InNsNode($ns, $list->getStartLocation());
     }
 }

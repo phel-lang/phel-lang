@@ -13,6 +13,7 @@ use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Api\Domain\PhelFnNormalizerInterface;
 use Phel\Api\Domain\ReplCompleterInterface;
 use Phel\Api\Infrastructure\PhelFnLoader;
+use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 
 /**
  * @extends AbstractFactory<ApiConfig>
@@ -24,6 +25,7 @@ final class ApiFactory extends AbstractFactory
         return new ReplCompleter(
             $this->createPhelFnLoader(),
             $this->getConfig()->allNamespaces(),
+            GlobalEnvironmentSingleton::getInstance(),
         );
     }
 
