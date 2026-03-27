@@ -380,7 +380,7 @@ final class CompiledCodeCache
 
         // Evict oldest entries
         $evicted = 0;
-        foreach ($this->entries as $namespace => $entry) {
+        foreach (array_keys($this->entries) as $namespace) {
             if ($evicted >= $evictCount) {
                 break;
             }
