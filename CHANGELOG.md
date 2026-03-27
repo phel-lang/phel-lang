@@ -6,11 +6,13 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Add `symbol-info` macro and `get-symbol-info` function to `phel\repl` for structured metadata lookup (doc, location, arity, deprecation)
+- Add stdout capture to `EvalResult` via `$output` field, separating printed output from return values for nREPL support
 - Add `structuredEval()` to `RunFacade` returning structured `EvalResult` with error details for external tooling
 - Add alias-based and referred-symbol completion to `ReplCompleter`
 - Auto-inject REPL utilities (`doc`, `require`, `use`) on `(in-ns ...)` namespace changes
 
 ### Fixed
+- Fix `(str false)` returns `"false"` and `(str true)` returns `"true"` (matching Clojure semantics) (#1122)
 - Fix REPL: `*ns*` now preserves hyphens instead of munging to underscores (#766)
 - Fix REPL: `(ns ...)` form requires no longer silently fail when `src-dirs` is empty (#766)
 - Fix PHAR: deduplicate stdlib source directory in namespace resolution
