@@ -1,5 +1,5 @@
 (ns phel-test\test\repl
-  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code find-fn])
+  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers find-fn])
   (:require phel\str :as s)
   (:require phel\test :refer [deftest is]))
 
@@ -80,6 +80,51 @@
 (deftest test-get-source-code-contains-function-name
   (let [src (get-source-code "phel\\core" "map")]
     (is (s/contains? src "map") "source code contains the function name")))
+
+# ----------
+# ns-publics
+# ----------
+
+(deftest test-ns-publics-returns-map
+  (let [publics (ns-publics "phel\\core")]
+    (is (hash-map? publics) "ns-publics returns a hash-map")
+    (is (> (count publics) 0) "ns-publics has entries for phel\\core")))
+
+(deftest test-ns-publics-contains-known-functions
+  (let [publics (ns-publics "phel\\core")]
+    (is (not (nil? (get publics "map"))) "ns-publics contains 'map'")
+    (is (not (nil? (get publics "filter"))) "ns-publics contains 'filter'")
+    (is (not (nil? (get publics "reduce"))) "ns-publics contains 'reduce'")))
+
+(deftest test-ns-publics-excludes-private
+  (let [publics (ns-publics "phel\\repl")]
+    (is (nil? (get publics "munge-ns")) "ns-publics excludes private 'munge-ns'")
+    (is (nil? (get publics "get-global-env")) "ns-publics excludes private 'get-global-env'")))
+
+# ----------
+# ns-aliases
+# ----------
+
+(deftest test-ns-aliases-returns-map
+  (let [aliases (ns-aliases "phel-test\\test\\repl")]
+    (is (hash-map? aliases) "ns-aliases returns a hash-map")))
+
+(deftest test-ns-aliases-contains-expected-alias
+  (let [aliases (ns-aliases "phel-test\\test\\repl")]
+    (is (= "phel\\str" (get aliases "s")) "ns-aliases contains 's' => 'phel\\str'")))
+
+# ---------
+# ns-refers
+# ---------
+
+(deftest test-ns-refers-returns-map
+  (let [refers (ns-refers "phel-test\\test\\repl")]
+    (is (hash-map? refers) "ns-refers returns a hash-map")))
+
+(deftest test-ns-refers-contains-expected-refers
+  (let [refers (ns-refers "phel-test\\test\\repl")]
+    (is (= "phel\\repl" (get refers "apropos")) "ns-refers contains 'apropos' from phel\\repl")
+    (is (= "phel\\test" (get refers "deftest")) "ns-refers contains 'deftest' from phel\\test")))
 
 # -------
 # find-fn

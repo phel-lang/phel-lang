@@ -296,6 +296,48 @@
     (when resolved-sym
       `(get-source-code ,(namespace resolved-sym) ,(name resolved-sym)))))
 
+(defn ns-publics
+  "Returns a hash-map of {name => value} for all public definitions in the
+  given namespace string. Private definitions are excluded."
+  {:example "(ns-publics \"phel\\core\") ; => {\"map\" <fn> \"filter\" <fn> ...}"
+   :see-also ["ns-aliases" "ns-refers" "dir" "loaded-namespaces"]}
+  [ns-str]
+  (let [encoded (munge-ns ns-str)
+        defs (php/:: Phel (getDefinitionInNamespace encoded))
+        munge (php/new Munge)
+        result (transient {})]
+    (foreach [fn-name value defs]
+      (let [meta (php/:: Phel (getDefinitionMetaData encoded fn-name))]
+        (when-not (get meta :private)
+          (put result (php/-> munge (decodeNs fn-name)) value))))
+    (persistent result)))
+
+(defn ns-aliases
+  "Returns a hash-map of {alias => namespace} for all require aliases in the
+  given namespace string."
+  {:example "(ns-aliases *ns*) ; => {\"repl\" \"phel\\repl\" ...}"
+   :see-also ["ns-publics" "ns-refers" "loaded-namespaces"]}
+  [ns-str]
+  (let [env (get-global-env)
+        aliases (php/-> env (getRequireAliases ns-str))
+        result (transient {})]
+    (foreach [alias-name target-sym aliases]
+      (put result alias-name (php/-> target-sym (getName))))
+    (persistent result)))
+
+(defn ns-refers
+  "Returns a hash-map of {name => source-namespace} for all referred symbols
+  in the given namespace string."
+  {:example "(ns-refers *ns*) ; => {\"doc\" \"phel\\repl\" ...}"
+   :see-also ["ns-publics" "ns-aliases" "loaded-namespaces"]}
+  [ns-str]
+  (let [env (get-global-env)
+        refers (php/-> env (getRefers ns-str))
+        result (transient {})]
+    (foreach [refer-name source-sym refers]
+      (put result refer-name (php/-> source-sym (getName))))
+    (persistent result)))
+
 (defn search-doc
   "Searches docstrings across all loaded namespaces for the given string.
   Prints matching function names and their documentation."
