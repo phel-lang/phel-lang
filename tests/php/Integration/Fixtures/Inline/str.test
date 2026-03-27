@@ -4,4 +4,4 @@
 (str "a" "b")
 (str "a" "b" "c")
 --PHP--
-(\Phel::getDefinition("phel\\core", "str"))();("" . "a");("" . "a" . "b");("" . "a" . "b" . "c");
+(\Phel::getDefinition("phel\\core", "str"))();(\Phel::getDefinition("phel\\core", "str"))("a");(\Phel::getDefinition("phel\\core", "str"))("a", "b");(\Phel::getDefinition("phel\\core", "str"))("a", "b", "c");
