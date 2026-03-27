@@ -12,7 +12,9 @@ use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\SourceLocation;
+use Phel\Lang\Symbol;
 use Phel\Run\Domain\Repl\EvalError;
 use Phel\Run\Domain\Repl\EvalResult;
 use Phel\Run\Domain\Repl\StackFrame;
@@ -22,6 +24,11 @@ use RuntimeException;
 
 final class EvalResultTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        GlobalEnvironmentSingleton::reset();
+    }
+
     public function test_success_result(): void
     {
         $result = EvalResult::success(42);
@@ -315,5 +322,98 @@ final class EvalResultTest extends TestCase
         );
 
         self::assertSame([], $error->frames);
+    }
+
+    public function test_from_eval_does_not_rollback_on_success(): void
+    {
+        $env = GlobalEnvironmentSingleton::initializeNew();
+        $env->setNs('test-ns');
+        $env->addRequireAlias('test-ns', Symbol::create('a'), Symbol::create('alias-ns'));
+
+        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade->method('eval')->willReturnCallback(static function () use ($env): mixed {
+            $env->addRequireAlias('test-ns', Symbol::create('b'), Symbol::create('other-ns'));
+
+            return 42;
+        });
+
+        $result = EvalResult::fromEval($facade, '(require alias-ns :as b)');
+
+        self::assertTrue($result->success);
+        self::assertTrue($env->hasRequireAlias('test-ns', Symbol::create('a')));
+        self::assertTrue($env->hasRequireAlias('test-ns', Symbol::create('b')));
+    }
+
+    public function test_from_eval_rolls_back_namespace_on_runtime_error(): void
+    {
+        $env = GlobalEnvironmentSingleton::initializeNew();
+        $env->setNs('original-ns');
+
+        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade->method('eval')->willReturnCallback(static function () use ($env): never {
+            $env->setNs('dirty-ns');
+            throw new RuntimeException('boom');
+        });
+
+        $result = EvalResult::fromEval($facade, '(ns dirty-ns)');
+
+        self::assertFalse($result->success);
+        self::assertSame('original-ns', $env->getNs());
+    }
+
+    public function test_from_eval_rolls_back_alias_on_compiler_error(): void
+    {
+        $env = GlobalEnvironmentSingleton::initializeNew();
+        $env->setNs('test-ns');
+
+        $startLoc = new SourceLocation('string', 1, 0);
+        $endLoc = new SourceLocation('string', 1, 10);
+        $nested = new AnalyzerException('fail', $startLoc, $endLoc);
+        $snippet = new CodeSnippet($startLoc, $endLoc, '(ns ...)');
+        $compilerException = new CompilerException($nested, $snippet);
+
+        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade->method('eval')->willReturnCallback(static function () use ($env, $compilerException): never {
+            $env->addRequireAlias('test-ns', Symbol::create('dirty'), Symbol::create('dirty-ns'));
+            throw $compilerException;
+        });
+
+        $result = EvalResult::fromEval($facade, '(ns test-ns (:require dirty-ns :as dirty))');
+
+        self::assertFalse($result->success);
+        self::assertFalse($env->hasRequireAlias('test-ns', Symbol::create('dirty')));
+    }
+
+    public function test_from_eval_rolls_back_on_malformed_code(): void
+    {
+        $env = GlobalEnvironmentSingleton::initializeNew();
+        $env->setNs('test-ns');
+
+        $prev = new ParseError('syntax error', 0);
+        $exception = CompiledCodeIsMalformedException::fromThrowable($prev);
+
+        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade->method('eval')->willReturnCallback(static function () use ($env, $exception): never {
+            $env->addUseAlias('test-ns', Symbol::create('DirtyClass'), Symbol::create('\\Dirty\\Class'));
+            throw $exception;
+        });
+
+        $result = EvalResult::fromEval($facade, 'bad code');
+
+        self::assertFalse($result->success);
+        self::assertFalse($env->hasUseAlias('test-ns', Symbol::create('DirtyClass')));
+    }
+
+    public function test_from_eval_works_without_initialized_environment(): void
+    {
+        GlobalEnvironmentSingleton::reset();
+
+        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade->method('eval')->willThrowException(new RuntimeException('boom'));
+
+        $result = EvalResult::fromEval($facade, '(/ 1 0)');
+
+        self::assertFalse($result->success);
+        self::assertSame('RuntimeException', $result->error->exceptionClass);
     }
 }

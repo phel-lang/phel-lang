@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Repl;
 
+use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Throwable;
 
@@ -41,6 +43,9 @@ final readonly class EvalResult
         string $phelCode,
         CompileOptions $compileOptions = new CompileOptions(),
     ): self {
+        $env = self::captureEnvironment();
+        $snapshot = $env?->snapshot();
+
         ob_start();
 
         try {
@@ -50,10 +55,13 @@ final readonly class EvalResult
             return self::success($result, $output);
         } catch (UnfinishedParserException) {
             $output = (string) ob_get_clean();
+            self::restoreIfNeeded($env, $snapshot);
 
             return self::incomplete($output);
         } catch (CompilerException $e) {
             $output = (string) ob_get_clean();
+            self::restoreIfNeeded($env, $snapshot);
+
             $nested = $e->getNestedException();
             $snippet = $e->getCodeSnippet();
             $startLoc = $nested->getStartLocation();
@@ -75,6 +83,8 @@ final readonly class EvalResult
             ), $output);
         } catch (CompiledCodeIsMalformedException $e) {
             $output = (string) ob_get_clean();
+            self::restoreIfNeeded($env, $snapshot);
+
             $prev = $e->getPrevious() instanceof Throwable ? $e->getPrevious() : $e;
 
             return self::failure(new EvalError(
@@ -93,6 +103,7 @@ final readonly class EvalResult
             ), $output);
         } catch (Throwable $e) {
             $output = (string) ob_get_clean();
+            self::restoreIfNeeded($env, $snapshot);
 
             return self::failure(new EvalError(
                 exceptionClass: array_reverse(explode('\\', $e::class))[0],
@@ -139,5 +150,19 @@ final readonly class EvalResult
         }
 
         return $frames;
+    }
+
+    private static function captureEnvironment(): ?GlobalEnvironmentInterface
+    {
+        return GlobalEnvironmentSingleton::isInitialized()
+            ? GlobalEnvironmentSingleton::getInstance()
+            : null;
+    }
+
+    private static function restoreIfNeeded(?GlobalEnvironmentInterface $env, ?array $snapshot): void
+    {
+        if ($env instanceof GlobalEnvironmentInterface && $snapshot !== null) {
+            $env->restore($snapshot);
+        }
     }
 }

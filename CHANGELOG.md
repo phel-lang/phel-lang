@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Add GlobalEnvironment snapshot/restore to rollback state on REPL eval errors, preventing dirty state from partial evaluations
 - Add structured stack frames (`StackFrame` objects) to `EvalError` for nREPL stacktrace middleware support
 - Add `source` macro and `get-source-code` function to `phel\repl` for retrieving definition source code from file metadata
 - Store parameter names as `:arglists` in function metadata during compilation for IDE signature help and nREPL support
