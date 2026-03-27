@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Auto-inject REPL utilities (`doc`, `require`, `use`) on `(in-ns ...)` namespace changes
 
 ### Fixed
+- Fix `(str false)` returns `"false"` and `(str true)` returns `"true"` (matching Clojure semantics) (#1122)
 - Fix REPL: `*ns*` now preserves hyphens instead of munging to underscores (#766)
 - Fix REPL: `(ns ...)` form requires no longer silently fail when `src-dirs` is empty (#766)
 - Fix PHAR: deduplicate stdlib source directory in namespace resolution

@@ -326,17 +326,32 @@
   []
   (php/:: Symbol (gen)))
 
+(defn- val-to-str
+  "Converts a value to its string representation. Booleans become \"true\" or
+\"false\". Nil becomes an empty string. All other values use PHP string cast."
+  [x]
+  (if (php/=== x true)
+    "true"
+    (if (php/=== x false)
+      "false"
+      (if (php/=== x nil)
+        ""
+        (php/. "" x)))))
+
 (defn str
   "Creates a string by concatenating values together. If no arguments are
-provided an empty string is returned. Nil and false are represented as an empty
-string. True is represented as 1. Otherwise, it tries to call `__toString`.
-This is PHP equivalent to `$args[0] . $args[1] . $args[2] ...`."
-  {:inline (fn [& args] `(php/. "" ,@args))
-   :inline-arity (fn [n] (php/> n 0))}
+provided an empty string is returned. Nil is represented as an empty string.
+Booleans are represented as \"true\" or \"false\" (matching Clojure semantics).
+Otherwise, it tries to call `__toString`."
   [& args]
-  (if (php/== (php/count args) 0)
-    ""
-    (apply php/. "" args)))
+  (let [cnt (php/count args)]
+    (if (php/== cnt 0)
+      ""
+      (loop [result ""
+             i 0]
+        (if (php/< i cnt)
+          (recur (php/. result (val-to-str (php/aget args i))) (php/+ i 1))
+          result)))))
 
 (defn transient
   "Converts a persistent collection to a transient collection for efficient updates.
