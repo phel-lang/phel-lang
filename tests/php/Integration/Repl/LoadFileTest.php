@@ -25,6 +25,7 @@ final class LoadFileTest extends TestCase
 
         $build = new BuildFacade();
         $build->evalFile(__DIR__ . '/../../../../src/phel/core.phel');
+        $build->evalFile(__DIR__ . '/../../../../src/phel/test.phel');
         $build->evalFile(__DIR__ . '/../../../../src/phel/repl.phel');
     }
 
