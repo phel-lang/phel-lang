@@ -13,6 +13,15 @@ use Phel\Lang\Symbol;
 
 use function is_string;
 
+/**
+ * (in-ns namespace)
+ *
+ * Switches to an existing namespace without creating it. Intended for
+ * REPL use — e.g. navigating into a namespace to inspect or test private
+ * functions interactively. Avoid using in source files: the build system
+ * assumes one namespace per file, and in-ns causes namespace collisions
+ * in the dependency resolver.
+ */
 final class InNsSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;
