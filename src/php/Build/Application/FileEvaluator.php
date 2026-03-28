@@ -80,7 +80,9 @@ final readonly class FileEvaluator
                 }
             }
 
-            // Cache miss - compile for cache (uses statement emit mode)
+            // Cache miss - compile for cache (uses statement emit mode).
+            // compileForCache already evaluates each statement (needed for macros),
+            // so we must NOT require the cached file — that would cause double execution.
             $options = (new CompileOptions())
                 ->setSource($src)
                 ->setIsEnabledSourceMaps(false);
@@ -91,12 +93,11 @@ final readonly class FileEvaluator
             $envData = $this->compilerFacade->getNamespaceEnvironmentData($namespace);
             $this->compiledCodeCache->putEnvironment($namespace, $envData);
 
-            // Execute the cached code to register definitions in GlobalEnvironment
-            $cachedPath = $this->compiledCodeCache->getCompiledPath($namespace);
-            /** @psalm-suppress UnresolvableInclude */
-            require $cachedPath;
-
-            return new CompiledFile($src, $cachedPath, $namespace);
+            return new CompiledFile(
+                $src,
+                $this->compiledCodeCache->getCompiledPath($namespace),
+                $namespace,
+            );
         }
 
         // No cache - use original behavior

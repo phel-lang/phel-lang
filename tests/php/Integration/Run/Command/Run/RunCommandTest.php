@@ -40,6 +40,15 @@ final class RunCommandTest extends AbstractTestCommand
         );
     }
 
+    public function test_run_produces_no_duplicate_output(): void
+    {
+        $output = $this->captureRunOutput(
+            __DIR__ . '/Fixtures/test/test-script.phel',
+        );
+
+        self::assertSame(1, substr_count($output, 'hello world'), 'Output must not be duplicated on cache miss');
+    }
+
     public function test_run_by_filename_outside_config(): void
     {
         $tmpFile = __DIR__ . '/outside-script.phel';
