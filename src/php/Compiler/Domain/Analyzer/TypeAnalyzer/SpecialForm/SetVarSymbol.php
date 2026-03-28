@@ -11,6 +11,11 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 
+/**
+ * (set! var value).
+ *
+ * Mutates a previously defined global variable.
+ */
 final class SetVarSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;

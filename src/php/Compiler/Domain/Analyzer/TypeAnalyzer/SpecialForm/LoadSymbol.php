@@ -12,6 +12,11 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 
 use function is_string;
 
+/**
+ * (load namespace).
+ *
+ * Loads a Phel namespace and its dependencies at runtime.
+ */
 final class LoadSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;

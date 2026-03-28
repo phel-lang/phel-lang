@@ -16,6 +16,11 @@ use Phel\Lang\Symbol;
 use function count;
 use function is_string;
 
+/**
+ * (definterface Name (method [args])).
+ *
+ * Defines a PHP interface implementable by structs.
+ */
 final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;

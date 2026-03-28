@@ -19,6 +19,11 @@ use Phel\Lang\Symbol;
 use function count;
 use function gettype;
 
+/**
+ * (let [bindings] body).
+ *
+ * Introduces local bindings. Bindings are pairs of name and value.
+ */
 final readonly class LetSymbol implements SpecialFormAnalyzerInterface
 {
     public function __construct(

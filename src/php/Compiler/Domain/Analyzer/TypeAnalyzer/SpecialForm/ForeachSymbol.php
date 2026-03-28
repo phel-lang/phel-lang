@@ -16,6 +16,11 @@ use Phel\Lang\Symbol;
 
 use function count;
 
+/**
+ * (foreach [binding collection] body).
+ *
+ * Iterates over a collection for side effects.
+ */
 final class ForeachSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;

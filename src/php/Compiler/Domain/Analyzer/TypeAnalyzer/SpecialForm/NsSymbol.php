@@ -21,6 +21,11 @@ use function is_string;
 use function preg_match;
 use function sprintf;
 
+/**
+ * (ns name (:require ...) (:use ...)).
+ *
+ * Declares a namespace with optional requires and PHP class imports.
+ */
 final class NsSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;

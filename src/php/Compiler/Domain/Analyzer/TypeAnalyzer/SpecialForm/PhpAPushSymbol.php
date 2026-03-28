@@ -9,6 +9,11 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 
+/**
+ * (php/apush arr value).
+ *
+ * Appends a value to a PHP array.
+ */
 final class PhpAPushSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;

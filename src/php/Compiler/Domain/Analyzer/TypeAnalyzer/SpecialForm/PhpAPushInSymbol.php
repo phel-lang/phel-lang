@@ -12,6 +12,11 @@ use Traversable;
 
 use function assert;
 
+/**
+ * (php/apush-in arr key1 key2 ... value).
+ *
+ * Appends a value to a nested PHP array.
+ */
 final class PhpAPushInSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;

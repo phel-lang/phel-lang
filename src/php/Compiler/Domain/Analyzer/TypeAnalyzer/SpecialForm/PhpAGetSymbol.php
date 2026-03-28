@@ -9,6 +9,11 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 
+/**
+ * (php/aget arr key).
+ *
+ * Gets a value from a PHP array by key.
+ */
 final class PhpAGetSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;
