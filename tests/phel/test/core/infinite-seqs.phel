@@ -406,7 +406,7 @@
   (is (= [[1 1 1 1]] (doall (partition-by |(< $ 10) [1 1 1 1])))
       "partition-by should return single partition when all elements have same key"))
 
-# Lazy mapcat tests
+; Lazy mapcat tests
 (deftest test-mapcat-is-lazy
   (is (= [1 1 1 2 2 2] (take 6 (mapcat |(list $ $ $) [1 2 3 4 5])))
       "mapcat should be lazy and work with take"))
@@ -436,7 +436,7 @@
     (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
         "mapcat should return a lazy sequence")))
 
-# Lazy interpose tests
+; Lazy interpose tests
 (deftest test-interpose-basic
   (is (= [1 0 2 0 3] (doall (interpose 0 [1 2 3])))
       "interpose should insert separator between elements"))
@@ -470,7 +470,7 @@
     (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
         "interpose should return a lazy sequence")))
 
-# Lazy map-indexed tests
+; Lazy map-indexed tests
 (deftest test-map-indexed-basic
   (is (= [[0 "a"] [1 "b"] [2 "c"]] (doall (map-indexed vector ["a" "b" "c"])))
       "map-indexed should apply function with index and value"))
@@ -504,7 +504,7 @@
     (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
         "map-indexed should return a lazy sequence")))
 
-# Lazy interleave tests
+; Lazy interleave tests
 (deftest test-interleave-two-vectors
   (is (= [1 :a 2 :b 3 :c] (doall (interleave [1 2 3] [:a :b :c])))
       "interleave should alternate elements from two vectors"))
@@ -542,7 +542,7 @@
     (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
         "interleave should return a lazy sequence")))
 
-# Lazy flatten tests
+; Lazy flatten tests
 (deftest test-flatten-basic
   (is (= [1 2 3 4 5 6] (doall (flatten [[1 2] [3 [4 5]] 6])))
       "flatten should flatten nested vectors"))
@@ -576,7 +576,7 @@
     (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
         "flatten should return a lazy sequence")))
 
-# Lazy variadic map tests
+; Lazy variadic map tests
 (deftest test-map-two-collections
   (is (= [[1 :a] [2 :b] [3 :c]] (doall (map vector [1 2 3] [:a :b :c])))
       "map should work with two collections"))
@@ -610,7 +610,7 @@
     (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
         "variadic map should return a lazy sequence")))
 
-# Tests for partition
+; Tests for partition
 (deftest test-partition-basic
   (is (= [[1 2 3] [4 5 6]] (doall (partition 3 [1 2 3 4 5 6])))
       "partition should divide collection into chunks of size n"))
@@ -644,7 +644,7 @@
     (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
         "partition should return a lazy sequence")))
 
-# Tests for partition-all
+; Tests for partition-all
 (deftest test-partition-all-basic
   (is (= [[1 2 3] [4 5 6]] (doall (partition-all 3 [1 2 3 4 5 6])))
       "partition-all should divide collection into chunks of size n"))
@@ -678,7 +678,7 @@
     (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
         "partition-all should return a lazy sequence")))
 
-# Helper functions for lazy-seq tests
+; Helper functions for lazy-seq tests
 (defn my-range [n]
   (when (> n 0)
     (lazy-seq (cons n (my-range (dec n))))))
@@ -690,7 +690,7 @@
   ([] (fib-seq 0 1))
   ([a b] (lazy-seq (cons a (fib-seq b (+ a b))))))
 
-# Tests for lazy-seq macro
+; Tests for lazy-seq macro
 (deftest test-lazy-seq-basic
   (is (= [1 2 3] (doall (lazy-seq [1 2 3])))
       "lazy-seq should wrap a simple vector"))
@@ -753,7 +753,7 @@
   (is (= [1 2 3 4] (doall (lazy-seq (lazy-seq [1 2 3 4]))))
       "nested lazy-seq should work correctly"))
 
-# Tests for lazy-cat macro
+; Tests for lazy-cat macro
 (deftest test-lazy-cat-basic
   (is (= [1 2 3 4 5 6] (doall (lazy-cat [1 2 3] [4 5 6])))
       "lazy-cat should concatenate two vectors"))

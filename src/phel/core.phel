@@ -48,9 +48,9 @@
   {:doc "Returns the path of the current source file."}
   "")
 
-# --------------------------------------------
-# Basic methods for quasiquote and destructure
-# --------------------------------------------
+; --------------------------------------------
+; Basic methods for quasiquote and destructure
+; --------------------------------------------
 
 (def list
   {:doc "Creates a new list. If no argument is provided, an empty list is created. Shortcut: '()"
@@ -128,7 +128,7 @@
           (let [[y & ys] other]
             (recur (concat1 res y) ys)))))))
 
-# quasiquote can be used down here
+; quasiquote can be used down here
 
 (def declare
   {:macro true
@@ -151,9 +151,9 @@
       []
       (php/:: Phel (vector argv-raw)))))
 
-# ------------
-# Meta helpers
-# ------------
+; ------------
+; Meta helpers
+; ------------
 
 (declare =)
 (declare symbol?)
@@ -199,9 +199,9 @@
         target)
       target)))
 
-# ------------
-# Basic macros
-# ------------
+; ------------
+; Basic macros
+; ------------
 
 (def to-php-array
   {:doc "Creates a PHP Array from a sequential data structure."
@@ -229,7 +229,7 @@
           is-single-arity (php/instanceof (first fdecl) PersistentVectorInterface)
           docstring (php/aget meta :doc)
           signatures (if is-single-arity
-                       # Single arity: just one signature
+                       ; Single arity: just one signature
                        (let [args (first fdecl)
                              args-array (if (php/is_array args)
                                           args
@@ -237,7 +237,7 @@
                          (if (php/> (php/count args-array) 0)
                            (php/. "(" name " " (php/implode " " args-array) ")")
                            (php/. "(" name ")")))
-                       # Multi-arity: generate signature for each arity
+                       ; Multi-arity: generate signature for each arity
                        (let [arities fdecl
                              sigs (php/array)]
                          (foreach [arity arities]
@@ -370,9 +370,9 @@ Otherwise, it tries to call `__toString`."
   [coll]
   (php/-> coll (persistent)))
 
-# ------------------
-# Basic constructors
-# ------------------
+; ------------------
+; Basic constructors
+; ------------------
 
 (defn hash-set
   "Creates a new Set from the given arguments. Shortcut: #{}"
@@ -410,9 +410,9 @@ Otherwise, it tries to call `__toString`."
           (recur (php/+ i 2)))
         res))))
 
-# ------------------------
-# Basic sequence operation
-# ------------------------
+; ------------------------
+; Basic sequence operation
+; ------------------------
 
 (defn- equals1 [a b]
   (if (php/instanceof a AbstractType)
@@ -485,9 +485,9 @@ Otherwise, it tries to call `__toString`."
           0
           (throw (php/new InvalidArgumentException (str "object is not countable: " coll))))))))
 
-# ------------------
-# Control structures
-# ------------------
+; ------------------
+; Control structures
+; ------------------
 
 (defmacro if-not
   "Evaluates then if test is false, else otherwise."
@@ -533,9 +533,9 @@ Otherwise, it tries to call `__toString`."
            (case ,v ,@(next (next pairs))))))
     (first pairs)))
 
-# -----------------
-# Boolean operation
-# -----------------
+; -----------------
+; Boolean operation
+; -----------------
 
 (defmacro or
   "Evaluates expressions left to right, returning the first truthy value or the last value."
@@ -765,9 +765,9 @@ Otherwise, it tries to call `__toString`."
   [x y]
   (php/<=> x y))
 
-# --------------
-# Type operation
-# --------------
+; --------------
+; Type operation
+; --------------
 
 (defn type
   "Returns the type of `x`. The following types can be returned:
@@ -919,11 +919,11 @@ Otherwise, it tries to call `__toString`."
     (php/=== coll nil)
     nil
 
-    # For lazy sequences, don't force them - just check if first element exists
+    ; For lazy sequences, don't force them - just check if first element exists
     (php/instanceof coll LazySeqInterface)
     (if (php/=== nil (php/-> coll (first))) nil coll)
 
-    # For other countable collections, check count (won't force lazy seqs)
+    ; For other countable collections, check count (won't force lazy seqs)
     (and (php/instanceof coll Countable) (= 0 (count coll)))
     nil
 
@@ -967,9 +967,9 @@ Otherwise, it tries to call `__toString`."
   [x]
   (= (type x) :set))
 
-# ------------------
-# Sequence operation
-# ------------------
+; ------------------
+; Sequence operation
+; ------------------
 
 (defn peek
   "Returns the last element of a sequence, or nil if empty or nil.
@@ -1101,9 +1101,9 @@ Otherwise, it tries to call `__toString`."
   [ds key]
   (dissoc ds key))
 
-# --------
-# Variable
-# --------
+; --------
+; Variable
+; --------
 
 (defn var
   "Creates a new variable with the given value.
@@ -1145,9 +1145,9 @@ Otherwise, it tries to call `__toString`."
     (set! variable next)
     next))
 
-# --------
-# For loop
-# --------
+; --------
+; For loop
+; --------
 
 (defn- lazy-seq-from-generator
   "Wraps a PHP Generator in a ChunkedSeq for efficient lazy evaluation.
@@ -1183,18 +1183,18 @@ Otherwise, it tries to call `__toString`."
 
 (defn- for-builder [body head i]
   (if (<= (count head) i)
-    # No more heads, return the body
+    ; No more heads, return the body
     body
 
-    # Handle heads
+    ; Handle heads
     (let [binding (php/aget head i)
           verb (php/aget head (php/+ i 1))]
       (cond
-        # Case 1: Options
+        ; Case 1: Options
         (and (keyword? binding) (contains? for-options binding))
         (for-builder body head (php/+ i 2))
 
-        # Case 2: Modifiers
+        ; Case 2: Modifiers
         (keyword? binding)
         (let [rest (for-builder body head (php/+ i 2))]
           (case binding
@@ -1203,7 +1203,7 @@ Otherwise, it tries to call `__toString`."
             :when   `(when ,verb ,rest)
             (throw (php/new InvalidArgumentException (str "This modifier is not supported in for loop: " verb)))))
 
-        # Case 3: Verbs
+        ; Case 3: Verbs
         (let [object (php/aget head (php/+ i 2))
               rest (for-builder body head (php/+ i 3))
               value-sym (gensym)]
@@ -1268,9 +1268,9 @@ Otherwise, it tries to call `__toString`."
   [seq-exprs & body]
   `(dofor ,seq-exprs ,@body))
 
-# ------------------
-# Sequence functions
-# ------------------
+; ------------------
+; Sequence functions
+; ------------------
 
 (defn map
   "Returns a lazy sequence of the result of applying `f` to all of the first items in each coll,
@@ -1509,7 +1509,7 @@ Otherwise, it tries to call `__toString`."
   [ds [k & ks] f & args]
   (if ks
     (assoc ds k (apply update-in (get ds k {}) ks f args))
-    (let [current (get ds k)] # Extract value first for possible call-by-reference
+    (let [current (get ds k)] ; Extract value first for possible call-by-reference
       (assoc ds k (apply f current args)))))
 
 (defn dissoc-in
@@ -2002,7 +2002,7 @@ Otherwise, it tries to call `__toString`."
         '()
         (with-meta coll result)))))
 
-# Redefine interleave as lazy
+; Redefine interleave as lazy
 (defn interleave
   "Interleaves multiple collections. Returns a lazy sequence.
 
@@ -2188,9 +2188,9 @@ Otherwise, it tries to call `__toString`."
       '()
       (with-meta coll result))))
 
-# -------------
-# Set operation
-# -------------
+; -------------
+; Set operation
+; -------------
 
 (defn union
   "Union multiple sets into a new one."
@@ -2258,9 +2258,9 @@ Otherwise, it tries to call `__toString`."
   [s1 s2]
   (subset? s2 s1))
 
-# ------------------
-# Function operation
-# ------------------
+; ------------------
+; Function operation
+; ------------------
 
 (defn identity
   "Returns its argument."
@@ -2364,9 +2364,9 @@ Otherwise, it tries to call `__toString`."
                (set! cache new-cache))
              res)))))))
 
-# -----------------------
-# More sequence operation
-# -----------------------
+; -----------------------
+; More sequence operation
+; -----------------------
 
 (defn tree-seq
   "Returns a vector of the nodes in the tree, via a depth-first walk.
@@ -2433,9 +2433,9 @@ Otherwise, it tries to call `__toString`."
     2 (deep-merge-2 (first args) (second args))
     (reduce deep-merge (first args) (rest args))))
 
-# ---
-# Math helpers
-# ---
+; ---
+; Math helpers
+; ---
 
 (defn- assert-non-nil
   [& xs]
@@ -2443,9 +2443,9 @@ Otherwise, it tries to call `__toString`."
     (when (php/=== nil x)
       (throw (php/new \InvalidArgumentException "Arithmetic functions do not accept nil values")))))
 
-# -----------------
-# Bitwise operation
-# -----------------
+; -----------------
+; Bitwise operation
+; -----------------
 
 (defn bit-and
   "Bitwise and."
@@ -2512,9 +2512,9 @@ Otherwise, it tries to call `__toString`."
   [x n]
   (php/!= 0 (bit-and x (bit-shift-left 1 n))))
 
-# --------------
-# Math operation
-# --------------
+; --------------
+; Math operation
+; --------------
 
 (def NAN
   "Constant for Not a Number (NAN) values."
@@ -2693,9 +2693,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
         (php/aget arr mid)
         (/ (+ (php/aget arr (dec mid)) (php/aget arr mid)) 2)))))
 
-# ---------------
-# Print operation
-# ---------------
+; ---------------
+; Print operation
+; ---------------
 
 (defmacro with-output-buffer
   "Everything that is printed inside the body will be stored in a buffer.
@@ -2748,9 +2748,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (apply php/printf fmt xs)
   nil)
 
-# ---------------
-# File operations
-# ---------------
+; ---------------
+; File operations
+; ---------------
 
 (defn- file-get-contents-silenced
   "Wrapper around file_get_contents that suppresses PHP warnings.
@@ -2766,24 +2766,24 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   {:example "(slurp \"file.txt\") ; => \"file contents\""}
   [path & [opts]]
   (let [is-url? (php/preg_match "/^(https?|ftp):\/\//i" path)]
-    # Validate for non-URLs
+    ; Validate for non-URLs
     (when-not is-url?
-      # Check if path is a directory
+      ; Check if path is a directory
       (when (php/is_dir path)
         (throw (php/new \InvalidArgumentException
                         (str "Cannot read directory: " path))))
-      # Check if file exists
+      ; Check if file exists
       (when-not (php/is_file path)
         (throw (php/new \InvalidArgumentException
                         (str "File not found: " path)))))
-    # Read content
+    ; Read content
     (let [opts             (or opts {})
           use-include-path (or (:use-include-path opts) false)
           context          (or (:context opts) nil)
           offset           (or (:offset opts) 0)
           length           (or (:length opts) nil)
           content (file-get-contents-silenced path use-include-path context offset length)]
-      # Check if file_get_contents failed
+      ; Check if file_get_contents failed
       (when (= content false)
         (throw (php/new \InvalidArgumentException
                         (str "Failed to read from: " path))))
@@ -2860,9 +2860,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
        '()
        result))))
 
-# ----------------
-# Threading macros
-# ----------------
+; ----------------
+; Threading macros
+; ----------------
 
 (defmacro ->
   "Threads the expr through the forms. Inserts `x` as the second item
@@ -3002,9 +3002,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
            ,@(interleave (repeat (count steps) g) steps)]
        ,g)))
 
-# ---------------
-# Regex functions
-# ---------------
+; ---------------
+; Regex functions
+; ---------------
 
 (defn re-seq
   "Returns a sequence of successive matches of pattern in string."
@@ -3016,11 +3016,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
       (first matches)
       (doall (apply map vector matches)))))
 
-# -------
-# Binding
-# -------
+; -------
+; Binding
+; -------
 
-# inspired by Clojure's with-redefs
+; inspired by Clojure's with-redefs
 (defmacro binding
   "Temporary redefines definitions while executing the body.
   The value will be reset after the body was executed."
@@ -3040,9 +3040,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
          (finally
            ,@(map bind-value resets))))))
 
-# ----------
-# Interfaces
-# ----------
+; ----------
+; Interfaces
+; ----------
 
 (defmacro definterface
   "An interface in Phel defines an abstract set of functions. It is directly mapped to a PHP interface. An interface can be defined by using the definterface macro."
@@ -3063,9 +3063,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
        (definterface* ,name ,@fns)
        ,@defs)))
 
-# ------------
-# Multimethods
-# ------------
+; ------------
+; Multimethods
+; ------------
 
 (defmacro defmulti
   "Defines a multimethod. `dispatch-fn` is called on the arguments to

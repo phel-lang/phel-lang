@@ -78,9 +78,9 @@
    (handler value)
    value))
 
-# ---------------------------
-# Tap> system (global handlers)
-# ---------------------------
+; ---------------------------
+; Tap> system (global handlers)
+; ---------------------------
 
 (def- *tap-handlers* (var []))
 

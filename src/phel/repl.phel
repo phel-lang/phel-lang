@@ -14,7 +14,7 @@
 
 (def build-facade (php/new BuildFacade))
 
-(def- src-dirs (php/array)) # Set by ReplCommand; lazily resolved via get-src-dirs
+(def- src-dirs (php/array)) ; Set by ReplCommand; lazily resolved via get-src-dirs
 
 (defn- get-global-env []
   (php/:: GlobalEnvironmentSingleton (getInstance)))
