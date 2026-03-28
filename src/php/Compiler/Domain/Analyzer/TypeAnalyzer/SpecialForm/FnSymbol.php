@@ -22,6 +22,11 @@ use RuntimeException;
 use function array_slice;
 use function count;
 
+/**
+ * (fn [params] body).
+ *
+ * Creates an anonymous function (closure).
+ */
 final readonly class FnSymbol implements SpecialFormAnalyzerInterface
 {
     public function __construct(

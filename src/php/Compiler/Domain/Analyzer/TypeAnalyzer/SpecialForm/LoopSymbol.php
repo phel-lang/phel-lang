@@ -20,6 +20,11 @@ use Phel\Lang\Symbol;
 use function count;
 use function gettype;
 
+/**
+ * (loop [bindings] body).
+ *
+ * Loop with initial bindings; use recur to iterate.
+ */
 final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
 {
     public function __construct(

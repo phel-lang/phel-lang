@@ -12,6 +12,11 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 
 use function count;
 
+/**
+ * (throw exception).
+ *
+ * Throws a PHP exception.
+ */
 final class ThrowSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;

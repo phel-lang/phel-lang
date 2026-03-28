@@ -14,6 +14,11 @@ use Phel\Lang\TypeInterface;
 
 use function count;
 
+/**
+ * (apply f args).
+ *
+ * Calls f with args spread as individual arguments.
+ */
 final class ApplySymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;

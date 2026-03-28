@@ -15,6 +15,11 @@ use Phel\Lang\Symbol;
 use function array_slice;
 use function count;
 
+/**
+ * (do expr1 expr2 ...).
+ *
+ * Evaluates expressions sequentially, returns the last.
+ */
 final class DoSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;

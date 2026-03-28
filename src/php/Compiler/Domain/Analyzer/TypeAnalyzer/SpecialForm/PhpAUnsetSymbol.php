@@ -11,6 +11,11 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 
+/**
+ * (php/aunset arr key).
+ *
+ * Removes a key from a PHP array.
+ */
 final class PhpAUnsetSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;

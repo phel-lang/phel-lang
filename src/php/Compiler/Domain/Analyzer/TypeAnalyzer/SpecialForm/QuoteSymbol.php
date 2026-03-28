@@ -12,6 +12,11 @@ use Phel\Lang\Symbol;
 
 use function count;
 
+/**
+ * (quote form) / 'form.
+ *
+ * Returns the form unevaluated.
+ */
 final class QuoteSymbol implements SpecialFormAnalyzerInterface
 {
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): QuoteNode

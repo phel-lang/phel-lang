@@ -9,6 +9,11 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 
+/**
+ * (php/aset arr key value).
+ *
+ * Sets a value in a PHP array by key.
+ */
 final class PhpASetSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;

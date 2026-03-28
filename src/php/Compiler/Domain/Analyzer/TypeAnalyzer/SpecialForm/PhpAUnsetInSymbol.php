@@ -14,6 +14,11 @@ use Traversable;
 
 use function assert;
 
+/**
+ * (php/aunset-in arr key1 key2 ...).
+ *
+ * Removes a nested key from a PHP array.
+ */
 final class PhpAUnsetInSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;
