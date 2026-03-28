@@ -29,6 +29,8 @@ final class Reader implements ReaderInterface
     /** @var array<int,Symbol>|null */
     private ?array $fnArgs = null;
 
+    private ?string $fnPlaceholderPrefix = null;
+
     public function __construct(
         private readonly ExpressionReaderFactoryInterface $readerFactory,
         private readonly QuasiquoteTransformerInterface $quasiquoteTransformer,
@@ -89,7 +91,7 @@ final class Reader implements ReaderInterface
     {
         return $this->readerFactory
             ->createSymbolReader()
-            ->read($node, $this->fnArgs);
+            ->read($node, $this->fnArgs, $this->fnPlaceholderPrefix);
     }
 
     private function readAtomNode(AbstractAtomNode $node): float|bool|int|string|TypeInterface|null
@@ -127,6 +129,16 @@ final class Reader implements ReaderInterface
 
         if ($node->getTokenType() === Token::T_FN) {
             $this->fnArgs = [];
+            $this->fnPlaceholderPrefix = '$';
+
+            return $this->readerFactory
+                ->createListFnReader($this)
+                ->read($node, $this->fnArgs, $root);
+        }
+
+        if ($node->getTokenType() === Token::T_HASH_FN) {
+            $this->fnArgs = [];
+            $this->fnPlaceholderPrefix = '%';
 
             return $this->readerFactory
                 ->createListFnReader($this)

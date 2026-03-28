@@ -785,6 +785,318 @@ final class ReaderTest extends TestCase
         );
     }
 
+    public function test_read_hash_fn_zero_args(): void
+    {
+        self::assertEquals(
+            $this->loc(
+                Phel::list([
+                    Symbol::create(Symbol::NAME_FN),
+                    Phel::vector(),
+                    $this->loc(
+                        Phel::list([
+                            $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                        ]),
+                        1,
+                        0,
+                        1,
+                        6,
+                    ),
+                ]),
+                1,
+                0,
+                1,
+                6,
+            ),
+            $this->read('#(add)'),
+        );
+    }
+
+    public function test_read_hash_fn_one_arg(): void
+    {
+        self::assertEquals(
+            $this->loc(
+                Phel::list([
+                    Symbol::create(Symbol::NAME_FN),
+                    Phel::vector([
+                        Symbol::create('__short_fn_1_1'),
+                    ]),
+                    $this->loc(
+                        Phel::list([
+                            $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 7),
+                        ]),
+                        1,
+                        0,
+                        1,
+                        8,
+                    ),
+                ]),
+                1,
+                0,
+                1,
+                8,
+            ),
+            $this->read('#(add %)'),
+        );
+    }
+
+    public function test_read_hash_fn_two_args(): void
+    {
+        self::assertEquals(
+            $this->loc(
+                Phel::list([
+                    Symbol::create(Symbol::NAME_FN),
+                    Phel::vector([
+                        Symbol::create('__short_fn_1_1'),
+                        Symbol::create('__short_fn_2_2'),
+                    ]),
+                    $this->loc(
+                        Phel::list([
+                            $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
+                            $this->loc(Symbol::create('__short_fn_2_2'), 1, 9, 1, 11),
+                        ]),
+                        1,
+                        0,
+                        1,
+                        12,
+                    ),
+                ]),
+                1,
+                0,
+                1,
+                12,
+            ),
+            $this->read('#(add %1 %2)'),
+        );
+    }
+
+    public function test_read_hash_fn_rest_args(): void
+    {
+        self::assertEquals(
+            $this->loc(
+                Phel::list([
+                    Symbol::create(Symbol::NAME_FN),
+                    Phel::vector([
+                        Symbol::create('__short_fn_1_1'),
+                        Symbol::create('&'),
+                        Symbol::create('__short_fn_rest_2'),
+                    ]),
+                    $this->loc(
+                        Phel::list([
+                            $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
+                            $this->loc(Symbol::create('__short_fn_rest_2'), 1, 9, 1, 11),
+                        ]),
+                        1,
+                        0,
+                        1,
+                        12,
+                    ),
+                ]),
+                1,
+                0,
+                1,
+                12,
+            ),
+            $this->read('#(add %1 %&)'),
+        );
+    }
+
+    public function test_hash_fn_percent_used_twice(): void
+    {
+        self::assertEquals(
+            $this->loc(
+                Phel::list([
+                    Symbol::create(Symbol::NAME_FN),
+                    Phel::vector([
+                        Symbol::create('__short_fn_1_1'),
+                    ]),
+                    $this->loc(
+                        Phel::list([
+                            $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 7),
+                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 8, 1, 9),
+                        ]),
+                        1,
+                        0,
+                        1,
+                        10,
+                    ),
+                ]),
+                1,
+                0,
+                1,
+                10,
+            ),
+            $this->read('#(add % %)'),
+        );
+    }
+
+    public function test_hash_fn_numbered_percent_used_twice(): void
+    {
+        self::assertEquals(
+            $this->loc(
+                Phel::list([
+                    Symbol::create(Symbol::NAME_FN),
+                    Phel::vector([
+                        Symbol::create('__short_fn_1_1'),
+                    ]),
+                    $this->loc(
+                        Phel::list([
+                            $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
+                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 9, 1, 11),
+                        ]),
+                        1,
+                        0,
+                        1,
+                        12,
+                    ),
+                ]),
+                1,
+                0,
+                1,
+                12,
+            ),
+            $this->read('#(add %1 %1)'),
+        );
+    }
+
+    public function test_hash_fn_missing_argument(): void
+    {
+        self::assertEquals(
+            $this->loc(
+                Phel::list([
+                    Symbol::create(Symbol::NAME_FN),
+                    Phel::vector([
+                        Symbol::create('__short_fn_1_1'),
+                        Symbol::create('__short_fn_undefined_3'),
+                        Symbol::create('__short_fn_3_2'),
+                    ]),
+                    $this->loc(
+                        Phel::list([
+                            $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 8),
+                            $this->loc(Symbol::create('__short_fn_3_2'), 1, 9, 1, 11),
+                        ]),
+                        1,
+                        0,
+                        1,
+                        12,
+                    ),
+                ]),
+                1,
+                0,
+                1,
+                12,
+            ),
+            $this->read('#(add %1 %3)'),
+        );
+    }
+
+    public function test_hash_fn_rest_argument_multiple_times(): void
+    {
+        $this->assertEquals(
+            $this->loc(
+                Phel::list([
+                    Symbol::create(Symbol::NAME_FN),
+                    Phel::vector([
+                        Symbol::create('&'),
+                        Symbol::create('__short_fn_rest_1'),
+                    ]),
+                    $this->loc(
+                        Phel::list([
+                            $this->loc(Symbol::create('concat'), 1, 2, 1, 8),
+                            $this->loc(Symbol::create('__short_fn_rest_1'), 1, 9, 1, 11),
+                            $this->loc(Symbol::create('__short_fn_rest_1'), 1, 12, 1, 14),
+                        ]),
+                        1,
+                        0,
+                        1,
+                        15,
+                    ),
+                ]),
+                1,
+                0,
+                1,
+                15,
+            ),
+            $this->read('#(concat %& %&)'),
+        );
+    }
+
+    public function test_dollar_is_regular_symbol_inside_hash_fn(): void
+    {
+        self::assertEquals(
+            $this->loc(
+                Phel::list([
+                    Symbol::create(Symbol::NAME_FN),
+                    Phel::vector(),
+                    $this->loc(
+                        Phel::list([
+                            $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                            $this->loc(Symbol::create('$'), 1, 6, 1, 7),
+                        ]),
+                        1,
+                        0,
+                        1,
+                        8,
+                    ),
+                ]),
+                1,
+                0,
+                1,
+                8,
+            ),
+            $this->read('#(add $)'),
+        );
+    }
+
+    public function test_percent_is_regular_symbol_inside_pipe_fn(): void
+    {
+        self::assertEquals(
+            $this->loc(
+                Phel::list([
+                    Symbol::create(Symbol::NAME_FN),
+                    Phel::vector(),
+                    $this->loc(
+                        Phel::list([
+                            $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                            $this->loc(Symbol::create('%'), 1, 6, 1, 7),
+                        ]),
+                        1,
+                        0,
+                        1,
+                        8,
+                    ),
+                ]),
+                1,
+                0,
+                1,
+                8,
+            ),
+            $this->read('|(add %)'),
+        );
+    }
+
+    public function test_percent_is_regular_symbol_outside_short_fn(): void
+    {
+        self::assertEquals(
+            $this->loc(
+                Phel::list([
+                    $this->loc(Symbol::create('add'), 1, 1, 1, 4),
+                    $this->loc(Symbol::create('%'), 1, 5, 1, 6),
+                ]),
+                1,
+                0,
+                1,
+                7,
+            ),
+            $this->read('(add %)'),
+        );
+    }
+
     private function read(string $string, bool $withLocation = true): float|bool|int|string|TypeInterface|null
     {
         Symbol::resetGen();

@@ -12,9 +12,9 @@ final class SymbolReader
     /**
      * @param array<int,Symbol>|null &$fnArgs
      */
-    public function read(SymbolNode $node, ?array &$fnArgs): Symbol
+    public function read(SymbolNode $node, ?array &$fnArgs, ?string $placeholderPrefix = null): Symbol
     {
-        $symbol = $this->createSymbol($node, $fnArgs);
+        $symbol = $this->createSymbol($node, $fnArgs, $placeholderPrefix ?? '$');
 
         $symbol->setStartLocation($node->getStartLocation());
         $symbol->setEndLocation($node->getEndLocation());
@@ -25,7 +25,7 @@ final class SymbolReader
     /**
      * @param array<int,Symbol>|null &$fnArgs
      */
-    private function createSymbol(SymbolNode $node, ?array &$fnArgs): Symbol
+    private function createSymbol(SymbolNode $node, ?array &$fnArgs, string $prefix): Symbol
     {
         if ($fnArgs === null) {
             return $node->getValue();
@@ -34,7 +34,8 @@ final class SymbolReader
         $word = $node->getValue()->getName();
 
         // Special case: We read an anonymous function
-        if ($word === '$') {
+        // Supports both $ placeholders (|( syntax) and % placeholders (#( syntax)
+        if ($word === $prefix) {
             if (isset($fnArgs[1])) {
                 return Symbol::create($fnArgs[1]->getName());
             }
@@ -44,7 +45,7 @@ final class SymbolReader
             return $sym;
         }
 
-        if ($word === '$&') {
+        if ($word === $prefix . '&') {
             if (isset($fnArgs[0])) {
                 return Symbol::create($fnArgs[0]->getName());
             }
@@ -54,7 +55,8 @@ final class SymbolReader
             return $sym;
         }
 
-        if (preg_match('/\$([1-9]\d*)/', $word, $matches)) {
+        $escapedPrefix = preg_quote($prefix, '/');
+        if (preg_match('/' . $escapedPrefix . '([1-9]\d*)/', $word, $matches)) {
             $number = (int) $matches[1];
             if (isset($fnArgs[$number])) {
                 return Symbol::create($fnArgs[$number]->getName());

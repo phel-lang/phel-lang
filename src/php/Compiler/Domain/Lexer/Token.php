@@ -42,9 +42,11 @@ final readonly class Token
 
     public const int T_FN = 18;
 
-    public const int T_STRING = 19;
+    public const int T_HASH_FN = 19;
 
-    public const int T_ATOM = 20;
+    public const int T_STRING = 20;
+
+    public const int T_ATOM = 21;
 
     public const int T_EOF = 100;
 
