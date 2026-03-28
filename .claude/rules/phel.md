@@ -18,6 +18,12 @@ Every public function should have metadata:
 - `:see-also` — related functions (as strings): `["map" "filter"]`
 - `:example` — inline usage example
 
+## Comments
+
+- Use `;` for line comments (not `#`)
+- `;;` for standalone line comments, `;` for inline comments after code
+- `#| |#` for multiline comments, `#_` to comment out a form
+
 ## Semantics
 
 - Follow Clojure-aligned semantics where possible
