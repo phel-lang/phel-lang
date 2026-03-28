@@ -2,6 +2,7 @@
   (:use Phel)
   (:use Phel\Lang\Symbol)
   (:use Phel\Build\BuildFacade)
+  (:use Phel\Command\CommandFacade)
   (:use Phel\Compiler\Application\Munge)
   (:use Phel\Compiler\CompilerFacade)
   (:use Phel\Compiler\Infrastructure\CompileOptions)
@@ -13,7 +14,7 @@
 
 (def build-facade (php/new BuildFacade))
 
-(def- src-dirs (php/array)) # Will be set by the repl command
+(def- src-dirs (php/array)) # Set by ReplCommand; lazily resolved via get-src-dirs
 
 (defn- get-global-env []
   (php/:: GlobalEnvironmentSingleton (getInstance)))
@@ -37,8 +38,20 @@
 (defn- eval-file [file]
   (php/-> build-facade (evalFile file)))
 
+(defn- get-src-dirs
+  "Returns source directories for namespace resolution. Falls back to
+  CommandFacade when src-dirs has not been initialized (e.g. outside vanilla REPL)."
+  []
+  (if (not (php/empty src-dirs))
+    src-dirs
+    (let [dirs (php/-> (php/new CommandFacade) (getAllPhelDirectories))
+          cwd (php/getcwd)]
+      (when cwd
+        (php/array_push dirs cwd))
+      dirs)))
+
 (defn- eval-namespace [namespace]
-  (let [dependencies (php/-> build-facade (getDependenciesForNamespace src-dirs (php/array namespace)))]
+  (let [dependencies (php/-> build-facade (getDependenciesForNamespace (get-src-dirs) (php/array namespace)))]
     (foreach [dep dependencies]
       (when-not (php/in_array (php/-> dep (getNamespace)) (loaded-namespaces))
         (eval-file (php/-> dep (getFile)))))))

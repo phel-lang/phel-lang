@@ -30,6 +30,8 @@ All notable changes to this project will be documented in this file.
 - Fix `(str false)` returns `"false"` and `(str true)` returns `"true"` (matching Clojure semantics) (#1122)
 - Fix REPL: `*ns*` now preserves hyphens instead of munging to underscores (#766)
 - Fix REPL: `(ns ...)` form requires no longer silently fail when `src-dirs` is empty (#766)
+- Fix REPL: runtime `require` macro now works without `loadPhelNamespaces()` (lazy src-dirs resolution) (#766)
+- Fix `phel run`: prevent duplicate output on first run (cache miss double execution) (#1139)
 - Fix PHAR: deduplicate stdlib source directory in namespace resolution
 - Fix PHAR: pre-compile all stdlib modules during phar build
 - Fix cache: resolve compiled paths from current cache dir, not stored paths

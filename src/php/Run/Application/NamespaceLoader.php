@@ -67,7 +67,8 @@ final class NamespaceLoader
             $srcDirectories[] = $cwd;
         }
 
-        // Hack: Set source directories for the repl
+        // Pre-populate src-dirs for the REPL session so that runtime
+        // require calls don't need to re-discover directories each time.
         Phel::addDefinition('phel\\repl', 'src-dirs', $srcDirectories);
     }
 }
