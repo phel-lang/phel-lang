@@ -44,13 +44,13 @@ Replace dependencies with controlled stand-ins for testing.
 ## Inspecting Mocks
 
 ```phel
-(calls mock)              # [[1 2] [3]] - all calls
-(call-count mock)         # 2
-(called? mock)            # true
-(called-once? mock)       # false
-(called-with? mock 1 2)   # true
-(first-call mock)         # [1 2]
-(last-call mock)          # [3]
+(calls mock)              ; [[1 2] [3]] - all calls
+(call-count mock)         ; 2
+(called? mock)            ; true
+(called-once? mock)       ; false
+(called-with? mock 1 2)   ; true
+(first-call mock)         ; [1 2]
+(last-call mock)          ; [3]
 ```
 
 ## Auto-Reset
@@ -59,7 +59,7 @@ Replace dependencies with controlled stand-ins for testing.
 (with-mocks [http-get (mock {:status 200})]
   (fetch-data)
   (is (called-once? http-get)))
-# Automatically reset here
+;; Automatically reset here
 ```
 
 For wrapped mocks (PHP/Janet interop):
@@ -68,7 +68,7 @@ For wrapped mocks (PHP/Janet interop):
                     (fn [args] (mock-http (adapt args)))]
   (symfony-service {:key "value"})
   (is (called-once? mock-http)))
-# mock-http automatically reset
+;; mock-http automatically reset
 ```
 
 ## Cleanup

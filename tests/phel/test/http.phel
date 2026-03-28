@@ -2,11 +2,11 @@
   (:require phel\http :as h)
   (:require phel\test :refer [deftest is]))
 
-# Tests adopted from nyholm/psr7-server
+;; Tests adopted from nyholm/psr7-server
 
-# ---
-# URI
-# ---
+;; ---
+;; URI
+;; ---
 
 (def uri-server-default
   (php-associative-array
@@ -87,9 +87,9 @@
                  "./foo/../bar"]]
     (is (= url (str (h/uri-from-string url))) url)))
 
-# -----
-# FILES
-# -----
+;; -----
+;; FILES
+;; -----
 
 (def file-examples
   [["single file"
@@ -163,9 +163,9 @@
   (foreach [[name files result] file-examples]
     (is (= result (h/files-from-globals files)) name)))
 
-# -------
-# Headers
-# -------
+;; -------
+;; Headers
+;; -------
 
 (deftest test-headers-from-server
   (is (=
@@ -198,9 +198,9 @@
                                "REDIRECT_HTTP_X_FOO_BAR" "prefixed")))
       "header from globals redirect normalization"))
 
-# -------
-# Request
-# -------
+;; -------
+;; Request
+;; -------
 
 (deftest test-request-get
   (is (=
@@ -303,13 +303,13 @@
            :version "1.0"
            :attributes {:route "my-route"}}))))
 
-# --------
-# Response
-# --------
+;; --------
+;; Response
+;; --------
 
-# TODO: Headers cannot be tested at this point
-# because the test script already has send some output
-# and new headers cannot be send anymore.
+;; TODO: Headers cannot be tested at this point
+;; because the test script already has send some output
+;; and new headers cannot be send anymore.
 
 (deftest test-response
   (is (=

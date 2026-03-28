@@ -63,9 +63,9 @@
     (is (= value (deref captured)) "tap returns value when handler provided")
     (is (= "handler=>10\n" out) "handler can observe value")))
 
-# ---------------------
-# Tap> system (global)
-# ---------------------
+;; ---------------------
+;; Tap> system (global)
+;; ---------------------
 
 (deftest tap>-returns-false-with-no-handlers
   (reset-taps!)

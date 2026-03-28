@@ -5,9 +5,9 @@
   (:use Phel\Command\CommandFacade)
   (:require phel\str :as s))
 
-# ------
-# Report
-# ------
+;; ------
+;; Report
+;; ------
 
 (def- testdox? (var false))
 
@@ -54,9 +54,9 @@
       (swap! stats update-in [:failed] push data))))
 
 
-# ---------------------------
-# `is` macro and its asserts
-# ---------------------------
+;; ---------------------------
+;; `is` macro and its asserts
+;; ---------------------------
 
 (defn- location [form]
   (let [loc (php/-> form (getStartLocation))]
@@ -203,9 +203,9 @@
                      :form ',form
                      :exception ,e})))))
 
-# --------------
-# Defining tests
-# --------------
+;; --------------
+;; Defining tests
+;; --------------
 
 (defmacro deftest
   "Defines a test function."
@@ -215,9 +215,9 @@
      (binding [*current-test-name* ,(name test-name)]
               ,@body)))
 
-# ---------------------
-# error/failure printer
-# ---------------------
+;; ---------------------
+;; error/failure printer
+;; ---------------------
 
 (defn- print-headline [prefix {:message message :location location}]
   (print prefix)
@@ -318,9 +318,9 @@
     (println "Error:" error)
     (println "Total:" total)))
 
-# -------------
-# Running tests
-# -------------
+;; -------------
+;; Running tests
+;; -------------
 
 (defn- find-test-fns [ns {:filter filter}]
   (let [munge (php/new Munge)

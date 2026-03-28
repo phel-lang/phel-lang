@@ -32,28 +32,28 @@ Phel aims for strong compatibility with Clojure. Most functions work identically
 Strings work directly with all sequence functions, just like Clojure:
 
 ```phel
-# Iterate with for
+;; Iterate with for
 (for [c :in "hello"] c)
-# => ["h" "e" "l" "l" "o"]
+;; => ["h" "e" "l" "l" "o"]
 
-# Map over characters directly
+;; Map over characters directly
 (map php/strtoupper "hello")
-# => ["H" "E" "L" "L" "O"]
+;; => ["H" "E" "L" "L" "O"]
 
-# Filter characters
+;; Filter characters
 (filter |(not= $ "l") "hello")
-# => ["h" "e" "o"]
+;; => ["h" "e" "o"]
 
-# Take and drop work directly
+;; Take and drop work directly
 (take 3 "hello")
-# => ["h" "e" "l"]
+;; => ["h" "e" "l"]
 
 (drop 2 "hello")
-# => ["l" "l" "o"]
+;; => ["l" "l" "o"]
 
-# Count frequency of characters
+;; Count frequency of characters
 (frequencies "hello")
-# => {"h" 1 "e" 1 "l" 2 "o" 1}
+;; => {"h" 1 "e" 1 "l" 2 "o" 1}
 ```
 
 ### Sequence Operations on Strings
@@ -61,23 +61,23 @@ Strings work directly with all sequence functions, just like Clojure:
 All core sequence functions work directly with strings:
 
 ```phel
-# first, next, rest
-(first "hello")   # => "h"
-(next "hello")    # => ["e" "l" "l" "o"]
-(rest "hello")    # => ["e" "l" "l" "o"]
+;; first, next, rest
+(first "hello")   ; => "h"
+(next "hello")    ; => ["e" "l" "l" "o"]
+(rest "hello")    ; => ["e" "l" "l" "o"]
 
-# Lazy operations
-(take-while |(not= $ "l") "hello")  # => ["h" "e"]
-(drop-while |(not= $ "l") "hello")  # => ["l" "l" "o"]
+;; Lazy operations
+(take-while |(not= $ "l") "hello")  ; => ["h" "e"]
+(drop-while |(not= $ "l") "hello")  ; => ["l" "l" "o"]
 
-# Reduce over characters
-(reduce str "" "hello")  # => "hello"
+;; Reduce over characters
+(reduce str "" "hello")  ; => "hello"
 
-# Distinct characters
-(distinct "hheelloo")    # => ["h" "e" "l" "o"]
+;; Distinct characters
+(distinct "hheelloo")    ; => ["h" "e" "l" "o"]
 
-# Reverse characters
-(reverse "hello")        # => ["o" "l" "l" "e" "h"]
+;; Reverse characters
+(reverse "hello")        ; => ["o" "l" "l" "e" "h"]
 ```
 
 ### String Conversion Functions
@@ -85,14 +85,14 @@ All core sequence functions work directly with strings:
 **`seq`** - Convert string to vector of characters (optional, for backward compatibility):
 ```phel
 (seq "hello")
-# => ["h" "e" "l" "l" "o"]
+;; => ["h" "e" "l" "l" "o"]
 ```
 
 **`phel\str/chars`** - Convenience function for string → character vector:
 ```phel
 (use phel\str)
 (chars "hello")
-# => ["h" "e" "l" "l" "o"]
+;; => ["h" "e" "l" "l" "o"]
 ```
 
 ### Unicode Support
@@ -100,10 +100,10 @@ All core sequence functions work directly with strings:
 All string operations properly handle multibyte UTF-8 characters:
 
 ```phel
-(count "café")      # => 4
-(frequencies "🎉🎉🎊")  # => {"🎉" 2 "🎊" 1}
-(first "日本語")     # => "日"
-(map identity "🎉🎊🎈")  # => ["🎉" "🎊" "🎈"]
+(count "café")      ; => 4
+(frequencies "🎉🎉🎊")  ; => {"🎉" 2 "🎊" 1}
+(first "日本語")     ; => "日"
+(map identity "🎉🎊🎈")  ; => ["🎉" "🎊" "🎈"]
 ```
 
 **Note:** Phel strings are now fully seqable, matching Clojure's behavior. The `seq` function is still available for backward compatibility and explicit conversion when needed.
@@ -117,33 +117,33 @@ All string operations properly handle multibyte UTF-8 characters:
 The universal function for adding elements to any collection type. Behavior varies by collection:
 
 ```phel
-# Vectors - appends to end
+;; Vectors - appends to end
 (conj [1 2 3] 4)
-# => [1 2 3 4]
+;; => [1 2 3 4]
 
-# Lists - prepends to beginning
+;; Lists - prepends to beginning
 (conj '(1 2 3) 4)
-# => (4 1 2 3)
+;; => (4 1 2 3)
 
-# Sets - adds element
+;; Sets - adds element
 (conj #{1 2 3} 4)
-# => #{1 2 3 4}
+;; => #{1 2 3 4}
 
-# Maps - accepts [key value] vectors
+;; Maps - accepts [key value] vectors
 (conj {:a 1} [:b 2])
-# => {:a 1 :b 2}
+;; => {:a 1 :b 2}
 
-# Maps - merges another map
+;; Maps - merges another map
 (conj {:a 1} {:b 2 :c 3})
-# => {:a 1 :b 2 :c 3}
+;; => {:a 1 :b 2 :c 3}
 
-# Nil - creates a list
+;; Nil - creates a list
 (conj nil 1)
-# => (1)
+;; => (1)
 
-# Variadic - add multiple elements
+;; Variadic - add multiple elements
 (conj [1 2] 3 4 5)
-# => [1 2 3 4 5]
+;; => [1 2 3 4 5]
 ```
 
 **Signature:** `([] [coll] [coll value] [coll value & more])`
@@ -157,16 +157,16 @@ The universal function for adding elements to any collection type. Behavior vari
 Associates a value with a key in a collection. For maps, adds/updates key-value pairs. For vectors, updates by index.
 
 ```phel
-# Maps - add or update key
+;; Maps - add or update key
 (assoc {:a 1} :b 2)
-# => {:a 1 :b 2}
+;; => {:a 1 :b 2}
 
 (assoc {:a 1 :b 2} :a 3)
-# => {:a 3 :b 2}
+;; => {:a 3 :b 2}
 
-# Vectors - update by index
+;; Vectors - update by index
 (assoc [10 20 30] 1 99)
-# => [10 99 30]
+;; => [10 99 30]
 ```
 
 **Signature:** `[ds key value]`
@@ -183,16 +183,16 @@ Returns a collection with all elements from one or more source collections added
 
 ```phel
 (into [1 2] [3 4 5])
-# => [1 2 3 4 5]
+;; => [1 2 3 4 5]
 
 (into [] '(1 2 3 4))
-# => [1 2 3 4]
+;; => [1 2 3 4]
 
 (into {} [[:a 1] [:b 2]])
-# => {:a 1 :b 2}
+;; => {:a 1 :b 2}
 
 (into #{1 2} [2 3 4])
-# => #{1 2 3 4}
+;; => #{1 2 3 4}
 ```
 
 **Signature:** `[to & from]`
@@ -209,17 +209,17 @@ Gets the value at a key in a collection. Returns `nil` or an optional default if
 
 ```phel
 (get {:a 1 :b 2} :a)
-# => 1
+;; => 1
 
 (get {:a 1 :b 2} :c)
-# => nil
+;; => nil
 
 (get {:a 1 :b 2} :c "default")
-# => "default"
+;; => "default"
 
-# Works with vectors (by index)
+;; Works with vectors (by index)
 (get [10 20 30] 1)
-# => 20
+;; => 20
 ```
 
 **Signature:** `[ds k & [opt]]`
@@ -234,14 +234,14 @@ Accesses a value in a nested data structure via a sequence of keys.
 
 ```phel
 (get-in {:a {:b {:c 1}}} [:a :b :c])
-# => 1
+;; => 1
 
 (get-in {:a [["b" "a"]]} [:a 0 1])
-# => "a"
+;; => "a"
 
-# With default value
+;; With default value
 (get-in {:a {:b 1}} [:a :x :y] "not-found")
-# => "not-found"
+;; => "not-found"
 ```
 
 **Signature:** `[ds ks & [opt]]`
@@ -256,7 +256,7 @@ Returns a sequence of all keys in a map.
 
 ```phel
 (keys {:a 1 :b 2 :c 3})
-# => (:a :b :c)
+;; => (:a :b :c)
 ```
 
 **Signature:** `[coll]`
@@ -271,7 +271,7 @@ Returns a sequence of all values in a map.
 
 ```phel
 (values {:a 1 :b 2 :c 3})
-# => (1 2 3)
+;; => (1 2 3)
 ```
 
 **Signature:** `[coll]`
@@ -286,13 +286,13 @@ Returns `true` if a key exists in the collection. **Important:** Checks for keys
 
 ```phel
 (contains? {:a 1 :b 2} :a)
-# => true
+;; => true
 
 (contains? [10 20 30] 1)
-# => true (index 1 exists)
+;; => true (index 1 exists)
 
 (contains? [10 20 30] 3)
-# => false (index 3 doesn't exist)
+;; => false (index 3 doesn't exist)
 ```
 
 **Signature:** `[coll key]`
@@ -307,10 +307,10 @@ Returns the first item in a collection where the predicate returns true.
 
 ```phel
 (find |(> $ 5) [1 3 7 2 9])
-# => 7
+;; => 7
 
 (find even? [1 3 5 7])
-# => nil
+;; => nil
 ```
 
 **Signature:** `[pred coll]`
@@ -327,13 +327,13 @@ Updates a value in a data structure by applying a function to the current value.
 
 ```phel
 (update {:a 1} :a inc)
-# => {:a 2}
+;; => {:a 2}
 
 (update {:a 1} :a + 10)
-# => {:a 11}
+;; => {:a 11}
 
 (update [10 20 30] 1 * 2)
-# => [10 40 30]
+;; => [10 40 30]
 ```
 
 **Signature:** `[ds k f & args]`
@@ -348,10 +348,10 @@ Updates a value in a nested data structure by applying a function.
 
 ```phel
 (update-in {:a {:b 1}} [:a :b] inc)
-# => {:a {:b 2}}
+;; => {:a {:b 2}}
 
 (update-in {:a {:b [1 2 3]}} [:a :b 0] * 10)
-# => {:a {:b [10 2 3]}}
+;; => {:a {:b [10 2 3]}}
 ```
 
 **Signature:** `[ds [k & ks] f & args]`
@@ -366,10 +366,10 @@ Associates a value in a nested data structure. Creates intermediate structures a
 
 ```phel
 (assoc-in {:a {}} [:a :b :c] 1)
-# => {:a {:b {:c 1}}}
+;; => {:a {:b {:c 1}}}
 
 (assoc-in {:a {:b [1 2 3]}} [:a :b 0] 99)
-# => {:a {:b [99 2 3]}}
+;; => {:a {:b [99 2 3]}}
 ```
 
 **Signature:** `[ds [k & ks] v]`
@@ -384,10 +384,10 @@ Removes a key from a data structure.
 
 ```phel
 (dissoc {:a 1 :b 2 :c 3} :b)
-# => {:a 1 :c 3}
+;; => {:a 1 :c 3}
 
 (dissoc #{:a :b :c} :b)
-# => #{:a :c}
+;; => #{:a :c}
 ```
 
 **Signature:** `[ds key]`
@@ -402,7 +402,7 @@ Removes a key from a nested data structure.
 
 ```phel
 (dissoc-in {:a {:b {:c 1 :d 2}}} [:a :b :c])
-# => {:a {:b {:d 2}}}
+;; => {:a {:b {:d 2}}}
 ```
 
 **Signature:** `[ds [k & ks]]`
@@ -419,10 +419,10 @@ Merges multiple maps into one. Later values override earlier ones for duplicate 
 
 ```phel
 (merge {:a 1 :b 2} {:b 3 :c 4})
-# => {:a 1 :b 3 :c 4}
+;; => {:a 1 :b 3 :c 4}
 
 (merge {:a 1} {:b 2} {:c 3})
-# => {:a 1 :b 2 :c 3}
+;; => {:a 1 :b 2 :c 3}
 ```
 
 **Signature:** `[& maps]`
@@ -437,10 +437,10 @@ Merges maps, using a function to resolve duplicate keys.
 
 ```phel
 (merge-with + {:a 1 :b 2} {:b 3 :c 4})
-# => {:a 1 :b 5 :c 4}
+;; => {:a 1 :b 5 :c 4}
 
 (merge-with concat {:a [1]} {:a [2] :b [3]})
-# => {:a [1 2] :b [3]}
+;; => {:a [1 2] :b [3]}
 ```
 
 **Signature:** `[f & maps]`
@@ -455,13 +455,13 @@ Recursively merges nested data structures (maps, sets, vectors).
 
 ```phel
 (deep-merge {:a {:b 1 :c 2}} {:a {:c 3 :d 4}})
-# => {:a {:b 1 :c 3 :d 4}}
+;; => {:a {:b 1 :c 3 :d 4}}
 
 (deep-merge {:a #{:b :c}} {:a #{:c :d}})
-# => {:a #{:b :c :d}}
+;; => {:a #{:b :c :d}}
 
 (deep-merge {:a [1 2]} {:a [3]})
-# => {:a [1 2 3]}
+;; => {:a [1 2 3]}
 ```
 
 **Signature:** `[& args]`
@@ -476,10 +476,10 @@ Returns a new map with only the specified keys.
 
 ```phel
 (select-keys {:a 1 :b 2 :c 3} [:a :c])
-# => {:a 1 :c 3}
+;; => {:a 1 :c 3}
 
 (select-keys {:a 1 :b 2} [:a :x])
-# => {:a 1}
+;; => {:a 1}
 ```
 
 **Signature:** `[m ks]`
@@ -494,11 +494,11 @@ Creates a map by pairing up keys and values from two sequences.
 
 ```phel
 (zipmap [:a :b :c] [1 2 3])
-# => {:a 1 :b 2 :c 3}
+;; => {:a 1 :b 2 :c 3}
 
-# Drops extra keys or values
+;; Drops extra keys or values
 (zipmap [:a :b :c] [1 2])
-# => {:a 1 :b 2}
+;; => {:a 1 :b 2}
 ```
 
 **Signature:** `[keys vals]`
@@ -513,7 +513,7 @@ Returns a new map where keys and values are swapped.
 
 ```phel
 (invert {:a 1 :b 2})
-# => {1 :a 2 :b}
+;; => {1 :a 2 :b}
 ```
 
 **Signature:** `[map]`
@@ -530,10 +530,10 @@ Returns a map of items to the number of times they appear.
 
 ```phel
 (frequencies [:a :b :a :c :b :a])
-# => {:a 3 :b 2 :c 1}
+;; => {:a 3 :b 2 :c 1}
 
 (frequencies "hello")
-# => {"h" 1 "e" 1 "l" 2 "o" 1}
+;; => {"h" 1 "e" 1 "l" 2 "o" 1}
 ```
 
 **Signature:** `[coll]`
@@ -548,10 +548,10 @@ Groups elements by the result of applying a function to each element.
 
 ```phel
 (group-by count ["a" "bb" "ccc" "dd" "e"])
-# => {1 ["a" "e"] 2 ["bb" "dd"] 3 ["ccc"]}
+;; => {1 ["a" "e"] 2 ["bb" "dd"] 3 ["ccc"]}
 
 (group-by even? [1 2 3 4 5 6])
-# => {false [1 3 5] true [2 4 6]}
+;; => {false [1 3 5] true [2 4 6]}
 ```
 
 **Signature:** `[f coll]`
@@ -567,22 +567,22 @@ Phel provides powerful functions for working with deeply nested data structures.
 ### Common Patterns
 
 ```phel
-# Read nested value
+;; Read nested value
 (get-in data [:user :profile :email])
 
-# Update nested value
+;; Update nested value
 (update-in data [:user :age] inc)
 
-# Set nested value (creates intermediate maps)
+;; Set nested value (creates intermediate maps)
 (assoc-in {} [:a :b :c] 42)
-# => {:a {:b {:c 42}}}
+;; => {:a {:b {:c 42}}}
 
-# Remove nested key
+;; Remove nested key
 (dissoc-in data [:user :profile :temp-data])
 
-# Mixed indices and keys
+;; Mixed indices and keys
 (get-in {:users [{:name "Alice"} {:name "Bob"}]} [:users 1 :name])
-# => "Bob"
+;; => "Bob"
 ```
 
 ### Path Navigation
@@ -594,7 +594,7 @@ Paths work with any combination of map keys and vector indices:
                    {:id 2 :tags #{:c}}]})
 
 (update-in data [:items 0 :tags] conj :c)
-# => {:items [{:id 1 :tags #{:a :b :c}} {:id 2 :tags #{:c}}]}
+;; => {:items [{:id 1 :tags #{:a :b :c}} {:id 2 :tags #{:c}}]}
 ```
 
 ---
@@ -606,17 +606,17 @@ For performance-critical code with many sequential updates, use **transient coll
 ### Workflow
 
 ```phel
-# 1. Create transient version
+;; 1. Create transient version
 (def t (transient []))
 
-# 2. Perform mutations (use same functions: conj, assoc, dissoc)
+;; 2. Perform mutations (use same functions: conj, assoc, dissoc)
 (conj t 1)
 (conj t 2)
 (conj t 3)
 
-# 3. Convert back to persistent
+;; 3. Convert back to persistent
 (def result (persistent t))
-# => [1 2 3]
+;; => [1 2 3]
 ```
 
 ### Example: Building a large map
@@ -647,7 +647,7 @@ Remove keys from nested structures without manual path traversal.
 
 ```phel
 (dissoc-in {:a {:b {:c 1 :d 2} :e 3}} [:a :b :c])
-# => {:a {:b {:d 2} :e 3}}
+;; => {:a {:b {:d 2} :e 3}}
 ```
 
 This is more convenient than manually navigating and updating each level.
@@ -659,19 +659,19 @@ This is more convenient than manually navigating and updating each level.
 Intelligently merges nested structures of the same type.
 
 ```phel
-# Nested maps
+;; Nested maps
 (deep-merge
   {:config {:db {:host "localhost" :port 5432}
             :cache {:ttl 300}}}
   {:config {:db {:port 3306}
             :logging {:level "debug"}}})
-# => {:config {:db {:host "localhost" :port 3306}
-#              :cache {:ttl 300}
-#              :logging {:level "debug"}}}
+;; => {:config {:db {:host "localhost" :port 3306}
+;;              :cache {:ttl 300}
+;;              :logging {:level "debug"}}}
 
-# Nested sets
+;; Nested sets
 (deep-merge {:tags #{:a :b}} {:tags #{:b :c}})
-# => {:tags #{:a :b :c}}
+;; => {:tags #{:a :b :c}}
 ```
 
 Perfect for configuration merging and defaults.
@@ -684,7 +684,7 @@ Returns key-value pairs from an associative data structure.
 
 ```phel
 (pairs {:a 1 :b 2})
-# => ([:a 1] [:b 2])
+;; => ([:a 1] [:b 2])
 ```
 
 ---
@@ -695,7 +695,7 @@ Returns a flat vector of alternating keys and values.
 
 ```phel
 (kvs {:a 1 :b 2 :c 3})
-# => [:a 1 :b 2 :c 3]
+;; => [:a 1 :b 2 :c 3]
 ```
 
 Useful for APIs that expect key-value arguments.
@@ -708,10 +708,10 @@ Returns the index of the first item where the predicate (called with index and i
 
 ```phel
 (find-index |(> $2 5) [1 3 7 2 9])
-# => 2  (index of 7)
+;; => 2  (index of 7)
 
 (find-index |(even? $1) [:a :b :c :d])
-# => 1  (first even index)
+;; => 1  (first even index)
 ```
 
 The predicate receives two arguments: `$1` (index) and `$2` (item).
@@ -768,11 +768,11 @@ These functions have been deprecated in favor of Clojure-compatible alternatives
 **Migration:** Simply replace the old function name with the new one. The function signatures and behavior are identical.
 
 ```phel
-# Old (deprecated)
+;; Old (deprecated)
 (push [1 2] 3)
 (put {:a 1} :b 2)
 
-# New (recommended)
+;; New (recommended)
 (conj [1 2] 3)
 (assoc {:a 1} :b 2)
 ```

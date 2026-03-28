@@ -46,7 +46,7 @@ Create `src/hello.phel`:
 (defn greet [name]
   (str "Hello, " name "!"))
 
-# Call the function
+;; Call the function
 (println (greet "World"))
 ```
 
@@ -83,47 +83,47 @@ Type `(exit)` or press Ctrl+D to quit.
 ### 3. Working with Collections (1 minute)
 
 ```phel
-# Vectors (like PHP arrays)
+;; Vectors (like PHP arrays)
 (def fruits ["apple" "banana" "cherry"])
-(get fruits 1)                    # => "banana"
-(count fruits)                    # => 3
-(push fruits "date")              # => ["apple" "banana" "cherry" "date"]
+(get fruits 1)                    ; => "banana"
+(count fruits)                    ; => 3
+(push fruits "date")              ; => ["apple" "banana" "cherry" "date"]
 
-# Maps (associative arrays)
+;; Maps (associative arrays)
 (def user {:name "Alice" :age 30 :city "NYC"})
-(get user :name)                  # => "Alice"
+(get user :name)                  ; => "Alice"
 (assoc user :email "alice@example.com")
-# => {:name "Alice" :age 30 :city "NYC" :email "alice@example.com"}
+;; => {:name "Alice" :age 30 :city "NYC" :email "alice@example.com"}
 
-# Sets (unique values)
+;; Sets (unique values)
 (def tags #{:clojure :php :lisp})
-(contains? tags :php)             # => true
+(contains? tags :php)             ; => true
 ```
 
 ### 4. Functions and Higher-Order Functions (1 minute)
 
 ```phel
-# Define a function
+;; Define a function
 (defn square [x]
   (* x x))
 
-(square 5)                        # => 25
+(square 5)                        ; => 25
 
-# Anonymous functions
-|(* $ $)                          # Short syntax
-(fn [x] (* x x))                  # Long syntax
+;; Anonymous functions
+|(* $ $)                          ; Short syntax
+(fn [x] (* x x))                  ; Long syntax
 
-# Map, filter, reduce
-(map square [1 2 3 4])            # => [1 4 9 16]
-(filter even? [1 2 3 4 5 6])      # => [2 4 6]
-(reduce + 0 [1 2 3 4])            # => 10
+;; Map, filter, reduce
+(map square [1 2 3 4])            ; => [1 4 9 16]
+(filter even? [1 2 3 4 5 6])      ; => [2 4 6]
+(reduce + 0 [1 2 3 4])            ; => 10
 
-# Function composition
+;; Function composition
 (def double |(* $ 2))
 (def add-ten |(+ $ 10))
 (def process (comp add-ten double))
 
-(process 5)                       # => 20 (5 * 2 + 10)
+(process 5)                       ; => 20 (5 * 2 + 10)
 ```
 
 ## First Web Application (5 minutes)
@@ -249,10 +249,10 @@ curl http://localhost:8000/users
            (zipmap (map keyword headers) row))
          data)))
 
-# Usage
+;; Usage
 (process-users "users.csv")
-# => [{:id "1" :name "Alice" :email "alice@example.com"}
-#     {:id "2" :name "Bob" :email "bob@example.com"}]
+;; => [{:id "1" :name "Alice" :email "alice@example.com"}
+;;     {:id "2" :name "Bob" :email "bob@example.com"}]
 ```
 
 ### Work with Dates
@@ -274,7 +274,7 @@ curl http://localhost:8000/users
   (let [diff (php/-> date1 (diff date2))]
     (php/-> diff -days)))
 
-# Usage
+;; Usage
 (def now (php/new DateTime))
 (def tomorrow (add-days now 1))
 (format-date (php/time) "Y-m-d H:i:s")
@@ -369,21 +369,21 @@ Run tests:
 ## Common Gotchas
 
 ```phel
-# Wrong - forgot parens for function call
-map square [1 2 3]              # Error: not a function
+;; Wrong - forgot parens for function call
+map square [1 2 3]              ; Error: not a function
 
-# Right
-(map square [1 2 3])            # => [1 4 9]
+;; Right
+(map square [1 2 3])            ; => [1 4 9]
 
-# Wrong - trying to mutate
+;; Wrong - trying to mutate
 (def nums [1 2 3])
-(push nums 4)                   # Returns NEW vector
-nums                            # Still [1 2 3]!
+(push nums 4)                   ; Returns NEW vector
+nums                            ; Still [1 2 3]!
 
-# Right - rebind or use result
+;; Right - rebind or use result
 (def nums [1 2 3])
-(def nums (push nums 4))        # Rebind to new vector
-nums                            # => [1 2 3 4]
+(def nums (push nums 4))        ; Rebind to new vector
+nums                            ; => [1 2 3 4]
 ```
 
 Happy coding! 🎉

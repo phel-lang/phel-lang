@@ -3,9 +3,9 @@
   (:require phel\str :as s)
   (:use Phel\Lang\Symbol))
 
-# -------------
-# Destructuring
-# -------------
+;; -------------
+;; Destructuring
+;; -------------
 
 (deftest destructure-vector
   (is (= 3 (let [[a b] [1 2]] (+ a b))) "from vector")
@@ -19,9 +19,9 @@
   (is (= 3 (let [{:keys [a b]} {:a 1 :b 2}] (+ a b))) "destructure hash map with :keys")
   (is (= {:a 1 :b 2} (let [{:keys [a b] :as user} {:a 1 :b 2}] user)) "destructure hash map with :keys and :as"))
 
-# ----------------------------
-# Basic methods for quasiquote
-# ----------------------------
+;; ----------------------------
+;; Basic methods for quasiquote
+;; ----------------------------
 
 (deftest test-next
   (is (nil? (next [])) "next of empty vector")

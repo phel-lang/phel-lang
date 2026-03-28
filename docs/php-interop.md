@@ -22,18 +22,18 @@ Prefix PHP functions with `php/`:
 ```phel
 (ns app\example)
 
-# String functions
-(php/strlen "hello")              # => 5
-(php/strtoupper "hello")          # => "HELLO"
-(php/str_replace "o" "0" "hello") # => "hell0"
+;; String functions
+(php/strlen "hello")              ; => 5
+(php/strtoupper "hello")          ; => "HELLO"
+(php/str_replace "o" "0" "hello") ; => "hell0"
 
-# Array functions
-(php/array_merge [1 2] [3 4])     # => [1 2 3 4]
-(php/count [1 2 3])               # => 3
+;; Array functions
+(php/array_merge [1 2] [3 4])     ; => [1 2 3 4]
+(php/count [1 2 3])               ; => 3
 
-# Math functions
-(php/abs -5)                      # => 5
-(php/max 1 5 3)                   # => 5
+;; Math functions
+(php/abs -5)                      ; => 5
+(php/max 1 5 3)                   ; => 5
 ```
 
 ### Classes and Objects
@@ -42,39 +42,39 @@ Prefix PHP functions with `php/`:
 (ns app\example
   (:use DateTime DateInterval))
 
-# Create instance
+;; Create instance
 (def now (php/new DateTime))
 
-# Call methods
-(php/-> now (format "Y-m-d"))     # => "2024-01-15"
-(php/-> now (getTimestamp))       # => 1705334400
+;; Call methods
+(php/-> now (format "Y-m-d"))     ; => "2024-01-15"
+(php/-> now (getTimestamp))       ; => 1705334400
 
-# Chain method calls
+;; Chain method calls
 (php/-> now
   (add (php/new DateInterval "P1D"))
   (format "Y-m-d H:i:s"))
 
-# Static methods
+;; Static methods
 (php/:: DateTime (createFromFormat "Y-m-d" "2024-01-15"))
 
-# Access properties
+;; Access properties
 (php/-> obj -propertyName)
 ```
 
 ### Working with PHP Arrays
 
 ```phel
-# Create PHP array
+;; Create PHP array
 (def php-arr (php/array 1 2 3))
 (def assoc-arr (php-associative-array "name" "Alice" "age" 30))
 
-# Access elements
-(php/aget php-arr 0)              # => 1
-(php/aget assoc-arr "name")       # => "Alice"
+;; Access elements
+(php/aget php-arr 0)              ; => 1
+(php/aget assoc-arr "name")       ; => "Alice"
 
-# Set elements
-(php/aset php-arr 0 99)           # Modifies array
-(php/aset assoc-arr "name" "Bob") # Modifies array
+;; Set elements
+(php/aset php-arr 0 99)           ; Modifies array
+(php/aset assoc-arr "name" "Bob") ; Modifies array
 ```
 
 ### Namespaces and Imports
@@ -83,11 +83,11 @@ Use `:use` for PHP classes:
 
 ```phel
 (ns app\services
-  (:use PDO)                      # Import single class
-  (:use DateTime DateInterval)   # Import multiple classes
+  (:use PDO)                      ; Import single class
+  (:use DateTime DateInterval)   ; Import multiple classes
   (:use Symfony\Component\HttpFoundation\Request))
 
-# Now use them without namespace prefix
+;; Now use them without namespace prefix
 (php/new PDO "mysql:host=localhost" "user" "pass")
 (php/new Request)
 ```
@@ -97,25 +97,25 @@ Use `:use` for PHP classes:
 ### Phel → PHP
 
 ```phel
-# Vectors → PHP arrays
-(to-php-array [1 2 3])            # => PHP [1, 2, 3]
+;; Vectors → PHP arrays
+(to-php-array [1 2 3])            ; => PHP [1, 2, 3]
 
-# Maps → PHP associative arrays
-(to-php-array {:a 1 :b 2})        # => PHP ["a" => 1, "b" => 2]
+;; Maps → PHP associative arrays
+(to-php-array {:a 1 :b 2})        ; => PHP ["a" => 1, "b" => 2]
 
-# Keywords → strings
-(name :keyword)                   # => "keyword"
+;; Keywords → strings
+(name :keyword)                   ; => "keyword"
 ```
 
 ### PHP → Phel
 
 ```phel
-# PHP arrays → Phel collections
-(php-array-to-map $php_assoc_array)  # => {:key value}
-(values $php_indexed_array)          # => [val1 val2 val3]
+;; PHP arrays → Phel collections
+(php-array-to-map $php_assoc_array)  ; => {:key value}
+(values $php_indexed_array)          ; => [val1 val2 val3]
 
-# Indexed PHP array → vector
-[1 2 3]                           # Already works as Phel vector
+;; Indexed PHP array → vector
+[1 2 3]                           ; Already works as Phel vector
 ```
 
 ## Calling Phel from PHP
@@ -229,10 +229,10 @@ $response->send();
 ### Use Transients for Batch Updates
 
 ```phel
-# Slow - creates new collection each time
+;; Slow - creates new collection each time
 (reduce (fn [acc x] (push acc (* x 2))) [] large-list)
 
-# Fast - mutable during build
+;; Fast - mutable during build
 (persistent
   (reduce (fn [acc x] (push acc (* x 2))) (transient []) large-list))
 ```
@@ -240,20 +240,20 @@ $response->send();
 ### Prefer PHP Functions for Heavy Lifting
 
 ```phel
-# Good - use PHP's optimized functions
+;; Good - use PHP's optimized functions
 (php/array_map |(* $ 2) php-array)
 
-# When you need Phel collections
+;; When you need Phel collections
 (map |(* $ 2) phel-vector)
 ```
 
 ### Avoid Unnecessary Conversions
 
 ```phel
-# Inefficient
+;; Inefficient
 (to-php-array (map inc (php-array-to-map php-data)))
 
-# Better - stay in PHP
+;; Better - stay in PHP
 (php/array_map inc php-data)
 ```
 

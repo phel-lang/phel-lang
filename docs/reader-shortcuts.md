@@ -6,26 +6,26 @@ Phel provides several reader shortcuts and special syntax forms for concise code
 
 ### Vectors `[]`
 ```phel
-[1 2 3]           # Shortcut for (vector 1 2 3)
-[]                # Empty vector
+[1 2 3]           ; Shortcut for (vector 1 2 3)
+[]                ; Empty vector
 ```
 
 ### Hash Maps `{}`
 ```phel
-{:a 1 :b 2}       # Shortcut for (hash-map :a 1 :b 2)
-{}                # Empty hash map
+{:a 1 :b 2}       ; Shortcut for (hash-map :a 1 :b 2)
+{}                ; Empty hash map
 ```
 
 ### Sets `#{}`
 ```phel
-#{1 2 3}          # Shortcut for (hash-set 1 2 3)
-#{}               # Empty set
+#{1 2 3}          ; Shortcut for (hash-set 1 2 3)
+#{}               ; Empty set
 ```
 
 ### Lists `'()`
 ```phel
-'(1 2 3)          # Shortcut for (list 1 2 3)
-'()               # Empty list (quote prevents evaluation)
+'(1 2 3)          ; Shortcut for (list 1 2 3)
+'()               ; Empty list (quote prevents evaluation)
 ```
 
 ## Quote and Quasiquote
@@ -33,9 +33,9 @@ Phel provides several reader shortcuts and special syntax forms for concise code
 ### Quote `'`
 Prevents evaluation of the following form:
 ```phel
-'x                # The symbol x (not evaluated)
-'(+ 1 2)          # The list (+ 1 2), not the result 3
-'[1 2 3]          # The vector [1 2 3]
+'x                ; The symbol x (not evaluated)
+'(+ 1 2)          ; The list (+ 1 2), not the result 3
+'[1 2 3]          ; The vector [1 2 3]
 ```
 
 Equivalent to: `(quote x)`
@@ -43,8 +43,8 @@ Equivalent to: `(quote x)`
 ### Quasiquote `` ` ``
 Like quote, but allows selective evaluation with unquote:
 ```phel
-`(1 2 3)          # => (1 2 3)
-`(1 ~(+ 1 1) 3)   # => (1 2 3)
+`(1 2 3)          ; => (1 2 3)
+`(1 ~(+ 1 1) 3)   ; => (1 2 3)
 ```
 
 Equivalent to: `(quasiquote ...)`
@@ -53,14 +53,14 @@ Equivalent to: `(quasiquote ...)`
 Evaluates an expression within a quasiquote:
 ```phel
 (let [x 5]
-  `(1 ~x 3))      # => (1 5 3)
+  `(1 ~x 3))      ; => (1 5 3)
 ```
 
 ### Unquote-splicing `,@`
 Evaluates and splices a sequence into the containing form:
 ```phel
 (let [xs [2 3 4]]
-  `(1 ,@xs 5))    # => (1 2 3 4 5)
+  `(1 ,@xs 5))    ; => (1 2 3 4 5)
 ```
 
 ## Anonymous Functions
@@ -68,9 +68,9 @@ Evaluates and splices a sequence into the containing form:
 ### Short Function Syntax `|(...)`
 Creates anonymous functions with positional parameters:
 ```phel
-|(+ $1 $2)        # Function taking 2 args
-|(* $1 $1)        # Function squaring its argument
-|(apply f $&)     # $& captures all arguments
+|(+ $1 $2)        ; Function taking 2 args
+|(* $1 $1)        ; Function squaring its argument
+|(apply f $&)     ; $& captures all arguments
 ```
 
 **Parameters:**
@@ -80,30 +80,32 @@ Creates anonymous functions with positional parameters:
 **Examples:**
 ```phel
 (map |(* $ 2) [1 2 3])
-# => [2 4 6]
+;; => [2 4 6]
 
 (filter |(> $ 5) [3 6 2 8 4])
-# => [6 8]
+;; => [6 8]
 
 (reduce |(+ $1 $2) 0 [1 2 3 4])
-# => 10
+;; => 10
 ```
 
 Equivalent to traditional `fn` syntax:
 ```phel
-|(* $ $)        # Same as (fn [x] (* x x))
-|(+ $1 $2)      # Same as (fn [a b] (+ a b))
+|(* $ $)        ; Same as (fn [x] (* x x))
+|(+ $1 $2)      ; Same as (fn [a b] (+ a b))
 ```
 
 ## Comments
 
-### Line Comments `#` or `;`
-Comment from the character to the end of the line:
+### Line Comments `;`
+Comment from the character to the end of the line. By convention, use `;;` for
+standalone line comments and `;` for inline comments after code:
 ```phel
-# This is a comment
-(+ 1 2)           # Add numbers
-; This is also a comment
+;; This is a standalone comment
+(+ 1 2)           ; inline comment
 ```
+
+> **Note:** `#` is also accepted as a line comment character but `;` is preferred.
 
 ### Multiline Comments `#| |#`
 Comment blocks spanning multiple lines:
@@ -117,8 +119,8 @@ Comment blocks spanning multiple lines:
 ### Inline Comment `#_`
 Comments out the next form entirely:
 ```phel
-(println 1 #_ 2 3)    # => prints: 1 3
-[1 #_(+ 2 3) 4]       # => [1 4]
+(println 1 #_ 2 3)    ; => prints: 1 3
+[1 #_(+ 2 3) 4]       ; => [1 4]
 ```
 
 ## Metadata `^`
@@ -141,7 +143,7 @@ Attaches metadata to the following form:
 | `,`        | Unquote           | Evaluate within quasiquote    | `,x`          |
 | `,@`       | Unquote-splice    | Splice sequence in quasiquote | `,@xs`        |
 | `\|()`     | Short function    | Anonymous function            | `\|(+ $1 $2)` |
-| `#` or `;` | Line comment      | Comment to end of line        | `# comment`   |
+| `;` or `;;` | Line comment      | Comment to end of line       | `;; comment`  |
 | `#\| \|#`  | Multiline comment | Block comment                 | `#\| ... \|#` |
 | `#_`       | Inline comment    | Comment out next form         | `#_ expr`     |
 | `^`        | Metadata          | Attach metadata               | `^:private`   |

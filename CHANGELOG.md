@@ -26,6 +26,9 @@ All notable changes to this project will be documented in this file.
 - Add alias-based and referred-symbol completion to `ReplCompleter`
 - Auto-inject REPL utilities (`doc`, `require`, `use`) on `(in-ns ...)` namespace changes
 
+### Changed
+- Standardize comment syntax: replace `#` with `;` and use `;;` for standalone line comments (Clojure convention) across all Phel source and test files (#1140)
+
 ### Fixed
 - Fix `phel --help` showing only REPL help instead of top-level help with all commands (#1141)
 - Fix `(str false)` returns `"false"` and `(str true)` returns `"true"` (matching Clojure semantics) (#1122)

@@ -15,15 +15,15 @@ Phel provides two key constructs for working with lazy sequences:
 ### Basic Usage
 
 ```phel
-# Create a lazy sequence that computes on demand
+;; Create a lazy sequence that computes on demand
 (def my-lazy-seq
   (lazy-seq
     (println "Computing...")
     [1 2 3 4 5]))
 
-# Nothing printed yet
-(first my-lazy-seq)  # Prints "Computing..." and returns 1
-(first my-lazy-seq)  # Returns 1 (cached, no printing)
+;; Nothing printed yet
+(first my-lazy-seq)  ; Prints "Computing..." and returns 1
+(first my-lazy-seq)  ; Returns 1 (cached, no printing)
 ```
 
 ### Infinite Sequences with `lazy-seq`
@@ -31,13 +31,13 @@ Phel provides two key constructs for working with lazy sequences:
 The real power of `lazy-seq` is creating infinite sequences using recursion:
 
 ```phel
-# Generate infinite sequence of integers starting from n
+;; Generate infinite sequence of integers starting from n
 (defn ints-from [n]
   (lazy-seq
     (cons n (ints-from (inc n)))))
 
-(take 5 (ints-from 0))  # => [0 1 2 3 4]
-(take 3 (ints-from 10)) # => [10 11 12]
+(take 5 (ints-from 0))  ; => [0 1 2 3 4]
+(take 3 (ints-from 10)) ; => [10 11 12]
 ```
 
 ### How It Works
@@ -60,10 +60,10 @@ It works well for combining finite or already-realized lazy sequences, but is
 
 ```phel
 (lazy-cat [1 2] [3 4] [5 6])
-# => (1 2 3 4 5 6)
+;; => (1 2 3 4 5 6)
 
 (lazy-cat (range 3) (range 3 6))
-# => (0 1 2 3 4 5)
+;; => (0 1 2 3 4 5)
 ```
 
 ### With Finite Lazy Sequences
@@ -72,7 +72,7 @@ It works well for combining finite or already-realized lazy sequences, but is
 
 ```phel
 (lazy-cat (take 3 (range 100)) (take 3 (range 10 20)))
-# => (0 1 2 10 11 12)
+;; => (0 1 2 10 11 12)
 ```
 
 ### For Recursive Sequences: Use `cons`
@@ -80,15 +80,15 @@ It works well for combining finite or already-realized lazy sequences, but is
 When building recursive infinite sequences, use `cons` instead:
 
 ```phel
-# ✅ Correct pattern for recursive sequences
+;; ✅ Correct pattern for recursive sequences
 (defn ints [n]
   (lazy-seq (cons n (ints (inc n)))))
 
-(take 5 (ints 0))  # => [0 1 2 3 4]
+(take 5 (ints 0))  ; => [0 1 2 3 4]
 
-# ❌ This will cause stack overflow
+;; ❌ This will cause stack overflow
 (defn ints [n]
-  (lazy-seq (lazy-cat [n] (ints (inc n)))))  # Don't do this!
+  (lazy-seq (lazy-cat [n] (ints (inc n)))))  ; Don't do this!
 ```
 
 **Why?** Since `lazy-cat` evaluates all arguments before concatenating, the
@@ -100,13 +100,13 @@ Use `cons` to properly defer evaluation.
 ### Building Infinite Sequences
 
 ```phel
-# Fibonacci sequence
+;; Fibonacci sequence
 (defn fib-seq
   ([] (fib-seq 0 1))
   ([a b] (lazy-seq (cons a (fib-seq b (+ a b))))))
 
 (take 10 (fib-seq))
-# => [0 1 1 2 3 5 8 13 21 34]
+;; => [0 1 1 2 3 5 8 13 21 34]
 ```
 
 ### Filtering Infinite Sequences
@@ -121,20 +121,20 @@ Use `cons` to properly defer evaluation.
     (sieve (ints-from 2))))
 
 (take 10 (primes))
-# => [2 3 5 7 11 13 17 19 23 29]
+;; => [2 3 5 7 11 13 17 19 23 29]
 ```
 
 ### Chunked Processing
 
 ```phel
-# Process a large dataset lazily
+;; Process a large dataset lazily
 (defn process-records [records]
   (->> records
        (filter (fn [x] (not (empty? x))))
        (map (fn [x] (phel\str/trim x)))
        (map parse-record)))
 
-# Only processes records as needed
+;; Only processes records as needed
 (take 100 (process-records lazy-data-source))
 ```
 
@@ -154,24 +154,24 @@ Many Phel core functions return lazy sequences:
 ### Examples
 
 ```phel
-# Infinite sequence of powers of 2
+;; Infinite sequence of powers of 2
 (take 10 (iterate (fn [x] (* 2 x)) 1))
-# => [1 2 4 8 16 32 64 128 256 512]
+;; => [1 2 4 8 16 32 64 128 256 512]
 
-# Infinite cycling
+;; Infinite cycling
 (take 7 (cycle [:a :b :c]))
-# => [:a :b :c :a :b :c :a]
+;; => [:a :b :c :a :b :c :a]
 
-# Lazy composition
+;; Lazy composition
 (->> (range 100)
      (filter (fn [x] (= 0 (php/% x 2))))
      (map (fn [x] (* x x)))
      (take 5))
-# => [0 4 16 36 64]
+;; => [0 4 16 36 64]
 
-# Lazy string processing
+;; Lazy string processing
 (take 3 (map php/strtoupper "hello world"))
-# => ["H" "E" "L"]
+;; => ["H" "E" "L"]
 ```
 
 ## Performance Considerations
@@ -194,9 +194,9 @@ Many Phel core functions return lazy sequences:
 Phel's lazy sequences use chunking for performance - they realize elements in chunks rather than one at a time. This reduces overhead but means:
 
 ```phel
-# Side effects may happen in chunks
+;; Side effects may happen in chunks
 (take 5 (map (fn [x] (do (println x) x)) (range 100)))
-# May print more than 5 numbers due to chunking
+;; May print more than 5 numbers due to chunking
 ```
 
 ### Realizing Sequences
@@ -204,8 +204,8 @@ Phel's lazy sequences use chunking for performance - they realize elements in ch
 Force full realization when needed:
 
 ```phel
-(doall lazy-seq)  # Realizes entire sequence, returns it
-(dorun lazy-seq)  # Realizes entire sequence, returns nil
+(doall lazy-seq)  ; Realizes entire sequence, returns it
+(dorun lazy-seq)  ; Realizes entire sequence, returns nil
 ```
 
 ## Common Gotchas
@@ -213,12 +213,12 @@ Force full realization when needed:
 ### 1. Holding the Head
 
 ```phel
-# ❌ Bad - holds reference to the head
+;; ❌ Bad - holds reference to the head
 (let [nums (range 1000000)]
   (println (first nums))
-  (println (last nums)))  # Entire sequence held in memory!
+  (println (last nums)))  ; Entire sequence held in memory!
 
-# ✅ Good - don't hold the head
+;; ✅ Good - don't hold the head
 (println (first (range 1000000)))
 (println (last (range 1000000)))
 ```
@@ -228,10 +228,10 @@ Force full realization when needed:
 When testing lazy sequences, realize them first:
 
 ```phel
-# ❌ May not fail even if lazy-seq has issues
+;; ❌ May not fail even if lazy-seq has issues
 (is (= expected lazy-result))
 
-# ✅ Better - force realization
+;; ✅ Better - force realization
 (is (= expected (doall lazy-result)))
 ```
 
@@ -244,8 +244,8 @@ Side effects in lazy sequences execute when realized, not when created:
   (map (fn [x] (do (println "Processing" x) (inc x)))
        (range 5)))
 
-# Nothing printed yet!
-(first log-and-inc)  # Now prints "Processing 0" and returns 1
+;; Nothing printed yet!
+(first log-and-inc)  ; Now prints "Processing 0" and returns 1
 ```
 
 ## Debugging Lazy Sequences
@@ -253,23 +253,23 @@ Side effects in lazy sequences execute when realized, not when created:
 ### Check if Realized
 
 ```phel
-(realized? my-lazy-seq)  # true if already computed
+(realized? my-lazy-seq)  ; true if already computed
 ```
 
 ### Inspect without Realizing
 
 ```phel
-# Take a small sample for debugging
+;; Take a small sample for debugging
 (take 10 potentially-infinite-seq)
 
-# Or use take-while with a condition
+;; Or use take-while with a condition
 (take-while (fn [x] (< x 100)) (iterate inc 0))
 ```
 
 ### Print Safely
 
 ```phel
-# Limit printing to avoid infinite loops
+;; Limit printing to avoid infinite loops
 (println (take 20 my-lazy-seq))
 ```
 

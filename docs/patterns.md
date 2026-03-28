@@ -18,7 +18,7 @@ Practical patterns for writing idiomatic Phel code.
 ### Safe Navigation
 
 ```phel
-# Instead of nested ifs
+;; Instead of nested ifs
 (if user
   (if (get user :profile)
     (if (get (get user :profile) :address)
@@ -27,24 +27,24 @@ Practical patterns for writing idiomatic Phel code.
     nil)
   nil)
 
-# Use threading with get
+;; Use threading with get
 (-> user
     (get :profile)
     (get :address)
     (get :city))
 
-# Or use get-in
+;; Or use get-in
 (get-in user [:profile :address :city])
 ```
 
 ### Default Values
 
 ```phel
-# Provide defaults
-(get config :port 8080)                    # Default to 8080
-(or (get config :host) "localhost")        # Fallback to localhost
+;; Provide defaults
+(get config :port 8080)                    ; Default to 8080
+(or (get config :host) "localhost")        ; Fallback to localhost
 
-# Multiple fallbacks
+;; Multiple fallbacks
 (or (get-in user [:settings :theme])
     (get-in defaults [:theme])
     "light")
@@ -53,16 +53,16 @@ Practical patterns for writing idiomatic Phel code.
 ### Nil-Safe Operations
 
 ```phel
-# when - executes body only if condition is truthy
+;; when - executes body only if condition is truthy
 (when user
   (println "User:" (get user :name))
   (send-email user))
 
-# when-let - bind and check in one
+;; when-let - bind and check in one
 (when-let [email (get user :email)]
   (send-notification email))
 
-# if-let - with else clause
+;; if-let - with else clause
 (if-let [role (get user :role)]
   (str "User is a " role)
   "User has no role")
@@ -73,56 +73,56 @@ Practical patterns for writing idiomatic Phel code.
 ### Map Operations
 
 ```phel
-# Transform all elements
-(map inc [1 2 3])                          # => [2 3 4]
-(map str/upper-case ["hello" "world"])     # => ["HELLO" "WORLD"]
-(map |(* $ 2) [1 2 3 4])                   # => [2 4 6 8]
+;; Transform all elements
+(map inc [1 2 3])                          ; => [2 3 4]
+(map str/upper-case ["hello" "world"])     ; => ["HELLO" "WORLD"]
+(map |(* $ 2) [1 2 3 4])                   ; => [2 4 6 8]
 
-# Map with index
+;; Map with index
 (map-indexed (fn [i x] [i x]) ["a" "b" "c"])
-# => [[0 "a"] [1 "b"] [2 "c"]]
+;; => [[0 "a"] [1 "b"] [2 "c"]]
 
-# Map over multiple collections
-(map + [1 2 3] [10 20 30])                 # => [11 22 33]
-(map str ["a" "b"] [1 2])                  # => ["a1" "b2"]
+;; Map over multiple collections
+(map + [1 2 3] [10 20 30])                 ; => [11 22 33]
+(map str ["a" "b"] [1 2])                  ; => ["a1" "b2"]
 ```
 
 ### Filter Operations
 
 ```phel
-# Keep matching elements
-(filter even? [1 2 3 4 5 6])               # => [2 4 6]
-(filter |(> $ 10) [5 15 8 20 3])           # => [15 20]
+;; Keep matching elements
+(filter even? [1 2 3 4 5 6])               ; => [2 4 6]
+(filter |(> $ 10) [5 15 8 20 3])           ; => [15 20]
 
-# Remove matching elements
-(remove nil? [1 nil 2 nil 3])              # => [1 2 3]
-(remove empty? ["a" "" "b" "" "c"])        # => ["a" "b" "c"]
+;; Remove matching elements
+(remove nil? [1 nil 2 nil 3])              ; => [1 2 3]
+(remove empty? ["a" "" "b" "" "c"])        ; => ["a" "b" "c"]
 
-# Keep non-nil results
+;; Keep non-nil results
 (keep (fn [x] (when (even? x) (* x 2)))
-      [1 2 3 4 5])                         # => [4 8]
+      [1 2 3 4 5])                         ; => [4 8]
 ```
 
 ### Reduce Operations
 
 ```phel
-# Sum
-(reduce + 0 [1 2 3 4 5])                   # => 15
+;; Sum
+(reduce + 0 [1 2 3 4 5])                   ; => 15
 
-# Build a map
+;; Build a map
 (reduce (fn [acc [k v]] (assoc acc k v))
         {}
-        [[:a 1] [:b 2] [:c 3]])            # => {:a 1 :b 2 :c 3}
+        [[:a 1] [:b 2] [:c 3]])            ; => {:a 1 :b 2 :c 3}
 
-# Group by
+;; Group by
 (reduce (fn [acc x]
           (let [key (if (even? x) :even :odd)]
             (update acc key |(push (or $ []) x))))
         {:even [] :odd []}
         [1 2 3 4 5 6])
-# => {:even [2 4 6] :odd [1 3 5]}
+;; => {:even [2 4 6] :odd [1 3 5]}
 
-# Find maximum
+;; Find maximum
 (reduce (fn [max x] (if (> x max) x max))
         (first coll)
         (rest coll))
@@ -131,20 +131,20 @@ Practical patterns for writing idiomatic Phel code.
 ### Partition and Group
 
 ```phel
-# Split into chunks
-(partition 2 [1 2 3 4 5 6])                # => [[1 2] [3 4] [5 6]]
-(partition-all 3 [1 2 3 4 5])              # => [[1 2 3] [4 5]]
+;; Split into chunks
+(partition 2 [1 2 3 4 5 6])                ; => [[1 2] [3 4] [5 6]]
+(partition-all 3 [1 2 3 4 5])              ; => [[1 2 3] [4 5]]
 
-# Group by predicate
+;; Group by predicate
 (group-by even? [1 2 3 4 5 6])
-# => {true [2 4 6] false [1 3 5]}
+;; => {true [2 4 6] false [1 3 5]}
 
 (group-by :type [{:type :fruit :name "apple"}
                  {:type :veg :name "carrot"}
                  {:type :fruit :name "banana"}])
-# => {:fruit [{:type :fruit :name "apple"}
-#             {:type :fruit :name "banana"}]
-#     :veg [{:type :veg :name "carrot"}]}
+;; => {:fruit [{:type :fruit :name "apple"}
+;;             {:type :fruit :name "banana"}]
+;;     :veg [{:type :veg :name "carrot"}]}
 ```
 
 ## Threading Macros
@@ -154,21 +154,21 @@ Practical patterns for writing idiomatic Phel code.
 Threads value as **first** argument:
 
 ```phel
-# Without threading
+;; Without threading
 (get (assoc (dissoc user :password) :active true) :name)
 
-# With threading
+;; With threading
 (-> user
     (dissoc :password)
     (assoc :active true)
     (get :name))
 
-# Practical example
+;; Practical example
 (-> "  Hello World  "
     (str/trim)
     (str/lower-case)
     (str/replace " " "-"))
-# => "hello-world"
+;; => "hello-world"
 ```
 
 ### Thread-Last `->>`
@@ -176,14 +176,14 @@ Threads value as **first** argument:
 Threads value as **last** argument:
 
 ```phel
-# Process a collection
+;; Process a collection
 (->> [1 2 3 4 5 6 7 8 9 10]
      (filter even?)
      (map |(* $ 2))
      (reduce +))
-# => 60
+;; => 60
 
-# Data pipeline
+;; Data pipeline
 (->> users
      (filter |(get $ :active))
      (map |(get $ :email))
@@ -194,12 +194,12 @@ Threads value as **last** argument:
 ### When to Use Which
 
 ```phel
-# -> for object/map operations (first arg)
+;; -> for object/map operations (first arg)
 (-> user
     (get :profile)
     (assoc :verified true))
 
-# ->> for collection operations (last arg)
+;; ->> for collection operations (last arg)
 (->> numbers
      (filter pos?)
      (map square)
@@ -228,7 +228,7 @@ Threads value as **last** argument:
 ### Result Types (Either Pattern)
 
 ```phel
-# Return maps with :ok or :error
+;; Return maps with :ok or :error
 (defn validate-email [email]
   (if (str/contains? email "@")
     {:ok email}
@@ -240,7 +240,7 @@ Threads value as **last** argument:
       (create-user data)
       result)))
 
-# Alternative: use nil for errors
+;; Alternative: use nil for errors
 (defn safe-parse-int [s]
   (when (php/is_numeric s)
     (php/intval s)))
@@ -261,7 +261,7 @@ Threads value as **last** argument:
    |(str/trim $)])
 
 (validate email-validations "  user@example.com  ")
-# => "user@example.com" or nil
+;; => "user@example.com" or nil
 ```
 
 ## State Management
@@ -269,20 +269,20 @@ Threads value as **last** argument:
 ### Atoms (Mutable References)
 
 ```phel
-# Create atom
+;; Create atom
 (def counter (atom 0))
 
-# Read value
-(deref counter)                            # => 0
-@counter                                   # Same (@ is shorthand)
+;; Read value
+(deref counter)                            ; => 0
+@counter                                   ; Same (@ is shorthand)
 
-# Update value
-(swap! counter inc)                        # => 1
-(swap! counter |(+ $ 10))                  # => 11
-(swap! counter + 5)                        # => 16
+;; Update value
+(swap! counter inc)                        ; => 1
+(swap! counter |(+ $ 10))                  ; => 11
+(swap! counter + 5)                        ; => 16
 
-# Set value directly
-(reset! counter 0)                         # => 0
+;; Set value directly
+(reset! counter 0)                         ; => 0
 ```
 
 ### Managing Application State
@@ -302,7 +302,7 @@ Threads value as **last** argument:
 (defn toggle-loading []
   (swap! app-state update :loading not))
 
-# Usage
+;; Usage
 (add-user {:id 1 :name "Alice"})
 (set-current-user {:id 1 :name "Alice"})
 (toggle-loading)
@@ -317,7 +317,7 @@ Threads value as **last** argument:
   (when *debug*
     (println "[DEBUG]" msg)))
 
-# Temporarily override
+;; Temporarily override
 (binding [*debug* true]
   (log "This will print")
   (do-something))
@@ -344,14 +344,14 @@ Threads value as **last** argument:
 ### Tail Recursion with `recur`
 
 ```phel
-# Tail-recursive factorial
+;; Tail-recursive factorial
 (defn factorial [n]
   (loop [n n acc 1]
     (if (<= n 1)
       acc
       (recur (dec n) (* acc n)))))
 
-# Tail-recursive sum
+;; Tail-recursive sum
 (defn sum-list [coll]
   (loop [items coll total 0]
     (if (empty? items)
@@ -362,7 +362,7 @@ Threads value as **last** argument:
 ### Iterating with `loop`
 
 ```phel
-# Process items with accumulator
+;; Process items with accumulator
 (loop [items [1 2 3 4 5]
        evens []
        odds []]
@@ -372,7 +372,7 @@ Threads value as **last** argument:
       (if (even? x)
         (recur (rest items) (push evens x) odds)
         (recur (rest items) evens (push odds x))))))
-# => {:evens [2 4] :odds [1 3 5]}
+;; => {:evens [2 4] :odds [1 3 5]}
 ```
 
 ### Early Exit from Loop
@@ -385,7 +385,7 @@ Threads value as **last** argument:
       (pred (first items)) (first items)
       (recur (rest items)))))
 
-(find-first |(> $ 10) [2 5 8 12 15])      # => 12
+(find-first |(> $ 10) [2 5 8 12 15])      ; => 12
 ```
 
 ## Destructuring
@@ -393,47 +393,47 @@ Threads value as **last** argument:
 ### Vector Destructuring
 
 ```phel
-# Basic
+;; Basic
 (let [[a b c] [1 2 3]]
-  (+ a b c))                               # => 6
+  (+ a b c))                               ; => 6
 
-# With rest
+;; With rest
 (let [[first & rest] [1 2 3 4 5]]
-  [first rest])                            # => [1 [2 3 4 5]]
+  [first rest])                            ; => [1 [2 3 4 5]]
 
-# Nested
+;; Nested
 (let [[a [b c]] [1 [2 3]]]
-  (+ a b c))                               # => 6
+  (+ a b c))                               ; => 6
 
-# In function parameters
+;; In function parameters
 (defn process-coords [[x y]]
   (+ x y))
 
-(process-coords [10 20])                   # => 30
+(process-coords [10 20])                   ; => 30
 ```
 
 ### Map Destructuring
 
 ```phel
-# Basic keys
+;; Basic keys
 (let [{:name name :age age} {:name "Alice" :age 30}]
   (str name " is " age))
-# => "Alice is 30"
+;; => "Alice is 30"
 
-# Shorthand (keys same as binding names)
+;; Shorthand (keys same as binding names)
 (let [{:keys [name age]} {:name "Alice" :age 30}]
   (str name " is " age))
 
-# With defaults
+;; With defaults
 (let [{:keys [name age] :or {age 18}} {:name "Bob"}]
-  age)                                     # => 18
+  age)                                     ; => 18
 
-# In function parameters
+;; In function parameters
 (defn greet-user [{:keys [name title] :or {title "User"}}]
   (str "Hello, " title " " name))
 
-(greet-user {:name "Alice" :title "Dr."})  # => "Hello, Dr. Alice"
-(greet-user {:name "Bob"})                 # => "Hello, User Bob"
+(greet-user {:name "Alice" :title "Dr."})  ; => "Hello, Dr. Alice"
+(greet-user {:name "Bob"})                 ; => "Hello, User Bob"
 ```
 
 ## Data Validation
@@ -500,7 +500,7 @@ Threads value as **last** argument:
 
 (validate-with-spec user-spec
   {:email "alice@example.com" :age 30 :name "Alice"})
-# => {:ok {...}}
+;; => {:ok {...}}
 ```
 
 ## Tips for Writing Idiomatic Phel
@@ -508,23 +508,23 @@ Threads value as **last** argument:
 ### Prefer Higher-Order Functions
 
 ```phel
-# Instead of loop
+;; Instead of loop
 (loop [coll [1 2 3 4] result []]
   (if (empty? coll)
     result
     (recur (rest coll) (push result (* 2 (first coll))))))
 
-# Use map
+;; Use map
 (map |(* $ 2) [1 2 3 4])
 ```
 
 ### Use Threading for Readability
 
 ```phel
-# Hard to read
+;; Hard to read
 (reduce + (map |(* $ 2) (filter even? numbers)))
 
-# Clear pipeline
+;; Clear pipeline
 (->> numbers
      (filter even?)
      (map |(* $ 2))
@@ -534,7 +534,7 @@ Threads value as **last** argument:
 ### Keep Functions Small
 
 ```phel
-# Instead of one big function
+;; Instead of one big function
 (defn process-order [order]
   (-> order
       validate-order
@@ -547,15 +547,15 @@ Threads value as **last** argument:
 ### Use Descriptive Names
 
 ```phel
-# Good
+;; Good
 (defn find-active-users [users]
   (filter :active users))
 
-# Better
+;; Better
 (defn active-users [users]
   (filter :active users))
 
-# Best - with docstring
+;; Best - with docstring
 (defn active-users
   "Returns only active users from the collection."
   [users]

@@ -1,19 +1,19 @@
 (ns phel-test\test\test-framework
   (:require phel\test :refer [deftest is]))
 
-# Tests for the `is` macro's (not ...) assertion forms.
-#
-# These verify that (is (not (pred val))) and (is (not (= a b)))
-# correctly pass when the negated condition holds — i.e. when the
-# inner expression is falsy.
-#
-# Prior to the fix, `assert-expr` passed the outer (not ...) form
-# to assert-predicate/assert-binary instead of the inner form,
-# causing a double-negation that inverted the assertion result.
+;; Tests for the `is` macro's (not ...) assertion forms.
+;;
+;; These verify that (is (not (pred val))) and (is (not (= a b)))
+;; correctly pass when the negated condition holds — i.e. when the
+;; inner expression is falsy.
+;;
+;; Prior to the fix, `assert-expr` passed the outer (not ...) form
+;; to assert-predicate/assert-binary instead of the inner form,
+;; causing a double-negation that inverted the assertion result.
 
-# ---------------------------------------------------------------------------
-# (is (not (pred val))) — single-arg predicate negation
-# ---------------------------------------------------------------------------
+;; ---------------------------------------------------------------------------
+;; (is (not (pred val))) — single-arg predicate negation
+;; ---------------------------------------------------------------------------
 
 (deftest test-is-not-predicate-passes-when-predicate-is-false
   (is (not (nil? 42)) "not nil? passes for non-nil value")
@@ -22,9 +22,9 @@
   (is (not (zero? 5)) "not zero? passes for non-zero")
   (is (not (empty? [1 2 3])) "not empty? passes for non-empty"))
 
-# ---------------------------------------------------------------------------
-# (is (not (pred a b))) — binary predicate negation
-# ---------------------------------------------------------------------------
+;; ---------------------------------------------------------------------------
+;; (is (not (pred a b))) — binary predicate negation
+;; ---------------------------------------------------------------------------
 
 (deftest test-is-not-binary-passes-when-predicate-is-false
   (is (not (= 1 2)) "not = passes for unequal values")
