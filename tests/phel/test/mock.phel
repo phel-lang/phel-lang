@@ -6,9 +6,9 @@
                               reset-mock! clear-all-mocks! mock? with-mocks
                               with-mock-wrapper]))
 
-; -----------
-; Mock Creation Tests
-; -----------
+;; -----------
+;; Mock Creation Tests
+;; -----------
 
 (deftest test-mock-returns-value
   (let [my-mock (mock :result)]
@@ -41,16 +41,16 @@
     (is (= 4 (call-count my-mock)) "tracks all calls")))
 
 (deftest test-mock-returning-resets-index
-  ; Regression test for bug where mock-returning index wasn't reset
+  ;; Regression test for bug where mock-returning index wasn't reset
   (let [my-mock (mock-returning [1 2])]
-    ; First use - consume both values
+    ;; First use - consume both values
     (is (= 1 (my-mock)) "first call returns 1")
     (is (= 2 (my-mock)) "second call returns 2")
 
-    ; Reset the mock
+    ;; Reset the mock
     (reset-mock! my-mock)
 
-    ; After reset, should restart from first value
+    ;; After reset, should restart from first value
     (is (= 1 (my-mock)) "first call after reset returns 1, not 2")
     (is (= 2 (my-mock)) "second call after reset returns 2")))
 
@@ -59,9 +59,9 @@
     (is (thrown? \Exception (my-mock)) "throws exception when called")
     (is (= 1 (call-count my-mock)) "tracks call even when throwing")))
 
-; -----------
-; Mock Inspection Tests
-; -----------
+;; -----------
+;; Mock Inspection Tests
+;; -----------
 
 (deftest test-mock-predicate
   (let [my-mock (mock :result)
@@ -133,7 +133,7 @@
     (is (= 0 (call-count my-mock)) "resets to zero")
     (is (= [] (calls my-mock)) "clears call history")
     (is (= true (mock? my-mock)) "still registered (not removed)")
-    ; Mock can be used again after reset
+    ;; Mock can be used again after reset
     (my-mock 3)
     (is (= 1 (call-count my-mock)) "tracks new calls after reset")))
 
@@ -141,22 +141,22 @@
   (let [mock-a (mock :a)
         mock-b (mock :b)
         mock-c (mock :c)]
-    ; All mocks are registered
+    ;; All mocks are registered
     (is (= true (mock? mock-a)) "mock-a is registered")
     (is (= true (mock? mock-b)) "mock-b is registered")
     (is (= true (mock? mock-c)) "mock-c is registered")
 
-    ; Clear the entire registry
+    ;; Clear the entire registry
     (clear-all-mocks!)
 
-    ; All mocks are removed
+    ;; All mocks are removed
     (is (= false (mock? mock-a)) "mock-a removed from registry")
     (is (= false (mock? mock-b)) "mock-b removed from registry")
     (is (= false (mock? mock-c)) "mock-c removed from registry")))
 
-; -----------
-; Integration Tests
-; -----------
+;; -----------
+;; Integration Tests
+;; -----------
 
 (defn fetch-user [http-client id]
   "Simulates fetching a user via HTTP"
@@ -184,10 +184,10 @@
                 (is (called? mock-db) "second mock was called"))))
 
 (deftest test-with-mocks-auto-reset
-  ; Create mocks outside and use them inside with-mocks bindings directly
+  ;; Create mocks outside and use them inside with-mocks bindings directly
   (let [mock-http (mock {:id 1})
         mock-db (mock :ok)]
-    ; First call - mocks get used
+    ;; First call - mocks get used
     (with-mocks [fetch-user mock-http
                  save-user mock-db]
                 (fetch-user nil 123)
@@ -195,11 +195,11 @@
                 (is (= 1 (call-count mock-http)) "http called once inside with-mocks")
                 (is (= 1 (call-count mock-db)) "db called once inside with-mocks"))
 
-    ; After with-mocks, call history should be reset
+    ;; After with-mocks, call history should be reset
     (is (= 0 (call-count mock-http)) "http call history reset after with-mocks")
     (is (= 0 (call-count mock-db)) "db call history reset after with-mocks")
 
-    ; Second call - starts fresh
+    ;; Second call - starts fresh
     (with-mocks [fetch-user mock-http
                  save-user mock-db]
                 (fetch-user nil 123)
@@ -208,25 +208,25 @@
                 (is (= 2 (call-count mock-http)) "http called twice in second with-mocks")
                 (is (= 1 (call-count mock-db)) "db called once in second with-mocks"))
 
-    ; Should be reset again
+    ;; Should be reset again
     (is (= 0 (call-count mock-http)) "http call history reset again")
     (is (= 0 (call-count mock-db)) "db call history reset again")))
 
 (deftest test-with-mocks-inline-creation
-  ; This tests the critical bug fix: inline mock creation should auto-reset
+  ;; This tests the critical bug fix: inline mock creation should auto-reset
   (with-mocks [fetch-user (mock {:id 1 :name "Test"})]
               (fetch-user nil 1)
               (is (= 1 (call-count fetch-user)) "called once inside with-mocks"))
 
-  ; After with-mocks, the inline-created mock should be reset
-  ; We can't check the mock directly since it was created inline,
-  ; but we can verify a second use creates fresh state
+  ;; After with-mocks, the inline-created mock should be reset
+  ;; We can't check the mock directly since it was created inline,
+  ;; but we can verify a second use creates fresh state
   (with-mocks [fetch-user (mock {:id 2 :name "Test2"})]
               (fetch-user nil 2)
               (is (= 1 (call-count fetch-user)) "new inline mock starts at 1, not 2")))
 
 (deftest test-with-mock-wrapper-single
-  ; Test wrapper with auto-reset for interop scenarios
+  ;; Test wrapper with auto-reset for interop scenarios
   (let [mock-http (mock {:status 200})]
     (with-mock-wrapper [fetch-user mock-http
                         (fn [_ id] (mock-http (str "/users/" id)))]
@@ -234,11 +234,11 @@
                        (is (called-once? mock-http) "mock called inside wrapper")
                        (is (called-with? mock-http "/users/123") "wrapper adapted arguments"))
 
-    ; After with-mock-wrapper, mock should be reset
+    ;; After with-mock-wrapper, mock should be reset
     (is (= 0 (call-count mock-http)) "mock reset after wrapper block")))
 
 (deftest test-with-mock-wrapper-multiple
-  ; Test multiple wrappers with auto-reset
+  ;; Test multiple wrappers with auto-reset
   (let [mock-http (mock {:status 200})
         mock-db (mock :ok)]
     (with-mock-wrapper [fetch-user mock-http (fn [_ id] (mock-http id))
@@ -248,32 +248,32 @@
                        (is (called-once? mock-http) "http mock called")
                        (is (called-once? mock-db) "db mock called"))
 
-    ; Both mocks should be reset
+    ;; Both mocks should be reset
     (is (= 0 (call-count mock-http)) "http mock reset")
     (is (= 0 (call-count mock-db)) "db mock reset")))
 
 (deftest test-with-mock-wrapper-inline-creation
-  ; Test that inline mock expressions are evaluated once, not re-evaluated in finally
-  ; This verifies the fix for the bug where reset-forms would create a new mock
+  ;; Test that inline mock expressions are evaluated once, not re-evaluated in finally
+  ;; This verifies the fix for the bug where reset-forms would create a new mock
   (let [call-count-atom (var 0)
-        ; Create a mock factory that tracks how many times it's called
+        ;; Create a mock factory that tracks how many times it's called
         counted-mock (fn []
                        (swap! call-count-atom inc)
                        (mock {:id (deref call-count-atom)}))]
 
-    ; Use inline mock creation - should only call counted-mock once
+    ;; Use inline mock creation - should only call counted-mock once
     (with-mock-wrapper [fetch-user (counted-mock)
                         (fn [id] {:id (deref call-count-atom)})]
                        (is (= 1 (deref call-count-atom)) "mock factory called once during setup")
                        (fetch-user 123))
 
-    ; After with-mock-wrapper, verify the factory was still only called once
-    ; (not twice - once for setup and once for reset)
+    ;; After with-mock-wrapper, verify the factory was still only called once
+    ;; (not twice - once for setup and once for reset)
     (is (= 1 (deref call-count-atom)) "mock factory not re-evaluated during reset")))
 
-; -----------
-; Real-world Example Tests
-; -----------
+;; -----------
+;; Real-world Example Tests
+;; -----------
 
 (defn send-email [email-service to subject body]
   "Simulates sending an email"
@@ -322,9 +322,9 @@
                  "succeeds after retries")
              (is (= 3 (call-count mock-api)) "retries correct number of times"))))
 
-; -----------
-; Interop/External Function Mocking Tests
-; -----------
+;; -----------
+;; Interop/External Function Mocking Tests
+;; -----------
 
 (defn call-external-service [http-fn endpoint]
   "Simulates calling an external service (could be PHP, Janet, or any foreign function)"
@@ -332,7 +332,7 @@
 
 (deftest test-mock-external-interop-function
   (let [mock-external (mock {:success true :data "mocked response"})]
-    ; Mock an external/foreign function by wrapping it
+    ;; Mock an external/foreign function by wrapping it
     (binding [call-external-service (fn [_ endpoint] (mock-external endpoint))]
              (let [result (call-external-service nil "/api/data")]
                (is (= {:success true :data "mocked response"} result) "returns mocked response")

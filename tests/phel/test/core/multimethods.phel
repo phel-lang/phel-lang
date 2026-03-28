@@ -1,9 +1,9 @@
 (ns phel-test\test\core\multimethods
   (:require phel\test :refer [deftest is]))
 
-; --------
-; defmulti
-; --------
+;; --------
+;; defmulti
+;; --------
 
 (defmulti greeting :language)
 
@@ -21,9 +21,9 @@
   (is (= "Unknown language: :german" (greeting {:language :german}))
       "falls back to :default"))
 
-; ---------------------------------
-; Multimethod with custom dispatch
-; ---------------------------------
+;; ---------------------------------
+;; Multimethod with custom dispatch
+;; ---------------------------------
 
 (defmulti area (fn [shape] (get shape :type)))
 
@@ -40,9 +40,9 @@
   (is (= 9 (area {:type :circle :radius 3})) "circle area (r squared)")
   (is (= 20 (area {:type :rectangle :width 4 :height 5})) "rectangle area"))
 
-; --------------------------------
-; Multimethod with type dispatch
-; --------------------------------
+;; --------------------------------
+;; Multimethod with type dispatch
+;; --------------------------------
 
 (defmulti describe type)
 
@@ -57,9 +57,9 @@
   (is (= "a keyword: :foo" (describe :foo)) "dispatches on keyword")
   (is (= "something else" (describe [1 2 3])) "falls back to default"))
 
-; --------------------------------
-; Multimethod error on no match
-; --------------------------------
+;; --------------------------------
+;; Multimethod error on no match
+;; --------------------------------
 
 (defmulti strict-fn identity)
 

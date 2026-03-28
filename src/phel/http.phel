@@ -2,9 +2,9 @@
   (:use InvalidArgumentException)
   (:use Stringable))
 
-; ---
-; URI
-; ---
+;; ---
+;; URI
+;; ---
 
 (defstruct uri [scheme userinfo host port path query fragment]
            Stringable
@@ -65,7 +65,7 @@
         [h p]  (host-and-port-from-globals server)]
     (uri scheme nil h p path query nil)))
 
-; See: https://www.php.net/manual/en/function.parse-url.php#114817
+;; See: https://www.php.net/manual/en/function.parse-url.php#114817
 (defn- encode-utf-8-url
   "Prepares utf-8 urls from php/parse-url."
   [url]
@@ -98,9 +98,9 @@
      (php/aget parts "query")
      (php/aget parts "fragment"))))
 
-; -----
-; Files
-; -----
+;; -----
+;; Files
+;; -----
 
 (defstruct uploaded-file [tmp-file size error-status client-filename client-media-type])
 
@@ -148,9 +148,9 @@
   [& [files]]
   (normalize-files (or files php/$_FILES)))
 
-; -------
-; Headers
-; -------
+;; -------
+;; Headers
+;; -------
 
 (defn headers-from-server
   "Extracts all headers from the `$_SERVER` variable."
@@ -173,9 +173,9 @@
           (assoc headers (keyword name) v))))
     (persistent headers)))
 
-; -------
-; Request
-; -------
+;; -------
+;; Request
+;; -------
 
 (defstruct request [method ; HTTP Method ("GET", "POST", ...)
                     uri ; URI
@@ -262,9 +262,9 @@
    (or version "1.1")
    (or attributes {})))
 
-; --------
-; Response
-; --------
+;; --------
+;; Response
+;; --------
 
 (defstruct response [status headers body version reason])
 

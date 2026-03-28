@@ -1,10 +1,10 @@
 (ns phel\mock)
 
-; -----------
-; Mock State Registry
-; -----------
+;; -----------
+;; Mock State Registry
+;; -----------
 
-; Global registry to store mock metadata since with-meta doesn't work on functions
+;; Global registry to store mock metadata since with-meta doesn't work on functions
 (def- mock-registry (var {}))
 
 (defn- register-mock!
@@ -22,9 +22,9 @@
     (when mock-data
       (get mock-data :call-history))))
 
-; -----------
-; Mock Creation
-; -----------
+;; -----------
+;; Mock Creation
+;; -----------
 
 (defn mock
   "Creates a mock function that returns a fixed value and tracks all calls."
@@ -85,9 +85,9 @@
        (throw exception))
      call-history)))
 
-; -----------
-; Mock Inspection
-; -----------
+;; -----------
+;; Mock Inspection
+;; -----------
 
 (defn mock?
   "Returns true if the function is a mock."
@@ -172,9 +172,9 @@
   []
   (set! mock-registry {}))
 
-; -----------
-; Convenience Macro
-; -----------
+;; -----------
+;; Convenience Macro
+;; -----------
 
 (defmacro with-mocks
   "Temporarily replaces functions with mocks using binding.
@@ -184,7 +184,7 @@
     ```phel
     (with-mocks [http-get (mock {:status 200})]
       (http-get)
-      ; Mock is automatically reset after this block)
+      ;; Mock is automatically reset after this block)
     ```
 
   Also works with pre-defined mocks:

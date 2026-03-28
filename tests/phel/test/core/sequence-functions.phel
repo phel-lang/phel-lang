@@ -6,9 +6,9 @@
     (php/yield i)
     (recur (inc i))))
 
-; =============================================================================
-; Transformation Functions (map, mapcat, into, reduce)
-; =============================================================================
+;; =============================================================================
+;; Transformation Functions (map, mapcat, into, reduce)
+;; =============================================================================
 
 (deftest test-map
   (is (= [] (map str [])) "map1 with empty collection")
@@ -50,9 +50,9 @@
   (is (= 6 (reduce + (for [x :in (hash-set 1 2 3)] x))) "reduce without init on set vector")
   (is (= 0 (reduce + [])) "reduce without init on empty vector with +"))
 
-; =============================================================================
-; Path Navigation (assoc-in, update-in, dissoc-in)
-; =============================================================================
+;; =============================================================================
+;; Path Navigation (assoc-in, update-in, dissoc-in)
+;; =============================================================================
 
 (deftest test-assoc-in
   (is (= {:a {:b {:c 1}}} (assoc-in {:a {}} [:a :b :c] 1)) "assoc-in: autocreate tables")
@@ -70,9 +70,9 @@
   (is (= {:a {:b {}}} (dissoc-in {:a {:b {:c 1}}} [:a :b :c])) "dissoc-in: nested map")
   (is (= {:a {:b {:c 1}}} (dissoc-in {:a {:b {:c 1}}} [:a :x])) "dissoc-in: missing key"))
 
-; =============================================================================
-; Taking & Dropping Elements
-; =============================================================================
+;; =============================================================================
+;; Taking & Dropping Elements
+;; =============================================================================
 
 (deftest test-drop
   (is (= ["a" "b" "c"] (doall (drop 0 ["a" "b" "c"]))) "drop zero elements")
@@ -156,9 +156,9 @@
   (is (= [-1 -2 -3] (take-while neg? [-1 -2 -3 1 2 3 4 -4 -5 -6])) "take-while on vector")
   (is (= [-1 -2 -3] (take-while neg? (php/array -1 -2 -3 1 2 3 4 -4 -5 -6))) "take-while on php array"))
 
-; =============================================================================
-; Filtering & Searching
-; =============================================================================
+;; =============================================================================
+;; Filtering & Searching
+;; =============================================================================
 
 (deftest test-filter
   (is (= [-1 -2 -3] (filter neg? [-1 2 3 -2 -3 4 5])) "filter: neg?")
@@ -191,9 +191,9 @@
 (deftest test-find-index-empty-element
   (is (nil? (find-index |(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
 
-; =============================================================================
-; Collection Utilities (distinct, dedupe, reverse, interleave, etc.)
-; =============================================================================
+;; =============================================================================
+;; Collection Utilities (distinct, dedupe, reverse, interleave, etc.)
+;; =============================================================================
 
 (deftest test-distinct
   (is (= [1 2 3] (distinct [1 1 2 3 2 2 3 1])) "distinct: array")
@@ -233,9 +233,9 @@
   (is (= 0 (count "")) "count empty string")
   (is (= 4 (count "café")) "count multibyte string"))
 
-; =============================================================================
-; Map/Collection Operations (keys, values, pairs, merge, etc.)
-; =============================================================================
+;; =============================================================================
+;; Map/Collection Operations (keys, values, pairs, merge, etc.)
+;; =============================================================================
 
 (deftest test-keys
   (is (= [:a :b :c] (keys {:a 1 :b 2 :c 3})) "keys of map")
@@ -363,9 +363,9 @@
   (is (= [[1 2] [3 4]] (partition-all 2 [1 2 3 4])) "partition-all-2 four elements")
   (is (= [[1 2] [3 4] [5]] (partition-all 2 [1 2 3 4 5])) "partition-all-2 five elements keeps incomplete"))
 
-; =============================================================================
-; Type Conversion & Interop (phel->php, php->phel)
-; =============================================================================
+;; =============================================================================
+;; Type Conversion & Interop (phel->php, php->phel)
+;; =============================================================================
 
 (deftest test-phel-php-roundtrip
   (let [data {:a [1 {:b 2}]}]
@@ -380,12 +380,12 @@
     (php/aset m "a" (php/array 1 inner))
     (is (= m (phel->php (php->phel m))) "php->phel -> phel->php roundtrip")))
 
-; =============================================================================
-; String Seqability Tests
-; Strings are fully seqable in Phel - all sequence functions work directly
-; =============================================================================
+;; =============================================================================
+;; String Seqability Tests
+;; Strings are fully seqable in Phel - all sequence functions work directly
+;; =============================================================================
 
-; --- Basic Sequence Operations ---
+;; --- Basic Sequence Operations ---
 
 (deftest test-map-with-string
   (is (= ["H" "I"] (map php/strtoupper "hi")) "map works with strings"))
@@ -401,7 +401,7 @@
   (is (= ["l" "o"] (drop 3 "hello")) "drop works with strings")
   (is (= [] (drop 5 "")) "drop from empty string"))
 
-; --- Core Sequence Functions (first, next, rest, reduce) ---
+;; --- Core Sequence Functions (first, next, rest, reduce) ---
 
 (deftest test-first-with-strings
   (is (= "h" (first "hello")) "first works with string")
@@ -432,14 +432,14 @@
   (is (= 5 (count "hello")) "count on string")
   (is (= ["o" "l" "l" "e" "h"] (reverse "hello")) "reverse on string"))
 
-; --- Lazy Operations ---
+;; --- Lazy Operations ---
 
 (deftest test-lazy-operations-with-strings
   (is (= ["h" "e"] (take 2 (concat "hello" "world"))) "concat with strings")
   (is (= ["h" "e"] (take-while |(not= $ "l") "hello")) "take-while stops before l")
   (is (= ["l" "l" "o"] (drop-while |(not= $ "l") "hello")) "drop-while drops until l"))
 
-; --- Iterator-Based Operations (interleave, mapcat) ---
+;; --- Iterator-Based Operations (interleave, mapcat) ---
 
 (deftest test-interleave-with-strings
   (is (= ["a" "c" "b" "d"] (interleave "ab" "cd")) "interleave with two strings")
@@ -455,7 +455,7 @@
   (is (= [] (mapcat (fn [_] "") "abc")) "mapcat with empty string results")
   (is (= ["🎉" "🎉" "🎊" "🎊"] (mapcat (fn [c] (str c c)) "🎉🎊")) "mapcat with emoji"))
 
-; --- Unicode/Multibyte Support ---
+;; --- Unicode/Multibyte Support ---
 
 (deftest test-unicode-string-support
   (is (= "你" (first "你好")) "first works with Chinese characters")
@@ -463,7 +463,7 @@
   (is (= ["🎉" "🎊" "🎈"] (map identity "🎉🎊🎈")) "map works with emoji")
   (is (= 3 (count "你好吗")) "count works with multibyte strings"))
 
-; --- seq function (backward compatibility & laziness) ---
+;; --- seq function (backward compatibility & laziness) ---
 
 (deftest test-seq-preserves-laziness
   (is (= 0 (first (seq (range 1000000)))) "seq with large range returns immediately")

@@ -5,9 +5,9 @@
 
 (defstruct point [x y])
 
-; ----
-; walk
-; ----
+;; ----
+;; walk
+;; ----
 
 (deftest test-walk-vector
   (is (= [2 3 4] (walk inc identity [1 2 3]))
@@ -39,9 +39,9 @@
   (is (= 42 (walk inc identity 42))
       "walk returns non-collections as-is"))
 
-; --------
-; postwalk
-; --------
+;; --------
+;; postwalk
+;; --------
 
 (deftest test-postwalk-inc
   (is (= [2 [3 4]] (postwalk |(if (number? $) (inc $) $) [1 [2 3]]))
@@ -61,9 +61,9 @@
          (postwalk |(if (number? $) (inc $) $) (hash-set 1 2 3)))
       "postwalk transforms values in sets"))
 
-; -------
-; prewalk
-; -------
+;; -------
+;; prewalk
+;; -------
 
 (deftest test-prewalk-identity
   (is (= [1 [2 3]] (prewalk identity [1 [2 3]]))
@@ -73,9 +73,9 @@
   (is (= [2 [3 4]] (prewalk |(if (number? $) (inc $) $) [1 [2 3]]))
       "prewalk increments all nested numbers"))
 
-; -----------------
-; postwalk-replace
-; -----------------
+;; -----------------
+;; postwalk-replace
+;; -----------------
 
 (deftest test-postwalk-replace
   (is (= [:b :d :e] (postwalk-replace {:a :b :c :d :d :e} [:a :c :d]))
@@ -83,17 +83,17 @@
   (is (= [1 [2 99]] (postwalk-replace {3 99} [1 [2 3]]))
       "postwalk-replace works in nested structures"))
 
-; ----------------
-; prewalk-replace
-; ----------------
+;; ----------------
+;; prewalk-replace
+;; ----------------
 
 (deftest test-prewalk-replace
   (is (= [:b :c] (prewalk-replace {:a :b} [:a :c]))
       "prewalk-replace substitutes values"))
 
-; ----------------
-; keywordize-keys
-; ----------------
+;; ----------------
+;; keywordize-keys
+;; ----------------
 
 (deftest test-keywordize-keys
   (is (= {:name "phel" :version "0.29"}
@@ -103,9 +103,9 @@
          (keywordize-keys {"a" {"b" 1}}))
       "keywordize-keys works recursively"))
 
-; ---------------
-; stringify-keys
-; ---------------
+;; ---------------
+;; stringify-keys
+;; ---------------
 
 (deftest test-stringify-keys
   (is (= {"name" "phel" "version" "0.29"}

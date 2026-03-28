@@ -35,9 +35,9 @@
           content-arr (if (nil? content) nil (apply list content))]
       [tag map-attrs content-arr])))
 
-;---------------
-; Render element
-;---------------
+;;---------------
+;; Render element
+;;---------------
 
 (declare render-html)
 
@@ -90,9 +90,9 @@
     (nil? element)            ""
     (escape-html (str element))))
 
-;----------------
-; Compile element
-;----------------
+;;----------------
+;; Compile element
+;;----------------
 
 (declare compile-seq)
 (declare compile-html)

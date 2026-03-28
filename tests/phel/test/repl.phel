@@ -3,9 +3,9 @@
   (:require phel\str :as s)
   (:require phel\test :refer [deftest is]))
 
-; -------
-; apropos
-; -------
+;; -------
+;; apropos
+;; -------
 
 (deftest test-apropos-finds-matching-symbols
   (let [results (apropos "map")]
@@ -16,9 +16,9 @@
   (let [results (apropos "zzz_nonexistent_zzz")]
     (is (= 0 (count results)) "apropos returns empty for no matches")))
 
-; ---
-; dir
-; ---
+;; ---
+;; dir
+;; ---
 
 (deftest test-dir-prints-definitions
   (let [out (with-output-buffer (dir "phel\\core"))]
@@ -26,17 +26,17 @@
     (is (s/contains? out "reduce") "dir lists 'reduce'")
     (is (s/contains? out "filter") "dir lists 'filter'")))
 
-; --------
-; find-doc
-; --------
+;; --------
+;; find-doc
+;; --------
 
 (deftest test-search-doc-searches-docstrings
   (let [out (with-output-buffer (search-doc "concatenat"))]
     (is (s/contains? out "str") "search-doc matches 'str' for 'concatenat'")))
 
-; -----------
-; symbol-info
-; -----------
+;; -----------
+;; symbol-info
+;; -----------
 
 (deftest test-get-symbol-info-returns-map-for-known-symbol
   (let [info (get-symbol-info "phel\\core" "map")]
@@ -63,9 +63,9 @@
   (let [info (get-symbol-info "phel\\core" "map")]
     (is (= false (get info :private)) "public function has :private false")))
 
-; ------
-; source
-; ------
+;; ------
+;; source
+;; ------
 
 (deftest test-get-source-code-returns-string-for-known-symbol
   (let [src (get-source-code "phel\\core" "map")]
@@ -81,9 +81,9 @@
   (let [src (get-source-code "phel\\core" "map")]
     (is (s/contains? src "map") "source code contains the function name")))
 
-; ----------
-; ns-publics
-; ----------
+;; ----------
+;; ns-publics
+;; ----------
 
 (deftest test-ns-publics-returns-map
   (let [publics (ns-publics "phel\\core")]
@@ -101,9 +101,9 @@
     (is (nil? (get publics "munge-ns")) "ns-publics excludes private 'munge-ns'")
     (is (nil? (get publics "get-global-env")) "ns-publics excludes private 'get-global-env'")))
 
-; ----------
-; ns-aliases
-; ----------
+;; ----------
+;; ns-aliases
+;; ----------
 
 (deftest test-ns-aliases-returns-map
   (let [aliases (ns-aliases "phel-test\\test\\repl")]
@@ -113,9 +113,9 @@
   (let [aliases (ns-aliases "phel-test\\test\\repl")]
     (is (= "phel\\str" (get aliases "s")) "ns-aliases contains 's' => 'phel\\str'")))
 
-; ---------
-; ns-refers
-; ---------
+;; ---------
+;; ns-refers
+;; ---------
 
 (deftest test-ns-refers-returns-map
   (let [refers (ns-refers "phel-test\\test\\repl")]
@@ -126,9 +126,9 @@
     (is (= "phel\\repl" (get refers "apropos")) "ns-refers contains 'apropos' from phel\\repl")
     (is (= "phel\\test" (get refers "deftest")) "ns-refers contains 'deftest' from phel\\test")))
 
-; -------
-; find-fn
-; -------
+;; -------
+;; find-fn
+;; -------
 
 (deftest test-find-fn-returns-non-empty-vector
   (let [results (find-fn "map")]
@@ -153,9 +153,9 @@
         names (for [r :in results] (get r :name))]
     (is (> (count results) 0) "find-fn finds functions by docstring match")))
 
-; -------
-; test-ns
-; -------
+;; -------
+;; test-ns
+;; -------
 
 (deftest test-test-ns-returns-result-map
   (let [result (with-output-buffer (test-ns "phel-test\\test\\test-framework"))]
@@ -174,9 +174,9 @@
     (is (= 0 (get result :fail)) "test-framework tests have no failures")
     (is (= 0 (get result :error)) "test-framework tests have no errors")))
 
-; --------------
-; eval-capturing
-; --------------
+;; --------------
+;; eval-capturing
+;; --------------
 
 (deftest test-eval-capturing-simple-expression
   (let [result (eval-capturing "(+ 1 2)")]
@@ -203,9 +203,9 @@
     (is (string? (get result :error)) "eval-capturing has error message string")
     (is (s/contains? (get result :error) "boom") "eval-capturing error contains message")))
 
-; --------
-; eval-str
-; --------
+;; --------
+;; eval-str
+;; --------
 
 (deftest test-eval-str-arithmetic
   (is (= 3 (eval-str "(+ 1 2)")) "eval-str evaluates arithmetic"))
@@ -230,9 +230,9 @@
                           (str/upper-case \"hello\")")]
     (is (= "HELLO" result) "runtime require resolves symbols without explicit src-dirs init")))
 
-; ---------------------
-; eval-str ns consistency
-; ---------------------
+;; ---------------------
+;; eval-str ns consistency
+;; ---------------------
 
 (deftest test-eval-str-ns-updates-within
   (let [result (eval-str "(ns test-eval-ns-inner) *ns*")]
@@ -246,9 +246,9 @@
         "GlobalEnvironment.ns matches *ns*")
     (eval-str (str "(ns " original ")"))))
 
-; ----------------
-; macroexpand-1-form
-; ----------------
+;; ----------------
+;; macroexpand-1-form
+;; ----------------
 
 (deftest test-macroexpand-1-form-expands-defn
   (let [expanded (macroexpand-1-form '(defn foo [x] x))]
@@ -265,9 +265,9 @@
   (is (= "hello" (macroexpand-1-form "hello")) "string is returned unchanged")
   (is (nil? (macroexpand-1-form nil)) "nil is returned unchanged"))
 
-; ---------------
-; macroexpand-form
-; ---------------
+;; ---------------
+;; macroexpand-form
+;; ---------------
 
 (deftest test-macroexpand-form-fully-expands
   (let [expanded (macroexpand-form '(defn foo [x] x))]
@@ -279,9 +279,9 @@
         expanded (macroexpand-form form)]
     (is (= form expanded) "non-macro form is returned unchanged")))
 
-; -------
-; ns-list
-; -------
+;; -------
+;; ns-list
+;; -------
 
 (deftest test-ns-list-returns-vector
   (let [results (ns-list)]
