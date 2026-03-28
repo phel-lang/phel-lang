@@ -230,6 +230,22 @@
                           (str/upper-case \"hello\")")]
     (is (= "HELLO" result) "runtime require resolves symbols without explicit src-dirs init")))
 
+# ---------------------
+# eval-str ns consistency
+# ---------------------
+
+(deftest test-eval-str-ns-updates-within
+  (let [result (eval-str "(ns test-eval-ns-inner) *ns*")]
+    (is (= "test-eval-ns-inner" result) "*ns* reflects namespace change within eval-str")))
+
+(deftest test-eval-str-ns-propagates-to-caller
+  (let [original *ns*]
+    (eval-str "(ns test-ns-propagation)")
+    (is (= "test-ns-propagation" *ns*) "*ns* propagates after eval-str returns")
+    (is (= *ns* (php/-> (php/:: \Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton (getInstance)) (getNs)))
+        "GlobalEnvironment.ns matches *ns*")
+    (eval-str (str "(ns " original ")"))))
+
 # ----------------
 # macroexpand-1-form
 # ----------------
