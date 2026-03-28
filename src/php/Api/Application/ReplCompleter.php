@@ -7,8 +7,11 @@ namespace Phel\Api\Application;
 use Phel;
 use Phel\Api\Domain\PhelFnLoaderInterface;
 use Phel\Api\Domain\ReplCompleterInterface;
+use Phel\Api\Transfer\CompletionResultTransfer;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\FnInterface;
+use Phel\Lang\Keyword;
 
 use function get_declared_classes;
 use function get_defined_functions;
@@ -46,6 +49,19 @@ final class ReplCompleter implements ReplCompleterInterface
      */
     public function complete(string $input): array
     {
+        return array_map(
+            static fn(CompletionResultTransfer $r): string => $r->candidate,
+            $this->completeWithTypes($input),
+        );
+    }
+
+    /**
+     * Complete input with type annotations for nREPL clients.
+     *
+     * @return list<CompletionResultTransfer>
+     */
+    public function completeWithTypes(string $input): array
+    {
         if (!self::$loaded) {
             $this->phelFnLoader->loadAllPhelFunctions($this->allNamespaces);
             self::$loaded = true;
@@ -57,18 +73,18 @@ final class ReplCompleter implements ReplCompleterInterface
         }
 
         return str_starts_with($input, 'php/')
-            ? $this->completePhpSymbols(substr($input, 4))
-            : $this->completePhelFunctions($input);
+            ? $this->completePhpSymbolsWithTypes(substr($input, 4))
+            : $this->completePhelWithTypes($input);
     }
 
     /**
-     * Complete native PHP functions and classes.
+     * Complete native PHP functions and classes with type annotations.
      *
      * @param string $prefix the input string without the `php/` prefix
      *
-     * @return list<string>
+     * @return list<CompletionResultTransfer>
      */
-    private function completePhpSymbols(string $prefix): array
+    private function completePhpSymbolsWithTypes(string $prefix): array
     {
         if (self::$phpFunctions === []) {
             self::$phpFunctions = get_defined_functions()['internal'];
@@ -78,34 +94,33 @@ final class ReplCompleter implements ReplCompleterInterface
             self::$phpClasses = get_declared_classes();
         }
 
-        $functions = array_filter(
-            self::$phpFunctions,
-            static fn(string $fn): bool => str_starts_with($fn, $prefix),
-        );
+        $matches = [];
 
-        $classes = array_filter(
-            self::$phpClasses,
-            static fn(string $class): bool => str_starts_with($class, $prefix),
-        );
+        foreach (self::$phpFunctions as $fn) {
+            if (str_starts_with($fn, $prefix)) {
+                $matches[] = new CompletionResultTransfer('php/' . $fn, 'php-function');
+            }
+        }
 
-        $matches = [
-            ...array_map(static fn(string $fn): string => 'php/' . $fn, $functions),
-            ...array_map(static fn(string $class): string => 'php/' . $class, $classes),
-        ];
+        foreach (self::$phpClasses as $class) {
+            if (str_starts_with($class, $prefix)) {
+                $matches[] = new CompletionResultTransfer('php/' . $class, 'class');
+            }
+        }
 
-        sort($matches);
+        usort($matches, static fn(CompletionResultTransfer $a, CompletionResultTransfer $b): int => $a->candidate <=> $b->candidate);
+
         return $matches;
     }
 
     /**
-     * Complete available Phel functions.
+     * Complete available Phel definitions with type annotations.
      *
-     * @param string $input the input string to match
-     *
-     * @return list<string>
+     * @return list<CompletionResultTransfer>
      */
-    private function completePhelFunctions(string $input): array
+    private function completePhelWithTypes(string $input): array
     {
+        /** @var array<string, CompletionResultTransfer> $matches */
         $matches = [];
 
         // Alias-based completion: input like "h/htm" resolves alias "h" to its namespace
@@ -116,22 +131,22 @@ final class ReplCompleter implements ReplCompleterInterface
 
             $resolvedNs = $this->globalEnvironment->resolveAlias($aliasPrefix);
             if ($resolvedNs !== null) {
-                $matches = $this->completeFromNamespace($resolvedNs, $fnPrefix, $aliasPrefix . '/');
+                foreach ($this->completeFromNamespaceWithTypes($resolvedNs, $fnPrefix, $aliasPrefix . '/') as $result) {
+                    $matches[$result->candidate] = $result;
+                }
             }
         }
 
         // Referred symbol completion and fully qualified completion
         foreach (Phel::getNamespaces() as $namespace) {
             foreach (Phel::getDefinitionInNamespace($namespace) as $name => $definition) {
-                if (!$definition instanceof FnInterface) {
-                    continue;
-                }
-
                 $qualifiedName = $namespace === 'phel\\core'
                     ? $name
                     : $namespace . '\\' . $name;
+
                 if (str_starts_with($qualifiedName, $input)) {
-                    $matches[] = $qualifiedName;
+                    $type = $this->resolveDefinitionType($namespace, $name, $definition);
+                    $matches[$qualifiedName] = new CompletionResultTransfer($qualifiedName, $type);
                 }
             }
         }
@@ -139,37 +154,59 @@ final class ReplCompleter implements ReplCompleterInterface
         // Referred symbol names (short names available in current namespace)
         if ($this->globalEnvironment instanceof GlobalEnvironmentInterface) {
             $currentNs = $this->globalEnvironment->getNs();
-            foreach (array_keys($this->globalEnvironment->getRefers($currentNs)) as $name) {
+            foreach ($this->globalEnvironment->getRefers($currentNs) as $name => $sourceNs) {
                 if (str_starts_with($name, $input)) {
-                    $matches[] = $name;
+                    $nsName = $sourceNs->getName();
+                    $definition = Phel::getDefinition($nsName, $name);
+                    $type = $this->resolveDefinitionType($nsName, $name, $definition);
+                    $matches[$name] = new CompletionResultTransfer($name, $type);
                 }
             }
         }
 
-        $matches = array_unique($matches);
-        sort($matches);
+        $result = array_values($matches);
+        usort($result, static fn(CompletionResultTransfer $a, CompletionResultTransfer $b): int => $a->candidate <=> $b->candidate);
 
-        return $matches;
+        return $result;
     }
 
     /**
-     * @return list<string>
+     * @return list<CompletionResultTransfer>
      */
-    private function completeFromNamespace(string $namespace, string $prefix, string $displayPrefix): array
+    private function completeFromNamespaceWithTypes(string $namespace, string $prefix, string $displayPrefix): array
     {
         $matches = [];
         $mungedNs = str_replace('-', '_', $namespace);
 
         foreach (Phel::getDefinitionInNamespace($mungedNs) as $name => $definition) {
-            if (!$definition instanceof FnInterface) {
-                continue;
-            }
-
             if (str_starts_with($name, $prefix)) {
-                $matches[] = $displayPrefix . $name;
+                $type = $this->resolveDefinitionType($mungedNs, $name, $definition);
+                $matches[] = new CompletionResultTransfer($displayPrefix . $name, $type);
             }
         }
 
         return $matches;
+    }
+
+    /**
+     * Determine the type of a Phel definition by inspecting its metadata and value.
+     */
+    private function resolveDefinitionType(string $namespace, string $name, mixed $definition): string
+    {
+        $meta = Phel::getDefinitionMetaData($namespace, $name);
+
+        if ($meta instanceof PersistentMapInterface && $meta[Keyword::create('macro')] === true) {
+            return 'macro';
+        }
+
+        if ($definition instanceof Keyword) {
+            return 'keyword';
+        }
+
+        if ($definition instanceof FnInterface) {
+            return 'function';
+        }
+
+        return 'var';
     }
 }

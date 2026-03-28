@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Api;
 
 use Gacela\Framework\AbstractFacade;
+use Phel\Api\Transfer\CompletionResultTransfer;
 use Phel\Api\Transfer\PhelFunction;
 use Phel\Shared\Facade\ApiFacadeInterface;
 
@@ -21,6 +22,18 @@ final class ApiFacade extends AbstractFacade implements ApiFacadeInterface
         return $this->getFactory()
             ->createReplCompleter()
             ->complete($input);
+    }
+
+    /**
+     * Complete input with type annotations for nREPL clients.
+     *
+     * @return list<CompletionResultTransfer>
+     */
+    public function replCompleteWithTypes(string $input): array
+    {
+        return $this->getFactory()
+            ->createReplCompleter()
+            ->completeWithTypes($input);
     }
 
     /**
