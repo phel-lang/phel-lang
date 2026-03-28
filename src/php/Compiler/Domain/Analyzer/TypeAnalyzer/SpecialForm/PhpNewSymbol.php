@@ -12,6 +12,11 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 
 use function count;
 
+/**
+ * (php/new ClassName args...).
+ *
+ * Creates a new PHP object instance.
+ */
 final class PhpNewSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;

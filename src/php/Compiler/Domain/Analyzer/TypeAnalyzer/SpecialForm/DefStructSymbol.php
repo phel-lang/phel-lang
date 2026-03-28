@@ -21,6 +21,11 @@ use ReflectionMethod;
 
 use function count;
 
+/**
+ * (defstruct Name [fields...]).
+ *
+ * Defines a struct type with named fields and a positional constructor.
+ */
 final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
 {
     public function __construct(

@@ -14,6 +14,11 @@ use Phel\Lang\Symbol;
 
 use function count;
 
+/**
+ * (recur args...).
+ *
+ * Jumps back to the nearest loop or fn with new argument values.
+ */
 final class RecurSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;

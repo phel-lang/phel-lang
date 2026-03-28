@@ -12,6 +12,11 @@ use Traversable;
 
 use function assert;
 
+/**
+ * (php/aget-in arr key1 key2 ...).
+ *
+ * Gets a nested value from a PHP array.
+ */
 final class PhpAGetInSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;

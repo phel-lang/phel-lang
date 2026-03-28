@@ -29,6 +29,11 @@ use function in_array;
 use function is_scalar;
 use function is_string;
 
+/**
+ * (def name value).
+ *
+ * Defines a global variable in the current namespace.
+ */
 final class DefSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;

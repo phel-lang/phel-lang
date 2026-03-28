@@ -15,6 +15,11 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 
+/**
+ * (try body (catch Type e handler) (finally cleanup)).
+ *
+ * Exception handling with optional catch and finally clauses.
+ */
 final class TrySymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;

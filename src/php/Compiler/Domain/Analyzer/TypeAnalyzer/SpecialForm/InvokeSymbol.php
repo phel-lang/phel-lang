@@ -23,6 +23,11 @@ use function count;
 use function is_callable;
 use function sprintf;
 
+/**
+ * (f args...).
+ *
+ * Invokes a function or callable with the given arguments.
+ */
 final class InvokeSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;

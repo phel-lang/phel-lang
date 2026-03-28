@@ -14,6 +14,11 @@ use Phel\Lang\Symbol;
 
 use function count;
 
+/**
+ * (defexception Name).
+ *
+ * Defines a custom exception type extending RuntimeException.
+ */
 final class DefExceptionSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;

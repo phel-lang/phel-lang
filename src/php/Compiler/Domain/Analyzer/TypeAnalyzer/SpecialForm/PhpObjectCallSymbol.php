@@ -16,6 +16,11 @@ use Phel\Lang\Symbol;
 use function count;
 use function sprintf;
 
+/**
+ * (php/-> obj (method args)) / (php/:: Class (method args)).
+ *
+ * Calls a method on a PHP object or class.
+ */
 final readonly class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
 {
     public function __construct(
