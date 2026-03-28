@@ -223,6 +223,13 @@
   (is (= 10 (eval-str "(+ 1 2) (+ 3 7)"))
       "eval-str with multiple expressions returns last result"))
 
+(deftest test-eval-str-runtime-require-resolves
+  (let [result (eval-str "(ns test-rt-require-demo
+                            (:require phel\\repl :refer [require]))
+                          (require phel\\str)
+                          (str/upper-case \"hello\")")]
+    (is (= "HELLO" result) "runtime require resolves symbols without explicit src-dirs init")))
+
 # ----------------
 # macroexpand-1-form
 # ----------------
