@@ -9,12 +9,17 @@ use Phel\Lang\Symbol;
 
 final class SymbolReader
 {
+    private const array NUMBERED_PATTERNS = [
+        '$' => '/\$([1-9]\d*)/',
+        '%' => '/%([1-9]\d*)/',
+    ];
+
     /**
      * @param array<int,Symbol>|null &$fnArgs
      */
-    public function read(SymbolNode $node, ?array &$fnArgs): Symbol
+    public function read(SymbolNode $node, ?array &$fnArgs, string $placeholderPrefix = '$'): Symbol
     {
-        $symbol = $this->createSymbol($node, $fnArgs);
+        $symbol = $this->createSymbol($node, $fnArgs, $placeholderPrefix);
 
         $symbol->setStartLocation($node->getStartLocation());
         $symbol->setEndLocation($node->getEndLocation());
@@ -25,7 +30,7 @@ final class SymbolReader
     /**
      * @param array<int,Symbol>|null &$fnArgs
      */
-    private function createSymbol(SymbolNode $node, ?array &$fnArgs): Symbol
+    private function createSymbol(SymbolNode $node, ?array &$fnArgs, string $prefix): Symbol
     {
         if ($fnArgs === null) {
             return $node->getValue();
@@ -33,8 +38,7 @@ final class SymbolReader
 
         $word = $node->getValue()->getName();
 
-        // Special case: We read an anonymous function
-        if ($word === '$') {
+        if ($word === $prefix) {
             if (isset($fnArgs[1])) {
                 return Symbol::create($fnArgs[1]->getName());
             }
@@ -44,7 +48,7 @@ final class SymbolReader
             return $sym;
         }
 
-        if ($word === '$&') {
+        if ($word === $prefix . '&') {
             if (isset($fnArgs[0])) {
                 return Symbol::create($fnArgs[0]->getName());
             }
@@ -54,7 +58,7 @@ final class SymbolReader
             return $sym;
         }
 
-        if (preg_match('/\$([1-9]\d*)/', $word, $matches)) {
+        if (preg_match(self::NUMBERED_PATTERNS[$prefix], $word, $matches)) {
             $number = (int) $matches[1];
             if (isset($fnArgs[$number])) {
                 return Symbol::create($fnArgs[$number]->getName());

@@ -252,6 +252,87 @@ final class LexerTest extends TestCase
         );
     }
 
+    public function test_read_hash_fn(): void
+    {
+        self::assertEquals(
+            [
+                new Token(Token::T_HASH_FN, '#(', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 2)),
+                new Token(Token::T_ATOM, 'add', new SourceLocation('string', 1, 2), new SourceLocation('string', 1, 5)),
+                new Token(Token::T_CLOSE_PARENTHESIS, ')', new SourceLocation('string', 1, 5), new SourceLocation('string', 1, 6)),
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 6), new SourceLocation('string', 1, 6)),
+            ],
+            $this->lex('#(add)'),
+        );
+    }
+
+    public function test_read_hash_fn_with_percent_placeholder(): void
+    {
+        self::assertEquals(
+            [
+                new Token(Token::T_HASH_FN, '#(', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 2)),
+                new Token(Token::T_ATOM, 'add', new SourceLocation('string', 1, 2), new SourceLocation('string', 1, 5)),
+                new Token(Token::T_WHITESPACE, ' ', new SourceLocation('string', 1, 5), new SourceLocation('string', 1, 6)),
+                new Token(Token::T_ATOM, '%', new SourceLocation('string', 1, 6), new SourceLocation('string', 1, 7)),
+                new Token(Token::T_CLOSE_PARENTHESIS, ')', new SourceLocation('string', 1, 7), new SourceLocation('string', 1, 8)),
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 8), new SourceLocation('string', 1, 8)),
+            ],
+            $this->lex('#(add %)'),
+        );
+    }
+
+    public function test_hash_comment_emits_deprecation(): void
+    {
+        $warning = null;
+        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
+            $warning = $errstr;
+            return true;
+        }, E_USER_DEPRECATED);
+
+        try {
+            $this->lex('# test comment');
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertNotNull($warning);
+        self::assertStringContainsString('";"', $warning);
+    }
+
+    public function test_semicolon_comment_does_not_emit_deprecation(): void
+    {
+        $warning = null;
+        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
+            $warning = $errstr;
+            return true;
+        }, E_USER_DEPRECATED);
+
+        try {
+            $this->lex('; test comment');
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertNull($warning);
+    }
+
+    public function test_multiline_comment_emits_deprecation(): void
+    {
+        $warning = null;
+        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
+            $warning = $errstr;
+            return true;
+        }, E_USER_DEPRECATED);
+
+        try {
+            $this->lex('#|test|#');
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertNotNull($warning);
+        self::assertStringContainsString('(comment ...)', $warning);
+    }
+
     public function test_unexpected_state(): void
     {
         $this->expectException(Exception::class);

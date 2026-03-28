@@ -12,6 +12,7 @@ use Phel\Compiler\Domain\Lexer\TokenStream;
 use Phel\Lang\SourceLocation;
 
 use function count;
+use function sprintf;
 use function strlen;
 
 final class Lexer implements LexerInterface
@@ -20,7 +21,7 @@ final class Lexer implements LexerInterface
         "([ \t]+)", // Whitespace (index: 2)
         "(\r?\n)", // Newline (index: 3)
         '(#_)', // Inline comment (index: 4)
-        "(#(?![_{\\|])[^\n]*\n?|;[^\n]*\n?)", // Comment (# or ;) (index: 5)
+        "(#(?![_{\\|(])[^\n]*\n?|;[^\n]*\n?)", // Comment (# or ;) (index: 5)
         '(#\{)', // open hash brace (index: 6)
         '(,@)', // unquote-splicing (index: 7)
         "(\()", // open parenthesis (index: 8)
@@ -34,8 +35,9 @@ final class Lexer implements LexerInterface
         '(`)', // quasiquote (index: 16)
         "(\^)", // caret (index: 17)
         "(\|\()", // short fn (index: 18)
-        '("(?:[^"\\\\]++|\\\\.)*+")', // String (index: 19)
-        "([^\(\)\[\]\{\}',`@ \n\r\t\#]+)", // Atom (index: 20)
+        '(#\()', // hash fn (index: 19)
+        '("(?:[^"\\\\]++|\\\\.)*+")', // String (index: 20)
+        "([^\(\)\[\]\{\}',`@ \n\r\t\#]+)", // Atom (index: 21)
     ];
 
     private const string MULTILINE_COMMENT_BEGIN = '#|';
@@ -84,6 +86,11 @@ final class Lexer implements LexerInterface
                 $this->moveCursor($comment);
                 $endLocation = $this->createSourceLocation($source);
 
+                @trigger_error(
+                    sprintf('Using "#| |#" for multiline comments is deprecated, use "(comment ...)" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
+                    E_USER_DEPRECATED,
+                );
+
                 yield new Token(Token::T_COMMENT, $comment, $startLocation, $endLocation);
 
                 $startLocation = $endLocation;
@@ -93,8 +100,16 @@ final class Lexer implements LexerInterface
             if (preg_match($this->combinedRegex, $code, $matches, 0, $this->cursor)) {
                 $this->moveCursor($matches[0]);
                 $endLocation = $this->createSourceLocation($source);
+                $tokenType = count($matches);
 
-                yield new Token(count($matches), $matches[0], $startLocation, $endLocation);
+                if ($tokenType === Token::T_COMMENT && str_starts_with($matches[0], '#')) {
+                    @trigger_error(
+                        sprintf('Using "#" for line comments is deprecated, use ";" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
+                        E_USER_DEPRECATED,
+                    );
+                }
+
+                yield new Token($tokenType, $matches[0], $startLocation, $endLocation);
 
                 $startLocation = $endLocation;
             } else {

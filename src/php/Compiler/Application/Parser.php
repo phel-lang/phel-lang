@@ -127,6 +127,7 @@ final readonly class Parser implements ParserInterface
                 Token::T_COMMENT => CommentNode::createWithToken($token),
                 Token::T_ATOM => $this->parseAtomNode($token, $tokenStream),
                 Token::T_STRING => $this->parseStringNode($token, $tokenStream),
+                Token::T_HASH_FN,
                 Token::T_FN,
                 Token::T_OPEN_PARENTHESIS => $this->parseFnListNode($token, $tokenStream),
                 Token::T_OPEN_BRACKET => $this->parseArrayListNode($token, $tokenStream),

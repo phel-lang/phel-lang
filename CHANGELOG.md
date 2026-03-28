@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Add Clojure-style anonymous function shorthand `#(...)` with `%`, `%1`, `%2`, `%&` parameter placeholders as alternative to `|(...)` syntax (#1146)
+- Deprecation warnings for `#` line comments (use `;` instead) and `#| |#` multiline comments (use `(comment ...)` instead) (#1146)
 - Add `eval-capturing` function to `phel\repl` for evaluating code strings while capturing stdout separately from return values, enabling nREPL transport support
 - Add typed completion results via `completeWithTypes()` returning candidate + type (`function`, `macro`, `var`, `keyword`, `class`, `php-function`) for nREPL client support
 - Add `eval-str` function to `phel\repl` for evaluating Phel code strings and returning the result
