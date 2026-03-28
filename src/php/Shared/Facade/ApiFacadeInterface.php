@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Facade;
 
+use Phel\Api\Transfer\CompletionResultTransfer;
 use Phel\Api\Transfer\PhelFunction;
 
 interface ApiFacadeInterface
@@ -21,4 +22,11 @@ interface ApiFacadeInterface
      * @return list<string>
      */
     public function replComplete(string $input): array;
+
+    /**
+     * Complete input with type annotations for nREPL clients.
+     *
+     * @return list<CompletionResultTransfer>
+     */
+    public function replCompleteWithTypes(string $input): array;
 }

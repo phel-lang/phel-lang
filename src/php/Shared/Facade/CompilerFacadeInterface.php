@@ -117,6 +117,18 @@ interface CompilerFacadeInterface
     public function resetGlobalEnvironment(): void;
 
     /**
+     * Expands a macro form once. Returns the expanded Phel form,
+     * or the original form unchanged if it is not a macro call.
+     */
+    public function macroexpand1(TypeInterface|string|float|int|bool|null $form): TypeInterface|string|float|int|bool|null;
+
+    /**
+     * Repeatedly expands a macro form until it is no longer a macro call.
+     * Returns the fully expanded Phel form.
+     */
+    public function macroexpand(TypeInterface|string|float|int|bool|null $form): TypeInterface|string|float|int|bool|null;
+
+    /**
      * Extracts the current GlobalEnvironment state for a namespace
      * in a serializable plain-array format.
      *

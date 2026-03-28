@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Add `eval-capturing` function to `phel\repl` for evaluating code strings while capturing stdout separately from return values, enabling nREPL transport support
+- Add typed completion results via `completeWithTypes()` returning candidate + type (`function`, `macro`, `var`, `keyword`, `class`, `php-function`) for nREPL client support
+- Add `eval-str` function to `phel\repl` for evaluating Phel code strings and returning the result
+- Add `macroexpand-1` and `macroexpand` macros to `phel\repl` plus `macroexpand-1-form` and `macroexpand-form` functions for macro expansion without compile/emit, enabling nREPL macroexpand support
+- Add `macroexpand1()` and `macroexpand()` methods to `CompilerFacade` exposing macro expansion to PHP consumers
 - Add `ns-list` function to `phel\repl` returning a sorted vector of human-readable namespace names (decodes munged underscores back to hyphens)
 - Add GlobalEnvironment snapshot/restore to rollback state on REPL eval errors, preventing dirty state from partial evaluations
 - Add `find-fn` function to `phel\repl` for structured function search across all loaded namespaces, returning maps with `:ns`, `:name`, `:doc`, `:private`, `:min-arity`, `:max-arity`, `:is-variadic`
