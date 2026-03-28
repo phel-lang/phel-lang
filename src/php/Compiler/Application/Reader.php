@@ -91,7 +91,7 @@ final class Reader implements ReaderInterface
     {
         return $this->readerFactory
             ->createSymbolReader()
-            ->read($node, $this->fnArgs, $this->fnPlaceholderPrefix);
+            ->read($node, $this->fnArgs, $this->fnPlaceholderPrefix ?? '$');
     }
 
     private function readAtomNode(AbstractAtomNode $node): float|bool|int|string|TypeInterface|null
@@ -127,22 +127,21 @@ final class Reader implements ReaderInterface
                 ->read($node, $root);
         }
 
-        if ($node->getTokenType() === Token::T_FN) {
-            $this->fnArgs = [];
-            $this->fnPlaceholderPrefix = '$';
+        $fnPrefix = match ($node->getTokenType()) {
+            Token::T_FN => '$',
+            Token::T_HASH_FN => '%',
+            default => null,
+        };
 
-            return $this->readerFactory
+        if ($fnPrefix !== null) {
+            $this->fnArgs = [];
+            $this->fnPlaceholderPrefix = $fnPrefix;
+            $result = $this->readerFactory
                 ->createListFnReader($this)
                 ->read($node, $this->fnArgs, $root);
-        }
+            $this->fnPlaceholderPrefix = null;
 
-        if ($node->getTokenType() === Token::T_HASH_FN) {
-            $this->fnArgs = [];
-            $this->fnPlaceholderPrefix = '%';
-
-            return $this->readerFactory
-                ->createListFnReader($this)
-                ->read($node, $this->fnArgs, $root);
+            return $result;
         }
 
         throw new RuntimeException('Not a valid ListNode: ' . $node::class);

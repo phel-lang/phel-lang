@@ -9,12 +9,17 @@ use Phel\Lang\Symbol;
 
 final class SymbolReader
 {
+    private const array NUMBERED_PATTERNS = [
+        '$' => '/\$([1-9]\d*)/',
+        '%' => '/%([1-9]\d*)/',
+    ];
+
     /**
      * @param array<int,Symbol>|null &$fnArgs
      */
-    public function read(SymbolNode $node, ?array &$fnArgs, ?string $placeholderPrefix = null): Symbol
+    public function read(SymbolNode $node, ?array &$fnArgs, string $placeholderPrefix = '$'): Symbol
     {
-        $symbol = $this->createSymbol($node, $fnArgs, $placeholderPrefix ?? '$');
+        $symbol = $this->createSymbol($node, $fnArgs, $placeholderPrefix);
 
         $symbol->setStartLocation($node->getStartLocation());
         $symbol->setEndLocation($node->getEndLocation());
@@ -33,8 +38,6 @@ final class SymbolReader
 
         $word = $node->getValue()->getName();
 
-        // Special case: We read an anonymous function
-        // Supports both $ placeholders (|( syntax) and % placeholders (#( syntax)
         if ($word === $prefix) {
             if (isset($fnArgs[1])) {
                 return Symbol::create($fnArgs[1]->getName());
@@ -55,8 +58,7 @@ final class SymbolReader
             return $sym;
         }
 
-        $escapedPrefix = preg_quote($prefix, '/');
-        if (preg_match('/' . $escapedPrefix . '([1-9]\d*)/', $word, $matches)) {
+        if (preg_match(self::NUMBERED_PATTERNS[$prefix], $word, $matches)) {
             $number = (int) $matches[1];
             if (isset($fnArgs[$number])) {
                 return Symbol::create($fnArgs[$number]->getName());

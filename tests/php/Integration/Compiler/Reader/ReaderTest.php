@@ -997,7 +997,7 @@ final class ReaderTest extends TestCase
 
     public function test_hash_fn_rest_argument_multiple_times(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->loc(
                 Phel::list([
                     Symbol::create(Symbol::NAME_FN),
@@ -1094,6 +1094,64 @@ final class ReaderTest extends TestCase
                 7,
             ),
             $this->read('(add %)'),
+        );
+    }
+
+    public function test_pipe_fn_then_hash_fn_prefix_isolation(): void
+    {
+        $pipeResult = $this->read('|(add $)');
+        $hashResult = $this->read('#(add %)');
+
+        self::assertEquals(
+            $this->loc(
+                Phel::list([
+                    Symbol::create(Symbol::NAME_FN),
+                    Phel::vector([
+                        Symbol::create('__short_fn_1_1'),
+                    ]),
+                    $this->loc(
+                        Phel::list([
+                            $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 7),
+                        ]),
+                        1,
+                        0,
+                        1,
+                        8,
+                    ),
+                ]),
+                1,
+                0,
+                1,
+                8,
+            ),
+            $pipeResult,
+        );
+
+        self::assertEquals(
+            $this->loc(
+                Phel::list([
+                    Symbol::create(Symbol::NAME_FN),
+                    Phel::vector([
+                        Symbol::create('__short_fn_1_1'),
+                    ]),
+                    $this->loc(
+                        Phel::list([
+                            $this->loc(Symbol::create('add'), 1, 2, 1, 5),
+                            $this->loc(Symbol::create('__short_fn_1_1'), 1, 6, 1, 7),
+                        ]),
+                        1,
+                        0,
+                        1,
+                        8,
+                    ),
+                ]),
+                1,
+                0,
+                1,
+                8,
+            ),
+            $hashResult,
         );
     }
 
