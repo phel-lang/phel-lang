@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Add `eval-str` function to `phel\repl` for evaluating Phel code strings and returning the result
 - Add `macroexpand-1` and `macroexpand` macros to `phel\repl` plus `macroexpand-1-form` and `macroexpand-form` functions for macro expansion without compile/emit, enabling nREPL macroexpand support
 - Add `macroexpand1()` and `macroexpand()` methods to `CompilerFacade` exposing macro expansion to PHP consumers
 - Add `ns-list` function to `phel\repl` returning a sorted vector of human-readable namespace names (decodes munged underscores back to hyphens)

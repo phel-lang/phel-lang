@@ -154,6 +154,16 @@
         res (php/-> cf (compile s opts))]
     (php/-> res (getCode))))
 
+(defn eval-str
+  "Evaluates a string of Phel code and returns the result.
+  If the string contains multiple expressions, returns the result of the last one."
+  {:example "(eval-str \"(+ 1 2)\") ; => 3"
+   :see-also ["compile-str" "load-file"]}
+  [s]
+  (let [cf (php/new CompilerFacade)
+        opts (php/new CompileOptions)]
+    (php/-> cf (eval s opts))))
+
 (defn load-file
   "Loads and evaluates a Phel source file in the current REPL session.
   Reads the file content and evaluates it using the compiler, preserving

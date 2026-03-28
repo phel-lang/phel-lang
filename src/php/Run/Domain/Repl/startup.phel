@@ -2,7 +2,7 @@
 (ns user
   (:require phel\repl :refer [doc require use print-colorful println-colorful
                                dir apropos search-doc symbol-info load-file source
-                               test-ns macroexpand-1 macroexpand ns-list])
+                               test-ns eval-str macroexpand-1 macroexpand ns-list])
   (:require phel\pprint :refer [pprint pprint-str])
   (:require phel\walk :refer [walk postwalk prewalk postwalk-replace
                                prewalk-replace keywordize-keys stringify-keys]))

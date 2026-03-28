@@ -32,6 +32,7 @@ final class ReplReferInjector
                 Symbol::create('load-file'),
                 Symbol::create('source'),
                 Symbol::create('test-ns'),
+                Symbol::create('eval-str'),
                 Symbol::create('macroexpand-1'),
                 Symbol::create('macroexpand'),
                 Symbol::create('ns-list'),
