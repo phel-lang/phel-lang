@@ -31,6 +31,54 @@
   (is (thrown? \InvalidArgumentException (describe 3.14))
       "throws for unimplemented type"))
 
+;; --- Additional primitive types ---
+
+(defprotocol TypeLabeler
+  (type-label [this]))
+
+(extend-type :boolean
+  TypeLabeler
+  (type-label [b] (if b "true" "false")))
+
+(extend-type :float
+  TypeLabeler
+  (type-label [f] (str "float:" f)))
+
+(extend-type :vector
+  TypeLabeler
+  (type-label [v] (str "vec:" (count v))))
+
+(extend-type :list
+  TypeLabeler
+  (type-label [l] (str "list:" (count l))))
+
+(extend-type :hash-map
+  TypeLabeler
+  (type-label [m] (str "map:" (count m))))
+
+(extend-type :set
+  TypeLabeler
+  (type-label [s] (str "set:" (count s))))
+
+(deftest test-protocol-dispatch-boolean
+  (is (= "true" (type-label true)) "dispatches on boolean true")
+  (is (= "false" (type-label false)) "dispatches on boolean false"))
+
+(deftest test-protocol-dispatch-float
+  (is (= "float:3.14" (type-label 3.14)) "dispatches on float"))
+
+(deftest test-protocol-dispatch-vector
+  (is (= "vec:3" (type-label [1 2 3])) "dispatches on vector"))
+
+(deftest test-protocol-dispatch-list
+  (is (= "list:2" (type-label '(a b))) "dispatches on list"))
+
+(deftest test-protocol-dispatch-hash-map
+  (is (= "map:2" (type-label {:a 1 :b 2})) "dispatches on hash-map"))
+
+(deftest test-protocol-dispatch-set
+  (is (= "set:3" (type-label (hash-set 1 2 3))) "dispatches on set"))
+
 ;; --- nil dispatch ---
 
 (defprotocol Nullable
@@ -103,3 +151,38 @@
 (deftest test-multiple-protocols-on-type
   (is (= "string: hello" (describe "hello")) "Describable still works")
   (is (= 5 (measure "hello")) "Measurable also works"))
+
+;; --- Overwrite semantics ---
+
+(defprotocol Versioned
+  (version [this]))
+
+(extend-type :string
+  Versioned
+  (version [_] "v1"))
+
+(extend-type :string
+  Versioned
+  (version [_] "v2"))
+
+(deftest test-extend-type-overwrites
+  (is (= "v2" (version "hi")) "second extend-type overwrites first"))
+
+;; --- Multi-method protocol with satisfies? checking all methods ---
+
+(defprotocol TwoMethods
+  (method-a [this])
+  (method-b [this]))
+
+(extend-type :string
+  TwoMethods
+  (method-a [s] (str "a:" s))
+  (method-b [s] (str "b:" s)))
+
+(deftest test-multi-method-protocol
+  (is (= "a:hi" (method-a "hi")) "method-a dispatches")
+  (is (= "b:hi" (method-b "hi")) "method-b dispatches")
+  (is (true? (satisfies? TwoMethods "hi")) "satisfies with all methods"))
+
+(deftest test-satisfies-false-without-impl
+  (is (false? (satisfies? TwoMethods 42)) "no impl means not satisfied"))

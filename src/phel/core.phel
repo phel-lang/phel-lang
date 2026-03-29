@@ -3284,7 +3284,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 
   Creates a dispatching function for each method that dispatches on the type
   of the first argument. Use `extend-type` to add implementations."
-  {:example "(defprotocol Stringable (to-string [this]))"}
+  {:example "(defprotocol Stringable (to-string [this]))"
+   :see-also ["extend-type" "satisfies?" "extends?" "protocol-type-key"]}
   [protocol-name & method-specs]
   (let [pname-str (php/-> protocol-name (getName))
         methods (for [spec :in method-specs
@@ -3308,23 +3309,27 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                   (impl ,@margs)
                   (throw (php/new \InvalidArgumentException
                     (str "No implementation of '" ,mname-str
-                         "' for type: " (type ,(first margs))))))))))))
+                         "' for type: " (protocol-type-key ,(first margs))))))))))))
 
 (defmacro extend-type
   "Extends a type with protocol method implementations.
 
   type-spec can be:
   - `nil` for the nil type
-  - a keyword like `:string`, `:int`, `:vector` for Phel primitive types
+  - a type keyword matching what `type` returns: `:string`, `:int`, `:float`,
+    `:boolean`, `:keyword`, `:symbol`, `:vector`, `:list`, `:hash-map`, `:set`,
+    `:var`, `:function`, `:php/array`
   - a symbol for struct names (resolved in current namespace)
-  - a string for explicit PHP class names (cross-namespace structs)"
-  {:example "(extend-type :string Stringable (to-string [s] s))"}
+  - a string for explicit PHP class names (cross-namespace structs)
+
+  Note: `:struct` and `:php/object` cannot be used as type-specs because
+  protocol dispatch resolves these to their specific PHP class names.
+  Use a struct symbol or PHP class name string instead."
+  {:example "(extend-type :string Stringable (to-string [s] s))"
+   :see-also ["defprotocol" "satisfies?" "extends?" "protocol-type-key"]}
   [type-spec & specs]
   (let [type-key (cond
                    (nil? type-spec) :nil
-                   (and (php/instanceof type-spec Symbol)
-                        (= "nil" (php/-> type-spec (getName))))
-                   :nil
                    (keyword? type-spec) type-spec
                    (php/is_string type-spec) type-spec
                    (php/instanceof type-spec Symbol)
@@ -3369,24 +3374,26 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     `(do ,@swaps)))
 
 (defn satisfies?
-  "Returns true if x's type implements the given protocol."
-  {:example "(satisfies? Stringable \"hello\")"}
+  "Returns true if x's type implements all methods of the given protocol."
+  {:example "(satisfies? Stringable \"hello\")"
+   :see-also ["extends?" "defprotocol" "extend-type"]}
   [protocol x]
   (let [key (protocol-type-key x)
         dvars (get protocol :dispatch)]
     (if (or (nil? dvars) (empty? dvars))
       false
-      (not (nil? (get (deref (first dvars)) key))))))
+      (every? (fn [dv] (not (nil? (get (deref dv) key)))) dvars))))
 
 (defn extends?
-  "Returns true if the given type-key has been extended to the protocol.
-  type-key should match what protocol-type-key returns for that type."
-  {:example "(extends? Stringable :string)"}
+  "Returns true if the given type-key has implementations for all methods
+  of the protocol. type-key should match what protocol-type-key returns."
+  {:example "(extends? Stringable :string)"
+   :see-also ["satisfies?" "defprotocol" "extend-type"]}
   [protocol type-key]
   (let [dvars (get protocol :dispatch)]
     (if (or (nil? dvars) (empty? dvars))
       false
-      (not (nil? (get (deref (first dvars)) type-key))))))
+      (every? (fn [dv] (not (nil? (get (deref dv) type-key)))) dvars))))
 
 ;; ------------
 ;; Multimethods
