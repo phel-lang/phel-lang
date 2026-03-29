@@ -3167,6 +3167,21 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
         (hash-set)
         direct))))
 
+(defn- isa-in?
+  "Checks if child is (transitively) a descendant of parent in parents-map.
+  Walks up the parent chain without building the full ancestor set."
+  [parents-map child parent]
+  (let [direct (get parents-map child)]
+    (if (nil? direct)
+      false
+      (if (contains? direct parent)
+        true
+        (reduce
+          (fn [found p]
+            (if found found (isa-in? parents-map p parent)))
+          false
+          direct)))))
+
 (defn isa?
   "Returns true if child equals parent, or child is a descendant of parent
   in the global hierarchy."
@@ -3174,7 +3189,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
    :see-also ["derive" "parents" "ancestors" "descendants"]}
   [child parent]
   (or (= child parent)
-      (contains? (compute-ancestors (get @*hierarchy* :parents) child) parent)))
+      (isa-in? (get @*hierarchy* :parents) child parent)))
 
 (defn derive
   "Establishes a parent/child relationship between child and parent keywords
@@ -3242,12 +3257,13 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   "Finds the best matching method for dispatch-val using the global hierarchy.
   Returns the method function or nil. Used internally by defmulti."
   [methods dispatch-val]
-  (let [method-keys (keys methods)
+  (let [parents-map (get @*hierarchy* :parents)
+        method-keys (keys methods)
         candidates (reduce
                      (fn [acc k]
                        (if (and (not= k :default)
                                 (not= k dispatch-val)
-                                (isa? dispatch-val k))
+                                (isa-in? parents-map dispatch-val k))
                          (conj acc k)
                          acc))
                      []
@@ -3257,7 +3273,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
         (get methods (first candidates))
         (let [best (reduce
                      (fn [best k]
-                       (if (isa? k best)
+                       (if (isa-in? parents-map k best)
                          k
                          best))
                      (first candidates)
@@ -3270,13 +3286,24 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 
 (defn protocol-type-key
   "Returns the dispatch key for protocol dispatch. Returns a type keyword
-  for primitive types, or the PHP class name string for objects/structs."
+  for primitive types, or the PHP class name string for objects/structs.
+
+  Optimized to avoid the full `type` cond chain: checks scalars first
+  (most common in tight loops), then objects."
   {:see-also ["defprotocol" "extend-type" "satisfies?"]}
   [x]
-  (let [t (type x)]
-    (if (or (= t :struct) (= t :php/object))
-      (php/get_class x)
-      t)))
+  (cond
+    (php/is_null x)    :nil
+    (php/is_string x)  :string
+    (php/is_int x)     :int
+    (php/is_float x)   :float
+    (php/is_bool x)    :boolean
+    (php/is_array x)   :php/array
+    (php/is_object x)  (let [t (type x)]
+                         (if (or (= t :struct) (= t :php/object))
+                           (php/get_class x)
+                           t))
+    :unknown))
 
 (defmacro defprotocol
   "Defines a protocol with the given method signatures. Each method signature
@@ -3307,15 +3334,16 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
        ,@(for [[mname mname-str margs dsym] :in methods]
            `(defn ,mname ,margs
               (let [dk (protocol-type-key ,(first margs))
-                    impl (get (deref ,dsym) dk)]
+                    dispatch-table (deref ,dsym)
+                    impl (get dispatch-table dk)]
                 (if impl
                   (impl ,@margs)
-                  (let [default-impl (get (deref ,dsym) :default)]
+                  (let [default-impl (get dispatch-table :default)]
                     (if default-impl
                       (default-impl ,@margs)
                       (throw (php/new \InvalidArgumentException
                         (str "No implementation of '" ,mname-str
-                             "' for type: " (protocol-type-key ,(first margs))))))))))))))
+                             "' for type: " dk))))))))))))
 
 (defmacro extend-type
   "Extends a type with protocol method implementations.
