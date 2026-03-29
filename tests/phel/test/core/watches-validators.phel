@@ -1,0 +1,116 @@
+(ns phel-test\test\core\watches-validators
+  (:require phel\test :refer [deftest is]))
+
+;; --- Watches ---
+
+(deftest test-add-watch-fires-on-swap
+  (let [log (var [])
+        v (var 0)]
+    (add-watch v :logger
+      (fn [key ref old-val new-val]
+        (swap! log (fn [xs] (push xs [old-val new-val])))))
+    (swap! v inc)
+    (swap! v inc)
+    (is (= [[0 1] [1 2]] (deref log)) "watch fires on each swap")))
+
+(deftest test-add-watch-fires-on-set
+  (let [log (var [])
+        v (var :a)]
+    (add-watch v :log
+      (fn [key ref old-val new-val]
+        (swap! log (fn [xs] (push xs new-val)))))
+    (set! v :b)
+    (set! v :c)
+    (is (= [:b :c] (deref log)) "watch fires on set!")))
+
+(deftest test-add-watch-receives-key
+  (let [received-key (var nil)
+        v (var 0)]
+    (add-watch v :my-key
+      (fn [key ref old-val new-val] (set! received-key key)))
+    (swap! v inc)
+    (is (= :my-key (deref received-key)) "watch receives keyword key")))
+
+(deftest test-add-watch-receives-ref
+  (let [ref-is-var (var false)
+        v (var 0)]
+    (add-watch v :ref-check
+      (fn [key ref old-val new-val] (set! ref-is-var (var? ref))))
+    (swap! v inc)
+    (is (true? (deref ref-is-var)) "watch receives variable as ref")))
+
+(deftest test-remove-watch
+  (let [counter (var 0)
+        v (var 0)]
+    (add-watch v :counter (fn [k r o n] (swap! counter inc)))
+    (swap! v inc)
+    (is (= 1 (deref counter)) "watch fires once")
+    (remove-watch v :counter)
+    (swap! v inc)
+    (is (= 1 (deref counter)) "watch no longer fires")))
+
+(deftest test-multiple-watches
+  (let [log-a (var [])
+        log-b (var [])
+        v (var 0)]
+    (add-watch v :a (fn [k r o n] (swap! log-a (fn [xs] (push xs n)))))
+    (add-watch v :b (fn [k r o n] (swap! log-b (fn [xs] (push xs n)))))
+    (swap! v inc)
+    (is (= [1] (deref log-a)) "watch :a fires")
+    (is (= [1] (deref log-b)) "watch :b fires")))
+
+;; --- Validators ---
+
+(deftest test-set-validator-accepts-valid
+  (let [v (var 10)]
+    (set-validator! v pos?)
+    (set! v 20)
+    (is (= 20 (deref v)) "validator accepts valid value")))
+
+(deftest test-set-validator-rejects-invalid
+  (let [v (var 10)
+        _ (set-validator! v pos?)
+        rejected (try (set! v -1) false (catch \Throwable e true))]
+    (is (true? rejected) "validator rejects negative value")
+    (is (= 10 (deref v)) "value unchanged")))
+
+(deftest test-validator-on-swap
+  (let [v (var 5)
+        _ (set-validator! v pos?)
+        _ (swap! v inc)
+        rejected (try (swap! v (fn [x] (- x 100))) false (catch \Throwable e true))]
+    (is (= 6 (deref v)) "valid swap accepted")
+    (is (true? rejected) "invalid swap rejected")))
+
+(deftest test-remove-validator
+  (let [v (var 10)]
+    (set-validator! v pos?)
+    (set-validator! v nil)
+    (set! v -1)
+    (is (= -1 (deref v)) "after removing validator, any value accepted")))
+
+(deftest test-set-validator-checks-current-value
+  (let [v (var -5)
+        rejected (try (set-validator! v pos?) false (catch \Throwable e true))]
+    (is (true? rejected) "setting validator rejects current value")))
+
+;; --- Watches + Validators together ---
+
+(deftest test-watches-fire-after-validator-passes
+  (let [log (var [])
+        v (var 1)]
+    (set-validator! v pos?)
+    (add-watch v :log (fn [k r o n] (swap! log (fn [xs] (push xs n)))))
+    (swap! v inc)
+    (is (= [2] (deref log)) "watch fires when validator passes")))
+
+(deftest test-watches-dont-fire-when-validator-rejects
+  (let [fired (var false)
+        v (var 1)
+        _ (set-validator! v pos?)
+        _ (add-watch v :log (fn [k r o n] (set! fired true)))]
+    (try (set! v -1) (catch \Throwable e nil))
+    (is (false? (deref fired)) "watch does not fire when rejected")))
+
+
+

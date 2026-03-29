@@ -1147,6 +1147,38 @@ Otherwise, it tries to call `__toString`."
     (set! variable next)
     next))
 
+(defn add-watch
+  "Adds a watch function to a variable. The watch fn is called when the variable
+  changes with four arguments: key, ref, old-value, new-value."
+  {:example "(add-watch my-var :logger (fn [key ref old new] (println old \"->\" new)))"
+   :see-also ["remove-watch" "var" "swap!"]}
+  [variable key f]
+  (php/-> variable (addWatch (name key) f))
+  variable)
+
+(defn remove-watch
+  "Removes a watch function from a variable by key."
+  {:see-also ["add-watch"]}
+  [variable key]
+  (php/-> variable (removeWatch (name key)))
+  variable)
+
+(defn set-validator!
+  "Sets a validator function on a variable. The validator is called before any
+  state change with the proposed new value. If it returns a falsy value, an
+  exception is thrown and the state is not changed. Pass nil to remove."
+  {:example "(set-validator! my-var pos?)"
+   :see-also ["get-validator" "var"]}
+  [variable f]
+  (php/-> variable (setValidator f))
+  variable)
+
+(defn get-validator
+  "Returns the validator function of a variable, or nil."
+  {:see-also ["set-validator!"]}
+  [variable]
+  (php/-> variable (getValidator)))
+
 ;; --------
 ;; For loop
 ;; --------

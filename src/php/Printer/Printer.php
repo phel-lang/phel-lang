@@ -13,6 +13,7 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\FnInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
+use Phel\Lang\Variable;
 use Phel\Printer\TypePrinter\AnonymousClassPrinter;
 use Phel\Printer\TypePrinter\ArrayPrinter;
 use Phel\Printer\TypePrinter\BooleanPrinter;
@@ -33,6 +34,7 @@ use Phel\Printer\TypePrinter\StructPrinter;
 use Phel\Printer\TypePrinter\SymbolPrinter;
 use Phel\Printer\TypePrinter\ToStringPrinter;
 use Phel\Printer\TypePrinter\TypePrinterInterface;
+use Phel\Printer\TypePrinter\VariablePrinter;
 use ReflectionClass;
 use RuntimeException;
 
@@ -110,6 +112,10 @@ final readonly class Printer implements PrinterInterface
 
         if ($form instanceof Symbol) {
             return new SymbolPrinter($this->withColor);
+        }
+
+        if ($form instanceof Variable) {
+            return new VariablePrinter($this);
         }
 
         if ($form instanceof FnInterface) {
