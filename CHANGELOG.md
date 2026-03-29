@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Add `ex-info`, `ex-data`, `ex-message`, `ex-cause` for rich structured exceptions with data maps (#1149)
 - Add Clojure-style anonymous function shorthand `#(...)` with `%`, `%1`, `%2`, `%&` parameter placeholders as alternative to `|(...)` syntax (#1146)
 - Deprecation warnings for `#` line comments (use `;` instead) and `#| |#` multiline comments (use `(comment ...)` instead) (#1146)
 - Add `eval-capturing` function to `phel\repl` for evaluating code strings while capturing stdout separately from return values, enabling nREPL transport support
