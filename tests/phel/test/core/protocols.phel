@@ -1,0 +1,257 @@
+(ns phel-test\test\core\protocols
+  (:require phel\test :refer [deftest is]))
+
+;; --- Protocol definition and basic dispatch ---
+
+(defprotocol Describable
+  (describe [this]))
+
+(extend-type :string
+  Describable
+  (describe [s] (str "string: " s)))
+
+(extend-type :int
+  Describable
+  (describe [n] (str "int: " n)))
+
+(extend-type :keyword
+  Describable
+  (describe [k] (str "keyword: " k)))
+
+(deftest test-protocol-dispatch-string
+  (is (= "string: hello" (describe "hello")) "dispatches on string"))
+
+(deftest test-protocol-dispatch-int
+  (is (= "int: 42" (describe 42)) "dispatches on int"))
+
+(deftest test-protocol-dispatch-keyword
+  (is (= "keyword: :foo" (describe :foo)) "dispatches on keyword"))
+
+(deftest test-protocol-no-impl-throws
+  (is (thrown? \InvalidArgumentException (describe 3.14))
+      "throws for unimplemented type"))
+
+;; --- Additional primitive types ---
+
+(defprotocol TypeLabeler
+  (type-label [this]))
+
+(extend-type :boolean
+  TypeLabeler
+  (type-label [b] (if b "true" "false")))
+
+(extend-type :float
+  TypeLabeler
+  (type-label [f] (str "float:" f)))
+
+(extend-type :vector
+  TypeLabeler
+  (type-label [v] (str "vec:" (count v))))
+
+(extend-type :list
+  TypeLabeler
+  (type-label [l] (str "list:" (count l))))
+
+(extend-type :hash-map
+  TypeLabeler
+  (type-label [m] (str "map:" (count m))))
+
+(extend-type :set
+  TypeLabeler
+  (type-label [s] (str "set:" (count s))))
+
+(deftest test-protocol-dispatch-boolean
+  (is (= "true" (type-label true)) "dispatches on boolean true")
+  (is (= "false" (type-label false)) "dispatches on boolean false"))
+
+(deftest test-protocol-dispatch-float
+  (is (= "float:3.14" (type-label 3.14)) "dispatches on float"))
+
+(deftest test-protocol-dispatch-vector
+  (is (= "vec:3" (type-label [1 2 3])) "dispatches on vector"))
+
+(deftest test-protocol-dispatch-list
+  (is (= "list:2" (type-label '(a b))) "dispatches on list"))
+
+(deftest test-protocol-dispatch-hash-map
+  (is (= "map:2" (type-label {:a 1 :b 2})) "dispatches on hash-map"))
+
+(deftest test-protocol-dispatch-set
+  (is (= "set:3" (type-label (hash-set 1 2 3))) "dispatches on set"))
+
+;; --- nil dispatch ---
+
+(defprotocol Nullable
+  (nil-safe [this]))
+
+(extend-type nil
+  Nullable
+  (nil-safe [_] "was nil"))
+
+(extend-type :string
+  Nullable
+  (nil-safe [s] s))
+
+(deftest test-protocol-nil-dispatch
+  (is (= "was nil" (nil-safe nil)) "dispatches on nil")
+  (is (= "hello" (nil-safe "hello")) "dispatches on string"))
+
+;; --- Multi-arg methods ---
+
+(defprotocol Greetable
+  (greet [this name]))
+
+(extend-type :string
+  Greetable
+  (greet [title name] (str "Hello " name ", " title)))
+
+(deftest test-protocol-multi-arg
+  (is (= "Hello World, Sir" (greet "Sir" "World")) "multi-arg dispatch"))
+
+;; --- satisfies? ---
+
+(deftest test-satisfies
+  (is (true? (satisfies? Describable "hello")) "string satisfies Describable")
+  (is (true? (satisfies? Describable 42)) "int satisfies Describable")
+  (is (false? (satisfies? Describable 3.14)) "float does not satisfy Describable"))
+
+;; --- extends? ---
+
+(deftest test-extends
+  (is (true? (extends? Describable :string)) "string extends Describable")
+  (is (true? (extends? Describable :int)) "int extends Describable")
+  (is (false? (extends? Describable :float)) "float does not extend Describable"))
+
+;; --- Struct dispatch ---
+
+(defstruct ProtoPoint [x y])
+
+(defprotocol Printable
+  (to-label [this]))
+
+(extend-type ProtoPoint
+  Printable
+  (to-label [p] (str "(" (get p :x) ", " (get p :y) ")")))
+
+(deftest test-protocol-struct-dispatch
+  (is (= "(1, 2)" (to-label (ProtoPoint 1 2))) "dispatches on struct"))
+
+(deftest test-satisfies-struct
+  (is (true? (satisfies? Printable (ProtoPoint 1 2))) "struct satisfies protocol"))
+
+;; --- Multiple protocols on same type ---
+
+(defprotocol Measurable
+  (measure [this]))
+
+(extend-type :string
+  Measurable
+  (measure [s] (php/strlen s)))
+
+(deftest test-multiple-protocols-on-type
+  (is (= "string: hello" (describe "hello")) "Describable still works")
+  (is (= 5 (measure "hello")) "Measurable also works"))
+
+;; --- Overwrite semantics ---
+
+(defprotocol Versioned
+  (version [this]))
+
+(extend-type :string
+  Versioned
+  (version [_] "v1"))
+
+(extend-type :string
+  Versioned
+  (version [_] "v2"))
+
+(deftest test-extend-type-overwrites
+  (is (= "v2" (version "hi")) "second extend-type overwrites first"))
+
+;; --- Multi-method protocol with satisfies? checking all methods ---
+
+(defprotocol TwoMethods
+  (method-a [this])
+  (method-b [this]))
+
+(extend-type :string
+  TwoMethods
+  (method-a [s] (str "a:" s))
+  (method-b [s] (str "b:" s)))
+
+(deftest test-multi-method-protocol
+  (is (= "a:hi" (method-a "hi")) "method-a dispatches")
+  (is (= "b:hi" (method-b "hi")) "method-b dispatches")
+  (is (true? (satisfies? TwoMethods "hi")) "satisfies with all methods"))
+
+(deftest test-satisfies-false-without-impl
+  (is (false? (satisfies? TwoMethods 42)) "no impl means not satisfied"))
+
+;; --- Default fallback ---
+
+(defprotocol Showable
+  (show [this]))
+
+(extend-type :default
+  Showable
+  (show [x] (str "default:" (type x))))
+
+(extend-type :string
+  Showable
+  (show [s] (str "string:" s)))
+
+(deftest test-protocol-default-fallback
+  (is (= "string:hi" (show "hi")) "exact match preferred over default")
+  (is (= "default::int" (show 42)) "default used for unregistered type")
+  (is (= "default::float" (show 3.14)) "default used for float")
+  (is (= "default::nil" (show nil)) "default used for nil"))
+
+;; --- extend-protocol convenience ---
+
+(defprotocol Sizeable
+  (size [this]))
+
+(extend-protocol Sizeable
+  :string (size [s] (php/strlen s))
+  :vector (size [v] (count v))
+  :hash-map (size [m] (count m)))
+
+(deftest test-extend-protocol
+  (is (= 5 (size "hello")) "extend-protocol string")
+  (is (= 3 (size [1 2 3])) "extend-protocol vector")
+  (is (= 2 (size {:a 1 :b 2})) "extend-protocol hash-map"))
+
+;; --- extend-type with multiple protocols at once ---
+
+(defprotocol Nameable
+  (get-name [this]))
+
+(defprotocol Ageable
+  (get-age [this]))
+
+(extend-type :hash-map
+  Nameable
+  (get-name [m] (get m :name))
+  Ageable
+  (get-age [m] (get m :age)))
+
+(deftest test-extend-type-multiple-protocols
+  (let [person {:name "Alice" :age 30}]
+    (is (= "Alice" (get-name person)) "first protocol from multi-extend")
+    (is (= 30 (get-age person)) "second protocol from multi-extend")))
+
+;; --- Protocol with multi-expression body ---
+
+(defprotocol Summarizable
+  (summarize [this]))
+
+(extend-type :vector
+  Summarizable
+  (summarize [v]
+    (let [n (count v)
+          first-item (first v)]
+      (str n " items, first: " first-item))))
+
+(deftest test-protocol-multi-expression-body
+  (is (= "3 items, first: :a" (summarize [:a :b :c]))
+      "multi-expression body works"))

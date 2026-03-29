@@ -3167,6 +3167,21 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
         (hash-set)
         direct))))
 
+(defn- isa-in?
+  "Checks if child is (transitively) a descendant of parent in parents-map.
+  Walks up the parent chain without building the full ancestor set."
+  [parents-map child parent]
+  (let [direct (get parents-map child)]
+    (if (nil? direct)
+      false
+      (if (contains? direct parent)
+        true
+        (reduce
+          (fn [found p]
+            (if found found (isa-in? parents-map p parent)))
+          false
+          direct)))))
+
 (defn isa?
   "Returns true if child equals parent, or child is a descendant of parent
   in the global hierarchy."
@@ -3174,7 +3189,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
    :see-also ["derive" "parents" "ancestors" "descendants"]}
   [child parent]
   (or (= child parent)
-      (contains? (compute-ancestors (get @*hierarchy* :parents) child) parent)))
+      (isa-in? (get @*hierarchy* :parents) child parent)))
 
 (defn derive
   "Establishes a parent/child relationship between child and parent keywords
@@ -3242,12 +3257,13 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   "Finds the best matching method for dispatch-val using the global hierarchy.
   Returns the method function or nil. Used internally by defmulti."
   [methods dispatch-val]
-  (let [method-keys (keys methods)
+  (let [parents-map (get @*hierarchy* :parents)
+        method-keys (keys methods)
         candidates (reduce
                      (fn [acc k]
                        (if (and (not= k :default)
                                 (not= k dispatch-val)
-                                (isa? dispatch-val k))
+                                (isa-in? parents-map dispatch-val k))
                          (conj acc k)
                          acc))
                      []
@@ -3257,12 +3273,197 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
         (get methods (first candidates))
         (let [best (reduce
                      (fn [best k]
-                       (if (isa? k best)
+                       (if (isa-in? parents-map k best)
                          k
                          best))
                      (first candidates)
                      (rest candidates))]
           (get methods best))))))
+
+;; ---------
+;; Protocols
+;; ---------
+
+(defn protocol-type-key
+  "Returns the dispatch key for protocol dispatch. Returns a type keyword
+  for primitive types, or the PHP class name string for objects/structs.
+
+  Optimized to avoid the full `type` cond chain: checks scalars first
+  (most common in tight loops), then objects."
+  {:see-also ["defprotocol" "extend-type" "satisfies?"]}
+  [x]
+  (cond
+    (php/is_null x)    :nil
+    (php/is_string x)  :string
+    (php/is_int x)     :int
+    (php/is_float x)   :float
+    (php/is_bool x)    :boolean
+    (php/is_array x)   :php/array
+    (php/is_object x)  (let [t (type x)]
+                         (if (or (= t :struct) (= t :php/object))
+                           (php/get_class x)
+                           t))
+    :unknown))
+
+(defmacro defprotocol
+  "Defines a protocol with the given method signatures. Each method signature
+  is a list of (method-name [args]).
+
+  Creates a dispatching function for each method that dispatches on the type
+  of the first argument. Use `extend-type` to add implementations.
+
+  A `:default` type can be registered via `extend-type` as a fallback when
+  no specific type implementation is found."
+  {:example "(defprotocol Stringable (to-string [this]))"
+   :see-also ["extend-type" "satisfies?" "extends?" "protocol-type-key"]}
+  [protocol-name & method-specs]
+  (let [pname-str (php/-> protocol-name (getName))
+        methods (for [spec :in method-specs
+                     :let [mname (first spec)
+                           mname-str (php/-> mname (getName))
+                           margs (second spec)
+                           dsym (php/:: Symbol
+                                  (create (php/. pname-str "--" mname-str "--dispatch")))]]
+                  [mname mname-str margs dsym])]
+    `(do
+       ,@(for [[_ _ _ dsym] :in methods]
+           `(def ,dsym {:private true} (var {})))
+       (def ,protocol-name
+         {:name ,pname-str
+          :dispatch [,@(for [[_ _ _ dsym] :in methods] dsym)]})
+       ,@(for [[mname mname-str margs dsym] :in methods]
+           `(defn ,mname ,margs
+              (let [dk (protocol-type-key ,(first margs))
+                    dispatch-table (deref ,dsym)
+                    impl (get dispatch-table dk)]
+                (if impl
+                  (impl ,@margs)
+                  (let [default-impl (get dispatch-table :default)]
+                    (if default-impl
+                      (default-impl ,@margs)
+                      (throw (php/new \InvalidArgumentException
+                        (str "No implementation of '" ,mname-str
+                             "' for type: " dk))))))))))))
+
+(defmacro extend-type
+  "Extends a type with protocol method implementations.
+
+  type-spec can be:
+  - `nil` for the nil type
+  - a type keyword matching what `type` returns: `:string`, `:int`, `:float`,
+    `:boolean`, `:keyword`, `:symbol`, `:vector`, `:list`, `:hash-map`, `:set`,
+    `:var`, `:function`, `:php/array`
+  - a symbol for struct names (resolved in current namespace)
+  - a string for explicit PHP class names (cross-namespace structs)
+
+  Note: `:struct` and `:php/object` cannot be used as type-specs because
+  protocol dispatch resolves these to their specific PHP class names.
+  Use a struct symbol or PHP class name string instead."
+  {:example "(extend-type :string Stringable (to-string [s] s))"
+   :see-also ["defprotocol" "satisfies?" "extends?" "protocol-type-key"]}
+  [type-spec & specs]
+  (when (and (keyword? type-spec)
+             (or (= type-spec :struct) (= type-spec :php/object)))
+    (throw (php/new \InvalidArgumentException
+      (str "Cannot use " type-spec " as extend-type target. "
+           "Protocol dispatch resolves structs/objects to their PHP class name. "
+           "Use a struct symbol or PHP class name string instead."))))
+  (let [type-key (cond
+                   (nil? type-spec) :nil
+                   (keyword? type-spec) type-spec
+                   (php/is_string type-spec) type-spec
+                   (php/instanceof type-spec Symbol)
+                   (let [munge (php/new Munge)
+                         name-str (php/-> type-spec (getName))]
+                     (php/. (php/-> munge (encodeNs *ns*)) "\\" (php/-> munge (encode name-str)))))
+        groups (loop [remaining specs
+                      current-proto nil
+                      current-methods []
+                      result []]
+                 (if (nil? remaining)
+                   (if current-proto
+                     (conj result [current-proto current-methods])
+                     result)
+                   (let [item (first remaining)
+                         rst (next remaining)]
+                     (if (php/instanceof item Symbol)
+                       (recur rst item []
+                              (if current-proto
+                                (conj result [current-proto current-methods])
+                                result))
+                       (recur rst current-proto
+                              (conj current-methods item)
+                              result)))))
+        swaps (reduce
+                (fn [acc group]
+                  (let [proto-name (first group)
+                        methods (second group)
+                        proto-str (php/-> proto-name (getName))]
+                    (reduce
+                      (fn [inner method]
+                        (let [mname-str (php/-> (first method) (getName))
+                              margs (second method)
+                              body (next (next method))
+                              dsym (php/:: Symbol
+                                     (create (php/. proto-str "--" mname-str "--dispatch")))]
+                          (conj inner `(swap! ,dsym assoc ,type-key (fn ,margs ,@body)))))
+                      acc
+                      methods)))
+                []
+                groups)]
+    `(do ,@swaps)))
+
+(defn satisfies?
+  "Returns true if x's type implements all methods of the given protocol."
+  {:example "(satisfies? Stringable \"hello\")"
+   :see-also ["extends?" "defprotocol" "extend-type"]}
+  [protocol x]
+  (let [key (protocol-type-key x)
+        dvars (get protocol :dispatch)]
+    (if (or (nil? dvars) (empty? dvars))
+      false
+      (every? (fn [dv] (not (nil? (get (deref dv) key)))) dvars))))
+
+(defn extends?
+  "Returns true if the given type-key has implementations for all methods
+  of the protocol. type-key should match what protocol-type-key returns."
+  {:example "(extends? Stringable :string)"
+   :see-also ["satisfies?" "defprotocol" "extend-type"]}
+  [protocol type-key]
+  (let [dvars (get protocol :dispatch)]
+    (if (or (nil? dvars) (empty? dvars))
+      false
+      (every? (fn [dv] (not (nil? (get (deref dv) type-key)))) dvars))))
+
+(defmacro extend-protocol
+  "Convenience macro that extends a single protocol to multiple types.
+  Alternates type-specs and method implementations.
+
+  Equivalent to multiple `extend-type` calls."
+  {:example "(extend-protocol Describable
+  :string (describe [s] s)
+  :int (describe [n] (str n)))"
+   :see-also ["extend-type" "defprotocol"]}
+  [protocol-name & specs]
+  (let [groups (loop [remaining specs
+                      current-type nil
+                      current-methods []
+                      result []]
+                 (if (nil? remaining)
+                   (if current-type
+                     (conj result [current-type current-methods])
+                     result)
+                   (let [item (first remaining)
+                         rst (next remaining)]
+                     (if (list? item)
+                       (recur rst current-type (conj current-methods item) result)
+                       (recur rst item []
+                              (if current-type
+                                (conj result [current-type current-methods])
+                                result))))))
+        extend-calls (for [[type-spec methods] :in groups]
+                       `(extend-type ,type-spec ,protocol-name ,@methods))]
+    `(do ,@extend-calls)))
 
 ;; ------------
 ;; Multimethods
