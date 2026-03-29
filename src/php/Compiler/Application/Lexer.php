@@ -21,7 +21,7 @@ final class Lexer implements LexerInterface
         "([ \t]+)", // Whitespace (index: 2)
         "(\r?\n)", // Newline (index: 3)
         '(#_)', // Inline comment (index: 4)
-        "(#(?![_{\\|(])[^\n]*\n?|;[^\n]*\n?)", // Comment (# or ;) (index: 5)
+        "(#(?![_{\\|(\"'])[^\n]*\n?|;[^\n]*\n?)", // Comment (# or ;) (index: 5)
         '(#\{)', // open hash brace (index: 6)
         '(,@)', // unquote-splicing (index: 7)
         "(\()", // open parenthesis (index: 8)
@@ -39,6 +39,7 @@ final class Lexer implements LexerInterface
         '("(?:[^"\\\\]++|\\\\.)*+")', // String (index: 20)
         "([^\(\)\[\]\{\}',`@ \n\r\t\#]+)", // Atom (index: 21)
         '(@)', // deref (index: 22)
+        '(#"(?:[^"\\\\]++|\\\\.)*+")', // regex literal (index: 23)
     ];
 
     private const string MULTILINE_COMMENT_BEGIN = '#|';

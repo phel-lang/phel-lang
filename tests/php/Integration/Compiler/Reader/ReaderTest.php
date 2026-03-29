@@ -1166,6 +1166,14 @@ final class ReaderTest extends TestCase
         );
     }
 
+    public function test_regex_literal(): void
+    {
+        self::assertSame(
+            '/\d+/',
+            $this->read('#"\d+"'),
+        );
+    }
+
     private function read(string $string, bool $withLocation = true): float|bool|int|string|TypeInterface|null
     {
         Symbol::resetGen();

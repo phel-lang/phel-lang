@@ -332,6 +332,17 @@ final class LexerTest extends TestCase
         self::assertStringContainsString('(comment ...)', $warning);
     }
 
+    public function test_regex_literal(): void
+    {
+        self::assertEquals(
+            [
+                new Token(Token::T_REGEX, '#"\d+"', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 6)),
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 6), new SourceLocation('string', 1, 6)),
+            ],
+            $this->lex('#"\d+"'),
+        );
+    }
+
     public function test_deref_token(): void
     {
         self::assertEquals(

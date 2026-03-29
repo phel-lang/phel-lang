@@ -3279,6 +3279,19 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 ;; Regex functions
 ;; ---------------
 
+(defn re-pattern
+  "Returns a PCRE pattern string from `s`. If `s` is already delimited,
+  returns it as-is. Otherwise wraps in `/` delimiters."
+  {:example "(re-pattern \"\\\\d+\") ; => \"/\\\\d+/\""
+   :see-also ["re-find" "re-matches" "re-seq"]}
+  [s]
+  (let [len (php/strlen s)]
+    (if (and (php/>= len 2)
+             (= (php/substr s 0 1) (php/substr s -1))
+             (not (php/ctype_alnum (php/substr s 0 1))))
+      s
+      (str "/" s "/"))))
+
 (defn re-seq
   "Returns a sequence of successive matches of pattern in string."
   {:see-also ["re-find" "re-matches"]}
