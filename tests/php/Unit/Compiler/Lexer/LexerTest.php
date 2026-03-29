@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Lexer;
 
-use Exception;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Lang\SourceLocation;
@@ -333,11 +332,16 @@ final class LexerTest extends TestCase
         self::assertStringContainsString('(comment ...)', $warning);
     }
 
-    public function test_unexpected_state(): void
+    public function test_deref_token(): void
     {
-        $this->expectException(Exception::class);
-
-        $this->lex('@');
+        self::assertEquals(
+            [
+                new Token(Token::T_DEREF, '@', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 1)),
+                new Token(Token::T_ATOM, 'a', new SourceLocation('string', 1, 1), new SourceLocation('string', 1, 2)),
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 2), new SourceLocation('string', 1, 2)),
+            ],
+            $this->lex('@a'),
+        );
     }
 
     private function lex(string $string): array

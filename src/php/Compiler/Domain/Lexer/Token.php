@@ -48,6 +48,8 @@ final readonly class Token
 
     public const int T_ATOM = 21;
 
+    public const int T_DEREF = 22;
+
     public const int T_EOF = 100;
 
     public function __construct(

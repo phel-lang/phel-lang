@@ -180,6 +180,19 @@ final class ParserTest extends TestCase
         );
     }
 
+    public function test_deref(): void
+    {
+        self::assertEquals(
+            new QuoteNode(
+                Token::T_DEREF,
+                $this->loc(1, 0),
+                $this->loc(1, 2),
+                new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
+            ),
+            $this->parse('@a'),
+        );
+    }
+
     public function test_unquote(): void
     {
         self::assertEquals(

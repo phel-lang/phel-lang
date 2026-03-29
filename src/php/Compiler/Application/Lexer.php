@@ -38,6 +38,7 @@ final class Lexer implements LexerInterface
         '(#\()', // hash fn (index: 19)
         '("(?:[^"\\\\]++|\\\\.)*+")', // String (index: 20)
         "([^\(\)\[\]\{\}',`@ \n\r\t\#]+)", // Atom (index: 21)
+        '(@)', // deref (index: 22)
     ];
 
     private const string MULTILINE_COMMENT_BEGIN = '#|';

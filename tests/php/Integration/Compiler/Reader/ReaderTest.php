@@ -215,6 +215,17 @@ final class ReaderTest extends TestCase
         );
     }
 
+    public function test_deref(): void
+    {
+        self::assertEquals(
+            $this->loc(Phel::list([
+                Symbol::create(Symbol::NAME_DEREF),
+                $this->loc(Symbol::create('a'), 1, 1, 1, 2),
+            ]), 1, 0, 1, 2),
+            $this->read('@a'),
+        );
+    }
+
     public function test_comma_outside_quasiquote_is_ignored(): void
     {
         self::assertEquals(
