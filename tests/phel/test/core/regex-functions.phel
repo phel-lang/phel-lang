@@ -68,3 +68,17 @@
 
 (deftest test-regex-literal-is-string
   (is (= "/\\d+/" #"\d+") "regex literal produces delimited string"))
+
+(deftest test-regex-literal-with-slash
+  (is (= "a/b" (re-find #"a/b" "test a/b end")) "regex with forward slash"))
+
+(deftest test-regex-literal-url-pattern
+  (is (= "https://example.com" (re-find #"https?://[^\s]+" "visit https://example.com now"))
+      "regex matching URL with slashes"))
+
+(deftest test-re-pattern
+  (is (= "/\\d+/" (re-pattern "\\d+")) "re-pattern wraps in delimiters")
+  (is (= "/\\d+/" (re-pattern "/\\d+/")) "re-pattern passes through delimited"))
+
+(deftest test-re-pattern-with-re-find
+  (is (= "42" (re-find (re-pattern "\\d+") "abc42def")) "re-pattern result works with re-find"))

@@ -19,6 +19,9 @@ final class RegexParser
         $raw = substr($token->getCode(), 2, -1);
         $pattern = str_replace('\\"', '"', $raw);
 
+        // Escape unescaped forward slashes so /delimiter/ is never broken
+        $pattern = preg_replace('/(?<!\\\\)\\//', '\\/', $pattern) ?? $pattern;
+
         return new StringNode(
             $token->getCode(),
             $token->getStartLocation(),

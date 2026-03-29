@@ -3294,7 +3294,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 
 (defn re-seq
   "Returns a sequence of successive matches of pattern in string."
-  {:see-also ["re-find" "re-matches"]}
+  {:example "(re-seq #\"\\d+\" \"a1b2c3\") ; => [\"1\" \"2\" \"3\"]"
+   :see-also ["re-find" "re-matches"]}
   [re s]
   (let [matches (php/array)
         match-result (php/preg_match_all re s matches)
