@@ -1,0 +1,116 @@
+(ns phel-test\test\core\hierarchy
+  (:require phel\test :refer [deftest is]))
+
+;; Each test uses unique keyword prefixes to avoid state leaking between tests.
+
+;; --- derive / isa? ---
+
+(deftest test-derive-and-isa
+  (derive :d1-square :d1-shape)
+  (is (true? (isa? :d1-square :d1-shape)) "child isa parent")
+  (is (false? (isa? :d1-shape :d1-square)) "parent is not child")
+  (is (true? (isa? :d1-square :d1-square)) "identity: x isa x"))
+
+(deftest test-transitive-isa
+  (derive :t1-b :t1-a)
+  (derive :t1-c :t1-b)
+  (is (true? (isa? :t1-c :t1-a)) "transitive: c isa a via b")
+  (is (true? (isa? :t1-c :t1-b)) "direct: c isa b")
+  (is (false? (isa? :t1-a :t1-c)) "not reverse"))
+
+(deftest test-multiple-parents
+  (derive :mp-child :mp-parent1)
+  (derive :mp-child :mp-parent2)
+  (is (true? (isa? :mp-child :mp-parent1)) "isa first parent")
+  (is (true? (isa? :mp-child :mp-parent2)) "isa second parent"))
+
+(deftest test-cyclic-derivation-throws
+  (derive :cy-a :cy-b)
+  (is (thrown? \InvalidArgumentException (derive :cy-b :cy-a))
+      "cyclic derivation throws"))
+
+;; --- parents ---
+
+(deftest test-parents
+  (derive :p1-child :p1-parent)
+  (let [p (parents :p1-child)]
+    (is (not (nil? p)) "parents returns non-nil")
+    (is (contains? p :p1-parent) "contains the parent")))
+
+(deftest test-parents-nil-for-root
+  (is (nil? (parents :p2-nonexistent)) "no parents returns nil"))
+
+;; --- ancestors ---
+
+(deftest test-ancestors
+  (derive :a1-b :a1-a)
+  (derive :a1-c :a1-b)
+  (let [anc (ancestors :a1-c)]
+    (is (not (nil? anc)) "ancestors returns non-nil")
+    (is (contains? anc :a1-b) "contains direct parent")
+    (is (contains? anc :a1-a) "contains transitive ancestor")))
+
+(deftest test-ancestors-nil-for-root
+  (is (nil? (ancestors :a2-nonexistent)) "no ancestors returns nil"))
+
+;; --- descendants ---
+
+(deftest test-descendants
+  (derive :dc-child :dc-root)
+  (derive :dc-grandchild :dc-child)
+  (let [desc (descendants :dc-root)]
+    (is (not (nil? desc)) "descendants returns non-nil")
+    (is (contains? desc :dc-child) "contains child")
+    (is (contains? desc :dc-grandchild) "contains grandchild")))
+
+(deftest test-descendants-nil-for-leaf
+  (is (nil? (descendants :dc2-nonexistent)) "no descendants returns nil"))
+
+;; --- underive ---
+
+(deftest test-underive
+  (derive :u1-child :u1-parent)
+  (is (true? (isa? :u1-child :u1-parent)) "isa before underive")
+  (underive :u1-child :u1-parent)
+  (is (false? (isa? :u1-child :u1-parent)) "not isa after underive"))
+
+(deftest test-underive-preserves-other-parents
+  (derive :u2-child :u2-p1)
+  (derive :u2-child :u2-p2)
+  (underive :u2-child :u2-p1)
+  (is (false? (isa? :u2-child :u2-p1)) "removed parent gone")
+  (is (true? (isa? :u2-child :u2-p2)) "other parent preserved"))
+
+;; --- make-hierarchy ---
+
+(deftest test-make-hierarchy
+  (let [h (make-hierarchy)]
+    (is (= {:parents {}} h) "fresh hierarchy is empty map")))
+
+;; --- multimethod with hierarchy dispatch ---
+
+;; Multimethods must be top-level (defmulti expands to def)
+(derive :mh-circle :mh-shape)
+(derive :mh-square :mh-shape)
+(defmulti mh-draw :type)
+(defmethod mh-draw :mh-shape [_] "generic shape")
+(defmethod mh-draw :mh-circle [_] "circle")
+
+(deftest test-multimethod-hierarchy-dispatch
+  (is (= "circle" (mh-draw {:type :mh-circle})) "exact match preferred")
+  (is (= "generic shape" (mh-draw {:type :mh-square})) "hierarchy dispatch"))
+
+(derive :ms-rect :ms-shape)
+(derive :ms-colored-rect :ms-rect)
+(defmulti ms-render :type)
+(defmethod ms-render :ms-shape [_] "shape")
+(defmethod ms-render :ms-rect [_] "rect")
+
+(deftest test-multimethod-hierarchy-prefers-specific
+  (is (= "rect" (ms-render {:type :ms-colored-rect})) "prefers most specific ancestor"))
+
+(defmulti mf-process :kind)
+(defmethod mf-process :default [m] "default")
+
+(deftest test-multimethod-default-fallback-with-hierarchy
+  (is (= "default" (mf-process {:kind :mf-unknown})) "falls back to default"))

@@ -3140,6 +3140,130 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
        (definterface* ,name ,@fns)
        ,@defs)))
 
+;; ---------
+;; Hierarchy
+;; ---------
+
+(def ^:private *hierarchy*
+  "Global hierarchy for keyword/symbol taxonomies."
+  (var {:parents {}}))
+
+(defn make-hierarchy
+  "Creates a fresh, empty hierarchy."
+  {:doc "Returns a new hierarchy map with no parent relationships."
+   :see-also ["derive" "isa?" "parents" "ancestors" "descendants"]}
+  []
+  {:parents {}})
+
+(defn- compute-ancestors
+  "Computes all transitive ancestors of tag from a parents map."
+  [parents-map tag]
+  (let [direct (get parents-map tag)]
+    (if (nil? direct)
+      (hash-set)
+      (reduce
+        (fn [acc p]
+          (union acc (hash-set p) (compute-ancestors parents-map p)))
+        (hash-set)
+        direct))))
+
+(defn isa?
+  "Returns true if child equals parent, or child is a descendant of parent
+  in the global hierarchy."
+  {:example "(do (derive :square :shape) (isa? :square :shape)) ; => true"
+   :see-also ["derive" "parents" "ancestors" "descendants"]}
+  [child parent]
+  (or (= child parent)
+      (contains? (compute-ancestors (get @*hierarchy* :parents) child) parent)))
+
+(defn derive
+  "Establishes a parent/child relationship between child and parent keywords
+  in the global hierarchy. Throws on cyclic derivation."
+  {:example "(derive :square :shape)"
+   :see-also ["underive" "isa?" "parents" "ancestors" "descendants"]}
+  [child parent]
+  (when (isa? parent child)
+    (throw (php/new \InvalidArgumentException
+                    (str "Cyclic derivation: " parent " already isa " child))))
+  (swap! *hierarchy*
+    (fn [h]
+      (let [parents-map (get h :parents)
+            old-parents (get parents-map child (hash-set))
+            new-parents (union old-parents (hash-set parent))]
+        {:parents (assoc parents-map child new-parents)})))
+  nil)
+
+(defn underive
+  "Removes a parent/child relationship from the global hierarchy."
+  {:example "(underive :square :shape)"
+   :see-also ["derive" "isa?" "parents" "ancestors" "descendants"]}
+  [child parent]
+  (swap! *hierarchy*
+    (fn [h]
+      (let [parents-map (get h :parents)
+            old-parents (get parents-map child (hash-set))
+            new-parents (difference old-parents (hash-set parent))
+            new-map (if (empty? new-parents)
+                      (dissoc parents-map child)
+                      (assoc parents-map child new-parents))]
+        {:parents new-map})))
+  nil)
+
+(defn parents
+  "Returns the set of immediate parents of tag in the global hierarchy, or nil."
+  {:see-also ["ancestors" "descendants" "derive" "isa?"]}
+  [tag]
+  (let [p (get (get @*hierarchy* :parents) tag)]
+    (when (and p (not (empty? p))) p)))
+
+(defn ancestors
+  "Returns the set of all transitive ancestors of tag, or nil."
+  {:see-also ["parents" "descendants" "derive" "isa?"]}
+  [tag]
+  (let [a (compute-ancestors (get @*hierarchy* :parents) tag)]
+    (when (not (empty? a)) a)))
+
+(defn descendants
+  "Returns the set of all descendants of tag, or nil."
+  {:see-also ["parents" "ancestors" "derive" "isa?"]}
+  [tag]
+  (let [parents-map (get @*hierarchy* :parents)
+        all-children (keys parents-map)
+        result (reduce
+                 (fn [acc child]
+                   (if (contains? (compute-ancestors parents-map child) tag)
+                     (union acc (hash-set child))
+                     acc))
+                 (hash-set)
+                 all-children)]
+    (when (not (empty? result)) result)))
+
+(defn find-hierarchy-method
+  "Finds the best matching method for dispatch-val using the global hierarchy.
+  Returns the method function or nil. Used internally by defmulti."
+  [methods dispatch-val]
+  (let [method-keys (keys methods)
+        candidates (reduce
+                     (fn [acc k]
+                       (if (and (not= k :default)
+                                (not= k dispatch-val)
+                                (isa? dispatch-val k))
+                         (conj acc k)
+                         acc))
+                     []
+                     method-keys)]
+    (when (not (empty? candidates))
+      (if (= 1 (count candidates))
+        (get methods (first candidates))
+        (let [best (reduce
+                     (fn [best k]
+                       (if (isa? k best)
+                         k
+                         best))
+                     (first candidates)
+                     (rest candidates))]
+          (get methods best))))))
+
 ;; ------------
 ;; Multimethods
 ;; ------------
@@ -3164,11 +3288,14 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                method (get methods dispatch-val)]
            (if method
              (apply method args)
-             (let [default-method (get methods :default)]
-               (if default-method
-                 (apply default-method args)
-                 (throw (php/new \InvalidArgumentException
-                                 (str "No method for dispatch value: " dispatch-val)))))))))))
+             (let [hierarchy-method (find-hierarchy-method methods dispatch-val)]
+               (if hierarchy-method
+                 (apply hierarchy-method args)
+                 (let [default-method (get methods :default)]
+                   (if default-method
+                     (apply default-method args)
+                     (throw (php/new \InvalidArgumentException
+                                     (str "No method for dispatch value: " dispatch-val)))))))))))))
 
 (defmacro defmethod
   "Registers a method implementation for a multimethod.
