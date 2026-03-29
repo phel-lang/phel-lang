@@ -6,6 +6,11 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Add `delay`, `force`, `delay?` for deferred computation evaluated at most once and cached (#1155)
+- Add `iteration` function for consuming paginated/cursor-based APIs as lazy sequences (#1157)
+- Add `ex-info`, `ex-data`, `ex-message`, `ex-cause` for rich structured exceptions with data maps (#1149)
+- Add `update-keys`, `update-vals` map utility functions (#1150)
+- Add `parse-long`, `parse-double`, `parse-boolean` safe parsing functions (#1150)
+- Add `abs`, `inf?`, `random-uuid` utility functions (#1150)
 - Add Clojure-style anonymous function shorthand `#(...)` with `%`, `%1`, `%2`, `%&` parameter placeholders as alternative to `|(...)` syntax (#1146)
 - Deprecation warnings for `#` line comments (use `;` instead) and `#| |#` multiline comments (use `(comment ...)` instead) (#1146)
 - Add `eval-capturing` function to `phel\repl` for evaluating code strings while capturing stdout separately from return values, enabling nREPL transport support

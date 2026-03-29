@@ -1,0 +1,48 @@
+(ns phel-test\test\core\iteration
+  (:require phel\test :refer [deftest is]))
+
+(defn- mock-paginated-api
+  "Simulates a paginated API with 3 pages."
+  [cursor]
+  (case cursor
+    0 {:items [1 2 3] :next 1}
+    1 {:items [4 5 6] :next 2}
+    2 {:items [7 8 9] :next nil}
+    nil))
+
+(deftest test-iteration-basic
+  (let [pages (iteration mock-paginated-api
+                {:kf :next :vf :items :initk 0})]
+    (is (= [[1 2 3] [4 5 6] [7 8 9]] (into [] pages))
+        "collects all pages from paginated API")))
+
+(deftest test-iteration-with-take
+  (let [pages (iteration mock-paginated-api
+                {:kf :next :vf :items :initk 0})]
+    (is (= [[1 2 3] [4 5 6]] (into [] (take 2 pages)))
+        "take limits consumed pages")))
+
+(defn- counter-step
+  "Returns value and next key, stops at 5."
+  [n]
+  (when (< n 5)
+    {:val (* n n) :next (inc n)}))
+
+(deftest test-iteration-with-computed-values
+  (let [squares (iteration counter-step
+                  {:kf :next :vf :val :initk 0})]
+    (is (= [0 1 4 9 16] (into [] squares))
+        "computes squares from 0 to 4")))
+
+(deftest test-iteration-empty
+  (let [result (iteration (fn [_] nil) {})]
+    (is (= [] (into [] result))
+        "empty iteration when first step returns nil")))
+
+(deftest test-iteration-defaults
+  ;; With defaults: kf=identity, vf=identity, somef=not-nil
+  (let [result (iteration
+                 (fn [k] (when (< k 3) {:val (* k 10) :next (inc k)}))
+                 {:kf :next :vf :val :initk 0})]
+    (is (= [0 10 20] (into [] result))
+        "iteration with kf and vf")))

@@ -1,0 +1,43 @@
+(ns phel-test\test\core\ex-info
+  (:require phel\test :refer [deftest is]))
+
+(deftest test-ex-info-creates-exception
+  (let [ex (ex-info "bad input" {:field :email})]
+    (is (= "bad input" (ex-message ex)) "ex-message returns the message")
+    (is (= {:field :email} (ex-data ex)) "ex-data returns the data map")
+    (is (nil? (ex-cause ex)) "ex-cause is nil when no cause")))
+
+(deftest test-ex-info-with-cause
+  (let [cause (php/new \Exception "root cause")
+        ex (ex-info "wrapped" {:code 42} cause)]
+    (is (= "wrapped" (ex-message ex)) "ex-message on wrapped exception")
+    (is (= {:code 42} (ex-data ex)) "ex-data on wrapped exception")
+    (is (= "root cause" (ex-message (ex-cause ex))) "ex-cause returns the original")))
+
+(deftest test-ex-info-is-throwable
+  (is (= "caught"
+         (try
+           (throw (ex-info "boom" {:x 1}))
+           (catch \Exception e
+             "caught")))
+       "ex-info exception can be caught"))
+
+(deftest test-ex-data-on-caught-exception
+  (is (= {:x 1}
+         (try
+           (throw (ex-info "boom" {:x 1}))
+           (catch \Exception e
+             (ex-data e))))
+       "ex-data works inside catch block"))
+
+(deftest test-ex-data-on-regular-exception
+  (let [ex (php/new \Exception "plain")]
+    (is (nil? (ex-data ex)) "ex-data returns nil for non-ExInfoException")))
+
+(deftest test-ex-message-on-regular-exception
+  (let [ex (php/new \Exception "hello")]
+    (is (= "hello" (ex-message ex)) "ex-message works on regular exceptions")))
+
+(deftest test-ex-info-with-empty-data
+  (let [ex (ex-info "empty" {})]
+    (is (= {} (ex-data ex)) "ex-data returns empty map")))
