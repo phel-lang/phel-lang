@@ -35,6 +35,7 @@
   (:use Phel\Lang\Seq)
   (:use Phel\Lang\Hasher)
   (:use Phel\Lang\Equalizer)
+  (:use Phel\Lang\ExInfoException)
   (:use Phel\Lang\Collections\LazySeq\LazySeq)
   (:use Phel\Lang\Collections\LazySeq\LazySeqInterface)
   (:use Phel\Lang\Collections\LazySeq\ChunkedSeq)
@@ -2633,6 +2634,19 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [x]
   (php/is_nan x))
 
+(defn inf?
+  "Checks if `x` is infinite."
+  {:example "(inf? php/INF) ; => true"
+   :see-also ["nan?"]}
+  [x]
+  (php/is_infinite x))
+
+(defn abs
+  "Returns the absolute value of `x`."
+  {:example "(abs -5) ; => 5"}
+  [x]
+  (php/abs x))
+
 (defn rand
   "Returns a random number between 0 and 1."
   []
@@ -3225,6 +3239,36 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
         (cons (vf result)
               (iteration step (assoc opts :initk (kf result))))))))
 
+;; --- Rich exceptions ---
+
+(defn ex-info
+  "Creates an exception with a message and a data map. Optionally takes a cause."
+  {:example "(throw (ex-info \"Invalid input\" {:field :email}))"
+   :see-also ["ex-data" "ex-message" "ex-cause"]}
+  ([msg data]
+   (php/new \Phel\Lang\ExInfoException msg data))
+  ([msg data cause]
+   (php/new \Phel\Lang\ExInfoException msg data cause)))
+
+(defn ex-data
+  "Returns the data map from an ex-info exception, or nil if not an ExInfoException."
+  {:see-also ["ex-info" "ex-message" "ex-cause"]}
+  [ex]
+  (when (php/instanceof ex ExInfoException)
+    (php/-> ex (getData))))
+
+(defn ex-message
+  "Returns the message of an exception."
+  {:see-also ["ex-info" "ex-data" "ex-cause"]}
+  [ex]
+  (php/-> ex (getMessage)))
+
+(defn ex-cause
+  "Returns the cause of an exception, or nil."
+  {:see-also ["ex-info" "ex-data" "ex-message"]}
+  [ex]
+  (php/-> ex (getPrevious)))
+
 (defn macroexpand-1
   "Expands the given form once if it is a macro call."
   [form]
@@ -3257,3 +3301,72 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
       (if (= e f)
         e
         (recur e)))))
+
+;; --- Map utilities ---
+
+(defn update-keys
+  "Returns a map with `f` applied to each key."
+  {:example "(update-keys {:a 1 :b 2} name) ; => {\"a\" 1 \"b\" 2}"
+   :see-also ["update-vals" "keys" "update"]}
+  [m f]
+  (for [[k v] :pairs m
+        :reduce [acc {}]]
+    (assoc acc (f k) v)))
+
+(defn update-vals
+  "Returns a map with `f` applied to each value."
+  {:example "(update-vals {:a 1 :b 2} inc) ; => {:a 2 :b 3}"
+   :see-also ["update-keys" "values" "update"]}
+  [m f]
+  (for [[k v] :pairs m
+        :reduce [acc {}]]
+    (assoc acc k (f v))))
+
+;; --- Safe parsing ---
+
+(defn parse-long
+  "Parses a string as an integer. Returns nil if parsing fails."
+  {:example "(parse-long \"123\") ; => 123"
+   :see-also ["parse-double"]}
+  [s]
+  (when (string? s)
+    (let [trimmed (php/trim s)]
+      (when (= 1 (php/preg_match "/^[+-]?[0-9]+$/" trimmed))
+        (php/intval trimmed)))))
+
+(defn parse-double
+  "Parses a string as a float. Returns nil if parsing fails."
+  {:example "(parse-double \"3.14\") ; => 3.14"
+   :see-also ["parse-long"]}
+  [s]
+  (when (string? s)
+    (let [trimmed (php/trim s)]
+      (when (php/is_numeric trimmed)
+        (php/floatval trimmed)))))
+
+(defn parse-boolean
+  "Parses a string as a boolean. Returns true for \"true\", false for \"false\", nil otherwise."
+  {:example "(parse-boolean \"true\") ; => true"}
+  [s]
+  (when (string? s)
+    (let [lower (php/strtolower (php/trim s))]
+      (cond
+        (= lower "true") true
+        (= lower "false") false))))
+
+(defn random-uuid
+  "Returns a random UUID v4 string."
+  {:example "(random-uuid) ; => \"550e8400-e29b-41d4-a716-446655440000\""}
+  []
+  (let [bytes (php/random_bytes 16)]
+    ;; Set version 4 (bits 12-15 of time_hi_and_version)
+    (php/aset bytes 6 (php/chr (bit-or (bit-and (php/ord (php/aget bytes 6)) 0x0f) 0x40)))
+    ;; Set variant (bits 6-7 of clock_seq_hi_and_reserved)
+    (php/aset bytes 8 (php/chr (bit-or (bit-and (php/ord (php/aget bytes 8)) 0x3f) 0x80)))
+    (let [hex (php/bin2hex bytes)]
+      (php/.
+        (php/substr hex 0 8) "-"
+        (php/substr hex 8 4) "-"
+        (php/substr hex 12 4) "-"
+        (php/substr hex 16 4) "-"
+        (php/substr hex 20 12)))))
