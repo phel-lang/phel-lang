@@ -20,3 +20,23 @@
 (deftest test-re-seq-with-capture-doesnt-match
   (let [input "one,1 two,2 none,"]
     (is (= [] (re-seq "/(\w+)=(\w*)/" input)) "regex with capture doesn't match")))
+
+;; --- re-find ---
+
+(deftest test-re-find
+  (is (= "123" (re-find "/\\d+/" "abc123def")) "re-find returns first match")
+  (is (nil? (re-find "/\\d+/" "abcdef")) "re-find returns nil on no match"))
+
+(deftest test-re-find-with-groups
+  (is (= ["12-34" "12" "34"] (re-find "/(\\d+)-(\\d+)/" "abc12-34def"))
+      "re-find with groups returns vector"))
+
+;; --- re-matches ---
+
+(deftest test-re-matches
+  (is (= "12345" (re-matches "/\\d+/" "12345")) "re-matches full string")
+  (is (nil? (re-matches "/\\d+/" "abc123")) "re-matches requires full string match"))
+
+(deftest test-re-matches-with-groups
+  (is (= ["12-34" "12" "34"] (re-matches "/(\\d+)-(\\d+)/" "12-34"))
+      "re-matches with groups"))

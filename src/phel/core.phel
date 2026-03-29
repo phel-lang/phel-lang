@@ -3025,6 +3025,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 
 (defn re-seq
   "Returns a sequence of successive matches of pattern in string."
+  {:see-also ["re-find" "re-matches"]}
   [re s]
   (let [matches (php/array)
         match-result (php/preg_match_all re s matches)
@@ -3032,6 +3033,33 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (if (= (count matches) 1)
       (first matches)
       (doall (apply map vector matches)))))
+
+(defn re-find
+  "Returns the first match of pattern in string, or nil if no match.
+  If the pattern has groups, returns a vector of [full-match group1 group2 ...]."
+  {:example "(re-find #\"\\d+\" \"abc123def\") ; => \"123\""
+   :see-also ["re-seq" "re-matches"]}
+  [re s]
+  (let [matches (php/array)
+        result (php/preg_match re s matches)]
+    (when (= 1 result)
+      (let [matches (php->phel matches)]
+        (if (= 1 (count matches))
+          (first matches)
+          (into [] matches))))))
+
+(defn re-matches
+  "Returns the match, if any, of string to pattern. If the pattern has groups,
+  returns a vector of [full-match group1 group2 ...]. Returns nil if no match.
+  Unlike re-find, the entire string must match."
+  {:example "(re-matches #\"(\\d+)-(\\d+)\" \"12-34\") ; => [\"12-34\" \"12\" \"34\"]"
+   :see-also ["re-find" "re-seq"]}
+  [re s]
+  (let [result (re-find re s)]
+    (when (not (nil? result))
+      (let [full-match (if (string? result) result (first result))]
+        (when (= full-match s)
+          result)))))
 
 ;; -------
 ;; Binding

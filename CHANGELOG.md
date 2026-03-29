@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Add `re-find`, `re-matches` regex functions (#1153)
 - Add `delay`, `force`, `delay?` for deferred computation evaluated at most once and cached (#1155)
 - Add `iteration` function for consuming paginated/cursor-based APIs as lazy sequences (#1157)
 - Add `ex-info`, `ex-data`, `ex-message`, `ex-cause` for rich structured exceptions with data maps (#1149)
