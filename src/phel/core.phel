@@ -3283,7 +3283,10 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   is a list of (method-name [args]).
 
   Creates a dispatching function for each method that dispatches on the type
-  of the first argument. Use `extend-type` to add implementations."
+  of the first argument. Use `extend-type` to add implementations.
+
+  A `:default` type can be registered via `extend-type` as a fallback when
+  no specific type implementation is found."
   {:example "(defprotocol Stringable (to-string [this]))"
    :see-also ["extend-type" "satisfies?" "extends?" "protocol-type-key"]}
   [protocol-name & method-specs]
@@ -3307,9 +3310,12 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                     impl (get (deref ,dsym) dk)]
                 (if impl
                   (impl ,@margs)
-                  (throw (php/new \InvalidArgumentException
-                    (str "No implementation of '" ,mname-str
-                         "' for type: " (protocol-type-key ,(first margs))))))))))))
+                  (let [default-impl (get (deref ,dsym) :default)]
+                    (if default-impl
+                      (default-impl ,@margs)
+                      (throw (php/new \InvalidArgumentException
+                        (str "No implementation of '" ,mname-str
+                             "' for type: " (protocol-type-key ,(first margs))))))))))))))
 
 (defmacro extend-type
   "Extends a type with protocol method implementations.
@@ -3328,6 +3334,12 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   {:example "(extend-type :string Stringable (to-string [s] s))"
    :see-also ["defprotocol" "satisfies?" "extends?" "protocol-type-key"]}
   [type-spec & specs]
+  (when (and (keyword? type-spec)
+             (or (= type-spec :struct) (= type-spec :php/object)))
+    (throw (php/new \InvalidArgumentException
+      (str "Cannot use " type-spec " as extend-type target. "
+           "Protocol dispatch resolves structs/objects to their PHP class name. "
+           "Use a struct symbol or PHP class name string instead."))))
   (let [type-key (cond
                    (nil? type-spec) :nil
                    (keyword? type-spec) type-spec
@@ -3394,6 +3406,36 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (if (or (nil? dvars) (empty? dvars))
       false
       (every? (fn [dv] (not (nil? (get (deref dv) type-key)))) dvars))))
+
+(defmacro extend-protocol
+  "Convenience macro that extends a single protocol to multiple types.
+  Alternates type-specs and method implementations.
+
+  Equivalent to multiple `extend-type` calls."
+  {:example "(extend-protocol Describable
+  :string (describe [s] s)
+  :int (describe [n] (str n)))"
+   :see-also ["extend-type" "defprotocol"]}
+  [protocol-name & specs]
+  (let [groups (loop [remaining specs
+                      current-type nil
+                      current-methods []
+                      result []]
+                 (if (nil? remaining)
+                   (if current-type
+                     (conj result [current-type current-methods])
+                     result)
+                   (let [item (first remaining)
+                         rst (next remaining)]
+                     (if (list? item)
+                       (recur rst current-type (conj current-methods item) result)
+                       (recur rst item []
+                              (if current-type
+                                (conj result [current-type current-methods])
+                                result))))))
+        extend-calls (for [[type-spec methods] :in groups]
+                       `(extend-type ,type-spec ,protocol-name ,@methods))]
+    `(do ,@extend-calls)))
 
 ;; ------------
 ;; Multimethods

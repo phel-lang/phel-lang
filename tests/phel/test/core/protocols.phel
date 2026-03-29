@@ -186,3 +186,72 @@
 
 (deftest test-satisfies-false-without-impl
   (is (false? (satisfies? TwoMethods 42)) "no impl means not satisfied"))
+
+;; --- Default fallback ---
+
+(defprotocol Showable
+  (show [this]))
+
+(extend-type :default
+  Showable
+  (show [x] (str "default:" (type x))))
+
+(extend-type :string
+  Showable
+  (show [s] (str "string:" s)))
+
+(deftest test-protocol-default-fallback
+  (is (= "string:hi" (show "hi")) "exact match preferred over default")
+  (is (= "default::int" (show 42)) "default used for unregistered type")
+  (is (= "default::float" (show 3.14)) "default used for float")
+  (is (= "default::nil" (show nil)) "default used for nil"))
+
+;; --- extend-protocol convenience ---
+
+(defprotocol Sizeable
+  (size [this]))
+
+(extend-protocol Sizeable
+  :string (size [s] (php/strlen s))
+  :vector (size [v] (count v))
+  :hash-map (size [m] (count m)))
+
+(deftest test-extend-protocol
+  (is (= 5 (size "hello")) "extend-protocol string")
+  (is (= 3 (size [1 2 3])) "extend-protocol vector")
+  (is (= 2 (size {:a 1 :b 2})) "extend-protocol hash-map"))
+
+;; --- extend-type with multiple protocols at once ---
+
+(defprotocol Nameable
+  (get-name [this]))
+
+(defprotocol Ageable
+  (get-age [this]))
+
+(extend-type :hash-map
+  Nameable
+  (get-name [m] (get m :name))
+  Ageable
+  (get-age [m] (get m :age)))
+
+(deftest test-extend-type-multiple-protocols
+  (let [person {:name "Alice" :age 30}]
+    (is (= "Alice" (get-name person)) "first protocol from multi-extend")
+    (is (= 30 (get-age person)) "second protocol from multi-extend")))
+
+;; --- Protocol with multi-expression body ---
+
+(defprotocol Summarizable
+  (summarize [this]))
+
+(extend-type :vector
+  Summarizable
+  (summarize [v]
+    (let [n (count v)
+          first-item (first v)]
+      (str n " items, first: " first-item))))
+
+(deftest test-protocol-multi-expression-body
+  (is (= "3 items, first: :a" (summarize [:a :b :c]))
+      "multi-expression body works"))
