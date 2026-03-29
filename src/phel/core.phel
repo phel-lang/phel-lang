@@ -1689,9 +1689,9 @@ Otherwise, it tries to call `__toString`."
     0 (fn [rf]
         (let [nv (volatile! n)]
           (xf-step rf (fn [result input]
-                         (let [n @nv]
-                           (when (php/> n 0) (vreset! nv (php/- n 1)))
-                           (if (php/> n 0) result (rf result input)))))))
+                        (let [n @nv]
+                          (when (php/> n 0) (vreset! nv (php/- n 1)))
+                          (if (php/> n 0) result (rf result input)))))))
     1 (let [coll (first args)]
         (if (nil? coll)
           []
@@ -1737,9 +1737,9 @@ Otherwise, it tries to call `__toString`."
     0 (fn [rf]
         (let [dv (volatile! true)]
           (xf-step rf (fn [result input]
-                         (if (and @dv (pred input))
-                           result
-                           (do (vreset! dv false) (rf result input)))))))
+                        (if (and @dv (pred input))
+                          result
+                          (do (vreset! dv false) (rf result input)))))))
     1 (let [coll (first args)]
         (if (nil? coll)
           []
@@ -1755,10 +1755,10 @@ Otherwise, it tries to call `__toString`."
     0 (fn [rf]
         (let [nv (volatile! n)]
           (xf-step rf (fn [result input]
-                         (let [n @nv
-                               nn (vreset! nv (php/- n 1))
-                               result (if (php/> n 0) (rf result input) result)]
-                           (if (not (php/> nn 0)) (ensure-reduced result) result))))))
+                        (let [n @nv
+                              nn (vreset! nv (php/- n 1))
+                              result (if (php/> n 0) (rf result input) result)]
+                          (if (not (php/> nn 0)) (ensure-reduced result) result))))))
     1 (let [coll (first args)
             n (if (php/< n 0) 0 n)]
         (if (php/=== n 0)
@@ -1785,7 +1785,7 @@ Otherwise, it tries to call `__toString`."
   (case (count args)
     0 (fn [rf]
         (xf-step rf (fn [result input]
-                       (if (pred input) (rf result input) (reduced result)))))
+                      (if (pred input) (rf result input) (reduced result)))))
     1 (let [coll (first args)]
         (if (nil? coll)
           []
@@ -1805,9 +1805,9 @@ Otherwise, it tries to call `__toString`."
     0 (fn [rf]
         (let [iv (volatile! -1)]
           (xf-step rf (fn [result input]
-                         (let [i (vreset! iv (php/+ @iv 1))]
-                           (if (php/=== 0 (php/% i n))
-                             (rf result input) result))))))
+                        (let [i (vreset! iv (php/+ @iv 1))]
+                          (if (php/=== 0 (php/% i n))
+                            (rf result input) result))))))
     1 (let [coll (first args)]
         (if (nil? coll)
           []
@@ -1851,8 +1851,8 @@ Otherwise, it tries to call `__toString`."
   (case (count args)
     0 (fn [rf]
         (xf-step rf (fn [result input]
-                       (let [v (pred input)]
-                         (if (nil? v) result (rf result v))))))
+                      (let [v (pred input)]
+                        (if (nil? v) result (rf result v))))))
     1 (let [coll (first args)]
         (if (nil? coll)
           []
@@ -1870,9 +1870,9 @@ Otherwise, it tries to call `__toString`."
     0 (fn [rf]
         (let [iv (volatile! -1)]
           (xf-step rf (fn [result input]
-                         (let [i (vreset! iv (php/+ @iv 1))
-                               v (pred i input)]
-                           (if (nil? v) result (rf result v)))))))
+                        (let [i (vreset! iv (php/+ @iv 1))
+                              v (pred i input)]
+                          (if (nil? v) result (rf result v)))))))
     1 (let [coll (first args)]
         (if (nil? coll)
           []
@@ -1915,9 +1915,9 @@ Otherwise, it tries to call `__toString`."
     0 (fn [rf]
         (let [seen (volatile! (hash-set))]
           (xf-step rf (fn [result input]
-                         (if (contains? @seen input)
-                           result
-                           (do (vswap! seen conj input) (rf result input)))))))
+                        (if (contains? @seen input)
+                          result
+                          (do (vswap! seen conj input) (rf result input)))))))
     1 (let [coll (first args)]
         (if (nil? coll)
           []
@@ -2408,9 +2408,9 @@ Otherwise, it tries to call `__toString`."
     0 (fn [rf]
         (let [pv (volatile! :phel/none)]
           (xf-step rf (fn [result input]
-                         (let [prior @pv]
-                           (vreset! pv input)
-                           (if (= prior input) result (rf result input)))))))
+                        (let [prior @pv]
+                          (vreset! pv input)
+                          (if (= prior input) result (rf result input)))))))
     1 (let [coll (first args)]
         (cond
           (nil? coll) []
@@ -2566,12 +2566,12 @@ Otherwise, it tries to call `__toString`."
 (defn memoize
   "Returns a memoized version of the function `f`. The memoized function
   caches the return value for each set of arguments."
-  {:example (str 
-              "(defn fact [n]" php/PHP_EOL
-              "  (if (zero? n)" php/PHP_EOL
-              "    1" php/PHP_EOL
-              "    (* n (fact (dec n)))))" php/PHP_EOL
-              "(def fact-memo (memoize fact))")
+  {:example (str
+             "(defn fact [n]" php/PHP_EOL
+             "  (if (zero? n)" php/PHP_EOL
+             "    1" php/PHP_EOL
+             "    (* n (fact (dec n)))))" php/PHP_EOL
+             "(def fact-memo (memoize fact))")
    :see-also ["memoize-lru"]}
   [f]
   (let [memoize-cache (var {})]
@@ -2590,12 +2590,12 @@ Otherwise, it tries to call `__toString`."
   in long-running processes.
 
   Without arguments, uses a default cache size of 128 entries."
-  {:example (str 
-              "(defn fact [n]" php/PHP_EOL
-              "  (if (zero? n)" php/PHP_EOL
-              "    1" php/PHP_EOL
-              "    (* n (fact (dec n)))))" php/PHP_EOL
-              "(def fact-memo (memoize-lru fact 100))")
+  {:example (str
+             "(defn fact [n]" php/PHP_EOL
+             "  (if (zero? n)" php/PHP_EOL
+             "    1" php/PHP_EOL
+             "    (* n (fact (dec n)))))" php/PHP_EOL
+             "(def fact-memo (memoize-lru fact 100))")
    :see-also ["memoize"]}
   ([f] (memoize-lru f 128))
   ([f max-size]
@@ -3386,10 +3386,10 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (if (nil? direct)
       (hash-set)
       (reduce
-        (fn [acc p]
-          (union acc (hash-set p) (compute-ancestors parents-map p)))
-        (hash-set)
-        direct))))
+       (fn [acc p]
+         (union acc (hash-set p) (compute-ancestors parents-map p)))
+       (hash-set)
+       direct))))
 
 (defn- isa-in?
   "Checks if child is (transitively) a descendant of parent in parents-map.
@@ -3401,10 +3401,10 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
       (if (contains? direct parent)
         true
         (reduce
-          (fn [found p]
-            (if found found (isa-in? parents-map p parent)))
-          false
-          direct)))))
+         (fn [found p]
+           (if found found (isa-in? parents-map p parent)))
+         false
+         direct)))))
 
 (defn isa?
   "Returns true if child equals parent, or child is a descendant of parent
@@ -3425,11 +3425,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (throw (php/new \InvalidArgumentException
                     (str "Cyclic derivation: " parent " already isa " child))))
   (swap! *hierarchy*
-    (fn [h]
-      (let [parents-map (get h :parents)
-            old-parents (get parents-map child (hash-set))
-            new-parents (union old-parents (hash-set parent))]
-        {:parents (assoc parents-map child new-parents)})))
+         (fn [h]
+           (let [parents-map (get h :parents)
+                 old-parents (get parents-map child (hash-set))
+                 new-parents (union old-parents (hash-set parent))]
+             {:parents (assoc parents-map child new-parents)})))
   nil)
 
 (defn underive
@@ -3438,14 +3438,14 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
    :see-also ["derive" "isa?" "parents" "ancestors" "descendants"]}
   [child parent]
   (swap! *hierarchy*
-    (fn [h]
-      (let [parents-map (get h :parents)
-            old-parents (get parents-map child (hash-set))
-            new-parents (difference old-parents (hash-set parent))
-            new-map (if (empty? new-parents)
-                      (dissoc parents-map child)
-                      (assoc parents-map child new-parents))]
-        {:parents new-map})))
+         (fn [h]
+           (let [parents-map (get h :parents)
+                 old-parents (get parents-map child (hash-set))
+                 new-parents (difference old-parents (hash-set parent))
+                 new-map (if (empty? new-parents)
+                           (dissoc parents-map child)
+                           (assoc parents-map child new-parents))]
+             {:parents new-map})))
   nil)
 
 (defn parents
@@ -3469,12 +3469,12 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (let [parents-map (get @*hierarchy* :parents)
         all-children (keys parents-map)
         result (reduce
-                 (fn [acc child]
-                   (if (contains? (compute-ancestors parents-map child) tag)
-                     (union acc (hash-set child))
-                     acc))
-                 (hash-set)
-                 all-children)]
+                (fn [acc child]
+                  (if (contains? (compute-ancestors parents-map child) tag)
+                    (union acc (hash-set child))
+                    acc))
+                (hash-set)
+                all-children)]
     (when (not (empty? result)) result)))
 
 (defn find-hierarchy-method
@@ -3484,24 +3484,24 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (let [parents-map (get @*hierarchy* :parents)
         method-keys (keys methods)
         candidates (reduce
-                     (fn [acc k]
-                       (if (and (not= k :default)
-                                (not= k dispatch-val)
-                                (isa-in? parents-map dispatch-val k))
-                         (conj acc k)
-                         acc))
-                     []
-                     method-keys)]
+                    (fn [acc k]
+                      (if (and (not= k :default)
+                               (not= k dispatch-val)
+                               (isa-in? parents-map dispatch-val k))
+                        (conj acc k)
+                        acc))
+                    []
+                    method-keys)]
     (when (not (empty? candidates))
       (if (= 1 (count candidates))
         (get methods (first candidates))
         (let [best (reduce
-                     (fn [best k]
-                       (if (isa-in? parents-map k best)
-                         k
-                         best))
-                     (first candidates)
-                     (rest candidates))]
+                    (fn [best k]
+                      (if (isa-in? parents-map k best)
+                        k
+                        best))
+                    (first candidates)
+                    (rest candidates))]
           (get methods best))))))
 
 ;; ---------
@@ -3543,11 +3543,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [protocol-name & method-specs]
   (let [pname-str (php/-> protocol-name (getName))
         methods (for [spec :in method-specs
-                     :let [mname (first spec)
-                           mname-str (php/-> mname (getName))
-                           margs (second spec)
-                           dsym (php/:: Symbol
-                                  (create (php/. pname-str "--" mname-str "--dispatch")))]]
+                      :let [mname (first spec)
+                            mname-str (php/-> mname (getName))
+                            margs (second spec)
+                            dsym (php/:: Symbol
+                                         (create (php/. pname-str "--" mname-str "--dispatch")))]]
                   [mname mname-str margs dsym])]
     `(do
        ,@(for [[_ _ _ dsym] :in methods]
@@ -3566,8 +3566,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                     (if default-impl
                       (default-impl ,@margs)
                       (throw (php/new \InvalidArgumentException
-                        (str "No implementation of '" ,mname-str
-                             "' for type: " dk))))))))))))
+                                      (str "No implementation of '" ,mname-str
+                                           "' for type: " dk))))))))))))
 
 (defmacro extend-type
   "Extends a type with protocol method implementations.
@@ -3589,9 +3589,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (when (and (keyword? type-spec)
              (or (= type-spec :struct) (= type-spec :php/object)))
     (throw (php/new \InvalidArgumentException
-      (str "Cannot use " type-spec " as extend-type target. "
-           "Protocol dispatch resolves structs/objects to their PHP class name. "
-           "Use a struct symbol or PHP class name string instead."))))
+                    (str "Cannot use " type-spec " as extend-type target. "
+                         "Protocol dispatch resolves structs/objects to their PHP class name. "
+                         "Use a struct symbol or PHP class name string instead."))))
   (let [type-key (cond
                    (nil? type-spec) :nil
                    (keyword? type-spec) type-spec
@@ -3619,22 +3619,22 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                               (conj current-methods item)
                               result)))))
         swaps (reduce
-                (fn [acc group]
-                  (let [proto-name (first group)
-                        methods (second group)
-                        proto-str (php/-> proto-name (getName))]
-                    (reduce
-                      (fn [inner method]
-                        (let [mname-str (php/-> (first method) (getName))
-                              margs (second method)
-                              body (next (next method))
-                              dsym (php/:: Symbol
-                                     (create (php/. proto-str "--" mname-str "--dispatch")))]
-                          (conj inner `(swap! ,dsym assoc ,type-key (fn ,margs ,@body)))))
-                      acc
-                      methods)))
-                []
-                groups)]
+               (fn [acc group]
+                 (let [proto-name (first group)
+                       methods (second group)
+                       proto-str (php/-> proto-name (getName))]
+                   (reduce
+                    (fn [inner method]
+                      (let [mname-str (php/-> (first method) (getName))
+                            margs (second method)
+                            body (next (next method))
+                            dsym (php/:: Symbol
+                                         (create (php/. proto-str "--" mname-str "--dispatch")))]
+                        (conj inner `(swap! ,dsym assoc ,type-key (fn ,margs ,@body)))))
+                    acc
+                    methods)))
+               []
+               groups)]
     `(do ,@swaps)))
 
 (defn satisfies?
@@ -3871,13 +3871,13 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
    :see-also ["iterate" "repeatedly" "lazy-seq"]}
   [step opts]
   (lazy-seq
-    (let [kf (get opts :kf identity)
-          vf (get opts :vf identity)
-          initk (get opts :initk)
-          result (step initk)]
-      (when (not (nil? result))
-        (cons (vf result)
-              (iteration step (assoc opts :initk (kf result))))))))
+   (let [kf (get opts :kf identity)
+         vf (get opts :vf identity)
+         initk (get opts :initk)
+         result (step initk)]
+     (when (not (nil? result))
+       (cons (vf result)
+             (iteration step (assoc opts :initk (kf result))))))))
 
 ;; --- Rich exceptions ---
 
@@ -4005,8 +4005,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (php/aset bytes 8 (php/chr (bit-or (bit-and (php/ord (php/aget bytes 8)) 0x3f) 0x80)))
     (let [hex (php/bin2hex bytes)]
       (php/.
-        (php/substr hex 0 8) "-"
-        (php/substr hex 8 4) "-"
-        (php/substr hex 12 4) "-"
-        (php/substr hex 16 4) "-"
-        (php/substr hex 20 12)))))
+       (php/substr hex 0 8) "-"
+       (php/substr hex 8 4) "-"
+       (php/substr hex 12 4) "-"
+       (php/substr hex 16 4) "-"
+       (php/substr hex 20 12)))))
