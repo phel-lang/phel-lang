@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Add `ex-info`, `ex-data`, `ex-message`, `ex-cause` for rich structured exceptions with data maps (#1149)
 - Add `update-keys`, `update-vals` map utility functions (#1150)
 - Add `parse-long`, `parse-double`, `parse-boolean` safe parsing functions (#1150)
 - Add `abs`, `inf?`, `random-uuid` utility functions (#1150)
