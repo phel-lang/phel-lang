@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Add hierarchy system: `derive`, `underive`, `isa?`, `parents`, `ancestors`, `descendants`, `make-hierarchy` for keyword taxonomies with hierarchy-aware multimethod dispatch (#1156)
 - Add `@` reader syntax as shorthand for `(deref ...)`, e.g. `@my-var` expands to `(deref my-var)` (#1164)
 - Add `re-find`, `re-matches` regex functions (#1153)
 - Add `add-watch`, `remove-watch`, `set-validator!`, `get-validator` for variable state observation and constraints (#1154)
