@@ -20,9 +20,9 @@
   (into [] (map inc) [1 2 3 4 5]))
 ;; => [2 3 4 5 6]
 
-;; `into` with a hash-map target and a key-value transducer
+;; `into` with a hash-map target from key-value pairs
 (def into-map-example
-  (into {} (map |(vector (first $) (* 2 (second $)))) {:a 1 :b 2 :c 3}))
+  (into {} (map |(vector (first $) (* 2 (second $)))) [[:a 1] [:b 2] [:c 3]]))
 ;; => {:a 2 :b 4 :c 6}
 
 ;; `transduce` applies a transducer, then reduces with a reducing function
@@ -281,26 +281,26 @@
 
 ;; Get names of active admins
 (def active-admin-names
-  (let [xf (comp (filter |(active $))
-                 (filter |(= :admin (role $)))
-                 (map name))]
+  (let [xf (comp (filter |(get $ :active))
+                 (filter |(= :admin (get $ :role)))
+                 (map |(get $ :name)))]
     (into [] xf users)))
 ;; => ["Alice" "Grace"]
 
 ;; Calculate total age of active users
 (def total-active-age
-  (let [xf (comp (filter |(active $))
-                 (map age))]
+  (let [xf (comp (filter |(get $ :active))
+                 (map |(get $ :age)))]
     (transduce xf + users)))
 ;; => 158  (32 + 25 + 28 + 35 + 38)
 
 ;; Build a summary: "NAME (ROLE)" for the first 3 active users
 (def active-summaries
-  (let [xf (comp (filter |(active $))
-                 (map |(str (name $) " (" (role $) ")"))
+  (let [xf (comp (filter |(get $ :active))
+                 (map |(str (get $ :name) " (" (get $ :role) ")"))
                  (take 3))]
     (into [] xf users)))
-;; => ["Alice (admin)" "Bob (editor)" "Diana (viewer)"]
+;; => ["Alice (:admin)" "Bob (:editor)" "Diana (:viewer)"]
 
 ;; -- Processing log-like data --
 
