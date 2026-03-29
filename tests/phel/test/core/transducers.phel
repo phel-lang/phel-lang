@@ -1,8 +1,6 @@
 (ns phel-test\test\core\transducers
   (:require phel\test :refer [deftest is]))
 
-;; --- Foundation: reduced / volatile ---
-
 (deftest test-reduced-and-reduced?
   (let [r (reduced 42)]
     (is (true? (reduced? r)) "reduced? returns true for Reduced")
@@ -21,8 +19,6 @@
     (vswap! v + 8)
     (is (= 50 @v) "vswap! applies fn to volatile")))
 
-;; --- reduce with early termination ---
-
 (deftest test-reduce-with-reduced
   (is (= 6 (reduce (fn [acc x] (if (= x 4) (reduced acc) (+ acc x)))
                     0 [1 2 3 4 5 6]))
@@ -31,8 +27,6 @@
 (deftest test-reduce-normal
   (is (= 10 (reduce + [1 2 3 4])) "reduce without init")
   (is (= 10 (reduce + 0 [1 2 3 4])) "reduce with init"))
-
-;; --- completing ---
 
 (deftest test-completing
   (let [f (completing +)]
@@ -44,8 +38,6 @@
   (let [f (completing + str)]
     (is (= "5" (f 5)) "1-arity uses custom completion")))
 
-;; --- transduce ---
-
 (deftest test-transduce-map
   (is (= 9 (transduce (map inc) + [1 2 3])) "transduce with map"))
 
@@ -56,8 +48,6 @@
   (is (= 109 (transduce (map inc) + 100 [1 2 3]))
       "transduce with explicit init"))
 
-;; --- into with transducer ---
-
 (deftest test-into-with-xf
   (is (= [2 3 4] (into [] (map inc) [1 2 3])) "into with map xf")
   (is (= [2 4] (into [] (filter even?) [1 2 3 4])) "into with filter xf"))
@@ -66,13 +56,9 @@
   (is (= [3 5] (into [] (comp (filter even?) (map inc)) [1 2 3 4]))
       "into with composed xf"))
 
-;; --- sequence ---
-
 (deftest test-sequence
   (is (= [2 3 4] (sequence (map inc) [1 2 3])) "sequence applies xf")
   (is (= [2 4] (sequence (filter even?) [1 2 3 4])) "sequence with filter"))
-
-;; --- map transducer ---
 
 (deftest test-map-transducer
   (is (= [2 4 6] (into [] (map |(* $ 2)) [1 2 3])) "map xf doubles"))
@@ -82,17 +68,11 @@
          (into [] (comp (map |(* $ 2)) (map |(* $ 2))) [1 2 3]))
       "composed map transducers"))
 
-;; --- filter transducer ---
-
 (deftest test-filter-transducer
   (is (= [1 3 5] (into [] (filter odd?) [1 2 3 4 5])) "filter xf odd"))
 
-;; --- remove transducer ---
-
 (deftest test-remove-transducer
   (is (= [1 3 5] (into [] (remove even?) [1 2 3 4 5])) "remove xf even"))
-
-;; --- take transducer ---
 
 (deftest test-take-transducer
   (is (= [1 2 3] (into [] (take 3) [1 2 3 4 5])) "take xf limits"))
@@ -100,75 +80,51 @@
 (deftest test-take-transducer-fewer
   (is (= [1 2] (into [] (take 5) [1 2])) "take xf with fewer items"))
 
-;; --- drop transducer ---
-
 (deftest test-drop-transducer
   (is (= [4 5] (into [] (drop 3) [1 2 3 4 5])) "drop xf skips"))
 
 (deftest test-drop-transducer-more
   (is (= [] (into [] (drop 10) [1 2 3])) "drop xf more than available"))
 
-;; --- take-while transducer ---
-
 (deftest test-take-while-transducer
   (is (= [1 2 3] (into [] (take-while |(< $ 4)) [1 2 3 4 5]))
       "take-while xf stops at predicate"))
-
-;; --- drop-while transducer ---
 
 (deftest test-drop-while-transducer
   (is (= [4 5 1] (into [] (drop-while |(< $ 4)) [1 2 3 4 5 1]))
       "drop-while xf skips matching prefix"))
 
-;; --- take-nth transducer ---
-
 (deftest test-take-nth-transducer
   (is (= [0 2 4 6 8] (into [] (take-nth 2) [0 1 2 3 4 5 6 7 8]))
       "take-nth xf every 2nd"))
-
-;; --- keep transducer ---
 
 (deftest test-keep-transducer
   (is (= [4 16] (into [] (keep |(when (even? $) (* $ $))) [1 2 3 4 5]))
       "keep xf non-nil results"))
 
-;; --- keep-indexed transducer ---
-
 (deftest test-keep-indexed-transducer
   (is (= ["a" "c"] (into [] (keep-indexed |(when (even? $1) $2)) ["a" "b" "c" "d"]))
       "keep-indexed xf even indices"))
-
-;; --- distinct transducer ---
 
 (deftest test-distinct-transducer
   (is (= [1 2 3 4] (into [] (distinct) [1 2 1 3 2 4 3]))
       "distinct xf removes duplicates"))
 
-;; --- dedupe transducer ---
-
 (deftest test-dedupe-transducer
   (is (= [1 2 3 1] (into [] (dedupe) [1 1 2 2 2 3 1 1]))
       "dedupe xf removes consecutive duplicates"))
-
-;; --- cat transducer ---
 
 (deftest test-cat-transducer
   (is (= [1 2 3 4 5 6] (into [] cat [[1 2] [3 4] [5 6]]))
       "cat flattens one level"))
 
-;; --- mapcat transducer ---
-
 (deftest test-mapcat-transducer
   (is (= [2 1 4 3] (into [] (mapcat reverse) [[1 2] [3 4]]))
       "mapcat xf maps and concatenates"))
 
-;; --- interpose transducer ---
-
 (deftest test-interpose-transducer
   (is (= [1 0 2 0 3] (into [] (interpose 0) [1 2 3]))
       "interpose xf inserts separator"))
-
-;; --- Composition ---
 
 (deftest test-xf-composition-filter-map
   (is (= [3 5] (into [] (comp (filter even?) (map inc)) [1 2 3 4]))
@@ -182,15 +138,11 @@
   (is (= [8] (into [] (comp (drop 3) (filter even?) (map |(* $ 2))) [1 2 3 4 5]))
       "drop then filter then map"))
 
-;; --- Early termination ---
-
 (deftest test-take-terminates-early
   (let [counter (volatile! 0)
         xf (comp (map (fn [x] (vswap! counter inc) x)) (take 2))]
     (into [] xf [1 2 3 4 5])
     (is (= 2 @counter) "map only called twice due to take")))
-
-;; --- Transduce with different reducing functions ---
 
 (deftest test-transduce-with-str
   (is (= "246" (transduce (comp (filter even?) (map str)) str [1 2 3 4 5 6]))
@@ -199,8 +151,6 @@
 (deftest test-transduce-with-conj
   (is (= [2 4 6] (transduce (filter even?) conj [] [1 2 3 4 5 6]))
       "transduce with conj"))
-
-;; --- Existing collection functions still work ---
 
 (deftest test-map-still-works
   (is (= [2 3 4] (apply vector (map inc [1 2 3]))) "map with coll still works"))
@@ -225,8 +175,6 @@
 
 (deftest test-into-without-xf-still-works
   (is (= [1 2 3] (into [] '(1 2 3))) "into without xf still works"))
-
-;; --- Edge cases ---
 
 (deftest test-take-zero-transducer
   (is (= [] (into [] (take 0) [1 2 3])) "take 0 returns empty"))
