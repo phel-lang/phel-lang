@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Add `re-find`, `re-matches` regex functions (#1153)
 - Add `add-watch`, `remove-watch`, `set-validator!`, `get-validator` for variable state observation and constraints (#1154)
 - Add `delay`, `force`, `delay?` for deferred computation evaluated at most once and cached (#1155)
 - Add `iteration` function for consuming paginated/cursor-based APIs as lazy sequences (#1157)
