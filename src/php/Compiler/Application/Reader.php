@@ -170,6 +170,12 @@ final class Reader implements ReaderInterface
                 ->read($node, Symbol::NAME_UNQUOTE_SPLICING, $root);
         }
 
+        if ($node->getTokenType() === Token::T_DEREF) {
+            return $this->readerFactory
+                ->createWrapReader($this)
+                ->read($node, Symbol::NAME_DEREF, $root);
+        }
+
         if ($node->getTokenType() === Token::T_QUASIQUOTE) {
             return $this->readerFactory
                 ->createQuoasiquoteReader($this, $this->quasiquoteTransformer)

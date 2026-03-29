@@ -62,6 +62,8 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
 
     public const string NAME_UNQUOTE_SPLICING = 'unquote-splicing';
 
+    public const string NAME_DEREF = 'deref';
+
     public const string NAME_THROW = 'throw';
 
     public const string NAME_TRY = 'try';

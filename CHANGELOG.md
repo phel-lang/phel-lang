@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Add `@` reader syntax as shorthand for `(deref ...)`, e.g. `@my-var` expands to `(deref my-var)` (#1164)
 - Add `re-find`, `re-matches` regex functions (#1153)
 - Add `add-watch`, `remove-watch`, `set-validator!`, `get-validator` for variable state observation and constraints (#1154)
 - Add `delay`, `force`, `delay?` for deferred computation evaluated at most once and cached (#1155)

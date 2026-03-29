@@ -13,6 +13,25 @@
     (is (= 3 (deref d)) "deref function works with delay")
     (is (= 3 (deref d)) "deref returns cached value")))
 
+;; --- @ reader syntax ---
+
+(deftest test-deref-reader-syntax-with-var
+  (let [v (var 42)]
+    (is (= 42 @v) "@ reader syntax derefs a var")))
+
+(deftest test-deref-reader-syntax-with-delay
+  (let [d (delay (+ 1 2))]
+    (is (= 3 @d) "@ reader syntax derefs a delay")))
+
+(deftest test-deref-reader-syntax-equivalent-to-deref
+  (let [v (var 99)]
+    (is (= (deref v) @v) "@ is equivalent to (deref ...)")))
+
+(deftest test-deref-reader-syntax-in-expression
+  (let [a (var 10)
+        b (var 20)]
+    (is (= 30 (+ @a @b)) "@ works inside expressions")))
+
 (deftest test-delay?
   (is (true? (delay? (delay 1))) "delay? returns true for delay")
   (is (false? (delay? 42)) "delay? returns false for number")
