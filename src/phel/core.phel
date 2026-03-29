@@ -1304,6 +1304,21 @@ Otherwise, it tries to call `__toString`."
   [seq-exprs & body]
   `(dofor ,seq-exprs ,@body))
 
+(defn identity
+  "Returns its argument."
+  [x]
+  x)
+
+(defn- xf-step
+  "Creates a transducer reducing function that delegates 0/1 arity to rf
+  and calls step-fn for the 2-arity step. Eliminates repeated boilerplate."
+  [rf step-fn]
+  (fn [& args]
+    (case (count args)
+      0 (rf)
+      1 (rf (first args))
+      2 (step-fn (first args) (second args)))))
+
 ;; ------------------
 ;; Sequence functions
 ;; ------------------
@@ -1320,11 +1335,7 @@ Otherwise, it tries to call `__toString`."
   [f & colls]
   (case (count colls)
     0 (fn [rf]
-        (fn [& args]
-          (case (count args)
-            0 (rf)
-            1 (rf (first args))
-            2 (rf (first args) (f (second args))))))
+        (xf-step rf (fn [result input] (rf result (f input)))))
     1 (let [coll (first colls)]
         (if (empty? coll)
           []
@@ -1336,22 +1347,6 @@ Otherwise, it tries to call `__toString`."
       (if (php/=== nil result)
         []
         (with-meta (first colls) result)))))
-
-(defn map-indexed
-  "Applies function to each element with its index, returning a lazy sequence."
-  {:example "(map-indexed (fn [i x] [i x]) [\"a\" \"b\" \"c\"]) ; => ([0 \"a\"] [1 \"b\"] [2 \"c\"])"}
-  [f coll]
-  (let [result (for [[k v] :pairs coll] (f k v))]
-    (with-meta coll result)))
-
-(defn mapcat
-  "Applies function to collections and concatenates the results."
-  {:example "(mapcat reverse [[1 2] [3 4]]) ; => (2 1 4 3)"}
-  [f & colls]
-  (let [result (apply concat [] (apply map f colls))]
-    (if (empty? colls)
-      result
-      (with-meta (first colls) result))))
 
 ;; -------------------
 ;; Transducer support
@@ -1418,7 +1413,7 @@ Otherwise, it tries to call `__toString`."
   by adding a 1-arity (completion) that calls `cf` (default: identity)."
   {:see-also ["transduce"]}
   [f & args]
-  (let [cf (if (empty? args) (fn [x] x) (first args))]
+  (let [cf (if (empty? args) identity (first args))]
     (fn [& cargs]
       (case (count cargs)
         0 (f)
@@ -1461,6 +1456,21 @@ Otherwise, it tries to call `__toString`."
   {:see-also ["volatile!" "vreset!"]}
   [vol f & args]
   (vreset! vol (apply f @vol args)))
+
+(defn volatile?
+  "Returns true if `x` is a Volatile."
+  {:see-also ["volatile!" "vreset!" "vswap!"]}
+  [x]
+  (php/instanceof x Volatile))
+
+(defn comp
+  "Takes a list of functions and returns a function that is the composition of those functions."
+  [& fs]
+  (case (count fs)
+    0 identity
+    1 (first fs)
+    2 |((first fs) (apply (second fs) $&))
+    (reduce comp fs)))
 
 (defn into
   "Returns `to` with all elements of `from` added.
@@ -1678,13 +1688,10 @@ Otherwise, it tries to call `__toString`."
   (case (count args)
     0 (fn [rf]
         (let [nv (volatile! n)]
-          (fn [& dargs]
-            (case (count dargs)
-              0 (rf)
-              1 (rf (first dargs))
-              2 (let [n @nv]
-                  (vreset! nv (php/- n 1))
-                  (if (php/> n 0) (first dargs) (rf (first dargs) (second dargs))))))))
+          (xf-step rf (fn [result input]
+                         (let [n @nv]
+                           (when (php/> n 0) (vreset! nv (php/- n 1)))
+                           (if (php/> n 0) result (rf result input)))))))
     1 (let [coll (first args)]
         (if (nil? coll)
           []
@@ -1729,14 +1736,10 @@ Otherwise, it tries to call `__toString`."
   (case (count args)
     0 (fn [rf]
         (let [dv (volatile! true)]
-          (fn [& dwargs]
-            (case (count dwargs)
-              0 (rf)
-              1 (rf (first dwargs))
-              2 (let [result (first dwargs) input (second dwargs) drop? @dv]
-                  (if (and drop? (pred input))
-                    result
-                    (do (vreset! dv false) (rf result input))))))))
+          (xf-step rf (fn [result input]
+                         (if (and @dv (pred input))
+                           result
+                           (do (vreset! dv false) (rf result input)))))))
     1 (let [coll (first args)]
         (if (nil? coll)
           []
@@ -1751,14 +1754,11 @@ Otherwise, it tries to call `__toString`."
   (case (count args)
     0 (fn [rf]
         (let [nv (volatile! n)]
-          (fn [& targs]
-            (case (count targs)
-              0 (rf)
-              1 (rf (first targs))
-              2 (let [n @nv
-                      nn (vreset! nv (php/- n 1))
-                      result (if (php/> n 0) (rf (first targs) (second targs)) (first targs))]
-                  (if (not (php/> nn 0)) (ensure-reduced result) result))))))
+          (xf-step rf (fn [result input]
+                         (let [n @nv
+                               nn (vreset! nv (php/- n 1))
+                               result (if (php/> n 0) (rf result input) result)]
+                           (if (not (php/> nn 0)) (ensure-reduced result) result))))))
     1 (let [coll (first args)
             n (if (php/< n 0) 0 n)]
         (if (php/=== n 0)
@@ -1784,14 +1784,8 @@ Otherwise, it tries to call `__toString`."
   [pred & args]
   (case (count args)
     0 (fn [rf]
-        (fn [& twargs]
-          (case (count twargs)
-            0 (rf)
-            1 (rf (first twargs))
-            2 (let [result (first twargs) input (second twargs)]
-                (if (pred input)
-                  (rf result input)
-                  (reduced result))))))
+        (xf-step rf (fn [result input]
+                       (if (pred input) (rf result input) (reduced result)))))
     1 (let [coll (first args)]
         (if (nil? coll)
           []
@@ -1810,14 +1804,10 @@ Otherwise, it tries to call `__toString`."
   (case (count args)
     0 (fn [rf]
         (let [iv (volatile! -1)]
-          (fn [& tnargs]
-            (case (count tnargs)
-              0 (rf)
-              1 (rf (first tnargs))
-              2 (let [i (vreset! iv (php/+ @iv 1))]
-                  (if (php/=== 0 (php/% i n))
-                    (rf (first tnargs) (second tnargs))
-                    (first tnargs)))))))
+          (xf-step rf (fn [result input]
+                         (let [i (vreset! iv (php/+ @iv 1))]
+                           (if (php/=== 0 (php/% i n))
+                             (rf result input) result))))))
     1 (let [coll (first args)]
         (if (nil? coll)
           []
@@ -1833,12 +1823,7 @@ Otherwise, it tries to call `__toString`."
   [pred & args]
   (case (count args)
     0 (fn [rf]
-        (fn [& fargs]
-          (case (count fargs)
-            0 (rf)
-            1 (rf (first fargs))
-            2 (let [result (first fargs) input (second fargs)]
-                (if (pred input) (rf result input) result)))))
+        (xf-step rf (fn [result input] (if (pred input) (rf result input) result))))
     1 (let [coll (first args)
             result (lazy-seq-from-generator (php/:: Seq (filter pred coll)))]
         (if (nil? result)
@@ -1865,12 +1850,9 @@ Otherwise, it tries to call `__toString`."
   [pred & args]
   (case (count args)
     0 (fn [rf]
-        (fn [& kargs]
-          (case (count kargs)
-            0 (rf)
-            1 (rf (first kargs))
-            2 (let [v (pred (second kargs))]
-                (if (nil? v) (first kargs) (rf (first kargs) v))))))
+        (xf-step rf (fn [result input]
+                       (let [v (pred input)]
+                         (if (nil? v) result (rf result v))))))
     1 (let [coll (first args)]
         (if (nil? coll)
           []
@@ -1887,13 +1869,10 @@ Otherwise, it tries to call `__toString`."
   (case (count args)
     0 (fn [rf]
         (let [iv (volatile! -1)]
-          (fn [& kiargs]
-            (case (count kiargs)
-              0 (rf)
-              1 (rf (first kiargs))
-              2 (let [i (vreset! iv (php/+ @iv 1))
-                      v (pred i (second kiargs))]
-                  (if (nil? v) (first kiargs) (rf (first kiargs) v)))))))
+          (xf-step rf (fn [result input]
+                         (let [i (vreset! iv (php/+ @iv 1))
+                               v (pred i input)]
+                           (if (nil? v) result (rf result v)))))))
     1 (let [coll (first args)]
         (if (nil? coll)
           []
@@ -1935,14 +1914,10 @@ Otherwise, it tries to call `__toString`."
   (case (count args)
     0 (fn [rf]
         (let [seen (volatile! (hash-set))]
-          (fn [& dargs]
-            (case (count dargs)
-              0 (rf)
-              1 (rf (first dargs))
-              2 (let [input (second dargs)]
-                  (if (contains? @seen input)
-                    (first dargs)
-                    (do (vswap! seen conj input) (rf (first dargs) input))))))))
+          (xf-step rf (fn [result input]
+                         (if (contains? @seen input)
+                           result
+                           (do (vswap! seen conj input) (rf result input)))))))
     1 (let [coll (first args)]
         (if (nil? coll)
           []
@@ -2216,11 +2191,7 @@ Otherwise, it tries to call `__toString`."
   {:see-also ["mapcat" "transduce"]}
   [rf]
   (let [rrf (preserving-reduced rf)]
-    (fn [& cargs]
-      (case (count cargs)
-        0 (rf)
-        1 (rf (first cargs))
-        2 (reduce rrf (first cargs) (second cargs))))))
+    (xf-step rf (fn [result input] (reduce rrf result input)))))
 
 (defn mapcat
   "Maps a function over a collection and concatenates the results. Returns a lazy sequence.
@@ -2229,7 +2200,7 @@ Otherwise, it tries to call `__toString`."
    :see-also ["map" "cat" "transduce"]}
   [f & args]
   (case (count args)
-    0 (fn [rf] ((map f) (cat rf)))
+    0 (comp (map f) cat)
     1 (let [coll (first args)]
         (if (php/=== nil coll)
           '()
@@ -2256,7 +2227,9 @@ Otherwise, it tries to call `__toString`."
               2 (let [result (first iargs) input (second iargs)]
                   (if @started
                     (let [sepr (rf result sep)]
-                      (if (reduced? sepr) sepr (rf sepr input)))
+                      (if (reduced? sepr)
+                        (ensure-reduced @sepr)
+                        (rf sepr input)))
                     (do (vreset! started true) (rf result input))))))))
     1 (let [coll (first args)]
         (if (php/=== nil coll)
@@ -2434,14 +2407,10 @@ Otherwise, it tries to call `__toString`."
   (case (count args)
     0 (fn [rf]
         (let [pv (volatile! :phel/none)]
-          (fn [& ddargs]
-            (case (count ddargs)
-              0 (rf)
-              1 (rf (first ddargs))
-              2 (let [input (second ddargs)
-                      prior @pv]
-                  (vreset! pv input)
-                  (if (= prior input) (first ddargs) (rf (first ddargs) input)))))))
+          (xf-step rf (fn [result input]
+                         (let [prior @pv]
+                           (vreset! pv input)
+                           (if (= prior input) result (rf result input)))))))
     1 (let [coll (first args)]
         (cond
           (nil? coll) []
@@ -2567,24 +2536,10 @@ Otherwise, it tries to call `__toString`."
 ;; Function operation
 ;; ------------------
 
-(defn identity
-  "Returns its argument."
-  [x]
-  x)
-
 (defn constantly
   "Returns a function that always returns `x` and ignores any passed arguments."
   [x]
   (fn [& _] x))
-
-(defn comp
-  "Takes a list of functions and returns a function that is the composition of those functions."
-  [& fs]
-  (case (count fs)
-    0 identity
-    1 (first fs)
-    2 |((first fs) (apply (second fs) $&))
-    (reduce comp fs)))
 
 (defn complement
   "Returns a function that takes the same arguments as `f` and returns the opposite truth value."

@@ -225,3 +225,31 @@
 
 (deftest test-into-without-xf-still-works
   (is (= [1 2 3] (into [] '(1 2 3))) "into without xf still works"))
+
+;; --- Edge cases ---
+
+(deftest test-take-zero-transducer
+  (is (= [] (into [] (take 0) [1 2 3])) "take 0 returns empty"))
+
+(deftest test-xf-on-empty-collection
+  (is (= [] (into [] (map inc) [])) "map on empty")
+  (is (= [] (into [] (filter even?) [])) "filter on empty")
+  (is (= [] (into [] (take 3) [])) "take on empty")
+  (is (= [] (into [] (drop 2) [])) "drop on empty")
+  (is (= [] (into [] (interpose 0) [])) "interpose on empty"))
+
+(deftest test-reduce-single-element
+  (is (= 42 (reduce + [42])) "reduce single element, no init"))
+
+(deftest test-transduce-empty-collection
+  (is (= 0 (transduce (map inc) + [])) "transduce empty calls init"))
+
+(deftest test-volatile?
+  (is (true? (volatile? (volatile! 0))) "volatile? on volatile")
+  (is (false? (volatile? 42)) "volatile? on number")
+  (is (false? (volatile? nil)) "volatile? on nil"))
+
+(deftest test-vswap-with-extra-args
+  (let [v (volatile! 10)]
+    (vswap! v + 3 4)
+    (is (= 17 @v) "vswap! passes extra args")))
