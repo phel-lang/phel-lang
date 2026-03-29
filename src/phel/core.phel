@@ -37,6 +37,8 @@
   (:use Phel\Lang\Delay)
   (:use Phel\Lang\Equalizer)
   (:use Phel\Lang\ExInfoException)
+  (:use Phel\Lang\Reduced)
+  (:use Phel\Lang\Volatile)
   (:use Phel\Lang\Collections\LazySeq\LazySeq)
   (:use Phel\Lang\Collections\LazySeq\LazySeqInterface)
   (:use Phel\Lang\Collections\LazySeq\ChunkedSeq)
@@ -1302,6 +1304,21 @@ Otherwise, it tries to call `__toString`."
   [seq-exprs & body]
   `(dofor ,seq-exprs ,@body))
 
+(defn identity
+  "Returns its argument."
+  [x]
+  x)
+
+(defn- xf-step
+  "Creates a transducer reducing function that delegates 0/1 arity to rf
+  and calls step-fn for the 2-arity step. Eliminates repeated boilerplate."
+  [rf step-fn]
+  (fn [& args]
+    (case (count args)
+      0 (rf)
+      1 (rf (first args))
+      2 (step-fn (first args) (second args)))))
+
 ;; ------------------
 ;; Sequence functions
 ;; ------------------
@@ -1314,10 +1331,11 @@ Otherwise, it tries to call `__toString`."
   With multiple collections, applies the function to corresponding elements from each collection,
   stopping when the shortest collection is exhausted."
   {:example "(map inc [1 2 3]) ; => (2 3 4)"
-   :see-also ["filter" "reduce" "map-indexed" "mapcat"]}
+   :see-also ["filter" "reduce" "map-indexed" "mapcat" "transduce"]}
   [f & colls]
   (case (count colls)
-    0 (throw (php/new InvalidArgumentException "expected at least one indexed collection in map"))
+    0 (fn [rf]
+        (xf-step rf (fn [result input] (rf result (f input)))))
     1 (let [coll (first colls)]
         (if (empty? coll)
           []
@@ -1330,36 +1348,129 @@ Otherwise, it tries to call `__toString`."
         []
         (with-meta (first colls) result)))))
 
-(defn map-indexed
-  "Applies function to each element with its index, returning a lazy sequence."
-  {:example "(map-indexed (fn [i x] [i x]) [\"a\" \"b\" \"c\"]) ; => ([0 \"a\"] [1 \"b\"] [2 \"c\"])"}
-  [f coll]
-  (let [result (for [[k v] :pairs coll] (f k v))]
-    (with-meta coll result)))
+;; -------------------
+;; Transducer support
+;; -------------------
 
-(defn mapcat
-  "Applies function to collections and concatenates the results."
-  {:example "(mapcat reverse [[1 2] [3 4]]) ; => (2 1 4 3)"}
-  [f & colls]
-  (let [result (apply concat [] (apply map f colls))]
-    (if (empty? colls)
-      result
-      (with-meta (first colls) result))))
+(defn reduced
+  "Wraps `x` in a Reduced, signaling early termination from reduce/transduce."
+  {:see-also ["reduced?" "unreduced"]}
+  [x]
+  (php/new Reduced x))
+
+(defn reduced?
+  "Returns true if `x` is a Reduced value."
+  {:see-also ["reduced" "unreduced"]}
+  [x]
+  (php/instanceof x Reduced))
+
+(defn unreduced
+  "If `x` is Reduced, returns the unwrapped value; otherwise returns `x`."
+  {:see-also ["reduced" "reduced?"]}
+  [x]
+  (if (reduced? x)
+    (php/-> x (deref))
+    x))
+
+(defn- ensure-reduced
+  "Wraps `x` in Reduced if it is not already reduced."
+  [x]
+  (if (reduced? x) x (reduced x)))
+
+(defn- preserving-reduced
+  "Wraps a reducing function so Reduced propagates as double-wrapped."
+  [rf]
+  (fn [a b]
+    (let [ret (rf a b)]
+      (if (reduced? ret) (reduced ret) ret))))
 
 (defn reduce
-  "Reduces collection to a single value by repeatedly applying function to accumulator and elements."
-  {:example "(reduce + [1 2 3 4]) ; => 10"}
+  "Reduces collection to a single value by repeatedly applying function to accumulator and elements.
+  Respects early termination via `(reduced val)`."
+  {:example "(reduce + [1 2 3 4]) ; => 10"
+   :see-also ["transduce" "into" "reduced"]}
   [f & args]
   (case (count args)
     1 (let [coll (first args)]
         (if (empty? coll)
           (f)
           (reduce f (first coll) (next coll))))
-    2 (let [val (first args)
-            coll (second args)]
-        (for [x :in coll :reduce [acc val]]
-          (f acc x)))
+    2 (let [init (first args)
+            coll (second args)
+            acc (php/new Volatile init)
+            done (php/new Volatile false)]
+        (dofor [x :in coll :while (not (php/-> done (deref)))]
+          (let [result (f (php/-> acc (deref)) x)]
+            (if (reduced? result)
+              (do (php/-> acc (reset (php/-> result (deref))))
+                  (php/-> done (reset true)))
+              (php/-> acc (reset result)))))
+        (php/-> acc (deref)))
     (throw (php/new InvalidArgumentException "expected 2 or 3 arguments in reduce"))))
+
+(defn completing
+  "Takes a reducing function `f` of 2 args and returns a fn suitable for transduce
+  by adding a 1-arity (completion) that calls `cf` (default: identity)."
+  {:see-also ["transduce"]}
+  [f & args]
+  (let [cf (if (empty? args) identity (first args))]
+    (fn [& cargs]
+      (case (count cargs)
+        0 (f)
+        1 (cf (first cargs))
+        2 (f (first cargs) (second cargs))))))
+
+(defn transduce
+  "Reduce with a transformation of `f` (xf). If init is not supplied,
+  `(f)` will be called to produce it. `f` should be a reducing function
+  that returns the initial value when called with no arguments."
+  {:example "(transduce (map inc) + [1 2 3]) ; => 9"
+   :see-also ["reduce" "into" "sequence"]}
+  [xform f & args]
+  (case (count args)
+    1 (let [coll (first args)]
+        (transduce xform f (f) coll))
+    2 (let [init (first args)
+            coll (second args)
+            f (xform (completing f))
+            ret (reduce f init coll)]
+        (f ret))
+    (throw (php/new InvalidArgumentException "transduce expects 3 or 4 arguments"))))
+
+(defn volatile!
+  "Creates a volatile mutable reference with initial value `val`.
+  Use for transducer state that needs fast mutation without watches."
+  {:see-also ["vreset!" "vswap!" "var"]}
+  [val]
+  (php/new Volatile val))
+
+(defn vreset!
+  "Sets the value of volatile `vol` to `val`. Returns `val`."
+  {:see-also ["volatile!" "vswap!"]}
+  [vol val]
+  (php/-> vol (reset val)))
+
+(defn vswap!
+  "Applies `f` to the current value of volatile `vol` plus `args`,
+  and sets the new value. Returns the new value."
+  {:see-also ["volatile!" "vreset!"]}
+  [vol f & args]
+  (vreset! vol (apply f @vol args)))
+
+(defn volatile?
+  "Returns true if `x` is a Volatile."
+  {:see-also ["volatile!" "vreset!" "vswap!"]}
+  [x]
+  (php/instanceof x Volatile))
+
+(defn comp
+  "Takes a list of functions and returns a function that is the composition of those functions."
+  [& fs]
+  (case (count fs)
+    0 identity
+    1 (first fs)
+    2 |((first fs) (apply (second fs) $&))
+    (reduce comp fs)))
 
 (defn into
   "Returns `to` with all elements of `from` added.
@@ -1367,10 +1478,13 @@ Otherwise, it tries to call `__toString`."
   When `from` is associative, it is treated as a sequence of key-value pairs.
   Supports persistent and transient collections."
   {:example "(into [] '(1 2 3)) ; => [1 2 3]"
-   :see-also ["conj" "concat"]}
+   :see-also ["conj" "concat" "transduce"]}
   [to & rest]
   (case (count rest)
     0 to
+    2 (let [xf (first rest)
+            from (second rest)]
+        (transduce xf conj to from))
     1 (let [from (first rest)]
         (if (php/=== nil from)
           to
@@ -1421,7 +1535,7 @@ Otherwise, it tries to call `__toString`."
 
               (throw (php/new InvalidArgumentException
                               (php/. "Cannot convert into type " (type to))))))))
-    (throw (php/new InvalidArgumentException "into expects one or two arguments"))))
+    (throw (php/new InvalidArgumentException "into expects 1, 2, or 3 arguments"))))
 
 (defn- conj-map-entry
   [coll entry]
@@ -1566,17 +1680,27 @@ Otherwise, it tries to call `__toString`."
   (dissoc-in ds ks))
 
 (defn drop
-  "Drops the first `n` elements of `coll`. Returns a lazy sequence."
+  "Drops the first `n` elements of `coll`. Returns a lazy sequence.
+  When called with n only, returns a transducer."
   {:example "(drop 2 [1 2 3 4 5]) ; => (3 4 5)"
-   :see-also ["take" "drop-last"]}
-  [n coll]
-  (if (nil? coll)
-    []
-    (let [n (if (php/< n 0) 0 n)]
-      (if (php/=== n 0)
-        coll
-        (let [result (lazy-seq-from-generator (php/:: Seq (drop n coll)))]
-          (with-meta coll (or result [])))))))
+   :see-also ["take" "drop-last" "transduce"]}
+  [n & args]
+  (case (count args)
+    0 (fn [rf]
+        (let [nv (volatile! n)]
+          (xf-step rf (fn [result input]
+                        (let [n @nv]
+                          (when (php/> n 0) (vreset! nv (php/- n 1)))
+                          (if (php/> n 0) result (rf result input)))))))
+    1 (let [coll (first args)]
+        (if (nil? coll)
+          []
+          (let [n (if (php/< n 0) 0 n)]
+            (if (php/=== n 0)
+              coll
+              (let [result (lazy-seq-from-generator (php/:: Seq (drop n coll)))]
+                (with-meta coll (or result [])))))))
+    (throw (php/new InvalidArgumentException "drop expects 1 or 2 arguments"))))
 
 (defn drop-last
   "Drops the last `n` elements of `coll`."
@@ -1604,29 +1728,46 @@ Otherwise, it tries to call `__toString`."
   (drop-last 1 coll))
 
 (defn drop-while
-  "Drops all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence."
+  "Drops all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence.
+  When called with pred only, returns a transducer."
   {:example "(drop-while |(< $ 5) [1 2 3 4 5 6 3 2 1]) ; => (5 6 3 2 1)"
-   :see-also ["take-while" "drop"]}
-  [pred coll]
-  (if (nil? coll)
-    []
-    (let [result (lazy-seq-from-generator (php/:: Seq (dropWhile pred coll)))]
-      (with-meta coll (or result [])))))
+   :see-also ["take-while" "drop" "transduce"]}
+  [pred & args]
+  (case (count args)
+    0 (fn [rf]
+        (let [dv (volatile! true)]
+          (xf-step rf (fn [result input]
+                        (if (and @dv (pred input))
+                          result
+                          (do (vreset! dv false) (rf result input)))))))
+    1 (let [coll (first args)]
+        (if (nil? coll)
+          []
+          (let [result (lazy-seq-from-generator (php/:: Seq (dropWhile pred coll)))]
+            (with-meta coll (or result [])))))
+    (throw (php/new InvalidArgumentException "drop-while expects 1 or 2 arguments"))))
 
 (defn take
   "Takes the first `n` elements of `coll`.
-
-  Note: Metadata preservation works with inline calls but may be lost when binding
-  to variables. Use inline calls or force realization with doall if metadata needed.
-  See local/investigate-metadata-binding-issue.md for details."
-  [n coll]
-  (let [n (if (php/< n 0) 0 n)]
-    (if (php/=== n 0)
-      []
-      (let [result (lazy-seq-from-generator (php/:: Seq (take n coll)))]
-        (if (nil? result)
+  When called with n only, returns a transducer."
+  [n & args]
+  (case (count args)
+    0 (fn [rf]
+        (let [nv (volatile! n)]
+          (xf-step rf (fn [result input]
+                        (let [n @nv
+                              nn (vreset! nv (php/- n 1))
+                              result (if (php/> n 0) (rf result input) result)]
+                          (if (not (php/> nn 0)) (ensure-reduced result) result))))))
+    1 (let [coll (first args)
+            n (if (php/< n 0) 0 n)]
+        (if (php/=== n 0)
           []
-          (with-meta coll result))))))
+          (let [result (lazy-seq-from-generator (php/:: Seq (take n coll)))]
+            (if (nil? result)
+              []
+              (with-meta coll result)))))
+    (throw (php/new InvalidArgumentException "take expects 1 or 2 arguments"))))
 
 (defn take-last
   "Takes the last `n` elements of `coll`."
@@ -1636,62 +1777,108 @@ Otherwise, it tries to call `__toString`."
   (if (php/<= n 0) [] (slice coll (php/* -1 n))))
 
 (defn take-while
-  "Takes all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence."
+  "Takes all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence.
+  When called with pred only, returns a transducer."
   {:example "(take-while |(< $ 5) [1 2 3 4 5 6 3 2 1]) ; => (1 2 3 4)"
-   :see-also ["drop-while" "take"]}
-  [pred coll]
-  (if (nil? coll)
-    []
-    (let [result (lazy-seq-from-generator (php/:: Seq (takeWhile pred coll)))]
-      (with-meta coll (or result [])))))
+   :see-also ["drop-while" "take" "transduce"]}
+  [pred & args]
+  (case (count args)
+    0 (fn [rf]
+        (xf-step rf (fn [result input]
+                      (if (pred input) (rf result input) (reduced result)))))
+    1 (let [coll (first args)]
+        (if (nil? coll)
+          []
+          (let [result (lazy-seq-from-generator (php/:: Seq (takeWhile pred coll)))]
+            (with-meta coll (or result [])))))
+    (throw (php/new InvalidArgumentException "take-while expects 1 or 2 arguments"))))
 
 (defn take-nth
-  "Returns every nth item in `coll`. Returns a lazy sequence."
+  "Returns every nth item in `coll`. Returns a lazy sequence.
+  When called with n only, returns a transducer."
   {:example "(take-nth 2 [0 1 2 3 4 5 6 7 8]) ; => (0 2 4 6 8)"
-   :see-also ["take" "filter"]}
-  [n coll]
+   :see-also ["take" "filter" "transduce"]}
+  [n & args]
   (when (< n 1)
     (throw (php/new InvalidArgumentException "First argument of 'take-nth must be greater than 0")))
-  (if (nil? coll)
-    []
-    (let [result (lazy-seq-from-generator (php/:: Seq (takeNth n coll)))]
-      (with-meta coll (or result [])))))
+  (case (count args)
+    0 (fn [rf]
+        (let [iv (volatile! -1)]
+          (xf-step rf (fn [result input]
+                        (let [i (vreset! iv (php/+ @iv 1))]
+                          (if (php/=== 0 (php/% i n))
+                            (rf result input) result))))))
+    1 (let [coll (first args)]
+        (if (nil? coll)
+          []
+          (let [result (lazy-seq-from-generator (php/:: Seq (takeNth n coll)))]
+            (with-meta coll (or result [])))))
+    (throw (php/new InvalidArgumentException "take-nth expects 1 or 2 arguments"))))
 
 (defn filter
-  "Returns a lazy sequence of elements where predicate returns true."
-  {:example "(filter even? [1 2 3 4 5 6]) ; => (2 4 6)"}
-  [pred coll]
-  (let [result (lazy-seq-from-generator (php/:: Seq (filter pred coll)))]
-    (if (nil? result)
-      []
-      (with-meta coll result))))
+  "Returns a lazy sequence of elements where predicate returns true.
+  When called with pred only, returns a transducer."
+  {:example "(filter even? [1 2 3 4 5 6]) ; => (2 4 6)"
+   :see-also ["remove" "keep" "transduce"]}
+  [pred & args]
+  (case (count args)
+    0 (fn [rf]
+        (xf-step rf (fn [result input] (if (pred input) (rf result input) result))))
+    1 (let [coll (first args)
+            result (lazy-seq-from-generator (php/:: Seq (filter pred coll)))]
+        (if (nil? result)
+          []
+          (with-meta coll result)))
+    (throw (php/new InvalidArgumentException "filter expects 1 or 2 arguments"))))
 
 (defn remove
   "Returns a lazy sequence of elements where predicate returns false.
-   Opposite of filter."
+   Opposite of filter. When called with pred only, returns a transducer."
   {:example "(remove even? [1 2 3 4 5 6]) ; => (1 3 5)"
-   :see-also ["filter"]}
-  [pred coll]
-  (filter |(not (pred $)) coll))
+   :see-also ["filter" "transduce"]}
+  [pred & args]
+  (case (count args)
+    0 (filter |(not (pred $)))
+    1 (filter |(not (pred $)) (first args))
+    (throw (php/new InvalidArgumentException "remove expects 1 or 2 arguments"))))
 
 (defn keep
-  "Returns a lazy sequence of non-nil results of applying function to elements."
-  {:example "(keep |(when (even? $) (* $ $)) [1 2 3 4 5]) ; => (4 16)"}
-  [pred coll]
-  (if (nil? coll)
-    []
-    (let [result (lazy-seq-from-generator (php/:: Seq (keep pred coll)))]
-      (with-meta coll (or result [])))))
+  "Returns a lazy sequence of non-nil results of applying function to elements.
+  When called with f only, returns a transducer."
+  {:example "(keep |(when (even? $) (* $ $)) [1 2 3 4 5]) ; => (4 16)"
+   :see-also ["keep-indexed" "filter" "transduce"]}
+  [pred & args]
+  (case (count args)
+    0 (fn [rf]
+        (xf-step rf (fn [result input]
+                      (let [v (pred input)]
+                        (if (nil? v) result (rf result v))))))
+    1 (let [coll (first args)]
+        (if (nil? coll)
+          []
+          (let [result (lazy-seq-from-generator (php/:: Seq (keep pred coll)))]
+            (with-meta coll (or result [])))))
+    (throw (php/new InvalidArgumentException "keep expects 1 or 2 arguments"))))
 
 (defn keep-indexed
-  "Returns a lazy sequence of non-nil results of `(pred i x)`."
+  "Returns a lazy sequence of non-nil results of `(pred i x)`.
+  When called with f only, returns a transducer."
   {:example "(keep-indexed |(when (even? $1) $2) [\"a\" \"b\" \"c\" \"d\"]) ; => (\"a\" \"c\")"
-   :see-also ["keep" "map-indexed"]}
-  [pred coll]
-  (if (nil? coll)
-    []
-    (let [result (lazy-seq-from-generator (php/:: Seq (keepIndexed pred coll)))]
-      (with-meta coll (or result [])))))
+   :see-also ["keep" "map-indexed" "transduce"]}
+  [pred & args]
+  (case (count args)
+    0 (fn [rf]
+        (let [iv (volatile! -1)]
+          (xf-step rf (fn [result input]
+                        (let [i (vreset! iv (php/+ @iv 1))
+                              v (pred i input)]
+                          (if (nil? v) result (rf result v)))))))
+    1 (let [coll (first args)]
+        (if (nil? coll)
+          []
+          (let [result (lazy-seq-from-generator (php/:: Seq (keepIndexed pred coll)))]
+            (with-meta coll (or result [])))))
+    (throw (php/new InvalidArgumentException "keep-indexed expects 1 or 2 arguments"))))
 
 (defn find
   "Returns the first item in `coll` where `(pred item)` evaluates to true."
@@ -1719,14 +1906,24 @@ Otherwise, it tries to call `__toString`."
         (recur (next s) (php/+ i 1))))))
 
 (defn distinct
-  "Returns a lazy sequence with duplicated values removed in `coll`."
+  "Returns a lazy sequence with duplicated values removed in `coll`.
+  When called with no args, returns a transducer."
   {:example "(distinct [1 2 1 3 2 4 3]) ; => (1 2 3 4)"
-   :see-also ["frequencies" "set"]}
-  [coll]
-  (if (nil? coll)
-    []
-    (let [result (lazy-seq-from-generator (php/:: Seq (distinct coll)))]
-      (with-meta coll (or result [])))))
+   :see-also ["frequencies" "set" "dedupe" "transduce"]}
+  [& args]
+  (case (count args)
+    0 (fn [rf]
+        (let [seen (volatile! (hash-set))]
+          (xf-step rf (fn [result input]
+                        (if (contains? @seen input)
+                          result
+                          (do (vswap! seen conj input) (rf result input)))))))
+    1 (let [coll (first args)]
+        (if (nil? coll)
+          []
+          (let [result (lazy-seq-from-generator (php/:: Seq (distinct coll)))]
+            (with-meta coll (or result [])))))
+    (throw (php/new InvalidArgumentException "distinct expects 0 or 1 arguments"))))
 
 
 (defn reverse
@@ -1989,36 +2186,60 @@ Otherwise, it tries to call `__toString`."
         '()
         result))))
 
+(defn cat
+  "A transducer that concatenates the contents of each input into the reduction."
+  {:see-also ["mapcat" "transduce"]}
+  [rf]
+  (let [rrf (preserving-reduced rf)]
+    (xf-step rf (fn [result input] (reduce rrf result input)))))
+
 (defn mapcat
   "Maps a function over a collection and concatenates the results. Returns a lazy sequence.
-
-  Applies `f` to each element of the collection, where `f` should return a collection.
-  All resulting collections are concatenated into a single lazy sequence.
-  Works with infinite sequences."
-  {:example "(mapcat reverse [[1 2] [3 4]]) ; => (2 1 4 3)"}
-  [f coll]
-  (if (php/=== nil coll)
-    '()
-    (let [result (lazy-seq-from-generator
-                  (php/:: \Phel\Lang\Seq (mapcat f coll)))]
-      (if (php/=== nil result)
-        '()
-        (with-meta coll result)))))
+  When called with f only, returns a transducer."
+  {:example "(mapcat reverse [[1 2] [3 4]]) ; => (2 1 4 3)"
+   :see-also ["map" "cat" "transduce"]}
+  [f & args]
+  (case (count args)
+    0 (comp (map f) cat)
+    1 (let [coll (first args)]
+        (if (php/=== nil coll)
+          '()
+          (let [result (lazy-seq-from-generator
+                        (php/:: \Phel\Lang\Seq (mapcat f coll)))]
+            (if (php/=== nil result)
+              '()
+              (with-meta coll result)))))
+    (throw (php/new InvalidArgumentException "mapcat expects 1 or 2 arguments"))))
 
 (defn interpose
   "Returns elements separated by a separator. Returns a lazy sequence.
-
-  Inserts `sep` between each element of the collection.
-  Works with infinite sequences."
-  {:example "(interpose 0 [1 2 3]) ; => (1 0 2 0 3)"}
-  [sep coll]
-  (if (php/=== nil coll)
-    '()
-    (let [result (lazy-seq-from-generator
-                  (php/:: \Phel\Lang\Seq (interpose sep coll)))]
-      (if (php/=== nil result)
-        '()
-        (with-meta coll result)))))
+  When called with sep only, returns a transducer."
+  {:example "(interpose 0 [1 2 3]) ; => (1 0 2 0 3)"
+   :see-also ["transduce"]}
+  [sep & args]
+  (case (count args)
+    0 (fn [rf]
+        (let [started (volatile! false)]
+          (fn [& iargs]
+            (case (count iargs)
+              0 (rf)
+              1 (rf (first iargs))
+              2 (let [result (first iargs) input (second iargs)]
+                  (if @started
+                    (let [sepr (rf result sep)]
+                      (if (reduced? sepr)
+                        (ensure-reduced @sepr)
+                        (rf sepr input)))
+                    (do (vreset! started true) (rf result input))))))))
+    1 (let [coll (first args)]
+        (if (php/=== nil coll)
+          '()
+          (let [result (lazy-seq-from-generator
+                        (php/:: \Phel\Lang\Seq (interpose sep coll)))]
+            (if (php/=== nil result)
+              '()
+              (with-meta coll result)))))
+    (throw (php/new InvalidArgumentException "interpose expects 1 or 2 arguments"))))
 
 (defn map-indexed
   "Maps a function over a collection with index. Returns a lazy sequence.
@@ -2178,14 +2399,31 @@ Otherwise, it tries to call `__toString`."
     true (lazy-seq-from-generator (php/:: Seq (partitionBy f coll)))))
 
 (defn dedupe
-  "Returns a lazy sequence with consecutive duplicate values removed in `coll`."
+  "Returns a lazy sequence with consecutive duplicate values removed in `coll`.
+  When called with no args, returns a transducer."
   {:example "(dedupe [1 1 2 2 2 3 1 1]) ; => (1 2 3 1)"
-   :see-also ["distinct"]}
-  [coll]
-  (cond
-    (nil? coll) []
-    (and (indexed? coll) (= 0 (count coll))) []
-    true (lazy-seq-from-generator (php/:: Seq (dedupe coll)))))
+   :see-also ["distinct" "transduce"]}
+  [& args]
+  (case (count args)
+    0 (fn [rf]
+        (let [pv (volatile! :phel/none)]
+          (xf-step rf (fn [result input]
+                        (let [prior @pv]
+                          (vreset! pv input)
+                          (if (= prior input) result (rf result input)))))))
+    1 (let [coll (first args)]
+        (cond
+          (nil? coll) []
+          (and (indexed? coll) (= 0 (count coll))) []
+          true (lazy-seq-from-generator (php/:: Seq (dedupe coll)))))
+    (throw (php/new InvalidArgumentException "dedupe expects 0 or 1 arguments"))))
+
+(defn sequence
+  "Applies transducer `xform` to `coll`, returning a vector of results."
+  {:example "(sequence (comp (filter even?) (map inc)) [1 2 3 4 5]) ; => [3 5]"
+   :see-also ["transduce" "into"]}
+  [xform coll]
+  (into [] xform coll))
 
 (defn compact
   "Returns a lazy sequence with specified values removed from `coll`.
@@ -2298,24 +2536,10 @@ Otherwise, it tries to call `__toString`."
 ;; Function operation
 ;; ------------------
 
-(defn identity
-  "Returns its argument."
-  [x]
-  x)
-
 (defn constantly
   "Returns a function that always returns `x` and ignores any passed arguments."
   [x]
   (fn [& _] x))
-
-(defn comp
-  "Takes a list of functions and returns a function that is the composition of those functions."
-  [& fs]
-  (case (count fs)
-    0 identity
-    1 (first fs)
-    2 |((first fs) (apply (second fs) $&))
-    (reduce comp fs)))
 
 (defn complement
   "Returns a function that takes the same arguments as `f` and returns the opposite truth value."
@@ -2342,12 +2566,12 @@ Otherwise, it tries to call `__toString`."
 (defn memoize
   "Returns a memoized version of the function `f`. The memoized function
   caches the return value for each set of arguments."
-  {:example (str 
-              "(defn fact [n]" php/PHP_EOL
-              "  (if (zero? n)" php/PHP_EOL
-              "    1" php/PHP_EOL
-              "    (* n (fact (dec n)))))" php/PHP_EOL
-              "(def fact-memo (memoize fact))")
+  {:example (str
+             "(defn fact [n]" php/PHP_EOL
+             "  (if (zero? n)" php/PHP_EOL
+             "    1" php/PHP_EOL
+             "    (* n (fact (dec n)))))" php/PHP_EOL
+             "(def fact-memo (memoize fact))")
    :see-also ["memoize-lru"]}
   [f]
   (let [memoize-cache (var {})]
@@ -2366,12 +2590,12 @@ Otherwise, it tries to call `__toString`."
   in long-running processes.
 
   Without arguments, uses a default cache size of 128 entries."
-  {:example (str 
-              "(defn fact [n]" php/PHP_EOL
-              "  (if (zero? n)" php/PHP_EOL
-              "    1" php/PHP_EOL
-              "    (* n (fact (dec n)))))" php/PHP_EOL
-              "(def fact-memo (memoize-lru fact 100))")
+  {:example (str
+             "(defn fact [n]" php/PHP_EOL
+             "  (if (zero? n)" php/PHP_EOL
+             "    1" php/PHP_EOL
+             "    (* n (fact (dec n)))))" php/PHP_EOL
+             "(def fact-memo (memoize-lru fact 100))")
    :see-also ["memoize"]}
   ([f] (memoize-lru f 128))
   ([f max-size]
@@ -3162,10 +3386,10 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (if (nil? direct)
       (hash-set)
       (reduce
-        (fn [acc p]
-          (union acc (hash-set p) (compute-ancestors parents-map p)))
-        (hash-set)
-        direct))))
+       (fn [acc p]
+         (union acc (hash-set p) (compute-ancestors parents-map p)))
+       (hash-set)
+       direct))))
 
 (defn- isa-in?
   "Checks if child is (transitively) a descendant of parent in parents-map.
@@ -3177,10 +3401,10 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
       (if (contains? direct parent)
         true
         (reduce
-          (fn [found p]
-            (if found found (isa-in? parents-map p parent)))
-          false
-          direct)))))
+         (fn [found p]
+           (if found found (isa-in? parents-map p parent)))
+         false
+         direct)))))
 
 (defn isa?
   "Returns true if child equals parent, or child is a descendant of parent
@@ -3201,11 +3425,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (throw (php/new \InvalidArgumentException
                     (str "Cyclic derivation: " parent " already isa " child))))
   (swap! *hierarchy*
-    (fn [h]
-      (let [parents-map (get h :parents)
-            old-parents (get parents-map child (hash-set))
-            new-parents (union old-parents (hash-set parent))]
-        {:parents (assoc parents-map child new-parents)})))
+         (fn [h]
+           (let [parents-map (get h :parents)
+                 old-parents (get parents-map child (hash-set))
+                 new-parents (union old-parents (hash-set parent))]
+             {:parents (assoc parents-map child new-parents)})))
   nil)
 
 (defn underive
@@ -3214,14 +3438,14 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
    :see-also ["derive" "isa?" "parents" "ancestors" "descendants"]}
   [child parent]
   (swap! *hierarchy*
-    (fn [h]
-      (let [parents-map (get h :parents)
-            old-parents (get parents-map child (hash-set))
-            new-parents (difference old-parents (hash-set parent))
-            new-map (if (empty? new-parents)
-                      (dissoc parents-map child)
-                      (assoc parents-map child new-parents))]
-        {:parents new-map})))
+         (fn [h]
+           (let [parents-map (get h :parents)
+                 old-parents (get parents-map child (hash-set))
+                 new-parents (difference old-parents (hash-set parent))
+                 new-map (if (empty? new-parents)
+                           (dissoc parents-map child)
+                           (assoc parents-map child new-parents))]
+             {:parents new-map})))
   nil)
 
 (defn parents
@@ -3245,12 +3469,12 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (let [parents-map (get @*hierarchy* :parents)
         all-children (keys parents-map)
         result (reduce
-                 (fn [acc child]
-                   (if (contains? (compute-ancestors parents-map child) tag)
-                     (union acc (hash-set child))
-                     acc))
-                 (hash-set)
-                 all-children)]
+                (fn [acc child]
+                  (if (contains? (compute-ancestors parents-map child) tag)
+                    (union acc (hash-set child))
+                    acc))
+                (hash-set)
+                all-children)]
     (when (not (empty? result)) result)))
 
 (defn find-hierarchy-method
@@ -3260,24 +3484,24 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (let [parents-map (get @*hierarchy* :parents)
         method-keys (keys methods)
         candidates (reduce
-                     (fn [acc k]
-                       (if (and (not= k :default)
-                                (not= k dispatch-val)
-                                (isa-in? parents-map dispatch-val k))
-                         (conj acc k)
-                         acc))
-                     []
-                     method-keys)]
+                    (fn [acc k]
+                      (if (and (not= k :default)
+                               (not= k dispatch-val)
+                               (isa-in? parents-map dispatch-val k))
+                        (conj acc k)
+                        acc))
+                    []
+                    method-keys)]
     (when (not (empty? candidates))
       (if (= 1 (count candidates))
         (get methods (first candidates))
         (let [best (reduce
-                     (fn [best k]
-                       (if (isa-in? parents-map k best)
-                         k
-                         best))
-                     (first candidates)
-                     (rest candidates))]
+                    (fn [best k]
+                      (if (isa-in? parents-map k best)
+                        k
+                        best))
+                    (first candidates)
+                    (rest candidates))]
           (get methods best))))))
 
 ;; ---------
@@ -3319,11 +3543,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [protocol-name & method-specs]
   (let [pname-str (php/-> protocol-name (getName))
         methods (for [spec :in method-specs
-                     :let [mname (first spec)
-                           mname-str (php/-> mname (getName))
-                           margs (second spec)
-                           dsym (php/:: Symbol
-                                  (create (php/. pname-str "--" mname-str "--dispatch")))]]
+                      :let [mname (first spec)
+                            mname-str (php/-> mname (getName))
+                            margs (second spec)
+                            dsym (php/:: Symbol
+                                         (create (php/. pname-str "--" mname-str "--dispatch")))]]
                   [mname mname-str margs dsym])]
     `(do
        ,@(for [[_ _ _ dsym] :in methods]
@@ -3342,8 +3566,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                     (if default-impl
                       (default-impl ,@margs)
                       (throw (php/new \InvalidArgumentException
-                        (str "No implementation of '" ,mname-str
-                             "' for type: " dk))))))))))))
+                                      (str "No implementation of '" ,mname-str
+                                           "' for type: " dk))))))))))))
 
 (defmacro extend-type
   "Extends a type with protocol method implementations.
@@ -3365,9 +3589,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (when (and (keyword? type-spec)
              (or (= type-spec :struct) (= type-spec :php/object)))
     (throw (php/new \InvalidArgumentException
-      (str "Cannot use " type-spec " as extend-type target. "
-           "Protocol dispatch resolves structs/objects to their PHP class name. "
-           "Use a struct symbol or PHP class name string instead."))))
+                    (str "Cannot use " type-spec " as extend-type target. "
+                         "Protocol dispatch resolves structs/objects to their PHP class name. "
+                         "Use a struct symbol or PHP class name string instead."))))
   (let [type-key (cond
                    (nil? type-spec) :nil
                    (keyword? type-spec) type-spec
@@ -3395,22 +3619,22 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                               (conj current-methods item)
                               result)))))
         swaps (reduce
-                (fn [acc group]
-                  (let [proto-name (first group)
-                        methods (second group)
-                        proto-str (php/-> proto-name (getName))]
-                    (reduce
-                      (fn [inner method]
-                        (let [mname-str (php/-> (first method) (getName))
-                              margs (second method)
-                              body (next (next method))
-                              dsym (php/:: Symbol
-                                     (create (php/. proto-str "--" mname-str "--dispatch")))]
-                          (conj inner `(swap! ,dsym assoc ,type-key (fn ,margs ,@body)))))
-                      acc
-                      methods)))
-                []
-                groups)]
+               (fn [acc group]
+                 (let [proto-name (first group)
+                       methods (second group)
+                       proto-str (php/-> proto-name (getName))]
+                   (reduce
+                    (fn [inner method]
+                      (let [mname-str (php/-> (first method) (getName))
+                            margs (second method)
+                            body (next (next method))
+                            dsym (php/:: Symbol
+                                         (create (php/. proto-str "--" mname-str "--dispatch")))]
+                        (conj inner `(swap! ,dsym assoc ,type-key (fn ,margs ,@body)))))
+                    acc
+                    methods)))
+               []
+               groups)]
     `(do ,@swaps)))
 
 (defn satisfies?
@@ -3647,13 +3871,13 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
    :see-also ["iterate" "repeatedly" "lazy-seq"]}
   [step opts]
   (lazy-seq
-    (let [kf (get opts :kf identity)
-          vf (get opts :vf identity)
-          initk (get opts :initk)
-          result (step initk)]
-      (when (not (nil? result))
-        (cons (vf result)
-              (iteration step (assoc opts :initk (kf result))))))))
+   (let [kf (get opts :kf identity)
+         vf (get opts :vf identity)
+         initk (get opts :initk)
+         result (step initk)]
+     (when (not (nil? result))
+       (cons (vf result)
+             (iteration step (assoc opts :initk (kf result))))))))
 
 ;; --- Rich exceptions ---
 
@@ -3781,8 +4005,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (php/aset bytes 8 (php/chr (bit-or (bit-and (php/ord (php/aget bytes 8)) 0x3f) 0x80)))
     (let [hex (php/bin2hex bytes)]
       (php/.
-        (php/substr hex 0 8) "-"
-        (php/substr hex 8 4) "-"
-        (php/substr hex 12 4) "-"
-        (php/substr hex 16 4) "-"
-        (php/substr hex 20 12)))))
+       (php/substr hex 0 8) "-"
+       (php/substr hex 8 4) "-"
+       (php/substr hex 12 4) "-"
+       (php/substr hex 16 4) "-"
+       (php/substr hex 20 12)))))
