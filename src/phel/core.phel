@@ -3215,6 +3215,30 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
            (af arity)
            true))))
 
+;; --- Iteration ---
+
+(defn iteration
+  "Creates a lazy sequence from successive calls to `step`.
+  `step` is called with a key (starting with `:initk`) and returns a result.
+  `:kf` extracts the next key, `:vf` extracts the value from the result.
+  Terminates when the result is nil.
+
+  Options map keys:
+    :kf     — key function (default: identity)
+    :vf     — value function (default: identity)
+    :initk  — initial key (default: nil)"
+  {:example "(iteration fetch-page {:kf :next-token :vf :items :initk nil})"
+   :see-also ["iterate" "repeatedly" "lazy-seq"]}
+  [step opts]
+  (lazy-seq
+    (let [kf (get opts :kf identity)
+          vf (get opts :vf identity)
+          initk (get opts :initk)
+          result (step initk)]
+      (when (not (nil? result))
+        (cons (vf result)
+              (iteration step (assoc opts :initk (kf result))))))))
+
 ;; --- Rich exceptions ---
 
 (defn ex-info
