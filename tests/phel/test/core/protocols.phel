@@ -1,0 +1,105 @@
+(ns phel-test\test\core\protocols
+  (:require phel\test :refer [deftest is]))
+
+;; --- Protocol definition and basic dispatch ---
+
+(defprotocol Describable
+  (describe [this]))
+
+(extend-type :string
+  Describable
+  (describe [s] (str "string: " s)))
+
+(extend-type :int
+  Describable
+  (describe [n] (str "int: " n)))
+
+(extend-type :keyword
+  Describable
+  (describe [k] (str "keyword: " k)))
+
+(deftest test-protocol-dispatch-string
+  (is (= "string: hello" (describe "hello")) "dispatches on string"))
+
+(deftest test-protocol-dispatch-int
+  (is (= "int: 42" (describe 42)) "dispatches on int"))
+
+(deftest test-protocol-dispatch-keyword
+  (is (= "keyword: :foo" (describe :foo)) "dispatches on keyword"))
+
+(deftest test-protocol-no-impl-throws
+  (is (thrown? \InvalidArgumentException (describe 3.14))
+      "throws for unimplemented type"))
+
+;; --- nil dispatch ---
+
+(defprotocol Nullable
+  (nil-safe [this]))
+
+(extend-type nil
+  Nullable
+  (nil-safe [_] "was nil"))
+
+(extend-type :string
+  Nullable
+  (nil-safe [s] s))
+
+(deftest test-protocol-nil-dispatch
+  (is (= "was nil" (nil-safe nil)) "dispatches on nil")
+  (is (= "hello" (nil-safe "hello")) "dispatches on string"))
+
+;; --- Multi-arg methods ---
+
+(defprotocol Greetable
+  (greet [this name]))
+
+(extend-type :string
+  Greetable
+  (greet [title name] (str "Hello " name ", " title)))
+
+(deftest test-protocol-multi-arg
+  (is (= "Hello World, Sir" (greet "Sir" "World")) "multi-arg dispatch"))
+
+;; --- satisfies? ---
+
+(deftest test-satisfies
+  (is (true? (satisfies? Describable "hello")) "string satisfies Describable")
+  (is (true? (satisfies? Describable 42)) "int satisfies Describable")
+  (is (false? (satisfies? Describable 3.14)) "float does not satisfy Describable"))
+
+;; --- extends? ---
+
+(deftest test-extends
+  (is (true? (extends? Describable :string)) "string extends Describable")
+  (is (true? (extends? Describable :int)) "int extends Describable")
+  (is (false? (extends? Describable :float)) "float does not extend Describable"))
+
+;; --- Struct dispatch ---
+
+(defstruct ProtoPoint [x y])
+
+(defprotocol Printable
+  (to-label [this]))
+
+(extend-type ProtoPoint
+  Printable
+  (to-label [p] (str "(" (get p :x) ", " (get p :y) ")")))
+
+(deftest test-protocol-struct-dispatch
+  (is (= "(1, 2)" (to-label (ProtoPoint 1 2))) "dispatches on struct"))
+
+(deftest test-satisfies-struct
+  (is (true? (satisfies? Printable (ProtoPoint 1 2))) "struct satisfies protocol"))
+
+;; --- Multiple protocols on same type ---
+
+(defprotocol Measurable
+  (measure [this]))
+
+(extend-type :string
+  Measurable
+  (measure [s] (php/strlen s)))
+
+(deftest test-multiple-protocols-on-type
+  (is (= "string: hello" (describe "hello")) "Describable still works")
+  (is (= 5 (measure "hello")) "Measurable also works"))

@@ -3264,6 +3264,130 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                      (rest candidates))]
           (get methods best))))))
 
+;; ---------
+;; Protocols
+;; ---------
+
+(defn protocol-type-key
+  "Returns the dispatch key for protocol dispatch. Returns a type keyword
+  for primitive types, or the PHP class name string for objects/structs."
+  {:see-also ["defprotocol" "extend-type" "satisfies?"]}
+  [x]
+  (let [t (type x)]
+    (if (or (= t :struct) (= t :php/object))
+      (php/get_class x)
+      t)))
+
+(defmacro defprotocol
+  "Defines a protocol with the given method signatures. Each method signature
+  is a list of (method-name [args]).
+
+  Creates a dispatching function for each method that dispatches on the type
+  of the first argument. Use `extend-type` to add implementations."
+  {:example "(defprotocol Stringable (to-string [this]))"}
+  [protocol-name & method-specs]
+  (let [pname-str (php/-> protocol-name (getName))
+        methods (for [spec :in method-specs
+                     :let [mname (first spec)
+                           mname-str (php/-> mname (getName))
+                           margs (second spec)
+                           dsym (php/:: Symbol
+                                  (create (php/. pname-str "--" mname-str "--dispatch")))]]
+                  [mname mname-str margs dsym])]
+    `(do
+       ,@(for [[_ _ _ dsym] :in methods]
+           `(def ,dsym {:private true} (var {})))
+       (def ,protocol-name
+         {:name ,pname-str
+          :dispatch [,@(for [[_ _ _ dsym] :in methods] dsym)]})
+       ,@(for [[mname mname-str margs dsym] :in methods]
+           `(defn ,mname ,margs
+              (let [dk (protocol-type-key ,(first margs))
+                    impl (get (deref ,dsym) dk)]
+                (if impl
+                  (impl ,@margs)
+                  (throw (php/new \InvalidArgumentException
+                    (str "No implementation of '" ,mname-str
+                         "' for type: " (type ,(first margs))))))))))))
+
+(defmacro extend-type
+  "Extends a type with protocol method implementations.
+
+  type-spec can be:
+  - `nil` for the nil type
+  - a keyword like `:string`, `:int`, `:vector` for Phel primitive types
+  - a symbol for struct names (resolved in current namespace)
+  - a string for explicit PHP class names (cross-namespace structs)"
+  {:example "(extend-type :string Stringable (to-string [s] s))"}
+  [type-spec & specs]
+  (let [type-key (cond
+                   (nil? type-spec) :nil
+                   (and (php/instanceof type-spec Symbol)
+                        (= "nil" (php/-> type-spec (getName))))
+                   :nil
+                   (keyword? type-spec) type-spec
+                   (php/is_string type-spec) type-spec
+                   (php/instanceof type-spec Symbol)
+                   (let [munge (php/new Munge)
+                         name-str (php/-> type-spec (getName))]
+                     (php/. (php/-> munge (encodeNs *ns*)) "\\" (php/-> munge (encode name-str)))))
+        groups (loop [remaining specs
+                      current-proto nil
+                      current-methods []
+                      result []]
+                 (if (nil? remaining)
+                   (if current-proto
+                     (conj result [current-proto current-methods])
+                     result)
+                   (let [item (first remaining)
+                         rst (next remaining)]
+                     (if (php/instanceof item Symbol)
+                       (recur rst item []
+                              (if current-proto
+                                (conj result [current-proto current-methods])
+                                result))
+                       (recur rst current-proto
+                              (conj current-methods item)
+                              result)))))
+        swaps (reduce
+                (fn [acc group]
+                  (let [proto-name (first group)
+                        methods (second group)
+                        proto-str (php/-> proto-name (getName))]
+                    (reduce
+                      (fn [inner method]
+                        (let [mname-str (php/-> (first method) (getName))
+                              margs (second method)
+                              body (next (next method))
+                              dsym (php/:: Symbol
+                                     (create (php/. proto-str "--" mname-str "--dispatch")))]
+                          (conj inner `(swap! ,dsym assoc ,type-key (fn ,margs ,@body)))))
+                      acc
+                      methods)))
+                []
+                groups)]
+    `(do ,@swaps)))
+
+(defn satisfies?
+  "Returns true if x's type implements the given protocol."
+  {:example "(satisfies? Stringable \"hello\")"}
+  [protocol x]
+  (let [key (protocol-type-key x)
+        dvars (get protocol :dispatch)]
+    (if (or (nil? dvars) (empty? dvars))
+      false
+      (not (nil? (get (deref (first dvars)) key))))))
+
+(defn extends?
+  "Returns true if the given type-key has been extended to the protocol.
+  type-key should match what protocol-type-key returns for that type."
+  {:example "(extends? Stringable :string)"}
+  [protocol type-key]
+  (let [dvars (get protocol :dispatch)]
+    (if (or (nil? dvars) (empty? dvars))
+      false
+      (not (nil? (get (deref (first dvars)) type-key))))))
+
 ;; ------------
 ;; Multimethods
 ;; ------------
