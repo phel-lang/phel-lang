@@ -1,0 +1,36 @@
+(ns phel-test\test\core\delay
+  (:require phel\test :refer [deftest is]))
+
+(deftest test-delay-caches-result
+  (let [counter (var 0)
+        d (delay (swap! counter inc) 42)]
+    (is (= 42 (force d)) "force returns the value")
+    (is (= 42 (force d)) "force returns cached value on second call")
+    (is (= 1 (deref counter)) "body was only evaluated once")))
+
+(deftest test-delay-with-deref
+  (let [d (delay (+ 1 2))]
+    (is (= 3 (deref d)) "deref function works with delay")
+    (is (= 3 (deref d)) "deref returns cached value")))
+
+(deftest test-delay?
+  (is (true? (delay? (delay 1))) "delay? returns true for delay")
+  (is (false? (delay? 42)) "delay? returns false for number")
+  (is (false? (delay? nil)) "delay? returns false for nil"))
+
+(deftest test-realized?-with-delay
+  (let [d (delay 42)]
+    (is (false? (realized? d)) "delay is not realized before forcing")
+    (force d)
+    (is (true? (realized? d)) "delay is realized after forcing")))
+
+(deftest test-force-on-non-delay
+  (is (= 42 (force 42)) "force on non-delay returns value as-is")
+  (is (nil? (force nil)) "force on nil returns nil")
+  (is (= "hello" (force "hello")) "force on string returns string"))
+
+(deftest test-delay-nil-value
+  (let [d (delay nil)]
+    (is (false? (realized? d)) "not realized before force")
+    (is (nil? (force d)) "force returns nil")
+    (is (true? (realized? d)) "realized after force even if value is nil")))

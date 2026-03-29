@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Add `delay`, `force`, `delay?` for deferred computation evaluated at most once and cached (#1155)
 - Add Clojure-style anonymous function shorthand `#(...)` with `%`, `%1`, `%2`, `%&` parameter placeholders as alternative to `|(...)` syntax (#1146)
 - Deprecation warnings for `#` line comments (use `;` instead) and `#| |#` multiline comments (use `(comment ...)` instead) (#1146)
 - Add `eval-capturing` function to `phel\repl` for evaluating code strings while capturing stdout separately from return values, enabling nREPL transport support
