@@ -1,0 +1,70 @@
+(ns phel-test\test\core\utility-functions
+  (:require phel\test :refer [deftest is]))
+
+;; --- Math predicates & functions ---
+
+(deftest test-inf?
+  (is (true? (inf? php/INF)) "(inf? INF)")
+  (is (true? (inf? (- php/INF))) "(inf? -INF)")
+  (is (false? (inf? 0)) "(inf? 0)")
+  (is (false? (inf? 1.5)) "(inf? 1.5)")
+  (is (false? (inf? php/NAN)) "(inf? NAN)"))
+
+(deftest test-abs
+  (is (= 5 (abs -5)) "(abs -5)")
+  (is (= 5 (abs 5)) "(abs 5)")
+  (is (= 0 (abs 0)) "(abs 0)")
+  (is (= 3.14 (abs -3.14)) "(abs -3.14)"))
+
+;; --- Map utilities ---
+
+(deftest test-update-keys
+  (is (= {"a" 1 "b" 2} (update-keys {:a 1 :b 2} name)) "update-keys with name")
+  (is (= {} (update-keys {} identity)) "update-keys on empty map"))
+
+(deftest test-update-vals
+  (is (= {:a 2 :b 3} (update-vals {:a 1 :b 2} inc)) "update-vals with inc")
+  (is (= {:a "1" :b "2"} (update-vals {:a 1 :b 2} str)) "update-vals with str")
+  (is (= {} (update-vals {} identity)) "update-vals on empty map"))
+
+;; --- Safe parsing ---
+
+(deftest test-parse-long
+  (is (= 123 (parse-long "123")) "parse-long positive")
+  (is (= -42 (parse-long "-42")) "parse-long negative")
+  (is (= 0 (parse-long "0")) "parse-long zero")
+  (is (= 123 (parse-long "  123  ")) "parse-long with whitespace")
+  (is (nil? (parse-long "abc")) "parse-long non-numeric")
+  (is (nil? (parse-long "12.5")) "parse-long float string")
+  (is (nil? (parse-long "")) "parse-long empty string")
+  (is (nil? (parse-long nil)) "parse-long nil"))
+
+(deftest test-parse-double
+  (is (= 3.14 (parse-double "3.14")) "parse-double float")
+  (is (= 42.0 (parse-double "42")) "parse-double integer string")
+  (is (= -1.5 (parse-double "-1.5")) "parse-double negative")
+  (is (= 0.0 (parse-double "0")) "parse-double zero")
+  (is (nil? (parse-double "abc")) "parse-double non-numeric")
+  (is (nil? (parse-double "")) "parse-double empty string")
+  (is (nil? (parse-double nil)) "parse-double nil"))
+
+(deftest test-parse-boolean
+  (is (true? (parse-boolean "true")) "parse-boolean true")
+  (is (false? (parse-boolean "false")) "parse-boolean false")
+  (is (true? (parse-boolean "TRUE")) "parse-boolean TRUE")
+  (is (false? (parse-boolean "FALSE")) "parse-boolean FALSE")
+  (is (true? (parse-boolean "  true  ")) "parse-boolean with whitespace")
+  (is (nil? (parse-boolean "yes")) "parse-boolean invalid")
+  (is (nil? (parse-boolean "1")) "parse-boolean 1")
+  (is (nil? (parse-boolean "")) "parse-boolean empty")
+  (is (nil? (parse-boolean nil)) "parse-boolean nil"))
+
+;; --- UUID ---
+
+(deftest test-random-uuid
+  (let [uuid (random-uuid)]
+    (is (string? uuid) "random-uuid returns a string")
+    (is (= 36 (php/strlen uuid)) "random-uuid has 36 characters")
+    (is (truthy? (php/preg_match "/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/" uuid))
+        "random-uuid matches UUID v4 format")
+    (is (not= uuid (random-uuid)) "random-uuid generates unique values")))
