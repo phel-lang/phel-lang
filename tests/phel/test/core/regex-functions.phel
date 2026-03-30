@@ -40,3 +40,45 @@
 (deftest test-re-matches-with-groups
   (is (= ["12-34" "12" "34"] (re-matches "/(\\d+)-(\\d+)/" "12-34"))
       "re-matches with groups"))
+
+;; --- #"..." regex literal syntax ---
+
+(deftest test-regex-literal-re-find
+  (is (= "123" (re-find #"\d+" "abc123def")) "regex literal with re-find")
+  (is (nil? (re-find #"\d+" "abcdef")) "regex literal no match"))
+
+(deftest test-regex-literal-re-find-groups
+  (is (= ["12-34" "12" "34"] (re-find #"(\d+)-(\d+)" "abc12-34def"))
+      "regex literal with capture groups"))
+
+(deftest test-regex-literal-re-matches
+  (is (= "12345" (re-matches #"\d+" "12345")) "regex literal full match")
+  (is (nil? (re-matches #"\d+" "abc123")) "regex literal requires full match"))
+
+(deftest test-regex-literal-re-seq
+  (is (= ["1" "2" "3"] (re-seq #"\d+" "a1b2c3")) "regex literal with re-seq"))
+
+(deftest test-regex-literal-case-insensitive
+  (is (= "HELLO" (re-find #"(?i)hello" "HELLO world"))
+      "regex literal with inline flags"))
+
+(deftest test-regex-literal-with-special-chars
+  (is (= "." (re-find #"\." "a.b")) "regex literal escaping dot")
+  (is (= "abc" (re-find #"\w+" "abc 123")) "regex literal word chars"))
+
+(deftest test-regex-literal-is-string
+  (is (= "/\\d+/" #"\d+") "regex literal produces delimited string"))
+
+(deftest test-regex-literal-with-slash
+  (is (= "a/b" (re-find #"a/b" "test a/b end")) "regex with forward slash"))
+
+(deftest test-regex-literal-url-pattern
+  (is (= "https://example.com" (re-find #"https?://[^\s]+" "visit https://example.com now"))
+      "regex matching URL with slashes"))
+
+(deftest test-re-pattern
+  (is (= "/\\d+/" (re-pattern "\\d+")) "re-pattern wraps in delimiters")
+  (is (= "/\\d+/" (re-pattern "/\\d+/")) "re-pattern passes through delimited"))
+
+(deftest test-re-pattern-with-re-find
+  (is (= "42" (re-find (re-pattern "\\d+") "abc42def")) "re-pattern result works with re-find"))

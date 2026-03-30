@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Add `#"..."` regex literal syntax as reader sugar for PCRE patterns, plus `re-pattern` function (#1153)
 - Add transducer system: `transduce`, `into` (3-arg), `sequence`, `reduced`, `reduced?`, `unreduced`, `completing`, `volatile!`, `vreset!`, `vswap!`, `cat`, with transducer arities for `map`, `filter`, `remove`, `take`, `drop`, `take-while`, `drop-while`, `take-nth`, `keep`, `keep-indexed`, `distinct`, `dedupe`, `mapcat`, `interpose` (#1152)
 - Add protocol system: `defprotocol`, `extend-type`, `extend-protocol`, `satisfies?`, `extends?` for type-based polymorphic dispatch with `:default` fallback (#1151)
 - Add hierarchy system: `derive`, `underive`, `isa?`, `parents`, `ancestors`, `descendants`, `make-hierarchy` for keyword taxonomies with hierarchy-aware multimethod dispatch (#1156)

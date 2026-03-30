@@ -440,6 +440,14 @@ final class ParserTest extends TestCase
         );
     }
 
+    public function test_regex_literal(): void
+    {
+        self::assertEquals(
+            new StringNode('#"\d+"', $this->loc(1, 0), $this->loc(1, 6), '/\d+/'),
+            $this->parse('#"\d+"'),
+        );
+    }
+
     public function test_read_short_fn_zero_args(): void
     {
         self::assertEquals(

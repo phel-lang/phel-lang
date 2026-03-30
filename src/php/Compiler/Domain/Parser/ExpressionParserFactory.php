@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Parser\ExpressionParser\AtomParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\ListParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\MetaParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\QuoteParser;
+use Phel\Compiler\Domain\Parser\ExpressionParser\RegexParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\StringParser;
 
 final class ExpressionParserFactory implements ExpressionParserFactoryInterface
@@ -22,6 +23,11 @@ final class ExpressionParserFactory implements ExpressionParserFactoryInterface
     public function createStringParser(): StringParser
     {
         return new StringParser();
+    }
+
+    public function createRegexParser(): RegexParser
+    {
+        return new RegexParser();
     }
 
     public function createListParser(Parser $parser): ListParser

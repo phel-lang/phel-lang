@@ -40,6 +40,7 @@ final readonly class Parser implements ParserInterface
         Token::T_COMMENT,
         Token::T_ATOM,
         Token::T_STRING,
+        Token::T_REGEX,
     ];
 
     private SplStack $quasiquoteStack;
@@ -127,6 +128,7 @@ final readonly class Parser implements ParserInterface
                 Token::T_COMMENT => CommentNode::createWithToken($token),
                 Token::T_ATOM => $this->parseAtomNode($token, $tokenStream),
                 Token::T_STRING => $this->parseStringNode($token, $tokenStream),
+                Token::T_REGEX => $this->parseRegexNode($token),
                 Token::T_HASH_FN,
                 Token::T_FN,
                 Token::T_OPEN_PARENTHESIS => $this->parseFnListNode($token, $tokenStream),
@@ -197,6 +199,13 @@ final readonly class Parser implements ParserInterface
         } catch (StringParserException $stringParserException) {
             throw $this->createUnexceptedParserException($tokenStream, $token, $stringParserException->getMessage());
         }
+    }
+
+    private function parseRegexNode(Token $token): StringNode
+    {
+        return $this->parserFactory
+            ->createRegexParser()
+            ->parse($token);
     }
 
     private function createUnexceptedParserException(TokenStream $tokenStream, Token $currentToken, string $message): UnexpectedParserException

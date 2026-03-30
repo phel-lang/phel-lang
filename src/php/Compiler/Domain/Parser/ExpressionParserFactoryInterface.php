@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Parser\ExpressionParser\AtomParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\ListParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\MetaParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\QuoteParser;
+use Phel\Compiler\Domain\Parser\ExpressionParser\RegexParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\StringParser;
 
 interface ExpressionParserFactoryInterface
@@ -17,6 +18,8 @@ interface ExpressionParserFactoryInterface
     public function createAtomParser(GlobalEnvironmentInterface $globalEnvironment): AtomParser;
 
     public function createStringParser(): StringParser;
+
+    public function createRegexParser(): RegexParser;
 
     public function createListParser(Parser $parser): ListParser;
 
