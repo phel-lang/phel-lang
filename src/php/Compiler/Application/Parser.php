@@ -300,7 +300,7 @@ final readonly class Parser implements ParserInterface
         }
 
         $matchedNode = $phelNode ?? $defaultNode;
-        if ($matchedNode !== null) {
+        if ($matchedNode instanceof NodeInterface) {
             return $matchedNode;
         }
 
