@@ -5,55 +5,48 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
-- Add `#"..."` regex literal syntax as reader sugar for PCRE patterns, plus `re-pattern` function (#1153)
-- Add transducer system: `transduce`, `into` (3-arg), `sequence`, `reduced`, `reduced?`, `unreduced`, `completing`, `volatile!`, `vreset!`, `vswap!`, `cat`, with transducer arities for `map`, `filter`, `remove`, `take`, `drop`, `take-while`, `drop-while`, `take-nth`, `keep`, `keep-indexed`, `distinct`, `dedupe`, `mapcat`, `interpose` (#1152)
-- Add protocol system: `defprotocol`, `extend-type`, `extend-protocol`, `satisfies?`, `extends?` for type-based polymorphic dispatch with `:default` fallback (#1151)
-- Add hierarchy system: `derive`, `underive`, `isa?`, `parents`, `ancestors`, `descendants`, `make-hierarchy` for keyword taxonomies with hierarchy-aware multimethod dispatch (#1156)
-- Add `@` reader syntax as shorthand for `(deref ...)`, e.g. `@my-var` expands to `(deref my-var)` (#1164)
-- Add `re-find`, `re-matches` regex functions (#1153)
-- Add `add-watch`, `remove-watch`, `set-validator!`, `get-validator` for variable state observation and constraints (#1154)
-- Add `delay`, `force`, `delay?` for deferred computation evaluated at most once and cached (#1155)
-- Add `iteration` function for consuming paginated/cursor-based APIs as lazy sequences (#1157)
-- Add `ex-info`, `ex-data`, `ex-message`, `ex-cause` for rich structured exceptions with data maps (#1149)
-- Add `update-keys`, `update-vals` map utility functions (#1150)
-- Add `parse-long`, `parse-double`, `parse-boolean` safe parsing functions (#1150)
-- Add `abs`, `inf?`, `random-uuid` utility functions (#1150)
-- Add Clojure-style anonymous function shorthand `#(...)` with `%`, `%1`, `%2`, `%&` parameter placeholders as alternative to `|(...)` syntax (#1146)
-- Deprecation warnings for `#` line comments (use `;` instead) and `#| |#` multiline comments (use `(comment ...)` instead) (#1146)
-- Add `eval-capturing` function to `phel\repl` for evaluating code strings while capturing stdout separately from return values, enabling nREPL transport support
-- Add typed completion results via `completeWithTypes()` returning candidate + type (`function`, `macro`, `var`, `keyword`, `class`, `php-function`) for nREPL client support
-- Add `eval-str` function to `phel\repl` for evaluating Phel code strings and returning the result
-- Add `macroexpand-1` and `macroexpand` macros to `phel\repl` plus `macroexpand-1-form` and `macroexpand-form` functions for macro expansion without compile/emit, enabling nREPL macroexpand support
-- Add `macroexpand1()` and `macroexpand()` methods to `CompilerFacade` exposing macro expansion to PHP consumers
-- Add `ns-list` function to `phel\repl` returning a sorted vector of human-readable namespace names (decodes munged underscores back to hyphens)
-- Add GlobalEnvironment snapshot/restore to rollback state on REPL eval errors, preventing dirty state from partial evaluations
-- Add `find-fn` function to `phel\repl` for structured function search across all loaded namespaces, returning maps with `:ns`, `:name`, `:doc`, `:private`, `:min-arity`, `:max-arity`, `:is-variadic`
-- Add structured stack frames (`StackFrame` objects) to `EvalError` for nREPL stacktrace middleware support
-- Add `test-ns` function to `phel\repl` for running all tests in a namespace interactively from the REPL
-- Add `reset-stats`, `get-stats`, and `restore-stats` functions to `phel\test` for programmatic test result management
-- Add `source` macro and `get-source-code` function to `phel\repl` for retrieving definition source code from file metadata
-- Add `ns-publics`, `ns-aliases`, `ns-refers` to `phel\repl` for Clojure-style namespace introspection returning hash-maps
-- Store parameter names as `:arglists` in function metadata during compilation for IDE signature help and nREPL support
-- Add `symbol-info` macro and `get-symbol-info` function to `phel\repl` for structured metadata lookup (doc, location, arity, deprecation)
-- Add stdout capture to `EvalResult` via `$output` field, separating printed output from return values for nREPL support
-- Add `load-file` REPL function to evaluate an entire Phel source file within the REPL session context
-- Add `structuredEval()` to `RunFacade` returning structured `EvalResult` with error details for external tooling
-- Add alias-based and referred-symbol completion to `ReplCompleter`
-- Auto-inject REPL utilities (`doc`, `require`, `use`) on `(in-ns ...)` namespace changes
+
+#### Reader & Compiler
+- `#?()` reader conditionals with `:phel`/`:default` platform keys and `.cljc` file support (#1171)
+- `#"..."` regex literal syntax as reader sugar for PCRE patterns (#1153)
+- `re-find`, `re-matches` regex functions (#1153)
+- `@` reader syntax as shorthand for `(deref ...)` (#1164)
+- `#(...)` anonymous function shorthand with `%`, `%1`, `%2`, `%&` parameter placeholders (#1146)
+- Deprecation warnings for `#` line comments and `#| |#` multiline comments (#1146)
+- Store parameter names as `:arglists` in function metadata during compilation (#1127)
+
+#### Core Language
+- Protocol system: `defprotocol`, `extend-type`, `extend-protocol`, `satisfies?`, `extends?` (#1151)
+- Hierarchy system: `derive`, `underive`, `isa?`, `parents`, `ancestors`, `descendants`, `make-hierarchy` with hierarchy-aware multimethod dispatch (#1156)
+- Transducer system: `transduce`, `into` (3-arg), `sequence`, `completing`, `cat`, plus transducer arities for `map`, `filter`, `remove`, `take`, `drop`, `take-while`, `drop-while`, `take-nth`, `keep`, `keep-indexed`, `distinct`, `dedupe`, `mapcat`, `interpose` (#1152)
+- `ex-info`, `ex-data`, `ex-message`, `ex-cause` for structured exceptions with data maps (#1149)
+- `delay`, `force`, `delay?` for deferred cached computation (#1155)
+- `add-watch`, `remove-watch`, `set-validator!`, `get-validator` for atom observation (#1154)
+- `iteration` function for consuming paginated/cursor-based APIs as lazy sequences (#1157)
+- `update-keys`, `update-vals`, `parse-long`, `parse-double`, `parse-boolean`, `abs`, `inf?`, `random-uuid` utility functions (#1150)
+
+#### REPL & Tooling
+- `source`, `find-fn`, `symbol-info` introspection functions (#1128, #1132, #1125)
+- `ns-publics`, `ns-aliases`, `ns-refers`, `ns-list` for namespace introspection (#1131, #1134)
+- `macroexpand-1`, `macroexpand` macros and `CompilerFacade` methods (#1138)
+- `eval-str`, `eval-capturing`, `load-file` evaluation functions (#1136, #1135, #1124)
+- `test-ns` for running namespace tests interactively; `reset-stats`, `get-stats`, `restore-stats` for test management (#1133)
+- GlobalEnvironment snapshot/restore to rollback state on eval errors (#1129)
+- Structured stack frames in `EvalError` for nREPL stacktrace support (#1130)
+- Typed completion results and alias/referred-symbol completion in `ReplCompleter` (#1137, #1121)
+- Stdout capture in `EvalResult`, `structuredEval()` on `RunFacade` for external tooling (#1123, #1121)
+- Auto-inject REPL utilities (`doc`, `require`, `use`) on `(in-ns ...)` (#1121)
 
 ### Changed
-- Standardize comment syntax: replace `#` with `;` and use `;;` for standalone line comments (Clojure convention) across all Phel source and test files (#1140)
+- Standardize comment syntax: replace `#` with `;` and `;;` for standalone comments across all Phel source files (#1140)
 
 ### Fixed
-- Fix `phel --help` showing only REPL help instead of top-level help with all commands (#1141)
-- Fix `(str false)` returns `"false"` and `(str true)` returns `"true"` (matching Clojure semantics) (#1122)
-- Fix REPL: `*ns*` now preserves hyphens instead of munging to underscores (#766)
-- Fix REPL: `(ns ...)` form requires no longer silently fail when `src-dirs` is empty (#766)
-- Fix REPL: runtime `require` macro now works without `loadPhelNamespaces()` (lazy src-dirs resolution) (#766)
-- Fix `phel run`: prevent duplicate output on first run (cache miss double execution) (#1139)
-- Fix PHAR: deduplicate stdlib source directory in namespace resolution
-- Fix PHAR: pre-compile all stdlib modules during phar build
-- Fix cache: resolve compiled paths from current cache dir, not stored paths
+- `phel --help` showing only REPL help instead of all commands (#1141)
+- `(str false)` and `(str true)` now return `"false"` and `"true"` (Clojure semantics) (#1122)
+- REPL: `*ns*` preserves hyphens, `(ns ...)` requires work with empty `src-dirs`, runtime `require` works without `loadPhelNamespaces()` (#1120)
+- `phel run`: prevent duplicate output on first run (#1142)
+- PHAR: deduplicate stdlib source directory, pre-compile all stdlib modules (#1119)
+- Cache: resolve compiled paths from current cache dir, not stored paths (#1119)
 
 ## [0.30.0](https://github.com/phel-lang/phel-lang/compare/v0.29.0...v0.30.0) - 2026-03-25
 
