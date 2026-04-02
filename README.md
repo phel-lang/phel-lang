@@ -62,7 +62,7 @@ we should use "phel" once GitHub accept phel coloring too
   Reference for all special syntax and reader macros.
 - [Reader Conditionals](docs/reader-conditionals.md)
   Cross-platform code with `#?()`, `#?@()`, and `.cljc` files.
-- [Transducers](doc/transducers.md)
+- [Transducers](docs/transducers.md)
   Composable transformation pipelines without intermediate collections.
 - [Data Structures](docs/data-structures-guide.md)
   Guide to Phel's persistent, immutable collections.
