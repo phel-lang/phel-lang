@@ -18,6 +18,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\CommaNode;
 use Phel\Compiler\Domain\Parser\ParserNode\CommentMacroNode;
 use Phel\Compiler\Domain\Parser\ParserNode\CommentNode;
 use Phel\Compiler\Domain\Parser\ParserNode\FileNode;
+use Phel\Compiler\Domain\Parser\ParserNode\KeywordNode;
 use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
 use Phel\Compiler\Domain\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NewlineNode;
@@ -284,7 +285,7 @@ final readonly class Parser implements ParserInterface
             } while ($formNode instanceof TriviaNodeInterface);
 
             // Check keyword
-            if ($keywordNode instanceof AbstractAtomNode) {
+            if ($keywordNode instanceof KeywordNode) {
                 $keywordCode = $keywordNode->getCode();
                 if ($keywordCode === ':phel') {
                     $phelNode = $formNode;
@@ -294,10 +295,12 @@ final readonly class Parser implements ParserInterface
             }
         }
 
-        // Consume the closing paren
-        if ($tokenStream->valid() && $tokenStream->current()->getType() === Token::T_CLOSE_PARENTHESIS) {
-            $tokenStream->next();
+        // Consume the closing paren — throw if the stream is exhausted or missing ')'
+        if (!$tokenStream->valid() || $tokenStream->current()->getType() !== Token::T_CLOSE_PARENTHESIS) {
+            throw $this->createUnfinishedParserException($tokenStream, $openToken, 'Unterminated reader conditional #?()');
         }
+
+        $tokenStream->next();
 
         $matchedNode = $phelNode ?? $defaultNode;
         if ($matchedNode instanceof NodeInterface) {

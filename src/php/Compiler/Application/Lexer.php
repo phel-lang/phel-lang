@@ -18,9 +18,9 @@ use function strlen;
 final class Lexer implements LexerInterface
 {
     /**
-     * IMPORTANT: The token type is determined by counting the number of matched groups (count($matches)),
-     * which equals the 1-based position of the capturing group in the combined alternation.
-     * The offset of 2 comes from the outer non-capturing group wrapping.
+     * IMPORTANT: The token type is determined by count($matches) after a successful regex match.
+     * $matches[0] is always the full match, so count($matches) = capturing_group_index + 1.
+     * The first REGEXP (group 1) yields count = 2 = T_WHITESPACE; each subsequent entry adds 1.
      * Adding, removing, or reordering entries shifts all subsequent indices and MUST be reflected
      * in the corresponding Token::T_* constants.
      */
