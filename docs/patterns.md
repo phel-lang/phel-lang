@@ -117,7 +117,7 @@ Practical patterns for writing idiomatic Phel code.
 ;; Group by
 (reduce (fn [acc x]
           (let [key (if (even? x) :even :odd)]
-            (update acc key |(push (or $ []) x))))
+            (update acc key |(conj (or $ []) x))))
         {:even [] :odd []}
         [1 2 3 4 5 6])
 ;; => {:even [2 4 6] :odd [1 3 5]}
@@ -294,7 +294,7 @@ Threads value as **last** argument:
          :loading false}))
 
 (defn add-user [user]
-  (swap! app-state update :users |(push $ user)))
+  (swap! app-state update :users |(conj $ user)))
 
 (defn set-current-user [user]
   (swap! app-state assoc :current-user user))
@@ -370,8 +370,8 @@ Threads value as **last** argument:
     {:evens evens :odds odds}
     (let [x (first items)]
       (if (even? x)
-        (recur (rest items) (push evens x) odds)
-        (recur (rest items) evens (push odds x))))))
+        (recur (rest items) (conj evens x) odds)
+        (recur (rest items) evens (conj odds x))))))
 ;; => {:evens [2 4] :odds [1 3 5]}
 ```
 
@@ -463,11 +463,11 @@ Threads value as **last** argument:
 (defn validate-user [user]
   (let [errors (transient [])]
     (when-not (valid-email? (get user :email))
-      (push errors "Invalid email"))
+      (conj errors "Invalid email"))
     (when-not (valid-age? (get user :age))
-      (push errors "Invalid age"))
+      (conj errors "Invalid age"))
     (when-not (php/is_string (get user :name))
-      (push errors "Name must be a string"))
+      (conj errors "Name must be a string"))
     (let [err-list (persistent errors)]
       (if (empty? err-list)
         {:ok user}
@@ -512,7 +512,7 @@ Threads value as **last** argument:
 (loop [coll [1 2 3 4] result []]
   (if (empty? coll)
     result
-    (recur (rest coll) (push result (* 2 (first coll))))))
+    (recur (rest coll) (conj result (* 2 (first coll))))))
 
 ;; Use map
 (map |(* $ 2) [1 2 3 4])

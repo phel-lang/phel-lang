@@ -87,7 +87,7 @@ Type `(exit)` or press Ctrl+D to quit.
 (def fruits ["apple" "banana" "cherry"])
 (get fruits 1)                    ; => "banana"
 (count fruits)                    ; => 3
-(push fruits "date")              ; => ["apple" "banana" "cherry" "date"]
+(conj fruits "date")              ; => ["apple" "banana" "cherry" "date"]
 
 ;; Maps (associative arrays)
 (def user {:name "Alice" :age 30 :city "NYC"})
@@ -377,12 +377,12 @@ map square [1 2 3]              ; Error: not a function
 
 ;; Wrong - trying to mutate
 (def nums [1 2 3])
-(push nums 4)                   ; Returns NEW vector
+(conj nums 4)                   ; Returns NEW vector
 nums                            ; Still [1 2 3]!
 
 ;; Right - rebind or use result
 (def nums [1 2 3])
-(def nums (push nums 4))        ; Rebind to new vector
+(def nums (conj nums 4))        ; Rebind to new vector
 nums                            ; => [1 2 3 4]
 ```
 

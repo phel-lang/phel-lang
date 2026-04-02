@@ -230,11 +230,11 @@ $response->send();
 
 ```phel
 ;; Slow - creates new collection each time
-(reduce (fn [acc x] (push acc (* x 2))) [] large-list)
+(reduce (fn [acc x] (conj acc (* x 2))) [] large-list)
 
 ;; Fast - mutable during build
 (persistent
-  (reduce (fn [acc x] (push acc (* x 2))) (transient []) large-list))
+  (reduce (fn [acc x] (conj acc (* x 2))) (transient []) large-list))
 ```
 
 ### Prefer PHP Functions for Heavy Lifting
@@ -314,7 +314,7 @@ $response->send();
 
 ## Tips for PHP Developers
 
-- **Immutability**: Phel collections don't mutate. `(push vec item)` returns a *new* vector
+- **Immutability**: Phel collections don't mutate. `(conj vec item)` returns a *new* vector
 - **No `$` sigil**: Variables don't need `$` in Phel
 - **Keywords**: Use `:keyword` instead of strings for map keys
 - **Truthiness**: Only `false` and `nil` are falsy (not `0` or `""`)

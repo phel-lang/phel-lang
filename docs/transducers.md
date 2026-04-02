@@ -44,7 +44,7 @@ Applies a transducer, then reduces with a combining function:
 (into [] (map inc) [1 2 3])
 ; => [2 3 4]
 
-(into [] (map |(put $ :active true)) [{:name "a"} {:name "b"}])
+(into [] (map |(assoc $ :active true)) [{:name "a"} {:name "b"}])
 ; => [{:name "a" :active true} {:name "b" :active true}]
 ```
 
