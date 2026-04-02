@@ -1,7 +1,7 @@
 ---
 name: explorer
 description: Fast read-only codebase exploration. Use for finding files, searching usages, mapping dependencies, or summarizing structures.
-model: haiku
+model: sonnet
 maxTurns: 10
 allowed_tools:
   - Read
