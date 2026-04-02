@@ -20,6 +20,8 @@ allowed_tools:
 
 Guide strict red-green-refactor test-driven development. Never skip the red phase. Ask before moving between phases.
 
+**Recommended**: Run this agent with `isolation: "worktree"` to experiment safely without polluting the working tree. Changes can be merged back when the cycle is complete.
+
 ## The Cycle
 
 ```
