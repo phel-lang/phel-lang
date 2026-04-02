@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Lexer\TokenStream;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
+use Phel\Compiler\Domain\Parser\ParserNode\ReaderCondSplicingNode;
 
 use function sprintf;
 
@@ -43,7 +44,12 @@ final readonly class ListParser
                 return new ListNode($tokenType, $startLocation, $endLocation, $acc);
             }
 
-            $acc[] = $this->parser->readExpression($tokenStream);
+            $node = $this->parser->readExpression($tokenStream);
+            if ($node instanceof ReaderCondSplicingNode) {
+                array_push($acc, ...$node->getChildren());
+            } else {
+                $acc[] = $node;
+            }
         }
 
         $closingBracket = self::CLOSING_BRACKETS[$endTokenType] ?? ')';

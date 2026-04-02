@@ -8,6 +8,7 @@ use Phel;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
+use Phel\Compiler\Domain\Parser\Exceptions\UnexpectedParserException;
 use Phel\Compiler\Domain\Parser\ParserNode\BooleanNode;
 use Phel\Compiler\Domain\Parser\ParserNode\CommaNode;
 use Phel\Compiler\Domain\Parser\ParserNode\CommentMacroNode;
@@ -639,6 +640,72 @@ final class ParserTest extends TestCase
         self::assertSame(1, $nonTrivia[1]->getValue());
         self::assertInstanceOf(NumberNode::class, $nonTrivia[2]);
         self::assertSame(3, $nonTrivia[2]->getValue());
+    }
+
+    public function test_reader_conditional_splicing_inside_vector(): void
+    {
+        // [1 #?@(:phel [2 3]) 4] → [1 2 3 4]
+        $tokenStream = $this->compilerFacade->lexString('[1 #?@(:phel [2 3]) 4]');
+        $node = $this->compilerFacade->parseNext($tokenStream);
+
+        self::assertInstanceOf(ListNode::class, $node);
+
+        $nonTrivia = array_values(array_filter(
+            $node->getChildren(),
+            static fn(NodeInterface $n): bool => !$n instanceof WhitespaceNode && !$n instanceof NewlineNode,
+        ));
+
+        self::assertCount(4, $nonTrivia);
+        self::assertSame(1, $nonTrivia[0]->getValue());
+        self::assertSame(2, $nonTrivia[1]->getValue());
+        self::assertSame(3, $nonTrivia[2]->getValue());
+        self::assertSame(4, $nonTrivia[3]->getValue());
+    }
+
+    public function test_reader_conditional_splicing_default_branch(): void
+    {
+        // [1 #?@(:clj [8 9] :default [2 3]) 4] → [1 2 3 4]
+        $tokenStream = $this->compilerFacade->lexString('[1 #?@(:clj [8 9] :default [2 3]) 4]');
+        $node = $this->compilerFacade->parseNext($tokenStream);
+
+        self::assertInstanceOf(ListNode::class, $node);
+
+        $nonTrivia = array_values(array_filter(
+            $node->getChildren(),
+            static fn(NodeInterface $n): bool => !$n instanceof WhitespaceNode && !$n instanceof NewlineNode,
+        ));
+
+        self::assertCount(4, $nonTrivia);
+        self::assertSame(1, $nonTrivia[0]->getValue());
+        self::assertSame(2, $nonTrivia[1]->getValue());
+        self::assertSame(3, $nonTrivia[2]->getValue());
+        self::assertSame(4, $nonTrivia[3]->getValue());
+    }
+
+    public function test_reader_conditional_splicing_no_match_drops_silently(): void
+    {
+        // [1 #?@(:clj [8 9]) 4] → [1 4]
+        $tokenStream = $this->compilerFacade->lexString('[1 #?@(:clj [8 9]) 4]');
+        $node = $this->compilerFacade->parseNext($tokenStream);
+
+        self::assertInstanceOf(ListNode::class, $node);
+
+        $nonTrivia = array_values(array_filter(
+            $node->getChildren(),
+            static fn(NodeInterface $n): bool => !$n instanceof WhitespaceNode && !$n instanceof NewlineNode,
+        ));
+
+        self::assertCount(2, $nonTrivia);
+        self::assertSame(1, $nonTrivia[0]->getValue());
+        self::assertSame(4, $nonTrivia[1]->getValue());
+    }
+
+    public function test_reader_conditional_splicing_at_top_level_throws(): void
+    {
+        $this->expectException(UnexpectedParserException::class);
+        $this->expectExceptionMessage('not allowed at the top level');
+
+        $this->parse('#?@(:phel [1 2])');
     }
 
     private function parse(string $string): NodeInterface

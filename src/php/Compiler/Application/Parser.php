@@ -24,6 +24,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NewlineNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\QuoteNode;
+use Phel\Compiler\Domain\Parser\ParserNode\ReaderCondSplicingNode;
 use Phel\Compiler\Domain\Parser\ParserNode\StringNode;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\WhitespaceNode;
@@ -72,7 +73,18 @@ final readonly class Parser implements ParserInterface
 
         $tokenStream->clearReadTokens();
 
-        return $this->readExpression($tokenStream);
+        $node = $this->readExpression($tokenStream);
+
+        if ($node instanceof ReaderCondSplicingNode) {
+            throw new UnexpectedParserException(
+                'Reader conditional splicing #?@() is not allowed at the top level',
+                $tokenStream->getCodeSnippet(),
+                $node->getStartLocation(),
+                $node->getEndLocation(),
+            );
+        }
+
+        return $node;
     }
 
     /**
@@ -145,7 +157,7 @@ final readonly class Parser implements ParserInterface
                 Token::T_DEREF => $this->parseQuoteNode($token, $tokenStream),
                 Token::T_CARET => $this->parseMetaNode($tokenStream),
                 Token::T_READER_COND => $this->parseReaderCondNode($tokenStream, $token),
-                Token::T_READER_COND_SPLICING => throw $this->createUnexceptedParserException($tokenStream, $token, 'reader conditional splicing #?@ is not yet supported'),
+                Token::T_READER_COND_SPLICING => $this->parseReaderCondSplicingNode($tokenStream, $token),
                 Token::T_EOF => throw $this->createUnfinishedParserException($tokenStream, $token, 'Unterminated list (EOF)'),
                 default => throw $this->createUnexceptedParserException($tokenStream, $token, 'Unhandled syntax token: ' . $token->getCode()),
             };
@@ -309,6 +321,69 @@ final readonly class Parser implements ParserInterface
 
         // No matching branch → treated as trivia (dropped)
         return CommentNode::createWithToken($openToken);
+    }
+
+    private function parseReaderCondSplicingNode(TokenStream $tokenStream, Token $openToken): NodeInterface
+    {
+        $phelNode = null;
+        $defaultNode = null;
+
+        while ($tokenStream->valid() && $tokenStream->current()->getType() !== Token::T_CLOSE_PARENTHESIS) {
+            // Read keyword (skip trivia)
+            do {
+                $keywordNode = $this->readExpression($tokenStream);
+            } while ($keywordNode instanceof TriviaNodeInterface);
+
+            if ($tokenStream->valid() && $tokenStream->current()->getType() === Token::T_CLOSE_PARENTHESIS) {
+                break;
+            }
+
+            // Read form (skip trivia)
+            do {
+                $formNode = $this->readExpression($tokenStream);
+            } while ($formNode instanceof TriviaNodeInterface);
+
+            // Check keyword
+            if ($keywordNode instanceof KeywordNode) {
+                $keywordCode = $keywordNode->getCode();
+                if ($keywordCode === ':phel') {
+                    $phelNode = $formNode;
+                } elseif ($keywordCode === ':default') {
+                    $defaultNode = $formNode;
+                }
+            }
+        }
+
+        // Consume the closing paren
+        if (!$tokenStream->valid() || $tokenStream->current()->getType() !== Token::T_CLOSE_PARENTHESIS) {
+            throw $this->createUnfinishedParserException($tokenStream, $openToken, 'Unterminated reader conditional splicing #?@()');
+        }
+
+        $tokenStream->next();
+
+        $matchedNode = $phelNode ?? $defaultNode;
+        if ($matchedNode instanceof ListNode) {
+            return new ReaderCondSplicingNode(
+                $matchedNode->getChildren(),
+                $openToken->getStartLocation(),
+                $matchedNode->getEndLocation(),
+            );
+        }
+
+        if ($matchedNode instanceof NodeInterface) {
+            throw $this->createUnexceptedParserException(
+                $tokenStream,
+                $openToken,
+                'Reader conditional splicing #?@() requires a sequential collection (list or vector), got: ' . $matchedNode->getCode(),
+            );
+        }
+
+        // No matching branch → splice nothing
+        return new ReaderCondSplicingNode(
+            [],
+            $openToken->getStartLocation(),
+            $openToken->getEndLocation(),
+        );
     }
 
     private function parseCommaNode(TokenStream $tokenStream): CommaNode

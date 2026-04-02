@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 #### Reader & Compiler
-- `#?()` reader conditionals with `:phel`/`:default` platform keys and `.cljc` file support (#1171)
+- `#?()` reader conditionals and `#?@()` reader conditional splicing with `:phel`/`:default` platform keys, plus `.cljc` file support (#1171)
 - `#"..."` regex literal syntax as reader sugar for PCRE patterns (#1153)
 - `re-find`, `re-matches` regex functions (#1153)
 - `@` reader syntax as shorthand for `(deref ...)` (#1164)
