@@ -52,6 +52,10 @@ final readonly class Token
 
     public const int T_REGEX = 23;
 
+    public const int T_READER_COND = 24;
+
+    public const int T_READER_COND_SPLICING = 25;
+
     public const int T_EOF = 100;
 
     public function __construct(

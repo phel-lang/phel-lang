@@ -41,6 +41,8 @@ final readonly class Parser implements ParserInterface
         Token::T_ATOM,
         Token::T_STRING,
         Token::T_REGEX,
+        Token::T_READER_COND,
+        Token::T_READER_COND_SPLICING,
     ];
 
     private SplStack $quasiquoteStack;
@@ -141,6 +143,8 @@ final readonly class Parser implements ParserInterface
                 Token::T_QUOTE,
                 Token::T_DEREF => $this->parseQuoteNode($token, $tokenStream),
                 Token::T_CARET => $this->parseMetaNode($tokenStream),
+                Token::T_READER_COND => $this->parseReaderCondNode($tokenStream, $token),
+                Token::T_READER_COND_SPLICING => throw $this->createUnexceptedParserException($tokenStream, $token, 'reader conditional splicing #?@ is not yet supported'),
                 Token::T_EOF => throw $this->createUnfinishedParserException($tokenStream, $token, 'Unterminated list (EOF)'),
                 default => throw $this->createUnexceptedParserException($tokenStream, $token, 'Unhandled syntax token: ' . $token->getCode()),
             };
@@ -257,6 +261,51 @@ final readonly class Parser implements ParserInterface
         return $this->parserFactory
             ->createQuoteParser($this)
             ->parse($tokenStream, $token->getType());
+    }
+
+    private function parseReaderCondNode(TokenStream $tokenStream, Token $openToken): NodeInterface
+    {
+        $phelNode = null;
+        $defaultNode = null;
+
+        while ($tokenStream->valid() && $tokenStream->current()->getType() !== Token::T_CLOSE_PARENTHESIS) {
+            // Read keyword (skip trivia)
+            do {
+                $keywordNode = $this->readExpression($tokenStream);
+            } while ($keywordNode instanceof TriviaNodeInterface);
+
+            if ($tokenStream->valid() && $tokenStream->current()->getType() === Token::T_CLOSE_PARENTHESIS) {
+                break;
+            }
+
+            // Read form (skip trivia)
+            do {
+                $formNode = $this->readExpression($tokenStream);
+            } while ($formNode instanceof TriviaNodeInterface);
+
+            // Check keyword
+            if ($keywordNode instanceof AbstractAtomNode) {
+                $keywordCode = $keywordNode->getCode();
+                if ($keywordCode === ':phel') {
+                    $phelNode = $formNode;
+                } elseif ($keywordCode === ':default') {
+                    $defaultNode = $formNode;
+                }
+            }
+        }
+
+        // Consume the closing paren
+        if ($tokenStream->valid() && $tokenStream->current()->getType() === Token::T_CLOSE_PARENTHESIS) {
+            $tokenStream->next();
+        }
+
+        $matchedNode = $phelNode ?? $defaultNode;
+        if ($matchedNode !== null) {
+            return $matchedNode;
+        }
+
+        // No matching branch → treated as trivia (dropped)
+        return CommentNode::createWithToken($openToken);
     }
 
     private function parseCommaNode(TokenStream $tokenStream): CommaNode

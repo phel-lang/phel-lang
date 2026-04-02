@@ -565,6 +565,28 @@ final class ParserTest extends TestCase
         );
     }
 
+    public function test_reader_conditional_returns_phel_branch(): void
+    {
+        self::assertEquals(
+            new NumberNode('42', $this->loc(1, 9), $this->loc(1, 11), 42),
+            $this->parse('#?(:phel 42 :clj 99)'),
+        );
+    }
+
+    public function test_reader_conditional_returns_default_branch(): void
+    {
+        self::assertEquals(
+            new NumberNode('0', $this->loc(1, 20), $this->loc(1, 21), 0),
+            $this->parse('#?(:clj 99 :default 0)'),
+        );
+    }
+
+    public function test_reader_conditional_no_matching_branch_returns_comment(): void
+    {
+        $node = $this->parse('#?(:clj 99)');
+        self::assertInstanceOf(CommentNode::class, $node);
+    }
+
     private function parse(string $string): NodeInterface
     {
         $tokenStream = $this->compilerFacade->lexString($string);

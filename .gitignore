@@ -31,3 +31,4 @@ gacela*.php
 src/php/Api/Infrastructure/phel/doc.phel
 namespace-cache.php
 .phel-release.php
+phel.phar
