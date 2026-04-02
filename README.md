@@ -95,4 +95,11 @@ The generated `build/out/phel.phar` can then be executed directly.
 
 ## Contribute
 
-Please refer to [CONTRIBUTING.md](https://github.com/phel-lang/phel-lang/blob/main/.github/CONTRIBUTING.md) for information on how to contribute to Phel. For a quick overview of project layout, tooling, and review expectations, visit the [Repository Guidelines](AGENTS.md).
+| Resource | What's there |
+|----------|-------------|
+| [CONTRIBUTING.md](.github/CONTRIBUTING.md) | Setup, workflow, testing, and PR guidelines |
+| [Repository Guidelines](AGENTS.md) | Architecture, modules, build commands, review expectations |
+| [docs/](docs/) | Guides, examples, and compiler internals |
+| [phel-lang.org](https://phel-lang.org) | Tutorials, exercises, and blog posts |
+
+New here? Start with [CONTRIBUTING.md](.github/CONTRIBUTING.md) — it explains the two-language codebase and has a "Where to Start" section based on your interests.
