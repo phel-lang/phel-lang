@@ -587,6 +587,28 @@ final class ParserTest extends TestCase
         self::assertInstanceOf(CommentNode::class, $node);
     }
 
+    public function test_reader_conditional_inside_list(): void
+    {
+        // (+ #?(:phel 1 :clj 2) 3) — the reader conditional resolves to 1 and is inlined into the list
+        $tokenStream = $this->compilerFacade->lexString('(+ #?(:phel 1 :clj 2) 3)');
+        $node = $this->compilerFacade->parseNext($tokenStream);
+
+        self::assertInstanceOf(ListNode::class, $node);
+
+        $nonTrivia = array_values(array_filter(
+            $node->getChildren(),
+            static fn(NodeInterface $n): bool => !$n instanceof WhitespaceNode && !$n instanceof NewlineNode,
+        ));
+
+        // children: '+', 1 (inlined from #?), 3
+        self::assertCount(3, $nonTrivia);
+        self::assertInstanceOf(SymbolNode::class, $nonTrivia[0]);
+        self::assertInstanceOf(NumberNode::class, $nonTrivia[1]);
+        self::assertSame(1, (int) $nonTrivia[1]->getValue());
+        self::assertInstanceOf(NumberNode::class, $nonTrivia[2]);
+        self::assertSame(3, (int) $nonTrivia[2]->getValue());
+    }
+
     private function parse(string $string): NodeInterface
     {
         $tokenStream = $this->compilerFacade->lexString($string);

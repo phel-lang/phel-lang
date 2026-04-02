@@ -17,6 +17,13 @@ use function strlen;
 
 final class Lexer implements LexerInterface
 {
+    /**
+     * IMPORTANT: The token type is determined by counting the number of matched groups (count($matches)),
+     * which equals the 1-based position of the capturing group in the combined alternation.
+     * The offset of 2 comes from the outer non-capturing group wrapping.
+     * Adding, removing, or reordering entries shifts all subsequent indices and MUST be reflected
+     * in the corresponding Token::T_* constants.
+     */
     private const array REGEXPS = [
         "([ \t]+)", // Whitespace (index: 2)
         "(\r?\n)", // Newline (index: 3)
