@@ -12,6 +12,8 @@ tests/phel/    → Phel test files
 build/         → PHAR build scripts, release tooling
 ```
 
+Each module in `src/php/` has a `CLAUDE.md` — **read it before modifying a module**. It documents the Gacela pattern, public API, dependencies, and constraints.
+
 ## Testing
 
 ```bash
