@@ -80,6 +80,8 @@ we should use "phel" once GitHub accept phel coloring too
   Official PHP package repository.
 - [Internals](docs/internals/compiler.md)
   Deep dive into the compiler architecture.
+- [Repository Guidelines](AGENTS.md)
+  Project structure, modules, build commands, and review expectations.
 
 ## Build PHAR
 
