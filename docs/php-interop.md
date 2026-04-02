@@ -230,11 +230,11 @@ $response->send();
 
 ```phel
 ;; Slow - creates new collection each time
-(reduce (fn [acc x] (push acc (* x 2))) [] large-list)
+(reduce (fn [acc x] (conj acc (* x 2))) [] large-list)
 
 ;; Fast - mutable during build
 (persistent
-  (reduce (fn [acc x] (push acc (* x 2))) (transient []) large-list))
+  (reduce (fn [acc x] (conj acc (* x 2))) (transient []) large-list))
 ```
 
 ### Prefer PHP Functions for Heavy Lifting
@@ -314,7 +314,7 @@ $response->send();
 
 ## Tips for PHP Developers
 
-- **Immutability**: Phel collections don't mutate. `(push vec item)` returns a *new* vector
+- **Immutability**: Phel collections don't mutate. `(conj vec item)` returns a *new* vector
 - **No `$` sigil**: Variables don't need `$` in Phel
 - **Keywords**: Use `:keyword` instead of strings for map keys
 - **Truthiness**: Only `false` and `nil` are falsy (not `0` or `""`)
@@ -324,8 +324,10 @@ $response->send();
 
 - **PHP interop**: Use `php/` prefix (not `.` or `..`)
 - **Method calls**: `(php/-> obj (method))` not `(.method obj)`
-- **No `@` for deref**: Use `(deref var)` explicitly
+- **Deref**: `@my-atom` works as shorthand for `(deref my-atom)`, just like Clojure
 - **Import classes**: Use `:use` in `ns`, not `:import`
+- **Reader conditionals**: `#?(:phel ...)` and `#?@(:phel ...)` work for cross-platform `.cljc` files
+- **Lambda syntax**: Both `#(+ %1 %2)` (Clojure) and `|(+ $1 $2)` (Phel) are supported
 - **PHP arrays**: Work with them directly or convert to Phel collections
 
 ## See Also

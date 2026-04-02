@@ -20,7 +20,7 @@
                        :end (php/-> finish (format "H:i"))
                        :length (get block :length)}]
             {:cursor finish
-             :entries (push (get acc :entries) entry)}))]
+             :entries (conj (get acc :entries) entry)}))]
     (get result :entries)))
 
 (defn iso [datetime]

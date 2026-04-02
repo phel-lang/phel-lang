@@ -1,0 +1,4 @@
+--PHEL--
+(php/array 1 #?@(:clj [8 9] :default [2 3]) 4)
+--PHP--
+array(1, 2, 3, 4);

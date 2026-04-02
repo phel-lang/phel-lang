@@ -2,9 +2,9 @@
 
 ;; Explore vectors, maps, destructuring, and data manipulation.
 
-# ==============================================================================
-# Basic Data Structures
-# ==============================================================================
+;; ==============================================================================
+;; Basic Data Structures
+;; ==============================================================================
 
 (def inventory
   [{:id 1 :name "Keyboard" :price 79.99 :stock 15}
@@ -19,124 +19,124 @@
    :first (:name first-item)
    :rest (map :name others)})
 
-# ==============================================================================
-# Adding & Building Collections
-# ==============================================================================
+;; ==============================================================================
+;; Adding & Building Collections
+;; ==============================================================================
 
 (println "\n=== Adding & Building ===")
 
-# conj - Universal add function
-(println "conj on vector:" (conj [1 2 3] 4))  # => [1 2 3 4]
-(println "conj on map:" (conj {:a 1} [:b 2]))  # => {:a 1 :b 2}
-(println "conj merge maps:" (conj {:a 1} {:b 2 :c 3}))  # => {:a 1 :b 2 :c 3}
+;; conj - Universal add function
+(println "conj on vector:" (conj [1 2 3] 4))  ;; => [1 2 3 4]
+(println "conj on map:" (conj {:a 1} [:b 2]))  ;; => {:a 1 :b 2}
+(println "conj merge maps:" (conj {:a 1} {:b 2 :c 3}))  ;; => {:a 1 :b 2 :c 3}
 
-# assoc - Explicit key-value association
+;; assoc - Explicit key-value association
 (def base-item {:id 4 :name "Headset"})
 (println "assoc price:" (assoc base-item :price 59.99))
 
-# into - Bulk additions
-(println "into vector:" (into [1 2] [3 4 5]))  # => [1 2 3 4 5]
-(println "into map:" (into {} [[:x 10] [:y 20]]))  # => {:x 10 :y 20}
+;; into - Bulk additions
+(println "into vector:" (into [1 2] [3 4 5]))  ;; => [1 2 3 4 5]
+(println "into map:" (into {} [[:x 10] [:y 20]]))  ;; => {:x 10 :y 20}
 
-# ==============================================================================
-# Accessing Elements
-# ==============================================================================
+;; ==============================================================================
+;; Accessing Elements
+;; ==============================================================================
 
 (println "\n=== Accessing ===")
 
 (def product {:id 1 :name "Keyboard" :specs {:weight 850 :wireless true}})
 
-# get - Safe access
+;; get - Safe access
 (println "get name:" (get product :name))
 (println "get missing:" (get product :category "Unknown"))
 
-# get-in - Nested access
+;; get-in - Nested access
 (println "get-in wireless:" (get-in product [:specs :wireless]))
-(println "get-in nested:" (get-in inventory [0 :name]))  # First item's name
+(println "get-in nested:" (get-in inventory [0 :name]))  ;; First item's name
 
-# keys and values
+;; keys and values
 (println "keys:" (keys product))
 (println "values:" (values {:a 1 :b 2 :c 3}))
 
-# contains? - Check for keys (not values!)
-(println "contains? :name:" (contains? product :name))  # => true
-(println "contains? index:" (contains? [10 20 30] 1))   # => true
+;; contains? - Check for keys (not values!)
+(println "contains? :name:" (contains? product :name))  ;; => true
+(println "contains? index:" (contains? [10 20 30] 1))   ;; => true
 
-# ==============================================================================
-# Modifying Collections
-# ==============================================================================
+;; ==============================================================================
+;; Modifying Collections
+;; ==============================================================================
 
 (println "\n=== Modifying ===")
 
-# update - Transform a value
+;; update - Transform a value
 (println "update price +10:" (update {:price 50} :price + 10))
 (println "apply discount:" (update {:price 100} :price * 0.9))
 
-# update-in - Transform nested value
+;; update-in - Transform nested value
 (def cart {:items [{:id 1 :qty 2} {:id 2 :qty 1}]})
 (println "update qty:" (update-in cart [:items 0 :qty] inc))
 
-# assoc-in - Set nested value (creates intermediate structures)
+;; assoc-in - Set nested value (creates intermediate structures)
 (println "assoc-in nested:" (assoc-in {} [:user :profile :email] "user@example.com"))
 
-# dissoc - Remove keys
+;; dissoc - Remove keys
 (println "dissoc:" (dissoc {:a 1 :b 2 :c 3} :b))
 
-# dissoc-in - Remove nested (Phel-specific!)
+;; dissoc-in - Remove nested (Phel-specific!)
 (def config {:db {:prod {:host "prod.db"} :dev {:host "localhost"}}})
 (println "dissoc-in:" (dissoc-in config [:db :dev]))
 
-# ==============================================================================
-# Combining Maps
-# ==============================================================================
+;; ==============================================================================
+;; Combining Maps
+;; ==============================================================================
 
 (println "\n=== Combining Maps ===")
 
 (def defaults {:timeout 30 :retries 3 :log-level "info"})
 (def user-config {:timeout 60 :log-level "debug"})
 
-# merge - Later values win
+;; merge - Later values win
 (println "merge:" (merge defaults user-config))
 
-# merge-with - Resolve conflicts with function
+;; merge-with - Resolve conflicts with function
 (def sales-q1 {:keyboards 100 :mice 150})
 (def sales-q2 {:keyboards 120 :monitors 50})
 (println "merge-with +:" (merge-with + sales-q1 sales-q2))
 
-# deep-merge - Recursive merge (Phel-specific!)
+;; deep-merge - Recursive merge (Phel-specific!)
 (def base-config {:db {:host "localhost" :port 5432}
                   :cache {:ttl 300}})
 (def prod-config {:db {:port 3306}
                   :logging {:level "error"}})
 (println "deep-merge:" (deep-merge base-config prod-config))
 
-# select-keys - Filter by keys
+;; select-keys - Filter by keys
 (println "select-keys:" (select-keys {:a 1 :b 2 :c 3 :d 4} [:a :c]))
 
-# zipmap - Create map from sequences
+;; zipmap - Create map from sequences
 (println "zipmap:" (zipmap [:name :age :city] ["Alice" 30 "NYC"]))
 
-# invert - Swap keys and values
+;; invert - Swap keys and values
 (println "invert:" (invert {:name "Alice" :role "admin"}))
 
-# ==============================================================================
-# Analysis Functions
-# ==============================================================================
+;; ==============================================================================
+;; Analysis Functions
+;; ==============================================================================
 
 (println "\n=== Analysis ===")
 
-# frequencies - Count occurrences
+;; frequencies - Count occurrences
 (println "frequencies:" (frequencies [:a :b :a :c :b :a]))
 
-# group-by - Organize by function
+;; group-by - Organize by function
 (def items [{:type :fruit :name "apple"}
             {:type :veggie :name "carrot"}
             {:type :fruit :name "banana"}])
 (println "group-by type:" (group-by :type items))
 
-# ==============================================================================
-# Practical Example: Inventory Management
-# ==============================================================================
+;; ==============================================================================
+;; Practical Example: Inventory Management
+;; ==============================================================================
 
 (println "\n=== Inventory Management Example ===")
 
@@ -152,7 +152,7 @@
 (defn restock [item qty]
   (update item :stock + qty))
 
-# Apply 20% discount to low-stock items
+;; Apply 20% discount to low-stock items
 (def discounted-inventory
   (->> inventory
        (filter low-stock?)
@@ -163,14 +163,14 @@
   (println (format-item item)
            (str " (was $" (:original-price item) ")")))
 
-# Restock monitor
+;; Restock monitor
 (def restocked-inventory
   (update-in inventory [2] restock 10))
 
 (println "\nAfter restocking monitor:")
 (println "Monitor stock:" (get-in restocked-inventory [2 :stock]))
 
-# Group by stock level
+;; Group by stock level
 (def stock-groups
   (group-by |(if (low-stock? $) :low :adequate) inventory))
 
@@ -178,9 +178,9 @@
 (println "Low stock count:" (count (:low stock-groups)))
 (println "Adequate stock count:" (count (:adequate stock-groups)))
 
-# ==============================================================================
-# Nested Data Manipulation
-# ==============================================================================
+;; ==============================================================================
+;; Nested Data Manipulation
+;; ==============================================================================
 
 (println "\n=== Nested Structures ===")
 
@@ -190,7 +190,7 @@
                  :notifications {:email true :sms false}}
    :cart {:items [{:id 1 :qty 2} {:id 2 :qty 1}]}})
 
-# Navigate and update deeply nested values
+;; Navigate and update deeply nested values
 (def updated-user
   (-> user-data
       (assoc-in [:preferences :notifications :sms] true)
@@ -200,9 +200,9 @@
 (println "Updated notifications:"
          (get-in updated-user [:preferences :notifications]))
 
-# ==============================================================================
-# Transient Collections (Performance)
-# ==============================================================================
+;; ==============================================================================
+;; Transient Collections (Performance)
+;; ==============================================================================
 
 (println "\n=== Transient Collections ===")
 
@@ -218,9 +218,9 @@
 (println "Built large map with" (count large-map) "entries")
 (println "Sample entries:" (select-keys large-map [0 1 2 3 4]))
 
-# ==============================================================================
-# Original Example
-# ==============================================================================
+;; ==============================================================================
+;; Original Example
+;; ==============================================================================
 
 (defn main []
   (println "\n=== Original Inventory Example ===")

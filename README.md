@@ -60,6 +60,12 @@ we should use "phel" once GitHub accept phel coloring too
   Complete guide to working between PHP and Phel code.
 - [Reader Shortcuts](docs/reader-shortcuts.md)
   Reference for all special syntax and reader macros.
+- [Reader Conditionals](docs/reader-conditionals.md)
+  Cross-platform code with `#?()`, `#?@()`, and `.cljc` files.
+- [Transducers](docs/transducers.md)
+  Composable transformation pipelines without intermediate collections.
+- [Data Structures](docs/data-structures-guide.md)
+  Guide to Phel's persistent, immutable collections.
 - [Lazy Sequences](docs/lazy-sequences.md)
   Performance patterns and common pitfalls.
 - [Mocking Guide](docs/mocking-guide.md)
