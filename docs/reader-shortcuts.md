@@ -63,7 +63,51 @@ Evaluates and splices a sequence into the containing form:
   `(1 ,@xs 5))    ; => (1 2 3 4 5)
 ```
 
+## Reader Conditionals
+
+### Platform Conditional `#?()`
+Selects a form based on the platform (resolved at parse time):
+```phel
+#?(:phel (php/time) :clj (System/currentTimeMillis))
+; => (php/time) when compiled by Phel
+
+#?(:clj 99 :default 0)
+; => 0 (fallback when :phel is absent)
+```
+
+### Platform Conditional Splicing `#?@()`
+Splices elements from a collection into the surrounding form:
+```phel
+[1 #?@(:phel [2 3]) 4]
+; => [1 2 3 4]
+```
+
+Only valid inside collections (lists, vectors, maps, sets). See [Reader Conditionals](reader-conditionals.md) for full documentation.
+
+## Deref `@`
+
+Shorthand for `(deref ...)`:
+```phel
+@my-atom              ; Same as (deref my-atom)
+```
+
+## Regex Literals `#"..."`
+
+Creates a PCRE pattern string:
+```phel
+#"\\d+"               ; Same as (re-pattern "\\d+")
+(re-find #"\\d+" "abc123")  ; => "123"
+```
+
 ## Anonymous Functions
+
+### Clojure-Style `#(...)`
+Creates anonymous functions with `%` parameter placeholders:
+```phel
+#(+ %1 %2)           ; Function taking 2 args
+#(* % %)             ; % is shorthand for %1
+#(apply str %&)       ; %& captures rest args
+```
 
 ### Short Function Syntax `|(...)`
 Creates anonymous functions with positional parameters:
@@ -142,7 +186,12 @@ Attaches metadata to the following form:
 | `` ` ``    | Quasiquote        | Quote with selective eval     | `` `(1 ~x)``  |
 | `,`        | Unquote           | Evaluate within quasiquote    | `,x`          |
 | `,@`       | Unquote-splice    | Splice sequence in quasiquote | `,@xs`        |
-| `\|()`     | Short function    | Anonymous function            | `\|(+ $1 $2)` |
+| `#?()`     | Reader conditional | Platform-specific code       | `#?(:phel 1)` |
+| `#?@()`    | Conditional splice | Splice by platform           | `#?@(:phel [1 2])` |
+| `@`        | Deref             | Dereference an atom           | `@my-atom`    |
+| `#"..."`   | Regex literal     | PCRE pattern                  | `#"\\d+"`     |
+| `#(...)`   | Lambda (Clojure)  | Anonymous function (`%` args) | `#(+ %1 %2)`  |
+| `\|()`     | Lambda (Phel)     | Anonymous function (`$` args) | `\|(+ $1 $2)` |
 | `;` or `;;` | Line comment      | Comment to end of line       | `;; comment`  |
 | `#\| \|#`  | Multiline comment | Block comment                 | `#\| ... \|#` |
 | `#_`       | Inline comment    | Comment out next form         | `#_ expr`     |
@@ -150,6 +199,7 @@ Attaches metadata to the following form:
 
 ## See Also
 
+- [Reader Conditionals](reader-conditionals.md) - Cross-platform code with `#?()` and `#?@()`
 - Core library functions: `vector`, `hash-map`, `hash-set`, `list`
 - Coercion functions: `vec`, `set`
 - Quote functions: `quote`, `quasiquote`, `unquote`

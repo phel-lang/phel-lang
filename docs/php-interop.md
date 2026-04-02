@@ -324,8 +324,10 @@ $response->send();
 
 - **PHP interop**: Use `php/` prefix (not `.` or `..`)
 - **Method calls**: `(php/-> obj (method))` not `(.method obj)`
-- **No `@` for deref**: Use `(deref var)` explicitly
+- **Deref**: `@my-atom` works as shorthand for `(deref my-atom)`, just like Clojure
 - **Import classes**: Use `:use` in `ns`, not `:import`
+- **Reader conditionals**: `#?(:phel ...)` and `#?@(:phel ...)` work for cross-platform `.cljc` files
+- **Lambda syntax**: Both `#(+ %1 %2)` (Clojure) and `|(+ $1 $2)` (Phel) are supported
 - **PHP arrays**: Work with them directly or convert to Phel collections
 
 ## See Also
