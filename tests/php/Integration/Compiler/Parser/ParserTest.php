@@ -587,6 +587,38 @@ final class ParserTest extends TestCase
         self::assertInstanceOf(CommentNode::class, $node);
     }
 
+    public function test_reader_conditional_phel_takes_priority_over_default(): void
+    {
+        self::assertEquals(
+            new NumberNode('42', $this->loc(1, 20), $this->loc(1, 22), 42),
+            $this->parse('#?(:default 0 :phel 42)'),
+        );
+    }
+
+    public function test_reader_conditional_duplicate_phel_uses_last(): void
+    {
+        self::assertEquals(
+            new NumberNode('2', $this->loc(1, 17), $this->loc(1, 18), 2),
+            $this->parse('#?(:phel 1 :phel 2)'),
+        );
+    }
+
+    public function test_reader_conditional_odd_forms_dangling_keyword(): void
+    {
+        self::assertEquals(
+            new NumberNode('42', $this->loc(1, 9), $this->loc(1, 11), 42),
+            $this->parse('#?(:phel 42 :default)'),
+        );
+    }
+
+    public function test_reader_conditional_nested(): void
+    {
+        self::assertEquals(
+            new NumberNode('1', $this->loc(1, 18), $this->loc(1, 19), 1),
+            $this->parse('#?(:phel #?(:phel 1 :default 2))'),
+        );
+    }
+
     public function test_reader_conditional_inside_list(): void
     {
         // (+ #?(:phel 1 :clj 2) 3) — the reader conditional resolves to 1 and is inlined into the list
