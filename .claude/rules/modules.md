@@ -1,3 +1,8 @@
+---
+description: Rules for keeping module CLAUDE.md files in sync with code changes
+globs: src/php/*/*.php,src/php/*/CLAUDE.md
+---
+
 # Module CLAUDE.md Maintenance
 
 Each module in `src/php/` has a `CLAUDE.md` file that documents its purpose, Gacela pattern, public API, dependencies, structure, and constraints.

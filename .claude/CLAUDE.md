@@ -12,6 +12,8 @@ tests/phel/    → Phel test files
 build/         → PHAR build scripts, release tooling
 ```
 
+Each module in `src/php/` has a `CLAUDE.md` — **read it before modifying a module**. It documents the Gacela pattern, public API, dependencies, and constraints.
+
 ## Testing
 
 ```bash
@@ -21,6 +23,20 @@ composer test-compiler     # PHPUnit unit + integration tests
 composer test-core         # Phel core tests (./bin/phel test)
 composer fix               # Auto-fix: rector + cs-fixer
 ```
+
+### Test Mapping
+
+Run the **minimum** test scope for your changes:
+
+| Changed | Command | Notes |
+|---------|---------|-------|
+| `src/php/**` | `composer test-compiler` | PHPUnit unit + integration |
+| `src/phel/**` | `composer test-core` | Phel core tests |
+| `src/php/Compiler/**` | `composer test-compiler` | Full compiler suite |
+| Single PHP module | `./vendor/bin/phpunit --filter=ModuleName` | Fastest for focused work |
+| Single Phel file | `./bin/phel test tests/phel/<file>` | Target specific test |
+| Any `.php` style change | `composer test-quality` | Static analysis only |
+| Mixed PHP + Phel | `composer test` | Run everything |
 
 ## Git
 

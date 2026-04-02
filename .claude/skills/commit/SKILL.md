@@ -63,4 +63,6 @@ If any step fails, fix the issue and re-run from that step. Do NOT proceed to co
    git commit -m "<message>"
    ```
 
-9. Report: commit hash, message, and files included.
+9. **CHANGELOG check** — if the commit prefix is `feat:` or `fix:`, verify that `CHANGELOG.md` has been updated under `## Unreleased`. If not, warn the user before committing.
+
+10. Report: commit hash, message, and files included.
