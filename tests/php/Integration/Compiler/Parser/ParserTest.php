@@ -636,9 +636,9 @@ final class ParserTest extends TestCase
         self::assertCount(3, $nonTrivia);
         self::assertInstanceOf(SymbolNode::class, $nonTrivia[0]);
         self::assertInstanceOf(NumberNode::class, $nonTrivia[1]);
-        self::assertSame(1, (int) $nonTrivia[1]->getValue());
+        self::assertSame(1, $nonTrivia[1]->getValue());
         self::assertInstanceOf(NumberNode::class, $nonTrivia[2]);
-        self::assertSame(3, (int) $nonTrivia[2]->getValue());
+        self::assertSame(3, $nonTrivia[2]->getValue());
     }
 
     private function parse(string $string): NodeInterface
