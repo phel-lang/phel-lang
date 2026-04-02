@@ -565,6 +565,82 @@ final class ParserTest extends TestCase
         );
     }
 
+    public function test_reader_conditional_returns_phel_branch(): void
+    {
+        self::assertEquals(
+            new NumberNode('42', $this->loc(1, 9), $this->loc(1, 11), 42),
+            $this->parse('#?(:phel 42 :clj 99)'),
+        );
+    }
+
+    public function test_reader_conditional_returns_default_branch(): void
+    {
+        self::assertEquals(
+            new NumberNode('0', $this->loc(1, 20), $this->loc(1, 21), 0),
+            $this->parse('#?(:clj 99 :default 0)'),
+        );
+    }
+
+    public function test_reader_conditional_no_matching_branch_returns_comment(): void
+    {
+        $node = $this->parse('#?(:clj 99)');
+        self::assertInstanceOf(CommentNode::class, $node);
+    }
+
+    public function test_reader_conditional_phel_takes_priority_over_default(): void
+    {
+        self::assertEquals(
+            new NumberNode('42', $this->loc(1, 20), $this->loc(1, 22), 42),
+            $this->parse('#?(:default 0 :phel 42)'),
+        );
+    }
+
+    public function test_reader_conditional_duplicate_phel_uses_last(): void
+    {
+        self::assertEquals(
+            new NumberNode('2', $this->loc(1, 17), $this->loc(1, 18), 2),
+            $this->parse('#?(:phel 1 :phel 2)'),
+        );
+    }
+
+    public function test_reader_conditional_odd_forms_dangling_keyword(): void
+    {
+        self::assertEquals(
+            new NumberNode('42', $this->loc(1, 9), $this->loc(1, 11), 42),
+            $this->parse('#?(:phel 42 :default)'),
+        );
+    }
+
+    public function test_reader_conditional_nested(): void
+    {
+        self::assertEquals(
+            new NumberNode('1', $this->loc(1, 18), $this->loc(1, 19), 1),
+            $this->parse('#?(:phel #?(:phel 1 :default 2))'),
+        );
+    }
+
+    public function test_reader_conditional_inside_list(): void
+    {
+        // (+ #?(:phel 1 :clj 2) 3) — the reader conditional resolves to 1 and is inlined into the list
+        $tokenStream = $this->compilerFacade->lexString('(+ #?(:phel 1 :clj 2) 3)');
+        $node = $this->compilerFacade->parseNext($tokenStream);
+
+        self::assertInstanceOf(ListNode::class, $node);
+
+        $nonTrivia = array_values(array_filter(
+            $node->getChildren(),
+            static fn(NodeInterface $n): bool => !$n instanceof WhitespaceNode && !$n instanceof NewlineNode,
+        ));
+
+        // children: '+', 1 (inlined from #?), 3
+        self::assertCount(3, $nonTrivia);
+        self::assertInstanceOf(SymbolNode::class, $nonTrivia[0]);
+        self::assertInstanceOf(NumberNode::class, $nonTrivia[1]);
+        self::assertSame(1, $nonTrivia[1]->getValue());
+        self::assertInstanceOf(NumberNode::class, $nonTrivia[2]);
+        self::assertSame(3, $nonTrivia[2]->getValue());
+    }
+
     private function parse(string $string): NodeInterface
     {
         $tokenStream = $this->compilerFacade->lexString($string);

@@ -180,7 +180,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
         try {
             $directoryIterator = new RecursiveDirectoryIterator($realpath);
             $iterator = new RecursiveIteratorIterator($directoryIterator);
-            $phelIterator = new RegexIterator($iterator, '/^.+\.phel$/i', RegexIterator::GET_MATCH);
+            $phelIterator = new RegexIterator($iterator, '/^.+\.(phel|cljc)$/i', RegexIterator::GET_MATCH);
 
             $result = [];
             foreach ($phelIterator as $file) {

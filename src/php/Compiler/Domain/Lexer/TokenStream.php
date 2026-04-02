@@ -52,6 +52,9 @@ final class TokenStream implements Iterator
         $this->tokenGenerator->rewind();
     }
 
+    /**
+     * @phpstan-impure
+     */
     public function current(): Token
     {
         $current = $this->tokenGenerator->current();
@@ -63,6 +66,9 @@ final class TokenStream implements Iterator
         return $current;
     }
 
+    /**
+     * @phpstan-impure
+     */
     public function valid(): bool
     {
         return $this->tokenGenerator->valid();

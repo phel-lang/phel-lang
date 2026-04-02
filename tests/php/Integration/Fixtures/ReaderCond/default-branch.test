@@ -1,0 +1,4 @@
+--PHEL--
+#?(:clj (php/+ 3 4) :default (php/+ 1 2))
+--PHP--
+(1 + 2);

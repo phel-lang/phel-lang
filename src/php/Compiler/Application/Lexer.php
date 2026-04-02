@@ -17,11 +17,18 @@ use function strlen;
 
 final class Lexer implements LexerInterface
 {
+    /**
+     * IMPORTANT: The token type is determined by count($matches) after a successful regex match.
+     * $matches[0] is always the full match, so count($matches) = capturing_group_index + 1.
+     * The first REGEXP (group 1) yields count = 2 = T_WHITESPACE; each subsequent entry adds 1.
+     * Adding, removing, or reordering entries shifts all subsequent indices and MUST be reflected
+     * in the corresponding Token::T_* constants.
+     */
     private const array REGEXPS = [
         "([ \t]+)", // Whitespace (index: 2)
         "(\r?\n)", // Newline (index: 3)
         '(#_)', // Inline comment (index: 4)
-        "(#(?![_{\\|(\x22])[^\n]*\n?|;[^\n]*\n?)", // Comment (# or ; excludes #_ #{ #( #") (index: 5)
+        "(#(?![_{\\|(\x22?])[^\n]*\n?|;[^\n]*\n?)", // Comment (# or ; excludes #_ #{ #( #" #?) (index: 5)
         '(#\{)', // open hash brace (index: 6)
         '(,@)', // unquote-splicing (index: 7)
         "(\()", // open parenthesis (index: 8)
@@ -40,6 +47,8 @@ final class Lexer implements LexerInterface
         "([^\(\)\[\]\{\}',`@ \n\r\t\#]+)", // Atom (index: 21)
         '(@)', // deref (index: 22)
         '(#"(?:[^"\\\\]++|\\\\.)*+")', // regex literal (index: 23)
+        '(#\?\()', // reader conditional (index: 24 = T_READER_COND)
+        '(#\?@\()', // reader conditional splicing (index: 25 = T_READER_COND_SPLICING)
     ];
 
     private const string MULTILINE_COMMENT_BEGIN = '#|';

@@ -18,6 +18,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\CommaNode;
 use Phel\Compiler\Domain\Parser\ParserNode\CommentMacroNode;
 use Phel\Compiler\Domain\Parser\ParserNode\CommentNode;
 use Phel\Compiler\Domain\Parser\ParserNode\FileNode;
+use Phel\Compiler\Domain\Parser\ParserNode\KeywordNode;
 use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
 use Phel\Compiler\Domain\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NewlineNode;
@@ -41,6 +42,8 @@ final readonly class Parser implements ParserInterface
         Token::T_ATOM,
         Token::T_STRING,
         Token::T_REGEX,
+        Token::T_READER_COND,
+        Token::T_READER_COND_SPLICING,
     ];
 
     private SplStack $quasiquoteStack;
@@ -141,6 +144,8 @@ final readonly class Parser implements ParserInterface
                 Token::T_QUOTE,
                 Token::T_DEREF => $this->parseQuoteNode($token, $tokenStream),
                 Token::T_CARET => $this->parseMetaNode($tokenStream),
+                Token::T_READER_COND => $this->parseReaderCondNode($tokenStream, $token),
+                Token::T_READER_COND_SPLICING => throw $this->createUnexceptedParserException($tokenStream, $token, 'reader conditional splicing #?@ is not yet supported'),
                 Token::T_EOF => throw $this->createUnfinishedParserException($tokenStream, $token, 'Unterminated list (EOF)'),
                 default => throw $this->createUnexceptedParserException($tokenStream, $token, 'Unhandled syntax token: ' . $token->getCode()),
             };
@@ -257,6 +262,53 @@ final readonly class Parser implements ParserInterface
         return $this->parserFactory
             ->createQuoteParser($this)
             ->parse($tokenStream, $token->getType());
+    }
+
+    private function parseReaderCondNode(TokenStream $tokenStream, Token $openToken): NodeInterface
+    {
+        $phelNode = null;
+        $defaultNode = null;
+
+        while ($tokenStream->valid() && $tokenStream->current()->getType() !== Token::T_CLOSE_PARENTHESIS) {
+            // Read keyword (skip trivia)
+            do {
+                $keywordNode = $this->readExpression($tokenStream);
+            } while ($keywordNode instanceof TriviaNodeInterface);
+
+            if ($tokenStream->valid() && $tokenStream->current()->getType() === Token::T_CLOSE_PARENTHESIS) {
+                break;
+            }
+
+            // Read form (skip trivia)
+            do {
+                $formNode = $this->readExpression($tokenStream);
+            } while ($formNode instanceof TriviaNodeInterface);
+
+            // Check keyword
+            if ($keywordNode instanceof KeywordNode) {
+                $keywordCode = $keywordNode->getCode();
+                if ($keywordCode === ':phel') {
+                    $phelNode = $formNode;
+                } elseif ($keywordCode === ':default') {
+                    $defaultNode = $formNode;
+                }
+            }
+        }
+
+        // Consume the closing paren — throw if the stream is exhausted or missing ')'
+        if (!$tokenStream->valid() || $tokenStream->current()->getType() !== Token::T_CLOSE_PARENTHESIS) {
+            throw $this->createUnfinishedParserException($tokenStream, $openToken, 'Unterminated reader conditional #?()');
+        }
+
+        $tokenStream->next();
+
+        $matchedNode = $phelNode ?? $defaultNode;
+        if ($matchedNode instanceof NodeInterface) {
+            return $matchedNode;
+        }
+
+        // No matching branch → treated as trivia (dropped)
+        return CommentNode::createWithToken($openToken);
     }
 
     private function parseCommaNode(TokenStream $tokenStream): CommaNode

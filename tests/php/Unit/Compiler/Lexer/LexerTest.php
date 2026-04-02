@@ -355,6 +355,20 @@ final class LexerTest extends TestCase
         );
     }
 
+    public function test_reader_conditional_token(): void
+    {
+        $tokens = $this->lex('#?(:phel 42 :default 0)');
+        self::assertSame(Token::T_READER_COND, $tokens[0]->getType());
+        self::assertSame('#?(', $tokens[0]->getCode());
+    }
+
+    public function test_reader_conditional_splicing_token(): void
+    {
+        $tokens = $this->lex('#?@(:phel [1 2])');
+        self::assertSame(Token::T_READER_COND_SPLICING, $tokens[0]->getType());
+        self::assertSame('#?@(', $tokens[0]->getCode());
+    }
+
     private function lex(string $string): array
     {
         $lexer = $this->compilerFactory->createLexer();
