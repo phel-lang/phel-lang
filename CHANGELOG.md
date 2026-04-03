@@ -41,6 +41,7 @@ All notable changes to this project will be documented in this file.
 - Standardize comment syntax: replace `#` with `;` and `;;` for standalone comments across all Phel source files (#1140)
 
 ### Fixed
+- `.cljc` files not discovered by `phel run` and `phel ns` due to missing extension in cached namespace extractor (#1176)
 - `phel --help` showing only REPL help instead of all commands (#1141)
 - `(str false)` and `(str true)` now return `"false"` and `"true"` (Clojure semantics) (#1122)
 - REPL: `*ns*` preserves hyphens, `(ns ...)` requires work with empty `src-dirs`, runtime `require` works without `loadPhelNamespaces()` (#1120)
