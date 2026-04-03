@@ -44,7 +44,7 @@ Applies a transducer, then reduces with a combining function:
 (into [] (map inc) [1 2 3])
 ; => [2 3 4]
 
-(into [] (map |(assoc $ :active true)) [{:name "a"} {:name "b"}])
+(into [] (map #(assoc % :active true)) [{:name "a"} {:name "b"}])
 ; => [{:name "a" :active true} {:name "b" :active true}]
 ```
 
@@ -86,7 +86,7 @@ Use `comp` to build a pipeline. Transducers compose left-to-right (the leftmost 
 ```phel
 (def xf (comp
           (filter even?)     ;; 1. keep even numbers
-          (map |(* $ $))     ;; 2. square them
+          (map #(* % %))     ;; 2. square them
           (take 3)))         ;; 3. stop after 3 results
 
 (sequence xf (range 1 20))
@@ -99,7 +99,7 @@ This is the opposite of normal function composition, but matches the order you w
 ;; Equivalent lazy-sequence version (creates intermediates):
 (->> (range 1 20)
      (filter even?)
-     (map |(* $ $))
+     (map #(* % %))
      (take 3))
 ```
 
@@ -219,7 +219,7 @@ If your transducer needs to stop processing, wrap the result in `reduced`:
                     (reduced (rf result input))
                     (rf result input))))))
 
-(sequence (take-until |(> $ 3)) [1 2 3 4 5])
+(sequence (take-until #(> % 3)) [1 2 3 4 5])
 ; => [1 2 3 4]
 ```
 

@@ -76,7 +76,7 @@ Practical patterns for writing idiomatic Phel code.
 ;; Transform all elements
 (map inc [1 2 3])                          ; => [2 3 4]
 (map str/upper-case ["hello" "world"])     ; => ["HELLO" "WORLD"]
-(map |(* $ 2) [1 2 3 4])                   ; => [2 4 6 8]
+(map #(* % 2) [1 2 3 4])                   ; => [2 4 6 8]
 
 ;; Map with index
 (map-indexed (fn [i x] [i x]) ["a" "b" "c"])
@@ -92,7 +92,7 @@ Practical patterns for writing idiomatic Phel code.
 ```phel
 ;; Keep matching elements
 (filter even? [1 2 3 4 5 6])               ; => [2 4 6]
-(filter |(> $ 10) [5 15 8 20 3])           ; => [15 20]
+(filter #(> % 10) [5 15 8 20 3])           ; => [15 20]
 
 ;; Remove matching elements
 (remove nil? [1 nil 2 nil 3])              ; => [1 2 3]
@@ -117,7 +117,7 @@ Practical patterns for writing idiomatic Phel code.
 ;; Group by
 (reduce (fn [acc x]
           (let [key (if (even? x) :even :odd)]
-            (update acc key |(conj (or $ []) x))))
+            (update acc key #(conj (or % []) x))))
         {:even [] :odd []}
         [1 2 3 4 5 6])
 ;; => {:even [2 4 6] :odd [1 3 5]}
@@ -179,14 +179,14 @@ Threads value as **last** argument:
 ;; Process a collection
 (->> [1 2 3 4 5 6 7 8 9 10]
      (filter even?)
-     (map |(* $ 2))
+     (map #(* % 2))
      (reduce +))
 ;; => 60
 
 ;; Data pipeline
 (->> users
-     (filter |(get $ :active))
-     (map |(get $ :email))
+     (filter #(get % :active))
+     (map #(get % :email))
      (filter some?)
      (take 10))
 ```
@@ -256,9 +256,9 @@ Threads value as **last** argument:
           validations))
 
 (def email-validations
-  [|(when-not (str/contains? $ "@") nil)
-   |(when (< (php/strlen $) 5) nil)
-   |(str/trim $)])
+  [#(when-not (str/contains? % "@") nil)
+   #(when (< (php/strlen %) 5) nil)
+   #(str/trim %)])
 
 (validate email-validations "  user@example.com  ")
 ;; => "user@example.com" or nil
@@ -278,7 +278,7 @@ Threads value as **last** argument:
 
 ;; Update value
 (swap! counter inc)                        ; => 1
-(swap! counter |(+ $ 10))                  ; => 11
+(swap! counter #(+ % 10))                  ; => 11
 (swap! counter + 5)                        ; => 16
 
 ;; Set value directly
@@ -294,7 +294,7 @@ Threads value as **last** argument:
          :loading false}))
 
 (defn add-user [user]
-  (swap! app-state update :users |(conj $ user)))
+  (swap! app-state update :users #(conj % user)))
 
 (defn set-current-user [user]
   (swap! app-state assoc :current-user user))
@@ -385,7 +385,7 @@ Threads value as **last** argument:
       (pred (first items)) (first items)
       (recur (rest items)))))
 
-(find-first |(> $ 10) [2 5 8 12 15])      ; => 12
+(find-first #(> % 10) [2 5 8 12 15])      ; => 12
 ```
 
 ## Destructuring
@@ -478,12 +478,12 @@ Threads value as **last** argument:
 
 ```phel
 (def user-spec
-  {:email [php/is_string |(str/contains? $ "@")]
-   :age [int? |(>= $ 0) |(<= $ 150)]
-   :name [php/is_string |(> (php/strlen $) 0)]})
+  {:email [php/is_string #(str/contains? % "@")]
+   :age [int? #(>= % 0) #(<= % 150)]
+   :name [php/is_string #(> (php/strlen %) 0)]})
 
 (defn validate-field [validators value]
-  (all? |($ value) validators))
+  (all? #(% value) validators))
 
 (defn validate-with-spec [spec data]
   (let [errors
@@ -515,19 +515,19 @@ Threads value as **last** argument:
     (recur (rest coll) (conj result (* 2 (first coll))))))
 
 ;; Use map
-(map |(* $ 2) [1 2 3 4])
+(map #(* % 2) [1 2 3 4])
 ```
 
 ### Use Threading for Readability
 
 ```phel
 ;; Hard to read
-(reduce + (map |(* $ 2) (filter even? numbers)))
+(reduce + (map #(* % 2) (filter even? numbers)))
 
 ;; Clear pipeline
 (->> numbers
      (filter even?)
-     (map |(* $ 2))
+     (map #(* % 2))
      (reduce +))
 ```
 

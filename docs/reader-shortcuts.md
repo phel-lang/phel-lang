@@ -180,26 +180,26 @@ Attaches metadata to the following form:
 
 ## Summary Table
 
-| Syntax     | Name              | Description                   | Example       |
-|------------|-------------------|-------------------------------|---------------|
-| `[]`       | Vector            | Ordered indexed collection    | `[1 2 3]`     |
-| `{}`       | Hash Map          | Key-value pairs               | `{:a 1 :b 2}` |
-| `#{}`      | Set               | Unique unordered values       | `#{1 2 3}`    |
-| `'()`      | List              | Quoted list (prevents eval)   | `'(1 2 3)`    |
-| `'`        | Quote             | Prevent evaluation            | `'x`          |
-| `` ` ``    | Quasiquote        | Quote with selective eval     | `` `(1 ~x)``  |
-| `,`        | Unquote           | Evaluate within quasiquote    | `,x`          |
-| `,@`       | Unquote-splice    | Splice sequence in quasiquote | `,@xs`        |
-| `#?()`     | Reader conditional | Platform-specific code       | `#?(:phel 1)` |
-| `#?@()`    | Conditional splice | Splice by platform           | `#?@(:phel [1 2])` |
-| `@`        | Deref             | Dereference an atom           | `@my-atom`    |
-| `#"..."`   | Regex literal     | PCRE pattern                  | `#"\\d+"`     |
-| `#(...)`   | Lambda (Clojure)  | Anonymous function (`%` args) | `#(+ %1 %2)`  |
-| `\|()`     | Lambda (Phel)     | Anonymous function (`$` args) **(deprecated)** | `\|(+ $1 $2)` |
-| `;` or `;;` | Line comment      | Comment to end of line       | `;; comment`  |
-| `#\| \|#`  | Multiline comment | Block comment                 | `#\| ... \|#` |
-| `#_`       | Inline comment    | Comment out next form         | `#_ expr`     |
-| `^`        | Metadata          | Attach metadata               | `^:private`   |
+| Syntax      | Name               | Description                                    | Example            |
+|-------------|--------------------|------------------------------------------------|--------------------|
+| `[]`        | Vector             | Ordered indexed collection                     | `[1 2 3]`          |
+| `{}`        | Hash Map           | Key-value pairs                                | `{:a 1 :b 2}`      |
+| `#{}`       | Set                | Unique unordered values                        | `#{1 2 3}`         |
+| `'()`       | List               | Quoted list (prevents eval)                    | `'(1 2 3)`         |
+| `'`         | Quote              | Prevent evaluation                             | `'x`               |
+| `` ` ``     | Quasiquote         | Quote with selective eval                      | `` `(1 ~x)``       |
+| `,`         | Unquote            | Evaluate within quasiquote                     | `,x`               |
+| `,@`        | Unquote-splice     | Splice sequence in quasiquote                  | `,@xs`             |
+| `#?()`      | Reader conditional | Platform-specific code                         | `#?(:phel 1)`      |
+| `#?@()`     | Conditional splice | Splice by platform                             | `#?@(:phel [1 2])` |
+| `@`         | Deref              | Dereference an atom                            | `@my-atom`         |
+| `#"..."`    | Regex literal      | PCRE pattern                                   | `#"\\d+"`          |
+| `#(...)`    | Lambda             | Anonymous function (`%` args)                  | `#(+ %1 %2)`       |
+| `\|()`      | Lambda (old)       | Anonymous function (`$` args) **(deprecated)** | `\|(+ $1 $2)`      |
+| `;` or `;;` | Line comment       | Comment to end of line                         | `;; comment`       |
+| `#\| \|#`   | Multiline comment  | Block comment   **(deprecated)**               | `#\| ... \|#`      |
+| `#_`        | Inline comment     | Comment out next form                          | `#_ expr`          |
+| `^`         | Metadata           | Attach metadata                                | `^:private`        |
 
 ## See Also
 

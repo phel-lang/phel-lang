@@ -22,7 +22,7 @@
 
 ;; `into` with a hash-map target from key-value pairs
 (def into-map-example
-  (into {} (map |(vector (first $) (* 2 (second $)))) [[:a 1] [:b 2] [:c 3]]))
+  (into {} (map #(vector (first %) (* 2 (second %)))) [[:a 1] [:b 2] [:c 3]]))
 ;; => {:a 2 :b 4 :c 6}
 
 ;; `transduce` applies a transducer, then reduces with a reducing function
@@ -37,14 +37,14 @@
 
 ;; `sequence` returns a vector of transformed results
 (def sequence-example
-  (sequence (map |(* $ $)) [1 2 3 4 5]))
+  (sequence (map #(* % %)) [1 2 3 4 5]))
 ;; => [1 4 9 16 25]
 
 ;; --- 2. Transducer-Producing Functions ---
 
 ;; -- map: transform each element --
 (def xf-map
-  (into [] (map |(str "item-" $)) [1 2 3]))
+  (into [] (map #(str "item-" %)) [1 2 3]))
 ;; => ["item-1" "item-2" "item-3"]
 
 ;; -- filter: keep elements matching a predicate --
@@ -69,12 +69,12 @@
 
 ;; -- take-while: take elements while predicate holds --
 (def xf-take-while
-  (into [] (take-while |(< $ 4)) [1 2 3 4 5 6]))
+  (into [] (take-while #(< % 4)) [1 2 3 4 5 6]))
 ;; => [1 2 3]
 
 ;; -- drop-while: skip elements while predicate holds, then take the rest --
 (def xf-drop-while
-  (into [] (drop-while |(< $ 4)) [1 2 3 4 5 6 2 1]))
+  (into [] (drop-while #(< % 4)) [1 2 3 4 5 6 2 1]))
 ;; => [4 5 6 2 1]
 
 ;; -- take-nth: take every nth element --
@@ -84,12 +84,12 @@
 
 ;; -- keep: apply f, keep non-nil results --
 (def xf-keep
-  (into [] (keep |(when (even? $) (* $ 10))) [1 2 3 4 5 6]))
+  (into [] (keep #(when (even? %) (* % 10))) [1 2 3 4 5 6]))
 ;; => [20 40 60]
 
 ;; -- keep-indexed: like keep, but f receives (index, element) --
 (def xf-keep-indexed
-  (into [] (keep-indexed |(when (even? $1) $2)) [:a :b :c :d :e]))
+  (into [] (keep-indexed #(when (even? %1) %2)) [:a :b :c :d :e]))
 ;; => [:a :c :e]  (keeps elements at even indices: 0, 2, 4)
 
 ;; -- distinct: remove duplicates (unordered) --
@@ -104,7 +104,7 @@
 
 ;; -- mapcat: map then concatenate results --
 (def xf-mapcat
-  (into [] (mapcat |(vector $ (* $ $))) [1 2 3 4]))
+  (into [] (mapcat #(vector % (* % %))) [1 2 3 4]))
 ;; => [1 1 2 4 3 9 4 16]  (each element paired with its square)
 
 ;; -- interpose: insert a separator between elements --
@@ -124,13 +124,13 @@
 
 ;; Filter even numbers, then double them
 (def composed-basic
-  (let [xf (comp (filter even?) (map |(* 2 $)))]
+  (let [xf (comp (filter even?) (map #(* 2 %)))]
     (into [] xf [1 2 3 4 5 6 7 8])))
 ;; => [4 8 12 16]
 
 ;; Take first 3, remove nils, then transform
 (def composed-pipeline
-  (let [xf (comp (filter |(not (nil? $)))
+  (let [xf (comp (filter #(not (nil? %)))
                  (map inc)
                  (take 3))]
     (into [] xf [nil 1 nil 2 3 4 5])))
@@ -140,7 +140,7 @@
 (def composed-multi-stage
   (let [xf (comp (drop 2)
                  (filter even?)
-                 (map |(* $ 10))
+                 (map #(* % 10))
                  (take 3))]
     (into [] xf [1 2 3 4 5 6 7 8 9 10 11 12])))
 ;; => [40 60 80]  (drop [1 2], filter even from [3..12], multiply, take 3)
@@ -281,23 +281,23 @@
 
 ;; Get names of active admins
 (def active-admin-names
-  (let [xf (comp (filter |(get $ :active))
-                 (filter |(= :admin (get $ :role)))
-                 (map |(get $ :name)))]
+  (let [xf (comp (filter #(get % :active))
+                 (filter #(= :admin (get % :role)))
+                 (map #(get % :name)))]
     (into [] xf users)))
 ;; => ["Alice" "Grace"]
 
 ;; Calculate total age of active users
 (def total-active-age
-  (let [xf (comp (filter |(get $ :active))
-                 (map |(get $ :age)))]
+  (let [xf (comp (filter #(get % :active))
+                 (map #(get % :age)))]
     (transduce xf + users)))
 ;; => 158  (32 + 25 + 28 + 35 + 38)
 
 ;; Build a summary: "NAME (ROLE)" for the first 3 active users
 (def active-summaries
-  (let [xf (comp (filter |(get $ :active))
-                 (map |(str (get $ :name) " (" (get $ :role) ")"))
+  (let [xf (comp (filter #(get % :active))
+                 (map #(str (get % :name) " (" (get % :role) ")"))
                  (take 3))]
     (into [] xf users)))
 ;; => ["Alice (:admin)" "Bob (:editor)" "Diana (:viewer)"]
@@ -316,9 +316,9 @@
 
 ;; Extract unique error/warning messages
 (def alerts
-  (let [xf (comp (filter |(let [lvl (get $ :level)]
+  (let [xf (comp (filter #(let [lvl (get % :level)]
                             (or (= lvl :error) (= lvl :warn))))
-                 (map |(get $ :msg))
+                 (map #(get % :msg))
                  (distinct))]
     (into [] xf log-entries)))
 ;; => ["Disk space low" "Connection failed" "Timeout"]
@@ -326,7 +326,7 @@
 ;; Count entries by level using transduce
 (def level-counts
   (transduce
-    (map |(get $ :level))
+    (map #(get % :level))
     (fn [& args]
       (case (count args)
         0 {}
@@ -344,18 +344,18 @@
 
 ;; Pipeline: remove nils -> keep numbers in 0..100 -> normalize to 0.0..1.0
 (def normalized-scores
-  (let [xf (comp (filter |(not (nil? $)))
+  (let [xf (comp (filter #(not (nil? %)))
                  (filter number?)
-                 (filter |(and (>= $ 0) (<= $ 100)))
-                 (map |(/ $ 100)))]
+                 (filter #(and (>= % 0) (<= % 100)))
+                 (map #(/ % 100)))]
     (into [] xf raw-scores)))
 ;; => [0.85 0.92 0.78 0.65 0.88]
 
 ;; Average of valid scores using transduce with a stateful reducer
 (def average-score
-  (let [xf (comp (filter |(not (nil? $)))
+  (let [xf (comp (filter #(not (nil? %)))
                  (filter number?)
-                 (filter |(and (>= $ 0) (<= $ 100))))
+                 (filter #(and (>= % 0) (<= % 100))))
         result (transduce
                  xf
                  (fn [& args]
@@ -379,7 +379,7 @@
    {:item "C" :tags [:web :api]}])
 
 (def all-unique-tags
-  (let [xf (comp (mapcat |(get $ :tags))
+  (let [xf (comp (mapcat #(get % :tags))
                  (distinct))]
     (into [] xf nested-tags)))
 ;; => [:php :web :cli :api]
