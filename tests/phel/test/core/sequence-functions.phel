@@ -22,7 +22,7 @@
   (is (= [[0 "a"] [1 "b"] [2 "c"]] (map-indexed vector ["a" "b" "c"])) "map-indexed"))
 
 (deftest test-map-empty-element
-  (is (= [] (map |(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
+  (is (= [] (map #(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
 
 (deftest test-mapcat
   (is (= [1 2 3 4 5 6] (mapcat reverse [[3 2 1] [6 5 4]])) "mapcat")
@@ -115,7 +115,7 @@
   (is (= [1 2 3 4 -1 -2 -3] (doall (drop-while neg? (php/array -1 -2 -3 1 2 3 4 -1 -2 -3)))) "drop-while: php array (returns lazy seq)"))
 
 (deftest test-drop-while-empty-element
-  (is (= [] (drop-while |(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
+  (is (= [] (drop-while #(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
 
 (deftest test-take
   (is (= ["a" "b"] (take 2 ["a" "b" "c"])) "take two elements")
@@ -166,7 +166,7 @@
   (is (= [-1 -2 -3] (filter neg? (php/array -1 2 3 -2 -3 4 5))) "filter on php array"))
 
 (deftest test-filter-empty-element
-  (is (= [] (filter |(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
+  (is (= [] (filter #(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
 
 (deftest test-keep
   (is (= [true false false true true false false] (keep neg? [-1 2 3 -2 -3 4 5])) "keep: neg?")
@@ -181,7 +181,7 @@
   (is (nil? (find neg? [])) "find on empty array"))
 
 (deftest test-find-empty-element
-  (is (nil? (find |(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
+  (is (nil? (find #(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
 
 (deftest test-find-index?
   (is (= 3 (find-index neg? [1 2 3 -1 2 3])) "find-index first neg number")
@@ -189,7 +189,7 @@
   (is (nil? (find-index neg? [])) "find-index on empty array"))
 
 (deftest test-find-index-empty-element
-  (is (nil? (find-index |(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
+  (is (nil? (find-index #(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
 
 ;; =============================================================================
 ;; Collection Utilities (distinct, dedupe, reverse, interleave, etc.)
@@ -391,7 +391,7 @@
   (is (= ["H" "I"] (map php/strtoupper "hi")) "map works with strings"))
 
 (deftest test-filter-with-string
-  (is (= ["h" "e" "o"] (filter |(not= $ "l") "hello")) "filter works with strings"))
+  (is (= ["h" "e" "o"] (filter #(not= % "l") "hello")) "filter works with strings"))
 
 (deftest test-take-with-string
   (is (= ["h" "i"] (take 2 "hi")) "take works with strings")
@@ -425,7 +425,7 @@
 
 (deftest test-sequence-ops-with-strings
   (is (= ["h" "e" "l" "l" "o"] (map identity "hello")) "map identity on string")
-  (is (= ["l" "l"] (filter |(= $ "l") "hello")) "filter on string")
+  (is (= ["l" "l"] (filter #(= % "l") "hello")) "filter on string")
   (is (= ["h" "e"] (take 2 "hello")) "take from string")
   (is (= ["l" "l" "o"] (drop 2 "hello")) "drop from string")
   (is (= ["h" "e" "l" "o"] (distinct "hheelloo")) "distinct removes duplicate chars")
@@ -436,8 +436,8 @@
 
 (deftest test-lazy-operations-with-strings
   (is (= ["h" "e"] (take 2 (concat "hello" "world"))) "concat with strings")
-  (is (= ["h" "e"] (take-while |(not= $ "l") "hello")) "take-while stops before l")
-  (is (= ["l" "l" "o"] (drop-while |(not= $ "l") "hello")) "drop-while drops until l"))
+  (is (= ["h" "e"] (take-while #(not= % "l") "hello")) "take-while stops before l")
+  (is (= ["l" "l" "o"] (drop-while #(not= % "l") "hello")) "drop-while drops until l"))
 
 ;; --- Iterator-Based Operations (interleave, mapcat) ---
 

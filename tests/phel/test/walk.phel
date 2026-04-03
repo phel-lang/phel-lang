@@ -31,7 +31,7 @@
 
 (deftest test-walk-struct
   (let [p (point 1 2)
-        result (walk |(if (number? $) (inc $) $) identity p)]
+        result (walk #(if (number? %) (inc %) %) identity p)]
     (is (= {:x 2 :y 3} result)
         "walk applies inner to struct values")))
 
@@ -44,7 +44,7 @@
 ;; --------
 
 (deftest test-postwalk-inc
-  (is (= [2 [3 4]] (postwalk |(if (number? $) (inc $) $) [1 [2 3]]))
+  (is (= [2 [3 4]] (postwalk #(if (number? %) (inc %) %) [1 [2 3]]))
       "postwalk increments all nested numbers"))
 
 (deftest test-postwalk-identity
@@ -53,12 +53,12 @@
 
 (deftest test-postwalk-nested-map
   (is (= {:a 2 :b {:c 4}}
-         (postwalk |(if (number? $) (* $ 2) $) {:a 1 :b {:c 2}}))
+         (postwalk #(if (number? %) (* % 2) %) {:a 1 :b {:c 2}}))
       "postwalk transforms values in nested maps"))
 
 (deftest test-postwalk-hash-set
   (is (= (hash-set 2 3 4)
-         (postwalk |(if (number? $) (inc $) $) (hash-set 1 2 3)))
+         (postwalk #(if (number? %) (inc %) %) (hash-set 1 2 3)))
       "postwalk transforms values in sets"))
 
 ;; -------
@@ -70,7 +70,7 @@
       "prewalk identity preserves structure"))
 
 (deftest test-prewalk-inc
-  (is (= [2 [3 4]] (prewalk |(if (number? $) (inc $) $) [1 [2 3]]))
+  (is (= [2 [3 4]] (prewalk #(if (number? %) (inc %) %) [1 [2 3]]))
       "prewalk increments all nested numbers"))
 
 ;; -----------------

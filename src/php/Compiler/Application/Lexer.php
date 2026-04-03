@@ -120,6 +120,13 @@ final class Lexer implements LexerInterface
                     );
                 }
 
+                if ($tokenType === Token::T_FN) {
+                    @trigger_error(
+                        sprintf('Using "|()" for short functions is deprecated, use "#()" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
+                        E_USER_DEPRECATED,
+                    );
+                }
+
                 yield new Token($tokenType, $matches[0], $startLocation, $endLocation);
 
                 $startLocation = $endLocation;

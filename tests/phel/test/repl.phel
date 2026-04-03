@@ -289,8 +289,8 @@
 
 (deftest test-ns-list-contains-known-namespaces
   (let [results (ns-list)]
-    (is (some? |(= $ "phel\\core") results) "ns-list contains phel\\core")
-    (is (some? |(= $ "phel\\repl") results) "ns-list contains phel\\repl")))
+    (is (some? #(= % "phel\\core") results) "ns-list contains phel\\core")
+    (is (some? #(= % "phel\\repl") results) "ns-list contains phel\\repl")))
 
 (deftest test-ns-list-is-sorted
   (let [results (ns-list)]

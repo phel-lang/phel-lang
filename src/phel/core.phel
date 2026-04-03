@@ -713,7 +713,7 @@ Otherwise, it tries to call `__toString`."
 
 (defn some
   "Returns the first truthy value of applying predicate to elements, or nil if none found."
-  {:example "(some |(when (> $ 10) $) [5 15 8]) ; => 15"}
+  {:example "(some #(when (> % 10) %) [5 15 8]) ; => 15"}
   [pred coll]
   (if (empty? coll)
     nil
@@ -1469,7 +1469,7 @@ Otherwise, it tries to call `__toString`."
   (case (count fs)
     0 identity
     1 (first fs)
-    2 |((first fs) (apply (second fs) $&))
+    2 #((first fs) (apply (second fs) %&))
     (reduce comp fs)))
 
 (defn into
@@ -1730,7 +1730,7 @@ Otherwise, it tries to call `__toString`."
 (defn drop-while
   "Drops all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence.
   When called with pred only, returns a transducer."
-  {:example "(drop-while |(< $ 5) [1 2 3 4 5 6 3 2 1]) ; => (5 6 3 2 1)"
+  {:example "(drop-while #(< % 5) [1 2 3 4 5 6 3 2 1]) ; => (5 6 3 2 1)"
    :see-also ["take-while" "drop" "transduce"]}
   [pred & args]
   (case (count args)
@@ -1779,7 +1779,7 @@ Otherwise, it tries to call `__toString`."
 (defn take-while
   "Takes all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence.
   When called with pred only, returns a transducer."
-  {:example "(take-while |(< $ 5) [1 2 3 4 5 6 3 2 1]) ; => (1 2 3 4)"
+  {:example "(take-while #(< % 5) [1 2 3 4 5 6 3 2 1]) ; => (1 2 3 4)"
    :see-also ["drop-while" "take" "transduce"]}
   [pred & args]
   (case (count args)
@@ -1838,14 +1838,14 @@ Otherwise, it tries to call `__toString`."
    :see-also ["filter" "transduce"]}
   [pred & args]
   (case (count args)
-    0 (filter |(not (pred $)))
-    1 (filter |(not (pred $)) (first args))
+    0 (filter #(not (pred %)))
+    1 (filter #(not (pred %)) (first args))
     (throw (php/new InvalidArgumentException "remove expects 1 or 2 arguments"))))
 
 (defn keep
   "Returns a lazy sequence of non-nil results of applying function to elements.
   When called with f only, returns a transducer."
-  {:example "(keep |(when (even? $) (* $ $)) [1 2 3 4 5]) ; => (4 16)"
+  {:example "(keep #(when (even? %) (* % %)) [1 2 3 4 5]) ; => (4 16)"
    :see-also ["keep-indexed" "filter" "transduce"]}
   [pred & args]
   (case (count args)
@@ -1863,7 +1863,7 @@ Otherwise, it tries to call `__toString`."
 (defn keep-indexed
   "Returns a lazy sequence of non-nil results of `(pred i x)`.
   When called with f only, returns a transducer."
-  {:example "(keep-indexed |(when (even? $1) $2) [\"a\" \"b\" \"c\" \"d\"]) ; => (\"a\" \"c\")"
+  {:example "(keep-indexed #(when (even? %1) %2) [\"a\" \"b\" \"c\" \"d\"]) ; => (\"a\" \"c\")"
    :see-also ["keep" "map-indexed" "transduce"]}
   [pred & args]
   (case (count args)
@@ -1882,7 +1882,7 @@ Otherwise, it tries to call `__toString`."
 
 (defn find
   "Returns the first item in `coll` where `(pred item)` evaluates to true."
-  {:example "(find |(> $ 5) [1 2 3 6 7 8]) ; => 6"
+  {:example "(find #(> % 5) [1 2 3 6 7 8]) ; => 6"
    :see-also ["find-index" "filter" "some?"]}
   [pred coll]
   (loop [s coll]
@@ -1894,7 +1894,7 @@ Otherwise, it tries to call `__toString`."
 
 (defn find-index
   "Returns the index of the first item in `coll` where `(pred item)` evaluates to true."
-  {:example "(find-index |(> $ 5) [1 2 3 6 7 8]) ; => 3"
+  {:example "(find-index #(> % 5) [1 2 3 6 7 8]) ; => 3"
    :see-also ["find" "filter"]}
   [pred coll]
   (loop [s coll
@@ -1950,7 +1950,7 @@ Otherwise, it tries to call `__toString`."
                    (if (<= size i)
                      res
                      (recur (php/+ i 1)
-                            (reduce |(conj $1 (get $2 i)) res colls))))]
+                            (reduce #(conj %1 (get %2 i)) res colls))))]
       (with-meta first-coll result))))
 
 (defn interpose
@@ -2084,7 +2084,7 @@ Otherwise, it tries to call `__toString`."
   {:example "(contains-value? {:a 1 :b 2} 2) ; => true"
    :see-also ["contains?" "some?"]}
   [coll val]
-  (some? |(= $ val) (values coll)))
+  (some? #(= % val) (values coll)))
 
 (defn sort
   "Returns a sorted vector. If no comparator is supplied compare is used."
@@ -2104,7 +2104,7 @@ Otherwise, it tries to call `__toString`."
   [keyfn coll & [comp]]
   (let [php-array (to-php-array coll)
         cmp (or comp compare)]
-    (php/usort php-array |(cmp (keyfn $1) (keyfn $2)))
+    (php/usort php-array #(cmp (keyfn %1) (keyfn %2)))
     (with-meta coll (apply vector php-array))))
 
 (defn shuffle
@@ -2383,14 +2383,14 @@ Otherwise, it tries to call `__toString`."
 
 (defn split-with
   "Returns a vector of `[(take-while pred coll) (drop-while pred coll)]`."
-  {:example "(split-with |(< $ 4) [1 2 3 4 5 6]) ; => [[1 2 3] [4 5 6]]"
+  {:example "(split-with #(< % 4) [1 2 3 4 5 6]) ; => [[1 2 3] [4 5 6]]"
    :see-also ["split-at" "take-while" "drop-while"]}
   [f coll]
   [(take-while f coll) (drop-while f coll)])
 
 (defn partition-by
   "Returns a lazy sequence of partitions. Applies `f` to each value in `coll`, splitting them each time the return value changes."
-  {:example "(partition-by |(< $ 3) [1 2 3 4 5 1 2]) ; => [[1 2] [3 4 5] [1 2]]"
+  {:example "(partition-by #(< % 3) [1 2 3 4 5 1 2]) ; => [[1 2] [3 4 5] [1 2]]"
    :see-also ["group-by" "partition"]}
   [f coll]
   (cond
@@ -2512,7 +2512,7 @@ Otherwise, it tries to call `__toString`."
 (defn symmetric-difference
   "Symmetric difference between multiple sets into a new one."
   [set & sets]
-  (reduce |(union (difference $1 $2) (difference $2 $1)) set sets))
+  (reduce #(union (difference %1 %2) (difference %2 %1)) set sets))
 
 (defn subset?
   "Returns true if `s1` is a subset of `s2`, i.e. every element in `s1` is also in `s2`."
@@ -2544,15 +2544,15 @@ Otherwise, it tries to call `__toString`."
 (defn complement
   "Returns a function that takes the same arguments as `f` and returns the opposite truth value."
   [f]
-  |(not (apply f $&)))
+  #(not (apply f %&)))
 
 (defn juxt
   "Takes a list of functions and returns a new function that is the juxtaposition of those functions."
-  {:example "((juxt inc dec |(* $ 2)) 10) => [11 9 20]"}
+  {:example "((juxt inc dec #(* % 2)) 10) => [11 9 20]"}
   [& fs]
   (fn [& args]
     (reduce
-     |(conj $1 (apply $2 args))
+     #(conj %1 (apply %2 args))
      []
      fs)))
 
@@ -2561,7 +2561,7 @@ Otherwise, it tries to call `__toString`."
   that a variable number of additional arguments. When call `f` will be called
   with `args` and the additional arguments."
   [f & args]
-  |(apply f (concat [] args $&)))
+  #(apply f (concat [] args %&)))
 
 (defn memoize
   "Returns a memoized version of the function `f`. The memoized function
@@ -2603,7 +2603,7 @@ Otherwise, it tries to call `__toString`."
          tick (var 0)]
      (fn [& args]
        (let [c (deref cache)
-             t (swap! tick |(php/+ 1 $))]
+             t (swap! tick #(php/+ 1 %))]
          (if (contains? c args)
            (let [entry (get c args)]
              (set! cache (assoc c args {:value (get entry :value) :accessed t}))
@@ -2713,7 +2713,7 @@ Otherwise, it tries to call `__toString`."
   [x y & args]
   (apply assert-non-nil (concat [x y] args))
   (let [all (concat [x y] args)]
-    (reduce |(php/& $1 $2) all)))
+    (reduce #(php/& %1 %2) all)))
 
 (defn bit-or
   "Bitwise or."
@@ -2721,7 +2721,7 @@ Otherwise, it tries to call `__toString`."
   [x y & args]
   (apply assert-non-nil (concat [x y] args))
   (let [all (concat [x y] args)]
-    (reduce |(php/| $1 $2) all)))
+    (reduce #(php/| %1 %2) all)))
 
 (defn bit-xor
   "Bitwise xor."
@@ -2729,7 +2729,7 @@ Otherwise, it tries to call `__toString`."
   [x y & args]
   (apply assert-non-nil (concat [x y] args))
   (let [all (concat [x y] args)]
-    (reduce |(php/^ $1 $2) all)))
+    (reduce #(php/^ %1 %2) all)))
 
 (defn bit-not
   "Bitwise complement."
@@ -2802,7 +2802,7 @@ Otherwise, it tries to call `__toString`."
     0 0
     1 (php/* -1 (first xs))
     2 (php/- (first xs) (second xs))
-    (reduce |(php/- $1 $2) xs)))
+    (reduce #(php/- %1 %2) xs)))
 
 (defn *
   "Returns the product of all elements in `xs`. All elements in `xs` must be
@@ -2815,7 +2815,7 @@ numbers. If `xs` is empty, return 1."
     0 1
     1 (first xs)
     2 (php/* (first xs) (second xs))
-    (reduce |(php/* $1 $2) xs)))
+    (reduce #(php/* %1 %2) xs)))
 
 (defn /
   "Returns the nominator divided by all the denominators. If `xs` is empty,
@@ -2828,7 +2828,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     0 1
     1 (php// 1 (first xs))
     2 (php// (first xs) (second xs))
-    (reduce |(php// $1 $2) xs)))
+    (reduce #(php// %1 %2) xs)))
 
 (defn %
   "Return the remainder of `dividend` / `divisor`."
@@ -2924,7 +2924,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 (defn extreme
   "Returns the most extreme value in `args` based on the binary `order` function."
   [order args]
-  (reduce |(if (order $1 $2) $1 $2) args))
+  (reduce #(if (order %1 %2) %1 %2) args))
 
 (defn min
   "Returns the numeric minimum of all numbers."
@@ -2987,7 +2987,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [& xs]
   (let [len (count xs)
         printer (php/:: Printer (nonReadable))
-        pp |(php/-> printer (print $))]
+        pp #(php/-> printer (print %))]
     (case (count xs)
       0 ""
       1 (pp (first xs))
@@ -3092,7 +3092,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 
 (defn file-seq
   "Returns a lazy sequence of all files and directories in a directory tree."
-  {:example "(filter |(php/str_ends_with $ \".phel\") (file-seq \"src/\")) ; => [\"src/file1.phel\" \"src/file2.phel\" ...]"}
+  {:example "(filter #(php/str_ends_with % \".phel\") (file-seq \"src/\")) ; => [\"src/file1.phel\" \"src/file2.phel\" ...]"}
   [path]
   (let [result (lazy-seq-from-generator
                 (php/call_user_func_array
@@ -3751,7 +3751,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   "If test is true, evaluates then with binding-form bound to the value of test,
   if not, yields else"
   [bindings then & [else]]
-  (let [err |(throw (php/new \InvalidArgumentException $))]
+  (let [err #(throw (php/new \InvalidArgumentException %))]
     (when-not
       (vector? bindings)
       (err (str "if-let requires a vector for it's bindings, "
@@ -3771,7 +3771,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 (defmacro when-let
   "When test is true, evaluates body with binding-form bound to the value of test"
   [bindings & body]
-  (let [err |(throw (php/new \InvalidArgumentException $))]
+  (let [err #(throw (php/new \InvalidArgumentException %))]
     (when-not
       (vector? bindings)
       (err (str "when-let requires a vector for it's bindings, "

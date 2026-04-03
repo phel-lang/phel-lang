@@ -169,7 +169,7 @@
         "drop should preserve metadata")))
 
 (deftest test-drop-while-on-vector-returns-lazy
-  (is (= [3 4 5] (doall (drop-while |(< $ 3) [1 2 3 4 5])))
+  (is (= [3 4 5] (doall (drop-while #(< % 3) [1 2 3 4 5])))
       "drop-while on vector should return lazy sequence"))
 
 (deftest test-drop-while-on-infinite-seq
@@ -177,25 +177,25 @@
       "drop-while on infinite sequence should work"))
 
 (deftest test-drop-while-empty-collection
-  (is (= [] (drop-while |(< $ 10) []))
+  (is (= [] (drop-while #(< % 10) []))
       "drop-while on empty collection should return empty vector"))
 
 (deftest test-drop-while-all-dropped
-  (is (= [] (drop-while |(< $ 10) [1 2 3]))
+  (is (= [] (drop-while #(< % 10) [1 2 3]))
       "drop-while should return empty when all elements match"))
 
 (deftest test-drop-while-none-dropped
-  (is (= [1 2 3] (doall (drop-while |(> $ 10) [1 2 3])))
+  (is (= [1 2 3] (doall (drop-while #(> % 10) [1 2 3])))
       "drop-while should return full sequence when no elements match"))
 
 (deftest test-drop-while-preserves-metadata
   (let [m {:foo "bar"}
         data (set-meta! [1 2 3 4 5] m)]
-    (is (= m (meta (drop-while |(< $ 3) data)))
+    (is (= m (meta (drop-while #(< % 3) data)))
         "drop-while should preserve metadata")))
 
 (deftest test-take-while-on-vector-returns-lazy
-  (is (= [1 2] (doall (take-while |(< $ 3) [1 2 3 4 5])))
+  (is (= [1 2] (doall (take-while #(< % 3) [1 2 3 4 5])))
       "take-while on vector should return lazy sequence"))
 
 (deftest test-take-while-on-infinite-seq
@@ -203,21 +203,21 @@
       "take-while on infinite sequence should work"))
 
 (deftest test-take-while-empty-collection
-  (is (= [] (take-while |(< $ 10) []))
+  (is (= [] (take-while #(< % 10) []))
       "take-while on empty collection should return empty vector"))
 
 (deftest test-take-while-nothing-taken
-  (is (= [] (doall (take-while |(> $ 10) [1 2 3])))
+  (is (= [] (doall (take-while #(> % 10) [1 2 3])))
       "take-while should return empty when first element doesn't match"))
 
 (deftest test-take-while-all-taken
-  (is (= [1 2 3] (doall (take-while |(< $ 10) [1 2 3])))
+  (is (= [1 2 3] (doall (take-while #(< % 10) [1 2 3])))
       "take-while should return full sequence when all elements match"))
 
 (deftest test-take-while-preserves-metadata
   (let [m {:foo "bar"}
         data (set-meta! [1 2 3 4 5] m)]
-    (is (= m (meta (take-while |(< $ 3) data)))
+    (is (= m (meta (take-while #(< % 3) data)))
         "take-while should preserve metadata")))
 
 (deftest test-take-nth-on-vector-returns-lazy
@@ -251,7 +251,7 @@
       "chaining drop and take on infinite sequence should work"))
 
 (deftest test-chained-take-while-filter-on-infinite-seq
-  (is (= [0 2 4] (doall (take-while |(< $ 5) (filter even? (iterate inc 0)))))
+  (is (= [0 2 4] (doall (take-while #(< % 5) (filter even? (iterate inc 0)))))
       "chaining take-while and filter on infinite sequence should work"))
 
 (deftest test-chained-drop-while-take-nth-on-infinite-seq
@@ -299,55 +299,55 @@
       "cycle should work with filter"))
 
 (deftest test-keep-on-vector-returns-lazy
-  (is (= [2 4] (doall (keep |(when (even? $) $) [1 2 3 4])))
+  (is (= [2 4] (doall (keep #(when (even? %) %) [1 2 3 4])))
       "keep on vector should return lazy sequence"))
 
 (deftest test-keep-on-infinite-seq
-  (is (= [0 2 4 6 8] (take 5 (keep |(when (even? $) $) (iterate inc 0))))
+  (is (= [0 2 4 6 8] (take 5 (keep #(when (even? %) %) (iterate inc 0))))
       "keep on infinite sequence should work without hanging"))
 
 (deftest test-keep-with-nil-results
-  (is (= [4] (doall (keep |(when (even? $) (* 2 $)) [1 2 3])))
+  (is (= [4] (doall (keep #(when (even? %) (* 2 %)) [1 2 3])))
       "keep should filter out nil results"))
 
 (deftest test-keep-empty-collection
-  (is (= [] (keep |(when (even? $) $) []))
+  (is (= [] (keep #(when (even? %) %) []))
       "keep on empty collection should return empty vector"))
 
 (deftest test-keep-all-filtered
-  (is (= [] (doall (keep |(when (> $ 10) $) [1 2 3])))
+  (is (= [] (doall (keep #(when (> % 10) %) [1 2 3])))
       "keep should return empty when all results are nil"))
 
 (deftest test-keep-with-doall
-  (is (= [0 2 4] (doall (take 3 (keep |(when (even? $) $) (iterate inc 0)))))
+  (is (= [0 2 4] (doall (take 3 (keep #(when (even? %) %) (iterate inc 0)))))
       "keep should work with doall on infinite sequences"))
 
 (deftest test-keep-with-nil
-  (is (= [] (keep |(when (even? $) $) nil))
+  (is (= [] (keep #(when (even? %) %) nil))
       "keep with nil should return empty vector"))
 
 (deftest test-keep-indexed-on-vector-returns-lazy
-  (is (= [20 40] (doall (keep-indexed |(when (odd? $1) $2) [10 20 30 40])))
+  (is (= [20 40] (doall (keep-indexed #(when (odd? %1) %2) [10 20 30 40])))
       "keep-indexed on vector should return lazy sequence"))
 
 (deftest test-keep-indexed-on-infinite-seq
-  (is (= [0 2 4 6 8] (take 5 (keep-indexed |(when (even? $1) $1) (iterate inc 0))))
+  (is (= [0 2 4 6 8] (take 5 (keep-indexed #(when (even? %1) %1) (iterate inc 0))))
       "keep-indexed on infinite sequence should work without hanging"))
 
 (deftest test-keep-indexed-with-index
-  (is (= [0 2 4] (doall (keep-indexed |(when (even? $1) $1) [:a :b :c :d :e])))
+  (is (= [0 2 4] (doall (keep-indexed #(when (even? %1) %1) [:a :b :c :d :e])))
       "keep-indexed should pass correct index"))
 
 (deftest test-keep-indexed-empty-collection
-  (is (= [] (keep-indexed |(when (even? $1) $2) []))
+  (is (= [] (keep-indexed #(when (even? %1) %2) []))
       "keep-indexed on empty collection should return empty vector"))
 
 (deftest test-keep-indexed-all-filtered
-  (is (= [] (doall (keep-indexed |(when (> $1 10) $2) [1 2 3])))
+  (is (= [] (doall (keep-indexed #(when (> %1 10) %2) [1 2 3])))
       "keep-indexed should return empty when all results are nil"))
 
 (deftest test-keep-indexed-with-nil
-  (is (= [] (keep-indexed |(when (even? $1) $2) nil))
+  (is (= [] (keep-indexed #(when (even? %1) %2) nil))
       "keep-indexed with nil should return empty vector"))
 
 (deftest test-distinct-on-vector-returns-lazy
@@ -391,7 +391,7 @@
       "dedupe with nil should return empty vector"))
 
 (deftest test-partition-by-on-vector-returns-lazy
-  (is (= [[1 2] [3 4 5]] (doall (partition-by |(< $ 3) [1 2 3 4 5])))
+  (is (= [[1 2] [3 4 5]] (doall (partition-by #(< % 3) [1 2 3 4 5])))
       "partition-by on vector should return lazy sequence"))
 
 (deftest test-partition-by-on-infinite-seq
@@ -399,16 +399,16 @@
       "partition-by on infinite sequence should work"))
 
 (deftest test-partition-by-empty-collection
-  (is (= [] (partition-by |(< $ 3) []))
+  (is (= [] (partition-by #(< % 3) []))
       "partition-by on empty collection should return empty vector"))
 
 (deftest test-partition-by-all-same-group
-  (is (= [[1 1 1 1]] (doall (partition-by |(< $ 10) [1 1 1 1])))
+  (is (= [[1 1 1 1]] (doall (partition-by #(< % 10) [1 1 1 1])))
       "partition-by should return single partition when all elements have same key"))
 
 ;; Lazy mapcat tests
 (deftest test-mapcat-is-lazy
-  (is (= [1 1 1 2 2 2] (take 6 (mapcat |(list $ $ $) [1 2 3 4 5])))
+  (is (= [1 1 1 2 2 2] (take 6 (mapcat #(list % % %) [1 2 3 4 5])))
       "mapcat should be lazy and work with take"))
 
 (deftest test-mapcat-identity-flattens-one-level
@@ -416,7 +416,7 @@
       "mapcat identity should flatten one level"))
 
 (deftest test-mapcat-with-infinite-sequence
-  (is (= [0 0 1 1 2 2 3 3 4 4] (take 10 (mapcat |(list $ $) (iterate inc 0))))
+  (is (= [0 0 1 1 2 2 3 3 4 4] (take 10 (mapcat #(list % %) (iterate inc 0))))
       "mapcat should work with infinite sequences"))
 
 (deftest test-mapcat-empty-collection
@@ -424,11 +424,11 @@
       "mapcat on empty collection should return empty list"))
 
 (deftest test-mapcat-with-empty-results
-  (is (= [2 2 4 4 6 6] (doall (mapcat |(if (even? $) [$ $] []) [1 2 3 4 5 6])))
+  (is (= [2 2 4 4 6 6] (doall (mapcat #(if (even? %) [% %] []) [1 2 3 4 5 6])))
       "mapcat should handle functions that return empty collections"))
 
 (deftest test-mapcat-preserves-laziness
-  (is (= [1 2 2 3 3 3] (take 6 (mapcat |(repeat $ $) (iterate inc 1))))
+  (is (= [1 2 2 3 3 3] (take 6 (mapcat #(repeat % %) (iterate inc 1))))
       "mapcat should preserve laziness with nested lazy sequences"))
 
 (deftest test-mapcat-returns-lazy-seq

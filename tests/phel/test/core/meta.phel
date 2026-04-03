@@ -33,7 +33,7 @@
     (is (= m (meta (keep identity data))) "keep preserves metadata")
     (is (= m (meta (keep-indexed (fn [_ x] x) data))) "keep-indexed preserves metadata")
     (is (= m (meta (take 2 data))) "take preserves metadata")
-    (is (= m (meta (take-while |(< $ 3) data))) "take-while preserves metadata")
+    (is (= m (meta (take-while #(< % 3) data))) "take-while preserves metadata")
     (is (= m (meta (take-nth 2 data))) "take-nth preserves metadata")
     (is (= m (meta (distinct data))) "distinct preserves metadata")
     (is (= m (meta (reverse data))) "reverse preserves metadata")

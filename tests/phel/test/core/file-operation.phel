@@ -129,9 +129,9 @@
     (let [result (doall (file-seq target-directory))
           result-count (count result)]
       (is (>= result-count 3) "file-seq should return at least the directory and subdirectory and files")
-      (is (true? (some |(php/str_ends_with $ "file1.txt") result))
+      (is (true? (some #(php/str_ends_with % "file1.txt") result))
           "file-seq should include file1.txt")
-      (is (true? (some |(php/str_ends_with $ "file2.txt") result))
+      (is (true? (some #(php/str_ends_with % "file2.txt") result))
           "file-seq should include file2.txt"))
     (php/unlink file2)
     (php/unlink file1)
@@ -187,7 +187,7 @@
     (spit file1 "phel content")
     (spit file2 "txt content")
     (spit file3 "md content")
-    (let [phel-files (filter |(php/str_ends_with $ ".phel") (file-seq target-directory))]
+    (let [phel-files (filter #(php/str_ends_with % ".phel") (file-seq target-directory))]
       (is (= 1 (count (doall phel-files))) "should filter to only .phel files"))
     (php/unlink file3)
     (php/unlink file2)
@@ -206,7 +206,7 @@
     (let [result (doall (file-seq target-directory))
           file-count (count (filter php/is_file result))]
       (is (>= file-count 1) "file-seq should traverse symlinked directories")
-      (is (true? (some |(php/str_ends_with $ "test.txt") result))
+      (is (true? (some #(php/str_ends_with % "test.txt") result))
           "file-seq should include files from symlinked directories"))
     (php/unlink file1)
     (php/unlink symlink-dir)
@@ -224,7 +224,7 @@
     (php/symlink target-directory cycle-link)
     (let [result (doall (file-seq target-directory))]
       (is (true? (> (count result) 0)) "file-seq should not hang on symlink cycles")
-      (is (true? (some |(php/str_ends_with $ "test.txt") result))
+      (is (true? (some #(php/str_ends_with % "test.txt") result))
           "file-seq should still traverse non-cycle paths"))
     (php/unlink file1)
     (php/unlink cycle-link)
@@ -412,7 +412,7 @@
 (deftest test-csv-seq-is-lazy
   (let [target-directory (str (php/sys_get_temp_dir))
         target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq-lazy.csv")
-        rows (map |(str $ ",value" $) (range 1000))]
+        rows (map #(str % ",value" %) (range 1000))]
     (spit target-file (apply str (interpose "\n" rows)))
     (let [first-five (take 5 (csv-seq target-file))]
       (is (= 5 (count first-five)) "csv-seq should be lazy and work with take")

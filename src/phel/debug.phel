@@ -91,7 +91,7 @@
    :see-also ["remove-tap" "tap>"]
    :example "(add-tap println)"}
   [f]
-  (swap! *tap-handlers* |(conj $ f))
+  (swap! *tap-handlers* #(conj % f))
   nil)
 
 (defn remove-tap
@@ -100,7 +100,7 @@
    :see-also ["add-tap" "tap>"]
    :example "(remove-tap println)"}
   [f]
-  (swap! *tap-handlers* |(vec (filter (fn [h] (not (= h f))) $)))
+  (swap! *tap-handlers* #(vec (filter (fn [h] (not (= h f))) %)))
   nil)
 
 (defn tap>

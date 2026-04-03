@@ -332,6 +332,41 @@ final class LexerTest extends TestCase
         self::assertStringContainsString('(comment ...)', $warning);
     }
 
+    public function test_pipe_fn_emits_deprecation(): void
+    {
+        $warning = null;
+        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
+            $warning = $errstr;
+            return true;
+        }, E_USER_DEPRECATED);
+
+        try {
+            $this->lex('|(add $)');
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertNotNull($warning);
+        self::assertStringContainsString('#()', $warning);
+    }
+
+    public function test_hash_fn_does_not_emit_deprecation(): void
+    {
+        $warning = null;
+        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
+            $warning = $errstr;
+            return true;
+        }, E_USER_DEPRECATED);
+
+        try {
+            $this->lex('#(add %)');
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertNull($warning);
+    }
+
     public function test_regex_literal(): void
     {
         self::assertEquals(

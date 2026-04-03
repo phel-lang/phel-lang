@@ -109,7 +109,9 @@ Creates anonymous functions with `%` parameter placeholders:
 #(apply str %&)       ; %& captures rest args
 ```
 
-### Short Function Syntax `|(...)`
+### Short Function Syntax `|(...)` (Deprecated)
+> **Deprecated:** Use `#(...)` with `%` placeholders instead. `|(...)` will be removed in a future release.
+
 Creates anonymous functions with positional parameters:
 ```phel
 |(+ $1 $2)        ; Function taking 2 args
@@ -149,9 +151,11 @@ standalone line comments and `;` for inline comments after code:
 (+ 1 2)           ; inline comment
 ```
 
-> **Note:** `#` is also accepted as a line comment character but `;` is preferred.
+> **Deprecated:** `#` as a line comment character is deprecated. Use `;` instead.
 
-### Multiline Comments `#| |#`
+### Multiline Comments `#| |#` (Deprecated)
+> **Deprecated:** Use `(comment ...)` instead. `#| |#` will be removed in a future release.
+
 Comment blocks spanning multiple lines:
 ```phel
 #|
@@ -191,7 +195,7 @@ Attaches metadata to the following form:
 | `@`        | Deref             | Dereference an atom           | `@my-atom`    |
 | `#"..."`   | Regex literal     | PCRE pattern                  | `#"\\d+"`     |
 | `#(...)`   | Lambda (Clojure)  | Anonymous function (`%` args) | `#(+ %1 %2)`  |
-| `\|()`     | Lambda (Phel)     | Anonymous function (`$` args) | `\|(+ $1 $2)` |
+| `\|()`     | Lambda (Phel)     | Anonymous function (`$` args) **(deprecated)** | `\|(+ $1 $2)` |
 | `;` or `;;` | Line comment      | Comment to end of line       | `;; comment`  |
 | `#\| \|#`  | Multiline comment | Block comment                 | `#\| ... \|#` |
 | `#_`       | Inline comment    | Comment out next form         | `#_ expr`     |
