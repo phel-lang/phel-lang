@@ -109,7 +109,9 @@ Creates anonymous functions with `%` parameter placeholders:
 #(apply str %&)       ; %& captures rest args
 ```
 
-### Short Function Syntax `|(...)`
+### Short Function Syntax `|(...)` (Deprecated)
+> **Deprecated:** Use `#(...)` with `%` placeholders instead. `|(...)` will be removed in a future release.
+
 Creates anonymous functions with positional parameters:
 ```phel
 |(+ $1 $2)        ; Function taking 2 args
@@ -149,9 +151,11 @@ standalone line comments and `;` for inline comments after code:
 (+ 1 2)           ; inline comment
 ```
 
-> **Note:** `#` is also accepted as a line comment character but `;` is preferred.
+> **Deprecated:** `#` as a line comment character is deprecated. Use `;` instead.
 
-### Multiline Comments `#| |#`
+### Multiline Comments `#| |#` (Deprecated)
+> **Deprecated:** Use `(comment ...)` instead. `#| |#` will be removed in a future release.
+
 Comment blocks spanning multiple lines:
 ```phel
 #|
@@ -176,26 +180,26 @@ Attaches metadata to the following form:
 
 ## Summary Table
 
-| Syntax     | Name              | Description                   | Example       |
-|------------|-------------------|-------------------------------|---------------|
-| `[]`       | Vector            | Ordered indexed collection    | `[1 2 3]`     |
-| `{}`       | Hash Map          | Key-value pairs               | `{:a 1 :b 2}` |
-| `#{}`      | Set               | Unique unordered values       | `#{1 2 3}`    |
-| `'()`      | List              | Quoted list (prevents eval)   | `'(1 2 3)`    |
-| `'`        | Quote             | Prevent evaluation            | `'x`          |
-| `` ` ``    | Quasiquote        | Quote with selective eval     | `` `(1 ~x)``  |
-| `,`        | Unquote           | Evaluate within quasiquote    | `,x`          |
-| `,@`       | Unquote-splice    | Splice sequence in quasiquote | `,@xs`        |
-| `#?()`     | Reader conditional | Platform-specific code       | `#?(:phel 1)` |
-| `#?@()`    | Conditional splice | Splice by platform           | `#?@(:phel [1 2])` |
-| `@`        | Deref             | Dereference an atom           | `@my-atom`    |
-| `#"..."`   | Regex literal     | PCRE pattern                  | `#"\\d+"`     |
-| `#(...)`   | Lambda (Clojure)  | Anonymous function (`%` args) | `#(+ %1 %2)`  |
-| `\|()`     | Lambda (Phel)     | Anonymous function (`$` args) | `\|(+ $1 $2)` |
-| `;` or `;;` | Line comment      | Comment to end of line       | `;; comment`  |
-| `#\| \|#`  | Multiline comment | Block comment                 | `#\| ... \|#` |
-| `#_`       | Inline comment    | Comment out next form         | `#_ expr`     |
-| `^`        | Metadata          | Attach metadata               | `^:private`   |
+| Syntax      | Name               | Description                                    | Example            |
+|-------------|--------------------|------------------------------------------------|--------------------|
+| `[]`        | Vector             | Ordered indexed collection                     | `[1 2 3]`          |
+| `{}`        | Hash Map           | Key-value pairs                                | `{:a 1 :b 2}`      |
+| `#{}`       | Set                | Unique unordered values                        | `#{1 2 3}`         |
+| `'()`       | List               | Quoted list (prevents eval)                    | `'(1 2 3)`         |
+| `'`         | Quote              | Prevent evaluation                             | `'x`               |
+| `` ` ``     | Quasiquote         | Quote with selective eval                      | `` `(1 ~x)``       |
+| `,`         | Unquote            | Evaluate within quasiquote                     | `,x`               |
+| `,@`        | Unquote-splice     | Splice sequence in quasiquote                  | `,@xs`             |
+| `#?()`      | Reader conditional | Platform-specific code                         | `#?(:phel 1)`      |
+| `#?@()`     | Conditional splice | Splice by platform                             | `#?@(:phel [1 2])` |
+| `@`         | Deref              | Dereference an atom                            | `@my-atom`         |
+| `#"..."`    | Regex literal      | PCRE pattern                                   | `#"\\d+"`          |
+| `#(...)`    | Lambda             | Anonymous function (`%` args)                  | `#(+ %1 %2)`       |
+| `\|()`      | Lambda (old)       | Anonymous function (`$` args) **(deprecated)** | `\|(+ $1 $2)`      |
+| `;` or `;;` | Line comment       | Comment to end of line                         | `;; comment`       |
+| `#\| \|#`   | Multiline comment  | Block comment   **(deprecated)**               | `#\| ... \|#`      |
+| `#_`        | Inline comment     | Comment out next form                          | `#_ expr`          |
+| `^`         | Metadata           | Attach metadata                                | `^:private`        |
 
 ## See Also
 

@@ -241,10 +241,10 @@ $response->send();
 
 ```phel
 ;; Good - use PHP's optimized functions
-(php/array_map |(* $ 2) php-array)
+(php/array_map #(* % 2) php-array)
 
 ;; When you need Phel collections
-(map |(* $ 2) phel-vector)
+(map #(* % 2) phel-vector)
 ```
 
 ### Avoid Unnecessary Conversions
@@ -327,7 +327,7 @@ $response->send();
 - **Deref**: `@my-atom` works as shorthand for `(deref my-atom)`, just like Clojure
 - **Import classes**: Use `:use` in `ns`, not `:import`
 - **Reader conditionals**: `#?(:phel ...)` and `#?@(:phel ...)` work for cross-platform `.cljc` files
-- **Lambda syntax**: Both `#(+ %1 %2)` (Clojure) and `|(+ $1 $2)` (Phel) are supported
+- **Lambda syntax**: `#(+ %1 %2)` is the recommended syntax. `|(+ $1 $2)` is deprecated
 - **PHP arrays**: Work with them directly or convert to Phel collections
 
 ## See Also

@@ -156,7 +156,7 @@
 (def discounted-inventory
   (->> inventory
        (filter low-stock?)
-       (map |(add-discount $ 0.20))))
+       (map #(add-discount % 0.20))))
 
 (println "Low stock items with discount:")
 (foreach [item discounted-inventory]
@@ -172,7 +172,7 @@
 
 ;; Group by stock level
 (def stock-groups
-  (group-by |(if (low-stock? $) :low :adequate) inventory))
+  (group-by #(if (low-stock? %) :low :adequate) inventory))
 
 (println "\nStock analysis:")
 (println "Low stock count:" (count (:low stock-groups)))

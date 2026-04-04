@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Deprecated
+- `|(...)` short function syntax with `$` placeholders; use `#(...)` with `%` placeholders instead
+
+### Changed
+- Migrate all Phel source and test files from `|(...)` to `#(...)` short function syntax
+
 ## [0.31.0](https://github.com/phel-lang/phel-lang/compare/v0.30.0...v0.31.0) - 2026-04-03
 
 ### Added

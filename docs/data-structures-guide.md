@@ -41,7 +41,7 @@ Strings work directly with all sequence functions, just like Clojure:
 ;; => ["H" "E" "L" "L" "O"]
 
 ;; Filter characters
-(filter |(not= $ "l") "hello")
+(filter #(not= % "l") "hello")
 ;; => ["h" "e" "o"]
 
 ;; Take and drop work directly
@@ -67,8 +67,8 @@ All core sequence functions work directly with strings:
 (rest "hello")    ; => ["e" "l" "l" "o"]
 
 ;; Lazy operations
-(take-while |(not= $ "l") "hello")  ; => ["h" "e"]
-(drop-while |(not= $ "l") "hello")  ; => ["l" "l" "o"]
+(take-while #(not= % "l") "hello")  ; => ["h" "e"]
+(drop-while #(not= % "l") "hello")  ; => ["l" "l" "o"]
 
 ;; Reduce over characters
 (reduce str "" "hello")  ; => "hello"
@@ -306,7 +306,7 @@ Returns `true` if a key exists in the collection. **Important:** Checks for keys
 Returns the first item in a collection where the predicate returns true.
 
 ```phel
-(find |(> $ 5) [1 3 7 2 9])
+(find #(> % 5) [1 3 7 2 9])
 ;; => 7
 
 (find even? [1 3 5 7])
@@ -707,14 +707,14 @@ Useful for APIs that expect key-value arguments.
 Returns the index of the first item where the predicate (called with index and item) returns true.
 
 ```phel
-(find-index |(> $2 5) [1 3 7 2 9])
+(find-index #(> %2 5) [1 3 7 2 9])
 ;; => 2  (index of 7)
 
-(find-index |(even? $1) [:a :b :c :d])
+(find-index #(even? %1) [:a :b :c :d])
 ;; => 1  (first even index)
 ```
 
-The predicate receives two arguments: `$1` (index) and `$2` (item).
+The predicate receives two arguments: `%1` (index) and `%2` (item).
 
 ---
 

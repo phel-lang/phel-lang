@@ -38,7 +38,7 @@
    :see-also ["prewalk" "walk" "postwalk-replace"]
    :example "(postwalk inc [1 [2 3]]) ; => [2 [3 4]]"}
   [f form]
-  (walk |(postwalk f $) f form))
+  (walk #(postwalk f %) f form))
 
 (defn prewalk
   "Like `postwalk`, but does a pre-order traversal (applies `f` before recursing
@@ -47,7 +47,7 @@
    :see-also ["postwalk" "walk" "prewalk-replace"]
    :example "(prewalk identity [1 [2 3]]) ; => [1 [2 3]]"}
   [f form]
-  (walk |(prewalk f $) identity (f form)))
+  (walk #(prewalk f %) identity (f form)))
 
 (defn postwalk-replace
   "Recursively transforms `form` by replacing every occurrence of a key in

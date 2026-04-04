@@ -61,11 +61,11 @@
   (is (= [2 4] (sequence (filter even?) [1 2 3 4])) "sequence with filter"))
 
 (deftest test-map-transducer
-  (is (= [2 4 6] (into [] (map |(* $ 2)) [1 2 3])) "map xf doubles"))
+  (is (= [2 4 6] (into [] (map #(* % 2)) [1 2 3])) "map xf doubles"))
 
 (deftest test-map-transducer-composition
   (is (= [4 8 12]
-         (into [] (comp (map |(* $ 2)) (map |(* $ 2))) [1 2 3]))
+         (into [] (comp (map #(* % 2)) (map #(* % 2))) [1 2 3]))
       "composed map transducers"))
 
 (deftest test-filter-transducer
@@ -87,11 +87,11 @@
   (is (= [] (into [] (drop 10) [1 2 3])) "drop xf more than available"))
 
 (deftest test-take-while-transducer
-  (is (= [1 2 3] (into [] (take-while |(< $ 4)) [1 2 3 4 5]))
+  (is (= [1 2 3] (into [] (take-while #(< % 4)) [1 2 3 4 5]))
       "take-while xf stops at predicate"))
 
 (deftest test-drop-while-transducer
-  (is (= [4 5 1] (into [] (drop-while |(< $ 4)) [1 2 3 4 5 1]))
+  (is (= [4 5 1] (into [] (drop-while #(< % 4)) [1 2 3 4 5 1]))
       "drop-while xf skips matching prefix"))
 
 (deftest test-take-nth-transducer
@@ -99,11 +99,11 @@
       "take-nth xf every 2nd"))
 
 (deftest test-keep-transducer
-  (is (= [4 16] (into [] (keep |(when (even? $) (* $ $))) [1 2 3 4 5]))
+  (is (= [4 16] (into [] (keep #(when (even? %) (* % %))) [1 2 3 4 5]))
       "keep xf non-nil results"))
 
 (deftest test-keep-indexed-transducer
-  (is (= ["a" "c"] (into [] (keep-indexed |(when (even? $1) $2)) ["a" "b" "c" "d"]))
+  (is (= ["a" "c"] (into [] (keep-indexed #(when (even? %1) %2)) ["a" "b" "c" "d"]))
       "keep-indexed xf even indices"))
 
 (deftest test-distinct-transducer
@@ -131,11 +131,11 @@
       "filter then map"))
 
 (deftest test-xf-composition-map-take
-  (is (= [2 4 6] (into [] (comp (map |(* $ 2)) (take 3)) [1 2 3 4 5]))
+  (is (= [2 4 6] (into [] (comp (map #(* % 2)) (take 3)) [1 2 3 4 5]))
       "map then take"))
 
 (deftest test-xf-composition-drop-filter-map
-  (is (= [8] (into [] (comp (drop 3) (filter even?) (map |(* $ 2))) [1 2 3 4 5]))
+  (is (= [8] (into [] (comp (drop 3) (filter even?) (map #(* % 2))) [1 2 3 4 5]))
       "drop then filter then map"))
 
 (deftest test-take-terminates-early

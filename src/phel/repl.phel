@@ -133,7 +133,7 @@
   [& xs]
   (let [len (count xs)
         printer (php/:: Printer (readableWithColor))
-        pp |(php/-> printer (print $))]
+        pp #(php/-> printer (print %))]
     (case (count xs)
       0 ""
       1 (pp (first xs))

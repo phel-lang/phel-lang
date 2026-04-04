@@ -68,13 +68,13 @@ Try it out:
 phel:1> (+ 1 2 3)
 6
 
-phel:2> (map |(* $ 2) [1 2 3 4 5])
+phel:2> (map #(* % 2) [1 2 3 4 5])
 [2 4 6 8 10]
 
 phel:3> (def numbers [10 20 30 40])
 numbers
 
-phel:4> (filter |(> $ 25) numbers)
+phel:4> (filter #(> % 25) numbers)
 [30 40]
 ```
 
@@ -110,7 +110,7 @@ Type `(exit)` or press Ctrl+D to quit.
 (square 5)                        ; => 25
 
 ;; Anonymous functions
-|(* $ $)                          ; Short syntax
+#(* % %)                          ; Short syntax
 (fn [x] (* x x))                  ; Long syntax
 
 ;; Map, filter, reduce
@@ -119,8 +119,8 @@ Type `(exit)` or press Ctrl+D to quit.
 (reduce + 0 [1 2 3 4])            ; => 10
 
 ;; Function composition
-(def double |(* $ 2))
-(def add-ten |(+ $ 10))
+(def double #(* % 2))
+(def add-ten #(+ % 10))
 (def process (comp add-ten double))
 
 (process 5)                       ; => 20 (5 * 2 + 10)
@@ -239,7 +239,7 @@ curl http://localhost:8000/users
 (defn read-csv [filename]
   (let [content (php/file_get_contents filename)
         lines (str/split content #"\n")]
-    (map |(str/split $ #",") lines)))
+    (map #(str/split % #",") lines)))
 
 (defn process-users [filename]
   (let [rows (read-csv filename)
