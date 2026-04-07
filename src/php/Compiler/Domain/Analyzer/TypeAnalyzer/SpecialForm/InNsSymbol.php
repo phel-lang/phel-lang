@@ -12,6 +12,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 
 use function is_string;
+use function str_replace;
 
 /**
  * (in-ns namespace)
@@ -44,13 +45,16 @@ final class InNsSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation("First argument of 'in-ns must be a Symbol or String, got: " . get_debug_type($nsArg), $list);
         }
 
-        $ns = $nsArg instanceof Symbol ? $nsArg->getName() : $nsArg;
+        $rawNs = $nsArg instanceof Symbol ? $nsArg->getName() : $nsArg;
 
-        if (trim($ns) === '') {
+        if (trim($rawNs) === '') {
             throw AnalyzerException::withLocation('Namespace cannot be empty', $list);
         }
 
-        // Set the namespace for the analyzer
+        // Accept `.` as an alternate namespace separator (Clojure / `.cljc`
+        // style) and rewrite it to Phel's canonical `\`.
+        $ns = str_replace('.', '\\', $rawNs);
+
         $this->analyzer->setNamespace($ns);
 
         ReplReferInjector::injectIfReplMode($this->analyzer, $ns);

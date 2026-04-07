@@ -1,0 +1,19 @@
+--PHEL--
+(ns my.cljc\mixed
+  (:require first.lib)
+  (:require second\lib))
+--PHP--
+namespace my\cljc\mixed;
+require_once __DIR__ . '/../../phel/core.php';
+require_once __DIR__ . '/../../first/lib.php';
+require_once __DIR__ . '/../../second/lib.php';
+\Phel::addDefinition(
+  "phel\\core",
+  "*file*",
+  "Ns/dot-separator-mixed.test"
+);
+\Phel::addDefinition(
+  "phel\\core",
+  "*ns*",
+  "my\\cljc\\mixed"
+);

@@ -134,6 +134,54 @@ final class InNsSymbolTest extends TestCase
             'app\\modules\\user\\domain',
             'app\\modules\\user\\domain',
         ];
+
+        yield 'Dot-separated symbol' => [
+            Symbol::create('my.cljc.file'),
+            'my\\cljc\\file',
+        ];
+
+        yield 'Dot-separated string' => [
+            'app.modules.user',
+            'app\\modules\\user',
+        ];
+
+        yield 'Mixed separators' => [
+            Symbol::create('my.foo\\bar'),
+            'my\\foo\\bar',
+        ];
+
+        yield 'Dot-separated 4 segments' => [
+            Symbol::create('a.b.c.d'),
+            'a\\b\\c\\d',
+        ];
+
+        yield 'Mixed separators in string form' => [
+            'app\\modules.user.domain',
+            'app\\modules\\user\\domain',
+        ];
+
+        yield 'Single dotted segment' => [
+            Symbol::create('foo.bar'),
+            'foo\\bar',
+        ];
+    }
+
+    public function test_dot_separator_in_in_ns_injects_repl_refers_under_normalized_name(): void
+    {
+        Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE, true);
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_IN_NS),
+            Symbol::create('my.cljc.file'),
+        ]);
+
+        $node = $this->analyze($list);
+
+        self::assertSame('my\\cljc\\file', $node->getNamespace());
+
+        $globalEnv = $this->getGlobalEnvironment();
+        $aliases = $globalEnv->getRequireAliases('my\\cljc\\file');
+        self::assertArrayHasKey('repl', $aliases, 'repl alias should be registered under the normalized namespace');
     }
 
     public function test_sets_namespace_in_analyzer(): void

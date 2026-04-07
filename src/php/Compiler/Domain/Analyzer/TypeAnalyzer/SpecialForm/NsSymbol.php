@@ -20,6 +20,8 @@ use function in_array;
 use function is_string;
 use function preg_match;
 use function sprintf;
+use function str_contains;
+use function str_replace;
 
 /**
  * (ns name (:require ...) (:use ...)).
@@ -45,7 +47,7 @@ TXT;
             throw AnalyzerException::wrongArgumentType("First argument of 'ns", 'Symbol', $nsSymbol, $list);
         }
 
-        $ns = $nsSymbol->getName();
+        $ns = $this->normalizeNamespaceSeparators($nsSymbol->getName());
         $parts = explode('\\', $ns);
 
         $this->assertValidNamespace($parts, $nsSymbol);
@@ -115,8 +117,11 @@ TXT;
                 throw AnalyzerException::withLocation('First argument in :use must be a symbol.', $import);
             }
 
+            $useSymbol = $this->normalizeSymbolSeparators($useSymbol);
+
             if ($useSymbol->getName()[0] !== '\\') {
-                $useSymbol = Symbol::createForNamespace($useSymbol->getNamespace(), '\\' . $useSymbol->getName());
+                $useSymbol = Symbol::createForNamespace($useSymbol->getNamespace(), '\\' . $useSymbol->getName())
+                    ->copyLocationFrom($useSymbol);
             }
 
             ++$i;
@@ -209,6 +214,8 @@ TXT;
             if (!($requireSymbol instanceof Symbol)) {
                 throw AnalyzerException::withLocation('First argument in :require must be a symbol.', $import);
             }
+
+            $requireSymbol = $this->normalizeSymbolSeparators($requireSymbol);
 
             ++$i;
             $aliasValue = null;
@@ -304,5 +311,28 @@ TXT;
     private function isValidNamespacePart(string $part): bool
     {
         return preg_match(self::NAMESPACE_PART_PATTERN, $part) === 1;
+    }
+
+    /**
+     * Accepts `.` as an alternate namespace separator (Clojure / `.cljc`
+     * style) and rewrites it to Phel's canonical `\` so the rest of the
+     * compiler pipeline only ever sees backslash-separated names.
+     */
+    private function normalizeNamespaceSeparators(string $ns): string
+    {
+        return str_replace('.', '\\', $ns);
+    }
+
+    private function normalizeSymbolSeparators(Symbol $symbol): Symbol
+    {
+        $name = $symbol->getName();
+        if (!str_contains($name, '.')) {
+            return $symbol;
+        }
+
+        return Symbol::createForNamespace(
+            $symbol->getNamespace(),
+            $this->normalizeNamespaceSeparators($name),
+        )->copyLocationFrom($symbol);
     }
 }
