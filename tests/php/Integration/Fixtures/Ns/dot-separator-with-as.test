@@ -1,0 +1,17 @@
+--PHEL--
+(ns my.cljc.app
+  (:require my.cljc.lib :as lib))
+--PHP--
+namespace my\cljc\app;
+require_once __DIR__ . '/../../phel/core.php';
+require_once __DIR__ . '/../../my/cljc/lib.php';
+\Phel::addDefinition(
+  "phel\\core",
+  "*file*",
+  "Ns/dot-separator-with-as.test"
+);
+\Phel::addDefinition(
+  "phel\\core",
+  "*ns*",
+  "my\\cljc\\app"
+);
