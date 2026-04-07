@@ -134,6 +134,21 @@ final class InNsSymbolTest extends TestCase
             'app\\modules\\user\\domain',
             'app\\modules\\user\\domain',
         ];
+
+        yield 'Dot-separated symbol' => [
+            Symbol::create('my.cljc.file'),
+            'my\\cljc\\file',
+        ];
+
+        yield 'Dot-separated string' => [
+            'app.modules.user',
+            'app\\modules\\user',
+        ];
+
+        yield 'Mixed separators' => [
+            Symbol::create('my.foo\\bar'),
+            'my\\foo\\bar',
+        ];
     }
 
     public function test_sets_namespace_in_analyzer(): void

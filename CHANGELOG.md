@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+- Accept `.` as an alternate namespace separator in `(ns ...)`, `(in-ns ...)`, `:require`, and `:use` forms, enabling Clojure-style namespaces (e.g. `(ns my.cljc.file)`) for `.cljc` interop (#1177)
+
 ### Fixed
 - Emit `php/...` calls to namespaced PHP functions (e.g. `php/Amp\File\write`) as fully qualified names so they resolve against the global namespace from compiled/cached files (#1180)
 

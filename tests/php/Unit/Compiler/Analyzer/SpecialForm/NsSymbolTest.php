@@ -250,6 +250,86 @@ final class NsSymbolTest extends TestCase
         (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
     }
 
+    public function test_dot_separator_in_namespace_is_normalized_to_backslash(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('my.cljc.file'),
+        ]);
+
+        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertSame('my\\cljc\\file', $nsNode->getNamespace());
+        self::assertSame('my\\cljc\\file', $this->analyzer->getNamespace());
+    }
+
+    public function test_dot_separator_in_require_is_normalized_to_backslash(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app.core'),
+            Phel::list([
+                Keyword::create('require'),
+                Symbol::create('vendor.package'),
+            ]),
+        ]);
+
+        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertSame('app\\core', $nsNode->getNamespace());
+        self::assertEquals([
+            Symbol::create('phel\\core'),
+            Symbol::create('vendor\\package'),
+        ], $nsNode->getRequireNs());
+        self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('package')));
+        self::assertSame('vendor\\package', $this->globalEnv->resolveAlias('package'));
+    }
+
+    public function test_dot_separator_in_use_is_normalized_to_backslash(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app.core'),
+            Phel::list([
+                Keyword::create('use'),
+                Symbol::create('Vendor.Library'),
+            ]),
+        ]);
+
+        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertTrue($this->globalEnv->hasUseAlias('app\\core', Symbol::create('Library')));
+
+        $phpClassNode = $this->globalEnv->resolve(Symbol::create('Library'), NodeEnvironment::empty());
+        self::assertInstanceOf(PhpClassNameNode::class, $phpClassNode);
+        self::assertSame('\\Vendor\\Library', $phpClassNode->getName()->getName());
+    }
+
+    public function test_mixed_separators_are_normalized(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('my.foo\\bar'),
+        ]);
+
+        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertSame('my\\foo\\bar', $nsNode->getNamespace());
+    }
+
+    public function test_dot_namespace_with_empty_part_is_still_rejected(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Invalid namespace.');
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('my..bar'),
+        ]);
+
+        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+    }
+
     public function test_it_sets_namespace_and_registers_imports(): void
     {
         $list = Phel::list([
