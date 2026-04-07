@@ -60,7 +60,7 @@ final class ApplyEmitter implements NodeEmitterInterface
 
     private function phpVarNodeButNoInfix(ApplyNode $node, PhpVarNode $fnNode): void
     {
-        $this->outputEmitter->emitStr($fnNode->getName(), $fnNode->getStartSourceLocation());
+        $this->outputEmitter->emitStr($fnNode->getAbsoluteName(), $fnNode->getStartSourceLocation());
         $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
         $this->emitArguments($node);
         $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());

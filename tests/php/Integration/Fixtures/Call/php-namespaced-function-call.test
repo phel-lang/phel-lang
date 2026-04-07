@@ -1,0 +1,4 @@
+--PHEL--
+(php/Amp\now)
+--PHP--
+\Amp\now();
