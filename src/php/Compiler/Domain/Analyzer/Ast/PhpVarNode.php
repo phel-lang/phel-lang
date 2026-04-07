@@ -10,6 +10,8 @@ use Phel\Lang\SourceLocation;
 
 use function in_array;
 use function is_callable;
+use function ltrim;
+use function str_contains;
 
 final class PhpVarNode extends AbstractNode
 {
@@ -68,6 +70,23 @@ final class PhpVarNode extends AbstractNode
     public function getName(): string
     {
         return $this->name;
+    }
+
+    /**
+     * Returns the name suitable for emitting as a PHP function reference.
+     *
+     * Namespaced PHP functions (containing a backslash) are returned as
+     * fully qualified names with a single leading backslash so they resolve
+     * against the global namespace, regardless of any active `namespace ...;`
+     * declaration in the emitted PHP file.
+     */
+    public function getAbsoluteName(): string
+    {
+        if (!str_contains($this->name, '\\')) {
+            return $this->name;
+        }
+
+        return '\\' . ltrim($this->name, '\\');
     }
 
     public function isInfix(): bool

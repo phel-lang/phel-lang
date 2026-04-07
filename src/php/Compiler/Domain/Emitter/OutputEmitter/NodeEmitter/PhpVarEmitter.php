@@ -20,13 +20,15 @@ final class PhpVarEmitter implements NodeEmitterInterface
 
         $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
 
+        $name = $node->getAbsoluteName();
+
         if ($node->isCallable()) {
             $this->outputEmitter->emitStr(
-                '(function(...$args) { return ' . $node->getName() . '(...$args);' . '})',
+                '(function(...$args) { return ' . $name . '(...$args);' . '})',
                 $node->getStartSourceLocation(),
             );
         } else {
-            $this->outputEmitter->emitStr($node->getName(), $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr($name, $node->getStartSourceLocation());
         }
 
         $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());

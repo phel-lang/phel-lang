@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+- Emit `php/...` calls to namespaced PHP functions (e.g. `php/Amp\File\write`) as fully qualified names so they resolve against the global namespace from compiled/cached files (#1180)
+
 ### Deprecated
 - `|(...)` short function syntax with `$` placeholders; use `#(...)` with `%` placeholders instead
 

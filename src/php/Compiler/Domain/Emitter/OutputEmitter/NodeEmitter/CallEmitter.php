@@ -77,7 +77,7 @@ final class CallEmitter implements NodeEmitterInterface
 
     private function emitPhpFunctionName(PhpVarNode $fnNode): void
     {
-        $name = $fnNode->getName();
+        $name = $fnNode->getAbsoluteName();
 
         if ($name === 'echo') {
             $name = 'print';

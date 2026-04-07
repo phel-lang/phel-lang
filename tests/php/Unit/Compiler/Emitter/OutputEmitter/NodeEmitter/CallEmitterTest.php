@@ -91,4 +91,18 @@ final class CallEmitterTest extends TestCase
         $this->expectOutputString('yield 1 => 2;');
     }
 
+    public function test_namespaced_php_function_is_emitted_as_fully_qualified(): void
+    {
+        $node = new PhpVarNode(NodeEnvironment::empty(), 'Amp\\File\\write');
+        $args = [
+            new LiteralNode(NodeEnvironment::empty()->withExpressionContext(), 'foo.txt'),
+            new LiteralNode(NodeEnvironment::empty()->withExpressionContext(), 'data'),
+        ];
+
+        $applyNode = new CallNode(NodeEnvironment::empty(), $node, $args);
+        $this->callEmitter->emit($applyNode);
+
+        $this->expectOutputString('\Amp\File\write("foo.txt", "data");');
+    }
+
 }
