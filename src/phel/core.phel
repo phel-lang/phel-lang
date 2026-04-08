@@ -824,12 +824,14 @@ Otherwise, it tries to call `__toString`."
 
 (defn int?
   "Returns true if `x` is an integer number, false otherwise."
+  {:see-also ["integer?"]}
   [x]
   (= (type x) :int))
 
 (defn integer?
   "Returns true if `x` is an integer number, false otherwise.
   Clojure compatibility alias for `int?`."
+  {:see-also ["int?"]}
   [x]
   (= (type x) :int))
 
