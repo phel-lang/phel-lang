@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 - Migrate all Phel source and test files from `|(...)` to `#(...)` short function syntax
+- Split `Phel\Lang\Generators\SequenceGenerator` into focused sibling generators (`TransformGenerator`, `SliceGenerator`, `CombineGenerator`, `DedupeGenerator`) by operation family; `SequenceGenerator` now only exposes the shared `toIterable` helper and `range`
 
 ## [0.31.0](https://github.com/phel-lang/phel-lang/compare/v0.30.0...v0.31.0) - 2026-04-03
 
