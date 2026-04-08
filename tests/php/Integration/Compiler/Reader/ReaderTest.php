@@ -343,6 +343,17 @@ final class ReaderTest extends TestCase
         self::assertTrue($comma->equals($tilde));
     }
 
+    public function test_quasiquote_map_matches_issue_1201_shape(): void
+    {
+        // Faithful reproduction of the `success-opts#` map from issue #1201:
+        // a quasiquoted map containing multiple `'~x` entries plus a `~'sym`.
+        // The original bug surfaced as "Maps must have an even number of
+        // parameters" because the lexer did not recognise `~` as unquote.
+        $commaSrc = "`{:type :pass :message ',msg :expected ',form :actual ,'error}";
+        $tildeSrc = "`{:type :pass :message '~msg :expected '~form :actual ~'error}";
+        self::assertTrue($this->read($commaSrc, true)->equals($this->read($tildeSrc, true)));
+    }
+
     public function test_quasiquote_auto_gensym(): void
     {
         $l1 = $this->read('(apply list (concat (list (quote foo__1)) (list (quote bar__2))))', true);
