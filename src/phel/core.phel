@@ -3846,6 +3846,13 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 (defn- get-global-var-node [sym]
   (php/-> (get-global-env) (resolve sym (php/:: NodeEnvironment (empty)))))
 
+(defn resolve
+  "Resolves the given symbol in the current environment and returns a resolved Symbol with the absolute namespace or nil if it cannot be resolved."
+  {:example "(resolve 'map) ; => phel\\core/map"}
+  [sym]
+  (-> (get-global-env)
+      (php/-> (resolveAsSymbol sym (php/:: NodeEnvironment (empty))))))
+
 (defn- inline-call? [meta arity]
   (and (:inline meta)
        (let [af (:inline-arity meta)]

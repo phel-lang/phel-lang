@@ -56,13 +56,6 @@
       (when-not (php/in_array (php/-> dep (getNamespace)) (loaded-namespaces))
         (eval-file (php/-> dep (getFile)))))))
 
-(defn resolve
-  "Resolves the given symbol in the current environment and returns a resolved Symbol with the absolute namespace or nil if it cannot be resolved."
-  {:example "(resolve 'map) ; => phel\\core/map"}
-  [sym]
-  (-> (get-global-env)
-      (php/-> (resolveAsSymbol sym (php/:: NodeEnvironment (empty))))))
-
 (defn- clean-doc [str]
   (php/trim (php/str_replace (php/array "```phel\n" "```") "" str)))
 

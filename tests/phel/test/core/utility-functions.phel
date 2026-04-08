@@ -68,3 +68,27 @@
     (is (truthy? (php/preg_match "/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/" uuid))
         "random-uuid matches UUID v4 format")
     (is (not= uuid (random-uuid)) "random-uuid generates unique values")))
+
+;; --- resolve ---
+
+(deftest test-resolve-known-symbol
+  (let [sym (resolve 'map)]
+    (is (not (nil? sym)) "resolve returns non-nil for known symbol")
+    (is (= "phel\\core" (namespace sym)) "resolve returns correct namespace")
+    (is (= "map" (name sym)) "resolve returns correct name")))
+
+(deftest test-resolve-unknown-symbol
+  (is (nil? (resolve 'definitely-not-a-real-symbol-zzz))
+      "resolve returns nil for unknown symbol"))
+
+(deftest test-resolve-special-char-symbol
+  (let [sym (resolve '+)]
+    (is (not (nil? sym)) "resolve handles special-char names")
+    (is (= "phel\\core" (namespace sym)) "+ resolves to phel\\core")
+    (is (= "+" (name sym)) "+ resolves with correct name")))
+
+(deftest test-resolve-itself-in-core
+  (let [sym (resolve 'resolve)]
+    (is (not (nil? sym)) "resolve resolves itself")
+    (is (= "phel\\core" (namespace sym)) "resolve lives in phel\\core")
+    (is (= "resolve" (name sym)) "resolve has correct name")))
