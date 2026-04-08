@@ -331,7 +331,7 @@ Get documentation and inspect symbols:
 ```phel
 phel:1> (doc map)
 phel:2> (doc filter)
-phel:3> (resolve 'map)        ; resolve a symbol to its var (now in phel\core)
+phel:3> (resolve 'map)        ; resolves the symbol to the actual map fn (now in phel\core, no :require needed)
 ```
 
 ### Testing Your Code
