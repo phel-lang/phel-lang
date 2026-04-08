@@ -367,6 +367,76 @@ final class LexerTest extends TestCase
         self::assertNull($warning);
     }
 
+    public function test_comma_unquote_emits_deprecation(): void
+    {
+        $warning = null;
+        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
+            $warning = $errstr;
+            return true;
+        }, E_USER_DEPRECATED);
+
+        try {
+            $this->lex('`(foo ,bar)');
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertNotNull($warning);
+        self::assertStringContainsString('"~"', $warning);
+    }
+
+    public function test_comma_splicing_emits_deprecation(): void
+    {
+        $warning = null;
+        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
+            $warning = $errstr;
+            return true;
+        }, E_USER_DEPRECATED);
+
+        try {
+            $this->lex('`(foo ,@bar)');
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertNotNull($warning);
+        self::assertStringContainsString('"~@"', $warning);
+    }
+
+    public function test_tilde_unquote_does_not_emit_deprecation(): void
+    {
+        $warning = null;
+        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
+            $warning = $errstr;
+            return true;
+        }, E_USER_DEPRECATED);
+
+        try {
+            $this->lex('`(foo ~bar)');
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertNull($warning);
+    }
+
+    public function test_tilde_splicing_does_not_emit_deprecation(): void
+    {
+        $warning = null;
+        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
+            $warning = $errstr;
+            return true;
+        }, E_USER_DEPRECATED);
+
+        try {
+            $this->lex('`(foo ~@bar)');
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertNull($warning);
+    }
+
     public function test_regex_literal(): void
     {
         self::assertEquals(

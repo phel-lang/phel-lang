@@ -15,6 +15,7 @@ final class QuoteNode implements InnerNodeInterface
         private readonly SourceLocation $startLocation,
         private readonly SourceLocation $endLocation,
         private NodeInterface $expression,
+        private readonly ?string $codePrefix = null,
     ) {}
 
     /**
@@ -42,6 +43,10 @@ final class QuoteNode implements InnerNodeInterface
 
     public function getCodePrefix(): string
     {
+        if ($this->codePrefix !== null) {
+            return $this->codePrefix;
+        }
+
         return match ($this->tokenType) {
             Token::T_QUOTE => "'",
             Token::T_UNQUOTE => ',',
