@@ -822,10 +822,22 @@ Otherwise, it tries to call `__toString`."
   [x]
   (= (type x) :float))
 
-(defn int?
+(defn integer?
   "Returns true if `x` is an integer number, false otherwise."
+  {:see-also ["int?"]}
   [x]
   (= (type x) :int))
+
+(defn int?
+  "Returns true if `x` is an integer number, false otherwise.
+   Alias for `integer?`.
+
+   Note that, unlike Clojure, Phel uses PHP integers and there is no
+   distinction between standard and fixed-precision integers.
+   Integer sizes are also limited by platform (see php/PHP_INT_MAX constant)."
+  {:see-also ["integer?"]}
+  [x]
+  (integer? x))
 
 (defn number?
   "Returns true if `x` is a number, false otherwise."
