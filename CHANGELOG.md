@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Clojure-compatible `&form` and `&env` implicit symbols inside every `defmacro` body: `&form` is the original macro call form, `&env` is a map of locals in scope at the call site, enabling dialect detection patterns like `(:ns &env)` for `.cljc` interop (#1185)
 - 1-arg `(some? x)` form returning `true` when `x` is not `nil`, matching Clojure semantics; the existing 2-arg `(some? pred coll)` form keeps working unchanged (#1184)
 - Accept Clojure-style vector entries in `:require`, e.g. `(:require [phel\str :as s :refer [upper-case]])`, including multiple vector entries in a single `:require` clause, for `.cljc` interop (#1183)
 - Accept `.` as an alternate namespace separator in `(ns ...)`, `(in-ns ...)`, `:require`, and `:use` forms, enabling Clojure-style namespaces (e.g. `(ns my.cljc.file)`) for `.cljc` interop (#1177)

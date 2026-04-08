@@ -22,12 +22,13 @@ final class MacroExpanderTest extends TestCase
         Phel::clear();
         $globalEnv = new GlobalEnvironment();
 
-        // Register a simple macro that wraps its argument in a list
+        // Register a simple macro that wraps its argument in a list.
+        // Macros receive `&form` and `&env` as the first two implicit args.
         $globalEnv->addDefinition('user', Symbol::create('my-macro'));
         Phel::addDefinition(
             'user',
             'my-macro',
-            static fn($a): PersistentListInterface => Phel::list([Symbol::create('do'), $a]),
+            static fn($form, $env, $a): PersistentListInterface => Phel::list([Symbol::create('do'), $a]),
             Phel::map(Keyword::create('macro'), true),
         );
 
@@ -45,7 +46,7 @@ final class MacroExpanderTest extends TestCase
         Phel::addDefinition(
             'user',
             'outer-macro',
-            static fn($a): PersistentListInterface => Phel::list([Symbol::createForNamespace('user', 'my-macro'), $a]),
+            static fn($form, $env, $a): PersistentListInterface => Phel::list([Symbol::createForNamespace('user', 'my-macro'), $a]),
             Phel::map(Keyword::create('macro'), true),
         );
 

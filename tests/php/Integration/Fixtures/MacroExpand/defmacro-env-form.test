@@ -1,0 +1,36 @@
+--PHEL--
+(defmacro ns-present? [] (if (:ns &env) true false))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "ns-present?",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\ns_present?";
+
+    public function __invoke($_AMPERSAND_form, $_AMPERSAND_env) {
+      if (($__truthy = (\Phel::keyword("ns"))($_AMPERSAND_env)) !== null && $__truthy !== false) {
+        return true;
+      } else {
+        return false;
+      }
+
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("macro"), true,
+    \Phel::keyword("doc"), "```phel\n(ns-present?)\n```\n",
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "MacroExpand/defmacro-env-form.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "MacroExpand/defmacro-env-form.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 52
+    ),
+    "min-arity", 0,
+    "is-variadic", false,
+    "arglists", "[]"
+  )
+);

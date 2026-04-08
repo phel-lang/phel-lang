@@ -91,7 +91,7 @@ final class FnSymbolTuple
     private function checkAllVariablesStartWithALetterOrUnderscore(): void
     {
         foreach ($this->params as $param) {
-            $matchesPattern = preg_match("/^[a-zA-Z_\x80-\xff].*$/", (string) $param->getName());
+            $matchesPattern = preg_match("/^(?:&[a-zA-Z_]|[a-zA-Z_\x80-\xff]).*$/", (string) $param->getName());
 
             if ($matchesPattern === 0 || $matchesPattern === false) {
                 throw AnalyzerException::withLocation(

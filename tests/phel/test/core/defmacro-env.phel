@@ -1,0 +1,45 @@
+(ns phel-test\test\core\defmacro-env
+  (:require phel\test :refer [deftest is]))
+
+;; `&form` and `&env` are implicit leading params that every `defmacro`
+;; receives. `&form` holds the call form (the list written at the call
+;; site) and `&env` is a map of lexical bindings in scope at that site.
+
+(defmacro capture-form [] `',&form)
+
+(deftest test-form-contains-original-call
+  (is (= '(capture-form) (capture-form)))
+  (is (= '(capture-form 1 2 3) (capture-form 1 2 3))))
+
+(defmacro has-local? [sym] (contains? &env sym))
+
+;; `is` unwraps predicate calls, so wrap macro expansions in `= expected actual`
+;; to prevent `assert-predicate` from analyzing the unquoted arg directly.
+
+(deftest test-env-does-not-contain-undefined-symbol-at-top-level
+  (is (= false (has-local? missing))))
+
+(deftest test-env-contains-let-locals
+  (let [a 1 b 2 c 3]
+    (is (= true (has-local? a)))
+    (is (= true (has-local? b)))
+    (is (= true (has-local? c)))
+    (is (= false (has-local? d)))))
+
+(deftest test-env-contains-fn-params
+  (let [f (fn [x y] (has-local? x))
+        g (fn [x y] (has-local? z))]
+    (is (= true (f 10 20)))
+    (is (= false (g 10 20)))))
+
+;; Exercise the motivating use-case from issue #1185: detect the host
+;; dialect by looking up `:ns` in `&env`. Phel is not ClojureScript, so
+;; `(:ns &env)` must always be nil / falsy regardless of the call site.
+
+(defmacro dialect []
+  (if (:ns &env) "cljs" "phel"))
+
+(deftest test-dialect-detection
+  (is (= "phel" (dialect)))
+  (let [ns "shadowing-binding"]
+    (is (= "phel" (dialect)))))
