@@ -23,9 +23,11 @@ All notable changes to this project will be documented in this file.
 
 ### Deprecated
 - `|(...)` short function syntax with `$` placeholders; use `#(...)` with `%` placeholders instead
+- `name$` auto-gensym suffix inside syntax-quote; use `name#` instead, matching Clojure's reader macro (#1203)
 
 ### Changed
 - Migrate all Phel source and test files from `|(...)` to `#(...)` short function syntax
+- Migrate `time` macro in `phel\core` from `name$` to `name#` auto-gensym suffix (#1203)
 - Split `Phel\Lang\Generators\SequenceGenerator` into focused sibling generators (`TransformGenerator`, `SliceGenerator`, `CombineGenerator`, `DedupeGenerator`) by operation family; `SequenceGenerator` now only exposes the shared `toIterable` helper and `range`
 
 ## [0.31.0](https://github.com/phel-lang/phel-lang/compare/v0.30.0...v0.31.0) - 2026-04-03

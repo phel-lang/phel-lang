@@ -207,4 +207,42 @@ final class QuasiquoteTest extends TestCase
             $q->transform(Symbol::createForNamespace('test', 'abc')),
         );
     }
+
+    public function test_dollar_auto_gensym_emits_deprecation(): void
+    {
+        $warning = null;
+        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
+            $warning = $errstr;
+            return true;
+        }, E_USER_DEPRECATED);
+
+        try {
+            $q = new QuasiquoteTransformer(new GlobalEnvironment());
+            $q->transform(Symbol::create('foo$'));
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertNotNull($warning);
+        self::assertStringContainsString('"foo$"', $warning);
+        self::assertStringContainsString('"foo#"', $warning);
+    }
+
+    public function test_hash_auto_gensym_does_not_emit_deprecation(): void
+    {
+        $warning = null;
+        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
+            $warning = $errstr;
+            return true;
+        }, E_USER_DEPRECATED);
+
+        try {
+            $q = new QuasiquoteTransformer(new GlobalEnvironment());
+            $q->transform(Symbol::create('foo#'));
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertNull($warning);
+    }
 }

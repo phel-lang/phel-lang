@@ -389,6 +389,42 @@ final class ReaderTest extends TestCase
         self::assertTrue($l1->equals($l2));
     }
 
+    public function test_quasiquote_dollar_auto_gensym_emits_deprecation(): void
+    {
+        $warning = null;
+        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
+            $warning = $errstr;
+            return true;
+        }, E_USER_DEPRECATED);
+
+        try {
+            $this->read('`(foo$)', true);
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertNotNull($warning);
+        self::assertStringContainsString('"foo$"', $warning);
+        self::assertStringContainsString('"foo#"', $warning);
+    }
+
+    public function test_quasiquote_hash_auto_gensym_does_not_emit_deprecation(): void
+    {
+        $warning = null;
+        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
+            $warning = $errstr;
+            return true;
+        }, E_USER_DEPRECATED);
+
+        try {
+            $this->read('`(foo#)', true);
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertNull($warning);
+    }
+
     public function test_read_string(): void
     {
         self::assertSame(
