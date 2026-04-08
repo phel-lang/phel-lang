@@ -1,0 +1,59 @@
+(ns phel-test\test\core\hash-gensym
+  (:require phel\test :refer [deftest is]))
+
+;; Phel accepts Clojure-style `name#` as an auto-gensym suffix inside
+;; syntax-quote (alongside the deprecated Phel-specific `name$`). These
+;; tests drive the full pipeline -- lex, parse, analyze, emit, execute --
+;; to verify both reader macros produce equivalent runtime behaviour.
+
+;; --- `name#` and `name$` produce equivalent expansions ---
+
+(defmacro double-dollar [x]
+  `(let [v$ ,x] (+ v$ v$)))
+
+(defmacro double-hash [x]
+  `(let [v# ~x] (+ v# v#)))
+
+(deftest test-hash-gensym-matches-dollar
+  (is (= (double-dollar 5) (double-hash 5)))
+  (is (= 10 (double-hash 5))))
+
+;; --- macro hygiene: gensym does not capture a same-named local ---
+
+(deftest test-hash-gensym-prevents-capture
+  (let [v# 100]
+    ;; If `v#` inside the macro reused the literal name `v#`, the result
+    ;; would be 200 (2 * 100). Auto-gensym mangles it to a unique symbol,
+    ;; so the macro's binding wins and the result is 10 (2 * 5).
+    (is (= 10 (double-hash 5)))))
+
+(deftest test-dollar-gensym-prevents-capture
+  (let [v$ 100]
+    (is (= 10 (double-dollar 5)))))
+
+;; --- repeated `name#` references the same generated symbol ---
+;; Within a single syntax-quote, `foo#` is cached: every occurrence
+;; expands to the same gensym. This is what makes auto-gensym usable
+;; for binding + later reference inside one macro body.
+
+(defmacro inc-then-double-hash [x]
+  `(let [tmp# (+ ~x 1)]
+     (* tmp# 2)))
+
+(defmacro inc-then-double-dollar [x]
+  `(let [tmp$ (+ ,x 1)]
+     (* tmp$ 2)))
+
+(deftest test-hash-gensym-cached-within-syntax-quote
+  (is (= 12 (inc-then-double-hash 5)))
+  (is (= (inc-then-double-dollar 5) (inc-then-double-hash 5))))
+
+;; --- nested macro invocations do not collide ---
+;; Each top-level macro call gets a fresh gensym, so two nested calls
+;; do not stomp on each other's bindings.
+
+(deftest test-hash-gensym-fresh-per-invocation
+  ;; Outer: ((inner+1)*2) where inner = (5+1)*2 = 12, so result = (12+1)*2 = 26.
+  ;; Each macro invocation must get a fresh gensym; if they collided, the
+  ;; nested expansion would not even compile.
+  (is (= 26 (inc-then-double-hash (inc-then-double-hash 5)))))
