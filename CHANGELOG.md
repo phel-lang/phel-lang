@@ -14,8 +14,10 @@ All notable changes to this project will be documented in this file.
 - 1-arg `(some? x)` form returning `true` when `x` is not `nil`, matching Clojure semantics; the existing 2-arg `(some? pred coll)` form keeps working unchanged (#1184)
 - Accept Clojure-style vector entries in `:require`, e.g. `(:require [phel\str :as s :refer [upper-case]])`, including multiple vector entries in a single `:require` clause, for `.cljc` interop (#1183)
 - Accept `.` as an alternate namespace separator in `(ns ...)`, `(in-ns ...)`, `:require`, and `:use` forms, enabling Clojure-style namespaces (e.g. `(ns my.cljc.file)`) for `.cljc` interop (#1177)
+- Accept `name#` as an auto-gensym suffix inside syntax-quote (alongside the existing `name$`), matching Clojure's `clojure.core/gensym` reader macro (#1195)
 
 ### Fixed
+- Lexer no longer swallows a reader conditional (`#?(...)`) following a gensym-suffixed symbol (e.g. `report-success# #?(:phel ...)`), which previously surfaced as a misleading "Unterminated list (BRACKETS)" parse error (#1195)
 - Emit `php/...` calls to namespaced PHP functions (e.g. `php/Amp\File\write`) as fully qualified names so they resolve against the global namespace from compiled/cached files (#1180)
 
 ### Deprecated
