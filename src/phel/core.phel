@@ -696,14 +696,16 @@ Otherwise, it tries to call `__toString`."
 (declare name)
 
 (defn some?
-  "Returns true if predicate is true for at least one element in collection, false otherwise."
-  {:example "(some? even? [1 3 5 6 7]) ; => true"}
-  [pred coll]
-  (if (empty? coll)
-    false
-    (if (truthy? (pred (first coll)))
-      true
-      (recur pred (next coll)))))
+  "With 1 arg, returns true if `x` is not nil (Clojure semantics).
+   With 2 args, returns true if `pred` is true for at least one element in `coll`."
+  {:example "(some? 1) ; => true\n(some? even? [1 3 5 6 7]) ; => true"}
+  ([x] (not (nil? x)))
+  ([pred coll]
+   (if (empty? coll)
+     false
+     (if (truthy? (pred (first coll)))
+       true
+       (recur pred (next coll))))))
 
 (defn not-any?
   "Returns true if `(pred x)` is logical false for every `x` in `coll`
