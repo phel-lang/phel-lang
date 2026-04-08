@@ -1,0 +1,3 @@
+(ns requirevector\lib-one)
+
+(defn one-greeting [] "hello from one")

@@ -1,0 +1,6 @@
+(ns requirevector\main
+  (:require [requirevector\lib-one :as one :refer [one-greeting]]
+            [requirevector\lib-two :as two]))
+
+(def greeting (one-greeting))
+(def shouted (two/two-shout "shout"))

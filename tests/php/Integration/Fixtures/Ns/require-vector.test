@@ -1,0 +1,19 @@
+--PHEL--
+(ns test
+  (:require [xyz\core])
+  (:require [xyz\foo :as f]))
+--PHP--
+namespace test;
+require_once __DIR__ . '/phel/core.php';
+require_once __DIR__ . '/xyz/core.php';
+require_once __DIR__ . '/xyz/foo.php';
+\Phel::addDefinition(
+  "phel\\core",
+  "*file*",
+  "Ns/require-vector.test"
+);
+\Phel::addDefinition(
+  "phel\\core",
+  "*ns*",
+  "test"
+);

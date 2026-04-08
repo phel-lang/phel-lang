@@ -1,0 +1,17 @@
+--PHEL--
+(ns test
+  (:require [xyz\core :as c :refer [a b]]))
+--PHP--
+namespace test;
+require_once __DIR__ . '/phel/core.php';
+require_once __DIR__ . '/xyz/core.php';
+\Phel::addDefinition(
+  "phel\\core",
+  "*file*",
+  "Ns/require-vector-refer.test"
+);
+\Phel::addDefinition(
+  "phel\\core",
+  "*ns*",
+  "test"
+);

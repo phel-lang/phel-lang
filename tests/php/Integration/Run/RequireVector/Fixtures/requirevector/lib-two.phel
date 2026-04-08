@@ -1,0 +1,3 @@
+(ns requirevector\lib-two)
+
+(defn two-shout [x] (str x "!"))
