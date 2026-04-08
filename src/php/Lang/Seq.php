@@ -6,10 +6,14 @@ namespace Phel\Lang;
 
 use Generator;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use Phel\Lang\Generators\CombineGenerator;
+use Phel\Lang\Generators\DedupeGenerator;
 use Phel\Lang\Generators\FileGenerator;
 use Phel\Lang\Generators\InfiniteGenerator;
 use Phel\Lang\Generators\PartitionGenerator;
 use Phel\Lang\Generators\SequenceGenerator;
+use Phel\Lang\Generators\SliceGenerator;
+use Phel\Lang\Generators\TransformGenerator;
 
 use function is_string;
 use function mb_str_split;
@@ -90,7 +94,7 @@ final class Seq
      */
     public static function concat(mixed ...$iterables): Generator
     {
-        return SequenceGenerator::concat(...$iterables);
+        return CombineGenerator::concat(...$iterables);
     }
 
     /**
@@ -98,7 +102,7 @@ final class Seq
      */
     public static function mapcat(callable $f, mixed $iterable): Generator
     {
-        return SequenceGenerator::mapcat($f, $iterable);
+        return TransformGenerator::mapcat($f, $iterable);
     }
 
     /**
@@ -106,7 +110,7 @@ final class Seq
      */
     public static function interpose(mixed $separator, mixed $iterable): Generator
     {
-        return SequenceGenerator::interpose($separator, $iterable);
+        return CombineGenerator::interpose($separator, $iterable);
     }
 
     /**
@@ -114,7 +118,7 @@ final class Seq
      */
     public static function mapIndexed(callable $f, mixed $iterable): Generator
     {
-        return SequenceGenerator::mapIndexed($f, $iterable);
+        return TransformGenerator::mapIndexed($f, $iterable);
     }
 
     /**
@@ -122,7 +126,7 @@ final class Seq
      */
     public static function interleave(mixed ...$iterables): Generator
     {
-        return SequenceGenerator::interleave(...$iterables);
+        return CombineGenerator::interleave(...$iterables);
     }
 
     /**
@@ -130,7 +134,7 @@ final class Seq
      */
     public static function mapMulti(callable $f, mixed ...$iterables): Generator
     {
-        return SequenceGenerator::mapMulti($f, ...$iterables);
+        return CombineGenerator::mapMulti($f, ...$iterables);
     }
 
     /**
@@ -146,7 +150,7 @@ final class Seq
      */
     public static function map(callable $f, mixed $iterable): Generator
     {
-        return SequenceGenerator::map($f, $iterable);
+        return TransformGenerator::map($f, $iterable);
     }
 
     /**
@@ -154,7 +158,7 @@ final class Seq
      */
     public static function filter(callable $predicate, mixed $iterable): Generator
     {
-        return SequenceGenerator::filter($predicate, $iterable);
+        return TransformGenerator::filter($predicate, $iterable);
     }
 
     /**
@@ -162,7 +166,7 @@ final class Seq
      */
     public static function keep(callable $f, mixed $iterable): Generator
     {
-        return SequenceGenerator::keep($f, $iterable);
+        return TransformGenerator::keep($f, $iterable);
     }
 
     /**
@@ -170,7 +174,7 @@ final class Seq
      */
     public static function keepIndexed(callable $f, mixed $iterable): Generator
     {
-        return SequenceGenerator::keepIndexed($f, $iterable);
+        return TransformGenerator::keepIndexed($f, $iterable);
     }
 
     /**
@@ -178,7 +182,7 @@ final class Seq
      */
     public static function take(int $n, mixed $iterable): Generator
     {
-        return SequenceGenerator::take($n, $iterable);
+        return SliceGenerator::take($n, $iterable);
     }
 
     /**
@@ -186,7 +190,7 @@ final class Seq
      */
     public static function takeWhile(callable $predicate, mixed $iterable): Generator
     {
-        return SequenceGenerator::takeWhile($predicate, $iterable);
+        return SliceGenerator::takeWhile($predicate, $iterable);
     }
 
     /**
@@ -194,7 +198,7 @@ final class Seq
      */
     public static function takeNth(int $n, mixed $iterable): Generator
     {
-        return SequenceGenerator::takeNth($n, $iterable);
+        return SliceGenerator::takeNth($n, $iterable);
     }
 
     /**
@@ -202,7 +206,7 @@ final class Seq
      */
     public static function drop(int $n, mixed $iterable): Generator
     {
-        return SequenceGenerator::drop($n, $iterable);
+        return SliceGenerator::drop($n, $iterable);
     }
 
     /**
@@ -210,7 +214,7 @@ final class Seq
      */
     public static function dropWhile(callable $predicate, mixed $iterable): Generator
     {
-        return SequenceGenerator::dropWhile($predicate, $iterable);
+        return SliceGenerator::dropWhile($predicate, $iterable);
     }
 
     /**
@@ -218,7 +222,7 @@ final class Seq
      */
     public static function distinct(mixed $iterable): Generator
     {
-        return SequenceGenerator::distinct($iterable);
+        return DedupeGenerator::distinct($iterable);
     }
 
     /**
@@ -226,7 +230,7 @@ final class Seq
      */
     public static function dedupe(mixed $iterable): Generator
     {
-        return SequenceGenerator::dedupe($iterable);
+        return DedupeGenerator::dedupe($iterable);
     }
 
     /**
@@ -234,7 +238,7 @@ final class Seq
      */
     public static function compact(mixed $iterable, mixed ...$values): Generator
     {
-        return SequenceGenerator::compact($iterable, ...$values);
+        return DedupeGenerator::compact($iterable, ...$values);
     }
 
     /**
