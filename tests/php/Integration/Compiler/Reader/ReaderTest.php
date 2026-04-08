@@ -242,6 +242,22 @@ final class ReaderTest extends TestCase
         );
     }
 
+    public function test_tilde_outside_quasiquote_is_ignored(): void
+    {
+        self::assertEquals(
+            $this->loc(Symbol::create('a'), 1, 1, 1, 2),
+            $this->read('~a'),
+        );
+    }
+
+    public function test_tilde_splice_outside_quasiquote_is_ignored(): void
+    {
+        self::assertEquals(
+            $this->loc(Symbol::create('a'), 1, 2, 1, 3),
+            $this->read('~@a'),
+        );
+    }
+
     public function test_quasiquote1(): void
     {
         self::assertEquals(
@@ -304,6 +320,27 @@ final class ReaderTest extends TestCase
         $l1 = $this->read('(apply list (concat foo bar (list 1) (list "string") (list :keyword) (list true) (list nil)))', true);
         $l2 = $this->read('`(,@foo ,@bar 1 "string" :keyword true nil)', true);
         self::assertTrue($l1->equals($l2));
+    }
+
+    public function test_quasiquote_with_tilde_unquote(): void
+    {
+        $comma = $this->read('`(foo ,bar)', true);
+        $tilde = $this->read('`(foo ~bar)', true);
+        self::assertTrue($comma->equals($tilde));
+    }
+
+    public function test_quasiquote_with_tilde_unquote_splicing(): void
+    {
+        $comma = $this->read('`(foo ,@bar)', true);
+        $tilde = $this->read('`(foo ~@bar)', true);
+        self::assertTrue($comma->equals($tilde));
+    }
+
+    public function test_quasiquote_map_with_tilde_quote_unquote(): void
+    {
+        $comma = $this->read("`{:actual ,'error}", true);
+        $tilde = $this->read("`{:actual ~'error}", true);
+        self::assertTrue($comma->equals($tilde));
     }
 
     public function test_quasiquote_auto_gensym(): void

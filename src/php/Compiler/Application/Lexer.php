@@ -30,7 +30,7 @@ final class Lexer implements LexerInterface
         '(#_)', // Inline comment (index: 4)
         "(#(?![_{\\|(\x22?])[^\n]*\n?|;[^\n]*\n?)", // Comment (# or ; excludes #_ #{ #( #" #?) (index: 5)
         '(#\{)', // open hash brace (index: 6)
-        '(,@)', // unquote-splicing (index: 7)
+        '(,@|~@)', // unquote-splicing (index: 7), accepts `,@` or Clojure-style `~@`
         "(\()", // open parenthesis (index: 8)
         "(\))", // close parenthesis (index: 9)
         "(\[)", // open bracket (index: 10)
@@ -38,7 +38,7 @@ final class Lexer implements LexerInterface
         "(\{)", // open brace (index: 12)
         "(\})", // close brace (index: 13)
         "(')", // quote (index: 14)
-        '(,)', // unquote (index: 15)
+        '(,|~)', // unquote (index: 15), accepts `,` or Clojure-style `~`
         '(`)', // quasiquote (index: 16)
         "(\^)", // caret (index: 17)
         "(\|\()", // short fn (index: 18)
