@@ -162,7 +162,7 @@ final class NsSymbolTest extends TestCase
     public function test_require_first_argument_must_be_symbol(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('First argument in :require must be a symbol.');
+        $this->expectExceptionMessage('First argument in :require must be a symbol or vector.');
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
@@ -170,6 +170,219 @@ final class NsSymbolTest extends TestCase
             Phel::list([
                 Keyword::create('require'),
                 'not-a-symbol',
+            ]),
+        ]);
+
+        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+    }
+
+    public function test_require_accepts_single_vector_entry(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app\\core'),
+            Phel::list([
+                Keyword::create('require'),
+                Phel::vector([
+                    Symbol::create('vendor\\package'),
+                ]),
+            ]),
+        ]);
+
+        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertEquals([
+            Symbol::create('phel\\core'),
+            Symbol::create('vendor\\package'),
+        ], $nsNode->getRequireNs());
+        self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('package')));
+        self::assertSame('vendor\\package', $this->globalEnv->resolveAlias('package'));
+    }
+
+    public function test_require_vector_with_as_alias(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app\\core'),
+            Phel::list([
+                Keyword::create('require'),
+                Phel::vector([
+                    Symbol::create('vendor\\package'),
+                    Keyword::create('as'),
+                    Symbol::create('vp'),
+                ]),
+            ]),
+        ]);
+
+        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('vp')));
+        self::assertSame('vendor\\package', $this->globalEnv->resolveAlias('vp'));
+    }
+
+    public function test_require_vector_with_refer(): void
+    {
+        Phel::addDefinition('vendor\\package', 'foo', 'fooValue', Phel::map());
+        Phel::addDefinition('vendor\\package', 'bar', 'barValue', Phel::map());
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app\\core'),
+            Phel::list([
+                Keyword::create('require'),
+                Phel::vector([
+                    Symbol::create('vendor\\package'),
+                    Keyword::create('refer'),
+                    Phel::vector([
+                        Symbol::create('foo'),
+                        Symbol::create('bar'),
+                    ]),
+                ]),
+            ]),
+        ]);
+
+        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        $fooNode = $this->globalEnv->resolve(Symbol::create('foo'), NodeEnvironment::empty());
+        self::assertInstanceOf(GlobalVarNode::class, $fooNode);
+        self::assertSame('vendor\\package', $fooNode->getNamespace());
+
+        $barNode = $this->globalEnv->resolve(Symbol::create('bar'), NodeEnvironment::empty());
+        self::assertInstanceOf(GlobalVarNode::class, $barNode);
+        self::assertSame('vendor\\package', $barNode->getNamespace());
+    }
+
+    public function test_require_vector_with_as_and_refer(): void
+    {
+        Phel::addDefinition('vendor\\package', 'baz', 'bazValue', Phel::map());
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app\\core'),
+            Phel::list([
+                Keyword::create('require'),
+                Phel::vector([
+                    Symbol::create('vendor\\package'),
+                    Keyword::create('as'),
+                    Symbol::create('vp'),
+                    Keyword::create('refer'),
+                    Phel::vector([
+                        Symbol::create('baz'),
+                    ]),
+                ]),
+            ]),
+        ]);
+
+        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('vp')));
+        self::assertSame('vendor\\package', $this->globalEnv->resolveAlias('vp'));
+
+        $bazNode = $this->globalEnv->resolve(Symbol::create('baz'), NodeEnvironment::empty());
+        self::assertInstanceOf(GlobalVarNode::class, $bazNode);
+        self::assertSame('vendor\\package', $bazNode->getNamespace());
+    }
+
+    public function test_require_multiple_vector_entries_in_one_clause(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app\\core'),
+            Phel::list([
+                Keyword::create('require'),
+                Phel::vector([
+                    Symbol::create('lib\\one'),
+                    Keyword::create('as'),
+                    Symbol::create('one'),
+                ]),
+                Phel::vector([
+                    Symbol::create('lib\\two'),
+                    Keyword::create('as'),
+                    Symbol::create('two'),
+                ]),
+            ]),
+        ]);
+
+        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertEquals([
+            Symbol::create('phel\\core'),
+            Symbol::create('lib\\one'),
+            Symbol::create('lib\\two'),
+        ], $nsNode->getRequireNs());
+        self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('one')));
+        self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('two')));
+        self::assertSame('lib\\one', $this->globalEnv->resolveAlias('one'));
+        self::assertSame('lib\\two', $this->globalEnv->resolveAlias('two'));
+    }
+
+    public function test_require_mixed_vector_and_flat_entries_in_one_clause(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app\\core'),
+            Phel::list([
+                Keyword::create('require'),
+                Phel::vector([
+                    Symbol::create('lib\\one'),
+                    Keyword::create('as'),
+                    Symbol::create('one'),
+                ]),
+                Symbol::create('lib\\two'),
+                Keyword::create('as'),
+                Symbol::create('two'),
+            ]),
+        ]);
+
+        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertEquals([
+            Symbol::create('phel\\core'),
+            Symbol::create('lib\\one'),
+            Symbol::create('lib\\two'),
+        ], $nsNode->getRequireNs());
+        self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('one')));
+        self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('two')));
+    }
+
+    public function test_require_vector_with_dot_separator_normalized(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app\\core'),
+            Phel::list([
+                Keyword::create('require'),
+                Phel::vector([
+                    Symbol::create('my.cljc.file'),
+                    Keyword::create('as'),
+                    Symbol::create('mcf'),
+                ]),
+            ]),
+        ]);
+
+        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertEquals([
+            Symbol::create('phel\\core'),
+            Symbol::create('my\\cljc\\file'),
+        ], $nsNode->getRequireNs());
+        self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('mcf')));
+        self::assertSame('my\\cljc\\file', $this->globalEnv->resolveAlias('mcf'));
+    }
+
+    public function test_require_vector_first_element_must_be_symbol(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('First element of :require vector must be a symbol.');
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('foo\\bar'),
+            Phel::list([
+                Keyword::create('require'),
+                Phel::vector([
+                    Keyword::create('not-a-symbol'),
+                ]),
             ]),
         ]);
 
