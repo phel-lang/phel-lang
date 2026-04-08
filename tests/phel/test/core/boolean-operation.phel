@@ -186,6 +186,16 @@
   (is (false? (truthy? nil)) "(truthy? nil)")
   (is (false? (truthy? false)) "(truthy? false)"))
 
+(deftest test-boolean
+  (is (true? (boolean true)) "(boolean true)")
+  (is (true? (boolean [])) "(boolean [])")
+  (is (true? (boolean 10)) "(boolean 10)")
+  (is (true? (boolean 0)) "(boolean 0)")
+  (is (true? (boolean "")) "(boolean \"\")")
+  (is (true? (boolean :a)) "(boolean :a)")
+  (is (false? (boolean nil)) "(boolean nil)")
+  (is (false? (boolean false)) "(boolean false)"))
+
 (deftest test-false?
   (is (true? (false? false)) "(false? false)")
   (is (false? (false? nil)) "(false? nil)")
