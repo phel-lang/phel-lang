@@ -14,6 +14,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Keyword;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 
@@ -22,7 +23,12 @@ use function is_bool;
 use function is_float;
 use function is_int;
 use function is_string;
+use function sprintf;
+use function str_ends_with;
 use function substr;
+use function trigger_error;
+
+use const E_USER_DEPRECATED;
 
 final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInterface
 {
@@ -185,6 +191,8 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
         if ($form instanceof Symbol) {
             $name = $form->getFullName();
             if ($this->isAutoGensymSymbol($name)) {
+                $this->warnIfDollarAutoGensym($form, $name);
+
                 $base = substr($name, 0, -1) . '__';
                 $sym = $context->getSymbolOrCreate($base);
 
@@ -212,5 +220,23 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
     {
         return str_ends_with($name, Symbol::NAME_DOLLAR)
             || str_ends_with($name, Symbol::NAME_HASH);
+    }
+
+    private function warnIfDollarAutoGensym(Symbol $form, string $name): void
+    {
+        if (!str_ends_with($name, Symbol::NAME_DOLLAR)) {
+            return;
+        }
+
+        $location = $form->getStartLocation();
+        $suggested = substr($name, 0, -1) . Symbol::NAME_HASH;
+        $where = $location instanceof SourceLocation
+            ? sprintf(' (at %s:%d:%d)', $location->getFile(), $location->getLine(), $location->getColumn())
+            : '';
+
+        @trigger_error(
+            sprintf('Using "%s" auto-gensym suffix is deprecated, use "%s" instead%s', $name, $suggested, $where),
+            E_USER_DEPRECATED,
+        );
     }
 }
