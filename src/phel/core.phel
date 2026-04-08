@@ -877,6 +877,13 @@ Otherwise, it tries to call `__toString`."
   [x]
   (= (type x) :boolean))
 
+(defn boolean
+  "Coerces `x` to a boolean. Returns `false` if `x` is `nil` or `false`,
+   `true` otherwise."
+  {:example "(boolean nil) ; => false"}
+  [x]
+  (if x true false))
+
 (defn php-array?
   "Returns true if `x` is a PHP Array, false otherwise."
   [x]
