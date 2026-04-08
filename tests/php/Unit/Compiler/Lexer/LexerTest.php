@@ -390,6 +390,39 @@ final class LexerTest extends TestCase
         );
     }
 
+    public function test_tilde_unquote_token(): void
+    {
+        self::assertEquals(
+            [
+                new Token(Token::T_UNQUOTE, '~', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 1)),
+                new Token(Token::T_ATOM, 'a', new SourceLocation('string', 1, 1), new SourceLocation('string', 1, 2)),
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 2), new SourceLocation('string', 1, 2)),
+            ],
+            $this->lex('~a'),
+        );
+    }
+
+    public function test_tilde_unquote_splicing_token(): void
+    {
+        self::assertEquals(
+            [
+                new Token(Token::T_UNQUOTE_SPLICING, '~@', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 2)),
+                new Token(Token::T_ATOM, 'a', new SourceLocation('string', 1, 2), new SourceLocation('string', 1, 3)),
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 3), new SourceLocation('string', 1, 3)),
+            ],
+            $this->lex('~@a'),
+        );
+    }
+
+    public function test_php_bitnot_symbol_is_single_atom(): void
+    {
+        $tokens = $this->lex('php/~');
+
+        self::assertSame(Token::T_ATOM, $tokens[0]->getType());
+        self::assertSame('php/~', $tokens[0]->getCode());
+        self::assertSame(Token::T_EOF, $tokens[1]->getType());
+    }
+
     public function test_reader_conditional_token(): void
     {
         $tokens = $this->lex('#?(:phel 42 :default 0)');
