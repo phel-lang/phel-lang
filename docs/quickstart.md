@@ -327,10 +327,11 @@ phel:3> (greet "REPL")
 "Hello, REPL!"
 ```
 
-Get documentation:
+Get documentation and inspect symbols:
 ```phel
 phel:1> (doc map)
 phel:2> (doc filter)
+phel:3> (resolve 'map)        ; resolve a symbol to its var (now in phel\core)
 ```
 
 ### Testing Your Code

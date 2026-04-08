@@ -12,6 +12,7 @@ Practical patterns for writing idiomatic Phel code.
 - [Recursion and Looping](#recursion-and-looping)
 - [Destructuring](#destructuring)
 - [Data Validation](#data-validation)
+- [Writing Macros](#writing-macros)
 
 ## Working with Nil
 
@@ -66,6 +67,15 @@ Practical patterns for writing idiomatic Phel code.
 (if-let [role (get user :role)]
   (str "User is a " role)
   "User has no role")
+
+;; some? - true when value is not nil (1-arg form)
+(some? user)                              ; => true if user is not nil
+(filter some? [1 nil 2 nil 3])            ; => [1 2 3]
+
+;; boolean - coerce any value to true/false
+(boolean nil)                             ; => false
+(boolean 0)                               ; => true   ; only nil/false are falsy
+(boolean "")                              ; => true
 ```
 
 ## Collection Transformations
@@ -502,6 +512,81 @@ Threads value as **last** argument:
   {:email "alice@example.com" :age 30 :name "Alice"})
 ;; => {:ok {...}}
 ```
+
+## Writing Macros
+
+### Auto-gensym for Hygienic Bindings
+
+Inside a syntax-quote (`` ` ``), a symbol ending in `#` is replaced with a freshly generated, unique symbol. Reuse the same `name#` to refer to the same generated binding:
+
+```phel
+(defmacro unless
+  "Evaluates body when test is falsy."
+  [test & body]
+  `(if ~test nil (do ~@body)))
+
+(defmacro time
+  "Times the evaluation of expr."
+  [expr]
+  `(let [start# (php/microtime true)
+         ret#   ~expr]
+     (println "Elapsed:" (- (php/microtime true) start#) "secs")
+     ret#))
+```
+
+`start#` and `ret#` will not collide with bindings in user code, even if the caller already has a `start` or `ret` in scope.
+
+### Implicit `&form` and `&env`
+
+Every `defmacro` body has two implicit symbols available, matching Clojure:
+
+- `&form` — the original macro call as written by the user (useful for source-aware error messages)
+- `&env` — a map of locals in scope at the call site, keyed by symbol
+
+```phel
+;; Inspect lexical scope at the call site
+(defmacro has-local? [sym] (contains? &env sym))
+
+(let [a 1]
+  (has-local? a))                       ; => true (a is in scope)
+
+;; Use &form to surface the original call in an exception
+(defmacro require-positive [x]
+  `(when-not (pos? ~x)
+     (throw (php/new \InvalidArgumentException
+              (str "Expected positive number, got: " ~x
+                   " in " (quote ~&form))))))
+```
+
+`.cljc` dialect detection works the same way as Clojure ↔ ClojureScript. `(:ns &env)` is always `nil` under Phel (just like Clojure on the JVM), so a portability macro lands on the right branch:
+
+```phel
+(defmacro dialect [] (if (:ns &env) "cljs" "phel"))
+(dialect) ; => "phel" when compiled by Phel
+```
+
+### Extending `is` with Custom Assertions
+
+`phel\test/assert-expr` is an open multimethod, so you can teach the `is` macro how to expand new assertion forms. A `defmethod` takes the original `form` and the user-supplied `message`, and returns the code that the outer `is` should run instead:
+
+```phel
+(ns my-app\test\helpers
+  (:require phel\test :refer [deftest is]))
+
+;; Approximate equality for floats — expand to a plain `is` over a tolerance check.
+(defmethod phel\test/assert-expr 'approx= [form message]
+  (let [a (second form)
+        b (second (next form))
+        epsilon 0.001]
+    `(is (< (php/abs (- ~a ~b)) ~epsilon) ~message)))
+
+(deftest pi-approximation
+  (is (approx= 3.14159 (calc-pi)) "calc-pi should land near pi"))
+```
+
+When the dispatch symbol has no registered method (e.g. `(is (= 1 1))`), the multimethod's `:default` arm handles binary equality and predicate forms exactly as before, so existing tests are unaffected.
+
+> Cross-namespace registration must use the fully-qualified `phel\test/assert-expr` so the methods table is resolved in `phel\test` rather than the local namespace.
 
 ## Tips for Writing Idiomatic Phel
 
