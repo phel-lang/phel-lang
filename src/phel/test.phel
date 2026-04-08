@@ -172,18 +172,38 @@
          (report (merge ,report-data {:state :pass}))
          (report (merge ,report-data {:state :failed}))))))
 
-(defn- assert-expr [form message]
+;; Public extension point for the `is` macro: an open multimethod
+;; dispatched on the first symbol of the asserted form (or `:default` for
+;; non-list forms or lists not starting with a symbol). Extend with
+;; `(defmethod phel\test/assert-expr 'my-form [form message] ...)`,
+;; returning a quoted form to be evaluated by `is`. Methods must be
+;; loaded before any `is` form using their dispatch value is expanded.
+(defmulti assert-expr
+  (fn [form _]
+    (if (and (list? form) (symbol? (first form)))
+      (first form)
+      :default)))
+
+(defmethod assert-expr 'not [form message]
+  (let [inner (second form)]
+    (cond
+      (and (list? inner) (= 3 (count inner)))
+      (assert-binary inner message true)
+      (and (list? inner) (= 2 (count inner)))
+      (assert-predicate inner message true)
+      (assert-any form message))))
+
+(defmethod assert-expr 'thrown? [form message]
+  (assert-thrown form message))
+
+(defmethod assert-expr 'thrown-with-msg? [form message]
+  (assert-thrown-with-msg form message))
+
+(defmethod assert-expr 'output? [form message]
+  (assert-output form message))
+
+(defmethod assert-expr :default [form message]
   (cond
-    (and (list? form) (= (first form) 'not) (list? (second form)) (= 3 (count (second form))))
-    (assert-binary (second form) message true)
-    (and (list? form) (= (first form) 'not) (list? (second form)) (= 2 (count (second form))))
-    (assert-predicate (second form) message true)
-    (and (list? form) (= (first form) 'thrown?))
-    (assert-thrown form message)
-    (and (list? form) (= (first form) 'thrown-with-msg?))
-    (assert-thrown-with-msg form message)
-    (and (list? form) (= (first form) 'output?))
-    (assert-output form message)
     (and (list? form) (= 3 (count form)))
     (assert-binary form message false)
     (and (list? form) (= 2 (count form)))

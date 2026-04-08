@@ -1,0 +1,128 @@
+(ns phel-test\test\assert-expr-extensibility
+  (:require phel\test :refer [deftest is get-stats reset-stats restore-stats]))
+
+;; Issue #1188: `phel\test/assert-expr` is a public multimethod, so users
+;; can register custom assertion forms for the `is` macro from any
+;; namespace via `defmethod`. Cross-namespace defmethod must fully
+;; qualify the multi-name so the methods table is resolved in phel\test,
+;; not the local namespace.
+;;
+;; These tests cover the multimethod behavior end-to-end:
+;;   - custom methods register and dispatch correctly
+;;   - multiple methods coexist and dispatch independently
+;;   - failures from custom methods are recorded as :failed
+;;   - exceptions thrown by emitted code are caught by `is` as :error
+;;   - unknown dispatch values fall back to the :default arm
+;;   - the :default arm still handles binary/predicate/any forms
+
+;; ---------------------------------------------------------------------------
+;; Custom binary assertion: approx= for near-equal floats
+;; ---------------------------------------------------------------------------
+
+(defmethod phel\test/assert-expr 'approx= [form message]
+  (let [a (second form)
+        b (second (next form))
+        epsilon 0.001]
+    `(is (< (php/abs (- ,a ,b)) ,epsilon) ,message)))
+
+(deftest test-approx-equal-passes-within-epsilon
+  (is (approx= 1.0 1.0001) "approx= passes when difference < epsilon")
+  (is (approx= 0.0 0.0009) "approx= passes for tiny difference"))
+
+(deftest test-approx-equal-fails-outside-epsilon
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer (is (approx= 1.0 2.0)))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 1 (:failed counts)) "approx= records a failure when outside epsilon")))
+
+;; ---------------------------------------------------------------------------
+;; Second custom method: divisible? — proves multiple methods coexist
+;; ---------------------------------------------------------------------------
+
+(defmethod phel\test/assert-expr 'divisible? [form message]
+  (let [n (second form)
+        d (second (next form))]
+    `(is (zero? (php/% ,n ,d)) ,message)))
+
+(deftest test-divisible-passes-when-divisible
+  (is (divisible? 10 5) "10 is divisible by 5")
+  (is (divisible? 100 4) "100 is divisible by 4")
+  (is (divisible? 0 7) "0 is divisible by anything"))
+
+(deftest test-divisible-fails-when-not-divisible
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer (is (divisible? 10 3)))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 1 (:failed counts)) "non-divisible records a failure")))
+
+;; ---------------------------------------------------------------------------
+;; Custom unary assertion: even-positive? — single-arg form
+;; ---------------------------------------------------------------------------
+
+(defmethod phel\test/assert-expr 'even-positive? [form message]
+  (let [n (second form)]
+    `(is (and (pos? ,n) (even? ,n)) ,message)))
+
+(deftest test-even-positive-passes-for-positive-evens
+  (is (even-positive? 2) "2 is positive and even")
+  (is (even-positive? 100) "100 is positive and even"))
+
+(deftest test-even-positive-fails-for-odd-or-non-positive
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer (is (even-positive? 3)))
+        _ (with-output-buffer (is (even-positive? -2)))
+        _ (with-output-buffer (is (even-positive? 0)))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 3 (:failed counts)) "odd, negative, and zero all fail")))
+
+;; ---------------------------------------------------------------------------
+;; Custom assertion that emits code which throws — exercises error path.
+;; The thrown exception should be caught by the outer `is` and reported
+;; as :error rather than :failed.
+;; ---------------------------------------------------------------------------
+
+(defmethod phel\test/assert-expr 'always-throws [_form _message]
+  `(throw (php/new \RuntimeException "boom from custom assertion")))
+
+(deftest test-custom-method-exception-is-reported-as-error
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer (is (always-throws)))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 1 (:error counts)) "throw from custom method is reported as :error")
+    (is (= 0 (:failed counts)) "not reported as :failed")
+    (is (= 0 (:pass counts)) "not reported as :pass")))
+
+;; ---------------------------------------------------------------------------
+;; Unknown dispatch values fall through to :default — preserves the
+;; original behavior for forms that don't have a registered method.
+;; ---------------------------------------------------------------------------
+
+(deftest test-unknown-symbol-falls-through-to-default-binary
+  ;; (str-eq? a b) — no method registered for 'str-eq?, so the
+  ;; dispatch fn returns 'str-eq?, multimethod misses, falls back to
+  ;; :default which handles a 3-element list as binary equality.
+  (is (= "abc" "abc") "= falls through :default binary path"))
+
+(deftest test-unknown-symbol-falls-through-to-default-predicate
+  ;; Predicate (2-element) form goes through :default predicate arm.
+  (is (string? "hello") "string? falls through :default predicate path"))
+
+;; ---------------------------------------------------------------------------
+;; Method registered for a custom dispatch value routes through that
+;; method (not through :default), proving dispatch precedence.
+;; ---------------------------------------------------------------------------
+
+(defmethod phel\test/assert-expr 'tagged= [form message]
+  `(is (= ,(second form) ,(second (next form))) ,message))
+
+(deftest test-custom-dispatch-routes-through-new-method
+  (is (tagged= 1 1) "tagged= dispatches through registered method")
+  (is (tagged= "x" "x") "tagged= works for strings"))
