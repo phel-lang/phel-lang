@@ -3728,7 +3728,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (let [methods-name (php/:: Symbol (create (php/. (php/-> name (getName)) "-methods")))
         dispatch-name (php/:: Symbol (create (php/. (php/-> name (getName)) "-dispatch")))]
     `(do
-       (def ,methods-name {:private true} (var {}))
+       (def ,methods-name (var {}))
        (def ,dispatch-name {:private true} ,dispatch-fn)
        (defn ,name [& args]
          (let [dispatch-val (apply ,dispatch-name args)
@@ -3749,11 +3749,17 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   "Registers a method implementation for a multimethod.
 
   `multi-name` is the name of the multimethod defined by `defmulti`.
+  When extending a multimethod from a different namespace, fully qualify
+  the multi-name (e.g. `phel\\test/assert-expr`) so the methods table is
+  resolved in the multimethod's home namespace.
   `dispatch-val` is the value that triggers this method.
   `args` and `body` define the function implementation."
   {:example "(defmethod area :circle [{:radius r}] (* 3.14159 r r))"}
   [multi-name dispatch-val & fn-tail]
-  (let [methods-name (php/:: Symbol (create (php/. (php/-> multi-name (getName)) "-methods")))]
+  (let [multi-ns (php/-> multi-name (getNamespace))
+        methods-name (php/:: Symbol (createForNamespace
+                                      multi-ns
+                                      (php/. (php/-> multi-name (getName)) "-methods")))]
     `(swap! ,methods-name assoc ,dispatch-val (fn ,@fn-tail))))
 
 (defmacro if-let

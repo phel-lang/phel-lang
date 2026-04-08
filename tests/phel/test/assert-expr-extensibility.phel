@@ -1,0 +1,25 @@
+(ns phel-test\test\assert-expr-extensibility
+  (:require phel\test :refer [deftest is]))
+
+;; Issue #1188: `phel\test/assert-expr` is a public multimethod, so users
+;; can register custom assertion forms via `defmethod` from any namespace.
+;; Cross-namespace defmethod must fully qualify the multi-name so the
+;; methods table is resolved in phel\test, not the local namespace.
+
+(defmethod phel\test/assert-expr 'approx= [form message]
+  (let [a (second form)
+        b (second (next form))
+        epsilon 0.001]
+    `(is (< (php/abs (- ,a ,b)) ,epsilon) ,message)))
+
+(defmethod phel\test/assert-expr 'divisible? [form message]
+  (let [n (second form)
+        d (second (next form))]
+    `(is (zero? (php/% ,n ,d)) ,message)))
+
+(deftest test-custom-assert-expr-binary
+  (is (approx= 1.0 1.0001) "approx= passes when within epsilon"))
+
+(deftest test-custom-assert-expr-second-method
+  (is (divisible? 10 5) "10 is divisible by 5")
+  (is (divisible? 100 4) "100 is divisible by 4"))
