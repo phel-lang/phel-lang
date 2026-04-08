@@ -827,6 +827,12 @@ Otherwise, it tries to call `__toString`."
   [x]
   (= (type x) :int))
 
+(defn integer?
+  "Returns true if `x` is an integer number, false otherwise.
+  Clojure compatibility alias for `int?`."
+  [x]
+  (= (type x) :int))
+
 (defn number?
   "Returns true if `x` is a number, false otherwise."
   [x]

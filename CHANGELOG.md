@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- `integer?` Clojure compatibility alias function for `int?`
 - `phel\test/assert-expr` is now an open multimethod (was a closed private function), letting users extend the `is` macro with custom assertion forms via `(defmethod phel\test/assert-expr 'my-form [form message] ...)`, matching Clojure's `clojure.test/assert-expr` (#1188)
 - `defmethod` now preserves the namespace of the multimethod, enabling cross-namespace extension when the multi-name is fully qualified (e.g. `(defmethod phel\test/assert-expr 'my-form ...)`)
 - `(resolve sym)` is now available globally in `phel\core`, no longer requiring `(:require phel\repl :refer [resolve])`, matching Clojure semantics (#1187)
