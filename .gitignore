@@ -2,6 +2,7 @@
 .phpbench/
 .vscode/
 .claude/settings.local.json
+.claude/worktrees/
 /cache/
 data/
 out/
