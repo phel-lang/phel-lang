@@ -7,20 +7,15 @@ namespace Phel\Compiler\Domain\Analyzer\Environment;
 use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
-use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
-use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Exceptions\DuplicateDefinitionException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
-use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\BuildConstants;
 use Phel\Shared\CompilerConstants;
 use Phel\Shared\ReplConstants;
-use RuntimeException;
 
 use function array_key_exists;
-use function dirname;
 
 final class GlobalEnvironment implements GlobalEnvironmentInterface
 {
@@ -43,8 +38,11 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     private int $allowPrivateAccessCounter = 0;
 
+    private readonly SymbolResolver $symbolResolver;
+
     public function __construct()
     {
+        $this->symbolResolver = new SymbolResolver($this, new MagicConstantResolver());
         $this->addInternalBuildModeDefinition();
     }
 
@@ -150,6 +148,14 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         return $this->useAliases[$namespace] ?? [];
     }
 
+    /**
+     * @return array<string, Symbol>
+     */
+    public function getInterfaces(string $namespace): array
+    {
+        return $this->interfaces[$namespace] ?? [];
+    }
+
     public function resolveAsSymbol(Symbol $name, NodeEnvironment $env): ?Symbol
     {
         $node = $this->resolve($name, $env);
@@ -162,35 +168,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
     {
-        $strName = $name->getName();
-
-        if ($strName === '__DIR__') {
-            return new LiteralNode(
-                $env,
-                $this->resolveMagicDir($name->getStartLocation()),
-            );
-        }
-
-        if ($strName === '__FILE__') {
-            return new LiteralNode(
-                $env,
-                $this->resolveMagicFile($name->getStartLocation()),
-            );
-        }
-
-        if ($strName[0] === '\\') {
-            return new PhpClassNameNode($env, $name, $name->getStartLocation());
-        }
-
-        if (isset($this->useAliases[$this->ns][$strName])) {
-            $alias = $this->useAliases[$this->ns][$strName];
-            $alias->copyLocationFrom($name);
-            return new PhpClassNameNode($env, $alias, $name->getStartLocation());
-        }
-
-        return ($name->getNamespace() !== null)
-            ? $this->resolveWithAlias($name, $env)
-            : $this->resolveWithoutAlias($name, $env);
+        return $this->symbolResolver->resolve($name, $env);
     }
 
     public function resolveAlias(string $alias): ?string
@@ -210,6 +188,11 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     public function removeLevelToAllowPrivateAccess(): void
     {
         --$this->allowPrivateAccessCounter;
+    }
+
+    public function isPrivateAccessAllowed(): bool
+    {
+        return $this->allowPrivateAccessCounter > 0;
     }
 
     public function addInterface(string $namespace, Symbol $name): void
@@ -307,130 +290,6 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
             $meta,
         );
         $this->addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, $symbol);
-    }
-
-    private function resolveMagicFile(?SourceLocation $sl): ?string
-    {
-        return $this->resolveMagicSourceString($sl)
-            ?? $this->resolveRealpath($sl);
-    }
-
-    private function resolveMagicDir(?SourceLocation $sl): ?string
-    {
-        return $this->resolveMagicSourceString($sl)
-            ?? $this->resolveRealpathDirname($sl);
-    }
-
-    private function resolveMagicSourceString(?SourceLocation $sl): ?string
-    {
-        return ($sl instanceof SourceLocation && $sl->getFile() === 'string') ? '' : null;
-    }
-
-    private function resolveRealpath(?SourceLocation $sl): ?string
-    {
-        if (!$sl instanceof SourceLocation) {
-            return null;
-        }
-
-        $realpath = realpath($sl->getFile());
-
-        return $realpath === false ? null : $realpath;
-    }
-
-    private function resolveRealpathDirname(?SourceLocation $sl): ?string
-    {
-        if (!$sl instanceof SourceLocation) {
-            return null;
-        }
-
-        $realpath = realpath(dirname($sl->getFile()));
-
-        return $realpath === false ? null : $realpath;
-    }
-
-    private function resolveWithAlias(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
-    {
-        $alias = $name->getNamespace();
-        if ($alias === null) {
-            throw new RuntimeException('resolveWithAlias called with a Symbol without namespace');
-        }
-
-        $finalName = Symbol::create($name->getName());
-        $ns = $this->resolveAlias($alias) ?? $alias;
-
-        return $this->resolveInterfaceOrDefinition($finalName, $env, $ns);
-    }
-
-    private function resolveWithoutAlias(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
-    {
-        $currentNs = $this->ns;
-        if (isset($this->refers[$this->ns][$name->getName()])) {
-            $currentNs = $this->refers[$this->ns][$name->getName()]->getName();
-
-            return $this->resolveInterfaceOrDefinition($name, $env, $currentNs)
-                ?? $this->resolveInterfaceOrDefinition($name, $env, CompilerConstants::PHEL_CORE_NAMESPACE);
-        }
-
-        return $this->resolveInterfaceOrDefinitionForCurrentNs($name, $env, $currentNs)
-            ?? $this->resolveInterfaceOrDefinition($name, $env, CompilerConstants::PHEL_CORE_NAMESPACE);
-    }
-
-    /**
-     * It also includes private definitions from the current namespace.
-     */
-    private function resolveInterfaceOrDefinitionForCurrentNs(
-        Symbol $name,
-        NodeEnvironmentInterface $env,
-        string $ns,
-    ): ?AbstractNode {
-        if (isset($this->interfaces[$ns][$name->getName()])) {
-            return new PhpClassNameNode(
-                $env,
-                Symbol::createForNamespace($ns, $name->getName()),
-                $name->getStartLocation(),
-            );
-        }
-
-        $def = $this->getDefinition($ns, $name);
-        if ($def instanceof PersistentMapInterface) {
-            return new GlobalVarNode($env, $ns, $name, $def, $name->getStartLocation());
-        }
-
-        return null;
-    }
-
-    /**
-     * It ignores private definitions (if they're not allowed) from the namespace.
-     */
-    private function resolveInterfaceOrDefinition(
-        Symbol $name,
-        NodeEnvironmentInterface $env,
-        string $ns,
-    ): ?AbstractNode {
-        if (isset($this->interfaces[$ns][$name->getName()])) {
-            return new PhpClassNameNode(
-                $env,
-                Symbol::createForNamespace($ns, $name->getName()),
-                $name->getStartLocation(),
-            );
-        }
-
-        $def = $this->getDefinition($ns, $name);
-        if (!$def instanceof PersistentMapInterface) {
-            return null;
-        }
-
-        if (!$this->isPrivateDefinitionAllowed($def)) {
-            return null;
-        }
-
-        return new GlobalVarNode($env, $ns, $name, $def, $name->getStartLocation());
-    }
-
-    private function isPrivateDefinitionAllowed(PersistentMapInterface $meta): bool
-    {
-        return $this->allowPrivateAccessCounter > 0
-            || !$meta[Keyword::create('private')];
     }
 
     private function mungeEncodeNs(string $ns): string
