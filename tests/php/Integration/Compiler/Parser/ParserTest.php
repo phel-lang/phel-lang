@@ -176,6 +176,7 @@ final class ParserTest extends TestCase
                 $this->loc(1, 0),
                 $this->loc(1, 2),
                 new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
+                "'",
             ),
             $this->parse("'a"),
         );
@@ -189,6 +190,7 @@ final class ParserTest extends TestCase
                 $this->loc(1, 0),
                 $this->loc(1, 2),
                 new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
+                '@',
             ),
             $this->parse('@a'),
         );
@@ -218,6 +220,7 @@ final class ParserTest extends TestCase
                 $this->loc(1, 0),
                 $this->loc(1, 8),
                 new SymbolNode('unquote', $this->loc(1, 1), $this->loc(1, 8), Symbol::create('unquote')),
+                '`',
             ),
             $this->parse(sprintf('`%s', Symbol::NAME_UNQUOTE)),
         );
@@ -231,6 +234,7 @@ final class ParserTest extends TestCase
                 $this->loc(1, 0),
                 $this->loc(1, 2),
                 new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
+                '`',
             ),
             $this->parse('`a'),
         );

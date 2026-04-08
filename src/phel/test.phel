@@ -73,19 +73,19 @@
         loc (location form)
         result (gensym)
         report-data (gensym)]
-    `(let [,value-evaluated ,value
-           ,result (,pred ,value-evaluated)
-           ,result (if ,negated (not ,result) ,result)
-           ,report-data {:type ,type
-                         :message ,message
-                         :location ,loc
-                         :pred ',pred
-                         :value ',value
-                         :form ',form
-                         :result ,value-evaluated}]
-       (if ,result
-         (report (merge ,report-data {:state :pass}))
-         (report (merge ,report-data {:state :failed}))))))
+    `(let [~value-evaluated ~value
+           ~result (~pred ~value-evaluated)
+           ~result (if ~negated (not ~result) ~result)
+           ~report-data {:type ~type
+                         :message ~message
+                         :location ~loc
+                         :pred '~pred
+                         :value '~value
+                         :form '~form
+                         :result ~value-evaluated}]
+       (if ~result
+         (report (merge ~report-data {:state :pass}))
+         (report (merge ~report-data {:state :failed}))))))
 
 (defn- assert-binary [form message negated]
   (let [pred (first form)
@@ -97,26 +97,26 @@
         actual-evaluated (gensym)
         result (gensym)
         report-data (gensym)]
-    `(let [,expected-evaluated ,expected
-           ,actual-evaluated ,actual
-           ,result (,pred ,expected-evaluated ,actual-evaluated)
-           ,result (if ,negated (not ,result) ,result)
-           ,report-data {:type ,type
-                         :message ,message
-                         :location ,loc
-                         :pred ',pred
-                         :expected ,expected-evaluated
-                         :actual ',actual
-                         :form ',form
-                         :result ,actual-evaluated}]
-       (if ,result
-         (report (merge ,report-data {:type :binary :state :pass}))
-         (report (merge ,report-data {:type :binary :state :failed}))))))
+    `(let [~expected-evaluated ~expected
+           ~actual-evaluated ~actual
+           ~result (~pred ~expected-evaluated ~actual-evaluated)
+           ~result (if ~negated (not ~result) ~result)
+           ~report-data {:type ~type
+                         :message ~message
+                         :location ~loc
+                         :pred '~pred
+                         :expected ~expected-evaluated
+                         :actual '~actual
+                         :form '~form
+                         :result ~actual-evaluated}]
+       (if ~result
+         (report (merge ~report-data {:type :binary :state :pass}))
+         (report (merge ~report-data {:type :binary :state :failed}))))))
 
 (defn- assert-output [form message]
   (let [expected (second form)
         body (second (next form))]
-    (assert-binary `(= ,expected (with-output-buffer ,body)) message false)))
+    (assert-binary `(= ~expected (with-output-buffer ~body)) message false)))
 
 (defn- assert-thrown [form message]
   (let [exception-symbol (second form)
@@ -124,16 +124,16 @@
         loc (location form)
         report-data (gensym)
         e (gensym)]
-    `(let [,report-data {:type :thrown
-                         :location ,loc
-                         :form ',form
-                         :exception-symbol ,(str exception-symbol)
-                         :message ,message}]
+    `(let [~report-data {:type :thrown
+                         :location ~loc
+                         :form '~form
+                         :exception-symbol ~(str exception-symbol)
+                         :message ~message}]
        (try
-         ,@body
-         (report (merge ,report-data {:state :failed}))
-         (catch ,exception-symbol ,e
-           (report (merge ,report-data {:state :pass})))))))
+         ~@body
+         (report (merge ~report-data {:state :failed}))
+         (catch ~exception-symbol ~e
+           (report (merge ~report-data {:state :pass})))))))
 
 (defn- assert-thrown-with-msg [form message]
   (let [exception-symbol (second form)
@@ -143,34 +143,34 @@
         actual-message (gensym)
         report-data (gensym)
         e (gensym)]
-    `(let [,report-data {:type :thrown-with-msg
-                         :form ',form
-                         :location ,loc
-                         :exception-symbol ,(str exception-symbol)
-                         :expected-message ,expected-message
-                         :message ,message}]
+    `(let [~report-data {:type :thrown-with-msg
+                         :form '~form
+                         :location ~loc
+                         :exception-symbol ~(str exception-symbol)
+                         :expected-message ~expected-message
+                         :message ~message}]
        (try
-         ,@body
-         (report (merge ,report-data {:state :failed :actual-message nil}))
-         (catch ,exception-symbol ,e
-           (let [,actual-message (php/-> ,e (getMessage))]
-             (if (= ,expected-message ,actual-message)
-               (report (merge ,report-data {:state :pass :actual-message ,actual-message}))
-               (report (merge ,report-data {:state :failed :actual-message ,actual-message})))))))))
+         ~@body
+         (report (merge ~report-data {:state :failed :actual-message nil}))
+         (catch ~exception-symbol ~e
+           (let [~actual-message (php/-> ~e (getMessage))]
+             (if (= ~expected-message ~actual-message)
+               (report (merge ~report-data {:state :pass :actual-message ~actual-message}))
+               (report (merge ~report-data {:state :failed :actual-message ~actual-message})))))))))
 
 (defn- assert-any [form message]
   (let [loc (location form)
         result (gensym)
         report-data (gensym)]
-    `(let [,result ,form
-           ,report-data {:type :any
-                         :message ,message
-                         :location ,loc
-                         :form ',form
-                         :result ,result}]
-       (if ,result
-         (report (merge ,report-data {:state :pass}))
-         (report (merge ,report-data {:state :failed}))))))
+    `(let [~result ~form
+           ~report-data {:type :any
+                         :message ~message
+                         :location ~loc
+                         :form '~form
+                         :result ~result}]
+       (if ~result
+         (report (merge ~report-data {:state :pass}))
+         (report (merge ~report-data {:state :failed}))))))
 
 ;; Public extension point for the `is` macro: an open multimethod
 ;; dispatched on the first symbol of the asserted form (or `:default` for
@@ -215,13 +215,13 @@
   {:example "(is (= 4 (+ 2 2)))"}
   [form & [message]]
   (let [loc (location form) e (gensym)]
-    `(try ,(assert-expr form message)
-          (catch \Throwable ,e
+    `(try ~(assert-expr form message)
+          (catch \Throwable ~e
             (report {:state :error
-                     :location ,loc
-                     :message ,message
-                     :form ',form
-                     :exception ,e})))))
+                     :location ~loc
+                     :message ~message
+                     :form '~form
+                     :exception ~e})))))
 
 ;; --------------
 ;; Defining tests
@@ -231,9 +231,9 @@
   "Defines a test function."
   {:example "(deftest test-add)"}
   [test-name & body]
-  `(defn ,test-name {:test true :test-name ,(name test-name)} []
-     (binding [*current-test-name* ,(name test-name)]
-              ,@body)))
+  `(defn ~test-name {:test true :test-name ~(name test-name)} []
+     (binding [*current-test-name* ~(name test-name)]
+              ~@body)))
 
 ;; ---------------------
 ;; error/failure printer

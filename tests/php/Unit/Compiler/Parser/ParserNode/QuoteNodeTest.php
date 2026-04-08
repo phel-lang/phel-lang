@@ -53,6 +53,34 @@ final class QuoteNodeTest extends TestCase
         );
     }
 
+    public function test_get_code_unquote_preserves_tilde_prefix(): void
+    {
+        self::assertSame(
+            '~a',
+            (new QuoteNode(
+                Token::T_UNQUOTE,
+                $this->loc(1, 0),
+                $this->loc(1, 2),
+                new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
+                '~',
+            ))->getCode(),
+        );
+    }
+
+    public function test_get_code_unquote_splicing_preserves_tilde_prefix(): void
+    {
+        self::assertSame(
+            '~@a',
+            (new QuoteNode(
+                Token::T_UNQUOTE_SPLICING,
+                $this->loc(1, 0),
+                $this->loc(1, 3),
+                new SymbolNode('a', $this->loc(1, 2), $this->loc(1, 3), Symbol::create('a')),
+                '~@',
+            ))->getCode(),
+        );
+    }
+
     public function test_get_code_quasiquote(): void
     {
         self::assertSame(

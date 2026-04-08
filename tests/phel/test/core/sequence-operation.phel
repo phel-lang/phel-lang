@@ -83,7 +83,7 @@
   (is (= [1 2 3 4] (conj [1 2] 3 4)) "conj with multiple values on a vector preserves order")
   (is (= (list 4 3 1 2) (conj '(1 2) 3 4)) "conj with multiple values on a list adds from left to right")
   (is (= [[1 2] [3 4] [5 6]] (conj [[1 2] [3 4]] [5 6])) "conj appends nested vectors")
-  (is (= {1 2, 3 4, 5 6} (conj {1 2, 3 4} [5 6])) "conj on a map accepts [key value] vectors")
+  (is (= {1 2 3 4 5 6} (conj {1 2 3 4} [5 6])) "conj on a map accepts [key value] vectors")
   (is (= {:firstname "John" :lastname "Doe" :age 25 :nationality "Chinese"}
          (conj {:firstname "John" :lastname "Doe"} {:age 25 :nationality "Chinese"}))
       "conj on a map merges associative collections")

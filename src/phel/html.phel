@@ -108,7 +108,7 @@
 
 (defn- compile-attrs [attrs]
   (if (some? unevaluated? (kvs attrs))
-    `(render-attrs ,attrs)
+    `(render-attrs ~attrs)
     (render-attrs attrs)))
 
 (defn- compile-element
@@ -117,24 +117,24 @@
   (let [[tag attrs content] (normalize-element element)]
     (if (container-tag? tag content)
       `(str
-        ,(str "<" tag) ,(compile-attrs attrs) ">"
-        ,@(compile-seq content)
-        ,(str "</" tag ">"))
-      `(str ,(str "<" tag) ,(compile-attrs attrs) " />"))))
+        ~(str "<" tag) ~(compile-attrs attrs) ">"
+        ~@(compile-seq content)
+        ~(str "</" tag ">"))
+      `(str ~(str "<" tag) ~(compile-attrs attrs) " />"))))
 
 (defn- compile-form [form]
   (let [form-name (if (and (list? form) (symbol? (first form)))
                     (name (first form)))]
     (case form-name
       "for"       (let [[_ bindings body] form]
-                    `(apply str (for ,bindings ,(compile-html body))))
+                    `(apply str (for ~bindings ~(compile-html body))))
       "if"        (let [[_ condition & body] form]
-                    `(if ,condition ,@(for [x :in body] (compile-html x))))
+                    `(if ~condition ~@(for [x :in body] (compile-html x))))
       "when"      (let [[_ condition & body] form]
-                    `(if ,condition ,@(for [x :in body] (compile-html x))))
+                    `(if ~condition ~@(for [x :in body] (compile-html x))))
       "when-not"  (let [[_ condition & body] form]
-                    `(if (not ,condition) ,@(for [x :in body] (compile-html x))))
-      `(render-html ,form))))
+                    `(if (not ~condition) ~@(for [x :in body] (compile-html x))))
+      `(render-html ~form))))
 
 (defn- compile-seq [content]
   (for [element :in content]
@@ -144,10 +144,10 @@
       (raw-string? element)     (get element :s)
       (string? element)         (escape-html element)
       (indexed? element)        (compile-form element)
-      `(render-html ,element))))
+      `(render-html ~element))))
 
 (defn- compile-html [& content]
-  `(str ,@(compile-seq content)))
+  `(str ~@(compile-seq content)))
 
 (defmacro html
   "Compiles Phel vectors to HTML strings."

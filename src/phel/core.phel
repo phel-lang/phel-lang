@@ -138,7 +138,7 @@
   {:macro true
    :doc "Declare a global symbol before it is defined."}
   (fn [name]
-    `(def ,name nil)))
+    `(def ~name nil)))
 
 (declare nil?)
 
@@ -181,9 +181,9 @@
       (if sym
         (let [ns (php/-> sym (getNamespace))]
           (if ns
-            `(php/:: \Phel (getDefinitionMetaData ,ns ,(php/-> sym (getName))))
-            `(php/:: \Phel (getDefinitionMetaData (php/str_replace "-" "_" *ns*) ,(php/-> sym (getName))))))
-        `(let [obj-meta ,obj]
+            `(php/:: \Phel (getDefinitionMetaData ~ns ~(php/-> sym (getName))))
+            `(php/:: \Phel (getDefinitionMetaData (php/str_replace "-" "_" *ns*) ~(php/-> sym (getName))))))
+        `(let [obj-meta ~obj]
            (if (php/instanceof obj-meta \Phel\Lang\MetaInterface)
              (php/-> obj-meta (getMeta))
              nil))))))
@@ -257,7 +257,7 @@
                          (php/implode "\n" sigs)))
           docstring (php/. "```phel\n" signatures "\n```\n" docstring)
           meta (php/-> meta (put :doc docstring))]
-      `(def ,name ,meta (fn ,@fdecl)))))
+      `(def ~name ~meta (fn ~@fdecl)))))
 
 (def defn
   {:macro true
@@ -267,7 +267,7 @@
 (def def-
   {:macro true
    :doc "Define a private value that will not be exported."}
-  (fn [name value] `(def ,name {:private true} ,value)))
+  (fn [name value] `(def ~name {:private true} ~value)))
 
 (def defmacro
   {:macro true
@@ -292,9 +292,9 @@
         class-name-str (php/. (php/-> munge (encodeNs *ns*)) "\\" (php/-> munge (encode name-str)))
         is-name (php/:: Symbol (create (php/. name-str "?")))]
     `(do
-       (defstruct* ,name ,keys ,@implementations)
-       (defn ,name ,(php/. "Creates a new " name " struct.") ,keys (php/new ,class-name-str ,@keys))
-       (defn ,is-name ,(php/. "Checks if `x` is an instance of the " name " struct.") [x] (php/is_a x ,class-name-str)))))
+       (defstruct* ~name ~keys ~@implementations)
+       (defn ~name ~(php/. "Creates a new " name " struct.") ~keys (php/new ~class-name-str ~@keys))
+       (defn ~is-name ~(php/. "Checks if `x` is an instance of the " name " struct.") [x] (php/is_a x ~class-name-str)))))
 
 (defmacro defexception
   "Define a new exception."
@@ -304,11 +304,11 @@
         class-name-str (php/. (php/-> munge (encodeNs *ns*)) "\\" (php/-> munge (encode name-str)))
         is-name (php/:: Symbol (create (php/. name-str "?")))]
     `(do
-       (defexception* ,name)
-       (defn ,name ,(php/. "Creates a new " name " exception.") [& args]
-         (php/-> (php/new \ReflectionClass ,class-name-str)
+       (defexception* ~name)
+       (defn ~name ~(php/. "Creates a new " name " exception.") [& args]
+         (php/-> (php/new \ReflectionClass ~class-name-str)
                  (newInstanceArgs (to-php-array args))))
-       (defn ,is-name ,(php/. "Checks if `x` is an instance of the " name " exception.") [x] (php/is_a x ,class-name-str)))))
+       (defn ~is-name ~(php/. "Checks if `x` is an instance of the " name " exception.") [x] (php/is_a x ~class-name-str)))))
 
 (defmacro comment
   "Ignores the body of the comment."
@@ -497,19 +497,19 @@ Otherwise, it tries to call `__toString`."
   "Evaluates then if test is false, else otherwise."
   {:example "(if-not (< 5 3) \"not less\" \"less\") ; => \"not less\""}
   [test then & [else]]
-  `(if ,test ,else ,then))
+  `(if ~test ~else ~then))
 
 (defmacro when
   "Evaluates body if test is true, otherwise returns nil."
   {:example "(when (> 10 5) \"greater\") ; => \"greater\""}
   [test & body]
-  `(if ,test (do ,@body)))
+  `(if ~test (do ~@body)))
 
 (defmacro when-not
   "Evaluates body if test is false, otherwise returns nil."
   {:example "(when-not (empty? [1 2 3]) \"has items\") ; => \"has items\""}
   [test & body]
-  `(if ,test nil (do ,@body)))
+  `(if ~test nil (do ~@body)))
 
 (defmacro cond
   "Evaluates test/expression pairs, returning the first matching expression."
@@ -531,10 +531,10 @@ Otherwise, it tries to call `__toString`."
   [e & pairs]
   (if (next pairs)
     (let [v (gensym)]
-      `(let [,v ,e]
-         (if (equals1 ,v ',(first pairs))
-           ,(first (next pairs))
-           (case ,v ,@(next (next pairs))))))
+      `(let [~v ~e]
+         (if (equals1 ~v '~(first pairs))
+           ~(first (next pairs))
+           (case ~v ~@(next (next pairs))))))
     (first pairs)))
 
 ;; -----------------
@@ -549,8 +549,8 @@ Otherwise, it tries to call `__toString`."
     0 nil
     1 (first args)
     (let [v (gensym)]
-      `(let [,v ,(first args)]
-         (if ,v ,v (or ,@(next args)))))))
+      `(let [~v ~(first args)]
+         (if ~v ~v (or ~@(next args)))))))
 
 (defmacro and
   "Evaluates expressions left to right, returning the first falsy value or the last value."
@@ -560,8 +560,8 @@ Otherwise, it tries to call `__toString`."
     0 'true
     1 (first args)
     (let [v (gensym)]
-      `(let [,v ,(first args)]
-         (if ,v (and ,@(next args)) ,v)))))
+      `(let [~v ~(first args)]
+         (if ~v (and ~@(next args)) ~v)))))
 
 (defn- id2 [a b]
   (if (php/instanceof a IdenticalInterface)
@@ -605,7 +605,7 @@ Otherwise, it tries to call `__toString`."
 
 (defn <
   "Checks if each argument is strictly less than the following argument."
-  {:inline (fn [a b] `(php/< ,a ,b))
+  {:inline (fn [a b] `(php/< ~a ~b))
    :inline-arity (fn [n] (php/=== n 2))
    :example "(< 1 2 3 4) ; => true"}
   [a & more]
@@ -618,7 +618,7 @@ Otherwise, it tries to call `__toString`."
 
 (defn <=
   "Checks if each argument is less than or equal to the following argument. Returns a boolean."
-  {:inline (fn [a b] `(php/<= ,a ,b))
+  {:inline (fn [a b] `(php/<= ~a ~b))
    :inline-arity (fn [n] (php/=== n 2))}
   [a & more]
   (case (count more)
@@ -630,7 +630,7 @@ Otherwise, it tries to call `__toString`."
 
 (defn >
   "Checks if each argument is strictly greater than the following argument."
-  {:inline (fn [a b] `(php/> ,a ,b))
+  {:inline (fn [a b] `(php/> ~a ~b))
    :inline-arity (fn [n] (php/=== n 2))
    :example "(> 4 3 2 1) ; => true"}
   [a & more]
@@ -643,7 +643,7 @@ Otherwise, it tries to call `__toString`."
 
 (defn >=
   "Checks if each argument is greater than or equal to the following argument. Returns a boolean."
-  {:inline (fn [a b] `(php/>= ,a ,b))
+  {:inline (fn [a b] `(php/>= ~a ~b))
    :inline-arity (fn [n] (php/=== n 2))}
   [a & more]
   (case (count more)
@@ -655,13 +655,13 @@ Otherwise, it tries to call `__toString`."
 
 (defn <=>
   "Alias for the spaceship PHP operator in ascending order. Returns an int."
-  {:inline (fn [a b] `(php/<=> ,a ,b))}
+  {:inline (fn [a b] `(php/<=> ~a ~b))}
   [a b]
   (php/<=> a b))
 
 (defn >=<
   "Alias for the spaceship PHP operator in descending order. Returns an int."
-  {:inline (fn [a b] `(php/<=> ,b ,a))}
+  {:inline (fn [a b] `(php/<=> ~b ~a))}
   [a b]
   (php/<=> b a))
 
@@ -767,7 +767,7 @@ Otherwise, it tries to call `__toString`."
   "Wrapper for PHP's spaceship operator (`php/<=>`).
   Returns an integer less than, equal to, or greater than zero
   when `x` is less than, equal to, or greater than `y`, respectively."
-  {:inline (fn [x y] `(php/<=> ,x ,y))}
+  {:inline (fn [x y] `(php/<=> ~x ~y))}
   [x y]
   (php/<=> x y))
 
@@ -1255,9 +1255,9 @@ Otherwise, it tries to call `__toString`."
         (keyword? binding)
         (let [rest (for-builder body head (php/+ i 2))]
           (case binding
-            :while  `(if ,verb ,rest php/break)
-            :let    `(let ,verb ,rest)
-            :when   `(when ,verb ,rest)
+            :while  `(if ~verb ~rest php/break)
+            :let    `(let ~verb ~rest)
+            :when   `(when ~verb ~rest)
             (throw (php/new InvalidArgumentException (str "This modifier is not supported in for loop: " verb)))))
 
         ;; Case 3: Verbs
@@ -1265,13 +1265,13 @@ Otherwise, it tries to call `__toString`."
               rest (for-builder body head (php/+ i 3))
               value-sym (gensym)]
           (case verb
-            :range  `(foreach [,binding (apply range ,object)] ,rest)
-            :in     `(foreach [,value-sym ,object] (let [,binding ,value-sym] ,rest))
+            :range  `(foreach [~binding (apply range ~object)] ~rest)
+            :in     `(foreach [~value-sym ~object] (let [~binding ~value-sym] ~rest))
             :keys   (let [key-sym (gensym)]
-                      `(foreach [,key-sym ,value-sym ,object] (let [,binding ,key-sym] ,rest)))
+                      `(foreach [~key-sym ~value-sym ~object] (let [~binding ~key-sym] ~rest)))
             :pairs  (let [key-sym (gensym)]
-                      `(foreach [,key-sym ,value-sym ,object]
-                         (let [,binding [,key-sym ,value-sym]] ,rest)))
+                      `(foreach [~key-sym ~value-sym ~object]
+                         (let [~binding [~key-sym ~value-sym]] ~rest)))
             (throw (php/new InvalidArgumentException (str "This verb is not supported in for loop " verb)))))))))
 
 (defmacro for
@@ -1304,26 +1304,26 @@ Otherwise, it tries to call `__toString`."
         options (for-builder-options head 0 {})
         swap-body (if (:reduce options)
                     (let [[sym _] (:reduce options)]
-                      `(swap! ,res-sym (fn [,sym] (do ,@body))))
-                    `(swap! ,res-sym (fn [,acc-sym] (conj ,acc-sym (do ,@body)))))
+                      `(swap! ~res-sym (fn [~sym] (do ~@body))))
+                    `(swap! ~res-sym (fn [~acc-sym] (conj ~acc-sym (do ~@body)))))
         init (if (:reduce options)
                (second (:reduce options))
                [])
         loop-body (for-builder swap-body head 0)]
-    `(let [,res-sym (var ,init)]
-       ,loop-body
-       (deref ,res-sym))))
+    `(let [~res-sym (var ~init)]
+       ~loop-body
+       (deref ~res-sym))))
 
 (defmacro dofor
   "Repeatedly executes body for side effects with bindings and modifiers as
   provided by for. Returns nil."
   [head & body]
-  (for-builder `(do ,@body) head 0))
+  (for-builder `(do ~@body) head 0))
 
 (defmacro doseq
   "Alias for `dofor`."
   [seq-exprs & body]
-  `(dofor ,seq-exprs ,@body))
+  `(dofor ~seq-exprs ~@body))
 
 (defn identity
   "Returns its argument."
@@ -2169,7 +2169,7 @@ Otherwise, it tries to call `__toString`."
   `(php/new \Phel\Lang\Collections\LazySeq\LazySeq
             (php/new \Phel\Lang\Hasher)
             (php/new \Phel\Lang\Equalizer)
-            (fn [] ,@body)))
+            (fn [] ~@body)))
 
 (defmacro lazy-cat
   "Concatenates collections into a lazy sequence (expands to concat)."
@@ -2730,7 +2730,7 @@ Otherwise, it tries to call `__toString`."
 
 (defn bit-and
   "Bitwise and."
-  {:inline (fn [x y & args] `(do (assert-non-nil ,x ,y ,@args) (php/& ,x ,y ,@args)))}
+  {:inline (fn [x y & args] `(do (assert-non-nil ~x ~y ~@args) (php/& ~x ~y ~@args)))}
   [x y & args]
   (apply assert-non-nil (concat [x y] args))
   (let [all (concat [x y] args)]
@@ -2738,7 +2738,7 @@ Otherwise, it tries to call `__toString`."
 
 (defn bit-or
   "Bitwise or."
-  {:inline (fn [x y & args] `(do (assert-non-nil ,x ,y ,@args) (php/| ,x ,y ,@args)))}
+  {:inline (fn [x y & args] `(do (assert-non-nil ~x ~y ~@args) (php/| ~x ~y ~@args)))}
   [x y & args]
   (apply assert-non-nil (concat [x y] args))
   (let [all (concat [x y] args)]
@@ -2746,7 +2746,7 @@ Otherwise, it tries to call `__toString`."
 
 (defn bit-xor
   "Bitwise xor."
-  {:inline (fn [x y & args] `(do (assert-non-nil ,x ,y ,@args) (php/^ ,x ,y ,@args)))}
+  {:inline (fn [x y & args] `(do (assert-non-nil ~x ~y ~@args) (php/^ ~x ~y ~@args)))}
   [x y & args]
   (apply assert-non-nil (concat [x y] args))
   (let [all (concat [x y] args)]
@@ -2754,21 +2754,21 @@ Otherwise, it tries to call `__toString`."
 
 (defn bit-not
   "Bitwise complement."
-  {:inline (fn [x] `(do (assert-non-nil ,x) (php/~ ,x)))}
+  {:inline (fn [x] `(do (assert-non-nil ~x) (php/~ ~x)))}
   [x]
   (assert-non-nil x)
   (php/~ x))
 
 (defn bit-shift-left
   "Bitwise shift left."
-  {:inline (fn [x n] `(do (assert-non-nil ,x ,n) (php/<< ,x ,n)))}
+  {:inline (fn [x n] `(do (assert-non-nil ~x ~n) (php/<< ~x ~n)))}
   [x n]
   (assert-non-nil x n)
   (php/<< x n))
 
 (defn bit-shift-right
   "Bitwise shift right."
-  {:inline (fn [x n] `(do (assert-non-nil ,x ,n) (php/>> ,x ,n)))}
+  {:inline (fn [x n] `(do (assert-non-nil ~x ~n) (php/>> ~x ~n)))}
   [x n]
   (assert-non-nil x n)
   (php/>> x n))
@@ -2804,7 +2804,7 @@ Otherwise, it tries to call `__toString`."
 (defn +
   "Returns the sum of all elements in `xs`. All elements `xs` must be numbers.
   If `xs` is empty, return 0."
-  {:inline (fn [& xs] `(do (assert-non-nil ,@xs) (php/+ ,@xs)))
+  {:inline (fn [& xs] `(do (assert-non-nil ~@xs) (php/+ ~@xs)))
    :inline-arity (fn [n] (> n 0))}
   [& xs]
   (apply assert-non-nil xs)
@@ -2815,7 +2815,7 @@ Otherwise, it tries to call `__toString`."
 (defn -
   "Returns the difference of all elements in `xs`. If `xs` is empty, return 0. If `xs`
   has one element, return the negative value of that element."
-  {:inline (fn [& xs] `(do (assert-non-nil ,@xs) (php/- ,@xs)))
+  {:inline (fn [& xs] `(do (assert-non-nil ~@xs) (php/- ~@xs)))
    :inline-arity (fn [n] (> n 1))}
   [& xs]
   (apply assert-non-nil xs)
@@ -2828,7 +2828,7 @@ Otherwise, it tries to call `__toString`."
 (defn *
   "Returns the product of all elements in `xs`. All elements in `xs` must be
 numbers. If `xs` is empty, return 1."
-  {:inline (fn [& xs] `(do (assert-non-nil ,@xs) (php/* ,@xs)))
+  {:inline (fn [& xs] `(do (assert-non-nil ~@xs) (php/* ~@xs)))
    :inline-arity (fn [n] (> n 0))}
   [& xs]
   (apply assert-non-nil xs)
@@ -2841,7 +2841,7 @@ numbers. If `xs` is empty, return 1."
 (defn /
   "Returns the nominator divided by all the denominators. If `xs` is empty,
 returns 1. If `xs` has one value, returns the reciprocal of x."
-  {:inline (fn [& xs] `(do (assert-non-nil ,@xs) (php// ,@xs)))
+  {:inline (fn [& xs] `(do (assert-non-nil ~@xs) (php// ~@xs)))
    :inline-arity (fn [n] (> n 1))}
   [& xs]
   (apply assert-non-nil xs)
@@ -2853,28 +2853,28 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 
 (defn %
   "Return the remainder of `dividend` / `divisor`."
-  {:inline (fn [dividend divisor] `(do (assert-non-nil ,dividend ,divisor) (php/% ,dividend ,divisor)))}
+  {:inline (fn [dividend divisor] `(do (assert-non-nil ~dividend ~divisor) (php/% ~dividend ~divisor)))}
   [dividend divisor]
   (assert-non-nil dividend divisor)
   (php/% dividend divisor))
 
 (defn **
   "Return `a` to the power of `x`."
-  {:inline (fn [a x] `(do (assert-non-nil ,a ,x) (php/** ,a ,x)))}
+  {:inline (fn [a x] `(do (assert-non-nil ~a ~x) (php/** ~a ~x)))}
   [a x]
   (assert-non-nil a x)
   (php/** a x))
 
 (defn inc
   "Increments `x` by one."
-  {:inline (fn [x] `(do (assert-non-nil ,x) (php/+ ,x 1)))}
+  {:inline (fn [x] `(do (assert-non-nil ~x) (php/+ ~x 1)))}
   [x]
   (assert-non-nil x)
   (+ x 1))
 
 (defn dec
   "Decrements `x` by one."
-  {:inline (fn [x] `(do (assert-non-nil ,x) (php/- ,x 1)))}
+  {:inline (fn [x] `(do (assert-non-nil ~x) (php/- ~x 1)))}
   [x]
   (assert-non-nil x)
   (- x 1))
@@ -2998,10 +2998,10 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (let [res (gensym)]
     `(do
        (php/ob_start)
-       ,@body
-       (let [,res (php/ob_get_contents)]
+       ~@body
+       (let [~res (php/ob_get_contents)]
          (php/ob_end_clean)
-         ,res))))
+         ~res))))
 
 (defn print-str
   "Same as print. But instead of writing it to an output stream, the resulting string is returned."
@@ -3169,7 +3169,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (if forms
       (let [form (first forms)
             threaded (if (list? form)
-                       (with-meta form `(,(first form) ,x ,@(next form)))
+                       (with-meta form `(~(first form) ~x ~@(next form)))
                        (with-meta form (list form x)))]
         (recur threaded (next forms)))
       x)))
@@ -3185,7 +3185,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (if forms
       (let [form (first forms)
             threaded (if (list? form)
-                       (with-meta form `(,(first form) ,@(next form) ,x))
+                       (with-meta form `(~(first form) ~@(next form) ~x))
                        (with-meta form (list form x)))]
         (recur threaded (next forms)))
       x)))
@@ -3244,9 +3244,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   successive form, returning the result of the last form."
   [expr name & forms]
   (let [x (gensym)]
-    `(let [,name ,expr
-           ,@(interleave (repeat (count forms) name) forms)]
-       ,name)))
+    `(let [~name ~expr
+           ~@(interleave (repeat (count forms) name) forms)]
+       ~name)))
 
 (defmacro doto
   "Evaluates x then calls all of the methods and functions with the
@@ -3254,13 +3254,13 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   are evaluated in order. Returns x."
   [x & forms]
   (let [gx (gensym)]
-    `(let [,gx ,x]
-       ,@(map (fn [f]
+    `(let [~gx ~x]
+       ~@(map (fn [f]
                 (if (list? f)
-                  (with-meta f `(,(first f) ,gx ,@(next f)))
-                  (with-meta f `(,f ,gx))))
+                  (with-meta f `(~(first f) ~gx ~@(next f)))
+                  (with-meta f `(~f ~gx))))
               forms)
-       ,gx)))
+       ~gx)))
 
 (defmacro cond->
   "Takes an expression and a set of test/form pairs. Threads `expr` (via `->`)
@@ -3273,11 +3273,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
         steps (map (fn [pair]
                      (let [test (first pair)
                            step (second pair)]
-                       `(if ,test (-> ,g ,step) ,g)))
+                       `(if ~test (-> ~g ~step) ~g)))
                    (partition 2 clauses))]
-    `(let [,g ,expr
-           ,@(interleave (repeat (count steps) g) steps)]
-       ,g)))
+    `(let [~g ~expr
+           ~@(interleave (repeat (count steps) g) steps)]
+       ~g)))
 
 (defmacro cond->>
   "Takes an expression and a set of test/form pairs. Threads `expr` (via `->>`)
@@ -3290,11 +3290,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
         steps (map (fn [pair]
                      (let [test (first pair)
                            step (second pair)]
-                       `(if ,test (->> ,g ,step) ,g)))
+                       `(if ~test (->> ~g ~step) ~g)))
                    (partition 2 clauses))]
-    `(let [,g ,expr
-           ,@(interleave (repeat (count steps) g) steps)]
-       ,g)))
+    `(let [~g ~expr
+           ~@(interleave (repeat (count steps) g) steps)]
+       ~g)))
 
 ;; ---------------
 ;; Regex functions
@@ -3368,13 +3368,13 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
         binds (map vector names temp-val-syms)
         resets (reverse (map vector names orig-val-syms))
         bind-value (fn [[k v]] (list 'set-var k v))]
-    `(let [,@(interleave orig-val-syms names)
-           ,@(interleave temp-val-syms vals)]
-       ,@(map bind-value binds)
+    `(let [~@(interleave orig-val-syms names)
+           ~@(interleave temp-val-syms vals)]
+       ~@(map bind-value binds)
        (try
-         (do ,@body)
+         (do ~@body)
          (finally
-           ,@(map bind-value resets))))))
+           ~@(map bind-value resets))))))
 
 ;; ----------
 ;; Interfaces
@@ -3391,13 +3391,13 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                    :let [fn-name-str (php/-> fn-name (getName))
                          munged-fn-name (php/-> munge (encode fn-name-str))
                          munged-fn-symbol (php/:: Symbol (create munged-fn-name))]]
-               `(defn ,fn-name {:doc ,doc} ,args
-                  (if (php/is_a ,(first args) ,class-name-str)
-                    (php/-> ,(first args) (,munged-fn-symbol ,@(rest args)))
-                    (throw (php/new \InvalidArgumentException ,(str "Value doesn't implement interface " name))))))]
+               `(defn ~fn-name {:doc ~doc} ~args
+                  (if (php/is_a ~(first args) ~class-name-str)
+                    (php/-> ~(first args) (~munged-fn-symbol ~@(rest args)))
+                    (throw (php/new \InvalidArgumentException ~(str "Value doesn't implement interface " name))))))]
     `(do
-       (definterface* ,name ,@fns)
-       ,@defs)))
+       (definterface* ~name ~@fns)
+       ~@defs)))
 
 ;; ---------
 ;; Hierarchy
@@ -3585,23 +3585,23 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                                          (create (php/. pname-str "--" mname-str "--dispatch")))]]
                   [mname mname-str margs dsym])]
     `(do
-       ,@(for [[_ _ _ dsym] :in methods]
-           `(def ,dsym {:private true} (var {})))
-       (def ,protocol-name
-         {:name ,pname-str
-          :dispatch [,@(for [[_ _ _ dsym] :in methods] dsym)]})
-       ,@(for [[mname mname-str margs dsym] :in methods]
-           `(defn ,mname ,margs
-              (let [dk (protocol-type-key ,(first margs))
-                    dispatch-table (deref ,dsym)
+       ~@(for [[_ _ _ dsym] :in methods]
+           `(def ~dsym {:private true} (var {})))
+       (def ~protocol-name
+         {:name ~pname-str
+          :dispatch [~@(for [[_ _ _ dsym] :in methods] dsym)]})
+       ~@(for [[mname mname-str margs dsym] :in methods]
+           `(defn ~mname ~margs
+              (let [dk (protocol-type-key ~(first margs))
+                    dispatch-table (deref ~dsym)
                     impl (get dispatch-table dk)]
                 (if impl
-                  (impl ,@margs)
+                  (impl ~@margs)
                   (let [default-impl (get dispatch-table :default)]
                     (if default-impl
-                      (default-impl ,@margs)
+                      (default-impl ~@margs)
                       (throw (php/new \InvalidArgumentException
-                                      (str "No implementation of '" ,mname-str
+                                      (str "No implementation of '" ~mname-str
                                            "' for type: " dk))))))))))))
 
 (defmacro extend-type
@@ -3665,12 +3665,12 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                             body (next (next method))
                             dsym (php/:: Symbol
                                          (create (php/. proto-str "--" mname-str "--dispatch")))]
-                        (conj inner `(swap! ,dsym assoc ,type-key (fn ,margs ,@body)))))
+                        (conj inner `(swap! ~dsym assoc ~type-key (fn ~margs ~@body)))))
                     acc
                     methods)))
                []
                groups)]
-    `(do ,@swaps)))
+    `(do ~@swaps)))
 
 (defn satisfies?
   "Returns true if x's type implements all methods of the given protocol."
@@ -3721,8 +3721,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                                 (conj result [current-type current-methods])
                                 result))))))
         extend-calls (for [[type-spec methods] :in groups]
-                       `(extend-type ,type-spec ,protocol-name ,@methods))]
-    `(do ,@extend-calls)))
+                       `(extend-type ~type-spec ~protocol-name ~@methods))]
+    `(do ~@extend-calls)))
 
 ;; ------------
 ;; Multimethods
@@ -3740,11 +3740,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (let [methods-name (php/:: Symbol (create (php/. (php/-> name (getName)) "-methods")))
         dispatch-name (php/:: Symbol (create (php/. (php/-> name (getName)) "-dispatch")))]
     `(do
-       (def ,methods-name (var {}))
-       (def ,dispatch-name {:private true} ,dispatch-fn)
-       (defn ,name [& args]
-         (let [dispatch-val (apply ,dispatch-name args)
-               methods (deref ,methods-name)
+       (def ~methods-name (var {}))
+       (def ~dispatch-name {:private true} ~dispatch-fn)
+       (defn ~name [& args]
+         (let [dispatch-val (apply ~dispatch-name args)
+               methods (deref ~methods-name)
                method (get methods dispatch-val)]
            (if method
              (apply method args)
@@ -3772,7 +3772,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
         methods-name (php/:: Symbol (createForNamespace
                                       multi-ns
                                       (php/. (php/-> multi-name (getName)) "-methods")))]
-    `(swap! ,methods-name assoc ,dispatch-val (fn ,@fn-tail))))
+    `(swap! ~methods-name assoc ~dispatch-val (fn ~@fn-tail))))
 
 (defmacro if-let
   "If test is true, evaluates then with binding-form bound to the value of test,
@@ -3789,11 +3789,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                 (count bindings) " given"))))
 
   (let [form (bindings 0) tst (bindings 1) temp-sym (gensym)]
-    `(let [temp-sym ,tst]
+    `(let [temp-sym ~tst]
        (if temp-sym
-         (let [,form temp-sym]
-           ,then)
-         ,else))))
+         (let [~form temp-sym]
+           ~then)
+         ~else))))
 
 (defmacro when-let
   "When test is true, evaluates body with binding-form bound to the value of test"
@@ -3809,16 +3809,16 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                 (count bindings) " given"))))
 
   (let [form (bindings 0) tst (bindings 1) temp-sym (gensym)]
-    `(let [temp-sym ,tst]
+    `(let [temp-sym ~tst]
        (when temp-sym
-         (let [,form temp-sym]
-           ,@body)))))
+         (let [~form temp-sym]
+           ~@body)))))
 
 (defmacro time
   "Evaluates expr and prints the time it took. Returns the value of expr."
   [expr]
   `(let [start# (php/microtime true)
-         ret# ,expr]
+         ret# ~expr]
      (println "Elapsed time:" (* 1000 (- (php/microtime true) start#)) "msecs")
      ret#))
 
@@ -3886,7 +3886,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   {:example "(def d (delay (println \"computing\") 42))"
    :see-also ["force" "delay?" "realized?"]}
   [& body]
-  `(php/new \Phel\Lang\Delay (fn [] ,@body)))
+  `(php/new \Phel\Lang\Delay (fn [] ~@body)))
 
 (defn force
   "If x is a Delay, forces it and returns its cached value. Otherwise returns x."

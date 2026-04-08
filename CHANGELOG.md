@@ -23,10 +23,13 @@ All notable changes to this project will be documented in this file.
 
 ### Deprecated
 - `|(...)` short function syntax with `$` placeholders; use `#(...)` with `%` placeholders instead
+- `,` / `,@` as `unquote` / `unquote-splicing` reader macros inside syntax-quote; use `~` / `~@` instead, matching Clojure's syntax (#1203)
 - `name$` auto-gensym suffix inside syntax-quote; use `name#` instead, matching Clojure's reader macro (#1203)
 
 ### Changed
 - Migrate all Phel source and test files from `|(...)` to `#(...)` short function syntax
+- Migrate all in-repo Phel source, tests, and docs from `,` / `,@` to `~` / `~@` for `unquote` / `unquote-splicing` (#1203)
+- `QuoteNode` now preserves the original reader-macro prefix (`,` vs `~`, `'`, `` ` ``, `@`) so the parser/printer round-trip is faithful to the source (#1203)
 - Migrate `time` macro in `phel\core` from `name$` to `name#` auto-gensym suffix (#1203)
 - Split `Phel\Lang\Generators\SequenceGenerator` into focused sibling generators (`TransformGenerator`, `SliceGenerator`, `CombineGenerator`, `DedupeGenerator`) by operation family; `SequenceGenerator` now only exposes the shared `toIterable` helper and `range`
 

@@ -127,6 +127,20 @@ final class Lexer implements LexerInterface
                     );
                 }
 
+                if ($tokenType === Token::T_UNQUOTE_SPLICING && $matches[0] === ',@') {
+                    @trigger_error(
+                        sprintf('Using "," for unquote-splicing is deprecated, use "~@" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
+                        E_USER_DEPRECATED,
+                    );
+                }
+
+                if ($tokenType === Token::T_UNQUOTE && $matches[0] === ',') {
+                    @trigger_error(
+                        sprintf('Using "," for unquote is deprecated, use "~" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
+                        E_USER_DEPRECATED,
+                    );
+                }
+
                 yield new Token($tokenType, $matches[0], $startLocation, $endLocation);
 
                 $startLocation = $endLocation;

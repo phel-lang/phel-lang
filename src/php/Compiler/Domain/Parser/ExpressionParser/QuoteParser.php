@@ -14,11 +14,13 @@ final readonly class QuoteParser
 
     public function parse(TokenStream $tokenStream, int $tokenType): QuoteNode
     {
-        $startLocation = $tokenStream->current()->getStartLocation();
+        $token = $tokenStream->current();
+        $startLocation = $token->getStartLocation();
+        $codePrefix = $token->getCode();
         $tokenStream->next();
         $expression = $this->parser->readExpression($tokenStream);
         $endLocation = $tokenStream->current()->getEndLocation();
 
-        return new QuoteNode($tokenType, $startLocation, $endLocation, $expression);
+        return new QuoteNode($tokenType, $startLocation, $endLocation, $expression, $codePrefix);
     }
 }

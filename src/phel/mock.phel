@@ -205,12 +205,12 @@
   (let [symbols (take-nth 2 bindings)
         values (take-nth 2 (drop 1 bindings))
         mock-syms (map (fn [_] (gensym "mock")) values)]
-    `(let [,@(interleave mock-syms values)]
-       (binding [,@(interleave symbols mock-syms)]
+    `(let [~@(interleave mock-syms values)]
+       (binding [~@(interleave symbols mock-syms)]
                 (try
-                  (do ,@body)
+                  (do ~@body)
                   (finally
-                    ,@(map (fn [m] `(reset-mock! ,m)) mock-syms)))))))
+                    ~@(map (fn [m] `(reset-mock! ~m)) mock-syms)))))))
 
 (defmacro with-mock-wrapper
   "Like with-mocks but for wrapped mocks (interop scenarios).
@@ -236,11 +236,11 @@
         wrappers (map (fn [g] (get g 2)) grouped)
         mock-syms (map (fn [_] (gensym "mock")) mocks)
         wrapper-syms (map (fn [_] (gensym "wrapper")) wrappers)
-        reset-forms (map (fn [m] `(reset-mock! ,m)) mock-syms)]
-    `(let [,@(interleave mock-syms mocks)
-           ,@(interleave wrapper-syms wrappers)]
-       (binding [,@(interleave symbols wrapper-syms)]
+        reset-forms (map (fn [m] `(reset-mock! ~m)) mock-syms)]
+    `(let [~@(interleave mock-syms mocks)
+           ~@(interleave wrapper-syms wrappers)]
+       (binding [~@(interleave symbols wrapper-syms)]
                 (try
-                  (do ,@body)
+                  (do ~@body)
                   (finally
-                    ,@reset-forms))))))
+                    ~@reset-forms))))))
