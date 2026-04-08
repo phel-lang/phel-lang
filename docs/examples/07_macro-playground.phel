@@ -4,9 +4,9 @@
 
 (defmacro timeline [& stages]
   (let [ordered (map-indexed (fn [idx stage]
-                               `(assoc ,stage :order ,(inc idx)))
+                               `(assoc ~stage :order ~(inc idx)))
                              stages)]
-    `(vector ,@ordered)))
+    `(vector ~@ordered)))
 
 (def launch-plan
   (timeline

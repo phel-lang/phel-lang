@@ -48,25 +48,25 @@
   {:example "(dbg (+ 1 2))"}
   [expr]
   (let [res (gensym)]
-    `(let [,res ,expr]
-       (println (str (print-str (quote ,expr)) " => " (print-str ,res)))
-       ,res)))
+    `(let [~res ~expr]
+       (println (str (print-str (quote ~expr)) " => " (print-str ~res)))
+       ~res)))
 
 (defmacro spy
   "Evaluates an expression and prints it with an optional label."
   {:example "(spy (+ 1 2))"}
   ([expr]
    (let [res (gensym)]
-     `(let [,res ,expr]
-        (println (str "SPY " (print-str (quote ,expr)) " => " (print-str ,res)))
-        ,res)))
+     `(let [~res ~expr]
+        (println (str "SPY " (print-str (quote ~expr)) " => " (print-str ~res)))
+        ~res)))
   ([label expr]
    (let [res (gensym)
          label-val (gensym)]
-     `(let [,label-val ,label
-            ,res ,expr]
-        (println (str "SPY " (print-str ,label-val) " => " (print-str ,res)))
-        ,res))))
+     `(let [~label-val ~label
+            ~res ~expr]
+        (println (str "SPY " (print-str ~label-val) " => " (print-str ~res)))
+        ~res))))
 
 (defn tap
   "Prints a value and returns it unchanged. Useful in pipelines."

@@ -11,7 +11,7 @@
 
 ;; --- &form is the original macro call form ---
 
-(defmacro capture-form [& _] `',&form)
+(defmacro capture-form [& _] `'~&form)
 
 (deftest test-form-equals-original-call
   (is (= '(capture-form) (capture-form)))
@@ -69,7 +69,7 @@
 
 ;; --- User can shadow &form / &env explicitly without duplicate-param errors ---
 
-(defmacro explicit-shadow [&form &env x] `',&form)
+(defmacro explicit-shadow [&form &env x] `'~&form)
 
 (deftest test-explicit-shadow-receives-call-form
   (is (= '(explicit-shadow :marker) (explicit-shadow :marker))))

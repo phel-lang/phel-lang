@@ -75,7 +75,7 @@
   [sym]
   (let [resolved-sym (resolve sym)]
     (when resolved-sym
-      `(println (find-doc ,(namespace resolved-sym) ,(name resolved-sym))))))
+      `(println (find-doc ~(namespace resolved-sym) ~(name resolved-sym))))))
 
 (defn- extract-alias [sym options]
   (if (:as options)
@@ -106,7 +106,7 @@
   (let [options (apply hash-map args)
         alias (extract-alias sym options)
         refers (or (:refer options) [])]
-    `(require-namespace ',sym ',alias ',refers)))
+    `(require-namespace '~sym '~alias '~refers)))
 
 (defn- use-namespace
   [namespace alias]
@@ -119,7 +119,7 @@
   [sym & args]
   (let [options (apply hash-map args)
         alias (extract-alias sym options)]
-    `(use-namespace ',sym ',alias)))
+    `(use-namespace '~sym '~alias)))
 
 (defn- print-colorful-str
   "Same as print-str from core, but with color."
@@ -228,7 +228,7 @@
   [sym]
   (let [resolved-sym (resolve sym)]
     (when resolved-sym
-      `(get-symbol-info ,(namespace resolved-sym) ,(name resolved-sym)))))
+      `(get-symbol-info ~(namespace resolved-sym) ~(name resolved-sym)))))
 
 (defn dir
   "Prints all public definitions in the given namespace string.
@@ -321,7 +321,7 @@
   [sym]
   (let [resolved-sym (resolve sym)]
     (when resolved-sym
-      `(get-source-code ,(namespace resolved-sym) ,(name resolved-sym)))))
+      `(get-source-code ~(namespace resolved-sym) ~(name resolved-sym)))))
 
 (defn ns-publics
   "Returns a hash-map of {name => value} for all public definitions in the
@@ -463,7 +463,7 @@
   {:example "(macroexpand-1 (defn foo [x] x))"
    :see-also ["macroexpand" "macroexpand-1-form" "macroexpand-form"]}
   [form]
-  `(macroexpand-1-form ',form))
+  `(macroexpand-1-form '~form))
 
 (defmacro macroexpand
   "Recursively expands the given form until it is no longer a macro call.
@@ -471,4 +471,4 @@
   {:example "(macroexpand (defn foo [x] x))"
    :see-also ["macroexpand-1" "macroexpand-1-form" "macroexpand-form"]}
   [form]
-  `(macroexpand-form ',form))
+  `(macroexpand-form '~form))

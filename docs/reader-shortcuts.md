@@ -49,19 +49,23 @@ Like quote, but allows selective evaluation with unquote:
 
 Equivalent to: `(quasiquote ...)`
 
-### Unquote `,`
+### Unquote `~`
 Evaluates an expression within a quasiquote:
 ```phel
 (let [x 5]
   `(1 ~x 3))      ; => (1 5 3)
 ```
 
-### Unquote-splicing `,@`
+> **Deprecated:** `,` as an unquote reader macro is deprecated. Use `~` instead to match Clojure's syntax.
+
+### Unquote-splicing `~@`
 Evaluates and splices a sequence into the containing form:
 ```phel
 (let [xs [2 3 4]]
-  `(1 ,@xs 5))    ; => (1 2 3 4 5)
+  `(1 ~@xs 5))    ; => (1 2 3 4 5)
 ```
+
+> **Deprecated:** `,@` as an unquote-splicing reader macro is deprecated. Use `~@` instead to match Clojure's syntax.
 
 ## Reader Conditionals
 
@@ -188,8 +192,8 @@ Attaches metadata to the following form:
 | `'()`       | List               | Quoted list (prevents eval)                    | `'(1 2 3)`         |
 | `'`         | Quote              | Prevent evaluation                             | `'x`               |
 | `` ` ``     | Quasiquote         | Quote with selective eval                      | `` `(1 ~x)``       |
-| `,`         | Unquote            | Evaluate within quasiquote                     | `,x`               |
-| `,@`        | Unquote-splice     | Splice sequence in quasiquote                  | `,@xs`             |
+| `~`         | Unquote            | Evaluate within quasiquote                     | `~x`               |
+| `~@`        | Unquote-splice     | Splice sequence in quasiquote                  | `~@xs`             |
 | `#?()`      | Reader conditional | Platform-specific code                         | `#?(:phel 1)`      |
 | `#?@()`     | Conditional splice | Splice by platform                             | `#?@(:phel [1 2])` |
 | `@`         | Deref              | Dereference an atom                            | `@my-atom`         |
