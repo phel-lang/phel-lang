@@ -1,0 +1,75 @@
+(ns phel-test\test\core\defmacro-env
+  (:require phel\test :refer [deftest is]))
+
+;; `&form` and `&env` are implicit leading params that every `defmacro`
+;; receives. `&form` holds the call form (the list written at the call
+;; site) and `&env` is a map of lexical bindings in scope at that site.
+;;
+;; Note: `is` unwraps 2-element predicate calls, so macro invocations get
+;; wrapped in `(= expected actual)` to prevent `assert-predicate` from
+;; analyzing the unquoted arguments as normal function call arguments.
+
+;; --- &form is the original macro call form ---
+
+(defmacro capture-form [& _] `',&form)
+
+(deftest test-form-equals-original-call
+  (is (= '(capture-form) (capture-form)))
+  (is (= '(capture-form 1 2 3) (capture-form 1 2 3))))
+
+;; --- &env contains lexical bindings as a Phel map ---
+
+(defmacro has-local? [sym] (contains? &env sym))
+
+(deftest test-env-reflects-let-bindings
+  (let [a 1 b 2]
+    (is (= true (has-local? a)))
+    (is (= true (has-local? b)))
+    (is (= false (has-local? c)))))
+
+(deftest test-env-reflects-fn-params
+  (let [f (fn [x y] (has-local? x))
+        g (fn [x y] (has-local? z))]
+    (is (= true (f 10 20)))
+    (is (= false (g 10 20)))))
+
+;; --- Dialect detection — the motivating use case from issue #1185 ---
+
+;; Phel is not ClojureScript — `(:ns &env)` is always nil, so portability
+;; macros that branch on `(:ns &env)` evaluate the Phel branch.
+(defmacro dialect [] (if (:ns &env) "cljs" "phel"))
+
+(deftest test-dialect-detection-returns-phel
+  (is (= "phel" (dialect))))
+
+;; --- Implicit-param injection does not break multi-arity dispatch ---
+
+(defmacro arity-name
+  ([] :zero)
+  ([_] :one)
+  ([_ _] :two))
+
+(deftest test-multi-arity-dispatch
+  (is (= :zero (arity-name)))
+  (is (= :one (arity-name 'a)))
+  (is (= :two (arity-name 'a 'b))))
+
+;; --- Implicit-param injection does not break variadic rest args ---
+
+(defmacro sum-args [& args] (apply + args))
+
+(deftest test-variadic-rest-args
+  (is (= 0 (sum-args)))
+  (is (= 10 (sum-args 1 2 3 4))))
+
+;; --- macroexpand-1 still works for core macros after the calling-convention change ---
+
+(deftest test-macroexpand-1-still-expands-core-macros
+  (is (= '(if true (do 1 2)) (macroexpand-1 '(when true 1 2)))))
+
+;; --- User can shadow &form / &env explicitly without duplicate-param errors ---
+
+(defmacro explicit-shadow [&form &env x] `',&form)
+
+(deftest test-explicit-shadow-receives-call-form
+  (is (= '(explicit-shadow :marker) (explicit-shadow :marker))))

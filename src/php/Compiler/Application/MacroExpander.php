@@ -74,7 +74,10 @@ final readonly class MacroExpander
             return $form;
         }
 
-        return $fn(...$args);
+        // Macros receive `&form` (the call form) and `&env` (lexical bindings map)
+        // as the first two arguments. This path has no surrounding analyzer env,
+        // so pass an empty env map.
+        return $fn($form, Phel::map(), ...$args);
     }
 
     /**

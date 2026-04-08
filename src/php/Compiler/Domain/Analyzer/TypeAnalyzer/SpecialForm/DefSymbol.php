@@ -16,18 +16,21 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 
 use function array_map;
+use function array_slice;
 use function assert;
 use function count;
 use function implode;
 use function in_array;
 use function is_scalar;
 use function is_string;
+use function max;
 
 /**
  * (def name value).
@@ -39,6 +42,9 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     use WithAnalyzerTrait;
 
     private const array POSSIBLE_TUPLE_SIZES = [3, 4];
+
+    /** Number of implicit parameters (`&form` and `&env`) injected into macro fns. */
+    private const int MACRO_IMPLICIT_PARAMS = 2;
 
     /**
      * @throws AbstractLocatedException
@@ -59,16 +65,23 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
 
         [$metaMap, $init] = $this->createMetaMapAndInit($list);
 
+        $isMacro = $metaMap[Keyword::create('macro')] === true;
+        if ($isMacro) {
+            $init = $this->injectMacroImplicitParams($init);
+        }
+
         $initNode = $this->analyzeInit($init, $env, $namespace, $nameSymbol);
+        $skip = $isMacro ? self::MACRO_IMPLICIT_PARAMS : 0;
         if ($initNode instanceof FnNode) {
-            $metaMap = $metaMap->put('min-arity', $initNode->getMinArity());
+            $metaMap = $metaMap->put('min-arity', max(0, $initNode->getMinArity() - $skip));
             $metaMap = $metaMap->put('is-variadic', $initNode->isVariadic());
-            $metaMap = $metaMap->put('arglists', $this->buildFnNodeArglist($initNode));
+            $metaMap = $metaMap->put('arglists', $this->buildFnNodeArglist($initNode, $skip));
         } elseif ($initNode instanceof MultiFnNode) {
-            $metaMap = $metaMap->put('min-arity', $initNode->getMinArity());
+            $metaMap = $metaMap->put('min-arity', max(0, $initNode->getMinArity() - $skip));
             $metaMap = $metaMap->put('is-variadic', $initNode->isVariadic());
-            $metaMap = $metaMap->put('max-arity', $initNode->getMaxArity());
-            $metaMap = $metaMap->put('arglists', $this->buildMultiFnNodeArglists($initNode));
+            $maxArity = $initNode->getMaxArity();
+            $metaMap = $metaMap->put('max-arity', $maxArity === null ? null : max(0, $maxArity - $skip));
+            $metaMap = $metaMap->put('arglists', $this->buildMultiFnNodeArglists($initNode, $skip));
         }
 
         $meta = $this->analyzer->analyze($metaMap, $env->withExpressionContext());
@@ -200,16 +213,16 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         return $this->analyzer->analyze($init, $initEnv);
     }
 
-    private function buildFnNodeArglist(FnNode $fnNode): string
+    private function buildFnNodeArglist(FnNode $fnNode, int $skipFirst = 0): string
     {
-        return $this->formatParamsVector($fnNode->getParams(), $fnNode->isVariadic());
+        return $this->formatParamsVector($fnNode->getParams(), $fnNode->isVariadic(), $skipFirst);
     }
 
-    private function buildMultiFnNodeArglists(MultiFnNode $multiFnNode): string
+    private function buildMultiFnNodeArglists(MultiFnNode $multiFnNode, int $skipFirst = 0): string
     {
         $vectors = [];
         foreach ($multiFnNode->getFnNodes() as $fnNode) {
-            $vectors[] = $this->formatParamsVector($fnNode->getParams(), $fnNode->isVariadic());
+            $vectors[] = $this->formatParamsVector($fnNode->getParams(), $fnNode->isVariadic(), $skipFirst);
         }
 
         return '(' . implode(' ', $vectors) . ')';
@@ -218,8 +231,12 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     /**
      * @param list<Symbol> $params
      */
-    private function formatParamsVector(array $params, bool $isVariadic): string
+    private function formatParamsVector(array $params, bool $isVariadic, int $skipFirst = 0): string
     {
+        if ($skipFirst > 0) {
+            $params = array_slice($params, $skipFirst);
+        }
+
         $names = array_map(
             static fn(Symbol $s): string => $s->getName(),
             $params,
@@ -232,5 +249,91 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         }
 
         return '[' . implode(' ', $names) . ']';
+    }
+
+    /**
+     * Rewrites a `(fn ...)` init expression to prepend `&form` and `&env` to each arity's
+     * parameter vector. Supports both single-arity and multi-arity fn forms. Returns the
+     * init unchanged if it is not a `(fn ...)` list or if the implicit params are already
+     * present (idempotent / Clojure-style shadowing).
+     */
+    private function injectMacroImplicitParams(mixed $init): mixed
+    {
+        if (!$init instanceof PersistentListInterface) {
+            return $init;
+        }
+
+        $head = $init->first();
+        if (!$head instanceof Symbol || $head->getName() !== Symbol::NAME_FN) {
+            return $init;
+        }
+
+        $second = $init->get(1);
+        if ($second instanceof PersistentVectorInterface) {
+            return $this->rewriteSingleArityFn($init);
+        }
+
+        if ($second instanceof PersistentListInterface) {
+            return $this->rewriteMultiArityFn($init);
+        }
+
+        return $init;
+    }
+
+    private function rewriteSingleArityFn(PersistentListInterface $fnList): PersistentListInterface
+    {
+        $items = $fnList->toArray();
+        /** @var PersistentVectorInterface $params */
+        $params = $items[1];
+        $items[1] = $this->prependImplicitParams($params);
+
+        return Phel::list($items)->copyLocationFrom($fnList);
+    }
+
+    private function rewriteMultiArityFn(PersistentListInterface $fnList): PersistentListInterface
+    {
+        $items = $fnList->toArray();
+        for ($i = 1, $n = count($items); $i < $n; ++$i) {
+            $arity = $items[$i];
+            if (!$arity instanceof PersistentListInterface) {
+                continue;
+            }
+
+            $arityItems = $arity->toArray();
+            if ($arityItems === []) {
+                continue;
+            }
+
+            if (!$arityItems[0] instanceof PersistentVectorInterface) {
+                continue;
+            }
+
+            $arityItems[0] = $this->prependImplicitParams($arityItems[0]);
+            $items[$i] = Phel::list($arityItems)->copyLocationFrom($arity);
+        }
+
+        return Phel::list($items)->copyLocationFrom($fnList);
+    }
+
+    private function prependImplicitParams(PersistentVectorInterface $params): PersistentVectorInterface
+    {
+        // Idempotency / shadowing guard: if the first two params are already `&form` and `&env`,
+        // leave the vector untouched so users can explicitly shadow.
+        if (count($params) >= 2) {
+            $first = $params->get(0);
+            $second = $params->get(1);
+            if (
+                $first instanceof Symbol && $first->getName() === '&form'
+                && $second instanceof Symbol && $second->getName() === '&env'
+            ) {
+                return $params;
+            }
+        }
+
+        $formSymbol = Symbol::create('&form')->copyLocationFrom($params);
+        $envSymbol = Symbol::create('&env')->copyLocationFrom($params);
+
+        return Phel::vector([$formSymbol, $envSymbol, ...$params->toArray()])
+            ->copyLocationFrom($params);
     }
 }

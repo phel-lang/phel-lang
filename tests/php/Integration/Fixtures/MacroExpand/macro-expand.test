@@ -9,7 +9,7 @@
   new class() extends \Phel\Lang\AbstractFn {
     public const BOUND_TO = "user\\foo";
 
-    public function __invoke($n) {
+    public function __invoke($_AMPERSAND_form, $_AMPERSAND_env, $n) {
       return \Phel::list([
         (\Phel\Lang\Symbol::create("php/+")),
         1,

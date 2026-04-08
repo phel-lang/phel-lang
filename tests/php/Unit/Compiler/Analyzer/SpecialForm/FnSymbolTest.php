@@ -120,13 +120,33 @@ final class FnSymbolTest extends TestCase
             true,
         ];
 
-        yield 'Start with an ampersand' => [
+        yield 'Start with an ampersand followed by a non-letter' => [
             '&-param-4',
             true,
         ];
 
         yield 'Start with a space' => [
             ' param-5',
+            true,
+        ];
+
+        yield '&form is allowed (Clojure-compatible macro param)' => [
+            '&form',
+            false,
+        ];
+
+        yield '&env is allowed (Clojure-compatible macro param)' => [
+            '&env',
+            false,
+        ];
+
+        yield 'Start with ampersand followed by underscore' => [
+            '&_special',
+            false,
+        ];
+
+        yield 'Start with ampersand followed by a digit' => [
+            '&1bad',
             true,
         ];
     }

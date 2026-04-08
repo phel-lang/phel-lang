@@ -89,7 +89,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         GlobalVarNode $f,
         NodeEnvironmentInterface $env,
     ): AbstractNode {
-        return $this->analyzer->analyzeMacro($this->macroExpand($list, $f), $env);
+        return $this->analyzer->analyzeMacro($this->macroExpand($list, $f, $env), $env);
     }
 
     private function inlineExpand(
@@ -104,7 +104,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         }
 
         try {
-            return $this->callMacroFn($fn, $list);
+            return $this->callInlineFn($fn, $list);
         } catch (Exception $exception) {
             throw AnalyzerException::whenExpandingInlineFn($list, $node, $exception);
         }
@@ -113,6 +113,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
     private function macroExpand(
         PersistentListInterface $list,
         GlobalVarNode $macroNode,
+        NodeEnvironmentInterface $env,
     ): float|bool|int|string|TypeInterface|array|null {
         /** @psalm-suppress PossiblyNullArgument */
         $nodeName = $macroNode->getName()->getName();
@@ -125,7 +126,7 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         }
 
         try {
-            return $this->callMacroFn($fn, $list);
+            return $this->callMacroFn($fn, $list, $env);
         } catch (Exception $exception) {
             throw AnalyzerException::whenExpandingMacro($list, $macroNode, $exception);
         }
@@ -134,11 +135,40 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
     private function callMacroFn(
         callable $fn,
         PersistentListInterface $list,
+        NodeEnvironmentInterface $env,
+    ): float|bool|int|string|TypeInterface|array|null {
+        $envMap = $this->buildEnvMap($env);
+        $arguments = $list->rest()->toArray();
+
+        $result = $fn($list, $envMap, ...$arguments);
+        return $this->enrichLocation($result, $list);
+    }
+
+    private function callInlineFn(
+        callable $fn,
+        PersistentListInterface $list,
     ): float|bool|int|string|TypeInterface|array|null {
         $arguments = $list->rest()->toArray();
 
         $result = $fn(...$arguments);
         return $this->enrichLocation($result, $list);
+    }
+
+    /**
+     * Builds the `&env` map passed to macro functions. Keys are symbols of the
+     * locals in scope at the macro call site; values mirror the keys. This
+     * mirrors Clojure's `&env` shape enough to support patterns like
+     * `(contains? &env 'x)`, `(keys &env)`, and `(:ns &env)`.
+     */
+    private function buildEnvMap(NodeEnvironmentInterface $env): PersistentMapInterface
+    {
+        $kvs = [];
+        foreach ($env->getLocals() as $local) {
+            $kvs[] = $local;
+            $kvs[] = $local;
+        }
+
+        return Phel::map(...$kvs);
     }
 
     private function enrichLocation(

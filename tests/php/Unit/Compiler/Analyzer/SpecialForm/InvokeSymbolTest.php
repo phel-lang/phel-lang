@@ -54,11 +54,12 @@ final class InvokeSymbolTest extends TestCase
             Phel::map('min-arity', 1, 'is-variadic', false, 'max-arity', 2),
         );
 
+        // Macros receive `&form` and `&env` as the first two implicit args.
         $env->addDefinition('user', Symbol::create('my-macro'));
         Phel::addDefinition(
             'user',
             'my-macro',
-            static fn($a) => $a,
+            static fn($form, $envMap, $a) => $a,
             Phel::map(Keyword::create('macro'), true),
         );
 
@@ -66,7 +67,7 @@ final class InvokeSymbolTest extends TestCase
         Phel::addDefinition(
             'user',
             'my-failed-macro',
-            static fn($a) => throw new Exception('my-failed-macro message'),
+            static fn($form, $envMap, $a) => throw new Exception('my-failed-macro message'),
             Phel::map(Keyword::create('macro'), true),
         );
 
@@ -332,7 +333,7 @@ final class InvokeSymbolTest extends TestCase
         Phel::addDefinition(
             $mungedNs,
             $macroName,
-            static fn($x) => $x,
+            static fn($form, $envMap, $x) => $x,
             Phel::map(Keyword::create('macro'), true),
         );
 

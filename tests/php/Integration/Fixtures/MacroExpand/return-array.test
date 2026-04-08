@@ -9,7 +9,7 @@
   new class() extends \Phel\Lang\AbstractFn {
     public const BOUND_TO = "user\\x";
 
-    public function __invoke($x) {
+    public function __invoke($_AMPERSAND_form, $_AMPERSAND_env, $x) {
       return array(1, 2, array(3, 4));
     }
   },

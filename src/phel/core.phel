@@ -262,7 +262,7 @@
 (def defn
   {:macro true
    :doc "Define a new global function."}
-  (fn [name & fdecl] (apply defn-builder name {} fdecl)))
+  (fn [name & fdecl] (apply defn-builder &form &env name {} fdecl)))
 
 (def def-
   {:macro true
@@ -272,17 +272,17 @@
 (def defmacro
   {:macro true
    :doc "Define a macro."}
-  (fn [name & fdecl] (apply defn-builder name {:macro true} fdecl)))
+  (fn [name & fdecl] (apply defn-builder &form &env name {:macro true} fdecl)))
 
 (defmacro defn-
   "Define a private function that will not be exported."
   [name & fdecl]
-  (apply defn-builder name {:private true} fdecl))
+  (apply defn-builder &form &env name {:private true} fdecl))
 
 (defmacro defmacro-
   "Define a private macro that will not be exported."
   [name & fdecl]
-  (apply defn-builder name {:macro true :private true} fdecl))
+  (apply defn-builder &form &env name {:macro true :private true} fdecl))
 
 (defmacro defstruct
   "A Struct is a special kind of Map. It only supports a predefined number of keys and is associated to a global name. The Struct not only defines itself but also a predicate function."
@@ -3942,7 +3942,10 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                 (apply (:inline meta) args)
                 (:macro meta)
                 (let [macro-fn (php/:: Phel (getDefinition ns name))]
-                  (apply macro-fn args))
+                  ;; Macros receive `&form` (the call form) and `&env`
+                  ;; (lexical bindings map) as the first two implicit args.
+                  ;; Outside of analyzer context pass an empty env map.
+                  (apply macro-fn form {} args))
                 :else
                 form))
             form))
