@@ -37,6 +37,12 @@
   (is (true? (int? 10)) "int? on 10")
   (is (true? (int? 0)) "int? on 10"))
 
+(deftest test-integer?
+  (is (false? (integer? 10.0)) "integer? on 10.0")
+  (is (false? (integer? 0.0)) "integer? on 0.0")
+  (is (true? (integer? 10)) "integer? on 10")
+  (is (true? (integer? 0)) "integer? on 10"))
+
 (deftest test-number?
   (is (true? (number? 10.0)) "number? on 10.0")
   (is (true? (number? 0.0)) "number? on 0.0")
