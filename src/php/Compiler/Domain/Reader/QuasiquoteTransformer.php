@@ -22,7 +22,6 @@ use function is_bool;
 use function is_float;
 use function is_int;
 use function is_string;
-use function str_ends_with;
 use function substr;
 
 final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInterface
@@ -185,7 +184,7 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
     {
         if ($form instanceof Symbol) {
             $name = $form->getFullName();
-            if (str_ends_with($name, Symbol::NAME_DOLLAR)) {
+            if ($this->isAutoGensymSymbol($name)) {
                 $base = substr($name, 0, -1) . '__';
                 $sym = $context->getSymbolOrCreate($base);
 
@@ -207,5 +206,11 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
             (Symbol::create(Symbol::NAME_QUOTE))->copyLocationFrom($form),
             $form,
         ])->copyLocationFrom($form);
+    }
+
+    private function isAutoGensymSymbol(string $name): bool
+    {
+        return str_ends_with($name, Symbol::NAME_DOLLAR)
+            || str_ends_with($name, Symbol::NAME_HASH);
     }
 }

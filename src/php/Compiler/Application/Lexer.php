@@ -44,7 +44,7 @@ final class Lexer implements LexerInterface
         "(\|\()", // short fn (index: 18)
         '(#\()', // hash fn (index: 19)
         '("(?:[^"\\\\]++|\\\\.)*+")', // String (index: 20)
-        "([^\(\)\[\]\{\}',`@ \n\r\t\#]+)", // Atom (index: 21)
+        "([^\(\)\[\]\{\}',`@ \n\r\t\#]+\#?)", // Atom (index: 21), trailing # allowed for gensym syntax (e.g. foo#)
         '(@)', // deref (index: 22)
         '(#"(?:[^"\\\\]++|\\\\.)*+")', // regex literal (index: 23)
         '(#\?\()', // reader conditional (index: 24 = T_READER_COND)

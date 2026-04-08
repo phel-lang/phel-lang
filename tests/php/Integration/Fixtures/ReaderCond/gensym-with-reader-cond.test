@@ -1,0 +1,4 @@
+--PHEL--
+`(let [x# #?(:phel 1 :default 2)] x#)
+--PHP--
+(\Phel::getDefinition("phel\\core", "list"))(...(((\Phel::getDefinition("phel\\core", "concat"))((\Phel::getDefinition("phel\\core", "list"))((\Phel\Lang\Symbol::create("let"))), (\Phel::getDefinition("phel\\core", "list"))((\Phel::getDefinition("phel\\core", "vector"))(...(((\Phel::getDefinition("phel\\core", "concat"))((\Phel::getDefinition("phel\\core", "list"))((\Phel\Lang\Symbol::create("x__1"))), (\Phel::getDefinition("phel\\core", "list"))(1))) ?? []))), (\Phel::getDefinition("phel\\core", "list"))((\Phel\Lang\Symbol::create("x__1"))))) ?? []));

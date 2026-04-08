@@ -404,6 +404,25 @@ final class LexerTest extends TestCase
         self::assertSame('#?@(', $tokens[0]->getCode());
     }
 
+    public function test_atom_with_trailing_hash_is_single_token(): void
+    {
+        $tokens = $this->lex('foo#');
+        self::assertSame(Token::T_ATOM, $tokens[0]->getType());
+        self::assertSame('foo#', $tokens[0]->getCode());
+        self::assertSame(Token::T_EOF, $tokens[1]->getType());
+    }
+
+    public function test_atom_with_trailing_hash_followed_by_reader_conditional(): void
+    {
+        $tokens = $this->lex('report-success# #?(:phel 1 :default 2)');
+
+        self::assertSame(Token::T_ATOM, $tokens[0]->getType());
+        self::assertSame('report-success#', $tokens[0]->getCode());
+        self::assertSame(Token::T_WHITESPACE, $tokens[1]->getType());
+        self::assertSame(Token::T_READER_COND, $tokens[2]->getType());
+        self::assertSame('#?(', $tokens[2]->getCode());
+    }
+
     private function lex(string $string): array
     {
         $lexer = $this->compilerFactory->createLexer();

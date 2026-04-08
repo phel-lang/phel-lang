@@ -327,6 +327,20 @@ final class ReaderTest extends TestCase
         self::assertTrue($l1->equals($l2));
     }
 
+    public function test_quasiquote_auto_gensym_hash_suffix(): void
+    {
+        $l1 = $this->read('(apply list (concat (list (quote foo__1)) (list (quote bar__2))))', true);
+        $l2 = $this->read('`(foo# bar#)', true);
+        self::assertTrue($l1->equals($l2));
+    }
+
+    public function test_quasiquote_auto_gensym_hash_suffix_cached_value(): void
+    {
+        $l1 = $this->read('(apply list (concat (list (quote foo__1)) (list (quote foo__1))))', true);
+        $l2 = $this->read('`(foo# foo#)', true);
+        self::assertTrue($l1->equals($l2));
+    }
+
     public function test_read_string(): void
     {
         self::assertSame(

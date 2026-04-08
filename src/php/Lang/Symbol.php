@@ -88,6 +88,8 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
 
     public const string NAME_DOLLAR = '$';
 
+    public const string NAME_HASH = '#';
+
     public const string NAME_LOAD = 'load';
 
     public const string NAME_IN_NS = 'in-ns';
