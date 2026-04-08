@@ -154,6 +154,14 @@
 (deftest test-some?-empty-element
   (is (false? (some? #(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
 
+(deftest test-some?-1-arg-clojure-semantics
+  (is (true? (some? 0))           "0 is not nil")
+  (is (true? (some? false))       "false is not nil (nil-test, not truthy-test)")
+  (is (true? (some? ""))          "empty string is not nil")
+  (is (true? (some? []))          "empty vector is not nil")
+  (is (false? (some? nil))        "nil returns false")
+  (is (true? (some? "anything"))  "string value is not nil"))
+
 (deftest test-not-any?
   (is (false? (not-any? pos? [1 -1 3])) "not-any? one pos")
   (is (true? (not-any? pos? [])) "not-any? empty list")

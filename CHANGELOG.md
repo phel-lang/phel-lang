@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- 1-arg `(some? x)` form returning `true` when `x` is not `nil`, matching Clojure semantics; the existing 2-arg `(some? pred coll)` form keeps working unchanged (#1184)
 - Accept Clojure-style vector entries in `:require`, e.g. `(:require [phel\str :as s :refer [upper-case]])`, including multiple vector entries in a single `:require` clause, for `.cljc` interop (#1183)
 - Accept `.` as an alternate namespace separator in `(ns ...)`, `(in-ns ...)`, `:require`, and `:use` forms, enabling Clojure-style namespaces (e.g. `(ns my.cljc.file)`) for `.cljc` interop (#1177)
 
