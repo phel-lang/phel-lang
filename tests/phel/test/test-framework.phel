@@ -1,18 +1,20 @@
 (ns phel-test\test\test-framework
-  (:require phel\test :refer [deftest is]))
+  (:require phel\test :refer [deftest is get-stats reset-stats restore-stats]))
 
-;; Tests for the `is` macro's (not ...) assertion forms.
+;; Behavior coverage for the `is` macro and its built-in dispatch arms.
 ;;
-;; These verify that (is (not (pred val))) and (is (not (= a b)))
-;; correctly pass when the negated condition holds — i.e. when the
-;; inner expression is falsy.
+;; These tests exercise the public surface of `phel\test/is` end-to-end:
+;; pass paths run as ordinary `is` assertions, while fail/error paths use
+;; the `get-stats`/`reset-stats`/`restore-stats` snapshot pattern so the
+;; failure is observed in isolation without polluting the outer suite.
+;; Output from the inner `is` is silenced via `with-output-buffer`.
 ;;
-;; Prior to the fix, `assert-expr` passed the outer (not ...) form
-;; to assert-predicate/assert-binary instead of the inner form,
-;; causing a double-negation that inverted the assertion result.
+;; Each dispatch arm of the multimethod (`'not`, `'thrown?`,
+;; `'thrown-with-msg?`, `'output?`, predicate, binary, and the
+;; `:default` "any" form) is covered for both passing and failing inputs.
 
 ;; ---------------------------------------------------------------------------
-;; (is (not (pred val))) — single-arg predicate negation
+;; 'not — predicate negation passes when inner is false
 ;; ---------------------------------------------------------------------------
 
 (deftest test-is-not-predicate-passes-when-predicate-is-false
@@ -22,8 +24,17 @@
   (is (not (zero? 5)) "not zero? passes for non-zero")
   (is (not (empty? [1 2 3])) "not empty? passes for non-empty"))
 
+(deftest test-is-not-predicate-fails-when-predicate-is-true
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer (is (not (nil? nil))))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 1 (:failed counts)) "not nil? on nil records a failure")
+    (is (= 0 (:pass counts)) "no pass recorded")))
+
 ;; ---------------------------------------------------------------------------
-;; (is (not (pred a b))) — binary predicate negation
+;; 'not — binary negation passes when inner predicate is false
 ;; ---------------------------------------------------------------------------
 
 (deftest test-is-not-binary-passes-when-predicate-is-false
@@ -31,3 +42,172 @@
   (is (not (= :playing :lost)) "not = passes for different keywords")
   (is (not (< 5 3)) "not < passes when left is not less than right")
   (is (not (> 1 10)) "not > passes when left is not greater than right"))
+
+(deftest test-is-not-binary-fails-when-predicate-is-true
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer (is (not (= 1 1))))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 1 (:failed counts)) "not (= 1 1) records a failure")))
+
+;; ---------------------------------------------------------------------------
+;; 'thrown? — passes when body throws the expected exception type
+;; ---------------------------------------------------------------------------
+
+(deftest test-is-thrown-passes-when-exception-type-matches
+  (is (thrown? \InvalidArgumentException
+               (throw (php/new \InvalidArgumentException "boom")))
+      "thrown? passes when matching exception is thrown")
+  (is (thrown? \Exception
+               (throw (php/new \RuntimeException "boom")))
+      "thrown? passes for subclass of expected exception"))
+
+(deftest test-is-thrown-fails-when-no-exception-thrown
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer
+            (is (thrown? \InvalidArgumentException (+ 1 1))))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 1 (:failed counts)) "thrown? without throw records a failure")))
+
+;; ---------------------------------------------------------------------------
+;; 'thrown-with-msg? — passes when body throws with the expected message
+;; ---------------------------------------------------------------------------
+
+(deftest test-is-thrown-with-msg-passes-when-message-matches
+  (is (thrown-with-msg? \InvalidArgumentException "boom"
+                        (throw (php/new \InvalidArgumentException "boom")))
+      "thrown-with-msg? passes when message matches exactly"))
+
+(deftest test-is-thrown-with-msg-fails-when-no-exception
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer
+            (is (thrown-with-msg? \InvalidArgumentException "boom" (+ 1 1))))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 1 (:failed counts)) "thrown-with-msg? without throw records a failure")))
+
+(deftest test-is-thrown-with-msg-fails-when-message-differs
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer
+            (is (thrown-with-msg? \InvalidArgumentException "expected"
+                                  (throw (php/new \InvalidArgumentException "different")))))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 1 (:failed counts)) "thrown-with-msg? with wrong message records a failure")))
+
+;; ---------------------------------------------------------------------------
+;; 'output? — passes when body's stdout matches the expected string
+;; ---------------------------------------------------------------------------
+
+(deftest test-is-output-passes-when-output-matches
+  (is (output? "hello" (print "hello")) "output? passes when print emits expected text"))
+
+(deftest test-is-output-fails-when-output-differs
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer
+            (is (output? "expected" (print "actual"))))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 1 (:failed counts)) "output? mismatch records a failure")))
+
+;; ---------------------------------------------------------------------------
+;; :default — binary predicate (3-element list)
+;; ---------------------------------------------------------------------------
+
+(deftest test-is-binary-default-passes
+  (is (= 4 (+ 2 2)) "= passes for equal values")
+  (is (< 1 2) "< passes for ordered values")
+  (is (> 10 5) "> passes for reverse-ordered values"))
+
+(deftest test-is-binary-default-fails
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer (is (= 1 2)))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 1 (:failed counts)) "= on unequal values records a failure")))
+
+;; ---------------------------------------------------------------------------
+;; :default — unary predicate (2-element list)
+;; ---------------------------------------------------------------------------
+
+(deftest test-is-predicate-default-passes
+  (is (nil? nil) "nil? passes for nil")
+  (is (true? true) "true? passes for true")
+  (is (zero? 0) "zero? passes for zero"))
+
+(deftest test-is-predicate-default-fails
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer (is (nil? 1)))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 1 (:failed counts)) "nil? on non-nil records a failure")))
+
+;; ---------------------------------------------------------------------------
+;; :default — "any" arm (4+ element lists fall through to assert-any)
+;; ---------------------------------------------------------------------------
+
+(deftest test-is-any-passes-for-truthy-list-result
+  (is (and true 1 2 3) "and of truthy values evaluates to truthy")
+  (is (or false nil 42 :unused) "or returns first truthy value"))
+
+(deftest test-is-any-fails-when-list-result-is-falsy
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer (is (and true false 1 2)))
+        _ (with-output-buffer (is (or false nil false nil)))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 2 (:failed counts)) "falsy and/or expressions both record failures")))
+
+;; ---------------------------------------------------------------------------
+;; Error path — `is` catches exceptions raised by the assertion body and
+;; reports them as :error (distinct from :failed).
+;; ---------------------------------------------------------------------------
+
+(deftest test-is-records-error-when-body-throws
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer
+            (is (= 1 (throw (php/new \RuntimeException "boom inside is")))))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 1 (:error counts)) "uncaught exception in assertion is reported as :error")
+    (is (= 0 (:failed counts)) "not counted as a failure")))
+
+;; ---------------------------------------------------------------------------
+;; Stats accounting — pass increments :pass and :total without touching :failed
+;; ---------------------------------------------------------------------------
+
+(deftest test-passing-assertion-increments-pass-and-total-only
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer (is (= 1 1)))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 1 (:pass counts)) "pass count incremented")
+    (is (= 0 (:failed counts)) "failed count untouched")
+    (is (= 0 (:error counts)) "error count untouched")
+    (is (= 1 (:total counts)) "total incremented")))
+
+;; ---------------------------------------------------------------------------
+;; Stats accounting — failing assertion captures the failure data
+;; ---------------------------------------------------------------------------
+
+(deftest test-failing-assertion-records-failure-data
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer (is (= 1 2) "intentional failure"))
+        snapshot (get-stats)]
+    (restore-stats saved)
+    (is (= 1 (count (get snapshot :failed))) "one failure recorded in :failed list")
+    (let [failure (first (get snapshot :failed))]
+      (is (= "intentional failure" (get failure :message))
+          "failure preserves the user-provided message"))))
