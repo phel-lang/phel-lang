@@ -88,10 +88,6 @@ abstract class AbstractZipper
 
         $leftSiblings = $this->leftSiblings;
         $lastIndex = array_key_last($leftSiblings);
-        if ($lastIndex === null) {
-            throw ZipperException::cannotGoLeftOnTheLeftmostNode();
-        }
-
         /** @var T $left */
         $left = $leftSiblings[$lastIndex];
         unset($leftSiblings[$lastIndex]);
@@ -182,19 +178,7 @@ abstract class AbstractZipper
         assert($this->parent instanceof self);
 
         if ($this->hasChanged) {
-            $newParent = $this->makeNode(
-                $this->parent->getNode(),
-                [...$this->leftSiblings, $this->node, ...$this->rightSiblings],
-            );
-
-            return $this->createNewInstance(
-                $newParent,
-                $this->parent->parent,
-                $this->parent->lefts(),
-                $this->parent->rights(),
-                true,
-                $this->parent->isEnd(),
-            );
+            return $this->reconstructParentFromChange();
         }
 
         /** @var static<T> $parent */
@@ -258,17 +242,7 @@ abstract class AbstractZipper
             return $this->right();
         }
 
-        $up = $this;
-        while ($up->isLast() && !$up->isTop()) {
-            $up = $up->up();
-        }
-
-        if ($up->isTop()) {
-            $up->isEnd = true;
-            return $up;
-        }
-
-        return $up->right();
+        return $this->backtrackToNextSibling();
     }
 
     public function prev(): static
@@ -387,36 +361,9 @@ abstract class AbstractZipper
 
         assert($this->parent instanceof self);
 
-        if (!$this->isFirst()) {
-            $leftSiblings = $this->leftSiblings;
-            $left = array_pop($leftSiblings);
-            if ($left === null) {
-                throw new RuntimeException('Unable to remove node: missing left sibling.');
-            }
-
-            $loc = $this->createNewInstance(
-                $left,
-                $this->parent,
-                $leftSiblings,
-                $this->rightSiblings,
-                true,
-                false,
-            );
-            while ($loc->isBranch() && $loc->hasChildren()) {
-                $loc = $loc->down()->rightMost();
-            }
-
-            return $loc;
-        }
-
-        return $this->createNewInstance(
-            $this->makeNode($this->parent->getNode(), $this->rightSiblings),
-            $this->parent->parent,
-            $this->parent->lefts(),
-            $this->parent->rights(),
-            true,
-            $this->parent->isEnd(),
-        );
+        return $this->isFirst()
+            ? $this->removeFirstChild()
+            : $this->removeNonFirstSibling();
     }
 
     public function isEnd(): bool
@@ -458,4 +405,115 @@ abstract class AbstractZipper
         bool $hasChanged,
         bool $isEnd,
     ): static;
+
+    /**
+     * Rebuilds the parent node from the current (changed) siblings and
+     * returns a new zipper positioned at that parent, preserving the
+     * parent's own lefts/rights/end state and marking the result as changed.
+     *
+     * @return static<T>
+     */
+    private function reconstructParentFromChange(): static
+    {
+        assert($this->parent instanceof self);
+
+        $newParent = $this->makeNode(
+            $this->parent->getNode(),
+            [...$this->leftSiblings, $this->node, ...$this->rightSiblings],
+        );
+
+        /** @var static<T> $newInstance */
+        $newInstance = $this->createNewInstance(
+            $newParent,
+            $this->parent->parent,
+            $this->parent->lefts(),
+            $this->parent->rights(),
+            true,
+            $this->parent->isEnd(),
+        );
+
+        return $newInstance;
+    }
+
+    /**
+     * Walks up the tree while the current location is the last sibling,
+     * stopping at the next ancestor that has a right sibling. If the walk
+     * reaches the root, marks the zipper as ended and returns it.
+     *
+     * @return static<T>
+     */
+    private function backtrackToNextSibling(): static
+    {
+        $up = $this;
+        while ($up->isLast() && !$up->isTop()) {
+            $up = $up->up();
+        }
+
+        if ($up->isTop()) {
+            $up->isEnd = true;
+            /** @var static<T> $up */
+            return $up;
+        }
+
+        /** @var static<T> $next */
+        $next = $up->right();
+        return $next;
+    }
+
+    /**
+     * Handles removal when the current location is not the first child:
+     * pops the last left sibling to become the new location and then
+     * descends to the rightmost leaf under that subtree.
+     *
+     * @return static<T>
+     */
+    private function removeNonFirstSibling(): static
+    {
+        assert($this->parent instanceof self);
+
+        $leftSiblings = $this->leftSiblings;
+        $left = array_pop($leftSiblings);
+        if ($left === null) {
+            throw new RuntimeException('Unable to remove node: missing left sibling.');
+        }
+
+        $loc = $this->createNewInstance(
+            $left,
+            $this->parent,
+            $leftSiblings,
+            $this->rightSiblings,
+            true,
+            false,
+        );
+        while ($loc->isBranch() && $loc->hasChildren()) {
+            $loc = $loc->down()->rightMost();
+        }
+
+        /** @var static<T> $loc */
+        return $loc;
+    }
+
+    /**
+     * Handles removal when the current location is the first child:
+     * rebuilds the parent node from the remaining right siblings and
+     * returns a zipper positioned at that new parent.
+     *
+     * @return static<T>
+     */
+    private function removeFirstChild(): static
+    {
+        assert($this->parent instanceof self);
+
+        /** @var static<T> $newInstance */
+        $newInstance = $this->createNewInstance(
+            $this->makeNode($this->parent->getNode(), $this->rightSiblings),
+            $this->parent->parent,
+            $this->parent->lefts(),
+            $this->parent->rights(),
+            true,
+            $this->parent->isEnd(),
+        );
+
+        return $newInstance;
+    }
 }
