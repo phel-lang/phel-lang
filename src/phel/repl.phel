@@ -77,6 +77,11 @@
     (when resolved-sym
       `(println (find-doc ~(namespace resolved-sym) ~(name resolved-sym))))))
 
+(defn- unquote-sym [sym]
+  (if (and (list? sym) (= 'quote (first sym)))
+    (second sym)
+    sym))
+
 (defn- extract-alias [sym options]
   (if (:as options)
     (:as options)
@@ -101,9 +106,10 @@
 
 (defmacro require
   "Requires a Phel module into the environment."
-  {:example "(require phel\http :as http :refer [request]) ; => phel\\http"}
+  {:example "(require 'phel\\http :as http :refer [request]) ; => phel\\http"}
   [sym & args]
-  (let [options (apply hash-map args)
+  (let [sym (unquote-sym sym)
+        options (apply hash-map args)
         alias (extract-alias sym options)
         refers (or (:refer options) [])]
     `(require-namespace '~sym '~alias '~refers)))
@@ -117,7 +123,8 @@
   "Adds a use statement to the environment."
   {:example "(use DateTime :as DT) ; => DateTime"}
   [sym & args]
-  (let [options (apply hash-map args)
+  (let [sym (unquote-sym sym)
+        options (apply hash-map args)
         alias (extract-alias sym options)]
     `(use-namespace '~sym '~alias)))
 
