@@ -1,5 +1,5 @@
 (ns phel-test\test\repl
-  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers find-fn test-ns eval-capturing eval-str macroexpand-1-form macroexpand-form ns-list loaded-namespaces])
+  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers find-fn test-ns eval-capturing eval-str macroexpand-1-form macroexpand-form macroexpand-1 macroexpand ns-list loaded-namespaces])
   (:require phel\str :as s)
   (:require phel\test :refer [deftest is]))
 
@@ -278,6 +278,34 @@
   (let [form '(php/+ 1 2)
         expanded (macroexpand-form form)]
     (is (= form expanded) "non-macro form is returned unchanged")))
+
+;; ----------------
+;; macroexpand-1 (macro)
+;; ----------------
+
+(deftest test-macroexpand-1-quoted-form
+  (is (= '(if true (do 1 2))
+         (macroexpand-1 '(when true 1 2)))
+      "macroexpand-1 expands a quoted macro form"))
+
+(deftest test-macroexpand-1-unquoted-form
+  (is (= '(if true (do 1 2))
+         (macroexpand-1 (when true 1 2)))
+      "macroexpand-1 expands an unquoted macro form"))
+
+;; ----------------
+;; macroexpand (macro)
+;; ----------------
+
+(deftest test-macroexpand-quoted-form
+  (is (= '(+ 1 2)
+         (macroexpand '(-> 1 (+ 2))))
+      "macroexpand fully expands a quoted macro form"))
+
+(deftest test-macroexpand-unquoted-form
+  (is (= '(+ 1 2)
+         (macroexpand (-> 1 (+ 2))))
+      "macroexpand fully expands an unquoted macro form"))
 
 ;; -------
 ;; ns-list
