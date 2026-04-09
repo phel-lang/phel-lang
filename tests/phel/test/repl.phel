@@ -327,6 +327,16 @@
          (macroexpand (-> 1 (+ 2))))
       "unquoted threading evaluates to result, matching Clojure"))
 
+(deftest test-macroexpand-nested-expands-top-level-only
+  (is (= '(if 1 (do (when 2 3)))
+         (macroexpand '(when 1 (when 2 3))))
+      "macroexpand expands only the top-level form, not sub-forms"))
+
+(deftest test-macroexpand-1-nested-expands-top-level-only
+  (is (= '(if 1 (do (when 2 3)))
+         (macroexpand-1 '(when 1 (when 2 3))))
+      "macroexpand-1 expands only the outermost when"))
+
 (deftest test-macroexpand-quoted-non-macro-unchanged
   (is (= '(+ 1 2)
          (macroexpand '(+ 1 2)))
