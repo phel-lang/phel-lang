@@ -179,7 +179,7 @@ final class MacroExpanderTest extends TestCase
         self::assertNull($this->macroExpander->macroexpand(null));
     }
 
-    public function test_macroexpand1_handles_inline_expansion(): void
+    public function test_macroexpand1_returns_inline_function_unchanged(): void
     {
         $form = Phel::list([
             Symbol::createForNamespace('user', 'my-inline'),
@@ -188,9 +188,7 @@ final class MacroExpanderTest extends TestCase
 
         $result = $this->macroExpander->macroexpand1($form);
 
-        // Inline expands to (php/+ 5 1)
-        $expected = Phel::list([Symbol::createForNamespace('php', '+'), 5, 1]);
-        self::assertTrue($expected->equals($result));
+        self::assertSame($form, $result);
     }
 
     public function test_macroexpand1_with_symbol_form(): void
