@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Allow `require` and `use` to accept quoted symbols in the REPL (e.g. `(require 'phel\str)`), matching Clojure semantics and enabling nREPL client compatibility (#1211)
 - Automatic namespace aliasing: `clojure.*` namespaces in `:require` resolve to `phel.*` automatically (e.g. `clojure.test` → `phel\test`), enabling Clojure test suites to run without manual patching (#1207)
 - Accept `~` and `~@` as reader macros for `unquote` and `unquote-splicing` inside syntax-quote (alongside the existing `,` and `,@`), matching Clojure's syntax for `.cljc` interop (#1201)
 - `integer?` Clojure compatibility alias function for `int?`
