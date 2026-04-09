@@ -67,6 +67,22 @@ Evaluates and splices a sequence into the containing form:
 
 > **Deprecated:** `,@` as an unquote-splicing reader macro is deprecated. Use `~@` instead to match Clojure's syntax.
 
+### Auto-gensym `name#`
+Inside a syntax-quote, a symbol ending in `#` is replaced with a freshly generated, unique symbol. All occurrences of the same `name#` within the same syntax-quote resolve to the same generated name, which makes hygienic macros easy to write without manually calling `gensym`:
+
+```phel
+(defmacro time
+  [expr]
+  `(let [start# (php/microtime true)
+         ret#   ~expr]
+     (println "Elapsed:" (- (php/microtime true) start#) "secs")
+     ret#))
+```
+
+Each macro expansion produces a fresh `start__123__auto__` / `ret__124__auto__` pair, so the generated bindings cannot collide with user code.
+
+> **Deprecated:** `name$` as an auto-gensym suffix is deprecated. Use `name#` instead to match Clojure's reader macro.
+
 ## Reader Conditionals
 
 ### Platform Conditional `#?()`
@@ -194,6 +210,7 @@ Attaches metadata to the following form:
 | `` ` ``     | Quasiquote         | Quote with selective eval                      | `` `(1 ~x)``       |
 | `~`         | Unquote            | Evaluate within quasiquote                     | `~x`               |
 | `~@`        | Unquote-splice     | Splice sequence in quasiquote                  | `~@xs`             |
+| `name#`     | Auto-gensym        | Hygienic generated symbol in syntax-quote      | `` `(let [g# ~x] g#)`` |
 | `#?()`      | Reader conditional | Platform-specific code                         | `#?(:phel 1)`      |
 | `#?@()`     | Conditional splice | Splice by platform                             | `#?@(:phel [1 2])` |
 | `@`         | Deref              | Dereference an atom                            | `@my-atom`         |

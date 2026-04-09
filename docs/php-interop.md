@@ -92,6 +92,31 @@ Use `:use` for PHP classes:
 (php/new Request)
 ```
 
+### Requiring Phel Namespaces
+
+`:require` accepts both list-style and Clojure-style vector entries, so the same form works in plain `.phel` files and shared `.cljc` files:
+
+```phel
+;; Phel-style list entry
+(ns app\services
+  (:require phel\str :as str)
+  (:require phel\json :as json :refer [encode decode]))
+
+;; Clojure-style vector entry — same meaning
+(ns app\services
+  (:require [phel\str :as str]
+            [phel\json :as json :refer [encode decode]]))
+```
+
+You can also use `.` as an alternate namespace separator (in addition to `\`), which makes Clojure-shaped namespaces parse cleanly in `.cljc` files:
+
+```phel
+(ns my.cljc.file
+  (:require [phel.str :as str]))
+```
+
+Both `phel\str` and `phel.str` resolve to the same namespace.
+
 ## Type Conversions
 
 ### Phel → PHP
@@ -326,7 +351,12 @@ $response->send();
 - **Method calls**: `(php/-> obj (method))` not `(.method obj)`
 - **Deref**: `@my-atom` works as shorthand for `(deref my-atom)`, just like Clojure
 - **Import classes**: Use `:use` in `ns`, not `:import`
+- **Require vectors**: Clojure-style `(:require [phel\str :as str :refer [upper-case]])` works alongside the older list form
+- **Namespace separators**: Both `\` and `.` work — `phel\str` and `phel.str` resolve to the same namespace
 - **Reader conditionals**: `#?(:phel ...)` and `#?@(:phel ...)` work for cross-platform `.cljc` files
+- **Unquote**: Use `~` and `~@` inside syntax-quote (the older `,` / `,@` are deprecated)
+- **Auto-gensym**: `name#` inside syntax-quote produces a unique symbol (the older `name$` is deprecated)
+- **Macro env**: `&form` and `&env` are implicitly bound inside every `defmacro`, just like Clojure. `&env` is a map of in-scope locals keyed by symbol; `(:ns &env)` is always `nil` (matching Clojure on the JVM), so the standard `.cljc` `(if (:ns &env) "cljs" ...)` dialect-detection trick lands on the non-cljs branch
 - **Lambda syntax**: `#(+ %1 %2)` is the recommended syntax. `|(+ $1 $2)` is deprecated
 - **PHP arrays**: Work with them directly or convert to Phel collections
 

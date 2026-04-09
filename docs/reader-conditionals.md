@@ -94,7 +94,7 @@ Phel automatically discovers and compiles `.cljc` files alongside `.phel` files.
 
 ```phel
 ;; src/shared/utils.cljc
-(ns shared\utils)
+(ns shared.utils)
 
 (defn now []
   #?(:phel  (php/time)
@@ -107,17 +107,21 @@ Phel automatically discovers and compiles `.cljc` files alongside `.phel` files.
      :default "unknown"))
 ```
 
+> **Tip:** `.cljc` files can use either `\` or `.` as the namespace separator (`shared\utils` or `shared.utils`). Both forms resolve to the same namespace, so the dot form parses cleanly under Clojure too.
+
 ### Platform-specific dependencies
 
 ```phel
-(ns app\http
-  #?(:phel (:require phel\json :as json))
-  #?(:clj  (:require [clojure.data.json :as json])))
+(ns app.http
+  #?(:phel (:require [phel.json :as json])
+     :clj  (:require [clojure.data.json :as json])))
 
 (defn parse [s]
   #?(:phel (json/decode s)
      :clj  (json/read-str s)))
 ```
+
+> Phel accepts both Clojure-style vector entries (`[phel.json :as json :refer [encode]]`) and the older list form (`phel\json :as json`) inside `:require`, so the same `(ns ...)` form parses on both sides.
 
 ### Conditional data structures
 
