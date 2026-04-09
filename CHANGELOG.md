@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Automatic namespace aliasing: `clojure.*` namespaces in `:require` resolve to `phel.*` automatically (e.g. `clojure.test` → `phel\test`), enabling Clojure test suites to run without manual patching (#1207)
 - Accept `~` and `~@` as reader macros for `unquote` and `unquote-splicing` inside syntax-quote (alongside the existing `,` and `,@`), matching Clojure's syntax for `.cljc` interop (#1201)
 - `integer?` Clojure compatibility alias function for `int?`
 - `phel\test/assert-expr` is now an open multimethod (was a closed private function), letting users extend the `is` macro with custom assertion forms via `(defmethod phel\test/assert-expr 'my-form [form message] ...)`, matching Clojure's `clojure.test/assert-expr` (#1188)

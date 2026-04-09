@@ -761,6 +761,178 @@ final class NsSymbolTest extends TestCase
         self::assertSame('\\Vendor\\Toolkit', $kitNode->getName()->getName());
     }
 
+    public function test_clojure_namespace_remapped_to_phel_in_require(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app\\core'),
+            Phel::list([
+                Keyword::create('require'),
+                Symbol::create('clojure\\test'),
+            ]),
+        ]);
+
+        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertEquals([
+            Symbol::create('phel\\core'),
+            Symbol::create('phel\\test'),
+        ], $nsNode->getRequireNs());
+    }
+
+    public function test_clojure_namespace_auto_alias_points_to_phel(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app\\core'),
+            Phel::list([
+                Keyword::create('require'),
+                Symbol::create('clojure\\test'),
+            ]),
+        ]);
+
+        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('test')));
+        self::assertSame('phel\\test', $this->globalEnv->resolveAlias('test'));
+    }
+
+    public function test_clojure_namespace_with_explicit_as_alias(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app\\core'),
+            Phel::list([
+                Keyword::create('require'),
+                Symbol::create('clojure\\test'),
+                Keyword::create('as'),
+                Symbol::create('t'),
+            ]),
+        ]);
+
+        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('t')));
+        self::assertSame('phel\\test', $this->globalEnv->resolveAlias('t'));
+    }
+
+    public function test_clojure_namespace_with_refer(): void
+    {
+        Phel::addDefinition('phel\\test', 'deftest', 'value', Phel::map());
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app\\core'),
+            Phel::list([
+                Keyword::create('require'),
+                Symbol::create('clojure\\test'),
+                Keyword::create('refer'),
+                Phel::vector([
+                    Symbol::create('deftest'),
+                ]),
+            ]),
+        ]);
+
+        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        $node = $this->globalEnv->resolve(Symbol::create('deftest'), NodeEnvironment::empty());
+        self::assertInstanceOf(GlobalVarNode::class, $node);
+        self::assertSame('phel\\test', $node->getNamespace());
+    }
+
+    public function test_clojure_namespace_original_registered_as_alias(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app\\core'),
+            Phel::list([
+                Keyword::create('require'),
+                Symbol::create('clojure\\test'),
+            ]),
+        ]);
+
+        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('clojure\\test')));
+        self::assertSame('phel\\test', $this->globalEnv->resolveAlias('clojure\\test'));
+    }
+
+    public function test_clojure_namespace_via_dot_syntax(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app.core'),
+            Phel::list([
+                Keyword::create('require'),
+                Symbol::create('clojure.test'),
+            ]),
+        ]);
+
+        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertEquals([
+            Symbol::create('phel\\core'),
+            Symbol::create('phel\\test'),
+        ], $nsNode->getRequireNs());
+        self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('test')));
+        self::assertSame('phel\\test', $this->globalEnv->resolveAlias('test'));
+    }
+
+    public function test_clojure_namespace_vector_form_with_as_and_refer(): void
+    {
+        Phel::addDefinition('phel\\test', 'is', 'value', Phel::map());
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app.core'),
+            Phel::list([
+                Keyword::create('require'),
+                Phel::vector([
+                    Symbol::create('clojure.test'),
+                    Keyword::create('as'),
+                    Symbol::create('t'),
+                    Keyword::create('refer'),
+                    Phel::vector([
+                        Symbol::create('is'),
+                    ]),
+                ]),
+            ]),
+        ]);
+
+        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertEquals([
+            Symbol::create('phel\\core'),
+            Symbol::create('phel\\test'),
+        ], $nsNode->getRequireNs());
+        self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('t')));
+        self::assertSame('phel\\test', $this->globalEnv->resolveAlias('t'));
+
+        $isNode = $this->globalEnv->resolve(Symbol::create('is'), NodeEnvironment::empty());
+        self::assertInstanceOf(GlobalVarNode::class, $isNode);
+        self::assertSame('phel\\test', $isNode->getNamespace());
+    }
+
+    public function test_non_clojure_namespace_not_remapped(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app\\core'),
+            Phel::list([
+                Keyword::create('require'),
+                Symbol::create('vendor\\package'),
+            ]),
+        ]);
+
+        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertEquals([
+            Symbol::create('phel\\core'),
+            Symbol::create('vendor\\package'),
+        ], $nsNode->getRequireNs());
+        self::assertSame('vendor\\package', $this->globalEnv->resolveAlias('package'));
+    }
+
     public function test_backslash_only_namespaces_still_work_unchanged(): void
     {
         // Regression: confirm the canonical \\-form still produces identical output

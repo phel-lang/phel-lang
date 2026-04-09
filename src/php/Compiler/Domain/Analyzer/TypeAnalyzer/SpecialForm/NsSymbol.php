@@ -22,6 +22,8 @@ use function preg_match;
 use function sprintf;
 use function str_contains;
 use function str_replace;
+use function str_starts_with;
+use function substr;
 
 /**
  * (ns name (:require ...) (:use ...)).
@@ -289,9 +291,7 @@ TXT;
             );
         }
 
-        $this->registerRequire($ns, $requireSymbol, $aliasValue, $referValue, $import);
-
-        return $requireSymbol;
+        return $this->registerRequire($ns, $requireSymbol, $aliasValue, $referValue, $import);
     }
 
     /**
@@ -359,9 +359,7 @@ TXT;
             );
         }
 
-        $this->registerRequire($ns, $requireSymbol, $aliasValue, $referValue, $import);
-
-        return $requireSymbol;
+        return $this->registerRequire($ns, $requireSymbol, $aliasValue, $referValue, $import);
     }
 
     /**
@@ -411,12 +409,20 @@ TXT;
         ?Symbol $aliasValue,
         ?PersistentVectorInterface $referValue,
         PersistentListInterface $import,
-    ): void {
-        $alias = $this->createAliasFromSymbol($aliasValue, $requireSymbol);
+    ): Symbol {
+        $resolvedSymbol = $this->remapClojureNamespace($requireSymbol);
+
+        $alias = $this->createAliasFromSymbol($aliasValue, $resolvedSymbol);
         $referSymbols = $this->extractRefer($referValue, $import);
 
-        $this->analyzer->addRequireAlias($ns, $alias, $requireSymbol);
-        $this->analyzer->addRefers($ns, $referSymbols, $requireSymbol);
+        $this->analyzer->addRequireAlias($ns, $alias, $resolvedSymbol);
+        $this->analyzer->addRefers($ns, $referSymbols, $resolvedSymbol);
+
+        if ($resolvedSymbol->getName() !== $requireSymbol->getName()) {
+            $this->analyzer->addRequireAlias($ns, $requireSymbol, $resolvedSymbol);
+        }
+
+        return $resolvedSymbol;
     }
 
     private function analyzeRequireFile(PersistentListInterface $import): string
@@ -466,6 +472,25 @@ TXT;
         return Symbol::createForNamespace(
             $symbol->getNamespace(),
             $this->normalizeNamespaceSeparators($name),
+        )->copyLocationFrom($symbol);
+    }
+
+    /**
+     * Remaps `clojure\*` namespaces to `phel\*` for Clojure compatibility.
+     *
+     * If a required namespace starts with `clojure\`, the prefix is replaced
+     * with `phel\` so that e.g. `clojure\test` resolves to `phel\test`.
+     */
+    private function remapClojureNamespace(Symbol $symbol): Symbol
+    {
+        $name = $symbol->getName();
+        if (!str_starts_with($name, 'clojure\\')) {
+            return $symbol;
+        }
+
+        return Symbol::createForNamespace(
+            $symbol->getNamespace(),
+            'phel\\' . substr($name, 8),
         )->copyLocationFrom($symbol);
     }
 }
