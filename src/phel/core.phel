@@ -3965,20 +3965,13 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
       (if (symbol? op)
         (let [node (get-global-var-node op)]
           (if (php/instanceof node GlobalVarNode)
-            (let [meta (php/-> node (getMeta))
-                  ns (php/-> node (getNamespace))
-                  name (php/-> (php/-> node (getName)) (getName))
-                  args (rest form)]
-              (cond
-                (inline-call? meta (count args))
-                (apply (:inline meta) args)
-                (:macro meta)
-                (let [macro-fn (php/:: Phel (getDefinition ns name))]
-                  ;; Macros receive `&form` (the call form) and `&env`
-                  ;; (lexical bindings map) as the first two implicit args.
-                  ;; Outside of analyzer context pass an empty env map.
+            (let [meta (php/-> node (getMeta))]
+              (if (:macro meta)
+                (let [ns (php/-> node (getNamespace))
+                      name (php/-> (php/-> node (getName)) (getName))
+                      macro-fn (php/:: Phel (getDefinition ns name))
+                      args (rest form)]
                   (apply macro-fn form {} args))
-                :else
                 form))
             form))
         form))

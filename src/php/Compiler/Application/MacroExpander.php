@@ -9,11 +9,9 @@ use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
-use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 
-use function count;
 use function is_callable;
 
 /**
@@ -46,22 +44,6 @@ final readonly class MacroExpander
             return $form;
         }
 
-        $meta = $node->getMeta();
-        $args = $form->rest()->toArray();
-        $arity = count($args);
-
-        // Check for inline expansion first
-        $inlineFn = $meta[Keyword::create('inline')];
-        if ($inlineFn !== null) {
-            $arityFn = $meta[Keyword::create('inline-arity')];
-            $shouldInline = $arityFn === null || $arityFn($arity);
-
-            if ($shouldInline && is_callable($inlineFn)) {
-                return $inlineFn(...$args);
-            }
-        }
-
-        // Check for macro expansion
         if (!$node->isMacro()) {
             return $form;
         }
@@ -73,6 +55,8 @@ final readonly class MacroExpander
         if (!is_callable($fn)) {
             return $form;
         }
+
+        $args = $form->rest()->toArray();
 
         // Macros receive `&form` (the call form) and `&env` (lexical bindings map)
         // as the first two arguments. This path has no surrounding analyzer env,
