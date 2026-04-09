@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - Accept `name#` as an auto-gensym suffix inside syntax-quote (alongside the existing `name$`), matching Clojure's `clojure.core/gensym` reader macro (#1195)
 
 ### Fixed
+- `macroexpand` and `macroexpand-1` are now functions (were macros), matching Clojure semantics: quoted forms expand correctly (`(macroexpand '(when 1 2))` → `(if 1 (do 2))`), and unquoted forms evaluate eagerly (`(macroexpand (when 1 2))` → `2`) (#1209)
 - `macroexpand` no longer applies inline expansion to non-macro forms; `(macroexpand '(+ 1 2))` now correctly returns `(+ 1 2)` instead of `(do (assert-non-nil 1 2) (+ 1 2))` (#1208)
 - Lexer no longer swallows a reader conditional (`#?(...)`) following a gensym-suffixed symbol (e.g. `report-success# #?(:phel ...)`), which previously surfaced as a misleading "Unterminated list (BRACKETS)" parse error (#1195)
 - Emit `php/...` calls to namespaced PHP functions (e.g. `php/Amp\File\write`) as fully qualified names so they resolve against the global namespace from compiled/cached files (#1180)

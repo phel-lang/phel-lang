@@ -464,18 +464,18 @@
   (let [cf (php/new CompilerFacade)]
     (php/-> cf (macroexpand form))))
 
-(defmacro macroexpand-1
-  "Expands the given form once. The form is automatically quoted.
-  Returns the expanded form, or the original if it is not a macro call."
-  {:example "(macroexpand-1 (defn foo [x] x))"
+(defn macroexpand-1
+  "Expands the given form once if it is a macro call. The form must be
+  quoted to prevent evaluation, matching Clojure semantics."
+  {:example "(macroexpand-1 '(when true 1 2))"
    :see-also ["macroexpand" "macroexpand-1-form" "macroexpand-form"]}
   [form]
-  `(macroexpand-1-form '~form))
+  (macroexpand-1-form form))
 
-(defmacro macroexpand
+(defn macroexpand
   "Recursively expands the given form until it is no longer a macro call.
-  The form is automatically quoted. Returns the fully expanded form."
-  {:example "(macroexpand (defn foo [x] x))"
+  The form must be quoted to prevent evaluation, matching Clojure semantics."
+  {:example "(macroexpand '(when true 1 2))"
    :see-also ["macroexpand-1" "macroexpand-1-form" "macroexpand-form"]}
   [form]
-  `(macroexpand-form '~form))
+  (macroexpand-form form))
