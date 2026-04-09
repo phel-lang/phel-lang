@@ -283,29 +283,59 @@
 ;; macroexpand-1 (macro)
 ;; ----------------
 
-(deftest test-macroexpand-1-quoted-form
-  (is (= '(if true (do 1 2))
-         (macroexpand-1 '(when true 1 2)))
-      "macroexpand-1 expands a quoted macro form"))
+(deftest test-macroexpand-1-quoted-when
+  (is (= '(if 1 (do 2))
+         (macroexpand-1 '(when 1 2)))
+      "macroexpand-1 expands quoted (when 1 2) — issue #1209"))
 
-(deftest test-macroexpand-1-unquoted-form
+(deftest test-macroexpand-1-unquoted-when
   (is (= '(if true (do 1 2))
          (macroexpand-1 (when true 1 2)))
-      "macroexpand-1 expands an unquoted macro form"))
+      "macroexpand-1 expands unquoted when form"))
+
+(deftest test-macroexpand-1-quoted-non-macro-unchanged
+  (is (= '(+ 1 2)
+         (macroexpand-1 '(+ 1 2)))
+      "macroexpand-1 returns quoted non-macro form unchanged"))
+
+(deftest test-macroexpand-1-quoted-defn-one-step
+  (let [expanded (macroexpand-1 '(defn foo [x] x))]
+    (is (list? expanded) "macroexpand-1 expands quoted defn")
+    (is (not (= 'defn (first expanded))) "defn is no longer the head after one expansion")))
 
 ;; ----------------
 ;; macroexpand (macro)
 ;; ----------------
 
-(deftest test-macroexpand-quoted-form
+(deftest test-macroexpand-quoted-when
+  (is (= '(if 1 (do 2))
+         (macroexpand '(when 1 2)))
+      "macroexpand expands quoted (when 1 2) — issue #1209"))
+
+(deftest test-macroexpand-unquoted-when
+  (is (= '(if true (do 1 2))
+         (macroexpand (when true 1 2)))
+      "macroexpand expands unquoted when form"))
+
+(deftest test-macroexpand-quoted-threading
   (is (= '(+ 1 2)
          (macroexpand '(-> 1 (+ 2))))
-      "macroexpand fully expands a quoted macro form"))
+      "macroexpand fully expands quoted threading macro"))
 
-(deftest test-macroexpand-unquoted-form
+(deftest test-macroexpand-unquoted-threading
   (is (= '(+ 1 2)
          (macroexpand (-> 1 (+ 2))))
-      "macroexpand fully expands an unquoted macro form"))
+      "macroexpand fully expands unquoted threading macro"))
+
+(deftest test-macroexpand-quoted-non-macro-unchanged
+  (is (= '(+ 1 2)
+         (macroexpand '(+ 1 2)))
+      "macroexpand returns quoted non-macro form unchanged"))
+
+(deftest test-macroexpand-quoted-defn-fully-expands
+  (let [expanded (macroexpand '(defn foo [x] x))]
+    (is (list? expanded) "macroexpand fully expands quoted defn")
+    (is (= 'def (first expanded)) "defn fully expands to def")))
 
 ;; -------
 ;; ns-list
