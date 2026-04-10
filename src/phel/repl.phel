@@ -51,7 +51,11 @@
       dirs)))
 
 (defn- eval-namespace [namespace]
-  (let [dependencies (php/-> build-facade (getDependenciesForNamespace (get-src-dirs) (php/array namespace)))]
+  (let [dependencies (php/-> build-facade (getDependenciesForNamespace (get-src-dirs) (php/array namespace)))
+        found (php/> (php/count dependencies) 0)]
+    (when-not found
+      (throw (php/new \RuntimeException
+               (str "Could not locate namespace '" namespace "' on the source paths."))))
     (foreach [dep dependencies]
       (when-not (php/in_array (php/-> dep (getNamespace)) (loaded-namespaces))
         (eval-file (php/-> dep (getFile)))))))

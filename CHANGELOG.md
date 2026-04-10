@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
 - Accept `name#` as an auto-gensym suffix inside syntax-quote (alongside the existing `name$`), matching Clojure's `clojure.core/gensym` reader macro (#1195)
 
 ### Fixed
+- REPL `(require 'foo)` now throws `RuntimeException` when the namespace cannot be found on source paths, instead of silently succeeding (#1246)
 - `macroexpand` and `macroexpand-1` are now functions (were macros), matching Clojure semantics: quoted forms expand correctly (`(macroexpand '(when 1 2))` → `(if 1 (do 2))`), and unquoted forms evaluate eagerly (`(macroexpand (when 1 2))` → `2`) (#1209)
 - `macroexpand` no longer applies inline expansion to non-macro forms; `(macroexpand '(+ 1 2))` now correctly returns `(+ 1 2)` instead of `(do (assert-non-nil 1 2) (+ 1 2))` (#1208)
 - Lexer no longer swallows a reader conditional (`#?(...)`) following a gensym-suffixed symbol (e.g. `report-success# #?(:phel ...)`), which previously surfaced as a misleading "Unterminated list (BRACKETS)" parse error (#1195)
