@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
-use Phel;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\DefStructInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\DefStructMethod;
 use Phel\Compiler\Domain\Analyzer\Ast\DefStructNode;
-use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
@@ -31,6 +29,7 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
     public function __construct(
         private AnalyzerInterface $analyzer,
         private MungeInterface $munge,
+        private MethodBodyAnalyzer $methodBodyAnalyzer,
     ) {}
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): DefStructNode
@@ -168,35 +167,6 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation("The interface doesn't support this method: " . $methodName->getName(), $list);
         }
 
-        $arguments = $list->get(1);
-        if (!$arguments instanceof PersistentVectorInterface) {
-            throw AnalyzerException::withLocation('Method arguments must be a vector', $list);
-        }
-
-        // Analyze arguments and body as (fn arguments (do body))
-        $fnNode = $this->analyzer->analyze(
-            Phel::list([
-                Symbol::create('fn'),
-                $arguments->rest(), // remove the first argument. The first argument is bound to $this
-                Phel::list([
-                    Symbol::create('let'),
-                    Phel::vector([
-                        $arguments->first(),
-                        Symbol::createForNamespace('php', '$this'),
-                    ]),
-                    ...($list->rest()->rest()->toArray()),
-                ]),
-            ]),
-            $env,
-        );
-
-        if (!$fnNode instanceof FnNode) {
-            throw AnalyzerException::withLocation('Can not correctly analyse method body', $list);
-        }
-
-        return new DefStructMethod(
-            $methodName,
-            $fnNode,
-        );
+        return $this->methodBodyAnalyzer->analyze($list, $env);
     }
 }

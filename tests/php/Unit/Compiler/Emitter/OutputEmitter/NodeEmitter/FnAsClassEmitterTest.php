@@ -8,6 +8,7 @@ use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\ClosureEmitterHelper;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\FnAsClassEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\MethodEmitter;
 use Phel\Lang\Symbol;
@@ -22,7 +23,11 @@ final class FnAsClassEmitterTest extends TestCase
         $outputEmitter = (new CompilerFactory())
             ->createOutputEmitter();
 
-        $this->fnAsClassEmitter = new FnAsClassEmitter($outputEmitter, new MethodEmitter($outputEmitter));
+        $this->fnAsClassEmitter = new FnAsClassEmitter(
+            $outputEmitter,
+            new MethodEmitter($outputEmitter),
+            new ClosureEmitterHelper($outputEmitter),
+        );
     }
 
     public function test_identity_fn(): void

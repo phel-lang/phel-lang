@@ -25,6 +25,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\InvokeSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LetSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LoadSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LoopSymbol;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\MethodBodyAnalyzer;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\NsSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpAGetInSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\PhpAGetSymbol;
@@ -113,12 +114,12 @@ final class AnalyzePersistentList
             Symbol::NAME_THROW => new ThrowSymbol($this->analyzer),
             Symbol::NAME_LOOP => new LoopSymbol($this->analyzer, new BindingValidator()),
             Symbol::NAME_FOREACH => new ForeachSymbol($this->analyzer),
-            Symbol::NAME_DEF_STRUCT => new DefStructSymbol($this->analyzer, new Munge()),
+            Symbol::NAME_DEF_STRUCT => new DefStructSymbol($this->analyzer, new Munge(), new MethodBodyAnalyzer($this->analyzer)),
             Symbol::NAME_DEF_EXCEPTION => new DefExceptionSymbol($this->analyzer),
             Symbol::NAME_PHP_OBJECT_SET => new PhpOSetSymbol($this->analyzer),
             Symbol::NAME_SET_VAR => new SetVarSymbol($this->analyzer),
             Symbol::NAME_DEF_INTERFACE => new DefInterfaceSymbol($this->analyzer),
-            Symbol::NAME_REIFY => new ReifySymbol($this->analyzer),
+            Symbol::NAME_REIFY => new ReifySymbol(new MethodBodyAnalyzer($this->analyzer)),
             default => new InvokeSymbol($this->analyzer),
         };
 

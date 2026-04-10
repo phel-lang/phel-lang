@@ -3932,57 +3932,63 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
    :see-also ["defprotocol" "extend-type" "satisfies?"]}
   [& specs]
   (let [munge (php/new Munge)
-        obj-sym (gensym "reify__")
-        class-sym (gensym "class__")
-        ;; Parse specs: alternating protocol symbols and method lists
-        groups (loop [remaining specs
-                      current-proto nil
-                      current-methods []
-                      result []]
-                 (if (nil? remaining)
-                   (if current-proto
-                     (conj result [current-proto current-methods])
-                     result)
-                   (let [item (first remaining)
-                         rst (next remaining)]
-                     (if (php/instanceof item Symbol)
-                       (recur rst item []
-                              (if current-proto
-                                (conj result [current-proto current-methods])
-                                result))
-                       (recur rst current-proto
-                              (conj current-methods item)
-                              result)))))
-        ;; Collect all methods for reify*
-        all-methods (reduce (fn [acc group] (concat acc (second group))) [] groups)
-        ;; Build dispatch registrations
-        registrations (reduce
-                       (fn [acc group]
-                         (let [proto (first group)
-                               methods (second group)
-                               proto-str (php/-> proto (getName))]
-                           (reduce
-                            (fn [inner method]
-                              (let [mname (first method)
-                                    mname-str (php/-> mname (getName))
-                                    margs (second method)
-                                    rest-args (next margs)
-                                    dsym (php/:: Symbol
-                                                 (create (php/. proto-str "--" mname-str "--dispatch")))
-                                    munged-str (php/-> munge (encode mname-str))
-                                    munged-sym (php/:: Symbol (create munged-str))]
-                                (conj inner
-                                      `(swap! ~dsym assoc ~class-sym
-                                              (fn ~margs
-                                                (php/-> ~(first margs) (~munged-sym ~@rest-args)))))))
-                            acc
-                            methods)))
-                       []
-                       groups)]
-    `(let [~obj-sym (reify* ~@all-methods)
-           ~class-sym (php/get_class ~obj-sym)]
-       ~@registrations
-       ~obj-sym)))
+        instance-sym (gensym "reify__")
+        class-name-sym (gensym "class__")
+        ;; Group specs into [[ProtocolSym [method1 method2 ...]] ...]
+        ;; Same parsing pattern as extend-type: symbols start a new group,
+        ;; lists are methods belonging to the current protocol.
+        proto-groups (loop [remaining specs
+                            current-proto nil
+                            current-methods []
+                            result []]
+                       (if (nil? remaining)
+                         (if current-proto
+                           (conj result [current-proto current-methods])
+                           result)
+                         (let [item (first remaining)
+                               rst (next remaining)]
+                           (if (php/instanceof item Symbol)
+                             (recur rst item []
+                                    (if current-proto
+                                      (conj result [current-proto current-methods])
+                                      result))
+                             (recur rst current-proto
+                                    (conj current-methods item)
+                                    result)))))
+        ;; Flatten all methods for the reify* special form (it only needs
+        ;; method specs, protocol grouping is handled here for dispatch).
+        all-methods (reduce (fn [acc group] (concat acc (second group))) [] proto-groups)
+        ;; For each protocol method, register a dispatch entry that delegates
+        ;; to the PHP method on the object. This way each instance's closed-over
+        ;; state is accessed via $this->property inside the PHP method.
+        dispatch-registrations
+        (reduce
+         (fn [acc group]
+           (let [proto (first group)
+                 methods (second group)
+                 proto-str (php/-> proto (getName))]
+             (reduce
+              (fn [inner method]
+                (let [mname (first method)
+                      mname-str (php/-> mname (getName))
+                      margs (second method)
+                      rest-args (next margs)
+                      dispatch-var (php/:: Symbol
+                                          (create (php/. proto-str "--" mname-str "--dispatch")))
+                      php-method-sym (php/:: Symbol
+                                            (create (php/-> munge (encode mname-str))))]
+                  (conj inner
+                        `(swap! ~dispatch-var assoc ~class-name-sym
+                                (fn ~margs
+                                  (php/-> ~(first margs) (~php-method-sym ~@rest-args)))))))
+              acc
+              methods)))
+         []
+         proto-groups)]
+    `(let [~instance-sym (reify* ~@all-methods)
+           ~class-name-sym (php/get_class ~instance-sym)]
+       ~@dispatch-registrations
+       ~instance-sym)))
 
 ;; ------------
 ;; Multimethods

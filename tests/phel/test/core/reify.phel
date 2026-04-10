@@ -79,3 +79,35 @@
     (is (= "my-label" (label obj)) "first method")
     (is (= "my-detail" (detail obj)) "second method")
     (is (true? (satisfies? Describable obj)) "satisfies multi-method protocol")))
+
+;; --- Multiple closures sharing same variable ---
+
+(deftest test-reify-shared-closure-var
+  (let [prefix ">"
+        obj (reify
+              Speakable (speak [this] (str prefix "speak"))
+              Nameable (get-name [this] (str prefix "name")))]
+    (is (= ">speak" (speak obj)) "first method captures shared var")
+    (is (= ">name" (get-name obj)) "second method captures shared var")))
+
+;; --- Reify with no protocol dispatch (just reify* object) ---
+
+(deftest test-reify-object-identity
+  (let [a (reify Speakable (speak [this] "a"))
+        b (reify Speakable (speak [this] "b"))]
+    (is (= "a" (speak a)) "first object")
+    (is (= "b" (speak b)) "second object independent")))
+
+;; --- Method using this reference ---
+
+(defprotocol HasTag
+  (tag [this])
+  (tagged-message [this msg]))
+
+(deftest test-reify-method-calls-sibling-method
+  (let [obj (reify HasTag
+              (tag [this] "INFO")
+              (tagged-message [this msg] (str "[" (tag this) "] " msg)))]
+    (is (= "INFO" (tag obj)) "tag method")
+    (is (= "[INFO] hello" (tagged-message obj "hello"))
+        "method dispatches through protocol on this")))
