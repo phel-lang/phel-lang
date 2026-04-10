@@ -1187,48 +1187,74 @@ Otherwise, it tries to call `__toString`."
   [ds key]
   (dissoc ds key))
 
-;; --------
-;; Variable
-;; --------
+;; -----
+;; Atoms
+;; -----
 
-(defn var
-  "Creates a new variable with the given value.
+(defn atom
+  "Creates a new atom with the given value.
 
-  Variables provide a way to manage mutable state that can be updated with `set!` and `swap!`. Each variable contains a single value. To create a variable use the var function."
-  {:example "(def counter (var 0))"
-   :see-also ["set!" "deref" "swap!"]}
+  Atoms provide a way to manage mutable state. Use `reset!` to set a new value
+  and `swap!` to update based on the current value."
+  {:example "(def counter (atom 0))"
+   :see-also ["reset!" "deref" "swap!"]}
   [value]
   (php/:: Phel (variable value)))
 
-(defn var?
-  "Checks if the given value is a variable."
+(defn var
+  "Creates a new variable with the given value."
+  {:deprecated "0.32.0"
+   :superseded-by "atom"
+   :example "(def counter (var 0))"
+   :see-also ["set!" "deref" "swap!"]}
+  [value]
+  (atom value))
+
+(defn atom?
+  "Returns true if the given value is an atom."
   [x]
   (php/instanceof x Variable))
 
-(defn set!
-  "Sets a new value to the given variable."
-  {:example "(def x (var 10))"
-   :see-also ["var" "deref" "swap!"]}
+(defn var?
+  "Checks if the given value is a variable."
+  {:deprecated "0.32.0"
+   :superseded-by "atom?"}
+  [x]
+  (atom? x))
+
+(defn reset!
+  "Sets a new value on the given atom. Returns the new value."
+  {:example "(def x (atom 10))"
+   :see-also ["atom" "deref" "swap!"]}
   [variable value]
   (php/-> variable (set value)))
 
+(defn set!
+  "Sets a new value to the given variable."
+  {:deprecated "0.32.0"
+   :superseded-by "reset!"
+   :example "(def x (var 10))"
+   :see-also ["var" "deref" "swap!"]}
+  [variable value]
+  (reset! variable value))
+
 (defn deref
   "Returns the current value inside the variable."
-  {:example "(def x (var 42))"
-   :see-also ["var" "set!" "swap!"]}
+  {:example "(def x (atom 42))"
+   :see-also ["atom" "reset!" "swap!"]}
   [variable]
   (php/-> variable (deref)))
 
 (defn swap!
-  "Atomically swaps the value of the variable to `(apply f current-value args)`.
+  "Atomically swaps the value of the atom to `(apply f current-value args)`.
 
   Returns the new value after the swap."
-  {:example "(def counter (var 0))"
-   :see-also ["var" "set!" "deref"]}
+  {:example "(def counter (atom 0))"
+   :see-also ["atom" "reset!" "deref"]}
   [variable f & args]
   (let [current (deref variable)
         next (apply f current args)]
-    (set! variable next)
+    (reset! variable next)
     next))
 
 (defn add-watch
