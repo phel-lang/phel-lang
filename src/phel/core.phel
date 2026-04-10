@@ -3011,6 +3011,20 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [& numbers]
   (extreme > numbers))
 
+(defn min-key
+  "Returns the arg for which (k arg) is smallest."
+  {:example "(min-key count \"bb\" \"aaa\" \"b\") ; => \"b\""
+   :see-also ["max-key" "min" "sort-by"]}
+  [k x & more]
+  (reduce (fn [best item] (if (< (k item) (k best)) item best)) x more))
+
+(defn max-key
+  "Returns the arg for which (k arg) is largest."
+  {:example "(max-key count \"bb\" \"aaa\" \"b\") ; => \"aaa\""
+   :see-also ["min-key" "max" "sort-by"]}
+  [k x & more]
+  (reduce (fn [best item] (if (> (k item) (k best)) item best)) x more))
+
 (defn coerce-in
   "Returns `v` if it is in the range, or `min` if `v` is less than `min`, or `max` if `v` is greater than `max`."
   [v min max]
