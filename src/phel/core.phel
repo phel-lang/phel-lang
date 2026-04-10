@@ -3868,6 +3868,58 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
          (let [~form temp-sym]
            ~@body)))))
 
+(defmacro if-some
+  "Binds name to the value of test. If test is not nil, evaluates then with binding-form
+  bound to the value of test, if not, yields else. Unlike if-let, false and 0 are not
+  treated as falsy — only nil triggers the else branch."
+  {:see-also ["if-let" "when-some"]}
+  [bindings then & [else]]
+  (let [err #(throw (php/new \InvalidArgumentException %))]
+    (when-not
+      (vector? bindings)
+      (err (str "if-some requires a vector for its bindings, "
+                (type bindings) " given")))
+    (when-not
+      (= 2 (count bindings))
+      (err (str "if-some requires bindings to have 2 elements, "
+                (count bindings) " given"))))
+
+  (let [form (bindings 0) tst (bindings 1) temp-sym (gensym)]
+    `(let [temp-sym ~tst]
+       (if (not (nil? temp-sym))
+         (let [~form temp-sym]
+           ~then)
+         ~else))))
+
+(defmacro when-some
+  "Binds name to the value of test. When test is not nil, evaluates body with
+  binding-form bound to the value of test. Unlike when-let, false and 0 are not
+  treated as falsy — only nil causes the body to be skipped."
+  {:see-also ["when-let" "if-some"]}
+  [bindings & body]
+  `(if-some ~bindings (do ~@body) nil))
+
+(defmacro when-first
+  "Binds name to the first element of coll. When the collection is non-empty
+  (first returns non-nil), evaluates body with the binding."
+  {:see-also ["when-some" "first"]}
+  [bindings & body]
+  (let [err #(throw (php/new \InvalidArgumentException %))]
+    (when-not
+      (vector? bindings)
+      (err (str "when-first requires a vector for its bindings, "
+                (type bindings) " given")))
+    (when-not
+      (= 2 (count bindings))
+      (err (str "when-first requires bindings to have 2 elements, "
+                (count bindings) " given"))))
+
+  (let [sym (bindings 0) coll (bindings 1) temp-sym (gensym)]
+    `(let [temp-sym (first ~coll)]
+       (when (not (nil? temp-sym))
+         (let [~sym temp-sym]
+           ~@body)))))
+
 (defmacro time
   "Evaluates expr and prints the time it took. Returns the value of expr."
   [expr]
