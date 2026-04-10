@@ -5,7 +5,22 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- `atom`, `atom?`, `reset!` as Clojure-compatible aliases for `var`, `var?`, `set!` (#1252)
+- `identical?` as Clojure-compatible alias for `id` (#1252)
+- `fn?` as Clojure-compatible alias for `function?` (#1252)
+- `map?` as Clojure-compatible alias for `hash-map?` (#1252)
+- `vals` as Clojure-compatible alias for `values` (#1252)
+- `with-meta` made public as Clojure-compatible replacement for `set-meta!` (#1252)
+- `run!` function for applying a function to each element of a collection for side effects (#1252)
+- `dotimes` macro for evaluating body n times with a binding from 0 to n-1 (#1252)
 - `letfn` macro for mutually recursive local functions (#1224)
+
+### Deprecated
+- `var` → use `atom`, `var?` → use `atom?`, `set!` → use `reset!` (#1252)
+- `id` → use `identical?` (#1252)
+- `function?` → use `fn?`, `hash-map?` → use `map?` (#1252)
+- `values` → use `vals` (#1252)
+- `set-meta!` → use `with-meta` (#1252)
 - `:or` defaults in map destructuring, matching Clojure semantics (#1219)
 - `:strs` support in map destructuring for string key lookup (#1227)
 - `fnil` function for nil-safe function wrapping with default values (#1225)
