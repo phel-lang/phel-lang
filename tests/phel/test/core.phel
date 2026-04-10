@@ -19,6 +19,18 @@
   (is (= 3 (let [{:keys [a b]} {:a 1 :b 2}] (+ a b))) "destructure hash map with :keys")
   (is (= {:a 1 :b 2} (let [{:keys [a b] :as user} {:a 1 :b 2}] user)) "destructure hash map with :keys and :as"))
 
+(deftest destructure-hash-map-strs
+  (is (= "Alice" (let [{:strs [name]} {"name" "Alice"}] name))
+      ":strs extracts string key")
+  (is (= 30 (let [{:strs [name age]} {"name" "Alice" "age" 30}] age))
+      ":strs extracts multiple string keys")
+  (is (nil? (let [{:strs [a b]} {"a" 1}] b))
+      ":strs returns nil for missing key")
+  (is (= {"x" 1 "y" 2} (let [{:strs [x] :as m} {"x" 1 "y" 2}] m))
+      ":strs combined with :as binds the full map")
+  (is (= "Bob" ((fn [{:strs [name]}] name) {"name" "Bob"}))
+      ":strs works in fn parameter destructuring"))
+
 ;; ----------------------------
 ;; Basic methods for quasiquote
 ;; ----------------------------
