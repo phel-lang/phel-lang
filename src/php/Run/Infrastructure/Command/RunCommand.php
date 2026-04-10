@@ -109,8 +109,11 @@ final class RunCommand extends Command
 
             if (file_exists($path)) {
                 $this->getFacade()->runFile($path);
-            } else {
+            } elseif ($this->namespaceExists($path)) {
                 $this->getFacade()->runNamespace($path);
+            } else {
+                $output->writeln(sprintf('<error>Namespace "%s" not found in any source directory.</error>', $path));
+                return self::FAILURE;
             }
 
             if ($input->getOption('with-time')) {
@@ -131,4 +134,19 @@ final class RunCommand extends Command
         return self::FAILURE;
     }
 
+    private function namespaceExists(string $namespace): bool
+    {
+        $deps = $this->getFacade()->getDependenciesForNamespace(
+            $this->getFacade()->getAllPhelDirectories(),
+            [$namespace],
+        );
+
+        foreach ($deps as $info) {
+            if ($info->getNamespace() === $namespace) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }
