@@ -1,6 +1,6 @@
 (ns phel-test\test\async
   (:require phel\test :refer [deftest is])
-  (:require phel\async :refer [async await await-all await-any delay ->closure]))
+  (:require phel\async :refer [async await await-all await-any delay pmap ->closure]))
 
 ;; --- Pure function tests ---
 
@@ -58,3 +58,38 @@
   (let [future (async (throw (php/new \RuntimeException "boom")))]
     (is (thrown? \RuntimeException (await future))
         "exceptions in async body propagate through await")))
+
+;; --- pmap tests ---
+
+(deftest test-pmap-single-collection
+  (is (= [2 3 4] (pmap inc [1 2 3])) "pmap applies f to each element"))
+
+(deftest test-pmap-preserves-order
+  (is (= [10 20 30 40 50] (pmap #(* % 10) [1 2 3 4 5]))
+      "pmap preserves the original order of results"))
+
+(deftest test-pmap-empty-collection
+  (is (= [] (pmap inc [])) "pmap on empty collection returns empty vector"))
+
+(deftest test-pmap-two-collections
+  (is (= [11 22 33] (pmap + [1 2 3] [10 20 30]))
+      "pmap applies f to corresponding elements of two collections"))
+
+(deftest test-pmap-multi-collections
+  (is (= [111 222 333] (pmap + [1 2 3] [10 20 30] [100 200 300]))
+      "pmap applies f to corresponding elements of N collections"))
+
+(deftest test-pmap-stops-at-shortest
+  (is (= [11 22] (pmap + [1 2 3 4] [10 20]))
+      "pmap stops at the shortest collection, like map"))
+
+(deftest test-pmap-no-collection-throws
+  (is (thrown? \InvalidArgumentException (pmap inc))
+      "pmap requires at least one collection"))
+
+(deftest test-pmap-is-concurrent
+  (let [start (php/microtime true)
+        results (pmap (fn [x] (delay 0.05) x) [:a :b :c :d])
+        elapsed (- (php/microtime true) start)]
+    (is (= [:a :b :c :d] results) "pmap returns all results")
+    (is (< elapsed 0.15) "pmap runs work concurrently via fibers")))

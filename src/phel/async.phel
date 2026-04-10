@@ -48,3 +48,22 @@
   [futures]
   (let [php-futures (to-php-array futures)]
     (php/amp\future\awaitfirst php-futures)))
+
+(defn pmap
+  "Like `map`, but applies `f` to elements in parallel via fibers.
+
+  Returns a vector of results in the original order. With multiple
+  collections, applies `f` to corresponding elements from each collection,
+  stopping when the shortest collection is exhausted.
+
+  Best for IO-bound work (HTTP, DB, file IO). Because PHP fibers are
+  cooperative on a single thread, `pmap` does not speed up CPU-bound
+  computations — unlike Clojure's thread-based `pmap`."
+  {:doc "Parallel map via AMPHP fibers. IO-parallel, not CPU-parallel."
+   :example "(pmap inc [1 2 3]) ; => [2 3 4]"
+   :see-also ["map" "async" "await-all"]}
+  [f & colls]
+  (case (count colls)
+    0 (throw (php/new \InvalidArgumentException "pmap expects at least one collection"))
+    1 (await-all (map #(async (f %)) (first colls)))
+    (await-all (apply map (fn [& args] (async (apply f args))) colls))))
