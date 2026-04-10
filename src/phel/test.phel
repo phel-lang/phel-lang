@@ -258,6 +258,20 @@
   `(binding [*testing-contexts* (conj *testing-contexts* ~context)]
      ~@body))
 
+(defmacro are
+  "Checks multiple assertions with a template expression.
+  `argv` is a vector of template variables, `expr` is the assertion template,
+  and the remaining `args` are partitioned by `(count argv)` to fill the template."
+  {:see-also ["is" "deftest" "testing"]
+   :example "(are [x y] (= x y)\n  2 (+ 1 1)\n  4 (* 2 2))"}
+  [argv expr & args]
+  (let [n (count argv)
+        groups (partition n args)
+        assertions (for [group :in groups
+                         :let [bindings (vec (interleave argv group))]]
+                     `(let [~@bindings] (is ~expr)))]
+    `(do ~@assertions)))
+
 ;; ---------------------
 ;; error/failure printer
 ;; ---------------------
