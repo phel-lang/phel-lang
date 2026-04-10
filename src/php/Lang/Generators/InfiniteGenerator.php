@@ -82,6 +82,17 @@ final class InfiniteGenerator
     }
 
     /**
+     * @return Generator<int, int>
+     */
+    public static function range(): Generator
+    {
+        $i = 0;
+        while (true) {
+            yield $i++;
+        }
+    }
+
+    /**
      * @template T
      *
      * @param iterable<T>|string|null $value

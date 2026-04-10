@@ -9,6 +9,14 @@
   (is (= [:x :x :x] (take 3 (repeatedly (fn [] :x))))
       "(take 3 (repeatedly (fn [] :x)))"))
 
+(deftest test-range-infinite
+  (is (= [0 1 2 3 4] (take 5 (range)))
+      "(take 5 (range)) should return first 5 natural numbers")
+  (is (= [0 1 2 3 4 5 6 7 8 9] (take 10 (range)))
+      "(take 10 (range)) should return 0..9")
+  (is (some? (and (range)))
+      "range with no args should return truthy value"))
+
 (deftest test-iterate
   (is (= [1 2 4 8] (take 4 (iterate (fn [x] (* 2 x)) 1)))
       "(take 4 (iterate (fn [x] (* 2 x)) 1))"))

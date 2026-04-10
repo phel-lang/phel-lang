@@ -138,6 +138,14 @@ final class Seq
     }
 
     /**
+     * @return Generator<int, int>
+     */
+    public static function infiniteRange(): Generator
+    {
+        return InfiniteGenerator::range();
+    }
+
+    /**
      * @return Generator<int, float|int>
      */
     public static function range(int|float $start, int|float $end, int|float $step): Generator
