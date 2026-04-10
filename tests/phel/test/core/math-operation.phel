@@ -99,6 +99,22 @@
 (deftest test-max
   (is (= 3 (max 1 2 3)) "(max 1 2 3)"))
 
+(deftest test-min-key
+  (is (= {:a 1} (min-key :a {:a 1} {:a 3} {:a 2}))
+      "min-key with keyword key")
+  (is (= "b" (min-key count "bb" "aaa" "b"))
+      "min-key with function key")
+  (is (= 5 (min-key identity 5))
+      "min-key with single arg"))
+
+(deftest test-max-key
+  (is (= {:a 3} (max-key :a {:a 1} {:a 3} {:a 2}))
+      "max-key with keyword key")
+  (is (= "aaa" (max-key count "bb" "aaa" "b"))
+      "max-key with function key")
+  (is (= 5 (max-key identity 5))
+      "max-key with single arg"))
+
 (deftest test-coerce-in
   (is (= 0.5 (coerce-in 0.5 0 1)) "(coerce-in 0.5 0 1)")
   (is (= 1 (coerce-in 1.5 0 1)) "(coerce-in 1.5 0 1)")
