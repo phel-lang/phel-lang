@@ -55,6 +55,7 @@ All notable changes to this project will be documented in this file.
 - Accept `name#` as an auto-gensym suffix inside syntax-quote (alongside the existing `name$`), matching Clojure's `clojure.core/gensym` reader macro (#1195)
 
 ### Fixed
+- `(php/yield ...)` in return position no longer emits `return yield ...;`, which broke PHP generator semantics (#793)
 - `phel run` no longer buffers output, so `println` and `print` flush immediately — fixes silent output in long-running processes like AMPHP servers (#793)
 - REPL `require` now supports dot namespace separator and Clojure aliasing, e.g. `(require phel.str)` and `(require clojure.str)` work correctly (#1263)
 - REPL `(require 'foo)` now throws `RuntimeException` when the namespace cannot be found on source paths, instead of silently succeeding (#1246)

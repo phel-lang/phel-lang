@@ -20,8 +20,12 @@ final class CallEmitter implements NodeEmitterInterface
     {
         assert($node instanceof CallNode);
 
-        $this->emitContextPrefix($node);
         $fnNode = $node->getFn();
+        $isYield = $fnNode instanceof PhpVarNode && $fnNode->getName() === 'yield';
+
+        if (!$isYield) {
+            $this->emitContextPrefix($node);
+        }
 
         if ($fnNode instanceof PhpVarNode && $fnNode->isInfix()) {
             $this->emitPhpVarNodeInfix($node, $fnNode);

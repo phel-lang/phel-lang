@@ -91,6 +91,46 @@ final class CallEmitterTest extends TestCase
         $this->expectOutputString('yield 1 => 2;');
     }
 
+    public function test_yield_in_return_context_omits_return_keyword(): void
+    {
+        $node = new PhpVarNode(NodeEnvironment::empty()->withReturnContext(), 'yield');
+        $args = [
+            new LiteralNode(NodeEnvironment::empty()->withExpressionContext(), 'abc'),
+        ];
+
+        $applyNode = new CallNode(NodeEnvironment::empty()->withReturnContext(), $node, $args);
+        $this->callEmitter->emit($applyNode);
+
+        $this->expectOutputString('yield "abc";');
+    }
+
+    public function test_yield_key_value_in_return_context_omits_return_keyword(): void
+    {
+        $node = new PhpVarNode(NodeEnvironment::empty()->withReturnContext(), 'yield');
+        $args = [
+            new LiteralNode(NodeEnvironment::empty()->withExpressionContext(), 1),
+            new LiteralNode(NodeEnvironment::empty()->withExpressionContext(), 2),
+        ];
+
+        $applyNode = new CallNode(NodeEnvironment::empty()->withReturnContext(), $node, $args);
+        $this->callEmitter->emit($applyNode);
+
+        $this->expectOutputString('yield 1 => 2;');
+    }
+
+    public function test_non_yield_in_return_context_emits_return(): void
+    {
+        $node = new PhpVarNode(NodeEnvironment::empty()->withReturnContext(), 'print');
+        $args = [
+            new LiteralNode(NodeEnvironment::empty()->withExpressionContext(), 'abc'),
+        ];
+
+        $applyNode = new CallNode(NodeEnvironment::empty()->withReturnContext(), $node, $args);
+        $this->callEmitter->emit($applyNode);
+
+        $this->expectOutputString('return print("abc");');
+    }
+
     public function test_namespaced_php_function_is_emitted_as_fully_qualified(): void
     {
         $node = new PhpVarNode(NodeEnvironment::empty(), 'Amp\\File\\write');
