@@ -224,3 +224,15 @@
   (testing "outer"
     (testing "inner"
       (is (= 1 1) "nested testing blocks execute"))))
+
+(deftest test-testing-context-in-failure-message
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer
+            (testing "math basics"
+              (is (= 1 2) "addition")))
+        snapshot (get-stats)]
+    (restore-stats saved)
+    (let [failure (first (get snapshot :failed))]
+      (is (= "math basics - addition" (get failure :message))
+          "testing context is prepended to failure message"))))
