@@ -34,6 +34,9 @@ final class NsSymbolTest extends TestCase
         Registry::getInstance()->clear();
         $this->globalEnv = new GlobalEnvironment();
         $this->analyzer = new Analyzer($this->globalEnv);
+
+        // Seed the Registry so clojure\* → phel\* remapping finds the target namespace
+        Phel::addDefinition('phel\\test', '__ns_marker', true, Phel::map());
     }
 
     public function test_first_argument_must_be_symbol(): void
@@ -763,8 +766,6 @@ final class NsSymbolTest extends TestCase
 
     public function test_clojure_namespace_remapped_to_phel_in_require(): void
     {
-        Phel::addDefinition('phel\\test', '__ns_marker', true, Phel::map());
-
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
             Symbol::create('app\\core'),
@@ -784,8 +785,6 @@ final class NsSymbolTest extends TestCase
 
     public function test_clojure_namespace_auto_alias_points_to_phel(): void
     {
-        Phel::addDefinition('phel\\test', '__ns_marker', true, Phel::map());
-
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
             Symbol::create('app\\core'),
@@ -803,8 +802,6 @@ final class NsSymbolTest extends TestCase
 
     public function test_clojure_namespace_with_explicit_as_alias(): void
     {
-        Phel::addDefinition('phel\\test', '__ns_marker', true, Phel::map());
-
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
             Symbol::create('app\\core'),
@@ -848,8 +845,6 @@ final class NsSymbolTest extends TestCase
 
     public function test_clojure_namespace_original_registered_as_alias(): void
     {
-        Phel::addDefinition('phel\\test', '__ns_marker', true, Phel::map());
-
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
             Symbol::create('app\\core'),
@@ -867,8 +862,6 @@ final class NsSymbolTest extends TestCase
 
     public function test_clojure_namespace_via_dot_syntax(): void
     {
-        Phel::addDefinition('phel\\test', '__ns_marker', true, Phel::map());
-
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
             Symbol::create('app.core'),
