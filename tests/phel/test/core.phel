@@ -117,6 +117,40 @@
   (is (= 2 (when-let [[a b] '(1 2)] b)))
   (is (= nil (when-let [a false] (throw (php/new \Exception))))))
 
+(deftest test-if-some
+  (is (= "found" (if-some [x 1] "found" "missing"))
+      "if-some with non-nil value")
+  (is (= "found" (if-some [x false] "found" "missing"))
+      "if-some with false (not nil)")
+  (is (= 0 (if-some [x 0] x "missing"))
+      "if-some with 0 (not nil)")
+  (is (= "missing" (if-some [x nil] "found" "missing"))
+      "if-some with nil")
+  (is (= nil (if-some [x nil] "found"))
+      "if-some with nil and no else")
+  (is (= "found" (if-some [x ""] "found" "missing"))
+      "if-some with empty string (not nil)"))
+
+(deftest test-when-some
+  (is (= 1 (when-some [x 1] x))
+      "when-some with non-nil value")
+  (is (= false (when-some [x false] x))
+      "when-some with false (not nil)")
+  (is (= 0 (when-some [x 0] x))
+      "when-some with 0 (not nil)")
+  (is (nil? (when-some [x nil] x))
+      "when-some with nil"))
+
+(deftest test-when-first
+  (is (= 1 (when-first [x [1 2 3]] x))
+      "when-first with non-empty vector")
+  (is (nil? (when-first [x []] x))
+      "when-first with empty vector")
+  (is (nil? (when-first [x '()] x))
+      "when-first with empty list")
+  (is (= :a (when-first [x [:a :b]] x))
+      "when-first with keyword vector"))
+
 (deftest test-time
   (is (= 2 (+ 1 1)) "time returns expr value")
   (let [output-print (with-output-buffer (time (+ 1 1)))]
