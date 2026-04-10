@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- `seq?` predicate function to check if a value is a seq (implements `LazySeqInterface`), matching Clojure semantics (#1231)
 - `condp` macro for predicate-based conditional dispatch, matching Clojure semantics including `:>>` result threading (#1217)
 - Allow `require` and `use` to accept quoted symbols in the REPL (e.g. `(require 'phel\str)`), matching Clojure semantics and enabling nREPL client compatibility (#1211)
 - Automatic namespace aliasing: `clojure.*` namespaces in `:require` resolve to `phel.*` automatically (e.g. `clojure.test` → `phel\test`), enabling Clojure test suites to run without manual patching; only remaps when the target `phel.*` namespace exists, so user-defined `clojure.*` namespaces are left untouched (#1207, #1210)

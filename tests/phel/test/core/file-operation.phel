@@ -113,7 +113,7 @@
         target-file (str target-directory php/DIRECTORY_SEPARATOR "test-line-seq-type.txt")]
     (spit target-file "line1\nline2")
     (let [result (line-seq target-file)]
-      (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+      (is (true? (seq? result))
           "line-seq should return a lazy sequence"))
     (php/unlink target-file)))
 
@@ -173,7 +173,7 @@
     (php/mkdir target-directory)
     (spit target-file "content")
     (let [result (file-seq target-directory)]
-      (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+      (is (true? (seq? result))
           "file-seq should return a lazy sequence"))
     (php/unlink target-file)
     (php/rmdir target-directory)))
@@ -312,7 +312,7 @@
         target-file (str target-directory php/DIRECTORY_SEPARATOR "test-read-file-lazy-type.txt")]
     (spit target-file "some content")
     (let [result (read-file-lazy target-file)]
-      (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+      (is (true? (seq? result))
           "read-file-lazy should return a lazy sequence"))
     (php/unlink target-file)))
 
@@ -432,7 +432,7 @@
         target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq-type.csv")]
     (spit target-file "a,b,c\n1,2,3")
     (let [result (csv-seq target-file)]
-      (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+      (is (true? (seq? result))
           "csv-seq should return a lazy sequence"))
     (php/unlink target-file)))
 

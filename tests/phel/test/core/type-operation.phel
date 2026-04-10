@@ -116,3 +116,10 @@
   (is (true? (associative? (php-associative-array "a" 1 "b" 2))) "associative? on associative array")
   (is (false? (associative? [])) "associative? on vector")
   (is (false? (associative? (php/array))) "associative? on php array"))
+
+(deftest test-seq?
+  (is (true? (seq? (take 5 (iterate inc 1)))) "seq? on lazy sequence")
+  (is (false? (seq? [])) "seq? on vector")
+  (is (false? (seq? '())) "seq? on list")
+  (is (false? (seq? {})) "seq? on map")
+  (is (false? (seq? nil)) "seq? on nil"))
