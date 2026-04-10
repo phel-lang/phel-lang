@@ -1,0 +1,105 @@
+(ns phel-test\test\core\clojure-aliases
+  (:require phel\test :refer [deftest is]))
+
+;; --- atom / var aliases ---
+
+(deftest test-atom-creates-mutable-ref
+  (let [a (atom 42)]
+    (is (= 42 (deref a)) "atom holds initial value")))
+
+(deftest test-atom?
+  (is (true? (atom? (atom 0))) "atom? on atom")
+  (is (false? (atom? 42)) "atom? on int"))
+
+(deftest test-reset!
+  (let [a (atom 0)]
+    (reset! a 10)
+    (is (= 10 (deref a)) "reset! updates value")))
+
+(deftest test-var-still-works
+  (let [v (var 5)]
+    (is (= 5 (deref v)) "deprecated var still works")))
+
+(deftest test-var?-still-works
+  (is (true? (var? (var 0))) "deprecated var? still works"))
+
+(deftest test-set!-still-works
+  (let [v (var 0)]
+    (set! v 99)
+    (is (= 99 (deref v)) "deprecated set! still works")))
+
+;; --- identical? / id aliases ---
+
+(deftest test-identical?
+  (is (true? (identical? 10 10)) "identical? on same ints")
+  (is (false? (identical? 10 10.0)) "identical? on int vs float")
+  (is (true? (identical? :test :test)) "keywords are identical")
+  (is (true? (identical? 1)) "single arg returns true"))
+
+(deftest test-id-still-works
+  (is (true? (id 10 10)) "deprecated id still works"))
+
+;; --- fn? / function? aliases ---
+
+(deftest test-fn?
+  (is (true? (fn? concat)) "fn? on function")
+  (is (false? (fn? 42)) "fn? on int"))
+
+(deftest test-function?-still-works
+  (is (true? (function? concat)) "deprecated function? still works"))
+
+;; --- map? / hash-map? aliases ---
+
+(deftest test-map?
+  (is (true? (map? {})) "map? on map")
+  (is (false? (map? [])) "map? on vector"))
+
+(deftest test-hash-map?-still-works
+  (is (true? (hash-map? {})) "deprecated hash-map? still works"))
+
+;; --- vals / values aliases ---
+
+(deftest test-vals
+  (is (= [1 2 3] (vals {:a 1 :b 2 :c 3})) "vals of map")
+  (is (= [3 2 1] (vals [3 2 1])) "vals of vector"))
+
+(deftest test-values-still-works
+  (is (= [1 2 3] (values {:a 1 :b 2 :c 3})) "deprecated values still works"))
+
+;; --- with-meta (public) / set-meta! ---
+
+(deftest test-with-meta-public
+  (is (= {:a 1} (meta (with-meta [] {:a 1}))) "with-meta sets metadata"))
+
+(deftest test-set-meta!-still-works
+  (is (= {:a 1} (meta (set-meta! [] {:a 1}))) "deprecated set-meta! still works"))
+
+;; --- run! ---
+
+(deftest test-run!
+  (let [acc (atom [])]
+    (run! (fn [x] (swap! acc (fn [xs] (conj xs x)))) [1 2 3])
+    (is (= [1 2 3] (deref acc)) "run! applies fn to each element"))
+  (is (nil? (run! identity [1 2 3])) "run! returns nil"))
+
+(deftest test-run!-empty
+  (let [acc (atom 0)]
+    (run! (fn [_] (swap! acc inc)) [])
+    (is (= 0 (deref acc)) "run! on empty collection does nothing")))
+
+;; --- dotimes ---
+
+(deftest test-dotimes
+  (let [acc (atom 0)]
+    (dotimes [i 5] (swap! acc + i))
+    (is (= 10 (deref acc)) "dotimes sums 0+1+2+3+4 = 10")))
+
+(deftest test-dotimes-zero
+  (let [acc (atom 0)]
+    (dotimes [_ 0] (swap! acc inc))
+    (is (= 0 (deref acc)) "dotimes with 0 does nothing")))
+
+(deftest test-dotimes-expression
+  (let [acc (atom 0)]
+    (dotimes [_ (+ 2 3)] (swap! acc inc))
+    (is (= 5 (deref acc)) "dotimes evaluates n expression once")))
