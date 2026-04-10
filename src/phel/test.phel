@@ -15,6 +15,10 @@
 
 (def- *current-test-name* nil)
 
+(def *testing-contexts*
+  "Stack of testing context strings, most recent first."
+  [])
+
 (def- stats (var {:failed []
                   :counts {:failed 0
                            :error 0
@@ -37,11 +41,22 @@
        (let [{:failed f :error e} (get (deref stats) :counts)]
          (pos? (+ f e)))))
 
+(defn- testing-contexts-str []
+  "Returns the current testing context as a string prefix, or nil."
+  (when (not (empty? *testing-contexts*))
+    (str (s/join " > " *testing-contexts*) " - ")))
+
 (defn report
   "Records test results and prints status indicators."
   {:example "(report {:state :pass})"}
   [data]
-  (let [{:state state :type type} data
+  (let [ctx (testing-contexts-str)
+        data (if (and ctx (:message data))
+               (put data :message (str ctx (:message data)))
+               (if ctx
+                 (put data :message (s/join " > " *testing-contexts*))
+                 data))
+        {:state state :type type} data
         ok (= state :pass)
         total-columns 80]
     (if (deref testdox?)
@@ -234,6 +249,14 @@
   `(defn ~test-name {:test true :test-name ~(name test-name)} []
      (binding [*current-test-name* ~(name test-name)]
               ~@body)))
+
+(defmacro testing
+  "Adds a testing context string. Used inside deftest to describe a group of assertions.
+  The context string is prepended to failure messages for better diagnostics."
+  {:example "(deftest test-math\n  (testing \"addition\"\n    (is (= 2 (+ 1 1)))))"}
+  [context & body]
+  `(binding [*testing-contexts* (conj *testing-contexts* ~context)]
+     ~@body))
 
 ;; ---------------------
 ;; error/failure printer
