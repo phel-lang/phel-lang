@@ -12,6 +12,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 
 use function count;
@@ -478,8 +479,12 @@ TXT;
     /**
      * Remaps `clojure\*` namespaces to `phel\*` for Clojure compatibility.
      *
-     * If a required namespace starts with `clojure\`, the prefix is replaced
-     * with `phel\` so that e.g. `clojure\test` resolves to `phel\test`.
+     * If a required namespace starts with `clojure\` and the corresponding
+     * `phel\*` namespace exists in the Registry, the prefix is replaced
+     * so that e.g. `clojure\test` resolves to `phel\test`.
+     *
+     * User-defined `clojure\*` namespaces (e.g. `clojure\core-test\portability`)
+     * are left untouched when no matching `phel\*` namespace is registered.
      */
     private function remapClojureNamespace(Symbol $symbol): Symbol
     {
@@ -488,9 +493,16 @@ TXT;
             return $symbol;
         }
 
+        $targetNs = 'phel\\' . substr($name, 8);
+        $mungedNs = str_replace('-', '_', $targetNs);
+
+        if (Registry::getInstance()->getDefinitionInNamespace($mungedNs) === []) {
+            return $symbol;
+        }
+
         return Symbol::createForNamespace(
             $symbol->getNamespace(),
-            'phel\\' . substr($name, 8),
+            $targetNs,
         )->copyLocationFrom($symbol);
     }
 }
