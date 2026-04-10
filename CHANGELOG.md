@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- Clojure-to-Phel migration guide covering naming, interop, namespaces, and feature differences (#1229)
 - `atom`, `atom?`, `reset!` as Clojure-compatible aliases for `var`, `var?`, `set!` (#1252)
 - `identical?` as Clojure-compatible alias for `id` (#1252)
 - `fn?` as Clojure-compatible alias for `function?` (#1252)
