@@ -188,10 +188,28 @@
              (php/-> obj-meta (getMeta))
              nil))))))
 
-(def set-meta!
-  "Sets the metadata to a given object."
+(def copy-meta
+  {:private true
+   :doc "Returns `target` with the metadata from `source` when both implement `MetaInterface`."}
+  (fn [source target]
+    (if (php/instanceof source MetaInterface)
+      (if (php/instanceof target MetaInterface)
+        (php/-> target (withMeta (php/-> source (getMeta))))
+        target)
+      target)))
+
+(def with-meta
+  {:doc "Returns `obj` with the given metadata `meta` attached."
+   :see-also ["meta" "vary-meta"]}
   (fn [obj meta]
     (php/-> obj (withMeta meta))))
+
+(def set-meta!
+  {:doc "Sets the metadata to a given object."
+   :deprecated "0.32.0"
+   :superseded-by "with-meta"}
+  (fn [obj meta]
+    (with-meta obj meta)))
 
 (def vary-meta
   {:doc "Returns an object with (apply f (meta obj) args) as its new metadata."
@@ -201,16 +219,6 @@
               (php/-> obj (getMeta))
               nil)]
       (php/-> obj (withMeta (apply f m args))))))
-
-(def with-meta
-  {:private true
-   :doc "Returns `target` with the metadata from `source` when both implement `MetaInterface`."}
-  (fn [source target]
-    (if (php/instanceof source MetaInterface)
-      (if (php/instanceof target MetaInterface)
-        (php/-> target (withMeta (php/-> source (getMeta))))
-        target)
-      target)))
 
 ;; ------------
 ;; Basic macros
@@ -1413,14 +1421,14 @@ Otherwise, it tries to call `__toString`."
     1 (let [coll (first colls)]
         (if (empty? coll)
           []
-          (with-meta coll (lazy-seq-from-generator (php/:: Seq (map f coll))))))
+          (copy-meta coll (lazy-seq-from-generator (php/:: Seq (map f coll))))))
     (let [result (lazy-seq-from-generator
                   (php/call_user_func_array
                    (php/array "\\Phel\\Lang\\Seq" "mapMulti")
                    (php/array_merge (php/array f) (apply php/array colls))))]
       (if (php/=== nil result)
         []
-        (with-meta (first colls) result)))))
+        (copy-meta (first colls) result)))))
 
 ;; -------------------
 ;; Transducer support
@@ -1773,7 +1781,7 @@ Otherwise, it tries to call `__toString`."
             (if (php/=== n 0)
               coll
               (let [result (lazy-seq-from-generator (php/:: Seq (drop n coll)))]
-                (with-meta coll (or result [])))))))
+                (copy-meta coll (or result [])))))))
     (throw (php/new InvalidArgumentException "drop expects 1 or 2 arguments"))))
 
 (defn drop-last
@@ -1818,7 +1826,7 @@ Otherwise, it tries to call `__toString`."
         (if (nil? coll)
           []
           (let [result (lazy-seq-from-generator (php/:: Seq (dropWhile pred coll)))]
-            (with-meta coll (or result [])))))
+            (copy-meta coll (or result [])))))
     (throw (php/new InvalidArgumentException "drop-while expects 1 or 2 arguments"))))
 
 (defn take
@@ -1840,7 +1848,7 @@ Otherwise, it tries to call `__toString`."
           (let [result (lazy-seq-from-generator (php/:: Seq (take n coll)))]
             (if (nil? result)
               []
-              (with-meta coll result)))))
+              (copy-meta coll result)))))
     (throw (php/new InvalidArgumentException "take expects 1 or 2 arguments"))))
 
 (defn take-last
@@ -1864,7 +1872,7 @@ Otherwise, it tries to call `__toString`."
         (if (nil? coll)
           []
           (let [result (lazy-seq-from-generator (php/:: Seq (takeWhile pred coll)))]
-            (with-meta coll (or result [])))))
+            (copy-meta coll (or result [])))))
     (throw (php/new InvalidArgumentException "take-while expects 1 or 2 arguments"))))
 
 (defn take-nth
@@ -1886,7 +1894,7 @@ Otherwise, it tries to call `__toString`."
         (if (nil? coll)
           []
           (let [result (lazy-seq-from-generator (php/:: Seq (takeNth n coll)))]
-            (with-meta coll (or result [])))))
+            (copy-meta coll (or result [])))))
     (throw (php/new InvalidArgumentException "take-nth expects 1 or 2 arguments"))))
 
 (defn filter
@@ -1902,7 +1910,7 @@ Otherwise, it tries to call `__toString`."
             result (lazy-seq-from-generator (php/:: Seq (filter pred coll)))]
         (if (nil? result)
           []
-          (with-meta coll result)))
+          (copy-meta coll result)))
     (throw (php/new InvalidArgumentException "filter expects 1 or 2 arguments"))))
 
 (defn remove
@@ -1931,7 +1939,7 @@ Otherwise, it tries to call `__toString`."
         (if (nil? coll)
           []
           (let [result (lazy-seq-from-generator (php/:: Seq (keep pred coll)))]
-            (with-meta coll (or result [])))))
+            (copy-meta coll (or result [])))))
     (throw (php/new InvalidArgumentException "keep expects 1 or 2 arguments"))))
 
 (defn keep-indexed
@@ -1951,7 +1959,7 @@ Otherwise, it tries to call `__toString`."
         (if (nil? coll)
           []
           (let [result (lazy-seq-from-generator (php/:: Seq (keepIndexed pred coll)))]
-            (with-meta coll (or result [])))))
+            (copy-meta coll (or result [])))))
     (throw (php/new InvalidArgumentException "keep-indexed expects 1 or 2 arguments"))))
 
 (defn find
@@ -1996,7 +2004,7 @@ Otherwise, it tries to call `__toString`."
         (if (nil? coll)
           []
           (let [result (lazy-seq-from-generator (php/:: Seq (distinct coll)))]
-            (with-meta coll (or result [])))))
+            (copy-meta coll (or result [])))))
     (throw (php/new InvalidArgumentException "distinct expects 0 or 1 arguments"))))
 
 
@@ -2008,7 +2016,7 @@ Otherwise, it tries to call `__toString`."
               (php/mb_str_split coll)
               (to-php-array coll))
         result (apply vector (php/array_reverse arr))]
-    (with-meta coll result)))
+    (copy-meta coll result)))
 
 (defn interleave
   "Returns a vector with the first items of each col, then the second items, etc."
@@ -2025,7 +2033,7 @@ Otherwise, it tries to call `__toString`."
                      res
                      (recur (php/+ i 1)
                             (reduce #(conj %1 (get %2 i)) res colls))))]
-      (with-meta first-coll result))))
+      (copy-meta first-coll result))))
 
 (defn interpose
   "Returns a vector of elements separated by `sep`."
@@ -2039,7 +2047,7 @@ Otherwise, it tries to call `__toString`."
            (when (> k 0)
              (conj res sep v))
            (conj res v)))]
-    (with-meta coll result)))
+    (copy-meta coll result)))
 
 (defn frequencies
   "Returns a map from distinct items in `coll` to the number of times they appear.
@@ -2051,21 +2059,21 @@ Otherwise, it tries to call `__toString`."
                      :reduce [res {}]]
                  (let [n (get res x 0)]
                    (assoc res x (php/+ 1 n))))]
-    (with-meta coll result)))
+    (copy-meta coll result)))
 
 (defn keys
   "Returns a sequence of all keys in a map."
   {:example "(keys {:a 1 :b 2}) ; => (:a :b)"}
   [coll]
   (let [result (for [k :keys coll] k)]
-    (with-meta coll result)))
+    (copy-meta coll result)))
 
 (defn values
   "Returns a sequence of all values in a map."
   {:example "(values {:a 1 :b 2}) ; => (1 2)"}
   [coll]
   (let [result (for [x :in coll] x)]
-    (with-meta coll result)))
+    (copy-meta coll result)))
 
 (defn pairs
   "Gets the pairs of an associative data structure."
@@ -2073,7 +2081,7 @@ Otherwise, it tries to call `__toString`."
    :see-also ["keys" "values" "kvs"]}
   [coll]
   (let [result (for [p :pairs coll] p)]
-    (with-meta coll result)))
+    (copy-meta coll result)))
 
 (defn kvs
   "Returns a vector of key-value pairs like `[k1 v1 k2 v2 k3 v3 ...]`."
@@ -2086,7 +2094,7 @@ Otherwise, it tries to call `__toString`."
                :reduce [res (transient [])]]
            (conj res k)
            (conj res v)))]
-    (with-meta coll result)))
+    (copy-meta coll result)))
 
 (defn php-array-to-map
   "Converts a PHP Array to a Phel map."
@@ -2167,7 +2175,7 @@ Otherwise, it tries to call `__toString`."
   [coll & [comp]]
   (let [php-array (to-php-array coll)]
     (php/usort php-array (or comp compare))
-    (with-meta coll (apply vector php-array))))
+    (copy-meta coll (apply vector php-array))))
 
 (defn sort-by
   "Returns a sorted vector where the sort order is determined by comparing `(keyfn item)`.
@@ -2179,7 +2187,7 @@ Otherwise, it tries to call `__toString`."
   (let [php-array (to-php-array coll)
         cmp (or comp compare)]
     (php/usort php-array #(cmp (keyfn %1) (keyfn %2)))
-    (with-meta coll (apply vector php-array))))
+    (copy-meta coll (apply vector php-array))))
 
 (defn shuffle
   "Returns a random permutation of coll."
@@ -2187,7 +2195,7 @@ Otherwise, it tries to call `__toString`."
   [coll]
   (let [php-array (to-php-array coll)]
     (php/shuffle php-array)
-    (with-meta coll (apply vector php-array))))
+    (copy-meta coll (apply vector php-array))))
 
 (defn repeat
   "Returns a vector of length n where every element is x.
@@ -2282,7 +2290,7 @@ Otherwise, it tries to call `__toString`."
                         (php/:: \Phel\Lang\Seq (mapcat f coll)))]
             (if (php/=== nil result)
               '()
-              (with-meta coll result)))))
+              (copy-meta coll result)))))
     (throw (php/new InvalidArgumentException "mapcat expects 1 or 2 arguments"))))
 
 (defn interpose
@@ -2312,7 +2320,7 @@ Otherwise, it tries to call `__toString`."
                         (php/:: \Phel\Lang\Seq (interpose sep coll)))]
             (if (php/=== nil result)
               '()
-              (with-meta coll result)))))
+              (copy-meta coll result)))))
     (throw (php/new InvalidArgumentException "interpose expects 1 or 2 arguments"))))
 
 (defn map-indexed
@@ -2329,7 +2337,7 @@ Otherwise, it tries to call `__toString`."
                   (php/:: \Phel\Lang\Seq (mapIndexed f coll)))]
       (if (php/=== nil result)
         '()
-        (with-meta coll result)))))
+        (copy-meta coll result)))))
 
 ;; Redefine interleave as lazy
 (defn interleave
@@ -2348,7 +2356,7 @@ Otherwise, it tries to call `__toString`."
                    (apply php/array colls)))]
       (if (php/=== nil result)
         '()
-        (with-meta (first colls) result)))))
+        (copy-meta (first colls) result)))))
 
 (defn doall
   "Forces realization of a lazy sequence and returns it as a vector."
@@ -2436,7 +2444,7 @@ Otherwise, it tries to call `__toString`."
                      :when (contains-value? ks k)
                      :reduce [acc {}]]
                  (assoc acc k v))]
-    (with-meta m result)))
+    (copy-meta m result)))
 
 (defn rename-keys
   "Returns the map with keys renamed according to kmap.
@@ -2532,7 +2540,7 @@ Otherwise, it tries to call `__toString`."
                  (php/array n coll)))]
     (if (php/=== nil result)
       '()
-      (with-meta coll result))))
+      (copy-meta coll result))))
 
 (defn partition-all
   "Partitions collection into chunks of size n, including incomplete final partition."
@@ -2544,7 +2552,7 @@ Otherwise, it tries to call `__toString`."
                  (php/array n coll)))]
     (if (php/=== nil result)
       '()
-      (with-meta coll result))))
+      (copy-meta coll result))))
 
 ;; -------------
 ;; Set operation
@@ -2748,7 +2756,7 @@ Otherwise, it tries to call `__toString`."
                 (php/apush stack child))
               (recur stack))
             (recur stack)))
-        (with-meta root (persistent ret))))))
+        (copy-meta root (persistent ret))))))
 
 (defn flatten
   "Flattens nested sequential structure into a lazy sequence of all leaf values."
@@ -3264,8 +3272,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (if forms
       (let [form (first forms)
             threaded (if (list? form)
-                       (with-meta form `(~(first form) ~x ~@(next form)))
-                       (with-meta form (list form x)))]
+                       (copy-meta form `(~(first form) ~x ~@(next form)))
+                       (copy-meta form (list form x)))]
         (recur threaded (next forms)))
       x)))
 
@@ -3280,8 +3288,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (if forms
       (let [form (first forms)
             threaded (if (list? form)
-                       (with-meta form `(~(first form) ~@(next form) ~x))
-                       (with-meta form (list form x)))]
+                       (copy-meta form `(~(first form) ~@(next form) ~x))
+                       (copy-meta form (list form x)))]
         (recur threaded (next forms)))
       x)))
 
@@ -3298,8 +3306,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                          args (if rest
                                 (cons g rest)
                                 [g])]
-                     (with-meta form (apply list (cons (first form) args))))
-                   (with-meta form (list form g)))
+                     (copy-meta form (apply list (cons (first form) args))))
+                   (copy-meta form (list form g)))
             threaded (list 'let
                            [g x]
                            (list 'if
@@ -3322,8 +3330,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                          args (if rest
                                 (concat rest [g])
                                 [g])]
-                     (with-meta form (apply list (cons (first form) args))))
-                   (with-meta form (list form g)))
+                     (copy-meta form (apply list (cons (first form) args))))
+                   (copy-meta form (list form g)))
             threaded (list 'let
                            [g x]
                            (list 'if
@@ -3352,8 +3360,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     `(let [~gx ~x]
        ~@(map (fn [f]
                 (if (list? f)
-                  (with-meta f `(~(first f) ~gx ~@(next f)))
-                  (with-meta f `(~f ~gx))))
+                  (copy-meta f `(~(first f) ~gx ~@(next f)))
+                  (copy-meta f `(~f ~gx))))
               forms)
        ~gx)))
 
