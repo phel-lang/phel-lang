@@ -1,0 +1,9 @@
+--PHEL--
+(reify* (greet [this name] (php/. "Hello, " name)))
+--PHP--
+new class() {
+  public function greet($name) {
+    $this_1 = $this;
+    return ("Hello, " . $name);
+  }
+};

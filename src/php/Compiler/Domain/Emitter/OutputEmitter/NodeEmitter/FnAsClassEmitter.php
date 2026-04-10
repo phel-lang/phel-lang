@@ -8,16 +8,15 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
-use Phel\Lang\Symbol;
 
 use function assert;
-use function count;
 
 final readonly class FnAsClassEmitter implements NodeEmitterInterface
 {
     public function __construct(
         private OutputEmitterInterface $outputEmitter,
         private MethodEmitter $methodEmitter,
+        private ClosureEmitterHelper $closureHelper,
     ) {}
 
     public function emit(AbstractNode $node): void
@@ -36,20 +35,7 @@ final readonly class FnAsClassEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $this->outputEmitter->emitStr('new class(', $node->getStartSourceLocation());
 
-        $usesCount = count($node->getUses());
-        foreach ($node->getUses() as $i => $use) {
-            $loc = $use->getStartLocation();
-            /** @var Symbol $normalizedUse */
-            $normalizedUse = $node->getEnv()->getShadowed($use) instanceof Symbol
-                ? $node->getEnv()->getShadowed($use)
-                : $use;
-            $this->outputEmitter->emitPhpVariable($normalizedUse, $loc);
-
-            if ($i < $usesCount - 1) {
-                $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
-            }
-        }
-
+        $this->closureHelper->emitConstructorArguments($node->getUses(), $node->getEnv(), $node->getStartSourceLocation());
         $this->outputEmitter->emitLine(') extends \Phel\Lang\AbstractFn {', $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();
     }
@@ -59,60 +45,12 @@ final readonly class FnAsClassEmitter implements NodeEmitterInterface
         $ns = addslashes($this->outputEmitter->mungeEncodeNs($node->getEnv()->getBoundTo()));
         $this->outputEmitter->emitLine('public const BOUND_TO = "' . $ns . '";', $node->getStartSourceLocation());
 
-        foreach ($node->getUses() as $use) {
-            /** @var Symbol $normalizedUse */
-            $normalizedUse = $node->getEnv()->getShadowed($use) instanceof Symbol
-                ? $node->getEnv()->getShadowed($use)
-                : $use;
-            $this->outputEmitter->emitLine(
-                'private $' . $this->outputEmitter->mungeEncode($normalizedUse->getName()) . ';',
-                $node->getStartSourceLocation(),
-            );
-        }
+        $this->closureHelper->emitProperties($node->getUses(), $node->getEnv(), $node->getStartSourceLocation());
     }
 
     private function emitConstructor(FnNode $node): void
     {
-        $usesCount = count($node->getUses());
-
-        if ($usesCount !== 0) {
-            $this->outputEmitter->emitLine();
-            $this->outputEmitter->emitStr('public function __construct(', $node->getStartSourceLocation());
-
-            // Constructor parameter
-            foreach ($node->getUses() as $i => $use) {
-                /** @var Symbol $normalizedUse */
-                $normalizedUse = $node->getEnv()->getShadowed($use) instanceof Symbol
-                    ? $node->getEnv()->getShadowed($use)
-                    : $use;
-
-                $this->outputEmitter->emitPhpVariable($normalizedUse, $node->getStartSourceLocation());
-
-                if ($i < $usesCount - 1) {
-                    $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
-                }
-            }
-
-            $this->outputEmitter->emitLine(') {', $node->getStartSourceLocation());
-            $this->outputEmitter->increaseIndentLevel();
-
-            // Constructor assignment
-            foreach ($node->getUses() as $use) {
-                /** @var Symbol $normalizedUse */
-                $normalizedUse = $node->getEnv()->getShadowed($use) instanceof Symbol
-                    ? $node->getEnv()->getShadowed($use)
-                    : $use;
-                $varName = $this->outputEmitter->mungeEncode($normalizedUse->getName());
-
-                $this->outputEmitter->emitLine(
-                    '$this->' . $varName . ' = $' . $varName . ';',
-                    $node->getStartSourceLocation(),
-                );
-            }
-
-            $this->outputEmitter->decreaseIndentLevel();
-            $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
-        }
+        $this->closureHelper->emitConstructor($node->getUses(), $node->getEnv(), $node->getStartSourceLocation());
 
         $this->outputEmitter->emitLine();
     }

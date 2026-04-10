@@ -35,6 +35,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectSetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\QuoteNode;
 use Phel\Compiler\Domain\Analyzer\Ast\RecurNode;
+use Phel\Compiler\Domain\Analyzer\Ast\ReifyNode;
 use Phel\Compiler\Domain\Analyzer\Ast\SetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\SetVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
@@ -44,6 +45,7 @@ use Phel\Compiler\Domain\Emitter\Exceptions\NotSupportedAstException;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\ApplyEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\CallEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\CatchEmitter;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\ClosureEmitterHelper;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\DefEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\DefExceptionEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\DefInterfaceEmitter;
@@ -73,6 +75,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpObjectSetEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\PhpVarEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\QuoteEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\RecurEmitter;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\ReifyEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\SetEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\SetVarEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\ThrowEmitter;
@@ -87,6 +90,9 @@ final class NodeEmitterFactory
 
     /** @var array<int, MethodEmitter> */
     private array $methodEmitterCache = [];
+
+    /** @var array<int, ClosureEmitterHelper> */
+    private array $closureHelperCache = [];
 
     public function createNodeEmitter(
         OutputEmitterInterface $outputEmitter,
@@ -103,6 +109,7 @@ final class NodeEmitterFactory
         string $astNodeClassName,
     ): NodeEmitterInterface {
         $methodEmitter = $this->getMethodEmitter($outputEmitter);
+        $closureHelper = $this->getClosureHelper($outputEmitter);
 
         return match ($astNodeClassName) {
             NsNode::class => new NsEmitter($outputEmitter),
@@ -111,7 +118,7 @@ final class NodeEmitterFactory
             DefNode::class => new DefEmitter($outputEmitter),
             LiteralNode::class => new LiteralEmitter($outputEmitter),
             QuoteNode::class => new QuoteEmitter($outputEmitter),
-            FnNode::class => new FnAsClassEmitter($outputEmitter, $methodEmitter),
+            FnNode::class => new FnAsClassEmitter($outputEmitter, $methodEmitter, $closureHelper),
             DoNode::class => new DoEmitter($outputEmitter),
             LetNode::class => new LetEmitter($outputEmitter),
             LocalVarNode::class => new LocalVarEmitter($outputEmitter),
@@ -141,6 +148,7 @@ final class NodeEmitterFactory
             SetVarNode::class => new SetVarEmitter($outputEmitter),
             DefInterfaceNode::class => new DefInterfaceEmitter($outputEmitter),
             MultiFnNode::class => new MultiFnAsClassEmitter($outputEmitter),
+            ReifyNode::class => new ReifyEmitter($outputEmitter, $methodEmitter, $closureHelper),
             default => throw NotSupportedAstException::withClassName($astNodeClassName),
         };
     }
@@ -149,10 +157,13 @@ final class NodeEmitterFactory
     {
         $key = spl_object_id($outputEmitter);
 
-        if (!isset($this->methodEmitterCache[$key])) {
-            $this->methodEmitterCache[$key] = new MethodEmitter($outputEmitter);
-        }
+        return $this->methodEmitterCache[$key] ??= new MethodEmitter($outputEmitter);
+    }
 
-        return $this->methodEmitterCache[$key];
+    private function getClosureHelper(OutputEmitterInterface $outputEmitter): ClosureEmitterHelper
+    {
+        $key = spl_object_id($outputEmitter);
+
+        return $this->closureHelperCache[$key] ??= new ClosureEmitterHelper($outputEmitter);
     }
 }

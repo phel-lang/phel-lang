@@ -12,6 +12,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\DefStructNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DefStructSymbol;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\MethodBodyAnalyzer;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
@@ -34,8 +35,7 @@ final class DefStructSymbolTest extends TestCase
             Symbol::create(Symbol::NAME_DEF_STRUCT),
         ]);
 
-        (new DefStructSymbol($this->analyzer, new Munge()))
-            ->analyze($list, NodeEnvironment::empty());
+        $this->createSymbol()->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_first_arg_is_not_symbol(): void
@@ -49,8 +49,7 @@ final class DefStructSymbolTest extends TestCase
             Phel::vector([]),
         ]);
 
-        (new DefStructSymbol($this->analyzer, new Munge()))
-            ->analyze($list, NodeEnvironment::empty());
+        $this->createSymbol()->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_second_arg_is_not_vector(): void
@@ -64,8 +63,7 @@ final class DefStructSymbolTest extends TestCase
             '',
         ]);
 
-        (new DefStructSymbol($this->analyzer, new Munge()))
-            ->analyze($list, NodeEnvironment::empty());
+        $this->createSymbol()->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_vector_elems_are_not_symbols(): void
@@ -79,8 +77,7 @@ final class DefStructSymbolTest extends TestCase
             Phel::vector(['method']),
         ]);
 
-        (new DefStructSymbol($this->analyzer, new Munge()))
-            ->analyze($list, NodeEnvironment::empty());
+        $this->createSymbol()->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_def_struct_symbol(): void
@@ -91,7 +88,7 @@ final class DefStructSymbolTest extends TestCase
             Phel::vector([Symbol::create('method'), Symbol::create('uri')]),
         ]);
 
-        $defStructNode = (new DefStructSymbol($this->analyzer, new Munge()))
+        $defStructNode = $this->createSymbol()
             ->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals(
@@ -106,6 +103,15 @@ final class DefStructSymbolTest extends TestCase
                 [],
             ),
             $defStructNode,
+        );
+    }
+
+    private function createSymbol(): DefStructSymbol
+    {
+        return new DefStructSymbol(
+            $this->analyzer,
+            new Munge(),
+            new MethodBodyAnalyzer($this->analyzer),
         );
     }
 }
