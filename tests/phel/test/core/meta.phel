@@ -44,6 +44,14 @@
     (is (= m (meta (interleave data [4 5 6]))) "interleave preserves metadata")
     (is (= m (meta (frequencies data))) "frequencies preserves metadata")))
 
+(deftest test-vary-meta
+  (is (= {:a 1 :b 2} (meta (vary-meta (set-meta! [] {:a 1}) put :b 2)))
+      "vary-meta adds key to existing metadata")
+  (is (= {:count 1} (meta (vary-meta (set-meta! [] {:count 0}) update-in [:count] inc)))
+      "vary-meta with update-in")
+  (is (= {:a 1} (meta (vary-meta (set-meta! [] {:a 1 :b 2}) dissoc :b)))
+      "vary-meta with dissoc"))
+
 (deftest associative-functions-preserve-meta
   (let [m {:foo "bar"}
         data (set-meta! {:a 1 :b 2} m)]
