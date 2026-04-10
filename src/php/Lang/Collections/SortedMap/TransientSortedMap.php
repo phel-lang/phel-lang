@@ -10,7 +10,6 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Map\TransientMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
-use Phel\Lang\NamedInterface;
 
 use function count;
 
@@ -22,25 +21,29 @@ use function count;
  */
 final class TransientSortedMap implements TransientMapInterface
 {
+    private readonly Closure $effectiveComparator;
+
     /**
-     * @param array<int, mixed>           $array      Flat [k, v, k, v, ...] array in sorted key order
-     * @param ?Closure(mixed, mixed): int $comparator
+     * @param array<int, mixed>           $array          Flat [k, v, k, v, ...] in sorted key order
+     * @param ?Closure(mixed, mixed): int $userComparator Original user comparator (null = natural order)
      */
     public function __construct(
         private readonly HasherInterface $hasher,
         private readonly EqualizerInterface $equalizer,
         private array $array,
-        private readonly ?Closure $comparator = null,
-    ) {}
+        private readonly ?Closure $userComparator = null,
+    ) {
+        $this->effectiveComparator = SortedArrayHelper::resolveComparator($userComparator);
+    }
 
     public function contains($key): bool
     {
-        return $this->binarySearchIndex($key) >= 0;
+        return SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator) >= 0;
     }
 
     public function put($key, $value): self
     {
-        $idx = $this->binarySearchIndex($key);
+        $idx = SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator);
 
         if ($idx >= 0) {
             if ($this->equalizer->equals($this->array[$idx + 1], $value)) {
@@ -60,7 +63,7 @@ final class TransientSortedMap implements TransientMapInterface
 
     public function remove($key): self
     {
-        $idx = $this->binarySearchIndex($key);
+        $idx = SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator);
 
         if ($idx < 0) {
             return $this;
@@ -73,7 +76,7 @@ final class TransientSortedMap implements TransientMapInterface
 
     public function find($key)
     {
-        $idx = $this->binarySearchIndex($key);
+        $idx = SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator);
         if ($idx < 0) {
             return null;
         }
@@ -116,41 +119,6 @@ final class TransientSortedMap implements TransientMapInterface
 
     public function persistent(): PersistentMapInterface
     {
-        return new PersistentSortedMap($this->hasher, $this->equalizer, null, $this->array, $this->comparator);
-    }
-
-    /**
-     * @return int The array index (even) if found, or -(insertionPoint) - 1 if not found
-     */
-    private static function defaultCompare(mixed $a, mixed $b): int
-    {
-        if ($a instanceof NamedInterface && $b instanceof NamedInterface) {
-            return $a->getFullName() <=> $b->getFullName();
-        }
-
-        return $a <=> $b;
-    }
-
-    private function binarySearchIndex(mixed $key): int
-    {
-        /** @var Closure(mixed, mixed): int $comparator */
-        $comparator = $this->comparator ?? static fn(mixed $a, mixed $b): int => self::defaultCompare($a, $b);
-        $low = 0;
-        $high = (int) (count($this->array) / 2) - 1;
-
-        while ($low <= $high) {
-            $mid = intdiv($low + $high, 2);
-            $cmp = $comparator($this->array[$mid * 2], $key);
-
-            if ($cmp < 0) {
-                $low = $mid + 1;
-            } elseif ($cmp > 0) {
-                $high = $mid - 1;
-            } else {
-                return $mid * 2;
-            }
-        }
-
-        return -(($low * 2) + 1);
+        return new PersistentSortedMap($this->hasher, $this->equalizer, null, $this->array, $this->userComparator);
     }
 }

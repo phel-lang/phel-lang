@@ -10,7 +10,6 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Map\TransientMapWrapper;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
-use Phel\Lang\NamedInterface;
 use RuntimeException;
 use Traversable;
 
@@ -27,18 +26,21 @@ use function count;
  */
 final class PersistentSortedMap extends AbstractPersistentMap
 {
+    private readonly Closure $effectiveComparator;
+
     /**
-     * @param array<int, mixed>           $array      Flat [k, v, k, v, ...] array in sorted key order
-     * @param ?Closure(mixed, mixed): int $comparator
+     * @param array<int, mixed>           $array          Flat [k, v, k, v, ...] in sorted key order
+     * @param ?Closure(mixed, mixed): int $userComparator Original user comparator (null = natural order)
      */
     public function __construct(
         HasherInterface $hasher,
         EqualizerInterface $equalizer,
         ?PersistentMapInterface $meta,
         private readonly array $array,
-        private readonly ?Closure $comparator = null,
+        private readonly ?Closure $userComparator = null,
     ) {
         parent::__construct($hasher, $equalizer, $meta);
+        $this->effectiveComparator = SortedArrayHelper::resolveComparator($userComparator);
     }
 
     /**
@@ -46,7 +48,9 @@ final class PersistentSortedMap extends AbstractPersistentMap
      */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer, ?callable $comparator = null): self
     {
-        return new self($hasher, $equalizer, null, [], self::toClosure($comparator));
+        $closure = $comparator !== null ? SortedArrayHelper::resolveComparator($comparator) : null;
+
+        return new self($hasher, $equalizer, null, [], $closure);
     }
 
     /**
@@ -70,17 +74,17 @@ final class PersistentSortedMap extends AbstractPersistentMap
 
     public function withMeta(?PersistentMapInterface $meta): static
     {
-        return new self($this->hasher, $this->equalizer, $meta, $this->array, $this->comparator);
+        return new self($this->hasher, $this->equalizer, $meta, $this->array, $this->userComparator);
     }
 
     public function contains($key): bool
     {
-        return $this->binarySearchIndex($key) >= 0;
+        return SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator) >= 0;
     }
 
     public function put($key, $value): PersistentMapInterface
     {
-        $idx = $this->binarySearchIndex($key);
+        $idx = SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator);
 
         if ($idx >= 0) {
             if ($this->equalizer->equals($this->array[$idx + 1], $value)) {
@@ -90,19 +94,19 @@ final class PersistentSortedMap extends AbstractPersistentMap
             $newArray = $this->array;
             $newArray[$idx + 1] = $value;
 
-            return new self($this->hasher, $this->equalizer, $this->meta, $newArray, $this->comparator);
+            return new self($this->hasher, $this->equalizer, $this->meta, $newArray, $this->userComparator);
         }
 
         $insertAt = -($idx + 1);
         $newArray = $this->array;
         array_splice($newArray, $insertAt, 0, [$key, $value]);
 
-        return new self($this->hasher, $this->equalizer, $this->meta, $newArray, $this->comparator);
+        return new self($this->hasher, $this->equalizer, $this->meta, $newArray, $this->userComparator);
     }
 
     public function remove($key): self
     {
-        $idx = $this->binarySearchIndex($key);
+        $idx = SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator);
 
         if ($idx < 0) {
             return $this;
@@ -111,12 +115,12 @@ final class PersistentSortedMap extends AbstractPersistentMap
         $newArray = $this->array;
         array_splice($newArray, $idx, 2);
 
-        return new self($this->hasher, $this->equalizer, $this->meta, $newArray, $this->comparator);
+        return new self($this->hasher, $this->equalizer, $this->meta, $newArray, $this->userComparator);
     }
 
     public function find($key)
     {
-        $idx = $this->binarySearchIndex($key);
+        $idx = SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator);
         if ($idx < 0) {
             return null;
         }
@@ -143,66 +147,18 @@ final class PersistentSortedMap extends AbstractPersistentMap
                 $this->hasher,
                 $this->equalizer,
                 $this->array,
-                $this->comparator,
+                $this->userComparator,
             ),
         );
     }
 
     /**
-     * @return ?callable(mixed, mixed): int
-     */
-    public function getComparator(): ?callable
-    {
-        return $this->comparator;
-    }
-
-    private static function toClosure(?callable $comparator): ?Closure
-    {
-        if ($comparator === null) {
-            return null;
-        }
-
-        return $comparator instanceof Closure ? $comparator : Closure::fromCallable($comparator);
-    }
-
-    /**
-     * Default comparator that handles NamedInterface objects (Keywords, Symbols)
-     * by comparing their full names, and falls back to <=> for everything else.
-     */
-    private static function defaultCompare(mixed $a, mixed $b): int
-    {
-        if ($a instanceof NamedInterface && $b instanceof NamedInterface) {
-            return $a->getFullName() <=> $b->getFullName();
-        }
-
-        return $a <=> $b;
-    }
-
-    /**
-     * Binary search for a key in the sorted array.
+     * Returns the user-provided comparator, or null for natural order.
      *
-     * @return int The array index (even) if found, or -(insertionPoint) - 1 if not found
+     * @return ?Closure(mixed, mixed): int
      */
-    private function binarySearchIndex(mixed $key): int
+    public function getComparator(): ?Closure
     {
-        /** @var Closure(mixed, mixed): int $comparator */
-        $comparator = $this->comparator ?? static fn(mixed $a, mixed $b): int => self::defaultCompare($a, $b);
-        $low = 0;
-        $high = (int) (count($this->array) / 2) - 1;
-
-        while ($low <= $high) {
-            $mid = intdiv($low + $high, 2);
-            $cmp = $comparator($this->array[$mid * 2], $key);
-
-            if ($cmp < 0) {
-                $low = $mid + 1;
-            } elseif ($cmp > 0) {
-                $high = $mid - 1;
-            } else {
-                return $mid * 2;
-            }
-        }
-
-        return -(($low * 2) + 1);
+        return $this->userComparator;
     }
 }
