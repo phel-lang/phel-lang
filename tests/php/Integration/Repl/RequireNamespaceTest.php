@@ -12,6 +12,7 @@ use Phel\Lang\Symbol;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 final class RequireNamespaceTest extends TestCase
 {
@@ -34,5 +35,26 @@ final class RequireNamespaceTest extends TestCase
 
         self::assertInstanceOf(Symbol::class, $result);
         self::assertSame('phel\\str', $result->getFullName());
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_require_nonexistent_namespace_throws(): void
+    {
+        Phel::bootstrap(__DIR__);
+        Phel::addDefinition('phel\\repl', 'src-dirs', [__DIR__ . '/../../../../src']);
+
+        $srcDir = __DIR__ . '/../../../../src';
+        $build = new BuildFacade();
+        $deps = $build->getDependenciesForNamespace([$srcDir], ['phel\\repl']);
+        foreach ($deps as $dep) {
+            $build->evalFile($dep->getFile());
+        }
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage("Could not locate namespace 'nonexistent\\foo'");
+
+        $facade = new CompilerFacade();
+        $facade->eval('(phel\\repl/require nonexistent\\foo)', new CompileOptions());
     }
 }

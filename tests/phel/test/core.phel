@@ -19,6 +19,50 @@
   (is (= 3 (let [{:keys [a b]} {:a 1 :b 2}] (+ a b))) "destructure hash map with :keys")
   (is (= {:a 1 :b 2} (let [{:keys [a b] :as user} {:a 1 :b 2}] user)) "destructure hash map with :keys and :as"))
 
+(deftest destructure-hash-map-or-defaults
+  ;; :or with :keys — default applied when key is absent
+  (is (= 42 (let [{:keys [a b] :or {b 42}} {:a 1}] b))
+      ":or provides default for absent key")
+  (is (= 1 (let [{:keys [a b] :or {b 42}} {:a 1}] a))
+      "present key unaffected by :or")
+  ;; :or not applied when key exists in map
+  (is (= 99 (let [{:keys [b] :or {b 42}} {:b 99}] b))
+      ":or not applied when key is present")
+  ;; :or with nil value present — nil wins (Clojure semantics: contains? check)
+  (is (nil? (let [{:keys [a] :or {a "default"}} {:a nil}] a))
+      ":or not applied when key present with nil value")
+  ;; :or with explicit key bindings
+  (is (= 99 (let [{:a x :or {x 99}} {}] x))
+      ":or works with explicit key bindings")
+  ;; :or combined with :as
+  (is (= {:a 1} (let [{:keys [a b] :or {b 42} :as m} {:a 1}] m))
+      ":as binds the original map regardless of :or")
+  ;; :or with multiple defaults
+  (is (= [10 20] (let [{:keys [a b] :or {a 10 b 20}} {}] [a b]))
+      ":or applies multiple defaults")
+  ;; :or for extra keys is ignored
+  (is (= 1 (let [{:keys [a] :or {a 10 z 99}} {:a 1}] a))
+      ":or for unreferenced keys has no effect")
+  ;; :or works in fn destructuring
+  (is (= 42 ((fn [{:keys [x] :or {x 42}}] x) {}))
+      ":or works in fn parameter destructuring")
+  ;; :or works in defn destructuring
+  (is (= 7 (let [f (fn [{:keys [a b] :or {b 3}}] (+ a b))]
+              (f {:a 4})))
+      ":or works in defn-style destructuring"))
+
+(deftest destructure-hash-map-strs
+  (is (= "Alice" (let [{:strs [name]} {"name" "Alice"}] name))
+      ":strs extracts string key")
+  (is (= 30 (let [{:strs [name age]} {"name" "Alice" "age" 30}] age))
+      ":strs extracts multiple string keys")
+  (is (nil? (let [{:strs [a b]} {"a" 1}] b))
+      ":strs returns nil for missing key")
+  (is (= {"x" 1 "y" 2} (let [{:strs [x] :as m} {"x" 1 "y" 2}] m))
+      ":strs combined with :as binds the full map")
+  (is (= "Bob" ((fn [{:strs [name]}] name) {"name" "Bob"}))
+      ":strs works in fn parameter destructuring"))
+
 ;; -----
 ;; letfn
 ;; -----

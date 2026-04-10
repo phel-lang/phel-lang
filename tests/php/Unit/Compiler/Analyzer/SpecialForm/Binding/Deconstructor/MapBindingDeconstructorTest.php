@@ -189,6 +189,109 @@ final class MapBindingDeconstructorTest extends TestCase
         ], $bindings);
     }
 
+    public function test_deconstruct_strs(): void
+    {
+        // Test for binding like this (let [{:strs [name age]} x])
+        // This will be destructured to this:
+        // (let [__phel_1 x
+        //       __phel_2 (get __phel_1 "name")
+        //       name __phel_2
+        //       __phel_3 (get __phel_1 "age")
+        //       age __phel_3])
+
+        $binding = Phel::map(
+            Keyword::create('strs'),
+            Phel::vector([
+                Symbol::create('name'),
+                Symbol::create('age'),
+            ]),
+        );
+        $value = Symbol::create('x');
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $binding, $value);
+
+        self::assertEquals([
+            // __phel_1 x
+            [
+                Symbol::create('__phel_1'),
+                $value,
+            ],
+            // __phel_2 (get __phel_1 "name")
+            [
+                Symbol::create('__phel_2'),
+                Phel::list([
+                    Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+                    Symbol::create('__phel_1'),
+                    'name',
+                ]),
+            ],
+            // name __phel_2
+            [
+                Symbol::create('name'),
+                Symbol::create('__phel_2'),
+            ],
+            // __phel_3 (get __phel_1 "age")
+            [
+                Symbol::create('__phel_3'),
+                Phel::list([
+                    Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+                    Symbol::create('__phel_1'),
+                    'age',
+                ]),
+            ],
+            // age __phel_3
+            [
+                Symbol::create('age'),
+                Symbol::create('__phel_3'),
+            ],
+        ], $bindings);
+    }
+
+    public function test_deconstruct_strs_with_as(): void
+    {
+        // Test for binding like this (let [{:strs [name] :as m} x])
+        // This will be destructured to this:
+        // (let [m x
+        //       __phel_1 (get m "name")
+        //       name __phel_1])
+
+        $binding = Phel::map(
+            Keyword::create('strs'),
+            Phel::vector([
+                Symbol::create('name'),
+            ]),
+            Keyword::create('as'),
+            Symbol::create('m'),
+        );
+        $value = Symbol::create('x');
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $binding, $value);
+
+        self::assertEquals([
+            // m x
+            [
+                Symbol::create('m'),
+                $value,
+            ],
+            // __phel_1 (get m "name")
+            [
+                Symbol::create('__phel_1'),
+                Phel::list([
+                    Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+                    Symbol::create('m'),
+                    'name',
+                ]),
+            ],
+            // name __phel_1
+            [
+                Symbol::create('name'),
+                Symbol::create('__phel_1'),
+            ],
+        ], $bindings);
+    }
+
     public function test_deconstruct_keys_with_as(): void
     {
         // Test for binding like this (let [{:keys [a] :as m} x])
@@ -229,6 +332,130 @@ final class MapBindingDeconstructorTest extends TestCase
             [
                 Symbol::create('a'),
                 Symbol::create('__phel_1'),
+            ],
+        ], $bindings);
+    }
+
+    public function test_deconstruct_keys_with_or(): void
+    {
+        // Test for binding like this (let [{:keys [a b] :or {b 42}} x])
+        // This will be destructured to this:
+        // (let [__phel_1 x
+        //       __phel_2 (php/aget __phel_1 :a)
+        //       a __phel_2
+        //       __phel_3 (if (contains? __phel_1 :b) (php/aget __phel_1 :b) 42)
+        //       b __phel_3])
+
+        $binding = Phel::map(
+            Keyword::create('keys'),
+            Phel::vector([
+                Symbol::create('a'),
+                Symbol::create('b'),
+            ]),
+            Keyword::create('or'),
+            Phel::map(
+                Symbol::create('b'),
+                42,
+            ),
+        );
+        $value = Symbol::create('x');
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $binding, $value);
+
+        self::assertEquals([
+            // __phel_1 x
+            [
+                Symbol::create('__phel_1'),
+                $value,
+            ],
+            // __phel_2 (php/aget __phel_1 :a)
+            [
+                Symbol::create('__phel_2'),
+                Phel::list([
+                    Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+                    Symbol::create('__phel_1'),
+                    Keyword::create('a'),
+                ]),
+            ],
+            // a __phel_2
+            [
+                Symbol::create('a'),
+                Symbol::create('__phel_2'),
+            ],
+            // __phel_3 (if (contains? __phel_1 :b) (php/aget __phel_1 :b) 42)
+            [
+                Symbol::create('__phel_3'),
+                Phel::list([
+                    Symbol::create(Symbol::NAME_IF),
+                    Phel::list([
+                        Symbol::create('contains?'),
+                        Symbol::create('__phel_1'),
+                        Keyword::create('b'),
+                    ]),
+                    Phel::list([
+                        Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+                        Symbol::create('__phel_1'),
+                        Keyword::create('b'),
+                    ]),
+                    42,
+                ]),
+            ],
+            // b __phel_3
+            [
+                Symbol::create('b'),
+                Symbol::create('__phel_3'),
+            ],
+        ], $bindings);
+    }
+
+    public function test_deconstruct_explicit_keys_with_or(): void
+    {
+        // Test for binding like this (let [{:a x :or {x 99}} val])
+        // Explicit key binding with :or default
+
+        $binding = Phel::map(
+            Keyword::create('a'),
+            Symbol::create('x'),
+            Keyword::create('or'),
+            Phel::map(
+                Symbol::create('x'),
+                99,
+            ),
+        );
+        $value = Symbol::create('val');
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $binding, $value);
+
+        self::assertEquals([
+            // __phel_1 val
+            [
+                Symbol::create('__phel_1'),
+                $value,
+            ],
+            // __phel_2 (if (contains? __phel_1 :a) (php/aget __phel_1 :a) 99)
+            [
+                Symbol::create('__phel_2'),
+                Phel::list([
+                    Symbol::create(Symbol::NAME_IF),
+                    Phel::list([
+                        Symbol::create('contains?'),
+                        Symbol::create('__phel_1'),
+                        Keyword::create('a'),
+                    ]),
+                    Phel::list([
+                        Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+                        Symbol::create('__phel_1'),
+                        Keyword::create('a'),
+                    ]),
+                    99,
+                ]),
+            ],
+            // x __phel_2
+            [
+                Symbol::create('x'),
+                Symbol::create('__phel_2'),
             ],
         ], $bindings);
     }

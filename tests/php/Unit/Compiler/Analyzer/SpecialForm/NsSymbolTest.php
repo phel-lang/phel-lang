@@ -13,15 +13,12 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\PhpKeywords;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\NsSymbol;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-
-use function sprintf;
 
 final class NsSymbolTest extends TestCase
 {
@@ -66,25 +63,21 @@ final class NsSymbolTest extends TestCase
     }
 
     #[DataProvider('phpKeywordNamespacePartProvider')]
-    public function test_namespace_part_cannot_be_php_keyword(string $keyword): void
+    public function test_namespace_part_allows_php_keywords(string $keyword): void
     {
-        $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage(sprintf(
-            "The namespace is not valid. The part '%s' cannot be used because it is a reserved keyword.",
-            $keyword,
-        ));
-
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
             Symbol::create('foo\\' . $keyword),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $node = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertSame('foo\\' . $keyword, $node->getNamespace());
     }
 
     public static function phpKeywordNamespacePartProvider(): iterable
     {
-        foreach (PhpKeywords::KEYWORDS as $keyword) {
+        foreach (['and', 'or', 'list', 'class', 'for', 'if', 'function'] as $keyword) {
             yield $keyword => [$keyword];
         }
     }
@@ -546,17 +539,16 @@ final class NsSymbolTest extends TestCase
         (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
     }
 
-    public function test_dot_namespace_with_php_keyword_part_is_still_rejected(): void
+    public function test_dot_namespace_with_php_keyword_part_is_allowed(): void
     {
-        $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("The part 'list' cannot be used because it is a reserved keyword.");
-
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
             Symbol::create('my.list'),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $node = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertSame('my\\list', $node->getNamespace());
     }
 
     public function test_dot_namespace_with_invalid_character_part_is_still_rejected(): void
