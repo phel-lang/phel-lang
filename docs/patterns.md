@@ -133,9 +133,11 @@ Practical patterns for writing idiomatic Phel code.
 ;; => {:even [2 4 6] :odd [1 3 5]}
 
 ;; Find maximum
-(reduce (fn [max x] (if (> x max) x max))
-        (first coll)
-        (rest coll))
+(let [coll [3 1 4 1 5 9 2 6]]
+  (reduce (fn [max x] (if (> x max) x max))
+          (first coll)
+          (rest coll)))
+;; => 9
 ```
 
 ### Partition and Group
