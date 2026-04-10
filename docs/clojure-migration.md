@@ -6,15 +6,17 @@ Phel is a functional Lisp inspired by Clojure that compiles to PHP. If you know 
 
 The vast majority of Clojure's core library works identically in Phel:
 
-- **Data structures**: persistent vectors `[]`, maps `{}`, sets (via `set`), lists `'()`
-- **Core functions**: `map`, `filter`, `reduce`, `assoc`, `dissoc`, `get`, `get-in`, `update`, `update-in`, `conj`, `into`, `merge`, `select-keys`, `comp`, `partial`, `juxt`, `apply`, `first`, `rest`, `next`, `cons`, `nth`, `last`, `butlast`, `take`, `drop`, `partition`, `frequencies`, `group-by`, `sort-by`, `zipmap`, `str`, `keyword`, `symbol`, `name`, `namespace`, and many more
-- **Macros**: `defmacro`, `defn`, `def`, `let`, `if`, `when`, `cond`, `case`, `condp`, `->`, `->>`, `as->`, `some->`, `some->>`, `cond->`, `cond->>`, `and`, `or`, `not`, `loop`/`recur`, `doseq`, `dotimes`, `for` (list comprehension)
+- **Data structures**: persistent vectors `[]`, maps `{}`, sets (via `set`), sorted collections (`sorted-map`, `sorted-set`), lists `'()`
+- **Core functions**: `map`, `filter`, `reduce`, `assoc`, `dissoc`, `get`, `get-in`, `update`, `update-in`, `conj`, `into`, `merge`, `select-keys`, `comp`, `partial`, `juxt`, `apply`, `first`, `rest`, `next`, `cons`, `nth`, `last`, `butlast`, `take`, `drop`, `partition`, `frequencies`, `group-by`, `sort-by`, `zipmap`, `str`, `keyword`, `symbol`, `name`, `namespace`, `some?`, `boolean`, `resolve`, `fnil`, `run!`, `rename-keys`, `min-key`, `max-key`, `update-keys`, `update-vals`, `parse-long`, `parse-double`, `random-uuid`, and many more
+- **Macros**: `defmacro`, `defn`, `def`, `let`, `letfn`, `if`, `when`, `cond`, `case`, `condp`, `->`, `->>`, `as->`, `some->`, `some->>`, `cond->`, `cond->>`, `and`, `or`, `not`, `loop`/`recur`, `doseq`, `dotimes`, `for` (list comprehension), `if-some`, `when-some`, `when-first`, `assert`
 - **Protocols and multimethods**: `defprotocol`, `extend-type`, `defmulti`, `defmethod`
 - **Destructuring**: same syntax for vectors, maps, `:keys`, `:strs`, `:or`, `& rest`
 - **Metadata**: `meta`, `with-meta`, `vary-meta`, `^:keyword` reader syntax
 - **Atoms**: `atom`, `deref`/`@`, `swap!`, `reset!`, `add-watch`, `remove-watch`
-- **Testing**: `deftest`, `is`, `testing`, `are` (in `phel\test`)
-- **Reader macros**: `'quote`, `` `syntax-quote ``, `~unquote`, `~@splice`, `#"regex"`, `@deref`
+- **Exceptions**: `ex-info`, `ex-data`, `ex-message`, `ex-cause`
+- **Testing**: `deftest`, `is`, `testing`, `are`, `do-report`, extensible `assert-expr` (in `phel\test`)
+- **Reader macros**: `'quote`, `` `syntax-quote ``, `~unquote`, `~@splice`, `#"regex"`, `#(...)` anonymous fn, `@deref`
+- **Macro internals**: `&form` and `&env` implicit bindings in `defmacro` bodies, `name#` auto-gensym
 
 ## Quick reference
 
@@ -124,9 +126,41 @@ These Clojure-compatible names were added with deprecated Phel-specific aliases 
 | `map?` | `hash-map?` |
 | `vals` | `values` |
 | `with-meta` | `set-meta!` |
-| `integer?` | `int?` |
+| `integer?` | `int?` (alias, not deprecated) |
 
 The deprecated names still work but will be removed in a future major version.
+
+### Recently added Clojure-compatible functions
+
+These functions and macros were added to match Clojure's standard library:
+
+- **Collections**: `sorted-map`, `sorted-map-by`, `sorted-set`, `sorted-set-by`, `rename-keys`, `update-keys`, `update-vals`
+- **Predicates**: `some?` (1-arg), `boolean`, `seq?`, `integer?`
+- **Functions**: `fnil`, `run!`, `min-key`, `max-key`, `resolve`, `parse-long`, `parse-double`, `parse-boolean`, `abs`
+- **Macros**: `letfn`, `dotimes`, `condp`, `if-some`, `when-some`, `when-first`, `assert`
+- **Exceptions**: `ex-info`, `ex-data`, `ex-message`, `ex-cause`
+- **Concurrency**: `delay`, `force`, `delay?`, `add-watch`, `remove-watch`
+- **Transducers**: `transduce`, `into` (3-arg), `sequence`, `completing`, `cat`, plus transducer arities for `map`, `filter`, `take`, `drop`, `keep`, `distinct`, `dedupe`, `mapcat`, `interpose`, and more
+- **Testing**: `testing`, `are`, `do-report`, extensible `assert-expr` multimethod
+
+## Syntax parity
+
+These Clojure syntax features are supported in Phel. Older Phel-specific alternatives are deprecated:
+
+| Clojure syntax | Phel support | Old Phel syntax (deprecated) |
+|----------------|-------------|------------------------------|
+| `#(inc %)` anonymous fn | `#(inc %)` | `|(inc $)` |
+| `~x` unquote | `~x` | `,x` |
+| `~@xs` unquote-splicing | `~@xs` | `,@xs` |
+| `name#` auto-gensym in syntax-quote | `name#` | `name$` |
+| `&form` / `&env` in macros | Supported | N/A (new feature) |
+
+### Macro internals
+
+Like Clojure, `defmacro` bodies have access to two implicit bindings:
+
+- `&form` — the original macro call form (for source location, metadata)
+- `&env` — a map of locals in scope at the call site (useful for `.cljc` dialect detection via `(:ns &env)`)
 
 ## What's not available (and why)
 
@@ -170,6 +204,8 @@ Phel sequences are eager by default. Use `lazy-seq` explicitly when needed:
   ([] (lazy-fib 0 1))
   ([a b] (lazy-seq (cons a (lazy-fib b (+ a b))))))
 ```
+
+`(range)` with 0 arguments returns an infinite lazy sequence (matching Clojure).
 
 ### Test framework
 
