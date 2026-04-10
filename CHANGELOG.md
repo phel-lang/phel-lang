@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- `:or` defaults in map destructuring, matching Clojure semantics (#1219)
 - `:strs` support in map destructuring for string key lookup (#1227)
 - `fnil` function for nil-safe function wrapping with default values (#1225)
 - `vary-meta` function to apply a function to an object's metadata (#1223)
@@ -31,6 +32,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 - REPL `(require 'foo)` now throws `RuntimeException` when the namespace cannot be found on source paths, instead of silently succeeding (#1246)
+- Allow PHP reserved keywords (e.g. `and`, `list`, `class`) in namespace names, matching Clojure compatibility — PHP 8.0+ supports keywords in namespace parts (#1230)
 - `macroexpand` and `macroexpand-1` are now functions (were macros), matching Clojure semantics: quoted forms expand correctly (`(macroexpand '(when 1 2))` → `(if 1 (do 2))`), and unquoted forms evaluate eagerly (`(macroexpand (when 1 2))` → `2`) (#1209)
 - `macroexpand` no longer applies inline expansion to non-macro forms; `(macroexpand '(+ 1 2))` now correctly returns `(+ 1 2)` instead of `(do (assert-non-nil 1 2) (+ 1 2))` (#1208)
 - Lexer no longer swallows a reader conditional (`#?(...)`) following a gensym-suffixed symbol (e.g. `report-success# #?(:phel ...)`), which previously surfaced as a misleading "Unterminated list (BRACKETS)" parse error (#1195)

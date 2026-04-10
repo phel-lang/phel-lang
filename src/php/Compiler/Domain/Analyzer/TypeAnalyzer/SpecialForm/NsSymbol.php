@@ -7,7 +7,6 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\PhpKeywords;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
@@ -17,7 +16,6 @@ use Phel\Lang\Symbol;
 
 use function count;
 use function explode;
-use function in_array;
 use function is_string;
 use function preg_match;
 use function sprintf;
@@ -55,15 +53,6 @@ TXT;
 
         $this->assertValidNamespace($parts, $nsSymbol);
 
-        foreach ($parts as $part) {
-            if ($this->isPHPKeyword($part)) {
-                throw AnalyzerException::withLocation(
-                    sprintf("The namespace is not valid. The part '%s' cannot be used because it is a reserved keyword.", $part),
-                    $list,
-                );
-            }
-        }
-
         $this->analyzer->setNamespace($ns);
 
         $requireNs = [];
@@ -95,11 +84,6 @@ TXT;
         ReplReferInjector::injectIfReplMode($this->analyzer, $ns);
 
         return new NsNode($ns, $requireNs, $requireFiles, $list->getStartLocation());
-    }
-
-    private function isPHPKeyword(string $w): bool
-    {
-        return in_array($w, PhpKeywords::KEYWORDS, true);
     }
 
     private function isKeywordWithName(mixed $x, string $name): bool
