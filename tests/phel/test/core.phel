@@ -19,6 +19,34 @@
   (is (= 3 (let [{:keys [a b]} {:a 1 :b 2}] (+ a b))) "destructure hash map with :keys")
   (is (= {:a 1 :b 2} (let [{:keys [a b] :as user} {:a 1 :b 2}] user)) "destructure hash map with :keys and :as"))
 
+;; -----
+;; letfn
+;; -----
+
+(deftest test-letfn-mutual-recursion
+  (is (true? (letfn [(my-even? [n] (if (zero? n) true (my-odd? (dec n))))
+                     (my-odd? [n] (if (zero? n) false (my-even? (dec n))))]
+               (my-even? 10)))
+      "mutual recursion: 10 is even")
+  (is (false? (letfn [(my-even? [n] (if (zero? n) true (my-odd? (dec n))))
+                      (my-odd? [n] (if (zero? n) false (my-even? (dec n))))]
+                (my-even? 7)))
+      "mutual recursion: 7 is not even"))
+
+(deftest test-letfn-single-recursive
+  (is (= 120 (letfn [(factorial [n] (if (<= n 1) 1 (* n (factorial (dec n)))))]
+               (factorial 5)))
+      "single recursive function"))
+
+(deftest test-letfn-body-uses-all-fns
+  (letfn [(double [x] (* 2 x))
+          (triple [x] (* 3 x))]
+    (is (= 6 (double 3)) "double works")
+    (is (= 9 (triple 3)) "triple works")))
+
+(deftest test-letfn-empty-bindings
+  (is (= 42 (letfn [] 42)) "empty bindings returns body value"))
+
 ;; ----------------------------
 ;; Basic methods for quasiquote
 ;; ----------------------------
