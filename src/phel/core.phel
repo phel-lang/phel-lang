@@ -2628,6 +2628,24 @@ Otherwise, it tries to call `__toString`."
   [f & args]
   #(apply f (concat [] args %&)))
 
+(defn fnil
+  "Returns a function that replaces nil arguments with the provided defaults
+  before calling f. The number of defaults determines how many leading arguments
+  are nil-checked."
+  {:example "(let [safe-inc (fnil inc 0)] (safe-inc nil)) ; => 1"
+   :see-also ["partial" "comp"]}
+  [f & defaults]
+  (let [n (count defaults)]
+    (fn [& args]
+      (let [patched (for [i :range [0 (count args)]
+                          :reduce [acc []]]
+                      (let [arg (get args i)]
+                        (conj acc
+                          (if (and (php/< i n) (nil? arg))
+                            (get defaults i)
+                            arg))))]
+        (apply f patched)))))
+
 (defn memoize
   "Returns a memoized version of the function `f`. The memoized function
   caches the return value for each set of arguments."

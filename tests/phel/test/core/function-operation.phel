@@ -18,6 +18,28 @@
 (deftest test-partial
   (is (= 3 ((partial + 2) 1)) "partial of add"))
 
+(deftest test-fnil-one-default
+  (let [safe-inc (fnil inc 0)]
+    (is (= 1 (safe-inc nil))
+        "fnil replaces nil with default")
+    (is (= 6 (safe-inc 5))
+        "fnil passes non-nil through")))
+
+(deftest test-fnil-two-defaults
+  (let [safe-add (fnil + 0 0)]
+    (is (= 0 (safe-add nil nil))
+        "fnil replaces both nil args")
+    (is (= 5 (safe-add 5 nil))
+        "fnil replaces only nil args")
+    (is (= 3 (safe-add nil 3))
+        "fnil replaces first nil arg")))
+
+(deftest test-fnil-with-update-in
+  (let [m {:a 1}
+        result (update-in m [:b] (fnil inc 0))]
+    (is (= 1 (get result :b))
+        "fnil works with update-in for missing keys")))
+
 (deftest test-constantly
   (let [f (constantly 42)]
     (is (= 42 (f)) "constantly without args")
