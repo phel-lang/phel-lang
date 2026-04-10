@@ -68,6 +68,15 @@
     (when-not ok
       (swap! stats update-in [:failed] push data))))
 
+(defn do-report
+  "Add file and line information to a test result and call report.
+  If you are writing a custom assert-expr method, call this function
+  to pass test results to report."
+  {:see-also ["report" "assert-expr"]
+   :example "(do-report {:state :pass :type :any :message \"ok\"})"}
+  [m]
+  (report m))
+
 
 ;; ---------------------------
 ;; `is` macro and its asserts

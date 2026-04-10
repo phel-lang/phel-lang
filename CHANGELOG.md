@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- `do-report` in `phel\test` for Clojure-compatible custom assertion reporting (#1260)
 - `sorted-map`, `sorted-map-by`, `sorted-set`, `sorted-set-by` for Clojure-compatible sorted persistent collections (#1228)
 - `range` with 0 arguments now returns an infinite lazy sequence starting at 0, matching Clojure's `(range)` (#1259)
 - Dot namespace separator and Clojure aliasing for fully qualified names, enabling `phel.core/fn`, `clojure.core/fn` in code (#1251)
