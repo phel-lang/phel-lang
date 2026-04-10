@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- `letfn` macro for mutually recursive local functions (#1224)
 - `:or` defaults in map destructuring, matching Clojure semantics (#1219)
 - `:strs` support in map destructuring for string key lookup (#1227)
 - `fnil` function for nil-safe function wrapping with default values (#1225)

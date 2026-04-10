@@ -3961,6 +3961,36 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
          (let [~sym temp-sym]
            ~@body)))))
 
+(defmacro letfn
+  "Defines mutually recursive local functions.
+
+  bindings is a vector of function specs: (letfn [(f [params] body) (g [params] body)] expr)
+  All function names are in scope within all function bodies and the body expression,
+  enabling mutual recursion."
+  {:example "(letfn [(my-even? [n] (if (zero? n) true (my-odd? (dec n))))
+        (my-odd? [n] (if (zero? n) false (my-even? (dec n))))]
+  (my-even? 10))"}
+  [bindings & body]
+  (let [names (for [spec :in bindings] (first spec))
+        refs (for [n :in names :reduce [acc {}]]
+               (put acc n (gensym)))
+        var-decls (apply concat
+                    (for [n :in names]
+                      [(get refs n) '(var nil)]))
+        deref-bindings (apply concat
+                         (for [n :in names]
+                           [n `(deref ~(get refs n))]))
+        assignments (for [spec :in bindings
+                          :let [n (first spec)
+                                params (second spec)
+                                fn-body (nnext spec)]]
+                      `(set! ~(get refs n)
+                             (fn ~params (let [~@deref-bindings] ~@fn-body))))]
+    `(let [~@var-decls]
+       ~@assignments
+       (let [~@deref-bindings]
+         ~@body))))
+
 (defmacro time
   "Evaluates expr and prints the time it took. Returns the value of expr."
   [expr]
