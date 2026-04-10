@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
 use RuntimeException;
@@ -77,9 +78,29 @@ final readonly class SymbolResolver
         }
 
         $finalName = Symbol::create($name->getName());
-        $ns = $this->globalEnv->resolveAlias($alias) ?? $alias;
+
+        $normalizedAlias = str_replace('.', '\\', $alias);
+        $normalizedAlias = $this->remapClojureAlias($normalizedAlias);
+
+        $ns = $this->globalEnv->resolveAlias($normalizedAlias) ?? $normalizedAlias;
 
         return $this->resolveInterfaceOrDefinition($finalName, $env, $ns);
+    }
+
+    private function remapClojureAlias(string $alias): string
+    {
+        if (!str_starts_with($alias, 'clojure\\')) {
+            return $alias;
+        }
+
+        $targetNs = 'phel\\' . substr($alias, 8);
+        $mungedNs = str_replace('-', '_', $targetNs);
+
+        if (Registry::getInstance()->getDefinitionInNamespace($mungedNs) === []) {
+            return $alias;
+        }
+
+        return $targetNs;
     }
 
     private function resolveWithoutAlias(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
