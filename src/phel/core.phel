@@ -1324,14 +1324,18 @@ Otherwise, it tries to call `__toString`."
                       generator)))
 
 (defn range
-  "Creates a lazy sequence of numbers from start to end (exclusive)."
-  {:example "(range 5) ; => (0 1 2 3 4)"}
-  [a & rest]
-  (case (count rest)
-    0 (lazy-seq-from-generator (php/:: Seq (range 0 a 1)))
-    1 (lazy-seq-from-generator (php/:: Seq (range a (get rest 0) 1)))
-    2 (lazy-seq-from-generator (php/:: Seq (range a (get rest 0) (get rest 1))))
-    (throw (php/new InvalidArgumentException "Range function expects one, two or three arguments"))))
+  "Creates a lazy sequence of numbers. With no arguments returns an infinite
+  sequence starting at 0. With one argument returns (0..n). With two (start..end).
+  With three (start..end step). Note: the infinite sequence is bounded by PHP_INT_MAX."
+  {:example "(range 5) ; => (0 1 2 3 4)"
+   :see-also ["iterate" "repeat"]}
+  [& args]
+  (case (count args)
+    0 (lazy-seq-from-generator (php/:: Seq (infiniteRange)))
+    1 (lazy-seq-from-generator (php/:: Seq (range 0 (get args 0) 1)))
+    2 (lazy-seq-from-generator (php/:: Seq (range (get args 0) (get args 1) 1)))
+    3 (lazy-seq-from-generator (php/:: Seq (range (get args 0) (get args 1) (get args 2))))
+    (throw (php/new InvalidArgumentException "Range function expects zero to three arguments"))))
 
 (def- for-options (hash-set :reduce))
 
