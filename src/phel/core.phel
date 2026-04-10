@@ -949,6 +949,12 @@ Otherwise, it tries to call `__toString`."
   [x]
   (= (type x) :php/object))
 
+(defn seq?
+  "Returns true if `x` is a seq (implements LazySeqInterface), false otherwise."
+  {:see-also ["seq" "lazy-seq"]}
+  [x]
+  (php/instanceof x LazySeqInterface))
+
 (defn empty?
   "Returns true if x would be 0, \"\" or empty collection, false otherwise."
   [x]
@@ -983,7 +989,7 @@ Otherwise, it tries to call `__toString`."
     nil
 
     ;; For lazy sequences, don't force them - just check if first element exists
-    (php/instanceof coll LazySeqInterface)
+    (seq? coll)
     (if (php/=== nil (php/-> coll (first))) nil coll)
 
     ;; For other countable collections, check count (won't force lazy seqs)
@@ -1043,7 +1049,7 @@ Otherwise, it tries to call `__toString`."
     (nil? coll)
     nil
 
-    (php/instanceof coll LazySeqInterface)
+    (seq? coll)
     (loop [s coll last-val nil]
       (if (nil? (seq s))
         last-val
@@ -1080,7 +1086,7 @@ Otherwise, it tries to call `__toString`."
       k
       opt)
 
-    (php/instanceof ds LazySeqInterface)
+    (seq? ds)
     (loop [i k
            s ds]
       (if (or (nil? s) (php/< i 0))
@@ -2339,7 +2345,7 @@ Otherwise, it tries to call `__toString`."
   "Forces realization of a lazy sequence and returns it as a vector."
   {:example "(doall (map println [1 2 3])) ; => [nil nil nil]"}
   [coll]
-  (if (php/instanceof coll LazySeqInterface)
+  (if (seq? coll)
     (let [arr (php/-> coll (toArray))]
       (if (php/empty arr)
         nil
@@ -2350,7 +2356,7 @@ Otherwise, it tries to call `__toString`."
   "Forces realization of a lazy sequence for side effects, returns nil."
   {:example "(dorun (map println [1 2 3])) ; => nil"}
   [coll]
-  (if (php/instanceof coll LazySeqInterface)
+  (if (seq? coll)
     (do
       (doseq [x :in coll] x)
       nil)
@@ -2362,7 +2368,7 @@ Otherwise, it tries to call `__toString`."
    :see-also ["delay" "force" "lazy-seq"]}
   [coll]
   (cond
-    (php/instanceof coll LazySeqInterface) (php/-> coll (isRealized))
+    (seq? coll) (php/-> coll (isRealized))
     (php/instanceof coll Delay) (php/-> coll (isRealized))
     true))
 

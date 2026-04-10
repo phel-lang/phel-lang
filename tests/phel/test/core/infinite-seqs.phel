@@ -433,7 +433,7 @@
 
 (deftest test-mapcat-returns-lazy-seq
   (let [result (mapcat identity [[1 2] [3 4]])]
-    (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+    (is (true? (seq? result))
         "mapcat should return a lazy sequence")))
 
 ;; Lazy interpose tests
@@ -467,7 +467,7 @@
 
 (deftest test-interpose-returns-lazy-seq
   (let [result (interpose 0 [1 2 3])]
-    (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+    (is (true? (seq? result))
         "interpose should return a lazy sequence")))
 
 ;; Lazy map-indexed tests
@@ -501,7 +501,7 @@
 
 (deftest test-map-indexed-returns-lazy-seq
   (let [result (map-indexed vector [1 2 3])]
-    (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+    (is (true? (seq? result))
         "map-indexed should return a lazy sequence")))
 
 ;; Lazy interleave tests
@@ -539,7 +539,7 @@
 
 (deftest test-interleave-returns-lazy-seq
   (let [result (interleave [1 2 3] [:a :b :c])]
-    (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+    (is (true? (seq? result))
         "interleave should return a lazy sequence")))
 
 ;; Lazy flatten tests
@@ -573,7 +573,7 @@
 
 (deftest test-flatten-returns-lazy-seq
   (let [result (flatten [[1 2] [3 4]])]
-    (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+    (is (true? (seq? result))
         "flatten should return a lazy sequence")))
 
 ;; Lazy variadic map tests
@@ -607,7 +607,7 @@
 
 (deftest test-map-variadic-returns-lazy-seq
   (let [result (map vector [1 2 3] [:a :b :c])]
-    (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+    (is (true? (seq? result))
         "variadic map should return a lazy sequence")))
 
 ;; Tests for partition
@@ -641,7 +641,7 @@
 
 (deftest test-partition-returns-lazy-seq
   (let [result (partition 2 [1 2 3 4])]
-    (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+    (is (true? (seq? result))
         "partition should return a lazy sequence")))
 
 ;; Tests for partition-all
@@ -675,7 +675,7 @@
 
 (deftest test-partition-all-returns-lazy-seq
   (let [result (partition-all 2 [1 2 3 4 5])]
-    (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+    (is (true? (seq? result))
         "partition-all should return a lazy sequence")))
 
 ;; Helper functions for lazy-seq tests
@@ -760,7 +760,7 @@
 
 (deftest test-lazy-cat-returns-lazy-seq
   (let [result (lazy-cat [1 2] [3 4])]
-    (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeqInterface))
+    (is (true? (seq? result))
         "lazy-cat should return a lazy sequence")))
 
 (deftest test-lazy-cat-three-collections
