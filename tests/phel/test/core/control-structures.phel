@@ -27,3 +27,12 @@
   (is (= 2 (case true true 2)) "case one successful test without default")
   (is (= 2 (case true true 2 1)) "case one successful test with default")
   (is (= :one (case (+ 1 0) 1 :one)) "case with expression"))
+
+(deftest test-condp
+  (is (= "one" (condp = 1 1 "one" 2 "two")) "condp basic match first")
+  (is (= "two" (condp = 2 1 "one" 2 "two")) "condp basic match second")
+  (is (= "default" (condp = 99 1 "one" 2 "two" "default")) "condp with default")
+  (is (thrown? \InvalidArgumentException (condp = 99 1 "one" 2 "two")) "condp no match no default throws")
+  (is (= "neg" (condp < 0 10 "pos" -10 "neg")) "condp with < predicate")
+  (is (= 3 (condp some [1 2 3 4] #{0 6 7} :>> inc #{4 5 9} :>> dec)) "condp :>> threading first match")
+  (is (= 2 (condp some [1 2 3 4] #{0 6 7} :>> inc #{1 2 3} :>> inc)) "condp :>> second clause match"))

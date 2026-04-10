@@ -537,6 +537,44 @@ Otherwise, it tries to call `__toString`."
            (case ~v ~@(next (next pairs))))))
     (first pairs)))
 
+(defn- condp-emit [gpred gexpr clauses]
+  (let [cnt (count clauses)]
+    (cond
+      (php/=== cnt 0)
+      (list 'throw (list 'php/new '\InvalidArgumentException
+                         "No matching clause in condp"))
+      (php/=== cnt 1)
+      (first clauses)
+      :else
+      (if (if (php/>= cnt 3) (= :>> (second clauses)) false)
+        (let [gres (gensym)]
+          (list 'let [gres (list gpred (first clauses) gexpr)]
+                (list 'if gres
+                      (list (first (next (next clauses))) gres)
+                      (condp-emit gpred gexpr (apply list (next (next (next clauses))))))))
+        (list 'if (list gpred (first clauses) gexpr)
+              (second clauses)
+              (condp-emit gpred gexpr (apply list (next (next clauses)))))))))
+
+(defmacro condp
+  "Takes a binary predicate, an expression, and a set of clauses.
+  Each clause takes the form of either:
+    test-expr result-expr
+    test-expr :>> result-fn
+  For each clause, (pred test-expr expr) is evaluated. If it returns
+  logical true, the clause is a match. If a binary clause is a match,
+  result-expr is returned. If a ternary clause with :>> is a match,
+  the result of (pred test-expr expr) is passed to result-fn and the
+  return value is the result. If no clause matches, the default value
+  is returned (if provided), otherwise an exception is thrown."
+  {:example "(condp = 1 1 \"one\" 2 \"two\" \"other\") ; => \"one\""}
+  [pred expr & clauses]
+  (let [gpred (gensym)
+        gexpr (gensym)]
+    `(let [~gpred ~pred
+           ~gexpr ~expr]
+       ~(condp-emit gpred gexpr clauses))))
+
 ;; -----------------
 ;; Boolean operation
 ;; -----------------
