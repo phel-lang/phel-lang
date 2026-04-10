@@ -72,7 +72,7 @@ The majority of `clojure.core` maps 1:1 to `phel\core`:
 |---------|------|-------|
 | `identical?` | `id` | Reference equality |
 | `class` | `type` | Returns type keyword |
-| `subs` | Use `phel\str/slice` | Substring |
+| `subs` | `phel\str/subs` | Substring |
 | `clojure.string/*` | `phel\str/*` | String utilities |
 | `clojure.test/*` | `phel\test/*` | Test framework |
 | `println` | `println` | Same, prints to stdout |
@@ -82,8 +82,8 @@ The majority of `clojure.core` maps 1:1 to `phel\core`:
 
 | Feature | Clojure | Phel |
 |---------|---------|------|
-| Multi-arity `defn` | `(defn f ([x] ...) ([x y] ...))` | Not supported; use `[& args]` variadic |
-| Protocols | `defprotocol` + `defrecord` | `definterface*` + PHP classes |
+| Multi-arity `defn` | `(defn f ([x] ...) ([x y] ...))` | Supported (same syntax as Clojure) |
+| Protocols | `defprotocol` + `defrecord` | `definterface` + PHP classes |
 | Metadata on locals | `(with-meta x m)` | `(set-meta! x m)` / `(vary-meta x f)` |
 | Reader conditionals | `#?(:clj ... :cljs ...)` | `#?(:phel ... :default ...)` |
 | Regex literals | `#"pattern"` | `(php/preg_match "pattern" str)` |
@@ -98,8 +98,6 @@ The majority of `clojure.core` maps 1:1 to `phel\core`:
 | `clojure.walk` | `phel\walk` | `(:require phel\walk)` |
 | `clojure.set` | N/A | Use `phel\core` set functions |
 
-Phel also supports `clojure\*` as an alias: `(:require clojure\string)` resolves to `phel\str`.
-
 ## Features Not Available (and Why)
 
 | Clojure Feature | Why Not in Phel |
@@ -109,7 +107,6 @@ Phel also supports `clojure\*` as an alias: `(:require clojure\string)` resolves
 | BigInt / Ratio | PHP number limits; use `bcmath` or `gmp` extensions via interop |
 | Character type | PHP has no char type; use single-character strings |
 | Spec / Schema | Use PHP validation libraries via interop |
-| Multi-methods | Phel has `defmulti` / `defmethod` (same as Clojure) |
 
 ## Testing
 
