@@ -1,0 +1,99 @@
+(ns phel-test\test\core\sorted-collections
+  (:require phel\test :refer [deftest is]))
+
+;; ---- sorted-map ----
+
+(deftest test-sorted-map-empty
+  (is (= 0 (count (sorted-map))) "empty sorted map"))
+
+(deftest test-sorted-map-count
+  (is (= 3 (count (sorted-map :a 1 :b 2 :c 3))) "sorted map count"))
+
+(deftest test-sorted-map-key-order
+  (let [m (sorted-map :c 3 :a 1 :b 2)]
+    (is (= [:a :b :c] (keys m)) "keys in sorted order")
+    (is (= [1 2 3] (vals m)) "values in key-sorted order")))
+
+(deftest test-sorted-map-get
+  (let [m (sorted-map :a 1 :b 2)]
+    (is (= 1 (get m :a)) "get existing key")
+    (is (nil? (get m :z)) "get missing key")
+    (is (contains? m :a) "contains existing")
+    (is (not (contains? m :z)) "contains missing")))
+
+(deftest test-sorted-map-put-maintains-order
+  (let [m (sorted-map :b 2 :a 1)]
+    (is (= [:a :b :c] (keys (put m :c 3))) "put maintains order")))
+
+(deftest test-sorted-map-remove-maintains-order
+  (let [m (sorted-map :c 3 :b 2 :a 1)]
+    (is (= [:a :c] (keys (unset m :b))) "unset maintains order")))
+
+(deftest test-sorted-map-is-map
+  (is (hash-map? (sorted-map :a 1)) "hash-map? returns true for sorted map"))
+
+(deftest test-sorted-map-merge
+  (let [m1 (sorted-map 1 "a" 3 "c")
+        m2 (sorted-map 2 "b" 4 "d")
+        merged (php/-> m1 (merge m2))]
+    (is (= [1 2 3 4] (keys merged)) "map merge maintains order")))
+
+(deftest test-sorted-map-persistent
+  (let [m1 (sorted-map :a 1)
+        m2 (put m1 :b 2)]
+    (is (= 1 (count m1)) "original unchanged")
+    (is (= 2 (count m2)) "new map has both entries")))
+
+;; ---- sorted-map-by ----
+
+(deftest test-sorted-map-by-reverse
+  (let [m (sorted-map-by (fn [a b] (compare b a)) 1 "a" 2 "b" 3 "c")]
+    (is (= [3 2 1] (keys m)) "reverse sorted order")))
+
+(deftest test-sorted-map-by-operations
+  (let [m (sorted-map-by (fn [a b] (compare b a)) 1 "a" 2 "b")]
+    (is (= "a" (get m 1)) "get works with custom comparator")
+    (is (= [3 2 1] (keys (put m 3 "c"))) "put maintains custom order")))
+
+;; ---- sorted-set ----
+
+(deftest test-sorted-set-empty
+  (is (= 0 (count (sorted-set))) "empty sorted set"))
+
+(deftest test-sorted-set-order
+  (let [s (sorted-set 3 1 2)]
+    (is (= [1 2 3] (into [] s)) "elements in sorted order")))
+
+(deftest test-sorted-set-contains
+  (let [s (sorted-set 3 1 2)]
+    (is (contains? s 1) "contains existing")
+    (is (not (contains? s 4)) "contains missing")
+    (is (= 3 (count s)) "count")))
+
+(deftest test-sorted-set-conj
+  (let [s (sorted-set 3 1)]
+    (is (= [1 2 3] (into [] (conj s 2))) "conj maintains order")))
+
+(deftest test-sorted-set-is-set
+  (is (set? (sorted-set 1)) "set? returns true for sorted set"))
+
+(deftest test-sorted-set-duplicates
+  (let [s (sorted-set 1 2 3 2 1)]
+    (is (= 3 (count s)) "duplicates removed")
+    (is (= [1 2 3] (into [] s)) "sorted without duplicates")))
+
+(deftest test-sorted-set-persistent
+  (let [s1 (sorted-set 1)
+        s2 (conj s1 2)]
+    (is (= 1 (count s1)) "original unchanged")
+    (is (= 2 (count s2)) "new set has both elements")))
+
+;; ---- sorted-set-by ----
+
+(deftest test-sorted-set-by-reverse
+  (let [s (sorted-set-by (fn [a b] (compare b a)) 3 1 2)]
+    (is (= [3 2 1] (into [] s)) "reverse sorted order")))
+
+(deftest test-sorted-set-by-operations
+  (let [s (sorted-set-by (fn [a b] (compare b a)) 3 1)]
+    (is (= [3 2 1] (into [] (conj s 2))) "conj maintains custom order")))

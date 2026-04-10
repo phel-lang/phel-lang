@@ -109,6 +109,52 @@ final class Phel extends InternalPhel
     }
 
     /**
+     * Create a persistent sorted map from key-value pairs.
+     */
+    public static function sortedMap(mixed ...$kvs): PersistentMapInterface
+    {
+        $typeFactory = TypeFactory::getInstance();
+        if (\count($kvs) === 1 && \is_array($kvs[0])) {
+            return $typeFactory->persistentSortedMapFromArray($kvs[0]);
+        }
+
+        return $typeFactory->persistentSortedMapFromArray($kvs);
+    }
+
+    /**
+     * Create a persistent sorted map with a custom comparator.
+     */
+    public static function sortedMapBy(callable $comparator, mixed ...$kvs): PersistentMapInterface
+    {
+        $typeFactory = TypeFactory::getInstance();
+        if (\count($kvs) === 1 && \is_array($kvs[0])) {
+            return $typeFactory->persistentSortedMapFromArray($kvs[0], $comparator);
+        }
+
+        return $typeFactory->persistentSortedMapFromArray($kvs, $comparator);
+    }
+
+    /**
+     * Create a persistent sorted set from an array of values.
+     *
+     * @param list<mixed>|null $values
+     */
+    public static function sortedSet(?array $values = []): PersistentHashSetInterface
+    {
+        return TypeFactory::getInstance()->persistentSortedSetFromArray($values ?? []);
+    }
+
+    /**
+     * Create a persistent sorted set with a custom comparator.
+     *
+     * @param list<mixed>|null $values
+     */
+    public static function sortedSetBy(callable $comparator, ?array $values = []): PersistentHashSetInterface
+    {
+        return TypeFactory::getInstance()->persistentSortedSetFromArray($values ?? [], $comparator);
+    }
+
+    /**
      * @template T
      *
      * @param T $value The initial value of the variable
