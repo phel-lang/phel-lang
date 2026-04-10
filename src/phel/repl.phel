@@ -1,6 +1,7 @@
 (ns phel\repl
   (:use Phel)
   (:use Phel\Lang\Symbol)
+  (:use Phel\Lang\Registry)
   (:use Phel\Build\BuildFacade)
   (:use Phel\Command\CommandFacade)
   (:use Phel\Compiler\Application\Munge)
@@ -96,9 +97,35 @@
 (defn- set-ns [namespace]
   (set-var *ns* namespace))
 
+(defn- normalize-ns-name
+  "Converts dot separators to backslashes in a namespace string."
+  [ns-str]
+  (php/str_replace "." "\\" ns-str))
+
+(defn- remap-clojure-ns-name
+  "Remaps clojure\\* namespace strings to phel\\* when the target exists in the Registry."
+  [ns-str]
+  (if (php/str_starts_with ns-str "clojure\\")
+    (let [target (str "phel\\" (php/substr ns-str 8))
+          munged (php/str_replace "-" "_" target)]
+      (if (php/empty (php/-> (php/:: Registry (getInstance)) (getDefinitionInNamespace munged)))
+        ns-str
+        target))
+    ns-str))
+
+(defn- normalize-require-symbol
+  "Normalizes a require symbol: converts dots to backslashes and remaps clojure\\* to phel\\*."
+  [sym]
+  (let [original (name sym)
+        normalized (remap-clojure-ns-name (normalize-ns-name original))]
+    (if (php/=== normalized original)
+      sym
+      (php/:: Symbol (create normalized)))))
+
 (defn- require-namespace
   [namespace alias refers]
-  (let [env (get-global-env)
+  (let [namespace (normalize-require-symbol namespace)
+        env (get-global-env)
         current-ns *ns*]
     (php/-> env (addRequireAlias current-ns alias namespace))
     (foreach [r refers]
