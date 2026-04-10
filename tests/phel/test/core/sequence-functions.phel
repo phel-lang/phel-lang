@@ -305,6 +305,20 @@
   (is (= {:a 1} (select-keys {:a 1 :b 2 :c 3} [:a nil])) "select-keys with nil key in ks")
   (is (= {:a 1 nil 4} (select-keys {:a 1 :b 2 :c 3 nil 4} [:a nil])) "select-keys with nil key in m"))
 
+(deftest test-rename-keys
+  (is (= {:x 1 :y 2 :c 3} (rename-keys {:a 1 :b 2 :c 3} {:a :x :b :y}))
+      "rename-keys renames matching keys")
+  (is (= {:a 1} (rename-keys {:a 1} {}))
+      "rename-keys with empty kmap")
+  (is (= {} (rename-keys {} {:a :b}))
+      "rename-keys with empty map")
+  (is (= {:a 1} (rename-keys {:a 1} {:z :q}))
+      "rename-keys when kmap key not in map")
+  (is (= {:b 1} (rename-keys {:a 1} {:a :b}))
+      "rename-keys single key")
+  (is (= {:x 1 :y 2} (rename-keys {:a 1 :b 2} {:a :x :b :y}))
+      "rename-keys all keys"))
+
 (deftest test-simple-deep-merge
   (is (= {:a 1 :b 3 :c 4} (deep-merge {:a 1 :b 2} {:b 3 :c 4}))))
 

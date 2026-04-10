@@ -2429,6 +2429,16 @@ Otherwise, it tries to call `__toString`."
                  (assoc acc k v))]
     (with-meta m result)))
 
+(defn rename-keys
+  "Returns the map with keys renamed according to kmap.
+  Keys not present in kmap are left unchanged."
+  {:example "(rename-keys {:a 1 :b 2 :c 3} {:a :x :b :y}) ; => {:x 1 :y 2 :c 3}"
+   :see-also ["select-keys" "keys" "vals"]}
+  [m kmap]
+  (for [[k v] :pairs m
+        :reduce [acc {}]]
+    (put acc (get kmap k k) v)))
+
 (defn invert
   "Returns a new map where the keys and values are swapped.
 
