@@ -623,7 +623,7 @@ Otherwise, it tries to call `__toString`."
     (php/-> a (identical b))
     (php/=== a b)))
 
-(defn id
+(defn identical?
   "Checks if all values are identical. Same as `a === b` in PHP."
   [a & more]
   (case (count more)
@@ -632,6 +632,13 @@ Otherwise, it tries to call `__toString`."
     (if (id2 a (first more))
       (recur (first more) (next more))
       false)))
+
+(defn id
+  "Checks if all values are identical. Same as `a === b` in PHP."
+  {:deprecated "0.32.0"
+   :superseded-by "identical?"}
+  [a & more]
+  (apply identical? a more))
 
 (defn =
   "Checks if all values are equal (value equality, not identity)."
@@ -914,20 +921,34 @@ Otherwise, it tries to call `__toString`."
   [x]
   (= (type x) :symbol))
 
-(defn function?
+(defn fn?
   "Returns true if `x` is a function, false otherwise."
   [x]
   (= (type x) :function))
+
+(defn function?
+  "Returns true if `x` is a function, false otherwise."
+  {:deprecated "0.32.0"
+   :superseded-by "fn?"}
+  [x]
+  (fn? x))
 
 (defn struct?
   "Returns true if `x` is a struct, false otherwise."
   [x]
   (= (type x) :struct))
 
-(defn hash-map?
+(defn map?
   "Returns true if `x` is a hash map, false otherwise."
   [x]
   (= (type x) :hash-map))
+
+(defn hash-map?
+  "Returns true if `x` is a hash map, false otherwise."
+  {:deprecated "0.32.0"
+   :superseded-by "map?"}
+  [x]
+  (map? x))
 
 (defn vector?
   "Returns true if `x` is a vector, false otherwise."
@@ -2094,12 +2115,20 @@ Otherwise, it tries to call `__toString`."
   (let [result (for [k :keys coll] k)]
     (copy-meta coll result)))
 
-(defn values
+(defn vals
   "Returns a sequence of all values in a map."
-  {:example "(values {:a 1 :b 2}) ; => (1 2)"}
+  {:example "(vals {:a 1 :b 2}) ; => (1 2)"}
   [coll]
   (let [result (for [x :in coll] x)]
     (copy-meta coll result)))
+
+(defn values
+  "Returns a sequence of all values in a map."
+  {:deprecated "0.32.0"
+   :superseded-by "vals"
+   :example "(values {:a 1 :b 2}) ; => (1 2)"}
+  [coll]
+  (vals coll))
 
 (defn pairs
   "Gets the pairs of an associative data structure."
