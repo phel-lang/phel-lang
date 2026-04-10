@@ -2628,6 +2628,19 @@ Otherwise, it tries to call `__toString`."
   [f & args]
   #(apply f (concat [] args %&)))
 
+(defn fnil
+  "Returns a function that replaces nil arguments with defaults before calling f."
+  {:see-also ["partial" "comp"]}
+  ([f default]
+   (fn [x & args]
+     (apply f (if (nil? x) default x) args)))
+  ([f d1 d2]
+   (fn [x y & args]
+     (apply f (if (nil? x) d1 x) (if (nil? y) d2 y) args)))
+  ([f d1 d2 d3]
+   (fn [x y z & args]
+     (apply f (if (nil? x) d1 x) (if (nil? y) d2 y) (if (nil? z) d3 z) args))))
+
 (defn memoize
   "Returns a memoized version of the function `f`. The memoized function
   caches the return value for each set of arguments."

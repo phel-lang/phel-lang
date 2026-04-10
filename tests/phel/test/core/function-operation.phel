@@ -75,3 +75,19 @@
     (is (= 3 (f 1 2)) "cached multi-arg call")
     (is (= 7 (f 3 4)) "different multi-arg call")
     (is (= 2 (deref counter)) "two executions")))
+
+(deftest test-fnil-one-arg
+  (let [safe-inc (fnil inc 0)]
+    (is (= 1 (safe-inc nil)) "nil replaced with default")
+    (is (= 6 (safe-inc 5)) "non-nil passes through")))
+
+(deftest test-fnil-two-args
+  (let [safe-add (fnil + 0 0)]
+    (is (= 0 (safe-add nil nil)) "both nil replaced")
+    (is (= 5 (safe-add 5 nil)) "first non-nil, second nil")
+    (is (= 3 (safe-add nil 3)) "first nil, second non-nil")))
+
+(deftest test-fnil-three-args
+  (let [f (fnil (fn [a b c] (+ a b c)) 1 2 3)]
+    (is (= 6 (f nil nil nil)) "all three nil")
+    (is (= 15 (f 10 nil nil)) "only first non-nil")))
