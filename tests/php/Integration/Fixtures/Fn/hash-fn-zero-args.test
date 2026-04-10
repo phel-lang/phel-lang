@@ -1,10 +1,6 @@
 --PHEL--
 #(php/+ 1 2)
 --PHP--
-new class() extends \Phel\Lang\AbstractFn {
-  public const BOUND_TO = "";
-
-  public function __invoke() {
-    return (1 + 2);
-  }
-};
+(function() {
+  return (1 + 2);
+});

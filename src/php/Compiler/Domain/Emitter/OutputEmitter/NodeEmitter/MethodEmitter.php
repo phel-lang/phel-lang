@@ -18,17 +18,20 @@ final class MethodEmitter
     public function emit(string $methodName, FnNode $node): void
     {
         $this->emitMethodBegin($methodName, $node);
-        $this->emitMethodParameters($node);
+        $this->emitMethodParameterList($node);
+        $this->outputEmitter->emitLine(') {', $node->getStartSourceLocation());
+        $this->outputEmitter->increaseIndentLevel();
+        $this->emitMethodParametersExtraction($node);
+        $this->emitMethodVariadicParameters($node);
         $this->emitMethodBody($node);
         $this->emitMethodEnd($node);
     }
 
-    private function emitMethodBegin(string $methodName, FnNode $node): void
-    {
-        $this->outputEmitter->emitStr('public function ' . $this->outputEmitter->mungeEncode($methodName) . '(', $node->getStartSourceLocation());
-    }
-
-    private function emitMethodParameters(FnNode $node): void
+    /**
+     * Emits just the parameter list (without surrounding parens or braces).
+     * Used by FnAsClassEmitter for both class and closure emission paths.
+     */
+    public function emitParameters(FnNode $node): void
     {
         $paramsCount = count($node->getParams());
 
@@ -45,12 +48,26 @@ final class MethodEmitter
                 $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
             }
         }
+    }
 
-        $this->outputEmitter->emitLine(') {', $node->getStartSourceLocation());
-        $this->outputEmitter->increaseIndentLevel();
-
-        $this->emitMethodParametersExtraction($node);
+    /**
+     * Emits the function body: variadic wrapping, recur loop, and the body node.
+     * Used by FnAsClassEmitter for the closure emission path.
+     */
+    public function emitBody(FnNode $node): void
+    {
         $this->emitMethodVariadicParameters($node);
+        $this->emitMethodBody($node);
+    }
+
+    private function emitMethodBegin(string $methodName, FnNode $node): void
+    {
+        $this->outputEmitter->emitStr('public function ' . $this->outputEmitter->mungeEncode($methodName) . '(', $node->getStartSourceLocation());
+    }
+
+    private function emitMethodParameterList(FnNode $node): void
+    {
+        $this->emitParameters($node);
     }
 
     private function emitMethodParametersExtraction(FnNode $node): void

@@ -43,13 +43,9 @@ final class FnAsClassEmitterTest extends TestCase
 
         $this->fnAsClassEmitter->emit($fnNode);
 
-        $this->expectOutputString('new class() extends \Phel\Lang\AbstractFn {
-  public const BOUND_TO = "";
-
-  public function __invoke($x) {
-    return $x;
-  }
-};');
+        $this->expectOutputString('(function($x) {
+  return $x;
+});');
     }
 
     public function test_without_parameters(): void
@@ -65,13 +61,9 @@ final class FnAsClassEmitterTest extends TestCase
 
         $this->fnAsClassEmitter->emit($fnNode);
 
-        $this->expectOutputString('new class() extends \Phel\Lang\AbstractFn {
-  public const BOUND_TO = "";
-
-  public function __invoke() {
-    return $x;
-  }
-};');
+        $this->expectOutputString('(function() {
+  return $x;
+});');
     }
 
     public function test_with_uses(): void
@@ -87,22 +79,9 @@ final class FnAsClassEmitterTest extends TestCase
 
         $this->fnAsClassEmitter->emit($fnNode);
 
-        $this->expectOutputString('new class($use1, $use2) extends \Phel\Lang\AbstractFn {
-  public const BOUND_TO = "";
-  private $use1;
-  private $use2;
-
-  public function __construct($use1, $use2) {
-    $this->use1 = $use1;
-    $this->use2 = $use2;
-  }
-
-  public function __invoke($x) {
-    $use1 = $this->use1;
-    $use2 = $this->use2;
-    return $x;
-  }
-};');
+        $this->expectOutputString('(function($x) use($use1, $use2) {
+  return $x;
+});');
     }
 
     public function test_is_variadic(): void
@@ -118,14 +97,10 @@ final class FnAsClassEmitterTest extends TestCase
 
         $this->fnAsClassEmitter->emit($fnNode);
 
-        $this->expectOutputString('new class() extends \Phel\Lang\AbstractFn {
-  public const BOUND_TO = "";
-
-  public function __invoke(...$x) {
-    $x = \Phel::vector($x);
-    return $x;
-  }
-};');
+        $this->expectOutputString('(function(...$x) {
+  $x = \Phel::vector($x);
+  return $x;
+});');
     }
 
     public function test_is_recurs(): void
@@ -141,15 +116,11 @@ final class FnAsClassEmitterTest extends TestCase
 
         $this->fnAsClassEmitter->emit($fnNode);
 
-        $this->expectOutputString('new class() extends \Phel\Lang\AbstractFn {
-  public const BOUND_TO = "";
-
-  public function __invoke($x) {
-    while (true) {
-      return $x;break;
-    }
+        $this->expectOutputString('(function($x) {
+  while (true) {
+    return $x;break;
   }
-};');
+});');
     }
 
     public function test_variadic_and_recurs(): void
@@ -165,14 +136,33 @@ final class FnAsClassEmitterTest extends TestCase
 
         $this->fnAsClassEmitter->emit($fnNode);
 
-        $this->expectOutputString('new class() extends \Phel\Lang\AbstractFn {
-  public const BOUND_TO = "";
-
-  public function __invoke(...$x) {
-    $x = \Phel::vector($x);
-    while (true) {
-      return $x;break;
+        $this->expectOutputString('(function(...$x) {
+  $x = \Phel::vector($x);
+  while (true) {
+    return $x;break;
+  }
+});');
     }
+
+    public function test_named_fn_still_emits_class(): void
+    {
+        $env = NodeEnvironment::empty()->withBoundTo('user\\my-fn');
+        $fnNode = (new FnNode(
+            $env,
+            params: [Symbol::create('x')],
+            body: PhpVarNode::withReturnContext('$x'),
+            uses: [],
+            isVariadic: false,
+            recurs: false,
+        ))->markAsDefinition();
+
+        $this->fnAsClassEmitter->emit($fnNode);
+
+        $this->expectOutputString('new class() extends \Phel\Lang\AbstractFn {
+  public const BOUND_TO = "user\\\\my_fn";
+
+  public function __invoke($x) {
+    return $x;
   }
 };');
     }

@@ -71,6 +71,10 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         }
 
         $initNode = $this->analyzeInit($init, $env, $namespace, $nameSymbol);
+        if ($initNode instanceof FnNode) {
+            $initNode->markAsDefinition();
+        }
+
         $skip = $isMacro ? self::MACRO_IMPLICIT_PARAMS : 0;
         if ($initNode instanceof FnNode) {
             $metaMap = $metaMap->put('min-arity', max(0, $initNode->getMinArity() - $skip));

@@ -4,11 +4,7 @@
   (f 1 1))
 --PHP--
 $b_1 = 10;
-$f_2 = new class() extends \Phel\Lang\AbstractFn {
-  public const BOUND_TO = ".f";
-
-  public function __invoke($a, $b) {
-    return ($a + $b);
-  }
-};
+$f_2 = (function($a, $b) {
+  return ($a + $b);
+});
 ($f_2)(1, 1);

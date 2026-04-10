@@ -54,6 +54,9 @@ All notable changes to this project will be documented in this file.
 - Accept `.` as an alternate namespace separator in `(ns ...)`, `(in-ns ...)`, `:require`, and `:use` forms, enabling Clojure-style namespaces (e.g. `(ns my.cljc.file)`) for `.cljc` interop (#1177)
 - Accept `name#` as an auto-gensym suffix inside syntax-quote (alongside the existing `name$`), matching Clojure's `clojure.core/gensym` reader macro (#1195)
 
+### Changed
+- Anonymous `fn` now emits native PHP closures instead of `AbstractFn` subclasses, making them compatible with PHP libraries that type-hint `\Closure` (e.g. AMPHP) without needing `->closure` conversion (#793)
+
 ### Fixed
 - `(php/yield ...)` in return position no longer emits `return yield ...;`, which broke PHP generator semantics (#793)
 - `phel run` no longer buffers output, so `println` and `print` flush immediately — fixes silent output in long-running processes like AMPHP servers (#793)
