@@ -1,0 +1,16 @@
+(ns phel-test\test\async
+  (:require phel\test :refer [deftest is])
+  (:require phel\async))
+
+;; These tests verify macro expansion and pure functions only.
+;; Runtime async behavior requires amphp/amp to be installed.
+
+(deftest test-closure-conversion
+  (let [f (fn [x] (* x 2))
+        c (phel\async/->closure f)]
+    (is (= true (php/instanceof c \Closure)) "->closure returns a PHP Closure")
+    (is (= 6 (c 3)) "Closure preserves function behavior")))
+
+(deftest test-async-macro-expands
+  (let [expanded (macroexpand-1 '(phel\async/async (+ 1 2)))]
+    (is (= 'php/amp\async (first expanded)) "async expands to php/amp\\async call")))
