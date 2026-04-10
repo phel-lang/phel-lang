@@ -12,12 +12,14 @@ final class RunCommandTest extends AbstractTestCommand
 {
     public function test_file_not_found(): void
     {
-        $this->expectOutputRegex('~No rendered output after running namespace: "non-existing-file.phel"~');
+        $this->expectOutputRegex('~Namespace "non-existing-file.phel" not found~');
 
-        $this->createRunCommand()->run(
+        $exitCode = $this->createRunCommand()->run(
             $this->stubInput('non-existing-file.phel'),
             $this->stubOutput(),
         );
+
+        self::assertSame(1, $exitCode);
     }
 
     public function test_run_by_namespace(): void

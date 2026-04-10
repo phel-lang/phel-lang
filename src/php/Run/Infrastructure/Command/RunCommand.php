@@ -10,8 +10,8 @@ use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Phel;
 use Phel\Run\Infrastructure\Service\DebugLineTap;
 use Phel\Run\RunFacade;
-use RuntimeException;
 use SebastianBergmann\Timer\ResourceUsageFormatter;
+
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -107,14 +107,13 @@ final class RunCommand extends Command
             // Set up normalized runtime args before executing the script
             Phel::setupRuntimeArgs($path, $userArgv);
 
-            $result = file_exists($path) ? $this->executeFile($path) : $this->executeNamespace($path);
-
-            $identifier = $path;
-
-            if ($result === '') {
-                $this->renderNoResultOutput($output, $identifier);
+            if (file_exists($path)) {
+                $this->getFacade()->runFile($path);
+            } elseif ($this->namespaceExists($path)) {
+                $this->getFacade()->runNamespace($path);
             } else {
-                $output->write($result);
+                $output->writeln(sprintf('<error>Namespace "%s" not found in any source directory.</error>', $path));
+                return self::FAILURE;
             }
 
             if ($input->getOption('with-time')) {
@@ -135,46 +134,19 @@ final class RunCommand extends Command
         return self::FAILURE;
     }
 
-    private function executeNamespace(string $namespace): string
+    private function namespaceExists(string $namespace): bool
     {
-        ob_start();
-        $this->getFacade()->runNamespace($namespace);
-
-        $buffer = ob_get_clean();
-
-        if ($buffer === false) {
-            throw new RuntimeException('Unable to capture namespace execution output.');
-        }
-
-        return $buffer;
-    }
-
-    private function executeFile(string $filename): string
-    {
-        ob_start();
-        $this->getFacade()->runFile($filename);
-
-        $buffer = ob_get_clean();
-
-        if ($buffer === false) {
-            throw new RuntimeException('Unable to capture file execution output.');
-        }
-
-        return $buffer;
-    }
-
-    private function renderNoResultOutput(OutputInterface $output, string $identifier): void
-    {
-        $output->writeln(
-            <<<EOF
-            <error>No rendered output after running namespace: "{$identifier}"</>
-
-            <comment>Please verify that at least one of the following applies:
-            - The file exists
-            - The namespace exists</>
-
-            You can ignore this message with `-q|--quiet`
-            EOF
+        $deps = $this->getFacade()->getDependenciesForNamespace(
+            $this->getFacade()->getAllPhelDirectories(),
+            [$namespace],
         );
+
+        foreach ($deps as $info) {
+            if ($info->getNamespace() === $namespace) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
