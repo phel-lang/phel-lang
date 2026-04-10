@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- `assert` macro for precondition checking with optional custom message (#1222)
 - `seq?` predicate function to check if a value is a seq (implements `LazySeqInterface`), matching Clojure semantics (#1231)
 - `condp` macro for predicate-based conditional dispatch, matching Clojure semantics including `:>>` result threading (#1217)
 - Allow `require` and `use` to accept quoted symbols in the REPL (e.g. `(require 'phel\str)`), matching Clojure semantics and enabling nREPL client compatibility (#1211)
