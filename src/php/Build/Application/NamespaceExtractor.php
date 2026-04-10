@@ -17,6 +17,8 @@ use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use RecursiveDirectoryIterator;
@@ -98,6 +100,11 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
      */
     public function getNamespacesFromDirectories(array $directories): array
     {
+        // Pre-scan: register all declared namespace names so NsSymbol
+        // can distinguish user-defined clojure\* namespaces from
+        // references to phel standard library equivalents.
+        $this->preRegisterDeclaredNamespaces($directories);
+
         /** @var array<string, NamespaceInformation> $namespaces */
         $namespaces = [];
         /** @var array<string, list<string>> $primaryDefinitions */
@@ -117,6 +124,29 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
         $this->warnAboutDuplicateNamespaces($primaryDefinitions);
 
         return $this->sortNamespaceInformationList(array_values($namespaces));
+    }
+
+    /**
+     * Lightweight pre-scan: extracts only the declared namespace name from
+     * each source file and registers it on the Registry. This runs before
+     * the full extraction so that NsSymbol::remapClojureNamespace() can
+     * tell user-defined clojure\* namespaces apart from references to
+     * phel standard library equivalents.
+     *
+     * @param list<string> $directories
+     */
+    public function preRegisterDeclaredNamespaces(array $directories): void
+    {
+        $registry = Registry::getInstance();
+
+        foreach ($directories as $directory) {
+            foreach ($this->findAllPhelFiles($directory) as $file) {
+                $name = $this->extractNamespaceNameOnly($file);
+                if ($name !== null) {
+                    $registry->addDeclaredNamespace($name);
+                }
+            }
+        }
     }
 
     /**
@@ -193,6 +223,74 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
         }
 
         return $result;
+    }
+
+    /**
+     * Extracts the namespace name from a file without running the full
+     * analyzer. Only lexes, parses, and reads the first form.
+     */
+    private function extractNamespaceNameOnly(string $path): ?string
+    {
+        try {
+            $content = $this->fileIo->getContents($path);
+            $tokenStream = $this->compilerFacade->lexString($content);
+
+            do {
+                $parseTree = $this->compilerFacade->parseNext($tokenStream);
+            } while ($parseTree instanceof TriviaNodeInterface);
+
+            if (!$parseTree instanceof NodeInterface) {
+                return null;
+            }
+
+            $readerResult = $this->compilerFacade->read($parseTree);
+            $ast = $readerResult->getAst();
+
+            if (!$ast instanceof PersistentListInterface) {
+                return null;
+            }
+
+            $first = $ast->get(0);
+            $second = $ast->get(1);
+
+            if (!$first instanceof Symbol || !$second instanceof Symbol) {
+                return null;
+            }
+
+            if ($first->getName() !== Symbol::NAME_NS && $first->getName() !== Symbol::NAME_IN_NS) {
+                return null;
+            }
+
+            return str_replace('.', '\\', $second->getName());
+        } catch (AbstractParserException|ReaderException|LexerValueException) {
+            return null;
+        }
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function findAllPhelFiles(string $directory): array
+    {
+        $realpath = $this->resolvePath($directory);
+        if ($realpath === null || !is_dir($realpath)) {
+            return [];
+        }
+
+        try {
+            $directoryIterator = new RecursiveDirectoryIterator($realpath);
+            $iterator = new RecursiveIteratorIterator($directoryIterator);
+            $phelIterator = new RegexIterator($iterator, '/^.+\.(phel|cljc)$/i', RegexIterator::GET_MATCH);
+
+            $files = [];
+            foreach ($phelIterator as $file) {
+                $files[] = $file[0];
+            }
+
+            return $files;
+        } catch (UnexpectedValueException) {
+            return [];
+        }
     }
 
     private function resolvePath(string $path): ?string

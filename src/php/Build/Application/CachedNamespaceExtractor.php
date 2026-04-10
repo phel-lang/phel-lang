@@ -50,6 +50,10 @@ final readonly class CachedNamespaceExtractor implements NamespaceExtractorInter
      */
     public function getNamespacesFromDirectories(array $directories): array
     {
+        // Delegate pre-scan to the inner extractor so NsSymbol knows
+        // which clojure\* namespaces are user-defined source files.
+        $this->innerExtractor->preRegisterDeclaredNamespaces($directories);
+
         $allFiles = $this->findAllPhelFiles($directories);
 
         /** @var array<string, NamespaceInformation> $namespaces */
@@ -70,6 +74,11 @@ final readonly class CachedNamespaceExtractor implements NamespaceExtractorInter
         $this->warnAboutDuplicateNamespaces($primaryDefinitions);
 
         return $this->sortNamespaceInformationList(array_values($namespaces));
+    }
+
+    public function preRegisterDeclaredNamespaces(array $directories): void
+    {
+        $this->innerExtractor->preRegisterDeclaredNamespaces($directories);
     }
 
     /**

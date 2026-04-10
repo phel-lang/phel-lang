@@ -479,12 +479,10 @@ TXT;
     /**
      * Remaps `clojure\*` namespaces to `phel\*` for Clojure compatibility.
      *
-     * If a required namespace starts with `clojure\` and the corresponding
-     * `phel\*` namespace exists in the Registry, the prefix is replaced
-     * so that e.g. `clojure\test` resolves to `phel\test`.
-     *
-     * User-defined `clojure\*` namespaces (e.g. `clojure\core-test\portability`)
-     * are left untouched when no matching `phel\*` namespace is registered.
+     * A `clojure\*` require is remapped to `phel\*` unless a source file
+     * declares that exact `clojure\*` namespace (detected via pre-scan).
+     * In REPL mode (no pre-scan), falls back to checking the Registry
+     * for the target `phel\*` namespace.
      */
     private function remapClojureNamespace(Symbol $symbol): Symbol
     {
@@ -493,11 +491,21 @@ TXT;
             return $symbol;
         }
 
-        $targetNs = 'phel\\' . substr($name, 8);
-        $mungedNs = str_replace('-', '_', $targetNs);
+        $registry = Registry::getInstance();
 
-        if (Registry::getInstance()->getDefinitionInNamespace($mungedNs) === []) {
+        // If a source file declares this exact clojure\* namespace, don't remap
+        if ($registry->hasDeclaredNamespace($name)) {
             return $symbol;
+        }
+
+        $targetNs = 'phel\\' . substr($name, 8);
+
+        // When no pre-scan ran (REPL), fall back to Registry definitions check
+        if (!$registry->hasDeclaredNamespaces()) {
+            $mungedNs = str_replace('-', '_', $targetNs);
+            if ($registry->getDefinitionInNamespace($mungedNs) === []) {
+                return $symbol;
+            }
         }
 
         return Symbol::createForNamespace(

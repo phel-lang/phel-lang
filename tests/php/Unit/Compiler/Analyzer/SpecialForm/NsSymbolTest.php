@@ -35,8 +35,11 @@ final class NsSymbolTest extends TestCase
         $this->globalEnv = new GlobalEnvironment();
         $this->analyzer = new Analyzer($this->globalEnv);
 
-        // Seed the Registry so clojure\* → phel\* remapping finds the target namespace
-        Phel::addDefinition('phel\\test', '__ns_marker', true, Phel::map());
+        // Simulate the NamespaceExtractor pre-scan: register standard library
+        // namespaces as declared so clojure→phel remapping knows which
+        // clojure\* names are NOT user-defined source files.
+        Registry::getInstance()->addDeclaredNamespace('phel\\core');
+        Registry::getInstance()->addDeclaredNamespace('phel\\test');
     }
 
     public function test_first_argument_must_be_symbol(): void
@@ -916,8 +919,10 @@ final class NsSymbolTest extends TestCase
         self::assertSame('phel\\test', $isNode->getNamespace());
     }
 
-    public function test_clojure_namespace_not_remapped_when_phel_equivalent_missing(): void
+    public function test_clojure_namespace_not_remapped_when_declared_as_source_namespace(): void
     {
+        Registry::getInstance()->addDeclaredNamespace('clojure\\core-test\\portability');
+
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
             Symbol::create('app\\core'),
@@ -936,8 +941,10 @@ final class NsSymbolTest extends TestCase
         self::assertSame('clojure\\core-test\\portability', $this->globalEnv->resolveAlias('portability'));
     }
 
-    public function test_clojure_namespace_not_remapped_via_dot_syntax_when_phel_equivalent_missing(): void
+    public function test_clojure_namespace_not_remapped_via_dot_syntax_when_declared(): void
     {
+        Registry::getInstance()->addDeclaredNamespace('clojure\\core-test\\portability');
+
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
             Symbol::create('app.core'),
@@ -956,8 +963,10 @@ final class NsSymbolTest extends TestCase
         self::assertSame('clojure\\core-test\\portability', $this->globalEnv->resolveAlias('portability'));
     }
 
-    public function test_clojure_namespace_not_remapped_in_vector_form_when_phel_equivalent_missing(): void
+    public function test_clojure_namespace_not_remapped_in_vector_form_when_declared(): void
     {
+        Registry::getInstance()->addDeclaredNamespace('clojure\\core-test\\portability');
+
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
             Symbol::create('app.core'),
@@ -983,6 +992,8 @@ final class NsSymbolTest extends TestCase
 
     public function test_clojure_namespace_no_spurious_original_alias_when_not_remapped(): void
     {
+        Registry::getInstance()->addDeclaredNamespace('clojure\\custom\\lib');
+
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
             Symbol::create('app\\core'),
@@ -1000,11 +1011,10 @@ final class NsSymbolTest extends TestCase
         self::assertFalse($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('clojure\\custom\\lib')));
     }
 
-    public function test_clojure_remap_uses_munged_namespace_for_registry_lookup(): void
+    public function test_clojure_remap_works_when_pre_scan_ran(): void
     {
-        // Register with munged name (dashes → underscores), matching how the compiler stores it
-        Phel::addDefinition('phel\\my_lib', '__ns_marker', true, Phel::map());
-
+        // setUp already registered phel\test as declared; clojure\my-lib is NOT
+        // declared, so it should remap unconditionally
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
             Symbol::create('app\\core'),
@@ -1016,10 +1026,60 @@ final class NsSymbolTest extends TestCase
 
         $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
 
-        // Should remap because phel\my_lib exists (munged form of phel\my-lib)
         self::assertEquals([
             Symbol::create('phel\\core'),
             Symbol::create('phel\\my-lib'),
+        ], $nsNode->getRequireNs());
+    }
+
+    public function test_clojure_remap_falls_back_to_registry_in_repl_mode(): void
+    {
+        // Simulate REPL: no pre-scan, so no declared namespaces
+        Registry::getInstance()->clear();
+        $this->globalEnv = new GlobalEnvironment();
+        $this->analyzer = new Analyzer($this->globalEnv);
+
+        // Add phel\test to the Registry (as it would be after loading)
+        Phel::addDefinition('phel\\test', '__ns_marker', true, Phel::map());
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app\\core'),
+            Phel::list([
+                Keyword::create('require'),
+                Symbol::create('clojure\\test'),
+            ]),
+        ]);
+
+        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertEquals([
+            Symbol::create('phel\\core'),
+            Symbol::create('phel\\test'),
+        ], $nsNode->getRequireNs());
+    }
+
+    public function test_clojure_not_remapped_in_repl_when_target_missing(): void
+    {
+        // Simulate REPL: no pre-scan, no declared namespaces, no Registry definitions
+        Registry::getInstance()->clear();
+        $this->globalEnv = new GlobalEnvironment();
+        $this->analyzer = new Analyzer($this->globalEnv);
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app\\core'),
+            Phel::list([
+                Keyword::create('require'),
+                Symbol::create('clojure\\unknown\\ns'),
+            ]),
+        ]);
+
+        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertEquals([
+            Symbol::create('phel\\core'),
+            Symbol::create('clojure\\unknown\\ns'),
         ], $nsNode->getRequireNs());
     }
 

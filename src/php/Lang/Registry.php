@@ -19,6 +19,9 @@ final class Registry
     /** @var array<string, array<string, mixed>> */
     private array $definitionsMetaData = [];
 
+    /** @var array<string, true> Namespace names declared by source files (populated by pre-scan) */
+    private array $declaredNamespaces = [];
+
     private static ?Registry $instance = null;
 
     private function __construct()
@@ -39,6 +42,7 @@ final class Registry
     {
         $this->definitions = [];
         $this->definitionsMetaData = [];
+        $this->declaredNamespaces = [];
     }
 
     public function addDefinition(string $ns, string $name, mixed $value, ?PersistentMapInterface $metaData = null): void
@@ -93,5 +97,20 @@ final class Registry
     public function getNamespaces(): array
     {
         return array_keys($this->definitions);
+    }
+
+    public function addDeclaredNamespace(string $ns): void
+    {
+        $this->declaredNamespaces[$ns] = true;
+    }
+
+    public function hasDeclaredNamespace(string $ns): bool
+    {
+        return isset($this->declaredNamespaces[$ns]);
+    }
+
+    public function hasDeclaredNamespaces(): bool
+    {
+        return $this->declaredNamespaces !== [];
     }
 }
