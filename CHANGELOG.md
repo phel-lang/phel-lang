@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - `phel\async` module with `async`, `await`, `delay`, `await-all`, `await-any`, and `->closure` for AMPHP-based concurrency (#793)
+- `amphp/amp` promoted to a runtime dependency so `phel\async` works out of the box (including from the PHAR), without requiring consumers to install it separately
 - `reify` for anonymous protocol/interface implementation, matching Clojure's `reify` (#1226)
 - `do-report` in `phel\test` for Clojure-compatible custom assertion reporting (#1260)
 - `sorted-map`, `sorted-map-by`, `sorted-set`, `sorted-set-by` for Clojure-compatible sorted persistent collections (#1228)
