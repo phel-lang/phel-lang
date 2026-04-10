@@ -32,12 +32,18 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
     public function deconstruct(array &$bindings, $binding, $value): void
     {
         $keys = null;
+        $strs = null;
         $asSymbol = null;
         $normalBindings = [];
 
         foreach ($binding as $key => $bindTo) {
             if ($key instanceof Keyword && $key->getName() === 'keys') {
                 $keys = $bindTo;
+                continue;
+            }
+
+            if ($key instanceof Keyword && $key->getName() === 'strs') {
+                $strs = $bindTo;
                 continue;
             }
 
@@ -60,6 +66,14 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
                 if ($sym instanceof Symbol) {
                     $keyword = Keyword::create($sym->getName());
                     $this->bindingIteration($bindings, $binding, $keyword, $sym);
+                }
+            }
+        }
+
+        if ($strs instanceof PersistentVectorInterface) {
+            foreach ($strs as $sym) {
+                if ($sym instanceof Symbol) {
+                    $this->bindingIteration($bindings, $binding, $sym->getName(), $sym);
                 }
             }
         }

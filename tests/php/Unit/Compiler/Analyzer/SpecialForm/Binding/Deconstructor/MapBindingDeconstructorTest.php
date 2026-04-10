@@ -232,4 +232,103 @@ final class MapBindingDeconstructorTest extends TestCase
             ],
         ], $bindings);
     }
+
+    public function test_deconstruct_strs(): void
+    {
+        // Test for binding like this (let [{:strs [a b]} x])
+        // This will be destructured to this:
+        // (let [__phel_1 x
+        //       __phel_2 (php/aget __phel_1 "a")
+        //       a __phel_2
+        //       __phel_3 (php/aget __phel_1 "b")
+        //       b __phel_3])
+
+        $binding = Phel::map(
+            Keyword::create('strs'),
+            Phel::vector([
+                Symbol::create('a'),
+                Symbol::create('b'),
+            ]),
+        );
+        $value = Symbol::create('x');
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $binding, $value);
+
+        self::assertEquals([
+            // __phel_1 x
+            [
+                Symbol::create('__phel_1'),
+                $value,
+            ],
+            // __phel_2 (php/aget __phel_1 "a")
+            [
+                Symbol::create('__phel_2'),
+                Phel::list([
+                    Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+                    Symbol::create('__phel_1'),
+                    'a',
+                ]),
+            ],
+            // a __phel_2
+            [
+                Symbol::create('a'),
+                Symbol::create('__phel_2'),
+            ],
+            // __phel_3 (php/aget __phel_1 "b")
+            [
+                Symbol::create('__phel_3'),
+                Phel::list([
+                    Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+                    Symbol::create('__phel_1'),
+                    'b',
+                ]),
+            ],
+            // b __phel_3
+            [
+                Symbol::create('b'),
+                Symbol::create('__phel_3'),
+            ],
+        ], $bindings);
+    }
+
+    public function test_deconstruct_strs_with_as(): void
+    {
+        // Test for binding like this (let [{:strs [x] :as m} val])
+
+        $binding = Phel::map(
+            Keyword::create('strs'),
+            Phel::vector([
+                Symbol::create('x'),
+            ]),
+            Keyword::create('as'),
+            Symbol::create('m'),
+        );
+        $value = Symbol::create('val');
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $binding, $value);
+
+        self::assertEquals([
+            // m val
+            [
+                Symbol::create('m'),
+                $value,
+            ],
+            // __phel_1 (php/aget m "x")
+            [
+                Symbol::create('__phel_1'),
+                Phel::list([
+                    Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+                    Symbol::create('m'),
+                    'x',
+                ]),
+            ],
+            // x __phel_1
+            [
+                Symbol::create('x'),
+                Symbol::create('__phel_1'),
+            ],
+        ], $bindings);
+    }
 }

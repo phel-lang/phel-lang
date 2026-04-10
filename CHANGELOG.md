@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- `:strs` support in map destructuring for string key lookup (#1227)
 - `fnil` function for nil-safe function wrapping with default values (#1225)
 - `vary-meta` function to apply a function to an object's metadata (#1223)
 - `assert` macro for precondition checking with optional custom message (#1222)
