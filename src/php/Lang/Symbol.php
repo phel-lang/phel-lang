@@ -86,6 +86,8 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
 
     public const string NAME_DEF_EXCEPTION = 'defexception*';
 
+    public const string NAME_REIFY = 'reify*';
+
     public const string NAME_DOLLAR = '$';
 
     public const string NAME_HASH = '#';

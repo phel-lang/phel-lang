@@ -1,0 +1,81 @@
+(ns phel-test\test\core\reify
+  (:require phel\test :refer [deftest is]))
+
+;; --- Protocol definitions ---
+
+(defprotocol Speakable
+  (speak [this]))
+
+(defprotocol Nameable
+  (get-name [this]))
+
+;; --- Single protocol, single method ---
+
+(deftest test-reify-single-protocol
+  (let [obj (reify Speakable (speak [this] "hello"))]
+    (is (= "hello" (speak obj)) "reify single method")))
+
+;; --- Multiple protocols ---
+
+(deftest test-reify-multiple-protocols
+  (let [obj (reify
+              Speakable (speak [this] "hi")
+              Nameable (get-name [this] "Bob"))]
+    (is (= "hi" (speak obj)) "first protocol")
+    (is (= "Bob" (get-name obj)) "second protocol")))
+
+;; --- Closure over local bindings ---
+
+(deftest test-reify-closes-over-locals
+  (let [greeting "Hola"
+        obj (reify Speakable (speak [this] greeting))]
+    (is (= "Hola" (speak obj)) "closes over local")))
+
+;; --- satisfies? ---
+
+(deftest test-reify-satisfies
+  (let [obj (reify Speakable (speak [this] "yes"))]
+    (is (true? (satisfies? Speakable obj)) "satisfies implemented protocol")
+    (is (false? (satisfies? Nameable obj)) "does not satisfy unimplemented protocol")))
+
+;; --- Multi-arg methods ---
+
+(defprotocol Greeter
+  (greet [this name]))
+
+(deftest test-reify-multi-arg
+  (let [obj (reify Greeter (greet [this name] (str "Hello, " name "!")))]
+    (is (= "Hello, World!" (greet obj "World")) "multi-arg method")))
+
+;; --- Closure in a loop: each object has its own state ---
+
+(deftest test-reify-loop-closure
+  (let [objects (for [n :range [1 4]]
+                  (reify Speakable (speak [this] (str "I am " n))))
+        results (map speak objects)]
+    (is (= ["I am 1" "I am 2" "I am 3"] (vec results))
+        "each reified object has its own closed-over state")))
+
+;; --- Multi-expression body ---
+
+(deftest test-reify-multi-expression-body
+  (let [obj (reify Speakable
+              (speak [this]
+                (let [a "hello"
+                      b " world"]
+                  (str a b))))]
+    (is (= "hello world" (speak obj)) "multi-expression body")))
+
+;; --- Multiple methods on same protocol ---
+
+(defprotocol Describable
+  (label [this])
+  (detail [this]))
+
+(deftest test-reify-multi-method-protocol
+  (let [obj (reify Describable
+              (label [this] "my-label")
+              (detail [this] "my-detail"))]
+    (is (= "my-label" (label obj)) "first method")
+    (is (= "my-detail" (detail obj)) "second method")
+    (is (true? (satisfies? Describable obj)) "satisfies multi-method protocol")))

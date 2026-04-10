@@ -3917,6 +3917,73 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                        `(extend-type ~type-spec ~protocol-name ~@methods))]
     `(do ~@extend-calls)))
 
+(defmacro reify
+  "Creates an anonymous object implementing one or more protocols.
+  Method bodies close over local bindings. Each instance carries its
+  own captured state, so reify works correctly inside loops.
+
+  Syntax:
+    (reify
+      ProtocolName
+      (method-name [this arg1] body)
+      AnotherProtocol
+      (another-method [this] body))"
+  {:example "(reify Speakable (speak [this] \"hello\"))"
+   :see-also ["defprotocol" "extend-type" "satisfies?"]}
+  [& specs]
+  (let [munge (php/new Munge)
+        obj-sym (gensym "reify__")
+        class-sym (gensym "class__")
+        ;; Parse specs: alternating protocol symbols and method lists
+        groups (loop [remaining specs
+                      current-proto nil
+                      current-methods []
+                      result []]
+                 (if (nil? remaining)
+                   (if current-proto
+                     (conj result [current-proto current-methods])
+                     result)
+                   (let [item (first remaining)
+                         rst (next remaining)]
+                     (if (php/instanceof item Symbol)
+                       (recur rst item []
+                              (if current-proto
+                                (conj result [current-proto current-methods])
+                                result))
+                       (recur rst current-proto
+                              (conj current-methods item)
+                              result)))))
+        ;; Collect all methods for reify*
+        all-methods (reduce (fn [acc group] (concat acc (second group))) [] groups)
+        ;; Build dispatch registrations
+        registrations (reduce
+                       (fn [acc group]
+                         (let [proto (first group)
+                               methods (second group)
+                               proto-str (php/-> proto (getName))]
+                           (reduce
+                            (fn [inner method]
+                              (let [mname (first method)
+                                    mname-str (php/-> mname (getName))
+                                    margs (second method)
+                                    rest-args (next margs)
+                                    dsym (php/:: Symbol
+                                                 (create (php/. proto-str "--" mname-str "--dispatch")))
+                                    munged-str (php/-> munge (encode mname-str))
+                                    munged-sym (php/:: Symbol (create munged-str))]
+                                (conj inner
+                                      `(swap! ~dsym assoc ~class-sym
+                                              (fn ~margs
+                                                (php/-> ~(first margs) (~munged-sym ~@rest-args)))))))
+                            acc
+                            methods)))
+                       []
+                       groups)]
+    `(let [~obj-sym (reify* ~@all-methods)
+           ~class-sym (php/get_class ~obj-sym)]
+       ~@registrations
+       ~obj-sym)))
+
 ;; ------------
 ;; Multimethods
 ;; ------------
