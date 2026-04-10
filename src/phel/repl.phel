@@ -97,20 +97,24 @@
 (defn- set-ns [namespace]
   (set-var *ns* namespace))
 
+(defn- normalize-ns-str
+  "Converts dots to backslashes and remaps clojure\\* to phel\\* when the target exists."
+  [ns-str]
+  (let [ns-str (php/str_replace "." "\\" ns-str)]
+    (if-not (php/str_starts_with ns-str "clojure\\")
+      ns-str
+      (let [target (str "phel\\" (php/substr ns-str 8))
+            munged (php/str_replace "-" "_" target)
+            exists (not (php/empty (php/-> (php/:: Registry (getInstance)) (getDefinitionInNamespace munged))))]
+        (if exists target ns-str)))))
+
 (defn- normalize-require-symbol
-  "Normalizes a require symbol: converts dots to backslashes and remaps clojure\\* to phel\\*."
+  "Normalizes a require symbol, returning the original if unchanged."
   [sym]
-  (let [ns-str (php/str_replace "." "\\" (name sym))
-        ns-str (if (php/str_starts_with ns-str "clojure\\")
-                 (let [target (str "phel\\" (php/substr ns-str 8))
-                       munged (php/str_replace "-" "_" target)]
-                   (if (php/empty (php/-> (php/:: Registry (getInstance)) (getDefinitionInNamespace munged)))
-                     ns-str
-                     target))
-                 ns-str)]
-    (if (php/=== ns-str (name sym))
+  (let [normalized (normalize-ns-str (name sym))]
+    (if (php/=== normalized (name sym))
       sym
-      (php/:: Symbol (create ns-str)))))
+      (php/:: Symbol (create normalized)))))
 
 (defn- require-namespace
   [namespace alias refers]
