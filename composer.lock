@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ec94593ca3e9e0b0bc37fd359f3dd02b",
+    "content-hash": "493c4bdec99828d30dd3829737ee5d73",
     "packages": [
         {
             "name": "gacela-project/container",
@@ -7822,5 +7822,5 @@
     "platform-overrides": {
         "php": "8.3.16"
     },
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.6.0"
 }

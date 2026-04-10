@@ -1,0 +1,60 @@
+(ns examples\async-concurrency
+  (:require phel\async :refer [async await await-all delay]))
+
+;; Async concurrency with Phel and AMPHP (amphp/amp).
+;; Run: ./bin/phel run docs/examples/11_async-concurrency.phel
+
+;; --- 1. Basic async/await ---
+
+(println "--- Basic async/await ---")
+
+(let [future (async (+ 21 21))]
+  (println "The answer is:" (await future)))
+
+;; --- 2. Concurrent work ---
+
+(defn fetch-data
+  "Simulates an async I/O operation with a delay."
+  [label ms]
+  (async
+    (delay (/ ms 1000))
+    (str label " (took " ms "ms)")))
+
+(println)
+(println "--- Concurrent fetches ---")
+
+(let [start (php/microtime true)
+      results (await-all [(fetch-data "user-profile" 50)
+                          (fetch-data "notifications" 80)
+                          (fetch-data "feed" 60)])
+      elapsed (php/round (* 1000 (- (php/microtime true) start)))]
+  (for [r :in results]
+    (println " " r))
+  (println (str "  Total wall time: " elapsed "ms (concurrent, not 190ms serial)")))
+
+;; --- 3. First-to-finish race ---
+
+(println)
+(println "--- Race: first to respond wins ---")
+
+(let [winner (phel\async/await-any
+               [(fetch-data "server-eu" 30)
+                (fetch-data "server-us" 70)
+                (fetch-data "server-asia" 50)])]
+  (println "  Winner:" winner))
+
+;; --- 4. Error handling ---
+
+(println)
+(println "--- Error handling ---")
+
+(let [risky (async
+              (delay 0.01)
+              (throw (php/new \RuntimeException "network timeout")))]
+  (try
+    (await risky)
+    (catch \RuntimeException e
+      (println "  Caught:" (php/-> e (getMessage))))))
+
+(println)
+(println "Done!")

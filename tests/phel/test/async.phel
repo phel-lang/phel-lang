@@ -1,0 +1,60 @@
+(ns phel-test\test\async
+  (:require phel\test :refer [deftest is])
+  (:require phel\async :refer [async await await-all await-any delay ->closure]))
+
+;; --- Pure function tests ---
+
+(deftest test-closure-conversion
+  (let [f (fn [x] (* x 2))
+        c (->closure f)]
+    (is (= true (php/instanceof c \Closure)) "->closure returns a PHP Closure")
+    (is (= 6 (c 3)) "Closure preserves function behavior")))
+
+(deftest test-async-macro-expands
+  (let [expanded (macroexpand-1 '(phel\async/async (+ 1 2)))]
+    (is (= 'php/amp\async (first expanded)) "async expands to php/amp\\async call")))
+
+;; --- Runtime integration tests (amphp/amp) ---
+
+(deftest test-async-await-basic
+  (let [future (async (+ 1 2))]
+    (is (= 3 (await future)) "async/await round-trips a simple value")))
+
+(deftest test-async-await-with-side-effects
+  (let [result (atom nil)]
+    (await (async (reset! result 42)))
+    (is (= 42 @result) "async body runs and produces side effects")))
+
+(deftest test-async-multiple-futures
+  (let [f1 (async 10)
+        f2 (async 20)
+        f3 (async 30)]
+    (is (= 10 (await f1)))
+    (is (= 20 (await f2)))
+    (is (= 30 (await f3)))))
+
+(deftest test-async-with-delay
+  (let [future (async (delay 0.01) :done)]
+    (is (= :done (await future)) "delay suspends then resumes the fiber")))
+
+(deftest test-await-all
+  (let [results (await-all [(async 1) (async 2) (async 3)])]
+    (is (= [1 2 3] results) "await-all collects all results in order")))
+
+(deftest test-await-any
+  (let [result (await-any [(async 42)])]
+    (is (= 42 result) "await-any returns the first resolved value")))
+
+(deftest test-async-concurrent-execution
+  (let [start (php/microtime true)
+        results (await-all [(async (delay 0.05) :a)
+                            (async (delay 0.05) :b)
+                            (async (delay 0.05) :c)])
+        elapsed (- (php/microtime true) start)]
+    (is (= [:a :b :c] results) "all futures resolve correctly")
+    (is (< elapsed 0.15) "concurrent execution is faster than sequential")))
+
+(deftest test-async-error-propagation
+  (let [future (async (throw (php/new \RuntimeException "boom")))]
+    (is (thrown? \RuntimeException (await future))
+        "exceptions in async body propagate through await")))

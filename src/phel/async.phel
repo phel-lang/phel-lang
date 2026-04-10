@@ -1,0 +1,52 @@
+(ns phel\async)
+
+;; Thin convenience layer over AMPHP (amphp/amp).
+;; Requires `composer require amphp/amp` in the consuming project.
+
+(defn ->closure
+  "Converts a Phel function to a PHP Closure.
+  Many PHP libraries (AMPHP, ReactPHP) type-hint `\\Closure` and reject
+  Phel's `AbstractFn` even though it is callable. This bridges the gap."
+  {:doc "Converts a callable (e.g. Phel function) to a PHP \\Closure."
+   :example "(->closure (fn [x] (* x 2)))"}
+  [f]
+  (php/:: \Closure (fromCallable f)))
+
+(defmacro async
+  "Runs body asynchronously in a new fiber. Returns an Amp\\Future.
+  The body is wrapped in a Closure so AMPHP accepts it."
+  {:doc "Runs body asynchronously. Returns a Future."
+   :example "(async (do-something))"}
+  [& body]
+  `(php/amp\async (->closure (fn [] ~@body))))
+
+(defn await
+  "Blocks the current fiber until the Future resolves and returns its value."
+  {:doc "Awaits an Amp\\Future, returning its resolved value."
+   :example "(await (async (+ 1 2)))"}
+  [future]
+  (php/-> future (await)))
+
+(defn delay
+  "Suspends the current fiber for the given number of seconds (float)."
+  {:doc "Suspends the current fiber for `seconds`."
+   :example "(delay 0.5)"}
+  [seconds]
+  (php/amp\delay seconds))
+
+(defn await-all
+  "Awaits all Futures in the given collection. Returns a vector of results."
+  {:doc "Awaits all Futures, returning a vector of their resolved values."
+   :example "(await-all [(async 1) (async 2)])"}
+  [futures]
+  (let [php-futures (to-php-array futures)]
+    (for [v :in (php/amp\future\await php-futures)]
+      v)))
+
+(defn await-any
+  "Awaits the first Future to resolve. Returns its value."
+  {:doc "Returns the value of the first Future to resolve."
+   :example "(await-any [(async 1) (async 2)])"}
+  [futures]
+  (let [php-futures (to-php-array futures)]
+    (php/amp\future\awaitfirst php-futures)))
