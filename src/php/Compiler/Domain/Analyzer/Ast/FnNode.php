@@ -16,6 +16,8 @@ final class FnNode extends AbstractNode
      * @param list<Symbol> $params
      * @param list<Symbol> $uses
      */
+    private bool $isDefinition = false;
+
     public function __construct(
         NodeEnvironmentInterface $env,
         private readonly array $params,
@@ -26,6 +28,18 @@ final class FnNode extends AbstractNode
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);
+    }
+
+    public function markAsDefinition(): self
+    {
+        $this->isDefinition = true;
+
+        return $this;
+    }
+
+    public function isDefinition(): bool
+    {
+        return $this->isDefinition;
     }
 
     /**

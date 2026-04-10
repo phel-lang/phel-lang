@@ -25,16 +25,11 @@ final readonly class FnAsClassEmitter implements NodeEmitterInterface
     {
         assert($node instanceof FnNode);
 
-        if ($this->isAnonymous($node)) {
-            $this->emitAsClosure($node);
-        } else {
+        if ($node->isDefinition()) {
             $this->emitAsClass($node);
+        } else {
+            $this->emitAsClosure($node);
         }
-    }
-
-    private function isAnonymous(FnNode $node): bool
-    {
-        return $node->getEnv()->getBoundTo() === '';
     }
 
     private function emitAsClosure(FnNode $node): void

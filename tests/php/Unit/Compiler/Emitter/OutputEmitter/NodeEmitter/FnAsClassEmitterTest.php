@@ -147,14 +147,14 @@ final class FnAsClassEmitterTest extends TestCase
     public function test_named_fn_still_emits_class(): void
     {
         $env = NodeEnvironment::empty()->withBoundTo('user\\my-fn');
-        $fnNode = new FnNode(
+        $fnNode = (new FnNode(
             $env,
             params: [Symbol::create('x')],
             body: PhpVarNode::withReturnContext('$x'),
             uses: [],
             isVariadic: false,
             recurs: false,
-        );
+        ))->markAsDefinition();
 
         $this->fnAsClassEmitter->emit($fnNode);
 
