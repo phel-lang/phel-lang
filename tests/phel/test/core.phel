@@ -82,6 +82,37 @@
                (factorial 5)))
       "single recursive function"))
 
+(deftest test-letfn-multiple-params
+  (letfn [(add [a b] (+ a b))
+          (mul [a b] (* a b))]
+    (is (= 5 (add 2 3)) "multi-param function")
+    (is (= 6 (mul 2 3)) "another multi-param function")))
+
+(deftest test-letfn-captures-outer-bindings
+  (let [offset 100]
+    (letfn [(add-offset [x] (+ x offset))]
+      (is (= 142 (add-offset 42)) "letfn captures outer let binding"))))
+
+(deftest test-letfn-fn-as-value
+  (is (= [2 4 6]
+         (letfn [(dbl [x] (* 2 x))]
+           (map dbl [1 2 3])))
+      "letfn function passed as value to map"))
+
+(deftest test-letfn-three-way-recursion
+  (letfn [(a [n] (if (zero? n) :done (b (dec n))))
+          (b [n] (if (zero? n) :done (c (dec n))))
+          (c [n] (if (zero? n) :done (a (dec n))))]
+    (is (= :done (a 9)) "three-way mutual recursion")))
+
+(deftest test-letfn-nested
+  (is (= 10
+         (letfn [(outer [x]
+                   (letfn [(inner [y] (* y 2))]
+                     (inner x)))]
+           (outer 5)))
+      "nested letfn"))
+
 (deftest test-letfn-body-uses-all-fns
   (letfn [(double [x] (* 2 x))
           (triple [x] (* 3 x))]

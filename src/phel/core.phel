@@ -3974,21 +3974,21 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (let [names (for [spec :in bindings] (first spec))
         refs (for [n :in names :reduce [acc {}]]
                (put acc n (gensym)))
-        args-sym (gensym)
         var-decls (apply concat
                     (for [n :in names]
                       [(get refs n) '(var nil)]))
-        trampolines (apply concat
-                      (for [n :in names]
-                        [n `(fn [& ~args-sym] (apply (deref ~(get refs n)) ~args-sym))]))
+        deref-bindings (apply concat
+                         (for [n :in names]
+                           [n `(deref ~(get refs n))]))
         assignments (for [spec :in bindings
                           :let [n (first spec)
                                 params (second spec)
                                 fn-body (nnext spec)]]
-                      `(set! ~(get refs n) (fn ~params ~@fn-body)))]
+                      `(set! ~(get refs n)
+                             (fn ~params (let [~@deref-bindings] ~@fn-body))))]
     `(let [~@var-decls]
-       (let [~@trampolines]
-         ~@assignments
+       ~@assignments
+       (let [~@deref-bindings]
          ~@body))))
 
 (defmacro time
