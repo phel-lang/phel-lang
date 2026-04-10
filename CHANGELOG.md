@@ -53,6 +53,7 @@ All notable changes to this project will be documented in this file.
 - Accept `name#` as an auto-gensym suffix inside syntax-quote (alongside the existing `name$`), matching Clojure's `clojure.core/gensym` reader macro (#1195)
 
 ### Fixed
+- REPL `require` now supports dot namespace separator and Clojure aliasing, e.g. `(require phel.str)` and `(require clojure.str)` work correctly (#1263)
 - REPL `(require 'foo)` now throws `RuntimeException` when the namespace cannot be found on source paths, instead of silently succeeding (#1246)
 - Allow PHP reserved keywords (e.g. `and`, `list`, `class`) in namespace names, matching Clojure compatibility — PHP 8.0+ supports keywords in namespace parts (#1230)
 - `macroexpand` and `macroexpand-1` are now functions (were macros), matching Clojure semantics: quoted forms expand correctly (`(macroexpand '(when 1 2))` → `(if 1 (do 2))`), and unquoted forms evaluate eagerly (`(macroexpand (when 1 2))` → `2`) (#1209)
