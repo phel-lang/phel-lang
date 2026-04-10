@@ -4305,3 +4305,21 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
        (php/substr hex 12 4) "-"
        (php/substr hex 16 4) "-"
        (php/substr hex 20 12)))))
+
+(defn run!
+  "Calls `(f x)` for each element in `coll` for side effects. Returns nil."
+  {:example "(run! println [1 2 3])"
+   :see-also ["doseq" "map"]}
+  [f coll]
+  (doseq [x :in coll] (f x))
+  nil)
+
+(defmacro dotimes
+  "Evaluates body `n` times with `binding` bound to integers from 0 to n-1.
+  Returns nil."
+  {:example "(dotimes [i 5] (println i))"}
+  [[binding n] & body]
+  (let [n-sym (gensym)]
+    `(let [~n-sym ~n]
+       (doseq [~binding :range [0 ~n-sym]]
+         ~@body))))
