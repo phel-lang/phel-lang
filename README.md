@@ -54,6 +54,8 @@ we should use "phel" once GitHub accept phel coloring too
   Detailed installation guide and project setup.
 
 ### Learning Resources
+- [Clojure Migration Guide](docs/clojure-migration.md)
+  Coming from Clojure? Key differences, interop cheat sheet, and what's the same.
 - [Common Patterns](docs/patterns.md)
   Idiomatic Phel code patterns for everyday tasks.
 - [PHP/Phel Interop](docs/php-interop.md)
