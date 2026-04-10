@@ -1,0 +1,122 @@
+(ns phel-test\test\are
+  (:require phel\test :refer [deftest is are testing get-stats reset-stats restore-stats]))
+
+;; ---------------------------------------------------------------------------
+;; Basic 2-variable usage — the canonical use case
+;; ---------------------------------------------------------------------------
+
+(deftest test-are-two-variables
+  (are [x y] (= x y)
+    2 (+ 1 1)
+    4 (* 2 2)
+    0 (- 1 1)))
+
+;; ---------------------------------------------------------------------------
+;; Single variable
+;; ---------------------------------------------------------------------------
+
+(deftest test-are-single-variable
+  (are [x] (true? x)
+    true
+    (= 1 1)
+    (< 1 2)))
+
+;; ---------------------------------------------------------------------------
+;; Three variables
+;; ---------------------------------------------------------------------------
+
+(deftest test-are-three-variables
+  (are [x y z] (= z (+ x y))
+    1 2 3
+    4 5 9
+    0 0 0
+    -1 1 0))
+
+;; ---------------------------------------------------------------------------
+;; Works inside testing context
+;; ---------------------------------------------------------------------------
+
+(deftest test-are-inside-testing
+  (testing "arithmetic identities"
+    (are [x y] (= x y)
+      0 (* 0 1)
+      1 (* 1 1))))
+
+;; ---------------------------------------------------------------------------
+;; Works alongside regular `is` assertions
+;; ---------------------------------------------------------------------------
+
+(deftest test-are-mixed-with-is
+  (is (= 1 1) "regular is before are")
+  (are [x] (pos? x)
+    1
+    42
+    100)
+  (is (= 2 2) "regular is after are"))
+
+;; ---------------------------------------------------------------------------
+;; Failure recording — each group produces an independent assertion
+;; ---------------------------------------------------------------------------
+
+(deftest test-are-records-individual-failures
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer
+            (are [x y] (= x y)
+              1 1
+              2 3
+              4 4
+              5 6))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 2 (:pass counts)) "two groups pass")
+    (is (= 2 (:failed counts)) "two groups fail")))
+
+;; ---------------------------------------------------------------------------
+;; Incomplete trailing group is silently dropped (matches Clojure behavior)
+;; ---------------------------------------------------------------------------
+
+(deftest test-are-drops-incomplete-trailing-group
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer
+            (are [x y] (= x y)
+              1 1
+              2 2
+              3))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 2 (:pass counts)) "only complete groups are asserted")
+    (is (= 0 (:failed counts)) "no failures from dropped group")))
+
+;; ---------------------------------------------------------------------------
+;; Works with non-equality predicates
+;; ---------------------------------------------------------------------------
+
+(deftest test-are-with-predicate-template
+  (are [x y] (< x y)
+    1 2
+    0 100
+    -5 -4))
+
+;; ---------------------------------------------------------------------------
+;; Works with nil values in arguments
+;; ---------------------------------------------------------------------------
+
+(deftest test-are-with-nil-values
+  (are [x] (nil? x)
+    nil
+    nil))
+
+;; ---------------------------------------------------------------------------
+;; Zero args produces no assertions
+;; ---------------------------------------------------------------------------
+
+(deftest test-are-zero-args
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer
+            (are [x y] (= x y)))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 0 (:total counts)) "no assertions generated")))
