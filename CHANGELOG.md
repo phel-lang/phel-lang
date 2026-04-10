@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- `if-some`, `when-some`, `when-first` macros for nil-aware binding, matching Clojure semantics (#1218)
 - `testing` macro in `phel\test` for grouping assertions with context strings, matching Clojure's `clojure.test/testing` (#1237)
 - `seq?` predicate function to check if a value is a seq (implements `LazySeqInterface`), matching Clojure semantics (#1231)
 - `condp` macro for predicate-based conditional dispatch, matching Clojure semantics including `:>>` result threading (#1217)
