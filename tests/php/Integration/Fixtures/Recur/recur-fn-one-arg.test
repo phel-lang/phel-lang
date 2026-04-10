@@ -4,20 +4,16 @@
     x
     (recur (php/- x 1))))
 --PHP--
-new class() extends \Phel\Lang\AbstractFn {
-  public const BOUND_TO = "";
+(function($x) {
+  while (true) {
+    if (($__truthy = ($x == 0)) !== null && $__truthy !== false) {
+      return $x;
+    } else {
+      $__phel_1 = ($x - 1);
+      $x = $__phel_1;
+      continue;
 
-  public function __invoke($x) {
-    while (true) {
-      if (($__truthy = ($x == 0)) !== null && $__truthy !== false) {
-        return $x;
-      } else {
-        $__phel_1 = ($x - 1);
-        $x = $__phel_1;
-        continue;
-
-      }
-      break;
     }
+    break;
   }
-};
+});

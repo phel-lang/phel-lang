@@ -13,12 +13,11 @@
   (php/:: \Closure (fromCallable f)))
 
 (defmacro async
-  "Runs body asynchronously in a new fiber. Returns an Amp\\Future.
-  The body is wrapped in a Closure so AMPHP accepts it."
+  "Runs body asynchronously in a new fiber. Returns an Amp\\Future."
   {:doc "Runs body asynchronously. Returns a Future."
    :example "(async (do-something))"}
   [& body]
-  `(php/amp\async (->closure (fn [] ~@body))))
+  `(php/amp\async (fn [] ~@body)))
 
 (defn await
   "Blocks the current fiber until the Future resolves and returns its value."

@@ -1,13 +1,9 @@
 --PHEL--
 (fn [] (recur))
 --PHP--
-new class() extends \Phel\Lang\AbstractFn {
-  public const BOUND_TO = "";
-
-  public function __invoke() {
-    while (true) {
-      continue;
-      break;
-    }
+(function() {
+  while (true) {
+    continue;
+    break;
   }
-};
+});

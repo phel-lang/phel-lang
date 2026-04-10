@@ -82,13 +82,9 @@ final class ApplyEmitterTest extends TestCase
         $applyNode = new ApplyNode(NodeEnvironment::empty(), $fnNode, $args);
         $this->applyEmitter->emit($applyNode);
 
-        $this->expectOutputString('(new class() extends \Phel\Lang\AbstractFn {
-  public const BOUND_TO = "";
-
-  public function __invoke(...$x) {
-    $x = \Phel::vector($x);
-    return x;
-  }
-};)(...((\Phel::vector([1])) ?? []));');
+        $this->expectOutputString('((function(...$x) {
+  $x = \Phel::vector($x);
+  return x;
+});)(...((\Phel::vector([1])) ?? []));');
     }
 }
