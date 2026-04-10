@@ -193,6 +193,15 @@
   (fn [obj meta]
     (php/-> obj (withMeta meta))))
 
+(def vary-meta
+  {:doc "Returns an object with (apply f (meta obj) args) as its new metadata."
+   :see-also ["meta" "with-meta"]}
+  (fn [obj f & args]
+    (let [m (if (php/instanceof obj MetaInterface)
+              (php/-> obj (getMeta))
+              nil)]
+      (php/-> obj (withMeta (apply f m args))))))
+
 (def with-meta
   {:private true
    :doc "Returns `target` with the metadata from `source` when both implement `MetaInterface`."}

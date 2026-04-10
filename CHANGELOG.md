@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- `vary-meta` function to apply a function to an object's metadata (#1223)
 - `assert` macro for precondition checking with optional custom message (#1222)
 - `min-key` and `max-key` functions for finding extremes by a derived value (#1221)
 - `rename-keys` function for renaming map keys according to a key map (#1220)
