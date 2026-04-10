@@ -1,5 +1,5 @@
 (ns phel-test\test\test-framework
-  (:require phel\test :refer [deftest is testing get-stats reset-stats restore-stats]))
+  (:require phel\test :refer [deftest is testing get-stats reset-stats restore-stats do-report]))
 
 ;; Behavior coverage for the `is` macro and its built-in dispatch arms.
 ;;
@@ -236,3 +236,46 @@
     (let [failure (first (get snapshot :failed))]
       (is (= "math basics - addition" (get failure :message))
           "testing context is prepended to failure message"))))
+
+;; ---------------------------------------------------------------------------
+;; do-report — Clojure-compatible entry point that delegates to report
+;; ---------------------------------------------------------------------------
+
+(deftest test-do-report-pass-increments-pass-count
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer (do-report {:state :pass :type :any :message "ok"}))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 1 (:pass counts)) "do-report with :pass increments pass count")
+    (is (= 1 (:total counts)) "do-report with :pass increments total")
+    (is (= 0 (:failed counts)) "do-report with :pass does not increment failed")))
+
+(deftest test-do-report-failure-records-failure
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer (do-report {:state :failed :type :any :message "nope"}))
+        snapshot (get-stats)]
+    (restore-stats saved)
+    (is (= 1 (:failed (get snapshot :counts))) "do-report with :failed increments failed count")
+    (is (= 1 (count (get snapshot :failed))) "do-report with :failed records failure data")
+    (let [failure (first (get snapshot :failed))]
+      (is (= "nope" (get failure :message)) "do-report preserves message"))))
+
+(deftest test-do-report-preserves-location
+  (let [saved (get-stats)
+        loc {:file "test.phel" :line 42 :column 1}
+        _ (reset-stats)
+        _ (with-output-buffer (do-report {:state :failed :type :any :location loc}))
+        snapshot (get-stats)]
+    (restore-stats saved)
+    (let [failure (first (get snapshot :failed))]
+      (is (= loc (get failure :location)) "do-report preserves :location in result"))))
+
+(deftest test-do-report-works-without-location
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer (do-report {:state :pass :type :any}))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 1 (:pass counts)) "do-report works without :location key")))
