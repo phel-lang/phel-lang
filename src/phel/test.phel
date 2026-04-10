@@ -235,6 +235,13 @@
      (binding [*current-test-name* ~(name test-name)]
               ~@body)))
 
+(defmacro testing
+  "Adds a testing context string. Used inside deftest to describe a group of assertions.
+  The context string is prepended to failure messages for better diagnostics."
+  {:example "(deftest test-math\n  (testing \"addition\"\n    (is (= 2 (+ 1 1)))))"}
+  [context & body]
+  `(do ~@body))
+
 ;; ---------------------
 ;; error/failure printer
 ;; ---------------------

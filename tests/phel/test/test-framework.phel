@@ -1,5 +1,5 @@
 (ns phel-test\test\test-framework
-  (:require phel\test :refer [deftest is get-stats reset-stats restore-stats]))
+  (:require phel\test :refer [deftest is testing get-stats reset-stats restore-stats]))
 
 ;; Behavior coverage for the `is` macro and its built-in dispatch arms.
 ;;
@@ -211,3 +211,16 @@
     (let [failure (first (get snapshot :failed))]
       (is (= "intentional failure" (get failure :message))
           "failure preserves the user-provided message"))))
+
+;; ---------------------------------------------------------------------------
+;; testing macro — context wrapper for grouping assertions
+;; ---------------------------------------------------------------------------
+
+(deftest test-testing-executes-body
+  (testing "arithmetic"
+    (is (= 4 (+ 2 2)) "testing macro executes body assertions")))
+
+(deftest test-testing-nested
+  (testing "outer"
+    (testing "inner"
+      (is (= 1 1) "nested testing blocks execute"))))
