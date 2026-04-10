@@ -763,6 +763,8 @@ final class NsSymbolTest extends TestCase
 
     public function test_clojure_namespace_remapped_to_phel_in_require(): void
     {
+        Phel::addDefinition('phel\\test', '__ns_marker', true, Phel::map());
+
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
             Symbol::create('app\\core'),
@@ -782,6 +784,8 @@ final class NsSymbolTest extends TestCase
 
     public function test_clojure_namespace_auto_alias_points_to_phel(): void
     {
+        Phel::addDefinition('phel\\test', '__ns_marker', true, Phel::map());
+
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
             Symbol::create('app\\core'),
@@ -799,6 +803,8 @@ final class NsSymbolTest extends TestCase
 
     public function test_clojure_namespace_with_explicit_as_alias(): void
     {
+        Phel::addDefinition('phel\\test', '__ns_marker', true, Phel::map());
+
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
             Symbol::create('app\\core'),
@@ -842,6 +848,8 @@ final class NsSymbolTest extends TestCase
 
     public function test_clojure_namespace_original_registered_as_alias(): void
     {
+        Phel::addDefinition('phel\\test', '__ns_marker', true, Phel::map());
+
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
             Symbol::create('app\\core'),
@@ -859,6 +867,8 @@ final class NsSymbolTest extends TestCase
 
     public function test_clojure_namespace_via_dot_syntax(): void
     {
+        Phel::addDefinition('phel\\test', '__ns_marker', true, Phel::map());
+
         $list = Phel::list([
             Symbol::create(Symbol::NAME_NS),
             Symbol::create('app.core'),
@@ -911,6 +921,113 @@ final class NsSymbolTest extends TestCase
         $isNode = $this->globalEnv->resolve(Symbol::create('is'), NodeEnvironment::empty());
         self::assertInstanceOf(GlobalVarNode::class, $isNode);
         self::assertSame('phel\\test', $isNode->getNamespace());
+    }
+
+    public function test_clojure_namespace_not_remapped_when_phel_equivalent_missing(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app\\core'),
+            Phel::list([
+                Keyword::create('require'),
+                Symbol::create('clojure\\core-test\\portability'),
+            ]),
+        ]);
+
+        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertEquals([
+            Symbol::create('phel\\core'),
+            Symbol::create('clojure\\core-test\\portability'),
+        ], $nsNode->getRequireNs());
+        self::assertSame('clojure\\core-test\\portability', $this->globalEnv->resolveAlias('portability'));
+    }
+
+    public function test_clojure_namespace_not_remapped_via_dot_syntax_when_phel_equivalent_missing(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app.core'),
+            Phel::list([
+                Keyword::create('require'),
+                Symbol::create('clojure.core-test.portability'),
+            ]),
+        ]);
+
+        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertEquals([
+            Symbol::create('phel\\core'),
+            Symbol::create('clojure\\core-test\\portability'),
+        ], $nsNode->getRequireNs());
+        self::assertSame('clojure\\core-test\\portability', $this->globalEnv->resolveAlias('portability'));
+    }
+
+    public function test_clojure_namespace_not_remapped_in_vector_form_when_phel_equivalent_missing(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app.core'),
+            Phel::list([
+                Keyword::create('require'),
+                Phel::vector([
+                    Symbol::create('clojure.core-test.portability'),
+                    Keyword::create('as'),
+                    Symbol::create('p'),
+                ]),
+            ]),
+        ]);
+
+        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertEquals([
+            Symbol::create('phel\\core'),
+            Symbol::create('clojure\\core-test\\portability'),
+        ], $nsNode->getRequireNs());
+        self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('p')));
+        self::assertSame('clojure\\core-test\\portability', $this->globalEnv->resolveAlias('p'));
+    }
+
+    public function test_clojure_namespace_no_spurious_original_alias_when_not_remapped(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app\\core'),
+            Phel::list([
+                Keyword::create('require'),
+                Symbol::create('clojure\\custom\\lib'),
+            ]),
+        ]);
+
+        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        // When no remap happens, resolvedSymbol === requireSymbol,
+        // so the original clojure\* name should NOT be registered as a separate alias
+        self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('lib')));
+        self::assertFalse($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('clojure\\custom\\lib')));
+    }
+
+    public function test_clojure_remap_uses_munged_namespace_for_registry_lookup(): void
+    {
+        // Register with munged name (dashes → underscores), matching how the compiler stores it
+        Phel::addDefinition('phel\\my_lib', '__ns_marker', true, Phel::map());
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('app\\core'),
+            Phel::list([
+                Keyword::create('require'),
+                Symbol::create('clojure\\my-lib'),
+            ]),
+        ]);
+
+        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        // Should remap because phel\my_lib exists (munged form of phel\my-lib)
+        self::assertEquals([
+            Symbol::create('phel\\core'),
+            Symbol::create('phel\\my-lib'),
+        ], $nsNode->getRequireNs());
     }
 
     public function test_non_clojure_namespace_not_remapped(): void
