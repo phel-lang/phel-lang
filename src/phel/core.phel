@@ -3942,6 +3942,17 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
      (println "Elapsed time:" (* 1000 (- (php/microtime true) start#)) "msecs")
      ret#))
 
+(defmacro assert
+  "Throws an exception if expr is falsy. Optional message string.
+  Used for precondition checking in application code."
+  {:see-also ["when" "throw"]}
+  [expr & [message]]
+  (let [msg (if message
+              `(str "Assert failed: " ~message)
+              `(str "Assert failed: " (quote ~expr)))]
+    `(when (not ~expr)
+       (throw (php/new \InvalidArgumentException ~msg)))))
+
 (defn name
   "Returns the name string of a string, keyword or symbol."
   [x]

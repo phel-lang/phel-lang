@@ -158,6 +158,21 @@
     (is (s/contains? output-print "Elapsed time:"))
     (is (s/contains? output-print "msecs"))))
 
+(deftest test-assert-passes
+  (assert true)
+  (assert (= 1 1))
+  (assert "non-nil string")
+  (is (= 1 1) "assert does not throw on truthy values"))
+
+(deftest test-assert-fails
+  (is (thrown? \InvalidArgumentException (assert false))
+      "assert throws on false")
+  (is (thrown? \InvalidArgumentException (assert nil))
+      "assert throws on nil")
+  (is (thrown-with-msg? \InvalidArgumentException "Assert failed: must be positive"
+        (assert false "must be positive"))
+      "assert includes custom message"))
+
 (deftest test-name
   (is (= "string" (name "string")) "name on string")
   (is (= "symbol" (name 'symbol)) "name on symbol")

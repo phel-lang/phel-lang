@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- `assert` macro for precondition checking with optional custom message (#1222)
 - `min-key` and `max-key` functions for finding extremes by a derived value (#1221)
 - `rename-keys` function for renaming map keys according to a key map (#1220)
 - `if-some`, `when-some`, `when-first` macros for nil-aware binding, matching Clojure semantics (#1218)
