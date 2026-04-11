@@ -1810,12 +1810,16 @@ Otherwise, it tries to call `__toString`."
     (for [x :in coll :reduce [acc #{}]] (conj acc x))))
 
 (defn vec
-  "Coerces a collection to a vector. Returns a vector containing all elements of `coll`."
-  {:example "(vec '(1 2 3)) ; => [1 2 3]"
+  "Coerces a collection to a vector. For hash-maps and structs, entries
+  are returned as 2-element `[key value]` vectors, matching Clojure."
+  {:example "(vec {:a 1 :b 2}) ; => [[:a 1] [:b 2]]"
    :see-also ["vector" "set" "into"]}
   [coll]
-  (if (php/=== nil coll)
-    []
+  (cond
+    (php/=== nil coll) []
+    (or (map? coll) (struct? coll))
+    (for [[k v] :pairs coll :reduce [acc []]] (conj acc [k v]))
+    :else
     (for [x :in coll :reduce [acc []]] (conj acc x))))
 
 (defn get-in
@@ -3199,18 +3203,18 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (extreme > numbers))
 
 (defn min-key
-  "Returns the arg for which (k arg) is smallest."
+  "Returns the arg for which (k arg) is smallest. On ties, returns the latest argument, matching Clojure semantics."
   {:example "(min-key count \"bb\" \"aaa\" \"b\") ; => \"b\""
    :see-also ["max-key" "min" "sort-by"]}
   [k x & more]
-  (reduce (fn [best item] (if (< (k item) (k best)) item best)) x more))
+  (reduce (fn [best item] (if (<= (k item) (k best)) item best)) x more))
 
 (defn max-key
-  "Returns the arg for which (k arg) is largest."
+  "Returns the arg for which (k arg) is largest. On ties, returns the latest argument, matching Clojure semantics."
   {:example "(max-key count \"bb\" \"aaa\" \"b\") ; => \"aaa\""
    :see-also ["min-key" "max" "sort-by"]}
   [k x & more]
-  (reduce (fn [best item] (if (> (k item) (k best)) item best)) x more))
+  (reduce (fn [best item] (if (>= (k item) (k best)) item best)) x more))
 
 (defn coerce-in
   "Returns `v` if it is in the range, or `min` if `v` is less than `min`, or `max` if `v` is greater than `max`."

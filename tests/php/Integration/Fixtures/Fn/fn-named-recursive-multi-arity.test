@@ -1,5 +1,5 @@
 --PHEL--
-(fn foo ([x] x) ([x y] y))
+(fn myf ([x] (myf x x)) ([x y] y))
 --PHP--
 new class() extends \Phel\Lang\AbstractFn {
   public const BOUND_TO = "";
@@ -8,11 +8,11 @@ new class() extends \Phel\Lang\AbstractFn {
 
   public function __construct() {
     $this->fn0 = (function($x) {
-      $foo = $this;
-      return $x;
+      $myf = $this;
+      return ($myf)($x, $x);
     });;
     $this->fn1 = (function($x, $y) {
-      $foo = $this;
+      $myf = $this;
       return $y;
     });;
   }

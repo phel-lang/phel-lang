@@ -22,6 +22,7 @@ final class MethodEmitter
         $this->outputEmitter->emitLine(') {', $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();
         $this->emitMethodParametersExtraction($node);
+        $this->emitSelfNameBinding($node);
         $this->emitMethodVariadicParameters($node);
         $this->emitMethodBody($node);
         $this->emitMethodEnd($node);
@@ -56,8 +57,32 @@ final class MethodEmitter
      */
     public function emitBody(FnNode $node): void
     {
+        if ($node->isMultiArityChild()) {
+            $this->emitSelfNameBinding($node);
+        }
+
         $this->emitMethodVariadicParameters($node);
         $this->emitMethodBody($node);
+    }
+
+    /**
+     * For named fns compiled as invokable classes, bind the fn's own name to
+     * `$this` at the top of the method body so self-recursive references
+     * resolve to the class instance (which is callable via __invoke).
+     */
+    private function emitSelfNameBinding(FnNode $node): void
+    {
+        $name = $node->getName();
+        if (!$name instanceof Symbol) {
+            return;
+        }
+
+        $varName = $this->outputEmitter->mungeEncode($name->getName());
+
+        $this->outputEmitter->emitLine(
+            '$' . $varName . ' = $this;',
+            $node->getStartSourceLocation(),
+        );
     }
 
     private function emitMethodBegin(string $methodName, FnNode $node): void

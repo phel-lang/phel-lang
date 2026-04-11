@@ -1,0 +1,42 @@
+(ns phel-test\test\core\char-literals
+  (:require phel\test :refer [deftest is]))
+
+(deftest test-char-literal-alpha
+  (is (= "a" \a) "lowercase alpha char")
+  (is (= "Z" \Z) "uppercase alpha char")
+  (is (= "1" \1) "digit char")
+  (is (= 1 (count \a)) "char has single byte")
+  (is (string? \a) "char is a string"))
+
+(deftest test-char-literal-named
+  (is (= " " \space) "named space")
+  (is (= "\n" \newline) "named newline")
+  (is (= "\t" \tab) "named tab")
+  (is (= "\r" \return) "named return")
+  (is (= "\f" \formfeed) "named formfeed")
+  (is (= "\x08" \backspace) "named backspace"))
+
+(deftest test-char-literal-unicode
+  (is (= "Ω" \u03A9) "unicode uppercase hex")
+  (is (= "Ω" \u03a9) "unicode lowercase hex")
+  (is (= 2 (php/strlen \u03A9)) "unicode omega is 2 bytes in UTF-8"))
+
+(deftest test-char-literal-octal
+  (is (= "A" \o101) "octal 101 = 65 = A")
+  (is (= "S" \o123) "octal 123 = 83 = S"))
+
+(deftest test-char-literal-punctuation
+  (is (= "(" \() "open paren")
+  (is (= ")" \)) "close paren")
+  (is (= "[" \[) "open bracket")
+  (is (= "]" \]) "close bracket")
+  (is (= "{" \{) "open brace")
+  (is (= "}" \}) "close brace")
+  (is (= "\\" \\) "backslash")
+  (is (= "\"" \") "double quote")
+  (is (= "," \,) "comma")
+  (is (= ";" \;) "semicolon"))
+
+(deftest test-char-literal-inside-collections
+  (is (= ["a" "b" "c"] [\a \b \c]) "chars in vector")
+  (is (= '("a" "b") '(\a \b)) "chars in list"))

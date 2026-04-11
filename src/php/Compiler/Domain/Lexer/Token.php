@@ -46,19 +46,21 @@ final readonly class Token
 
     public const int T_STRING = 20;
 
-    public const int T_ATOM = 21;
+    public const int T_CHAR = 21;
 
-    public const int T_DEREF = 22;
+    public const int T_ATOM = 22;
 
-    public const int T_REGEX = 23;
+    public const int T_DEREF = 23;
 
-    public const int T_READER_COND = 24;
+    public const int T_REGEX = 24;
 
-    public const int T_READER_COND_SPLICING = 25;
+    public const int T_READER_COND = 25;
 
-    public const int T_SYMBOLIC_NUMBER = 26;
+    public const int T_READER_COND_SPLICING = 26;
 
-    public const int T_TAGGED_LITERAL = 27;
+    public const int T_SYMBOLIC_NUMBER = 27;
+
+    public const int T_TAGGED_LITERAL = 28;
 
     public const int T_EOF = 100;
 

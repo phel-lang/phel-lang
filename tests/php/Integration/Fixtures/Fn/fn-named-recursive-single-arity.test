@@ -1,0 +1,9 @@
+--PHEL--
+(fn fact [n] (fact n))
+--PHP--
+(function() {
+  $fact = function($n) use(&$fact) {
+    return ($fact)($n);
+  };
+  return $fact;
+})();
