@@ -102,3 +102,40 @@
 (deftest test-object-array-negative-size-throws
   (is (thrown? \InvalidArgumentException (object-array -1))
       "object-array raises InvalidArgumentException on negative size"))
+
+(deftest test-to-array-from-vector
+  (let [arr (to-array [1 2 3])]
+    (is (php/is_array arr) "to-array from vector returns a PHP array")
+    (is (= 3 (php/count arr)) "to-array preserves vector length")
+    (is (= 1 (php/aget arr 0)) "to-array element 0")
+    (is (= 3 (php/aget arr 2)) "to-array last element")))
+
+(deftest test-to-array-from-list
+  (let [arr (to-array '(:a :b :c))]
+    (is (php/is_array arr) "to-array from list returns a PHP array")
+    (is (= 3 (php/count arr)) "to-array preserves list length")
+    (is (= :a (php/aget arr 0)) "to-array element 0")
+    (is (= :c (php/aget arr 2)) "to-array last element")))
+
+(deftest test-to-array-from-empty
+  (let [arr (to-array [])]
+    (is (php/is_array arr) "to-array from empty vector is a PHP array")
+    (is (= 0 (php/count arr)) "to-array from empty vector is empty")))
+
+(deftest test-to-array-from-nil
+  (let [arr (to-array nil)]
+    (is (php/is_array arr) "to-array from nil returns a PHP array")
+    (is (= 0 (php/count arr)) "to-array from nil is empty")))
+
+(deftest test-to-array-from-set
+  (let [arr (to-array (set [1 2 3]))]
+    (is (php/is_array arr) "to-array from set returns a PHP array")
+    (is (= 3 (php/count arr)) "to-array preserves set size")
+    (is (= #{1 2 3} (set arr)) "to-array preserves set elements")))
+
+(deftest test-to-array-from-php-array
+  (let [src (php-indexed-array "a" "b" "c")
+        arr (to-array src)]
+    (is (php/is_array arr) "to-array passes through PHP array")
+    (is (= 3 (php/count arr)) "to-array preserves php array length")
+    (is (= "a" (php/aget arr 0)) "to-array php array element 0")))
