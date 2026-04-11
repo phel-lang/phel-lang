@@ -45,6 +45,32 @@ we should use "phel" once GitHub accept phel coloring too
 (print-name my-name)
 ```
 
+## Getting Started
+
+Install Phel in any PHP project and scaffold a ready-to-run app in under a minute:
+
+```sh
+composer require phel-lang/phel-lang
+./vendor/bin/phel init
+```
+
+That creates `phel-config.php`, `src/phel/core.phel`, and a matching `tests/phel/core_test.phel`. Then:
+
+```sh
+./vendor/bin/phel run src/phel/core.phel   # run your code
+./vendor/bin/phel test                     # run the tests
+./vendor/bin/phel repl                     # poke at it interactively
+./vendor/bin/phel build                    # compile to PHP for production
+```
+
+For a single-file experiment or scratch project, use the root layout:
+
+```sh
+./vendor/bin/phel init --minimal
+```
+
+You get a single `main.phel` + `main_test.phel` + a one-line `phel-config.php` at the repo root — no subdirectories.
+
 ## Documentation
 
 ### Getting Started

@@ -39,6 +39,7 @@ final class InitCommandTest extends TestCase
         self::assertDirectoryExists($this->testDir . '/out');
         self::assertFileExists($this->testDir . '/phel-config.php');
         self::assertFileExists($this->testDir . '/src/phel/core.phel');
+        self::assertFileExists($this->testDir . '/tests/phel/core_test.phel');
         self::assertFileExists($this->testDir . '/.gitignore');
     }
 
@@ -58,6 +59,129 @@ final class InitCommandTest extends TestCase
         self::assertDirectoryExists($this->testDir . '/tests');
         self::assertDirectoryDoesNotExist($this->testDir . '/src/phel');
         self::assertFileExists($this->testDir . '/src/core.phel');
+        self::assertFileExists($this->testDir . '/tests/core_test.phel');
+    }
+
+    public function test_creates_minimal_root_layout_structure(): void
+    {
+        $command = new InitCommand();
+        $output = new BufferedOutput();
+
+        chdir($this->testDir);
+        $result = $command->run(new ArrayInput([
+            'project-name' => 'sandbox',
+            '--minimal' => true,
+        ]), $output);
+
+        self::assertSame(Command::SUCCESS, $result);
+        self::assertDirectoryDoesNotExist($this->testDir . '/src');
+        self::assertDirectoryDoesNotExist($this->testDir . '/tests');
+        self::assertDirectoryDoesNotExist($this->testDir . '/out');
+        self::assertFileExists($this->testDir . '/phel-config.php');
+        self::assertFileExists($this->testDir . '/main.phel');
+        self::assertFileExists($this->testDir . '/main_test.phel');
+        self::assertFileExists($this->testDir . '/.gitignore');
+    }
+
+    public function test_minimal_config_uses_root_layout(): void
+    {
+        $command = new InitCommand();
+        $output = new BufferedOutput();
+
+        chdir($this->testDir);
+        $command->run(new ArrayInput([
+            'project-name' => 'sandbox',
+            '--minimal' => true,
+        ]), $output);
+
+        $configContent = (string) file_get_contents($this->testDir . '/phel-config.php');
+
+        self::assertStringContainsString('PhelConfig::forProject(layout:', $configContent);
+        self::assertStringContainsString('ProjectLayout::Root', $configContent);
+    }
+
+    public function test_minimal_main_file_uses_main_namespace(): void
+    {
+        $command = new InitCommand();
+        $output = new BufferedOutput();
+
+        chdir($this->testDir);
+        $command->run(new ArrayInput([
+            'project-name' => 'sandbox',
+            '--minimal' => true,
+        ]), $output);
+
+        $mainContent = (string) file_get_contents($this->testDir . '/main.phel');
+
+        self::assertStringContainsString('(ns sandbox\\main)', $mainContent);
+        self::assertStringContainsString('(defn greet [name]', $mainContent);
+    }
+
+    public function test_minimal_test_file_references_main_namespace(): void
+    {
+        $command = new InitCommand();
+        $output = new BufferedOutput();
+
+        chdir($this->testDir);
+        $command->run(new ArrayInput([
+            'project-name' => 'sandbox',
+            '--minimal' => true,
+        ]), $output);
+
+        $testContent = (string) file_get_contents($this->testDir . '/main_test.phel');
+
+        self::assertStringContainsString('(ns sandbox\\main-test', $testContent);
+        self::assertStringContainsString('sandbox\\main :refer [greet]', $testContent);
+        self::assertStringContainsString('deftest test-greet', $testContent);
+    }
+
+    public function test_minimal_gitignore_omits_phel_generated(): void
+    {
+        $command = new InitCommand();
+        $output = new BufferedOutput();
+
+        chdir($this->testDir);
+        $command->run(new ArrayInput([
+            'project-name' => 'sandbox',
+            '--minimal' => true,
+        ]), $output);
+
+        $gitignoreContent = (string) file_get_contents($this->testDir . '/.gitignore');
+
+        self::assertStringNotContainsString('/src/PhelGenerated/', $gitignoreContent);
+        self::assertStringContainsString('/vendor/', $gitignoreContent);
+    }
+
+    public function test_no_tests_option_skips_test_file(): void
+    {
+        $command = new InitCommand();
+        $output = new BufferedOutput();
+
+        chdir($this->testDir);
+        $command->run(new ArrayInput([
+            'project-name' => 'my-app',
+            '--no-tests' => true,
+        ]), $output);
+
+        self::assertFileDoesNotExist($this->testDir . '/tests/phel/core_test.phel');
+        self::assertFileExists($this->testDir . '/src/phel/core.phel');
+    }
+
+    public function test_no_tests_output_omits_test_step(): void
+    {
+        $command = new InitCommand();
+        $output = new BufferedOutput();
+
+        chdir($this->testDir);
+        $command->run(new ArrayInput([
+            'project-name' => 'my-app',
+            '--no-tests' => true,
+        ]), $output);
+
+        $outputContent = $output->fetch();
+
+        self::assertStringNotContainsString('phel test', $outputContent);
+        self::assertStringContainsString('phel run', $outputContent);
     }
 
     public function test_generated_config_is_minimal(): void
@@ -72,6 +196,7 @@ final class InitCommandTest extends TestCase
 
         self::assertStringContainsString('PhelConfig::forProject()', (string) $configContent);
         self::assertStringNotContainsString('useFlatLayout', (string) $configContent);
+        self::assertStringNotContainsString('ProjectLayout::', (string) $configContent);
     }
 
     public function test_generated_config_uses_flat_layout(): void
@@ -85,9 +210,10 @@ final class InitCommandTest extends TestCase
             '--flat' => true,
         ]), $output);
 
-        $configContent = file_get_contents($this->testDir . '/phel-config.php');
+        $configContent = (string) file_get_contents($this->testDir . '/phel-config.php');
 
-        self::assertStringContainsString('->useFlatLayout()', (string) $configContent);
+        self::assertStringContainsString('PhelConfig::forProject(layout:', $configContent);
+        self::assertStringContainsString('ProjectLayout::Flat', $configContent);
     }
 
     public function test_generated_core_file_contains_namespace(): void
@@ -102,7 +228,7 @@ final class InitCommandTest extends TestCase
 
         self::assertStringContainsString('(ns myapp\\core)', (string) $coreContent);
         self::assertStringContainsString('(defn main []', (string) $coreContent);
-        self::assertStringContainsString('Hello from Phel!', (string) $coreContent);
+        self::assertStringContainsString('greet', (string) $coreContent);
     }
 
     public function test_skips_existing_config_file(): void
@@ -197,6 +323,7 @@ final class InitCommandTest extends TestCase
 
         self::assertStringContainsString('Phel project initialized successfully', $outputContent);
         self::assertStringContainsString('phel run', $outputContent);
+        self::assertStringContainsString('phel test', $outputContent);
         self::assertStringContainsString('phel repl', $outputContent);
         self::assertStringContainsString('phel build', $outputContent);
     }

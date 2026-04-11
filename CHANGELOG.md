@@ -89,9 +89,14 @@ All notable changes to this project will be documented in this file.
 
 #### REPL & Tooling
 - `require` and `use` accept quoted symbols in the REPL (e.g. `(require 'phel\str)`) for nREPL compatibility (#1211)
+- `ProjectLayout::Root` for single-file / scratch projects (`srcDirs = ['.']`), and `PhelConfig::forProject(layout: …)` named-argument style with auto-detected layout when called with zero arguments
+- `phel init --minimal` generates a root-layout project: single `main.phel` + matching `main_test.phel` + one-line `phel-config.php` at the repo root
+- `phel init` now generates a matching test file by default (opt out with `--no-tests`) and lists `phel test` in the next-steps output
 
 #### Documentation
 - Clojure-to-Phel migration guide covering naming, interop, namespaces, and feature differences (#1229)
+- README "Getting Started" section showing `composer require` + `phel init` flow
+- Quickstart tutorial replaced hand-written `phel-config.php` with `phel init`; kept the manual form as an appendix
 
 ### Changed
 - Anonymous `fn` emits native PHP closures instead of `AbstractFn` subclasses, making them compatible with libraries that type-hint `\Closure` (e.g. AMPHP) without `->closure` conversion (#793)

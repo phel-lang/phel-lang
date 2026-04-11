@@ -21,11 +21,15 @@ final class InitCommand extends Command
 
     private const string OPT_FLAT = 'flat';
 
+    private const string OPT_MINIMAL = 'minimal';
+
     private const string OPT_FORCE = 'force';
 
     private const string OPT_DRY_RUN = 'dry-run';
 
     private const string OPT_NO_GITIGNORE = 'no-gitignore';
+
+    private const string OPT_NO_TESTS = 'no-tests';
 
     private const string DIR_OUT = 'out';
 
@@ -53,6 +57,12 @@ final class InitCommand extends Command
                 'Use flat directory layout (src/ instead of src/phel/)',
             )
             ->addOption(
+                self::OPT_MINIMAL,
+                'm',
+                InputOption::VALUE_NONE,
+                'Use root layout: single main.phel at the project root, no subdirectories',
+            )
+            ->addOption(
                 self::OPT_FORCE,
                 null,
                 InputOption::VALUE_NONE,
@@ -69,18 +79,23 @@ final class InitCommand extends Command
                 null,
                 InputOption::VALUE_NONE,
                 'Skip .gitignore file creation',
+            )
+            ->addOption(
+                self::OPT_NO_TESTS,
+                null,
+                InputOption::VALUE_NONE,
+                'Skip generating a matching test file',
             );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $projectName = (string) $input->getArgument(self::ARG_PROJECT_NAME);
-        $layout = $input->getOption(self::OPT_FLAT)
-            ? ProjectLayout::Flat
-            : ProjectLayout::Conventional;
+        $layout = $this->resolveLayout($input);
         $force = (bool) $input->getOption(self::OPT_FORCE);
         $dryRun = (bool) $input->getOption(self::OPT_DRY_RUN);
         $noGitignore = (bool) $input->getOption(self::OPT_NO_GITIGNORE);
+        $noTests = (bool) $input->getOption(self::OPT_NO_TESTS);
 
         $cwd = getcwd();
         if ($cwd === false) {
@@ -94,11 +109,11 @@ final class InitCommand extends Command
             $output->writeln('');
         }
 
-        $srcDir = $layout->getSrcDir();
-        $testDir = $layout->getTestDir();
-        $namespace = $this->namespaceNormalizer->normalize($projectName);
+        $namespace = $this->namespaceNormalizer->normalize($projectName, $layout);
+        $coreFilename = $this->coreFilename($layout);
+        $testFilename = $this->testFilename($layout);
 
-        if (!$this->createDirectories($cwd, [$srcDir, $testDir, self::DIR_OUT], $output, $dryRun)) {
+        if (!$this->createDirectories($cwd, $this->directoriesFor($layout), $output, $dryRun)) {
             return Command::FAILURE;
         }
 
@@ -114,9 +129,20 @@ final class InitCommand extends Command
         }
 
         if (!$this->createFile(
-            $cwd . '/' . $srcDir . '/core.phel',
+            $cwd . '/' . $coreFilename,
             $this->templateGenerator->generateCoreFile($namespace),
-            $srcDir . '/core.phel',
+            $coreFilename,
+            $output,
+            $force,
+            $dryRun,
+        )) {
+            return Command::FAILURE;
+        }
+
+        if (!$noTests && !$this->createFile(
+            $cwd . '/' . $testFilename,
+            $this->templateGenerator->generateTestFile($namespace),
+            $testFilename,
             $output,
             $force,
             $dryRun,
@@ -127,7 +153,7 @@ final class InitCommand extends Command
         if (!$noGitignore) {
             $this->createFile(
                 $cwd . '/.gitignore',
-                $this->templateGenerator->generateGitignore(),
+                $this->templateGenerator->generateGitignore($layout),
                 '.gitignore',
                 $output,
                 $force,
@@ -137,10 +163,51 @@ final class InitCommand extends Command
         }
 
         if (!$dryRun) {
-            $this->printNextSteps($output, $srcDir);
+            $this->printNextSteps($output, $coreFilename, $noTests);
         }
 
         return Command::SUCCESS;
+    }
+
+    private function resolveLayout(InputInterface $input): ProjectLayout
+    {
+        if ((bool) $input->getOption(self::OPT_MINIMAL)) {
+            return ProjectLayout::Root;
+        }
+
+        if ((bool) $input->getOption(self::OPT_FLAT)) {
+            return ProjectLayout::Flat;
+        }
+
+        return ProjectLayout::Conventional;
+    }
+
+    private function coreFilename(ProjectLayout $layout): string
+    {
+        return match ($layout) {
+            ProjectLayout::Root => 'main.phel',
+            default => $layout->getSrcDir() . '/core.phel',
+        };
+    }
+
+    private function testFilename(ProjectLayout $layout): string
+    {
+        return match ($layout) {
+            ProjectLayout::Root => 'main_test.phel',
+            default => $layout->getTestDir() . '/core_test.phel',
+        };
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function directoriesFor(ProjectLayout $layout): array
+    {
+        if ($layout === ProjectLayout::Root) {
+            return [];
+        }
+
+        return [$layout->getSrcDir(), $layout->getTestDir(), self::DIR_OUT];
     }
 
     /**
@@ -217,14 +284,20 @@ final class InitCommand extends Command
         return true;
     }
 
-    private function printNextSteps(OutputInterface $output, string $srcDir): void
+    private function printNextSteps(OutputInterface $output, string $coreFilename, bool $noTests): void
     {
         $output->writeln('');
         $output->writeln('<info>Phel project initialized successfully!</info>');
         $output->writeln('');
         $output->writeln('Next steps:');
-        $output->writeln(sprintf('  1. Run your code:  <comment>./vendor/bin/phel run %s/core.phel</comment>', $srcDir));
-        $output->writeln('  2. Start the REPL: <comment>./vendor/bin/phel repl</comment>');
-        $output->writeln('  3. Build for production: <comment>./vendor/bin/phel build</comment>');
+
+        $step = 1;
+        $output->writeln(sprintf('  %d. Run your code:  <comment>./vendor/bin/phel run %s</comment>', $step++, $coreFilename));
+        if (!$noTests) {
+            $output->writeln(sprintf('  %d. Run the tests: <comment>./vendor/bin/phel test</comment>', $step++));
+        }
+
+        $output->writeln(sprintf('  %d. Start the REPL: <comment>./vendor/bin/phel repl</comment>', $step++));
+        $output->writeln(sprintf('  %d. Build for production: <comment>./vendor/bin/phel build</comment>', $step));
     }
 }

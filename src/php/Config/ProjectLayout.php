@@ -8,12 +8,14 @@ enum ProjectLayout: string
 {
     case Conventional = 'conventional';
     case Flat = 'flat';
+    case Root = 'root';
 
     public function getSrcDir(): string
     {
         return match ($this) {
             self::Conventional => 'src/phel',
             self::Flat => 'src',
+            self::Root => '.',
         };
     }
 
@@ -22,6 +24,7 @@ enum ProjectLayout: string
         return match ($this) {
             self::Conventional => 'tests/phel',
             self::Flat => 'tests',
+            self::Root => '.',
         };
     }
 
@@ -30,6 +33,10 @@ enum ProjectLayout: string
      */
     public function getFormatDirs(): array
     {
+        if ($this === self::Root) {
+            return ['.'];
+        }
+
         return [$this->getSrcDir(), $this->getTestDir()];
     }
 
