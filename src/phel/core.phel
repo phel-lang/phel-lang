@@ -1093,14 +1093,17 @@ Otherwise, it tries to call `__toString`."
 (defn associative?
   "Returns true if `x` is an associative data structure, false otherwise.
 
-  Associative data structures include hash maps, structs, and associative PHP arrays."
-  {:example "(associative? {:a 1}) ; => true"}
+  Associative data structures include vectors, hash maps, structs, and PHP arrays
+  (both indexed and associative), matching Clojure's `Associative` protocol."
+  {:example "(associative? [1 2 3]) ; => true"
+   :see-also ["vector?" "map?" "hash-map?"]}
   [x]
   (let [t (type x)]
     (or
      (= t :hash-map)
      (= t :struct)
-     (and (= t :php/array) (not (indexed-php-array? x))))))
+     (= t :vector)
+     (= t :php/array))))
 
 (defn set?
   "Returns true if `x` is a set, false otherwise."
@@ -1662,7 +1665,13 @@ Otherwise, it tries to call `__toString`."
     1 (let [from (first rest)]
         (if (php/=== nil from)
           to
-          (let [entries (if (associative? from)
+          (let [map-like? (fn [x]
+                            (let [t (type x)]
+                              (or (= t :hash-map)
+                                  (= t :struct)
+                                  (and (= t :php/array) (not (indexed-php-array? x)))
+                                  (php/instanceof x PersistentSortedMap))))
+                entries (if (map-like? from)
                           (for [entry :pairs from] entry)
                           from)
                 assoc-entry (fn [acc entry]
@@ -1679,7 +1688,7 @@ Otherwise, it tries to call `__toString`."
                                       (assoc acc k v))))
                                 (throw (php/new InvalidArgumentException
                                                 "into expects a collection of [key value] pairs"))))
-                map-target? (or (associative? to) (php/instanceof to TransientMapInterface))]
+                map-target? (or (map-like? to) (php/instanceof to TransientMapInterface))]
             (cond
               map-target?
               (for [entry :in entries
