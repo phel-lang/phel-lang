@@ -1,6 +1,6 @@
 (ns phel-test\test\async
   (:require phel\test :refer [deftest is])
-  (:require phel\async :refer [async await await-all await-any delay future pmap ->closure]))
+  (:require phel\async :refer [async await await-all await-any delay future future-cancel future-cancelled? future-done? pmap ->closure]))
 
 ;; --- Pure function tests ---
 
@@ -151,3 +151,63 @@
 (deftest test-future-interops-with-await
   (let [result (await (async (await (future 99))))]
     (is (= 99 result) "await accepts a PhelFuture wrapper")))
+
+;; --- 3-arg deref / future-cancel / future-done? tests ---
+
+(deftest test-future-deref-with-timeout-fast
+  (let [result (await (async
+                        (let [f (future 42)]
+                          (deref f 1000 :timed-out))))]
+    (is (= 42 result) "deref with timeout returns value when future completes quickly")))
+
+(deftest test-future-deref-with-timeout-slow
+  (let [result (await (async
+                        (let [f (future (do (delay 0.5) 42))]
+                          (deref f 10 :timed-out))))]
+    (is (= :timed-out result) "deref with timeout returns fallback when future is slow")))
+
+(deftest test-future-deref-with-timeout-zero
+  (let [result (await (async
+                        (let [f (future 42)]
+                          (deref f 0 :fallback))))]
+    (is (= :fallback result) "deref with zero timeout returns fallback immediately")))
+
+(deftest test-future-cancel
+  (let [result (await (async
+                        (let [f (future (do (delay 0.5) 42))]
+                          (future-cancel f)
+                          {:cancelled (future-cancelled? f)
+                           :done (future-done? f)
+                           :realized (realized? f)})))]
+    (is (= true (get result :cancelled)) "cancelled flag set")
+    (is (= true (get result :done)) "cancelled future is done")
+    (is (= true (get result :realized)) "cancelled future is realized")))
+
+(deftest test-future-cancelled?-false-initially
+  (let [result (await (async (future-cancelled? (future 1))))]
+    (is (= false result) "future-cancelled? is false before cancel")))
+
+(deftest test-future-cancel-idempotent
+  (let [result (await (async
+                        (let [f (future 1)]
+                          (future-cancel f)
+                          (future-cancel f)
+                          (future-cancelled? f))))]
+    (is (= true result) "future-cancel is idempotent")))
+
+(deftest test-future-done?-alias-for-realized?
+  (let [result (await (async
+                        (let [f (future 99)
+                              _ (deref f)]
+                          {:realized (realized? f)
+                           :done (future-done? f)})))]
+    (is (= (get result :realized) (get result :done))
+        "future-done? matches realized?")))
+
+(deftest test-future-deref-with-timeout-returns-fallback-after-cancel
+  (let [result (await (async
+                        (let [f (future (do (delay 0.5) 42))]
+                          (future-cancel f)
+                          (deref f 1000 :cancelled))))]
+    (is (= :cancelled result)
+        "deref with timeout returns fallback when future was cancelled")))
