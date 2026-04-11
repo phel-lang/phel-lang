@@ -181,6 +181,40 @@
   (is (= 3.14 (double "3.14")) "(double \"3.14\")")
   (is (= 0.0 (double nil)) "(double nil)"))
 
+(deftest test-byte-integer-values
+  (is (= 0 (byte 0)) "(byte 0)")
+  (is (= 1 (byte 1)) "(byte 1)")
+  (is (= -1 (byte -1)) "(byte -1)")
+  (is (= 127 (byte 127)) "(byte 127) is max")
+  (is (= -128 (byte -128)) "(byte -128) is min")
+  (is (int? (byte 0)) "(byte 0) returns an int"))
+
+(deftest test-byte-truncates-floats
+  (is (= 1 (byte 1.1)) "(byte 1.1) truncates toward zero")
+  (is (= 1 (byte 1.9)) "(byte 1.9) truncates toward zero")
+  (is (= -1 (byte -1.1)) "(byte -1.1) truncates toward zero")
+  (is (= -1 (byte -1.9)) "(byte -1.9) truncates toward zero")
+  (is (= 0 (byte 0.5)) "(byte 0.5) truncates to 0")
+  (is (= 0 (byte -0.5)) "(byte -0.5) truncates to 0"))
+
+(deftest test-byte-out-of-range
+  (is (thrown? \InvalidArgumentException (byte 128))
+      "(byte 128) raises InvalidArgumentException")
+  (is (thrown? \InvalidArgumentException (byte -129))
+      "(byte -129) raises InvalidArgumentException")
+  (is (thrown? \InvalidArgumentException (byte 1000))
+      "(byte 1000) raises InvalidArgumentException"))
+
+(deftest test-byte-non-numeric
+  (is (thrown? \InvalidArgumentException (byte "0"))
+      "(byte \"0\") raises InvalidArgumentException on string")
+  (is (thrown? \InvalidArgumentException (byte nil))
+      "(byte nil) raises InvalidArgumentException")
+  (is (thrown? \InvalidArgumentException (byte :0))
+      "(byte :0) raises InvalidArgumentException on keyword")
+  (is (thrown? \InvalidArgumentException (byte [0]))
+      "(byte [0]) raises InvalidArgumentException on vector"))
+
 (deftest test-numbers-with-underscore
   (is (= 1337 0b10100111001) "binary number")
   (is (= 1337 0b101_0011_1001) "binary number with underscores")

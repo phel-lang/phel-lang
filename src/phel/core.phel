@@ -3246,6 +3246,24 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [x]
   (php/floatval x))
 
+(defn byte
+  "Coerces `x` to a signed 8-bit integer in the range `-128..127`.
+   Decimal values are truncated toward zero (as in Clojure on the JVM).
+   Values outside the range or non-numeric inputs raise
+   `InvalidArgumentException`. Phel has no dedicated byte type, so the
+   result is a plain PHP int — `byte` exists for `.cljc` interop with
+   Clojure sources."
+  {:example "(byte 127) ; => 127\n(byte 1.9) ; => 1\n(byte -128) ; => -128"
+   :see-also ["int?" "float" "double"]}
+  [x]
+  (if (number? x)
+    (let [truncated (php/intval x)]
+      (if (or (php/< truncated -128) (php/> truncated 127))
+        (throw (php/new InvalidArgumentException
+                        (php/. "Value out of range for byte: " (php/strval x))))
+        truncated))
+    (throw (php/new InvalidArgumentException "byte expects a numeric value"))))
+
 (defn rand
   "Returns a random number between 0 and 1."
   []

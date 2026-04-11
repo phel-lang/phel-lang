@@ -58,6 +58,7 @@ All notable changes to this project will be documented in this file.
 - `array-map` function for constructing a map from key/value pairs, with later values replacing earlier ones on duplicate keys. Phel has no distinct array-map type, so the result is the same persistent map as `hash-map` — `array-map` exists for `.cljc` interop with Clojure sources (#1319)
 - `to-array` function for converting any collection (vector, list, set, map, PHP array, or `nil`) into a plain PHP array, matching Clojure's `to-array` for `.cljc` interop (#1320)
 - `aclone` function for producing a shallow copy of a PHP array — the returned array is independent so mutations via `php/aset` do not propagate; matches Clojure's `aclone` for `.cljc` interop (#1321)
+- `byte` coercion function truncating to a signed 8-bit integer in `-128..127`. Decimals are truncated toward zero; out-of-range and non-numeric inputs raise `InvalidArgumentException`. Phel has no dedicated byte type, so the result is a plain PHP int — `byte` exists for `.cljc` interop with Clojure sources (#1327)
 - `NaN?` predicate as an alias for `nan?`, matching Clojure's `NaN?` spelling for `.cljc` interop (#1284)
 
 #### Clojure-Compatible Aliases
