@@ -226,6 +226,29 @@ final class ReaderTest extends TestCase
         );
     }
 
+    public function test_var_quote_reads_as_bare_symbol(): void
+    {
+        // `#'bar` parses cleanly and reads as the bare symbol `bar`.
+        // Phel has no first-class Var type, so the `#'` prefix is accepted
+        // for Clojure source compatibility but is transparent at read time.
+        self::assertEquals(
+            $this->loc(Symbol::create('bar'), 1, 2, 1, 5),
+            $this->read("#'bar"),
+        );
+    }
+
+    public function test_var_quote_inside_list(): void
+    {
+        // Regression: `(var? #'bar)` must not hit "Unterminated list (EOF)".
+        self::assertEquals(
+            $this->loc(Phel::list([
+                $this->loc(Symbol::create('var?'), 1, 1, 1, 5),
+                $this->loc(Symbol::create('bar'), 1, 8, 1, 11),
+            ]), 1, 0, 1, 12),
+            $this->read("(var? #'bar)"),
+        );
+    }
+
     public function test_comma_outside_quasiquote_is_ignored(): void
     {
         self::assertEquals(

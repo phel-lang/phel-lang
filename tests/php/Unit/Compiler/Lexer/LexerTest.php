@@ -749,6 +749,34 @@ final class LexerTest extends TestCase
         self::assertStringContainsString('v0.33', $warning);
     }
 
+    public function test_var_quote_prefix_lexes_as_single_token(): void
+    {
+        // `#'bar` → T_VAR_QUOTE token followed by atom `bar`.
+        $tokens = $this->lex("#'bar");
+
+        self::assertSame(Token::T_VAR_QUOTE, $tokens[0]->getType());
+        self::assertSame("#'", $tokens[0]->getCode());
+        self::assertSame(Token::T_ATOM, $tokens[1]->getType());
+        self::assertSame('bar', $tokens[1]->getCode());
+        self::assertSame(Token::T_EOF, $tokens[2]->getType());
+    }
+
+    public function test_var_quote_prefix_does_not_match_comment_rule(): void
+    {
+        // Regression: before the fix, `#'bar)` was eaten by the comment rule
+        // up to EOL, which broke `(var? #'bar)` with "Unterminated list (EOF)".
+        $tokens = $this->lex("(var? #'bar)");
+
+        self::assertSame(Token::T_OPEN_PARENTHESIS, $tokens[0]->getType());
+        self::assertSame(Token::T_ATOM, $tokens[1]->getType());
+        self::assertSame('var?', $tokens[1]->getCode());
+        self::assertSame(Token::T_WHITESPACE, $tokens[2]->getType());
+        self::assertSame(Token::T_VAR_QUOTE, $tokens[3]->getType());
+        self::assertSame(Token::T_ATOM, $tokens[4]->getType());
+        self::assertSame('bar', $tokens[4]->getCode());
+        self::assertSame(Token::T_CLOSE_PARENTHESIS, $tokens[5]->getType());
+    }
+
     public function test_char_literal_single_alpha(): void
     {
         $tokens = $this->lex('\\a');

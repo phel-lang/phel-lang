@@ -195,6 +195,15 @@ final class Reader implements ReaderInterface
                 ->read($node, Symbol::NAME_DEREF, $root);
         }
 
+        if ($node->getTokenType() === Token::T_VAR_QUOTE) {
+            // Clojure's `#'foo` reader macro returns the Var for `foo`. Phel has
+            // no first-class Var type, so we parse the syntax and read it as the
+            // bare symbol reference — the `#'` prefix is accepted but transparent.
+            // This lets Clojure-flavored sources (test suites, literate examples)
+            // load without tripping the reader on a common idiom.
+            return $this->readExpression($node->getExpression(), $root);
+        }
+
         if ($node->getTokenType() === Token::T_QUASIQUOTE) {
             return $this->readerFactory
                 ->createQuoasiquoteReader($this, $this->quasiquoteTransformer)

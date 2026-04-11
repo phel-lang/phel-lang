@@ -205,6 +205,20 @@ final class ParserTest extends TestCase
         );
     }
 
+    public function test_var_quote(): void
+    {
+        self::assertEquals(
+            new QuoteNode(
+                Token::T_VAR_QUOTE,
+                $this->loc(1, 0),
+                $this->loc(1, 5),
+                new SymbolNode('bar', $this->loc(1, 2), $this->loc(1, 5), Symbol::create('bar')),
+                "#'",
+            ),
+            $this->parse("#'bar"),
+        );
+    }
+
     public function test_unquote_splice(): void
     {
         self::assertEquals(

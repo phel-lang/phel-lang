@@ -53,6 +53,7 @@ final class QuoteNode implements InnerNodeInterface
             Token::T_UNQUOTE_SPLICING => ',@',
             Token::T_QUASIQUOTE => '`',
             Token::T_DEREF => '@',
+            Token::T_VAR_QUOTE => "#'",
             default => throw new RuntimeException('Cannot find code prefix for token type: ' . $this->tokenType),
         };
     }
