@@ -3093,6 +3093,12 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [x]
   (php/is_nan x))
 
+(defn NaN?
+  "Checks if `x` is not a number. Alias for `nan?`, matching Clojure's `NaN?`."
+  {:see-also ["nan?" "inf?"]}
+  [x]
+  (nan? x))
+
 (defn inf?
   "Checks if `x` is infinite."
   {:example "(inf? php/INF) ; => true"
