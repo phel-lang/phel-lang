@@ -111,6 +111,7 @@ All notable changes to this project will be documented in this file.
 - `name$` auto-gensym suffix; use `name#` instead (#1203)
 
 ### Fixed
+- `(meta x)` on a local binding (let, fn parameter) returns the value's metadata instead of silently falling through to a top-level definition lookup. Definition metadata is now only consulted for the quoted form `(meta 'sym)`
 - `drop-last` no longer errors on `nil`: `(drop-last n nil)` and `(drop-last nil)` return `[]`, aligning with `drop`/`take` (#1344)
 - `reset!`, `swap!`, `set!` now return the newly-stored value instead of `nil`, matching Clojure (#1304)
 - `associative?` returns `true` for vectors and PHP indexed arrays, matching Clojure's `Associative` protocol (#1303)
