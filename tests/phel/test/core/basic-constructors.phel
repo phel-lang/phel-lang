@@ -139,3 +139,46 @@
     (is (php/is_array arr) "to-array passes through PHP array")
     (is (= 3 (php/count arr)) "to-array preserves php array length")
     (is (= "a" (php/aget arr 0)) "to-array php array element 0")))
+
+(deftest test-aclone-preserves-elements
+  (let [arr (object-array 3)]
+    (php/aset arr 0 1)
+    (php/aset arr 1 2)
+    (php/aset arr 2 3)
+    (let [cloned (aclone arr)]
+      (is (php/is_array cloned) "aclone returns a PHP array")
+      (is (= 3 (php/count cloned)) "aclone preserves length")
+      (is (= 1 (php/aget cloned 0)) "aclone element 0")
+      (is (= 2 (php/aget cloned 1)) "aclone element 1")
+      (is (= 3 (php/aget cloned 2)) "aclone element 2"))))
+
+(deftest test-aclone-is-independent-copy
+  (let [original (object-array 3)]
+    (php/aset original 0 1)
+    (php/aset original 1 2)
+    (php/aset original 2 3)
+    (let [cloned (aclone original)]
+      (php/aset original 1 11)
+      (is (= 11 (php/aget original 1)) "original reflects its own mutation")
+      (is (= 2 (php/aget cloned 1)) "clone is unaffected by mutating original")
+      (php/aset cloned 2 12)
+      (is (= 3 (php/aget original 2)) "original is unaffected by mutating clone")
+      (is (= 12 (php/aget cloned 2)) "clone reflects its own mutation"))))
+
+(deftest test-aclone-empty-array
+  (let [cloned (aclone (object-array 0))]
+    (is (php/is_array cloned) "aclone of empty array returns a PHP array")
+    (is (= 0 (php/count cloned)) "aclone of empty array is empty")))
+
+(deftest test-aclone-from-php-indexed-array
+  (let [src (php-indexed-array "a" "b" "c")
+        cloned (aclone src)]
+    (is (php/is_array cloned) "aclone of php-indexed-array returns a PHP array")
+    (is (= 3 (php/count cloned)) "aclone preserves length")
+    (is (= "a" (php/aget cloned 0)) "aclone element 0")))
+
+(deftest test-aclone-rejects-non-array
+  (is (thrown? \InvalidArgumentException (aclone [1 2 3]))
+      "aclone of persistent vector raises InvalidArgumentException")
+  (is (thrown? \InvalidArgumentException (aclone nil))
+      "aclone of nil raises InvalidArgumentException"))

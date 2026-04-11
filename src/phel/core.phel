@@ -512,6 +512,20 @@ Otherwise, it tries to call `__toString`."
     (php/array)
     (to-php-array coll)))
 
+(defn aclone
+  "Returns a shallow copy of a PHP array. The returned array is a
+  distinct value — mutating the copy via `php/aset` does not affect the
+  original, and vice versa. Matches Clojure's `aclone` for `.cljc`
+  interop; raises `InvalidArgumentException` on non-array inputs since
+  Phel's persistent collections are already immutable and don't need
+  cloning."
+  {:example "(aclone (object-array 3)) ; => a fresh PHP array [nil, nil, nil]"
+   :see-also ["object-array" "to-array"]}
+  [arr]
+  (if (php/is_array arr)
+    (php/array_merge arr)
+    (throw (php/new InvalidArgumentException "aclone expects a PHP array"))))
+
 ;; ------------------------
 ;; Basic sequence operation
 ;; ------------------------
