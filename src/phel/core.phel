@@ -2059,13 +2059,15 @@ Otherwise, it tries to call `__toString`."
     (throw (php/new InvalidArgumentException "drop expects 1 or 2 arguments"))))
 
 (defn drop-last
-  "Drops the last `n` elements of `coll`."
-  {:example "(drop-last 2 [1 2 3 4 5]) ; => [1 2 3]"
+  "Drops the last `n` elements of `coll`. `n` defaults to `1` when omitted,
+   matching Clojure's `(drop-last coll)` single-arity form."
+  {:example "(drop-last [1 2 3 4 5]) ; => [1 2 3 4]\n(drop-last 2 [1 2 3 4 5]) ; => [1 2 3]"
    :see-also ["drop" "butlast"]}
-  [n coll]
-  (let [n (if (php/< n 0) 0 n)
-        end (php/- (count coll) n)]
-    (slice coll 0 (php/max 0 end))))
+  ([coll] (drop-last 1 coll))
+  ([n coll]
+   (let [n (if (php/< n 0) 0 n)
+         end (php/- (count coll) n)]
+     (slice coll 0 (php/max 0 end)))))
 
 (defn last
   "Returns the last element of `coll` or nil if `coll` is empty or nil."

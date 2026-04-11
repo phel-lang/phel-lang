@@ -94,6 +94,14 @@
   (is (= (php/array "a" "b") (drop-last 1 (php/array "a" "b" "c"))) "drop-last on php array")
   (is (= (php/array) (drop-last 1 (php/array))) "drop-last on empty php array"))
 
+(deftest test-drop-last-single-arity
+  (is (= ["a" "b"] (drop-last ["a" "b" "c"])) "drop-last single-arity defaults to 1 on vector")
+  (is (= [] (drop-last ["a"])) "drop-last single-arity on single-element vector")
+  (is (= [] (drop-last [])) "drop-last single-arity on empty vector")
+  (is (= [1 2 3] (drop-last [1 2 3 4])) "drop-last single-arity on longer vector")
+  (is (= (php/array "a" "b") (drop-last (php/array "a" "b" "c"))) "drop-last single-arity on php array")
+  (is (= (php/array) (drop-last (php/array "a"))) "drop-last single-arity on single-element php array"))
+
 (deftest test-last
   (is (= "c" (last ["a" "b" "c"])) "last element")
   (is (nil? (last [])) "last on empty vector")
