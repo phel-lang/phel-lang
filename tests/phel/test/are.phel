@@ -120,3 +120,36 @@
         counts (get (get-stats) :counts)]
     (restore-stats saved)
     (is (= 0 (:total counts)) "no assertions generated")))
+
+;; ---------------------------------------------------------------------------
+;; Literal list cells — regression for #1280
+;; An empty list `()` in a template cell must not be evaluated as a call;
+;; cells are substituted into the expression template at macro-expansion time.
+;; Before the fix this threw "Value of type null is not callable" because `()`
+;; was bound in a runtime `let` and Phel cannot apply an empty list.
+;; ---------------------------------------------------------------------------
+
+(deftest test-are-empty-list-cell
+  (are [expected coll] (= expected coll)
+    () ()
+    () (list)))
+
+(deftest test-are-literal-list-cell
+  (are [expected coll] (= expected coll)
+    '(1 2 3) '(1 2 3)
+    '(:a :b) (list :a :b)))
+
+(deftest test-are-nested-literal-list-in-vector
+  ;; Vector cells must not trigger eager evaluation of the argv symbols they
+  ;; contain when the expression is expanded.
+  (are [expected coll] (= expected coll)
+    [[:x] 2] [[:x] 2]
+    [:a :b] [:a :b]))
+
+(deftest test-are-form-cell-still-evaluates
+  ;; A non-literal form like `(range 10)` in a cell must still evaluate at
+  ;; runtime — only the argv symbols are substituted, other lists are left
+  ;; alone so they compile as ordinary expressions.
+  (are [expected n coll] (= expected (vec (take-nth n coll)))
+    [0 2 4 6 8] 2 (range 10)
+    [] 2 nil))

@@ -370,6 +370,11 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
 
     public function equals(mixed $other): bool
     {
+        // Short-circuit on identity — avoids realizing infinite lazy-seqs when comparing against self.
+        if ($this === $other) {
+            return true;
+        }
+
         $thisArray = $this->toArray();
 
         // Check if other is a sequence or indexable collection

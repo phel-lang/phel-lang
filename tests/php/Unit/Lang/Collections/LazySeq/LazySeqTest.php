@@ -206,6 +206,36 @@ final class LazySeqTest extends TestCase
         $this->assertSame(3, $result);
     }
 
+    public function test_equals_infinite_lazy_seq_to_self(): void
+    {
+        $generator = (static function (): Generator {
+            $i = 0;
+            while (true) {
+                yield $i++;
+            }
+        })();
+
+        $lazySeq = LazySeq::fromGenerator($this->hasher, $this->equalizer, $generator);
+
+        // Must short-circuit on identity and not attempt to realize the infinite sequence.
+        $this->assertTrue($lazySeq->equals($lazySeq));
+    }
+
+    public function test_equals_finite_lazy_seq_to_self(): void
+    {
+        $lazySeq = LazySeq::fromArray($this->hasher, $this->equalizer, [1, 2, 3]);
+
+        $this->assertTrue($lazySeq->equals($lazySeq));
+    }
+
+    public function test_equals_finite_lazy_seq_to_structurally_equal_copy(): void
+    {
+        $a = LazySeq::fromArray($this->hasher, $this->equalizer, [1, 2, 3]);
+        $b = LazySeq::fromArray($this->hasher, $this->equalizer, [1, 2, 3]);
+
+        $this->assertTrue($a->equals($b));
+    }
+
     public function test_realizes_lazily_on_demand(): void
     {
         $values = [1, 2, 3, 4, 5];
