@@ -1304,11 +1304,23 @@ Otherwise, it tries to call `__toString`."
   (reset! variable value))
 
 (defn deref
-  "Returns the current value inside the variable."
-  {:example "(def x (atom 42))"
-   :see-also ["atom" "reset!" "swap!"]}
-  [variable]
-  (php/-> variable (deref)))
+  "Returns the current value inside the variable.
+
+  With three arguments, and when `variable` is a `PhelFuture`, blocks for
+  at most `timeout-ms` milliseconds waiting for the future to resolve. If
+  the future has not completed within the timeout, returns `timeout-val`.
+  The 3-arg form is only supported on `PhelFuture`."
+  {:example "(deref (atom 42)) ; => 42"
+   :see-also ["atom" "reset!" "swap!" "future"]}
+  [variable & args]
+  (case (count args)
+    0 (php/-> variable (deref))
+    2 (if (php/instanceof variable \Phel\Lang\PhelFuture)
+        (php/-> variable (derefWithTimeout (first args) (get args 1)))
+        (throw (php/new \InvalidArgumentException
+                        "3-arg deref is only supported on PhelFuture (for timeouts)")))
+    (throw (php/new \InvalidArgumentException
+                    "deref expects 1 or 3 arguments"))))
 
 (defn swap!
   "Atomically swaps the value of the atom to `(apply f current-value args)`.

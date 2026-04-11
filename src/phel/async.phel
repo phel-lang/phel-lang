@@ -23,14 +23,20 @@
   that can be `deref`ed (blocks the current fiber until the value is
   available) or checked with `realized?`. Matches Clojure's `future`.
 
+  Supports the 3-arg `(deref f timeout-ms timeout-val)` form for
+  time-bounded blocking, as well as `future-cancel`, `future-cancelled?`
+  and `future-done?` for lifecycle management.
+
   Must be called from inside a fiber context (e.g. the AMPHP event
   loop or an enclosing `async` block), because `deref` resolves via
   AMPHP's fiber-based `await`."
   {:doc "Clojure-style `future`: runs body asynchronously, deref for result."
    :example "(let [f (future (expensive-computation))] @f)"
-   :see-also ["async" "await" "realized?" "deref"]}
+   :see-also ["async" "await" "realized?" "deref" "future-cancel" "future-done?"]}
   [& body]
-  `(php/new \Phel\Lang\PhelFuture (php/amp\async (fn [] ~@body))))
+  `(php/new \Phel\Lang\PhelFuture
+            (php/amp\async (fn [] ~@body))
+            (php/new \Amp\DeferredCancellation)))
 
 (defn- unwrap-future
   "Returns the raw Amp\\Future for either a `PhelFuture` wrapper or
@@ -92,3 +98,34 @@
     0 (throw (php/new \InvalidArgumentException "pmap expects at least one collection"))
     1 (await-all (map #(async (f %)) (first colls)))
     (await-all (apply map (fn [& args] (async (apply f args))) colls))))
+
+(defn future-cancel
+  "Signals the future's internal cancellation token, causing any pending
+  or subsequent `deref` call to raise `CancelledException` (or return the
+  timeout value for the 3-arg form). Due to AMPHP's cooperative fibers,
+  the body keeps running until its next cancellation checkpoint; from
+  the caller's perspective the future behaves as cancelled after this
+  returns. Matches Clojure's `future-cancel` semantics at the API level,
+  with cooperative-fiber caveats."
+  {:doc "Cancels a PhelFuture by signalling its internal DeferredCancellation token."
+   :example "(future-cancel (future (expensive-call)))"
+   :see-also ["future" "future-cancelled?" "future-done?" "deref"]}
+  [f]
+  (php/-> f (cancel)))
+
+(defn future-cancelled?
+  "Returns `true` if `future-cancel` was called on `f`, `false` otherwise."
+  {:doc "Returns true if future-cancel was called on the given PhelFuture."
+   :example "(future-cancelled? f)"
+   :see-also ["future-cancel" "future-done?" "future"]}
+  [f]
+  (php/-> f (isCancelled)))
+
+(defn future-done?
+  "Returns `true` if the future is in a final state (completed, failed,
+  or cancelled). Alias for `realized?` when applied to a `PhelFuture`."
+  {:doc "Returns true if the future is in any final state (completed, failed, or cancelled)."
+   :example "(future-done? f)"
+   :see-also ["realized?" "future-cancel" "future"]}
+  [f]
+  (realized? f))
