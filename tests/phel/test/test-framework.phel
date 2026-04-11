@@ -73,6 +73,38 @@
     (is (= 1 (:failed counts)) "thrown? without throw records a failure")))
 
 ;; ---------------------------------------------------------------------------
+;; 'thrown? — Clojure-style single-arg form: (thrown? body) catches any
+;; \Throwable, used by portability shims like jank-lang/clojure-test-suite
+;; ---------------------------------------------------------------------------
+
+(deftest test-is-thrown-single-arg-passes-for-any-exception
+  (is (thrown? (throw (php/new \Exception "boom")))
+      "single-arg thrown? catches a bare \\Exception")
+  (is (thrown? (throw (php/new \RuntimeException "runtime")))
+      "single-arg thrown? catches a \\RuntimeException")
+  (is (thrown? (throw (php/new \InvalidArgumentException "bad")))
+      "single-arg thrown? catches an \\InvalidArgumentException")
+  (is (thrown? (throw (php/new \DivisionByZeroError "divzero")))
+      "single-arg thrown? catches an \\Error subclass"))
+
+(deftest test-is-thrown-single-arg-fails-when-body-does-not-throw
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer
+            (is (thrown? (+ 1 2))))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 1 (:failed counts))
+        "single-arg thrown? without throw records a failure")
+    (is (= 0 (:pass counts)) "no pass recorded")))
+
+(deftest test-is-thrown-two-arg-still-works-alongside-single-arg
+  (is (thrown? \Exception (throw (php/new \Exception "still works")))
+      "two-arg thrown? keeps working when single-arg is supported")
+  (is (thrown? \RuntimeException (throw (php/new \RuntimeException "ok")))
+      "two-arg thrown? with explicit class still catches the right type"))
+
+;; ---------------------------------------------------------------------------
 ;; 'thrown-with-msg? — passes when body throws with the expected message
 ;; ---------------------------------------------------------------------------
 

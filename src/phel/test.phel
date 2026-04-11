@@ -143,8 +143,14 @@
     (assert-binary `(= ~expected (with-output-buffer ~body)) message false)))
 
 (defn- assert-thrown [form message]
-  (let [exception-symbol (second form)
-        body (nnext form)
+  ;; `(thrown? ExceptionClass body...)` asserts that `body` throws an instance of
+  ;; `ExceptionClass` (or a subclass). The Clojure-style single-arg form
+  ;; `(thrown? body)` — used by portability shims like `jank-lang/clojure-test-suite` —
+  ;; asserts only that `body` throws *anything*, so we default the caught type to
+  ;; `\Throwable` (the root of all PHP throwables since PHP 7).
+  (let [single-arg? (= 2 (count form))
+        exception-symbol (if single-arg? '\Throwable (second form))
+        body (if single-arg? (next form) (nnext form))
         loc (location form)
         report-data (gensym)
         e (gensym)]
