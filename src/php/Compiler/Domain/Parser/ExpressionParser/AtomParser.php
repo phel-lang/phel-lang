@@ -16,6 +16,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 
+use function is_float;
 use function sprintf;
 
 final readonly class AtomParser
@@ -123,7 +124,7 @@ final readonly class AtomParser
         $value = bindec(str_replace('_', '', $unsignedInteger));
 
         if ($sign === -1) {
-            $value = -$value;
+            $value = $this->normalizeNegativeOverflow(-$value);
         }
 
         return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
@@ -136,7 +137,7 @@ final readonly class AtomParser
         $value = hexdec(str_replace('_', '', $unsignedInteger));
 
         if ($sign === -1) {
-            $value = -$value;
+            $value = $this->normalizeNegativeOverflow(-$value);
         }
 
         return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
@@ -149,10 +150,26 @@ final readonly class AtomParser
         $value = octdec(str_replace('_', '', $unsignedInteger));
 
         if ($sign === -1) {
-            $value = -$value;
+            $value = $this->normalizeNegativeOverflow(-$value);
         }
 
         return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
+    }
+
+    /**
+     * When a bin/hex/oct literal equals the 64-bit minimum (e.g. `-0x8000000000000000`),
+     * `bindec`/`hexdec`/`octdec` silently overflow the unsigned magnitude to a float.
+     * Negating that float yields `(float) PHP_INT_MIN`, which the emitter then writes
+     * as `-9223372036854775808.0` — a literal PHP itself cannot parse. Clamp that
+     * single representable edge case back to the actual int `PHP_INT_MIN`.
+     */
+    private function normalizeNegativeOverflow(float|int $value): float|int
+    {
+        if (is_float($value) && $value === (float) PHP_INT_MIN) {
+            return PHP_INT_MIN;
+        }
+
+        return $value;
     }
 
     private function parseDecimalNumber(array $matches, string $word, Token $token): NumberNode

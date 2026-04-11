@@ -76,6 +76,16 @@ final readonly class LiteralEmitter
 
     private function emitInt(int $x): void
     {
+        // PHP's own parser cannot represent PHP_INT_MIN as a literal: `-9223372036854775808`
+        // is parsed as `-(9223372036854775808)`, and the unsigned magnitude overflows int
+        // to a float, yielding `-9.2e18` instead of the expected int. Emit an expression
+        // that stays int-valued at evaluation time.
+        if ($x === PHP_INT_MIN) {
+            $this->outputEmitter->emitStr('(-9223372036854775807 - 1)');
+
+            return;
+        }
+
         $this->outputEmitter->emitStr((string) $x);
     }
 

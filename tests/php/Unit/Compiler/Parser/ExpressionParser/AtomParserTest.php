@@ -258,6 +258,85 @@ final class AtomParserTest extends TestCase
         );
     }
 
+    /**
+     * Regression test for https://github.com/phel-lang/phel-lang/issues/1278
+     */
+    public function test_parse_negative_hexadecimal_php_int_min(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 19);
+        $node = $parser->parse(
+            new Token(Token::T_ATOM, '-0x8000000000000000', $start, $end),
+        );
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(PHP_INT_MIN, $node->getValue());
+    }
+
+    public function test_parse_negative_hexadecimal_max_positive_int(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 19);
+        $node = $parser->parse(
+            new Token(Token::T_ATOM, '-0x7FFFFFFFFFFFFFFF', $start, $end),
+        );
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(-PHP_INT_MAX, $node->getValue());
+    }
+
+    public function test_parse_negative_hexadecimal_32_bit_min(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 11);
+        $node = $parser->parse(
+            new Token(Token::T_ATOM, '-0x80000000', $start, $end),
+        );
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(-2147483648, $node->getValue());
+    }
+
+    /**
+     * Regression test for https://github.com/phel-lang/phel-lang/issues/1278
+     */
+    public function test_parse_negative_binary_php_int_min(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 67);
+        $node = $parser->parse(
+            new Token(
+                Token::T_ATOM,
+                '-0b1000000000000000000000000000000000000000000000000000000000000000',
+                $start,
+                $end,
+            ),
+        );
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(PHP_INT_MIN, $node->getValue());
+    }
+
+    /**
+     * Regression test for https://github.com/phel-lang/phel-lang/issues/1278
+     */
+    public function test_parse_negative_octal_php_int_min(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 24);
+        $node = $parser->parse(
+            new Token(Token::T_ATOM, '-01000000000000000000000', $start, $end),
+        );
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(PHP_INT_MIN, $node->getValue());
+    }
+
     public function test_parse_numeric_number(): void
     {
         $parser = new AtomParser(new GlobalEnvironment());

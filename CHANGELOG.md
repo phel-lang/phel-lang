@@ -86,6 +86,7 @@ All notable changes to this project will be documented in this file.
 - `name$` auto-gensym suffix inside syntax-quote; use `name#` instead, matching Clojure's reader macro (#1203)
 
 ### Fixed
+- `-0x8000000000000000` (and equivalent `-0b...`, `-0o...` at 64-bit minimum) now parses correctly to the int `PHP_INT_MIN` instead of crashing with `ParseError: syntax error, unexpected floating-point number ".0"`; previously `hexdec` silently overflowed to a float, which the emitter then wrote as `-9223372036854775808.0` and PHP's own parser rejected (#1278)
 - `(php/yield ...)` in return position no longer emits `return yield ...;`, which broke PHP generator semantics (#793)
 - `phel run` no longer buffers output, so `println` and `print` flush immediately — fixes silent output in long-running processes like AMPHP servers (#793)
 - REPL `require` now supports dot namespace separator and Clojure aliasing, e.g. `(require phel.str)` and `(require clojure.str)` work correctly (#1263)
