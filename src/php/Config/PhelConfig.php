@@ -92,15 +92,27 @@ final class PhelConfig implements JsonSerializable
     }
 
     /**
-     * Quick factory for typical project setup with conventional layout.
+     * Quick factory for typical project setup.
      *
-     * Example:
-     *   return PhelConfig::forProject('my-app\core');
-     *   return PhelConfig::forProject(); // zero-config, auto-detects namespace for build
+     * - Pass `$layout` to force a specific layout. When omitted, the layout is
+     *   auto-detected from the current working directory: `src/phel/` →
+     *   Conventional, `src/` → Flat, otherwise → Root.
+     * - `$mainNamespace` is optional; when left blank, the build step infers it
+     *   from `core.phel` / `main.phel` at the configured source roots.
+     *
+     * Examples:
+     *   return PhelConfig::forProject();                                 // zero-config, auto-detects layout + namespace
+     *   return PhelConfig::forProject('my-app\core');                    // explicit namespace
+     *   return PhelConfig::forProject(layout: ProjectLayout::Root);      // single-file / scratch project
+     *   return PhelConfig::forProject('my-app\main', ProjectLayout::Flat);
      */
-    public static function forProject(string $mainNamespace = ''): self
-    {
+    public static function forProject(
+        string $mainNamespace = '',
+        ?ProjectLayout $layout = null,
+    ): self {
         $config = new self();
+        $config->useLayout($layout ?? self::detectLayout());
+
         if ($mainNamespace !== '') {
             $config->setMainPhelNamespace($mainNamespace);
         }
@@ -491,5 +503,27 @@ final class PhelConfig implements JsonSerializable
             self::ENABLE_COMPILED_CODE_CACHE => $this->enableCompiledCodeCache,
             self::CACHE_DIR => $this->cacheDir,
         ];
+    }
+
+    /**
+     * Auto-detect the most likely layout from the current working directory.
+     * Falls back to Conventional when the cwd is not available or probing fails.
+     */
+    private static function detectLayout(): ProjectLayout
+    {
+        $cwd = getcwd();
+        if ($cwd === false) {
+            return ProjectLayout::Conventional;
+        }
+
+        if (is_dir($cwd . '/src/phel')) {
+            return ProjectLayout::Conventional;
+        }
+
+        if (is_dir($cwd . '/src')) {
+            return ProjectLayout::Flat;
+        }
+
+        return ProjectLayout::Root;
     }
 }

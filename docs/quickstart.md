@@ -4,34 +4,49 @@ Get up and running with Phel in 5 minutes.
 
 ## Installation
 
-### Option 1: Quick Start with Composer
-
-```bash
-composer create-project phel-lang/phel-lang my-app
-cd my-app
-```
-
-### Option 2: Add to Existing PHP Project
+### Option 1: Scaffold a new project
 
 ```bash
 composer require phel-lang/phel-lang
+./vendor/bin/phel init
 ```
 
-Create `phel-config.php`:
+That's it. `phel init` creates a `phel-config.php`, a starter `src/phel/main.phel`, and a matching `tests/phel/main_test.phel` so you can run, test, and REPL immediately.
+
+For a single-file experiment or sandbox, use the root layout instead:
+
+```bash
+./vendor/bin/phel init --minimal
+```
+
+This creates `main.phel`, `main_test.phel`, and a one-line `phel-config.php` at the repo root, no subdirectories.
+
+Useful `init` flags:
+
+| Flag | Purpose |
+|------|---------|
+| `--minimal`, `-m` | Root layout: single `main.phel` at the project root |
+| `--flat`, `-f` | Flat layout: `src/` and `tests/` instead of `src/phel/` and `tests/phel/` |
+| `--no-tests` | Skip generating the matching test file |
+| `--no-gitignore` | Skip `.gitignore` creation |
+| `--dry-run` | Preview without writing anything |
+| `--force` | Overwrite existing files |
+
+### Option 2: Add to an existing PHP project manually
+
+If `phel init` doesn't fit your existing project structure, you can write `phel-config.php` by hand:
+
 ```php
 <?php
 
-return [
-    'src-dirs' => ['src'],
-    'test-dirs' => ['tests'],
-    'out' => 'out',
-    'vendor-dir' => 'vendor',
-    'export' => [
-        'directories' => ['src'],
-        'namespace-prefix' => 'PhelGenerated',
-        'target-directory' => 'src/PhelGenerated',
-    ],
-];
+use Phel\Config\PhelConfig;
+use Phel\Config\ProjectLayout;
+
+// Zero-config: auto-detects layout + namespace
+return PhelConfig::forProject();
+
+// Or, explicit:
+// return PhelConfig::forProject('my-app\main', ProjectLayout::Flat);
 ```
 
 ## Your First Phel Code

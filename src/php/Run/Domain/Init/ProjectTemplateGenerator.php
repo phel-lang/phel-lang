@@ -10,35 +10,68 @@ final class ProjectTemplateGenerator
 {
     public function generateConfig(string $namespace, ProjectLayout $layout): string
     {
-        if ($layout === ProjectLayout::Flat) {
-            return <<<'PHP'
-<?php return \Phel\Config\PhelConfig::forProject()->useFlatLayout();
-
-PHP;
-        }
-
-        return <<<'PHP'
+        return match ($layout) {
+            ProjectLayout::Conventional => <<<'PHP'
 <?php return \Phel\Config\PhelConfig::forProject();
 
-PHP;
+PHP,
+            ProjectLayout::Flat => <<<'PHP'
+<?php return \Phel\Config\PhelConfig::forProject(layout: \Phel\Config\ProjectLayout::Flat);
+
+PHP,
+            ProjectLayout::Root => <<<'PHP'
+<?php return \Phel\Config\PhelConfig::forProject(layout: \Phel\Config\ProjectLayout::Root);
+
+PHP,
+        };
     }
 
-    public function generateCoreFile(string $namespace): string
+    public function generateMainFile(string $namespace): string
     {
         return <<<PHEL
 (ns {$namespace})
 
+(defn greet [name]
+  (str "Hello, " name "!"))
+
 (defn main []
-  (println "Hello from Phel!"))
+  (println (greet "Phel")))
 
 (main)
 
 PHEL;
     }
 
-    public function generateGitignore(): string
+    public function generateTestFile(string $namespace): string
     {
-        return <<<GITIGNORE
+        $testNamespace = $namespace . '-test';
+
+        return <<<PHEL
+(ns {$testNamespace}
+  (:require phel\\test :refer [deftest is])
+  (:require {$namespace} :refer [greet]))
+
+(deftest test-greet
+  (is (= "Hello, Phel!" (greet "Phel")))
+  (is (= "Hello, Alice!" (greet "Alice"))))
+
+PHEL;
+    }
+
+    public function generateGitignore(ProjectLayout $layout = ProjectLayout::Conventional): string
+    {
+        if ($layout === ProjectLayout::Root) {
+            return <<<'GITIGNORE'
+/vendor/
+/out/
+*.phar
+.phpunit.result.cache
+phel-config-local.php
+
+GITIGNORE;
+        }
+
+        return <<<'GITIGNORE'
 /vendor/
 /out/
 /src/PhelGenerated/

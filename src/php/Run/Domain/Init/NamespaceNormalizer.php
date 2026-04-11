@@ -11,12 +11,12 @@ final class NamespaceNormalizer
      *
      * - Removes all non-alphanumeric characters (hyphens, underscores, etc.)
      * - Converts to lowercase for consistency
-     * - Appends \core as the default module
+     * - Appends `\main` as the entry module (matches the generated `main.phel`)
      */
     public function normalize(string $projectName): string
     {
         $clean = preg_replace('/[^a-zA-Z0-9]/', '', $projectName);
 
-        return strtolower((string) $clean) . '\\core';
+        return strtolower((string) $clean) . '\\main';
     }
 }

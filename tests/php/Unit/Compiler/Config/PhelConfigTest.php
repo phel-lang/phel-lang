@@ -7,6 +7,7 @@ namespace PhelTest\Unit\Compiler\Config;
 use Phel\Config\PhelBuildConfig;
 use Phel\Config\PhelConfig;
 use Phel\Config\PhelExportConfig;
+use Phel\Config\ProjectLayout;
 use PHPUnit\Framework\TestCase;
 
 final class PhelConfigTest extends TestCase
@@ -47,7 +48,7 @@ final class PhelConfigTest extends TestCase
 
     public function test_for_project_factory(): void
     {
-        $config = PhelConfig::forProject('my-app\\core');
+        $config = PhelConfig::forProject('my-app\\core', ProjectLayout::Conventional);
 
         $serialized = $config->jsonSerialize();
 
@@ -55,6 +56,93 @@ final class PhelConfigTest extends TestCase
         self::assertSame('out/index.php', $serialized[PhelConfig::BUILD_CONFIG][PhelBuildConfig::MAIN_PHP_PATH]);
         self::assertSame(['src/phel'], $serialized[PhelConfig::SRC_DIRS]);
         self::assertSame(['tests/phel'], $serialized[PhelConfig::TEST_DIRS]);
+    }
+
+    public function test_for_project_factory_with_flat_layout(): void
+    {
+        $config = PhelConfig::forProject('my-app\\main', ProjectLayout::Flat);
+
+        $serialized = $config->jsonSerialize();
+
+        self::assertSame('my-app\\main', $serialized[PhelConfig::BUILD_CONFIG][PhelBuildConfig::MAIN_PHEL_NAMESPACE]);
+        self::assertSame(['src'], $serialized[PhelConfig::SRC_DIRS]);
+        self::assertSame(['tests'], $serialized[PhelConfig::TEST_DIRS]);
+        self::assertSame(['src', 'tests'], $serialized[PhelConfig::FORMAT_DIRS]);
+        self::assertSame(['src'], $serialized[PhelConfig::EXPORT_CONFIG][PhelExportConfig::FROM_DIRECTORIES]);
+    }
+
+    public function test_for_project_factory_with_root_layout(): void
+    {
+        $config = PhelConfig::forProject('sandbox\\main', ProjectLayout::Root);
+
+        $serialized = $config->jsonSerialize();
+
+        self::assertSame('sandbox\\main', $serialized[PhelConfig::BUILD_CONFIG][PhelBuildConfig::MAIN_PHEL_NAMESPACE]);
+        self::assertSame(['.'], $serialized[PhelConfig::SRC_DIRS]);
+        self::assertSame(['.'], $serialized[PhelConfig::TEST_DIRS]);
+        self::assertSame(['.'], $serialized[PhelConfig::FORMAT_DIRS]);
+        self::assertSame(['.'], $serialized[PhelConfig::EXPORT_CONFIG][PhelExportConfig::FROM_DIRECTORIES]);
+    }
+
+    public function test_for_project_factory_without_namespace(): void
+    {
+        // Without a layout arg, auto-detect runs against the current cwd.
+        // PHPUnit runs from the phel-lang repo root, which has src/phel → Conventional.
+        $config = PhelConfig::forProject();
+
+        $serialized = $config->jsonSerialize();
+
+        self::assertSame('', $serialized[PhelConfig::BUILD_CONFIG][PhelBuildConfig::MAIN_PHEL_NAMESPACE]);
+        self::assertSame(['src/phel'], $serialized[PhelConfig::SRC_DIRS]);
+    }
+
+    public function test_for_project_factory_auto_detects_root_layout_from_tmp_dir(): void
+    {
+        $tmp = sys_get_temp_dir() . '/phel-for-project-test-' . uniqid();
+        mkdir($tmp, 0755, true);
+
+        $previousCwd = getcwd();
+        chdir($tmp);
+
+        try {
+            $config = PhelConfig::forProject();
+
+            $serialized = $config->jsonSerialize();
+
+            self::assertSame(['.'], $serialized[PhelConfig::SRC_DIRS]);
+            self::assertSame(['.'], $serialized[PhelConfig::TEST_DIRS]);
+        } finally {
+            if ($previousCwd !== false) {
+                chdir($previousCwd);
+            }
+
+            rmdir($tmp);
+        }
+    }
+
+    public function test_for_project_factory_auto_detects_flat_layout_from_tmp_dir(): void
+    {
+        $tmp = sys_get_temp_dir() . '/phel-for-project-test-' . uniqid();
+        mkdir($tmp . '/src', 0755, true);
+
+        $previousCwd = getcwd();
+        chdir($tmp);
+
+        try {
+            $config = PhelConfig::forProject();
+
+            $serialized = $config->jsonSerialize();
+
+            self::assertSame(['src'], $serialized[PhelConfig::SRC_DIRS]);
+            self::assertSame(['tests'], $serialized[PhelConfig::TEST_DIRS]);
+        } finally {
+            if ($previousCwd !== false) {
+                chdir($previousCwd);
+            }
+
+            rmdir($tmp . '/src');
+            rmdir($tmp);
+        }
     }
 
     public function test_use_flat_layout(): void

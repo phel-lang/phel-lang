@@ -29,9 +29,20 @@ final class ProjectLayoutTest extends TestCase
         self::assertSame(['src'], $layout->getExportFromDirs());
     }
 
+    public function test_root_layout_directories(): void
+    {
+        $layout = ProjectLayout::Root;
+
+        self::assertSame('.', $layout->getSrcDir());
+        self::assertSame('.', $layout->getTestDir());
+        self::assertSame(['.'], $layout->getFormatDirs());
+        self::assertSame(['.'], $layout->getExportFromDirs());
+    }
+
     public function test_enum_values(): void
     {
         self::assertSame('conventional', ProjectLayout::Conventional->value);
         self::assertSame('flat', ProjectLayout::Flat->value);
+        self::assertSame('root', ProjectLayout::Root->value);
     }
 }
