@@ -1319,8 +1319,7 @@ Otherwise, it tries to call `__toString`."
   [variable f & args]
   (let [current (deref variable)
         next (apply f current args)]
-    (reset! variable next)
-    next))
+    (reset! variable next)))
 
 (defn add-watch
   "Adds a watch function to a variable. The watch fn is called when the variable

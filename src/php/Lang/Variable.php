@@ -32,13 +32,17 @@ final class Variable extends AbstractType
 
     /**
      * @param T $value
+     *
+     * @return T
      */
-    public function set(mixed $value): void
+    public function set(mixed $value): mixed
     {
         $this->validate($value);
         $oldValue = $this->value;
         $this->value = $value;
         $this->notifyWatches($oldValue, $value);
+
+        return $this->value;
     }
 
     /**
