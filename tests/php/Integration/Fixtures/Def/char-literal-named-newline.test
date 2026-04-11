@@ -1,0 +1,20 @@
+--PHEL--
+(def x \newline)
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "x",
+  "\n",
+  \Phel::map(
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/char-literal-named-newline.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/char-literal-named-newline.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 16
+    )
+  )
+);
