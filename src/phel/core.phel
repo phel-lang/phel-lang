@@ -3335,10 +3335,15 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (php/is_infinite x))
 
 (defn abs
-  "Returns the absolute value of `x`."
+  "Returns the absolute value of `x`.
+  Throws `InvalidArgumentException` if `x` is not a number, matching Clojure
+  rather than PHP's permissive `abs(null) => 0` / `abs(\"abc\")` coercions."
   {:example "(abs -5) ; => 5"}
   [x]
-  (php/abs x))
+  (if (number? x)
+    (php/abs x)
+    (throw (php/new InvalidArgumentException
+                    (str "abs expects a number, got " (type x))))))
 
 (defn float
   "Coerces `x` to a float. In PHP there is no distinction between float and
