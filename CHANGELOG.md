@@ -40,6 +40,7 @@ All notable changes to this project will be documented in this file.
 - `(resolve sym)` is now available globally in `phel\core`, no longer requiring `(:require phel\repl :refer [resolve])`, matching Clojure semantics (#1187)
 - `:or` defaults in map destructuring, matching Clojure semantics (#1219)
 - `:strs` support in map destructuring for string key lookup (#1227)
+- `float` and `double` coercion functions, returning a PHP float (PHP has no float/double distinction); matches Clojure's `(float x)` / `(double x)` for `.cljc` interop (#1282)
 - `NaN?` predicate as an alias for `nan?`, matching Clojure's `NaN?` spelling for `.cljc` interop (#1284)
 
 #### Clojure-Compatible Aliases
