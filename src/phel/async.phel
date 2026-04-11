@@ -18,12 +18,35 @@
   [& body]
   `(php/amp\async (fn [] ~@body)))
 
+(defmacro future
+  "Starts evaluating `body` asynchronously and returns a `PhelFuture`
+  that can be `deref`ed (blocks the current fiber until the value is
+  available) or checked with `realized?`. Matches Clojure's `future`.
+
+  Must be called from inside a fiber context (e.g. the AMPHP event
+  loop or an enclosing `async` block), because `deref` resolves via
+  AMPHP's fiber-based `await`."
+  {:doc "Clojure-style `future`: runs body asynchronously, deref for result."
+   :example "(let [f (future (expensive-computation))] @f)"
+   :see-also ["async" "await" "realized?" "deref"]}
+  [& body]
+  `(php/new \Phel\Lang\PhelFuture (php/amp\async (fn [] ~@body))))
+
+(defn- unwrap-future
+  "Returns the raw Amp\\Future for either a `PhelFuture` wrapper or
+  a bare `Amp\\Future`."
+  [future]
+  (if (php/instanceof future \Phel\Lang\PhelFuture)
+    (php/-> future (unwrap))
+    future))
+
 (defn await
-  "Blocks the current fiber until the Future resolves and returns its value."
-  {:doc "Awaits an Amp\\Future, returning its resolved value."
+  "Blocks the current fiber until the Future resolves and returns its value.
+  Accepts either a raw `Amp\\Future` or a `PhelFuture` wrapper."
+  {:doc "Awaits a Future (Amp\\Future or PhelFuture), returning its resolved value."
    :example "(await (async (+ 1 2)))"}
   [future]
-  (php/-> future (await)))
+  (php/-> (unwrap-future future) (await)))
 
 (defn delay
   "Suspends the current fiber for the given number of seconds (float)."
@@ -33,20 +56,22 @@
   (php/amp\delay seconds))
 
 (defn await-all
-  "Awaits all Futures in the given collection. Returns a vector of results."
+  "Awaits all Futures in the given collection. Returns a vector of results.
+  Accepts a mix of raw `Amp\\Future` and `PhelFuture` wrappers."
   {:doc "Awaits all Futures, returning a vector of their resolved values."
    :example "(await-all [(async 1) (async 2)])"}
   [futures]
-  (let [php-futures (to-php-array futures)]
+  (let [php-futures (to-php-array (map unwrap-future futures))]
     (for [v :in (php/amp\future\await php-futures)]
       v)))
 
 (defn await-any
-  "Awaits the first Future to resolve. Returns its value."
+  "Awaits the first Future to resolve. Returns its value.
+  Accepts a mix of raw `Amp\\Future` and `PhelFuture` wrappers."
   {:doc "Returns the value of the first Future to resolve."
    :example "(await-any [(async 1) (async 2)])"}
   [futures]
-  (let [php-futures (to-php-array futures)]
+  (let [php-futures (to-php-array (map unwrap-future futures))]
     (php/amp\future\awaitfirst php-futures)))
 
 (defn pmap

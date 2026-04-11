@@ -1,6 +1,6 @@
 (ns phel-test\test\async
   (:require phel\test :refer [deftest is])
-  (:require phel\async :refer [async await await-all await-any delay pmap ->closure]))
+  (:require phel\async :refer [async await await-all await-any delay future pmap ->closure]))
 
 ;; --- Pure function tests ---
 
@@ -93,3 +93,61 @@
         elapsed (- (php/microtime true) start)]
     (is (= [:a :b :c :d] results) "pmap returns all results")
     (is (< elapsed 0.15) "pmap runs work concurrently via fibers")))
+
+;; --- future tests ---
+
+(deftest test-future-returns-phel-future
+  (let [f (await (async (future 42)))]
+    (is (= true (php/instanceof f \Phel\Lang\PhelFuture))
+        "future returns a PhelFuture wrapper")))
+
+(deftest test-future-deref
+  (let [result (await (async (deref (future 42))))]
+    (is (= 42 result) "deref on a future returns its body value")))
+
+(deftest test-future-reader-at-syntax
+  (let [result (await (async @(future :done)))]
+    (is (= :done result) "@ reader shortcut derefs a future")))
+
+(deftest test-future-realized?
+  (let [result (await (async
+                        (let [f (future (do (delay 0.02) 42))
+                              _ (deref f)]
+                          (realized? f))))]
+    (is (= true result) "future is realized after deref")))
+
+(deftest test-future-realized?-false-before-deref
+  (let [result (await (async
+                        (let [f (future (do (delay 0.05) 42))]
+                          (realized? f))))]
+    (is (= false result) "future is not realized before its body completes")))
+
+(deftest test-future-exception-propagation
+  (let [raised? (await (async
+                         (try
+                           (deref (future (throw (php/new \RuntimeException "boom"))))
+                           false
+                           (catch \RuntimeException _e true))))]
+    (is (= true raised?) "deref re-raises the future's exception")))
+
+(deftest test-future-concurrent-execution
+  (let [result (await (async
+                        (let [start (php/microtime true)
+                              f1 (future (do (delay 0.05) 1))
+                              f2 (future (do (delay 0.05) 2))
+                              f3 (future (do (delay 0.05) 3))
+                              vs [(deref f1) (deref f2) (deref f3)]
+                              elapsed (- (php/microtime true) start)]
+                          [vs elapsed])))
+        vs (first result)
+        elapsed (get result 1)]
+    (is (= [1 2 3] vs) "all futures return correct values")
+    (is (< elapsed 0.15) "three 50ms futures run in parallel (~50ms, not 150ms)")))
+
+(deftest test-future-interops-with-await-all
+  (let [result (await (async (await-all [(future 1) (future 2) (future 3)])))]
+    (is (= [1 2 3] result) "await-all transparently unwraps PhelFutures")))
+
+(deftest test-future-interops-with-await
+  (let [result (await (async (await (future 99))))]
+    (is (= 99 result) "await accepts a PhelFuture wrapper")))
