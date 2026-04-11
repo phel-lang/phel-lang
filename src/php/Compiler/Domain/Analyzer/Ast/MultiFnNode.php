@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Analyzer\Ast;
 
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
+use Phel\Lang\Symbol;
 
 use function array_map;
 use function array_reduce;
@@ -21,8 +22,14 @@ final class MultiFnNode extends AbstractNode
         NodeEnvironmentInterface $env,
         private readonly array $fnNodes,
         ?SourceLocation $sourceLocation = null,
+        private readonly ?Symbol $name = null,
     ) {
         parent::__construct($env, $sourceLocation);
+    }
+
+    public function getName(): ?Symbol
+    {
+        return $this->name;
     }
 
     /**
