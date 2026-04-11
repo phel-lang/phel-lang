@@ -28,7 +28,7 @@ final class Lexer implements LexerInterface
         "([ \t]+)", // Whitespace (index: 2)
         "(\r?\n)", // Newline (index: 3)
         '(#_)', // Inline comment (index: 4)
-        "(#(?![_{\\|(\x22?#a-zA-Z])[^\n]*\n?|;[^\n]*\n?)", // Comment (# or ; excludes #_ #{ #( #" #? ## #<letter>) (index: 5)
+        "(#(?![_{\\|(\x22?#a-zA-Z'])[^\n]*\n?|;[^\n]*\n?)", // Comment (# or ; excludes #_ #{ #( #" #? ## #<letter> #') (index: 5)
         '(#\{)', // open hash brace (index: 6)
         '(,@|~@)', // unquote-splicing (index: 7), accepts `,@` or Clojure-style `~@`
         "(\()", // open parenthesis (index: 8)
@@ -52,6 +52,7 @@ final class Lexer implements LexerInterface
         '(#\?@\()', // reader conditional splicing (index: 26 = T_READER_COND_SPLICING)
         '(##(?:-?Inf|NaN)(?![A-Za-z0-9_\-]))', // symbolic number literal (index: 27 = T_SYMBOLIC_NUMBER) - Clojure-style ##Inf, ##-Inf, ##NaN
         '(#[A-Za-z][A-Za-z0-9_\-]*)', // tagged literal start (index: 28 = T_TAGGED_LITERAL) - e.g. #cpp, #uuid, #inst
+        "(#')", // var-quote prefix (index: 29 = T_VAR_QUOTE) - Clojure-style #'foo reads as a reference to the var `foo`; Phel currently treats it as the bare symbol since it has no first-class Var type
     ];
 
     private const string MULTILINE_COMMENT_BEGIN = '#|';

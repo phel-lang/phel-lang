@@ -1,0 +1,30 @@
+(ns phel-test\test\core\var-quote
+  (:require phel\test :refer [deftest is]))
+
+;; The `#'foo` reader macro is accepted for Clojure source compatibility.
+;; Phel has no first-class Var type, so `#'foo` is read as the bare symbol
+;; reference `foo`: `(foo)` and `(#'foo)` evaluate identically.
+
+(defn var-quote-target-fn [] 42)
+(def var-quote-target-value :ok)
+
+(deftest test-var-quote-on-fn
+  (is (= 42 (#'var-quote-target-fn))
+      "#'fn-name evaluates to the same callable as fn-name")
+  (is (= var-quote-target-fn #'var-quote-target-fn)
+      "#'fn-name is identical to fn-name"))
+
+(deftest test-var-quote-on-value
+  (is (= :ok #'var-quote-target-value)
+      "#'value returns the value bound to the symbol")
+  (is (= var-quote-target-value #'var-quote-target-value)
+      "#'value is identical to the bare symbol reference"))
+
+(defmulti var-quote-multi first)
+(defprotocol VarQuoteProtocol)
+
+(deftest test-var-quote-on-defmulti-and-defprotocol
+  (is (= var-quote-multi #'var-quote-multi)
+      "#'defmulti-name is accepted by the reader and matches the bare symbol")
+  (is (= VarQuoteProtocol #'VarQuoteProtocol)
+      "#'defprotocol-name is accepted by the reader and matches the bare symbol"))

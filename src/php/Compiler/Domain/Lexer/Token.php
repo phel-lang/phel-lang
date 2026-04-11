@@ -62,6 +62,8 @@ final readonly class Token
 
     public const int T_TAGGED_LITERAL = 28;
 
+    public const int T_VAR_QUOTE = 29;
+
     public const int T_EOF = 100;
 
     public function __construct(
