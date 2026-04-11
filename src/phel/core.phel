@@ -84,6 +84,17 @@
   (fn [& xs]
     (php/:: Phel (map (apply php/array xs)))))
 
+(def array-map
+  {:doc "Constructs a map from the given key/value pairs. If any keys are
+  equal, later values replace earlier ones, as if by repeated `assoc`.
+  Phel has no distinct array-map type, so the result is the same
+  persistent map as `hash-map` — `array-map` exists for `.cljc` interop
+  with Clojure sources."
+   :example "(array-map :a 1 :b 2) ; => {:a 1 :b 2}"
+   :see-also ["hash-map"]}
+  (fn [& xs]
+    (php/:: Phel (map (apply php/array xs)))))
+
 (def next
   {:doc "Returns the sequence after the first element, or nil if empty."
    :example "(next [1 2 3]) ; => [2 3]"}
