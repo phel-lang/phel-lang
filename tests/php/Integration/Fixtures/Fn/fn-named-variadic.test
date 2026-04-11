@@ -1,7 +1,10 @@
 --PHEL--
 (fn foo [x & xs] xs)
 --PHP--
-(function($x, ...$xs) {
-  $xs = \Phel::vector($xs);
-  return $xs;
-});
+(function() {
+  $foo = function($x, ...$xs) use(&$foo) {
+    $xs = \Phel::vector($xs);
+    return $xs;
+  };
+  return $foo;
+})();

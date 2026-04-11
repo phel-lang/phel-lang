@@ -121,6 +121,14 @@
   (is (= 5 (min-key identity 5))
       "min-key with single arg"))
 
+(deftest test-min-key-tie-break
+  (is (= "c" (min-key count "a" "bb" "c"))
+      "min-key keeps latest on ties, matching Clojure")
+  (is (= "b" (min-key count "a" "b"))
+      "2-arg direct form - latest wins on tie")
+  (is (= "b" (min-key count "aaa" "b" "cc"))
+      "no tie, lowest wins"))
+
 (deftest test-max-key
   (is (= {:a 3} (max-key :a {:a 1} {:a 3} {:a 2}))
       "max-key with keyword key")
@@ -128,6 +136,14 @@
       "max-key with function key")
   (is (= 5 (max-key identity 5))
       "max-key with single arg"))
+
+(deftest test-max-key-tie-break
+  (is (= "cc" (max-key count "aa" "b" "cc"))
+      "max-key keeps latest on ties, matching Clojure")
+  (is (= "b" (max-key count "a" "b"))
+      "2-arg direct form - latest wins on tie")
+  (is (= "aaa" (max-key count "aaa" "b" "cc"))
+      "no tie, highest wins"))
 
 (deftest test-coerce-in
   (is (= 0.5 (coerce-in 0.5 0 1)) "(coerce-in 0.5 0 1)")

@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Parser;
 use Phel\Compiler\Application\Parser;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Parser\ExpressionParser\AtomParser;
+use Phel\Compiler\Domain\Parser\ExpressionParser\CharParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\ListParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\MetaParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\QuoteParser;
@@ -18,6 +19,8 @@ interface ExpressionParserFactoryInterface
     public function createAtomParser(GlobalEnvironmentInterface $globalEnvironment): AtomParser;
 
     public function createStringParser(): StringParser;
+
+    public function createCharParser(): CharParser;
 
     public function createRegexParser(): RegexParser;
 

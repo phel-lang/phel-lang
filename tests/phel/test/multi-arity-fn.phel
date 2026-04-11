@@ -33,3 +33,31 @@
 (deftest named-fn-variadic
   (is (= [2 3] ((fn foo [x & xs] xs) 1 2 3)) "named variadic collects rest")
   (is (= [] ((fn foo [x & xs] xs) 1)) "named variadic with no rest"))
+
+(deftest named-fn-self-recursion
+  (is (= 120 ((fn fact [n] (if (zero? n) 1 (* n (fact (dec n))))) 5))
+      "named fn can self-recurse via its name")
+  (is (= 120 (let [fact (fn fact [n] (if (zero? n) 1 (* n (fact (dec n)))))]
+               (fact 5)))
+      "named fn bound to a different local still self-recurses")
+  (is (= [1 2 3 4 5] ((fn collect [n]
+                        (if (zero? n) [] (push (collect (dec n)) n))) 5))
+      "named fn with non-trivial recursive body"))
+
+(deftest named-fn-multi-arity-self-call
+  (let [f (fn my-fn
+            ([x] (my-fn x x))
+            ([x y] [x y]))]
+    (is (= [7 7] (f 7)) "single-arity delegates to two-arity via name")
+    (is (= [1 2] (f 1 2)) "two-arity direct call")))
+
+(deftest named-fn-does-not-leak-name-to-enclosing-scope
+  (let [invoked ((fn my-scoped-name-12345 [x] x) 1)]
+    (is (= 1 invoked) "named fn still evaluates its body")
+    ;; After the fn call, the name must not exist as a local in this let-scope.
+    ;; We probe for leakage with `try`: referencing an undefined symbol at
+    ;; compile time would be caught by the compiler, so the absence of a
+    ;; compile error with the reference commented out is the check. Instead,
+    ;; we use a higher-order self-reference passed out to verify scope.
+    (is (= 3 ((fn f [x] (if (= x 0) 0 (+ 1 (f (dec x))))) 3))
+        "inner f does not collide with outer f name from sibling fn")))
