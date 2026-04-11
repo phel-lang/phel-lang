@@ -93,6 +93,7 @@ All notable changes to this project will be documented in this file.
 - `name$` auto-gensym suffix inside syntax-quote; use `name#` instead, matching Clojure's reader macro (#1203)
 
 ### Fixed
+- `min-key` and `max-key` now return the **latest** argument on ties (e.g. `(min-key count "a" "b") => "b"`), matching Clojure's reference implementation. Previously Phel returned the earlier item (#1306)
 - `(thrown? body)` single-arg form now defaults to catching any `\Throwable`, matching Clojure's convention used in portability shims (e.g. `jank-lang/clojure-test-suite`). The two-arg form `(thrown? ExceptionClass body)` still works unchanged. Unblocks ~52 test failures when running the clojure-test-suite against Phel (#1307)
 - `-0x8000000000000000` (and equivalent `-0b...`, `-0o...` at 64-bit minimum) now parses correctly to the int `PHP_INT_MIN` instead of crashing with `ParseError: syntax error, unexpected floating-point number ".0"`; previously `hexdec` silently overflowed to a float, which the emitter then wrote as `-9223372036854775808.0` and PHP's own parser rejected (#1278)
 - `are` macro no longer eagerly evaluates list literals in table cells (e.g. `()`), which previously caused `Value of type null is not callable`; cells are now substituted into the expression template via symbolic replacement, matching Clojure's `clojure.template/do-template` semantics (#1280)
