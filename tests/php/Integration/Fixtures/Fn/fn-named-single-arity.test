@@ -1,0 +1,6 @@
+--PHEL--
+(fn foo [x] x)
+--PHP--
+(function($x) {
+  return $x;
+});

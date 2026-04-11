@@ -1,0 +1,28 @@
+--PHEL--
+(fn foo ([x] x) ([x y] y))
+--PHP--
+new class() extends \Phel\Lang\AbstractFn {
+  public const BOUND_TO = "";
+  private $fn0;
+  private $fn1;
+
+  public function __construct() {
+    $this->fn0 = (function($x) {
+      return $x;
+    });;
+    $this->fn1 = (function($x, $y) {
+      return $y;
+    });;
+  }
+
+  public function __invoke(...$args) {
+    $argc = \count($args);
+    switch ($argc) {
+      case 1:
+        return ($this->fn0)($args[0]);
+      case 2:
+        return ($this->fn1)($args[0], $args[1]);
+      }
+      throw new \InvalidArgumentException("No matching function arity");
+    }
+  };
