@@ -200,7 +200,10 @@
   (is (= {:a 9 :b 9 :c 9} (assoc {:a 1 :b 2 :c 3} :a 9 :b 9 :c 9)) "assoc: replace multiple entries")
   (is (= [10 2 3] (assoc [1 2 3] 0 10)) "assoc: single pair on vector unchanged")
   (is (= [10 20 3] (assoc [1 2 3] 0 10 1 20)) "assoc: multiple pairs on vector")
-  (is (thrown? \InvalidArgumentException (assoc {} :a 1 :b)) "assoc: odd extra args throws"))
+  (is (thrown? \InvalidArgumentException (assoc {} :a 1 :b)) "assoc: odd extra args throws")
+  ;; nil → empty map (Clojure-compat)
+  (is (= {:a 1} (assoc nil :a 1)) "assoc: nil becomes a new map")
+  (is (= {:a 1 :b 2} (assoc nil :a 1 :b 2)) "assoc: nil with multiple pairs"))
 
 (deftest test-unset
   (is (= {:b 2} (unset {:a 1 :b 2} :a)) "unset: remove key from map"))

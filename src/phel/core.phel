@@ -1304,6 +1304,10 @@ Otherwise, it tries to call `__toString`."
   "Associates a single key-value pair with a collection."
   [ds key value]
   (cond
+    ;; Clojure-compat: (assoc nil k v) creates a fresh map instead of erroring.
+    (nil? ds)
+    (php/-> {} (put key value))
+
     (php-array? ds)
     (throw (php/new InvalidArgumentException "Cannot call assoc on pure PHP arrays. Use (php/aset ds key value)"))
 
