@@ -1317,9 +1317,12 @@ Otherwise, it tries to call `__toString`."
     (or (vector? ds) (php/instanceof ds TransientVectorInterface))
     (php/-> ds (update key value))
 
-    (do
-      (php/aset ds key value)
-      ds)))
+    ;; Explicit rejection for any other shape (string, list, set, sorted set,
+    ;; number, …). Without this the old fall-through silently mutated strings
+    ;; via `php/aset` and leaked raw PHP "offsetSet not supported" errors for
+    ;; lists and sets.
+    (throw (php/new InvalidArgumentException
+                    (str "assoc expects a map, vector, struct, or nil; got " (type ds))))))
 
 (defn assoc
   "Associates one or more key-value pairs with a collection.
