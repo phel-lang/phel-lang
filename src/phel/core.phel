@@ -1873,6 +1873,35 @@ Otherwise, it tries to call `__toString`."
   ([coll value & more]
    (reduce conj-single (conj-single coll value) more)))
 
+(defn- conj-bang-single
+  [tcoll value]
+  (cond
+    (php/instanceof tcoll TransientVectorInterface) (php/-> tcoll (append value))
+    (php/instanceof tcoll TransientHashSetInterface) (php/-> tcoll (add value))
+    (php/instanceof tcoll TransientMapInterface) (conj-map-entry tcoll value)
+    :else
+    (throw (php/new InvalidArgumentException
+                    (str "conj! expects a transient collection, got " (type tcoll))))))
+
+(defn conj!
+  "Adds `value` to the transient collection `tcoll`, mutating it in place,
+   and returns `tcoll`. The 'addition' may happen at different 'places'
+   depending on the concrete transient type: transient vectors append at
+   the tail, transient hash-sets add the element (no-op if already
+   present), and transient hash-maps treat `value` as a `[key value]`
+   pair (or an associative collection of entries).
+   With zero arguments returns a new empty transient vector. With one
+   argument returns `tcoll` unchanged. Variadic forms reduce `conj!` over
+   the remaining values. Raises `InvalidArgumentException` when `tcoll`
+   is not a transient collection. Matches Clojure's `conj!` semantics."
+  {:example "(persistent (conj! (transient [1 2]) 3)) ; => [1 2 3]"
+   :see-also ["conj" "transient" "persistent"]}
+  ([] (transient []))
+  ([tcoll] tcoll)
+  ([tcoll value] (conj-bang-single tcoll value))
+  ([tcoll value & more]
+   (reduce conj-bang-single (conj-bang-single tcoll value) more)))
+
 (defn- disj-single
   [coll k]
   (cond
