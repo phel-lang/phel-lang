@@ -112,6 +112,7 @@ All notable changes to this project will be documented in this file.
 - `name$` auto-gensym suffix inside syntax-quote; use `name#` instead, matching Clojure's reader macro (#1203)
 
 ### Fixed
+- `drop-last` no longer errors on a `nil` collection: `(drop-last n nil)` and `(drop-last nil)` now return an empty vector `[]`, matching Clojure's `(drop-last 5 nil) => ()` and aligning with `drop`/`take`, which already return an empty result on `nil`. Previously it threw `InvalidArgumentException: Cannot slice` because the internal `slice` call was invoked on `nil` (#1344)
 - `reset!`, `swap!`, and `set!` now return the newly-stored value instead of `nil`, matching Clojure; `Variable::set()` likewise returns the stored value so direct PHP callers see the post-watch value. Callers that inspected the previous `nil` return (e.g. `(if (reset! a v) ...)`) will observe the new truthy result (#1304)
 - `associative?` now returns `true` for vectors and PHP indexed arrays, matching Clojure's `Associative` protocol. Previously only hash-maps, structs, and non-indexed PHP arrays returned true (#1303)
 - `(vec map)` now returns entries as 2-element vectors (e.g. `(vec {:a 1}) => [[:a 1]]`), matching Clojure. Previously it returned only the values (#1305)

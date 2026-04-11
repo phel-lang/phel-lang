@@ -102,6 +102,13 @@
   (is (= (php/array "a" "b") (drop-last (php/array "a" "b" "c"))) "drop-last single-arity on php array")
   (is (= (php/array) (drop-last (php/array "a"))) "drop-last single-arity on single-element php array"))
 
+(deftest test-drop-last-nil
+  (is (= [] (drop-last 5 nil)) "drop-last with n on nil returns empty vector")
+  (is (= [] (drop-last 1 nil)) "drop-last 1 on nil returns empty vector")
+  (is (= [] (drop-last 0 nil)) "drop-last 0 on nil returns empty vector")
+  (is (= [] (drop-last -1 nil)) "drop-last negative n on nil returns empty vector")
+  (is (= [] (drop-last nil)) "drop-last single-arity on nil returns empty vector"))
+
 (deftest test-last
   (is (= "c" (last ["a" "b" "c"])) "last element")
   (is (nil? (last [])) "last on empty vector")
