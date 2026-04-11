@@ -54,6 +54,7 @@ All notable changes to this project will be documented in this file.
 - `:strs` support in map destructuring for string key lookup (#1227)
 - `disj` function for removing keys from a set (hash-set or sorted-set), variadic over keys, matching Clojure's `disj` (#1285)
 - `float` and `double` coercion functions, returning a PHP float (PHP has no float/double distinction); matches Clojure's `(float x)` / `(double x)` for `.cljc` interop (#1282)
+- `object-array` function for creating a PHP array of a given size (initialized to `nil`) or from the elements of a sequence. PHP has no typed-array distinction, so `object-array` returns a plain PHP indexed array accessible via `php/aget`/`php/aset`, matching Clojure's `object-array` for `.cljc` interop (#1318)
 - `NaN?` predicate as an alias for `nan?`, matching Clojure's `NaN?` spelling for `.cljc` interop (#1284)
 
 #### Clojure-Compatible Aliases
