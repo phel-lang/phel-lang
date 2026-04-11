@@ -165,3 +165,15 @@
   (is (= 1337 02471) "octal number")
   (is (= 1337 024_71) "octal number with underscores")
   (is (= 1337 1_337) "decimal number with underscores"))
+
+(deftest test-radix-literals
+  (is (= 15 2r1111) "base 2")
+  (is (= 15 2R1111) "uppercase radix marker")
+  (is (= 511 8r777) "base 8")
+  (is (= 255 16rFF) "base 16 uppercase")
+  (is (= 255 16rff) "base 16 lowercase")
+  (is (= 35 36rZ) "base 36 single digit")
+  (is (= 1295 36rZZ) "base 36 two digits")
+  (is (= -15 -2r1111) "negative radix literal")
+  (is (= 15 +2r1111) "explicit positive radix literal")
+  (is (= 240 2r1111_0000) "radix literal with underscores"))
