@@ -63,7 +63,7 @@ All notable changes to this project will be documented in this file.
 - `char?` predicate (single-char string, UTF-8 counted), matching ClojureScript semantics (#1334)
 - `coll?` predicate for persistent collections (vectors, lists, hash-maps, structs, sets, lazy-seqs) (#1336)
 - `conj!` transient mutator with Clojure-compatible arities over transient vectors, sets, and maps (#1338)
-- `assoc!`, `dissoc!`, `disj!`, `pop!` transient mutators, throwing `InvalidArgumentException` on persistent or mismatched targets
+- `assoc!`, `dissoc!`, `disj!`, `pop!` transient mutators, throwing `InvalidArgumentException` on persistent or mismatched targets (#1353)
 - `some-fn` higher-order predicate combinator, short-circuiting on first logical-true result (#1339)
 - `counted?` predicate for collections with constant-time length (lazy-seqs excluded) (#1340)
 - Single-arity `(drop-last coll)` equivalent to `(drop-last 1 coll)` (#1343)
@@ -71,13 +71,13 @@ All notable changes to this project will be documented in this file.
 
 #### Clojure-Compatible Aliases
 - `atom`, `atom?`, `reset!` as aliases for `var`, `var?`, `set!` (#1252)
-- `persistent!` as alias for `persistent`
-- `double?` as alias for `float?`
+- `persistent!` as alias for `persistent` (#1353)
+- `double?` as alias for `float?` (#1353)
 - `identical?` as alias for `id` (#1252)
 - `fn?` as alias for `function?` (#1252)
 - `map?` as alias for `hash-map?` (#1252)
 - `vals` as alias for `values` (#1252)
-- `integer?` as alias for `int?`
+- `integer?` as alias for `int?` (#1199)
 - `with-meta` made public as replacement for `set-meta!` (#1252)
 
 #### Testing
@@ -89,9 +89,9 @@ All notable changes to this project will be documented in this file.
 
 #### REPL & Tooling
 - `require` and `use` accept quoted symbols in the REPL (e.g. `(require 'phel\str)`) for nREPL compatibility (#1211)
-- `ProjectLayout::Root` for single-file / scratch projects (`srcDirs = ['.']`), and `PhelConfig::forProject(layout: …)` named-argument style with auto-detected layout when called with zero arguments
-- `phel init --minimal` generates a root-layout project: single `main.phel` + matching `main_test.phel` + one-line `phel-config.php` at the repo root
-- `phel init` now generates a matching test file by default (opt out with `--no-tests`) and lists `phel test` in the next-steps output
+- `ProjectLayout::Root` for single-file / scratch projects (`srcDirs = ['.']`), and `PhelConfig::forProject(layout: …)` named-argument style with auto-detected layout when called with zero arguments (#1355)
+- `phel init --minimal` generates a root-layout project: single `main.phel` + matching `main_test.phel` + one-line `phel-config.php` at the repo root (#1355)
+- `phel init` now generates a matching test file by default (opt out with `--no-tests`) and lists `phel test` in the next-steps output (#1355)
 
 #### Documentation
 - Clojure-to-Phel migration guide covering naming, interop, namespaces, and feature differences (#1229)
@@ -101,8 +101,8 @@ All notable changes to this project will be documented in this file.
 ### Changed
 - Anonymous `fn` emits native PHP closures instead of `AbstractFn` subclasses, making them compatible with libraries that type-hint `\Closure` (e.g. AMPHP) without `->closure` conversion (#793)
 - `QuoteNode` preserves the original reader-macro prefix (`,` vs `~`, `'`, `` ` ``, `@`) for faithful parser/printer round-trip (#1203)
-- Split `Phel\Lang\Generators\SequenceGenerator` into focused sibling generators (`TransformGenerator`, `SliceGenerator`, `CombineGenerator`, `DedupeGenerator`)
-- Migrate all Phel source and test files from `|(...)` to `#(...)` short function syntax
+- Split `Phel\Lang\Generators\SequenceGenerator` into focused sibling generators (`TransformGenerator`, `SliceGenerator`, `CombineGenerator`, `DedupeGenerator`) (#1197)
+- Migrate all Phel source and test files from `|(...)` to `#(...)` short function syntax (#1179)
 - Migrate all in-repo Phel source, tests, and docs from `,`/`,@` to `~`/`~@` for `unquote`/`unquote-splicing` (#1203)
 - Migrate `time` macro in `phel\core` from `name$` to `name#` auto-gensym suffix (#1203)
 - Migrate internal `tests/phel/` usage of `#|...|#` multiline comments to `;;` line comments (#1276)
@@ -114,15 +114,15 @@ All notable changes to this project will be documented in this file.
 - `function?` → `fn?`, `hash-map?` → `map?` (#1252)
 - `values` → `vals` (#1252)
 - `set-meta!` → `with-meta` (#1252)
-- `|(...)` short function syntax with `$` placeholders; use `#(...)` with `%` instead
+- `|(...)` short function syntax with `$` placeholders; use `#(...)` with `%` instead (#1179)
 - `,`/`,@` as `unquote`/`unquote-splicing` reader macros; use `~`/`~@` instead (#1203)
 - `name$` auto-gensym suffix; use `name#` instead (#1203)
 
 ### Fixed
-- `(meta x)` on a local binding returns the value's metadata; only `(meta 'sym)` looks up definition metadata
-- `(assoc nil k v)` returns a fresh map, matching Clojure
-- `assoc` on a non-associative value throws `InvalidArgumentException` naming the received type
-- `abs` throws `InvalidArgumentException` on non-numeric input instead of silently returning `0`
+- `(meta x)` on a local binding returns the value's metadata; only `(meta 'sym)` looks up definition metadata (#1352)
+- `(assoc nil k v)` returns a fresh map, matching Clojure (#1352)
+- `assoc` on a non-associative value throws `InvalidArgumentException` naming the received type (#1352)
+- `abs` throws `InvalidArgumentException` on non-numeric input instead of silently returning `0` (#1352)
 - `drop-last` no longer errors on `nil`: `(drop-last n nil)` and `(drop-last nil)` return `[]`, aligning with `drop`/`take` (#1344)
 - `reset!`, `swap!`, `set!` now return the newly-stored value instead of `nil`, matching Clojure (#1304)
 - `associative?` returns `true` for vectors and PHP indexed arrays, matching Clojure's `Associative` protocol (#1303)
@@ -142,7 +142,7 @@ All notable changes to this project will be documented in this file.
 - Lexer no longer swallows a reader conditional (`#?(...)`) following a gensym-suffixed symbol (#1195)
 - Lexer accepts `'` inside and at the end of symbol names (e.g. `a'`, `foo''`, `a'b`); leading `'` is still the quote reader macro (#1275)
 - `php/...` calls to namespaced PHP functions (e.g. `php/Amp\File\write`) emit fully qualified names so they resolve from compiled/cached files (#1180)
-- `phel.phar` no longer emits duplicate-namespace warnings or fails to write the compiled-code cache when run from a directory without `phel-config.php`
+- `phel.phar` no longer emits duplicate-namespace warnings or fails to write the compiled-code cache when run from a directory without `phel-config.php` (#1354)
 
 ## [0.31.0](https://github.com/phel-lang/phel-lang/compare/v0.30.0...v0.31.0) - 2026-04-03
 
