@@ -4280,6 +4280,65 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
        ~@dispatch-registrations
        ~instance-sym)))
 
+(defmacro defrecord
+  "Defines a record type with the given fields, matching Clojure's `defrecord`.
+
+  Expands to a `defstruct` plus Clojure-style factory functions:
+  - `Name` — positional constructor (from `defstruct`)
+  - `Name?` — type predicate (from `defstruct`)
+  - `->Name` — positional factory, identical to `Name`
+  - `map->Name` — map factory that takes `{:field value ...}`
+
+  An optional tail of protocol/method forms is spliced into an `extend-type`
+  call, so inline protocol implementations work exactly like Clojure's
+  `defrecord` body. Only Phel protocols are supported in the inline tail;
+  PHP interface implementations remain on `defstruct`."
+  {:example "(defrecord Point [x y] Drawable (draw [this canvas] ...))"
+   :see-also ["deftype" "defstruct" "defprotocol" "extend-type"]}
+  [name fields & impls]
+  (let [name-str (php/-> name (getName))
+        arrow-ctor (php/:: Symbol (create (php/. "->" name-str)))
+        map-ctor (php/:: Symbol (create (php/. "map->" name-str)))
+        m-sym (gensym "map__")
+        get-calls (for [f :in fields]
+                    `(get ~m-sym ~(keyword (php/-> f (getName)))))
+        forms [`(defstruct ~name ~fields)
+               `(defn ~arrow-ctor ~(php/. "Positional factory function for " name-str ".") ~fields (~name ~@fields))
+               `(defn ~map-ctor ~(php/. "Map factory function for " name-str ".") [~m-sym] (~name ~@get-calls))]
+        all-forms (if (seq impls)
+                    (conj forms `(extend-type ~name ~@impls))
+                    forms)]
+    `(do ~@all-forms)))
+
+(defmacro deftype
+  "Defines a type with the given fields, matching Clojure's `deftype` syntax.
+
+  Expands to a `defstruct` plus a Clojure-style positional factory:
+  - `Name` — positional constructor (from `defstruct`)
+  - `Name?` — type predicate (from `defstruct`)
+  - `->Name` — positional factory, identical to `Name`
+
+  Unlike `defrecord`, no `map->Name` factory is generated.
+
+  An optional tail of protocol/method forms is spliced into an `extend-type`
+  call. Only Phel protocols are supported in the inline tail.
+
+  Deviation from Clojure: Phel's `deftype` shares the map-backed
+  `defstruct` infrastructure, so instances remain map-like (keys are
+  accessible via `get`). Clojure's `deftype` produces a non-map type;
+  if you need that semantic, use native PHP interop."
+  {:example "(deftype PointT [x y] Drawable (draw [this canvas] ...))"
+   :see-also ["defrecord" "defstruct" "defprotocol" "extend-type"]}
+  [name fields & impls]
+  (let [name-str (php/-> name (getName))
+        arrow-ctor (php/:: Symbol (create (php/. "->" name-str)))
+        forms [`(defstruct ~name ~fields)
+               `(defn ~arrow-ctor ~(php/. "Positional factory function for " name-str ".") ~fields (~name ~@fields))]
+        all-forms (if (seq impls)
+                    (conj forms `(extend-type ~name ~@impls))
+                    forms)]
+    `(do ~@all-forms)))
+
 ;; ------------
 ;; Multimethods
 ;; ------------

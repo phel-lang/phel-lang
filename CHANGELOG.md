@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - Clojure-compatible `&form` and `&env` implicit symbols inside every `defmacro` body: `&form` is the original macro call form, `&env` is a map of locals in scope at the call site, enabling dialect detection patterns like `(:ns &env)` for `.cljc` interop (#1185)
 
 #### Core Language
+- `defrecord` and `deftype` macros for Clojure-compatible record/type syntax. Both expand to a `defstruct` plus a `->Name` positional factory; `defrecord` additionally generates a `map->Name` factory. An optional protocol/method tail is spliced into an `extend-type` call, so inline protocol implementations in the macro body work exactly like Clojure's `defrecord`/`deftype`. Only Phel protocols are supported in the inline tail; PHP interface inline impls remain on `defstruct`. Phel's `deftype` shares the map-backed `defstruct` infrastructure, so instances remain map-like — a documented deviation from Clojure's non-map `deftype` (#1324)
 - `reify` for anonymous protocol/interface implementation, matching Clojure's `reify` (#1226)
 - `sorted-map`, `sorted-map-by`, `sorted-set`, `sorted-set-by` for Clojure-compatible sorted persistent collections (#1228)
 - `sorted?` predicate for checking whether a collection is a sorted-map or sorted-set, matching Clojure's `sorted?` (#1274)

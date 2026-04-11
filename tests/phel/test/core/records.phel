@@ -1,0 +1,107 @@
+(ns phel-test\test\core\records
+  (:require phel\test :refer [deftest is]))
+
+;; --- defrecord: basic shape and constructors ---
+
+(defrecord Point [x y])
+
+(deftest test-defrecord-positional-constructor
+  (let [p (Point 1 2)]
+    (is (= 1 (get p :x)) "defrecord: :x accessible via get")
+    (is (= 2 (get p :y)) "defrecord: :y accessible via get")
+    (is (true? (Point? p)) "defrecord: positional ctor makes a Point instance")))
+
+(deftest test-defrecord-arrow-constructor
+  (let [p (->Point 1 2)]
+    (is (= 1 (get p :x)) "->Point positional factory")
+    (is (true? (Point? p)) "->Point creates a Point instance")
+    (is (= (Point 1 2) (->Point 1 2)) "Point and ->Point are equivalent")))
+
+(deftest test-defrecord-map-constructor
+  (let [p (map->Point {:x 1 :y 2})]
+    (is (= 1 (get p :x)) "map->Point extracts :x")
+    (is (= 2 (get p :y)) "map->Point extracts :y")
+    (is (true? (Point? p)) "map->Point creates a Point instance")
+    (is (= (Point 1 2) (map->Point {:x 1 :y 2})) "map->Point equals positional ctor")))
+
+(deftest test-defrecord-equality
+  (is (= (Point 1 2) (Point 1 2)) "defrecord instances with same values are equal")
+  (is (not= (Point 1 2) (Point 1 3)) "defrecord instances with different values are not equal"))
+
+;; --- defrecord with inline protocol methods ---
+
+(defprotocol Drawable
+  (draw [this canvas]))
+
+(defrecord Shape [label]
+  Drawable
+  (draw [this canvas] (str canvas ":" (get this :label))))
+
+(deftest test-defrecord-with-protocol
+  (is (= "svg:hex" (draw (Shape "hex") "svg")) "inline protocol method dispatches"))
+
+(defprotocol Labellable
+  (label-of [this]))
+
+(defprotocol Sized
+  (size-of [this]))
+
+(defrecord Box [label w h]
+  Labellable
+  (label-of [this] (get this :label))
+  Sized
+  (size-of [this] (* (get this :w) (get this :h))))
+
+(deftest test-defrecord-multi-protocol
+  (let [b (Box "crate" 3 4)]
+    (is (= "crate" (label-of b)) "first protocol dispatches")
+    (is (= 12 (size-of b)) "second protocol dispatches")))
+
+;; --- defrecord with empty fields + marker protocol ---
+
+(defprotocol RecordMarker)
+
+(defrecord MarkerRecord [] RecordMarker)
+
+(deftest test-defrecord-empty-fields-marker-protocol
+  (let [r (MarkerRecord)]
+    (is (true? (MarkerRecord? r)) "empty-field defrecord is constructible")
+    (is (= r (->MarkerRecord)) "->MarkerRecord equal to MarkerRecord")
+    (is (= r (map->MarkerRecord {})) "map->MarkerRecord works with empty map")))
+
+;; --- deftype: basic shape ---
+
+(deftype TypePoint [x y])
+
+(deftest test-deftype-positional-constructor
+  (let [p (TypePoint 1 2)]
+    (is (= 1 (get p :x)) "deftype: :x accessible (map-backed in Phel)")
+    (is (true? (TypePoint? p)) "deftype predicate works")))
+
+(deftest test-deftype-arrow-constructor
+  (let [p (->TypePoint 1 2)]
+    (is (= (TypePoint 1 2) p) "->TypePoint equals positional TypePoint")
+    (is (true? (TypePoint? p)) "->TypePoint creates a TypePoint instance")))
+
+;; --- deftype with inline protocol methods ---
+
+(defprotocol TypeDescribable
+  (describe-type [this]))
+
+(deftype TypeThing [name]
+  TypeDescribable
+  (describe-type [this] (str "thing:" (get this :name))))
+
+(deftest test-deftype-with-protocol
+  (is (= "thing:foo" (describe-type (TypeThing "foo"))) "deftype inline protocol dispatches"))
+
+;; --- deftype with empty fields + marker protocol ---
+
+(defprotocol TypeMarker)
+
+(deftype MarkerType [] TypeMarker)
+
+(deftest test-deftype-empty-fields-marker-protocol
+  (let [t (MarkerType)]
+    (is (true? (MarkerType? t)) "empty-field deftype is constructible")
+    (is (= t (->MarkerType)) "->MarkerType equal to MarkerType")))

@@ -179,21 +179,44 @@ Phel runs on PHP, which is single-threaded per request. This means several Cloju
 
 ## Structural differences
 
-### defstruct vs defrecord
+### defstruct, defrecord, and deftype
 
-Phel uses `defstruct` instead of Clojure's `defrecord`:
+Phel's native type form is `defstruct`. Clojure-compatible `defrecord` and
+`deftype` are thin macros over `defstruct` and produce the same `->Name` /
+`map->Name` factory functions Clojure programmers expect:
 
 ```phel
-;; Phel
+;; Phel — defstruct (native)
 (defstruct Point [x y])
 (let [p (Point 1 2)]
   (get p :x)) ;; => 1
 
-;; Clojure equivalent
+;; Phel — defrecord (Clojure-compatible)
 (defrecord Point [x y])
-(let [p (->Point 1 2)]
-  (:x p))
+(->Point 1 2)           ;; positional factory
+(map->Point {:x 1 :y 2}) ;; map factory
+
+;; Phel — deftype
+(deftype PointT [x y])
+(->PointT 1 2)          ;; positional factory (no map-> counterpart)
 ```
+
+Inline protocol method implementations work in both macro bodies and are
+spliced into an `extend-type` call:
+
+```phel
+(defprotocol Drawable
+  (draw [this canvas]))
+
+(defrecord Shape [label]
+  Drawable
+  (draw [this canvas] (str canvas ":" (get this :label))))
+```
+
+Note: Phel's `deftype` still shares the map-backed `defstruct` infrastructure,
+so instances remain map-like (keys are accessible via `get`). Clojure's
+`deftype` creates a non-map type; if you need that semantic, fall back to
+native PHP interop.
 
 ### No lazy-seq by default
 
