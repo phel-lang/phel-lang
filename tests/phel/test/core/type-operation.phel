@@ -31,6 +31,13 @@
   (is (false? (float? 10)) "float? on 10")
   (is (false? (float? 0)) "float? on 10"))
 
+(deftest test-double?
+  (is (true? (double? 10.0)) "double? on 10.0")
+  (is (true? (double? 0.0)) "double? on 0.0")
+  (is (false? (double? 10)) "double? on 10")
+  (is (false? (double? "1.5")) "double? on string")
+  (is (false? (double? nil)) "double? on nil"))
+
 (deftest test-int?
   (is (false? (int? 10.0)) "int? on 10.0")
   (is (false? (int? 0.0)) "int? on 0.0")
