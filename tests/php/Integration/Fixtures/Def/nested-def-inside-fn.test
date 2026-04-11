@@ -1,0 +1,47 @@
+--PHEL--
+(def f (fn [] (def x 1) x))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "f",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\f";
+
+    public function __invoke() {
+      \Phel::addDefinition(
+        "user",
+        "x",
+        1,
+        \Phel::map(
+          \Phel::keyword("start-location"), \Phel::map(
+            \Phel::keyword("file"), "Def/nested-def-inside-fn.test",
+            \Phel::keyword("line"), 1,
+            \Phel::keyword("column"), 14
+          ),
+          \Phel::keyword("end-location"), \Phel::map(
+            \Phel::keyword("file"), "Def/nested-def-inside-fn.test",
+            \Phel::keyword("line"), 1,
+            \Phel::keyword("column"), 23
+          )
+        )
+      );
+
+      return \Phel::getDefinition("user", "x");
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/nested-def-inside-fn.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/nested-def-inside-fn.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 27
+    ),
+    "min-arity", 0,
+    "is-variadic", false,
+    "arglists", "[]"
+  )
+);
