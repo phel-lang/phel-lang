@@ -5,59 +5,81 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
-- `pmap` in `phel\async` for fiber-based parallel map, matching Clojure's `pmap` signature (IO-parallel via AMPHP) (#793)
-- `phel\async` module with `async`, `await`, `delay`, `await-all`, `await-any`, and `->closure` for AMPHP-based concurrency (#793)
-- `amphp/amp` promoted to a runtime dependency so `phel\async` works out of the box (including from the PHAR), without requiring consumers to install it separately
-- `reify` for anonymous protocol/interface implementation, matching Clojure's `reify` (#1226)
-- `do-report` in `phel\test` for Clojure-compatible custom assertion reporting (#1260)
-- `sorted-map`, `sorted-map-by`, `sorted-set`, `sorted-set-by` for Clojure-compatible sorted persistent collections (#1228)
-- `range` with 0 arguments now returns an infinite lazy sequence starting at 0, matching Clojure's `(range)` (#1259)
-- Dot namespace separator and Clojure aliasing for fully qualified names, enabling `phel.core/fn`, `clojure.core/fn` in code (#1251)
-- `are` macro in `phel\test` for template-based multiple assertions, matching Clojure's `clojure.test/are` (#1255)
-- Clojure-to-Phel migration guide covering naming, interop, namespaces, and feature differences (#1229)
-- `atom`, `atom?`, `reset!` as Clojure-compatible aliases for `var`, `var?`, `set!` (#1252)
-- `identical?` as Clojure-compatible alias for `id` (#1252)
-- `fn?` as Clojure-compatible alias for `function?` (#1252)
-- `map?` as Clojure-compatible alias for `hash-map?` (#1252)
-- `vals` as Clojure-compatible alias for `values` (#1252)
-- `with-meta` made public as Clojure-compatible replacement for `set-meta!` (#1252)
-- `run!` function for applying a function to each element of a collection for side effects (#1252)
-- `dotimes` macro for evaluating body n times with a binding from 0 to n-1 (#1252)
-- `letfn` macro for mutually recursive local functions (#1224)
 
-### Deprecated
-- `var` → use `atom`, `var?` → use `atom?`, `set!` → use `reset!` (#1252)
-- `id` → use `identical?` (#1252)
-- `function?` → use `fn?`, `hash-map?` → use `map?` (#1252)
-- `values` → use `vals` (#1252)
-- `set-meta!` → use `with-meta` (#1252)
-- `:or` defaults in map destructuring, matching Clojure semantics (#1219)
-- `:strs` support in map destructuring for string key lookup (#1227)
-- `fnil` function for nil-safe function wrapping with default values (#1225)
-- `vary-meta` function to apply a function to an object's metadata (#1223)
-- `assert` macro for precondition checking with optional custom message (#1222)
-- `min-key` and `max-key` functions for finding extremes by a derived value (#1221)
-- `rename-keys` function for renaming map keys according to a key map (#1220)
-- `if-some`, `when-some`, `when-first` macros for nil-aware binding, matching Clojure semantics (#1218)
-- `testing` macro in `phel\test` for grouping assertions with context strings, matching Clojure's `clojure.test/testing` (#1237)
-- `seq?` predicate function to check if a value is a seq (implements `LazySeqInterface`), matching Clojure semantics (#1231)
-- `condp` macro for predicate-based conditional dispatch, matching Clojure semantics including `:>>` result threading (#1217)
-- Allow `require` and `use` to accept quoted symbols in the REPL (e.g. `(require 'phel\str)`), matching Clojure semantics and enabling nREPL client compatibility (#1211)
+#### Async & Concurrency
+- `phel\async` module with `async`, `await`, `delay`, `await-all`, `await-any`, and `->closure` for AMPHP-based concurrency (#793)
+- `pmap` for fiber-based parallel map, matching Clojure's `pmap` signature (IO-parallel via AMPHP) (#793)
+- `amphp/amp` promoted to a runtime dependency so `phel\async` works out of the box (including from the PHAR), without requiring consumers to install it separately (#793)
+
+#### Reader & Compiler
+- Dot namespace separator and Clojure aliasing for fully qualified names, enabling `phel.core/fn`, `clojure.core/fn` in code (#1251)
+- Accept `.` as an alternate namespace separator in `(ns ...)`, `(in-ns ...)`, `:require`, and `:use` forms, enabling Clojure-style namespaces (e.g. `(ns my.cljc.file)`) for `.cljc` interop (#1177)
+- Accept Clojure-style vector entries in `:require`, e.g. `(:require [phel\str :as s :refer [upper-case]])`, including multiple vector entries in a single `:require` clause, for `.cljc` interop (#1183)
 - Automatic namespace aliasing: `clojure.*` namespaces in `:require` resolve to `phel.*` automatically (e.g. `clojure.test` → `phel\test`), enabling Clojure test suites to run without manual patching; only remaps when the target `phel.*` namespace exists, so user-defined `clojure.*` namespaces are left untouched (#1207, #1210)
 - Accept `~` and `~@` as reader macros for `unquote` and `unquote-splicing` inside syntax-quote (alongside the existing `,` and `,@`), matching Clojure's syntax for `.cljc` interop (#1201)
-- `integer?` Clojure compatibility alias function for `int?`
+- Accept `name#` as an auto-gensym suffix inside syntax-quote (alongside the existing `name$`), matching Clojure's `clojure.core/gensym` reader macro (#1195)
+- Clojure-compatible `&form` and `&env` implicit symbols inside every `defmacro` body: `&form` is the original macro call form, `&env` is a map of locals in scope at the call site, enabling dialect detection patterns like `(:ns &env)` for `.cljc` interop (#1185)
+
+#### Core Language
+- `reify` for anonymous protocol/interface implementation, matching Clojure's `reify` (#1226)
+- `sorted-map`, `sorted-map-by`, `sorted-set`, `sorted-set-by` for Clojure-compatible sorted persistent collections (#1228)
+- `range` with 0 arguments now returns an infinite lazy sequence starting at 0, matching Clojure's `(range)` (#1259)
+- `letfn` macro for mutually recursive local functions (#1224)
+- `condp` macro for predicate-based conditional dispatch, matching Clojure semantics including `:>>` result threading (#1217)
+- `if-some`, `when-some`, `when-first` macros for nil-aware binding, matching Clojure semantics (#1218)
+- `assert` macro for precondition checking with optional custom message (#1222)
+- `dotimes` macro for evaluating body `n` times with a binding from `0` to `n-1` (#1252)
+- `run!` function for applying a function to each element of a collection for side effects (#1252)
+- `fnil` function for nil-safe function wrapping with default values (#1225)
+- `vary-meta` function to apply a function to an object's metadata (#1223)
+- `min-key` and `max-key` functions for finding extremes by a derived value (#1221)
+- `rename-keys` function for renaming map keys according to a key map (#1220)
+- `seq?` predicate to check if a value implements `LazySeqInterface`, matching Clojure semantics (#1231)
+- `(boolean x)` coercion function returning `false` for `nil`/`false` and `true` otherwise, matching Clojure semantics (#1186)
+- 1-arg `(some? x)` form returning `true` when `x` is not `nil`; the existing 2-arg `(some? pred coll)` form keeps working unchanged (#1184)
+- `(resolve sym)` is now available globally in `phel\core`, no longer requiring `(:require phel\repl :refer [resolve])`, matching Clojure semantics (#1187)
+- `:or` defaults in map destructuring, matching Clojure semantics (#1219)
+- `:strs` support in map destructuring for string key lookup (#1227)
+
+#### Clojure-Compatible Aliases
+- `atom`, `atom?`, `reset!` as aliases for `var`, `var?`, `set!` (#1252)
+- `identical?` as alias for `id` (#1252)
+- `fn?` as alias for `function?` (#1252)
+- `map?` as alias for `hash-map?` (#1252)
+- `vals` as alias for `values` (#1252)
+- `integer?` as alias for `int?`
+- `with-meta` made public as Clojure-compatible replacement for `set-meta!` (#1252)
+
+#### Testing
+- `are` macro in `phel\test` for template-based multiple assertions, matching Clojure's `clojure.test/are` (#1255)
+- `testing` macro in `phel\test` for grouping assertions with context strings, matching Clojure's `clojure.test/testing` (#1237)
+- `do-report` in `phel\test` for Clojure-compatible custom assertion reporting (#1260)
 - `phel\test/assert-expr` is now an open multimethod (was a closed private function), letting users extend the `is` macro with custom assertion forms via `(defmethod phel\test/assert-expr 'my-form [form message] ...)`, matching Clojure's `clojure.test/assert-expr` (#1188)
 - `defmethod` now preserves the namespace of the multimethod, enabling cross-namespace extension when the multi-name is fully qualified (e.g. `(defmethod phel\test/assert-expr 'my-form ...)`)
-- `(resolve sym)` is now available globally in `phel\core`, no longer requiring `(:require phel\repl :refer [resolve])`, matching Clojure semantics (#1187)
-- `(boolean x)` coercion function returning `false` for `nil`/`false` and `true` otherwise, matching Clojure semantics (#1186)
-- Clojure-compatible `&form` and `&env` implicit symbols inside every `defmacro` body: `&form` is the original macro call form, `&env` is a map of locals in scope at the call site, enabling dialect detection patterns like `(:ns &env)` for `.cljc` interop (#1185)
-- 1-arg `(some? x)` form returning `true` when `x` is not `nil`, matching Clojure semantics; the existing 2-arg `(some? pred coll)` form keeps working unchanged (#1184)
-- Accept Clojure-style vector entries in `:require`, e.g. `(:require [phel\str :as s :refer [upper-case]])`, including multiple vector entries in a single `:require` clause, for `.cljc` interop (#1183)
-- Accept `.` as an alternate namespace separator in `(ns ...)`, `(in-ns ...)`, `:require`, and `:use` forms, enabling Clojure-style namespaces (e.g. `(ns my.cljc.file)`) for `.cljc` interop (#1177)
-- Accept `name#` as an auto-gensym suffix inside syntax-quote (alongside the existing `name$`), matching Clojure's `clojure.core/gensym` reader macro (#1195)
+
+#### REPL & Tooling
+- Allow `require` and `use` to accept quoted symbols in the REPL (e.g. `(require 'phel\str)`), matching Clojure semantics and enabling nREPL client compatibility (#1211)
+
+#### Documentation
+- Clojure-to-Phel migration guide covering naming, interop, namespaces, and feature differences (#1229)
 
 ### Changed
 - Anonymous `fn` now emits native PHP closures instead of `AbstractFn` subclasses, making them compatible with PHP libraries that type-hint `\Closure` (e.g. AMPHP) without needing `->closure` conversion (#793)
+- `QuoteNode` now preserves the original reader-macro prefix (`,` vs `~`, `'`, `` ` ``, `@`) so the parser/printer round-trip is faithful to the source (#1203)
+- Split `Phel\Lang\Generators\SequenceGenerator` into focused sibling generators (`TransformGenerator`, `SliceGenerator`, `CombineGenerator`, `DedupeGenerator`) by operation family; `SequenceGenerator` now only exposes the shared `toIterable` helper and `range`
+- Migrate all Phel source and test files from `|(...)` to `#(...)` short function syntax
+- Migrate all in-repo Phel source, tests, and docs from `,` / `,@` to `~` / `~@` for `unquote` / `unquote-splicing` (#1203)
+- Migrate `time` macro in `phel\core` from `name$` to `name#` auto-gensym suffix (#1203)
+
+### Deprecated
+- `var` → `atom`, `var?` → `atom?`, `set!` → `reset!` (#1252)
+- `id` → `identical?` (#1252)
+- `function?` → `fn?`, `hash-map?` → `map?` (#1252)
+- `values` → `vals` (#1252)
+- `set-meta!` → `with-meta` (#1252)
+- `|(...)` short function syntax with `$` placeholders; use `#(...)` with `%` placeholders instead
+- `,` / `,@` as `unquote` / `unquote-splicing` reader macros inside syntax-quote; use `~` / `~@` instead, matching Clojure's syntax (#1203)
+- `name$` auto-gensym suffix inside syntax-quote; use `name#` instead, matching Clojure's reader macro (#1203)
 
 ### Fixed
 - `(php/yield ...)` in return position no longer emits `return yield ...;`, which broke PHP generator semantics (#793)
@@ -69,18 +91,6 @@ All notable changes to this project will be documented in this file.
 - `macroexpand` no longer applies inline expansion to non-macro forms; `(macroexpand '(+ 1 2))` now correctly returns `(+ 1 2)` instead of `(do (assert-non-nil 1 2) (+ 1 2))` (#1208)
 - Lexer no longer swallows a reader conditional (`#?(...)`) following a gensym-suffixed symbol (e.g. `report-success# #?(:phel ...)`), which previously surfaced as a misleading "Unterminated list (BRACKETS)" parse error (#1195)
 - Emit `php/...` calls to namespaced PHP functions (e.g. `php/Amp\File\write`) as fully qualified names so they resolve against the global namespace from compiled/cached files (#1180)
-
-### Deprecated
-- `|(...)` short function syntax with `$` placeholders; use `#(...)` with `%` placeholders instead
-- `,` / `,@` as `unquote` / `unquote-splicing` reader macros inside syntax-quote; use `~` / `~@` instead, matching Clojure's syntax (#1203)
-- `name$` auto-gensym suffix inside syntax-quote; use `name#` instead, matching Clojure's reader macro (#1203)
-
-### Changed
-- Migrate all Phel source and test files from `|(...)` to `#(...)` short function syntax
-- Migrate all in-repo Phel source, tests, and docs from `,` / `,@` to `~` / `~@` for `unquote` / `unquote-splicing` (#1203)
-- `QuoteNode` now preserves the original reader-macro prefix (`,` vs `~`, `'`, `` ` ``, `@`) so the parser/printer round-trip is faithful to the source (#1203)
-- Migrate `time` macro in `phel\core` from `name$` to `name#` auto-gensym suffix (#1203)
-- Split `Phel\Lang\Generators\SequenceGenerator` into focused sibling generators (`TransformGenerator`, `SliceGenerator`, `CombineGenerator`, `DedupeGenerator`) by operation family; `SequenceGenerator` now only exposes the shared `toIterable` helper and `range`
 
 ## [0.31.0](https://github.com/phel-lang/phel-lang/compare/v0.30.0...v0.31.0) - 2026-04-03
 
