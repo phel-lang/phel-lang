@@ -26,7 +26,7 @@ PHP,
         };
     }
 
-    public function generateCoreFile(string $namespace): string
+    public function generateMainFile(string $namespace): string
     {
         return <<<PHEL
 (ns {$namespace})

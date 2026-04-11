@@ -109,8 +109,8 @@ final class InitCommand extends Command
             $output->writeln('');
         }
 
-        $namespace = $this->namespaceNormalizer->normalize($projectName, $layout);
-        $coreFilename = $this->coreFilename($layout);
+        $namespace = $this->namespaceNormalizer->normalize($projectName);
+        $mainFilename = $this->mainFilename($layout);
         $testFilename = $this->testFilename($layout);
 
         if (!$this->createDirectories($cwd, $this->directoriesFor($layout), $output, $dryRun)) {
@@ -129,9 +129,9 @@ final class InitCommand extends Command
         }
 
         if (!$this->createFile(
-            $cwd . '/' . $coreFilename,
-            $this->templateGenerator->generateCoreFile($namespace),
-            $coreFilename,
+            $cwd . '/' . $mainFilename,
+            $this->templateGenerator->generateMainFile($namespace),
+            $mainFilename,
             $output,
             $force,
             $dryRun,
@@ -163,7 +163,7 @@ final class InitCommand extends Command
         }
 
         if (!$dryRun) {
-            $this->printNextSteps($output, $coreFilename, $noTests);
+            $this->printNextSteps($output, $mainFilename, $noTests);
         }
 
         return Command::SUCCESS;
@@ -182,11 +182,11 @@ final class InitCommand extends Command
         return ProjectLayout::Conventional;
     }
 
-    private function coreFilename(ProjectLayout $layout): string
+    private function mainFilename(ProjectLayout $layout): string
     {
         return match ($layout) {
             ProjectLayout::Root => 'main.phel',
-            default => $layout->getSrcDir() . '/core.phel',
+            default => $layout->getSrcDir() . '/main.phel',
         };
     }
 
@@ -194,7 +194,7 @@ final class InitCommand extends Command
     {
         return match ($layout) {
             ProjectLayout::Root => 'main_test.phel',
-            default => $layout->getTestDir() . '/core_test.phel',
+            default => $layout->getTestDir() . '/main_test.phel',
         };
     }
 
@@ -284,7 +284,7 @@ final class InitCommand extends Command
         return true;
     }
 
-    private function printNextSteps(OutputInterface $output, string $coreFilename, bool $noTests): void
+    private function printNextSteps(OutputInterface $output, string $mainFilename, bool $noTests): void
     {
         $output->writeln('');
         $output->writeln('<info>Phel project initialized successfully!</info>');
@@ -292,7 +292,7 @@ final class InitCommand extends Command
         $output->writeln('Next steps:');
 
         $step = 1;
-        $output->writeln(sprintf('  %d. Run your code:  <comment>./vendor/bin/phel run %s</comment>', $step++, $coreFilename));
+        $output->writeln(sprintf('  %d. Run your code:  <comment>./vendor/bin/phel run %s</comment>', $step++, $mainFilename));
         if (!$noTests) {
             $output->writeln(sprintf('  %d. Run the tests: <comment>./vendor/bin/phel test</comment>', $step++));
         }

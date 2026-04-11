@@ -39,7 +39,7 @@ final class RunCommand extends Command
             ->addArgument(
                 'path',
                 InputArgument::OPTIONAL,
-                'The file path or namespace to execute (auto-detects core.phel or main.phel if omitted)',
+                'The file path or namespace to execute (auto-detects main.phel or core.phel if omitted)',
             )->addArgument(
                 'argv',
                 InputArgument::IS_ARRAY | InputArgument::OPTIONAL,
@@ -91,7 +91,7 @@ final class RunCommand extends Command
             if ($path === null || $path === '') {
                 $path = $this->getFacade()->autoDetectEntryPoint();
                 if ($path === null) {
-                    $output->writeln('<error>No entry point found. Create src/phel/core.phel or specify a path.</error>');
+                    $output->writeln('<error>No entry point found. Create src/phel/main.phel or specify a path.</error>');
                     return self::FAILURE;
                 }
 

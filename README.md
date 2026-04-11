@@ -54,10 +54,10 @@ composer require phel-lang/phel-lang
 ./vendor/bin/phel init
 ```
 
-That creates `phel-config.php`, `src/phel/core.phel`, and a matching `tests/phel/core_test.phel`. Then:
+That creates `phel-config.php`, `src/phel/main.phel`, and a matching `tests/phel/main_test.phel`. Then:
 
 ```sh
-./vendor/bin/phel run src/phel/core.phel   # run your code
+./vendor/bin/phel run src/phel/main.phel   # run your code
 ./vendor/bin/phel test                     # run the tests
 ./vendor/bin/phel repl                     # poke at it interactively
 ./vendor/bin/phel build                    # compile to PHP for production
@@ -69,7 +69,7 @@ For a single-file experiment or scratch project, use the root layout:
 ./vendor/bin/phel init --minimal
 ```
 
-You get a single `main.phel` + `main_test.phel` + a one-line `phel-config.php` at the repo root — no subdirectories.
+You get a single `main.phel` + `main_test.phel` + a one-line `phel-config.php` at the repo root, no subdirectories.
 
 ## Documentation
 

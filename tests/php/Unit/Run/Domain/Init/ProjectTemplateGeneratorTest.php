@@ -19,7 +19,7 @@ final class ProjectTemplateGeneratorTest extends TestCase
 
     public function test_generate_config_conventional_layout(): void
     {
-        $config = $this->generator->generateConfig('myapp\\core', ProjectLayout::Conventional);
+        $config = $this->generator->generateConfig('myapp\\main', ProjectLayout::Conventional);
 
         self::assertStringContainsString('PhelConfig::forProject()', $config);
         self::assertStringNotContainsString('useFlatLayout', $config);
@@ -28,7 +28,7 @@ final class ProjectTemplateGeneratorTest extends TestCase
 
     public function test_generate_config_flat_layout(): void
     {
-        $config = $this->generator->generateConfig('myapp\\core', ProjectLayout::Flat);
+        $config = $this->generator->generateConfig('myapp\\main', ProjectLayout::Flat);
 
         self::assertStringContainsString('PhelConfig::forProject(layout:', $config);
         self::assertStringContainsString('ProjectLayout::Flat', $config);
@@ -42,22 +42,22 @@ final class ProjectTemplateGeneratorTest extends TestCase
         self::assertStringContainsString('ProjectLayout::Root', $config);
     }
 
-    public function test_generate_core_file(): void
+    public function test_generate_main_file(): void
     {
-        $core = $this->generator->generateCoreFile('myapp\\core');
+        $main = $this->generator->generateMainFile('myapp\\main');
 
-        self::assertStringContainsString('(ns myapp\\core)', $core);
-        self::assertStringContainsString('(defn greet [name]', $core);
-        self::assertStringContainsString('(defn main []', $core);
-        self::assertStringContainsString('println', $core);
-        self::assertStringContainsString('(main)', $core);
+        self::assertStringContainsString('(ns myapp\\main)', $main);
+        self::assertStringContainsString('(defn greet [name]', $main);
+        self::assertStringContainsString('(defn main []', $main);
+        self::assertStringContainsString('println', $main);
+        self::assertStringContainsString('(main)', $main);
     }
 
     public function test_generate_test_file(): void
     {
-        $test = $this->generator->generateTestFile('myapp\\core');
+        $test = $this->generator->generateTestFile('myapp\\main');
 
-        self::assertStringContainsString('(ns myapp\\core-test', $test);
+        self::assertStringContainsString('(ns myapp\\main-test', $test);
         self::assertStringContainsString('phel\\test', $test);
         self::assertStringContainsString(':refer [deftest is]', $test);
         self::assertStringContainsString(':refer [greet]', $test);

@@ -11,7 +11,7 @@ composer require phel-lang/phel-lang
 ./vendor/bin/phel init
 ```
 
-That's it. `phel init` creates a `phel-config.php`, a starter `src/phel/core.phel`, and a matching `tests/phel/core_test.phel` so you can run, test, and REPL immediately.
+That's it. `phel init` creates a `phel-config.php`, a starter `src/phel/main.phel`, and a matching `tests/phel/main_test.phel` so you can run, test, and REPL immediately.
 
 For a single-file experiment or sandbox, use the root layout instead:
 
@@ -19,7 +19,7 @@ For a single-file experiment or sandbox, use the root layout instead:
 ./vendor/bin/phel init --minimal
 ```
 
-This creates `main.phel`, `main_test.phel`, and a one-line `phel-config.php` at the repo root — no subdirectories.
+This creates `main.phel`, `main_test.phel`, and a one-line `phel-config.php` at the repo root, no subdirectories.
 
 Useful `init` flags:
 

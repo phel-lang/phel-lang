@@ -28,15 +28,15 @@ final class NamespaceNormalizerTest extends TestCase
      */
     public static function namespaceProvider(): iterable
     {
-        yield 'simple name' => ['app', 'app\\core'];
-        yield 'with hyphens' => ['my-app', 'myapp\\core'];
-        yield 'with underscores' => ['my_app', 'myapp\\core'];
-        yield 'with multiple hyphens' => ['my-cool-app', 'mycoolapp\\core'];
-        yield 'mixed separators' => ['my-cool_app', 'mycoolapp\\core'];
-        yield 'uppercase' => ['MyApp', 'myapp\\core'];
-        yield 'mixed case with hyphens' => ['My-Cool-App', 'mycoolapp\\core'];
-        yield 'with numbers' => ['app123', 'app123\\core'];
-        yield 'with special chars' => ['my.app!', 'myapp\\core'];
-        yield 'empty becomes just core' => ['', '\\core'];
+        yield 'simple name' => ['app', 'app\\main'];
+        yield 'with hyphens' => ['my-app', 'myapp\\main'];
+        yield 'with underscores' => ['my_app', 'myapp\\main'];
+        yield 'with multiple hyphens' => ['my-cool-app', 'mycoolapp\\main'];
+        yield 'mixed separators' => ['my-cool_app', 'mycoolapp\\main'];
+        yield 'uppercase' => ['MyApp', 'myapp\\main'];
+        yield 'mixed case with hyphens' => ['My-Cool-App', 'mycoolapp\\main'];
+        yield 'with numbers' => ['app123', 'app123\\main'];
+        yield 'with special chars' => ['my.app!', 'myapp\\main'];
+        yield 'empty becomes just main' => ['', '\\main'];
     }
 }
