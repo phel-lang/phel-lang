@@ -1006,6 +1006,19 @@ Otherwise, it tries to call `__toString`."
   [x]
   (= (type x) :string))
 
+(defn char?
+  "Returns true if `x` is a single-character string, false otherwise.
+   Phel has no dedicated character type — character literals such as
+   `\\A` are already single-character strings — so `char?` is true for
+   any string of length 1 (UTF-8 counted). Matches ClojureScript's
+   `char?` for `.cljc` interop; Clojure/JVM's `char?` tests for the
+   distinct `Character` type, which does not exist here."
+  {:example "(char? \\A) ; => true\n(char? \"a\") ; => true\n(char? \"ab\") ; => false"
+   :see-also ["char" "string?"]}
+  [x]
+  (and (= (type x) :string)
+       (= 1 (php/mb_strlen x "UTF-8"))))
+
 (defn keyword?
   "Returns true if `x` is a keyword, false otherwise."
   [x]
