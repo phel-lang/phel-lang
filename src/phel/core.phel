@@ -472,6 +472,23 @@ Otherwise, it tries to call `__toString`."
           (recur (php/+ i 2)))
         res))))
 
+(defn object-array
+  "Creates a PHP array of the given size initialized to `nil`, or a PHP
+  array containing the elements of the given sequence. Matches Clojure's
+  `object-array` for `.cljc` interop — in Phel the result is a plain PHP
+  array (accessible via `php/aget`/`php/aset`) since PHP has no typed
+  array distinction."
+  {:example "(object-array 3) ; => a PHP array [nil, nil, nil]\n(object-array [1 2 3]) ; => a PHP array [1, 2, 3]"
+   :see-also ["php-indexed-array" "to-php-array"]}
+  [size-or-seq]
+  (if (php/is_int size-or-seq)
+    (if (php/< size-or-seq 0)
+      (throw (php/new InvalidArgumentException "Size for 'object-array' must be non-negative"))
+      (if (php/=== 0 size-or-seq)
+        (php/array)
+        (php/array_fill 0 size-or-seq nil)))
+    (to-php-array size-or-seq)))
+
 ;; ------------------------
 ;; Basic sequence operation
 ;; ------------------------
