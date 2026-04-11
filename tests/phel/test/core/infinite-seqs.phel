@@ -17,6 +17,24 @@
   (is (some? (and (range)))
       "range with no args should return truthy value"))
 
+; Regression tests for https://github.com/phel-lang/phel-lang/issues/1286.
+; Comparisons that can short-circuit must not realize an infinite lazy
+; sequence — previously these blew up with an integer-overflow allocation.
+(deftest test-infinite-range-equality-short-circuits
+  (let [r (range)]
+    (is (= r r)
+        "infinite range must short-circuit on identity"))
+  (is (false? (= [] (range)))
+      "empty vector vs infinite range short-circuits on length")
+  (is (false? (= (range) []))
+      "infinite range vs empty vector short-circuits on length")
+  (is (false? (= [1 2 3] (range)))
+      "mismatched prefix vs infinite range short-circuits on element divergence")
+  (is (false? (= (range) [1 2 3]))
+      "infinite range vs mismatched prefix short-circuits on element divergence")
+  (is (= [0 1 2 3 4] (take 5 (range)))
+      "finite prefix compares equal without realizing the infinite tail"))
+
 (deftest test-iterate
   (is (= [1 2 4 8] (take 4 (iterate (fn [x] (* 2 x)) 1)))
       "(take 4 (iterate (fn [x] (* 2 x)) 1))"))

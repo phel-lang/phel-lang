@@ -6,6 +6,7 @@ namespace Phel\Lang\Collections\Vector;
 
 use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
+use Phel\Lang\Collections\LazySeq\LazySeqInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
@@ -91,6 +92,12 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
             }
 
             return true;
+        }
+
+        // Lazy sequences may be infinite — delegate to their own `equals`
+        // method which walks both sides pairwise, avoiding eager realization.
+        if ($other instanceof LazySeqInterface) {
+            return $other->equals($this);
         }
 
         // Also accept objects with toArray() method (like lazy sequences)
