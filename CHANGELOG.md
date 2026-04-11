@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## Unreleased
 
 ### Added
+- `pmap` in `phel\async` for fiber-based parallel map, matching Clojure's `pmap` signature (IO-parallel via AMPHP) (#793)
 - `phel\async` module with `async`, `await`, `delay`, `await-all`, `await-any`, and `->closure` for AMPHP-based concurrency (#793)
 - `amphp/amp` promoted to a runtime dependency so `phel\async` works out of the box (including from the PHAR), without requiring consumers to install it separately
 - `reify` for anonymous protocol/interface implementation, matching Clojure's `reify` (#1226)
