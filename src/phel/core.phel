@@ -15,6 +15,8 @@
   (:use Phel\Lang\Collections\LinkedList\PersistentListInterface)
   (:use Phel\Lang\Collections\Map\PersistentMapInterface)
   (:use Phel\Lang\Collections\Map\TransientMapInterface)
+  (:use Phel\Lang\Collections\SortedMap\PersistentSortedMap)
+  (:use Phel\Lang\Collections\SortedSet\PersistentSortedSet)
   (:use Phel\Lang\Collections\Struct\AbstractPersistentStruct)
   (:use Phel\Lang\Collections\Vector\PersistentVectorInterface)
   (:use Phel\Lang\Collections\Vector\TransientVectorInterface)
@@ -1104,6 +1106,14 @@ Otherwise, it tries to call `__toString`."
   "Returns true if `x` is a set, false otherwise."
   [x]
   (= (type x) :set))
+
+(defn sorted?
+  "Returns true if `coll` is a sorted collection (sorted-map or sorted-set), false otherwise."
+  {:example "(sorted? (sorted-set 1 2 3)) ; => true"
+   :see-also ["sorted-map" "sorted-set"]}
+  [coll]
+  (or (php/instanceof coll PersistentSortedMap)
+      (php/instanceof coll PersistentSortedSet)))
 
 ;; ------------------
 ;; Sequence operation

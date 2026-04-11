@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 #### Core Language
 - `reify` for anonymous protocol/interface implementation, matching Clojure's `reify` (#1226)
 - `sorted-map`, `sorted-map-by`, `sorted-set`, `sorted-set-by` for Clojure-compatible sorted persistent collections (#1228)
+- `sorted?` predicate for checking whether a collection is a sorted-map or sorted-set, matching Clojure's `sorted?` (#1274)
 - `range` with 0 arguments now returns an infinite lazy sequence starting at 0, matching Clojure's `(range)` (#1259)
 - `letfn` macro for mutually recursive local functions (#1224)
 - `condp` macro for predicate-based conditional dispatch, matching Clojure semantics including `:>>` result threading (#1217)
