@@ -56,6 +56,26 @@
   (is (true? (string? "")) "string? on empty string")
   (is (true? (string? ":test")) "string? on ':test'"))
 
+(deftest test-char?
+  (is (true? (char? "a")) "char? on single-character ASCII string")
+  (is (true? (char? "Z")) "char? on single-character uppercase ASCII")
+  (is (true? (char? " ")) "char? on single space")
+  (is (true? (char? "\n")) "char? on newline")
+  (is (true? (char? \A)) "char? on character literal")
+  (is (true? (char? \space)) "char? on named character literal")
+  (is (true? (char? "ñ")) "char? on single multi-byte UTF-8 character")
+  (is (true? (char? "漢")) "char? on CJK ideograph (single code point)")
+  (is (false? (char? "")) "char? on empty string")
+  (is (false? (char? "ab")) "char? on two-character string")
+  (is (false? (char? "hello")) "char? on multi-character string")
+  (is (false? (char? 65)) "char? on integer")
+  (is (false? (char? 1.0)) "char? on float")
+  (is (false? (char? nil)) "char? on nil")
+  (is (false? (char? true)) "char? on boolean")
+  (is (false? (char? :a)) "char? on keyword")
+  (is (false? (char? 'a)) "char? on symbol")
+  (is (false? (char? ["a"])) "char? on vector"))
+
 (deftest test-keyword?
   (is (true? (keyword? :test)) "keyword? on :test")
   (is (false? (keyword? ":test")) "keyword? on string"))
