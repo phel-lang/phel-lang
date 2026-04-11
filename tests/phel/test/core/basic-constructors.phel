@@ -13,6 +13,17 @@
 (deftest create-hash-map
   (is (= {:a 1 :b 2} (hash-map :a 1 :b 2)) "construct hash-map"))
 
+(deftest create-array-map
+  (is (= {} (array-map)) "array-map with no args is empty")
+  (is (= {:a 1 :b 2} (array-map :a 1 :b 2)) "array-map with key/value pairs")
+  (is (map? (array-map :a 1)) "array-map returns a map")
+  (is (= (hash-map :a 1 :b 2) (array-map :a 1 :b 2))
+      "array-map matches hash-map for the same inputs"))
+
+(deftest array-map-duplicate-keys
+  (is (= {:a 2} (array-map :a 1 :a 2))
+      "array-map handles duplicate keys by replacing earlier values"))
+
 (deftest create-hash-set
   (is (= (hash-set 1 2 3 :a :b :c) (hash-set :a 1 2 :b 3 :c :c 1 2 3)) "construct hash-set"))
 
