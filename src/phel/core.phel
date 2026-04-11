@@ -3106,6 +3106,23 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [x]
   (php/abs x))
 
+(defn float
+  "Coerces `x` to a float. In PHP there is no distinction between float and
+   double; both map to the same native PHP float type. Delegates to PHP's
+   `floatval`, so non-numeric strings return `0.0` and `nil` returns `0.0`."
+  {:example "(float 1) ; => 1.0"
+   :see-also ["double" "int?" "number?"]}
+  [x]
+  (php/floatval x))
+
+(defn double
+  "Coerces `x` to a double. In PHP there is no distinction between float and
+   double; both map to the same native PHP float type. Alias for `float`."
+  {:example "(double 1) ; => 1.0"
+   :see-also ["float" "int?" "number?"]}
+  [x]
+  (php/floatval x))
+
 (defn rand
   "Returns a random number between 0 and 1."
   []
