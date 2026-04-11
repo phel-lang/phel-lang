@@ -93,6 +93,12 @@
   (is (true? (nan? NAN)) "(nan? NAN)")
   (is (false? (nan? 9)) "(nan? 8)"))
 
+(deftest test-NaN?
+  (is (true? (NaN? (php/acos 8))) "(NaN? (php/acos 8)")
+  (is (true? (NaN? php/NAN)) "(NaN? (php/NAN))")
+  (is (true? (NaN? NAN)) "(NaN? NAN)")
+  (is (false? (NaN? 9)) "(NaN? 8)"))
+
 (deftest test-min
   (is (= 1 (min 1 2 3)) "(min 1 2 3)"))
 
