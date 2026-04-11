@@ -12,3 +12,10 @@
 (deftest test-def-duplication
   (let [form (read-string "(do (def a \"first\") (def a \"second\") a)")]
     (is (= "second" (eval form)))))
+
+(deftest test-symbol-with-trailing-quote
+  (let [form (read-string "(let [a 1 a' (+ a 1) a'' (+ a' 1)] [a a' a''])")]
+    (is (= [1 2 3] (eval form)) "symbols may contain `'` in the middle and at the end")))
+
+(deftest test-leading-quote-still-quotes-symbol
+  (is (= 'foo (eval (read-string "'foo"))) "leading `'` is still the quote reader macro"))

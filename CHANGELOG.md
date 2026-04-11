@@ -94,6 +94,7 @@ All notable changes to this project will be documented in this file.
 - `macroexpand` and `macroexpand-1` are now functions (were macros), matching Clojure semantics: quoted forms expand correctly (`(macroexpand '(when 1 2))` → `(if 1 (do 2))`), and unquoted forms evaluate eagerly (`(macroexpand (when 1 2))` → `2`) (#1209)
 - `macroexpand` no longer applies inline expansion to non-macro forms; `(macroexpand '(+ 1 2))` now correctly returns `(+ 1 2)` instead of `(do (assert-non-nil 1 2) (+ 1 2))` (#1208)
 - Lexer no longer swallows a reader conditional (`#?(...)`) following a gensym-suffixed symbol (e.g. `report-success# #?(:phel ...)`), which previously surfaced as a misleading "Unterminated list (BRACKETS)" parse error (#1195)
+- Lexer now accepts `'` inside and at the end of symbol names (e.g. `a'`, `foo''`, `a'b`), matching Clojure's convention where `'` denotes a "transformed" variant; leading `'` is still the quote reader macro (`'foo` → `(quote foo)`) (#1275)
 - Emit `php/...` calls to namespaced PHP functions (e.g. `php/Amp\File\write`) as fully qualified names so they resolve against the global namespace from compiled/cached files (#1180)
 
 ## [0.31.0](https://github.com/phel-lang/phel-lang/compare/v0.30.0...v0.31.0) - 2026-04-03
