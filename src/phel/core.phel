@@ -2500,13 +2500,14 @@ Otherwise, it tries to call `__toString`."
     nil))
 
 (defn realized?
-  "Returns true if a lazy sequence or delay has been realized, false otherwise."
+  "Returns true if a lazy sequence, delay, or future has been realized, false otherwise."
   {:example "(realized? (take 5 (iterate inc 1))) ; => false"
-   :see-also ["delay" "force" "lazy-seq"]}
+   :see-also ["delay" "force" "lazy-seq" "future"]}
   [coll]
   (cond
     (seq? coll) (php/-> coll (isRealized))
     (php/instanceof coll Delay) (php/-> coll (isRealized))
+    (php/instanceof coll \Phel\Lang\PhelFuture) (php/-> coll (isRealized))
     true))
 
 (defn group-by

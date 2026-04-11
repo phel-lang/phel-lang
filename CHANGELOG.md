@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - `phel\async` module with `async`, `await`, `delay`, `await-all`, `await-any`, and `->closure` for AMPHP-based concurrency (#793)
 - `pmap` for fiber-based parallel map, matching Clojure's `pmap` signature (IO-parallel via AMPHP) (#793)
 - `amphp/amp` promoted to a runtime dependency so `phel\async` works out of the box (including from the PHAR), without requiring consumers to install it separately (#793)
+- Clojure-style `future` macro for starting asynchronous computation; returns a `PhelFuture` that works with the existing `deref` and `realized?` protocols (and the `@` reader shortcut). Built on top of `phel\async`/AMPHP — `deref` blocks the current fiber until the future completes, `realized?` is a non-blocking state check. `await`, `await-all`, and `await-any` accept both `PhelFuture` wrappers and raw `Amp\Future` values. Timeout variants (`deref` with timeout) and cancellation (`future-cancel`, `future-cancelled?`, `future-done?`) are deferred to follow-up issues (#1287)
 
 #### Reader & Compiler
 - Clojure-style symbolic number literals `##Inf`, `##-Inf`, `##NaN` matching PHP's `INF`, `-INF`, `NAN` for `.cljc` interop (#1276)
