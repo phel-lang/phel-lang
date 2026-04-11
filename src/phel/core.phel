@@ -188,22 +188,27 @@
 
 (def meta
   {:macro true
-   :doc "Gets the metadata of the given object or definition."}
+   :doc "Gets the metadata attached to a value.
+  For a quoted symbol (`(meta 'foo)`) the definition metadata registered via `def` is returned.
+  For any other expression the value is looked up at runtime and its `MetaInterface` metadata returned."}
   (fn [obj]
-    (let [sym (if (symbol? obj)
-                obj
-                (if (list? obj)
-                  (if (= (first obj) 'quote)
-                    (if (symbol? (second obj))
-                      (second obj)
-                      nil)
-                    nil)
-                  nil))]
-      (if sym
-        (let [ns (php/-> sym (getNamespace))]
+    ;; Only the quoted-symbol form routes to definition metadata. A bare symbol
+    ;; could refer to a local binding (let / fn parameter), so we must resolve it
+    ;; at runtime and call `getMeta` on its value; otherwise `(meta coll)` inside
+    ;; a function body would wrongly return nil for locals that were attached
+    ;; metadata via `with-meta`.
+    (let [quoted-sym (if (list? obj)
+                       (if (= (first obj) 'quote)
+                         (if (symbol? (second obj))
+                           (second obj)
+                           nil)
+                         nil)
+                       nil)]
+      (if quoted-sym
+        (let [ns (php/-> quoted-sym (getNamespace))]
           (if ns
-            `(php/:: \Phel (getDefinitionMetaData ~ns ~(php/-> sym (getName))))
-            `(php/:: \Phel (getDefinitionMetaData (php/str_replace "-" "_" *ns*) ~(php/-> sym (getName))))))
+            `(php/:: \Phel (getDefinitionMetaData ~ns ~(php/-> quoted-sym (getName))))
+            `(php/:: \Phel (getDefinitionMetaData (php/str_replace "-" "_" *ns*) ~(php/-> quoted-sym (getName))))))
         `(let [obj-meta ~obj]
            (if (php/instanceof obj-meta \Phel\Lang\MetaInterface)
              (php/-> obj-meta (getMeta))
@@ -1299,6 +1304,10 @@ Otherwise, it tries to call `__toString`."
   "Associates a single key-value pair with a collection."
   [ds key value]
   (cond
+    ;; Clojure-compat: (assoc nil k v) creates a fresh map instead of erroring.
+    (nil? ds)
+    (php/-> {} (put key value))
+
     (php-array? ds)
     (throw (php/new InvalidArgumentException "Cannot call assoc on pure PHP arrays. Use (php/aset ds key value)"))
 
@@ -1308,9 +1317,12 @@ Otherwise, it tries to call `__toString`."
     (or (vector? ds) (php/instanceof ds TransientVectorInterface))
     (php/-> ds (update key value))
 
-    (do
-      (php/aset ds key value)
-      ds)))
+    ;; Explicit rejection for any other shape (string, list, set, sorted set,
+    ;; number, …). Without this the old fall-through silently mutated strings
+    ;; via `php/aset` and leaked raw PHP "offsetSet not supported" errors for
+    ;; lists and sets.
+    (throw (php/new InvalidArgumentException
+                    (str "assoc expects a map, vector, struct, or nil; got " (type ds))))))
 
 (defn assoc
   "Associates one or more key-value pairs with a collection.
@@ -3323,10 +3335,15 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (php/is_infinite x))
 
 (defn abs
-  "Returns the absolute value of `x`."
+  "Returns the absolute value of `x`.
+  Throws `InvalidArgumentException` if `x` is not a number, matching Clojure
+  rather than PHP's permissive `abs(null) => 0` / `abs(\"abc\")` coercions."
   {:example "(abs -5) ; => 5"}
   [x]
-  (php/abs x))
+  (if (number? x)
+    (php/abs x)
+    (throw (php/new InvalidArgumentException
+                    (str "abs expects a number, got " (type x))))))
 
 (defn float
   "Coerces `x` to a float. In PHP there is no distinction between float and

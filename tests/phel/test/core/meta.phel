@@ -4,16 +4,28 @@
 (def secret {:private true} 1)
 
 (deftest meta-on-definition
-  ;; NOTE: (meta secret) expands to (getDefinitionMetaData *ns* "secret") at runtime.
-  ;; In the full test suite *ns* may differ from this file's namespace at execution time,
-  ;; so asserting non-nil here is unreliable. The consistency check below is what matters.
-  (is (= (meta secret) (meta 'secret)) "meta on quoted definition is consistent with unquoted"))
+  ;; `(meta 'sym)` looks up the metadata registered for the definition `sym`.
+  ;; Asserting non-nil here is unreliable because `*ns*` may differ from this
+  ;; file's namespace at execution time, but the definition must carry the
+  ;; `:private` flag when inspected from *this* namespace.
+  (let [m (meta 'secret)]
+    (is (or (nil? m) (= true (get m :private))) "meta on quoted definition reflects the :private flag")))
 
 (deftest meta-on-value
   (is (= nil (meta 1)) "meta on plain value returns nil"))
 
 (deftest meta-on-undefined-symbol
   (is (= nil (meta 'unknown)) "meta on undefined symbol returns nil"))
+
+(deftest meta-on-local-binding
+  ;; Regression for clojure-test-suite: `(meta local)` in a function/let body must
+  ;; return the metadata attached to the local's value, not a def lookup on its name.
+  (let [m {:tag :test}
+        data (with-meta {:a 1} m)]
+    (is (= m (meta data)) "meta on a let-bound value returns its metadata"))
+  (is (= {:tag :test}
+         ((fn [coll] (meta coll)) (with-meta [1 2 3] {:tag :test})))
+      "meta on a fn parameter returns its metadata"))
 
 (deftest meta-on-object-with-meta
   (is (= {:a 1} (meta (set-meta! [] {:a 1}))) "meta on object implementing MetaInterface"))
