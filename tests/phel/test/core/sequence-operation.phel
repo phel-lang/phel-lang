@@ -115,6 +115,35 @@
   (is (thrown? \InvalidArgumentException (conj {} "invalid")) "conj on map with non-indexed, non-associative entry throws error")
   (is (thrown? \InvalidArgumentException (conj "string" 1)) "conj on invalid collection type throws error"))
 
+(deftest test-conj-bang-zero-arity
+  (is (= [] (persistent (conj!))) "conj! with no args returns a new empty transient vector")
+  (is (= [1 2 3] (persistent (conj! (conj!) 1 2 3))) "conj! chained from zero-arity accumulates values"))
+
+(deftest test-conj-bang-identity
+  (let [t (transient [1 2])]
+    (is (= [1 2] (persistent (conj! t))) "conj! with only tcoll returns tcoll unchanged")))
+
+(deftest test-conj-bang-vector
+  (is (= [1 2 3] (persistent (conj! (transient [1 2]) 3))) "conj! on transient vector appends")
+  (is (= [1 2 3 4 5] (persistent (conj! (transient [1 2]) 3 4 5))) "conj! variadic on transient vector appends all")
+  (is (= [1] (persistent (conj! (transient []) 1))) "conj! on empty transient vector"))
+
+(deftest test-conj-bang-set
+  (is (= #{1 2 3} (persistent (conj! (transient #{1 2}) 3))) "conj! on transient set adds element")
+  (is (= #{1 2 3 4} (persistent (conj! (transient #{1 2}) 3 4))) "conj! variadic on transient set adds all")
+  (is (= #{1 2} (persistent (conj! (transient #{1 2}) 1))) "conj! on transient set with duplicate is a no-op"))
+
+(deftest test-conj-bang-map
+  (is (= {:a 1} (persistent (conj! (transient {}) [:a 1]))) "conj! on transient map with [key value] pair")
+  (is (= {:a 1 :b 2 :c 3} (persistent (conj! (transient {:a 1}) [:b 2] [:c 3]))) "conj! variadic on transient map"))
+
+(deftest test-conj-bang-error-on-persistent
+  (is (thrown? \InvalidArgumentException (conj! [1 2] 3)) "conj! on persistent vector throws")
+  (is (thrown? \InvalidArgumentException (conj! #{1 2} 3)) "conj! on persistent set throws")
+  (is (thrown? \InvalidArgumentException (conj! {} [:a 1])) "conj! on persistent map throws")
+  (is (thrown? \InvalidArgumentException (conj! "string" 1)) "conj! on string throws")
+  (is (thrown? \InvalidArgumentException (conj! nil 1)) "conj! on nil throws"))
+
 (deftest test-pop
   (let [x (php/array 1 2)
         y (pop x)]
