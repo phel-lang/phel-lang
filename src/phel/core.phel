@@ -54,6 +54,14 @@
   {:doc "Returns the path of the current source file."}
   "")
 
+(def *assert*
+  {:doc "Controls whether `assert` expands to a runtime check. When logical
+  false at macroexpansion time, `assert` expands to nil and performs no
+  runtime check, matching Clojure's compile-time `*assert*` semantics.
+  Defaults to `true`. To disable globally, set the core binding before
+  compilation via PHP: `\\Phel::addDefinition(\"phel\\\\core\", \"*assert*\", false)`."}
+  true)
+
 ;; --------------------------------------------
 ;; Basic methods for quasiquote and destructure
 ;; --------------------------------------------
@@ -4250,14 +4258,17 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 
 (defmacro assert
   "Throws an exception if expr is falsy. Optional message string.
-  Used for precondition checking in application code."
-  {:see-also ["when" "throw"]}
+  Used for precondition checking in application code. When `*assert*`
+  is logical false at macroexpansion time, `assert` expands to nil and
+  performs no runtime check."
+  {:see-also ["when" "throw" "*assert*"]}
   [expr & [message]]
-  (let [msg (if message
-              `(str "Assert failed: " ~message)
-              `(str "Assert failed: " (quote ~expr)))]
-    `(when (not ~expr)
-       (throw (php/new \InvalidArgumentException ~msg)))))
+  (when *assert*
+    (let [msg (if message
+                `(str "Assert failed: " ~message)
+                `(str "Assert failed: " (quote ~expr)))]
+      `(when (not ~expr)
+         (throw (php/new \InvalidArgumentException ~msg))))))
 
 (defn name
   "Returns the name string of a string, keyword or symbol."
