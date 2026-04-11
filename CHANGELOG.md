@@ -56,6 +56,7 @@ All notable changes to this project will be documented in this file.
 - `float` and `double` coercion functions, returning a PHP float (PHP has no float/double distinction); matches Clojure's `(float x)` / `(double x)` for `.cljc` interop (#1282)
 - `object-array` function for creating a PHP array of a given size (initialized to `nil`) or from the elements of a sequence. PHP has no typed-array distinction, so `object-array` returns a plain PHP indexed array accessible via `php/aget`/`php/aset`, matching Clojure's `object-array` for `.cljc` interop (#1318)
 - `array-map` function for constructing a map from key/value pairs, with later values replacing earlier ones on duplicate keys. Phel has no distinct array-map type, so the result is the same persistent map as `hash-map` — `array-map` exists for `.cljc` interop with Clojure sources (#1319)
+- `to-array` function for converting any collection (vector, list, set, map, PHP array, or `nil`) into a plain PHP array, matching Clojure's `to-array` for `.cljc` interop (#1320)
 - `NaN?` predicate as an alias for `nan?`, matching Clojure's `NaN?` spelling for `.cljc` interop (#1284)
 
 #### Clojure-Compatible Aliases
