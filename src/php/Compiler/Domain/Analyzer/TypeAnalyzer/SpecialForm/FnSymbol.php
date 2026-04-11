@@ -25,11 +25,10 @@ use function count;
 /**
  * (fn name? [params] body) or (fn name? ([params] body)+).
  *
- * Creates an anonymous function (closure). The optional name symbol
- * (Clojure-style `(fn name ...)`) is accepted for `.cljc` interop but is
- * currently discarded — it is not bound in the function body. Full
- * Clojure-style self-binding for named-fn recursion is tracked as a
- * follow-up to #1279.
+ * Creates an anonymous function (closure). When a leading name symbol is
+ * supplied (Clojure-style `(fn name ...)`), the name is bound as a local
+ * inside the body so the function can refer to itself for recursion
+ * (e.g. `(fn fact [n] (if (zero? n) 1 (* n (fact (dec n)))))`).
  */
 final readonly class FnSymbol implements SpecialFormAnalyzerInterface
 {
@@ -44,11 +43,11 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation("'fn requires at least one argument", $list);
         }
 
-        $list = $this->stripOptionalName($list);
+        [$name, $list] = $this->extractOptionalName($list);
 
         $second = $list->get(1);
         if ($second instanceof PersistentVectorInterface) {
-            return $this->analyzeSingle($list, $env);
+            return $this->analyzeSingle($list, $env, $name);
         }
 
         if (!($second instanceof PersistentListInterface)) {
@@ -70,7 +69,12 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
                     ...$clause->toArray(),
                 ])->copyLocationFrom($clause),
                 $env,
+                $name,
             );
+
+            if ($name instanceof Symbol) {
+                $fnNode->markAsMultiArityChild();
+            }
 
             if ($fnNode->isVariadic()) {
                 if ($hasVariadic) {
@@ -87,23 +91,25 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
             $fnNodes[] = $fnNode;
         }
 
-        return new MultiFnNode($env, $fnNodes, $list->getStartLocation());
+        return new MultiFnNode($env, $fnNodes, $list->getStartLocation(), $name);
     }
 
     /**
      * Clojure's `fn` allows an optional leading name symbol:
      *   `(fn name? [params] body)` or `(fn name? ([params] body)+)`.
      *
-     * Phel accepts the name for `.cljc` interop but currently discards it —
-     * the compiled closure is anonymous, identical to the unnamed form. This
-     * strips the name up front so the rest of the pipeline is unchanged. The
-     * rebuilt list reuses the source location of the original so error
-     * reporting still points at the user's form.
+     * Extracts the name (if present) and returns it alongside a rebuilt list
+     * that has the name removed so the rest of the pipeline can process the
+     * arguments uniformly. The rebuilt list reuses the source location of the
+     * original so error reporting still points at the user's form.
+     *
+     * @return array{0: ?Symbol, 1: PersistentListInterface}
      */
-    private function stripOptionalName(PersistentListInterface $list): PersistentListInterface
+    private function extractOptionalName(PersistentListInterface $list): array
     {
-        if (!($list->get(1) instanceof Symbol)) {
-            return $list;
+        $second = $list->get(1);
+        if (!($second instanceof Symbol)) {
+            return [null, $list];
         }
 
         $elements = [];
@@ -116,25 +122,53 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
             $elements[] = $list->get($i);
         }
 
-        return Phel::list($elements)->copyLocationFrom($list);
+        return [$second, Phel::list($elements)->copyLocationFrom($list)];
     }
 
-    private function analyzeSingle(PersistentListInterface $list, NodeEnvironmentInterface $env): FnNode
-    {
+    private function analyzeSingle(
+        PersistentListInterface $list,
+        NodeEnvironmentInterface $env,
+        ?Symbol $name = null,
+    ): FnNode {
         $this->verifyArguments($list);
 
         $fnSymbolTuple = FnSymbolTuple::createWithTuple($list);
         $recurFrame = new RecurFrame($fnSymbolTuple->params());
 
+        // If the fn's name collides with one of its parameters, the parameter
+        // shadows the self-reference in the body — there is no way to reach
+        // the outer fn from within its own body. Drop the self-binding so we
+        // don't emit a colliding `use (&$name)` / `$name = $this;`.
+        $effectiveName = $this->resolveEffectiveName($name, $fnSymbolTuple->params());
+
         return new FnNode(
             $env,
             $fnSymbolTuple->params(),
-            $this->analyzeBody($fnSymbolTuple, $recurFrame, $env),
-            $this->buildUsesFromEnv($env, $fnSymbolTuple),
+            $this->analyzeBody($fnSymbolTuple, $recurFrame, $env, $effectiveName),
+            $this->buildUsesFromEnv($env, $fnSymbolTuple, $effectiveName),
             $fnSymbolTuple->isVariadic(),
             $recurFrame->isActive(),
             $list->getStartLocation(),
+            $effectiveName,
         );
+    }
+
+    /**
+     * @param list<Symbol> $params
+     */
+    private function resolveEffectiveName(?Symbol $name, array $params): ?Symbol
+    {
+        if (!$name instanceof Symbol) {
+            return null;
+        }
+
+        foreach ($params as $param) {
+            if ($param->getName() === $name->getName()) {
+                return null;
+            }
+        }
+
+        return $name;
     }
 
     private function verifyArguments(PersistentListInterface $list): void
@@ -152,6 +186,7 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         FnSymbolTuple $fnSymbolTuple,
         RecurFrame $recurFrame,
         NodeEnvironmentInterface $env,
+        ?Symbol $name = null,
     ): AbstractNode {
         $listBody = $fnSymbolTuple->parentListBody();
 
@@ -163,8 +198,16 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
 
         $body = $this->wrapWithPreAndPostConditions($body, $preConditions, $postConditions);
 
+        $locals = $fnSymbolTuple->params();
+        if ($name instanceof Symbol) {
+            // Bind the fn's own name as a local inside the body so self-recursion
+            // resolves to a LocalVarNode (which the emitter turns into the
+            // self-binding variable / $this) instead of a global lookup.
+            $locals = [$name, ...$locals];
+        }
+
         $bodyEnv = $env
-            ->withMergedLocals($fnSymbolTuple->params())
+            ->withMergedLocals($locals)
             ->withReturnContext()
             ->withAddedRecurFrame($recurFrame);
 
@@ -194,9 +237,20 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         ])->copyLocationFrom($listBody);
     }
 
-    private function buildUsesFromEnv(NodeEnvironmentInterface $env, FnSymbolTuple $fnSymbolTuple): array
-    {
-        return array_values(array_diff($env->getLocals(), $fnSymbolTuple->params()));
+    private function buildUsesFromEnv(
+        NodeEnvironmentInterface $env,
+        FnSymbolTuple $fnSymbolTuple,
+        ?Symbol $name = null,
+    ): array {
+        $excluded = $fnSymbolTuple->params();
+        if ($name instanceof Symbol) {
+            // The fn's own name is introduced into the body's local scope but
+            // must never be captured as a `use (...)` for the compiled closure:
+            // it is provided by the self-binding emission path instead.
+            $excluded = [$name, ...$excluded];
+        }
+
+        return array_values(array_diff($env->getLocals(), $excluded));
     }
 
     /**

@@ -23,6 +23,16 @@
   (is (= [] (vec nil)) "vec from nil")
   (is (vector? (vec '(1 2 3))) "vec returns vector type"))
 
+(deftest test-vec-from-hash-map
+  (is (= [] (vec {})) "empty map produces empty vec")
+  (let [v (vec {:a 1})]
+    (is (= 1 (count v)) "one entry from single-entry map")
+    (is (= [:a 1] (first v)) "entry is a 2-element vector")
+    (is (vector? v) "result is a vector"))
+  (let [v (vec {:a 1 :b 2})]
+    (is (= 2 (count v)) "two entries from two-entry map")
+    (is (= #{[:a 1] [:b 2]} (set v)) "entries preserved as 2-element vectors")))
+
 (deftest test-set-coercion
   (is (= #{1 2 3} (set [1 2 3])) "set from vector")
   (is (= #{1 2 3} (set '(1 2 3))) "set from list")

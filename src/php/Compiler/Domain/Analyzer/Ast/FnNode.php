@@ -18,6 +18,8 @@ final class FnNode extends AbstractNode
      */
     private bool $isDefinition = false;
 
+    private bool $isMultiArityChild = false;
+
     public function __construct(
         NodeEnvironmentInterface $env,
         private readonly array $params,
@@ -26,8 +28,26 @@ final class FnNode extends AbstractNode
         private readonly bool $isVariadic,
         private readonly bool $recurs,
         ?SourceLocation $sourceLocation = null,
+        private readonly ?Symbol $name = null,
     ) {
         parent::__construct($env, $sourceLocation);
+    }
+
+    public function getName(): ?Symbol
+    {
+        return $this->name;
+    }
+
+    public function markAsMultiArityChild(): self
+    {
+        $this->isMultiArityChild = true;
+
+        return $this;
+    }
+
+    public function isMultiArityChild(): bool
+    {
+        return $this->isMultiArityChild;
     }
 
     public function markAsDefinition(): self

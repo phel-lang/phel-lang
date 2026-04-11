@@ -352,7 +352,7 @@ final class FnSymbolTest extends TestCase
         self::assertSame(RuntimeException::class, $exceptionExpr->getClassExpr()->getValue());
     }
 
-    public function test_named_single_arity_fn_is_analyzed_as_unnamed(): void
+    public function test_named_single_arity_fn_stores_name_on_node(): void
     {
         // (fn foo [x] x)
         $namedList = Phel::list([
@@ -373,11 +373,100 @@ final class FnSymbolTest extends TestCase
         $unnamed = $this->analyze($unnamedList);
 
         self::assertInstanceOf(FnNode::class, $named);
+        self::assertInstanceOf(Symbol::class, $named->getName());
+        self::assertSame('foo', $named->getName()->getName());
         self::assertEquals($unnamed->getParams(), $named->getParams());
         self::assertSame($unnamed->isVariadic(), $named->isVariadic());
     }
 
-    public function test_named_multi_arity_fn_is_analyzed_as_unnamed(): void
+    public function test_anonymous_fn_has_null_name(): void
+    {
+        // (fn [x] x)
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_FN),
+            Phel::vector([Symbol::create('x')]),
+            Symbol::create('x'),
+        ]);
+
+        $node = $this->analyze($list);
+
+        self::assertInstanceOf(FnNode::class, $node);
+        self::assertNull($node->getName());
+        self::assertFalse($node->isMultiArityChild());
+    }
+
+    public function test_named_fn_is_not_marked_as_multi_arity_child_when_single_arity(): void
+    {
+        // (fn foo [x] x) — single-arity named fn
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_FN),
+            Symbol::create('foo'),
+            Phel::vector([Symbol::create('x')]),
+            Symbol::create('x'),
+        ]);
+
+        $node = $this->analyze($list);
+
+        self::assertInstanceOf(FnNode::class, $node);
+        self::assertFalse($node->isMultiArityChild());
+    }
+
+    public function test_named_multi_arity_children_are_marked(): void
+    {
+        // (fn foo ([x] x) ([x y] y))
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_FN),
+            Symbol::create('foo'),
+            Phel::list([
+                Phel::vector([Symbol::create('x')]),
+                Symbol::create('x'),
+            ]),
+            Phel::list([
+                Phel::vector([Symbol::create('x'), Symbol::create('y')]),
+                Symbol::create('y'),
+            ]),
+        ]);
+
+        $node = (new FnSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertInstanceOf(MultiFnNode::class, $node);
+        self::assertInstanceOf(Symbol::class, $node->getName());
+        self::assertSame('foo', $node->getName()->getName());
+
+        foreach ($node->getFnNodes() as $child) {
+            self::assertTrue($child->isMultiArityChild());
+            self::assertInstanceOf(Symbol::class, $child->getName());
+            self::assertSame('foo', $child->getName()->getName());
+        }
+    }
+
+    public function test_unnamed_multi_arity_children_are_not_marked(): void
+    {
+        // (fn ([x] x) ([x y] y))
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_FN),
+            Phel::list([
+                Phel::vector([Symbol::create('x')]),
+                Symbol::create('x'),
+            ]),
+            Phel::list([
+                Phel::vector([Symbol::create('x'), Symbol::create('y')]),
+                Symbol::create('y'),
+            ]),
+        ]);
+
+        $node = (new FnSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertInstanceOf(MultiFnNode::class, $node);
+        self::assertNull($node->getName());
+
+        foreach ($node->getFnNodes() as $child) {
+            self::assertFalse($child->isMultiArityChild());
+            self::assertNull($child->getName());
+        }
+    }
+
+    public function test_named_multi_arity_fn_builds_multi_fn_node(): void
     {
         // (fn foo ([x] x) ([x y] y))
         $namedList = Phel::list([
@@ -398,6 +487,8 @@ final class FnSymbolTest extends TestCase
         self::assertInstanceOf(MultiFnNode::class, $node);
         self::assertCount(2, $node->getFnNodes());
         self::assertSame(1, $node->getMinArity());
+        self::assertInstanceOf(Symbol::class, $node->getName());
+        self::assertSame('foo', $node->getName()->getName());
     }
 
     public function test_named_zero_arity_fn(): void
@@ -441,9 +532,10 @@ final class FnSymbolTest extends TestCase
         );
     }
 
-    public function test_name_shadowing_core_fn_is_still_accepted(): void
+    public function test_name_shadowing_core_fn_is_accepted_and_bound_locally(): void
     {
-        // (fn map [x] x) — name is discarded, not resolved against core defs.
+        // (fn map [x] x) — the local binding shadows the core `map` inside
+        // the body; outside the body the core def is untouched.
         $list = Phel::list([
             Symbol::create(Symbol::NAME_FN),
             Symbol::create('map'),
@@ -454,6 +546,8 @@ final class FnSymbolTest extends TestCase
         $node = $this->analyze($list);
 
         self::assertInstanceOf(FnNode::class, $node);
+        self::assertInstanceOf(Symbol::class, $node->getName());
+        self::assertSame('map', $node->getName()->getName());
         self::assertEquals(
             [Symbol::create('x')],
             $node->getParams(),
