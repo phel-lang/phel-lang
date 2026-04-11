@@ -1,0 +1,20 @@
+--PHEL--
+(def x \space)
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "x",
+  " ",
+  \Phel::map(
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/char-literal-named-space.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/char-literal-named-space.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 14
+    )
+  )
+);
