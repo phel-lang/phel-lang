@@ -1,5 +1,5 @@
 (ns phel-test\test\core\set-operation
-  (:require phel\test :refer [deftest is]))
+  (:require phel\test :refer [deftest is thrown?]))
 
 (deftest test-set-union
   (is (= (hash-set) (union)) "set 0-ary union")
@@ -35,3 +35,15 @@
   (is (superset? (hash-set 1 2 3) (hash-set 1 2 3)) "equal sets are supersets")
   (is (= false (superset? (hash-set 1 2) (hash-set 1 2 3))) "subset is not superset")
   (is (= false (superset? (hash-set 1 2 3) (hash-set 4))) "disjoint is not superset"))
+
+(deftest test-disj
+  (is (= (hash-set 1 2 3) (disj (hash-set 1 2 3))) "disj with no keys is a no-op")
+  (is (= (hash-set 1 3) (disj (hash-set 1 2 3) 2)) "disj removes a single key")
+  (is (= (hash-set 1) (disj (hash-set 1 2 3) 2 3)) "disj removes multiple keys")
+  (is (= (hash-set 1 2) (disj (hash-set 1 2) 99)) "disj non-existent key is a no-op")
+  (is (= (hash-set) (disj (hash-set))) "disj on empty set")
+  (is (= (hash-set) (disj (hash-set 1) 1)) "disj removing only element yields empty set")
+  (is (= (sorted-set 1 3) (disj (sorted-set 1 2 3) 2)) "disj works on sorted-set")
+  (is (= (sorted-set 1) (disj (sorted-set 1 2 3) 2 3)) "disj removes multiple keys from sorted-set")
+  (is (nil? (disj nil 1)) "disj on nil returns nil")
+  (is (thrown? \InvalidArgumentException (disj [1 2 3] 1)) "disj on vector throws InvalidArgumentException"))
