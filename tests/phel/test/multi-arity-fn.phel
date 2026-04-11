@@ -21,3 +21,15 @@
   (is (= [1 2 []] (f-var-dis 1 2)) "two args no rest")
   (is (= [1 2 [3 4]] (f-var-dis 1 2 3 4)) "variadic with rest")
   (is (thrown? \InvalidArgumentException (f-var-dis)) "no matching arity"))
+
+(deftest named-fn-single-arity
+  (is (= 42 ((fn foo [x] x) 42)) "named single-arity fn")
+  (is (= 42 ((fn foo [] 42))) "named zero-arity fn"))
+
+(deftest named-fn-multi-arity
+  (is (= [1 2] ((fn foo ([x] x) ([x y] [x y])) 1 2)) "named multi-arity two-arg")
+  (is (= 1 ((fn foo ([x] x) ([x y] [x y])) 1)) "named multi-arity one-arg"))
+
+(deftest named-fn-variadic
+  (is (= [2 3] ((fn foo [x & xs] xs) 1 2 3)) "named variadic collects rest")
+  (is (= [] ((fn foo [x & xs] xs) 1)) "named variadic with no rest"))

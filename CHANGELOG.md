@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - `amphp/amp` promoted to a runtime dependency so `phel\async` works out of the box (including from the PHAR), without requiring consumers to install it separately (#793)
 
 #### Reader & Compiler
+- `fn` accepts an optional name symbol as the first argument (e.g. `(fn my-name [x] x)` and `(fn my-name ([x] ...) ([x y] ...))`), matching Clojure's `(fn name? ...)` signature for `.cljc` interop. The name is currently discarded (not bound in the body); self-binding for named-fn recursion is deferred to a follow-up (#1279)
 - Dot namespace separator and Clojure aliasing for fully qualified names, enabling `phel.core/fn`, `clojure.core/fn` in code (#1251)
 - Accept `.` as an alternate namespace separator in `(ns ...)`, `(in-ns ...)`, `:require`, and `:use` forms, enabling Clojure-style namespaces (e.g. `(ns my.cljc.file)`) for `.cljc` interop (#1177)
 - Accept Clojure-style vector entries in `:require`, e.g. `(:require [phel\str :as s :refer [upper-case]])`, including multiple vector entries in a single `:require` clause, for `.cljc` interop (#1183)

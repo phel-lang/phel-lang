@@ -1,0 +1,7 @@
+--PHEL--
+(fn foo [x & xs] xs)
+--PHP--
+(function($x, ...$xs) {
+  $xs = \Phel::vector($xs);
+  return $xs;
+});

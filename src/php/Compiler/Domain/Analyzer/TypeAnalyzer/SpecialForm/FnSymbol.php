@@ -23,9 +23,13 @@ use function array_slice;
 use function count;
 
 /**
- * (fn [params] body).
+ * (fn name? [params] body) or (fn name? ([params] body)+).
  *
- * Creates an anonymous function (closure).
+ * Creates an anonymous function (closure). The optional name symbol
+ * (Clojure-style `(fn name ...)`) is accepted for `.cljc` interop but is
+ * currently discarded — it is not bound in the function body. Full
+ * Clojure-style self-binding for named-fn recursion is tracked as a
+ * follow-up to #1279.
  */
 final readonly class FnSymbol implements SpecialFormAnalyzerInterface
 {
@@ -39,6 +43,8 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         if (count($list) < 2) {
             throw AnalyzerException::withLocation("'fn requires at least one argument", $list);
         }
+
+        $list = $this->stripOptionalName($list);
 
         $second = $list->get(1);
         if ($second instanceof PersistentVectorInterface) {
@@ -82,6 +88,35 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         }
 
         return new MultiFnNode($env, $fnNodes, $list->getStartLocation());
+    }
+
+    /**
+     * Clojure's `fn` allows an optional leading name symbol:
+     *   `(fn name? [params] body)` or `(fn name? ([params] body)+)`.
+     *
+     * Phel accepts the name for `.cljc` interop but currently discards it —
+     * the compiled closure is anonymous, identical to the unnamed form. This
+     * strips the name up front so the rest of the pipeline is unchanged. The
+     * rebuilt list reuses the source location of the original so error
+     * reporting still points at the user's form.
+     */
+    private function stripOptionalName(PersistentListInterface $list): PersistentListInterface
+    {
+        if (!($list->get(1) instanceof Symbol)) {
+            return $list;
+        }
+
+        $elements = [];
+        $count = count($list);
+        for ($i = 0; $i < $count; ++$i) {
+            if ($i === 1) {
+                continue;
+            }
+
+            $elements[] = $list->get($i);
+        }
+
+        return Phel::list($elements)->copyLocationFrom($list);
     }
 
     private function analyzeSingle(PersistentListInterface $list, NodeEnvironmentInterface $env): FnNode

@@ -10,6 +10,7 @@ use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
+use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
@@ -58,10 +59,12 @@ final class FnSymbolTest extends TestCase
         $this->expectException(AbstractLocatedException::class);
         $this->expectExceptionMessage("Second argument of 'fn must be a vector");
 
-        // This is the same as: (fn anything)
+        // This is the same as: (fn 42) — a leading non-Symbol, non-vector,
+        // non-list form should still be rejected. (A leading Symbol would be
+        // accepted as the optional Clojure-style name.)
         $list = Phel::list([
             Symbol::create(Symbol::NAME_FN),
-            Symbol::create('anything'),
+            42,
         ]);
 
         $this->analyze($list);
@@ -347,6 +350,114 @@ final class FnSymbolTest extends TestCase
         self::assertInstanceOf(PhpNewNode::class, $exceptionExpr);
         self::assertInstanceOf(LiteralNode::class, $exceptionExpr->getClassExpr());
         self::assertSame(RuntimeException::class, $exceptionExpr->getClassExpr()->getValue());
+    }
+
+    public function test_named_single_arity_fn_is_analyzed_as_unnamed(): void
+    {
+        // (fn foo [x] x)
+        $namedList = Phel::list([
+            Symbol::create(Symbol::NAME_FN),
+            Symbol::create('foo'),
+            Phel::vector([Symbol::create('x')]),
+            Symbol::create('x'),
+        ]);
+
+        // (fn [x] x)
+        $unnamedList = Phel::list([
+            Symbol::create(Symbol::NAME_FN),
+            Phel::vector([Symbol::create('x')]),
+            Symbol::create('x'),
+        ]);
+
+        $named = $this->analyze($namedList);
+        $unnamed = $this->analyze($unnamedList);
+
+        self::assertInstanceOf(FnNode::class, $named);
+        self::assertEquals($unnamed->getParams(), $named->getParams());
+        self::assertSame($unnamed->isVariadic(), $named->isVariadic());
+    }
+
+    public function test_named_multi_arity_fn_is_analyzed_as_unnamed(): void
+    {
+        // (fn foo ([x] x) ([x y] y))
+        $namedList = Phel::list([
+            Symbol::create(Symbol::NAME_FN),
+            Symbol::create('foo'),
+            Phel::list([
+                Phel::vector([Symbol::create('x')]),
+                Symbol::create('x'),
+            ]),
+            Phel::list([
+                Phel::vector([Symbol::create('x'), Symbol::create('y')]),
+                Symbol::create('y'),
+            ]),
+        ]);
+
+        $node = (new FnSymbol($this->analyzer))->analyze($namedList, NodeEnvironment::empty());
+
+        self::assertInstanceOf(MultiFnNode::class, $node);
+        self::assertCount(2, $node->getFnNodes());
+        self::assertSame(1, $node->getMinArity());
+    }
+
+    public function test_named_zero_arity_fn(): void
+    {
+        // (fn foo [] 42)
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_FN),
+            Symbol::create('foo'),
+            Phel::vector([]),
+            42,
+        ]);
+
+        $node = $this->analyze($list);
+
+        self::assertInstanceOf(FnNode::class, $node);
+        self::assertSame([], $node->getParams());
+        self::assertFalse($node->isVariadic());
+    }
+
+    public function test_named_variadic_fn(): void
+    {
+        // (fn foo [x & xs] xs)
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_FN),
+            Symbol::create('foo'),
+            Phel::vector([
+                Symbol::create('x'),
+                Symbol::create('&'),
+                Symbol::create('xs'),
+            ]),
+            Symbol::create('xs'),
+        ]);
+
+        $node = $this->analyze($list);
+
+        self::assertInstanceOf(FnNode::class, $node);
+        self::assertTrue($node->isVariadic());
+        self::assertEquals(
+            [Symbol::create('x'), Symbol::create('xs')],
+            $node->getParams(),
+        );
+    }
+
+    public function test_name_shadowing_core_fn_is_still_accepted(): void
+    {
+        // (fn map [x] x) — name is discarded, not resolved against core defs.
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_FN),
+            Symbol::create('map'),
+            Phel::vector([Symbol::create('x')]),
+            Symbol::create('x'),
+        ]);
+
+        $node = $this->analyze($list);
+
+        self::assertInstanceOf(FnNode::class, $node);
+        self::assertEquals(
+            [Symbol::create('x')],
+            $node->getParams(),
+        );
     }
 
     private function analyze(PersistentListInterface $list): AbstractNode
