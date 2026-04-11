@@ -1,0 +1,20 @@
+--PHEL--
+(def x -0x8000000000000000)
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "x",
+  (-9223372036854775807 - 1),
+  \Phel::map(
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/negative-hex-int-min.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/negative-hex-int-min.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 27
+    )
+  )
+);
