@@ -38,8 +38,8 @@
 (println "--- Race: first to respond wins ---")
 
 (let [winner (phel\async/await-any
-               [(fetch-data "server-eu" 30)
-                (fetch-data "server-us" 70)
+               [(fetch-data "server-eu" 70)
+                (fetch-data "server-us" 30)
                 (fetch-data "server-asia" 50)])]
   (println "  Winner:" winner))
 
