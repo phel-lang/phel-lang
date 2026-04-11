@@ -283,6 +283,11 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
 
     public function equals(mixed $other): bool
     {
+        // Short-circuit on identity — avoids realizing infinite lazy-seqs when comparing against self.
+        if ($this === $other) {
+            return true;
+        }
+
         $thisArray = $this->toArray();
 
         // Check if other is a sequence or indexable collection

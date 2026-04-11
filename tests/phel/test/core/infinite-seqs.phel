@@ -836,3 +836,10 @@
       "lazy-cat should work with finite lazy sequences")
   (is (= [1 2 3 4 5 6] (lazy-cat [1 2 3] [4 5 6]))
       "lazy-cat should work with vectors"))
+
+(deftest test-equals-infinite-range-to-self
+  (let [r (range)]
+    (is (true? (= r (deref (atom r))))
+        "identity equality on infinite range via atom/deref should not realize the sequence")
+    (is (true? (= r r))
+        "identity equality on infinite range directly should not realize the sequence")))
