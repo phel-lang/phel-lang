@@ -236,6 +236,60 @@ final class LazySeqTest extends TestCase
         $this->assertTrue($a->equals($b));
     }
 
+    /**
+     * Regression test for https://github.com/phel-lang/phel-lang/issues/1286.
+     * Comparing an infinite lazy-seq to a finite value (empty array) must
+     * return false without realizing the infinite side.
+     */
+    public function test_equals_infinite_lazy_seq_to_empty_array_short_circuits(): void
+    {
+        $generator = (static function (): Generator {
+            $i = 0;
+            while (true) {
+                yield $i++;
+            }
+        })();
+
+        $lazySeq = LazySeq::fromGenerator($this->hasher, $this->equalizer, $generator);
+
+        $this->assertFalse($lazySeq->equals([]));
+    }
+
+    /**
+     * Regression test for https://github.com/phel-lang/phel-lang/issues/1286.
+     * Comparing an infinite lazy-seq to a short finite array must return
+     * false after pulling only as many elements as the finite side has +1.
+     */
+    public function test_equals_infinite_lazy_seq_to_finite_array_short_circuits(): void
+    {
+        $generator = (static function (): Generator {
+            $i = 0;
+            while (true) {
+                yield $i++;
+            }
+        })();
+
+        $lazySeq = LazySeq::fromGenerator($this->hasher, $this->equalizer, $generator);
+
+        $this->assertFalse($lazySeq->equals([0, 1, 2]));
+    }
+
+    public function test_equals_finite_lazy_seq_to_matching_array(): void
+    {
+        $lazySeq = LazySeq::fromArray($this->hasher, $this->equalizer, [1, 2, 3]);
+
+        $this->assertTrue($lazySeq->equals([1, 2, 3]));
+    }
+
+    public function test_equals_returns_false_for_non_iterable(): void
+    {
+        $lazySeq = LazySeq::fromArray($this->hasher, $this->equalizer, [1, 2, 3]);
+
+        $this->assertFalse($lazySeq->equals(42));
+        $this->assertFalse($lazySeq->equals('string'));
+        $this->assertFalse($lazySeq->equals(null));
+    }
+
     public function test_realizes_lazily_on_demand(): void
     {
         $values = [1, 2, 3, 4, 5];

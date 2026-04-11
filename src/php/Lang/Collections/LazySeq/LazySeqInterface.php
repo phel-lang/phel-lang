@@ -6,6 +6,7 @@ namespace Phel\Lang\Collections\LazySeq;
 
 use Phel\Lang\ConsInterface;
 use Phel\Lang\SeqInterface;
+use Phel\Lang\TypeInterface;
 
 /**
  * Interface for lazy sequences.
@@ -16,7 +17,7 @@ use Phel\Lang\SeqInterface;
  * @extends SeqInterface<T, LazySeqInterface<T>>
  * @extends ConsInterface<LazySeqInterface<T>>
  */
-interface LazySeqInterface extends SeqInterface, ConsInterface
+interface LazySeqInterface extends TypeInterface, SeqInterface, ConsInterface
 {
     /**
      * Checks if this lazy sequence has been realized (computed).

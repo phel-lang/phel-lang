@@ -208,6 +208,56 @@ final class ChunkedSeqTest extends TestCase
         $this->assertTrue($a->equals($b));
     }
 
+    /**
+     * Regression test for https://github.com/phel-lang/phel-lang/issues/1286.
+     * Comparing an infinite chunked-seq to a finite array must return
+     * false without exhausting memory realizing the infinite side.
+     */
+    public function test_equals_infinite_chunked_seq_to_empty_array_short_circuits(): void
+    {
+        $generator = (static function (): Generator {
+            $i = 0;
+            while (true) {
+                yield $i++;
+            }
+        })();
+
+        $chunkedSeq = ChunkedSeq::fromGenerator(
+            $this->hasher,
+            $this->equalizer,
+            $generator,
+            32,
+        );
+
+        $this->assertFalse($chunkedSeq->equals([]));
+    }
+
+    public function test_equals_infinite_chunked_seq_to_finite_array_short_circuits(): void
+    {
+        $generator = (static function (): Generator {
+            $i = 0;
+            while (true) {
+                yield $i++;
+            }
+        })();
+
+        $chunkedSeq = ChunkedSeq::fromGenerator(
+            $this->hasher,
+            $this->equalizer,
+            $generator,
+            32,
+        );
+
+        $this->assertFalse($chunkedSeq->equals([0, 1, 2]));
+    }
+
+    public function test_equals_finite_chunked_seq_to_matching_array(): void
+    {
+        $chunkedSeq = ChunkedSeq::fromArray($this->hasher, $this->equalizer, [1, 2, 3], 32);
+
+        $this->assertTrue($chunkedSeq->equals([1, 2, 3]));
+    }
+
     public function test_performance_chunks_realize_in_batches(): void
     {
         $realizationCount = 0;

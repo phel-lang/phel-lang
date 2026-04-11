@@ -6,12 +6,14 @@ namespace Phel\Lang\Collections\LazySeq;
 
 use Countable;
 use Generator;
+use Iterator;
 use IteratorAggregate;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use Phel\Lang\SeqInterface;
+
 use Traversable;
 
 use function count;
@@ -375,32 +377,101 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
             return true;
         }
 
-        $thisArray = $this->toArray();
-
-        // Check if other is a sequence or indexable collection
-        if ($other instanceof SeqInterface) {
-            $otherArray = $other->toArray();
-        } elseif (is_object($other) && method_exists($other, 'toArray')) {
-            // Check if it has toArray method (like vectors)
-            $otherArray = $other->toArray();
-        } elseif (is_array($other)) {
-            // Direct array comparison
-            $otherArray = $other;
-        } else {
+        $otherIter = $this->lazyIteratorFor($other);
+        if (!$otherIter instanceof Generator) {
             return false;
         }
 
-        if (count($thisArray) !== count($otherArray)) {
-            return false;
+        return $this->walkPairwise($this->getIterator(), $otherIter, $this->equalizer);
+    }
+
+    /**
+     * Converts an arbitrary value into a lazy iterator, or returns `null`
+     * when the value is not sequence-like. Used by `equals` to compare
+     * element-by-element without realizing infinite lazy sequences.
+     */
+    private function lazyIteratorFor(mixed $value): ?Generator
+    {
+        if ($value instanceof Traversable) {
+            return (static function () use ($value): Generator {
+                foreach ($value as $v) {
+                    yield $v;
+                }
+            })();
         }
 
-        foreach ($thisArray as $i => $value) {
-            if (!$this->equalizer->equals($value, $otherArray[$i])) {
+        if (is_array($value)) {
+            return (static function () use ($value): Generator {
+                foreach ($value as $v) {
+                    yield $v;
+                }
+            })();
+        }
+
+        if (is_object($value) && method_exists($value, 'toArray')) {
+            $array = $value->toArray();
+            return (static function () use ($array): Generator {
+                foreach ($array as $v) {
+                    yield $v;
+                }
+            })();
+        }
+
+        return null;
+    }
+
+    /**
+     * Walks two iterators in lockstep, comparing element-by-element via
+     * the equalizer. Returns `false` on the first divergence (either a
+     * length mismatch or an unequal element) and `true` only if both
+     * iterators exhaust at the same point.
+     *
+     * Running this against two infinite sequences loops forever, matching
+     * Clojure's behavior — it is the caller's responsibility to avoid
+     * comparing two infinite sequences for equality.
+     */
+    private function walkPairwise(Traversable $left, Traversable $right, EqualizerInterface $equalizer): bool
+    {
+        $leftIter = $this->asIterator($left);
+        $rightIter = $this->asIterator($right);
+
+        $leftIter->rewind();
+        $rightIter->rewind();
+
+        while (true) {
+            $leftValid = $leftIter->valid();
+            $rightValid = $rightIter->valid();
+            if ($leftValid !== $rightValid) {
                 return false;
             }
+
+            if (!$leftValid) {
+                return true;
+            }
+
+            if (!$equalizer->equals($leftIter->current(), $rightIter->current())) {
+                return false;
+            }
+
+            $leftIter->next();
+            $rightIter->next();
+        }
+    }
+
+    /**
+     * Normalizes a `Traversable` into an `\Iterator`. Generators are
+     * already iterators, but an `IteratorAggregate` returns a nested
+     * Traversable that must be unwrapped before `valid`/`current`/`next`
+     * can be called directly.
+     */
+    private function asIterator(Traversable $traversable): Iterator
+    {
+        while ($traversable instanceof IteratorAggregate) {
+            $traversable = $traversable->getIterator();
         }
 
-        return true;
+        /** @var Iterator $traversable */
+        return $traversable;
     }
 
     /**
