@@ -97,3 +97,17 @@
 (deftest test-sorted-set-by-operations
   (let [s (sorted-set-by (fn [a b] (compare b a)) 3 1)]
     (is (= [3 2 1] (into [] (conj s 2))) "conj maintains custom order")))
+
+;; ---- sorted? ----
+
+(deftest test-sorted?
+  (is (sorted? (sorted-map :a 1)) "sorted-map is sorted")
+  (is (sorted? (sorted-set 1 2)) "sorted-set is sorted")
+  (is (sorted? (sorted-map-by (fn [a b] (compare b a)) :a 1 :b 2)) "sorted-map-by is sorted")
+  (is (sorted? (sorted-set-by (fn [a b] (compare b a)) 1 2)) "sorted-set-by is sorted")
+  (is (not (sorted? {:a 1})) "hash-map is not sorted")
+  (is (not (sorted? #{1 2})) "hash-set is not sorted")
+  (is (not (sorted? [1 2])) "vector is not sorted")
+  (is (not (sorted? '(1 2))) "list is not sorted")
+  (is (not (sorted? nil)) "nil is not sorted")
+  (is (not (sorted? 42)) "number is not sorted"))
