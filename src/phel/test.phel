@@ -267,18 +267,48 @@
   `(binding [*testing-contexts* (conj *testing-contexts* ~context)]
      ~@body))
 
+(defn- quote-if-empty-list
+  "Wraps an empty-list cell in `(quote ())` so it survives compilation as
+  literal data. Phel's evaluator cannot apply an empty list as a call, so a
+  bare `()` placed in value position (e.g. as an `are` template cell) must be
+  quoted for the generated code to compile. Non-empty lists and other values
+  are returned unchanged — the caller can quote explicitly if needed."
+  [value]
+  (if (and (list? value) (empty? value))
+    `(quote ~value)
+    value))
+
+(defn- substitute-symbols
+  "Recursively replaces every occurrence of a key in `smap` within `form` with
+  its corresponding value, walking lists, vectors, hash-maps, and hash-sets.
+  Used by `are` to expand template cells at macro-expansion time rather than
+  let-binding them at runtime."
+  [smap form]
+  (cond
+    (contains? smap form) (quote-if-empty-list (get smap form))
+    (list? form) (apply list (map #(substitute-symbols smap %) form))
+    (vector? form) (apply vector (map #(substitute-symbols smap %) form))
+    (hash-map? form) (apply hash-map
+                            (interleave (keys form)
+                                        (map #(substitute-symbols smap %) (vals form))))
+    (set? form) (into (hash-set) (map #(substitute-symbols smap %) form))
+    :else form))
+
 (defmacro are
   "Checks multiple assertions with a template expression.
   `argv` is a vector of template variables, `expr` is the assertion template,
-  and the remaining `args` are partitioned by `(count argv)` to fill the template."
+  and the remaining `args` are partitioned by `(count argv)` to fill the template.
+  Template variables are substituted lexically at macro-expansion time, so
+  literal collection cells (e.g. `()`, `[]`, `{}`) are preserved as data and
+  are not evaluated as code."
   {:see-also ["is" "deftest" "testing"]
    :example "(are [x y] (= x y)\n  2 (+ 1 1)\n  4 (* 2 2))"}
   [argv expr & args]
   (let [n (count argv)
         groups (partition n args)
         assertions (for [group :in groups
-                         :let [bindings (vec (interleave argv group))]]
-                     `(let [~@bindings] (is ~expr)))]
+                         :let [smap (zipmap argv group)]]
+                     `(is ~(substitute-symbols smap expr)))]
     `(do ~@assertions)))
 
 ;; ---------------------

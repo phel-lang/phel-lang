@@ -86,6 +86,7 @@ All notable changes to this project will be documented in this file.
 - `name$` auto-gensym suffix inside syntax-quote; use `name#` instead, matching Clojure's reader macro (#1203)
 
 ### Fixed
+- `are` macro no longer eagerly evaluates list literals in table cells (e.g. `()`), which previously caused `Value of type null is not callable`; cells are now substituted into the expression template via symbolic replacement, matching Clojure's `clojure.template/do-template` semantics (#1280)
 - `(php/yield ...)` in return position no longer emits `return yield ...;`, which broke PHP generator semantics (#793)
 - `phel run` no longer buffers output, so `println` and `print` flush immediately — fixes silent output in long-running processes like AMPHP servers (#793)
 - REPL `require` now supports dot namespace separator and Clojure aliasing, e.g. `(require phel.str)` and `(require clojure.str)` work correctly (#1263)
