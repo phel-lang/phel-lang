@@ -1197,6 +1197,23 @@ Otherwise, it tries to call `__toString`."
         (= t :set)
         (php/instanceof x LazySeqInterface))))
 
+(defn counted?
+  "Returns true if `coll` can report its length in constant time — persistent
+   vectors, lists, hash-maps (including sorted-map), structs, and sets
+   (including sorted-set). Returns false for lazy sequences (counting them
+   requires realizing the whole sequence), strings, numbers, `nil`, and every
+   other non-counted type. Matches Clojure's `counted?` semantics, which
+   mirror the `clojure.lang.Counted` marker interface."
+  {:example "(counted? [1 2 3]) ; => true\n(counted? (range)) ; => false"
+   :see-also ["count" "coll?"]}
+  [coll]
+  (let [t (type coll)]
+    (or (= t :vector)
+        (= t :list)
+        (= t :hash-map)
+        (= t :struct)
+        (= t :set))))
+
 (defn set?
   "Returns true if `x` is a set, false otherwise."
   [x]
