@@ -50,13 +50,9 @@ interface NodeEnvironmentInterface extends ContextualEnvironmentInterface
 
     public function withBoundTo(string $boundTo): self;
 
-    public function withDefAllowed(bool $defAllowed): self;
-
     public function getCurrentRecurFrame(): ?RecurFrame;
 
     public function getBoundTo(): string;
-
-    public function isDefAllowed(): bool;
 
     public function useGlobalReference(): bool;
 

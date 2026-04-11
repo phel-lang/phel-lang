@@ -1,0 +1,30 @@
+(ns phel-test\test\core\def-in-def
+  (:require phel\test :refer [deftest is]))
+
+;; `def` inside `def` is permitted, matching Clojure's semantics:
+;;   (defn a [] (def x 1) x) => 1
+;;   (defn b [] (defn y [] (def z 2) z) (y)) => 2
+;; The inner `def` runs as a side effect when the outer fn body evaluates;
+;; the fn's return value is the last expression as usual.
+
+(defn def-in-defn-returns-following-expr []
+  (def nested-x 1)
+  nested-x)
+
+(defn defn-in-defn-returns-inner-call []
+  (defn nested-y [] (def nested-z 2) nested-z)
+  (nested-y))
+
+(deftest test-def-inside-defn
+  (is (= 1 (def-in-defn-returns-following-expr))
+      "def inside defn runs as a side effect and following form is returned")
+  (is (= 1 nested-x)
+      "the nested def is visible in the enclosing namespace after fn is called"))
+
+(deftest test-defn-inside-defn
+  (is (= 2 (defn-in-defn-returns-inner-call))
+      "defn and inner def inside defn both work")
+  (is (= 2 (nested-y))
+      "inner defn is callable from the enclosing namespace after outer runs")
+  (is (= 2 nested-z)
+      "inner def is visible in the enclosing namespace after fn is called"))

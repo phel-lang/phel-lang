@@ -18,9 +18,6 @@ final class NodeEnvironment implements NodeEnvironmentInterface
 
     public const string CONTEXT_RETURN = 'return';
 
-    /** Def inside of def should not work. This flag help us to keep track of this. */
-    private bool $defAllowed = true;
-
     /** Use Registry::getDefinitionReference() instead of Registry::getDefinition() */
     private bool $globalReference = false;
 
@@ -208,14 +205,6 @@ final class NodeEnvironment implements NodeEnvironmentInterface
         return $result;
     }
 
-    public function withDefAllowed(bool $defAllowed): NodeEnvironmentInterface
-    {
-        $result = clone $this;
-        $result->defAllowed = $defAllowed;
-
-        return $result;
-    }
-
     public function getCurrentRecurFrame(): ?RecurFrame
     {
         if ($this->recurFrames === []) {
@@ -228,11 +217,6 @@ final class NodeEnvironment implements NodeEnvironmentInterface
     public function getBoundTo(): string
     {
         return $this->boundTo;
-    }
-
-    public function isDefAllowed(): bool
-    {
-        return $this->defAllowed;
     }
 
     public function useGlobalReference(): bool

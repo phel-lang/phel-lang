@@ -38,6 +38,7 @@ All notable changes to this project will be documented in this file.
 - `if-some`, `when-some`, `when-first` macros for nil-aware binding, matching Clojure semantics (#1218)
 - `assert` macro for precondition checking with optional custom message (#1222)
 - `*assert*` var in `phel\core` now resolves (default `true`). `assert` reads it at macroexpansion time — when set to logical false (e.g. `(\Phel::addDefinition("phel\\core", "*assert*", false))` before compilation), `assert` expands to `nil` and performs no runtime check, matching Clojure's compile-time `*assert*` semantics. Unblocks `.cljc` test suites that reference `*assert*` (#1315)
+- `def` and `defn` nested inside another `def`/`defn` body are now permitted, matching Clojure semantics. The previous "`'def inside of a 'def is forbidden`" analyzer error has been removed. The inner `def` runs as a side effect when the outer fn is invoked, adding the definition to the namespace, so `(defn a [] (def x 1) x)` returns `1` and `x` becomes visible in the enclosing namespace (#1316)
 - `dotimes` macro for evaluating body `n` times with a binding from `0` to `n-1` (#1252)
 - `run!` function for applying a function to each element of a collection for side effects (#1252)
 - `fnil` function for nil-safe function wrapping with default values (#1225)

@@ -30,21 +30,22 @@ final class DefSymbolTest extends TestCase
         $this->analyzer = new Analyzer(new GlobalEnvironment());
     }
 
-    public function test_with_def_not_allowed(): void
+    public function test_nested_def_is_allowed(): void
     {
-        $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("'def inside of a 'def is forbidden");
-
         $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF),
-            Symbol::create('name'),
+            Symbol::create('outer'),
             Phel::list([
                 Symbol::create(Symbol::NAME_DEF),
-                Symbol::create('name2'),
+                Symbol::create('inner'),
                 1,
             ]),
         ]);
-        (new DefSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $defNode = (new DefSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+
+        self::assertSame('outer', $defNode->getName()->getName());
+        self::assertInstanceOf(DefNode::class, $defNode->getInit());
+        self::assertSame('inner', $defNode->getInit()->getName()->getName());
     }
 
     public function test_with_wrong_number_of_arguments(): void
@@ -108,8 +109,7 @@ final class DefSymbolTest extends TestCase
                     $env
                         ->withExpressionContext()
                         ->withDisallowRecurFrame()
-                        ->withBoundTo('user\name')
-                        ->withDefAllowed(false),
+                        ->withBoundTo('user\name'),
                     'any value',
                 ),
             ),
@@ -150,8 +150,7 @@ final class DefSymbolTest extends TestCase
                     $env
                         ->withExpressionContext()
                         ->withDisallowRecurFrame()
-                        ->withBoundTo('user\name')
-                        ->withDefAllowed(false),
+                        ->withBoundTo('user\name'),
                     'any value',
                 ),
             ),
@@ -192,8 +191,7 @@ final class DefSymbolTest extends TestCase
                     $env
                         ->withExpressionContext()
                         ->withDisallowRecurFrame()
-                        ->withBoundTo('user\name')
-                        ->withDefAllowed(false),
+                        ->withBoundTo('user\name'),
                     'any value',
                 ),
             ),
@@ -273,8 +271,7 @@ final class DefSymbolTest extends TestCase
                     $env
                         ->withExpressionContext()
                         ->withDisallowRecurFrame()
-                        ->withBoundTo('user\name')
-                        ->withDefAllowed(false),
+                        ->withBoundTo('user\name'),
                     'any value',
                 ),
             ),

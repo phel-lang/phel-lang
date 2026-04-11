@@ -51,7 +51,6 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
      */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): DefNode
     {
-        $this->ensureDefIsAllowed($list, $env);
         $this->verifySizeOfTuple($list);
 
         $nameSymbol = $list->get(1);
@@ -99,13 +98,6 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
             $initNode,
             $list->getStartLocation(),
         );
-    }
-
-    private function ensureDefIsAllowed(PersistentListInterface $list, NodeEnvironmentInterface $env): void
-    {
-        if (!$env->isDefAllowed()) {
-            throw AnalyzerException::withLocation("'def inside of a 'def is forbidden", $list);
-        }
     }
 
     private function verifySizeOfTuple(PersistentListInterface $list): void
@@ -211,8 +203,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         $initEnv = $env
             ->withBoundTo($namespace . '\\' . $nameSymbol->__toString())
             ->withExpressionContext()
-            ->withDisallowRecurFrame()
-            ->withDefAllowed(false);
+            ->withDisallowRecurFrame();
 
         return $this->analyzer->analyze($init, $initEnv);
     }
