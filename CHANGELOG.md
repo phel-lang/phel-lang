@@ -86,6 +86,7 @@ All notable changes to this project will be documented in this file.
 - `name$` auto-gensym suffix inside syntax-quote; use `name#` instead, matching Clojure's reader macro (#1203)
 
 ### Fixed
+- `are` macro no longer eagerly evaluates list literals in table cells (e.g. `()`), which previously caused `Value of type null is not callable`; cells are now substituted into the expression template via symbolic replacement, matching Clojure's `clojure.template/do-template` semantics (#1280)
 - `=` on lazy sequences now short-circuits on object identity, so `(let [r (range)] (= r (deref (atom r))))` returns `true` instantly instead of trying to realize the infinite sequence and crashing with a PHP integer-overflow allocation error (#1286)
 - `(php/yield ...)` in return position no longer emits `return yield ...;`, which broke PHP generator semantics (#793)
 - `phel run` no longer buffers output, so `println` and `print` flush immediately — fixes silent output in long-running processes like AMPHP servers (#793)
