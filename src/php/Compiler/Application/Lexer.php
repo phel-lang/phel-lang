@@ -44,13 +44,14 @@ final class Lexer implements LexerInterface
         "(\|\()", // short fn (index: 18)
         '(#\()', // hash fn (index: 19)
         '("(?:[^"\\\\]++|\\\\.)*+")', // String (index: 20)
-        "([^\(\)\[\]\{\},`@ \n\r\t\#]+\#?)", // Atom (index: 21), trailing # allowed for gensym syntax (e.g. foo#); leading ' is claimed by the quote rule above so only mid/trailing ' reaches here (e.g. a', foo'')
-        '(@)', // deref (index: 22)
-        '(#"(?:[^"\\\\]++|\\\\.)*+")', // regex literal (index: 23)
-        '(#\?\()', // reader conditional (index: 24 = T_READER_COND)
-        '(#\?@\()', // reader conditional splicing (index: 25 = T_READER_COND_SPLICING)
-        '(##(?:-?Inf|NaN)(?![A-Za-z0-9_\-]))', // symbolic number literal (index: 26 = T_SYMBOLIC_NUMBER) - Clojure-style ##Inf, ##-Inf, ##NaN
-        '(#[A-Za-z][A-Za-z0-9_\-]*)', // tagged literal start (index: 27 = T_TAGGED_LITERAL) - e.g. #cpp, #uuid, #inst
+        '(\\\\(?:space|newline|tab|formfeed|backspace|return|u[0-9a-fA-F]{4}|o[0-7]{1,3}|[^\s])(?![A-Za-z0-9_\-\\\\]))', // Character literal (index: 21 = T_CHAR) - Clojure-style \a, \A, \1, \space, \newline, \uNNNN, \oNNN, \(, \), etc. Must precede the atom rule so it wins on unambiguous cases; falls through to atom when followed by identifier continuation or another backslash (preserving FQN parsing for \Phel\Lang\Symbol).
+        "([^\(\)\[\]\{\},`@ \n\r\t\#]+\#?)", // Atom (index: 22), trailing # allowed for gensym syntax (e.g. foo#); leading ' is claimed by the quote rule above so only mid/trailing ' reaches here (e.g. a', foo'')
+        '(@)', // deref (index: 23)
+        '(#"(?:[^"\\\\]++|\\\\.)*+")', // regex literal (index: 24)
+        '(#\?\()', // reader conditional (index: 25 = T_READER_COND)
+        '(#\?@\()', // reader conditional splicing (index: 26 = T_READER_COND_SPLICING)
+        '(##(?:-?Inf|NaN)(?![A-Za-z0-9_\-]))', // symbolic number literal (index: 27 = T_SYMBOLIC_NUMBER) - Clojure-style ##Inf, ##-Inf, ##NaN
+        '(#[A-Za-z][A-Za-z0-9_\-]*)', // tagged literal start (index: 28 = T_TAGGED_LITERAL) - e.g. #cpp, #uuid, #inst
     ];
 
     private const string MULTILINE_COMMENT_BEGIN = '#|';

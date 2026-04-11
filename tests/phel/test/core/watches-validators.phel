@@ -1,6 +1,26 @@
 (ns phel-test\test\core\watches-validators
   (:require phel\test :refer [deftest is]))
 
+;; --- Return values ---
+
+(deftest test-reset!-returns-new-value
+  (let [a (atom 1)]
+    (is (= 3 (reset! a 3)) "reset! returns the new value")
+    (is (= 3 @a) "reset! stores the new value")))
+
+(deftest test-set!-returns-new-value
+  (let [a (atom 1)]
+    (is (= 3 (set! a 3)) "set! returns the new value")
+    (is (= 3 @a) "set! stores the new value")))
+
+(deftest test-swap!-returns-new-value
+  (let [a (atom 1)]
+    (is (= 2 (swap! a inc)) "swap! returns the new value")
+    (is (= 2 @a) "swap! stores the new value"))
+  (let [a (atom 10)]
+    (is (= 17 (swap! a + 3 4)) "swap! with extra args returns new value")
+    (is (= 17 @a) "swap! with extra args stores the new value")))
+
 ;; --- Watches ---
 
 (deftest test-add-watch-fires-on-swap

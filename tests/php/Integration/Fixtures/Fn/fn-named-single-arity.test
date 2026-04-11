@@ -1,6 +1,9 @@
 --PHEL--
 (fn foo [x] x)
 --PHP--
-(function($x) {
-  return $x;
-});
+(function() {
+  $foo = function($x) use(&$foo) {
+    return $x;
+  };
+  return $foo;
+})();

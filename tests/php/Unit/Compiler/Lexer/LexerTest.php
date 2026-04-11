@@ -8,6 +8,7 @@ use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Lang\SourceLocation;
+use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 
 final class LexerTest extends TestCase
@@ -746,6 +747,240 @@ final class LexerTest extends TestCase
         self::assertSame(Token::T_COMMENT, $tokens[0]->getType());
         self::assertNotNull($warning);
         self::assertStringContainsString('v0.33', $warning);
+    }
+
+    public function test_char_literal_single_alpha(): void
+    {
+        $tokens = $this->lex('\\a');
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame('\\a', $tokens[0]->getCode());
+        self::assertSame(Token::T_EOF, $tokens[1]->getType());
+    }
+
+    public function test_char_literal_single_digit(): void
+    {
+        $tokens = $this->lex('\\1');
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame('\\1', $tokens[0]->getCode());
+    }
+
+    public function test_char_literal_single_uppercase(): void
+    {
+        $tokens = $this->lex('\\Z');
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame('\\Z', $tokens[0]->getCode());
+    }
+
+    public function test_char_literal_named_space(): void
+    {
+        $tokens = $this->lex('\\space');
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame('\\space', $tokens[0]->getCode());
+    }
+
+    public function test_char_literal_named_newline(): void
+    {
+        $tokens = $this->lex('\\newline');
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame('\\newline', $tokens[0]->getCode());
+    }
+
+    public function test_char_literal_named_tab(): void
+    {
+        $tokens = $this->lex('\\tab');
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame('\\tab', $tokens[0]->getCode());
+    }
+
+    public function test_char_literal_named_formfeed(): void
+    {
+        $tokens = $this->lex('\\formfeed');
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame('\\formfeed', $tokens[0]->getCode());
+    }
+
+    public function test_char_literal_named_backspace(): void
+    {
+        $tokens = $this->lex('\\backspace');
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame('\\backspace', $tokens[0]->getCode());
+    }
+
+    public function test_char_literal_named_return(): void
+    {
+        $tokens = $this->lex('\\return');
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame('\\return', $tokens[0]->getCode());
+    }
+
+    public function test_char_literal_unicode_lowercase_hex(): void
+    {
+        $tokens = $this->lex('\\u03a9');
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame('\\u03a9', $tokens[0]->getCode());
+    }
+
+    public function test_char_literal_unicode_uppercase_hex(): void
+    {
+        $tokens = $this->lex('\\u03A9');
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame('\\u03A9', $tokens[0]->getCode());
+    }
+
+    public function test_char_literal_octal(): void
+    {
+        $tokens = $this->lex('\\o123');
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame('\\o123', $tokens[0]->getCode());
+    }
+
+    public function test_char_literal_paren(): void
+    {
+        $tokens = $this->lex('\\(');
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame('\\(', $tokens[0]->getCode());
+    }
+
+    public function test_char_literal_bracket(): void
+    {
+        $tokens = $this->lex('\\[');
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame('\\[', $tokens[0]->getCode());
+    }
+
+    public function test_char_literal_brace(): void
+    {
+        $tokens = $this->lex('\\{');
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame('\\{', $tokens[0]->getCode());
+    }
+
+    public function test_char_literal_backslash(): void
+    {
+        // Source `\\` — a backslash followed by a backslash, i.e. the char literal for `\`.
+        $tokens = $this->lex('\\\\');
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame('\\\\', $tokens[0]->getCode());
+    }
+
+    public function test_char_literal_double_quote(): void
+    {
+        $tokens = $this->lex('\\"');
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame('\\"', $tokens[0]->getCode());
+    }
+
+    public function test_char_literal_comma(): void
+    {
+        $tokens = $this->lex('\\,');
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame('\\,', $tokens[0]->getCode());
+    }
+
+    public function test_char_literal_semicolon(): void
+    {
+        $tokens = $this->lex('\\;');
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame('\\;', $tokens[0]->getCode());
+    }
+
+    public function test_char_literal_followed_by_space(): void
+    {
+        $tokens = $this->lex('\\a ');
+
+        self::assertSame(Token::T_CHAR, $tokens[0]->getType());
+        self::assertSame('\\a', $tokens[0]->getCode());
+        self::assertSame(Token::T_WHITESPACE, $tokens[1]->getType());
+    }
+
+    public function test_char_literal_inside_list(): void
+    {
+        $tokens = $this->lex('(\\a)');
+
+        self::assertSame(Token::T_OPEN_PARENTHESIS, $tokens[0]->getType());
+        self::assertSame(Token::T_CHAR, $tokens[1]->getType());
+        self::assertSame('\\a', $tokens[1]->getCode());
+        self::assertSame(Token::T_CLOSE_PARENTHESIS, $tokens[2]->getType());
+    }
+
+    public function test_char_literal_inside_vector(): void
+    {
+        $tokens = $this->lex('[\\a \\b]');
+
+        self::assertSame(Token::T_OPEN_BRACKET, $tokens[0]->getType());
+        self::assertSame(Token::T_CHAR, $tokens[1]->getType());
+        self::assertSame('\\a', $tokens[1]->getCode());
+        self::assertSame(Token::T_WHITESPACE, $tokens[2]->getType());
+        self::assertSame(Token::T_CHAR, $tokens[3]->getType());
+        self::assertSame('\\b', $tokens[3]->getCode());
+        self::assertSame(Token::T_CLOSE_BRACKET, $tokens[4]->getType());
+    }
+
+    public function test_fqn_two_segments_still_atom(): void
+    {
+        // Regression: `\Phel\Lang` is an FQN atom, not two char literals.
+        $tokens = $this->lex('\\Phel\\Lang');
+
+        self::assertSame(Token::T_ATOM, $tokens[0]->getType());
+        self::assertSame('\\Phel\\Lang', $tokens[0]->getCode());
+    }
+
+    public function test_fqn_three_segments_still_atom(): void
+    {
+        // Regression: `\Phel\Lang\Symbol` is an FQN atom used in PHP interop.
+        $tokens = $this->lex(Symbol::class);
+
+        self::assertSame(Token::T_ATOM, $tokens[0]->getType());
+        self::assertSame(Symbol::class, $tokens[0]->getCode());
+    }
+
+    public function test_fqn_lowercase_still_atom(): void
+    {
+        // Regression: `\foo\bar` stays an FQN atom — not a char + atom pair.
+        $tokens = $this->lex('\\foo\\bar');
+
+        self::assertSame(Token::T_ATOM, $tokens[0]->getType());
+        self::assertSame('\\foo\\bar', $tokens[0]->getCode());
+    }
+
+    public function test_backslash_followed_by_identifier_chars_still_atom(): void
+    {
+        // Regression: `\aFoo` is a single atom, not char `a` + atom `Foo`, because
+        // the char-literal lookahead rejects identifier continuation after the char.
+        $tokens = $this->lex('\\aFoo');
+
+        self::assertSame(Token::T_ATOM, $tokens[0]->getType());
+        self::assertSame('\\aFoo', $tokens[0]->getCode());
+    }
+
+    public function test_backslash_space_identifier_still_atom(): void
+    {
+        // `\spaces` is NOT `\space` + `s` — the lookahead rejects the `\space`
+        // named form if followed by another identifier char, so the whole thing
+        // falls through to the atom rule.
+        $tokens = $this->lex('\\spaces');
+
+        self::assertSame(Token::T_ATOM, $tokens[0]->getType());
+        self::assertSame('\\spaces', $tokens[0]->getCode());
     }
 
     private function lex(string $string): array

@@ -112,10 +112,19 @@
   (is (true? (indexed? (php/array))) "indexed? on php array"))
 
 (deftest test-associative?
-  (is (true? (associative? {})) "associative? on map")
-  (is (true? (associative? (php-associative-array "a" 1 "b" 2))) "associative? on associative array")
-  (is (false? (associative? [])) "associative? on vector")
-  (is (false? (associative? (php/array))) "associative? on php array"))
+  (is (true? (associative? {})) "associative? on empty map")
+  (is (true? (associative? {:a 1})) "associative? on non-empty map")
+  (is (true? (associative? (php-associative-array "a" 1 "b" 2))) "associative? on associative php array")
+  (is (true? (associative? [])) "associative? on empty vector")
+  (is (true? (associative? [1 2 3])) "associative? on non-empty vector")
+  (is (true? (associative? (php/array))) "associative? on empty php array")
+  (is (true? (associative? (php/array "a" "b"))) "associative? on indexed php array")
+  (is (false? (associative? '())) "associative? on list is false")
+  (is (false? (associative? '(1 2 3))) "associative? on non-empty list is false")
+  (is (false? (associative? #{1 2})) "associative? on set is false")
+  (is (false? (associative? 42)) "associative? on number is false")
+  (is (false? (associative? "abc")) "associative? on string is false")
+  (is (false? (associative? nil)) "associative? on nil is false"))
 
 (deftest test-seq?
   (is (true? (seq? (take 5 (iterate inc 1)))) "seq? on lazy sequence")

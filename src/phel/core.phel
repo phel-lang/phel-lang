@@ -1093,14 +1093,17 @@ Otherwise, it tries to call `__toString`."
 (defn associative?
   "Returns true if `x` is an associative data structure, false otherwise.
 
-  Associative data structures include hash maps, structs, and associative PHP arrays."
-  {:example "(associative? {:a 1}) ; => true"}
+  Associative data structures include vectors, hash maps, structs, and PHP arrays
+  (both indexed and associative), matching Clojure's `Associative` protocol."
+  {:example "(associative? [1 2 3]) ; => true"
+   :see-also ["vector?" "map?" "hash-map?"]}
   [x]
   (let [t (type x)]
     (or
      (= t :hash-map)
      (= t :struct)
-     (and (= t :php/array) (not (indexed-php-array? x))))))
+     (= t :vector)
+     (= t :php/array))))
 
 (defn set?
   "Returns true if `x` is a set, false otherwise."
@@ -1316,8 +1319,7 @@ Otherwise, it tries to call `__toString`."
   [variable f & args]
   (let [current (deref variable)
         next (apply f current args)]
-    (reset! variable next)
-    next))
+    (reset! variable next)))
 
 (defn add-watch
   "Adds a watch function to a variable. The watch fn is called when the variable
@@ -1662,7 +1664,13 @@ Otherwise, it tries to call `__toString`."
     1 (let [from (first rest)]
         (if (php/=== nil from)
           to
-          (let [entries (if (associative? from)
+          (let [map-like? (fn [x]
+                            (let [t (type x)]
+                              (or (= t :hash-map)
+                                  (= t :struct)
+                                  (and (= t :php/array) (not (indexed-php-array? x)))
+                                  (php/instanceof x PersistentSortedMap))))
+                entries (if (map-like? from)
                           (for [entry :pairs from] entry)
                           from)
                 assoc-entry (fn [acc entry]
@@ -1679,7 +1687,7 @@ Otherwise, it tries to call `__toString`."
                                       (assoc acc k v))))
                                 (throw (php/new InvalidArgumentException
                                                 "into expects a collection of [key value] pairs"))))
-                map-target? (or (associative? to) (php/instanceof to TransientMapInterface))]
+                map-target? (or (map-like? to) (php/instanceof to TransientMapInterface))]
             (cond
               map-target?
               (for [entry :in entries
@@ -1801,12 +1809,16 @@ Otherwise, it tries to call `__toString`."
     (for [x :in coll :reduce [acc #{}]] (conj acc x))))
 
 (defn vec
-  "Coerces a collection to a vector. Returns a vector containing all elements of `coll`."
-  {:example "(vec '(1 2 3)) ; => [1 2 3]"
+  "Coerces a collection to a vector. For hash-maps and structs, entries
+  are returned as 2-element `[key value]` vectors, matching Clojure."
+  {:example "(vec {:a 1 :b 2}) ; => [[:a 1] [:b 2]]"
    :see-also ["vector" "set" "into"]}
   [coll]
-  (if (php/=== nil coll)
-    []
+  (cond
+    (php/=== nil coll) []
+    (or (map? coll) (struct? coll))
+    (for [[k v] :pairs coll :reduce [acc []]] (conj acc [k v]))
+    :else
     (for [x :in coll :reduce [acc []]] (conj acc x))))
 
 (defn get-in
@@ -3191,18 +3203,18 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (extreme > numbers))
 
 (defn min-key
-  "Returns the arg for which (k arg) is smallest."
+  "Returns the arg for which (k arg) is smallest. On ties, returns the latest argument, matching Clojure semantics."
   {:example "(min-key count \"bb\" \"aaa\" \"b\") ; => \"b\""
    :see-also ["max-key" "min" "sort-by"]}
   [k x & more]
-  (reduce (fn [best item] (if (< (k item) (k best)) item best)) x more))
+  (reduce (fn [best item] (if (<= (k item) (k best)) item best)) x more))
 
 (defn max-key
-  "Returns the arg for which (k arg) is largest."
+  "Returns the arg for which (k arg) is largest. On ties, returns the latest argument, matching Clojure semantics."
   {:example "(max-key count \"bb\" \"aaa\" \"b\") ; => \"aaa\""
    :see-also ["min-key" "max" "sort-by"]}
   [k x & more]
-  (reduce (fn [best item] (if (> (k item) (k best)) item best)) x more))
+  (reduce (fn [best item] (if (>= (k item) (k best)) item best)) x more))
 
 (defn coerce-in
   "Returns `v` if it is in the range, or `min` if `v` is less than `min`, or `max` if `v` is greater than `max`."
