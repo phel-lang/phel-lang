@@ -215,6 +215,43 @@
   (is (thrown? \InvalidArgumentException (byte [0]))
       "(byte [0]) raises InvalidArgumentException on vector"))
 
+(deftest test-char-from-int
+  (is (= " " (char 32)) "(char 32) is space")
+  (is (= "@" (char 64)) "(char 64) is @")
+  (is (= "A" (char 65)) "(char 65) is A")
+  (is (= "a" (char 97)) "(char 97) is a")
+  (is (= "0" (char 48)) "(char 48) is 0")
+  (is (string? (char 65)) "(char 65) returns a string"))
+
+(deftest test-char-from-char-literal
+  (is (= "A" (char \A)) "(char \\A) returns A")
+  (is (= "z" (char \z)) "(char \\z) returns z")
+  (is (= "1" (char \1)) "(char \\1) returns 1"))
+
+(deftest test-char-unicode
+  (is (= "é" (char 233)) "(char 233) is é")
+  (is (= "€" (char 8364)) "(char 8364) is €"))
+
+(deftest test-char-negative
+  (is (thrown? \InvalidArgumentException (char -1))
+      "(char -1) raises InvalidArgumentException")
+  (is (thrown? \InvalidArgumentException (char -100))
+      "(char -100) raises InvalidArgumentException"))
+
+(deftest test-char-invalid-inputs
+  (is (thrown? \InvalidArgumentException (char nil))
+      "(char nil) raises InvalidArgumentException")
+  (is (thrown? \InvalidArgumentException (char "AB"))
+      "(char \"AB\") raises InvalidArgumentException on multi-char string")
+  (is (thrown? \InvalidArgumentException (char ""))
+      "(char \"\") raises InvalidArgumentException on empty string")
+  (is (thrown? \InvalidArgumentException (char :a))
+      "(char :a) raises InvalidArgumentException on keyword")
+  (is (thrown? \InvalidArgumentException (char [65]))
+      "(char [65]) raises InvalidArgumentException on vector")
+  (is (thrown? \InvalidArgumentException (char 1.5))
+      "(char 1.5) raises InvalidArgumentException on float"))
+
 (deftest test-numbers-with-underscore
   (is (= 1337 0b10100111001) "binary number")
   (is (= 1337 0b101_0011_1001) "binary number with underscores")

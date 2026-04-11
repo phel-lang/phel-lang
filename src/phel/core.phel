@@ -3264,6 +3264,39 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
         truncated))
     (throw (php/new InvalidArgumentException "byte expects a numeric value"))))
 
+(defn char
+  "Coerces `x` to a single-character string representing the given
+   Unicode code point. Accepts a non-negative integer (the code point,
+   converted via `mb_chr`) or a single-character string, which is
+   returned as-is. Phel has no dedicated char type — character literals
+   such as `\\A` are already single-character strings — so the result
+   is always a plain string. Matches Clojure's `char` for `.cljc`
+   interop; raises `InvalidArgumentException` on negative ints,
+   non-single-character strings, and all other inputs."
+  {:example "(char 65) ; => \"A\"\n(char 32) ; => \" \"\n(char \\A) ; => \"A\""
+   :see-also ["byte" "int?" "string?"]}
+  [x]
+  (cond
+    (integer? x)
+    (if (php/< x 0)
+      (throw (php/new InvalidArgumentException
+                      (php/. "Value out of range for char: " (php/strval x))))
+      (let [ch (php/mb_chr x "UTF-8")]
+        (if (php/=== ch false)
+          (throw (php/new InvalidArgumentException
+                          (php/. "Invalid code point for char: " (php/strval x))))
+          ch)))
+
+    (string? x)
+    (if (php/=== 1 (php/mb_strlen x "UTF-8"))
+      x
+      (throw (php/new InvalidArgumentException
+                      "char expects a single-character string")))
+
+    :else
+    (throw (php/new InvalidArgumentException
+                    "char expects a non-negative integer or a single-character string"))))
+
 (defn rand
   "Returns a random number between 0 and 1."
   []

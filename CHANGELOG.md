@@ -59,6 +59,7 @@ All notable changes to this project will be documented in this file.
 - `to-array` function for converting any collection (vector, list, set, map, PHP array, or `nil`) into a plain PHP array, matching Clojure's `to-array` for `.cljc` interop (#1320)
 - `aclone` function for producing a shallow copy of a PHP array — the returned array is independent so mutations via `php/aset` do not propagate; matches Clojure's `aclone` for `.cljc` interop (#1321)
 - `byte` coercion function truncating to a signed 8-bit integer in `-128..127`. Decimals are truncated toward zero; out-of-range and non-numeric inputs raise `InvalidArgumentException`. Phel has no dedicated byte type, so the result is a plain PHP int — `byte` exists for `.cljc` interop with Clojure sources (#1327)
+- `char` coercion function returning a single-character string from a non-negative Unicode code point (via `mb_chr`) or from an existing single-character string. Phel has no dedicated char type — character literals such as `\A` are already single-character strings — so the result is always a plain string. Invalid inputs raise `InvalidArgumentException` (#1330)
 - `NaN?` predicate as an alias for `nan?`, matching Clojure's `NaN?` spelling for `.cljc` interop (#1284)
 
 #### Clojure-Compatible Aliases
