@@ -92,6 +92,7 @@ All notable changes to this project will be documented in this file.
 - `name$` auto-gensym suffix inside syntax-quote; use `name#` instead, matching Clojure's reader macro (#1203)
 
 ### Fixed
+- `associative?` now returns `true` for vectors and PHP indexed arrays, matching Clojure's `Associative` protocol. Previously only hash-maps, structs, and non-indexed PHP arrays returned true (#1303)
 - `-0x8000000000000000` (and equivalent `-0b...`, `-0o...` at 64-bit minimum) now parses correctly to the int `PHP_INT_MIN` instead of crashing with `ParseError: syntax error, unexpected floating-point number ".0"`; previously `hexdec` silently overflowed to a float, which the emitter then wrote as `-9223372036854775808.0` and PHP's own parser rejected (#1278)
 - `are` macro no longer eagerly evaluates list literals in table cells (e.g. `()`), which previously caused `Value of type null is not callable`; cells are now substituted into the expression template via symbolic replacement, matching Clojure's `clojure.template/do-template` semantics (#1280)
 - `=` on lazy sequences now short-circuits on object identity, so `(let [r (range)] (= r (deref (atom r))))` returns `true` instantly instead of trying to realize the infinite sequence and crashing with a PHP integer-overflow allocation error (#1286)

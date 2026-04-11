@@ -30,8 +30,8 @@
       (throw (php/new InvalidArgumentException (str tag " is not a valid element name."))))
     (let [tag (to-str tag)
           elem (first content)
-          map-attrs (if (associative? elem) elem {})
-          content (if (associative? elem) (next content) content)
+          map-attrs (if (map? elem) elem {})
+          content (if (map? elem) (next content) content)
           content-arr (if (nil? content) nil (apply list content))]
       [tag map-attrs content-arr])))
 
@@ -50,9 +50,9 @@
 
 (defn- render-attribute-value [name value]
   (cond
-    (and (= name "style") (associative? value))
+    (and (= name "style") (map? value))
     (render-style-table value)
-    (associative? value)
+    (map? value)
     (render-attr-table value)
     (indexed? value)
     (escape-html (php/implode " " (to-php-array (map to-str value))))
