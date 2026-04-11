@@ -526,6 +526,87 @@ final class LexerTest extends TestCase
         self::assertSame('#?(', $tokens[2]->getCode());
     }
 
+    public function test_atom_with_trailing_quote_is_single_token(): void
+    {
+        $tokens = $this->lex("a'");
+
+        self::assertSame(Token::T_ATOM, $tokens[0]->getType());
+        self::assertSame("a'", $tokens[0]->getCode());
+        self::assertSame(Token::T_EOF, $tokens[1]->getType());
+    }
+
+    public function test_atom_with_multiple_trailing_quotes(): void
+    {
+        $tokens = $this->lex("a''");
+
+        self::assertSame(Token::T_ATOM, $tokens[0]->getType());
+        self::assertSame("a''", $tokens[0]->getCode());
+        self::assertSame(Token::T_EOF, $tokens[1]->getType());
+    }
+
+    public function test_atom_with_interior_quote(): void
+    {
+        $tokens = $this->lex("a'b");
+
+        self::assertSame(Token::T_ATOM, $tokens[0]->getType());
+        self::assertSame("a'b", $tokens[0]->getCode());
+        self::assertSame(Token::T_EOF, $tokens[1]->getType());
+    }
+
+    public function test_leading_quote_still_quotes_symbol(): void
+    {
+        $tokens = $this->lex("'foo");
+
+        self::assertSame(Token::T_QUOTE, $tokens[0]->getType());
+        self::assertSame("'", $tokens[0]->getCode());
+        self::assertSame(Token::T_ATOM, $tokens[1]->getType());
+        self::assertSame('foo', $tokens[1]->getCode());
+        self::assertSame(Token::T_EOF, $tokens[2]->getType());
+    }
+
+    public function test_leading_quote_on_list(): void
+    {
+        $tokens = $this->lex("'(1 2)");
+
+        self::assertSame(Token::T_QUOTE, $tokens[0]->getType());
+        self::assertSame("'", $tokens[0]->getCode());
+        self::assertSame(Token::T_OPEN_PARENTHESIS, $tokens[1]->getType());
+        self::assertSame(Token::T_ATOM, $tokens[2]->getType());
+        self::assertSame('1', $tokens[2]->getCode());
+        self::assertSame(Token::T_WHITESPACE, $tokens[3]->getType());
+        self::assertSame(Token::T_ATOM, $tokens[4]->getType());
+        self::assertSame('2', $tokens[4]->getCode());
+        self::assertSame(Token::T_CLOSE_PARENTHESIS, $tokens[5]->getType());
+        self::assertSame(Token::T_EOF, $tokens[6]->getType());
+    }
+
+    public function test_trailing_quote_in_def_list(): void
+    {
+        $tokens = $this->lex("(def a' 123)");
+
+        self::assertSame(Token::T_OPEN_PARENTHESIS, $tokens[0]->getType());
+        self::assertSame(Token::T_ATOM, $tokens[1]->getType());
+        self::assertSame('def', $tokens[1]->getCode());
+        self::assertSame(Token::T_WHITESPACE, $tokens[2]->getType());
+        self::assertSame(Token::T_ATOM, $tokens[3]->getType());
+        self::assertSame("a'", $tokens[3]->getCode());
+        self::assertSame(Token::T_WHITESPACE, $tokens[4]->getType());
+        self::assertSame(Token::T_ATOM, $tokens[5]->getType());
+        self::assertSame('123', $tokens[5]->getCode());
+        self::assertSame(Token::T_CLOSE_PARENTHESIS, $tokens[6]->getType());
+        self::assertSame(Token::T_EOF, $tokens[7]->getType());
+    }
+
+    public function test_symbol_with_trailing_quote_and_hash(): void
+    {
+        // `a'#` — trailing hash still captured via the atom's `\#?` suffix.
+        $tokens = $this->lex("a'#");
+
+        self::assertSame(Token::T_ATOM, $tokens[0]->getType());
+        self::assertSame("a'#", $tokens[0]->getCode());
+        self::assertSame(Token::T_EOF, $tokens[1]->getType());
+    }
+
     private function lex(string $string): array
     {
         $lexer = $this->compilerFactory->createLexer();
