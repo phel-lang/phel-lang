@@ -12,6 +12,45 @@
 (deftest test-complement
   (is (false? ((complement and) true true)) "complement of and"))
 
+(deftest test-some-fn-single-pred
+  (is (true? ((some-fn even?) 2)) "some-fn with one pred, single truthy arg")
+  (is (nil? ((some-fn even?) 1)) "some-fn with one pred, single falsy arg")
+  (is (true? ((some-fn even?) 1 2)) "some-fn with one pred, any arg truthy")
+  (is (nil? ((some-fn even?) 1 3 5)) "some-fn with one pred, all args falsy")
+  (is (nil? ((some-fn even?))) "some-fn with one pred, zero args returns nil"))
+
+(deftest test-some-fn-multiple-preds
+  (is (true? ((some-fn pos? even?) -2)) "some-fn returns on second pred")
+  (is (true? ((some-fn pos? even?) 1)) "some-fn returns on first pred")
+  (is (nil? ((some-fn pos? even?) -1 -3)) "some-fn returns nil when no pred matches")
+  (is (true? ((some-fn neg? zero? pos?) 0)) "some-fn with three preds matches middle"))
+
+(deftest test-some-fn-returns-actual-value
+  (is (= 10 ((some-fn #(when (> % 5) %)) 3 10 1)) "some-fn returns the truthy value from the predicate")
+  (is (= :found ((some-fn (fn [_] :found)) 1)) "some-fn returns keyword truthy value"))
+
+(deftest test-some-fn-short-circuits-preds
+  (let [calls (var 0)
+        p1 (fn [x] (swap! calls inc) (even? x))
+        p2 (fn [_] (throw (php/new \Exception "should not be called")))]
+    (is (true? ((some-fn p1 p2) 2)) "some-fn short-circuits on first truthy pred")
+    (is (= 1 (deref calls)) "second pred was not invoked")))
+
+(deftest test-some-fn-short-circuits-args
+  (let [calls (var 0)
+        p (fn [x] (swap! calls inc) (even? x))]
+    (is (true? ((some-fn p) 1 2 3 4)) "some-fn short-circuits on first truthy arg")
+    (is (= 2 (deref calls)) "pred only called until first truthy result")))
+
+(deftest test-some-fn-pred-order
+  ;; All preds are tried on all args before moving to next pred
+  (let [log (atom [])
+        p1 (fn [x] (swap! log push [:p1 x]) nil)
+        p2 (fn [x] (swap! log push [:p2 x]) (= x :match))]
+    ((some-fn p1 p2) :a :match)
+    (is (= [[:p1 :a] [:p1 :match] [:p2 :a] [:p2 :match]] (deref log))
+        "some-fn tries each pred on all args before advancing")))
+
 (deftest test-juxt
   (is (= [2 1] ((juxt second first) [1 2])) "juxt"))
 

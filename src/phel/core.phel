@@ -2904,6 +2904,23 @@ Otherwise, it tries to call `__toString`."
   [f]
   #(not (apply f %&)))
 
+(defn some-fn
+  "Takes a variadic set of predicates and returns a function `f` that,
+   when called with any number of arguments, returns the first logical
+   true value produced by applying any of the composing predicates to
+   any of its arguments, and `nil` otherwise. The returned function
+   short-circuits on the first truthy result: arguments after it are
+   not inspected, and predicates after it are not tried.
+   Predicates are consulted in the order supplied; for a given
+   predicate, arguments are consulted left-to-right. Matches Clojure's
+   `some-fn` semantics."
+  {:example "((some-fn even? nil?) 1 2) ; => true\n((some-fn pos? even?) -3 -1) ; => nil"
+   :see-also ["some" "complement" "every?" "not-any?"]}
+  [p & ps]
+  (let [preds (cons p ps)]
+    (fn [& args]
+      (some (fn [pred] (some pred args)) preds))))
+
 (defn juxt
   "Takes a list of functions and returns a new function that is the juxtaposition of those functions."
   {:example "((juxt inc dec #(* % 2)) 10) => [11 9 20]"}
