@@ -1751,6 +1751,26 @@ Otherwise, it tries to call `__toString`."
   ([coll value & more]
    (reduce conj-single (conj-single coll value) more)))
 
+(defn- disj-single
+  [coll k]
+  (cond
+    (php/=== coll nil) nil
+    (set? coll) (php/-> coll (remove k))
+    :else
+    (throw (php/new InvalidArgumentException
+                    (str "Cannot disj on type " (type coll))))))
+
+(defn disj
+  "Returns a new set that does not contain the given key(s). Works on hash-sets and sorted-sets.
+  Removing a non-existent key is a no-op. Returns `nil` when called on `nil`."
+  {:example "(disj #{1 2 3} 2) ; => #{1 3}"
+   :see-also ["conj" "hash-set" "sorted-set"]}
+  ([set] set)
+  ([set k]
+   (disj-single set k))
+  ([set k & ks]
+   (reduce disj-single (disj-single set k) ks)))
+
 (defn slice
   "Extracts a slice of `coll` starting at `offset` with optional `length`."
   {:example "(slice [1 2 3 4 5] 1 3) ; => [2 3 4]"}

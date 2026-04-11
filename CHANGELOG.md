@@ -40,6 +40,7 @@ All notable changes to this project will be documented in this file.
 - `(resolve sym)` is now available globally in `phel\core`, no longer requiring `(:require phel\repl :refer [resolve])`, matching Clojure semantics (#1187)
 - `:or` defaults in map destructuring, matching Clojure semantics (#1219)
 - `:strs` support in map destructuring for string key lookup (#1227)
+- `disj` function for removing keys from a set (hash-set or sorted-set), variadic over keys, matching Clojure's `disj` (#1285)
 
 #### Clojure-Compatible Aliases
 - `atom`, `atom?`, `reset!` as aliases for `var`, `var?`, `set!` (#1252)
