@@ -28,7 +28,7 @@ final class Lexer implements LexerInterface
         "([ \t]+)", // Whitespace (index: 2)
         "(\r?\n)", // Newline (index: 3)
         '(#_)', // Inline comment (index: 4)
-        "(#(?![_{\\|(\x22?])[^\n]*\n?|;[^\n]*\n?)", // Comment (# or ; excludes #_ #{ #( #" #?) (index: 5)
+        "(#(?![_{\\|(\x22?#a-zA-Z])[^\n]*\n?|;[^\n]*\n?)", // Comment (# or ; excludes #_ #{ #( #" #? ## #<letter>) (index: 5)
         '(#\{)', // open hash brace (index: 6)
         '(,@|~@)', // unquote-splicing (index: 7), accepts `,@` or Clojure-style `~@`
         "(\()", // open parenthesis (index: 8)
@@ -49,6 +49,8 @@ final class Lexer implements LexerInterface
         '(#"(?:[^"\\\\]++|\\\\.)*+")', // regex literal (index: 23)
         '(#\?\()', // reader conditional (index: 24 = T_READER_COND)
         '(#\?@\()', // reader conditional splicing (index: 25 = T_READER_COND_SPLICING)
+        '(##(?:-?Inf|NaN)(?![A-Za-z0-9_\-]))', // symbolic number literal (index: 26 = T_SYMBOLIC_NUMBER) - Clojure-style ##Inf, ##-Inf, ##NaN
+        '(#[A-Za-z][A-Za-z0-9_\-]*)', // tagged literal start (index: 27 = T_TAGGED_LITERAL) - e.g. #cpp, #uuid, #inst
     ];
 
     private const string MULTILINE_COMMENT_BEGIN = '#|';
@@ -98,7 +100,7 @@ final class Lexer implements LexerInterface
                 $endLocation = $this->createSourceLocation($source);
 
                 @trigger_error(
-                    sprintf('Using "#| |#" for multiline comments is deprecated, use "(comment ...)" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
+                    sprintf('"#| ... |#" multiline comments are deprecated and will be removed in Phel v0.33. Use ";;" for line comments or "#_" to skip a single form (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
                     E_USER_DEPRECATED,
                 );
 
@@ -115,7 +117,7 @@ final class Lexer implements LexerInterface
 
                 if ($tokenType === Token::T_COMMENT && str_starts_with($matches[0], '#')) {
                     @trigger_error(
-                        sprintf('Using "#" for line comments is deprecated, use ";" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
+                        sprintf('Bare "#" line comments are deprecated and will be removed in Phel v0.33. Use ";" or ";;" instead (at %s:%d:%d)', $source, $startLocation->getLine(), $startLocation->getColumn()),
                         E_USER_DEPRECATED,
                     );
                 }

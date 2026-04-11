@@ -56,6 +56,10 @@ final readonly class Token
 
     public const int T_READER_COND_SPLICING = 25;
 
+    public const int T_SYMBOLIC_NUMBER = 26;
+
+    public const int T_TAGGED_LITERAL = 27;
+
     public const int T_EOF = 100;
 
     public function __construct(

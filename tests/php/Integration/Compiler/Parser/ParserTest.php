@@ -23,6 +23,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\NumberNode;
 use Phel\Compiler\Domain\Parser\ParserNode\QuoteNode;
 use Phel\Compiler\Domain\Parser\ParserNode\StringNode;
 use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
+use Phel\Compiler\Domain\Parser\ParserNode\TaggedLiteralNode;
 use Phel\Compiler\Domain\Parser\ParserNode\WhitespaceNode;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Keyword;
@@ -710,6 +711,71 @@ final class ParserTest extends TestCase
         $this->expectExceptionMessage('not allowed at the top level');
 
         $this->parse('#?@(:phel [1 2])');
+    }
+
+    public function test_symbolic_number_inf(): void
+    {
+        /** @var NumberNode $node */
+        $node = $this->parse('##Inf');
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(INF, $node->getValue());
+        self::assertSame('##Inf', $node->getCode());
+    }
+
+    public function test_symbolic_number_negative_inf(): void
+    {
+        /** @var NumberNode $node */
+        $node = $this->parse('##-Inf');
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(-INF, $node->getValue());
+        self::assertSame('##-Inf', $node->getCode());
+    }
+
+    public function test_symbolic_number_nan(): void
+    {
+        /** @var NumberNode $node */
+        $node = $this->parse('##NaN');
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertNan($node->getValue());
+        self::assertSame('##NaN', $node->getCode());
+    }
+
+    public function test_tagged_literal_wraps_next_form(): void
+    {
+        /** @var TaggedLiteralNode $node */
+        $node = $this->parse('#cpp (foo bar)');
+        self::assertInstanceOf(TaggedLiteralNode::class, $node);
+        self::assertSame('cpp', $node->getTag());
+        self::assertInstanceOf(ListNode::class, $node->getForm());
+    }
+
+    public function test_tagged_literal_with_atom_form(): void
+    {
+        /** @var TaggedLiteralNode $node */
+        $node = $this->parse('#uuid "abc-123"');
+        self::assertInstanceOf(TaggedLiteralNode::class, $node);
+        self::assertSame('uuid', $node->getTag());
+        self::assertInstanceOf(StringNode::class, $node->getForm());
+    }
+
+    public function test_tagged_literal_inside_unselected_reader_conditional_parses_cleanly(): void
+    {
+        // `#cpp` lands in the :jank branch which is not selected. The entire
+        // reader conditional should resolve to the :phel branch value (42)
+        // without raising a parser error.
+        $node = $this->parse('#?(:phel 42 :jank (#cpp (foo bar)))');
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(42, $node->getValue());
+    }
+
+    public function test_tagged_literal_in_selected_branch_reaches_parser(): void
+    {
+        // Conversely, if #cpp is in the :phel branch, it should reach the
+        // parser output as a TaggedLiteralNode (the error fires at Reader
+        // time, not parse time).
+        /** @var TaggedLiteralNode $node */
+        $node = $this->parse('#?(:phel (#cpp 1) :default 0)');
+        self::assertInstanceOf(ListNode::class, $node);
     }
 
     private function parse(string $string): NodeInterface

@@ -1,0 +1,20 @@
+--PHEL--
+(def x #?(:phel 42 :jank (#cpp (foo bar)) :default 0))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "x",
+  42,
+  \Phel::map(
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/tagged-literal-in-reader-conditional.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/tagged-literal-in-reader-conditional.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 54
+    )
+  )
+);

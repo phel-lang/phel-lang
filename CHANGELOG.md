@@ -12,6 +12,8 @@ All notable changes to this project will be documented in this file.
 - `amphp/amp` promoted to a runtime dependency so `phel\async` works out of the box (including from the PHAR), without requiring consumers to install it separately (#793)
 
 #### Reader & Compiler
+- Clojure-style symbolic number literals `##Inf`, `##-Inf`, `##NaN` matching PHP's `INF`, `-INF`, `NAN` for `.cljc` interop (#1276)
+- Generic `#<tag>` tagged-literal dispatch (e.g. `#cpp`, `#uuid`, `#inst`) — the tag and the following form are read as a `TaggedLiteralNode`. Unknown tags in unselected `#?` reader-conditional branches parse without error (enabling `.cljc` files that use foreign tags like `#cpp` inside non-`:phel` branches); unknown tags in selected branches raise a clear reader error (#1277)
 - `fn` accepts an optional name symbol as the first argument (e.g. `(fn my-name [x] x)` and `(fn my-name ([x] ...) ([x y] ...))`), matching Clojure's `(fn name? ...)` signature for `.cljc` interop. The name is currently discarded (not bound in the body); self-binding for named-fn recursion is deferred to a follow-up (#1279)
 - Clojure-style radix number literals: `NrXXX` where `N` is the base (2–36) and `XXX` are digits valid for that base, case-insensitive for bases > 10 (e.g. `2r1111` = 15, `16rFF` = 255, `36rZZ` = 1295). Negative form `-2r1111` also supported (#1281)
 - Dot namespace separator and Clojure aliasing for fully qualified names, enabling `phel.core/fn`, `clojure.core/fn` in code (#1251)
@@ -76,8 +78,10 @@ All notable changes to this project will be documented in this file.
 - Migrate all Phel source and test files from `|(...)` to `#(...)` short function syntax
 - Migrate all in-repo Phel source, tests, and docs from `,` / `,@` to `~` / `~@` for `unquote` / `unquote-splicing` (#1203)
 - Migrate `time` macro in `phel\core` from `name$` to `name#` auto-gensym suffix (#1203)
+- Migrated internal `tests/phel/` usage of the deprecated `#|...|#` multiline comment syntax to `;;` line comments (#1276)
 
 ### Deprecated
+- `#|...|#` multiline comments and bare `#` line comments are deprecated (have been since v0.30 but are now announced for removal). Use `;;` for line comments and `#_` to skip a single form. Removal planned for Phel v0.33 (#1276)
 - `var` → `atom`, `var?` → `atom?`, `set!` → `reset!` (#1252)
 - `id` → `identical?` (#1252)
 - `function?` → `fn?`, `hash-map?` → `map?` (#1252)

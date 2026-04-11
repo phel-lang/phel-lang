@@ -23,9 +23,11 @@ use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
 use Phel\Compiler\Domain\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NewlineNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
+use Phel\Compiler\Domain\Parser\ParserNode\NumberNode;
 use Phel\Compiler\Domain\Parser\ParserNode\QuoteNode;
 use Phel\Compiler\Domain\Parser\ParserNode\ReaderCondSplicingNode;
 use Phel\Compiler\Domain\Parser\ParserNode\StringNode;
+use Phel\Compiler\Domain\Parser\ParserNode\TaggedLiteralNode;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\WhitespaceNode;
 
@@ -45,6 +47,8 @@ final readonly class Parser implements ParserInterface
         Token::T_REGEX,
         Token::T_READER_COND,
         Token::T_READER_COND_SPLICING,
+        Token::T_SYMBOLIC_NUMBER,
+        Token::T_TAGGED_LITERAL,
     ];
 
     private SplStack $quasiquoteStack;
@@ -158,6 +162,8 @@ final readonly class Parser implements ParserInterface
                 Token::T_CARET => $this->parseMetaNode($tokenStream),
                 Token::T_READER_COND => $this->parseReaderCondNode($tokenStream, $token),
                 Token::T_READER_COND_SPLICING => $this->parseReaderCondSplicingNode($tokenStream, $token),
+                Token::T_SYMBOLIC_NUMBER => $this->parseSymbolicNumberNode($token),
+                Token::T_TAGGED_LITERAL => $this->parseTaggedLiteralNode($tokenStream, $token),
                 Token::T_EOF => throw $this->createUnfinishedParserException($tokenStream, $token, 'Unterminated list (EOF)'),
                 default => throw $this->createUnexceptedParserException($tokenStream, $token, 'Unhandled syntax token: ' . $token->getCode()),
             };
@@ -202,6 +208,51 @@ final readonly class Parser implements ParserInterface
         } while ($ignored instanceof TriviaNodeInterface);
 
         return new CommentMacroNode($ignored, $token->getStartLocation());
+    }
+
+    /**
+     * Produces a NumberNode with value PHP INF/-INF/NAN from a symbolic
+     * number literal token (`##Inf`, `##-Inf`, `##NaN`). The lexer only
+     * emits these three exact forms, so no other code paths are reachable.
+     */
+    private function parseSymbolicNumberNode(Token $token): NumberNode
+    {
+        $value = match ($token->getCode()) {
+            '##-Inf' => -INF,
+            '##NaN' => NAN,
+            default => INF, // '##Inf'
+        };
+
+        return new NumberNode(
+            $token->getCode(),
+            $token->getStartLocation(),
+            $token->getEndLocation(),
+            $value,
+        );
+    }
+
+    /**
+     * @throws UnexpectedParserException
+     * @throws UnfinishedParserException
+     */
+    private function parseTaggedLiteralNode(TokenStream $tokenStream, Token $token): TaggedLiteralNode
+    {
+        // Tag name is everything after the leading '#'
+        $tag = substr($token->getCode(), 1);
+
+        // The stream is already past the tag token at this point because
+        // T_TAGGED_LITERAL is in TOKENS_THAT_SHOULD_STREAM_NEXT.
+        // Read the next non-trivia form as the tagged value.
+        do {
+            $form = $this->readExpression($tokenStream);
+        } while ($form instanceof TriviaNodeInterface);
+
+        return new TaggedLiteralNode(
+            $tag,
+            $form,
+            $token->getStartLocation(),
+            $form->getEndLocation(),
+        );
     }
 
     /**

@@ -99,6 +99,14 @@
   (is (true? (NaN? NAN)) "(NaN? NAN)")
   (is (false? (NaN? 9)) "(NaN? 8)"))
 
+(deftest test-symbolic-number-literals
+  (is (true? (inf? ##Inf)) "(inf? ##Inf)")
+  (is (true? (inf? ##-Inf)) "(inf? ##-Inf)")
+  (is (true? (nan? ##NaN)) "(nan? ##NaN)")
+  (is (= ##-Inf (- 0 ##Inf)) "(- 0 ##Inf) equals ##-Inf")
+  (is (= ##Inf php/INF) "##Inf equals php/INF")
+  (is (true? (neg? ##-Inf)) "##-Inf is negative"))
+
 (deftest test-min
   (is (= 1 (min 1 2 3)) "(min 1 2 3)"))
 

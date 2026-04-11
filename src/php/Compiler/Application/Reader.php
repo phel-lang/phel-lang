@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\MetaNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\QuoteNode;
 use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
+use Phel\Compiler\Domain\Parser\ParserNode\TaggedLiteralNode;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
@@ -23,6 +24,8 @@ use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use RuntimeException;
+
+use function sprintf;
 
 final class Reader implements ReaderInterface
 {
@@ -82,6 +85,22 @@ final class Reader implements ReaderInterface
 
         if ($node instanceof MetaNode) {
             return $this->readMetaNode($node, $root);
+        }
+
+        // Phel does not (yet) register any tagged-literal handlers. Reaching
+        // this point means a `#<tag>` form survived parsing in a code path
+        // that is actually emitted — i.e. the selected `#?` branch or
+        // top-level code. Unselected branches of `#?` are discarded by the
+        // parser, so unknown tags inside `:jank`/`:clj`/... never reach here.
+        if ($node instanceof TaggedLiteralNode) {
+            throw ReaderException::forNode(
+                $node,
+                $root,
+                sprintf(
+                    "Unknown tagged literal '#%s'. Phel has no built-in handler for this tag; it may only appear inside a non-selected reader-conditional branch (e.g. :clj, :jank).",
+                    $node->getTag(),
+                ),
+            );
         }
 
         throw ReaderException::forNode($node, $root, 'Unterminated list');

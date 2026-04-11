@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Lexer;
 
 use Phel\Compiler\CompilerFactory;
+use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Lang\SourceLocation;
 use PHPUnit\Framework\TestCase;
@@ -294,6 +295,7 @@ final class LexerTest extends TestCase
         }
 
         self::assertNotNull($warning);
+        self::assertStringContainsString('v0.33', $warning);
         self::assertStringContainsString('";"', $warning);
     }
 
@@ -329,7 +331,8 @@ final class LexerTest extends TestCase
         }
 
         self::assertNotNull($warning);
-        self::assertStringContainsString('(comment ...)', $warning);
+        self::assertStringContainsString('v0.33', $warning);
+        self::assertStringContainsString(';;', $warning);
     }
 
     public function test_pipe_fn_emits_deprecation(): void
@@ -605,6 +608,144 @@ final class LexerTest extends TestCase
         self::assertSame(Token::T_ATOM, $tokens[0]->getType());
         self::assertSame("a'#", $tokens[0]->getCode());
         self::assertSame(Token::T_EOF, $tokens[1]->getType());
+    }
+
+    public function test_double_hash_inf_lexes_as_single_token(): void
+    {
+        $tokens = $this->lex('##Inf');
+
+        self::assertSame(Token::T_SYMBOLIC_NUMBER, $tokens[0]->getType());
+        self::assertSame('##Inf', $tokens[0]->getCode());
+        self::assertSame(Token::T_EOF, $tokens[1]->getType());
+    }
+
+    public function test_double_hash_negative_inf_lexes_as_single_token(): void
+    {
+        $tokens = $this->lex('##-Inf');
+
+        self::assertSame(Token::T_SYMBOLIC_NUMBER, $tokens[0]->getType());
+        self::assertSame('##-Inf', $tokens[0]->getCode());
+        self::assertSame(Token::T_EOF, $tokens[1]->getType());
+    }
+
+    public function test_double_hash_nan_lexes_as_single_token(): void
+    {
+        $tokens = $this->lex('##NaN');
+
+        self::assertSame(Token::T_SYMBOLIC_NUMBER, $tokens[0]->getType());
+        self::assertSame('##NaN', $tokens[0]->getCode());
+        self::assertSame(Token::T_EOF, $tokens[1]->getType());
+    }
+
+    public function test_double_hash_with_space_does_not_lex_as_symbolic_number(): void
+    {
+        // `## Inf` with a space after `##` must NOT match the symbolic number rule.
+        // `##` on its own is not a valid lexer state.
+        $this->expectException(LexerValueException::class);
+        $this->lex('## Inf');
+    }
+
+    public function test_hash_tag_lexes_as_single_token(): void
+    {
+        $tokens = $this->lex('#cpp');
+
+        self::assertSame(Token::T_TAGGED_LITERAL, $tokens[0]->getType());
+        self::assertSame('#cpp', $tokens[0]->getCode());
+        self::assertSame(Token::T_EOF, $tokens[1]->getType());
+    }
+
+    public function test_hash_tag_does_not_consume_following_form(): void
+    {
+        // `#cpp (1 2 3)` → tag token, whitespace, ( , atoms..., )
+        $tokens = $this->lex('#cpp (1 2 3)');
+
+        self::assertSame(Token::T_TAGGED_LITERAL, $tokens[0]->getType());
+        self::assertSame('#cpp', $tokens[0]->getCode());
+        self::assertSame(Token::T_WHITESPACE, $tokens[1]->getType());
+        self::assertSame(Token::T_OPEN_PARENTHESIS, $tokens[2]->getType());
+        self::assertSame(Token::T_ATOM, $tokens[3]->getType());
+        self::assertSame('1', $tokens[3]->getCode());
+    }
+
+    public function test_hash_tag_with_dashes_and_digits(): void
+    {
+        $tokens = $this->lex('#my-tag1');
+
+        self::assertSame(Token::T_TAGGED_LITERAL, $tokens[0]->getType());
+        self::assertSame('#my-tag1', $tokens[0]->getCode());
+    }
+
+    public function test_hash_underscore_still_form_skip(): void
+    {
+        // regression: #_ must still match T_COMMENT_MACRO, not T_TAGGED_LITERAL
+        $tokens = $this->lex('#_a');
+
+        self::assertSame(Token::T_COMMENT_MACRO, $tokens[0]->getType());
+        self::assertSame('#_', $tokens[0]->getCode());
+        self::assertSame(Token::T_ATOM, $tokens[1]->getType());
+    }
+
+    public function test_hash_brace_still_set_literal(): void
+    {
+        $tokens = $this->lex('#{1 2}');
+        self::assertSame(Token::T_HASH_OPEN_BRACE, $tokens[0]->getType());
+    }
+
+    public function test_hash_paren_still_anon_fn(): void
+    {
+        $tokens = $this->lex('#(+ % 1)');
+        self::assertSame(Token::T_HASH_FN, $tokens[0]->getType());
+    }
+
+    public function test_hash_question_still_reader_conditional(): void
+    {
+        $tokens = $this->lex('#?(:phel 1)');
+        self::assertSame(Token::T_READER_COND, $tokens[0]->getType());
+    }
+
+    public function test_hash_quote_still_regex(): void
+    {
+        $tokens = $this->lex('#"foo"');
+        self::assertSame(Token::T_REGEX, $tokens[0]->getType());
+    }
+
+    public function test_hash_pipe_multiline_comment_still_deprecated_but_works(): void
+    {
+        $warning = null;
+        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
+            $warning = $errstr;
+            return true;
+        }, E_USER_DEPRECATED);
+
+        try {
+            $tokens = $this->lex('#| multiline |#');
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertSame(Token::T_COMMENT, $tokens[0]->getType());
+        self::assertSame('#| multiline |#', $tokens[0]->getCode());
+        self::assertNotNull($warning);
+        self::assertStringContainsString('v0.33', $warning);
+    }
+
+    public function test_bare_hash_line_comment_still_deprecated_but_works(): void
+    {
+        $warning = null;
+        set_error_handler(static function (int $errno, string $errstr) use (&$warning): bool {
+            $warning = $errstr;
+            return true;
+        }, E_USER_DEPRECATED);
+
+        try {
+            $tokens = $this->lex("# a bare comment\n");
+        } finally {
+            restore_error_handler();
+        }
+
+        self::assertSame(Token::T_COMMENT, $tokens[0]->getType());
+        self::assertNotNull($warning);
+        self::assertStringContainsString('v0.33', $warning);
     }
 
     private function lex(string $string): array

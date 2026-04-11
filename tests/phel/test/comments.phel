@@ -1,15 +1,20 @@
 (ns phel-test\test\comments
   (:require phel\test :refer [deftest is]))
 
-(deftest test-multiline-comment
-  (is (= 3 (+ 1 #|
-                 multiline
-                 comment
-               |# 2)) "multiline comment"))
+(deftest test-line-comment
+  ;; line comments compile away cleanly
+  (is (= 3 (+ 1 ;; trailing comment
+                2)) "line comment"))
 
-(deftest test-nested-multiline-comment
-  (is (= 6 (+ 1 #|
-                 2
-                 #| nested |#
-                 4
-               |# 5)) "nested multiline comment"))
+(deftest test-double-semicolon-comment
+  ;; standalone comment lines above an expression
+  (is (= 6 (+ 1
+              ;; a comment
+              ;; another comment
+              5)) "double-semicolon comments"))
+
+(deftest test-tagged-literal-in-unselected-reader-conditional-branch
+  ;; `#cpp` is a foreign tag that would error if reached at read time; the
+  ;; reader-conditional selects `:phel` so the `:jank` branch is discarded.
+  (is (= 42 #?(:phel 42 :jank (#cpp (foo bar)) :default 0))
+      "unknown tagged literal inside an unselected branch is dropped"))

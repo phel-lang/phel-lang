@@ -1,0 +1,20 @@
+--PHEL--
+(def x ##NaN)
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "x",
+  NAN,
+  \Phel::map(
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/symbolic-number-nan.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/symbolic-number-nan.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 13
+    )
+  )
+);
