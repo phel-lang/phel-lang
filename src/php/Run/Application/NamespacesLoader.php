@@ -4,13 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Run\Application;
 
-use Phar;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Run\Domain\NamespacesLoaderInterface;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
-
-use function in_array;
 
 final readonly class NamespacesLoader implements NamespacesLoaderInterface
 {
@@ -24,19 +21,13 @@ final readonly class NamespacesLoader implements NamespacesLoaderInterface
      */
     public function getLoadedNamespaces(): array
     {
+        // The phel core library directory is already prepended to the source
+        // directories by `CommandConfig::getCodeDirs()` (works for phar, vendor,
+        // and source-tree installs), so no phar-specific fallback is needed here.
         $directories = [
             ...$this->commandFacade->getSourceDirectories(),
             ...$this->commandFacade->getVendorSourceDirectories(),
         ];
-
-        // Add core Phel files directory when running from PHAR,
-        // but only if not already present (avoids duplicate namespace registration)
-        if (str_starts_with(__FILE__, 'phar://')) {
-            $pharSrcDir = Phar::running(true) . '/src/phel';
-            if (!in_array($pharSrcDir, $directories, true)) {
-                $directories[] = $pharSrcDir;
-            }
-        }
 
         return $this->buildFacade->getNamespaceFromDirectories($directories);
     }

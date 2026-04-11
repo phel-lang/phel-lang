@@ -137,6 +137,7 @@ All notable changes to this project will be documented in this file.
 - Lexer no longer swallows a reader conditional (`#?(...)`) following a gensym-suffixed symbol (#1195)
 - Lexer accepts `'` inside and at the end of symbol names (e.g. `a'`, `foo''`, `a'b`); leading `'` is still the quote reader macro (#1275)
 - `php/...` calls to namespaced PHP functions (e.g. `php/Amp\File\write`) emit fully qualified names so they resolve from compiled/cached files (#1180)
+- `phel.phar` no longer emits duplicate-namespace warnings or fails to write the compiled-code cache when run from a directory without `phel-config.php`
 
 ## [0.31.0](https://github.com/phel-lang/phel-lang/compare/v0.30.0...v0.31.0) - 2026-04-03
 
