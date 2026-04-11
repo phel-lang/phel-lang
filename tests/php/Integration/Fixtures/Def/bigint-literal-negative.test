@@ -1,0 +1,20 @@
+--PHEL--
+(def x -123N)
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "x",
+  -123,
+  \Phel::map(
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/bigint-literal-negative.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/bigint-literal-negative.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 13
+    )
+  )
+);

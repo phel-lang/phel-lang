@@ -554,6 +554,147 @@ final class AtomParserTest extends TestCase
         self::assertInstanceOf(SymbolNode::class, $node);
     }
 
+    public function test_parse_bigint_literal(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 2);
+        $node = $parser->parse(new Token(Token::T_ATOM, '1N', $start, $end));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(1, $node->getValue());
+    }
+
+    public function test_parse_zero_bigint_literal(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 2);
+        $node = $parser->parse(new Token(Token::T_ATOM, '0N', $start, $end));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(0, $node->getValue());
+    }
+
+    public function test_parse_negative_bigint_literal(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 5);
+        $node = $parser->parse(new Token(Token::T_ATOM, '-123N', $start, $end));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(-123, $node->getValue());
+    }
+
+    public function test_parse_positive_signed_bigint_literal(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 5);
+        $node = $parser->parse(new Token(Token::T_ATOM, '+123N', $start, $end));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(123, $node->getValue());
+    }
+
+    public function test_parse_bigint_literal_with_underscores(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 10);
+        $node = $parser->parse(new Token(Token::T_ATOM, '1_000_000N', $start, $end));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(1_000_000, $node->getValue());
+    }
+
+    public function test_parse_bigdec_literal_integer(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 2);
+        $node = $parser->parse(new Token(Token::T_ATOM, '1M', $start, $end));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(1.0, $node->getValue());
+    }
+
+    public function test_parse_bigdec_literal_decimal(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 4);
+        $node = $parser->parse(new Token(Token::T_ATOM, '1.5M', $start, $end));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(1.5, $node->getValue());
+    }
+
+    public function test_parse_negative_bigdec_literal(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 9);
+        $node = $parser->parse(new Token(Token::T_ATOM, '-123.456M', $start, $end));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(-123.456, $node->getValue());
+    }
+
+    public function test_parse_zero_bigdec_literal(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 2);
+        $node = $parser->parse(new Token(Token::T_ATOM, '0M', $start, $end));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(0.0, $node->getValue());
+    }
+
+    public function test_parse_bigdec_literal_with_exponent(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 6);
+        $node = $parser->parse(new Token(Token::T_ATOM, '1.5e3M', $start, $end));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(1500.0, $node->getValue());
+    }
+
+    public function test_parse_bigdec_literal_with_underscores(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 10);
+        $node = $parser->parse(new Token(Token::T_ATOM, '1_000.5_5M', $start, $end));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(1000.55, $node->getValue());
+    }
+
+    public function test_symbol_with_trailing_n_is_not_bigint(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 4);
+        $node = $parser->parse(new Token(Token::T_ATOM, 'foo1N', $start, $end));
+
+        self::assertInstanceOf(SymbolNode::class, $node);
+    }
+
+    public function test_symbol_with_trailing_m_is_not_bigdec(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 4);
+        $node = $parser->parse(new Token(Token::T_ATOM, 'foo1M', $start, $end));
+
+        self::assertInstanceOf(SymbolNode::class, $node);
+    }
+
     public function test_parse_symbol(): void
     {
         $parser = new AtomParser(new GlobalEnvironment());

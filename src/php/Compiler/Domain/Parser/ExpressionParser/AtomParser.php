@@ -33,6 +33,23 @@ final readonly class AtomParser
 
     private const string REGEX_RADIX_NUMBER = '/^([+-])?(2|[3-9]|[12]\d|3[0-6])[rR]([0-9a-zA-Z]+(?:_[0-9a-zA-Z]+)*)$/';
 
+    /**
+     * Clojure-style arbitrary-precision integer literal, e.g. `1N`, `-123N`,
+     * `1_000_000N`. Phel has no first-class BigInt, so the `N` suffix is
+     * stripped and the value is parsed as a plain PHP int — callers that
+     * need values beyond `PHP_INT_MAX` must use an explicit library.
+     */
+    private const string REGEX_BIGINT_LITERAL = '/^([+-]?\d+(?:_\d+)*)N$/';
+
+    /**
+     * Clojure-style arbitrary-precision decimal literal, e.g. `1.5M`, `0M`,
+     * `-123.456M`, `1.5e3M`. Phel has no first-class BigDecimal, so the `M`
+     * suffix is stripped and the value is parsed as a plain PHP float —
+     * callers that need arbitrary-precision decimals must use an explicit
+     * library.
+     */
+    private const string REGEX_BIGDEC_LITERAL = '/^([+-]?\d+(?:_\d+)*(?:\.\d+(?:_\d+)*)?(?:[eE][+-]?\d+)?)M$/';
+
     private const string REGEX_DECIMAL_NUMBER = '/^(?:([+-])?\d+(_\d+)*[\.(_\d+]?|0)$/';
 
     public function __construct(private GlobalEnvironmentInterface $globalEnvironment) {}
@@ -73,6 +90,14 @@ final readonly class AtomParser
             && $this->isValidDigitsForBase($matches[3], (int) $matches[2])
         ) {
             return $this->parseRadixNumber($matches, $word, $token);
+        }
+
+        if (preg_match(self::REGEX_BIGINT_LITERAL, $word, $matches)) {
+            return $this->parseBigintLiteral($matches, $word, $token);
+        }
+
+        if (preg_match(self::REGEX_BIGDEC_LITERAL, $word, $matches)) {
+            return $this->parseBigdecLiteral($matches, $word, $token);
         }
 
         if (is_numeric($word)) {
@@ -243,6 +268,34 @@ final readonly class AtomParser
         if ($sign === -1) {
             $value = -$value;
         }
+
+        return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
+    }
+
+    /**
+     * Parses a Clojure-style `N`-suffixed integer literal. The `N` marker
+     * is stripped and the remainder is parsed as a plain PHP int. Phel has
+     * no first-class arbitrary-precision integer type — values beyond
+     * `PHP_INT_MAX` will overflow exactly as with an unsuffixed literal.
+     * The suffix is accepted purely for `.cljc` source compatibility.
+     */
+    private function parseBigintLiteral(array $matches, string $word, Token $token): NumberNode
+    {
+        $value = (int) str_replace('_', '', (string) $matches[1]);
+
+        return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
+    }
+
+    /**
+     * Parses a Clojure-style `M`-suffixed decimal literal. The `M` marker
+     * is stripped and the remainder is parsed as a plain PHP float. Phel
+     * has no first-class arbitrary-precision decimal type — values beyond
+     * IEEE-754 precision will round exactly as with an unsuffixed literal.
+     * The suffix is accepted purely for `.cljc` source compatibility.
+     */
+    private function parseBigdecLiteral(array $matches, string $word, Token $token): NumberNode
+    {
+        $value = (float) str_replace('_', '', (string) $matches[1]);
 
         return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
     }

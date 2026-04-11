@@ -272,3 +272,21 @@
   (is (= -15 -2r1111) "negative radix literal")
   (is (= 15 +2r1111) "explicit positive radix literal")
   (is (= 240 2r1111_0000) "radix literal with underscores"))
+
+(deftest test-bigint-literals
+  (is (= 1 1N) "(= 1 1N)")
+  (is (= 0 0N) "(= 0 0N)")
+  (is (= -1 -1N) "(= -1 -1N)")
+  (is (= 123 +123N) "(= 123 +123N)")
+  (is (= 1000000 1_000_000N) "(= 1000000 1_000_000N)")
+  (is (int? 1N) "(int? 1N)")
+  (is (int? -1N) "(int? -1N)"))
+
+(deftest test-bigdec-literals
+  (is (= 1.0 1M) "(= 1.0 1M)")
+  (is (= 1.5 1.5M) "(= 1.5 1.5M)")
+  (is (= 0.0 0M) "(= 0.0 0M)")
+  (is (= -1.1 -1.1M) "(= -1.1 -1.1M)")
+  (is (= 1500.0 1.5e3M) "(= 1500.0 1.5e3M)")
+  (is (float? 1M) "(float? 1M)")
+  (is (float? -1.1M) "(float? -1.1M)"))
