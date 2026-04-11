@@ -37,6 +37,7 @@ All notable changes to this project will be documented in this file.
 - `condp` macro for predicate-based conditional dispatch, matching Clojure semantics including `:>>` result threading (#1217)
 - `if-some`, `when-some`, `when-first` macros for nil-aware binding, matching Clojure semantics (#1218)
 - `assert` macro for precondition checking with optional custom message (#1222)
+- `*assert*` var in `phel\core` now resolves (default `true`). `assert` reads it at macroexpansion time — when set to logical false (e.g. `(\Phel::addDefinition("phel\\core", "*assert*", false))` before compilation), `assert` expands to `nil` and performs no runtime check, matching Clojure's compile-time `*assert*` semantics. Unblocks `.cljc` test suites that reference `*assert*` (#1315)
 - `dotimes` macro for evaluating body `n` times with a binding from `0` to `n-1` (#1252)
 - `run!` function for applying a function to each element of a collection for side effects (#1252)
 - `fnil` function for nil-safe function wrapping with default values (#1225)
