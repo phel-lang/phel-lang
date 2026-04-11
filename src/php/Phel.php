@@ -174,7 +174,12 @@ class Phel
 
     /**
      * Resolve the project root directory when running from a PHAR.
-     * Priority: 1) CWD with config, 2) PHAR directory with config, 3) Inside PHAR
+     * Priority: 1) CWD with config, 2) PHAR directory with config, 3) CWD (auto-detected).
+     *
+     * The fallback must never point inside the PHAR: PHAR archives are read-only,
+     * and Gacela's config loader relies on `glob()` which does not match `phar://`
+     * paths on most platforms, so a phar:// root silently loads zero config values
+     * and every cache write targets the read-only archive.
      */
     private static function resolvePharProjectRoot(): string
     {
@@ -194,8 +199,9 @@ class Phel
             return $pharDir;
         }
 
-        // Fall back to inside the PHAR
-        return Phar::running(true);
+        // Fall back to CWD so auto-detected config kicks in (see configFn()).
+        // The phar's own phel core library is still loaded via NamespacesLoader.
+        return $cwd;
     }
 
     /**

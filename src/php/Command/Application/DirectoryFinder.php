@@ -50,7 +50,7 @@ final readonly class DirectoryFinder implements DirectoryFinderInterface
      */
     private function toAbsoluteDirectories(array $relativeDirectories): array
     {
-        return array_map(function (string $dir): string {
+        $absolute = array_map(function (string $dir): string {
             // PHAR path? return as-is
             if (str_starts_with($dir, 'phar://')) {
                 return $dir;
@@ -69,5 +69,10 @@ final readonly class DirectoryFinder implements DirectoryFinderInterface
             $resolved = realpath($joined);
             return $resolved !== false ? $resolved : $joined;
         }, $relativeDirectories);
+
+        // Dedupe identical entries so the same physical directory is not walked
+        // twice (e.g. when the prepended phel core dir resolves to the same path
+        // as a configured src dir, as happens inside a PHAR).
+        return array_values(array_unique($absolute));
     }
 }

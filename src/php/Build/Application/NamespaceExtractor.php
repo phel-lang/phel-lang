@@ -125,8 +125,16 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
     private function warnAboutDuplicateNamespaces(array $allLocations): void
     {
         foreach ($allLocations as $namespace => $files) {
-            if (count($files) > 1) {
-                $fileList = implode("\n", array_map(static fn(string $f): string => '  - ' . $f, $files));
+            // Dedupe by canonical path so the same physical file discovered
+            // via nested source directories (e.g. `src/` and `src/phel/`, or a
+            // PHAR's internal dirs) is not reported as a duplicate of itself.
+            $uniqueFiles = array_values(array_unique(array_map(
+                $this->canonicalizeFilePath(...),
+                $files,
+            )));
+
+            if (count($uniqueFiles) > 1) {
+                $fileList = implode("\n", array_map(static fn(string $f): string => '  - ' . $f, $uniqueFiles));
                 fwrite(STDERR, sprintf(
                     "\nWARNING: Namespace '%s' is defined in multiple locations:\n%s\n"
                     . "The last one will be used. Check your phel-config.php srcDirs/testDirs settings.\n",
@@ -135,6 +143,42 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
                 ));
             }
         }
+    }
+
+    /**
+     * Canonicalize a file path for duplicate detection. Uses `realpath()` on
+     * the local filesystem and a manual '..' resolver for `phar://` paths,
+     * because `realpath()` does not resolve phar stream paths.
+     */
+    private function canonicalizeFilePath(string $path): string
+    {
+        if (str_starts_with($path, 'phar://')) {
+            $prefix = 'phar://';
+            $rest = substr($path, 7);
+            $isAbsolute = str_starts_with($rest, '/');
+            $segments = [];
+            foreach (explode('/', $rest) as $part) {
+                if ($part === '') {
+                    continue;
+                }
+
+                if ($part === '.') {
+                    continue;
+                }
+
+                if ($part === '..') {
+                    array_pop($segments);
+                    continue;
+                }
+
+                $segments[] = $part;
+            }
+
+            return $prefix . ($isAbsolute ? '/' : '') . implode('/', $segments);
+        }
+
+        $real = realpath($path);
+        return $real !== false ? $real : $path;
     }
 
     /**
