@@ -63,6 +63,7 @@ All notable changes to this project will be documented in this file.
 - `char?` predicate (single-char string, UTF-8 counted), matching ClojureScript semantics (#1334)
 - `coll?` predicate for persistent collections (vectors, lists, hash-maps, structs, sets, lazy-seqs) (#1336)
 - `conj!` transient mutator with Clojure-compatible arities over transient vectors, sets, and maps (#1338)
+- `assoc!`, `dissoc!`, `disj!`, `pop!` transient mutators, throwing `InvalidArgumentException` on persistent or mismatched targets
 - `some-fn` higher-order predicate combinator, short-circuiting on first logical-true result (#1339)
 - `counted?` predicate for collections with constant-time length (lazy-seqs excluded) (#1340)
 - Single-arity `(drop-last coll)` equivalent to `(drop-last 1 coll)` (#1343)
@@ -70,6 +71,8 @@ All notable changes to this project will be documented in this file.
 
 #### Clojure-Compatible Aliases
 - `atom`, `atom?`, `reset!` as aliases for `var`, `var?`, `set!` (#1252)
+- `persistent!` as alias for `persistent`
+- `double?` as alias for `float?`
 - `identical?` as alias for `id` (#1252)
 - `fn?` as alias for `function?` (#1252)
 - `map?` as alias for `hash-map?` (#1252)

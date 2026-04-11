@@ -417,6 +417,14 @@ Otherwise, it tries to call `__toString`."
   [coll]
   (php/-> coll (persistent)))
 
+(defn persistent!
+  "Converts a transient collection back to a persistent collection.
+   Alias for `persistent`, matching Clojure's `persistent!` naming."
+  {:example "(persistent! (conj! (transient []) 1 2 3)) ; => [1 2 3]"
+   :see-also ["persistent" "transient"]}
+  [coll]
+  (persistent coll))
+
 ;; ------------------
 ;; Basic constructors
 ;; ------------------
@@ -1005,6 +1013,15 @@ Otherwise, it tries to call `__toString`."
   "Returns true if `x` is a number, false otherwise."
   [x]
   (or (= (type x) :int) (= (type x) :float)))
+
+(defn double?
+  "Returns true if `x` is a floating-point number, false otherwise.
+   Alias for `float?`, matching Clojure's `double?` naming. Since Phel
+   uses PHP floats (IEEE 754 doubles) there is no separate single-precision
+   float type."
+  {:see-also ["float?" "number?"]}
+  [x]
+  (float? x))
 
 (defn string?
   "Returns true if `x` is a string, false otherwise."
@@ -1930,6 +1947,97 @@ Otherwise, it tries to call `__toString`."
   ([tcoll value] (conj-bang-single tcoll value))
   ([tcoll value & more]
    (reduce conj-bang-single (conj-bang-single tcoll value) more)))
+
+(defn- assoc-bang-pair
+  [tcoll key value]
+  (cond
+    (php/instanceof tcoll TransientMapInterface)
+    (php/-> tcoll (put key value))
+
+    (php/instanceof tcoll TransientVectorInterface)
+    (php/-> tcoll (update key value))
+
+    :else
+    (throw (php/new InvalidArgumentException
+                    (str "assoc! expects a transient map or transient vector, got " (type tcoll))))))
+
+(defn assoc!
+  "Associates one or more key-value pairs with a transient collection,
+   mutating it in place. Works on transient hash-maps and transient vectors.
+   Variadic forms apply each `key-value` pair in order. Raises
+   `InvalidArgumentException` when `tcoll` is not a supported transient
+   collection or when an odd number of extra arguments is provided.
+   Matches Clojure's `assoc!` semantics."
+  {:example "(persistent! (assoc! (transient {}) :a 1 :b 2)) ; => {:a 1 :b 2}"
+   :see-also ["assoc" "conj!" "transient" "persistent!"]}
+  [tcoll key value & more]
+  (when (php/!== 0 (php/& (count more) 1))
+    (throw (php/new InvalidArgumentException
+                    (str "assoc! expects an even number of extra arguments (key-value pairs), got "
+                         (count more)))))
+  (loop [acc (assoc-bang-pair tcoll key value)
+         remaining more]
+    (if (empty? remaining)
+      acc
+      (recur (assoc-bang-pair acc (first remaining) (second remaining))
+             (rest (rest remaining))))))
+
+(defn- dissoc-bang-single
+  [tcoll key]
+  (cond
+    (php/instanceof tcoll TransientMapInterface)
+    (php/-> tcoll (remove key))
+
+    :else
+    (throw (php/new InvalidArgumentException
+                    (str "dissoc! expects a transient map, got " (type tcoll))))))
+
+(defn dissoc!
+  "Dissociates one or more keys from a transient map, mutating it in place.
+   Raises `InvalidArgumentException` when `tcoll` is not a transient map.
+   Matches Clojure's `dissoc!` semantics."
+  {:example "(persistent! (dissoc! (transient {:a 1 :b 2}) :a)) ; => {:b 2}"
+   :see-also ["dissoc" "assoc!" "transient" "persistent!"]}
+  ([tcoll] tcoll)
+  ([tcoll key] (dissoc-bang-single tcoll key))
+  ([tcoll key & ks]
+   (reduce dissoc-bang-single (dissoc-bang-single tcoll key) ks)))
+
+(defn- disj-bang-single
+  [tcoll value]
+  (cond
+    (php/instanceof tcoll TransientHashSetInterface)
+    (php/-> tcoll (remove value))
+
+    :else
+    (throw (php/new InvalidArgumentException
+                    (str "disj! expects a transient set, got " (type tcoll))))))
+
+(defn disj!
+  "Removes one or more elements from a transient set, mutating it in place.
+   Raises `InvalidArgumentException` when `tcoll` is not a transient set.
+   Matches Clojure's `disj!` semantics."
+  {:example "(persistent! (disj! (transient #{1 2 3}) 2)) ; => #{1 3}"
+   :see-also ["disj" "conj!" "transient" "persistent!"]}
+  ([tcoll] tcoll)
+  ([tcoll value] (disj-bang-single tcoll value))
+  ([tcoll value & more]
+   (reduce disj-bang-single (disj-bang-single tcoll value) more)))
+
+(defn pop!
+  "Removes the last element from a transient vector, mutating it in place.
+   Raises `InvalidArgumentException` when `tcoll` is not a transient vector.
+   Matches Clojure's `pop!` semantics."
+  {:example "(persistent! (pop! (transient [1 2 3]))) ; => [1 2]"
+   :see-also ["pop" "conj!" "transient" "persistent!"]}
+  [tcoll]
+  (cond
+    (php/instanceof tcoll TransientVectorInterface)
+    (php/-> tcoll (pop))
+
+    :else
+    (throw (php/new InvalidArgumentException
+                    (str "pop! expects a transient vector, got " (type tcoll))))))
 
 (defn- disj-single
   [coll k]
