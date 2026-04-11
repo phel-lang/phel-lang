@@ -17,7 +17,9 @@ use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 
 use function is_float;
+use function ord;
 use function sprintf;
+use function strlen;
 
 final readonly class AtomParser
 {
@@ -28,6 +30,8 @@ final readonly class AtomParser
     private const string REGEX_HEXADECIMAL_NUMBER = '/^([+-])?0[xX]([0-9a-fA-F]+(?:_[0-9a-fA-F]+)*)$/';
 
     private const string REGEX_OCTAL_NUMBER = '/^([+-])?0([0-7]+(?:_[0-7]+)*)$/';
+
+    private const string REGEX_RADIX_NUMBER = '/^([+-])?(2|[3-9]|[12]\d|3[0-6])[rR]([0-9a-zA-Z]+(?:_[0-9a-zA-Z]+)*)$/';
 
     private const string REGEX_DECIMAL_NUMBER = '/^(?:([+-])?\d+(_\d+)*[\.(_\d+]?|0)$/';
 
@@ -63,6 +67,12 @@ final readonly class AtomParser
 
         if (preg_match(self::REGEX_OCTAL_NUMBER, $word, $matches)) {
             return $this->parseOctalNumber($matches, $word, $token);
+        }
+
+        if (preg_match(self::REGEX_RADIX_NUMBER, $word, $matches)
+            && $this->isValidDigitsForBase($matches[3], (int) $matches[2])
+        ) {
+            return $this->parseRadixNumber($matches, $word, $token);
         }
 
         if (is_numeric($word)) {
@@ -154,6 +164,59 @@ final readonly class AtomParser
         }
 
         return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
+    }
+
+    /**
+     * Parses Clojure-style radix literals of the form `NrXXX` where `N` is the
+     * base (2–36) and `XXX` are digits valid for that base (case-insensitive
+     * for bases greater than 10). Examples: `2r1111`, `16rFF`, `36rZZ`.
+     */
+    private function parseRadixNumber(array $matches, string $word, Token $token): NumberNode
+    {
+        $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
+        $base = (int) $matches[2];
+        $digits = str_replace('_', '', (string) $matches[3]);
+
+        // `base_convert` returns a string; for values that fit, this is the
+        // decimal integer representation. For values that overflow PHP_INT_MAX
+        // it falls back to a scientific-notation string (cast to float below).
+        $decimal = base_convert($digits, $base, 10);
+        $value = str_contains($decimal, '.') || str_contains($decimal, 'E')
+            ? (float) $decimal
+            : (int) $decimal;
+
+        if ($sign === -1) {
+            $value = $this->normalizeNegativeOverflow(-$value);
+        }
+
+        return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
+    }
+
+    /**
+     * Explicit per-digit validation against the base. `base_convert` is
+     * permissive: it silently treats out-of-range digits as zero, so we must
+     * reject them ourselves to keep the radix parser strict.
+     */
+    private function isValidDigitsForBase(string $digits, int $base): bool
+    {
+        $digits = strtolower(str_replace('_', '', $digits));
+        $length = strlen($digits);
+        for ($i = 0; $i < $length; ++$i) {
+            $char = $digits[$i];
+            if ($char >= '0' && $char <= '9') {
+                $digitValue = ord($char) - ord('0');
+            } elseif ($char >= 'a' && $char <= 'z') {
+                $digitValue = ord($char) - ord('a') + 10;
+            } else {
+                return false;
+            }
+
+            if ($digitValue >= $base) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
