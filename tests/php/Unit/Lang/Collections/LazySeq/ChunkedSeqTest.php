@@ -178,6 +178,36 @@ final class ChunkedSeqTest extends TestCase
         $this->assertSame(31, $rest->first());
     }
 
+    public function test_equals_infinite_chunked_seq_to_self(): void
+    {
+        $generator = (static function (): Generator {
+            $i = 0;
+            while (true) {
+                yield $i++;
+            }
+        })();
+
+        $chunkedSeq = ChunkedSeq::fromGenerator($this->hasher, $this->equalizer, $generator, 32);
+
+        // Must short-circuit on identity and not attempt to realize the infinite sequence.
+        $this->assertTrue($chunkedSeq->equals($chunkedSeq));
+    }
+
+    public function test_equals_finite_chunked_seq_to_self(): void
+    {
+        $chunkedSeq = ChunkedSeq::fromArray($this->hasher, $this->equalizer, [1, 2, 3], 32);
+
+        $this->assertTrue($chunkedSeq->equals($chunkedSeq));
+    }
+
+    public function test_equals_finite_chunked_seq_to_structurally_equal_copy(): void
+    {
+        $a = ChunkedSeq::fromArray($this->hasher, $this->equalizer, [1, 2, 3], 32);
+        $b = ChunkedSeq::fromArray($this->hasher, $this->equalizer, [1, 2, 3], 32);
+
+        $this->assertTrue($a->equals($b));
+    }
+
     public function test_performance_chunks_realize_in_batches(): void
     {
         $realizationCount = 0;
