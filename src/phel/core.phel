@@ -5258,9 +5258,23 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
         (= lower "true") true
         (= lower "false") false))))
 
+(def ^:private uuid-regex
+  "/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i")
+
+(defn uuid?
+  "Returns true if `x` is a canonical UUID string (36 characters,
+  `8-4-4-4-12` hexadecimal groups), false otherwise. PHP has no UUID
+  type, so UUIDs are represented as strings."
+  {:example "(uuid? \"550e8400-e29b-41d4-a716-446655440000\") ; => true"
+   :see-also ["random-uuid" "parse-uuid"]}
+  [x]
+  (and (string? x)
+       (php/=== 1 (php/preg_match uuid-regex x))))
+
 (defn random-uuid
   "Returns a random UUID v4 string."
-  {:example "(random-uuid) ; => \"550e8400-e29b-41d4-a716-446655440000\""}
+  {:example "(random-uuid) ; => \"550e8400-e29b-41d4-a716-446655440000\""
+   :see-also ["uuid?" "parse-uuid"]}
   []
   (let [bytes (php/random_bytes 16)]
     ;; Set version 4 (bits 12-15 of time_hi_and_version)
@@ -5274,6 +5288,17 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
        (php/substr hex 12 4) "-"
        (php/substr hex 16 4) "-"
        (php/substr hex 20 12)))))
+
+(defn parse-uuid
+  "Parses `s` as a canonical UUID string. Returns the lower-cased UUID
+  string if valid, or nil otherwise. Since PHP has no UUID type, UUIDs
+  are returned as strings."
+  {:example "(parse-uuid \"550E8400-E29B-41D4-A716-446655440000\")
+  ; => \"550e8400-e29b-41d4-a716-446655440000\""
+   :see-also ["uuid?" "random-uuid"]}
+  [s]
+  (when (uuid? s)
+    (php/strtolower s)))
 
 (defn run!
   "Calls `(f x)` for each element in `coll` for side effects. Returns nil."

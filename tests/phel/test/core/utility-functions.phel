@@ -75,6 +75,28 @@
         "random-uuid matches UUID v4 format")
     (is (not= uuid (random-uuid)) "random-uuid generates unique values")))
 
+(deftest test-uuid?
+  (is (true? (uuid? "00000000-0000-0000-0000-000000000000")) "uuid? accepts nil UUID")
+  (is (true? (uuid? "550e8400-e29b-41d4-a716-446655440000")) "uuid? accepts lowercase v4")
+  (is (true? (uuid? "550E8400-E29B-41D4-A716-446655440000")) "uuid? accepts uppercase")
+  (is (true? (uuid? (random-uuid))) "uuid? accepts random-uuid output")
+  (is (false? (uuid? "550e8400-e29b-41d4-a716-44665544000"))  "uuid? rejects short")
+  (is (false? (uuid? "550e8400e29b41d4a716446655440000"))     "uuid? rejects no-dashes")
+  (is (false? (uuid? "zzzzzzzz-e29b-41d4-a716-446655440000")) "uuid? rejects non-hex")
+  (is (false? (uuid? nil)) "uuid? rejects nil")
+  (is (false? (uuid? 42))  "uuid? rejects non-string"))
+
+(deftest test-parse-uuid
+  (is (= "550e8400-e29b-41d4-a716-446655440000"
+         (parse-uuid "550e8400-e29b-41d4-a716-446655440000"))
+      "parse-uuid returns lowercase")
+  (is (= "550e8400-e29b-41d4-a716-446655440000"
+         (parse-uuid "550E8400-E29B-41D4-A716-446655440000"))
+      "parse-uuid lowercases uppercase input")
+  (is (nil? (parse-uuid "not-a-uuid")) "parse-uuid returns nil on invalid")
+  (is (nil? (parse-uuid "")) "parse-uuid returns nil on empty")
+  (is (nil? (parse-uuid nil)) "parse-uuid returns nil on nil"))
+
 ;; --- resolve ---
 
 (deftest test-resolve-known-symbol
