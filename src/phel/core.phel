@@ -1051,6 +1051,24 @@ Otherwise, it tries to call `__toString`."
   [x]
   (= (type x) :symbol))
 
+(defn simple-symbol?
+  "Returns true if `x` is a symbol without a namespace."
+  {:see-also ["symbol?" "simple-ident?"]}
+  [x]
+  (and (symbol? x) (nil? (php/-> x (getNamespace)))))
+
+(defn simple-keyword?
+  "Returns true if `x` is a keyword without a namespace."
+  {:see-also ["keyword?" "simple-ident?"]}
+  [x]
+  (and (keyword? x) (nil? (php/-> x (getNamespace)))))
+
+(defn simple-ident?
+  "Returns true if `x` is a symbol or keyword without a namespace."
+  {:see-also ["simple-symbol?" "simple-keyword?" "ident?"]}
+  [x]
+  (or (simple-symbol? x) (simple-keyword? x)))
+
 (defn fn?
   "Returns true if `x` is a function, false otherwise."
   [x]
