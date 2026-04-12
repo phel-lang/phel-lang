@@ -1,6 +1,6 @@
 (ns phel-test\test\router\flatten
   (:require phel\test :refer [deftest is])
-  (:require phel\router\flatten :refer [flatten-routes]))
+  (:require phel\router :refer [flatten-routes]))
 
 (deftest flatten-routes-test
   (is (=
