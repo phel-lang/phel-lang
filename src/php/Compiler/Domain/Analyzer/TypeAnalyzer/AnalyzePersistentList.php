@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer;
 
+use Phel;
 use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
@@ -49,6 +50,11 @@ use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 
+use function count;
+use function str_ends_with;
+use function strlen;
+use function substr;
+
 final class AnalyzePersistentList
 {
     private const string EMPTY_SYMBOL_NAME = '';
@@ -66,6 +72,7 @@ final class AnalyzePersistentList
      */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {
+        $list = $this->expandConstructorShorthand($list);
         $symbolName = $this->getSymbolName($list);
 
         return $this
@@ -79,6 +86,58 @@ final class AnalyzePersistentList
         return $first instanceof Symbol
             ? $first->getFullName()
             : self::EMPTY_SYMBOL_NAME;
+    }
+
+    /**
+     * Expands Clojure's `(ClassName. args)` shorthand to `(php/new ClassName args)`.
+     *
+     * Only triggers when the head symbol looks like a class reference ending
+     * with `.`: the preceding character must be a PHP identifier character or
+     * a namespace separator. This excludes operator-style symbols such as
+     * `php/.` (string concatenation) and lone punctuation like `.` / `..`.
+     * Preserves source locations so downstream errors still point at the
+     * user's form.
+     */
+    private function expandConstructorShorthand(PersistentListInterface $list): PersistentListInterface
+    {
+        $first = $list->first();
+        if (!$first instanceof Symbol) {
+            return $list;
+        }
+
+        if (!$this->isConstructorShorthandName($first->getFullName())) {
+            return $list;
+        }
+
+        $name = $first->getFullName();
+        $className = substr($name, 0, -1);
+        $newSymbol = Symbol::create(Symbol::NAME_PHP_NEW)->copyLocationFrom($first);
+        $classSymbol = Symbol::create($className)->copyLocationFrom($first);
+
+        $elements = [$newSymbol, $classSymbol];
+        $count = count($list);
+        for ($i = 1; $i < $count; ++$i) {
+            $elements[] = $list->get($i);
+        }
+
+        return Phel::list($elements)->copyLocationFrom($list);
+    }
+
+    private function isConstructorShorthandName(string $name): bool
+    {
+        $len = strlen($name);
+        if ($len < 2 || !str_ends_with($name, '.')) {
+            return false;
+        }
+
+        $prev = $name[$len - 2];
+        // Accept a-z, A-Z, 0-9, `_`, or `\` — i.e. valid trailing chars of a
+        // PHP class reference. Rejects `php/.`, `..`, `:.`, etc.
+        return ($prev >= 'a' && $prev <= 'z')
+            || ($prev >= 'A' && $prev <= 'Z')
+            || ($prev >= '0' && $prev <= '9')
+            || $prev === '_'
+            || $prev === '\\';
     }
 
     private function createSymbolAnalyzerByName(string $symbolName): SpecialFormAnalyzerInterface
