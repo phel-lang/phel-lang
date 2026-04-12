@@ -20,16 +20,55 @@ final readonly class DefExceptionEmitter implements NodeEmitterInterface
         assert($node instanceof DefExceptionNode);
 
         if ($this->outputEmitter->getOptions()->isStatementEmitMode()) {
-            $this->outputEmitter->emitLine(
-                'namespace ' . $this->outputEmitter->mungeEncodeNs($node->getNamespace()) . ';',
-                $node->getStartSourceLocation(),
-            );
+            $this->emitViaEval($node);
+        } else {
+            $this->emitInline($node);
         }
+    }
 
+    /**
+     * In statement mode, the class definition may end up inside a function
+     * wrapper. PHP forbids namespace declarations inside functions, so we
+     * capture the class body at compile time and emit it as an eval() call.
+     */
+    private function emitViaEval(DefExceptionNode $node): void
+    {
+        $ns = $this->outputEmitter->mungeEncodeNs($node->getNamespace());
+        $fqcn = $ns . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
+
+        ob_start();
+        $this->emitClassBody($node);
+        $classBody = (string) ob_get_clean();
+
+        $this->outputEmitter->emitLine("if (!class_exists('" . $fqcn . "')) {", $node->getStartSourceLocation());
+        $this->outputEmitter->increaseIndentLevel();
+
+        $evalCode = 'namespace ' . $ns . ";\n" . $classBody;
+        $this->outputEmitter->emitLine(
+            'eval(' . var_export($evalCode, true) . ');',
+            $node->getStartSourceLocation(),
+        );
+
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
+    }
+
+    /**
+     * In file/cache mode the NsEmitter already declared the namespace.
+     */
+    private function emitInline(DefExceptionNode $node): void
+    {
         $fqcn = $this->outputEmitter->mungeEncodeNs($node->getNamespace())
             . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
         $this->outputEmitter->emitLine("if (!class_exists('" . $fqcn . "')) {", $node->getStartSourceLocation());
 
+        $this->emitClassBody($node);
+
+        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
+    }
+
+    private function emitClassBody(DefExceptionNode $node): void
+    {
         $this->outputEmitter->emitStr(
             'class ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' extends ',
             $node->getStartSourceLocation(),
@@ -45,7 +84,6 @@ final readonly class DefExceptionEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('}');
 
         $this->outputEmitter->decreaseIndentLevel();
-        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
         $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
     }
 }

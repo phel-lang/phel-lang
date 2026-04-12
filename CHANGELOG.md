@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - `drop-last` now works with lazy sequences and ranges; returns a lazy sequence matching Clojure (#1360)
 - `(empty? (range))` no longer hangs; `empty?` checks `first` for lazy sequences instead of `count` (#1366)
 - `is` macro no longer misinterprets `let`/`when`/`cond` forms as binary predicates (#1367)
+- `defrecord`/`defstruct`/`defexception`/`definterface` no longer emit invalid PHP namespace declarations in statement mode (#1358)
 
 ### Changed
 
