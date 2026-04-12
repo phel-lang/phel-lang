@@ -28,19 +28,39 @@
     (is (= 404 (php/aget parsed "status")) "parses 404 status")
     (is (= "Not Found" (php/aget parsed "reason")) "parses reason phrase")))
 
+(deftest test-response-parser-redirect-chain
+  (let [parsed (php/:: \Phel\HttpClient\ResponseParser
+                 (parse (php/array "HTTP/1.1 301 Moved"
+                                   "Location: /new"
+                                   "HTTP/1.1 200 OK"
+                                   "Content-Type: text/html")))]
+    (is (= 200 (php/aget parsed "status")) "uses final status after redirect")
+    (is (= "text/html" (php/aget (php/aget parsed "headers") "content-type"))
+        "parses headers from final response")))
+
+(deftest test-response-parser-colon-in-value
+  (let [parsed (php/:: \Phel\HttpClient\ResponseParser
+                 (parse (php/array "HTTP/1.1 200 OK"
+                                   "Location: https://example.com:8080/path")))]
+    (is (= "https://example.com:8080/path"
+           (php/aget (php/aget parsed "headers") "location"))
+        "preserves colons in header values")))
+
 ;; --- Request error handling ---
 
 (deftest test-request-to-invalid-url-throws
-  (is (thrown? \RuntimeException (hc/request :get "http://invalid.test.localhost:1"))
+  (is (thrown? \RuntimeException
+              (hc/request :get "http://0.0.0.0:1" {:timeout 1}))
       "request to unreachable host throws RuntimeException"))
 
-;; --- Module API completeness ---
+;; --- Convenience function signatures ---
 
-(deftest test-public-functions-are-defined
-  (is (function? hc/request) "request is defined")
-  (is (function? hc/get) "get is defined")
-  (is (function? hc/post) "post is defined")
-  (is (function? hc/put) "put is defined")
-  (is (function? hc/delete) "delete is defined")
-  (is (function? hc/patch) "patch is defined")
-  (is (function? hc/head) "head is defined"))
+(deftest test-get-accepts-url-only
+  (is (thrown? \RuntimeException
+              (hc/get "http://0.0.0.0:1" {:timeout 1}))
+      "get delegates to request correctly"))
+
+(deftest test-post-accepts-url-and-opts
+  (is (thrown? \RuntimeException
+              (hc/post "http://0.0.0.0:1" {:json {:a 1} :timeout 1}))
+      "post delegates to request correctly"))

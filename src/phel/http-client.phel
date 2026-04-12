@@ -4,11 +4,11 @@
   (:use RuntimeException))
 
 ;; -----------
-;; Header helpers
+;; Key helpers
 ;; -----------
 
-(defn- format-header-name
-  "Converts a keyword or string header name to its string form."
+(defn- key->string
+  "Converts a keyword or string key to its string form."
   [k]
   (if (keyword? k) (name k) (str k)))
 
@@ -17,7 +17,7 @@
   [headers]
   (let [arr (php/array)]
     (foreach [k v headers]
-      (php/aset arr (format-header-name k) (str v)))
+      (php/aset arr (key->string k) (str v)))
     arr))
 
 ;; -----------
@@ -40,7 +40,7 @@
     url
     (let [php-params (php/array)]
       (foreach [k v params]
-        (php/aset php-params (format-header-name k) (str v)))
+        (php/aset php-params (key->string k) (str v)))
       (let [query-string (php/http_build_query php-params)
             separator (if (php/str_contains url "?") "&" "?")]
         (str url separator query-string)))))
@@ -81,7 +81,8 @@
     :follow-redirects - Follow HTTP redirects (default true)
     :verify-ssl       - Verify SSL certificates (default true)"
   {:doc "Makes an HTTP request. Returns an http/response struct."
-   :example "(request :get \"https://example.com\" {:headers {:accept \"application/json\"}})"}
+   :example "(request :get \"https://example.com\" {:headers {:accept \"application/json\"}})"
+   :see-also ["get" "post" "put" "delete" "patch" "head"]}
   [method url & [{:headers headers :body body :json json-body
                   :query-params query-params :timeout timeout
                   :follow-redirects follow-redirects :verify-ssl verify-ssl}]]
@@ -93,7 +94,7 @@
         url (append-query-params url query-params)]
     (transport-result->response
      (php/:: \Phel\HttpClient\StreamTransport
-       (send (php/strtoupper (format-header-name method))
+       (send (php/strtoupper (key->string method))
              url
              (build-headers-array headers)
              body
@@ -104,41 +105,47 @@
 (defn get
   "Makes a GET request. See `request` for available options."
   {:doc "Makes a GET request. Returns an http/response struct."
-   :example "(get \"https://example.com\")"}
+   :example "(get \"https://example.com\")"
+   :see-also ["request" "post"]}
   [url & [opts]]
   (request :GET url opts))
 
 (defn post
   "Makes a POST request. See `request` for available options."
   {:doc "Makes a POST request. Returns an http/response struct."
-   :example "(post \"https://api.example.com\" {:json {:name \"Alice\"}})"}
+   :example "(post \"https://api.example.com\" {:json {:name \"Alice\"}})"
+   :see-also ["request" "get" "put"]}
   [url & [opts]]
   (request :POST url opts))
 
 (defn put
   "Makes a PUT request. See `request` for available options."
   {:doc "Makes a PUT request. Returns an http/response struct."
-   :example "(put \"https://api.example.com/1\" {:json {:name \"Bob\"}})"}
+   :example "(put \"https://api.example.com/1\" {:json {:name \"Bob\"}})"
+   :see-also ["request" "post" "patch"]}
   [url & [opts]]
   (request :PUT url opts))
 
 (defn delete
   "Makes a DELETE request. See `request` for available options."
   {:doc "Makes a DELETE request. Returns an http/response struct."
-   :example "(delete \"https://api.example.com/1\")"}
+   :example "(delete \"https://api.example.com/1\")"
+   :see-also ["request" "get"]}
   [url & [opts]]
   (request :DELETE url opts))
 
 (defn patch
   "Makes a PATCH request. See `request` for available options."
   {:doc "Makes a PATCH request. Returns an http/response struct."
-   :example "(patch \"https://api.example.com/1\" {:json {:name \"Charlie\"}})"}
+   :example "(patch \"https://api.example.com/1\" {:json {:name \"Charlie\"}})"
+   :see-also ["request" "put"]}
   [url & [opts]]
   (request :PATCH url opts))
 
 (defn head
   "Makes a HEAD request. See `request` for available options."
   {:doc "Makes a HEAD request. Returns an http/response struct."
-   :example "(head \"https://example.com\")"}
+   :example "(head \"https://example.com\")"
+   :see-also ["request" "get"]}
   [url & [opts]]
   (request :HEAD url opts))

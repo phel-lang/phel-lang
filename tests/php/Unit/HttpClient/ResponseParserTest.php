@@ -118,4 +118,45 @@ final class ResponseParserTest extends TestCase
 
         self::assertSame('second', $result['headers']['x-custom']);
     }
+
+    public function test_parse_malformed_status_line_is_skipped(): void
+    {
+        $result = ResponseParser::parse([
+            '200 OK',
+            'Content-Type: text/plain',
+        ]);
+
+        self::assertSame(200, $result['status']);
+        self::assertSame('text/plain', $result['headers']['content-type']);
+    }
+
+    public function test_parse_line_without_colon_is_ignored(): void
+    {
+        $result = ResponseParser::parse([
+            'HTTP/1.1 200 OK',
+            'not-a-header-line',
+        ]);
+
+        self::assertSame([], $result['headers']);
+    }
+
+    public function test_parse_header_with_empty_value(): void
+    {
+        $result = ResponseParser::parse([
+            'HTTP/1.1 200 OK',
+            'X-Empty:   ',
+        ]);
+
+        self::assertSame('', $result['headers']['x-empty']);
+    }
+
+    public function test_parse_500_server_error(): void
+    {
+        $result = ResponseParser::parse([
+            'HTTP/1.1 500 Internal Server Error',
+        ]);
+
+        self::assertSame(500, $result['status']);
+        self::assertSame('Internal Server Error', $result['reason']);
+    }
 }

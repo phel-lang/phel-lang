@@ -7,6 +7,10 @@ namespace Phel\HttpClient;
 /**
  * Parses raw HTTP response headers from PHP's $http_response_header
  * into a structured associative array.
+ *
+ * Header names are lowercased. For duplicate header names (e.g. Set-Cookie),
+ * only the last value is kept. Redirect chains are handled by resetting
+ * status/version/reason on each new HTTP status line encountered.
  */
 final class ResponseParser
 {
