@@ -37,7 +37,14 @@
           (walk-many (keep identity childs) full-path next-data))))))
 
 (defn flatten-routes
-  "Flattens nested routes to a vector of tuples [path data]."
+  "Flattens nested routes to a vector of `[path data]` tuples.
+
+  Parent paths are concatenated with their children's paths and parent data
+  maps are deep-merged into their children's data. `path-prefix` and
+  `common-data` are merged into every route and let you mount a subtree under
+  a prefix or share data across all routes."
+  {:example "(flatten-routes [\"/api\" {:middleware [:auth]}\n                 [\"/ping\" {:handler :ping}]] \"\" {})\n; => [[\"/api/ping\" {:middleware [:auth] :handler :ping}]]"
+   :see-also ["router" "compiled-router"]}
   [raw-routes path-prefix common-data]
   (walk-one raw-routes path-prefix common-data))
 
@@ -185,7 +192,22 @@
                      (generate-with generator route-name parameters)))
 
 (defn router
-  "Builds a router"
+  "Builds a dynamic `Router` from a nested route tree.
+
+  Routes are described as `[path data children*]` where `data` is an optional
+  hash-map. Children inherit their parent's path prefix and have parent data
+  deep-merged into their own. `data` may contain:
+
+  - `:handler` — a 1-arg `request -> response` function (matches any method)
+  - `:middleware` — a vector of `(fn [handler request])` wrappers
+  - `:name` — a keyword used for URL generation via `match-by-name` / `generate`
+  - method keys (`:get`, `:post`, …) — nested maps with their own `:handler`
+    and `:middleware` that apply only for that HTTP method
+
+  `options` accepts `:path` (prefix prepended to every route) and `:data`
+  (merged into every route's data)."
+  {:example "(router [[\"/ping\" {:get {:handler pong}}]])"
+   :see-also ["compiled-router" "handler" "match-by-path"]}
   [raw-routes & [options]]
   (let [{:path path :data data :or {path "" data {}}} (or options {})
         normalized (vec (flatten-routes raw-routes path data))
@@ -206,7 +228,16 @@
                      (generate-with generator route-name parameters)))
 
 (defmacro compiled-router
-  "Builds a compiled router"
+  "Like `router` but performs Symfony's route compilation at macro-expansion
+  time. The resulting router uses Symfony's `CompiledUrlMatcher`/`Generator`
+  which are ~3x faster than their dynamic counterparts for large route
+  tables.
+
+  Because compilation runs during macro expansion, `raw-routes` must be a
+  literal vector at the call site — it cannot be built from runtime values.
+  Use `router` if your routes are dynamic."
+  {:example "(compiled-router [[\"/ping\" {:get {:handler pong}}]])"
+   :see-also ["router" "handler"]}
   [raw-routes & [options]]
   (let [{:path path :data data :or {path "" data {}}} (or (eval options) {})
         flattened-routes (vec (flatten-routes (eval raw-routes) path data))
@@ -225,7 +256,16 @@
         ,indexed-routes))))
 
 (defn handler
-  "Returns a function request -> response that can be used to handle a route request.
+  "Builds a `request -> response` function from a router.
+
+  Matching flow per request:
+
+  1. Resolve the request's path via `match-by-path`.
+  2. Look up the handler for the request method in the precompiled dispatch
+     table, falling back to the route's method-agnostic `:handler`.
+  3. Invoke the handler with the request enriched with `[:attributes :match]`
+     and `[:attributes :route-data]`. A `nil` response triggers the
+     `:not-acceptable` handler.
 
   Options:
 
@@ -235,7 +275,12 @@
   | `:default-handler`    | fallback used for any 404/405/406 case not covered by a specific override
   | `:not-found`          | handler invoked when no route matches (HTTP 404)
   | `:method-not-allowed` | handler invoked when the path matches but no handler exists for the request method (HTTP 405)
-  | `:not-acceptable`     | handler invoked when a matched handler returns `nil` (HTTP 406)"
+  | `:not-acceptable`     | handler invoked when a matched handler returns `nil` (HTTP 406)
+
+  Dispatch is precompiled at handler construction time, so per-request work
+  is reduced to two hash-map lookups."
+  {:example "(handler (router [[\"/ping\" {:get {:handler pong}}]])\n         {:middleware [logging-mw]\n          :not-found  (fn [_] {:status 404 :body \"nope\"})})"
+   :see-also ["router" "compiled-router"]}
   [router & [options]]
   (let [{:middleware         middleware
          :default-handler    default-handler
