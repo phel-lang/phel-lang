@@ -159,3 +159,52 @@
     (is (= "fallback" (:body (app (req "/nowhere")))) ":default-handler handles 404 when :not-found is omitted")
     (is (= "specific 405" (:body (app (req "/ping" "POST")))) "specific per-case override wins over :default-handler")
     (is (= "fallback" (:body (app (req "/ping" "GET")))) ":default-handler handles 406 when :not-acceptable is omitted")))
+
+(deftest default-error-bodies
+  (let [app (r/handler (r/router [["/ping" {:get  {:handler (constantly {:status 200 :body "pong"})}
+                                            :post {:handler (constantly nil)}}]]))]
+    (is (= "Not found"          (:body (app (req "/nowhere"))))      "404 body")
+    (is (= "Method not allowed" (:body (app (req "/ping" "PUT"))))   "405 body")
+    (is (= "Not acceptable"     (:body (app (req "/ping" "POST"))))  "406 body")))
+
+(deftest request-enrichment
+  (let [captured (atom nil)
+        capture  (fn [request] (reset! captured request) {:status 200 :body "ok"})
+        test-router (r/router [["/hello/{who}" {:name ::hello :get {:handler capture}}]])
+        app (r/handler test-router)]
+    (app (req "/hello/world" "GET"))
+    (let [attrs (get @captured :attributes)
+          match (:match attrs)
+          rd    (:route-data attrs)]
+      (is (= "phel-test\\test\\router/hello" (:route-name match))
+          "match exposes the route's :route-name")
+      (is (= "/hello/{who}" (:template match))
+          "match exposes the route template")
+      (is (= {:who "world"} (:path-params match))
+          "match exposes captured path params")
+      (is (= ::hello (:name rd))
+          ":route-data is the method-merged data map")
+      (is (contains? rd :handler)
+          ":route-data carries the resolved :handler entry"))))
+
+(deftest error-handlers-see-match
+  (let [captured-405 (atom nil)
+        captured-406 (atom nil)
+        test-router (r/router
+                     [["/ping" {:name ::ping
+                                :get  {:handler (constantly nil)}}]])
+        app (r/handler test-router
+                       {:method-not-allowed
+                        (fn [req] (reset! captured-405 req) {:status 405})
+                        :not-acceptable
+                        (fn [req] (reset! captured-406 req) {:status 406})})]
+    (app (req "/ping" "POST"))
+    (app (req "/ping" "GET"))
+    (is (= "phel-test\\test\\router/ping"
+           (get-in @captured-405 [:attributes :match :route-name]))
+        ":method-not-allowed handler sees the matched route")
+    (is (= "phel-test\\test\\router/ping"
+           (get-in @captured-406 [:attributes :match :route-name]))
+        ":not-acceptable handler sees the matched route")
+    (is (nil? (get-in @captured-405 [:attributes :route-data]))
+        "405 request is not enriched with :route-data (no handler matched)")))
