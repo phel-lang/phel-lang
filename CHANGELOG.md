@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file.
 - `ifn?` predicate function: returns true if the argument can be invoked as a function (#1370)
 - `neg-int?`, `pos-int?`, `nat-int?` integer predicate functions (#1374)
 - `key` and `val` functions for extracting key/value from a map entry (#1372)
+- `empty` collection function: returns an empty collection of the same type, or nil (#1365)
 - `int` coercion function: coerces a value to an integer via PHP's `intval` (#1371)
 - `sequential?` predicate function: returns true for ordered collections (vectors, lists, lazy sequences) (#1380)
 - `seqable?` predicate function: returns true if `seq` is supported for the argument (#1379)
