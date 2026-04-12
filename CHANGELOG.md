@@ -9,7 +9,7 @@ All notable changes to this project will be documented in this file.
 #### Reader & Compiler
 - `(ClassName. args)` constructor shorthand, including namespaced classes like `\Some\Class.` (#1359)
 - `#uuid "…"` tagged literal, reads as a canonical lowercase UUID string (#1376)
-- Clojure ratio literals (`1/2`, `-3/4`, `0/2`) read as their float equivalent; Phel has no rational type, so `.cljc` sources using ratios now parse without error. A zero denominator yields `INF`/`-INF`/`NaN` instead of aborting the compile
+- Ratio literals `N/M` (e.g. `1/2`, `-3/4`), read as `num / den`; `1/0` → `INF`, `0/0` → `NaN`
 
 #### Predicates
 - `ident?`, `simple-ident?`, `simple-keyword?`, `simple-symbol?` (#1369, #1381)
@@ -59,14 +59,14 @@ All notable changes to this project will be documented in this file.
 - `(empty? (range))` no longer hangs; `empty?` checks `first` for lazy sequences (#1366)
 - `is` no longer misinterprets `let`/`when`/`cond` forms as binary predicates (#1367)
 - `defrecord`/`defstruct`/`defexception`/`definterface` no longer emit invalid PHP namespace declarations in statement mode (#1358)
-- `defstruct`/`defrecord`/`defexception`/`definterface` inside another function body (e.g. a `defrecord` used inside a `deftest`) no longer triggers a PHP fatal "Class declarations may not be nested"; the class is lifted out via `eval()` when the surrounding code emits a PHP class body
+- `defstruct`/`defrecord`/`defexception`/`definterface` nested in a function body (e.g. a `defrecord` inside a `deftest`) no longer triggers "Class declarations may not be nested"
 - `phel\router`: default error dispatch returns 404/405/406 correctly (was always 404); `:not-acceptable` returns 406 (was 405)
 
 ### Changed
 
 - Reorganized Phel test files: dissolved `core.phel` into topic files under `core/`; moved `comments.phel`, `special-forms.phel`, `multi-arity-fn.phel` into `core/`
 - `phel\router`: caches Symfony matcher/generator, precompiles middleware dispatch at `handler` construction; per-request work is two hash-map lookups
-- `phel test` no longer aborts the whole run when one file fails to compile: it reports the failures, skips the affected files, and continues. Pass `--fail-fast` for the previous stop-on-first-error behavior
+- `phel test` skips files that fail to compile and continues the run; pass `--fail-fast` for the previous abort-on-first-error behavior
 
 ## [0.32.0](https://github.com/phel-lang/phel-lang/compare/v0.31.0...v0.32.0) - 2026-04-12
 
