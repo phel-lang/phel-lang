@@ -127,3 +127,34 @@
         app (r/handler test-router {:middleware [(mv :top)] :default-handler (constantly nil)})]
     (is (= nil (app (req "/favicon.ico"))) "not found")
     (is (= {:status 200 :body [:top :api :ok]} (app (req "/api/get" "GET"))) "on match")))
+
+(defn- status [response]
+  (get response :status))
+
+(deftest default-error-dispatch
+  (let [test-router (r/router [["/ping" {:get {:handler (constantly {:status 200 :body "pong"})}}]
+                               ["/silent" {:get {:handler (constantly nil)}}]])
+        app (r/handler test-router)]
+    (is (= 404 (status (app (req "/nowhere")))) "no match returns 404")
+    (is (= 405 (status (app (req "/ping" "POST")))) "path matches but method has no handler returns 405")
+    (is (= 406 (status (app (req "/silent" "GET")))) "handler returned nil returns 406")
+    (is (= 200 (status (app (req "/ping" "GET")))) "happy path returns handler response")))
+
+(deftest per-case-error-handlers
+  (let [test-router (r/router [["/ping" {:get {:handler (constantly nil)}}]])
+        app (r/handler test-router
+                       {:not-found          (constantly {:status 404 :body "custom 404"})
+                        :method-not-allowed (constantly {:status 405 :body "custom 405"})
+                        :not-acceptable     (constantly {:status 406 :body "custom 406"})})]
+    (is (= "custom 404" (:body (app (req "/nowhere")))) "custom not-found handler is used")
+    (is (= "custom 405" (:body (app (req "/ping" "POST")))) "custom method-not-allowed handler is used")
+    (is (= "custom 406" (:body (app (req "/ping" "GET")))) "custom not-acceptable handler is used")))
+
+(deftest default-handler-is-catch-all
+  (let [test-router (r/router [["/ping" {:get {:handler (constantly nil)}}]])
+        app (r/handler test-router
+                       {:default-handler    (constantly {:status 500 :body "fallback"})
+                        :method-not-allowed (constantly {:status 405 :body "specific 405"})})]
+    (is (= "fallback" (:body (app (req "/nowhere")))) ":default-handler handles 404 when :not-found is omitted")
+    (is (= "specific 405" (:body (app (req "/ping" "POST")))) "specific per-case override wins over :default-handler")
+    (is (= "fallback" (:body (app (req "/ping" "GET")))) ":default-handler handles 406 when :not-acceptable is omitted")))

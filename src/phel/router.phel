@@ -69,31 +69,6 @@
 (defn- default-response [status body]
   (constantly (h/response-from-map {:status status :body body})))
 
-(defn- create-default-handler
-  "Create a default handler that handles the following cases, configured via options.
-
-   | key                   | description |
-   | ----------------------|-------------|
-   | `:not-found`          | 404, no route matches
-   | `:method-not-allowed` | 405, no method matches
-   | `:not-acceptable`     | 406, handler returned `nil`"
-  [{:not-found          not-found
-    :method-not-allowed method-not-allowed
-    :not-acceptable     not-acceptable
-    :or {not-found          (default-response 404 "Not found")
-         method-not-allowed (default-response 405 "Method not allowed")
-         not-acceptable     (default-response 405 "Not acceptable")}}]
-  (fn [request]
-    (if-let [route (get-in request [:attributes :route])]
-      (let [method (-> request :method name php/strtolower keyword)]
-        (if (find-handler route method nil)
-          (not-acceptable request)
-          (method-not-allowed request)))
-      (not-found request))))
-
-(defn- enrich-request [request match route-data]
-  (update request :attributes merge {:match match :route-data route-data}))
-
 (definterface Router
               (routes [this] "Returns all registered routes as a vector of [path data] tuples.")
               (match-by-path [this path] "Matches a route given a path. Returns nil if path doesn't match.")
@@ -217,16 +192,33 @@
         ,indexed-routes))))
 
 (defn handler
-  "Returns a function request -> response that can be used to handle a route request."
+  "Returns a function request -> response that can be used to handle a route request.
+
+  Options:
+
+  | key                   | description |
+  | ----------------------|-------------|
+  | `:middleware`         | global middleware applied to every matched route
+  | `:default-handler`    | fallback used for any 404/405/406 case not covered by a specific override
+  | `:not-found`          | handler invoked when no route matches (HTTP 404)
+  | `:method-not-allowed` | handler invoked when the path matches but no handler exists for the request method (HTTP 405)
+  | `:not-acceptable`     | handler invoked when a matched handler returns `nil` (HTTP 406)"
   [router & [options]]
-  (let [{:default-handler default-handler
-         :middleware      middleware
+  (let [{:middleware         middleware
+         :default-handler    default-handler
+         :not-found          not-found
+         :method-not-allowed method-not-allowed
+         :not-acceptable     not-acceptable
          :or {middleware []}} (or options {})
-        default-handler (or default-handler (create-default-handler {}))]
+        not-found          (or not-found          default-handler (default-response 404 "Not found"))
+        method-not-allowed (or method-not-allowed default-handler (default-response 405 "Method not allowed"))
+        not-acceptable     (or not-acceptable     default-handler (default-response 406 "Not acceptable"))]
     (fn [request]
       (if-let [match (match-by-path router (get-in request [:uri :path]))]
         (let [method (-> request :method name php/strtolower keyword)
-              [handler route-data] (or (find-handler match method middleware) [default-handler {}])
-              request (enrich-request request match route-data)]
-          (or (handler request) (default-handler request)))
-        (default-handler request)))))
+              request (assoc-in request [:attributes :match] match)]
+          (if-let [[handler route-data] (find-handler match method middleware)]
+            (or (handler (assoc-in request [:attributes :route-data] route-data))
+                (not-acceptable request))
+            (method-not-allowed request)))
+        (not-found request)))))
