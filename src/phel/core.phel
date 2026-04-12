@@ -541,6 +541,66 @@ Otherwise, it tries to call `__toString`."
     (php/array_merge arr)
     (throw (php/new InvalidArgumentException "aclone expects a PHP array"))))
 
+(defn- typed-array
+  [coerce-fn default size-or-seq]
+  (if (php/is_int size-or-seq)
+    (if (php/< size-or-seq 0)
+      (throw (php/new InvalidArgumentException "Array size must be non-negative"))
+      (if (php/=== 0 size-or-seq)
+        (php/array)
+        (php/array_fill 0 size-or-seq default)))
+    (let [arr (to-php-array size-or-seq)
+          len (php/count arr)
+          result (php/array)]
+      (loop [i 0]
+        (if (php/< i len)
+          (do
+            (php/aset result i (coerce-fn (php/aget arr i)))
+            (recur (php/+ i 1)))
+          nil))
+      result)))
+
+(defn int-array
+  "Creates a PHP array of integers. Given a size, fills with `0`.
+   Given a sequence, coerces each element to int via `intval`.
+   PHP has no typed arrays, so the result is a plain PHP array."
+  {:example "(int-array 3) ; => PHP array [0, 0, 0]\n(int-array [1.5 2.7]) ; => PHP array [1, 2]"
+   :see-also ["long-array" "float-array" "double-array" "short-array" "object-array"]}
+  [size-or-seq]
+  (typed-array php/intval 0 size-or-seq))
+
+(defn long-array
+  "Creates a PHP array of longs (same as int-array in PHP).
+   Given a size, fills with `0`. Given a sequence, coerces each element to int."
+  {:example "(long-array 3) ; => PHP array [0, 0, 0]\n(long-array [1.5 2.7]) ; => PHP array [1, 2]"
+   :see-also ["int-array" "float-array" "double-array" "short-array"]}
+  [size-or-seq]
+  (typed-array php/intval 0 size-or-seq))
+
+(defn float-array
+  "Creates a PHP array of floats. Given a size, fills with `0.0`.
+   Given a sequence, coerces each element to float via `floatval`."
+  {:example "(float-array 3) ; => PHP array [0.0, 0.0, 0.0]\n(float-array [1 2]) ; => PHP array [1.0, 2.0]"
+   :see-also ["double-array" "int-array" "long-array" "short-array"]}
+  [size-or-seq]
+  (typed-array php/floatval 0.0 size-or-seq))
+
+(defn double-array
+  "Creates a PHP array of doubles (same as float-array in PHP).
+   Given a size, fills with `0.0`. Given a sequence, coerces each element to float."
+  {:example "(double-array 3) ; => PHP array [0.0, 0.0, 0.0]\n(double-array [1 2]) ; => PHP array [1.0, 2.0]"
+   :see-also ["float-array" "int-array" "long-array" "short-array"]}
+  [size-or-seq]
+  (typed-array php/floatval 0.0 size-or-seq))
+
+(defn short-array
+  "Creates a PHP array of shorts (16-bit integers). Given a size, fills with `0`.
+   Given a sequence, coerces each element to int via `intval`."
+  {:example "(short-array 3) ; => PHP array [0, 0, 0]\n(short-array [1.5 2.7]) ; => PHP array [1, 2]"
+   :see-also ["int-array" "long-array" "float-array" "double-array"]}
+  [size-or-seq]
+  (typed-array php/intval 0 size-or-seq))
+
 (defn aget
   "Returns the value at `index` in a PHP array. With multiple indices,
    accesses nested arrays: `(aget arr i j)` is `(aget (aget arr i) j)`.
