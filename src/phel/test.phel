@@ -51,11 +51,10 @@
   {:example "(report {:state :pass})"}
   [data]
   (let [ctx (testing-contexts-str)
-        data (if (and ctx (:message data))
-               (put data :message (str ctx (:message data)))
-               (if ctx
-                 (put data :message (s/join " > " *testing-contexts*))
-                 data))
+        data (cond
+               (and ctx (:message data)) (put data :message (str ctx (:message data)))
+               ctx (put data :message (s/join " > " *testing-contexts*))
+               :else data)
         {:state state :type type} data
         ok (= state :pass)
         total-columns 80]
@@ -232,17 +231,18 @@
 (defmethod assert-expr 'output? [form message]
   (assert-output form message))
 
+(def- assert-expr-special-forms
+  ;; Special forms and structured-syntax macros that must not be treated as
+  ;; regular function calls when dispatching `is` assertions.
+  (hash-set 'def 'fn 'if 'do 'let 'quote 'loop
+            'recur 'throw 'try 'ns 'set!
+            'defn 'defn- 'defmacro 'when 'when-not
+            'cond 'case 'binding 'for 'dofor 'doseq))
+
 (defmethod assert-expr :default [form message]
   (let [head (when (list? form) (first form))
-        ;; Only treat as function call if head is a symbol that's NOT
-        ;; a special form or common macro with structured syntax
         fn-call (and (symbol? head)
-                     (not (contains?
-                            (hash-set 'def 'fn 'if 'do 'let 'quote 'loop
-                                      'recur 'throw 'try 'ns 'set!
-                                      'defn 'defn- 'defmacro 'when 'when-not
-                                      'cond 'case 'binding 'for 'dofor 'doseq)
-                            head)))]
+                     (not (contains? assert-expr-special-forms head)))]
     (cond
       (and fn-call (= 3 (count form)))
       (assert-binary form message false)
