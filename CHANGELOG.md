@@ -64,6 +64,7 @@ All notable changes to this project will be documented in this file.
 
 - Reorganized Phel test files: dissolved `core.phel` into topic files under `core/`; moved `comments.phel`, `special-forms.phel`, `multi-arity-fn.phel` into `core/`
 - `phel\router`: caches Symfony matcher/generator, precompiles middleware dispatch at `handler` construction; per-request work is two hash-map lookups
+- `phel test` no longer aborts the whole run when one file fails to compile: it reports the failures, skips the affected files, and continues. Pass `--fail-fast` for the previous stop-on-first-error behavior
 
 ## [0.32.0](https://github.com/phel-lang/phel-lang/compare/v0.31.0...v0.32.0) - 2026-04-12
 
