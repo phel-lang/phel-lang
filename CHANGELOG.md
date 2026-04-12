@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
 - `fnext` sequence function: same as `(first (next coll))` (#1368)
 - `ifn?` predicate function: returns true if the argument can be invoked as a function (#1370)
 - `neg-int?`, `pos-int?`, `nat-int?` integer predicate functions (#1374)
+- `key` and `val` functions for extracting key/value from a map entry (#1372)
 - `sequential?` predicate function: returns true for ordered collections (vectors, lists, lazy sequences) (#1380)
 - `seqable?` predicate function: returns true if `seq` is supported for the argument (#1379)
 - `phel\http-client` module for outbound HTTP requests using PHP streams

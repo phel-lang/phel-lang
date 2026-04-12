@@ -2714,6 +2714,20 @@ Otherwise, it tries to call `__toString`."
   (let [result (for [x :in coll] x)]
     (copy-meta coll result)))
 
+(defn key
+  "Returns the key of a map entry (a two-element vector `[key value]`)."
+  {:example "(key (first (pairs {:a 1}))) ; => :a"
+   :see-also ["val" "keys" "pairs"]}
+  [entry]
+  (first entry))
+
+(defn val
+  "Returns the value of a map entry (a two-element vector `[key value]`)."
+  {:example "(val (first (pairs {:a 1}))) ; => 1"
+   :see-also ["key" "vals" "pairs"]}
+  [entry]
+  (second entry))
+
 (defn values
   "Returns a sequence of all values in a map."
   {:deprecated "0.32.0"

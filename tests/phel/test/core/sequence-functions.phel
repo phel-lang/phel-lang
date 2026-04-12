@@ -272,6 +272,14 @@
   (is (= [[:a 1] [:b 2] [:c 3]] (pairs {:a 1 :b 2 :c 3})) "pairs of maps")
   (is (= [[0 3] [1 2] [2 1]] (pairs [3 2 1])) "pairs of vector"))
 
+(deftest test-key
+  (is (= :a (key (first (pairs {:a 1 :b 2})))) "key of first map entry")
+  (is (= :a (key [:a 1])) "key of vector pair"))
+
+(deftest test-val
+  (is (= 1 (val (first (pairs {:a 1 :b 2})))) "val of first map entry")
+  (is (= 1 (val [:a 1])) "val of vector pair"))
+
 (deftest test-kvs
   (is (= [:a 1 :b 2 :c 3] (kvs {:a 1 :b 2 :c 3})) "kvs of maps")
   (is (= [0 3 1 2 2 1] (kvs [3 2 1])) "kvs of vector"))
