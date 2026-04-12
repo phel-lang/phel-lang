@@ -574,6 +574,13 @@ Otherwise, it tries to call `__toString`."
   [coll]
   (first (next coll)))
 
+(defn fnext
+  "Same as `(first (next x))`."
+  {:example "(fnext [1 2 3]) ; => 2"
+   :see-also ["ffirst" "first" "next" "second"]}
+  [x]
+  (first (next x)))
+
 (defn rest
   "Returns the sequence after the first element, or empty sequence if none."
   {:example "(rest [1 2 3]) ; => [2 3]"}
@@ -1009,6 +1016,12 @@ Otherwise, it tries to call `__toString`."
   [x]
   (integer? x))
 
+(defn neg-int?
+  "Returns true if `x` is a negative fixed precision integer, false otherwise."
+  {:see-also ["int?" "neg?" "pos-int?"]}
+  [x]
+  (and (int? x) (neg? x)))
+
 (defn number?
   "Returns true if `x` is a number, false otherwise."
   [x]
@@ -1050,6 +1063,11 @@ Otherwise, it tries to call `__toString`."
   "Returns true if `x` is a symbol, false otherwise."
   [x]
   (= (type x) :symbol))
+
+(defn ident?
+  "Returns true if `x` is a symbol or keyword, false otherwise."
+  [x]
+  (or (keyword? x) (symbol? x)))
 
 (defn fn?
   "Returns true if `x` is a function, false otherwise."

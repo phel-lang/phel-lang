@@ -44,6 +44,12 @@
   (is (nil? (second (php/array))) "second of empty php array")
   (is (nil? (second nil)) "second of nil"))
 
+(deftest test-fnext
+  (is (= 2 (fnext [1 2 3])) "fnext of vector")
+  (is (nil? (fnext [1])) "fnext of single element vector")
+  (is (nil? (fnext [])) "fnext of empty vector")
+  (is (nil? (fnext nil)) "fnext of nil"))
+
 (deftest test-rest
   (is (= [2] (rest [1 2])) "rest of two element vector")
   (is (= [] (rest [1])) "rest of one element vector")
