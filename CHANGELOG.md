@@ -38,6 +38,7 @@ All notable changes to this project will be documented in this file.
 
 #### Modules
 - `phel\router`: data-driven router built on `symfony/routing`, previously shipped separately as `phel-lang/router`
+- `phel\router` `routes` introspection, `:route-name` on `match-by-path`, and per-case error handlers (`:not-found`, `:method-not-allowed`, `:not-acceptable`) on `handler`
 - `phel\http-client` — outbound HTTP requests over PHP streams
 - `phel\ai` — chat, completions, structured extraction, tool use, embeddings, semantic search
 - `phel\repl` AI helpers: `explain`, `suggest`, `fix`, `review`, `embed-ns`, `search-ns`
@@ -59,10 +60,12 @@ All notable changes to this project will be documented in this file.
 - `(empty? (range))` no longer hangs; `empty?` checks `first` for lazy sequences instead of `count` (#1366)
 - `is` no longer misinterprets `let`/`when`/`cond` forms as binary predicates (#1367)
 - `defrecord`/`defstruct`/`defexception`/`definterface` no longer emit invalid PHP namespace declarations in statement mode (#1358)
+- `phel\router` default error dispatch correctly returns 404/405/406 (previously always 404); `:not-acceptable` returns HTTP 406 (was 405)
 
 ### Changed
 
 - Reorganized Phel test files: dissolved `core.phel` into topic files under `core/`; moved `comments.phel`, `special-forms.phel`, `multi-arity-fn.phel` into `core/`
+- `phel\router` caches the Symfony matcher/generator and precompiles middleware dispatch at `handler` construction; per-request work is two hash-map lookups
 
 ## [0.32.0](https://github.com/phel-lang/phel-lang/compare/v0.31.0...v0.32.0) - 2026-04-12
 
