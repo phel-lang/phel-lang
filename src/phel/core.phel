@@ -143,9 +143,9 @@
    :example "(first [1 2 3]) ; => 1"}
   (fn [xs]
     (if (php/instanceof xs FirstInterface)         (php/-> xs (first))
-      (if (php/instanceof xs PersistentMapInterface) (first-map-entry xs)
-        (if (php/is_string xs)                      (first-of-string xs)
-          (php/aget xs 0))))))
+        (if (php/instanceof xs PersistentMapInterface) (first-map-entry xs)
+            (if (php/is_string xs)                      (first-of-string xs)
+                (php/aget xs 0))))))
 
 (def concat1
   {:private true
@@ -412,10 +412,10 @@ suffix (so `(str 0.0)` is `\"0.0\"`, not `\"0\"`). All other values use PHP
 string cast."
   [x]
   (if (php/=== x true)      "true"
-    (if (php/=== x false)   "false"
-      (if (php/=== x nil)   ""
-        (if (php/is_float x) (float-to-str x)
-          (php/. "" x))))))
+      (if (php/=== x false)   "false"
+          (if (php/=== x nil)   ""
+              (if (php/is_float x) (float-to-str x)
+                  (php/. "" x))))))
 
 (defn str
   "Creates a string by concatenating values together. If no arguments are
@@ -863,17 +863,17 @@ Otherwise, it tries to call `__toString`."
   `nil` when `name` is `nil`."
   {:example "(keyword \"name\") ; => :name\n(keyword :abc) ; => :abc\n(keyword \"ns\" \"name\") ; => :ns/name"}
   ([x]
-    (cond
-      (php/=== nil x)            nil
-      (php/instanceof x Keyword) x
-      (php/instanceof x Symbol)  (php/:: Keyword (create (php/-> x (getName))
-                                                         (php/-> x (getNamespace))))
-      (php/is_string x)          (php/:: Keyword (create x))
-      :else                      nil))
+   (cond
+     (php/=== nil x)            nil
+     (php/instanceof x Keyword) x
+     (php/instanceof x Symbol)  (php/:: Keyword (create (php/-> x (getName))
+                                                        (php/-> x (getNamespace))))
+     (php/is_string x)          (php/:: Keyword (create x))
+     :else                      nil))
   ([ns nm]
-    (when-not (php/=== nil nm)
-      (php/:: Keyword (create (php/strval nm)
-                              (when-not (php/=== nil ns) (php/strval ns)))))))
+   (when-not (php/=== nil nm)
+     (php/:: Keyword (create (php/strval nm)
+                             (when-not (php/=== nil ns) (php/strval ns)))))))
 
 (defn- id2 [a b]
   (if (php/instanceof a IdenticalInterface)
@@ -1863,7 +1863,7 @@ Otherwise, it tries to call `__toString`."
   {:see-also ["swap!" "atom" "def"]}
   [& _]
   (throw (php/new \BadMethodCallException
-           "alter-var-root is not supported in Phel: Phel has no first-class vars. Use an `atom` with `swap!` for mutable state, or redefine the top-level with `def`.")))
+                  "alter-var-root is not supported in Phel: Phel has no first-class vars. Use an `atom` with `swap!` for mutable state, or redefine the top-level with `def`.")))
 
 (defn remove-watch
   "Removes a watch function from a variable by key."
@@ -2847,7 +2847,7 @@ Otherwise, it tries to call `__toString`."
   [rev]
   (when-not (reversible? rev)
     (throw (php/new InvalidArgumentException
-             "rseq requires a reversible collection (vector or sorted-map)")))
+                    "rseq requires a reversible collection (vector or sorted-map)")))
   (when (php/> (count rev) 0)
     (reverse (if (vector? rev) rev (vec rev)))))
 
@@ -3548,9 +3548,9 @@ Otherwise, it tries to call `__toString`."
                           :reduce [acc []]]
                       (let [arg (get args i)]
                         (conj acc
-                          (if (and (php/< i n) (nil? arg))
-                            (get defaults i)
-                            arg))))]
+                              (if (and (php/< i n) (nil? arg))
+                                (get defaults i)
+                                arg))))]
         (apply f patched)))))
 
 (defn memoize
@@ -4879,9 +4879,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                       margs (second method)
                       rest-args (next margs)
                       dispatch-var (php/:: Symbol
-                                          (create (php/. proto-str "--" mname-str "--dispatch")))
+                                           (create (php/. proto-str "--" mname-str "--dispatch")))
                       php-method-sym (php/:: Symbol
-                                            (create (php/-> munge (encode mname-str))))]
+                                             (create (php/-> munge (encode mname-str))))]
                   (conj inner
                         `(swap! ~dispatch-var assoc ~class-name-sym
                                 (fn ~margs
@@ -5000,8 +5000,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [multi-name dispatch-val & fn-tail]
   (let [multi-ns (php/-> multi-name (getNamespace))
         methods-name (php/:: Symbol (createForNamespace
-                                      multi-ns
-                                      (php/. (php/-> multi-name (getName)) "-methods")))]
+                                     multi-ns
+                                     (php/. (php/-> multi-name (getName)) "-methods")))]
     `(swap! ~methods-name assoc ~dispatch-val (fn ~@fn-tail))))
 
 (defmacro if-let
@@ -5110,11 +5110,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
         refs (for [n :in names :reduce [acc {}]]
                (put acc n (gensym)))
         var-decls (apply concat
-                    (for [n :in names]
-                      [(get refs n) '(var nil)]))
-        deref-bindings (apply concat
                          (for [n :in names]
-                           [n `(deref ~(get refs n))]))
+                           [(get refs n) '(var nil)]))
+        deref-bindings (apply concat
+                              (for [n :in names]
+                                [n `(deref ~(get refs n))]))
         assignments (for [spec :in bindings
                           :let [n (first spec)
                                 params (second spec)
@@ -5428,4 +5428,4 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (let [n-sym (gensym)]
     `(let [~n-sym ~n]
        (doseq [~binding :range [0 ~n-sym]]
-         ~@body))))
+              ~@body))))
