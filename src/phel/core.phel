@@ -119,16 +119,26 @@
                             (php/. "cannot call 'next on " (php/gettype xs))))))))))
 
 (def first
-  {:doc "Returns the first element of a sequence, or nil if empty."
+  {:doc "Returns the first element of a sequence, or nil if empty.
+
+  Maps are treated as a sequence of entries: `(first {:a 1})` returns the
+  first `[:a 1]` vector. Strings are treated as sequences of multibyte
+  characters."
    :example "(first [1 2 3]) ; => 1"}
   (fn [xs]
     (if (php/instanceof xs FirstInterface)
       (php/-> xs (first))
-      (if (php/is_string xs)
-        (if (php/=== "" xs)
-          nil
-          (php/mb_substr xs 0 1))
-        (php/aget xs 0)))))
+      (if (php/instanceof xs \Phel\Lang\Collections\Map\PersistentMapInterface)
+        (let [it (php/-> xs (getIterator))]
+          (php/-> it (rewind))
+          (if (php/-> it (valid))
+            [(php/-> it (key)) (php/-> it (current))]
+            nil))
+        (if (php/is_string xs)
+          (if (php/=== "" xs)
+            nil
+            (php/mb_substr xs 0 1))
+          (php/aget xs 0))))))
 
 (def concat1
   {:private true

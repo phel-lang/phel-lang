@@ -35,7 +35,9 @@
 (deftest test-ffirst
   (is (= 1 (ffirst [[1]])) "ffirst of nested vector")
   (is (nil? (ffirst [1])) "ffirst of vector")
-  (is (nil? (ffirst nil)) "ffirst of nil"))
+  (is (nil? (ffirst nil)) "ffirst of nil")
+  (is (= :a (ffirst {:a 1})) "ffirst of single-entry map is its key")
+  (is (nil? (ffirst {})) "ffirst of empty map is nil"))
 
 (deftest test-second
   (is (= 2 (second [1 2])) "second of vector")
@@ -50,7 +52,12 @@
   (is (= [] (rest [])) "rest of empty vector"))
 
 (deftest test-nfirst
-  (is (= [2] (nfirst [[1 2]])) "(nfirst [[1 2]])"))
+  (is (= [2] (nfirst [[1 2]])) "(nfirst [[1 2]])")
+  (is (= [1] (nfirst {:a 1})) "nfirst of single-entry map is the rest of the entry"))
+
+(deftest test-first-map
+  (is (= [:a 1] (first {:a 1})) "first of map returns first entry as 2-vector")
+  (is (nil? (first {})) "first of empty map is nil"))
 
 (deftest test-nnext
   (is (= [3] (nnext [1 2 3])) "(nnext [1 2 3])"))
