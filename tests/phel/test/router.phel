@@ -70,22 +70,23 @@
 (deftest test-generate-compiled-router
   (generate-asserts r/compiled-router))
 
-(defn fnil [f x]
+(defn- fnil [f x]
   (fn [a & args]
     (apply f (if (nil? a) x a) args)))
 
-(defn mv [name]
+(defn- mv [name]
   (fn [handler request]
     (handler (update-in request [:attributes :mv] (fnil push []) name))))
 
-(defn handler [request]
-  (let [mv (get-in request [:attributes :mv] [])]
-    {:status 200 :body (push mv :ok)}))
+(defn- handler [request]
+  {:status 200 :body (push (get-in request [:attributes :mv] []) :ok)})
+
+(defn- req [uri & [method]]
+  (h/request-from-map (cond-> {:uri uri} method (assoc :method method))))
 
 (deftest handler-test
-  (let [api-mv (mv :api)
-        test-router (r/router
-                     ["/api" {:middleware [api-mv]}
+  (let [test-router (r/router
+                     ["/api" {:middleware [(mv :api)]}
                       ["/all" {:handler handler}]
                       ["/get" {:get {:handler handler}}]
                       ["/users" {:middleware [(mv :users)]
@@ -93,20 +94,20 @@
                                  :post {:middleware [(mv :post)]
                                         :handler handler}
                                  :handler handler}]])
-        app (r/handler test-router {:default-handler (fn [request] nil)})]
-    (is (= nil (app (h/request-from-map {:uri "/favicon.ico"}))) "not found")
-    (is (= {:status 200 :body [:api :ok]} (app (h/request-from-map {:uri "/api/all" :method "GET"}))) "catch all handler")
-    (is (= {:status 200 :body [:api :ok]} (app (h/request-from-map {:uri "/api/get" :method "GET"}))) "get handler")
-    (is (= nil (app (h/request-from-map {:uri "/api/get" :method :post}))) "get handler with post")
-    (is (= {:status 200 :body [:api :users :ok]} (app (h/request-from-map {:uri "/api/users" :method "GET"}))) "expanded method handler")
-    (is (= {:status 200 :body [:api :users :post :ok]} (app (h/request-from-map {:uri "/api/users" :method "POST"}))) "method handler with middleware")
-    (is (= {:status 200 :body [:api :users :ok]} (app (h/request-from-map {:uri "/api/users" :method "PUT"}))) "fallback handler")))
+        app (r/handler test-router {:default-handler (constantly nil)})]
+    (is (= nil (app (req "/favicon.ico"))) "not found")
+    (is (= {:status 200 :body [:api :ok]} (app (req "/api/all" "GET"))) "catch all handler")
+    (is (= {:status 200 :body [:api :ok]} (app (req "/api/get" "GET"))) "get handler")
+    (is (= nil (app (req "/api/get" :post))) "get handler with post")
+    (is (= {:status 200 :body [:api :users :ok]} (app (req "/api/users" "GET"))) "expanded method handler")
+    (is (= {:status 200 :body [:api :users :post :ok]} (app (req "/api/users" "POST"))) "method handler with middleware")
+    (is (= {:status 200 :body [:api :users :ok]} (app (req "/api/users" "PUT"))) "fallback handler")))
 
 (deftest with-top-level-middleware
   (let [test-router (r/router
                      ["/api" {:middleware [(mv :api)]}
                       ["/get" {:get {:handler handler}}]]
                      {})
-        app (r/handler test-router {:middleware [(mv :top)] :default-handler (fn [request] nil)})]
-    (is (= nil (app (h/request-from-map {:uri "/favicon.ico"}))) "not found")
-    (is (= {:status 200 :body [:top :api :ok]} (app (h/request-from-map {:uri "/api/get" :method "GET"}))) "on match")))
+        app (r/handler test-router {:middleware [(mv :top)] :default-handler (constantly nil)})]
+    (is (= nil (app (req "/favicon.ico"))) "not found")
+    (is (= {:status 200 :body [:top :api :ok]} (app (req "/api/get" "GET"))) "on match")))

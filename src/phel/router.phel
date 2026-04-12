@@ -26,10 +26,10 @@
 
       (string? head)
       (let [tail (rest routes)
-            [maybe-arg] tail
-            [data childs] (if (or (vector? maybe-arg) (nil? maybe-arg))
-                            [{} tail]
-                            [maybe-arg (rest tail)])
+            [maybe-data] tail
+            [data childs] (if (map? maybe-data)
+                            [maybe-data (rest tail)]
+                            [{} tail])
             full-path (str prefix-path head)
             next-data (deep-merge prev-data data)]
         (if (empty? childs)
@@ -46,14 +46,13 @@
 
 (defn- compose-middleware-2 [f g]
   (fn [handler request]
-    (f |(g handler $) request)))
+    (f (partial g handler) request)))
 
 (defn- compose-middleware [middlewares]
   (reduce compose-middleware-2 identity-middleware middlewares))
 
 (defn- compile-handler [middlewares handler]
-  (let [middleware-fn (compose-middleware middlewares)]
-    |(middleware-fn handler $)))
+  (partial (compose-middleware middlewares) handler))
 
 (defn- find-handler
   "Finds the handler for given route match and request-method keyword (:get, :post, ...).
