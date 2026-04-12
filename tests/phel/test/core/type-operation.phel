@@ -51,6 +51,31 @@
   (is (true? (integer? 10)) "integer? on 10")
   (is (true? (integer? 0)) "integer? on 10"))
 
+(deftest test-neg-int?
+  (is (true? (neg-int? -1)) "neg-int? on -1")
+  (is (true? (neg-int? -100)) "neg-int? on -100")
+  (is (false? (neg-int? 0)) "neg-int? on 0")
+  (is (false? (neg-int? 1)) "neg-int? on 1")
+  (is (false? (neg-int? -1.5)) "neg-int? on -1.5")
+  (is (false? (neg-int? nil)) "neg-int? on nil")
+  (is (false? (neg-int? "test")) "neg-int? on string"))
+
+(deftest test-pos-int?
+  (is (true? (pos-int? 1)) "pos-int? on 1")
+  (is (true? (pos-int? 100)) "pos-int? on 100")
+  (is (false? (pos-int? 0)) "pos-int? on 0")
+  (is (false? (pos-int? -1)) "pos-int? on -1")
+  (is (false? (pos-int? 1.5)) "pos-int? on 1.5")
+  (is (false? (pos-int? nil)) "pos-int? on nil"))
+
+(deftest test-nat-int?
+  (is (true? (nat-int? 0)) "nat-int? on 0")
+  (is (true? (nat-int? 1)) "nat-int? on 1")
+  (is (true? (nat-int? 100)) "nat-int? on 100")
+  (is (false? (nat-int? -1)) "nat-int? on -1")
+  (is (false? (nat-int? 0.0)) "nat-int? on 0.0")
+  (is (false? (nat-int? nil)) "nat-int? on nil"))
+
 (deftest test-number?
   (is (true? (number? 10.0)) "number? on 10.0")
   (is (true? (number? 0.0)) "number? on 0.0")

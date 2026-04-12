@@ -1052,6 +1052,27 @@ Otherwise, it tries to call `__toString`."
   [x]
   (integer? x))
 
+(defn neg-int?
+  "Returns true if `x` is a negative integer."
+  {:example "(neg-int? -1) ; => true\n(neg-int? 0) ; => false\n(neg-int? 1) ; => false"
+   :see-also ["int?" "pos-int?" "nat-int?"]}
+  [x]
+  (and (integer? x) (php/< x 0)))
+
+(defn pos-int?
+  "Returns true if `x` is a positive integer (greater than zero)."
+  {:example "(pos-int? 1) ; => true\n(pos-int? 0) ; => false\n(pos-int? -1) ; => false"
+   :see-also ["int?" "neg-int?" "nat-int?"]}
+  [x]
+  (and (integer? x) (php/> x 0)))
+
+(defn nat-int?
+  "Returns true if `x` is a non-negative integer (zero or positive)."
+  {:example "(nat-int? 0) ; => true\n(nat-int? 1) ; => true\n(nat-int? -1) ; => false"
+   :see-also ["int?" "pos-int?" "neg-int?"]}
+  [x]
+  (and (integer? x) (php/>= x 0)))
+
 (defn number?
   "Returns true if `x` is a number, false otherwise."
   [x]
