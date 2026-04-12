@@ -24,6 +24,7 @@
   (:use Phel\Lang\ConcatInterface)
   (:use Phel\Lang\ConsInterface)
   (:use Phel\Lang\ContainsInterface)
+  (:use Phel\Lang\FnInterface)
   (:use Phel\Lang\FirstInterface)
   (:use Phel\Lang\IdenticalInterface)
   (:use Phel\Lang\Keyword)
@@ -1138,6 +1139,15 @@ Otherwise, it tries to call `__toString`."
   "Returns true if `x` is a function, false otherwise."
   [x]
   (= (type x) :function))
+
+(defn ifn?
+  "Returns true if `x` can be invoked as a function.
+   This includes functions, keywords, maps, vectors, sets, and lists."
+  {:example "(ifn? inc) ; => true\n(ifn? :a) ; => true\n(ifn? {}) ; => true\n(ifn? 42) ; => false"
+   :see-also ["fn?"]}
+  [x]
+  (or (php/instanceof x FnInterface)
+      (php/is_callable x)))
 
 (defn function?
   "Returns true if `x` is a function, false otherwise."

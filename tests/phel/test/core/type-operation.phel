@@ -141,6 +141,17 @@
 (deftest test-function?
   (is (true? (function? concat)) "function? on concat"))
 
+(deftest test-ifn?
+  (is (true? (ifn? inc)) "ifn? on function")
+  (is (true? (ifn? :a)) "ifn? on keyword")
+  (is (true? (ifn? {})) "ifn? on map")
+  (is (true? (ifn? [])) "ifn? on vector")
+  (is (true? (ifn? #{})) "ifn? on set")
+  (is (true? (ifn? '())) "ifn? on list")
+  (is (false? (ifn? 42)) "ifn? on integer")
+  (is (false? (ifn? "str")) "ifn? on string")
+  (is (false? (ifn? nil)) "ifn? on nil"))
+
 (deftest test-hash-map?
   (is (true? (hash-map? {})) "hash-map?"))
 
