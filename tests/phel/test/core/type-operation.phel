@@ -190,6 +190,23 @@
   (is (false? (counted? (php/array))) "counted? on empty php array")
   (is (false? (counted? (php/array 1 2 3))) "counted? on non-empty php array"))
 
+(deftest test-sequential?
+  (is (true? (sequential? [])) "sequential? on empty vector")
+  (is (true? (sequential? [1 2 3])) "sequential? on non-empty vector")
+  (is (true? (sequential? '())) "sequential? on empty list")
+  (is (true? (sequential? '(1 2 3))) "sequential? on non-empty list")
+  (is (true? (sequential? (take 5 (range)))) "sequential? on lazy sequence")
+  (is (true? (sequential? (range 3))) "sequential? on finite range")
+  (is (false? (sequential? {})) "sequential? on map")
+  (is (false? (sequential? {:a 1})) "sequential? on non-empty map")
+  (is (false? (sequential? #{})) "sequential? on set")
+  (is (false? (sequential? #{1 2})) "sequential? on non-empty set")
+  (is (false? (sequential? nil)) "sequential? on nil")
+  (is (false? (sequential? "abc")) "sequential? on string")
+  (is (false? (sequential? 42)) "sequential? on integer")
+  (is (false? (sequential? :a)) "sequential? on keyword")
+  (is (false? (sequential? 'a)) "sequential? on symbol"))
+
 (deftest test-coll?
   (is (true? (coll? [])) "coll? on empty vector")
   (is (true? (coll? [1 2 3])) "coll? on non-empty vector")
