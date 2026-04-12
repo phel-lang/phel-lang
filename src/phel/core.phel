@@ -883,6 +883,13 @@ Otherwise, it tries to call `__toString`."
   [pred coll]
   (not (some? pred coll)))
 
+(defn any?
+  "Returns true given any argument. Clojure compatible."
+  {:example "(any? nil) ; => true\n(any? false) ; => true\n(any? 42) ; => true"
+   :see-also ["some?" "nil?"]}
+  [x]
+  true)
+
 (defn some
   "Returns the first truthy value of applying predicate to elements, or nil if none found."
   {:example "(some #(when (> % 10) %) [5 15 8]) ; => 15"}
