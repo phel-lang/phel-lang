@@ -172,6 +172,7 @@ Phel runs on PHP. A handful of Clojure features don't translate directly:
 | **Character type** | PHP has no char type | Character literals (`\a`) and `char` / `char?` are supported but compile to single-character strings |
 | **Spec** | Not ported | Use runtime assertions or PHP validation |
 | **Vars (Clojure sense)** | PHP has no thread-local bindings | `def` creates namespace-level bindings directly |
+| **`alter-var-root`** | No first-class vars to re-root | Use an `atom` with `swap!` for mutable state, or redefine the top-level binding with `def`. Calling `alter-var-root` at runtime throws `BadMethodCallException` with this hint |
 
 Phel does provide `future`, `future-cancel`, and `pmap` via the `phel\async` module, which uses AMPHP fibers. Semantics match Clojure's `future` where they can (including timeout-bounded `deref`), but cancellation is cooperative rather than thread-interrupt.
 
