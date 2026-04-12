@@ -15,3 +15,23 @@
             :let [y (* x 2)]]
            (swap! captured (fn [xs] (push xs y))))
     (is (= [4 8] (deref captured)) "doseq honors modifiers from for")))
+
+(deftest test-doseq-clojure-style-bindings
+  (let [captured (var [])]
+    (doseq [x [1 2 3]]
+           (swap! captured (fn [xs] (push xs x))))
+    (is (= [1 2 3] (deref captured)) "doseq accepts Clojure-style binding pairs")))
+
+(deftest test-doseq-clojure-style-nested
+  (let [captured (var [])]
+    (doseq [x [1 2]
+            y [3 4]]
+           (swap! captured (fn [xs] (push xs [x y]))))
+    (is (= [[1 3] [1 4] [2 3] [2 4]] (deref captured)) "doseq nested Clojure-style")))
+
+(deftest test-doseq-clojure-style-with-when
+  (let [captured (var [])]
+    (doseq [x [1 2 3 4 5]
+            :when (odd? x)]
+           (swap! captured (fn [xs] (push xs x))))
+    (is (= [1 3 5] (deref captured)) "doseq Clojure-style with :when modifier")))
