@@ -45,20 +45,23 @@
 ;; -----------
 
 (defn- resolve-api-key
-  "Resolves the API key for embedding requests."
-  []
-  (let [cfg @ai/config]
+  "Resolves the API key for embedding requests.
+  Accepts an optional provider keyword that takes precedence over ai/config."
+  [& [provider]]
+  (let [cfg @ai/config
+        effective-provider (or provider (get cfg :provider) :openai)]
     (or (get cfg :api-key)
-        (case (get cfg :provider)
+        (case effective-provider
           :openai (php/getenv "OPENAI_API_KEY")
+          :voyageai (php/getenv "VOYAGE_API_KEY")
           (php/getenv "ANTHROPIC_API_KEY"))
         (throw (php/new RuntimeException
                  "No API key configured for embeddings.")))))
 
 (defn- openai-embed-request
   "Makes an embedding request to the OpenAI Embeddings API."
-  [texts model]
-  (let [api-key (resolve-api-key)
+  [texts model & [provider]]
+  (let [api-key (resolve-api-key provider)
         cfg @ai/config
         base-url (or (get cfg :base-url) "https://api.openai.com")
         response (hc/post (str base-url "/v1/embeddings")
@@ -78,8 +81,8 @@
 
 (defn- voyageai-embed-request
   "Makes an embedding request to the Voyage AI API (used for Anthropic ecosystem)."
-  [texts model]
-  (let [api-key (resolve-api-key)
+  [texts model & [provider]]
+  (let [api-key (resolve-api-key provider)
         cfg @ai/config
         base-url (or (get cfg :base-url) "https://api.voyageai.com")
         response (hc/post (str base-url "/v1/embeddings")
@@ -112,8 +115,8 @@
   [texts & [{:model model :provider provider}]]
   (let [provider (or provider :openai)]
     (if (= provider :voyageai)
-      (voyageai-embed-request texts model)
-      (openai-embed-request texts model))))
+      (voyageai-embed-request texts model provider)
+      (openai-embed-request texts model provider))))
 
 (defn embed-one
   "Generates an embedding for a single text string.
