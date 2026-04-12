@@ -167,6 +167,15 @@
   (is (true? (not-any? pos? [])) "not-any? empty list")
   (is (true? (not-any? pos? [-1 -2 -3])) "not-any? only neg"))
 
+(deftest test-any?
+  (is (true? (any? nil))   "any? on nil returns true")
+  (is (true? (any? false)) "any? on false returns true")
+  (is (true? (any? true))  "any? on true returns true")
+  (is (true? (any? 0))     "any? on 0 returns true")
+  (is (true? (any? ""))    "any? on empty string returns true")
+  (is (true? (any? []))    "any? on empty vector returns true")
+  (is (true? (any? 42))    "any? on positive int returns true"))
+
 (deftest test-some
   (is (= 3 (some #(if (> % 2) % nil) [1 2 3 4])) "some returns first truthy")
   (is (nil? (some #(if (> % 10) % nil) [1 2 3])) "some returns nil when none matches")
