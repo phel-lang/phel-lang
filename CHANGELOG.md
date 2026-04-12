@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - `nth`, `nthrest`, `nthnext` sequence functions with Clojure-compatible semantics (#1375)
+- `aget` and `aset` functions for PHP array access and mutation, with nested index support (#1356)
 - `simple-ident?`, `simple-keyword?`, `simple-symbol?` predicate functions for non-namespaced identifiers (#1381)
 - `special-symbol?` predicate function: returns true if a symbol names a special form (#1384)
 - `sequential?` predicate function: returns true for ordered collections (vectors, lists, lazy sequences) (#1380)
