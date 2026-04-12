@@ -4,45 +4,52 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+#### Reader & Compiler
+- `(ClassName. args)` constructor shorthand expands to `(php/new ClassName args)`, including namespaced classes like `\Some\Class.` (#1359)
+- `#uuid "…"` tagged literal reads as a canonical lowercase UUID string (#1376)
+
+#### Predicates
+- `ident?`, `simple-ident?`, `simple-keyword?`, `simple-symbol?` for symbol/keyword introspection (#1369, #1381)
+- `special-symbol?` — true if a symbol names a special form (#1384)
+- `ifn?` — true if the argument is callable as a function (#1370)
+- `neg-int?`, `pos-int?`, `nat-int?` integer predicates (#1374)
+- `sequential?` — true for ordered collections (vectors, lists, lazy sequences) (#1380)
+- `seqable?` — true if `seq` is supported for the argument (#1379)
+
+#### Sequences & Collections
+- `nth`, `nthrest`, `nthnext` with Clojure-compatible semantics (#1375)
+- `fnext` — equivalent to `(first (next coll))` (#1368)
+- `rseq` and `reversible?` — constant-time reverse view of a vector or sorted-map (#1378)
+- `empty` — returns an empty collection of the same type, or nil (#1365)
+- `key` and `val` for extracting from a map entry (#1372)
+
+#### PHP Interop
+- `aget` and `aset` for PHP array access and mutation, with nested index support (#1356)
+- `int-array`, `long-array`, `float-array`, `double-array`, `short-array` typed array constructors (#1382)
+- `int`, `long`, `short` coercion functions for Clojure compatibility (#1371, #1383)
+- `uuid?` and `parse-uuid` complementing the existing `random-uuid` (#1377)
+- `alter-var-root` stub that throws `BadMethodCallException` with a migration hint; documented as out of scope in `docs/clojure-migration.md` (#1357)
+
+#### Modules
+- `phel\http-client` — outbound HTTP requests over PHP streams
+- `phel\ai` — chat, completions, structured extraction, tool use, embeddings, semantic search
+- `phel\repl` AI helpers: `explain`, `suggest`, `fix`, `review`, `embed-ns`, `search-ns`
+
 ### Fixed
 
-- `deftest` now raises a descriptive `InvalidArgumentException` when called without a symbol name, instead of failing deep inside macro expansion with `Call to undefined method PersistentList::getName()` (#1364)
-- `(def name)` without a value no longer throws; defines the var as `nil`, matching Clojure (#1361)
-- `doseq` now accepts Clojure-style binding pairs `(doseq [x coll] body)` without requiring `:in` verb (#1362)
-- `drop-last` now works with lazy sequences and ranges; returns a lazy sequence matching Clojure (#1360)
+- `deftest` rejects a missing/non-symbol name with a clear `InvalidArgumentException` instead of crashing inside macro expansion (#1364)
+- `(def name)` without a value no longer throws; binds `nil`, matching Clojure (#1361)
+- `doseq` accepts Clojure-style pairs `(doseq [x coll] body)` without requiring the `:in` verb (#1362)
+- `drop-last` works with lazy sequences and ranges, returning a lazy sequence (#1360)
 - `(empty? (range))` no longer hangs; `empty?` checks `first` for lazy sequences instead of `count` (#1366)
-- `is` macro no longer misinterprets `let`/`when`/`cond` forms as binary predicates (#1367)
+- `is` no longer misinterprets `let`/`when`/`cond` forms as binary predicates (#1367)
 - `defrecord`/`defstruct`/`defexception`/`definterface` no longer emit invalid PHP namespace declarations in statement mode (#1358)
 
 ### Changed
 
-- Reorganized Phel test files: dissolved `core.phel` into topic files under `core/`, moved `comments.phel`, `special-forms.phel`, `multi-arity-fn.phel` into `core/`
-
-### Added
-
-- `nth`, `nthrest`, `nthnext` sequence functions with Clojure-compatible semantics (#1375)
-- `aget` and `aset` functions for PHP array access and mutation, with nested index support (#1356)
-- `simple-ident?`, `simple-keyword?`, `simple-symbol?` predicate functions for non-namespaced identifiers (#1381)
-- `special-symbol?` predicate function: returns true if a symbol names a special form (#1384)
-- `ident?` predicate function: returns true if the argument is a symbol or keyword (#1369)
-- `fnext` sequence function: same as `(first (next coll))` (#1368)
-- `ifn?` predicate function: returns true if the argument can be invoked as a function (#1370)
-- `neg-int?`, `pos-int?`, `nat-int?` integer predicate functions (#1374)
-- `key` and `val` functions for extracting key/value from a map entry (#1372)
-- `empty` collection function: returns an empty collection of the same type, or nil (#1365)
-- `int` coercion function: coerces a value to an integer via PHP's `intval` (#1371)
-- `int-array`, `long-array`, `float-array`, `double-array`, `short-array` typed array constructors (#1382)
-- `long` and `short` coercion functions for Clojure compatibility (#1383)
-- `sequential?` predicate function: returns true for ordered collections (vectors, lists, lazy sequences) (#1380)
-- `rseq` and `reversible?` functions: reverse-iterate a vector or sorted-map in constant time (#1378)
-- `uuid?` and `parse-uuid` functions complementing the existing `random-uuid` (#1377)
-- `#uuid` tagged literal reads a canonical UUID string, e.g. `#uuid "550e8400-e29b-41d4-a716-446655440000"` (#1376)
-- `alter-var-root` stub that throws `BadMethodCallException` with a migration hint, plus a note in `docs/clojure-migration.md`; Phel has no first-class vars (#1357)
-- Clojure-style constructor shorthand `(ClassName. args)` expands to `(php/new ClassName args)` during analysis, including namespaced classes (`\Some\Class.`) (#1359)
-- `seqable?` predicate function: returns true if `seq` is supported for the argument (#1379)
-- `phel\http-client` module for outbound HTTP requests using PHP streams
-- `phel\ai` module: chat, completions, structured extraction, tool use, embeddings, and semantic search
-- `phel\repl` AI-powered helpers: `explain`, `suggest`, `fix`, `review`, `embed-ns`, `search-ns`
+- Reorganized Phel test files: dissolved `core.phel` into topic files under `core/`; moved `comments.phel`, `special-forms.phel`, `multi-arity-fn.phel` into `core/`
 
 ## [0.32.0](https://github.com/phel-lang/phel-lang/compare/v0.31.0...v0.32.0) - 2026-04-12
 
