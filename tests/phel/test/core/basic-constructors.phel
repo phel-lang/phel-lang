@@ -183,6 +183,32 @@
   (is (thrown? \InvalidArgumentException (aclone nil))
       "aclone of nil raises InvalidArgumentException"))
 
+(deftest test-aget
+  (let [a (php/array 10 20 30)]
+    (is (= 10 (aget a 0)) "aget first element")
+    (is (= 20 (aget a 1)) "aget second element")
+    (is (= 30 (aget a 2)) "aget third element")))
+
+(deftest test-aget-nested
+  (let [outer (php/array (php/array 1 2) (php/array 3 4))]
+    (is (= 2 (aget outer 0 1)) "aget nested with two indices")
+    (is (= 3 (aget outer 1 0)) "aget nested second array")))
+
+(deftest test-aset-returns-value
+  (let [a (php/array 1 2 3)]
+    (is (= 42 (aset a 0 42)) "aset returns the value")))
+
+(deftest test-aset-mutates-array
+  (let [a (php/array 1 2 3)]
+    (aset a 0 42)
+    (is (= 42 (php/aget a 0)) "aset mutated the array")))
+
+(deftest test-aset-nested
+  (let [inner (php/array 10 20)
+        outer (php/array inner)]
+    (aset outer 0 1 99)
+    (is (= 99 (php/aget (php/aget outer 0) 1)) "aset nested modified inner array")))
+
 (defstruct my-struct [a b c])
 
 (deftest test-struct
