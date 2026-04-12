@@ -190,6 +190,35 @@
   (is (= 3.14 (double "3.14")) "(double \"3.14\")")
   (is (= 0.0 (double nil)) "(double nil)"))
 
+(deftest test-long
+  (is (= 1 (long 1.9)) "(long 1.9) truncates toward zero")
+  (is (= -1 (long -1.9)) "(long -1.9) truncates toward zero")
+  (is (true? (int? (long 1.5))) "(long 1.5) returns an int")
+  (is (= 42 (long "42")) "(long \"42\") parses string")
+  (is (= 0 (long nil)) "(long nil) returns 0"))
+
+(deftest test-short
+  (is (= 0 (short 0)) "(short 0)")
+  (is (= 1 (short 1)) "(short 1)")
+  (is (= -1 (short -1)) "(short -1)")
+  (is (= 32767 (short 32767)) "(short 32767) is max")
+  (is (= -32768 (short -32768)) "(short -32768) is min")
+  (is (int? (short 0)) "(short 0) returns an int")
+  (is (= 1 (short 1.9)) "(short 1.9) truncates toward zero")
+  (is (= -1 (short -1.9)) "(short -1.9) truncates toward zero"))
+
+(deftest test-short-out-of-range
+  (is (thrown? \InvalidArgumentException (short 32768))
+      "(short 32768) raises InvalidArgumentException")
+  (is (thrown? \InvalidArgumentException (short -32769))
+      "(short -32769) raises InvalidArgumentException"))
+
+(deftest test-short-non-numeric
+  (is (thrown? \InvalidArgumentException (short "0"))
+      "(short \"0\") raises InvalidArgumentException on string")
+  (is (thrown? \InvalidArgumentException (short nil))
+      "(short nil) raises InvalidArgumentException"))
+
 (deftest test-byte-integer-values
   (is (= 0 (byte 0)) "(byte 0)")
   (is (= 1 (byte 1)) "(byte 1)")
