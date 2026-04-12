@@ -917,6 +917,13 @@ Otherwise, it tries to call `__toString`."
   [x]
   (id x nil))
 
+(defn any?
+  "Returns true given any argument."
+  {:example "(any? 42) ; => true\n(any? nil) ; => true"
+   :see-also ["some?"]}
+  [x]
+  true)
+
 (defn str-contains?
   "Returns true if str contains s."
   {:deprecated "Use phel\\str\\contains?"}

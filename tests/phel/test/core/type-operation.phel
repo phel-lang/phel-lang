@@ -26,6 +26,15 @@
   (is (false? (nil? false)) "nil? on false")
   (is (false? (nil? true)) "nil? on true"))
 
+(deftest test-any?
+  (is (true? (any? 42)) "any? on integer")
+  (is (true? (any? nil)) "any? on nil")
+  (is (true? (any? false)) "any? on false")
+  (is (true? (any? true)) "any? on true")
+  (is (true? (any? "hello")) "any? on string")
+  (is (true? (any? :kw)) "any? on keyword")
+  (is (true? (any? [])) "any? on vector"))
+
 (deftest test-float?
   (is (true? (float? 10.0)) "float? on 10.0")
   (is (true? (float? 0.0)) "float? on 0.0")

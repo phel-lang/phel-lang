@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- `any?` predicate function: returns true given any argument, matching Clojure (#1373)
 - `phel\http-client` module for outbound HTTP requests using PHP streams
 - `phel\ai` module: chat, completions, structured extraction, tool use, embeddings, and semantic search
 - `phel\repl` AI-powered helpers: `explain`, `suggest`, `fix`, `review`, `embed-ns`, `search-ns`
