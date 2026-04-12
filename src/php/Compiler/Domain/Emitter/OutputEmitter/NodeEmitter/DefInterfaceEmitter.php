@@ -19,17 +19,27 @@ final class DefInterfaceEmitter implements NodeEmitterInterface
     {
         assert($node instanceof DefInterfaceNode);
 
-        if ($this->outputEmitter->getOptions()->isStatementEmitMode()) {
+        if ($this->shouldEmitViaEval()) {
             $this->emitViaEval($node);
         } else {
             $this->emitInline($node);
         }
     }
 
+    private function shouldEmitViaEval(): bool
+    {
+        if ($this->outputEmitter->getOptions()->isStatementEmitMode()) {
+            return true;
+        }
+
+        return $this->outputEmitter->isInsideClassScope();
+    }
+
     /**
-     * In statement mode, the interface definition may end up inside a function
-     * wrapper. PHP forbids namespace declarations inside functions, so we
-     * capture the interface body at compile time and emit it as an eval() call.
+     * Captures the interface body at compile time and emits it as an
+     * `eval()` call guarded by `interface_exists`. Needed both in
+     * statement mode and when we are inside another class's method body
+     * (where PHP rejects nested declarations).
      */
     private function emitViaEval(DefInterfaceNode $node): void
     {

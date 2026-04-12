@@ -1,0 +1,47 @@
+--PHEL--
+(def make-foo
+  (fn []
+    (defstruct* foo-inside [a])))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "make-foo",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\make_foo";
+
+    public function __invoke() {
+      if (!class_exists('user\foo_inside')) {
+        eval('namespace user;
+      class foo_inside extends \\Phel\\Lang\\Collections\\Struct\\AbstractPersistentStruct {
+
+        protected const array ALLOWED_KEYS = [\'a\'];
+
+        protected $a;
+
+        public function __construct($a, $meta = null) {
+          parent::__construct();
+          $this->a = $a;
+          $this->meta = $meta;
+        }
+      }
+');
+      }
+
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/defstruct-inside-fn-body.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/defstruct-inside-fn-body.test",
+      \Phel::keyword("line"), 3,
+      \Phel::keyword("column"), 33
+    ),
+    "min-arity", 0,
+    "is-variadic", false,
+    "arglists", "[]"
+  )
+);

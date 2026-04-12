@@ -54,6 +54,7 @@ Clojure's reader syntax is accepted wholesale. Older Phel-specific forms still w
 | `##Inf`, `##-Inf`, `##NaN` | Symbolic numeric literal | |
 | `2r1111`, `16rFF` | Radix literal (bases 2 to 36) | |
 | `1N`, `1.5M` | BigInt / BigDecimal suffix (accepted, truncated to PHP int/float) | |
+| `1/2`, `-3/4` | Ratio literal (accepted, evaluated as float division; `1/0` → `INF`, `0/0` → `NaN`) | |
 | `#"regex"` | Regex literal | |
 | `#?(...)`, `#?@(...)` | Reader conditionals (for `.cljc`) | |
 | `#<tag> form` | Tagged literal dispatch | |
@@ -168,7 +169,7 @@ Phel runs on PHP. A handful of Clojure features don't translate directly:
 | **Refs / STM** | No concurrent transactions in PHP | Use `atom` for mutable state |
 | **Agents** | No background threads | PHP job queues via interop |
 | **core.async** | No goroutines/CSP | Use `phel\async` (fiber-based via AMPHP) |
-| **BigInt / BigDecimal / Ratio** | PHP number model | Suffix literals (`1N`, `1.5M`) are accepted but truncated to PHP int/float. Use `bcmath` / `gmp` via `php/` interop for real arbitrary precision |
+| **BigInt / BigDecimal / Ratio** | PHP number model | Suffix literals (`1N`, `1.5M`) and ratio literals (`1/2`) are accepted; ratios evaluate to `num / den` as a float. Use `bcmath` / `gmp` via `php/` interop for real arbitrary precision |
 | **Character type** | PHP has no char type | Character literals (`\a`) and `char` / `char?` are supported but compile to single-character strings |
 | **Spec** | Not ported | Use runtime assertions or PHP validation |
 | **Vars (Clojure sense)** | PHP has no thread-local bindings | `def` creates namespace-level bindings directly |

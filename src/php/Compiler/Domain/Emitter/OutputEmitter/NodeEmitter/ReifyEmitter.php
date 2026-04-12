@@ -39,12 +39,14 @@ final readonly class ReifyEmitter implements NodeEmitterInterface
         $this->closureHelper->emitConstructorArguments($uses, $env, $loc);
         $this->outputEmitter->emitLine(') {', $loc);
         $this->outputEmitter->increaseIndentLevel();
+        $this->outputEmitter->enterClassScope();
 
         $this->closureHelper->emitProperties($uses, $env, $loc);
         $this->closureHelper->emitConstructor($uses, $env, $loc);
 
         $this->emitMethods($node);
 
+        $this->outputEmitter->exitClassScope();
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitStr('}', $loc);
         $this->outputEmitter->emitContextSuffix($env, $loc);

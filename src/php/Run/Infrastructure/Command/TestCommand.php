@@ -19,6 +19,7 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
+use function count;
 use function sprintf;
 
 /**
@@ -74,10 +75,13 @@ final class TestCommand extends Command
             /** @var list<string> $paths */
             $paths = (array) $input->getArgument(self::ARG_PATHS);
             $namespacesInformation = $this->getFacade()->getDependenciesFromPaths($paths);
+            $failFast = (bool) $input->getOption(self::OPT_FAIL_FAST);
 
             // Suppress output during file loading phase and filter out integration test fixtures
             ob_start();
             $filteredNamespaces = [];
+            /** @var list<array{0: NamespaceInformation, 1: Throwable}> $compileErrors */
+            $compileErrors = [];
             foreach ($namespacesInformation as $info) {
                 // Skip integration test fixture files - they are for PHPUnit tests only
                 if (str_contains($info->getFile(), 'tests/php/Integration/')) {
@@ -88,23 +92,36 @@ final class TestCommand extends Command
                     continue;
                 }
 
-                $filteredNamespaces[] = $info;
-
                 try {
                     $this->getFacade()->evalFile($info);
+                    $filteredNamespaces[] = $info;
                 } catch (Throwable $e) {
-                    ob_end_clean();
-                    throw $e;
+                    if ($failFast) {
+                        ob_end_clean();
+                        throw $e;
+                    }
+
+                    $compileErrors[] = [$info, $e];
                 }
             }
 
             ob_end_clean();
+
+            $this->reportCompileErrors($output, $compileErrors);
+
+            if ($filteredNamespaces === []) {
+                return ($compileErrors === []) ? self::SUCCESS : self::FAILURE;
+            }
 
             $phelCode = $this->generatePhelTestCode($input, $filteredNamespaces);
             $compileOptions = (new CompileOptions())->setIsEnabledSourceMaps(false);
             $result = $this->getFacade()->eval($phelCode, $compileOptions);
 
             $output->writeln((new ResourceUsageFormatter())->resourceUsageSinceStartOfRequest());
+
+            if ($compileErrors !== []) {
+                return self::FAILURE;
+            }
 
             return ($result) ? self::SUCCESS : self::FAILURE;
         } catch (CompilerException $e) {
@@ -114,6 +131,30 @@ final class TestCommand extends Command
         }
 
         return self::FAILURE;
+    }
+
+    /**
+     * @param list<array{0: NamespaceInformation, 1: Throwable}> $compileErrors
+     */
+    private function reportCompileErrors(OutputInterface $output, array $compileErrors): void
+    {
+        if ($compileErrors === []) {
+            return;
+        }
+
+        foreach ($compileErrors as [$info, $e]) {
+            $output->writeln(sprintf('<error>Failed to compile %s</error>', $info->getFile()));
+            if ($e instanceof CompilerException) {
+                $this->getFacade()->writeLocatedException($output, $e);
+            } else {
+                $output->writeln($e->getMessage());
+            }
+        }
+
+        $output->writeln(sprintf(
+            '<comment>Skipped %d file(s) due to compile errors; continuing with the rest.</comment>',
+            count($compileErrors),
+        ));
     }
 
     private function generatePhelTestCode(InputInterface $input, array $namespacesInformation): string
