@@ -1295,6 +1295,43 @@ final class ReaderTest extends TestCase
         );
     }
 
+    public function test_uuid_tagged_literal_reads_as_string(): void
+    {
+        self::assertSame(
+            '00000000-0000-0000-0000-000000000000',
+            $this->read('#uuid "00000000-0000-0000-0000-000000000000"'),
+        );
+    }
+
+    public function test_uuid_tagged_literal_lowercases_input(): void
+    {
+        self::assertSame(
+            '550e8400-e29b-41d4-a716-446655440000',
+            $this->read('#uuid "550E8400-E29B-41D4-A716-446655440000"'),
+        );
+    }
+
+    public function test_uuid_tagged_literal_rejects_invalid_format(): void
+    {
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('is not a canonical UUID string');
+        $this->read('#uuid "not-a-uuid"');
+    }
+
+    public function test_uuid_tagged_literal_requires_string_form(): void
+    {
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('#uuid expects a string literal');
+        $this->read('#uuid 42');
+    }
+
+    public function test_unknown_tagged_literal_throws(): void
+    {
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage("Unknown tagged literal '#something'");
+        $this->read('#something "x"');
+    }
+
     private function read(string $string, bool $withLocation = true): float|bool|int|string|TypeInterface|null
     {
         Symbol::resetGen();
