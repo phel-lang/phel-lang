@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 #### Reader & Compiler
 - `(ClassName. args)` constructor shorthand, including namespaced classes like `\Some\Class.` (#1359)
 - `#uuid "…"` tagged literal, reads as a canonical lowercase UUID string (#1376)
+- Clojure ratio literals (`1/2`, `-3/4`, `0/2`) read as their float equivalent; Phel has no rational type, so `.cljc` sources using ratios now parse without error. A zero denominator yields `INF`/`-INF`/`NaN` instead of aborting the compile
 
 #### Predicates
 - `ident?`, `simple-ident?`, `simple-keyword?`, `simple-symbol?` (#1369, #1381)
