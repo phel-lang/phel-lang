@@ -26,7 +26,8 @@
         "amphp/amp": "^3.1",
         "gacela-project/gacela": "^1.12",
         "phpunit/php-timer": "^6.0|^7.0|^8.0",
-        "symfony/console": "^6.0|^7.0|^8.0"
+        "symfony/console": "^6.0|^7.0|^8.0",
+        "symfony/routing": "^7.3"
     },
     "require-dev": {
         "ext-readline": "*",

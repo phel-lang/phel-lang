@@ -1,0 +1,113 @@
+(ns phel-test\test\router
+  (:require phel\http :as h)
+  (:require phel\test :refer [deftest is])
+  (:require phel\router :as r :refer [match-by-path match-by-name generate])
+  (:use Symfony\Component\Routing\Exception\RouteNotFoundException)
+  (:use Symfony\Component\Routing\Exception\MissingMandatoryParametersException))
+
+;; The `r/compiled-router` macro requires literal routes at compile-time, so the
+;; shared assertions are wrapped in macros that take the router constructor as a
+;; symbol and emit calls with the routes inlined.
+
+(defmacro ^:private match-by-path-asserts [mk-router]
+  `(do
+     (is (= {:template "/ping" :data {} :path "/ping" :path-params {}}
+            (match-by-path (~mk-router ["/ping"]) "/ping"))
+         "single static route")
+     (is (= nil (match-by-path (~mk-router ["/ping"]) "/pong"))
+         "no matching static route")
+     (is (= {:template "/pong" :data {} :path "/pong" :path-params {}}
+            (match-by-path (~mk-router [["/ping"] ["/pong"]]) "/pong"))
+         "two static route")
+     (is (= {:template "/ping/{id<\\d+>}" :data {:name ::ping} :path "/ping/123" :path-params {:id "123"}}
+            (match-by-path (~mk-router [["/ping/{id<\\d+>}" {:name ::ping}]]) "/ping/123"))
+         "route with path parameter")
+     (is (= nil (match-by-path (~mk-router [["/ping/{id<\d+>}" {:name ::ping}]]) "/ping/abc"))
+         "no matching path requirement with path parameter")))
+
+(defmacro ^:private match-by-name-asserts [mk-router]
+  `(do
+     (is (= {:template "/ping" :data {:name ::ping}}
+            (match-by-name (~mk-router [["/ping" {:name ::ping}]]) ::ping))
+         "single static route")
+     (is (= {:template "/ping/{id}" :data {:name ::ping}}
+            (match-by-name (~mk-router [["/ping/{id}" {:name ::ping}]]) ::ping))
+         "route with path parameter")
+     (is (= nil (match-by-name (~mk-router [["/ping/{id}" {:name ::ping}]]) ::pong))
+         "route with name not found")))
+
+(defmacro ^:private generate-asserts [mk-router]
+  `(do
+     (is (= "/ping" (generate (~mk-router [["/ping" {:name ::ping}]]) ::ping {}))
+         "single static route")
+     (is (thrown? RouteNotFoundException
+                  (generate (~mk-router [["/ping" {:name ::ping}]]) ::pong {}))
+         "unknown static route")
+     (is (= "/ping/10" (generate (~mk-router [["/ping/{id}" {:name ::ping}]]) ::ping {:id 10}))
+         "generate route with path parameter")
+     (is (thrown? MissingMandatoryParametersException
+                  (generate (~mk-router [["/ping/{id}" {:name ::ping}]]) ::ping {}))
+         "generate route with missing path parameter")
+     (is (= "/ping/10?foo=bar"
+            (generate (~mk-router [["/ping/{id}" {:name ::ping}]]) ::ping {:id 10 :foo "bar"}))
+         "generate route with additional query parameter")))
+
+(deftest test-match-by-path
+  (match-by-path-asserts r/router))
+
+(deftest test-match-by-path-compiled-router
+  (match-by-path-asserts r/compiled-router))
+
+(deftest test-match-by-name
+  (match-by-name-asserts r/router))
+
+(deftest test-match-by-name-compiled-router
+  (match-by-name-asserts r/compiled-router))
+
+(deftest test-generate
+  (generate-asserts r/router))
+
+(deftest test-generate-compiled-router
+  (generate-asserts r/compiled-router))
+
+(defn- fnil [f x]
+  (fn [a & args]
+    (apply f (if (nil? a) x a) args)))
+
+(defn- mv [name]
+  (fn [handler request]
+    (handler (update-in request [:attributes :mv] (fnil push []) name))))
+
+(defn- handler [request]
+  {:status 200 :body (push (get-in request [:attributes :mv] []) :ok)})
+
+(defn- req [uri & [method]]
+  (h/request-from-map (cond-> {:uri uri} method (assoc :method method))))
+
+(deftest handler-test
+  (let [test-router (r/router
+                     ["/api" {:middleware [(mv :api)]}
+                      ["/all" {:handler handler}]
+                      ["/get" {:get {:handler handler}}]
+                      ["/users" {:middleware [(mv :users)]
+                                 :get {:handler handler}
+                                 :post {:middleware [(mv :post)]
+                                        :handler handler}
+                                 :handler handler}]])
+        app (r/handler test-router {:default-handler (constantly nil)})]
+    (is (= nil (app (req "/favicon.ico"))) "not found")
+    (is (= {:status 200 :body [:api :ok]} (app (req "/api/all" "GET"))) "catch all handler")
+    (is (= {:status 200 :body [:api :ok]} (app (req "/api/get" "GET"))) "get handler")
+    (is (= nil (app (req "/api/get" :post))) "get handler with post")
+    (is (= {:status 200 :body [:api :users :ok]} (app (req "/api/users" "GET"))) "expanded method handler")
+    (is (= {:status 200 :body [:api :users :post :ok]} (app (req "/api/users" "POST"))) "method handler with middleware")
+    (is (= {:status 200 :body [:api :users :ok]} (app (req "/api/users" "PUT"))) "fallback handler")))
+
+(deftest with-top-level-middleware
+  (let [test-router (r/router
+                     ["/api" {:middleware [(mv :api)]}
+                      ["/get" {:get {:handler handler}}]]
+                     {})
+        app (r/handler test-router {:middleware [(mv :top)] :default-handler (constantly nil)})]
+    (is (= nil (app (req "/favicon.ico"))) "not found")
+    (is (= {:status 200 :body [:top :api :ok]} (app (req "/api/get" "GET"))) "on match")))

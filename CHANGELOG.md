@@ -37,6 +37,7 @@ All notable changes to this project will be documented in this file.
 - `parse-double` accepts `Infinity`, `-Infinity`, and `NaN` (#1428)
 
 #### Modules
+- `phel\router`: data-driven router built on `symfony/routing`, previously shipped separately as `phel-lang/router`
 - `phel\http-client` — outbound HTTP requests over PHP streams
 - `phel\ai` — chat, completions, structured extraction, tool use, embeddings, semantic search
 - `phel\repl` AI helpers: `explain`, `suggest`, `fix`, `review`, `embed-ns`, `search-ns`
