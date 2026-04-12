@@ -57,5 +57,9 @@
                 ]
             }
         ]
+    },
+    "statusLine": {
+        "type": "command",
+        "command": "/bin/bash .claude/statusline.sh"
     }
 }
