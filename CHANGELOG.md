@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `deftest` now raises a descriptive `InvalidArgumentException` when called without a symbol name, instead of failing deep inside macro expansion with `Call to undefined method PersistentList::getName()` (#1364)
 - `(def name)` without a value no longer throws; defines the var as `nil`, matching Clojure (#1361)
 - `doseq` now accepts Clojure-style binding pairs `(doseq [x coll] body)` without requiring `:in` verb (#1362)
 - `drop-last` now works with lazy sequences and ranges; returns a lazy sequence matching Clojure (#1360)

@@ -1,0 +1,29 @@
+(ns phel-test\test\core\binding-regression-1363
+  (:require phel\test :refer [deftest is]))
+
+;; Regression coverage for https://github.com/phel-lang/phel-lang/issues/1363
+;;
+;; The issue reported two failures pulled from `clojure-test-suite/binding.cljc`:
+;;   1. A `SliceGenerator::toIterable` type error when `(is (binding ...))` was
+;;      expanded by the `is` macro. Should compile cleanly now that `is` routes
+;;      known structured forms (including `binding`) through `assert-any`.
+;;   2. An "Unterminated list (BRACKETS)" reader error on a splicing reader
+;;      conditional whose `:default` branch contained nested brackets. Should
+;;      parse cleanly because the selected branch wins and unselected branches
+;;      are discarded.
+
+(def *x* :unset)
+
+(deftest binding-inside-is-compiles
+  (is (binding [*x* :set] (= *x* :set))
+      "is accepts a binding form as its predicate"))
+
+(deftest splicing-reader-cond-with-nested-brackets
+  (let [xs [1 2 3
+            #?@(:cljs []
+                :phel []
+                :default
+                [(let [a 1] [a])
+                 (let [b 2] [b])])]]
+    (is (= [1 2 3] xs)
+        "splicing reader conditional discards unselected nested branches")))

@@ -271,6 +271,10 @@
   "Defines a test function."
   {:example "(deftest test-add)"}
   [test-name & body]
+  (when-not (symbol? test-name)
+    (throw (php/new \InvalidArgumentException
+             (str "deftest requires a symbol name as its first argument, got "
+                  (type test-name) ". Example: (deftest test-add ...)."))))
   `(defn ~test-name {:test true :test-name ~(name test-name)} []
      (binding [*current-test-name* ~(name test-name)]
               ~@body)))
