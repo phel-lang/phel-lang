@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- `(def name)` without a value no longer throws; defines the var as `nil`, matching Clojure (#1361)
+
 ### Changed
 
 - Reorganized Phel test files: dissolved `core.phel` into topic files under `core/`, moved `comments.phel`, `special-forms.phel`, `multi-arity-fn.phel` into `core/`
