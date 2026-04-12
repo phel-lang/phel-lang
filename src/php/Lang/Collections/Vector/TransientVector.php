@@ -44,6 +44,17 @@ final class TransientVector implements TransientVectorInterface, Stringable
         return '<TransientVector count=' . $this->count . '>';
     }
 
+    /**
+     * Lookup by integer index so transient vectors remain callable like their
+     * persistent counterparts: `((transient [10 20]) 1) ; => 20`.
+     *
+     * @return T
+     */
+    public function __invoke(int $index)
+    {
+        return $this->get($index);
+    }
+
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
         return new self(

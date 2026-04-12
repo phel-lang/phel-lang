@@ -25,6 +25,19 @@ final readonly class TransientHashSet implements TransientHashSetInterface, Stri
         return '<TransientSet count=' . $this->transientMap->count() . '>';
     }
 
+    /**
+     * Membership lookup so transient sets remain callable like their persistent
+     * counterparts: `((transient #{:a}) :a) ; => :a`, else `nil`.
+     *
+     * @param V $key
+     *
+     * @return V|null
+     */
+    public function __invoke(mixed $key): mixed
+    {
+        return $this->transientMap->find($key);
+    }
+
     public function count(): int
     {
         return $this->transientMap->count();

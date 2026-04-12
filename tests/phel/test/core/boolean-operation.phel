@@ -290,4 +290,16 @@
 (deftest test-compare
   (is (= -1 (compare 1 2)) "(compare 1 2)")
   (is (= 1 (compare 2 1)) "(compare 2 1)")
-  (is (= 0 (compare 1 1)) "(compare 1 1)"))
+  (is (= 0 (compare 1 1)) "(compare 1 1)")
+  (is (= 0 (compare 1 1.0)) "mixed int/float compare as same category")
+  (is (= -1 (compare "a" "b")) "strings compare")
+  (is (= 0 (compare nil nil)) "nil equals nil")
+  (is (= -1 (compare nil 1)) "nil is less than any non-nil")
+  (is (= 1 (compare 1 nil)) "non-nil is greater than nil"))
+
+(deftest test-compare-type-mismatch
+  (is (thrown? \InvalidArgumentException (compare 1 [])) "number vs vector throws")
+  (is (thrown? \InvalidArgumentException (compare 'x [])) "symbol vs vector throws")
+  (is (thrown? \InvalidArgumentException (compare 'x '(x))) "symbol vs list throws")
+  (is (thrown? \InvalidArgumentException (compare :a "a")) "keyword vs string throws")
+  (is (thrown? \InvalidArgumentException (compare {} [])) "map vs vector throws"))

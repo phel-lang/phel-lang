@@ -28,6 +28,15 @@
   (is (= [1 2 3 4 5 6] (mapcat reverse [[3 2 1] [6 5 4]])) "mapcat")
   (is (= [] (mapcat identity [])) "mapcat on empty vector"))
 
+(deftest test-mapcat-multi-collection
+  (is (= [:a 1 :b 2 :c 3] (mapcat list [:a :b :c] [1 2 3]))
+      "mapcat with list interleaves corresponding elements")
+  (is (= [2 2 4 4 6 6] (mapcat (fn [x y] [(* 2 x) (* 2 y)]) [1 2 3] [1 2 3]))
+      "mapcat with arity-2 fn zips collections")
+  (is (= [2 4] (mapcat (fn [x y] [(* x y)]) [1 2] [2 2 2]))
+      "mapcat stops at shortest collection")
+  (is (= [] (mapcat list [] [1 2 3])) "mapcat with empty first collection"))
+
 (deftest test-into
   (is (= [1 2 3 4] (into [] '(1 2 3 4))) "into vector from list")
   (is (= [1 2 3 4 5] (into [1 2] [3 4 5])) "into vector from vector")
@@ -276,11 +285,20 @@
 
 (deftest test-keys
   (is (= [:a :b :c] (keys {:a 1 :b 2 :c 3})) "keys of map")
-  (is (= [0 1 2] (keys [3 2 1])) "keys of vector"))
+  (is (= [0 1 2] (keys [3 2 1])) "keys of vector")
+  (is (nil? (keys nil)) "keys of nil is nil")
+  (is (nil? (keys {})) "keys of empty map is nil")
+  (is (nil? (keys [])) "keys of empty vector is nil"))
 
 (deftest test-values
   (is (= [1 2 3] (values {:a 1 :b 2 :c 3})) "values of map")
   (is (= [3 2 1] (values [3 2 1])) "values of vector"))
+
+(deftest test-vals
+  (is (= [1 2 3] (vals {:a 1 :b 2 :c 3})) "vals of map")
+  (is (nil? (vals nil)) "vals of nil is nil")
+  (is (nil? (vals {})) "vals of empty map is nil")
+  (is (nil? (vals [])) "vals of empty vector is nil"))
 
 (deftest test-not-empty
   (is (= [1] (not-empty [1])) "not-empty returns coll")

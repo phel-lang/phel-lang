@@ -108,6 +108,16 @@
   (is (= #{1 2 3} (persistent (conj (transient #{1 2}) 3))) "conj on transient set adds element")
   (is (= {:a 1} (persistent (conj (transient {}) [:a 1]))) "conj on transient map with [key value] pair"))
 
+(deftest test-transient-invocation
+  (is (= 20 ((transient [10 20 30]) 1)) "transient vector is callable by index")
+  (is (= 1 ((transient {:a 1 :b 2}) :a)) "transient map is callable by key")
+  (is (nil? ((transient {:a 1}) :missing)) "transient map missing key returns nil")
+  (is (= "fallback" ((transient {:a 1}) :missing "fallback"))
+      "transient map missing key returns default")
+  (is (= :a ((transient #{:a :b}) :a)) "transient set returns member on lookup")
+  (is (nil? ((transient #{:a}) :missing)) "transient set missing element returns nil")
+  (is (= 1 (:a (transient {:a 1}))) "keyword-as-fn works on transient map"))
+
 (deftest test-conj-empty-collections
   (is (= {:a 1} (conj {} [:a 1])) "conj on empty map with [key value] pair")
   (is (= #{1} (conj #{} 1)) "conj on empty set adds element")
@@ -308,7 +318,13 @@
   (is (= {:b 2} (unset {:a 1 :b 2} :a)) "unset: remove key from map"))
 
 (deftest test-dissoc
-  (is (= {:b 2} (dissoc {:a 1 :b 2} :a)) "dissoc: remove key from map"))
+  (is (= {:b 2} (dissoc {:a 1 :b 2} :a)) "dissoc: remove key from map")
+  (is (= {:a 1} (dissoc {:a 1})) "dissoc with no keys returns map unchanged")
+  (is (= {} (dissoc {:a 1 :b 2 :c 3} :a :b :c)) "dissoc variadic removes all keys")
+  (is (= {:b 2} (dissoc {:a 1 :b 2 :c 3} :a :c)) "dissoc variadic removes multiple keys")
+  (is (= {:a 1} (dissoc {:a 1} :missing :also-missing)) "dissoc skips missing keys")
+  (is (= {} (apply dissoc {} [])) "apply dissoc with no keys does not raise")
+  (is (= {:b 2} (apply dissoc {:a 1 :b 2 :c 3} [:a :c])) "apply dissoc variadic through seq"))
 
 (deftest test-next
   (is (nil? (next [])) "next of empty vector")

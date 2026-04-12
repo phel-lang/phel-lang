@@ -24,6 +24,9 @@ All notable changes to this project will be documented in this file.
 - `rseq` and `reversible?` — constant-time reverse view of a vector or sorted-map (#1378)
 - `empty` — returns an empty collection of the same type, or nil (#1365)
 - `key` and `val` for extracting from a map entry (#1372)
+- `(keyword ns name)` arity for namespaced keywords (#1428)
+- `mapcat` accepts multiple collections, zipping elements into `f` (#1428)
+- Transient vectors, maps, and sets are callable like their persistent counterparts (#1428)
 
 #### PHP Interop
 - `aget` and `aset` for PHP array access and mutation, with nested index support (#1356)
@@ -31,6 +34,7 @@ All notable changes to this project will be documented in this file.
 - `int`, `long`, `short` coercion functions for Clojure compatibility (#1371, #1383)
 - `uuid?` and `parse-uuid` complementing the existing `random-uuid` (#1377)
 - `alter-var-root` stub that throws `BadMethodCallException` with a migration hint; documented as out of scope in `docs/clojure-migration.md` (#1357)
+- `parse-double` accepts `Infinity`, `-Infinity`, and `NaN` (#1428)
 
 #### Modules
 - `phel\http-client` — outbound HTTP requests over PHP streams
@@ -39,6 +43,14 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `keyword` is idempotent on keywords and handles `nil` / symbol input (#1428)
+- `dissoc` accepts zero keys and reduces over variadic key lists (#1428)
+- `keys` / `vals` return `nil` for `nil` or empty collections (#1428)
+- `make-hierarchy` exposes `:parents`, `:descendants`, and `:ancestors` keys (#1428)
+- `first` on a map returns its first entry, so `ffirst` / `nfirst` work on maps (#1428)
+- `str` preserves float representation — `(str 0.0)` → `"0.0"`, readable `NaN` / `±Infinity` (#1428)
+- `compare` throws `InvalidArgumentException` on cross-category arguments; `nil` stays less than every non-nil value (#1428)
+- `:keyword` lookup works on transient maps (#1428)
 - `deftest` rejects a missing/non-symbol name with a clear `InvalidArgumentException` instead of crashing inside macro expansion (#1364)
 - `(def name)` without a value no longer throws; binds `nil`, matching Clojure (#1361)
 - `doseq` accepts Clojure-style pairs `(doseq [x coll] body)` without requiring the `:in` verb (#1362)

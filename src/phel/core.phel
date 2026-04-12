@@ -118,17 +118,34 @@
             (throw (php/new InvalidArgumentException
                             (php/. "cannot call 'next on " (php/gettype xs))))))))))
 
+(def first-map-entry
+  {:private true
+   :doc "Returns the first `[k v]` entry of a persistent map, or nil if empty."}
+  (fn [m]
+    (let [it (php/-> m (getIterator))]
+      (php/-> it (rewind))
+      (if (php/-> it (valid))
+        [(php/-> it (key)) (php/-> it (current))]
+        nil))))
+
+(def first-of-string
+  {:private true
+   :doc "Returns the first multibyte character of a string, or nil if empty."}
+  (fn [s]
+    (if (php/=== "" s) nil (php/mb_substr s 0 1))))
+
 (def first
-  {:doc "Returns the first element of a sequence, or nil if empty."
+  {:doc "Returns the first element of a sequence, or nil if empty.
+
+  Maps are treated as a sequence of entries: `(first {:a 1})` returns the
+  first `[:a 1]` vector. Strings are treated as sequences of multibyte
+  characters."
    :example "(first [1 2 3]) ; => 1"}
   (fn [xs]
-    (if (php/instanceof xs FirstInterface)
-      (php/-> xs (first))
-      (if (php/is_string xs)
-        (if (php/=== "" xs)
-          nil
-          (php/mb_substr xs 0 1))
-        (php/aget xs 0)))))
+    (if (php/instanceof xs FirstInterface)         (php/-> xs (first))
+        (if (php/instanceof xs PersistentMapInterface) (first-map-entry xs)
+            (if (php/is_string xs)                      (first-of-string xs)
+                (php/aget xs 0))))))
 
 (def concat1
   {:private true
@@ -375,17 +392,30 @@
   []
   (php/:: Symbol (gen)))
 
+(defn- float-to-str
+  "Renders a float so integer-valued floats keep the trailing `.0`, while `NaN`
+  and ±Infinity stringify readably."
+  [x]
+  (if (php/is_nan x)
+    "NaN"
+    (if (php/is_infinite x)
+      (if (php/> x 0) "Infinity" "-Infinity")
+      (let [s (php/. "" x)]
+        (if (php/=== 1 (php/preg_match "/[.eE]/" s))
+          s
+          (php/. s ".0"))))))
+
 (defn- val-to-str
   "Converts a value to its string representation. Booleans become \"true\" or
-\"false\". Nil becomes an empty string. All other values use PHP string cast."
+\"false\". Nil becomes an empty string. Integer-valued floats keep their `.0`
+suffix (so `(str 0.0)` is `\"0.0\"`, not `\"0\"`). All other values use PHP
+string cast."
   [x]
-  (if (php/=== x true)
-    "true"
-    (if (php/=== x false)
-      "false"
-      (if (php/=== x nil)
-        ""
-        (php/. "" x)))))
+  (if (php/=== x true)      "true"
+      (if (php/=== x false)   "false"
+          (if (php/=== x nil)   ""
+              (if (php/is_float x) (float-to-str x)
+                  (php/. "" x))))))
 
 (defn str
   "Creates a string by concatenating values together. If no arguments are
@@ -467,12 +497,6 @@ Otherwise, it tries to call `__toString`."
    :see-also ["sorted-set" "compare"]}
   [comp & xs]
   (php/:: Phel (sortedSetBy comp (apply php/array xs))))
-
-(defn keyword
-  "Creates a new Keyword from a given string."
-  {:example "(keyword \"name\") ; => :name"}
-  [x]
-  (php/:: Keyword (create x)))
 
 (defn php-indexed-array
   "Creates a PHP indexed array from the given values."
@@ -829,6 +853,28 @@ Otherwise, it tries to call `__toString`."
       `(let [~v ~(first args)]
          (if ~v (and ~@(next args)) ~v)))))
 
+(defn keyword
+  "Creates a new Keyword.
+
+  Arity-1 accepts a string, keyword, or symbol. Returns `nil` when `x` is `nil`.
+  If `x` is already a keyword, it is returned unchanged.
+
+  Arity-2 builds a namespaced keyword from the namespace and name parts; returns
+  `nil` when `name` is `nil`."
+  {:example "(keyword \"name\") ; => :name\n(keyword :abc) ; => :abc\n(keyword \"ns\" \"name\") ; => :ns/name"}
+  ([x]
+   (cond
+     (php/=== nil x)            nil
+     (php/instanceof x Keyword) x
+     (php/instanceof x Symbol)  (php/:: Keyword (create (php/-> x (getName))
+                                                        (php/-> x (getNamespace))))
+     (php/is_string x)          (php/:: Keyword (create x))
+     :else                      nil))
+  ([ns nm]
+   (when-not (php/=== nil nm)
+     (php/:: Keyword (create (php/strval nm)
+                             (when-not (php/=== nil ns) (php/strval ns)))))))
+
 (defn- id2 [a b]
   (if (php/instanceof a IdenticalInterface)
     (php/-> a (identical b))
@@ -1036,13 +1082,43 @@ Otherwise, it tries to call `__toString`."
     (php/is_string coll) (and (php/is_int key) (php/>= key 0) (php/< key (php/mb_strlen coll)))
     (throw (php/new InvalidArgumentException (php/. "cannot call 'contains?' on " (php/get_class coll))))))
 
+(defn- compare-category
+  "Returns a coarse category for `compare`'s type compatibility check. `nil` is
+  its own category so it can be treated as less than anything. Numbers share a
+  category so `(compare 1 1.5)` works."
+  [x]
+  (cond
+    (php/=== x nil)                      :nil
+    (php/is_bool x)                      :bool
+    (or (php/is_int x) (php/is_float x)) :number
+    (php/is_string x)                    :string
+    (php/instanceof x Keyword)           :keyword
+    (php/instanceof x Symbol)            :symbol
+    (or (php/instanceof x PersistentVectorInterface)
+        (php/instanceof x PersistentListInterface)) :sequential
+    (php/instanceof x PersistentMapInterface)       :map
+    (php/instanceof x PersistentHashSetInterface)   :set
+    :else                                :other))
+
 (defn compare
-  "Wrapper for PHP's spaceship operator (`php/<=>`).
-  Returns an integer less than, equal to, or greater than zero
-  when `x` is less than, equal to, or greater than `y`, respectively."
-  {:inline (fn [x y] `(php/<=> ~x ~y))}
+  "Compares `x` and `y` using PHP's spaceship operator, returning a negative
+  integer, zero, or a positive integer when `x` is less than, equal to, or
+  greater than `y`.
+
+  `nil` is less than every non-nil value and equal to itself. Throws
+  `InvalidArgumentException` when `x` and `y` come from mutually incomparable
+  categories (e.g. `(compare 1 [])`)."
   [x y]
-  (php/<=> x y))
+  (cond
+    (php/=== x nil) (if (php/=== y nil) 0 -1)
+    (php/=== y nil) 1
+    :else
+    (let [cx (compare-category x)
+          cy (compare-category y)]
+      (if (= cx cy)
+        (php/<=> x y)
+        (throw (php/new InvalidArgumentException
+                        (str "Cannot compare " cx " with " cy)))))))
 
 ;; --------------
 ;; Type operation
@@ -1654,9 +1730,7 @@ Otherwise, it tries to call `__toString`."
   [ds key value]
   (assoc ds key value))
 
-(defn dissoc
-  "Dissociates `key` from the datastructure `ds`. Returns `ds` without `key`."
-  {:example "(dissoc {:a 1 :b 2} :b) ; => {:a 1}"}
+(defn- dissoc-one
   [ds key]
   (cond
     (php-array? ds)
@@ -1671,6 +1745,16 @@ Otherwise, it tries to call `__toString`."
     (let [x ds]
       (php/aunset x key)
       x)))
+
+(defn dissoc
+  "Returns `ds` without the given keys. With no keys returns `ds` unchanged."
+  {:example "(dissoc {:a 1 :b 2} :b) ; => {:a 1}\n(dissoc {:a 1 :b 2 :c 3} :a :c) ; => {:b 2}"}
+  [ds & ks]
+  (loop [acc ds
+         remaining ks]
+    (if (empty? remaining)
+      acc
+      (recur (dissoc-one acc (first remaining)) (next remaining)))))
 
 (defn unset
   "Returns `ds` without `key`."
@@ -1779,7 +1863,7 @@ Otherwise, it tries to call `__toString`."
   {:see-also ["swap!" "atom" "def"]}
   [& _]
   (throw (php/new \BadMethodCallException
-           "alter-var-root is not supported in Phel: Phel has no first-class vars. Use an `atom` with `swap!` for mutable state, or redefine the top-level with `def`.")))
+                  "alter-var-root is not supported in Phel: Phel has no first-class vars. Use an `atom` with `swap!` for mutable state, or redefine the top-level with `def`.")))
 
 (defn remove-watch
   "Removes a watch function from a variable by key."
@@ -2763,7 +2847,7 @@ Otherwise, it tries to call `__toString`."
   [rev]
   (when-not (reversible? rev)
     (throw (php/new InvalidArgumentException
-             "rseq requires a reversible collection (vector or sorted-map)")))
+                    "rseq requires a reversible collection (vector or sorted-map)")))
   (when (php/> (count rev) 0)
     (reverse (if (vector? rev) rev (vec rev)))))
 
@@ -2811,18 +2895,20 @@ Otherwise, it tries to call `__toString`."
     (copy-meta coll result)))
 
 (defn keys
-  "Returns a sequence of all keys in a map."
-  {:example "(keys {:a 1 :b 2}) ; => (:a :b)"}
+  "Returns a sequence of all keys in a map, or `nil` when the map is `nil`
+  or empty."
+  {:example "(keys {:a 1 :b 2}) ; => (:a :b)\n(keys nil) ; => nil"}
   [coll]
-  (let [result (for [k :keys coll] k)]
-    (copy-meta coll result)))
+  (when-not (empty? coll)
+    (copy-meta coll (for [k :keys coll] k))))
 
 (defn vals
-  "Returns a sequence of all values in a map."
-  {:example "(vals {:a 1 :b 2}) ; => (1 2)"}
+  "Returns a sequence of all values in a map, or `nil` when the map is `nil`
+  or empty."
+  {:example "(vals {:a 1 :b 2}) ; => (1 2)\n(vals nil) ; => nil"}
   [coll]
-  (let [result (for [x :in coll] x)]
-    (copy-meta coll result)))
+  (when-not (empty? coll)
+    (copy-meta coll (for [x :in coll] x))))
 
 (defn key
   "Returns the key of a map entry (a two-element vector `[key value]`)."
@@ -3047,9 +3133,14 @@ Otherwise, it tries to call `__toString`."
     (xf-step rf (fn [result input] (reduce rrf result input)))))
 
 (defn mapcat
-  "Maps a function over a collection and concatenates the results. Returns a lazy sequence.
-  When called with f only, returns a transducer."
-  {:example "(mapcat reverse [[1 2] [3 4]]) ; => (2 1 4 3)"
+  "Maps a function over one or more collections and concatenates the results.
+  Returns a lazy sequence. When called with `f` alone, returns a transducer.
+
+  With a single collection behaves like `(apply concat (map f coll))`. With
+  multiple collections, `f` is called with corresponding elements from each
+  (stopping when the shortest is exhausted) and the resulting sequences are
+  concatenated."
+  {:example "(mapcat reverse [[1 2] [3 4]]) ; => (2 1 4 3)\n(mapcat list [:a :b :c] [1 2 3]) ; => (:a 1 :b 2 :c 3)"
    :see-also ["map" "cat" "transduce"]}
   [f & args]
   (case (count args)
@@ -3062,7 +3153,7 @@ Otherwise, it tries to call `__toString`."
             (if (php/=== nil result)
               '()
               (copy-meta coll result)))))
-    (throw (php/new InvalidArgumentException "mapcat expects 1 or 2 arguments"))))
+    (apply concat (apply map f args))))
 
 (defn interpose
   "Returns elements separated by a separator. Returns a lazy sequence.
@@ -3457,9 +3548,9 @@ Otherwise, it tries to call `__toString`."
                           :reduce [acc []]]
                       (let [arg (get args i)]
                         (conj acc
-                          (if (and (php/< i n) (nil? arg))
-                            (get defaults i)
-                            arg))))]
+                              (if (and (php/< i n) (nil? arg))
+                                (get defaults i)
+                                arg))))]
         (apply f patched)))))
 
 (defn memoize
@@ -4409,14 +4500,17 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 
 (def ^:private *hierarchy*
   "Global hierarchy for keyword/symbol taxonomies."
-  (var {:parents {}}))
+  (var {:parents {} :descendants {} :ancestors {}}))
 
 (defn make-hierarchy
-  "Creates a fresh, empty hierarchy."
-  {:doc "Returns a new hierarchy map with no parent relationships."
-   :see-also ["derive" "isa?" "parents" "ancestors" "descendants"]}
+  "Creates a fresh, empty hierarchy.
+
+  Returns a map with `:parents`, `:descendants`, and `:ancestors` keys, each
+  holding an empty map. Matches Clojure's hierarchy shape so consumers can
+  destructure any of the three relationship views."
+  {:see-also ["derive" "isa?" "parents" "ancestors" "descendants"]}
   []
-  {:parents {}})
+  {:parents {} :descendants {} :ancestors {}})
 
 (defn- compute-ancestors
   "Computes all transitive ancestors of tag from a parents map."
@@ -4468,7 +4562,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
            (let [parents-map (get h :parents)
                  old-parents (get parents-map child (hash-set))
                  new-parents (union old-parents (hash-set parent))]
-             {:parents (assoc parents-map child new-parents)})))
+             (assoc h :parents (assoc parents-map child new-parents)))))
   nil)
 
 (defn underive
@@ -4484,7 +4578,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                  new-map (if (empty? new-parents)
                            (dissoc parents-map child)
                            (assoc parents-map child new-parents))]
-             {:parents new-map})))
+             (assoc h :parents new-map))))
   nil)
 
 (defn parents
@@ -4785,9 +4879,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                       margs (second method)
                       rest-args (next margs)
                       dispatch-var (php/:: Symbol
-                                          (create (php/. proto-str "--" mname-str "--dispatch")))
+                                           (create (php/. proto-str "--" mname-str "--dispatch")))
                       php-method-sym (php/:: Symbol
-                                            (create (php/-> munge (encode mname-str))))]
+                                             (create (php/-> munge (encode mname-str))))]
                   (conj inner
                         `(swap! ~dispatch-var assoc ~class-name-sym
                                 (fn ~margs
@@ -4906,8 +5000,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [multi-name dispatch-val & fn-tail]
   (let [multi-ns (php/-> multi-name (getNamespace))
         methods-name (php/:: Symbol (createForNamespace
-                                      multi-ns
-                                      (php/. (php/-> multi-name (getName)) "-methods")))]
+                                     multi-ns
+                                     (php/. (php/-> multi-name (getName)) "-methods")))]
     `(swap! ~methods-name assoc ~dispatch-val (fn ~@fn-tail))))
 
 (defmacro if-let
@@ -5016,11 +5110,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
         refs (for [n :in names :reduce [acc {}]]
                (put acc n (gensym)))
         var-decls (apply concat
-                    (for [n :in names]
-                      [(get refs n) '(var nil)]))
-        deref-bindings (apply concat
                          (for [n :in names]
-                           [n `(deref ~(get refs n))]))
+                           [(get refs n) '(var nil)]))
+        deref-bindings (apply concat
+                              (for [n :in names]
+                                [n `(deref ~(get refs n))]))
         assignments (for [spec :in bindings
                           :let [n (first spec)
                                 params (second spec)
@@ -5251,14 +5345,20 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
         (php/intval trimmed)))))
 
 (defn parse-double
-  "Parses a string as a float. Returns nil if parsing fails."
-  {:example "(parse-double \"3.14\") ; => 3.14"
+  "Parses a string as a float. Returns `nil` for non-numeric input or for
+  inputs that are not strings. Accepts `Infinity`, `-Infinity`, and `NaN`
+  alongside regular decimal and scientific notation."
+  {:example "(parse-double \"3.14\") ; => 3.14\n(parse-double \"Infinity\") ; => INF"
    :see-also ["parse-long"]}
   [s]
   (when (string? s)
     (let [trimmed (php/trim s)]
-      (when (php/is_numeric trimmed)
-        (php/floatval trimmed)))))
+      (cond
+        (or (= trimmed "Infinity") (= trimmed "+Infinity")) php/INF
+        (= trimmed "-Infinity") (php/- 0 php/INF)
+        (= trimmed "NaN") NAN
+        (php/is_numeric trimmed) (php/floatval trimmed)
+        :else nil))))
 
 (defn parse-boolean
   "Parses a string as a boolean. Returns true for \"true\", false for \"false\", nil otherwise."
@@ -5328,4 +5428,4 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (let [n-sym (gensym)]
     `(let [~n-sym ~n]
        (doseq [~binding :range [0 ~n-sym]]
-         ~@body))))
+              ~@body))))

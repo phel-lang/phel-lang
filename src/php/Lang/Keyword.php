@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use ArrayAccess;
 use Override;
-use Phel\Lang\Collections\Map\PersistentMapInterface;
 
 final class Keyword extends AbstractType implements IdenticalInterface, FnInterface, NamedInterface
 {
@@ -25,8 +25,14 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
             : crc32(':' . $name);
     }
 
+    /**
+     * Callable behaviour for keyword-as-accessor. Accepts any `ArrayAccess`
+     * container so both persistent and transient maps work (previously the
+     * signature was narrowed to `PersistentMapInterface`, which raised a
+     * `TypeError` when called against a transient map).
+     */
     public function __invoke(
-        PersistentMapInterface $obj,
+        ArrayAccess $obj,
         float|bool|int|string|TypeInterface|null $default = null,
     ) {
         return $obj[$this] ?? $default;

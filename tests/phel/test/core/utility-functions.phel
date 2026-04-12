@@ -52,7 +52,12 @@
   (is (= 0.0 (parse-double "0")) "parse-double zero")
   (is (nil? (parse-double "abc")) "parse-double non-numeric")
   (is (nil? (parse-double "")) "parse-double empty string")
-  (is (nil? (parse-double nil)) "parse-double nil"))
+  (is (nil? (parse-double nil)) "parse-double nil")
+  (is (= php/INF (parse-double "Infinity")) "parse-double Infinity")
+  (is (= php/INF (parse-double "+Infinity")) "parse-double +Infinity")
+  (is (= php/INF (parse-double "  Infinity  ")) "parse-double Infinity with whitespace")
+  (is (= (php/- 0 php/INF) (parse-double "-Infinity")) "parse-double -Infinity")
+  (is (nan? (parse-double "NaN")) "parse-double NaN"))
 
 (deftest test-parse-boolean
   (is (true? (parse-boolean "true")) "parse-boolean true")
