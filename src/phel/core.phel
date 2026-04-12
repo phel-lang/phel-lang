@@ -2841,18 +2841,24 @@ Otherwise, it tries to call `__toString`."
     (copy-meta coll result)))
 
 (defn keys
-  "Returns a sequence of all keys in a map."
-  {:example "(keys {:a 1 :b 2}) ; => (:a :b)"}
+  "Returns a sequence of all keys in a map, or `nil` when the map is `nil`
+  or empty."
+  {:example "(keys {:a 1 :b 2}) ; => (:a :b)\n(keys nil) ; => nil"}
   [coll]
-  (let [result (for [k :keys coll] k)]
-    (copy-meta coll result)))
+  (if (or (nil? coll) (empty? coll))
+    nil
+    (let [result (for [k :keys coll] k)]
+      (copy-meta coll result))))
 
 (defn vals
-  "Returns a sequence of all values in a map."
-  {:example "(vals {:a 1 :b 2}) ; => (1 2)"}
+  "Returns a sequence of all values in a map, or `nil` when the map is `nil`
+  or empty."
+  {:example "(vals {:a 1 :b 2}) ; => (1 2)\n(vals nil) ; => nil"}
   [coll]
-  (let [result (for [x :in coll] x)]
-    (copy-meta coll result)))
+  (if (or (nil? coll) (empty? coll))
+    nil
+    (let [result (for [x :in coll] x)]
+      (copy-meta coll result))))
 
 (defn key
   "Returns the key of a map entry (a two-element vector `[key value]`)."

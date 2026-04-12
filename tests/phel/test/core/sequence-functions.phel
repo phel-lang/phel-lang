@@ -276,11 +276,20 @@
 
 (deftest test-keys
   (is (= [:a :b :c] (keys {:a 1 :b 2 :c 3})) "keys of map")
-  (is (= [0 1 2] (keys [3 2 1])) "keys of vector"))
+  (is (= [0 1 2] (keys [3 2 1])) "keys of vector")
+  (is (nil? (keys nil)) "keys of nil is nil")
+  (is (nil? (keys {})) "keys of empty map is nil")
+  (is (nil? (keys [])) "keys of empty vector is nil"))
 
 (deftest test-values
   (is (= [1 2 3] (values {:a 1 :b 2 :c 3})) "values of map")
   (is (= [3 2 1] (values [3 2 1])) "values of vector"))
+
+(deftest test-vals
+  (is (= [1 2 3] (vals {:a 1 :b 2 :c 3})) "vals of map")
+  (is (nil? (vals nil)) "vals of nil is nil")
+  (is (nil? (vals {})) "vals of empty map is nil")
+  (is (nil? (vals [])) "vals of empty vector is nil"))
 
 (deftest test-not-empty
   (is (= [1] (not-empty [1])) "not-empty returns coll")
