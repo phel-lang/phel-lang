@@ -7,23 +7,21 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 #### Reader & Compiler
-- `(ClassName. args)` constructor shorthand expands to `(php/new ClassName args)`, including namespaced classes like `\Some\Class.` (#1359)
-- `#uuid "…"` tagged literal reads as a canonical lowercase UUID string (#1376)
+- `(ClassName. args)` constructor shorthand, including namespaced classes like `\Some\Class.` (#1359)
+- `#uuid "…"` tagged literal, reads as a canonical lowercase UUID string (#1376)
 
 #### Predicates
-- `ident?`, `simple-ident?`, `simple-keyword?`, `simple-symbol?` for symbol/keyword introspection (#1369, #1381)
-- `special-symbol?` — true if a symbol names a special form (#1384)
-- `ifn?` — true if the argument is callable as a function (#1370)
-- `neg-int?`, `pos-int?`, `nat-int?` integer predicates (#1374)
-- `sequential?` — true for ordered collections (vectors, lists, lazy sequences) (#1380)
-- `seqable?` — true if `seq` is supported for the argument (#1379)
+- `ident?`, `simple-ident?`, `simple-keyword?`, `simple-symbol?` (#1369, #1381)
+- `special-symbol?` (#1384), `ifn?` (#1370)
+- `neg-int?`, `pos-int?`, `nat-int?` (#1374)
+- `sequential?` (#1380), `seqable?` (#1379)
 
 #### Sequences & Collections
 - `nth`, `nthrest`, `nthnext` with Clojure-compatible semantics (#1375)
-- `fnext` — equivalent to `(first (next coll))` (#1368)
-- `rseq` and `reversible?` — constant-time reverse view of a vector or sorted-map (#1378)
-- `empty` — returns an empty collection of the same type, or nil (#1365)
-- `key` and `val` for extracting from a map entry (#1372)
+- `fnext`, equivalent to `(first (next coll))` (#1368)
+- `rseq` and `reversible?`: constant-time reverse view of a vector or sorted-map (#1378)
+- `empty`: returns an empty collection of the same type, or nil (#1365)
+- `key` and `val` for map entries (#1372)
 - `(keyword ns name)` arity for namespaced keywords (#1428)
 - `mapcat` accepts multiple collections, zipping elements into `f` (#1428)
 - Transient vectors, maps, and sets are callable like their persistent counterparts (#1428)
@@ -31,38 +29,41 @@ All notable changes to this project will be documented in this file.
 #### PHP Interop
 - `aget` and `aset` for PHP array access and mutation, with nested index support (#1356)
 - `int-array`, `long-array`, `float-array`, `double-array`, `short-array` typed array constructors (#1382)
-- `int`, `long`, `short` coercion functions for Clojure compatibility (#1371, #1383)
-- `uuid?` and `parse-uuid` complementing the existing `random-uuid` (#1377)
-- `alter-var-root` stub that throws `BadMethodCallException` with a migration hint; documented as out of scope in `docs/clojure-migration.md` (#1357)
+- `int`, `long`, `short` coercion functions (#1371, #1383)
+- `uuid?` and `parse-uuid` (#1377)
+- `alter-var-root` stub that throws with a migration hint; out of scope per `docs/clojure-migration.md` (#1357)
 - `parse-double` accepts `Infinity`, `-Infinity`, and `NaN` (#1428)
 
 #### Modules
-- `phel\router`: data-driven router built on `symfony/routing`, previously shipped separately as `phel-lang/router`
-- `phel\http-client` — outbound HTTP requests over PHP streams
-- `phel\ai` — chat, completions, structured extraction, tool use, embeddings, semantic search
+- `phel\router`: data-driven router built on `symfony/routing`, previously shipped as `phel-lang/router`
+- `phel\router`: `routes` introspection, `:route-name` on `match-by-path`, and per-case error handlers (`:not-found`, `:method-not-allowed`, `:not-acceptable`) on `handler`
+- `phel\http-client`: outbound HTTP requests over PHP streams
+- `phel\ai`: chat, completions, structured extraction, tool use, embeddings, semantic search
 - `phel\repl` AI helpers: `explain`, `suggest`, `fix`, `review`, `embed-ns`, `search-ns`
 
 ### Fixed
 
-- `keyword` is idempotent on keywords and handles `nil` / symbol input (#1428)
+- `keyword` is idempotent and handles `nil` / symbol input (#1428)
 - `dissoc` accepts zero keys and reduces over variadic key lists (#1428)
 - `keys` / `vals` return `nil` for `nil` or empty collections (#1428)
-- `make-hierarchy` exposes `:parents`, `:descendants`, and `:ancestors` keys (#1428)
+- `make-hierarchy` exposes `:parents`, `:descendants`, `:ancestors` (#1428)
 - `first` on a map returns its first entry, so `ffirst` / `nfirst` work on maps (#1428)
-- `str` preserves float representation — `(str 0.0)` → `"0.0"`, readable `NaN` / `±Infinity` (#1428)
-- `compare` throws `InvalidArgumentException` on cross-category arguments; `nil` stays less than every non-nil value (#1428)
+- `str` preserves float representation: `(str 0.0)` → `"0.0"`, readable `NaN` / `±Infinity` (#1428)
+- `compare` throws on cross-category arguments; `nil` stays less than every non-nil value (#1428)
 - `:keyword` lookup works on transient maps (#1428)
-- `deftest` rejects a missing/non-symbol name with a clear `InvalidArgumentException` instead of crashing inside macro expansion (#1364)
-- `(def name)` without a value no longer throws; binds `nil`, matching Clojure (#1361)
-- `doseq` accepts Clojure-style pairs `(doseq [x coll] body)` without requiring the `:in` verb (#1362)
-- `drop-last` works with lazy sequences and ranges, returning a lazy sequence (#1360)
-- `(empty? (range))` no longer hangs; `empty?` checks `first` for lazy sequences instead of `count` (#1366)
+- `deftest` rejects a missing/non-symbol name with a clear error (#1364)
+- `(def name)` without a value binds `nil` instead of throwing (#1361)
+- `doseq` accepts Clojure-style pairs `[x coll]` without `:in` (#1362)
+- `drop-last` works with lazy sequences and ranges (#1360)
+- `(empty? (range))` no longer hangs; `empty?` checks `first` for lazy sequences (#1366)
 - `is` no longer misinterprets `let`/`when`/`cond` forms as binary predicates (#1367)
 - `defrecord`/`defstruct`/`defexception`/`definterface` no longer emit invalid PHP namespace declarations in statement mode (#1358)
+- `phel\router`: default error dispatch returns 404/405/406 correctly (was always 404); `:not-acceptable` returns 406 (was 405)
 
 ### Changed
 
 - Reorganized Phel test files: dissolved `core.phel` into topic files under `core/`; moved `comments.phel`, `special-forms.phel`, `multi-arity-fn.phel` into `core/`
+- `phel\router`: caches Symfony matcher/generator, precompiles middleware dispatch at `handler` construction; per-request work is two hash-map lookups
 
 ## [0.32.0](https://github.com/phel-lang/phel-lang/compare/v0.31.0...v0.32.0) - 2026-04-12
 

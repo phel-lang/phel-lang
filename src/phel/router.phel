@@ -37,7 +37,14 @@
           (walk-many (keep identity childs) full-path next-data))))))
 
 (defn flatten-routes
-  "Flattens nested routes to a vector of tuples [path data]."
+  "Flattens nested routes to a vector of `[path data]` tuples.
+
+  Parent paths are concatenated with their children's paths and parent data
+  maps are deep-merged into their children's data. `path-prefix` and
+  `common-data` are merged into every route and let you mount a subtree under
+  a prefix or share data across all routes."
+  {:example "(flatten-routes [\"/api\" {:middleware [:auth]}\n                 [\"/ping\" {:handler :ping}]] \"\" {})\n; => [[\"/api/ping\" {:middleware [:auth] :handler :ping}]]"
+   :see-also ["router" "compiled-router"]}
   [raw-routes path-prefix common-data]
   (walk-one raw-routes path-prefix common-data))
 
@@ -54,57 +61,65 @@
 (defn- compile-handler [middlewares handler]
   (partial (compose-middleware middlewares) handler))
 
-(defn- find-handler
-  "Finds the handler for given route match and request-method keyword (:get, :post, ...).
-   If no handler can be found nil is returned."
-  [match request-method middleware]
-  (let [route-data (:data match)
-        data (if-let [method-data (get route-data request-method)]
-               (deep-merge route-data method-data)
-               route-data)
-        middleware (concat middleware (get data :middleware []))]
-    (when-let [handler (:handler data)]
-      [(compile-handler middleware handler) data])))
+(defn- route-name-of
+  "Returns the Symfony route name for a `[path data]` tuple, falling back to
+   the path when `:name` isn't provided."
+  [route]
+  (let [[path data] route]
+    (if-let [name (get data :name)]
+      (full-name name)
+      path)))
+
+(def- http-method-keys
+  [:get :post :put :patch :delete :head :options])
+
+(defn- compile-route-dispatch
+  "For a single `[path data]` route and the global middleware, returns a map
+   `{method-kw → [compiled-handler merged-data]}` with an optional `:default`
+   entry for the method-agnostic top-level `:handler`."
+  [[_ data] global-mw]
+  (let [top-mw  (concat global-mw (get data :middleware []))
+        compile (fn [mw h merged]
+                  (when h [(compile-handler mw h) merged]))
+        by-method (reduce
+                   (fn [acc method]
+                     (if-let [md (get data method)]
+                       (let [merged (deep-merge data md)
+                             mw     (concat top-mw (get md :middleware []))]
+                         (if-let [entry (compile mw (:handler merged) merged)]
+                           (assoc acc method entry)
+                           acc))
+                       acc))
+                   {}
+                   http-method-keys)]
+    (if-let [default-entry (compile top-mw (:handler data) data)]
+      (assoc by-method :default default-entry)
+      by-method)))
+
+(defn- compile-dispatch
+  "Builds a `{route-name → method-dispatch-map}` lookup for all routes."
+  [all-routes global-mw]
+  (reduce
+   (fn [acc route]
+     (assoc acc (route-name-of route) (compile-route-dispatch route global-mw)))
+   {}
+   all-routes))
+
+(defn- dispatch-lookup
+  "Returns `[handler data]` for a given route-name and method, or nil."
+  [dispatch route-name method]
+  (let [methods (get dispatch route-name)]
+    (or (get methods method)
+        (get methods :default))))
 
 (defn- default-response [status body]
   (constantly (h/response-from-map {:status status :body body})))
 
-(defn- create-default-handler
-  "Create a default handler that handles the following cases, configured via options.
-
-   | key                   | description |
-   | ----------------------|-------------|
-   | `:not-found`          | 404, no route matches
-   | `:method-not-allowed` | 405, no method matches
-   | `:not-acceptable`     | 406, handler returned `nil`"
-  [{:not-found          not-found
-    :method-not-allowed method-not-allowed
-    :not-acceptable     not-acceptable
-    :or {not-found          (default-response 404 "Not found")
-         method-not-allowed (default-response 405 "Method not allowed")
-         not-acceptable     (default-response 405 "Not acceptable")}}]
-  (fn [request]
-    (if-let [route (get-in request [:attributes :route])]
-      (let [method (-> request :method name php/strtolower keyword)]
-        (if (find-handler route method nil)
-          (not-acceptable request)
-          (method-not-allowed request)))
-      (not-found request))))
-
-(defn- enrich-request [request match route-data]
-  (update request :attributes merge {:match match :route-data route-data}))
-
 (definterface Router
+              (routes [this] "Returns all registered routes as a vector of [path data] tuples.")
               (match-by-path [this path] "Matches a route given a path. Returns nil if path doesn't match.")
               (match-by-name [this route-name] "Matches a route given a route name. Returns nil if route can't be found.")
               (generate [this route-name parameter] "Generate a url for a route"))
-
-(defn- route-name-of
-  "Returns the Symfony route name for a `[path data]` tuple, falling back to a
-   synthetic name when `:name` isn't provided."
-  [route]
-  (let [[_ data] route]
-    (full-name (get data :name (str "_unnamed_route_" route)))))
 
 (defn- build-route-collection [normalized-routes]
   (for [route :in normalized-routes
@@ -139,7 +154,8 @@
     (let [parameters (php/-> matcher (match path))
           route-name (php/aget parameters "_route")
           [template data] (lookup-fn route-name)]
-      {:template    template
+      {:route-name  route-name
+       :template    template
        :data        data
        :path        path
        :path-params (extract-path-params parameters)})
@@ -159,12 +175,11 @@
   (when-let [[template data] route]
     {:template template :data data}))
 
-(defstruct SymfonyRouter [route-collection]
+(defstruct SymfonyRouter [normalized-routes route-collection matcher generator]
            Router
+           (routes [this] normalized-routes)
            (match-by-path [this path]
-                          (match-with
-                           (php/new UrlMatcher route-collection (php/new RequestContext))
-                           path
+                          (match-with matcher path
                            (fn [route-name]
                              (let [route (php/-> route-collection (get route-name))]
                                [(php/-> route (getOption "template"))
@@ -174,57 +189,115 @@
                             {:template (php/-> route (getOption "template"))
                              :data     (php/-> route (getOption "data"))}))
            (generate [this route-name parameters]
-                     (generate-with
-                      (php/new UrlGenerator route-collection (php/new RequestContext))
-                      route-name
-                      parameters)))
+                     (generate-with generator route-name parameters)))
 
 (defn router
-  "Builds a router"
-  [raw-routes & [options]]
-  (let [{:path path :data data :or {path "" data {}}} (or options {})]
-    (SymfonyRouter
-     (-> raw-routes (flatten-routes path data) build-route-collection))))
+  "Builds a dynamic `Router` from a nested route tree.
 
-(defstruct CompiledSymfonyRouter [compiled-matcher-routes compiled-generator-routes indexed-routes]
+  Routes are described as `[path data children*]` where `data` is an optional
+  hash-map. Children inherit their parent's path prefix and have parent data
+  deep-merged into their own. `data` may contain:
+
+  - `:handler` — a 1-arg `request -> response` function (matches any method)
+  - `:middleware` — a vector of `(fn [handler request])` wrappers
+  - `:name` — a keyword used for URL generation via `match-by-name` / `generate`
+  - method keys (`:get`, `:post`, …) — nested maps with their own `:handler`
+    and `:middleware` that apply only for that HTTP method
+
+  `options` accepts `:path` (prefix prepended to every route) and `:data`
+  (merged into every route's data)."
+  {:example "(router [[\"/ping\" {:get {:handler pong}}]])"
+   :see-also ["compiled-router" "handler" "match-by-path"]}
+  [raw-routes & [options]]
+  (let [{:path path :data data :or {path "" data {}}} (or options {})
+        normalized (vec (flatten-routes raw-routes path data))
+        coll (build-route-collection normalized)
+        ctx (php/new RequestContext)]
+    (SymfonyRouter normalized coll
+                   (php/new UrlMatcher coll ctx)
+                   (php/new UrlGenerator coll ctx))))
+
+(defstruct CompiledSymfonyRouter [normalized-routes matcher generator indexed-routes]
            Router
+           (routes [this] normalized-routes)
            (match-by-path [this path]
-                          (match-with
-                           (php/new CompiledUrlMatcher compiled-matcher-routes (php/new RequestContext))
-                           path
-                           |(get indexed-routes $)))
+                          (match-with matcher path |(get indexed-routes $)))
            (match-by-name [this route-name]
                           (indexed-route->match (get indexed-routes (full-name route-name))))
            (generate [this route-name parameters]
-                     (generate-with
-                      (php/new CompiledUrlGenerator compiled-generator-routes (php/new RequestContext))
-                      route-name
-                      parameters)))
+                     (generate-with generator route-name parameters)))
 
 (defmacro compiled-router
-  "Builds a compiled router"
+  "Like `router` but performs Symfony's route compilation at macro-expansion
+  time. The resulting router uses Symfony's `CompiledUrlMatcher`/`Generator`
+  which are ~3x faster than their dynamic counterparts for large route
+  tables.
+
+  Because compilation runs during macro expansion, `raw-routes` must be a
+  literal vector at the call site — it cannot be built from runtime values.
+  Use `router` if your routes are dynamic."
+  {:example "(compiled-router [[\"/ping\" {:get {:handler pong}}]])"
+   :see-also ["router" "handler"]}
   [raw-routes & [options]]
   (let [{:path path :data data :or {path "" data {}}} (or (eval options) {})
-        flattened-routes (flatten-routes (eval raw-routes) path data)
+        flattened-routes (vec (flatten-routes (eval raw-routes) path data))
         indexed-routes (for [route :in flattened-routes
                              :reduce [acc {}]]
                          (put acc (route-name-of route) route))
         route-collection (build-route-collection flattened-routes)
         compiled-matcher-routes (php/-> (php/new CompiledUrlMatcherDumper route-collection) (getCompiledRoutes))
-        compiled-generator-routes (php/-> (php/new CompiledUrlGeneratorDumper route-collection) (getCompiledRoutes))]
-    `(CompiledSymfonyRouter ,compiled-matcher-routes ,compiled-generator-routes ,indexed-routes)))
+        compiled-generator-routes (php/-> (php/new CompiledUrlGeneratorDumper route-collection) (getCompiledRoutes))
+        ctx (gensym)]
+    `(let [,ctx (php/new \Symfony\Component\Routing\RequestContext)]
+       (CompiledSymfonyRouter
+        ,flattened-routes
+        (php/new \Symfony\Component\Routing\Matcher\CompiledUrlMatcher ,compiled-matcher-routes ,ctx)
+        (php/new \Symfony\Component\Routing\Generator\CompiledUrlGenerator ,compiled-generator-routes ,ctx)
+        ,indexed-routes))))
 
 (defn handler
-  "Returns a function request -> response that can be used to handle a route request."
+  "Builds a `request -> response` function from a router.
+
+  Matching flow per request:
+
+  1. Resolve the request's path via `match-by-path`.
+  2. Look up the handler for the request method in the precompiled dispatch
+     table, falling back to the route's method-agnostic `:handler`.
+  3. Invoke the handler with the request enriched with `[:attributes :match]`
+     and `[:attributes :route-data]`. A `nil` response triggers the
+     `:not-acceptable` handler.
+
+  Options:
+
+  | key                   | description |
+  | ----------------------|-------------|
+  | `:middleware`         | global middleware applied to every matched route
+  | `:default-handler`    | fallback used for any 404/405/406 case not covered by a specific override
+  | `:not-found`          | handler invoked when no route matches (HTTP 404)
+  | `:method-not-allowed` | handler invoked when the path matches but no handler exists for the request method (HTTP 405)
+  | `:not-acceptable`     | handler invoked when a matched handler returns `nil` (HTTP 406)
+
+  Dispatch is precompiled at handler construction time, so per-request work
+  is reduced to two hash-map lookups."
+  {:example "(handler (router [[\"/ping\" {:get {:handler pong}}]])\n         {:middleware [logging-mw]\n          :not-found  (fn [_] {:status 404 :body \"nope\"})})"
+   :see-also ["router" "compiled-router"]}
   [router & [options]]
-  (let [{:default-handler default-handler
-         :middleware      middleware
+  (let [{:middleware         middleware
+         :default-handler    default-handler
+         :not-found          not-found
+         :method-not-allowed method-not-allowed
+         :not-acceptable     not-acceptable
          :or {middleware []}} (or options {})
-        default-handler (or default-handler (create-default-handler {}))]
+        not-found          (or not-found          default-handler (default-response 404 "Not found"))
+        method-not-allowed (or method-not-allowed default-handler (default-response 405 "Method not allowed"))
+        not-acceptable     (or not-acceptable     default-handler (default-response 406 "Not acceptable"))
+        dispatch           (compile-dispatch (routes router) middleware)]
     (fn [request]
       (if-let [match (match-by-path router (get-in request [:uri :path]))]
         (let [method (-> request :method name php/strtolower keyword)
-              [handler route-data] (or (find-handler match method middleware) [default-handler {}])
-              request (enrich-request request match route-data)]
-          (or (handler request) (default-handler request)))
-        (default-handler request)))))
+              request (assoc-in request [:attributes :match] match)]
+          (if-let [[handler route-data] (dispatch-lookup dispatch (:route-name match) method)]
+            (or (handler (assoc-in request [:attributes :route-data] route-data))
+                (not-acceptable request))
+            (method-not-allowed request)))
+        (not-found request)))))
