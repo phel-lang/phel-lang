@@ -1233,6 +1233,18 @@ Otherwise, it tries to call `__toString`."
         (= t :set)
         (php/instanceof x LazySeqInterface))))
 
+(defn seqable?
+  "Returns true if `(seq x)` is supported: collections (vectors, lists,
+   maps, sets, structs), lazy sequences, strings, PHP arrays, and nil.
+   Returns false for numbers, booleans, keywords, symbols, and other types."
+  {:example "(seqable? [1 2]) ; => true\n(seqable? 42) ; => false"
+   :see-also ["seq" "coll?" "seq?"]}
+  [x]
+  (or (nil? x)
+      (coll? x)
+      (php/is_string x)
+      (php/is_array x)))
+
 (defn counted?
   "Returns true if `coll` can report its length in constant time — persistent
    vectors, lists, hash-maps (including sorted-map), structs, and sets
