@@ -7,10 +7,8 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - `phel\http-client` module for outbound HTTP requests using PHP streams
-- `phel\ai` module for LLM chat and completions (Anthropic, OpenAI)
-- `phel\ai-repl` module for AI-assisted REPL: explain, suggest, fix, review
-- `phel\ai-structured` module for structured extraction and tool use
-- `phel\ai-embed` module for embeddings, vector math, and semantic search
+- `phel\ai` module: chat, completions, structured extraction, tool use, embeddings, and semantic search
+- `phel\repl` AI-powered helpers: `explain`, `suggest`, `fix`, `review`, `embed-ns`, `search-ns`
 
 ## [0.32.0](https://github.com/phel-lang/phel-lang/compare/v0.31.0...v0.32.0) - 2026-04-12
 

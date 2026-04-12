@@ -1,5 +1,6 @@
 (ns phel-test\test\repl
-  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers find-fn test-ns eval-capturing eval-str macroexpand-1-form macroexpand-form macroexpand-1 macroexpand ns-list loaded-namespaces])
+  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers find-fn test-ns eval-capturing eval-str macroexpand-1-form macroexpand-form macroexpand-1 macroexpand ns-list loaded-namespaces explain suggest fix review embed-ns search-ns])
+  (:require phel\ai :as ai)
   (:require phel\str :as s)
   (:require phel\test :refer [deftest is]))
 
@@ -375,3 +376,73 @@
 (deftest test-ns-list-count-matches-loaded-namespaces
   (is (= (count (ns-list)) (count (loaded-namespaces)))
       "ns-list count matches loaded-namespaces count"))
+
+;; ---------------------
+;; AI-powered REPL helpers
+;; ---------------------
+
+(deftest test-explain-requires-api-key
+  (let [original @ai/config]
+    (ai/configure {:api-key nil :base-url "http://0.0.0.0:1"})
+    (let [saved-key (php/getenv "ANTHROPIC_API_KEY")]
+      (php/putenv "ANTHROPIC_API_KEY=")
+      (is (thrown? \RuntimeException (explain "(+ 1 2)"))
+          "explain throws without API key")
+      (when saved-key
+        (php/putenv (str "ANTHROPIC_API_KEY=" saved-key))))
+    (reset! ai/config original)))
+
+(deftest test-suggest-requires-api-key
+  (let [original @ai/config]
+    (ai/configure {:api-key nil :base-url "http://0.0.0.0:1"})
+    (let [saved-key (php/getenv "ANTHROPIC_API_KEY")]
+      (php/putenv "ANTHROPIC_API_KEY=")
+      (is (thrown? \RuntimeException (suggest "filter a list"))
+          "suggest throws without API key")
+      (when saved-key
+        (php/putenv (str "ANTHROPIC_API_KEY=" saved-key))))
+    (reset! ai/config original)))
+
+(deftest test-fix-requires-api-key
+  (let [original @ai/config]
+    (ai/configure {:api-key nil :base-url "http://0.0.0.0:1"})
+    (let [saved-key (php/getenv "ANTHROPIC_API_KEY")]
+      (php/putenv "ANTHROPIC_API_KEY=")
+      (is (thrown? \RuntimeException (fix "(+ 1)" "arity error"))
+          "fix throws without API key")
+      (when saved-key
+        (php/putenv (str "ANTHROPIC_API_KEY=" saved-key))))
+    (reset! ai/config original)))
+
+(deftest test-review-requires-api-key
+  (let [original @ai/config]
+    (ai/configure {:api-key nil :base-url "http://0.0.0.0:1"})
+    (let [saved-key (php/getenv "ANTHROPIC_API_KEY")]
+      (php/putenv "ANTHROPIC_API_KEY=")
+      (is (thrown? \RuntimeException (review "(defn add [a b] (+ a b))"))
+          "review throws without API key")
+      (when saved-key
+        (php/putenv (str "ANTHROPIC_API_KEY=" saved-key))))
+    (reset! ai/config original)))
+
+(deftest test-explain-with-bad-endpoint-throws
+  (let [original @ai/config]
+    (ai/configure {:api-key "test-key" :base-url "http://0.0.0.0:1"})
+    (is (thrown? \RuntimeException (explain "(+ 1 2)"))
+        "explain throws when endpoint is unreachable")
+    (reset! ai/config original)))
+
+(deftest test-fix-with-bad-endpoint-throws
+  (let [original @ai/config]
+    (ai/configure {:api-key "test-key" :base-url "http://0.0.0.0:1"})
+    (is (thrown? \RuntimeException (fix "(+ 1)" "error"))
+        "fix throws when endpoint is unreachable")
+    (reset! ai/config original)))
+
+(deftest test-ai-repl-public-functions-exist
+  (is (function? explain) "explain is defined")
+  (is (function? suggest) "suggest is defined")
+  (is (function? fix) "fix is defined")
+  (is (function? review) "review is defined")
+  (is (function? embed-ns) "embed-ns is defined")
+  (is (function? search-ns) "search-ns is defined"))

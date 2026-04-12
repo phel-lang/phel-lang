@@ -1,6 +1,7 @@
 (ns phel-test\test\ai
   (:require phel\test :refer [deftest is])
-  (:require phel\ai :as ai))
+  (:require phel\ai :as ai)
+  (:require phel\json))
 
 ;; --- Configuration ---
 
@@ -10,7 +11,6 @@
     (is (= "test-model" (get @ai/config :model)) "configure updates model")
     (is (= 500 (get @ai/config :max-tokens)) "configure updates max-tokens")
     (is (= :anthropic (get @ai/config :provider)) "configure preserves unset keys")
-    ;; Restore original config
     (reset! ai/config original)))
 
 (deftest test-configure-changes-provider
@@ -20,12 +20,15 @@
     (is (= "gpt-4o" (get @ai/config :model)) "configure updates model for new provider")
     (reset! ai/config original)))
 
+(deftest test-config-is-atom
+  (is (= :anthropic (get @ai/config :provider)) "default provider is anthropic")
+  (is (= 1024 (get @ai/config :max-tokens)) "default max-tokens is 1024"))
+
 ;; --- API key resolution ---
 
 (deftest test-missing-api-key-throws
   (let [original @ai/config]
     (ai/configure {:api-key nil})
-    ;; Temporarily unset env var to test error
     (let [saved-key (php/getenv "ANTHROPIC_API_KEY")]
       (php/putenv "ANTHROPIC_API_KEY=")
       (is (thrown? \RuntimeException (ai/complete "test"))
@@ -61,16 +64,198 @@
         "request to unreachable endpoint throws")
     (reset! ai/config original)))
 
+;; --- Tool definition ---
+
+(deftest test-tool-creates-valid-definition
+  (let [t (ai/tool "get-weather" "Gets the weather" {:location {:type "string" :description "City name"}})]
+    (is (= "get-weather" (get t :name)) "tool has correct name")
+    (is (= "Gets the weather" (get t :description)) "tool has correct description")
+    (is (map? (get t :input_schema)) "tool has input schema")
+    (is (= "object" (get (get t :input_schema) :type)) "schema type is object")))
+
+(deftest test-tool-schema-with-string-shorthand
+  (let [t (ai/tool "search" "Searches" {:query "search query string"
+                                         :limit "integer"})]
+    (let [props (get (get t :input_schema) :properties)]
+      (is (= "string" (get (get props :query) :type)) "string shorthand creates string type")
+      (is (= "search query string" (get (get props :query) :description)) "description preserved")
+      (is (= "integer" (get (get props :limit) :type)) "integer shorthand creates integer type"))))
+
+(deftest test-tool-schema-required-fields
+  (let [t (ai/tool "test" "Test" {:a "string" :b "integer"})
+        required (get (get t :input_schema) :required)]
+    (is (= 2 (count required)) "all fields are required")))
+
+;; --- Tool calls extraction ---
+
+(deftest test-tool-calls-extracts-tool-use-blocks
+  (let [response {:content [{:type "text" :text "Let me check."}
+                            {:type "tool_use" :name "get-weather" :id "call-1"
+                             :input {:city "Paris"}}]}
+        calls (ai/tool-calls response)]
+    (is (= 1 (count calls)) "extracts one tool call")
+    (is (= "get-weather" (get (first calls) :name)) "extracts tool name")
+    (is (= "call-1" (get (first calls) :id)) "extracts tool id")
+    (is (= "Paris" (get (get (first calls) :input) :city)) "extracts tool input")))
+
+(deftest test-tool-calls-returns-empty-for-no-tools
+  (let [response {:content [{:type "text" :text "No tools needed."}]}]
+    (is (= [] (ai/tool-calls response)) "returns empty vector when no tool calls")))
+
+(deftest test-tool-calls-handles-multiple-calls
+  (let [response {:content [{:type "tool_use" :name "a" :id "1" :input {}}
+                            {:type "tool_use" :name "b" :id "2" :input {}}]}
+        calls (ai/tool-calls response)]
+    (is (= 2 (count calls)) "extracts multiple tool calls")))
+
+(deftest test-tool-calls-handles-nil-content
+  (is (= [] (ai/tool-calls {:content nil})) "handles nil content")
+  (is (= [] (ai/tool-calls {})) "handles missing content"))
+
+;; --- Extract requires API ---
+
+(deftest test-extract-requires-api-key
+  (let [original @ai/config]
+    (ai/configure {:api-key nil :base-url "http://0.0.0.0:1"})
+    (let [saved-key (php/getenv "ANTHROPIC_API_KEY")]
+      (php/putenv "ANTHROPIC_API_KEY=")
+      (is (thrown? \RuntimeException
+                  (ai/extract {:name "string"} "John Smith"))
+          "extract throws without API key")
+      (when saved-key
+        (php/putenv (str "ANTHROPIC_API_KEY=" saved-key))))
+    (reset! ai/config original)))
+
+(deftest test-chat-with-tools-requires-api-key
+  (let [original @ai/config]
+    (ai/configure {:api-key nil :base-url "http://0.0.0.0:1"})
+    (let [saved-key (php/getenv "ANTHROPIC_API_KEY")]
+      (php/putenv "ANTHROPIC_API_KEY=")
+      (is (thrown? \RuntimeException
+                  (ai/chat-with-tools [{:role "user" :content "test"}]
+                                      [(ai/tool "t" "test" {:a "string"})]))
+          "chat-with-tools throws without API key")
+      (when saved-key
+        (php/putenv (str "ANTHROPIC_API_KEY=" saved-key))))
+    (reset! ai/config original)))
+
+;; --- Vector math: dot-product ---
+
+(deftest test-dot-product-basic
+  (is (= 32 (ai/dot-product [1 2 3] [4 5 6])) "dot product of [1 2 3] and [4 5 6]"))
+
+(deftest test-dot-product-zero-vectors
+  (is (= 0 (ai/dot-product [0 0 0] [1 2 3])) "dot product with zero vector"))
+
+(deftest test-dot-product-single-element
+  (is (= 6 (ai/dot-product [2] [3])) "dot product of single-element vectors"))
+
+(deftest test-dot-product-negative-values
+  (is (= -4 (ai/dot-product [1 -2] [2 3])) "dot product with negative values"))
+
+(deftest test-dot-product-mismatched-lengths-throws
+  (is (thrown? \RuntimeException (ai/dot-product [1 2] [1 2 3]))
+      "mismatched vector lengths throw"))
+
+;; --- Vector math: magnitude ---
+
+(deftest test-magnitude-3-4-5-triangle
+  (is (= 5.0 (ai/magnitude [3 4])) "magnitude of [3 4] is 5"))
+
+(deftest test-magnitude-zero-vector
+  (is (= 0.0 (ai/magnitude [0 0 0])) "magnitude of zero vector is 0"))
+
+(deftest test-magnitude-unit-vector
+  (is (= 1.0 (ai/magnitude [1 0 0])) "magnitude of unit vector is 1"))
+
+;; --- Vector math: cosine-similarity ---
+
+(deftest test-cosine-similarity-identical
+  (let [v [1 2 3]]
+    (is (< (php/abs (- 1.0 (ai/cosine-similarity v v))) 0.0001)
+        "identical vectors have similarity ~1.0")))
+
+(deftest test-cosine-similarity-orthogonal
+  (is (< (php/abs (ai/cosine-similarity [1 0] [0 1])) 0.0001)
+      "orthogonal vectors have similarity ~0.0"))
+
+(deftest test-cosine-similarity-opposite
+  (is (< (php/abs (+ 1.0 (ai/cosine-similarity [1 0] [-1 0]))) 0.0001)
+      "opposite vectors have similarity ~-1.0"))
+
+(deftest test-cosine-similarity-zero-vector
+  (is (= 0.0 (ai/cosine-similarity [0 0] [1 2]))
+      "zero vector returns 0.0 similarity"))
+
+;; --- Nearest ---
+
+(deftest test-nearest-returns-sorted-results
+  (let [query [1 0]
+        index [{:text "a" :embedding [1 0]}
+               {:text "b" :embedding [0 1]}
+               {:text "c" :embedding [0.7 0.7]}]
+        results (ai/nearest query index 2)]
+    (is (= 2 (count results)) "returns k results")
+    (is (= "a" (get (first results) :text)) "most similar item first")
+    (is (> (get (first results) :similarity) (get (second results) :similarity))
+        "results sorted by descending similarity")))
+
+(deftest test-nearest-with-default-k
+  (let [query [1 0]
+        index [{:text "a" :embedding [1 0]}
+               {:text "b" :embedding [0 1]}]
+        results (ai/nearest query index)]
+    (is (= 2 (count results)) "returns all items when k > index size")))
+
+(deftest test-nearest-includes-similarity-score
+  (let [results (ai/nearest [1 0] [{:text "a" :embedding [1 0]}])]
+    (is (< (php/abs (- 1.0 (get (first results) :similarity))) 0.0001)
+        "perfect match has similarity ~1.0")))
+
+;; --- Embedding API requires configuration ---
+
+(deftest test-embed-requires-api-key
+  (let [original @ai/config]
+    (ai/configure {:api-key nil :base-url "http://0.0.0.0:1" :provider :openai})
+    (let [saved-key (php/getenv "OPENAI_API_KEY")]
+      (php/putenv "OPENAI_API_KEY=")
+      (let [saved-ant (php/getenv "ANTHROPIC_API_KEY")]
+        (php/putenv "ANTHROPIC_API_KEY=")
+        (is (thrown? \RuntimeException (ai/embed ["test"]))
+            "embed throws without API key")
+        (when saved-ant
+          (php/putenv (str "ANTHROPIC_API_KEY=" saved-ant))))
+      (when saved-key
+        (php/putenv (str "OPENAI_API_KEY=" saved-key))))
+    (reset! ai/config original)))
+
+(deftest test-embed-with-bad-endpoint-throws
+  (let [original @ai/config]
+    (ai/configure {:api-key "test-key" :base-url "http://0.0.0.0:1" :provider :openai})
+    (is (thrown? \RuntimeException (ai/embed ["test"]))
+        "embed throws with unreachable endpoint")
+    (reset! ai/config original)))
+
 ;; --- Public API completeness ---
 
-(deftest test-public-api-functions-exist
+(deftest test-public-functions-exist
+  ;; Chat API
   (is (function? ai/configure) "configure is defined")
   (is (function? ai/chat) "chat is defined")
   (is (function? ai/complete) "complete is defined")
-  (is (function? ai/chat-with-history) "chat-with-history is defined"))
-
-;; --- Config atom ---
-
-(deftest test-config-is-atom
-  (is (= :anthropic (get @ai/config :provider)) "default provider is anthropic")
-  (is (= 1024 (get @ai/config :max-tokens)) "default max-tokens is 1024"))
+  (is (function? ai/chat-with-history) "chat-with-history is defined")
+  ;; Structured extraction & tools
+  (is (function? ai/extract) "extract is defined")
+  (is (function? ai/extract-many) "extract-many is defined")
+  (is (function? ai/tool) "tool is defined")
+  (is (function? ai/chat-with-tools) "chat-with-tools is defined")
+  (is (function? ai/tool-calls) "tool-calls is defined")
+  ;; Embeddings & search
+  (is (function? ai/dot-product) "dot-product is defined")
+  (is (function? ai/magnitude) "magnitude is defined")
+  (is (function? ai/cosine-similarity) "cosine-similarity is defined")
+  (is (function? ai/embed) "embed is defined")
+  (is (function? ai/embed-one) "embed-one is defined")
+  (is (function? ai/nearest) "nearest is defined")
+  (is (function? ai/build-index) "build-index is defined")
+  (is (function? ai/search) "search is defined"))

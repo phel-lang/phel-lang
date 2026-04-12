@@ -23,11 +23,11 @@
   "Merges the given options into the AI configuration.
 
   Supported keys:
-    :provider  - :anthropic (default) or :openai
-    :model     - Model name string
+    :provider   - :anthropic (default), :openai, or :voyageai
+    :model      - Model name string
     :max-tokens - Maximum tokens in response
-    :api-key   - API key string (or set via env var)
-    :base-url  - Override the API base URL"
+    :api-key    - API key string (or set via env var)
+    :base-url   - Override the API base URL"
   {:doc "Merges options into the AI configuration."
    :example "(configure {:api-key \"sk-ant-...\" :model \"claude-sonnet-4-20250514\"})"
    :see-also ["config" "complete" "chat"]}
@@ -39,12 +39,14 @@
 ;; -----------
 
 (defn- resolve-api-key
-  "Resolves the API key from config or environment variables."
+  "Resolves the API key from config or environment variables.
+  Supports :anthropic, :openai, and :voyageai providers."
   [cfg]
   (or (get cfg :api-key)
       (case (get cfg :provider)
         :anthropic (php/getenv "ANTHROPIC_API_KEY")
         :openai (php/getenv "OPENAI_API_KEY")
+        :voyageai (php/getenv "VOYAGE_API_KEY")
         (php/getenv "ANTHROPIC_API_KEY"))
       (throw (php/new RuntimeException
                "No API key configured. Use (ai/configure {:api-key \"...\"}) or set ANTHROPIC_API_KEY env var."))))
@@ -58,17 +60,20 @@
   [provider]
   (case provider
     :openai "https://api.openai.com"
+    :voyageai "https://api.voyageai.com"
     "https://api.anthropic.com"))
 
 (defn- anthropic-request
-  "Builds an HTTP request for the Anthropic Messages API."
-  [cfg messages system-prompt]
+  "Builds an HTTP request for the Anthropic Messages API.
+  Optionally includes tool definitions."
+  [cfg messages system-prompt & [tools]]
   (let [api-key (resolve-api-key cfg)
         base (or (get cfg :base-url) (provider-base-url :anthropic))
         body {:model (get cfg :model)
               :max_tokens (get cfg :max-tokens)
               :messages messages}
-        body (if system-prompt (assoc body :system system-prompt) body)]
+        body (if system-prompt (assoc body :system system-prompt) body)
+        body (if tools (assoc body :tools tools) body)]
     {:url (str base "/v1/messages")
      :headers {:x-api-key api-key
                :anthropic-version "2023-06-01"
@@ -137,7 +142,7 @@
                           body))))))))
 
 ;; -----------
-;; Public API
+;; Chat API
 ;; -----------
 
 (defn chat
@@ -194,3 +199,321 @@
   (let [messages (concat history [{:role "user" :content user-message}])
         response (chat (to-php-array messages) opts)]
     (concat messages [{:role "assistant" :content response}])))
+
+;; -----------
+;; Schema helpers
+;; -----------
+
+(defn- schema->json-description
+  "Converts a field schema map to a human-readable JSON description
+  for the AI prompt."
+  [schema]
+  (let [lines (for [[k v] :pairs schema]
+                (str "  \"" (name k) "\": " (if (string? v) v (str v))))]
+    (str "{\n" (php/implode ",\n" (to-php-array lines)) "\n}")))
+
+(defn- schema->json-schema
+  "Converts a field schema map to a JSON Schema object for tool use."
+  [schema]
+  (let [properties (transient {})
+        required (transient [])]
+    (foreach [k v schema]
+      (let [prop-name (name k)]
+        (conj required prop-name)
+        (assoc properties (keyword prop-name)
+               (cond
+                 (map? v) v
+                 (= v "string") {:type "string"}
+                 (= v "integer") {:type "integer"}
+                 (= v "number") {:type "number"}
+                 (= v "boolean") {:type "boolean"}
+                 (string? v) {:type "string" :description v}
+                 {:type "string" :description (str v)}))))
+    {:type "object"
+     :properties (persistent properties)
+     :required (persistent required)}))
+
+;; -----------
+;; Structured extraction
+;; -----------
+
+(defn- extract-json-from-response
+  "Extracts JSON from an AI response, handling markdown code blocks."
+  [response]
+  (let [trimmed (php/trim response)]
+    (if (php/str_starts_with trimmed "{")
+      trimmed
+      (let [matches (php/array)
+            found (php/preg_match "/```(?:json)?\\s*\\n?(\\{[\\s\\S]*?\\})\\s*\\n?```/" trimmed matches)]
+        (if (one? found)
+          (php/aget matches 1)
+          (let [start (php/strpos trimmed "{")
+                end (php/strrpos trimmed "}")]
+            (if (and start end (php/>= end start))
+              (php/substr trimmed start (php/+ (php/- end start) 1))
+              (throw (php/new RuntimeException
+                       (str "Could not extract JSON from AI response: " trimmed))))))))))
+
+(defn extract
+  "Extracts structured data from text using AI.
+
+  `schema` is a map of field names to type descriptions. Each key becomes
+  a field in the output, and each value tells the AI what to extract.
+
+  Returns a Phel map with the schema keys populated from the AI response.
+
+  Options:
+    :system     - Override the system prompt
+    :model      - Override the configured model
+    :max-tokens - Override the configured max tokens"
+  {:doc "Extracts structured data from text using AI. Returns a map matching the schema."
+   :example "(extract {:name \"string\" :age \"integer\"} \"John is 30 years old\")"
+   :see-also ["extract-many" "complete" "chat"]}
+  [schema text & [{:system system-prompt :model model :max-tokens max-tokens}]]
+  (let [schema-desc (schema->json-description schema)
+        prompt (str "Extract the following structured data from the given text.\n\n"
+                    "Schema (field name: expected type/format):\n"
+                    schema-desc "\n\n"
+                    "Text: " text "\n\n"
+                    "Return ONLY valid JSON matching the schema. No explanation, no markdown, just the JSON object.")
+        system (or system-prompt "You are a precise data extraction assistant. Return only valid JSON.")
+        response (complete prompt {:system system :model model :max-tokens max-tokens})]
+    (json/decode (extract-json-from-response response))))
+
+(defn extract-many
+  "Extracts a list of structured items from text.
+
+  Similar to `extract`, but returns a vector of maps when the text
+  contains multiple items matching the schema."
+  {:doc "Extracts a list of structured items from text. Returns a vector of maps."
+   :example "(extract-many {:name \"string\" :role \"string\"} \"Alice is CEO, Bob is CTO\")"
+   :see-also ["extract" "complete"]}
+  [schema text & [{:system system-prompt :model model :max-tokens max-tokens}]]
+  (let [schema-desc (schema->json-description schema)
+        prompt (str "Extract ALL items matching the schema from the given text.\n\n"
+                    "Schema for each item (field name: expected type/format):\n"
+                    schema-desc "\n\n"
+                    "Text: " text "\n\n"
+                    "Return ONLY a valid JSON array of objects. No explanation, no markdown, just the JSON array.")
+        system (or system-prompt "You are a precise data extraction assistant. Return only valid JSON.")
+        response (complete prompt {:system system :model model :max-tokens max-tokens})
+        trimmed (php/trim response)
+        json-str (if (php/str_starts_with trimmed "[")
+                   trimmed
+                   (let [start (php/strpos trimmed "[")
+                         end (php/strrpos trimmed "]")]
+                     (if (and start end (php/>= end start))
+                       (php/substr trimmed start (php/+ (php/- end start) 1))
+                       (throw (php/new RuntimeException
+                                (str "Could not extract JSON array from AI response: " trimmed))))))]
+    (json/decode json-str)))
+
+;; -----------
+;; Tool definition & use
+;; -----------
+
+(defn tool
+  "Creates a tool definition map for use with `chat-with-tools`.
+
+  `tool-name` is a string identifier for the tool.
+  `description` describes what the tool does.
+  `input-schema` is a map of parameter names to JSON Schema type maps."
+  {:doc "Creates a tool definition for AI tool use."
+   :example "(tool \"get-weather\" \"Gets weather for a city\" {:location {:type \"string\"}})"
+   :see-also ["chat-with-tools" "tool-calls"]}
+  [tool-name description input-schema]
+  {:name tool-name
+   :description description
+   :input_schema (schema->json-schema input-schema)})
+
+(defn chat-with-tools
+  "Sends a chat request with tool definitions.
+
+  Returns the full parsed API response map, which may include
+  tool_use content blocks that the caller can inspect and handle.
+
+  Tool call responses contain :type \"tool_use\", :name, :id, and :input."
+  {:doc "Chat with tool definitions. Returns full response with tool calls."
+   :example "(chat-with-tools [{:role \"user\" :content \"What's the weather?\"}]
+                             [(tool \"get-weather\" \"Gets weather\" {:city {:type \"string\"}})])"
+   :see-also ["tool" "tool-calls" "extract"]}
+  [messages tools & [opts]]
+  (let [cfg @config
+        cfg (if (get opts :model) (assoc cfg :model (get opts :model)) cfg)
+        cfg (if (get opts :max-tokens) (assoc cfg :max-tokens (get opts :max-tokens)) cfg)
+        req (anthropic-request cfg messages (get opts :system) tools)
+        response (hc/post (get req :url) {:headers (get req :headers)
+                                          :json (get req :body)
+                                          :timeout 120})]
+    (check-response response)
+    (json/decode (get response :body))))
+
+(defn tool-calls
+  "Extracts tool_use blocks from an AI response.
+  Returns a vector of maps with :name, :id, and :input."
+  {:doc "Extracts tool call requests from a chat-with-tools response."
+   :example "(tool-calls response)"
+   :see-also ["chat-with-tools" "tool"]}
+  [response]
+  (let [content (get response :content)]
+    (if content
+      (for [block :in content
+            :when (= "tool_use" (get block :type))]
+        {:name (get block :name)
+         :id (get block :id)
+         :input (get block :input)})
+      [])))
+
+;; -----------
+;; Vector math
+;; -----------
+
+(defn dot-product
+  "Computes the dot product of two numeric vectors."
+  {:doc "Computes the dot product of two vectors."
+   :example "(dot-product [1 2 3] [4 5 6]) ; => 32"
+   :see-also ["cosine-similarity" "magnitude"]}
+  [a b]
+  (when (not= (count a) (count b))
+    (throw (php/new RuntimeException "Vectors must have the same length for dot product.")))
+  (apply + (map * a b)))
+
+(defn magnitude
+  "Computes the magnitude (L2 norm) of a numeric vector."
+  {:doc "Computes the L2 norm of a vector."
+   :example "(magnitude [3 4]) ; => 5.0"
+   :see-also ["dot-product" "cosine-similarity"]}
+  [v]
+  (php/sqrt (apply + (map #(* % %) v))))
+
+(defn cosine-similarity
+  "Computes the cosine similarity between two numeric vectors.
+  Returns a float between -1.0 and 1.0, where 1.0 means identical direction."
+  {:doc "Computes cosine similarity between two vectors. Returns -1.0 to 1.0."
+   :example "(cosine-similarity [1 0] [0 1]) ; => 0.0"
+   :see-also ["dot-product" "magnitude" "nearest"]}
+  [a b]
+  (let [mag-a (magnitude a)
+        mag-b (magnitude b)]
+    (if (or (zero? mag-a) (zero? mag-b))
+      0.0
+      (/ (dot-product a b) (* mag-a mag-b)))))
+
+;; -----------
+;; Embedding API
+;; -----------
+
+(defn- openai-embed-request
+  "Makes an embedding request to the OpenAI Embeddings API."
+  [texts model & [provider]]
+  (let [cfg @config
+        effective-provider (or provider (get cfg :provider) :openai)
+        api-key (resolve-api-key (assoc cfg :provider effective-provider))
+        base-url (or (get cfg :base-url) (provider-base-url effective-provider))
+        response (hc/post (str base-url "/v1/embeddings")
+                          {:headers {:authorization (str "Bearer " api-key)
+                                    :content-type "application/json"}
+                           :json {:model (or model "text-embedding-3-small")
+                                  :input texts}
+                           :timeout 60})]
+    (check-response response)
+    (let [body (json/decode (get response :body))
+          data (get body :data)]
+      (for [item :in data]
+        (get item :embedding)))))
+
+(defn- voyageai-embed-request
+  "Makes an embedding request to the Voyage AI API."
+  [texts model & [provider]]
+  (let [cfg @config
+        effective-provider (or provider :voyageai)
+        api-key (resolve-api-key (assoc cfg :provider effective-provider))
+        base-url (or (get cfg :base-url) (provider-base-url :voyageai))
+        response (hc/post (str base-url "/v1/embeddings")
+                          {:headers {:authorization (str "Bearer " api-key)
+                                    :content-type "application/json"}
+                           :json {:model (or model "voyage-3-lite")
+                                  :input texts}
+                           :timeout 60})]
+    (check-response response)
+    (let [body (json/decode (get response :body))
+          data (get body :data)]
+      (for [item :in data]
+        (get item :embedding)))))
+
+(defn embed
+  "Generates embeddings for one or more text strings.
+
+  Returns a vector of embedding vectors (one per input text).
+  Uses OpenAI's text-embedding-3-small by default.
+
+  Options:
+    :model    - Override the embedding model name
+    :provider - :openai (default) or :voyageai"
+  {:doc "Generates text embeddings. Returns a vector of float vectors."
+   :example "(embed [\"hello world\"]) ; => [[0.123 -0.456 ...]]"
+   :see-also ["embed-one" "cosine-similarity" "nearest"]}
+  [texts & [{:model model :provider provider}]]
+  (let [provider (or provider :openai)]
+    (if (= provider :voyageai)
+      (voyageai-embed-request texts model provider)
+      (openai-embed-request texts model provider))))
+
+(defn embed-one
+  "Generates an embedding for a single text string.
+  Returns a single embedding vector."
+  {:doc "Generates an embedding for a single text. Returns a float vector."
+   :example "(embed-one \"hello world\") ; => [0.123 -0.456 ...]"
+   :see-also ["embed" "cosine-similarity"]}
+  [text & [opts]]
+  (first (embed [text] opts)))
+
+;; -----------
+;; Semantic search
+;; -----------
+
+(defn nearest
+  "Finds the k nearest items to a query embedding from an index.
+
+  `index` is a vector of {:text \"...\" :embedding [...]} maps.
+  Returns a vector of {:text, :embedding, :similarity} maps sorted
+  by descending similarity."
+  {:doc "Finds k nearest items to a query embedding by cosine similarity."
+   :example "(nearest query-embedding index 5)"
+   :see-also ["cosine-similarity" "build-index" "embed-one"]}
+  [query-embedding index & [k]]
+  (let [k (or k 5)
+        scored (for [item :in index]
+                 (assoc item :similarity
+                        (cosine-similarity query-embedding (get item :embedding))))
+        sorted (sort-by #(- (get % :similarity)) scored)]
+    (take k sorted)))
+
+(defn build-index
+  "Builds a searchable index from a collection of text strings.
+
+  Embeds all texts and returns a vector of {:text, :embedding} maps
+  suitable for use with `nearest`.
+
+  Options are passed through to `embed`."
+  {:doc "Builds a searchable index by embedding a collection of texts."
+   :example "(build-index [\"hello\" \"world\"])"
+   :see-also ["nearest" "embed" "search"]}
+  [texts & [opts]]
+  (let [embeddings (embed texts opts)]
+    (map (fn [text embedding]
+           {:text text :embedding embedding})
+         texts embeddings)))
+
+(defn search
+  "Semantic search: embeds a query and finds the k nearest matches
+  in a pre-built index.
+
+  Returns a vector of {:text, :embedding, :similarity} maps."
+  {:doc "Searches an index for texts most similar to the query."
+   :example "(search \"greeting\" my-index 3)"
+   :see-also ["nearest" "build-index" "embed-one"]}
+  [query index & [{:k k :model model :provider provider}]]
+  (let [query-embedding (embed-one query {:model model :provider provider})]
+    (nearest query-embedding index (or k 5))))
+
