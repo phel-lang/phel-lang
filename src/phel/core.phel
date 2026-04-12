@@ -1674,9 +1674,7 @@ Otherwise, it tries to call `__toString`."
   [ds key value]
   (assoc ds key value))
 
-(defn dissoc
-  "Dissociates `key` from the datastructure `ds`. Returns `ds` without `key`."
-  {:example "(dissoc {:a 1 :b 2} :b) ; => {:a 1}"}
+(defn- dissoc-one
   [ds key]
   (cond
     (php-array? ds)
@@ -1691,6 +1689,18 @@ Otherwise, it tries to call `__toString`."
     (let [x ds]
       (php/aunset x key)
       x)))
+
+(defn dissoc
+  "Returns `ds` without the given keys. With no keys returns `ds` unchanged."
+  {:example "(dissoc {:a 1 :b 2} :b) ; => {:a 1}\n(dissoc {:a 1 :b 2 :c 3} :a :c) ; => {:b 2}"}
+  ([ds] ds)
+  ([ds key] (dissoc-one ds key))
+  ([ds key & ks]
+    (loop [acc (dissoc-one ds key)
+           remaining ks]
+      (if (empty? remaining)
+        acc
+        (recur (dissoc-one acc (first remaining)) (next remaining))))))
 
 (defn unset
   "Returns `ds` without `key`."

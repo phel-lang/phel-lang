@@ -308,7 +308,13 @@
   (is (= {:b 2} (unset {:a 1 :b 2} :a)) "unset: remove key from map"))
 
 (deftest test-dissoc
-  (is (= {:b 2} (dissoc {:a 1 :b 2} :a)) "dissoc: remove key from map"))
+  (is (= {:b 2} (dissoc {:a 1 :b 2} :a)) "dissoc: remove key from map")
+  (is (= {:a 1} (dissoc {:a 1})) "dissoc with no keys returns map unchanged")
+  (is (= {} (dissoc {:a 1 :b 2 :c 3} :a :b :c)) "dissoc variadic removes all keys")
+  (is (= {:b 2} (dissoc {:a 1 :b 2 :c 3} :a :c)) "dissoc variadic removes multiple keys")
+  (is (= {:a 1} (dissoc {:a 1} :missing :also-missing)) "dissoc skips missing keys")
+  (is (= {} (apply dissoc {} [])) "apply dissoc with no keys does not raise")
+  (is (= {:b 2} (apply dissoc {:a 1 :b 2 :c 3} [:a :c])) "apply dissoc variadic through seq"))
 
 (deftest test-next
   (is (nil? (next [])) "next of empty vector")
