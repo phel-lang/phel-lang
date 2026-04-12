@@ -171,6 +171,7 @@ final readonly class FnAsClassEmitter implements NodeEmitterInterface
         $this->closureHelper->emitConstructorArguments($node->getUses(), $node->getEnv(), $node->getStartSourceLocation());
         $this->outputEmitter->emitLine(') extends \Phel\Lang\AbstractFn {', $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();
+        $this->outputEmitter->enterClassScope();
     }
 
     private function emitProperties(FnNode $node): void
@@ -195,6 +196,7 @@ final readonly class FnAsClassEmitter implements NodeEmitterInterface
 
     private function emitClassEnd(FnNode $node): void
     {
+        $this->outputEmitter->exitClassScope();
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitStr('}', $node->getStartSourceLocation());
 

@@ -54,4 +54,17 @@ interface OutputEmitterInterface
     public function increaseIndentLevel(): void;
 
     public function decreaseIndentLevel(): void;
+
+    /**
+     * Record that the emitter is now writing into a class body (e.g. the
+     * `__invoke` method of a `new class() extends AbstractFn`). Nested
+     * `defstruct`/`definterface`/`defexception` forms must then emit via
+     * `eval()`, because PHP rejects class declarations nested inside
+     * another class's method body.
+     */
+    public function enterClassScope(): void;
+
+    public function exitClassScope(): void;
+
+    public function isInsideClassScope(): bool;
 }

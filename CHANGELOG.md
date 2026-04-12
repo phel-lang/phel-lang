@@ -58,6 +58,7 @@ All notable changes to this project will be documented in this file.
 - `(empty? (range))` no longer hangs; `empty?` checks `first` for lazy sequences (#1366)
 - `is` no longer misinterprets `let`/`when`/`cond` forms as binary predicates (#1367)
 - `defrecord`/`defstruct`/`defexception`/`definterface` no longer emit invalid PHP namespace declarations in statement mode (#1358)
+- `defstruct`/`defrecord`/`defexception`/`definterface` inside another function body (e.g. a `defrecord` used inside a `deftest`) no longer triggers a PHP fatal "Class declarations may not be nested"; the class is lifted out via `eval()` when the surrounding code emits a PHP class body
 - `phel\router`: default error dispatch returns 404/405/406 correctly (was always 404); `:not-acceptable` returns 406 (was 405)
 
 ### Changed

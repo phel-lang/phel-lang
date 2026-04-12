@@ -78,6 +78,7 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
 
         $this->outputEmitter->emitLine(') extends \\Phel\\Lang\\AbstractFn {', $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();
+        $this->outputEmitter->enterClassScope();
     }
 
     /**
@@ -198,6 +199,7 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
 
     private function emitClassEnd(MultiFnNode $node): void
     {
+        $this->outputEmitter->exitClassScope();
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitStr('}', $node->getStartSourceLocation());
         $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());

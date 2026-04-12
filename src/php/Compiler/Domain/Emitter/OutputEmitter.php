@@ -25,6 +25,8 @@ final class OutputEmitter implements OutputEmitterInterface
 {
     private int $indentLevel = 0;
 
+    private int $classScopeDepth = 0;
+
     /** @var array<int, string> */
     private array $indentCache = [];
 
@@ -199,5 +201,20 @@ final class OutputEmitter implements OutputEmitterInterface
     public function decreaseIndentLevel(): void
     {
         --$this->indentLevel;
+    }
+
+    public function enterClassScope(): void
+    {
+        ++$this->classScopeDepth;
+    }
+
+    public function exitClassScope(): void
+    {
+        --$this->classScopeDepth;
+    }
+
+    public function isInsideClassScope(): bool
+    {
+        return $this->classScopeDepth > 0;
     }
 }
