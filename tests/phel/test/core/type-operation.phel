@@ -21,6 +21,14 @@
   (is (= :php/resource (type (php/tmpfile))) "type of php resource")
   (is (= :php/object (type (php/new DateTime))) "type of php object"))
 
+(deftest test-constructor-shorthand
+  (is (= :php/object (type (\DateTime.)))
+      "(ClassName.) behaves like (php/new ClassName)")
+  (is (= "msg" (php/-> (\RuntimeException. "msg") (getMessage)))
+      "(ClassName. args) forwards args to the constructor")
+  (is (= "ab" (php/. "a" "b"))
+      "php/. string concatenation is unaffected by the shorthand"))
+
 (deftest test-nil?
   (is (true? (nil? nil)) "nil? on nil")
   (is (false? (nil? false)) "nil? on false")

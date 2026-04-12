@@ -9,7 +9,7 @@ This guide shows how to seamlessly work between PHP and Phel code.
 | Call function | `strlen($str)` | `(php/strlen str)` |
 | Method call | `$obj->method($arg)` | `(php/-> obj (method arg))` |
 | Static call | `DateTime::createFromFormat(...)` | `(php/:: DateTime (createFromFormat ...))` |
-| New instance | `new DateTime()` | `(php/new DateTime)` |
+| New instance | `new DateTime()` | `(php/new DateTime)` or `(DateTime.)` |
 | Property access | `$obj->prop` | `(php/-> obj -prop)` |
 | Array access | `$arr[$key]` | `(php/aget arr key)` |
 
@@ -42,8 +42,9 @@ Prefix PHP functions with `php/`:
 (ns app\example
   (:use DateTime DateInterval))
 
-;; Create instance
+;; Create instance (both forms are equivalent)
 (def now (php/new DateTime))
+(def now (DateTime.))   ; Clojure-style shorthand for (php/new DateTime)
 
 ;; Call methods
 (php/-> now (format "Y-m-d"))     ; => "2024-01-15"
