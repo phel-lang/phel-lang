@@ -60,14 +60,15 @@
    If no handler can be found nil is returned."
   [match request-method middleware]
   (let [route-data (:data match)
-        method-data (get route-data request-method)
-        data (if method-data (deep-merge route-data method-data) route-data)
+        data (if-let [method-data (get route-data request-method)]
+               (deep-merge route-data method-data)
+               route-data)
         middleware (concat middleware (get data :middleware []))]
     (when-let [handler (:handler data)]
       [(compile-handler middleware handler) data])))
 
 (defn- default-response [status body]
-  |(h/response-from-map {:status status :body body}))
+  (constantly (h/response-from-map {:status status :body body})))
 
 (defn- create-default-handler
   "Create a default handler that handles the following cases, configured via options.
@@ -92,22 +93,26 @@
       (not-found request))))
 
 (defn- enrich-request [request match route-data]
-  (-> request
-      (assoc-in [:attributes :match] match)
-      (assoc-in [:attributes :route-data] route-data)))
+  (update request :attributes merge {:match match :route-data route-data}))
 
 (definterface Router
               (match-by-path [this path] "Matches a route given a path. Returns nil if path doesn't match.")
               (match-by-name [this route-name] "Matches a route given a route name. Returns nil if route can't be found.")
               (generate [this route-name parameter] "Generate a url for a route"))
 
+(defn- route-name-of
+  "Returns the Symfony route name for a `[path data]` tuple, falling back to a
+   synthetic name when `:name` isn't provided."
+  [route]
+  (let [[_ data] route]
+    (full-name (get data :name (str "_unnamed_route_" route)))))
+
 (defn- build-route-collection [normalized-routes]
   (for [route :in normalized-routes
         :let [[path data] route
-              symfony-route (php/new Route path (php/array) (php/array) (php-associative-array "data" data "template" path))
-              route-name (full-name (get data :name (str "_unnamed_route_" route)))]
+              symfony-route (php/new Route path (php/array) (php/array) (php-associative-array "data" data "template" path))]
         :reduce [coll (php/new RouteCollection)]]
-    (php/-> coll (add route-name symfony-route))
+    (php/-> coll (add (route-name-of route) symfony-route))
     coll))
 
 (defn- params->php-array
@@ -203,10 +208,8 @@
   (let [{:path path :data data :or {path "" data {}}} (or (eval options) {})
         flattened-routes (flatten-routes (eval raw-routes) path data)
         indexed-routes (for [route :in flattened-routes
-                             :let [[_ route-data] route
-                                   route-name (full-name (get route-data :name (str "_unnamed_route_" route)))]
                              :reduce [acc {}]]
-                         (put acc route-name route))
+                         (put acc (route-name-of route) route))
         route-collection (build-route-collection flattened-routes)
         compiled-matcher-routes (php/-> (php/new CompiledUrlMatcherDumper route-collection) (getCompiledRoutes))
         compiled-generator-routes (php/-> (php/new CompiledUrlGeneratorDumper route-collection) (getCompiledRoutes))]

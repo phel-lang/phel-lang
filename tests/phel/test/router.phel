@@ -5,121 +5,70 @@
   (:use Symfony\Component\Routing\Exception\RouteNotFoundException)
   (:use Symfony\Component\Routing\Exception\MissingMandatoryParametersException))
 
+;; The `r/compiled-router` macro requires literal routes at compile-time, so the
+;; shared assertions are wrapped in macros that take the router constructor as a
+;; symbol and emit calls with the routes inlined.
+
+(defmacro ^:private match-by-path-asserts [mk-router]
+  `(do
+     (is (= {:template "/ping" :data {} :path "/ping" :path-params {}}
+            (match-by-path (~mk-router ["/ping"]) "/ping"))
+         "single static route")
+     (is (= nil (match-by-path (~mk-router ["/ping"]) "/pong"))
+         "no matching static route")
+     (is (= {:template "/pong" :data {} :path "/pong" :path-params {}}
+            (match-by-path (~mk-router [["/ping"] ["/pong"]]) "/pong"))
+         "two static route")
+     (is (= {:template "/ping/{id<\\d+>}" :data {:name ::ping} :path "/ping/123" :path-params {:id "123"}}
+            (match-by-path (~mk-router [["/ping/{id<\\d+>}" {:name ::ping}]]) "/ping/123"))
+         "route with path parameter")
+     (is (= nil (match-by-path (~mk-router [["/ping/{id<\d+>}" {:name ::ping}]]) "/ping/abc"))
+         "no matching path requirement with path parameter")))
+
+(defmacro ^:private match-by-name-asserts [mk-router]
+  `(do
+     (is (= {:template "/ping" :data {:name ::ping}}
+            (match-by-name (~mk-router [["/ping" {:name ::ping}]]) ::ping))
+         "single static route")
+     (is (= {:template "/ping/{id}" :data {:name ::ping}}
+            (match-by-name (~mk-router [["/ping/{id}" {:name ::ping}]]) ::ping))
+         "route with path parameter")
+     (is (= nil (match-by-name (~mk-router [["/ping/{id}" {:name ::ping}]]) ::pong))
+         "route with name not found")))
+
+(defmacro ^:private generate-asserts [mk-router]
+  `(do
+     (is (= "/ping" (generate (~mk-router [["/ping" {:name ::ping}]]) ::ping {}))
+         "single static route")
+     (is (thrown? RouteNotFoundException
+                  (generate (~mk-router [["/ping" {:name ::ping}]]) ::pong {}))
+         "unknown static route")
+     (is (= "/ping/10" (generate (~mk-router [["/ping/{id}" {:name ::ping}]]) ::ping {:id 10}))
+         "generate route with path parameter")
+     (is (thrown? MissingMandatoryParametersException
+                  (generate (~mk-router [["/ping/{id}" {:name ::ping}]]) ::ping {}))
+         "generate route with missing path parameter")
+     (is (= "/ping/10?foo=bar"
+            (generate (~mk-router [["/ping/{id}" {:name ::ping}]]) ::ping {:id 10 :foo "bar"}))
+         "generate route with additional query parameter")))
+
 (deftest test-match-by-path
-  (is (=
-       {:template "/ping" :data {} :path "/ping" :path-params {}}
-       (match-by-path (r/router ["/ping"]) "/ping"))
-      "single static route")
-  (is (=
-       nil
-       (match-by-path (r/router ["/ping"]) "/pong"))
-      "no matching static route")
-  (is (=
-       {:template "/pong" :data {} :path "/pong" :path-params {}}
-       (match-by-path (r/router [["/ping"] ["/pong"]]) "/pong"))
-      "two static route")
-  (is (=
-       {:template "/ping/{id<\\d+>}" :data {:name ::ping} :path "/ping/123" :path-params {:id "123"}}
-       (match-by-path (r/router [["/ping/{id<\\d+>}" {:name ::ping}]]) "/ping/123"))
-      "route with path parameter")
-  (is (=
-       nil
-       (match-by-path (r/router [["/ping/{id<\d+>}" {:name ::ping}]]) "/ping/abc"))
-      "no matching path requirement with path parameter"))
+  (match-by-path-asserts r/router))
 
 (deftest test-match-by-path-compiled-router
-  (is (=
-       {:template "/ping" :data {} :path "/ping" :path-params {}}
-       (match-by-path (r/compiled-router ["/ping"]) "/ping"))
-      "single static route")
-  (is (=
-       nil
-       (match-by-path (r/compiled-router ["/ping"]) "/pong"))
-      "no matching static route")
-  (is (=
-       {:template "/pong" :data {} :path "/pong" :path-params {}}
-       (match-by-path (r/compiled-router [["/ping"] ["/pong"]]) "/pong"))
-      "two static route")
-  (is (=
-       {:template "/ping/{id<\\d+>}" :data {:name ::ping} :path "/ping/123" :path-params {:id "123"}}
-       (match-by-path (r/compiled-router [["/ping/{id<\\d+>}" {:name ::ping}]]) "/ping/123"))
-      "route with path parameter")
-  (is (=
-       nil
-       (match-by-path (r/compiled-router [["/ping/{id<\d+>}" {:name ::ping}]]) "/ping/abc"))
-      "no matching path requirement with path parameter"))
+  (match-by-path-asserts r/compiled-router))
 
 (deftest test-match-by-name
-  (is (=
-       {:template "/ping" :data {:name ::ping}}
-       (match-by-name (r/router [["/ping" {:name ::ping}]]) ::ping))
-      "single static route")
-  (is (=
-       {:template "/ping/{id}" :data {:name ::ping}}
-       (match-by-name (r/router [["/ping/{id}" {:name ::ping}]]) ::ping))
-      "route with path parameter")
-  (is (=
-       nil
-       (match-by-name (r/router [["/ping/{id}" {:name ::ping}]]) ::pong))
-      "route with name not found"))
+  (match-by-name-asserts r/router))
 
 (deftest test-match-by-name-compiled-router
-  (is (=
-       {:template "/ping" :data {:name ::ping}}
-       (match-by-name (r/compiled-router [["/ping" {:name ::ping}]]) ::ping))
-      "single static route")
-  (is (=
-       {:template "/ping/{id}" :data {:name ::ping}}
-       (match-by-name (r/compiled-router [["/ping/{id}" {:name ::ping}]]) ::ping))
-      "route with path parameter")
-  (is (=
-       nil
-       (match-by-name (r/compiled-router [["/ping/{id}" {:name ::ping}]]) ::pong))
-      "route with name not found"))
+  (match-by-name-asserts r/compiled-router))
 
 (deftest test-generate
-  (is (=
-       "/ping"
-       (generate (r/router [["/ping" {:name ::ping}]]) ::ping {}))
-      "single static route")
-  (is (thrown?
-       RouteNotFoundException
-       (generate (r/router [["/ping" {:name ::ping}]]) ::pong {}))
-      "unknown static route")
-  (is (=
-       "/ping/10"
-       (generate (r/router [["/ping/{id}" {:name ::ping}]]) ::ping {:id 10}))
-      "generate route with path parameter")
-  (is (thrown?
-       MissingMandatoryParametersException
-       (generate (r/router [["/ping/{id}" {:name ::ping}]]) ::ping {}))
-      "generate route with missing path parameter")
-  (is (=
-       "/ping/10?foo=bar"
-       (generate (r/router [["/ping/{id}" {:name ::ping}]]) ::ping {:id 10 :foo "bar"}))
-      "generate route with additional query parameter"))
+  (generate-asserts r/router))
 
 (deftest test-generate-compiled-router
-  (is (=
-       "/ping"
-       (generate (r/compiled-router [["/ping" {:name ::ping}]]) ::ping {}))
-      "single static route")
-  (is (thrown?
-       RouteNotFoundException
-       (generate (r/compiled-router [["/ping" {:name ::ping}]]) ::pong {}))
-      "unknown static route")
-  (is (=
-       "/ping/10"
-       (generate (r/compiled-router [["/ping/{id}" {:name ::ping}]]) ::ping {:id 10}))
-      "generate route with path parameter")
-  (is (thrown?
-       MissingMandatoryParametersException
-       (generate (r/compiled-router [["/ping/{id}" {:name ::ping}]]) ::ping {}))
-      "generate route with missing path parameter")
-  (is (=
-       "/ping/10?foo=bar"
-       (generate (r/compiled-router [["/ping/{id}" {:name ::ping}]]) ::ping {:id 10 :foo "bar"}))
-      "generate route with additional query parameter"))
+  (generate-asserts r/compiled-router))
 
 (defn fnil [f x]
   (fn [a & args]
