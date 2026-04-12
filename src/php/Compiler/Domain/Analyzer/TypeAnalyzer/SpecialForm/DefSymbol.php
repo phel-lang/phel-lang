@@ -41,7 +41,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;
 
-    private const array POSSIBLE_TUPLE_SIZES = [3, 4];
+    private const array POSSIBLE_TUPLE_SIZES = [2, 3, 4];
 
     /** Number of implicit parameters (`&form` and `&env`) injected into macro fns. */
     private const int MACRO_IMPLICIT_PARAMS = 2;
@@ -187,6 +187,10 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
 
     private function getInitialMetaAndInit(PersistentListInterface $list): array
     {
+        if (count($list) === 2) {
+            return [Phel::map(), null];
+        }
+
         if (count($list) === 3) {
             return [Phel::map(), $list->get(2)];
         }

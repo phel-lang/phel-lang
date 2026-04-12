@@ -51,13 +51,25 @@ final class DefSymbolTest extends TestCase
     public function test_with_wrong_number_of_arguments(): void
     {
         $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("Two or three arguments are required for 'def. Got 2");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF),
-            Symbol::create('1'),
         ]);
         (new DefSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+    }
+
+    public function test_def_without_value(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_DEF),
+            Symbol::create('baz'),
+        ]);
+        $env = NodeEnvironment::empty();
+        $defNode = (new DefSymbol($this->analyzer))->analyze($list, $env);
+
+        self::assertSame('baz', $defNode->getName()->getName());
+        self::assertInstanceOf(LiteralNode::class, $defNode->getInit());
+        self::assertNull($defNode->getInit()->getValue());
     }
 
     public function test_first_argument_must_be_symbol(): void

@@ -1,0 +1,20 @@
+--PHEL--
+(def baz)
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "baz",
+  null,
+  \Phel::map(
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/def-no-value.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/def-no-value.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 9
+    )
+  )
+);
