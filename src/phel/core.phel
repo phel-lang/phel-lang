@@ -128,6 +128,12 @@
         [(php/-> it (key)) (php/-> it (current))]
         nil))))
 
+(def first-of-string
+  {:private true
+   :doc "Returns the first multibyte character of a string, or nil if empty."}
+  (fn [s]
+    (if (php/=== "" s) nil (php/mb_substr s 0 1))))
+
 (def first
   {:doc "Returns the first element of a sequence, or nil if empty.
 
@@ -136,12 +142,9 @@
   characters."
    :example "(first [1 2 3]) ; => 1"}
   (fn [xs]
-    (if (php/instanceof xs FirstInterface)
-      (php/-> xs (first))
-      (if (php/instanceof xs PersistentMapInterface)
-        (first-map-entry xs)
-        (if (php/is_string xs)
-          (if (php/=== "" xs) nil (php/mb_substr xs 0 1))
+    (if (php/instanceof xs FirstInterface)         (php/-> xs (first))
+      (if (php/instanceof xs PersistentMapInterface) (first-map-entry xs)
+        (if (php/is_string xs)                      (first-of-string xs)
           (php/aget xs 0))))))
 
 (def concat1
@@ -494,28 +497,6 @@ Otherwise, it tries to call `__toString`."
    :see-also ["sorted-set" "compare"]}
   [comp & xs]
   (php/:: Phel (sortedSetBy comp (apply php/array xs))))
-
-(defn keyword
-  "Creates a new Keyword.
-
-  Arity-1 accepts a string, keyword, or symbol. Returns `nil` when `x` is `nil`.
-  If `x` is already a keyword, it is returned unchanged.
-
-  Arity-2 builds a namespaced keyword from the namespace and name parts; returns
-  `nil` when `name` is `nil`."
-  {:example "(keyword \"name\") ; => :name\n(keyword :abc) ; => :abc\n(keyword \"ns\" \"name\") ; => :ns/name"}
-  ([x]
-    (if (php/=== nil x)            nil
-      (if (php/instanceof x Keyword) x
-        (if (php/instanceof x Symbol)
-          (php/:: Keyword (create (php/-> x (getName)) (php/-> x (getNamespace))))
-          (if (php/is_string x)    (php/:: Keyword (create x))
-            nil)))))
-  ([ns nm]
-    (if (php/=== nil nm)
-      nil
-      (php/:: Keyword (create (php/strval nm)
-                              (if (php/=== nil ns) nil (php/strval ns)))))))
 
 (defn php-indexed-array
   "Creates a PHP indexed array from the given values."
@@ -871,6 +852,28 @@ Otherwise, it tries to call `__toString`."
     (let [v (gensym)]
       `(let [~v ~(first args)]
          (if ~v (and ~@(next args)) ~v)))))
+
+(defn keyword
+  "Creates a new Keyword.
+
+  Arity-1 accepts a string, keyword, or symbol. Returns `nil` when `x` is `nil`.
+  If `x` is already a keyword, it is returned unchanged.
+
+  Arity-2 builds a namespaced keyword from the namespace and name parts; returns
+  `nil` when `name` is `nil`."
+  {:example "(keyword \"name\") ; => :name\n(keyword :abc) ; => :abc\n(keyword \"ns\" \"name\") ; => :ns/name"}
+  ([x]
+    (cond
+      (php/=== nil x)            nil
+      (php/instanceof x Keyword) x
+      (php/instanceof x Symbol)  (php/:: Keyword (create (php/-> x (getName))
+                                                         (php/-> x (getNamespace))))
+      (php/is_string x)          (php/:: Keyword (create x))
+      :else                      nil))
+  ([ns nm]
+    (when-not (php/=== nil nm)
+      (php/:: Keyword (create (php/strval nm)
+                              (when-not (php/=== nil ns) (php/strval ns)))))))
 
 (defn- id2 [a b]
   (if (php/instanceof a IdenticalInterface)
