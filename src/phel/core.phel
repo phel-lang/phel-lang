@@ -1081,13 +1081,43 @@ Otherwise, it tries to call `__toString`."
     (php/is_string coll) (and (php/is_int key) (php/>= key 0) (php/< key (php/mb_strlen coll)))
     (throw (php/new InvalidArgumentException (php/. "cannot call 'contains?' on " (php/get_class coll))))))
 
+(defn- compare-category
+  "Returns a coarse category for `compare`'s type compatibility check. `nil` is
+  its own category so it can be treated as less than anything. Numbers share a
+  category so `(compare 1 1.5)` works."
+  [x]
+  (if (php/=== x nil) :nil
+    (if (php/is_bool x) :bool
+      (if (php/is_int x) :number
+        (if (php/is_float x) :number
+          (if (php/is_string x) :string
+            (if (php/instanceof x Keyword) :keyword
+              (if (php/instanceof x Symbol) :symbol
+                (if (php/instanceof x \Phel\Lang\Collections\Vector\PersistentVectorInterface) :sequential
+                  (if (php/instanceof x \Phel\Lang\Collections\LinkedList\PersistentListInterface) :sequential
+                    (if (php/instanceof x \Phel\Lang\Collections\Map\PersistentMapInterface) :map
+                      (if (php/instanceof x \Phel\Lang\Collections\HashSet\PersistentHashSetInterface) :set
+                        :other))))))))))))
+
 (defn compare
-  "Wrapper for PHP's spaceship operator (`php/<=>`).
-  Returns an integer less than, equal to, or greater than zero
-  when `x` is less than, equal to, or greater than `y`, respectively."
-  {:inline (fn [x y] `(php/<=> ~x ~y))}
+  "Compares `x` and `y` using PHP's spaceship operator, returning a negative
+  integer, zero, or a positive integer when `x` is less than, equal to, or
+  greater than `y`.
+
+  `nil` is less than every non-nil value and equal to itself. Throws
+  `InvalidArgumentException` when `x` and `y` come from mutually incomparable
+  categories (e.g. `(compare 1 [])`)."
   [x y]
-  (php/<=> x y))
+  (if (php/=== x nil)
+    (if (php/=== y nil) 0 -1)
+    (if (php/=== y nil)
+      1
+      (let [cx (compare-category x)
+            cy (compare-category y)]
+        (if (php/=== cx cy)
+          (php/<=> x y)
+          (throw (php/new InvalidArgumentException
+                          (str "Cannot compare " cx " with " cy))))))))
 
 ;; --------------
 ;; Type operation
