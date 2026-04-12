@@ -36,6 +36,7 @@ All notable changes to this project will be documented in this file.
 - `rseq` and `reversible?` functions: reverse-iterate a vector or sorted-map in constant time (#1378)
 - `uuid?` and `parse-uuid` functions complementing the existing `random-uuid` (#1377)
 - `#uuid` tagged literal reads a canonical UUID string, e.g. `#uuid "550e8400-e29b-41d4-a716-446655440000"` (#1376)
+- `alter-var-root` stub that throws `BadMethodCallException` with a migration hint, plus a note in `docs/clojure-migration.md`; Phel has no first-class vars (#1357)
 - `seqable?` predicate function: returns true if `seq` is supported for the argument (#1379)
 - `phel\http-client` module for outbound HTTP requests using PHP streams
 - `phel\ai` module: chat, completions, structured extraction, tool use, embeddings, and semantic search

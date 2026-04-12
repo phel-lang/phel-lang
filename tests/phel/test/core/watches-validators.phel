@@ -1,5 +1,5 @@
 (ns phel-test\test\core\watches-validators
-  (:require phel\test :refer [deftest is]))
+  (:require phel\test :refer [deftest is thrown?]))
 
 ;; --- Return values ---
 
@@ -131,6 +131,14 @@
         _ (add-watch v :log (fn [k r o n] (set! fired true)))]
     (try (set! v -1) (catch \Throwable e nil))
     (is (false? (deref fired)) "watch does not fire when rejected")))
+
+;; --- alter-var-root (out of scope) ---
+
+(deftest test-alter-var-root-throws
+  (is (thrown? \BadMethodCallException (alter-var-root nil inc))
+      "alter-var-root throws BadMethodCallException")
+  (is (thrown? \BadMethodCallException (alter-var-root))
+      "alter-var-root throws even with no args"))
 
 
 

@@ -1769,6 +1769,18 @@ Otherwise, it tries to call `__toString`."
   (php/-> variable (addWatch (name key) f))
   variable)
 
+(defn alter-var-root
+  "Clojure's `alter-var-root` is out of scope in Phel: there are no first-class
+  vars whose root binding could be swapped. Reaching for this function in
+  `.cljc` code is nearly always a bug; prefer an `atom` and `swap!` for mutable
+  state, or redefine the top-level binding with `def` if the intent was to
+  replace it at load time. Calling `alter-var-root` at runtime throws to make
+  the mismatch obvious instead of silently no-oping."
+  {:see-also ["swap!" "atom" "def"]}
+  [& _]
+  (throw (php/new \BadMethodCallException
+           "alter-var-root is not supported in Phel: Phel has no first-class vars. Use an `atom` with `swap!` for mutable state, or redefine the top-level with `def`.")))
+
 (defn remove-watch
   "Removes a watch function from a variable by key."
   {:see-also ["add-watch"]}
