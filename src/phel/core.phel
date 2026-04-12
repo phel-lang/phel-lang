@@ -1254,6 +1254,20 @@ Otherwise, it tries to call `__toString`."
     nil
     coll))
 
+(defn empty
+  "Returns an empty collection of the same category as `coll`, or nil."
+  {:example "(empty [1 2 3]) ; => []\n(empty {:a 1}) ; => {}"
+   :see-also ["empty?" "not-empty"]}
+  [coll]
+  (cond
+    (nil? coll) nil
+    (vector? coll) []
+    (map? coll) {}
+    (= (type coll) :set) (hash-set)
+    (list? coll) '()
+    (php-array? coll) (php/array)
+    :else nil))
+
 (defn seq
   "Returns a seq on the collection. Strings are converted to a vector of characters.
   Collections are unchanged. Returns nil if coll is empty or nil.

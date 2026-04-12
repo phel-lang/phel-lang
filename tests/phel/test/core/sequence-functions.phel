@@ -268,6 +268,13 @@
   (is (= [1] (not-empty [1])) "not-empty returns coll")
   (is (nil? (not-empty [])) "not-empty empty"))
 
+(deftest test-empty
+  (is (= [] (empty [1 2 3])) "empty of vector")
+  (is (= {} (empty {:a 1})) "empty of map")
+  (is (= (hash-set) (empty (set [1 2]))) "empty of set")
+  (is (= '() (empty '(1 2 3))) "empty of list")
+  (is (nil? (empty nil)) "empty of nil"))
+
 (deftest test-pairs
   (is (= [[:a 1] [:b 2] [:c 3]] (pairs {:a 1 :b 2 :c 3})) "pairs of maps")
   (is (= [[0 3] [1 2] [2 1]] (pairs [3 2 1])) "pairs of vector"))
