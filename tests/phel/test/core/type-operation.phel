@@ -91,6 +91,25 @@
 (deftest test-symbol?
   (is (true? (symbol? 'x)) "symbol? on 'x"))
 
+(deftest test-simple-symbol?
+  (is (true? (simple-symbol? 'x)) "simple-symbol? on simple symbol")
+  (is (false? (simple-symbol? :kw)) "simple-symbol? on keyword")
+  (is (false? (simple-symbol? 42)) "simple-symbol? on integer")
+  (is (false? (simple-symbol? nil)) "simple-symbol? on nil"))
+
+(deftest test-simple-keyword?
+  (is (true? (simple-keyword? :test)) "simple-keyword? on simple keyword")
+  (is (false? (simple-keyword? 'x)) "simple-keyword? on symbol")
+  (is (false? (simple-keyword? "test")) "simple-keyword? on string")
+  (is (false? (simple-keyword? nil)) "simple-keyword? on nil"))
+
+(deftest test-simple-ident?
+  (is (true? (simple-ident? 'x)) "simple-ident? on simple symbol")
+  (is (true? (simple-ident? :test)) "simple-ident? on simple keyword")
+  (is (false? (simple-ident? 42)) "simple-ident? on integer")
+  (is (false? (simple-ident? "test")) "simple-ident? on string")
+  (is (false? (simple-ident? nil)) "simple-ident? on nil"))
+
 (deftest test-function?
   (is (true? (function? concat)) "function? on concat"))
 
