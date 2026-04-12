@@ -1,0 +1,20 @@
+(ns phel-test\test\core\are-regression-1364
+  (:require phel\test :refer [deftest testing are is]))
+
+;; Regression coverage for https://github.com/phel-lang/phel-lang/issues/1364
+;;
+;; 1. `are` must accept mixed template cells (quoted symbol, int, string,
+;;    vector, map). The original bug report described a `the-atom` resolution
+;;    failure that now passes.
+;; 2. `deftest` must reject a non-symbol first argument with a clear error
+;;    rather than crashing inside the generated `(name test-name)` call.
+
+(deftest are-accepts-mixed-templates
+  (testing "atom accepts a quoted symbol and other values"
+    (are [v] (let [the-atom (atom v)]
+               (= v (deref the-atom)))
+      'sym
+      42
+      "hello"
+      [1 2 3]
+      {:a 1})))
