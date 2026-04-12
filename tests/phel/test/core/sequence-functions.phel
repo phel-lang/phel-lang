@@ -1,5 +1,5 @@
 (ns phel-test\test\core\sequence-functions
-  (:require phel\test :refer [deftest is]))
+  (:require phel\test :refer [deftest is thrown?]))
 
 (defn naturals []
   (loop [i 0]
@@ -225,6 +225,24 @@
 (deftest test-reverse
   (is (= [3 2 1] (reverse [1 2 3])) "reverse: vector")
   (is (= [] (reverse nil)) "reverse: nil"))
+
+(deftest test-reversible?
+  (is (true? (reversible? [])) "empty vector is reversible")
+  (is (true? (reversible? [1 2 3])) "vector is reversible")
+  (is (true? (reversible? (sorted-map :a 1 :b 2))) "sorted-map is reversible")
+  (is (false? (reversible? '(1 2 3))) "list is not reversible")
+  (is (false? (reversible? {:a 1})) "hash-map is not reversible")
+  (is (false? (reversible? "abc")) "string is not reversible")
+  (is (false? (reversible? nil)) "nil is not reversible"))
+
+(deftest test-rseq
+  (is (= [3 2 1] (rseq [1 2 3])) "rseq: vector")
+  (is (nil? (rseq [])) "rseq: empty vector returns nil")
+  (is (= [[:c 3] [:b 2] [:a 1]] (rseq (sorted-map :a 1 :b 2 :c 3)))
+      "rseq: sorted-map returns reversed entries")
+  (is (nil? (rseq (sorted-map))) "rseq: empty sorted-map returns nil")
+  (is (thrown? \InvalidArgumentException (rseq '(1 2 3))) "rseq: throws on list")
+  (is (thrown? \InvalidArgumentException (rseq {:a 1})) "rseq: throws on hash-map"))
 
 (deftest test-interleave
   (is (= [:a 1 :b 2 :c 3] (interleave [:a :b :c] [1 2 3])) "interleave equal size")
