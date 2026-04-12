@@ -1,0 +1,46 @@
+(ns phel-test\test\http-client
+  (:require phel\test :refer [deftest is])
+  (:require phel\http-client :as hc)
+  (:require phel\http :as http))
+
+;; --- Response parser integration (via PHP static call) ---
+
+(deftest test-response-parser-basic
+  (let [parsed (php/:: \Phel\HttpClient\ResponseParser
+                 (parse (php/array "HTTP/1.1 200 OK"
+                                   "Content-Type: application/json"
+                                   "X-Request-Id: abc-123")))]
+    (is (= 200 (php/aget parsed "status")) "parses status code")
+    (is (= "1.1" (php/aget parsed "version")) "parses HTTP version")
+    (is (= "OK" (php/aget parsed "reason")) "parses reason phrase")
+    (let [headers (php/aget parsed "headers")]
+      (is (= "application/json" (php/aget headers "content-type")) "parses content-type header")
+      (is (= "abc-123" (php/aget headers "x-request-id")) "parses custom header"))))
+
+(deftest test-response-parser-empty-headers
+  (let [parsed (php/:: \Phel\HttpClient\ResponseParser (parse (php/array)))]
+    (is (= 200 (php/aget parsed "status")) "defaults to 200 when no status line")
+    (is (= "1.1" (php/aget parsed "version")) "defaults to HTTP/1.1")))
+
+(deftest test-response-parser-404
+  (let [parsed (php/:: \Phel\HttpClient\ResponseParser
+                 (parse (php/array "HTTP/1.1 404 Not Found")))]
+    (is (= 404 (php/aget parsed "status")) "parses 404 status")
+    (is (= "Not Found" (php/aget parsed "reason")) "parses reason phrase")))
+
+;; --- Request error handling ---
+
+(deftest test-request-to-invalid-url-throws
+  (is (thrown? \RuntimeException (hc/request :get "http://invalid.test.localhost:1"))
+      "request to unreachable host throws RuntimeException"))
+
+;; --- Module API completeness ---
+
+(deftest test-public-functions-are-defined
+  (is (function? hc/request) "request is defined")
+  (is (function? hc/get) "get is defined")
+  (is (function? hc/post) "post is defined")
+  (is (function? hc/put) "put is defined")
+  (is (function? hc/delete) "delete is defined")
+  (is (function? hc/patch) "patch is defined")
+  (is (function? hc/head) "head is defined"))
