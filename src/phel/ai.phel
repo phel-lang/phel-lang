@@ -1,0 +1,196 @@
+(ns phel\ai
+  (:require phel\http-client :as hc)
+  (:require phel\json)
+  (:use RuntimeException))
+
+;; -----------
+;; Configuration
+;; -----------
+
+(def- default-config
+  {:provider :anthropic
+   :model "claude-sonnet-4-20250514"
+   :max-tokens 1024
+   :api-key nil
+   :base-url nil})
+
+(def config
+  {:doc "Current AI configuration atom. Use `configure` to update."
+   :example "@ai/config"}
+  (atom default-config))
+
+(defn configure
+  "Merges the given options into the AI configuration.
+
+  Supported keys:
+    :provider  - :anthropic (default) or :openai
+    :model     - Model name string
+    :max-tokens - Maximum tokens in response
+    :api-key   - API key string (or set via env var)
+    :base-url  - Override the API base URL"
+  {:doc "Merges options into the AI configuration."
+   :example "(configure {:api-key \"sk-ant-...\" :model \"claude-sonnet-4-20250514\"})"
+   :see-also ["config" "complete" "chat"]}
+  [opts]
+  (swap! config merge opts))
+
+;; -----------
+;; API key resolution
+;; -----------
+
+(defn- resolve-api-key
+  "Resolves the API key from config or environment variables."
+  [cfg]
+  (or (get cfg :api-key)
+      (case (get cfg :provider)
+        :anthropic (php/getenv "ANTHROPIC_API_KEY")
+        :openai (php/getenv "OPENAI_API_KEY")
+        (php/getenv "ANTHROPIC_API_KEY"))
+      (throw (php/new RuntimeException
+               "No API key configured. Use (ai/configure {:api-key \"...\"}) or set ANTHROPIC_API_KEY env var."))))
+
+;; -----------
+;; Provider-specific request builders
+;; -----------
+
+(defn- provider-base-url
+  "Returns the default base URL for the given provider."
+  [provider]
+  (case provider
+    :openai "https://api.openai.com"
+    "https://api.anthropic.com"))
+
+(defn- anthropic-request
+  "Builds an HTTP request for the Anthropic Messages API."
+  [cfg messages system-prompt]
+  (let [api-key (resolve-api-key cfg)
+        base (or (get cfg :base-url) (provider-base-url :anthropic))
+        body {:model (get cfg :model)
+              :max_tokens (get cfg :max-tokens)
+              :messages messages}
+        body (if system-prompt (assoc body :system system-prompt) body)]
+    {:url (str base "/v1/messages")
+     :headers {:x-api-key api-key
+               :anthropic-version "2023-06-01"
+               :content-type "application/json"}
+     :body body}))
+
+(defn- openai-request
+  "Builds an HTTP request for the OpenAI Chat Completions API."
+  [cfg messages system-prompt]
+  (let [api-key (resolve-api-key cfg)
+        base (or (get cfg :base-url) (provider-base-url :openai))
+        messages (if system-prompt
+                   (concat [{:role "system" :content system-prompt}] messages)
+                   messages)]
+    {:url (str base "/v1/chat/completions")
+     :headers {:authorization (str "Bearer " api-key)
+               :content-type "application/json"}
+     :body {:model (get cfg :model)
+            :max_tokens (get cfg :max-tokens)
+            :messages messages}}))
+
+;; -----------
+;; Response extraction
+;; -----------
+
+(defn- extract-anthropic-text
+  "Extracts the text content from an Anthropic API response."
+  [response-body]
+  (let [content (get response-body :content)]
+    (when content
+      (let [first-block (first content)]
+        (when first-block
+          (get first-block :text))))))
+
+(defn- extract-openai-text
+  "Extracts the text content from an OpenAI API response."
+  [response-body]
+  (let [choices (get response-body :choices)]
+    (when choices
+      (let [first-choice (first choices)]
+        (when first-choice
+          (get-in first-choice [:message :content]))))))
+
+(defn- extract-text
+  "Extracts text from a provider response."
+  [provider response-body]
+  (if (= provider :openai)
+    (extract-openai-text response-body)
+    (extract-anthropic-text response-body)))
+
+;; -----------
+;; Error handling
+;; -----------
+
+(defn- check-response
+  "Checks an HTTP response for errors and throws if the request failed."
+  [response]
+  (let [status (get response :status)]
+    (when (or (< status 200) (>= status 300))
+      (let [body (get response :body)
+            parsed (try (json/decode body) (catch \Exception _e {:error body}))]
+        (throw (php/new RuntimeException
+                 (str "AI API error (HTTP " status "): "
+                      (or (get-in parsed [:error :message])
+                          (get parsed :error)
+                          body))))))))
+
+;; -----------
+;; Public API
+;; -----------
+
+(defn chat
+  "Sends a chat completion request with a list of message maps.
+
+  Each message is a map with :role and :content keys.
+  Returns the assistant's text response as a string.
+
+  Accepts an optional options map:
+    :system     - System prompt string
+    :model      - Override the configured model
+    :max-tokens - Override the configured max tokens"
+  {:doc "Sends a chat completion request. Returns the assistant's text response."
+   :example "(chat [{:role \"user\" :content \"Hello!\"}])"
+   :see-also ["complete" "configure"]}
+  [messages & [{:system system-prompt :model model :max-tokens max-tokens}]]
+  (let [cfg @config
+        cfg (if model (assoc cfg :model model) cfg)
+        cfg (if max-tokens (assoc cfg :max-tokens max-tokens) cfg)
+        provider (get cfg :provider)
+        req (if (= provider :openai)
+              (openai-request cfg messages system-prompt)
+              (anthropic-request cfg messages system-prompt))
+        response (hc/post (get req :url) {:headers (get req :headers)
+                                          :json (get req :body)
+                                          :timeout 120})]
+    (check-response response)
+    (let [body (json/decode (get response :body))]
+      (or (extract-text provider body)
+          (throw (php/new RuntimeException "No text content in AI response"))))))
+
+(defn complete
+  "Sends a simple text completion request.
+
+  Takes a prompt string and returns the assistant's text response.
+  This is a convenience wrapper around `chat` for single-turn interactions."
+  {:doc "Sends a text prompt to the AI. Returns the response string."
+   :example "(complete \"Explain monads in one sentence\")"
+   :see-also ["chat" "configure"]}
+  [prompt & [opts]]
+  (chat [{:role "user" :content prompt}] opts))
+
+(defn chat-with-history
+  "Appends a new user message to an existing conversation history,
+  sends it, and returns the updated history with the assistant's response.
+
+  Useful for building multi-turn conversations."
+  {:doc "Continues a conversation. Returns updated message history."
+   :example "(chat-with-history [{:role \"user\" :content \"Hi\"}
+                              {:role \"assistant\" :content \"Hello!\"}]
+                             \"How are you?\")"
+   :see-also ["chat" "complete"]}
+  [history user-message & [opts]]
+  (let [messages (concat history [{:role "user" :content user-message}])
+        response (chat (to-php-array messages) opts)]
+    (concat messages [{:role "assistant" :content response}])))
