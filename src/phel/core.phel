@@ -1625,10 +1625,38 @@ Otherwise, it tries to call `__toString`."
   [head & body]
   (for-builder `(do ~@body) head 0))
 
+(def- for-verbs (hash-set :in :range :keys :pairs))
+
+(defn- doseq-normalize
+  "Transforms Clojure-style doseq bindings into Phel dofor format.
+  Pairs `[x coll]` become triples `[x :in coll]`. Already-present
+  verb triples `[x :in coll]` pass through unchanged. Modifier keywords
+  like :when, :while, :let pass through unchanged."
+  [head]
+  (loop [i 0
+         result []]
+    (if (>= i (count head))
+      result
+      (let [el (php/aget head i)]
+        (if (keyword? el)
+          ;; modifier keyword: keep pair as-is
+          (recur (php/+ i 2) (push (push result el) (php/aget head (php/+ i 1))))
+          ;; binding symbol: check if verb already present
+          (let [next-el (php/aget head (php/+ i 1))]
+            (if (and (keyword? next-el) (contains? for-verbs next-el))
+              ;; verb already present: keep triple as-is
+              (recur (php/+ i 3) (push (push (push result el) next-el) (php/aget head (php/+ i 2))))
+              ;; no verb: insert :in
+              (recur (php/+ i 2) (push (push (push result el) :in) next-el)))))))))
+
 (defmacro doseq
-  "Alias for `dofor`."
+  "Repeatedly executes body for side effects with bindings.
+  Uses Clojure-style binding pairs: `(doseq [x coll] body)`.
+  Supports :when, :while, :let modifiers."
+  {:example "(doseq [x [1 2 3]] (println x))"}
   [seq-exprs & body]
-  `(dofor ~seq-exprs ~@body))
+  (let [normalized (doseq-normalize seq-exprs)]
+    `(dofor ~normalized ~@body)))
 
 (defn identity
   "Returns its argument."
