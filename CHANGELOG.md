@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - `special-symbol?` predicate function: returns true if a symbol names a special form (#1384)
 - `ident?` predicate function: returns true if the argument is a symbol or keyword (#1369)
 - `fnext` sequence function: same as `(first (next coll))` (#1368)
+- `neg-int?`, `pos-int?`, `nat-int?` integer predicate functions (#1374)
 - `sequential?` predicate function: returns true for ordered collections (vectors, lists, lazy sequences) (#1380)
 - `seqable?` predicate function: returns true if `seq` is supported for the argument (#1379)
 - `phel\http-client` module for outbound HTTP requests using PHP streams
