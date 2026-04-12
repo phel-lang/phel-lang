@@ -84,30 +84,34 @@
   (is (= ["c"] (doall (drop 2 (php/array "a" "b" "c")))) "drop on php array (returns lazy seq)"))
 
 (deftest test-drop-last
-  (is (= ["a" "b"] (drop-last 1 ["a" "b" "c"])) "drop-last element")
-  (is (= ["a"] (drop-last 2 ["a" "b" "c"])) "drop-last two elements")
-  (is (= [] (drop-last 3 ["a" "b" "c"])) "drop-last three elements")
-  (is (= [] (drop-last 4 ["a" "b" "c"])) "drop-last four elements")
-  (is (= ["a" "b" "c"] (drop-last 0 ["a" "b" "c"])) "drop-last zero elements")
-  (is (= ["a" "b" "c"] (drop-last -1 ["a" "b" "c"])) "drop-last with negative number")
-  (is (= [] (drop-last 1 [])) "drop-last on empty vector")
-  (is (= (php/array "a" "b") (drop-last 1 (php/array "a" "b" "c"))) "drop-last on php array")
-  (is (= (php/array) (drop-last 1 (php/array))) "drop-last on empty php array"))
+  (is (= ["a" "b"] (doall (drop-last 1 ["a" "b" "c"]))) "drop-last element")
+  (is (= ["a"] (doall (drop-last 2 ["a" "b" "c"]))) "drop-last two elements")
+  (is (= [] (doall (drop-last 3 ["a" "b" "c"]))) "drop-last three elements")
+  (is (= [] (doall (drop-last 4 ["a" "b" "c"]))) "drop-last four elements")
+  (is (= ["a" "b" "c"] (doall (drop-last 0 ["a" "b" "c"]))) "drop-last zero elements")
+  (is (= ["a" "b" "c"] (doall (drop-last -1 ["a" "b" "c"]))) "drop-last with negative number")
+  (is (= [] (doall (drop-last 1 []))) "drop-last on empty vector")
+  (is (= ["a" "b"] (doall (drop-last 1 (php/array "a" "b" "c")))) "drop-last on php array")
+  (is (= [] (doall (drop-last 1 (php/array)))) "drop-last on empty php array"))
 
 (deftest test-drop-last-single-arity
-  (is (= ["a" "b"] (drop-last ["a" "b" "c"])) "drop-last single-arity defaults to 1 on vector")
-  (is (= [] (drop-last ["a"])) "drop-last single-arity on single-element vector")
-  (is (= [] (drop-last [])) "drop-last single-arity on empty vector")
-  (is (= [1 2 3] (drop-last [1 2 3 4])) "drop-last single-arity on longer vector")
-  (is (= (php/array "a" "b") (drop-last (php/array "a" "b" "c"))) "drop-last single-arity on php array")
-  (is (= (php/array) (drop-last (php/array "a"))) "drop-last single-arity on single-element php array"))
+  (is (= ["a" "b"] (doall (drop-last ["a" "b" "c"]))) "drop-last single-arity defaults to 1 on vector")
+  (is (= [] (doall (drop-last ["a"]))) "drop-last single-arity on single-element vector")
+  (is (= [] (doall (drop-last []))) "drop-last single-arity on empty vector")
+  (is (= [1 2 3] (doall (drop-last [1 2 3 4]))) "drop-last single-arity on longer vector")
+  (is (= ["a" "b"] (doall (drop-last (php/array "a" "b" "c")))) "drop-last single-arity on php array")
+  (is (= [] (doall (drop-last (php/array "a")))) "drop-last single-arity on single-element php array"))
 
 (deftest test-drop-last-nil
-  (is (= [] (drop-last 5 nil)) "drop-last with n on nil returns empty vector")
-  (is (= [] (drop-last 1 nil)) "drop-last 1 on nil returns empty vector")
-  (is (= [] (drop-last 0 nil)) "drop-last 0 on nil returns empty vector")
-  (is (= [] (drop-last -1 nil)) "drop-last negative n on nil returns empty vector")
-  (is (= [] (drop-last nil)) "drop-last single-arity on nil returns empty vector"))
+  (is (= [] (doall (drop-last 5 nil))) "drop-last with n on nil returns empty sequence")
+  (is (= [] (doall (drop-last 1 nil))) "drop-last 1 on nil returns empty sequence")
+  (is (= [] (doall (drop-last 0 nil))) "drop-last 0 on nil returns empty sequence")
+  (is (= [] (doall (drop-last -1 nil))) "drop-last negative n on nil returns empty sequence")
+  (is (= [] (doall (drop-last nil))) "drop-last single-arity on nil returns empty sequence"))
+
+(deftest test-drop-last-range
+  (is (= [0 1 2 3 4 5 6 7 8] (doall (drop-last (range 0 10)))) "drop-last on range")
+  (is (= [0 1 2] (doall (drop-last 3 (range 0 6)))) "drop-last 3 on range"))
 
 (deftest test-last
   (is (= "c" (last ["a" "b" "c"])) "last element")
@@ -116,10 +120,10 @@
   (is (nil? (last (php/array))) "last on empty php array"))
 
 (deftest test-butlast
-  (is (= ["a" "b"] (butlast ["a" "b" "c"])) "butlast element")
-  (is (= [] (butlast ["a"])) "butlast single element")
-  (is (= [] (butlast [])) "butlast empty vector")
-  (is (= (php/array "a" "b") (butlast (php/array "a" "b" "c"))) "butlast on php array"))
+  (is (= ["a" "b"] (doall (butlast ["a" "b" "c"]))) "butlast element")
+  (is (= [] (doall (butlast ["a"]))) "butlast single element")
+  (is (= [] (doall (butlast []))) "butlast empty vector")
+  (is (= ["a" "b"] (doall (butlast (php/array "a" "b" "c")))) "butlast on php array"))
 
 (deftest test-drop-while
   (is (= [1 2 3 4 -1 -2 -3] (doall (drop-while neg? [-1 -2 -3 1 2 3 4 -1 -2 -3]))) "drop-while: first three element")
