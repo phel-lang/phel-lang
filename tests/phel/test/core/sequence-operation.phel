@@ -1,4 +1,5 @@
 (ns phel-test\test\core\sequence-operation
+  (:use OutOfBoundsException)
   (:require phel\test :refer [deftest is]))
 
 (deftest test-peek
@@ -242,6 +243,33 @@
   (is (= "a" (get-in {:a ["a"]} [:a 0])) "get-in level 2")
   (is (= "a" (get-in {:a [["b" "a"]]} [:a 0 1])) "get-in level 3")
   (is (= "x" (get-in {:a [["b" "a"]]} [:b 0 1] "x")) "get-in level 3 with default"))
+
+(deftest test-nth
+  (is (= 2 (nth [1 2 3] 1)) "nth on vector")
+  (is (= 1 (nth [1 2 3] 0)) "nth on vector first")
+  (is (= 3 (nth [1 2 3] 2)) "nth on vector last")
+  (is (= :default (nth [1 2 3] 5 :default)) "nth on vector out of bounds with default")
+  (is (= "b" (nth "abc" 1)) "nth on string")
+  (is (= :default (nth "abc" 5 :default)) "nth on string out of bounds with default")
+  (is (= 3 (nth '(1 2 3) 2)) "nth on list")
+  (is (= :default (nth nil 0 :default)) "nth on nil with default"))
+
+(deftest test-nth-throws-on-out-of-bounds
+  (is (thrown? OutOfBoundsException (nth [1 2 3] 5)) "nth throws on vector out of bounds")
+  (is (thrown? OutOfBoundsException (nth "abc" 5)) "nth throws on string out of bounds")
+  (is (thrown? OutOfBoundsException (nth nil 0)) "nth throws on nil"))
+
+(deftest test-nthrest
+  (is (= [3 4 5] (nthrest [1 2 3 4 5] 2)) "nthrest drops first n")
+  (is (= [1 2 3] (nthrest [1 2 3] 0)) "nthrest 0 returns coll")
+  (is (nil? (nthrest [1 2] 5)) "nthrest past end returns nil")
+  (is (nil? (nthrest nil 3)) "nthrest on nil returns nil"))
+
+(deftest test-nthnext
+  (is (= [3 4 5] (nthnext [1 2 3 4 5] 2)) "nthnext drops first n")
+  (is (= [1 2 3] (nthnext [1 2 3] 0)) "nthnext 0 returns seq of coll")
+  (is (nil? (nthnext [1 2] 5)) "nthnext past end returns nil")
+  (is (nil? (nthnext nil 3)) "nthnext on nil returns nil"))
 
 (deftest test-put
   (is (= {:a nil :b 2} (put {:a 1 :b 2} :a nil)) "put: nil on map")
