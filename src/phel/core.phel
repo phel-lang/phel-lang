@@ -5290,14 +5290,20 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
         (php/intval trimmed)))))
 
 (defn parse-double
-  "Parses a string as a float. Returns nil if parsing fails."
-  {:example "(parse-double \"3.14\") ; => 3.14"
+  "Parses a string as a float. Returns `nil` for non-numeric input or for
+  inputs that are not strings. Accepts `Infinity`, `-Infinity`, and `NaN`
+  alongside regular decimal and scientific notation."
+  {:example "(parse-double \"3.14\") ; => 3.14\n(parse-double \"Infinity\") ; => INF"
    :see-also ["parse-long"]}
   [s]
   (when (string? s)
     (let [trimmed (php/trim s)]
-      (when (php/is_numeric trimmed)
-        (php/floatval trimmed)))))
+      (cond
+        (or (= trimmed "Infinity") (= trimmed "+Infinity")) php/INF
+        (= trimmed "-Infinity") (php/- php/INF)
+        (= trimmed "NaN") NAN
+        (php/is_numeric trimmed) (php/floatval trimmed)
+        :else nil))))
 
 (defn parse-boolean
   "Parses a string as a boolean. Returns true for \"true\", false for \"false\", nil otherwise."
