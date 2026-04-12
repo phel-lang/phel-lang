@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - `(def name)` without a value no longer throws; defines the var as `nil`, matching Clojure (#1361)
 - `doseq` now accepts Clojure-style binding pairs `(doseq [x coll] body)` without requiring `:in` verb (#1362)
+- `drop-last` now works with lazy sequences and ranges; returns a lazy sequence matching Clojure (#1360)
 
 ### Changed
 
