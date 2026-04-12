@@ -131,7 +131,10 @@
   (is (false? (empty? 1)) "empty? on positive number")
   (is (true? (empty? 0)) "empty? on zero")
   (is (false? (empty? -1)) "empty? on negative number")
-  (is (false? (empty? "a")) "empty? on one string"))
+  (is (false? (empty? "a")) "empty? on one string")
+  (is (false? (empty? (range))) "empty? on infinite range returns false")
+  (is (true? (empty? (filter (fn [x] false) [1 2 3]))) "empty? on empty lazy seq")
+  (is (false? (empty? (filter odd? [1 2 3]))) "empty? on non-empty lazy seq"))
 
 (deftest test-indexed?
   (is (false? (indexed? {})) "indexed? on map")

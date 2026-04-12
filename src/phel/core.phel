@@ -1124,13 +1124,14 @@ Otherwise, it tries to call `__toString`."
   (php/instanceof x LazySeqInterface))
 
 (defn empty?
-  "Returns true if x would be 0, \"\" or empty collection, false otherwise."
+  "Returns true if x would be 0, \"\" or empty collection, false otherwise.
+  Safe on infinite/lazy sequences: checks the first element instead of counting."
   [x]
-  (if (php/is_numeric x)
-    (= 0 x)
-    (if (php/is_string x)
-      (true? (php/empty x))
-      (= 0 (count x)))))
+  (cond
+    (php/is_numeric x) (= 0 x)
+    (php/is_string x) (true? (php/empty x))
+    (php/instanceof x LazySeqInterface) (nil? (first x))
+    :else (= 0 (count x))))
 
 (defn not-empty
   "Returns `coll` if it contains elements, otherwise nil."
