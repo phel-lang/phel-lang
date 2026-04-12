@@ -1,4 +1,4 @@
-(ns phel-test\test\multi-arity-fn
+(ns phel-test\test\core\multi-arity-fn
   (:require phel\test :refer [deftest is thrown?]))
 
 (defn- greet

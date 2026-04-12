@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- Reorganized Phel test files: dissolved `core.phel` into topic files under `core/`, moved `comments.phel`, `special-forms.phel`, `multi-arity-fn.phel` into `core/`
+
 ### Added
 
 - `phel\http-client` module for outbound HTTP requests using PHP streams

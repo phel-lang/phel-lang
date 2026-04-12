@@ -1,0 +1,39 @@
+(ns phel-test\test\core\assert
+  (:require phel\test :refer [deftest is thrown? thrown-with-msg?]))
+
+(deftest test-assert-passes
+  (assert true)
+  (assert (= 1 1))
+  (assert "non-nil string")
+  (is (= 1 1) "assert does not throw on truthy values"))
+
+(deftest test-assert-fails
+  (is (thrown? \InvalidArgumentException (assert false))
+      "assert throws on false")
+  (is (thrown? \InvalidArgumentException (assert nil))
+      "assert throws on nil")
+  (is (thrown-with-msg? \InvalidArgumentException "Assert failed: must be positive"
+        (assert false "must be positive"))
+      "assert includes custom message"))
+
+(deftest test-assert-var-default
+  (is (= true *assert*) "*assert* defaults to true"))
+
+;; Toggle phel\core/*assert* at file load time so the forms below are
+;; macroexpanded while the flag is false. The macro must read the current
+;; value of *assert* from the core namespace on each expansion.
+(php/:: \Phel (addDefinition "phel\\core" "*assert*" false))
+
+(defn- assert-while-disabled-returns-nil []
+  (list (assert false)
+        (assert nil "boom")
+        (assert (= 1 2) "not equal")))
+
+(php/:: \Phel (addDefinition "phel\\core" "*assert*" true))
+
+(deftest test-assert-disabled-at-expansion-time
+  (is (= '(nil nil nil) (assert-while-disabled-returns-nil))
+      "assert expands to nil while *assert* is false")
+  (is (= true *assert*) "*assert* restored to true for subsequent forms")
+  (is (thrown? \InvalidArgumentException (assert false))
+      "assert resumes throwing after re-enabling *assert*"))
