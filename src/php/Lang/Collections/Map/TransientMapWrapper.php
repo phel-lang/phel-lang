@@ -24,6 +24,20 @@ final class TransientMapWrapper implements TransientMapInterface, Stringable
         return '<TransientMap count=' . $this->count() . '>';
     }
 
+    /**
+     * Lookup by key so transient maps stay callable like their persistent
+     * counterparts: `((transient {:a 1}) :a) ; => 1`.
+     *
+     * @param K      $key
+     * @param V|null $default
+     *
+     * @return V|null
+     */
+    public function __invoke(mixed $key, mixed $default = null): mixed
+    {
+        return $this->offsetGet($key) ?? $default;
+    }
+
     public function contains($key): bool
     {
         return $this->internal->contains($key);
