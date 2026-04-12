@@ -51,6 +51,14 @@
   (is (true? (integer? 10)) "integer? on 10")
   (is (true? (integer? 0)) "integer? on 10"))
 
+(deftest test-neg-int?
+  (is (true? (neg-int? -1)) "neg-int? on -1")
+  (is (true? (neg-int? -100)) "neg-int? on -100")
+  (is (false? (neg-int? 0)) "neg-int? on 0")
+  (is (false? (neg-int? 1)) "neg-int? on 1")
+  (is (false? (neg-int? -1.0)) "neg-int? on -1.0")
+  (is (false? (neg-int? nil)) "neg-int? on nil"))
+
 (deftest test-number?
   (is (true? (number? 10.0)) "number? on 10.0")
   (is (true? (number? 0.0)) "number? on 0.0")
@@ -90,6 +98,13 @@
 
 (deftest test-symbol?
   (is (true? (symbol? 'x)) "symbol? on 'x"))
+
+(deftest test-ident?
+  (is (true? (ident? :test)) "ident? on keyword")
+  (is (true? (ident? 'x)) "ident? on symbol")
+  (is (false? (ident? "test")) "ident? on string")
+  (is (false? (ident? 42)) "ident? on number")
+  (is (false? (ident? nil)) "ident? on nil"))
 
 (deftest test-function?
   (is (true? (function? concat)) "function? on concat"))
