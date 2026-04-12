@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 
 - `nth`, `nthrest`, `nthnext` sequence functions with Clojure-compatible semantics (#1375)
 - `simple-ident?`, `simple-keyword?`, `simple-symbol?` predicate functions for non-namespaced identifiers (#1381)
+- `special-symbol?` predicate function: returns true if a symbol names a special form (#1384)
 - `sequential?` predicate function: returns true for ordered collections (vectors, lists, lazy sequences) (#1380)
 - `seqable?` predicate function: returns true if `seq` is supported for the argument (#1379)
 - `phel\http-client` module for outbound HTTP requests using PHP streams

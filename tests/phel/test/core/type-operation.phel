@@ -110,6 +110,26 @@
   (is (false? (simple-ident? "test")) "simple-ident? on string")
   (is (false? (simple-ident? nil)) "simple-ident? on nil"))
 
+(deftest test-special-symbol?
+  (is (true? (special-symbol? 'def)) "special-symbol? on def")
+  (is (true? (special-symbol? 'fn)) "special-symbol? on fn")
+  (is (true? (special-symbol? 'if)) "special-symbol? on if")
+  (is (true? (special-symbol? 'do)) "special-symbol? on do")
+  (is (true? (special-symbol? 'let)) "special-symbol? on let")
+  (is (true? (special-symbol? 'quote)) "special-symbol? on quote")
+  (is (true? (special-symbol? 'try)) "special-symbol? on try")
+  (is (true? (special-symbol? 'throw)) "special-symbol? on throw")
+  (is (true? (special-symbol? 'recur)) "special-symbol? on recur")
+  (is (true? (special-symbol? 'loop)) "special-symbol? on loop")
+  (is (true? (special-symbol? 'ns)) "special-symbol? on ns")
+  (is (true? (special-symbol? 'php/new)) "special-symbol? on php/new")
+  (is (false? (special-symbol? 'map)) "special-symbol? on map")
+  (is (false? (special-symbol? 'filter)) "special-symbol? on filter")
+  (is (false? (special-symbol? :def)) "special-symbol? on keyword :def")
+  (is (false? (special-symbol? "def")) "special-symbol? on string")
+  (is (false? (special-symbol? 42)) "special-symbol? on integer")
+  (is (false? (special-symbol? nil)) "special-symbol? on nil"))
+
 (deftest test-function?
   (is (true? (function? concat)) "function? on concat"))
 
