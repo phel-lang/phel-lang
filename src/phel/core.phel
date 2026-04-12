@@ -1020,11 +1020,10 @@ Otherwise, it tries to call `__toString`."
   {:example "(some? 1) ; => true\n(some? even? [1 3 5 6 7]) ; => true"}
   ([x] (not (nil? x)))
   ([pred coll]
-   (if (empty? coll)
-     false
-     (if (truthy? (pred (first coll)))
-       true
-       (recur pred (next coll))))))
+   (cond
+     (empty? coll) false
+     (truthy? (pred (first coll))) true
+     :else (recur pred (next coll)))))
 
 (defn not-any?
   "Returns true if `(pred x)` is logical false for every `x` in `coll`
@@ -2649,7 +2648,7 @@ Otherwise, it tries to call `__toString`."
                         (let [n @nv
                               nn (vreset! nv (php/- n 1))
                               result (if (php/> n 0) (rf result input) result)]
-                          (if (not (php/> nn 0)) (ensure-reduced result) result))))))
+                          (if (php/<= nn 0) (ensure-reduced result) result))))))
     1 (let [coll (first args)
             n (if (php/< n 0) 0 n)]
         (if (php/=== n 0)
@@ -2777,11 +2776,10 @@ Otherwise, it tries to call `__toString`."
    :see-also ["find-index" "filter" "some?"]}
   [pred coll]
   (loop [s coll]
-    (if (empty? s)
-      nil
-      (if (pred (first s))
-        (first s)
-        (recur (next s))))))
+    (cond
+      (empty? s) nil
+      (pred (first s)) (first s)
+      :else (recur (next s)))))
 
 (defn find-index
   "Returns the index of the first item in `coll` where `(pred item)` evaluates to true."
@@ -2790,11 +2788,10 @@ Otherwise, it tries to call `__toString`."
   [pred coll]
   (loop [s coll
          i 0]
-    (if (empty? s)
-      nil
-      (if (pred (first s))
-        i
-        (recur (next s) (php/+ i 1))))))
+    (cond
+      (empty? s) nil
+      (pred (first s)) i
+      :else (recur (next s) (php/+ i 1)))))
 
 (defn distinct
   "Returns a lazy sequence with duplicated values removed in `coll`.
