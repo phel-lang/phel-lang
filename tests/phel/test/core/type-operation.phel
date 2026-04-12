@@ -91,6 +91,14 @@
 (deftest test-symbol?
   (is (true? (symbol? 'x)) "symbol? on 'x"))
 
+(deftest test-ident?
+  (is (true? (ident? 'x)) "ident? on symbol")
+  (is (true? (ident? :a)) "ident? on keyword")
+  (is (false? (ident? 42)) "ident? on integer")
+  (is (false? (ident? "test")) "ident? on string")
+  (is (false? (ident? nil)) "ident? on nil")
+  (is (false? (ident? [])) "ident? on vector"))
+
 (deftest test-simple-symbol?
   (is (true? (simple-symbol? 'x)) "simple-symbol? on simple symbol")
   (is (false? (simple-symbol? :kw)) "simple-symbol? on keyword")

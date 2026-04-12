@@ -1086,6 +1086,13 @@ Otherwise, it tries to call `__toString`."
   [x]
   (= (type x) :symbol))
 
+(defn ident?
+  "Returns true if `x` is a symbol or keyword."
+  {:example "(ident? 'x) ; => true\n(ident? :a) ; => true\n(ident? 42) ; => false"
+   :see-also ["symbol?" "keyword?" "simple-ident?"]}
+  [x]
+  (or (symbol? x) (keyword? x)))
+
 (defn simple-symbol?
   "Returns true if `x` is a symbol without a namespace."
   {:see-also ["symbol?" "simple-ident?"]}
