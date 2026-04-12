@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - `doseq` now accepts Clojure-style binding pairs `(doseq [x coll] body)` without requiring `:in` verb (#1362)
 - `drop-last` now works with lazy sequences and ranges; returns a lazy sequence matching Clojure (#1360)
 - `(empty? (range))` no longer hangs; `empty?` checks `first` for lazy sequences instead of `count` (#1366)
+- `is` macro no longer misinterprets `let`/`when`/`cond` forms as binary predicates (#1367)
 
 ### Changed
 

@@ -149,6 +149,24 @@
     (is (= 1 (:failed counts)) "output? mismatch records a failure")))
 
 ;; ---------------------------------------------------------------------------
+;; :default — let/when/cond forms fall through to assert-any, not assert-binary
+;; ---------------------------------------------------------------------------
+
+(deftest test-is-let-binding-not-misread-as-binary
+  (is (let [f #(+ 2 %)
+            f' f]
+        (= f f'))
+      "let form inside is should evaluate normally"))
+
+(deftest test-is-when-form-not-misread-as-predicate
+  (is (when true 42)
+      "when form inside is should evaluate normally"))
+
+(deftest test-is-cond-form-not-misread-as-binary
+  (is (cond true 1 :else 2)
+      "cond form inside is should evaluate normally"))
+
+;; ---------------------------------------------------------------------------
 ;; :default — binary predicate (3-element list)
 ;; ---------------------------------------------------------------------------
 
