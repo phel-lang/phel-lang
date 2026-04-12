@@ -47,3 +47,16 @@
   (is (= (sorted-set 1) (disj (sorted-set 1 2 3) 2 3)) "disj removes multiple keys from sorted-set")
   (is (nil? (disj nil 1)) "disj on nil returns nil")
   (is (thrown? \InvalidArgumentException (disj [1 2 3] 1)) "disj on vector throws InvalidArgumentException"))
+
+(deftest test-set-push
+  (let [s1 (hash-set 1 2)
+        s2 (push s1 3)]
+    (is (= (hash-set 1 2 3) s2) "set push"))
+  (let [s1 (hash-set 1 2)
+        s2 (push s1 2)]
+    (is (= (hash-set 1 2) s2) "set push existing value")))
+
+(deftest test-set-concat
+  (is (= (hash-set 0 1 2 3) (into (hash-set) (concat (hash-set 1 2) [0 3]))) "set concat vector using into")
+  (is (= (hash-set 0 1 2 3) (into (hash-set) (concat (hash-set 1 2) [0 1 2 3]))) "set concat vector with common values using into")
+  (is (= (hash-set 0 1 2) (into (hash-set) (concat (hash-set 1 2) (hash-set 0 1)))) "set concat using into"))

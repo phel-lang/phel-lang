@@ -1,4 +1,4 @@
-(ns phel-test\test\comments
+(ns phel-test\test\core\comments
   (:require phel\test :refer [deftest is]))
 
 (deftest test-line-comment

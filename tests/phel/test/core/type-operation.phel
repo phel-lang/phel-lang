@@ -1,5 +1,6 @@
 (ns phel-test\test\core\type-operation
   (:use DateTime)
+  (:use Phel\Lang\Symbol)
   (:require phel\test :refer [deftest is]))
 
 (deftest test-type
@@ -209,3 +210,30 @@
   (is (false? (coll? 'a)) "coll? on symbol")
   (is (false? (coll? (php/array))) "coll? on empty php array")
   (is (false? (coll? (php/array 1 2 3))) "coll? on non-empty php array"))
+
+(deftest test-name
+  (is (= "string" (name "string")) "name on string")
+  (is (= "symbol" (name 'symbol)) "name on symbol")
+  (is (= "keyword" (name :keyword)) "name of keyword"))
+
+(deftest test-symbol
+  (is (= "Phel\\Lang\\Symbol" (php/get_class (symbol "abc"))) "symbol returns Symbol class instance")
+  (is (= 'abc (symbol "abc")) "symbol on simple string")
+  (is (= '*_.%;!:+-? (symbol "*_.%;!:+-?")) "symbol on complex string")
+  (is (= 'foo/bar (symbol "foo" "bar")) "symbol on string with namespace")
+  (is (= "foo" (php/-> (symbol "foo" "bar") (getNamespace))) "symbol on string with namespace using getNamespace")
+  (is (= nil (php/-> (symbol "bar") (getNamespace))) "symbol on string without namespace using getNamespace")
+  (is (= 'foo (php/:: (symbol (str "\Phel" "\Lang" "\Symbol")) (create "foo"))) "symbol on PHP class identifier string"))
+
+(deftest test-namespace
+  (is (= nil (namespace 'symbol)) "namespace on symbol without ns")
+  (is (= nil (namespace :keyword)) "namespace of keyword without ns")
+  (is (= "test" (namespace (php/:: Symbol (createForNamespace "test" "symbol")))) "namespace on symbol with ns")
+  (is (= "phel-test\\test\\core\\type-operation" (namespace ::keyword)) "namespace of keyword with ns"))
+
+(deftest test-full-name
+  (is (= "string" (name "string")) "full-name on string")
+  (is (= "symbol" (full-name 'symbol)) "full-name on symbol without ns")
+  (is (= "keyword" (full-name :keyword)) "full-name of keyword without ns")
+  (is (= "test/symbol" (full-name (php/:: Symbol (createForNamespace "test" "symbol")))) "full-name on symbol with ns")
+  (is (= "phel-test\\test\\core\\type-operation/keyword" (full-name ::keyword)) "full-name of keyword with ns"))

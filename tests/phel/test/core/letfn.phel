@@ -1,0 +1,57 @@
+(ns phel-test\test\core\letfn
+  (:require phel\test :refer [deftest is]))
+
+(deftest test-letfn-mutual-recursion
+  (is (true? (letfn [(my-even? [n] (if (zero? n) true (my-odd? (dec n))))
+                     (my-odd? [n] (if (zero? n) false (my-even? (dec n))))]
+               (my-even? 10)))
+      "mutual recursion: 10 is even")
+  (is (false? (letfn [(my-even? [n] (if (zero? n) true (my-odd? (dec n))))
+                      (my-odd? [n] (if (zero? n) false (my-even? (dec n))))]
+                (my-even? 7)))
+      "mutual recursion: 7 is not even"))
+
+(deftest test-letfn-single-recursive
+  (is (= 120 (letfn [(factorial [n] (if (<= n 1) 1 (* n (factorial (dec n)))))]
+               (factorial 5)))
+      "single recursive function"))
+
+(deftest test-letfn-multiple-params
+  (letfn [(add [a b] (+ a b))
+          (mul [a b] (* a b))]
+    (is (= 5 (add 2 3)) "multi-param function")
+    (is (= 6 (mul 2 3)) "another multi-param function")))
+
+(deftest test-letfn-captures-outer-bindings
+  (let [offset 100]
+    (letfn [(add-offset [x] (+ x offset))]
+      (is (= 142 (add-offset 42)) "letfn captures outer let binding"))))
+
+(deftest test-letfn-fn-as-value
+  (is (= [2 4 6]
+         (letfn [(dbl [x] (* 2 x))]
+           (map dbl [1 2 3])))
+      "letfn function passed as value to map"))
+
+(deftest test-letfn-three-way-recursion
+  (letfn [(a [n] (if (zero? n) :done (b (dec n))))
+          (b [n] (if (zero? n) :done (c (dec n))))
+          (c [n] (if (zero? n) :done (a (dec n))))]
+    (is (= :done (a 9)) "three-way mutual recursion")))
+
+(deftest test-letfn-nested
+  (is (= 10
+         (letfn [(outer [x]
+                   (letfn [(inner [y] (* y 2))]
+                     (inner x)))]
+           (outer 5)))
+      "nested letfn"))
+
+(deftest test-letfn-body-uses-all-fns
+  (letfn [(double [x] (* 2 x))
+          (triple [x] (* 3 x))]
+    (is (= 6 (double 3)) "double works")
+    (is (= 9 (triple 3)) "triple works")))
+
+(deftest test-letfn-empty-bindings
+  (is (= 42 (letfn [] 42)) "empty bindings returns body value"))

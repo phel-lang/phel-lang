@@ -445,3 +445,9 @@
       (is (= 2 (count rows)) "should read 2 rows, ignoring trailing newline")
       (is (= ["Alice" "30"] (second rows)) "last row should be parsed correctly"))
     (php/unlink target-file)))
+
+(deftest test-__FILE__
+  (is (true? (>= (php/strpos __FILE__ "tests/phel/test/core/file-operation.phel") 0)) "__FILE__"))
+
+(deftest test-__DIR__
+  (is (true? (and (false? (php/strpos __DIR__ "tests/phel/test/core/file-operation.phel")) (>= (php/strpos __DIR__ "tests/phel/test/core") 0))) "__DIR__"))

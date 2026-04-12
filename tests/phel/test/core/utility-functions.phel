@@ -1,5 +1,6 @@
 (ns phel-test\test\core\utility-functions
-  (:require phel\test :refer [deftest is]))
+  (:require phel\test :refer [deftest is])
+  (:require phel\str :as s))
 
 ;; --- Math predicates & functions ---
 
@@ -97,3 +98,22 @@
     (is (not (nil? sym)) "resolve resolves itself")
     (is (= "phel\\core" (namespace sym)) "resolve lives in phel\\core")
     (is (= "resolve" (name sym)) "resolve has correct name")))
+
+(deftest test-time
+  (is (= 2 (+ 1 1)) "time returns expr value")
+  (let [output-print (with-output-buffer (time (+ 1 1)))]
+    (is (string? output-print) "time prints to output")
+    (is (s/contains? output-print "Elapsed time:"))
+    (is (s/contains? output-print "msecs"))))
+
+(deftest test-read-string
+  (is (= '(+ 1 1) (read-string "(+ 1 1)")) "read simple expression")
+  (is (= nil (read-string "")) "read empty string"))
+
+(deftest test-eval-form
+  (is (= 2 (eval '(+ 1 1))) "eval simple expression"))
+
+(deftest test-compile-form
+  (is (= "(\\Phel::getDefinition(\"phel\\\\core\", \"assert-non-nil\"))(1, 1);\n(1 + 1);"
+         (compile '(+ 1 1)))
+      "compile simple expression"))
