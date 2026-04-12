@@ -231,6 +231,26 @@
   (is (false? (coll? (php/array))) "coll? on empty php array")
   (is (false? (coll? (php/array 1 2 3))) "coll? on non-empty php array"))
 
+(deftest test-seqable?
+  (is (true? (seqable? [])) "seqable? on empty vector")
+  (is (true? (seqable? [1 2 3])) "seqable? on non-empty vector")
+  (is (true? (seqable? '())) "seqable? on empty list")
+  (is (true? (seqable? '(1 2 3))) "seqable? on non-empty list")
+  (is (true? (seqable? {})) "seqable? on empty map")
+  (is (true? (seqable? {:a 1})) "seqable? on non-empty map")
+  (is (true? (seqable? #{})) "seqable? on empty set")
+  (is (true? (seqable? #{1 2})) "seqable? on non-empty set")
+  (is (true? (seqable? (range 3))) "seqable? on lazy sequence")
+  (is (true? (seqable? "hello")) "seqable? on string")
+  (is (true? (seqable? "")) "seqable? on empty string")
+  (is (true? (seqable? nil)) "seqable? on nil")
+  (is (true? (seqable? (php/array 1 2))) "seqable? on php array")
+  (is (false? (seqable? 42)) "seqable? on integer")
+  (is (false? (seqable? 1.5)) "seqable? on float")
+  (is (false? (seqable? true)) "seqable? on boolean")
+  (is (false? (seqable? :a)) "seqable? on keyword")
+  (is (false? (seqable? 'a)) "seqable? on symbol"))
+
 (deftest test-name
   (is (= "string" (name "string")) "name on string")
   (is (= "symbol" (name 'symbol)) "name on symbol")
