@@ -1,0 +1,26 @@
+(ns phel\router\flatten)
+
+(declare walk-one)
+
+(defn- walk-many [routes prefix-path prev-data]
+  (apply concat []
+         (for [r :in routes]
+           (walk-one r prefix-path prev-data))))
+
+(defn- walk-one [routes prefix-path prev-data]
+  (if (vector? (first routes))
+    (walk-many routes prefix-path prev-data)
+    (when (string? (first routes))
+      (let [[path & args] routes
+            [maybe-arg] args
+            [data childs] (if (or (vector? maybe-arg) (nil? maybe-arg))
+                            [{} args]
+                            [maybe-arg (rest args)])
+            next-data (deep-merge prev-data data)
+            child-routes (walk-many (keep identity childs) (str prefix-path path) next-data)]
+        (if (empty? childs) [[(str prefix-path path) next-data]] child-routes)))))
+
+(defn flatten-routes
+  "Flattens nested routes to a vector of tuples [path data]."
+  [raw-routes path-prefix common-data]
+  (walk-one raw-routes path-prefix common-data))

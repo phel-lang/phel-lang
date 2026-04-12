@@ -1,0 +1,11 @@
+(ns phel\router\middleware)
+
+(defn identity-middleware [handler request]
+  (handler request))
+
+(defn compose-middleware-2 [f g]
+  (fn [handler request]
+    (f |(g handler $) request)))
+
+(defn compose-middleware [middlewares]
+  (reduce compose-middleware-2 identity-middleware middlewares))

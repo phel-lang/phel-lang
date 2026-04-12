@@ -1,0 +1,28 @@
+(ns phel-test\test\router\flatten
+  (:require phel\test :refer [deftest is])
+  (:require phel\router\flatten :refer [flatten-routes]))
+
+(deftest flatten-routes-test
+  (is (=
+       [["/ping" {}]]
+       (flatten-routes ["/ping"] "" {}))
+      "simple route")
+  (is (=
+       [["/ping" {}] ["/pong" {}]]
+       (flatten-routes [["/ping"] ["/pong"]] "" {}))
+      "two routes")
+  (is (=
+       [["/ping" {:name ::ping}] ["/pong" {:name ::pong}]]
+       (flatten-routes [["/ping" {:name ::ping}] ["/pong" {:name ::pong}]] "" {}))
+      "route with arguments")
+  (is (=
+       [["/api/admin" {:middleware [::admin] :name ::admin}]
+        ["/api/admin/db" {:middleware [::admin ::connect] :name ::db}]
+        ["/api/ping" {:name ::ping}]]
+       (flatten-routes
+        ["/api"
+         ["/admin" {:middleware [::admin]}
+          ["" {:name ::admin}]
+          ["/db" {:name ::db :middleware [::connect]}]]
+         ["/ping" {:name ::ping}]] "" {}))
+      "nested routes"))

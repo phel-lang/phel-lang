@@ -1,0 +1,137 @@
+(ns phel\router
+  (:require phel\router\flatten)
+  (:require phel\router\handler)
+  (:use \Symfony\Component\Routing\Matcher\Dumper\CompiledUrlMatcherDumper)
+  (:use \Symfony\Component\Routing\Generator\UrlGenerator)
+  (:use \Symfony\Component\Routing\Generator\CompiledUrlGenerator)
+  (:use \Symfony\Component\Routing\Generator\Dumper\CompiledUrlGeneratorDumper)
+  (:use \Symfony\Component\Routing\Matcher\UrlMatcher)
+  (:use \Symfony\Component\Routing\Matcher\CompiledUrlMatcher)
+  (:use \Symfony\Component\Routing\Route)
+  (:use \Symfony\Component\Routing\RouteCollection)
+  (:use \Symfony\Component\Routing\RequestContext)
+  (:use \Symfony\Component\Routing\Exception\MethodNotAllowedException)
+  (:use \Symfony\Component\Routing\Exception\NoConfigurationException)
+  (:use \Symfony\Component\Routing\Exception\ResourceNotFoundException))
+
+(definterface Router
+              (match-by-path [this path] "Matches a route given a path. Returns nil if path doesn't match.")
+              (match-by-name [this route-name] "Matches a route given a route name. Returns nil if route can't be found.")
+              (generate [this route-name parameter] "Generate a url for a route"))
+
+(defn- build-route-collection [normalized-routes]
+  (for [route :in normalized-routes
+        :let [[path data] route
+              symfony-route (php/new Route path (php/array) (php/array) (php-associative-array "data" data "template" path))
+              route-name (full-name (get data :name (str "_unnamed_route_" route)))]
+        :reduce [coll (php/new RouteCollection)]]
+    (php/-> coll (add route-name symfony-route))
+    coll))
+
+(defstruct SymfonyRouter [route-collection]
+           Router
+           (match-by-path [this path]
+                          (try
+                            (let [context (php/new RequestContext)
+                                  matcher (php/new UrlMatcher route-collection context)
+                                  parameters (php/-> matcher (match path))
+                                  params-map (for [[k v] :pairs parameters
+                                                   :when (not (= k "_route"))
+                                                   :reduce [acc {}]]
+                                               (put acc (keyword k) v))
+                                  route-name (php/aget parameters "_route")
+                                  route (php/-> route-collection (get route-name))]
+                              {:template (php/-> route (getOption "template"))
+                               :data (php/-> route (getOption "data"))
+                               :path path
+                               :path-params params-map})
+                            (catch NoConfigurationException e nil)
+                            (catch ResourceNotFoundException e nil)
+                            (catch MethodNotAllowedException e nil)))
+           (match-by-name [this route-name]
+                          (let [route (php/-> route-collection (get (full-name route-name)))]
+                            (when route
+                              {:template (php/-> route (getOption "template"))
+                               :data (php/-> route (getOption "data"))})))
+           (generate [this route-name parameters]
+                     (let [context (php/new RequestContext)
+                           generator (php/new UrlGenerator route-collection context)
+                           arr (for [[k v] :pairs parameters
+                                     :reduce [acc (php/array)]]
+                                 (do (php/aset acc (name k) v) acc))]
+                       (php/-> generator (generate (full-name route-name) arr)))))
+
+(defn router
+  "Builds a router"
+  [raw-routes & [options]]
+  (let [{:path path :data data} options
+        path (or path "")
+        data (or data {})]
+    (SymfonyRouter
+     (-> raw-routes (flatten/flatten-routes path data) build-route-collection))))
+
+(defstruct CompiledSymfonyRouter [compiled-matcher-routes compiled-generator-routes indexed-routes]
+           Router
+           (match-by-path [this path]
+                          (try
+                            (let [context (php/new RequestContext)
+                                  matcher (php/new CompiledUrlMatcher compiled-matcher-routes context)
+                                  parameters (php/-> matcher (match path))
+                                  params-map (for [[k v] :pairs parameters
+                                                   :when (not (= k "_route"))
+                                                   :reduce [acc {}]]
+                                               (put acc (keyword k) v))
+                                  route-name (php/aget parameters "_route")
+                                  [template data] (get indexed-routes route-name)]
+                              {:template template
+                               :data data
+                               :path path
+                               :path-params params-map})
+                            (catch NoConfigurationException e nil)
+                            (catch ResourceNotFoundException e nil)
+                            (catch MethodNotAllowedException e nil)))
+           (match-by-name [this route-name]
+                          (let [route (get indexed-routes (full-name route-name))]
+                            (when route
+                              {:template (first route)
+                               :data (second route)})))
+           (generate [this route-name parameters]
+                     (let [context (php/new RequestContext)
+                           generator (php/new CompiledUrlGenerator compiled-generator-routes context)
+                           arr (for [[k v] :pairs parameters
+                                     :reduce [acc (php/array)]]
+                                 (do (php/aset acc (name k) v) acc))]
+                       (php/-> generator (generate (full-name route-name) arr)))))
+
+(defmacro compiled-router
+  "Builds a compiled router"
+  [raw-routes & [options]]
+  (let [{:path path :data data} (eval options)
+        path (or path "")
+        data (or data {})
+        flattened-routes (flatten/flatten-routes (eval raw-routes) path data)
+        indexed-routes (for [route :in flattened-routes
+                             :let [[_ data] route
+                                   name (full-name (get data :name (str "_unnamed_route_" route)))]
+                             :reduce [acc {}]]
+                         (put acc name route))
+        route-collection (build-route-collection flattened-routes)
+        match-dumper (php/new CompiledUrlMatcherDumper route-collection)
+        compiled-matcher-routes (php/-> match-dumper (getCompiledRoutes))
+        generator-dumper (php/new CompiledUrlGeneratorDumper route-collection)
+        compiled-generator-routes (php/-> generator-dumper (getCompiledRoutes))]
+    `(CompiledSymfonyRouter ,compiled-matcher-routes ,compiled-generator-routes ,indexed-routes)))
+
+(defn handler
+  "Returns a function request -> response that can be used to handle a route request."
+  [router & [options]]
+  (let [default-handler (get options :default-handler (handler/create-default-handler {}))
+        middleware (get options :middleware [])]
+    (fn [request]
+      (let [match (match-by-path router (get-in request [:uri :path]))]
+        (if match
+          (let [method (-> request :method name php/strtolower keyword)
+                [handler route-data] (or (handler/find-handler match method middleware) [default-handler {}])
+                request (handler/enrich-request request match route-data)]
+            (or (handler request) (default-handler request)))
+          (default-handler request))))))
