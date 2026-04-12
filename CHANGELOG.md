@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - `phel\ai` module for LLM API access (Anthropic and OpenAI) with `complete`, `chat`, and `chat-with-history` functions
 - `phel\ai-repl` module with AI-assisted REPL commands: `explain`, `explain-sym`, `suggest`, `fix`, `review`
 - `phel\ai-structured` module for structured AI output: `extract`, `extract-many`, `tool`, `chat-with-tools`, `tool-calls`
+- `phel\ai-embed` module for embeddings and semantic search: `embed`, `embed-one`, `cosine-similarity`, `nearest`, `build-index`, `search`, `embed-ns`, `search-ns`
 
 ## [0.32.0](https://github.com/phel-lang/phel-lang/compare/v0.31.0...v0.32.0) - 2026-04-12
 
