@@ -97,6 +97,16 @@
   (is (nil? (parse-uuid "")) "parse-uuid returns nil on empty")
   (is (nil? (parse-uuid nil)) "parse-uuid returns nil on nil"))
 
+(deftest test-uuid-tagged-literal
+  (is (= "00000000-0000-0000-0000-000000000000"
+         #uuid "00000000-0000-0000-0000-000000000000")
+      "#uuid reads as the canonical string")
+  (is (= "550e8400-e29b-41d4-a716-446655440000"
+         #uuid "550E8400-E29B-41D4-A716-446655440000")
+      "#uuid lowercases uppercase hex")
+  (is (uuid? #uuid "00000012-0034-0056-0078-000000000009")
+      "#uuid result passes uuid?"))
+
 ;; --- resolve ---
 
 (deftest test-resolve-known-symbol

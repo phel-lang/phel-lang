@@ -13,6 +13,7 @@ use Phel\Compiler\Domain\Reader\ExpressionReader\MetaReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\QuoasiquoteReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\SetReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\SymbolReader;
+use Phel\Compiler\Domain\Reader\ExpressionReader\TaggedLiteralReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\VectorReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\WrapReader;
 
@@ -68,5 +69,10 @@ final class ExpressionReaderFactory implements ExpressionReaderFactoryInterface
     public function createMapReader(Reader $reader): MapReader
     {
         return new MapReader($reader);
+    }
+
+    public function createTaggedLiteralReader(): TaggedLiteralReader
+    {
+        return new TaggedLiteralReader();
     }
 }

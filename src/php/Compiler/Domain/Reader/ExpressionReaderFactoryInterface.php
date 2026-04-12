@@ -13,6 +13,7 @@ use Phel\Compiler\Domain\Reader\ExpressionReader\MetaReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\QuoasiquoteReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\SetReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\SymbolReader;
+use Phel\Compiler\Domain\Reader\ExpressionReader\TaggedLiteralReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\VectorReader;
 use Phel\Compiler\Domain\Reader\ExpressionReader\WrapReader;
 
@@ -40,4 +41,6 @@ interface ExpressionReaderFactoryInterface
     ): QuoasiquoteReader;
 
     public function createMetaReader(Reader $reader): MetaReader;
+
+    public function createTaggedLiteralReader(): TaggedLiteralReader;
 }
