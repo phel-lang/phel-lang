@@ -39,6 +39,17 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Clojure-test-suite alignment: a batch of core functions now match Clojure's shape reported by `jasalt/clojure-test-suite`
+  - `keyword` is idempotent on keyword input, accepts symbols, handles `nil`, and gains the `(keyword ns name)` arity-2 namespaced form
+  - `dissoc` accepts zero keys and variadic key lists (`(apply dissoc m [:a :b])` removes both keys)
+  - `keys` / `vals` return `nil` for `nil` or empty collections
+  - `make-hierarchy` returns `{:parents {} :descendants {} :ancestors {}}`; `derive`/`underive` preserve all three keys
+  - `parse-double` accepts `Infinity`, `+Infinity`, `-Infinity`, and `NaN`
+  - `mapcat` accepts multiple collections, zipping corresponding elements into `f`
+  - `first` treats maps as a seq of entries, so `ffirst` / `nfirst` work on maps
+  - `str` preserves float representation: `(str 0.0)` → `"0.0"`; `NaN`, `Infinity`, `-Infinity` stringify readably
+  - `compare` throws `InvalidArgumentException` on cross-category arguments; `nil` remains less than every non-nil value
+  - Transient vectors/maps/sets are callable like their persistent counterparts; `Keyword::__invoke` accepts any `ArrayAccess` so `(:a (transient m))` works
 - `deftest` rejects a missing/non-symbol name with a clear `InvalidArgumentException` instead of crashing inside macro expansion (#1364)
 - `(def name)` without a value no longer throws; binds `nil`, matching Clojure (#1361)
 - `doseq` accepts Clojure-style pairs `(doseq [x coll] body)` without requiring the `:in` verb (#1362)
