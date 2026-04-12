@@ -267,6 +267,17 @@
 (deftest test-not-empty
   (is (= [1] (not-empty [1])) "not-empty returns coll")
   (is (nil? (not-empty [])) "not-empty empty"))
+(deftest test-empty
+  (is (= [] (empty [1 2 3])) "empty of a vector returns []")
+  (is (= [] (empty [])) "empty of an empty vector returns []")
+  (is (= {} (empty {:a 1 :b 2})) "empty of a map returns {}")
+  (is (= {} (empty {})) "empty of an empty map returns {}")
+  (is (= (set) (empty (set [1 2 3]))) "empty of a set returns (set)")
+  (is (= '() (empty '(1 2 3))) "empty of a list returns ()")
+  (is (= "" (empty "hello")) "empty of a string returns """)
+  (is (= "" (empty "")) "empty of an empty string returns """)
+  (is (nil? (empty nil)) "empty of nil returns nil"))
+
 
 (deftest test-pairs
   (is (= [[:a 1] [:b 2] [:c 3]] (pairs {:a 1 :b 2 :c 3})) "pairs of maps")
