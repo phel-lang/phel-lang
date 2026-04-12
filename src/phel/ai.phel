@@ -53,24 +53,23 @@
 ;; Provider-specific request builders
 ;; -----------
 
-(defn- anthropic-base-url [cfg]
-  (or (get cfg :base-url) "https://api.anthropic.com"))
-
-(defn- openai-base-url [cfg]
-  (or (get cfg :base-url) "https://api.openai.com"))
+(defn- provider-base-url
+  "Returns the default base URL for the given provider."
+  [provider]
+  (case provider
+    :openai "https://api.openai.com"
+    "https://api.anthropic.com"))
 
 (defn- anthropic-request
   "Builds an HTTP request for the Anthropic Messages API."
   [cfg messages system-prompt]
   (let [api-key (resolve-api-key cfg)
-        url (str (anthropic-base-url cfg) "/v1/messages")
+        base (or (get cfg :base-url) (provider-base-url :anthropic))
         body {:model (get cfg :model)
               :max_tokens (get cfg :max-tokens)
               :messages messages}
-        body (if system-prompt
-               (assoc body :system system-prompt)
-               body)]
-    {:url url
+        body (if system-prompt (assoc body :system system-prompt) body)]
+    {:url (str base "/v1/messages")
      :headers {:x-api-key api-key
                :anthropic-version "2023-06-01"
                :content-type "application/json"}
@@ -80,11 +79,11 @@
   "Builds an HTTP request for the OpenAI Chat Completions API."
   [cfg messages system-prompt]
   (let [api-key (resolve-api-key cfg)
-        url (str (openai-base-url cfg) "/v1/chat/completions")
+        base (or (get cfg :base-url) (provider-base-url :openai))
         messages (if system-prompt
                    (concat [{:role "system" :content system-prompt}] messages)
                    messages)]
-    {:url url
+    {:url (str base "/v1/chat/completions")
      :headers {:authorization (str "Bearer " api-key)
                :content-type "application/json"}
      :body {:model (get cfg :model)
@@ -116,9 +115,8 @@
 (defn- extract-text
   "Extracts text from a provider response."
   [provider response-body]
-  (case provider
-    :anthropic (extract-anthropic-text response-body)
-    :openai (extract-openai-text response-body)
+  (if (= provider :openai)
+    (extract-openai-text response-body)
     (extract-anthropic-text response-body)))
 
 ;; -----------
@@ -160,9 +158,8 @@
         cfg (if model (assoc cfg :model model) cfg)
         cfg (if max-tokens (assoc cfg :max-tokens max-tokens) cfg)
         provider (get cfg :provider)
-        req (case provider
-              :anthropic (anthropic-request cfg messages system-prompt)
-              :openai (openai-request cfg messages system-prompt)
+        req (if (= provider :openai)
+              (openai-request cfg messages system-prompt)
               (anthropic-request cfg messages system-prompt))
         response (hc/post (get req :url) {:headers (get req :headers)
                                           :json (get req :body)
