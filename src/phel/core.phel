@@ -1242,6 +1242,21 @@ Otherwise, it tries to call `__toString`."
   [x]
   (= (type x) :set))
 
+(defn ifn?
+  "Returns true if `x` can be used as a function (implements IFn).
+  This includes functions, keywords, maps, sets, and symbols.
+  Keywords and maps can be used as lookup functions: `(:key map)`, `(map key)`.
+  Sets can be used as membership predicates: `(set element)`."
+  {:example "(ifn? concat) ; => true
+(ifn? :keyword) ; => true
+(ifn? {}) ; => true
+(ifn? #{}) ; => true
+(ifn? 'sym) ; => true
+(ifn? 42) ; => false"
+   :see-also ["fn?" "map?" "set?" "keyword?" "symbol?"]}
+  [x]
+  (or (fn? x) (map? x) (set? x) (keyword? x) (symbol? x)))
+
 (defn sorted?
   "Returns true if `coll` is a sorted collection (sorted-map or sorted-set), false otherwise."
   {:example "(sorted? (sorted-set 1 2 3)) ; => true"

@@ -94,6 +94,21 @@
 (deftest test-function?
   (is (true? (function? concat)) "function? on concat"))
 
+(deftest test-ifn?
+  (is (true? (ifn? concat)) "ifn? on function")
+  (is (true? (ifn? :keyword)) "ifn? on keyword")
+  (is (true? (ifn? {})) "ifn? on map")
+  (is (true? (ifn? {:a 1})) "ifn? on non-empty map")
+  (is (true? (ifn? #{})) "ifn? on set")
+  (is (true? (ifn? #{1 2 3})) "ifn? on non-empty set")
+  (is (true? (ifn? 'sym)) "ifn? on symbol")
+  (is (false? (ifn? 42)) "ifn? on integer")
+  (is (false? (ifn? "str")) "ifn? on string")
+  (is (false? (ifn? nil)) "ifn? on nil")
+  (is (false? (ifn? true)) "ifn? on boolean")
+  (is (false? (ifn? [])) "ifn? on vector")
+  (is (false? (ifn? '())) "ifn? on list"))
+
 (deftest test-hash-map?
   (is (true? (hash-map? {})) "hash-map?"))
 
