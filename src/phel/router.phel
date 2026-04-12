@@ -95,6 +95,7 @@
   (update request :attributes merge {:match match :route-data route-data}))
 
 (definterface Router
+              (routes [this] "Returns all registered routes as a vector of [path data] tuples.")
               (match-by-path [this path] "Matches a route given a path. Returns nil if path doesn't match.")
               (match-by-name [this route-name] "Matches a route given a route name. Returns nil if route can't be found.")
               (generate [this route-name parameter] "Generate a url for a route"))
@@ -159,8 +160,9 @@
   (when-let [[template data] route]
     {:template template :data data}))
 
-(defstruct SymfonyRouter [route-collection]
+(defstruct SymfonyRouter [normalized-routes route-collection]
            Router
+           (routes [this] normalized-routes)
            (match-by-path [this path]
                           (match-with
                            (php/new UrlMatcher route-collection (php/new RequestContext))
@@ -182,12 +184,13 @@
 (defn router
   "Builds a router"
   [raw-routes & [options]]
-  (let [{:path path :data data :or {path "" data {}}} (or options {})]
-    (SymfonyRouter
-     (-> raw-routes (flatten-routes path data) build-route-collection))))
+  (let [{:path path :data data :or {path "" data {}}} (or options {})
+        normalized (vec (flatten-routes raw-routes path data))]
+    (SymfonyRouter normalized (build-route-collection normalized))))
 
-(defstruct CompiledSymfonyRouter [compiled-matcher-routes compiled-generator-routes indexed-routes]
+(defstruct CompiledSymfonyRouter [normalized-routes compiled-matcher-routes compiled-generator-routes indexed-routes]
            Router
+           (routes [this] normalized-routes)
            (match-by-path [this path]
                           (match-with
                            (php/new CompiledUrlMatcher compiled-matcher-routes (php/new RequestContext))
@@ -205,14 +208,14 @@
   "Builds a compiled router"
   [raw-routes & [options]]
   (let [{:path path :data data :or {path "" data {}}} (or (eval options) {})
-        flattened-routes (flatten-routes (eval raw-routes) path data)
+        flattened-routes (vec (flatten-routes (eval raw-routes) path data))
         indexed-routes (for [route :in flattened-routes
                              :reduce [acc {}]]
                          (put acc (route-name-of route) route))
         route-collection (build-route-collection flattened-routes)
         compiled-matcher-routes (php/-> (php/new CompiledUrlMatcherDumper route-collection) (getCompiledRoutes))
         compiled-generator-routes (php/-> (php/new CompiledUrlGeneratorDumper route-collection) (getCompiledRoutes))]
-    `(CompiledSymfonyRouter ,compiled-matcher-routes ,compiled-generator-routes ,indexed-routes)))
+    `(CompiledSymfonyRouter ,flattened-routes ,compiled-matcher-routes ,compiled-generator-routes ,indexed-routes)))
 
 (defn handler
   "Returns a function request -> response that can be used to handle a route request."

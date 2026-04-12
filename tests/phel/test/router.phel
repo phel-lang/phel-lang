@@ -1,7 +1,7 @@
 (ns phel-test\test\router
   (:require phel\http :as h)
   (:require phel\test :refer [deftest is])
-  (:require phel\router :as r :refer [match-by-path match-by-name generate])
+  (:require phel\router :as r :refer [routes match-by-path match-by-name generate])
   (:use Symfony\Component\Routing\Exception\RouteNotFoundException)
   (:use Symfony\Component\Routing\Exception\MissingMandatoryParametersException))
 
@@ -36,6 +36,16 @@
      (is (= nil (match-by-name (~mk-router [["/ping/{id}" {:name ::ping}]]) ::pong))
          "route with name not found")))
 
+(defmacro ^:private routes-asserts [mk-router]
+  `(do
+     (is (= [["/ping" {}]]
+            (routes (~mk-router ["/ping"])))
+         "single static route is returned as [path data]")
+     (is (= [["/api/users" {:name ::users}] ["/api/posts" {:name ::posts}]]
+            (routes (~mk-router ["/api" [["/users" {:name ::users}]
+                                         ["/posts" {:name ::posts}]]])))
+         "nested routes are flattened with merged path and data")))
+
 (defmacro ^:private generate-asserts [mk-router]
   `(do
      (is (= "/ping" (generate (~mk-router [["/ping" {:name ::ping}]]) ::ping {}))
@@ -69,6 +79,12 @@
 
 (deftest test-generate-compiled-router
   (generate-asserts r/compiled-router))
+
+(deftest test-routes
+  (routes-asserts r/router))
+
+(deftest test-routes-compiled-router
+  (routes-asserts r/compiled-router))
 
 (defn- fnil [f x]
   (fn [a & args]
