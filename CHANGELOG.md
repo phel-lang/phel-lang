@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - `phel\http-client` module for outbound HTTP requests (GET, POST, PUT, DELETE, PATCH, HEAD) using PHP streams, with JSON body encoding, query params, and configurable timeouts
+- `phel\ai` module for LLM API access (Anthropic and OpenAI) with `complete`, `chat`, and `chat-with-history` functions
 
 ## [0.32.0](https://github.com/phel-lang/phel-lang/compare/v0.31.0...v0.32.0) - 2026-04-12
 

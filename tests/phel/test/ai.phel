@@ -1,0 +1,76 @@
+(ns phel-test\test\ai
+  (:require phel\test :refer [deftest is])
+  (:require phel\ai :as ai))
+
+;; --- Configuration ---
+
+(deftest test-configure-merges-options
+  (let [original @ai/config]
+    (ai/configure {:model "test-model" :max-tokens 500})
+    (is (= "test-model" (get @ai/config :model)) "configure updates model")
+    (is (= 500 (get @ai/config :max-tokens)) "configure updates max-tokens")
+    (is (= :anthropic (get @ai/config :provider)) "configure preserves unset keys")
+    ;; Restore original config
+    (reset! ai/config original)))
+
+(deftest test-configure-changes-provider
+  (let [original @ai/config]
+    (ai/configure {:provider :openai :model "gpt-4o" :api-key "test-key"})
+    (is (= :openai (get @ai/config :provider)) "configure changes provider")
+    (is (= "gpt-4o" (get @ai/config :model)) "configure updates model for new provider")
+    (reset! ai/config original)))
+
+;; --- API key resolution ---
+
+(deftest test-missing-api-key-throws
+  (let [original @ai/config]
+    (ai/configure {:api-key nil})
+    ;; Temporarily unset env var to test error
+    (let [saved-key (php/getenv "ANTHROPIC_API_KEY")]
+      (php/putenv "ANTHROPIC_API_KEY=")
+      (is (thrown? \RuntimeException (ai/complete "test"))
+          "missing API key throws RuntimeException")
+      (when saved-key
+        (php/putenv (str "ANTHROPIC_API_KEY=" saved-key))))
+    (reset! ai/config original)))
+
+;; --- Response extraction ---
+
+(deftest test-anthropic-response-extraction
+  (let [response-body {:content [{:type "text" :text "Hello from Claude!"}]
+                       :model "claude-sonnet-4-20250514"
+                       :role "assistant"}]
+    (is (= "Hello from Claude!"
+           (get (first (get response-body :content)) :text))
+        "extracts text from Anthropic response format")))
+
+(deftest test-openai-response-extraction
+  (let [response-body {:choices [{:message {:role "assistant"
+                                            :content "Hello from GPT!"}
+                                  :index 0}]}]
+    (is (= "Hello from GPT!"
+           (get-in (first (get response-body :choices)) [:message :content]))
+        "extracts text from OpenAI response format")))
+
+;; --- Error handling ---
+
+(deftest test-complete-to-invalid-endpoint-throws
+  (let [original @ai/config]
+    (ai/configure {:api-key "test-key" :base-url "http://0.0.0.0:1"})
+    (is (thrown? \RuntimeException (ai/complete "test"))
+        "request to unreachable endpoint throws")
+    (reset! ai/config original)))
+
+;; --- Public API completeness ---
+
+(deftest test-public-api-functions-exist
+  (is (function? ai/configure) "configure is defined")
+  (is (function? ai/chat) "chat is defined")
+  (is (function? ai/complete) "complete is defined")
+  (is (function? ai/chat-with-history) "chat-with-history is defined"))
+
+;; --- Config atom ---
+
+(deftest test-config-is-atom
+  (is (= :anthropic (get @ai/config :provider)) "default provider is anthropic")
+  (is (= 1024 (get @ai/config :max-tokens)) "default max-tokens is 1024"))
