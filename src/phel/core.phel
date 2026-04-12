@@ -3083,9 +3083,14 @@ Otherwise, it tries to call `__toString`."
     (xf-step rf (fn [result input] (reduce rrf result input)))))
 
 (defn mapcat
-  "Maps a function over a collection and concatenates the results. Returns a lazy sequence.
-  When called with f only, returns a transducer."
-  {:example "(mapcat reverse [[1 2] [3 4]]) ; => (2 1 4 3)"
+  "Maps a function over one or more collections and concatenates the results.
+  Returns a lazy sequence. When called with `f` alone, returns a transducer.
+
+  With a single collection behaves like `(apply concat (map f coll))`. With
+  multiple collections, `f` is called with corresponding elements from each
+  (stopping when the shortest is exhausted) and the resulting sequences are
+  concatenated."
+  {:example "(mapcat reverse [[1 2] [3 4]]) ; => (2 1 4 3)\n(mapcat list [:a :b :c] [1 2 3]) ; => (:a 1 :b 2 :c 3)"
    :see-also ["map" "cat" "transduce"]}
   [f & args]
   (case (count args)
@@ -3098,7 +3103,7 @@ Otherwise, it tries to call `__toString`."
             (if (php/=== nil result)
               '()
               (copy-meta coll result)))))
-    (throw (php/new InvalidArgumentException "mapcat expects 1 or 2 arguments"))))
+    (apply concat (apply map f args))))
 
 (defn interpose
   "Returns elements separated by a separator. Returns a lazy sequence.
