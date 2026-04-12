@@ -24,27 +24,75 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
     {
         assert($node instanceof DefStructNode);
 
-        $this->emitClassBegin($node);
+        if ($this->outputEmitter->getOptions()->isStatementEmitMode()) {
+            $this->emitViaEval($node);
+        } else {
+            $this->emitInline($node);
+        }
+    }
+
+    /**
+     * In statement mode, the class definition may end up inside a function
+     * wrapper (when a do-form is in expression context). PHP forbids namespace
+     * declarations inside functions, so we capture the class body at compile
+     * time and emit it as an eval() call. This guarantees the namespace is
+     * always the first statement within its own isolated eval context.
+     */
+    private function emitViaEval(DefStructNode $node): void
+    {
+        $ns = $this->outputEmitter->mungeEncodeNs($node->getNamespace());
+        $fqcn = $ns . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
+
+        // Capture the class body at compile time
+        ob_start();
+        $this->emitClassBody($node);
+        $classBody = (string) ob_get_clean();
+
+        // Emit: if (!class_exists(...)) { eval('namespace ...; <class body>'); }
+        $this->outputEmitter->emitLine("if (!class_exists('" . $fqcn . "')) {", $node->getStartSourceLocation());
+        $this->outputEmitter->increaseIndentLevel();
+
+        $evalCode = 'namespace ' . $ns . ";\n" . $classBody;
+        $this->outputEmitter->emitLine(
+            'eval(' . var_export($evalCode, true) . ');',
+            $node->getStartSourceLocation(),
+        );
+
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
+    }
+
+    /**
+     * In file/cache mode the NsEmitter already declared the namespace at the
+     * top of the file, so the class is emitted inline without its own
+     * namespace statement.
+     */
+    private function emitInline(DefStructNode $node): void
+    {
+        $this->emitClassExistsGuard($node);
+        $this->emitClassBody($node);
+        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
+    }
+
+    private function emitClassExistsGuard(DefStructNode $node): void
+    {
+        $fqcn = $this->outputEmitter->mungeEncodeNs($node->getNamespace())
+            . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
+        $this->outputEmitter->emitLine("if (!class_exists('" . $fqcn . "')) {", $node->getStartSourceLocation());
+    }
+
+    private function emitClassBody(DefStructNode $node): void
+    {
+        $this->emitClassHeader($node);
         $this->emitAllowedKeys($node);
         $this->emitProperties($node);
         $this->emitConstructor($node);
         $this->emitInterfaces($node);
-        $this->emitClassEnd($node);
+        $this->emitClassFooter($node);
     }
 
-    private function emitClassBegin(DefStructNode $node): void
+    private function emitClassHeader(DefStructNode $node): void
     {
-        if ($this->outputEmitter->getOptions()->isStatementEmitMode()) {
-            $this->outputEmitter->emitLine(
-                'namespace ' . $this->outputEmitter->mungeEncodeNs($node->getNamespace()) . ';',
-                $node->getStartSourceLocation(),
-            );
-        }
-
-        $fqcn = $this->outputEmitter->mungeEncodeNs($node->getNamespace())
-            . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
-        $this->outputEmitter->emitLine("if (!class_exists('" . $fqcn . "')) {", $node->getStartSourceLocation());
-
         $this->outputEmitter->emitStr(
             'class ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct',
             $node->getStartSourceLocation(),
@@ -142,10 +190,9 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
         }
     }
 
-    private function emitClassEnd(DefStructNode $node): void
+    private function emitClassFooter(DefStructNode $node): void
     {
         $this->outputEmitter->decreaseIndentLevel();
-        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
         $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
     }
 }

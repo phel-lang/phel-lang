@@ -19,36 +19,68 @@ final class DefInterfaceEmitter implements NodeEmitterInterface
     {
         assert($node instanceof DefInterfaceNode);
 
-        $this->emitClassBegin($node);
-        $this->emitMethods($node);
-        $this->emitClassEnd($node);
+        if ($this->outputEmitter->getOptions()->isStatementEmitMode()) {
+            $this->emitViaEval($node);
+        } else {
+            $this->emitInline($node);
+        }
     }
 
-    private function emitClassBegin(DefInterfaceNode $node): void
+    /**
+     * In statement mode, the interface definition may end up inside a function
+     * wrapper. PHP forbids namespace declarations inside functions, so we
+     * capture the interface body at compile time and emit it as an eval() call.
+     */
+    private function emitViaEval(DefInterfaceNode $node): void
     {
-        if ($this->outputEmitter->getOptions()->isStatementEmitMode()) {
-            $this->outputEmitter->emitLine(
-                'namespace ' . $this->outputEmitter->mungeEncodeNs($node->getNamespace()) . ';',
-                $node->getStartSourceLocation(),
-            );
-        }
+        $ns = $this->outputEmitter->mungeEncodeNs($node->getNamespace());
+        $fqcn = $ns . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
 
+        ob_start();
+        $this->emitInterfaceBody($node);
+        $interfaceBody = (string) ob_get_clean();
+
+        $this->outputEmitter->emitLine("if (!interface_exists('" . $fqcn . "')) {", $node->getStartSourceLocation());
+        $this->outputEmitter->increaseIndentLevel();
+
+        $evalCode = 'namespace ' . $ns . ";\n" . $interfaceBody;
+        $this->outputEmitter->emitLine(
+            'eval(' . var_export($evalCode, true) . ');',
+            $node->getStartSourceLocation(),
+        );
+
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
+    }
+
+    /**
+     * In file/cache mode the NsEmitter already declared the namespace.
+     */
+    private function emitInline(DefInterfaceNode $node): void
+    {
         $fqcn = $this->outputEmitter->mungeEncodeNs($node->getNamespace())
             . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
         $this->outputEmitter->emitLine("if (!interface_exists('" . $fqcn . "')) {", $node->getStartSourceLocation());
 
+        $this->emitInterfaceBody($node);
+
+        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
+    }
+
+    private function emitInterfaceBody(DefInterfaceNode $node): void
+    {
         $this->outputEmitter->emitLine(
             'interface ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' {',
             $node->getStartSourceLocation(),
         );
         $this->outputEmitter->increaseIndentLevel();
-    }
 
-    private function emitMethods(DefInterfaceNode $node): void
-    {
         foreach ($node->getMethods() as $defInterfaceMethod) {
             $this->emitMethod($node, $defInterfaceMethod);
         }
+
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
     }
 
     private function emitMethod(DefInterfaceNode $node, DefInterfaceMethod $method): void
@@ -70,12 +102,5 @@ final class DefInterfaceEmitter implements NodeEmitterInterface
 
         $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
         $this->outputEmitter->emitLine(';');
-    }
-
-    private function emitClassEnd(DefInterfaceNode $node): void
-    {
-        $this->outputEmitter->decreaseIndentLevel();
-        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
-        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
     }
 }
