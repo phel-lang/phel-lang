@@ -33,6 +33,7 @@ All notable changes to this project will be documented in this file.
 - `int-array`, `long-array`, `float-array`, `double-array`, `short-array` typed array constructors (#1382)
 - `long` and `short` coercion functions for Clojure compatibility (#1383)
 - `sequential?` predicate function: returns true for ordered collections (vectors, lists, lazy sequences) (#1380)
+- `rseq` and `reversible?` functions: reverse-iterate a vector or sorted-map in constant time (#1378)
 - `seqable?` predicate function: returns true if `seq` is supported for the argument (#1379)
 - `phel\http-client` module for outbound HTTP requests using PHP streams
 - `phel\ai` module: chat, completions, structured extraction, tool use, embeddings, and semantic search

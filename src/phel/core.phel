@@ -2723,13 +2723,37 @@ Otherwise, it tries to call `__toString`."
 
 (defn reverse
   "Reverses the order of the elements in the given sequence."
-  {:example "(reverse [1 2 3 4]) ; => [4 3 2 1]"}
+  {:example "(reverse [1 2 3 4]) ; => [4 3 2 1]"
+   :see-also ["rseq" "reversible?"]}
   [coll]
   (let [arr (if (string? coll)
               (php/mb_str_split coll)
               (to-php-array coll))
         result (apply vector (php/array_reverse arr))]
     (copy-meta coll result)))
+
+(defn reversible?
+  "Returns true if `coll` can be reverse-iterated in constant time.
+  Currently this is true for vectors and sorted-maps."
+  {:example "(reversible? [1 2 3]) ; => true"
+   :see-also ["rseq" "reverse"]}
+  [coll]
+  (or (vector? coll)
+      (php/instanceof coll PersistentSortedMap)))
+
+(defn rseq
+  "Returns, in constant time, a sequence of the items in `rev` in reverse
+  order. `rev` must be reversible (a vector or sorted-map); otherwise an
+  exception is thrown. For sorted-maps, returns reversed `[key value]` pairs.
+  Returns nil if `rev` is empty."
+  {:example "(rseq [1 2 3]) ; => [3 2 1]"
+   :see-also ["reversible?" "reverse"]}
+  [rev]
+  (when-not (reversible? rev)
+    (throw (php/new InvalidArgumentException
+             "rseq requires a reversible collection (vector or sorted-map)")))
+  (when (php/> (count rev) 0)
+    (reverse (if (vector? rev) rev (vec rev)))))
 
 (defn interleave
   "Returns a vector with the first items of each col, then the second items, etc."
