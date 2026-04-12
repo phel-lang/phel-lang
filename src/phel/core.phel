@@ -118,6 +118,16 @@
             (throw (php/new InvalidArgumentException
                             (php/. "cannot call 'next on " (php/gettype xs))))))))))
 
+(def first-map-entry
+  {:private true
+   :doc "Returns the first `[k v]` entry of a persistent map, or nil if empty."}
+  (fn [m]
+    (let [it (php/-> m (getIterator))]
+      (php/-> it (rewind))
+      (if (php/-> it (valid))
+        [(php/-> it (key)) (php/-> it (current))]
+        nil))))
+
 (def first
   {:doc "Returns the first element of a sequence, or nil if empty.
 
@@ -128,16 +138,10 @@
   (fn [xs]
     (if (php/instanceof xs FirstInterface)
       (php/-> xs (first))
-      (if (php/instanceof xs \Phel\Lang\Collections\Map\PersistentMapInterface)
-        (let [it (php/-> xs (getIterator))]
-          (php/-> it (rewind))
-          (if (php/-> it (valid))
-            [(php/-> it (key)) (php/-> it (current))]
-            nil))
+      (if (php/instanceof xs PersistentMapInterface)
+        (first-map-entry xs)
         (if (php/is_string xs)
-          (if (php/=== "" xs)
-            nil
-            (php/mb_substr xs 0 1))
+          (if (php/=== "" xs) nil (php/mb_substr xs 0 1))
           (php/aget xs 0))))))
 
 (def concat1
@@ -385,31 +389,29 @@
   []
   (php/:: Symbol (gen)))
 
+(defn- float-to-str
+  "Renders a float so integer-valued floats keep the trailing `.0`, while `NaN`
+  and ±Infinity stringify readably."
+  [x]
+  (if (php/is_nan x)
+    "NaN"
+    (if (php/is_infinite x)
+      (if (php/> x 0) "Infinity" "-Infinity")
+      (let [s (php/. "" x)]
+        (if (php/=== 1 (php/preg_match "/[.eE]/" s))
+          s
+          (php/. s ".0"))))))
+
 (defn- val-to-str
   "Converts a value to its string representation. Booleans become \"true\" or
 \"false\". Nil becomes an empty string. Integer-valued floats keep their `.0`
 suffix (so `(str 0.0)` is `\"0.0\"`, not `\"0\"`). All other values use PHP
 string cast."
   [x]
-  (if (php/=== x true)
-    "true"
-    (if (php/=== x false)
-      "false"
-      (if (php/=== x nil)
-        ""
-        (if (php/is_float x)
-          (if (php/is_nan x)
-            "NaN"
-            (if (php/is_infinite x)
-              (if (php/> x 0) "Infinity" "-Infinity")
-              (let [s (php/. "" x)]
-                (if (php/str_contains s ".")
-                  s
-                  (if (php/str_contains s "e")
-                    s
-                    (if (php/str_contains s "E")
-                      s
-                      (php/. s ".0")))))))
+  (if (php/=== x true)      "true"
+    (if (php/=== x false)   "false"
+      (if (php/=== x nil)   ""
+        (if (php/is_float x) (float-to-str x)
           (php/. "" x))))))
 
 (defn str
@@ -503,21 +505,17 @@ Otherwise, it tries to call `__toString`."
   `nil` when `name` is `nil`."
   {:example "(keyword \"name\") ; => :name\n(keyword :abc) ; => :abc\n(keyword \"ns\" \"name\") ; => :ns/name"}
   ([x]
-    (if (php/=== nil x)
-      nil
-      (if (php/instanceof x Keyword)
-        x
+    (if (php/=== nil x)            nil
+      (if (php/instanceof x Keyword) x
         (if (php/instanceof x Symbol)
           (php/:: Keyword (create (php/-> x (getName)) (php/-> x (getNamespace))))
-          (if (php/is_string x)
-            (php/:: Keyword (create x))
+          (if (php/is_string x)    (php/:: Keyword (create x))
             nil)))))
   ([ns nm]
     (if (php/=== nil nm)
       nil
-      (let [ns-str (if (php/=== nil ns) nil (php/strval ns))
-            nm-str (php/strval nm)]
-        (php/:: Keyword (create nm-str ns-str))))))
+      (php/:: Keyword (create (php/strval nm)
+                              (if (php/=== nil ns) nil (php/strval ns)))))))
 
 (defn php-indexed-array
   "Creates a PHP indexed array from the given values."
@@ -1086,18 +1084,18 @@ Otherwise, it tries to call `__toString`."
   its own category so it can be treated as less than anything. Numbers share a
   category so `(compare 1 1.5)` works."
   [x]
-  (if (php/=== x nil) :nil
-    (if (php/is_bool x) :bool
-      (if (php/is_int x) :number
-        (if (php/is_float x) :number
-          (if (php/is_string x) :string
-            (if (php/instanceof x Keyword) :keyword
-              (if (php/instanceof x Symbol) :symbol
-                (if (php/instanceof x \Phel\Lang\Collections\Vector\PersistentVectorInterface) :sequential
-                  (if (php/instanceof x \Phel\Lang\Collections\LinkedList\PersistentListInterface) :sequential
-                    (if (php/instanceof x \Phel\Lang\Collections\Map\PersistentMapInterface) :map
-                      (if (php/instanceof x \Phel\Lang\Collections\HashSet\PersistentHashSetInterface) :set
-                        :other))))))))))))
+  (cond
+    (php/=== x nil)                      :nil
+    (php/is_bool x)                      :bool
+    (or (php/is_int x) (php/is_float x)) :number
+    (php/is_string x)                    :string
+    (php/instanceof x Keyword)           :keyword
+    (php/instanceof x Symbol)            :symbol
+    (or (php/instanceof x PersistentVectorInterface)
+        (php/instanceof x PersistentListInterface)) :sequential
+    (php/instanceof x PersistentMapInterface)       :map
+    (php/instanceof x PersistentHashSetInterface)   :set
+    :else                                :other))
 
 (defn compare
   "Compares `x` and `y` using PHP's spaceship operator, returning a negative
@@ -1108,16 +1106,16 @@ Otherwise, it tries to call `__toString`."
   `InvalidArgumentException` when `x` and `y` come from mutually incomparable
   categories (e.g. `(compare 1 [])`)."
   [x y]
-  (if (php/=== x nil)
-    (if (php/=== y nil) 0 -1)
-    (if (php/=== y nil)
-      1
-      (let [cx (compare-category x)
-            cy (compare-category y)]
-        (if (php/=== cx cy)
-          (php/<=> x y)
-          (throw (php/new InvalidArgumentException
-                          (str "Cannot compare " cx " with " cy))))))))
+  (cond
+    (php/=== x nil) (if (php/=== y nil) 0 -1)
+    (php/=== y nil) 1
+    :else
+    (let [cx (compare-category x)
+          cy (compare-category y)]
+      (if (= cx cy)
+        (php/<=> x y)
+        (throw (php/new InvalidArgumentException
+                        (str "Cannot compare " cx " with " cy)))))))
 
 ;; --------------
 ;; Type operation
@@ -1748,14 +1746,12 @@ Otherwise, it tries to call `__toString`."
 (defn dissoc
   "Returns `ds` without the given keys. With no keys returns `ds` unchanged."
   {:example "(dissoc {:a 1 :b 2} :b) ; => {:a 1}\n(dissoc {:a 1 :b 2 :c 3} :a :c) ; => {:b 2}"}
-  ([ds] ds)
-  ([ds key] (dissoc-one ds key))
-  ([ds key & ks]
-    (loop [acc (dissoc-one ds key)
-           remaining ks]
-      (if (empty? remaining)
-        acc
-        (recur (dissoc-one acc (first remaining)) (next remaining))))))
+  [ds & ks]
+  (loop [acc ds
+         remaining ks]
+    (if (empty? remaining)
+      acc
+      (recur (dissoc-one acc (first remaining)) (next remaining)))))
 
 (defn unset
   "Returns `ds` without `key`."
@@ -2900,20 +2896,16 @@ Otherwise, it tries to call `__toString`."
   or empty."
   {:example "(keys {:a 1 :b 2}) ; => (:a :b)\n(keys nil) ; => nil"}
   [coll]
-  (if (or (nil? coll) (empty? coll))
-    nil
-    (let [result (for [k :keys coll] k)]
-      (copy-meta coll result))))
+  (when-not (empty? coll)
+    (copy-meta coll (for [k :keys coll] k))))
 
 (defn vals
   "Returns a sequence of all values in a map, or `nil` when the map is `nil`
   or empty."
   {:example "(vals {:a 1 :b 2}) ; => (1 2)\n(vals nil) ; => nil"}
   [coll]
-  (if (or (nil? coll) (empty? coll))
-    nil
-    (let [result (for [x :in coll] x)]
-      (copy-meta coll result))))
+  (when-not (empty? coll)
+    (copy-meta coll (for [x :in coll] x))))
 
 (defn key
   "Returns the key of a map entry (a two-element vector `[key value]`)."
