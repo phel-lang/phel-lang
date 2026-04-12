@@ -469,10 +469,30 @@ Otherwise, it tries to call `__toString`."
   (php/:: Phel (sortedSetBy comp (apply php/array xs))))
 
 (defn keyword
-  "Creates a new Keyword from a given string."
-  {:example "(keyword \"name\") ; => :name"}
-  [x]
-  (php/:: Keyword (create x)))
+  "Creates a new Keyword.
+
+  Arity-1 accepts a string, keyword, or symbol. Returns `nil` when `x` is `nil`.
+  If `x` is already a keyword, it is returned unchanged.
+
+  Arity-2 builds a namespaced keyword from the namespace and name parts; returns
+  `nil` when `name` is `nil`."
+  {:example "(keyword \"name\") ; => :name\n(keyword :abc) ; => :abc\n(keyword \"ns\" \"name\") ; => :ns/name"}
+  ([x]
+    (if (php/=== nil x)
+      nil
+      (if (php/instanceof x Keyword)
+        x
+        (if (php/instanceof x Symbol)
+          (php/:: Keyword (create (php/-> x (getName)) (php/-> x (getNamespace))))
+          (if (php/is_string x)
+            (php/:: Keyword (create x))
+            nil)))))
+  ([ns nm]
+    (if (php/=== nil nm)
+      nil
+      (let [ns-str (if (php/=== nil ns) nil (php/strval ns))
+            nm-str (php/strval nm)]
+        (php/:: Keyword (create nm-str ns-str))))))
 
 (defn php-indexed-array
   "Creates a PHP indexed array from the given values."
