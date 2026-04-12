@@ -1203,6 +1203,19 @@ Otherwise, it tries to call `__toString`."
      (= t :vector)
      (= t :php/array))))
 
+(defn sequential?
+  "Returns true if `x` is a sequential collection (vector, list, or lazy
+   sequence), false otherwise. Sequential collections maintain insertion
+   order and support indexed or linear access. Maps, sets, and structs
+   are not sequential, matching Clojure's `Sequential` marker."
+  {:example "(sequential? [1 2 3]) ; => true\n(sequential? {:a 1}) ; => false"
+   :see-also ["coll?" "vector?" "list?" "seq?"]}
+  [x]
+  (let [t (type x)]
+    (or (= t :vector)
+        (= t :list)
+        (php/instanceof x LazySeqInterface))))
+
 (defn coll?
   "Returns true if `x` is a persistent collection — vector, list, hash-map
    (including sorted-map), struct, set (including sorted-set), or lazy-seq —
@@ -1210,7 +1223,7 @@ Otherwise, it tries to call `__toString`."
    and plain PHP arrays are not considered collections, matching Clojure's
    `IPersistentCollection` membership."
   {:example "(coll? [1 2 3]) ; => true\n(coll? \"abc\") ; => false"
-   :see-also ["vector?" "map?" "list?" "set?" "seq?"]}
+   :see-also ["vector?" "map?" "list?" "set?" "seq?" "sequential?"]}
   [x]
   (let [t (type x)]
     (or (= t :vector)
