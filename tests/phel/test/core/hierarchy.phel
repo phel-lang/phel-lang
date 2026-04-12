@@ -85,7 +85,11 @@
 
 (deftest test-make-hierarchy
   (let [h (make-hierarchy)]
-    (is (= {:parents {}} h) "fresh hierarchy is empty map")))
+    (is (= {:parents {} :descendants {} :ancestors {}} h)
+        "fresh hierarchy exposes all three relationship views")
+    (is (= {} (get h :parents)) "fresh hierarchy has no parents")
+    (is (= {} (get h :descendants)) "fresh hierarchy has no descendants")
+    (is (= {} (get h :ancestors)) "fresh hierarchy has no ancestors")))
 
 ;; --- multimethod with hierarchy dispatch ---
 

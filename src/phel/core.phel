@@ -4445,14 +4445,17 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 
 (def ^:private *hierarchy*
   "Global hierarchy for keyword/symbol taxonomies."
-  (var {:parents {}}))
+  (var {:parents {} :descendants {} :ancestors {}}))
 
 (defn make-hierarchy
-  "Creates a fresh, empty hierarchy."
-  {:doc "Returns a new hierarchy map with no parent relationships."
-   :see-also ["derive" "isa?" "parents" "ancestors" "descendants"]}
+  "Creates a fresh, empty hierarchy.
+
+  Returns a map with `:parents`, `:descendants`, and `:ancestors` keys, each
+  holding an empty map. Matches Clojure's hierarchy shape so consumers can
+  destructure any of the three relationship views."
+  {:see-also ["derive" "isa?" "parents" "ancestors" "descendants"]}
   []
-  {:parents {}})
+  {:parents {} :descendants {} :ancestors {}})
 
 (defn- compute-ancestors
   "Computes all transitive ancestors of tag from a parents map."
@@ -4504,7 +4507,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
            (let [parents-map (get h :parents)
                  old-parents (get parents-map child (hash-set))
                  new-parents (union old-parents (hash-set parent))]
-             {:parents (assoc parents-map child new-parents)})))
+             (assoc h :parents (assoc parents-map child new-parents)))))
   nil)
 
 (defn underive
@@ -4520,7 +4523,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                  new-map (if (empty? new-parents)
                            (dissoc parents-map child)
                            (assoc parents-map child new-parents))]
-             {:parents new-map})))
+             (assoc h :parents new-map))))
   nil)
 
 (defn parents
