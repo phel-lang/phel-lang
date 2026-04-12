@@ -3706,6 +3706,14 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (throw (php/new InvalidArgumentException
                     (str "abs expects a number, got " (type x))))))
 
+(defn int
+  "Coerces `x` to an integer. Delegates to PHP's `intval`, so floats are
+   truncated toward zero, numeric strings are parsed, and `nil` returns `0`."
+  {:example "(int 1.9) ; => 1\n(int \"42\") ; => 42"
+   :see-also ["float" "double" "int?" "number?"]}
+  [x]
+  (php/intval x))
+
 (defn float
   "Coerces `x` to a float. In PHP there is no distinction between float and
    double; both map to the same native PHP float type. Delegates to PHP's
