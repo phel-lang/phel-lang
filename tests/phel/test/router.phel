@@ -11,15 +11,16 @@
 
 (defmacro ^:private match-by-path-asserts [mk-router]
   `(do
-     (is (= {:template "/ping" :data {} :path "/ping" :path-params {}}
+     (is (= {:route-name "/ping" :template "/ping" :data {} :path "/ping" :path-params {}}
             (match-by-path (~mk-router ["/ping"]) "/ping"))
          "single static route")
      (is (= nil (match-by-path (~mk-router ["/ping"]) "/pong"))
          "no matching static route")
-     (is (= {:template "/pong" :data {} :path "/pong" :path-params {}}
+     (is (= {:route-name "/pong" :template "/pong" :data {} :path "/pong" :path-params {}}
             (match-by-path (~mk-router [["/ping"] ["/pong"]]) "/pong"))
          "two static route")
-     (is (= {:template "/ping/{id<\\d+>}" :data {:name ::ping} :path "/ping/123" :path-params {:id "123"}}
+     (is (= {:route-name "phel-test\\test\\router/ping"
+             :template "/ping/{id<\\d+>}" :data {:name ::ping} :path "/ping/123" :path-params {:id "123"}}
             (match-by-path (~mk-router [["/ping/{id<\\d+>}" {:name ::ping}]]) "/ping/123"))
          "route with path parameter")
      (is (= nil (match-by-path (~mk-router [["/ping/{id<\d+>}" {:name ::ping}]]) "/ping/abc"))
