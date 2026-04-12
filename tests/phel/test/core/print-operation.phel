@@ -21,7 +21,14 @@
   (is (= "" (str nil nil)) "str on multiple nil")
   (is (= "truefalse" (str true false)) "str on true and false")
   (is (= "<function:name>" (str name)) "str on function")
-  (is (= "Hello, <function:name>!" (str "Hello, " name "!")) "str with function in middle"))
+  (is (= "Hello, <function:name>!" (str "Hello, " name "!")) "str with function in middle")
+  (is (= "0.0" (str 0.0)) "str on float zero preserves decimal")
+  (is (= "1.0" (str 1.0)) "str on integer-valued float preserves decimal")
+  (is (= "-1.0" (str -1.0)) "str on negative integer-valued float preserves decimal")
+  (is (= "1.5" (str 1.5)) "str on fractional float unchanged")
+  (is (= "NaN" (str NAN)) "str on NaN")
+  (is (= "Infinity" (str php/INF)) "str on positive infinity")
+  (is (= "-Infinity" (str (php/- 0 php/INF))) "str on negative infinity"))
 
 (deftest test-print-str
   (is (= "" (print-str)) "print-str with no arg")

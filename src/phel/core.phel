@@ -387,7 +387,9 @@
 
 (defn- val-to-str
   "Converts a value to its string representation. Booleans become \"true\" or
-\"false\". Nil becomes an empty string. All other values use PHP string cast."
+\"false\". Nil becomes an empty string. Integer-valued floats keep their `.0`
+suffix (so `(str 0.0)` is `\"0.0\"`, not `\"0\"`). All other values use PHP
+string cast."
   [x]
   (if (php/=== x true)
     "true"
@@ -395,7 +397,20 @@
       "false"
       (if (php/=== x nil)
         ""
-        (php/. "" x)))))
+        (if (php/is_float x)
+          (if (php/is_nan x)
+            "NaN"
+            (if (php/is_infinite x)
+              (if (php/> x 0) "Infinity" "-Infinity")
+              (let [s (php/. "" x)]
+                (if (php/str_contains s ".")
+                  s
+                  (if (php/str_contains s "e")
+                    s
+                    (if (php/str_contains s "E")
+                      s
+                      (php/. s ".0")))))))
+          (php/. "" x))))))
 
 (defn str
   "Creates a string by concatenating values together. If no arguments are
@@ -5315,7 +5330,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (let [trimmed (php/trim s)]
       (cond
         (or (= trimmed "Infinity") (= trimmed "+Infinity")) php/INF
-        (= trimmed "-Infinity") (php/- php/INF)
+        (= trimmed "-Infinity") (php/- 0 php/INF)
         (= trimmed "NaN") NAN
         (php/is_numeric trimmed) (php/floatval trimmed)
         :else nil))))

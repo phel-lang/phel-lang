@@ -56,7 +56,7 @@
   (is (= php/INF (parse-double "Infinity")) "parse-double Infinity")
   (is (= php/INF (parse-double "+Infinity")) "parse-double +Infinity")
   (is (= php/INF (parse-double "  Infinity  ")) "parse-double Infinity with whitespace")
-  (is (= (php/- php/INF) (parse-double "-Infinity")) "parse-double -Infinity")
+  (is (= (php/- 0 php/INF) (parse-double "-Infinity")) "parse-double -Infinity")
   (is (nan? (parse-double "NaN")) "parse-double NaN"))
 
 (deftest test-parse-boolean
