@@ -2,6 +2,14 @@
   (:use OutOfBoundsException)
   (:require phel\test :refer [deftest is]))
 
+(deftest test-fnext
+  (is (= 2 (fnext [1 2 3])) "fnext on vector")
+  (is (= 2 (fnext '(1 2 3))) "fnext on list")
+  (is (nil? (fnext [1])) "fnext on single-element vector")
+  (is (nil? (fnext [])) "fnext on empty vector")
+  (is (nil? (fnext nil)) "fnext on nil")
+  (is (= (second [1 2 3]) (fnext [1 2 3])) "fnext equals second"))
+
 (deftest test-peek
   (is (= 3 (peek [1 2 3])) "peek on vector")
   (is (nil? (peek [])) "peek on empty vector")
