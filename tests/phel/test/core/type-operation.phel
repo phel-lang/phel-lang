@@ -1,7 +1,8 @@
 (ns phel-test\test\core\type-operation
   (:use DateTime)
+  (:use RuntimeException)
   (:use Phel\Lang\Symbol)
-  (:require phel\test :refer [deftest is]))
+  (:require phel\test :refer [deftest is are]))
 
 (deftest test-type
   (is (= :vector (type [])) "type of vector")
@@ -202,25 +203,31 @@
   (is (false? (boolean? nil)) "boolean? on nil"))
 
 (deftest test-any?
-  (is (true? (any? nil)) "any? on nil")
-  (is (true? (any? false)) "any? on false")
-  (is (true? (any? 0)) "any? on 0")
-  (is (true? (any? "")) "any? on empty string")
-  (is (true? (any? [])) "any? on empty vector"))
+  (are [x] (true? (any? x))
+    nil
+    false
+    0
+    ""
+    []))
 
 (deftest test-ratio?
-  (is (false? (ratio? 1/2)) "ratio? on a ratio literal (reads as float)")
-  (is (false? (ratio? 0.5)) "ratio? on float")
-  (is (false? (ratio? 1)) "ratio? on int")
-  (is (false? (ratio? nil)) "ratio? on nil")
-  (is (false? (ratio? "1/2")) "ratio? on string"))
+  (are [x] (false? (ratio? x))
+    1/2
+    0.5
+    1
+    nil
+    "1/2"))
 
 (deftest test-instance?
-  (is (true? (instance? \DateTime (php/new DateTime))) "instance? matches concrete class")
-  (is (true? (instance? \Exception (php/new \RuntimeException "x")))
-      "instance? matches a parent class")
-  (is (false? (instance? \DateTime "not-a-date")) "instance? false on unrelated value")
-  (is (false? (instance? \DateTime nil)) "instance? false on nil"))
+  (let [now (php/new DateTime)
+        err (php/new \RuntimeException "x")]
+    (are [c x] (true? (instance? c x))
+      \DateTime  now
+      DateTime   now            ;; :use'd short name resolves the same as the FQN
+      \Exception err)
+    (are [c x] (false? (instance? c x))
+      \DateTime "not-a-date"
+      \DateTime nil)))
 
 (deftest test-php-array?
   (is (true? (php-array? (php/array))) "php-array? on php array")
