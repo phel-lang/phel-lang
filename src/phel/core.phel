@@ -3394,9 +3394,10 @@ Otherwise, it tries to call `__toString`."
   If map has duplicated values, some keys will be ignored."
   {:example "(invert {:a 1 :b 2 :c 3}) ; => {1 :a 2 :b 3 :c}"}
   [map]
-  (for [[k v] :pairs map
-        :reduce [res {}]]
-    (assoc res v k)))
+  (persistent
+    (for [[k v] :pairs map
+          :reduce [res (transient {})]]
+      (assoc! res v k))))
 
 (defn split-at
   "Returns a vector of `[(take n coll) (drop n coll)]`."
