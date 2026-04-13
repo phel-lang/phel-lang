@@ -1483,11 +1483,8 @@ Otherwise, it tries to call `__toString`."
 
 (defn- indexed-php-array?
   [x]
-  (and
-   (= (type x) :php/array)
-   (or
-    (php/empty x)
-    (php/=== (php/array_keys x) (php/range 0 (php/- (php/count x) 1))))))
+  (and (php/is_array x)
+       (or (php/empty x) (php/array_is_list x))))
 
 (defn indexed?
   "Returns true if `x` is an indexed sequence, false otherwise.
