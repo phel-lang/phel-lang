@@ -201,6 +201,27 @@
   (is (true? (boolean? false)) "boolean? on false")
   (is (false? (boolean? nil)) "boolean? on nil"))
 
+(deftest test-any?
+  (is (true? (any? nil)) "any? on nil")
+  (is (true? (any? false)) "any? on false")
+  (is (true? (any? 0)) "any? on 0")
+  (is (true? (any? "")) "any? on empty string")
+  (is (true? (any? [])) "any? on empty vector"))
+
+(deftest test-ratio?
+  (is (false? (ratio? 1/2)) "ratio? on a ratio literal (reads as float)")
+  (is (false? (ratio? 0.5)) "ratio? on float")
+  (is (false? (ratio? 1)) "ratio? on int")
+  (is (false? (ratio? nil)) "ratio? on nil")
+  (is (false? (ratio? "1/2")) "ratio? on string"))
+
+(deftest test-instance?
+  (is (true? (instance? \DateTime (php/new DateTime))) "instance? matches concrete class")
+  (is (true? (instance? \Exception (php/new \RuntimeException "x")))
+      "instance? matches a parent class")
+  (is (false? (instance? \DateTime "not-a-date")) "instance? false on unrelated value")
+  (is (false? (instance? \DateTime nil)) "instance? false on nil"))
+
 (deftest test-php-array?
   (is (true? (php-array? (php/array))) "php-array? on php array")
   (is (false? (php-array? [])) "php-array? on vector"))

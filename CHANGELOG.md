@@ -16,9 +16,10 @@ All notable changes to this project will be documented in this file.
 - `special-symbol?` (#1384), `ifn?` (#1370)
 - `neg-int?`, `pos-int?`, `nat-int?` (#1374)
 - `sequential?` (#1380), `seqable?` (#1379)
+- `any?` always true, `ratio?` always false (no Ratio type), and `instance?` macro: `(instance? c x)` wraps `php/instanceof` with the class first (#1433)
 
 #### Sequences & Collections
-- `nth`, `nthrest`, `nthnext` with Clojure-compatible semantics (#1375)
+- `nth`, `nthrest`, `nthnext` for indexed access into vectors and seqs (#1375)
 - `fnext`, equivalent to `(first (next coll))` (#1368)
 - `rseq` and `reversible?`: constant-time reverse view of a vector or sorted-map (#1378)
 - `empty`: returns an empty collection of the same type, or nil (#1365)
@@ -34,6 +35,7 @@ All notable changes to this project will be documented in this file.
 - `uuid?` and `parse-uuid` (#1377)
 - `alter-var-root` stub that throws with a migration hint; out of scope per `docs/clojure-migration.md` (#1357)
 - `parse-double` accepts `Infinity`, `-Infinity`, and `NaN` (#1428)
+- `alength` returns the length of a PHP array (#1433)
 
 #### Modules
 - `phel\router`: data-driven router built on `symfony/routing`, previously shipped as `phel-lang/router`
@@ -54,8 +56,8 @@ All notable changes to this project will be documented in this file.
 - `:keyword` lookup works on transient maps (#1428)
 - `deftest` rejects a missing/non-symbol name with a clear error (#1364)
 - `(def name)` without a value binds `nil` instead of throwing (#1361)
-- `doseq` accepts Clojure-style pairs `[x coll]` without `:in` (#1362)
-- `doseq` iterates maps as `[k v]` entry pairs, so Clojure-style destructuring `(doseq [[k v] m] ...)` and single-binding `(doseq [e m] ...)` match Clojure semantics (#1433)
+- `doseq` accepts pair bindings `[x coll]` without an `:in` verb (#1362)
+- `doseq` iterates maps as `[k v]` entry pairs, so `(doseq [[k v] m] ...)` destructures entries and `(doseq [e m] ...)` binds each entry (#1433)
 - `drop-last` works with lazy sequences and ranges (#1360)
 - `(empty? (range))` no longer hangs; `empty?` checks `first` for lazy sequences (#1366)
 - `is` no longer misinterprets `let`/`when`/`cond` forms as binary predicates (#1367)

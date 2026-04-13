@@ -12,7 +12,7 @@ Phel is a functional Lisp inspired by Clojure that compiles to PHP. If you know 
 | `(ClassName. arg)` | `(ClassName. arg)` or `(php/new ClassName arg)` | `ClassName.` reads as `(php/new ClassName ...)` |
 | `(.-field obj)` | `(php/-> obj -field)` | Property access |
 | `(:import [java.util Date])` | `(:use DateTime)` in the `ns` form | Imports a PHP class by short name; also works with FQNs: `(:use Phel\Lang\Symbol)` |
-| `(instance? Type x)` | `(php/instanceof x Type)` | Type check (arg order differs) |
+| `(instance? Type x)` | `(instance? Type x)` or `(php/instanceof x Type)` | Phel ships an `instance?` macro that wraps `php/instanceof` with Clojure's argument order |
 | `(class x)` | `(type x)` | Returns a keyword like `:string`, `:int`, `:hash-map` |
 | `(subs s start end)` | `(phel\str\slice s start end)` | Substring |
 | `(clojure.string/upper-case s)` | `(phel\str\upper-case s)` | String utils in `phel\str` |
@@ -106,7 +106,7 @@ Phel uses `\` as the native namespace separator (matching PHP), but accepts `.` 
 | Property write | `(set! (.-x obj) 5)` | `(php/oset obj :x 5)` |
 | Array access | `(aget arr 0)` | `(php/aget arr 0)` |
 | Array write | `(aset arr 0 val)` | `(php/aset arr 0 val)` |
-| Type check | `(instance? String x)` | `(php/instanceof x String)` |
+| Type check | `(instance? String x)` | `(instance? \String x)` or `(php/instanceof x \String)` |
 | PHP function | N/A | `(php/strlen "hello")` |
 | String concat | `(str a b)` | `(str a b)` or `(php/. a b)` |
 
