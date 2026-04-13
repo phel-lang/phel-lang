@@ -3007,13 +3007,11 @@ Otherwise, it tries to call `__toString`."
   {:example "(kvs {:a 1 :b 2}) ; => [:a 1 :b 2]"
    :see-also ["pairs" "keys" "values"]}
   [coll]
-  (let [result
-        (persistent
-         (for [[k v] :pairs coll
-               :reduce [res (transient [])]]
-           (conj res k)
-           (conj res v)))]
-    (copy-meta coll result)))
+  (let [res (transient [])]
+    (foreach [k v coll]
+      (php/-> res (append k))
+      (php/-> res (append v)))
+    (copy-meta coll (persistent res))))
 
 (defn php-array-to-map
   "Converts a PHP Array to a Phel map."
