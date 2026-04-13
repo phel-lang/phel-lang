@@ -2854,10 +2854,9 @@ Otherwise, it tries to call `__toString`."
    :see-also ["find-index" "filter" "some?"]}
   [pred coll]
   (loop [s coll]
-    (cond
-      (empty? s) nil
-      (pred (first s)) (first s)
-      :else (recur (next s)))))
+    (when-not (empty? s)
+      (let [x (first s)]
+        (if (pred x) x (recur (next s)))))))
 
 (defn find-index
   "Returns the index of the first item in `coll` where `(pred item)` evaluates to true."
@@ -3351,10 +3350,11 @@ Otherwise, it tries to call `__toString`."
   [m ks]
   (if (nil? m)
     {}
-    (let [result (for [k :in ks
-                       :when (contains? m k)
-                       :reduce [acc {}]]
-                   (assoc acc k (get m k)))]
+    (let [result (persistent
+                  (for [k :in ks
+                        :when (contains? m k)
+                        :reduce [acc (transient {})]]
+                    (assoc! acc k (get m k))))]
       (copy-meta m result))))
 
 (defn rename-keys
@@ -3363,9 +3363,10 @@ Otherwise, it tries to call `__toString`."
   {:example "(rename-keys {:a 1 :b 2 :c 3} {:a :x :b :y}) ; => {:x 1 :y 2 :c 3}"
    :see-also ["select-keys" "keys" "vals"]}
   [m kmap]
-  (for [[k v] :pairs m
-        :reduce [acc {}]]
-    (put acc (get kmap k k) v)))
+  (persistent
+    (for [[k v] :pairs m
+          :reduce [acc (transient {})]]
+      (assoc! acc (get kmap k k) v))))
 
 (defn invert
   "Returns a new map where the keys and values are swapped.
