@@ -1,7 +1,6 @@
 (ns phel\http-client
   (:require phel\http :as http)
-  (:require phel\json)
-  (:use RuntimeException))
+  (:require phel\json))
 
 ;; -----------
 ;; Key helpers

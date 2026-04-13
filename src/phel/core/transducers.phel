@@ -3,8 +3,8 @@
 ;; Reduce / transduce pipeline plus the volatile reference cells that power
 ;; transducer state: `reduced`, `reduced?`, `unreduced`, `reduce`,
 ;; `completing`, `transduce`, `volatile!`, `vreset!`, `vswap!`, `volatile?`.
-;; Kept together because volatiles exist in Phel chiefly as fast-mutable
-;; accumulators for transducers, matching Clojure's `clojure.core` layout.
+;; Volatiles live here because their main role in Phel is as fast-mutable
+;; accumulators inside transducers.
 
 ;; -------------------
 ;; Transducer support

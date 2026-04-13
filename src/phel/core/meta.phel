@@ -3,9 +3,9 @@
 ;; Metadata attached to quoted symbols and to values that implement
 ;; `MetaInterface`: `meta` reads it, `with-meta` / `set-meta!` replace it,
 ;; `copy-meta` propagates it across a transformation, and `vary-meta`
-;; updates it by applying a function. Mirrors Clojure's metadata protocol.
-;; Loaded early in core bootstrap because most subsequent definitions (fn
-;; builders, seq constructors) preserve metadata via `copy-meta`.
+;; updates it by applying a function. Loaded early in core bootstrap
+;; because most subsequent definitions (fn builders, seq constructors)
+;; preserve metadata via `copy-meta`.
 
 ;; ------------
 ;; Meta helpers

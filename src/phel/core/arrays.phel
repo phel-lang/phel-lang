@@ -4,11 +4,11 @@
 ;;   1. Constructors that produce native PHP arrays from Phel values:
 ;;      `php-indexed-array`, `php-associative-array`, `object-array`,
 ;;      `to-array`.
-;;   2. Clojure `clojure.core` array API ported on top of PHP arrays:
-;;      `aclone`, `alength`, `aget`, `aset`, and the typed-array builders
-;;      `int-array`, `long-array`, `float-array`, `double-array`,
-;;      `short-array`. PHP has no typed arrays, so these all return plain
-;;      PHP arrays — the typed builders just coerce element type.
+;;   2. Array access / mutation API over PHP arrays: `aclone`, `alength`,
+;;      `aget`, `aset`, and the typed-array builders `int-array`,
+;;      `long-array`, `float-array`, `double-array`, `short-array`. PHP
+;;      has no typed arrays, so these all return plain PHP arrays — the
+;;      typed builders just coerce element type.
 ;; Persistent collection constructors (`hash-set`, `sorted-map`, …) live
 ;; in core.phel because they are required earlier in the bootstrap.
 

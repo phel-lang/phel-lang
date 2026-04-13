@@ -1,6 +1,5 @@
 (ns phel\test
   (:use Phel)
-  (:use Phel\Lang\Symbol)
   (:use Phel\Lang\SourceLocationInterface)
   (:use Phel\Compiler\Application\Munge)
   (:use Phel\Command\CommandFacade)
