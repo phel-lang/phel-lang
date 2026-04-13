@@ -999,13 +999,15 @@ Otherwise, it tries to call `__toString`."
   [a b]
   (php/<=> b a))
 
+(declare empty?)
+
 (defn all?
   "Returns true if predicate is true for every element in collection, false otherwise."
   {:example "(all? even? [2 4 6 8]) ; => true"}
   [pred coll]
   (cond
-    (php/=== (count coll) 0) true
-    (pred (first coll))     (recur pred (next coll))
+    (empty? coll)       true
+    (pred (first coll)) (recur pred (next coll))
     false))
 
 (defn every?
@@ -1015,8 +1017,8 @@ Otherwise, it tries to call `__toString`."
    :see-also ["all?" "not-every?"]}
   [pred coll]
   (cond
-    (php/=== (count coll) 0) true
-    (pred (first coll))     (recur pred (next coll))
+    (empty? coll)       true
+    (pred (first coll)) (recur pred (next coll))
     false))
 
 (defn not-every?
@@ -1025,7 +1027,6 @@ Otherwise, it tries to call `__toString`."
   [pred coll]
   (not (all? pred coll)))
 
-(declare empty?)
 (declare truthy?)
 (declare name)
 
@@ -2918,37 +2919,6 @@ Otherwise, it tries to call `__toString`."
                     "rseq requires a reversible collection (vector or sorted-map)")))
   (when (php/> (count rev) 0)
     (reverse (if (vector? rev) rev (vec rev)))))
-
-(defn interleave
-  "Returns a vector with the first items of each col, then the second items, etc."
-  {:example "(interleave [1 2 3] [:a :b :c]) ; => [1 :a 2 :b 3 :c]"
-   :see-also ["interpose"]}
-  [& colls]
-  (if (empty? colls)
-    []
-    (let [first-coll (first colls)
-          size (count first-coll)
-          result (loop [i 0
-                        res []]
-                   (if (<= size i)
-                     res
-                     (recur (php/+ i 1)
-                            (reduce #(conj %1 (get %2 i)) res colls))))]
-      (copy-meta first-coll result))))
-
-(defn interpose
-  "Returns a vector of elements separated by `sep`."
-  {:example "(interpose :x [1 2 3 4]) ; => [1 :x 2 :x 3 :x 4]"
-   :see-also ["interleave"]}
-  [sep coll]
-  (let [result
-        (persistent
-         (for [[k v] :pairs coll
-               :reduce [res (transient [])]]
-           (when (> k 0)
-             (conj res sep v))
-           (conj res v)))]
-    (copy-meta coll result)))
 
 (defn frequencies
   "Returns a map from distinct items in `coll` to the number of times they appear.
