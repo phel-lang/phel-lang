@@ -46,7 +46,12 @@
     (doseq [entry {:a 0 :b 1}]
            (swap! captured (fn [xs] (push xs entry))))
     (is (= [[:a 0] [:b 1]] (deref captured))
-        "doseq yields [k v] pair vectors when iterating a map")))
+        "doseq yields [k v] pair vectors when iterating a map"))
+  (let [acc (atom {})]
+    (doseq [[k v] {:a 0 :b 1}]
+      (swap! acc assoc k v))
+    (is (= {:a 0 :b 1} @acc)
+        "doseq [k v] destructuring over a map with (swap! acc assoc k v)")))
 
 (deftest test-doseq-vector-of-vectors-destructuring
   (let [captured (var [])]
