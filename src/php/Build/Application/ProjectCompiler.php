@@ -11,6 +11,7 @@ use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Build\Domain\Compile\CompiledTargetPathResolver;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
+use Phel\Build\Domain\Compile\SecondaryFileHarvester;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Compiler\Domain\Analyzer\Resolver\LoadClasspath;
@@ -33,6 +34,7 @@ final readonly class ProjectCompiler
         private CommandFacadeInterface $commandFacade,
         private EntryPointPhpFileInterface $entryPointPhpFile,
         private BuildConfigInterface $config,
+        private ?SecondaryFileHarvester $secondaryFileHarvester = null,
     ) {
         $this->targetPathResolver = new CompiledTargetPathResolver($compilerFacade);
     }
@@ -75,6 +77,15 @@ final readonly class ProjectCompiler
                 continue;
             }
 
+            // Secondary `(in-ns ...)` files are pulled in by the primary's
+            // `(load ...)` during build-time evaluation; that run caches
+            // their compiled output. We relocate those cached files below
+            // so we don't recompile them standalone, which would re-run
+            // macro expansions against a partially-ready registry.
+            if (!$info->isPrimaryDefinition()) {
+                continue;
+            }
+
             $targetFile = $dest . '/' . $this->targetPathResolver->resolve($info, $srcDirectories);
             $targetDir = dirname($targetFile);
             if (!file_exists($targetDir) && !mkdir($targetDir, 0777, true) && !is_dir($targetDir)) {
@@ -103,11 +114,36 @@ final readonly class ProjectCompiler
             touch($targetFile, $this->getFileMtime($info->getFile()));
         }
 
+        $this->harvestSecondaries($namespaceInformation, $dest, $srcDirectories);
+
         if ($this->config->shouldCreateEntryPointPhpFile()) {
             $this->entryPointPhpFile->createFile();
         }
 
         return $result;
+    }
+
+    /**
+     * @param list<NamespaceInformation> $namespaceInformation
+     * @param list<string>               $srcDirectories
+     */
+    private function harvestSecondaries(array $namespaceInformation, string $dest, array $srcDirectories): void
+    {
+        if (!$this->secondaryFileHarvester instanceof SecondaryFileHarvester) {
+            return;
+        }
+
+        foreach ($namespaceInformation as $info) {
+            if ($info->isPrimaryDefinition()) {
+                continue;
+            }
+
+            if ($this->shouldIgnoreNs($info)) {
+                continue;
+            }
+
+            $this->secondaryFileHarvester->harvest($info, $dest, $srcDirectories);
+        }
     }
 
     private function shouldIgnoreNs(NamespaceInformation $info): bool

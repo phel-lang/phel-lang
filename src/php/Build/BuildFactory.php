@@ -13,10 +13,12 @@ use Phel\Build\Application\FileEvaluator;
 use Phel\Build\Application\NamespaceExtractor;
 use Phel\Build\Application\ProjectCompiler;
 use Phel\Build\Domain\Cache\NamespaceCacheInterface;
+use Phel\Build\Domain\Compile\CompiledTargetPathResolver;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFile;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
 use Phel\Build\Domain\Compile\Output\NamespacePathTransformer;
+use Phel\Build\Domain\Compile\SecondaryFileHarvester;
 use Phel\Build\Domain\Extractor\FirstFormExtractor;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
@@ -43,6 +45,7 @@ final class BuildFactory extends AbstractFactory
             $this->getCommandFacade(),
             $this->createMainPhpEntryPointFile(),
             $this->getConfig(),
+            $this->createSecondaryFileHarvester(),
         );
     }
 
@@ -107,6 +110,20 @@ final class BuildFactory extends AbstractFactory
     public function getCommandFacade(): CommandFacadeInterface
     {
         return $this->getProvidedDependency(BuildProvider::FACADE_COMMAND);
+    }
+
+    private function createSecondaryFileHarvester(): ?SecondaryFileHarvester
+    {
+        $compiledCodeCache = $this->createCompiledCodeCache();
+        if (!$compiledCodeCache instanceof CompiledCodeCache) {
+            return null;
+        }
+
+        return new SecondaryFileHarvester(
+            $compiledCodeCache,
+            new CompiledTargetPathResolver($this->getCompilerFacade()),
+            $this->createFileIo(),
+        );
     }
 
     private function createCompiledCodeCache(): ?CompiledCodeCache
