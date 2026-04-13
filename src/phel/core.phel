@@ -3022,7 +3022,7 @@ Otherwise, it tries to call `__toString`."
   [arr]
   (let [res (transient {})]
     (foreach [k v arr]
-      (assoc res k v))
+      (php/-> res (put k v)))
     (persistent res)))
 
 
