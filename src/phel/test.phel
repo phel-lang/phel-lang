@@ -33,9 +33,6 @@
 (defn- print-report-state [state]
   (print (case state :failed "F" :pass "." :error "E")))
 
-(defn- should-report-println? [total-columns]
-  (= (% (get-in (deref stats) [:counts :total]) total-columns) 0))
-
 (defn- should-stop? []
   (and (deref fail-fast?)
        (let [{:failed f :error e} (get (deref stats) :counts)]
@@ -61,16 +58,17 @@
     (if (deref testdox?)
       (print-report-testdox-state data state)
       (print-report-state state))
-    (swap! stats
-           (fn [s]
-             (let [counts (get s :counts)
-                   counts (assoc counts :total (inc (get counts :total)))
-                   counts (assoc counts state (inc (get counts state)))]
-               (let [s (assoc s :counts counts)]
-                 (if ok
-                   s
-                   (assoc s :failed (conj (get s :failed) data)))))))
-    (when (should-report-println? total-columns) (println))))
+    (let [new-stats (swap! stats
+                            (fn [s]
+                              (let [counts (get s :counts)
+                                    counts (assoc counts :total (inc (get counts :total)))
+                                    counts (assoc counts state (inc (get counts state)))]
+                                (let [s (assoc s :counts counts)]
+                                  (if ok
+                                    s
+                                    (assoc s :failed (conj (get s :failed) data)))))))
+          total (get-in new-stats [:counts :total])]
+      (when (= 0 (% total total-columns)) (println)))))
 
 (defn do-report
   "Add file and line information to a test result and call report.
