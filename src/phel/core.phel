@@ -2011,11 +2011,22 @@ Otherwise, it tries to call `__toString`."
 
 (def- for-verbs (hash-set :in :range :keys :pairs))
 
+(defn doseq-iterable
+  "Internal helper used by the `doseq` macro expansion. Returns a collection
+  suitable for Clojure-style iteration: maps are expanded to a sequence of
+  `[k v]` pair vectors so that destructuring binds entries as in Clojure, and
+  all other values pass through unchanged."
+  [coll]
+  (if (map? coll)
+    (for [[k v] :pairs coll] [k v])
+    coll))
+
 (defn- doseq-normalize
   "Transforms Clojure-style doseq bindings into Phel dofor format.
-  Pairs `[x coll]` become triples `[x :in coll]`. Already-present
-  verb triples `[x :in coll]` pass through unchanged. Modifier keywords
-  like :when, :while, :let pass through unchanged."
+  Pairs `[x coll]` become triples `[x :in (doseq-iterable coll)]` so maps
+  iterate as entry pairs. Already-present verb triples `[x :in coll]` pass
+  through unchanged. Modifier keywords like :when, :while, :let pass through
+  unchanged."
   [head]
   (loop [i 0
          result []]
@@ -2030,8 +2041,8 @@ Otherwise, it tries to call `__toString`."
             (if (and (keyword? next-el) (contains? for-verbs next-el))
               ;; verb already present: keep triple as-is
               (recur (php/+ i 3) (push (push (push result el) next-el) (php/aget head (php/+ i 2))))
-              ;; no verb: insert :in
-              (recur (php/+ i 2) (push (push (push result el) :in) next-el)))))))))
+              ;; no verb: insert :in with map-aware iteration helper
+              (recur (php/+ i 2) (push (push (push result el) :in) `(doseq-iterable ~next-el))))))))))
 
 (defmacro doseq
   "Repeatedly executes body for side effects with bindings.

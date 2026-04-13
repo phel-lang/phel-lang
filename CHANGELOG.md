@@ -55,6 +55,7 @@ All notable changes to this project will be documented in this file.
 - `deftest` rejects a missing/non-symbol name with a clear error (#1364)
 - `(def name)` without a value binds `nil` instead of throwing (#1361)
 - `doseq` accepts Clojure-style pairs `[x coll]` without `:in` (#1362)
+- `doseq` iterates maps as `[k v]` entry pairs, so Clojure-style destructuring `(doseq [[k v] m] ...)` and single-binding `(doseq [e m] ...)` match Clojure semantics (#1433)
 - `drop-last` works with lazy sequences and ranges (#1360)
 - `(empty? (range))` no longer hangs; `empty?` checks `first` for lazy sequences (#1366)
 - `is` no longer misinterprets `let`/`when`/`cond` forms as binary predicates (#1367)
