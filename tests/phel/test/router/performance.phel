@@ -1,6 +1,6 @@
 (ns phel-test\test\router\performance
   (:require phel\router :as r)
-  (:require phel\test :refer [deftest]))
+  (:require phel\test :refer [deftest is]))
 
 (def- routes
   (apply
@@ -12,16 +12,10 @@
 (def- dynamic-router (r/router routes {}))
 (def- compiled-router (r/compiled-router routes {}))
 
-(def- loops 10000)
+(deftest test-dynamic-router-matches
+  (is (some? (r/match-by-path dynamic-router "/abcdef/399"))
+      "dynamic router resolves a templated route"))
 
-(deftest test-dynamic-vs-compiled-router-performance
-  (let [s (php/microtime 1)]
-    (for [i :range [0 loops]]
-      (r/match-by-path dynamic-router "/abcdef/399"))
-    (println "Dynamic router: " (* 1000 (- (php/microtime 1) s)))))
-
-(deftest test-compiled-router-performance
-  (let [s (php/microtime 1)]
-    (for [i :range [0 loops]]
-      (r/match-by-path compiled-router "/abcdef/399"))
-    (println "Compiled router: " (* 1000 (- (php/microtime 1) s)))))
+(deftest test-compiled-router-matches
+  (is (some? (r/match-by-path compiled-router "/abcdef/399"))
+      "compiled router resolves a templated route"))
