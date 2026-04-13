@@ -71,6 +71,18 @@ All notable changes to this project will be documented in this file.
 - `phel\router`: caches Symfony matcher/generator, precompiles middleware dispatch at `handler` construction; per-request work is two hash-map lookups
 - `phel test` skips files that fail to compile and continues the run; pass `--fail-fast` for the previous abort-on-first-error behavior
 
+### Performance
+
+- Hot type predicates (`vector?`, `list?`, `set?`, `map?`-adjacent, `keyword?`, `symbol?`, `string?`, `boolean?`, `integer?`, `float?`, `number?`, `php-array?`, `indexed?`, `associative?`, `sequential?`, `coll?`) bypass the `type` cond chain and dispatch directly via `php/instanceof` / `php/is_*`
+- `every?` / `all?` use `empty?` instead of `(= 0 (count coll))`, removing O(N²) traversal on lazy seqs
+- `select-keys` iterates the small key list and looks up in the map (O(|ks|)) instead of scanning the whole map
+- `into` adds transient fast-paths for persistent vector / hash-set / hash-map targets
+- `set`, `vec`, `frequencies`, `merge`, `merge-with`, `select-keys`, `rename-keys`, `update-keys`, `update-vals`, `invert`, `group-by` build their result through transients
+- `group-by` accumulates into transient buckets; per-element appends are O(1) instead of O(log N)
+- `reverse`, `sort`, `sort-by`, `shuffle`, `doall` and the string paths of `next`/`rest`/`seq` skip the `apply vector` PHP-array round-trip
+- `zipcoll` delegates to `zipmap` directly instead of routing through a lazy `interleave` plus `apply hash-map`
+- Drop two shadowed eager `interleave` / `interpose` definitions left over from the lazy refactor
+
 ## [0.32.0](https://github.com/phel-lang/phel-lang/compare/v0.31.0...v0.32.0) - 2026-04-12
 
 ### Added
