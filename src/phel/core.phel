@@ -3771,24 +3771,24 @@ Otherwise, it tries to call `__toString`."
   "Bitwise and."
   {:inline (fn [x y & args] `(do (assert-non-nil ~x ~y ~@args) (php/& ~x ~y ~@args)))}
   [x y & args]
-  (apply assert-non-nil (concat [x y] args))
   (let [all (concat [x y] args)]
+    (apply assert-non-nil all)
     (reduce #(php/& %1 %2) all)))
 
 (defn bit-or
   "Bitwise or."
   {:inline (fn [x y & args] `(do (assert-non-nil ~x ~y ~@args) (php/| ~x ~y ~@args)))}
   [x y & args]
-  (apply assert-non-nil (concat [x y] args))
   (let [all (concat [x y] args)]
+    (apply assert-non-nil all)
     (reduce #(php/| %1 %2) all)))
 
 (defn bit-xor
   "Bitwise xor."
   {:inline (fn [x y & args] `(do (assert-non-nil ~x ~y ~@args) (php/^ ~x ~y ~@args)))}
   [x y & args]
-  (apply assert-non-nil (concat [x y] args))
   (let [all (concat [x y] args)]
+    (apply assert-non-nil all)
     (reduce #(php/^ %1 %2) all)))
 
 (defn bit-not
