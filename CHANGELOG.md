@@ -46,6 +46,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `CompiledCodeCache` keys entries by source file path so files sharing a namespace via `(in-ns ...)` no longer clobber each other; cache version bumped to 1.2
 - `keyword` is idempotent and handles `nil` / symbol input (#1428)
 - `dissoc` accepts zero keys and reduces over variadic key lists (#1428)
 - `keys` / `vals` return `nil` for `nil` or empty collections (#1428)
