@@ -3,28 +3,6 @@
 
 
 
-;; --- Map utilities ---
-
-(defn update-keys
-  "Returns a map with `f` applied to each key."
-  {:example "(update-keys {:a 1 :b 2} name) ; => {\"a\" 1 \"b\" 2}"
-   :see-also ["update-vals" "keys" "update"]}
-  [m f]
-  (persistent
-   (for [[k v] :pairs m
-         :reduce [acc (transient {})]]
-     (assoc! acc (f k) v))))
-
-(defn update-vals
-  "Returns a map with `f` applied to each value."
-  {:example "(update-vals {:a 1 :b 2} inc) ; => {:a 2 :b 3}"
-   :see-also ["update-keys" "values" "update"]}
-  [m f]
-  (persistent
-   (for [[k v] :pairs m
-         :reduce [acc (transient {})]]
-     (assoc! acc k (f v)))))
-
 (defn run!
   "Calls `(f x)` for each element in `coll` for side effects. Returns nil."
   {:example "(run! println [1 2 3])"
