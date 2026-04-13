@@ -61,11 +61,16 @@
     (if (deref testdox?)
       (print-report-testdox-state data state)
       (print-report-state state))
-    (swap! stats update-in [:counts :total] inc)
-    (swap! stats update-in [:counts state] inc)
-    (when (should-report-println? total-columns) (println))
-    (when-not ok
-      (swap! stats update-in [:failed] push data))))
+    (swap! stats
+           (fn [s]
+             (let [counts (get s :counts)
+                   counts (assoc counts :total (inc (get counts :total)))
+                   counts (assoc counts state (inc (get counts state)))]
+               (let [s (assoc s :counts counts)]
+                 (if ok
+                   s
+                   (assoc s :failed (conj (get s :failed) data)))))))
+    (when (should-report-println? total-columns) (println))))
 
 (defn do-report
   "Add file and line information to a test result and call report.
