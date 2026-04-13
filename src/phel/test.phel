@@ -110,8 +110,8 @@
                          :form '~form
                          :result ~value-evaluated}]
        (if ~result
-         (report (merge ~report-data {:state :pass}))
-         (report (merge ~report-data {:state :failed}))))))
+         (report (assoc ~report-data :state :pass))
+         (report (assoc ~report-data :state :failed))))))
 
 (defn- assert-binary [form message negated]
   (let [pred (first form)
@@ -163,9 +163,9 @@
                          :message ~message}]
        (try
          ~@body
-         (report (merge ~report-data {:state :failed}))
+         (report (assoc ~report-data :state :failed))
          (catch ~exception-symbol ~e
-           (report (merge ~report-data {:state :pass})))))))
+           (report (assoc ~report-data :state :pass)))))))
 
 (defn- assert-thrown-with-msg [form message]
   (let [exception-symbol (second form)
@@ -201,8 +201,8 @@
                          :form '~form
                          :result ~result}]
        (if ~result
-         (report (merge ~report-data {:state :pass}))
-         (report (merge ~report-data {:state :failed}))))))
+         (report (assoc ~report-data :state :pass))
+         (report (assoc ~report-data :state :failed))))))
 
 ;; Public extension point for the `is` macro: an open multimethod
 ;; dispatched on the first symbol of the asserted form (or `:default` for
