@@ -64,7 +64,16 @@ final readonly class CachedNamespaceExtractor implements NamespaceExtractorInter
                 $primaryDefinitions[$namespace][] = $info->getFile();
             }
 
-            $namespaces[$namespace] = $info;
+            // Prefer the primary `(ns ...)` file over any secondary
+            // `(in-ns ...)` sibling — secondaries are loaded via `(load ...)`
+            // from the primary and cannot be compiled standalone.
+            $existing = $namespaces[$namespace] ?? null;
+            if ($existing === null
+                || !$existing->isPrimaryDefinition()
+                || $info->isPrimaryDefinition()
+            ) {
+                $namespaces[$namespace] = $info;
+            }
         }
 
         $this->warnAboutDuplicateNamespaces($primaryDefinitions);
