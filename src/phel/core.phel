@@ -2014,35 +2014,48 @@ Otherwise, it tries to call `__toString`."
 (defn doseq-iterable
   "Internal helper used by the `doseq` macro expansion. Returns a collection
   suitable for Clojure-style iteration: maps are expanded to a sequence of
-  `[k v]` pair vectors so that destructuring binds entries as in Clojure, and
-  all other values pass through unchanged."
+  `[k v]` pair vectors so destructuring binds entries as in Clojure, and all
+  other values pass through unchanged."
   [coll]
   (if (map? coll)
-    (for [[k v] :pairs coll] [k v])
+    (for [kv :pairs coll] kv)
     coll))
+
+(defn- push-binding-triple
+  "Appends a `[binding verb coll-expr]` triple to the normalized doseq head."
+  [head binding verb coll-expr]
+  (push (push (push head binding) verb) coll-expr))
+
+(defn- push-modifier-pair
+  "Appends a `[modifier-keyword arg]` pair to the normalized doseq head."
+  [head modifier arg]
+  (push (push head modifier) arg))
 
 (defn- doseq-normalize
   "Transforms Clojure-style doseq bindings into Phel dofor format.
   Pairs `[x coll]` become triples `[x :in (doseq-iterable coll)]` so maps
   iterate as entry pairs. Already-present verb triples `[x :in coll]` pass
-  through unchanged. Modifier keywords like :when, :while, :let pass through
-  unchanged."
+  through unchanged. Modifier keywords like `:when`, `:while`, `:let` pass
+  through unchanged."
   [head]
   (loop [i 0
          result []]
     (if (>= i (count head))
       result
-      (let [el (php/aget head i)]
-        (if (keyword? el)
+      (let [el      (php/aget head i)
+            next-el (php/aget head (php/+ i 1))]
+        (cond
           ;; modifier keyword: keep pair as-is
-          (recur (php/+ i 2) (push (push result el) (php/aget head (php/+ i 1))))
-          ;; binding symbol: check if verb already present
-          (let [next-el (php/aget head (php/+ i 1))]
-            (if (and (keyword? next-el) (contains? for-verbs next-el))
-              ;; verb already present: keep triple as-is
-              (recur (php/+ i 3) (push (push (push result el) next-el) (php/aget head (php/+ i 2))))
-              ;; no verb: insert :in with map-aware iteration helper
-              (recur (php/+ i 2) (push (push (push result el) :in) `(doseq-iterable ~next-el))))))))))
+          (keyword? el)
+          (recur (php/+ i 2) (push-modifier-pair result el next-el))
+
+          ;; explicit verb already present: keep triple as-is
+          (and (keyword? next-el) (contains? for-verbs next-el))
+          (recur (php/+ i 3) (push-binding-triple result el next-el (php/aget head (php/+ i 2))))
+
+          ;; Clojure-style pair: insert `:in` with map-aware iteration helper
+          :else
+          (recur (php/+ i 2) (push-binding-triple result el :in `(doseq-iterable ~next-el))))))))
 
 (defmacro doseq
   "Repeatedly executes body for side effects with bindings.
