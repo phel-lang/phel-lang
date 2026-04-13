@@ -4688,15 +4688,16 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [methods dispatch-val]
   (let [parents-map (get @*hierarchy* :parents)
         method-keys (keys methods)
-        candidates (reduce
-                    (fn [acc k]
-                      (if (and (not= k :default)
-                               (not= k dispatch-val)
-                               (isa-in? parents-map dispatch-val k))
-                        (conj acc k)
-                        acc))
-                    []
-                    method-keys)]
+        candidates (persistent
+                    (reduce
+                     (fn [acc k]
+                       (if (and (not= k :default)
+                                (not= k dispatch-val)
+                                (isa-in? parents-map dispatch-val k))
+                         (conj acc k)
+                         acc))
+                     (transient [])
+                     method-keys))]
     (when (not (empty? candidates))
       (if (= 1 (count candidates))
         (get methods (first candidates))
