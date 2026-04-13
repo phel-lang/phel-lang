@@ -68,6 +68,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- `(load path)` resolves relative paths from the caller file's compile-time location instead of runtime `*file*`; `/path` is classpath-absolute and searches `phel\repl/src-dirs`. Leading `./`/`../` and explicit `.phel` extensions are now rejected
 - Reorganized Phel test files: dissolved `core.phel` into topic files under `core/`; moved `comments.phel`, `special-forms.phel`, `multi-arity-fn.phel` into `core/`
 - `phel\router`: caches Symfony matcher/generator, precompiles middleware dispatch at `handler` construction; per-request work is two hash-map lookups
 - `phel test` skips files that fail to compile and continues the run; pass `--fail-fast` for the previous abort-on-first-error behavior

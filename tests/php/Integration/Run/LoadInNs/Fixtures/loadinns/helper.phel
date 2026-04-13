@@ -1,0 +1,6 @@
+(in-ns loadinns\main)
+
+# Loaded transitively via util.phel. The namespace-relative path
+# resolves from the caller namespace (loadinns\main) regardless of
+# the loading file's filesystem location.
+(def helper-loaded true)

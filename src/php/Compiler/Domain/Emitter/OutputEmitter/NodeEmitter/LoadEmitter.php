@@ -13,7 +13,6 @@ use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 
 use function addslashes;
 use function assert;
-use function str_ends_with;
 
 final class LoadEmitter implements NodeEmitterInterface
 {
@@ -23,45 +22,86 @@ final class LoadEmitter implements NodeEmitterInterface
     {
         assert($node instanceof LoadNode);
 
-        $filePath = $node->getFilePath();
+        $this->emitPathResolution($node);
+        $this->emitFileExistsCheck();
+        $this->emitFileEvaluation($node);
+    }
 
-        // Add .phel extension if not present
-        if (!str_ends_with($filePath, '.phel')) {
-            $filePath .= '.phel';
+    /**
+     * Emit the code that produces `$__phelLoadPath` (an absolute path
+     * to the file to evaluate) and `$__phelLoadRel` (the user-facing
+     * path used in error messages).
+     */
+    private function emitPathResolution(LoadNode $node): void
+    {
+        $resolution = $node->getResolution();
+
+        $this->outputEmitter->emitStr('$__phelLoadRel = ');
+        $this->outputEmitter->emitLiteral($resolution->path);
+        $this->outputEmitter->emitLine(';');
+
+        if ($resolution->isClasspathAbsolute()) {
+            $this->emitClasspathAbsoluteSearch();
+        } else {
+            $this->emitFilesystemPath($resolution->path);
         }
+    }
 
-        // Resolve the file path relative to the current file
-        $this->outputEmitter->emitLine('$__phelLoadPath = (function($__phelPath, $__phelCurrentFile) {');
+    private function emitFilesystemPath(string $absolutePath): void
+    {
+        $this->outputEmitter->emitStr('$__phelLoadPath = ');
+        $this->outputEmitter->emitLiteral($absolutePath);
+        $this->outputEmitter->emitLine(';');
+    }
+
+    /**
+     * Emit a runtime search across `phel\repl/src-dirs`. First match
+     * wins, matching Clojure's classpath-order resolution.
+     */
+    private function emitClasspathAbsoluteSearch(): void
+    {
+        $this->outputEmitter->emitLine('$__phelSrcDirs = \\' . Phel::class . '::getDefinition(');
         $this->outputEmitter->increaseIndentLevel();
-        $this->outputEmitter->emitLine('if ($__phelPath[0] === \'/\') {');
-        $this->outputEmitter->increaseIndentLevel();
-        $this->outputEmitter->emitLine('return $__phelPath;');
-        $this->outputEmitter->decreaseIndentLevel();
-        $this->outputEmitter->emitLine('}');
-        $this->outputEmitter->emitLine('$__phelDir = dirname($__phelCurrentFile);');
-        $this->outputEmitter->emitLine('return $__phelDir . \'/\' . $__phelPath;');
-        $this->outputEmitter->decreaseIndentLevel();
-        $this->outputEmitter->emitStr('})(');
-        $this->outputEmitter->emitLiteral($filePath);
-        $this->outputEmitter->emitStr(', \\' . Phel::class . '::getDefinition(');
         $this->outputEmitter->emitStr('"');
-        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\core')));
-        $this->outputEmitter->emitStr('", "');
-        $this->outputEmitter->emitStr(addslashes('*file*'));
-        $this->outputEmitter->emitLine('"));');
+        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\repl')));
+        $this->outputEmitter->emitLine('",');
+        $this->outputEmitter->emitLine('"src-dirs"');
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine(') ?? [];');
 
-        // Check if file exists
-        $this->outputEmitter->emitLine('if (!file_exists($__phelLoadPath)) {');
+        $this->outputEmitter->emitLine('$__phelLoadPath = null;');
+        $this->outputEmitter->emitLine('foreach ($__phelSrcDirs as $__phelSrcDir) {');
         $this->outputEmitter->increaseIndentLevel();
-        $this->outputEmitter->emitLine('throw new \\RuntimeException(sprintf(\'File not found: %s\', $__phelLoadPath));');
+        $this->outputEmitter->emitLine('$__phelCandidate = $__phelSrcDir . \'/\' . $__phelLoadRel;');
+        $this->outputEmitter->emitLine('if (file_exists($__phelCandidate)) {');
+        $this->outputEmitter->increaseIndentLevel();
+        $this->outputEmitter->emitLine('$__phelLoadPath = $__phelCandidate;');
+        $this->outputEmitter->emitLine('break;');
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine('}');
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine('}');
+    }
 
-        // Store the current namespace
+    private function emitFileExistsCheck(): void
+    {
+        $this->outputEmitter->emitLine('if ($__phelLoadPath === null || !file_exists($__phelLoadPath)) {');
+        $this->outputEmitter->increaseIndentLevel();
+        $this->outputEmitter->emitLine(
+            "throw new \\RuntimeException(sprintf('Cannot locate %s for (load ...)', \$__phelLoadRel));",
+        );
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine('}');
+    }
+
+    /**
+     * Evaluate the resolved file. Restore the previous namespace on exit,
+     * and require the loaded file to join the caller namespace via (in-ns ...).
+     */
+    private function emitFileEvaluation(LoadNode $node): void
+    {
         $this->outputEmitter->emitLine('$__phelPrevNs = \\' . GlobalEnvironmentSingleton::class . '::getInstance()->getNs();');
         $this->outputEmitter->emitLine('$__phelLoadedNs = $__phelPrevNs;');
-
-        // Evaluate the file
         $this->outputEmitter->emitLine('$__phelBuildFacade = new \\Phel\\Build\\BuildFacade();');
         $this->outputEmitter->emitLine('\\' . BuildFacade::class . '::enableBuildMode();');
         $this->outputEmitter->emitLine('try {');

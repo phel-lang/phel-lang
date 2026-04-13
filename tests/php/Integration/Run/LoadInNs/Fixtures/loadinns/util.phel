@@ -1,0 +1,8 @@
+(in-ns loadinns\main)
+
+# This file uses in-ns to join the main namespace.
+# Its (load "helper") resolves from the caller namespace base
+# (loadinns/), not from this file's filesystem directory.
+(load "helper")
+
+(def util-loaded true)
