@@ -2399,13 +2399,11 @@ Otherwise, it tries to call `__toString`."
   [coll value]
   (cond
     (php/=== coll nil) (list value)
-    (list? coll) (cons value coll)
-    (php-array? coll) (do (php/apush coll value) coll)
-    (or (vector? coll) (php/instanceof coll TransientVectorInterface)) (php/-> coll (append value))
-    (or (set? coll) (php/instanceof coll TransientHashSetInterface)) (php/-> coll (add value))
-    (or (hash-map? coll)
-        (struct? coll)
-        (php/instanceof coll TransientMapInterface)) (conj-map-entry coll value)
+    (php/instanceof coll PersistentListInterface) (cons value coll)
+    (php/is_array coll) (do (php/apush coll value) coll)
+    (or (php/instanceof coll PersistentVectorInterface) (php/instanceof coll TransientVectorInterface)) (php/-> coll (append value))
+    (or (php/instanceof coll PersistentHashSetInterface) (php/instanceof coll TransientHashSetInterface)) (php/-> coll (add value))
+    (or (php/instanceof coll PersistentMapInterface) (php/instanceof coll TransientMapInterface)) (conj-map-entry coll value)
     (php/instanceof coll PushInterface) (php/-> coll (push value))
     :else
     (throw (php/new InvalidArgumentException
