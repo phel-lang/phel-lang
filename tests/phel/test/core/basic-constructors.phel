@@ -1,5 +1,5 @@
 (ns phel-test\test\core\basic-constructors
-  (:require phel\test :refer [deftest is]))
+  (:require phel\test :refer [deftest is are]))
 
 (deftest create-list
   (is (= '(1 2 3) (list '1 '2 '3)) "construct list"))
@@ -190,6 +190,20 @@
       "aclone of persistent vector raises InvalidArgumentException")
   (is (thrown? \InvalidArgumentException (aclone nil))
       "aclone of nil raises InvalidArgumentException"))
+
+(deftest test-alength
+  (are [n arr] (= n (alength arr))
+    0 (object-array 0)
+    3 (object-array 3)
+    3 (int-array [1 2 3])
+    4 (php-indexed-array :a :b :c :d)))
+
+(deftest test-alength-rejects-non-array
+  (are [arr] (thrown? \InvalidArgumentException (alength arr))
+    [1 2 3]
+    nil
+    "abc"
+    {:a 1}))
 
 (deftest test-int-array-from-size
   (let [arr (int-array 3)]
