@@ -18,9 +18,12 @@ final class CompiledCodeCacheIntegrationTest extends TestCase
 {
     private string $cacheDir;
 
+    private string $sourceFile;
+
     protected function setUp(): void
     {
         $this->cacheDir = sys_get_temp_dir() . '/phel-cache-integration-' . uniqid();
+        $this->sourceFile = $this->cacheDir . '/source.phel';
     }
 
     protected function tearDown(): void
@@ -37,16 +40,14 @@ final class CompiledCodeCacheIntegrationTest extends TestCase
         $phpCode = '$testVar = "cached value";';
 
         $cache = new CompiledCodeCache($this->cacheDir);
-        $cache->put($namespace, $sourceHash, $phpCode);
+        $cache->put($this->sourceFile, $namespace, $sourceHash, $phpCode);
 
-        // Create new instance to simulate fresh process
         $freshCache = new CompiledCodeCache($this->cacheDir);
-        $cachedPath = $freshCache->get($namespace, $sourceHash);
+        $cachedPath = $freshCache->get($this->sourceFile, $sourceHash);
 
         self::assertNotNull($cachedPath);
         self::assertFileExists($cachedPath);
 
-        // Verify the code can be included
         require $cachedPath;
 
         /** @var string $testVar */
@@ -59,9 +60,7 @@ final class CompiledCodeCacheIntegrationTest extends TestCase
     {
         $cache = new CompiledCodeCache($this->cacheDir);
 
-        $result = $cache->get('nonexistent\\namespace', 'somehash');
-
-        self::assertNull($result);
+        self::assertNull($cache->get($this->cacheDir . '/missing.phel', 'somehash'));
     }
 
     #[PreserveGlobalState(false)]
@@ -71,15 +70,11 @@ final class CompiledCodeCacheIntegrationTest extends TestCase
         $namespace = 'test\\integration\\stale';
         $oldHash = md5('old source');
         $newHash = md5('new source');
-        $phpCode = '$x = 1;';
 
         $cache = new CompiledCodeCache($this->cacheDir);
-        $cache->put($namespace, $oldHash, $phpCode);
+        $cache->put($this->sourceFile, $namespace, $oldHash, '$x = 1;');
 
-        // Check with different hash (simulating source change)
-        $result = $cache->get($namespace, $newHash);
-
-        self::assertNull($result);
+        self::assertNull($cache->get($this->sourceFile, $newHash));
     }
 
     #[PreserveGlobalState(false)]
@@ -90,13 +85,11 @@ final class CompiledCodeCacheIntegrationTest extends TestCase
         $sourceHash = md5('persistent source');
         $phpCode = '// persistent code';
 
-        // Store in first instance
         $cache1 = new CompiledCodeCache($this->cacheDir);
-        $cache1->put($namespace, $sourceHash, $phpCode);
+        $cache1->put($this->sourceFile, $namespace, $sourceHash, $phpCode);
 
-        // Retrieve from second instance
         $cache2 = new CompiledCodeCache($this->cacheDir);
-        $result = $cache2->get($namespace, $sourceHash);
+        $result = $cache2->get($this->sourceFile, $sourceHash);
 
         self::assertNotNull($result);
         self::assertFileExists($result);
@@ -107,31 +100,26 @@ final class CompiledCodeCacheIntegrationTest extends TestCase
     public function test_cache_clear_removes_all(): void
     {
         $cache = new CompiledCodeCache($this->cacheDir);
-        $cache->put('ns\\one', 'hash1', '// code 1');
-        $cache->put('ns\\two', 'hash2', '// code 2');
-        $cache->put('ns\\three', 'hash3', '// code 3');
+        $cache->put($this->cacheDir . '/one.phel', 'ns\\one', 'hash1', '// code 1');
+        $cache->put($this->cacheDir . '/two.phel', 'ns\\two', 'hash2', '// code 2');
+        $cache->put($this->cacheDir . '/three.phel', 'ns\\three', 'hash3', '// code 3');
 
         $cache->clear();
 
-        // Verify all entries are gone
         $freshCache = new CompiledCodeCache($this->cacheDir);
-        self::assertNull($freshCache->get('ns\\one', 'hash1'));
-        self::assertNull($freshCache->get('ns\\two', 'hash2'));
-        self::assertNull($freshCache->get('ns\\three', 'hash3'));
+        self::assertNull($freshCache->get($this->cacheDir . '/one.phel', 'hash1'));
+        self::assertNull($freshCache->get($this->cacheDir . '/two.phel', 'hash2'));
+        self::assertNull($freshCache->get($this->cacheDir . '/three.phel', 'hash3'));
     }
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
     public function test_compiled_file_has_php_header(): void
     {
-        $namespace = 'test\\header';
-        $sourceHash = 'hash';
-        $phpCode = '$x = 42;';
-
         $cache = new CompiledCodeCache($this->cacheDir);
-        $cache->put($namespace, $sourceHash, $phpCode);
+        $cache->put($this->sourceFile, 'test\\header', 'hash', '$x = 42;');
 
-        $compiledPath = $cache->getCompiledPath($namespace);
+        $compiledPath = $cache->getCompiledPath($this->sourceFile, 'test\\header');
         $content = file_get_contents($compiledPath);
 
         self::assertStringStartsWith('<?php', $content);
@@ -139,19 +127,20 @@ final class CompiledCodeCacheIntegrationTest extends TestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
-    public function test_multiple_namespaces_stored_independently(): void
+    public function test_multiple_files_in_one_namespace_stored_independently(): void
     {
         $cache = new CompiledCodeCache($this->cacheDir);
+        $fileA = $this->cacheDir . '/a.phel';
+        $fileB = $this->cacheDir . '/b.phel';
 
-        $cache->put('namespace\\a', 'hash_a', '$result = "a";');
-        $cache->put('namespace\\b', 'hash_b', '$result = "b";');
+        $cache->put($fileA, 'shared\\ns', 'hash_a', '$result = "a";');
+        $cache->put($fileB, 'shared\\ns', 'hash_b', '$result = "b";');
 
-        self::assertNotNull($cache->get('namespace\\a', 'hash_a'));
-        self::assertNotNull($cache->get('namespace\\b', 'hash_b'));
+        self::assertNotNull($cache->get($fileA, 'hash_a'));
+        self::assertNotNull($cache->get($fileB, 'hash_b'));
 
-        // Verify they're different files
-        $pathA = $cache->getCompiledPath('namespace\\a');
-        $pathB = $cache->getCompiledPath('namespace\\b');
+        $pathA = $cache->getCompiledPath($fileA, 'shared\\ns');
+        $pathB = $cache->getCompiledPath($fileB, 'shared\\ns');
         self::assertNotSame($pathA, $pathB);
     }
 

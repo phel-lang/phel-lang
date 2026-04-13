@@ -46,10 +46,12 @@ final readonly class FileEvaluator
         $namespaceInfo = $this->namespaceExtractor->getNamespaceFromFile($src);
         $namespace = $namespaceInfo->getNamespace();
 
-        // Check compiled code cache
+        // Check compiled code cache (keyed by source file path so multiple
+        // files sharing a namespace via `(in-ns ...)` do not clobber each
+        // other).
         if ($this->compiledCodeCache instanceof CompiledCodeCache) {
             $sourceHash = md5($code);
-            $cachedPath = $this->compiledCodeCache->get($namespace, $sourceHash);
+            $cachedPath = $this->compiledCodeCache->get($src, $sourceHash);
 
             if ($cachedPath !== null) {
                 // Cache hit - ensure GlobalEnvironment is initialized then require
@@ -72,10 +74,10 @@ final readonly class FileEvaluator
                     return new CompiledFile($src, $cachedPath, $namespace);
                 } catch (ParseError) {
                     // Parse errors indicate corrupt cache file - invalidate and recompile
-                    $this->compiledCodeCache->invalidate($namespace);
+                    $this->compiledCodeCache->invalidate($src);
                 } catch (Throwable $e) {
                     // Other exceptions are user code errors - invalidate cache but re-throw
-                    $this->compiledCodeCache->invalidate($namespace);
+                    $this->compiledCodeCache->invalidate($src);
                     throw $e;
                 }
             }
@@ -88,14 +90,14 @@ final readonly class FileEvaluator
                 ->setIsEnabledSourceMaps(false);
 
             $result = $this->compilerFacade->compileForCache($code, $options);
-            $this->compiledCodeCache->put($namespace, $sourceHash, $result->getPhpCode());
+            $this->compiledCodeCache->put($src, $namespace, $sourceHash, $result->getPhpCode());
 
             $envData = $this->compilerFacade->getNamespaceEnvironmentData($namespace);
             $this->compiledCodeCache->putEnvironment($namespace, $envData);
 
             return new CompiledFile(
                 $src,
-                $this->compiledCodeCache->getCompiledPath($namespace),
+                $this->compiledCodeCache->getCompiledPath($src, $namespace),
                 $namespace,
             );
         }
