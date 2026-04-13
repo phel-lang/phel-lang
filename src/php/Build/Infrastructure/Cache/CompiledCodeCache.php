@@ -243,7 +243,7 @@ final class CompiledCodeCache
         }
 
         $indexFile = $this->getIndexFile();
-        $handle = @fopen($indexFile, 'c');
+        $handle = @fopen($indexFile, 'c+');
         if ($handle === false) {
             return;
         }
@@ -254,13 +254,21 @@ final class CompiledCodeCache
         }
 
         try {
+            // Merge on-disk entries with in-memory entries. A (load ...) form
+            // creates a nested cache instance that writes its own sub-file
+            // entries to disk; without this merge, the outer instance would
+            // truncate those entries when it saves its own, forcing sub-files
+            // to recompile on the next run.
+            $merged = $this->mergeWithDiskEntries($handle);
+
             ftruncate($handle, 0);
             rewind($handle);
             $content = '<?php return ' . var_export([
                 'version' => $this->getCacheVersion(),
-                'entries' => $this->entries,
+                'entries' => $merged,
             ], true) . ';';
             fwrite($handle, $content);
+            $this->entries = $merged;
         } finally {
             flock($handle, LOCK_UN);
             fclose($handle);
@@ -269,6 +277,72 @@ final class CompiledCodeCache
         if (function_exists('opcache_invalidate')) {
             @opcache_invalidate($indexFile, true);
         }
+    }
+
+    /**
+     * Reads the current on-disk index and merges it with in-memory entries.
+     * In-memory entries win on conflict so a fresh `put` overrides older data.
+     *
+     * @param resource $handle Open, exclusively-locked file handle for the index file
+     *
+     * @return array<string, array{namespace: string, source_hash: string, compiled_path: string, last_accessed: int}>
+     */
+    private function mergeWithDiskEntries($handle): array
+    {
+        rewind($handle);
+        $currentContent = stream_get_contents($handle);
+        if ($currentContent === false || $currentContent === '') {
+            return $this->entries;
+        }
+
+        $diskEntries = $this->parseIndexContent($currentContent);
+
+        return array_merge($diskEntries, $this->entries);
+    }
+
+    /**
+     * @return array<string, array{namespace: string, source_hash: string, compiled_path: string, last_accessed: int}>
+     */
+    private function parseIndexContent(string $content): array
+    {
+        $tempFile = @tempnam(sys_get_temp_dir(), 'phel_cache_merge_');
+        if ($tempFile === false) {
+            return [];
+        }
+
+        try {
+            if (file_put_contents($tempFile, $content) === false) {
+                return [];
+            }
+
+            /** @psalm-suppress UnresolvableInclude */
+            $data = @include $tempFile;
+        } finally {
+            @unlink($tempFile);
+        }
+
+        if (!is_array($data) || !isset($data['version']) || $data['version'] !== $this->getCacheVersion()) {
+            return [];
+        }
+
+        $entries = [];
+        foreach ($data['entries'] ?? [] as $sourcePath => $entryData) {
+            if (is_array($entryData)
+                && isset($entryData['namespace'], $entryData['source_hash'], $entryData['compiled_path'])
+                && is_string($entryData['namespace'])
+                && is_string($entryData['source_hash'])
+                && is_string($entryData['compiled_path'])
+            ) {
+                $entries[$sourcePath] = [
+                    'namespace' => $entryData['namespace'],
+                    'source_hash' => $entryData['source_hash'],
+                    'compiled_path' => $entryData['compiled_path'],
+                    'last_accessed' => $entryData['last_accessed'] ?? time(),
+                ];
+            }
+        }
+
+        return $entries;
     }
 
     private function getIndexFile(): string

@@ -144,6 +144,27 @@ final class CompiledCodeCacheIntegrationTest extends TestCase
         self::assertNotSame($pathA, $pathB);
     }
 
+    public function test_put_preserves_entries_written_by_other_instances(): void
+    {
+        // A (load ...) form creates a nested CompiledCodeCache instance that
+        // writes entries for sub-files. The outer instance must not clobber
+        // those entries when it saves its own, or the next run will see a
+        // cache miss and recompile everything.
+        $outerFile = $this->cacheDir . '/outer.phel';
+        $nestedFile = $this->cacheDir . '/nested.phel';
+
+        $outer = new CompiledCodeCache($this->cacheDir);
+        $nested = new CompiledCodeCache($this->cacheDir);
+
+        $nested->put($nestedFile, 'nested\\ns', 'hash_nested', '$result = "nested";');
+
+        $outer->put($outerFile, 'outer\\ns', 'hash_outer', '$result = "outer";');
+
+        $fresh = new CompiledCodeCache($this->cacheDir);
+        self::assertNotNull($fresh->get($outerFile, 'hash_outer'));
+        self::assertNotNull($fresh->get($nestedFile, 'hash_nested'));
+    }
+
     private function removeDir(string $dir): void
     {
         if (!is_dir($dir)) {
