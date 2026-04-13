@@ -3313,13 +3313,18 @@ Otherwise, it tries to call `__toString`."
   {:example "(group-by count [\"a\" \"bb\" \"c\" \"ddd\" \"ee\"]) ; => {1 [\"a\" \"c\"] 2 [\"bb\" \"ee\"] 3 [\"ddd\"]}"
    :see-also ["partition-by" "frequencies"]}
   [f coll]
-  (persistent
-   (for [x :in coll
-         :let [k (f x)]
-         :reduce [res (transient {})]]
-     (when-not (get res k)
-       (assoc res k []))
-     (update-in res [k] push x))))
+  (let [tmap (persistent
+              (for [x :in coll
+                    :let [k (f x)]
+                    :reduce [res (transient {})]]
+                (let [bucket (get res k)]
+                  (if bucket
+                    (do (conj bucket x) res)
+                    (assoc res k (conj (transient []) x))))))]
+    (persistent
+     (for [[k tv] :pairs tmap
+           :reduce [acc (transient {})]]
+       (assoc acc k (persistent tv))))))
 
 (defn zipmap
   "Returns a new map with the keys mapped to the corresponding values.
