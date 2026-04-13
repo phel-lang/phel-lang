@@ -1400,7 +1400,7 @@ Otherwise, it tries to call `__toString`."
 (defn php-array?
   "Returns true if `x` is a PHP Array, false otherwise."
   [x]
-  (= (type x) :php/array))
+  (php/is_array x))
 
 (defn php-resource?
   "Returns true if `x` is a PHP resource, false otherwise."
@@ -1491,11 +1491,9 @@ Otherwise, it tries to call `__toString`."
   Indexed sequences include lists, vectors, and indexed PHP arrays."
   {:example "(indexed? [1 2 3]) ; => true"}
   [x]
-  (let [t (type x)]
-    (or
-     (= t :list)
-     (= t :vector)
-     (indexed-php-array? x))))
+  (or (php/instanceof x PersistentVectorInterface)
+      (php/instanceof x PersistentListInterface)
+      (indexed-php-array? x)))
 
 (defn associative?
   "Returns true if `x` is an associative data structure, false otherwise.
@@ -1505,12 +1503,9 @@ Otherwise, it tries to call `__toString`."
   {:example "(associative? [1 2 3]) ; => true"
    :see-also ["vector?" "map?" "hash-map?"]}
   [x]
-  (let [t (type x)]
-    (or
-     (= t :hash-map)
-     (= t :struct)
-     (= t :vector)
-     (= t :php/array))))
+  (or (php/instanceof x PersistentMapInterface)
+      (php/instanceof x PersistentVectorInterface)
+      (php/is_array x)))
 
 (defn sequential?
   "Returns true if `x` is a sequential collection (vector, list, or lazy
@@ -1520,10 +1515,9 @@ Otherwise, it tries to call `__toString`."
   {:example "(sequential? [1 2 3]) ; => true\n(sequential? {:a 1}) ; => false"
    :see-also ["coll?" "vector?" "list?" "seq?"]}
   [x]
-  (let [t (type x)]
-    (or (= t :vector)
-        (= t :list)
-        (php/instanceof x LazySeqInterface))))
+  (or (php/instanceof x PersistentVectorInterface)
+      (php/instanceof x PersistentListInterface)
+      (php/instanceof x LazySeqInterface)))
 
 (defn coll?
   "Returns true if `x` is a persistent collection — vector, list, hash-map
@@ -1534,13 +1528,11 @@ Otherwise, it tries to call `__toString`."
   {:example "(coll? [1 2 3]) ; => true\n(coll? \"abc\") ; => false"
    :see-also ["vector?" "map?" "list?" "set?" "seq?" "sequential?"]}
   [x]
-  (let [t (type x)]
-    (or (= t :vector)
-        (= t :list)
-        (= t :hash-map)
-        (= t :struct)
-        (= t :set)
-        (php/instanceof x LazySeqInterface))))
+  (or (php/instanceof x PersistentVectorInterface)
+      (php/instanceof x PersistentListInterface)
+      (php/instanceof x PersistentMapInterface)
+      (php/instanceof x PersistentHashSetInterface)
+      (php/instanceof x LazySeqInterface)))
 
 (defn seqable?
   "Returns true if `(seq x)` is supported: collections (vectors, lists,
