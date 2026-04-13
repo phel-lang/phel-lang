@@ -1,5 +1,10 @@
 (in-ns phel\core)
 
+;; Mutable reference cells (`atom`, `var`), their mutation protocol
+;; (`reset!`, `swap!`, `deref`, `add-watch`, `alter-var-root`, `set-validator!`),
+;; and the iteration primitives built on them: `range` and the `for`
+;; comprehension macro.
+
 ;; -----
 ;; Atoms
 ;; -----

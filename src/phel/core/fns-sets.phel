@@ -1,5 +1,14 @@
 (in-ns phel\core)
 
+;; Two loosely-related groups, kept together because both build higher-level
+;; abstractions over the seq/set primitives in core.phel:
+;;   1. Set algebra: `union`, `intersection`, `difference`,
+;;      `symmetric-difference`, `subset?`, `superset?`.
+;;   2. Function combinators and collection helpers: `constantly`,
+;;      `complement`, `some-fn`, `juxt`, `partial`, `fnil`, `memoize`,
+;;      `memoize-lru`, `tree-seq`, `flatten`, `merge-with`, `update-keys`,
+;;      `update-vals`, etc.
+
 ;; -------------
 ;; Set operation
 ;; -------------

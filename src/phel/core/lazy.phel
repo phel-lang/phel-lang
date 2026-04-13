@@ -1,5 +1,9 @@
 (in-ns phel\core)
 
+;; Deferred evaluation: the `delay` macro plus `force`, `delay?`, and the
+;; `iteration` generator. Lazy sequences themselves live in `core.phel`;
+;; this file covers the single-value memoized-thunk side of laziness.
+
 ;; --- Delay / Force ---
 
 (defmacro delay

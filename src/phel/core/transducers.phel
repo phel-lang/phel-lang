@@ -1,0 +1,122 @@
+(in-ns phel\core)
+
+;; Reduce / transduce pipeline plus the volatile reference cells that power
+;; transducer state: `reduced`, `reduced?`, `unreduced`, `reduce`,
+;; `completing`, `transduce`, `volatile!`, `vreset!`, `vswap!`, `volatile?`.
+;; Kept together because volatiles exist in Phel chiefly as fast-mutable
+;; accumulators for transducers, matching Clojure's `clojure.core` layout.
+
+;; -------------------
+;; Transducer support
+;; -------------------
+
+(defn reduced
+  "Wraps `x` in a Reduced, signaling early termination from reduce/transduce."
+  {:see-also ["reduced?" "unreduced"]}
+  [x]
+  (php/new Reduced x))
+
+(defn reduced?
+  "Returns true if `x` is a Reduced value."
+  {:see-also ["reduced" "unreduced"]}
+  [x]
+  (php/instanceof x Reduced))
+
+(defn unreduced
+  "If `x` is Reduced, returns the unwrapped value; otherwise returns `x`."
+  {:see-also ["reduced" "reduced?"]}
+  [x]
+  (if (reduced? x)
+    (php/-> x (deref))
+    x))
+
+(defn- ensure-reduced
+  "Wraps `x` in Reduced if it is not already reduced."
+  [x]
+  (if (reduced? x) x (reduced x)))
+
+(defn- preserving-reduced
+  "Wraps a reducing function so Reduced propagates as double-wrapped."
+  [rf]
+  (fn [a b]
+    (let [ret (rf a b)]
+      (if (reduced? ret) (reduced ret) ret))))
+
+(defn reduce
+  "Reduces collection to a single value by repeatedly applying function to accumulator and elements.
+  Respects early termination via `(reduced val)`."
+  {:example "(reduce + [1 2 3 4]) ; => 10"
+   :see-also ["transduce" "into" "reduced"]}
+  [f & args]
+  (case (count args)
+    1 (let [coll (first args)]
+        (if (empty? coll)
+          (f)
+          (reduce f (first coll) (next coll))))
+    2 (let [init (first args)
+            coll (second args)
+            acc (php/new Volatile init)
+            done (php/new Volatile false)]
+        (dofor [x :in coll :while (not (php/-> done (deref)))]
+          (let [result (f (php/-> acc (deref)) x)]
+            (if (reduced? result)
+              (do (php/-> acc (reset (php/-> result (deref))))
+                  (php/-> done (reset true)))
+              (php/-> acc (reset result)))))
+        (php/-> acc (deref)))
+    (throw (php/new InvalidArgumentException "expected 2 or 3 arguments in reduce"))))
+
+(defn completing
+  "Takes a reducing function `f` of 2 args and returns a fn suitable for transduce
+  by adding a 1-arity (completion) that calls `cf` (default: identity)."
+  {:see-also ["transduce"]}
+  [f & args]
+  (let [cf (if (empty? args) identity (first args))]
+    (fn [& cargs]
+      (case (count cargs)
+        0 (f)
+        1 (cf (first cargs))
+        2 (f (first cargs) (second cargs))))))
+
+(defn transduce
+  "Reduce with a transformation of `f` (xf). If init is not supplied,
+  `(f)` will be called to produce it. `f` should be a reducing function
+  that returns the initial value when called with no arguments."
+  {:example "(transduce (map inc) + [1 2 3]) ; => 9"
+   :see-also ["reduce" "into" "sequence"]}
+  [xform f & args]
+  (case (count args)
+    1 (let [coll (first args)]
+        (transduce xform f (f) coll))
+    2 (let [init (first args)
+            coll (second args)
+            f (xform (completing f))
+            ret (reduce f init coll)]
+        (f ret))
+    (throw (php/new InvalidArgumentException "transduce expects 3 or 4 arguments"))))
+
+(defn volatile!
+  "Creates a volatile mutable reference with initial value `val`.
+  Use for transducer state that needs fast mutation without watches."
+  {:see-also ["vreset!" "vswap!" "var"]}
+  [val]
+  (php/new Volatile val))
+
+(defn vreset!
+  "Sets the value of volatile `vol` to `val`. Returns `val`."
+  {:see-also ["volatile!" "vswap!"]}
+  [vol val]
+  (php/-> vol (reset val)))
+
+(defn vswap!
+  "Applies `f` to the current value of volatile `vol` plus `args`,
+  and sets the new value. Returns the new value."
+  {:see-also ["volatile!" "vreset!"]}
+  [vol f & args]
+  (vreset! vol (apply f @vol args)))
+
+(defn volatile?
+  "Returns true if `x` is a Volatile."
+  {:see-also ["volatile!" "vreset!" "vswap!"]}
+  [x]
+  (php/instanceof x Volatile))

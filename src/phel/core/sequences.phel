@@ -1,5 +1,11 @@
 (in-ns phel\core)
 
+;; Indexed / associative access primitives used as building blocks by the
+;; higher-level seq API back in core.phel: `peek`, `push`, `pop`, `get`,
+;; `nth`, `nthrest`, `nthnext`, `assoc`, `put`, `dissoc`, `unset`.
+;; Loaded mid-core because the later `map`/`filter`/`reduce` definitions
+;; depend on them.
+
 ;; ------------------
 ;; Sequence operation
 ;; ------------------

@@ -1,5 +1,11 @@
 (in-ns phel\core)
 
+;; I/O: stdout/formatting (`print`, `println`, `pr`, `prn`, `print-str`,
+;; `format`, `printf`, `with-output-buffer`); file helpers (`slurp`, `spit`,
+;; `line-seq`, `file-seq`, `read-file-lazy`, `csv-seq`); and regex helpers
+;; (`re-pattern`, `re-seq`, `re-find`, `re-matches`). Everything here touches
+;; the outside world — pure code belongs elsewhere.
+
 ;; ---------------
 ;; Print operation
 ;; ---------------

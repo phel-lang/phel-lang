@@ -1,5 +1,14 @@
 (in-ns phel\core)
 
+;; Three loosely-related but late-loading pieces:
+;;   1. Interfaces via `definterface` (compiles to a PHP interface).
+;;   2. Ad-hoc hierarchies / polymorphic dispatch: `make-hierarchy`,
+;;      `derive`, `underive`, `isa?`, `parents`, `ancestors`, `descendants`,
+;;      `satisfies?`, `extends?`.
+;;   3. Compile/eval bridge: `read-string`, `eval`, `compile`, `name`,
+;;      `namespace`, `full-name`. Placed here because they depend on the
+;;      compiler facade, which is only safe to call after bootstrap.
+
 ;; ----------
 ;; Interfaces
 ;; ----------

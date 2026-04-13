@@ -1,5 +1,9 @@
 (in-ns phel\core)
 
+;; Safe string → primitive parsers: `parse-long`, `parse-double`,
+;; `parse-boolean`. Each returns `nil` on invalid input instead of throwing,
+;; matching Clojure's `parse-*` contract.
+
 ;; --- Safe parsing ---
 
 (defn parse-long

@@ -1,5 +1,9 @@
 (in-ns phel\core)
 
+;; Runtime macro introspection: `macroexpand-1` expands once, `macroexpand`
+;; expands until fixed point. Useful for debugging macros and for tooling —
+;; not part of the compiler pipeline itself.
+
 ;; --- Macro introspection ---
 
 (defn macroexpand-1
