@@ -79,6 +79,15 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
 
     public function merge(PersistentMapInterface $other): PersistentMapInterface
     {
+        if ($this instanceof PersistentHashMap || $this instanceof PersistentArrayMap) {
+            $tm = $this->asTransient();
+            foreach ($other as $k => $v) {
+                $tm->put($k, $v);
+            }
+
+            return $tm->persistent();
+        }
+
         $m = $this;
         foreach ($other as $k => $v) {
             $m = $m->put($k, $v);
