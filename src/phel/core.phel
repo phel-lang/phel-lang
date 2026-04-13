@@ -2942,4 +2942,5 @@ Otherwise, it tries to call `__toString`."
 
 (load "core/protocols")
 
+(load "core/lazy")
 (load "core/extras")

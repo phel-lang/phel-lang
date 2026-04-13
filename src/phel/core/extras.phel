@@ -1,53 +1,5 @@
 (in-ns phel\core)
 
-;; --- Delay / Force ---
-
-(defmacro delay
-  "Takes a body of expressions and yields a Delay object that will invoke the
-  body only the first time it is forced (via force or deref/@), caching the result."
-  {:example "(def d (delay (println \"computing\") 42))"
-   :see-also ["force" "delay?" "realized?"]}
-  [& body]
-  `(php/new \Phel\Lang\Delay (fn [] ~@body)))
-
-(defn force
-  "If x is a Delay, forces it and returns its cached value. Otherwise returns x."
-  {:example "(force (delay 42)) ; => 42"
-   :see-also ["delay" "deref"]}
-  [x]
-  (if (php/instanceof x Delay)
-    (php/-> x (deref))
-    x))
-
-(defn delay?
-  "Returns true if x is a Delay."
-  {:see-also ["delay" "force"]}
-  [x]
-  (php/instanceof x Delay))
-
-;; --- Iteration ---
-
-(defn iteration
-  "Creates a lazy sequence from successive calls to `step`.
-  `step` is called with a key (starting with `:initk`) and returns a result.
-  `:kf` extracts the next key, `:vf` extracts the value from the result.
-  Terminates when the result is nil.
-
-  Options map keys:
-    :kf     — key function (default: identity)
-    :vf     — value function (default: identity)
-    :initk  — initial key (default: nil)"
-  {:example "(iteration fetch-page {:kf :next-token :vf :items :initk nil})"
-   :see-also ["iterate" "repeatedly" "lazy-seq"]}
-  [step opts]
-  (lazy-seq
-   (let [kf (get opts :kf identity)
-         vf (get opts :vf identity)
-         initk (get opts :initk)
-         result (step initk)]
-     (when (not (nil? result))
-       (cons (vf result)
-             (iteration step (assoc opts :initk (kf result))))))))
 
 ;; --- Rich exceptions ---
 
