@@ -2319,21 +2319,21 @@ Otherwise, it tries to call `__toString`."
               ;; turning O(N log N) repeated copy-on-write into O(N).
               (vector? to)
               (persistent
-                (for [value :in entries
-                      :reduce [acc (transient to)]]
-                  (conj acc value)))
+               (for [value :in entries
+                     :reduce [acc (transient to)]]
+                 (conj acc value)))
 
               (set? to)
               (persistent
-                (for [value :in entries
-                      :reduce [acc (transient to)]]
-                  (conj acc value)))
+               (for [value :in entries
+                     :reduce [acc (transient to)]]
+                 (conj acc value)))
 
               (hash-map? to)
               (persistent
-                (for [entry :in entries
-                      :reduce [acc (transient to)]]
-                  (assoc-entry acc entry)))
+               (for [entry :in entries
+                     :reduce [acc (transient to)]]
+                 (assoc-entry acc entry)))
 
               map-target?
               (for [entry :in entries
@@ -2573,8 +2573,8 @@ Otherwise, it tries to call `__toString`."
   (if (php/=== nil coll)
     #{}
     (persistent
-      (for [x :in coll :reduce [acc (transient #{})]]
-        (conj! acc x)))))
+     (for [x :in coll :reduce [acc (transient #{})]]
+       (conj! acc x)))))
 
 (defn vec
   "Coerces a collection to a vector. For hash-maps and structs, entries
@@ -2586,12 +2586,12 @@ Otherwise, it tries to call `__toString`."
     (php/=== nil coll) []
     (or (map? coll) (struct? coll))
     (persistent
-      (for [[k v] :pairs coll :reduce [acc (transient [])]]
-        (conj! acc [k v])))
+     (for [[k v] :pairs coll :reduce [acc (transient [])]]
+       (conj! acc [k v])))
     :else
     (persistent
-      (for [x :in coll :reduce [acc (transient [])]]
-        (conj! acc x)))))
+     (for [x :in coll :reduce [acc (transient [])]]
+       (conj! acc x)))))
 
 (defn get-in
   "Accesses a value in a nested data structure via a sequence of keys.
@@ -3355,10 +3355,10 @@ Otherwise, it tries to call `__toString`."
   {:example "(merge {:a 1 :b 2} {:b 3 :c 4}) ; => {:a 1 :b 3 :c 4}"}
   [& maps]
   (persistent
-    (for [map :in maps
-          [k v] :pairs map
-          :reduce [res (transient {})]]
-      (assoc! res k v))))
+   (for [map :in maps
+         [k v] :pairs map
+         :reduce [res (transient {})]]
+     (assoc! res k v))))
 
 (defn select-keys
   "Returns a new map including key value pairs from `m` selected with keys `ks`."
@@ -3381,9 +3381,9 @@ Otherwise, it tries to call `__toString`."
    :see-also ["select-keys" "keys" "vals"]}
   [m kmap]
   (persistent
-    (for [[k v] :pairs m
-          :reduce [acc (transient {})]]
-      (assoc! acc (get kmap k k) v))))
+   (for [[k v] :pairs m
+         :reduce [acc (transient {})]]
+     (assoc! acc (get kmap k k) v))))
 
 (defn invert
   "Returns a new map where the keys and values are swapped.
@@ -3392,9 +3392,9 @@ Otherwise, it tries to call `__toString`."
   {:example "(invert {:a 1 :b 2 :c 3}) ; => {1 :a 2 :b 3 :c}"}
   [map]
   (persistent
-    (for [[k v] :pairs map
-          :reduce [res (transient {})]]
-      (assoc! res v k))))
+   (for [[k v] :pairs map
+         :reduce [res (transient {})]]
+     (assoc! res v k))))
 
 (defn split-at
   "Returns a vector of `[(take n coll) (drop n coll)]`."
@@ -3717,11 +3717,11 @@ Otherwise, it tries to call `__toString`."
 
 (defn- merge-with-2 [f left right]
   (persistent
-    (for [[k v] :pairs right
-          :reduce [acc (transient left)]]
-      (if (contains? acc k)
-        (assoc! acc k (f (get acc k) v))
-        (assoc! acc k v)))))
+   (for [[k v] :pairs right
+         :reduce [acc (transient left)]]
+     (if (contains? acc k)
+       (assoc! acc k (f (get acc k) v))
+       (assoc! acc k v)))))
 
 (defn merge-with
   "Merges multiple maps into one new map. If a key appears in more than one
@@ -5390,9 +5390,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
    :see-also ["update-vals" "keys" "update"]}
   [m f]
   (persistent
-    (for [[k v] :pairs m
-          :reduce [acc (transient {})]]
-      (assoc! acc (f k) v))))
+   (for [[k v] :pairs m
+         :reduce [acc (transient {})]]
+     (assoc! acc (f k) v))))
 
 (defn update-vals
   "Returns a map with `f` applied to each value."
@@ -5400,9 +5400,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
    :see-also ["update-keys" "values" "update"]}
   [m f]
   (persistent
-    (for [[k v] :pairs m
-          :reduce [acc (transient {})]]
-      (assoc! acc k (f v)))))
+   (for [[k v] :pairs m
+         :reduce [acc (transient {})]]
+     (assoc! acc k (f v)))))
 
 ;; --- Safe parsing ---
 

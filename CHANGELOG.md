@@ -73,15 +73,14 @@ All notable changes to this project will be documented in this file.
 
 ### Performance
 
-- Hot type predicates (`vector?`, `list?`, `set?`, `map?`-adjacent, `keyword?`, `symbol?`, `string?`, `boolean?`, `integer?`, `float?`, `number?`, `php-array?`, `indexed?`, `associative?`, `sequential?`, `coll?`) bypass the `type` cond chain and dispatch directly via `php/instanceof` / `php/is_*`
-- `every?` / `all?` use `empty?` instead of `(= 0 (count coll))`, removing O(N²) traversal on lazy seqs
-- `select-keys` iterates the small key list and looks up in the map (O(|ks|)) instead of scanning the whole map
-- `into` adds transient fast-paths for persistent vector / hash-set / hash-map targets
-- `set`, `vec`, `frequencies`, `merge`, `merge-with`, `select-keys`, `rename-keys`, `update-keys`, `update-vals`, `invert`, `group-by` build their result through transients
-- `group-by` accumulates into transient buckets; per-element appends are O(1) instead of O(log N)
-- `reverse`, `sort`, `sort-by`, `shuffle`, `doall` and the string paths of `next`/`rest`/`seq` skip the `apply vector` PHP-array round-trip
-- `zipcoll` delegates to `zipmap` directly instead of routing through a lazy `interleave` plus `apply hash-map`
-- Drop two shadowed eager `interleave` / `interpose` definitions left over from the lazy refactor
+- Hot type predicates dispatch directly via `php/instanceof` / `php/is_*` instead of walking the `type` cond chain. Covers `vector?`, `list?`, `set?`, `keyword?`, `symbol?`, `string?`, `boolean?`, `integer?`, `float?`, `number?`, `php-array?`, `indexed?`, `associative?`, `sequential?`, `coll?`
+- `every?` / `all?` test emptiness with `empty?` instead of `(= 0 (count coll))`, avoiding an O(N²) walk on lazy seqs
+- `select-keys` iterates `ks` and looks each one up in `m` (O(|ks|)) instead of scanning every entry of `m`
+- `into` gains a transient fast-path for persistent vector, hash-set, and hash-map targets
+- Map/vector/set builders use transient accumulators internally: `set`, `vec`, `frequencies`, `merge`, `merge-with`, `select-keys`, `rename-keys`, `update-keys`, `update-vals`, `invert`, and `group-by` (with transient inner vector buckets, making per-element append O(1) instead of O(log N))
+- `reverse`, `sort`, `sort-by`, `shuffle`, `doall`, and the string branches of `next`/`rest`/`seq` build the vector directly from the PHP array, skipping the `apply vector` round-trip
+- `zipcoll` delegates to `zipmap` instead of routing through a lazy `interleave` plus `apply hash-map`
+- Removed two shadowed eager `interleave` / `interpose` defns; the lazy redefinitions a few hundred lines later were already the live versions
 
 ## [0.32.0](https://github.com/phel-lang/phel-lang/compare/v0.31.0...v0.32.0) - 2026-04-12
 
