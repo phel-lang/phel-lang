@@ -163,6 +163,15 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
      */
     public function concat($xs)
     {
+        if ($this instanceof PersistentVector) {
+            $tv = $this->asTransient();
+            foreach ($xs as $x) {
+                $tv->append($x);
+            }
+
+            return $tv->persistent();
+        }
+
         $result = $this;
         foreach ($xs as $x) {
             $result = $result->append($x);
