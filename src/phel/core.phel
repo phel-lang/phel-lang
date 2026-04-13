@@ -1381,7 +1381,7 @@ Otherwise, it tries to call `__toString`."
   Clojure's `clojure.core/any?` — useful as a default predicate in spec
   / validation contexts where every value should be accepted."
   {:example "(any? nil) ; => true\n(any? 0) ; => true"
-   :see-also ["some?" "all?" "ifn?"]}
+   :see-also ["some?" "every?" "ifn?"]}
   [_]
   true)
 
