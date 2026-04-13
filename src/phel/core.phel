@@ -1732,10 +1732,10 @@ Otherwise, it tries to call `__toString`."
     (php-array? ds)
     (throw (php/new InvalidArgumentException "Cannot call assoc on pure PHP arrays. Use (php/aset ds key value)"))
 
-    (or (struct? ds) (hash-map? ds) (php/instanceof ds TransientMapInterface))
+    (or (php/instanceof ds PersistentMapInterface) (php/instanceof ds TransientMapInterface))
     (php/-> ds (put key value))
 
-    (or (vector? ds) (php/instanceof ds TransientVectorInterface))
+    (or (php/instanceof ds PersistentVectorInterface) (php/instanceof ds TransientVectorInterface))
     (php/-> ds (update key value))
 
     ;; Explicit rejection for any other shape (string, list, set, sorted set,
