@@ -35,17 +35,17 @@ final readonly class LoadSymbol implements SpecialFormAnalyzerInterface
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): LoadNode
     {
         $pathArg = $this->extractPathArg($list);
-        $callerFile = $list->getStartLocation()?->getFile();
+        $callerNamespace = $this->analyzer->getNamespace();
 
         try {
-            $resolution = $this->pathResolver->resolve($callerFile, $pathArg);
+            $resolution = $this->pathResolver->resolve($callerNamespace, $pathArg);
         } catch (InvalidArgumentException $invalidArgumentException) {
             throw AnalyzerException::withLocation($invalidArgumentException->getMessage(), $list);
         }
 
         return new LoadNode(
             $resolution,
-            $this->analyzer->getNamespace(),
+            $callerNamespace,
             $list->getStartLocation(),
         );
     }

@@ -6,7 +6,6 @@ namespace PhelTest\Unit\Compiler\Analyzer\Resolver;
 
 use Generator;
 use InvalidArgumentException;
-use Phel\Compiler\Domain\Analyzer\Resolver\LoadPathResolution;
 use Phel\Compiler\Domain\Analyzer\Resolver\LoadPathResolver;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -21,55 +20,49 @@ final class LoadPathResolverTest extends TestCase
     }
 
     #[DataProvider('provideRelativeCases')]
-    public function test_it_resolves_paths_relative_to_caller_file_directory(
-        string $callerFile,
+    public function test_it_resolves_paths_relative_to_caller_namespace(
+        string $callerNamespace,
         string $pathArg,
-        string $expectedAbsolute,
+        string $expectedLoadKey,
+        string $expectedCallerDir,
     ): void {
-        $resolution = $this->resolver->resolve($callerFile, $pathArg);
+        $resolution = $this->resolver->resolve($callerNamespace, $pathArg);
 
         self::assertFalse($resolution->isClasspathAbsolute());
-        self::assertSame(LoadPathResolution::MODE_FILESYSTEM, $resolution->mode);
-        self::assertSame($expectedAbsolute, $resolution->path);
+        self::assertSame($expectedLoadKey, $resolution->loadKey);
+        self::assertSame($expectedCallerDir, $resolution->callerClasspathDir);
     }
 
     public static function provideRelativeCases(): Generator
     {
-        yield 'sibling file' => [
-            '/src/phel/core.phel', 'extras', '/src/phel/extras.phel',
-        ];
-
-        yield 'nested relative path' => [
-            '/src/phel/core.phel', 'core/extras', '/src/phel/core/extras.phel',
-        ];
-
-        yield 'deeper caller file' => [
-            '/src/phel/core/extras.phel', 'helper', '/src/phel/core/helper.phel',
-        ];
+        yield 'sibling file' => ['phel\\core', 'extras', 'extras', 'phel'];
+        yield 'nested relative path' => ['phel\\core', 'core/extras', 'core/extras', 'phel'];
+        yield 'caller in nested namespace' => ['phel\\http\\server', 'handler', 'handler', 'phel/http'];
+        yield 'top-level caller namespace' => ['app', 'helper', 'helper', ''];
     }
 
     #[DataProvider('provideClasspathAbsoluteCases')]
     public function test_it_marks_leading_slash_as_classpath_absolute(
         string $pathArg,
-        string $expectedRelative,
+        string $expectedLoadKey,
     ): void {
-        $resolution = $this->resolver->resolve('/any/file.phel', $pathArg);
+        $resolution = $this->resolver->resolve('any\\ns', $pathArg);
 
         self::assertTrue($resolution->isClasspathAbsolute());
-        self::assertSame(LoadPathResolution::MODE_CLASSPATH_ABSOLUTE, $resolution->mode);
-        self::assertSame($expectedRelative, $resolution->path);
+        self::assertSame($expectedLoadKey, $resolution->loadKey);
+        self::assertSame('', $resolution->callerClasspathDir);
     }
 
     public static function provideClasspathAbsoluteCases(): Generator
     {
-        yield 'single segment' => ['/str', 'str.phel'];
-        yield 'nested segments' => ['/phel/str', 'phel/str.phel'];
+        yield 'single segment' => ['/str', 'str'];
+        yield 'nested segments' => ['/phel/str', 'phel/str'];
     }
 
-    public function test_it_rejects_relative_path_without_caller_file(): void
+    public function test_it_rejects_relative_path_without_caller_namespace(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        $this->expectExceptionMessage('no caller source location available');
+        $this->expectExceptionMessage('no caller namespace available');
 
         $this->resolver->resolve(null, 'helper');
     }
@@ -80,7 +73,7 @@ final class LoadPathResolverTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $this->expectExceptionMessage($expectedMessage);
 
-        $this->resolver->resolve('/any/file.phel', $pathArg);
+        $this->resolver->resolve('any\\ns', $pathArg);
     }
 
     public static function provideInvalidPathCases(): Generator

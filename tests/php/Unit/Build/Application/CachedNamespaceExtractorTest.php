@@ -28,7 +28,7 @@ final class CachedNamespaceExtractorTest extends TestCase
         $this->removeDir($this->dir);
     }
 
-    public function test_primary_ns_file_wins_over_in_ns_siblings_regardless_of_scan_order(): void
+    public function test_primary_ns_file_is_returned_before_its_in_ns_siblings_regardless_of_scan_order(): void
     {
         $primaryPath = $this->dir . '/main.phel';
         $secondaryPath = $this->dir . '/split/part.phel';
@@ -69,12 +69,14 @@ final class CachedNamespaceExtractorTest extends TestCase
             static fn(NamespaceInformation $i): bool => $i->getNamespace() === 'split\\ns',
         ));
 
-        self::assertCount(1, $picked);
+        self::assertCount(2, $picked, 'Both primary and secondary files must be surfaced for build emission.');
         self::assertTrue(
             $picked[0]->isPrimaryDefinition(),
-            'Cached extractor must prefer the primary `(ns ...)` file over any `(in-ns ...)` sibling.',
+            'Primary `(ns ...)` file must come before any `(in-ns ...)` sibling.',
         );
         self::assertStringEndsWith('/main.phel', $picked[0]->getFile());
+        self::assertFalse($picked[1]->isPrimaryDefinition());
+        self::assertStringEndsWith('/split/part.phel', $picked[1]->getFile());
     }
 
     private function removeDir(string $dir): void

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Run\Application;
 
 use Phel;
+use Phel\Compiler\Domain\Analyzer\Resolver\LoadClasspath;
 use Phel\Shared\CompilerConstants;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
@@ -44,10 +45,10 @@ final class NamespaceLoader
 
         $srcDirectories = $this->buildSrcDirectories($replStartupFile);
 
-        // Populate `phel\repl/src-dirs` before evaluating any file so that
-        // `(load ...)` calls inside core.phel (or any other namespace) can
-        // resolve classpath-relative paths against the search roots.
-        Phel::addDefinition('phel\\repl', 'src-dirs', $srcDirectories);
+        // Publish the classpath before evaluating any file so `(load ...)`
+        // forms inside core.phel (or any other namespace) can resolve
+        // classpath-relative paths against the search roots.
+        LoadClasspath::publish($srcDirectories);
 
         $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
             $srcDirectories,

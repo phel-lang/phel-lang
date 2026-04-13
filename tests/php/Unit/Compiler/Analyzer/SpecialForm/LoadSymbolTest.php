@@ -66,14 +66,15 @@ final class LoadSymbolTest extends TestCase
         yield 'Array' => [[], 'array'];
     }
 
-    public function test_resolves_relative_path_from_caller_file_directory(): void
+    public function test_resolves_relative_path_against_caller_namespace(): void
     {
         $this->analyzer->setNamespace('app\\main');
         $node = $this->analyze($this->makeList(['util']));
 
         self::assertInstanceOf(LoadNode::class, $node);
         self::assertFalse($node->getResolution()->isClasspathAbsolute());
-        self::assertSame('/fixtures/app/util.phel', $node->getResolution()->path);
+        self::assertSame('util', $node->getResolution()->loadKey);
+        self::assertSame('app', $node->getResolution()->callerClasspathDir);
         self::assertSame('app\\main', $node->getCallerNamespace());
     }
 
@@ -82,7 +83,8 @@ final class LoadSymbolTest extends TestCase
         $this->analyzer->setNamespace('app\\main');
         $node = $this->analyze($this->makeList(['sub/util']));
 
-        self::assertSame('/fixtures/app/sub/util.phel', $node->getResolution()->path);
+        self::assertSame('sub/util', $node->getResolution()->loadKey);
+        self::assertSame('app', $node->getResolution()->callerClasspathDir);
     }
 
     public function test_resolves_classpath_absolute_path(): void
@@ -91,7 +93,8 @@ final class LoadSymbolTest extends TestCase
         $node = $this->analyze($this->makeList(['/phel/str']));
 
         self::assertTrue($node->getResolution()->isClasspathAbsolute());
-        self::assertSame('phel/str.phel', $node->getResolution()->path);
+        self::assertSame('phel/str', $node->getResolution()->loadKey);
+        self::assertSame('', $node->getResolution()->callerClasspathDir);
     }
 
     public function test_preserves_source_location(): void
@@ -121,19 +124,6 @@ final class LoadSymbolTest extends TestCase
         yield 'explicit extension'    => ['util.phel',  'must not include'];
         yield 'dot-slash prefix'      => ['./util',     "must not start with './'"];
         yield 'parent-slash prefix'   => ['../util',    "must not start with './'"];
-    }
-
-    public function test_rejects_relative_path_without_caller_source_location(): void
-    {
-        $this->analyzer->setNamespace('test\\ns');
-
-        $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('no caller source location available');
-
-        $list = Phel::list([Symbol::create(Symbol::NAME_LOAD), 'util']);
-        // Deliberately omit setStartLocation.
-
-        $this->analyze($list);
     }
 
     /**

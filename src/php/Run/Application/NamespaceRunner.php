@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Run\Application;
 
+use Phel\Compiler\Domain\Analyzer\Resolver\LoadClasspath;
 use Phel\Run\Domain\Runner\NamespaceRunnerInterface;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
@@ -17,11 +18,17 @@ final readonly class NamespaceRunner implements NamespaceRunnerInterface
 
     public function run(string $namespace): void
     {
+        $srcDirectories = [
+            ...$this->commandFacade->getSourceDirectories(),
+            ...$this->commandFacade->getVendorSourceDirectories(),
+        ];
+
+        // Publish the classpath so `(load ...)` forms inside the namespace
+        // (or any of its dependencies) can find their sibling files.
+        LoadClasspath::publish($srcDirectories);
+
         $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
-            [
-                ...$this->commandFacade->getSourceDirectories(),
-                ...$this->commandFacade->getVendorSourceDirectories(),
-            ],
+            $srcDirectories,
             [$namespace, 'phel\\core'],
         );
 

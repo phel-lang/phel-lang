@@ -5,47 +5,63 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\Resolver;
 
 use InvalidArgumentException;
+use Phel\Compiler\Application\Munge;
 
-use function dirname;
+use function explode;
+use function implode;
 use function sprintf;
 use function str_ends_with;
 use function str_starts_with;
 use function substr;
 
 /**
- * Resolves a `(load "...")` path argument into either an absolute
- * filesystem path (for caller-relative loads) or a classpath-relative
- * path to be searched at runtime against `phel\repl/src-dirs`.
+ * Resolves a `(load "...")` path argument into a portable, classpath-
+ * oriented description that the emitter uses to generate a runtime
+ * lookup.
  *
- * Mirrors Clojure's `clojure.core/load`: a leading slash marks a
- * classpath-absolute path; anything else is resolved relative to the
- * caller. Phel differs from Clojure in one detail — the caller base is
- * the caller file's directory (compile-time frozen), not a namespace
- * package directory, because Phel does not require filesystem layout
- * to match namespace layout.
+ * A leading slash marks a classpath-absolute path; anything else is
+ * resolved relative to the caller's namespace directory on the
+ * classpath. The resolver never bakes absolute filesystem paths from
+ * the compiling machine — that would break distribution.
  */
-final class LoadPathResolver
+final readonly class LoadPathResolver
 {
     private const string EXTENSION = '.phel';
 
-    public function resolve(?string $callerFile, string $pathArg): LoadPathResolution
+    public function __construct(
+        private Munge $munge = new Munge(),
+    ) {}
+
+    public function resolve(?string $callerNamespace, string $pathArg): LoadPathResolution
     {
         $this->rejectInvalidPathArg($pathArg);
 
         if ($this->isClasspathAbsolute($pathArg)) {
-            $relative = substr($pathArg, 1) . self::EXTENSION;
-
-            return LoadPathResolution::classpathAbsolute($relative);
+            return LoadPathResolution::classpathAbsolute(substr($pathArg, 1));
         }
 
-        if ($callerFile === null || $callerFile === '') {
+        if ($callerNamespace === null || $callerNamespace === '') {
             throw new InvalidArgumentException(sprintf(
-                "'load cannot resolve relative path '%s' — no caller source location available",
+                "'load cannot resolve relative path '%s' — no caller namespace available",
                 $pathArg,
             ));
         }
 
-        return LoadPathResolution::filesystem(dirname($callerFile) . '/' . $pathArg . self::EXTENSION);
+        return LoadPathResolution::callerRelative($pathArg, $this->classpathDirOf($callerNamespace));
+    }
+
+    /**
+     * The directory component of a namespace when laid out on the
+     * classpath. `phel\core` → `phel`; `loade2e\core` → `loade2e`;
+     * top-level namespaces like `user` produce an empty string.
+     */
+    private function classpathDirOf(string $namespace): string
+    {
+        $munged = $this->munge->encodeNs($namespace);
+        $parts = explode('\\', $munged);
+        array_pop($parts);
+
+        return implode('/', $parts);
     }
 
     private function rejectInvalidPathArg(string $pathArg): void

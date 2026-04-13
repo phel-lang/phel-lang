@@ -68,7 +68,7 @@ final class NamespaceExtractorTest extends TestCase
         $this->extractNamespace($fileContent);
     }
 
-    public function test_primary_ns_file_wins_over_in_ns_siblings(): void
+    public function test_primary_ns_file_comes_before_its_in_ns_siblings(): void
     {
         $dir = sys_get_temp_dir() . '/phel-extractor-test-' . uniqid();
         mkdir($dir . '/split', 0777, true);
@@ -77,8 +77,7 @@ final class NamespaceExtractorTest extends TestCase
         $secondaryPath = $dir . '/split/part.phel';
 
         // Intentionally write the secondary first so directory-scan order
-        // does not accidentally pick the primary. Then give the secondary
-        // a filename that sorts LATER than the primary on most filesystems.
+        // does not accidentally put the primary first on its own.
         file_put_contents($secondaryPath, '(in-ns split\\ns)');
         file_put_contents($primaryPath, '(ns split\\ns)');
 
@@ -95,12 +94,14 @@ final class NamespaceExtractorTest extends TestCase
             static fn(NamespaceInformation $i): bool => $i->getNamespace() === 'split\\ns',
         ));
 
-        self::assertCount(1, $matches);
+        self::assertCount(2, $matches, 'Both primary and secondary files must be surfaced for build emission.');
         self::assertTrue(
             $matches[0]->isPrimaryDefinition(),
-            'Namespace lookup must prefer the (ns ...) primary file over any (in-ns ...) sibling.',
+            'Primary `(ns ...)` file must come before any `(in-ns ...)` sibling.',
         );
         self::assertStringEndsWith('/main.phel', $matches[0]->getFile());
+        self::assertFalse($matches[1]->isPrimaryDefinition());
+        self::assertStringEndsWith('/split/part.phel', $matches[1]->getFile());
 
         unlink($secondaryPath);
         unlink($primaryPath);

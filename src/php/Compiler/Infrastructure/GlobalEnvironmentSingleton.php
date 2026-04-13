@@ -8,7 +8,6 @@ use Phel;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\GlobalEnvironmentAlreadyInitializedException;
-use Phel\Compiler\Domain\Analyzer\Exceptions\GlobalEnvironmentNotInitializedException;
 use Phel\Compiler\Domain\Evaluator\RequireEvaluator;
 
 final class GlobalEnvironmentSingleton
@@ -40,12 +39,17 @@ final class GlobalEnvironmentSingleton
     }
 
     /**
-     * @throws GlobalEnvironmentNotInitializedException
+     * Returns the singleton. Auto-creates a fresh `GlobalEnvironment`
+     * when none exists — without clearing the Phel registry, unlike
+     * `initializeNew()`. This keeps compiled artifacts usable when
+     * required outside a full compiler bootstrap: their emitted
+     * `setNs(...)` / `hasDefinition(...)` calls simply operate on a
+     * throwaway analyzer environment instead of throwing.
      */
     public static function getInstance(): GlobalEnvironmentInterface
     {
         if (!self::$instance instanceof GlobalEnvironmentInterface) {
-            throw new GlobalEnvironmentNotInitializedException();
+            self::$instance = new GlobalEnvironment();
         }
 
         return self::$instance;

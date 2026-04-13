@@ -8,10 +8,12 @@ use Phel\Build\BuildConfigInterface;
 use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Compile\BuildOptions;
 use Phel\Build\Domain\Compile\CompiledFile;
+use Phel\Build\Domain\Compile\CompiledTargetPathResolver;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
+use Phel\Compiler\Domain\Analyzer\Resolver\LoadClasspath;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use RuntimeException;
@@ -22,7 +24,7 @@ use function sprintf;
 
 final readonly class ProjectCompiler
 {
-    private const string TARGET_FILE_EXTENSION = '.php';
+    private CompiledTargetPathResolver $targetPathResolver;
 
     public function __construct(
         private NamespaceExtractorInterface $namespaceExtractor,
@@ -31,7 +33,9 @@ final readonly class ProjectCompiler
         private CommandFacadeInterface $commandFacade,
         private EntryPointPhpFileInterface $entryPointPhpFile,
         private BuildConfigInterface $config,
-    ) {}
+    ) {
+        $this->targetPathResolver = new CompiledTargetPathResolver($compilerFacade);
+    }
 
     /**
      * @return list<CompiledFile>
@@ -59,6 +63,10 @@ final readonly class ProjectCompiler
         // preventing definitions from being lost when compilation is triggered later.
         $this->compilerFacade->initializeGlobalEnvironment();
 
+        // Publish the classpath so runtime `(load ...)` emissions can resolve
+        // sibling files during compile-time statement evaluation.
+        LoadClasspath::publish($srcDirectories);
+
         $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($srcDirectories);
         /** @var list<CompiledFile> $result */
         $result = [];
@@ -67,7 +75,7 @@ final readonly class ProjectCompiler
                 continue;
             }
 
-            $targetFile = $dest . '/' . $this->getTargetFileFromNamespace($info->getNamespace());
+            $targetFile = $dest . '/' . $this->targetPathResolver->resolve($info, $srcDirectories);
             $targetDir = dirname($targetFile);
             if (!file_exists($targetDir) && !mkdir($targetDir, 0777, true) && !is_dir($targetDir)) {
                 throw new RuntimeException(sprintf('Directory "%s" was not created', $targetDir));
@@ -111,13 +119,6 @@ final readonly class ProjectCompiler
         }
 
         return false;
-    }
-
-    private function getTargetFileFromNamespace(string $namespace): string
-    {
-        $mungedNamespace = $this->compilerFacade->encodeNs($namespace);
-
-        return implode(DIRECTORY_SEPARATOR, explode('\\', $mungedNamespace)) . self::TARGET_FILE_EXTENSION;
     }
 
     private function canUseCache(

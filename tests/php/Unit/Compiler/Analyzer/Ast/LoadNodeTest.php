@@ -14,7 +14,7 @@ final class LoadNodeTest extends TestCase
 {
     public function test_creates_node_with_resolution_and_namespace(): void
     {
-        $resolution = LoadPathResolution::filesystem('/app/util.phel');
+        $resolution = LoadPathResolution::callerRelative('util', 'app');
         $node = new LoadNode($resolution, 'app\\main');
 
         self::assertSame($resolution, $node->getResolution());
@@ -23,17 +23,17 @@ final class LoadNodeTest extends TestCase
 
     public function test_stores_classpath_absolute_resolution(): void
     {
-        $resolution = LoadPathResolution::classpathAbsolute('app/util.phel');
+        $resolution = LoadPathResolution::classpathAbsolute('app/util');
         $node = new LoadNode($resolution, 'app\\module');
 
         self::assertTrue($node->getResolution()->isClasspathAbsolute());
-        self::assertSame('app/util.phel', $node->getResolution()->path);
+        self::assertSame('app/util', $node->getResolution()->loadKey);
     }
 
     public function test_has_empty_environment(): void
     {
         $node = new LoadNode(
-            LoadPathResolution::filesystem('/any.phel'),
+            LoadPathResolution::callerRelative('any', 'test'),
             'test\\ns',
         );
 
@@ -44,7 +44,7 @@ final class LoadNodeTest extends TestCase
     {
         $sourceLocation = new SourceLocation('test.phel', 1, 0);
         $node = new LoadNode(
-            LoadPathResolution::filesystem('/util.phel'),
+            LoadPathResolution::callerRelative('util', 'app'),
             'app\\main',
             $sourceLocation,
         );
@@ -55,7 +55,7 @@ final class LoadNodeTest extends TestCase
     public function test_source_location_is_optional(): void
     {
         $node = new LoadNode(
-            LoadPathResolution::filesystem('/util.phel'),
+            LoadPathResolution::callerRelative('util', 'app'),
             'app\\main',
         );
 
