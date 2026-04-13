@@ -2947,4 +2947,5 @@ Otherwise, it tries to call `__toString`."
 (load "core/macroexpand")
 (load "core/parsing")
 (load "core/uuid")
+(load "core/loops")
 (load "core/extras")
