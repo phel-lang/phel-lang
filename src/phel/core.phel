@@ -3614,13 +3614,14 @@ Otherwise, it tries to call `__toString`."
   [f & defaults]
   (let [n (count defaults)]
     (fn [& args]
-      (let [patched (for [i :range [0 (count args)]
-                          :reduce [acc []]]
-                      (let [arg (get args i)]
-                        (conj acc
-                              (if (and (php/< i n) (nil? arg))
-                                (get defaults i)
-                                arg))))]
+      (let [patched (persistent
+                     (for [i :range [0 (count args)]
+                           :reduce [acc (transient [])]]
+                       (let [arg (get args i)]
+                         (conj acc
+                               (if (and (php/< i n) (nil? arg))
+                                 (get defaults i)
+                                 arg)))))]
         (apply f patched)))))
 
 (defn memoize
