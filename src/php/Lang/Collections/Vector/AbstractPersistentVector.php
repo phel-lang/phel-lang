@@ -78,15 +78,13 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
     public function equals(mixed $other): bool
     {
         if ($other instanceof PersistentVectorInterface) {
-            if ($this->count() !== $other->count()) {
+            $count = $this->count();
+            if ($count !== $other->count()) {
                 return false;
             }
 
-            $ms = $other;
-            for ($s = $this; $s !== null; $s = $s->cdr(), $ms = $ms->cdr()) {
-                /** @var PersistentVectorInterface $s */
-                /** @var ?PersistentVectorInterface $ms */
-                if (!$ms instanceof PersistentVectorInterface || !$this->equalizer->equals($s->first(), $ms->first())) {
+            for ($i = 0; $i < $count; ++$i) {
+                if (!$this->equalizer->equals($this->get($i), $other->get($i))) {
                     return false;
                 }
             }
@@ -163,6 +161,15 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
      */
     public function concat($xs)
     {
+        if ($this instanceof PersistentVector) {
+            $tv = $this->asTransient();
+            foreach ($xs as $x) {
+                $tv->append($x);
+            }
+
+            return $tv->persistent();
+        }
+
         $result = $this;
         foreach ($xs as $x) {
             $result = $result->append($x);

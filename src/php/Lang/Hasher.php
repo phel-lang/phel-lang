@@ -8,9 +8,9 @@ use Gacela\Container\Attribute\Singleton;
 use RuntimeException;
 
 use function gettype;
+use function is_float;
 use function is_int;
 use function is_object;
-use function is_scalar;
 use function is_string;
 
 /**
@@ -39,6 +39,13 @@ final class Hasher implements HasherInterface
      */
     public function hash(mixed $value): int
     {
+        // Fast paths first: ints and Phel hashable types are the dominant
+        // shapes in collection workloads, so we test them before falling
+        // back to the broader scalar / object branches.
+        if (is_int($value)) {
+            return $value;
+        }
+
         if ($value === null) {
             return self::NULL_HASH_VALUE;
         }
@@ -47,19 +54,10 @@ final class Hasher implements HasherInterface
             return $value->hash();
         }
 
-        if (is_scalar($value)) {
-            return $this->hashScalar($value);
+        if (is_string($value)) {
+            return crc32($value);
         }
 
-        if (is_object($value)) {
-            return crc32(spl_object_hash($value));
-        }
-
-        throw new RuntimeException('This type is not hashable: ' . gettype($value));
-    }
-
-    private function hashScalar(float|bool|int|string $value): int
-    {
         if ($value === true) {
             return self::TRUE_HASH_VALUE;
         }
@@ -68,16 +66,15 @@ final class Hasher implements HasherInterface
             return self::FALSE_HASH_VALUE;
         }
 
-        if (is_string($value)) {
-            return crc32($value);
+        if (is_float($value)) {
+            return $this->hashFloat($value);
         }
 
-        if (is_int($value)) {
-            return $value;
+        if (is_object($value)) {
+            return crc32(spl_object_hash($value));
         }
 
-        /** @var float $value */
-        return $this->hashFloat($value);
+        throw new RuntimeException('This type is not hashable: ' . gettype($value));
     }
 
     private function hashFloat(float $value): int

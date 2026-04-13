@@ -48,7 +48,7 @@
     (indexed? x) (for [v :in x] (decode-value v))
     (php-array? x) (let [hashmap (transient {})]
                      (foreach [k v x]
-                       (assoc hashmap (keyword k) (decode-value v)))
+                       (php/-> hashmap (put (keyword k) (decode-value v))))
                      (persistent hashmap))
     true x))
 

@@ -16,7 +16,7 @@
   {:example "(chars \"hello\") ; => [\"h\" \"e\" \"l\" \"l\" \"o\"]"
    :see-also ["seq"]}
   [s]
-  (apply vector (php/mb_str_split s)))
+  (php/:: \Phel (vector (php/mb_str_split s))))
 
 (defn join
   "Returns a string of all elements in coll, separated by an optional separator."

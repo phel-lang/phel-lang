@@ -140,10 +140,11 @@
 (defn- extract-path-params
   "Builds a Phel hash-map of path parameters, excluding Symfony's `_route` key."
   [parameters]
-  (for [[k v] :pairs parameters
-        :when (not= k "_route")
-        :reduce [acc {}]]
-    (put acc (keyword k) v)))
+  (persistent
+    (for [[k v] :pairs parameters
+          :when (not= k "_route")
+          :reduce [acc (transient {})]]
+      (assoc! acc (keyword k) v))))
 
 (defn- match-with
   "Runs the given Symfony matcher for `path` and builds a match result using
@@ -241,9 +242,10 @@
   [raw-routes & [options]]
   (let [{:path path :data data :or {path "" data {}}} (or (eval options) {})
         flattened-routes (vec (flatten-routes (eval raw-routes) path data))
-        indexed-routes (for [route :in flattened-routes
-                             :reduce [acc {}]]
-                         (put acc (route-name-of route) route))
+        indexed-routes (persistent
+                        (for [route :in flattened-routes
+                              :reduce [acc (transient {})]]
+                          (assoc! acc (route-name-of route) route)))
         route-collection (build-route-collection flattened-routes)
         compiled-matcher-routes (php/-> (php/new CompiledUrlMatcherDumper route-collection) (getCompiledRoutes))
         compiled-generator-routes (php/-> (php/new CompiledUrlGeneratorDumper route-collection) (getCompiledRoutes))

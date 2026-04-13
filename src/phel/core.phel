@@ -109,7 +109,7 @@
           (let [chars (php/mb_str_split xs)]
             (if (php/<= (php/count chars) 1)
               nil
-              (apply vector (php/array_slice chars 1))))
+              (php/:: Phel (vector (php/array_slice chars 1)))))
           (if (php/is_array xs)
             (let [sliced (php/array_slice xs 1)]
               (if (php/empty sliced)
@@ -239,7 +239,10 @@
   (fn [source target]
     (if (php/instanceof source MetaInterface)
       (if (php/instanceof target MetaInterface)
-        (php/-> target (withMeta (php/-> source (getMeta))))
+        (let [src-meta (php/-> source (getMeta))]
+          (if src-meta
+            (php/-> target (withMeta src-meta))
+            target))
         target)
       target)))
 
@@ -424,13 +427,16 @@ Booleans are represented as \"true\" or \"false\" (matching Clojure semantics).
 Otherwise, it tries to call `__toString`."
   [& args]
   (let [cnt (php/count args)]
-    (if (php/== cnt 0)
+    (if (php/=== cnt 0)
       ""
-      (loop [result ""
-             i 0]
-        (if (php/< i cnt)
-          (recur (php/. result (val-to-str (php/aget args i))) (php/+ i 1))
-          result)))))
+      (if (php/=== cnt 1)
+        (val-to-str (php/aget args 0))
+        (let [parts (php/array)]
+          (loop [i 0]
+            (if (php/< i cnt)
+              (do (php/apush parts (val-to-str (php/aget args i)))
+                  (recur (php/+ i 1)))
+              (php/implode "" parts))))))))
 
 (defn transient
   "Converts a persistent collection to a transient collection for efficient updates.
@@ -716,7 +722,7 @@ Otherwise, it tries to call `__toString`."
   (if (php/instanceof coll RestInterface)
     (php/-> coll (rest))
     (if (php/is_string coll)
-      (apply vector (php/array_slice (php/mb_str_split coll) 1))
+      (php/:: Phel (vector (php/array_slice (php/mb_str_split coll) 1)))
       (if (php/is_array coll)
         (php/array_slice coll 1)
         (throw (php/new InvalidArgumentException "cannot do rest"))))))
@@ -999,13 +1005,15 @@ Otherwise, it tries to call `__toString`."
   [a b]
   (php/<=> b a))
 
+(declare empty?)
+
 (defn all?
   "Returns true if predicate is true for every element in collection, false otherwise."
   {:example "(all? even? [2 4 6 8]) ; => true"}
   [pred coll]
   (cond
-    (php/=== (count coll) 0) true
-    (pred (first coll))     (recur pred (next coll))
+    (empty? coll)       true
+    (pred (first coll)) (recur pred (next coll))
     false))
 
 (defn every?
@@ -1015,8 +1023,8 @@ Otherwise, it tries to call `__toString`."
    :see-also ["all?" "not-every?"]}
   [pred coll]
   (cond
-    (php/=== (count coll) 0) true
-    (pred (first coll))     (recur pred (next coll))
+    (empty? coll)       true
+    (pred (first coll)) (recur pred (next coll))
     false))
 
 (defn not-every?
@@ -1025,7 +1033,6 @@ Otherwise, it tries to call `__toString`."
   [pred coll]
   (not (all? pred coll)))
 
-(declare empty?)
 (declare truthy?)
 (declare name)
 
@@ -1183,13 +1190,13 @@ Otherwise, it tries to call `__toString`."
 (defn float?
   "Returns true if `x` is float point number, false otherwise."
   [x]
-  (= (type x) :float))
+  (php/is_float x))
 
 (defn integer?
   "Returns true if `x` is an integer number, false otherwise."
   {:see-also ["int?"]}
   [x]
-  (= (type x) :int))
+  (php/is_int x))
 
 (defn int?
   "Returns true if `x` is an integer number, false otherwise.
@@ -1226,7 +1233,7 @@ Otherwise, it tries to call `__toString`."
 (defn number?
   "Returns true if `x` is a number, false otherwise."
   [x]
-  (or (= (type x) :int) (= (type x) :float)))
+  (or (php/is_int x) (php/is_float x)))
 
 (defn ratio?
   "Always returns false. Phel has no Ratio type — Clojure-style ratio
@@ -1250,7 +1257,7 @@ Otherwise, it tries to call `__toString`."
 (defn string?
   "Returns true if `x` is a string, false otherwise."
   [x]
-  (= (type x) :string))
+  (php/is_string x))
 
 (defn char?
   "Returns true if `x` is a single-character string, false otherwise.
@@ -1262,18 +1269,18 @@ Otherwise, it tries to call `__toString`."
   {:example "(char? \\A) ; => true\n(char? \"a\") ; => true\n(char? \"ab\") ; => false"
    :see-also ["char" "string?"]}
   [x]
-  (and (= (type x) :string)
+  (and (php/is_string x)
        (= 1 (php/mb_strlen x "UTF-8"))))
 
 (defn keyword?
   "Returns true if `x` is a keyword, false otherwise."
   [x]
-  (= (type x) :keyword))
+  (php/instanceof x Keyword))
 
 (defn symbol?
   "Returns true if `x` is a symbol, false otherwise."
   [x]
-  (= (type x) :symbol))
+  (php/instanceof x Symbol))
 
 (defn ident?
   "Returns true if `x` is a symbol or keyword."
@@ -1340,12 +1347,13 @@ Otherwise, it tries to call `__toString`."
 (defn struct?
   "Returns true if `x` is a struct, false otherwise."
   [x]
-  (= (type x) :struct))
+  (php/instanceof x AbstractPersistentStruct))
 
 (defn map?
   "Returns true if `x` is a hash map, false otherwise."
   [x]
-  (= (type x) :hash-map))
+  (and (php/instanceof x PersistentMapInterface)
+       (not (php/instanceof x AbstractPersistentStruct))))
 
 (defn hash-map?
   "Returns true if `x` is a hash map, false otherwise."
@@ -1357,17 +1365,17 @@ Otherwise, it tries to call `__toString`."
 (defn vector?
   "Returns true if `x` is a vector, false otherwise."
   [x]
-  (= (type x) :vector))
+  (php/instanceof x PersistentVectorInterface))
 
 (defn list?
   "Returns true if `x` is a list, false otherwise."
   [x]
-  (= (type x) :list))
+  (php/instanceof x PersistentListInterface))
 
 (defn boolean?
   "Returns true if `x` is a boolean, false otherwise."
   [x]
-  (= (type x) :boolean))
+  (php/is_bool x))
 
 (defn boolean
   "Coerces `x` to a boolean. Returns `false` if `x` is `nil` or `false`,
@@ -1399,12 +1407,12 @@ Otherwise, it tries to call `__toString`."
 (defn php-array?
   "Returns true if `x` is a PHP Array, false otherwise."
   [x]
-  (= (type x) :php/array))
+  (php/is_array x))
 
 (defn php-resource?
   "Returns true if `x` is a PHP resource, false otherwise."
   [x]
-  (= (type x) :php/resource))
+  (php/is_resource x))
 
 (defn php-object?
   "Returns true if `x` is a PHP object, false otherwise."
@@ -1443,7 +1451,7 @@ Otherwise, it tries to call `__toString`."
     (nil? coll) nil
     (vector? coll) []
     (map? coll) {}
-    (= (type coll) :set) (hash-set)
+    (php/instanceof coll PersistentHashSetInterface) (hash-set)
     (list? coll) '()
     (php-array? coll) (php/array)
     :else nil))
@@ -1460,7 +1468,7 @@ Otherwise, it tries to call `__toString`."
   (cond
     (php/is_string coll)
     (let [chars (php/mb_str_split coll)]
-      (if (php/empty chars) nil (apply vector chars)))
+      (if (php/empty chars) nil (php/:: Phel (vector chars))))
 
     (php/=== coll nil)
     nil
@@ -1478,11 +1486,8 @@ Otherwise, it tries to call `__toString`."
 
 (defn- indexed-php-array?
   [x]
-  (and
-   (= (type x) :php/array)
-   (or
-    (php/empty x)
-    (php/=== (php/array_keys x) (php/range 0 (php/- (php/count x) 1))))))
+  (and (php/is_array x)
+       (or (php/empty x) (php/array_is_list x))))
 
 (defn indexed?
   "Returns true if `x` is an indexed sequence, false otherwise.
@@ -1490,11 +1495,9 @@ Otherwise, it tries to call `__toString`."
   Indexed sequences include lists, vectors, and indexed PHP arrays."
   {:example "(indexed? [1 2 3]) ; => true"}
   [x]
-  (let [t (type x)]
-    (or
-     (= t :list)
-     (= t :vector)
-     (indexed-php-array? x))))
+  (or (php/instanceof x PersistentVectorInterface)
+      (php/instanceof x PersistentListInterface)
+      (indexed-php-array? x)))
 
 (defn associative?
   "Returns true if `x` is an associative data structure, false otherwise.
@@ -1504,12 +1507,9 @@ Otherwise, it tries to call `__toString`."
   {:example "(associative? [1 2 3]) ; => true"
    :see-also ["vector?" "map?" "hash-map?"]}
   [x]
-  (let [t (type x)]
-    (or
-     (= t :hash-map)
-     (= t :struct)
-     (= t :vector)
-     (= t :php/array))))
+  (or (php/instanceof x PersistentMapInterface)
+      (php/instanceof x PersistentVectorInterface)
+      (php/is_array x)))
 
 (defn sequential?
   "Returns true if `x` is a sequential collection (vector, list, or lazy
@@ -1519,10 +1519,9 @@ Otherwise, it tries to call `__toString`."
   {:example "(sequential? [1 2 3]) ; => true\n(sequential? {:a 1}) ; => false"
    :see-also ["coll?" "vector?" "list?" "seq?"]}
   [x]
-  (let [t (type x)]
-    (or (= t :vector)
-        (= t :list)
-        (php/instanceof x LazySeqInterface))))
+  (or (php/instanceof x PersistentVectorInterface)
+      (php/instanceof x PersistentListInterface)
+      (php/instanceof x LazySeqInterface)))
 
 (defn coll?
   "Returns true if `x` is a persistent collection — vector, list, hash-map
@@ -1533,13 +1532,11 @@ Otherwise, it tries to call `__toString`."
   {:example "(coll? [1 2 3]) ; => true\n(coll? \"abc\") ; => false"
    :see-also ["vector?" "map?" "list?" "set?" "seq?" "sequential?"]}
   [x]
-  (let [t (type x)]
-    (or (= t :vector)
-        (= t :list)
-        (= t :hash-map)
-        (= t :struct)
-        (= t :set)
-        (php/instanceof x LazySeqInterface))))
+  (or (php/instanceof x PersistentVectorInterface)
+      (php/instanceof x PersistentListInterface)
+      (php/instanceof x PersistentMapInterface)
+      (php/instanceof x PersistentHashSetInterface)
+      (php/instanceof x LazySeqInterface)))
 
 (defn seqable?
   "Returns true if `(seq x)` is supported: collections (vectors, lists,
@@ -1563,17 +1560,15 @@ Otherwise, it tries to call `__toString`."
   {:example "(counted? [1 2 3]) ; => true\n(counted? (range)) ; => false"
    :see-also ["count" "coll?"]}
   [coll]
-  (let [t (type coll)]
-    (or (= t :vector)
-        (= t :list)
-        (= t :hash-map)
-        (= t :struct)
-        (= t :set))))
+  (or (php/instanceof coll PersistentVectorInterface)
+      (php/instanceof coll PersistentListInterface)
+      (php/instanceof coll PersistentMapInterface)
+      (php/instanceof coll PersistentHashSetInterface)))
 
 (defn set?
   "Returns true if `x` is a set, false otherwise."
   [x]
-  (= (type x) :set))
+  (php/instanceof x PersistentHashSetInterface))
 
 (defn sorted?
   "Returns true if `coll` is a sorted collection (sorted-map or sorted-set), false otherwise."
@@ -1737,10 +1732,10 @@ Otherwise, it tries to call `__toString`."
     (php-array? ds)
     (throw (php/new InvalidArgumentException "Cannot call assoc on pure PHP arrays. Use (php/aset ds key value)"))
 
-    (or (struct? ds) (hash-map? ds) (php/instanceof ds TransientMapInterface))
+    (or (php/instanceof ds PersistentMapInterface) (php/instanceof ds TransientMapInterface))
     (php/-> ds (put key value))
 
-    (or (vector? ds) (php/instanceof ds TransientVectorInterface))
+    (or (php/instanceof ds PersistentVectorInterface) (php/instanceof ds TransientVectorInterface))
     (php/-> ds (update key value))
 
     ;; Explicit rejection for any other shape (string, list, set, sorted set,
@@ -1777,13 +1772,13 @@ Otherwise, it tries to call `__toString`."
 (defn- dissoc-one
   [ds key]
   (cond
-    (php-array? ds)
+    (php/is_array ds)
     (throw (php/new InvalidArgumentException "Cannot call dissoc on pure PHP arrays. Use (php/aunset ds key)"))
 
-    (or (hash-map? ds) (php/instanceof ds TransientMapInterface))
+    (or (php/instanceof ds PersistentMapInterface) (php/instanceof ds TransientMapInterface))
     (php/-> ds (remove key))
 
-    (or (set? ds) (php/instanceof ds TransientHashSetInterface))
+    (or (php/instanceof ds PersistentHashSetInterface) (php/instanceof ds TransientHashSetInterface))
     (php/-> ds (remove key))
 
     (let [x ds]
@@ -1885,7 +1880,11 @@ Otherwise, it tries to call `__toString`."
    :see-also ["atom" "reset!" "deref"]}
   [variable f & args]
   (let [current (deref variable)
-        next (apply f current args)]
+        next (case (count args)
+               0 (f current)
+               1 (f current (first args))
+               2 (f current (first args) (second args))
+               (apply f current args))]
     (reset! variable next)))
 
 (defn add-watch
@@ -2298,11 +2297,8 @@ Otherwise, it tries to call `__toString`."
         (if (php/=== nil from)
           to
           (let [map-like? (fn [x]
-                            (let [t (type x)]
-                              (or (= t :hash-map)
-                                  (= t :struct)
-                                  (and (= t :php/array) (not (indexed-php-array? x)))
-                                  (php/instanceof x PersistentSortedMap))))
+                            (or (php/instanceof x PersistentMapInterface)
+                                (and (php/is_array x) (not (indexed-php-array? x)))))
                 entries (if (map-like? from)
                           (for [entry :pairs from] entry)
                           from)
@@ -2313,7 +2309,7 @@ Otherwise, it tries to call `__toString`."
                                                   "into expects a collection of [key value] pairs"))
                                   (let [k (first entry)
                                         v (second entry)]
-                                    (if (php-array? acc)
+                                    (if (php/is_array acc)
                                       (do
                                         (php/aset acc k v)
                                         acc)
@@ -2322,6 +2318,26 @@ Otherwise, it tries to call `__toString`."
                                                 "into expects a collection of [key value] pairs"))))
                 map-target? (or (map-like? to) (php/instanceof to TransientMapInterface))]
             (cond
+              ;; Fast paths: persistent vector/set/hash-map targets build via transients,
+              ;; turning O(N log N) repeated copy-on-write into O(N).
+              (vector? to)
+              (persistent
+               (for [value :in entries
+                     :reduce [acc (transient to)]]
+                 (conj acc value)))
+
+              (set? to)
+              (persistent
+               (for [value :in entries
+                     :reduce [acc (transient to)]]
+                 (conj acc value)))
+
+              (hash-map? to)
+              (persistent
+               (for [entry :in entries
+                     :reduce [acc (transient to)]]
+                 (assoc-entry acc entry)))
+
               map-target?
               (for [entry :in entries
                     :reduce [acc to]]
@@ -2355,7 +2371,7 @@ Otherwise, it tries to call `__toString`."
 (defn- conj-map-entry
   [coll entry]
   (let [assign (fn [acc key value]
-                 (if (php-array? acc)
+                 (if (php/is_array acc)
                    (do
                      (php/aset acc key value)
                      acc)
@@ -2380,13 +2396,11 @@ Otherwise, it tries to call `__toString`."
   [coll value]
   (cond
     (php/=== coll nil) (list value)
-    (list? coll) (cons value coll)
-    (php-array? coll) (do (php/apush coll value) coll)
-    (or (vector? coll) (php/instanceof coll TransientVectorInterface)) (php/-> coll (append value))
-    (or (set? coll) (php/instanceof coll TransientHashSetInterface)) (php/-> coll (add value))
-    (or (hash-map? coll)
-        (struct? coll)
-        (php/instanceof coll TransientMapInterface)) (conj-map-entry coll value)
+    (php/instanceof coll PersistentListInterface) (cons value coll)
+    (php/is_array coll) (do (php/apush coll value) coll)
+    (or (php/instanceof coll PersistentVectorInterface) (php/instanceof coll TransientVectorInterface)) (php/-> coll (append value))
+    (or (php/instanceof coll PersistentHashSetInterface) (php/instanceof coll TransientHashSetInterface)) (php/-> coll (add value))
+    (or (php/instanceof coll PersistentMapInterface) (php/instanceof coll TransientMapInterface)) (conj-map-entry coll value)
     (php/instanceof coll PushInterface) (php/-> coll (push value))
     :else
     (throw (php/new InvalidArgumentException
@@ -2559,7 +2573,9 @@ Otherwise, it tries to call `__toString`."
   [coll]
   (if (php/=== nil coll)
     #{}
-    (for [x :in coll :reduce [acc #{}]] (conj acc x))))
+    (persistent
+     (for [x :in coll :reduce [acc (transient #{})]]
+       (conj! acc x)))))
 
 (defn vec
   "Coerces a collection to a vector. For hash-maps and structs, entries
@@ -2570,9 +2586,13 @@ Otherwise, it tries to call `__toString`."
   (cond
     (php/=== nil coll) []
     (or (map? coll) (struct? coll))
-    (for [[k v] :pairs coll :reduce [acc []]] (conj acc [k v]))
+    (persistent
+     (for [[k v] :pairs coll :reduce [acc (transient [])]]
+       (conj! acc [k v])))
     :else
-    (for [x :in coll :reduce [acc []]] (conj acc x))))
+    (persistent
+     (for [x :in coll :reduce [acc (transient [])]]
+       (conj! acc x)))))
 
 (defn get-in
   "Accesses a value in a nested data structure via a sequence of keys.
@@ -2847,10 +2867,9 @@ Otherwise, it tries to call `__toString`."
    :see-also ["find-index" "filter" "some?"]}
   [pred coll]
   (loop [s coll]
-    (cond
-      (empty? s) nil
-      (pred (first s)) (first s)
-      :else (recur (next s)))))
+    (when-not (empty? s)
+      (let [x (first s)]
+        (if (pred x) x (recur (next s)))))))
 
 (defn find-index
   "Returns the index of the first item in `coll` where `(pred item)` evaluates to true."
@@ -2893,7 +2912,7 @@ Otherwise, it tries to call `__toString`."
   (let [arr (if (string? coll)
               (php/mb_str_split coll)
               (to-php-array coll))
-        result (apply vector (php/array_reverse arr))]
+        result (php/:: Phel (vector (php/array_reverse arr)))]
     (copy-meta coll result)))
 
 (defn reversible?
@@ -2919,47 +2938,17 @@ Otherwise, it tries to call `__toString`."
   (when (php/> (count rev) 0)
     (reverse (if (vector? rev) rev (vec rev)))))
 
-(defn interleave
-  "Returns a vector with the first items of each col, then the second items, etc."
-  {:example "(interleave [1 2 3] [:a :b :c]) ; => [1 :a 2 :b 3 :c]"
-   :see-also ["interpose"]}
-  [& colls]
-  (if (empty? colls)
-    []
-    (let [first-coll (first colls)
-          size (count first-coll)
-          result (loop [i 0
-                        res []]
-                   (if (<= size i)
-                     res
-                     (recur (php/+ i 1)
-                            (reduce #(conj %1 (get %2 i)) res colls))))]
-      (copy-meta first-coll result))))
-
-(defn interpose
-  "Returns a vector of elements separated by `sep`."
-  {:example "(interpose :x [1 2 3 4]) ; => [1 :x 2 :x 3 :x 4]"
-   :see-also ["interleave"]}
-  [sep coll]
-  (let [result
-        (persistent
-         (for [[k v] :pairs coll
-               :reduce [res (transient [])]]
-           (when (> k 0)
-             (conj res sep v))
-           (conj res v)))]
-    (copy-meta coll result)))
-
 (defn frequencies
   "Returns a map from distinct items in `coll` to the number of times they appear.
 
   Works with vectors, lists, sets, and strings."
   {:example "(frequencies [:a :b :a :c :b :a]) ; => {:a 3 :b 2 :c 1}"}
   [coll]
-  (let [result (for [x :in coll
-                     :reduce [res {}]]
-                 (let [n (get res x 0)]
-                   (assoc res x (php/+ 1 n))))]
+  (let [result (persistent
+                (for [x :in coll
+                      :reduce [res (transient {})]]
+                  (let [n (get res x 0)]
+                    (assoc! res x (php/+ 1 n)))))]
     (copy-meta coll result)))
 
 (defn keys
@@ -3013,13 +3002,11 @@ Otherwise, it tries to call `__toString`."
   {:example "(kvs {:a 1 :b 2}) ; => [:a 1 :b 2]"
    :see-also ["pairs" "keys" "values"]}
   [coll]
-  (let [result
-        (persistent
-         (for [[k v] :pairs coll
-               :reduce [res (transient [])]]
-           (conj res k)
-           (conj res v)))]
-    (copy-meta coll result)))
+  (let [res (transient [])]
+    (foreach [k v coll]
+      (php/-> res (append k))
+      (php/-> res (append v)))
+    (copy-meta coll (persistent res))))
 
 (defn php-array-to-map
   "Converts a PHP Array to a Phel map."
@@ -3028,7 +3015,7 @@ Otherwise, it tries to call `__toString`."
   [arr]
   (let [res (transient {})]
     (foreach [k v arr]
-      (assoc res k v))
+      (php/-> res (put k v)))
     (persistent res)))
 
 
@@ -3100,7 +3087,7 @@ Otherwise, it tries to call `__toString`."
   [coll & [comp]]
   (let [php-array (to-php-array coll)]
     (php/usort php-array (or comp compare))
-    (copy-meta coll (apply vector php-array))))
+    (copy-meta coll (php/:: Phel (vector php-array)))))
 
 (defn sort-by
   "Returns a sorted vector where the sort order is determined by comparing `(keyfn item)`.
@@ -3112,7 +3099,7 @@ Otherwise, it tries to call `__toString`."
   (let [php-array (to-php-array coll)
         cmp (or comp compare)]
     (php/usort php-array #(cmp (keyfn %1) (keyfn %2)))
-    (copy-meta coll (apply vector php-array))))
+    (copy-meta coll (php/:: Phel (vector php-array)))))
 
 (defn shuffle
   "Returns a random permutation of coll."
@@ -3120,7 +3107,7 @@ Otherwise, it tries to call `__toString`."
   [coll]
   (let [php-array (to-php-array coll)]
     (php/shuffle php-array)
-    (copy-meta coll (apply vector php-array))))
+    (copy-meta coll (php/:: Phel (vector php-array)))))
 
 (defn repeat
   "Returns a vector of length n where every element is x.
@@ -3296,7 +3283,7 @@ Otherwise, it tries to call `__toString`."
     (let [arr (php/-> coll (toArray))]
       (if (php/empty arr)
         nil
-        (apply vector arr)))
+        (php/:: Phel (vector arr))))
     coll))
 
 (defn dorun
@@ -3325,20 +3312,18 @@ Otherwise, it tries to call `__toString`."
   {:example "(group-by count [\"a\" \"bb\" \"c\" \"ddd\" \"ee\"]) ; => {1 [\"a\" \"c\"] 2 [\"bb\" \"ee\"] 3 [\"ddd\"]}"
    :see-also ["partition-by" "frequencies"]}
   [f coll]
-  (persistent
-   (for [x :in coll
-         :let [k (f x)]
-         :reduce [res (transient {})]]
-     (when-not (get res k)
-       (assoc res k []))
-     (update-in res [k] push x))))
-
-(defn zipcoll
-  "Creates a map from two sequential data structures. Returns a new map."
-  {:example "(zipcoll [:a :b :c] [1 2 3]) ; => {:a 1 :b 2 :c 3}"
-   :see-also ["zipmap" "interleave"]}
-  [a b]
-  (apply hash-map (interleave a b)))
+  (let [tmap (persistent
+              (for [x :in coll
+                    :let [k (f x)]
+                    :reduce [res (transient {})]]
+                (let [bucket (get res k)]
+                  (if bucket
+                    (do (conj bucket x) res)
+                    (assoc res k (conj (transient []) x))))))]
+    (persistent
+     (for [[k tv] :pairs tmap
+           :reduce [acc (transient {})]]
+       (assoc acc k (persistent tv))))))
 
 (defn zipmap
   "Returns a new map with the keys mapped to the corresponding values.
@@ -3355,27 +3340,38 @@ Otherwise, it tries to call `__toString`."
       res
       (recur (next ks) (next vs) (assoc res (first ks) (first vs))))))
 
+(defn zipcoll
+  "Creates a map from two sequential data structures. Returns a new map."
+  {:example "(zipcoll [:a :b :c] [1 2 3]) ; => {:a 1 :b 2 :c 3}"
+   :see-also ["zipmap" "interleave"]}
+  [a b]
+  (zipmap a b))
+
 (defn merge
   "Merges multiple maps into one new map.
 
   If a key appears in more than one collection, later values replace previous ones."
   {:example "(merge {:a 1 :b 2} {:b 3 :c 4}) ; => {:a 1 :b 3 :c 4}"}
   [& maps]
-  (for [map :in maps
-        [k v] :pairs map
-        :reduce [res {}]]
-    (assoc res k v)))
+  (persistent
+   (for [map :in maps
+         [k v] :pairs map
+         :reduce [res (transient {})]]
+     (assoc! res k v))))
 
 (defn select-keys
   "Returns a new map including key value pairs from `m` selected with keys `ks`."
   {:example "(select-keys {:a 1 :b 2 :c 3} [:a :c]) ; => {:a 1 :c 3}"
    :see-also ["dissoc"]}
   [m ks]
-  (let [result (for [[k v] :pairs m
-                     :when (contains-value? ks k)
-                     :reduce [acc {}]]
-                 (assoc acc k v))]
-    (copy-meta m result)))
+  (if (nil? m)
+    {}
+    (let [result (persistent
+                  (for [k :in ks
+                        :when (contains? m k)
+                        :reduce [acc (transient {})]]
+                    (assoc! acc k (get m k))))]
+      (copy-meta m result))))
 
 (defn rename-keys
   "Returns the map with keys renamed according to kmap.
@@ -3383,9 +3379,10 @@ Otherwise, it tries to call `__toString`."
   {:example "(rename-keys {:a 1 :b 2 :c 3} {:a :x :b :y}) ; => {:x 1 :y 2 :c 3}"
    :see-also ["select-keys" "keys" "vals"]}
   [m kmap]
-  (for [[k v] :pairs m
-        :reduce [acc {}]]
-    (put acc (get kmap k k) v)))
+  (persistent
+   (for [[k v] :pairs m
+         :reduce [acc (transient {})]]
+     (assoc! acc (get kmap k k) v))))
 
 (defn invert
   "Returns a new map where the keys and values are swapped.
@@ -3393,9 +3390,10 @@ Otherwise, it tries to call `__toString`."
   If map has duplicated values, some keys will be ignored."
   {:example "(invert {:a 1 :b 2 :c 3}) ; => {1 :a 2 :b 3 :c}"}
   [map]
-  (for [[k v] :pairs map
-        :reduce [res {}]]
-    (assoc res v k)))
+  (persistent
+   (for [[k v] :pairs map
+         :reduce [res (transient {})]]
+     (assoc! res v k))))
 
 (defn split-at
   "Returns a vector of `[(take n coll) (drop n coll)]`."
@@ -3601,7 +3599,7 @@ Otherwise, it tries to call `__toString`."
   that a variable number of additional arguments. When call `f` will be called
   with `args` and the additional arguments."
   [f & args]
-  #(apply f (concat [] args %&)))
+  #(apply f (concat args %&)))
 
 (defn fnil
   "Returns a function that replaces nil arguments with the provided defaults
@@ -3612,13 +3610,14 @@ Otherwise, it tries to call `__toString`."
   [f & defaults]
   (let [n (count defaults)]
     (fn [& args]
-      (let [patched (for [i :range [0 (count args)]
-                          :reduce [acc []]]
-                      (let [arg (get args i)]
-                        (conj acc
-                              (if (and (php/< i n) (nil? arg))
-                                (get defaults i)
-                                arg))))]
+      (let [patched (persistent
+                     (for [i :range [0 (count args)]
+                           :reduce [acc (transient [])]]
+                       (let [arg (get args i)]
+                         (conj acc
+                               (if (and (php/< i n) (nil? arg))
+                                 (get defaults i)
+                                 arg)))))]
         (apply f patched)))))
 
 (defn memoize
@@ -3670,14 +3669,15 @@ Otherwise, it tries to call `__toString`."
                  new-entry {:value res :accessed t}
                  new-cache (assoc c args new-entry)]
              (if (php/> (count new-cache) max-size)
-               (let [lru-key (reduce
+               (let [ks (keys new-cache)
+                     lru-key (reduce
                               (fn [oldest-key current-key]
                                 (if (php/< (get (get new-cache current-key) :accessed)
                                            (get (get new-cache oldest-key) :accessed))
                                   current-key
                                   oldest-key))
-                              (first (keys new-cache))
-                              (keys new-cache))]
+                              (first ks)
+                              ks)]
                  (set! cache (dissoc new-cache lru-key)))
                (set! cache new-cache))
              res)))))))
@@ -3697,13 +3697,11 @@ Otherwise, it tries to call `__toString`."
     (loop [stack (php/array root)]
       (if (> (count stack) 0)
         (let [node (pop stack)]
-          (conj ret node)
-          (if (branch? node)
-            (let [reversed-children (reverse (children node))]
-              (foreach [child reversed-children]
-                (php/apush stack child))
-              (recur stack))
-            (recur stack)))
+          (php/-> ret (append node))
+          (when (branch? node)
+            (foreach [child (reverse (children node))]
+              (php/apush stack child)))
+          (recur stack))
         (copy-meta root (persistent ret))))))
 
 (defn flatten
@@ -3715,11 +3713,12 @@ Otherwise, it tries to call `__toString`."
    (rest (tree-seq indexed? identity coll))))
 
 (defn- merge-with-2 [f left right]
-  (for [[k v] :pairs right
-        :reduce [acc left]]
-    (if (contains? acc k)
-      (assoc acc k (f (get acc k) v))
-      (assoc acc k v))))
+  (persistent
+   (for [[k v] :pairs right
+         :reduce [acc (transient left)]]
+     (if (contains? acc k)
+       (assoc! acc k (f (get acc k) v))
+       (assoc! acc k v)))))
 
 (defn merge-with
   "Merges multiple maps into one new map. If a key appears in more than one
@@ -3739,7 +3738,7 @@ Otherwise, it tries to call `__toString`."
     (nil? right) left
     (and (hash-map? left) (hash-map? right)) (merge-with deep-merge left right)
     (and (set? left) (set? right)) (union left right)
-    (and (vector? left) (vector? right)) (apply vector (concat left right))
+    (and (vector? left) (vector? right)) (into left right)
     right))
 
 (defn deep-merge
@@ -3769,24 +3768,24 @@ Otherwise, it tries to call `__toString`."
   "Bitwise and."
   {:inline (fn [x y & args] `(do (assert-non-nil ~x ~y ~@args) (php/& ~x ~y ~@args)))}
   [x y & args]
-  (apply assert-non-nil (concat [x y] args))
   (let [all (concat [x y] args)]
+    (apply assert-non-nil all)
     (reduce #(php/& %1 %2) all)))
 
 (defn bit-or
   "Bitwise or."
   {:inline (fn [x y & args] `(do (assert-non-nil ~x ~y ~@args) (php/| ~x ~y ~@args)))}
   [x y & args]
-  (apply assert-non-nil (concat [x y] args))
   (let [all (concat [x y] args)]
+    (apply assert-non-nil all)
     (reduce #(php/| %1 %2) all)))
 
 (defn bit-xor
   "Bitwise xor."
   {:inline (fn [x y & args] `(do (assert-non-nil ~x ~y ~@args) (php/^ ~x ~y ~@args)))}
   [x y & args]
-  (apply assert-non-nil (concat [x y] args))
   (let [all (concat [x y] args)]
+    (apply assert-non-nil all)
     (reduce #(php/^ %1 %2) all)))
 
 (defn bit-not
@@ -4169,8 +4168,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 (defn print-str
   "Same as print. But instead of writing it to an output stream, the resulting string is returned."
   [& xs]
-  (let [len (count xs)
-        printer (php/:: Printer (nonReadable))
+  (let [printer (php/:: Printer (nonReadable))
         pp #(php/-> printer (print %))]
     (case (count xs)
       0 ""
@@ -4684,15 +4682,16 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [methods dispatch-val]
   (let [parents-map (get @*hierarchy* :parents)
         method-keys (keys methods)
-        candidates (reduce
-                    (fn [acc k]
-                      (if (and (not= k :default)
-                               (not= k dispatch-val)
-                               (isa-in? parents-map dispatch-val k))
-                        (conj acc k)
-                        acc))
-                    []
-                    method-keys)]
+        candidates (persistent
+                    (reduce
+                     (fn [acc k]
+                       (if (and (not= k :default)
+                                (not= k dispatch-val)
+                                (isa-in? parents-map dispatch-val k))
+                         (conj acc k)
+                         acc))
+                     (transient [])
+                     method-keys))]
     (when (not (empty? candidates))
       (if (= 1 (count candidates))
         (get methods (first candidates))
@@ -5387,18 +5386,20 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   {:example "(update-keys {:a 1 :b 2} name) ; => {\"a\" 1 \"b\" 2}"
    :see-also ["update-vals" "keys" "update"]}
   [m f]
-  (for [[k v] :pairs m
-        :reduce [acc {}]]
-    (assoc acc (f k) v)))
+  (persistent
+   (for [[k v] :pairs m
+         :reduce [acc (transient {})]]
+     (assoc! acc (f k) v))))
 
 (defn update-vals
   "Returns a map with `f` applied to each value."
   {:example "(update-vals {:a 1 :b 2} inc) ; => {:a 2 :b 3}"
    :see-also ["update-keys" "values" "update"]}
   [m f]
-  (for [[k v] :pairs m
-        :reduce [acc {}]]
-    (assoc acc k (f v))))
+  (persistent
+   (for [[k v] :pairs m
+         :reduce [acc (transient {})]]
+     (assoc! acc k (f v)))))
 
 ;; --- Safe parsing ---
 
