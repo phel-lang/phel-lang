@@ -1,6 +1,7 @@
 (ns phel\test
   (:use Phel)
   (:use Phel\Lang\Symbol)
+  (:use Phel\Lang\SourceLocationInterface)
   (:use Phel\Compiler\Application\Munge)
   (:use Phel\Command\CommandFacade)
   (:require phel\str :as s))
@@ -85,11 +86,12 @@
 ;; ---------------------------
 
 (defn- location [form]
-  (let [loc (php/-> form (getStartLocation))]
-    (when loc
-      {:file (php/-> loc (getFile))
-       :line (php/-> loc (getLine))
-       :column (php/-> loc (getColumn))})))
+  (when (php/instanceof form SourceLocationInterface)
+    (let [loc (php/-> form (getStartLocation))]
+      (when loc
+        {:file (php/-> loc (getFile))
+         :line (php/-> loc (getLine))
+         :column (php/-> loc (getColumn))}))))
 
 (defn- assert-predicate [form message negated]
   (let [pred (first form)

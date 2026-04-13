@@ -217,6 +217,21 @@
     (restore-stats saved)
     (is (= 2 (:failed counts)) "falsy and/or expressions both record failures")))
 
+(deftest test-is-accepts-scalar-literal-arguments
+  (is true "true literal passes")
+  (is 1 "non-zero int literal passes")
+  (is "non-empty" "non-empty string literal passes"))
+
+(deftest test-is-scalar-literal-failures-record-failure
+  (let [saved (get-stats)
+        _ (reset-stats)
+        _ (with-output-buffer (is false "false literal"))
+        _ (with-output-buffer (is nil "nil literal"))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 2 (:failed counts)) "scalar false/nil record failures without error")
+    (is (= 0 (:error counts)) "scalar literals do not raise an internal error")))
+
 ;; ---------------------------------------------------------------------------
 ;; Error path — `is` catches exceptions raised by the assertion body and
 ;; reports them as :error (distinct from :failed).

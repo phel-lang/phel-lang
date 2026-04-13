@@ -58,6 +58,7 @@ All notable changes to this project will be documented in this file.
 - `(def name)` without a value binds `nil` instead of throwing (#1361)
 - `doseq` accepts pair bindings `[x coll]` without an `:in` verb (#1362)
 - `doseq` iterates maps as `[k v]` entry pairs, so `(doseq [[k v] m] ...)` destructures entries and `(doseq [e m] ...)` binds each entry (#1433)
+- `is` accepts scalar literal arguments (`true`, `false`, `nil`, numbers, strings) without crashing (#1433)
 - `drop-last` works with lazy sequences and ranges (#1360)
 - `(empty? (range))` no longer hangs; `empty?` checks `first` for lazy sequences (#1366)
 - `is` no longer misinterprets `let`/`when`/`cond` forms as binary predicates (#1367)
