@@ -1,4 +1,4 @@
-(ns phel-test\test\router\performance
+(ns phel-test\test\router\match-by-path
   (:require phel\router :as r)
   (:require phel\test :refer [deftest is]))
 
