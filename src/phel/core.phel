@@ -1184,13 +1184,13 @@ Otherwise, it tries to call `__toString`."
 (defn float?
   "Returns true if `x` is float point number, false otherwise."
   [x]
-  (= (type x) :float))
+  (php/is_float x))
 
 (defn integer?
   "Returns true if `x` is an integer number, false otherwise."
   {:see-also ["int?"]}
   [x]
-  (= (type x) :int))
+  (php/is_int x))
 
 (defn int?
   "Returns true if `x` is an integer number, false otherwise.
@@ -1227,7 +1227,7 @@ Otherwise, it tries to call `__toString`."
 (defn number?
   "Returns true if `x` is a number, false otherwise."
   [x]
-  (or (= (type x) :int) (= (type x) :float)))
+  (or (php/is_int x) (php/is_float x)))
 
 (defn ratio?
   "Always returns false. Phel has no Ratio type — Clojure-style ratio
@@ -1251,7 +1251,7 @@ Otherwise, it tries to call `__toString`."
 (defn string?
   "Returns true if `x` is a string, false otherwise."
   [x]
-  (= (type x) :string))
+  (php/is_string x))
 
 (defn char?
   "Returns true if `x` is a single-character string, false otherwise.
@@ -1269,12 +1269,12 @@ Otherwise, it tries to call `__toString`."
 (defn keyword?
   "Returns true if `x` is a keyword, false otherwise."
   [x]
-  (= (type x) :keyword))
+  (php/instanceof x Keyword))
 
 (defn symbol?
   "Returns true if `x` is a symbol, false otherwise."
   [x]
-  (= (type x) :symbol))
+  (php/instanceof x Symbol))
 
 (defn ident?
   "Returns true if `x` is a symbol or keyword."
@@ -1341,7 +1341,7 @@ Otherwise, it tries to call `__toString`."
 (defn struct?
   "Returns true if `x` is a struct, false otherwise."
   [x]
-  (= (type x) :struct))
+  (php/instanceof x AbstractPersistentStruct))
 
 (defn map?
   "Returns true if `x` is a hash map, false otherwise."
@@ -1358,17 +1358,17 @@ Otherwise, it tries to call `__toString`."
 (defn vector?
   "Returns true if `x` is a vector, false otherwise."
   [x]
-  (= (type x) :vector))
+  (php/instanceof x PersistentVectorInterface))
 
 (defn list?
   "Returns true if `x` is a list, false otherwise."
   [x]
-  (= (type x) :list))
+  (php/instanceof x PersistentListInterface))
 
 (defn boolean?
   "Returns true if `x` is a boolean, false otherwise."
   [x]
-  (= (type x) :boolean))
+  (php/is_bool x))
 
 (defn boolean
   "Coerces `x` to a boolean. Returns `false` if `x` is `nil` or `false`,
@@ -1574,7 +1574,7 @@ Otherwise, it tries to call `__toString`."
 (defn set?
   "Returns true if `x` is a set, false otherwise."
   [x]
-  (= (type x) :set))
+  (php/instanceof x PersistentHashSetInterface))
 
 (defn sorted?
   "Returns true if `coll` is a sorted collection (sorted-map or sorted-set), false otherwise."
