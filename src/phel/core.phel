@@ -3699,13 +3699,11 @@ Otherwise, it tries to call `__toString`."
     (loop [stack (php/array root)]
       (if (> (count stack) 0)
         (let [node (pop stack)]
-          (conj ret node)
-          (if (branch? node)
-            (let [reversed-children (reverse (children node))]
-              (foreach [child reversed-children]
-                (php/apush stack child))
-              (recur stack))
-            (recur stack)))
+          (php/-> ret (append node))
+          (when (branch? node)
+            (foreach [child (reverse (children node))]
+              (php/apush stack child)))
+          (recur stack))
         (copy-meta root (persistent ret))))))
 
 (defn flatten
