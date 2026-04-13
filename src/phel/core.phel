@@ -1560,12 +1560,10 @@ Otherwise, it tries to call `__toString`."
   {:example "(counted? [1 2 3]) ; => true\n(counted? (range)) ; => false"
    :see-also ["count" "coll?"]}
   [coll]
-  (let [t (type coll)]
-    (or (= t :vector)
-        (= t :list)
-        (= t :hash-map)
-        (= t :struct)
-        (= t :set))))
+  (or (php/instanceof coll PersistentVectorInterface)
+      (php/instanceof coll PersistentListInterface)
+      (php/instanceof coll PersistentMapInterface)
+      (php/instanceof coll PersistentHashSetInterface)))
 
 (defn set?
   "Returns true if `x` is a set, false otherwise."
