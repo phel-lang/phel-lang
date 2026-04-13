@@ -68,6 +68,46 @@ final class NamespaceExtractorTest extends TestCase
         $this->extractNamespace($fileContent);
     }
 
+    public function test_primary_ns_file_wins_over_in_ns_siblings(): void
+    {
+        $dir = sys_get_temp_dir() . '/phel-extractor-test-' . uniqid();
+        mkdir($dir . '/split', 0777, true);
+
+        $primaryPath = $dir . '/main.phel';
+        $secondaryPath = $dir . '/split/part.phel';
+
+        // Intentionally write the secondary first so directory-scan order
+        // does not accidentally pick the primary. Then give the secondary
+        // a filename that sorts LATER than the primary on most filesystems.
+        file_put_contents($secondaryPath, '(in-ns split\\ns)');
+        file_put_contents($primaryPath, '(ns split\\ns)');
+
+        $nsExtractor = new NamespaceExtractor(
+            new CompilerFacade(),
+            new TopologicalNamespaceSorter(),
+            new SystemFileIo(),
+        );
+
+        $infos = $nsExtractor->getNamespacesFromDirectories([$dir]);
+
+        $matches = array_values(array_filter(
+            $infos,
+            static fn(NamespaceInformation $i): bool => $i->getNamespace() === 'split\\ns',
+        ));
+
+        self::assertCount(1, $matches);
+        self::assertTrue(
+            $matches[0]->isPrimaryDefinition(),
+            'Namespace lookup must prefer the (ns ...) primary file over any (in-ns ...) sibling.',
+        );
+        self::assertStringEndsWith('/main.phel', $matches[0]->getFile());
+
+        unlink($secondaryPath);
+        unlink($primaryPath);
+        rmdir($dir . '/split');
+        rmdir($dir);
+    }
+
     private function extractNamespace(string $code): NamespaceInformation
     {
         $filePath = tempnam(sys_get_temp_dir(), self::class);

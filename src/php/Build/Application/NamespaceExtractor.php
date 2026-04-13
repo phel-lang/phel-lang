@@ -110,7 +110,18 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
                     $primaryDefinitions[$namespace][] = $ns->getFile();
                 }
 
-                $namespaces[$namespace] = $ns;
+                // Prefer the primary `(ns ...)` file over any secondary
+                // `(in-ns ...)` file for the same namespace. Secondary files
+                // are loaded via `(load ...)` from the primary and cannot be
+                // compiled standalone, since they rely on defs the primary
+                // registers first (e.g. `defn`, `defmacro`).
+                $existing = $namespaces[$namespace] ?? null;
+                if ($existing === null
+                    || !$existing->isPrimaryDefinition()
+                    || $ns->isPrimaryDefinition()
+                ) {
+                    $namespaces[$namespace] = $ns;
+                }
             }
         }
 
