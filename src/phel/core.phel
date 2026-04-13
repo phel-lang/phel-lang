@@ -3600,7 +3600,7 @@ Otherwise, it tries to call `__toString`."
   that a variable number of additional arguments. When call `f` will be called
   with `args` and the additional arguments."
   [f & args]
-  #(apply f (concat [] args %&)))
+  #(apply f (concat args %&)))
 
 (defn fnil
   "Returns a function that replaces nil arguments with the provided defaults
