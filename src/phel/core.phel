@@ -1444,7 +1444,7 @@ Otherwise, it tries to call `__toString`."
     (nil? coll) nil
     (vector? coll) []
     (map? coll) {}
-    (= (type coll) :set) (hash-set)
+    (php/instanceof coll PersistentHashSetInterface) (hash-set)
     (list? coll) '()
     (php-array? coll) (php/array)
     :else nil))
