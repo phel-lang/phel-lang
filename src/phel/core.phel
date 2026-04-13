@@ -2323,6 +2323,26 @@ Otherwise, it tries to call `__toString`."
                                                 "into expects a collection of [key value] pairs"))))
                 map-target? (or (map-like? to) (php/instanceof to TransientMapInterface))]
             (cond
+              ;; Fast paths: persistent vector/set/hash-map targets build via transients,
+              ;; turning O(N log N) repeated copy-on-write into O(N).
+              (vector? to)
+              (persistent
+                (for [value :in entries
+                      :reduce [acc (transient to)]]
+                  (conj acc value)))
+
+              (set? to)
+              (persistent
+                (for [value :in entries
+                      :reduce [acc (transient to)]]
+                  (conj acc value)))
+
+              (hash-map? to)
+              (persistent
+                (for [entry :in entries
+                      :reduce [acc (transient to)]]
+                  (assoc-entry acc entry)))
+
               map-target?
               (for [entry :in entries
                     :reduce [acc to]]
