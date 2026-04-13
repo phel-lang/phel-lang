@@ -1266,7 +1266,7 @@ Otherwise, it tries to call `__toString`."
   {:example "(char? \\A) ; => true\n(char? \"a\") ; => true\n(char? \"ab\") ; => false"
    :see-also ["char" "string?"]}
   [x]
-  (and (= (type x) :string)
+  (and (php/is_string x)
        (= 1 (php/mb_strlen x "UTF-8"))))
 
 (defn keyword?
@@ -1349,7 +1349,8 @@ Otherwise, it tries to call `__toString`."
 (defn map?
   "Returns true if `x` is a hash map, false otherwise."
   [x]
-  (= (type x) :hash-map))
+  (and (php/instanceof x PersistentMapInterface)
+       (not (php/instanceof x AbstractPersistentStruct))))
 
 (defn hash-map?
   "Returns true if `x` is a hash map, false otherwise."
@@ -1408,7 +1409,7 @@ Otherwise, it tries to call `__toString`."
 (defn php-resource?
   "Returns true if `x` is a PHP resource, false otherwise."
   [x]
-  (= (type x) :php/resource))
+  (php/is_resource x))
 
 (defn php-object?
   "Returns true if `x` is a PHP object, false otherwise."
