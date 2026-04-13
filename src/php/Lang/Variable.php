@@ -37,10 +37,16 @@ final class Variable extends AbstractType
      */
     public function set(mixed $value): mixed
     {
-        $this->validate($value);
+        if ($this->validator !== null) {
+            $this->validate($value);
+        }
+
         $oldValue = $this->value;
         $this->value = $value;
-        $this->notifyWatches($oldValue, $value);
+
+        if ($this->watches !== []) {
+            $this->notifyWatches($oldValue, $value);
+        }
 
         return $this->value;
     }
