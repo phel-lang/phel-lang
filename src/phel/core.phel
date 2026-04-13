@@ -239,7 +239,10 @@
   (fn [source target]
     (if (php/instanceof source MetaInterface)
       (if (php/instanceof target MetaInterface)
-        (php/-> target (withMeta (php/-> source (getMeta))))
+        (let [src-meta (php/-> source (getMeta))]
+          (if src-meta
+            (php/-> target (withMeta src-meta))
+            target))
         target)
       target)))
 
