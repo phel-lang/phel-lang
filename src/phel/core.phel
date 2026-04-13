@@ -2297,11 +2297,8 @@ Otherwise, it tries to call `__toString`."
         (if (php/=== nil from)
           to
           (let [map-like? (fn [x]
-                            (let [t (type x)]
-                              (or (= t :hash-map)
-                                  (= t :struct)
-                                  (and (= t :php/array) (not (indexed-php-array? x)))
-                                  (php/instanceof x PersistentSortedMap))))
+                            (or (php/instanceof x PersistentMapInterface)
+                                (and (php/is_array x) (not (indexed-php-array? x)))))
                 entries (if (map-like? from)
                           (for [entry :pairs from] entry)
                           from)
@@ -2312,7 +2309,7 @@ Otherwise, it tries to call `__toString`."
                                                   "into expects a collection of [key value] pairs"))
                                   (let [k (first entry)
                                         v (second entry)]
-                                    (if (php-array? acc)
+                                    (if (php/is_array acc)
                                       (do
                                         (php/aset acc k v)
                                         acc)
