@@ -2560,7 +2560,9 @@ Otherwise, it tries to call `__toString`."
   [coll]
   (if (php/=== nil coll)
     #{}
-    (for [x :in coll :reduce [acc #{}]] (conj acc x))))
+    (persistent
+      (for [x :in coll :reduce [acc (transient #{})]]
+        (conj! acc x)))))
 
 (defn vec
   "Coerces a collection to a vector. For hash-maps and structs, entries
@@ -2571,9 +2573,13 @@ Otherwise, it tries to call `__toString`."
   (cond
     (php/=== nil coll) []
     (or (map? coll) (struct? coll))
-    (for [[k v] :pairs coll :reduce [acc []]] (conj acc [k v]))
+    (persistent
+      (for [[k v] :pairs coll :reduce [acc (transient [])]]
+        (conj! acc [k v])))
     :else
-    (for [x :in coll :reduce [acc []]] (conj acc x))))
+    (persistent
+      (for [x :in coll :reduce [acc (transient [])]]
+        (conj! acc x)))))
 
 (defn get-in
   "Accesses a value in a nested data structure via a sequence of keys.
@@ -2926,10 +2932,11 @@ Otherwise, it tries to call `__toString`."
   Works with vectors, lists, sets, and strings."
   {:example "(frequencies [:a :b :a :c :b :a]) ; => {:a 3 :b 2 :c 1}"}
   [coll]
-  (let [result (for [x :in coll
-                     :reduce [res {}]]
-                 (let [n (get res x 0)]
-                   (assoc res x (php/+ 1 n))))]
+  (let [result (persistent
+                (for [x :in coll
+                      :reduce [res (transient {})]]
+                  (let [n (get res x 0)]
+                    (assoc! res x (php/+ 1 n)))))]
     (copy-meta coll result)))
 
 (defn keys
@@ -3331,10 +3338,11 @@ Otherwise, it tries to call `__toString`."
   If a key appears in more than one collection, later values replace previous ones."
   {:example "(merge {:a 1 :b 2} {:b 3 :c 4}) ; => {:a 1 :b 3 :c 4}"}
   [& maps]
-  (for [map :in maps
-        [k v] :pairs map
-        :reduce [res {}]]
-    (assoc res k v)))
+  (persistent
+    (for [map :in maps
+          [k v] :pairs map
+          :reduce [res (transient {})]]
+      (assoc! res k v))))
 
 (defn select-keys
   "Returns a new map including key value pairs from `m` selected with keys `ks`."
