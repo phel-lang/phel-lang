@@ -2944,4 +2944,5 @@ Otherwise, it tries to call `__toString`."
 
 (load "core/lazy")
 (load "core/exceptions")
+(load "core/macroexpand")
 (load "core/extras")
