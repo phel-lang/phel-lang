@@ -3671,14 +3671,15 @@ Otherwise, it tries to call `__toString`."
                  new-entry {:value res :accessed t}
                  new-cache (assoc c args new-entry)]
              (if (php/> (count new-cache) max-size)
-               (let [lru-key (reduce
+               (let [ks (keys new-cache)
+                     lru-key (reduce
                               (fn [oldest-key current-key]
                                 (if (php/< (get (get new-cache current-key) :accessed)
                                            (get (get new-cache oldest-key) :accessed))
                                   current-key
                                   oldest-key))
-                              (first (keys new-cache))
-                              (keys new-cache))]
+                              (first ks)
+                              ks)]
                  (set! cache (dissoc new-cache lru-key)))
                (set! cache new-cache))
              res)))))))
@@ -5388,18 +5389,20 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   {:example "(update-keys {:a 1 :b 2} name) ; => {\"a\" 1 \"b\" 2}"
    :see-also ["update-vals" "keys" "update"]}
   [m f]
-  (for [[k v] :pairs m
-        :reduce [acc {}]]
-    (assoc acc (f k) v)))
+  (persistent
+    (for [[k v] :pairs m
+          :reduce [acc (transient {})]]
+      (assoc! acc (f k) v))))
 
 (defn update-vals
   "Returns a map with `f` applied to each value."
   {:example "(update-vals {:a 1 :b 2} inc) ; => {:a 2 :b 3}"
    :see-also ["update-keys" "values" "update"]}
   [m f]
-  (for [[k v] :pairs m
-        :reduce [acc {}]]
-    (assoc acc k (f v))))
+  (persistent
+    (for [[k v] :pairs m
+          :reduce [acc (transient {})]]
+      (assoc! acc k (f v)))))
 
 ;; --- Safe parsing ---
 
