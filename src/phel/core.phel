@@ -3695,11 +3695,12 @@ Otherwise, it tries to call `__toString`."
    (rest (tree-seq indexed? identity coll))))
 
 (defn- merge-with-2 [f left right]
-  (for [[k v] :pairs right
-        :reduce [acc left]]
-    (if (contains? acc k)
-      (assoc acc k (f (get acc k) v))
-      (assoc acc k v))))
+  (persistent
+    (for [[k v] :pairs right
+          :reduce [acc (transient left)]]
+      (if (contains? acc k)
+        (assoc! acc k (f (get acc k) v))
+        (assoc! acc k v)))))
 
 (defn merge-with
   "Merges multiple maps into one new map. If a key appears in more than one
@@ -3719,7 +3720,7 @@ Otherwise, it tries to call `__toString`."
     (nil? right) left
     (and (hash-map? left) (hash-map? right)) (merge-with deep-merge left right)
     (and (set? left) (set? right)) (union left right)
-    (and (vector? left) (vector? right)) (apply vector (concat left right))
+    (and (vector? left) (vector? right)) (into left right)
     right))
 
 (defn deep-merge
