@@ -1881,7 +1881,11 @@ Otherwise, it tries to call `__toString`."
    :see-also ["atom" "reset!" "deref"]}
   [variable f & args]
   (let [current (deref variable)
-        next (apply f current args)]
+        next (case (count args)
+               0 (f current)
+               1 (f current (first args))
+               2 (f current (first args) (second args))
+               (apply f current args))]
     (reset! variable next)))
 
 (defn add-watch
