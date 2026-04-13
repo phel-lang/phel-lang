@@ -2011,11 +2011,16 @@ Otherwise, it tries to call `__toString`."
 
 (def- for-verbs (hash-set :in :range :keys :pairs))
 
+(defn- for-verb?
+  "True when `x` is one of the keywords accepted by `for` / `dofor` as a verb."
+  [x]
+  (and (keyword? x) (contains? for-verbs x)))
+
 (defn doseq-iterable
-  "Internal helper used by the `doseq` macro expansion. Returns a collection
+  "Internal helper used by the `doseq` macro expansion. Returns a value
   suitable for Clojure-style iteration: maps are expanded to a sequence of
-  `[k v]` pair vectors so destructuring binds entries as in Clojure, and all
-  other values pass through unchanged."
+  `[k v]` pair vectors so destructuring binds entries as in Clojure. Every
+  other value is returned unchanged."
   [coll]
   (if (map? coll)
     (for [kv :pairs coll] kv)
@@ -2025,11 +2030,6 @@ Otherwise, it tries to call `__toString`."
   "Appends a `[binding verb coll-expr]` triple to the normalized doseq head."
   [head binding verb coll-expr]
   (push (push (push head binding) verb) coll-expr))
-
-(defn- push-modifier-pair
-  "Appends a `[modifier-keyword arg]` pair to the normalized doseq head."
-  [head modifier arg]
-  (push (push head modifier) arg))
 
 (defn- doseq-normalize
   "Transforms Clojure-style doseq bindings into Phel dofor format.
@@ -2047,10 +2047,10 @@ Otherwise, it tries to call `__toString`."
         (cond
           ;; modifier keyword: keep pair as-is
           (keyword? el)
-          (recur (php/+ i 2) (push-modifier-pair result el next-el))
+          (recur (php/+ i 2) (push (push result el) next-el))
 
           ;; explicit verb already present: keep triple as-is
-          (and (keyword? next-el) (contains? for-verbs next-el))
+          (for-verb? next-el)
           (recur (php/+ i 3) (push-binding-triple result el next-el (php/aget head (php/+ i 2))))
 
           ;; Clojure-style pair: insert `:in` with map-aware iteration helper
@@ -2058,10 +2058,12 @@ Otherwise, it tries to call `__toString`."
           (recur (php/+ i 2) (push-binding-triple result el :in `(doseq-iterable ~next-el))))))))
 
 (defmacro doseq
-  "Repeatedly executes body for side effects with bindings.
-  Uses Clojure-style binding pairs: `(doseq [x coll] body)`.
-  Supports :when, :while, :let modifiers."
-  {:example "(doseq [x [1 2 3]] (println x))"}
+  "Repeatedly executes body for side effects with Clojure-style bindings.
+  `(doseq [x coll] body)` runs `body` once per element of `coll`. When `coll`
+  is a map, each iteration sees a `[k v]` entry pair, so destructuring works
+  just like in Clojure: `(doseq [[k v] m] ...)`. Supports `:when`, `:while`,
+  and `:let` modifiers between bindings."
+  {:example "(doseq [x [1 2 3]] (println x))\n(doseq [[k v] {:a 1 :b 2}] (println k v))"}
   [seq-exprs & body]
   (let [normalized (doseq-normalize seq-exprs)]
     `(dofor ~normalized ~@body)))
