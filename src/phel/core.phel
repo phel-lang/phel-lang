@@ -2374,7 +2374,7 @@ Otherwise, it tries to call `__toString`."
 (defn- conj-map-entry
   [coll entry]
   (let [assign (fn [acc key value]
-                 (if (php-array? acc)
+                 (if (php/is_array acc)
                    (do
                      (php/aset acc key value)
                      acc)
