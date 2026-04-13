@@ -109,7 +109,7 @@
           (let [chars (php/mb_str_split xs)]
             (if (php/<= (php/count chars) 1)
               nil
-              (apply vector (php/array_slice chars 1))))
+              (php/:: Phel (vector (php/array_slice chars 1)))))
           (if (php/is_array xs)
             (let [sliced (php/array_slice xs 1)]
               (if (php/empty sliced)
@@ -716,7 +716,7 @@ Otherwise, it tries to call `__toString`."
   (if (php/instanceof coll RestInterface)
     (php/-> coll (rest))
     (if (php/is_string coll)
-      (apply vector (php/array_slice (php/mb_str_split coll) 1))
+      (php/:: Phel (vector (php/array_slice (php/mb_str_split coll) 1)))
       (if (php/is_array coll)
         (php/array_slice coll 1)
         (throw (php/new InvalidArgumentException "cannot do rest"))))))
@@ -1461,7 +1461,7 @@ Otherwise, it tries to call `__toString`."
   (cond
     (php/is_string coll)
     (let [chars (php/mb_str_split coll)]
-      (if (php/empty chars) nil (apply vector chars)))
+      (if (php/empty chars) nil (php/:: Phel (vector chars))))
 
     (php/=== coll nil)
     nil
@@ -2894,7 +2894,7 @@ Otherwise, it tries to call `__toString`."
   (let [arr (if (string? coll)
               (php/mb_str_split coll)
               (to-php-array coll))
-        result (apply vector (php/array_reverse arr))]
+        result (php/:: Phel (vector (php/array_reverse arr)))]
     (copy-meta coll result)))
 
 (defn reversible?
@@ -3070,7 +3070,7 @@ Otherwise, it tries to call `__toString`."
   [coll & [comp]]
   (let [php-array (to-php-array coll)]
     (php/usort php-array (or comp compare))
-    (copy-meta coll (apply vector php-array))))
+    (copy-meta coll (php/:: Phel (vector php-array)))))
 
 (defn sort-by
   "Returns a sorted vector where the sort order is determined by comparing `(keyfn item)`.
@@ -3082,7 +3082,7 @@ Otherwise, it tries to call `__toString`."
   (let [php-array (to-php-array coll)
         cmp (or comp compare)]
     (php/usort php-array #(cmp (keyfn %1) (keyfn %2)))
-    (copy-meta coll (apply vector php-array))))
+    (copy-meta coll (php/:: Phel (vector php-array)))))
 
 (defn shuffle
   "Returns a random permutation of coll."
@@ -3090,7 +3090,7 @@ Otherwise, it tries to call `__toString`."
   [coll]
   (let [php-array (to-php-array coll)]
     (php/shuffle php-array)
-    (copy-meta coll (apply vector php-array))))
+    (copy-meta coll (php/:: Phel (vector php-array)))))
 
 (defn repeat
   "Returns a vector of length n where every element is x.
@@ -3266,7 +3266,7 @@ Otherwise, it tries to call `__toString`."
     (let [arr (php/-> coll (toArray))]
       (if (php/empty arr)
         nil
-        (apply vector arr)))
+        (php/:: Phel (vector arr))))
     coll))
 
 (defn dorun
@@ -3303,13 +3303,6 @@ Otherwise, it tries to call `__toString`."
        (assoc res k []))
      (update-in res [k] push x))))
 
-(defn zipcoll
-  "Creates a map from two sequential data structures. Returns a new map."
-  {:example "(zipcoll [:a :b :c] [1 2 3]) ; => {:a 1 :b 2 :c 3}"
-   :see-also ["zipmap" "interleave"]}
-  [a b]
-  (apply hash-map (interleave a b)))
-
 (defn zipmap
   "Returns a new map with the keys mapped to the corresponding values.
 
@@ -3324,6 +3317,13 @@ Otherwise, it tries to call `__toString`."
     (if (or (nil? ks) (nil? vs))
       res
       (recur (next ks) (next vs) (assoc res (first ks) (first vs))))))
+
+(defn zipcoll
+  "Creates a map from two sequential data structures. Returns a new map."
+  {:example "(zipcoll [:a :b :c] [1 2 3]) ; => {:a 1 :b 2 :c 3}"
+   :see-also ["zipmap" "interleave"]}
+  [a b]
+  (zipmap a b))
 
 (defn merge
   "Merges multiple maps into one new map.
@@ -3341,11 +3341,13 @@ Otherwise, it tries to call `__toString`."
   {:example "(select-keys {:a 1 :b 2 :c 3} [:a :c]) ; => {:a 1 :c 3}"
    :see-also ["dissoc"]}
   [m ks]
-  (let [result (for [[k v] :pairs m
-                     :when (contains-value? ks k)
-                     :reduce [acc {}]]
-                 (assoc acc k v))]
-    (copy-meta m result)))
+  (if (nil? m)
+    {}
+    (let [result (for [k :in ks
+                       :when (contains? m k)
+                       :reduce [acc {}]]
+                   (assoc acc k (get m k)))]
+      (copy-meta m result))))
 
 (defn rename-keys
   "Returns the map with keys renamed according to kmap.
@@ -4139,8 +4141,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 (defn print-str
   "Same as print. But instead of writing it to an output stream, the resulting string is returned."
   [& xs]
-  (let [len (count xs)
-        printer (php/:: Printer (nonReadable))
+  (let [printer (php/:: Printer (nonReadable))
         pp #(php/-> printer (print %))]
     (case (count xs)
       0 ""
