@@ -1,35 +1,6 @@
 (in-ns phel\core)
 
 
-;; --- Rich exceptions ---
-
-(defn ex-info
-  "Creates an exception with a message and a data map. Optionally takes a cause."
-  {:example "(throw (ex-info \"Invalid input\" {:field :email}))"
-   :see-also ["ex-data" "ex-message" "ex-cause"]}
-  ([msg data]
-   (php/new \Phel\Lang\ExInfoException msg data))
-  ([msg data cause]
-   (php/new \Phel\Lang\ExInfoException msg data cause)))
-
-(defn ex-data
-  "Returns the data map from an ex-info exception, or nil if not an ExInfoException."
-  {:see-also ["ex-info" "ex-message" "ex-cause"]}
-  [ex]
-  (when (php/instanceof ex ExInfoException)
-    (php/-> ex (getData))))
-
-(defn ex-message
-  "Returns the message of an exception."
-  {:see-also ["ex-info" "ex-data" "ex-cause"]}
-  [ex]
-  (php/-> ex (getMessage)))
-
-(defn ex-cause
-  "Returns the cause of an exception, or nil."
-  {:see-also ["ex-info" "ex-data" "ex-message"]}
-  [ex]
-  (php/-> ex (getPrevious)))
 
 (defn macroexpand-1
   "Expands the given form once if it is a macro call."
