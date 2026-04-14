@@ -93,65 +93,7 @@ TXT;
 
     private function analyzeUse(string $ns, PersistentListInterface $import): void
     {
-        $elements = $import->toArray();
-        $count = count($elements);
-        $i = 1;
-
-        while ($i < $count) {
-            $useSymbol = $elements[$i];
-
-            if (!($useSymbol instanceof Symbol)) {
-                throw AnalyzerException::withLocation('First argument in :use must be a symbol.', $import);
-            }
-
-            $useSymbol = $this->normalizeSymbolSeparators($useSymbol);
-
-            if ($useSymbol->getName()[0] !== '\\') {
-                $useSymbol = Symbol::createForNamespace($useSymbol->getNamespace(), '\\' . $useSymbol->getName())
-                    ->copyLocationFrom($useSymbol);
-            }
-
-            ++$i;
-            $aliasValue = null;
-
-            while ($i < $count) {
-                $option = $elements[$i];
-
-                if ($option instanceof Symbol) {
-                    break;
-                }
-
-                if (!($option instanceof Keyword)) {
-                    throw AnalyzerException::withLocation('Unexpected argument in :use. Expected a keyword.', $import);
-                }
-
-                ++$i;
-
-                if ($option->getName() === 'as') {
-                    if ($i >= $count) {
-                        throw AnalyzerException::wrongArgumentType('Alias', 'Symbol', null, $import);
-                    }
-
-                    $aliasCandidate = $elements[$i];
-                    if (!($aliasCandidate instanceof Symbol)) {
-                        throw AnalyzerException::wrongArgumentType('Alias', 'Symbol', $aliasCandidate, $import);
-                    }
-
-                    $aliasValue = $aliasCandidate;
-                    ++$i;
-
-                    continue;
-                }
-
-                throw AnalyzerException::withLocation(
-                    sprintf('Unexpected keyword %s encountered in :use. Expected :as.', $option->getName()),
-                    $option,
-                );
-            }
-
-            $alias = $this->createAliasFromSymbol($aliasValue, $useSymbol);
-            $this->analyzer->addUseAlias($ns, $alias, $useSymbol);
-        }
+        (new UseAliasRegistrar($this->analyzer))->register($ns, $import);
     }
 
     /**

@@ -1,5 +1,24 @@
 (in-ns phel\core)
 
+(use InvalidArgumentException)
+(use Phel)
+(use Phel\Lang\Collections\HashSet\PersistentHashSetInterface)
+(use Phel\Lang\Collections\HashSet\TransientHashSetInterface)
+(use Phel\Lang\Collections\LazySeq\LazySeq)
+(use Phel\Lang\Collections\LinkedList\PersistentListInterface)
+(use Phel\Lang\Collections\Map\PersistentMapInterface)
+(use Phel\Lang\Collections\Map\TransientMapInterface)
+(use Phel\Lang\Collections\SortedMap\PersistentSortedMap)
+(use Phel\Lang\Collections\Vector\PersistentVectorInterface)
+(use Phel\Lang\Collections\Vector\TransientVectorInterface)
+(use Phel\Lang\ConcatInterface)
+(use Phel\Lang\Delay)
+(use Phel\Lang\Equalizer)
+(use Phel\Lang\Hasher)
+(use Phel\Lang\PushInterface)
+(use Phel\Lang\Seq)
+(use Phel\Lang\SliceInterface)
+
 ;; The main sequence-function library. Covers:
 ;;   - Core higher-order seq fns: `map`, `filter`, `remove`, `keep`,
 ;;     `keep-indexed`, `map-indexed`, `mapcat`.

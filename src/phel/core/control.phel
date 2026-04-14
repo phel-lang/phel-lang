@@ -1,5 +1,7 @@
 (in-ns phel\core)
 
+(use InvalidArgumentException)
+
 ;; Control-flow macros layered on the `if` special form: `if-not`, `when`,
 ;; `when-not`, `cond`, `case`, and `condp`. Pure macros — they expand at
 ;; compile time and have no runtime component.

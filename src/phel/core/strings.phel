@@ -1,5 +1,7 @@
 (in-ns phel\core)
 
+(use Phel\Lang\Symbol)
+
 ;; Two families of primitive value constructors grouped together:
 ;;   - Symbol constructors: `symbol` (a runtime symbol from a string or
 ;;     namespace+name pair) and `gensym` (a fresh unique symbol, used by

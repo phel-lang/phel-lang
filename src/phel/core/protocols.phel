@@ -1,5 +1,13 @@
 (in-ns phel\core)
 
+(use InvalidArgumentException)
+(use Phel)
+(use Phel\Compiler\Application\Munge)
+(use Phel\Compiler\CompilerFacade)
+(use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment)
+(use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton)
+(use Phel\Lang\Symbol)
+
 ;; Three loosely-related but late-loading pieces:
 ;;   1. Interfaces via `definterface` (compiles to a PHP interface).
 ;;   2. Ad-hoc hierarchies / polymorphic dispatch: `make-hierarchy`,

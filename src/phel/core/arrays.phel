@@ -1,5 +1,8 @@
 (in-ns phel\core)
 
+(use InvalidArgumentException)
+(use Phel)
+
 ;; PHP-array and typed-array interop. Two related groups:
 ;;   1. Constructors that produce native PHP arrays from Phel values:
 ;;      `php-indexed-array`, `php-associative-array`, `object-array`,

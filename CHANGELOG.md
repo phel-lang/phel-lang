@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 #### Reader & Compiler
+- `(use ClassName [:as Alias] ...)` top-level special form. Registers a PHP class alias in the current namespace without requiring the full `(ns ... (:use ...))` form, so files that join an existing namespace via `(in-ns ...)` can declare their own imports.
 - `(ClassName. args)` constructor shorthand, including namespaced classes like `\Some\Class.` (#1359)
 - `#uuid "…"` tagged literal, reads as a canonical lowercase UUID string (#1376)
 - Ratio literals `N/M` (e.g. `1/2`, `-3/4`), read as `num / den`; `1/0` → `INF`, `0/0` → `NaN`

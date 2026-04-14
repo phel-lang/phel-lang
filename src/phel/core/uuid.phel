@@ -1,5 +1,7 @@
 (in-ns phel\core)
 
+(use Phel)
+
 ;; UUID predicates, generator, and parser: `uuid?`, `random-uuid`,
 ;; `parse-uuid`. Pure strings + regex — PHP has no native UUID type, so
 ;; a canonical UUID in Phel is simply a string that matches the standard

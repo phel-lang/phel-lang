@@ -1,5 +1,8 @@
 (in-ns phel\core)
 
+(use Phel)
+(use Phel\Lang\MetaInterface)
+
 ;; Metadata attached to quoted symbols and to values that implement
 ;; `MetaInterface`: `meta` reads it, `with-meta` / `set-meta!` replace it,
 ;; `copy-meta` propagates it across a transformation, and `vary-meta`
