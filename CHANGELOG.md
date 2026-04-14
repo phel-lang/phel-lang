@@ -38,6 +38,9 @@ All notable changes to this project will be documented in this file.
 - `parse-double` accepts `Infinity`, `-Infinity`, and `NaN` (#1428)
 - `alength` returns the length of a PHP array (#1433)
 
+#### Testing
+- `use-fixtures` registers `:each` and `:once` fixture functions on the current namespace so that the test runner wraps each test (or the whole namespace run) in those fixtures (#1439)
+
 #### Modules
 - `phel\router`: data-driven router built on `symfony/routing`, previously shipped as `phel-lang/router`
 - `phel\router`: `routes` introspection, `:route-name` on `match-by-path`, and per-case error handlers (`:not-found`, `:method-not-allowed`, `:not-acceptable`) on `handler`
