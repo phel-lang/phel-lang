@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Application;
 
+use Phel\Build\Domain\Extractor\ExcludedScanPaths;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceFileGrouper;
@@ -29,27 +30,16 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 {
     private NamespaceFileGrouper $grouper;
 
-    /** @var list<string> */
-    private array $excludedPrefixes;
+    private ExcludedScanPaths $excludedPaths;
 
-    /**
-     * @param list<string> $excludedDirectories absolute paths whose subtree must be
-     *                                          skipped during recursive namespace scanning
-     * @param string       $destDirBasename     when non-empty, any `<scan_root>/<basename>/`
-     *                                          subtree is skipped per walk; lets us prune
-     *                                          the build output even when the scan root is
-     *                                          a different project root than where the
-     *                                          extractor was configured
-     */
     public function __construct(
         private CompilerFacadeInterface $compilerFacade,
         NamespaceSorterInterface $namespaceSorter,
         private FileIoInterface $fileIo,
-        array $excludedDirectories = [],
-        private string $destDirBasename = '',
+        ?ExcludedScanPaths $excludedPaths = null,
     ) {
         $this->grouper = new NamespaceFileGrouper($namespaceSorter);
-        $this->excludedPrefixes = $this->normalizeExcludedPrefixes($excludedDirectories);
+        $this->excludedPaths = $excludedPaths ?? ExcludedScanPaths::none();
     }
 
     /**
@@ -139,8 +129,6 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
             return [];
         }
 
-        $walkExcludedPrefixes = $this->excludedPrefixesForWalk($realpath);
-
         try {
             $directoryIterator = new RecursiveDirectoryIterator($realpath);
             $iterator = new RecursiveIteratorIterator($directoryIterator);
@@ -148,7 +136,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 
             $result = [];
             foreach ($phelIterator as $file) {
-                if ($this->isExcluded($file[0], $walkExcludedPrefixes)) {
+                if ($this->excludedPaths->contains($file[0], $realpath)) {
                     continue;
                 }
 
@@ -173,57 +161,5 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
         // Normal file system
         $real = realpath($path);
         return $real !== false ? $real : null;
-    }
-
-    /**
-     * @param list<string> $walkPrefixes
-     */
-    private function isExcluded(string $path, array $walkPrefixes): bool
-    {
-        foreach ($walkPrefixes as $prefix) {
-            if (str_starts_with($path, $prefix)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function excludedPrefixesForWalk(string $scanRoot): array
-    {
-        $prefixes = $this->excludedPrefixes;
-
-        if ($this->destDirBasename !== '') {
-            $prefixes[] = rtrim($scanRoot, DIRECTORY_SEPARATOR)
-                . DIRECTORY_SEPARATOR
-                . $this->destDirBasename
-                . DIRECTORY_SEPARATOR;
-        }
-
-        return $prefixes;
-    }
-
-    /**
-     * @param list<string> $directories
-     *
-     * @return list<string>
-     */
-    private function normalizeExcludedPrefixes(array $directories): array
-    {
-        $prefixes = [];
-        foreach ($directories as $dir) {
-            if ($dir === '') {
-                continue;
-            }
-
-            $real = realpath($dir);
-            $resolved = $real !== false ? $real : $dir;
-            $prefixes[] = rtrim($resolved, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
-        }
-
-        return $prefixes;
     }
 }

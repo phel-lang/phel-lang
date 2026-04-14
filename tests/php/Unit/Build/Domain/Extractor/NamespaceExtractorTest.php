@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Build\Domain\Extractor;
 
 use Phel\Build\Application\NamespaceExtractor;
+use Phel\Build\Domain\Extractor\ExcludedScanPaths;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
@@ -124,8 +125,7 @@ final class NamespaceExtractorTest extends TestCase
             new CompilerFacade(),
             new TopologicalNamespaceSorter(),
             new SystemFileIo(),
-            excludedDirectories: [],
-            destDirBasename: 'out',
+            new ExcludedScanPaths(destDirBasename: 'out'),
         );
 
         $infos = $nsExtractor->getNamespacesFromDirectories([$dir]);
@@ -155,7 +155,7 @@ final class NamespaceExtractorTest extends TestCase
             new CompilerFacade(),
             new TopologicalNamespaceSorter(),
             new SystemFileIo(),
-            excludedDirectories: [$dir . '/vendor-build'],
+            new ExcludedScanPaths(excludedDirectories: [$dir . '/vendor-build']),
         );
 
         $infos = $nsExtractor->getNamespacesFromDirectories([$dir]);
