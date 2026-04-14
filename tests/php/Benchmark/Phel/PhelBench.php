@@ -13,6 +13,12 @@ use PhpBench\Benchmark\Metadata\Annotations\Iterations;
 use PhpBench\Benchmark\Metadata\Annotations\Revs;
 
 /**
+ * Startup benchmarks. Each iteration runs in a fresh phpbench subprocess
+ * (remote executor default), so `@Iterations(N)` gives N cold-start
+ * samples — the median of which is what we compare. `@Revs(1)` is
+ * correct here: these measure end-to-end one-shot work, not a tight
+ * hot loop that would benefit from amortising timer overhead.
+ *
  * @BeforeMethods("setUp")
  */
 final class PhelBench
@@ -33,9 +39,14 @@ final class PhelBench
     }
 
     /**
+     * End-to-end runtime cost of booting `phel\core` via `Phel::run`
+     * (evalFile of core + every dependency triggered through
+     * `(load ...)`). 10 samples give a usable median under ~±2 %
+     * variance on a quiet machine.
+     *
      * @Revs(1)
      *
-     * @Iterations(1)
+     * @Iterations(10)
      */
     public function bench_phel_run(): void
     {
@@ -43,9 +54,13 @@ final class PhelBench
     }
 
     /**
+     * Cold compile of `phel\core` to PHP. Heavier than `bench_phel_run`
+     * (~half a second on the monolithic layout, ~30 ms on the split
+     * layout) so we use fewer iterations to keep the suite fast.
+     *
      * @Revs(1)
      *
-     * @Iterations(1)
+     * @Iterations(5)
      */
     public function bench_core_file_compilation(): void
     {
