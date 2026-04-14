@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Application;
 
+use Phel\Build\Domain\Extractor\ExcludedScanPaths;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceFileGrouper;
@@ -29,12 +30,16 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 {
     private NamespaceFileGrouper $grouper;
 
+    private ExcludedScanPaths $excludedPaths;
+
     public function __construct(
         private CompilerFacadeInterface $compilerFacade,
         NamespaceSorterInterface $namespaceSorter,
         private FileIoInterface $fileIo,
+        ?ExcludedScanPaths $excludedPaths = null,
     ) {
         $this->grouper = new NamespaceFileGrouper($namespaceSorter);
+        $this->excludedPaths = $excludedPaths ?? ExcludedScanPaths::none();
     }
 
     /**
@@ -131,6 +136,10 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 
             $result = [];
             foreach ($phelIterator as $file) {
+                if ($this->excludedPaths->contains($file[0], $realpath)) {
+                    continue;
+                }
+
                 $result[] = $this->getNamespaceFromFile($file[0]);
             }
         } catch (UnexpectedValueException) {

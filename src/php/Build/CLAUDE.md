@@ -44,3 +44,4 @@ Build/
 - `CachedNamespaceExtractor` decorates `NamespaceExtractor` with caching
 - `BuildOptions` controls source maps and cache behavior
 - Auto-detects main namespace from `core.phel` or `main.phel`
+- Namespace extractors prune the build output from recursive scans (absolute excluded dirs + per-scan-root `<dest_dir>/` subtree) to avoid duplicate-namespace shadowing when `FileCompiler::writeSourceReference` mirrors sources next to compiled files

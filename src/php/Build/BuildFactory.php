@@ -19,6 +19,7 @@ use Phel\Build\Domain\Compile\Output\EntryPointPhpFile;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
 use Phel\Build\Domain\Compile\Output\NamespacePathTransformer;
 use Phel\Build\Domain\Compile\SecondaryFileHarvester;
+use Phel\Build\Domain\Extractor\ExcludedScanPaths;
 use Phel\Build\Domain\Extractor\FirstFormExtractor;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
@@ -87,10 +88,13 @@ final class BuildFactory extends AbstractFactory
         return $this->singleton(
             NamespaceExtractorInterface::class,
             function (): NamespaceExtractorInterface {
+                $excludedPaths = $this->createExcludedScanPaths();
+
                 $innerExtractor = new NamespaceExtractor(
                     $this->getCompilerFacade(),
                     $this->createNamespaceSorter(),
                     $this->createFileIo(),
+                    $excludedPaths,
                 );
 
                 if (!$this->getConfig()->isNamespaceCacheEnabled()) {
@@ -101,6 +105,7 @@ final class BuildFactory extends AbstractFactory
                     $innerExtractor,
                     $this->createNamespaceCache(),
                     $this->createNamespaceSorter(),
+                    $excludedPaths,
                 );
             },
         );
@@ -175,6 +180,21 @@ final class BuildFactory extends AbstractFactory
     private function createNamespaceSorter(): NamespaceSorterInterface
     {
         return new TopologicalNamespaceSorter();
+    }
+
+    /**
+     * Compiled output contains a `.phel` source copy next to every generated
+     * `.php`; excluding that dir prevents duplicate-namespace shadowing when a
+     * scan root (e.g. cwd) sits above it.
+     */
+    private function createExcludedScanPaths(): ExcludedScanPaths
+    {
+        $outputDirectory = $this->getCommandFacade()->getOutputDirectory();
+
+        return new ExcludedScanPaths(
+            excludedDirectories: [$outputDirectory],
+            destDirBasename: basename($outputDirectory),
+        );
     }
 
     private function createFileIo(): FileIoInterface

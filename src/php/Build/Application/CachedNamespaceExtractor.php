@@ -6,6 +6,7 @@ namespace Phel\Build\Application;
 
 use Phel\Build\Domain\Cache\NamespaceCacheEntry;
 use Phel\Build\Domain\Cache\NamespaceCacheInterface;
+use Phel\Build\Domain\Extractor\ExcludedScanPaths;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceFileGrouper;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
@@ -19,12 +20,16 @@ final readonly class CachedNamespaceExtractor implements NamespaceExtractorInter
 {
     private NamespaceFileGrouper $grouper;
 
+    private ExcludedScanPaths $excludedPaths;
+
     public function __construct(
         private NamespaceExtractorInterface $innerExtractor,
         private NamespaceCacheInterface $cache,
         NamespaceSorterInterface $namespaceSorter,
+        ?ExcludedScanPaths $excludedPaths = null,
     ) {
         $this->grouper = new NamespaceFileGrouper($namespaceSorter);
+        $this->excludedPaths = $excludedPaths ?? ExcludedScanPaths::none();
     }
 
     public function getNamespaceFromFile(string $path): NamespaceInformation
@@ -105,6 +110,10 @@ final readonly class CachedNamespaceExtractor implements NamespaceExtractorInter
                 $phelIterator = new RegexIterator($iterator, '/^.+\.(phel|cljc)$/i', RegexIterator::GET_MATCH);
 
                 foreach ($phelIterator as $file) {
+                    if ($this->excludedPaths->contains($file[0], $realpath)) {
+                        continue;
+                    }
+
                     $resolvedFile = $this->resolvePath($file[0]);
                     if ($resolvedFile !== null) {
                         $files[] = $resolvedFile;
