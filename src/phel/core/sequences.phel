@@ -1,5 +1,15 @@
 (in-ns phel\core)
 
+(use InvalidArgumentException)
+(use OutOfBoundsException)
+(use Phel\Lang\Collections\HashSet\PersistentHashSetInterface)
+(use Phel\Lang\Collections\HashSet\TransientHashSetInterface)
+(use Phel\Lang\Collections\Map\PersistentMapInterface)
+(use Phel\Lang\Collections\Map\TransientMapInterface)
+(use Phel\Lang\Collections\Vector\PersistentVectorInterface)
+(use Phel\Lang\Collections\Vector\TransientVectorInterface)
+(use Phel\Lang\PopInterface)
+
 ;; Indexed / associative access primitives used as building blocks by the
 ;; higher-level seq API back in core.phel: `peek`, `push`, `pop`, `get`,
 ;; `nth`, `nthrest`, `nthnext`, `assoc`, `put`, `dissoc`, `unset`.

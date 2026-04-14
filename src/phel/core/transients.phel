@@ -1,5 +1,10 @@
 (in-ns phel\core)
 
+(use InvalidArgumentException)
+(use Phel\Lang\Collections\HashSet\TransientHashSetInterface)
+(use Phel\Lang\Collections\Map\TransientMapInterface)
+(use Phel\Lang\Collections\Vector\TransientVectorInterface)
+
 ;; The transient-collection surface, consolidated in one place:
 ;;   - Persistent ↔ transient bridges: `transient`, `persistent`,
 ;;     `persistent!`.

@@ -1,5 +1,13 @@
 (in-ns phel\core)
 
+(use InvalidArgumentException)
+(use Phel)
+(use Phel\Lang\Collections\LazySeq\ChunkedSeq)
+(use Phel\Lang\Equalizer)
+(use Phel\Lang\Hasher)
+(use Phel\Lang\Seq)
+(use Phel\Lang\Variable)
+
 ;; Mutable reference cells (`atom`, `var`), their mutation protocol
 ;; (`reset!`, `swap!`, `deref`, `add-watch`, `alter-var-root`, `set-validator!`),
 ;; and the iteration primitives built on them: `range` and the `for`

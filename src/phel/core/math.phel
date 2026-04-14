@@ -1,5 +1,8 @@
 (in-ns phel\core)
 
+(use InvalidArgumentException)
+(use Phel)
+
 ;; Numeric operations: arithmetic (`+`, `-`, `*`, `/`, `%`, `**`), bit ops
 ;; (`bit-and`, `bit-or`, `bit-xor`, `bit-shift-*`, `bit-set`, `bit-test`, …),
 ;; successor/predecessor (`inc`, `dec`), and constants (`NAN`). Most fns

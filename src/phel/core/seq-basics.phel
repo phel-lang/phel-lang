@@ -1,5 +1,12 @@
 (in-ns phel\core)
 
+(use Countable)
+(use InvalidArgumentException)
+(use Phel)
+(use Phel\Lang\AbstractType)
+(use Phel\Lang\ConsInterface)
+(use Phel\Lang\RestInterface)
+
 ;; Tier-1 sequence primitives that every higher-level operation builds on:
 ;; `cons`, `first` companions (`ffirst`, `second`, `nfirst`, `fnext`,
 ;; `nnext`), `rest`, `count`, plus the private `equals1` helper used by

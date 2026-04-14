@@ -1,5 +1,7 @@
 (in-ns phel\core)
 
+(use Phel)
+
 ;; Persistent collection constructors. Hash and sorted variants for both
 ;; maps and sets: `hash-set`, `sorted-map`, `sorted-map-by`, `sorted-set`,
 ;; `sorted-set-by`. Thin wrappers around `Phel\Lang\Collections` factories —

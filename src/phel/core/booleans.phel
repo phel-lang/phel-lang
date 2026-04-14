@@ -1,5 +1,16 @@
 (in-ns phel\core)
 
+(use InvalidArgumentException)
+(use Phel\Lang\Collections\HashSet\PersistentHashSetInterface)
+(use Phel\Lang\Collections\LinkedList\PersistentListInterface)
+(use Phel\Lang\Collections\Map\PersistentMapInterface)
+(use Phel\Lang\Collections\Vector\PersistentVectorInterface)
+(use Phel\Lang\ContainsInterface)
+(use Phel\Lang\IdenticalInterface)
+(use Phel\Lang\Keyword)
+(use Phel\Lang\Symbol)
+(use Phel\Lang\Truthy)
+
 ;; Logic, equality, ordering, and the family of "is this thing X?" tests
 ;; that don't fit into the type-dispatch table in `predicates.phel`:
 ;;   - Short-circuit logic macros: `or`, `and`.

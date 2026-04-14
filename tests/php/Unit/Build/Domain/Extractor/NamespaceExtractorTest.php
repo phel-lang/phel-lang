@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Build\Domain\Extractor;
 
 use Phel\Build\Application\NamespaceExtractor;
+use Phel\Build\Domain\Extractor\ExcludedScanPaths;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
@@ -106,6 +107,65 @@ final class NamespaceExtractorTest extends TestCase
         unlink($secondaryPath);
         unlink($primaryPath);
         rmdir($dir . '/split');
+        rmdir($dir);
+    }
+
+    public function test_scan_skips_configured_output_subdirectory(): void
+    {
+        $dir = sys_get_temp_dir() . '/phel-extractor-test-' . uniqid();
+        mkdir($dir . '/out/phel', 0777, true);
+
+        $sourcePath = $dir . '/src.phel';
+        $outputCopyPath = $dir . '/out/phel/src.phel';
+
+        file_put_contents($sourcePath, '(ns app\\main)');
+        file_put_contents($outputCopyPath, '(ns app\\main)');
+
+        $nsExtractor = new NamespaceExtractor(
+            new CompilerFacade(),
+            new TopologicalNamespaceSorter(),
+            new SystemFileIo(),
+            new ExcludedScanPaths(destDirBasename: 'out'),
+        );
+
+        $infos = $nsExtractor->getNamespacesFromDirectories([$dir]);
+
+        self::assertCount(1, $infos, 'Output subtree must not be walked.');
+        self::assertStringEndsWith('/src.phel', $infos[0]->getFile());
+
+        unlink($sourcePath);
+        unlink($outputCopyPath);
+        rmdir($dir . '/out/phel');
+        rmdir($dir . '/out');
+        rmdir($dir);
+    }
+
+    public function test_scan_skips_absolute_excluded_directory(): void
+    {
+        $dir = sys_get_temp_dir() . '/phel-extractor-test-' . uniqid();
+        mkdir($dir . '/vendor-build', 0777, true);
+
+        $sourcePath = $dir . '/src.phel';
+        $excludedPath = $dir . '/vendor-build/copy.phel';
+
+        file_put_contents($sourcePath, '(ns app\\main)');
+        file_put_contents($excludedPath, '(ns app\\main)');
+
+        $nsExtractor = new NamespaceExtractor(
+            new CompilerFacade(),
+            new TopologicalNamespaceSorter(),
+            new SystemFileIo(),
+            new ExcludedScanPaths(excludedDirectories: [$dir . '/vendor-build']),
+        );
+
+        $infos = $nsExtractor->getNamespacesFromDirectories([$dir]);
+
+        self::assertCount(1, $infos, 'Excluded directory subtree must not be walked.');
+        self::assertStringEndsWith('/src.phel', $infos[0]->getFile());
+
+        unlink($sourcePath);
+        unlink($excludedPath);
+        rmdir($dir . '/vendor-build');
         rmdir($dir);
     }
 

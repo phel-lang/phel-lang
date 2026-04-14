@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 #### Reader & Compiler
+- `(use ClassName [:as Alias] ...)` top-level special form. Registers a PHP class alias in the current namespace without requiring the full `(ns ... (:use ...))` form, so files that join an existing namespace via `(in-ns ...)` can declare their own imports.
 - `(ClassName. args)` constructor shorthand, including namespaced classes like `\Some\Class.` (#1359)
 - `#uuid "…"` tagged literal, reads as a canonical lowercase UUID string (#1376)
 - Ratio literals `N/M` (e.g. `1/2`, `-3/4`), read as `num / den`; `1/0` → `INF`, `0/0` → `NaN`
@@ -37,6 +38,9 @@ All notable changes to this project will be documented in this file.
 - `parse-double` accepts `Infinity`, `-Infinity`, and `NaN` (#1428)
 - `alength` returns the length of a PHP array (#1433)
 
+#### Testing
+- `use-fixtures` registers `:each` and `:once` fixture functions on the current namespace so that the test runner wraps each test (or the whole namespace run) in those fixtures (#1439)
+
 #### Modules
 - `phel\router`: data-driven router built on `symfony/routing`, previously shipped as `phel-lang/router`
 - `phel\router`: `routes` introspection, `:route-name` on `match-by-path`, and per-case error handlers (`:not-found`, `:method-not-allowed`, `:not-acceptable`) on `handler`
@@ -66,6 +70,7 @@ All notable changes to this project will be documented in this file.
 - `defrecord`/`defstruct`/`defexception`/`definterface` no longer emit invalid PHP namespace declarations in statement mode (#1358)
 - `defstruct`/`defrecord`/`defexception`/`definterface` nested in a function body (e.g. a `defrecord` inside a `deftest`) no longer triggers "Class declarations may not be nested"
 - `phel\router`: default error dispatch returns 404/405/406 correctly (was always 404); `:not-acceptable` returns 406 (was 405)
+- Namespace extractors skip the configured build output directory during recursive scans, so leftover compiled `.phel` source copies no longer shadow the real sources with duplicate-namespace warnings
 
 ### Changed
 
