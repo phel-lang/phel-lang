@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Phel\Build;
 
 use Gacela\Framework\AbstractFacade;
-use Phel;
 use Phel\Build\Domain\Compile\BuildOptions;
 use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
+use Phel\Lang\Registry;
 use Phel\Shared\BuildConstants;
 use Phel\Shared\CompilerConstants;
 use Phel\Shared\Facade\BuildFacadeInterface;
@@ -23,12 +23,22 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
 {
     public static function enableBuildMode(): void
     {
-        Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::BUILD_MODE, true);
+        // Direct registry write avoids `Phel::__callStatic` reflection on
+        // this hot path (fired twice per `(load ...)` call).
+        Registry::getInstance()->addDefinition(
+            CompilerConstants::PHEL_CORE_NAMESPACE,
+            BuildConstants::BUILD_MODE,
+            true,
+        );
     }
 
     public static function disableBuildMode(): void
     {
-        Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, BuildConstants::BUILD_MODE, false);
+        Registry::getInstance()->addDefinition(
+            CompilerConstants::PHEL_CORE_NAMESPACE,
+            BuildConstants::BUILD_MODE,
+            false,
+        );
     }
 
     /**

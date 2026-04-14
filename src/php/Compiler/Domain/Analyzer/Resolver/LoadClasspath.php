@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\Resolver;
 
-use Phel;
+use Phel\Lang\Registry;
 
 use function is_array;
 
@@ -38,11 +38,32 @@ final class LoadClasspath
     private const string LEGACY_NAME = 'src-dirs';
 
     /**
+     * Process-local memo of the last resolved classpath. The registry is the
+     * authoritative store; this cache just avoids repeated `__callStatic`
+     * dispatch when the same runtime lookup fires many times in a row
+     * (notably during core startup where 24 `(load ...)` forms each resolve
+     * the classpath).
+     *
+     * @var list<string>|null
+     */
+    private static ?array $cached = null;
+
+    /**
      * @param list<string> $directories
      */
     public static function publish(array $directories): void
     {
-        Phel::addDefinition(self::NAMESPACE, self::NAME, $directories);
+        self::$cached = null;
+        Registry::getInstance()->addDefinition(self::NAMESPACE, self::NAME, $directories);
+    }
+
+    /**
+     * Clears the process-local cache. Tests that reset the registry
+     * directly (without calling `publish`) must call this too.
+     */
+    public static function resetCache(): void
+    {
+        self::$cached = null;
     }
 
     /**
@@ -50,17 +71,22 @@ final class LoadClasspath
      */
     public static function read(): array
     {
-        $value = Phel::getDefinition(self::NAMESPACE, self::NAME);
-        if (is_array($value) && $value !== []) {
-            /** @var list<string> $value */
-            return $value;
+        if (self::$cached !== null) {
+            return self::$cached;
         }
 
-        $legacy = Phel::getDefinition(self::LEGACY_NAMESPACE, self::LEGACY_NAME);
+        $registry = Registry::getInstance();
+        $value = $registry->getDefinition(self::NAMESPACE, self::NAME);
+        if (is_array($value) && $value !== []) {
+            /** @var list<string> $value */
+            return self::$cached = $value;
+        }
+
+        $legacy = $registry->getDefinition(self::LEGACY_NAMESPACE, self::LEGACY_NAME);
 
         /** @var list<string> $result */
         $result = is_array($legacy) ? $legacy : [];
 
-        return $result;
+        return self::$cached = $result;
     }
 }

@@ -39,11 +39,27 @@ final class LoadEmitter implements NodeEmitterInterface
         $resolution = $node->getResolution();
 
         $this->emitLookupPrelude($resolution->loadKey, $resolution->callerClasspathDir);
-        $this->emitSiblingCompiledCheck($resolution->isClasspathAbsolute());
+        $this->emitSiblingCompiledCheck(!$this->shouldEmitSiblingCheck($resolution->isClasspathAbsolute()));
         $this->emitSrcDirsSearch();
         $this->emitCallerDirFallback($node);
         $this->emitNotFoundGuard();
         $this->emitExecute($node->getCallerNamespace());
+    }
+
+    /**
+     * The sibling check is only meaningful when the caller was compiled to
+     * a file sitting in a build output directory — i.e. FILE mode. CACHE
+     * and STATEMENT outputs live in flat cache dirs or are eval'd
+     * in-memory, so the `__DIR__/<loadKey>.php` probe is guaranteed to
+     * miss and just burns a syscall per `(load ...)`.
+     */
+    private function shouldEmitSiblingCheck(bool $classpathAbsolute): bool
+    {
+        if ($classpathAbsolute) {
+            return false;
+        }
+
+        return $this->outputEmitter->getOptions()->isFileEmitMode();
     }
 
     /**

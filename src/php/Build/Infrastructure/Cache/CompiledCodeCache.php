@@ -6,12 +6,14 @@ namespace Phel\Build\Infrastructure\Cache;
 
 use ParseError;
 
+use function array_key_exists;
 use function count;
 use function function_exists;
 use function is_array;
 use function is_string;
 use function md5;
 use function sprintf;
+
 use function token_get_all;
 
 use const TOKEN_PARSE;
@@ -32,6 +34,16 @@ final class CompiledCodeCache
     private array $entries = [];
 
     private bool $loaded = false;
+
+    /**
+     * In-memory memo of per-namespace environment data, keyed by
+     * env-file path. Every secondary in a `(load ...)` chain for the
+     * same namespace would otherwise re-`require` the same env file,
+     * which without opcache is a fresh parse each time.
+     *
+     * @var array<string, array|null>
+     */
+    private array $envMemo = [];
 
     public function __construct(
         private readonly string $cacheDir,
@@ -132,17 +144,25 @@ final class CompiledCodeCache
         $content = '<?php return ' . var_export($envData, true) . ';';
 
         $this->atomicWrite($envPath, $content);
+        $this->envMemo[$envPath] = $envData;
     }
 
     public function getEnvironment(string $namespace): ?array
     {
         $envPath = $this->getEnvironmentPath($namespace);
 
-        if (!file_exists($envPath)) {
-            return null;
+        if (array_key_exists($envPath, $this->envMemo)) {
+            return $this->envMemo[$envPath];
         }
 
-        return require $envPath;
+        if (!file_exists($envPath)) {
+            return $this->envMemo[$envPath] = null;
+        }
+
+        /** @var array|null $data */
+        $data = require $envPath;
+
+        return $this->envMemo[$envPath] = $data;
     }
 
     /**
@@ -185,6 +205,7 @@ final class CompiledCodeCache
 
         $this->entries = [];
         $this->saveEntries();
+        $this->envMemo = [];
     }
 
     private function getCacheVersion(): string
