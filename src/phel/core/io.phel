@@ -1,5 +1,10 @@
 (in-ns phel\core)
 
+(use InvalidArgumentException)
+(use Phel)
+(use Phel\Lang\Seq)
+(use Phel\Printer\Printer)
+
 ;; I/O: stdout/formatting (`print`, `println`, `pr`, `prn`, `print-str`,
 ;; `format`, `printf`, `with-output-buffer`); file helpers (`slurp`, `spit`,
 ;; `line-seq`, `file-seq`, `read-file-lazy`, `csv-seq`); and regex helpers
