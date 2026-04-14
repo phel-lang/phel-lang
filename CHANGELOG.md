@@ -74,6 +74,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- **Breaking:** renamed `phel\str` namespace to `phel\string` for parity with Clojure's `clojure.string`. The automatic `clojure.*` → `phel.*` remap now targets `phel\string`, so `(require '[clojure.string :as s])` works out of the box. Code requiring the old `phel\str` must update to `phel\string` (#1440)
 - `(load path)` resolves relative paths from the caller file's compile-time location instead of runtime `*file*`; `/path` is classpath-absolute and searches `phel\repl/src-dirs`. Leading `./`/`../` and explicit `.phel` extensions are now rejected
 - `src/phel/core.phel` split into topic files under `src/phel/core/` (sequences, atoms, fns-sets, math, io, protocols, lazy, exceptions, macroexpand, parsing, uuid, loops, control, predicates, meta, transducers, arrays, booleans, collections, seq-basics, seq-fns, defs, transients, strings), loaded via `(load ...)`. Each sub-file has a brief context header describing its scope. `core.phel` is now bootstrap primitives plus a single unbroken orchestration block of `(load …)` directives at the bottom.
 - Reorganized Phel test files: dissolved `core.phel` into topic files under `core/`; moved `comments.phel`, `special-forms.phel`, `multi-arity-fn.phel` into `core/`

@@ -308,7 +308,7 @@ final class FileEvaluatorTest extends TestCase
         $cache = new CompiledCodeCache($cacheDir);
         $envData = [
             'refers' => [],
-            'require_aliases' => ['str' => ['ns' => null, 'name' => 'phel\\str']],
+            'require_aliases' => ['str' => ['ns' => null, 'name' => 'phel\\string']],
             'use_aliases' => [],
         ];
 

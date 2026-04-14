@@ -249,7 +249,7 @@ curl http://localhost:8000/users
 
 ```phel
 (ns app\files
-  (:require phel\str :as str))
+  (:require phel\string :as str))
 
 (defn read-csv [filename]
   (let [content (php/file_get_contents filename)

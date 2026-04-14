@@ -220,7 +220,7 @@ Defines the namespace for the current file and adds imports to the environment. 
             'docUrl' => '/documentation/namespaces/#namespace-ns',
             'signatures' => ['(ns name imports*)'],
             'desc' => 'Defines the namespace for the current file and adds imports to the environment. Imports can either be uses or requires. The keyword :use is used to import PHP classes, the keyword :require is used to import Phel modules and the keyword :require-file is used to load php files.',
-            'example' => '(ns my-app\\core (:require phel\\str :as str))',
+            'example' => '(ns my-app\\core (:require phel\\string :as str))',
         ],
         Symbol::NAME_PHP_ARRAY_GET => [
             'doc' => '```phel

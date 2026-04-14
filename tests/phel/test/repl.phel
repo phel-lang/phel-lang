@@ -1,7 +1,7 @@
 (ns phel-test\test\repl
   (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers find-fn test-ns eval-capturing eval-str macroexpand-1-form macroexpand-form macroexpand-1 macroexpand ns-list loaded-namespaces explain suggest fix review embed-ns search-ns])
   (:require phel\ai :as ai)
-  (:require phel\str :as s)
+  (:require phel\string :as s)
   (:require phel\test :refer [deftest is]))
 
 ;; -------
@@ -112,7 +112,7 @@
 
 (deftest test-ns-aliases-contains-expected-alias
   (let [aliases (ns-aliases "phel-test\\test\\repl")]
-    (is (= "phel\\str" (get aliases "s")) "ns-aliases contains 's' => 'phel\\str'")))
+    (is (= "phel\\string" (get aliases "s")) "ns-aliases contains 's' => 'phel\\string'")))
 
 ;; ---------
 ;; ns-refers
@@ -227,8 +227,8 @@
 (deftest test-eval-str-runtime-require-resolves
   (let [result (eval-str "(ns test-rt-require-demo
                             (:require phel\\repl :refer [require]))
-                          (require phel\\str)
-                          (str/upper-case \"hello\")")]
+                          (require phel\\string)
+                          (string/upper-case \"hello\")")]
     (is (= "HELLO" result) "runtime require resolves symbols without explicit src-dirs init")))
 
 (deftest test-eval-str-require-nonexistent-throws

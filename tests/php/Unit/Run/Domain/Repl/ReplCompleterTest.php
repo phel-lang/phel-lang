@@ -257,12 +257,12 @@ final class ReplCompleterTest extends TestCase
     public function test_qualified_function_in_non_core_namespace(): void
     {
         $fn = self::createStub(FnInterface::class);
-        Phel::addDefinition('phel\\str', 'join', $fn);
+        Phel::addDefinition('phel\\string', 'join', $fn);
 
-        $results = $this->completer->completeWithTypes('phel\\str\\jo');
+        $results = $this->completer->completeWithTypes('phel\\string\\jo');
 
         self::assertCount(1, $results);
-        self::assertSame('phel\\str\\join', $results[0]->candidate);
+        self::assertSame('phel\\string\\join', $results[0]->candidate);
         self::assertSame('function', $results[0]->type);
     }
 }

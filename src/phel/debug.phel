@@ -1,6 +1,6 @@
 (ns phel\debug
   (:require phel\core :refer [print-str str gensym])
-  (:require phel\str :as s))
+  (:require phel\string :as s))
 
 (def- *trace-level* (var 0))
 (def- *trace-id* (var 0))

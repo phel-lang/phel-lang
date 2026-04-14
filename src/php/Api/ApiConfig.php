@@ -22,7 +22,7 @@ final class ApiConfig extends AbstractConfig
             'phel\\json',
             'phel\\mock',
             'phel\\repl',
-            'phel\\str',
+            'phel\\string',
             'phel\\test',
         ];
     }

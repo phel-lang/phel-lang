@@ -1,4 +1,4 @@
-(ns phel\str
+(ns phel\string
   (:require phel\core)
   (:use InvalidArgumentException))
 

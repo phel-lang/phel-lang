@@ -9,7 +9,7 @@ globs: src/phel/**,tests/phel/**
 
 - kebab-case for functions and variables: `my-function`, `my-variable`
 - `defn-` for private functions (not exported)
-- Namespace names match directory structure: `phel\core`, `phel\str`
+- Namespace names match directory structure: `phel\core`, `phel\string`
 
 ## Docstrings
 
