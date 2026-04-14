@@ -438,6 +438,59 @@
     (println "Error:" error)
     (println "Total:" total)))
 
+;; --------
+;; Fixtures
+;; --------
+
+(def- fixtures-by-ns (var {}))
+
+(defn- default-fixture
+  "Identity fixture: just invokes the wrapped function."
+  [f]
+  (f))
+
+(defn- compose-two-fixtures
+  "Returns a fixture that applies f1 around a fixture that applies f2 around g."
+  [f1 f2]
+  (fn [g] (f1 (fn [] (f2 g)))))
+
+(defn- join-fixtures
+  "Composes a collection of fixtures into a single fixture function."
+  [fixtures]
+  (reduce compose-two-fixtures default-fixture fixtures))
+
+(defn use-fixtures
+  "Registers fixture functions for the current namespace.
+
+  `fixture-type` is either `:each` (wraps every individual test) or
+  `:once` (wraps the whole run in a single function). Each fixture is
+  a function of one argument — a thunk `(fn [])` representing the tests
+  to run — and is expected to invoke that thunk somewhere in its body.
+
+  Calling `use-fixtures` with no fixture functions removes all fixtures
+  of that type previously registered on the namespace."
+  {:example "(use-fixtures :once (fn [t] (setup) (t) (teardown)))"
+   :see-also ["deftest" "run-tests"]}
+  [fixture-type & fns]
+  (when (some (fn [f] (not (fn? f))) fns)
+    (throw (php/new \InvalidArgumentException
+             "All arguments to use-fixtures must be functions")))
+  (let [key (case fixture-type
+              :each :each-fixtures
+              :once :once-fixtures
+              (throw (php/new \InvalidArgumentException
+                       (str "use-fixtures: invalid fixture-type "
+                            fixture-type ", expected :each or :once"))))
+        ns-name *ns*]
+    (swap! fixtures-by-ns
+           (fn [m]
+             (let [entry (or (get m ns-name) {})]
+               (assoc m ns-name (assoc entry key fns)))))
+    nil))
+
+(defn- fixtures-for [ns kind]
+  (or (get-in (deref fixtures-by-ns) [ns kind]) []))
+
 ;; -------------
 ;; Running tests
 ;; -------------
@@ -451,10 +504,14 @@
       (php/:: Phel (getDefinition munge-ns fn-name)))))
 
 (defn- run-test [options ns]
-  (let [tests (find-test-fns ns options)]
-    (dofor [test :in tests
-            :when (not (should-stop?))]
-      (test))))
+  (let [tests (find-test-fns ns options)
+        each-wrap (join-fixtures (fixtures-for ns :each-fixtures))
+        once-wrap (join-fixtures (fixtures-for ns :once-fixtures))]
+    (once-wrap
+      (fn []
+        (dofor [test :in tests
+                :when (not (should-stop?))]
+          (each-wrap test))))))
 
 (defn run-tests
   "Runs all tests in the given namespaces."

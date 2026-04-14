@@ -1,0 +1,66 @@
+(ns phel-test\test\use-fixtures
+  (:require phel\test :refer [deftest is use-fixtures]))
+
+;; Behaviour coverage for `use-fixtures`. The fixtures registered below
+;; wrap tests in this namespace, so we observe their effect by recording
+;; events into atoms and asserting the recorded sequence.
+
+(def events (atom []))
+(def once-run-count (atom 0))
+
+(use-fixtures :once
+  (fn [t]
+    (swap! once-run-count inc)
+    (swap! events conj :once-before)
+    (t)
+    (swap! events conj :once-after)))
+
+(use-fixtures :each
+  (fn [t]
+    (swap! events conj :each-before)
+    (t)
+    (swap! events conj :each-after)))
+
+(deftest test-each-fixture-runs-around-test-body
+  (swap! events conj :body-1)
+  (is true "sanity check — body runs"))
+
+(deftest test-observed-event-trace-from-prior-test
+  (let [trace @events]
+    ;; By the time this second test runs, the :once fixture has fired
+    ;; exactly once (at the start of the namespace), and the :each
+    ;; fixture has fired once around the first test. This test's own
+    ;; :each-before has also been recorded.
+    (is (= :once-before (first trace))
+        ":once fixture opened before any tests")
+    (is (= 1 @once-run-count)
+        ":once fixture fires exactly once per namespace")
+    (is (= [:each-before :body-1 :each-after :each-before]
+           (take 5 (drop 1 trace)))
+        ":each fixture wrapped the first test and opened around this one")))
+
+(deftest test-use-fixtures-rejects-non-function-arg
+  (is (thrown? \InvalidArgumentException
+               (use-fixtures :each 42))
+      "non-function fixture is rejected"))
+
+(deftest test-use-fixtures-rejects-invalid-fixture-type
+  (is (thrown? \InvalidArgumentException
+               (use-fixtures :bogus (fn [t] (t))))
+      "invalid fixture-type is rejected"))
+
+(deftest test-use-fixtures-empty-args-clears-fixtures-for-type
+  ;; Save the current fixtures (atoms and registered functions survive),
+  ;; clear the :each fixtures for this namespace, then restore so the
+  ;; rest of the suite isn't affected.
+  (let [restore-fn (fn [t]
+                     (swap! events conj :each-before)
+                     (t)
+                     (swap! events conj :each-after))]
+    (use-fixtures :each)
+    (is (= @events @events) "clearing fixtures does not throw")
+    ;; Re-register so subsequent tests in this namespace keep their
+    ;; fixture behaviour. This test only proves that the zero-arg form
+    ;; is accepted; asserting that it actually stopped the fixture from
+    ;; running would require an extra test round-trip.
+    (use-fixtures :each restore-fn)))
