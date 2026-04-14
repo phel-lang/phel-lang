@@ -21,7 +21,7 @@ final class LoadInNsTest extends TestCase
 
         Phel::addDefinition('phel\\repl', 'src-dirs', [$fixtures]);
 
-        (new BuildFacade())->evalFile($fixtures . '/example/main.phel');
+        (new BuildFacade())->evalFile($fixtures . '/loadinns/main.phel');
 
         // All three files should execute successfully and set their definitions
         self::assertTrue(Phel::getDefinition('loadinns\\main', 'main-loaded'));

@@ -27,10 +27,19 @@ final readonly class DependenciesForNamespace
 
         $index = [];
         $queue = new SplQueue();
+        $seenInQueue = [];
         foreach ($namespaceInformation as $info) {
+            // Dependencies are declared on primary `(ns ...)` definitions;
+            // secondaries only join an existing namespace via `(in-ns ...)`.
+            if (!$info->isPrimaryDefinition()) {
+                continue;
+            }
+
             $index[$info->getNamespace()] = $info;
-            if (in_array($info->getNamespace(), $ns)) {
+
+            if (in_array($info->getNamespace(), $ns) && !isset($seenInQueue[$info->getNamespace()])) {
                 $queue->enqueue($info->getNamespace());
+                $seenInQueue[$info->getNamespace()] = true;
             }
         }
 
@@ -51,6 +60,13 @@ final readonly class DependenciesForNamespace
 
         $result = [];
         foreach ($namespaceInformation as $info) {
+            if (!$info->isPrimaryDefinition()) {
+                // Secondaries join an existing namespace via `(in-ns ...)`
+                // and are pulled in by the primary's `(load ...)` forms —
+                // runtime callers only need the one primary per namespace.
+                continue;
+            }
+
             if (isset($requiredNamespaces[$info->getNamespace()])) {
                 $result[] = $info;
             }

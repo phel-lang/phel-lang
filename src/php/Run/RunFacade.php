@@ -6,6 +6,7 @@ namespace Phel\Run;
 
 use Gacela\Framework\AbstractFacade;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
+use Phel\Compiler\Domain\Analyzer\Resolver\LoadClasspath;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Run\Domain\Repl\EvalResult;
@@ -36,6 +37,8 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
             ...$this->getFactory()->getCommandFacade()->getSourceDirectories(),
             ...$this->getFactory()->getCommandFacade()->getVendorSourceDirectories(),
         ];
+
+        LoadClasspath::publish($directories);
 
         $infos = $this->getDependenciesForNamespace($directories, [$namespace, 'phel\\core']);
         foreach ($infos as $info) {

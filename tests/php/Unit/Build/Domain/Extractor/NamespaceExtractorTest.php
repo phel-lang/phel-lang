@@ -68,6 +68,47 @@ final class NamespaceExtractorTest extends TestCase
         $this->extractNamespace($fileContent);
     }
 
+    public function test_primary_ns_file_comes_before_its_in_ns_siblings(): void
+    {
+        $dir = sys_get_temp_dir() . '/phel-extractor-test-' . uniqid();
+        mkdir($dir . '/split', 0777, true);
+
+        $primaryPath = $dir . '/main.phel';
+        $secondaryPath = $dir . '/split/part.phel';
+
+        // Intentionally write the secondary first so directory-scan order
+        // does not accidentally put the primary first on its own.
+        file_put_contents($secondaryPath, '(in-ns split\\ns)');
+        file_put_contents($primaryPath, '(ns split\\ns)');
+
+        $nsExtractor = new NamespaceExtractor(
+            new CompilerFacade(),
+            new TopologicalNamespaceSorter(),
+            new SystemFileIo(),
+        );
+
+        $infos = $nsExtractor->getNamespacesFromDirectories([$dir]);
+
+        $matches = array_values(array_filter(
+            $infos,
+            static fn(NamespaceInformation $i): bool => $i->getNamespace() === 'split\\ns',
+        ));
+
+        self::assertCount(2, $matches, 'Both primary and secondary files must be surfaced for build emission.');
+        self::assertTrue(
+            $matches[0]->isPrimaryDefinition(),
+            'Primary `(ns ...)` file must come before any `(in-ns ...)` sibling.',
+        );
+        self::assertStringEndsWith('/main.phel', $matches[0]->getFile());
+        self::assertFalse($matches[1]->isPrimaryDefinition());
+        self::assertStringEndsWith('/split/part.phel', $matches[1]->getFile());
+
+        unlink($secondaryPath);
+        unlink($primaryPath);
+        rmdir($dir . '/split');
+        rmdir($dir);
+    }
+
     private function extractNamespace(string $code): NamespaceInformation
     {
         $filePath = tempnam(sys_get_temp_dir(), self::class);

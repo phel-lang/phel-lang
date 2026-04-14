@@ -4,8 +4,18 @@ declare(strict_types=1);
 
 namespace PhelTest\Benchmark\Lang\Collections\Vector;
 
+use PhpBench\Benchmark\Metadata\Annotations\BeforeMethods;
+use PhpBench\Benchmark\Metadata\Annotations\Iterations;
+use PhpBench\Benchmark\Metadata\Annotations\ParamProviders;
+use PhpBench\Benchmark\Metadata\Annotations\Revs;
+
 use function count;
 
+/**
+ * Naive array-copy immutable vector, kept as a baseline to compare
+ * against `PersistentVector`. The cost of `append` here is O(N) copy;
+ * PersistentVector should outperform it at non-trivial sizes.
+ */
 final class SimpleImmutableVectorBench
 {
     private object $vector;
@@ -15,38 +25,58 @@ final class SimpleImmutableVectorBench
     private int $updateIndex = 0;
 
     /**
+     * @BeforeMethods("setUpVector")
+     *
      * @ParamProviders("provideSizes")
+     *
+     * @Revs(1000)
+     *
+     * @Iterations(10)
      */
-    public function bench_append(array $params): void
+    public function bench_append(): void
     {
-        $this->setUpVector($params['size']);
         $this->vector->append($this->nextValue);
     }
 
     /**
+     * @BeforeMethods("setUpVector")
+     *
      * @ParamProviders("provideSizes")
+     *
+     * @Revs(1000)
+     *
+     * @Iterations(10)
      */
-    public function bench_update(array $params): void
+    public function bench_update(): void
     {
-        $this->setUpVector($params['size']);
         $this->vector->update($this->updateIndex, 'new-value');
     }
 
     /**
+     * @BeforeMethods("setUpVector")
+     *
      * @ParamProviders("provideSizes")
+     *
+     * @Revs(1000)
+     *
+     * @Iterations(10)
      */
-    public function bench_get(array $params): void
+    public function bench_get(): void
     {
-        $this->setUpVector($params['size']);
         $this->vector->get($this->updateIndex);
     }
 
     /**
+     * @BeforeMethods("setUpVector")
+     *
      * @ParamProviders("provideSizes")
+     *
+     * @Revs(1000)
+     *
+     * @Iterations(10)
      */
-    public function bench_count(array $params): void
+    public function bench_count(): void
     {
-        $this->setUpVector($params['size']);
         $this->vector->count();
     }
 
@@ -60,8 +90,9 @@ final class SimpleImmutableVectorBench
         yield 'large' => ['size' => 256];
     }
 
-    public function setUpVector(int $size): void
+    public function setUpVector(array $params): void
     {
+        $size = $params['size'];
         $seedData = range(0, $size - 1);
 
         $this->vector = new readonly class($seedData) {

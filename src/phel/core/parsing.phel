@@ -1,0 +1,45 @@
+(in-ns phel\core)
+
+;; Safe string → primitive parsers: `parse-long`, `parse-double`,
+;; `parse-boolean`. Each returns `nil` on invalid input instead of
+;; throwing, so callers can chain them in `when`/`if-let` without
+;; guarding against exceptions.
+
+;; --- Safe parsing ---
+
+(defn parse-long
+  "Parses a string as an integer. Returns nil if parsing fails."
+  {:example "(parse-long \"123\") ; => 123"
+   :see-also ["parse-double"]}
+  [s]
+  (when (string? s)
+    (let [trimmed (php/trim s)]
+      (when (= 1 (php/preg_match "/^[+-]?[0-9]+$/" trimmed))
+        (php/intval trimmed)))))
+
+(defn parse-double
+  "Parses a string as a float. Returns `nil` for non-numeric input or for
+  inputs that are not strings. Accepts `Infinity`, `-Infinity`, and `NaN`
+  alongside regular decimal and scientific notation."
+  {:example "(parse-double \"3.14\") ; => 3.14\n(parse-double \"Infinity\") ; => INF"
+   :see-also ["parse-long"]}
+  [s]
+  (when (string? s)
+    (let [trimmed (php/trim s)]
+      (cond
+        (or (= trimmed "Infinity") (= trimmed "+Infinity")) php/INF
+        (= trimmed "-Infinity") (php/- 0 php/INF)
+        (= trimmed "NaN") NAN
+        (php/is_numeric trimmed) (php/floatval trimmed)
+        :else nil))))
+
+(defn parse-boolean
+  "Parses a string as a boolean. Returns true for \"true\", false for \"false\", nil otherwise."
+  {:example "(parse-boolean \"true\") ; => true"}
+  [s]
+  (when (string? s)
+    (let [lower (php/strtolower (php/trim s))]
+      (cond
+        (= lower "true") true
+        (= lower "false") false))))
+

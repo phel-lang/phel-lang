@@ -1,0 +1,81 @@
+(in-ns phel\core)
+
+;; Metadata attached to quoted symbols and to values that implement
+;; `MetaInterface`: `meta` reads it, `with-meta` / `set-meta!` replace it,
+;; `copy-meta` propagates it across a transformation, and `vary-meta`
+;; updates it by applying a function. Loaded early in core bootstrap
+;; because most subsequent definitions (fn builders, seq constructors)
+;; preserve metadata via `copy-meta`.
+
+;; ------------
+;; Meta helpers
+;; ------------
+
+(declare =)
+(declare symbol?)
+(declare list?)
+(declare second)
+(declare conj)
+
+(def meta
+  {:macro true
+   :doc "Gets the metadata attached to a value.
+  For a quoted symbol (`(meta 'foo)`) the definition metadata registered via `def` is returned.
+  For any other expression the value is looked up at runtime and its `MetaInterface` metadata returned."}
+  (fn [obj]
+    ;; Only the quoted-symbol form routes to definition metadata. A bare symbol
+    ;; could refer to a local binding (let / fn parameter), so we must resolve it
+    ;; at runtime and call `getMeta` on its value; otherwise `(meta coll)` inside
+    ;; a function body would wrongly return nil for locals that were attached
+    ;; metadata via `with-meta`.
+    (let [quoted-sym (if (list? obj)
+                       (if (= (first obj) 'quote)
+                         (if (symbol? (second obj))
+                           (second obj)
+                           nil)
+                         nil)
+                       nil)]
+      (if quoted-sym
+        (let [ns (php/-> quoted-sym (getNamespace))]
+          (if ns
+            `(php/:: \Phel (getDefinitionMetaData ~ns ~(php/-> quoted-sym (getName))))
+            `(php/:: \Phel (getDefinitionMetaData (php/str_replace "-" "_" *ns*) ~(php/-> quoted-sym (getName))))))
+        `(let [obj-meta ~obj]
+           (if (php/instanceof obj-meta \Phel\Lang\MetaInterface)
+             (php/-> obj-meta (getMeta))
+             nil))))))
+
+(def copy-meta
+  {:private true
+   :doc "Returns `target` with the metadata from `source` when both implement `MetaInterface`."}
+  (fn [source target]
+    (if (php/instanceof source MetaInterface)
+      (if (php/instanceof target MetaInterface)
+        (let [src-meta (php/-> source (getMeta))]
+          (if src-meta
+            (php/-> target (withMeta src-meta))
+            target))
+        target)
+      target)))
+
+(def with-meta
+  {:doc "Returns `obj` with the given metadata `meta` attached."
+   :see-also ["meta" "vary-meta"]}
+  (fn [obj meta]
+    (php/-> obj (withMeta meta))))
+
+(def set-meta!
+  {:doc "Sets the metadata to a given object."
+   :deprecated "0.32.0"
+   :superseded-by "with-meta"}
+  (fn [obj meta]
+    (with-meta obj meta)))
+
+(def vary-meta
+  {:doc "Returns an object with (apply f (meta obj) args) as its new metadata."
+   :see-also ["meta" "with-meta"]}
+  (fn [obj f & args]
+    (let [m (if (php/instanceof obj MetaInterface)
+              (php/-> obj (getMeta))
+              nil)]
+      (php/-> obj (withMeta (apply f m args))))))

@@ -46,6 +46,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `CompiledCodeCache` keys entries by source file path so files sharing a namespace via `(in-ns ...)` no longer clobber each other; cache version bumped to 1.2
 - `keyword` is idempotent and handles `nil` / symbol input (#1428)
 - `dissoc` accepts zero keys and reduces over variadic key lists (#1428)
 - `keys` / `vals` return `nil` for `nil` or empty collections (#1428)
@@ -68,6 +69,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- `(load path)` resolves relative paths from the caller file's compile-time location instead of runtime `*file*`; `/path` is classpath-absolute and searches `phel\repl/src-dirs`. Leading `./`/`../` and explicit `.phel` extensions are now rejected
+- `src/phel/core.phel` split into topic files under `src/phel/core/` (sequences, atoms, fns-sets, math, io, protocols, lazy, exceptions, macroexpand, parsing, uuid, loops, control, predicates, meta, transducers, arrays, booleans, collections, seq-basics, seq-fns, defs, transients, strings), loaded via `(load ...)`. Each sub-file has a brief context header describing its scope. `core.phel` is now bootstrap primitives plus a single unbroken orchestration block of `(load …)` directives at the bottom.
 - Reorganized Phel test files: dissolved `core.phel` into topic files under `core/`; moved `comments.phel`, `special-forms.phel`, `multi-arity-fn.phel` into `core/`
 - `phel\router`: caches Symfony matcher/generator, precompiles middleware dispatch at `handler` construction; per-request work is two hash-map lookups
 - `phel test` skips files that fail to compile and continues the run; pass `--fail-fast` for the previous abort-on-first-error behavior

@@ -1,0 +1,744 @@
+(in-ns phel\core)
+
+;; Three loosely-related but late-loading pieces:
+;;   1. Interfaces via `definterface` (compiles to a PHP interface).
+;;   2. Ad-hoc hierarchies / polymorphic dispatch: `make-hierarchy`,
+;;      `derive`, `underive`, `isa?`, `parents`, `ancestors`, `descendants`,
+;;      `satisfies?`, `extends?`.
+;;   3. Compile/eval bridge: `read-string`, `eval`, `compile`, `name`,
+;;      `namespace`, `full-name`. Placed here because they depend on the
+;;      compiler facade, which is only safe to call after bootstrap.
+
+;; ----------
+;; Interfaces
+;; ----------
+
+(defmacro definterface
+  "An interface in Phel defines an abstract set of functions. It is directly mapped to a PHP interface. An interface can be defined by using the definterface macro."
+  {:example "(definterface name & fns)"}
+  [name & fns]
+  (let [name-str (php/-> name (getName))
+        munge (php/new Munge)
+        class-name-str (php/. (php/-> munge (encodeNs *ns*)) "\\" (php/-> munge (encode name-str)))
+        defs (for [[fn-name args doc] :in fns
+                   :let [fn-name-str (php/-> fn-name (getName))
+                         munged-fn-name (php/-> munge (encode fn-name-str))
+                         munged-fn-symbol (php/:: Symbol (create munged-fn-name))]]
+               `(defn ~fn-name {:doc ~doc} ~args
+                  (if (php/is_a ~(first args) ~class-name-str)
+                    (php/-> ~(first args) (~munged-fn-symbol ~@(rest args)))
+                    (throw (php/new \InvalidArgumentException ~(str "Value doesn't implement interface " name))))))]
+    `(do
+       (definterface* ~name ~@fns)
+       ~@defs)))
+
+;; ---------
+;; Hierarchy
+;; ---------
+
+(def ^:private *hierarchy*
+  "Global hierarchy for keyword/symbol taxonomies."
+  (var {:parents {} :descendants {} :ancestors {}}))
+
+(defn make-hierarchy
+  "Creates a fresh, empty hierarchy.
+
+  Returns a map with `:parents`, `:descendants`, and `:ancestors` keys, each
+  holding an empty map. Matches Clojure's hierarchy shape so consumers can
+  destructure any of the three relationship views."
+  {:see-also ["derive" "isa?" "parents" "ancestors" "descendants"]}
+  []
+  {:parents {} :descendants {} :ancestors {}})
+
+(defn- compute-ancestors
+  "Computes all transitive ancestors of tag from a parents map."
+  [parents-map tag]
+  (let [direct (get parents-map tag)]
+    (if (nil? direct)
+      (hash-set)
+      (reduce
+       (fn [acc p]
+         (union acc (hash-set p) (compute-ancestors parents-map p)))
+       (hash-set)
+       direct))))
+
+(defn- isa-in?
+  "Checks if child is (transitively) a descendant of parent in parents-map.
+  Walks up the parent chain without building the full ancestor set."
+  [parents-map child parent]
+  (let [direct (get parents-map child)]
+    (if (nil? direct)
+      false
+      (if (contains? direct parent)
+        true
+        (reduce
+         (fn [found p]
+           (if found found (isa-in? parents-map p parent)))
+         false
+         direct)))))
+
+(defn isa?
+  "Returns true if child equals parent, or child is a descendant of parent
+  in the global hierarchy."
+  {:example "(do (derive :square :shape) (isa? :square :shape)) ; => true"
+   :see-also ["derive" "parents" "ancestors" "descendants"]}
+  [child parent]
+  (or (= child parent)
+      (isa-in? (get @*hierarchy* :parents) child parent)))
+
+(defn derive
+  "Establishes a parent/child relationship between child and parent keywords
+  in the global hierarchy. Throws on cyclic derivation."
+  {:example "(derive :square :shape)"
+   :see-also ["underive" "isa?" "parents" "ancestors" "descendants"]}
+  [child parent]
+  (when (isa? parent child)
+    (throw (php/new \InvalidArgumentException
+                    (str "Cyclic derivation: " parent " already isa " child))))
+  (swap! *hierarchy*
+         (fn [h]
+           (let [parents-map (get h :parents)
+                 old-parents (get parents-map child (hash-set))
+                 new-parents (union old-parents (hash-set parent))]
+             (assoc h :parents (assoc parents-map child new-parents)))))
+  nil)
+
+(defn underive
+  "Removes a parent/child relationship from the global hierarchy."
+  {:example "(underive :square :shape)"
+   :see-also ["derive" "isa?" "parents" "ancestors" "descendants"]}
+  [child parent]
+  (swap! *hierarchy*
+         (fn [h]
+           (let [parents-map (get h :parents)
+                 old-parents (get parents-map child (hash-set))
+                 new-parents (difference old-parents (hash-set parent))
+                 new-map (if (empty? new-parents)
+                           (dissoc parents-map child)
+                           (assoc parents-map child new-parents))]
+             (assoc h :parents new-map))))
+  nil)
+
+(defn parents
+  "Returns the set of immediate parents of tag in the global hierarchy, or nil."
+  {:see-also ["ancestors" "descendants" "derive" "isa?"]}
+  [tag]
+  (let [p (get (get @*hierarchy* :parents) tag)]
+    (when (and p (not (empty? p))) p)))
+
+(defn ancestors
+  "Returns the set of all transitive ancestors of tag, or nil."
+  {:see-also ["parents" "descendants" "derive" "isa?"]}
+  [tag]
+  (let [a (compute-ancestors (get @*hierarchy* :parents) tag)]
+    (when (not (empty? a)) a)))
+
+(defn descendants
+  "Returns the set of all descendants of tag, or nil."
+  {:see-also ["parents" "ancestors" "derive" "isa?"]}
+  [tag]
+  (let [parents-map (get @*hierarchy* :parents)
+        all-children (keys parents-map)
+        result (reduce
+                (fn [acc child]
+                  (if (contains? (compute-ancestors parents-map child) tag)
+                    (union acc (hash-set child))
+                    acc))
+                (hash-set)
+                all-children)]
+    (when (not (empty? result)) result)))
+
+(defn find-hierarchy-method
+  "Finds the best matching method for dispatch-val using the global hierarchy.
+  Returns the method function or nil. Used internally by defmulti."
+  [methods dispatch-val]
+  (let [parents-map (get @*hierarchy* :parents)
+        method-keys (keys methods)
+        candidates (persistent
+                    (reduce
+                     (fn [acc k]
+                       (if (and (not= k :default)
+                                (not= k dispatch-val)
+                                (isa-in? parents-map dispatch-val k))
+                         (conj acc k)
+                         acc))
+                     (transient [])
+                     method-keys))]
+    (when (not (empty? candidates))
+      (if (= 1 (count candidates))
+        (get methods (first candidates))
+        (let [best (reduce
+                    (fn [best k]
+                      (if (isa-in? parents-map k best)
+                        k
+                        best))
+                    (first candidates)
+                    (rest candidates))]
+          (get methods best))))))
+
+;; ---------
+;; Protocols
+;; ---------
+
+(defn protocol-type-key
+  "Returns the dispatch key for protocol dispatch. Returns a type keyword
+  for primitive types, or the PHP class name string for objects/structs.
+
+  Optimized to avoid the full `type` cond chain: checks scalars first
+  (most common in tight loops), then objects."
+  {:see-also ["defprotocol" "extend-type" "satisfies?"]}
+  [x]
+  (cond
+    (php/is_null x)    :nil
+    (php/is_string x)  :string
+    (php/is_int x)     :int
+    (php/is_float x)   :float
+    (php/is_bool x)    :boolean
+    (php/is_array x)   :php/array
+    (php/is_object x)  (let [t (type x)]
+                         (if (or (= t :struct) (= t :php/object))
+                           (php/get_class x)
+                           t))
+    :unknown))
+
+(defmacro defprotocol
+  "Defines a protocol with the given method signatures. Each method signature
+  is a list of (method-name [args]).
+
+  Creates a dispatching function for each method that dispatches on the type
+  of the first argument. Use `extend-type` to add implementations.
+
+  A `:default` type can be registered via `extend-type` as a fallback when
+  no specific type implementation is found."
+  {:example "(defprotocol Stringable (to-string [this]))"
+   :see-also ["extend-type" "satisfies?" "extends?" "protocol-type-key"]}
+  [protocol-name & method-specs]
+  (let [pname-str (php/-> protocol-name (getName))
+        methods (for [spec :in method-specs
+                      :let [mname (first spec)
+                            mname-str (php/-> mname (getName))
+                            margs (second spec)
+                            dsym (php/:: Symbol
+                                         (create (php/. pname-str "--" mname-str "--dispatch")))]]
+                  [mname mname-str margs dsym])]
+    `(do
+       ~@(for [[_ _ _ dsym] :in methods]
+           `(def ~dsym {:private true} (var {})))
+       (def ~protocol-name
+         {:name ~pname-str
+          :dispatch [~@(for [[_ _ _ dsym] :in methods] dsym)]})
+       ~@(for [[mname mname-str margs dsym] :in methods]
+           `(defn ~mname ~margs
+              (let [dk (protocol-type-key ~(first margs))
+                    dispatch-table (deref ~dsym)
+                    impl (get dispatch-table dk)]
+                (if impl
+                  (impl ~@margs)
+                  (let [default-impl (get dispatch-table :default)]
+                    (if default-impl
+                      (default-impl ~@margs)
+                      (throw (php/new \InvalidArgumentException
+                                      (str "No implementation of '" ~mname-str
+                                           "' for type: " dk))))))))))))
+
+(defmacro extend-type
+  "Extends a type with protocol method implementations.
+
+  type-spec can be:
+  - `nil` for the nil type
+  - a type keyword matching what `type` returns: `:string`, `:int`, `:float`,
+    `:boolean`, `:keyword`, `:symbol`, `:vector`, `:list`, `:hash-map`, `:set`,
+    `:var`, `:function`, `:php/array`
+  - a symbol for struct names (resolved in current namespace)
+  - a string for explicit PHP class names (cross-namespace structs)
+
+  Note: `:struct` and `:php/object` cannot be used as type-specs because
+  protocol dispatch resolves these to their specific PHP class names.
+  Use a struct symbol or PHP class name string instead."
+  {:example "(extend-type :string Stringable (to-string [s] s))"
+   :see-also ["defprotocol" "satisfies?" "extends?" "protocol-type-key"]}
+  [type-spec & specs]
+  (when (and (keyword? type-spec)
+             (or (= type-spec :struct) (= type-spec :php/object)))
+    (throw (php/new \InvalidArgumentException
+                    (str "Cannot use " type-spec " as extend-type target. "
+                         "Protocol dispatch resolves structs/objects to their PHP class name. "
+                         "Use a struct symbol or PHP class name string instead."))))
+  (let [type-key (cond
+                   (nil? type-spec) :nil
+                   (keyword? type-spec) type-spec
+                   (php/is_string type-spec) type-spec
+                   (php/instanceof type-spec Symbol)
+                   (let [munge (php/new Munge)
+                         name-str (php/-> type-spec (getName))]
+                     (php/. (php/-> munge (encodeNs *ns*)) "\\" (php/-> munge (encode name-str)))))
+        groups (loop [remaining specs
+                      current-proto nil
+                      current-methods []
+                      result []]
+                 (if (nil? remaining)
+                   (if current-proto
+                     (conj result [current-proto current-methods])
+                     result)
+                   (let [item (first remaining)
+                         rst (next remaining)]
+                     (if (php/instanceof item Symbol)
+                       (recur rst item []
+                              (if current-proto
+                                (conj result [current-proto current-methods])
+                                result))
+                       (recur rst current-proto
+                              (conj current-methods item)
+                              result)))))
+        swaps (reduce
+               (fn [acc group]
+                 (let [proto-name (first group)
+                       methods (second group)
+                       proto-str (php/-> proto-name (getName))]
+                   (reduce
+                    (fn [inner method]
+                      (let [mname-str (php/-> (first method) (getName))
+                            margs (second method)
+                            body (next (next method))
+                            dsym (php/:: Symbol
+                                         (create (php/. proto-str "--" mname-str "--dispatch")))]
+                        (conj inner `(swap! ~dsym assoc ~type-key (fn ~margs ~@body)))))
+                    acc
+                    methods)))
+               []
+               groups)]
+    `(do ~@swaps)))
+
+(defn satisfies?
+  "Returns true if x's type implements all methods of the given protocol."
+  {:example "(satisfies? Stringable \"hello\")"
+   :see-also ["extends?" "defprotocol" "extend-type"]}
+  [protocol x]
+  (let [key (protocol-type-key x)
+        dvars (get protocol :dispatch)]
+    (if (or (nil? dvars) (empty? dvars))
+      false
+      (every? (fn [dv] (not (nil? (get (deref dv) key)))) dvars))))
+
+(defn extends?
+  "Returns true if the given type-key has implementations for all methods
+  of the protocol. type-key should match what protocol-type-key returns."
+  {:example "(extends? Stringable :string)"
+   :see-also ["satisfies?" "defprotocol" "extend-type"]}
+  [protocol type-key]
+  (let [dvars (get protocol :dispatch)]
+    (if (or (nil? dvars) (empty? dvars))
+      false
+      (every? (fn [dv] (not (nil? (get (deref dv) type-key)))) dvars))))
+
+(defmacro extend-protocol
+  "Convenience macro that extends a single protocol to multiple types.
+  Alternates type-specs and method implementations.
+
+  Equivalent to multiple `extend-type` calls."
+  {:example "(extend-protocol Describable
+  :string (describe [s] s)
+  :int (describe [n] (str n)))"
+   :see-also ["extend-type" "defprotocol"]}
+  [protocol-name & specs]
+  (let [groups (loop [remaining specs
+                      current-type nil
+                      current-methods []
+                      result []]
+                 (if (nil? remaining)
+                   (if current-type
+                     (conj result [current-type current-methods])
+                     result)
+                   (let [item (first remaining)
+                         rst (next remaining)]
+                     (if (list? item)
+                       (recur rst current-type (conj current-methods item) result)
+                       (recur rst item []
+                              (if current-type
+                                (conj result [current-type current-methods])
+                                result))))))
+        extend-calls (for [[type-spec methods] :in groups]
+                       `(extend-type ~type-spec ~protocol-name ~@methods))]
+    `(do ~@extend-calls)))
+
+(defmacro reify
+  "Creates an anonymous object implementing one or more protocols.
+  Method bodies close over local bindings. Each instance carries its
+  own captured state, so reify works correctly inside loops.
+
+  Syntax:
+    (reify
+      ProtocolName
+      (method-name [this arg1] body)
+      AnotherProtocol
+      (another-method [this] body))"
+  {:example "(reify Speakable (speak [this] \"hello\"))"
+   :see-also ["defprotocol" "extend-type" "satisfies?"]}
+  [& specs]
+  (let [munge (php/new Munge)
+        instance-sym (gensym "reify__")
+        class-name-sym (gensym "class__")
+        ;; Group specs into [[ProtocolSym [method1 method2 ...]] ...]
+        ;; Same parsing pattern as extend-type: symbols start a new group,
+        ;; lists are methods belonging to the current protocol.
+        proto-groups (loop [remaining specs
+                            current-proto nil
+                            current-methods []
+                            result []]
+                       (if (nil? remaining)
+                         (if current-proto
+                           (conj result [current-proto current-methods])
+                           result)
+                         (let [item (first remaining)
+                               rst (next remaining)]
+                           (if (php/instanceof item Symbol)
+                             (recur rst item []
+                                    (if current-proto
+                                      (conj result [current-proto current-methods])
+                                      result))
+                             (recur rst current-proto
+                                    (conj current-methods item)
+                                    result)))))
+        ;; Flatten all methods for the reify* special form (it only needs
+        ;; method specs, protocol grouping is handled here for dispatch).
+        all-methods (reduce (fn [acc group] (concat acc (second group))) [] proto-groups)
+        ;; For each protocol method, register a dispatch entry that delegates
+        ;; to the PHP method on the object. This way each instance's closed-over
+        ;; state is accessed via $this->property inside the PHP method.
+        dispatch-registrations
+        (reduce
+         (fn [acc group]
+           (let [proto (first group)
+                 methods (second group)
+                 proto-str (php/-> proto (getName))]
+             (reduce
+              (fn [inner method]
+                (let [mname (first method)
+                      mname-str (php/-> mname (getName))
+                      margs (second method)
+                      rest-args (next margs)
+                      dispatch-var (php/:: Symbol
+                                           (create (php/. proto-str "--" mname-str "--dispatch")))
+                      php-method-sym (php/:: Symbol
+                                             (create (php/-> munge (encode mname-str))))]
+                  (conj inner
+                        `(swap! ~dispatch-var assoc ~class-name-sym
+                                (fn ~margs
+                                  (php/-> ~(first margs) (~php-method-sym ~@rest-args)))))))
+              acc
+              methods)))
+         []
+         proto-groups)]
+    `(let [~instance-sym (reify* ~@all-methods)
+           ~class-name-sym (php/get_class ~instance-sym)]
+       ~@dispatch-registrations
+       ~instance-sym)))
+
+(defmacro defrecord
+  "Defines a record type with the given fields, matching Clojure's `defrecord`.
+
+  Expands to a `defstruct` plus Clojure-style factory functions:
+  - `Name` — positional constructor (from `defstruct`)
+  - `Name?` — type predicate (from `defstruct`)
+  - `->Name` — positional factory, identical to `Name`
+  - `map->Name` — map factory that takes `{:field value ...}`
+
+  An optional tail of protocol/method forms is spliced into an `extend-type`
+  call, so inline protocol implementations work exactly like Clojure's
+  `defrecord` body. Only Phel protocols are supported in the inline tail;
+  PHP interface implementations remain on `defstruct`."
+  {:example "(defrecord Point [x y] Drawable (draw [this canvas] ...))"
+   :see-also ["deftype" "defstruct" "defprotocol" "extend-type"]}
+  [name fields & impls]
+  (let [name-str (php/-> name (getName))
+        arrow-ctor (php/:: Symbol (create (php/. "->" name-str)))
+        map-ctor (php/:: Symbol (create (php/. "map->" name-str)))
+        m-sym (gensym "map__")
+        get-calls (for [f :in fields]
+                    `(get ~m-sym ~(keyword (php/-> f (getName)))))
+        forms [`(defstruct ~name ~fields)
+               `(defn ~arrow-ctor ~(php/. "Positional factory function for " name-str ".") ~fields (~name ~@fields))
+               `(defn ~map-ctor ~(php/. "Map factory function for " name-str ".") [~m-sym] (~name ~@get-calls))]
+        all-forms (if (seq impls)
+                    (conj forms `(extend-type ~name ~@impls))
+                    forms)]
+    `(do ~@all-forms)))
+
+(defmacro deftype
+  "Defines a type with the given fields, matching Clojure's `deftype` syntax.
+
+  Expands to a `defstruct` plus a Clojure-style positional factory:
+  - `Name` — positional constructor (from `defstruct`)
+  - `Name?` — type predicate (from `defstruct`)
+  - `->Name` — positional factory, identical to `Name`
+
+  Unlike `defrecord`, no `map->Name` factory is generated.
+
+  An optional tail of protocol/method forms is spliced into an `extend-type`
+  call. Only Phel protocols are supported in the inline tail.
+
+  Deviation from Clojure: Phel's `deftype` shares the map-backed
+  `defstruct` infrastructure, so instances remain map-like (keys are
+  accessible via `get`). Clojure's `deftype` produces a non-map type;
+  if you need that semantic, use native PHP interop."
+  {:example "(deftype PointT [x y] Drawable (draw [this canvas] ...))"
+   :see-also ["defrecord" "defstruct" "defprotocol" "extend-type"]}
+  [name fields & impls]
+  (let [name-str (php/-> name (getName))
+        arrow-ctor (php/:: Symbol (create (php/. "->" name-str)))
+        forms [`(defstruct ~name ~fields)
+               `(defn ~arrow-ctor ~(php/. "Positional factory function for " name-str ".") ~fields (~name ~@fields))]
+        all-forms (if (seq impls)
+                    (conj forms `(extend-type ~name ~@impls))
+                    forms)]
+    `(do ~@all-forms)))
+
+;; ------------
+;; Multimethods
+;; ------------
+
+(defmacro defmulti
+  "Defines a multimethod. `dispatch-fn` is called on the arguments to
+  produce a dispatch value, which is then used to select the appropriate
+  method registered via `defmethod`.
+
+  If no method matches the dispatch value, the `:default` method is used
+  (if defined), otherwise an error is thrown."
+  {:example "(defmulti area :shape)"}
+  [name dispatch-fn]
+  (let [methods-name (php/:: Symbol (create (php/. (php/-> name (getName)) "-methods")))
+        dispatch-name (php/:: Symbol (create (php/. (php/-> name (getName)) "-dispatch")))]
+    `(do
+       (def ~methods-name (var {}))
+       (def ~dispatch-name {:private true} ~dispatch-fn)
+       (defn ~name [& args]
+         (let [dispatch-val (apply ~dispatch-name args)
+               methods (deref ~methods-name)
+               method (get methods dispatch-val)]
+           (if method
+             (apply method args)
+             (let [hierarchy-method (find-hierarchy-method methods dispatch-val)]
+               (if hierarchy-method
+                 (apply hierarchy-method args)
+                 (let [default-method (get methods :default)]
+                   (if default-method
+                     (apply default-method args)
+                     (throw (php/new \InvalidArgumentException
+                                     (str "No method for dispatch value: " dispatch-val)))))))))))))
+
+(defmacro defmethod
+  "Registers a method implementation for a multimethod.
+
+  `multi-name` is the name of the multimethod defined by `defmulti`.
+  When extending a multimethod from a different namespace, fully qualify
+  the multi-name (e.g. `phel\\test/assert-expr`) so the methods table is
+  resolved in the multimethod's home namespace.
+  `dispatch-val` is the value that triggers this method.
+  `args` and `body` define the function implementation."
+  {:example "(defmethod area :circle [{:radius r}] (* 3.14159 r r))"}
+  [multi-name dispatch-val & fn-tail]
+  (let [multi-ns (php/-> multi-name (getNamespace))
+        methods-name (php/:: Symbol (createForNamespace
+                                     multi-ns
+                                     (php/. (php/-> multi-name (getName)) "-methods")))]
+    `(swap! ~methods-name assoc ~dispatch-val (fn ~@fn-tail))))
+
+(defmacro if-let
+  "If test is true, evaluates then with binding-form bound to the value of test,
+  if not, yields else"
+  [bindings then & [else]]
+  (let [err #(throw (php/new \InvalidArgumentException %))]
+    (when-not
+      (vector? bindings)
+      (err (str "if-let requires a vector for it's bindings, "
+                (type bindings) " given")))
+    (when-not
+      (= 2 (count bindings))
+      (err (str "if-let requires bindings to have 2 elements, "
+                (count bindings) " given"))))
+
+  (let [form (bindings 0) tst (bindings 1) temp-sym (gensym)]
+    `(let [temp-sym ~tst]
+       (if temp-sym
+         (let [~form temp-sym]
+           ~then)
+         ~else))))
+
+(defmacro when-let
+  "When test is true, evaluates body with binding-form bound to the value of test"
+  [bindings & body]
+  (let [err #(throw (php/new \InvalidArgumentException %))]
+    (when-not
+      (vector? bindings)
+      (err (str "when-let requires a vector for it's bindings, "
+                (type bindings) " given")))
+    (when-not
+      (= 2 (count bindings))
+      (err (str "when-let requires bindings to have 2 elements, "
+                (count bindings) " given"))))
+
+  (let [form (bindings 0) tst (bindings 1) temp-sym (gensym)]
+    `(let [temp-sym ~tst]
+       (when temp-sym
+         (let [~form temp-sym]
+           ~@body)))))
+
+(defmacro if-some
+  "Binds name to the value of test. If test is not nil, evaluates then with binding-form
+  bound to the value of test, if not, yields else. Unlike if-let, false and 0 are not
+  treated as falsy — only nil triggers the else branch."
+  {:see-also ["if-let" "when-some"]}
+  [bindings then & [else]]
+  (let [err #(throw (php/new \InvalidArgumentException %))]
+    (when-not
+      (vector? bindings)
+      (err (str "if-some requires a vector for its bindings, "
+                (type bindings) " given")))
+    (when-not
+      (= 2 (count bindings))
+      (err (str "if-some requires bindings to have 2 elements, "
+                (count bindings) " given"))))
+
+  (let [form (bindings 0) tst (bindings 1) temp-sym (gensym)]
+    `(let [temp-sym ~tst]
+       (if (not (nil? temp-sym))
+         (let [~form temp-sym]
+           ~then)
+         ~else))))
+
+(defmacro when-some
+  "Binds name to the value of test. When test is not nil, evaluates body with
+  binding-form bound to the value of test. Unlike when-let, false and 0 are not
+  treated as falsy — only nil causes the body to be skipped."
+  {:see-also ["when-let" "if-some"]}
+  [bindings & body]
+  `(if-some ~bindings (do ~@body) nil))
+
+(defmacro when-first
+  "Binds name to the first element of coll. When the collection is non-empty
+  (first returns non-nil), evaluates body with the binding."
+  {:see-also ["when-some" "first"]}
+  [bindings & body]
+  (let [err #(throw (php/new \InvalidArgumentException %))]
+    (when-not
+      (vector? bindings)
+      (err (str "when-first requires a vector for its bindings, "
+                (type bindings) " given")))
+    (when-not
+      (= 2 (count bindings))
+      (err (str "when-first requires bindings to have 2 elements, "
+                (count bindings) " given"))))
+
+  (let [sym (bindings 0) coll (bindings 1) temp-sym (gensym)]
+    `(let [temp-sym (first ~coll)]
+       (when (not (nil? temp-sym))
+         (let [~sym temp-sym]
+           ~@body)))))
+
+(defmacro letfn
+  "Defines mutually recursive local functions.
+
+  bindings is a vector of function specs: (letfn [(f [params] body) (g [params] body)] expr)
+  All function names are in scope within all function bodies and the body expression,
+  enabling mutual recursion."
+  {:example "(letfn [(my-even? [n] (if (zero? n) true (my-odd? (dec n))))
+        (my-odd? [n] (if (zero? n) false (my-even? (dec n))))]
+  (my-even? 10))"}
+  [bindings & body]
+  (let [names (for [spec :in bindings] (first spec))
+        refs (for [n :in names :reduce [acc {}]]
+               (put acc n (gensym)))
+        var-decls (apply concat
+                         (for [n :in names]
+                           [(get refs n) '(var nil)]))
+        deref-bindings (apply concat
+                              (for [n :in names]
+                                [n `(deref ~(get refs n))]))
+        assignments (for [spec :in bindings
+                          :let [n (first spec)
+                                params (second spec)
+                                fn-body (nnext spec)]]
+                      `(set! ~(get refs n)
+                             (fn ~params (let [~@deref-bindings] ~@fn-body))))]
+    `(let [~@var-decls]
+       ~@assignments
+       (let [~@deref-bindings]
+         ~@body))))
+
+(defmacro time
+  "Evaluates expr and prints the time it took. Returns the value of expr."
+  [expr]
+  `(let [start# (php/microtime true)
+         ret# ~expr]
+     (println "Elapsed time:" (* 1000 (- (php/microtime true) start#)) "msecs")
+     ret#))
+
+(defmacro assert
+  "Throws an exception if expr is falsy. Optional message string.
+  Used for precondition checking in application code. When `*assert*`
+  is logical false at macroexpansion time, `assert` expands to nil and
+  performs no runtime check."
+  {:see-also ["when" "throw" "*assert*"]}
+  [expr & [message]]
+  (when *assert*
+    (let [msg (if message
+                `(str "Assert failed: " ~message)
+                `(str "Assert failed: " (quote ~expr)))]
+      `(when (not ~expr)
+         (throw (php/new \InvalidArgumentException ~msg))))))
+
+(defn name
+  "Returns the name string of a string, keyword or symbol."
+  [x]
+  (if (string? x) x (php/-> x (getName))))
+
+(defn namespace
+  "Return the namespace string of a symbol or keyword. Nil if not present."
+  [x]
+  (php/-> x (getNamespace)))
+
+(defn full-name
+  "Return the namespace and name string of a string, keyword or symbol."
+  [x]
+  (if (string? x) x (php/-> x (getFullName))))
+
+(defn read-string
+  "Reads the first phel expression from the string s."
+  [s]
+  (let [cf (php/new CompilerFacade)
+        token-stream (php/-> cf (lexString s))
+        node (php/-> cf (parseNext token-stream))]
+    (when node
+      (php/-> (php/-> cf (read node)) (getAst)))))
+
+(defn eval
+  "Evaluates a form and return the evaluated results."
+  [form]
+  (let [cf (php/new CompilerFacade)]
+    (php/-> cf (evalForm form))))
+
+(defn compile
+  "Returns the compiled PHP code string for the given form."
+  [form]
+  (let [cf (php/new CompilerFacade)]
+    (php/-> (php/-> cf (compileForm form)) (getPhpCode))))
+
+(defn- get-global-env []
+  (php/:: GlobalEnvironmentSingleton (getInstance)))
+
+(defn- get-global-var-node [sym]
+  (php/-> (get-global-env) (resolve sym (php/:: NodeEnvironment (empty)))))
+
+(defn resolve
+  "Resolves the given symbol in the current environment and returns a resolved Symbol with the absolute namespace or nil if it cannot be resolved."
+  {:example "(resolve 'map) ; => phel\\core/map"}
+  [sym]
+  (-> (get-global-env)
+      (php/-> (resolveAsSymbol sym (php/:: NodeEnvironment (empty))))))
+
+(defn- inline-call? [meta arity]
+  (and (:inline meta)
+       (let [af (:inline-arity meta)]
+         (if af
+           (af arity)
+           true))))

@@ -1,0 +1,90 @@
+(in-ns phel\core)
+
+;; Tier-1 sequence primitives that every higher-level operation builds on:
+;; `cons`, `first` companions (`ffirst`, `second`, `nfirst`, `fnext`,
+;; `nnext`), `rest`, `count`, plus the private `equals1` helper used by
+;; `=` and the `case` macro. Loaded right after the basic constructors so
+;; the control / boolean / predicate modules — which all call `count`,
+;; `first`, `rest`, etc. — can rely on them.
+
+;; ------------------------
+;; Basic sequence operation
+;; ------------------------
+
+(defn- equals1 [a b]
+  (if (php/instanceof a AbstractType)
+    (php/-> a (equals b))
+    (php/=== a b)))
+
+(defn cons
+  "Prepends an element to the beginning of a collection."
+  {:example "(cons 0 [1 2 3]) ; => [0 1 2 3]"}
+  [x coll]
+  (if (php/is_array coll)
+    (do
+      (php/array_unshift coll x)
+      coll)
+    (if (php/instanceof coll ConsInterface)
+      (php/-> coll (cons x))
+      (if (php/=== coll nil)
+        [x]
+        (throw (php/new InvalidArgumentException
+                        (php/. "cannot do cons " (php/print_r x true))))))))
+
+(defn ffirst
+  "Same as `(first (first coll))`."
+  [coll]
+  (first (first coll)))
+
+(defn second
+  "Returns the second element of a sequence, or nil if not present."
+  {:example "(second [1 2 3]) ; => 2"}
+  [coll]
+  (first (next coll)))
+
+(defn rest
+  "Returns the sequence after the first element, or empty sequence if none."
+  {:example "(rest [1 2 3]) ; => [2 3]"}
+  [coll]
+  (if (php/instanceof coll RestInterface)
+    (php/-> coll (rest))
+    (if (php/is_string coll)
+      (php/:: Phel (vector (php/array_slice (php/mb_str_split coll) 1)))
+      (if (php/is_array coll)
+        (php/array_slice coll 1)
+        (throw (php/new InvalidArgumentException "cannot do rest"))))))
+
+(defn nfirst
+  "Same as `(next (first coll))`."
+  [coll]
+  (next (first coll)))
+
+(defn fnext
+  "Same as `(first (next coll))`."
+  {:example "(fnext [1 2 3]) ; => 2"
+   :see-also ["second" "ffirst" "nfirst" "nnext"]}
+  [coll]
+  (first (next coll)))
+
+(defn nnext
+  "Same as `(next (next coll))`."
+  [coll]
+  (next (next coll)))
+
+(defn count
+  "Counts the number of elements in a sequence. Can be used on everything that implements the PHP Countable interface.
+
+  Works with lists, vectors, hash-maps, sets, strings, and PHP arrays.
+  Returns 0 for nil."
+  {:example "(count [1 2 3]) ; => 3"
+   :see-also ["empty?" "seq"]}
+  [coll]
+  (if (php/instanceof coll Countable)
+    (php/-> coll (count))
+    (if (php/is_array coll)
+      (php/count coll)
+      (if (php/is_string coll)
+        (php/mb_strlen coll)
+        (if (php/=== coll nil)
+          0
+          (throw (php/new InvalidArgumentException (str "object is not countable: " coll))))))))

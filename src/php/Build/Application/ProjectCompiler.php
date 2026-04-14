@@ -8,10 +8,13 @@ use Phel\Build\BuildConfigInterface;
 use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Compile\BuildOptions;
 use Phel\Build\Domain\Compile\CompiledFile;
+use Phel\Build\Domain\Compile\CompiledTargetPathResolver;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
+use Phel\Build\Domain\Compile\SecondaryFileHarvester;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
+use Phel\Compiler\Domain\Analyzer\Resolver\LoadClasspath;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use RuntimeException;
@@ -22,7 +25,7 @@ use function sprintf;
 
 final readonly class ProjectCompiler
 {
-    private const string TARGET_FILE_EXTENSION = '.php';
+    private CompiledTargetPathResolver $targetPathResolver;
 
     public function __construct(
         private NamespaceExtractorInterface $namespaceExtractor,
@@ -31,7 +34,10 @@ final readonly class ProjectCompiler
         private CommandFacadeInterface $commandFacade,
         private EntryPointPhpFileInterface $entryPointPhpFile,
         private BuildConfigInterface $config,
-    ) {}
+        private ?SecondaryFileHarvester $secondaryFileHarvester = null,
+    ) {
+        $this->targetPathResolver = new CompiledTargetPathResolver($compilerFacade);
+    }
 
     /**
      * @return list<CompiledFile>
@@ -59,6 +65,10 @@ final readonly class ProjectCompiler
         // preventing definitions from being lost when compilation is triggered later.
         $this->compilerFacade->initializeGlobalEnvironment();
 
+        // Publish the classpath so runtime `(load ...)` emissions can resolve
+        // sibling files during compile-time statement evaluation.
+        LoadClasspath::publish($srcDirectories);
+
         $namespaceInformation = $this->namespaceExtractor->getNamespacesFromDirectories($srcDirectories);
         /** @var list<CompiledFile> $result */
         $result = [];
@@ -67,7 +77,16 @@ final readonly class ProjectCompiler
                 continue;
             }
 
-            $targetFile = $dest . '/' . $this->getTargetFileFromNamespace($info->getNamespace());
+            // Secondary `(in-ns ...)` files are pulled in by the primary's
+            // `(load ...)` during build-time evaluation; that run caches
+            // their compiled output. We relocate those cached files below
+            // so we don't recompile them standalone, which would re-run
+            // macro expansions against a partially-ready registry.
+            if (!$info->isPrimaryDefinition()) {
+                continue;
+            }
+
+            $targetFile = $dest . '/' . $this->targetPathResolver->resolve($info, $srcDirectories);
             $targetDir = dirname($targetFile);
             if (!file_exists($targetDir) && !mkdir($targetDir, 0777, true) && !is_dir($targetDir)) {
                 throw new RuntimeException(sprintf('Directory "%s" was not created', $targetDir));
@@ -95,11 +114,36 @@ final readonly class ProjectCompiler
             touch($targetFile, $this->getFileMtime($info->getFile()));
         }
 
+        $this->harvestSecondaries($namespaceInformation, $dest, $srcDirectories);
+
         if ($this->config->shouldCreateEntryPointPhpFile()) {
             $this->entryPointPhpFile->createFile();
         }
 
         return $result;
+    }
+
+    /**
+     * @param list<NamespaceInformation> $namespaceInformation
+     * @param list<string>               $srcDirectories
+     */
+    private function harvestSecondaries(array $namespaceInformation, string $dest, array $srcDirectories): void
+    {
+        if (!$this->secondaryFileHarvester instanceof SecondaryFileHarvester) {
+            return;
+        }
+
+        foreach ($namespaceInformation as $info) {
+            if ($info->isPrimaryDefinition()) {
+                continue;
+            }
+
+            if ($this->shouldIgnoreNs($info)) {
+                continue;
+            }
+
+            $this->secondaryFileHarvester->harvest($info, $dest, $srcDirectories);
+        }
     }
 
     private function shouldIgnoreNs(NamespaceInformation $info): bool
@@ -111,13 +155,6 @@ final readonly class ProjectCompiler
         }
 
         return false;
-    }
-
-    private function getTargetFileFromNamespace(string $namespace): string
-    {
-        $mungedNamespace = $this->compilerFacade->encodeNs($namespace);
-
-        return implode(DIRECTORY_SEPARATOR, explode('\\', $mungedNamespace)) . self::TARGET_FILE_EXTENSION;
     }
 
     private function canUseCache(

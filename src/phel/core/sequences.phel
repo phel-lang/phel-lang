@@ -1,0 +1,232 @@
+(in-ns phel\core)
+
+;; Indexed / associative access primitives used as building blocks by the
+;; higher-level seq API back in core.phel: `peek`, `push`, `pop`, `get`,
+;; `nth`, `nthrest`, `nthnext`, `assoc`, `put`, `dissoc`, `unset`.
+;; Loaded mid-core because the later `map`/`filter`/`reduce` definitions
+;; depend on them.
+
+;; ------------------
+;; Sequence operation
+;; ------------------
+
+(defn peek
+  "Returns the last element of a sequence, or nil if empty or nil.
+  Works on vectors, PHP arrays, lists, and lazy sequences."
+  {:example "(peek [1 2 3]) ; => 3"}
+  [coll]
+  (cond
+    (nil? coll)
+    nil
+
+    (seq? coll)
+    (loop [s coll last-val nil]
+      (if (nil? (seq s))
+        last-val
+        (recur (next s) (first s))))
+
+    :else
+    (php/aget coll (php/- (count coll) 1))))
+
+
+(defn push
+  "Inserts `x` at the end of the sequence `coll`."
+  {:deprecated "0.25.0"
+   :superseded-by "conj"}
+  [coll x]
+  (conj coll x))
+
+(defn pop
+  "Removes the last element of the array `coll`. If the array is empty returns nil."
+  [^:reference coll]
+  (cond
+    (php-array? coll) (php/array_pop coll)
+    (php/instanceof coll PopInterface) (php/-> coll (pop))
+    (throw (php/new InvalidArgumentException "Cannot pop"))))
+
+(defn get
+  "Gets the value at key in a collection. Returns default if not found."
+  {:example "(get {:a 1} :a) ; => 1"}
+  [ds k & [opt]]
+  (cond
+    (or (set? ds)
+        (php/instanceof ds PersistentHashSetInterface)
+        (php/instanceof ds TransientHashSetInterface))
+    (if (php/-> ds (contains k))
+      k
+      opt)
+
+    (seq? ds)
+    (loop [i k
+           s ds]
+      (if (or (nil? s) (php/< i 0))
+        opt
+        (if (php/=== i 0)
+          (let [res (first s)]
+            (if (nil? res)
+              opt
+              res))
+          (recur (php/- i 1) (next s)))))
+
+    :else
+    (let [res (php/aget ds k)]
+      (if (nil? res)
+        opt
+        res))))
+
+(defn nth
+  "Returns the value at `index` in `coll`. Throws an
+   OutOfBoundsException if the index is out of range and no
+   `not-found` value is supplied. For indexed collections (vectors,
+   strings) this is O(1); for sequences it is O(n)."
+  {:example "(nth [1 2 3] 1) ; => 2\n(nth [1 2 3] 5 :default) ; => :default"
+   :see-also ["get" "first" "second"]}
+  ([coll index]
+   (cond
+     (nil? coll)
+     (throw (php/new OutOfBoundsException (str "Index " index " out of bounds on nil")))
+
+     (php/is_string coll)
+     (if (and (php/>= index 0) (php/< index (php/mb_strlen coll "UTF-8")))
+       (php/mb_substr coll index 1 "UTF-8")
+       (throw (php/new OutOfBoundsException (str "String index " index " out of bounds"))))
+
+     (vector? coll)
+     (if (and (php/>= index 0) (php/< index (count coll)))
+       (get coll index)
+       (throw (php/new OutOfBoundsException (str "Vector index " index " out of bounds"))))
+
+     :else
+     (loop [i index
+            s coll]
+       (cond
+         (nil? s) (throw (php/new OutOfBoundsException (str "Index " index " out of bounds")))
+         (php/=== i 0) (first s)
+         :else (recur (php/- i 1) (next s))))))
+
+  ([coll index not-found]
+   (cond
+     (nil? coll) not-found
+
+     (php/is_string coll)
+     (if (and (php/>= index 0) (php/< index (php/mb_strlen coll "UTF-8")))
+       (php/mb_substr coll index 1 "UTF-8")
+       not-found)
+
+     (vector? coll)
+     (if (and (php/>= index 0) (php/< index (count coll)))
+       (get coll index)
+       not-found)
+
+     :else
+     (loop [i index
+            s coll]
+       (cond
+         (nil? s) not-found
+         (php/=== i 0) (first s)
+         :else (recur (php/- i 1) (next s)))))))
+
+(defn nthrest
+  "Returns the nth rest of `coll`, `coll` when `n` is 0."
+  {:example "(nthrest [1 2 3 4 5] 2) ; => (3 4 5)"
+   :see-also ["nth" "nthnext" "drop"]}
+  [coll n]
+  (loop [i n
+         s coll]
+    (if (and (php/> i 0) s)
+      (recur (php/- i 1) (next s))
+      s)))
+
+(defn nthnext
+  "Returns the nth next of `coll`, `(seq coll)` when `n` is 0.
+   Returns nil if there are fewer than `n` elements remaining."
+  {:example "(nthnext [1 2 3 4 5] 2) ; => (3 4 5)\n(nthnext [1 2] 5) ; => nil"
+   :see-also ["nth" "nthrest" "drop"]}
+  [coll n]
+  (loop [i n
+         s (seq coll)]
+    (if (and (php/> i 0) s)
+      (recur (php/- i 1) (next s))
+      s)))
+
+(defn- assoc-pair
+  "Associates a single key-value pair with a collection."
+  [ds key value]
+  (cond
+    ;; Clojure-compat: (assoc nil k v) creates a fresh map instead of erroring.
+    (nil? ds)
+    (php/-> {} (put key value))
+
+    (php-array? ds)
+    (throw (php/new InvalidArgumentException "Cannot call assoc on pure PHP arrays. Use (php/aset ds key value)"))
+
+    (or (php/instanceof ds PersistentMapInterface) (php/instanceof ds TransientMapInterface))
+    (php/-> ds (put key value))
+
+    (or (php/instanceof ds PersistentVectorInterface) (php/instanceof ds TransientVectorInterface))
+    (php/-> ds (update key value))
+
+    ;; Explicit rejection for any other shape (string, list, set, sorted set,
+    ;; number, …). Without this the old fall-through silently mutated strings
+    ;; via `php/aset` and leaked raw PHP "offsetSet not supported" errors for
+    ;; lists and sets.
+    (throw (php/new InvalidArgumentException
+                    (str "assoc expects a map, vector, struct, or nil; got " (type ds))))))
+
+(defn assoc
+  "Associates one or more key-value pairs with a collection.
+  Additional key-value pairs beyond the first are applied in order.
+  Throws if an odd number of extra arguments is provided."
+  {:example "(assoc {:a 1} :b 2) ; => {:a 1 :b 2}\n(assoc {:a 1} :b 2 :c 3) ; => {:a 1 :b 2 :c 3}"}
+  [ds key value & more]
+  (when (php/!== 0 (php/& (count more) 1))
+    (throw (php/new InvalidArgumentException
+                    (str "assoc expects an even number of extra arguments (key-value pairs), got "
+                         (count more)))))
+  (loop [acc (assoc-pair ds key value)
+         remaining more]
+    (if (empty? remaining)
+      acc
+      (recur (assoc-pair acc (first remaining) (second remaining))
+             (rest (rest remaining))))))
+
+(defn put
+  "Puts `value` mapped to `key` on the datastructure `ds`. Returns `ds`."
+  {:deprecated "0.25.0"
+   :superseded-by "assoc"}
+  [ds key value]
+  (assoc ds key value))
+
+(defn- dissoc-one
+  [ds key]
+  (cond
+    (php/is_array ds)
+    (throw (php/new InvalidArgumentException "Cannot call dissoc on pure PHP arrays. Use (php/aunset ds key)"))
+
+    (or (php/instanceof ds PersistentMapInterface) (php/instanceof ds TransientMapInterface))
+    (php/-> ds (remove key))
+
+    (or (php/instanceof ds PersistentHashSetInterface) (php/instanceof ds TransientHashSetInterface))
+    (php/-> ds (remove key))
+
+    (let [x ds]
+      (php/aunset x key)
+      x)))
+
+(defn dissoc
+  "Returns `ds` without the given keys. With no keys returns `ds` unchanged."
+  {:example "(dissoc {:a 1 :b 2} :b) ; => {:a 1}\n(dissoc {:a 1 :b 2 :c 3} :a :c) ; => {:b 2}"}
+  [ds & ks]
+  (loop [acc ds
+         remaining ks]
+    (if (empty? remaining)
+      acc
+      (recur (dissoc-one acc (first remaining)) (next remaining)))))
+
+(defn unset
+  "Returns `ds` without `key`."
+  {:deprecated "0.25.0"
+   :superseded-by "dissoc"}
+  [ds key]
+  (dissoc ds key))
+

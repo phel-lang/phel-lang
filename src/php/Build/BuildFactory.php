@@ -13,10 +13,12 @@ use Phel\Build\Application\FileEvaluator;
 use Phel\Build\Application\NamespaceExtractor;
 use Phel\Build\Application\ProjectCompiler;
 use Phel\Build\Domain\Cache\NamespaceCacheInterface;
+use Phel\Build\Domain\Compile\CompiledTargetPathResolver;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFile;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
 use Phel\Build\Domain\Compile\Output\NamespacePathTransformer;
+use Phel\Build\Domain\Compile\SecondaryFileHarvester;
 use Phel\Build\Domain\Extractor\FirstFormExtractor;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
@@ -43,6 +45,7 @@ final class BuildFactory extends AbstractFactory
             $this->getCommandFacade(),
             $this->createMainPhpEntryPointFile(),
             $this->getConfig(),
+            $this->createSecondaryFileHarvester(),
         );
     }
 
@@ -64,30 +67,42 @@ final class BuildFactory extends AbstractFactory
 
     public function createFileEvaluator(): FileEvaluator
     {
-        return new FileEvaluator(
-            $this->getCompilerFacade(),
-            $this->createNamespaceExtractor(),
-            $this->createCompiledCodeCache(),
-            $this->createFirstFormExtractor(),
+        // `singleton()` so repeated `(load ...)` calls reuse one
+        // evaluator — otherwise each fresh `new BuildFacade()` would
+        // rebuild its dependency tree and the on-disk compiled-code
+        // index would be re-included per load.
+        return $this->singleton(
+            FileEvaluator::class,
+            fn(): FileEvaluator => new FileEvaluator(
+                $this->getCompilerFacade(),
+                $this->createNamespaceExtractor(),
+                $this->createCompiledCodeCache(),
+                $this->createFirstFormExtractor(),
+            ),
         );
     }
 
     public function createNamespaceExtractor(): NamespaceExtractorInterface
     {
-        $innerExtractor = new NamespaceExtractor(
-            $this->getCompilerFacade(),
-            $this->createNamespaceSorter(),
-            $this->createFileIo(),
-        );
+        return $this->singleton(
+            NamespaceExtractorInterface::class,
+            function (): NamespaceExtractorInterface {
+                $innerExtractor = new NamespaceExtractor(
+                    $this->getCompilerFacade(),
+                    $this->createNamespaceSorter(),
+                    $this->createFileIo(),
+                );
 
-        if (!$this->getConfig()->isNamespaceCacheEnabled()) {
-            return $innerExtractor;
-        }
+                if (!$this->getConfig()->isNamespaceCacheEnabled()) {
+                    return $innerExtractor;
+                }
 
-        return new CachedNamespaceExtractor(
-            $innerExtractor,
-            $this->createNamespaceCache(),
-            $this->createNamespaceSorter(),
+                return new CachedNamespaceExtractor(
+                    $innerExtractor,
+                    $this->createNamespaceCache(),
+                    $this->createNamespaceSorter(),
+                );
+            },
         );
     }
 
@@ -109,7 +124,29 @@ final class BuildFactory extends AbstractFactory
         return $this->getProvidedDependency(BuildProvider::FACADE_COMMAND);
     }
 
+    private function createSecondaryFileHarvester(): ?SecondaryFileHarvester
+    {
+        $compiledCodeCache = $this->createCompiledCodeCache();
+        if (!$compiledCodeCache instanceof CompiledCodeCache) {
+            return null;
+        }
+
+        return new SecondaryFileHarvester(
+            $compiledCodeCache,
+            new CompiledTargetPathResolver($this->getCompilerFacade()),
+            $this->createFileIo(),
+        );
+    }
+
     private function createCompiledCodeCache(): ?CompiledCodeCache
+    {
+        return $this->singleton(
+            CompiledCodeCache::class,
+            fn(): ?CompiledCodeCache => $this->buildCompiledCodeCache(),
+        );
+    }
+
+    private function buildCompiledCodeCache(): ?CompiledCodeCache
     {
         if (!$this->getConfig()->isCompiledCodeCacheEnabled()) {
             return null;

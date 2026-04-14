@@ -1,0 +1,406 @@
+(in-ns phel\core)
+
+;; Numeric operations: arithmetic (`+`, `-`, `*`, `/`, `%`, `**`), bit ops
+;; (`bit-and`, `bit-or`, `bit-xor`, `bit-shift-*`, `bit-set`, `bit-test`, …),
+;; successor/predecessor (`inc`, `dec`), and constants (`NAN`). Most fns
+;; dispatch to PHP's native numeric operators via `php/*`.
+
+;; ---
+;; Math helpers
+;; ---
+
+(defn- assert-non-nil
+  [& xs]
+  (foreach [x xs]
+    (when (php/=== nil x)
+      (throw (php/new \InvalidArgumentException "Arithmetic functions do not accept nil values")))))
+
+;; -----------------
+;; Bitwise operation
+;; -----------------
+
+(defn bit-and
+  "Bitwise and."
+  {:inline (fn [x y & args] `(do (assert-non-nil ~x ~y ~@args) (php/& ~x ~y ~@args)))}
+  [x y & args]
+  (let [all (concat [x y] args)]
+    (apply assert-non-nil all)
+    (reduce #(php/& %1 %2) all)))
+
+(defn bit-or
+  "Bitwise or."
+  {:inline (fn [x y & args] `(do (assert-non-nil ~x ~y ~@args) (php/| ~x ~y ~@args)))}
+  [x y & args]
+  (let [all (concat [x y] args)]
+    (apply assert-non-nil all)
+    (reduce #(php/| %1 %2) all)))
+
+(defn bit-xor
+  "Bitwise xor."
+  {:inline (fn [x y & args] `(do (assert-non-nil ~x ~y ~@args) (php/^ ~x ~y ~@args)))}
+  [x y & args]
+  (let [all (concat [x y] args)]
+    (apply assert-non-nil all)
+    (reduce #(php/^ %1 %2) all)))
+
+(defn bit-not
+  "Bitwise complement."
+  {:inline (fn [x] `(do (assert-non-nil ~x) (php/~ ~x)))}
+  [x]
+  (assert-non-nil x)
+  (php/~ x))
+
+(defn bit-shift-left
+  "Bitwise shift left."
+  {:inline (fn [x n] `(do (assert-non-nil ~x ~n) (php/<< ~x ~n)))}
+  [x n]
+  (assert-non-nil x n)
+  (php/<< x n))
+
+(defn bit-shift-right
+  "Bitwise shift right."
+  {:inline (fn [x n] `(do (assert-non-nil ~x ~n) (php/>> ~x ~n)))}
+  [x n]
+  (assert-non-nil x n)
+  (php/>> x n))
+
+(defn bit-set
+  "Set bit an index `n`."
+  [x n]
+  (bit-or x (bit-shift-left 1 n)))
+
+(defn bit-clear
+  "Clear bit an index `n`."
+  [x n]
+  (bit-and x (bit-not (bit-shift-left 1 n))))
+
+(defn bit-flip
+  "Flip bit at index `n`."
+  [x n]
+  (bit-xor x (bit-shift-left 1 n)))
+
+(defn bit-test
+  "Test bit at index `n`."
+  [x n]
+  (php/!= 0 (bit-and x (bit-shift-left 1 n))))
+
+;; --------------
+;; Math operation
+;; --------------
+
+(def NAN
+  "Constant for Not a Number (NAN) values."
+  php/NAN)
+
+(defn +
+  "Returns the sum of all elements in `xs`. All elements `xs` must be numbers.
+  If `xs` is empty, return 0."
+  {:inline (fn [& xs] `(do (assert-non-nil ~@xs) (php/+ ~@xs)))
+   :inline-arity (fn [n] (> n 0))}
+  [& xs]
+  (apply assert-non-nil xs)
+  (if (empty? xs)
+    0
+    (apply php/+ xs)))
+
+(defn -
+  "Returns the difference of all elements in `xs`. If `xs` is empty, return 0. If `xs`
+  has one element, return the negative value of that element."
+  {:inline (fn [& xs] `(do (assert-non-nil ~@xs) (php/- ~@xs)))
+   :inline-arity (fn [n] (> n 1))}
+  [& xs]
+  (apply assert-non-nil xs)
+  (case (count xs)
+    0 0
+    1 (php/* -1 (first xs))
+    2 (php/- (first xs) (second xs))
+    (reduce #(php/- %1 %2) xs)))
+
+(defn *
+  "Returns the product of all elements in `xs`. All elements in `xs` must be
+numbers. If `xs` is empty, return 1."
+  {:inline (fn [& xs] `(do (assert-non-nil ~@xs) (php/* ~@xs)))
+   :inline-arity (fn [n] (> n 0))}
+  [& xs]
+  (apply assert-non-nil xs)
+  (case (count xs)
+    0 1
+    1 (first xs)
+    2 (php/* (first xs) (second xs))
+    (reduce #(php/* %1 %2) xs)))
+
+(defn /
+  "Returns the nominator divided by all the denominators. If `xs` is empty,
+returns 1. If `xs` has one value, returns the reciprocal of x."
+  {:inline (fn [& xs] `(do (assert-non-nil ~@xs) (php// ~@xs)))
+   :inline-arity (fn [n] (> n 1))}
+  [& xs]
+  (apply assert-non-nil xs)
+  (case (count xs)
+    0 1
+    1 (php// 1 (first xs))
+    2 (php// (first xs) (second xs))
+    (reduce #(php// %1 %2) xs)))
+
+(defn %
+  "Return the remainder of `dividend` / `divisor`."
+  {:inline (fn [dividend divisor] `(do (assert-non-nil ~dividend ~divisor) (php/% ~dividend ~divisor)))}
+  [dividend divisor]
+  (assert-non-nil dividend divisor)
+  (php/% dividend divisor))
+
+(defn **
+  "Return `a` to the power of `x`."
+  {:inline (fn [a x] `(do (assert-non-nil ~a ~x) (php/** ~a ~x)))}
+  [a x]
+  (assert-non-nil a x)
+  (php/** a x))
+
+(defn inc
+  "Increments `x` by one."
+  {:inline (fn [x] `(do (assert-non-nil ~x) (php/+ ~x 1)))}
+  [x]
+  (assert-non-nil x)
+  (+ x 1))
+
+(defn dec
+  "Decrements `x` by one."
+  {:inline (fn [x] `(do (assert-non-nil ~x) (php/- ~x 1)))}
+  [x]
+  (assert-non-nil x)
+  (- x 1))
+
+(defn even?
+  "Checks if `x` is even."
+  [x]
+  (= 0 (% x 2)))
+
+(defn odd?
+  "Checks if `x` is odd."
+  [x]
+  (= 1 (% x 2)))
+
+(defn zero?
+  "Checks if `x` is zero."
+  [x]
+  (or (= x 0) (= x 0.0)))
+
+(defn one?
+  "Checks if `x` is one."
+  [x]
+  (or (= x 1) (= x 1.0)))
+
+(defn pos?
+  "Checks if `x` is greater than zero."
+  [x]
+  (> x 0))
+
+(defn neg?
+  "Checks if `x` is smaller than zero."
+  [x]
+  (< x 0))
+
+(defn nan?
+  "Checks if `x` is not a number."
+  [x]
+  (php/is_nan x))
+
+(defn NaN?
+  "Checks if `x` is not a number. Alias for `nan?`, matching Clojure's `NaN?`."
+  {:see-also ["nan?" "inf?"]}
+  [x]
+  (nan? x))
+
+(defn inf?
+  "Checks if `x` is infinite."
+  {:example "(inf? php/INF) ; => true"
+   :see-also ["nan?"]}
+  [x]
+  (php/is_infinite x))
+
+(defn abs
+  "Returns the absolute value of `x`.
+  Throws `InvalidArgumentException` if `x` is not a number, matching Clojure
+  rather than PHP's permissive `abs(null) => 0` / `abs(\"abc\")` coercions."
+  {:example "(abs -5) ; => 5"}
+  [x]
+  (if (number? x)
+    (php/abs x)
+    (throw (php/new InvalidArgumentException
+                    (str "abs expects a number, got " (type x))))))
+
+(defn int
+  "Coerces `x` to an integer. Delegates to PHP's `intval`, so floats are
+   truncated toward zero, numeric strings are parsed, and `nil` returns `0`."
+  {:example "(int 1.9) ; => 1\n(int \"42\") ; => 42"
+   :see-also ["float" "double" "int?" "number?"]}
+  [x]
+  (php/intval x))
+
+(defn float
+  "Coerces `x` to a float. In PHP there is no distinction between float and
+   double; both map to the same native PHP float type. Delegates to PHP's
+   `floatval`, so non-numeric strings return `0.0` and `nil` returns `0.0`."
+  {:example "(float 1) ; => 1.0"
+   :see-also ["double" "int?" "number?"]}
+  [x]
+  (php/floatval x))
+
+(defn double
+  "Coerces `x` to a double. In PHP there is no distinction between float and
+   double; both map to the same native PHP float type. Alias for `float`."
+  {:example "(double 1) ; => 1.0"
+   :see-also ["float" "int?" "number?"]}
+  [x]
+  (php/floatval x))
+
+(defn long
+  "Coerces `x` to a long integer. In PHP there is no distinction between int
+   and long; both map to the same native PHP int type. Alias for `int`."
+  {:example "(long 1.9) ; => 1"
+   :see-also ["int" "float" "double"]}
+  [x]
+  (php/intval x))
+
+(defn short
+  "Coerces `x` to a signed 16-bit integer in the range `-32768..32767`.
+   Decimal values are truncated toward zero (as in Clojure on the JVM).
+   Values outside the range or non-numeric inputs raise
+   `InvalidArgumentException`. Phel has no dedicated short type, so the
+   result is a plain PHP int."
+  {:example "(short 32767) ; => 32767\n(short 1.9) ; => 1\n(short -32768) ; => -32768"
+   :see-also ["int" "byte" "long"]}
+  [x]
+  (if (number? x)
+    (let [truncated (php/intval x)]
+      (if (or (php/< truncated -32768) (php/> truncated 32767))
+        (throw (php/new InvalidArgumentException
+                        (php/. "Value out of range for short: " (php/strval x))))
+        truncated))
+    (throw (php/new InvalidArgumentException "short expects a numeric value"))))
+
+(defn byte
+  "Coerces `x` to a signed 8-bit integer in the range `-128..127`.
+   Decimal values are truncated toward zero (as in Clojure on the JVM).
+   Values outside the range or non-numeric inputs raise
+   `InvalidArgumentException`. Phel has no dedicated byte type, so the
+   result is a plain PHP int — `byte` exists for `.cljc` interop with
+   Clojure sources."
+  {:example "(byte 127) ; => 127\n(byte 1.9) ; => 1\n(byte -128) ; => -128"
+   :see-also ["int?" "float" "double"]}
+  [x]
+  (if (number? x)
+    (let [truncated (php/intval x)]
+      (if (or (php/< truncated -128) (php/> truncated 127))
+        (throw (php/new InvalidArgumentException
+                        (php/. "Value out of range for byte: " (php/strval x))))
+        truncated))
+    (throw (php/new InvalidArgumentException "byte expects a numeric value"))))
+
+(defn char
+  "Coerces `x` to a single-character string representing the given
+   Unicode code point. Accepts a non-negative integer (the code point,
+   converted via `mb_chr`) or a single-character string, which is
+   returned as-is. Phel has no dedicated char type — character literals
+   such as `\\A` are already single-character strings — so the result
+   is always a plain string. Matches Clojure's `char` for `.cljc`
+   interop; raises `InvalidArgumentException` on negative ints,
+   non-single-character strings, and all other inputs."
+  {:example "(char 65) ; => \"A\"\n(char 32) ; => \" \"\n(char \\A) ; => \"A\""
+   :see-also ["byte" "int?" "string?"]}
+  [x]
+  (cond
+    (integer? x)
+    (if (php/< x 0)
+      (throw (php/new InvalidArgumentException
+                      (php/. "Value out of range for char: " (php/strval x))))
+      (let [ch (php/mb_chr x "UTF-8")]
+        (if (php/=== ch false)
+          (throw (php/new InvalidArgumentException
+                          (php/. "Invalid code point for char: " (php/strval x))))
+          ch)))
+
+    (string? x)
+    (if (php/=== 1 (php/mb_strlen x "UTF-8"))
+      x
+      (throw (php/new InvalidArgumentException
+                      "char expects a single-character string")))
+
+    :else
+    (throw (php/new InvalidArgumentException
+                    "char expects a non-negative integer or a single-character string"))))
+
+(defn rand
+  "Returns a random number between 0 and 1."
+  []
+  (/ (php/random_int 0 php/PHP_INT_MAX) php/PHP_INT_MAX))
+
+(defn rand-int
+  "Returns a random number between 0 and `n`."
+  [n]
+  (php/random_int 0 n))
+
+(defn rand-nth
+  "Returns a random item from xs."
+  [xs]
+  (get xs (rand-int (dec (count xs)))))
+
+(defn extreme
+  "Returns the most extreme value in `args` based on the binary `order` function."
+  [order args]
+  (reduce #(if (order %1 %2) %1 %2) args))
+
+(defn min
+  "Returns the numeric minimum of all numbers."
+  [& numbers]
+  (extreme < numbers))
+
+(defn max
+  "Returns the numeric maximum of all numbers."
+  [& numbers]
+  (extreme > numbers))
+
+(defn min-key
+  "Returns the arg for which (k arg) is smallest. On ties, returns the latest argument, matching Clojure semantics."
+  {:example "(min-key count \"bb\" \"aaa\" \"b\") ; => \"b\""
+   :see-also ["max-key" "min" "sort-by"]}
+  [k x & more]
+  (reduce (fn [best item] (if (<= (k item) (k best)) item best)) x more))
+
+(defn max-key
+  "Returns the arg for which (k arg) is largest. On ties, returns the latest argument, matching Clojure semantics."
+  {:example "(max-key count \"bb\" \"aaa\" \"b\") ; => \"aaa\""
+   :see-also ["min-key" "max" "sort-by"]}
+  [k x & more]
+  (reduce (fn [best item] (if (>= (k item) (k best)) item best)) x more))
+
+(defn coerce-in
+  "Returns `v` if it is in the range, or `min` if `v` is less than `min`, or `max` if `v` is greater than `max`."
+  [v min max]
+  (when (< max min)
+    (throw (php/new \InvalidArgumentException "Max values is bigger than min value")))
+  (php/max (php/min v max) min))
+
+(defn sum
+  "Returns the sum of all elements is `xs`."
+  [xs]
+  (apply + xs))
+
+(defn mean
+  "Returns the mean of `xs`."
+  [xs]
+  (/ (sum xs) (count xs)))
+
+(defn median
+  "Returns the median of `xs`."
+  [xs]
+  (let [arr (to-php-array xs)
+        cnt (count arr)]
+    (when (zero? cnt)
+      (throw (php/new \InvalidArgumentException "Cannot compute median of empty sequence")))
+    (php/sort arr)
+    (let [mid (php/intdiv cnt 2)]
+      (if (odd? cnt)
+        (php/aget arr mid)
+        (/ (+ (php/aget arr (dec mid)) (php/aget arr mid)) 2)))))
+

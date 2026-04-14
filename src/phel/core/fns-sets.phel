@@ -1,0 +1,299 @@
+(in-ns phel\core)
+
+;; Two loosely-related groups, kept together because both build higher-level
+;; abstractions over the seq/set primitives in core.phel:
+;;   1. Set algebra: `union`, `intersection`, `difference`,
+;;      `symmetric-difference`, `subset?`, `superset?`.
+;;   2. Function combinators and collection helpers: `constantly`,
+;;      `complement`, `some-fn`, `juxt`, `partial`, `fnil`, `memoize`,
+;;      `memoize-lru`, `tree-seq`, `flatten`, `merge-with`, `update-keys`,
+;;      `update-vals`, etc.
+
+;; -------------
+;; Set operation
+;; -------------
+
+(defn union
+  "Union multiple sets into a new one."
+  [& sets]
+  (let [target (transient (hash-set))]
+    (foreach [s sets]
+      (foreach [v s]
+        (php/-> target (add v))))
+    (persistent target)))
+
+(defn- intersection-pair
+  [s1 s2]
+  (if (< (count s2) (count s1))
+    (recur s2 s1)
+    (let [result (transient s1)]
+      (foreach [item s1]
+        (when-not (php/-> s2 (contains item))
+          (php/-> result (remove item))))
+      (persistent result))))
+
+(defn intersection
+  "Intersect multiple sets into a new one."
+  [set & sets]
+  (reduce intersection-pair set sets))
+
+(defn- difference-pair
+  [s1 s2]
+  (if (< (count s1) (count s2))
+    (let [result (transient s1)]
+      (foreach [item s1]
+        (when (php/-> s2 (contains item))
+          (php/-> result (remove item))))
+      (persistent result))
+
+    (let [result (transient s1)]
+      (foreach [item s2]
+        (php/-> result (remove item)))
+      (persistent result))))
+
+(defn difference
+  "Difference between multiple sets into a new one."
+  [set & sets]
+  (reduce difference-pair set sets))
+
+(defn symmetric-difference
+  "Symmetric difference between multiple sets into a new one."
+  [set & sets]
+  (reduce #(union (difference %1 %2) (difference %2 %1)) set sets))
+
+(defn subset?
+  "Returns true if `s1` is a subset of `s2`, i.e. every element in `s1` is also in `s2`."
+  {:example "(subset? (hash-set 1 2) (hash-set 1 2 3)) ; => true"}
+  [s1 s2]
+  (if (> (count s1) (count s2))
+    false
+    (let [result (var true)]
+      (foreach [item s1]
+        (when-not (php/-> s2 (contains item))
+          (set! result false)))
+      (deref result))))
+
+(defn superset?
+  "Returns true if `s1` is a superset of `s2`, i.e. every element in `s2` is also in `s1`."
+  {:example "(superset? (hash-set 1 2 3) (hash-set 1 2)) ; => true"}
+  [s1 s2]
+  (subset? s2 s1))
+
+;; ------------------
+;; Function operation
+;; ------------------
+
+(defn constantly
+  "Returns a function that always returns `x` and ignores any passed arguments."
+  [x]
+  (fn [& _] x))
+
+(defn complement
+  "Returns a function that takes the same arguments as `f` and returns the opposite truth value."
+  [f]
+  #(not (apply f %&)))
+
+(defn some-fn
+  "Takes a variadic set of predicates and returns a function `f` that,
+   when called with any number of arguments, returns the first logical
+   true value produced by applying any of the composing predicates to
+   any of its arguments, and `nil` otherwise. The returned function
+   short-circuits on the first truthy result: arguments after it are
+   not inspected, and predicates after it are not tried.
+   Predicates are consulted in the order supplied; for a given
+   predicate, arguments are consulted left-to-right. Matches Clojure's
+   `some-fn` semantics."
+  {:example "((some-fn even? nil?) 1 2) ; => true\n((some-fn pos? even?) -3 -1) ; => nil"
+   :see-also ["some" "complement" "every?" "not-any?"]}
+  [p & ps]
+  (let [preds (cons p ps)]
+    (fn [& args]
+      (some (fn [pred] (some pred args)) preds))))
+
+(defn juxt
+  "Takes a list of functions and returns a new function that is the juxtaposition of those functions."
+  {:example "((juxt inc dec #(* % 2)) 10) => [11 9 20]"}
+  [& fs]
+  (fn [& args]
+    (reduce
+     #(conj %1 (apply %2 args))
+     []
+     fs)))
+
+(defn partial
+  "Takes a function `f` and fewer than normal arguments of `f` and returns a function
+  that a variable number of additional arguments. When call `f` will be called
+  with `args` and the additional arguments."
+  [f & args]
+  #(apply f (concat args %&)))
+
+(defn fnil
+  "Returns a function that replaces nil arguments with the provided defaults
+  before calling f. The number of defaults determines how many leading arguments
+  are nil-checked."
+  {:example "(let [safe-inc (fnil inc 0)] (safe-inc nil)) ; => 1"
+   :see-also ["partial" "comp"]}
+  [f & defaults]
+  (let [n (count defaults)]
+    (fn [& args]
+      (let [patched (persistent
+                     (for [i :range [0 (count args)]
+                           :reduce [acc (transient [])]]
+                       (let [arg (get args i)]
+                         (conj acc
+                               (if (and (php/< i n) (nil? arg))
+                                 (get defaults i)
+                                 arg)))))]
+        (apply f patched)))))
+
+(defn memoize
+  "Returns a memoized version of the function `f`. The memoized function
+  caches the return value for each set of arguments."
+  {:example (str
+             "(defn fact [n]" php/PHP_EOL
+             "  (if (zero? n)" php/PHP_EOL
+             "    1" php/PHP_EOL
+             "    (* n (fact (dec n)))))" php/PHP_EOL
+             "(def fact-memo (memoize fact))")
+   :see-also ["memoize-lru"]}
+  [f]
+  (let [memoize-cache (var {})]
+    (fn [& args]
+      (let [c (deref memoize-cache)]
+        (if (contains? c args)
+          (get c args)
+          (let [res (apply f args)]
+            (set! memoize-cache (assoc c args res))
+            res))))))
+
+(defn memoize-lru
+  "Returns a memoized version of the function `f` with an LRU (Least Recently Used)
+  cache limited to `max-size` entries. When the cache exceeds `max-size`, the
+  least recently used entry is evicted. This prevents unbounded memory growth
+  in long-running processes.
+
+  Without arguments, uses a default cache size of 128 entries."
+  {:example (str
+             "(defn fact [n]" php/PHP_EOL
+             "  (if (zero? n)" php/PHP_EOL
+             "    1" php/PHP_EOL
+             "    (* n (fact (dec n)))))" php/PHP_EOL
+             "(def fact-memo (memoize-lru fact 100))")
+   :see-also ["memoize"]}
+  ([f] (memoize-lru f 128))
+  ([f max-size]
+   (let [cache (var {})
+         tick (var 0)]
+     (fn [& args]
+       (let [c (deref cache)
+             t (swap! tick #(php/+ 1 %))]
+         (if (contains? c args)
+           (let [entry (get c args)]
+             (set! cache (assoc c args {:value (get entry :value) :accessed t}))
+             (get entry :value))
+           (let [res (apply f args)
+                 new-entry {:value res :accessed t}
+                 new-cache (assoc c args new-entry)]
+             (if (php/> (count new-cache) max-size)
+               (let [ks (keys new-cache)
+                     lru-key (reduce
+                              (fn [oldest-key current-key]
+                                (if (php/< (get (get new-cache current-key) :accessed)
+                                           (get (get new-cache oldest-key) :accessed))
+                                  current-key
+                                  oldest-key))
+                              (first ks)
+                              ks)]
+                 (set! cache (dissoc new-cache lru-key)))
+               (set! cache new-cache))
+             res)))))))
+
+;; -----------------------
+;; More sequence operation
+;; -----------------------
+
+(defn tree-seq
+  "Returns a vector of the nodes in the tree, via a depth-first walk.
+  branch? is a function with one argument that returns true if the given node
+  has children.
+  children must be a function with one argument that returns the children of the node.
+  root the root node of the tree."
+  [branch? children root]
+  (let [ret (transient [])]
+    (loop [stack (php/array root)]
+      (if (> (count stack) 0)
+        (let [node (pop stack)]
+          (php/-> ret (append node))
+          (when (branch? node)
+            (foreach [child (reverse (children node))]
+              (php/apush stack child)))
+          (recur stack))
+        (copy-meta root (persistent ret))))))
+
+(defn flatten
+  "Flattens nested sequential structure into a lazy sequence of all leaf values."
+  {:example "(flatten [[1 2] [3 [4 5]] 6]) ; => (1 2 3 4 5 6)"}
+  [coll]
+  (filter
+   (complement indexed?)
+   (rest (tree-seq indexed? identity coll))))
+
+(defn- merge-with-2 [f left right]
+  (persistent
+   (for [[k v] :pairs right
+         :reduce [acc (transient left)]]
+     (if (contains? acc k)
+       (assoc! acc k (f (get acc k) v))
+       (assoc! acc k v)))))
+
+(defn merge-with
+  "Merges multiple maps into one new map. If a key appears in more than one
+   collection, the result of `(f current-val next-val)` is used."
+  [f & hash-maps]
+  (case (count hash-maps)
+    0 {}
+    1 (first hash-maps)
+    2 (merge-with-2 f (first hash-maps) (second hash-maps))
+    (reduce (partial merge-with f) (first hash-maps) (rest hash-maps))))
+
+(declare deep-merge)
+
+(defn- deep-merge-2 [left right]
+  (cond
+    (nil? left) right
+    (nil? right) left
+    (and (hash-map? left) (hash-map? right)) (merge-with deep-merge left right)
+    (and (set? left) (set? right)) (union left right)
+    (and (vector? left) (vector? right)) (into left right)
+    right))
+
+(defn deep-merge
+  "Recursively merges data structures."
+  [& args]
+  (case (count args)
+    0 {}
+    1 (first args)
+    2 (deep-merge-2 (first args) (second args))
+    (reduce deep-merge (first args) (rest args))))
+
+;; --- Map utilities ---
+
+(defn update-keys
+  "Returns a map with `f` applied to each key."
+  {:example "(update-keys {:a 1 :b 2} name) ; => {\"a\" 1 \"b\" 2}"
+   :see-also ["update-vals" "keys" "update"]}
+  [m f]
+  (persistent
+   (for [[k v] :pairs m
+         :reduce [acc (transient {})]]
+     (assoc! acc (f k) v))))
+
+(defn update-vals
+  "Returns a map with `f` applied to each value."
+  {:example "(update-vals {:a 1 :b 2} inc) ; => {:a 2 :b 3}"
+   :see-also ["update-keys" "values" "update"]}
+  [m f]
+  (persistent
+   (for [[k v] :pairs m
+         :reduce [acc (transient {})]]
+     (assoc! acc k (f v)))))

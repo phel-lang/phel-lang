@@ -24,9 +24,14 @@ final class CommandBench
     }
 
     /**
+     * End-to-end `phel run <file>` cold start. Exercises the full CLI
+     * command path — argument parsing, namespace resolution, `(load ...)`
+     * chain — so it catches regressions `PhelBench::bench_phel_run` may
+     * miss (e.g. Symfony Console / Gacela bootstrap overhead).
+     *
      * @Revs(1)
      *
-     * @Iterations(1)
+     * @Iterations(10)
      */
     public function bench_run_command(): void
     {
@@ -42,9 +47,11 @@ final class CommandBench
     }
 
     /**
+     * End-to-end `phel test <file>` cold start.
+     *
      * @Revs(1)
      *
-     * @Iterations(1)
+     * @Iterations(10)
      */
     public function bench_test_command(): void
     {

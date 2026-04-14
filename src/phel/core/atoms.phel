@@ -1,0 +1,332 @@
+(in-ns phel\core)
+
+;; Mutable reference cells (`atom`, `var`), their mutation protocol
+;; (`reset!`, `swap!`, `deref`, `add-watch`, `alter-var-root`, `set-validator!`),
+;; and the iteration primitives built on them: `range` and the `for`
+;; comprehension macro.
+
+;; -----
+;; Atoms
+;; -----
+
+(defn atom
+  "Creates a new atom with the given value.
+
+  Atoms provide a way to manage mutable state. Use `reset!` to set a new value
+  and `swap!` to update based on the current value."
+  {:example "(def counter (atom 0))"
+   :see-also ["reset!" "deref" "swap!"]}
+  [value]
+  (php/:: Phel (variable value)))
+
+(defn var
+  "Creates a new variable with the given value."
+  {:deprecated "0.32.0"
+   :superseded-by "atom"
+   :example "(def counter (var 0))"
+   :see-also ["set!" "deref" "swap!"]}
+  [value]
+  (atom value))
+
+(defn atom?
+  "Returns true if the given value is an atom."
+  [x]
+  (php/instanceof x Variable))
+
+(defn var?
+  "Checks if the given value is a variable."
+  {:deprecated "0.32.0"
+   :superseded-by "atom?"}
+  [x]
+  (atom? x))
+
+(defn reset!
+  "Sets a new value on the given atom. Returns the new value."
+  {:example "(def x (atom 10))"
+   :see-also ["atom" "deref" "swap!"]}
+  [variable value]
+  (php/-> variable (set value)))
+
+(defn set!
+  "Sets a new value to the given variable."
+  {:deprecated "0.32.0"
+   :superseded-by "reset!"
+   :example "(def x (var 10))"
+   :see-also ["var" "deref" "swap!"]}
+  [variable value]
+  (reset! variable value))
+
+(defn deref
+  "Returns the current value inside the variable.
+
+  With three arguments, and when `variable` is a `PhelFuture`, blocks for
+  at most `timeout-ms` milliseconds waiting for the future to resolve. If
+  the future has not completed within the timeout, returns `timeout-val`.
+  The 3-arg form is only supported on `PhelFuture`."
+  {:example "(deref (atom 42)) ; => 42"
+   :see-also ["atom" "reset!" "swap!" "future"]}
+  [variable & args]
+  (case (count args)
+    0 (php/-> variable (deref))
+    2 (if (php/instanceof variable \Phel\Lang\PhelFuture)
+        (php/-> variable (derefWithTimeout (first args) (get args 1)))
+        (throw (php/new \InvalidArgumentException
+                        "3-arg deref is only supported on PhelFuture (for timeouts)")))
+    (throw (php/new \InvalidArgumentException
+                    "deref expects 1 or 3 arguments"))))
+
+(defn swap!
+  "Atomically swaps the value of the atom to `(apply f current-value args)`.
+
+  Returns the new value after the swap."
+  {:example "(def counter (atom 0))"
+   :see-also ["atom" "reset!" "deref"]}
+  [variable f & args]
+  (let [current (deref variable)
+        next (case (count args)
+               0 (f current)
+               1 (f current (first args))
+               2 (f current (first args) (second args))
+               (apply f current args))]
+    (reset! variable next)))
+
+(defn add-watch
+  "Adds a watch function to a variable. The watch fn is called when the variable
+  changes with four arguments: key, ref, old-value, new-value."
+  {:example "(add-watch my-var :logger (fn [key ref old new] (println old \"->\" new)))"
+   :see-also ["remove-watch" "var" "swap!"]}
+  [variable key f]
+  (php/-> variable (addWatch (name key) f))
+  variable)
+
+(defn alter-var-root
+  "Clojure's `alter-var-root` is out of scope in Phel: there are no first-class
+  vars whose root binding could be swapped. Reaching for this function in
+  `.cljc` code is nearly always a bug; prefer an `atom` and `swap!` for mutable
+  state, or redefine the top-level binding with `def` if the intent was to
+  replace it at load time. Calling `alter-var-root` at runtime throws to make
+  the mismatch obvious instead of silently no-oping."
+  {:see-also ["swap!" "atom" "def"]}
+  [& _]
+  (throw (php/new \BadMethodCallException
+                  "alter-var-root is not supported in Phel: Phel has no first-class vars. Use an `atom` with `swap!` for mutable state, or redefine the top-level with `def`.")))
+
+(defn remove-watch
+  "Removes a watch function from a variable by key."
+  {:see-also ["add-watch"]}
+  [variable key]
+  (php/-> variable (removeWatch (name key)))
+  variable)
+
+(defn set-validator!
+  "Sets a validator function on a variable. The validator is called before any
+  state change with the proposed new value. If it returns a falsy value, an
+  exception is thrown and the state is not changed. Pass nil to remove."
+  {:example "(set-validator! my-var pos?)"
+   :see-also ["get-validator" "var"]}
+  [variable f]
+  (php/-> variable (setValidator f))
+  variable)
+
+(defn get-validator
+  "Returns the validator function of a variable, or nil."
+  {:see-also ["set-validator!"]}
+  [variable]
+  (php/-> variable (getValidator)))
+
+;; --------
+;; For loop
+;; --------
+
+(defn- lazy-seq-from-generator
+  "Wraps a PHP Generator in a ChunkedSeq for efficient lazy evaluation.
+  ChunkedSeq realizes elements in batches for better performance."
+  [generator]
+  (php/:: ChunkedSeq (fromGenerator
+                      (php/new Hasher)
+                      (php/new Equalizer)
+                      generator)))
+
+(defn range
+  "Creates a lazy sequence of numbers. With no arguments returns an infinite
+  sequence starting at 0. With one argument returns (0..n). With two (start..end).
+  With three (start..end step). Note: the infinite sequence is bounded by PHP_INT_MAX."
+  {:example "(range 5) ; => (0 1 2 3 4)"
+   :see-also ["iterate" "repeat"]}
+  [& args]
+  (case (count args)
+    0 (lazy-seq-from-generator (php/:: Seq (infiniteRange)))
+    1 (lazy-seq-from-generator (php/:: Seq (range 0 (get args 0) 1)))
+    2 (lazy-seq-from-generator (php/:: Seq (range (get args 0) (get args 1) 1)))
+    3 (lazy-seq-from-generator (php/:: Seq (range (get args 0) (get args 1) (get args 2))))
+    (throw (php/new InvalidArgumentException "Range function expects zero to three arguments"))))
+
+(def- for-options (hash-set :reduce))
+
+(defn- for-builder-options [head i initial-options]
+  (if (<= (count head) i)
+    initial-options
+    (let [binding (php/aget head i)
+          verb (php/aget head (php/+ i 1))]
+      (if (keyword? binding)
+        (case binding
+          :reduce (for-builder-options head (php/+ i 2) (assoc initial-options :reduce verb))
+          (for-builder-options head (php/+ i 2) initial-options))
+        (for-builder-options head (php/+ i 3) initial-options)))))
+
+(defn- for-builder [body head i]
+  (if (<= (count head) i)
+    ;; No more heads, return the body
+    body
+
+    ;; Handle heads
+    (let [binding (php/aget head i)
+          verb (php/aget head (php/+ i 1))]
+      (cond
+        ;; Case 1: Options
+        (and (keyword? binding) (contains? for-options binding))
+        (for-builder body head (php/+ i 2))
+
+        ;; Case 2: Modifiers
+        (keyword? binding)
+        (let [rest (for-builder body head (php/+ i 2))]
+          (case binding
+            :while  `(if ~verb ~rest php/break)
+            :let    `(let ~verb ~rest)
+            :when   `(when ~verb ~rest)
+            (throw (php/new InvalidArgumentException (str "This modifier is not supported in for loop: " verb)))))
+
+        ;; Case 3: Verbs
+        (let [object (php/aget head (php/+ i 2))
+              rest (for-builder body head (php/+ i 3))
+              value-sym (gensym)]
+          (case verb
+            :range  `(foreach [~binding (apply range ~object)] ~rest)
+            :in     `(foreach [~value-sym ~object] (let [~binding ~value-sym] ~rest))
+            :keys   (let [key-sym (gensym)]
+                      `(foreach [~key-sym ~value-sym ~object] (let [~binding ~key-sym] ~rest)))
+            :pairs  (let [key-sym (gensym)]
+                      `(foreach [~key-sym ~value-sym ~object]
+                         (let [~binding [~key-sym ~value-sym]] ~rest)))
+            (throw (php/new InvalidArgumentException (str "This verb is not supported in for loop " verb)))))))))
+
+(defmacro for
+  "List comprehension. The head of the loop is a vector that contains a
+  sequence of bindings modifiers and options. A binding is a sequence of three
+  values `binding :verb expr`. Where `binding` is a binding as
+  in let and `:verb` is one of the following keywords:
+
+  * `:range` loop over a range by using the range function.
+  * `:in` loops over all values of a collection (including strings).
+  * `:keys` loops over all keys/indexes of a collection.
+  * `:pairs` loops over all key-value pairs of a collection.
+
+  After each loop binding, additional modifiers can be applied. Modifiers
+  have the form `:modifier argument`. The following modifiers are supported:
+
+  * `:while` breaks the loop if the expression is falsy.
+  * `:let` defines additional bindings.
+  * `:when` only evaluates the loop body if the condition is true.
+
+  Finally, additional options can be set:
+
+  * `:reduce [accumulator initial-value]` Instead of returning a list,
+     it reduces the values into `accumulator`. Initially `accumulator`
+     is bound to `initial-value`."
+  {:example "(for [x :in [1 2 3]] (* x 2)) ; => [2 4 6]"}
+  [head & body]
+  (let [res-sym (gensym "res__")
+        acc-sym (gensym "acc__")
+        options (for-builder-options head 0 {})
+        swap-body (if (:reduce options)
+                    (let [[sym _] (:reduce options)]
+                      `(swap! ~res-sym (fn [~sym] (do ~@body))))
+                    `(swap! ~res-sym (fn [~acc-sym] (conj ~acc-sym (do ~@body)))))
+        init (if (:reduce options)
+               (second (:reduce options))
+               [])
+        loop-body (for-builder swap-body head 0)]
+    `(let [~res-sym (var ~init)]
+       ~loop-body
+       (deref ~res-sym))))
+
+(defmacro dofor
+  "Repeatedly executes body for side effects with bindings and modifiers as
+  provided by for. Returns nil."
+  [head & body]
+  (for-builder `(do ~@body) head 0))
+
+(def- for-verbs (hash-set :in :range :keys :pairs))
+
+(defn- for-verb?
+  "True when `x` is one of the keywords accepted by `for` / `dofor` as a verb."
+  [x]
+  (and (keyword? x) (contains? for-verbs x)))
+
+(defn doseq-iterable
+  "Internal helper used by the `doseq` macro expansion. Returns a value
+  suitable for Clojure-style iteration: maps are expanded to a sequence of
+  `[k v]` pair vectors so destructuring binds entries as in Clojure. Every
+  other value is returned unchanged."
+  [coll]
+  (if (map? coll)
+    (for [kv :pairs coll] kv)
+    coll))
+
+(defn- push-binding-triple
+  "Appends a `[binding verb coll-expr]` triple to the normalized doseq head."
+  [head binding verb coll-expr]
+  (push (push (push head binding) verb) coll-expr))
+
+(defn- doseq-normalize
+  "Transforms Clojure-style doseq bindings into Phel dofor format.
+  Pairs `[x coll]` become triples `[x :in (doseq-iterable coll)]` so maps
+  iterate as entry pairs. Already-present verb triples `[x :in coll]` pass
+  through unchanged. Modifier keywords like `:when`, `:while`, `:let` pass
+  through unchanged."
+  [head]
+  (loop [i 0
+         result []]
+    (if (>= i (count head))
+      result
+      (let [el      (php/aget head i)
+            next-el (php/aget head (php/+ i 1))]
+        (cond
+          ;; modifier keyword: keep pair as-is
+          (keyword? el)
+          (recur (php/+ i 2) (push (push result el) next-el))
+
+          ;; explicit verb already present: keep triple as-is
+          (for-verb? next-el)
+          (recur (php/+ i 3) (push-binding-triple result el next-el (php/aget head (php/+ i 2))))
+
+          ;; Clojure-style pair: insert `:in` with map-aware iteration helper
+          :else
+          (recur (php/+ i 2) (push-binding-triple result el :in `(doseq-iterable ~next-el))))))))
+
+(defmacro doseq
+  "Repeatedly executes body for side effects with Clojure-style bindings.
+  `(doseq [x coll] body)` runs `body` once per element of `coll`. When `coll`
+  is a map, each iteration sees a `[k v]` entry pair, so destructuring works
+  just like in Clojure: `(doseq [[k v] m] ...)`. Supports `:when`, `:while`,
+  and `:let` modifiers between bindings."
+  {:example "(doseq [x [1 2 3]] (println x))\n(doseq [[k v] {:a 1 :b 2}] (println k v))"}
+  [seq-exprs & body]
+  (let [normalized (doseq-normalize seq-exprs)]
+    `(dofor ~normalized ~@body)))
+
+(defn identity
+  "Returns its argument."
+  [x]
+  x)
+
+(defn- xf-step
+  "Creates a transducer reducing function that delegates 0/1 arity to rf
+  and calls step-fn for the 2-arity step. Eliminates repeated boilerplate."
+  [rf step-fn]
+  (fn [& args]
+    (case (count args)
+      0 (rf)
+      1 (rf (first args))
+      2 (step-fn (first args) (second args)))))
+

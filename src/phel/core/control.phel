@@ -1,0 +1,91 @@
+(in-ns phel\core)
+
+;; Control-flow macros layered on the `if` special form: `if-not`, `when`,
+;; `when-not`, `cond`, `case`, and `condp`. Pure macros — they expand at
+;; compile time and have no runtime component.
+
+;; ------------------
+;; Control structures
+;; ------------------
+
+(defmacro if-not
+  "Evaluates then if test is false, else otherwise."
+  {:example "(if-not (< 5 3) \"not less\" \"less\") ; => \"not less\""}
+  [test then & [else]]
+  `(if ~test ~else ~then))
+
+(defmacro when
+  "Evaluates body if test is true, otherwise returns nil."
+  {:example "(when (> 10 5) \"greater\") ; => \"greater\""}
+  [test & body]
+  `(if ~test (do ~@body)))
+
+(defmacro when-not
+  "Evaluates body if test is false, otherwise returns nil."
+  {:example "(when-not (empty? [1 2 3]) \"has items\") ; => \"has items\""}
+  [test & body]
+  `(if ~test nil (do ~@body)))
+
+(defmacro cond
+  "Evaluates test/expression pairs, returning the first matching expression."
+  {:example "(cond (< x 0) \"negative\" (> x 0) \"positive\" \"zero\") ; => \"negative\", \"positive\", or \"zero\" depending on x"}
+  [& pairs]
+  (let [cnt (count pairs)]
+    (if (php/=== cnt 0)
+      nil
+      (if (php/=== cnt 1)
+        (first pairs)
+        (list 'if
+              (first pairs)
+              (second pairs)
+              (cons 'cond (apply list (next (next pairs)))))))))
+
+(defmacro case
+  "Evaluates expression and matches it against constant test values, returning the associated result."
+  {:example "(case x 1 \"one\" 2 \"two\" \"other\") ; => \"one\" (when x is 1)"}
+  [e & pairs]
+  (if (next pairs)
+    (let [v (gensym)]
+      `(let [~v ~e]
+         (if (equals1 ~v '~(first pairs))
+           ~(first (next pairs))
+           (case ~v ~@(next (next pairs))))))
+    (first pairs)))
+
+(defn- condp-emit [gpred gexpr clauses]
+  (let [cnt (count clauses)]
+    (cond
+      (php/=== cnt 0)
+      (list 'throw (list 'php/new '\InvalidArgumentException
+                         "No matching clause in condp"))
+      (php/=== cnt 1)
+      (first clauses)
+      :else
+      (if (if (php/>= cnt 3) (= :>> (second clauses)) false)
+        (let [gres (gensym)]
+          (list 'let [gres (list gpred (first clauses) gexpr)]
+                (list 'if gres
+                      (list (first (next (next clauses))) gres)
+                      (condp-emit gpred gexpr (apply list (next (next (next clauses))))))))
+        (list 'if (list gpred (first clauses) gexpr)
+              (second clauses)
+              (condp-emit gpred gexpr (apply list (next (next clauses)))))))))
+
+(defmacro condp
+  "Takes a binary predicate, an expression, and a set of clauses.
+  Each clause takes the form of either:
+    test-expr result-expr
+    test-expr :>> result-fn
+  For each clause, (pred test-expr expr) is evaluated. If it returns
+  logical true, the clause is a match. If a binary clause is a match,
+  result-expr is returned. If a ternary clause with :>> is a match,
+  the result of (pred test-expr expr) is passed to result-fn and the
+  return value is the result. If no clause matches, the default value
+  is returned (if provided), otherwise an exception is thrown."
+  {:example "(condp = 1 1 \"one\" 2 \"two\" \"other\") ; => \"one\""}
+  [pred expr & clauses]
+  (let [gpred (gensym)
+        gexpr (gensym)]
+    `(let [~gpred ~pred
+           ~gexpr ~expr]
+       ~(condp-emit gpred gexpr clauses))))

@@ -14,19 +14,21 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\LoadSymbol;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Registry;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class LoadSymbolTest extends TestCase
 {
+    private const string CALLER_FILE = '/fixtures/app/main.phel';
+
     private Analyzer $analyzer;
 
     protected function setUp(): void
     {
         Registry::getInstance()->clear();
-        $globalEnv = new GlobalEnvironment();
-        $this->analyzer = new Analyzer($globalEnv);
+        $this->analyzer = new Analyzer(new GlobalEnvironment());
     }
 
     public function test_requires_at_least_one_argument(): void
@@ -34,12 +36,7 @@ final class LoadSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("'load requires exactly 1 argument (the file path)");
 
-        $list = Phel::list([
-            Symbol::create(Symbol::NAME_LOAD),
-            // No argument provided
-        ]);
-
-        $this->analyze($list);
+        $this->analyze($this->makeList([]));
     }
 
     public function test_requires_at_most_one_argument(): void
@@ -47,43 +44,19 @@ final class LoadSymbolTest extends TestCase
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("'load requires exactly 1 argument, got 2");
 
-        $list = Phel::list([
-            Symbol::create(Symbol::NAME_LOAD),
-            './file1.phel',
-            './file2.phel', // Too many arguments
-        ]);
-
-        $this->analyze($list);
+        $this->analyze($this->makeList(['util', 'helper']));
     }
 
-    public function test_first_argument_must_be_string(): void
-    {
-        $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage("First argument of 'load must be a string, got: int");
-
-        $list = Phel::list([
-            Symbol::create(Symbol::NAME_LOAD),
-            123, // Invalid - not a string
-        ]);
-
-        $this->analyze($list);
-    }
-
-    #[DataProvider('providerFirstArgumentMustBeString')]
+    #[DataProvider('providerNonStringArguments')]
     public function test_rejects_non_string_arguments(mixed $invalidArg, string $expectedType): void
     {
         $this->expectException(AnalyzerException::class);
         $this->expectExceptionMessage("First argument of 'load must be a string, got: " . $expectedType);
 
-        $list = Phel::list([
-            Symbol::create(Symbol::NAME_LOAD),
-            $invalidArg,
-        ]);
-
-        $this->analyze($list);
+        $this->analyze($this->makeList([$invalidArg]));
     }
 
-    public static function providerFirstArgumentMustBeString(): Generator
+    public static function providerNonStringArguments(): Generator
     {
         yield 'Integer' => [123, 'int'];
         yield 'Float' => [3.14, 'float'];
@@ -93,102 +66,75 @@ final class LoadSymbolTest extends TestCase
         yield 'Array' => [[], 'array'];
     }
 
-    #[DataProvider('providerValidFilePaths')]
-    public function test_accepts_valid_file_paths(string $filePath): void
-    {
-        // Set a namespace first
-        $this->analyzer->setNamespace('test\\namespace');
-
-        $list = Phel::list([
-            Symbol::create(Symbol::NAME_LOAD),
-            $filePath,
-        ]);
-
-        $node = $this->analyze($list);
-
-        self::assertInstanceOf(LoadNode::class, $node);
-        self::assertSame($filePath, $node->getFilePath());
-        self::assertSame('test\\namespace', $node->getCallerNamespace());
-    }
-
-    public static function providerValidFilePaths(): Generator
-    {
-        yield 'Relative path with extension' => ['./util.phel'];
-        yield 'Relative path without extension' => ['./util'];
-        yield 'Absolute path' => ['/path/to/file.phel'];
-        yield 'Parent directory' => ['../shared/helper.phel'];
-        yield 'Deep relative path' => ['./lib/domain/user.phel'];
-        yield 'Simple filename' => ['util.phel'];
-    }
-
-    public function test_captures_caller_namespace(): void
+    public function test_resolves_relative_path_against_caller_namespace(): void
     {
         $this->analyzer->setNamespace('app\\main');
+        $node = $this->analyze($this->makeList(['util']));
 
-        $list = Phel::list([
-            Symbol::create(Symbol::NAME_LOAD),
-            './util.phel',
-        ]);
-
-        $node = $this->analyze($list);
-
+        self::assertInstanceOf(LoadNode::class, $node);
+        self::assertFalse($node->getResolution()->isClasspathAbsolute());
+        self::assertSame('util', $node->getResolution()->loadKey);
+        self::assertSame('app', $node->getResolution()->callerClasspathDir);
         self::assertSame('app\\main', $node->getCallerNamespace());
     }
 
-    public function test_different_caller_namespaces(): void
+    public function test_resolves_nested_relative_path(): void
     {
-        // Test with first namespace
-        $this->analyzer->setNamespace('app\\module1');
-        $list1 = Phel::list([
-            Symbol::create(Symbol::NAME_LOAD),
-            './file1.phel',
-        ]);
-        $node1 = $this->analyze($list1);
-        self::assertSame('app\\module1', $node1->getCallerNamespace());
+        $this->analyzer->setNamespace('app\\main');
+        $node = $this->analyze($this->makeList(['sub/util']));
 
-        // Test with second namespace
-        $this->analyzer->setNamespace('app\\module2');
-        $list2 = Phel::list([
-            Symbol::create(Symbol::NAME_LOAD),
-            './file2.phel',
-        ]);
-        $node2 = $this->analyze($list2);
-        self::assertSame('app\\module2', $node2->getCallerNamespace());
+        self::assertSame('sub/util', $node->getResolution()->loadKey);
+        self::assertSame('app', $node->getResolution()->callerClasspathDir);
+    }
+
+    public function test_resolves_classpath_absolute_path(): void
+    {
+        $this->analyzer->setNamespace('app\\main');
+        $node = $this->analyze($this->makeList(['/phel/str']));
+
+        self::assertTrue($node->getResolution()->isClasspathAbsolute());
+        self::assertSame('phel/str', $node->getResolution()->loadKey);
+        self::assertSame('', $node->getResolution()->callerClasspathDir);
     }
 
     public function test_preserves_source_location(): void
     {
         $this->analyzer->setNamespace('test\\ns');
-
-        $list = Phel::list([
-            Symbol::create(Symbol::NAME_LOAD),
-            './file.phel',
-        ]);
+        $list = $this->makeList(['util']);
 
         $node = $this->analyze($list);
 
         self::assertSame($list->getStartLocation(), $node->getStartSourceLocation());
     }
 
-    public function test_file_path_is_stored_as_provided(): void
+    #[DataProvider('providerRejectedPaths')]
+    public function test_rejects_invalid_path_arguments(string $pathArg, string $expectedMessage): void
     {
         $this->analyzer->setNamespace('test\\ns');
 
-        // Path without extension
-        $list1 = Phel::list([
-            Symbol::create(Symbol::NAME_LOAD),
-            './util',
-        ]);
-        $node1 = $this->analyze($list1);
-        self::assertSame('./util', $node1->getFilePath());
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage($expectedMessage);
 
-        // Path with extension
-        $list2 = Phel::list([
-            Symbol::create(Symbol::NAME_LOAD),
-            './util.phel',
-        ]);
-        $node2 = $this->analyze($list2);
-        self::assertSame('./util.phel', $node2->getFilePath());
+        $this->analyze($this->makeList([$pathArg]));
+    }
+
+    public static function providerRejectedPaths(): Generator
+    {
+        yield 'empty path'            => ['',           'must not be empty'];
+        yield 'explicit extension'    => ['util.phel',  'must not include'];
+        yield 'dot-slash prefix'      => ['./util',     "must not start with './'"];
+        yield 'parent-slash prefix'   => ['../util',    "must not start with './'"];
+    }
+
+    /**
+     * @param list<mixed> $args
+     */
+    private function makeList(array $args): PersistentListInterface
+    {
+        $list = Phel::list([Symbol::create(Symbol::NAME_LOAD), ...$args]);
+        $list->setStartLocation(new SourceLocation(self::CALLER_FILE, 1, 0));
+
+        return $list;
     }
 
     private function analyze(PersistentListInterface $list): LoadNode
