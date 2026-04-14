@@ -6,7 +6,7 @@ Functional programming language compiling to PHP. Lisp dialect inspired by Cloju
 
 ```
 src/php/       → Compiler, runtime, CLI (PHP, PSR-4: Phel\)
-src/phel/      → Core library (Phel source: core, str, html, http, json, test)
+src/phel/      → Core library (Phel source: core, string, html, http, json, test)
 tests/php/     → PHPUnit tests (unit + integration)
 tests/phel/    → Phel test files
 build/         → PHAR build scripts, release tooling

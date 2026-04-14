@@ -90,10 +90,10 @@ final class LoadSymbolTest extends TestCase
     public function test_resolves_classpath_absolute_path(): void
     {
         $this->analyzer->setNamespace('app\\main');
-        $node = $this->analyze($this->makeList(['/phel/str']));
+        $node = $this->analyze($this->makeList(['/phel/string']));
 
         self::assertTrue($node->getResolution()->isClasspathAbsolute());
-        self::assertSame('phel/str', $node->getResolution()->loadKey);
+        self::assertSame('phel/string', $node->getResolution()->loadKey);
         self::assertSame('', $node->getResolution()->callerClasspathDir);
     }
 

@@ -3,7 +3,7 @@
   (:use Phel\Lang\SourceLocationInterface)
   (:use Phel\Compiler\Application\Munge)
   (:use Phel\Command\CommandFacade)
-  (:require phel\str :as s))
+  (:require phel\string :as s))
 
 ;; ------
 ;; Report

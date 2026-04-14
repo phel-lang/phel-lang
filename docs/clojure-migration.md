@@ -6,7 +6,7 @@ Phel is a functional Lisp inspired by Clojure that compiles to PHP. If you know 
 
 | Clojure | Phel | Notes |
 |---------|------|-------|
-| `(ns my.app (:require [clojure.string :as str]))` | `(ns my\app (:require phel\str :as str))` | `\` separator; `.` also works |
+| `(ns my.app (:require [clojure.string :as str]))` | `(ns my\app (:require phel\string :as str))` | `\` separator; `.` also works |
 | `(.method obj arg)` | `(php/-> obj (method arg))` | Instance method |
 | `(Class/staticMethod arg)` | `(php/:: Class (method arg))` | Static method |
 | `(ClassName. arg)` | `(ClassName. arg)` or `(php/new ClassName arg)` | `ClassName.` reads as `(php/new ClassName ...)` |
@@ -14,8 +14,8 @@ Phel is a functional Lisp inspired by Clojure that compiles to PHP. If you know 
 | `(:import [java.util Date])` | `(:use DateTime)` in the `ns` form | Imports a PHP class by short name; also works with FQNs: `(:use Phel\Lang\Symbol)` |
 | `(instance? Type x)` | `(instance? Type x)` or `(php/instanceof x Type)` | Phel ships an `instance?` macro that wraps `php/instanceof` with Clojure's argument order |
 | `(class x)` | `(type x)` | Returns a keyword like `:string`, `:int`, `:hash-map` |
-| `(subs s start end)` | `(phel\str\slice s start end)` | Substring |
-| `(clojure.string/upper-case s)` | `(phel\str\upper-case s)` | String utils in `phel\str` |
+| `(subs s start end)` | `(phel\string\slice s start end)` | Substring |
+| `(clojure.string/upper-case s)` | `(phel\string\upper-case s)` | String utils in `phel\string` |
 
 ## What's the same
 
@@ -37,7 +37,7 @@ Most of Clojure's core library works identically in Phel:
 - **Exceptions**: `ex-info`, `ex-data`, `ex-message`, `ex-cause`, `throw`, `try` / `catch` / `finally`
 - **Transducers**: `transduce`, `into` (3-arg), `sequence`, `completing`, `cat`, plus transducer arities for `map`, `filter`, `take`, `drop`, `keep`, `distinct`, `dedupe`, `mapcat`, `interpose`, and more
 - **Testing**: `deftest`, `is`, `testing`, `are`, `do-report`, extensible `assert-expr` (in `phel\test`)
-- **String utils**: `phel\str` with `upper-case`, `lower-case`, `split`, `join`, `trim`, `replace`, `starts-with?`, `ends-with?`, and more
+- **String utils**: `phel\string` with `upper-case`, `lower-case`, `split`, `join`, `trim`, `replace`, `starts-with?`, `ends-with?`, and more
 - **Regex**: `re-find`, `re-matches`, `re-pattern`, `#"..."` literals
 
 ## Reader syntax
@@ -72,11 +72,11 @@ Phel uses `\` as the native namespace separator (matching PHP), but accepts `.` 
 
 ```phel
 ;; Both work:
-(ns my\app (:require phel\str :as str))
-(ns my.app (:require phel.str :as str))
+(ns my\app (:require phel\string :as str))
+(ns my.app (:require phel.string :as str))
 
 ;; Vector-style :require also works:
-(ns my.app (:require [phel\str :as str :refer [upper-case]]))
+(ns my.app (:require [phel\string :as str :refer [upper-case]]))
 ```
 
 **Automatic aliasing**: `clojure.*` namespaces in `:require` resolve to `phel.*` when the target exists, so `.cljc` files that `(:require [clojure.string :as str])` work without changes.
@@ -125,7 +125,7 @@ Phel supports `.cljc` files with reader conditionals for sharing code between Cl
 
 ```clojure
 (ns shared.utils
-  (:require #?(:phel phel\str
+  (:require #?(:phel phel\string
                :clj  [clojure.string :as str])))
 
 (defn greet [name]

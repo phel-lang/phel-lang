@@ -31,10 +31,10 @@ final class RequireNamespaceTest extends TestCase
         }
 
         $facade = new CompilerFacade();
-        $result = $facade->eval('(phel\\repl/require phel\\str)', new CompileOptions());
+        $result = $facade->eval('(phel\\repl/require phel\\string)', new CompileOptions());
 
         self::assertInstanceOf(Symbol::class, $result);
-        self::assertSame('phel\\str', $result->getFullName());
+        self::assertSame('phel\\string', $result->getFullName());
     }
 
     #[RunInSeparateProcess]
@@ -73,10 +73,10 @@ final class RequireNamespaceTest extends TestCase
         }
 
         $facade = new CompilerFacade();
-        $result = $facade->eval('(phel\\repl/require phel.str)', new CompileOptions());
+        $result = $facade->eval('(phel\\repl/require phel.string)', new CompileOptions());
 
         self::assertInstanceOf(Symbol::class, $result);
-        self::assertSame('phel\\str', $result->getFullName());
+        self::assertSame('phel\\string', $result->getFullName());
     }
 
     #[RunInSeparateProcess]
@@ -94,9 +94,9 @@ final class RequireNamespaceTest extends TestCase
         }
 
         $facade = new CompilerFacade();
-        $result = $facade->eval('(phel\\repl/require clojure.str)', new CompileOptions());
+        $result = $facade->eval('(phel\\repl/require clojure.string)', new CompileOptions());
 
         self::assertInstanceOf(Symbol::class, $result);
-        self::assertSame('phel\\str', $result->getFullName());
+        self::assertSame('phel\\string', $result->getFullName());
     }
 }

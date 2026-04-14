@@ -56,7 +56,7 @@ final class NsEmitterTest extends TestCase
 
     public function test_ns_with_requires_emits_repl_gated_fallback(): void
     {
-        $node = new NsNode('my\\app', [Symbol::create('phel\\str')], []);
+        $node = new NsNode('my\\app', [Symbol::create('phel\\string')], []);
 
         ob_start();
         $this->nsEmitter->emit($node);

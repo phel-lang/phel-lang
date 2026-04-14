@@ -257,7 +257,7 @@
 
 (defn str-contains?
   "Returns true if str contains s."
-  {:deprecated "Use phel\\str\\contains?"}
+  {:deprecated "Use phel\\string\\contains?"}
   [str s]
   (php/str_contains str s))
 

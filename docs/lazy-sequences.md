@@ -131,7 +131,7 @@ Use `cons` to properly defer evaluation.
 (defn process-records [records]
   (->> records
        (filter (fn [x] (not (empty? x))))
-       (map (fn [x] (phel\str/trim x)))
+       (map (fn [x] (phel\string/trim x)))
        (map parse-record)))
 
 ;; Only processes records as needed

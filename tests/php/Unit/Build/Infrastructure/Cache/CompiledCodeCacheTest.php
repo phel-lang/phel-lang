@@ -277,7 +277,7 @@ final class CompiledCodeCacheTest extends TestCase
         $cache = new CompiledCodeCache($this->cacheDir);
         $envData = [
             'refers' => ['map' => ['ns' => null, 'name' => 'phel\\core']],
-            'require_aliases' => ['str' => ['ns' => null, 'name' => 'phel\\str']],
+            'require_aliases' => ['str' => ['ns' => null, 'name' => 'phel\\string']],
             'use_aliases' => ['Exception' => ['ns' => null, 'name' => 'Exception']],
         ];
 

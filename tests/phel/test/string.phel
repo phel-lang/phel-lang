@@ -1,6 +1,6 @@
-(ns phel-test\test\str
+(ns phel-test\test\string
   (:require phel\test :refer [deftest is thrown?])
-  (:require phel\str :as s))
+  (:require phel\string :as s))
 
 (deftest test-chars
   (is (= ["h" "e" "l" "l" "o"] (s/chars "hello")) "chars basic")

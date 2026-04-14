@@ -55,8 +55,8 @@ final class LoadPathResolverTest extends TestCase
 
     public static function provideClasspathAbsoluteCases(): Generator
     {
-        yield 'single segment' => ['/str', 'str'];
-        yield 'nested segments' => ['/phel/str', 'phel/str'];
+        yield 'single segment' => ['/string', 'string'];
+        yield 'nested segments' => ['/phel/string', 'phel/string'];
     }
 
     public function test_it_rejects_relative_path_without_caller_namespace(): void

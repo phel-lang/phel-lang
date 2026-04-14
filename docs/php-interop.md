@@ -100,12 +100,12 @@ Use `:use` for PHP classes:
 ```phel
 ;; Phel-style list entry
 (ns app\services
-  (:require phel\str :as str)
+  (:require phel\string :as str)
   (:require phel\json :as json :refer [encode decode]))
 
 ;; Clojure-style vector entry — same meaning
 (ns app\services
-  (:require [phel\str :as str]
+  (:require [phel\string :as str]
             [phel\json :as json :refer [encode decode]]))
 ```
 
@@ -113,10 +113,10 @@ You can also use `.` as an alternate namespace separator (in addition to `\`), w
 
 ```phel
 (ns my.cljc.file
-  (:require [phel.str :as str]))
+  (:require [phel.string :as str]))
 ```
 
-Both `phel\str` and `phel.str` resolve to the same namespace.
+Both `phel\string` and `phel.string` resolve to the same namespace.
 
 ## Type Conversions
 
@@ -352,8 +352,8 @@ $response->send();
 - **Method calls**: `(php/-> obj (method))` not `(.method obj)`
 - **Deref**: `@my-atom` works as shorthand for `(deref my-atom)`, just like Clojure
 - **Import classes**: Use `:use` in `ns`, not `:import`
-- **Require vectors**: Clojure-style `(:require [phel\str :as str :refer [upper-case]])` works alongside the older list form
-- **Namespace separators**: Both `\` and `.` work — `phel\str` and `phel.str` resolve to the same namespace
+- **Require vectors**: Clojure-style `(:require [phel\string :as str :refer [upper-case]])` works alongside the older list form
+- **Namespace separators**: Both `\` and `.` work — `phel\string` and `phel.string` resolve to the same namespace
 - **Reader conditionals**: `#?(:phel ...)` and `#?@(:phel ...)` work for cross-platform `.cljc` files
 - **Unquote**: Use `~` and `~@` inside syntax-quote (the older `,` / `,@` are deprecated)
 - **Auto-gensym**: `name#` inside syntax-quote produces a unique symbol (the older `name$` is deprecated)

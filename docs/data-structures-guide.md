@@ -88,9 +88,9 @@ All core sequence functions work directly with strings:
 ;; => ["h" "e" "l" "l" "o"]
 ```
 
-**`phel\str/chars`** - Convenience function for string → character vector:
+**`phel\string/chars`** - Convenience function for string → character vector:
 ```phel
-(use phel\str)
+(use phel\string)
 (chars "hello")
 ;; => ["h" "e" "l" "l" "o"]
 ```

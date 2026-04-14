@@ -1,6 +1,6 @@
 (ns phel-test\test\core\utility-functions
   (:require phel\test :refer [deftest is])
-  (:require phel\str :as s))
+  (:require phel\string :as s))
 
 ;; --- Math predicates & functions ---
 
