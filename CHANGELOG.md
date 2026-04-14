@@ -70,6 +70,7 @@ All notable changes to this project will be documented in this file.
 - `defrecord`/`defstruct`/`defexception`/`definterface` no longer emit invalid PHP namespace declarations in statement mode (#1358)
 - `defstruct`/`defrecord`/`defexception`/`definterface` nested in a function body (e.g. a `defrecord` inside a `deftest`) no longer triggers "Class declarations may not be nested"
 - `phel\router`: default error dispatch returns 404/405/406 correctly (was always 404); `:not-acceptable` returns 406 (was 405)
+- Namespace extractors skip the configured build output directory during recursive scans, so leftover compiled `.phel` source copies no longer shadow the real sources with duplicate-namespace warnings
 
 ### Changed
 

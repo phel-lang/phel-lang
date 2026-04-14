@@ -87,10 +87,19 @@ final class BuildFactory extends AbstractFactory
         return $this->singleton(
             NamespaceExtractorInterface::class,
             function (): NamespaceExtractorInterface {
+                // Compiled output contains a `.phel` source copy next to every generated
+                // `.php`; excluding that dir prevents duplicate-namespace shadowing when a
+                // scan root (e.g. cwd) sits above it.
+                $outputDirectory = $this->getCommandFacade()->getOutputDirectory();
+                $excludedDirectories = [$outputDirectory];
+                $destDirBasename = basename($outputDirectory);
+
                 $innerExtractor = new NamespaceExtractor(
                     $this->getCompilerFacade(),
                     $this->createNamespaceSorter(),
                     $this->createFileIo(),
+                    $excludedDirectories,
+                    $destDirBasename,
                 );
 
                 if (!$this->getConfig()->isNamespaceCacheEnabled()) {
@@ -101,6 +110,8 @@ final class BuildFactory extends AbstractFactory
                     $innerExtractor,
                     $this->createNamespaceCache(),
                     $this->createNamespaceSorter(),
+                    $excludedDirectories,
+                    $destDirBasename,
                 );
             },
         );
