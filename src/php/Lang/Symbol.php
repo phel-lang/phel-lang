@@ -96,6 +96,8 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
 
     public const string NAME_IN_NS = 'in-ns';
 
+    public const string NAME_USE = 'use';
+
     private static int $symGenCounter = 1;
 
     public function __construct(
