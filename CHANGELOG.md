@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 #### Reader & Compiler
-- `(use ClassName [:as Alias] ...)` top-level special form. Registers a PHP class alias in the current namespace without requiring the full `(ns ... (:use ...))` form, so files that join an existing namespace via `(in-ns ...)` can declare their own imports.
+- `(use ClassName [:as Alias] ...)` top-level special form for declaring PHP class aliases outside of `ns`
 - `(ClassName. args)` constructor shorthand, including namespaced classes like `\Some\Class.` (#1359)
 - `#uuid "…"` tagged literal, reads as a canonical lowercase UUID string (#1376)
 - Ratio literals `N/M` (e.g. `1/2`, `-3/4`), read as `num / den`; `1/0` → `INF`, `0/0` → `NaN`
@@ -17,7 +17,7 @@ All notable changes to this project will be documented in this file.
 - `special-symbol?` (#1384), `ifn?` (#1370)
 - `neg-int?`, `pos-int?`, `nat-int?` (#1374)
 - `sequential?` (#1380), `seqable?` (#1379)
-- `any?` always true, `ratio?` always false (no Ratio type), and `instance?` macro: `(instance? c x)` wraps `php/instanceof` with the class first (#1433)
+- `any?` (always true), `ratio?` (always false), and `instance?` macro wrapping `php/instanceof` with the class first (#1433)
 
 #### Sequences & Collections
 - `nth`, `nthrest`, `nthnext` for indexed access into vectors and seqs (#1375)
@@ -39,10 +39,10 @@ All notable changes to this project will be documented in this file.
 - `alength` returns the length of a PHP array (#1433)
 
 #### Testing
-- `use-fixtures` registers `:each` and `:once` fixture functions on the current namespace so that the test runner wraps each test (or the whole namespace run) in those fixtures (#1439)
+- `use-fixtures` registers `:each` and `:once` fixture functions for the test runner to wrap each test or the whole namespace run (#1439)
 
 #### Modules
-- `phel\router`: data-driven router built on `symfony/routing`, previously shipped as `phel-lang/router`
+- `phel\router`: data-driven router built on `symfony/routing`
 - `phel\router`: `routes` introspection, `:route-name` on `match-by-path`, and per-case error handlers (`:not-found`, `:method-not-allowed`, `:not-acceptable`) on `handler`
 - `phel\http-client`: outbound HTTP requests over PHP streams
 - `phel\ai`: chat, completions, structured extraction, tool use, embeddings, semantic search
@@ -50,7 +50,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- `CompiledCodeCache` keys entries by source file path so files sharing a namespace via `(in-ns ...)` no longer clobber each other; cache version bumped to 1.2
+- `CompiledCodeCache` keys entries by source file path, so `(in-ns ...)` files sharing a namespace no longer clobber each other (cache version 1.2)
 - `keyword` is idempotent and handles `nil` / symbol input (#1428)
 - `dissoc` accepts zero keys and reduces over variadic key lists (#1428)
 - `keys` / `vals` return `nil` for `nil` or empty collections (#1428)
@@ -69,17 +69,17 @@ All notable changes to this project will be documented in this file.
 - `is` no longer misinterprets `let`/`when`/`cond` forms as binary predicates (#1367)
 - `defrecord`/`defstruct`/`defexception`/`definterface` no longer emit invalid PHP namespace declarations in statement mode (#1358)
 - `defstruct`/`defrecord`/`defexception`/`definterface` nested in a function body (e.g. a `defrecord` inside a `deftest`) no longer triggers "Class declarations may not be nested"
-- `phel\router`: default error dispatch returns 404/405/406 correctly (was always 404); `:not-acceptable` returns 406 (was 405)
-- Namespace extractors skip the configured build output directory during recursive scans, so leftover compiled `.phel` source copies no longer shadow the real sources with duplicate-namespace warnings
+- `phel\router`: default error dispatch returns 404/405/406 correctly; `:not-acceptable` returns 406
+- Namespace extractors skip the configured build output directory during recursive scans, avoiding duplicate-namespace warnings from compiled `.phel` copies
 
 ### Changed
 
-- **Breaking:** renamed `phel\str` namespace to `phel\string` for parity with Clojure's `clojure.string`. The automatic `clojure.*` → `phel.*` remap now targets `phel\string`, so `(require '[clojure.string :as s])` works out of the box. Code requiring the old `phel\str` must update to `phel\string` (#1440)
-- `(load path)` resolves relative paths from the caller file's compile-time location instead of runtime `*file*`; `/path` is classpath-absolute and searches `phel\repl/src-dirs`. Leading `./`/`../` and explicit `.phel` extensions are now rejected
-- `src/phel/core.phel` split into topic files under `src/phel/core/` (sequences, atoms, fns-sets, math, io, protocols, lazy, exceptions, macroexpand, parsing, uuid, loops, control, predicates, meta, transducers, arrays, booleans, collections, seq-basics, seq-fns, defs, transients, strings), loaded via `(load ...)`. Each sub-file has a brief context header describing its scope. `core.phel` is now bootstrap primitives plus a single unbroken orchestration block of `(load …)` directives at the bottom.
+- **Breaking:** renamed `phel\str` namespace to `phel\string`. The automatic `clojure.*` → `phel.*` remap now targets `phel\string`; code requiring the old `phel\str` must update (#1440)
+- `(load path)` resolves relative paths from the caller file's compile-time location; `/path` is classpath-absolute and searches `phel\repl/src-dirs`. Leading `./`/`../` and explicit `.phel` extensions are rejected
+- `src/phel/core.phel` split into topic files under `src/phel/core/`, loaded via `(load ...)` from a bootstrap `core.phel`
 - Reorganized Phel test files: dissolved `core.phel` into topic files under `core/`; moved `comments.phel`, `special-forms.phel`, `multi-arity-fn.phel` into `core/`
 - `phel\router`: caches Symfony matcher/generator, precompiles middleware dispatch at `handler` construction; per-request work is two hash-map lookups
-- `phel test` skips files that fail to compile and continues the run; pass `--fail-fast` for the previous abort-on-first-error behavior
+- `phel test` skips files that fail to compile and continues the run; pass `--fail-fast` to abort on the first error
 
 ### Performance
 
@@ -90,7 +90,7 @@ All notable changes to this project will be documented in this file.
 - Map/vector/set builders use transient accumulators internally: `set`, `vec`, `frequencies`, `merge`, `merge-with`, `select-keys`, `rename-keys`, `update-keys`, `update-vals`, `invert`, and `group-by` (with transient inner vector buckets, making per-element append O(1) instead of O(log N))
 - `reverse`, `sort`, `sort-by`, `shuffle`, `doall`, and the string branches of `next`/`rest`/`seq` build the vector directly from the PHP array, skipping the `apply vector` round-trip
 - `zipcoll` delegates to `zipmap` instead of routing through a lazy `interleave` plus `apply hash-map`
-- Removed two shadowed eager `interleave` / `interpose` defns; the lazy redefinitions a few hundred lines later were already the live versions
+- Removed two shadowed eager `interleave` / `interpose` defns superseded by the lazy redefinitions
 
 ## [0.32.0](https://github.com/phel-lang/phel-lang/compare/v0.31.0...v0.32.0) - 2026-04-12
 
