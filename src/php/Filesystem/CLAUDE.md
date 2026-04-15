@@ -14,6 +14,7 @@ File system abstraction for compilation: temp directory management and compiled 
 - `addFile(string $file): void` — register a compiled file for tracking
 - `clearAll(): void` — delete all tracked files
 - `getTempDir(): string` — get or create temporary directory
+- `getHealthCheck(): ModuleHealthCheckInterface` — Gacela health check that verifies the temp dir exists and is writable; consumed by `phel doctor`
 
 ## Dependencies
 

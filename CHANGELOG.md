@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - `Phel::run()` resolves the filesystem facade through `Gacela::getRequired()`, surfacing a `ServiceNotFoundException` with did-you-mean suggestions when the container is misconfigured instead of silently skipping the post-run cleanup
+- `phel doctor` also runs Gacela `HealthChecker` over registered module health checks and fails if any module reports `unhealthy`; Filesystem exposes a temp-dir writability check
 
 #### Reader & Compiler
 - `(use ClassName [:as Alias] ...)` top-level special form for declaring PHP class aliases outside of `ns`
