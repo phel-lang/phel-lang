@@ -21,5 +21,10 @@ interface DirectoryFinderInterface
      */
     public function getVendorSourceDirectories(): array;
 
+    /**
+     * @return list<string>
+     */
+    public function getAllPhelDirectories(): array;
+
     public function getOutputDirectory(): string;
 }

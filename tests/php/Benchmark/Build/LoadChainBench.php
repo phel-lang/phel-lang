@@ -12,6 +12,7 @@ use Phel\Lang\Symbol;
 use PhpBench\Benchmark\Metadata\Annotations\BeforeMethods;
 use PhpBench\Benchmark\Metadata\Annotations\Iterations;
 use PhpBench\Benchmark\Metadata\Annotations\Revs;
+use PhpBench\Benchmark\Metadata\Annotations\Warmup;
 
 /**
  * Isolated hot-path for the 24 `(load ...)` secondaries that `phel\core`
@@ -25,6 +26,9 @@ use PhpBench\Benchmark\Metadata\Annotations\Revs;
  * per-load overhead that would otherwise be drowned out by the
  * ~15 ms cost of actually executing the compiled PHP in
  * `bench_phel_run`.
+ *
+ * `@Warmup(1)` on each subject discards the first iteration — caches
+ * are cold there and would otherwise pull the median upward.
  *
  * @BeforeMethods("setUp")
  */
@@ -75,6 +79,8 @@ final class LoadChainBench
      * @Revs(10)
      *
      * @Iterations(5)
+     *
+     * @Warmup(1)
      */
     public function bench_eval_core_secondaries_warm(): void
     {
@@ -93,6 +99,8 @@ final class LoadChainBench
      * @Revs(10)
      *
      * @Iterations(5)
+     *
+     * @Warmup(1)
      */
     public function bench_eval_core_secondaries_fresh_facade(): void
     {

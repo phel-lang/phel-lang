@@ -40,6 +40,18 @@ final readonly class DirectoryFinder implements DirectoryFinderInterface
         return $this->vendorDirectoriesFinder->findPhelSourceDirectories();
     }
 
+    /**
+     * @return list<string>
+     */
+    public function getAllPhelDirectories(): array
+    {
+        return [
+            ...$this->getSourceDirectories(),
+            ...$this->getTestDirectories(),
+            ...$this->getVendorSourceDirectories(),
+        ];
+    }
+
     public function getOutputDirectory(): string
     {
         return $this->applicationRootDir . '/' . $this->codeDirectories->getOutputDir();

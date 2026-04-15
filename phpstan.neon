@@ -13,3 +13,10 @@ parameters:
         -
             identifier: while.alwaysTrue
             reportUnmatched: false
+        # enableBuildMode/disableBuildMode must stay static: they are emitted
+        # as `\Phel\Build\BuildFacade::enableBuildMode();` into compiled PHP
+        # by NsEmitter / LoadEmitter and fire twice per `(load ...)`, so the
+        # instance `getFactory()` delegation pattern does not apply here.
+        -
+            identifier: gacela.facadeOnlyDelegates
+            path: src/php/Build/BuildFacade.php

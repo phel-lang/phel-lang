@@ -48,7 +48,7 @@ Runtime execution: runs Phel namespaces/files, REPL, evaluation, testing, and al
 
 ```
 Run/
-├── Application/        EvalExecutor, NamespaceLoader, NamespaceRunner, NamespacesLoader
+├── Application/        EntryPointDetector, EvalExecutor, FileRunner, NamespaceLoader, NamespaceRunner, NamespacesLoader, StructuredEvaluator
 ├── Domain/
 │   ├── Init/           NamespaceNormalizer, ProjectTemplateGenerator
 │   ├── Repl/           EvalResult, EvalError, ReplCommandIoInterface, startup.phel
