@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file.
 - `cache:warm` CLI command: pre-resolves module classes and persists the merged config so subsequent bootstraps skip config globbing and class resolver lookups (supports `--clear`, `--attributes`, `--parallel`)
 - `cache:clear` also removes the Gacela class-name cache and merged-config cache it produces, so a single invocation invalidates everything `cache:warm` wrote
 
+### Changed
+
+- `Phel::run()` resolves the filesystem facade through `Gacela::getRequired()`, surfacing a `ServiceNotFoundException` with did-you-mean suggestions when the container is misconfigured instead of silently skipping the post-run cleanup
+
 #### Reader & Compiler
 - `(use ClassName [:as Alias] ...)` top-level special form for declaring PHP class aliases outside of `ns`
 - `(ClassName. args)` constructor shorthand, including namespaced classes like `\Some\Class.` (#1359)

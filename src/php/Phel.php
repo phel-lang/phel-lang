@@ -142,7 +142,7 @@ class Phel
         $runFacade = new RunFacade();
         $runFacade->runNamespace($namespace);
 
-        Gacela::get(FilesystemFacade::class)?->clearAll();
+        Gacela::getRequired(FilesystemFacade::class)->clearAll();
     }
 
     /**
