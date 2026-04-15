@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+#### Tooling & CLI
+- `cache:warm` CLI command: pre-resolves module classes and persists the merged config so subsequent bootstraps skip config globbing and class resolver lookups (supports `--clear`, `--attributes`, `--parallel`)
+
 #### Reader & Compiler
 - `(use ClassName [:as Alias] ...)` top-level special form for declaring PHP class aliases outside of `ns`
 - `(ClassName. args)` constructor shorthand, including namespaced classes like `\Some\Class.` (#1359)

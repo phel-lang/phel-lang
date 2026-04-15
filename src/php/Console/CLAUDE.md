@@ -15,7 +15,7 @@ CLI application entry point: bootstraps Symfony Console, registers commands, det
 
 ## CLI Commands (registered via Provider)
 
-`InitCommand`, `ExportCommand`, `FormatCommand`, `NsCommand`, `ReplCommand`, `EvalCommand`, `RunCommand`, `TestCommand`, `DocCommand`, `BuildCommand`, `CacheClearCommand`, `DoctorCommand`
+`InitCommand`, `ExportCommand`, `FormatCommand`, `NsCommand`, `ReplCommand`, `EvalCommand`, `RunCommand`, `TestCommand`, `DocCommand`, `BuildCommand`, `CacheClearCommand`, `CacheWarmCommand` (from Gacela), `DoctorCommand`
 
 ## Dependencies
 

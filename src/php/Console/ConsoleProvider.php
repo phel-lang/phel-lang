@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Console;
 
 use Composer\InstalledVersions;
+use Gacela\Console\Infrastructure\Command\CacheWarmCommand;
 use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Container\Container;
 use Phel\Api\Infrastructure\Command\DocCommand;
@@ -63,6 +64,7 @@ final class ConsoleProvider extends AbstractProvider
             new DocCommand(),
             new BuildCommand(),
             new CacheClearCommand(),
+            new CacheWarmCommand(),
             new DoctorCommand(),
         ]);
     }
