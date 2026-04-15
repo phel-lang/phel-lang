@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Build\Infrastructure\Command;
 
+use Gacela\Console\Application\CacheWarm\CacheManager;
+use Gacela\Framework\Config\Config;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Build\BuildFacade;
@@ -30,8 +32,37 @@ final class CacheClearCommand extends Command
             $output->writeln('Cleared: ' . $path);
         }
 
+        foreach ($this->clearGacelaCaches() as $path) {
+            $output->writeln('Cleared: ' . $path);
+        }
+
         $output->writeln('<info>Cache cleared successfully.</info>');
 
         return self::SUCCESS;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function clearGacelaCaches(): array
+    {
+        $cleared = [];
+
+        $cacheManager = new CacheManager();
+        if ($cacheManager->cacheFileExists()) {
+            $cleared[] = $cacheManager->getCacheFilePath();
+            $cacheManager->clearCache();
+        }
+
+        $config = Config::getInstance();
+        /** @psalm-suppress InternalMethod */
+        $mergedConfigPath = $config->mergedConfigCacheFilename();
+        if (file_exists($mergedConfigPath)) {
+            $cleared[] = $mergedConfigPath;
+            /** @psalm-suppress InternalMethod */
+            $config->clearMergedConfigCache();
+        }
+
+        return $cleared;
     }
 }

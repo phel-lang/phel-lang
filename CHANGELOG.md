@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 #### Tooling & CLI
 - `cache:warm` CLI command: pre-resolves module classes and persists the merged config so subsequent bootstraps skip config globbing and class resolver lookups (supports `--clear`, `--attributes`, `--parallel`)
+- `cache:clear` also removes the Gacela class-name cache and merged-config cache it produces, so a single invocation invalidates everything `cache:warm` wrote
 
 #### Reader & Compiler
 - `(use ClassName [:as Alias] ...)` top-level special form for declaring PHP class aliases outside of `ns`
