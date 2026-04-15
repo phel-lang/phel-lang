@@ -11,7 +11,7 @@ use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Run\RunFacade;
-use SebastianBergmann\Timer\ResourceUsageFormatter;
+use Phel\Shared\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;

@@ -74,6 +74,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- Dropped `phpunit/php-timer` runtime dependency; `run --with-time`, `test`, and `build` now use an internal resource-usage formatter
 - **Breaking:** renamed `phel\str` namespace to `phel\string`. The automatic `clojure.*` → `phel.*` remap now targets `phel\string`; code requiring the old `phel\str` must update (#1440)
 - `(load path)` resolves relative paths from the caller file's compile-time location; `/path` is classpath-absolute and searches `phel\repl/src-dirs`. Leading `./`/`../` and explicit `.phel` extensions are rejected
 - `src/phel/core.phel` split into topic files under `src/phel/core/`, loaded via `(load ...)` from a bootstrap `core.phel`

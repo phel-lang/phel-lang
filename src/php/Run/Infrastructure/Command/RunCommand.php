@@ -10,7 +10,7 @@ use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Phel;
 use Phel\Run\Infrastructure\Service\DebugLineTap;
 use Phel\Run\RunFacade;
-use SebastianBergmann\Timer\ResourceUsageFormatter;
+use Phel\Shared\ResourceUsageFormatter;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;

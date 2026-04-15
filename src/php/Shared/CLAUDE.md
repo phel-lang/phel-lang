@@ -31,6 +31,7 @@ Located in `Facade/` subdirectory. Each module implements its corresponding inte
 
 - **ColorStyle** (implements `ColorStyleInterface`) — ANSI terminal colors: `green()`, `yellow()`, `blue()`, `red()`
   - Factory: `ColorStyle::withStyles()` / `ColorStyle::noStyles()`
+- **ResourceUsageFormatter** — `resourceUsageSinceStartOfRequest()` returns `Time: HH:MM:SS.mmm, Memory: X.XX MB` (used by `run --with-time`, `test`, `build`)
 
 ## Dependencies
 
