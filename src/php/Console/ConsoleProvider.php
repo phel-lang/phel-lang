@@ -6,6 +6,12 @@ namespace Phel\Console;
 
 use Composer\InstalledVersions;
 use Gacela\Console\Infrastructure\Command\CacheWarmCommand;
+use Gacela\Console\Infrastructure\Command\DebugContainerCommand;
+use Gacela\Console\Infrastructure\Command\DebugDependenciesCommand;
+use Gacela\Console\Infrastructure\Command\DebugModulesCommand;
+use Gacela\Console\Infrastructure\Command\ListModulesCommand;
+use Gacela\Console\Infrastructure\Command\ProfileReportCommand;
+use Gacela\Console\Infrastructure\Command\ValidateConfigCommand;
 use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Container\Container;
 use Phel\Api\Infrastructure\Command\DocCommand;
@@ -65,6 +71,12 @@ final class ConsoleProvider extends AbstractProvider
             new BuildCommand(),
             new CacheClearCommand(),
             new CacheWarmCommand(),
+            new DebugContainerCommand(),
+            new DebugDependenciesCommand(),
+            new DebugModulesCommand(),
+            new ListModulesCommand(),
+            new ProfileReportCommand(),
+            new ValidateConfigCommand(),
             new DoctorCommand(),
         ]);
     }
