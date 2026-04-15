@@ -8,9 +8,11 @@ use Phel;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
+use PhpBench\Benchmark\Metadata\Annotations\AfterMethods;
 use PhpBench\Benchmark\Metadata\Annotations\BeforeMethods;
 use PhpBench\Benchmark\Metadata\Annotations\Iterations;
 use PhpBench\Benchmark\Metadata\Annotations\Revs;
+use PhpBench\Benchmark\Metadata\Annotations\Warmup;
 
 /**
  * Startup benchmarks. Each iteration runs in a fresh phpbench subprocess
@@ -19,11 +21,17 @@ use PhpBench\Benchmark\Metadata\Annotations\Revs;
  * correct here: these measure end-to-end one-shot work, not a tight
  * hot loop that would benefit from amortising timer overhead.
  *
+ * `@Warmup(1)` discards the first iteration — OPcache + method-resolution
+ * caches are cold there and would otherwise skew the median upward.
+ *
  * @BeforeMethods("setUp")
+ *
+ * @AfterMethods("tearDown")
  */
 final class PhelBench
 {
-    private ?string $compiledCorePath = null;
+    /** @var list<string> */
+    private array $tempPaths = [];
 
     public function setUp(): void
     {
@@ -31,11 +39,21 @@ final class PhelBench
         Symbol::resetGen();
         GlobalEnvironmentSingleton::initializeNew();
 
-        $this->compiledCorePath = tempnam(sys_get_temp_dir(), 'phel-core');
         (new BuildFacade())->compileFile(
             __DIR__ . '/../../../../src/phel/core.phel',
-            $this->compiledCorePath,
+            $this->newTempPath(),
         );
+    }
+
+    public function tearDown(): void
+    {
+        foreach ($this->tempPaths as $path) {
+            if (is_file($path)) {
+                @unlink($path);
+            }
+        }
+
+        $this->tempPaths = [];
     }
 
     /**
@@ -47,6 +65,8 @@ final class PhelBench
      * @Revs(1)
      *
      * @Iterations(10)
+     *
+     * @Warmup(1)
      */
     public function bench_phel_run(): void
     {
@@ -61,6 +81,8 @@ final class PhelBench
      * @Revs(1)
      *
      * @Iterations(5)
+     *
+     * @Warmup(1)
      */
     public function bench_core_file_compilation(): void
     {
@@ -69,7 +91,15 @@ final class PhelBench
 
         (new BuildFacade())->compileFile(
             __DIR__ . '/../../../../src/phel/core.phel',
-            tempnam(sys_get_temp_dir(), 'phel-core'),
+            $this->newTempPath(),
         );
+    }
+
+    private function newTempPath(): string
+    {
+        $path = tempnam(sys_get_temp_dir(), 'phel-core');
+        $this->tempPaths[] = $path;
+
+        return $path;
     }
 }

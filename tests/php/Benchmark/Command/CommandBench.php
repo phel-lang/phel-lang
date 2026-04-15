@@ -10,6 +10,7 @@ use Phel\Run\Infrastructure\Command\TestCommand;
 use PhpBench\Benchmark\Metadata\Annotations\BeforeMethods;
 use PhpBench\Benchmark\Metadata\Annotations\Iterations;
 use PhpBench\Benchmark\Metadata\Annotations\Revs;
+use PhpBench\Benchmark\Metadata\Annotations\Warmup;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\NullOutput;
 
@@ -32,6 +33,8 @@ final class CommandBench
      * @Revs(1)
      *
      * @Iterations(10)
+     *
+     * @Warmup(1)
      */
     public function bench_run_command(): void
     {
@@ -52,6 +55,8 @@ final class CommandBench
      * @Revs(1)
      *
      * @Iterations(10)
+     *
+     * @Warmup(1)
      */
     public function bench_test_command(): void
     {

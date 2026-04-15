@@ -87,7 +87,7 @@ final class SimpleImmutableVectorBench
     {
         yield 'small' => ['size' => 16];
         yield 'medium' => ['size' => 128];
-        yield 'large' => ['size' => 256];
+        yield 'boundary' => ['size' => 1024];
     }
 
     public function setUpVector(array $params): void
