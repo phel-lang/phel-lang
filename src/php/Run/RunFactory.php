@@ -7,10 +7,13 @@ namespace Phel\Run;
 use Gacela\Framework\AbstractFactory;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
+use Phel\Run\Application\EntryPointDetector;
 use Phel\Run\Application\EvalExecutor;
+use Phel\Run\Application\FileRunner;
 use Phel\Run\Application\NamespaceLoader;
 use Phel\Run\Application\NamespaceRunner;
 use Phel\Run\Application\NamespacesLoader;
+use Phel\Run\Application\StructuredEvaluator;
 use Phel\Run\Domain\Repl\ReplCommandFallbackIo;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Domain\Repl\ReplCommandSystemIo;
@@ -121,6 +124,28 @@ class RunFactory extends AbstractFactory
             $this->getBuildFacade(),
             $this->getCommandFacade(),
             $this->getConfig()->getReplStartupFile(),
+        );
+    }
+
+    public function createFileRunner(): FileRunner
+    {
+        return new FileRunner(
+            $this->getBuildFacade(),
+            $this->getCommandFacade(),
+        );
+    }
+
+    public function createStructuredEvaluator(): StructuredEvaluator
+    {
+        return new StructuredEvaluator(
+            $this->getCompilerFacade(),
+        );
+    }
+
+    public function createEntryPointDetector(): EntryPointDetector
+    {
+        return new EntryPointDetector(
+            $this->getCommandFacade(),
         );
     }
 }

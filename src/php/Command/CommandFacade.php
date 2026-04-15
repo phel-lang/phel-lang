@@ -63,11 +63,9 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
      */
     public function getAllPhelDirectories(): array
     {
-        return [
-            ...$this->getSourceDirectories(),
-            ...$this->getTestDirectories(),
-            ...$this->getVendorSourceDirectories(),
-        ];
+        return $this->getFactory()
+            ->createDirectoryFinder()
+            ->getAllPhelDirectories();
     }
 
     public function getSourceDirectories(): array

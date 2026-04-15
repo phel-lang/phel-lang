@@ -8,6 +8,7 @@ use Gacela\Framework\AbstractFactory;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Application\CodeCompiler;
 use Phel\Compiler\Application\EvalCompiler;
+use Phel\Compiler\Application\GlobalEnvironmentManager;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\Application\MacroExpander;
 use Phel\Compiler\Application\Munge;
@@ -166,6 +167,11 @@ final class CompilerFactory extends AbstractFactory
     public function createParenthesesChecker(): ParenthesesChecker
     {
         return new ParenthesesChecker();
+    }
+
+    public function createGlobalEnvironmentManager(): GlobalEnvironmentManager
+    {
+        return new GlobalEnvironmentManager();
     }
 
     private function createFileEmitterForCache(bool $enableSourceMaps = false): FileEmitterInterface
