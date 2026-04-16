@@ -83,6 +83,18 @@ final class CompiledCodeCache
     }
 
     /**
+     * Returns true if an entry exists for this source file, regardless
+     * of whether the hash matches. Used to distinguish "first build"
+     * (no entry at all) from "source changed" (stale entry).
+     */
+    public function has(string $sourcePath): bool
+    {
+        $this->loadEntries();
+
+        return isset($this->entries[$sourcePath]);
+    }
+
+    /**
      * Caches compiled PHP code for a source file.
      */
     public function put(string $sourcePath, string $namespace, string $sourceHash, string $phpCode): void

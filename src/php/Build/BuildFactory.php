@@ -26,6 +26,7 @@ use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Domain\IO\FileIoInterface;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
+use Phel\Build\Infrastructure\Cache\DependencyTracker;
 use Phel\Build\Infrastructure\Cache\PhpNamespaceCache;
 use Phel\Build\Infrastructure\IO\SystemFileIo;
 use Phel\Console\Application\VersionFinder;
@@ -79,6 +80,7 @@ final class BuildFactory extends AbstractFactory
                 $this->createNamespaceExtractor(),
                 $this->createCompiledCodeCache(),
                 $this->createFirstFormExtractor(),
+                $this->createDependencyTracker(),
             ),
         );
     }
@@ -160,6 +162,16 @@ final class BuildFactory extends AbstractFactory
         return new CompiledCodeCache(
             $this->getConfig()->getCacheDir(),
             VersionFinder::LATEST_VERSION,
+        );
+    }
+
+    private function createDependencyTracker(): ?DependencyTracker
+    {
+        return $this->singleton(
+            DependencyTracker::class,
+            fn(): ?DependencyTracker => $this->getConfig()->isCompiledCodeCacheEnabled()
+                ? new DependencyTracker($this->getConfig()->getCacheDir())
+                : null,
         );
     }
 
