@@ -33,9 +33,6 @@
         <PossiblyUndefinedMethod errorLevel="suppress" />
         <InvalidArrayOffset errorLevel="suppress" />
         <NamedArgumentNotAllowed errorLevel="suppress" />
-        <RedundantConditionGivenDocblockType errorLevel="suppress" />
-        <DocblockTypeContradiction errorLevel="suppress" />
-        <RedundantCastGivenDocblockType errorLevel="suppress" />
 
         <!-- Type safety suppressions for dynamic code -->
         <MixedArgument errorLevel="suppress" />

@@ -24,7 +24,7 @@
     "require": {
         "php": ">=8.3",
         "amphp/amp": "^3.1",
-        "gacela-project/gacela": "^1.13",
+        "gacela-project/gacela": "^1.14",
         "symfony/console": "^6.0|^7.0|^8.0",
         "symfony/routing": "^7.3"
     },

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command;
 
-use Gacela\Framework\Attribute\CacheableConfig;
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Gacela\Framework\Testing\ContainerFixture;
@@ -27,7 +26,6 @@ abstract class AbstractTestCommand extends TestCase
     protected function setUp(): void
     {
         $this->resetContainer();
-        CacheableConfig::reset();
         GlobalEnvironmentSingleton::initializeNew();
         RealFilesystem::reset();
 
