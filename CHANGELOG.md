@@ -7,23 +7,23 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 #### Tooling & CLI
-- `cache:warm` CLI command: pre-resolves module classes and persists the merged config so subsequent bootstraps skip config globbing and class resolver lookups (supports `--clear`, `--attributes`, `--parallel`)
-- `cache:clear` also removes the Gacela class-name cache and merged-config cache it produces, so a single invocation invalidates everything `cache:warm` wrote
-- `debug:container`, `debug:dependencies`, `debug:modules`, `list:modules`, `profile:report`, `validate:config` exposed under the `phel` CLI for introspecting module wiring and configuration
+- `cache:warm` command for pre-resolving module classes and persisting merged config
+- `cache:clear` also removes Gacela class-name and merged-config caches
+- `debug:container`, `debug:dependencies`, `debug:modules`, `list:modules`, `profile:report`, `validate:config` CLI commands
 
 #### Build & Caching
-- Dependency-aware cache invalidation: when a source file changes, all files that depend on its namespace are automatically invalidated via Gacela's `ScopedCache`
-- Directory lookups and namespace encoding are cached per-process via `#[Cacheable]`, avoiding repeated filesystem scans during compilation
+- Dependency-aware cache invalidation via `ScopedCache`
+- Per-process caching of directory lookups and namespace encoding via `#[Cacheable]`
 
 #### Testing
-- `ContainerFixture` trait integrated into the test infrastructure for automatic Gacela container reset between tests
+- `ContainerFixture` trait for automatic Gacela container reset between tests
 
 ### Changed
 
-- Upgraded Gacela from 1.13 to ^1.14
-- Providers use declarative `#[Provides]` attributes with `getRequired()` instead of manual `$container->set()` closures
-- `Phel::run()` resolves the filesystem facade through `Gacela::getRequired()`, surfacing a `ServiceNotFoundException` with did-you-mean suggestions when the container is misconfigured instead of silently skipping the post-run cleanup
-- `phel doctor` also runs Gacela `HealthChecker` over registered module health checks and fails if any module reports `unhealthy`; Filesystem exposes a temp-dir writability check
+- Upgraded Gacela to ^1.14
+- Providers use declarative `#[Provides]` attributes with `getRequired()`
+- `Phel::run()` resolves FilesystemFacade via `Gacela::getRequired()`, with did-you-mean suggestions on misconfiguration
+- `phel doctor` runs Gacela module health checks
 
 #### Reader & Compiler
 - `(use ClassName [:as Alias] ...)` top-level special form for declaring PHP class aliases outside of `ns`
