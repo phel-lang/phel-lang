@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phel\Command;
 
 use Gacela\Framework\AbstractFacade;
+use Gacela\Framework\Attribute\Cacheable;
+use Gacela\Framework\Attribute\CacheableTrait;
 use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
@@ -17,6 +19,8 @@ use Throwable;
  */
 final class CommandFacade extends AbstractFacade implements CommandFacadeInterface
 {
+    use CacheableTrait;
+
     public function writeLocatedException(
         OutputInterface $output,
         AbstractLocatedException $locatedException,
@@ -48,52 +52,52 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
             ->getStackTraceString($e);
     }
 
-    /**
-     * We want to expose the ExceptionPrinter to `src/phel/test.phel` to be able to print the stack trace.
-     */
     public function getExceptionPrinter(): ExceptionPrinterInterface
     {
         return $this->getFactory()->createExceptionPrinter();
     }
 
     /**
-     * All src, tests, and vendor directories.
-     *
      * @return list<string>
      */
+    #[Cacheable]
     public function getAllPhelDirectories(): array
     {
-        return $this->getFactory()
+        return $this->cached(fn(): array => $this->getFactory()
             ->createDirectoryFinder()
-            ->getAllPhelDirectories();
+            ->getAllPhelDirectories());
     }
 
+    #[Cacheable]
     public function getSourceDirectories(): array
     {
-        return $this->getFactory()
+        return $this->cached(fn(): array => $this->getFactory()
             ->createDirectoryFinder()
-            ->getSourceDirectories();
+            ->getSourceDirectories());
     }
 
+    #[Cacheable]
     public function getTestDirectories(): array
     {
-        return $this->getFactory()
+        return $this->cached(fn(): array => $this->getFactory()
             ->createDirectoryFinder()
-            ->getTestDirectories();
+            ->getTestDirectories());
     }
 
+    #[Cacheable]
     public function getVendorSourceDirectories(): array
     {
-        return $this->getFactory()
+        return $this->cached(fn(): array => $this->getFactory()
             ->createDirectoryFinder()
-            ->getVendorSourceDirectories();
+            ->getVendorSourceDirectories());
     }
 
+    #[Cacheable]
     public function getOutputDirectory(): string
     {
-        return $this->getFactory()
+        return $this->cached(fn(): string => $this->getFactory()
             ->createDirectoryFinder()
-            ->getOutputDirectory();
+            ->getOutputDirectory());
     }
 
     public function readPhelConfig(string $absolutePath): array

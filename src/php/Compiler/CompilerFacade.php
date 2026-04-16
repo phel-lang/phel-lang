@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phel\Compiler;
 
 use Gacela\Framework\AbstractFacade;
+use Gacela\Framework\Attribute\Cacheable;
+use Gacela\Framework\Attribute\CacheableTrait;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
@@ -30,6 +32,8 @@ use Phel\Shared\Facade\CompilerFacadeInterface;
  */
 final class CompilerFacade extends AbstractFacade implements CompilerFacadeInterface
 {
+    use CacheableTrait;
+
     /**
      * @throws AnalyzerException
      */
@@ -122,11 +126,6 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
     }
 
     /**
-     * Reads the next expression from the token stream.
-     * If the token stream reaches the end, null is returned.
-     *
-     * @param TokenStream $tokenStream The token stream to read
-     *
      * @throws UnexpectedParserException
      * @throws UnfinishedParserException
      */
@@ -158,11 +157,14 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
             ->read($parseTree);
     }
 
+    #[Cacheable(key: 'ns:{0}')]
     public function encodeNs(string $namespace): string
     {
-        return $this->getFactory()
-            ->createMunge()
-            ->encodeNs($namespace);
+        return $this->cached(
+            fn(): string => $this->getFactory()->createMunge()->encodeNs($namespace),
+            __METHOD__,
+            [$namespace],
+        );
     }
 
     public function hasBalancedParentheses(string $code): bool
@@ -186,10 +188,6 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
             ->reset();
     }
 
-    /**
-     * Expands a macro form once. Returns the expanded Phel form,
-     * or the original form unchanged if it is not a macro call.
-     */
     public function macroexpand1(
         TypeInterface|string|float|int|bool|null $form,
     ): TypeInterface|string|float|int|bool|null {
@@ -198,10 +196,6 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
             ->macroexpand1($form);
     }
 
-    /**
-     * Repeatedly expands a macro form until it is no longer a macro call.
-     * Returns the fully expanded Phel form.
-     */
     public function macroexpand(
         TypeInterface|string|float|int|bool|null $form,
     ): TypeInterface|string|float|int|bool|null {
