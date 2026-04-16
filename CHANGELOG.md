@@ -11,8 +11,17 @@ All notable changes to this project will be documented in this file.
 - `cache:clear` also removes the Gacela class-name cache and merged-config cache it produces, so a single invocation invalidates everything `cache:warm` wrote
 - `debug:container`, `debug:dependencies`, `debug:modules`, `list:modules`, `profile:report`, `validate:config` exposed under the `phel` CLI for introspecting module wiring and configuration
 
+#### Build & Caching
+- Dependency-aware cache invalidation: when a source file changes, all files that depend on its namespace are automatically invalidated via Gacela's `ScopedCache`
+- Directory lookups and namespace encoding are cached per-process via `#[Cacheable]`, avoiding repeated filesystem scans during compilation
+
+#### Testing
+- `ContainerFixture` trait integrated into the test infrastructure for automatic Gacela container reset between tests
+
 ### Changed
 
+- Upgraded Gacela from 1.13 to ^1.14
+- Providers use declarative `#[Provides]` attributes with `getRequired()` instead of manual `$container->set()` closures
 - `Phel::run()` resolves the filesystem facade through `Gacela::getRequired()`, surfacing a `ServiceNotFoundException` with did-you-mean suggestions when the container is misconfigured instead of silently skipping the post-run cleanup
 - `phel doctor` also runs Gacela `HealthChecker` over registered module health checks and fails if any module reports `unhealthy`; Filesystem exposes a temp-dir writability check
 
