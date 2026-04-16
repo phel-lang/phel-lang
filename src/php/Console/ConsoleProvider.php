@@ -13,6 +13,7 @@ use Gacela\Console\Infrastructure\Command\ListModulesCommand;
 use Gacela\Console\Infrastructure\Command\ProfileReportCommand;
 use Gacela\Console\Infrastructure\Command\ValidateConfigCommand;
 use Gacela\Framework\AbstractProvider;
+use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
 use Phel\Api\Infrastructure\Command\DocCommand;
 use Phel\Build\Infrastructure\Command\BuildCommand;
@@ -41,24 +42,16 @@ final class ConsoleProvider extends AbstractProvider
 
     private const string PACKAGE_NAME = 'phel-lang/phel-lang';
 
-    public function provideModuleDependencies(Container $container): void
+    #[Provides(self::FACADE_FILESYSTEM)]
+    public function filesystemFacade(Container $container): FilesystemFacade
     {
-        $this->addFilesystemFacade($container);
-        $this->addCommands($container);
-        $this->addVersionInfo($container);
+        return $container->getLocator()->getRequired(FilesystemFacade::class);
     }
 
-    private function addFilesystemFacade(Container $container): void
+    #[Provides(self::COMMANDS)]
+    public function commands(): array
     {
-        $container->set(
-            self::FACADE_FILESYSTEM,
-            static fn(Container $container) => $container->getLocator()->get(FilesystemFacade::class),
-        );
-    }
-
-    private function addCommands(Container $container): void
-    {
-        $container->set(self::COMMANDS, static fn(): array => [
+        return [
             new InitCommand(),
             new ExportCommand(),
             new FormatCommand(),
@@ -78,17 +71,11 @@ final class ConsoleProvider extends AbstractProvider
             new ProfileReportCommand(),
             new ValidateConfigCommand(),
             new DoctorCommand(),
-        ]);
+        ];
     }
 
-    private function addVersionInfo(Container $container): void
-    {
-        $container->set(self::TAG_COMMIT_HASH, $this->resolveTagCommitHash(...));
-
-        $container->set(self::CURRENT_COMMIT, $this->resolveCurrentCommit(...));
-    }
-
-    private function resolveTagCommitHash(): string
+    #[Provides(self::TAG_COMMIT_HASH)]
+    public function tagCommitHash(): string
     {
         $hash = $this->execGitCommand('git rev-list -n 1 ' . VersionFinder::LATEST_VERSION);
         if ($hash !== '') {
@@ -106,7 +93,8 @@ final class ConsoleProvider extends AbstractProvider
         return InstalledVersions::getReference(self::PACKAGE_NAME) ?? '';
     }
 
-    private function resolveCurrentCommit(): string
+    #[Provides(self::CURRENT_COMMIT)]
+    public function currentCommit(): string
     {
         $hash = $this->execGitCommand('git rev-parse --verify HEAD');
         if ($hash !== '') {

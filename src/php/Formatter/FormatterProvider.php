@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Formatter;
 
 use Gacela\Framework\AbstractProvider;
+use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
 use Phel\Command\CommandFacade;
 use Phel\Compiler\CompilerFacade;
@@ -15,25 +16,15 @@ final class FormatterProvider extends AbstractProvider
 
     public const string FACADE_COMMAND = 'FACADE_COMMAND';
 
-    public function provideModuleDependencies(Container $container): void
+    #[Provides(self::FACADE_COMPILER)]
+    public function compilerFacade(Container $container): CompilerFacade
     {
-        $this->addFacadeCompiler($container);
-        $this->addFacadeCommand($container);
+        return $container->getLocator()->getRequired(CompilerFacade::class);
     }
 
-    private function addFacadeCompiler(Container $container): void
+    #[Provides(self::FACADE_COMMAND)]
+    public function commandFacade(Container $container): CommandFacade
     {
-        $container->set(
-            self::FACADE_COMPILER,
-            static fn(Container $container) => $container->getLocator()->get(CompilerFacade::class),
-        );
-    }
-
-    private function addFacadeCommand(Container $container): void
-    {
-        $container->set(
-            self::FACADE_COMMAND,
-            static fn(Container $container) => $container->getLocator()->get(CommandFacade::class),
-        );
+        return $container->getLocator()->getRequired(CommandFacade::class);
     }
 }
