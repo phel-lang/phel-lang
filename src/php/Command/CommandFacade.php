@@ -6,7 +6,6 @@ namespace Phel\Command;
 
 use Gacela\Framework\AbstractFacade;
 use Gacela\Framework\Attribute\Cacheable;
-use Gacela\Framework\Attribute\CacheableTrait;
 use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
@@ -19,8 +18,6 @@ use Throwable;
  */
 final class CommandFacade extends AbstractFacade implements CommandFacadeInterface
 {
-    use CacheableTrait;
-
     public function writeLocatedException(
         OutputInterface $output,
         AbstractLocatedException $locatedException,

@@ -6,7 +6,6 @@ namespace Phel\Compiler;
 
 use Gacela\Framework\AbstractFacade;
 use Gacela\Framework\Attribute\Cacheable;
-use Gacela\Framework\Attribute\CacheableTrait;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
@@ -32,8 +31,6 @@ use Phel\Shared\Facade\CompilerFacadeInterface;
  */
 final class CompilerFacade extends AbstractFacade implements CompilerFacadeInterface
 {
-    use CacheableTrait;
-
     /**
      * @throws AnalyzerException
      */
