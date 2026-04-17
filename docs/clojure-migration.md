@@ -33,6 +33,7 @@ Most of Clojure's core library works identically in Phel:
 - **Destructuring**: vectors, maps, `:keys`, `:strs`, `:syms`, `:or`, `& rest`
 - **Metadata**: `meta`, `with-meta`, `vary-meta`, `^:keyword` reader syntax
 - **Atoms**: `atom`, `deref` / `@`, `swap!`, `reset!`, `add-watch`, `remove-watch`, `set-validator!`
+- **Taps**: `tap>`, `add-tap`, `remove-tap` (synchronous dispatch; no background queue)
 - **Delays and futures**: `delay`, `force`, `delay?`, `realized?`, `future`, `future-cancel`, `future-cancelled?`, `future-done?` (fiber-based via AMPHP)
 - **Exceptions**: `ex-info`, `ex-data`, `ex-message`, `ex-cause`, `throw`, `try` / `catch` / `finally`
 - **Transducers**: `transduce`, `into` (3-arg), `sequence`, `completing`, `cat`, plus transducer arities for `map`, `filter`, `take`, `drop`, `keep`, `distinct`, `dedupe`, `mapcat`, `interpose`, and more

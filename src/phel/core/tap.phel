@@ -1,0 +1,41 @@
+(in-ns phel\core)
+
+;; -------------
+;; Tap registry
+;; -------------
+;;
+;; A tap is a function of one argument registered to receive values sent via
+;; `tap>`. Useful for ad-hoc inspection, logging, and debug streams without
+;; coupling producers to consumers. Unlike Clojure's tap implementation this
+;; dispatches synchronously on the calling thread; Phel has no background
+;; queue, so tap fns run inline.
+
+(def- *taps* (atom #{}))
+
+(defn add-tap
+  "Registers `f` as a tap. Every call to `tap>` invokes each registered tap
+  with the tapped value. Returns nil."
+  {:example "(add-tap println)\n(tap> 42) ; prints 42"
+   :see-also ["remove-tap" "tap>"]}
+  [f]
+  (swap! *taps* conj f)
+  nil)
+
+(defn remove-tap
+  "Removes `f` from the tap set. Returns nil."
+  {:see-also ["add-tap" "tap>"]}
+  [f]
+  (swap! *taps* disj f)
+  nil)
+
+(defn tap>
+  "Sends `x` to every registered tap. Exceptions thrown by individual taps are
+  swallowed so one misbehaving tap does not affect the others. Returns true."
+  {:example "(add-tap println)\n(tap> {:event :login :user \"alice\"})"
+   :see-also ["add-tap" "remove-tap"]}
+  [x]
+  (foreach [f (deref *taps*)]
+    (try
+      (f x)
+      (catch \Throwable _ nil)))
+  true)
