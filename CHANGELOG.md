@@ -61,6 +61,7 @@ All notable changes to this project will be documented in this file.
 
 #### Observability
 - `tap>`, `add-tap`, `remove-tap` for registering one-arg listener fns that receive tapped values; dispatch is synchronous (no background queue)
+- Moved from `phel\debug` into `phel\core` to match Clojure, where these live in `clojure.core`. `phel\debug` still hosts the non-core helpers `dotrace`, `dbg`, `spy`, `tap`, `reset-trace-state!`, `set-trace-id-padding!`. `reset-taps!` is removed; `tap>` now always returns `true` and swallows exceptions from individual taps
 
 #### Testing
 - `use-fixtures` registers `:each` and `:once` fixture functions for the test runner to wrap each test or the whole namespace run (#1439)
