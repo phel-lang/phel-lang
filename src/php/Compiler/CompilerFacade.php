@@ -154,14 +154,10 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
             ->read($parseTree);
     }
 
-    #[Cacheable(key: 'ns:{0}')]
+    #[Cacheable]
     public function encodeNs(string $namespace): string
     {
-        return $this->cached(
-            fn(): string => $this->getFactory()->createMunge()->encodeNs($namespace),
-            __METHOD__,
-            [$namespace],
-        );
+        return $this->cached(fn(): string => $this->getFactory()->createMunge()->encodeNs($namespace));
     }
 
     public function hasBalancedParentheses(string $code): bool
