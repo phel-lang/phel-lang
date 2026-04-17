@@ -1,0 +1,164 @@
+(ns phel-test\test\gen
+  (:require phel\test :refer [deftest is testing])
+  (:require phel\test\gen :as g))
+
+(def- fixed-seed 1729)
+
+;; -----------
+;; Primitives
+;; -----------
+
+(deftest test-return
+  (is (= :x ((g/return :x) 100)))
+  (is (= 42 (g/generate (g/return 42)))))
+
+(deftest test-boolean
+  (let [vs (g/sample g/boolean 50 {:seed fixed-seed})]
+    (is (every? boolean? vs))))
+
+(deftest test-nat
+  (let [vs (g/sample g/nat 100 {:size 20 :seed fixed-seed})]
+    (is (every? (fn [n] (and (int? n) (<= 0 n) (<= n 20))) vs))))
+
+(deftest test-int
+  (let [vs (g/sample g/int 100 {:size 10 :seed fixed-seed})]
+    (is (every? (fn [n] (and (int? n) (<= -10 n) (<= n 10))) vs))))
+
+(deftest test-choose
+  (let [vs (g/sample (g/choose 5 9) 100 {:seed fixed-seed})]
+    (is (every? (fn [n] (and (<= 5 n) (<= n 9))) vs)))
+  (is (thrown? \InvalidArgumentException (g/choose 10 1))))
+
+(deftest test-float
+  (let [vs (g/sample g/float 100 {:seed fixed-seed})]
+    (is (every? (fn [f] (and (<= 0 f) (< f 1.0))) vs))))
+
+;; ----------------
+;; Chars & strings
+;; ----------------
+
+(deftest test-char-alpha
+  (let [vs (g/sample g/char-alpha 50 {:seed fixed-seed})]
+    (is (every? (fn [c] (php/preg_match "/^[A-Za-z]$/" c)) vs))))
+
+(deftest test-string-alpha
+  (let [vs (g/sample g/string-alpha 50 {:size 8 :seed fixed-seed})]
+    (is (every? string? vs))
+    (is (every? (fn [s] (<= (php/strlen s) 8)) vs))))
+
+(deftest test-keyword
+  (let [vs (g/sample g/keyword 30 {:size 5 :seed fixed-seed})]
+    (is (every? keyword? vs))))
+
+(deftest test-symbol
+  (let [vs (g/sample g/symbol 30 {:size 5 :seed fixed-seed})]
+    (is (every? symbol? vs))))
+
+;; ------------
+;; Combinators
+;; ------------
+
+(deftest test-elements
+  (let [vs (g/sample (g/elements [:a :b :c]) 50 {:seed fixed-seed})]
+    (is (every? (fn [v] (contains? (hash-set :a :b :c) v)) vs)))
+  (is (thrown? \InvalidArgumentException (g/elements []))))
+
+(deftest test-one-of
+  (let [vs (g/sample (g/one-of [(g/return :a) (g/return :b)]) 50 {:seed fixed-seed})]
+    (is (every? (fn [v] (contains? (hash-set :a :b) v)) vs))))
+
+(deftest test-frequency
+  (let [vs (g/sample (g/frequency [[99 (g/return :hit)] [1 (g/return :miss)]])
+                     200 {:seed fixed-seed})
+        hits (count (filter (fn [v] (= :hit v)) vs))]
+    (is (> hits 150) "weighted pick favours heavy bucket")))
+
+(deftest test-fmap
+  (let [vs (g/sample (g/fmap inc (g/return 1)) 10)]
+    (is (every? (fn [n] (= 2 n)) vs))))
+
+(deftest test-such-that
+  (let [vs (g/sample (g/such-that even? g/nat) 20 {:size 50 :seed fixed-seed})]
+    (is (every? even? vs)))
+  (is (thrown? \RuntimeException
+        (g/generate (g/such-that (fn [_] false) g/nat 5)))))
+
+(deftest test-tuple-variadic
+  (let [v (g/generate (g/tuple (g/return 1) (g/return :a) (g/return "z")))]
+    (is (= [1 :a "z"] v))))
+
+(deftest test-tuple-vector-arg
+  (testing "vector of generators is accepted for backward compatibility"
+    (let [v (g/generate (g/tuple [(g/return 1) (g/return :a)]))]
+      (is (= [1 :a] v)))))
+
+;; ------------
+;; Collections
+;; ------------
+
+(deftest test-vector-of
+  (testing "default length in [0, size]"
+    (let [vs (g/sample (g/vector-of g/nat) 30 {:size 5 :seed fixed-seed})]
+      (is (every? vector? vs))
+      (is (every? (fn [v] (<= (count v) 5)) vs))))
+  (testing "fixed length"
+    (let [v (g/generate (g/vector-of (g/return :x) 4))]
+      (is (= [:x :x :x :x] v))))
+  (testing "ranged length"
+    (let [vs (g/sample (g/vector-of (g/return 0) 2 4) 20 {:seed fixed-seed})]
+      (is (every? (fn [v] (and (<= 2 (count v)) (<= (count v) 4))) vs)))))
+
+(deftest test-list-of
+  (let [vs (g/sample (g/list-of g/nat) 10 {:size 4 :seed fixed-seed})]
+    (is (every? list? vs))))
+
+(deftest test-map-of
+  (let [vs (g/sample (g/map-of g/keyword g/nat) 10
+                     {:size 3 :seed fixed-seed})]
+    (is (every? hash-map? vs))))
+
+(deftest test-set-of
+  (let [vs (g/sample (g/set-of g/nat) 10 {:size 4 :seed fixed-seed})]
+    (is (every? set? vs))))
+
+;; ----------------------
+;; quick-check + defspec
+;; ----------------------
+
+(deftest test-quick-check-pass
+  (let [res (g/quick-check 50 (g/tuple g/int g/int)
+              (fn [a b] (= (+ a b) (+ b a)))
+              {:seed fixed-seed})]
+    (is (= :pass (:result res)))
+    (is (= 50 (:num-tests res)))
+    (is (int? (:seed res)))))
+
+(deftest test-quick-check-fail
+  (let [res (g/quick-check 100 (g/tuple g/nat)
+              (fn [n] (< n 0))
+              {:seed fixed-seed})]
+    (is (= :failed (:result res)))
+    (is (some? (:args res)))
+    (is (int? (:seed res)))))
+
+(deftest test-quick-check-error
+  (let [res (g/quick-check 10 (g/tuple (g/return 0))
+              (fn [_] (throw (php/new \RuntimeException "boom")))
+              {:seed fixed-seed})]
+    (is (= :error (:result res)))
+    (is (some? (:exception res)))))
+
+(deftest test-seed-repeatability
+  (let [s1 (g/sample g/int 20 {:seed 42})
+        s2 (g/sample g/int 20 {:seed 42})]
+    (is (= s1 s2))))
+
+(g/defspec spec-reverse-involution
+  {:num-tests 50 :size 10 :seed fixed-seed}
+  (g/tuple (g/vector-of g/int))
+  (fn [v] (= v (reverse (reverse v)))))
+
+(g/defspec spec-int-identity
+  {:num-tests 30 :seed fixed-seed}
+  (g/tuple g/int)
+  (fn [n] (= n (+ n 0))))
