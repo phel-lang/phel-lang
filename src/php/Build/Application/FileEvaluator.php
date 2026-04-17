@@ -9,14 +9,13 @@ use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Build\Domain\Extractor\FirstFormExtractor;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
+use Phel\Build\Infrastructure\Cache\DependencyTracker;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Shared\Facade\CompilerFacadeInterface;
-
 use RuntimeException;
-
 use Throwable;
 
 use function sprintf;
@@ -28,6 +27,7 @@ final readonly class FileEvaluator
         private NamespaceExtractorInterface $namespaceExtractor,
         private ?CompiledCodeCache $compiledCodeCache = null,
         private FirstFormExtractor $firstFormExtractor = new FirstFormExtractor(),
+        private ?DependencyTracker $dependencyTracker = null,
     ) {}
 
     public function evalFile(string $src): CompiledFile
@@ -42,24 +42,25 @@ final readonly class FileEvaluator
             ));
         }
 
-        // Get namespace info (uses namespace cache if available)
         $namespaceInfo = $this->namespaceExtractor->getNamespaceFromFile($src);
         $namespace = $namespaceInfo->getNamespace();
 
-        // Check compiled code cache (keyed by source file path so multiple
-        // files sharing a namespace via `(in-ns ...)` do not clobber each
-        // other).
+        // Register dependencies in the tracker for cascading invalidation
+        if ($this->dependencyTracker instanceof DependencyTracker) {
+            $this->dependencyTracker->registerDependencies(
+                $src,
+                $namespace,
+                $namespaceInfo->getDependencies(),
+            );
+        }
+
         if ($this->compiledCodeCache instanceof CompiledCodeCache) {
             $sourceHash = md5($code);
             $cachedPath = $this->compiledCodeCache->get($src, $sourceHash);
 
             if ($cachedPath !== null) {
-                // Cache hit - ensure GlobalEnvironment is initialized then require
                 $this->compilerFacade->initializeGlobalEnvironment();
-
                 try {
-                    // Restore refers/aliases in GlobalEnvironment from cached env data
-                    // when available, falling back to ns form analysis for old cache entries.
                     $envData = $this->compiledCodeCache->getEnvironment($namespace);
 
                     if ($envData !== null) {
@@ -73,18 +74,18 @@ final readonly class FileEvaluator
 
                     return new CompiledFile($src, $cachedPath, $namespace);
                 } catch (ParseError) {
-                    // Parse errors indicate corrupt cache file - invalidate and recompile
                     $this->compiledCodeCache->invalidate($src);
                 } catch (Throwable $e) {
-                    // Other exceptions are user code errors - invalidate cache but re-throw
                     $this->compiledCodeCache->invalidate($src);
                     throw $e;
                 }
+            } elseif ($this->dependencyTracker instanceof DependencyTracker
+                && $this->compiledCodeCache->has($src)
+            ) {
+                // Stale cache entry — source changed. Cascade invalidation to dependents.
+                $this->dependencyTracker->invalidateDependentsOf($namespace, $this->compiledCodeCache);
             }
 
-            // Cache miss - compile for cache (uses statement emit mode).
-            // compileForCache already evaluates each statement (needed for macros),
-            // so we must NOT require the cached file — that would cause double execution.
             $options = (new CompileOptions())
                 ->setSource($src)
                 ->setIsEnabledSourceMaps(false);
@@ -102,7 +103,6 @@ final readonly class FileEvaluator
             );
         }
 
-        // No cache - use original behavior
         $options = (new CompileOptions())
             ->setSource($src)
             ->setIsEnabledSourceMaps(true);
@@ -112,16 +112,9 @@ final readonly class FileEvaluator
         return new CompiledFile($src, '', $namespace);
     }
 
-    /**
-     * Analyzes the ns form of a source file to register refers, require aliases,
-     * and use aliases in the GlobalEnvironment. This is needed on cache hits
-     * because these are analyzer side effects that aren't persisted in the cache.
-     */
     private function analyzeNsForm(string $code, string $src): void
     {
         try {
-            // Only lex the ns form, not the entire file, to avoid memory
-            // exhaustion on large files like phel\core.
             $nsFormText = $this->firstFormExtractor->extract($code);
             $tokenStream = $this->compilerFacade->lexString($nsFormText, $src);
 
@@ -142,12 +135,10 @@ final readonly class FileEvaluator
                     NodeEnvironment::empty(),
                 );
 
-                // Only need the first non-trivia form (the ns declaration)
                 break;
             }
         } catch (Throwable) {
-            // Analysis failure is non-fatal — the cached PHP will still execute.
-            // The only consequence is missing refers/aliases in the GlobalEnvironment.
+            // Analysis failure is non-fatal
         }
     }
 }

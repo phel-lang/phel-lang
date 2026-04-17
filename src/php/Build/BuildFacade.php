@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Build;
 
 use Gacela\Framework\AbstractFacade;
+use Gacela\Framework\Health\ModuleHealthCheckInterface;
 use Phel\Build\Domain\Compile\BuildOptions;
 use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
@@ -147,5 +148,10 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
         return $this->getFactory()
             ->createCacheClearer()
             ->clearAll();
+    }
+
+    public function getHealthCheck(): ModuleHealthCheckInterface
+    {
+        return $this->getFactory()->createBuildHealthCheck();
     }
 }

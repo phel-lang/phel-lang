@@ -20,3 +20,12 @@ parameters:
         -
             identifier: gacela.facadeOnlyDelegates
             path: src/php/Build/BuildFacade.php
+        # #[Cacheable] methods use $this->cached() which wraps the
+        # delegation call. The PHPStan rule has not been updated yet
+        # to recognise CacheableTrait as a valid delegation pattern.
+        -
+            identifier: gacela.facadeOnlyDelegates
+            path: src/php/Command/CommandFacade.php
+        -
+            identifier: gacela.facadeOnlyDelegates
+            path: src/php/Compiler/CompilerFacade.php

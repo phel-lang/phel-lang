@@ -6,6 +6,26 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+#### Tooling & CLI
+- `cache:warm` pre-resolves module classes and persists merged config
+- `debug:container`, `debug:dependencies`, `debug:modules`, `list:modules`, `profile:report`, `validate:config` CLI commands
+- `build/preload.php` opcache preload script for Gacela core and Phel facades
+- `phel doctor` adds a Build health check (cache dir, output dir, source dirs) and runs Gacela module health checks
+
+#### Build & Caching
+- `ScopedCache` for dependency-aware cache invalidation
+- `#[Cacheable]` on directory lookups and namespace encoding
+- `cache:clear` also removes Gacela class-name and merged-config caches
+
+#### Testing
+- `ContainerFixture` trait resets the Gacela container between tests
+
+### Changed
+
+- Upgraded Gacela to ^1.14; providers use declarative `#[Provides]` with `getRequired()`
+- `Phel::run()` resolves `FilesystemFacade` via `Gacela::getRequired()` with did-you-mean suggestions
+- `composer test-quality` runs `validate:config` to catch binding mismatches in CI
+
 #### Reader & Compiler
 - `(use ClassName [:as Alias] ...)` top-level special form for declaring PHP class aliases outside of `ns`
 - `(ClassName. args)` constructor shorthand, including namespaced classes like `\Some\Class.` (#1359)
