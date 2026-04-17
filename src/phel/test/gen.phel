@@ -79,7 +79,7 @@
 
 (def float
   "Generator of floats in `[0, 1)`."
-  (fn [_size] (/ (rand-int* 0 php/PHP_INT_MAX) php/PHP_INT_MAX)))
+  (fn [_size] (/ (rand-int* 0 (dec php/PHP_INT_MAX)) php/PHP_INT_MAX)))
 
 (defn choose
   "Generator of integers in the closed interval `[lo hi]`."

@@ -31,7 +31,7 @@
 
 (deftest test-float
   (let [vs (g/sample g/float 100 {:seed fixed-seed})]
-    (is (every? (fn [f] (and (<= 0 f) (< f 1.0001))) vs))))
+    (is (every? (fn [f] (and (<= 0 f) (< f 1.0))) vs))))
 
 ;; ----------------
 ;; Chars & strings
