@@ -1,6 +1,3 @@
-includes:
-    - vendor/gacela-project/gacela/phpstan-gacela.neon
-
 parameters:
     level: 5
     parallel:
@@ -9,6 +6,8 @@ parameters:
     paths:
         - %currentWorkingDirectory%/src/
     ignoreErrors:
+        # Gacela dynamic resolution: magic methods via ServiceResolverAwareTrait
+        - '#Call to an undefined method .+::(getFacade|getFactory|getConfig)\(\)\.$#'
         - identifier: trait.unused
         -
             identifier: while.alwaysTrue
@@ -20,12 +19,35 @@ parameters:
         -
             identifier: gacela.facadeOnlyDelegates
             path: src/php/Build/BuildFacade.php
-        # #[Cacheable] methods use $this->cached() which wraps the
-        # delegation call. The PHPStan rule has not been updated yet
-        # to recognise CacheableTrait as a valid delegation pattern.
-        -
-            identifier: gacela.facadeOnlyDelegates
-            path: src/php/Command/CommandFacade.php
-        -
-            identifier: gacela.facadeOnlyDelegates
-            path: src/php/Compiler/CompilerFacade.php
+
+services:
+    -
+        class: Gacela\PHPStan\Rules\SuffixExtendsRule
+        tags: [phpstan.rules.rule]
+        arguments:
+            suffix: Facade
+            expectedParent: Gacela\Framework\AbstractFacade
+    -
+        class: Gacela\PHPStan\Rules\SuffixExtendsRule
+        tags: [phpstan.rules.rule]
+        arguments:
+            suffix: Factory
+            expectedParent: Gacela\Framework\AbstractFactory
+    -
+        class: Gacela\PHPStan\Rules\SuffixExtendsRule
+        tags: [phpstan.rules.rule]
+        arguments:
+            suffix: Provider
+            expectedParent: Gacela\Framework\AbstractProvider
+    -
+        class: Gacela\PHPStan\Rules\SuffixExtendsRule
+        tags: [phpstan.rules.rule]
+        arguments:
+            suffix: Config
+            expectedParent: Gacela\Framework\AbstractConfig
+    -
+        class: Gacela\PHPStan\Rules\FacadeOnlyDelegatesRule
+        tags: [phpstan.rules.rule]
+    -
+        class: Gacela\PHPStan\Rules\FactoryDoesNotCallFacadeRule
+        tags: [phpstan.rules.rule]

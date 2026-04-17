@@ -57,7 +57,6 @@ final readonly class BlockIndenter implements IndenterInterface
             return true;
         }
 
-        /** @var ParseTreeZipper $left */
         $left = $loc->left();
         if ($left->isWhitespace()) {
             return $this->firstFormInLine($left);
