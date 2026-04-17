@@ -1,0 +1,422 @@
+(ns phel\test\gen
+  (:require phel\core)
+  (:require phel\test :as t)
+  (:use InvalidArgumentException)
+  (:use RuntimeException))
+
+;; A generator is a function of one argument, a non-negative integer `size`
+;; controlling magnitude of the produced value:
+;;
+;;   gen :: (fn [size] -> value)
+;;
+;; Callers produce values with `sample`, `generate`, or by running a property
+;; with `quick-check` / `defspec`. Random numbers come from PHP's Mersenne
+;; Twister (`php/mt_rand`); seed the run with the `:seed` option to make a
+;; failure reproducible.
+;;
+;; Collection-producing generators are named `*-of` (`vector-of`, `list-of`,
+;; `map-of`, `set-of`) to avoid shadowing the core constructors used by
+;; syntax-quote during macroexpansion.
+
+(def default-size
+  "Default magnitude passed to generators when `sample`/`quick-check` is called
+  without an explicit `:size`."
+  100)
+
+(def default-num-tests
+  "Default number of trials `quick-check` runs per property."
+  100)
+
+(defn- rand-long [lo hi]
+  (php/mt_rand lo hi))
+
+(defn- seed-rng! [seed]
+  (when seed (php/mt_srand seed)))
+
+(defn- fresh-seed []
+  (php/mt_rand 0 php/PHP_INT_MAX))
+
+;; ---------------------------
+;; Primitive generator helpers
+;; ---------------------------
+
+(defn return
+  "Generator that always yields `x`."
+  {:example "((return 42) 100) ; => 42"}
+  [x]
+  (fn [_size] x))
+
+(defn fmap
+  "Returns a generator that applies `f` to values produced by `g`."
+  {:example "((fmap inc (return 1)) 100) ; => 2"}
+  [f g]
+  (fn [size] (f (g size))))
+
+(defn such-that
+  "Returns a generator yielding only values from `g` that satisfy `pred`. Retries
+  up to `max-tries` (default 100) before throwing."
+  {:example "((such-that even? (nat)) 100) ; => some even int"}
+  ([pred g] (such-that pred g 100))
+  ([pred g max-tries]
+   (fn [size]
+     (loop [i 0]
+       (if (>= i max-tries)
+         (throw (php/new RuntimeException
+                  (str "gen/such-that exceeded " max-tries " retries")))
+         (let [v (g size)]
+           (if (pred v) v (recur (inc i)))))))))
+
+(defn sized
+  "Builds a generator from a function `f` of `size`. The returned generator
+  forwards its `size` argument into `f`, which must yield another generator
+  that is then invoked with the same size."
+  {:example "(sized (fn [n] (return n)))"}
+  [f]
+  (fn [size] ((f size) size)))
+
+(defn resize
+  "Returns a generator equivalent to `g` but with `size` forced to `n`."
+  {:example "((resize 5 (nat)) 1000) ; => value in [0, 5]"}
+  [n g]
+  (fn [_size] (g n)))
+
+;; --------------------
+;; Scalar generators
+;; --------------------
+
+(defn boolean
+  "Generator of booleans."
+  {:example "((boolean) 100) ; => true or false"}
+  []
+  (fn [_size] (= 0 (rand-long 0 1))))
+
+(defn choose
+  "Generator of integers in the closed interval `[lo hi]`."
+  {:example "((choose 1 6) 100) ; => int in [1, 6]"}
+  [lo hi]
+  (when (> lo hi)
+    (throw (php/new InvalidArgumentException
+             (str "gen/choose requires lo <= hi, got " lo ", " hi))))
+  (fn [_size] (rand-long lo hi)))
+
+(defn nat
+  "Generator of non-negative integers in `[0, size]`."
+  {:example "((nat) 10) ; => int in [0, 10]"}
+  []
+  (fn [size] (rand-long 0 (max 0 size))))
+
+(defn int
+  "Generator of integers in `[-size, size]`."
+  {:example "((int) 10) ; => int in [-10, 10]"}
+  []
+  (fn [size]
+    (let [s (max 0 size)]
+      (rand-long (- s) s))))
+
+(defn large-int
+  "Generator of arbitrary PHP-range integers."
+  {:example "((large-int) 100) ; => any PHP int"}
+  []
+  (fn [_size] (rand-long php/PHP_INT_MIN php/PHP_INT_MAX)))
+
+(defn float
+  "Generator of floats in `[0, 1)`."
+  {:example "((float) 100) ; => 0.3721..."}
+  []
+  (fn [_size] (/ (rand-long 0 php/PHP_INT_MAX) php/PHP_INT_MAX)))
+
+;; --------------------
+;; Character generators
+;; --------------------
+
+(def- ascii-lower (for [c :range [97 123]] (php/chr c)))
+(def- ascii-upper (for [c :range [65 91]] (php/chr c)))
+(def- ascii-digit (for [c :range [48 58]] (php/chr c)))
+(def- printable-ascii-chars (for [c :range [32 127]] (php/chr c)))
+(def- alpha-chars (concat ascii-lower ascii-upper))
+(def- alphanumeric-chars (concat alpha-chars ascii-digit))
+
+(defn- pick-from [xs]
+  (let [v (into [] xs)
+        n (count v)]
+    (fn [_size] (get v (rand-long 0 (dec n))))))
+
+(defn char
+  "Generator of printable ASCII characters (space through `~`)."
+  {:example "((char) 100) ; => \"A\""}
+  []
+  (pick-from printable-ascii-chars))
+
+(defn char-alpha
+  "Generator of ASCII letters."
+  {:example "((char-alpha) 100) ; => \"q\""}
+  []
+  (pick-from alpha-chars))
+
+(defn char-alphanumeric
+  "Generator of ASCII letters and digits."
+  {:example "((char-alphanumeric) 100) ; => \"7\""}
+  []
+  (pick-from alphanumeric-chars))
+
+(defn- repeat-chars [cg size n]
+  (apply str (for [_ :range [0 n]] (cg size))))
+
+(defn string
+  "Generator of printable ASCII strings, length in `[0, size]`."
+  {:example "((string) 5) ; => \"aB?2q\""}
+  []
+  (let [cg (char)]
+    (fn [size] (repeat-chars cg size (rand-long 0 (max 0 size))))))
+
+(defn string-alpha
+  "Generator of ASCII alphabetic strings, length in `[0, size]`."
+  {:example "((string-alpha) 5) ; => \"heLlo\""}
+  []
+  (let [cg (char-alpha)]
+    (fn [size] (repeat-chars cg size (rand-long 0 (max 0 size))))))
+
+(defn string-alphanumeric
+  "Generator of ASCII alphanumeric strings, length in `[0, size]`."
+  {:example "((string-alphanumeric) 5) ; => \"a1B2c\""}
+  []
+  (let [cg (char-alphanumeric)]
+    (fn [size] (repeat-chars cg size (rand-long 0 (max 0 size))))))
+
+;; ----------------------
+;; Symbolic generators
+;; ----------------------
+
+;; `keyword`/`symbol` in core are plain functions (not used by syntax-quote),
+;; so shadowing them is safe. We still need a reference to the core
+;; constructors inside our generator bodies.
+(def- core-keyword keyword)
+(def- core-symbol symbol)
+
+(defn keyword
+  "Generator of keywords with alphabetic names of length `[1, size]`."
+  {:example "((keyword) 5) ; => :abcde"}
+  []
+  (let [cg (char-alpha)]
+    (fn [size]
+      (let [n (max 1 (rand-long 1 (max 1 size)))
+            name-str (repeat-chars cg size n)]
+        (core-keyword name-str)))))
+
+(defn symbol
+  "Generator of symbols with alphabetic names of length `[1, size]`."
+  {:example "((symbol) 5) ; => 'abcde"}
+  []
+  (let [cg (char-alpha)]
+    (fn [size]
+      (let [n (max 1 (rand-long 1 (max 1 size)))
+            name-str (repeat-chars cg size n)]
+        (core-symbol name-str)))))
+
+;; --------------------
+;; Combinators
+;; --------------------
+
+(defn elements
+  "Generator that picks a random element from `coll`. `coll` must be non-empty."
+  {:example "((elements [:a :b :c]) 100) ; => :a, :b, or :c"}
+  [coll]
+  (let [v (into [] coll)
+        n (count v)]
+    (when (zero? n)
+      (throw (php/new InvalidArgumentException
+               "gen/elements requires a non-empty collection")))
+    (fn [_size] (get v (rand-long 0 (dec n))))))
+
+(defn one-of
+  "Generator that selects uniformly from the given `gens` and runs it."
+  {:example "((one-of [(int) (boolean)]) 100) ; => int or bool"}
+  [gens]
+  (let [v (into [] gens)
+        n (count v)]
+    (when (zero? n)
+      (throw (php/new InvalidArgumentException
+               "gen/one-of requires at least one generator")))
+    (fn [size]
+      (let [g (get v (rand-long 0 (dec n)))]
+        (g size)))))
+
+(defn frequency
+  "Generator that picks one of the `[weight gen]` pairs with probability
+  proportional to weight."
+  {:example "((frequency [[9 (return :a)] [1 (return :b)]]) 100) ; => :a ~90% of the time"}
+  [pairs]
+  (let [v (into [] pairs)
+        total (reduce + 0 (map (fn [p] (get p 0)) v))]
+    (when (<= total 0)
+      (throw (php/new InvalidArgumentException
+               "gen/frequency requires at least one pair with positive weight")))
+    (fn [size]
+      (loop [i 0 remaining (rand-long 1 total)]
+        (let [pair (get v i)
+              w (get pair 0)
+              g (get pair 1)
+              next-remaining (- remaining w)]
+          (if (<= next-remaining 0)
+            (g size)
+            (recur (inc i) next-remaining)))))))
+
+(defn tuple
+  "Generator of a fixed-length vector produced by running each generator in
+  `gens` in order."
+  {:example "((tuple [(int) (boolean)]) 10) ; => [3 true]"}
+  [gens]
+  (let [v (into [] gens)]
+    (fn [size] (into [] (map (fn [g] (g size)) v)))))
+
+;; --------------------
+;; Collection generators
+;; --------------------
+;;
+;; Named `*-of` to avoid shadowing core constructors (`vector`, `list`,
+;; `hash-map`, `set`) that are invoked at macroexpansion time.
+
+(defn- gen-length [size]
+  (rand-long 0 (max 0 size)))
+
+(defn vector-of
+  "Generator of vectors whose elements come from `g`. With one arg, length is in
+  `[0, size]`. With `n`, length is exactly `n`. With `lo` and `hi`, length is in
+  `[lo, hi]`."
+  {:example "((vector-of (int)) 3) ; => [-1 2 0]"}
+  ([g]
+   (fn [size]
+     (into [] (for [_ :range [0 (gen-length size)]] (g size)))))
+  ([g n]
+   (fn [size]
+     (into [] (for [_ :range [0 n]] (g size)))))
+  ([g lo hi]
+   (fn [size]
+     (into [] (for [_ :range [0 (rand-long lo hi)]] (g size))))))
+
+(defn list-of
+  "Generator of lists whose elements come from `g`. Length in `[0, size]`."
+  {:example "((list-of (int)) 3) ; => (-1 2 0)"}
+  [g]
+  (fn [size]
+    (apply list (for [_ :range [0 (gen-length size)]] (g size)))))
+
+(defn map-of
+  "Generator of hash-maps with keys from `kg` and values from `vg`. Number of
+  entries is in `[0, size]`."
+  {:example "((map-of (keyword) (int)) 2) ; => {:a 1 :b -3}"}
+  [kg vg]
+  (fn [size]
+    (let [n (gen-length size)]
+      (loop [i 0 m {}]
+        (if (>= i n)
+          m
+          (recur (inc i) (put m (kg size) (vg size))))))))
+
+(defn set-of
+  "Generator of hash-sets with elements from `g`. Cardinality is in `[0, size]`."
+  {:example "((set-of (nat)) 3) ; => (set 1 2 3)"}
+  [g]
+  (fn [size]
+    (let [n (gen-length size)]
+      (loop [i 0 s (hash-set)]
+        (if (>= i n)
+          s
+          (recur (inc i) (conj s (g size))))))))
+
+;; --------------------
+;; Sampling
+;; --------------------
+
+(defn generate
+  "Runs `g` once and returns a single value. Options: `:size`, `:seed`."
+  {:example "(generate (int)) ; => 42"}
+  ([g] (generate g {}))
+  ([g {:size size :seed seed}]
+   (seed-rng! seed)
+   (g (or size default-size))))
+
+(defn sample
+  "Runs `g` `num-samples` times and returns a vector of values. Defaults to 10
+  samples at default size. Options: `:size`, `:seed`."
+  {:example "(sample (int) 5) ; => [3 -7 0 1 -2]"}
+  ([g] (sample g 10 {}))
+  ([g num-samples] (sample g num-samples {}))
+  ([g num-samples {:size size :seed seed}]
+   (seed-rng! seed)
+   (let [s (or size default-size)]
+     (into [] (for [_ :range [0 num-samples]] (g s))))))
+
+;; --------------------
+;; Property testing
+;; --------------------
+
+(defn- run-trials [property args-gen num-tests size]
+  (loop [i 0]
+    (if (>= i num-tests)
+      {:result :pass :num-tests i}
+      (let [args (args-gen size)
+            ok (try (apply property args)
+                    (catch \Throwable e e))]
+        (cond
+          (php/instanceof ok \Throwable)
+          {:result :error :num-tests (inc i) :args args :exception ok}
+          (not ok)
+          {:result :failed :num-tests (inc i) :args args}
+          :else (recur (inc i)))))))
+
+(defn quick-check
+  "Runs a property `num-tests` times, sampling arguments from `args-gen` (a
+  generator producing a vector of arguments). Returns a hash-map describing
+  the outcome; includes the `:seed` so a failure can be replayed.
+
+  Options:
+  - `:size` (default 100): magnitude passed to the generator.
+  - `:seed` (default: fresh per-run seed): PRNG seed.
+
+  The returned map has `:result` of `:pass`, `:failed`, or `:error`.
+  On `:failed`/`:error` it also carries `:args` (the failing input) and,
+  for `:error`, the original `:exception`."
+  {:example "(quick-check 50 (tuple [(int) (int)]) (fn [a b] (= (+ a b) (+ b a))))"}
+  ([num-tests args-gen property]
+   (quick-check num-tests args-gen property {}))
+  ([num-tests args-gen property {:size size :seed seed}]
+   (let [effective-seed (or seed (fresh-seed))
+         _ (seed-rng! effective-seed)
+         outcome (run-trials property args-gen num-tests (or size default-size))]
+     (put outcome :seed effective-seed))))
+
+(defn- spec-failure-message [name-str res]
+  (let [parts ["property " name-str " failed after " (get res :num-tests)
+               " tests (seed " (get res :seed)]
+        args (get res :args)
+        ex (get res :exception)
+        parts (if args (concat parts [", args " (print-str args)]) parts)
+        parts (if ex
+                (concat parts [", threw " (php/get_class ex) ": "
+                               (php/-> ex (getMessage))])
+                parts)
+        parts (concat parts [")"])]
+    (apply str parts)))
+
+(defmacro defspec
+  "Defines a property test that runs `quick-check` and asserts the result is a
+  pass. Integrates with `phel\\test`: the generated `deftest` is picked up by
+  `run-tests`. `options` is a hash-map accepting `:num-tests`, `:size`, and
+  `:seed`.
+
+  Shape: `(defspec name options args-gen property)`."
+  {:example "(defspec addition-commutes {:num-tests 200}
+              (tuple [(int) (int)])
+              (fn [a b] (= (+ a b) (+ b a))))"}
+  [name options args-gen property]
+  (let [opts-sym (gensym)
+        n-sym (gensym)
+        res-sym (gensym)
+        name-str (str name)]
+    `(t/deftest ~name
+       (let [~opts-sym ~options
+             ~n-sym (or (:num-tests ~opts-sym) default-num-tests)
+             ~res-sym (quick-check ~n-sym ~args-gen ~property ~opts-sym)]
+         (t/is (= :pass (:result ~res-sym))
+               (spec-failure-message ~name-str ~res-sym))))))
