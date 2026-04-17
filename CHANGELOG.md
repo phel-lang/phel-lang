@@ -61,7 +61,7 @@ All notable changes to this project will be documented in this file.
 
 #### Observability
 - `tap>`, `add-tap`, `remove-tap` for registering one-arg listener fns that receive tapped values; dispatch is synchronous (no background queue)
-- Moved from `phel\debug` into `phel\core` to match Clojure, where these live in `clojure.core`. `phel\debug` still hosts the non-core helpers `dotrace`, `dbg`, `spy`, `tap`, `reset-trace-state!`, `set-trace-id-padding!`. `reset-taps!` is removed; `tap>` now always returns `true` and swallows exceptions from individual taps
+- `tap>` returns `true` and swallows exceptions from individual taps
 
 #### Testing
 - `use-fixtures` registers `:each` and `:once` fixture functions for the test runner to wrap each test or the whole namespace run (#1439)
@@ -106,6 +106,10 @@ All notable changes to this project will be documented in this file.
 - Reorganized Phel test files: dissolved `core.phel` into topic files under `core/`; moved `comments.phel`, `special-forms.phel`, `multi-arity-fn.phel` into `core/`
 - `phel\router`: caches Symfony matcher/generator, precompiles middleware dispatch at `handler` construction; per-request work is two hash-map lookups
 - `phel test` skips files that fail to compile and continues the run; pass `--fail-fast` to abort on the first error
+
+### Removed
+
+- `phel\debug` namespace (`dotrace`, `dbg`, `spy`, `tap`, `reset-trace-state!`, `set-trace-id-padding!`); use `tap>` from core or define a local macro
 
 ### Performance
 
