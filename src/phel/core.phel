@@ -190,6 +190,9 @@
 (load "core/io")
 (load "core/protocols")
 
+;; Ad-hoc observability (requires disj + filter from seq-fns)
+(load "core/tap")
+
 ;; Topic libraries
 (load "core/lazy")
 (load "core/exceptions")

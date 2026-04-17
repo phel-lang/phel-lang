@@ -1,0 +1,46 @@
+(ns phel-test\test\core\tap
+  (:require phel\test :refer [deftest is]))
+
+(deftest tap-single-listener
+  (let [seen (atom [])
+        f (fn [x] (swap! seen conj x))]
+    (add-tap f)
+    (is (true? (tap> 1)) "tap> returns true")
+    (tap> 2)
+    (remove-tap f)
+    (tap> 3)
+    (is (= [1 2] (deref seen)) "values after remove-tap are not delivered")))
+
+(deftest tap-multiple-listeners
+  (let [a (atom 0)
+        b (atom 0)
+        fa (fn [x] (swap! a + x))
+        fb (fn [x] (swap! b + x))]
+    (add-tap fa)
+    (add-tap fb)
+    (tap> 10)
+    (tap> 5)
+    (remove-tap fa)
+    (remove-tap fb)
+    (is (= 15 (deref a)) "first tap received all values")
+    (is (= 15 (deref b)) "second tap received all values")))
+
+(deftest tap-swallows-exceptions
+  (let [seen (atom 0)
+        bad (fn [_] (throw (php/new \RuntimeException "boom")))
+        good (fn [_] (swap! seen inc))]
+    (add-tap bad)
+    (add-tap good)
+    (is (true? (tap> :event)) "tap> still returns true when a tap throws")
+    (remove-tap bad)
+    (remove-tap good)
+    (is (= 1 (deref seen)) "well-behaved tap still received value")))
+
+(deftest add-tap-is-idempotent
+  (let [seen (atom 0)
+        f (fn [_] (swap! seen inc))]
+    (add-tap f)
+    (add-tap f)
+    (tap> :x)
+    (remove-tap f)
+    (is (= 1 (deref seen)) "registering the same tap twice still fires once")))

@@ -59,6 +59,9 @@ All notable changes to this project will be documented in this file.
 - `parse-double` accepts `Infinity`, `-Infinity`, and `NaN` (#1428)
 - `alength` returns the length of a PHP array (#1433)
 
+#### Observability
+- `tap>`, `add-tap`, `remove-tap` for registering one-arg listener fns that receive tapped values; dispatch is synchronous (no background queue)
+
 #### Testing
 - `use-fixtures` registers `:each` and `:once` fixture functions for the test runner to wrap each test or the whole namespace run (#1439)
 
