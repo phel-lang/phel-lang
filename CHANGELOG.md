@@ -7,26 +7,24 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 #### Tooling & CLI
-- `cache:warm` command for pre-resolving module classes and persisting merged config
-- `cache:clear` also removes Gacela class-name and merged-config caches
+- `cache:warm` pre-resolves module classes and persists merged config
 - `debug:container`, `debug:dependencies`, `debug:modules`, `list:modules`, `profile:report`, `validate:config` CLI commands
-- `validate:config` runs in `composer test-quality` to catch binding mismatches in CI
-- `build/preload.php` opcache preload script (Gacela core + Phel facades) for production throughput gains
-- `phel doctor` surfaces a Build module health check covering cache dir, output dir, and configured source dirs
+- `build/preload.php` opcache preload script for Gacela core and Phel facades
+- `phel doctor` adds a Build health check (cache dir, output dir, source dirs) and runs Gacela module health checks
 
 #### Build & Caching
-- Dependency-aware cache invalidation via `ScopedCache`
-- Per-process caching of directory lookups and namespace encoding via `#[Cacheable]`
+- `ScopedCache` for dependency-aware cache invalidation
+- `#[Cacheable]` on directory lookups and namespace encoding
+- `cache:clear` also removes Gacela class-name and merged-config caches
 
 #### Testing
-- `ContainerFixture` trait for automatic Gacela container reset between tests
+- `ContainerFixture` trait resets the Gacela container between tests
 
 ### Changed
 
-- Upgraded Gacela to ^1.14
-- Providers use declarative `#[Provides]` attributes with `getRequired()`
-- `Phel::run()` resolves FilesystemFacade via `Gacela::getRequired()`, with did-you-mean suggestions on misconfiguration
-- `phel doctor` runs Gacela module health checks
+- Upgraded Gacela to ^1.14; providers use declarative `#[Provides]` with `getRequired()`
+- `Phel::run()` resolves `FilesystemFacade` via `Gacela::getRequired()` with did-you-mean suggestions
+- `composer test-quality` runs `validate:config` to catch binding mismatches in CI
 
 #### Reader & Compiler
 - `(use ClassName [:as Alias] ...)` top-level special form for declaring PHP class aliases outside of `ns`
