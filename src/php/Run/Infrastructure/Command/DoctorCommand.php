@@ -7,6 +7,7 @@ namespace Phel\Run\Infrastructure\Command;
 use Gacela\Framework\Gacela;
 use Gacela\Framework\Health\HealthChecker;
 use Gacela\Framework\Health\HealthStatus;
+use Phel\Build\BuildFacade;
 use Phel\Filesystem\FilesystemFacade;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -69,6 +70,7 @@ final class DoctorCommand extends Command
 
         $report = (new HealthChecker([
             Gacela::getRequired(FilesystemFacade::class)->getHealthCheck(),
+            Gacela::getRequired(BuildFacade::class)->getHealthCheck(),
         ]))->checkAll();
 
         foreach ($report->getResults() as $moduleName => $status) {

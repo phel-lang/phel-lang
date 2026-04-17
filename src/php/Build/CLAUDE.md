@@ -21,6 +21,7 @@ Core build orchestrator: compiles Phel projects to PHP with dependency resolutio
 - `writeLocatedException(OutputInterface $output, CompilerException $e): void`
 - `writeStackTrace(OutputInterface $output, Throwable $e): void`
 - `clearCache(): array` — clear all build caches
+- `getHealthCheck(): ModuleHealthCheckInterface` — checks cache dir, output dir, and configured source dirs; consumed by `phel doctor`
 
 ## Dependencies
 

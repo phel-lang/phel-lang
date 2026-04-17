@@ -98,8 +98,10 @@
             "@csrun",
             "@psalm",
             "@phpstan",
-            "@rector"
+            "@rector",
+            "@validate-config"
         ],
+        "validate-config": "./bin/phel validate:config",
         "create-pr": "./tools/create-pr"
     }
 }

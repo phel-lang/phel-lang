@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phel\Build;
 
 use Gacela\Framework\AbstractFactory;
+use Gacela\Framework\Health\ModuleHealthCheckInterface;
+use Phel\Build\Application\BuildHealthCheck;
 use Phel\Build\Application\CacheClearer;
 use Phel\Build\Application\CachedNamespaceExtractor;
 use Phel\Build\Application\DependenciesForNamespace;
@@ -118,6 +120,15 @@ final class BuildFactory extends AbstractFactory
         return new CacheClearer(
             $this->getConfig()->getTempDir(),
             $this->getConfig()->getCacheDir(),
+        );
+    }
+
+    public function createBuildHealthCheck(): ModuleHealthCheckInterface
+    {
+        return new BuildHealthCheck(
+            $this->getConfig()->getCacheDir(),
+            $this->getCommandFacade()->getOutputDirectory(),
+            $this->getCommandFacade()->getSourceDirectories(),
         );
     }
 

@@ -10,6 +10,9 @@ All notable changes to this project will be documented in this file.
 - `cache:warm` command for pre-resolving module classes and persisting merged config
 - `cache:clear` also removes Gacela class-name and merged-config caches
 - `debug:container`, `debug:dependencies`, `debug:modules`, `list:modules`, `profile:report`, `validate:config` CLI commands
+- `validate:config` runs in `composer test-quality` to catch binding mismatches in CI
+- `build/preload.php` opcache preload script (Gacela core + Phel facades) for production throughput gains
+- `phel doctor` surfaces a Build module health check covering cache dir, output dir, and configured source dirs
 
 #### Build & Caching
 - Dependency-aware cache invalidation via `ScopedCache`
