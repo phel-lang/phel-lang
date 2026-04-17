@@ -248,6 +248,71 @@ final class MapBindingDeconstructorTest extends TestCase
         ], $bindings);
     }
 
+    public function test_deconstruct_syms(): void
+    {
+        // Test for binding like this (let [{:syms [a b]} x])
+        // This will be destructured to this:
+        // (let [__phel_1 x
+        //       __phel_2 (php/aget __phel_1 (quote a))
+        //       a __phel_2
+        //       __phel_3 (php/aget __phel_1 (quote b))
+        //       b __phel_3])
+
+        $binding = Phel::map(
+            Keyword::create('syms'),
+            Phel::vector([
+                Symbol::create('a'),
+                Symbol::create('b'),
+            ]),
+        );
+        $value = Symbol::create('x');
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $binding, $value);
+
+        self::assertEquals([
+            // __phel_1 x
+            [
+                Symbol::create('__phel_1'),
+                $value,
+            ],
+            // __phel_2 (php/aget __phel_1 (quote a))
+            [
+                Symbol::create('__phel_2'),
+                Phel::list([
+                    Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+                    Symbol::create('__phel_1'),
+                    Phel::list([
+                        Symbol::create(Symbol::NAME_QUOTE),
+                        Symbol::create('a'),
+                    ]),
+                ]),
+            ],
+            // a __phel_2
+            [
+                Symbol::create('a'),
+                Symbol::create('__phel_2'),
+            ],
+            // __phel_3 (php/aget __phel_1 (quote b))
+            [
+                Symbol::create('__phel_3'),
+                Phel::list([
+                    Symbol::create(Symbol::NAME_PHP_ARRAY_GET),
+                    Symbol::create('__phel_1'),
+                    Phel::list([
+                        Symbol::create(Symbol::NAME_QUOTE),
+                        Symbol::create('b'),
+                    ]),
+                ]),
+            ],
+            // b __phel_3
+            [
+                Symbol::create('b'),
+                Symbol::create('__phel_3'),
+            ],
+        ], $bindings);
+    }
+
     public function test_deconstruct_strs_with_as(): void
     {
         // Test for binding like this (let [{:strs [name] :as m} x])

@@ -38,6 +38,7 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
     {
         $keys = null;
         $strs = null;
+        $syms = null;
         $asSymbol = null;
         $orMap = null;
         $normalBindings = [];
@@ -50,6 +51,11 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
 
             if ($key instanceof Keyword && $key->getName() === 'strs') {
                 $strs = $bindTo;
+                continue;
+            }
+
+            if ($key instanceof Keyword && $key->getName() === 'syms') {
+                $syms = $bindTo;
                 continue;
             }
 
@@ -94,6 +100,18 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
             foreach ($strs as $sym) {
                 if ($sym instanceof Symbol) {
                     $this->bindingIteration($bindings, $binding, $sym->getName(), $sym);
+                }
+            }
+        }
+
+        if ($syms instanceof PersistentVectorInterface) {
+            foreach ($syms as $sym) {
+                if ($sym instanceof Symbol) {
+                    $quotedSym = Phel::list([
+                        Symbol::create(Symbol::NAME_QUOTE)->copyLocationFrom($binding),
+                        Symbol::create($sym->getName())->copyLocationFrom($binding),
+                    ])->copyLocationFrom($binding);
+                    $this->bindingIteration($bindings, $binding, $quotedSym, $sym);
                 }
             }
         }
