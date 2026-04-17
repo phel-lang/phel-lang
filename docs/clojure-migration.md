@@ -30,7 +30,7 @@ Most of Clojure's core library works identically in Phel:
 - **Macros**: `defn`, `def`, `defmacro`, `let`, `letfn`, `if`, `when`, `cond`, `case`, `condp`, `->`, `->>`, `as->`, `some->`, `some->>`, `cond->`, `cond->>`, `and`, `or`, `not`, `loop`/`recur`, `doseq`, `dotimes`, `for`, `if-some`, `when-some`, `when-first`, `assert`
 - **Protocols and types**: `defprotocol`, `extend-type`, `extend-protocol`, `satisfies?`, `extends?`, `reify`, `defrecord`, `deftype`
 - **Multimethods**: `defmulti`, `defmethod`, `isa?`, `derive`, `parents`, `ancestors`, `make-hierarchy`
-- **Destructuring**: vectors, maps, `:keys`, `:strs`, `:or`, `& rest`
+- **Destructuring**: vectors, maps, `:keys`, `:strs`, `:syms`, `:or`, `& rest`
 - **Metadata**: `meta`, `with-meta`, `vary-meta`, `^:keyword` reader syntax
 - **Atoms**: `atom`, `deref` / `@`, `swap!`, `reset!`, `add-watch`, `remove-watch`, `set-validator!`
 - **Delays and futures**: `delay`, `force`, `delay?`, `realized?`, `future`, `future-cancel`, `future-cancelled?`, `future-done?` (fiber-based via AMPHP)
