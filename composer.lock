@@ -157,16 +157,16 @@
         },
         {
             "name": "gacela-project/gacela",
-            "version": "1.14.2",
+            "version": "1.14.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/gacela-project/gacela.git",
-                "reference": "5797208bf7bd2b7dbd613b60e62198f95b01febf"
+                "reference": "a7d9ff25dfdeaa84ea1ed37e2af4dd9522b0d36a"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/5797208bf7bd2b7dbd613b60e62198f95b01febf",
-                "reference": "5797208bf7bd2b7dbd613b60e62198f95b01febf",
+                "url": "https://api.github.com/repos/gacela-project/gacela/zipball/a7d9ff25dfdeaa84ea1ed37e2af4dd9522b0d36a",
+                "reference": "a7d9ff25dfdeaa84ea1ed37e2af4dd9522b0d36a",
                 "shasum": ""
             },
             "require": {
@@ -179,11 +179,11 @@
                 "infection/infection": "^0.29",
                 "phpbench/phpbench": "^1.4",
                 "phpmetrics/phpmetrics": "^2.9",
-                "phpstan/phpstan": "^1.12",
-                "phpstan/phpstan-strict-rules": "^1.6",
+                "phpstan/phpstan": "^2.0",
+                "phpstan/phpstan-strict-rules": "^2.0",
                 "phpunit/phpunit": "^10.5",
                 "psalm/plugin-phpunit": "^0.19.5",
-                "rector/rector": "^1.2",
+                "rector/rector": "^2.0",
                 "symfony/console": "^6.4",
                 "symfony/dependency-injection": "^6.4",
                 "symfony/var-dumper": "^6.4",
@@ -230,7 +230,7 @@
             ],
             "support": {
                 "issues": "https://github.com/gacela-project/gacela/issues",
-                "source": "https://github.com/gacela-project/gacela/tree/1.14.2"
+                "source": "https://github.com/gacela-project/gacela/tree/1.14.3"
             },
             "funding": [
                 {
@@ -238,7 +238,7 @@
                     "type": "custom"
                 }
             ],
-            "time": "2026-04-17T16:17:31+00:00"
+            "time": "2026-04-17T17:04:55+00:00"
         },
         {
             "name": "psr/container",

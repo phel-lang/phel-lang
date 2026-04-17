@@ -184,10 +184,16 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
             return null;
         }
 
-        if ($rest->first() === null) {
-            return null;
+        // Check if rest is empty
+        if ($rest instanceof SeqInterface) {
+            $first = $rest->first();
+            if ($first === null) {
+                // Empty sequence
+                return null;
+            }
         }
 
+        // Wrap the rest in a LazySeq to maintain laziness
         if ($rest instanceof LazySeqInterface) {
             return $rest;
         }

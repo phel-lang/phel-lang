@@ -4,6 +4,7 @@
     findUnusedBaselineEntry="true"
     findUnusedCode="false"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xi="http://www.w3.org/2001/XInclude"
     xmlns="https://getpsalm.org/schema/config"
     xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
 >
@@ -19,16 +20,9 @@
         <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
     </plugins>
 
-    <issueHandlers>
-        <!-- Gacela dynamic resolution: magic methods from ServiceResolverAwareTrait -->
-        <UndefinedMagicMethod>
-            <errorLevel type="suppress">
-                <referencedMethod name="*::getFacade" />
-                <referencedMethod name="*::getFactory" />
-                <referencedMethod name="*::getConfig" />
-            </errorLevel>
-        </UndefinedMagicMethod>
+    <xi:include href="vendor/gacela-project/gacela/psalm-gacela.xml"/>
 
+    <issueHandlers>
         <!-- Suppress overly strict checks -->
         <MissingOverrideAttribute errorLevel="suppress" />
         <ClassMustBeFinal errorLevel="suppress" />

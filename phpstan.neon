@@ -1,3 +1,6 @@
+includes:
+    - vendor/gacela-project/gacela/phpstan-gacela.neon
+
 parameters:
     level: 5
     parallel:
@@ -6,8 +9,6 @@ parameters:
     paths:
         - %currentWorkingDirectory%/src/
     ignoreErrors:
-        # Gacela dynamic resolution: magic methods via ServiceResolverAwareTrait
-        - '#Call to an undefined method .+::(getFacade|getFactory|getConfig)\(\)\.$#'
         - identifier: trait.unused
         -
             identifier: while.alwaysTrue
@@ -19,35 +20,22 @@ parameters:
         -
             identifier: gacela.facadeOnlyDelegates
             path: src/php/Build/BuildFacade.php
-
-services:
-    -
-        class: Gacela\PHPStan\Rules\SuffixExtendsRule
-        tags: [phpstan.rules.rule]
-        arguments:
-            suffix: Facade
-            expectedParent: Gacela\Framework\AbstractFacade
-    -
-        class: Gacela\PHPStan\Rules\SuffixExtendsRule
-        tags: [phpstan.rules.rule]
-        arguments:
-            suffix: Factory
-            expectedParent: Gacela\Framework\AbstractFactory
-    -
-        class: Gacela\PHPStan\Rules\SuffixExtendsRule
-        tags: [phpstan.rules.rule]
-        arguments:
-            suffix: Provider
-            expectedParent: Gacela\Framework\AbstractProvider
-    -
-        class: Gacela\PHPStan\Rules\SuffixExtendsRule
-        tags: [phpstan.rules.rule]
-        arguments:
-            suffix: Config
-            expectedParent: Gacela\Framework\AbstractConfig
-    -
-        class: Gacela\PHPStan\Rules\FacadeOnlyDelegatesRule
-        tags: [phpstan.rules.rule]
-    -
-        class: Gacela\PHPStan\Rules\FactoryDoesNotCallFacadeRule
-        tags: [phpstan.rules.rule]
+        # LazySeq::cdr() checks instanceof SeqInterface for runtime safety
+        # even though PHPDoc inference says the type is already narrowed.
+        -
+            identifier: instanceof.alwaysTrue
+            path: src/php/Lang/Collections/LazySeq/LazySeq.php
+        # Phel-domain classes whose suffix coincides with Gacela pillar names
+        # but are not Gacela modules (they're plain Phel runtime/config types).
+        -
+            identifier: gacela.suffixExtends
+            paths:
+                - src/php/Compiler/Domain/Analyzer/SymbolSuggestionProvider.php
+                - src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitterFactory.php
+                - src/php/Compiler/Domain/Parser/ExpressionParserFactory.php
+                - src/php/Compiler/Domain/Reader/ExpressionReaderFactory.php
+                - src/php/Config/PhelBuildConfig.php
+                - src/php/Config/PhelConfig.php
+                - src/php/Config/PhelExportConfig.php
+                - src/php/Lang/Collections/LazySeq/LazySeqConfig.php
+                - src/php/Lang/TypeFactory.php
