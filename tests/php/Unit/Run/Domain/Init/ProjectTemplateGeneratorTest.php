@@ -17,29 +17,33 @@ final class ProjectTemplateGeneratorTest extends TestCase
         $this->generator = new ProjectTemplateGenerator();
     }
 
-    public function test_generate_config_conventional_layout(): void
-    {
-        $config = $this->generator->generateConfig('myapp\\main', ProjectLayout::Conventional);
-
-        self::assertStringContainsString('PhelConfig::forProject()', $config);
-        self::assertStringNotContainsString('useFlatLayout', $config);
-        self::assertStringNotContainsString('ProjectLayout::', $config);
-    }
-
     public function test_generate_config_flat_layout(): void
     {
         $config = $this->generator->generateConfig('myapp\\main', ProjectLayout::Flat);
 
-        self::assertStringContainsString('PhelConfig::forProject(layout:', $config);
-        self::assertStringContainsString('ProjectLayout::Flat', $config);
+        self::assertStringContainsString('use Phel\\Config\\PhelConfig;', $config);
+        self::assertStringContainsString("PhelConfig::forProject(mainNamespace: 'myapp\\main')", $config);
+        self::assertStringNotContainsString('ProjectLayout::', $config);
+    }
+
+    public function test_generate_config_nested_layout(): void
+    {
+        $config = $this->generator->generateConfig('myapp\\main', ProjectLayout::Nested);
+
+        self::assertStringContainsString('use Phel\\Config\\PhelConfig;', $config);
+        self::assertStringContainsString('use Phel\\Config\\ProjectLayout;', $config);
+        self::assertStringContainsString("mainNamespace: 'myapp\\main'", $config);
+        self::assertStringContainsString('layout: ProjectLayout::Nested', $config);
     }
 
     public function test_generate_config_root_layout(): void
     {
         $config = $this->generator->generateConfig('sandbox\\main', ProjectLayout::Root);
 
-        self::assertStringContainsString('PhelConfig::forProject(layout:', $config);
-        self::assertStringContainsString('ProjectLayout::Root', $config);
+        self::assertStringContainsString('use Phel\\Config\\PhelConfig;', $config);
+        self::assertStringContainsString('use Phel\\Config\\ProjectLayout;', $config);
+        self::assertStringContainsString("mainNamespace: 'sandbox\\main'", $config);
+        self::assertStringContainsString('layout: ProjectLayout::Root', $config);
     }
 
     public function test_generate_main_file(): void

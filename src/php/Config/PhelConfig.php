@@ -41,7 +41,7 @@ final class PhelConfig implements JsonSerializable
     public const string CACHE_DIR = 'cache-dir';
 
     /** @var list<string> */
-    public const array DEFAULT_SRC_DIRS = ['src/phel'];
+    public const array DEFAULT_SRC_DIRS = ['src'];
 
     private const string PHEL_TEMP_SUBDIR = '/phel';
 
@@ -49,7 +49,7 @@ final class PhelConfig implements JsonSerializable
     private array $srcDirs = self::DEFAULT_SRC_DIRS;
 
     /** @var list<string> */
-    private array $testDirs = ['tests/phel'];
+    private array $testDirs = ['tests'];
 
     private string $vendorDir = 'vendor';
 
@@ -72,7 +72,7 @@ final class PhelConfig implements JsonSerializable
     private string $cacheDir;
 
     /** @var list<string> */
-    private array $formatDirs = ['src/phel', 'tests/phel'];
+    private array $formatDirs = ['src', 'tests'];
 
     private bool $enableAsserts = true;
 
@@ -96,7 +96,7 @@ final class PhelConfig implements JsonSerializable
      *
      * - Pass `$layout` to force a specific layout. When omitted, the layout is
      *   auto-detected from the current working directory: `src/phel/` →
-     *   Conventional, `src/` → Flat, otherwise → Root.
+     *   Nested, `src/` → Flat, otherwise → Root.
      * - `$mainNamespace` is optional; when left blank, the build step infers it
      *   from `core.phel` / `main.phel` at the configured source roots.
      *
@@ -104,7 +104,7 @@ final class PhelConfig implements JsonSerializable
      *   return PhelConfig::forProject();                                 // zero-config, auto-detects layout + namespace
      *   return PhelConfig::forProject('my-app\core');                    // explicit namespace
      *   return PhelConfig::forProject(layout: ProjectLayout::Root);      // single-file / scratch project
-     *   return PhelConfig::forProject('my-app\main', ProjectLayout::Flat);
+     *   return PhelConfig::forProject('my-app\main', ProjectLayout::Nested);
      */
     public static function forProject(
         string $mainNamespace = '',
@@ -219,7 +219,7 @@ final class PhelConfig implements JsonSerializable
     // ========================================
 
     /**
-     * Apply a project layout (conventional or flat).
+     * Apply a project layout (nested or flat).
      */
     public function useLayout(ProjectLayout $layout): self
     {
@@ -232,16 +232,16 @@ final class PhelConfig implements JsonSerializable
     }
 
     /**
-     * Use conventional directory layout: src/phel and tests/phel.
-     * This is the recommended structure for Phel projects.
+     * Use nested directory layout: src/phel and tests/phel.
+     * Useful when the project also hosts PHP sources alongside Phel.
      */
-    public function useConventionalLayout(): self
+    public function useNestedLayout(): self
     {
-        return $this->useLayout(ProjectLayout::Conventional);
+        return $this->useLayout(ProjectLayout::Nested);
     }
 
     /**
-     * Use flat directory layout: src and tests (for simpler projects).
+     * Use flat directory layout: src and tests (default, simpler projects).
      */
     public function useFlatLayout(): self
     {
@@ -507,17 +507,17 @@ final class PhelConfig implements JsonSerializable
 
     /**
      * Auto-detect the most likely layout from the current working directory.
-     * Falls back to Conventional when the cwd is not available or probing fails.
+     * Falls back to Flat when the cwd is not available or probing fails.
      */
     private static function detectLayout(): ProjectLayout
     {
         $cwd = getcwd();
         if ($cwd === false) {
-            return ProjectLayout::Conventional;
+            return ProjectLayout::Flat;
         }
 
         if (is_dir($cwd . '/src/phel')) {
-            return ProjectLayout::Conventional;
+            return ProjectLayout::Nested;
         }
 
         if (is_dir($cwd . '/src')) {

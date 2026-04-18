@@ -9,9 +9,9 @@ use PHPUnit\Framework\TestCase;
 
 final class ProjectLayoutTest extends TestCase
 {
-    public function test_conventional_layout_directories(): void
+    public function test_nested_layout_directories(): void
     {
-        $layout = ProjectLayout::Conventional;
+        $layout = ProjectLayout::Nested;
 
         self::assertSame('src/phel', $layout->getSrcDir());
         self::assertSame('tests/phel', $layout->getTestDir());
@@ -41,7 +41,7 @@ final class ProjectLayoutTest extends TestCase
 
     public function test_enum_values(): void
     {
-        self::assertSame('conventional', ProjectLayout::Conventional->value);
+        self::assertSame('nested', ProjectLayout::Nested->value);
         self::assertSame('flat', ProjectLayout::Flat->value);
         self::assertSame('root', ProjectLayout::Root->value);
     }

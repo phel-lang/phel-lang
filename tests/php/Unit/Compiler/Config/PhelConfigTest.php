@@ -17,8 +17,8 @@ final class PhelConfigTest extends TestCase
         $config = new PhelConfig();
 
         $expected = [
-            PhelConfig::SRC_DIRS => ['src/phel'],
-            PhelConfig::TEST_DIRS => ['tests/phel'],
+            PhelConfig::SRC_DIRS => ['src'],
+            PhelConfig::TEST_DIRS => ['tests'],
             PhelConfig::VENDOR_DIR => 'vendor',
             PhelConfig::ERROR_LOG_FILE => '/tmp/phel-error.log',
             PhelConfig::BUILD_CONFIG => [
@@ -29,14 +29,14 @@ final class PhelConfigTest extends TestCase
             ],
             PhelConfig::EXPORT_CONFIG => [
                 PhelExportConfig::TARGET_DIRECTORY => 'src/PhelGenerated',
-                PhelExportConfig::FROM_DIRECTORIES => ['src/phel'],
+                PhelExportConfig::FROM_DIRECTORIES => ['src'],
                 PhelExportConfig::NAMESPACE_PREFIX => 'PhelGenerated',
             ],
             PhelConfig::IGNORE_WHEN_BUILDING => [],
             PhelConfig::NO_CACHE_WHEN_BUILDING => [],
             PhelConfig::KEEP_GENERATED_TEMP_FILES => false,
             PhelConfig::TEMP_DIR => sys_get_temp_dir() . '/phel/tmp',
-            PhelConfig::FORMAT_DIRS => ['src/phel', 'tests/phel'],
+            PhelConfig::FORMAT_DIRS => ['src', 'tests'],
             PhelConfig::ASSERTS_ENABLED => true,
             PhelConfig::ENABLE_NAMESPACE_CACHE => true,
             PhelConfig::ENABLE_COMPILED_CODE_CACHE => true,
@@ -48,7 +48,7 @@ final class PhelConfigTest extends TestCase
 
     public function test_for_project_factory(): void
     {
-        $config = PhelConfig::forProject('my-app\\core', ProjectLayout::Conventional);
+        $config = PhelConfig::forProject('my-app\\core', ProjectLayout::Nested);
 
         $serialized = $config->jsonSerialize();
 
@@ -87,7 +87,7 @@ final class PhelConfigTest extends TestCase
     public function test_for_project_factory_without_namespace(): void
     {
         // Without a layout arg, auto-detect runs against the current cwd.
-        // PHPUnit runs from the phel-lang repo root, which has src/phel → Conventional.
+        // PHPUnit runs from the phel-lang repo root, which has src/phel → Nested.
         $config = PhelConfig::forProject();
 
         $serialized = $config->jsonSerialize();
@@ -157,9 +157,9 @@ final class PhelConfigTest extends TestCase
         self::assertSame(['src'], $serialized[PhelConfig::EXPORT_CONFIG][PhelExportConfig::FROM_DIRECTORIES]);
     }
 
-    public function test_use_conventional_layout(): void
+    public function test_use_nested_layout(): void
     {
-        $config = (new PhelConfig())->useFlatLayout()->useConventionalLayout();
+        $config = (new PhelConfig())->useFlatLayout()->useNestedLayout();
 
         $serialized = $config->jsonSerialize();
 
@@ -253,8 +253,8 @@ final class PhelConfigTest extends TestCase
     {
         $config = new PhelConfig();
 
-        self::assertSame(['src/phel'], $config->getSrcDirs());
-        self::assertSame(['tests/phel'], $config->getTestDirs());
+        self::assertSame(['src'], $config->getSrcDirs());
+        self::assertSame(['tests'], $config->getTestDirs());
         self::assertSame('vendor', $config->getVendorDir());
         self::assertSame('/tmp/phel-error.log', $config->getErrorLogFile());
         self::assertInstanceOf(PhelBuildConfig::class, $config->getBuildConfig());
@@ -262,7 +262,7 @@ final class PhelConfigTest extends TestCase
         self::assertSame([], $config->getIgnoreWhenBuilding());
         self::assertSame([], $config->getNoCacheWhenBuilding());
         self::assertFalse($config->getKeepGeneratedTempFiles());
-        self::assertSame(['src/phel', 'tests/phel'], $config->getFormatDirs());
+        self::assertSame(['src', 'tests'], $config->getFormatDirs());
         self::assertTrue($config->isAssertsEnabled());
         self::assertTrue($config->isNamespaceCacheEnabled());
         self::assertTrue($config->isCompiledCodeCacheEnabled());

@@ -9,7 +9,7 @@ use Phel\Config\PhelConfig;
 
 final class FormatterConfig extends AbstractConfig
 {
-    private const array DEFAULT_FORMAT_DIRS = ['src/phel', 'tests/phel'];
+    private const array DEFAULT_FORMAT_DIRS = ['src', 'tests'];
 
     public function getFormatDirs(): array
     {
