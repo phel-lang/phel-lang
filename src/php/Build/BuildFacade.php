@@ -154,4 +154,11 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
     {
         return $this->getFactory()->createBuildHealthCheck();
     }
+
+    public function getOutputDirectory(): string
+    {
+        return $this->getFactory()
+            ->getCommandFacade()
+            ->getOutputDirectory();
+    }
 }

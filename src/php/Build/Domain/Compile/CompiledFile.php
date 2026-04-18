@@ -10,6 +10,7 @@ final readonly class CompiledFile
         private string $sourceFile,
         private string $targetFile,
         private string $namespace,
+        private bool $cached = false,
     ) {}
 
     public function getSourceFile(): string
@@ -25,5 +26,10 @@ final readonly class CompiledFile
     public function getNamespace(): string
     {
         return $this->namespace;
+    }
+
+    public function isCached(): bool
+    {
+        return $this->cached;
     }
 }

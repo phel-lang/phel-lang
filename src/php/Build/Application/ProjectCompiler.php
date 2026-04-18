@@ -104,6 +104,13 @@ final readonly class ProjectCompiler
                     BuildFacade::disableBuildMode();
                 }
 
+                $result[] = new CompiledFile(
+                    $info->getFile(),
+                    $targetFile,
+                    $info->getNamespace(),
+                    cached: true,
+                );
+
                 continue;
             }
 
