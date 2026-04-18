@@ -112,6 +112,46 @@
   (is (= [] (ai/tool-calls {:content nil})) "handles nil content")
   (is (= [] (ai/tool-calls {})) "handles missing content"))
 
+(deftest test-tool-calls-openai-format
+  (let [response {:choices [{:message {:role "assistant"
+                                       :content nil
+                                       :tool_calls [{:id "call_openai"
+                                                     :type "function"
+                                                     :function {:name "get-weather"
+                                                                :arguments "{\"city\":\"Paris\"}"}}]}}]}
+        calls (ai/tool-calls response)]
+    (is (= 1 (count calls)) "extracts openai tool call")
+    (is (= "get-weather" (get (first calls) :name)) "extracts openai tool name")
+    (is (= "call_openai" (get (first calls) :id)) "extracts openai tool id")
+    (is (= "Paris" (get (get (first calls) :input) :city)) "parses openai arguments json")))
+
+(deftest test-tool-calls-chat-with-tools-result
+  (let [normalized {:tool-calls [{:name "t" :id "1" :input {}}]}]
+    (is (= 1 (count (ai/tool-calls normalized))) "passes through chat-with-tools map")))
+
+;; --- Tool result ---
+
+(deftest test-tool-result-anthropic-format
+  (let [original @ai/config]
+    (ai/configure {:provider :anthropic})
+    (let [msg (ai/tool-result "call-1" "72F sunny")]
+      (is (= "user" (get msg :role)) "anthropic tool_result uses user role")
+      (let [block (first (get msg :content))]
+        (is (= "tool_result" (get block :type)) "block type is tool_result")
+        (is (= "call-1" (get block :tool_use_id)) "block carries tool_use_id")
+        (is (= "72F sunny" (get block :content)) "block carries content")))
+    (reset! ai/config original)))
+
+(deftest test-tool-result-openai-format
+  (let [msg (ai/tool-result "call-1" "42" {:provider :openai})]
+    (is (= "tool" (get msg :role)) "openai tool message uses tool role")
+    (is (= "call-1" (get msg :tool_call_id)) "openai message carries tool_call_id")
+    (is (= "42" (get msg :content)) "openai message carries content")))
+
+(deftest test-tool-result-coerces-non-string
+  (let [msg (ai/tool-result "call-1" 42 {:provider :openai})]
+    (is (= "42" (get msg :content)) "numeric result is stringified")))
+
 ;; --- Extract requires API ---
 
 (deftest test-extract-requires-api-key
@@ -250,6 +290,7 @@
   (is (function? ai/tool) "tool is defined")
   (is (function? ai/chat-with-tools) "chat-with-tools is defined")
   (is (function? ai/tool-calls) "tool-calls is defined")
+  (is (function? ai/tool-result) "tool-result is defined")
   ;; Embeddings & search
   (is (function? ai/dot-product) "dot-product is defined")
   (is (function? ai/magnitude) "magnitude is defined")
