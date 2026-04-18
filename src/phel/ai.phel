@@ -21,6 +21,11 @@
    :example "@ai/config"}
   (atom default-config))
 
+(def *http-post*
+  {:doc "HTTP POST seam. Rebind with `binding` in tests to inject a fake transport."
+   :example "(binding [*http-post* (fn [url opts] {:status 200 :body \"...\"})] ...)"}
+  hc/post)
+
 (defn configure
   "Merges the given options into the AI configuration.
 
@@ -136,7 +141,7 @@
   "Posts with retry on 429 / 5xx up to max-retries."
   [url opts max-retries]
   (loop [attempt 0]
-    (let [response (hc/post url opts)
+    (let [response (*http-post* url opts)
           status (get response :status)]
       (if (and (retryable-status? status) (< attempt max-retries))
         (do
@@ -203,18 +208,25 @@
 ;; Error handling
 ;; -----------
 
+(defn- provider-error-message
+  "Extracts a human-readable error message from a decoded provider error body."
+  [parsed fallback]
+  (let [err (when (map? parsed) (get parsed :error))]
+    (cond
+      (and (map? err) (get err :message)) (get err :message)
+      (string? err) err
+      :else fallback)))
+
 (defn- check-response
   "Checks an HTTP response for errors and throws if the request failed."
   [response]
   (let [status (get response :status)]
     (when (or (< status 200) (>= status 300))
       (let [body (get response :body)
-            parsed (try (json/decode body) (catch \Throwable _e {:error body}))]
+            parsed (try (json/decode body) (catch \Throwable _e nil))]
         (throw (php/new RuntimeException
                  (str "AI API error (HTTP " status "): "
-                      (or (get-in parsed [:error :message])
-                          (get parsed :error)
-                          body))))))))
+                      (provider-error-message parsed body))))))))
 
 (defn- send-request
   "Sends a prepared request map with retry + timeout."
@@ -232,12 +244,14 @@
 (defn- apply-opts
   "Merges per-call opts into cfg."
   [cfg opts]
-  (let [cfg (if (get opts :model) (assoc cfg :model (get opts :model)) cfg)
+  (let [opts (or opts {})
+        cfg (if (get opts :model) (assoc cfg :model (get opts :model)) cfg)
         cfg (if (get opts :max-tokens) (assoc cfg :max-tokens (get opts :max-tokens)) cfg)
         cfg (if (get opts :provider) (assoc cfg :provider (get opts :provider)) cfg)
         cfg (if (get opts :timeout) (assoc cfg :timeout (get opts :timeout)) cfg)
         cfg (if (get opts :base-url) (assoc cfg :base-url (get opts :base-url)) cfg)
-        cfg (if (get opts :api-key) (assoc cfg :api-key (get opts :api-key)) cfg)]
+        cfg (if (get opts :api-key) (assoc cfg :api-key (get opts :api-key)) cfg)
+        cfg (if (contains? opts :max-retries) (assoc cfg :max-retries (get opts :max-retries)) cfg)]
     cfg))
 
 ;; -----------
@@ -541,8 +555,8 @@
     (check-response response)
     (let [body (json/decode (get response :body))
           data (get body :data)]
-      (for [item :in data]
-        (get item :embedding)))))
+      (vec (for [item :in data]
+             (get item :embedding))))))
 
 (defn embed
   "Generates embeddings for one or more text strings.

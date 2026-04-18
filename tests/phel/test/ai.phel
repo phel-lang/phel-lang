@@ -1,7 +1,20 @@
 (ns phel-test\test\ai
   (:require phel\test :refer [deftest is])
   (:require phel\ai :as ai)
-  (:require phel\json))
+  (:require phel\json)
+  (:require phel\mock :refer [mock-fn calls call-count first-call]))
+
+;; --- Mock HTTP helpers ---
+
+(defn- ok-response [body-map]
+  {:status 200 :body (json/encode body-map)})
+
+(defn- status-response [status body-map]
+  {:status status :body (json/encode body-map)})
+
+(defn- body-of [call] (get (second call) :json))
+(defn- url-of [call] (first call))
+(defn- headers-of [call] (get (second call) :headers))
 
 ;; --- Configuration ---
 
@@ -300,3 +313,351 @@
   (is (function? ai/nearest) "nearest is defined")
   (is (function? ai/build-index) "build-index is defined")
   (is (function? ai/search) "search is defined"))
+
+;; =====================================================================
+;; Mock-HTTP coverage — exercises chat/complete/extract/chat-with-tools
+;; /embed/build-index/search/retry without real network.
+;; =====================================================================
+
+;; --- chat (anthropic) ---
+
+(deftest test-chat-anthropic-happy-path
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "hi there"}]})))]
+    (binding [ai/*http-post* fake]
+      (let [result (ai/chat [{:role "user" :content "hi"}] {:api-key "sk-test"})]
+        (is (= "hi there" result) "returns assistant text")
+        (is (= 1 (call-count fake)) "makes one HTTP call")
+        (let [call (first-call fake)]
+          (is (php/str_contains (url-of call) "api.anthropic.com/v1/messages") "hits anthropic messages endpoint")
+          (is (= "sk-test" (get (headers-of call) :x-api-key)) "sends x-api-key header")
+          (is (= "2023-06-01" (get (headers-of call) :anthropic-version)) "sends anthropic-version")
+          (is (= 1024 (get (body-of call) :max_tokens)) "sends max_tokens from config")
+          (is (= 1 (count (get (body-of call) :messages))) "includes user message"))))))
+
+(deftest test-chat-anthropic-with-system-prompt
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "ok"}]})))]
+    (binding [ai/*http-post* fake]
+      (ai/chat [{:role "user" :content "hi"}]
+               {:api-key "k" :system "You are concise."})
+      (let [body (body-of (first-call fake))]
+        (is (= "You are concise." (get body :system)) "anthropic uses top-level :system field")))))
+
+(deftest test-chat-anthropic-skips-non-text-blocks
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "tool_use" :id "x" :name "t" :input {}}
+                                                        {:type "text" :text "real answer"}]})))]
+    (binding [ai/*http-post* fake]
+      (is (= "real answer" (ai/chat [{:role "user" :content "hi"}] {:api-key "k"}))
+          "extracts text block even when non-text block comes first"))))
+
+(deftest test-chat-throws-when-no-text-in-response
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "tool_use" :id "x" :name "t" :input {}}]})))]
+    (binding [ai/*http-post* fake]
+      (is (thrown? \RuntimeException (ai/chat [{:role "user" :content "hi"}] {:api-key "k"}))
+          "throws when response has no text content"))))
+
+;; --- chat (openai) ---
+
+(deftest test-chat-openai-happy-path
+  (let [fake (mock-fn (fn [_ _] (ok-response {:choices [{:message {:role "assistant" :content "gpt reply"}}]})))]
+    (binding [ai/*http-post* fake]
+      (let [result (ai/chat [{:role "user" :content "hi"}]
+                            {:api-key "sk-oa" :provider :openai})]
+        (is (= "gpt reply" result) "returns content from openai response")
+        (let [call (first-call fake)]
+          (is (php/str_contains (url-of call) "api.openai.com/v1/chat/completions") "hits openai endpoint")
+          (is (= "Bearer sk-oa" (get (headers-of call) :authorization)) "uses bearer auth"))))))
+
+(deftest test-chat-openai-prepends-system-message
+  (let [fake (mock-fn (fn [_ _] (ok-response {:choices [{:message {:content "ok"}}]})))]
+    (binding [ai/*http-post* fake]
+      (ai/chat [{:role "user" :content "hi"}]
+               {:api-key "k" :provider :openai :system "concise"})
+      (let [msgs (get (body-of (first-call fake)) :messages)]
+        (is (= "system" (get (first msgs) :role)) "openai prepends system role message")
+        (is (= "concise" (get (first msgs) :content)) "system message carries prompt")))))
+
+;; --- Per-call option overrides ---
+
+(deftest test-chat-honors-model-override
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "ok"}]})))]
+    (binding [ai/*http-post* fake]
+      (ai/chat [{:role "user" :content "hi"}]
+               {:api-key "k" :model "claude-opus-test"})
+      (is (= "claude-opus-test" (get (body-of (first-call fake)) :model)) "model opt reaches body"))))
+
+(deftest test-chat-honors-max-tokens-override
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "ok"}]})))]
+    (binding [ai/*http-post* fake]
+      (ai/chat [{:role "user" :content "hi"}]
+               {:api-key "k" :max-tokens 77})
+      (is (= 77 (get (body-of (first-call fake)) :max_tokens)) "max-tokens opt reaches body"))))
+
+(deftest test-chat-honors-base-url-override
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "ok"}]})))]
+    (binding [ai/*http-post* fake]
+      (ai/chat [{:role "user" :content "hi"}]
+               {:api-key "k" :base-url "https://proxy.example.com"})
+      (is (php/str_contains (url-of (first-call fake)) "proxy.example.com") "base-url opt reaches request url"))))
+
+(deftest test-chat-honors-timeout-override
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "ok"}]})))]
+    (binding [ai/*http-post* fake]
+      (ai/chat [{:role "user" :content "hi"}]
+               {:api-key "k" :timeout 7})
+      (is (= 7 (get (second (first-call fake)) :timeout)) "timeout opt reaches hc/post"))))
+
+(deftest test-chat-honors-provider-override
+  (let [fake (mock-fn (fn [_ _] (ok-response {:choices [{:message {:content "oa"}}]})))]
+    (binding [ai/*http-post* fake]
+      (let [result (ai/chat [{:role "user" :content "hi"}]
+                            {:api-key "k" :provider :openai})]
+        (is (= "oa" result) "provider override changes request shape")))))
+
+;; --- complete / chat-with-history ---
+
+(deftest test-complete-sends-single-user-message
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "done"}]})))]
+    (binding [ai/*http-post* fake]
+      (is (= "done" (ai/complete "prompt" {:api-key "k"})) "returns text")
+      (let [msgs (get (body-of (first-call fake)) :messages)]
+        (is (= 1 (count msgs)) "one message")
+        (is (= "user" (get (first msgs) :role)) "role user")
+        (is (= "prompt" (get (first msgs) :content)) "prompt reaches content")))))
+
+(deftest test-chat-with-history-appends-assistant
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "reply"}]})))]
+    (binding [ai/*http-post* fake]
+      (let [history [{:role "user" :content "hi"}
+                     {:role "assistant" :content "hello"}]
+            result (ai/chat-with-history history "how are you?" {:api-key "k"})]
+        (is (= 4 (count result)) "returns history with new user + assistant appended")
+        (is (= "user" (get (nth result 2) :role)) "appends user message before assistant")
+        (is (= "how are you?" (get (nth result 2) :content)) "new user message included")
+        (is (= "reply" (get (nth result 3) :content)) "assistant reply appended last")))))
+
+;; --- extract / extract-many ---
+
+(deftest test-extract-bare-json-response
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "{\"name\":\"Alice\",\"age\":30}"}]})))]
+    (binding [ai/*http-post* fake]
+      (let [result (ai/extract {:name "string" :age "integer"} "Alice is 30" {:api-key "k"})]
+        (is (= "Alice" (get result :name)) "extracts name")
+        (is (= 30 (get result :age)) "extracts age")))))
+
+(deftest test-extract-fenced-json-block
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "Here:\n```json\n{\"x\":1}\n```"}]})))]
+    (binding [ai/*http-post* fake]
+      (is (= 1 (get (ai/extract {:x "integer"} "text" {:api-key "k"}) :x))
+          "parses json from fenced code block"))))
+
+(deftest test-extract-prose-wrapped-json
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "Here is the answer {\"x\":42} done"}]})))]
+    (binding [ai/*http-post* fake]
+      (is (= 42 (get (ai/extract {:x "integer"} "text" {:api-key "k"}) :x))
+          "parses json surrounded by prose"))))
+
+(deftest test-extract-throws-on-invalid-json
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "no json here"}]})))]
+    (binding [ai/*http-post* fake]
+      (is (thrown? \RuntimeException (ai/extract {:x "integer"} "text" {:api-key "k"}))
+          "throws when response has no extractable json object"))))
+
+(deftest test-extract-many-bare-array
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "[{\"name\":\"a\"},{\"name\":\"b\"}]"}]})))]
+    (binding [ai/*http-post* fake]
+      (let [result (ai/extract-many {:name "string"} "a and b" {:api-key "k"})]
+        (is (= 2 (count result)) "returns two items")
+        (is (= "a" (get (first result) :name)) "first item correct")))))
+
+(deftest test-extract-many-prose-wrapped-array
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "Results: [{\"id\":1}] done."}]})))]
+    (binding [ai/*http-post* fake]
+      (is (= 1 (count (ai/extract-many {:id "integer"} "text" {:api-key "k"})))
+          "extracts array surrounded by prose"))))
+
+(deftest test-extract-many-throws-on-invalid
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "nothing"}]})))]
+    (binding [ai/*http-post* fake]
+      (is (thrown? \RuntimeException (ai/extract-many {:id "integer"} "text" {:api-key "k"}))
+          "throws when response has no array"))))
+
+;; --- chat-with-tools (happy paths) ---
+
+(deftest test-chat-with-tools-anthropic-returns-normalized-map
+  (let [fake (mock-fn (fn [_ _]
+                        (ok-response {:content [{:type "text" :text "let me check"}
+                                                {:type "tool_use" :id "tu_1" :name "get-weather"
+                                                 :input {:city "Paris"}}]
+                                      :stop_reason "tool_use"})))]
+    (binding [ai/*http-post* fake]
+      (let [result (ai/chat-with-tools [{:role "user" :content "weather?"}]
+                                       [(ai/tool "get-weather" "Gets weather" {:city "string"})]
+                                       {:api-key "k"})]
+        (is (= "let me check" (get result :text)) "returns text")
+        (is (= "tool_use" (get result :stop-reason)) "returns stop-reason")
+        (is (= 1 (count (get result :tool-calls))) "returns one tool call")
+        (is (= "get-weather" (get (first (get result :tool-calls)) :name)) "tool name correct")
+        (is (= "Paris" (get (get (first (get result :tool-calls)) :input) :city)) "tool input correct")
+        (is (map? (get result :raw)) "includes raw response")))))
+
+(deftest test-chat-with-tools-anthropic-sends-tools-in-body
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "ok"}] :stop_reason "end_turn"})))]
+    (binding [ai/*http-post* fake]
+      (ai/chat-with-tools [{:role "user" :content "hi"}]
+                          [(ai/tool "t1" "desc" {:a "string"})]
+                          {:api-key "k"})
+      (let [body (body-of (first-call fake))
+            tools (get body :tools)]
+        (is (= 1 (count tools)) "one tool sent")
+        (is (= "t1" (get (first tools) :name)) "tool name preserved for anthropic")))))
+
+(deftest test-chat-with-tools-openai-converts-tool-shape
+  (let [fake (mock-fn (fn [_ _]
+                        (ok-response {:choices [{:finish_reason "tool_calls"
+                                                 :message {:role "assistant"
+                                                           :content nil
+                                                           :tool_calls [{:id "call_1"
+                                                                         :type "function"
+                                                                         :function {:name "t1"
+                                                                                    :arguments "{\"a\":\"x\"}"}}]}}]})))]
+    (binding [ai/*http-post* fake]
+      (let [result (ai/chat-with-tools [{:role "user" :content "hi"}]
+                                       [(ai/tool "t1" "desc" {:a "string"})]
+                                       {:api-key "k" :provider :openai})]
+        (is (= "tool_calls" (get result :stop-reason)) "openai finish_reason mapped to stop-reason")
+        (is (= 1 (count (get result :tool-calls))) "one openai tool call parsed")
+        (is (= "t1" (get (first (get result :tool-calls)) :name)) "openai tool name")
+        (is (= "x" (get (get (first (get result :tool-calls)) :input) :a)) "openai arguments json decoded")
+        (let [body (body-of (first-call fake))
+              tools (get body :tools)]
+          (is (= "function" (get (first tools) :type)) "openai tool uses function shape")
+          (is (= "t1" (get-in (first tools) [:function :name])) "function name set"))))))
+
+;; --- Retry / backoff ---
+
+(deftest test-retry-recovers-from-429
+  (let [n (atom 0)
+        fake (mock-fn (fn [_ _]
+                        (swap! n + 1)
+                        (if (= @n 1)
+                          (status-response 429 {:error "rate limited"})
+                          (ok-response {:content [{:type "text" :text "ok"}]}))))]
+    (binding [ai/*http-post* fake]
+      (is (= "ok" (ai/complete "hi" {:api-key "k" :max-retries 2})) "recovers after 429")
+      (is (= 2 (call-count fake)) "makes exactly 2 calls"))))
+
+(deftest test-retry-recovers-from-500
+  (let [n (atom 0)
+        fake (mock-fn (fn [_ _]
+                        (swap! n + 1)
+                        (if (<= @n 2)
+                          (status-response 503 {:error "unavailable"})
+                          (ok-response {:content [{:type "text" :text "ok"}]}))))]
+    (binding [ai/*http-post* fake]
+      (is (= "ok" (ai/complete "hi" {:api-key "k" :max-retries 3})) "recovers after 503")
+      (is (= 3 (call-count fake)) "makes exactly 3 calls"))))
+
+(deftest test-retry-gives-up-after-max-retries
+  (let [fake (mock-fn (fn [_ _] (status-response 500 {:error "boom"})))]
+    (binding [ai/*http-post* fake]
+      (is (thrown? \RuntimeException (ai/complete "hi" {:api-key "k" :max-retries 1}))
+          "throws after exhausting retries")
+      (is (= 2 (call-count fake)) "calls = initial + max-retries"))))
+
+(deftest test-retry-does-not-retry-on-4xx-other-than-429
+  (let [fake (mock-fn (fn [_ _] (status-response 401 {:error {:message "bad key"}})))]
+    (binding [ai/*http-post* fake]
+      (is (thrown? \RuntimeException (ai/complete "hi" {:api-key "k" :max-retries 5}))
+          "401 throws immediately")
+      (is (= 1 (call-count fake)) "no retry on 401"))))
+
+(deftest test-error-message-includes-provider-error
+  (let [fake (mock-fn (fn [_ _] (status-response 400 {:error {:message "bad prompt"}})))]
+    (binding [ai/*http-post* fake]
+      (try
+        (ai/complete "hi" {:api-key "k"})
+        (is false "should have thrown")
+        (catch \RuntimeException e
+          (is (php/str_contains (php/-> e (getMessage)) "bad prompt") "error surfaces provider message")
+          (is (php/str_contains (php/-> e (getMessage)) "400") "error includes status code"))))))
+
+;; --- Embeddings ---
+;; Note: responses use raw JSON strings because phel\json stringifies floats
+;; during encode (e.g. 0.1 → "0.1"), which would corrupt embedding vectors.
+
+(defn- raw-ok [json-str] {:status 200 :body json-str})
+
+(deftest test-embed-openai-request-shape
+  (let [fake (mock-fn (fn [_ _] (raw-ok "{\"data\":[{\"embedding\":[0.1,0.2,0.3]},{\"embedding\":[0.4,0.5,0.6]}]}")))]
+    (binding [ai/*http-post* fake]
+      (let [original @ai/config]
+        (ai/configure {:provider :openai :api-key "sk-oa"})
+        (let [result (ai/embed ["a" "b"])]
+          (is (= 2 (count result)) "returns two embeddings")
+          (is (= [0.1 0.2 0.3] (first result)) "first embedding correct")
+          (is (= [0.4 0.5 0.6] (second result)) "second embedding correct")
+          (let [call (first-call fake)]
+            (is (php/str_contains (url-of call) "api.openai.com/v1/embeddings") "hits openai embeddings")
+            (is (= "Bearer sk-oa" (get (headers-of call) :authorization)) "bearer auth")
+            (is (= "text-embedding-3-small" (get (body-of call) :model)) "uses default openai model")))
+        (reset! ai/config original)))))
+
+(deftest test-embed-voyageai-provider
+  (let [fake (mock-fn (fn [_ _] (raw-ok "{\"data\":[{\"embedding\":[0.9,0.1]}]}")))]
+    (binding [ai/*http-post* fake]
+      (let [original @ai/config]
+        (ai/configure {:api-key "voy-k"})
+        (let [result (ai/embed ["x"] {:provider :voyageai})]
+          (is (= [[0.9 0.1]] result) "returns voyage embedding")
+          (let [call (first-call fake)]
+            (is (php/str_contains (url-of call) "api.voyageai.com") "hits voyage endpoint")
+            (is (= "voyage-3-lite" (get (body-of call) :model)) "uses voyage default model")))
+        (reset! ai/config original)))))
+
+(deftest test-embed-honors-model-override
+  (let [fake (mock-fn (fn [_ _] (raw-ok "{\"data\":[{\"embedding\":[0.1]}]}")))]
+    (binding [ai/*http-post* fake]
+      (let [original @ai/config]
+        (ai/configure {:provider :openai :api-key "k"})
+        (ai/embed ["x"] {:model "text-embedding-3-large"})
+        (is (= "text-embedding-3-large" (get (body-of (first-call fake)) :model)) "model override reaches body")
+        (reset! ai/config original)))))
+
+(deftest test-embed-one-returns-single-vector
+  (let [fake (mock-fn (fn [_ _] (raw-ok "{\"data\":[{\"embedding\":[0.5,0.6]}]}")))]
+    (binding [ai/*http-post* fake]
+      (let [original @ai/config]
+        (ai/configure {:provider :openai :api-key "k"})
+        (is (= [0.5 0.6] (ai/embed-one "hi")) "returns single embedding unwrapped")
+        (reset! ai/config original)))))
+
+;; --- build-index / search ---
+
+(deftest test-build-index-attaches-embeddings-to-texts
+  (let [fake (mock-fn (fn [_ _] (raw-ok "{\"data\":[{\"embedding\":[0.1,0.9]},{\"embedding\":[0.9,0.1]}]}")))]
+    (binding [ai/*http-post* fake]
+      (let [original @ai/config]
+        (ai/configure {:provider :openai :api-key "k"})
+        (let [index (ai/build-index ["hello" "world"])
+              items (to-php-array index)]
+          (is (= 2 (count index)) "builds two index entries")
+          (is (= "hello" (get (php/aget items 0) :text)) "first text preserved")
+          (is (= [0.1 0.9] (get (php/aget items 0) :embedding)) "first embedding attached"))
+        (reset! ai/config original)))))
+
+(deftest test-search-ranks-by-similarity
+  (let [responses (atom [(raw-ok "{\"data\":[{\"embedding\":[0.99,0.01]}]}")])
+        fake (mock-fn (fn [_ _]
+                        (let [r (first @responses)]
+                          (swap! responses rest)
+                          r)))]
+    (binding [ai/*http-post* fake]
+      (let [original @ai/config]
+        (ai/configure {:provider :openai :api-key "k"})
+        (let [index [{:text "east" :embedding [1 0]}
+                     {:text "north" :embedding [0 1]}
+                     {:text "diag" :embedding [0.7071 0.7071]}]
+              results (ai/search "toward east" index {:k 2})]
+          (is (= 2 (count results)) "returns k results")
+          (is (= "east" (get (first results) :text)) "most similar first"))
+        (reset! ai/config original)))))

@@ -10,12 +10,15 @@ All notable changes to this project will be documented in this file.
 - Formatter aligns key/value pairs in `cond`, `case`, `condp`, and binding vectors of `let`/`loop`/`binding`/`for`/`foreach`/`dofor`/`if-let`/`when-let` when pairs span multiple lines.
 - `phel\ai`: OpenAI tool use support in `chat-with-tools`; provider-aware `tool-calls` extraction; `tool-result` helper for building tool result messages.
 - `phel\ai`: retry with exponential backoff on HTTP 429/5xx, configurable via `:max-retries`.
-- `phel\ai`: configurable `:timeout`; per-call `opts` now accept `:provider`, `:timeout`, `:base-url`, `:api-key`.
+- `phel\ai`: configurable `:timeout`; per-call `opts` now accept `:provider`, `:timeout`, `:base-url`, `:api-key`, `:max-retries`.
 - `phel\ai`: `docs/ai-guide.md` usage guide.
+- `phel\ai`: `*http-post*` rebindable seam enables full behavior coverage of chat/complete/extract/chat-with-tools/embed/build-index/search without a live API.
 
 ### Fixed
 
 - `phel build` no longer leaks stdout from compiled programs during compilation.
+- `phel\ai` `check-response` raises a `RuntimeException` with the provider error message instead of a PHP `TypeError` when the decoded error body is missing the nested `:error :message` path.
+- `phel\ai` text extraction selects the first `text`-type content block in an Anthropic response, skipping `tool_use` blocks that precede it.
 
 ### Changed
 

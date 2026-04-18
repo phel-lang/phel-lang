@@ -38,7 +38,7 @@ Supported providers:
 | `:timeout` | `120` | HTTP timeout in seconds |
 | `:max-retries` | `2` | Retry 429/5xx with exponential backoff |
 
-Every per-call `opts` map on `chat`, `complete`, `chat-with-tools`, `extract`, and `extract-many` accepts the same keys to override per request.
+Every per-call `opts` map on `chat`, `complete`, `chat-with-tools`, `extract`, and `extract-many` accepts the same keys (including `:max-retries`) to override per request.
 
 ```phel
 (ai/complete "Summarize the news" {:provider :openai :model "gpt-4o-mini"})
@@ -131,6 +131,26 @@ Vector math primitives are exported for custom pipelines: `dot-product`, `magnit
 ## Errors
 
 All failures throw `\RuntimeException`. The message includes the HTTP status and provider error body when available.
+
+## Testing without a live API
+
+`phel\ai` exposes an internal HTTP seam `*http-post*` that tests can rebind to return canned responses. Combined with `phel\mock`, this removes any dependency on a real provider.
+
+```phel
+(ns my-app\test\ai-test
+  (:require phel\test :refer [deftest is])
+  (:require phel\ai :as ai)
+  (:require phel\mock :refer [mock-fn call-count first-call]))
+
+(deftest test-my-ai-logic
+  (let [fake (mock-fn (fn [_ _] {:status 200
+                                 :body "{\"content\":[{\"type\":\"text\",\"text\":\"hi\"}]}"}))]
+    (binding [ai/*http-post* fake]
+      (is (= "hi" (ai/complete "say hi" {:api-key "k"})))
+      (is (= 1 (call-count fake))))))
+```
+
+Note: `phel\json` stringifies floats during `json/encode`. When a mock must return embedding arrays, build the response body as a raw JSON string rather than going through `json/encode`.
 
 ## See also
 
