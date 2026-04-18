@@ -173,6 +173,136 @@ final class FormatterFacadeTest extends TestCase
             ],
         ];
 
+        yield 'Align condp pairs with default' => [
+            [
+                '(condp = x',
+                '1 :one',
+                '200 :two-hundred',
+                ':other)',
+            ],
+            [
+                '(condp = x',
+                '  1   :one',
+                '  200 :two-hundred',
+                '  :other)',
+            ],
+        ];
+
+        yield 'Align cond with long-form key' => [
+            [
+                '(cond',
+                '(< x 10) :small',
+                ':else :big)',
+            ],
+            [
+                '(cond',
+                '  (< x 10) :small',
+                '  :else    :big)',
+            ],
+        ];
+
+        yield 'Cond odd count not aligned' => [
+            [
+                '(cond',
+                'a 1',
+                'b)',
+            ],
+            [
+                '(cond',
+                '  a 1',
+                '  b)',
+            ],
+        ];
+
+        yield 'Align when-let bindings' => [
+            [
+                '(when-let [x 1',
+                'longer 2]',
+                '(+ x longer))',
+            ],
+            [
+                '(when-let [x      1',
+                '           longer 2]',
+                '  (+ x longer))',
+            ],
+        ];
+
+        yield 'Align if-let bindings' => [
+            [
+                '(if-let [x 1',
+                'longer 2]',
+                'true',
+                'false)',
+            ],
+            [
+                '(if-let [x      1',
+                '         longer 2]',
+                '  true',
+                '  false)',
+            ],
+        ];
+
+        yield 'Align loop bindings' => [
+            [
+                '(loop [i 0',
+                'total 0]',
+                '(recur (inc i) total))',
+            ],
+            [
+                '(loop [i     0',
+                '       total 0]',
+                '  (recur (inc i) total))',
+            ],
+        ];
+
+        yield 'For bindings not aligned as pairs' => [
+            [
+                '(for [x :in xs',
+                'y :in ys]',
+                'body)',
+            ],
+            [
+                '(for [x :in xs',
+                '      y :in ys]',
+                '  body)',
+            ],
+        ];
+
+        yield 'Map literal not aligned' => [
+            [
+                '{:a 1',
+                ':bbbb 2}',
+            ],
+            [
+                '{:a 1',
+                ' :bbbb 2}',
+            ],
+        ];
+
+        yield 'Plain vector not aligned' => [
+            [
+                '[a 1',
+                'bb 22]',
+            ],
+            [
+                '[a 1',
+                ' bb 22]',
+            ],
+        ];
+
+        yield 'Nested cond aligns independently' => [
+            [
+                '(cond',
+                'a :outer-a',
+                'bigger :outer-big)',
+            ],
+            [
+                '(cond',
+                '  a      :outer-a',
+                '  bigger :outer-big)',
+            ],
+        ];
+
         yield 'Indent def block' => [
             [
                 '(def foo',

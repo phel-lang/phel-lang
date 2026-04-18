@@ -82,10 +82,16 @@ final class FormatterFactory extends AbstractFactory
             new BlockIndenter('loop', 1),
             new BlockIndenter('case', 1),
             new BlockIndenter('cond', 0),
+            new BlockIndenter('condp', 2),
             new BlockIndenter('try', 0),
             new BlockIndenter('finally', 0),
             new BlockIndenter('when', 1),
             new BlockIndenter('when-not', 1),
+            new BlockIndenter('when-let', 1),
+            new BlockIndenter('when-some', 1),
+            new BlockIndenter('if-let', 1),
+            new BlockIndenter('if-some', 1),
+            new BlockIndenter('binding', 1),
         ]);
     }
 
