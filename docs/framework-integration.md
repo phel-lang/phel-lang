@@ -1,47 +1,25 @@
 # Framework Integration Recipes
 
-How to drop Phel into an existing PHP project without fighting the framework's conventions.
+Drop Phel into an existing PHP project without touching `app/` or `src/`.
 
-## The core idea
+## Core idea
 
-Phel reads one file at your project root: `phel-config.php`. Point `setSrcDirs()` at a directory that does **not** collide with your framework's PHP tree (`app/`, `src/`, whatever), and you are done. Phel only scans `.phel` files, so in principle it can share a dir with PHP, but a dedicated `phel/` folder keeps things tidy and discoverable.
+Put Phel sources in a dedicated dir (e.g. `phel/`). Generate PHP wrappers under the framework's existing `App\` PSR-4 root so no composer changes are needed.
 
-Calling Phel from PHP has two flavors:
+Two ways to call Phel from PHP:
 
 | Flavor | How | When |
 |--------|-----|------|
-| **Exported wrappers** | Mark fns `{:export true}`, run `vendor/bin/phel export`, call the generated PHP class | Typed, IDE-friendly, stable surface |
-| **Dynamic lookup** | `\Phel::bootstrap($root)` then `\Phel::getDefinition($ns, $name)(...)` | Prototyping, scripting, one-offs |
+| Exported wrappers | `{:export true}` + `vendor/bin/phel export` → typed PHP class | Production, IDE autocomplete |
+| Dynamic lookup | `\Phel::bootstrap($root)` + `\Phel::getDefinition($ns, $name)(...)` | Scripts, prototyping |
 
-All recipes below assume:
-
-```bash
-composer require phel-lang/phel-lang
-```
+Install: `composer require phel-lang/phel-lang`
 
 ---
 
 ## Laravel
 
-Laravel owns `app/`. Keep Phel out of it.
-
-### Directory layout
-
-```
-my-laravel-app/
-├── app/
-│   ├── ...                # Laravel (untouched)
-│   └── PhelGenerated/     # Generated PHP wrappers (auto-created by phel export)
-├── phel/                  # Phel sources
-│   └── pricing.phel
-├── tests-phel/            # Phel tests
-├── phel-config.php
-└── composer.json
-```
-
-Putting the generated wrappers inside `app/` means Laravel's default `App\` PSR-4 entry autoloads them without extra config.
-
-### `phel-config.php`
+`phel-config.php`:
 
 ```php
 <?php
@@ -52,16 +30,11 @@ use Phel\Config\PhelExportConfig;
 return PhelConfig::forProject()
     ->setSrcDirs(['phel'])
     ->setTestDirs(['tests-phel'])
-    ->setFormatDirs(['phel', 'tests-phel'])
     ->setExportConfig((new PhelExportConfig())
         ->setFromDirectories(['phel'])
         ->setNamespacePrefix('App\\PhelGenerated')
         ->setTargetDirectory(__DIR__ . '/app/PhelGenerated'));
 ```
-
-Add `app/PhelGenerated/` to `.gitignore` if you prefer regenerating on deploy instead of committing the wrappers.
-
-### Write and export a fn
 
 `phel/pricing.phel`:
 
@@ -78,7 +51,7 @@ Add `app/PhelGenerated/` to `.gitignore` if you prefer regenerating on deploy in
 vendor/bin/phel export
 ```
 
-### Call from a controller
+Controller:
 
 ```php
 use App\PhelGenerated\Pricing;
@@ -87,22 +60,21 @@ final class CheckoutController
 {
     public function __invoke(Request $request): JsonResponse
     {
-        $final = Pricing::applyDiscount(
+        $total = Pricing::applyDiscount(
             (float) $request->input('price'),
             (float) $request->input('percent'),
         );
 
-        return response()->json(['total' => $final]);
+        return response()->json(['total' => $total]);
     }
 }
 ```
 
-Add a `composer scripts` hook so exports stay in sync:
+Auto-regenerate wrappers on `composer install`:
 
 ```json
 "scripts": {
-    "phel:export": "phel export",
-    "post-autoload-dump": ["@phel:export"]
+    "post-autoload-dump": ["phel export"]
 }
 ```
 
@@ -110,22 +82,7 @@ Add a `composer scripts` hook so exports stay in sync:
 
 ## Symfony
 
-Symfony owns `src/`. Same pattern: new `phel/` folder.
-
-### Directory layout
-
-```
-my-symfony-app/
-├── src/
-│   ├── ...                # Symfony (untouched)
-│   └── PhelGenerated/     # Generated PHP wrappers (under existing App\ PSR-4)
-├── phel/
-│   └── domain.phel
-├── phel-config.php
-└── composer.json
-```
-
-### `phel-config.php`
+`phel-config.php`:
 
 ```php
 <?php
@@ -142,34 +99,29 @@ return PhelConfig::forProject()
         ->setTargetDirectory(__DIR__ . '/src/PhelGenerated'));
 ```
 
-No `composer.json` changes needed; Symfony's default `App\ → src/` PSR-4 entry already covers `App\PhelGenerated\`.
+Default `App\ → src/` PSR-4 covers `App\PhelGenerated\`.
 
-### Call from a controller
-
-Wrappers expose static methods, so call them directly; no DI wiring required.
+Controller:
 
 ```php
-namespace App\Controller;
-
 use App\PhelGenerated\Domain;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 
 final class ReportController
 {
-    public function __invoke(): JsonResponse
+    public function __invoke(Request $request): JsonResponse
     {
-        return new JsonResponse(Domain::summarize($input));
+        return new JsonResponse(Domain::summarize($request->toArray()));
     }
 }
 ```
 
 ---
 
-## Framework-less (or when `src/` is already PHP)
+## Framework-less / existing `src/`
 
-Same mechanics, no framework glue.
-
-### `phel-config.php`
+`phel-config.php`:
 
 ```php
 <?php
@@ -181,7 +133,7 @@ return PhelConfig::forProject(mainNamespace: 'app\\main')
     ->setTestDirs(['tests/phel']);
 ```
 
-### Call dynamically (no export step)
+Call without export:
 
 ```php
 <?php
@@ -194,19 +146,15 @@ $greet = \Phel::getDefinition('app\\main', 'greet');
 echo $greet('World');
 ```
 
-Use this shape for scripts, cron jobs, or when you want to avoid a build step. For long-lived apps, prefer the exported-wrapper flavor: it caches definition lookups and gives IDEs something to autocomplete.
-
 ---
 
-## Tips
+## Notes
 
-- **Namespaces mirror directories.** `phel/pricing.phel` declares `(ns pricing)`; `phel/domain/cart.phel` declares `(ns domain\cart)`.
-- **Hyphens become underscores in PHP.** `(ns my-lib)` exports as `PhelGenerated\MyLib` with camelCased method names (`apply-discount` → `applyDiscount`).
-- **Cache and temp paths.** Phel writes to `sys_get_temp_dir()/phel/` by default. Override via `setCacheDir()` / `setTempDir()` if your host restricts that.
-- **CI.** Run `vendor/bin/phel test` alongside `phpunit`. Add `vendor/bin/phel export` to the build step so generated wrappers match your Phel sources.
-- **REPL against your project.** `vendor/bin/phel repl` boots with your `phel-config.php`, so `(require 'pricing)` works immediately.
+- `phel/pricing.phel` → `(ns pricing)`; `phel/domain/cart.phel` → `(ns domain\cart)`. Namespace must match path.
+- Hyphens become camelCase: `(ns my-lib)` → `PhelGenerated\MyLib`; `apply-discount` → `applyDiscount`.
+- Add `vendor/bin/phel test` to CI alongside `phpunit`.
 
 ## See also
 
-- [PHP/Phel Interop](php-interop.md) — lower-level `php/` forms, type conversions, exceptions.
-- [Quickstart](quickstart.md) — zero-to-running tutorial for greenfield projects.
+- [PHP/Phel Interop](php-interop.md)
+- [Quickstart](quickstart.md)
