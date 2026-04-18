@@ -6,7 +6,7 @@ Code formatting for Phel source files: parses code into AST, applies formatting 
 
 - **Facade**: `FormatterFacade` implements `FormatterFacadeInterface`
 - **Factory**: `FormatterFactory` — creates `PathsFormatter`, `Formatter`, individual rules
-- **Config**: `FormatterConfig` — `getFormatDirs()` (default: `['src/phel', 'tests/phel']`)
+- **Config**: `FormatterConfig` — `getFormatDirs()` (default: `['src', 'tests']`)
 - **Provider**: `FormatterProvider` — injects `CompilerFacade` (`FACADE_COMPILER`) and `CommandFacade` (`FACADE_COMMAND`)
 
 ## Public API (Facade)

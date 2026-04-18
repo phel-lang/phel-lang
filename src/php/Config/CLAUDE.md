@@ -26,8 +26,9 @@ Build-specific: `setMainPhelNamespace()`, `setMainPhpPath()`, `setDestDir()`, `s
 Export/interop: `setFromDirectories()`, `setNamespacePrefix()`, `setTargetDirectory()`
 
 ### `ProjectLayout` (enum)
-- `Conventional` — `src/phel`, `tests/phel`
-- `Flat` — `src`, `tests`
+- `Flat` — `src`, `tests` (default)
+- `Nested` — `src/phel`, `tests/phel` (useful when PHP lives under `src/php/`)
+- `Root` — `.`, `.` (single-file / scratch)
 
 ## Consumed By
 
@@ -40,5 +41,5 @@ None. This is a leaf module with zero internal dependencies.
 ## Key Constraints
 
 - Config constants (e.g. `PhelConfig::SRC_DIRS`) are used as keys throughout Gacela's config system
-- Default source dirs: `['src/phel']`, test dirs: `['tests/phel']`
-- Auto-detection in `Phel.php` checks for conventional vs flat layout when no `phel-config.php` exists
+- Default source dirs: `['src/phel']`, test dirs: `['tests/phel']` (changed by `useLayout`)
+- Auto-detection in `Phel.php` checks for nested (`src/phel`) vs flat (`src`) layout when no `phel-config.php` exists

@@ -11,16 +11,30 @@ final class ProjectTemplateGenerator
     public function generateConfig(string $namespace, ProjectLayout $layout): string
     {
         return match ($layout) {
-            ProjectLayout::Conventional => <<<'PHP'
-<?php return \Phel\Config\PhelConfig::forProject();
+            ProjectLayout::Flat => <<<PHP
+<?php
+
+use Phel\\Config\\PhelConfig;
+
+return PhelConfig::forProject(mainNamespace: '{$namespace}');
 
 PHP,
-            ProjectLayout::Flat => <<<'PHP'
-<?php return \Phel\Config\PhelConfig::forProject(layout: \Phel\Config\ProjectLayout::Flat);
+            ProjectLayout::Nested => <<<PHP
+<?php
+
+use Phel\\Config\\PhelConfig;
+use Phel\\Config\\ProjectLayout;
+
+return PhelConfig::forProject(mainNamespace: '{$namespace}', layout: ProjectLayout::Nested);
 
 PHP,
-            ProjectLayout::Root => <<<'PHP'
-<?php return \Phel\Config\PhelConfig::forProject(layout: \Phel\Config\ProjectLayout::Root);
+            ProjectLayout::Root => <<<PHP
+<?php
+
+use Phel\\Config\\PhelConfig;
+use Phel\\Config\\ProjectLayout;
+
+return PhelConfig::forProject(mainNamespace: '{$namespace}', layout: ProjectLayout::Root);
 
 PHP,
         };
@@ -58,7 +72,7 @@ PHEL;
 PHEL;
     }
 
-    public function generateGitignore(ProjectLayout $layout = ProjectLayout::Conventional): string
+    public function generateGitignore(ProjectLayout $layout = ProjectLayout::Flat): string
     {
         if ($layout === ProjectLayout::Root) {
             return <<<'GITIGNORE'

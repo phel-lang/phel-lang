@@ -25,7 +25,7 @@ final class InitCommandTest extends TestCase
         $this->removeDirectory($this->testDir);
     }
 
-    public function test_creates_conventional_layout_structure(): void
+    public function test_creates_flat_layout_structure_by_default(): void
     {
         $command = new InitCommand();
         $output = new BufferedOutput();
@@ -34,16 +34,17 @@ final class InitCommandTest extends TestCase
         $result = $command->run(new ArrayInput(['project-name' => 'my-app']), $output);
 
         self::assertSame(Command::SUCCESS, $result);
-        self::assertDirectoryExists($this->testDir . '/src/phel');
-        self::assertDirectoryExists($this->testDir . '/tests/phel');
+        self::assertDirectoryExists($this->testDir . '/src');
+        self::assertDirectoryExists($this->testDir . '/tests');
         self::assertDirectoryExists($this->testDir . '/out');
+        self::assertDirectoryDoesNotExist($this->testDir . '/src/phel');
         self::assertFileExists($this->testDir . '/phel-config.php');
-        self::assertFileExists($this->testDir . '/src/phel/main.phel');
-        self::assertFileExists($this->testDir . '/tests/phel/main_test.phel');
+        self::assertFileExists($this->testDir . '/src/main.phel');
+        self::assertFileExists($this->testDir . '/tests/main_test.phel');
         self::assertFileExists($this->testDir . '/.gitignore');
     }
 
-    public function test_creates_flat_layout_structure(): void
+    public function test_creates_nested_layout_structure(): void
     {
         $command = new InitCommand();
         $output = new BufferedOutput();
@@ -51,15 +52,14 @@ final class InitCommandTest extends TestCase
         chdir($this->testDir);
         $result = $command->run(new ArrayInput([
             'project-name' => 'my-app',
-            '--flat' => true,
+            '--nested' => true,
         ]), $output);
 
         self::assertSame(Command::SUCCESS, $result);
-        self::assertDirectoryExists($this->testDir . '/src');
-        self::assertDirectoryExists($this->testDir . '/tests');
-        self::assertDirectoryDoesNotExist($this->testDir . '/src/phel');
-        self::assertFileExists($this->testDir . '/src/main.phel');
-        self::assertFileExists($this->testDir . '/tests/main_test.phel');
+        self::assertDirectoryExists($this->testDir . '/src/phel');
+        self::assertDirectoryExists($this->testDir . '/tests/phel');
+        self::assertFileExists($this->testDir . '/src/phel/main.phel');
+        self::assertFileExists($this->testDir . '/tests/phel/main_test.phel');
     }
 
     public function test_creates_minimal_root_layout_structure(): void
@@ -96,8 +96,8 @@ final class InitCommandTest extends TestCase
 
         $configContent = (string) file_get_contents($this->testDir . '/phel-config.php');
 
-        self::assertStringContainsString('PhelConfig::forProject(layout:', $configContent);
-        self::assertStringContainsString('ProjectLayout::Root', $configContent);
+        self::assertStringContainsString("mainNamespace: 'sandbox\\main'", $configContent);
+        self::assertStringContainsString('layout: ProjectLayout::Root', $configContent);
     }
 
     public function test_minimal_main_file_uses_main_namespace(): void
@@ -163,8 +163,8 @@ final class InitCommandTest extends TestCase
             '--no-tests' => true,
         ]), $output);
 
-        self::assertFileDoesNotExist($this->testDir . '/tests/phel/main_test.phel');
-        self::assertFileExists($this->testDir . '/src/phel/main.phel');
+        self::assertFileDoesNotExist($this->testDir . '/tests/main_test.phel');
+        self::assertFileExists($this->testDir . '/src/main.phel');
     }
 
     public function test_no_tests_output_omits_test_step(): void
@@ -192,14 +192,14 @@ final class InitCommandTest extends TestCase
         chdir($this->testDir);
         $command->run(new ArrayInput(['project-name' => 'my-app']), $output);
 
-        $configContent = file_get_contents($this->testDir . '/phel-config.php');
+        $configContent = (string) file_get_contents($this->testDir . '/phel-config.php');
 
-        self::assertStringContainsString('PhelConfig::forProject()', (string) $configContent);
-        self::assertStringNotContainsString('useFlatLayout', (string) $configContent);
-        self::assertStringNotContainsString('ProjectLayout::', (string) $configContent);
+        self::assertStringContainsString('use Phel\\Config\\PhelConfig;', $configContent);
+        self::assertStringContainsString("PhelConfig::forProject(mainNamespace: 'myapp\\main')", $configContent);
+        self::assertStringNotContainsString('ProjectLayout::', $configContent);
     }
 
-    public function test_generated_config_uses_flat_layout(): void
+    public function test_generated_config_uses_nested_layout(): void
     {
         $command = new InitCommand();
         $output = new BufferedOutput();
@@ -207,13 +207,13 @@ final class InitCommandTest extends TestCase
         chdir($this->testDir);
         $command->run(new ArrayInput([
             'project-name' => 'test-project',
-            '--flat' => true,
+            '--nested' => true,
         ]), $output);
 
         $configContent = (string) file_get_contents($this->testDir . '/phel-config.php');
 
-        self::assertStringContainsString('PhelConfig::forProject(layout:', $configContent);
-        self::assertStringContainsString('ProjectLayout::Flat', $configContent);
+        self::assertStringContainsString("mainNamespace: 'testproject\\main'", $configContent);
+        self::assertStringContainsString('layout: ProjectLayout::Nested', $configContent);
     }
 
     public function test_generated_main_file_contains_namespace(): void
@@ -224,7 +224,7 @@ final class InitCommandTest extends TestCase
         chdir($this->testDir);
         $command->run(new ArrayInput(['project-name' => 'my-app']), $output);
 
-        $mainContent = file_get_contents($this->testDir . '/src/phel/main.phel');
+        $mainContent = file_get_contents($this->testDir . '/src/main.phel');
 
         self::assertStringContainsString('(ns myapp\\main)', (string) $mainContent);
         self::assertStringContainsString('(defn main []', (string) $mainContent);
@@ -250,9 +250,9 @@ final class InitCommandTest extends TestCase
 
     public function test_skips_existing_main_file(): void
     {
-        mkdir($this->testDir . '/src/phel', 0755, true);
+        mkdir($this->testDir . '/src', 0755, true);
         $existingMain = '(ns existing)';
-        file_put_contents($this->testDir . '/src/phel/main.phel', $existingMain);
+        file_put_contents($this->testDir . '/src/main.phel', $existingMain);
 
         $command = new InitCommand();
         $output = new BufferedOutput();
@@ -260,7 +260,7 @@ final class InitCommandTest extends TestCase
         chdir($this->testDir);
         $command->run(new ArrayInput(['project-name' => 'my-app']), $output);
 
-        $mainContent = file_get_contents($this->testDir . '/src/phel/main.phel');
+        $mainContent = file_get_contents($this->testDir . '/src/main.phel');
 
         self::assertSame($existingMain, $mainContent);
     }
@@ -273,12 +273,10 @@ final class InitCommandTest extends TestCase
         chdir($this->testDir);
         $command->run(new ArrayInput([]), $output);
 
-        // Config is now minimal (namespace auto-detected from main.phel)
-        $configContent = file_get_contents($this->testDir . '/phel-config.php');
-        self::assertStringContainsString('PhelConfig::forProject()', (string) $configContent);
+        $configContent = (string) file_get_contents($this->testDir . '/phel-config.php');
+        self::assertStringContainsString("PhelConfig::forProject(mainNamespace: 'app\\main')", $configContent);
 
-        // Default namespace is in the main.phel file
-        $mainContent = file_get_contents($this->testDir . '/src/phel/main.phel');
+        $mainContent = file_get_contents($this->testDir . '/src/main.phel');
         self::assertStringContainsString('(ns app\\main)', (string) $mainContent);
     }
 
@@ -290,7 +288,7 @@ final class InitCommandTest extends TestCase
         chdir($this->testDir);
         $command->run(new ArrayInput(['project-name' => 'my-cool-app']), $output);
 
-        $mainContent = file_get_contents($this->testDir . '/src/phel/main.phel');
+        $mainContent = file_get_contents($this->testDir . '/src/main.phel');
 
         self::assertStringContainsString('(ns mycoolapp\\main)', (string) $mainContent);
     }
@@ -357,7 +355,7 @@ final class InitCommandTest extends TestCase
 
         self::assertSame(Command::SUCCESS, $result);
         self::assertFileDoesNotExist($this->testDir . '/phel-config.php');
-        self::assertDirectoryDoesNotExist($this->testDir . '/src/phel');
+        self::assertDirectoryDoesNotExist($this->testDir . '/src');
 
         $outputContent = $output->fetch();
 
@@ -368,7 +366,7 @@ final class InitCommandTest extends TestCase
     public function test_force_overwrites_existing_files(): void
     {
         $existingConfig = '<?php return [];';
-        mkdir($this->testDir . '/src/phel', 0755, true);
+        mkdir($this->testDir . '/src', 0755, true);
         file_put_contents($this->testDir . '/phel-config.php', $existingConfig);
 
         $command = new InitCommand();

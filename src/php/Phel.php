@@ -101,13 +101,13 @@ class Phel
         $hasTests = in_array('tests', $topLevel, true);
         $hasVendor = in_array('vendor', $topLevel, true);
 
-        // Check for conventional layout (src/phel, tests/phel) only if parent exists
+        // Check for nested layout (src/phel, tests/phel) only if parent exists
         $hasSrcPhel = $hasSrc && is_dir($projectRootDir . '/src/phel');
         $hasTestsPhel = $hasTests && is_dir($projectRootDir . '/tests/phel');
 
         // Determine layout based on detected structure
         if ($hasSrcPhel || $hasTestsPhel) {
-            $config->useLayout(ProjectLayout::Conventional);
+            $config->useLayout(ProjectLayout::Nested);
         } elseif ($hasSrc || $hasTests) {
             $config->useLayout(ProjectLayout::Flat);
         }

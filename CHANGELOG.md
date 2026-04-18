@@ -9,6 +9,10 @@ All notable changes to this project will be documented in this file.
 - `phel\test\gen` module: random-value generators, `sample`, `quick-check`, and `defspec` macro with seedable PRNG for property-based testing.
 - Formatter aligns key/value pairs in `cond`, `case`, `condp`, and binding vectors of `let`/`loop`/`binding`/`for`/`foreach`/`dofor`/`if-let`/`when-let` when pairs span multiple lines.
 
+### Changed (breaking)
+
+- `phel init` defaults to Flat layout (`src/`, `tests/`); use `--nested` for the previous `src/phel/` structure. `ProjectLayout::Conventional` renamed to `ProjectLayout::Nested` (`useConventionalLayout()` → `useNestedLayout()`).
+
 ## [0.33.0](https://github.com/phel-lang/phel-lang/compare/v0.32.0...v0.33.0) - 2026-04-17
 
 ### Added

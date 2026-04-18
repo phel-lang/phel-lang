@@ -91,7 +91,7 @@ final class RunCommand extends Command
             if ($path === null || $path === '') {
                 $path = $this->getFacade()->autoDetectEntryPoint();
                 if ($path === null) {
-                    $output->writeln('<error>No entry point found. Create src/phel/main.phel or specify a path.</error>');
+                    $output->writeln('<error>No entry point found. Create src/main.phel or specify a path.</error>');
                     return self::FAILURE;
                 }
 

@@ -6,7 +6,7 @@ Foundational infrastructure: error reporting, exception formatting, and project 
 
 - **Facade**: `CommandFacade` implements `CommandFacadeInterface`
 - **Factory**: `CommandFactory` extends `AbstractFactory<CommandConfig>`
-- **Config**: `CommandConfig` — source dirs (`src/phel`), test dirs (`tests/phel`), vendor, output, error log
+- **Config**: `CommandConfig` — source dirs (`src`), test dirs (`tests`), vendor, output, error log
 - **Provider**: `CommandProvider` — injects `PHP_CONFIG_READER` from container
 
 ## Public API (Facade)
