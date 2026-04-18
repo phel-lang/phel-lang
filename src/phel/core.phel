@@ -123,7 +123,7 @@
   (fn [arr & others]
     (if (php/=== nil arr)
       '()
-      (loop [res arr
+      (loop [res   arr
              other others]
         (if (php/=== nil other)
           res
