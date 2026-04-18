@@ -4,14 +4,23 @@ Drop Phel into an existing PHP project without touching `app/` or `src/`.
 
 ## Core idea
 
-Put Phel sources in a dedicated dir (e.g. `phel/`). Generate PHP wrappers under the framework's existing `App\` PSR-4 root so no composer changes are needed.
+Put Phel sources in a dedicated dir (e.g. `phel/`). Export `{:export true}` functions to PHP wrappers under your framework's existing `App\` PSR-4 root, then load the Phel namespace once at app boot so Registry has the definitions.
 
 Two ways to call Phel from PHP:
 
 | Flavor | How | When |
 |--------|-----|------|
 | Exported wrappers | `{:export true}` + `vendor/bin/phel export` → typed PHP class | Production, IDE autocomplete |
-| Dynamic lookup | `\Phel::bootstrap($root)` + `\Phel::getDefinition($ns, $name)(...)` | Scripts, prototyping |
+| Dynamic lookup | `\Phel::getDefinition($ns, $name)(...)` | Scripts, prototyping |
+
+Both require this bootstrap step at startup (service provider, kernel event, entry script):
+
+```php
+\Phel::bootstrap(__DIR__);
+(new \Phel\Run\RunFacade())->runNamespace('shop\\pricing');
+```
+
+Namespaces must have at least two segments (`shop\pricing`, not `pricing`) so the generated PHP namespace is well-formed.
 
 Install: `composer require phel-lang/phel-lang`
 
@@ -36,10 +45,10 @@ return PhelConfig::forProject()
         ->setTargetDirectory(__DIR__ . '/app/PhelGenerated'));
 ```
 
-`phel/pricing.phel`:
+`phel/shop/pricing.phel`:
 
 ```phel
-(ns pricing)
+(ns shop\pricing)
 
 (defn apply-discount
   {:export true}
@@ -47,14 +56,34 @@ return PhelConfig::forProject()
   (- price (* price (/ percent 100))))
 ```
 
+Generate the wrapper:
+
 ```bash
 vendor/bin/phel export
 ```
 
-Controller:
+`app/Providers/PhelServiceProvider.php` (load Phel namespaces once per process):
 
 ```php
-use App\PhelGenerated\Pricing;
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+use Phel\Run\RunFacade;
+
+final class PhelServiceProvider extends ServiceProvider
+{
+    public function register(): void
+    {
+        \Phel::bootstrap(base_path());
+        (new RunFacade())->runNamespace('shop\\pricing');
+    }
+}
+```
+
+Register it in `config/app.php` or via package discovery, then call the wrapper:
+
+```php
+use App\PhelGenerated\Shop\Pricing;
 
 final class CheckoutController
 {
@@ -70,7 +99,7 @@ final class CheckoutController
 }
 ```
 
-Auto-regenerate wrappers on `composer install`:
+Keep wrappers in sync via a composer script:
 
 ```json
 "scripts": {
@@ -101,10 +130,22 @@ return PhelConfig::forProject()
 
 Default `App\ → src/` PSR-4 covers `App\PhelGenerated\`.
 
+Load Phel on kernel boot (`src/Kernel.php` or a `KernelEvents::REQUEST` listener):
+
+```php
+public function boot(): void
+{
+    parent::boot();
+
+    \Phel::bootstrap($this->getProjectDir());
+    (new \Phel\Run\RunFacade())->runNamespace('reports\\domain');
+}
+```
+
 Controller:
 
 ```php
-use App\PhelGenerated\Domain;
+use App\PhelGenerated\Reports\Domain;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -133,7 +174,16 @@ return PhelConfig::forProject(mainNamespace: 'app\\main')
     ->setTestDirs(['tests/phel']);
 ```
 
-Call without export:
+`phel/app/main.phel`:
+
+```phel
+(ns app\main)
+
+(defn greet [name]
+  (str "Hello, " name "!"))
+```
+
+Call dynamically:
 
 ```php
 <?php
@@ -141,17 +191,19 @@ Call without export:
 require __DIR__ . '/vendor/autoload.php';
 
 \Phel::bootstrap(__DIR__);
+(new \Phel\Run\RunFacade())->runNamespace('app\\main');
 
 $greet = \Phel::getDefinition('app\\main', 'greet');
-echo $greet('World');
+echo $greet('World') . "\n";
 ```
 
 ---
 
 ## Notes
 
-- `phel/pricing.phel` → `(ns pricing)`; `phel/domain/cart.phel` → `(ns domain\cart)`. Namespace must match path.
-- Hyphens become camelCase: `(ns my-lib)` → `PhelGenerated\MyLib`; `apply-discount` → `applyDiscount`.
+- Namespace path must match directory: `phel/shop/pricing.phel` → `(ns shop\pricing)`. Single-segment ns (`pricing`) produces invalid PHP on export; use at least two segments.
+- Hyphens become camelCase: `(ns my-lib\core)` → `App\PhelGenerated\MyLib\Core`; `apply-discount` → `applyDiscount`.
+- `\Phel::bootstrap()` registers the config; `RunFacade::runNamespace()` compiles and evaluates the ns so `Registry` has its defs. Skip the second call and wrapper methods return null.
 - Add `vendor/bin/phel test` to CI alongside `phpunit`.
 
 ## See also
