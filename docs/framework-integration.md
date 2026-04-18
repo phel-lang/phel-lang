@@ -4,7 +4,14 @@ Add Phel to an existing PHP project without touching `app/` or `src/`.
 
 ## Core idea
 
-Keep Phel sources in a dedicated dir (e.g. `phel/`). Export `{:export true}` functions as PHP wrappers under your framework's `App\` PSR-4 root. Load the namespace once at boot.
+Keep Phel sources in a dedicated dir (e.g. `phel/`). Export `{:export true}` functions as typed PHP wrappers under your framework's `App\` PSR-4 root. Load the namespace once at boot.
+
+Two load modes, both via the same provider/kernel hook:
+
+| Mode | What | When |
+|------|------|------|
+| Prod (AOT) | `require 'build/<ns>.php'` — precompiled, zero runtime compile | Production, CI, every deploy |
+| Dev (JIT) | `\Phel::run($root, $ns)` — compiles on first call | Local development |
 
 Two ways to call Phel from PHP:
 
@@ -13,24 +20,18 @@ Two ways to call Phel from PHP:
 | Exported wrappers | `{:export true}` + `vendor/bin/phel export` → typed PHP class | Production, IDE autocomplete |
 | Dynamic lookup | `\Phel::getDefinition($ns, $name)(...)` | Scripts, prototyping |
 
-Two ways to load definitions at runtime:
-
-| Mode | How | Cost per request |
-|------|-----|------------------|
-| JIT (dev) | `\Phel::run($root, $ns)` at boot — compiles on first call | Bootstrap + compile (cached after first) |
-| AOT (prod) | `vendor/bin/phel build` once, `require 'build/ns/name.php'` at boot | Zero compile — just `require` |
-
-Load the namespace once at startup:
-
-```php
-\Phel::run(__DIR__, 'shop\\pricing');
-```
-
-`\Phel::run($projectRootDir, $namespace)` bootstraps the runtime and registers the defs. Without it, wrappers and `\Phel::getDefinition()` return null.
-
 Namespaces need at least two segments (`shop\pricing`, not `pricing`).
 
 Install: `composer require phel-lang/phel-lang`
+
+Build artifacts on every deploy (Composer does it for you):
+
+```json
+"scripts": {
+    "post-install-cmd": ["phel export", "phel build"],
+    "post-update-cmd": ["phel export", "phel build"]
+}
+```
 
 ---
 
@@ -41,12 +42,14 @@ Install: `composer require phel-lang/phel-lang`
 ```php
 <?php
 
+use Phel\Config\PhelBuildConfig;
 use Phel\Config\PhelConfig;
 use Phel\Config\PhelExportConfig;
 
 return PhelConfig::forProject()
     ->setSrcDirs(['phel'])
     ->setTestDirs(['tests-phel'])
+    ->setBuildConfig((new PhelBuildConfig())->setDestDir('build'))
     ->setExportConfig((new PhelExportConfig())
         ->setFromDirectories(['phel'])
         ->setNamespacePrefix('App\\PhelGenerated')
@@ -62,12 +65,6 @@ return PhelConfig::forProject()
   {:export true}
   [price percent]
   (- price (* price (/ percent 100))))
-```
-
-Generate the wrapper:
-
-```bash
-vendor/bin/phel export
 ```
 
 `app/Providers/PhelServiceProvider.php`:
@@ -87,13 +84,23 @@ final class PhelServiceProvider extends ServiceProvider
             return;
         }
 
-        \Phel::run(base_path(), 'shop\\pricing');
+        $built = base_path('build/shop/pricing.php');
+
+        if (is_file($built)) {
+            require $built;
+        } else {
+            \Phel::run(base_path(), 'shop\\pricing');
+        }
+
         self::$loaded = true;
     }
 }
 ```
 
-Register it, then call the wrapper:
+Prod: `phel build` runs on deploy, `build/shop/pricing.php` is present → `require` wins, no runtime compile.
+Dev: `build/` absent → `\Phel::run()` compiles on first request.
+
+Controller:
 
 ```php
 use App\PhelGenerated\Shop\Pricing;
@@ -112,14 +119,6 @@ final class CheckoutController
 }
 ```
 
-Keep wrappers in sync:
-
-```json
-"scripts": {
-    "post-autoload-dump": ["phel export"]
-}
-```
-
 ---
 
 ## Symfony
@@ -129,12 +128,14 @@ Keep wrappers in sync:
 ```php
 <?php
 
+use Phel\Config\PhelBuildConfig;
 use Phel\Config\PhelConfig;
 use Phel\Config\PhelExportConfig;
 
 return PhelConfig::forProject()
     ->setSrcDirs(['phel'])
     ->setTestDirs(['tests/phel'])
+    ->setBuildConfig((new PhelBuildConfig())->setDestDir('build'))
     ->setExportConfig((new PhelExportConfig())
         ->setFromDirectories(['phel'])
         ->setNamespacePrefix('App\\PhelGenerated')
@@ -143,7 +144,7 @@ return PhelConfig::forProject()
 
 Default `App\ → src/` PSR-4 covers `App\PhelGenerated\`.
 
-Load on kernel boot (`src/Kernel.php`):
+`src/Kernel.php`:
 
 ```php
 private static bool $phelLoaded = false;
@@ -156,7 +157,14 @@ public function boot(): void
         return;
     }
 
-    \Phel::run($this->getProjectDir(), 'reports\\domain');
+    $built = $this->getProjectDir() . '/build/reports/domain.php';
+
+    if (is_file($built)) {
+        require $built;
+    } else {
+        \Phel::run($this->getProjectDir(), 'reports\\domain');
+    }
+
     self::$phelLoaded = true;
 }
 ```
@@ -186,11 +194,13 @@ final class ReportController
 ```php
 <?php
 
+use Phel\Config\PhelBuildConfig;
 use Phel\Config\PhelConfig;
 
 return PhelConfig::forProject(mainNamespace: 'app\\main')
     ->setSrcDirs(['phel'])
-    ->setTestDirs(['tests/phel']);
+    ->setTestDirs(['tests/phel'])
+    ->setBuildConfig((new PhelBuildConfig())->setDestDir('build'));
 ```
 
 `phel/app/main.phel`:
@@ -202,14 +212,20 @@ return PhelConfig::forProject(mainNamespace: 'app\\main')
   (str "Hello, " name "!"))
 ```
 
-Call dynamically:
+Entry script (same prod/dev switch):
 
 ```php
 <?php
 
 require __DIR__ . '/vendor/autoload.php';
 
-\Phel::run(__DIR__, 'app\\main');
+$built = __DIR__ . '/build/app/main.php';
+
+if (is_file($built)) {
+    require $built;
+} else {
+    \Phel::run(__DIR__, 'app\\main');
+}
 
 $greet = \Phel::getDefinition('app\\main', 'greet');
 echo $greet('World') . "\n";
@@ -217,70 +233,14 @@ echo $greet('World') . "\n";
 
 ---
 
-## Production: ahead-of-time build
-
-`\Phel::run()` boots Gacela and compiles on first call. Fine for dev. In production, compile once at deploy and skip bootstrap entirely.
-
-Add a build config:
-
-```php
-use Phel\Config\PhelBuildConfig;
-use Phel\Config\PhelConfig;
-
-return PhelConfig::forProject()
-    ->setSrcDirs(['phel'])
-    ->setBuildConfig((new PhelBuildConfig())->setDestDir('build'))
-    // ...export config as before
-    ;
-```
-
-Build at deploy time:
-
-```bash
-vendor/bin/phel build
-```
-
-Output: `build/<ns-path>.php` — self-contained, registers defs via `\Phel::addDefinition()`, only depends on the `\Phel` class from Composer autoload.
-
-**Laravel** — replace `\Phel::run(...)` in the provider:
-
-```php
-public function boot(): void
-{
-    if (self::$loaded) {
-        return;
-    }
-
-    require base_path('build/shop/pricing.php');
-    self::$loaded = true;
-}
-```
-
-**Symfony** — same swap in `Kernel::boot()`:
-
-```php
-require $this->getProjectDir() . '/build/reports/domain.php';
-```
-
-Wire into Composer so the build runs on deploy:
-
-```json
-"scripts": {
-    "post-install-cmd": ["phel build", "phel export"],
-    "post-update-cmd": ["phel build", "phel export"]
-}
-```
-
-Commit `build/` in the deploy artifact (or generate during CI). No runtime Phel compiler, no Gacela bootstrap — just `require`.
-
----
-
 ## Notes
 
 - Namespace path matches directory: `phel/shop/pricing.phel` → `(ns shop\pricing)`. Single-segment ns exports invalid PHP; use at least two segments.
 - Hyphens become camelCase: `(ns my-lib\core)` → `App\PhelGenerated\MyLib\Core`; `apply-discount` → `applyDiscount`.
-- `\Phel::run()` is the only public entry to load a namespace. Skip it and wrappers return null.
-- `\Phel::run()` bootstraps Gacela and compiles temp files. Call it once per process (guard with a static flag, or load once on Octane/long-running workers). Avoid calling it from `register()` or per-request hot paths.
+- Prod path (`require build/...`) is self-contained: no Gacela bootstrap, no compiler, just `\Phel::addDefinition()` calls. One `require`, zero overhead per request.
+- Dev path (`\Phel::run()`) boots Gacela and compiles to temp files on first call. Guard with a static flag — never call from Laravel `register()` or per-request hot paths.
+- `setBuildConfig()` dest dir is relative to the project root.
+- Commit `build/` in the deploy artifact or run `phel build` in CI. Skip committing in dev so `is_file()` stays false and `\Phel::run()` kicks in.
 - Add `vendor/bin/phel test` to CI alongside `phpunit`.
 
 ## See also
