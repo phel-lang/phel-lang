@@ -87,7 +87,7 @@
   [lo hi]
   (when (> lo hi)
     (throw (php/new InvalidArgumentException
-             (str "gen/choose requires lo <= hi, got " lo ", " hi))))
+                    (str "gen/choose requires lo <= hi, got " lo ", " hi))))
   (fn [_size] (rand-int* lo hi)))
 
 ;; -----------------
@@ -156,7 +156,7 @@
 (defn- named-gen [ctor]
   (fn [size]
     (let [upper (non-negative size)
-          n (if (zero? upper) 1 (rand-int* 1 upper))]
+          n     (if (zero? upper) 1 (rand-int* 1 upper))]
       (ctor (build-string char-alpha size n)))))
 
 (def keyword
@@ -193,7 +193,7 @@
      (loop [i 0]
        (when (>= i max-tries)
          (throw (php/new RuntimeException
-                  (str "gen/such-that exceeded " max-tries " retries"))))
+                         (str "gen/such-that exceeded " max-tries " retries"))))
        (let [v (g size)]
          (if (pred v) v (recur (inc i))))))))
 
@@ -218,7 +218,7 @@
   (let [v (into [] coll)]
     (when (zero? (count v))
       (throw (php/new InvalidArgumentException
-               "gen/elements requires a non-empty collection")))
+                      "gen/elements requires a non-empty collection")))
     (fn [_size] (rand-elem v))))
 
 (defn one-of
@@ -228,7 +228,7 @@
   (let [v (into [] gens)]
     (when (zero? (count v))
       (throw (php/new InvalidArgumentException
-               "gen/one-of requires at least one generator")))
+                      "gen/one-of requires at least one generator")))
     (fn [size] ((rand-elem v) size))))
 
 (defn frequency
@@ -236,16 +236,16 @@
   proportional to weight."
   {:example "((frequency [[9 (return :a)] [1 (return :b)]]) 100)"}
   [pairs]
-  (let [v (into [] pairs)
+  (let [v     (into [] pairs)
         total (reduce + 0 (map (fn [p] (get p 0)) v))]
     (when (<= total 0)
       (throw (php/new InvalidArgumentException
-               "gen/frequency requires at least one pair with positive weight")))
+                      "gen/frequency requires at least one pair with positive weight")))
     (fn [size]
       (loop [i 0 remaining (rand-int* 1 total)]
-        (let [pair (get v i)
-              w (get pair 0)
-              g (get pair 1)
+        (let [pair           (get v i)
+              w              (get pair 0)
+              g              (get pair 1)
               next-remaining (- remaining w)]
           (if (<= next-remaining 0)
             (g size)
@@ -344,7 +344,7 @@
   (loop [i 0]
     (if (>= i num-tests)
       {:result :pass :num-tests i}
-      (let [args (args-gen size)
+      (let [args    (args-gen size)
             outcome (trial-result property args)]
         (cond
           (= :pass outcome)
@@ -369,15 +369,15 @@
    (quick-check num-tests args-gen property {}))
   ([num-tests args-gen property {:size size :seed seed}]
    (let [effective-seed (or seed (fresh-seed))
-         _ (seed-rng! effective-seed)
-         outcome (run-trials property args-gen num-tests (or size default-size))]
+         _              (seed-rng! effective-seed)
+         outcome        (run-trials property args-gen num-tests (or size default-size))]
      (put outcome :seed effective-seed))))
 
 (defn- spec-failure-message [name-str res]
   (let [parts [(str "property " name-str " failed after " (get res :num-tests)
                     " tests (seed " (get res :seed))]
-        args (get res :args)
-        ex (get res :exception)
+        args  (get res :args)
+        ex    (get res :exception)
         parts (if args (push parts (str ", args " (print-str args))) parts)
         parts (if ex
                 (push parts (str ", threw " (php/get_class ex) ": "
@@ -396,12 +396,12 @@
               (fn [a b] (= (+ a b) (+ b a))))"}
   [name options args-gen property]
   (let [opts-sym (gensym)
-        n-sym (gensym)
-        res-sym (gensym)
+        n-sym    (gensym)
+        res-sym  (gensym)
         name-str (str name)]
     `(t/deftest ~name
        (let [~opts-sym ~options
-             ~n-sym (or (:num-tests ~opts-sym) default-num-tests)
-             ~res-sym (quick-check ~n-sym ~args-gen ~property ~opts-sym)]
+             ~n-sym    (or (:num-tests ~opts-sym) default-num-tests)
+             ~res-sym  (quick-check ~n-sym ~args-gen ~property ~opts-sym)]
          (t/is (= :pass (:result ~res-sym))
                (spec-failure-message ~name-str ~res-sym))))))

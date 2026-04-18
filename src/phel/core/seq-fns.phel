@@ -93,16 +93,16 @@
   [to & rest]
   (case (count rest)
     0 to
-    2 (let [xf (first rest)
+    2 (let [xf   (first rest)
             from (second rest)]
         (transduce xf conj to from))
     1 (let [from (first rest)]
         (if (php/=== nil from)
           to
-          (let [map-like? (fn [x]
+          (let [map-like?   (fn [x]
                             (or (php/instanceof x PersistentMapInterface)
                                 (and (php/is_array x) (not (indexed-php-array? x)))))
-                entries (if (map-like? from)
+                entries     (if (map-like? from)
                           (for [entry :pairs from] entry)
                           from)
                 assoc-entry (fn [acc entry]
@@ -174,13 +174,13 @@
 (defn- conj-single
   [coll value]
   (cond
-    (php/=== coll nil) (list value)
-    (php/instanceof coll PersistentListInterface) (cons value coll)
-    (php/is_array coll) (do (php/apush coll value) coll)
-    (or (php/instanceof coll PersistentVectorInterface) (php/instanceof coll TransientVectorInterface)) (php/-> coll (append value))
+    (php/=== coll nil)                                                                                    (list value)
+    (php/instanceof coll PersistentListInterface)                                                         (cons value coll)
+    (php/is_array coll)                                                                                   (do (php/apush coll value) coll)
+    (or (php/instanceof coll PersistentVectorInterface) (php/instanceof coll TransientVectorInterface))   (php/-> coll (append value))
     (or (php/instanceof coll PersistentHashSetInterface) (php/instanceof coll TransientHashSetInterface)) (php/-> coll (add value))
-    (or (php/instanceof coll PersistentMapInterface) (php/instanceof coll TransientMapInterface)) (conj-map-entry coll value)
-    (php/instanceof coll PushInterface) (php/-> coll (push value))
+    (or (php/instanceof coll PersistentMapInterface) (php/instanceof coll TransientMapInterface))         (conj-map-entry coll value)
+    (php/instanceof coll PushInterface)                                                                   (php/-> coll (push value))
     :else
     (throw (php/new InvalidArgumentException
                     (str "Cannot conj on type " (type coll))))))
@@ -199,7 +199,7 @@
   [coll k]
   (cond
     (php/=== coll nil) nil
-    (set? coll) (php/-> coll (remove k))
+    (set? coll)        (php/-> coll (remove k))
     :else
     (throw (php/new InvalidArgumentException
                     (str "Cannot disj on type " (type coll))))))
@@ -243,7 +243,7 @@
    :see-also ["vector" "set" "into"]}
   [coll]
   (cond
-    (php/=== nil coll) []
+    (php/=== nil coll)              []
     (or (map? coll) (struct? coll))
     (persistent
      (for [[k v] :pairs coll :reduce [acc (transient [])]]
@@ -395,12 +395,12 @@
     0 (fn [rf]
         (let [nv (volatile! n)]
           (xf-step rf (fn [result input]
-                        (let [n @nv
-                              nn (vreset! nv (php/- n 1))
+                        (let [n      @nv
+                              nn     (vreset! nv (php/- n 1))
                               result (if (php/> n 0) (rf result input) result)]
                           (if (php/<= nn 0) (ensure-reduced result) result))))))
     1 (let [coll (first args)
-            n (if (php/< n 0) 0 n)]
+            n    (if (php/< n 0) 0 n)]
         (if (php/=== n 0)
           []
           (let [result (lazy-seq-from-generator (php/:: Seq (take n coll)))]
@@ -464,7 +464,7 @@
   (case (count args)
     0 (fn [rf]
         (xf-step rf (fn [result input] (if (pred input) (rf result input) result))))
-    1 (let [coll (first args)
+    1 (let [coll   (first args)
             result (lazy-seq-from-generator (php/:: Seq (filter pred coll)))]
         (if (nil? result)
           []
@@ -538,9 +538,9 @@
   (loop [s coll
          i 0]
     (cond
-      (empty? s) nil
+      (empty? s)       nil
       (pred (first s)) i
-      :else (recur (next s) (php/+ i 1)))))
+      :else            (recur (next s) (php/+ i 1)))))
 
 (defn distinct
   "Returns a lazy sequence with duplicated values removed in `coll`.
@@ -568,7 +568,7 @@
   {:example "(reverse [1 2 3 4]) ; => [4 3 2 1]"
    :see-also ["rseq" "reversible?"]}
   [coll]
-  (let [arr (if (string? coll)
+  (let [arr    (if (string? coll)
               (php/mb_str_split coll)
               (to-php-array coll))
         result (php/:: Phel (vector (php/array_reverse arr)))]
@@ -708,7 +708,7 @@
         (php/apush arr (phel->php v)))
       arr)
 
-    true x))
+    true             x))
 
 (defn php->phel
   "Recursively converts a PHP array to Phel data structures.
@@ -730,7 +730,7 @@
         (assoc res k (php->phel v)))
       (persistent res))
 
-    true x))
+    true                   x))
 
 (defn contains-value?
   "Returns true if the value is present in the given collection, otherwise returns false."
@@ -756,7 +756,7 @@
    :see-also ["sort" "compare"]}
   [keyfn coll & [comp]]
   (let [php-array (to-php-array coll)
-        cmp (or comp compare)]
+        cmp       (or comp compare)]
     (php/usort php-array #(cmp (keyfn %1) (keyfn %2)))
     (copy-meta coll (php/:: Phel (vector php-array)))))
 
@@ -992,8 +992,8 @@
   {:example "(zipmap [:a :b :c] [1 2 3]) ; => {:a 1 :b 2 :c 3}"
    :see-also ["zipcoll"]}
   [keys vals]
-  (loop [ks (seq keys)
-         vs (seq vals)
+  (loop [ks  (seq keys)
+         vs  (seq vals)
          res {}]
     (if (or (nil? ks) (nil? vs))
       res
@@ -1074,9 +1074,9 @@
    :see-also ["group-by" "partition"]}
   [f coll]
   (cond
-    (nil? coll) []
+    (nil? coll)                              []
     (and (indexed? coll) (= 0 (count coll))) []
-    true (lazy-seq-from-generator (php/:: Seq (partitionBy f coll)))))
+    true                                     (lazy-seq-from-generator (php/:: Seq (partitionBy f coll)))))
 
 (defn dedupe
   "Returns a lazy sequence with consecutive duplicate values removed in `coll`.
@@ -1093,9 +1093,9 @@
                           (if (= prior input) result (rf result input)))))))
     1 (let [coll (first args)]
         (cond
-          (nil? coll) []
+          (nil? coll)                              []
           (and (indexed? coll) (= 0 (count coll))) []
-          true (lazy-seq-from-generator (php/:: Seq (dedupe coll)))))
+          true                                     (lazy-seq-from-generator (php/:: Seq (dedupe coll)))))
     (throw (php/new InvalidArgumentException "dedupe expects 0 or 1 arguments"))))
 
 (defn sequence
@@ -1111,9 +1111,9 @@
   {:example "(compact [1 nil 2 nil 3]) ; => (1 2 3)"}
   [coll & values]
   (cond
-    (nil? coll) []
+    (nil? coll)                              []
     (and (indexed? coll) (= 0 (count coll))) []
-    true (lazy-seq-from-generator
+    true                                     (lazy-seq-from-generator
           (php/call_user_func_array
            (php/array "\\Phel\\Lang\\Seq" "compact")
            (php/array_merge (php/array coll) (apply php/array values))))))

@@ -91,11 +91,11 @@
    :see-also ["atom" "reset!" "deref"]}
   [variable f & args]
   (let [current (deref variable)
-        next (case (count args)
-               0 (f current)
-               1 (f current (first args))
-               2 (f current (first args) (second args))
-               (apply f current args))]
+        next    (case (count args)
+                  0 (f current)
+                  1 (f current (first args))
+                  2 (f current (first args) (second args))
+                  (apply f current args))]
     (reset! variable next)))
 
 (defn add-watch
@@ -175,7 +175,7 @@
   (if (<= (count head) i)
     initial-options
     (let [binding (php/aget head i)
-          verb (php/aget head (php/+ i 1))]
+          verb    (php/aget head (php/+ i 1))]
       (if (keyword? binding)
         (case binding
           :reduce (for-builder-options head (php/+ i 2) (assoc initial-options :reduce verb))
@@ -189,7 +189,7 @@
 
     ;; Handle heads
     (let [binding (php/aget head i)
-          verb (php/aget head (php/+ i 1))]
+          verb    (php/aget head (php/+ i 1))]
       (cond
         ;; Case 1: Options
         (and (keyword? binding) (contains? for-options binding))
@@ -199,23 +199,23 @@
         (keyword? binding)
         (let [rest (for-builder body head (php/+ i 2))]
           (case binding
-            :while  `(if ~verb ~rest php/break)
-            :let    `(let ~verb ~rest)
-            :when   `(when ~verb ~rest)
+            :while `(if ~verb ~rest php/break)
+            :let   `(let ~verb ~rest)
+            :when  `(when ~verb ~rest)
             (throw (php/new InvalidArgumentException (str "This modifier is not supported in for loop: " verb)))))
 
         ;; Case 3: Verbs
-        (let [object (php/aget head (php/+ i 2))
-              rest (for-builder body head (php/+ i 3))
+        (let [object    (php/aget head (php/+ i 2))
+              rest      (for-builder body head (php/+ i 3))
               value-sym (gensym)]
           (case verb
-            :range  `(foreach [~binding (apply range ~object)] ~rest)
-            :in     `(foreach [~value-sym ~object] (let [~binding ~value-sym] ~rest))
-            :keys   (let [key-sym (gensym)]
-                      `(foreach [~key-sym ~value-sym ~object] (let [~binding ~key-sym] ~rest)))
-            :pairs  (let [key-sym (gensym)]
-                      `(foreach [~key-sym ~value-sym ~object]
-                         (let [~binding [~key-sym ~value-sym]] ~rest)))
+            :range `(foreach [~binding (apply range ~object)] ~rest)
+            :in    `(foreach [~value-sym ~object] (let [~binding ~value-sym] ~rest))
+            :keys  (let [key-sym (gensym)]
+                     `(foreach [~key-sym ~value-sym ~object] (let [~binding ~key-sym] ~rest)))
+            :pairs (let [key-sym (gensym)]
+                     `(foreach [~key-sym ~value-sym ~object]
+                        (let [~binding [~key-sym ~value-sym]] ~rest)))
             (throw (php/new InvalidArgumentException (str "This verb is not supported in for loop " verb)))))))))
 
 (defmacro for
@@ -243,16 +243,16 @@
      is bound to `initial-value`."
   {:example "(for [x :in [1 2 3]] (* x 2)) ; => [2 4 6]"}
   [head & body]
-  (let [res-sym (gensym "res__")
-        acc-sym (gensym "acc__")
-        options (for-builder-options head 0 {})
+  (let [res-sym   (gensym "res__")
+        acc-sym   (gensym "acc__")
+        options   (for-builder-options head 0 {})
         swap-body (if (:reduce options)
                     (let [[sym _] (:reduce options)]
                       `(swap! ~res-sym (fn [~sym] (do ~@body))))
                     `(swap! ~res-sym (fn [~acc-sym] (conj ~acc-sym (do ~@body)))))
-        init (if (:reduce options)
-               (second (:reduce options))
-               [])
+        init      (if (:reduce options)
+                    (second (:reduce options))
+                    [])
         loop-body (for-builder swap-body head 0)]
     `(let [~res-sym (var ~init)]
        ~loop-body
@@ -293,7 +293,7 @@
   through unchanged. Modifier keywords like `:when`, `:while`, `:let` pass
   through unchanged."
   [head]
-  (loop [i 0
+  (loop [i      0
          result []]
     (if (>= i (count head))
       result

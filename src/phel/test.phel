@@ -26,7 +26,7 @@
                            :total 0}}))
 
 (defn- print-report-testdox-state [data state]
-  (let [s (case state :failed "✘" :pass "✔" :error "E")
+  (let [s       (case state :failed "✘" :pass "✔" :error "E")
         message (str *current-test-name* ": " (or (:message data) "no test message found"))]
     (println s message)))
 
@@ -47,27 +47,27 @@
   "Records test results and prints status indicators."
   {:example "(report {:state :pass})"}
   [data]
-  (let [ctx (testing-contexts-str)
-        data (cond
+  (let [ctx                       (testing-contexts-str)
+        data                      (cond
                (and ctx (:message data)) (put data :message (str ctx (:message data)))
-               ctx (put data :message (s/join " > " *testing-contexts*))
-               :else data)
+               ctx                       (put data :message (s/join " > " *testing-contexts*))
+               :else                     data)
         {:state state :type type} data
-        ok (= state :pass)
-        total-columns 80]
+        ok                        (= state :pass)
+        total-columns             80]
     (if (deref testdox?)
       (print-report-testdox-state data state)
       (print-report-state state))
     (let [new-stats (swap! stats
-                            (fn [s]
-                              (let [counts (get s :counts)
-                                    counts (assoc counts :total (inc (get counts :total)))
-                                    counts (assoc counts state (inc (get counts state)))]
-                                (let [s (assoc s :counts counts)]
-                                  (if ok
-                                    s
-                                    (assoc s :failed (conj (get s :failed) data)))))))
-          total (get-in new-stats [:counts :total])]
+                           (fn [s]
+                             (let [counts (get s :counts)
+                                   counts (assoc counts :total (inc (get counts :total)))
+                                   counts (assoc counts state (inc (get counts state)))]
+                               (let [s (assoc s :counts counts)]
+                                 (if ok
+                                   s
+                                   (assoc s :failed (conj (get s :failed) data)))))))
+          total     (get-in new-stats [:counts :total])]
       (when (= 0 (% total total-columns)) (println)))))
 
 (defn do-report
@@ -93,17 +93,17 @@
          :column (php/-> loc (getColumn))}))))
 
 (defn- assert-predicate [form message negated]
-  (let [pred (first form)
-        value (second form)
+  (let [pred            (first form)
+        value           (second form)
         value-evaluated (gensym)
-        type (if negated :predicate-not :predicate)
-        loc (location form)
-        result (gensym)
-        report-data (gensym)]
+        type            (if negated :predicate-not :predicate)
+        loc             (location form)
+        result          (gensym)
+        report-data     (gensym)]
     `(let [~value-evaluated ~value
-           ~result (~pred ~value-evaluated)
-           ~result (if ~negated (not ~result) ~result)
-           ~report-data {:type ~type
+           ~result          (~pred ~value-evaluated)
+           ~result          (if ~negated (not ~result) ~result)
+           ~report-data     {:type ~type
                          :message ~message
                          :location ~loc
                          :pred '~pred
@@ -115,20 +115,20 @@
          (report (assoc ~report-data :state :failed))))))
 
 (defn- assert-binary [form message negated]
-  (let [pred (first form)
-        expected (second form)
-        actual (second (next form))
-        type (if negated :binary :binary-not)
-        loc (location form)
+  (let [pred               (first form)
+        expected           (second form)
+        actual             (second (next form))
+        type               (if negated :binary :binary-not)
+        loc                (location form)
         expected-evaluated (gensym)
-        actual-evaluated (gensym)
-        result (gensym)
-        report-data (gensym)]
+        actual-evaluated   (gensym)
+        result             (gensym)
+        report-data        (gensym)]
     `(let [~expected-evaluated ~expected
-           ~actual-evaluated ~actual
-           ~result (~pred ~expected-evaluated ~actual-evaluated)
-           ~result (if ~negated (not ~result) ~result)
-           ~report-data {:type ~type
+           ~actual-evaluated   ~actual
+           ~result             (~pred ~expected-evaluated ~actual-evaluated)
+           ~result             (if ~negated (not ~result) ~result)
+           ~report-data        {:type ~type
                          :message ~message
                          :location ~loc
                          :pred '~pred
@@ -142,7 +142,7 @@
 
 (defn- assert-output [form message]
   (let [expected (second form)
-        body (second (next form))]
+        body     (second (next form))]
     (assert-binary `(= ~expected (with-output-buffer ~body)) message false)))
 
 (defn- assert-thrown [form message]
@@ -151,12 +151,12 @@
   ;; `(thrown? body)` — used by portability shims like `jank-lang/clojure-test-suite` —
   ;; asserts only that `body` throws *anything*, so we default the caught type to
   ;; `\Throwable` (the root of all PHP throwables since PHP 7).
-  (let [single-arg? (= 2 (count form))
+  (let [single-arg?      (= 2 (count form))
         exception-symbol (if single-arg? '\Throwable (second form))
-        body (if single-arg? (next form) (nnext form))
-        loc (location form)
-        report-data (gensym)
-        e (gensym)]
+        body             (if single-arg? (next form) (nnext form))
+        loc              (location form)
+        report-data      (gensym)
+        e                (gensym)]
     `(let [~report-data {:type :thrown
                          :location ~loc
                          :form '~form
@@ -171,11 +171,11 @@
 (defn- assert-thrown-with-msg [form message]
   (let [exception-symbol (second form)
         expected-message (second (next form))
-        body (next (nnext form))
-        loc (location form)
-        actual-message (gensym)
-        report-data (gensym)
-        e (gensym)]
+        body             (next (nnext form))
+        loc              (location form)
+        actual-message   (gensym)
+        report-data      (gensym)
+        e                (gensym)]
     `(let [~report-data {:type :thrown-with-msg
                          :form '~form
                          :location ~loc
@@ -192,10 +192,10 @@
                (report (merge ~report-data {:state :failed :actual-message ~actual-message})))))))))
 
 (defn- assert-any [form message]
-  (let [loc (location form)
-        result (gensym)
+  (let [loc         (location form)
+        result      (gensym)
         report-data (gensym)]
-    `(let [~result ~form
+    `(let [~result      ~form
            ~report-data {:type :any
                          :message ~message
                          :location ~loc
@@ -212,28 +212,28 @@
 ;; returning a quoted form to be evaluated by `is`. Methods must be
 ;; loaded before any `is` form using their dispatch value is expanded.
 (defmulti assert-expr
-  (fn [form _]
-    (if (and (list? form) (symbol? (first form)))
-      (first form)
-      :default)))
+          (fn [form _]
+            (if (and (list? form) (symbol? (first form)))
+              (first form)
+              :default)))
 
 (defmethod assert-expr 'not [form message]
-  (let [inner (second form)]
-    (cond
-      (and (list? inner) (= 3 (count inner)))
-      (assert-binary inner message true)
-      (and (list? inner) (= 2 (count inner)))
-      (assert-predicate inner message true)
-      (assert-any form message))))
+           (let [inner (second form)]
+             (cond
+               (and (list? inner) (= 3 (count inner)))
+               (assert-binary inner message true)
+               (and (list? inner) (= 2 (count inner)))
+               (assert-predicate inner message true)
+               (assert-any form message))))
 
 (defmethod assert-expr 'thrown? [form message]
-  (assert-thrown form message))
+           (assert-thrown form message))
 
 (defmethod assert-expr 'thrown-with-msg? [form message]
-  (assert-thrown-with-msg form message))
+           (assert-thrown-with-msg form message))
 
 (defmethod assert-expr 'output? [form message]
-  (assert-output form message))
+           (assert-output form message))
 
 (def- assert-expr-special-forms
   ;; Special forms and structured-syntax macros that must not be treated as
@@ -244,15 +244,15 @@
             'cond 'case 'binding 'for 'dofor 'doseq))
 
 (defmethod assert-expr :default [form message]
-  (let [head (when (list? form) (first form))
-        fn-call (and (symbol? head)
-                     (not (contains? assert-expr-special-forms head)))]
-    (cond
-      (and fn-call (= 3 (count form)))
-      (assert-binary form message false)
-      (and fn-call (= 2 (count form)))
-      (assert-predicate form message false)
-      (assert-any form message))))
+           (let [head    (when (list? form) (first form))
+                 fn-call (and (symbol? head)
+                              (not (contains? assert-expr-special-forms head)))]
+             (cond
+               (and fn-call (= 3 (count form)))
+               (assert-binary form message false)
+               (and fn-call (= 2 (count form)))
+               (assert-predicate form message false)
+               (assert-any form message))))
 
 (defmacro is
   "Asserts that an expression is true."
@@ -277,11 +277,11 @@
   [test-name & body]
   (when-not (symbol? test-name)
     (throw (php/new \InvalidArgumentException
-             (str "deftest requires a symbol name as its first argument, got "
-                  (type test-name) ". Example: (deftest test-add ...)."))))
+                    (str "deftest requires a symbol name as its first argument, got "
+                         (type test-name) ". Example: (deftest test-add ...)."))))
   `(defn ~test-name {:test true :test-name ~(name test-name)} []
      (binding [*current-test-name* ~(name test-name)]
-              ~@body)))
+       ~@body)))
 
 (defmacro testing
   "Adds a testing context string. Used inside deftest to describe a group of assertions.
@@ -310,13 +310,13 @@
   [smap form]
   (cond
     (contains? smap form) (quote-if-empty-list (get smap form))
-    (list? form) (apply list (map #(substitute-symbols smap %) form))
-    (vector? form) (apply vector (map #(substitute-symbols smap %) form))
-    (hash-map? form) (apply hash-map
+    (list? form)          (apply list (map #(substitute-symbols smap %) form))
+    (vector? form)        (apply vector (map #(substitute-symbols smap %) form))
+    (hash-map? form)      (apply hash-map
                             (interleave (keys form)
                                         (map #(substitute-symbols smap %) (vals form))))
-    (set? form) (into (hash-set) (map #(substitute-symbols smap %) form))
-    :else form))
+    (set? form)           (into (hash-set) (map #(substitute-symbols smap %) form))
+    :else                 form))
 
 (defmacro are
   "Checks multiple assertions with a template expression.
@@ -328,8 +328,8 @@
   {:see-also ["is" "deftest" "testing"]
    :example "(are [x y] (= x y)\n  2 (+ 1 1)\n  4 (* 2 2))"}
   [argv expr & args]
-  (let [n (count argv)
-        groups (partition n args)
+  (let [n          (count argv)
+        groups     (partition n args)
         assertions (for [group :in groups
                          :let [smap (zipmap argv group)]]
                      `(is ~(substitute-symbols smap expr)))]
@@ -356,8 +356,8 @@
 (defn- print-error [data]
   (print-error-headline data)
   (let [{:exception exception :form form} data
-        command-facade (php/new CommandFacade)
-        printer (php/-> command-facade (getExceptionPrinter))]
+        command-facade                    (php/new CommandFacade)
+        printer                           (php/-> command-facade (getExceptionPrinter))]
     (println "              Test:" form)
     (println "   threw exception:" (php/get_class exception))
     (println)
@@ -405,17 +405,17 @@
 (defn- print-failure [data]
   (print-failure-headline data)
   (case (get data :type)
-    :predicate (print-predicate-failure data)
-    :predicate-not (print-predicate-not-failure data)
-    :binary (print-binary-failure data)
-    :binary-not (print-binary-not-failure data)
-    :thrown (print-thrown-failure data)
+    :predicate       (print-predicate-failure data)
+    :predicate-not   (print-predicate-not-failure data)
+    :binary          (print-binary-failure data)
+    :binary-not      (print-binary-not-failure data)
+    :thrown          (print-thrown-failure data)
     :thrown-with-msg (print-thrown-with-msg-failure data)
-    :any (print-any-failure data)))
+    :any             (print-any-failure data)))
 
 (defn- print-failure-or-error [data]
   (case (get data :state)
-    :error (print-error data)
+    :error  (print-error data)
     :failed (print-failure data)))
 
 (defn print-summary
@@ -432,7 +432,7 @@
       (println)))
   (println)
   (let [{:failed failed :error error :pass pass} (get (deref stats) :counts)
-        total (+ failed error pass)]
+        total                                    (+ failed error pass)]
     (println "Passed:" pass)
     (println "Failed:" failed)
     (println "Error:" error)
@@ -474,13 +474,13 @@
   [fixture-type & fns]
   (when (some (fn [f] (not (fn? f))) fns)
     (throw (php/new \InvalidArgumentException
-             "All arguments to use-fixtures must be functions")))
-  (let [key (case fixture-type
+                    "All arguments to use-fixtures must be functions")))
+  (let [key     (case fixture-type
               :each :each-fixtures
               :once :once-fixtures
               (throw (php/new \InvalidArgumentException
-                       (str "use-fixtures: invalid fixture-type "
-                            fixture-type ", expected :each or :once"))))
+                              (str "use-fixtures: invalid fixture-type "
+                                   fixture-type ", expected :each or :once"))))
         ns-name *ns*]
     (swap! fixtures-by-ns
            (fn [m]
@@ -496,7 +496,7 @@
 ;; -------------
 
 (defn- find-test-fns [ns {:filter filter}]
-  (let [munge (php/new Munge)
+  (let [munge    (php/new Munge)
         munge-ns (php/-> munge (encodeNs ns))]
     (for [fn-name :keys (php/:: Phel (getDefinitionInNamespace munge-ns))
           :let [meta (php/:: Phel (getDefinitionMetaData munge-ns fn-name))]
@@ -504,14 +504,14 @@
       (php/:: Phel (getDefinition munge-ns fn-name)))))
 
 (defn- run-test [options ns]
-  (let [tests (find-test-fns ns options)
+  (let [tests     (find-test-fns ns options)
         each-wrap (join-fixtures (fixtures-for ns :each-fixtures))
         once-wrap (join-fixtures (fixtures-for ns :once-fixtures))]
     (once-wrap
-      (fn []
-        (dofor [test :in tests
-                :when (not (should-stop?))]
-          (each-wrap test))))))
+     (fn []
+       (dofor [test :in tests
+               :when (not (should-stop?))]
+         (each-wrap test))))))
 
 (defn run-tests
   "Runs all tests in the given namespaces."

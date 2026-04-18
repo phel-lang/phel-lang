@@ -60,14 +60,14 @@
   {:example "(def my-mock (mock-returning [1 2 3]))"}
   [values]
   (let [call-history (var [])
-        index (var 0)
-        max-index (dec (count values))
-        reset-fn (fn [] (set! index 0))]
+        index        (var 0)
+        max-index    (dec (count values))
+        reset-fn     (fn [] (set! index 0))]
     (register-mock!
      (fn [& args]
        (swap! call-history push args)
        (let [current-index (deref index)
-             result (get values (min current-index max-index))]
+             result        (get values (min current-index max-index))]
          (when (< current-index max-index)
            (swap! index inc))
          result))
@@ -160,7 +160,7 @@
   (let [mock-data (get (deref mock-registry) mock-fn)]
     (when mock-data
       (let [call-history (get mock-data :call-history)
-            reset-fn (get mock-data :reset-fn)]
+            reset-fn     (get mock-data :reset-fn)]
         (set! call-history [])
         (when reset-fn
           (reset-fn))))))
@@ -202,15 +202,15 @@
       (reset-mock! my-mock))
     ```"
   [bindings & body]
-  (let [symbols (take-nth 2 bindings)
-        values (take-nth 2 (drop 1 bindings))
+  (let [symbols   (take-nth 2 bindings)
+        values    (take-nth 2 (drop 1 bindings))
         mock-syms (map (fn [_] (gensym "mock")) values)]
     `(let [~@(interleave mock-syms values)]
        (binding [~@(interleave symbols mock-syms)]
-                (try
-                  (do ~@body)
-                  (finally
-                    ~@(map (fn [m] `(reset-mock! ~m)) mock-syms)))))))
+         (try
+           (do ~@body)
+           (finally
+             ~@(map (fn [m] `(reset-mock! ~m)) mock-syms)))))))
 
 (defmacro with-mock-wrapper
   "Like with-mocks but for wrapped mocks (interop scenarios).
@@ -230,17 +230,17 @@
     ```"
   {:example "(with-mock-wrapper [http mock-http identity] (http \"test\"))"}
   [bindings & body]
-  (let [grouped (partition 3 bindings)
-        symbols (map first grouped)
-        mocks (map second grouped)
-        wrappers (map (fn [g] (get g 2)) grouped)
-        mock-syms (map (fn [_] (gensym "mock")) mocks)
+  (let [grouped      (partition 3 bindings)
+        symbols      (map first grouped)
+        mocks        (map second grouped)
+        wrappers     (map (fn [g] (get g 2)) grouped)
+        mock-syms    (map (fn [_] (gensym "mock")) mocks)
         wrapper-syms (map (fn [_] (gensym "wrapper")) wrappers)
-        reset-forms (map (fn [m] `(reset-mock! ~m)) mock-syms)]
+        reset-forms  (map (fn [m] `(reset-mock! ~m)) mock-syms)]
     `(let [~@(interleave mock-syms mocks)
            ~@(interleave wrapper-syms wrappers)]
        (binding [~@(interleave symbols wrapper-syms)]
-                (try
-                  (do ~@body)
-                  (finally
-                    ~@reset-forms))))))
+         (try
+           (do ~@body)
+           (finally
+             ~@reset-forms))))))

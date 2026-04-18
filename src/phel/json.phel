@@ -23,10 +23,10 @@
   [x]
   (cond
     (php/is_iterable x) (encode-value-iterable x)
-    (symbol? x) (name x)
-    (keyword? x) (name x)
-    (float? x) (str x)
-    true x))
+    (symbol? x)         (name x)
+    (keyword? x)        (name x)
+    (float? x)          (str x)
+    true                x))
 
 (defn encode
   "Encodes a Phel value to a JSON string."
@@ -45,12 +45,12 @@
   {:example "(decode-value [1 2 3]) ; => [1 2 3]"}
   [x]
   (cond
-    (indexed? x) (for [v :in x] (decode-value v))
+    (indexed? x)   (for [v :in x] (decode-value v))
     (php-array? x) (let [hashmap (transient {})]
                      (foreach [k v x]
                        (php/-> hashmap (put (keyword k) (decode-value v))))
                      (persistent hashmap))
-    true x))
+    true           x))
 
 (defn decode
   "Decodes a JSON string to a Phel value."

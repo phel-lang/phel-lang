@@ -310,10 +310,10 @@
   Safe on infinite/lazy sequences: checks the first element instead of counting."
   [x]
   (cond
-    (php/is_numeric x) (= 0 x)
-    (php/is_string x) (true? (php/empty x))
+    (php/is_numeric x)                  (= 0 x)
+    (php/is_string x)                   (true? (php/empty x))
     (php/instanceof x LazySeqInterface) (nil? (first x))
-    :else (= 0 (count x))))
+    :else                               (= 0 (count x))))
 
 (defn not-empty
   "Returns `coll` if it contains elements, otherwise nil."
@@ -328,13 +328,13 @@
    :see-also ["empty?" "not-empty"]}
   [coll]
   (cond
-    (nil? coll) nil
-    (vector? coll) []
-    (map? coll) {}
+    (nil? coll)                                      nil
+    (vector? coll)                                   []
+    (map? coll)                                      {}
     (php/instanceof coll PersistentHashSetInterface) (hash-set)
-    (list? coll) '()
-    (php-array? coll) (php/array)
-    :else nil))
+    (list? coll)                                     '()
+    (php-array? coll)                                (php/array)
+    :else                                            nil))
 
 (defn seq
   "Returns a seq on the collection. Strings are converted to a vector of characters.

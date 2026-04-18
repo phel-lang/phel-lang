@@ -66,9 +66,9 @@
 (defn- conj-bang-single
   [tcoll value]
   (cond
-    (php/instanceof tcoll TransientVectorInterface) (php/-> tcoll (append value))
+    (php/instanceof tcoll TransientVectorInterface)  (php/-> tcoll (append value))
     (php/instanceof tcoll TransientHashSetInterface) (php/-> tcoll (add value))
-    (php/instanceof tcoll TransientMapInterface) (conj-map-entry tcoll value)
+    (php/instanceof tcoll TransientMapInterface)     (conj-map-entry tcoll value)
     :else
     (throw (php/new InvalidArgumentException
                     (str "conj! expects a transient collection, got " (type tcoll))))))
@@ -119,7 +119,7 @@
     (throw (php/new InvalidArgumentException
                     (str "assoc! expects an even number of extra arguments (key-value pairs), got "
                          (count more)))))
-  (loop [acc (assoc-bang-pair tcoll key value)
+  (loop [acc       (assoc-bang-pair tcoll key value)
          remaining more]
     (if (empty? remaining)
       acc

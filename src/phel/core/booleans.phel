@@ -222,9 +222,9 @@
   ([x] (not (nil? x)))
   ([pred coll]
    (cond
-     (empty? coll) false
+     (empty? coll)                 false
      (truthy? (pred (first coll))) true
-     :else (recur pred (next coll)))))
+     :else                         (recur pred (next coll)))))
 
 (defn not-any?
   "Returns true if `(pred x)` is logical false for every `x` in `coll`
@@ -288,17 +288,17 @@
   category so `(compare 1 1.5)` works."
   [x]
   (cond
-    (php/=== x nil)                      :nil
-    (php/is_bool x)                      :bool
-    (or (php/is_int x) (php/is_float x)) :number
-    (php/is_string x)                    :string
-    (php/instanceof x Keyword)           :keyword
-    (php/instanceof x Symbol)            :symbol
+    (php/=== x nil)                                                                                      :nil
+    (php/is_bool x)                                                                                      :bool
+    (or (php/is_int x) (php/is_float x))                                                                 :number
+    (php/is_string x)                                                                                    :string
+    (php/instanceof x Keyword)                                                                           :keyword
+    (php/instanceof x Symbol)                                                                            :symbol
     (or (php/instanceof x PersistentVectorInterface)
         (php/instanceof x PersistentListInterface)) :sequential
-    (php/instanceof x PersistentMapInterface)       :map
-    (php/instanceof x PersistentHashSetInterface)   :set
-    :else                                :other))
+    (php/instanceof x PersistentMapInterface)                                                            :map
+    (php/instanceof x PersistentHashSetInterface)                                                        :set
+    :else                                                                                                :other))
 
 (defn compare
   "Compares `x` and `y` using PHP's spaceship operator, returning a negative

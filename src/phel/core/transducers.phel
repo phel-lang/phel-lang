@@ -60,7 +60,7 @@
           (reduce f (first coll) (next coll))))
     2 (let [init (first args)
             coll (second args)
-            acc (php/new Volatile init)
+            acc  (php/new Volatile init)
             done (php/new Volatile false)]
         (dofor [x :in coll :while (not (php/-> done (deref)))]
           (let [result (f (php/-> acc (deref)) x)]
@@ -95,8 +95,8 @@
         (transduce xform f (f) coll))
     2 (let [init (first args)
             coll (second args)
-            f (xform (completing f))
-            ret (reduce f init coll)]
+            f    (xform (completing f))
+            ret  (reduce f init coll)]
         (f ret))
     (throw (php/new InvalidArgumentException "transduce expects 3 or 4 arguments"))))
 

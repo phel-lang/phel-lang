@@ -28,10 +28,10 @@
     (let [trimmed (php/trim s)]
       (cond
         (or (= trimmed "Infinity") (= trimmed "+Infinity")) php/INF
-        (= trimmed "-Infinity") (php/- 0 php/INF)
-        (= trimmed "NaN") NAN
-        (php/is_numeric trimmed) (php/floatval trimmed)
-        :else nil))))
+        (= trimmed "-Infinity")                             (php/- 0 php/INF)
+        (= trimmed "NaN")                                   NAN
+        (php/is_numeric trimmed)                            (php/floatval trimmed)
+        :else                                               nil))))
 
 (defn parse-boolean
   "Parses a string as a boolean. Returns true for \"true\", false for \"false\", nil otherwise."
@@ -40,6 +40,6 @@
   (when (string? s)
     (let [lower (php/strtolower (php/trim s))]
       (cond
-        (= lower "true") true
+        (= lower "true")  true
         (= lower "false") false))))
 

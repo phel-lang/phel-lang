@@ -183,7 +183,7 @@
   ([f] (memoize-lru f 128))
   ([f max-size]
    (let [cache (var {})
-         tick (var 0)]
+         tick  (var 0)]
      (fn [& args]
        (let [c (deref cache)
              t (swap! tick #(php/+ 1 %))]
@@ -191,11 +191,11 @@
            (let [entry (get c args)]
              (set! cache (assoc c args {:value (get entry :value) :accessed t}))
              (get entry :value))
-           (let [res (apply f args)
+           (let [res       (apply f args)
                  new-entry {:value res :accessed t}
                  new-cache (assoc c args new-entry)]
              (if (php/> (count new-cache) max-size)
-               (let [ks (keys new-cache)
+               (let [ks      (keys new-cache)
                      lru-key (reduce
                               (fn [oldest-key current-key]
                                 (if (php/< (get (get new-cache current-key) :accessed)
