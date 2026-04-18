@@ -102,7 +102,7 @@ final class BuildCommand extends Command
 
         if ($freshCount === 0) {
             $output->writeln(sprintf(
-                'No changes detected. %d file%s reused from cache. Compiled output: %s',
+                "No changes detected. %d file%s reused from cache.\nCompiled output: %s",
                 $cachedCount,
                 $cachedCount === 1 ? '' : 's',
                 $outputDir,
@@ -111,7 +111,7 @@ final class BuildCommand extends Command
         }
 
         $output->writeln(sprintf(
-            'Compiled %d file%s (%d reused from cache). Output directory: %s',
+            "Compiled %d file%s (%d reused from cache).\nOutput directory: %s",
             $freshCount,
             $freshCount === 1 ? '' : 's',
             $cachedCount,

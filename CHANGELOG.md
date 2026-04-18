@@ -11,12 +11,11 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- `phel build` no longer leaks stdout from compiled Phel programs. Top-level side-effects (e.g. `(println ...)` or a game loop) still run at compile time so macros and definitions register correctly, but their output is suppressed so only the build command's own output reaches the terminal.
+- `phel build` no longer leaks stdout from compiled programs during compilation.
 
 ### Changed
 
-- `phel build` output now reports cached files alongside freshly compiled ones and prints a summary line with the compiled output directory, e.g. `Compiled 3 files (19 reused from cache). Output directory: /path/to/out`. When every file is served from cache it prints `No changes detected. N files reused from cache.` instead of an empty result.
-- `CompiledFile` has a new `isCached()` method indicating whether the file was reused from cache rather than freshly compiled. `BuildFacade::getOutputDirectory()` exposes the configured build output directory.
+- `phel build` prints a summary with fresh/cached counts and the output directory, including a clear message when nothing needed recompiling.
 
 ### Changed (breaking)
 
