@@ -105,8 +105,8 @@
       (if (php/=== 0 size-or-seq)
         (php/array)
         (php/array_fill 0 size-or-seq default)))
-    (let [arr (to-php-array size-or-seq)
-          len (php/count arr)
+    (let [arr    (to-php-array size-or-seq)
+          len    (php/count arr)
           result (php/array)]
       (loop [i 0]
         (if (php/< i len)
@@ -164,7 +164,7 @@
   {:example "(aget (php/array 10 20 30) 1) ; => 20"
    :see-also ["aset" "aclone" "object-array"]}
   [arr & indices]
-  (loop [a arr
+  (loop [a    arr
          idxs indices]
     (if (nil? idxs)
       a
@@ -180,11 +180,11 @@
   {:example "(let [a (php/array 1 2 3)] (aset a 0 42) (aget a 0)) ; => 42"
    :see-also ["aget" "aclone" "object-array"]}
   [arr idx & more]
-  (let [n (php/-> more (count))
+  (let [n   (php/-> more (count))
         val (php/-> more (get (php/- n 1)))]
     (if (php/=== 1 n)
       `(do (php/aset ,arr ,idx ,val) ,val)
-      (let [extra-keys (loop [i 0
+      (let [extra-keys (loop [i  0
                               ks [idx]]
                          (if (php/< i (php/- n 1))
                            (recur (php/+ i 1) (php/-> ks (push (php/-> more (get i)))))
