@@ -13,6 +13,7 @@ Practical patterns for writing idiomatic Phel code.
 - [Destructuring](#destructuring)
 - [Data Validation](#data-validation)
 - [Writing Macros](#writing-macros)
+- [Build-safe Entry Points](#build-safe-entry-points)
 
 ## Working with Nil
 
@@ -648,6 +649,45 @@ When the dispatch symbol has no registered method (e.g. `(is (= 1 1))`), the mul
   [users]
   (filter :active users))
 ```
+
+## Build-safe Entry Points
+
+`phel build` evaluates every top-level form at compile time so macros, `def`, `defn`, and `ns` register correctly. Top-level **side effects** (starting a game loop, reading `stdin`, opening sockets, sleeping) also run, which can block the build indefinitely.
+
+Guard imperative entry calls with `*build-mode*`:
+
+```phel
+(ns app\main)
+
+(defn play []
+  (loop [state (initial-state)]
+    ;; ... read stdin, render, recur
+    ))
+
+;; Safe: only runs when actually executing, not during `phel build`.
+(when-not *build-mode*
+  (play))
+```
+
+`*build-mode*` is set to `true` while the compiler evaluates your file during `phel build`, and `false` during `phel run` or when the compiled artifact is loaded at runtime. The same idea applies to any stdin/network/sleep call at top level:
+
+```phel
+;; Bad: blocks `phel build` forever on fgets.
+(def line (php/fgets (php/fopen "php://stdin" "r")))
+
+;; Good: reads at run time only.
+(def stdin (php/fopen "php://stdin" "r"))
+
+(defn read-line []
+  (php/fgets stdin))
+
+(when-not *build-mode*
+  (println (read-line)))
+```
+
+`defn`, `def` of pure values, `ns`, and `(:require ...)` forms are always safe at top level. Only imperative work needs the guard.
+
+> Note: `phel build` suppresses stdout produced by compiled code during compilation, so stray `println` calls no longer leak to the terminal. Execution still happens though, so anything that **blocks** (stdin reads, `sleep`, sockets, infinite loops) still needs `(when-not *build-mode* ...)`.
 
 ## See Also
 
