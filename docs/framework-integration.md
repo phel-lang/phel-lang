@@ -238,7 +238,7 @@ echo $greet('World') . "\n";
 
 ## Notes
 
-- **Boot namespace**: one `.phel` file with `(:require ...)` for every feature ns. Load it once, every exported wrapper is ready. Adding a new feature = one new `:require` line.
+- **Boot namespace**: `phel/app/boot.phel` lists one `(:require other\ns)` per feature namespace. The build step walks those requires transitively, so the compiled `build/app/boot.php` `require_once`s every dependency. Loading it from the provider/kernel registers every `{:export true}` function in one shot — controllers then call any wrapper without knowing which Phel files exist. New feature: create the `.phel` file, add one `:require` line in `app/boot.phel`, rerun `phel export` + `phel build`.
 - Namespace path matches directory: `phel/shop/pricing.phel` → `(ns shop\pricing)`. Single-segment ns exports invalid PHP; use at least two segments.
 - Hyphens become camelCase: `(ns my-lib\core)` → `App\PhelGenerated\MyLib\Core`; `apply-discount` → `applyDiscount`.
 - Prod path (`require build/app/boot.php`): self-contained — no Gacela bootstrap, no compiler, just `\Phel::addDefinition()` calls.
