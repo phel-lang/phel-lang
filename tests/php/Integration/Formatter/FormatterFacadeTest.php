@@ -107,8 +107,69 @@ final class FormatterFacadeTest extends TestCase
             ],
             [
                 '(case (+ 7 5)',
-                '  3 :small',
+                '  3  :small',
                 '  12 :big)',
+            ],
+        ];
+
+        yield 'Align cond pairs' => [
+            [
+                '(cond',
+                'won? :won',
+                '(board-full? b) :draw',
+                ':else :playing)',
+            ],
+            [
+                '(cond',
+                '  won?            :won',
+                '  (board-full? b) :draw',
+                '  :else           :playing)',
+            ],
+        ];
+
+        yield 'Align case pairs with default' => [
+            [
+                '(case x',
+                '1 :one',
+                '200 :two-hundred',
+                ':other)',
+            ],
+            [
+                '(case x',
+                '  1   :one',
+                '  200 :two-hundred',
+                '  :other)',
+            ],
+        ];
+
+        yield 'Align let bindings' => [
+            [
+                '(let [x 1',
+                'longer 2',
+                'a 3]',
+                '(+ x longer a))',
+            ],
+            [
+                '(let [x      1',
+                '      longer 2',
+                '      a      3]',
+                '  (+ x longer a))',
+            ],
+        ];
+
+        yield 'Single line cond not aligned' => [
+            ['(cond a 1 b 2)'],
+            ['(cond a 1 b 2)'],
+        ];
+
+        yield 'Cond with single pair not aligned' => [
+            [
+                '(cond',
+                'a 1)',
+            ],
+            [
+                '(cond',
+                '  a 1)',
             ],
         ];
 
