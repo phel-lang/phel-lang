@@ -95,12 +95,21 @@ final readonly class ProjectCompiler
             if ($this->canUseCache($buildOptions, $targetFile, $info)) {
                 // Load cached file to register definitions and execute top-level expressions
                 BuildFacade::enableBuildMode();
+                ob_start();
                 try {
                     /** @psalm-suppress UnresolvableInclude */
                     require_once $targetFile;
                 } finally {
+                    ob_end_clean();
                     BuildFacade::disableBuildMode();
                 }
+
+                $result[] = new CompiledFile(
+                    $info->getFile(),
+                    $targetFile,
+                    $info->getNamespace(),
+                    cached: true,
+                );
 
                 continue;
             }

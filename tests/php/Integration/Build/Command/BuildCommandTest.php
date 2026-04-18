@@ -50,8 +50,9 @@ final class BuildCommandTest extends TestCase
         );
         $string = ob_get_clean();
 
-        self::assertMatchesRegularExpression('/This is printed from no-cache.phel/', $string);
-        self::assertMatchesRegularExpression('/This is printed from hello.phel/', $string);
+        // Top-level side-effects from compiled Phel code must not leak to stdout.
+        self::assertDoesNotMatchRegularExpression('/This is printed from no-cache.phel/', $string);
+        self::assertDoesNotMatchRegularExpression('/This is printed from hello.phel/', $string);
 
         self::assertFileExists(__DIR__ . '/out/phel/core.phel');
         self::assertFileExists(__DIR__ . '/out/phel/core.php');
@@ -85,11 +86,9 @@ final class BuildCommandTest extends TestCase
         );
         $string = ob_get_clean();
 
-        // Both files should print during build:
-        // - no-cache.phel: always recompiled (in no-cache list), executes during compilation
-        // - hello.phel: cache invalid (touched), gets recompiled, executes during compilation
-        self::assertMatchesRegularExpression('/This is printed from no-cache.phel/', $string);
-        self::assertMatchesRegularExpression('/This is printed from hello.phel/', $string);
+        // Compiled program output must stay suppressed regardless of cache path (fresh or cached require_once).
+        self::assertDoesNotMatchRegularExpression('/This is printed from no-cache.phel/', $string);
+        self::assertDoesNotMatchRegularExpression('/This is printed from hello.phel/', $string);
 
         self::assertFileExists(__DIR__ . '/out/phel/core.phel');
         self::assertFileExists(__DIR__ . '/out/phel/core.php');
