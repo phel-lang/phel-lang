@@ -1,10 +1,10 @@
 # Framework Integration Recipes
 
-Drop Phel into an existing PHP project without touching `app/` or `src/`.
+Add Phel to an existing PHP project without touching `app/` or `src/`.
 
 ## Core idea
 
-Put Phel sources in a dedicated dir (e.g. `phel/`). Export `{:export true}` functions to PHP wrappers under your framework's existing `App\` PSR-4 root, then load the Phel namespace once at app boot so Registry has the definitions.
+Keep Phel sources in a dedicated dir (e.g. `phel/`). Export `{:export true}` functions as PHP wrappers under your framework's `App\` PSR-4 root. Load the namespace once at boot.
 
 Two ways to call Phel from PHP:
 
@@ -13,15 +13,22 @@ Two ways to call Phel from PHP:
 | Exported wrappers | `{:export true}` + `vendor/bin/phel export` → typed PHP class | Production, IDE autocomplete |
 | Dynamic lookup | `\Phel::getDefinition($ns, $name)(...)` | Scripts, prototyping |
 
-Both require loading the Phel namespace once at startup (service provider, kernel event, entry script):
+Two ways to load definitions at runtime:
+
+| Mode | How | Cost per request |
+|------|-----|------------------|
+| JIT (dev) | `\Phel::run($root, $ns)` at boot — compiles on first call | Bootstrap + compile (cached after first) |
+| AOT (prod) | `vendor/bin/phel build` once, `require 'build/ns/name.php'` at boot | Zero compile — just `require` |
+
+Load the namespace once at startup:
 
 ```php
 \Phel::run(__DIR__, 'shop\\pricing');
 ```
 
-`\Phel::run($projectRootDir, $namespace)` bootstraps the runtime and evaluates the namespace so `Registry` has its defs. Without it, wrapper methods and `\Phel::getDefinition()` return null.
+`\Phel::run($projectRootDir, $namespace)` bootstraps the runtime and registers the defs. Without it, wrappers and `\Phel::getDefinition()` return null.
 
-Namespaces must have at least two segments (`shop\pricing`, not `pricing`) so the generated PHP namespace is well-formed.
+Namespaces need at least two segments (`shop\pricing`, not `pricing`).
 
 Install: `composer require phel-lang/phel-lang`
 
@@ -63,7 +70,7 @@ Generate the wrapper:
 vendor/bin/phel export
 ```
 
-`app/Providers/PhelServiceProvider.php` (load Phel namespaces once per process):
+`app/Providers/PhelServiceProvider.php`:
 
 ```php
 namespace App\Providers;
@@ -72,14 +79,21 @@ use Illuminate\Support\ServiceProvider;
 
 final class PhelServiceProvider extends ServiceProvider
 {
-    public function register(): void
+    private static bool $loaded = false;
+
+    public function boot(): void
     {
+        if (self::$loaded) {
+            return;
+        }
+
         \Phel::run(base_path(), 'shop\\pricing');
+        self::$loaded = true;
     }
 }
 ```
 
-Register it in `config/app.php` or via package discovery, then call the wrapper:
+Register it, then call the wrapper:
 
 ```php
 use App\PhelGenerated\Shop\Pricing;
@@ -98,7 +112,7 @@ final class CheckoutController
 }
 ```
 
-Keep wrappers in sync via a composer script:
+Keep wrappers in sync:
 
 ```json
 "scripts": {
@@ -129,14 +143,21 @@ return PhelConfig::forProject()
 
 Default `App\ → src/` PSR-4 covers `App\PhelGenerated\`.
 
-Load Phel on kernel boot (`src/Kernel.php` or a `KernelEvents::REQUEST` listener):
+Load on kernel boot (`src/Kernel.php`):
 
 ```php
+private static bool $phelLoaded = false;
+
 public function boot(): void
 {
     parent::boot();
 
+    if (self::$phelLoaded) {
+        return;
+    }
+
     \Phel::run($this->getProjectDir(), 'reports\\domain');
+    self::$phelLoaded = true;
 }
 ```
 
@@ -196,11 +217,70 @@ echo $greet('World') . "\n";
 
 ---
 
+## Production: ahead-of-time build
+
+`\Phel::run()` boots Gacela and compiles on first call. Fine for dev. In production, compile once at deploy and skip bootstrap entirely.
+
+Add a build config:
+
+```php
+use Phel\Config\PhelBuildConfig;
+use Phel\Config\PhelConfig;
+
+return PhelConfig::forProject()
+    ->setSrcDirs(['phel'])
+    ->setBuildConfig((new PhelBuildConfig())->setDestDir('build'))
+    // ...export config as before
+    ;
+```
+
+Build at deploy time:
+
+```bash
+vendor/bin/phel build
+```
+
+Output: `build/<ns-path>.php` — self-contained, registers defs via `\Phel::addDefinition()`, only depends on the `\Phel` class from Composer autoload.
+
+**Laravel** — replace `\Phel::run(...)` in the provider:
+
+```php
+public function boot(): void
+{
+    if (self::$loaded) {
+        return;
+    }
+
+    require base_path('build/shop/pricing.php');
+    self::$loaded = true;
+}
+```
+
+**Symfony** — same swap in `Kernel::boot()`:
+
+```php
+require $this->getProjectDir() . '/build/reports/domain.php';
+```
+
+Wire into Composer so the build runs on deploy:
+
+```json
+"scripts": {
+    "post-install-cmd": ["phel build", "phel export"],
+    "post-update-cmd": ["phel build", "phel export"]
+}
+```
+
+Commit `build/` in the deploy artifact (or generate during CI). No runtime Phel compiler, no Gacela bootstrap — just `require`.
+
+---
+
 ## Notes
 
-- Namespace path must match directory: `phel/shop/pricing.phel` → `(ns shop\pricing)`. Single-segment ns (`pricing`) produces invalid PHP on export; use at least two segments.
+- Namespace path matches directory: `phel/shop/pricing.phel` → `(ns shop\pricing)`. Single-segment ns exports invalid PHP; use at least two segments.
 - Hyphens become camelCase: `(ns my-lib\core)` → `App\PhelGenerated\MyLib\Core`; `apply-discount` → `applyDiscount`.
-- `\Phel::run()` is the only public entry point for loading a Phel namespace from PHP. Skip it and wrapper methods or `\Phel::getDefinition()` return null.
+- `\Phel::run()` is the only public entry to load a namespace. Skip it and wrappers return null.
+- `\Phel::run()` bootstraps Gacela and compiles temp files. Call it once per process (guard with a static flag, or load once on Octane/long-running workers). Avoid calling it from `register()` or per-request hot paths.
 - Add `vendor/bin/phel test` to CI alongside `phpunit`.
 
 ## See also
