@@ -13,12 +13,13 @@ Two ways to call Phel from PHP:
 | Exported wrappers | `{:export true}` + `vendor/bin/phel export` → typed PHP class | Production, IDE autocomplete |
 | Dynamic lookup | `\Phel::getDefinition($ns, $name)(...)` | Scripts, prototyping |
 
-Both require this bootstrap step at startup (service provider, kernel event, entry script):
+Both require loading the Phel namespace once at startup (service provider, kernel event, entry script):
 
 ```php
-\Phel::bootstrap(__DIR__);
-(new \Phel\Run\RunFacade())->runNamespace('shop\\pricing');
+\Phel::run(__DIR__, 'shop\\pricing');
 ```
+
+`\Phel::run($projectRootDir, $namespace)` bootstraps the runtime and evaluates the namespace so `Registry` has its defs. Without it, wrapper methods and `\Phel::getDefinition()` return null.
 
 Namespaces must have at least two segments (`shop\pricing`, not `pricing`) so the generated PHP namespace is well-formed.
 
@@ -68,14 +69,12 @@ vendor/bin/phel export
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Phel\Run\RunFacade;
 
 final class PhelServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        \Phel::bootstrap(base_path());
-        (new RunFacade())->runNamespace('shop\\pricing');
+        \Phel::run(base_path(), 'shop\\pricing');
     }
 }
 ```
@@ -137,8 +136,7 @@ public function boot(): void
 {
     parent::boot();
 
-    \Phel::bootstrap($this->getProjectDir());
-    (new \Phel\Run\RunFacade())->runNamespace('reports\\domain');
+    \Phel::run($this->getProjectDir(), 'reports\\domain');
 }
 ```
 
@@ -190,8 +188,7 @@ Call dynamically:
 
 require __DIR__ . '/vendor/autoload.php';
 
-\Phel::bootstrap(__DIR__);
-(new \Phel\Run\RunFacade())->runNamespace('app\\main');
+\Phel::run(__DIR__, 'app\\main');
 
 $greet = \Phel::getDefinition('app\\main', 'greet');
 echo $greet('World') . "\n";
@@ -203,7 +200,7 @@ echo $greet('World') . "\n";
 
 - Namespace path must match directory: `phel/shop/pricing.phel` → `(ns shop\pricing)`. Single-segment ns (`pricing`) produces invalid PHP on export; use at least two segments.
 - Hyphens become camelCase: `(ns my-lib\core)` → `App\PhelGenerated\MyLib\Core`; `apply-discount` → `applyDiscount`.
-- `\Phel::bootstrap()` registers the config; `RunFacade::runNamespace()` compiles and evaluates the ns so `Registry` has its defs. Skip the second call and wrapper methods return null.
+- `\Phel::run()` is the only public entry point for loading a Phel namespace from PHP. Skip it and wrapper methods or `\Phel::getDefinition()` return null.
 - Add `vendor/bin/phel test` to CI alongside `phpunit`.
 
 ## See also
