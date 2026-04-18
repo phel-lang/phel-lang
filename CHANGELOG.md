@@ -11,10 +11,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed (breaking)
 
-- `phel init` now defaults to the Flat layout (`src/`, `tests/`). Use `--nested` for the previous `src/phel/`, `tests/phel/` structure.
-- `ProjectLayout::Conventional` renamed to `ProjectLayout::Nested`. `useConventionalLayout()` renamed to `useNestedLayout()`.
-- Generated `phel-config.php` now uses `use` imports and named arguments (`mainNamespace:`, `layout:`) and always sets `mainNamespace` explicitly.
-- Default `PhelConfig` source/test/format directories changed from `src/phel`/`tests/phel` to `src`/`tests` to match the new Flat default.
+- `phel init` defaults to Flat layout (`src/`, `tests/`); use `--nested` for the previous `src/phel/` structure. `ProjectLayout::Conventional` renamed to `ProjectLayout::Nested` (`useConventionalLayout()` → `useNestedLayout()`).
 
 ## [0.33.0](https://github.com/phel-lang/phel-lang/compare/v0.32.0...v0.33.0) - 2026-04-17
 
