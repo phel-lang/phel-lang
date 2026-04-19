@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file.
 - `phel\ai`: `docs/ai-guide.md` usage guide.
 - `phel\ai`: `*http-post*` rebindable seam enables full behavior coverage of chat/complete/extract/chat-with-tools/embed/build-index/search without a live API.
 - `uuid=`, `uuid-nil?`, `uuid-version`, and `uuid-variant` helpers in `phel\core` for case-insensitive UUID comparison and field extraction.
+- `phel\repl`: `find-ns`, `create-ns`, `remove-ns`, `intern`, and `ns-interns` for inspecting and mutating namespaces without switching `*ns*`.
 
 ### Fixed
 

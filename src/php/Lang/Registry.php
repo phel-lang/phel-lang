@@ -54,6 +54,24 @@ final class Registry
         return isset($this->definitions[$ns][$name]);
     }
 
+    public function hasNamespace(string $ns): bool
+    {
+        return isset($this->definitions[$ns]);
+    }
+
+    public function registerNamespace(string $ns): void
+    {
+        if (!isset($this->definitions[$ns])) {
+            $this->definitions[$ns] = [];
+            $this->definitionsMetaData[$ns] = [];
+        }
+    }
+
+    public function removeNamespace(string $ns): void
+    {
+        unset($this->definitions[$ns], $this->definitionsMetaData[$ns]);
+    }
+
     public function getDefinition(string $ns, string $name): mixed
     {
         return $this->definitions[$ns][$name] ?? null;
