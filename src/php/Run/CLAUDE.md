@@ -53,10 +53,12 @@ Run/
 │   ├── Init/           NamespaceNormalizer, ProjectTemplateGenerator
 │   ├── Repl/           EvalResult, EvalError, ReplCommandIoInterface, ReplHistory, ReplPrompt, startup.phel
 │   ├── Runner/         NamespaceCollector, NamespaceRunnerInterface
-│   └── Test/           TestCommandOptions, CannotFindAnyTestsException
+│   ├── Test/           TestCommandOptions, CannotFindAnyTestsException
+│   └── StdinReaderInterface
 ├── Infrastructure/
 │   ├── Command/        DoctorCommand, EvalCommand, InitCommand, NsCommand, ReplCommand, RunCommand, TestCommand
-│   └── Service/        DebugLineTap
+│   ├── Service/        DebugLineTap
+│   └── PhpStdinReader
 └── Gacela files        RunFacade, RunFactory, RunConfig, RunProvider
 ```
 

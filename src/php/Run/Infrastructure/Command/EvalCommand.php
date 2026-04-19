@@ -6,6 +6,7 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
+use Phel\Run\Domain\StdinReaderInterface;
 use Phel\Run\RunFacade;
 use Phel\Run\RunFactory;
 use Symfony\Component\Console\Command\Command;
@@ -23,14 +24,22 @@ final class EvalCommand extends Command
 {
     use ServiceResolverAwareTrait;
 
+    private const string STDIN_MARKER = '-';
+
+    public function __construct(
+        private ?StdinReaderInterface $stdinReader = null,
+    ) {
+        parent::__construct();
+    }
+
     protected function configure(): void
     {
         $this->setName('eval')
             ->setDescription('Evaluate a Phel expression and print the result')
             ->addArgument(
                 'expression',
-                InputArgument::REQUIRED,
-                'The Phel expression to evaluate',
+                InputArgument::OPTIONAL,
+                'The Phel expression to evaluate. Use "-" to read from stdin.',
             );
     }
 
@@ -38,11 +47,14 @@ final class EvalCommand extends Command
     {
         $this->getFacade()->loadPhelNamespaces();
 
-        $expression = $input->getArgument('expression');
+        $expression = (string) ($input->getArgument('expression') ?? '');
+        if ($expression === self::STDIN_MARKER) {
+            $expression = ($this->stdinReader ?? $this->getFactory()->createStdinReader())->read();
+        }
 
         $result = $this->getFactory()
             ->createEvalExecutor()
-            ->execute((string) $expression);
+            ->execute($expression);
 
         return $result ? self::SUCCESS : self::FAILURE;
     }

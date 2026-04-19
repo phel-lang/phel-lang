@@ -22,6 +22,8 @@ use Phel\Run\Domain\Repl\ReplHistory;
 use Phel\Run\Domain\Repl\ReplPrompt;
 use Phel\Run\Domain\Runner\NamespaceCollector;
 use Phel\Run\Domain\Runner\NamespaceRunnerInterface;
+use Phel\Run\Domain\StdinReaderInterface;
+use Phel\Run\Infrastructure\PhpStdinReader;
 use Phel\Shared\ColorStyle;
 use Phel\Shared\ColorStyleInterface;
 use Phel\Shared\Facade\ApiFacadeInterface;
@@ -160,5 +162,10 @@ class RunFactory extends AbstractFactory
         return new EntryPointDetector(
             $this->getCommandFacade(),
         );
+    }
+
+    public function createStdinReader(): StdinReaderInterface
+    {
+        return new PhpStdinReader();
     }
 }

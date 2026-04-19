@@ -71,6 +71,13 @@ Run it:
 # => Hello, World!
 ```
 
+Or evaluate a snippet without a file:
+```bash
+./vendor/bin/phel eval '(println "Hello, World!")'
+echo '(println "from stdin")' | ./vendor/bin/phel eval -
+./vendor/bin/phel eval - < src/hello.phel
+```
+
 ### 2. Interactive REPL (1 minute)
 
 Start the REPL:
