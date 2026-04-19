@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - `phel build` no longer leaks stdout from compiled programs during compilation.
+- Windows compiled-code cache crash: absolute cache paths with drive letters or UNC prefixes are no longer prefixed with the app root.
 - `phel\ai` `check-response` raises a `RuntimeException` with the provider error message instead of a PHP `TypeError` when the decoded error body is missing the nested `:error :message` path.
 - `phel\ai` text extraction selects the first `text`-type content block in an Anthropic response, skipping `tool_use` blocks that precede it.
 
