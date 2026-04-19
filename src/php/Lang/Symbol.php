@@ -50,6 +50,8 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
 
     public const string NAME_PHP_NEW = 'php/new';
 
+    public const string NAME_NEW = 'new';
+
     public const string NAME_PHP_OBJECT_CALL = 'php/->';
 
     public const string NAME_PHP_OBJECT_STATIC_CALL = 'php/::';

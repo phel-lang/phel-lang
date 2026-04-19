@@ -126,6 +126,14 @@ final class AnalyzePersistentListTest extends TestCase
         self::assertInstanceOf(PhpNewNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
+    public function test_symbol_with_name_new(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NEW), '',
+        ]);
+        self::assertInstanceOf(PhpNewNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
+    }
+
     public function test_symbol_with_name_php_object_call(): void
     {
         $list = Phel::list([

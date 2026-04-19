@@ -159,7 +159,7 @@ final class AnalyzePersistentList
             Symbol::NAME_IF => new IfSymbol($this->analyzer),
             Symbol::NAME_APPLY => new ApplySymbol($this->analyzer),
             Symbol::NAME_LET => new LetSymbol($this->analyzer, new Deconstructor(new BindingValidator())),
-            Symbol::NAME_PHP_NEW => new PhpNewSymbol($this->analyzer),
+            Symbol::NAME_PHP_NEW, Symbol::NAME_NEW => new PhpNewSymbol($this->analyzer),
             Symbol::NAME_PHP_OBJECT_CALL => new PhpObjectCallSymbol($this->analyzer, isStatic: false),
             Symbol::NAME_PHP_OBJECT_STATIC_CALL => new PhpObjectCallSymbol($this->analyzer, isStatic: true),
             Symbol::NAME_PHP_ARRAY_GET => new PhpAGetSymbol($this->analyzer),

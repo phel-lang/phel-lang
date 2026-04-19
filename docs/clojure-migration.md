@@ -9,7 +9,7 @@ Phel is a functional Lisp inspired by Clojure that compiles to PHP. If you know 
 | `(ns my.app (:require [clojure.string :as str]))` | `(ns my\app (:require phel\string :as str))` | `\` separator; `.` also works |
 | `(.method obj arg)` | `(php/-> obj (method arg))` | Instance method |
 | `(Class/staticMethod arg)` | `(php/:: Class (method arg))` | Static method |
-| `(ClassName. arg)` | `(ClassName. arg)` or `(php/new ClassName arg)` | `ClassName.` reads as `(php/new ClassName ...)` |
+| `(ClassName. arg)` | `(ClassName. arg)`, `(new ClassName arg)`, or `(php/new ClassName arg)` | `ClassName.` and `new` both read as `(php/new ClassName ...)` |
 | `(.-field obj)` | `(php/-> obj -field)` | Property access |
 | `(:import [java.util Date])` | `(:use DateTime)` in the `ns` form | Imports a PHP class by short name; also works with FQNs: `(:use Phel\Lang\Symbol)` |
 | `(instance? Type x)` | `(instance? Type x)` or `(php/instanceof x Type)` | Phel ships an `instance?` macro that wraps `php/instanceof` with Clojure's argument order |
