@@ -45,6 +45,9 @@ final class PhelExportConfig implements JsonSerializable
         return $this;
     }
 
+    /**
+     * @return array{target-directory: string, from-directories: list<string>, namespace-prefix: string}
+     */
     public function jsonSerialize(): array
     {
         return [

@@ -17,8 +17,8 @@ final class Variable extends AbstractType
     /** @var array<string, callable> */
     private array $watches = [];
 
-    /** @var ?callable */
-    private mixed $validator = null;
+    /** @var callable|null */
+    private $validator;
 
     /**
      * @param T $value

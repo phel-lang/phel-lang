@@ -35,6 +35,9 @@ final class PhelBuildConfig implements JsonSerializable
 
     private string $mainPhpPath = '';
 
+    /**
+     * @param array<string, mixed> $array
+     */
     public static function fromArray(array $array): self
     {
         $self = new self();
@@ -57,6 +60,9 @@ final class PhelBuildConfig implements JsonSerializable
         return $self;
     }
 
+    /**
+     * @return array<string, string>
+     */
     public function jsonSerialize(): array
     {
         return [
