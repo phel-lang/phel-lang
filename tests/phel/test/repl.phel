@@ -1,5 +1,5 @@
 (ns phel-test\test\repl
-  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers find-fn test-ns eval-capturing eval-str macroexpand-1-form macroexpand-form macroexpand-1 macroexpand ns-list loaded-namespaces explain suggest fix review embed-ns search-ns])
+  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers ns-interns find-fn test-ns eval-capturing eval-str macroexpand-1-form macroexpand-form macroexpand-1 macroexpand ns-list loaded-namespaces explain suggest fix review embed-ns search-ns find-ns create-ns remove-ns intern])
   (:require phel\ai :as ai)
   (:require phel\string :as s)
   (:require phel\test :refer [deftest is]))
@@ -446,3 +446,91 @@
   (is (function? review) "review is defined")
   (is (function? embed-ns) "embed-ns is defined")
   (is (function? search-ns) "search-ns is defined"))
+
+;; ------------------
+;; find-ns / create-ns / remove-ns / intern / ns-interns
+;; ------------------
+
+(deftest test-find-ns-returns-nil-for-unknown
+  (is (nil? (find-ns "phel-test-repl-unknown-ns"))))
+
+(deftest test-create-ns-registers-empty-namespace
+  (let [ns "phel-test-repl\\create-ns-fixture"]
+    (remove-ns ns)
+    (is (nil? (find-ns ns)) "pre: namespace not registered")
+    (let [created (create-ns ns)]
+      (is (= ns created) "create-ns returns the namespace string")
+      (is (= ns (find-ns ns)) "namespace is now discoverable"))
+    (remove-ns ns)))
+
+(deftest test-create-ns-is-idempotent
+  (let [ns "phel-test-repl\\create-ns-idempotent"]
+    (create-ns ns)
+    (intern ns "keeper" 7)
+    (create-ns ns)
+    (is (= {"keeper" 7} (ns-interns ns))
+        "re-creating a namespace keeps existing definitions")
+    (remove-ns ns)))
+
+(deftest test-intern-stores-value-and-creates-namespace
+  (let [ns "phel-test-repl\\intern-fixture"]
+    (remove-ns ns)
+    (intern ns "answer" 42)
+    (is (= ns (find-ns ns)) "intern auto-registers the namespace")
+    (is (= {"answer" 42} (ns-interns ns)) "intern stores the value")
+    (remove-ns ns)))
+
+(deftest test-intern-returns-fully-qualified-symbol
+  (let [ns  "phel-test-repl\\intern-return"
+        sym (intern ns "pointer" 1)]
+    (is (= "pointer" (php/-> sym (getName))) "symbol name matches")
+    (is (= ns (php/-> sym (getNamespace))) "symbol namespace matches")
+    (is (= (str ns "/pointer") (php/-> sym (getFullName)))
+        "symbol full name is ns/name")
+    (remove-ns ns)))
+
+(deftest test-intern-munges-dashes-in-name
+  (let [ns "phel-test-repl\\intern-munge"]
+    (remove-ns ns)
+    (intern ns "kebab-name" 1)
+    (is (= {"kebab-name" 1} (ns-interns ns))
+        "intern encodes dashes and ns-interns decodes them")
+    (remove-ns ns)))
+
+(deftest test-intern-defaults-to-nil-value
+  (let [ns "phel-test-repl\\intern-nil"]
+    (remove-ns ns)
+    (intern ns "placeholder")
+    (is (= {"placeholder" nil} (ns-interns ns))
+        "intern with no value uses nil")
+    (remove-ns ns)))
+
+(deftest test-intern-overwrites-existing-value
+  (let [ns "phel-test-repl\\intern-overwrite"]
+    (remove-ns ns)
+    (intern ns "x" 1)
+    (intern ns "x" 2)
+    (is (= {"x" 2} (ns-interns ns)) "subsequent intern replaces the value")
+    (remove-ns ns)))
+
+(deftest test-ns-interns-empty-for-missing-namespace
+  (is (= {} (ns-interns "phel-test-repl-missing"))
+      "ns-interns returns an empty map for unknown namespaces"))
+
+(deftest test-ns-interns-includes-private-definitions
+  (let [ns "phel-test-repl\\interns-all"]
+    (remove-ns ns)
+    (intern ns "pub" 1)
+    (intern ns "priv" 2)
+    (is (= {"pub" 1 "priv" 2} (ns-interns ns))
+        "ns-interns exposes every definition")
+    (remove-ns ns)))
+
+(deftest test-remove-ns-drops-all-definitions
+  (let [ns "phel-test-repl\\remove-me"]
+    (create-ns ns)
+    (intern ns "gone" 99)
+    (remove-ns ns)
+    (is (nil? (find-ns ns)) "find-ns returns nil after remove-ns")
+    (is (= {} (ns-interns ns))
+        "ns-interns returns an empty map after remove-ns")))
