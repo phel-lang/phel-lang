@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Calling a quoted symbol or non-callable literal (`('foo)`, `(42)`, `(nil)`, `("x")`) now raises `PHEL011` at analysis time with the source location, instead of a raw PHP `TypeError` stack trace from `eval()`.
 - `phel build` no longer leaks stdout from compiled programs during compilation.
 - Windows compiled-code cache crash: absolute cache paths with drive letters or UNC prefixes are no longer prefixed with the app root.
 - `phel\ai` `check-response` raises a `RuntimeException` with the provider error message instead of a PHP `TypeError` when the decoded error body is missing the nested `:error :message` path.

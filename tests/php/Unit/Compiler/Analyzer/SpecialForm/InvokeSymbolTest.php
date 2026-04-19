@@ -98,6 +98,45 @@ final class InvokeSymbolTest extends TestCase
         $this->analyzer = new Analyzer($env);
     }
 
+    public function test_quoted_symbol_in_call_position_raises_phel011(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Value foobar of type Symbol is not callable. Did you quote or escape a symbol by mistake?');
+
+        $list = Phel::list([
+            Phel::list([
+                Symbol::create(Symbol::NAME_QUOTE),
+                Symbol::create('foobar'),
+            ]),
+        ]);
+
+        (new InvokeSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+    }
+
+    public function test_integer_literal_in_call_position_raises_phel011(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Value 42 of type int is not callable.');
+
+        (new InvokeSymbol($this->analyzer))->analyze(Phel::list([42]), NodeEnvironment::empty());
+    }
+
+    public function test_string_literal_in_call_position_raises_phel011(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Value "foo" of type string is not callable.');
+
+        (new InvokeSymbol($this->analyzer))->analyze(Phel::list(['foo']), NodeEnvironment::empty());
+    }
+
+    public function test_nil_in_call_position_raises_phel011(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Value nil of type null is not callable.');
+
+        (new InvokeSymbol($this->analyzer))->analyze(Phel::list([null]), NodeEnvironment::empty());
+    }
+
     public function test_not_enough_args_provided_then_error(): void
     {
         $this->expectException(AnalyzerException::class);

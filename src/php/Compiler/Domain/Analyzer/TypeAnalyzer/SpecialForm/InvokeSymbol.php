@@ -9,6 +9,8 @@ use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
+use Phel\Compiler\Domain\Analyzer\Ast\QuoteNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
@@ -16,11 +18,18 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
+use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
+use Phel\Printer\Printer;
 use RuntimeException;
 
 use function count;
+use function get_debug_type;
+use function is_bool;
 use function is_callable;
+use function is_float;
+use function is_int;
+use function is_string;
 use function sprintf;
 
 /**
@@ -31,6 +40,8 @@ use function sprintf;
 final class InvokeSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;
+
+    private const string UNHANDLED = "\0__phel_unhandled__";
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {
@@ -51,12 +62,49 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
             $this->validateEnoughArgsProvided($f, $list);
         }
 
+        $this->rejectNonCallableLiteral($f, $list);
+
         return new CallNode(
             $env,
             $f,
             $this->arguments($list->rest(), $env),
             $list->getStartLocation(),
         );
+    }
+
+    /**
+     * Guards against call-position literals that PHP would reject with a raw
+     * `TypeError` at runtime (quoted symbols, numbers, strings, booleans,
+     * `nil`). Keywords and persistent maps/sets/vectors stay callable and are
+     * handled at runtime as before.
+     */
+    private function rejectNonCallableLiteral(AbstractNode $f, PersistentListInterface $list): void
+    {
+        $value = match (true) {
+            $f instanceof LiteralNode, $f instanceof QuoteNode => $f->getValue(),
+            default => self::UNHANDLED,
+        };
+
+        if ($value === self::UNHANDLED) {
+            return;
+        }
+
+        if ($value instanceof Symbol) {
+            throw AnalyzerException::notCallable(
+                Printer::readable()->print($value),
+                'Symbol',
+                $list,
+                'Did you quote or escape a symbol by mistake?',
+            );
+        }
+
+        if ($value === null || is_bool($value) || is_int($value) || is_float($value) || is_string($value)) {
+            throw AnalyzerException::notCallable(
+                Printer::readable()->print($value),
+                get_debug_type($value),
+                $list,
+            );
+        }
     }
 
     private function inlineMacro(
