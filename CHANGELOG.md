@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- REPL runtime errors from `eval()` (e.g. `TypeError` from a `php/` interop call) point to the user's `string:N` source line via the embedded source map, instead of `InMemoryEvaluator.php:NN : eval()'d code`.
 - Calling a quoted symbol or non-callable literal (`('foo)`, `(42)`, `(nil)`, `("x")`) now raises `PHEL011` at analysis time with the source location, instead of a raw PHP `TypeError` stack trace from `eval()`.
 - `phel build` no longer leaks stdout from compiled programs during compilation.
 - Windows compiled-code cache crash: absolute cache paths with drive letters or UNC prefixes are no longer prefixed with the app root.

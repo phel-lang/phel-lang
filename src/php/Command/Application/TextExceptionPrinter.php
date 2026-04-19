@@ -9,6 +9,7 @@ use Phel\Command\Domain\Exceptions\ExceptionArgsPrinterInterface;
 use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
+use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Domain\Exceptions\ErrorCode;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
@@ -93,6 +94,22 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
     public function getStackTraceString(Throwable $e): string
     {
         $str = '';
+
+        if ($e instanceof EvaluatedCodeException) {
+            $original = $e->getOriginalException();
+            $type = $original::class;
+            $msg = $original->getMessage();
+            $errorFile = $original->getFile();
+            $errorLine = $original->getLine();
+            $phelFile = $e->getPhelFile();
+            $phelLine = $e->getPhelLine();
+
+            $str .= $this->style->blue(sprintf('%s: %s', $type, $msg) . PHP_EOL);
+            $str .= sprintf('in %s:%d (gen: %s:%d)', $phelFile, $phelLine, $errorFile, $errorLine) . PHP_EOL . PHP_EOL;
+
+            return $str . $this->renderTrace($original);
+        }
+
         $type = $e::class;
         $msg = $e->getPrevious()?->getMessage() ?? $e->getMessage();
         $errorFile = $e->getPrevious()?->getFile() ?? $e->getFile();
@@ -101,6 +118,13 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
 
         $str .= $this->style->blue(sprintf('%s: %s', $type, $msg) . PHP_EOL);
         $str .= sprintf('in %s:%d (gen: %s:%d)', $pos->filename(), $pos->line(), $errorFile, $errorLine) . PHP_EOL . PHP_EOL;
+
+        return $str . $this->renderTrace($e);
+    }
+
+    private function renderTrace(Throwable $e): string
+    {
+        $str = '';
 
         foreach ($e->getTrace() as $i => $frame) {
             $class = $frame['class'] ?? null;
