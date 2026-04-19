@@ -51,3 +51,50 @@
   (when (uuid? s)
     (php/strtolower s)))
 
+(def ^:private uuid-nil-value
+  "00000000-0000-0000-0000-000000000000")
+
+(defn uuid=
+  "Returns true if `a` and `b` are canonical UUID strings that compare
+  equal case-insensitively. Returns false if either argument is not a
+  valid UUID."
+  {:example "(uuid= \"550E8400-E29B-41D4-A716-446655440000\"
+         \"550e8400-e29b-41d4-a716-446655440000\") ; => true"
+   :see-also ["uuid?" "parse-uuid"]}
+  [a b]
+  (and (uuid? a)
+       (uuid? b)
+       (php/=== (php/strtolower a) (php/strtolower b))))
+
+(defn uuid-nil?
+  "Returns true if `x` is the nil UUID (all zeros), false otherwise."
+  {:example "(uuid-nil? \"00000000-0000-0000-0000-000000000000\") ; => true"
+   :see-also ["uuid?"]}
+  [x]
+  (and (uuid? x)
+       (php/=== (php/strtolower x) uuid-nil-value)))
+
+(defn uuid-version
+  "Returns the version digit (1-5) encoded in UUID `x`, or nil if `x` is
+  not a canonical UUID."
+  {:example "(uuid-version \"550e8400-e29b-41d4-a716-446655440000\") ; => 4"
+   :see-also ["uuid?" "uuid-variant"]}
+  [x]
+  (when (uuid? x)
+    (php/intval (php/mb_substr x 14 1) 16)))
+
+(defn uuid-variant
+  "Returns a keyword describing the variant field of UUID `x`: `:ncs`,
+  `:rfc-4122`, `:microsoft`, or `:reserved`. Returns nil if `x` is not a
+  canonical UUID."
+  {:example "(uuid-variant \"550e8400-e29b-41d4-a716-446655440000\") ; => :rfc-4122"
+   :see-also ["uuid?" "uuid-version"]}
+  [x]
+  (when (uuid? x)
+    (let [nibble (php/intval (php/mb_substr x 19 1) 16)]
+      (cond
+        (php/=== 0 (bit-and nibble 0x8)) :ncs
+        (php/=== 0 (bit-and nibble 0x4)) :rfc-4122
+        (php/=== 0 (bit-and nibble 0x2)) :microsoft
+        :else :reserved))))
+
