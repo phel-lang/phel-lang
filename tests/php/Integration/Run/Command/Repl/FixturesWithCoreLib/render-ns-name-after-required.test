@@ -1,2 +1,2 @@
-phel:1> (require phel\html)
+user:1> (require phel\html)
 phel\html

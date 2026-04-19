@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file.
 - Member-access shorthand: `(.method obj args)` / `(.-field obj)` expand to `(php/-> obj (method args))` / `(php/-> obj field)`; `(ClassName/method args)` (or `(\Class/method ...)` for FQN) expands to `(php/:: ClassName (method args))`.
 - `(new ClassName args...)` as an alias for `(php/new ClassName args...)`.
 - `def` evaluates to a printable var reference (e.g. `#'user/my-var`) instead of `nil`, making REPL feedback explicit.
+- REPL history vars: `*1`, `*2`, `*3` hold the three most recent results and `*e` holds the last thrown exception.
+- REPL prompt shows the current namespace (e.g. `user:1> `, `my-app\core:2> `) and tracks switches via `(ns ...)`.
 - `phel\test\gen` module: random-value generators, `sample`, `quick-check`, and `defspec` macro with seedable PRNG for property-based testing.
 - Formatter aligns key/value pairs in `cond`, `case`, `condp`, and binding vectors of `let`/`loop`/`binding`/`for`/`foreach`/`dofor`/`if-let`/`when-let` when pairs span multiple lines.
 - `phel\ai`: OpenAI tool use support in `chat-with-tools`; provider-aware `tool-calls` extraction; `tool-result` helper for building tool result messages.

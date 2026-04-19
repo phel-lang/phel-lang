@@ -58,9 +58,9 @@ PHEL);
     {
         $io = $this->createReplTestIo();
         $io->setInputs(
-            new InputLine('phel:1> ', '(require my-module)'),
-            new InputLine('phel:2> ', '(my-module/hello "foo")'),
-            new InputLine('phel:3> ', 'exit'),
+            new InputLine('user:1> ', '(require my-module)'),
+            new InputLine('user:2> ', '(my-module/hello "foo")'),
+            new InputLine('user:3> ', 'exit'),
         );
         $this->prepareRunFactory($io);
 

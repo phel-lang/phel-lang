@@ -1,5 +1,5 @@
-phel:1> __FILE__
+user:1> __FILE__
 ""
-phel:2> __DIR__
+user:2> __DIR__
 ""
 

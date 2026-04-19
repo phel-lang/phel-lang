@@ -1,4 +1,4 @@
-phel:1> (def my-fn (fn []
+user:1> (def my-fn (fn []
 ....:2>   (undefined-fn 1 2)))
 Cannot resolve symbol 'undefined-fn'
 in string:2
