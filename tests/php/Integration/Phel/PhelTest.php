@@ -5,10 +5,16 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Phel;
 
 use Phel;
+use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use PHPUnit\Framework\TestCase;
 
 final class PhelTest extends TestCase
 {
+    protected function setUp(): void
+    {
+        GlobalEnvironmentSingleton::reset();
+    }
+
     public function test_globals_argv_as_array_with_multiple_args_via_run(): void
     {
         Phel::run(__DIR__ . '/../../../../', 'phel\\testing-argv', ['k1=v1', 'additional']);
