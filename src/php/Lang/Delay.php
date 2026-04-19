@@ -6,7 +6,6 @@ namespace Phel\Lang;
 
 /**
  * Deferred computation evaluated at most once and cached.
- * Matches Clojure's delay semantics.
  */
 final class Delay
 {
