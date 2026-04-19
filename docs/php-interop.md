@@ -86,6 +86,10 @@ To keep calls short, capture the function reference with `def`:
 (php/:: DateTime (createFromFormat "Y-m-d" "2024-01-15"))
 (DateTime/createFromFormat "Y-m-d" "2024-01-15")   ; shorthand
 
+;; Static constants and properties — bare `Class/MEMBER` shorthand
+(php/:: \DateTimeImmutable ATOM)                   ; => "Y-m-d\\TH:i:sP"
+\DateTimeImmutable/ATOM                            ; shorthand
+
 ;; Access properties
 (php/-> obj propertyName)
 ```
