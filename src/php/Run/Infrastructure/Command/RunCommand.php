@@ -7,8 +7,8 @@ namespace Phel\Run\Infrastructure\Command;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
+use Phel\Compiler\Infrastructure\Service\DebugLineTap;
 use Phel\Phel;
-use Phel\Run\Infrastructure\Service\DebugLineTap;
 use Phel\Run\RunFacade;
 use Phel\Shared\ResourceUsageFormatter;
 

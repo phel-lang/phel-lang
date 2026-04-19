@@ -7,7 +7,7 @@ namespace Phel\Compiler\Domain\Evaluator;
 use ParseError;
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
-use Phel\Run\Infrastructure\Service\DebugLineTap;
+use Phel\Compiler\Infrastructure\Service\DebugLineTap;
 use Throwable;
 
 /**

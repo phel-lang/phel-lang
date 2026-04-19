@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Run\Infrastructure\Service;
+namespace Phel\Compiler\Infrastructure\Service;
 
 use function count;
 use function in_array;

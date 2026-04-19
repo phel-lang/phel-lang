@@ -7,8 +7,8 @@ namespace Phel\Compiler\Domain\Evaluator;
 use ParseError;
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
+use Phel\Compiler\Infrastructure\Service\DebugLineTap;
 use Phel\Filesystem\FilesystemFacadeInterface;
-use Phel\Run\Infrastructure\Service\DebugLineTap;
 
 use function function_exists;
 use function md5;

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
-use Phel\Build\BuildFacade;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LoadNode;
 use Phel\Compiler\Domain\Analyzer\Resolver\LoadClasspath;
@@ -189,11 +188,11 @@ final class LoadEmitter implements NodeEmitterInterface
     private function emitPhelSourceLoad(string $callerNamespace): void
     {
         $this->outputEmitter->emitLine('$__phelPrevNs = \\' . GlobalEnvironmentSingleton::class . '::getInstance()->getNs();');
-        $this->outputEmitter->emitLine('\\' . BuildFacade::class . '::enableBuildMode();');
+        $this->outputEmitter->emitLine('\\Phel\\Build\\BuildFacade::enableBuildMode();');
         $this->outputEmitter->emitLine('try {');
         $this->outputEmitter->increaseIndentLevel();
 
-        $this->outputEmitter->emitLine('(new \\' . BuildFacade::class . '())->evalFile($__phelLoadPath);');
+        $this->outputEmitter->emitLine('(new \\Phel\\Build\\BuildFacade())->evalFile($__phelLoadPath);');
 
         $this->outputEmitter->emitLine('$__phelLoadedNs = \\' . GlobalEnvironmentSingleton::class . '::getInstance()->getNs();');
         $this->outputEmitter->emitStr('if ($__phelLoadedNs !== ');
@@ -215,7 +214,7 @@ final class LoadEmitter implements NodeEmitterInterface
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine('} finally {');
         $this->outputEmitter->increaseIndentLevel();
-        $this->outputEmitter->emitLine('\\' . BuildFacade::class . '::disableBuildMode();');
+        $this->outputEmitter->emitLine('\\Phel\\Build\\BuildFacade::disableBuildMode();');
         $this->outputEmitter->emitLine('\\' . GlobalEnvironmentSingleton::class . '::getInstance()->setNs($__phelPrevNs);');
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine('}');

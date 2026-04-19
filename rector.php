@@ -35,6 +35,7 @@ return RectorConfig::configure()
             __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/DefEmitter',
             __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/GlobalVarEmitter.php',
             __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/IfEmitter.php',
+            __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/LoadEmitter.php',
             __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/MapEmitter.php',
             __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/MethodEmitter.php',
             __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/NsEmitter.php',
