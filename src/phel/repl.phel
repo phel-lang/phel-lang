@@ -362,10 +362,8 @@
   {:example "(find-ns \"phel\\core\") ; => \"phel\\core\""
    :see-also ["create-ns" "remove-ns" "loaded-namespaces"]}
   [ns-str]
-  (let [encoded  (munge-ns ns-str)
-        registry (php/:: Registry (getInstance))]
-    (when (php/-> registry (hasNamespace encoded))
-      ns-str)))
+  (when (php/:: Phel (hasNamespace (munge-ns ns-str)))
+    ns-str))
 
 (defn create-ns
   "Creates the given namespace if it does not already exist. Returns the
@@ -373,10 +371,8 @@
   {:example "(create-ns \"my-app\\tmp\") ; => \"my-app\\tmp\""
    :see-also ["find-ns" "remove-ns" "intern"]}
   [ns-str]
-  (let [encoded  (munge-ns ns-str)
-        registry (php/:: Registry (getInstance))]
-    (php/-> registry (registerNamespace encoded))
-    ns-str))
+  (php/:: Phel (registerNamespace (munge-ns ns-str)))
+  ns-str)
 
 (defn remove-ns
   "Removes the namespace and all of its definitions from the registry.
@@ -384,26 +380,21 @@
   {:example "(remove-ns \"my-app\\tmp\")"
    :see-also ["find-ns" "create-ns"]}
   [ns-str]
-  (let [encoded  (munge-ns ns-str)
-        registry (php/:: Registry (getInstance))]
-    (php/-> registry (removeNamespace encoded))
-    nil))
+  (php/:: Phel (removeNamespace (munge-ns ns-str)))
+  nil)
 
 (defn intern
   "Finds or creates a definition named by name-str in namespace ns-str,
   setting its root value to val when supplied (defaults to nil). The
-  namespace is registered if it does not already exist. Returns the
-  fully qualified symbol naming the definition."
+  namespace is auto-registered by the underlying `addDefinition` call.
+  Returns the fully qualified symbol naming the definition."
   {:example "(intern \"user\" \"x\" 42) ; => user/x"
    :see-also ["find-ns" "create-ns" "ns-interns"]}
   [ns-str name-str & rest]
   (let [encoded-ns   (munge-ns ns-str)
-        munge        (php/new Munge)
-        encoded-name (php/-> munge (encode name-str))
-        value        (first rest)
-        registry     (php/:: Registry (getInstance))]
-    (php/-> registry (registerNamespace encoded-ns))
-    (php/-> registry (addDefinition encoded-ns encoded-name value nil))
+        encoded-name (php/-> (php/new Munge) (encode name-str))
+        value        (first rest)]
+    (php/:: Phel (addDefinition encoded-ns encoded-name value))
     (php/:: Symbol (createForNamespace ns-str name-str))))
 
 (defn ns-interns
@@ -413,10 +404,9 @@
   {:example "(ns-interns \"phel\\core\")"
    :see-also ["ns-publics" "intern" "find-ns"]}
   [ns-str]
-  (let [encoded (munge-ns ns-str)
-        defs    (php/:: Phel (getDefinitionInNamespace encoded))
-        munge   (php/new Munge)
-        result  (transient {})]
+  (let [defs   (php/:: Phel (getDefinitionInNamespace (munge-ns ns-str)))
+        munge  (php/new Munge)
+        result (transient {})]
     (foreach [fn-name value defs]
       (assoc! result (php/-> munge (decodeNs fn-name)) value))
     (persistent result)))
