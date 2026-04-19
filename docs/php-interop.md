@@ -97,6 +97,10 @@ To keep calls short, capture the function reference with `def`:
 (def php-arr (php/array 1 2 3))
 (def assoc-arr (php-associative-array "name" "Alice" "age" 30))
 
+;; `#php` reader literal (non-recursive): next vector/map becomes a PHP array
+(def php-arr   #php [1 2 3])                    ; => (php-indexed-array 1 2 3)
+(def assoc-arr #php {"name" "Alice" "age" 30})  ; => (php-associative-array "name" "Alice" "age" 30)
+
 ;; Access elements
 (php/aget php-arr 0)              ; => 1
 (php/aget assoc-arr "name")       ; => "Alice"

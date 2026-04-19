@@ -1,0 +1,20 @@
+--PHEL--
+(def arr #php [1 2 3])
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "arr",
+  (\Phel::getDefinition("phel\\core", "php-indexed-array"))(1, 2, 3),
+  \Phel::map(
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/hash-php-vector-literal.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/hash-php-vector-literal.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 22
+    )
+  )
+);

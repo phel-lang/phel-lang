@@ -71,8 +71,8 @@ final class ExpressionReaderFactory implements ExpressionReaderFactoryInterface
         return new MapReader($reader);
     }
 
-    public function createTaggedLiteralReader(): TaggedLiteralReader
+    public function createTaggedLiteralReader(Reader $reader): TaggedLiteralReader
     {
-        return new TaggedLiteralReader();
+        return new TaggedLiteralReader($reader);
     }
 }

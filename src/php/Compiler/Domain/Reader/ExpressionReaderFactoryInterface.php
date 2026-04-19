@@ -42,5 +42,5 @@ interface ExpressionReaderFactoryInterface
 
     public function createMetaReader(Reader $reader): MetaReader;
 
-    public function createTaggedLiteralReader(): TaggedLiteralReader;
+    public function createTaggedLiteralReader(Reader $reader): TaggedLiteralReader;
 }

@@ -90,7 +90,7 @@ final class Reader implements ReaderInterface
         // discarded by the parser so their tags never reach this point.
         if ($node instanceof TaggedLiteralNode) {
             return $this->readerFactory
-                ->createTaggedLiteralReader()
+                ->createTaggedLiteralReader($this)
                 ->read($node, $root);
         }
 
