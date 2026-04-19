@@ -54,6 +54,24 @@ final class ExcludedScanPathsTest extends TestCase
         self::assertFalse($paths->contains('/anything.phel', '/scan'));
     }
 
+    public function test_worktrees_subtree_is_always_pruned(): void
+    {
+        $paths = ExcludedScanPaths::none();
+
+        self::assertTrue($paths->contains(
+            '/repo/.claude/worktrees/agent-xyz/src/phel/http-client.phel',
+            '/repo/src/phel',
+        ));
+        self::assertTrue($paths->contains(
+            '/repo/.codex/worktrees/run-1/src/phel/http-client.phel',
+            '/repo/src/phel',
+        ));
+        self::assertFalse($paths->contains(
+            '/repo/src/phel/http-client.phel',
+            '/repo/src/phel',
+        ));
+    }
+
     public function test_unresolvable_excluded_directory_still_prunes_by_literal_prefix(): void
     {
         // Configured output dirs may not exist yet (e.g. before first build);
