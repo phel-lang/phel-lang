@@ -47,14 +47,6 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
         return self::$internPool[$key] ??= new self($namespace, $name);
     }
 
-    /**
-     * @deprecated in favor of create()
-     */
-    public static function createForNamespace(string $namespace, string $name): self
-    {
-        return self::create($name, $namespace);
-    }
-
     public function getName(): string
     {
         return $this->name;

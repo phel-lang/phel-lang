@@ -6,7 +6,7 @@
   "Splits string on a regular expression, returning a vector of parts."
   {:example "(split \"hello world foo bar\" #\"\\s+\") ; => [\"hello\" \"world\" \"foo\" \"bar\"]"}
   [s re & [limit]]
-  (values (php/preg_split re s (or limit -1))))
+  (vals (php/preg_split re s (or limit -1))))
 
 (defn chars
   "Returns a vector of characters from string s.
@@ -65,9 +65,9 @@
   {:example "(replace \"hello world\" \"world\" \"there\") ; => \"hello there\""}
   [s match replacement]
   (let [match (as-pattern match)]
-    (if (function? replacement)
+    (if (fn? replacement)
       (php/preg_replace_callback match (fn [x]
-                                         (let [x (values (php-array-to-map x))]
+                                         (let [x (vals (php-array-to-map x))]
                                            (apply replacement x))) s)
       (php/preg_replace match replacement s))))
 
@@ -76,9 +76,9 @@
   {:example "(replace-first \"hello world world\" \"world\" \"there\") ; => \"hello there world\""}
   [s match replacement]
   (let [match (as-pattern match)]
-    (if (function? replacement)
+    (if (fn? replacement)
       (php/preg_replace_callback match (fn [x]
-                                         (let [x (values (php-array-to-map x))]
+                                         (let [x (vals (php-array-to-map x))]
                                            (apply replacement x))) s 1)
       (php/preg_replace match replacement s 1))))
 

@@ -53,11 +53,11 @@ final class PhelBuildConfigTest extends TestCase
         self::assertSame($expected, $config->jsonSerialize());
     }
 
-    public function test_dest_dir_and_main_php_filename(): void
+    public function test_dest_dir_and_main_php_path(): void
     {
         $config = (new PhelBuildConfig())
             ->setDestDir('custom-out')
-            ->setMainPhpFilename('custom-index');
+            ->setMainPhpPath('custom-out/custom-index.php');
 
         $expected = [
             PhelBuildConfig::MAIN_PHEL_NAMESPACE => '',
@@ -69,11 +69,10 @@ final class PhelBuildConfigTest extends TestCase
         self::assertSame($expected, $config->jsonSerialize());
     }
 
-    public function test_main_php_path_over_php_filename(): void
+    public function test_main_php_path_takes_precedence(): void
     {
         $config = (new PhelBuildConfig())
-            ->setMainPhpPath('custom-out/custom-index.php')
-            ->setMainPhpFilename('other-name');
+            ->setMainPhpPath('custom-out/custom-index.php');
 
         $expected = [
             PhelBuildConfig::MAIN_PHEL_NAMESPACE => '',

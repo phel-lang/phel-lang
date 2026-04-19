@@ -369,7 +369,7 @@
     (foreach [fn-name value defs]
       (let [meta (php/:: Phel (getDefinitionMetaData encoded fn-name))]
         (when-not (get meta :private)
-          (put result (php/-> munge (decodeNs fn-name)) value))))
+          (assoc! result (php/-> munge (decodeNs fn-name)) value))))
     (persistent result)))
 
 (defn ns-aliases
@@ -382,7 +382,7 @@
         aliases (php/-> env (getRequireAliases ns-str))
         result  (transient {})]
     (foreach [alias-name target-sym aliases]
-      (put result alias-name (php/-> target-sym (getName))))
+      (assoc! result alias-name (php/-> target-sym (getName))))
     (persistent result)))
 
 (defn ns-refers
@@ -395,7 +395,7 @@
         refers (php/-> env (getRefers ns-str))
         result (transient {})]
     (foreach [refer-name source-sym refers]
-      (put result refer-name (php/-> source-sym (getName))))
+      (assoc! result refer-name (php/-> source-sym (getName))))
     (persistent result)))
 
 (defn search-doc

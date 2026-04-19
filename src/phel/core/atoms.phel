@@ -254,7 +254,7 @@
                     (second (:reduce options))
                     [])
         loop-body (for-builder swap-body head 0)]
-    `(let [~res-sym (var ~init)]
+    `(let [~res-sym (atom ~init)]
        ~loop-body
        (deref ~res-sym))))
 
@@ -284,7 +284,7 @@
 (defn- push-binding-triple
   "Appends a `[binding verb coll-expr]` triple to the normalized doseq head."
   [head binding verb coll-expr]
-  (push (push (push head binding) verb) coll-expr))
+  (conj (conj (conj head binding) verb) coll-expr))
 
 (defn- doseq-normalize
   "Transforms Clojure-style doseq bindings into Phel dofor format.
@@ -302,7 +302,7 @@
         (cond
           ;; modifier keyword: keep pair as-is
           (keyword? el)
-          (recur (php/+ i 2) (push (push result el) next-el))
+          (recur (php/+ i 2) (conj (conj result el) next-el))
 
           ;; explicit verb already present: keep triple as-is
           (for-verb? next-el)

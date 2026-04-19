@@ -348,7 +348,7 @@
   "Create a response from a string."
   {:example "(response-from-string \"Hello World\") ; => (response 200 {} \"Hello World\" \"1.1\" \"OK\")"}
   [s]
-  (create-response-from-map {:body s}))
+  (response-from-map {:body s}))
 
 (def create-response-from-string {:deprecated "Use response-from-string"} response-from-string)
 
