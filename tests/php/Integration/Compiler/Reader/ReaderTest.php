@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
@@ -1330,6 +1331,32 @@ final class ReaderTest extends TestCase
         $this->expectException(ReaderException::class);
         $this->expectExceptionMessage("Unknown tagged literal '#something'");
         $this->read('#something "x"');
+    }
+
+    public function test_php_tagged_literal_on_vector_expands_to_indexed_array_call(): void
+    {
+        $form = $this->read('#php [1 2 3]');
+
+        self::assertInstanceOf(PersistentListInterface::class, $form);
+        self::assertSame('php-indexed-array', $form->get(0)->getName());
+        self::assertSame(1, $form->get(1));
+        self::assertSame(2, $form->get(2));
+        self::assertSame(3, $form->get(3));
+    }
+
+    public function test_php_tagged_literal_on_map_expands_to_associative_array_call(): void
+    {
+        $form = $this->read('#php {"a" 1 "b" 2}');
+
+        self::assertInstanceOf(PersistentListInterface::class, $form);
+        self::assertSame('php-associative-array', $form->get(0)->getName());
+    }
+
+    public function test_php_tagged_literal_rejects_non_collection_form(): void
+    {
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('#php expects a vector literal');
+        $this->read('#php 42');
     }
 
     private function read(string $string, bool $withLocation = true): float|bool|int|string|TypeInterface|null
