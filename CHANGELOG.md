@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 #### REPL & Compiler
 - `eval()` runtime errors point to user's `string:N` line via source map
 - Non-callable literal calls (`('foo)`, `(42)`, `(nil)`, `("x")`) raise `PHEL011` at analysis time with source location
+- REPL multi-line buffer: `#(...)`, `|(...)`, `#?(...)`, `#?@(...)`, brackets `[]`, braces `{}`, and `#{...}` sets now count toward balance; no more premature eval of unclosed forms
 
 #### Build
 - `phel build` no longer leaks compiled-program stdout during compilation
