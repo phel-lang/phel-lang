@@ -42,6 +42,13 @@ All notable changes to this project will be documented in this file.
 - `phel build` prints a summary with fresh/cached counts and the output directory, including a clear message when nothing needed recompiling.
 - `phel\ai` `chat-with-tools` returns `{:text :tool-calls :stop-reason :raw}`.
 
+### Removed
+
+- `Keyword::createForNamespace()` (use `Keyword::create($name, $namespace)`)
+- `PhelConfig::setOut()` (use `PhelConfig::setBuildConfig()`)
+- `PhelBuildConfig::setMainPhpFilename()` and its backing field (use `PhelBuildConfig::setMainPhpPath()`)
+- `PhelFunction` accessor methods `name()`, `doc()`, `fnSignatures()`, `signature()`, `description()`, `groupKey()`, `githubUrl()`, `docUrl()`, `file()`, `line()`, `namespace()` (use the matching public readonly properties)
+
 ### Changed (breaking)
 
 - `phel init` defaults to Flat layout (`src/`, `tests/`); use `--nested` for the previous `src/phel/` structure. `ProjectLayout::Conventional` renamed to `ProjectLayout::Nested` (`useConventionalLayout()` → `useNestedLayout()`).

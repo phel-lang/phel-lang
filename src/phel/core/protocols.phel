@@ -46,7 +46,7 @@
 
 (def ^:private *hierarchy*
   "Global hierarchy for keyword/symbol taxonomies."
-  (var {:parents {} :descendants {} :ancestors {}}))
+  (atom {:parents {} :descendants {} :ancestors {}}))
 
 (defn make-hierarchy
   "Creates a fresh, empty hierarchy.
@@ -231,7 +231,7 @@
                   [mname mname-str margs dsym])]
     `(do
        ~@(for [[_ _ _ dsym] :in methods]
-           `(def ~dsym {:private true} (var {})))
+           `(def ~dsym {:private true} (atom {})))
        (def ~protocol-name
          {:name ~pname-str
           :dispatch [~@(for [[_ _ _ dsym] :in methods] dsym)]})
@@ -517,7 +517,7 @@
   (let [methods-name  (php/:: Symbol (create (php/. (php/-> name (getName)) "-methods")))
         dispatch-name (php/:: Symbol (create (php/. (php/-> name (getName)) "-dispatch")))]
     `(do
-       (def ~methods-name (var {}))
+       (def ~methods-name (atom {}))
        (def ~dispatch-name {:private true} ~dispatch-fn)
        (defn ~name [& args]
          (let [dispatch-val (apply ~dispatch-name args)
@@ -655,10 +655,10 @@
   [bindings & body]
   (let [names          (for [spec :in bindings] (first spec))
         refs           (for [n :in names :reduce [acc {}]]
-               (put acc n (gensym)))
+               (assoc acc n (gensym)))
         var-decls      (apply concat
                          (for [n :in names]
-                           [(get refs n) '(var nil)]))
+                           [(get refs n) '(atom nil)]))
         deref-bindings (apply concat
                               (for [n :in names]
                                 [n `(deref ~(get refs n))]))
@@ -666,8 +666,8 @@
                           :let [n (first spec)
                                 params (second spec)
                                 fn-body (nnext spec)]]
-                      `(set! ~(get refs n)
-                             (fn ~params (let [~@deref-bindings] ~@fn-body))))]
+                      `(reset! ~(get refs n)
+                               (fn ~params (let [~@deref-bindings] ~@fn-body))))]
     `(let [~@var-decls]
        ~@assignments
        (let [~@deref-bindings]

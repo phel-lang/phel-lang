@@ -296,7 +296,7 @@
     (loop [i 0 n (rand-int* 0 (non-negative size)) m {}]
       (if (>= i n)
         m
-        (recur (inc i) n (put m (kg size) (vg size)))))))
+        (recur (inc i) n (assoc m (kg size) (vg size)))))))
 
 (defn set-of
   "Generator of hash-sets with elements from `g`. Cardinality in `[0, size]`."
@@ -371,19 +371,19 @@
    (let [effective-seed (or seed (fresh-seed))
          _              (seed-rng! effective-seed)
          outcome        (run-trials property args-gen num-tests (or size default-size))]
-     (put outcome :seed effective-seed))))
+     (assoc outcome :seed effective-seed))))
 
 (defn- spec-failure-message [name-str res]
   (let [parts [(str "property " name-str " failed after " (get res :num-tests)
                     " tests (seed " (get res :seed))]
         args  (get res :args)
         ex    (get res :exception)
-        parts (if args (push parts (str ", args " (print-str args))) parts)
+        parts (if args (conj parts (str ", args " (print-str args))) parts)
         parts (if ex
-                (push parts (str ", threw " (php/get_class ex) ": "
+                (conj parts (str ", threw " (php/get_class ex) ": "
                                  (php/-> ex (getMessage))))
                 parts)]
-    (apply str (push parts ")"))))
+    (apply str (conj parts ")"))))
 
 (defmacro defspec
   "Defines a property test. The generated `deftest` runs `quick-check` and

@@ -67,10 +67,10 @@
   [s1 s2]
   (if (> (count s1) (count s2))
     false
-    (let [result (var true)]
+    (let [result (atom true)]
       (foreach [item s1]
         (when-not (php/-> s2 (contains item))
-          (set! result false)))
+          (reset! result false)))
       (deref result))))
 
 (defn superset?
@@ -157,13 +157,13 @@
              "(def fact-memo (memoize fact))")
    :see-also ["memoize-lru"]}
   [f]
-  (let [memoize-cache (var {})]
+  (let [memoize-cache (atom {})]
     (fn [& args]
       (let [c (deref memoize-cache)]
         (if (contains? c args)
           (get c args)
           (let [res (apply f args)]
-            (set! memoize-cache (assoc c args res))
+            (reset! memoize-cache (assoc c args res))
             res))))))
 
 (defn memoize-lru
@@ -182,14 +182,14 @@
    :see-also ["memoize"]}
   ([f] (memoize-lru f 128))
   ([f max-size]
-   (let [cache (var {})
-         tick  (var 0)]
+   (let [cache (atom {})
+         tick  (atom 0)]
      (fn [& args]
        (let [c (deref cache)
              t (swap! tick #(php/+ 1 %))]
          (if (contains? c args)
            (let [entry (get c args)]
-             (set! cache (assoc c args {:value (get entry :value) :accessed t}))
+             (reset! cache (assoc c args {:value (get entry :value) :accessed t}))
              (get entry :value))
            (let [res       (apply f args)
                  new-entry {:value res :accessed t}
@@ -204,8 +204,8 @@
                                   oldest-key))
                               (first ks)
                               ks)]
-                 (set! cache (dissoc new-cache lru-key)))
-               (set! cache new-cache))
+                 (reset! cache (dissoc new-cache lru-key)))
+               (reset! cache new-cache))
              res)))))))
 
 ;; -----------------------
@@ -262,7 +262,7 @@
   (cond
     (nil? left) right
     (nil? right) left
-    (and (hash-map? left) (hash-map? right)) (merge-with deep-merge left right)
+    (and (map? left) (map? right)) (merge-with deep-merge left right)
     (and (set? left) (set? right)) (union left right)
     (and (vector? left) (vector? right)) (into left right)
     right))

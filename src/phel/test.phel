@@ -9,9 +9,9 @@
 ;; Report
 ;; ------
 
-(def- testdox? (var false))
+(def- testdox? (atom false))
 
-(def- fail-fast? (var false))
+(def- fail-fast? (atom false))
 
 (def- *current-test-name* nil)
 
@@ -19,7 +19,7 @@
   "Stack of testing context strings, most recent first."
   [])
 
-(def- stats (var {:failed []
+(def- stats (atom {:failed []
                   :counts {:failed 0
                            :error 0
                            :pass 0
@@ -49,8 +49,8 @@
   [data]
   (let [ctx                       (testing-contexts-str)
         data                      (cond
-               (and ctx (:message data)) (put data :message (str ctx (:message data)))
-               ctx                       (put data :message (s/join " > " *testing-contexts*))
+               (and ctx (:message data)) (assoc data :message (str ctx (:message data)))
+               ctx                       (assoc data :message (s/join " > " *testing-contexts*))
                :else                     data)
         {:state state :type type} data
         ok                        (= state :pass)
@@ -312,7 +312,7 @@
     (contains? smap form) (quote-if-empty-list (get smap form))
     (list? form)          (apply list (map #(substitute-symbols smap %) form))
     (vector? form)        (apply vector (map #(substitute-symbols smap %) form))
-    (hash-map? form)      (apply hash-map
+    (map? form)           (apply hash-map
                             (interleave (keys form)
                                         (map #(substitute-symbols smap %) (vals form))))
     (set? form)           (into (hash-set) (map #(substitute-symbols smap %) form))
@@ -442,7 +442,7 @@
 ;; Fixtures
 ;; --------
 
-(def- fixtures-by-ns (var {}))
+(def- fixtures-by-ns (atom {}))
 
 (defn- default-fixture
   "Identity fixture: just invokes the wrapped function."
@@ -517,8 +517,8 @@
   "Runs all tests in the given namespaces."
   {:example "(run-tests {} 'my-app\test)"}
   [options & namespaces]
-  (set! testdox? (:testdox options))
-  (set! fail-fast? (:fail-fast options))
+  (reset! testdox? (:testdox options))
+  (reset! fail-fast? (:fail-fast options))
   (dofor [namespace :in namespaces
           :let [ns-name (name namespace)]
           :when (not (should-stop?))]
@@ -530,11 +530,11 @@
   Call this before running a new batch of tests to get fresh results."
   {:example "(reset-stats)"}
   []
-  (set! stats {:failed []
-               :counts {:failed 0
-                        :error 0
-                        :pass 0
-                        :total 0}}))
+  (reset! stats {:failed []
+                 :counts {:failed 0
+                          :error 0
+                          :pass 0
+                          :total 0}}))
 
 (defn successful?
   "Checks if all tests passed."
@@ -553,4 +553,4 @@
   "Restores test statistics from a previously saved state."
   {:example "(restore-stats saved)"}
   [saved]
-  (set! stats saved))
+  (reset! stats saved))

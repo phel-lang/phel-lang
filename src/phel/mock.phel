@@ -5,7 +5,7 @@
 ;; -----------
 
 ;; Global registry to store mock metadata since with-meta doesn't work on functions
-(def- mock-registry (var {}))
+(def- mock-registry (atom {}))
 
 (defn- register-mock!
   "Registers a mock function with its call history and optional reset function"
@@ -30,10 +30,10 @@
   "Creates a mock function that returns a fixed value and tracks all calls."
   {:example "(def my-mock (mock :return-value))"}
   [return-value]
-  (let [call-history (var [])]
+  (let [call-history (atom [])]
     (register-mock!
      (fn [& args]
-       (swap! call-history push args)
+       (swap! call-history conj args)
        return-value)
      call-history)))
 
@@ -41,10 +41,10 @@
   "Creates a mock function with custom behavior that tracks all calls."
   {:example "(def my-mock (mock-fn (fn [x] (* x 2))))"}
   [f]
-  (let [call-history (var [])]
+  (let [call-history (atom [])]
     (register-mock!
      (fn [& args]
-       (swap! call-history push args)
+       (swap! call-history conj args)
        (apply f args))
      call-history)))
 
@@ -59,13 +59,13 @@
   After exhausting values, returns the last value."
   {:example "(def my-mock (mock-returning [1 2 3]))"}
   [values]
-  (let [call-history (var [])
-        index        (var 0)
+  (let [call-history (atom [])
+        index        (atom 0)
         max-index    (dec (count values))
-        reset-fn     (fn [] (set! index 0))]
+        reset-fn     (fn [] (reset! index 0))]
     (register-mock!
      (fn [& args]
-       (swap! call-history push args)
+       (swap! call-history conj args)
        (let [current-index (deref index)
              result        (get values (min current-index max-index))]
          (when (< current-index max-index)
@@ -78,10 +78,10 @@
   "Creates a mock that throws an exception when called."
   {:example "(def my-mock (mock-throwing (php/new \\RuntimeException \"API unavailable\")))"}
   [exception]
-  (let [call-history (var [])]
+  (let [call-history (atom [])]
     (register-mock!
      (fn [& args]
-       (swap! call-history push args)
+       (swap! call-history conj args)
        (throw exception))
      call-history)))
 
@@ -161,7 +161,7 @@
     (when mock-data
       (let [call-history (get mock-data :call-history)
             reset-fn     (get mock-data :reset-fn)]
-        (set! call-history [])
+        (reset! call-history [])
         (when reset-fn
           (reset-fn))))))
 
@@ -170,7 +170,7 @@
   Useful for cleanup between test suites in long-running processes."
   {:example "(clear-all-mocks!) ; All mocks removed from registry"}
   []
-  (set! mock-registry {}))
+  (reset! mock-registry {}))
 
 ;; -----------
 ;; Convenience Macro

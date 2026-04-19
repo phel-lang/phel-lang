@@ -9,9 +9,6 @@ use JsonSerializable;
 use function count;
 use function sprintf;
 
-/**
- * @psalm-suppress DeprecatedProperty
- */
 final class PhelBuildConfig implements JsonSerializable
 {
     public const string DEST_DIR = 'dir';
@@ -30,9 +27,6 @@ final class PhelBuildConfig implements JsonSerializable
 
     private string $destDir = '';
 
-    /** @deprecated in favor of $mainPhpPath */
-    private string $mainPhpFilename = '';
-
     private string $mainPhpPath = '';
 
     public static function fromArray(array $array): self
@@ -44,10 +38,6 @@ final class PhelBuildConfig implements JsonSerializable
 
         if (isset($array[self::DEST_DIR])) {
             $self->destDir = $array[self::DEST_DIR];
-        }
-
-        if (isset($array[self::MAIN_PHP_FILENAME])) {
-            $self->mainPhpFilename = $array[self::MAIN_PHP_FILENAME];
         }
 
         if (isset($array[self::MAIN_PHP_PATH])) {
@@ -97,15 +87,6 @@ final class PhelBuildConfig implements JsonSerializable
         );
     }
 
-    /**
-     * @deprecated in favor of setMainPhpPath()
-     */
-    public function setMainPhpFilename(string $name): self
-    {
-        $this->mainPhpFilename = $name;
-        return $this;
-    }
-
     public function setDestDir(string $dir): self
     {
         $this->destDir = $dir;
@@ -143,10 +124,6 @@ final class PhelBuildConfig implements JsonSerializable
             }
 
             return array_pop($explode);
-        }
-
-        if ($this->mainPhpFilename !== '') {
-            return $this->normalizePhpExtension($this->mainPhpFilename);
         }
 
         return self::DEFAULT_PHP_FILENAME;
