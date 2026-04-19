@@ -1,4 +1,4 @@
-phel:1> (require 'phel\html :as h)
+user:1> (require 'phel\html :as h)
 phel\html
-phel:2> (h/html [:div])
+user:2> (h/html [:div])
 <div></div>

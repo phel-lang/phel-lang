@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Run;
 
 use Gacela\Framework\AbstractFactory;
+use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
 use Phel\Run\Application\EntryPointDetector;
@@ -17,6 +18,8 @@ use Phel\Run\Application\StructuredEvaluator;
 use Phel\Run\Domain\Repl\ReplCommandFallbackIo;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Domain\Repl\ReplCommandSystemIo;
+use Phel\Run\Domain\Repl\ReplHistory;
+use Phel\Run\Domain\Repl\ReplPrompt;
 use Phel\Run\Domain\Runner\NamespaceCollector;
 use Phel\Run\Domain\Runner\NamespaceRunnerInterface;
 use Phel\Shared\ColorStyle;
@@ -88,6 +91,16 @@ class RunFactory extends AbstractFactory
         return new ReplCommandFallbackIo(
             $this->getCommandFacade(),
         );
+    }
+
+    public function createReplHistory(): ReplHistory
+    {
+        return new ReplHistory(GlobalEnvironmentSingleton::getInstance());
+    }
+
+    public function createReplPrompt(): ReplPrompt
+    {
+        return new ReplPrompt();
     }
 
     public function createNamespacesLoader(): NamespacesLoader

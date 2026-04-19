@@ -24,7 +24,7 @@ use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use Symfony\Component\Console\Input\InputInterface;
 
-final class ReplCwdNamespaceTest extends AbstractTestCommand
+final class ReplPromptNamespaceTest extends AbstractTestCommand
 {
     private string $previousCwd = '';
 
@@ -36,12 +36,6 @@ final class ReplCwdNamespaceTest extends AbstractTestCommand
         $this->previousCwd = getcwd() ?: '';
         $this->tempDir = $this->containerTempDir();
         chdir($this->tempDir);
-        file_put_contents($this->tempDir . '/my-module.phel', <<<'PHEL'
-(ns my-module)
-
-(defn hello [x]
-  (str "(module.phel at cwd): " x))
-PHEL);
         Gacela::bootstrap($this->tempDir);
     }
 
@@ -54,25 +48,45 @@ PHEL);
 
     #[RunInSeparateProcess]
     #[PreserveGlobalState(false)]
-    public function test_resolves_namespaces_from_cwd(): void
+    public function test_prompt_starts_with_user_namespace(): void
     {
         $io = $this->createReplTestIo();
         $io->setInputs(
-            new InputLine('user:1> ', '(require my-module)'),
-            new InputLine('user:2> ', '(my-module/hello "foo")'),
-            new InputLine('user:3> ', 'exit'),
+            new InputLine('user:1> ', '(php/+ 1 1)'),
+            new InputLine('user:2> ', 'exit'),
         );
         $this->prepareRunFactory($io);
 
-        $repl = new ReplCommand();
-        $repl->run(
+        (new ReplCommand())->run(
             $this->createStub(InputInterface::class),
             $this->stubOutput(),
         );
 
         $output = $io->getOutputString();
-        self::assertStringContainsString('my-module', $output);
-        self::assertStringContainsString('(module.phel at cwd): foo', $output);
+        self::assertStringContainsString('user:1> ', $output);
+        self::assertStringContainsString('user:2> ', $output);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_prompt_switches_after_ns_form(): void
+    {
+        $io = $this->createReplTestIo();
+        $io->setInputs(
+            new InputLine('user:1> ', '(ns my-app)'),
+            new InputLine('my-app:2> ', '(php/+ 2 3)'),
+            new InputLine('my-app:3> ', 'exit'),
+        );
+        $this->prepareRunFactory($io);
+
+        (new ReplCommand())->run(
+            $this->createStub(InputInterface::class),
+            $this->stubOutput(),
+        );
+
+        $output = $io->getOutputString();
+        self::assertStringContainsString('user:1> (ns my-app)', $output);
+        self::assertStringContainsString('my-app:2> (php/+ 2 3)', $output);
     }
 
     private function createReplTestIo(): ReplTestIo
