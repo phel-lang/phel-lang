@@ -11,6 +11,7 @@ use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
 use Phel\Build\Infrastructure\Cache\DependencyTracker;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
@@ -137,8 +138,10 @@ final readonly class FileEvaluator
 
                 break;
             }
-        } catch (Throwable) {
-            // Analysis failure is non-fatal
+        } catch (AbstractLocatedException) {
+            // Lex/parse/read/analyze failure is non-fatal here: the file was
+            // already compiled successfully; this pass only pre-populates the
+            // environment from the ns-form as an optimisation.
         }
     }
 }
