@@ -52,6 +52,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 
 use function count;
+use function in_array;
 use function str_ends_with;
 use function strlen;
 use function substr;
@@ -74,6 +75,8 @@ final class AnalyzePersistentList
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {
         $list = $this->expandConstructorShorthand($list);
+        $list = $this->expandMemberAccessShorthand($list);
+
         $symbolName = $this->getSymbolName($list);
 
         return $this
@@ -139,6 +142,116 @@ final class AnalyzePersistentList
             || ($prev >= '0' && $prev <= '9')
             || $prev === '_'
             || $prev === '\\';
+    }
+
+    /**
+     * Expands Clojure-style member access shorthand:
+     *   `(.method obj args...)`       -> `(php/-> obj (method args...))`
+     *   `(.-field obj)`               -> `(php/-> obj field)`
+     *   `(Classname/method args...)`  -> `(php/:: Classname (method args...))`
+     *
+     * Only triggers when the head symbol starts with `.` followed by a valid
+     * PHP identifier start character, or when the head symbol's namespace
+     * looks like a PHP class reference (uppercase first letter or `\` prefix).
+     * Operator-style symbols like `php/.`, `.` and `..` are left alone, and
+     * Phel-style namespaces (lowercase first letter) resolve as before.
+     */
+    private function expandMemberAccessShorthand(PersistentListInterface $list): PersistentListInterface
+    {
+        $first = $list->first();
+        if (!$first instanceof Symbol) {
+            return $list;
+        }
+
+        $name = $first->getFullName();
+        $count = count($list);
+
+        if ($this->isPropertyAccessShorthandName($name) && $count === 2) {
+            $callSymbol = Symbol::create(Symbol::NAME_PHP_OBJECT_CALL)->copyLocationFrom($first);
+            $instance = $list->get(1);
+            $propertySymbol = Symbol::create(substr($name, 2))->copyLocationFrom($first);
+
+            return Phel::list([$callSymbol, $instance, $propertySymbol])->copyLocationFrom($list);
+        }
+
+        if ($this->isMethodCallShorthandName($name) && $count >= 2) {
+            $callSymbol = Symbol::create(Symbol::NAME_PHP_OBJECT_CALL)->copyLocationFrom($first);
+            $instance = $list->get(1);
+            $methodSymbol = Symbol::create(substr($name, 1))->copyLocationFrom($first);
+
+            $methodSegment = [$methodSymbol];
+            for ($i = 2; $i < $count; ++$i) {
+                $methodSegment[] = $list->get($i);
+            }
+
+            return Phel::list([
+                $callSymbol,
+                $instance,
+                Phel::list($methodSegment)->copyLocationFrom($first),
+            ])->copyLocationFrom($list);
+        }
+
+        if ($this->isStaticCallShorthand($first)) {
+            $staticSymbol = Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL)->copyLocationFrom($first);
+            $classSymbol = Symbol::create((string) $first->getNamespace())->copyLocationFrom($first);
+            $methodSymbol = Symbol::create($first->getName())->copyLocationFrom($first);
+
+            $methodSegment = [$methodSymbol];
+            for ($i = 1; $i < $count; ++$i) {
+                $methodSegment[] = $list->get($i);
+            }
+
+            return Phel::list([
+                $staticSymbol,
+                $classSymbol,
+                Phel::list($methodSegment)->copyLocationFrom($first),
+            ])->copyLocationFrom($list);
+        }
+
+        return $list;
+    }
+
+    private function isStaticCallShorthand(Symbol $symbol): bool
+    {
+        $ns = $symbol->getNamespace();
+        if (in_array($ns, [null, '', 'php'], true)) {
+            return false;
+        }
+
+        $method = $symbol->getName();
+        if ($method === '' || !$this->isIdentifierStartChar($method[0])) {
+            return false;
+        }
+
+        return $ns[0] === '\\'
+            || ($ns[0] >= 'A' && $ns[0] <= 'Z');
+    }
+
+    private function isMethodCallShorthandName(string $name): bool
+    {
+        $len = strlen($name);
+        if ($len < 2 || $name[0] !== '.' || $name[1] === '.' || $name[1] === '-') {
+            return false;
+        }
+
+        return $this->isIdentifierStartChar($name[1]);
+    }
+
+    private function isPropertyAccessShorthandName(string $name): bool
+    {
+        $len = strlen($name);
+        if ($len < 3 || $name[0] !== '.' || $name[1] !== '-') {
+            return false;
+        }
+
+        return $this->isIdentifierStartChar($name[2]);
+    }
+
+    private function isIdentifierStartChar(string $c): bool
+    {
+        return ($c >= 'a' && $c <= 'z')
+            || ($c >= 'A' && $c <= 'Z')
+            || $c === '_';
     }
 
     private function createSymbolAnalyzerByName(string $symbolName): SpecialFormAnalyzerInterface

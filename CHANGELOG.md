@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- Member-access shorthand: `(.method obj args)` / `(.-field obj)` expand to `(php/-> obj (method args))` / `(php/-> obj field)`; `(ClassName/method args)` (or `(\Class/method ...)` for FQN) expands to `(php/:: ClassName (method args))`.
 - `(new ClassName args...)` as an alias for `(php/new ClassName args...)`.
 - `def` evaluates to a printable var reference (e.g. `#'user/my-var`) instead of `nil`, making REPL feedback explicit.
 - `phel\test\gen` module: random-value generators, `sample`, `quick-check`, and `defspec` macro with seedable PRNG for property-based testing.

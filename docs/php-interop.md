@@ -7,10 +7,10 @@ This guide shows how to seamlessly work between PHP and Phel code.
 | Task | PHP | Phel |
 |------|-----|------|
 | Call function | `strlen($str)` | `(php/strlen str)` |
-| Method call | `$obj->method($arg)` | `(php/-> obj (method arg))` |
-| Static call | `DateTime::createFromFormat(...)` | `(php/:: DateTime (createFromFormat ...))` |
+| Method call | `$obj->method($arg)` | `(php/-> obj (method arg))` or `(.method obj arg)` |
+| Static call | `DateTime::createFromFormat(...)` | `(php/:: DateTime (createFromFormat ...))` or `(DateTime/createFromFormat ...)` |
 | New instance | `new DateTime()` | `(php/new DateTime)`, `(new DateTime)`, or `(DateTime.)` |
-| Property access | `$obj->prop` | `(php/-> obj -prop)` |
+| Property access | `$obj->prop` | `(php/-> obj prop)` or `(.-prop obj)` |
 | Array access | `$arr[$key]` | `(php/aget arr key)` |
 
 ## Calling PHP from Phel
@@ -70,6 +70,13 @@ To keep calls short, capture the function reference with `def`:
 (php/-> now (format "Y-m-d"))     ; => "2024-01-15"
 (php/-> now (getTimestamp))       ; => 1705334400
 
+;; Method call shorthand — `.method` expands to `(php/-> ...)`
+(.format now "Y-m-d")             ; => "2024-01-15"
+(.getTimestamp now)               ; => 1705334400
+
+;; Property access shorthand — `.-field` expands to `(php/-> ...)`
+(.-y (new DateInterval "P1D"))    ; => 0
+
 ;; Chain method calls
 (php/-> now
   (add (php/new DateInterval "P1D"))
@@ -77,9 +84,10 @@ To keep calls short, capture the function reference with `def`:
 
 ;; Static methods
 (php/:: DateTime (createFromFormat "Y-m-d" "2024-01-15"))
+(DateTime/createFromFormat "Y-m-d" "2024-01-15")   ; shorthand
 
 ;; Access properties
-(php/-> obj -propertyName)
+(php/-> obj propertyName)
 ```
 
 ### Working with PHP Arrays
