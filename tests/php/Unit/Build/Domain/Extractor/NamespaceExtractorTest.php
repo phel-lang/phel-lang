@@ -100,9 +100,12 @@ final class NamespaceExtractorTest extends TestCase
             $matches[0]->isPrimaryDefinition(),
             'Primary `(ns ...)` file must come before any `(in-ns ...)` sibling.',
         );
-        self::assertStringEndsWith('/main.phel', $matches[0]->getFile());
+        self::assertStringEndsWith(DIRECTORY_SEPARATOR . 'main.phel', $matches[0]->getFile());
         self::assertFalse($matches[1]->isPrimaryDefinition());
-        self::assertStringEndsWith('/split/part.phel', $matches[1]->getFile());
+        self::assertStringEndsWith(
+            DIRECTORY_SEPARATOR . 'split' . DIRECTORY_SEPARATOR . 'part.phel',
+            $matches[1]->getFile(),
+        );
 
         unlink($secondaryPath);
         unlink($primaryPath);
@@ -131,7 +134,7 @@ final class NamespaceExtractorTest extends TestCase
         $infos = $nsExtractor->getNamespacesFromDirectories([$dir]);
 
         self::assertCount(1, $infos, 'Output subtree must not be walked.');
-        self::assertStringEndsWith('/src.phel', $infos[0]->getFile());
+        self::assertStringEndsWith(DIRECTORY_SEPARATOR . 'src.phel', $infos[0]->getFile());
 
         unlink($sourcePath);
         unlink($outputCopyPath);
@@ -161,7 +164,7 @@ final class NamespaceExtractorTest extends TestCase
         $infos = $nsExtractor->getNamespacesFromDirectories([$dir]);
 
         self::assertCount(1, $infos, 'Excluded directory subtree must not be walked.');
-        self::assertStringEndsWith('/src.phel', $infos[0]->getFile());
+        self::assertStringEndsWith(DIRECTORY_SEPARATOR . 'src.phel', $infos[0]->getFile());
 
         unlink($sourcePath);
         unlink($excludedPath);
