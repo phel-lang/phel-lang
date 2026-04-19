@@ -14,8 +14,8 @@ use function count;
 /**
  * Shared helpers for emitting PHP anonymous classes that capture local variables.
  *
- * Used by FnAsClassEmitter and ReifyEmitter to avoid duplicating
- * the constructor-argument, property, and constructor-body patterns.
+ * Used by FnAsClassEmitter, ReifyEmitter, MultiFnAsClassEmitter, and MethodEmitter
+ * to centralize the use-normalization, property, and constructor-argument patterns.
  */
 final readonly class ClosureEmitterHelper
 {
