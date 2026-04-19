@@ -56,6 +56,10 @@ PHEL);
     #[PreserveGlobalState(false)]
     public function test_resolves_namespaces_from_cwd(): void
     {
+        if (DIRECTORY_SEPARATOR === '\\') {
+            self::markTestSkipped('RunInSeparateProcess subprocess handoff is flaky on Windows runners.');
+        }
+
         $io = $this->createReplTestIo();
         $io->setInputs(
             new InputLine('phel:1> ', '(require my-module)'),

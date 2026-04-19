@@ -1,3 +1,8 @@
+# Fixture files are compared byte-for-byte against compiler output;
+# force LF so Windows checkout (with core.autocrlf=true) does not turn
+# the expected `--PHP--` section into CRLF and break the diff.
+*.test                  text eol=lf
+
 /.claude                export-ignore
 /.github                export-ignore
 /adrs                   export-ignore
