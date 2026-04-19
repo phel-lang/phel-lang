@@ -74,7 +74,9 @@ final class OutputEmitter implements OutputEmitterInterface
         $this->sourceMapState->incGeneratedLines();
         $this->sourceMapState->setGeneratedColumns(0);
 
-        echo PHP_EOL;
+        // Always emit LF so compiled PHP is OS-neutral (on Windows PHP_EOL
+        // would be CRLF, causing divergent artefacts and source-map drift).
+        echo "\n";
     }
 
     public function emitStr(string $str, ?SourceLocation $sl = null): void
