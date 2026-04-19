@@ -41,7 +41,7 @@
       (foreach [k v params]
         (php/aset php-params (key->string k) (str v)))
       (let [query-string (php/http_build_query php-params)
-            separator (if (php/str_contains url "?") "&" "?")]
+            separator    (if (php/str_contains url "?") "&" "?")]
         (str url separator query-string)))))
 
 ;; -----------
@@ -52,7 +52,7 @@
   "Converts a transport result PHP array to an http/response struct."
   [result]
   (let [raw-headers (php/aget result "headers")
-        headers (transient {})]
+        headers     (transient {})]
     (foreach [k v raw-headers]
       (assoc headers (keyword k) v))
     (http/response
@@ -85,21 +85,21 @@
   [method url & [{:headers headers :body body :json json-body
                   :query-params query-params :timeout timeout
                   :follow-redirects follow-redirects :verify-ssl verify-ssl}]]
-  (let [headers (or headers {})
+  (let [headers        (or headers {})
         [headers body] (if json-body
                          [(assoc headers :content-type "application/json")
                           (json/encode json-body)]
                          [headers body])
-        url (append-query-params url query-params)]
+        url            (append-query-params url query-params)]
     (transport-result->response
      (php/:: \Phel\HttpClient\StreamTransport
-       (send (php/strtoupper (key->string method))
-             url
-             (build-headers-array headers)
-             body
-             (build-options-array {:timeout timeout
-                                  :follow-redirects follow-redirects
-                                  :verify-ssl verify-ssl}))))))
+             (send (php/strtoupper (key->string method))
+                   url
+                   (build-headers-array headers)
+                   body
+                   (build-options-array {:timeout timeout
+                                         :follow-redirects follow-redirects
+                                         :verify-ssl verify-ssl}))))))
 
 (defn get
   "Makes a GET request. See `request` for available options."

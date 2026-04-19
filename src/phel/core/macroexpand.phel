@@ -19,10 +19,10 @@
           (if (php/instanceof node GlobalVarNode)
             (let [meta (php/-> node (getMeta))]
               (if (:macro meta)
-                (let [ns (php/-> node (getNamespace))
-                      name (php/-> (php/-> node (getName)) (getName))
+                (let [ns       (php/-> node (getNamespace))
+                      name     (php/-> (php/-> node (getName)) (getName))
                       macro-fn (php/:: Phel (getDefinition ns name))
-                      args (rest form)]
+                      args     (rest form)]
                   (apply macro-fn form {} args))
                 form))
             form))

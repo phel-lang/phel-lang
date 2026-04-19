@@ -53,11 +53,11 @@
   (or (get cfg :api-key)
       (case (get cfg :provider)
         :anthropic (php/getenv "ANTHROPIC_API_KEY")
-        :openai (php/getenv "OPENAI_API_KEY")
-        :voyageai (php/getenv "VOYAGE_API_KEY")
+        :openai    (php/getenv "OPENAI_API_KEY")
+        :voyageai  (php/getenv "VOYAGE_API_KEY")
         (php/getenv "ANTHROPIC_API_KEY"))
       (throw (php/new RuntimeException
-               "No API key configured. Use (ai/configure {:api-key \"...\"}) or set ANTHROPIC_API_KEY env var."))))
+                      "No API key configured. Use (ai/configure {:api-key \"...\"}) or set ANTHROPIC_API_KEY env var."))))
 
 ;; -----------
 ;; Provider-specific request builders
@@ -67,7 +67,7 @@
   "Returns the default base URL for the given provider."
   [provider]
   (case provider
-    :openai "https://api.openai.com"
+    :openai   "https://api.openai.com"
     :voyageai "https://api.voyageai.com"
     "https://api.anthropic.com"))
 
@@ -87,12 +87,12 @@
   Optionally includes tool definitions."
   [cfg messages system-prompt & [tools]]
   (let [api-key (resolve-api-key cfg)
-        base (or (get cfg :base-url) (provider-base-url :anthropic))
-        body {:model (get cfg :model)
-              :max_tokens (get cfg :max-tokens)
-              :messages messages}
-        body (if system-prompt (assoc body :system system-prompt) body)
-        body (if tools (assoc body :tools tools) body)]
+        base    (or (get cfg :base-url) (provider-base-url :anthropic))
+        body    {:model (get cfg :model)
+                 :max_tokens (get cfg :max-tokens)
+                 :messages messages}
+        body    (if system-prompt (assoc body :system system-prompt) body)
+        body    (if tools (assoc body :tools tools) body)]
     {:url (str base "/v1/messages")
      :headers (anthropic-headers api-key)
      :body body}))
@@ -110,14 +110,14 @@
   "Builds an HTTP request for the OpenAI Chat Completions API."
   [cfg messages system-prompt & [tools]]
   (let [api-key (resolve-api-key cfg)
-        base (or (get cfg :base-url) (provider-base-url :openai))
-        msgs (if system-prompt
-               (concat [{:role "system" :content system-prompt}] messages)
-               messages)
-        body {:model (get cfg :model)
-              :max_tokens (get cfg :max-tokens)
-              :messages msgs}
-        body (if tools (assoc body :tools (openai-tools->request tools)) body)]
+        base    (or (get cfg :base-url) (provider-base-url :openai))
+        msgs    (if system-prompt
+                  (concat [{:role "system" :content system-prompt}] messages)
+                  messages)
+        body    {:model (get cfg :model)
+                 :max_tokens (get cfg :max-tokens)
+                 :messages msgs}
+        body    (if tools (assoc body :tools (openai-tools->request tools)) body)]
     {:url (str base "/v1/chat/completions")
      :headers (openai-headers api-key)
      :body body}))
@@ -133,7 +133,7 @@
 (defn- backoff-sleep
   "Sleeps using exponential backoff. attempt is 0-based."
   [attempt]
-  (let [base-ms 500
+  (let [base-ms  500
         delay-ms (* base-ms (php/pow 2 attempt))]
     (php/usleep (php/intval (* delay-ms 1000)))))
 
@@ -142,7 +142,7 @@
   [url opts max-retries]
   (loop [attempt 0]
     (let [response (*http-post* url opts)
-          status (get response :status)]
+          status   (get response :status)]
       (if (and (retryable-status? status) (< attempt max-retries))
         (do
           (backoff-sleep attempt)
@@ -192,13 +192,13 @@
 (defn- extract-openai-tool-calls
   [response-body]
   (let [choices (get response-body :choices)
-        msg (when choices (get (first choices) :message))
-        calls (when msg (get msg :tool_calls))]
+        msg     (when choices (get (first choices) :message))
+        calls   (when msg (get msg :tool_calls))]
     (if calls
       (for [c :in calls]
-        (let [fn-def (get c :function)
+        (let [fn-def   (get c :function)
               args-str (get fn-def :arguments)
-              args (try (json/decode args-str) (catch \Throwable _e args-str))]
+              args     (try (json/decode args-str) (catch \Throwable _e args-str))]
           {:name (get fn-def :name)
            :id (get c :id)
            :input args}))
@@ -214,30 +214,30 @@
   (let [err (when (map? parsed) (get parsed :error))]
     (cond
       (and (map? err) (get err :message)) (get err :message)
-      (string? err) err
-      :else fallback)))
+      (string? err)                       err
+      :else                               fallback)))
 
 (defn- check-response
   "Checks an HTTP response for errors and throws if the request failed."
   [response]
   (let [status (get response :status)]
     (when (or (< status 200) (>= status 300))
-      (let [body (get response :body)
+      (let [body   (get response :body)
             parsed (try (json/decode body) (catch \Throwable _e nil))]
         (throw (php/new RuntimeException
-                 (str "AI API error (HTTP " status "): "
-                      (provider-error-message parsed body))))))))
+                        (str "AI API error (HTTP " status "): "
+                             (provider-error-message parsed body))))))))
 
 (defn- send-request
   "Sends a prepared request map with retry + timeout."
   [cfg req]
-  (let [timeout (or (get cfg :timeout) 120)
+  (let [timeout     (or (get cfg :timeout) 120)
         max-retries (or (get cfg :max-retries) 0)
-        response (post-with-retry (get req :url)
-                                  {:headers (get req :headers)
-                                   :json (get req :body)
-                                   :timeout timeout}
-                                  max-retries)]
+        response    (post-with-retry (get req :url)
+                                     {:headers (get req :headers)
+                                      :json (get req :body)
+                                      :timeout timeout}
+                                     max-retries)]
     (check-response response)
     (json/decode (get response :body))))
 
@@ -245,13 +245,13 @@
   "Merges per-call opts into cfg."
   [cfg opts]
   (let [opts (or opts {})
-        cfg (if (get opts :model) (assoc cfg :model (get opts :model)) cfg)
-        cfg (if (get opts :max-tokens) (assoc cfg :max-tokens (get opts :max-tokens)) cfg)
-        cfg (if (get opts :provider) (assoc cfg :provider (get opts :provider)) cfg)
-        cfg (if (get opts :timeout) (assoc cfg :timeout (get opts :timeout)) cfg)
-        cfg (if (get opts :base-url) (assoc cfg :base-url (get opts :base-url)) cfg)
-        cfg (if (get opts :api-key) (assoc cfg :api-key (get opts :api-key)) cfg)
-        cfg (if (contains? opts :max-retries) (assoc cfg :max-retries (get opts :max-retries)) cfg)]
+        cfg  (if (get opts :model) (assoc cfg :model (get opts :model)) cfg)
+        cfg  (if (get opts :max-tokens) (assoc cfg :max-tokens (get opts :max-tokens)) cfg)
+        cfg  (if (get opts :provider) (assoc cfg :provider (get opts :provider)) cfg)
+        cfg  (if (get opts :timeout) (assoc cfg :timeout (get opts :timeout)) cfg)
+        cfg  (if (get opts :base-url) (assoc cfg :base-url (get opts :base-url)) cfg)
+        cfg  (if (get opts :api-key) (assoc cfg :api-key (get opts :api-key)) cfg)
+        cfg  (if (contains? opts :max-retries) (assoc cfg :max-retries (get opts :max-retries)) cfg)]
     cfg))
 
 ;; -----------
@@ -275,13 +275,13 @@
   {:example "(chat [{:role \"user\" :content \"Hello!\"}])"
    :see-also ["complete" "configure"]}
   [messages & [opts]]
-  (let [cfg (apply-opts @config opts)
-        provider (get cfg :provider)
+  (let [cfg           (apply-opts @config opts)
+        provider      (get cfg :provider)
         system-prompt (get opts :system)
-        req (if (= provider :openai)
-              (openai-request cfg messages system-prompt)
-              (anthropic-request cfg messages system-prompt))
-        body (send-request cfg req)]
+        req           (if (= provider :openai)
+                        (openai-request cfg messages system-prompt)
+                        (anthropic-request cfg messages system-prompt))
+        body          (send-request cfg req)]
     (or (extract-text provider body)
         (throw (php/new RuntimeException "No text content in AI response")))))
 
@@ -325,7 +325,7 @@
   "Converts a field schema map to a JSON Schema object for tool use."
   [schema]
   (let [properties (transient {})
-        required (transient [])]
+        required   (transient [])]
     (foreach [k v schema]
       (let [prop-name (name k)]
         (conj required prop-name)
@@ -353,15 +353,15 @@
     (if (php/str_starts_with trimmed "{")
       trimmed
       (let [matches (php/array)
-            found (php/preg_match "/```(?:json)?\\s*\\n?(\\{[\\s\\S]*?\\})\\s*\\n?```/" trimmed matches)]
+            found   (php/preg_match "/```(?:json)?\\s*\\n?(\\{[\\s\\S]*?\\})\\s*\\n?```/" trimmed matches)]
         (if (one? found)
           (php/aget matches 1)
           (let [start (php/strpos trimmed "{")
-                end (php/strrpos trimmed "}")]
+                end   (php/strrpos trimmed "}")]
             (if (and start end (>= end start))
               (php/substr trimmed start (+ (- end start) 1))
               (throw (php/new RuntimeException
-                       (str "Could not extract JSON from AI response: " trimmed))))))))))
+                              (str "Could not extract JSON from AI response: " trimmed))))))))))
 
 (defn extract
   "Extracts structured data from text using AI.
@@ -379,13 +379,13 @@
    :see-also ["extract-many" "complete" "chat"]}
   [schema text & [opts]]
   (let [schema-desc (schema->json-description schema)
-        prompt (str "Extract the following structured data from the given text.\n\n"
-                    "Schema (field name: expected type/format):\n"
-                    schema-desc "\n\n"
-                    "Text: " text "\n\n"
-                    "Return ONLY valid JSON matching the schema. No explanation, no markdown, just the JSON object.")
-        system (or (get opts :system) "You are a precise data extraction assistant. Return only valid JSON.")
-        response (complete prompt (assoc (or opts {}) :system system))]
+        prompt      (str "Extract the following structured data from the given text.\n\n"
+                         "Schema (field name: expected type/format):\n"
+                         schema-desc "\n\n"
+                         "Text: " text "\n\n"
+                         "Return ONLY valid JSON matching the schema. No explanation, no markdown, just the JSON object.")
+        system      (or (get opts :system) "You are a precise data extraction assistant. Return only valid JSON.")
+        response    (complete prompt (assoc (or opts {}) :system system))]
     (json/decode (extract-json-from-response response))))
 
 (defn extract-many
@@ -397,22 +397,22 @@
    :see-also ["extract" "complete"]}
   [schema text & [opts]]
   (let [schema-desc (schema->json-description schema)
-        prompt (str "Extract ALL items matching the schema from the given text.\n\n"
-                    "Schema for each item (field name: expected type/format):\n"
-                    schema-desc "\n\n"
-                    "Text: " text "\n\n"
-                    "Return ONLY a valid JSON array of objects. No explanation, no markdown, just the JSON array.")
-        system (or (get opts :system) "You are a precise data extraction assistant. Return only valid JSON.")
-        response (complete prompt (assoc (or opts {}) :system system))
-        trimmed (php/trim response)
-        json-str (if (php/str_starts_with trimmed "[")
-                   trimmed
-                   (let [start (php/strpos trimmed "[")
-                         end (php/strrpos trimmed "]")]
-                     (if (and start end (>= end start))
-                       (php/substr trimmed start (+ (- end start) 1))
-                       (throw (php/new RuntimeException
-                                (str "Could not extract JSON array from AI response: " trimmed))))))]
+        prompt      (str "Extract ALL items matching the schema from the given text.\n\n"
+                         "Schema for each item (field name: expected type/format):\n"
+                         schema-desc "\n\n"
+                         "Text: " text "\n\n"
+                         "Return ONLY a valid JSON array of objects. No explanation, no markdown, just the JSON array.")
+        system      (or (get opts :system) "You are a precise data extraction assistant. Return only valid JSON.")
+        response    (complete prompt (assoc (or opts {}) :system system))
+        trimmed     (php/trim response)
+        json-str    (if (php/str_starts_with trimmed "[")
+                      trimmed
+                      (let [start (php/strpos trimmed "[")
+                            end   (php/strrpos trimmed "]")]
+                        (if (and start end (>= end start))
+                          (php/substr trimmed start (+ (- end start) 1))
+                          (throw (php/new RuntimeException
+                                          (str "Could not extract JSON array from AI response: " trimmed))))))]
     (json/decode json-str)))
 
 ;; -----------
@@ -449,19 +449,19 @@
                              [(tool \"get-weather\" \"Gets weather\" {:city {:type \"string\"}})])"
    :see-also ["tool" "tool-calls" "tool-result" "extract"]}
   [messages tools & [opts]]
-  (let [cfg (apply-opts @config opts)
-        provider (get cfg :provider)
+  (let [cfg           (apply-opts @config opts)
+        provider      (get cfg :provider)
         system-prompt (get opts :system)
-        req (if (= provider :openai)
-              (openai-request cfg messages system-prompt tools)
-              (anthropic-request cfg messages system-prompt tools))
-        body (send-request cfg req)
-        stop-reason (if (= provider :openai)
-                      (get-in body [:choices 0 :finish_reason])
-                      (get body :stop_reason))
-        tcs (if (= provider :openai)
-              (extract-openai-tool-calls body)
-              (extract-anthropic-tool-calls body))]
+        req           (if (= provider :openai)
+                        (openai-request cfg messages system-prompt tools)
+                        (anthropic-request cfg messages system-prompt tools))
+        body          (send-request cfg req)
+        stop-reason   (if (= provider :openai)
+                        (get-in body [:choices 0 :finish_reason])
+                        (get body :stop_reason))
+        tcs           (if (= provider :openai)
+                        (extract-openai-tool-calls body)
+                        (extract-anthropic-tool-calls body))]
     {:text (extract-text provider body)
      :tool-calls tcs
      :stop-reason stop-reason
@@ -477,8 +477,8 @@
   [response]
   (cond
     (contains? response :tool-calls) (get response :tool-calls)
-    (contains? response :choices) (extract-openai-tool-calls response)
-    :else (extract-anthropic-tool-calls response)))
+    (contains? response :choices)    (extract-openai-tool-calls response)
+    :else                            (extract-anthropic-tool-calls response)))
 
 (defn tool-result
   "Builds a tool-result message for the given provider.
@@ -490,7 +490,7 @@
   {:example "(tool-result \"call_abc\" \"72F sunny\")"
    :see-also ["chat-with-tools" "tool-calls"]}
   [call-id result & [opts]]
-  (let [provider (or (get opts :provider) (get @config :provider))
+  (let [provider   (or (get opts :provider) (get @config :provider))
         result-str (if (string? result) result (str result))]
     (if (= provider :openai)
       {:role "tool"
@@ -540,18 +540,18 @@
 (defn- embed-request
   "Sends an embedding request to the given provider."
   [provider texts model]
-  (let [cfg (assoc @config :provider provider)
-        api-key (resolve-api-key cfg)
-        base-url (or (get cfg :base-url) (provider-base-url provider))
+  (let [cfg           (assoc @config :provider provider)
+        api-key       (resolve-api-key cfg)
+        base-url      (or (get cfg :base-url) (provider-base-url provider))
         default-model (if (= provider :voyageai) "voyage-3-lite" "text-embedding-3-small")
-        timeout (or (get cfg :timeout) 60)
-        max-retries (or (get cfg :max-retries) 2)
-        response (post-with-retry (str base-url "/v1/embeddings")
-                                  {:headers (openai-headers api-key)
-                                   :json {:model (or model default-model)
-                                          :input texts}
-                                   :timeout timeout}
-                                  max-retries)]
+        timeout       (or (get cfg :timeout) 60)
+        max-retries   (or (get cfg :max-retries) 2)
+        response      (post-with-retry (str base-url "/v1/embeddings")
+                                       {:headers (openai-headers api-key)
+                                        :json {:model (or model default-model)
+                                               :input texts}
+                                        :timeout timeout}
+                                       max-retries)]
     (check-response response)
     (let [body (json/decode (get response :body))
           data (get body :data)]
@@ -593,7 +593,7 @@
   {:example "(nearest query-embedding index 5)"
    :see-also ["cosine-similarity" "build-index" "embed-one"]}
   [query-embedding index & [k]]
-  (let [k (or k 5)
+  (let [k      (or k 5)
         scored (for [item :in index]
                  (assoc item :similarity
                         (cosine-similarity query-embedding (get item :embedding))))

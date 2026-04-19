@@ -48,9 +48,9 @@
    :see-also ["iterate" "repeatedly" "lazy-seq"]}
   [step opts]
   (lazy-seq
-   (let [kf (get opts :kf identity)
-         vf (get opts :vf identity)
-         initk (get opts :initk)
+   (let [kf     (get opts :kf identity)
+         vf     (get opts :vf identity)
+         initk  (get opts :initk)
          result (step initk)]
      (when (not (nil? result))
        (cons (vf result)

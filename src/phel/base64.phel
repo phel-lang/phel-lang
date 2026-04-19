@@ -26,10 +26,10 @@
   "Decodes a URL-safe Base64 string. Adds padding automatically."
   {:example "(decode-url \"SGVsbG8\") ; => \"Hello\""}
   [s & [strict?]]
-  (let [s (s/replace s "-" "+")
-        s (s/replace s "_" "/")
+  (let [s   (s/replace s "-" "+")
+        s   (s/replace s "_" "/")
         len (php/strlen s)
         rem (php/fmod len 4)
         pad (php/fmod (- 4 rem) 4)
-        s (str s (s/repeat "=" pad))]
+        s   (str s (s/repeat "=" pad))]
     (decode s (or strict? false))))

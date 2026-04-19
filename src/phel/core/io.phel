@@ -31,7 +31,7 @@
   "Same as print. But instead of writing it to an output stream, the resulting string is returned."
   [& xs]
   (let [printer (php/:: Printer (nonReadable))
-        pp #(php/-> printer (print %))]
+        pp      #(php/-> printer (print %))]
     (case (count xs)
       0 ""
       1 (pp (first xs))
@@ -74,7 +74,7 @@
   We handle errors by checking the return value."
   [path use-include-path context offset length]
   (let [old-error-level (php/error_reporting 0)
-        content (php/file_get_contents path use-include-path context offset length)]
+        content         (php/file_get_contents path use-include-path context offset length)]
     (php/error_reporting old-error-level)
     content))
 
@@ -99,7 +99,7 @@
           context          (or (:context opts) nil)
           offset           (or (:offset opts) 0)
           length           (or (:length opts) nil)
-          content (file-get-contents-silenced path use-include-path context offset length)]
+          content          (file-get-contents-silenced path use-include-path context offset length)]
       ;; Check if file_get_contents failed
       (when (= content false)
         (throw (php/new \InvalidArgumentException
@@ -119,7 +119,7 @@
   (let [opts    (or opts {})
         flags   (or (:flags opts) 0)
         context (or (:context opts) nil)
-        result (php/file_put_contents filename data flags context)]
+        result  (php/file_put_contents filename data flags context)]
     (when (int? result) result)))
 
 (defn line-seq
@@ -168,8 +168,8 @@
   ([filename options]
    (let [separator (get options :separator ",")
          enclosure (get options :enclosure "\"")
-         escape (get options :escape "\\")
-         result (lazy-seq-from-generator
+         escape    (get options :escape "\\")
+         result    (lazy-seq-from-generator
                  (php/call_user_func_array
                   (php/array "\\Phel\\Lang\\Seq" "csvLines")
                   (php/array filename separator enclosure escape)))]
@@ -187,10 +187,10 @@
   If there are more forms, insert the first form as the second item in
   the second form, etc."
   [x & forms]
-  (loop [x x
+  (loop [x     x
          forms (if (empty? forms) nil forms)]
     (if forms
-      (let [form (first forms)
+      (let [form     (first forms)
             threaded (if (list? form)
                        (copy-meta form `(~(first form) ~x ~@(next form)))
                        (copy-meta form (list form x)))]
@@ -203,10 +203,10 @@
   list already. If there are more forms, insert the first form as the
   last item in the second form, etc."
   [x & forms]
-  (loop [x x
+  (loop [x     x
          forms (if (empty? forms) nil forms)]
     (if forms
-      (let [form (first forms)
+      (let [form     (first forms)
             threaded (if (list? form)
                        (copy-meta form `(~(first form) ~@(next form) ~x))
                        (copy-meta form (list form x)))]
@@ -216,12 +216,12 @@
 (defmacro some->
   "Threads `x` through the forms like `->` but stops when a form returns `nil`."
   [x & forms]
-  (loop [x x
+  (loop [x     x
          forms (if (empty? forms) nil forms)]
     (if forms
-      (let [form (first forms)
-            g (gensym)
-            call (if (list? form)
+      (let [form     (first forms)
+            g        (gensym)
+            call     (if (list? form)
                    (let [rest (next form)
                          args (if rest
                                 (cons g rest)
@@ -240,12 +240,12 @@
 (defmacro some->>
   "Threads `x` through the forms like `->>` but stops when a form returns `nil`."
   [x & forms]
-  (loop [x x
+  (loop [x     x
          forms (if (empty? forms) nil forms)]
     (if forms
-      (let [form (first forms)
-            g (gensym)
-            call (if (list? form)
+      (let [form     (first forms)
+            g        (gensym)
+            call     (if (list? form)
                    (let [rest (next form)
                          args (if rest
                                 (concat rest [g])
@@ -292,7 +292,7 @@
   after the first true test expression."
   {:example "(cond-> 1 true inc false (* 42) true (* 3)) ; => 6"}
   [expr & clauses]
-  (let [g (gensym)
+  (let [g     (gensym)
         steps (map (fn [pair]
                      (let [test (first pair)
                            step (second pair)]
@@ -309,7 +309,7 @@
   after the first true test expression."
   {:example "(cond->> [1 2 3] true (map inc) false (filter odd?)) ; => [2 3 4]"}
   [expr & clauses]
-  (let [g (gensym)
+  (let [g     (gensym)
         steps (map (fn [pair]
                      (let [test (first pair)
                            step (second pair)]
@@ -341,9 +341,9 @@
   {:example "(re-seq #\"\\d+\" \"a1b2c3\") ; => [\"1\" \"2\" \"3\"]"
    :see-also ["re-find" "re-matches"]}
   [re s]
-  (let [matches (php/array)
+  (let [matches      (php/array)
         match-result (php/preg_match_all re s matches)
-        matches (php->phel matches)]
+        matches      (php->phel matches)]
     (if (= (count matches) 1)
       (first matches)
       (doall (apply map vector matches)))))
@@ -355,7 +355,7 @@
    :see-also ["re-seq" "re-matches"]}
   [re s]
   (let [matches (php/array)
-        result (php/preg_match re s matches)]
+        result  (php/preg_match re s matches)]
     (when (= 1 result)
       (let [matches (php->phel matches)]
         (if (= 1 (count matches))
@@ -384,13 +384,13 @@
   "Temporary redefines definitions while executing the body.
   The value will be reset after the body was executed."
   [bindings & body]
-  (let [names (take-nth 2 bindings)
-        vals (take-nth 2 (drop 1 bindings))
+  (let [names         (take-nth 2 bindings)
+        vals          (take-nth 2 (drop 1 bindings))
         orig-val-syms (map gensym names)
         temp-val-syms (map gensym names)
-        binds (map vector names temp-val-syms)
-        resets (reverse (map vector names orig-val-syms))
-        bind-value (fn [[k v]] (list 'set-var k v))]
+        binds         (map vector names temp-val-syms)
+        resets        (reverse (map vector names orig-val-syms))
+        bind-value    (fn [[k v]] (list 'set-var k v))]
     `(let [~@(interleave orig-val-syms names)
            ~@(interleave temp-val-syms vals)]
        ~@(map bind-value binds)

@@ -28,10 +28,10 @@
   (do
     (when-not (or (keyword? tag) (string? tag))
       (throw (php/new InvalidArgumentException (str tag " is not a valid element name."))))
-    (let [tag (to-str tag)
-          elem (first content)
-          map-attrs (if (map? elem) elem {})
-          content (if (map? elem) (next content) content)
+    (let [tag         (to-str tag)
+          elem        (first content)
+          map-attrs   (if (map? elem) elem {})
+          content     (if (map? elem) (next content) content)
           content-arr (if (nil? content) nil (apply list content))]
       [tag map-attrs content-arr])))
 
@@ -126,13 +126,13 @@
   (let [form-name (if (and (list? form) (symbol? (first form)))
                     (name (first form)))]
     (case form-name
-      "for"       (let [[_ bindings body] form]
+      "for"      (let [[_ bindings body] form]
                     `(apply str (for ~bindings ~(compile-html body))))
-      "if"        (let [[_ condition & body] form]
+      "if"       (let [[_ condition & body] form]
                     `(if ~condition ~@(for [x :in body] (compile-html x))))
-      "when"      (let [[_ condition & body] form]
+      "when"     (let [[_ condition & body] form]
                     `(if ~condition ~@(for [x :in body] (compile-html x))))
-      "when-not"  (let [[_ condition & body] form]
+      "when-not" (let [[_ condition & body] form]
                     `(if (not ~condition) ~@(for [x :in body] (compile-html x))))
       `(render-html ~form))))
 

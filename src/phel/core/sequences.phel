@@ -110,13 +110,13 @@
      (loop [i index
             s coll]
        (cond
-         (nil? s) (throw (php/new OutOfBoundsException (str "Index " index " out of bounds")))
+         (nil? s)      (throw (php/new OutOfBoundsException (str "Index " index " out of bounds")))
          (php/=== i 0) (first s)
-         :else (recur (php/- i 1) (next s))))))
+         :else         (recur (php/- i 1) (next s))))))
 
   ([coll index not-found]
    (cond
-     (nil? coll) not-found
+     (nil? coll)          not-found
 
      (php/is_string coll)
      (if (and (php/>= index 0) (php/< index (php/mb_strlen coll "UTF-8")))
@@ -132,9 +132,9 @@
      (loop [i index
             s coll]
        (cond
-         (nil? s) not-found
+         (nil? s)      not-found
          (php/=== i 0) (first s)
-         :else (recur (php/- i 1) (next s)))))))
+         :else         (recur (php/- i 1) (next s)))))))
 
 (defn nthrest
   "Returns the nth rest of `coll`, `coll` when `n` is 0."
@@ -193,7 +193,7 @@
     (throw (php/new InvalidArgumentException
                     (str "assoc expects an even number of extra arguments (key-value pairs), got "
                          (count more)))))
-  (loop [acc (assoc-pair ds key value)
+  (loop [acc       (assoc-pair ds key value)
          remaining more]
     (if (empty? remaining)
       acc
@@ -227,7 +227,7 @@
   "Returns `ds` without the given keys. With no keys returns `ds` unchanged."
   {:example "(dissoc {:a 1 :b 2} :b) ; => {:a 1}\n(dissoc {:a 1 :b 2 :c 3} :a :c) ; => {:b 2}"}
   [ds & ks]
-  (loop [acc ds
+  (loop [acc       ds
          remaining ks]
     (if (empty? remaining)
       acc

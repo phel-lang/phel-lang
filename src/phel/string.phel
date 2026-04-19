@@ -99,7 +99,7 @@
   {:example "(capitalize \"hELLO wORLD\") ; => \"Hello world\""}
   [s]
   (let [first-char (php/mb_substr s 0 1)
-        rest (php/mb_substr s 1)]
+        rest       (php/mb_substr s 1)]
     (str (php/mb_strtoupper first-char)
          (php/mb_strtolower rest))))
 
@@ -175,7 +175,7 @@
   "Returns a new string with each character escaped according to cmap."
   {:example "(escape \"hello\" {\"h\" \"H\" \"o\" \"O\"}) ; => \"HellO\""}
   [s cmap]
-  (let [chars (php/mb_str_split s)
+  (let [chars  (php/mb_str_split s)
         mapped (php/array_map (fn [ch] (or (cmap ch) ch)) chars)]
     (php/implode "" mapped)))
 
@@ -185,11 +185,11 @@
   [s value & [from-index]]
   (let [from-index (or from-index 0)
         from-index (let [abs (php/abs from-index)
-                         v (min abs (dec (php/mb_strlen s)))]
+                         v   (min abs (dec (php/mb_strlen s)))]
                      (if (< from-index 0)
                        (* v -1)
                        v))
-        result (php/mb_strpos s value from-index)]
+        result     (php/mb_strpos s value from-index)]
     (if (= result false)
       nil
       result)))
@@ -198,20 +198,20 @@
   "Returns the last index of value in s, or nil if not found."
   {:example "(last-index-of \"hello world world\" \"world\") ; => 12"}
   [s value & [from-index]]
-  (let [len (php/mb_strlen s)
-        max-index (dec len)
+  (let [len        (php/mb_strlen s)
+        max-index  (dec len)
         from-index (or from-index max-index)
         from-index (let [abs (php/abs from-index)
-                         v (min abs max-index)]
+                         v   (min abs max-index)]
                      (if (< from-index 0)
                        (- max-index v)
                        v))
-        result (php/mb_strrpos s value 0)]
+        result     (php/mb_strrpos s value 0)]
     (if (php/=== result false)
       nil
       (if (<= result from-index)
         result
-        (let [sub (php/mb_substr s 0 (php/+ from-index 1))
+        (let [sub    (php/mb_substr s 0 (php/+ from-index 1))
               result (php/mb_strrpos sub value 0)]
           (if (php/=== result false)
             nil
