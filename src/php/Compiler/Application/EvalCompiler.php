@@ -17,7 +17,6 @@ use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Lexer\LexerInterface;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
-use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Domain\Parser\ParserInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
@@ -45,7 +44,6 @@ final readonly class EvalCompiler implements EvalCompilerInterface
      * @throws CompilerException
      * @throws FileException
      * @throws LexerValueException
-     * @throws UnfinishedParserException
      *
      * @return mixed The result of the executed code
      */
@@ -68,8 +66,6 @@ final readonly class EvalCompiler implements EvalCompilerInterface
 
                     $result = $this->evalNode($node, $compileOptions);
                 }
-            } catch (UnfinishedParserException $e) {
-                throw $e;
             } catch (AbstractParserException|ReaderException $e) {
                 throw new CompilerException($e, $e->getCodeSnippet());
             }
