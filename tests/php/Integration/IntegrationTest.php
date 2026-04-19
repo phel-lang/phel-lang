@@ -88,7 +88,9 @@ final class IntegrationTest extends TestCase
                 continue;
             }
 
-            $test = file_get_contents($file->getRealpath());
+            // Normalize CRLF so fixtures compare against compiler output
+            // byte-for-byte on Windows where git may have rewritten line endings.
+            $test = str_replace("\r\n", "\n", (string) file_get_contents($file->getRealpath()));
 
             if (preg_match('/--PHEL--\s*(?<phel>.*?)\s*--PHP--\s*(?<php>.*)/s', $test, $match)) {
                 $relative = str_replace($fixturesDir . DIRECTORY_SEPARATOR, '', $file->getRealPath());
