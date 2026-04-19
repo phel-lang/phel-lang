@@ -39,6 +39,7 @@ final class DefEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitLine('}');
         }
 
+        $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $this->outputEmitter->emitLine('\\Phel::addDefinition(');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitStr('"');
