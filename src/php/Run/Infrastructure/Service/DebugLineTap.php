@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Run\Infrastructure\Service;
 
-use Throwable;
-
 use function count;
 use function in_array;
 use function sprintf;
@@ -154,16 +152,12 @@ final class DebugLineTap
 
     private function getSource(string $file, int $line): string
     {
-        try {
-            $lines = file($file);
-            if ($lines === false) {
-                return '<file not found>';
-            }
-
-            return $this->captureCompleteForm($lines, $line);
-        } catch (Throwable) {
-            return '<read error>';
+        $lines = file($file);
+        if ($lines === false) {
+            return '<file not found>';
         }
+
+        return $this->captureCompleteForm($lines, $line);
     }
 
     /**
@@ -235,19 +229,15 @@ final class DebugLineTap
             return $this->phelSourceCache[$file];
         }
 
-        try {
-            $content = file_get_contents($file);
-            if ($content === false) {
-                return $this->phelSourceCache[$file] = null;
-            }
-
-            if (preg_match('#^//\s+(.+?\.phel)#m', $content, $matches)) {
-                return $this->phelSourceCache[$file] = $matches[1];
-            }
-
-            return $this->phelSourceCache[$file] = null;
-        } catch (Throwable) {
+        $content = file_get_contents($file);
+        if ($content === false) {
             return $this->phelSourceCache[$file] = null;
         }
+
+        if (preg_match('#^//\s+(.+?\.phel)#m', $content, $matches)) {
+            return $this->phelSourceCache[$file] = $matches[1];
+        }
+
+        return $this->phelSourceCache[$file] = null;
     }
 }
