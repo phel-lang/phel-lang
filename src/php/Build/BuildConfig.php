@@ -66,7 +66,7 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
         $cacheDir = (string) $this->get(PhelConfig::CACHE_DIR, 'cache');
 
         // If absolute path, use as-is; otherwise relative to app root
-        if (str_starts_with($cacheDir, '/') || str_starts_with($cacheDir, 'phar://')) {
+        if ($this->isAbsolutePath($cacheDir)) {
             return $cacheDir;
         }
 
@@ -76,6 +76,28 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
     public function getNamespaceCacheFile(): string
     {
         return $this->getCacheDir() . '/namespace-cache.php';
+    }
+
+    /**
+     * Cross-platform absolute-path detection so Windows cache dirs
+     * (drive letters, UNC shares) aren't mistaken for relative paths
+     * and prefixed with the app root.
+     */
+    private function isAbsolutePath(string $path): bool
+    {
+        if ($path === '') {
+            return false;
+        }
+
+        if ($path[0] === '/' || $path[0] === '\\') {
+            return true;
+        }
+
+        if (str_starts_with($path, 'phar://')) {
+            return true;
+        }
+
+        return (bool) preg_match('~^[A-Za-z]:[\\\\/]~', $path);
     }
 
     /**
