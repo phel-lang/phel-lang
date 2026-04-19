@@ -23,10 +23,11 @@ final class FnAsClassEmitterTest extends TestCase
         $outputEmitter = (new CompilerFactory())
             ->createOutputEmitter();
 
+        $closureHelper = new ClosureEmitterHelper($outputEmitter);
         $this->fnAsClassEmitter = new FnAsClassEmitter(
             $outputEmitter,
-            new MethodEmitter($outputEmitter),
-            new ClosureEmitterHelper($outputEmitter),
+            new MethodEmitter($outputEmitter, $closureHelper),
+            $closureHelper,
         );
     }
 

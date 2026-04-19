@@ -150,7 +150,7 @@ final class NodeEmitterFactory
             MapNode::class => new MapEmitter($outputEmitter),
             SetVarNode::class => new SetVarEmitter($outputEmitter),
             DefInterfaceNode::class => new DefInterfaceEmitter($outputEmitter),
-            MultiFnNode::class => new MultiFnAsClassEmitter($outputEmitter),
+            MultiFnNode::class => new MultiFnAsClassEmitter($outputEmitter, $closureHelper),
             ReifyNode::class => new ReifyEmitter($outputEmitter, $methodEmitter, $closureHelper),
             default => throw NotSupportedAstException::withClassName($astNodeClassName),
         };
@@ -160,7 +160,7 @@ final class NodeEmitterFactory
     {
         $key = spl_object_id($outputEmitter);
 
-        return $this->methodEmitterCache[$key] ??= new MethodEmitter($outputEmitter);
+        return $this->methodEmitterCache[$key] ??= new MethodEmitter($outputEmitter, $this->getClosureHelper($outputEmitter));
     }
 
     private function getClosureHelper(OutputEmitterInterface $outputEmitter): ClosureEmitterHelper
