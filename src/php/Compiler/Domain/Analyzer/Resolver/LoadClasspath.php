@@ -58,15 +58,6 @@ final class LoadClasspath
     }
 
     /**
-     * Clears the process-local cache. Tests that reset the registry
-     * directly (without calling `publish`) must call this too.
-     */
-    public static function resetCache(): void
-    {
-        self::$cached = null;
-    }
-
-    /**
      * @return list<string>
      */
     public static function read(): array

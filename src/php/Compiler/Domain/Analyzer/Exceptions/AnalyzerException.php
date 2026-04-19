@@ -232,7 +232,6 @@ final class AnalyzerException extends AbstractLocatedException
             return sprintf("'%s' or '%s'", $suggestions[0], $suggestions[1]);
         }
 
-        /** @var string $lastSuggestion */
         $lastSuggestion = array_pop($suggestions);
         $quotedSuggestions = array_map(static fn(string $s): string => sprintf("'%s'", $s), $suggestions);
 
