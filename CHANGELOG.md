@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- `docs/php-interop.md`: documents calling namespaced PHP functions (`php/Amp\trapSignal`) and capturing them with `(def alias php/\Ns\fn)` for shorter use sites.
 - `phel build` prints a summary with fresh/cached counts and the output directory, including a clear message when nothing needed recompiling.
 - `phel\ai` `chat-with-tools` returns `{:text :tool-calls :stop-reason :raw}`.
 

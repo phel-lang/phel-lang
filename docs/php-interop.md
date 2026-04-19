@@ -34,6 +34,25 @@ Prefix PHP functions with `php/`:
 ;; Math functions
 (php/abs -5)                      ; => 5
 (php/max 1 5 3)                   ; => 5
+
+;; Namespaced functions — keep the original casing
+(php/Amp\trapSignal [php/SIGINT php/SIGTERM])
+(php/\Monolog\Logger\Utils\detectAndCleanUtf8 "input")
+```
+
+The `php/` prefix resolves any global or namespaced PHP function. For
+namespaced functions the name after `php/` is the full PHP path (use `\\`
+to disambiguate from the root namespace when needed). Case is preserved,
+so `php/Amp\trapSignal` compiles to `\Amp\trapSignal(...)`.
+
+To keep calls short, capture the function reference with `def`:
+
+```phel
+(def trap-signal php/\Amp\trapSignal)
+(def detect-utf8 php/\Monolog\Logger\Utils\detectAndCleanUtf8)
+
+(trap-signal [php/SIGINT php/SIGTERM])
+(detect-utf8 "input")
 ```
 
 ### Classes and Objects
