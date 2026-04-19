@@ -138,6 +138,14 @@ That creates `phel-config.php`, `src/phel/main.phel`, and a matching `tests/phel
 ./vendor/bin/phel build                    # compile to PHP for production
 ```
 
+Need a one-off snippet or shell pipeline? `phel eval` runs inline expressions and `phel eval -` reads the program from stdin:
+
+```sh
+./vendor/bin/phel eval '(+ 1 2)'           # prints 3
+echo '(println "hi")' | ./vendor/bin/phel eval -
+./vendor/bin/phel eval - < script.phel
+```
+
 For a single-file experiment or scratch project, use the root layout:
 
 ```sh

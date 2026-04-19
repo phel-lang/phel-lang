@@ -15,6 +15,9 @@ All notable changes to this project will be documented in this file.
 - History vars `*1`, `*2`, `*3`, and `*e` for last exception
 - Prompt shows current namespace and tracks `(ns ...)` switches
 
+#### CLI
+- `phel eval -` reads the expression from stdin (e.g. `echo '(+ 1 2)' | phel eval -`)
+
 #### Formatter
 - Aligns key/value pairs in `cond`, `case`, `condp`, and bindings of `let`/`loop`/`binding`/`for`/`foreach`/`dofor`/`if-let`/`when-let`
 
