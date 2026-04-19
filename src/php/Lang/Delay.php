@@ -11,8 +11,8 @@ final class Delay
 {
     private mixed $value = null;
 
-    /** @var ?callable */
-    private mixed $fn;
+    /** @var callable|null */
+    private $fn;
 
     public function __construct(callable $fn)
     {

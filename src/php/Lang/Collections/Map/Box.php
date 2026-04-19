@@ -6,9 +6,9 @@ namespace Phel\Lang\Collections\Map;
 
 final class Box
 {
-    public function __construct(private mixed $value) {}
+    public function __construct(private ?bool $value) {}
 
-    public function getValue(): mixed
+    public function getValue(): ?bool
     {
         return $this->value;
     }
