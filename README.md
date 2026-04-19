@@ -23,7 +23,7 @@
 
 ---
 
-Phel is a functional, [Lisp](https://en.wikipedia.org/wiki/Lisp_(programming_language))-inspired programming language that compiles to PHP. It brings the expressive power of [Clojure](https://clojure.org/) and the simplicity of [Janet](https://janet-lang.org/) to the PHP ecosystem — enabling you to write concise, immutable, and composable code that runs anywhere PHP does.
+A functional, Lisp-inspired language that compiles to PHP. Inspired by Clojure, Phel brings macros, persistent data structures, and expressive functional idioms to the PHP ecosystem.
 
 #### Example
 <!--
@@ -31,19 +31,94 @@ using "clojure" here is just for the md coloring
 we should use "phel" once GitHub accept phel coloring too
 -->
 ```clojure
-; Define a namespace
 (ns my\example)
 
-; Define a variable with name "my-name" and value "world"
-(def my-name "world")
+(defn greet [name] (str "Hello, " name "!"))
 
-; Define a function with name "print-name" and one argument "your-name"
-(defn print-name [your-name]
-  (print "hello" your-name))
-
-; Call the function
-(print-name my-name)
+(println (greet "Phel"))
+;; => Hello, Phel!
 ```
+
+<details>
+<summary><b>More examples →</b></summary>
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+**Data pipeline**
+
+```clojure
+(def users
+  [{:name "Ada" :age 36}
+   {:name "Bob" :age 17}
+   {:name "Cam" :age 41}])
+
+(->> users
+     (filter #(>= (:age %) 18))
+     (map :name)
+     sort)
+;; => ["Ada" "Cam"]
+```
+
+</td>
+<td width="50%" valign="top">
+
+**HTTP response**
+
+```clojure
+(ns app (:require phel\http :as h))
+
+(def req (h/request-from-globals))
+
+(h/emit-response
+  (h/response-from-map
+    {:status 200
+     :headers {"Content-Type" "text/plain"}
+     :body (str "Hello " (:uri req))}))
+```
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+**Macros**
+
+```clojure
+(defmacro unless [pred & body]
+  `(if (not ,pred)
+     (do ,@body)))
+
+(unless (zero? 1)
+  (println "not zero"))
+;; => not zero
+
+(unless false (println "ok"))
+;; => ok
+```
+
+</td>
+<td valign="top">
+
+**PHP interop**
+
+```clojure
+(ns app)
+
+(def now (php/new \DateTime))
+(.format now "Y-m-d")
+;; => "2026-04-20"
+
+(def epoch (php/new \DateTime "1970-01-01"))
+(.-days (.diff now epoch))
+;; => 20564
+```
+
+</td>
+</tr>
+</table>
+</details>
 
 ## Getting Started
 
@@ -130,4 +205,4 @@ The generated `build/out/phel.phar` can then be executed directly.
 | [docs/](docs/) | Guides, examples, and compiler internals |
 | [phel-lang.org](https://phel-lang.org) | Tutorials, exercises, and blog posts |
 
-New here? Start with [CONTRIBUTING.md](.github/CONTRIBUTING.md) — it explains the two-language codebase and has a "Where to Start" section based on your interests.
+New here? Start with [CONTRIBUTING.md](.github/CONTRIBUTING.md): explains the two-language codebase and has a "Where to Start" section based on your interests.
