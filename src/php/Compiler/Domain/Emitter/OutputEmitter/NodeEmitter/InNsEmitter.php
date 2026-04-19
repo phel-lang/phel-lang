@@ -21,7 +21,6 @@ final class InNsEmitter implements NodeEmitterInterface
     {
         assert($node instanceof InNsNode);
 
-        // Set the namespace in the global environment
         $this->outputEmitter->emitLine(
             '\\' . GlobalEnvironmentSingleton::class . '::getInstance()->setNs("' . addslashes($node->getNamespace()) . '");',
             $node->getStartSourceLocation(),
@@ -43,7 +42,6 @@ final class InNsEmitter implements NodeEmitterInterface
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine(');');
 
-        // Update *ns* definition
         $this->outputEmitter->emitLine('\\' . Phel::class . '::addDefinition(');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitStr('"');
