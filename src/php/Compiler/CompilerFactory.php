@@ -23,6 +23,7 @@ use Phel\Compiler\Domain\Compiler\EvalCompilerInterface;
 use Phel\Compiler\Domain\Emitter\FileEmitter;
 use Phel\Compiler\Domain\Emitter\FileEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\EmitMode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterFactory;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\OutputEmitterOptions;
@@ -129,13 +130,13 @@ final class CompilerFactory extends AbstractFactory
     {
         return new FileEmitter(
             new SourceMapGenerator(),
-            $this->createOutputEmitterWithMode(OutputEmitterOptions::EMIT_MODE_FILE, $enableSourceMaps),
+            $this->createOutputEmitterWithMode(EmitMode::File, $enableSourceMaps),
         );
     }
 
     public function createOutputEmitter(bool $enableSourceMaps = true): OutputEmitterInterface
     {
-        return $this->createOutputEmitterWithMode(OutputEmitterOptions::EMIT_MODE_STATEMENT, $enableSourceMaps);
+        return $this->createOutputEmitterWithMode(EmitMode::Statement, $enableSourceMaps);
     }
 
     public function createEvaluator(): EvaluatorInterface
@@ -178,11 +179,11 @@ final class CompilerFactory extends AbstractFactory
     {
         return new FileEmitter(
             new SourceMapGenerator(),
-            $this->createOutputEmitterWithMode(OutputEmitterOptions::EMIT_MODE_CACHE, $enableSourceMaps),
+            $this->createOutputEmitterWithMode(EmitMode::Cache, $enableSourceMaps),
         );
     }
 
-    private function createOutputEmitterWithMode(string $emitMode, bool $enableSourceMaps): OutputEmitter
+    private function createOutputEmitterWithMode(EmitMode $emitMode, bool $enableSourceMaps): OutputEmitter
     {
         return new OutputEmitter(
             $enableSourceMaps,

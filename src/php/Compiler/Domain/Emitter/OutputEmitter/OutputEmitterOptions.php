@@ -6,28 +6,22 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
 final readonly class OutputEmitterOptions
 {
-    public const string EMIT_MODE_FILE = 'EMIT_MODE_FILE';
-
-    public const string EMIT_MODE_STATEMENT = 'EMIT_MODE_STATEMENT';
-
-    public const string EMIT_MODE_CACHE = 'EMIT_MODE_CACHE';
-
     public function __construct(
-        private string $emitMode = self::EMIT_MODE_STATEMENT,
+        private EmitMode $emitMode = EmitMode::Statement,
     ) {}
 
     public function isFileEmitMode(): bool
     {
-        return $this->emitMode === self::EMIT_MODE_FILE;
+        return $this->emitMode === EmitMode::File;
     }
 
     public function isStatementEmitMode(): bool
     {
-        return $this->emitMode === self::EMIT_MODE_STATEMENT;
+        return $this->emitMode === EmitMode::Statement;
     }
 
     public function isCacheEmitMode(): bool
     {
-        return $this->emitMode === self::EMIT_MODE_CACHE;
+        return $this->emitMode === EmitMode::Cache;
     }
 }
