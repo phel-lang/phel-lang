@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - Deleted `GlobalEnvironmentNotInitializedException`, `PhelFileFinder`, and `PhelFileFinderInterface` — all unreferenced.
 - Removed `FileException::canNotCreateTempFile()`, `ExtractorException::duplicateNamespace()`, `EmitterResult::getSource()`, `TokenStream::getReadTokens()`, and `LoadClasspath::resetCache()` — static factories and methods with no callers.
+- `phel\http/create-response-from-map` and `phel\http/create-response-from-string` (use `response-from-map` / `response-from-string`).
 
 ### Added
 

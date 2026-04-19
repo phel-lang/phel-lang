@@ -342,15 +342,11 @@
         reason  (or reason (get response-phrases status) "")]
     (response status headers body version reason)))
 
-(def create-response-from-map {:deprecated "Use response-from-map"} response-from-map)
-
 (defn response-from-string
   "Create a response from a string."
   {:example "(response-from-string \"Hello World\") ; => (response 200 {} \"Hello World\" \"1.1\" \"OK\")"}
   [s]
   (response-from-map {:body s}))
-
-(def create-response-from-string {:deprecated "Use response-from-string"} response-from-string)
 
 (defn- emit-status-line [{:status status :reason reason :version version}]
   (when-not (php/headers_sent)
