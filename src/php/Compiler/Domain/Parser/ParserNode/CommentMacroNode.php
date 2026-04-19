@@ -13,11 +13,6 @@ final readonly class CommentMacroNode implements TriviaNodeInterface
         private SourceLocation $startLocation,
     ) {}
 
-    public function getNode(): NodeInterface
-    {
-        return $this->node;
-    }
-
     public function getCode(): string
     {
         return '#_' . $this->node->getCode();

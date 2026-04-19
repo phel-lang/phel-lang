@@ -84,18 +84,13 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
             }
         }
 
-        $comment = null;
-        if (count($method) > 2) {
-            $comment = $method->get(2);
-            if (!is_string($comment)) {
-                throw AnalyzerException::withLocation('Method comments must be strings', $method);
-            }
+        if (count($method) > 2 && !is_string($method->get(2))) {
+            throw AnalyzerException::withLocation('Method comments must be strings', $method);
         }
 
         return new DefInterfaceMethod(
             $name,
             $arguments->toArray(),
-            $comment,
         );
     }
 }

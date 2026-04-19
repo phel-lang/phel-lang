@@ -10,15 +10,4 @@ final readonly class CompletionResultTransfer
         public string $candidate,
         public string $type,
     ) {}
-
-    /**
-     * @return array{candidate: string, type: string}
-     */
-    public function toArray(): array
-    {
-        return [
-            'candidate' => $this->candidate,
-            'type' => $this->type,
-        ];
-    }
 }

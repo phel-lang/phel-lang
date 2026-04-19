@@ -244,16 +244,6 @@ final class ReplCompleterTest extends TestCase
         self::assertContainsOnly('string', $results);
     }
 
-    public function test_completion_result_transfer_to_array(): void
-    {
-        $result = new CompletionResultTransfer('map', 'function');
-
-        self::assertSame([
-            'candidate' => 'map',
-            'type' => 'function',
-        ], $result->toArray());
-    }
-
     public function test_qualified_function_in_non_core_namespace(): void
     {
         $fn = self::createStub(FnInterface::class);

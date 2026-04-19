@@ -79,11 +79,6 @@ final class ParseTreeZipper extends AbstractZipper
         return $this->getNode() instanceof CommentNode;
     }
 
-    public function leftSkipWhitespace(): static
-    {
-        return $this->left()->skipWhitespaceLeft();
-    }
-
     #[Override]
     public function skipWhitespaceLeft(): static
     {
@@ -117,35 +112,9 @@ final class ParseTreeZipper extends AbstractZipper
         return $this->up()->skipWhitespaceLeft();
     }
 
-    public function downSkipWhitespace(): static
-    {
-        return $this->down()->skipWhitespaceRight();
-    }
-
     public function leftMostSkipWhitespace(): static
     {
         return $this->leftMost()->skipWhitespaceRight();
-    }
-
-    public function rightMostSkipWhitespace(): static
-    {
-        return $this->rightMost()->skipWhitespaceLeft();
-    }
-
-    public function nextSkipWhitespace(): static
-    {
-        $loc = $this->next();
-        while (!$loc->isEnd() && $loc->getNode() instanceof TriviaNodeInterface) {
-            $nextLoc = $loc->next();
-
-            if ($nextLoc->isEnd()) {
-                return $loc;
-            }
-
-            $loc = $nextLoc;
-        }
-
-        return $loc;
     }
 
     /**
