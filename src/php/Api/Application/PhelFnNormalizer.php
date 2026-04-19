@@ -197,10 +197,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             return true;
         });
 
-        /** @var list<PhelFunction> $result */
-        $result = array_values($filtered);
-
-        return $result;
+        return array_values($filtered);
     }
 
     private function toRelativeFile(string $file): string

@@ -34,7 +34,7 @@ Foundational infrastructure: error reporting, exception formatting, and project 
 Command/
 ├── Application/        CommandExceptionWriter, DirectoryFinder, TextExceptionPrinter
 ├── Domain/             CodeDirectories, interfaces, Exceptions/ (extractors, printers)
-├── Infrastructure/     ComposerVendorDirectoriesFinder, ErrorLog, PhelFileFinder, SourceMapExtractor
+├── Infrastructure/     ComposerVendorDirectoriesFinder, ErrorLog, SourceMapExtractor
 └── Gacela files        CommandFacade, CommandFactory, CommandConfig, CommandProvider
 ```
 

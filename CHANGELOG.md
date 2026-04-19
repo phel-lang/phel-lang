@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Removed
+
+- Deleted `GlobalEnvironmentNotInitializedException`, `PhelFileFinder`, and `PhelFileFinderInterface` — all unreferenced.
+- Removed `FileException::canNotCreateTempFile()`, `ExtractorException::duplicateNamespace()`, `EmitterResult::getSource()`, `TokenStream::getReadTokens()`, and `LoadClasspath::resetCache()` — static factories and methods with no callers.
+
 ### Added
 
 - `#php` reader literal: `#php [1 2 3]` expands to `(php-indexed-array 1 2 3)`; `#php {"a" 1 "b" 2}` expands to `(php-associative-array "a" 1 "b" 2)`. Non-recursive — nested Phel collections are left untouched.
