@@ -112,6 +112,59 @@
   (is (uuid? #uuid "00000012-0034-0056-0078-000000000009")
       "#uuid result passes uuid?"))
 
+(deftest test-uuid=
+  (is (true? (uuid= "550E8400-E29B-41D4-A716-446655440000"
+                    "550e8400-e29b-41d4-a716-446655440000"))
+      "uuid= is case-insensitive")
+  (is (true? (uuid= "550e8400-e29b-41d4-a716-446655440000"
+                    "550e8400-e29b-41d4-a716-446655440000"))
+      "uuid= matches identical UUIDs")
+  (is (false? (uuid= "00000000-0000-0000-0000-000000000000"
+                     "550e8400-e29b-41d4-a716-446655440000"))
+      "uuid= distinguishes different UUIDs")
+  (is (false? (uuid= "550e8400-e29b-41d4-a716-446655440000" "not-a-uuid"))
+      "uuid= rejects non-UUID argument")
+  (is (false? (uuid= nil "550e8400-e29b-41d4-a716-446655440000"))
+      "uuid= rejects nil"))
+
+(deftest test-uuid-nil?
+  (is (true? (uuid-nil? "00000000-0000-0000-0000-000000000000"))
+      "uuid-nil? accepts nil UUID")
+  (is (true? (uuid-nil? "00000000-0000-0000-0000-000000000000"))
+      "uuid-nil? is case-insensitive on the nil UUID")
+  (is (false? (uuid-nil? "550e8400-e29b-41d4-a716-446655440000"))
+      "uuid-nil? rejects non-nil UUID")
+  (is (false? (uuid-nil? "not-a-uuid"))
+      "uuid-nil? rejects invalid string")
+  (is (false? (uuid-nil? nil))
+      "uuid-nil? rejects nil"))
+
+(deftest test-uuid-version
+  (is (= 4 (uuid-version "550e8400-e29b-41d4-a716-446655440000"))
+      "uuid-version reads v4")
+  (is (= 1 (uuid-version "00000000-0000-1000-8000-000000000000"))
+      "uuid-version reads v1")
+  (is (= 4 (uuid-version (random-uuid)))
+      "uuid-version on random-uuid is 4")
+  (is (nil? (uuid-version "not-a-uuid"))
+      "uuid-version returns nil on invalid")
+  (is (nil? (uuid-version nil))
+      "uuid-version returns nil on nil"))
+
+(deftest test-uuid-variant
+  (is (= :rfc-4122 (uuid-variant "550e8400-e29b-41d4-a716-446655440000"))
+      "RFC 4122 variant (high nibble 1010)")
+  (is (= :rfc-4122 (uuid-variant (random-uuid)))
+      "random-uuid is RFC 4122")
+  (is (= :ncs (uuid-variant "00000000-0000-0000-0000-000000000000"))
+      "nil UUID has NCS variant (high nibble 0xxx)")
+  (is (= :microsoft (uuid-variant "00000000-0000-0000-c000-000000000000"))
+      "Microsoft variant (high nibble 110x)")
+  (is (= :reserved (uuid-variant "00000000-0000-0000-e000-000000000000"))
+      "Reserved variant (high nibble 111x)")
+  (is (nil? (uuid-variant "not-a-uuid"))
+      "uuid-variant returns nil on invalid"))
+
 ;; --- resolve ---
 
 (deftest test-resolve-known-symbol
