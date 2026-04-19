@@ -56,12 +56,10 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
         $ns = $this->outputEmitter->mungeEncodeNs($node->getNamespace());
         $fqcn = $ns . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
 
-        // Capture the class body at compile time
         ob_start();
         $this->emitClassBody($node);
         $classBody = (string) ob_get_clean();
 
-        // Emit: if (!class_exists(...)) { eval('namespace ...; <class body>'); }
         $this->outputEmitter->emitLine("if (!class_exists('" . $fqcn . "')) {", $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();
 
