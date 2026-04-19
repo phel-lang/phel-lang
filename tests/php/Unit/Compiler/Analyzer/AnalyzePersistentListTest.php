@@ -145,6 +145,41 @@ final class AnalyzePersistentListTest extends TestCase
         );
     }
 
+    public function test_dot_method_shorthand_expands_to_object_call(): void
+    {
+        $list = Phel::list([
+            Symbol::create('.method'), '',
+        ]);
+        self::assertInstanceOf(
+            PhpObjectCallNode::class,
+            $this->listAnalyzer->analyze($list, NodeEnvironment::empty()),
+        );
+    }
+
+    public function test_dot_dash_field_shorthand_expands_to_object_call(): void
+    {
+        $list = Phel::list([
+            Symbol::create('.-field'), '',
+        ]);
+        self::assertInstanceOf(
+            PhpObjectCallNode::class,
+            $this->listAnalyzer->analyze($list, NodeEnvironment::empty()),
+        );
+    }
+
+    public function test_class_slash_method_shorthand_expands_to_static_call(): void
+    {
+        $list = Phel::list([
+            Symbol::createForNamespace('\\DateTimeImmutable', 'createFromFormat'),
+            'Y-m-d',
+            '2024-01-15',
+        ]);
+        self::assertInstanceOf(
+            PhpObjectCallNode::class,
+            $this->listAnalyzer->analyze($list, NodeEnvironment::empty()),
+        );
+    }
+
     public function test_symbol_with_name_php_object_static_call(): void
     {
         $list = Phel::list([
