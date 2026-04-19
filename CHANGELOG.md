@@ -4,56 +4,63 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-### Removed
-
-- Deleted `GlobalEnvironmentNotInitializedException`, `PhelFileFinder`, and `PhelFileFinderInterface` — all unreferenced.
-- Removed `FileException::canNotCreateTempFile()`, `ExtractorException::duplicateNamespace()`, `EmitterResult::getSource()`, `TokenStream::getReadTokens()`, and `LoadClasspath::resetCache()` — static factories and methods with no callers.
-- `phel\http/create-response-from-map` and `phel\http/create-response-from-string` (use `response-from-map` / `response-from-string`).
-
 ### Added
 
-- `#php` reader literal: `#php [1 2 3]` expands to `(php-indexed-array 1 2 3)`; `#php {"a" 1 "b" 2}` expands to `(php-associative-array "a" 1 "b" 2)`. Non-recursive — nested Phel collections are left untouched.
-- Member-access shorthand: `(.method obj args)` / `(.-field obj)` expand to `(php/-> obj (method args))` / `(php/-> obj field)`; `(ClassName/method args)` (or `(\Class/method ...)` for FQN) expands to `(php/:: ClassName (method args))`.
-- Static member shorthand: bare `\Ns\Class/MEMBER` (or aliased `Class/MEMBER`) symbol expands to `(php/:: Class MEMBER)` for static property and class constant access.
-- `(new ClassName args...)` as an alias for `(php/new ClassName args...)`.
-- `def` evaluates to a printable var reference (e.g. `#'user/my-var`) instead of `nil`, making REPL feedback explicit.
-- REPL history vars: `*1`, `*2`, `*3` hold the three most recent results and `*e` holds the last thrown exception.
-- REPL prompt shows the current namespace (e.g. `user:1> `, `my-app\core:2> `) and tracks switches via `(ns ...)`.
-- `phel\test\gen` module: random-value generators, `sample`, `quick-check`, and `defspec` macro with seedable PRNG for property-based testing.
-- Formatter aligns key/value pairs in `cond`, `case`, `condp`, and binding vectors of `let`/`loop`/`binding`/`for`/`foreach`/`dofor`/`if-let`/`when-let` when pairs span multiple lines.
-- `phel\ai`: OpenAI tool use support in `chat-with-tools`; provider-aware `tool-calls` extraction; `tool-result` helper for building tool result messages.
-- `phel\ai`: retry with exponential backoff on HTTP 429/5xx, configurable via `:max-retries`.
-- `phel\ai`: configurable `:timeout`; per-call `opts` now accept `:provider`, `:timeout`, `:base-url`, `:api-key`, `:max-retries`.
-- `phel\ai`: `docs/ai-guide.md` usage guide.
-- `phel\ai`: `*http-post*` rebindable seam enables full behavior coverage of chat/complete/extract/chat-with-tools/embed/build-index/search without a live API.
-- `uuid=`, `uuid-nil?`, `uuid-version`, and `uuid-variant` helpers in `phel\core` for case-insensitive UUID comparison and field extraction.
-- `phel\repl`: `find-ns`, `create-ns`, `remove-ns`, `intern`, and `ns-interns` for inspecting and mutating namespaces without switching `*ns*`.
+#### Reader & Compiler
+- `#php` reader literal: `#php [1 2 3]` → `(php-indexed-array 1 2 3)`; `#php {"a" 1}` → `(php-associative-array "a" 1)` (non-recursive)
+- PHP interop shorthands: `(.method obj args)`, `(.-field obj)`, `(ClassName/method args)`, `\Ns\Class/MEMBER`, `(new ClassName args)`
+- `def` returns a printable var ref (e.g. `#'user/my-var`)
+
+#### REPL
+- History vars `*1`, `*2`, `*3`, and `*e` for last exception
+- Prompt shows current namespace and tracks `(ns ...)` switches
+
+#### Formatter
+- Aligns key/value pairs in `cond`, `case`, `condp`, and bindings of `let`/`loop`/`binding`/`for`/`foreach`/`dofor`/`if-let`/`when-let`
+
+#### Modules
+- `phel\test\gen`: generators, `sample`, `quick-check`, `defspec` with seedable PRNG
+- `phel\ai`: `chat-with-tools` OpenAI tool use, `tool-calls` extraction, `tool-result` helper; retry w/ exponential backoff on 429/5xx; per-call `opts` (`:provider`, `:timeout`, `:base-url`, `:api-key`, `:max-retries`); `*http-post*` seam; `docs/ai-guide.md`
+- `phel\core`: `uuid=`, `uuid-nil?`, `uuid-version`, `uuid-variant`
+- `phel\repl`: `find-ns`, `create-ns`, `remove-ns`, `intern`, `ns-interns`
 
 ### Fixed
 
-- REPL runtime errors from `eval()` (e.g. `TypeError` from a `php/` interop call) point to the user's `string:N` source line via the embedded source map, instead of `InMemoryEvaluator.php:NN : eval()'d code`.
-- Calling a quoted symbol or non-callable literal (`('foo)`, `(42)`, `(nil)`, `("x")`) now raises `PHEL011` at analysis time with the source location, instead of a raw PHP `TypeError` stack trace from `eval()`.
-- `phel build` no longer leaks stdout from compiled programs during compilation.
-- Windows compiled-code cache crash: absolute cache paths with drive letters or UNC prefixes are no longer prefixed with the app root.
-- `phel\ai` `check-response` raises a `RuntimeException` with the provider error message instead of a PHP `TypeError` when the decoded error body is missing the nested `:error :message` path.
-- `phel\ai` text extraction selects the first `text`-type content block in an Anthropic response, skipping `tool_use` blocks that precede it.
+#### REPL & Compiler
+- `eval()` runtime errors point to user's `string:N` line via source map
+- Non-callable literal calls (`('foo)`, `(42)`, `(nil)`, `("x")`) raise `PHEL011` at analysis time with source location
+
+#### Build
+- `phel build` no longer leaks compiled-program stdout during compilation
+- Windows cache: absolute paths with drive letters or UNC prefixes no longer prefixed with app root
+
+#### Modules
+- `phel\ai` `check-response` raises `RuntimeException` with provider message when body lacks `:error :message`
+- `phel\ai` text extraction picks first `text` block, skipping preceding `tool_use`
 
 ### Changed
 
-- `docs/php-interop.md`: documents calling namespaced PHP functions (`php/Amp\trapSignal`) and capturing them with `(def alias php/\Ns\fn)` for shorter use sites.
-- `phel build` prints a summary with fresh/cached counts and the output directory, including a clear message when nothing needed recompiling.
-- `phel\ai` `chat-with-tools` returns `{:text :tool-calls :stop-reason :raw}`.
+- `docs/php-interop.md`: namespaced PHP functions (`php/Amp\trapSignal`) and `(def alias php/\Ns\fn)` capture
+- `phel build` prints summary with fresh/cached counts and output directory
+- `phel\ai` `chat-with-tools` returns `{:text :tool-calls :stop-reason :raw}`
 
 ### Removed
 
+#### Public API
+- `phel\http/create-response-from-map`, `phel\http/create-response-from-string` (use `response-from-map` / `response-from-string`)
 - `Keyword::createForNamespace()` (use `Keyword::create($name, $namespace)`)
 - `PhelConfig::setOut()` (use `PhelConfig::setBuildConfig()`)
-- `PhelBuildConfig::setMainPhpFilename()` and its backing field (use `PhelBuildConfig::setMainPhpPath()`)
-- `PhelFunction` accessor methods `name()`, `doc()`, `fnSignatures()`, `signature()`, `description()`, `groupKey()`, `githubUrl()`, `docUrl()`, `file()`, `line()`, `namespace()` (use the matching public readonly properties)
+- `PhelBuildConfig::setMainPhpFilename()` (use `PhelBuildConfig::setMainPhpPath()`)
+- `PhelFunction` accessors `name()`, `doc()`, `fnSignatures()`, `signature()`, `description()`, `groupKey()`, `githubUrl()`, `docUrl()`, `file()`, `line()`, `namespace()` (use readonly properties)
+
+#### Internals
+- `GlobalEnvironmentNotInitializedException`, `PhelFileFinder`, `PhelFileFinderInterface`
+- `FileException::canNotCreateTempFile()`, `ExtractorException::duplicateNamespace()`, `EmitterResult::getSource()`, `TokenStream::getReadTokens()`, `LoadClasspath::resetCache()`
 
 ### Changed (breaking)
 
-- `phel init` defaults to Flat layout (`src/`, `tests/`); use `--nested` for the previous `src/phel/` structure. `ProjectLayout::Conventional` renamed to `ProjectLayout::Nested` (`useConventionalLayout()` → `useNestedLayout()`).
+- `phel init` defaults to Flat layout (`src/`, `tests/`); `--nested` keeps `src/phel/`
+- `ProjectLayout::Conventional` → `ProjectLayout::Nested`; `useConventionalLayout()` → `useNestedLayout()`
 
 ## [0.33.0](https://github.com/phel-lang/phel-lang/compare/v0.32.0...v0.33.0) - 2026-04-17
 
