@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Run\Infrastructure\Service;
+namespace PhelTest\Unit\Compiler\Infrastructure\Service;
 
-use Phel\Run\Infrastructure\Service\DebugLineTap;
+use Phel\Compiler\Infrastructure\Service\DebugLineTap;
 use PHPUnit\Framework\TestCase;
 
 use function strlen;

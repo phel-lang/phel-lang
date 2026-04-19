@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use Override;
+
 final class Symbol extends AbstractType implements IdenticalInterface, NamedInterface
 {
     use MetaTrait;
@@ -106,6 +108,12 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
         private readonly ?string $namespace,
         private readonly string $name,
     ) {}
+
+    #[Override]
+    public function __toString(): string
+    {
+        return $this->name;
+    }
 
     public static function create(string $name): self
     {
