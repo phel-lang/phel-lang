@@ -12,6 +12,15 @@ namespace Phel\Build\Domain\Extractor;
  */
 final readonly class ExcludedScanPaths
 {
+    /**
+     * Segments always pruned from a namespace scan regardless of scan root.
+     * Agent tooling (Claude Code, Codex, etc.) drops repo clones under a
+     * `worktrees/` directory whose `src/phel/` would shadow real sources.
+     */
+    private const array ALWAYS_EXCLUDED_SEGMENTS = [
+        DIRECTORY_SEPARATOR . 'worktrees' . DIRECTORY_SEPARATOR,
+    ];
+
     /** @var list<string> */
     private array $absolutePrefixes;
 
@@ -34,6 +43,12 @@ final readonly class ExcludedScanPaths
 
     public function contains(string $path, string $scanRoot): bool
     {
+        foreach (self::ALWAYS_EXCLUDED_SEGMENTS as $segment) {
+            if (str_contains($path, $segment)) {
+                return true;
+            }
+        }
+
         foreach ($this->absolutePrefixes as $prefix) {
             if (str_starts_with($path, $prefix)) {
                 return true;
