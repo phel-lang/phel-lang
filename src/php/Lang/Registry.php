@@ -41,10 +41,12 @@ final class Registry
         $this->definitionsMetaData = [];
     }
 
-    public function addDefinition(string $ns, string $name, mixed $value, ?PersistentMapInterface $metaData = null): void
+    public function addDefinition(string $ns, string $name, mixed $value, ?PersistentMapInterface $metaData = null): VarReference
     {
         $this->definitions[$ns][$name] = $value;
         $this->definitionsMetaData[$ns][$name] = $metaData;
+
+        return new VarReference($ns, $name);
     }
 
     public function hasDefinition(string $ns, string $name): bool

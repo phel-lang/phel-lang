@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - `(new ClassName args...)` as an alias for `(php/new ClassName args...)`.
+- `def` evaluates to a printable var reference (e.g. `#'user/my-var`) instead of `nil`, making REPL feedback explicit.
 - `phel\test\gen` module: random-value generators, `sample`, `quick-check`, and `defspec` macro with seedable PRNG for property-based testing.
 - Formatter aligns key/value pairs in `cond`, `case`, `condp`, and binding vectors of `let`/`loop`/`binding`/`for`/`foreach`/`dofor`/`if-let`/`when-let` when pairs span multiple lines.
 - `phel\ai`: OpenAI tool use support in `chat-with-tools`; provider-aware `tool-calls` extraction; `tool-result` helper for building tool result messages.
