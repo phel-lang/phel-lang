@@ -173,6 +173,7 @@
 (defmethod report :end-test-ns     [data] (fan-out! data))
 (defmethod report :begin-test-run  [data] (fan-out! data))
 (defmethod report :summary         [data] (fan-out! data))
+(defmethod report :defspec-failed  [data] (fan-out! data))
 (defmethod report :skipped         [data]
   (record-skip! data)
   (fan-out! data))

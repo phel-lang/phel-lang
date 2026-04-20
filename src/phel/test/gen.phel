@@ -1,6 +1,7 @@
 (ns phel\test\gen
   (:require phel\core)
   (:require phel\test :as t)
+  (:require phel\test\shrink :as shrink)
   (:use InvalidArgumentException)
   (:use RuntimeException))
 
@@ -354,6 +355,24 @@
           :else
           {:result :failed :num-tests (inc i) :args args})))))
 
+(defn- shrink-outcome
+  "Given a failing trial `outcome`, runs the shrink driver on its args
+  and returns an outcome augmented with `:original-args`, `:shrunk-args`
+  and `:shrink-steps`. If `shrink?` is falsy, returns `outcome`
+  unchanged."
+  [outcome property shrink?]
+  (let [failing? (or (= :failed (:result outcome))
+                     (= :error (:result outcome)))]
+    (if (and shrink? failing?)
+      (let [args (:args outcome)
+            res  (shrink/shrink-args property args)]
+        (-> outcome
+            (assoc :original-args args)
+            (assoc :args (:smallest res))
+            (assoc :shrunk-args (:smallest res))
+            (assoc :shrink-steps (:shrink-steps res))))
+      outcome)))
+
 (defn quick-check
   "Runs `property` for `num-tests` trials, drawing each trial's arguments from
   `args-gen` (a generator returning a vector of arguments). Returns a hash-map
@@ -363,45 +382,99 @@
 
   Options:
   - `:size` (default 100): magnitude passed to the generator.
-  - `:seed` (default: fresh per-run): PRNG seed."
+  - `:seed` (default: fresh per-run): PRNG seed.
+  - `:shrink?` (default: true): when true, a failing trial is shrunk to
+    a minimal counterexample; the resulting map carries `:shrunk-args`,
+    `:original-args` and `:shrink-steps`."
   {:example "(quick-check 50 (tuple int int) (fn [a b] (= (+ a b) (+ b a))))"}
   ([num-tests args-gen property]
    (quick-check num-tests args-gen property {}))
-  ([num-tests args-gen property {:size size :seed seed}]
+  ([num-tests args-gen property {:size size :seed seed :shrink? shrink?}]
    (let [effective-seed (or seed (fresh-seed))
          _              (seed-rng! effective-seed)
-         outcome        (run-trials property args-gen num-tests (or size default-size))]
+         outcome        (run-trials property args-gen num-tests (or size default-size))
+         do-shrink?     (if (nil? shrink?) true shrink?)
+         outcome        (shrink-outcome outcome property do-shrink?)]
      (assoc outcome :seed effective-seed))))
 
-(defn- spec-failure-message [name-str res]
-  (let [parts [(str "property " name-str " failed after " (get res :num-tests)
-                    " tests (seed " (get res :seed))]
-        args  (get res :args)
-        ex    (get res :exception)
-        parts (if args (conj parts (str ", args " (print-str args))) parts)
-        parts (if ex
-                (conj parts (str ", threw " (php/get_class ex) ": "
-                                 (php/-> ex (getMessage))))
-                parts)]
+(defn spec-failure-message
+  "Renders the human-readable failure message for a `defspec` outcome
+  map. Includes the shrink summary when the trial's arguments were
+  shrunk to a smaller counterexample."
+  {:example "(spec-failure-message \"my-spec\" {:result :failed ...})"
+   :see-also ["quick-check" "defspec"]}
+  [name-str res]
+  (let [parts   [(str "property " name-str " failed after " (get res :num-tests)
+                      " tests (seed " (get res :seed))]
+        args    (get res :args)
+        orig    (get res :original-args)
+        steps   (or (get res :shrink-steps) 0)
+        ex      (get res :exception)
+        shrunk? (and (contains? res :shrunk-args)
+                     (not= (get res :shrunk-args) orig))
+        parts   (if args (conj parts (str ", args " (print-str args))) parts)
+        parts   (if shrunk?
+                  (conj parts (str ", shrunk from " (print-str orig)
+                                   " in " steps " steps"))
+                  parts)
+        parts   (if ex
+                  (conj parts (str ", threw " (php/get_class ex) ": "
+                                   (php/-> ex (getMessage))))
+                  parts)]
     (apply str (conj parts ")"))))
 
+(defn- emit-spec-failure-event!
+  "Fans out a `:defspec-failed` event carrying the rich outcome map so
+  reporters can surface the shrunk counterexample, seed, and shrink
+  step count."
+  [name-str res]
+  (t/do-report
+    (merge
+      {:type           :defspec-failed
+       :test-name      name-str
+       :seed           (get res :seed)
+       :num-tests      (get res :num-tests)
+       :result         (get res :result)
+       :args           (get res :args)
+       :original-args  (get res :original-args)
+       :shrunk-args    (get res :shrunk-args)
+       :shrink-steps   (get res :shrink-steps)}
+      (when-let [ex (get res :exception)] {:exception ex}))))
+
 (defmacro defspec
-  "Defines a property test. The generated `deftest` runs `quick-check` and
-  asserts the result is `:pass`. `options` is a hash-map accepting
-  `:num-tests`, `:size`, and `:seed`.
+  "Defines a property test. The generated `deftest` runs `quick-check`
+  and asserts the result is `:pass`. `options` is a hash-map accepting
+  `:num-tests`, `:size`, `:seed` and `:shrink?`.
+
+  Attach `^:no-shrink` metadata to the name to skip shrinking on
+  failure. The `test-name` symbol's metadata is also forwarded to the
+  underlying `deftest`, so tag-based selectors apply as usual.
+
+  On failure a `:defspec-failed` event is sent to the reporter set
+  before the surrounding `is` assertion records a `:failed` event.
+  Reporters that want rich shrink information can subscribe to it; the
+  built-in reporters keep rendering their usual failure summary.
 
   Shape: `(defspec name options args-gen property)`."
   {:example "(defspec addition-commutes {:num-tests 200}
               (tuple int int)
               (fn [a b] (= (+ a b) (+ b a))))"}
   [name options args-gen property]
-  (let [opts-sym (gensym)
-        n-sym    (gensym)
-        res-sym  (gensym)
-        name-str (str name)]
+  (let [opts-sym   (gensym)
+        n-sym      (gensym)
+        res-sym    (gensym)
+        final-opts (gensym)
+        name-meta  (or (php/-> name (getMeta)) {})
+        no-shrink? (true? (get name-meta :no-shrink))
+        name-str   (str name)]
     `(t/deftest ~name
-       (let [~opts-sym ~options
-             ~n-sym    (or (:num-tests ~opts-sym) default-num-tests)
-             ~res-sym  (quick-check ~n-sym ~args-gen ~property ~opts-sym)]
+       (let [~opts-sym   ~options
+             ~final-opts (if ~no-shrink?
+                           (assoc ~opts-sym :shrink? false)
+                           ~opts-sym)
+             ~n-sym      (or (:num-tests ~final-opts) default-num-tests)
+             ~res-sym    (quick-check ~n-sym ~args-gen ~property ~final-opts)]
+         (when (not= :pass (:result ~res-sym))
+           (emit-spec-failure-event! ~name-str ~res-sym))
          (t/is (= :pass (:result ~res-sym))
                (spec-failure-message ~name-str ~res-sym))))))

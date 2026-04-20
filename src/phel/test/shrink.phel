@@ -1,0 +1,130 @@
+(ns phel\test\shrink
+  (:require phel\core)
+  (:require phel\test\rose :as r))
+
+;; Shrink driver that walks a rose tree of candidate values and returns
+;; the smallest variant that still fails a property.
+;;
+;; Design: `phel\test\gen/quick-check` collects the failing trial's
+;; arguments and builds a rose tree from them using `value->rose`. The
+;; driver then walks that tree depth-first, keeping any child whose
+;; value still fails the property. The walk stops when no child of the
+;; current "best" candidate fails.
+;;
+;; Users never see rose trees directly; the shrink report surfaces
+;; `{:smallest v :shrink-steps n :original o}` alongside the failure
+;; event raised by `defspec`.
+
+;; ----------------
+;; Value → rose tree inference
+;; ----------------
+
+(declare value->rose)
+
+(defn- shrink-string-tree [s]
+  (let [chars (into [] (for [i :range [0 (php/strlen s)]]
+                         (php/substr s i 1)))
+        char-trees (into [] (map r/rose-pure chars))]
+    (r/rose-string char-trees)))
+
+(defn- shrink-vector-tree [v]
+  (r/rose-vector (into [] (map value->rose v))))
+
+(defn- shrink-list-tree [lst]
+  (r/rose-fmap (fn [x] (apply list x))
+               (shrink-vector-tree (into [] lst))))
+
+(defn- shrink-map-tree [m]
+  (let [pairs (into [] (for [[k v] :pairs m] [k v]))
+        pair-trees (into [] (map (fn [pair]
+                                   (r/rose-pure pair))
+                                 pairs))]
+    (r/rose-map pair-trees)))
+
+(defn- shrink-set-tree [s]
+  (let [v (into [] s)]
+    (r/rose-fmap (fn [items] (into (hash-set) items))
+                 (shrink-vector-tree v))))
+
+(defn value->rose
+  "Builds a rose tree for `v` using the built-in shrink strategy that
+  matches its runtime type. Integers shrink toward zero; strings,
+  vectors, lists, hash-maps and sets shrink by element removal plus
+  recursive element shrinks; everything else is a leaf."
+  {:example "(value->rose 10)"
+   :see-also ["phel\\test\\rose/int-rose-tree"]}
+  [v]
+  (cond
+    (int? v)      (r/int-rose-tree v)
+    (string? v)   (shrink-string-tree v)
+    (vector? v)   (shrink-vector-tree v)
+    (list? v)     (shrink-list-tree v)
+    (hash-map? v) (shrink-map-tree v)
+    (set? v)      (shrink-set-tree v)
+    :else         (r/rose-pure v)))
+
+;; ----------------
+;; Shrink driver
+;; ----------------
+
+(defn- fails?
+  "Returns `true` when `pred` fails for `value` (either returning a
+  non-truthy result or throwing)."
+  [pred value]
+  (try
+    (not (pred value))
+    (catch \Throwable _ true)))
+
+(defn- find-failing-child [pred children]
+  (loop [cs children]
+    (cond
+      (nil? cs)   nil
+      (empty? cs) nil
+      :else
+      (let [c (first cs)]
+        (if (fails? pred (r/rose-root c))
+          c
+          (recur (next cs)))))))
+
+(defn shrink
+  "Walks rose tree `tree` depth-first, greedily descending into any
+  child whose root still fails `pred`. Returns
+  `{:smallest v :shrink-steps n :tree final-tree}`."
+  {:example "(shrink pred (value->rose failing-value))"
+   :see-also ["value->rose"]}
+  [pred tree]
+  (loop [current tree steps 0]
+    (let [child (find-failing-child pred (r/rose-children current))]
+      (if (nil? child)
+        {:smallest     (r/rose-root current)
+         :shrink-steps steps
+         :tree         current}
+        (recur child (+ steps 1))))))
+
+;; ----------------
+;; Args-level shrinking
+;; ----------------
+
+(defn args->rose
+  "Rose tree whose root is `args` and children shrink each positional
+  argument in place using its value-based shrinker. Arguments are
+  never dropped (they are function parameters, not collection
+  elements)."
+  {:example "(args->rose [10])"
+   :see-also ["value->rose"]}
+  [args]
+  (let [arg-trees (into [] (map value->rose args))]
+    (r/rose-vector-lax arg-trees)))
+
+(defn shrink-args
+  "Shrinks a failing args vector using `property`. Returns
+  `{:smallest args :shrink-steps n}` where `args` is the smallest args
+  vector that still makes `property` fail."
+  {:example "(shrink-args property [10])"
+   :see-also ["shrink"]}
+  [property args]
+  (let [tree (args->rose args)
+        pred (fn [root-args] (apply property root-args))
+        out  (shrink pred tree)]
+    {:smallest     (:smallest out)
+     :shrink-steps (:shrink-steps out)}))
