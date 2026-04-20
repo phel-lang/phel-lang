@@ -1,15 +1,13 @@
 # Install agent skills
 
-Use the CLI:
-
 ```bash
-./vendor/bin/phel agent-install <platform>    # single platform
-./vendor/bin/phel agent-install --all         # every platform
-./vendor/bin/phel agent-install --all --with-docs   # also copy .agents/ tree
-./vendor/bin/phel agent-install --dry-run claude    # preview
+./vendor/bin/phel agent-install <platform>           # single platform
+./vendor/bin/phel agent-install --all                # every platform
+./vendor/bin/phel agent-install --all --with-docs    # also copy .agents/ tree
+./vendor/bin/phel agent-install --dry-run claude     # preview
 ```
 
-Backs up any existing target to `<path>.pre-phel.bak`. Pass `--force` to skip backup.
+Existing targets back up to `<path>.pre-phel.bak`. `--force` skips backup.
 
 ## Destinations
 
@@ -24,4 +22,4 @@ Backs up any existing target to `<path>.pre-phel.bak`. Pass `--force` to skip ba
 
 ## Manual fallback
 
-Copy the source file to the installed path. Mirror `.agents/` into the user project if you want full task recipes and examples available locally; otherwise adapters fall back to the package bundled under `vendor/phel-lang/phel-lang/.agents/`.
+Copy source → installed path. Adapters fall back to `vendor/phel-lang/phel-lang/.agents/` when the user project lacks its own `.agents/` tree.

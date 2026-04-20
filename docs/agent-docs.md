@@ -1,21 +1,21 @@
 # AI coding agents
 
-The `.agents/` directory at the repo root ships docs, task recipes, and skill files so AI coding tools (Claude Code, Cursor, Codex, Gemini, Copilot, Aider) can build apps with Phel without scraping the website on every cold start.
+`.agents/` ships docs, task recipes, and skill files so AI coding tools (Claude Code, Cursor, Codex, Gemini, Copilot, Aider) can build apps with Phel without scraping the website on cold start.
 
-## Install into your project
+## Install
 
 ```bash
 composer require phel-lang/phel-lang
-./vendor/bin/phel agent-install --all            # every platform
-./vendor/bin/phel agent-install claude           # single platform
-./vendor/bin/phel agent-install --all --with-docs  # also copies the .agents/ tree
+./vendor/bin/phel agent-install --all              # every platform
+./vendor/bin/phel agent-install claude             # single platform
+./vendor/bin/phel agent-install --all --with-docs  # also copy the .agents/ tree
 ```
 
-Platforms covered: `claude`, `cursor`, `codex`, `gemini`, `copilot`, `aider`.
+Platforms: `claude`, `cursor`, `codex`, `gemini`, `copilot`, `aider`.
 
-The command backs up any existing target file to `<path>.pre-phel.bak` before overwriting. Pass `--force` to skip the backup, `--dry-run` to preview.
+Existing targets back up to `<path>.pre-phel.bak`. `--force` skips backup, `--dry-run` previews.
 
-## What lands in your project
+## Destinations
 
 | Platform | File written |
 |----------|---------------|
@@ -26,22 +26,20 @@ The command backs up any existing target file to `<path>.pre-phel.bak` before ov
 | GitHub Copilot | `.github/copilot-instructions.md` |
 | Aider | `CONVENTIONS.md` |
 
-Each file routes the agent to `.agents/index.md` (copied via `--with-docs` or linked back to the installed package) for task-based recipes: scaffolding, HTTP apps, CLI tools, testing, REPL workflow, debugging, core library, and PHP interop.
+Each file routes the agent to `.agents/index.md` for task recipes: scaffolding, HTTP apps, CLI tools, tests, REPL, debugging, core library, PHP interop.
 
-## Runnable examples
+## Examples
 
-`.agents/examples/` ships three complete projects:
+`.agents/examples/` ships three projects:
 
-- `todo-app/` — HTTP CRUD over `phel\router`, in-memory atom store, tests
-- `http-json-api/` — three JSON endpoints, smallest web example
-- `cli-wordcount/` — CLI with stdin and file args
+- `todo-app/` — HTTP CRUD on `phel\router`, atom store, tests
+- `http-json-api/` — three JSON endpoints
+- `cli-wordcount/` — stdin + argv, PHP shim binary
 
-Agents can read or copy these directly.
+## Sync
 
-## Keeping docs in sync
-
-`.agents/VERSION` tracks the phel-lang release the docs target. `composer test-agents` runs every example's test suite against the current source, so breaking a public API surfaces as a red build on PR.
+`.agents/VERSION` tracks the targeted phel-lang release. `composer test-agents` runs every example's tests against the current source; breaking a public API surfaces as a red build on PR.
 
 ## Feedback
 
-Cold-start metrics and transcripts of the agent building real apps are the fastest way to find gaps. If you have recipes that fail for your agent of choice, open an issue with the transcript attached.
+Cold-start metrics and transcripts of agents building real apps surface gaps fastest. Open an issue with a failing transcript attached.
