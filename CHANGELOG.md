@@ -32,6 +32,10 @@ All notable changes to this project will be documented in this file.
 #### Formatter
 - Aligns key/value pairs in `cond`, `case`, `condp`, and bindings of `let`/`loop`/`binding`/`for`/`foreach`/`dofor`/`if-let`/`when-let`
 
+#### Testing
+- `phel\test/report` is a multimethod dispatching on event `:type`; extend with `defmethod report :custom [event] ...`
+- Built-in reporters: `default`, `testdox`, `dot`, `tap`, `junit-xml`; select via `phel test --reporter=<name>` (repeatable); `--output=path` writes the junit-xml reporter to a file
+
 #### Modules
 - `phel\test\gen`: generators, `sample`, `quick-check`, `defspec` with seedable PRNG
 - `phel\ai`: `chat-with-tools` OpenAI tool use, `tool-calls` extraction, `tool-result` helper; retry w/ exponential backoff on 429/5xx; per-call `opts` (`:provider`, `:timeout`, `:base-url`, `:api-key`, `:max-retries`); `*http-post*` seam; `docs/ai-guide.md`

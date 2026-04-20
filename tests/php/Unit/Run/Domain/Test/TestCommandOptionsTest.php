@@ -57,4 +57,60 @@ final class TestCommandOptionsTest extends TestCase
 
         self::assertSame('{:filter nil :testdox false :fail-fast true}', $options->asPhelHashMap());
     }
+
+    public function test_single_reporter(): void
+    {
+        $options = TestCommandOptions::fromArray(['reporters' => ['dot']]);
+
+        self::assertSame(
+            '{:filter nil :testdox false :fail-fast false :reporters [:dot]}',
+            $options->asPhelHashMap(),
+        );
+    }
+
+    public function test_multiple_reporters(): void
+    {
+        $options = TestCommandOptions::fromArray(['reporters' => ['dot', 'junit-xml']]);
+
+        self::assertSame(
+            '{:filter nil :testdox false :fail-fast false :reporters [:dot :junit-xml]}',
+            $options->asPhelHashMap(),
+        );
+    }
+
+    public function test_reporters_filter_out_empty_strings(): void
+    {
+        $options = TestCommandOptions::fromArray(['reporters' => ['dot', '', 'tap']]);
+
+        self::assertSame(
+            '{:filter nil :testdox false :fail-fast false :reporters [:dot :tap]}',
+            $options->asPhelHashMap(),
+        );
+    }
+
+    public function test_junit_output_emitted_when_path_is_set(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            'reporters' => ['junit-xml'],
+            'junit-output' => 'build/junit.xml',
+        ]);
+
+        self::assertSame(
+            '{:filter nil :testdox false :fail-fast false :reporters [:junit-xml] :junit-output "build/junit.xml"}',
+            $options->asPhelHashMap(),
+        );
+    }
+
+    public function test_junit_output_empty_string_is_ignored(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            'reporters' => ['junit-xml'],
+            'junit-output' => '',
+        ]);
+
+        self::assertSame(
+            '{:filter nil :testdox false :fail-fast false :reporters [:junit-xml]}',
+            $options->asPhelHashMap(),
+        );
+    }
 }
