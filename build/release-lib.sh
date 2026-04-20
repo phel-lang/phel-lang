@@ -10,6 +10,7 @@ REPO_NAME="phel-lang/phel-lang"
 DRY_RUN=0
 FORCE=0
 SKIP_PHAR=0
+SKIP_QA=0
 NEW_VERSION=""
 RELEASE_NAME=""
 
@@ -105,6 +106,7 @@ parse_args() {
     DRY_RUN=0
     FORCE=0
     SKIP_PHAR=0
+    SKIP_QA=0
     NEW_VERSION=""
     RELEASE_NAME=""
 
@@ -113,6 +115,7 @@ parse_args() {
             --dry-run) DRY_RUN=1; shift ;;
             --force) FORCE=1; shift ;;
             --skip-phar) SKIP_PHAR=1; shift ;;
+            --skip-qa) SKIP_QA=1; shift ;;
             --name)
                 if [[ -z "${2:-}" ]]; then
                     log_err "--name requires a value"
@@ -456,6 +459,7 @@ OPTIONS:
     --dry-run       Preview all changes without modifying anything
     --force         Skip confirmation prompts (for CI automation)
     --skip-phar     Skip PHAR build step
+    --skip-qa       Skip PHAR smoke-test suite (not recommended)
     -h, --help      Show this help message
 
 EXAMPLES:
@@ -468,9 +472,89 @@ WORKFLOW:
     1. Validate version format and increment
     2. Run pre-flight checks
     3. Update VersionFinder.php and CHANGELOG.md
-    4. Commit, build PHAR, tag, push
+    4. Commit, build PHAR, QA smoke-test, tag, push
     5. Create GitHub release with PHAR attachment
 EOF
+}
+
+# =============================================================================
+# QA Smoke Test (run against the built PHAR before tagging)
+# =============================================================================
+# Runs a suite of commands against the freshly built PHAR in an isolated tmp
+# project. Returns non-zero if any command fails or emits a PHP Warning on
+# stderr. Any PHAR regression must surface here so we abort before tagging.
+qa_smoke_test_phar() {
+    local phar_file="$1"
+    local expected_version="$2"
+
+    if [[ ! -f "$phar_file" ]]; then
+        log_err "QA: PHAR not found at $phar_file"
+        return 1
+    fi
+
+    local tmp_dir
+    tmp_dir=$(mktemp -d)
+    cp "$phar_file" "$tmp_dir/phel.phar"
+
+    local failures=0
+    local step_out step_err step_rc
+
+    _qa_run() {
+        local label="$1"; shift
+        step_out=$(mktemp); step_err=$(mktemp)
+        ( cd "$tmp_dir" && "$@" ) >"$step_out" 2>"$step_err"
+        step_rc=$?
+        if [[ $step_rc -ne 0 ]]; then
+            log_err "QA [$label] failed (exit $step_rc)"
+            sed -n '1,20p' "$step_err" >&2
+            ((failures++))
+        elif grep -qE 'PHP (Warning|Fatal|Parse|Deprecated) ' "$step_err"; then
+            log_err "QA [$label] emitted PHP diagnostic on stderr:"
+            grep -E 'PHP (Warning|Fatal|Parse|Deprecated) ' "$step_err" | head -3 >&2
+            ((failures++))
+        else
+            log_ok "QA [$label]"
+        fi
+        rm -f "$step_out" "$step_err"
+    }
+
+    _qa_expect() {
+        local label="$1"; local pattern="$2"; shift 2
+        step_out=$(mktemp); step_err=$(mktemp)
+        ( cd "$tmp_dir" && "$@" ) >"$step_out" 2>"$step_err"
+        step_rc=$?
+        if [[ $step_rc -ne 0 ]]; then
+            log_err "QA [$label] failed (exit $step_rc)"
+            sed -n '1,20p' "$step_err" >&2
+            ((failures++))
+        elif ! grep -qE "$pattern" "$step_out"; then
+            log_err "QA [$label] stdout did not match /$pattern/"
+            sed -n '1,20p' "$step_out" >&2
+            ((failures++))
+        else
+            log_ok "QA [$label]"
+        fi
+        rm -f "$step_out" "$step_err"
+    }
+
+    _qa_expect "version" "v${expected_version}" php phel.phar --version
+    _qa_run    "init"        php phel.phar init --force
+    _qa_expect "run"         "Hello, Phel!" php phel.phar run src/main.phel
+    _qa_expect "test"        "Passed: 2"   php phel.phar test
+    _qa_run    "format"      php phel.phar format --dry-run src/
+    _qa_run    "build"       php phel.phar build
+    _qa_run    "doctor"      php phel.phar doctor
+    _qa_run    "lint"        php phel.phar lint src
+    _qa_run    "doc"         php phel.phar doc map
+
+    rm -rf "$tmp_dir"
+
+    if [[ $failures -gt 0 ]]; then
+        log_err "QA smoke suite failed: $failures check(s)"
+        return 1
+    fi
+    log_ok "QA smoke suite passed"
+    return 0
 }
 
 # =============================================================================

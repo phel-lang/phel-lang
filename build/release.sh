@@ -208,6 +208,21 @@ main() {
     # Build PHAR
     build_phar
 
+    # QA smoke test against built PHAR
+    log "\n${BOLD}QA smoke test${NC}"
+    if [[ $SKIP_QA -eq 1 ]]; then
+        log "[WARN] Skipping QA suite (--skip-qa)"
+    elif [[ $SKIP_PHAR -eq 1 ]]; then
+        log "[WARN] Skipping QA suite (no PHAR built)"
+    elif [[ $DRY_RUN -eq 1 ]]; then
+        log "[DRY-RUN] Would: qa_smoke_test_phar $PHAR_OUTPUT $NEW_VERSION"
+    else
+        if ! qa_smoke_test_phar "$PHAR_OUTPUT" "$NEW_VERSION"; then
+            log_err "Aborting release due to QA failures. Pass --skip-qa to override."
+            return 1
+        fi
+    fi
+
     # Create tag
     log "\n${BOLD}Creating tag${NC}"
     if [[ $DRY_RUN -eq 1 ]]; then
