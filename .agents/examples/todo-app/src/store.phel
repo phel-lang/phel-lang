@@ -1,0 +1,25 @@
+(ns todo-app\store)
+
+(def store (atom {:next 1 :items {}}))
+
+(defn all []
+  (vec (vals (get @store :items))))
+
+(defn find-by-id [id]
+  (get-in @store [:items id]))
+
+(defn create [title]
+  (let [id (get @store :next)
+        todo {:id id :title title}]
+    (swap! store (fn [s]
+                   (-> s
+                       (update :next inc)
+                       (assoc-in [:items id] todo))))
+    todo))
+
+(defn delete [id]
+  (swap! store update :items dissoc id)
+  nil)
+
+(defn reset []
+  (reset! store {:next 1 :items {}}))

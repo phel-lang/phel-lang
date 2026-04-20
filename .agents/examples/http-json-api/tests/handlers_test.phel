@@ -1,0 +1,28 @@
+(ns tests\handlers-test
+  (:require phel\test :refer [deftest is])
+  (:require phel\http :as h)
+  (:require phel\json :as json)
+  (:require http-json-api\handlers :as hdl))
+
+(defn- body-of [resp] (json/decode (get resp :body)))
+
+(deftest health-returns-ok
+  (let [resp (hdl/health (h/request-from-map {}))]
+    (is (= 200 (get resp :status)))
+    (is (= "ok" (get (body-of resp) :status)))))
+
+(deftest echo-returns-path-param
+  (let [req  (h/request-from-map {:attributes {:match {:path-params {:msg "hello"}}}})
+        resp (hdl/echo req)]
+    (is (= "hello" (get (body-of resp) :message)))))
+
+(deftest sum-adds-numbers
+  (let [req  (h/request-from-map {:parsed-body {:a 2 :b 3}})
+        resp (hdl/sum req)]
+    (is (= 200 (get resp :status)))
+    (is (= 5 (get (body-of resp) :sum)))))
+
+(deftest sum-rejects-non-numbers
+  (let [req  (h/request-from-map {:parsed-body {:a "x" :b 2}})
+        resp (hdl/sum req)]
+    (is (= 400 (get resp :status)))))

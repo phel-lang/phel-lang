@@ -1,0 +1,10 @@
+(ns cli-wordcount\counts
+  (:require phel\string :as str))
+
+(defn count-text [text]
+  {:lines (if (php/empty text) 0 (count (str/split text #"\n")))
+   :words (count (filter #(not (str/blank? %)) (str/split text #"\s+")))
+   :chars (php/strlen text)})
+
+(defn format-counts [{:lines l :words w :chars c} label]
+  (str l "\t" w "\t" c "\t" label))

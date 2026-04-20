@@ -1,0 +1,18 @@
+(ns todo-app\routes
+  (:require phel\router :as r)
+  (:require todo-app\handlers :as h))
+
+(defn- logging-mw [handler request]
+  (let [response (handler request)]
+    (println (:method request) (get-in request [:uri :path]) "->" (:status response))
+    response))
+
+(def route-tree
+  [["/todos"      {:get  {:handler h/list-todos}
+                   :post {:handler h/create-todo}}]
+   ["/todos/{id}" {:get    {:handler h/show-todo}
+                   :delete {:handler h/delete-todo}}]])
+
+(def app-router (r/router route-tree))
+
+(def app-handler (r/handler app-router {:middleware [logging-mw]}))

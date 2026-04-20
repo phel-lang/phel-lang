@@ -1,0 +1,15 @@
+---
+description: Building apps with Phel (Lisp compiling to PHP). Loads on .phel files and phel-config.php.
+globs: ["**/*.phel", "**/phel-config.php"]
+alwaysApply: false
+---
+
+Phel is a Lisp dialect that compiles to PHP. Hard rules, CLI cheatsheet, and workflow live in `.agents/RULES.md`. Task recipes in `.agents/tasks/`. Route by intent via `.agents/index.md`.
+
+Before suggesting code:
+- Verify fn names in `src/phel/core/` or `(phel doc <fn>)`.
+- Collections are immutable. Rebind with `def`/`let`.
+- PHP interop prefix `php/`. See `.agents/RULES.md` for full syntax.
+- Guard top-level side effects with `(when-not *build-mode* ...)`.
+
+Working examples: `.agents/examples/{todo-app, http-json-api, cli-wordcount}/`.

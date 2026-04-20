@@ -22,6 +22,7 @@ use Phel\Console\Application\VersionFinder;
 use Phel\Filesystem\FilesystemFacade;
 use Phel\Formatter\Infrastructure\Command\FormatCommand;
 use Phel\Interop\Infrastructure\Command\ExportCommand;
+use Phel\Run\Infrastructure\Command\AgentInstallCommand;
 use Phel\Run\Infrastructure\Command\DoctorCommand;
 use Phel\Run\Infrastructure\Command\EvalCommand;
 use Phel\Run\Infrastructure\Command\InitCommand;
@@ -53,6 +54,7 @@ final class ConsoleProvider extends AbstractProvider
     {
         return [
             new InitCommand(),
+            new AgentInstallCommand(),
             new ExportCommand(),
             new FormatCommand(),
             new NsCommand(),

@@ -17,6 +17,11 @@ All notable changes to this project will be documented in this file.
 
 #### CLI
 - `phel eval -` reads the expression from stdin (e.g. `echo '(+ 1 2)' | phel eval -`)
+- `phel agent-install [<platform>|--all]` writes skill files for Claude Code, Cursor, Codex, Gemini, Copilot, Aider; `--with-docs` also mirrors the bundled `.agents/` tree, `--dry-run` previews, `--force` skips backup
+
+#### Agent docs
+- `.agents/` ships agent-agnostic docs with task recipes, per-platform adapters, and three runnable example projects (`todo-app`, `http-json-api`, `cli-wordcount`)
+- `composer test-agents` validates every example against the current source
 
 #### Formatter
 - Aligns key/value pairs in `cond`, `case`, `condp`, and bindings of `let`/`loop`/`binding`/`for`/`foreach`/`dofor`/`if-let`/`when-let`

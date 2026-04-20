@@ -1,0 +1,11 @@
+(ns http-json-api\routes
+  (:require phel\router :as r)
+  (:require http-json-api\handlers :as h))
+
+(def app-router
+  (r/router
+    [["/health"     {:get  {:handler h/health}}]
+     ["/echo/{msg}" {:get  {:handler h/echo}}]
+     ["/sum"        {:post {:handler h/sum}}]]))
+
+(def app-handler (r/handler app-router))

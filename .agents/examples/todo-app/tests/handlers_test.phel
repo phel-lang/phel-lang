@@ -1,0 +1,38 @@
+(ns tests\handlers-test
+  (:require phel\test :refer [deftest is use-fixtures])
+  (:require phel\http :as h)
+  (:require phel\json :as json)
+  (:require todo-app\store :as s)
+  (:require todo-app\handlers :as hdl))
+
+(use-fixtures :each
+  (fn [t] (s/reset) (t)))
+
+(defn- req [opts]
+  (h/request-from-map opts))
+
+(defn- body-of [resp]
+  (json/decode (get resp :body)))
+
+(deftest list-empty
+  (let [resp (hdl/list-todos (req {}))]
+    (is (= 200 (get resp :status)))
+    (is (= [] (get (body-of resp) :todos)))))
+
+(deftest create-returns-201
+  (let [resp (hdl/create-todo (req {:parsed-body {:title "write tests"}}))]
+    (is (= 201 (get resp :status)))
+    (is (= "write tests" (get (body-of resp) :title)))))
+
+(deftest create-rejects-blank-title
+  (let [resp (hdl/create-todo (req {:parsed-body {}}))]
+    (is (= 400 (get resp :status)))))
+
+(deftest show-missing-returns-404
+  (let [resp (hdl/show-todo (req {:attributes {:match {:path-params {:id "99"}}}}))]
+    (is (= 404 (get resp :status)))))
+
+(deftest delete-returns-204
+  (s/create "x")
+  (let [resp (hdl/delete-todo (req {:attributes {:match {:path-params {:id "1"}}}}))]
+    (is (= 204 (get resp :status)))))
