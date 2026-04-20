@@ -130,7 +130,7 @@ Phel automatically discovers and compiles `.cljc` files alongside `.phel` files.
   {:name "my-app"
    :version "1.0"
    #?@(:phel [:runtime "php"
-              :min-version "8.3"]
+              :min-version "8.4"]
        :clj  [:runtime "jvm"
               :min-version "21"])})
 ```

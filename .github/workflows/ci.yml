@@ -15,7 +15,7 @@ jobs:
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
+          php-version: 8.4
           coverage: none
           tools: composer
 
@@ -30,7 +30,7 @@ jobs:
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
+          php-version: 8.4
           coverage: none
           tools: composer
 
@@ -62,7 +62,7 @@ jobs:
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
+          php-version: 8.4
           coverage: none
           tools: composer
 
@@ -92,7 +92,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ '8.3', '8.4', '8.5' ]
+        php: [ '8.4', '8.5' ]
     steps:
       - uses: actions/checkout@v4
 
@@ -128,7 +128,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ '8.3' , '8.4', '8.5' ]
+        php: [ '8.4', '8.5' ]
     steps:
       - uses: actions/checkout@v4
 
@@ -163,7 +163,7 @@ jobs:
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
+          php-version: 8.4
           coverage: none
           tools: composer
 
@@ -192,7 +192,7 @@ jobs:
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
+          php-version: 8.4
           coverage: none
           tools: composer
 
@@ -230,7 +230,7 @@ jobs:
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
+          php-version: 8.4
           coverage: none
           tools: composer
 
@@ -259,7 +259,7 @@ jobs:
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
+          php-version: 8.4
           coverage: none
           tools: composer
           ini-values: phar.readonly=0
@@ -347,7 +347,7 @@ jobs:
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
+          php-version: 8.4
           coverage: none
           tools: composer
 

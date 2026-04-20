@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- **BREAKING**: Minimum PHP version bumped from 8.3 to 8.4. PHP 8.3 is no longer supported.
+
 ## [0.34.1](https://github.com/phel-lang/phel-lang/compare/v0.34.0...v0.34.1) - 2026-04-21
 
 ### Added
