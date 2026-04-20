@@ -1,0 +1,337 @@
+(ns phel\match
+  (:require phel\core))
+
+;; Pattern matching macro that expands to nested `cond` + `let` bindings.
+;;
+;; `(match [t1 t2 ...] pat1 expr1 pat2 expr2 ... :else default)`
+;;
+;; Each pattern is a vector whose length must equal the target count.
+;; A pattern element may be a literal, a wildcard `_`, a bare symbol
+;; (binding), a nested vector or map pattern, `(x :guard pred)`,
+;; `(x :as name)`, or `(:or alt1 alt2 ...)`. Vectors may end with
+;; `& rest` to bind the remaining slice.
+;;
+;; Internally `compile-pattern` is a dispatcher: each pattern kind has
+;; its own compiler returning `{:check expr :bindings [sym val ...]}`
+;; where `expr` is a self-contained check evaluated against the target
+;; symbol, and `bindings` are the let-bindings exposed to the clause
+;; body.
+
+(declare compile-pattern)
+
+(def- or-keyword :or)
+(def- as-keyword :as)
+(def- guard-keyword :guard)
+(def- else-keyword :else)
+(def- rest-symbol '&)
+(def- wildcard-symbol '_)
+
+(defn- binding-symbol?
+  "A bare symbol that is neither the wildcard nor the rest marker."
+  [form]
+  (and (symbol? form)
+       (not (= form wildcard-symbol))
+       (not (= form rest-symbol))))
+
+(defn- scalar-literal?
+  "Primitives we should match by equality."
+  [form]
+  (or (php/=== form nil)
+      (php/is_bool form)
+      (php/is_int form)
+      (php/is_float form)
+      (php/is_string form)
+      (keyword? form)))
+
+(defn- or-pattern? [form]
+  (and (list? form)
+       (not (empty? form))
+       (= (first form) or-keyword)))
+
+(defn- guard-pattern? [form]
+  (and (list? form)
+       (= (count form) 3)
+       (= (get form 1) guard-keyword)))
+
+(defn- as-pattern? [form]
+  (and (list? form)
+       (= (count form) 3)
+       (= (get form 1) as-keyword)
+       (symbol? (get form 2))))
+
+(defn- sequential-shape-check
+  "Runtime predicate accepting vectors, lists, and PHP arrays."
+  [target]
+  `(or (vector? ~target) (list? ~target) (php/is_array ~target)))
+
+(defn- and-checks
+  "Combines a seq of boolean checks into a single expression, skipping
+  `true` and collapsing a single check."
+  [checks]
+  (let [effective (apply vector (filter (fn [c] (not (= c true))) checks))]
+    (case (count effective)
+      0 true
+      1 (first effective)
+      `(and ~@effective))))
+
+(defn- compile-wildcard [_target _pattern]
+  {:check true :bindings []})
+
+(defn- compile-binding [target pattern]
+  {:check true :bindings [pattern target]})
+
+(defn- compile-literal [target pattern]
+  {:check `(= ~target '~pattern) :bindings []})
+
+(defn- compile-as
+  "(inner :as name): bind target to name, recurse on inner."
+  [target pattern]
+  (let [inner (first pattern)
+        name  (get pattern 2)
+        sub   (compile-pattern target inner)]
+    {:check    (get sub :check)
+     :bindings (apply vector (concat [name target] (get sub :bindings)))}))
+
+(defn- compile-guard
+  "(inner :guard pred): compile inner, and-combine with (pred target)
+  evaluated in the context of the inner bindings so the guard can see
+  bound symbols."
+  [target pattern]
+  (let [inner      (first pattern)
+        pred       (get pattern 2)
+        sub        (compile-pattern target inner)
+        sub-check  (get sub :check)
+        bindings   (get sub :bindings)
+        pred-expr  (if (empty? bindings)
+                     `(~pred ~target)
+                     `(let ~bindings (~pred ~target)))
+        combined   (and-checks [sub-check pred-expr])]
+    {:check combined :bindings bindings}))
+
+(defn- compile-or
+  "(:or p1 p2 ...): succeeds if any alternative matches. Alternatives
+  may not introduce bindings (keeps v1 simple and predictable)."
+  [target pattern]
+  (let [alts (apply vector (next pattern))]
+    (when (empty? alts)
+      (throw (php/new \InvalidArgumentException
+                      "match :or pattern requires at least one alternative")))
+    (let [compiled (for [a :in alts] (compile-pattern target a))]
+      (doseq [c :in compiled]
+        (when-not (empty? (get c :bindings))
+          (throw (php/new \InvalidArgumentException
+                          "match :or alternatives must not introduce bindings"))))
+      (let [checks (for [c :in compiled] (get c :check))]
+        {:check `(or ~@checks) :bindings []}))))
+
+(defn- index-of-rest
+  "Linear scan for `&` inside a vector, comparing with `=` so that
+  freshly-read symbols match the `'&` literal. Returns the index or
+  nil."
+  [pattern]
+  (loop [i 0]
+    (if (>= i (count pattern))
+      nil
+      (if (= (get pattern i) rest-symbol)
+        i
+        (recur (+ i 1))))))
+
+(defn- split-vector-pattern
+  "Splits a vector pattern around `&`. Returns `[head tail-sym-or-nil]`.
+  Errors if `&` is not followed by exactly one symbol."
+  [pattern]
+  (let [n   (count pattern)
+        idx (index-of-rest pattern)]
+    (if (nil? idx)
+      [pattern nil]
+      (do
+        (when-not (= (+ idx 2) n)
+          (throw (php/new \InvalidArgumentException
+                          (str "match vector pattern: `&` must be followed by exactly one binding, got "
+                               pattern))))
+        (let [tail (get pattern (+ idx 1))]
+          (when-not (symbol? tail)
+            (throw (php/new \InvalidArgumentException
+                            (str "match vector pattern: `&` binding must be a symbol, got " tail))))
+          [(apply vector (take idx pattern)) tail])))))
+
+(defn- compile-vector
+  "Vector pattern: shape + length check, recursively compile each
+  element, optionally bind the rest of the slice."
+  [target pattern]
+  (let [[head tail-sym] (split-vector-pattern pattern)
+        fixed-len  (count head)
+        shape      (sequential-shape-check target)
+        length-ok  (if tail-sym
+                     `(>= (count ~target) ~fixed-len)
+                     `(= (count ~target) ~fixed-len))
+        elem-specs (apply vector
+                          (for [i :range [0 fixed-len]]
+                            (let [elem-target `(get ~target ~i)
+                                  sub         (compile-pattern elem-target
+                                                               (get head i))]
+                              {:index    i
+                               :check    (get sub :check)
+                               :bindings (get sub :bindings)})))
+        inner-checks (for [e :in elem-specs] (get e :check))
+        combined-inner (and-checks (cons length-ok inner-checks))
+        ;; Gate the inner check on the shape predicate so `get` /
+        ;; `count` never see a non-sequential target.
+        outer-check  `(if ~shape ~combined-inner false)
+        elem-bindings (apply concat
+                             (for [e :in elem-specs]
+                               (get e :bindings)))
+        tail-binding  (if tail-sym
+                        [tail-sym `(vec (slice ~target ~fixed-len))]
+                        [])
+        all-bindings  (apply vector (concat elem-bindings tail-binding))]
+    {:check outer-check :bindings all-bindings}))
+
+(defn- compile-map
+  "Map pattern: shape check, key-presence check, recurse on each value."
+  [target pattern]
+  (let [entries    (apply vector
+                          (for [[k v] :pairs pattern] [k v]))
+        shape      `(map? ~target)
+        key-specs  (apply vector
+                          (for [e :in entries]
+                            (let [k   (first e)
+                                  p   (get e 1)
+                                  val `(get ~target ~k)
+                                  sub (compile-pattern val p)]
+                              {:key      k
+                               :check    (get sub :check)
+                               :bindings (get sub :bindings)})))
+        contains-checks (for [k :in key-specs]
+                          `(contains? ~target ~(get k :key)))
+        value-checks    (for [k :in key-specs] (get k :check))
+        combined-inner  (and-checks (apply vector (concat contains-checks value-checks)))
+        outer-check     `(if ~shape ~combined-inner false)
+        all-bindings    (apply vector
+                               (apply concat
+                                      (for [k :in key-specs]
+                                        (get k :bindings))))]
+    {:check outer-check :bindings all-bindings}))
+
+(defn- compile-pattern
+  "Dispatches on pattern shape and delegates to the kind-specific
+  compiler. Returns `{:check expr :bindings [sym val ...]}`."
+  [target pattern]
+  (cond
+    (= pattern wildcard-symbol) (compile-wildcard target pattern)
+    (scalar-literal? pattern)   (compile-literal target pattern)
+    (as-pattern? pattern)       (compile-as target pattern)
+    (guard-pattern? pattern)    (compile-guard target pattern)
+    (or-pattern? pattern)       (compile-or target pattern)
+    (binding-symbol? pattern)   (compile-binding target pattern)
+    (vector? pattern)           (compile-vector target pattern)
+    (map? pattern)              (compile-map target pattern)
+    :else
+    (throw (php/new \InvalidArgumentException
+                    (str "match: unsupported pattern shape: " pattern)))))
+
+(defn- compile-clause
+  "Compiles one clause row into `[check bindings]`."
+  [target-syms patterns]
+  (when-not (= (count target-syms) (count patterns))
+    (throw (php/new \InvalidArgumentException
+                    (str "match: pattern count (" (count patterns)
+                         ") does not match target count (" (count target-syms)
+                         "): " patterns))))
+  (let [subs     (apply vector
+                        (for [i :range [0 (count patterns)]]
+                          (compile-pattern (get target-syms i) (get patterns i))))
+        checks   (for [s :in subs] (get s :check))
+        bindings (apply vector
+                        (apply concat
+                               (for [s :in subs] (get s :bindings))))]
+    [(and-checks checks) bindings]))
+
+(defn- parse-clauses
+  "Walks the body splitting it into `[clauses default]`. `clauses` is a
+  vector of `[pattern-vec expr]`, `default` is the `:else` expression
+  or `nil`."
+  [body]
+  (loop [remaining body
+         clauses   []
+         default   nil]
+    (cond
+      (empty? remaining)
+      [clauses default]
+
+      (= (first remaining) else-keyword)
+      (do
+        (when-not (= (count remaining) 2)
+          (throw (php/new \InvalidArgumentException
+                          "match: :else must be followed by exactly one expression and must come last")))
+        [clauses (get remaining 1)])
+
+      :else
+      (do
+        (when (< (count remaining) 2)
+          (throw (php/new \InvalidArgumentException
+                          "match: every pattern must be paired with an expression")))
+        (let [pat  (first remaining)
+              expr (get remaining 1)
+              rest (apply vector (drop 2 remaining))]
+          (when-not (vector? pat)
+            (throw (php/new \InvalidArgumentException
+                            (str "match: pattern must be a vector, got " pat))))
+          (recur rest
+                 (conj clauses [pat expr])
+                 default))))))
+
+(defmacro match
+  "Matches a vector of targets against pattern/expression clauses and
+  returns the first matching expression.
+
+  Supported patterns:
+  - literal values (numbers, strings, keywords, booleans, nil)
+  - `_` wildcard
+  - bare symbol: binds the value to that name in the clause body
+  - vector pattern `[a b c]`, with optional rest `[a & tail]`
+  - map pattern `{:k1 p1 :k2 p2}` — keys must be present in the target
+  - `(inner :guard pred)` — matches if `(pred bound)` is truthy
+  - `(inner :as name)` — binds the whole value to `name`
+  - `(:or p1 p2 ...)` — matches any alternative (no inner bindings)
+
+  A trailing `:else expr` provides the default branch; without it a
+  no-match raises `\\RuntimeException`."
+  {:doc "Pattern matching over a vector of targets."
+   :see-also ["cond" "case" "condp"]
+   :example "(match [x y] [0 _] :zero-x [_ 0] :zero-y [a b] [:both a b])"}
+  [targets & body]
+  (when-not (vector? targets)
+    (throw (php/new \InvalidArgumentException
+                    (str "match: target list must be a vector, got " targets))))
+  (let [n           (count targets)
+        target-syms (apply vector
+                           (for [_ :range [0 n]]
+                             (gensym "__m")))
+        target-binds (apply vector
+                            (apply concat
+                                   (for [i :range [0 n]]
+                                     [(get target-syms i) (get targets i)])))
+        [clauses default] (parse-clauses (apply vector body))
+        compiled    (for [c :in clauses]
+                      (let [pat  (first c)
+                            expr (get c 1)
+                            [check bindings] (compile-clause target-syms pat)]
+                        [check bindings expr]))
+        no-match    (if (nil? default)
+                      `(throw (php/new \RuntimeException
+                                       (str "match: no matching clause for " [~@target-syms])))
+                      default)
+        cond-body   (apply concat
+                           (concat
+                            (for [c :in compiled]
+                              (let [check    (first c)
+                                    bindings (get c 1)
+                                    expr     (get c 2)
+                                    body-expr (if (empty? bindings)
+                                                expr
+                                                `(let ~bindings ~expr))]
+                                [check body-expr]))
+                            [[:else no-match]]))]
+    `(let ~target-binds
+       (cond ~@cond-body))))

@@ -1,0 +1,177 @@
+(ns phel-test\test\match
+  (:require phel\test :refer [deftest is testing])
+  (:require phel\match :refer [match]))
+
+(deftest test-literal-patterns
+  (testing "integers"
+    (is (= :one   (match [1]   [1] :one :else :else))     "match int")
+    (is (= :else  (match [2]   [1] :one :else :else))     "no match int"))
+  (testing "strings"
+    (is (= :hi    (match ["x"] ["x"] :hi :else :else))    "match string")
+    (is (= :else  (match ["y"] ["x"] :hi :else :else))    "no match string"))
+  (testing "keywords"
+    (is (= :kw    (match [:a]  [:a] :kw :else :else))     "match keyword")
+    (is (= :else  (match [:b]  [:a] :kw :else :else))     "no match keyword"))
+  (testing "booleans and nil"
+    (is (= :t     (match [true]  [true]  :t :else :else)) "match true")
+    (is (= :f     (match [false] [false] :f :else :else)) "match false")
+    (is (= :n     (match [nil]   [nil]   :n :else :else)) "match nil")
+    (is (= :else  (match [nil]   [false] :n :else :else)) "false and nil are distinct")))
+
+(deftest test-wildcard
+  (is (= :any (match [42]  [_] :any :else :else))   "wildcard matches int")
+  (is (= :any (match [nil] [_] :any :else :else))   "wildcard matches nil")
+  (is (= :any (match [[1 2 3]] [_] :any :else :else)) "wildcard matches vector"))
+
+(deftest test-binding-symbol
+  (is (= 5 (match [5] [x] x :else :else)) "binds target to symbol")
+  (is (= 10 (match [5] [x] (* 2 x) :else :else)) "bound value usable in expression"))
+
+(deftest test-vector-pattern
+  (testing "fixed length"
+    (is (= 15 (match [[5 10]] [[a b]] (+ a b) :else :else)) "two-element destructure")
+    (is (= :else (match [[1 2 3]] [[a b]] :matched :else :else)) "length mismatch falls through")
+    (is (= :else (match [[1]]     [[a b]] :matched :else :else)) "too-short falls through"))
+  (testing "ignore vs bind"
+    (is (= 4 (match [[1 2 3]] [[a _ b]] (+ a b) :else :else)) "wildcard mid-vector binds around it"))
+  (testing "non-vector target"
+    (is (= :else (match ["abc"] [[a b c]] :matched :else :else)) "string is not a vector")
+    (is (= :else (match [nil]   [[a]]     :matched :else :else)) "nil is not a vector"))
+  (testing "list target still matches"
+    (is (= [1 2 3] (match [(list 1 2 3)] [[a b c]] [a b c] :else :else))
+        "vector pattern matches lists too")))
+
+(deftest test-nested-vector
+  (is (= [1 2 3 4] (match [[[1 2] [3 4]]] [[[a b] [c d]]] [a b c d] :else :else))
+      "nested vectors")
+  (is (= :else (match [[[1 2] [3 4 5]]] [[[a b] [c d]]] [a b c d] :else :else))
+      "nested length mismatch")
+  (is (= [:x 1 2] (match [[:x [1 2]]] [[tag [a b]]] [tag a b] :else :else))
+      "mixed head + nested tail"))
+
+(deftest test-map-pattern
+  (testing "key presence"
+    (is (= 3 (match [{:x 1 :y 2}] [{:x a :y b}] (+ a b) :else :else)) "both keys present")
+    (is (= :else (match [{:x 1}] [{:x a :y b}] :matched :else :else)) "missing key falls through")
+    (is (= 1 (match [{:x 1 :z 99}] [{:x a}] a :else :else)) "extra keys ignored"))
+  (testing "non-map target"
+    (is (= :else (match [[1 2]] [{:x a}] :matched :else :else)) "vector is not a map")
+    (is (= :else (match [nil]   [{:x a}] :matched :else :else)) "nil is not a map"))
+  (testing "nested map"
+    (is (= 2 (match [{:user {:id 1 :count 2}}]
+                    [{:user {:id _ :count c}}] c :else :else)))))
+
+(deftest test-guard-pattern
+  (testing "predicate pass/fail"
+    (is (= 5  (match [5]  [(x :guard pos?)] x :else :else))     "guard passes")
+    (is (= :else (match [-3] [(x :guard pos?)] x :else :else))  "guard fails falls through")
+    (is (= :neg (match [-3]
+                       [(x :guard pos?)] :pos
+                       [(x :guard neg?)] :neg
+                       :else :else))
+        "second guard matches"))
+  (testing "guard uses bound symbol"
+    (is (= 20 (match [10] [(x :guard (fn [v] (> v 5)))] (* 2 x) :else :else))))
+  (testing "guard on wildcard"
+    (is (= :ok (match [42] [(_ :guard even?)] :ok :else :else))
+        "guard composes with wildcard")))
+
+(deftest test-as-pattern
+  (testing "binds whole value"
+    (is (= [1 2 [1 2]] (match [[1 2]] [([a b] :as v)] [a b v] :else :else)))
+    (is (= {:x 1 :y 2} (match [{:x 1 :y 2}]
+                              [({:x _ :y _} :as m)] m :else :else))))
+  (testing ":as + shape mismatch still fails"
+    (is (= :else (match [[1]] [([a b] :as v)] v :else :else)))))
+
+(deftest test-or-pattern
+  (testing "alternatives"
+    (is (= :ok (match [1] [(:or 1 2 3)] :ok :else :else))  "first alternative")
+    (is (= :ok (match [2] [(:or 1 2 3)] :ok :else :else))  "middle alternative")
+    (is (= :ok (match [3] [(:or 1 2 3)] :ok :else :else))  "last alternative")
+    (is (= :else (match [4] [(:or 1 2 3)] :ok :else :else)) "no alternative"))
+  (testing "mixed alternatives"
+    (is (= :kw (match [:a] [(:or :a :b)] :kw :else :else)))
+    (is (= :str (match ["x"] [(:or "x" "y")] :str :else :else)))))
+
+(deftest test-rest-binding
+  (is (= [1 [2 3 4 5]] (match [[1 2 3 4 5]] [[a & more]] [a more] :else :else))
+      "rest captures tail")
+  (is (= [1 []] (match [[1]] [[a & more]] [a more] :else :else))
+      "rest captures empty tail")
+  (is (= [1 2 [3]] (match [[1 2 3]] [[a b & more]] [a b more] :else :else))
+      "rest after two fixed")
+  (is (= :else (match [[]] [[a & more]] [a more] :else :else))
+      "rest still requires at least the fixed head"))
+
+(deftest test-clause-order
+  (is (= :first (match [1]
+                       [1] :first
+                       [_] :second
+                       :else :else))
+      "earlier clause wins")
+  (is (= :second (match [2]
+                        [1] :first
+                        [_] :second
+                        :else :else))
+      "second clause when first fails")
+  (is (= :else (match [nil]
+                      [1] :first
+                      [2] :second
+                      :else :else))
+      "else when none match"))
+
+(deftest test-multi-target
+  (is (= :zero-x (match [0 5]
+                        [0 _] :zero-x
+                        [_ 0] :zero-y
+                        :else :else))
+      "first target is zero")
+  (is (= :zero-y (match [5 0]
+                        [0 _] :zero-x
+                        [_ 0] :zero-y
+                        :else :else))
+      "second target is zero")
+  (is (= [:both 3 4] (match [3 4]
+                            [0 _] :zero-x
+                            [_ 0] :zero-y
+                            [a b] [:both a b]
+                            :else :else))
+      "binds from multi-target row"))
+
+(deftest test-no-match-without-else-throws
+  (is (thrown? \RuntimeException (match [99] [1] :never))
+      "missing :else raises RuntimeException"))
+
+(deftest test-target-count-mismatch-throws-at-expand
+  ;; Target-count errors are macro-expansion time, not runtime, so the
+  ;; expression under test itself would fail to expand. Verify the
+  ;; error via `macroexpand-1` instead.
+  (is (thrown? \InvalidArgumentException
+               (macroexpand-1 '(phel\match/match [1 2] [1 2 3] :x :else :y)))
+      "mismatched target/pattern count raises at expansion"))
+
+(deftest test-invalid-pattern-shapes-throw-at-expand
+  (is (thrown? \InvalidArgumentException
+               (macroexpand-1 '(phel\match/match "not-a-vector" [1] :x :else :y)))
+      "non-vector target list raises")
+  (is (thrown? \InvalidArgumentException
+               (macroexpand-1 '(phel\match/match [1] :not-a-vector-pattern :x :else :y)))
+      "non-vector pattern raises"))
+
+(deftest test-target-evaluated-once
+  (let [counter (atom 0)
+        bump    (fn [] (swap! counter inc) 1)]
+    (match [(bump)]
+           [1] :ok
+           :else :fail)
+    (is (= 1 (deref counter)) "target expression runs exactly once")))
+
+(deftest test-side-effect-expressions
+  (let [results (atom [])]
+    (match [:hit]
+           [:miss] (swap! results conj :miss-branch)
+           [:hit]  (swap! results conj :hit-branch)
+           :else   (swap! results conj :else-branch))
+    (is (= [:hit-branch] (deref results))
+        "only the matching branch runs")))
