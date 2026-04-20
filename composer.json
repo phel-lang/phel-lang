@@ -94,6 +94,7 @@
         "test-compiler": "./vendor/bin/phpunit --testsuite=unit,integration --log-junit=data/log-junit.xml",
         "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --testsuite=unit,integration --coverage-html=data/coverage-html --coverage-xml=data/coverage-xml --log-junit=data/coverage-xml/junit.xml",
         "test-agents": "./build/validate-agents.sh",
+        "docs-agents-reference": "php ./build/generate-agents-reference.php",
         "test-core": "php -d memory_limit=256M ./bin/phel test",
         "test-quality": [
             "@csrun",
