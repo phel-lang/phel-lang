@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 #### CLI
 - `phel eval -` reads the expression from stdin (e.g. `echo '(+ 1 2)' | phel eval -`)
 - `phel agent-install [<platform>|--all]` writes skill files for Claude Code, Cursor, Codex, Gemini, Copilot, Aider; `--with-docs` also mirrors the bundled `.agents/` tree, `--dry-run` previews, `--force` skips backup
+- `phel nrepl --port=N --host=addr` starts a bencode-over-TCP nREPL server; supports `eval`, `clone`, `close`, `describe`, `load-file`, `interrupt`, plus `completions`, `lookup`, `info`, and `eldoc` for editor tooling
 
 #### Agent docs
 - `.agents/` ships agent-agnostic docs with task recipes, per-platform adapters, and three runnable example projects (`todo-app`, `http-json-api`, `cli-wordcount`)
