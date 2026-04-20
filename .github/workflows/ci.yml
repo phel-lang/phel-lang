@@ -326,11 +326,8 @@ jobs:
           "$PHAR" lint src/
           echo "::endgroup::"
 
-          echo "::group::phel format (idempotent on scaffolded main.phel)"
-          before=$(cat src/main.phel)
-          "$PHAR" format src/main.phel
-          after=$(cat src/main.phel)
-          test "$before" = "$after"
+          echo "::group::phel format --dry-run (scaffolded project is already formatted)"
+          "$PHAR" format --dry-run src/
           echo "::endgroup::"
 
           echo "::group::phel eval - (stdin)"

@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+#### CLI
+- `phel format --dry-run` reports files that would be reformatted without touching them; exits non-zero when any file would change
+
 ### Fixed
 
 #### Build
