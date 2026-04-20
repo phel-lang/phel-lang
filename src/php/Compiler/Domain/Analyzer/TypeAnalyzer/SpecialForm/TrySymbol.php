@@ -82,12 +82,22 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         ];
     }
 
+    /**
+     * @param mixed|null $form
+     *
+     * @psalm-param TValue|null $form
+     */
     private function isCatchForm(mixed $form): bool
     {
         return $form instanceof PersistentListInterface
             && $this->isSymWithName($form->get(0), 'catch');
     }
 
+    /**
+     * @param mixed|null $form
+     *
+     * @psalm-param TValue|null $form
+     */
     private function isFinallyForm(mixed $form): bool
     {
         return $form instanceof PersistentListInterface
@@ -110,6 +120,11 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         return self::STATE_CATCHES;
     }
 
+    /**
+     * @param mixed|null $form
+     *
+     * @psalm-param TValue|null $form
+     */
     private function handleFinallyForm(string $state, mixed $form, ?PersistentListInterface &$finally, PersistentListInterface $list): string
     {
         if ($state === self::STATE_DONE) {
@@ -122,6 +137,9 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
 
     /**
      * @param list<mixed> $body
+     * @param mixed|null $form
+     *
+     * @psalm-param TValue|null $form
      */
     private function handleBodyForm(string $state, mixed $form, array &$body, PersistentListInterface $list): void
     {

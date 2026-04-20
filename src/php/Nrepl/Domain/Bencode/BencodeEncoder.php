@@ -22,13 +22,15 @@ final class BencodeEncoder
      * Encode a PHP value to a bencode byte string.
      *
      * Supported types:
-     *   - int   → iNNNe
-     *   - string → N:xxxx (binary-safe, byte length)
-     *   - list array → l...e
-     *   - associative array → d...e (keys sorted lexicographically, must be strings)
-     *   - bool → encoded as 1 / 0 integers (nREPL convention for :done status etc.)
+     * - int   → iNNNe
+     * - string → N:xxxx (binary-safe, byte length)
+     * - list array → l...e
+     * - associative array → d...e (keys sorted lexicographically, must be strings)
+     * - bool → encoded as 1 / 0 integers (nREPL convention for :done status etc.)
+     *
+     * @psalm-param array<string, mixed> $value
      */
-    public function encode(mixed $value): string
+    public function encode(array $value): string
     {
         if (is_int($value)) {
             return sprintf('i%de', $value);

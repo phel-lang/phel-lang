@@ -20,6 +20,9 @@ final class FormWalker
      * any other return value (including `null` / `void`) continues.
      *
      * @param callable(mixed):mixed $visit
+     * @param \Phel\Lang\TypeInterface|mixed|null|scalar $form
+     *
+     * @psalm-param K|T|TValue|V|\Phel\Lang\TypeInterface|null|scalar $form
      */
     public static function walk(mixed $form, callable $visit): void
     {

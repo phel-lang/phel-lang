@@ -217,7 +217,7 @@ final readonly class UnusedRequireRule implements LintRuleInterface
         ], $i];
     }
 
-    private function defaultAlias(mixed $target): string
+    private function defaultAlias(Symbol|null $target): string
     {
         if (!$target instanceof Symbol) {
             return '';

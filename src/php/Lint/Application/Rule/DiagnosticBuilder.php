@@ -38,6 +38,8 @@ final class DiagnosticBuilder
 
     /**
      * @return array{int, int, int, int}
+     *
+     * @param TypeInterface|null|scalar $form
      */
     private static function locationOf(mixed $form): array
     {

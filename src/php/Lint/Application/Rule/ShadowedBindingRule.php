@@ -45,6 +45,9 @@ final readonly class ShadowedBindingRule implements LintRuleInterface
     /**
      * @param list<string>     $scope
      * @param list<Diagnostic> $result
+     * @param \Phel\Lang\TypeInterface|mixed|null|scalar $form
+     *
+     * @psalm-param K|T|TValue|V|\Phel\Lang\TypeInterface|null|scalar $form
      */
     private function walk(mixed $form, array $scope, string $uri, array &$result): void
     {

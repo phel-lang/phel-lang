@@ -41,7 +41,12 @@ final class Registry
         $this->definitionsMetaData = [];
     }
 
-    public function addDefinition(string $ns, string $name, mixed $value, ?PersistentMapInterface $metaData = null): VarReference
+    /**
+     * @param \Throwable|bool|null|string|string[] $value
+     *
+     * @psalm-param ''|\Throwable|bool|list<string>|null $value
+     */
+    public function addDefinition(string $ns, string $name, array|string|bool|\Throwable|null $value, ?PersistentMapInterface $metaData = null): VarReference
     {
         $this->definitions[$ns][$name] = $value;
         $this->definitionsMetaData[$ns][$name] = $metaData;

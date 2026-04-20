@@ -113,6 +113,11 @@ final class FnSymbolTuple
         }
     }
 
+    /**
+     * @param mixed $param
+     *
+     * @psalm-param T $param
+     */
     private function buildParamsByState(mixed $param): void
     {
         switch ($this->buildParamsState) {
@@ -146,7 +151,7 @@ final class FnSymbolTuple
         }
     }
 
-    private function isSymWithName(mixed $x, string $name): bool
+    private function isSymWithName(Symbol $x, string $name): bool
     {
         return $x instanceof Symbol
             && $x->getName() === $name;

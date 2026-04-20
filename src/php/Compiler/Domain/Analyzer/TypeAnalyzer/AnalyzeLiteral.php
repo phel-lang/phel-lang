@@ -10,7 +10,7 @@ use Phel\Lang\TypeInterface;
 
 final class AnalyzeLiteral
 {
-    public function analyze(mixed $value, NodeEnvironmentInterface $env): LiteralNode
+    public function analyze(object $value, NodeEnvironmentInterface $env): LiteralNode
     {
         $sourceLocation = ($value instanceof TypeInterface)
             ? $value->getStartLocation()

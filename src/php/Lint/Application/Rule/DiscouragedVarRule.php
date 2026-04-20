@@ -101,6 +101,7 @@ final readonly class DiscouragedVarRule implements LintRuleInterface
 
     /**
      * @param array<string, string> $map
+     * @param \Phel\Lang\TypeInterface|null|scalar $form
      */
     private function collectLocalDeprecations(mixed $form, array &$map): void
     {

@@ -51,6 +51,9 @@ final class AnalyzerException extends AbstractLocatedException
      * Creates a type error exception with information about expected vs received type.
      *
      * @param array<string>|string $expectedTypes Expected type name(s)
+     * @param mixed|null $actualValue
+     *
+     * @psalm-param TValue|null $actualValue
      */
     public static function wrongArgumentType(
         string $context,
