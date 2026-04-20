@@ -1,0 +1,24 @@
+(ns tests\counts-test
+  (:require phel\test :refer [deftest is])
+  (:require cli-wordcount\counts :as c))
+
+(deftest counts-empty
+  (let [r (c/count-text "")]
+    (is (= 0 (get r :lines)))
+    (is (= 0 (get r :words)))
+    (is (= 0 (get r :chars)))))
+
+(deftest counts-single-line
+  (let [r (c/count-text "hello world")]
+    (is (= 1 (get r :lines)))
+    (is (= 2 (get r :words)))
+    (is (= 11 (get r :chars)))))
+
+(deftest counts-multiline
+  (let [r (c/count-text "a b\nc d e\n")]
+    (is (= 3 (get r :lines)))
+    (is (= 5 (get r :words)))))
+
+(deftest format-tabs-separated
+  (is (= "1\t2\t11\tREADME.md"
+         (c/format-counts (c/count-text "hello world") "README.md"))))

@@ -1,0 +1,9 @@
+{
+  "name": "phel-examples/cli-wordcount",
+  "description": "Phel CLI word count",
+  "require": {
+    "php": "^8.4",
+    "phel-lang/phel-lang": "*"
+  },
+  "bin": ["bin/wordcount"]
+}

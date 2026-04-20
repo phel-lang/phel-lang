@@ -1,0 +1,26 @@
+(ns cli-wordcount\main
+  (:require cli-wordcount\counts :as c))
+
+(defn- read-stdin []
+  (let [h (php/fopen "php://stdin" "r")]
+    (loop [acc ""]
+      (let [chunk (php/fgets h)]
+        (if (or (false? chunk) (nil? chunk))
+          acc
+          (recur (str acc chunk)))))))
+
+(defn- read-file [path]
+  (let [content (php/file_get_contents path)]
+    (if (false? content)
+      (throw (php/new \RuntimeException (str "cannot read: " path)))
+      content)))
+
+(defn run [args]
+  (if (empty? args)
+    (println (c/format-counts (c/count-text (read-stdin)) "-"))
+    (dofor [path :in args]
+      (println (c/format-counts (c/count-text (read-file path)) path))))
+  0)
+
+(when-not *build-mode*
+  (run (vec *argv*)))
