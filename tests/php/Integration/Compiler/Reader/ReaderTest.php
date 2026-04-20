@@ -1412,7 +1412,9 @@ final class ReaderTest extends TestCase
 
     public function test_unknown_tag_lists_registered_tags(): void
     {
-        BuiltinTagHandlers::registerAll(TagRegistry::getInstance());
+        $registry = TagRegistry::getInstance();
+        $registry->clear();
+        BuiltinTagHandlers::registerAll($registry);
 
         $this->expectException(ReaderException::class);
         $this->expectExceptionMessage('Registered tags: #inst, #php, #regex, #uuid');
