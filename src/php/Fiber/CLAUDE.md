@@ -38,8 +38,9 @@ and `future-call`/`future-fiber`.
 
 ## Domain
 
-- `Promise` — single-delivery, parks waiting fibers in a list and
-  re-enqueues them on `deliver()`. `derefWithTimeout(0, fallback)`
+- `Promise` — single-delivery. Waiting fibers poll via `Fiber::suspend()`
+  and rely on the scheduler to resume them on the next tick; they
+  re-check the delivered flag each wake-up. `derefWithTimeout(0, fallback)`
   returns the fallback immediately.
 - `Future` — wraps a callable executed inside a Fiber. Captures the
   return value (or thrown throwable) in an internal Promise.

@@ -104,17 +104,18 @@ final class Promise implements Awaitable
     }
 
     /**
-     * Opaque wrapper so static analysers do not treat the `$this->delivered`
-     * check as a compile-time constant. The flag is flipped as a side effect
-     * of {@see deliver()} called from concurrently-running fibers.
+     * Re-read the delivered flag through a method call so PHPStan cannot
+     * fold it into a compile-time constant inside the deref poll loops.
+     * The flag is flipped as a side effect of {@see deliver()} called from
+     * a concurrently-running fiber, which no static analyser can see.
+     *
+     * The self-assignment below is intentional: writing the property back to
+     * itself marks the method as impure to PHPStan without changing state.
      *
      * @phpstan-impure
      */
     private function pollDelivered(): bool
     {
-        // Flipping the value then restoring it breaks static reasoning so
-        // PHPStan does not fold $this->delivered into a compile-time false
-        // inside the deref loops.
         $snapshot = $this->delivered;
         $this->delivered = $snapshot;
         return $snapshot;

@@ -43,3 +43,22 @@
                  :no-throw
                  (catch \InvalidArgumentException _ :caught))]
     (is (= :caught caught))))
+
+(deftest test-re-register-overwrites-previous-schema
+  (s/register! :rate :int)
+  (is (s/validate :rate 5))
+  (s/register! :rate :string)
+  (is (not (s/validate :rate 5)))
+  (is (s/validate :rate "fast"))
+  (s/unregister! :rate))
+
+(deftest test-unregister-missing-name-is-noop
+  (is (nil? (s/unregister! :never-registered))))
+
+(deftest test-generate-recursive-tree-schema-uses-registry
+  (s/register! :leaf :int)
+  (s/register! :branch [:map
+                        [:value [:ref :leaf]]])
+  (is (s/validate [:ref :branch] (s/generate [:ref :branch])))
+  (s/unregister! :branch)
+  (s/unregister! :leaf))

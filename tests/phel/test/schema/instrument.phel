@@ -84,3 +84,16 @@
     (is (= "not an int" (s/with-schema-check false (fn [] (wrapped 1)))))
     ;; And is restored afterwards
     (is (s/schema-check?))))
+
+(deftest test-with-schema-check-restores-previous-value-on-throw
+  (s/set-schema-check! true)
+  (let [caught (try
+                 (s/with-schema-check false
+                   (fn [] (throw (php/new \RuntimeException "oops"))))
+                 :no-throw
+                 (catch \RuntimeException _ :caught))]
+    (is (= :caught caught))
+    (is (s/schema-check?) "flag is restored to its previous value even when the thunk throws")))
+
+(deftest test-unstrument-returns-nil-for-unknown-name
+  (is (nil? (s/unstrument! :never-instrumented))))

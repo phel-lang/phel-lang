@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Fiber\Domain;
 
+use Fiber;
 use Phel\Fiber\Domain\Promise;
 use Phel\Fiber\Domain\Scheduler;
 use PHPUnit\Framework\TestCase;
@@ -114,5 +115,36 @@ final class PromiseTest extends TestCase
         $promise->deliver('ready');
 
         self::assertSame('ready', $promise->derefWithTimeout(0, ':fallback'));
+    }
+
+    public function test_deref_from_fiber_unblocks_when_another_fiber_delivers(): void
+    {
+        $promise = new Promise($this->scheduler);
+        $waiter = new Fiber(static function () use ($promise, &$observed): void {
+            $observed = $promise->deref();
+        });
+        $waiter->start();
+
+        $this->scheduler->enqueue($waiter);
+
+        $producer = new Fiber(static function () use ($promise): void {
+            $promise->deliver('handoff');
+        });
+        $this->scheduler->enqueue($producer);
+        $this->scheduler->runUntilIdle();
+
+        self::assertSame('handoff', $observed);
+        self::assertTrue($promise->isRealized());
+    }
+
+    public function test_many_deliveries_leave_first_value_and_return_false_each_time(): void
+    {
+        $promise = new Promise($this->scheduler);
+        $promise->deliver(1);
+
+        self::assertFalse($promise->deliver(2));
+        self::assertFalse($promise->deliver(3));
+        self::assertFalse($promise->deliver(4));
+        self::assertSame(1, $promise->value());
     }
 }
