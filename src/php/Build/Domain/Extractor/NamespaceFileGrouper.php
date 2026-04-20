@@ -69,7 +69,7 @@ final readonly class NamespaceFileGrouper
         ?NamespaceInformation $current,
         NamespaceInformation $candidate,
     ): NamespaceInformation {
-        if ($current === null) {
+        if (!$current instanceof NamespaceInformation) {
             return $candidate;
         }
 
