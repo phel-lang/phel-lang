@@ -1,11 +1,14 @@
 name: Rector auto-fix
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [chore/bump-php-84]
 
 jobs:
   rector:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
 
@@ -21,10 +24,14 @@ jobs:
       - name: Run Rector fix
         run: vendor/bin/rector process --config=rector.php
 
-      - name: Commit changes
+      - name: Commit and push changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git diff --staged --quiet || git commit -m "refactor: apply Rector PHP 8.4 rules"
-          git push
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "refactor: apply Rector PHP 8.4 rules"
+            git push
+          fi
