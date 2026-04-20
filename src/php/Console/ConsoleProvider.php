@@ -35,6 +35,7 @@ use Phel\Run\Infrastructure\Command\NsCommand;
 use Phel\Run\Infrastructure\Command\ReplCommand;
 use Phel\Run\Infrastructure\Command\RunCommand;
 use Phel\Run\Infrastructure\Command\TestCommand;
+use Phel\Watch\Infrastructure\Command\WatchCommand;
 
 final class ConsoleProvider extends AbstractProvider
 {
@@ -83,6 +84,7 @@ final class ConsoleProvider extends AbstractProvider
             new DoctorCommand(),
             new NreplCommand(),
             new LintCommand(),
+            new WatchCommand(),
         ];
     }
 
