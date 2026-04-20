@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Phel\Lang\Collections\LinkedList;
 
 use Exception;
+use InvalidArgumentException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
+
 use Traversable;
 
 use function count;
@@ -41,8 +43,12 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
     /**
      * @return T
      */
-    public function __invoke(int $index)
+    public function __invoke(?int $index)
     {
+        if ($index === null) {
+            throw new InvalidArgumentException('List cannot be indexed with nil');
+        }
+
         return $this->get($index);
     }
 

@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\Vector;
 
+use InvalidArgumentException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\Collections\LazySeq\LazySeqInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
+
 use Phel\Lang\HasherInterface;
 
 use function count;
@@ -34,8 +36,12 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
     /**
      * @return T
      */
-    public function __invoke(int $index)
+    public function __invoke(?int $index)
     {
+        if ($index === null) {
+            throw new InvalidArgumentException('Vector cannot be indexed with nil');
+        }
+
         return $this->get($index);
     }
 

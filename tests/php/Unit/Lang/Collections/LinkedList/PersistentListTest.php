@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lang\Collections\LinkedList;
 
+use InvalidArgumentException;
 use Phel;
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\LinkedList\EmptyList;
@@ -93,6 +94,16 @@ final class PersistentListTest extends TestCase
 
         $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar', 'foobar']);
         $list->get(3);
+    }
+
+    public function test_invoke_with_nil_throws_clear_error(): void
+    {
+        $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), ['foo', 'bar']);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('List cannot be indexed with nil');
+
+        $list(null);
     }
 
     public function test_equals_other_type(): void

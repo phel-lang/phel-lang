@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\Vector;
 
+use InvalidArgumentException;
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use RuntimeException;
+
 use Stringable;
 
 use function count;
@@ -50,8 +52,12 @@ final class TransientVector implements TransientVectorInterface, Stringable
      *
      * @return T
      */
-    public function __invoke(int $index)
+    public function __invoke(?int $index)
     {
+        if ($index === null) {
+            throw new InvalidArgumentException('Vector cannot be indexed with nil');
+        }
+
         return $this->get($index);
     }
 
