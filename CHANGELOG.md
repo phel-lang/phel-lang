@@ -7,18 +7,18 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 #### CLI
-- `phel format --dry-run` reports files that would be reformatted without touching them; exits non-zero when any file would change
+- `phel format --dry-run` lists files that would be reformatted; exits non-zero when any file would change (#1533)
 
 ### Fixed
 
 #### Build
-- PHAR now ships first-party `src/**/Test/` directories; `phel test` from the distributed PHAR no longer fails with `Class "Phel\Run\Domain\Test\TestCommandOptions" not found`
+- PHAR ships first-party `src/**/Test/` directories so `phel test` runs from the distributed archive (#1533)
 
 #### CLI
-- `bin/phel` raises `memory_limit` to `-1` on startup so compiler tokenization no longer exhausts the default 128M on larger projects
+- `bin/phel` sets `memory_limit=-1` for large-project tokenization
 
 ### Docs
-- New `docs/performance.md` with CLI opcache setup and cache reset steps to speed up repeated `phel test`/`phel run` invocations
+- `docs/performance.md`: CLI opcache setup and cache reset
 
 ## [0.34.0](https://github.com/phel-lang/phel-lang/compare/v0.33.0...v0.34.0) - 2026-04-20
 
