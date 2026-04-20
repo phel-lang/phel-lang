@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - `phel nrepl --port=N --host=addr` starts a bencode-over-TCP nREPL server; supports `eval`, `clone`, `close`, `describe`, `load-file`, `interrupt`, plus `completions`, `lookup`, `info`, and `eldoc` for editor tooling
 - `phel analyze <file>` prints JSON semantic diagnostics; `phel index <dir>... [--out=file.json]` builds a project symbol table; `phel api-daemon` exposes the Api facade over newline-delimited JSON-RPC on stdio
 - `ApiFacade` gains `analyzeSource`, `indexProject`, `resolveSymbol`, `findReferences`, `completeAtPoint` for editor and linter tooling
+- `phel lint [paths]... [--format=human|json|github] [--config=path] [--no-cache]` runs read-only semantic rules: unresolved-symbol, arity-mismatch, unused-binding, unused-require, unused-import, shadowed-binding, redundant-do, duplicate-key, invalid-destructuring, discouraged-var; configurable via `phel-lint.phel` with per-rule severity and glob opt-outs
 
 #### Agent docs
 - `.agents/` ships agent-agnostic docs with task recipes, per-platform adapters, and three runnable example projects (`todo-app`, `http-json-api`, `cli-wordcount`)
