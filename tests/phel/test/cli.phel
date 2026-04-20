@@ -1,0 +1,42 @@
+(ns phel-test\test\cli
+  (:require phel\cli :as cli)
+  (:require phel\test :refer [deftest is]))
+
+(defn- run-app [cmd-spec args]
+  (let [app    (cli/application "test" [cmd-spec])
+        input  (cli/argv args)
+        output (cli/buffered-output)
+        code   (php/-> app (run input output))]
+    {:code code :out (cli/output->string output)}))
+
+(deftest test-run-simple-command
+  (let [spec {:name "greet"
+              :run  (fn [ctx] (cli/writeln ctx "hello"))}
+        res  (run-app spec ["greet"])]
+    (is (= 0 (get res :code)))
+    (is (php/str_contains (get res :out) "hello"))))
+
+(deftest test-command-with-argument
+  (let [spec {:name "greet"
+              :args [{:name "who" :mode :required}]
+              :run  (fn [ctx] (cli/writeln ctx (str "hi " (cli/arg ctx "who"))))}
+        res  (run-app spec ["greet" "alice"])]
+    (is (= 0 (get res :code)))
+    (is (php/str_contains (get res :out) "hi alice"))))
+
+(deftest test-command-with-option
+  (let [spec {:name "greet"
+              :opts [{:name "loud" :mode :none :doc "SHOUT"}]
+              :run  (fn [ctx]
+                      (let [msg (if (cli/opt ctx "loud") "HELLO" "hello")]
+                        (cli/writeln ctx msg)))}
+        res  (run-app spec ["greet" "--loud"])]
+    (is (= 0 (get res :code)))
+    (is (php/str_contains (get res :out) "HELLO"))))
+
+(deftest test-exit-code-propagates
+  (let [spec {:name "fail"
+              :run  (fn [_] 2)}
+        res  (run-app spec ["fail"])]
+    (is (= 2 (get res :code)))))
+

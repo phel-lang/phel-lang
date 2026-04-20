@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file.
 - `phel\ai`: `chat-with-tools` OpenAI tool use, `tool-calls` extraction, `tool-result` helper; retry w/ exponential backoff on 429/5xx; per-call `opts` (`:provider`, `:timeout`, `:base-url`, `:api-key`, `:max-retries`); `*http-post*` seam; `docs/ai-guide.md`
 - `phel\core`: `uuid=`, `uuid-nil?`, `uuid-version`, `uuid-variant`
 - `phel\repl`: `find-ns`, `create-ns`, `remove-ns`, `intern`, `ns-interns`
+- `phel\cli`: data-driven wrapper over `symfony/console` for building Phel CLI tools (`command`, `application`, `run`, `arg`, `opt`, `writeln`)
 
 ### Fixed
 

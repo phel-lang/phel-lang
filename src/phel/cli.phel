@@ -1,0 +1,115 @@
+(ns phel\cli
+  (:use Symfony\Component\Console\Application)
+  (:use Symfony\Component\Console\Command\Command)
+  (:use Symfony\Component\Console\Input\ArrayInput)
+  (:use Symfony\Component\Console\Input\InputArgument)
+  (:use Symfony\Component\Console\Input\InputOption)
+  (:use Symfony\Component\Console\Output\BufferedOutput))
+
+(defn- arg-mode [mode]
+  (case mode
+    :required (php/:: InputArgument REQUIRED)
+    :optional (php/:: InputArgument OPTIONAL)
+    :array    (php/:: InputArgument IS_ARRAY)
+    (php/:: InputArgument OPTIONAL)))
+
+(defn- opt-mode [mode]
+  (case mode
+    :none     (php/:: InputOption VALUE_NONE)
+    :required (php/:: InputOption VALUE_REQUIRED)
+    :optional (php/:: InputOption VALUE_OPTIONAL)
+    :array    (php/:: InputOption VALUE_IS_ARRAY)
+    :negatable (php/:: InputOption VALUE_NEGATABLE)
+    (php/:: InputOption VALUE_OPTIONAL)))
+
+(defn command
+  "Build a Symfony Console `Command` from a Phel spec map.
+
+  Spec keys:
+  - `:name`  command name (required)
+  - `:doc`   short description
+  - `:args`  vector of argument specs `{:name :mode :doc :default}`
+  - `:opts`  vector of option specs `{:name :short :mode :doc :default}`
+  - `:run`   handler fn `(fn [ctx] ...)` where `ctx` = `{:input _ :output _}`.
+             Return nil or 0 for success, any other int for exit code."
+  {:example "(command {:name \"greet\" :doc \"Say hi\" :run (fn [ctx] (writeln ctx \"Hello\"))})"}
+  [spec]
+  (let [cmd (php/new Command (get spec :name))]
+    (php/-> cmd (setDescription (get spec :doc "")))
+    (foreach [a (get spec :args [])]
+      (php/-> cmd
+              (addArgument
+                (get a :name)
+                (arg-mode (get a :mode :optional))
+                (get a :doc "")
+                (get a :default))))
+    (foreach [o (get spec :opts [])]
+      (php/-> cmd
+              (addOption
+                (get o :name)
+                (get o :short)
+                (opt-mode (get o :mode :optional))
+                (get o :doc "")
+                (get o :default))))
+    (let [handler (get spec :run)]
+      (php/-> cmd
+              (setCode
+                (php/:: \Closure
+                        (fromCallable
+                          (fn [input output]
+                            (let [result (handler {:input input :output output})]
+                              (if (int? result) result 0))))))))
+    cmd))
+
+(defn application
+  "Build a Symfony Console `Application` from a name and vector of command specs."
+  {:example "(application \"mytool\" [{:name \"build\" :run build-fn}])"}
+  [name commands]
+  (let [app (php/new Application name)]
+    (foreach [c commands]
+      (php/-> app (add (command c))))
+    app))
+
+(defn run
+  "Run the Application. Without `input`, reads `$argv` from the process.
+  Returns the exit code."
+  [app & [input]]
+  (if input
+    (php/-> app (run input))
+    (php/-> app (run))))
+
+(defn argv
+  "Build an `ArrayInput` from a vector of string arguments (for testing)."
+  {:example "(argv [\"greet\" \"--loud\" \"world\"])"}
+  [args]
+  (php/new ArrayInput (apply php/array args)))
+
+(defn buffered-output
+  "Build a `BufferedOutput` that captures `writeln` calls into a string."
+  []
+  (php/new BufferedOutput))
+
+(defn output->string
+  "Drain a `BufferedOutput` into a string."
+  [output]
+  (php/-> output (fetch)))
+
+(defn writeln
+  "Write a line to the command's output stream."
+  [ctx text]
+  (php/-> (get ctx :output) (writeln text)))
+
+(defn write
+  "Write text without trailing newline."
+  [ctx text]
+  (php/-> (get ctx :output) (write text)))
+
+(defn arg
+  "Read an argument value from the command context by name."
+  [ctx name]
+  (php/-> (get ctx :input) (getArgument name)))
+
+(defn opt
+  "Read an option value from the command context by name."
+  [ctx name]
+  (php/-> (get ctx :input) (getOption name)))
