@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Fiber;
 
 use Fiber;
+use Phel;
 use Phel\Fiber\Domain\Scheduler;
 use Phel\Fiber\FiberFacade;
 use PHPUnit\Framework\TestCase;
@@ -17,6 +18,7 @@ final class FiberFacadeIntegrationTest extends TestCase
 
     protected function setUp(): void
     {
+        Phel::bootstrap(__DIR__);
         $scheduler = new Scheduler();
         $scheduler->setSleepMicroseconds(50);
         Scheduler::setInstance($scheduler);
@@ -36,13 +38,11 @@ final class FiberFacadeIntegrationTest extends TestCase
         $stage2 = $this->facade->createPromise();
         $final = $this->facade->createPromise();
 
-        // Producer: deliver the initial value.
         $this->facade->future(static function () use ($stage1): int {
             $stage1->deliver(1);
             return 0;
         });
 
-        // Transformer 1: multiply by 10 then hand off.
         $this->facade->future(static function () use ($stage1, $stage2): int {
             /** @var int $value */
             $value = $stage1->deref();
@@ -50,7 +50,6 @@ final class FiberFacadeIntegrationTest extends TestCase
             return 0;
         });
 
-        // Transformer 2: add 5 then finalize.
         $this->facade->future(static function () use ($stage2, $final): int {
             /** @var int $value */
             $value = $stage2->deref();
