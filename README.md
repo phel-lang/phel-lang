@@ -194,6 +194,12 @@ You get a single `main.phel` + `main_test.phel` + a one-line `phel-config.php` a
 - [Repository Guidelines](AGENTS.md)
   Project structure, modules, build commands, and review expectations.
 
+### AI coding agents
+- [.agents/](.agents/README.md)
+  Agent-agnostic docs for Claude Code, Cursor, Codex, Gemini, Copilot, and Aider. Task recipes, per-platform skill files, and runnable examples.
+- `./vendor/bin/phel agent-install [platform] [--all]`
+  Installs the matching skill file into your project so the agent loads Phel context automatically.
+
 ## Build PHAR
 
 Run the following command to create a standalone PHAR executable:

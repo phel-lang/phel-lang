@@ -56,7 +56,7 @@ Run/
 │   ├── Test/           TestCommandOptions, CannotFindAnyTestsException
 │   └── StdinReaderInterface
 ├── Infrastructure/
-│   ├── Command/        DoctorCommand, EvalCommand, InitCommand, NsCommand, ReplCommand, RunCommand, TestCommand
+│   ├── Command/        AgentInstallCommand, DoctorCommand, EvalCommand, InitCommand, NsCommand, ReplCommand, RunCommand, TestCommand
 │   ├── Service/        DebugLineTap
 │   └── PhpStdinReader
 └── Gacela files        RunFacade, RunFactory, RunConfig, RunProvider

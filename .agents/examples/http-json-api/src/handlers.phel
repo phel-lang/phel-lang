@@ -1,0 +1,23 @@
+(ns http-json-api\handlers
+  (:require phel\http :as h)
+  (:require phel\json :as json))
+
+(defn- json-response [status data]
+  (h/response-from-map
+    {:status status
+     :headers {:content-type "application/json"}
+     :body (json/encode data)}))
+
+(defn health [_request]
+  (json-response 200 {:status "ok" :ts (php/time)}))
+
+(defn echo [request]
+  (json-response 200 {:message (get-in request [:attributes :match :path-params :msg])}))
+
+(defn sum [request]
+  (let [body (get request :parsed-body {})
+        a (get body :a)
+        b (get body :b)]
+    (if (and (number? a) (number? b))
+      (json-response 200 {:sum (+ a b)})
+      (json-response 400 {:error "expected numeric :a and :b"}))))
