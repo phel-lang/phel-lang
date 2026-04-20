@@ -418,17 +418,30 @@ final class PharBuilder
         $excludeFiles = $this->excludeFiles;
         $excludeExtensions = $this->excludeExtensions;
         $versionedDocPattern = $this->versionedDocPattern;
+        $rootLen = \strlen($this->root);
 
         $filter = static function ($current) use (
             $excludeDirMap,
             $excludeFiles,
             $excludeExtensions,
             $versionedDocPattern,
+            $rootLen,
         ): bool {
             $basename = $current->getBasename();
 
             if ($current->isDir()) {
-                return !isset($excludeDirMap[$basename]);
+                if (!isset($excludeDirMap[$basename])) {
+                    return true;
+                }
+
+                // `src/phel/test/` is a stdlib source tree (phel\test\gen,
+                // phel\test\selector). Keep it despite the generic 'test' exclude.
+                $relative = str_replace('\\', '/', substr($current->getPathname(), $rootLen));
+                if ($basename === 'test' && str_starts_with($relative, '/src/phel/')) {
+                    return true;
+                }
+
+                return false;
             }
 
             if (isset($excludeFiles[$basename])) {
