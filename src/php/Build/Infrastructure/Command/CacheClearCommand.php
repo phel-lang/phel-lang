@@ -32,7 +32,7 @@ final class CacheClearCommand extends Command
             $output->writeln('Cleared: ' . $path);
         }
 
-        $gacelaStatus = (new GacelaCacheClearCommand())->run(new ArrayInput([]), $output);
+        $gacelaStatus = new GacelaCacheClearCommand()->run(new ArrayInput([]), $output);
         if ($gacelaStatus !== Command::SUCCESS) {
             return $gacelaStatus;
         }

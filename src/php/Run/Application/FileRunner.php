@@ -32,7 +32,7 @@ final readonly class FileRunner
         // `data-readers.phel` must be evaluated before the user namespace
         // so its `(register-tag ...)` calls are visible to the reader when
         // the user source is compiled.
-        (new DataReadersLoader($this->buildFacade))->load($directories);
+        new DataReadersLoader($this->buildFacade)->load($directories);
 
         $infos = $this->buildFacade->getDependenciesForNamespace($directories, [$namespace, 'phel\\core']);
         foreach ($infos as $info) {

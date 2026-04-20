@@ -155,10 +155,10 @@ final class TestCommand extends Command
             }
 
             $phelCode = $this->generatePhelTestCode($input, $filteredNamespaces);
-            $compileOptions = (new CompileOptions())->setIsEnabledSourceMaps(false);
+            $compileOptions = new CompileOptions()->setIsEnabledSourceMaps(false);
             $result = $this->getFacade()->eval($phelCode, $compileOptions);
 
-            $output->writeln((new ResourceUsageFormatter())->resourceUsageSinceStartOfRequest());
+            $output->writeln(new ResourceUsageFormatter()->resourceUsageSinceStartOfRequest());
 
             if ($compileErrors !== []) {
                 return self::FAILURE;

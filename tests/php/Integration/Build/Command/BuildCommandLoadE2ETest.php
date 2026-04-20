@@ -184,7 +184,7 @@ final class BuildCommandLoadE2ETest extends TestCase
 
         ob_start();
         $output = new StreamOutput(fopen('php://memory', 'w+') ?: throw new RuntimeException('Cannot open memory stream'));
-        $exit = (new BuildCommand())->run(new ArrayInput($args), $output);
+        $exit = new BuildCommand()->run(new ArrayInput($args), $output);
         ob_end_clean();
 
         if ($exit !== 0) {

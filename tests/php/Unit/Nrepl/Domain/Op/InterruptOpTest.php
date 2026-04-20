@@ -22,6 +22,6 @@ final class InterruptOpTest extends TestCase
 
     public function test_op_name_is_interrupt(): void
     {
-        self::assertSame('interrupt', (new InterruptOp())->name());
+        self::assertSame('interrupt', new InterruptOp()->name());
     }
 }

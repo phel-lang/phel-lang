@@ -19,7 +19,7 @@ final class MessageWriterTest extends TestCase
         $stream = fopen('php://memory', 'r+');
         self::assertNotFalse($stream);
 
-        (new MessageWriter())->write($stream, ['method' => 'ping']);
+        new MessageWriter()->write($stream, ['method' => 'ping']);
 
         rewind($stream);
         $contents = stream_get_contents($stream);
@@ -33,7 +33,7 @@ final class MessageWriterTest extends TestCase
         self::assertNotFalse($stream);
 
         $payload = ['jsonrpc' => '2.0', 'id' => 1, 'result' => ['ok' => true]];
-        (new MessageWriter())->write($stream, $payload);
+        new MessageWriter()->write($stream, $payload);
 
         rewind($stream);
         $reader = new MessageReader();

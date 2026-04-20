@@ -99,6 +99,6 @@ final class NamespaceLoader
         }
 
         self::$dataReadersLoaded = true;
-        (new DataReadersLoader($this->buildFacade))->load($srcDirectories);
+        new DataReadersLoader($this->buildFacade)->load($srcDirectories);
     }
 }

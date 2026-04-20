@@ -19,7 +19,7 @@ final class ListPrinterTest extends TestCase
     {
         self::assertSame(
             $expected,
-            (new PersistentListPrinter(Printer::readable()))->print($list),
+            new PersistentListPrinter(Printer::readable())->print($list),
         );
     }
 

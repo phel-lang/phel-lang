@@ -147,7 +147,7 @@ final class PhelConfigTest extends TestCase
 
     public function test_use_flat_layout(): void
     {
-        $config = (new PhelConfig())->useFlatLayout();
+        $config = new PhelConfig()->useFlatLayout();
 
         $serialized = $config->jsonSerialize();
 
@@ -159,7 +159,7 @@ final class PhelConfigTest extends TestCase
 
     public function test_use_nested_layout(): void
     {
-        $config = (new PhelConfig())->useFlatLayout()->useNestedLayout();
+        $config = new PhelConfig()->useFlatLayout()->useNestedLayout();
 
         $serialized = $config->jsonSerialize();
 
@@ -171,7 +171,7 @@ final class PhelConfigTest extends TestCase
 
     public function test_direct_setters_for_build_config(): void
     {
-        $config = (new PhelConfig())
+        $config = new PhelConfig()
             ->setMainPhelNamespace('my-app\\main')
             ->setMainPhpPath('build/app.php')
             ->setBuildDestDir('build');
@@ -185,7 +185,7 @@ final class PhelConfigTest extends TestCase
 
     public function test_direct_setters_for_export_config(): void
     {
-        $config = (new PhelConfig())
+        $config = new PhelConfig()
             ->setExportNamespacePrefix('MyGenerated')
             ->setExportTargetDirectory('generated')
             ->setExportFromDirectories(['lib/phel']);
@@ -199,15 +199,15 @@ final class PhelConfigTest extends TestCase
 
     public function test_custom_json_serialize(): void
     {
-        $config = (new PhelConfig())
+        $config = new PhelConfig()
             ->setSrcDirs(['some/directory'])
             ->setTestDirs(['another/directory'])
             ->setVendorDir('vendor')
             ->setErrorLogFile('error-log.file')
-            ->setBuildConfig((new PhelBuildConfig())
+            ->setBuildConfig(new PhelBuildConfig()
                 ->setMainPhpPath('out/custom-index.php')
                 ->setMainPhelNamespace('test-ns/boot'))
-            ->setExportConfig((new PhelExportConfig())
+            ->setExportConfig(new PhelExportConfig()
                 ->setFromDirectories(['some/other/dir'])
                 ->setNamespacePrefix('Generated')
                 ->setTargetDirectory('src/Generated'))

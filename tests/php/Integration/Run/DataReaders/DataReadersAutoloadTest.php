@@ -23,7 +23,7 @@ final class DataReadersAutoloadTest extends AbstractTestCommand
     private function captureRunOutput(string $path): string
     {
         ob_start();
-        (new RunCommand())->run(
+        new RunCommand()->run(
             $this->stubInput($path),
             $this->stubOutput(),
         );

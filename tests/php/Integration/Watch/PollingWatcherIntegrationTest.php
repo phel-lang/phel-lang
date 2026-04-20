@@ -61,7 +61,7 @@ final class PollingWatcherIntegrationTest extends TestCase
         file_put_contents($this->tmpDir . '/ignored.txt', 'plain text');
         file_put_contents($this->tmpDir . '/keep.phel', "(ns keep)\n");
 
-        $snapshot = (new MtimeFileSystemScanner())->snapshot([$this->tmpDir]);
+        $snapshot = new MtimeFileSystemScanner()->snapshot([$this->tmpDir]);
         $paths = array_keys($snapshot);
 
         self::assertCount(1, $paths);

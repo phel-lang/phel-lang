@@ -51,7 +51,7 @@ final class FnSymbolTest extends TestCase
             Symbol::create(Symbol::NAME_FN),
         ]);
 
-        (new FnSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new FnSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_second_arg_must_be_a_vector(): void
@@ -264,7 +264,7 @@ final class FnSymbolTest extends TestCase
             ]),
         ]);
 
-        $node = (new FnSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $node = new FnSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertInstanceOf(MultiFnNode::class, $node);
         self::assertCount(2, $node->getFnNodes());
@@ -294,7 +294,7 @@ final class FnSymbolTest extends TestCase
             ]),
         ]);
 
-        (new FnSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new FnSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_pre_condition_returning_falsy_is_ignored_when_disabled(): void
@@ -311,7 +311,7 @@ final class FnSymbolTest extends TestCase
             Symbol::create('x'),
         ]);
 
-        $node = (new FnSymbol($this->analyzer, assertsEnabled: false))->analyze($list, NodeEnvironment::empty());
+        $node = new FnSymbol($this->analyzer, assertsEnabled: false)->analyze($list, NodeEnvironment::empty());
 
         self::assertInstanceOf(DoNode::class, $node->getBody());
         self::assertSame([], $node->getBody()->getStmts());
@@ -333,7 +333,7 @@ final class FnSymbolTest extends TestCase
             Symbol::create('x'),
         ]);
 
-        $node = (new FnSymbol($this->analyzer, assertsEnabled: true))->analyze($list, NodeEnvironment::empty());
+        $node = new FnSymbol($this->analyzer, assertsEnabled: true)->analyze($list, NodeEnvironment::empty());
 
         $body = $node->getBody();
         self::assertInstanceOf(DoNode::class, $body);
@@ -427,7 +427,7 @@ final class FnSymbolTest extends TestCase
             ]),
         ]);
 
-        $node = (new FnSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $node = new FnSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertInstanceOf(MultiFnNode::class, $node);
         self::assertInstanceOf(Symbol::class, $node->getName());
@@ -455,7 +455,7 @@ final class FnSymbolTest extends TestCase
             ]),
         ]);
 
-        $node = (new FnSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $node = new FnSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertInstanceOf(MultiFnNode::class, $node);
         self::assertNull($node->getName());
@@ -482,7 +482,7 @@ final class FnSymbolTest extends TestCase
             ]),
         ]);
 
-        $node = (new FnSymbol($this->analyzer))->analyze($namedList, NodeEnvironment::empty());
+        $node = new FnSymbol($this->analyzer)->analyze($namedList, NodeEnvironment::empty());
 
         self::assertInstanceOf(MultiFnNode::class, $node);
         self::assertCount(2, $node->getFnNodes());
@@ -556,7 +556,7 @@ final class FnSymbolTest extends TestCase
 
     private function analyze(PersistentListInterface $list): AbstractNode
     {
-        return (new FnSymbol($this->analyzer))
+        return new FnSymbol($this->analyzer)
             ->analyze($list, NodeEnvironment::empty());
     }
 }

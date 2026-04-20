@@ -12,7 +12,7 @@
  *   opcache.preload=/path/to/phel/build/preload.php
  *   opcache.preload_user=www-data
  *
- * Requires PHP 8.3+ with opcache enabled. Restart PHP-FPM after deploy.
+ * Requires PHP 8.4+ with opcache enabled. Restart PHP-FPM after deploy.
  */
 
 declare(strict_types=1);

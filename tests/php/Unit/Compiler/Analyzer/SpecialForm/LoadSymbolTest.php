@@ -139,6 +139,6 @@ final class LoadSymbolTest extends TestCase
 
     private function analyze(PersistentListInterface $list): LoadNode
     {
-        return (new LoadSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        return new LoadSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 }

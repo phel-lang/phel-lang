@@ -35,7 +35,7 @@ final class SetVarSymbolTest extends TestCase
             1,
         ]);
 
-        (new SetVarSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new SetVarSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_set_var_node(): void
@@ -59,7 +59,7 @@ final class SetVarSymbolTest extends TestCase
             $list->getStartLocation(),
         );
 
-        $actual = (new SetVarSymbol($analyzer))->analyze($list, $env);
+        $actual = new SetVarSymbol($analyzer)->analyze($list, $env);
 
         self::assertEquals($expected, $actual);
     }

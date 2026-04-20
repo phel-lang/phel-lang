@@ -15,7 +15,7 @@ final class InNsEmitterTest extends TestCase
 
     protected function setUp(): void
     {
-        $outputEmitter = (new CompilerFactory())
+        $outputEmitter = new CompilerFactory()
             ->createOutputEmitter();
 
         $this->inNsEmitter = new InNsEmitter($outputEmitter);

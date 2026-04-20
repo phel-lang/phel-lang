@@ -18,12 +18,12 @@ final class QuoteNodeTest extends TestCase
     {
         self::assertSame(
             "'a",
-            (new QuoteNode(
+            new QuoteNode(
                 Token::T_QUOTE,
                 $this->loc(1, 0),
                 $this->loc(1, 2),
                 new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
-            ))->getCode(),
+            )->getCode(),
         );
     }
 
@@ -31,12 +31,12 @@ final class QuoteNodeTest extends TestCase
     {
         self::assertSame(
             ',a',
-            (new QuoteNode(
+            new QuoteNode(
                 Token::T_UNQUOTE,
                 $this->loc(1, 0),
                 $this->loc(1, 2),
                 new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
-            ))->getCode(),
+            )->getCode(),
         );
     }
 
@@ -44,12 +44,12 @@ final class QuoteNodeTest extends TestCase
     {
         self::assertSame(
             ',@a',
-            (new QuoteNode(
+            new QuoteNode(
                 Token::T_UNQUOTE_SPLICING,
                 $this->loc(1, 0),
                 $this->loc(1, 3),
                 new SymbolNode('a', $this->loc(1, 2), $this->loc(1, 3), Symbol::create('a')),
-            ))->getCode(),
+            )->getCode(),
         );
     }
 
@@ -57,13 +57,13 @@ final class QuoteNodeTest extends TestCase
     {
         self::assertSame(
             '~a',
-            (new QuoteNode(
+            new QuoteNode(
                 Token::T_UNQUOTE,
                 $this->loc(1, 0),
                 $this->loc(1, 2),
                 new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
                 '~',
-            ))->getCode(),
+            )->getCode(),
         );
     }
 
@@ -71,13 +71,13 @@ final class QuoteNodeTest extends TestCase
     {
         self::assertSame(
             '~@a',
-            (new QuoteNode(
+            new QuoteNode(
                 Token::T_UNQUOTE_SPLICING,
                 $this->loc(1, 0),
                 $this->loc(1, 3),
                 new SymbolNode('a', $this->loc(1, 2), $this->loc(1, 3), Symbol::create('a')),
                 '~@',
-            ))->getCode(),
+            )->getCode(),
         );
     }
 
@@ -85,36 +85,36 @@ final class QuoteNodeTest extends TestCase
     {
         self::assertSame(
             '`a',
-            (new QuoteNode(
+            new QuoteNode(
                 Token::T_QUASIQUOTE,
                 $this->loc(1, 0),
                 $this->loc(1, 2),
                 new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
-            ))->getCode(),
+            )->getCode(),
         );
     }
 
     public function test_undefined_token(): void
     {
         $this->expectException(RuntimeException::class);
-        (new QuoteNode(
+        new QuoteNode(
             3000,
             $this->loc(1, 0),
             $this->loc(1, 2),
             new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
-        ))->getCode();
+        )->getCode();
     }
 
     public function test_get_children(): void
     {
         self::assertEquals(
             [new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a'))],
-            (new QuoteNode(
+            new QuoteNode(
                 Token::T_QUASIQUOTE,
                 $this->loc(1, 0),
                 $this->loc(1, 2),
                 new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
-            ))->getChildren(),
+            )->getChildren(),
         );
     }
 
@@ -122,12 +122,12 @@ final class QuoteNodeTest extends TestCase
     {
         self::assertEquals(
             $this->loc(1, 0),
-            (new QuoteNode(
+            new QuoteNode(
                 Token::T_QUASIQUOTE,
                 $this->loc(1, 0),
                 $this->loc(1, 2),
                 new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
-            ))->getStartLocation(),
+            )->getStartLocation(),
         );
     }
 
@@ -135,12 +135,12 @@ final class QuoteNodeTest extends TestCase
     {
         self::assertEquals(
             $this->loc(1, 2),
-            (new QuoteNode(
+            new QuoteNode(
                 Token::T_QUASIQUOTE,
                 $this->loc(1, 0),
                 $this->loc(1, 2),
                 new SymbolNode('a', $this->loc(1, 1), $this->loc(1, 2), Symbol::create('a')),
-            ))->getEndLocation(),
+            )->getEndLocation(),
         );
     }
 

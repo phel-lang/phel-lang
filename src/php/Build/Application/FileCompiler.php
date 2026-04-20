@@ -26,7 +26,7 @@ final readonly class FileCompiler implements FileCompilerInterface
     {
         $phelCode = $this->fileIo->getContents($src);
 
-        $options = (new CompileOptions())
+        $options = new CompileOptions()
             ->setSource($src)
             ->setIsEnabledSourceMaps($enableSourceMaps);
 

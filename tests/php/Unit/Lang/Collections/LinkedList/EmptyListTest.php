@@ -18,7 +18,7 @@ final class EmptyListTest extends TestCase
 {
     public function test_prepend_on_empty_list(): void
     {
-        $list = (new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null))->prepend('foo');
+        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null)->prepend('foo');
 
         $this->assertInstanceOf(PersistentList::class, $list);
         $this->assertCount(1, $list);
@@ -115,7 +115,7 @@ final class EmptyListTest extends TestCase
 
     public function test_cons_on_empty_list(): void
     {
-        $list = (new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null))->cons('foo');
+        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null)->cons('foo');
 
         $this->assertInstanceOf(PersistentList::class, $list);
         $this->assertCount(1, $list);

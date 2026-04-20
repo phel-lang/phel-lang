@@ -60,7 +60,7 @@ return RectorConfig::configure()
         SetList::TYPE_DECLARATION,
         SetList::EARLY_RETURN,
         SetList::INSTANCEOF,
-        LevelSetList::UP_TO_PHP_83,
+        LevelSetList::UP_TO_PHP_84,
         PHPUnitSetList::PHPUNIT_CODE_QUALITY,
         PHPUnitSetList::PHPUNIT_100,
     ])

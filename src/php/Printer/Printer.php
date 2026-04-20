@@ -132,7 +132,7 @@ final readonly class Printer implements PrinterInterface
             return new ToStringPrinter();
         }
 
-        if ((new ReflectionClass($form))->isAnonymous()) {
+        if (new ReflectionClass($form)->isAnonymous()) {
             return new AnonymousClassPrinter();
         }
 

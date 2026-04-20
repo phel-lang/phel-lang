@@ -255,7 +255,7 @@ final class InNsSymbolTest extends TestCase
 
     private function analyze(PersistentListInterface $list): InNsNode
     {
-        return (new InNsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        return new InNsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     private function getGlobalEnvironment(): GlobalEnvironment

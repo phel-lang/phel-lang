@@ -19,7 +19,7 @@ final class VectorPrinterTest extends TestCase
     {
         self::assertSame(
             $expected,
-            (new PersistentVectorPrinter(Printer::readable()))->print($vector),
+            new PersistentVectorPrinter(Printer::readable())->print($vector),
         );
     }
 

@@ -20,7 +20,7 @@ final class FnAsClassEmitterTest extends TestCase
 
     protected function setUp(): void
     {
-        $outputEmitter = (new CompilerFactory())
+        $outputEmitter = new CompilerFactory()
             ->createOutputEmitter();
 
         $closureHelper = new ClosureEmitterHelper($outputEmitter);
@@ -148,14 +148,14 @@ final class FnAsClassEmitterTest extends TestCase
     public function test_named_fn_still_emits_class(): void
     {
         $env = NodeEnvironment::empty()->withBoundTo('user\\my-fn');
-        $fnNode = (new FnNode(
+        $fnNode = new FnNode(
             $env,
             params: [Symbol::create('x')],
             body: PhpVarNode::withReturnContext('$x'),
             uses: [],
             isVariadic: false,
             recurs: false,
-        ))->markAsDefinition();
+        )->markAsDefinition();
 
         $this->fnAsClassEmitter->emit($fnNode);
 
@@ -171,7 +171,7 @@ final class FnAsClassEmitterTest extends TestCase
     public function test_named_fn_as_definition_emits_self_binding_via_this(): void
     {
         $env = NodeEnvironment::empty()->withBoundTo('user\\my-fn');
-        $fnNode = (new FnNode(
+        $fnNode = new FnNode(
             $env,
             params: [Symbol::create('x')],
             body: PhpVarNode::withReturnContext('$x'),
@@ -180,7 +180,7 @@ final class FnAsClassEmitterTest extends TestCase
             recurs: false,
             sourceLocation: null,
             name: Symbol::create('my-fn'),
-        ))->markAsDefinition();
+        )->markAsDefinition();
 
         $this->fnAsClassEmitter->emit($fnNode);
 
@@ -262,7 +262,7 @@ final class FnAsClassEmitterTest extends TestCase
 
     public function test_named_fn_as_multi_arity_child_uses_this_not_iife(): void
     {
-        $fnNode = (new FnNode(
+        $fnNode = new FnNode(
             NodeEnvironment::empty(),
             params: [Symbol::create('x')],
             body: PhpVarNode::withReturnContext('$x'),
@@ -271,7 +271,7 @@ final class FnAsClassEmitterTest extends TestCase
             recurs: false,
             sourceLocation: null,
             name: Symbol::create('foo'),
-        ))->markAsMultiArityChild();
+        )->markAsMultiArityChild();
 
         $this->fnAsClassEmitter->emit($fnNode);
 

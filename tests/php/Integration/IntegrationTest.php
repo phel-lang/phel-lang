@@ -29,7 +29,7 @@ final class IntegrationTest extends TestCase
         Phel::bootstrap(__DIR__);
         Symbol::resetGen();
         $globalEnv = GlobalEnvironmentSingleton::initializeNew();
-        (new BuildFacade())->compileFile(
+        new BuildFacade()->compileFile(
             __DIR__ . '/../../../src/phel/core.phel',
             tempnam(sys_get_temp_dir(), 'phel-core'),
         );
@@ -51,7 +51,7 @@ final class IntegrationTest extends TestCase
         $globalEnv->setNs('user');
         Symbol::resetGen();
 
-        $options = (new CompileOptions())
+        $options = new CompileOptions()
             ->setSource($filename);
 
         BuildFacade::enableBuildMode();

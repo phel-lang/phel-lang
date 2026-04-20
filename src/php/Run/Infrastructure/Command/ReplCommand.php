@@ -208,7 +208,7 @@ final class ReplCommand extends Command
         $fullInput = $this->previousResult->readBuffer($this->inputBuffer);
 
         try {
-            $options = (new CompileOptions())
+            $options = new CompileOptions()
                 ->setStartingLine($this->lineNumber - count($this->inputBuffer));
 
             $result = $this->getFacade()->eval($fullInput, $options);

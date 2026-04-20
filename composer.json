@@ -22,7 +22,7 @@
     ],
     "homepage": "https://phel-lang.org/",
     "require": {
-        "php": ">=8.3",
+        "php": ">=8.4",
         "amphp/amp": "^3.1",
         "gacela-project/gacela": "^1.14",
         "symfony/console": "^6.0|^7.0|^8.0",
@@ -62,7 +62,7 @@
             "ergebnis/composer-normalize": true
         },
         "platform": {
-            "php": "8.3.16"
+            "php": "8.4.6"
         },
         "sort-packages": true
     },

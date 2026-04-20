@@ -19,7 +19,7 @@ final class PersistentHashSetPrinterTest extends TestCase
     {
         self::assertSame(
             $expected,
-            (new PersistentHashSetPrinter(Printer::readable()))->print($set),
+            new PersistentHashSetPrinter(Printer::readable())->print($set),
         );
     }
 

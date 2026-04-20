@@ -93,7 +93,7 @@ TXT;
 
     private function analyzeUse(string $ns, PersistentListInterface $import): void
     {
-        (new UseAliasRegistrar($this->analyzer))->register($ns, $import);
+        new UseAliasRegistrar($this->analyzer)->register($ns, $import);
     }
 
     /**

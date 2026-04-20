@@ -16,7 +16,7 @@ final class NsEmitterTest extends TestCase
 
     protected function setUp(): void
     {
-        $outputEmitter = (new CompilerFactory())
+        $outputEmitter = new CompilerFactory()
             ->createOutputEmitter();
 
         $this->nsEmitter = new NsEmitter($outputEmitter);
