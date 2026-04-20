@@ -169,14 +169,14 @@ Phel runs on PHP. A handful of Clojure features don't translate directly:
 |-----------------|----------------|-------------|
 | **Refs / STM** | No concurrent transactions in PHP | Use `atom` for mutable state |
 | **Agents** | No background threads | PHP job queues via interop |
-| **core.async** | No goroutines/CSP | Use `phel\async` (fiber-based via AMPHP) |
+| **core.async** | No goroutines/CSP, but fiber primitives (`promise`, `deliver`, `future-fiber`) cover CSP-lite handoffs | Use `phel\async` (AMPHP for IO, fiber layer for top-level handoffs); see [docs/async-guide.md](async-guide.md) |
 | **BigInt / BigDecimal / Ratio** | PHP number model | Suffix literals (`1N`, `1.5M`) and ratio literals (`1/2`) are accepted; ratios evaluate to `num / den` as a float. Use `bcmath` / `gmp` via `php/` interop for real arbitrary precision |
 | **Character type** | PHP has no char type | Character literals (`\a`) and `char` / `char?` are supported but compile to single-character strings |
 | **Spec** | Not ported | Use runtime assertions or PHP validation |
 | **Vars (Clojure sense)** | PHP has no thread-local bindings | `def` creates namespace-level bindings directly |
 | **`alter-var-root`** | No first-class vars to re-root | Use an `atom` with `swap!` for mutable state, or redefine the top-level binding with `def`. Calling `alter-var-root` at runtime throws `BadMethodCallException` with this hint |
 
-Phel does provide `future`, `future-cancel`, and `pmap` via the `phel\async` module, which uses AMPHP fibers. Semantics match Clojure's `future` where they can (including timeout-bounded `deref`), but cancellation is cooperative rather than thread-interrupt.
+Phel does provide `future`, `future-cancel`, and `pmap` via the `phel\async` module, which uses AMPHP fibers. Semantics match Clojure's `future` where they can (including timeout-bounded `deref`), but cancellation is cooperative rather than thread-interrupt. For top-level scripting without an event loop, use the fiber primitives (`promise`, `deliver`, `future-call`, `future-fiber`); see [docs/async-guide.md](async-guide.md) for the decision guide.
 
 ## Structural differences
 
