@@ -13,6 +13,7 @@ Rules + CLI: [`RULES.md`](RULES.md).
 | REPL | [`tasks/repl-workflow.md`](tasks/repl-workflow.md) | `src/phel/repl.phel` |
 | Find core fn | [`tasks/use-core-lib.md`](tasks/use-core-lib.md) | `(phel doc <fn>)`, `docs/patterns.md` |
 | Debug errors | [`tasks/debug-errors.md`](tasks/debug-errors.md) | `docs/patterns.md` § Error Handling |
+| Common pitfalls | [`tasks/common-gotchas.md`](tasks/common-gotchas.md) | `RULES.md` § Gotchas |
 | Use a PHP library | [`tasks/use-php-libs.md`](tasks/use-php-libs.md) | `docs/php-interop.md` |
 | Syntax reference | — | `docs/quickstart.md`, `docs/reader-shortcuts.md` |
 | Idioms | — | `docs/patterns.md`, `docs/examples/` |

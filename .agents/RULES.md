@@ -15,6 +15,33 @@ Single source for every skill adapter.
 9. PHP assoc array: `#php {"k" "v"}` or `(to-php-array m)`. Not `{:k "v"}`.
 10. Catch PHP: `(catch php\SomeException e ...)`.
 
+## New features (v0.30 – main)
+
+Use these when appropriate — they are stable and tested.
+
+| Feature | Syntax | Since |
+|---------|--------|-------|
+| Records | `(defrecord Point [x y])` → `(->Point 1 2)`, `(map->Point {:x 1 :y 2})` | v0.32 |
+| Protocols | `(defprotocol Drawable (draw [this]))` + `(extend-type :string Drawable (draw [s] ...))` | v0.31 |
+| Multimethods | `(defmulti area :shape)` + `(defmethod area :circle [{:radius r}] ...)` | v0.30 |
+| Transducers | `(into [] (filter odd?) [1 2 3])`, `(transduce (map inc) + 0 coll)` | v0.31 |
+| Regex literals | `#"^\d+$"`, `(re-find #"\d+" "abc123")` → `"123"` | v0.31 |
+| Pretty-print | `(require phel\pprint)` → `(pprint data)` | v0.30 |
+| Sorted colls | `(sorted-map :a 1 :b 2)`, `(sorted-set 3 1 2)` | v0.32 |
+| `condp` | `(condp = x 1 "one" 2 "two" "other")` | v0.32 |
+| `defrecord` w/ protocols | `(defrecord Foo [x] MyProto (my-fn [this] ...))` | v0.32 |
+| `doseq` | `(doseq [x :in coll] (println x))` — side-effecting iteration | v0.31 |
+| `for` comprehension | `(for [x :in xs :when (odd? x)] (* x x))` — builds sequence | v0.31 |
+
+## Gotchas
+
+See [`tasks/common-gotchas.md`](tasks/common-gotchas.md) for details. Quick summary:
+
+- **CLI args**: use `*argv*` (vec of strings after script path), not `php/$argv`.
+- **`transduce` + `max`/`min`**: these don't support 0-arity; pass explicit init: `(transduce xf (fn [a b] (max a b)) 0 coll)`.
+- **`for` vs `doseq`**: `for` builds a sequence (lazy); `doseq` is for side effects. Don't use `for` for `println` loops.
+- **`phel\string`**: was `phel\str` before v0.33.
+
 ## CLI
 
 | Task | Command |
