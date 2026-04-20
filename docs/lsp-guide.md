@@ -36,7 +36,7 @@ The server reads LSP messages on stdin and writes responses on stdout. Logs go t
 
 ### VS Code
 
-Use any generic LSP client extension (for example, `sumneko.lua-language-server`-style) pointed at `./vendor/bin/phel lsp` with `phel` as the language id and `.phel` as the file extension.
+Install a generic LSP client extension and point it at `./vendor/bin/phel lsp` with `phel` as the language id and `.phel` as the file extension.
 
 ### Neovim (built-in LSP)
 

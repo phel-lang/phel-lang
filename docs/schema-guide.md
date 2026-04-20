@@ -40,7 +40,7 @@
 | regex | `[:re #"pattern"]` |
 | predicate | `[:fn even?]` |
 | reference | `[:ref :my/User]` |
-| function | `[[:=> [:int :int] :int]]` |
+| function | `[:=> [:int :int] :int]` |
 
 ## Core operations
 
