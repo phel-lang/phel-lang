@@ -52,7 +52,7 @@ final class NodeEnvironment implements NodeEnvironmentInterface
     public function hasLocal(Symbol $x): bool
     {
         $name = $x->getName();
-        return array_any($this->locals, fn($local): bool => $local->getName() === $name);
+        return array_any($this->locals, static fn($local): bool => $local->getName() === $name);
     }
 
     /**
