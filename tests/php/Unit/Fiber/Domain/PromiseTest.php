@@ -89,4 +89,30 @@ final class PromiseTest extends TestCase
         self::assertNull($promise->value());
         self::assertFalse($promise->deliver('other'));
     }
+
+    public function test_second_deliver_does_not_overwrite_the_stored_value(): void
+    {
+        $promise = new Promise($this->scheduler);
+        $promise->deliver('first');
+        $promise->deliver('second');
+        $promise->deliver('third');
+
+        self::assertSame('first', $promise->deref());
+    }
+
+    public function test_deref_with_negative_timeout_returns_fallback_immediately(): void
+    {
+        $promise = new Promise($this->scheduler);
+
+        self::assertSame(':fallback', $promise->derefWithTimeout(-1, ':fallback'));
+        self::assertFalse($promise->isRealized());
+    }
+
+    public function test_deref_with_timeout_zero_returns_value_when_already_delivered(): void
+    {
+        $promise = new Promise($this->scheduler);
+        $promise->deliver('ready');
+
+        self::assertSame('ready', $promise->derefWithTimeout(0, ':fallback'));
+    }
 }

@@ -102,9 +102,7 @@ final class InotifyWatcher implements FileWatcherInterface
 
         $this->scanner->snapshot($paths);
 
-        /** @var list<WatchEvent> $pending */
-        $pending = [];
-        $lastEventAt = 0;
+        $debouncer = new EventDebouncer($this->clock, $this->debounceMs);
 
         /** @psalm-suppress RedundantCondition */
         while ($this->running && $this->isAlive()) {
@@ -112,14 +110,12 @@ final class InotifyWatcher implements FileWatcherInterface
             if ($line !== false) {
                 $event = $this->parseLine($line);
                 if ($event instanceof WatchEvent) {
-                    $pending[] = $event;
-                    $lastEventAt = $this->clock->nowMs();
+                    $debouncer->record($event);
                 }
             }
 
-            if ($pending !== [] && $this->clock->nowMs() - $lastEventAt >= $this->debounceMs) {
-                $onChange($this->coalesce($pending));
-                $pending = [];
+            if ($debouncer->hasPending()) {
+                $debouncer->flushIfReady($onChange);
             } else {
                 $this->clock->sleepMs(50);
             }
@@ -178,22 +174,6 @@ final class InotifyWatcher implements FileWatcherInterface
         }
 
         return new WatchEvent($path, $kind);
-    }
-
-    /**
-     * @param list<WatchEvent> $events
-     *
-     * @return list<WatchEvent>
-     */
-    private function coalesce(array $events): array
-    {
-        /** @var array<string, WatchEvent> $byPath */
-        $byPath = [];
-        foreach ($events as $event) {
-            $byPath[$event->path] = $event;
-        }
-
-        return array_values($byPath);
     }
 
     /**

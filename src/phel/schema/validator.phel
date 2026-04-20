@@ -164,23 +164,27 @@
              (recur (+ i 1))
              false)))))
 
-(defn- entry-options
-  "Options map for a `[:map ...]` entry `[key opts? schema]`."
+(defn map-entry-options
+  "Options map for a `[:map ...]` entry `[key opts? schema]`. Returns an
+  empty map when the entry has no options position."
   [entry]
   (if (and (>= (count entry) 3) (map? (get entry 1)))
     (get entry 1)
     {}))
 
-(defn- entry-schema
-  "Inner schema of a `[:map ...]` entry."
+(defn map-entry-schema
+  "Inner schema of a `[:map ...]` entry, skipping the options map when
+  present."
   [entry]
   (if (and (>= (count entry) 3) (map? (get entry 1)))
     (get entry 2)
     (get entry 1)))
 
-(defn- entry-optional?
+(defn map-entry-optional?
+  "Returns `true` when a `[:map ...]` entry is declared with
+  `{:optional true}`."
   [entry]
-  (true? (get (entry-options entry) :optional)))
+  (true? (get (map-entry-options entry) :optional)))
 
 (defn- validate-map
   [value entries closed?]
@@ -192,8 +196,8 @@
                        :else
                        (let [entry (first es)
                              k     (get entry 0)
-                             inner (entry-schema entry)
-                             opt?  (entry-optional? entry)]
+                             inner (map-entry-schema entry)
+                             opt?  (map-entry-optional? entry)]
                          (cond
                            (not (contains? value k))
                            (if opt? (recur (next es)) false)

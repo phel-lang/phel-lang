@@ -7,6 +7,7 @@ namespace Phel\Nrepl\Application\Op;
 use Phel\Nrepl\Domain\Op\OpHandlerInterface;
 use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Op\OpResponse;
+use Phel\Nrepl\Domain\Op\OpStatus;
 use Phel\Shared\Facade\ApiFacadeInterface;
 
 final readonly class CompletionsOp implements OpHandlerInterface
@@ -35,7 +36,7 @@ final readonly class CompletionsOp implements OpHandlerInterface
             $request->id,
             $request->session,
             ['completions' => $completions],
-            ['done'],
+            [OpStatus::DONE],
         )];
     }
 }

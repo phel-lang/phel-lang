@@ -145,21 +145,17 @@
 ;; legacy assertion-level types emitted by the built-in `is` macro. Each
 ;; carries a `:state` field (`:pass`/`:failed`/`:error`) that records the
 ;; real outcome, so we recover the logical type and delegate.
-(defn- handle-assertion-like [data]
-  (let [state (get data :state)]
-    (case state
-      :pass   (report-assertion! data)
-      :failed (report-assertion! data)
-      :error  (report-assertion! data)
-      (fan-out! (decorate-event data)))))
+(def- assertion-like-states
+  (hash-set :pass :failed :error))
 
-(defmethod report :predicate      [data] (handle-assertion-like data))
-(defmethod report :predicate-not  [data] (handle-assertion-like data))
-(defmethod report :binary         [data] (handle-assertion-like data))
-(defmethod report :binary-not     [data] (handle-assertion-like data))
-(defmethod report :any            [data] (handle-assertion-like data))
-(defmethod report :thrown         [data] (handle-assertion-like data))
-(defmethod report :thrown-with-msg [data] (handle-assertion-like data))
+(defn- handle-assertion-like [data]
+  (if (contains? assertion-like-states (get data :state))
+    (report-assertion! data)
+    (fan-out! (decorate-event data))))
+
+(dofor [event-type :in [:predicate :predicate-not :binary :binary-not
+                        :any :thrown :thrown-with-msg]]
+  (swap! report-methods assoc event-type handle-assertion-like))
 
 (defn- record-skip! [data]
   (swap! stats
@@ -169,12 +165,13 @@
                  s      (assoc s :counts counts)]
              (assoc s :skipped (conj (get s :skipped) data))))))
 
-(defmethod report :begin-test-ns   [data] (fan-out! data))
-(defmethod report :end-test-ns     [data] (fan-out! data))
-(defmethod report :begin-test-run  [data] (fan-out! data))
-(defmethod report :summary         [data] (fan-out! data))
-(defmethod report :defspec-failed  [data] (fan-out! data))
-(defmethod report :skipped         [data]
+;; Lifecycle events that flow straight through to every registered
+;; reporter without touching the stats atom.
+(dofor [event-type :in [:begin-test-ns :end-test-ns :begin-test-run
+                        :summary :defspec-failed]]
+  (swap! report-methods assoc event-type fan-out!))
+
+(defmethod report :skipped [data]
   (record-skip! data)
   (fan-out! data))
 
@@ -511,12 +508,12 @@
   (if (nil? actual-message)
     (do
       (println "    expected:" form)
-      (println "  to throw a:" exception-symbol "(it didn't)")
-      (do
-        (println "      expected:" form)
-        (println "    to throw a:" exception-symbol)
-        (println "  with message:" expected-message)
-        (println "       but got:" actual-message)))))
+      (println "  to throw a:" exception-symbol "(it didn't)"))
+    (do
+      (println "      expected:" form)
+      (println "    to throw a:" exception-symbol)
+      (println "  with message:" expected-message)
+      (println "       but got:" actual-message))))
 
 (defn- print-any-failure [{:form form :result result}]
   (println "          Test:" form)
@@ -543,6 +540,28 @@
 (defn- assertion-event? [event]
   (contains? event :state))
 
+(defn- print-failures-block [failures]
+  (when-not (empty? failures)
+    (println)
+    (for [data :in failures]
+      (println "~~~~~~~~~~")
+      (print-failure-or-error data))
+    (println)))
+
+(defn- print-counts-summary [event]
+  (println "Passed:" (:pass event))
+  (println "Failed:" (:failed event))
+  (println "Error:" (:error event))
+  (when (pos? (or (:skipped event) 0))
+    (println "Skipped:" (:skipped event)))
+  (println "Total:" (:total event)))
+
+(defn- print-summary-block [event]
+  (println)
+  (print-failures-block (:failures event))
+  (println)
+  (print-counts-summary event))
+
 (defn- default-reporter
   "Human-readable dot output. Preserves the legacy behavior: `.` for
   pass, `F` for fail, `E` for error, plus periodic newlines so long
@@ -566,21 +585,7 @@
         (when (= 0 (% n 80)) (println)))
 
       (= type :summary)
-      (do
-        (println)
-        (when-not (empty? (:failures event))
-          (println)
-          (for [data :in (:failures event)]
-            (println "~~~~~~~~~~")
-            (print-failure-or-error data))
-          (println))
-        (println)
-        (println "Passed:" (:pass event))
-        (println "Failed:" (:failed event))
-        (println "Error:" (:error event))
-        (when (pos? (or (:skipped event) 0))
-          (println "Skipped:" (:skipped event)))
-        (println "Total:" (:total event))))))
+      (print-summary-block event))))
 
 (defn- testdox-reporter
   "Per-assertion single-line description used by the `--reporter=testdox`
@@ -600,21 +605,7 @@
         (println "↷" (str tname " (skipped)")))
 
       (= type :summary)
-      (do
-        (println)
-        (when-not (empty? (:failures event))
-          (println)
-          (for [data :in (:failures event)]
-            (println "~~~~~~~~~~")
-            (print-failure-or-error data))
-          (println))
-        (println)
-        (println "Passed:" (:pass event))
-        (println "Failed:" (:failed event))
-        (println "Error:" (:error event))
-        (when (pos? (or (:skipped event) 0))
-          (println "Skipped:" (:skipped event)))
-        (println "Total:" (:total event))))))
+      (print-summary-block event))))
 
 ;; -------------
 ;; Dot reporter
@@ -734,25 +725,18 @@
       (php/get_class ex)
       (or (:exception-symbol event) "AssertionFailed"))))
 
+(defn- junit-nested-element [tag event]
+  (str "<" tag
+       " message=\"" (junit-xml-escape (or (:message event) "")) "\""
+       " type=\"" (junit-xml-escape (junit-exception-class event)) "\">"
+       (junit-xml-escape (str (:form event)))
+       "</" tag ">"))
+
 (defn- junit-testcase-body [event]
-  (let [state  (get event :state (:type event))
-        msg    (or (:message event) "")
-        klass  (junit-exception-class event)
-        body   (cond
-                 (= state :error)
-                 (str "<error message=\"" (junit-xml-escape msg)
-                      "\" type=\"" (junit-xml-escape klass) "\">"
-                      (junit-xml-escape (str (:form event)))
-                      "</error>")
-
-                 (= state :failed)
-                 (str "<failure message=\"" (junit-xml-escape msg)
-                      "\" type=\"" (junit-xml-escape klass) "\">"
-                      (junit-xml-escape (str (:form event)))
-                      "</failure>")
-
-                 :else nil)]
-    body))
+  (let [state (get event :state (:type event))]
+    (cond
+      (= state :error)  (junit-nested-element "error"   event)
+      (= state :failed) (junit-nested-element "failure" event))))
 
 (defn- junit-build-testcase [event]
   (let [tname    (or (:test-name event) "assertion")
@@ -807,23 +791,21 @@
                            :time 0.0
                            :cases []})))
 
+(defn- bump-counters [m event]
+  (let [state  (get event :state)
+        m      (update m :tests inc)
+        m      (if (= :failed state) (update m :failures inc) m)
+        m      (if (= :error state)  (update m :errors inc)  m)]
+    m))
+
 (defn- junit-record-case [state event]
   (let [current (or (:current state)
                     {:name (or (:ns event) "")
                      :tests 0 :failures 0 :errors 0 :time 0.0 :cases []})
-        state   (assoc state :current current)
-        state   (update state :tests inc)
-        state   (if (= :failed (get event :state))
-                  (update state :failures inc) state)
-        state   (if (= :error (get event :state))
-                  (update state :errors inc) state)
-        current (:current state)
-        current (update current :tests inc)
-        current (if (= :failed (get event :state))
-                  (update current :failures inc) current)
-        current (if (= :error (get event :state))
-                  (update current :errors inc) current)
-        current (update current :cases conj (junit-build-testcase event))]
+        state   (bump-counters state event)
+        current (-> current
+                    (bump-counters event)
+                    (update :cases conj (junit-build-testcase event)))]
     (assoc state :current current)))
 
 (defn- junit-write-output [state]
@@ -1083,21 +1065,27 @@
              :else                             (throw (php/new \InvalidArgumentException
                                                                (str "Invalid reporter value: " r))))))))
 
+(defn- configure-run! [options]
+  (reset! fail-fast? (:fail-fast options))
+  (when-let [path (:junit-output options)]
+    (set-junit-output! path))
+  (set-reporters! (resolve-reporters-option options)))
+
+(defn- run-one-ns! [options namespace]
+  (let [ns-name (name namespace)]
+    (fan-out! {:type :begin-test-ns :ns ns-name})
+    (run-test options ns-name)
+    (fan-out! {:type :end-test-ns :ns ns-name})))
+
 (defn run-tests
   "Runs all tests in the given namespaces."
   {:example "(run-tests {} 'my-app\\test)"}
   [options & namespaces]
-  (reset! fail-fast? (:fail-fast options))
-  (when-let [path (:junit-output options)]
-    (set-junit-output! path))
-  (set-reporters! (resolve-reporters-option options))
+  (configure-run! options)
   (fan-out! {:type :begin-test-run})
   (dofor [namespace :in namespaces
-          :let [ns-name (name namespace)]
           :when (not (should-stop?))]
-    (fan-out! {:type :begin-test-ns :ns ns-name})
-    (run-test options ns-name)
-    (fan-out! {:type :end-test-ns :ns ns-name}))
+    (run-one-ns! options namespace))
   (print-summary))
 
 (defn reset-stats

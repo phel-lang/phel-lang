@@ -102,13 +102,8 @@
               :else
               (let [entry (first es)
                     k     (get entry 0)
-                    inner (if (and (>= (count entry) 3) (map? (get entry 1)))
-                            (get entry 2)
-                            (get entry 1))
-                    opts  (if (and (>= (count entry) 3) (map? (get entry 1)))
-                            (get entry 1)
-                            {})
-                    opt?  (true? (get opts :optional))
+                    inner (v/map-entry-schema entry)
+                    opt?  (v/map-entry-optional? entry)
                     path' (conj path :map k)
                     in'   (conj in k)]
                 (cond

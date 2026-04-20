@@ -8,10 +8,6 @@ use Phel\Api\Domain\ProjectIndexerInterface;
 use Phel\Api\Transfer\Definition;
 use Phel\Api\Transfer\Location;
 use Phel\Api\Transfer\ProjectIndex;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
-use RegexIterator;
-use UnexpectedValueException;
 
 use function file_get_contents;
 use function is_dir;
@@ -47,7 +43,7 @@ final readonly class ProjectIndexer implements ProjectIndexerInterface
                 continue;
             }
 
-            foreach ($this->iteratePhelFiles($real) as $file) {
+            foreach (PhelFileIterator::iterate($real) as $file) {
                 $contents = @file_get_contents($file);
                 if ($contents === false) {
                     continue;
@@ -72,23 +68,5 @@ final readonly class ProjectIndexer implements ProjectIndexerInterface
         }
 
         return new ProjectIndex($definitions, $references);
-    }
-
-    /**
-     * @return iterable<string>
-     */
-    private function iteratePhelFiles(string $directory): iterable
-    {
-        try {
-            $dirIterator = new RecursiveDirectoryIterator($directory);
-            $iterator = new RecursiveIteratorIterator($dirIterator);
-            $regex = new RegexIterator($iterator, '/^.+\.phel$/i', RegexIterator::GET_MATCH);
-        } catch (UnexpectedValueException) {
-            return [];
-        }
-
-        foreach ($regex as $match) {
-            yield $match[0];
-        }
     }
 }

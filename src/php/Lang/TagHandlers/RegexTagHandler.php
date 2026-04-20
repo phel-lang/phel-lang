@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Lang\TagHandlers;
 
-use Phel\Lang\TagHandlerException;
-
-use function is_string;
 use function preg_replace;
 
 /**
@@ -17,16 +14,20 @@ use function preg_replace;
  * literal. The value is directly usable with `re-find`, `re-seq`,
  * `re-matches`, and `re-pattern`.
  */
-final readonly class RegexTagHandler
+final readonly class RegexTagHandler extends AbstractStringTagHandler
 {
-    public function __invoke(mixed $form): string
+    protected function tagName(): string
     {
-        if (!is_string($form)) {
-            throw new TagHandlerException(
-                '#regex expects a string literal (e.g. #regex "[a-z]+").',
-            );
-        }
+        return 'regex';
+    }
 
+    protected function example(): string
+    {
+        return '#regex "[a-z]+"';
+    }
+
+    protected function handleString(string $form): string
+    {
         // Match `RegexParser::parse()`: escape unescaped `/` so the
         // `/delimiter/` is never broken by the user's pattern.
         $pattern = preg_replace('/(?<!\\\\)\\//', '\\/', $form) ?? $form;

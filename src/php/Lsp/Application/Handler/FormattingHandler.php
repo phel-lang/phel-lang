@@ -6,14 +6,13 @@ namespace Phel\Lsp\Application\Handler;
 
 use Phel\Formatter\FormatterFacade;
 use Phel\Lsp\Application\Document\Document;
+use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\HandlerInterface;
 use Throwable;
 
 use function count;
 use function explode;
-use function is_array;
-use function is_string;
 use function str_replace;
 use function strlen;
 
@@ -21,6 +20,7 @@ final readonly class FormattingHandler implements HandlerInterface
 {
     public function __construct(
         private FormatterFacade $formatter,
+        private ParamsExtractor $params,
     ) {}
 
     public function method(): string
@@ -38,12 +38,7 @@ final readonly class FormattingHandler implements HandlerInterface
      */
     public function handle(array $params, Session $session): mixed
     {
-        $textDocument = $params['textDocument'] ?? [];
-        if (!is_array($textDocument)) {
-            return [];
-        }
-
-        $uri = is_string($textDocument['uri'] ?? null) ? $textDocument['uri'] : '';
+        $uri = $this->params->uri($params);
         if ($uri === '') {
             return [];
         }

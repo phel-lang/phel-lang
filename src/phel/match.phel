@@ -74,6 +74,13 @@
       1 (first effective)
       `(and ~@effective))))
 
+(defn- shape-gated-check
+  "Wraps an inner and-combined check behind a shape predicate. When the
+  target fails the shape check the expression short-circuits to `false`
+  so the inner accessors never see a mismatched value."
+  [shape inner-checks]
+  `(if ~shape ~(and-checks inner-checks) false))
+
 (defn- compile-wildcard [_target _pattern]
   {:check true :bindings []})
 
@@ -174,10 +181,7 @@
                                :check    (get sub :check)
                                :bindings (get sub :bindings)})))
         inner-checks (for [e :in elem-specs] (get e :check))
-        combined-inner (and-checks (cons length-ok inner-checks))
-        ;; Gate the inner check on the shape predicate so `get` /
-        ;; `count` never see a non-sequential target.
-        outer-check  `(if ~shape ~combined-inner false)
+        outer-check  (shape-gated-check shape (cons length-ok inner-checks))
         elem-bindings (apply concat
                              (for [e :in elem-specs]
                                (get e :bindings)))
@@ -205,8 +209,7 @@
         contains-checks (for [k :in key-specs]
                           `(contains? ~target ~(get k :key)))
         value-checks    (for [k :in key-specs] (get k :check))
-        combined-inner  (and-checks (apply vector (concat contains-checks value-checks)))
-        outer-check     `(if ~shape ~combined-inner false)
+        outer-check     (shape-gated-check shape (apply vector (concat contains-checks value-checks)))
         all-bindings    (apply vector
                                (apply concat
                                       (for [k :in key-specs]

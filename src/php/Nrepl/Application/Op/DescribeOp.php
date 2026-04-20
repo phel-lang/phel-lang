@@ -8,10 +8,13 @@ use Phel\Nrepl\Domain\Op\OpDispatcher;
 use Phel\Nrepl\Domain\Op\OpHandlerInterface;
 use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Op\OpResponse;
+use Phel\Nrepl\Domain\Op\OpStatus;
 use Phel\Shared\Facade\RunFacadeInterface;
 
 final readonly class DescribeOp implements OpHandlerInterface
 {
+    public const string NREPL_VERSION = '0.1.0';
+
     public function __construct(
         private OpDispatcher $dispatcher,
         private RunFacadeInterface $runFacade,
@@ -29,20 +32,23 @@ final readonly class DescribeOp implements OpHandlerInterface
             $ops[$op] = [];
         }
 
-        $version = $this->runFacade->getVersion();
-
         return [OpResponse::build(
             $request->id,
             $request->session,
             [
                 'ops' => $ops,
                 'versions' => [
-                    'phel' => ['version-string' => $version],
-                    'nrepl' => ['version-string' => '0.1.0', 'major' => 0, 'minor' => 1, 'incremental' => 0],
+                    'phel' => ['version-string' => $this->runFacade->getVersion()],
+                    'nrepl' => [
+                        'version-string' => self::NREPL_VERSION,
+                        'major' => 0,
+                        'minor' => 1,
+                        'incremental' => 0,
+                    ],
                 ],
                 'aux' => [],
             ],
-            ['done'],
+            [OpStatus::DONE],
         )];
     }
 }

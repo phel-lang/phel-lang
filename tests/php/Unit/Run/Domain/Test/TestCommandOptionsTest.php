@@ -204,4 +204,71 @@ final class TestCommandOptionsTest extends TestCase
             $options->asPhelHashMap(),
         );
     }
+
+    public function test_include_and_exclude_roundtrip_preserves_all_keys(): void
+    {
+        $input = [
+            TestCommandOptions::FILTER => 'add-',
+            TestCommandOptions::TESTDOX => true,
+            TestCommandOptions::FAIL_FAST => true,
+            TestCommandOptions::REPORTERS => ['dot', 'junit-xml'],
+            TestCommandOptions::JUNIT_OUTPUT => 'build/junit.xml',
+            TestCommandOptions::INCLUDE => ['integration'],
+            TestCommandOptions::EXCLUDE => ['slow'],
+            TestCommandOptions::NS_PATTERNS => ['phel.http.**'],
+            TestCommandOptions::FILTERS => ['get-'],
+        ];
+
+        $printed = TestCommandOptions::fromArray($input)->asPhelHashMap();
+
+        self::assertStringContainsString(':filter "add-"', $printed);
+        self::assertStringContainsString(':testdox true', $printed);
+        self::assertStringContainsString(':fail-fast true', $printed);
+        self::assertStringContainsString(':reporters [:dot :junit-xml]', $printed);
+        self::assertStringContainsString(':junit-output "build/junit.xml"', $printed);
+        self::assertStringContainsString(':include [:integration]', $printed);
+        self::assertStringContainsString(':exclude [:slow]', $printed);
+        self::assertStringContainsString(':ns-patterns ["phel.http.**"]', $printed);
+        self::assertStringContainsString(':filters ["get-"]', $printed);
+    }
+
+    public function test_empty_then_populated_produces_stable_shape(): void
+    {
+        $empty = TestCommandOptions::empty();
+        $populated = TestCommandOptions::fromArray([
+            TestCommandOptions::INCLUDE => ['integration'],
+        ]);
+
+        self::assertStringStartsWith('{:filter nil :testdox false :fail-fast false', $empty->asPhelHashMap());
+        self::assertStringStartsWith('{:filter nil :testdox false :fail-fast false', $populated->asPhelHashMap());
+    }
+
+    public function test_selector_values_survive_exact_string_equality_check(): void
+    {
+        // Regression-style coverage: every key that arrives from the CLI must
+        // appear in the printed hash-map exactly once, in the order the
+        // generator produces.
+        $printed = TestCommandOptions::fromArray([
+            TestCommandOptions::INCLUDE => ['a', 'b'],
+            TestCommandOptions::EXCLUDE => ['c'],
+            TestCommandOptions::NS_PATTERNS => ['x.*'],
+            TestCommandOptions::FILTERS => ['y'],
+        ])->asPhelHashMap();
+
+        self::assertSame(
+            '{:filter nil :testdox false :fail-fast false :include [:a :b] :exclude [:c] :ns-patterns ["x.*"] :filters ["y"]}',
+            $printed,
+        );
+    }
+
+    public function test_filter_with_quote_character_is_escaped_by_printer(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::FILTER => 'has "quotes"',
+        ]);
+
+        // The Printer must render the string with escaped quotes so that the
+        // generated Phel expression is syntactically valid.
+        self::assertStringContainsString(':filter "has \\"quotes\\""', $options->asPhelHashMap());
+    }
 }

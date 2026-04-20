@@ -132,4 +132,28 @@ final class SchedulerTest extends TestCase
 
         self::assertSame(0, $scheduler->sleepMicroseconds());
     }
+
+    public function test_run_until_idle_is_a_noop_when_queue_is_empty(): void
+    {
+        $scheduler = new Scheduler();
+
+        $scheduler->runUntilIdle();
+
+        self::assertFalse($scheduler->hasReady());
+    }
+
+    public function test_await_drains_queue_until_awaitable_is_realized(): void
+    {
+        $scheduler = new Scheduler();
+        $scheduler->setSleepMicroseconds(10);
+
+        $promise = new Promise($scheduler);
+
+        $fiber = new Fiber(static function () use ($promise): void {
+            $promise->deliver('from-fiber');
+        });
+        $scheduler->enqueue($fiber);
+
+        self::assertSame('from-fiber', $scheduler->await($promise));
+    }
 }

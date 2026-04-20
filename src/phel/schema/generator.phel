@@ -79,16 +79,9 @@
   [entries]
   (let [pairs (into []
                     (map (fn [entry]
-                           (let [k (get entry 0)
-                                 inner (if (and (>= (count entry) 3)
-                                                (map? (get entry 1)))
-                                         (get entry 2)
-                                         (get entry 1))
-                                 opts (if (and (>= (count entry) 3)
-                                               (map? (get entry 1)))
-                                        (get entry 1)
-                                        {})
-                                 opt? (true? (get opts :optional))]
+                           (let [k     (get entry 0)
+                                 inner (v/map-entry-schema entry)
+                                 opt?  (v/map-entry-optional? entry)]
                              [k (schema->gen inner) opt?]))
                          entries))]
     (fn [size]

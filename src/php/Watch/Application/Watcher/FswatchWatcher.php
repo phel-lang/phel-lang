@@ -87,9 +87,7 @@ final class FswatchWatcher implements FileWatcherInterface
         // Prime the snapshot so the resolver can mtime-diff if needed.
         $this->scanner->snapshot($paths);
 
-        /** @var list<WatchEvent> $pending */
-        $pending = [];
-        $lastEventAt = 0;
+        $debouncer = new EventDebouncer($this->clock, $this->debounceMs);
 
         /** @psalm-suppress RedundantCondition */
         while ($this->running && $this->isAlive()) {
@@ -97,14 +95,12 @@ final class FswatchWatcher implements FileWatcherInterface
             if ($line !== false) {
                 $path = trim($line);
                 if ($path !== '') {
-                    $pending[] = new WatchEvent($path, WatchEvent::KIND_MODIFIED);
-                    $lastEventAt = $this->clock->nowMs();
+                    $debouncer->record(new WatchEvent($path, WatchEvent::KIND_MODIFIED));
                 }
             }
 
-            if ($pending !== [] && $this->clock->nowMs() - $lastEventAt >= $this->debounceMs) {
-                $onChange($this->coalesce($pending));
-                $pending = [];
+            if ($debouncer->hasPending()) {
+                $debouncer->flushIfReady($onChange);
             } else {
                 $this->clock->sleepMs(50);
             }
@@ -133,22 +129,6 @@ final class FswatchWatcher implements FileWatcherInterface
         pclose($handle);
 
         return trim($out) !== '';
-    }
-
-    /**
-     * @param list<WatchEvent> $events
-     *
-     * @return list<WatchEvent>
-     */
-    private function coalesce(array $events): array
-    {
-        /** @var array<string, WatchEvent> $byPath */
-        $byPath = [];
-        foreach ($events as $event) {
-            $byPath[$event->path] = $event;
-        }
-
-        return array_values($byPath);
     }
 
     /**

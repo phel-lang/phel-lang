@@ -6,17 +6,18 @@ namespace Phel\Lsp\Application\Handler;
 
 use Phel\Lsp\Application\Diagnostics\DiagnosticPublisher;
 use Phel\Lsp\Application\Document\Document;
+use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\HandlerInterface;
 
 use function is_array;
-use function is_int;
 use function is_string;
 
 final readonly class DidChangeHandler implements HandlerInterface
 {
     public function __construct(
         private DiagnosticPublisher $publisher,
+        private ParamsExtractor $params,
     ) {}
 
     public function method(): string
@@ -34,17 +35,12 @@ final readonly class DidChangeHandler implements HandlerInterface
      */
     public function handle(array $params, Session $session): mixed
     {
-        $textDocument = $params['textDocument'] ?? [];
-        if (!is_array($textDocument)) {
-            return null;
-        }
-
-        $uri = is_string($textDocument['uri'] ?? null) ? $textDocument['uri'] : '';
+        $uri = $this->params->uri($params);
         if ($uri === '') {
             return null;
         }
 
-        $version = is_int($textDocument['version'] ?? null) ? $textDocument['version'] : 0;
+        $version = $this->params->version($params);
 
         $document = $session->documents()->get($uri);
         if (!$document instanceof Document) {
@@ -64,7 +60,7 @@ final readonly class DidChangeHandler implements HandlerInterface
             $text = is_string($change['text'] ?? null) ? $change['text'] : '';
             $range = $change['range'] ?? null;
 
-            if (is_array($range) && $this->isValidRange($range)) {
+            if (is_array($range) && $this->params->isValidRange($range)) {
                 /** @var array{start: array{line: int, character: int}, end: array{line: int, character: int}} $range */
                 $document->applyRange($range, $text);
             } else {
@@ -79,21 +75,5 @@ final readonly class DidChangeHandler implements HandlerInterface
         }
 
         return null;
-    }
-
-    /**
-     * @param array<string, mixed> $range
-     */
-    private function isValidRange(array $range): bool
-    {
-        $start = $range['start'] ?? null;
-        $end = $range['end'] ?? null;
-
-        return is_array($start)
-            && is_array($end)
-            && is_int($start['line'] ?? null)
-            && is_int($start['character'] ?? null)
-            && is_int($end['line'] ?? null)
-            && is_int($end['character'] ?? null);
     }
 }

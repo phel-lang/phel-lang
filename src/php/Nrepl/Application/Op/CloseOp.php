@@ -7,6 +7,7 @@ namespace Phel\Nrepl\Application\Op;
 use Phel\Nrepl\Domain\Op\OpHandlerInterface;
 use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Op\OpResponse;
+use Phel\Nrepl\Domain\Op\OpStatus;
 use Phel\Nrepl\Domain\Session\SessionRegistry;
 
 final readonly class CloseOp implements OpHandlerInterface
@@ -23,7 +24,9 @@ final readonly class CloseOp implements OpHandlerInterface
         $target = $request->session ?? '';
         $closed = $target !== '' && $this->sessions->close($target);
 
-        $status = $closed ? ['done', 'session-closed'] : ['done', 'error', 'unknown-session'];
+        $status = $closed
+            ? [OpStatus::DONE, OpStatus::SESSION_CLOSED]
+            : [OpStatus::DONE, OpStatus::ERROR, OpStatus::UNKNOWN_SESSION];
 
         return [OpResponse::build(
             $request->id,

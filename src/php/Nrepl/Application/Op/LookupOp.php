@@ -8,6 +8,7 @@ use Phel\Api\Transfer\PhelFunction;
 use Phel\Nrepl\Domain\Op\OpHandlerInterface;
 use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Op\OpResponse;
+use Phel\Nrepl\Domain\Op\OpStatus;
 use Phel\Shared\Facade\ApiFacadeInterface;
 
 use function implode;
@@ -43,7 +44,7 @@ final class LookupOp implements OpHandlerInterface
                 $request->id,
                 $request->session,
                 ['message' => 'Missing required "sym" param for ' . $this->opName . ' op.'],
-                ['error', 'no-info', 'done'],
+                [OpStatus::ERROR, OpStatus::NO_INFO, OpStatus::DONE],
             )];
         }
 
@@ -53,7 +54,7 @@ final class LookupOp implements OpHandlerInterface
                 $request->id,
                 $request->session,
                 [],
-                ['done', 'no-info'],
+                [OpStatus::DONE, OpStatus::NO_INFO],
             )];
         }
 
@@ -70,7 +71,7 @@ final class LookupOp implements OpHandlerInterface
             $request->id,
             $request->session,
             ['info' => $info, 'eldoc' => $fn->signatures],
-            ['done'],
+            [OpStatus::DONE],
         )];
     }
 

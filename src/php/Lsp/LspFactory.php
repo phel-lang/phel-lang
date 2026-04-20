@@ -14,6 +14,7 @@ use Phel\Lsp\Application\Convert\CompletionConverter;
 use Phel\Lsp\Application\Convert\DiagnosticConverter;
 use Phel\Lsp\Application\Convert\LocationConverter;
 use Phel\Lsp\Application\Convert\PositionConverter;
+use Phel\Lsp\Application\Convert\SymbolKindMapper;
 use Phel\Lsp\Application\Convert\UriConverter;
 use Phel\Lsp\Application\Diagnostics\DiagnosticPublisher;
 use Phel\Lsp\Application\Document\DocumentStore;
@@ -32,10 +33,12 @@ use Phel\Lsp\Application\Handler\InitializeHandler;
 use Phel\Lsp\Application\Handler\ReferencesHandler;
 use Phel\Lsp\Application\Handler\RenameHandler;
 use Phel\Lsp\Application\Handler\ShutdownHandler;
+use Phel\Lsp\Application\Handler\SymbolResolver;
 use Phel\Lsp\Application\Handler\WorkspaceSymbolHandler;
 use Phel\Lsp\Application\Rpc\LspServer;
 use Phel\Lsp\Application\Rpc\MessageReader;
 use Phel\Lsp\Application\Rpc\MessageWriter;
+use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Rpc\RequestDispatcher;
 use Phel\Lsp\Application\Rpc\ResponseBuilder;
 use Phel\Lsp\Application\Rpc\StreamNotificationSink;
@@ -77,25 +80,28 @@ final class LspFactory extends AbstractFactory
         $uris = $this->createUriConverter();
         $locations = $this->createLocationConverter();
         $completions = $this->createCompletionConverter();
+        $symbolKind = $this->createSymbolKindMapper();
+        $params = $this->createParamsExtractor();
+        $symbols = $this->createSymbolResolver();
 
         $dispatcher->register(new InitializeHandler($this->getApiFacade(), $uris));
         $dispatcher->register(new InitializedHandler());
         $dispatcher->register(new ShutdownHandler());
         $dispatcher->register(new ExitHandler());
 
-        $dispatcher->register(new DidOpenHandler($publisher));
-        $dispatcher->register(new DidChangeHandler($publisher));
-        $dispatcher->register(new DidCloseHandler());
-        $dispatcher->register(new DidSaveHandler($publisher, $this->getApiFacade(), $uris));
+        $dispatcher->register(new DidOpenHandler($publisher, $params));
+        $dispatcher->register(new DidChangeHandler($publisher, $params));
+        $dispatcher->register(new DidCloseHandler($params));
+        $dispatcher->register(new DidSaveHandler($publisher, $this->getApiFacade(), $uris, $params));
 
-        $dispatcher->register(new HoverHandler($this->getApiFacade()));
-        $dispatcher->register(new DefinitionHandler($this->getApiFacade(), $locations));
-        $dispatcher->register(new ReferencesHandler($this->getApiFacade(), $locations));
-        $dispatcher->register(new CompletionHandler($this->getApiFacade(), $completions));
-        $dispatcher->register(new DocumentSymbolHandler($this->getApiFacade(), $positions, $uris));
-        $dispatcher->register(new WorkspaceSymbolHandler($positions, $uris));
-        $dispatcher->register(new RenameHandler($this->getApiFacade(), $positions, $uris));
-        $dispatcher->register(new FormattingHandler($this->getFormatterFacade()));
+        $dispatcher->register(new HoverHandler($this->getApiFacade(), $params, $symbols));
+        $dispatcher->register(new DefinitionHandler($this->getApiFacade(), $locations, $params, $symbols));
+        $dispatcher->register(new ReferencesHandler($this->getApiFacade(), $locations, $params, $symbols));
+        $dispatcher->register(new CompletionHandler($this->getApiFacade(), $completions, $params));
+        $dispatcher->register(new DocumentSymbolHandler($this->getApiFacade(), $positions, $uris, $symbolKind, $params));
+        $dispatcher->register(new WorkspaceSymbolHandler($positions, $uris, $symbolKind));
+        $dispatcher->register(new RenameHandler($this->getApiFacade(), $positions, $uris, $params, $symbols));
+        $dispatcher->register(new FormattingHandler($this->getFormatterFacade(), $params));
 
         return $dispatcher;
     }
@@ -149,6 +155,21 @@ final class LspFactory extends AbstractFactory
     public function createCompletionConverter(): CompletionConverter
     {
         return new CompletionConverter();
+    }
+
+    public function createSymbolKindMapper(): SymbolKindMapper
+    {
+        return new SymbolKindMapper();
+    }
+
+    public function createParamsExtractor(): ParamsExtractor
+    {
+        return new ParamsExtractor();
+    }
+
+    public function createSymbolResolver(): SymbolResolver
+    {
+        return new SymbolResolver();
     }
 
     public function createDiagnosticPublisher(): DiagnosticPublisher

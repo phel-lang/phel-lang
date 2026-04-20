@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Lint\Application\Rule;
 
-use Phel\Api\Transfer\Diagnostic;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
@@ -33,6 +32,8 @@ use function sprintf;
  */
 final readonly class DiscouragedVarRule implements LintRuleInterface
 {
+    private const array DEFINING_FORMS = ['def', 'defn', 'defn-', 'defmacro', 'defmacro-'];
+
     public function code(): string
     {
         return RuleRegistry::DISCOURAGED_VAR;
@@ -47,7 +48,23 @@ final readonly class DiscouragedVarRule implements LintRuleInterface
 
         $result = [];
         foreach ($analysis->forms as $form) {
-            $this->walk($form, $discouraged, $analysis->uri, $result);
+            FormWalker::walk($form, function (mixed $node) use ($discouraged, $analysis, &$result): void {
+                if (!$node instanceof Symbol) {
+                    return;
+                }
+
+                $name = $node->getName();
+                if (!isset($discouraged[$name])) {
+                    return;
+                }
+
+                $result[] = DiagnosticBuilder::fromForm(
+                    $this->code(),
+                    sprintf("Use of discouraged var '%s' (%s).", $name, $discouraged[$name]),
+                    $analysis->uri,
+                    $node,
+                );
+            });
         }
 
         return $result;
@@ -96,8 +113,7 @@ final readonly class DiscouragedVarRule implements LintRuleInterface
             return;
         }
 
-        $name = $head->getName();
-        if (!in_array($name, ['def', 'defn', 'defn-', 'defmacro', 'defmacro-'], true)) {
+        if (!in_array($head->getName(), self::DEFINING_FORMS, true)) {
             return;
         }
 
@@ -116,42 +132,6 @@ final readonly class DiscouragedVarRule implements LintRuleInterface
                 }
             } elseif ($meta instanceof PersistentVectorInterface) {
                 break;
-            }
-        }
-    }
-
-    /**
-     * @param array<string, string> $discouraged
-     * @param list<Diagnostic>      $result
-     */
-    private function walk(mixed $form, array $discouraged, string $uri, array &$result): void
-    {
-        if ($form instanceof Symbol) {
-            $name = $form->getName();
-            if (isset($discouraged[$name])) {
-                $result[] = DiagnosticBuilder::fromForm(
-                    $this->code(),
-                    sprintf("Use of discouraged var '%s' (%s).", $name, $discouraged[$name]),
-                    $uri,
-                    $form,
-                );
-            }
-
-            return;
-        }
-
-        if ($form instanceof PersistentListInterface || $form instanceof PersistentVectorInterface) {
-            foreach ($form as $child) {
-                $this->walk($child, $discouraged, $uri, $result);
-            }
-
-            return;
-        }
-
-        if ($form instanceof PersistentMapInterface) {
-            foreach ($form as $k => $v) {
-                $this->walk($k, $discouraged, $uri, $result);
-                $this->walk($v, $discouraged, $uri, $result);
             }
         }
     }

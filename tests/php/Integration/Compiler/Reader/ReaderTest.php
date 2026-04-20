@@ -23,6 +23,8 @@ use Phel\Lang\TypeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use PHPUnit\Framework\TestCase;
 
+use RuntimeException;
+
 use function get_debug_type;
 use function is_scalar;
 use function sprintf;
@@ -1432,6 +1434,34 @@ final class ReaderTest extends TestCase
         } finally {
             $registry->unregister('shout');
         }
+    }
+
+    public function test_handler_throwing_arbitrary_error_is_wrapped_with_tag_name(): void
+    {
+        $registry = TagRegistry::getInstance();
+        BuiltinTagHandlers::registerAll($registry);
+        $registry->register('boom', static function (mixed $_): never {
+            throw new RuntimeException('kaboom');
+        });
+
+        try {
+            $this->expectException(ReaderException::class);
+            $this->expectExceptionMessage("Tagged-literal handler for '#boom' threw an error: kaboom");
+            $this->read('#boom "ignored"');
+        } finally {
+            $registry->unregister('boom');
+        }
+    }
+
+    public function test_unknown_tag_error_points_to_register_tag_api(): void
+    {
+        $registry = TagRegistry::getInstance();
+        $registry->clear();
+        BuiltinTagHandlers::registerAll($registry);
+
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('Use `(register-tag "xyz" f)` to register a handler');
+        $this->read('#xyz "x"');
     }
 
     private function read(string $string, bool $withLocation = true): float|bool|int|string|TypeInterface|null
