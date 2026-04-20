@@ -23,6 +23,7 @@ final class ApiConfig extends AbstractConfig
             'phel\\repl',
             'phel\\string',
             'phel\\test',
+            'phel\\watch',
         ];
     }
 }
