@@ -3,6 +3,11 @@
 
 declare(strict_types=1);
 
+// Raise memory limit for compiler/tokenizer workloads (mirrors composer bin behavior).
+if (function_exists('ini_set')) {
+    @ini_set('memory_limit', '-1');
+}
+
 use Phel\Console\ConsoleFacade;
 
 // NOTE: When packaged as a PHAR, the stub requires the PHAR's vendor/autoload.php first.
