@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Extractor;
 
+use function strlen;
+
 /**
  * Prefixes that should be skipped during a recursive namespace scan. Combines
  * pre-resolved absolute directories with a basename that prunes
@@ -16,9 +18,12 @@ final readonly class ExcludedScanPaths
      * Segments always pruned from a namespace scan regardless of scan root.
      * Agent tooling (Claude Code, Codex, etc.) drops repo clones under a
      * `worktrees/` directory whose `src/phel/` would shadow real sources.
+     * `.agents/` ships bundled example projects whose tests share namespaces
+     * across projects and must not leak into the host repo's scan.
      */
     private const array ALWAYS_EXCLUDED_SEGMENTS = [
         DIRECTORY_SEPARATOR . 'worktrees' . DIRECTORY_SEPARATOR,
+        DIRECTORY_SEPARATOR . '.agents' . DIRECTORY_SEPARATOR,
     ];
 
     /** @var list<string> */
@@ -43,8 +48,12 @@ final readonly class ExcludedScanPaths
 
     public function contains(string $path, string $scanRoot): bool
     {
+        $relative = str_starts_with($path, $scanRoot)
+            ? substr($path, strlen($scanRoot))
+            : $path;
+
         foreach (self::ALWAYS_EXCLUDED_SEGMENTS as $segment) {
-            if (str_contains($path, $segment)) {
+            if (str_contains($relative, $segment)) {
                 return true;
             }
         }
