@@ -94,6 +94,79 @@ final class ReloadOrchestratorTest extends TestCase
         self::assertSame(0, $reindexer->count);
     }
 
+    public function test_it_returns_empty_list_for_empty_event_batch(): void
+    {
+        $orchestrator = new ReloadOrchestrator(
+            new NamespaceResolver(),
+            new FakeRunFacade(),
+            new FakeBuildFacade([]),
+            new FakeProjectReindexer(),
+            new RecordingPublisher(),
+        );
+
+        self::assertSame([], $orchestrator->handleChanges([], ['/src']));
+    }
+
+    public function test_it_publishes_event_when_no_namespaces_resolve(): void
+    {
+        $reindexer = new FakeProjectReindexer();
+        $publisher = new RecordingPublisher();
+
+        $orchestrator = new ReloadOrchestrator(
+            new NamespaceResolver(),
+            new FakeRunFacade(),
+            new FakeBuildFacade([]),
+            $reindexer,
+            $publisher,
+        );
+
+        $result = $orchestrator->handleChanges(
+            [new WatchEvent('/no-such.phel', WatchEvent::KIND_MODIFIED)],
+            ['/src'],
+        );
+
+        self::assertSame([], $result);
+        // Re-index must not run when nothing reloaded.
+        self::assertSame(0, $reindexer->count);
+        self::assertSame([], $publisher->lastNamespaces);
+    }
+
+    public function test_it_dedupes_same_namespace_reported_via_multiple_events(): void
+    {
+        $file = tempnam(sys_get_temp_dir(), 'watch-ro-');
+        self::assertNotFalse($file);
+
+        try {
+            file_put_contents($file, "(ns app\\core)\n");
+
+            $info = new NamespaceInformation($file, 'app\\core', []);
+            $build = new FakeBuildFacade([$info]);
+            $run = new FakeRunFacade();
+            $publisher = new RecordingPublisher();
+
+            $orchestrator = new ReloadOrchestrator(
+                new NamespaceResolver(),
+                $run,
+                $build,
+                new FakeProjectReindexer(),
+                $publisher,
+            );
+
+            $reloaded = $orchestrator->handleChanges(
+                [
+                    new WatchEvent($file, WatchEvent::KIND_MODIFIED),
+                    new WatchEvent($file, WatchEvent::KIND_MODIFIED),
+                ],
+                ['/src'],
+            );
+
+            self::assertSame(['app\\core'], $reloaded);
+            self::assertSame(1, $run->evalFileCount);
+        } finally {
+            @unlink($file);
+        }
+    }
+
     public function test_it_tolerates_eval_failures_without_aborting_chain(): void
     {
         $file = tempnam(sys_get_temp_dir(), 'watch-ro-');

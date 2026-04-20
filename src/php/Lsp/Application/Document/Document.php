@@ -32,6 +32,15 @@ final class Document
     }
 
     /**
+     * Record a new version without changing the text; useful after a batch
+     * of `applyRange` mutations that already updated `text` incrementally.
+     */
+    public function bumpVersion(int $version): void
+    {
+        $this->version = $version;
+    }
+
+    /**
      * Apply an LSP-style incremental change (range + text). Accepts
      * line/character counts in UTF-16 code units per spec v3.17 — for our
      * purposes we treat them as UTF-8 byte offsets, which is sufficient for

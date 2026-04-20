@@ -7,10 +7,8 @@ namespace Phel\Lsp\Application\Handler;
 use Phel\Api\ApiFacade;
 use Phel\Api\Transfer\Definition;
 use Phel\Api\Transfer\Location;
-use Phel\Api\Transfer\ProjectIndex;
 use Phel\Lsp\Application\Convert\PositionConverter;
 use Phel\Lsp\Application\Convert\UriConverter;
-use Phel\Lsp\Application\Document\Document;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\HandlerInterface;
@@ -47,35 +45,19 @@ final readonly class RenameHandler implements HandlerInterface
      */
     public function handle(array $params, Session $session): mixed
     {
-        $index = $session->projectIndex();
-        if (!$index instanceof ProjectIndex) {
-            return null;
-        }
-
         $newName = is_string($params['newName'] ?? null) ? $params['newName'] : '';
         if ($newName === '') {
             return null;
         }
 
-        $uri = $this->params->uri($params);
-        $position = $this->params->position($params);
-        if ($uri === '' || $position === null) {
+        $context = CursorContext::resolve($params, $session, $this->params);
+        if (!$context instanceof CursorContext) {
             return null;
         }
 
-        $document = $session->documents()->get($uri);
-        if (!$document instanceof Document) {
-            return null;
-        }
-
-        $word = $document->wordAt($position);
-        if ($word === '') {
-            return null;
-        }
-
-        [$namespace, $name] = $this->symbols->split($word, $index);
-        $references = $this->apiFacade->findReferences($index, $namespace, $name);
-        $definition = $this->apiFacade->resolveSymbol($index, $namespace, $name);
+        [$namespace, $name] = $this->symbols->split($context->word, $context->index);
+        $references = $this->apiFacade->findReferences($context->index, $namespace, $name);
+        $definition = $this->apiFacade->resolveSymbol($context->index, $namespace, $name);
 
         return $this->buildWorkspaceEdit($references, $definition, $name, $newName);
     }
@@ -96,7 +78,7 @@ final readonly class RenameHandler implements HandlerInterface
         $changes = [];
 
         if ($definition instanceof Definition) {
-            $uri = $this->uris->isFileUri($definition->uri) ? $definition->uri : $this->uris->fromFilePath($definition->uri);
+            $uri = $this->uris->toClientUri($definition->uri);
             $changes[$uri][] = [
                 'range' => $this->positions->toLspRange(
                     $definition->line,
@@ -109,7 +91,7 @@ final readonly class RenameHandler implements HandlerInterface
         }
 
         foreach ($references as $location) {
-            $uri = $this->uris->isFileUri($location->uri) ? $location->uri : $this->uris->fromFilePath($location->uri);
+            $uri = $this->uris->toClientUri($location->uri);
             $changes[$uri][] = [
                 'range' => $this->positions->toLspRange(
                     $location->line,

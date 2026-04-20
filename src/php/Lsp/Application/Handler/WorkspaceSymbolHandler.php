@@ -4,25 +4,19 @@ declare(strict_types=1);
 
 namespace Phel\Lsp\Application\Handler;
 
-use Phel\Api\Transfer\Definition;
 use Phel\Api\Transfer\ProjectIndex;
-use Phel\Lsp\Application\Convert\PositionConverter;
-use Phel\Lsp\Application\Convert\SymbolKindMapper;
-use Phel\Lsp\Application\Convert\UriConverter;
+use Phel\Lsp\Application\Convert\SymbolInformationBuilder;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\HandlerInterface;
 
 use function is_string;
 use function str_contains;
-use function strlen;
 use function strtolower;
 
 final readonly class WorkspaceSymbolHandler implements HandlerInterface
 {
     public function __construct(
-        private PositionConverter $positions,
-        private UriConverter $uris,
-        private SymbolKindMapper $symbolKind,
+        private SymbolInformationBuilder $symbolBuilder,
     ) {}
 
     public function method(): string
@@ -53,35 +47,9 @@ final readonly class WorkspaceSymbolHandler implements HandlerInterface
                 continue;
             }
 
-            $symbols[] = $this->toSymbolInformation($def);
+            $symbols[] = $this->symbolBuilder->fromDefinitionWithContainer($def);
         }
 
         return $symbols;
-    }
-
-    /**
-     * @return array{
-     *     name: string,
-     *     kind: int,
-     *     containerName: string,
-     *     location: array{
-     *         uri: string,
-     *         range: array{start: array{line: int, character: int}, end: array{line: int, character: int}}
-     *     }
-     * }
-     */
-    private function toSymbolInformation(Definition $def): array
-    {
-        $endCol = $def->col + max(1, strlen($def->name));
-
-        return [
-            'name' => $def->name,
-            'kind' => $this->symbolKind->fromDefinitionKind($def->kind),
-            'containerName' => $def->namespace,
-            'location' => [
-                'uri' => $this->uris->isFileUri($def->uri) ? $def->uri : $this->uris->fromFilePath($def->uri),
-                'range' => $this->positions->toLspRange($def->line, $def->col, $def->line, $endCol),
-            ],
-        ];
     }
 }

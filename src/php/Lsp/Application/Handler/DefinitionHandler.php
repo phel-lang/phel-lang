@@ -8,7 +8,6 @@ use Phel\Api\ApiFacade;
 use Phel\Api\Transfer\Definition;
 use Phel\Api\Transfer\ProjectIndex;
 use Phel\Lsp\Application\Convert\LocationConverter;
-use Phel\Lsp\Application\Document\Document;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\HandlerInterface;
@@ -39,28 +38,12 @@ final readonly class DefinitionHandler implements HandlerInterface
      */
     public function handle(array $params, Session $session): mixed
     {
-        $index = $session->projectIndex();
-        if (!$index instanceof ProjectIndex) {
+        $context = CursorContext::resolve($params, $session, $this->params);
+        if (!$context instanceof CursorContext) {
             return null;
         }
 
-        $uri = $this->params->uri($params);
-        $position = $this->params->position($params);
-        if ($uri === '' || $position === null) {
-            return null;
-        }
-
-        $document = $session->documents()->get($uri);
-        if (!$document instanceof Document) {
-            return null;
-        }
-
-        $word = $document->wordAt($position);
-        if ($word === '') {
-            return null;
-        }
-
-        $definition = $this->lookup($index, $word);
+        $definition = $this->lookup($context->index, $context->word);
         if (!$definition instanceof Definition) {
             return null;
         }

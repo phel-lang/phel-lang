@@ -7,15 +7,12 @@ namespace Phel\Lsp\Application\Handler;
 use Phel\Api\ApiFacade;
 use Phel\Api\Transfer\Definition;
 use Phel\Api\Transfer\ProjectIndex;
-use Phel\Lsp\Application\Convert\PositionConverter;
-use Phel\Lsp\Application\Convert\SymbolKindMapper;
+use Phel\Lsp\Application\Convert\SymbolInformationBuilder;
 use Phel\Lsp\Application\Convert\UriConverter;
 use Phel\Lsp\Application\Document\Document;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\HandlerInterface;
-
-use function strlen;
 
 /**
  * Lists all top-level definitions in the open document. Uses the project
@@ -26,9 +23,8 @@ final readonly class DocumentSymbolHandler implements HandlerInterface
 {
     public function __construct(
         private ApiFacade $apiFacade,
-        private PositionConverter $positions,
         private UriConverter $uris,
-        private SymbolKindMapper $symbolKind,
+        private SymbolInformationBuilder $symbolBuilder,
         private ParamsExtractor $params,
     ) {}
 
@@ -61,7 +57,7 @@ final readonly class DocumentSymbolHandler implements HandlerInterface
 
         $symbols = [];
         foreach ($definitions as $def) {
-            $symbols[] = $this->toSymbolInformation($def);
+            $symbols[] = $this->symbolBuilder->fromDefinition($def);
         }
 
         return $symbols;
@@ -94,29 +90,5 @@ final readonly class DocumentSymbolHandler implements HandlerInterface
         }
 
         return $result;
-    }
-
-    /**
-     * @return array{
-     *     name: string,
-     *     kind: int,
-     *     location: array{
-     *         uri: string,
-     *         range: array{start: array{line: int, character: int}, end: array{line: int, character: int}}
-     *     }
-     * }
-     */
-    private function toSymbolInformation(Definition $def): array
-    {
-        $endCol = $def->col + max(1, strlen($def->name));
-
-        return [
-            'name' => $def->name,
-            'kind' => $this->symbolKind->fromDefinitionKind($def->kind),
-            'location' => [
-                'uri' => $this->uris->isFileUri($def->uri) ? $def->uri : $this->uris->fromFilePath($def->uri),
-                'range' => $this->positions->toLspRange($def->line, $def->col, $def->line, $endCol),
-            ],
-        ];
     }
 }

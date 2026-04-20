@@ -58,6 +58,20 @@ final class UriConverter
         return strlen($uri) >= strlen($prefix) && strtolower(substr($uri, 0, strlen($prefix))) === $prefix;
     }
 
+    /**
+     * Accept either a file URI or a plain filesystem path and return a URI
+     * shape suitable for sending to the LSP client. Keeps handlers free of
+     * the `isFileUri($x) ? $x : fromFilePath($x)` ternary sprinkle.
+     */
+    public function toClientUri(string $uriOrPath): string
+    {
+        if ($uriOrPath === '') {
+            return $uriOrPath;
+        }
+
+        return $this->isFileUri($uriOrPath) ? $uriOrPath : $this->fromFilePath($uriOrPath);
+    }
+
     private function encodePath(string $path): string
     {
         $encoded = preg_replace_callback('/[^A-Za-z0-9_\-.~\/:]/', static fn(array $matches): string => rawurlencode($matches[0]), $path);

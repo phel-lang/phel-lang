@@ -247,3 +247,44 @@
     (is (thrown? \InvalidArgumentException
                  (macroexpand-1 '(phel\match/match [1] [(:or)] :x :else :y)))
         "empty :or raises at expansion")))
+
+(deftest test-or-pattern-rejects-binding-alternatives
+  (is (thrown? \InvalidArgumentException
+               (macroexpand-1 '(phel\match/match [1] [(:or x 2)] x :else :none)))
+      ":or alternatives may not introduce bindings"))
+
+(deftest test-as-pattern-bindings-accumulate
+  (testing ":as plus nested vector binding both resolve"
+    (is (= [1 2 [1 2]]
+           (match [[1 2]] [([a b] :as whole)] [a b whole] :else :else))
+        "whole binding plus inner bindings")))
+
+(deftest test-guard-with-nested-destructure
+  (testing "guard predicate sees bindings from nested patterns"
+    (is (= [:pair 3 4]
+           (match [[3 4]]
+                  [([a b] :guard (fn [v] (> (get v 0) 0)))] [:pair a b]
+                  :else :else))
+        "guard runs after inner bindings")))
+
+(deftest test-rest-binding-with-wildcards
+  (testing "rest works after wildcard head"
+    (is (= [:ok [2 3]]
+           (match [[1 2 3]] [[_ & tail]] [:ok tail] :else :else))))
+  (testing "rest position must be symbol"
+    (is (thrown? \InvalidArgumentException
+                 (macroexpand-1 '(phel\match/match [[1 2]] [[a & 3]] :x :else :y)))
+        "non-symbol rest binding raises")
+    (is (thrown? \InvalidArgumentException
+                 (macroexpand-1 '(phel\match/match [[1 2]] [[a & b c]] :x :else :y)))
+        "multiple items after & raises")))
+
+(deftest test-map-pattern-with-string-keys
+  (is (= 7 (match [{"x" 3 "y" 4}] [{"x" a "y" b}] (+ a b) :else :else))
+      "string keys are valid map pattern keys"))
+
+(deftest test-match-inside-function
+  (testing "match macro expands cleanly when wrapped in fn"
+    (let [classify (fn [v] (match [v] [0] :zero [_] :nonzero))]
+      (is (= :zero (classify 0)))
+      (is (= :nonzero (classify 42))))))
