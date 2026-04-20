@@ -49,7 +49,7 @@ final class DataReadersLoaderTest extends TestCase
         $buildFacade->expects(self::never())->method('evalFile');
         $buildFacade->expects(self::never())->method('getDependenciesForNamespace');
 
-        (new DataReadersLoader($buildFacade))->load([$dir]);
+        new DataReadersLoader($buildFacade)->load([$dir]);
     }
 
     public function test_it_loads_reader_dependencies_then_data_readers_file(): void
@@ -82,7 +82,7 @@ final class DataReadersLoaderTest extends TestCase
                 return new CompiledFile($path, $path, 'phel\\reader');
             });
 
-        (new DataReadersLoader($buildFacade))->load([$dir]);
+        new DataReadersLoader($buildFacade)->load([$dir]);
 
         self::assertSame('deps', $calls[0][0]);
         self::assertSame(['phel\\reader', 'phel\\core'], $calls[0][1]);
@@ -104,7 +104,7 @@ final class DataReadersLoaderTest extends TestCase
 
         $buildFacade->expects(self::never())->method('evalFile');
 
-        (new DataReadersLoader($buildFacade))->load([$dir]);
+        new DataReadersLoader($buildFacade)->load([$dir]);
     }
 
     private function makeTempDir(): string

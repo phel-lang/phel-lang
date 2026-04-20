@@ -171,6 +171,7 @@ final readonly class ProjectCompiler
         ) {
             return false;
         }
+
         return array_all($this->config->getPathsToAvoidCache(), static fn(string $path): bool => !str_contains($targetFile, $path));
     }
 

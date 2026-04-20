@@ -151,7 +151,7 @@ final class Analyzer implements AnalyzerInterface
         // yields `DateTimeImmutable`). Any object that is not one of the
         // persistent types above is treated as an opaque literal value.
         if (is_object($x) && !$x instanceof TypeInterface) {
-            return (new AnalyzeLiteral())->analyze($x, $env);
+            return new AnalyzeLiteral()->analyze($x, $env);
         }
 
         throw new AnalyzerException('Unhandled type: ' . var_export($x, true));
