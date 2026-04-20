@@ -1,6 +1,6 @@
 # Agent index
 
-Rules + CLI: [`RULES.md`](RULES.md). Route by user intent below, drill into task recipe, then the ground-truth doc.
+Rules + CLI: [`RULES.md`](RULES.md).
 
 ## Intent map
 
@@ -20,7 +20,7 @@ Rules + CLI: [`RULES.md`](RULES.md). Route by user intent below, drill into task
 | Data structures | — | `docs/data-structures-guide.md`, `docs/lazy-sequences.md` |
 | Macros | — | `docs/patterns.md` § Writing Macros |
 
-## Working examples (runnable)
+## Examples
 
 - `examples/todo-app/` — HTTP CRUD on `phel\router`, atom store, tests
 - `examples/http-json-api/` — three JSON endpoints

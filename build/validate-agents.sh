@@ -1,16 +1,8 @@
 #!/usr/bin/env bash
 #
-# Phase 6: validate .agents/ drift against the live language.
-#
-# For every project under .agents/examples/, this script:
-#   1. symlinks the repo as a local Composer path dep
-#   2. runs ./vendor/bin/phel test
-#
-# Exits 0 when every example compiles and every test passes.
-# Exits 1 on the first failure, printing the offending example.
-#
-# Run manually:   ./build/validate-agents.sh
-# Or via composer: composer test-agents
+# Runs ./vendor/bin/phel test in each .agents/examples/* project against
+# the local repo (symlinked via composer path repository). Exits non-zero
+# on the first failing project. Invoke via `composer test-agents`.
 
 set -euo pipefail
 
