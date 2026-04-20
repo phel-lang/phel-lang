@@ -97,21 +97,8 @@ final readonly class InvalidDestructuringRule implements LintRuleInterface
      */
     private function inspectFn(PersistentListInterface $form, string $uri, array &$result): void
     {
-        $size = count($form);
-        for ($i = 1; $i < $size; ++$i) {
-            $child = $form->get($i);
-            if ($child instanceof PersistentVectorInterface) {
-                $this->validateParamVector($child, $uri, $result);
-
-                break;
-            }
-
-            if ($child instanceof PersistentListInterface && count($child) > 0) {
-                $head = $child->get(0);
-                if ($head instanceof PersistentVectorInterface) {
-                    $this->validateParamVector($head, $uri, $result);
-                }
-            }
+        foreach (FnParamVectors::of($form) as $paramVector) {
+            $this->validateParamVector($paramVector, $uri, $result);
         }
     }
 

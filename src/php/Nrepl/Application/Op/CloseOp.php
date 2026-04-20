@@ -28,11 +28,6 @@ final readonly class CloseOp implements OpHandlerInterface
             ? [OpStatus::DONE, OpStatus::SESSION_CLOSED]
             : [OpStatus::DONE, OpStatus::ERROR, OpStatus::UNKNOWN_SESSION];
 
-        return [OpResponse::build(
-            $request->id,
-            $request->session,
-            [],
-            $status,
-        )];
+        return [OpResponse::forRequest($request, [], $status)];
     }
 }

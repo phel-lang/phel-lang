@@ -27,11 +27,10 @@ final readonly class EvalOp implements OpHandlerInterface
     {
         $code = $request->stringParam('code');
         if ($code === '') {
-            return [OpResponse::build(
-                $request->id,
-                $request->session,
-                ['message' => 'Missing required "code" param for eval op.'],
-                [OpStatus::ERROR, OpStatus::EVAL_ERROR, OpStatus::DONE],
+            return [OpResponse::errorDone(
+                $request,
+                'Missing required "code" param for eval op.',
+                [OpStatus::EVAL_ERROR],
             )];
         }
 

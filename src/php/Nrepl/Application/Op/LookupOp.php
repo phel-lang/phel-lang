@@ -40,19 +40,17 @@ final class LookupOp implements OpHandlerInterface
         }
 
         if ($symbol === '') {
-            return [OpResponse::build(
-                $request->id,
-                $request->session,
-                ['message' => 'Missing required "sym" param for ' . $this->opName . ' op.'],
-                [OpStatus::ERROR, OpStatus::NO_INFO, OpStatus::DONE],
+            return [OpResponse::errorDone(
+                $request,
+                'Missing required "sym" param for ' . $this->opName . ' op.',
+                [OpStatus::NO_INFO],
             )];
         }
 
         $fn = $this->findFunction($symbol);
         if (!$fn instanceof PhelFunction) {
-            return [OpResponse::build(
-                $request->id,
-                $request->session,
+            return [OpResponse::forRequest(
+                $request,
                 [],
                 [OpStatus::DONE, OpStatus::NO_INFO],
             )];
@@ -67,9 +65,8 @@ final class LookupOp implements OpHandlerInterface
             'line' => $fn->line,
         ];
 
-        return [OpResponse::build(
-            $request->id,
-            $request->session,
+        return [OpResponse::forRequest(
+            $request,
             ['info' => $info, 'eldoc' => $fn->signatures],
             [OpStatus::DONE],
         )];

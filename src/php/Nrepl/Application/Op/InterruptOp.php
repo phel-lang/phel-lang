@@ -20,9 +20,8 @@ final class InterruptOp implements OpHandlerInterface
     {
         // Phel evaluates synchronously; there is nothing to interrupt on the
         // single-threaded request path. Acknowledge so editors stay happy.
-        return [OpResponse::build(
-            $request->id,
-            $request->session,
+        return [OpResponse::forRequest(
+            $request,
             [],
             [OpStatus::DONE, OpStatus::SESSION_IDLE],
         )];

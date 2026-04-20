@@ -57,21 +57,19 @@ final class OpDispatcher
         $request = OpRequest::fromMessage($message);
 
         if ($request->op === '') {
-            return [OpResponse::build(
-                $request->id,
-                $request->session,
-                ['message' => 'Missing "op" key in request.'],
-                [OpStatus::ERROR, OpStatus::INVALID_OP, OpStatus::DONE],
+            return [OpResponse::errorDone(
+                $request,
+                'Missing "op" key in request.',
+                [OpStatus::INVALID_OP],
             )];
         }
 
         $handler = $this->handlers[$request->op] ?? null;
         if (!$handler instanceof OpHandlerInterface) {
-            return [OpResponse::build(
-                $request->id,
-                $request->session,
-                ['message' => 'Unknown op: ' . $request->op],
-                [OpStatus::ERROR, OpStatus::UNKNOWN_OP, OpStatus::DONE],
+            return [OpResponse::errorDone(
+                $request,
+                'Unknown op: ' . $request->op,
+                [OpStatus::UNKNOWN_OP],
             )];
         }
 

@@ -61,55 +61,50 @@ final readonly class UnusedImportRule implements LintRuleInterface
     private function collectImports(PersistentListInterface $nsForm): array
     {
         $result = [];
-        $size = count($nsForm);
+        foreach (NsClauseIterator::clauses($nsForm, 'use') as $clause) {
+            foreach ($this->importsInClause($clause) as $entry) {
+                $result[] = $entry;
+            }
+        }
 
-        for ($i = 2; $i < $size; ++$i) {
-            $child = $nsForm->get($i);
-            if (!$child instanceof PersistentListInterface) {
+        return $result;
+    }
+
+    /**
+     * @return list<array{alias:string, display:string, anchor: mixed}>
+     */
+    private function importsInClause(PersistentListInterface $clause): array
+    {
+        if (count($clause) < 2) {
+            return [];
+        }
+
+        $result = [];
+        $size = count($clause);
+        for ($i = 1; $i < $size; ++$i) {
+            $item = $clause->get($i);
+            if (!$item instanceof Symbol) {
                 continue;
             }
 
-            if (count($child) < 2) {
-                continue;
-            }
-
-            $head = $child->get(0);
-            if (!$head instanceof Keyword) {
-                continue;
-            }
-
-            if ($head->getName() !== 'use') {
-                continue;
-            }
-
-            $inner = count($child);
-            for ($j = 1; $j < $inner; ++$j) {
-                $item = $child->get($j);
-                if (!$item instanceof Symbol) {
-                    continue;
-                }
-
-                $target = $item;
-                $alias = null;
-
-                // Look ahead for `:as Alias`.
-                if ($j + 1 < $inner) {
-                    $maybeKey = $child->get($j + 1);
-                    if ($maybeKey instanceof Keyword && $maybeKey->getName() === 'as' && $j + 2 < $inner) {
-                        $aliasCandidate = $child->get($j + 2);
-                        if ($aliasCandidate instanceof Symbol) {
-                            $alias = $aliasCandidate->getName();
-                            $j += 2;
-                        }
+            $alias = null;
+            // Look ahead for `:as Alias`.
+            if ($i + 2 < $size) {
+                $maybeKey = $clause->get($i + 1);
+                if ($maybeKey instanceof Keyword && $maybeKey->getName() === 'as') {
+                    $aliasCandidate = $clause->get($i + 2);
+                    if ($aliasCandidate instanceof Symbol) {
+                        $alias = $aliasCandidate->getName();
+                        $i += 2;
                     }
                 }
-
-                $result[] = [
-                    'alias' => $alias ?? $this->defaultAlias($target),
-                    'display' => $target->getName(),
-                    'anchor' => $target,
-                ];
             }
+
+            $result[] = [
+                'alias' => $alias ?? $this->defaultAlias($item),
+                'display' => $item->getName(),
+                'anchor' => $item,
+            ];
         }
 
         return $result;

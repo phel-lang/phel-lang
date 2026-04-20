@@ -47,11 +47,9 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             }
 
             $doc = (string) ($meta[Keyword::create('doc')] ?? '');
-            preg_match('#(```phel\n(?<signature>.*)\n```\n)?(?<desc>.*)#s', $doc, $matches);
-
-            $signatureBlock = $matches['signature'] ?? '';
-            $signatures = $this->parseSignatures($signatureBlock);
-            $description = $matches['desc'] ?? '';
+            $parsed = DocstringSignatureParser::parse($doc);
+            $signatures = $parsed['signatures'];
+            $description = $parsed['description'];
 
             $namespace = $this->extractNamespace($fnName);
             $groupKey = $this->phelFnGroupKeyGenerator->generateGroupKey($namespace, $fnName);
@@ -223,27 +221,5 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         }
 
         return $url;
-    }
-
-    /**
-     * @return list<string>
-     */
-    private function parseSignatures(string $signatureBlock): array
-    {
-        if ($signatureBlock === '') {
-            return [];
-        }
-
-        $lines = explode("\n", $signatureBlock);
-        $signatures = [];
-
-        foreach ($lines as $line) {
-            $line = trim($line);
-            if ($line !== '') {
-                $signatures[] = $line;
-            }
-        }
-
-        return $signatures;
     }
 }

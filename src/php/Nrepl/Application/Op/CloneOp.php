@@ -23,9 +23,8 @@ final readonly class CloneOp implements OpHandlerInterface
     {
         $session = $this->sessions->create();
 
-        return [OpResponse::build(
-            $request->id,
-            $request->session,
+        return [OpResponse::forRequest(
+            $request,
             ['new-session' => $session->id],
             [OpStatus::DONE],
         )];

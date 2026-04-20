@@ -104,38 +104,18 @@ final readonly class ArityMismatchRule implements LintRuleInterface
      */
     private function collectArities(PersistentListInterface $form): ?array
     {
-        $size = count($form);
         $minArity = PHP_INT_MAX;
         $maxArity = 0;
         $variadic = false;
         $found = false;
 
-        for ($i = 2; $i < $size; ++$i) {
-            $child = $form->get($i);
-
-            if ($child instanceof PersistentVectorInterface) {
-                [$arity, $isVariadic] = $this->analyseArityVector($child);
-                $found = true;
-                $minArity = min($minArity, $arity);
-                $maxArity = max($maxArity, $arity);
-                if ($isVariadic) {
-                    $variadic = true;
-                }
-
-                break; // single-arity form: first vector is the param list.
-            }
-
-            if ($child instanceof PersistentListInterface && count($child) > 0) {
-                $head = $child->get(0);
-                if ($head instanceof PersistentVectorInterface) {
-                    [$arity, $isVariadic] = $this->analyseArityVector($head);
-                    $found = true;
-                    $minArity = min($minArity, $arity);
-                    $maxArity = max($maxArity, $arity);
-                    if ($isVariadic) {
-                        $variadic = true;
-                    }
-                }
+        foreach (FnParamVectors::of($form) as $params) {
+            [$arity, $isVariadic] = $this->analyseArityVector($params);
+            $found = true;
+            $minArity = min($minArity, $arity);
+            $maxArity = max($maxArity, $arity);
+            if ($isVariadic) {
+                $variadic = true;
             }
         }
 

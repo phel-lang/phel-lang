@@ -9,7 +9,6 @@ use Fiber;
 use Phel\Nrepl\Domain\Op\OpDispatcher;
 use Phel\Nrepl\Domain\Transport\ClientConnection;
 use RuntimeException;
-use Throwable;
 
 use function fclose;
 use function is_resource;
@@ -27,8 +26,9 @@ use function usleep;
  * TCP nREPL server. Accepts bencode-framed connections on a port and
  * dispatches op messages through OpDispatcher.
  *
- * Uses one Fiber per connected client. The main accept loop yields between
- * iterations so Fibers can run cooperatively without blocking each other.
+ * Uses one Fiber per connected client, coordinated by `ClientFiberPool`.
+ * The main accept loop yields between iterations so Fibers run
+ * cooperatively without blocking each other.
  */
 final class NreplSocketServer
 {
@@ -37,8 +37,7 @@ final class NreplSocketServer
 
     private bool $running = false;
 
-    /** @var list<Fiber> */
-    private array $clientFibers = [];
+    private readonly ClientFiberPool $fiberPool;
 
     private readonly ?Closure $logger;
 
@@ -49,6 +48,9 @@ final class NreplSocketServer
         ?callable $logger = null,
     ) {
         $this->logger = $logger === null ? null : Closure::fromCallable($logger);
+        $this->fiberPool = new ClientFiberPool(function (string $message): void {
+            $this->log($message);
+        });
     }
 
     public function port(): int
@@ -146,45 +148,13 @@ final class NreplSocketServer
         });
 
         $fiber->start($connection);
-        if (!$fiber->isTerminated()) {
-            $this->clientFibers[] = $fiber;
-        }
+
+        $this->fiberPool->add($fiber);
     }
 
     public function stepFibers(): void
     {
-        $remaining = [];
-        foreach ($this->clientFibers as $fiber) {
-            $alive = $this->advanceFiber($fiber);
-            if ($alive) {
-                $remaining[] = $fiber;
-            }
-        }
-
-        $this->clientFibers = $remaining;
-    }
-
-    /**
-     * Returns true if the fiber is still alive and should be retained.
-     */
-    private function advanceFiber(Fiber $fiber): bool
-    {
-        if ($fiber->isTerminated()) {
-            return false;
-        }
-
-        if (!$fiber->isSuspended()) {
-            return true;
-        }
-
-        try {
-            $fiber->resume();
-        } catch (Throwable $throwable) {
-            $this->log('Client fiber error: ' . $throwable->getMessage());
-            return false;
-        }
-
-        return $fiber->isSuspended();
+        $this->fiberPool->step();
     }
 
     private function serveClient(ClientConnection $connection): void
