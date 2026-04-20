@@ -19,10 +19,18 @@ final class PharBuilder
         'errors' => [],
     ];
 
+    /**
+     * Basenames skipped at any depth. phar.sh already prunes top-level
+     * dev dirs via rsync; the ones listed here catch the same names inside
+     * vendor packages (e.g. vendor/foo/tests, vendor/foo/docs).
+     */
     private array $excludeDirs = [
         '', '.', '..',
-        '.git', '.github', '.idea', '.claude', '.vscode', '.agents',
-        'docs', 'tests', 'docker', 'local', 'build', 'tools', 'examples', 'fixtures', 'out',
+        '.git', '.github', '.idea', '.claude', '.vscode', '.agents', '.phpbench',
+        'docs', 'Doc', 'doc',
+        'tests', 'Tests', 'test', 'Test',
+        'docker', 'benchmarks', 'bench',
+        'local', 'build', 'tools', 'examples', 'fixtures', 'out',
         '.phel-cache', '.phpunit.cache',
     ];
 
@@ -36,14 +44,37 @@ final class PharBuilder
         'phel-config-local.php' => true,
         'php-cs-fixer.php' => true,
         'psalm.xml' => true,
+        'psalm-gacela.xml' => true,
         'rector.php' => true,
         'phpunit.xml.dist' => true,
         'logo_readme.svg' => true,
+        'logo.svg' => true,
+        'README.md' => true,
+        'CHANGELOG.md' => true,
+        'AGENTS.md' => true,
+        'CONTRIBUTING.md' => true,
+        'CLAUDE.md' => true,
+        'AUTHORS.md' => true,
+        'SECURITY.md' => true,
+        'CODE_OF_CONDUCT.md' => true,
+        'HISTORY.md' => true,
     ];
 
     private array $excludeExtensions = [
         '.log' => true,
+        '.svg' => true,
+        '.bash' => true,
+        '.zsh' => true,
+        '.fish' => true,
     ];
+
+    /**
+     * Matches versioned doc files like UPGRADE-5.4.md or CHANGELOG-7.0.md
+     * shipped by some vendor packages.
+     */
+    private string $versionedDocPattern = '/^(README|CHANGELOG|CHANGES|UPGRADE|HISTORY)(-[\w.]+)?\.(md|rst|txt)$/i';
+
+    private string $stdlibCacheDir;
 
     public function __construct(string $root)
     {
@@ -52,6 +83,7 @@ final class PharBuilder
         $this->releaseConfigFile = $this->root . '/.phel-release.php';
         $this->stats['start_time'] = microtime(true);
         $this->isOfficialRelease = $this->checkOfficialRelease();
+        $this->stdlibCacheDir = (string) (getenv('STDLIB_CACHE_DIR') ?: '');
     }
 
     public function validate(): void
@@ -121,6 +153,7 @@ final class PharBuilder
     {
         $cacheDir = $this->root . '/cache';
         $compiledDir = $cacheDir . '/compiled';
+        $outDir = $this->root . '/out';
 
         // Clean previous compiled cache to avoid stale entries
         if (is_dir($compiledDir)) {
@@ -132,6 +165,19 @@ final class PharBuilder
             }
         }
 
+        $hash = $this->stdlibSourceHash();
+        if ($this->restoreStdlibFromCache($hash, $cacheDir, $compiledDir)) {
+            return;
+        }
+
+        // rsync excludes out/, so phel build has nowhere to write. Create it
+        // up front; otherwise build aborts with a file_put_contents warning
+        // and only appears to succeed because a previous /tmp/phel/cache run
+        // is still around.
+        if (!is_dir($outDir) && !mkdir($outDir, 0o755, true) && !is_dir($outDir)) {
+            throw new RuntimeException("Failed to create build output dir: {$outDir}");
+        }
+
         // Build the project using Phel's build command — this compiles all
         // stdlib modules through the normal pipeline, populating the temp cache.
         $exitCode = 0;
@@ -141,7 +187,7 @@ final class PharBuilder
         );
 
         if ($exitCode !== 0) {
-            echo "⚠️  phel build exited with code {$exitCode}, attempting to continue\n";
+            throw new RuntimeException("phel build failed with exit code {$exitCode}");
         }
 
         // Copy the compiled cache from the temp dir to the project-local cache/
@@ -181,6 +227,10 @@ final class PharBuilder
                     if (str_starts_with($namespace, 'phel\\')) {
                         // Rewrite compiled_path to be relative to phar cache dir
                         $entry['compiled_path'] = $compiledDir . '/' . basename($entry['compiled_path']);
+                        // Drop wall-clock timestamps so the index is deterministic
+                        if (\array_key_exists('last_accessed', $entry)) {
+                            $entry['last_accessed'] = 0;
+                        }
                         $stdlibEntries[$namespace] = $entry;
                     }
                 }
@@ -193,6 +243,8 @@ final class PharBuilder
         }
 
         echo "📦  Pre-compiled {$copiedCount} stdlib module(s) into cache/compiled/\n";
+
+        $this->persistStdlibCache($hash, $compiledDir, $cacheDir);
     }
 
     /**
@@ -212,6 +264,7 @@ final class PharBuilder
             $this->addFiles($phar);
             $this->setStub($phar);
             $this->compressPhar($phar);
+            $phar->setSignatureAlgorithm(Phar::SHA256);
 
             $phar->stopBuffering();
 
@@ -261,6 +314,91 @@ final class PharBuilder
         return file_exists($this->pharFile) && is_executable($this->pharFile);
     }
 
+    private function stdlibSourceHash(): string
+    {
+        $sourceDir = $this->root . '/src/phel';
+        if (!is_dir($sourceDir)) {
+            return '';
+        }
+
+        $iter = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($sourceDir, FilesystemIterator::SKIP_DOTS),
+        );
+
+        $files = [];
+        foreach ($iter as $f) {
+            if ($f->isFile() && str_ends_with($f->getFilename(), '.phel')) {
+                $files[] = $f->getPathname();
+            }
+        }
+
+        sort($files);
+
+        $ctx = hash_init('sha256');
+        foreach ($files as $path) {
+            hash_update($ctx, substr($path, \strlen($sourceDir)));
+            hash_update_file($ctx, $path);
+        }
+
+        return hash_final($ctx);
+    }
+
+    private function restoreStdlibFromCache(string $hash, string $cacheDir, string $compiledDir): bool
+    {
+        if ($this->stdlibCacheDir === '' || $hash === '') {
+            return false;
+        }
+
+        $bucket = $this->stdlibCacheDir . '/' . $hash;
+        if (!is_dir($bucket . '/compiled') || !is_file($bucket . '/compiled-index.php')) {
+            return false;
+        }
+
+        if (!is_dir($compiledDir) && !mkdir($compiledDir, 0o755, true) && !is_dir($compiledDir)) {
+            return false;
+        }
+
+        $cached = glob($bucket . '/compiled/*');
+        if ($cached === false) {
+            return false;
+        }
+
+        $count = 0;
+        foreach ($cached as $file) {
+            if (copy($file, $compiledDir . '/' . basename($file))) {
+                ++$count;
+            }
+        }
+
+        copy($bucket . '/compiled-index.php', $cacheDir . '/compiled-index.php');
+
+        echo "📦  Reused {$count} cached stdlib module(s) for hash " . substr($hash, 0, 12) . "\n";
+        return true;
+    }
+
+    private function persistStdlibCache(string $hash, string $compiledDir, string $cacheDir): void
+    {
+        if ($this->stdlibCacheDir === '' || $hash === '') {
+            return;
+        }
+
+        $bucket = $this->stdlibCacheDir . '/' . $hash;
+        $bucketCompiled = $bucket . '/compiled';
+        if (!is_dir($bucketCompiled) && !mkdir($bucketCompiled, 0o755, true) && !is_dir($bucketCompiled)) {
+            return;
+        }
+
+        $files = glob($compiledDir . '/*') ?: [];
+        foreach ($files as $file) {
+            @copy($file, $bucketCompiled . '/' . basename($file));
+        }
+
+        $indexFile = $cacheDir . '/compiled-index.php';
+        if (is_file($indexFile)) {
+            @copy($indexFile, $bucket . '/compiled-index.php');
+        }
+    }
+
     /**
      * Determine if this is an official release build
      */
@@ -277,67 +415,66 @@ final class PharBuilder
     private function addFiles(Phar $phar): void
     {
         $excludeDirMap = array_fill_keys($this->excludeDirs, true);
+        $excludeFiles = $this->excludeFiles;
+        $excludeExtensions = $this->excludeExtensions;
+        $versionedDocPattern = $this->versionedDocPattern;
+
+        $filter = static function ($current) use (
+            $excludeDirMap,
+            $excludeFiles,
+            $excludeExtensions,
+            $versionedDocPattern,
+        ): bool {
+            $basename = $current->getBasename();
+
+            if ($current->isDir()) {
+                return !isset($excludeDirMap[$basename]);
+            }
+
+            if (isset($excludeFiles[$basename])) {
+                return false;
+            }
+
+            $ext = strrchr($basename, '.');
+            if ($ext !== false && isset($excludeExtensions[$ext])) {
+                return false;
+            }
+
+            if ($basename[0] === '.' && $basename !== '.phel-release.php') {
+                return false;
+            }
+
+            if (preg_match($versionedDocPattern, $basename) === 1) {
+                return false;
+            }
+
+            return true;
+        };
+
         $iterator = new RecursiveIteratorIterator(
             new RecursiveCallbackFilterIterator(
-                new RecursiveDirectoryIterator($this->root, FilesystemIterator::FOLLOW_SYMLINKS),
-                static function ($current, $key, $iterator) use ($excludeDirMap) {
-                    if (!$current->isDir()) {
-                        return true;
-                    }
-
-                    $basename = $current->getBasename();
-                    return !isset($excludeDirMap[$basename]);
-                },
+                new RecursiveDirectoryIterator($this->root, FilesystemIterator::SKIP_DOTS),
+                $filter,
             ),
         );
 
+        try {
+            $added = $phar->buildFromIterator($iterator, $this->root);
+        } catch (Exception $e) {
+            $this->stats['errors'][] = "buildFromIterator failed: {$e->getMessage()}";
+            return;
+        }
+
         $totalSize = 0;
-        foreach ($iterator as $file) {
-            if (!$file->isFile()) {
-                continue;
-            }
-
-            $basename = $file->getBasename();
-
-            if (!$this->shouldIncludeFile($basename)) {
-                continue;
-            }
-
-            $local = substr($file->getPathname(), \strlen($this->root) + 1);
-            try {
-                $phar->addFile($file->getPathname(), $local);
-                $totalSize += filesize($file->getPathname());
-                ++$this->stats['files_added'];
-            } catch (Exception $e) {
-                $this->stats['errors'][] = "Failed to add file {$local}: {$e->getMessage()}";
+        foreach ($added as $pharPath => $sourcePath) {
+            $size = @filesize($sourcePath);
+            if ($size !== false) {
+                $totalSize += $size;
             }
         }
 
+        $this->stats['files_added'] = \count($added);
         $this->stats['total_size'] = $totalSize;
-    }
-
-    /**
-     * Determine if a file should be included
-     */
-    private function shouldIncludeFile(string $basename): bool
-    {
-        // Check excluded files
-        if (isset($this->excludeFiles[$basename])) {
-            return false;
-        }
-
-        // Check excluded extensions
-        $ext = strrchr($basename, '.');
-        if ($ext && isset($this->excludeExtensions[$ext])) {
-            return false;
-        }
-
-        // Skip hidden files (but include .phel-release.php if it exists)
-        if ($basename[0] === '.' && $basename !== '.phel-release.php') {
-            return false;
-        }
-
-        return true;
     }
 
     /**
