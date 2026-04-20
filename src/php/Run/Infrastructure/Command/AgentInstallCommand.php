@@ -198,6 +198,11 @@ final class AgentInstallCommand extends Command
             }
         }
 
-        throw new RuntimeException('Cannot locate bundled .agents/ directory');
+        throw new RuntimeException(
+            'Cannot locate bundled .agents/ directory. '
+            . 'The .agents/ tree is not shipped inside phel.phar; install phel-lang via '
+            . 'Composer (composer require phel-lang/phel-lang) and run agent-install from '
+            . './vendor/bin/phel instead.',
+        );
     }
 }

@@ -21,7 +21,7 @@ final class PharBuilder
 
     private array $excludeDirs = [
         '', '.', '..',
-        '.git', '.github', '.idea', '.claude', '.vscode',
+        '.git', '.github', '.idea', '.claude', '.vscode', '.agents',
         'docs', 'tests', 'docker', 'local', 'build', 'tools', 'examples', 'fixtures', 'out',
         '.phel-cache', '.phpunit.cache',
     ];
@@ -48,31 +48,18 @@ final class PharBuilder
     public function __construct(string $root)
     {
         $this->root = realpath($root) ?: $root;
-        $this->pharFile = $this->root.'/phel.phar';
-        $this->releaseConfigFile = $this->root.'/.phel-release.php';
+        $this->pharFile = $this->root . '/phel.phar';
+        $this->releaseConfigFile = $this->root . '/.phel-release.php';
         $this->stats['start_time'] = microtime(true);
         $this->isOfficialRelease = $this->checkOfficialRelease();
     }
 
-    /**
-     * Determine if this is an official release build
-     */
-    private function checkOfficialRelease(): bool
-    {
-        $officialRelease = getenv('OFFICIAL_RELEASE');
-        return $officialRelease !== false && in_array(
-                strtolower($officialRelease),
-                ['1', 'true', 'yes'],
-                true
-            );
-    }
-
     public function validate(): void
     {
-        if (ini_get('phar.readonly') === '1') {
+        if (\ini_get('phar.readonly') === '1') {
             throw new RuntimeException(
-                "phar.readonly is enabled.\n".
-                "Run this script with: php -d phar.readonly=0 build/build-phar.php [path]"
+                "phar.readonly is enabled.\n"
+                . 'Run this script with: php -d phar.readonly=0 build/build-phar.php [path]',
             );
         }
 
@@ -92,7 +79,7 @@ final class PharBuilder
         ];
 
         foreach ($requiredFiles as $file) {
-            $fullPath = $this->root.'/'.$file;
+            $fullPath = $this->root . '/' . $file;
             if (!file_exists($fullPath)) {
                 throw new RuntimeException("Required file not found: {$file}");
             }
@@ -149,7 +136,7 @@ final class PharBuilder
         // stdlib modules through the normal pipeline, populating the temp cache.
         $exitCode = 0;
         passthru(
-            sprintf('cd %s && php bin/phel build --quiet 2>&1', escapeshellarg($this->root)),
+            \sprintf('cd %s && php bin/phel build --quiet 2>&1', escapeshellarg($this->root)),
             $exitCode,
         );
 
@@ -180,7 +167,7 @@ final class PharBuilder
         foreach ($compiledFiles as $file) {
             $basename = basename($file);
             if (copy($file, $compiledDir . '/' . $basename)) {
-                $copiedCount++;
+                ++$copiedCount;
             }
         }
 
@@ -188,7 +175,7 @@ final class PharBuilder
         $indexFile = $tempCacheDir . '/compiled-index.php';
         if (file_exists($indexFile)) {
             $indexData = @include $indexFile;
-            if (is_array($indexData) && isset($indexData['entries'])) {
+            if (\is_array($indexData) && isset($indexData['entries'])) {
                 $stdlibEntries = [];
                 foreach ($indexData['entries'] as $namespace => $entry) {
                     if (str_starts_with($namespace, 'phel\\')) {
@@ -229,11 +216,62 @@ final class PharBuilder
             $phar->stopBuffering();
 
             if (!chmod($this->pharFile, 0755)) {
-                throw new RuntimeException("Failed to set executable permissions on PHAR");
+                throw new RuntimeException('Failed to set executable permissions on PHAR');
             }
         } catch (Exception $e) {
             throw new RuntimeException("Failed to build PHAR: {$e->getMessage()}", 0, $e);
         }
+    }
+
+    /**
+     * Generate a summary report
+     */
+    public function report(): string
+    {
+        $duration = microtime(true) - $this->stats['start_time'];
+        $sizeKb = round($this->stats['total_size'] / 1024, 2);
+        $sizeMb = round($this->stats['total_size'] / (1024 * 1024), 3);
+        $pharSizeMb = round(filesize($this->pharFile) / (1024 * 1024), 3);
+        $compressionRatio = round((1 - filesize($this->pharFile) / $this->stats['total_size']) * 100, 1);
+
+        $durationStr = $this->formatDuration($duration);
+        $typeEmoji = $this->isOfficialRelease ? '🚀' : '🧪';
+        $typeLabel = $this->isOfficialRelease ? 'Official Release' : 'Beta';
+
+        $report = "{$typeEmoji}  PHAR Build Complete\n\n";
+        $report .= "📦  Release Type:    {$typeLabel}\n";
+        $report .= "\n";
+        $report .= "📊  Build Metrics:\n";
+        $report .= "   • Files Added:      {$this->stats['files_added']}\n";
+        $report .= "   • Source Size:      {$sizeMb} MB ({$sizeKb} KB)\n";
+        $report .= "   • PHAR Size:        {$pharSizeMb} MB\n";
+        $report .= "   • Compression:      {$compressionRatio}%\n";
+        $report .= "\n";
+        $report .= "⏱️  Build Duration:     {$durationStr}\n";
+
+        if (!empty($this->stats['errors'])) {
+            $report .= '⚠️  Warnings:           ' . \count($this->stats['errors']) . "\n";
+        }
+
+        return $report;
+    }
+
+    public function isSuccessful(): bool
+    {
+        return file_exists($this->pharFile) && is_executable($this->pharFile);
+    }
+
+    /**
+     * Determine if this is an official release build
+     */
+    private function checkOfficialRelease(): bool
+    {
+        $officialRelease = getenv('OFFICIAL_RELEASE');
+        return $officialRelease !== false && \in_array(
+            strtolower($officialRelease),
+            ['1', 'true', 'yes'],
+            true,
+        );
     }
 
     private function addFiles(Phar $phar): void
@@ -242,15 +280,15 @@ final class PharBuilder
         $iterator = new RecursiveIteratorIterator(
             new RecursiveCallbackFilterIterator(
                 new RecursiveDirectoryIterator($this->root, FilesystemIterator::FOLLOW_SYMLINKS),
-                function ($current, $key, $iterator) use ($excludeDirMap) {
+                static function ($current, $key, $iterator) use ($excludeDirMap) {
                     if (!$current->isDir()) {
                         return true;
                     }
 
                     $basename = $current->getBasename();
                     return !isset($excludeDirMap[$basename]);
-                }
-            )
+                },
+            ),
         );
 
         $totalSize = 0;
@@ -265,11 +303,11 @@ final class PharBuilder
                 continue;
             }
 
-            $local = substr($file->getPathname(), strlen($this->root) + 1);
+            $local = substr($file->getPathname(), \strlen($this->root) + 1);
             try {
                 $phar->addFile($file->getPathname(), $local);
                 $totalSize += filesize($file->getPathname());
-                $this->stats['files_added']++;
+                ++$this->stats['files_added'];
             } catch (Exception $e) {
                 $this->stats['errors'][] = "Failed to add file {$local}: {$e->getMessage()}";
             }
@@ -331,54 +369,16 @@ EOF;
         }
     }
 
-    /**
-     * Generate a summary report
-     */
-    public function report(): string
-    {
-        $duration = microtime(true) - $this->stats['start_time'];
-        $sizeKb = round($this->stats['total_size'] / 1024, 2);
-        $sizeMb = round($this->stats['total_size'] / (1024 * 1024), 3);
-        $pharSizeMb = round(filesize($this->pharFile) / (1024 * 1024), 3);
-        $compressionRatio = round((1 - filesize($this->pharFile) / $this->stats['total_size']) * 100, 1);
-
-        $durationStr = $this->formatDuration($duration);
-        $typeEmoji = $this->isOfficialRelease ? '🚀' : '🧪';
-        $typeLabel = $this->isOfficialRelease ? 'Official Release' : 'Beta';
-
-        $report = "{$typeEmoji}  PHAR Build Complete\n\n";
-        $report .= "📦  Release Type:    {$typeLabel}\n";
-        $report .= "\n";
-        $report .= "📊  Build Metrics:\n";
-        $report .= "   • Files Added:      {$this->stats['files_added']}\n";
-        $report .= "   • Source Size:      {$sizeMb} MB ({$sizeKb} KB)\n";
-        $report .= "   • PHAR Size:        {$pharSizeMb} MB\n";
-        $report .= "   • Compression:      {$compressionRatio}%\n";
-        $report .= "\n";
-        $report .= "⏱️  Build Duration:     {$durationStr}\n";
-
-        if (!empty($this->stats['errors'])) {
-            $report .= "⚠️  Warnings:           ".count($this->stats['errors'])."\n";
-        }
-
-        return $report;
-    }
-
     private function formatDuration(float $seconds): string
     {
         if ($seconds < 60) {
-            return round($seconds, 2).'s';
+            return round($seconds, 2) . 's';
         }
 
         $minutes = intdiv((int) $seconds, 60);
         $secs = $seconds % 60;
 
-        return $minutes.'m '.round($secs, 1).'s';
-    }
-
-    public function isSuccessful(): bool
-    {
-        return file_exists($this->pharFile) && is_executable($this->pharFile);
+        return $minutes . 'm ' . round($secs, 1) . 's';
     }
 }
 
@@ -386,7 +386,7 @@ EOF;
 // Main Execution
 // ============================================================================
 try {
-    $root = $argv[1] ?? dirname(__DIR__);
+    $root = $argv[1] ?? \dirname(__DIR__);
     if (!is_dir($root)) {
         throw new InvalidArgumentException("Invalid root directory: {$root}");
     }
@@ -395,7 +395,7 @@ try {
     $builder->build();
 
     if (!$builder->isSuccessful()) {
-        throw new RuntimeException("PHAR build completed but file is not executable");
+        throw new RuntimeException('PHAR build completed but file is not executable');
     }
 
     echo $builder->report();
