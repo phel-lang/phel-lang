@@ -1,0 +1,40 @@
+(ns phel-test\test\reader
+  (:require phel\reader :as reader)
+  (:require phel\test :refer [deftest is]))
+
+(defn- datetime? [x]
+  (php/instanceof x \DateTimeImmutable))
+
+(deftest test-inst-returns-datetime
+  (let [dt #inst "2026-04-20T12:00:00Z"]
+    (is (datetime? dt))
+    (is (= "2026-04-20T12:00:00+00:00" (php/-> dt (format "c"))))))
+
+(deftest test-inst-defaults-to-utc
+  (let [dt #inst "2026-04-20T12:00:00"]
+    (is (= "+00:00" (php/-> dt (format "P"))))))
+
+(deftest test-uuid-regression
+  (is (= "550e8400-e29b-41d4-a716-446655440000"
+         #uuid "550E8400-E29B-41D4-A716-446655440000")))
+
+(deftest test-regex-literal-tag
+  (is (= "/[a-z]+/" #regex "[a-z]+")))
+
+(deftest test-tag-registered
+  (is (reader/tag-registered? "inst"))
+  (is (reader/tag-registered? "regex"))
+  (is (reader/tag-registered? "uuid"))
+  (is (not (reader/tag-registered? "does-not-exist"))))
+
+(deftest test-registered-tags-includes-builtins
+  (let [tags (reader/registered-tags)]
+    (is (contains? (set tags) "inst"))
+    (is (contains? (set tags) "regex"))
+    (is (contains? (set tags) "uuid"))))
+
+(deftest test-register-tag-roundtrip
+  (reader/register-tag "shout-test" (fn [s] (php/strtoupper s)))
+  (is (reader/tag-registered? "shout-test"))
+  (reader/unregister-tag "shout-test")
+  (is (not (reader/tag-registered? "shout-test"))))

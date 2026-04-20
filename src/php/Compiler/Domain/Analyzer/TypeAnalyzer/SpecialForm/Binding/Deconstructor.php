@@ -13,7 +13,6 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeInterface;
 
 use function count;
 
@@ -37,16 +36,16 @@ final readonly class Deconstructor implements DeconstructorInterface
     /**
      * Destructure a $binding $value pair and add the result to $bindings.
      *
-     * @param array                                    $bindings A reference to already defined bindings
-     * @param bool|float|int|string|TypeInterface|null $binding  The binding form
-     * @param bool|float|int|string|TypeInterface|null $value    The value form
+     * @param array $bindings A reference to already defined bindings
+     * @param mixed $binding  The binding form
+     * @param mixed $value    The value form
      *
      * @throws AnalyzerException
      */
     public function deconstructBindings(
         array &$bindings,
-        float|bool|int|string|TypeInterface|null $binding,
-        float|bool|int|string|TypeInterface|null $value,
+        mixed $binding,
+        mixed $value,
     ): void {
         $this->bindingValidator->assertSupportedBinding($binding);
 
@@ -55,9 +54,9 @@ final readonly class Deconstructor implements DeconstructorInterface
     }
 
     /**
-     * @param bool|float|int|string|TypeInterface|null $binding The binding form
+     * @param mixed $binding The binding form
      */
-    private function createDeconstructorForBinding(float|bool|int|string|TypeInterface|null $binding): BindingDeconstructorInterface
+    private function createDeconstructorForBinding(mixed $binding): BindingDeconstructorInterface
     {
         if ($binding instanceof Symbol) {
             return new SymbolBindingDeconstructor();

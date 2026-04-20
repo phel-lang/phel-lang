@@ -6,19 +6,18 @@ namespace Phel\Compiler\Domain\Analyzer\Ast;
 
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
-use Phel\Lang\TypeInterface;
 
 final class QuoteNode extends AbstractNode
 {
     public function __construct(
         NodeEnvironmentInterface $env,
-        private readonly TypeInterface|array|string|float|int|bool|null $value,
+        private readonly mixed $value,
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct($env, $sourceLocation);
     }
 
-    public function getValue(): TypeInterface|array|string|float|int|bool|null
+    public function getValue(): mixed
     {
         return $this->value;
     }

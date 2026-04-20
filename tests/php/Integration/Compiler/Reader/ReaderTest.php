@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Compiler\Reader;
 
+use DateTimeImmutable;
 use Phel;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\CompilerFacade;
@@ -16,11 +17,16 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Lang\TagHandlers\BuiltinTagHandlers;
+use Phel\Lang\TagRegistry;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use PHPUnit\Framework\TestCase;
 
+use function get_debug_type;
+use function is_scalar;
 use function sprintf;
+use function strtoupper;
 
 final class ReaderTest extends TestCase
 {
@@ -1359,7 +1365,87 @@ final class ReaderTest extends TestCase
         $this->read('#php 42');
     }
 
+    public function test_inst_tagged_literal_returns_datetime(): void
+    {
+        BuiltinTagHandlers::registerAll(TagRegistry::getInstance());
+
+        $result = $this->readAny('#inst "2026-04-20T12:00:00Z"');
+
+        self::assertInstanceOf(DateTimeImmutable::class, $result);
+        self::assertSame('2026-04-20T12:00:00+00:00', $result->format(DATE_ATOM));
+    }
+
+    public function test_inst_tagged_literal_defaults_missing_offset_to_utc(): void
+    {
+        BuiltinTagHandlers::registerAll(TagRegistry::getInstance());
+
+        $result = $this->readAny('#inst "2026-04-20T12:00:00"');
+
+        self::assertInstanceOf(DateTimeImmutable::class, $result);
+        self::assertSame('2026-04-20T12:00:00+00:00', $result->format(DATE_ATOM));
+    }
+
+    public function test_inst_tagged_literal_rejects_invalid_string(): void
+    {
+        BuiltinTagHandlers::registerAll(TagRegistry::getInstance());
+
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('is not a valid ISO 8601');
+        $this->read('#inst "bad-date"');
+    }
+
+    public function test_regex_tagged_literal_returns_delimited_pattern(): void
+    {
+        BuiltinTagHandlers::registerAll(TagRegistry::getInstance());
+
+        self::assertSame('/[a-z]+/', $this->read('#regex "[a-z]+"'));
+    }
+
+    public function test_regex_tagged_literal_rejects_non_string(): void
+    {
+        BuiltinTagHandlers::registerAll(TagRegistry::getInstance());
+
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('#regex expects a string literal');
+        $this->read('#regex 42');
+    }
+
+    public function test_unknown_tag_lists_registered_tags(): void
+    {
+        $registry = TagRegistry::getInstance();
+        $registry->clear();
+        BuiltinTagHandlers::registerAll($registry);
+
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('Registered tags: #inst, #php, #regex, #uuid');
+        $this->read('#xyz "x"');
+    }
+
+    public function test_runtime_registered_tag_applies_handler(): void
+    {
+        $registry = TagRegistry::getInstance();
+        BuiltinTagHandlers::registerAll($registry);
+        $registry->register('shout', static fn(mixed $s): string => strtoupper((string) $s));
+
+        try {
+            self::assertSame('HELLO', $this->read('#shout "hello"'));
+        } finally {
+            $registry->unregister('shout');
+        }
+    }
+
     private function read(string $string, bool $withLocation = true): float|bool|int|string|TypeInterface|null
+    {
+        $ast = $this->readAny($string, $withLocation);
+
+        if ($ast === null || is_scalar($ast) || $ast instanceof TypeInterface) {
+            return $ast;
+        }
+
+        self::fail(sprintf('Unexpected read result of type %s', get_debug_type($ast)));
+    }
+
+    private function readAny(string $string, bool $withLocation = true): mixed
     {
         Symbol::resetGen();
         $tokenStream = $this->compilerFacade->lexString($string, Lexer::DEFAULT_SOURCE, $withLocation);

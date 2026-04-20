@@ -44,6 +44,8 @@ use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Filesystem\FilesystemFacadeInterface;
+use Phel\Lang\TagHandlers\BuiltinTagHandlers;
+use Phel\Lang\TagRegistry;
 use Phel\Printer\Printer;
 
 /**
@@ -96,6 +98,8 @@ final class CompilerFactory extends AbstractFactory
 
     public function createReader(): ReaderInterface
     {
+        BuiltinTagHandlers::registerAll(TagRegistry::getInstance());
+
         return new Reader(
             new ExpressionReaderFactory(),
             new QuasiquoteTransformer($this->getGlobalEnvironment()),

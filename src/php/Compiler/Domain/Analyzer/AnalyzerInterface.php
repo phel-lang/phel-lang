@@ -8,16 +8,15 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeInterface;
 
 interface AnalyzerInterface
 {
     /**
      * @throws AnalyzerException
      */
-    public function analyze(TypeInterface|array|string|float|int|bool|null $x, NodeEnvironmentInterface $env): AbstractNode;
+    public function analyze(mixed $x, NodeEnvironmentInterface $env): AbstractNode;
 
-    public function analyzeMacro(TypeInterface|array|string|float|int|bool|null $x, NodeEnvironmentInterface $env): AbstractNode;
+    public function analyzeMacro(mixed $x, NodeEnvironmentInterface $env): AbstractNode;
 
     public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode;
 

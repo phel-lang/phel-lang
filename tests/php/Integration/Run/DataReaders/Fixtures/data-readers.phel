@@ -1,0 +1,5 @@
+(ns fixture\data-readers
+  (:require phel\reader :as r))
+
+(r/register-tag "shout"
+  (fn [s] (php/strtoupper s)))

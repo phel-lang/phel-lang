@@ -4,16 +4,14 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Parser\ReadModel;
 
-use Phel\Lang\TypeInterface;
-
 final readonly class ReaderResult
 {
     public function __construct(
-        private float|bool|int|string|TypeInterface|null $ast,
+        private mixed $ast,
         private CodeSnippet $codeSnippet,
     ) {}
 
-    public function getAst(): float|bool|int|string|TypeInterface|null
+    public function getAst(): mixed
     {
         return $this->ast;
     }

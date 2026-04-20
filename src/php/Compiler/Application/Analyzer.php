@@ -27,6 +27,7 @@ use function is_array;
 use function is_bool;
 use function is_float;
 use function is_int;
+use function is_object;
 use function is_string;
 
 final class Analyzer implements AnalyzerInterface
@@ -100,7 +101,7 @@ final class Analyzer implements AnalyzerInterface
      * @throws AnalyzerException
      */
     public function analyzeMacro(
-        TypeInterface|array|string|float|int|bool|null $x,
+        mixed $x,
         NodeEnvironmentInterface $env,
     ): AbstractNode {
         $this->globalEnvironment->addLevelToAllowPrivateAccess();
@@ -114,7 +115,7 @@ final class Analyzer implements AnalyzerInterface
      * @throws AnalyzerException
      */
     public function analyze(
-        TypeInterface|array|string|float|int|bool|null $x,
+        mixed $x,
         NodeEnvironmentInterface $env,
     ): AbstractNode {
         if ($this->isLiteral($x)) {
@@ -146,10 +147,17 @@ final class Analyzer implements AnalyzerInterface
             return $this->mapAnalyzer->analyze($x, $env);
         }
 
+        // Tagged literals may read as arbitrary PHP objects (e.g. `#inst`
+        // yields `DateTimeImmutable`). Any object that is not one of the
+        // persistent types above is treated as an opaque literal value.
+        if (is_object($x) && !$x instanceof TypeInterface) {
+            return (new AnalyzeLiteral())->analyze($x, $env);
+        }
+
         throw new AnalyzerException('Unhandled type: ' . var_export($x, true));
     }
 
-    private function isLiteral(float|array|bool|int|string|TypeInterface|null $x): bool
+    private function isLiteral(mixed $x): bool
     {
         return is_string($x)
             || is_float($x)

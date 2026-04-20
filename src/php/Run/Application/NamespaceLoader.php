@@ -18,6 +18,8 @@ final class NamespaceLoader
 {
     private static array $loadedFiles = [];
 
+    private static bool $dataReadersLoaded = false;
+
     public function __construct(
         private readonly BuildFacadeInterface $buildFacade,
         private readonly CommandFacadeInterface $commandFacade,
@@ -27,6 +29,7 @@ final class NamespaceLoader
     public static function reset(): void
     {
         self::$loadedFiles = [];
+        self::$dataReadersLoaded = false;
     }
 
     public function loadPhelNamespaces(?string $replStartupFile = null): void
@@ -64,6 +67,8 @@ final class NamespaceLoader
         }
 
         Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, '*file*', '');
+
+        $this->loadDataReaders($srcDirectories);
     }
 
     /**
@@ -82,5 +87,18 @@ final class NamespaceLoader
         }
 
         return $srcDirectories;
+    }
+
+    /**
+     * @param list<string> $srcDirectories
+     */
+    private function loadDataReaders(array $srcDirectories): void
+    {
+        if (self::$dataReadersLoaded) {
+            return;
+        }
+
+        self::$dataReadersLoaded = true;
+        (new DataReadersLoader($this->buildFacade))->load($srcDirectories);
     }
 }

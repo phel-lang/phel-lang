@@ -14,7 +14,6 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\OutputEmitterOptions;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapState;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeInterface;
 use Phel\Printer\PrinterInterface;
 
 use function count;
@@ -188,7 +187,7 @@ final class OutputEmitter implements OutputEmitterInterface
         $this->emitStr('})()', $sl);
     }
 
-    public function emitLiteral(array|bool|float|int|TypeInterface|string|null $value): void
+    public function emitLiteral(mixed $value): void
     {
         (new LiteralEmitter($this, $this->printer))->emitLiteral($value);
     }
