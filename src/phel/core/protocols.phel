@@ -510,29 +510,52 @@
   produce a dispatch value, which is then used to select the appropriate
   method registered via `defmethod`.
 
+  An optional docstring may be provided between `name` and `dispatch-fn`.
+
   If no method matches the dispatch value, the `:default` method is used
   (if defined), otherwise an error is thrown."
-  {:example "(defmulti area :shape)"}
-  [name dispatch-fn]
-  (let [methods-name  (php/:: Symbol (create (php/. (php/-> name (getName)) "-methods")))
-        dispatch-name (php/:: Symbol (create (php/. (php/-> name (getName)) "-dispatch")))]
-    `(do
-       (def ~methods-name (atom {}))
-       (def ~dispatch-name {:private true} ~dispatch-fn)
-       (defn ~name [& args]
-         (let [dispatch-val (apply ~dispatch-name args)
-               methods      (deref ~methods-name)
-               method       (get methods dispatch-val)]
-           (if method
-             (apply method args)
-             (let [hierarchy-method (find-hierarchy-method methods dispatch-val)]
-               (if hierarchy-method
-                 (apply hierarchy-method args)
-                 (let [default-method (get methods :default)]
-                   (if default-method
-                     (apply default-method args)
-                     (throw (php/new \InvalidArgumentException
-                                     (str "No method for dispatch value: " dispatch-val)))))))))))))
+  {:example "(defmulti area \"Area of shape.\" :shape)"}
+  [name & args]
+  (let [arg-count (count args)
+        has-doc?  (and (= 2 arg-count) (string? (first args)))
+        docstring (when has-doc? (first args))
+        dispatch-fn (if has-doc? (second args) (first args))]
+    (when-not (or (= 1 arg-count) has-doc?)
+      (throw (php/new \InvalidArgumentException
+                      (str "defmulti '" (php/-> name (getName))
+                           "' expects (defmulti name docstring? dispatch-fn), got "
+                           (inc arg-count) " arguments."))))
+    (let [methods-name  (php/:: Symbol (create (php/. (php/-> name (getName)) "-methods")))
+          dispatch-name (php/:: Symbol (create (php/. (php/-> name (getName)) "-dispatch")))
+          name-str      (php/-> name (getName))
+          df-sym        (gensym)
+          args-sym      (gensym)
+          body          `(let [dispatch-val# (apply ~dispatch-name ~args-sym)
+                               methods#      (deref ~methods-name)
+                               method#       (get methods# dispatch-val#)]
+                           (if method#
+                             (apply method# ~args-sym)
+                             (let [hierarchy-method# (find-hierarchy-method methods# dispatch-val#)]
+                               (if hierarchy-method#
+                                 (apply hierarchy-method# ~args-sym)
+                                 (let [default-method# (get methods# :default)]
+                                   (if default-method#
+                                     (apply default-method# ~args-sym)
+                                     (throw (php/new \InvalidArgumentException
+                                                     (str "No method for dispatch value: " dispatch-val#)))))))))]
+      `(do
+         (def ~methods-name (atom {}))
+         (def ~dispatch-name {:private true}
+           (let [~df-sym ~dispatch-fn]
+             (when (and (string? ~df-sym) (not (php/is_callable ~df-sym)))
+               (throw (php/new \InvalidArgumentException
+                               (str "defmulti '" ~name-str
+                                    "' requires a callable dispatch-fn, got a string: "
+                                    (php/substr ~df-sym 0 60) "..."))))
+             ~df-sym))
+         ~(if docstring
+            `(defn ~name {:doc ~docstring} [& ~args-sym] ~body)
+            `(defn ~name [& ~args-sym] ~body))))))
 
 (defmacro defmethod
   "Registers a method implementation for a multimethod.

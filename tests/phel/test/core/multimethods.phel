@@ -69,3 +69,30 @@
   (is (= "matched a" (strict-fn :a)) "matches known value")
   (let [error-thrown (try (strict-fn :b) (catch \InvalidArgumentException e true))]
     (is (= true error-thrown) "throws on unknown dispatch value without default")))
+
+;; --------------------------------
+;; Optional docstring
+;; --------------------------------
+
+(defmulti documented-area
+  "Area of a shape dispatched by :type."
+  (fn [shape] (get shape :type)))
+
+(defmethod documented-area :square [{:side s}] (* s s))
+
+(deftest test-defmulti-docstring
+  (is (= 16 (documented-area {:type :square :side 4}))
+      "dispatches with docstring attached"))
+
+;; --------------------------------
+;; Invalid dispatch-fn: non-callable string
+;; --------------------------------
+
+(deftest test-defmulti-rejects-string-dispatch
+  (let [err (try
+              (eval '(defmulti broken "stray string as dispatch-fn"))
+              false
+              (catch \Throwable e (php/-> e (getMessage))))]
+    (is (not (= false err)) "throws when dispatch-fn missing (string as dispatch)")
+    (is (php/str_contains err "requires a callable dispatch-fn")
+        "error mentions callable dispatch-fn")))
