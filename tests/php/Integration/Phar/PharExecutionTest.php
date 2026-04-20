@@ -110,12 +110,67 @@ final class PharExecutionTest extends TestCase
         );
     }
 
+    public function test_phar_init_and_test_on_fresh_project(): void
+    {
+        $projectDir = $this->tempProjectDir . '/fresh';
+        mkdir($projectDir, 0755, true);
+
+        $init = $this->runPharInDir($projectDir, ['init', '--no-interaction']);
+        self::assertSame(
+            0,
+            $init['exit'],
+            sprintf("phel init failed.\nstdout:\n%s\nstderr:\n%s", $init['stdout'], $init['stderr']),
+        );
+        self::assertFileExists($projectDir . '/phel-config.php');
+        self::assertDirectoryExists($projectDir . '/src');
+        self::assertDirectoryExists($projectDir . '/tests');
+
+        $test = $this->runPharInDir($projectDir, ['test']);
+        self::assertSame(
+            0,
+            $test['exit'],
+            sprintf(
+                "phel test from PHAR must pass on scaffolded project.\nstdout:\n%s\nstderr:\n%s",
+                $test['stdout'],
+                $test['stderr'],
+            ),
+        );
+
+        self::assertStringNotContainsString(
+            'TestCommandOptions',
+            $test['stderr'],
+            'PHAR must bundle src/php/Run/Domain/Test/ classes (classmap regression guard)',
+        );
+    }
+
+    public function test_phar_eval_stdin(): void
+    {
+        $result = $this->runPharWithStdin(['eval', '-'], "(println (+ 1 2 3))\n");
+
+        self::assertSame(
+            0,
+            $result['exit'],
+            sprintf("phel eval - failed.\nstdout:\n%s\nstderr:\n%s", $result['stdout'], $result['stderr']),
+        );
+        self::assertStringContainsString('6', $result['stdout']);
+    }
+
     /**
      * @param list<string> $args
      *
      * @return array{exit: int, stdout: string, stderr: string}
      */
     private function runPhar(array $args): array
+    {
+        return $this->runPharInDir($this->tempProjectDir, $args);
+    }
+
+    /**
+     * @param list<string> $args
+     *
+     * @return array{exit: int, stdout: string, stderr: string}
+     */
+    private function runPharInDir(string $cwd, array $args): array
     {
         $cmd = sprintf(
             '%s %s',
@@ -128,8 +183,42 @@ final class PharExecutionTest extends TestCase
             2 => ['pipe', 'w'],
         ];
 
+        $proc = proc_open($cmd, $descriptors, $pipes, $cwd);
+        self::assertIsResource($proc, 'proc_open failed');
+
+        $stdout = stream_get_contents($pipes[1]) ?: '';
+        $stderr = stream_get_contents($pipes[2]) ?: '';
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+        $exit = proc_close($proc);
+
+        return ['exit' => $exit, 'stdout' => $stdout, 'stderr' => $stderr];
+    }
+
+    /**
+     * @param list<string> $args
+     *
+     * @return array{exit: int, stdout: string, stderr: string}
+     */
+    private function runPharWithStdin(array $args, string $stdin): array
+    {
+        $cmd = sprintf(
+            '%s %s',
+            escapeshellarg($this->pharPath),
+            implode(' ', array_map(escapeshellarg(...), $args)),
+        );
+
+        $descriptors = [
+            0 => ['pipe', 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ];
+
         $proc = proc_open($cmd, $descriptors, $pipes, $this->tempProjectDir);
         self::assertIsResource($proc, 'proc_open failed');
+
+        fwrite($pipes[0], $stdin);
+        fclose($pipes[0]);
 
         $stdout = stream_get_contents($pipes[1]) ?: '';
         $stderr = stream_get_contents($pipes[2]) ?: '';
