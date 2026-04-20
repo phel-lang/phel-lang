@@ -47,6 +47,9 @@ All notable changes to this project will be documented in this file.
 #### Modules
 - `phel\ai` `check-response` raises `RuntimeException` with provider message when body lacks `:error :message`
 - `phel\ai` text extraction picks first `text` block, skipping preceding `tool_use`
+- `phel\http/request-from-globals` error explains that an HTTP request context is required and points to `request-from-map` for tests
+- `(:key nil)` returns the default instead of raising `TypeError`
+- Stack-trace arg rendering truncates each Phel argument at 200 chars
 
 ### Changed
 

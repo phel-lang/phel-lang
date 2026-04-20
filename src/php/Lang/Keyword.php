@@ -26,15 +26,17 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
     }
 
     /**
-     * Callable behaviour for keyword-as-accessor. Accepts any `ArrayAccess`
-     * container so both persistent and transient maps work (previously the
-     * signature was narrowed to `PersistentMapInterface`, which raised a
-     * `TypeError` when called against a transient map).
+     * Keyword-as-accessor. `nil` target returns the default (matches
+     * `(:k nil)` returning nil) instead of raising `TypeError`.
      */
     public function __invoke(
-        ArrayAccess $obj,
+        ?ArrayAccess $obj,
         float|bool|int|string|TypeInterface|null $default = null,
     ) {
+        if (!$obj instanceof ArrayAccess) {
+            return $default;
+        }
+
         return $obj[$this] ?? $default;
     }
 

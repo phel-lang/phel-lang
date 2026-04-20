@@ -20,6 +20,14 @@ final class ExceptionArgsPrinterTest extends TestCase
         self::assertSame(' 1 2', $actual);
     }
 
+    public function test_parse_args_as_string_truncates_long_args(): void
+    {
+        $argsPrinter = $this->createExceptionArgsPrinter();
+        $longArg = str_repeat('x', 250);
+        $actual = $argsPrinter->parseArgsAsString([$longArg]);
+        self::assertSame(' ' . str_repeat('x', 200) . '...', $actual);
+    }
+
     #[DataProvider('providerBuildPhpArgsString')]
     public function test_build_php_args_string(array $args, string $expected): void
     {
