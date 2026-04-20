@@ -36,6 +36,7 @@ All notable changes to this project will be documented in this file.
 - `phel\test\gen`: generators, `sample`, `quick-check`, `defspec` with seedable PRNG
 - `phel\ai`: `chat-with-tools` OpenAI tool use, `tool-calls` extraction, `tool-result` helper; retry w/ exponential backoff on 429/5xx; per-call `opts` (`:provider`, `:timeout`, `:base-url`, `:api-key`, `:max-retries`); `*http-post*` seam; `docs/ai-guide.md`
 - `phel\core`: `uuid=`, `uuid-nil?`, `uuid-version`, `uuid-variant`
+- `phel\core`: `defmulti` accepts an optional docstring: `(defmulti name "doc" dispatch-fn)`; non-callable string dispatch-fn raises a clear `InvalidArgumentException` instead of a raw PHP "undefined function" error
 - `phel\repl`: `find-ns`, `create-ns`, `remove-ns`, `intern`, `ns-interns`
 - `phel\cli`: spec-map wrapper over `symfony/console` with prompts, tables, progress, coercion, hooks, signals, and test helpers. See `docs/cli-guide.md`
 - `phel\match`: `match` macro with literal, vector, map, wildcard, `:as`, `:guard`, `:or`, and rest-binding patterns; matches left-to-right and raises on no-match when no `:else` is given
