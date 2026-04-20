@@ -5,7 +5,7 @@
   (:use Symfony\Component\Console\ConsoleEvents)
   (:use Symfony\Component\Console\Helper\ProgressBar)
   (:use Symfony\Component\Console\Helper\Table)
-  (:use Symfony\Component\Console\Input\ArrayInput)
+  (:use Symfony\Component\Console\Input\ArgvInput)
   (:use Symfony\Component\Console\Input\InputArgument)
   (:use Symfony\Component\Console\Input\InputOption)
   (:use Symfony\Component\Console\Output\BufferedOutput)
@@ -457,11 +457,12 @@
 ;; =============================================================================
 
 (defn argv
-  "Build an `ArrayInput` from a vector of string tokens."
+  "Build an `ArgvInput` from a vector of string tokens. Positional args
+  and `--flag=value` are parsed just like a real shell command line."
   {:see-also ["argv-with-stdin" "buffered-output"]
    :example  "(argv [\"greet\" \"--loud\" \"alice\"])"}
   [args]
-  (php/new ArrayInput (apply php/array args)))
+  (php/new ArgvInput (apply php/array (cons "_" args))))
 
 (defn argv-with-stdin
   "Like `argv` but also wires a STDIN stream so `ask`/`confirm`/`choice`
