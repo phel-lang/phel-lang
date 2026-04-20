@@ -146,6 +146,17 @@ if [[ $VENDOR_CACHE_VALID -eq 0 ]]; then
     rm -rf "$VENDOR_CACHE_DIR"
     cp -a ./vendor "$VENDOR_CACHE_DIR"
     cp composer.lock "$LOCK_FILE_CACHE"
+else
+    # Vendor cache is keyed on composer.lock only, but the classmap-authoritative
+    # autoloader indexes project sources too. Regenerate the autoloader so new or
+    # renamed classes under src/ are picked up even when dependencies are cached.
+    if ! composer dump-autoload \
+        --no-dev \
+        --no-interaction \
+        --classmap-authoritative \
+        --no-scripts; then
+        error "Composer dump-autoload failed"
+    fi
 fi
 
 # Validate vendor directory
