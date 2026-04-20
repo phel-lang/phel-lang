@@ -6,16 +6,18 @@
 
 | Task | Phel |
 |------|------|
-| Instantiate | `(php/new Class args)` / `(Class.)` |
+| Instantiate | `(php/new Class args)` / `(new Class args)` / `(Class. args)` |
 | Method | `(.method obj args)` / `(php/-> obj (method args))` |
 | Static | `(Class/method args)` / `(php/:: Class (method args))` |
-| Constant | `Class/CONST` |
+| Constant | `Class/CONST` / `(php/:: Class CONST)` |
 | Property | `(.-prop obj)` |
 | Fn (global) | `(php/strlen s)` |
 | Fn (namespaced) | `(php/Amp\trapSignal xs)` |
 | PHP array indexed | `#php [1 2 3]` |
 | PHP array assoc | `#php {"k" "v"}` |
 | Catch | `(catch php\SomeException e ...)` |
+
+Full table: `docs/php-interop.md`.
 
 ## Guzzle
 

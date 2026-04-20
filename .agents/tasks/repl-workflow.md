@@ -41,6 +41,8 @@ Shell: `./vendor/bin/phel doc <fn>`.
 
 Each `deftest` is a zero-arg fn tagged `{:test true}`.
 
+Shell: `./vendor/bin/phel test [path] [--filter=substring] [--testdox] [--fail-fast]`.
+
 ## State
 
 ```phel
