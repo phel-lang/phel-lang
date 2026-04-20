@@ -1,10 +1,21 @@
 (ns phel\cli
   (:use Symfony\Component\Console\Application)
   (:use Symfony\Component\Console\Command\Command)
+  (:use Symfony\Component\Console\Helper\ProgressBar)
+  (:use Symfony\Component\Console\Helper\Table)
   (:use Symfony\Component\Console\Input\ArrayInput)
   (:use Symfony\Component\Console\Input\InputArgument)
   (:use Symfony\Component\Console\Input\InputOption)
-  (:use Symfony\Component\Console\Output\BufferedOutput))
+  (:use Symfony\Component\Console\Output\BufferedOutput)
+  (:use Symfony\Component\Console\Output\NullOutput)
+  (:use Symfony\Component\Console\Question\ChoiceQuestion)
+  (:use Symfony\Component\Console\Question\ConfirmationQuestion)
+  (:use Symfony\Component\Console\Question\Question)
+  (:use Symfony\Component\Console\Style\SymfonyStyle))
+
+;; ----------------------------------------------------------------------------
+;; Mode mapping
+;; ----------------------------------------------------------------------------
 
 (defn- arg-mode [mode]
   (case mode
@@ -15,84 +26,26 @@
 
 (defn- opt-mode [mode]
   (case mode
-    :none     (php/:: InputOption VALUE_NONE)
-    :required (php/:: InputOption VALUE_REQUIRED)
-    :optional (php/:: InputOption VALUE_OPTIONAL)
-    :array    (php/:: InputOption VALUE_IS_ARRAY)
+    :none      (php/:: InputOption VALUE_NONE)
+    :required  (php/:: InputOption VALUE_REQUIRED)
+    :optional  (php/:: InputOption VALUE_OPTIONAL)
+    :array     (php/:: InputOption VALUE_IS_ARRAY)
     :negatable (php/:: InputOption VALUE_NEGATABLE)
     (php/:: InputOption VALUE_OPTIONAL)))
 
-(defn command
-  "Build a Symfony Console `Command` from a Phel spec map.
+;; ----------------------------------------------------------------------------
+;; Context helpers — read input / write output
+;; ----------------------------------------------------------------------------
 
-  Spec keys:
-  - `:name`  command name (required)
-  - `:doc`   short description
-  - `:args`  vector of argument specs `{:name :mode :doc :default}`
-  - `:opts`  vector of option specs `{:name :short :mode :doc :default}`
-  - `:run`   handler fn `(fn [ctx] ...)` where `ctx` = `{:input _ :output _}`.
-             Return nil or 0 for success, any other int for exit code."
-  {:example "(command {:name \"greet\" :doc \"Say hi\" :run (fn [ctx] (writeln ctx \"Hello\"))})"}
-  [spec]
-  (let [cmd (php/new Command (get spec :name))]
-    (php/-> cmd (setDescription (get spec :doc "")))
-    (foreach [a (get spec :args [])]
-      (php/-> cmd
-              (addArgument
-                (get a :name)
-                (arg-mode (get a :mode :optional))
-                (get a :doc "")
-                (get a :default))))
-    (foreach [o (get spec :opts [])]
-      (php/-> cmd
-              (addOption
-                (get o :name)
-                (get o :short)
-                (opt-mode (get o :mode :optional))
-                (get o :doc "")
-                (get o :default))))
-    (let [handler (get spec :run)]
-      (php/-> cmd
-              (setCode
-                (php/:: \Closure
-                        (fromCallable
-                          (fn [input output]
-                            (let [result (handler {:input input :output output})]
-                              (if (int? result) result 0))))))))
-    cmd))
+(defn arg
+  "Read an argument value from the command context by name."
+  [ctx name]
+  (php/-> (get ctx :input) (getArgument name)))
 
-(defn application
-  "Build a Symfony Console `Application` from a name and vector of command specs."
-  {:example "(application \"mytool\" [{:name \"build\" :run build-fn}])"}
-  [name commands]
-  (let [app (php/new Application name)]
-    (foreach [c commands]
-      (php/-> app (add (command c))))
-    app))
-
-(defn run
-  "Run the Application. Without `input`, reads `$argv` from the process.
-  Returns the exit code."
-  [app & [input]]
-  (if input
-    (php/-> app (run input))
-    (php/-> app (run))))
-
-(defn argv
-  "Build an `ArrayInput` from a vector of string arguments (for testing)."
-  {:example "(argv [\"greet\" \"--loud\" \"world\"])"}
-  [args]
-  (php/new ArrayInput (apply php/array args)))
-
-(defn buffered-output
-  "Build a `BufferedOutput` that captures `writeln` calls into a string."
-  []
-  (php/new BufferedOutput))
-
-(defn output->string
-  "Drain a `BufferedOutput` into a string."
-  [output]
-  (php/-> output (fetch)))
+(defn opt
+  "Read an option value from the command context by name."
+  [ctx name]
+  (php/-> (get ctx :input) (getOption name)))
 
 (defn writeln
   "Write a line to the command's output stream."
@@ -104,12 +57,200 @@
   [ctx text]
   (php/-> (get ctx :output) (write text)))
 
-(defn arg
-  "Read an argument value from the command context by name."
-  [ctx name]
-  (php/-> (get ctx :input) (getArgument name)))
+(defn- styled [ctx tag text]
+  (writeln ctx (str "<" tag ">" text "</" tag ">")))
 
-(defn opt
-  "Read an option value from the command context by name."
-  [ctx name]
-  (php/-> (get ctx :input) (getOption name)))
+(defn info         "Green info line."     [ctx text] (styled ctx "info" text))
+(defn comment-line "Yellow comment line." [ctx text] (styled ctx "comment" text))
+(defn error        "Red error line."      [ctx text] (styled ctx "error" text))
+
+;; ----------------------------------------------------------------------------
+;; SymfonyStyle — rich UX helpers (title/section/listing/ask/confirm/table/…)
+;; ----------------------------------------------------------------------------
+
+(defn style
+  "Returns a `SymfonyStyle` instance bound to the command context.
+  Gives access to `title`, `section`, `listing`, `success`, `warning`, `note`,
+  `ask`, `confirm`, `choice`, `table`, `progressStart`, etc."
+  {:example "(-> (style ctx) (php/-> (success \"Done!\")))"}
+  [ctx]
+  (php/new SymfonyStyle (get ctx :input) (get ctx :output)))
+
+(defn title    "Heavy heading."          [ctx text] (php/-> (style ctx) (title text)))
+(defn section  "Sub-heading."            [ctx text] (php/-> (style ctx) (section text)))
+(defn success  "Boxed success message."  [ctx text] (php/-> (style ctx) (success text)))
+(defn warning  "Boxed warning message."  [ctx text] (php/-> (style ctx) (warning text)))
+(defn note     "Boxed note."             [ctx text] (php/-> (style ctx) (note text)))
+(defn caution  "Boxed caution message."  [ctx text] (php/-> (style ctx) (caution text)))
+(defn listing  "Bulleted list of items." [ctx items] (php/-> (style ctx) (listing (apply php/array items))))
+
+(defn ask
+  "Prompt for free text. `default` optional."
+  {:example "(ask ctx \"Your name?\") ; => \"alice\""}
+  [ctx question & [default]]
+  (php/-> (style ctx) (ask question default)))
+
+(defn ask-hidden
+  "Prompt for text without echoing (for passwords)."
+  [ctx question]
+  (php/-> (style ctx) (askHidden question)))
+
+(defn confirm
+  "Yes/no prompt. `default?` defaults to true."
+  {:example "(when (confirm ctx \"Deploy?\") ...)"}
+  [ctx question & [default?]]
+  (php/-> (style ctx) (confirm question (if (nil? default?) true default?))))
+
+(defn choice
+  "Single-choice prompt over a vector of options."
+  {:example "(choice ctx \"Env?\" [\"dev\" \"stg\" \"prod\"] \"dev\")"}
+  [ctx question choices & [default]]
+  (php/-> (style ctx) (choice question (apply php/array choices) default)))
+
+;; ----------------------------------------------------------------------------
+;; Tables
+;; ----------------------------------------------------------------------------
+
+(defn table
+  "Render an ASCII table. `headers` = vector of strings, `rows` = vector of row vectors."
+  {:example "(table ctx [\"id\" \"name\"] [[1 \"alice\"] [2 \"bob\"]])"}
+  [ctx headers rows]
+  (let [t (php/new Table (get ctx :output))]
+    (php/-> t (setHeaders (apply php/array headers)))
+    (php/-> t (setRows (apply php/array (for [r :in rows] (apply php/array r)))))
+    (php/-> t (render))))
+
+;; ----------------------------------------------------------------------------
+;; Progress bar
+;; ----------------------------------------------------------------------------
+
+(defn progress-bar
+  "Create a `ProgressBar` bound to the context output. Call `progress-start`
+  / `progress-advance` / `progress-finish`, or pass to `with-progress`."
+  [ctx & [max]]
+  (php/new ProgressBar (get ctx :output) (or max 0)))
+
+(defn progress-start    "Start the progress bar." [bar] (php/-> bar (start)))
+(defn progress-advance  "Advance by n (default 1)." [bar & [n]] (php/-> bar (advance (or n 1))))
+(defn progress-finish   "Finish and newline."      [bar] (php/-> bar (finish)) (println))
+
+;; ----------------------------------------------------------------------------
+;; Command & Application builders
+;; ----------------------------------------------------------------------------
+
+(defn- add-args [cmd args]
+  (foreach [a args]
+    (php/-> cmd
+            (addArgument
+              (get a :name)
+              (arg-mode (get a :mode :optional))
+              (get a :doc "")
+              (get a :default)))))
+
+(defn- add-opts [cmd opts]
+  (foreach [o opts]
+    (php/-> cmd
+            (addOption
+              (get o :name)
+              (get o :short)
+              (opt-mode (get o :mode :optional))
+              (get o :doc "")
+              (get o :default)))))
+
+(defn- set-handler [cmd handler]
+  (php/-> cmd
+          (setCode
+            (php/:: \Closure
+                    (fromCallable
+                      (fn [input output]
+                        (let [result (handler {:input input :output output})]
+                          (if (int? result) result 0))))))))
+
+(defn command
+  "Build a Symfony Console `Command` from a Phel spec map.
+
+  Spec keys:
+  - `:name`    command name, e.g. `\"build\"` or `\"app:build\"` (required)
+  - `:doc`     short description (shown in `list`)
+  - `:help`    long help text (shown in `<cmd> --help`)
+  - `:aliases` vector of alternative names
+  - `:hidden?` true = hide from `list`
+  - `:args`    vector of arg specs `{:name :mode :doc :default}`
+  - `:opts`    vector of option specs `{:name :short :mode :doc :default}`
+  - `:run`     handler fn `(fn [ctx] ...)` — ctx = `{:input _ :output _}`;
+               returns nil/0 for success, any other int for exit code."
+  {:example "(command {:name \"greet\" :run (fn [ctx] (success ctx \"Hi!\"))})"}
+  [spec]
+  (let [cmd (php/new Command (get spec :name))]
+    (php/-> cmd (setDescription (get spec :doc "")))
+    (when-let [h (get spec :help)] (php/-> cmd (setHelp h)))
+    (when-let [as (get spec :aliases)] (php/-> cmd (setAliases (apply php/array as))))
+    (when (get spec :hidden?) (php/-> cmd (setHidden true)))
+    (add-args cmd (get spec :args []))
+    (add-opts cmd (get spec :opts []))
+    (set-handler cmd (get spec :run))
+    cmd))
+
+(defn application
+  "Build a Symfony Console `Application`.
+
+  Arguments:
+  - `name`     application name (shown in help header)
+  - `commands` vector of command spec maps
+
+  Optional map overload `(application {:name :version :commands :default :auto-exit?})`:
+  - `:version`     version string
+  - `:default`     name of default command (run when no arg passed)
+  - `:auto-exit?`  when false (default for testability) `run` returns the exit
+                   code instead of calling `exit()`."
+  {:example "(application \"mytool\" [{:name \"build\" :run build-fn}])"}
+  [name-or-spec & [commands]]
+  (let [spec (if (map? name-or-spec)
+               name-or-spec
+               {:name name-or-spec :commands commands})
+        app  (php/new Application
+                      (get spec :name "console")
+                      (or (get spec :version) "UNKNOWN"))]
+    (php/-> app (setAutoExit (get spec :auto-exit? false)))
+    (foreach [c (get spec :commands [])]
+      (php/-> app (add (command c))))
+    (when-let [d (get spec :default)]
+      (php/-> app (setDefaultCommand d)))
+    app))
+
+(defn run
+  "Run an Application and return its exit code.
+
+  `(run app)` reads `$argv` from the process; `(run app input)` uses the
+  supplied `InputInterface`; `(run app input output)` also pipes output for
+  capture in tests."
+  [app & [input output]]
+  (cond
+    (and input output) (php/-> app (run input output))
+    input              (php/-> app (run input))
+    true               (php/-> app (run))))
+
+;; ----------------------------------------------------------------------------
+;; Test helpers
+;; ----------------------------------------------------------------------------
+
+(defn argv
+  "Build an `ArrayInput` from a vector of string tokens (for tests)."
+  {:example "(argv [\"greet\" \"--loud\" \"world\"])"}
+  [args]
+  (php/new ArrayInput (apply php/array args)))
+
+(defn buffered-output
+  "Build a `BufferedOutput` that captures `writeln` into a string."
+  []
+  (php/new BufferedOutput))
+
+(defn null-output
+  "Build a `NullOutput` that discards writes (for silent runs in tests)."
+  []
+  (php/new NullOutput))
+
+(defn output->string
+  "Drain a `BufferedOutput` into a string."
+  [output]
+  (php/-> output (fetch)))

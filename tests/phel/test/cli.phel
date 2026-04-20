@@ -2,17 +2,19 @@
   (:require phel\cli :as cli)
   (:require phel\test :refer [deftest is]))
 
-(defn- run-app [cmd-spec args]
-  (let [app    (cli/application "test" [cmd-spec])
-        input  (cli/argv args)
+(defn- run-app [app args]
+  (let [input  (cli/argv args)
         output (cli/buffered-output)
-        code   (php/-> app (run input output))]
+        code   (cli/run app input output)]
     {:code code :out (cli/output->string output)}))
+
+(defn- run-cmd [cmd-spec args]
+  (run-app (cli/application "test" [cmd-spec]) args))
 
 (deftest test-run-simple-command
   (let [spec {:name "greet"
               :run  (fn [ctx] (cli/writeln ctx "hello"))}
-        res  (run-app spec ["greet"])]
+        res  (run-cmd spec ["greet"])]
     (is (= 0 (get res :code)))
     (is (php/str_contains (get res :out) "hello"))))
 
@@ -20,7 +22,7 @@
   (let [spec {:name "greet"
               :args [{:name "who" :mode :required}]
               :run  (fn [ctx] (cli/writeln ctx (str "hi " (cli/arg ctx "who"))))}
-        res  (run-app spec ["greet" "alice"])]
+        res  (run-cmd spec ["greet" "alice"])]
     (is (= 0 (get res :code)))
     (is (php/str_contains (get res :out) "hi alice"))))
 
@@ -30,13 +32,43 @@
               :run  (fn [ctx]
                       (let [msg (if (cli/opt ctx "loud") "HELLO" "hello")]
                         (cli/writeln ctx msg)))}
-        res  (run-app spec ["greet" "--loud"])]
+        res  (run-cmd spec ["greet" "--loud"])]
     (is (= 0 (get res :code)))
     (is (php/str_contains (get res :out) "HELLO"))))
 
 (deftest test-exit-code-propagates
   (let [spec {:name "fail"
               :run  (fn [_] 2)}
-        res  (run-app spec ["fail"])]
+        res  (run-cmd spec ["fail"])]
     (is (= 2 (get res :code)))))
 
+(deftest test-aliases
+  (let [spec {:name "build" :aliases ["b" "compile"]
+              :run  (fn [ctx] (cli/writeln ctx "built"))}
+        res  (run-cmd spec ["b"])]
+    (is (= 0 (get res :code)))
+    (is (php/str_contains (get res :out) "built"))))
+
+(deftest test-default-command
+  (let [app (cli/application {:name "mytool"
+                              :default "greet"
+                              :commands [{:name "greet"
+                                          :run (fn [ctx] (cli/writeln ctx "hola"))}]})
+        res (run-app app [])]
+    (is (= 0 (get res :code)))
+    (is (php/str_contains (get res :out) "hola"))))
+
+(deftest test-styled-info
+  (let [spec {:name "say"
+              :run  (fn [ctx] (cli/info ctx "ready"))}
+        res  (run-cmd spec ["say"])]
+    (is (php/str_contains (get res :out) "ready"))))
+
+(deftest test-table
+  (let [spec {:name "list"
+              :run  (fn [ctx]
+                      (cli/table ctx ["id" "name"] [[1 "alice"] [2 "bob"]]))}
+        res  (run-cmd spec ["list"])]
+    (is (= 0 (get res :code)))
+    (is (php/str_contains (get res :out) "alice"))
+    (is (php/str_contains (get res :out) "bob"))))
