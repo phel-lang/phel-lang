@@ -3,7 +3,8 @@
   (:use Phel\Lang\SourceLocationInterface)
   (:use Phel\Compiler\Application\Munge)
   (:use Phel\Command\CommandFacade)
-  (:require phel\string :as s))
+  (:require phel\string :as s)
+  (:require phel\test\selector :as selector))
 
 ;; ------
 ;; Report
@@ -18,9 +19,11 @@
   [])
 
 (def- stats (atom {:failed []
+                  :skipped []
                   :counts {:failed 0
                            :error 0
                            :pass 0
+                           :skipped 0
                            :total 0}}))
 
 ;; Dynamic registry of active reporter functions. Each reporter is a
@@ -158,10 +161,21 @@
 (defmethod report :thrown         [data] (handle-assertion-like data))
 (defmethod report :thrown-with-msg [data] (handle-assertion-like data))
 
+(defn- record-skip! [data]
+  (swap! stats
+         (fn [s]
+           (let [counts (get s :counts)
+                 counts (assoc counts :skipped (inc (get counts :skipped)))
+                 s      (assoc s :counts counts)]
+             (assoc s :skipped (conj (get s :skipped) data))))))
+
 (defmethod report :begin-test-ns   [data] (fan-out! data))
 (defmethod report :end-test-ns     [data] (fan-out! data))
 (defmethod report :begin-test-run  [data] (fan-out! data))
 (defmethod report :summary         [data] (fan-out! data))
+(defmethod report :skipped         [data]
+  (record-skip! data)
+  (fan-out! data))
 
 (defmethod report :default [data]
   (fan-out! (decorate-event data)))
@@ -369,16 +383,24 @@
 ;; --------------
 
 (defmacro deftest
-  "Defines a test function."
+  "Defines a test function.
+
+  Metadata attached to `test-name` is forwarded to the defined function
+  so selectors can inspect it at runtime. `^:integration` (shorthand
+  for `{:integration true}`) and `^{:tags [:integration :slow]}`
+  multi-tag maps are both honoured."
   {:example "(deftest test-add)"}
   [test-name & body]
   (when-not (symbol? test-name)
     (throw (php/new \InvalidArgumentException
                     (str "deftest requires a symbol name as its first argument, got "
                          (type test-name) ". Example: (deftest test-add ...)."))))
-  `(defn ~test-name {:test true :test-name ~(name test-name)} []
-     (binding [*current-test-name* ~(name test-name)]
-       ~@body)))
+  (let [sym-meta (or (php/-> test-name (getMeta)) {})
+        base     {:test true :test-name (name test-name)}
+        merged   (merge sym-meta base)]
+    `(defn ~test-name ~merged []
+       (binding [*current-test-name* ~(name test-name)]
+         ~@body))))
 
 (defmacro testing
   "Adds a testing context string. Used inside deftest to describe a group of assertions.
@@ -523,7 +545,7 @@
 (defn- default-reporter
   "Human-readable dot output. Preserves the legacy behavior: `.` for
   pass, `F` for fail, `E` for error, plus periodic newlines so long
-  runs wrap at 80 columns."
+  runs wrap at 80 columns. `S` marks a skipped test."
   [event]
   (let [type (:type event)]
     (cond
@@ -535,6 +557,11 @@
             ch    (case state :failed "F" :error "E" ".")
             n     (swap! default-line-count inc)]
         (print ch)
+        (when (= 0 (% n 80)) (println)))
+
+      (= type :skipped)
+      (let [n (swap! default-line-count inc)]
+        (print "S")
         (when (= 0 (% n 80)) (println)))
 
       (= type :summary)
@@ -550,6 +577,8 @@
         (println "Passed:" (:pass event))
         (println "Failed:" (:failed event))
         (println "Error:" (:error event))
+        (when (pos? (or (:skipped event) 0))
+          (println "Skipped:" (:skipped event)))
         (println "Total:" (:total event))))))
 
 (defn- testdox-reporter
@@ -565,6 +594,10 @@
             msg     (or (:message event) "no test message found")]
         (println marker (str tname ": " msg)))
 
+      (= type :skipped)
+      (let [tname (or (:test-name event) "")]
+        (println "↷" (str tname " (skipped)")))
+
       (= type :summary)
       (do
         (println)
@@ -578,6 +611,8 @@
         (println "Passed:" (:pass event))
         (println "Failed:" (:failed event))
         (println "Error:" (:error event))
+        (when (pos? (or (:skipped event) 0))
+          (println "Skipped:" (:skipped event)))
         (println "Total:" (:total event))))))
 
 ;; -------------
@@ -586,8 +621,8 @@
 
 (defn- dot-reporter
   "Minimal CI-friendly reporter. Prints `.` per pass, `F` per failure,
-  `E` per error and a compact one-line summary at the end. Does not
-  print failure/error diagnostics."
+  `E` per error, `S` per skipped test, and a compact one-line summary
+  at the end. Does not print failure/error diagnostics."
   [event]
   (let [type (:type event)]
     (cond
@@ -595,13 +630,20 @@
       (let [state (:state event)]
         (print (case state :failed "F" :error "E" ".")))
 
+      (= type :skipped)
+      (print "S")
+
       (= type :summary)
       (do
         (println)
-        (println (str "Tests: " (:total event)
-                      ", Passed: " (:pass event)
-                      ", Failed: " (:failed event)
-                      ", Errors: " (:error event)))))))
+        (let [skipped (or (:skipped event) 0)
+              base    (str "Tests: " (:total event)
+                           ", Passed: " (:pass event)
+                           ", Failed: " (:failed event)
+                           ", Errors: " (:error event))]
+          (if (pos? skipped)
+            (println (str base ", Skipped: " skipped))
+            (println base)))))))
 
 ;; -------------
 ;; TAP reporter
@@ -876,16 +918,20 @@
   event at the end of the run."
   {:example "(print-summary)"}
   []
-  (let [snapshot                                 (deref stats)
-        {:failed failed :error error :pass pass} (get snapshot :counts)
-        failures                                 (get snapshot :failed)
-        total                                    (+ failed error pass)
-        event                                    {:type :summary
-                                                  :failures failures
-                                                  :pass pass
-                                                  :failed failed
-                                                  :error error
-                                                  :total total}]
+  (let [snapshot (deref stats)
+        {:failed failed :error error :pass pass :skipped skipped}
+        (get snapshot :counts)
+        failures (get snapshot :failed)
+        skips    (get snapshot :skipped)
+        total    (+ failed error pass)
+        event    {:type :summary
+                  :failures failures
+                  :skips skips
+                  :pass pass
+                  :failed failed
+                  :error error
+                  :skipped (or skipped 0)
+                  :total total}]
     (fan-out! event)))
 
 ;; --------
@@ -945,23 +991,79 @@
 ;; Running tests
 ;; -------------
 
-(defn- find-test-fns [ns {:filter filter}]
+(defn- legacy-filter-matches?
+  "Back-compat: the original `--filter` option accepted a single
+  substring matched against the test name. When selectors are also
+  active, this check still applies so existing callers keep behaving."
+  [filter-value test-name]
+  (or (nil? filter-value)
+      (s/contains? (or test-name "") filter-value)))
+
+(defn- find-test-vars
+  "Discovers every `deftest`-defined function in `ns` and returns a
+  vector of `{:fn <callable> :meta <map>}` entries. The caller is
+  responsible for applying selectors."
+  [ns]
   (let [munge    (php/new Munge)
         munge-ns (php/-> munge (encodeNs ns))]
-    (for [fn-name :keys (php/:: Phel (getDefinitionInNamespace munge-ns))
-          :let [meta (php/:: Phel (getDefinitionMetaData munge-ns fn-name))]
-          :when (and (:test meta) (or (nil? filter) (s/contains? (:test-name meta) filter)))]
-      (php/:: Phel (getDefinition munge-ns fn-name)))))
+    (vec (for [fn-name :keys (php/:: Phel (getDefinitionInNamespace munge-ns))
+               :let [meta (php/:: Phel (getDefinitionMetaData munge-ns fn-name))]
+               :when (:test meta)]
+           {:fn   (php/:: Phel (getDefinition munge-ns fn-name))
+            :meta meta}))))
+
+(defn- selector-options
+  "Extracts the selector subset from the full options map."
+  [options]
+  {:include     (:include options)
+   :exclude     (:exclude options)
+   :ns-patterns (:ns-patterns options)
+   :filters     (:filters options)})
+
+(defn- partition-tests
+  "Splits the discovered tests into a `{:keep [...] :skip [...]}` map
+  using the selector options. `:keep` preserves original order; each
+  `:skip` entry is annotated with its metadata so reporters can surface
+  skip events."
+  [options ns-name tests]
+  (let [sel-opts  (selector-options options)
+        filter-v  (:filter options)]
+    (reduce
+     (fn [acc {:fn f :meta m}]
+       (cond
+         (not (legacy-filter-matches? filter-v (:test-name m)))
+         (update acc :skip conj {:fn f :meta m :reason :filtered})
+
+         (not (selector/keep-test? sel-opts ns-name m))
+         (update acc :skip conj {:fn f :meta m :reason :selector})
+
+         :else
+         (update acc :keep conj {:fn f :meta m})))
+     {:keep [] :skip []}
+     tests)))
+
+(defn- emit-skip-events! [ns-name skipped]
+  (dofor [{:meta m :reason reason} :in skipped]
+    (report {:type :skipped
+             :ns ns-name
+             :test-name (:test-name m)
+             :reason reason
+             :tags (:tags m)})))
 
 (defn- run-test [options ns]
-  (let [tests     (find-test-fns ns options)
+  (let [all-tests (find-test-vars ns)
+        parts     (partition-tests options ns all-tests)
+        keeps     (:keep parts)
+        skips     (:skip parts)
         each-wrap (join-fixtures (fixtures-for ns :each-fixtures))
         once-wrap (join-fixtures (fixtures-for ns :once-fixtures))]
-    (once-wrap
-     (fn []
-       (dofor [test :in tests
-               :when (not (should-stop?))]
-         (each-wrap test))))))
+    (emit-skip-events! ns skips)
+    (when-not (empty? keeps)
+      (once-wrap
+       (fn []
+         (dofor [{:fn f} :in keeps
+                 :when (not (should-stop?))]
+           (each-wrap f)))))))
 
 (defn- resolve-reporters-option
   "Resolves the `:reporters` option into a vector of reporter functions.
@@ -1003,9 +1105,11 @@
   {:example "(reset-stats)"}
   []
   (reset! stats {:failed []
+                 :skipped []
                  :counts {:failed 0
                           :error 0
                           :pass 0
+                          :skipped 0
                           :total 0}}))
 
 (defn successful?

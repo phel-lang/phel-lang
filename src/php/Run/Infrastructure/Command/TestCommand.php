@@ -45,6 +45,12 @@ final class TestCommand extends Command
 
     private const string OPT_OUTPUT = 'output';
 
+    private const string OPT_INCLUDE = 'include';
+
+    private const string OPT_EXCLUDE = 'exclude';
+
+    private const string OPT_NS = 'ns';
+
     protected function configure(): void
     {
         $this->setName(self::COMMAND_NAME)
@@ -59,8 +65,9 @@ final class TestCommand extends Command
             )->addOption(
                 self::OPT_FILTER,
                 'f',
-                InputOption::VALUE_OPTIONAL,
-                'Filter by test names.',
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                "Regex or substring matched against test names. Repeatable; matches are OR'd.",
+                [],
             )->addOption(
                 self::OPT_TESTDOX,
                 null,
@@ -82,6 +89,24 @@ final class TestCommand extends Command
                 null,
                 InputOption::VALUE_REQUIRED,
                 'Write the junit-xml reporter to a file instead of stdout.',
+            )->addOption(
+                self::OPT_INCLUDE,
+                null,
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                "Tag name (e.g. integration). Only tests carrying this tag run. Repeatable; tags are OR'd.",
+                [],
+            )->addOption(
+                self::OPT_EXCLUDE,
+                null,
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                'Tag name (e.g. slow). Tests carrying this tag are skipped. Repeatable; wins over --include.',
+                [],
+            )->addOption(
+                self::OPT_NS,
+                null,
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                "Namespace glob (e.g. phel.http.*). Repeatable; globs are OR'd. `*` matches one segment, `**` any.",
+                [],
             );
     }
 
@@ -178,15 +203,27 @@ final class TestCommand extends Command
         /** @var list<string> $reporters */
         $reporters = (array) $input->getOption(self::OPT_REPORTER);
         $output = $input->getOption(self::OPT_OUTPUT);
+        /** @var list<string> $filters */
+        $filters = (array) $input->getOption(self::OPT_FILTER);
+        /** @var list<string> $includes */
+        $includes = (array) $input->getOption(self::OPT_INCLUDE);
+        /** @var list<string> $excludes */
+        $excludes = (array) $input->getOption(self::OPT_EXCLUDE);
+        /** @var list<string> $nsPatterns */
+        $nsPatterns = (array) $input->getOption(self::OPT_NS);
 
         return sprintf(
             '(do (phel\test/run-tests %s %s) (phel\test/successful?))',
             TestCommandOptions::fromArray([
-                TestCommandOptions::FILTER => (string) $input->getOption(self::OPT_FILTER),
+                TestCommandOptions::FILTER => null,
                 TestCommandOptions::TESTDOX => (bool) $input->getOption(self::OPT_TESTDOX),
                 TestCommandOptions::FAIL_FAST => (bool) $input->getOption(self::OPT_FAIL_FAST),
                 TestCommandOptions::REPORTERS => $reporters,
                 TestCommandOptions::JUNIT_OUTPUT => is_string($output) ? $output : null,
+                TestCommandOptions::INCLUDE => $includes,
+                TestCommandOptions::EXCLUDE => $excludes,
+                TestCommandOptions::NS_PATTERNS => $nsPatterns,
+                TestCommandOptions::FILTERS => $filters,
             ])->asPhelHashMap(),
             $this->namespacesAsString($namespacesInformation),
         );

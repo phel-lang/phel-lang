@@ -35,6 +35,7 @@ All notable changes to this project will be documented in this file.
 #### Testing
 - `phel\test/report` is a multimethod dispatching on event `:type`; extend with `defmethod report :custom [event] ...`
 - Built-in reporters: `default`, `testdox`, `dot`, `tap`, `junit-xml`; select via `phel test --reporter=<name>` (repeatable); `--output=path` writes the junit-xml reporter to a file
+- `phel test` metadata-based selectors: `--include=<tag>`, `--exclude=<tag>`, `--ns=<glob>`, `--filter=<regex>` (all repeatable); tag tests via `^:integration` or `^{:tags [:integration :slow]}`; skipped tests emit a `:skipped` event and appear in the summary count
 
 #### Modules
 - `phel\test\gen`: generators, `sample`, `quick-check`, `defspec` with seedable PRNG

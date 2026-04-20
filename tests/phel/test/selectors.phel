@@ -1,0 +1,214 @@
+(ns phel-test\test\selectors
+  (:require phel\test :refer [deftest is testing])
+  (:require phel\test\selector :as selector))
+
+;; Coverage for the pure test-selection helpers in `phel\test\selector`.
+;;
+;; Every predicate is exercised in isolation using hand-rolled metadata
+;; maps (no macro expansion), so the tests are independent of the
+;; runtime registry. Combined scenarios cover the composition rule:
+;; specified selectors AND together; absent selectors are no-ops.
+
+;; ---------------------------------------------------------------------------
+;; has-tag? — keyword truthy + vector-of-tags metadata
+;; ---------------------------------------------------------------------------
+
+(deftest test-has-tag-keyword-form
+  (is (selector/has-tag? {:integration true} :integration)
+      "keyword metadata set to true reports present")
+  (is (not (selector/has-tag? {:integration false} :integration))
+      "keyword metadata set to false reports absent")
+  (is (not (selector/has-tag? {} :integration))
+      "missing metadata reports absent")
+  (is (not (selector/has-tag? {:other true} :integration))
+      "unrelated metadata reports absent"))
+
+(deftest test-has-tag-string-form-coerced-to-keyword
+  (is (selector/has-tag? {:integration true} "integration")
+      "string tag name is coerced to the matching keyword"))
+
+(deftest test-has-tag-vector-tags-metadata
+  (is (selector/has-tag? {:tags [:integration :slow]} :slow)
+      "tags vector contains the keyword")
+  (is (selector/has-tag? {:tags ["integration" "slow"]} :slow)
+      "tags vector entries compared as keywords")
+  (is (not (selector/has-tag? {:tags [:a :b]} :c))
+      "tags vector without the keyword reports absent"))
+
+;; ---------------------------------------------------------------------------
+;; matches-include?
+;; ---------------------------------------------------------------------------
+
+(deftest test-matches-include-empty-list-includes-all
+  (is (selector/matches-include? [] {:integration true})
+      "empty include list imposes no restriction")
+  (is (selector/matches-include? nil {:integration true})
+      "nil include list imposes no restriction"))
+
+(deftest test-matches-include-or-semantics
+  (is (selector/matches-include? [:integration :slow] {:slow true})
+      "any matching tag passes")
+  (is (not (selector/matches-include? [:integration :slow] {:unit true}))
+      "no matching tag fails"))
+
+;; ---------------------------------------------------------------------------
+;; matches-exclude?
+;; ---------------------------------------------------------------------------
+
+(deftest test-matches-exclude-empty-excludes-nothing
+  (is (not (selector/matches-exclude? [] {:slow true}))
+      "empty exclude list excludes nothing")
+  (is (not (selector/matches-exclude? nil {:slow true}))
+      "nil exclude list excludes nothing"))
+
+(deftest test-matches-exclude-any-tag-wins
+  (is (selector/matches-exclude? [:slow :flaky] {:slow true})
+      "any matching tag excludes")
+  (is (selector/matches-exclude? [:slow :flaky] {:tags [:flaky]})
+      "tags-vector form also excludes"))
+
+;; ---------------------------------------------------------------------------
+;; matches-ns? — glob support
+;; ---------------------------------------------------------------------------
+
+(deftest test-matches-ns-empty-list
+  (is (selector/matches-ns? [] "phel.http.client")
+      "empty patterns list imposes no restriction")
+  (is (selector/matches-ns? nil "phel.http.client")
+      "nil patterns list imposes no restriction"))
+
+(deftest test-matches-ns-exact-match
+  (is (selector/matches-ns? ["phel.http.client"] "phel.http.client")
+      "exact namespace name matches"))
+
+(deftest test-matches-ns-single-segment-wildcard
+  (is (selector/matches-ns? ["phel.http.*"] "phel.http.client")
+      "single-segment wildcard matches immediate child")
+  (is (not (selector/matches-ns? ["phel.http.*"] "phel.http.client.sub"))
+      "single-segment wildcard does not cross dots"))
+
+(deftest test-matches-ns-double-star-wildcard
+  (is (selector/matches-ns? ["phel.http.**"] "phel.http.client")
+      "double-star matches immediate child")
+  (is (selector/matches-ns? ["phel.http.**"] "phel.http.client.sub")
+      "double-star crosses dots"))
+
+(deftest test-matches-ns-or-semantics-multiple-patterns
+  (is (selector/matches-ns? ["a.*" "phel.*"] "phel.core")
+      "any matching glob passes")
+  (is (not (selector/matches-ns? ["a.*" "b.*"] "c.x"))
+      "no matching glob fails"))
+
+;; ---------------------------------------------------------------------------
+;; matches-filter? — regex / substring on test-name
+;; ---------------------------------------------------------------------------
+
+(deftest test-matches-filter-empty-list
+  (is (selector/matches-filter? [] "anything")
+      "empty filter list imposes no restriction")
+  (is (selector/matches-filter? nil "anything")
+      "nil filter list imposes no restriction"))
+
+(deftest test-matches-filter-substring-match
+  (is (selector/matches-filter? ["add"] "test-add-two")
+      "bare substring matches anywhere in the name")
+  (is (not (selector/matches-filter? ["xyz"] "test-add-two"))
+      "substring miss fails"))
+
+(deftest test-matches-filter-regex-form
+  (is (selector/matches-filter? ["/^test-/"] "test-anything")
+      "delimited regex anchors as written")
+  (is (not (selector/matches-filter? ["/^test-/"] "other-test"))
+      "anchored regex respects position"))
+
+(deftest test-matches-filter-or-semantics
+  (is (selector/matches-filter? ["add" "sub"] "test-sub")
+      "any matching filter passes")
+  (is (not (selector/matches-filter? ["add" "sub"] "test-mul"))
+      "no matching filter fails"))
+
+;; ---------------------------------------------------------------------------
+;; keep-test? — composition rules
+;; ---------------------------------------------------------------------------
+
+(deftest test-keep-test-no-selectors-keeps-everything
+  (is (selector/keep-test? {} "any.ns" {:test-name "t"})
+      "empty options keeps every test")
+  (is (selector/keep-test? {:include [] :exclude [] :ns-patterns [] :filters []}
+                           "any.ns"
+                           {:test-name "t"})
+      "all-empty options keeps every test"))
+
+(deftest test-keep-test-include-only
+  (is (selector/keep-test? {:include [:integration]}
+                           "my.ns"
+                           {:integration true :test-name "t"})
+      "include match keeps test")
+  (is (not (selector/keep-test? {:include [:integration]}
+                                "my.ns"
+                                {:unit true :test-name "t"}))
+      "include miss drops test"))
+
+(deftest test-keep-test-exclude-overrides-include
+  (is (not (selector/keep-test? {:include [:integration] :exclude [:slow]}
+                                "my.ns"
+                                {:integration true :slow true :test-name "t"}))
+      "exclude drops a test that also matches include"))
+
+(deftest test-keep-test-ns-gate
+  (is (selector/keep-test? {:ns-patterns ["phel.http.*"]}
+                           "phel.http.client"
+                           {:test-name "t"})
+      "ns glob match keeps test")
+  (is (not (selector/keep-test? {:ns-patterns ["phel.http.*"]}
+                                "phel.core"
+                                {:test-name "t"}))
+      "ns glob miss drops test"))
+
+(deftest test-keep-test-filter-gate
+  (is (selector/keep-test? {:filters ["add"]}
+                           "my.ns"
+                           {:test-name "test-add-two"})
+      "name filter match keeps test")
+  (is (not (selector/keep-test? {:filters ["add"]}
+                                "my.ns"
+                                {:test-name "test-mul"}))
+      "name filter miss drops test"))
+
+(deftest test-keep-test-all-gates-and
+  (testing "all gates specified and satisfied"
+    (is (selector/keep-test? {:include [:integration]
+                              :exclude [:slow]
+                              :ns-patterns ["phel.http.*"]
+                              :filters ["get"]}
+                             "phel.http.client"
+                             {:integration true :test-name "test-get-url"})
+        "passes every gate"))
+  (testing "any one gate failing drops the test"
+    (is (not (selector/keep-test? {:include [:integration]
+                                   :ns-patterns ["phel.http.*"]}
+                                  "phel.core"
+                                  {:integration true :test-name "t"}))
+        "ns gate fails")
+    (is (not (selector/keep-test? {:include [:integration]
+                                   :filters ["^never-matches$"]}
+                                  "phel.http.client"
+                                  {:integration true :test-name "test-get"}))
+        "filter gate fails")))
+
+;; ---------------------------------------------------------------------------
+;; has-selectors?
+;; ---------------------------------------------------------------------------
+
+(deftest test-has-selectors-reports-presence
+  (is (not (selector/has-selectors? {})) "empty map has no selectors")
+  (is (not (selector/has-selectors? {:include [] :exclude []}))
+      "all-empty vectors counted as no selectors")
+  (is (selector/has-selectors? {:include [:integration]})
+      "non-empty include counts")
+  (is (selector/has-selectors? {:ns-patterns ["a.*"]})
+      "non-empty ns-patterns counts")
+  (is (selector/has-selectors? {:filters ["foo"]})
+      "non-empty filters counts")
+  (is (selector/has-selectors? {:exclude [:slow]})
+      "non-empty exclude counts"))

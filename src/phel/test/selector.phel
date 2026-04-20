@@ -1,0 +1,230 @@
+(ns phel\test\selector)
+
+;; Pure test-selection helpers used by `phel\test/run-tests` to filter the
+;; set of test vars that will actually be invoked for a run. All functions
+;; are side-effect-free: they accept a normalized option map and a
+;; metadata map for a single test, and return booleans. Composition is
+;; done by `keep-test?`, which applies every gate that was actually
+;; specified — omitted selectors are no-ops.
+;;
+;; Selector rules implemented here:
+;;
+;;   * `:include` — vector of tag names (strings or keywords). If empty,
+;;     no restriction. Otherwise match when ANY tag in the vector is
+;;     truthy on the test's metadata (OR semantics).
+;;   * `:exclude` — vector of tag names. If ANY tag in the vector is
+;;     truthy on the test's metadata, the test is dropped. Exclude wins
+;;     over include.
+;;   * `:ns-patterns` — vector of glob patterns matched against the
+;;     test's namespace name. If empty, no restriction. Otherwise match
+;;     when ANY pattern matches (OR semantics).
+;;   * `:filters` — vector of regex patterns matched against the test's
+;;     name. If empty, no restriction. Otherwise match when ANY regex
+;;     matches (OR semantics).
+;;
+;; Every selector that is specified must pass (AND across selectors).
+
+;; ---------------------------------------------------------------------------
+;; Tag extraction
+;; ---------------------------------------------------------------------------
+
+(defn- tag-key
+  "Coerces a selector tag (keyword or string) into the keyword form used
+  to look up metadata. Returns `nil` for other inputs."
+  [tag]
+  (cond
+    (keyword? tag) tag
+    (string? tag)  (keyword tag)
+    :else          nil))
+
+(defn- truthy-tag?
+  "True when `meta` contains a truthy value at `kw`. Also accepts
+  vector-valued `:tags` metadata, checking membership by keyword."
+  [meta kw]
+  (let [direct (get meta kw)
+        tags   (get meta :tags)]
+    (or (and (not (nil? direct)) (not (false? direct)))
+        (and (vector? tags)
+             (truthy? (some (fn [t] (= kw (tag-key t))) tags))))))
+
+(defn has-tag?
+  "Returns `true` when `meta` carries `tag` (a keyword or a string
+  treated as a keyword). Single-keyword metadata (`^:integration`) and
+  map-based multi-tag metadata (`^{:tags [:integration :slow]}`) both
+  match."
+  {:example "(has-tag? {:integration true} :integration)"
+   :see-also ["matches-include?" "matches-exclude?"]}
+  [meta tag]
+  (let [kw (tag-key tag)]
+    (and (not (nil? kw))
+         (truthy-tag? meta kw))))
+
+;; ---------------------------------------------------------------------------
+;; Include / exclude by tag
+;; ---------------------------------------------------------------------------
+
+(defn matches-include?
+  "Returns `true` when `includes` is empty (no restriction) or when any
+  tag in `includes` is truthy on `meta`."
+  {:example "(matches-include? [:integration] {:integration true})"
+   :see-also ["matches-exclude?" "keep-test?"]}
+  [includes meta]
+  (or (nil? includes)
+      (empty? includes)
+      (truthy? (some (fn [tag] (has-tag? meta tag)) includes))))
+
+(defn matches-exclude?
+  "Returns `true` when any tag in `excludes` is truthy on `meta`. An
+  empty or nil `excludes` vector always returns `false` (nothing
+  excluded)."
+  {:example "(matches-exclude? [:slow] {:slow true})"
+   :see-also ["matches-include?" "keep-test?"]}
+  [excludes meta]
+  (and (not (nil? excludes))
+       (not (empty? excludes))
+       (truthy? (some (fn [tag] (has-tag? meta tag)) excludes))))
+
+;; ---------------------------------------------------------------------------
+;; Namespace glob matching
+;; ---------------------------------------------------------------------------
+
+(defn- glob->regex
+  "Converts a namespace glob (`phel.http.*`) into an anchored PCRE
+  pattern. `.` is treated literally, `*` matches any run of non-`.`
+  characters, `**` matches anything. The glob is case-sensitive."
+  [pattern]
+  (let [len   (php/strlen pattern)
+        out   (atom "")
+        i     (atom 0)]
+    (loop []
+      (when (< (deref i) len)
+        (let [ch (php/substr pattern (deref i) 1)]
+          (cond
+            ;; `**` expands to `.*` (matches anything, including dots).
+            (and (= ch "*")
+                 (< (+ (deref i) 1) len)
+                 (= (php/substr pattern (+ (deref i) 1) 1) "*"))
+            (do (swap! out str ".*")
+                (swap! i + 2))
+
+            ;; `*` expands to `[^.]*` (single segment).
+            (= ch "*")
+            (do (swap! out str "[^.]*")
+                (swap! i + 1))
+
+            ;; `.` is escaped to match a literal dot.
+            (= ch ".")
+            (do (swap! out str "\\.")
+                (swap! i + 1))
+
+            ;; Any other regex meta-char is escaped; plain chars pass
+            ;; through untouched.
+            :else
+            (do (swap! out str (php/preg_quote ch))
+                (swap! i + 1))))
+        (recur)))
+    (str "/^" (deref out) "$/")))
+
+(defn- normalize-ns
+  "Normalizes a namespace name so both `phel\\test\\foo` and
+  `phel.test.foo` are interchangeable for glob matching."
+  [ns-name]
+  (when (not (nil? ns-name))
+    (php/str_replace "\\" "." (str ns-name))))
+
+(defn ns-matches?
+  "Returns `true` when `ns-name` matches the glob `pattern`. Supports
+  `*` (single segment) and `**` (any run). Backslash-separated
+  namespaces (`phel\\http\\client`) are treated as dotted
+  (`phel.http.client`) so globs stay portable."
+  {:example "(ns-matches? \"phel.http.*\" \"phel\\\\http\\\\client\")"
+   :see-also ["matches-ns?"]}
+  [pattern ns-name]
+  (and (not (nil? pattern))
+       (not (nil? ns-name))
+       (= 1 (php/preg_match (glob->regex (normalize-ns pattern))
+                            (normalize-ns ns-name)))))
+
+(defn matches-ns?
+  "Returns `true` when `patterns` is empty (no restriction) or when any
+  glob in `patterns` matches `ns-name`."
+  {:example "(matches-ns? [\"phel.http.*\"] \"phel.http.client\")"
+   :see-also ["ns-matches?" "keep-test?"]}
+  [patterns ns-name]
+  (or (nil? patterns)
+      (empty? patterns)
+      (truthy? (some (fn [p] (ns-matches? p ns-name)) patterns))))
+
+;; ---------------------------------------------------------------------------
+;; Name-regex matching
+;; ---------------------------------------------------------------------------
+
+(defn- compile-filter-regex
+  "Wraps a user-supplied regex body in PCRE delimiters when it is not
+  already a `/.../` pattern. Treats bare fragments as substring
+  matchers."
+  [pattern]
+  (if (and (string? pattern)
+           (> (php/strlen pattern) 1)
+           (= (php/substr pattern 0 1) "/")
+           (= (php/substr pattern (- (php/strlen pattern) 1) 1) "/"))
+    pattern
+    (str "/" (php/preg_quote pattern "/") "/")))
+
+(defn name-matches?
+  "Returns `true` when `pattern` (a PCRE `/.../` string or a plain
+  substring) matches `test-name`."
+  {:example "(name-matches? \"add-\" \"test-add-one\")"
+   :see-also ["matches-filter?"]}
+  [pattern test-name]
+  (and (not (nil? pattern))
+       (not (nil? test-name))
+       (= 1 (php/preg_match (compile-filter-regex pattern) test-name))))
+
+(defn matches-filter?
+  "Returns `true` when `patterns` is empty (no restriction) or when any
+  entry in `patterns` matches `test-name`."
+  {:example "(matches-filter? [\"add-\"] \"test-add-one\")"
+   :see-also ["name-matches?" "keep-test?"]}
+  [patterns test-name]
+  (or (nil? patterns)
+      (empty? patterns)
+      (truthy? (some (fn [p] (name-matches? p test-name)) patterns))))
+
+;; ---------------------------------------------------------------------------
+;; Composed predicate
+;; ---------------------------------------------------------------------------
+
+(defn keep-test?
+  "Returns `true` when the test described by `meta` and `ns-name`
+  should be run under `options`. `options` is a map that may carry any
+  of `:include`, `:exclude`, `:ns-patterns`, `:filters`. Selectors that
+  are absent or empty impose no restriction; specified selectors are
+  AND'd together."
+  {:example "(keep-test? {:include [:integration]} \"my.ns\" {:integration true :test-name \"t\"})"
+   :see-also ["matches-include?" "matches-exclude?" "matches-ns?" "matches-filter?"]}
+  [options ns-name meta]
+  (let [includes    (get options :include)
+        excludes    (get options :exclude)
+        ns-patterns (get options :ns-patterns)
+        filters     (get options :filters)
+        tname       (get meta :test-name)]
+    (and (matches-include? includes meta)
+         (not (matches-exclude? excludes meta))
+         (matches-ns? ns-patterns ns-name)
+         (matches-filter? filters tname))))
+
+(defn has-selectors?
+  "Returns `true` when `options` contains at least one non-empty
+  selector key."
+  {:example "(has-selectors? {:include [:integration]})"
+   :see-also ["keep-test?"]}
+  [options]
+  (or (and (not (nil? (get options :include)))
+           (not (empty? (get options :include))))
+      (and (not (nil? (get options :exclude)))
+           (not (empty? (get options :exclude))))
+      (and (not (nil? (get options :ns-patterns)))
+           (not (empty? (get options :ns-patterns))))
+      (and (not (nil? (get options :filters)))
+           (not (empty? (get options :filters))))))
