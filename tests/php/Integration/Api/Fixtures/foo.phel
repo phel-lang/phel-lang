@@ -1,0 +1,13 @@
+(ns fixtures\foo)
+
+(defn greet
+  "Greets the given name."
+  [name]
+  (str "Hello, " name "!"))
+
+(def answer 42)
+
+(defmacro noop
+  "Macro that does nothing."
+  [& body]
+  nil)

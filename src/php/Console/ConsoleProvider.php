@@ -15,7 +15,10 @@ use Gacela\Console\Infrastructure\Command\ValidateConfigCommand;
 use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
+use Phel\Api\Infrastructure\Command\AnalyzeCommand;
+use Phel\Api\Infrastructure\Command\ApiDaemonCommand;
 use Phel\Api\Infrastructure\Command\DocCommand;
+use Phel\Api\Infrastructure\Command\IndexCommand;
 use Phel\Build\Infrastructure\Command\BuildCommand;
 use Phel\Build\Infrastructure\Command\CacheClearCommand;
 use Phel\Console\Application\VersionFinder;
@@ -64,6 +67,9 @@ final class ConsoleProvider extends AbstractProvider
             new RunCommand(),
             new TestCommand(),
             new DocCommand(),
+            new AnalyzeCommand(),
+            new IndexCommand(),
+            new ApiDaemonCommand(),
             new BuildCommand(),
             new CacheClearCommand(),
             new CacheWarmCommand(),
