@@ -1,0 +1,4 @@
+(ns fixtures\clean)
+
+(defn greet [name]
+  (str "Hello, " name))
