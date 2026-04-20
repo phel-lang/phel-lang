@@ -251,6 +251,52 @@ jobs:
       - name: Validate .agents/ examples and core reference drift
         run: composer test-agents
 
+  phar-smoke:
+    name: PHAR smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+          coverage: none
+          tools: composer
+          ini-values: phar.readonly=0
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-ansi --no-progress
+
+      - name: Build PHAR
+        run: ./build/phar.sh
+
+      - name: Assert PHAR exists and is under size budget
+        run: |
+          test -x build/out/phel.phar
+          size=$(stat -c%s build/out/phel.phar)
+          echo "PHAR size: $size bytes"
+          test "$size" -lt 2097152  # 2 MiB budget
+
+      - name: Boot PHAR from a clean directory
+        working-directory: /tmp
+        run: |
+          PHAR=$GITHUB_WORKSPACE/build/out/phel.phar
+          "$PHAR" --version
+          result=$("$PHAR" eval '(apply + [1 2 3 4])')
+          echo "$result"
+          echo "$result" | grep -q '10'
+
   bash-tests:
     name: Bash tests
     runs-on: ubuntu-latest

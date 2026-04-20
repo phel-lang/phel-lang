@@ -150,6 +150,7 @@ final class PharBuilder
     {
         $cacheDir = $this->root . '/cache';
         $compiledDir = $cacheDir . '/compiled';
+        $outDir = $this->root . '/out';
 
         // Clean previous compiled cache to avoid stale entries
         if (is_dir($compiledDir)) {
@@ -161,6 +162,14 @@ final class PharBuilder
             }
         }
 
+        // rsync excludes out/, so phel build has nowhere to write. Create it
+        // up front; otherwise build aborts with a file_put_contents warning
+        // and only appears to succeed because a previous /tmp/phel/cache run
+        // is still around.
+        if (!is_dir($outDir) && !mkdir($outDir, 0o755, true) && !is_dir($outDir)) {
+            throw new RuntimeException("Failed to create build output dir: {$outDir}");
+        }
+
         // Build the project using Phel's build command — this compiles all
         // stdlib modules through the normal pipeline, populating the temp cache.
         $exitCode = 0;
@@ -170,7 +179,7 @@ final class PharBuilder
         );
 
         if ($exitCode !== 0) {
-            echo "⚠️  phel build exited with code {$exitCode}, attempting to continue\n";
+            throw new RuntimeException("phel build failed with exit code {$exitCode}");
         }
 
         // Copy the compiled cache from the temp dir to the project-local cache/
