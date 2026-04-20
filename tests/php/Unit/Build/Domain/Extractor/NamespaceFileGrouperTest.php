@@ -13,6 +13,9 @@ final class NamespaceFileGrouperTest extends TestCase
 {
     private NamespaceFileGrouper $grouper;
 
+    /** @var list<string> */
+    private array $capturedWarnings = [];
+
     protected function setUp(): void
     {
         $sorter = new class() implements NamespaceSorterInterface {
@@ -22,7 +25,13 @@ final class NamespaceFileGrouperTest extends TestCase
             }
         };
 
-        $this->grouper = new NamespaceFileGrouper($sorter);
+        $this->capturedWarnings = [];
+        $this->grouper = new NamespaceFileGrouper(
+            $sorter,
+            function (string $message): void {
+                $this->capturedWarnings[] = $message;
+            },
+        );
     }
 
     public function test_local_primary_wins_over_phar_bundle(): void
@@ -34,6 +43,7 @@ final class NamespaceFileGrouperTest extends TestCase
 
         self::assertCount(1, $result);
         self::assertSame('/workspace/src/phel/core.phel', $result[0]->getFile());
+        self::assertSame([], $this->capturedWarnings);
     }
 
     public function test_local_primary_wins_even_when_phar_iterated_last(): void
@@ -45,6 +55,7 @@ final class NamespaceFileGrouperTest extends TestCase
 
         self::assertCount(1, $result);
         self::assertSame('/workspace/src/phel/core.phel', $result[0]->getFile());
+        self::assertSame([], $this->capturedWarnings);
     }
 
     public function test_two_local_definitions_keep_last_wins_behavior(): void
@@ -56,6 +67,8 @@ final class NamespaceFileGrouperTest extends TestCase
 
         self::assertCount(1, $result);
         self::assertSame('/workspace/src/user_b.phel', $result[0]->getFile());
+        self::assertCount(1, $this->capturedWarnings);
+        self::assertStringContainsString("Namespace 'user' is defined in multiple locations", $this->capturedWarnings[0]);
     }
 
     public function test_two_phar_definitions_keep_last_wins_behavior(): void
@@ -67,6 +80,8 @@ final class NamespaceFileGrouperTest extends TestCase
 
         self::assertCount(1, $result);
         self::assertSame('phar:///tmp/two.phar/src/x.phel', $result[0]->getFile());
+        self::assertCount(1, $this->capturedWarnings);
+        self::assertStringContainsString("Namespace 'ns\\x' is defined in multiple locations", $this->capturedWarnings[0]);
     }
 
     public function test_local_secondaries_are_preserved_alongside_phar_primary(): void

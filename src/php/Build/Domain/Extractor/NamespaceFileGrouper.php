@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Extractor;
 
+use Closure;
+
 use function array_keys;
 use function array_map;
 use function count;
@@ -24,9 +26,20 @@ use const STDERR;
  */
 final readonly class NamespaceFileGrouper
 {
+    /** @var Closure(string): void */
+    private Closure $warningWriter;
+
+    /**
+     * @param (Closure(string): void)|null $warningWriter
+     */
     public function __construct(
         private NamespaceSorterInterface $namespaceSorter,
-    ) {}
+        ?Closure $warningWriter = null,
+    ) {
+        $this->warningWriter = $warningWriter ?? static function (string $message): void {
+            fwrite(STDERR, $message);
+        };
+    }
 
     /**
      * @param list<NamespaceInformation> $infos
@@ -134,7 +147,7 @@ final readonly class NamespaceFileGrouper
             }
 
             $fileList = implode("\n", array_map(static fn(string $f): string => '  - ' . $f, $effective));
-            fwrite(STDERR, sprintf(
+            ($this->warningWriter)(sprintf(
                 "\nWARNING: Namespace '%s' is defined in multiple locations:\n%s\n"
                 . "The last one will be used. Check your phel-config.php srcDirs/testDirs settings.\n",
                 $namespace,
