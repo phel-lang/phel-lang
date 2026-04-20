@@ -58,7 +58,7 @@ final class ReplHistoryVarsTest extends AbstractTestCommand
         );
         $this->prepareRunFactory($io);
 
-        (new ReplCommand())->run(
+        new ReplCommand()->run(
             $this->createStub(InputInterface::class),
             $this->stubOutput(),
         );
@@ -84,7 +84,7 @@ final class ReplHistoryVarsTest extends AbstractTestCommand
         );
         $this->prepareRunFactory($io);
 
-        (new ReplCommand())->run(
+        new ReplCommand()->run(
             $this->createStub(InputInterface::class),
             $this->stubOutput(),
         );
@@ -107,7 +107,7 @@ final class ReplHistoryVarsTest extends AbstractTestCommand
         );
         $this->prepareRunFactory($io);
 
-        (new ReplCommand())->run(
+        new ReplCommand()->run(
             $this->createStub(InputInterface::class),
             $this->stubOutput(),
         );

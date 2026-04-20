@@ -40,7 +40,7 @@ final class CommandBench
     {
         ob_start();
         try {
-            (new RunCommand())->run(
+            new RunCommand()->run(
                 new StringInput(__DIR__ . '/fixtures/run-command.phel'),
                 new NullOutput(),
             );
@@ -62,7 +62,7 @@ final class CommandBench
     {
         ob_start();
         try {
-            (new TestCommand())->run(
+            new TestCommand()->run(
                 new StringInput(__DIR__ . '/fixtures/test-command.phel'),
                 new NullOutput(),
             );

@@ -36,7 +36,7 @@ final class ApplySymbolTest extends TestCase
             Symbol::create(Symbol::NAME_APPLY),
             Symbol::create('\\'),
         ]);
-        (new ApplySymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new ApplySymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_apply_node(): void
@@ -46,7 +46,7 @@ final class ApplySymbolTest extends TestCase
             Symbol::createForNamespace('php', '+'),
             Phel::vector([1, 2, 3]),
         ]);
-        $applyNode = (new ApplySymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $applyNode = new ApplySymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         $envLiteral = NodeEnvironment::empty()
             ->withExpressionContext()

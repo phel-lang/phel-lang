@@ -189,7 +189,7 @@ final class OutputEmitter implements OutputEmitterInterface
 
     public function emitLiteral(mixed $value): void
     {
-        (new LiteralEmitter($this, $this->printer))->emitLiteral($value);
+        new LiteralEmitter($this, $this->printer)->emitLiteral($value);
     }
 
     public function increaseIndentLevel(): void

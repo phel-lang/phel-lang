@@ -113,7 +113,7 @@ final class UseSymbolTest extends TestCase
 
     private function analyze(PersistentListInterface $list): UseNode
     {
-        return (new UseSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        return new UseSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     private function getGlobalEnvironment(): GlobalEnvironment

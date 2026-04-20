@@ -117,7 +117,7 @@ final class RunCommand extends Command
             }
 
             if ($input->getOption('with-time')) {
-                $output->writeln((new ResourceUsageFormatter())->resourceUsageSinceStartOfRequest());
+                $output->writeln(new ResourceUsageFormatter()->resourceUsageSinceStartOfRequest());
             }
 
             DebugLineTap::disable();

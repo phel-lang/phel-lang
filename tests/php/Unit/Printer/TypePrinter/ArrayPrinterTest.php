@@ -22,7 +22,7 @@ final class ArrayPrinterTest extends TestCase
             }
         };
 
-        self::assertSame($expected, (new ArrayPrinter($printer))->print($form));
+        self::assertSame($expected, new ArrayPrinter($printer)->print($form));
     }
 
     public static function providerPrint(): Generator

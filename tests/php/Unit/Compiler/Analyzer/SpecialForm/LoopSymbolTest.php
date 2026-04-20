@@ -41,7 +41,7 @@ final class LoopSymbolTest extends TestCase
         $list = Phel::list([Symbol::create('unknown')]);
         $env = NodeEnvironment::empty();
 
-        (new LoopSymbol($this->analyzer, new BindingValidator()))->analyze($list, $env);
+        new LoopSymbol($this->analyzer, new BindingValidator())->analyze($list, $env);
     }
 
     public function test_wrong_number_of_arguments(): void

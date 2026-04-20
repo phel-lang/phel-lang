@@ -185,6 +185,6 @@ final class ForeachSymbolTest extends TestCase
 
         $analyzer = new Analyzer($env);
 
-        return (new ForeachSymbol($analyzer))->analyze($list, NodeEnvironment::empty());
+        return new ForeachSymbol($analyzer)->analyze($list, NodeEnvironment::empty());
     }
 }

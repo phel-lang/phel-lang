@@ -18,6 +18,6 @@ final class ToStringPrinterTest extends TestCase
             }
         };
 
-        self::assertSame('toString method', (new ToStringPrinter())->print($class));
+        self::assertSame('toString method', new ToStringPrinter()->print($class));
     }
 }

@@ -17,7 +17,7 @@ final readonly class MapReader
 
     public function read(ListNode $node, NodeInterface $root): PersistentMapInterface
     {
-        $list = (new ListReader($this->reader))->read($node, $root);
+        $list = new ListReader($this->reader)->read($node, $root);
 
         if ($list->count() % 2 !== 0) {
             throw ReaderException::forNode($node, $root, 'Maps must have an even number of parameters');

@@ -22,7 +22,7 @@ final readonly class ListFnReader
      */
     public function read(ListNode $node, ?array &$fnArgs, NodeInterface $root): PersistentListInterface
     {
-        $body = (new ListReader($this->reader))->read($node, $root);
+        $body = new ListReader($this->reader)->read($node, $root);
         $params = $this->extractParams($fnArgs);
         $fnArgs = null;
 

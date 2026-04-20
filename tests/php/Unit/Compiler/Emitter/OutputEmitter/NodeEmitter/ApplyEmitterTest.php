@@ -21,7 +21,7 @@ final class ApplyEmitterTest extends TestCase
 
     protected function setUp(): void
     {
-        $outputEmitter = (new CompilerFactory())
+        $outputEmitter = new CompilerFactory()
             ->createOutputEmitter();
 
         $this->applyEmitter = new ApplyEmitter($outputEmitter);

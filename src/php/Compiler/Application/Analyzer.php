@@ -119,7 +119,7 @@ final class Analyzer implements AnalyzerInterface
         NodeEnvironmentInterface $env,
     ): AbstractNode {
         if ($this->isLiteral($x)) {
-            return (new AnalyzeLiteral())->analyze($x, $env);
+            return new AnalyzeLiteral()->analyze($x, $env);
         }
 
         if ($x instanceof Symbol) {

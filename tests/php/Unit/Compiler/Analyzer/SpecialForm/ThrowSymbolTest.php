@@ -33,7 +33,7 @@ final class ThrowSymbolTest extends TestCase
             Symbol::create(Symbol::NAME_THROW),
         ]);
 
-        (new ThrowSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new ThrowSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_throw_node(): void
@@ -50,7 +50,7 @@ final class ThrowSymbolTest extends TestCase
             $list->getStartLocation(),
         );
 
-        $actual = (new ThrowSymbol($this->analyzer))->analyze($list, $env);
+        $actual = new ThrowSymbol($this->analyzer)->analyze($list, $env);
 
         self::assertEquals($expected, $actual);
     }

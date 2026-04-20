@@ -18,7 +18,7 @@ final class CallEmitterTest extends TestCase
 
     protected function setUp(): void
     {
-        $outputEmitter = (new CompilerFactory())
+        $outputEmitter = new CompilerFactory()
             ->createOutputEmitter();
 
         $this->callEmitter = new CallEmitter($outputEmitter);

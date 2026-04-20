@@ -19,7 +19,7 @@ final class StructKeyEncoderTest extends TestCase
 
     public function test_encodes_special_marker_for_this(): void
     {
-        self::assertSame('__phel_this', (new StructKeyEncoder())->encode('this'));
+        self::assertSame('__phel_this', new StructKeyEncoder()->encode('this'));
     }
 
     public function test_passthrough_for_plain_identifiers(): void

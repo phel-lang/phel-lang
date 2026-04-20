@@ -15,7 +15,7 @@ abstract class AbstractFn implements FnInterface, MetaInterface, Stringable
 
     public function __toString(): string
     {
-        $boundTo = (new ReflectionClass($this))->getConstant('BOUND_TO');
+        $boundTo = new ReflectionClass($this)->getConstant('BOUND_TO');
 
         if (!is_string($boundTo) || $boundTo === '') {
             return '<function>';

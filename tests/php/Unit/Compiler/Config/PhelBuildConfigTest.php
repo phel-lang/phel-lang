@@ -25,7 +25,7 @@ final class PhelBuildConfigTest extends TestCase
 
     public function test_defined_phel_ns(): void
     {
-        $config = (new PhelBuildConfig())
+        $config = new PhelBuildConfig()
             ->setMainPhelNamespace('test-ns/boot');
 
         $expected = [
@@ -40,7 +40,7 @@ final class PhelBuildConfigTest extends TestCase
 
     public function test_dest_dir(): void
     {
-        $config = (new PhelBuildConfig())
+        $config = new PhelBuildConfig()
             ->setDestDir('custom-out');
 
         $expected = [
@@ -55,7 +55,7 @@ final class PhelBuildConfigTest extends TestCase
 
     public function test_dest_dir_and_main_php_path(): void
     {
-        $config = (new PhelBuildConfig())
+        $config = new PhelBuildConfig()
             ->setDestDir('custom-out')
             ->setMainPhpPath('custom-out/custom-index.php');
 
@@ -71,7 +71,7 @@ final class PhelBuildConfigTest extends TestCase
 
     public function test_main_php_path_takes_precedence(): void
     {
-        $config = (new PhelBuildConfig())
+        $config = new PhelBuildConfig()
             ->setMainPhpPath('custom-out/custom-index.php');
 
         $expected = [
@@ -86,7 +86,7 @@ final class PhelBuildConfigTest extends TestCase
 
     public function test_main_php_path(): void
     {
-        $config = (new PhelBuildConfig())
+        $config = new PhelBuildConfig()
             ->setMainPhpPath('custom-out/custom-index.php');
 
         $expected = [
@@ -101,7 +101,7 @@ final class PhelBuildConfigTest extends TestCase
 
     public function test_main_php_path_without_ext(): void
     {
-        $config = (new PhelBuildConfig())
+        $config = new PhelBuildConfig()
             ->setMainPhpPath('custom-flip');
 
         $expected = [
@@ -116,7 +116,7 @@ final class PhelBuildConfigTest extends TestCase
 
     public function test_main_php_path_bug_when_not_dir_defined(): void
     {
-        $config = (new PhelBuildConfig())
+        $config = new PhelBuildConfig()
             ->setMainPhpPath('custom-index');
 
         $expected = [
@@ -131,7 +131,7 @@ final class PhelBuildConfigTest extends TestCase
 
     public function test_main_php_path_bug_when_nested_dir_defined(): void
     {
-        $config = (new PhelBuildConfig())
+        $config = new PhelBuildConfig()
             ->setMainPhpPath('custom-dir1/dir2/custom-index');
 
         $expected = [

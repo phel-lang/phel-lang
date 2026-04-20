@@ -68,10 +68,10 @@ final class DoctorCommand extends Command
         $output->writeln('');
         $output->writeln('Checking module health:');
 
-        $report = (new HealthChecker([
+        $report = new HealthChecker([
             Gacela::getRequired(FilesystemFacade::class)->getHealthCheck(),
             Gacela::getRequired(BuildFacade::class)->getHealthCheck(),
-        ]))->checkAll();
+        ])->checkAll();
 
         foreach ($report->getResults() as $moduleName => $status) {
             $output->writeln(sprintf(

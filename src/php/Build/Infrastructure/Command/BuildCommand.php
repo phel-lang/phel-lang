@@ -52,7 +52,7 @@ final class BuildCommand extends Command
             $this->getFacade()->writeStackTrace($output, $e);
         }
 
-        $output->writeln((new ResourceUsageFormatter())->resourceUsageSinceStartOfRequest());
+        $output->writeln(new ResourceUsageFormatter()->resourceUsageSinceStartOfRequest());
 
         return self::SUCCESS;
     }

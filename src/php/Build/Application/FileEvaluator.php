@@ -86,7 +86,7 @@ final readonly class FileEvaluator
                 $this->dependencyTracker->invalidateDependentsOf($namespace, $this->compiledCodeCache);
             }
 
-            $options = (new CompileOptions())
+            $options = new CompileOptions()
                 ->setSource($src)
                 ->setIsEnabledSourceMaps(false);
 
@@ -103,7 +103,7 @@ final readonly class FileEvaluator
             );
         }
 
-        $options = (new CompileOptions())
+        $options = new CompileOptions()
             ->setSource($src)
             ->setIsEnabledSourceMaps(true);
 

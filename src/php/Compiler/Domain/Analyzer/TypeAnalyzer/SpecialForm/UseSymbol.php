@@ -31,7 +31,7 @@ final class UseSymbol implements SpecialFormAnalyzerInterface
 
         $ns = $this->analyzer->getNamespace();
 
-        (new UseAliasRegistrar($this->analyzer))->register($ns, $list, 1, 'use');
+        new UseAliasRegistrar($this->analyzer)->register($ns, $list, 1, 'use');
 
         return new UseNode($env, $list->getStartLocation());
     }

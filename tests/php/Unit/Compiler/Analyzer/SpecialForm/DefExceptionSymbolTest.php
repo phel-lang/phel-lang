@@ -36,7 +36,7 @@ final class DefExceptionSymbolTest extends TestCase
             Symbol::create('B'),
         ]);
 
-        (new DefExceptionSymbol($this->analyzer))
+        new DefExceptionSymbol($this->analyzer)
             ->analyze($list, NodeEnvironment::empty());
     }
 
@@ -50,7 +50,7 @@ final class DefExceptionSymbolTest extends TestCase
             'no-symbol',
         ]);
 
-        (new DefExceptionSymbol($this->analyzer))
+        new DefExceptionSymbol($this->analyzer)
             ->analyze($list, NodeEnvironment::empty());
     }
 
@@ -61,7 +61,7 @@ final class DefExceptionSymbolTest extends TestCase
             Symbol::create('MyExc'),
         ]);
 
-        $defExceptionNode = (new DefExceptionSymbol($this->analyzer))
+        $defExceptionNode = new DefExceptionSymbol($this->analyzer)
             ->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals(

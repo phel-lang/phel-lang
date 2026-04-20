@@ -158,14 +158,7 @@ final class ReplCompleterTest extends TestCase
     public function test_php_function_has_php_function_type(): void
     {
         $results = $this->completer->completeWithTypes('php/strl');
-
-        $strlen = null;
-        foreach ($results as $result) {
-            if ($result->candidate === 'php/strlen') {
-                $strlen = $result;
-                break;
-            }
-        }
+        $strlen = array_find($results, fn($result): bool => $result->candidate === 'php/strlen');
 
         self::assertNotNull($strlen);
         self::assertSame('php-function', $strlen->type);
@@ -174,14 +167,7 @@ final class ReplCompleterTest extends TestCase
     public function test_php_class_has_class_type(): void
     {
         $results = $this->completer->completeWithTypes('php/DateT');
-
-        $dateTime = null;
-        foreach ($results as $result) {
-            if ($result->candidate === 'php/DateTime') {
-                $dateTime = $result;
-                break;
-            }
-        }
+        $dateTime = array_find($results, fn($result): bool => $result->candidate === 'php/DateTime');
 
         self::assertNotNull($dateTime);
         self::assertSame('class', $dateTime->type);

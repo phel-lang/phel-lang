@@ -26,7 +26,7 @@ final class RequireBuildModeTest extends TestCase
             unlink($executedFile);
         }
 
-        (new BuildFacade())->evalFile($fixtures . '/example/main.phel');
+        new BuildFacade()->evalFile($fixtures . '/example/main.phel');
 
         self::assertFileDoesNotExist($executedFile);
     }

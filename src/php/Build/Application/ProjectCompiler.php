@@ -157,13 +157,7 @@ final readonly class ProjectCompiler
 
     private function shouldIgnoreNs(NamespaceInformation $info): bool
     {
-        foreach ($this->config->getPathsToIgnore() as $path) {
-            if (str_contains($info->getFile(), $path)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($this->config->getPathsToIgnore(), fn($path): bool => str_contains($info->getFile(), (string) $path));
     }
 
     private function canUseCache(
@@ -177,14 +171,7 @@ final readonly class ProjectCompiler
         ) {
             return false;
         }
-
-        foreach ($this->config->getPathsToAvoidCache() as $path) {
-            if (str_contains($targetFile, $path)) {
-                return false;
-            }
-        }
-
-        return true;
+        return array_all($this->config->getPathsToAvoidCache(), fn($path): bool => !str_contains($targetFile, (string) $path));
     }
 
     private function getFileMtime(string $file): int

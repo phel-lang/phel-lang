@@ -67,7 +67,7 @@ final class LoadChainBench
         // `(load ...)` chain which registers the namespace and warms
         // both the CompiledCodeCache and the env cache. Benchmark
         // revolutions then re-`evalFile` the same paths as cache hits.
-        (new BuildFacade())->evalFile($srcPhel . 'core.phel');
+        new BuildFacade()->evalFile($srcPhel . 'core.phel');
     }
 
     /**
@@ -105,7 +105,7 @@ final class LoadChainBench
     public function bench_eval_core_secondaries_fresh_facade(): void
     {
         foreach ($this->secondaryPaths as $p) {
-            (new BuildFacade())->evalFile($p);
+            new BuildFacade()->evalFile($p);
         }
     }
 }

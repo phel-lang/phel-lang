@@ -17,7 +17,7 @@ final class ObjectPrinterTest extends TestCase
     {
         self::assertSame(
             $expected,
-            (new ObjectPrinter())->print($object),
+            new ObjectPrinter()->print($object),
         );
     }
 

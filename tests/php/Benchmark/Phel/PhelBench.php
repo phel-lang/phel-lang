@@ -39,7 +39,7 @@ final class PhelBench
         Symbol::resetGen();
         GlobalEnvironmentSingleton::initializeNew();
 
-        (new BuildFacade())->compileFile(
+        new BuildFacade()->compileFile(
             __DIR__ . '/../../../../src/phel/core.phel',
             $this->newTempPath(),
         );
@@ -89,7 +89,7 @@ final class PhelBench
         Symbol::resetGen();
         GlobalEnvironmentSingleton::initializeNew();
 
-        (new BuildFacade())->compileFile(
+        new BuildFacade()->compileFile(
             __DIR__ . '/../../../../src/phel/core.phel',
             $this->newTempPath(),
         );

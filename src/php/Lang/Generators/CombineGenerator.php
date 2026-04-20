@@ -160,13 +160,7 @@ final class CombineGenerator
      */
     private static function allIteratorsValid(array $iterators): bool
     {
-        foreach ($iterators as $iterator) {
-            if (!$iterator->valid()) {
-                return false;
-            }
-        }
-
-        return true;
+        return array_all($iterators, fn($iterator) => $iterator->valid());
     }
 
     /**

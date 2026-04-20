@@ -115,7 +115,7 @@ final class DocCommand extends Command
     {
         [$width1, $width2, $width3] = $this->calculateWithProportionalToCurrentScreen();
 
-        $table = (new Table($output))
+        $table = new Table($output)
             ->setHeaders(['function', 'signature', 'description'])
             ->setColumnMaxWidth(0, $width1)
             ->setColumnMaxWidth(1, $width2)
@@ -156,7 +156,7 @@ final class DocCommand extends Command
      */
     private function calculateWithProportionalToCurrentScreen(): array
     {
-        $colCount = (new Terminal())->getWidth();
+        $colCount = new Terminal()->getWidth();
         $colCountFloat = (float) $colCount;
         $proportion1 = 25;
         $proportion2 = 40;

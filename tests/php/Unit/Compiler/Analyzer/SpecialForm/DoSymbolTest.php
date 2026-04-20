@@ -31,7 +31,7 @@ final class DoSymbolTest extends TestCase
 
         $list = Phel::list([Symbol::create('unknown')]);
         $env = NodeEnvironment::empty();
-        (new DoSymbol($this->analyzer))->analyze($list, $env);
+        new DoSymbol($this->analyzer)->analyze($list, $env);
     }
 
     public function test_empty_list(): void
@@ -48,7 +48,7 @@ final class DoSymbolTest extends TestCase
             $list->getStartLocation(),
         );
 
-        $actual = (new DoSymbol($this->analyzer))->analyze($list, $env);
+        $actual = new DoSymbol($this->analyzer)->analyze($list, $env);
         self::assertEquals($expected, $actual);
     }
 
@@ -68,7 +68,7 @@ final class DoSymbolTest extends TestCase
             $list->getStartLocation(),
         );
 
-        $actual = (new DoSymbol($this->analyzer))->analyze($list, $env);
+        $actual = new DoSymbol($this->analyzer)->analyze($list, $env);
         self::assertEquals($expected, $actual);
     }
 
@@ -91,7 +91,7 @@ final class DoSymbolTest extends TestCase
             $list->getStartLocation(),
         );
 
-        $actual = (new DoSymbol($this->analyzer))->analyze($list, $env);
+        $actual = new DoSymbol($this->analyzer)->analyze($list, $env);
         self::assertEquals($expected, $actual);
     }
 }

@@ -37,7 +37,7 @@ final class PhpObjectCallSymbolTest extends TestCase
             Symbol::create('\\'),
         ]);
 
-        (new PhpObjectCallSymbol($this->analyzer, isStatic: true))
+        new PhpObjectCallSymbol($this->analyzer, isStatic: true)
             ->analyze($list, NodeEnvironment::empty());
     }
 
@@ -51,7 +51,7 @@ final class PhpObjectCallSymbolTest extends TestCase
             Symbol::create('\\'),
             '',
         ]);
-        (new PhpObjectCallSymbol($this->analyzer, isStatic: false))
+        new PhpObjectCallSymbol($this->analyzer, isStatic: false)
             ->analyze($list, NodeEnvironment::empty());
     }
 
@@ -62,7 +62,7 @@ final class PhpObjectCallSymbolTest extends TestCase
             Symbol::create('\\'),
             Symbol::create(''),
         ]);
-        $objCallNode = (new PhpObjectCallSymbol($this->analyzer, $isStatic = true))
+        $objCallNode = new PhpObjectCallSymbol($this->analyzer, $isStatic = true)
             ->analyze($list, NodeEnvironment::empty());
         self::assertSame($isStatic, $objCallNode->isStatic());
         self::assertInstanceOf(PhpClassNameNode::class, $objCallNode->getTargetExpr());
@@ -77,7 +77,7 @@ final class PhpObjectCallSymbolTest extends TestCase
             Symbol::create(''),
         ]);
 
-        $objCallNode = (new PhpObjectCallSymbol($this->analyzer, $isStatic = false))
+        $objCallNode = new PhpObjectCallSymbol($this->analyzer, $isStatic = false)
             ->analyze($list, NodeEnvironment::empty());
 
         self::assertSame($isStatic, $objCallNode->isStatic());
@@ -93,7 +93,7 @@ final class PhpObjectCallSymbolTest extends TestCase
             Phel::list([Symbol::create(''), '', '']),
         ]);
 
-        $objCallNode = (new PhpObjectCallSymbol($this->analyzer, isStatic: true))
+        $objCallNode = new PhpObjectCallSymbol($this->analyzer, isStatic: true)
             ->analyze($list, NodeEnvironment::empty());
 
         self::assertTrue($objCallNode->isMethodCall());
@@ -109,7 +109,7 @@ final class PhpObjectCallSymbolTest extends TestCase
             Symbol::create(''),
         ]);
 
-        $objCallNode = (new PhpObjectCallSymbol($this->analyzer, isStatic: true))
+        $objCallNode = new PhpObjectCallSymbol($this->analyzer, isStatic: true)
             ->analyze($list, NodeEnvironment::empty());
 
         self::assertFalse($objCallNode->isMethodCall());
@@ -126,7 +126,7 @@ final class PhpObjectCallSymbolTest extends TestCase
             Symbol::create('bar'),
         ]);
 
-        $objCallNode = (new PhpObjectCallSymbol($this->analyzer, isStatic: false))
+        $objCallNode = new PhpObjectCallSymbol($this->analyzer, isStatic: false)
             ->analyze($list, NodeEnvironment::empty());
 
         self::assertInstanceOf(PropertyOrConstantAccessNode::class, $objCallNode->getCallExpr());
