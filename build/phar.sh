@@ -98,15 +98,24 @@ mkdir -p "$WORK_DIR" "$CACHE_DIR" "$OUTPUT_DIR"
 rsync -a "$REPO_ROOT/" "$WORK_DIR/" \
   --exclude='.git' \
   --exclude='.github' \
+  --exclude='.idea' \
+  --exclude='.vscode' \
+  --exclude='.claude' \
+  --exclude='.agents' \
+  --exclude='.phpbench' \
+  --exclude='.phpunit.cache' \
+  --exclude='/.phel-cache' \
   --exclude='docs' \
   --exclude='tests' \
   --exclude='docker' \
   --exclude='data' \
   --exclude='vendor' \
   --exclude='build' \
-  --exclude='/.phel-cache' \
-  --exclude='.idea' \
-  --exclude='.vscode' \
+  --exclude='tools' \
+  --exclude='examples' \
+  --exclude='fixtures' \
+  --exclude='out' \
+  --exclude='local' \
   --exclude='node_modules' \
   --delete
 

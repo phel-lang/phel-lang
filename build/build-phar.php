@@ -19,10 +19,18 @@ final class PharBuilder
         'errors' => [],
     ];
 
+    /**
+     * Basenames skipped at any depth. phar.sh already prunes top-level
+     * dev dirs via rsync; the ones listed here catch the same names inside
+     * vendor packages (e.g. vendor/foo/tests, vendor/foo/docs).
+     */
     private array $excludeDirs = [
         '', '.', '..',
-        '.git', '.github', '.idea', '.claude', '.vscode', '.agents',
-        'docs', 'tests', 'docker', 'local', 'build', 'tools', 'examples', 'fixtures', 'out',
+        '.git', '.github', '.idea', '.claude', '.vscode', '.agents', '.phpbench',
+        'docs', 'Doc', 'doc',
+        'tests', 'Tests', 'test', 'Test',
+        'docker', 'benchmarks', 'bench',
+        'local', 'build', 'tools', 'examples', 'fixtures', 'out',
         '.phel-cache', '.phpunit.cache',
     ];
 
@@ -36,14 +44,35 @@ final class PharBuilder
         'phel-config-local.php' => true,
         'php-cs-fixer.php' => true,
         'psalm.xml' => true,
+        'psalm-gacela.xml' => true,
         'rector.php' => true,
         'phpunit.xml.dist' => true,
         'logo_readme.svg' => true,
+        'logo.svg' => true,
+        'README.md' => true,
+        'CHANGELOG.md' => true,
+        'AGENTS.md' => true,
+        'CONTRIBUTING.md' => true,
+        'CLAUDE.md' => true,
+        'AUTHORS.md' => true,
+        'SECURITY.md' => true,
+        'CODE_OF_CONDUCT.md' => true,
+        'HISTORY.md' => true,
     ];
 
     private array $excludeExtensions = [
         '.log' => true,
+        '.svg' => true,
+        '.bash' => true,
+        '.zsh' => true,
+        '.fish' => true,
     ];
+
+    /**
+     * Matches versioned doc files like UPGRADE-5.4.md or CHANGELOG-7.0.md
+     * shipped by some vendor packages.
+     */
+    private string $versionedDocPattern = '/^(README|CHANGELOG|CHANGES|UPGRADE|HISTORY)(-[\w.]+)?\.(md|rst|txt)$/i';
 
     public function __construct(string $root)
     {
@@ -277,67 +306,66 @@ final class PharBuilder
     private function addFiles(Phar $phar): void
     {
         $excludeDirMap = array_fill_keys($this->excludeDirs, true);
+        $excludeFiles = $this->excludeFiles;
+        $excludeExtensions = $this->excludeExtensions;
+        $versionedDocPattern = $this->versionedDocPattern;
+
+        $filter = static function ($current) use (
+            $excludeDirMap,
+            $excludeFiles,
+            $excludeExtensions,
+            $versionedDocPattern,
+        ): bool {
+            $basename = $current->getBasename();
+
+            if ($current->isDir()) {
+                return !isset($excludeDirMap[$basename]);
+            }
+
+            if (isset($excludeFiles[$basename])) {
+                return false;
+            }
+
+            $ext = strrchr($basename, '.');
+            if ($ext !== false && isset($excludeExtensions[$ext])) {
+                return false;
+            }
+
+            if ($basename[0] === '.' && $basename !== '.phel-release.php') {
+                return false;
+            }
+
+            if (preg_match($versionedDocPattern, $basename) === 1) {
+                return false;
+            }
+
+            return true;
+        };
+
         $iterator = new RecursiveIteratorIterator(
             new RecursiveCallbackFilterIterator(
-                new RecursiveDirectoryIterator($this->root, FilesystemIterator::FOLLOW_SYMLINKS),
-                static function ($current, $key, $iterator) use ($excludeDirMap) {
-                    if (!$current->isDir()) {
-                        return true;
-                    }
-
-                    $basename = $current->getBasename();
-                    return !isset($excludeDirMap[$basename]);
-                },
+                new RecursiveDirectoryIterator($this->root, FilesystemIterator::SKIP_DOTS),
+                $filter,
             ),
         );
 
+        try {
+            $added = $phar->buildFromIterator($iterator, $this->root);
+        } catch (Exception $e) {
+            $this->stats['errors'][] = "buildFromIterator failed: {$e->getMessage()}";
+            return;
+        }
+
         $totalSize = 0;
-        foreach ($iterator as $file) {
-            if (!$file->isFile()) {
-                continue;
-            }
-
-            $basename = $file->getBasename();
-
-            if (!$this->shouldIncludeFile($basename)) {
-                continue;
-            }
-
-            $local = substr($file->getPathname(), \strlen($this->root) + 1);
-            try {
-                $phar->addFile($file->getPathname(), $local);
-                $totalSize += filesize($file->getPathname());
-                ++$this->stats['files_added'];
-            } catch (Exception $e) {
-                $this->stats['errors'][] = "Failed to add file {$local}: {$e->getMessage()}";
+        foreach ($added as $pharPath => $sourcePath) {
+            $size = @filesize($sourcePath);
+            if ($size !== false) {
+                $totalSize += $size;
             }
         }
 
+        $this->stats['files_added'] = \count($added);
         $this->stats['total_size'] = $totalSize;
-    }
-
-    /**
-     * Determine if a file should be included
-     */
-    private function shouldIncludeFile(string $basename): bool
-    {
-        // Check excluded files
-        if (isset($this->excludeFiles[$basename])) {
-            return false;
-        }
-
-        // Check excluded extensions
-        $ext = strrchr($basename, '.');
-        if ($ext && isset($this->excludeExtensions[$ext])) {
-            return false;
-        }
-
-        // Skip hidden files (but include .phel-release.php if it exists)
-        if ($basename[0] === '.' && $basename !== '.phel-release.php') {
-            return false;
-        }
-
-        return true;
     }
 
     /**
