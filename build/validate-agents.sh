@@ -62,24 +62,13 @@ if (( failures > 0 )); then
 fi
 
 echo "==> Checking .agents/reference/core.md drift"
-reference_file="$repo_root/.agents/reference/core.md"
-tmp_reference=$(mktemp)
-trap 'rm -f "$tmp_reference"' EXIT
-
-if [[ -f "$reference_file" ]]; then
-  cp "$reference_file" "$tmp_reference"
-fi
-
 php "$repo_root/build/generate-agents-reference.php" > /dev/null
-
-if ! diff -q "$tmp_reference" "$reference_file" > /dev/null 2>&1; then
-  echo "    FAIL: .agents/reference/core.md is stale"
-  echo "    Run: composer docs-agents-reference"
-  diff -u "$tmp_reference" "$reference_file" | head -40 || true
-  # Restore committed file so CI re-runs don't see uncommitted drift.
-  cp "$tmp_reference" "$reference_file"
+if ! git -C "$repo_root" diff --quiet -- .agents/reference/core.md; then
+  echo "    FAIL: .agents/reference/core.md is stale. Run: composer docs-agents-reference"
+  git -C "$repo_root" --no-pager diff -- .agents/reference/core.md | head -40
+  git -C "$repo_root" checkout -- .agents/reference/core.md
   exit 1
 fi
-
 echo "    OK: core reference up to date"
+
 echo "All examples validated"

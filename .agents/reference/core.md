@@ -4,452 +4,7 @@ Auto-generated from `:doc` / `:example` / `:see-also` metadata on public
 `defn` forms in `src/phel/core/*.phel`. Do not edit by hand.
 
 - Run `composer docs-agents-reference` to regenerate.
-- `composer test-agents` fails if this file drifts from the source.
-
-Generated: 2026-04-20 UTC — 440 public core functions.
-
-## Index
-
-- [`%`](#)
-- [`*`](#)
-- [`**`](#)
-- [`*assert*`](#assert)
-- [`*build-mode*`](#build-mode)
-- [`*file*`](#file)
-- [`*hierarchy*`](#hierarchy)
-- [`*ns*`](#ns)
-- [`*program*`](#program)
-- [`+`](#)
-- [`-`](#)
-- [`->`](#)
-- [`->>`](#)
-- [`/`](#)
-- [`<`](#)
-- [`<=`](#)
-- [`<=>`](#)
-- [`=`](#)
-- [`>`](#)
-- [`>=`](#)
-- [`>=<`](#)
-- [`NAN`](#nan)
-- [`NaN?`](#nan)
-- [`abs`](#abs)
-- [`aclone`](#aclone)
-- [`add-tap`](#add-tap)
-- [`add-watch`](#add-watch)
-- [`aget`](#aget)
-- [`alength`](#alength)
-- [`all?`](#all)
-- [`alter-var-root`](#alter-var-root)
-- [`ancestors`](#ancestors)
-- [`and`](#and)
-- [`any?`](#any)
-- [`apply`](#apply)
-- [`argv`](#argv)
-- [`array-map`](#array-map)
-- [`as->`](#as)
-- [`aset`](#aset)
-- [`assert`](#assert)
-- [`assoc`](#assoc)
-- [`assoc!`](#assoc)
-- [`assoc-in`](#assoc-in)
-- [`associative?`](#associative)
-- [`atom`](#atom)
-- [`atom?`](#atom)
-- [`binding`](#binding)
-- [`bit-and`](#bit-and)
-- [`bit-clear`](#bit-clear)
-- [`bit-flip`](#bit-flip)
-- [`bit-not`](#bit-not)
-- [`bit-or`](#bit-or)
-- [`bit-set`](#bit-set)
-- [`bit-shift-left`](#bit-shift-left)
-- [`bit-shift-right`](#bit-shift-right)
-- [`bit-test`](#bit-test)
-- [`bit-xor`](#bit-xor)
-- [`boolean`](#boolean)
-- [`boolean?`](#boolean)
-- [`butlast`](#butlast)
-- [`byte`](#byte)
-- [`case`](#case)
-- [`cat`](#cat)
-- [`catch`](#catch)
-- [`char`](#char)
-- [`char?`](#char)
-- [`coerce-in`](#coerce-in)
-- [`coll?`](#coll)
-- [`comment`](#comment)
-- [`comp`](#comp)
-- [`compact`](#compact)
-- [`compare`](#compare)
-- [`compile`](#compile)
-- [`complement`](#complement)
-- [`completing`](#completing)
-- [`concat`](#concat)
-- [`cond`](#cond)
-- [`cond->`](#cond)
-- [`cond->>`](#cond)
-- [`condp`](#condp)
-- [`conj`](#conj)
-- [`conj!`](#conj)
-- [`cons`](#cons)
-- [`constantly`](#constantly)
-- [`contains-value?`](#contains-value)
-- [`contains?`](#contains)
-- [`count`](#count)
-- [`counted?`](#counted)
-- [`csv-seq`](#csv-seq)
-- [`cycle`](#cycle)
-- [`dec`](#dec)
-- [`declare`](#declare)
-- [`dedupe`](#dedupe)
-- [`deep-merge`](#deep-merge)
-- [`def`](#def)
-- [`def-`](#def)
-- [`defexception`](#defexception)
-- [`defexception*`](#defexception)
-- [`definterface`](#definterface)
-- [`definterface*`](#definterface)
-- [`defmacro`](#defmacro)
-- [`defmacro-`](#defmacro)
-- [`defmethod`](#defmethod)
-- [`defmulti`](#defmulti)
-- [`defn`](#defn)
-- [`defn-`](#defn)
-- [`defprotocol`](#defprotocol)
-- [`defrecord`](#defrecord)
-- [`defstruct`](#defstruct)
-- [`defstruct*`](#defstruct)
-- [`deftype`](#deftype)
-- [`delay`](#delay)
-- [`delay?`](#delay)
-- [`deref`](#deref)
-- [`derive`](#derive)
-- [`descendants`](#descendants)
-- [`difference`](#difference)
-- [`disj`](#disj)
-- [`disj!`](#disj)
-- [`dissoc`](#dissoc)
-- [`dissoc!`](#dissoc)
-- [`dissoc-in`](#dissoc-in)
-- [`distinct`](#distinct)
-- [`do`](#do)
-- [`doall`](#doall)
-- [`dofor`](#dofor)
-- [`dorun`](#dorun)
-- [`doseq`](#doseq)
-- [`doseq-iterable`](#doseq-iterable)
-- [`dotimes`](#dotimes)
-- [`doto`](#doto)
-- [`double`](#double)
-- [`double-array`](#double-array)
-- [`double?`](#double)
-- [`drop`](#drop)
-- [`drop-last`](#drop-last)
-- [`drop-while`](#drop-while)
-- [`empty`](#empty)
-- [`empty?`](#empty)
-- [`eval`](#eval)
-- [`even?`](#even)
-- [`every?`](#every)
-- [`ex-cause`](#ex-cause)
-- [`ex-data`](#ex-data)
-- [`ex-info`](#ex-info)
-- [`ex-message`](#ex-message)
-- [`extend-protocol`](#extend-protocol)
-- [`extend-type`](#extend-type)
-- [`extends?`](#extends)
-- [`extreme`](#extreme)
-- [`false?`](#false)
-- [`ffirst`](#ffirst)
-- [`file-seq`](#file-seq)
-- [`filter`](#filter)
-- [`finally`](#finally)
-- [`find`](#find)
-- [`find-hierarchy-method`](#find-hierarchy-method)
-- [`find-index`](#find-index)
-- [`first`](#first)
-- [`flatten`](#flatten)
-- [`float`](#float)
-- [`float-array`](#float-array)
-- [`float?`](#float)
-- [`fn`](#fn)
-- [`fn?`](#fn)
-- [`fnext`](#fnext)
-- [`fnil`](#fnil)
-- [`for`](#for)
-- [`force`](#force)
-- [`foreach`](#foreach)
-- [`format`](#format)
-- [`frequencies`](#frequencies)
-- [`full-name`](#full-name)
-- [`function?`](#function)
-- [`gensym`](#gensym)
-- [`get`](#get)
-- [`get-in`](#get-in)
-- [`get-validator`](#get-validator)
-- [`group-by`](#group-by)
-- [`hash-map`](#hash-map)
-- [`hash-map?`](#hash-map)
-- [`hash-set`](#hash-set)
-- [`id`](#id)
-- [`ident?`](#ident)
-- [`identical?`](#identical)
-- [`identity`](#identity)
-- [`if`](#if)
-- [`if-let`](#if-let)
-- [`if-not`](#if-not)
-- [`if-some`](#if-some)
-- [`ifn?`](#ifn)
-- [`inc`](#inc)
-- [`indexed?`](#indexed)
-- [`inf?`](#inf)
-- [`instance?`](#instance)
-- [`int`](#int)
-- [`int-array`](#int-array)
-- [`int?`](#int)
-- [`integer?`](#integer)
-- [`interleave`](#interleave)
-- [`interpose`](#interpose)
-- [`intersection`](#intersection)
-- [`into`](#into)
-- [`invert`](#invert)
-- [`isa?`](#isa)
-- [`iterate`](#iterate)
-- [`iteration`](#iteration)
-- [`juxt`](#juxt)
-- [`keep`](#keep)
-- [`keep-indexed`](#keep-indexed)
-- [`key`](#key)
-- [`keys`](#keys)
-- [`keyword`](#keyword)
-- [`keyword?`](#keyword)
-- [`kvs`](#kvs)
-- [`last`](#last)
-- [`lazy-cat`](#lazy-cat)
-- [`lazy-seq`](#lazy-seq)
-- [`let`](#let)
-- [`letfn`](#letfn)
-- [`line-seq`](#line-seq)
-- [`list`](#list)
-- [`list?`](#list)
-- [`long`](#long)
-- [`long-array`](#long-array)
-- [`loop`](#loop)
-- [`macroexpand`](#macroexpand)
-- [`macroexpand-1`](#macroexpand-1)
-- [`make-hierarchy`](#make-hierarchy)
-- [`map`](#map)
-- [`map-indexed`](#map-indexed)
-- [`map?`](#map)
-- [`mapcat`](#mapcat)
-- [`max`](#max)
-- [`max-key`](#max-key)
-- [`mean`](#mean)
-- [`median`](#median)
-- [`memoize`](#memoize)
-- [`memoize-lru`](#memoize-lru)
-- [`merge`](#merge)
-- [`merge-with`](#merge-with)
-- [`meta`](#meta)
-- [`min`](#min)
-- [`min-key`](#min-key)
-- [`name`](#name)
-- [`namespace`](#namespace)
-- [`nan?`](#nan)
-- [`nat-int?`](#nat-int)
-- [`neg-int?`](#neg-int)
-- [`neg?`](#neg)
-- [`next`](#next)
-- [`nfirst`](#nfirst)
-- [`nil?`](#nil)
-- [`nnext`](#nnext)
-- [`not`](#not)
-- [`not-any?`](#not-any)
-- [`not-empty`](#not-empty)
-- [`not-every?`](#not-every)
-- [`not=`](#not)
-- [`ns`](#ns)
-- [`nth`](#nth)
-- [`nthnext`](#nthnext)
-- [`nthrest`](#nthrest)
-- [`number?`](#number)
-- [`object-array`](#object-array)
-- [`odd?`](#odd)
-- [`one?`](#one)
-- [`or`](#or)
-- [`pairs`](#pairs)
-- [`parents`](#parents)
-- [`parse-boolean`](#parse-boolean)
-- [`parse-double`](#parse-double)
-- [`parse-long`](#parse-long)
-- [`parse-uuid`](#parse-uuid)
-- [`partial`](#partial)
-- [`partition`](#partition)
-- [`partition-all`](#partition-all)
-- [`partition-by`](#partition-by)
-- [`peek`](#peek)
-- [`persistent`](#persistent)
-- [`persistent!`](#persistent)
-- [`phel->php`](#phel--php)
-- [`php->phel`](#php--phel)
-- [`php-array-to-map`](#php-array-to-map)
-- [`php-array?`](#php-array)
-- [`php-associative-array`](#php-associative-array)
-- [`php-indexed-array`](#php-indexed-array)
-- [`php-object?`](#php-object)
-- [`php-resource?`](#php-resource)
-- [`pop`](#pop)
-- [`pop!`](#pop)
-- [`pos-int?`](#pos-int)
-- [`pos?`](#pos)
-- [`print`](#print)
-- [`print-str`](#print-str)
-- [`printf`](#printf)
-- [`println`](#println)
-- [`protocol-type-key`](#protocol-type-key)
-- [`push`](#push)
-- [`put`](#put)
-- [`put-in`](#put-in)
-- [`quote`](#quote)
-- [`rand`](#rand)
-- [`rand-int`](#rand-int)
-- [`rand-nth`](#rand-nth)
-- [`random-uuid`](#random-uuid)
-- [`range`](#range)
-- [`ratio?`](#ratio)
-- [`re-find`](#re-find)
-- [`re-matches`](#re-matches)
-- [`re-pattern`](#re-pattern)
-- [`re-seq`](#re-seq)
-- [`read-file-lazy`](#read-file-lazy)
-- [`read-string`](#read-string)
-- [`realized?`](#realized)
-- [`recur`](#recur)
-- [`reduce`](#reduce)
-- [`reduced`](#reduced)
-- [`reduced?`](#reduced)
-- [`reify`](#reify)
-- [`remove`](#remove)
-- [`remove-tap`](#remove-tap)
-- [`remove-watch`](#remove-watch)
-- [`rename-keys`](#rename-keys)
-- [`repeat`](#repeat)
-- [`repeatedly`](#repeatedly)
-- [`reset!`](#reset)
-- [`resolve`](#resolve)
-- [`rest`](#rest)
-- [`reverse`](#reverse)
-- [`reversible?`](#reversible)
-- [`rseq`](#rseq)
-- [`run!`](#run)
-- [`satisfies?`](#satisfies)
-- [`second`](#second)
-- [`select-keys`](#select-keys)
-- [`seq`](#seq)
-- [`seq?`](#seq)
-- [`seqable?`](#seqable)
-- [`sequence`](#sequence)
-- [`sequential?`](#sequential)
-- [`set`](#set)
-- [`set!`](#set)
-- [`set-meta!`](#set-meta)
-- [`set-validator!`](#set-validator)
-- [`set-var`](#set-var)
-- [`set?`](#set)
-- [`short`](#short)
-- [`short-array`](#short-array)
-- [`shuffle`](#shuffle)
-- [`simple-ident?`](#simple-ident)
-- [`simple-keyword?`](#simple-keyword)
-- [`simple-symbol?`](#simple-symbol)
-- [`slice`](#slice)
-- [`slurp`](#slurp)
-- [`some`](#some)
-- [`some->`](#some)
-- [`some->>`](#some)
-- [`some-fn`](#some-fn)
-- [`some?`](#some)
-- [`sort`](#sort)
-- [`sort-by`](#sort-by)
-- [`sorted-map`](#sorted-map)
-- [`sorted-map-by`](#sorted-map-by)
-- [`sorted-set`](#sorted-set)
-- [`sorted-set-by`](#sorted-set-by)
-- [`sorted?`](#sorted)
-- [`special-symbol?`](#special-symbol)
-- [`special-symbols`](#special-symbols)
-- [`spit`](#spit)
-- [`split-at`](#split-at)
-- [`split-with`](#split-with)
-- [`str`](#str)
-- [`str-contains?`](#str-contains)
-- [`string?`](#string)
-- [`struct?`](#struct)
-- [`subset?`](#subset)
-- [`sum`](#sum)
-- [`superset?`](#superset)
-- [`swap!`](#swap)
-- [`symbol`](#symbol)
-- [`symbol?`](#symbol)
-- [`symmetric-difference`](#symmetric-difference)
-- [`take`](#take)
-- [`take-last`](#take-last)
-- [`take-nth`](#take-nth)
-- [`take-while`](#take-while)
-- [`tap>`](#tap)
-- [`throw`](#throw)
-- [`time`](#time)
-- [`to-array`](#to-array)
-- [`to-php-array`](#to-php-array)
-- [`transduce`](#transduce)
-- [`transient`](#transient)
-- [`tree-seq`](#tree-seq)
-- [`true?`](#true)
-- [`truthy?`](#truthy)
-- [`try`](#try)
-- [`type`](#type)
-- [`underive`](#underive)
-- [`union`](#union)
-- [`unquote`](#unquote)
-- [`unquote-splicing`](#unquote-splicing)
-- [`unreduced`](#unreduced)
-- [`unset`](#unset)
-- [`unset-in`](#unset-in)
-- [`update`](#update)
-- [`update-in`](#update-in)
-- [`update-keys`](#update-keys)
-- [`update-vals`](#update-vals)
-- [`uuid-nil-value`](#uuid-nil-value)
-- [`uuid-nil?`](#uuid-nil)
-- [`uuid-regex`](#uuid-regex)
-- [`uuid-variant`](#uuid-variant)
-- [`uuid-version`](#uuid-version)
-- [`uuid=`](#uuid)
-- [`uuid?`](#uuid)
-- [`val`](#val)
-- [`vals`](#vals)
-- [`values`](#values)
-- [`var`](#var)
-- [`var?`](#var)
-- [`vary-meta`](#vary-meta)
-- [`vec`](#vec)
-- [`vector`](#vector)
-- [`vector?`](#vector)
-- [`volatile!`](#volatile)
-- [`volatile?`](#volatile)
-- [`vreset!`](#vreset)
-- [`vswap!`](#vswap)
-- [`when`](#when)
-- [`when-first`](#when-first)
-- [`when-let`](#when-let)
-- [`when-not`](#when-not)
-- [`when-some`](#when-some)
-- [`with-meta`](#with-meta)
-- [`with-output-buffer`](#with-output-buffer)
-- [`zero?`](#zero)
-- [`zipcoll`](#zipcoll)
-- [`zipmap`](#zipmap)
+- `composer test-agents` fails when this file drifts from the source.
 
 ## `%`
 
@@ -695,7 +250,7 @@ Constant for Not a Number (NAN) values.
 
 Checks if `x` is not a number. Alias for `nan?`, matching Clojure's `NaN?`.
 
-**See also:** [`nan?`](#nan), [`inf?`](#inf)
+**See also:** `nan?`, `inf?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/math.phel#L211)
 
@@ -736,7 +291,7 @@ Returns a shallow copy of a PHP array. The returned array is a
 (aclone (object-array 3)) ; => a fresh PHP array [nil, nil, nil]
 ```
 
-**See also:** [`object-array`](#object-array), [`to-array`](#to-array)
+**See also:** `object-array`, `to-array`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/arrays.phel#L79)
 
@@ -756,7 +311,7 @@ Registers `f` as a tap. Every call to `tap>` invokes each registered tap
 (tap> 42) ; prints 42
 ```
 
-**See also:** [`remove-tap`](#remove-tap), [`tap>`](#tap)
+**See also:** `remove-tap`, `tap>`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/tap.phel#L15)
 
@@ -775,7 +330,7 @@ Adds a watch function to a variable. The watch fn is called when the variable
 (add-watch my-var :logger (fn [key ref old new] (println old "->" new)))
 ```
 
-**See also:** [`remove-watch`](#remove-watch), [`var`](#var), [`swap!`](#swap)
+**See also:** `remove-watch`, `var`, `swap!`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/atoms.phel#L101)
 
@@ -795,7 +350,7 @@ Returns the value at `index` in a PHP array. With multiple indices,
 (aget (php/array 10 20 30) 1) ; => 20
 ```
 
-**See also:** [`aset`](#aset), [`aclone`](#aclone), [`object-array`](#object-array)
+**See also:** `aset`, `aclone`, `object-array`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/arrays.phel#L160)
 
@@ -815,7 +370,7 @@ Returns the number of elements in a PHP array. Matches Clojure's
 (alength (int-array 3)) ; => 3
 ```
 
-**See also:** [`aget`](#aget), [`aset`](#aset), [`count`](#count), [`object-array`](#object-array)
+**See also:** `aget`, `aset`, `count`, `object-array`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/arrays.phel#L91)
 
@@ -848,7 +403,7 @@ Clojure's `alter-var-root` is out of scope in Phel: there are no first-class
   replace it at load time. Calling `alter-var-root` at runtime throws to make
   the mismatch obvious instead of silently no-oping.
 
-**See also:** [`swap!`](#swap), [`atom`](#atom), [`def`](#def)
+**See also:** `swap!`, `atom`, `def`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/atoms.phel#L110)
 
@@ -860,7 +415,7 @@ Clojure's `alter-var-root` is out of scope in Phel: there are no first-class
 
 Returns the set of all transitive ancestors of tag, or nil.
 
-**See also:** [`parents`](#parents), [`descendants`](#descendants), [`derive`](#derive), [`isa?`](#isa)
+**See also:** `parents`, `descendants`, `derive`, `isa?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/protocols.phel#L137)
 
@@ -897,7 +452,7 @@ Returns true given any argument, including `nil` and `false`. Mirrors
 (any? 0) ; => true
 ```
 
-**See also:** [`some?`](#some), [`every?`](#every), [`ifn?`](#ifn)
+**See also:** `some?`, `every?`, `ifn?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L267)
 
@@ -936,7 +491,7 @@ Constructs a map from the given key/value pairs. If any keys are
 (array-map :a 1 :b 2) ; => {:a 1 :b 2}
 ```
 
-**See also:** [`hash-map`](#hash-map)
+**See also:** `hash-map`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core.phel#L47)
 
@@ -971,7 +526,7 @@ Sets the value at `index` in a PHP array to `val`. Returns `val`.
 (let [a (php/array 1 2 3)] (aset a 0 42) (aget a 0)) ; => 42
 ```
 
-**See also:** [`aget`](#aget), [`aclone`](#aclone), [`object-array`](#object-array)
+**See also:** `aget`, `aclone`, `object-array`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/arrays.phel#L173)
 
@@ -986,7 +541,7 @@ Throws an exception if expr is falsy. Optional message string.
   is logical false at macroexpansion time, `assert` expands to nil and
   performs no runtime check.
 
-**See also:** [`when`](#when), [`throw`](#throw), [`*assert*`](#assert)
+**See also:** `when`, `throw`, `*assert*`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/protocols.phel#L684)
 
@@ -1028,7 +583,7 @@ Associates one or more key-value pairs with a transient collection,
 (persistent! (assoc! (transient {}) :a 1 :b 2)) ; => {:a 1 :b 2}
 ```
 
-**See also:** [`assoc`](#assoc), [`conj!`](#conj), [`transient`](#transient), [`persistent!`](#persistent)
+**See also:** `assoc`, `conj!`, `transient`, `persistent!`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/transients.phel#L108)
 
@@ -1048,7 +603,7 @@ Associates a value in a nested data structure at the given path.
 (assoc-in {:a {:b 1}} [:a :c] 2) ; => {:a {:b 1 :c 2}}
 ```
 
-**See also:** [`get-in`](#get-in), [`update-in`](#update-in), [`dissoc-in`](#dissoc-in)
+**See also:** `get-in`, `update-in`, `dissoc-in`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L266)
 
@@ -1069,7 +624,7 @@ Returns true if `x` is an associative data structure, false otherwise.
 (associative? [1 2 3]) ; => true
 ```
 
-**See also:** [`vector?`](#vector), [`map?`](#map), [`hash-map?`](#hash-map)
+**See also:** `vector?`, `map?`, `hash-map?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L382)
 
@@ -1090,7 +645,7 @@ Creates a new atom with the given value.
 (def counter (atom 0))
 ```
 
-**See also:** [`reset!`](#reset), [`deref`](#deref), [`swap!`](#swap)
+**See also:** `reset!`, `deref`, `swap!`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/atoms.phel#L20)
 
@@ -1256,7 +811,7 @@ Returns all but the last item in `coll`.
 (butlast [1 2 3 4]) ; => [1 2 3]
 ```
 
-**See also:** [`last`](#last), [`drop-last`](#drop-last)
+**See also:** `last`, `drop-last`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L363)
 
@@ -1281,7 +836,7 @@ Coerces `x` to a signed 8-bit integer in the range `-128..127`.
 (byte -128) ; => -128
 ```
 
-**See also:** [`int?`](#int), [`float`](#float), [`double`](#double)
+**See also:** `int?`, `float`, `double`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/math.phel#L285)
 
@@ -1309,7 +864,7 @@ Evaluates expression and matches it against constant test values, returning the 
 
 A transducer that concatenates the contents of each input into the reduction.
 
-**See also:** [`mapcat`](#mapcat), [`transduce`](#transduce)
+**See also:** `mapcat`, `transduce`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L842)
 
@@ -1350,7 +905,7 @@ Coerces `x` to a single-character string representing the given
 (char \A) ; => "A"
 ```
 
-**See also:** [`byte`](#byte), [`int?`](#int), [`string?`](#string)
+**See also:** `byte`, `int?`, `string?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/math.phel#L303)
 
@@ -1375,7 +930,7 @@ Returns true if `x` is a single-character string, false otherwise.
 (char? "ab") ; => false
 ```
 
-**See also:** [`char`](#char), [`string?`](#string)
+**See also:** `char`, `string?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L142)
 
@@ -1408,7 +963,7 @@ Returns true if `x` is a persistent collection — vector, list, hash-map
 (coll? "abc") ; => false
 ```
 
-**See also:** [`vector?`](#vector), [`map?`](#map), [`list?`](#list), [`set?`](#set), [`seq?`](#seq), [`sequential?`](#sequential)
+**See also:** `vector?`, `map?`, `list?`, `set?`, `seq?`, `sequential?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L406)
 
@@ -1494,7 +1049,7 @@ Returns a function that takes the same arguments as `f` and returns the opposite
 Takes a reducing function `f` of 2 args and returns a fn suitable for transduce
   by adding a 1-arity (completion) that calls `cf` (default: identity).
 
-**See also:** [`transduce`](#transduce)
+**See also:** `transduce`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/transducers.phel#L74)
 
@@ -1654,7 +1209,7 @@ Adds `value` to the transient collection `tcoll`, mutating it in place,
 (persistent (conj! (transient [1 2]) 3)) ; => [1 2 3]
 ```
 
-**See also:** [`conj`](#conj), [`transient`](#transient), [`persistent`](#persistent)
+**See also:** `conj`, `transient`, `persistent`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/transients.phel#L76)
 
@@ -1698,7 +1253,7 @@ Returns true if the value is present in the given collection, otherwise returns 
 (contains-value? {:a 1 :b 2} 2) ; => true
 ```
 
-**See also:** [`contains?`](#contains), [`some?`](#some)
+**See also:** `contains?`, `some?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L735)
 
@@ -1735,7 +1290,7 @@ Counts the number of elements in a sequence. Can be used on everything that impl
 (count [1 2 3]) ; => 3
 ```
 
-**See also:** [`empty?`](#empty), [`seq`](#seq)
+**See also:** `empty?`, `seq`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-basics.phel#L81)
 
@@ -1759,7 +1314,7 @@ Returns true if `coll` can report its length in constant time — persistent
 (counted? (range)) ; => false
 ```
 
-**See also:** [`count`](#count), [`coll?`](#coll)
+**See also:** `count`, `coll?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L433)
 
@@ -1797,7 +1352,7 @@ Returns an infinite lazy sequence that cycles through the elements of collection
 (take 7 (cycle [1 2 3])) ; => (1 2 3 1 2 3 1)
 ```
 
-**See also:** [`iterate`](#iterate), [`repeat`](#repeat)
+**See also:** `iterate`, `repeat`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L819)
 
@@ -1832,7 +1387,7 @@ Returns a lazy sequence with consecutive duplicate values removed in `coll`.
 (dedupe [1 1 2 2 2 3 1 1]) ; => (1 2 3 1)
 ```
 
-**See also:** [`distinct`](#distinct), [`transduce`](#transduce)
+**See also:** `distinct`, `transduce`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L1081)
 
@@ -2017,7 +1572,7 @@ Defines a protocol with the given method signatures. Each method signature
 (defprotocol Stringable (to-string [this]))
 ```
 
-**See also:** [`extend-type`](#extend-type), [`satisfies?`](#satisfies), [`extends?`](#extends), [`protocol-type-key`](#protocol-type-key)
+**See also:** `extend-type`, `satisfies?`, `extends?`, `protocol-type-key`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/protocols.phel#L212)
 
@@ -2046,7 +1601,7 @@ Defines a record type with the given fields, matching Clojure's `defrecord`.
 (defrecord Point [x y] Drawable (draw [this canvas] ...))
 ```
 
-**See also:** [`deftype`](#deftype), [`defstruct`](#defstruct), [`defprotocol`](#defprotocol), [`extend-type`](#extend-type)
+**See also:** `deftype`, `defstruct`, `defprotocol`, `extend-type`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/protocols.phel#L445)
 
@@ -2103,7 +1658,7 @@ Defines a type with the given fields, matching Clojure's `deftype` syntax.
 (deftype PointT [x y] Drawable (draw [this canvas] ...))
 ```
 
-**See also:** [`defrecord`](#defrecord), [`defstruct`](#defstruct), [`defprotocol`](#defprotocol), [`extend-type`](#extend-type)
+**See also:** `defrecord`, `defstruct`, `defprotocol`, `extend-type`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/protocols.phel#L475)
 
@@ -2122,7 +1677,7 @@ Takes a body of expressions and yields a Delay object that will invoke the
 (def d (delay (println "computing") 42))
 ```
 
-**See also:** [`force`](#force), [`delay?`](#delay), [`realized?`](#realized)
+**See also:** `force`, `delay?`, `realized?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/lazy.phel#L12)
 
@@ -2134,7 +1689,7 @@ Takes a body of expressions and yields a Delay object that will invoke the
 
 Returns true if x is a Delay.
 
-**See also:** [`delay`](#delay), [`force`](#force)
+**See also:** `delay`, `force`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/lazy.phel#L29)
 
@@ -2157,7 +1712,7 @@ Returns the current value inside the variable.
 (deref (atom 42)) ; => 42
 ```
 
-**See also:** [`atom`](#atom), [`reset!`](#reset), [`swap!`](#swap), [`future`](#future)
+**See also:** `atom`, `reset!`, `swap!`, `future`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/atoms.phel#L67)
 
@@ -2176,7 +1731,7 @@ Establishes a parent/child relationship between child and parent keywords
 (derive :square :shape)
 ```
 
-**See also:** [`underive`](#underive), [`isa?`](#isa), [`parents`](#parents), [`ancestors`](#ancestors), [`descendants`](#descendants)
+**See also:** `underive`, `isa?`, `parents`, `ancestors`, `descendants`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/protocols.phel#L97)
 
@@ -2188,7 +1743,7 @@ Establishes a parent/child relationship between child and parent keywords
 
 Returns the set of all descendants of tag, or nil.
 
-**See also:** [`parents`](#parents), [`ancestors`](#ancestors), [`derive`](#derive), [`isa?`](#isa)
+**See also:** `parents`, `ancestors`, `derive`, `isa?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/protocols.phel#L144)
 
@@ -2225,7 +1780,7 @@ Returns a new set that does not contain the given key(s). Works on hash-sets and
 (disj #{1 2 3} 2) ; => #{1 3}
 ```
 
-**See also:** [`conj`](#conj), [`hash-set`](#hash-set), [`sorted-set`](#sorted-set)
+**See also:** `conj`, `hash-set`, `sorted-set`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L207)
 
@@ -2253,7 +1808,7 @@ Removes one or more elements from a transient set, mutating it in place.
 (persistent! (disj! (transient #{1 2 3}) 2)) ; => #{1 3}
 ```
 
-**See also:** [`disj`](#disj), [`conj!`](#conj), [`transient`](#transient), [`persistent!`](#persistent)
+**See also:** `disj`, `conj!`, `transient`, `persistent!`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/transients.phel#L160)
 
@@ -2298,7 +1853,7 @@ Dissociates one or more keys from a transient map, mutating it in place.
 (persistent! (dissoc! (transient {:a 1 :b 2}) :a)) ; => {:b 2}
 ```
 
-**See also:** [`dissoc`](#dissoc), [`assoc!`](#assoc), [`transient`](#transient), [`persistent!`](#persistent)
+**See also:** `dissoc`, `assoc!`, `transient`, `persistent!`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/transients.phel#L139)
 
@@ -2316,7 +1871,7 @@ Dissociates a value from a nested data structure at the given path.
 (dissoc-in {:a {:b 1 :c 2}} [:a :b]) ; => {:a {:c 2}}
 ```
 
-**See also:** [`dissoc`](#dissoc), [`assoc-in`](#assoc-in), [`get-in`](#get-in)
+**See also:** `dissoc`, `assoc-in`, `get-in`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L301)
 
@@ -2335,7 +1890,7 @@ Returns a lazy sequence with duplicated values removed in `coll`.
 (distinct [1 2 1 3 2 4 3]) ; => (1 2 3 4)
 ```
 
-**See also:** [`frequencies`](#frequencies), [`set`](#set), [`dedupe`](#dedupe), [`transduce`](#transduce)
+**See also:** `frequencies`, `set`, `dedupe`, `transduce`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L545)
 
@@ -2474,7 +2029,7 @@ Coerces `x` to a double. In PHP there is no distinction between float and
 (double 1) ; => 1.0
 ```
 
-**See also:** [`float`](#float), [`int?`](#int), [`number?`](#number)
+**See also:** `float`, `int?`, `number?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/math.phel#L252)
 
@@ -2494,7 +2049,7 @@ Creates a PHP array of doubles (same as float-array in PHP).
 (double-array [1 2]) ; => PHP array [1.0, 2.0]
 ```
 
-**See also:** [`float-array`](#float-array), [`int-array`](#int-array), [`long-array`](#long-array), [`short-array`](#short-array)
+**See also:** `float-array`, `int-array`, `long-array`, `short-array`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/arrays.phel#L144)
 
@@ -2509,7 +2064,7 @@ Returns true if `x` is a floating-point number, false otherwise.
    uses PHP floats (IEEE 754 doubles) there is no separate single-precision
    float type.
 
-**See also:** [`float?`](#float), [`number?`](#number)
+**See also:** `float?`, `number?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L128)
 
@@ -2528,7 +2083,7 @@ Drops the first `n` elements of `coll`. Returns a lazy sequence.
 (drop 2 [1 2 3 4 5]) ; => (3 4 5)
 ```
 
-**See also:** [`take`](#take), [`drop-last`](#drop-last), [`transduce`](#transduce)
+**See also:** `take`, `drop-last`, `transduce`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L320)
 
@@ -2555,7 +2110,7 @@ Drops the last `n` elements of `coll`. `n` defaults to `1` when omitted,
 (drop-last 5 nil) ; => ()
 ```
 
-**See also:** [`drop`](#drop), [`butlast`](#butlast)
+**See also:** `drop`, `butlast`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L343)
 
@@ -2574,7 +2129,7 @@ Drops all elements at the front of `coll` where `(pred x)` is true. Returns a la
 (drop-while #(< % 5) [1 2 3 4 5 6 3 2 1]) ; => (5 6 3 2 1)
 ```
 
-**See also:** [`take-while`](#take-while), [`drop`](#drop), [`transduce`](#transduce)
+**See also:** `take-while`, `drop`, `transduce`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L370)
 
@@ -2593,7 +2148,7 @@ Returns an empty collection of the same category as `coll`, or nil.
 (empty {:a 1}) ; => {}
 ```
 
-**See also:** [`empty?`](#empty), [`not-empty`](#not-empty)
+**See also:** `empty?`, `not-empty`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L325)
 
@@ -2643,7 +2198,7 @@ Returns true if predicate is true for every element in collection, false otherwi
 (every? even? [2 4 6 8]) ; => true
 ```
 
-**See also:** [`all?`](#all), [`not-every?`](#not-every)
+**See also:** `all?`, `not-every?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/booleans.phel#L198)
 
@@ -2655,7 +2210,7 @@ Returns true if predicate is true for every element in collection, false otherwi
 
 Returns the cause of an exception, or nil.
 
-**See also:** [`ex-info`](#ex-info), [`ex-data`](#ex-data), [`ex-message`](#ex-message)
+**See also:** `ex-info`, `ex-data`, `ex-message`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/exceptions.phel#L34)
 
@@ -2667,7 +2222,7 @@ Returns the cause of an exception, or nil.
 
 Returns the data map from an ex-info exception, or nil if not an ExInfoException.
 
-**See also:** [`ex-info`](#ex-info), [`ex-message`](#ex-message), [`ex-cause`](#ex-cause)
+**See also:** `ex-info`, `ex-message`, `ex-cause`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/exceptions.phel#L21)
 
@@ -2689,7 +2244,7 @@ Creates an exception with a message and a data map. Optionally takes a cause.
 (throw (ex-info "Invalid input" {:field :email}))
 ```
 
-**See also:** [`ex-data`](#ex-data), [`ex-message`](#ex-message), [`ex-cause`](#ex-cause)
+**See also:** `ex-data`, `ex-message`, `ex-cause`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/exceptions.phel#L12)
 
@@ -2701,7 +2256,7 @@ Creates an exception with a message and a data map. Optionally takes a cause.
 
 Returns the message of an exception.
 
-**See also:** [`ex-info`](#ex-info), [`ex-data`](#ex-data), [`ex-cause`](#ex-cause)
+**See also:** `ex-info`, `ex-data`, `ex-cause`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/exceptions.phel#L28)
 
@@ -2724,7 +2279,7 @@ Convenience macro that extends a single protocol to multiple types.
   :int (describe [n] (str n)))
 ```
 
-**See also:** [`extend-type`](#extend-type), [`defprotocol`](#defprotocol)
+**See also:** `extend-type`, `defprotocol`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/protocols.phel#L342)
 
@@ -2754,7 +2309,7 @@ Extends a type with protocol method implementations.
 (extend-type :string Stringable (to-string [s] s))
 ```
 
-**See also:** [`defprotocol`](#defprotocol), [`satisfies?`](#satisfies), [`extends?`](#extends), [`protocol-type-key`](#protocol-type-key)
+**See also:** `defprotocol`, `satisfies?`, `extends?`, `protocol-type-key`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/protocols.phel#L252)
 
@@ -2773,7 +2328,7 @@ Returns true if the given type-key has implementations for all methods
 (extends? Stringable :string)
 ```
 
-**See also:** [`satisfies?`](#satisfies), [`defprotocol`](#defprotocol), [`extend-type`](#extend-type)
+**See also:** `satisfies?`, `defprotocol`, `extend-type`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/protocols.phel#L331)
 
@@ -2844,7 +2399,7 @@ Returns a lazy sequence of elements where predicate returns true.
 (filter even? [1 2 3 4 5 6]) ; => (2 4 6)
 ```
 
-**See also:** [`remove`](#remove), [`keep`](#keep), [`transduce`](#transduce)
+**See also:** `remove`, `keep`, `transduce`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L458)
 
@@ -2878,7 +2433,7 @@ Returns the first item in `coll` where `(pred item)` evaluates to true.
 (find #(> % 5) [1 2 3 6 7 8]) ; => 6
 ```
 
-**See also:** [`find-index`](#find-index), [`filter`](#filter), [`some?`](#some)
+**See also:** `find-index`, `filter`, `some?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L523)
 
@@ -2907,7 +2462,7 @@ Returns the index of the first item in `coll` where `(pred item)` evaluates to t
 (find-index #(> % 5) [1 2 3 6 7 8]) ; => 3
 ```
 
-**See also:** [`find`](#find), [`filter`](#filter)
+**See also:** `find`, `filter`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L533)
 
@@ -2959,7 +2514,7 @@ Coerces `x` to a float. In PHP there is no distinction between float and
 (float 1) ; => 1.0
 ```
 
-**See also:** [`double`](#double), [`int?`](#int), [`number?`](#number)
+**See also:** `double`, `int?`, `number?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/math.phel#L243)
 
@@ -2979,7 +2534,7 @@ Creates a PHP array of floats. Given a size, fills with `0.0`.
 (float-array [1 2]) ; => PHP array [1.0, 2.0]
 ```
 
-**See also:** [`double-array`](#double-array), [`int-array`](#int-array), [`long-array`](#long-array), [`short-array`](#short-array)
+**See also:** `double-array`, `int-array`, `long-array`, `short-array`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/arrays.phel#L136)
 
@@ -3031,7 +2586,7 @@ Same as `(first (next coll))`.
 (fnext [1 2 3]) ; => 2
 ```
 
-**See also:** [`second`](#second), [`ffirst`](#ffirst), [`nfirst`](#nfirst), [`nnext`](#nnext)
+**See also:** `second`, `ffirst`, `nfirst`, `nnext`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-basics.phel#L69)
 
@@ -3051,7 +2606,7 @@ Returns a function that replaces nil arguments with the provided defaults
 (let [safe-inc (fnil inc 0)] (safe-inc nil)) ; => 1
 ```
 
-**See also:** [`partial`](#partial), [`comp`](#comp)
+**See also:** `partial`, `comp`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/fns-sets.phel#L130)
 
@@ -3106,7 +2661,7 @@ If x is a Delay, forces it and returns its cached value. Otherwise returns x.
 (force (delay 42)) ; => 42
 ```
 
-**See also:** [`delay`](#delay), [`deref`](#deref)
+**See also:** `delay`, `deref`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/lazy.phel#L20)
 
@@ -3218,7 +2773,7 @@ Accesses a value in a nested data structure via a sequence of keys.
 (get-in {:a {:b {:c 42}}} [:a :b :c]) ; => 42
 ```
 
-**See also:** [`assoc-in`](#assoc-in), [`update-in`](#update-in)
+**See also:** `assoc-in`, `update-in`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L256)
 
@@ -3230,7 +2785,7 @@ Accesses a value in a nested data structure via a sequence of keys.
 
 Returns the validator function of a variable, or nil.
 
-**See also:** [`set-validator!`](#set-validator)
+**See also:** `set-validator!`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/atoms.phel#L139)
 
@@ -3248,7 +2803,7 @@ Returns a map of the elements of coll keyed by the result of `f` on each element
 (group-by count ["a" "bb" "c" "ddd" "ee"]) ; => {1 ["a" "c"] 2 ["bb" "ee"] 3 ["ddd"]}
 ```
 
-**See also:** [`partition-by`](#partition-by), [`frequencies`](#frequencies)
+**See also:** `partition-by`, `frequencies`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L969)
 
@@ -3318,7 +2873,7 @@ Returns true if `x` is a symbol or keyword.
 (ident? 42) ; => false
 ```
 
-**See also:** [`symbol?`](#symbol), [`keyword?`](#keyword), [`simple-ident?`](#simple-ident)
+**See also:** `symbol?`, `keyword?`, `simple-ident?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L165)
 
@@ -3393,7 +2948,7 @@ Binds name to the value of test. If test is not nil, evaluates then with binding
   bound to the value of test, if not, yields else. Unlike if-let, false and 0 are not
   treated as falsy — only nil triggers the else branch.
 
-**See also:** [`if-let`](#if-let), [`when-some`](#when-some)
+**See also:** `if-let`, `when-some`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/protocols.phel#L594)
 
@@ -3415,7 +2970,7 @@ Returns true if `x` can be invoked as a function.
 (ifn? 42) ; => false
 ```
 
-**See also:** [`fn?`](#fn)
+**See also:** `fn?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L211)
 
@@ -3461,7 +3016,7 @@ Checks if `x` is infinite.
 (inf? php/INF) ; => true
 ```
 
-**See also:** [`nan?`](#nan)
+**See also:** `nan?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/math.phel#L217)
 
@@ -3483,7 +3038,7 @@ Returns true if `x` is an instance of class `c`, false otherwise.
 (instance? \DateTime (php/new \DateTime)) ; => true
 ```
 
-**See also:** [`type`](#type)
+**See also:** `type`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L276)
 
@@ -3503,7 +3058,7 @@ Coerces `x` to an integer. Delegates to PHP's `intval`, so floats are
 (int "42") ; => 42
 ```
 
-**See also:** [`float`](#float), [`double`](#double), [`int?`](#int), [`number?`](#number)
+**See also:** `float`, `double`, `int?`, `number?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/math.phel#L235)
 
@@ -3524,7 +3079,7 @@ Creates a PHP array of integers. Given a size, fills with `0`.
 (int-array [1.5 2.7]) ; => PHP array [1, 2]
 ```
 
-**See also:** [`long-array`](#long-array), [`float-array`](#float-array), [`double-array`](#double-array), [`short-array`](#short-array), [`object-array`](#object-array)
+**See also:** `long-array`, `float-array`, `double-array`, `short-array`, `object-array`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/arrays.phel#L119)
 
@@ -3541,7 +3096,7 @@ Returns true if `x` is an integer number, false otherwise.
    distinction between standard and fixed-precision integers.
    Integer sizes are also limited by platform (see php/PHP_INT_MAX constant).
 
-**See also:** [`integer?`](#integer)
+**See also:** `integer?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L81)
 
@@ -3553,7 +3108,7 @@ Returns true if `x` is an integer number, false otherwise.
 
 Returns true if `x` is an integer number, false otherwise.
 
-**See also:** [`int?`](#int)
+**See also:** `int?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L75)
 
@@ -3592,7 +3147,7 @@ Returns elements separated by a separator. Returns a lazy sequence.
 (interpose 0 [1 2 3]) ; => (1 0 2 0 3)
 ```
 
-**See also:** [`transduce`](#transduce)
+**See also:** `transduce`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L872)
 
@@ -3623,7 +3178,7 @@ Returns `to` with all elements of `from` added.
 (into [] '(1 2 3)) ; => [1 2 3]
 ```
 
-**See also:** [`conj`](#conj), [`concat`](#concat), [`transduce`](#transduce)
+**See also:** `conj`, `concat`, `transduce`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L86)
 
@@ -3660,7 +3215,7 @@ Returns true if child equals parent, or child is a descendant of parent
 (do (derive :square :shape) (isa? :square :shape)) ; => true
 ```
 
-**See also:** [`derive`](#derive), [`parents`](#parents), [`ancestors`](#ancestors), [`descendants`](#descendants)
+**See also:** `derive`, `parents`, `ancestors`, `descendants`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/protocols.phel#L88)
 
@@ -3678,7 +3233,7 @@ Returns an infinite lazy sequence of x, (f x), (f (f x)), and so on.
 (take 5 (iterate inc 0)) ; => (0 1 2 3 4)
 ```
 
-**See also:** [`repeatedly`](#repeatedly), [`cycle`](#cycle)
+**See also:** `repeatedly`, `cycle`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L812)
 
@@ -3704,7 +3259,7 @@ Creates a lazy sequence from successive calls to `step`.
 (iteration fetch-page {:kf :next-token :vf :items :initk nil})
 ```
 
-**See also:** [`iterate`](#iterate), [`repeatedly`](#repeatedly), [`lazy-seq`](#lazy-seq)
+**See also:** `iterate`, `repeatedly`, `lazy-seq`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/lazy.phel#L37)
 
@@ -3739,7 +3294,7 @@ Returns a lazy sequence of non-nil results of applying function to elements.
 (keep #(when (even? %) (* % %)) [1 2 3 4 5]) ; => (4 16)
 ```
 
-**See also:** [`keep-indexed`](#keep-indexed), [`filter`](#filter), [`transduce`](#transduce)
+**See also:** `keep-indexed`, `filter`, `transduce`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L485)
 
@@ -3758,7 +3313,7 @@ Returns a lazy sequence of non-nil results of `(pred i x)`.
 (keep-indexed #(when (even? %1) %2) ["a" "b" "c" "d"]) ; => ("a" "c")
 ```
 
-**See also:** [`keep`](#keep), [`map-indexed`](#map-indexed), [`transduce`](#transduce)
+**See also:** `keep`, `map-indexed`, `transduce`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L503)
 
@@ -3776,7 +3331,7 @@ Returns the key of a map entry (a two-element vector `[key value]`).
 (key (first (pairs {:a 1}))) ; => :a
 ```
 
-**See also:** [`val`](#val), [`keys`](#keys), [`pairs`](#pairs)
+**See also:** `val`, `keys`, `pairs`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L629)
 
@@ -3850,7 +3405,7 @@ Returns a vector of key-value pairs like `[k1 v1 k2 v2 k3 v3 ...]`.
 (kvs {:a 1 :b 2}) ; => [:a 1 :b 2]
 ```
 
-**See also:** [`pairs`](#pairs), [`keys`](#keys), [`values`](#values)
+**See also:** `pairs`, `keys`, `values`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L659)
 
@@ -3868,7 +3423,7 @@ Returns the last element of `coll` or nil if `coll` is empty or nil.
 (last [1 2 3]) ; => 3
 ```
 
-**See also:** [`first`](#first), [`peek`](#peek), [`butlast`](#butlast)
+**See also:** `first`, `peek`, `butlast`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L354)
 
@@ -3995,7 +3550,7 @@ Coerces `x` to a long integer. In PHP there is no distinction between int
 (long 1.9) ; => 1
 ```
 
-**See also:** [`int`](#int), [`float`](#float), [`double`](#double)
+**See also:** `int`, `float`, `double`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/math.phel#L260)
 
@@ -4015,7 +3570,7 @@ Creates a PHP array of longs (same as int-array in PHP).
 (long-array [1.5 2.7]) ; => PHP array [1, 2]
 ```
 
-**See also:** [`int-array`](#int-array), [`float-array`](#float-array), [`double-array`](#double-array), [`short-array`](#short-array)
+**See also:** `int-array`, `float-array`, `double-array`, `short-array`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/arrays.phel#L128)
 
@@ -4065,7 +3620,7 @@ Creates a fresh, empty hierarchy.
   holding an empty map. Matches Clojure's hierarchy shape so consumers can
   destructure any of the three relationship views.
 
-**See also:** [`derive`](#derive), [`isa?`](#isa), [`parents`](#parents), [`ancestors`](#ancestors), [`descendants`](#descendants)
+**See also:** `derive`, `isa?`, `parents`, `ancestors`, `descendants`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/protocols.phel#L51)
 
@@ -4088,7 +3643,7 @@ Returns a lazy sequence of the result of applying `f` to all of the first items 
 (map inc [1 2 3]) ; => (2 3 4)
 ```
 
-**See also:** [`filter`](#filter), [`reduce`](#reduce), [`map-indexed`](#map-indexed), [`mapcat`](#mapcat), [`transduce`](#transduce)
+**See also:** `filter`, `reduce`, `map-indexed`, `mapcat`, `transduce`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L52)
 
@@ -4143,7 +3698,7 @@ Maps a function over one or more collections and concatenates the results.
 (mapcat list [:a :b :c] [1 2 3]) ; => (:a 1 :b 2 :c 3)
 ```
 
-**See also:** [`map`](#map), [`cat`](#cat), [`transduce`](#transduce)
+**See also:** `map`, `cat`, `transduce`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L849)
 
@@ -4171,7 +3726,7 @@ Returns the arg for which (k arg) is largest. On ties, returns the latest argume
 (max-key count "bb" "aaa" "b") ; => "aaa"
 ```
 
-**See also:** [`min-key`](#min-key), [`max`](#max), [`sort-by`](#sort-by)
+**See also:** `min-key`, `max`, `sort-by`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/math.phel#L373)
 
@@ -4214,7 +3769,7 @@ Returns a memoized version of the function `f`. The memoized function
 (def fact-memo (memoize fact))
 ```
 
-**See also:** [`memoize-lru`](#memoize-lru)
+**See also:** `memoize-lru`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/fns-sets.phel#L149)
 
@@ -4245,7 +3800,7 @@ Returns a memoized version of the function `f` with an LRU (Least Recently Used)
 (def fact-memo (memoize-lru fact 100))
 ```
 
-**See also:** [`memoize`](#memoize)
+**See also:** `memoize`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/fns-sets.phel#L169)
 
@@ -4310,7 +3865,7 @@ Returns the arg for which (k arg) is smallest. On ties, returns the latest argum
 (min-key count "bb" "aaa" "b") ; => "b"
 ```
 
-**See also:** [`max-key`](#max-key), [`min`](#min), [`sort-by`](#sort-by)
+**See also:** `max-key`, `min`, `sort-by`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/math.phel#L366)
 
@@ -4360,7 +3915,7 @@ Returns true if `x` is a non-negative integer (zero or positive).
 (nat-int? -1) ; => false
 ```
 
-**See also:** [`int?`](#int), [`pos-int?`](#pos-int), [`neg-int?`](#neg-int)
+**See also:** `int?`, `pos-int?`, `neg-int?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L106)
 
@@ -4380,7 +3935,7 @@ Returns true if `x` is a negative integer.
 (neg-int? 1) ; => false
 ```
 
-**See also:** [`int?`](#int), [`pos-int?`](#pos-int), [`nat-int?`](#nat-int)
+**See also:** `int?`, `pos-int?`, `nat-int?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L92)
 
@@ -4536,7 +4091,7 @@ Returns the value at `index` in `coll`. Throws an
 (nth [1 2 3] 5 :default) ; => :default
 ```
 
-**See also:** [`get`](#get), [`first`](#first), [`second`](#second)
+**See also:** `get`, `first`, `second`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/sequences.phel#L87)
 
@@ -4556,7 +4111,7 @@ Returns the nth next of `coll`, `(seq coll)` when `n` is 0.
 (nthnext [1 2] 5) ; => nil
 ```
 
-**See also:** [`nth`](#nth), [`nthrest`](#nthrest), [`drop`](#drop)
+**See also:** `nth`, `nthrest`, `drop`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/sequences.phel#L150)
 
@@ -4574,7 +4129,7 @@ Returns the nth rest of `coll`, `coll` when `n` is 0.
 (nthrest [1 2 3 4 5] 2) ; => (3 4 5)
 ```
 
-**See also:** [`nth`](#nth), [`nthnext`](#nthnext), [`drop`](#drop)
+**See also:** `nth`, `nthnext`, `drop`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/sequences.phel#L139)
 
@@ -4607,7 +4162,7 @@ Creates a PHP array of the given size initialized to `nil`, or a PHP
 (object-array [1 2 3]) ; => a PHP array [1, 2, 3]
 ```
 
-**See also:** [`php-indexed-array`](#php-indexed-array), [`to-php-array`](#to-php-array)
+**See also:** `php-indexed-array`, `to-php-array`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/arrays.phel#L42)
 
@@ -4661,7 +4216,7 @@ Gets the pairs of an associative data structure.
 (pairs {:a 1 :b 2}) ; => ([:a 1] [:b 2])
 ```
 
-**See also:** [`keys`](#keys), [`values`](#values), [`kvs`](#kvs)
+**See also:** `keys`, `values`, `kvs`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L651)
 
@@ -4673,7 +4228,7 @@ Gets the pairs of an associative data structure.
 
 Returns the set of immediate parents of tag in the global hierarchy, or nil.
 
-**See also:** [`ancestors`](#ancestors), [`descendants`](#descendants), [`derive`](#derive), [`isa?`](#isa)
+**See also:** `ancestors`, `descendants`, `derive`, `isa?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/protocols.phel#L130)
 
@@ -4710,7 +4265,7 @@ Parses a string as a float. Returns `nil` for non-numeric input or for
 (parse-double "Infinity") ; => INF
 ```
 
-**See also:** [`parse-long`](#parse-long)
+**See also:** `parse-long`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/parsing.phel#L20)
 
@@ -4728,7 +4283,7 @@ Parses a string as an integer. Returns nil if parsing fails.
 (parse-long "123") ; => 123
 ```
 
-**See also:** [`parse-double`](#parse-double)
+**See also:** `parse-double`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/parsing.phel#L10)
 
@@ -4749,7 +4304,7 @@ Parses `s` as a canonical UUID string. Returns the lower-cased UUID
   ; => "550e8400-e29b-41d4-a716-446655440000"
 ```
 
-**See also:** [`uuid?`](#uuid), [`random-uuid`](#random-uuid)
+**See also:** `uuid?`, `random-uuid`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/uuid.phel#L43)
 
@@ -4811,7 +4366,7 @@ Returns a lazy sequence of partitions. Applies `f` to each value in `coll`, spli
 (partition-by #(< % 3) [1 2 3 4 5 1 2]) ; => [[1 2] [3 4 5] [1 2]]
 ```
 
-**See also:** [`group-by`](#group-by), [`partition`](#partition)
+**See also:** `group-by`, `partition`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L1071)
 
@@ -4846,7 +4401,7 @@ Converts a transient collection back to a persistent collection.
 (def t (transient {}))
 ```
 
-**See also:** [`transient`](#transient)
+**See also:** `transient`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/transients.phel#L27)
 
@@ -4865,7 +4420,7 @@ Converts a transient collection back to a persistent collection.
 (persistent! (conj! (transient []) 1 2 3)) ; => [1 2 3]
 ```
 
-**See also:** [`persistent`](#persistent), [`transient`](#transient)
+**See also:** `persistent`, `transient`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/transients.phel#L34)
 
@@ -4883,7 +4438,7 @@ Recursively converts a Phel data structure to a PHP array.
 (phel->php {:a [1 2 3] :b {:c 4}}) ; => (PHP array ["a" => [1, 2, 3], "b" => ["c" => 4]])
 ```
 
-**See also:** [`php->phel`](#php--phel)
+**See also:** `php->phel`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L681)
 
@@ -4903,7 +4458,7 @@ Recursively converts a PHP array to Phel data structures.
 (php->phel (php-associative-array "a" 1 "b" 2)) ; => {"a" 1 "b" 2}
 ```
 
-**See also:** [`phel->php`](#phel--php)
+**See also:** `phel->php`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L713)
 
@@ -4921,7 +4476,7 @@ Converts a PHP Array to a Phel map.
 (php-array-to-map (php-associative-array "a" 1 "b" 2)) ; => {"a" 1 "b" 2}
 ```
 
-**See also:** [`to-php-array`](#to-php-array), [`php->phel`](#php--phel)
+**See also:** `to-php-array`, `php->phel`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L670)
 
@@ -5016,7 +4571,7 @@ Removes the last element from a transient vector, mutating it in place.
 (persistent! (pop! (transient [1 2 3]))) ; => [1 2]
 ```
 
-**See also:** [`pop`](#pop), [`conj!`](#conj), [`transient`](#transient), [`persistent!`](#persistent)
+**See also:** `pop`, `conj!`, `transient`, `persistent!`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/transients.phel#L171)
 
@@ -5036,7 +4591,7 @@ Returns true if `x` is a positive integer (greater than zero).
 (pos-int? -1) ; => false
 ```
 
-**See also:** [`int?`](#int), [`neg-int?`](#neg-int), [`nat-int?`](#nat-int)
+**See also:** `int?`, `neg-int?`, `nat-int?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L99)
 
@@ -5102,7 +4657,7 @@ Returns the dispatch key for protocol dispatch. Returns a type keyword
   Optimized to avoid the full `type` cond chain: checks scalars first
   (most common in tight loops), then objects.
 
-**See also:** [`defprotocol`](#defprotocol), [`extend-type`](#extend-type), [`satisfies?`](#satisfies)
+**See also:** `defprotocol`, `extend-type`, `satisfies?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/protocols.phel#L191)
 
@@ -5194,7 +4749,7 @@ Returns a random UUID v4 string.
 (random-uuid) ; => "550e8400-e29b-41d4-a716-446655440000"
 ```
 
-**See also:** [`uuid?`](#uuid), [`parse-uuid`](#parse-uuid)
+**See also:** `uuid?`, `parse-uuid`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/uuid.phel#L25)
 
@@ -5214,7 +4769,7 @@ Creates a lazy sequence of numbers. With no arguments returns an infinite
 (range 5) ; => (0 1 2 3 4)
 ```
 
-**See also:** [`iterate`](#iterate), [`repeat`](#repeat)
+**See also:** `iterate`, `repeat`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/atoms.phel#L158)
 
@@ -5235,7 +4790,7 @@ Always returns false. Phel has no Ratio type — Clojure-style ratio
 (ratio? 1/2) ; => false
 ```
 
-**See also:** [`number?`](#number), [`float?`](#float), [`double?`](#double)
+**See also:** `number?`, `float?`, `double?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L118)
 
@@ -5254,7 +4809,7 @@ Returns the first match of pattern in string, or nil if no match.
 (re-find #"\d+" "abc123def") ; => "123"
 ```
 
-**See also:** [`re-seq`](#re-seq), [`re-matches`](#re-matches)
+**See also:** `re-seq`, `re-matches`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/io.phel#L351)
 
@@ -5274,7 +4829,7 @@ Returns the match, if any, of string to pattern. If the pattern has groups,
 (re-matches #"(\d+)-(\d+)" "12-34") ; => ["12-34" "12" "34"]
 ```
 
-**See also:** [`re-find`](#re-find), [`re-seq`](#re-seq)
+**See also:** `re-find`, `re-seq`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/io.phel#L365)
 
@@ -5293,7 +4848,7 @@ Returns a PCRE pattern string from `s`. If `s` is already delimited,
 (re-pattern "\\d+") ; => "/\\d+/"
 ```
 
-**See also:** [`re-find`](#re-find), [`re-matches`](#re-matches), [`re-seq`](#re-seq)
+**See also:** `re-find`, `re-matches`, `re-seq`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/io.phel#L326)
 
@@ -5311,7 +4866,7 @@ Returns a sequence of successive matches of pattern in string.
 (re-seq #"\d+" "a1b2c3") ; => ["1" "2" "3"]
 ```
 
-**See also:** [`re-find`](#re-find), [`re-matches`](#re-matches)
+**See also:** `re-find`, `re-matches`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/io.phel#L339)
 
@@ -5359,7 +4914,7 @@ Returns true if a lazy sequence, delay, or future has been realized, false other
 (realized? (take 5 (iterate inc 1))) ; => false
 ```
 
-**See also:** [`delay`](#delay), [`force`](#force), [`lazy-seq`](#lazy-seq), [`future`](#future)
+**See also:** `delay`, `force`, `lazy-seq`, `future`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L958)
 
@@ -5392,7 +4947,7 @@ Reduces collection to a single value by repeatedly applying function to accumula
 (reduce + [1 2 3 4]) ; => 10
 ```
 
-**See also:** [`transduce`](#transduce), [`into`](#into), [`reduced`](#reduced)
+**See also:** `transduce`, `into`, `reduced`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/transducers.phel#L50)
 
@@ -5404,7 +4959,7 @@ Reduces collection to a single value by repeatedly applying function to accumula
 
 Wraps `x` in a Reduced, signaling early termination from reduce/transduce.
 
-**See also:** [`reduced?`](#reduced), [`unreduced`](#unreduced)
+**See also:** `reduced?`, `unreduced`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/transducers.phel#L18)
 
@@ -5416,7 +4971,7 @@ Wraps `x` in a Reduced, signaling early termination from reduce/transduce.
 
 Returns true if `x` is a Reduced value.
 
-**See also:** [`reduced`](#reduced), [`unreduced`](#unreduced)
+**See also:** `reduced`, `unreduced`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/transducers.phel#L24)
 
@@ -5443,7 +4998,7 @@ Creates an anonymous object implementing one or more protocols.
 (reify Speakable (speak [this] "hello"))
 ```
 
-**See also:** [`defprotocol`](#defprotocol), [`extend-type`](#extend-type), [`satisfies?`](#satisfies)
+**See also:** `defprotocol`, `extend-type`, `satisfies?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/protocols.phel#L372)
 
@@ -5462,7 +5017,7 @@ Returns a lazy sequence of elements where predicate returns false.
 (remove even? [1 2 3 4 5 6]) ; => (1 3 5)
 ```
 
-**See also:** [`filter`](#filter), [`transduce`](#transduce)
+**See also:** `filter`, `transduce`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L474)
 
@@ -5474,7 +5029,7 @@ Returns a lazy sequence of elements where predicate returns false.
 
 Removes `f` from the tap set. Returns nil.
 
-**See also:** [`add-tap`](#add-tap), [`tap>`](#tap)
+**See also:** `add-tap`, `tap>`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/tap.phel#L24)
 
@@ -5486,7 +5041,7 @@ Removes `f` from the tap set. Returns nil.
 
 Removes a watch function from a variable by key.
 
-**See also:** [`add-watch`](#add-watch)
+**See also:** `add-watch`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/atoms.phel#L122)
 
@@ -5505,7 +5060,7 @@ Returns the map with keys renamed according to kmap.
 (rename-keys {:a 1 :b 2 :c 3} {:a :x :b :y}) ; => {:x 1 :y 2 :c 3}
 ```
 
-**See also:** [`select-keys`](#select-keys), [`keys`](#keys), [`vals`](#vals)
+**See also:** `select-keys`, `keys`, `vals`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L1035)
 
@@ -5525,7 +5080,7 @@ Returns a vector of length n where every element is x.
 (repeat 3 :a) ; => [:a :a :a]
 ```
 
-**See also:** [`repeatedly`](#repeatedly), [`cycle`](#cycle)
+**See also:** `repeatedly`, `cycle`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L771)
 
@@ -5545,7 +5100,7 @@ Returns a vector of length n with values produced by repeatedly calling f.
 (repeatedly 3 rand) ; => [0.234 0.892 0.456] (random values)
 ```
 
-**See also:** [`repeat`](#repeat), [`iterate`](#iterate)
+**See also:** `repeat`, `iterate`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L783)
 
@@ -5563,7 +5118,7 @@ Sets a new value on the given atom. Returns the new value.
 (def x (atom 10))
 ```
 
-**See also:** [`atom`](#atom), [`deref`](#deref), [`swap!`](#swap)
+**See also:** `atom`, `deref`, `swap!`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/atoms.phel#L51)
 
@@ -5613,7 +5168,7 @@ Reverses the order of the elements in the given sequence.
 (reverse [1 2 3 4]) ; => [4 3 2 1]
 ```
 
-**See also:** [`rseq`](#rseq), [`reversible?`](#reversible)
+**See also:** `rseq`, `reversible?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L566)
 
@@ -5632,7 +5187,7 @@ Returns true if `coll` can be reverse-iterated in constant time.
 (reversible? [1 2 3]) ; => true
 ```
 
-**See also:** [`rseq`](#rseq), [`reverse`](#reverse)
+**See also:** `rseq`, `reverse`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L577)
 
@@ -5653,7 +5208,7 @@ Returns, in constant time, a sequence of the items in `rev` in reverse
 (rseq [1 2 3]) ; => [3 2 1]
 ```
 
-**See also:** [`reversible?`](#reversible), [`reverse`](#reverse)
+**See also:** `reversible?`, `reverse`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L586)
 
@@ -5671,7 +5226,7 @@ Calls `(f x)` for each element in `coll` for side effects. Returns nil.
 (run! println [1 2 3])
 ```
 
-**See also:** [`doseq`](#doseq), [`map`](#map)
+**See also:** `doseq`, `map`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/loops.phel#L9)
 
@@ -5689,7 +5244,7 @@ Returns true if x's type implements all methods of the given protocol.
 (satisfies? Stringable "hello")
 ```
 
-**See also:** [`extends?`](#extends), [`defprotocol`](#defprotocol), [`extend-type`](#extend-type)
+**See also:** `extends?`, `defprotocol`, `extend-type`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/protocols.phel#L320)
 
@@ -5723,7 +5278,7 @@ Returns a new map including key value pairs from `m` selected with keys `ks`.
 (select-keys {:a 1 :b 2 :c 3} [:a :c]) ; => {:a 1 :c 3}
 ```
 
-**See also:** [`dissoc`](#dissoc)
+**See also:** `dissoc`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L1021)
 
@@ -5745,7 +5300,7 @@ Returns a seq on the collection. Strings are converted to a vector of characters
 (seq "hello") ; => ["h" "e" "l" "l" "o"]
 ```
 
-**See also:** [`count`](#count)
+**See also:** `count`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L339)
 
@@ -5757,7 +5312,7 @@ Returns a seq on the collection. Strings are converted to a vector of characters
 
 Returns true if `x` is a seq (implements LazySeqInterface), false otherwise.
 
-**See also:** [`seq`](#seq), [`lazy-seq`](#lazy-seq)
+**See also:** `seq`, `lazy-seq`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L302)
 
@@ -5778,7 +5333,7 @@ Returns true if `(seq x)` is supported: collections (vectors, lists,
 (seqable? 42) ; => false
 ```
 
-**See also:** [`seq`](#seq), [`coll?`](#coll), [`seq?`](#seq)
+**See also:** `seq`, `coll?`, `seq?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L421)
 
@@ -5796,7 +5351,7 @@ Applies transducer `xform` to `coll`, returning a vector of results.
 (sequence (comp (filter even?) (map inc)) [1 2 3 4 5]) ; => [3 5]
 ```
 
-**See also:** [`transduce`](#transduce), [`into`](#into)
+**See also:** `transduce`, `into`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L1101)
 
@@ -5818,7 +5373,7 @@ Returns true if `x` is a sequential collection (vector, list, or lazy
 (sequential? {:a 1}) ; => false
 ```
 
-**See also:** [`coll?`](#coll), [`vector?`](#vector), [`list?`](#list), [`seq?`](#seq)
+**See also:** `coll?`, `vector?`, `list?`, `seq?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L394)
 
@@ -5837,7 +5392,7 @@ Coerces a collection to a set. Returns a set containing the distinct elements of
 (set [1 2 3 2 1]) ; => #{1 2 3}
 ```
 
-**See also:** [`hash-set`](#hash-set), [`vec`](#vec), [`into`](#into)
+**See also:** `hash-set`, `vec`, `into`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L227)
 
@@ -5855,7 +5410,7 @@ Sets a new value to the given variable.
 (def x (var 10))
 ```
 
-**See also:** [`var`](#var), [`deref`](#deref), [`swap!`](#swap)
+**See also:** `var`, `deref`, `swap!`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/atoms.phel#L58)
 
@@ -5881,7 +5436,7 @@ Sets a validator function on a variable. The validator is called before any
 (set-validator! my-var pos?)
 ```
 
-**See also:** [`get-validator`](#get-validator), [`var`](#var)
+**See also:** `get-validator`, `var`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/atoms.phel#L129)
 
@@ -5929,7 +5484,7 @@ Coerces `x` to a signed 16-bit integer in the range `-32768..32767`.
 (short -32768) ; => -32768
 ```
 
-**See also:** [`int`](#int), [`byte`](#byte), [`long`](#long)
+**See also:** `int`, `byte`, `long`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/math.phel#L268)
 
@@ -5949,7 +5504,7 @@ Creates a PHP array of shorts (16-bit integers). Given a size, fills with `0`.
 (short-array [1.5 2.7]) ; => PHP array [1, 2]
 ```
 
-**See also:** [`int-array`](#int-array), [`long-array`](#long-array), [`float-array`](#float-array), [`double-array`](#double-array)
+**See also:** `int-array`, `long-array`, `float-array`, `double-array`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/arrays.phel#L152)
 
@@ -5977,7 +5532,7 @@ Returns a random permutation of coll.
 
 Returns true if `x` is a symbol or keyword without a namespace.
 
-**See also:** [`simple-symbol?`](#simple-symbol), [`simple-keyword?`](#simple-keyword), [`ident?`](#ident)
+**See also:** `simple-symbol?`, `simple-keyword?`, `ident?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L184)
 
@@ -5989,7 +5544,7 @@ Returns true if `x` is a symbol or keyword without a namespace.
 
 Returns true if `x` is a keyword without a namespace.
 
-**See also:** [`keyword?`](#keyword), [`simple-ident?`](#simple-ident)
+**See also:** `keyword?`, `simple-ident?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L178)
 
@@ -6001,7 +5556,7 @@ Returns true if `x` is a keyword without a namespace.
 
 Returns true if `x` is a symbol without a namespace.
 
-**See also:** [`symbol?`](#symbol), [`simple-ident?`](#simple-ident)
+**See also:** `symbol?`, `simple-ident?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L172)
 
@@ -6096,7 +5651,7 @@ Takes a variadic set of predicates and returns a function `f` that,
 ((some-fn pos? even?) -3 -1) ; => nil
 ```
 
-**See also:** [`some`](#some), [`complement`](#complement), [`every?`](#every), [`not-any?`](#not-any)
+**See also:** `some`, `complement`, `every?`, `not-any?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/fns-sets.phel#L96)
 
@@ -6136,7 +5691,7 @@ Returns a sorted vector. If no comparator is supplied compare is used.
 (sort [3 1 4 1 5 9 2 6]) ; => [1 1 2 3 4 5 6 9]
 ```
 
-**See also:** [`sort-by`](#sort-by), [`compare`](#compare)
+**See also:** `sort-by`, `compare`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L742)
 
@@ -6156,7 +5711,7 @@ Returns a sorted vector where the sort order is determined by comparing `(keyfn 
 (sort-by count ["aaa" "c" "bb"]) ; => ["c" "bb" "aaa"]
 ```
 
-**See also:** [`sort`](#sort), [`compare`](#compare)
+**See also:** `sort`, `compare`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L751)
 
@@ -6175,7 +5730,7 @@ Creates a new sorted map. Keys are in natural sorted order.
 (sorted-map :c 3 :a 1 :b 2) ; keys iterate as :a :b :c
 ```
 
-**See also:** [`sorted-map-by`](#sorted-map-by), [`hash-map`](#hash-map)
+**See also:** `sorted-map-by`, `hash-map`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/collections.phel#L21)
 
@@ -6195,7 +5750,7 @@ Creates a new sorted map using the given comparator for key ordering.
 (sorted-map-by (fn [a b] (compare b a)) :a 1 :b 2) ; keys iterate as :b :a
 ```
 
-**See also:** [`sorted-map`](#sorted-map), [`compare`](#compare)
+**See also:** `sorted-map`, `compare`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/collections.phel#L29)
 
@@ -6213,7 +5768,7 @@ Creates a new sorted set. Elements are in natural sorted order.
 (sorted-set 3 1 2) ; iterates as 1 2 3
 ```
 
-**See also:** [`sorted-set-by`](#sorted-set-by), [`hash-set`](#hash-set)
+**See also:** `sorted-set-by`, `hash-set`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/collections.phel#L38)
 
@@ -6231,7 +5786,7 @@ Creates a new sorted set using the given comparator for element ordering.
 (sorted-set-by (fn [a b] (compare b a)) 3 1 2) ; iterates as 3 2 1
 ```
 
-**See also:** [`sorted-set`](#sorted-set), [`compare`](#compare)
+**See also:** `sorted-set`, `compare`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/collections.phel#L45)
 
@@ -6249,7 +5804,7 @@ Returns true if `coll` is a sorted collection (sorted-map or sorted-set), false 
 (sorted? (sorted-set 1 2 3)) ; => true
 ```
 
-**See also:** [`sorted-map`](#sorted-map), [`sorted-set`](#sorted-set)
+**See also:** `sorted-map`, `sorted-set`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L453)
 
@@ -6268,7 +5823,7 @@ Returns true if `s` names a special form.
 (special-symbol? 'map) ; => false
 ```
 
-**See also:** [`symbol?`](#symbol)
+**See also:** `symbol?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/predicates.phel#L199)
 
@@ -6306,7 +5861,7 @@ Returns a vector of `[(take n coll) (drop n coll)]`.
 (split-at 2 [1 2 3 4 5]) ; => [[1 2] [3 4 5]]
 ```
 
-**See also:** [`split-with`](#split-with), [`take`](#take), [`drop`](#drop)
+**See also:** `split-with`, `take`, `drop`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L1057)
 
@@ -6324,7 +5879,7 @@ Returns a vector of `[(take-while pred coll) (drop-while pred coll)]`.
 (split-with #(< % 4) [1 2 3 4 5 6]) ; => [[1 2 3] [4 5 6]]
 ```
 
-**See also:** [`split-at`](#split-at), [`take-while`](#take-while), [`drop-while`](#drop-while)
+**See also:** `split-at`, `take-while`, `drop-while`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L1064)
 
@@ -6429,7 +5984,7 @@ Atomically swaps the value of the atom to `(apply f current-value args)`.
 (def counter (atom 0))
 ```
 
-**See also:** [`atom`](#atom), [`reset!`](#reset), [`deref`](#deref)
+**See also:** `atom`, `reset!`, `deref`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/atoms.phel#L86)
 
@@ -6497,7 +6052,7 @@ Takes the last `n` elements of `coll`.
 (take-last 3 [1 2 3 4 5]) ; => [3 4 5]
 ```
 
-**See also:** [`take`](#take), [`drop-last`](#drop-last)
+**See also:** `take`, `drop-last`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L412)
 
@@ -6516,7 +6071,7 @@ Returns every nth item in `coll`. Returns a lazy sequence.
 (take-nth 2 [0 1 2 3 4 5 6 7 8]) ; => (0 2 4 6 8)
 ```
 
-**See also:** [`take`](#take), [`filter`](#filter), [`transduce`](#transduce)
+**See also:** `take`, `filter`, `transduce`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L436)
 
@@ -6535,7 +6090,7 @@ Takes all elements at the front of `coll` where `(pred x)` is true. Returns a la
 (take-while #(< % 5) [1 2 3 4 5 6 3 2 1]) ; => (1 2 3 4)
 ```
 
-**See also:** [`drop-while`](#drop-while), [`take`](#take), [`transduce`](#transduce)
+**See also:** `drop-while`, `take`, `transduce`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L419)
 
@@ -6555,7 +6110,7 @@ Sends `x` to every registered tap. Exceptions thrown by individual taps are
 (tap> {:event :login :user "alice"})
 ```
 
-**See also:** [`add-tap`](#add-tap), [`remove-tap`](#remove-tap)
+**See also:** `add-tap`, `remove-tap`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/tap.phel#L31)
 
@@ -6601,7 +6156,7 @@ Returns a PHP array containing the elements of `coll`. Accepts any
 (to-array nil) ; => a PHP array []
 ```
 
-**See also:** [`to-php-array`](#to-php-array), [`object-array`](#object-array)
+**See also:** `to-php-array`, `object-array`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/arrays.phel#L59)
 
@@ -6609,7 +6164,7 @@ Returns a PHP array containing the elements of `coll`. Accepts any
 
 Creates a PHP Array from a sequential data structure.
 
-**See also:** [`php-array-to-map`](#php-array-to-map), [`phel->php`](#phel--php)
+**See also:** `php-array-to-map`, `phel->php`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/defs.phel#L22)
 
@@ -6629,7 +6184,7 @@ Reduce with a transformation of `f` (xf). If init is not supplied,
 (transduce (map inc) + [1 2 3]) ; => 9
 ```
 
-**See also:** [`reduce`](#reduce), [`into`](#into), [`sequence`](#sequence)
+**See also:** `reduce`, `into`, `sequence`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/transducers.phel#L86)
 
@@ -6650,7 +6205,7 @@ Converts a persistent collection to a transient collection for efficient updates
 (def t (transient []))
 ```
 
-**See also:** [`persistent`](#persistent)
+**See also:** `persistent`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/transients.phel#L17)
 
@@ -6751,7 +6306,7 @@ Removes a parent/child relationship from the global hierarchy.
 (underive :square :shape)
 ```
 
-**See also:** [`derive`](#derive), [`isa?`](#isa), [`parents`](#parents), [`ancestors`](#ancestors), [`descendants`](#descendants)
+**See also:** `derive`, `isa?`, `parents`, `ancestors`, `descendants`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/protocols.phel#L114)
 
@@ -6801,7 +6356,7 @@ Values that should be evaluated in a macro are marked with the unquote function.
 
 If `x` is Reduced, returns the unwrapped value; otherwise returns `x`.
 
-**See also:** [`reduced`](#reduced), [`reduced?`](#reduced)
+**See also:** `reduced`, `reduced?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/transducers.phel#L30)
 
@@ -6839,7 +6394,7 @@ Updates a value in a datastructure by applying `f` to the current value.
 (update {:count 5} :count inc) ; => {:count 6}
 ```
 
-**See also:** [`update-in`](#update-in), [`assoc`](#assoc)
+**See also:** `update-in`, `assoc`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L284)
 
@@ -6857,7 +6412,7 @@ Updates a value in a nested data structure by applying `f` to the value at path.
 (update-in {:a {:b 5}} [:a :b] inc) ; => {:a {:b 6}}
 ```
 
-**See also:** [`get-in`](#get-in), [`assoc-in`](#assoc-in), [`update`](#update)
+**See also:** `get-in`, `assoc-in`, `update`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L291)
 
@@ -6875,7 +6430,7 @@ Returns a map with `f` applied to each key.
 (update-keys {:a 1 :b 2} name) ; => {"a" 1 "b" 2}
 ```
 
-**See also:** [`update-vals`](#update-vals), [`keys`](#keys), [`update`](#update)
+**See also:** `update-vals`, `keys`, `update`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/fns-sets.phel#L281)
 
@@ -6893,7 +6448,7 @@ Returns a map with `f` applied to each value.
 (update-vals {:a 1 :b 2} inc) ; => {:a 2 :b 3}
 ```
 
-**See also:** [`update-keys`](#update-keys), [`values`](#values), [`update`](#update)
+**See also:** `update-keys`, `values`, `update`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/fns-sets.phel#L291)
 
@@ -6915,7 +6470,7 @@ Returns true if `x` is the nil UUID (all zeros), false otherwise.
 (uuid-nil? "00000000-0000-0000-0000-000000000000") ; => true
 ```
 
-**See also:** [`uuid?`](#uuid)
+**See also:** `uuid?`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/uuid.phel#L69)
 
@@ -6939,7 +6494,7 @@ Returns a keyword describing the variant field of UUID `x`: `:ncs`,
 (uuid-variant "550e8400-e29b-41d4-a716-446655440000") ; => :rfc-4122
 ```
 
-**See also:** [`uuid?`](#uuid), [`uuid-version`](#uuid-version)
+**See also:** `uuid?`, `uuid-version`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/uuid.phel#L86)
 
@@ -6958,7 +6513,7 @@ Returns the version digit (1-5) encoded in UUID `x`, or nil if `x` is
 (uuid-version "550e8400-e29b-41d4-a716-446655440000") ; => 4
 ```
 
-**See also:** [`uuid?`](#uuid), [`uuid-variant`](#uuid-variant)
+**See also:** `uuid?`, `uuid-variant`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/uuid.phel#L77)
 
@@ -6979,7 +6534,7 @@ Returns true if `a` and `b` are canonical UUID strings that compare
          "550e8400-e29b-41d4-a716-446655440000") ; => true
 ```
 
-**See also:** [`uuid?`](#uuid), [`parse-uuid`](#parse-uuid)
+**See also:** `uuid?`, `parse-uuid`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/uuid.phel#L57)
 
@@ -6999,7 +6554,7 @@ Returns true if `x` is a canonical UUID string (36 characters,
 (uuid? "550e8400-e29b-41d4-a716-446655440000") ; => true
 ```
 
-**See also:** [`random-uuid`](#random-uuid), [`parse-uuid`](#parse-uuid)
+**See also:** `random-uuid`, `parse-uuid`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/uuid.phel#L15)
 
@@ -7017,7 +6572,7 @@ Returns the value of a map entry (a two-element vector `[key value]`).
 (val (first (pairs {:a 1}))) ; => 1
 ```
 
-**See also:** [`key`](#key), [`vals`](#vals), [`pairs`](#pairs)
+**See also:** `key`, `vals`, `pairs`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L636)
 
@@ -7069,7 +6624,7 @@ Creates a new variable with the given value.
 (def counter (var 0))
 ```
 
-**See also:** [`set!`](#set), [`deref`](#deref), [`swap!`](#swap)
+**See also:** `set!`, `deref`, `swap!`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/atoms.phel#L30)
 
@@ -7087,7 +6642,7 @@ Checks if the given value is a variable.
 
 Returns an object with (apply f (meta obj) args) as its new metadata.
 
-**See also:** [`meta`](#meta), [`with-meta`](#with-meta)
+**See also:** `meta`, `with-meta`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/meta.phel#L77)
 
@@ -7106,7 +6661,7 @@ Coerces a collection to a vector. For hash-maps and structs, entries
 (vec {:a 1 :b 2}) ; => [[:a 1] [:b 2]]
 ```
 
-**See also:** [`vector`](#vector), [`set`](#set), [`into`](#into)
+**See also:** `vector`, `set`, `into`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L239)
 
@@ -7143,7 +6698,7 @@ Returns true if `x` is a vector, false otherwise.
 Creates a volatile mutable reference with initial value `val`.
   Use for transducer state that needs fast mutation without watches.
 
-**See also:** [`vreset!`](#vreset), [`vswap!`](#vswap), [`var`](#var)
+**See also:** `vreset!`, `vswap!`, `var`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/transducers.phel#L103)
 
@@ -7155,7 +6710,7 @@ Creates a volatile mutable reference with initial value `val`.
 
 Returns true if `x` is a Volatile.
 
-**See also:** [`volatile!`](#volatile), [`vreset!`](#vreset), [`vswap!`](#vswap)
+**See also:** `volatile!`, `vreset!`, `vswap!`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/transducers.phel#L123)
 
@@ -7167,7 +6722,7 @@ Returns true if `x` is a Volatile.
 
 Sets the value of volatile `vol` to `val`. Returns `val`.
 
-**See also:** [`volatile!`](#volatile), [`vswap!`](#vswap)
+**See also:** `volatile!`, `vswap!`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/transducers.phel#L110)
 
@@ -7180,7 +6735,7 @@ Sets the value of volatile `vol` to `val`. Returns `val`.
 Applies `f` to the current value of volatile `vol` plus `args`,
   and sets the new value. Returns the new value.
 
-**See also:** [`volatile!`](#volatile), [`vreset!`](#vreset)
+**See also:** `volatile!`, `vreset!`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/transducers.phel#L116)
 
@@ -7209,7 +6764,7 @@ Evaluates body if test is true, otherwise returns nil.
 Binds name to the first element of coll. When the collection is non-empty
   (first returns non-nil), evaluates body with the binding.
 
-**See also:** [`when-some`](#when-some), [`first`](#first)
+**See also:** `when-some`, `first`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/protocols.phel#L625)
 
@@ -7249,7 +6804,7 @@ Binds name to the value of test. When test is not nil, evaluates body with
   binding-form bound to the value of test. Unlike when-let, false and 0 are not
   treated as falsy — only nil causes the body to be skipped.
 
-**See also:** [`when-let`](#when-let), [`if-some`](#if-some)
+**See also:** `when-let`, `if-some`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/protocols.phel#L617)
 
@@ -7257,7 +6812,7 @@ Binds name to the value of test. When test is not nil, evaluates body with
 
 Returns `obj` with the given metadata `meta` attached.
 
-**See also:** [`meta`](#meta), [`vary-meta`](#vary-meta)
+**See also:** `meta`, `vary-meta`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/meta.phel#L64)
 
@@ -7296,7 +6851,7 @@ Creates a map from two sequential data structures. Returns a new map.
 (zipcoll [:a :b :c] [1 2 3]) ; => {:a 1 :b 2 :c 3}
 ```
 
-**See also:** [`zipmap`](#zipmap), [`interleave`](#interleave)
+**See also:** `zipmap`, `interleave`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L1002)
 
@@ -7317,7 +6872,7 @@ Returns a new map with the keys mapped to the corresponding values.
 (zipmap [:a :b :c] [1 2 3]) ; => {:a 1 :b 2 :c 3}
 ```
 
-**See also:** [`zipcoll`](#zipcoll)
+**See also:** `zipcoll`
 
 [source](https://github.com/phel-lang/phel-lang/blob/main/src/phel/core/seq-fns.phel#L987)
 
