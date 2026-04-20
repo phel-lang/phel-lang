@@ -112,7 +112,7 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
             if (count($thisArray) !== count($otherArray)) {
                 return false;
             }
-            return array_all($thisArray, fn($value, $i): bool => $this->equalizer->equals($value, $otherArray[$i]));
+            return array_all($thisArray, fn($value, int $i): bool => $this->equalizer->equals($value, $otherArray[$i]));
         }
 
         return false;
