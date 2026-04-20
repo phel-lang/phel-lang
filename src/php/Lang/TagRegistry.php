@@ -6,7 +6,11 @@ namespace Phel\Lang;
 
 use function array_key_exists;
 use function array_keys;
+use function array_merge;
+use function array_unique;
+use function array_values;
 use function is_callable;
+use function sort;
 
 /**
  * Global registry for reader tagged-literal handlers.
@@ -65,6 +69,23 @@ final class TagRegistry
         $tags = array_keys($this->handlers);
         sort($tags);
         return $tags;
+    }
+
+    /**
+     * Returns the sorted union of {@see tags()} and any additional reserved
+     * tags handled elsewhere (e.g. `#php` resolved inside the reader).
+     * Callers building "unknown tag" error messages use this so the
+     * advertised list matches what the reader will actually accept.
+     *
+     * @param list<string> $reserved
+     *
+     * @return list<string>
+     */
+    public function allTags(array $reserved): array
+    {
+        $merged = array_values(array_unique(array_merge($this->tags(), $reserved)));
+        sort($merged);
+        return $merged;
     }
 
     public function clear(): void

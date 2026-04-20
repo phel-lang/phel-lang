@@ -19,9 +19,7 @@ use Phel\Lang\TagHandlers\BuiltinTagHandlers;
 use Phel\Lang\TagRegistry;
 use Throwable;
 
-use function array_merge;
 use function implode;
-use function sort;
 use function sprintf;
 
 /**
@@ -72,10 +70,7 @@ final readonly class TaggedLiteralReader
 
     private function unknownTagMessage(string $tag, TagRegistry $registry): string
     {
-        $registeredTags = array_merge($registry->tags(), BuiltinTagHandlers::RESERVED);
-        sort($registeredTags);
-
-        $list = '#' . implode(', #', $registeredTags);
+        $list = '#' . implode(', #', $registry->allTags(BuiltinTagHandlers::RESERVED));
 
         return sprintf(
             "Unknown tagged literal '#%s'. Registered tags: %s. Use `(register-tag \"%s\" f)` to register a handler, or ensure the literal only appears inside a non-selected reader-conditional branch (e.g. :clj, :jank).",

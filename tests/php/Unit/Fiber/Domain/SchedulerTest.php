@@ -8,6 +8,7 @@ use Fiber;
 use Phel\Fiber\Domain\Promise;
 use Phel\Fiber\Domain\Scheduler;
 use PHPUnit\Framework\TestCase;
+use RuntimeException;
 
 final class SchedulerTest extends TestCase
 {
@@ -155,5 +156,53 @@ final class SchedulerTest extends TestCase
         $scheduler->enqueue($fiber);
 
         self::assertSame('from-fiber', $scheduler->await($promise));
+    }
+
+    public function test_tick_swallows_throwable_and_continues_with_remaining_fibers(): void
+    {
+        $scheduler = new Scheduler();
+        $seen = [];
+
+        $throwing = new Fiber(static function (): never {
+            throw new RuntimeException('boom');
+        });
+        $surviving = new Fiber(static function () use (&$seen): void {
+            $seen[] = 'ran';
+        });
+
+        $scheduler->enqueue($throwing);
+        $scheduler->enqueue($surviving);
+
+        $scheduler->runUntilIdle();
+
+        self::assertSame(['ran'], $seen);
+        self::assertFalse($scheduler->hasReady());
+    }
+
+    public function test_enqueue_preserves_fifo_order_across_many_suspends(): void
+    {
+        $scheduler = new Scheduler();
+        $order = [];
+
+        $makeFiber = static function (string $id) use (&$order): Fiber {
+            return new Fiber(static function () use (&$order, $id): void {
+                $order[] = $id . ':1';
+                Fiber::suspend();
+                $order[] = $id . ':2';
+            });
+        };
+
+        foreach (['a', 'b', 'c', 'd'] as $id) {
+            $fiber = $makeFiber($id);
+            $fiber->start();
+            $scheduler->enqueue($fiber);
+        }
+
+        $scheduler->runUntilIdle();
+
+        self::assertSame(
+            ['a:1', 'b:1', 'c:1', 'd:1', 'a:2', 'b:2', 'c:2', 'd:2'],
+            $order,
+        );
     }
 }

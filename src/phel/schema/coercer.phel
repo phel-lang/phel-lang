@@ -104,9 +104,9 @@
     :symbol  (coerce-symbol value)
     :uuid    (coerce-uuid value)
     :inst    (coerce-inst value)
-    (if (reg/registered? head)
-      (coerce (reg/deref-ref head) value)
-      value)))
+    (v/resolve-or-default head
+                          (fn [target] (coerce target value))
+                          value)))
 
 (defn- coerce-collection
   [schema value type-ctor]
@@ -193,9 +193,9 @@
       :ref    (let [target (reg/deref-ref (first args))]
                 (if (nil? target) value (coerce target value)))
       :=>     value
-      (if (reg/registered? head)
-        (coerce (reg/deref-ref head) value)
-        value))))
+      (v/resolve-or-default head
+                            (fn [target] (coerce target value))
+                            value))))
 
 (defn coerce
   "Walks `schema` and returns `value` with string-typed inputs coerced

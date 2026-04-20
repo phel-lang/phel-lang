@@ -80,3 +80,24 @@
 (deftest test-coerce-maybe
   (is (= nil (s/coerce [:maybe :int] nil)))
   (is (= 5 (s/coerce [:maybe :int] "5"))))
+
+(deftest test-coerce-unknown-head-passes-through-unchanged
+  (is (= "42" (s/coerce :no-such-head "42")))
+  (is (= "42" (s/coerce [:no-such-head] "42"))))
+
+(deftest test-coerce-through-registered-schema
+  (s/register! :price :int)
+  (is (= 7 (s/coerce :price "7")))
+  (is (= 7 (s/coerce [:ref :price] "7")))
+  (s/unregister! :price))
+
+(deftest test-coerce-map-preserves-non-schema-entries
+  (let [result (s/coerce [:map [:id :int]]
+                         {:id "1" :extra "unchanged"})]
+    (is (= 1 (get result :id)))
+    (is (= "unchanged" (get result :extra))))
+  "undeclared keys stay intact so the caller can validate shape separately")
+
+(deftest test-coerce-non-schema-input-is-identity
+  (is (= 42 (s/coerce 99 42)) "numeric schema shape returns value as-is")
+  (is (= "x" (s/coerce "schema-string" "x"))))

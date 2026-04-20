@@ -19,6 +19,34 @@
 (declare schema-options)
 
 ;; ----------------
+;; Head-dispatch fallback
+;; ----------------
+
+(defn resolve-or-throw
+  "Resolves an unknown head by looking it up in the registry. When
+  `head` names a registered schema, invokes `f` with the registered
+  schema; otherwise throws an `InvalidArgumentException` mentioning
+  `label` (e.g. `\"unknown schema kind\"` or `\"no generator for schema kind\"`).
+
+  Every head-dispatching caller uses this so the error shape is
+  consistent across validator/explainer/coercer/generator."
+  [label head f]
+  (if (reg/registered? head)
+    (f (reg/deref-ref head))
+    (throw (php/new \InvalidArgumentException
+                    (str label ": " head)))))
+
+(defn resolve-or-default
+  "Like `resolve-or-throw`, but returns `default` when `head` is not
+  registered instead of throwing. Used by `coerce` where unknown heads
+  are intentionally passed through unchanged for downstream validation
+  to flag."
+  [head f default]
+  (if (reg/registered? head)
+    (f (reg/deref-ref head))
+    default))
+
+;; ----------------
 ;; Schema shape helpers
 ;; ----------------
 
@@ -114,10 +142,8 @@
     :set        (set? value)
     :sequential (valid-sequential? value)
     :seqable    (valid-seqable? value)
-    (if (reg/registered? head)
-      (valid? (reg/deref-ref head) value)
-      (throw (php/new \InvalidArgumentException
-                      (str "unknown schema kind: " head))))))
+    (resolve-or-throw "unknown schema kind" head
+                      (fn [target] (valid? target value)))))
 
 ;; ----------------
 ;; Parametric validators
@@ -277,10 +303,8 @@
                                    (str "schema ref not registered: " (get args 0)))))
                  (valid? target value))
       :=>      true
-      (if (reg/registered? head)
-        (valid? (reg/deref-ref head) value)
-        (throw (php/new \InvalidArgumentException
-                        (str "unknown schema kind: " head)))))))
+      (resolve-or-throw "unknown schema kind" head
+                        (fn [target] (valid? target value))))))
 
 ;; ----------------
 ;; Public entry point

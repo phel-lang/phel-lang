@@ -91,3 +91,37 @@
     (is (string? text))
     (is (php/str_contains text "mismatch"))
     (is (php/str_contains text ":int"))))
+
+(deftest test-explain-empty-or-reports-mismatch
+  (let [r (s/explain [:or] 1)]
+    (is (not (nil? r)))
+    (is (= 1 (count (get r :errors))))))
+
+(deftest test-explain-empty-and-accepts-any
+  (is (nil? (s/explain [:and] 1)))
+  (is (nil? (s/explain [:and] "x")))
+  (is (nil? (s/explain [:and] nil))))
+
+(deftest test-explain-empty-enum-reports-mismatch
+  (let [r (s/explain [:enum] 1)]
+    (is (not (nil? r)))
+    (is (= 1 (count (get r :errors))))))
+
+(deftest test-explain-recursive-ref-reports-leaf-path
+  (s/register! :tree [:map
+                      [:value :int]
+                      [:children [:vector [:ref :tree]]]])
+  (let [r (s/explain [:ref :tree]
+                     {:value 1
+                      :children [{:value "oops" :children []}]})]
+    (is (not (nil? r)))
+    (is (= 1 (count (get r :errors))))
+    (let [err (first (get r :errors))]
+      (is (= :mismatch (get err :type)))
+      (is (= [:children 0 :value] (get err :in)))))
+  (s/unregister! :tree))
+
+(deftest test-explain-unregistered-ref-reports-mismatch
+  (let [r (s/explain [:ref :definitely-not-there] 1)]
+    (is (not (nil? r)))
+    (is (= 1 (count (get r :errors))))))

@@ -139,4 +139,38 @@ final class FutureTest extends TestCase
 
         self::assertSame(':cancelled', $future->derefWithTimeout(100, ':cancelled'));
     }
+
+    public function test_deref_with_zero_timeout_returns_value_when_already_realized(): void
+    {
+        $future = new Future($this->scheduler, static fn(): int => 99);
+
+        // Drive the fiber to completion before asking for the value.
+        $this->scheduler->runUntilIdle();
+
+        self::assertSame(99, $future->derefWithTimeout(0, ':fallback'));
+    }
+
+    public function test_deref_with_timeout_still_rethrows_body_exception(): void
+    {
+        $future = new Future($this->scheduler, static function (): never {
+            throw new RuntimeException('late boom');
+        });
+
+        // Let the fiber run so the internal promise is realized with failure.
+        $this->scheduler->runUntilIdle();
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('late boom');
+        $future->derefWithTimeout(100, ':never');
+    }
+
+    public function test_cancel_is_idempotent(): void
+    {
+        $future = new Future($this->scheduler, static fn(): string => 'x');
+        $future->cancel();
+        $future->cancel();
+        $future->cancel();
+
+        self::assertTrue($future->isCancelled());
+    }
 }

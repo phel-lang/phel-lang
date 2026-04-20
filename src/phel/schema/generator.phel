@@ -48,10 +48,8 @@
     :set        (g/set-of g/int)
     :sequential (g/vector-of g/int)
     :seqable    (g/vector-of g/int)
-    (if (reg/registered? head)
-      (schema->gen (reg/deref-ref head))
-      (throw (php/new \InvalidArgumentException
-                      (str "no default generator for schema kind: " head))))))
+    (v/resolve-or-throw "no default generator for schema kind" head
+                        (fn [target] (schema->gen target)))))
 
 (defn- vector-of-gen [args]
   (if (empty? args)
@@ -165,10 +163,8 @@
       :ref     (ref-gen args)
       :=>      (throw (php/new \InvalidArgumentException
                                 "cannot generate function schemas"))
-      (if (reg/registered? head)
-        (schema->gen (reg/deref-ref head))
-        (throw (php/new \InvalidArgumentException
-                        (str "no generator for schema kind: " head)))))))
+      (v/resolve-or-throw "no generator for schema kind" head
+                          (fn [target] (schema->gen target))))))
 
 (defn schema->gen
   "Returns a `phel\\test\\gen` generator for `schema`. Honours a

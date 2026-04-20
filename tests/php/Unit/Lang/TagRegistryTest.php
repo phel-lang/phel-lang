@@ -80,4 +80,35 @@ final class TagRegistryTest extends TestCase
 
         self::assertSame(['alpha', 'mike', 'zeta'], $this->registry->tags());
     }
+
+    public function test_all_tags_merges_reserved_into_sorted_list(): void
+    {
+        $noop = static fn(mixed $_): mixed => null;
+        $this->registry->register('uuid', $noop);
+        $this->registry->register('inst', $noop);
+
+        self::assertSame(['inst', 'php', 'uuid'], $this->registry->allTags(['php']));
+    }
+
+    public function test_all_tags_deduplicates_overlap_between_registered_and_reserved(): void
+    {
+        $noop = static fn(mixed $_): mixed => null;
+        $this->registry->register('php', $noop);
+        $this->registry->register('uuid', $noop);
+
+        self::assertSame(['php', 'uuid'], $this->registry->allTags(['php']));
+    }
+
+    public function test_all_tags_works_with_empty_reserved(): void
+    {
+        $noop = static fn(mixed $_): mixed => null;
+        $this->registry->register('a', $noop);
+
+        self::assertSame(['a'], $this->registry->allTags([]));
+    }
+
+    public function test_all_tags_returns_reserved_only_when_no_handlers(): void
+    {
+        self::assertSame(['php'], $this->registry->allTags(['php']));
+    }
 }
