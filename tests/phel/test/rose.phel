@@ -84,3 +84,82 @@
     (is (every? (fn [v] (= 2 (count v)))
                 (into [] (map r/rose-root (r/rose-children t))))
         "rose-zip preserves arity")))
+
+;; ---------------------------------------------------------------------------
+;; shrink-int-towards — negative-direction shrinks and same-input short-circuit
+;; ---------------------------------------------------------------------------
+
+(deftest test-shrink-int-towards-negative-shrinks-toward-zero
+  (let [candidates (into [] (r/shrink-int-towards 0 -8))]
+    (is (contains? (into (hash-set) candidates) 0)
+        "target is among the shrinks")
+    (is (every? (fn [v] (< v 0)) (rest candidates))
+        "non-target shrinks are still negative")
+    (is (not (contains? (into (hash-set) candidates) -8))
+        "the input itself is never a shrink of itself")))
+
+(deftest test-shrink-int-towards-uses-non-zero-target
+  (is (= [10 15 18 19] (into [] (r/shrink-int-towards 10 20)))
+      "halving candidates converge on the configured target")
+  (is (= [-5 -8 -9] (into [] (r/shrink-int-towards -5 -10)))
+      "negative target still produces strictly-closer candidates"))
+
+;; ---------------------------------------------------------------------------
+;; rose-filter — keep only matching nodes, children pruned
+;; ---------------------------------------------------------------------------
+
+(deftest test-rose-filter-nil-when-root-fails-predicate
+  (is (nil? (r/rose-filter pos? (r/rose-pure -1)))
+      "when root fails the predicate, filter returns nil"))
+
+(deftest test-rose-filter-keeps-matching-subtree
+  (let [filtered (r/rose-filter (fn [n] (>= n 0)) (r/int-rose-tree 8))]
+    (is (not (nil? filtered)) "root passes pred, subtree is kept")
+    (is (= 8 (r/rose-root filtered)) "root value preserved")
+    (is (every? (fn [n] (>= n 0))
+                (into [] (map r/rose-root (r/rose-children filtered))))
+        "all surviving children satisfy the predicate")))
+
+;; ---------------------------------------------------------------------------
+;; rose-join — flattens nested rose trees
+;; ---------------------------------------------------------------------------
+
+(deftest test-rose-join-flattens-inner-tree
+  (let [inner  (r/rose-pure 42)
+        outer  (r/rose-pure inner)
+        joined (r/rose-join outer)]
+    (is (= 42 (r/rose-root joined))
+        "joined tree root is the inner root")))
+
+;; ---------------------------------------------------------------------------
+;; rose-string — shrinks via the underlying vector strategy
+;; ---------------------------------------------------------------------------
+
+(deftest test-rose-string-builds-string-from-char-leaves
+  (let [chars [(r/rose-pure "a") (r/rose-pure "b") (r/rose-pure "c")]
+        t     (r/rose-string chars)]
+    (is (= "abc" (r/rose-root t)) "root concatenates char leaves")))
+
+;; ---------------------------------------------------------------------------
+;; rose-map — shrinks of a hash-map preserve its associative nature
+;; ---------------------------------------------------------------------------
+
+(deftest test-rose-map-root-is-hash-map
+  (let [entries [(r/rose-pure [:a 1])
+                 (r/rose-pure [:b 2])]
+        t       (r/rose-map entries)]
+    (is (hash-map? (r/rose-root t)) "root is a hash-map")
+    (is (= 1 (get (r/rose-root t) :a)) "value preserved under key :a")
+    (is (= 2 (get (r/rose-root t) :b)) "value preserved under key :b")))
+
+;; ---------------------------------------------------------------------------
+;; rose-vector-lax — shrinks positions but never drops elements
+;; ---------------------------------------------------------------------------
+
+(deftest test-rose-vector-lax-preserves-length-in-children
+  (let [t (r/rose-vector-lax [(r/int-rose-tree 2) (r/int-rose-tree 3)])
+        child-lengths (into [] (map (fn [v] (count v))
+                                    (map r/rose-root (r/rose-children t))))]
+    (is (= [2 3] (r/rose-root t)) "root is the vector of roots")
+    (is (every? (fn [n] (= 2 n)) child-lengths)
+        "every child preserves the original arity")))

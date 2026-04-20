@@ -81,40 +81,23 @@ final readonly class TestCommandOptions
     {
         $printer = Printer::readable();
 
-        $filter = $this->filter === null
-            ? 'nil'
-            : $printer->print($this->filter);
-
-        $reportersPart = '';
-        if ($this->reporters !== []) {
-            $reporterKeywords = array_map(
-                static fn(string $name): string => ':' . $name,
-                $this->reporters,
-            );
-            $reportersPart = ' :reporters [' . implode(' ', $reporterKeywords) . ']';
-        }
-
-        $junitPart = $this->junitOutput === null
-            ? ''
-            : ' :junit-output ' . $printer->print($this->junitOutput);
-
-        $includesPart = $this->keywordVector(':include', $this->includes);
-        $excludesPart = $this->keywordVector(':exclude', $this->excludes);
-        $nsPart = $this->stringVector(':ns-patterns', $this->nsPatterns);
-        $filtersPart = $this->stringVector(':filters', $this->filters);
-
         return sprintf(
             '{:filter %s :testdox %s :fail-fast %s%s%s%s%s%s%s}',
-            $filter,
+            $this->filter === null ? 'nil' : $printer->print($this->filter),
             $printer->print($this->testdox),
             $printer->print($this->failFast),
-            $reportersPart,
-            $junitPart,
-            $includesPart,
-            $excludesPart,
-            $nsPart,
-            $filtersPart,
+            $this->keywordVector(':reporters', $this->reporters),
+            $this->optionalString(':junit-output', $this->junitOutput, $printer),
+            $this->keywordVector(':include', $this->includes),
+            $this->keywordVector(':exclude', $this->excludes),
+            $this->stringVector(':ns-patterns', $this->nsPatterns),
+            $this->stringVector(':filters', $this->filters),
         );
+    }
+
+    private function optionalString(string $key, ?string $value, Printer $printer): string
+    {
+        return $value === null ? '' : ' ' . $key . ' ' . $printer->print($value);
     }
 
     /**
@@ -141,16 +124,11 @@ final readonly class TestCommandOptions
      */
     private function keywordVector(string $key, array $values): string
     {
-        if ($values === []) {
-            return '';
-        }
-
-        $keywords = array_map(
-            static fn(string $name): string => ':' . $name,
+        return $this->renderVector(
+            $key,
             $values,
+            static fn(string $name): string => ':' . $name,
         );
-
-        return ' ' . $key . ' [' . implode(' ', $keywords) . ']';
     }
 
     /**
@@ -158,16 +136,19 @@ final readonly class TestCommandOptions
      */
     private function stringVector(string $key, array $values): string
     {
+        return $this->renderVector($key, $values, Printer::readable()->print(...));
+    }
+
+    /**
+     * @param list<string>             $values
+     * @param callable(string): string $mapper
+     */
+    private function renderVector(string $key, array $values, callable $mapper): string
+    {
         if ($values === []) {
             return '';
         }
 
-        $printer = Printer::readable();
-        $printed = array_map(
-            $printer->print(...),
-            $values,
-        );
-
-        return ' ' . $key . ' [' . implode(' ', $printed) . ']';
+        return ' ' . $key . ' [' . implode(' ', array_map($mapper, $values)) . ']';
     }
 }

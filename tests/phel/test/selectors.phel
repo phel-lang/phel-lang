@@ -256,3 +256,47 @@
 (deftest test-matches-filter-with-nil-name-and-empty-patterns
   (is (selector/matches-filter? [] nil)
       "empty pattern list with nil name still imposes no restriction"))
+
+;; ---------------------------------------------------------------------------
+;; ns-matches? — more glob edge cases
+;; ---------------------------------------------------------------------------
+
+(deftest test-ns-matches-trailing-star-expands-to-single-segment
+  (is (selector/ns-matches? "phel.*" "phel.core")
+      "trailing `*` matches a single segment")
+  (is (not (selector/ns-matches? "phel.*" "phel.core.sub"))
+      "trailing `*` does not cross dots"))
+
+(deftest test-ns-matches-empty-glob-matches-empty-ns-only
+  (is (selector/ns-matches? "" "")
+      "empty glob matches empty namespace")
+  (is (not (selector/ns-matches? "" "anything"))
+      "empty glob does not match a non-empty namespace"))
+
+(deftest test-ns-matches-double-star-only-matches-anything
+  (is (selector/ns-matches? "**" "a.b.c.d")
+      "standalone `**` matches everything")
+  (is (selector/ns-matches? "**" "")
+      "standalone `**` matches even the empty namespace"))
+
+;; ---------------------------------------------------------------------------
+;; has-selectors? — each key in isolation
+;; ---------------------------------------------------------------------------
+
+(deftest test-has-selectors-detects-each-key-independently
+  (is (selector/has-selectors? {:include ["a"]}) "include alone")
+  (is (selector/has-selectors? {:exclude ["a"]}) "exclude alone")
+  (is (selector/has-selectors? {:ns-patterns ["a.*"]}) "ns-patterns alone")
+  (is (selector/has-selectors? {:filters ["a"]}) "filters alone")
+  (is (not (selector/has-selectors? {:include nil})) "nil include is absent")
+  (is (not (selector/has-selectors? {:exclude []})) "empty exclude is absent"))
+
+;; ---------------------------------------------------------------------------
+;; keep-test? — defensive nil semantics
+;; ---------------------------------------------------------------------------
+
+(deftest test-keep-test-handles-nil-meta-gracefully
+  (is (selector/keep-test? {} "ns" {})
+      "empty meta with empty options keeps test")
+  (is (not (selector/keep-test? {:include [:integration]} "ns" {}))
+      "include gate with no matching meta drops test"))

@@ -159,3 +159,31 @@
         "set root is preserved as a set")
     (is (some (fn [v] (< (count v) 3)) shrinks)
         "set shrinks by element removal")))
+
+;; ---------------------------
+;; Shrink driver terminates on nil children seq
+;; ---------------------------
+
+(deftest test-shrink-returns-original-for-leaf-when-property-fails
+  (testing "leaf value with failing pred returns original with zero steps"
+    (let [res (shrink/shrink-args (fn [_] false) [true])]
+      (is (= [true] (:smallest res))
+          "leaf bool returned unchanged")
+      (is (= 0 (:shrink-steps res))
+          "no shrink attempts on a leaf rose tree"))))
+
+;; ---------------------------
+;; value->rose dispatches on type
+;; ---------------------------
+
+(deftest test-value-to-rose-float-is-leaf
+  (testing "floats are not shrunk by the default strategy"
+    (let [t (shrink/value->rose 3.14)]
+      (is (= 3.14 (r/rose-root t)) "root is the input float")
+      (is (empty? (r/rose-children t)) "no shrinks for floats"))))
+
+(deftest test-value-to-rose-empty-string-is-a-leaf
+  (testing "empty strings have no shrinks"
+    (let [t (shrink/value->rose "")]
+      (is (= "" (r/rose-root t)))
+      (is (empty? (r/rose-children t)) "empty string shrinks to nothing"))))

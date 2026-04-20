@@ -70,6 +70,7 @@ All notable changes to this project will be documented in this file.
 - `(get v nil)` and `(get l nil)` return default on vectors/lists
 - Vector/list with nil index raise `InvalidArgumentException`
 - Stack-trace arg rendering truncates each Phel argument at 200 chars
+- `phel test --reporter=junit-xml` preserves namespace and testcase order in output
 
 ### Changed
 
