@@ -271,4 +271,89 @@ final class TestCommandOptionsTest extends TestCase
         // generated Phel expression is syntactically valid.
         self::assertStringContainsString(':filter "has \\"quotes\\""', $options->asPhelHashMap());
     }
+
+    public function test_non_string_entries_in_string_list_are_dropped(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::INCLUDE => ['ok', 42, null, 'smoke', false],
+            TestCommandOptions::FILTERS => [12, 'keep', true],
+        ]);
+
+        self::assertSame(
+            '{:filter nil :testdox false :fail-fast false :include [:ok :smoke] :filters ["keep"]}',
+            $options->asPhelHashMap(),
+        );
+    }
+
+    public function test_ns_patterns_preserve_order_and_get_printed_as_strings(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::NS_PATTERNS => ['phel.a.*', 'phel.b.**', 'phel.c'],
+        ]);
+
+        self::assertStringContainsString(
+            ':ns-patterns ["phel.a.*" "phel.b.**" "phel.c"]',
+            $options->asPhelHashMap(),
+        );
+    }
+
+    public function test_filter_roundtrips_a_plain_substring_verbatim(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::FILTER => 'add-',
+        ]);
+
+        self::assertSame(
+            '{:filter "add-" :testdox false :fail-fast false}',
+            $options->asPhelHashMap(),
+        );
+    }
+
+    public function test_junit_output_with_spaces_quoted_by_printer(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::REPORTERS => ['junit-xml'],
+            TestCommandOptions::JUNIT_OUTPUT => 'build dir/junit.xml',
+        ]);
+
+        self::assertStringContainsString(
+            ':junit-output "build dir/junit.xml"',
+            $options->asPhelHashMap(),
+        );
+    }
+
+    public function test_junit_output_rejects_non_string_type(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::JUNIT_OUTPUT => 42,
+        ]);
+
+        self::assertStringNotContainsString(':junit-output', $options->asPhelHashMap());
+    }
+
+    public function test_selector_order_in_output_is_stable_across_inputs(): void
+    {
+        // Regardless of input order, the output always emits selector keys
+        // in the documented order: include, exclude, ns-patterns, filters.
+        $asKeys = static fn(array $keys): array => array_fill_keys($keys, ['a']);
+
+        $first = TestCommandOptions::fromArray(
+            $asKeys([
+                TestCommandOptions::FILTERS,
+                TestCommandOptions::NS_PATTERNS,
+                TestCommandOptions::EXCLUDE,
+                TestCommandOptions::INCLUDE,
+            ]),
+        );
+        $second = TestCommandOptions::fromArray(
+            $asKeys([
+                TestCommandOptions::INCLUDE,
+                TestCommandOptions::EXCLUDE,
+                TestCommandOptions::NS_PATTERNS,
+                TestCommandOptions::FILTERS,
+            ]),
+        );
+
+        self::assertSame($first->asPhelHashMap(), $second->asPhelHashMap());
+    }
 }

@@ -28,6 +28,13 @@
 ;; Tag extraction
 ;; ---------------------------------------------------------------------------
 
+(defn- non-empty-vec?
+  "Returns `true` when `xs` is a non-nil, non-empty vector/seq. Used to
+  check whether a selector option was supplied by the caller."
+  [xs]
+  (and (not (nil? xs))
+       (not (empty? xs))))
+
 (defn- tag-key
   "Coerces a selector tag (keyword or string) into the keyword form used
   to look up metadata. Returns `nil` for other inputs."
@@ -63,15 +70,17 @@
 ;; Include / exclude by tag
 ;; ---------------------------------------------------------------------------
 
+(defn- any-tag-matches? [tags meta]
+  (truthy? (some (fn [tag] (has-tag? meta tag)) tags)))
+
 (defn matches-include?
   "Returns `true` when `includes` is empty (no restriction) or when any
   tag in `includes` is truthy on `meta`."
   {:example "(matches-include? [:integration] {:integration true})"
    :see-also ["matches-exclude?" "keep-test?"]}
   [includes meta]
-  (or (nil? includes)
-      (empty? includes)
-      (truthy? (some (fn [tag] (has-tag? meta tag)) includes))))
+  (or (not (non-empty-vec? includes))
+      (any-tag-matches? includes meta)))
 
 (defn matches-exclude?
   "Returns `true` when any tag in `excludes` is truthy on `meta`. An
@@ -80,9 +89,8 @@
   {:example "(matches-exclude? [:slow] {:slow true})"
    :see-also ["matches-include?" "keep-test?"]}
   [excludes meta]
-  (and (not (nil? excludes))
-       (not (empty? excludes))
-       (truthy? (some (fn [tag] (has-tag? meta tag)) excludes))))
+  (and (non-empty-vec? excludes)
+       (any-tag-matches? excludes meta)))
 
 ;; ---------------------------------------------------------------------------
 ;; Namespace glob matching
@@ -151,8 +159,7 @@
   {:example "(matches-ns? [\"phel.http.*\"] \"phel.http.client\")"
    :see-also ["ns-matches?" "keep-test?"]}
   [patterns ns-name]
-  (or (nil? patterns)
-      (empty? patterns)
+  (or (not (non-empty-vec? patterns))
       (truthy? (some (fn [p] (ns-matches? p ns-name)) patterns))))
 
 ;; ---------------------------------------------------------------------------
@@ -187,8 +194,7 @@
   {:example "(matches-filter? [\"add-\"] \"test-add-one\")"
    :see-also ["name-matches?" "keep-test?"]}
   [patterns test-name]
-  (or (nil? patterns)
-      (empty? patterns)
+  (or (not (non-empty-vec? patterns))
       (truthy? (some (fn [p] (name-matches? p test-name)) patterns))))
 
 ;; ---------------------------------------------------------------------------
@@ -214,17 +220,12 @@
          (matches-ns? ns-patterns ns-name)
          (matches-filter? filters tname))))
 
+(def- selector-keys [:include :exclude :ns-patterns :filters])
+
 (defn has-selectors?
   "Returns `true` when `options` contains at least one non-empty
   selector key."
   {:example "(has-selectors? {:include [:integration]})"
    :see-also ["keep-test?"]}
   [options]
-  (or (and (not (nil? (get options :include)))
-           (not (empty? (get options :include))))
-      (and (not (nil? (get options :exclude)))
-           (not (empty? (get options :exclude))))
-      (and (not (nil? (get options :ns-patterns)))
-           (not (empty? (get options :ns-patterns))))
-      (and (not (nil? (get options :filters)))
-           (not (empty? (get options :filters))))))
+  (truthy? (some (fn [k] (non-empty-vec? (get options k))) selector-keys)))
