@@ -68,4 +68,48 @@ final class NamespaceResolverTest extends TestCase
     {
         self::assertNull($this->resolver->resolveFromFile('/non/existent/path.phel'));
     }
+
+    public function test_whitespace_only_source_returns_null(): void
+    {
+        self::assertNull($this->resolver->resolveFromSource("   \n\t\n"));
+    }
+
+    public function test_shebang_without_newline_returns_null(): void
+    {
+        self::assertNull($this->resolver->resolveFromSource('#!/usr/bin/env phel'));
+    }
+
+    public function test_comment_without_newline_returns_null(): void
+    {
+        self::assertNull($this->resolver->resolveFromSource(';; trailing comment without newline'));
+    }
+
+    public function test_extra_whitespace_inside_ns_form_is_tolerated(): void
+    {
+        $source = '(ns    my-app\\core )';
+        self::assertSame('my-app\\core', $this->resolver->resolveFromSource($source));
+    }
+
+    public function test_quoted_namespace_in_in_ns_is_handled(): void
+    {
+        self::assertSame('app\\core', $this->resolver->resolveFromSource("(in-ns 'app\\core)"));
+    }
+
+    public function test_form_that_is_not_ns_returns_null(): void
+    {
+        self::assertNull($this->resolver->resolveFromSource('(def x 1)'));
+    }
+
+    public function test_leading_blank_file_returns_null_for_file(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'watch-ns-');
+        self::assertNotFalse($path);
+
+        try {
+            file_put_contents($path, '');
+            self::assertNull($this->resolver->resolveFromFile($path));
+        } finally {
+            @unlink($path);
+        }
+    }
 }

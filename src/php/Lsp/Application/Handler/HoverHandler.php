@@ -8,7 +8,6 @@ use Phel\Api\ApiFacade;
 use Phel\Api\Transfer\Definition;
 use Phel\Api\Transfer\PhelFunction;
 use Phel\Api\Transfer\ProjectIndex;
-use Phel\Lsp\Application\Document\Document;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\HandlerInterface;
@@ -43,23 +42,12 @@ final readonly class HoverHandler implements HandlerInterface
      */
     public function handle(array $params, Session $session): mixed
     {
-        $uri = $this->params->uri($params);
-        $position = $this->params->position($params);
-        if ($uri === '' || $position === null) {
+        $context = CursorContext::resolve($params, $session, $this->params, requireIndex: false);
+        if (!$context instanceof CursorContext) {
             return null;
         }
 
-        $document = $session->documents()->get($uri);
-        if (!$document instanceof Document) {
-            return null;
-        }
-
-        $word = $document->wordAt($position);
-        if ($word === '') {
-            return null;
-        }
-
-        $markdown = $this->markdownFor($word, $session->projectIndex());
+        $markdown = $this->markdownFor($context->word, $session->projectIndex());
         if ($markdown === null) {
             return null;
         }

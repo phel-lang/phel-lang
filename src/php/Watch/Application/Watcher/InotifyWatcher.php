@@ -7,51 +7,36 @@ namespace Phel\Watch\Application\Watcher;
 use Phel\Watch\Application\SystemClock;
 use Phel\Watch\Domain\ClockInterface;
 use Phel\Watch\Domain\FileSystemScannerInterface;
-use Phel\Watch\Domain\FileWatcherInterface;
 use Phel\Watch\Transfer\WatchEvent;
 
 use function count;
 use function escapeshellarg;
+use function explode;
 use function extension_loaded;
-use function fgets;
 use function implode;
-use function is_resource;
 use function preg_match;
-use function proc_close;
-use function proc_get_status;
-use function proc_open;
-use function proc_terminate;
 use function rtrim;
-use function stream_set_blocking;
-use function trim;
+use function str_contains;
 
 /**
  * Linux-friendly watcher. Shell-outs to the `inotifywait` binary (part of
- * `inotify-tools`) and streams events. The pure-`ext-inotify` path is not
- * implemented here; the shell-out is portable, works across distros, and
- * matches the behaviour of the macOS `fswatch` backend.
+ * `inotify-tools`) and lets {@see AbstractShellWatcher} own the process +
+ * debounce plumbing. The pure-`ext-inotify` path is not implemented here;
+ * the shell-out is portable, works across distros, and matches the
+ * behaviour of the macOS `fswatch` backend.
  */
-final class InotifyWatcher implements FileWatcherInterface
+final class InotifyWatcher extends AbstractShellWatcher
 {
     public const string NAME = 'inotify';
 
-    /** @var resource|null */
-    private mixed $process = null;
-
-    /** @var resource|null */
-    private mixed $stdout = null;
-
-    /** @var array<int, resource> */
-    private array $pipes = [];
-
-    private bool $running = false;
-
     public function __construct(
-        private readonly FileSystemScannerInterface $scanner,
-        private readonly ClockInterface $clock = new SystemClock(),
-        private readonly string $binaryPath = 'inotifywait',
-        private readonly int $debounceMs = 100,
-    ) {}
+        FileSystemScannerInterface $scanner,
+        ClockInterface $clock = new SystemClock(),
+        string $binaryPath = 'inotifywait',
+        int $debounceMs = 100,
+    ) {
+        parent::__construct($scanner, $clock, $binaryPath, $debounceMs);
+    }
 
     public function name(): string
     {
@@ -69,71 +54,13 @@ final class InotifyWatcher implements FileWatcherInterface
             return true;
         }
 
-        $handle = @popen('command -v ' . escapeshellarg($binary) . ' 2>/dev/null', 'r');
-        if (!is_resource($handle)) {
-            return false;
-        }
-
-        $out = (string) fgets($handle);
-        pclose($handle);
-
-        return trim($out) !== '';
-    }
-
-    public function watch(array $paths, callable $onChange): void
-    {
-        $this->running = true;
-        $cmd = $this->buildCommand($paths);
-
-        $descriptors = [
-            0 => ['pipe', 'r'],
-            1 => ['pipe', 'r'],
-            2 => ['pipe', 'r'],
-        ];
-
-        $process = @proc_open($cmd, $descriptors, $this->pipes);
-        if (!is_resource($process)) {
-            return;
-        }
-
-        $this->process = $process;
-        $this->stdout = $this->pipes[1];
-        stream_set_blocking($this->stdout, false);
-
-        $this->scanner->snapshot($paths);
-
-        $debouncer = new EventDebouncer($this->clock, $this->debounceMs);
-
-        /** @psalm-suppress RedundantCondition */
-        while ($this->running && $this->isAlive()) {
-            $line = @fgets($this->stdout);
-            if ($line !== false) {
-                $event = $this->parseLine($line);
-                if ($event instanceof WatchEvent) {
-                    $debouncer->record($event);
-                }
-            }
-
-            if ($debouncer->hasPending()) {
-                $debouncer->flushIfReady($onChange);
-            } else {
-                $this->clock->sleepMs(50);
-            }
-        }
-
-        $this->close();
-    }
-
-    public function stop(): void
-    {
-        $this->running = false;
-        $this->close();
+        return self::binaryIsOnPath($binary);
     }
 
     /**
      * @param list<string> $paths
      */
-    private function buildCommand(array $paths): string
+    protected function buildCommand(array $paths): string
     {
         $args = [];
         foreach ($paths as $path) {
@@ -148,7 +75,7 @@ final class InotifyWatcher implements FileWatcherInterface
             . implode(' ', $args);
     }
 
-    private function parseLine(string $line): ?WatchEvent
+    protected function parseLine(string $line): ?WatchEvent
     {
         $line = rtrim($line);
         if ($line === '') {
@@ -174,38 +101,5 @@ final class InotifyWatcher implements FileWatcherInterface
         }
 
         return new WatchEvent($path, $kind);
-    }
-
-    /**
-     * @phpstan-impure
-     */
-    private function isAlive(): bool
-    {
-        if (!is_resource($this->process)) {
-            return false;
-        }
-
-        $status = @proc_get_status($this->process);
-        return $status['running'];
-    }
-
-    private function close(): void
-    {
-        foreach ($this->pipes as $pipe) {
-            /** @psalm-suppress RedundantConditionGivenDocblockType */
-            if (is_resource($pipe)) {
-                @fclose($pipe);
-            }
-        }
-
-        $this->pipes = [];
-        $this->stdout = null;
-
-        if (is_resource($this->process)) {
-            @proc_terminate($this->process);
-            @proc_close($this->process);
-        }
-
-        $this->process = null;
     }
 }

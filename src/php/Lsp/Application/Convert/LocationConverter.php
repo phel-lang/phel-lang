@@ -28,7 +28,7 @@ final readonly class LocationConverter
     public function fromLocation(Location $location): array
     {
         return [
-            'uri' => $this->toClientUri($location->uri),
+            'uri' => $this->uris->toClientUri($location->uri),
             'range' => $this->positions->toLspRange(
                 $location->line,
                 $location->col,
@@ -50,7 +50,7 @@ final readonly class LocationConverter
         $endCol = $definition->col + max(1, $nameLen);
 
         return [
-            'uri' => $this->toClientUri($definition->uri),
+            'uri' => $this->uris->toClientUri($definition->uri),
             'range' => $this->positions->toLspRange(
                 $definition->line,
                 $definition->col,
@@ -58,14 +58,5 @@ final readonly class LocationConverter
                 $endCol,
             ),
         ];
-    }
-
-    private function toClientUri(string $uri): string
-    {
-        if ($uri === '') {
-            return $uri;
-        }
-
-        return $this->uris->isFileUri($uri) ? $uri : $this->uris->fromFilePath($uri);
     }
 }

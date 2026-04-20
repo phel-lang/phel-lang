@@ -5,9 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lsp\Application\Handler;
 
 use Phel\Api\ApiFacade;
-use Phel\Api\Transfer\ProjectIndex;
 use Phel\Lsp\Application\Convert\LocationConverter;
-use Phel\Lsp\Application\Document\Document;
 use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\HandlerInterface;
@@ -36,29 +34,13 @@ final readonly class ReferencesHandler implements HandlerInterface
      */
     public function handle(array $params, Session $session): mixed
     {
-        $index = $session->projectIndex();
-        if (!$index instanceof ProjectIndex) {
+        $context = CursorContext::resolve($params, $session, $this->params);
+        if (!$context instanceof CursorContext) {
             return [];
         }
 
-        $uri = $this->params->uri($params);
-        $position = $this->params->position($params);
-        if ($uri === '' || $position === null) {
-            return [];
-        }
-
-        $document = $session->documents()->get($uri);
-        if (!$document instanceof Document) {
-            return [];
-        }
-
-        $word = $document->wordAt($position);
-        if ($word === '') {
-            return [];
-        }
-
-        [$namespace, $name] = $this->symbols->split($word, $index);
-        $references = $this->apiFacade->findReferences($index, $namespace, $name);
+        [$namespace, $name] = $this->symbols->split($context->word, $context->index);
+        $references = $this->apiFacade->findReferences($context->index, $namespace, $name);
 
         $result = [];
         foreach ($references as $location) {
