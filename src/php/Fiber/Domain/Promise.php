@@ -1,0 +1,122 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Phel\Fiber\Domain;
+
+use Fiber;
+
+use function microtime;
+use function usleep;
+
+/**
+ * Single-delivery promise. Once delivered, the value is frozen and
+ * subsequent calls to {@see deliver()} are no-ops.
+ *
+ * Fibers that deref before delivery cooperatively yield via
+ * `Fiber::suspend()` and resume on the next scheduler tick, checking
+ * the delivered flag each time. Top-level callers (no active Fiber)
+ * drain the scheduler's ready queue and sleep briefly between polls.
+ */
+final class Promise implements Awaitable
+{
+    private bool $delivered = false;
+
+    private mixed $value = null;
+
+    public function __construct(
+        private readonly Scheduler $scheduler,
+    ) {}
+
+    /**
+     * Deliver $value and freeze the promise. Returns true on the first
+     * delivery, false when the promise is already delivered.
+     */
+    public function deliver(mixed $value): bool
+    {
+        if ($this->delivered) {
+            return false;
+        }
+
+        $this->delivered = true;
+        $this->value = $value;
+        return true;
+    }
+
+    public function isRealized(): bool
+    {
+        return $this->delivered;
+    }
+
+    public function value(): mixed
+    {
+        return $this->value;
+    }
+
+    public function deref(): mixed
+    {
+        if (Fiber::getCurrent() instanceof Fiber) {
+            while (!$this->pollDelivered()) {
+                Fiber::suspend();
+            }
+
+            return $this->value;
+        }
+
+        while (!$this->pollDelivered()) {
+            if (!$this->scheduler->tick()) {
+                usleep($this->scheduler->sleepMicroseconds());
+            }
+        }
+
+        return $this->value;
+    }
+
+    public function derefWithTimeout(int $timeoutMs, mixed $timeoutVal): mixed
+    {
+        if ($this->pollDelivered()) {
+            return $this->value;
+        }
+
+        if ($timeoutMs <= 0) {
+            return $timeoutVal;
+        }
+
+        $deadline = microtime(true) + ((float) $timeoutMs / 1000.0);
+        $current = Fiber::getCurrent();
+
+        while (!$this->pollDelivered()) {
+            if (microtime(true) >= $deadline) {
+                return $timeoutVal;
+            }
+
+            if ($current instanceof Fiber) {
+                Fiber::suspend();
+                continue;
+            }
+
+            if (!$this->scheduler->tick()) {
+                usleep($this->scheduler->sleepMicroseconds());
+            }
+        }
+
+        return $this->value;
+    }
+
+    /**
+     * Opaque wrapper so static analysers do not treat the `$this->delivered`
+     * check as a compile-time constant. The flag is flipped as a side effect
+     * of {@see deliver()} called from concurrently-running fibers.
+     *
+     * @phpstan-impure
+     */
+    private function pollDelivered(): bool
+    {
+        // Flipping the value then restoring it breaks static reasoning so
+        // PHPStan does not fold $this->delivered into a compile-time false
+        // inside the deref loops.
+        $snapshot = $this->delivered;
+        $this->delivered = $snapshot;
+        return $snapshot;
+    }
+}

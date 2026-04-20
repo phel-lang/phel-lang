@@ -1,0 +1,77 @@
+(ns phel-test\test\async-fiber
+  (:require phel\test :refer [deftest is])
+  (:require phel\async :refer [promise deliver future-call future-fiber future? future-cancel future-done?]))
+
+;; --- promise / deliver ---
+
+(deftest test-promise-is-unrealized-initially
+  (is (= false (realized? (promise))) "a fresh promise is not realized"))
+
+(deftest test-deliver-resolves-promise
+  (let [p (promise)]
+    (deliver p 42)
+    (is (= true (realized? p)) "promise is realized after deliver")
+    (is (= 42 @p) "deref returns the delivered value")))
+
+(deftest test-deliver-is-idempotent
+  (let [p (promise)]
+    (deliver p :first)
+    (deliver p :second)
+    (is (= :first @p) "second deliver is a no-op")))
+
+(deftest test-deliver-returns-promise-on-first-delivery
+  (let [p (promise)
+        r (deliver p 7)]
+    (is (= p r) "deliver returns the promise on first delivery")
+    (is (nil? (deliver p 8)) "deliver returns nil when already delivered")))
+
+(deftest test-deref-with-timeout-returns-fallback
+  (let [p (promise)
+        result (deref p 5 :timeout)]
+    (is (= :timeout result) "deref with timeout returns fallback when unrealized")))
+
+(deftest test-deref-with-zero-timeout
+  (let [p (promise)
+        result (deref p 0 :fallback)]
+    (is (= :fallback result) "deref with zero timeout returns fallback immediately")))
+
+(deftest test-deref-with-timeout-returns-value-after-deliver
+  (let [p (promise)]
+    (deliver p 99)
+    (is (= 99 (deref p 10 :fallback)) "deref with timeout returns the delivered value")))
+
+;; --- future-call / future-fiber ---
+
+(deftest test-future-call-returns-fiber-future
+  (let [f (future-call (fn [] 42))]
+    (is (= true (future? f)) "future-call returns a recognisable future")
+    (is (= 42 @f) "deref returns the computed value")))
+
+(deftest test-future-fiber-macro
+  (let [f (future-fiber (+ 1 2 3))]
+    (is (= 6 @f) "future-fiber macro runs body and delivers the result")))
+
+(deftest test-future-fiber-done-after-deref
+  (let [f (future-fiber 42)]
+    @f
+    (is (= true (future-done? f)) "future is done after deref")
+    (is (= true (realized? f)) "future is realized after deref")))
+
+(deftest test-future-fiber-propagates-exceptions
+  (let [f (future-fiber (throw (php/new \RuntimeException "boom")))]
+    (is (thrown? \RuntimeException @f)
+        "deref on a failed fiber-future rethrows")))
+
+(deftest test-future-fiber-cancel
+  (let [f (future-fiber 1)]
+    (future-cancel f)
+    (is (= true (future-done? f)) "cancelled future reports done")))
+
+(deftest test-future?-negative
+  (is (= false (future? 42)) "non-futures are not futures")
+  (is (= false (future? (promise))) "promises are not futures"))
+
+(deftest test-deref-promise-with-reader-syntax
+  (let [p (promise)]
+    (deliver p :via-reader)
+    (is (= :via-reader @p) "@ reader shortcut derefs a promise")))

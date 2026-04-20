@@ -956,7 +956,7 @@
     nil))
 
 (defn realized?
-  "Returns true if a lazy sequence, delay, or future has been realized, false otherwise."
+  "Returns true if a lazy sequence, delay, promise, or future has been realized, false otherwise."
   {:example "(realized? (take 5 (iterate inc 1))) ; => false"
    :see-also ["delay" "force" "lazy-seq" "future"]}
   [coll]
@@ -964,6 +964,8 @@
     (seq? coll) (php/-> coll (isRealized))
     (php/instanceof coll Delay) (php/-> coll (isRealized))
     (php/instanceof coll \Phel\Lang\PhelFuture) (php/-> coll (isRealized))
+    (php/instanceof coll \Phel\Fiber\Domain\Future) (php/-> coll (isRealized))
+    (php/instanceof coll \Phel\Fiber\Domain\Promise) (php/-> coll (isRealized))
     true))
 
 (defn group-by
