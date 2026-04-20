@@ -15,13 +15,13 @@ use Symfony\Component\Console\Output\OutputInterface;
 final class FormatterFacade extends AbstractFacade implements FormatterFacadeInterface
 {
     /**
-     * @return list<string> successful formatted file paths
+     * @return list<string> paths whose contents changed (or would change under $dryRun)
      */
-    public function format(array $paths, OutputInterface $output): array
+    public function format(array $paths, OutputInterface $output, bool $dryRun = false): array
     {
         return $this->getFactory()
             ->createPathsFormatter()
-            ->format($paths, $output);
+            ->format($paths, $output, $dryRun);
     }
 
     /**

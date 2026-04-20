@@ -11,7 +11,7 @@ Code formatting for Phel source files: parses code into AST, applies formatting 
 
 ## Public API (Facade)
 
-- `format(array $paths, OutputInterface $output): array` — format files, returns list of successfully formatted paths
+- `format(array $paths, OutputInterface $output, bool $dryRun = false): array` — format files, returns list of paths whose contents changed (or would change under `$dryRun`). When `$dryRun`, files are left untouched.
 
 ## Formatting Rules (applied in order)
 

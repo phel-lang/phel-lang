@@ -8,5 +8,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 interface FormatterFacadeInterface
 {
-    public function format(array $paths, OutputInterface $output): array;
+    /**
+     * @return list<string> paths whose contents changed (or would change under $dryRun)
+     */
+    public function format(array $paths, OutputInterface $output, bool $dryRun = false): array;
 }

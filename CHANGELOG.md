@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+#### CLI
+- `phel format --dry-run` reports files that would be reformatted without touching them; exits non-zero when any file would change
+
+### Fixed
+
+#### Build
+- PHAR now ships first-party `src/**/Test/` directories; `phel test` from the distributed PHAR no longer fails with `Class "Phel\Run\Domain\Test\TestCommandOptions" not found`
+
 ## [0.34.0](https://github.com/phel-lang/phel-lang/compare/v0.33.0...v0.34.0) - 2026-04-20
 
 ### Added

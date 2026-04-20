@@ -25,15 +25,15 @@ final readonly class PathsFormatter
     ) {}
 
     /**
-     * @return list<string> successful formatted file paths
+     * @return list<string> paths whose contents changed (or would change under $dryRun)
      */
-    public function format(array $paths, OutputInterface $output): array
+    public function format(array $paths, OutputInterface $output, bool $dryRun = false): array
     {
         $formattedFilePaths = [];
 
         foreach ($this->pathFilter->filterPaths($paths) as $path) {
             try {
-                $wasFormatted = $this->formatFile($path);
+                $wasFormatted = $this->formatFile($path, $dryRun);
                 if ($wasFormatted) {
                     $formattedFilePaths[] = $path;
                 }
@@ -53,16 +53,21 @@ final readonly class PathsFormatter
      * @throws ZipperException
      * @throws AbstractParserException
      *
-     * @return bool True if the file was formatted. False if the file wasn't altered because it was already formatted.
+     * @return bool True when the file's contents differ from the formatted output.
+     *              Under $dryRun the file is left untouched.
      */
-    private function formatFile(string $filename): bool
+    private function formatFile(string $filename, bool $dryRun): bool
     {
         $this->fileIo->checkIfValid($filename);
 
         $code = $this->fileIo->getContents($filename);
         $formattedCode = $this->formatter->format($code, $filename);
-        $this->fileIo->putContents($filename, $formattedCode);
+        $changed = (bool) strcmp($formattedCode, $code);
 
-        return (bool) strcmp($formattedCode, $code);
+        if ($changed && !$dryRun) {
+            $this->fileIo->putContents($filename, $formattedCode);
+        }
+
+        return $changed;
     }
 }

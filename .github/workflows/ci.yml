@@ -297,6 +297,48 @@ jobs:
           echo "$result"
           echo "$result" | grep -q '10'
 
+      - name: Happy-path smoke for major PHAR commands
+        run: |
+          PHAR=$GITHUB_WORKSPACE/build/out/phel.phar
+          WORK=$(mktemp -d)
+          cd "$WORK"
+
+          echo "::group::phel init (flat layout)"
+          "$PHAR" init --no-interaction
+          test -f phel-config.php
+          test -d src
+          test -d tests
+          echo "::endgroup::"
+
+          echo "::group::phel doctor"
+          "$PHAR" doctor
+          echo "::endgroup::"
+
+          echo "::group::phel test (scaffolded tests must pass)"
+          "$PHAR" test
+          echo "::endgroup::"
+
+          echo "::group::phel build"
+          "$PHAR" build
+          echo "::endgroup::"
+
+          echo "::group::phel lint"
+          "$PHAR" lint src/
+          echo "::endgroup::"
+
+          echo "::group::phel format --dry-run (scaffolded project is already formatted)"
+          "$PHAR" format --dry-run src/
+          echo "::endgroup::"
+
+          echo "::group::phel eval - (stdin)"
+          result=$(echo '(println (+ 1 2 3))' | "$PHAR" eval -)
+          echo "$result" | grep -q '6'
+          echo "::endgroup::"
+
+          echo "::group::phel analyze (JSON diagnostics)"
+          "$PHAR" analyze src/main.phel > /tmp/analyze.json
+          echo "::endgroup::"
+
   bash-tests:
     name: Bash tests
     runs-on: ubuntu-latest
