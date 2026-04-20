@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+#### Build
+- PHAR now ships first-party `src/**/Test/` directories; `phel test` from the distributed PHAR no longer fails with `Class "Phel\Run\Domain\Test\TestCommandOptions" not found`
+
 ## [0.34.0](https://github.com/phel-lang/phel-lang/compare/v0.33.0...v0.34.0) - 2026-04-20
 
 ### Added

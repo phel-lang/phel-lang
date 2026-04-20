@@ -434,10 +434,11 @@ final class PharBuilder
                     return true;
                 }
 
-                // `src/phel/test/` is a stdlib source tree (phel\test\gen,
-                // phel\test\selector). Keep it despite the generic 'test' exclude.
+                // Directories under /src/ are first-party source trees and must
+                // never be filtered out by generic excludes like 'test'/'Test'.
+                // Examples: src/phel/test/ (stdlib), src/php/Run/Domain/Test/ (PHP classes).
                 $relative = str_replace('\\', '/', substr($current->getPathname(), $rootLen));
-                if ($basename === 'test' && str_starts_with($relative, '/src/phel/')) {
+                if (str_starts_with($relative, '/src/')) {
                     return true;
                 }
 
