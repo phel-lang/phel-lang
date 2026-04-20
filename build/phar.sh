@@ -158,6 +158,13 @@ fi
 # ============================================================================
 export OFFICIAL_RELEASE SCRIPT_DIR
 
+# Stdlib compile cache: hash src/phel/ contents, reuse prior 'phel build'
+# output when the hash matches. Cache lives outside workdir so it survives
+# the workdir cleanup between runs. Override with STDLIB_CACHE_DIR.
+STDLIB_CACHE_DIR="${STDLIB_CACHE_DIR:-$CACHE_DIR/stdlib}"
+mkdir -p "$STDLIB_CACHE_DIR"
+export STDLIB_CACHE_DIR
+
 if ! php -d phar.readonly=0 "$BUILD_SCRIPT" "$WORK_DIR"; then
     error "PHAR build failed"
 fi

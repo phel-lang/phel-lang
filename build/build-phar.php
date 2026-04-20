@@ -74,6 +74,8 @@ final class PharBuilder
      */
     private string $versionedDocPattern = '/^(README|CHANGELOG|CHANGES|UPGRADE|HISTORY)(-[\w.]+)?\.(md|rst|txt)$/i';
 
+    private string $stdlibCacheDir;
+
     public function __construct(string $root)
     {
         $this->root = realpath($root) ?: $root;
@@ -81,6 +83,7 @@ final class PharBuilder
         $this->releaseConfigFile = $this->root . '/.phel-release.php';
         $this->stats['start_time'] = microtime(true);
         $this->isOfficialRelease = $this->checkOfficialRelease();
+        $this->stdlibCacheDir = (string) (getenv('STDLIB_CACHE_DIR') ?: '');
     }
 
     public function validate(): void
@@ -162,6 +165,11 @@ final class PharBuilder
             }
         }
 
+        $hash = $this->stdlibSourceHash();
+        if ($this->restoreStdlibFromCache($hash, $cacheDir, $compiledDir)) {
+            return;
+        }
+
         // rsync excludes out/, so phel build has nowhere to write. Create it
         // up front; otherwise build aborts with a file_put_contents warning
         // and only appears to succeed because a previous /tmp/phel/cache run
@@ -219,6 +227,10 @@ final class PharBuilder
                     if (str_starts_with($namespace, 'phel\\')) {
                         // Rewrite compiled_path to be relative to phar cache dir
                         $entry['compiled_path'] = $compiledDir . '/' . basename($entry['compiled_path']);
+                        // Drop wall-clock timestamps so the index is deterministic
+                        if (\array_key_exists('last_accessed', $entry)) {
+                            $entry['last_accessed'] = 0;
+                        }
                         $stdlibEntries[$namespace] = $entry;
                     }
                 }
@@ -231,6 +243,8 @@ final class PharBuilder
         }
 
         echo "📦  Pre-compiled {$copiedCount} stdlib module(s) into cache/compiled/\n";
+
+        $this->persistStdlibCache($hash, $compiledDir, $cacheDir);
     }
 
     /**
@@ -250,6 +264,7 @@ final class PharBuilder
             $this->addFiles($phar);
             $this->setStub($phar);
             $this->compressPhar($phar);
+            $phar->setSignatureAlgorithm(Phar::SHA256);
 
             $phar->stopBuffering();
 
@@ -297,6 +312,91 @@ final class PharBuilder
     public function isSuccessful(): bool
     {
         return file_exists($this->pharFile) && is_executable($this->pharFile);
+    }
+
+    private function stdlibSourceHash(): string
+    {
+        $sourceDir = $this->root . '/src/phel';
+        if (!is_dir($sourceDir)) {
+            return '';
+        }
+
+        $iter = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($sourceDir, FilesystemIterator::SKIP_DOTS),
+        );
+
+        $files = [];
+        foreach ($iter as $f) {
+            if ($f->isFile() && str_ends_with($f->getFilename(), '.phel')) {
+                $files[] = $f->getPathname();
+            }
+        }
+
+        sort($files);
+
+        $ctx = hash_init('sha256');
+        foreach ($files as $path) {
+            hash_update($ctx, substr($path, \strlen($sourceDir)));
+            hash_update_file($ctx, $path);
+        }
+
+        return hash_final($ctx);
+    }
+
+    private function restoreStdlibFromCache(string $hash, string $cacheDir, string $compiledDir): bool
+    {
+        if ($this->stdlibCacheDir === '' || $hash === '') {
+            return false;
+        }
+
+        $bucket = $this->stdlibCacheDir . '/' . $hash;
+        if (!is_dir($bucket . '/compiled') || !is_file($bucket . '/compiled-index.php')) {
+            return false;
+        }
+
+        if (!is_dir($compiledDir) && !mkdir($compiledDir, 0o755, true) && !is_dir($compiledDir)) {
+            return false;
+        }
+
+        $cached = glob($bucket . '/compiled/*');
+        if ($cached === false) {
+            return false;
+        }
+
+        $count = 0;
+        foreach ($cached as $file) {
+            if (copy($file, $compiledDir . '/' . basename($file))) {
+                ++$count;
+            }
+        }
+
+        copy($bucket . '/compiled-index.php', $cacheDir . '/compiled-index.php');
+
+        echo "📦  Reused {$count} cached stdlib module(s) for hash " . substr($hash, 0, 12) . "\n";
+        return true;
+    }
+
+    private function persistStdlibCache(string $hash, string $compiledDir, string $cacheDir): void
+    {
+        if ($this->stdlibCacheDir === '' || $hash === '') {
+            return;
+        }
+
+        $bucket = $this->stdlibCacheDir . '/' . $hash;
+        $bucketCompiled = $bucket . '/compiled';
+        if (!is_dir($bucketCompiled) && !mkdir($bucketCompiled, 0o755, true) && !is_dir($bucketCompiled)) {
+            return;
+        }
+
+        $files = glob($compiledDir . '/*') ?: [];
+        foreach ($files as $file) {
+            @copy($file, $bucketCompiled . '/' . basename($file));
+        }
+
+        $indexFile = $cacheDir . '/compiled-index.php';
+        if (is_file($indexFile)) {
+            @copy($indexFile, $bucket . '/compiled-index.php');
+        }
     }
 
     /**
