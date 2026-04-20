@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 #### Reader & Compiler
+- `#inst "..."` reads as `\DateTimeImmutable` and `#regex "..."` reads as a delimited PCRE string; user tags via `(register-tag "name" f)` in the new `phel\reader` namespace; `data-readers.phel` at any source root is auto-loaded
 - `#php` reader literal: `#php [1 2 3]` expands to `(php-indexed-array 1 2 3)`; `#php {"a" 1}` to `(php-associative-array "a" 1)` (non-recursive)
 - PHP interop shorthands: `(.method obj args)`, `(.-field obj)`, `(ClassName/method args)`, `\Ns\Class/MEMBER`, `(new ClassName args)`
 - `def` returns a printable var ref (e.g. `#'user/my-var`)

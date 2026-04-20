@@ -27,6 +27,12 @@ final readonly class NamespaceRunner implements NamespaceRunnerInterface
         // (or any of its dependencies) can find their sibling files.
         LoadClasspath::publish($srcDirectories);
 
+        // `data-readers.phel` must be evaluated before the user namespace
+        // so its `(register-tag ...)` calls are visible to the reader when
+        // the user source is compiled.
+        $dataReadersLoader = new DataReadersLoader($this->buildFacade);
+        $dataReadersLoader->load($srcDirectories);
+
         $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
             $srcDirectories,
             [$namespace, 'phel\\core'],
