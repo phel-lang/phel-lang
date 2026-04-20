@@ -82,9 +82,11 @@ Check `~`, `` ` ``, auto-gensym `name#`.
 
 ## Tools
 
-- `(doc sym)`, `(resolve 'sym)`, `(macroexpand-1 ...)`
+- `(doc sym)`, `(resolve 'sym)`, `(macroexpand-1 ...)`, `(macroexpand ...)`
+- `(require 'phel\pprint :refer [pprint])`, `(pprint x)`
 - `./vendor/bin/phel run --debug <file>`
-- `./vendor/bin/phel cache:clear`
+- `./vendor/bin/phel cache:clear` (stale cache after core/macro edits)
+- `./vendor/bin/phel doc <fn>` (no REPL needed)
 
 ## Gotchas
 

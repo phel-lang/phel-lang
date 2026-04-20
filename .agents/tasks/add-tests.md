@@ -81,13 +81,18 @@ Compose outer-to-inner. Keyed by `*ns*`.
 ## Mocking
 
 ```phel
-(:require phel\mock :refer [with-mocks mock called-with?])
+(:require phel\mock :refer [with-mocks mock mock-fn mock-returning mock-throwing spy
+                            called? called-with? called-once? never-called?
+                            call-count calls reset-mock!])
 
 (deftest hits-endpoint
   (with-mocks [http-get (mock {:id 1})]
     (fetch-user 123)
-    (is (called-with? http-get "/users/123"))))
+    (is (called-with? http-get "/users/123"))
+    (is (called-once? http-get))))
 ```
+
+Helpers: `mock` (fixed return), `mock-fn` (custom behavior), `mock-returning` (sequence), `mock-throwing` (error), `spy` (wrap real fn).
 
 Full: `docs/mocking-guide.md`.
 

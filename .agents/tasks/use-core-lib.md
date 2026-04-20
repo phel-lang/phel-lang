@@ -97,7 +97,29 @@ Core: `(str a b c)`, `(name :k)`, `(keyword "x")`, `(symbol "x")`.
 - `phel\json`: `(json/encode m)`, `(json/decode s)`
 - `phel\pprint`: `(pprint x)`
 - `phel\walk`: `(postwalk f m)`, `(prewalk f m)`
+- `phel\base64`: `(encode s)`, `(decode s)`, `(encode-url s)`, `(decode-url s)`
 - File: `(php/file_get_contents p)`, `(php/file_put_contents p s)`
+
+## Bundled modules
+
+| Module | Purpose |
+|--------|---------|
+| `phel\core` | collections, threading, state, predicates |
+| `phel\string` (`:as str`) | string ops |
+| `phel\json` | encode / decode |
+| `phel\pprint` | pretty-print |
+| `phel\walk` | tree traversal |
+| `phel\base64` | base64 encode/decode (URL-safe variants) |
+| `phel\http` | request/response structs, `request-from-globals`, `emit-response` |
+| `phel\router` | nested routes, middleware, URL gen, `compiled-router` |
+| `phel\http-client` | outbound HTTP: `get`, `post`, `put`, `patch`, `delete`, `head` |
+| `phel\cli` | Symfony-console wrapper — see `tasks/cli-tool.md` |
+| `phel\html` | HTML templating |
+| `phel\test` | `deftest`, `is`, `are`, `testing`, fixtures |
+| `phel\mock` | `with-mocks`, `mock`, `spy`, `called-with?` |
+| `phel\async` | `future`, `async`, `await`, `delay` (AMPHP-backed fibers) |
+| `phel\ai` | LLM client (`complete`, `chat`, `configure`) |
+| `phel\repl` | REPL utilities |
 
 ## When to use what
 
@@ -120,4 +142,4 @@ git grep 'defn <fn>' src/phel/core
 
 ## Next
 
-`docs/patterns.md`, `docs/data-structures-guide.md`, `docs/lazy-sequences.md`, `docs/transducers.md`
+`docs/patterns.md`, `docs/data-structures-guide.md`, `docs/lazy-sequences.md`, `docs/transducers.md`, `docs/cli-guide.md`, `tasks/http-app.md`, `tasks/cli-tool.md`

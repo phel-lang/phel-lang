@@ -1,6 +1,8 @@
 # HTTP app
 
-Bundled `phel\router` + `phel\http` + `phel\json`. Runnable: `.agents/examples/todo-app/`.
+Bundled modules: `phel\http` (req/res structs), `phel\router` (nested routes, middleware, URL gen), `phel\json`. Outbound HTTP: `phel\http-client`.
+
+Runnable: `.agents/examples/todo-app/`.
 
 ## Handlers
 
@@ -13,9 +15,9 @@ Bundled `phel\router` + `phel\http` + `phel\json`. Runnable: `.agents/examples/t
 
 (defn- json-response [status data]
   (h/response-from-map
-    {:status status
+    {:status  status
      :headers {:content-type "application/json"}
-     :body (json/encode data)}))
+     :body    (json/encode data)}))
 
 (defn home   [_req] (h/response-from-map {:status 200 :body "<h1>Phel</h1>"}))
 (defn health [_req] (json-response 200 {:status "ok" :ts (php/time)}))
@@ -37,12 +39,18 @@ Bundled `phel\router` + `phel\http` + `phel\json`. Runnable: `.agents/examples/t
   (r/router
     [["/"             {:get {:handler h/home}}]
      ["/health"       {:get {:handler h/health}}]
-     ["/greet/{name}" {:get {:handler h/greet}}]]))
+     ["/greet/{name}" {:name :greet :get {:handler h/greet}}]]))
 
 (def app-handler (r/handler app-router))
 ```
 
-Data keys: `:handler` (any-method), `:get`/`:post`/... (per-method `{:handler :middleware}`), `:middleware`, `:name`.
+Data keys per route:
+- `:handler` — method-agnostic `(fn [req] resp)`
+- `:get` / `:post` / `:put` / `:patch` / `:delete` / `:head` / `:options` — per-method `{:handler :middleware}`
+- `:middleware` — vec of `(fn [handler req])` applied at this level
+- `:name` — keyword, enables URL generation
+
+Nested children inherit path prefix and deep-merged data.
 
 ## Entry
 
@@ -79,11 +87,14 @@ php -S localhost:8000 -t public
 
 (def app-handler
   (r/handler app-router
-    {:middleware [log-mw]
-     :not-found  (fn [_] (h/response-from-map {:status 404 :body "nope"}))}))
+    {:middleware         [log-mw]
+     :not-found          (fn [_] (h/response-from-map {:status 404 :body "nope"}))
+     :method-not-allowed (fn [_] (h/response-from-map {:status 405 :body "no"}))
+     :not-acceptable     (fn [_] (h/response-from-map {:status 406 :body "no"}))
+     :default-handler    (fn [_] (h/response-from-map {:status 404}))}))
 ```
 
-Route-level in data: `{:middleware [auth-mw] :get {:handler ...}}`. Method-level inside the method map.
+Route-level: `{:middleware [auth-mw] :get {:handler ...}}`. Method-level goes inside the method map.
 
 ## Responses
 
@@ -95,9 +106,16 @@ Route-level in data: `{:middleware [auth-mw] :get {:handler ...}}`. Method-level
 ## URL generation
 
 ```phel
-(def tree [["/users/{id}" {:name :user-show :get {:handler show}}]])
-(r/generate app-router :user-show {:id 42})   ; => "/users/42"
+(:require phel\router :as r :refer [generate match-by-name])
+
+(def app-router
+  (r/router [["/users/{id}" {:name :user-show :get {:handler show}}]]))
+
+(generate app-router :user-show {:id 42})   ; => "/users/42"
+(match-by-name app-router :user-show)       ; => match struct
 ```
+
+`generate`, `match-by-name`, `match-by-path` are `Router` interface methods — call directly on the router.
 
 ## Compiled router (prod)
 
@@ -105,7 +123,21 @@ Route-level in data: `{:middleware [auth-mw] :get {:handler ...}}`. Method-level
 (def app-router (r/compiled-router [["/ping" {:get {:handler pong}}]]))
 ```
 
-Routes must be literal at call site. ~3x faster.
+Macro — routes must be literal at call site. ~3x faster matching + URL gen.
+
+## Outbound HTTP
+
+```phel
+(:require phel\http-client :as hc)
+
+(hc/get  "https://api.example.com/users/42")
+(hc/post "https://api.example.com/users"
+         {:json    {:name "Alice"}
+          :headers {:authorization (str "Bearer " token)}
+          :timeout 10.0})
+```
+
+Returns `h/response` struct. Opts: `:headers` `:body` `:json` `:query-params` `:timeout` `:follow-redirects` `:verify-ssl`.
 
 ## Tests
 
@@ -126,7 +158,7 @@ Routes must be literal at call site. ~3x faster.
     (is (= "Hello, Alice!" (get (json/decode (get resp :body)) :message)))))
 ```
 
-POST body tests: pass `:parsed-body` map. Production adds JSON-decode middleware.
+POST body: pass `:parsed-body` in the map. Production decodes JSON in middleware.
 
 ## Production
 
@@ -138,11 +170,13 @@ Swap `\Phel::run(...)` for `require` of compiled boot file.
 
 ## Gotchas
 
-- Handlers return structs, not PHP objects.
-- Path params at `[:attributes :match :path-params :<name>]`.
+- Handlers return `response` structs via `response-from-map`/`response-from-string`, not raw maps.
+- Path params at `[:attributes :match :path-params :<name>]`; route data at `[:attributes :route-data]`.
 - `*build-mode*` guard in `entry.phel` is mandatory.
-- `compiled-router` needs literal routes.
+- `compiled-router` needs literal routes (macro expansion).
+- Nil response from a matched handler triggers `:not-acceptable` (HTTP 406).
+- `:default-handler` is a fallback for any 404/405/406 not covered by a specific override.
 
 ## Next
 
-`src/phel/router.phel`, `src/phel/http.phel`, `tasks/use-php-libs.md`, `docs/framework-integration.md`
+`src/phel/router.phel`, `src/phel/http.phel`, `src/phel/http-client.phel`, `tasks/use-php-libs.md`, `docs/framework-integration.md`

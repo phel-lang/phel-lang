@@ -30,6 +30,15 @@ Verify:
 
 Namespaces need ≥ 2 segments (`my-app\main`, not `main`).
 
+## Shell completion (install skill adapters)
+
+```bash
+./vendor/bin/phel agent-install claude   # Claude / Claude Code
+./vendor/bin/phel agent-install --all    # every supported platform
+```
+
+Installs `.agents/` rules + task recipes + examples into your project so the assistant has Phel context.
+
 ## Next
 
-`tasks/http-app.md`, `tasks/cli-tool.md`, `tasks/add-tests.md`
+`tasks/http-app.md`, `tasks/cli-tool.md`, `tasks/add-tests.md`, `tasks/use-core-lib.md`
