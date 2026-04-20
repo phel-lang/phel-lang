@@ -32,9 +32,8 @@ final readonly class CompletionsOp implements OpHandlerInterface
             ];
         }
 
-        return [OpResponse::build(
-            $request->id,
-            $request->session,
+        return [OpResponse::forRequest(
+            $request,
             ['completions' => $completions],
             [OpStatus::DONE],
         )];

@@ -32,9 +32,8 @@ final readonly class DescribeOp implements OpHandlerInterface
             $ops[$op] = [];
         }
 
-        return [OpResponse::build(
-            $request->id,
-            $request->session,
+        return [OpResponse::forRequest(
+            $request,
             [
                 'ops' => $ops,
                 'versions' => [

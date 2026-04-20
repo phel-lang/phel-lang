@@ -40,44 +40,35 @@ final readonly class EvalResultResponder
         $responses = [];
 
         if ($result->output !== '') {
-            $responses[] = OpResponse::build(
-                $request->id,
-                $request->session,
-                ['out' => $result->output],
-            );
+            $responses[] = OpResponse::forRequest($request, ['out' => $result->output]);
         }
 
         if ($result->success) {
             $session = $this->sessionFor($request);
             $session?->recordValue($result->value);
 
-            $responses[] = OpResponse::build(
-                $request->id,
-                $request->session,
-                [
-                    'ns' => $session instanceof Session ? $session->namespace() : 'user',
-                    'value' => $this->printer->print($result->value),
-                ],
-            );
+            $responses[] = OpResponse::forRequest($request, [
+                'ns' => $session instanceof Session ? $session->namespace() : 'user',
+                'value' => $this->printer->print($result->value),
+            ]);
 
-            $responses[] = $this->doneFrame($request);
+            $responses[] = OpResponse::done($request);
 
             return $responses;
         }
 
         if ($result->incomplete) {
-            $responses[] = OpResponse::build(
-                $request->id,
-                $request->session,
-                ['message' => 'Incomplete form: unfinished parser input.'],
-                [OpStatus::ERROR, OpStatus::INCOMPLETE, OpStatus::DONE],
+            $responses[] = OpResponse::errorDone(
+                $request,
+                'Incomplete form: unfinished parser input.',
+                [OpStatus::INCOMPLETE],
             );
 
             return $responses;
         }
 
         $responses[] = $this->errorFrame($request, $result->error, $errorFallbackMessage, $fileName);
-        $responses[] = $this->doneFrame($request);
+        $responses[] = OpResponse::done($request);
 
         return $responses;
     }
@@ -110,21 +101,6 @@ final readonly class EvalResultResponder
             $body['root-ex'] = $exClass;
         }
 
-        return OpResponse::build(
-            $request->id,
-            $request->session,
-            $body,
-            [OpStatus::EVAL_ERROR],
-        );
-    }
-
-    private function doneFrame(OpRequest $request): OpResponse
-    {
-        return OpResponse::build(
-            $request->id,
-            $request->session,
-            [],
-            [OpStatus::DONE],
-        );
+        return OpResponse::forRequest($request, $body, [OpStatus::EVAL_ERROR]);
     }
 }

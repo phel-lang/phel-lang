@@ -83,28 +83,8 @@ final readonly class UnusedRequireRule implements LintRuleInterface
     private function collectRequires(PersistentListInterface $nsForm): array
     {
         $result = [];
-        $size = count($nsForm);
-
-        for ($i = 2; $i < $size; ++$i) {
-            $child = $nsForm->get($i);
-            if (!$child instanceof PersistentListInterface) {
-                continue;
-            }
-
-            if (count($child) === 0) {
-                continue;
-            }
-
-            $head = $child->get(0);
-            if (!$head instanceof Keyword) {
-                continue;
-            }
-
-            if ($head->getName() !== 'require') {
-                continue;
-            }
-
-            foreach ($this->parseRequireClauseEntries($child) as $entry) {
+        foreach (NsClauseIterator::clauses($nsForm, 'require') as $clause) {
+            foreach ($this->parseRequireClauseEntries($clause) as $entry) {
                 $result[] = $entry;
             }
         }

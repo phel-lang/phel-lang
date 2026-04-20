@@ -140,25 +140,17 @@ final readonly class ShadowedBindingRule implements LintRuleInterface
     private function handleFn(PersistentListInterface $form, array $scope, string $uri, array &$result): array
     {
         $newScope = $scope;
-        $size = count($form);
-
-        for ($i = 1; $i < $size; ++$i) {
-            $child = $form->get($i);
-
-            if ($child instanceof PersistentVectorInterface) {
-                $newScope = $this->walkParams($child, $newScope, $uri, $result);
-
-                break;
+        $first = true;
+        foreach (FnParamVectors::of($form) as $paramVector) {
+            if ($first) {
+                $newScope = $this->walkParams($paramVector, $newScope, $uri, $result);
+                $first = false;
+                continue;
             }
 
-            if ($child instanceof PersistentListInterface && count($child) > 0) {
-                $head = $child->get(0);
-                if ($head instanceof PersistentVectorInterface) {
-                    // Each arity introduces its own scope extension at analyze-time;
-                    // still flag inner shadowing of the outer scope.
-                    $this->walkParams($head, $newScope, $uri, $result);
-                }
-            }
+            // Each arity introduces its own scope extension at analyze-time;
+            // still flag inner shadowing of the outer scope.
+            $this->walkParams($paramVector, $newScope, $uri, $result);
         }
 
         return $newScope;

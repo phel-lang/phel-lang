@@ -29,11 +29,10 @@ final readonly class LoadFileOp implements OpHandlerInterface
         $fileName = $request->stringParam('file-name', 'NO_SOURCE_FILE');
 
         if ($fileContent === '') {
-            return [OpResponse::build(
-                $request->id,
-                $request->session,
-                ['message' => 'Missing required "file" param for load-file op.'],
-                [OpStatus::ERROR, OpStatus::LOAD_FILE_ERROR, OpStatus::DONE],
+            return [OpResponse::errorDone(
+                $request,
+                'Missing required "file" param for load-file op.',
+                [OpStatus::LOAD_FILE_ERROR],
             )];
         }
 
