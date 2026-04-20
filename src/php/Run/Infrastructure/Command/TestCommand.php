@@ -20,6 +20,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
 use function count;
+use function is_string;
 use function sprintf;
 
 /**
@@ -39,6 +40,10 @@ final class TestCommand extends Command
     private const string OPT_TESTDOX = 'testdox';
 
     private const string OPT_FAIL_FAST = 'fail-fast';
+
+    private const string OPT_REPORTER = 'reporter';
+
+    private const string OPT_OUTPUT = 'output';
 
     protected function configure(): void
     {
@@ -60,12 +65,23 @@ final class TestCommand extends Command
                 self::OPT_TESTDOX,
                 null,
                 InputOption::VALUE_NONE,
-                'Report test execution progress in TestDox format.',
+                'Report test execution progress in TestDox format. Shortcut for --reporter=testdox.',
             )->addOption(
                 self::OPT_FAIL_FAST,
                 null,
                 InputOption::VALUE_NONE,
                 'Stop running tests after the first failure or error.',
+            )->addOption(
+                self::OPT_REPORTER,
+                null,
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                'Reporter to emit test events through. Repeatable. Built-ins: default, testdox, dot, tap, junit-xml.',
+                [],
+            )->addOption(
+                self::OPT_OUTPUT,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Write the junit-xml reporter to a file instead of stdout.',
             );
     }
 
@@ -159,12 +175,18 @@ final class TestCommand extends Command
 
     private function generatePhelTestCode(InputInterface $input, array $namespacesInformation): string
     {
+        /** @var list<string> $reporters */
+        $reporters = (array) $input->getOption(self::OPT_REPORTER);
+        $output = $input->getOption(self::OPT_OUTPUT);
+
         return sprintf(
             '(do (phel\test/run-tests %s %s) (phel\test/successful?))',
             TestCommandOptions::fromArray([
                 TestCommandOptions::FILTER => (string) $input->getOption(self::OPT_FILTER),
                 TestCommandOptions::TESTDOX => (bool) $input->getOption(self::OPT_TESTDOX),
                 TestCommandOptions::FAIL_FAST => (bool) $input->getOption(self::OPT_FAIL_FAST),
+                TestCommandOptions::REPORTERS => $reporters,
+                TestCommandOptions::JUNIT_OUTPUT => is_string($output) ? $output : null,
             ])->asPhelHashMap(),
             $this->namespacesAsString($namespacesInformation),
         );
