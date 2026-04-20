@@ -545,13 +545,8 @@ EOF;
 
         unlink($phelFile);
 
-        if (isset($tempDir)) {
-            @rmdir($tempDir);
-        }
-
-        // Clean up temporary directory if running in phar
-        if (Phar::running() !== '' && dirname($phelFile) !== __DIR__) {
-            rmdir(dirname($phelFile));
+        if (isset($tempDir) && is_dir($tempDir)) {
+            rmdir($tempDir);
         }
     }
 

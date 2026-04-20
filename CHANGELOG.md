@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 
 #### CLI
 - `bin/phel` sets `memory_limit=-1` for large-project tokenization
+- `phel doc` no longer emits `rmdir(...): No such file or directory` warnings when run from the PHAR
 
 ### Docs
 - `docs/performance.md`: CLI opcache setup and cache reset
