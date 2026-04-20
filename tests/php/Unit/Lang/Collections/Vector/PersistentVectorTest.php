@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lang\Collections\Vector;
 
+use InvalidArgumentException;
 use Phel;
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -327,6 +328,17 @@ final class PersistentVectorTest extends TestCase
         $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3, 4]);
 
         $this->assertSame(2, $vector(1));
+    }
+
+    public function test_invoke_with_nil_throws_clear_error(): void
+    {
+        /** @var PersistentVector $vector */
+        $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3]);
+
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Vector cannot be indexed with nil');
+
+        $vector(null);
     }
 
     public function test_rest_on_empty_vector(): void

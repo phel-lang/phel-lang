@@ -16,6 +16,8 @@ use function strlen;
 
 final readonly class ExceptionArgsPrinter implements ExceptionArgsPrinterInterface
 {
+    private const int MAX_ARG_LENGTH = 200;
+
     public function __construct(
         private PrinterInterface $printer,
     ) {}
@@ -23,7 +25,7 @@ final readonly class ExceptionArgsPrinter implements ExceptionArgsPrinterInterfa
     public function parseArgsAsString(array $frameArgs): string
     {
         $argParts = array_map(
-            $this->printer->print(...),
+            fn($arg): string => $this->truncate($this->printer->print($arg)),
             $frameArgs,
         );
 
@@ -43,6 +45,15 @@ final readonly class ExceptionArgsPrinter implements ExceptionArgsPrinterInterfa
         );
 
         return implode(', ', $result);
+    }
+
+    private function truncate(string $s): string
+    {
+        if (strlen($s) <= self::MAX_ARG_LENGTH) {
+            return $s;
+        }
+
+        return substr($s, 0, self::MAX_ARG_LENGTH) . '...';
     }
 
     /**

@@ -129,4 +129,11 @@ final class KeywordTest extends TestCase
         $this->assertNull($keyword2($table));
         $this->assertSame('xyz', $keyword2($table, 'xyz'));
     }
+
+    public function test_invoke_on_nil_returns_default(): void
+    {
+        $keyword = Keyword::create('missing');
+        $this->assertNull($keyword(null));
+        $this->assertSame('fallback', $keyword(null, 'fallback'));
+    }
 }
