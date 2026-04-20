@@ -31,7 +31,7 @@ All notable changes to this project will be documented in this file.
 - `phel\ai`: `chat-with-tools` OpenAI tool use, `tool-calls` extraction, `tool-result` helper; retry w/ exponential backoff on 429/5xx; per-call `opts` (`:provider`, `:timeout`, `:base-url`, `:api-key`, `:max-retries`); `*http-post*` seam; `docs/ai-guide.md`
 - `phel\core`: `uuid=`, `uuid-nil?`, `uuid-version`, `uuid-variant`
 - `phel\repl`: `find-ns`, `create-ns`, `remove-ns`, `intern`, `ns-interns`
-- `phel\cli`: data-driven wrapper over `symfony/console` for building Phel CLI tools. Spec-map commands/applications (`:name`, `:doc`, `:help`, `:aliases`, `:hidden?`, `:args`, `:opts`, `:run`, `:default`, `:version`, `:auto-exit?`), eager spec validation, handler `Throwable` → styled `error` + exit code, value coercion (`:coerce :int :float :bool :keyword :edn`), shell completion (`:complete`), lifecycle hooks (`:before`, `:after`, `:on-error`), signal handling (`:on-signal {:sigint …}`), interactive prompts (`ask`, `ask-hidden`, `confirm`, `choice`), styled output (`title`, `section`, `info`, `success`, `warning`, `note`, `caution`, `comment-line`, `error`, `listing`), verbosity-aware writes (`info-v`, `info-vv`, `debug`), tables with style presets (`table` with `:default`/`:markdown`/`:box`/…), progress bar (`progress-bar`, `run-with-progress`), `stdin-lines` for piped input, and test helpers (`argv`, `argv-with-stdin`, `buffered-output`, `null-output`, `output->string`, `output-contains?`). See `docs/cli-guide.md`
+- `phel\cli`: spec-map wrapper over `symfony/console` with prompts, tables, progress, coercion, hooks, signals, and test helpers. See `docs/cli-guide.md`
 
 ### Fixed
 
