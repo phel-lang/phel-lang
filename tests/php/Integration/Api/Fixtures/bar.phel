@@ -1,0 +1,5 @@
+(ns fixtures\bar
+  (:require fixtures\foo :as foo))
+
+(defn consumer []
+  (foo/greet "world"))
