@@ -44,7 +44,10 @@ final readonly class NamespaceFileGrouper
 
             if ($info->isPrimaryDefinition()) {
                 $primaryDefinitions[$namespace][] = $info->getFile();
-                $byNamespace[$namespace]['primary'] = $info;
+                $byNamespace[$namespace]['primary'] = $this->preferLocalOverPhar(
+                    $byNamespace[$namespace]['primary'],
+                    $info,
+                );
                 continue;
             }
 
@@ -54,6 +57,36 @@ final readonly class NamespaceFileGrouper
         $this->warnAboutDuplicateNamespaces($primaryDefinitions);
 
         return $this->flatten($byNamespace);
+    }
+
+    /**
+     * When the same namespace is defined both inside a PHAR (the bundled
+     * stdlib) and on the local filesystem, the user's local copy always
+     * wins — users put files on disk to override, not to be overridden
+     * by the bundle.
+     */
+    private function preferLocalOverPhar(
+        ?NamespaceInformation $current,
+        NamespaceInformation $candidate,
+    ): NamespaceInformation {
+        if ($current === null) {
+            return $candidate;
+        }
+
+        $currentInPhar = str_starts_with($current->getFile(), 'phar://');
+        $candidateInPhar = str_starts_with($candidate->getFile(), 'phar://');
+
+        if ($currentInPhar && !$candidateInPhar) {
+            return $candidate;
+        }
+
+        if (!$currentInPhar && $candidateInPhar) {
+            return $current;
+        }
+
+        // Same origin — keep last-wins behavior so genuine config duplicates
+        // still surface via warnAboutDuplicateNamespaces.
+        return $candidate;
     }
 
     /**
@@ -95,11 +128,12 @@ final readonly class NamespaceFileGrouper
     private function warnAboutDuplicateNamespaces(array $primaryDefinitions): void
     {
         foreach ($primaryDefinitions as $namespace => $files) {
-            if (count($files) <= 1) {
+            $effective = $this->dropPharShadowedFiles($files);
+            if (count($effective) <= 1) {
                 continue;
             }
 
-            $fileList = implode("\n", array_map(static fn(string $f): string => '  - ' . $f, $files));
+            $fileList = implode("\n", array_map(static fn(string $f): string => '  - ' . $f, $effective));
             fwrite(STDERR, sprintf(
                 "\nWARNING: Namespace '%s' is defined in multiple locations:\n%s\n"
                 . "The last one will be used. Check your phel-config.php srcDirs/testDirs settings.\n",
@@ -107,5 +141,34 @@ final readonly class NamespaceFileGrouper
                 $fileList,
             ));
         }
+    }
+
+    /**
+     * Drop phar:// entries when a non-phar entry for the same namespace
+     * exists. The local copy already wins in the grouping step, so the
+     * warning would be noise for the user.
+     *
+     * @param list<string> $files
+     *
+     * @return list<string>
+     */
+    private function dropPharShadowedFiles(array $files): array
+    {
+        $hasLocal = false;
+        foreach ($files as $file) {
+            if (!str_starts_with($file, 'phar://')) {
+                $hasLocal = true;
+                break;
+            }
+        }
+
+        if (!$hasLocal) {
+            return $files;
+        }
+
+        return array_values(array_filter(
+            $files,
+            static fn(string $file): bool => !str_starts_with($file, 'phar://'),
+        ));
     }
 }

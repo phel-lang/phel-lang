@@ -56,6 +56,31 @@ final class PharExecutionTest extends TestCase
         }
     }
 
+    public function test_phar_runs_from_directory_shadowing_bundled_namespaces_without_warnings(): void
+    {
+        // Shadow a bundled stdlib namespace with an empty local copy so the
+        // NamespaceExtractor sees the same `phel\html` namespace both inside
+        // the PHAR and on disk. main.phel does not touch phel\html, so the
+        // shadow is harmless for execution.
+        $shadowed = $this->tempProjectDir . '/src/phel';
+        mkdir($shadowed, 0755, true);
+        file_put_contents($shadowed . '/html.phel', "(ns phel\\html)\n");
+
+        $result = $this->runPhar(['run', 'main.phel']);
+
+        self::assertSame(
+            0,
+            $result['exit'],
+            sprintf("Non-zero exit.\nstdout:\n%s\nstderr:\n%s", $result['stdout'], $result['stderr']),
+        );
+
+        self::assertStringNotContainsString(
+            'defined in multiple locations',
+            $result['stderr'],
+            'PHAR-bundled stdlib must not warn when the user project shadows it on disk',
+        );
+    }
+
     public function test_phar_runs_from_external_directory_without_warnings(): void
     {
         $result = $this->runPhar(['run', 'main.phel']);
