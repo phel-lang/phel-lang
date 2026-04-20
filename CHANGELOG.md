@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 #### Reader & Compiler
-- `#php` reader literal: `#php [1 2 3]` → `(php-indexed-array 1 2 3)`; `#php {"a" 1}` → `(php-associative-array "a" 1)` (non-recursive)
+- `#php` reader literal: `#php [1 2 3]` expands to `(php-indexed-array 1 2 3)`; `#php {"a" 1}` to `(php-associative-array "a" 1)` (non-recursive)
 - PHP interop shorthands: `(.method obj args)`, `(.-field obj)`, `(ClassName/method args)`, `\Ns\Class/MEMBER`, `(new ClassName args)`
 - `def` returns a printable var ref (e.g. `#'user/my-var`)
 
@@ -16,66 +16,65 @@ All notable changes to this project will be documented in this file.
 - Prompt shows current namespace and tracks `(ns ...)` switches
 
 #### CLI
-- `phel eval -` reads the expression from stdin (e.g. `echo '(+ 1 2)' | phel eval -`)
-- `phel agent-install [<platform>|--all]` writes skill files for Claude Code, Cursor, Codex, Gemini, Copilot, Aider; `--with-docs` also mirrors the bundled `.agents/` tree, `--dry-run` previews, `--force` skips backup
-- `phel nrepl --port=N --host=addr` starts a bencode-over-TCP nREPL server; supports `eval`, `clone`, `close`, `describe`, `load-file`, `interrupt`, plus `completions`, `lookup`, `info`, and `eldoc` for editor tooling
-- `phel analyze <file>` prints JSON semantic diagnostics; `phel index <dir>... [--out=file.json]` builds a project symbol table; `phel api-daemon` exposes the Api facade over newline-delimited JSON-RPC on stdio
-- `ApiFacade` gains `analyzeSource`, `indexProject`, `resolveSymbol`, `findReferences`, `completeAtPoint` for editor and linter tooling
-- `phel lint [paths]... [--format=human|json|github] [--config=path] [--no-cache]` runs read-only semantic rules: unresolved-symbol, arity-mismatch, unused-binding, unused-require, unused-import, shadowed-binding, redundant-do, duplicate-key, invalid-destructuring, discouraged-var; configurable via `phel-lint.phel` with per-rule severity and glob opt-outs
-- `phel watch [paths]... [-b backend] [--poll=500] [--debounce=100]` watches `.phel` files and reloads changed namespaces in dependency order; inotify, fswatch, or polling backend auto-picked; `(watch! ["src/"])` in REPL via `phel\watch`
-- `phel lsp` starts a Language Server Protocol v3.17 server over stdio (JSON-RPC 2.0, Content-Length framing) with hover, definition, references, completion, document/workspace symbols, rename, formatting, and debounced publishDiagnostics for any LSP-native editor
+- `phel eval -` reads the expression from stdin
+- `phel agent-install [<platform>|--all]` writes skill files for Claude Code, Cursor, Codex, Gemini, Copilot, Aider; `--with-docs`, `--dry-run`, `--force`
+- `phel nrepl --port=N --host=addr` bencode-over-TCP nREPL server with `eval`, `clone`, `close`, `describe`, `load-file`, `interrupt`, `completions`, `lookup`, `info`, `eldoc`
+- `phel analyze <file>` prints JSON diagnostics; `phel index <dir>... [--out=file.json]` builds a symbol table; `phel api-daemon` serves the Api facade as JSON-RPC on stdio
+- `ApiFacade::analyzeSource`, `indexProject`, `resolveSymbol`, `findReferences`, `completeAtPoint`
+- `phel lint [paths]... [--format=human|json|github] [--config=path] [--no-cache]` with rules: unresolved-symbol, arity-mismatch, unused-binding, unused-require, unused-import, shadowed-binding, redundant-do, duplicate-key, invalid-destructuring, discouraged-var; configurable via `phel-lint.phel`
+- `phel watch [paths]... [-b backend] [--poll=500] [--debounce=100]` reloads changed namespaces in dependency order (inotify, fswatch, polling); `(watch! ["src/"])` via `phel\watch`
+- `phel lsp` LSP v3.17 server over stdio with hover, definition, references, completion, document/workspace symbols, rename, formatting, debounced publishDiagnostics
 
 #### Agent docs
-- `.agents/` ships agent-agnostic docs with task recipes, per-platform adapters, and three runnable example projects (`todo-app`, `http-json-api`, `cli-wordcount`)
-- `composer test-agents` validates every example against the current source; CI runs it on every PR
+- `.agents/` ships task recipes, per-platform adapters, and example projects (`todo-app`, `http-json-api`, `cli-wordcount`)
+- `composer test-agents` validates every example; runs in CI
 
 #### Formatter
 - Aligns key/value pairs in `cond`, `case`, `condp`, and bindings of `let`/`loop`/`binding`/`for`/`foreach`/`dofor`/`if-let`/`when-let`
 
 #### Testing
-- `phel\test/report` is a multimethod dispatching on event `:type`; extend with `defmethod report :custom [event] ...`
-- Built-in reporters: `default`, `testdox`, `dot`, `tap`, `junit-xml`; select via `phel test --reporter=<name>` (repeatable); `--output=path` writes the junit-xml reporter to a file
-- `phel test` metadata-based selectors: `--include=<tag>`, `--exclude=<tag>`, `--ns=<glob>`, `--filter=<regex>` (all repeatable); tag tests via `^:integration` or `^{:tags [:integration :slow]}`; skipped tests emit a `:skipped` event and appear in the summary count
-- `defspec` shrinks failing counterexamples via rose-tree-backed `phel\test\shrink` and emits a `:defspec-failed` reporter event with `:shrunk-args`, `:original-args`, `:shrink-steps`, and `:seed`; `^:no-shrink` metadata or `:shrink? false` in the options opts out
+- `phel\test/report` is a multimethod dispatching on event `:type`
+- Reporters: `default`, `testdox`, `dot`, `tap`, `junit-xml`; select via `phel test --reporter=<name>` (repeatable); `--output=path` for junit-xml
+- `phel test` selectors: `--include=<tag>`, `--exclude=<tag>`, `--ns=<glob>`, `--filter=<regex>` (repeatable); tag via `^:integration` or `^{:tags [:integration :slow]}`; skipped tests emit `:skipped`
+- `defspec` shrinks counterexamples via rose-tree `phel\test\shrink`; emits `:defspec-failed` with `:shrunk-args`, `:original-args`, `:shrink-steps`, `:seed`; `^:no-shrink` or `:shrink? false` opts out
 
 #### Modules
 - `phel\test\gen`: generators, `sample`, `quick-check`, `defspec` with seedable PRNG
-- `phel\ai`: `chat-with-tools` OpenAI tool use, `tool-calls` extraction, `tool-result` helper; retry w/ exponential backoff on 429/5xx; per-call `opts` (`:provider`, `:timeout`, `:base-url`, `:api-key`, `:max-retries`); `*http-post*` seam; `docs/ai-guide.md`
+- `phel\ai`: `chat-with-tools` OpenAI tool use, `tool-calls`, `tool-result`; exponential backoff on 429/5xx; per-call `opts` (`:provider`, `:timeout`, `:base-url`, `:api-key`, `:max-retries`); `*http-post*` seam; `docs/ai-guide.md`
 - `phel\core`: `uuid=`, `uuid-nil?`, `uuid-version`, `uuid-variant`
-- `phel\core`: `defmulti` accepts an optional docstring: `(defmulti name "doc" dispatch-fn)`; non-callable string dispatch-fn raises a clear `InvalidArgumentException` instead of a raw PHP "undefined function" error
+- `phel\core`: `defmulti` accepts optional docstring `(defmulti name "doc" dispatch-fn)`
 - `phel\repl`: `find-ns`, `create-ns`, `remove-ns`, `intern`, `ns-interns`
-- `phel\cli`: spec-map wrapper over `symfony/console` with prompts, tables, progress, coercion, hooks, signals, and test helpers. See `docs/cli-guide.md`
-- `phel\match`: `match` macro with literal, vector, map, wildcard, `:as`, `:guard`, `:or`, and rest-binding patterns; matches left-to-right and raises on no-match when no `:else` is given
-- `phel\schema`: data-driven schemas with `validate`, `explain`, `conform`, `coerce`, `generate`, `instrument!`; supports scalar kinds, `:vector`, `:set`, `:map`, `:map-of`, `:tuple`, `:enum`, `:and`, `:or`, `:maybe`, `:re`, `:fn`, `:ref`, and `[:=> args ret]` function schemas with named-schema registry
-- `phel\async`: fiber-backed `promise`, `deliver`, `future-call`, `future-fiber`, and `future?`; cooperative scheduler works at the top level with 3-arg `deref` timeouts
-- Async guide (docs/async-guide.md) and expanded phel\async docstrings.
-- `phel doc` and REPL completion now cover `phel\async`, `phel\cli`, `phel\match`, `phel\pprint`, `phel\router`, `phel\walk`, and `phel\test\gen`
+- `phel\cli`: spec-map wrapper over `symfony/console` with prompts, tables, progress, coercion, hooks, signals, test helpers; `docs/cli-guide.md`
+- `phel\match`: `match` macro with literal, vector, map, wildcard, `:as`, `:guard`, `:or`, rest-binding patterns
+- `phel\schema`: `validate`, `explain`, `conform`, `coerce`, `generate`, `instrument!`; kinds `:vector`, `:set`, `:map`, `:map-of`, `:tuple`, `:enum`, `:and`, `:or`, `:maybe`, `:re`, `:fn`, `:ref`, `[:=> args ret]`; named-schema registry
+- `phel\async`: fiber-backed `promise`, `deliver`, `future-call`, `future-fiber`, `future?`; 3-arg `deref` timeouts; `docs/async-guide.md`
+- `phel doc` and REPL completion cover `phel\async`, `phel\cli`, `phel\match`, `phel\pprint`, `phel\router`, `phel\walk`, `phel\test\gen`
 
 ### Fixed
 
 #### REPL & Compiler
-- `eval()` runtime errors point to user's `string:N` line via source map
+- `eval()` runtime errors map to user `string:N` via source map
 - Non-callable literal calls (`('foo)`, `(42)`, `(nil)`, `("x")`) raise `PHEL011` at analysis time with source location
-- REPL multi-line buffer: `#(...)`, `|(...)`, `#?(...)`, `#?@(...)`, brackets `[]`, braces `{}`, and `#{...}` sets now count toward balance; no more premature eval of unclosed forms
+- REPL multi-line buffer counts `#(...)`, `|(...)`, `#?(...)`, `#?@(...)`, `[]`, `{}`, `#{...}` toward balance
 
 #### Build
-- `phel build` no longer leaks compiled-program stdout during compilation
-- Windows cache: absolute paths with drive letters or UNC prefixes no longer prefixed with app root
+- `phel build` suppresses compiled-program stdout during compilation
+- Windows cache: drive-letter and UNC paths preserved verbatim
 
 #### Modules
-- `phel\ai` `check-response` raises `RuntimeException` with provider message when body lacks `:error :message`
+- `phel\ai/check-response` raises `RuntimeException` with provider message when body lacks `:error :message`
 - `phel\ai` text extraction picks first `text` block, skipping preceding `tool_use`
-- `phel\http/request-from-globals` error explains that an HTTP request context is required and points to `request-from-map` for tests
-- `(:key nil)` returns the default instead of raising `TypeError`
-- `(get v nil)` and `(get l nil)` on vectors/lists return the default instead of raising `TypeError`
-- Vector/list called with nil index raise `InvalidArgumentException` with a clear message instead of a raw PHP `TypeError`
+- `phel\http/request-from-globals` error points to `request-from-map` for tests
+- `(:key nil)` returns default
+- `(get v nil)` and `(get l nil)` return default on vectors/lists
+- Vector/list with nil index raise `InvalidArgumentException`
 - Stack-trace arg rendering truncates each Phel argument at 200 chars
 
 ### Changed
 
 - `docs/php-interop.md`: namespaced PHP functions (`php/Amp\trapSignal`) and `(def alias php/\Ns\fn)` capture
 - `phel build` prints summary with fresh/cached counts and output directory
-- `phel\ai` `chat-with-tools` returns `{:text :tool-calls :stop-reason :raw}`
+- `phel\ai/chat-with-tools` returns `{:text :tool-calls :stop-reason :raw}`
 
 ### Removed
 
@@ -93,7 +92,7 @@ All notable changes to this project will be documented in this file.
 ### Changed (breaking)
 
 - `phel init` defaults to Flat layout (`src/`, `tests/`); `--nested` keeps `src/phel/`
-- `ProjectLayout::Conventional` → `ProjectLayout::Nested`; `useConventionalLayout()` → `useNestedLayout()`
+- `ProjectLayout::Conventional` renamed to `ProjectLayout::Nested`; `useConventionalLayout()` to `useNestedLayout()`
 
 ## [0.33.0](https://github.com/phel-lang/phel-lang/compare/v0.32.0...v0.33.0) - 2026-04-17
 
