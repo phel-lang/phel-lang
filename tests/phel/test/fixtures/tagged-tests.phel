@@ -1,0 +1,19 @@
+(ns phel-test\test\fixtures\tagged-tests
+  (:require phel\test :refer [deftest is]))
+
+;; Fixture namespace consumed by `tests/phel/test/selectors-runtime.phel`.
+;;
+;; Three tests with varied metadata shapes cover the selector surface:
+;; a single-keyword unit tag, a single-keyword integration tag, and a
+;; multi-tag map form. None of the assertions ever fail — the
+;; runtime-selector tests inspect which tests ran vs were skipped, not
+;; the outcome.
+
+(deftest ^:unit fixture-unit-passes
+  (is (= 1 1) "unit fixture assertion"))
+
+(deftest ^:integration fixture-integration-passes
+  (is (= 2 2) "integration fixture assertion"))
+
+(deftest ^{:tags [:integration :slow]} fixture-slow-integration-passes
+  (is (= 3 3) "slow integration fixture assertion"))

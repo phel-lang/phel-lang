@@ -23,6 +23,97 @@ final class TestCommandOptionsTest extends TestCase
         self::assertSame('{:filter "example" :testdox false :fail-fast false}', $options->asPhelHashMap());
     }
 
+    public function test_include_tag_list(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::INCLUDE => ['integration', 'smoke'],
+        ]);
+
+        self::assertSame(
+            '{:filter nil :testdox false :fail-fast false :include [:integration :smoke]}',
+            $options->asPhelHashMap(),
+        );
+    }
+
+    public function test_exclude_tag_list(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::EXCLUDE => ['slow'],
+        ]);
+
+        self::assertSame(
+            '{:filter nil :testdox false :fail-fast false :exclude [:slow]}',
+            $options->asPhelHashMap(),
+        );
+    }
+
+    public function test_ns_pattern_list(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::NS_PATTERNS => ['phel.http.*', 'phel.json.**'],
+        ]);
+
+        self::assertSame(
+            '{:filter nil :testdox false :fail-fast false :ns-patterns ["phel.http.*" "phel.json.**"]}',
+            $options->asPhelHashMap(),
+        );
+    }
+
+    public function test_filters_list(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::FILTERS => ['foo-'],
+        ]);
+
+        self::assertSame(
+            '{:filter nil :testdox false :fail-fast false :filters ["foo-"]}',
+            $options->asPhelHashMap(),
+        );
+    }
+
+    public function test_all_selectors_combined(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::INCLUDE => ['integration'],
+            TestCommandOptions::EXCLUDE => ['slow'],
+            TestCommandOptions::NS_PATTERNS => ['phel.http.*'],
+            TestCommandOptions::FILTERS => ['get-'],
+        ]);
+
+        self::assertSame(
+            '{:filter nil :testdox false :fail-fast false :include [:integration] :exclude [:slow] :ns-patterns ["phel.http.*"] :filters ["get-"]}',
+            $options->asPhelHashMap(),
+        );
+    }
+
+    public function test_selector_empty_strings_are_dropped(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::INCLUDE => ['integration', '', 'smoke'],
+            TestCommandOptions::EXCLUDE => [''],
+            TestCommandOptions::NS_PATTERNS => ['', 'phel.http.*'],
+            TestCommandOptions::FILTERS => [''],
+        ]);
+
+        self::assertSame(
+            '{:filter nil :testdox false :fail-fast false :include [:integration :smoke] :ns-patterns ["phel.http.*"]}',
+            $options->asPhelHashMap(),
+        );
+    }
+
+    public function test_non_array_selector_is_ignored(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::INCLUDE => 'not-an-array',
+            TestCommandOptions::EXCLUDE => null,
+        ]);
+
+        self::assertSame(
+            '{:filter nil :testdox false :fail-fast false}',
+            $options->asPhelHashMap(),
+        );
+    }
+
     public function test_no_testdox(): void
     {
         $options = TestCommandOptions::fromArray([]);
