@@ -93,11 +93,6 @@ final class Variable extends AbstractType
         return crc32(spl_object_hash($this));
     }
 
-    /**
-     * @param mixed $value
-     *
-     * @psalm-param T $value
-     */
     private function validate(mixed $value, ?callable $validator = null): void
     {
         $fn = $validator ?? $this->validator;
@@ -106,13 +101,6 @@ final class Variable extends AbstractType
         }
     }
 
-    /**
-     * @param mixed $oldValue
-     * @param mixed $newValue
-     *
-     * @psalm-param T $oldValue
-     * @psalm-param T $newValue
-     */
     private function notifyWatches(mixed $oldValue, mixed $newValue): void
     {
         foreach ($this->watches as $key => $callback) {

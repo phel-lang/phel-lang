@@ -67,10 +67,6 @@ final readonly class Printer implements PrinterInterface
 
     /**
      * Converts a form to a printable string.
-     *
-     * @param PersistentListInterface|Symbol|\Phel\Lang\AbstractType|null|scalar $form
-     *
-     * @psalm-param PersistentListInterface|Symbol|\Phel\Lang\AbstractType<TValue>|null|scalar $form
      */
     public function print(mixed $form): string
     {

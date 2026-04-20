@@ -152,9 +152,6 @@ final readonly class SymbolExtractor
         return $name->getFullName();
     }
 
-    /**
-     * @param TypeInterface|null|scalar $form
-     */
     private function tryExtractDefinition(mixed $form, string $namespace, string $uri): ?Definition
     {
         if (!$form instanceof PersistentListInterface || count($form) === 0) {
@@ -297,9 +294,6 @@ final readonly class SymbolExtractor
 
     /**
      * @param array<string, list<Location>> $references
-     * @param mixed $form
-     *
-     * @psalm-param K|T|TValue|V $form
      */
     private function collectSymbolReferences(mixed $form, string $uri, string $namespace, array &$references): void
     {

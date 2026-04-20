@@ -137,9 +137,6 @@ final readonly class PointCompleter implements PointCompleterInterface
      *
      * @param list<string> $scope
      * @param list<string> $collected
-     * @param mixed $form
-     *
-     * @psalm-param K|T|TValue|V $form
      */
     private function walk(mixed $form, int $line, int $col, array $scope, array &$collected): void
     {

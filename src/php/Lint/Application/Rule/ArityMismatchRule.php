@@ -154,9 +154,6 @@ final readonly class ArityMismatchRule implements LintRuleInterface
     /**
      * @param array<string, array{min:int, max:int}> $localFns
      * @param list<Diagnostic>                       $result
-     * @param \Phel\Lang\TypeInterface|mixed|null|scalar $form
-     *
-     * @psalm-param K|T|TValue|V|\Phel\Lang\TypeInterface|null|scalar $form
      */
     private function inspectCalls(mixed $form, array $localFns, string $uri, array &$result): void
     {

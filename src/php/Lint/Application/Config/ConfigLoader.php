@@ -152,11 +152,6 @@ final readonly class ConfigLoader
         return $result;
     }
 
-    /**
-     * @param mixed $value
-     *
-     * @psalm-param K|V $value
-     */
     private function keywordOrStringName(mixed $value): ?string
     {
         if ($value instanceof Keyword) {
@@ -175,10 +170,6 @@ final readonly class ConfigLoader
 
     /**
      * @return list<string>
-     *
-     * @param mixed $value
-     *
-     * @psalm-param V $value
      */
     private function collectStringPatterns(mixed $value): array
     {

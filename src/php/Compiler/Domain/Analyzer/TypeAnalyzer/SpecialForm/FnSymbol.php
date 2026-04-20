@@ -394,11 +394,6 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         ])->copyLocationFrom($form);
     }
 
-    /**
-     * @param mixed $form
-     *
-     * @psalm-param K|T|TValue|V $form
-     */
     private function replacePercent(mixed $form, Symbol $sym): mixed
     {
         if ($form instanceof Symbol) {
