@@ -1,0 +1,159 @@
+(ns phel-test\test\cli
+  (:require phel\cli :as cli)
+  (:require phel\test :refer [deftest is]))
+
+(defn- run-app [app args]
+  (let [input  (cli/argv args)
+        output (cli/buffered-output)
+        code   (cli/run app input output)]
+    {:code code :out (cli/output->string output)}))
+
+(defn- run-cmd [cmd-spec args]
+  (run-app (cli/application "test" [cmd-spec]) args))
+
+;; ---------------------------------------------------------------------------
+;; Core dispatch
+;; ---------------------------------------------------------------------------
+
+(deftest test-run-simple-command
+  (let [res (run-cmd {:name "greet" :run (fn [ctx] (cli/writeln ctx "hello"))}
+                     ["greet"])]
+    (is (= 0 (get res :code)))
+    (is (cli/output-contains? res "hello"))))
+
+(deftest test-command-with-argument
+  (let [spec {:name "greet"
+              :args [{:name "who" :mode :required}]
+              :run  (fn [ctx] (cli/writeln ctx (str "hi " (cli/arg ctx "who"))))}
+        res  (run-cmd spec ["greet" "alice"])]
+    (is (cli/output-contains? res "hi alice"))))
+
+(deftest test-command-with-option
+  (let [spec {:name "greet"
+              :opts [{:name "loud" :mode :none :doc "SHOUT"}]
+              :run  (fn [ctx]
+                      (let [msg (if (cli/opt ctx "loud") "HELLO" "hello")]
+                        (cli/writeln ctx msg)))}
+        res  (run-cmd spec ["greet" "--loud"])]
+    (is (cli/output-contains? res "HELLO"))))
+
+(deftest test-exit-code-propagates
+  (let [res (run-cmd {:name "fail" :run (fn [_] 2)} ["fail"])]
+    (is (= 2 (get res :code)))))
+
+(deftest test-aliases
+  (let [res (run-cmd {:name "build" :aliases ["b" "compile"]
+                      :run  (fn [ctx] (cli/writeln ctx "built"))}
+                     ["b"])]
+    (is (cli/output-contains? res "built"))))
+
+(deftest test-default-command
+  (let [app (cli/application
+              {:name     "mytool"
+               :default  "greet"
+               :commands [{:name "greet" :run (fn [ctx] (cli/writeln ctx "hola"))}]})
+        res (run-app app [])]
+    (is (cli/output-contains? res "hola"))))
+
+;; ---------------------------------------------------------------------------
+;; Tier 1: validation, handler errors, coercion
+;; ---------------------------------------------------------------------------
+
+(deftest test-missing-name-rejected
+  (is (thrown? \InvalidArgumentException
+               (cli/command {:run (fn [_] 0)}))))
+
+(deftest test-missing-run-rejected
+  (is (thrown? \InvalidArgumentException
+               (cli/command {:name "x"}))))
+
+(deftest test-invalid-arg-mode-rejected
+  (is (thrown? \InvalidArgumentException
+               (cli/command {:name "x"
+                             :args [{:name "p" :mode :bogus}]
+                             :run  (fn [_] 0)}))))
+
+(deftest test-handler-exception-becomes-exit-1
+  (let [res (run-cmd {:name "boom"
+                      :run  (fn [ctx] (throw (php/new \RuntimeException "kaboom")))}
+                     ["boom"])]
+    (is (= 1 (get res :code)))
+    (is (cli/output-contains? res "kaboom"))))
+
+(deftest test-arg-coercion-int
+  (let [captured (atom nil)
+        spec     {:name "p"
+                  :args [{:name "port" :mode :required :coerce :int}]
+                  :run  (fn [ctx] (reset! captured (cli/arg ctx "port")))}
+        _        (run-cmd spec ["p" "8080"])]
+    (is (= 8080 @captured))))
+
+(deftest test-opt-coercion-bool
+  (let [captured (atom nil)
+        spec     {:name "p"
+                  :opts [{:name "flag" :mode :required :coerce :bool}]
+                  :run  (fn [ctx] (reset! captured (cli/opt ctx "flag")))}
+        _        (run-cmd spec ["p" "--flag=1"])]
+    (is (= true @captured))))
+
+(deftest test-opt-coercion-keyword
+  (let [captured (atom nil)
+        spec     {:name "p"
+                  :opts [{:name "mode" :mode :required :coerce :keyword}]
+                  :run  (fn [ctx] (reset! captured (cli/opt ctx "mode")))}
+        _        (run-cmd spec ["p" "--mode=prod"])]
+    (is (= :prod @captured))))
+
+;; ---------------------------------------------------------------------------
+;; Tier 2: hooks, signals
+;; ---------------------------------------------------------------------------
+
+(deftest test-before-hook-fires
+  (let [fired (atom false)
+        app   (cli/application
+                {:name     "mytool"
+                 :before   (fn [_] (reset! fired true))
+                 :commands [{:name "go" :run (fn [ctx] (cli/writeln ctx "ok"))}]})]
+    (run-app app ["go"])
+    (is (= true @fired))))
+
+(deftest test-after-hook-fires
+  (let [fired (atom false)
+        app   (cli/application
+                {:name     "mytool"
+                 :after    (fn [_] (reset! fired true))
+                 :commands [{:name "go" :run (fn [ctx] (cli/writeln ctx "ok"))}]})]
+    (run-app app ["go"])
+    (is (= true @fired))))
+
+;; ---------------------------------------------------------------------------
+;; Tier 3: styled output, tables, progress
+;; ---------------------------------------------------------------------------
+
+(deftest test-styled-info
+  (let [res (run-cmd {:name "say" :run (fn [ctx] (cli/info ctx "ready"))}
+                     ["say"])]
+    (is (cli/output-contains? res "ready"))))
+
+(deftest test-table-default
+  (let [res (run-cmd {:name "list"
+                      :run  (fn [ctx] (cli/table ctx ["id" "name"]
+                                                 [[1 "alice"] [2 "bob"]]))}
+                     ["list"])]
+    (is (cli/output-contains? res "alice"))
+    (is (cli/output-contains? res "bob"))))
+
+(deftest test-table-markdown-style
+  (let [res (run-cmd {:name "list"
+                      :run  (fn [ctx] (cli/table ctx ["k" "v"] [["a" "1"]]
+                                                 {:style :markdown}))}
+                     ["list"])]
+    (is (cli/output-contains? res "|"))))
+
+(deftest test-hidden-flag
+  (let [cmd (cli/command {:name "secret" :hidden? true :run (fn [_] 0)})]
+    (is (true? (php/-> cmd (isHidden))))))
+
+(deftest test-output-contains-with-string
+  (is (cli/output-contains? "foo bar baz" "bar"))
+  (is (not (cli/output-contains? "foo bar baz" "qux"))))

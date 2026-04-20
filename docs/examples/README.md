@@ -20,6 +20,8 @@ bin/phel run docs/examples/<file>.phel
 8. **interfaces.phel** – Model behaviour with interfaces and multiple implementations.
 9. **php-integration.phel** – Interoperate with PHP classes, dates, and JSON encoding.
 10. **html-rendering.phel** – Render dynamic HTML with Phel's templating macros.
+11. **async-concurrency.phel** – Run cooperative work with `amphp` fibers.
+12. **cli.phel** – Build a small todo-list CLI on top of `phel\cli`.
 
 Feel free to copy these files into your own project and experiment.
 
