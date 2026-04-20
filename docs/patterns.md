@@ -7,6 +7,7 @@ Practical patterns for writing idiomatic Phel code.
 - [Working with Nil](#working-with-nil)
 - [Collection Transformations](#collection-transformations)
 - [Threading Macros](#threading-macros)
+- [Pattern Matching](#pattern-matching)
 - [Error Handling](#error-handling)
 - [State Management](#state-management)
 - [Recursion and Looping](#recursion-and-looping)
@@ -218,6 +219,50 @@ Threads value as **last** argument:
      (map square)
      (reduce +))
 ```
+
+## Pattern Matching
+
+`phel\match` provides a `match` macro that destructures by shape and binds symbols in one step. Use it when `cond`/`case` would force you to re-query the same value from multiple angles.
+
+```phel
+(ns app\commands
+  (:require phel\match :refer [match]))
+
+(defn handle [event]
+  (match [event]
+    [{:type :add :value v}]            (str "add " v)
+    [{:type :remove :id (_ :guard pos?)}] "remove-valid"
+    [[:cmd (:or :up :down) n]]         (str "move " n)
+    [[head & rest]]                    (str "list of " (count rest) " after " head)
+    :else                              :unknown))
+```
+
+Pattern elements:
+
+| Pattern | Matches |
+|---------|---------|
+| `1`, `"s"`, `:k`, `nil`, `true` | Equality with the literal |
+| `_` | Anything (no binding) |
+| `x` (bare symbol) | Anything, binds to `x` |
+| `[a b c]` | Vector or list of length 3 |
+| `[a & more]` | Vector or list, rest captured |
+| `{:k v}` | Map containing key `:k`, binds value to `v` |
+| `(x :guard pred)` | Value where `(pred x)` is truthy |
+| `(pat :as x)` | Match `pat` and also bind whole value to `x` |
+| `(:or a b c)` | Any of the alternatives |
+
+`match` requires multi-target targets (the outer `[event]` vector) so you can match several values at once:
+
+```phel
+(match [http-status role]
+  [200 :admin]       :dashboard
+  [200 _]            :ok
+  [401 _]            :login
+  [(_ :guard #(>= % 500)) _] :error
+  :else              :unknown)
+```
+
+Without an `:else` clause, `match` throws `RuntimeException` when nothing fits — add `:else` when "none of these" is a valid outcome.
 
 ## Error Handling
 
