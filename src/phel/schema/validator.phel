@@ -55,9 +55,9 @@
   their own head; vector schemas use their first element."
   [schema]
   (cond
-    (keyword? schema) schema
+    (keyword? schema)                            schema
     (and (vector? schema) (not (empty? schema))) (get schema 0)
-    :else nil))
+    :else                                        nil))
 
 (defn- extract-options
   "Returns `[options remaining]` where `options` is a map (possibly
@@ -75,7 +75,7 @@
   head and optional options map)."
   [schema]
   (if (vector? schema)
-    (let [tail (apply vector (next schema))
+    (let [tail         (apply vector (next schema))
           [_opts rest] (extract-options tail)]
       rest)
     []))
@@ -84,7 +84,7 @@
   "Returns the options map of `schema` or `{}` if none."
   [schema]
   (if (vector? schema)
-    (let [tail (apply vector (next schema))
+    (let [tail         (apply vector (next schema))
           [opts _rest] (extract-options tail)]
       opts)
     {}))
@@ -159,9 +159,9 @@
                items       (into [] value)]
            (loop [i 0]
              (cond
-               (>= i (count items)) true
+               (>= i (count items))                     true
                (not (valid? elem-schema (get items i))) false
-               :else (recur (+ i 1))))))))
+               :else                                    (recur (+ i 1))))))))
 
 (defn- validate-map-of
   [value key-schema val-schema]
@@ -177,7 +177,7 @@
                (cond
                  (not (valid? key-schema k)) false
                  (not (valid? val-schema v)) false
-                 :else (recur (+ i 1)))))))))
+                 :else                       (recur (+ i 1)))))))))
 
 (defn- validate-tuple
   [value elem-schemas]
@@ -216,7 +216,7 @@
   [value entries closed?]
   (if (not (map? value))
     false
-    (let [keys-ok? (loop [es (seq entries)]
+    (let [keys-ok?  (loop [es (seq entries)]
                      (cond
                        (nil? es) true
                        :else
@@ -229,14 +229,14 @@
                            (if opt? (recur (next es)) false)
                            (not (valid? inner (get value k)))
                            false
-                           :else (recur (next es))))))
+                           :else                              (recur (next es))))))
           extra-ok? (if closed?
                       (let [declared (into (hash-set) (map (fn [e] (get e 0)) entries))]
                         (loop [ks (seq (keys value))]
                           (cond
-                            (nil? ks) true
+                            (nil? ks)                       true
                             (contains? declared (first ks)) (recur (next ks))
-                            :else false)))
+                            :else                           false)))
                       true)]
       (and keys-ok? extra-ok?))))
 
@@ -244,25 +244,25 @@
   [value alts]
   (loop [alts (seq alts)]
     (cond
-      (nil? alts) false
+      (nil? alts)            false
       (= (first alts) value) true
-      :else (recur (next alts)))))
+      :else                  (recur (next alts)))))
 
 (defn- validate-and
   [value schemas]
   (loop [schemas (seq schemas)]
     (cond
-      (nil? schemas) true
+      (nil? schemas)                       true
       (not (valid? (first schemas) value)) false
-      :else (recur (next schemas)))))
+      :else                                (recur (next schemas)))))
 
 (defn- validate-or
   [value schemas]
   (loop [schemas (seq schemas)]
     (cond
-      (nil? schemas) false
+      (nil? schemas)                 false
       (valid? (first schemas) value) true
-      :else (recur (next schemas)))))
+      :else                          (recur (next schemas)))))
 
 (defn- pattern-source
   "Returns the raw regex string for a `:re` schema. Accepts either a
@@ -270,7 +270,7 @@
   [pattern]
   (cond
     (string? pattern) pattern
-    :else (str pattern)))
+    :else             (str pattern)))
 
 (defn- valid-regex?
   [pattern value]
@@ -282,27 +282,27 @@
   (let [head (schema-head schema)
         args (schema-args schema)]
     (case head
-      :vector  (validate-collection schema value vector? args)
-      :list    (validate-collection schema value list? args)
-      :set     (validate-collection schema value set? args)
-      :map-of  (validate-map-of value (get args 0) (get args 1))
-      :tuple   (validate-tuple value args)
-      :map     (validate-map value args
+      :vector (validate-collection schema value vector? args)
+      :list   (validate-collection schema value list? args)
+      :set    (validate-collection schema value set? args)
+      :map-of (validate-map-of value (get args 0) (get args 1))
+      :tuple  (validate-tuple value args)
+      :map    (validate-map value args
                              (true? (get (schema-options schema) :closed)))
-      :enum    (validate-enum value args)
-      :and     (validate-and value args)
-      :or      (validate-or value args)
-      :maybe   (or (nil? value) (valid? (get args 0) value))
-      :re      (valid-regex? (get args 0) value)
-      :fn      (try
+      :enum   (validate-enum value args)
+      :and    (validate-and value args)
+      :or     (validate-or value args)
+      :maybe  (or (nil? value) (valid? (get args 0) value))
+      :re     (valid-regex? (get args 0) value)
+      :fn     (try
                  (boolean ((get args 0) value))
                  (catch \Throwable _ false))
-      :ref     (let [target (reg/deref-ref (get args 0))]
+      :ref    (let [target (reg/deref-ref (get args 0))]
                  (when (nil? target)
                    (throw (php/new \InvalidArgumentException
                                    (str "schema ref not registered: " (get args 0)))))
                  (valid? target value))
-      :=>      true
+      :=>     true
       (resolve-or-throw "unknown schema kind" head
                         (fn [target] (valid? target value))))))
 

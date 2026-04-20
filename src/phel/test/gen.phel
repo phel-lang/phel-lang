@@ -429,17 +429,17 @@
   step count."
   [name-str res]
   (t/do-report
-    (merge
-      {:type           :defspec-failed
-       :test-name      name-str
-       :seed           (get res :seed)
-       :num-tests      (get res :num-tests)
-       :result         (get res :result)
-       :args           (get res :args)
-       :original-args  (get res :original-args)
-       :shrunk-args    (get res :shrunk-args)
-       :shrink-steps   (get res :shrink-steps)}
-      (when-let [ex (get res :exception)] {:exception ex}))))
+   (merge
+    {:type           :defspec-failed
+     :test-name      name-str
+     :seed           (get res :seed)
+     :num-tests      (get res :num-tests)
+     :result         (get res :result)
+     :args           (get res :args)
+     :original-args  (get res :original-args)
+     :shrunk-args    (get res :shrunk-args)
+     :shrink-steps   (get res :shrink-steps)}
+    (when-let [ex (get res :exception)] {:exception ex}))))
 
 (defmacro defspec
   "Defines a property test. The generated `deftest` runs `quick-check`

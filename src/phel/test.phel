@@ -122,7 +122,7 @@
 ;;   (defmethod report :custom-type [event] ...)
 ;; or by registering a function through `set-reporters!`/`add-reporter!`.
 (defmulti report
-  "Records a test-framework event and dispatches it to the active
+          "Records a test-framework event and dispatches it to the active
   reporters. `data` must contain a `:type` key (`:pass`, `:failed`,
   `:error`, `:begin-test-ns`, `:end-test-ns`, `:begin-test-run`,
   `:summary`, or a user-defined event). The default methods for
@@ -130,7 +130,7 @@
   registered reporter. Other event types flow straight through to the
   reporter set. Extend by registering
   `(defmethod report :custom-type [event] ...)`."
-  (fn [data] (:type data)))
+          (fn [data] (:type data)))
 
 (defn- report-assertion! [data]
   (let [decorated (decorate-event data)]
@@ -138,13 +138,13 @@
     (fan-out! decorated)))
 
 (defmethod report :pass [data]
-  (report-assertion! (assoc data :state :pass)))
+           (report-assertion! (assoc data :state :pass)))
 
 (defmethod report :failed [data]
-  (report-assertion! (assoc data :state :failed)))
+           (report-assertion! (assoc data :state :failed)))
 
 (defmethod report :error [data]
-  (report-assertion! (assoc data :state :error)))
+           (report-assertion! (assoc data :state :error)))
 
 ;; `:predicate`, `:binary`, `:any`, `:thrown`, `:thrown-with-msg` — the
 ;; legacy assertion-level types emitted by the built-in `is` macro. Each
@@ -176,11 +176,11 @@
   (swap! report-methods assoc event-type fan-out!))
 
 (defmethod report :skipped [data]
-  (record-skip! data)
-  (fan-out! data))
+           (record-skip! data)
+           (fan-out! data))
 
 (defmethod report :default [data]
-  (fan-out! (decorate-event data)))
+           (fan-out! (decorate-event data)))
 
 (defn do-report
   "Add file and line information to a test result and call report.
@@ -216,12 +216,12 @@
            ~result          (~pred ~value-evaluated)
            ~result          (if ~negated (not ~result) ~result)
            ~report-data     {:type ~type
-                         :message ~message
-                         :location ~loc
-                         :pred '~pred
-                         :value '~value
-                         :form '~form
-                         :result ~value-evaluated}]
+                             :message ~message
+                             :location ~loc
+                             :pred '~pred
+                             :value '~value
+                             :form '~form
+                             :result ~value-evaluated}]
        (if ~result
          (report (assoc ~report-data :state :pass))
          (report (assoc ~report-data :state :failed))))))
@@ -241,13 +241,13 @@
            ~result             (~pred ~expected-evaluated ~actual-evaluated)
            ~result             (if ~negated (not ~result) ~result)
            ~report-data        {:type ~type
-                         :message ~message
-                         :location ~loc
-                         :pred '~pred
-                         :expected ~expected-evaluated
-                         :actual '~actual
-                         :form '~form
-                         :result ~actual-evaluated}]
+                                :message ~message
+                                :location ~loc
+                                :pred '~pred
+                                :expected ~expected-evaluated
+                                :actual '~actual
+                                :form '~form
+                                :result ~actual-evaluated}]
        (if ~result
          (report (merge ~report-data {:type :binary :state :pass}))
          (report (merge ~report-data {:type :binary :state :failed}))))))
@@ -434,8 +434,8 @@
     (list? form)          (apply list (map #(substitute-symbols smap %) form))
     (vector? form)        (apply vector (map #(substitute-symbols smap %) form))
     (map? form)           (apply hash-map
-                            (interleave (keys form)
-                                        (map #(substitute-symbols smap %) (vals form))))
+                                 (interleave (keys form)
+                                             (map #(substitute-symbols smap %) (vals form))))
     (set? form)           (into (hash-set) (map #(substitute-symbols smap %) form))
     :else                 form))
 
@@ -598,10 +598,10 @@
   (let [type (:type event)]
     (cond
       (assertion-event? event)
-      (let [state   (:state event)
-            marker  (case state :failed "✘" :error "E" "✔")
-            tname   (or (:test-name event) "")
-            msg     (or (:message event) "no test message found")]
+      (let [state  (:state event)
+            marker (case state :failed "✘" :error "E" "✔")
+            tname  (or (:test-name event) "")
+            msg    (or (:message event) "no test message found")]
         (println marker (str tname ": " msg)))
 
       (= type :skipped)
@@ -743,13 +743,13 @@
       (= state :failed) (junit-nested-element "failure" event))))
 
 (defn- junit-build-testcase [event]
-  (let [tname    (or (:test-name event) "assertion")
-        ns-name  (or (:ns event) "")
-        loc      (or (:location event) {})
-        file     (or (:file loc) "")
-        line     (or (:line loc) 0)
-        body     (junit-testcase-body event)
-        opening  (str "<testcase "
+  (let [tname   (or (:test-name event) "assertion")
+        ns-name (or (:ns event) "")
+        loc     (or (:location event) {})
+        file    (or (:file loc) "")
+        line    (or (:line loc) 0)
+        body    (junit-testcase-body event)
+        opening (str "<testcase "
                       (junit-attr :name tname) " "
                       (junit-attr :classname ns-name) " "
                       (junit-attr :file file) " "
@@ -800,8 +800,8 @@
   [m event]
   (let [state (get event :state)]
     (cond-> (update m :tests inc)
-      (= :failed state) (update :failures inc)
-      (= :error state)  (update :errors inc))))
+            (= :failed state) (update :failures inc)
+            (= :error state)  (update :errors inc))))
 
 (defn- junit-ensure-current
   "Ensures `state` has a `:current` suite; lazily initialised from the
@@ -911,13 +911,13 @@
   event at the end of the run."
   {:example "(print-summary)"}
   []
-  (let [snapshot (deref stats)
+  (let [snapshot                                                  (deref stats)
         {:failed failed :error error :pass pass :skipped skipped}
         (get snapshot :counts)
-        failures (get snapshot :failed)
-        skips    (get snapshot :skipped)
-        total    (+ failed error pass)
-        event    {:type :summary
+        failures                                                  (get snapshot :failed)
+        skips                                                     (get snapshot :skipped)
+        total                                                     (+ failed error pass)
+        event                                                     {:type :summary
                   :failures failures
                   :skips skips
                   :pass pass
@@ -965,11 +965,11 @@
     (throw (php/new \InvalidArgumentException
                     "All arguments to use-fixtures must be functions")))
   (let [key     (case fixture-type
-              :each :each-fixtures
-              :once :once-fixtures
-              (throw (php/new \InvalidArgumentException
-                              (str "use-fixtures: invalid fixture-type "
-                                   fixture-type ", expected :each or :once"))))
+                  :each :each-fixtures
+                  :once :once-fixtures
+                  (throw (php/new \InvalidArgumentException
+                                  (str "use-fixtures: invalid fixture-type "
+                                       fixture-type ", expected :each or :once"))))
         ns-name *ns*]
     (swap! fixtures-by-ns
            (fn [m]

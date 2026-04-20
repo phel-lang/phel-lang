@@ -48,8 +48,8 @@
               inner-indent (+ indent 1)
               pad          (php/str_repeat " " inner-indent)
               pairs        (for [[k v] :pairs form]
-                      (let [kstr (print-value k)]
-                        (str kstr " " (pp-str v (+ inner-indent (count kstr) 1) width))))
+                             (let [kstr (print-value k)]
+                               (str kstr " " (pp-str v (+ inner-indent (count kstr) 1) width))))
               joined       (php/implode (str "\n" pad) (apply php-indexed-array pairs))]
           (str prefix joined suffix)))
 
@@ -73,8 +73,8 @@
               inner-indent (+ indent 1)
               pad          (php/str_repeat " " inner-indent)
               pairs        (for [[k v] :pairs form]
-                      (let [kstr (print-value k)]
-                        (str kstr " " (pp-str v (+ inner-indent (count kstr) 1) width))))
+                             (let [kstr (print-value k)]
+                               (str kstr " " (pp-str v (+ inner-indent (count kstr) 1) width))))
               joined       (php/implode (str "\n" pad) (apply php-indexed-array pairs))]
           (str prefix joined suffix)))
 

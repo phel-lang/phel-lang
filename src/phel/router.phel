@@ -80,7 +80,7 @@
   [[_ data] global-mw]
   (let [top-mw    (concat global-mw (get data :middleware []))
         compile   (fn [mw h merged]
-                  (when h [(compile-handler mw h) merged]))
+                    (when h [(compile-handler mw h) merged]))
         by-method (reduce
                    (fn [acc method]
                      (if-let [md (get data method)]
@@ -243,9 +243,9 @@
   (let [{:path path :data data :or {path "" data {}}} (or (eval options) {})
         flattened-routes                              (vec (flatten-routes (eval raw-routes) path data))
         indexed-routes                                (persistent
-                        (for [route :in flattened-routes
-                              :reduce [acc (transient {})]]
-                          (assoc! acc (route-name-of route) route)))
+                                                       (for [route :in flattened-routes
+                                                             :reduce [acc (transient {})]]
+                                                         (assoc! acc (route-name-of route) route)))
         route-collection                              (build-route-collection flattened-routes)
         compiled-matcher-routes                       (php/-> (php/new CompiledUrlMatcherDumper route-collection) (getCompiledRoutes))
         compiled-generator-routes                     (php/-> (php/new CompiledUrlGeneratorDumper route-collection) (getCompiledRoutes))

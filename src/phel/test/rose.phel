@@ -24,26 +24,26 @@
   which is incompatible with the self-recursive rose-tree structure."
   [f coll]
   (lazy-seq
-    (when-let [s (seq coll)]
-      (cons (f (first s)) (lazy-map f (rest s))))))
+   (when-let [s (seq coll)]
+     (cons (f (first s)) (lazy-map f (rest s))))))
 
 (defn- lazy-filter
   "One-element-at-a-time `filter`."
   [pred coll]
   (lazy-seq
-    (when-let [s (seq coll)]
-      (let [x (first s)]
-        (if (pred x)
-          (cons x (lazy-filter pred (rest s)))
-          (lazy-filter pred (rest s)))))))
+   (when-let [s (seq coll)]
+     (let [x (first s)]
+       (if (pred x)
+         (cons x (lazy-filter pred (rest s)))
+         (lazy-filter pred (rest s)))))))
 
 (defn- lazy-concat
   "One-element-at-a-time concatenation of two lazy seqs."
   [a b]
   (lazy-seq
-    (if-let [s (seq a)]
-      (cons (first s) (lazy-concat (rest s) b))
-      b)))
+   (if-let [s (seq a)]
+     (cons (first s) (lazy-concat (rest s) b))
+     b)))
 
 ;; ----------------
 ;; Constructors
@@ -117,10 +117,10 @@
     {:root     (rose-root root-tree)
      :children (lazy-concat
                  ;; shrinks from walking the outer tree
-                 (lazy-map (fn [child] (rose-bind child f))
-                           (rose-children t))
+                (lazy-map (fn [child] (rose-bind child f))
+                          (rose-children t))
                  ;; shrinks from the inner tree for the chosen root
-                 (rose-children root-tree))}))
+                (rose-children root-tree))}))
 
 (defn rose-filter
   "Returns the subtree consisting only of nodes whose value satisfies
@@ -157,9 +157,9 @@
   "Helper: lazily iterates each position in turn."
   [trees i n]
   (lazy-seq
-    (when (< i n)
-      (lazy-concat (positional-shrinks trees i)
-                   (shrinks-of-many* trees (+ i 1) n)))))
+   (when (< i n)
+     (lazy-concat (positional-shrinks trees i)
+                  (shrinks-of-many* trees (+ i 1) n)))))
 
 (defn- shrinks-of-many
   "Given a vector of rose trees, returns a lazy sequence of rose-tree
@@ -205,8 +205,8 @@
                                   halves-seq))]
       (into []
             (distinct
-              (filter (fn [v] (not= v n))
-                      raw))))))
+             (filter (fn [v] (not= v n))
+                     raw))))))
 
 (defn shrink-int
   "Shrink strategy toward zero: halving steps (`n/2`, `n/4`, …) and then
@@ -255,13 +255,13 @@
       (lazy-seq nil)
       (lazy-concat
         ;; drop a leading sublist of halving sizes
-        (into []
-              (for [k :in (halves n) :when (> k 0)]
-                (drop-leading trees k)))
+       (into []
+             (for [k :in (halves n) :when (> k 0)]
+               (drop-leading trees k)))
         ;; one-at-a-time drops
-        (into []
-              (for [i :range [0 n]]
-                (remove-at trees i)))))))
+       (into []
+             (for [i :range [0 n]]
+               (remove-at trees i)))))))
 
 (defn rose-vector
   "Rose tree for a vector whose children are built from the rose trees
@@ -274,9 +274,9 @@
     {:root     (into [] (map rose-root trees))
      :children (lazy-concat
                  ;; shrink by dropping elements
-                 (lazy-map rose-vector (shrink-vector-by-removal trees))
+                (lazy-map rose-vector (shrink-vector-by-removal trees))
                  ;; shrink each element in place
-                 (lazy-map rose-vector (shrinks-of-many trees)))}))
+                (lazy-map rose-vector (shrinks-of-many trees)))}))
 
 (defn rose-vector-lax
   "Like `rose-vector` but preserves original length; only shrinks each

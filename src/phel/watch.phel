@@ -39,7 +39,7 @@
   dependency order and runs any hooks registered with `register-on-reload`."
   {:example "(watch! [\"src/\" \"tests/\"])"}
   [paths & [opts]]
-  (let [facade (php/new WatchFacade)
+  (let [facade  (php/new WatchFacade)
         phpOpts (php/array)]
     (when (and opts (get opts :backend))
       (php/aset phpOpts "backend" (get opts :backend)))

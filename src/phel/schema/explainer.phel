@@ -58,10 +58,10 @@
   [schema value path in]
   (if (not (map? value))
     [(make-error path in schema value :mismatch)]
-    (let [args (v/schema-args schema)
+    (let [args       (v/schema-args schema)
           key-schema (get args 0)
           val-schema (get args 1)
-          pairs (into [] (for [[k v] :pairs value] [k v]))]
+          pairs      (into [] (for [[k v] :pairs value] [k v]))]
       (loop [i 0 acc []]
         (cond
           (>= i (count pairs)) acc
@@ -92,9 +92,9 @@
   [schema value path in]
   (if (not (map? value))
     [(make-error path in schema value :mismatch)]
-    (let [entries (v/schema-args schema)
-          closed? (true? (get (v/schema-options schema) :closed))
-          declared (into (hash-set) (map (fn [e] (get e 0)) entries))
+    (let [entries      (v/schema-args schema)
+          closed?      (true? (get (v/schema-options schema) :closed))
+          declared     (into (hash-set) (map (fn [e] (get e 0)) entries))
           entry-errors
           (loop [es (seq entries) acc []]
             (cond
@@ -120,7 +120,7 @@
           (if closed?
             (loop [ks (seq (keys value)) acc []]
               (cond
-                (nil? ks) acc
+                (nil? ks)                       acc
                 (contains? declared (first ks)) (recur (next ks) acc)
                 :else
                 (recur (next ks)
@@ -165,7 +165,7 @@
 
 (defn- -explain-ref
   [schema value path in]
-  (let [name (first (v/schema-args schema))
+  (let [name   (first (v/schema-args schema))
         target (reg/deref-ref name)]
     (if (nil? target)
       [(make-error path in schema value :mismatch)]
@@ -186,9 +186,9 @@
       :and    (-explain-and schema value path in)
       :or     (-explain-or schema value path in)
       :maybe  (cond
-                (nil? value) []
+                (nil? value)                  []
                 (v/valid? (first args) value) []
-                :else (-explain (first args) value (conj path :maybe) in))
+                :else                         (-explain (first args) value (conj path :maybe) in))
       :re     (if (v/valid? schema value)
                 []
                 [(make-error path in schema value :mismatch)])

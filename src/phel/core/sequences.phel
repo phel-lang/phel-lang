@@ -59,8 +59,8 @@
   {:example "(get {:a 1} :a) ; => 1"}
   [ds k & [opt]]
   (cond
-    (nil? ds) opt
-    (and (nil? k) (indexed? ds)) opt
+    (nil? ds)                                                                                                                   opt
+    (and (nil? k) (indexed? ds))                                                                                                opt
 
     (or (set? ds)
         (php/instanceof ds PersistentHashSetInterface)

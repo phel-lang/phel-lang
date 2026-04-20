@@ -71,8 +71,8 @@
       (let [doc        (or (get meta :doc) "")
             deprecated (get meta :deprecated)
             message    (if deprecated
-                      (str doc (if (= doc "") "" "\n") "DEPRECATED: " deprecated)
-                      doc)]
+                         (str doc (if (= doc "") "" "\n") "DEPRECATED: " deprecated)
+                         doc)]
         (clean-doc message)))))
 
 (defmacro doc
@@ -273,9 +273,9 @@
         defs    (php/:: Phel (getDefinitionInNamespace encoded))
         munge   (php/new Munge)
         names   (for [fn-name :keys defs
-                    :let [meta (php/:: Phel (getDefinitionMetaData encoded fn-name))]
-                    :when (not (get meta :private))]
-                (php/-> munge (decodeNs fn-name)))]
+                      :let [meta (php/:: Phel (getDefinitionMetaData encoded fn-name))]
+                      :when (not (get meta :private))]
+                  (php/-> munge (decodeNs fn-name)))]
     (foreach [n (sort names)]
       (println n))
     nil))
@@ -519,8 +519,8 @@
       (t/run-tests {} sym)
       (let [{:counts counts} (t/get-stats)
             result           {:pass (get counts :pass)
-                    :fail (get counts :failed)
-                    :error (get counts :error)}]
+                              :fail (get counts :failed)
+                              :error (get counts :error)}]
         (t/restore-stats saved-stats)
         result))))
 
@@ -574,7 +574,7 @@
         publics      (ns-publics ns)
         public-names (sort (keys publics))
         alias-lines  (for [[alias-name target-ns] :pairs aliases]
-                      (str "  " alias-name " -> " target-ns))
+                       (str "  " alias-name " -> " target-ns))
         fn-summary   (php/implode ", " (to-php-array (take 50 public-names)))]
     (str "Current namespace: " ns "\n"
          "Aliases:\n" (php/implode "\n" (to-php-array alias-lines)) "\n"
@@ -607,11 +607,11 @@
                         (str (macroexpand-form form)))
                       (catch \Throwable _e nil))
         context  (str "You are a Phel language expert. Phel is a Lisp that compiles to PHP.\n\n"
-                     "Explain the following Phel code clearly and concisely:\n\n"
-                     "```phel\n" code-str "\n```\n"
-                     (when compiled (str "\nCompiled PHP:\n```php\n" compiled "\n```\n"))
-                     (when (and expanded (not= expanded code-str))
-                       (str "\nMacroexpanded form:\n" expanded "\n")))]
+                      "Explain the following Phel code clearly and concisely:\n\n"
+                      "```phel\n" code-str "\n```\n"
+                      (when compiled (str "\nCompiled PHP:\n```php\n" compiled "\n```\n"))
+                      (when (and expanded (not= expanded code-str))
+                        (str "\nMacroexpanded form:\n" expanded "\n")))]
     (ai/complete context {:system "You are a Phel language assistant. Explain code clearly and concisely. Use examples when helpful."})))
 
 (defmacro explain-sym
@@ -636,10 +636,10 @@
   [description]
   (let [ns-context (build-namespace-context)
         prompt     (str "You are a Phel language expert. Phel is a Lisp that compiles to PHP.\n\n"
-                    "Environment:\n" ns-context "\n\n"
-                    "Task: Write Phel code to accomplish the following:\n"
-                    description "\n\n"
-                    "Return only the Phel code in a ```phel code block. Add a brief comment explaining the approach.")]
+                        "Environment:\n" ns-context "\n\n"
+                        "Task: Write Phel code to accomplish the following:\n"
+                        description "\n\n"
+                        "Return only the Phel code in a ```phel code block. Add a brief comment explaining the approach.")]
     (ai/complete prompt {:system "You are a Phel language assistant. Write idiomatic Phel code. Use existing core functions when possible. Be concise."})))
 
 (defn fix
@@ -651,11 +651,11 @@
   [code-str error-msg]
   (let [ns-context (build-namespace-context)
         prompt     (str "You are a Phel language expert. Phel is a Lisp that compiles to PHP.\n\n"
-                    "Environment:\n" ns-context "\n\n"
-                    "The following Phel code produced an error:\n\n"
-                    "```phel\n" code-str "\n```\n\n"
-                    "Error: " error-msg "\n\n"
-                    "Explain the error briefly and provide the corrected code in a ```phel code block.")]
+                        "Environment:\n" ns-context "\n\n"
+                        "The following Phel code produced an error:\n\n"
+                        "```phel\n" code-str "\n```\n\n"
+                        "Error: " error-msg "\n\n"
+                        "Explain the error briefly and provide the corrected code in a ```phel code block.")]
     (ai/complete prompt {:system "You are a Phel language assistant. Diagnose errors precisely and provide minimal, correct fixes."})))
 
 (defn review
@@ -667,10 +667,10 @@
   [code-str]
   (let [ns-context (build-namespace-context)
         prompt     (str "You are a Phel language expert. Phel is a Lisp that compiles to PHP.\n\n"
-                    "Environment:\n" ns-context "\n\n"
-                    "Review the following Phel code for quality, idioms, and potential issues:\n\n"
-                    "```phel\n" code-str "\n```\n\n"
-                    "Provide brief, actionable feedback. Note any non-idiomatic patterns.")]
+                        "Environment:\n" ns-context "\n\n"
+                        "Review the following Phel code for quality, idioms, and potential issues:\n\n"
+                        "```phel\n" code-str "\n```\n\n"
+                        "Provide brief, actionable feedback. Note any non-idiomatic patterns.")]
     (ai/complete prompt {:system "You are a Phel code reviewer. Be concise and specific. Focus on correctness, idioms, and readability."})))
 
 (defn embed-ns
@@ -686,12 +686,12 @@
   [ns-str & [opts]]
   (let [publics    (ns-publics ns-str)
         entries    (for [[fn-name _value] :pairs publics
-                      :let [info (get-symbol-info ns-str fn-name)
-                            doc (or (when info (get info :doc)) "")]
-                      :when (not (when info (get info :private)))]
-                  {:name fn-name
-                   :doc doc
-                   :text (str fn-name ": " doc)})
+                         :let [info (get-symbol-info ns-str fn-name)
+                               doc (or (when info (get info :doc)) "")]
+                         :when (not (when info (get info :private)))]
+                     {:name fn-name
+                      :doc doc
+                      :text (str fn-name ": " doc)})
         texts      (map #(get % :text) entries)
         embeddings (ai/embed (to-php-array texts) opts)]
     (map (fn [entry embedding]

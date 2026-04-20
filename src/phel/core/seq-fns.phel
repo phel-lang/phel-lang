@@ -100,11 +100,11 @@
         (if (php/=== nil from)
           to
           (let [map-like?   (fn [x]
-                            (or (php/instanceof x PersistentMapInterface)
-                                (and (php/is_array x) (not (indexed-php-array? x)))))
+                              (or (php/instanceof x PersistentMapInterface)
+                                  (and (php/is_array x) (not (indexed-php-array? x)))))
                 entries     (if (map-like? from)
-                          (for [entry :pairs from] entry)
-                          from)
+                              (for [entry :pairs from] entry)
+                              from)
                 assoc-entry (fn [acc entry]
                               (if (indexed? entry)
                                 (if (php/!= (count entry) 2)
@@ -569,8 +569,8 @@
    :see-also ["rseq" "reversible?"]}
   [coll]
   (let [arr    (if (string? coll)
-              (php/mb_str_split coll)
-              (to-php-array coll))
+                 (php/mb_str_split coll)
+                 (to-php-array coll))
         result (php/:: Phel (vector (php/array_reverse arr)))]
     (copy-meta coll result)))
 
@@ -1116,9 +1116,9 @@
     (nil? coll)                              []
     (and (indexed? coll) (= 0 (count coll))) []
     true                                     (lazy-seq-from-generator
-          (php/call_user_func_array
-           (php/array "\\Phel\\Lang\\Seq" "compact")
-           (php/array_merge (php/array coll) (apply php/array values))))))
+                                              (php/call_user_func_array
+                                               (php/array "\\Phel\\Lang\\Seq" "compact")
+                                               (php/array_merge (php/array coll) (apply php/array values))))))
 
 (defn partition
   "Partitions collection into chunks of size n, dropping incomplete final partition."

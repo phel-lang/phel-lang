@@ -17,23 +17,23 @@
 
 (defn- coerce-int [value]
   (cond
-    (int? value) value
+    (int? value)                                                          value
     (and (string? value) (php/=== 1 (php/preg_match "/^-?\\d+$/" value)))
     (php/intval value)
     (and (float? value) (= value (php/floatval (php/intval value))))
     (php/intval value)
-    (true? value) 1
-    (false? value) 0
-    :else value))
+    (true? value)                                                         1
+    (false? value)                                                        0
+    :else                                                                 value))
 
 (defn- coerce-float [value]
   (cond
-    (float? value) value
-    (int? value) (php/floatval value)
+    (float? value)                                                                             value
+    (int? value)                                                                               (php/floatval value)
     (and (string? value)
          (php/=== 1 (php/preg_match "/^-?\\d+(?:\\.\\d+)?$/" value)))
     (php/floatval value)
-    :else value))
+    :else                                                                                      value))
 
 (defn- coerce-boolean [value]
   (cond
@@ -49,28 +49,28 @@
       "on"    true
       "off"   false
       value)
-    (= value 1) true
-    (= value 0) false
-    :else value))
+    (= value 1)      true
+    (= value 0)      false
+    :else            value))
 
 (defn- coerce-keyword [value]
   (cond
     (keyword? value) value
-    (string? value) (keyword value)
-    (symbol? value) (keyword (name value))
-    :else value))
+    (string? value)  (keyword value)
+    (symbol? value)  (keyword (name value))
+    :else            value))
 
 (defn- coerce-symbol [value]
   (cond
-    (symbol? value) value
-    (string? value) (symbol value)
+    (symbol? value)  value
+    (string? value)  (symbol value)
     (keyword? value) (symbol (name value))
-    :else value))
+    :else            value))
 
 (defn- coerce-uuid [value]
   (cond
     (uuid? value) (php/strtolower value)
-    :else value))
+    :else         value))
 
 (defn- coerce-inst [value]
   (cond
@@ -83,19 +83,19 @@
     (try
       (php/:: \DateTimeImmutable (createFromFormat "U" (str value)))
       (catch \Throwable _ value))
-    :else value))
+    :else                                     value))
 
 (defn- coerce-keyword-kind [head value]
   (case head
     :any     value
     :nil     value
     :string  (cond
-               (string? value) value
+               (string? value)                  value
                (or (int? value) (float? value)) (str value)
-               (boolean? value) (if value "true" "false")
-               (keyword? value) (name value)
-               (symbol? value) (name value)
-               :else value)
+               (boolean? value)                 (if value "true" "false")
+               (keyword? value)                 (name value)
+               (symbol? value)                  (name value)
+               :else                            value)
     :int     (coerce-int value)
     :float   (coerce-float value)
     :number  (coerce-float value)
@@ -117,16 +117,16 @@
         (type-ctor value)
         (let [elem-schema (first args)]
           (type-ctor (into [] (map (fn [v] (coerce elem-schema v)) value)))))
-      :else value)))
+      :else                                           value)))
 
 (defn- coerce-map-of
   [schema value]
   (if (not (map? value))
     value
-    (let [args (v/schema-args schema)
+    (let [args       (v/schema-args schema)
           key-schema (get args 0)
           val-schema (get args 1)
-          pairs (into [] (for [[k v] :pairs value] [k v]))]
+          pairs      (into [] (for [[k v] :pairs value] [k v]))]
       (loop [i 0 acc {}]
         (cond
           (>= i (count pairs)) acc
@@ -208,7 +208,7 @@
   (cond
     (keyword? schema) (coerce-keyword-kind schema value)
     (vector? schema)  (coerce-vector-kind schema value)
-    :else value))
+    :else             value))
 
 (defn conform
   "Coerces `value` against `schema`. Returns the coerced value if it

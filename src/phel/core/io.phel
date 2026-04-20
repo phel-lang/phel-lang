@@ -170,9 +170,9 @@
          enclosure (get options :enclosure "\"")
          escape    (get options :escape "\\")
          result    (lazy-seq-from-generator
-                 (php/call_user_func_array
-                  (php/array "\\Phel\\Lang\\Seq" "csvLines")
-                  (php/array filename separator enclosure escape)))]
+                    (php/call_user_func_array
+                     (php/array "\\Phel\\Lang\\Seq" "csvLines")
+                     (php/array filename separator enclosure escape)))]
      (if (php/=== nil result)
        '()
        result))))
@@ -222,12 +222,12 @@
       (let [form     (first forms)
             g        (gensym)
             call     (if (list? form)
-                   (let [rest (next form)
-                         args (if rest
-                                (cons g rest)
-                                [g])]
-                     (copy-meta form (apply list (cons (first form) args))))
-                   (copy-meta form (list form g)))
+                       (let [rest (next form)
+                             args (if rest
+                                    (cons g rest)
+                                    [g])]
+                         (copy-meta form (apply list (cons (first form) args))))
+                       (copy-meta form (list form g)))
             threaded (list 'let
                            [g x]
                            (list 'if
@@ -246,12 +246,12 @@
       (let [form     (first forms)
             g        (gensym)
             call     (if (list? form)
-                   (let [rest (next form)
-                         args (if rest
-                                (concat rest [g])
-                                [g])]
-                     (copy-meta form (apply list (cons (first form) args))))
-                   (copy-meta form (list form g)))
+                       (let [rest (next form)
+                             args (if rest
+                                    (concat rest [g])
+                                    [g])]
+                         (copy-meta form (apply list (cons (first form) args))))
+                       (copy-meta form (list form g)))
             threaded (list 'let
                            [g x]
                            (list 'if

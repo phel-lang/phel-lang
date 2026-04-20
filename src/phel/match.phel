@@ -104,15 +104,15 @@
   evaluated in the context of the inner bindings so the guard can see
   bound symbols."
   [target pattern]
-  (let [inner      (first pattern)
-        pred       (get pattern 2)
-        sub        (compile-pattern target inner)
-        sub-check  (get sub :check)
-        bindings   (get sub :bindings)
-        pred-expr  (if (empty? bindings)
+  (let [inner     (first pattern)
+        pred      (get pattern 2)
+        sub       (compile-pattern target inner)
+        sub-check (get sub :check)
+        bindings  (get sub :bindings)
+        pred-expr (if (empty? bindings)
                      `(~pred ~target)
                      `(let ~bindings (~pred ~target)))
-        combined   (and-checks [sub-check pred-expr])]
+        combined  (and-checks [sub-check pred-expr])]
     {:check combined :bindings bindings}))
 
 (defn- compile-or
@@ -125,9 +125,9 @@
                       "match :or pattern requires at least one alternative")))
     (let [compiled (for [a :in alts] (compile-pattern target a))]
       (doseq [c :in compiled]
-        (when-not (empty? (get c :bindings))
-          (throw (php/new \InvalidArgumentException
-                          "match :or alternatives must not introduce bindings"))))
+             (when-not (empty? (get c :bindings))
+               (throw (php/new \InvalidArgumentException
+                               "match :or alternatives must not introduce bindings"))))
       (let [checks (for [c :in compiled] (get c :check))]
         {:check `(or ~@checks) :bindings []}))))
 
@@ -167,12 +167,12 @@
   element, optionally bind the rest of the slice."
   [target pattern]
   (let [[head tail-sym] (split-vector-pattern pattern)
-        fixed-len  (count head)
-        shape      (sequential-shape-check target)
-        length-ok  (if tail-sym
+        fixed-len       (count head)
+        shape           (sequential-shape-check target)
+        length-ok       (if tail-sym
                      `(>= (count ~target) ~fixed-len)
                      `(= (count ~target) ~fixed-len))
-        elem-specs (apply vector
+        elem-specs      (apply vector
                           (for [i :range [0 fixed-len]]
                             (let [elem-target `(get ~target ~i)
                                   sub         (compile-pattern elem-target
@@ -180,24 +180,24 @@
                               {:index    i
                                :check    (get sub :check)
                                :bindings (get sub :bindings)})))
-        inner-checks (for [e :in elem-specs] (get e :check))
-        outer-check  (shape-gated-check shape (cons length-ok inner-checks))
-        elem-bindings (apply concat
+        inner-checks    (for [e :in elem-specs] (get e :check))
+        outer-check     (shape-gated-check shape (cons length-ok inner-checks))
+        elem-bindings   (apply concat
                              (for [e :in elem-specs]
                                (get e :bindings)))
-        tail-binding  (if tail-sym
+        tail-binding    (if tail-sym
                         [tail-sym `(vec (slice ~target ~fixed-len))]
                         [])
-        all-bindings  (apply vector (concat elem-bindings tail-binding))]
+        all-bindings    (apply vector (concat elem-bindings tail-binding))]
     {:check outer-check :bindings all-bindings}))
 
 (defn- compile-map
   "Map pattern: shape check, key-presence check, recurse on each value."
   [target pattern]
-  (let [entries    (apply vector
+  (let [entries         (apply vector
                           (for [[k v] :pairs pattern] [k v]))
-        shape      `(map? ~target)
-        key-specs  (apply vector
+        shape           `(map? ~target)
+        key-specs       (apply vector
                           (for [e :in entries]
                             (let [k   (first e)
                                   p   (get e 1)
@@ -307,30 +307,30 @@
   (when-not (vector? targets)
     (throw (php/new \InvalidArgumentException
                     (str "match: target list must be a vector, got " targets))))
-  (let [n           (count targets)
-        target-syms (apply vector
+  (let [n                 (count targets)
+        target-syms       (apply vector
                            (for [_ :range [0 n]]
                              (gensym "__m")))
-        target-binds (apply vector
+        target-binds      (apply vector
                             (apply concat
                                    (for [i :range [0 n]]
                                      [(get target-syms i) (get targets i)])))
         [clauses default] (parse-clauses (apply vector body))
-        compiled    (for [c :in clauses]
-                      (let [pat  (first c)
-                            expr (get c 1)
+        compiled          (for [c :in clauses]
+                      (let [pat              (first c)
+                            expr             (get c 1)
                             [check bindings] (compile-clause target-syms pat)]
                         [check bindings expr]))
-        no-match    (if (nil? default)
+        no-match          (if (nil? default)
                       `(throw (php/new \RuntimeException
                                        (str "match: no matching clause for " [~@target-syms])))
                       default)
-        cond-body   (apply concat
+        cond-body         (apply concat
                            (concat
                             (for [c :in compiled]
-                              (let [check    (first c)
-                                    bindings (get c 1)
-                                    expr     (get c 2)
+                              (let [check     (first c)
+                                    bindings  (get c 1)
+                                    expr      (get c 2)
                                     body-expr (if (empty? bindings)
                                                 expr
                                                 `(let ~bindings ~expr))]

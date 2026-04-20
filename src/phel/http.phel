@@ -18,18 +18,18 @@
                                          authority)
                              res       ""
                              res       (if (and scheme (not= scheme ""))
-                                   (str res scheme ":")
-                                   res)
+                                         (str res scheme ":")
+                                         res)
                              res       (if (or (not= authority "") (= scheme "file"))
-                                   (str res "//" authority)
-                                   res)
+                                         (str res "//" authority)
+                                         res)
                              res       (str res path)
                              res       (if (and query (not= query ""))
-                                   (str res "?" query)
-                                   res)
+                                         (str res "?" query)
+                                         res)
                              res       (if (and fragment (not= fragment ""))
-                                   (str res "#" fragment)
-                                   res)]
+                                         (str res "#" fragment)
+                                         res)]
                          res)))
 
 (def- uri-host-port-regex "/^(.+)\:(\d+)$/")
@@ -196,10 +196,10 @@
     (if method
       method
       (throw (php/new InvalidArgumentException
-               (str "cannot determine HTTP Method: $_SERVER['REQUEST_METHOD'] is not set. "
-                    "request-from-globals requires a web request context (PHP-FPM, mod_php, or `php -S`); "
-                    "it cannot be used from the REPL or a CLI script. "
-                    "Build a request manually with `request-from-map` for testing."))))))
+                      (str "cannot determine HTTP Method: $_SERVER['REQUEST_METHOD'] is not set. "
+                           "request-from-globals requires a web request context (PHP-FPM, mod_php, or `php -S`); "
+                           "it cannot be used from the REPL or a CLI script. "
+                           "Build a request manually with `request-from-map` for testing."))))))
 
 (defn- post-global-valid [method headers]
   (let [content-type (get headers :content-type "")
@@ -217,8 +217,8 @@
         headers         (headers-from-server server)
         server-protocol (get server "SERVER_PROTOCOL")
         version         (if (string? server-protocol)
-                  (php/str_replace "HTTP/" "" server-protocol)
-                  "1.1")]
+                          (php/str_replace "HTTP/" "" server-protocol)
+                          "1.1")]
     (request
      method
      uri

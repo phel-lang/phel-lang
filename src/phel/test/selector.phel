@@ -101,9 +101,9 @@
   pattern. `.` is treated literally, `*` matches any run of non-`.`
   characters, `**` matches anything. The glob is case-sensitive."
   [pattern]
-  (let [len   (php/strlen pattern)
-        out   (atom "")
-        i     (atom 0)]
+  (let [len (php/strlen pattern)
+        out (atom "")
+        i   (atom 0)]
     (loop []
       (when (< (deref i) len)
         (let [ch (php/substr pattern (deref i) 1)]

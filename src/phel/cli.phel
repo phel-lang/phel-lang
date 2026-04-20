@@ -296,22 +296,22 @@
   (foreach [a args]
     (php/-> cmd
             (addArgument
-              (get a :name)
-              (arg-mode (get a :mode :optional))
-              (get a :doc "")
-              (get a :default)
-              (sugg-array a)))))
+             (get a :name)
+             (arg-mode (get a :mode :optional))
+             (get a :doc "")
+             (get a :default)
+             (sugg-array a)))))
 
 (defn- add-opts [cmd opts]
   (foreach [o opts]
     (php/-> cmd
             (addOption
-              (get o :name)
-              (get o :short)
-              (opt-mode (get o :mode :optional))
-              (get o :doc "")
-              (get o :default)
-              (sugg-array o)))))
+             (get o :name)
+             (get o :short)
+             (opt-mode (get o :mode :optional))
+             (get o :doc "")
+             (get o :default)
+             (sugg-array o)))))
 
 (defn- build-ctx [input output spec]
   {:input     input
@@ -324,19 +324,19 @@
   (let [handler (get spec :run)]
     (php/-> cmd
             (setCode
-              (php/:: \Closure
-                      (fromCallable
-                        (fn [input output]
-                          (let [ctx (build-ctx input output spec)]
-                            (try
-                              (let [result (handler ctx)]
-                                (if (int? result) result 0))
-                              (catch \Throwable e
-                                (error ctx (str "Error: " (php/-> e (getMessage))))
-                                (when (>= (php/-> output (getVerbosity))
-                                          (php/:: OutputInterface VERBOSITY_VERBOSE))
-                                  (writeln ctx (php/-> e (getTraceAsString))))
-                                1))))))))))
+             (php/:: \Closure
+                     (fromCallable
+                      (fn [input output]
+                        (let [ctx (build-ctx input output spec)]
+                          (try
+                            (let [result (handler ctx)]
+                              (if (int? result) result 0))
+                            (catch \Throwable e
+                              (error ctx (str "Error: " (php/-> e (getMessage))))
+                              (when (>= (php/-> output (getVerbosity))
+                                        (php/:: OutputInterface VERBOSITY_VERBOSE))
+                                (writeln ctx (php/-> e (getTraceAsString))))
+                              1))))))))))
 
 (defn command
   "Build a Symfony `Command` from a Phel spec map.

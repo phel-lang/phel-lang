@@ -31,42 +31,42 @@
   {:macro true :private true}
   (fn [name meta & fdecl]
     (let [meta            (if (php/is_string (first fdecl))
-                 (php/-> meta (put :doc (first fdecl)))
-                 meta)
+                            (php/-> meta (put :doc (first fdecl)))
+                            meta)
           fdecl           (if (php/is_string (first fdecl))
-                  (next fdecl)
-                  fdecl)
+                            (next fdecl)
+                            fdecl)
           meta            (if (php/instanceof (first fdecl) PersistentMapInterface)
-                 (php/-> meta (merge (first fdecl)))
-                 meta)
+                            (php/-> meta (merge (first fdecl)))
+                            meta)
           fdecl           (if (php/instanceof (first fdecl) PersistentMapInterface)
-                  (next fdecl)
-                  fdecl)
+                            (next fdecl)
+                            fdecl)
           is-single-arity (php/instanceof (first fdecl) PersistentVectorInterface)
           docstring       (php/aget meta :doc)
           signatures      (if is-single-arity
                        ;; Single arity: just one signature
-                       (let [args       (first fdecl)
-                             args-array (if (php/is_array args)
-                                          args
-                                          (apply php/array args))]
-                         (if (php/> (php/count args-array) 0)
-                           (php/. "(" name " " (php/implode " " args-array) ")")
-                           (php/. "(" name ")")))
+                            (let [args       (first fdecl)
+                                  args-array (if (php/is_array args)
+                                               args
+                                               (apply php/array args))]
+                              (if (php/> (php/count args-array) 0)
+                                (php/. "(" name " " (php/implode " " args-array) ")")
+                                (php/. "(" name ")")))
                        ;; Multi-arity: generate signature for each arity
-                       (let [arities fdecl
-                             sigs    (php/array)]
-                         (foreach [arity arities]
-                           (if (php/instanceof arity PersistentListInterface)
-                             (let [args       (first arity)
-                                   args-array (if (php/is_array args)
-                                                args
-                                                (apply php/array args))]
-                               (php/apush sigs (if (php/> (php/count args-array) 0)
-                                                 (php/. "(" name " " (php/implode " " args-array) ")")
-                                                 (php/. "(" name ")"))))
-                             nil))
-                         (php/implode "\n" sigs)))
+                            (let [arities fdecl
+                                  sigs    (php/array)]
+                              (foreach [arity arities]
+                                (if (php/instanceof arity PersistentListInterface)
+                                  (let [args       (first arity)
+                                        args-array (if (php/is_array args)
+                                                     args
+                                                     (apply php/array args))]
+                                    (php/apush sigs (if (php/> (php/count args-array) 0)
+                                                      (php/. "(" name " " (php/implode " " args-array) ")")
+                                                      (php/. "(" name ")"))))
+                                  nil))
+                              (php/implode "\n" sigs)))
           docstring       (php/. "```phel\n" signatures "\n```\n" docstring)
           meta            (php/-> meta (put :doc docstring))]
       `(def ~name ~meta (fn ~@fdecl)))))

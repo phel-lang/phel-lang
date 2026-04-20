@@ -22,7 +22,7 @@
 (declare value->rose)
 
 (defn- shrink-string-tree [s]
-  (let [chars (into [] (for [i :range [0 (php/strlen s)]]
+  (let [chars      (into [] (for [i :range [0 (php/strlen s)]]
                          (php/substr s i 1)))
         char-trees (into [] (map r/rose-pure chars))]
     (r/rose-string char-trees)))
@@ -35,7 +35,7 @@
                (shrink-vector-tree (into [] lst))))
 
 (defn- shrink-map-tree [m]
-  (let [pairs (into [] (for [[k v] :pairs m] [k v]))
+  (let [pairs      (into [] (for [[k v] :pairs m] [k v]))
         pair-trees (into [] (map (fn [pair]
                                    (r/rose-pure pair))
                                  pairs))]

@@ -96,5 +96,5 @@
         (php/=== 0 (bit-and nibble 0x8)) :ncs
         (php/=== 0 (bit-and nibble 0x4)) :rfc-4122
         (php/=== 0 (bit-and nibble 0x2)) :microsoft
-        :else :reserved))))
+        :else                            :reserved))))
 

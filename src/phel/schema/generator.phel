@@ -87,10 +87,10 @@
         (cond
           (nil? ps) acc
           :else
-          (let [p (first ps)
-                k (get p 0)
-                g (get p 1)
-                opt? (get p 2)
+          (let [p        (first ps)
+                k        (get p 0)
+                g        (get p 1)
+                opt?     (get p 2)
                 include? (if opt?
                            (g/boolean size)
                            true)]
@@ -108,9 +108,9 @@
     (g/such-that (fn [v]
                    (loop [xs (next args)]
                      (cond
-                       (nil? xs) true
+                       (nil? xs)                     true
                        (not (v/valid? (first xs) v)) false
-                       :else (recur (next xs)))))
+                       :else                         (recur (next xs)))))
                  base)))
 
 (defn- or-gen [args]
@@ -125,10 +125,10 @@
     (g/such-that (fn [s]
                    (and (string? s)
                         (php/=== 1 (php/preg_match
-                                     (cond
-                                       (string? pattern) pattern
-                                       :else (str pattern))
-                                     s))))
+                                    (cond
+                                      (string? pattern) pattern
+                                      :else             (str pattern))
+                                    s))))
                  g/string-alphanumeric
                  200)))
 
@@ -148,21 +148,21 @@
   (let [head (v/schema-head schema)
         args (v/schema-args schema)]
     (case head
-      :vector  (vector-of-gen args)
-      :list    (list-of-gen args)
-      :set     (set-of-gen args)
-      :map-of  (map-of-gen args)
-      :tuple   (tuple-gen args)
-      :map     (map-schema-gen args)
-      :enum    (enum-gen args)
-      :and     (and-gen args)
-      :or      (or-gen args)
-      :maybe   (maybe-gen args)
-      :re      (re-gen args)
-      :fn      (fn-gen args)
-      :ref     (ref-gen args)
-      :=>      (throw (php/new \InvalidArgumentException
-                                "cannot generate function schemas"))
+      :vector (vector-of-gen args)
+      :list   (list-of-gen args)
+      :set    (set-of-gen args)
+      :map-of (map-of-gen args)
+      :tuple  (tuple-gen args)
+      :map    (map-schema-gen args)
+      :enum   (enum-gen args)
+      :and    (and-gen args)
+      :or     (or-gen args)
+      :maybe  (maybe-gen args)
+      :re     (re-gen args)
+      :fn     (fn-gen args)
+      :ref    (ref-gen args)
+      :=>     (throw (php/new \InvalidArgumentException
+                               "cannot generate function schemas"))
       (v/resolve-or-throw "no generator for schema kind" head
                           (fn [target] (schema->gen target))))))
 

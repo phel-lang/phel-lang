@@ -55,9 +55,9 @@
    :see-also ["phel\\schema/validate"]}
   [x]
   (cond
-    (keyword? x) true
+    (keyword? x)                       true
     (and (vector? x) (not (empty? x))) (keyword? (get x 0))
-    :else false))
+    :else                              false))
 
 (defn function-schema?
   "Returns `true` if `schema` is a function schema of the shape
