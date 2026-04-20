@@ -11,14 +11,11 @@ use Phel\Api\Transfer\ProjectIndex;
 use Phel\Lsp\Application\Convert\PositionConverter;
 use Phel\Lsp\Application\Convert\UriConverter;
 use Phel\Lsp\Application\Document\Document;
+use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\HandlerInterface;
 
-use function explode;
-use function is_array;
-use function is_int;
 use function is_string;
-use function str_contains;
 use function strlen;
 
 /**
@@ -31,6 +28,8 @@ final readonly class RenameHandler implements HandlerInterface
         private ApiFacade $apiFacade,
         private PositionConverter $positions,
         private UriConverter $uris,
+        private ParamsExtractor $params,
+        private SymbolResolver $symbols,
     ) {}
 
     public function method(): string
@@ -58,8 +57,8 @@ final readonly class RenameHandler implements HandlerInterface
             return null;
         }
 
-        $uri = $this->extractUri($params);
-        $position = $this->extractPosition($params);
+        $uri = $this->params->uri($params);
+        $position = $this->params->position($params);
         if ($uri === '' || $position === null) {
             return null;
         }
@@ -74,7 +73,7 @@ final readonly class RenameHandler implements HandlerInterface
             return null;
         }
 
-        [$namespace, $name] = $this->splitSymbol($word, $index);
+        [$namespace, $name] = $this->symbols->split($word, $index);
         $references = $this->apiFacade->findReferences($index, $namespace, $name);
         $definition = $this->apiFacade->resolveSymbol($index, $namespace, $name);
 
@@ -123,58 +122,5 @@ final readonly class RenameHandler implements HandlerInterface
         }
 
         return ['changes' => $changes];
-    }
-
-    /**
-     * @return array{0: string, 1: string}
-     */
-    private function splitSymbol(string $word, ProjectIndex $index): array
-    {
-        if (str_contains($word, '/')) {
-            $parts = explode('/', $word, 2);
-            return [$parts[0], $parts[1] ?? ''];
-        }
-
-        foreach ($index->definitions as $def) {
-            if ($def->name === $word) {
-                return [$def->namespace, $def->name];
-            }
-        }
-
-        return ['', $word];
-    }
-
-    /**
-     * @param array<string, mixed> $params
-     */
-    private function extractUri(array $params): string
-    {
-        $textDocument = $params['textDocument'] ?? [];
-        if (!is_array($textDocument)) {
-            return '';
-        }
-
-        return is_string($textDocument['uri'] ?? null) ? $textDocument['uri'] : '';
-    }
-
-    /**
-     * @param array<string, mixed> $params
-     *
-     * @return array{line: int, character: int}|null
-     */
-    private function extractPosition(array $params): ?array
-    {
-        $position = $params['position'] ?? null;
-        if (!is_array($position)) {
-            return null;
-        }
-
-        $line = $position['line'] ?? null;
-        $character = $position['character'] ?? null;
-        if (!is_int($line) || !is_int($character)) {
-            return null;
-        }
-
-        return ['line' => $line, 'character' => $character];
     }
 }

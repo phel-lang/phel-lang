@@ -158,3 +158,26 @@
   (is (s/schema? [:enum :a :b]))
   (is (not (s/schema? "not a schema")))
   (is (not (s/schema? 1))))
+
+(deftest test-validate-rejects-unknown-keyword-head
+  (is (thrown? \InvalidArgumentException (s/validate :not-a-real-kind 1))))
+
+(deftest test-validate-rejects-unknown-vector-head
+  (is (thrown? \InvalidArgumentException (s/validate [:not-a-real-kind 1] 1))))
+
+(deftest test-validate-rejects-non-schema-shape
+  (is (thrown? \InvalidArgumentException (s/validate "string-is-not-a-schema" 1)))
+  (is (thrown? \InvalidArgumentException (s/validate 42 1))))
+
+(deftest test-empty-and-matches-anything
+  (is (s/validate [:and] 1))
+  (is (s/validate [:and] "x"))
+  (is (s/validate [:and] nil)))
+
+(deftest test-empty-or-matches-nothing
+  (is (not (s/validate [:or] 1)))
+  (is (not (s/validate [:or] nil))))
+
+(deftest test-empty-enum-matches-nothing
+  (is (not (s/validate [:enum] 1)))
+  (is (not (s/validate [:enum] nil))))

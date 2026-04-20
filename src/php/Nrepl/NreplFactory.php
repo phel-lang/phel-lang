@@ -11,6 +11,7 @@ use Phel\Nrepl\Application\Op\CloseOp;
 use Phel\Nrepl\Application\Op\CompletionsOp;
 use Phel\Nrepl\Application\Op\DescribeOp;
 use Phel\Nrepl\Application\Op\EvalOp;
+use Phel\Nrepl\Application\Op\EvalResultResponder;
 use Phel\Nrepl\Application\Op\InterruptOp;
 use Phel\Nrepl\Application\Op\LoadFileOp;
 use Phel\Nrepl\Application\Op\LookupOp;
@@ -44,20 +45,13 @@ final class NreplFactory extends AbstractFactory
     public function createOpDispatcher(): OpDispatcher
     {
         $sessions = $this->createSessionRegistry();
+        $responder = new EvalResultResponder($this->createPrinter(), $sessions);
         $dispatcher = new OpDispatcher();
 
         $dispatcher->register(new CloneOp($sessions));
         $dispatcher->register(new CloseOp($sessions));
-        $dispatcher->register(new EvalOp(
-            $this->getRunFacade(),
-            $this->createPrinter(),
-            $sessions,
-        ));
-        $dispatcher->register(new LoadFileOp(
-            $this->getRunFacade(),
-            $this->createPrinter(),
-            $sessions,
-        ));
+        $dispatcher->register(new EvalOp($this->getRunFacade(), $responder));
+        $dispatcher->register(new LoadFileOp($this->getRunFacade(), $responder));
         $dispatcher->register(new InterruptOp());
         $dispatcher->register(new CompletionsOp($this->getApiFacade()));
         $dispatcher->register(new LookupOp($this->getApiFacade(), 'lookup'));

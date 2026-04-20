@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Nrepl\Domain\Op;
 
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Nrepl\Application\Op\EvalOp;
+use Phel\Nrepl\Application\Op\EvalResultResponder;
 use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Session\SessionRegistry;
 use Phel\Printer\PrinterInterface;
@@ -27,7 +28,7 @@ final class EvalOpTest extends TestCase
         $registry = new SessionRegistry();
         $session = $registry->create();
 
-        $op = new EvalOp($run, $printer, $registry);
+        $op = new EvalOp($run, new EvalResultResponder($printer, $registry));
         $responses = $op->handle(new OpRequest('eval', 'r1', $session->id, [
             'op' => 'eval',
             'code' => '(+ 1 2)',
@@ -48,7 +49,8 @@ final class EvalOpTest extends TestCase
         $printer = $this->createStub(PrinterInterface::class);
         $printer->method('print')->willReturn('nil');
 
-        $op = new EvalOp($run, $printer, new SessionRegistry());
+        $registry = new SessionRegistry();
+        $op = new EvalOp($run, new EvalResultResponder($printer, $registry));
         $responses = $op->handle(new OpRequest('eval', 'r1', null, [
             'op' => 'eval',
             'code' => '(println "x")',
@@ -82,7 +84,8 @@ final class EvalOpTest extends TestCase
 
         $printer = $this->createStub(PrinterInterface::class);
 
-        $op = new EvalOp($run, $printer, new SessionRegistry());
+        $registry = new SessionRegistry();
+        $op = new EvalOp($run, new EvalResultResponder($printer, $registry));
         $responses = $op->handle(new OpRequest('eval', 'r1', null, [
             'op' => 'eval',
             'code' => 'xx',
@@ -90,8 +93,30 @@ final class EvalOpTest extends TestCase
 
         self::assertCount(2, $responses);
         self::assertSame('CompilerException', $responses[0]->payload['ex']);
+        self::assertSame('CompilerException', $responses[0]->payload['root-ex']);
+        self::assertStringContainsString('unbound symbol', (string) $responses[0]->payload['err']);
         self::assertContains('eval-error', $responses[0]->payload['status']);
         self::assertContains('done', $responses[1]->payload['status']);
+    }
+
+    public function test_it_falls_back_to_generic_error_when_no_eval_error_is_attached(): void
+    {
+        $run = $this->createStub(RunFacadeInterface::class);
+        // Failure without a concrete EvalError: the responder must still produce a frame.
+        $run->method('structuredEval')->willReturn(EvalResult::incomplete());
+
+        $registry = new SessionRegistry();
+        $op = new EvalOp($run, new EvalResultResponder(
+            $this->createStub(PrinterInterface::class),
+            $registry,
+        ));
+        $responses = $op->handle(new OpRequest('eval', 'r1', null, [
+            'op' => 'eval',
+            'code' => '(+ 1',
+        ]));
+
+        self::assertCount(1, $responses);
+        self::assertContains('incomplete', $responses[0]->payload['status']);
     }
 
     public function test_it_reports_incomplete_form(): void
@@ -99,7 +124,10 @@ final class EvalOpTest extends TestCase
         $run = $this->createStub(RunFacadeInterface::class);
         $run->method('structuredEval')->willReturn(EvalResult::incomplete());
 
-        $op = new EvalOp($run, $this->createStub(PrinterInterface::class), new SessionRegistry());
+        $op = new EvalOp($run, new EvalResultResponder(
+            $this->createStub(PrinterInterface::class),
+            new SessionRegistry(),
+        ));
         $responses = $op->handle(new OpRequest('eval', 'r1', null, [
             'op' => 'eval',
             'code' => '(+ 1',
@@ -112,8 +140,7 @@ final class EvalOpTest extends TestCase
     {
         $op = new EvalOp(
             $this->createStub(RunFacadeInterface::class),
-            $this->createStub(PrinterInterface::class),
-            new SessionRegistry(),
+            new EvalResultResponder($this->createStub(PrinterInterface::class), new SessionRegistry()),
         );
         $responses = $op->handle(new OpRequest('eval', 'r1', null, ['op' => 'eval']));
 
@@ -131,7 +158,7 @@ final class EvalOpTest extends TestCase
         $printer = $this->createStub(PrinterInterface::class);
         $printer->method('print')->willReturn('3');
 
-        $op = new EvalOp($run, $printer, new SessionRegistry());
+        $op = new EvalOp($run, new EvalResultResponder($printer, new SessionRegistry()));
         $op->handle(new OpRequest('eval', 'r1', null, ['op' => 'eval', 'code' => '(+ 1 2)']));
     }
 }

@@ -175,3 +175,75 @@
            :else   (swap! results conj :else-branch))
     (is (= [:hit-branch] (deref results))
         "only the matching branch runs")))
+
+(deftest test-deeply-nested-patterns
+  (testing "three levels of vector nesting"
+    (is (= [1 2 3 4]
+           (match [[[1 [2 [3 [4]]]]]]
+                  [[[a [b [c [d]]]]]] [a b c d]
+                  :else :else))
+        "triple-nested vectors destructure to leaves"))
+  (testing "map-inside-vector-inside-map"
+    (is (= [:root 1 2]
+           (match [{:tag :root :cells [{:id 1} {:id 2}]}]
+                  [{:tag t :cells [{:id a} {:id b}]}] [t a b]
+                  :else :else))
+        "three-level mixed structure"))
+  (testing "nested :or inside vector"
+    (is (= :hit (match [[:a]] [[(:or :a :b)]] :hit :else :else))
+        "or alternative inside outer vector"))
+  (testing "nested guard inside map"
+    (is (= :ok
+           (match [{:n 7}]
+                  [{:n (x :guard odd?)}] :ok
+                  :else :else))
+        "guard survives map destructure"))
+  (testing "nested as inside vector with outer pattern"
+    (is (= [:k [1 2]]
+           (match [[:k [1 2]]]
+                  [[tag ([a b] :as inner)]] [tag inner]
+                  :else :else)))))
+
+(deftest test-pattern-fall-through-to-else
+  (testing "vector shape mismatch hits :else"
+    (is (= :else
+           (match [42]
+                  [[a]] :vector
+                  [{:k _}] :map
+                  :else :else))
+        "int is neither vector nor map"))
+  (testing "every clause shape-fails"
+    (is (= :fallback
+           (match [nil]
+                  [[_ _]] :two-vec
+                  [[_]] :one-vec
+                  [{:a _}] :map
+                  :else :fallback))
+        "nil falls through all structural clauses"))
+  (testing "rest-binding does not match non-sequential"
+    (is (= :else (match ["abc"] [[a & r]] :seq :else :else))
+        "string target against vector pattern with rest")))
+
+(deftest test-empty-target-vector
+  ;; A zero-target match is legal — the pattern list must also be zero-length.
+  (is (= :matched
+         (match [] [] :matched :else :else))
+      "empty target + empty pattern hits the clause")
+  (is (= :yes
+         (match [] :else :yes))
+      "empty target with only :else returns :else expr"))
+
+(deftest test-or-pattern-shape-mix
+  (testing ":or with literal alternatives of different scalar types"
+    (is (= :ok (match [nil] [(:or nil false 0)] :ok :else :else))
+        "nil alternative matches")
+    (is (= :ok (match [false] [(:or nil false 0)] :ok :else :else))
+        "false alternative matches")
+    (is (= :ok (match [0] [(:or nil false 0)] :ok :else :else))
+        "zero alternative matches")
+    (is (= :else (match [1] [(:or nil false 0)] :ok :else :else))
+        "no alternative matches"))
+  (testing ":or requires at least one alternative"
+    (is (thrown? \InvalidArgumentException
+                 (macroexpand-1 '(phel\match/match [1] [(:or)] :x :else :y)))
+        "empty :or raises at expansion")))

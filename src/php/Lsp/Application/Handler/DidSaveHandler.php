@@ -8,11 +8,10 @@ use Phel\Api\ApiFacade;
 use Phel\Lsp\Application\Convert\UriConverter;
 use Phel\Lsp\Application\Diagnostics\DiagnosticPublisher;
 use Phel\Lsp\Application\Document\Document;
+use Phel\Lsp\Application\Rpc\ParamsExtractor;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\HandlerInterface;
 
-use function is_array;
-use function is_string;
 use function str_ends_with;
 use function strtolower;
 
@@ -22,6 +21,7 @@ final readonly class DidSaveHandler implements HandlerInterface
         private DiagnosticPublisher $publisher,
         private ApiFacade $apiFacade,
         private UriConverter $uris,
+        private ParamsExtractor $params,
     ) {}
 
     public function method(): string
@@ -39,12 +39,7 @@ final readonly class DidSaveHandler implements HandlerInterface
      */
     public function handle(array $params, Session $session): mixed
     {
-        $textDocument = $params['textDocument'] ?? [];
-        if (!is_array($textDocument)) {
-            return null;
-        }
-
-        $uri = is_string($textDocument['uri'] ?? null) ? $textDocument['uri'] : '';
+        $uri = $this->params->uri($params);
         if ($uri === '') {
             return null;
         }

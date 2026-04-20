@@ -112,4 +112,31 @@ final class FutureTest extends TestCase
 
         self::assertSame([10, 20, 30], $results);
     }
+
+    public function test_is_done_is_false_before_start_and_cancel(): void
+    {
+        $future = new Future($this->scheduler, static fn(): string => 'x');
+
+        self::assertFalse($future->isCancelled());
+        self::assertFalse($future->isDone());
+    }
+
+    public function test_deref_with_zero_timeout_returns_fallback_for_unrealized(): void
+    {
+        $parked = new Promise($this->scheduler);
+        $future = new Future($this->scheduler, static fn(): mixed => $parked->deref());
+
+        self::assertSame(':fallback', $future->derefWithTimeout(0, ':fallback'));
+        self::assertFalse($future->isRealized());
+    }
+
+    public function test_deref_with_timeout_returns_fallback_when_cancelled_before_deliver(): void
+    {
+        $parked = new Promise($this->scheduler);
+        $future = new Future($this->scheduler, static fn(): mixed => $parked->deref());
+
+        $future->cancel();
+
+        self::assertSame(':cancelled', $future->derefWithTimeout(100, ':cancelled'));
+    }
 }

@@ -28,7 +28,7 @@ final readonly class UnusedRequireRule implements LintRuleInterface
 
     public function apply(FileAnalysis $analysis): array
     {
-        $nsForm = $this->findNsForm($analysis->forms);
+        $nsForm = NamespaceForm::find($analysis->forms);
         if (!$nsForm instanceof PersistentListInterface) {
             return [];
         }
@@ -38,7 +38,7 @@ final readonly class UnusedRequireRule implements LintRuleInterface
             return [];
         }
 
-        $usedSymbols = $this->collectSymbolUses($analysis->forms, $nsForm);
+        $usedSymbols = NamespaceForm::collectSymbolUses($analysis->forms, $nsForm);
 
         $result = [];
         foreach ($requires as $entry) {
@@ -75,29 +75,6 @@ final readonly class UnusedRequireRule implements LintRuleInterface
         }
 
         return $result;
-    }
-
-    /**
-     * @param list<mixed> $forms
-     */
-    private function findNsForm(array $forms): ?PersistentListInterface
-    {
-        foreach ($forms as $form) {
-            if (!$form instanceof PersistentListInterface) {
-                continue;
-            }
-
-            if (count($form) < 1) {
-                continue;
-            }
-
-            $head = $form->get(0);
-            if ($head instanceof Symbol && $head->getName() === Symbol::NAME_NS) {
-                return $form;
-            }
-        }
-
-        return null;
     }
 
     /**
@@ -270,38 +247,6 @@ final readonly class UnusedRequireRule implements LintRuleInterface
         $parts = explode('\\', $name);
 
         return $parts[count($parts) - 1];
-    }
-
-    /**
-     * @param list<mixed> $forms
-     *
-     * @return array<string, true>
-     */
-    private function collectSymbolUses(array $forms, PersistentListInterface $nsForm): array
-    {
-        $seen = [];
-
-        $visit = static function (mixed $value) use (&$seen): void {
-            if ($value instanceof Symbol) {
-                $seen[$value->getName()] = true;
-                $ns = $value->getNamespace();
-                if ($ns !== null && $ns !== '') {
-                    $seen[$ns] = true;
-                }
-            }
-        };
-
-        foreach ($forms as $form) {
-            if ($form === $nsForm) {
-                continue;
-            }
-
-            FormWalker::walk($form, static function (mixed $value) use ($visit): void {
-                $visit($value);
-            });
-        }
-
-        return $seen;
     }
 
     /**

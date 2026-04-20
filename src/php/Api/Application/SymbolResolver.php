@@ -12,11 +12,7 @@ final readonly class SymbolResolver implements SymbolResolverInterface
 {
     public function resolve(ProjectIndex $index, string $namespace, string $symbol): ?Definition
     {
-        // Qualified form foo/bar wins if provided outright.
-        $key = $symbol;
-        if (!str_contains($symbol, '/')) {
-            $key = $namespace === '' ? $symbol : $namespace . '/' . $symbol;
-        }
+        $key = SymbolKey::resolve($namespace, $symbol);
 
         if (isset($index->definitions[$key])) {
             return $index->definitions[$key];

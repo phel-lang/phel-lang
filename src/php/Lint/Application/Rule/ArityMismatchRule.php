@@ -38,7 +38,11 @@ final readonly class ArityMismatchRule implements LintRuleInterface
 
     public function apply(FileAnalysis $analysis): array
     {
-        $result = $this->promoteSemanticArityErrors($analysis);
+        $result = SemanticDiagnosticPromoter::promote(
+            $analysis,
+            ErrorCode::ARITY_ERROR->value,
+            $this->code(),
+        );
 
         $localFns = $this->collectLocalFunctions($analysis->forms);
         if ($localFns === []) {
@@ -47,32 +51,6 @@ final readonly class ArityMismatchRule implements LintRuleInterface
 
         foreach ($analysis->forms as $form) {
             $this->inspectCalls($form, $localFns, $analysis->uri, $result);
-        }
-
-        return $result;
-    }
-
-    /**
-     * @return list<Diagnostic>
-     */
-    private function promoteSemanticArityErrors(FileAnalysis $analysis): array
-    {
-        $result = [];
-        foreach ($analysis->semanticDiagnostics as $diagnostic) {
-            if ($diagnostic->code !== ErrorCode::ARITY_ERROR->value) {
-                continue;
-            }
-
-            $result[] = new Diagnostic(
-                code: $this->code(),
-                severity: $diagnostic->severity,
-                message: $diagnostic->message,
-                uri: $diagnostic->uri,
-                startLine: $diagnostic->startLine,
-                startCol: $diagnostic->startCol,
-                endLine: $diagnostic->endLine,
-                endCol: $diagnostic->endCol,
-            );
         }
 
         return $result;

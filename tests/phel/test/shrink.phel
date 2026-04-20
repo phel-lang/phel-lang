@@ -110,3 +110,52 @@
                 [100])]
       (is (= [1] (:smallest res)) "shrinks to the smallest throwing value")
       (is (> (:shrink-steps res) 0)))))
+
+;; ---------------------------
+;; Leaf values — no children, driver returns the value unchanged
+;; ---------------------------
+
+(deftest test-shrink-leaf-value-has-no-shrinks
+  (testing "keyword has no default shrink strategy - driver returns it as-is"
+    (let [res (shrink/shrink-args (fn [_] false) [:keyword-value])]
+      (is (= [:keyword-value] (:smallest res))
+          "leaf values are returned unchanged")
+      (is (= 0 (:shrink-steps res))
+          "no shrink steps attempted on leaf values"))))
+
+;; ---------------------------
+;; Multi-argument shrinking
+;; ---------------------------
+
+(deftest test-shrink-multi-argument-shrinks-each-position
+  (testing "property with two arguments shrinks toward a minimal failing pair"
+    (let [prop (fn [a b] (and (< a 100) (< b 50)))
+          res  (shrink/shrink-args prop [1000 800])
+          a    (get (:smallest res) 0)
+          b    (get (:smallest res) 1)]
+      (is (= 2 (count (:smallest res)))
+          "arity is preserved during shrinking")
+      (is (not (prop a b))
+          "the shrunk pair still fails the property")
+      (is (> (:shrink-steps res) 0)
+          "at least one shrink step was taken"))))
+
+;; ---------------------------
+;; value->rose falls back to leaf for unsupported types
+;; ---------------------------
+
+(deftest test-value-to-rose-list-shrinks-by-removal
+  (let [t (shrink/value->rose '(1 2 3))]
+    (is (= '(1 2 3) (r/rose-root t))
+        "list root is preserved")
+    (is (some (fn [v] (< (count v) 3))
+              (into [] (map r/rose-root (r/rose-children t))))
+        "list shrinks by element removal")))
+
+(deftest test-value-to-rose-set-shrinks-by-removal
+  (let [t (shrink/value->rose (hash-set 1 2 3))
+        shrinks (into [] (map r/rose-root (r/rose-children t)))]
+    (is (set? (r/rose-root t))
+        "set root is preserved as a set")
+    (is (some (fn [v] (< (count v) 3)) shrinks)
+        "set shrinks by element removal")))

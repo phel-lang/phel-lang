@@ -183,3 +183,101 @@
     (is (php/preg_match "/Passed: 2/" out) "prints Passed count")
     (is (php/preg_match "/Failed: 1/" out) "prints Failed count")
     (is (php/preg_match "/Total: 3/" out) "prints Total count")))
+
+;; ---------------------------------------------------------------------------
+;; Default reporter — thrown-with-msg failure formatting
+;; ---------------------------------------------------------------------------
+
+(deftest test-default-reporter-thrown-with-msg-prints-when-exception-not-thrown
+  (let [rep (t/resolve-reporter :default)
+        out (with-output-buffer
+              (rep {:type :begin-test-run})
+              (rep {:type :thrown-with-msg :state :failed
+                    :form "(throw (new E 'x'))" :message "should throw"
+                    :exception-symbol "\\Exception"
+                    :expected-message "expected"
+                    :actual-message nil})
+              (rep {:type :summary :total 1 :pass 0 :failed 1 :error 0
+                    :failures [{:type :thrown-with-msg :state :failed
+                                :form "(throw (new E 'x'))" :message "should throw"
+                                :exception-symbol "\\Exception"
+                                :expected-message "expected"
+                                :actual-message nil}]}))]
+    (is (php/preg_match "/to throw a: \\\\Exception \\(it didn't\\)/" out)
+        "when no exception thrown, prints 'didn't throw' diagnostic")
+    (is (= 0 (php/preg_match "/with message:/" out))
+        "when no exception thrown, does NOT print 'with message' line")))
+
+(deftest test-default-reporter-thrown-with-msg-prints-when-message-differs
+  (let [rep (t/resolve-reporter :default)
+        out (with-output-buffer
+              (rep {:type :begin-test-run})
+              (rep {:type :thrown-with-msg :state :failed
+                    :form "(throw (new E 'actual'))" :message "msg mismatch"
+                    :exception-symbol "\\Exception"
+                    :expected-message "expected"
+                    :actual-message "actual"})
+              (rep {:type :summary :total 1 :pass 0 :failed 1 :error 0
+                    :failures [{:type :thrown-with-msg :state :failed
+                                :form "(throw (new E 'actual'))" :message "msg mismatch"
+                                :exception-symbol "\\Exception"
+                                :expected-message "expected"
+                                :actual-message "actual"}]}))]
+    (is (php/preg_match "/to throw a: \\\\Exception/" out)
+        "exception class is printed")
+    (is (php/preg_match "/with message: expected/" out)
+        "expected message is printed")
+    (is (php/preg_match "/but got: actual/" out)
+        "actual message is printed")))
+
+;; ---------------------------------------------------------------------------
+;; Pathological input — reporters tolerate missing fields
+;; ---------------------------------------------------------------------------
+
+(deftest test-dot-reporter-tolerates-missing-summary-fields
+  (let [rep (t/resolve-reporter :dot)
+        out (with-output-buffer
+              (rep {:type :begin-test-run})
+              (rep {:type :summary}))]
+    (is (php/preg_match "/Tests: /" out)
+        "dot reporter renders a summary line even when counts are absent")))
+
+(deftest test-default-reporter-tolerates-summary-without-failures
+  (let [rep (t/resolve-reporter :default)
+        out (with-output-buffer
+              (rep {:type :begin-test-run})
+              (rep {:type :summary :total 0 :pass 0 :failed 0 :error 0}))]
+    (is (php/preg_match "/Total: 0/" out)
+        "summary renders cleanly when :failures key is absent")))
+
+;; ---------------------------------------------------------------------------
+;; Assertion-like dispatch — :predicate with :state :error routes to error path
+;; ---------------------------------------------------------------------------
+
+(deftest test-assertion-like-state-error-is-recorded
+  (let [events (atom [])
+        saved  (t/get-stats)
+        prev   (t/get-reporters)]
+    (t/set-reporters! [(fn [e] (swap! events conj e))])
+    (t/reset-stats)
+    (t/report {:type :predicate :state :error :message "threw"})
+    (let [snapshot (t/get-stats)]
+      (t/set-reporters! prev)
+      (t/restore-stats saved)
+      (is (= 1 (count (deref events))) "event reached the reporter")
+      (is (= 1 (:error (:counts snapshot)))
+          ":predicate with :state :error increments :error count"))))
+
+(deftest test-assertion-like-without-state-flows-through
+  (let [events (atom [])
+        saved  (t/get-stats)
+        prev   (t/get-reporters)]
+    (t/set-reporters! [(fn [e] (swap! events conj e))])
+    (t/reset-stats)
+    (t/report {:type :binary :payload "no state"})
+    (let [snapshot (t/get-stats)]
+      (t/set-reporters! prev)
+      (t/restore-stats saved)
+      (is (= 1 (count (deref events))) "event still fans out")
+      (is (= 0 (:pass (:counts snapshot)))
+          "event without :state does not touch stats"))))

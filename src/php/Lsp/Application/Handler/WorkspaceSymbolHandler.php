@@ -7,6 +7,7 @@ namespace Phel\Lsp\Application\Handler;
 use Phel\Api\Transfer\Definition;
 use Phel\Api\Transfer\ProjectIndex;
 use Phel\Lsp\Application\Convert\PositionConverter;
+use Phel\Lsp\Application\Convert\SymbolKindMapper;
 use Phel\Lsp\Application\Convert\UriConverter;
 use Phel\Lsp\Application\Session\Session;
 use Phel\Lsp\Domain\HandlerInterface;
@@ -21,6 +22,7 @@ final readonly class WorkspaceSymbolHandler implements HandlerInterface
     public function __construct(
         private PositionConverter $positions,
         private UriConverter $uris,
+        private SymbolKindMapper $symbolKind,
     ) {}
 
     public function method(): string
@@ -74,24 +76,12 @@ final readonly class WorkspaceSymbolHandler implements HandlerInterface
 
         return [
             'name' => $def->name,
-            'kind' => $this->lspSymbolKind($def->kind),
+            'kind' => $this->symbolKind->fromDefinitionKind($def->kind),
             'containerName' => $def->namespace,
             'location' => [
                 'uri' => $this->uris->isFileUri($def->uri) ? $def->uri : $this->uris->fromFilePath($def->uri),
                 'range' => $this->positions->toLspRange($def->line, $def->col, $def->line, $endCol),
             ],
         ];
-    }
-
-    private function lspSymbolKind(string $kind): int
-    {
-        return match ($kind) {
-            Definition::KIND_DEFN => 12,
-            Definition::KIND_DEFMACRO => 6,
-            Definition::KIND_DEFSTRUCT => 18,
-            Definition::KIND_DEFPROTOCOL, Definition::KIND_DEFINTERFACE => 11,
-            Definition::KIND_DEFEXCEPTION => 5,
-            default => 13,
-        };
     }
 }

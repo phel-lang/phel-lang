@@ -160,9 +160,7 @@
           :else
           (let [entry (first es)
                 k     (get entry 0)
-                inner (if (and (>= (count entry) 3) (map? (get entry 1)))
-                        (get entry 2)
-                        (get entry 1))]
+                inner (v/map-entry-schema entry)]
             (if (contains? acc k)
               (recur (next es) (assoc acc k (coerce inner (get acc k))))
               (recur (next es) acc))))))))

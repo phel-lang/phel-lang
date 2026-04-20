@@ -212,3 +212,47 @@
       "non-empty filters counts")
   (is (selector/has-selectors? {:exclude [:slow]})
       "non-empty exclude counts"))
+
+;; ---------------------------------------------------------------------------
+;; ns-matches? — glob edge cases
+;; ---------------------------------------------------------------------------
+
+(deftest test-ns-matches-trailing-star-without-prefix
+  (is (selector/ns-matches? "*" "top")
+      "bare `*` matches any single-segment namespace")
+  (is (not (selector/ns-matches? "*" "a.b"))
+      "bare `*` does not cross dots"))
+
+(deftest test-ns-matches-nil-inputs-are-safe
+  (is (not (selector/ns-matches? nil "phel.core"))
+      "nil pattern never matches")
+  (is (not (selector/ns-matches? "phel.*" nil))
+      "nil ns never matches"))
+
+(deftest test-ns-matches-treats-backslash-as-dot
+  (is (selector/ns-matches? "phel.test.*" "phel\\test\\selector")
+      "backslash-separated ns matches dotted glob"))
+
+(deftest test-ns-matches-special-regex-chars-escaped
+  (is (not (selector/ns-matches? "a+" "aaa"))
+      "`+` in glob is a literal, not regex quantifier")
+  (is (selector/ns-matches? "a+b" "a+b")
+      "`+` in glob matches literal `+` in ns name"))
+
+;; ---------------------------------------------------------------------------
+;; matches-filter? — nil safety
+;; ---------------------------------------------------------------------------
+
+(deftest test-name-matches-nil-inputs-are-safe
+  (is (not (selector/name-matches? "x" nil))
+      "nil test-name never matches")
+  (is (not (selector/name-matches? nil "test-x"))
+      "nil pattern never matches"))
+
+(deftest test-matches-filter-with-nil-name-and-non-empty-patterns
+  (is (not (selector/matches-filter? ["x"] nil))
+      "non-empty pattern + nil name yields no match"))
+
+(deftest test-matches-filter-with-nil-name-and-empty-patterns
+  (is (selector/matches-filter? [] nil)
+      "empty pattern list with nil name still imposes no restriction"))

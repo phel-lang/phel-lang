@@ -42,9 +42,7 @@ final class PollingWatcher implements FileWatcherInterface
         $this->running = true;
         $this->lastSnapshot = $this->scanner->snapshot($paths);
 
-        /** @var list<WatchEvent> $pending */
-        $pending = [];
-        $lastEventAt = 0;
+        $debouncer = new EventDebouncer($this->clock, $this->debounceMs);
         $iterations = 0;
 
         /** @psalm-suppress RedundantCondition */
@@ -52,24 +50,18 @@ final class PollingWatcher implements FileWatcherInterface
             $this->clock->sleepMs($this->pollIntervalMs);
 
             $currentSnapshot = $this->scanner->snapshot($paths);
-            $events = $this->diff($this->lastSnapshot, $currentSnapshot);
-            $this->lastSnapshot = $currentSnapshot;
-
-            if ($events !== []) {
-                foreach ($events as $event) {
-                    $pending[] = $event;
-                }
-
-                $lastEventAt = $this->clock->nowMs();
+            foreach ($this->diff($this->lastSnapshot, $currentSnapshot) as $event) {
+                $debouncer->record($event);
             }
 
-            $pending = $this->flushIfReady($pending, $lastEventAt, $onChange);
+            $this->lastSnapshot = $currentSnapshot;
+
+            $debouncer->flushIfReady($onChange);
 
             ++$iterations;
             if ($this->maxIterations > 0 && $iterations >= $this->maxIterations) {
                 $this->running = false;
-                // Flush any outstanding events so callers can assert on them.
-                $this->flushIfReady($pending, $lastEventAt, $onChange, true);
+                $debouncer->flushIfReady($onChange, force: true);
                 break;
             }
         }
@@ -78,61 +70,6 @@ final class PollingWatcher implements FileWatcherInterface
     public function stop(): void
     {
         $this->running = false;
-    }
-
-    /**
-     * @param list<WatchEvent>                $pending
-     * @param callable(list<WatchEvent>):void $onChange
-     *
-     * @return list<WatchEvent>
-     */
-    private function flushIfReady(array $pending, int $lastEventAt, callable $onChange, bool $force = false): array
-    {
-        if ($pending === []) {
-            return [];
-        }
-
-        if (!$force) {
-            $elapsed = $this->clock->nowMs() - $lastEventAt;
-            if ($elapsed < $this->debounceMs) {
-                return $pending;
-            }
-        }
-
-        $unique = $this->coalesce($pending);
-        $onChange($unique);
-
-        return [];
-    }
-
-    /**
-     * Coalesce multiple events for the same path into a single entry.
-     *
-     * @param list<WatchEvent> $events
-     *
-     * @return list<WatchEvent>
-     */
-    private function coalesce(array $events): array
-    {
-        /** @var array<string, WatchEvent> $byPath */
-        $byPath = [];
-        foreach ($events as $event) {
-            // Creations trump modifications for the same file; deletions trump
-            // creations. Later wins only when the kind is stronger.
-            $existing = $byPath[$event->path] ?? null;
-            if ($existing === null) {
-                $byPath[$event->path] = $event;
-                continue;
-            }
-
-            if ($existing->kind === WatchEvent::KIND_DELETED) {
-                continue;
-            }
-
-            $byPath[$event->path] = $event;
-        }
-
-        return array_values($byPath);
     }
 
     /**

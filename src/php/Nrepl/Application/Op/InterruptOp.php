@@ -7,6 +7,7 @@ namespace Phel\Nrepl\Application\Op;
 use Phel\Nrepl\Domain\Op\OpHandlerInterface;
 use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Op\OpResponse;
+use Phel\Nrepl\Domain\Op\OpStatus;
 
 final class InterruptOp implements OpHandlerInterface
 {
@@ -23,7 +24,7 @@ final class InterruptOp implements OpHandlerInterface
             $request->id,
             $request->session,
             [],
-            ['done', 'session-idle'],
+            [OpStatus::DONE, OpStatus::SESSION_IDLE],
         )];
     }
 }

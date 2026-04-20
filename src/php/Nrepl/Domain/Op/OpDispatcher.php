@@ -48,7 +48,7 @@ final class OpDispatcher
     {
         if (!is_array($message)) {
             return [new OpResponse([
-                'status' => ['error', 'invalid-message', 'done'],
+                'status' => [OpStatus::ERROR, OpStatus::INVALID_MESSAGE, OpStatus::DONE],
                 'message' => 'Top-level nREPL message must be a dictionary.',
             ])];
         }
@@ -61,7 +61,7 @@ final class OpDispatcher
                 $request->id,
                 $request->session,
                 ['message' => 'Missing "op" key in request.'],
-                ['error', 'invalid-op', 'done'],
+                [OpStatus::ERROR, OpStatus::INVALID_OP, OpStatus::DONE],
             )];
         }
 
@@ -71,7 +71,7 @@ final class OpDispatcher
                 $request->id,
                 $request->session,
                 ['message' => 'Unknown op: ' . $request->op],
-                ['error', 'unknown-op', 'done'],
+                [OpStatus::ERROR, OpStatus::UNKNOWN_OP, OpStatus::DONE],
             )];
         }
 

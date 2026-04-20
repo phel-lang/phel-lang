@@ -7,10 +7,8 @@ namespace Phel\Lang\TagHandlers;
 use DateTimeImmutable;
 use DateTimeZone;
 use Exception;
-
 use Phel\Lang\TagHandlerException;
 
-use function is_string;
 use function preg_match;
 use function sprintf;
 
@@ -20,7 +18,7 @@ use function sprintf;
  * Accepts an ISO 8601 timestamp string (RFC 3339 subset) and returns a
  * `\DateTimeImmutable`. Missing timezone offsets are interpreted as UTC.
  */
-final readonly class InstTagHandler
+final readonly class InstTagHandler extends AbstractStringTagHandler
 {
     /**
      * Matches ISO 8601 / RFC 3339 timestamps of the shape
@@ -28,14 +26,18 @@ final readonly class InstTagHandler
      */
     private const string REGEX = '/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:?\d{2})?$/';
 
-    public function __invoke(mixed $form): DateTimeImmutable
+    protected function tagName(): string
     {
-        if (!is_string($form)) {
-            throw new TagHandlerException(
-                '#inst expects a string literal (e.g. #inst "2026-04-20T12:00:00Z").',
-            );
-        }
+        return 'inst';
+    }
 
+    protected function example(): string
+    {
+        return '#inst "2026-04-20T12:00:00Z"';
+    }
+
+    protected function handleString(string $form): DateTimeImmutable
+    {
         if (preg_match(self::REGEX, $form) !== 1) {
             throw new TagHandlerException(sprintf(
                 '#inst value "%s" is not a valid ISO 8601 / RFC 3339 timestamp.',
