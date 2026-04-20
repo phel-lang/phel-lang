@@ -15,6 +15,11 @@ Rules + CLI: [`RULES.md`](RULES.md).
 | Debug errors | [`tasks/debug-errors.md`](tasks/debug-errors.md) | `docs/patterns.md` § Error Handling |
 | Common pitfalls | [`tasks/common-gotchas.md`](tasks/common-gotchas.md) | `RULES.md` § Gotchas |
 | Use a PHP library | [`tasks/use-php-libs.md`](tasks/use-php-libs.md) | `docs/php-interop.md` |
+| Validate data | [`tasks/validate-with-schema.md`](tasks/validate-with-schema.md) | `src/phel/schema.phel`, `docs/schema-guide.md` |
+| Pattern match | [`tasks/pattern-match.md`](tasks/pattern-match.md) | `src/phel/match.phel`, `docs/match-guide.md` |
+| Lint code | — | `docs/lint-guide.md` |
+| Editor integration | — | `docs/lsp-guide.md`, `docs/nrepl-guide.md` |
+| Hot-reload | — | `docs/watch-guide.md` |
 | Syntax reference | — | `docs/quickstart.md`, `docs/reader-shortcuts.md` |
 | Idioms | — | `docs/patterns.md`, `docs/examples/` |
 | Call Phel from PHP | — | `docs/framework-integration.md` |

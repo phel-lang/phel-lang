@@ -340,6 +340,12 @@ curl http://localhost:8000/users
 - **[Reader Shortcuts](reader-shortcuts.md)** - Syntax reference
 - **[Async Guide](async-guide.md)** - Concurrency with fibers and AMPHP
 - **[CLI Guide](cli-guide.md)** - Build CLIs with `phel\cli`
+- **[Schema Guide](schema-guide.md)** - Data-driven validation, coercion, generation
+- **[Pattern Matching Guide](match-guide.md)** - `match` macro with guards and destructuring
+- **[Linter Guide](lint-guide.md)** - `phel lint` rules and configuration
+- **[Language Server Guide](lsp-guide.md)** - `phel lsp` editor integration
+- **[nREPL Guide](nrepl-guide.md)** - `phel nrepl` for editor tooling
+- **[Watch Guide](watch-guide.md)** - `phel watch` hot-reload
 - **[Framework Integration](framework-integration.md)** - Laravel, Symfony, framework-less
 - **[Examples](examples/)** - Runnable single-file samples
 
