@@ -167,6 +167,12 @@ update_version_finder() {
     rm -f "$version_file.bak"
 }
 
+update_agents_version() {
+    local version="$1"
+    local agents_version_file="$2"
+    printf '%s\n' "$version" > "$agents_version_file"
+}
+
 update_changelog() {
     local version="$1"
     local changelog_file="$2"
@@ -257,15 +263,11 @@ check_branch() {
 }
 
 check_required_files() {
-    local version_file="$1"
-    local changelog_file="$2"
-    local phar_script="$3"
     local missing=0
-
-    [[ ! -f "$version_file" ]] && { log_err "Missing: $version_file"; missing=1; }
-    [[ ! -f "$changelog_file" ]] && { log_err "Missing: $changelog_file"; missing=1; }
-    [[ ! -f "$phar_script" ]] && { log_err "Missing: $phar_script"; missing=1; }
-
+    local file
+    for file in "$@"; do
+        [[ ! -f "$file" ]] && { log_err "Missing: $file"; missing=1; }
+    done
     [[ $missing -eq 1 ]] && return 1
     log_ok "All required files present"
 }
@@ -305,18 +307,21 @@ check_tag_exists() {
 # =============================================================================
 create_backup() {
     local backup_dir="$1"
-    local version_file="$2"
-    local changelog_file="$3"
-    cp "$version_file" "$backup_dir/VersionFinder.php"
-    cp "$changelog_file" "$backup_dir/CHANGELOG.md"
+    shift
+    local file
+    for file in "$@"; do
+        [[ -f "$file" ]] && cp "$file" "$backup_dir/$(basename "$file")"
+    done
 }
 
 restore_backup() {
     local backup_dir="$1"
-    local version_file="$2"
-    local changelog_file="$3"
-    [[ -f "$backup_dir/VersionFinder.php" ]] && cp "$backup_dir/VersionFinder.php" "$version_file"
-    [[ -f "$backup_dir/CHANGELOG.md" ]] && cp "$backup_dir/CHANGELOG.md" "$changelog_file"
+    shift
+    local file bn
+    for file in "$@"; do
+        bn=$(basename "$file")
+        [[ -f "$backup_dir/$bn" ]] && cp "$backup_dir/$bn" "$file"
+    done
 }
 
 # =============================================================================
@@ -325,9 +330,8 @@ restore_backup() {
 git_commit_release() {
     local version="$1"
     local repo_root="$2"
-    local version_file="$3"
-    local changelog_file="$4"
-    git -C "$repo_root" add "$version_file" "$changelog_file"
+    shift 2
+    git -C "$repo_root" add "$@"
     git -C "$repo_root" commit -m "chore(release): v$version"
 }
 

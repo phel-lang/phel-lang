@@ -61,6 +61,7 @@ All notable changes to this project will be documented in this file.
 #### Build
 - `phel build` suppresses compiled-program stdout during compilation (#1455)
 - Windows cache: drive-letter and UNC paths preserved verbatim (#1465)
+- `build/release.sh` bumps `.agents/VERSION` alongside `VersionFinder.php` and `CHANGELOG.md`
 
 #### Modules
 - `phel\ai/check-response` raises `RuntimeException` with provider message when body lacks `:error :message` (#1456)

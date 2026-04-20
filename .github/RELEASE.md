@@ -44,11 +44,12 @@ Before releasing, ensure you have:
 2. Runs pre-flight checks (gh CLI, git state, required files, network)
 3. Updates [VersionFinder.php](../src/php/Console/Application/VersionFinder.php)
 4. Updates [CHANGELOG.md](../CHANGELOG.md) (moves Unreleased to versioned section)
-5. Commits changes with `chore(release): vX.Y.Z`
-6. Builds PHAR with `OFFICIAL_RELEASE=true`
-7. Creates git tag
-8. Pushes commit and tag to remote
-9. Creates GitHub release with PHAR attachment and changelog notes
+5. Updates [.agents/VERSION](../.agents/VERSION) (targeted phel-lang release for agent docs/tests)
+6. Commits changes with `chore(release): vX.Y.Z`
+7. Builds PHAR with `OFFICIAL_RELEASE=true`
+8. Creates git tag
+9. Pushes commit and tag to remote
+10. Creates GitHub release with PHAR attachment and changelog notes
 
 ---
 
@@ -74,15 +75,23 @@ In [CHANGELOG.md](../CHANGELOG.md), rename the "Unreleased" section to the new v
 
 Add a new empty "Unreleased" section at the top.
 
-### Step 3: Commit and Push
+### Step 3: Update .agents/VERSION
 
 ```bash
-git add src/php/Console/Application/VersionFinder.php CHANGELOG.md
+echo "0.29.0" > .agents/VERSION
+```
+
+Tracked by `composer test-agents` as the targeted phel-lang release.
+
+### Step 4: Commit and Push
+
+```bash
+git add src/php/Console/Application/VersionFinder.php CHANGELOG.md .agents/VERSION
 git commit -m "chore(release): v0.29.0"
 git push origin main
 ```
 
-### Step 4: Build the PHAR
+### Step 5: Build the PHAR
 
 Build the PHAR with the official release flag:
 
@@ -92,7 +101,7 @@ OFFICIAL_RELEASE=true ./build/phar.sh
 
 This creates `build/out/phel.phar`.
 
-### Step 5: Create GitHub Release
+### Step 6: Create GitHub Release
 
 1. Go to [Releases > New Release](https://github.com/phel-lang/phel-lang/releases/new)
 2. Click "Choose a tag" and create a new tag `v0.29.0` from `main`
