@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - `ApiFacade` gains `analyzeSource`, `indexProject`, `resolveSymbol`, `findReferences`, `completeAtPoint` for editor and linter tooling
 - `phel lint [paths]... [--format=human|json|github] [--config=path] [--no-cache]` runs read-only semantic rules: unresolved-symbol, arity-mismatch, unused-binding, unused-require, unused-import, shadowed-binding, redundant-do, duplicate-key, invalid-destructuring, discouraged-var; configurable via `phel-lint.phel` with per-rule severity and glob opt-outs
 - `phel watch [paths]... [-b backend] [--poll=500] [--debounce=100]` watches `.phel` files and reloads changed namespaces in dependency order; inotify, fswatch, or polling backend auto-picked; `(watch! ["src/"])` in REPL via `phel\watch`
+- `phel lsp` starts a Language Server Protocol v3.17 server over stdio (JSON-RPC 2.0, Content-Length framing) with hover, definition, references, completion, document/workspace symbols, rename, formatting, and debounced publishDiagnostics for any LSP-native editor
 
 #### Agent docs
 - `.agents/` ships agent-agnostic docs with task recipes, per-platform adapters, and three runnable example projects (`todo-app`, `http-json-api`, `cli-wordcount`)
