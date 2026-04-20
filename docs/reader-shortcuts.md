@@ -111,6 +111,40 @@ Shorthand for `(deref ...)`:
 @my-atom              ; Same as (deref my-atom)
 ```
 
+## Tagged Literals `#<tag> form`
+
+Tagged literals let the reader convert an arbitrary form into a different value. Phel ships two built-ins:
+
+```phel
+#inst "2026-01-01T00:00:00Z"     ; reads as \DateTimeImmutable
+#regex "\\d+"                     ; reads as a PCRE pattern string
+```
+
+Register your own with `phel\reader/register-tag`:
+
+```phel
+(ns my-app\main
+  (:require phel\reader :refer [register-tag]))
+
+(register-tag "money" (fn [s] {:kind :money :raw s}))
+
+;; Now the reader accepts:
+#money "10.00 EUR"
+;; => {:kind :money :raw "10.00 EUR"}
+```
+
+For project-wide tags, drop a `data-readers.phel` at any source root — it is auto-loaded and should register each tag explicitly:
+
+```phel
+;; src/phel/data-readers.phel
+(ns my-app\data-readers
+  (:require phel\reader :refer [register-tag]))
+
+(register-tag "point" (fn [[x y]] {:x x :y y}))
+```
+
+Related helpers in `phel\reader`: `tag-registered?`, `unregister-tag`, `registered-tags`.
+
 ## Regex Literals `#"..."`
 
 Creates a PCRE pattern string:
@@ -213,6 +247,7 @@ Attaches metadata to the following form:
 | `name#`     | Auto-gensym        | Hygienic generated symbol in syntax-quote      | `` `(let [g# ~x] g#)`` |
 | `#?()`      | Reader conditional | Platform-specific code                         | `#?(:phel 1)`      |
 | `#?@()`     | Conditional splice | Splice by platform                             | `#?@(:phel [1 2])` |
+| `#<tag>`    | Tagged literal     | Call the tag's reader function                 | `#inst "2026-01-01T00:00:00Z"` |
 | `@`         | Deref              | Dereference an atom                            | `@my-atom`         |
 | `#"..."`    | Regex literal      | PCRE pattern                                   | `#"\\d+"`          |
 | `#(...)`    | Lambda             | Anonymous function (`%` args)                  | `#(+ %1 %2)`       |

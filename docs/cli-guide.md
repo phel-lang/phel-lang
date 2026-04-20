@@ -30,9 +30,9 @@ Because `symfony/console` is already a runtime dependency of `phel-lang`, using 
 
 Run:
 
-```
-$ phel run my-tool/main greet alice
-[OK] Hello, alice!
+```bash
+./vendor/bin/phel run my-tool/main greet alice
+# [OK] Hello, alice!
 ```
 
 ## Spec reference
@@ -182,8 +182,8 @@ Available `:style` values: `:default`, `:borderless`, `:compact`, `:symfony`, `:
 
 Symfony calls your completion function when the user presses `<TAB>` after installing the shell completion script:
 
-```
-$ my-tool _complete --generate-hook=bash > ~/.bash_completion.d/my-tool
+```bash
+my-tool _complete --generate-hook=bash > ~/.bash_completion.d/my-tool
 ```
 
 ## Signal handling
@@ -233,6 +233,20 @@ For prompt testing, pipe canned STDIN:
   (cli/run app input output)
   (is (cli/output-contains? output "hi alice")))
 ```
+
+## Running under `phel run`
+
+When you run a CLI script via `./bin/phel run path/to/script.phel arg1 arg2`, Phel's own Symfony console occupies `$_SERVER['argv']`. The user-facing arguments come through as the Phel core var `argv`. Pass them to `cli/run` explicitly:
+
+```phel
+;; Bad: reads the wrapper's argv, so "run" looks like your first command.
+(cli/run app)
+
+;; Good: pass only the user-supplied args.
+(cli/run app (cli/argv argv))
+```
+
+This is only needed when the script is invoked via `phel run`. A compiled standalone binary built with `phel build` uses `$_SERVER['argv']` directly, so `(cli/run app)` is fine there.
 
 ## Best practices
 

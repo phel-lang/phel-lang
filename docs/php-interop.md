@@ -174,7 +174,7 @@ Both `phel\string` and `phel.string` resolve to the same namespace.
 ```phel
 ;; PHP arrays → Phel collections
 (php-array-to-map $php_assoc_array)  ; => {:key value}
-(values $php_indexed_array)          ; => [val1 val2 val3]
+(vals $php_indexed_array)            ; => [val1 val2 val3]
 
 ;; Indexed PHP array → vector
 [1 2 3]                           ; Already works as Phel vector

@@ -334,10 +334,14 @@ curl http://localhost:8000/users
 
 ### Learn More
 
-- **[Common Patterns](patterns.md)** - Idiomatic Phel code
+- **[Common Patterns](patterns.md)** - Idiomatic Phel code including pattern matching
+- **[Data Structures Guide](data-structures-guide.md)** - Vectors, maps, sets, transients
 - **[PHP Interop](php-interop.md)** - Deep dive into PHP integration
 - **[Reader Shortcuts](reader-shortcuts.md)** - Syntax reference
-- **[Examples](examples/)** - More code samples
+- **[Async Guide](async-guide.md)** - Concurrency with fibers and AMPHP
+- **[CLI Guide](cli-guide.md)** - Build CLIs with `phel\cli`
+- **[Framework Integration](framework-integration.md)** - Laravel, Symfony, framework-less
+- **[Examples](examples/)** - Runnable single-file samples
 
 ### REPL Workflow
 

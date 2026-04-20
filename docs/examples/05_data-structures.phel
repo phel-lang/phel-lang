@@ -54,9 +54,9 @@
 (println "get-in wireless:" (get-in product [:specs :wireless]))
 (println "get-in nested:" (get-in inventory [0 :name]))  ;; First item's name
 
-;; keys and values
+;; keys and vals
 (println "keys:" (keys product))
-(println "values:" (values {:a 1 :b 2 :c 3}))
+(println "vals:" (vals {:a 1 :b 2 :c 3}))
 
 ;; contains? - Check for keys (not values!)
 (println "contains? :name:" (contains? product :name))  ;; => true

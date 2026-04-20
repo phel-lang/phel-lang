@@ -1,26 +1,28 @@
 ;; Runnable phel\cli demo: a tiny todo-list CLI.
 ;;
-;;   phel run docs/examples/12_cli.phel add "buy milk"
-;;   phel run docs/examples/12_cli.phel list
-;;   phel run docs/examples/12_cli.phel list --format=markdown
-;;   phel run docs/examples/12_cli.phel wipe
+;;   ./bin/phel run docs/examples/12_cli.phel add "buy milk"
+;;   ./bin/phel run docs/examples/12_cli.phel list
+;;   ./bin/phel run docs/examples/12_cli.phel list --format=markdown
+;;   ./bin/phel run docs/examples/12_cli.phel done 1
+;;   ./bin/phel run docs/examples/12_cli.phel wipe
 ;;
-;; Persists to /tmp/phel-todo.edn — not production-grade, just a demo.
+;; Persists to /tmp/phel-todo.json, not production-grade, just a demo.
 
 (ns examples\cli
-  (:require phel\cli :as cli))
+  (:require phel\cli :as cli)
+  (:require phel\json :as json))
 
-(def store-file "/tmp/phel-todo.edn")
+(def store-file "/tmp/phel-todo.json")
 
 ;; ----- persistence helpers ------------------------------------------------
 
 (defn- load-todos []
   (if (php/file_exists store-file)
-    (read-string (php/file_get_contents store-file))
+    (json/decode (php/file_get_contents store-file))
     []))
 
 (defn- save-todos [xs]
-  (php/file_put_contents store-file (print-str xs)))
+  (php/file_put_contents store-file (json/encode xs)))
 
 ;; ----- command handlers ---------------------------------------------------
 
@@ -48,7 +50,7 @@
     (if (or (< idx 0) (>= idx (count items)))
       (do (cli/error ctx (str "No todo at position " (+ idx 1))) 2)
       (do
-        (save-todos (put items idx (put (get items idx) :done? true)))
+        (save-todos (assoc items idx (assoc (get items idx) :done? true)))
         (cli/success ctx (str "Marked #" (+ idx 1) " done"))))))
 
 (defn- wipe-todos [ctx]
@@ -87,4 +89,7 @@
                  :aliases ["clear"]
                  :run     wipe-todos}]}))
 
-(cli/run app)
+;; Pass Phel's `argv` explicitly so Symfony sees the user arguments rather
+;; than `phel run <file> ...`. `cli/argv` wraps a vector of tokens into a
+;; Symfony `ArgvInput`.
+(cli/run app (cli/argv argv))

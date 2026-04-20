@@ -2,6 +2,18 @@
 
 `phel\async` exposes two cooperating concurrency layers over PHP fibers. Both live in the same namespace so you can mix them, but each has its own best use.
 
+## Contents
+
+- [Overview](#overview)
+- [When to use which](#when-to-use-which)
+- [AMPHP layer reference](#amphp-layer-reference)
+- [Fiber layer reference](#fiber-layer-reference)
+- [Shared primitives](#shared-primitives)
+- [Error and cancellation model](#error-and-cancellation-model)
+- [Interop](#interop)
+- [Pitfalls](#pitfalls)
+- [Recipes](#recipes)
+
 ## Overview
 
 **AMPHP-backed layer.** Built on `amphp/amp`. An event loop drives fiber-based IO, timers, and combinators. `async`, `await`, `delay`, `await-all`, `await-any`, `pmap`, `future`, `future-cancel`, and `future-cancelled?` live here. Use this layer when you already run inside an event loop or when you need timers, IO multiplexing, or fan-out across many Futures.
@@ -250,7 +262,7 @@ Wall time tracks the slowest branch, not the sum.
           fast (future (do (delay 0.05)
                            (throw (php/new \RuntimeException "boom"))))]
       (try
-        (await (php/-> fast (unwrap)))
+        (await fast)
         (catch \RuntimeException e
           (future-cancel slow)
           (str "cancelled after: " (php/-> e (getMessage))))))))
@@ -259,3 +271,8 @@ Wall time tracks the slowest branch, not the sum.
 ```
 
 `future-cancel` is cooperative, so `slow` finishes its current step before observing the cancellation, but any `deref` on it now throws `Amp\CancelledException`.
+
+## See also
+
+- [Example: `docs/examples/11_async-concurrency.phel`](examples/11_async-concurrency.phel)
+- [`phel\http-client`](../src/phel/http-client.phel) for AMPHP-based HTTP calls that slot into this model

@@ -1,4 +1,4 @@
-(ns doc\examples\transducers)
+(ns examples\transducers)
 
 ;; -------------------------------------------------------
 ;; Phel Transducers -- A Practical Guide
