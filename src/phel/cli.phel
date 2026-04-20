@@ -1,0 +1,500 @@
+(ns phel\cli
+  (:use InvalidArgumentException)
+  (:use Symfony\Component\Console\Application)
+  (:use Symfony\Component\Console\Command\Command)
+  (:use Symfony\Component\Console\ConsoleEvents)
+  (:use Symfony\Component\Console\Helper\ProgressBar)
+  (:use Symfony\Component\Console\Helper\Table)
+  (:use Symfony\Component\Console\Input\ArgvInput)
+  (:use Symfony\Component\Console\Input\InputArgument)
+  (:use Symfony\Component\Console\Input\InputOption)
+  (:use Symfony\Component\Console\Output\BufferedOutput)
+  (:use Symfony\Component\Console\Output\NullOutput)
+  (:use Symfony\Component\Console\Output\OutputInterface)
+  (:use Symfony\Component\Console\Style\SymfonyStyle)
+  (:use Symfony\Component\EventDispatcher\EventDispatcher))
+
+;; =============================================================================
+;; Mode & coercion tables
+;; =============================================================================
+
+(def- arg-modes
+  {:required (php/:: InputArgument REQUIRED)
+   :optional (php/:: InputArgument OPTIONAL)
+   :array    (php/:: InputArgument IS_ARRAY)})
+
+(def- opt-modes
+  {:none      (php/:: InputOption VALUE_NONE)
+   :required  (php/:: InputOption VALUE_REQUIRED)
+   :optional  (php/:: InputOption VALUE_OPTIONAL)
+   :array     (php/:: InputOption VALUE_IS_ARRAY)
+   :negatable (php/:: InputOption VALUE_NEGATABLE)})
+
+(defn- arg-mode [mode]
+  (or (get arg-modes mode)
+      (throw (php/new InvalidArgumentException
+                      (str "phel\\cli: invalid :args :mode "
+                           mode ". Use one of :required :optional :array")))))
+
+(defn- opt-mode [mode]
+  (or (get opt-modes mode)
+      (throw (php/new InvalidArgumentException
+                      (str "phel\\cli: invalid :opts :mode " mode
+                           ". Use one of :none :required :optional :array :negatable")))))
+
+(defn- coerce-value [value coerce-kw]
+  (cond
+    (nil? coerce-kw)       value
+    (nil? value)           value
+    (= coerce-kw :int)     (php/intval value)
+    (= coerce-kw :float)   (php/floatval value)
+    (= coerce-kw :bool)    (boolean value)
+    (= coerce-kw :keyword) (keyword value)
+    (= coerce-kw :edn)     (read-string value)
+    true                   (throw (php/new InvalidArgumentException
+                                           (str "phel\\cli: invalid :coerce " coerce-kw
+                                                ". Use :int :float :bool :keyword :edn")))))
+
+;; =============================================================================
+;; Spec validation
+;; =============================================================================
+
+(defn- assert-key! [m k pred msg]
+  (when-not (pred (get m k))
+    (throw (php/new InvalidArgumentException (str "phel\\cli: " msg)))))
+
+(defn- validate-arg [a]
+  (assert-key! a :name string? ":args entries must have a string :name")
+  (when (contains? a :mode)
+    (when-not (contains? arg-modes (get a :mode))
+      (throw (php/new InvalidArgumentException
+                      (str "phel\\cli: invalid :args :mode " (get a :mode))))))
+  (when (contains? a :complete)
+    (assert-key! a :complete fn? ":args :complete must be a fn (ctx -> vector)")))
+
+(defn- validate-opt [o]
+  (assert-key! o :name string? ":opts entries must have a string :name")
+  (when (contains? o :mode)
+    (when-not (contains? opt-modes (get o :mode))
+      (throw (php/new InvalidArgumentException
+                      (str "phel\\cli: invalid :opts :mode " (get o :mode))))))
+  (when (contains? o :complete)
+    (assert-key! o :complete fn? ":opts :complete must be a fn (ctx -> vector)")))
+
+(defn- validate-command-spec [spec]
+  (when-not (map? spec)
+    (throw (php/new InvalidArgumentException "phel\\cli: command spec must be a map")))
+  (assert-key! spec :name string? "command :name is required (string)")
+  (assert-key! spec :run  fn?     "command :run is required (fn)")
+  (foreach [a (get spec :args [])] (validate-arg a))
+  (foreach [o (get spec :opts [])] (validate-opt o))
+  spec)
+
+;; =============================================================================
+;; Context: input / output readers & writers
+;; =============================================================================
+
+(defn- find-arg-spec [ctx name]
+  (first (for [a :in (or (get ctx :arg-specs) []) :when (= name (get a :name))] a)))
+
+(defn- find-opt-spec [ctx name]
+  (first (for [o :in (or (get ctx :opt-specs) []) :when (= name (get o :name))] o)))
+
+(defn arg
+  "Read (and coerce) an argument value by name."
+  {:see-also ["opt" "argv"]
+   :example  "(arg ctx \"port\") ; coerced when spec has :coerce :int"}
+  [ctx name]
+  (coerce-value (php/-> (get ctx :input) (getArgument name))
+                (get (find-arg-spec ctx name) :coerce)))
+
+(defn opt
+  "Read (and coerce) an option value by name."
+  {:see-also ["arg"]
+   :example  "(opt ctx \"verbose\") ; true when --verbose present and :mode :none"}
+  [ctx name]
+  (coerce-value (php/-> (get ctx :input) (getOption name))
+                (get (find-opt-spec ctx name) :coerce)))
+
+(defn writeln
+  "Write a line."
+  {:see-also ["write" "info" "success"]
+   :example  "(writeln ctx \"ready\")"}
+  [ctx text]
+  (php/-> (get ctx :output) (writeln text)))
+
+(defn write
+  "Write text without trailing newline."
+  [ctx text]
+  (php/-> (get ctx :output) (write text)))
+
+(defn- write-at-verbosity [ctx level text]
+  (let [out (get ctx :output)]
+    (when (>= (php/-> out (getVerbosity)) level)
+      (php/-> out (writeln text)))))
+
+(defn info-v  "Write only when -v or higher."  [ctx text] (write-at-verbosity ctx (php/:: OutputInterface VERBOSITY_VERBOSE) text))
+(defn info-vv "Write only when -vv or higher." [ctx text] (write-at-verbosity ctx (php/:: OutputInterface VERBOSITY_VERY_VERBOSE) text))
+(defn debug   "Write only when -vvv (debug)."  [ctx text] (write-at-verbosity ctx (php/:: OutputInterface VERBOSITY_DEBUG) text))
+
+(defn- styled [ctx tag text]
+  (writeln ctx (str "<" tag ">" text "</" tag ">")))
+
+(defn info         "Green info line."    [ctx text] (styled ctx "info" text))
+(defn comment-line "Yellow comment line." [ctx text] (styled ctx "comment" text))
+(defn error        "Red error line."      [ctx text] (styled ctx "error" text))
+
+;; =============================================================================
+;; SymfonyStyle — rich UX (title/section/listing/ask/confirm/table/…)
+;; =============================================================================
+
+(defn style
+  "Return a cached `SymfonyStyle` bound to the context so successive
+  `ask`/`confirm`/progress calls share state."
+  {:see-also ["title" "success" "ask"]
+   :example  "(-> (style ctx) (php/-> (success \"Done!\")))"}
+  [ctx]
+  (or (get ctx :style)
+      (php/new SymfonyStyle (get ctx :input) (get ctx :output))))
+
+(defn title    "Heavy heading."           [ctx text]  (php/-> (style ctx) (title text)))
+(defn section  "Sub-heading."             [ctx text]  (php/-> (style ctx) (section text)))
+(defn success  "Boxed success message."   [ctx text]  (php/-> (style ctx) (success text)))
+(defn warning  "Boxed warning message."   [ctx text]  (php/-> (style ctx) (warning text)))
+(defn note     "Boxed note."              [ctx text]  (php/-> (style ctx) (note text)))
+(defn caution  "Boxed caution message."   [ctx text]  (php/-> (style ctx) (caution text)))
+(defn listing  "Bulleted list of items."  [ctx items] (php/-> (style ctx) (listing (apply php/array items))))
+
+(defn ask
+  "Free-text prompt. `default` optional."
+  {:see-also ["ask-hidden" "confirm" "choice"]
+   :example  "(ask ctx \"Your name?\" \"alice\")"}
+  [ctx question & [default]]
+  (php/-> (style ctx) (ask question default)))
+
+(defn ask-hidden
+  "Prompt without echoing (passwords)."
+  [ctx question]
+  (php/-> (style ctx) (askHidden question)))
+
+(defn confirm
+  "Yes/no prompt. `default?` defaults to true."
+  {:see-also ["ask"]
+   :example  "(when (confirm ctx \"Deploy?\") ...)"}
+  [ctx question & [default?]]
+  (php/-> (style ctx) (confirm question (if (nil? default?) true default?))))
+
+(defn choice
+  "Single-choice prompt over a vector of options."
+  {:see-also ["confirm"]
+   :example  "(choice ctx \"Env?\" [\"dev\" \"stg\" \"prod\"] \"dev\")"}
+  [ctx question choices & [default]]
+  (php/-> (style ctx) (choice question (apply php/array choices) default)))
+
+;; =============================================================================
+;; Tables
+;; =============================================================================
+
+(def- table-styles
+  {:default    "default"
+   :borderless "borderless"
+   :compact    "compact"
+   :symfony    "symfony-style-guide"
+   :box        "box"
+   :box-double "box-double"
+   :markdown   "markdown"})
+
+(defn table
+  "Render an ASCII table.
+
+  Options:
+    `:style`  one of :default :borderless :compact :symfony :box :box-double :markdown
+    `:widths` vector of column widths"
+  {:see-also ["listing"]
+   :example  "(table ctx [\"id\" \"name\"] [[1 \"alice\"] [2 \"bob\"]])"}
+  [ctx headers rows & [opts]]
+  (let [t (php/new Table (get ctx :output))]
+    (when-let [s (get opts :style)]
+      (when-let [name (get table-styles s)]
+        (php/-> t (setStyle name))))
+    (when-let [ws (get opts :widths)]
+      (php/-> t (setColumnWidths (apply php/array ws))))
+    (php/-> t (setHeaders (apply php/array headers)))
+    (php/-> t (setRows (apply php/array (for [r :in rows] (apply php/array r)))))
+    (php/-> t (render))))
+
+;; =============================================================================
+;; Progress bar
+;; =============================================================================
+
+(def- progress-formats
+  {:normal       "normal"
+   :verbose      "verbose"
+   :very-verbose "very_verbose"
+   :debug        "debug"
+   :minimal      "[%bar%] %percent:3s%%"})
+
+(defn progress-bar
+  "Create a `ProgressBar` bound to the context output.
+
+  Options:
+    `:max`    total steps (0 = indeterminate)
+    `:format` preset (:normal :verbose :very-verbose :debug :minimal) or custom string"
+  [ctx & [opts]]
+  (let [bar (php/new ProgressBar (get ctx :output) (or (get opts :max) 0))]
+    (when-let [f (get opts :format)]
+      (if-let [preset (get progress-formats f)]
+        (php/-> bar (setFormat preset))
+        (php/-> bar (setFormat f))))
+    bar))
+
+(defn progress-start    "Start the bar."        [bar] (php/-> bar (start)))
+(defn progress-advance  "Advance by n."         [bar & [n]] (php/-> bar (advance (or n 1))))
+(defn progress-finish   "Finish + newline."     [bar] (php/-> bar (finish)) (println))
+
+(defn run-with-progress
+  "Iterate `coll` and invoke `(step-fn item bar)` for each, handling
+  start / advance / finish automatically."
+  {:example "(run-with-progress ctx files (fn [f _] (process f)))"}
+  [ctx coll step-fn & [opts]]
+  (let [bar (progress-bar ctx (put (or opts {}) :max (or (get opts :max) (count coll))))]
+    (progress-start bar)
+    (foreach [item coll]
+      (step-fn item bar)
+      (progress-advance bar))
+    (progress-finish bar)))
+
+;; =============================================================================
+;; Stdin piping
+;; =============================================================================
+
+(defn stdin-lines
+  "Return a vector of lines from STDIN (trailing `\\r\\n` stripped).
+  Useful for `cat data.txt | mytool`."
+  {:example "(for [l :in (stdin-lines) :when (not= l \"\")] l)"}
+  []
+  (let [handle (php/fopen "php://stdin" "r")
+        out    (transient [])]
+    (loop []
+      (let [line (php/fgets handle)]
+        (when-not (false? line)
+          (push out (php/rtrim line "\r\n"))
+          (recur))))
+    (php/fclose handle)
+    (persistent out)))
+
+;; =============================================================================
+;; Command & Application builders
+;; =============================================================================
+
+(defn- sugg-array [spec]
+  (if (fn? (get spec :complete))
+    (php/:: \Closure (fromCallable (fn [input] (apply php/array ((get spec :complete) input)))))
+    (php/array)))
+
+(defn- add-args [cmd args]
+  (foreach [a args]
+    (php/-> cmd
+            (addArgument
+              (get a :name)
+              (arg-mode (get a :mode :optional))
+              (get a :doc "")
+              (get a :default)
+              (sugg-array a)))))
+
+(defn- add-opts [cmd opts]
+  (foreach [o opts]
+    (php/-> cmd
+            (addOption
+              (get o :name)
+              (get o :short)
+              (opt-mode (get o :mode :optional))
+              (get o :doc "")
+              (get o :default)
+              (sugg-array o)))))
+
+(defn- build-ctx [input output spec]
+  {:input     input
+   :output    output
+   :arg-specs (get spec :args [])
+   :opt-specs (get spec :opts [])
+   :style     (php/new SymfonyStyle input output)})
+
+(defn- set-handler [cmd spec]
+  (let [handler (get spec :run)]
+    (php/-> cmd
+            (setCode
+              (php/:: \Closure
+                      (fromCallable
+                        (fn [input output]
+                          (let [ctx (build-ctx input output spec)]
+                            (try
+                              (let [result (handler ctx)]
+                                (if (int? result) result 0))
+                              (catch \Throwable e
+                                (error ctx (str "Error: " (php/-> e (getMessage))))
+                                (when (>= (php/-> output (getVerbosity))
+                                          (php/:: OutputInterface VERBOSITY_VERBOSE))
+                                  (writeln ctx (php/-> e (getTraceAsString))))
+                                1))))))))))
+
+(defn command
+  "Build a Symfony `Command` from a Phel spec map.
+
+  Spec keys:
+    :name     command name, e.g. \"build\" or \"app:build\"     (REQUIRED)
+    :doc      short description (shown in `list`)
+    :help     long help text (shown in `<cmd> --help`)
+    :aliases  vector of alternate names
+    :hidden?  true = hide from `list`
+    :args     vector of arg specs `{:name :mode :doc :default :coerce :complete}`
+    :opts     vector of option specs `{:name :short :mode :doc :default :coerce :complete}`
+    :run      handler `(fn [ctx] ...)` — ctx = {:input :output …};
+              returns nil/0 for success, int for exit code.
+              Uncaught `Throwable` rendered as `<error>`, mapped to exit 1.
+
+  Modes     :required :optional :array (:args) + :none :negatable (:opts)
+  Coerce    :int :float :bool :keyword :edn
+  Complete  fn `(CompletionInput -> vector<string>)` for shell completion."
+  {:see-also ["application" "run"]
+   :example  "(command {:name \"greet\" :run (fn [ctx] (success ctx \"Hi!\"))})"}
+  [spec]
+  (validate-command-spec spec)
+  (let [cmd (php/new Command (get spec :name))]
+    (php/-> cmd (setDescription (get spec :doc "")))
+    (when-let [h (get spec :help)] (php/-> cmd (setHelp h)))
+    (when-let [as (get spec :aliases)] (php/-> cmd (setAliases (apply php/array as))))
+    (when (get spec :hidden?) (php/-> cmd (setHidden true)))
+    (add-args cmd (get spec :args []))
+    (add-opts cmd (get spec :opts []))
+    (set-handler cmd spec)
+    cmd))
+
+;; ---- Application --------------------------------------------------------
+
+(defn- build-dispatcher [spec]
+  (let [d      (php/new EventDispatcher)
+        before (get spec :before)
+        after  (get spec :after)
+        on-err (get spec :on-error)]
+    (when (fn? before)
+      (php/-> d (addListener (php/:: ConsoleEvents COMMAND)
+                             (php/:: \Closure (fromCallable (fn [e] (before e)))))))
+    (when (fn? after)
+      (php/-> d (addListener (php/:: ConsoleEvents TERMINATE)
+                             (php/:: \Closure (fromCallable (fn [e] (after e)))))))
+    (when (fn? on-err)
+      (php/-> d (addListener (php/:: ConsoleEvents ERROR)
+                             (php/:: \Closure (fromCallable (fn [e] (on-err e)))))))
+    d))
+
+(def- signal-numbers {:sigint 2 :sigterm 15 :sighup 1 :sigquit 3})
+
+(defn- register-signals [app sig-map]
+  (foreach [entry sig-map]
+    (let [k       (first entry)
+          handler (second entry)
+          num     (or (get signal-numbers k) k)]
+      (when (fn? handler)
+        (php/-> (php/-> app (getSignalRegistry))
+                (register num
+                          (php/:: \Closure
+                                  (fromCallable (fn [s] (handler s))))))))))
+
+(defn application
+  "Build a Symfony `Application`.
+
+  Single-arity (preferred):
+    (application {:name \"mytool\"
+                  :version \"1.0.0\"
+                  :commands [...]
+                  :default  \"greet\"
+                  :auto-exit? false
+                  :before    on-before-fn   ; receives ConsoleCommandEvent
+                  :after     on-after-fn    ; receives ConsoleTerminateEvent
+                  :on-error  on-error-fn    ; receives ConsoleErrorEvent
+                  :on-signal {:sigint cleanup-fn :sigterm cleanup-fn}})
+
+  Two-arity convenience:
+    (application \"mytool\" [command-specs...])"
+  {:see-also ["command" "run"]
+   :example  "(application {:name \"mytool\" :commands [spec]})"}
+  [name-or-spec & [commands]]
+  (let [spec (if (map? name-or-spec)
+               name-or-spec
+               {:name name-or-spec :commands commands})
+        app  (php/new Application
+                      (get spec :name "console")
+                      (or (get spec :version) "UNKNOWN"))]
+    (php/-> app (setAutoExit (get spec :auto-exit? false)))
+    (when (or (fn? (get spec :before))
+              (fn? (get spec :after))
+              (fn? (get spec :on-error)))
+      (php/-> app (setDispatcher (build-dispatcher spec))))
+    (register-signals app (or (get spec :on-signal) {}))
+    (foreach [c (get spec :commands [])]
+      (php/-> app (add (command c))))
+    (when-let [d (get spec :default)]
+      (php/-> app (setDefaultCommand d)))
+    app))
+
+(defn run
+  "Run an Application and return its exit code.
+
+  `(run app)`                reads $argv from process;
+  `(run app input)`          uses supplied `InputInterface`;
+  `(run app input output)`   also pipes output (for tests)."
+  {:see-also ["application"]
+   :example  "(run (application \"t\" [spec]))"}
+  [app & [input output]]
+  (cond
+    (and input output) (php/-> app (run input output))
+    input              (php/-> app (run input))
+    true               (php/-> app (run))))
+
+;; =============================================================================
+;; Test helpers
+;; =============================================================================
+
+(defn argv
+  "Build an `ArgvInput` from a vector of string tokens. Positional args
+  and `--flag=value` are parsed just like a real shell command line."
+  {:see-also ["argv-with-stdin" "buffered-output"]
+   :example  "(argv [\"greet\" \"--loud\" \"alice\"])"}
+  [args]
+  (php/new ArgvInput (apply php/array (cons "_" args))))
+
+(defn argv-with-stdin
+  "Like `argv` but also wires a STDIN stream so `ask`/`confirm`/`choice`
+  prompts can be tested with canned answers."
+  {:example "(argv-with-stdin [\"greet\"] \"alice\\n\")"}
+  [args stdin-string]
+  (let [input  (argv args)
+        stream (php/fopen "php://memory" "r+")]
+    (php/fwrite stream stdin-string)
+    (php/rewind stream)
+    (php/-> input (setStream stream))
+    input))
+
+(defn buffered-output
+  "Build a `BufferedOutput` that captures writes into a string."
+  [] (php/new BufferedOutput))
+
+(defn null-output
+  "Build a `NullOutput` that discards writes."
+  [] (php/new NullOutput))
+
+(defn output->string
+  "Drain a `BufferedOutput` into a string."
+  [output]
+  (php/-> output (fetch)))
+
+(defn output-contains?
+  "Test helper. Accepts a `BufferedOutput`, a string, or a map `{:out s}`."
+  {:example "(is (output-contains? res \"hello\"))"}
+  [output-or-result substr]
+  (let [s (cond
+            (string? output-or-result) output-or-result
+            (map?    output-or-result) (get output-or-result :out)
+            true                       (output->string output-or-result))]
+    (if (nil? s) false (php/str_contains s substr))))
