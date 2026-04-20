@@ -22,7 +22,6 @@ All notable changes to this project will be documented in this file.
 #### Agent docs
 - `.agents/` ships agent-agnostic docs with task recipes, per-platform adapters, and three runnable example projects (`todo-app`, `http-json-api`, `cli-wordcount`)
 - `composer test-agents` validates every example against the current source; CI runs it on every PR
-- `.agents/reference/core.md` auto-generated from `:doc`/`:example`/`:see-also` metadata; regenerate with `composer docs-agents-reference`, drift fails CI
 
 #### Formatter
 - Aligns key/value pairs in `cond`, `case`, `condp`, and bindings of `let`/`loop`/`binding`/`for`/`foreach`/`dofor`/`if-let`/`when-let`

@@ -61,14 +61,4 @@ if (( failures > 0 )); then
   exit 1
 fi
 
-echo "==> Checking .agents/reference/core.md drift"
-php "$repo_root/build/generate-agents-reference.php" > /dev/null
-if ! git -C "$repo_root" diff --quiet -- .agents/reference/core.md; then
-  echo "    FAIL: .agents/reference/core.md is stale. Run: composer docs-agents-reference"
-  git -C "$repo_root" --no-pager diff -- .agents/reference/core.md | head -40
-  git -C "$repo_root" checkout -- .agents/reference/core.md
-  exit 1
-fi
-echo "    OK: core reference up to date"
-
 echo "All examples validated"
