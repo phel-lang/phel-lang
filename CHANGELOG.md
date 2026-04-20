@@ -46,6 +46,7 @@ All notable changes to this project will be documented in this file.
 - `phel\repl`: `find-ns`, `create-ns`, `remove-ns`, `intern`, `ns-interns`
 - `phel\cli`: spec-map wrapper over `symfony/console` with prompts, tables, progress, coercion, hooks, signals, and test helpers. See `docs/cli-guide.md`
 - `phel\match`: `match` macro with literal, vector, map, wildcard, `:as`, `:guard`, `:or`, and rest-binding patterns; matches left-to-right and raises on no-match when no `:else` is given
+- `phel\schema`: data-driven schemas with `validate`, `explain`, `conform`, `coerce`, `generate`, `instrument!`; supports scalar kinds, `:vector`, `:set`, `:map`, `:map-of`, `:tuple`, `:enum`, `:and`, `:or`, `:maybe`, `:re`, `:fn`, `:ref`, and `[:=> args ret]` function schemas with named-schema registry
 - `phel doc` and REPL completion now cover `phel\async`, `phel\cli`, `phel\match`, `phel\pprint`, `phel\router`, `phel\walk`, and `phel\test\gen`
 
 ### Fixed
