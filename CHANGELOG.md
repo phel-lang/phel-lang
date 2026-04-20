@@ -14,6 +14,12 @@ All notable changes to this project will be documented in this file.
 #### Build
 - PHAR now ships first-party `src/**/Test/` directories; `phel test` from the distributed PHAR no longer fails with `Class "Phel\Run\Domain\Test\TestCommandOptions" not found`
 
+#### CLI
+- `bin/phel` raises `memory_limit` to `-1` on startup so compiler tokenization no longer exhausts the default 128M on larger projects
+
+### Docs
+- New `docs/performance.md` with CLI opcache setup and cache reset steps to speed up repeated `phel test`/`phel run` invocations
+
 ## [0.34.0](https://github.com/phel-lang/phel-lang/compare/v0.33.0...v0.34.0) - 2026-04-20
 
 ### Added
