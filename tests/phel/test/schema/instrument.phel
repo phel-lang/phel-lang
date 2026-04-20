@@ -1,0 +1,86 @@
+(ns phel-test\test\schema\instrument
+  (:require phel\test :refer [deftest is testing])
+  (:require phel\schema :as s))
+
+;; Function-level instrumentation wrappers: a wrapped fn validates its
+;; arguments and return value against the declared schema, throwing
+;; when either side violates it.
+
+(defn- bare-add [x y] (+ x y))
+(defn- bad-return [_x] "not an int")
+
+(deftest test-wrap-with-schema-passes-through-valid-args
+  (let [wrapped (s/wrap-with-schema bare-add [:int :int] :int)]
+    (is (= 5 (wrapped 2 3)))
+    (is (= 0 (wrapped 0 0)))))
+
+(deftest test-wrap-with-schema-rejects-bad-arg
+  (let [wrapped (s/wrap-with-schema bare-add [:int :int] :int)
+        caught  (try
+                  (wrapped "a" 3)
+                  :no-throw
+                  (catch \InvalidArgumentException e :caught))]
+    (is (= :caught caught))))
+
+(deftest test-wrap-with-schema-rejects-bad-return
+  (let [wrapped (s/wrap-with-schema bad-return [:int] :int)
+        caught  (try
+                  (wrapped 1)
+                  :no-throw
+                  (catch \InvalidArgumentException e :caught))]
+    (is (= :caught caught))))
+
+(deftest test-wrap-with-function-schema
+  (let [wrapped (s/wrap-with-function-schema bare-add
+                                             [:=> [:int :int] :int])]
+    (is (= 10 (wrapped 4 6)))))
+
+(deftest test-wrap-with-function-schema-rejects-shape
+  (let [caught (try
+                 (s/wrap-with-function-schema bare-add [:int :int])
+                 :no-throw
+                 (catch \InvalidArgumentException _ :caught))]
+    (is (= :caught caught))))
+
+(deftest test-wrap-function-schema-rejects-bad-shape
+  (let [caught (try
+                 (s/wrap-with-function-schema bare-add [:int :int])
+                 :no-throw
+                 (catch \InvalidArgumentException _ :caught))]
+    (is (= :caught caught))))
+
+(deftest test-instrument-and-unstrument
+  (testing "instrument! returns wrapped fn"
+    (let [wrapped (s/instrument! :add bare-add [:=> [:int :int] :int])]
+      (is (= 7 (wrapped 3 4)))))
+  (testing "instrumented? reflects state"
+    (is (s/instrumented? :add)))
+  (testing "unstrument! returns the original"
+    (let [original (s/unstrument! :add)]
+      (is (= 5 (original 2 3))))
+    (is (not (s/instrumented? :add)))))
+
+(deftest test-wrap-with-schema-arity-mismatch
+  (let [wrapped (s/wrap-with-schema bare-add [:int :int] :int)
+        caught  (try
+                  (wrapped 1)
+                  :no-throw
+                  (catch \InvalidArgumentException _ :caught))]
+    (is (= :caught caught))))
+
+(deftest test-schema?-predicate
+  (is (s/schema? :int))
+  (is (s/schema? [:vector :int]))
+  (is (not (s/schema? 42)))
+  (is (not (s/schema? "string"))))
+
+(deftest test-schema-check-toggle-disables-validation
+  (let [wrapped (s/wrap-with-schema bad-return [:int] :int)]
+    ;; Normally the return-value check throws
+    (let [caught (try (wrapped 1) :no-throw
+                      (catch \InvalidArgumentException _ :caught))]
+      (is (= :caught caught)))
+    ;; With the flag off the wrapper passes through
+    (is (= "not an int" (s/with-schema-check false (fn [] (wrapped 1)))))
+    ;; And is restored afterwards
+    (is (s/schema-check?))))

@@ -1,0 +1,56 @@
+(ns phel\schema\registry
+  (:require phel\core))
+
+;; Named-schema registry.
+;;
+;; Schemas can reference other schemas by name with `[:ref :tree]`. The
+;; registry maps those names to the actual schema value. Built-in kind
+;; keywords such as `:int`, `:string`, `:vector`, ... are handled
+;; directly by the validator dispatch; the registry is for user-defined
+;; schemas that describe domain types (e.g. `:user`, `:email`).
+
+(def- registry (atom {}))
+
+(defn register!
+  "Registers `schema` under `name` (usually a keyword). Overwrites any
+  previous entry. Returns the registered schema."
+  {:example "(register! :email [:and :string [:re #\"@\"]])"
+   :see-also ["deref-ref" "registered?"]}
+  [name schema]
+  (swap! registry assoc name schema)
+  schema)
+
+(defn unregister!
+  "Removes the schema bound to `name`. Returns `nil`."
+  {:example "(unregister! :email)"
+   :see-also ["register!"]}
+  [name]
+  (swap! registry dissoc name)
+  nil)
+
+(defn deref-ref
+  "Returns the schema registered under `name`, or `nil` if no schema is
+  registered with that name."
+  {:example "(deref-ref :email)"
+   :see-also ["register!"]}
+  [name]
+  (get @registry name))
+
+(defn registered?
+  "Returns `true` if a schema is registered under `name`."
+  {:example "(registered? :email) ; => true/false"
+   :see-also ["register!"]}
+  [name]
+  (contains? @registry name))
+
+(defn registry-snapshot
+  "Returns the current registry as a plain map. Intended for inspection
+  and testing."
+  []
+  @registry)
+
+(defn clear!
+  "Removes every user-registered schema. Returns `nil`."
+  []
+  (reset! registry {})
+  nil)

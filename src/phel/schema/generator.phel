@@ -1,0 +1,204 @@
+(ns phel\schema\generator
+  (:require phel\core)
+  (:require phel\schema\registry :as reg)
+  (:require phel\schema\validator :as v)
+  (:require phel\test\gen :as g))
+
+;; Maps schemas to `phel\test\gen` generators so properties and examples
+;; can exercise the schema without a hand-written generator. A schema
+;; may attach its own generator via `{:gen <gen-fn>}` options to override
+;; the default.
+;;
+;; The mapping is deliberately conservative: only the shapes the
+;; validator can check are supported, and parametric combinators reuse
+;; their validator siblings rather than re-implementing logic.
+
+(declare schema->gen)
+
+(defn- simple-string-gen [_args]
+  g/string-alphanumeric)
+
+(defn- simple-keyword-gen [_args]
+  g/keyword)
+
+(defn- inst-gen []
+  (g/fmap (fn [secs] (php/:: \DateTimeImmutable (createFromFormat "U" (str secs))))
+          (g/choose 0 2147483647)))
+
+(defn- uuid-gen []
+  (fn [_size] (random-uuid)))
+
+(defn- keyword-kind->gen
+  [head]
+  (case head
+    :any        g/int
+    :nil        (g/return nil)
+    :boolean    g/boolean
+    :int        g/int
+    :float      g/float
+    :number     (g/one-of [g/int g/float])
+    :string     g/string-alphanumeric
+    :keyword    g/keyword
+    :symbol     g/symbol
+    :uuid       (uuid-gen)
+    :inst       (inst-gen)
+    :vector     (g/vector-of g/int)
+    :list       (g/list-of g/int)
+    :map        (g/map-of g/keyword g/int)
+    :set        (g/set-of g/int)
+    :sequential (g/vector-of g/int)
+    :seqable    (g/vector-of g/int)
+    (if (reg/registered? head)
+      (schema->gen (reg/deref-ref head))
+      (throw (php/new \InvalidArgumentException
+                      (str "no default generator for schema kind: " head))))))
+
+(defn- vector-of-gen [args]
+  (if (empty? args)
+    (g/vector-of g/int)
+    (g/vector-of (schema->gen (first args)))))
+
+(defn- list-of-gen [args]
+  (if (empty? args)
+    (g/list-of g/int)
+    (g/list-of (schema->gen (first args)))))
+
+(defn- set-of-gen [args]
+  (if (empty? args)
+    (g/set-of g/int)
+    (g/set-of (schema->gen (first args)))))
+
+(defn- map-of-gen [args]
+  (g/map-of (schema->gen (get args 0))
+            (schema->gen (get args 1))))
+
+(defn- tuple-gen [args]
+  (apply g/tuple (into [] (map schema->gen args))))
+
+(defn- map-schema-gen
+  [entries]
+  (let [pairs (into []
+                    (map (fn [entry]
+                           (let [k (get entry 0)
+                                 inner (if (and (>= (count entry) 3)
+                                                (map? (get entry 1)))
+                                         (get entry 2)
+                                         (get entry 1))
+                                 opts (if (and (>= (count entry) 3)
+                                               (map? (get entry 1)))
+                                        (get entry 1)
+                                        {})
+                                 opt? (true? (get opts :optional))]
+                             [k (schema->gen inner) opt?]))
+                         entries))]
+    (fn [size]
+      (loop [ps (seq pairs) acc {}]
+        (cond
+          (nil? ps) acc
+          :else
+          (let [p (first ps)
+                k (get p 0)
+                g (get p 1)
+                opt? (get p 2)
+                include? (if opt?
+                           (g/boolean size)
+                           true)]
+            (if include?
+              (recur (next ps) (assoc acc k (g size)))
+              (recur (next ps) acc))))))))
+
+(defn- enum-gen [args]
+  (g/elements args))
+
+(defn- and-gen [args]
+  ;; The AND intersection is hard in general; pick the first schema and
+  ;; rely on `such-that` to discard values rejected by later ones.
+  (let [base (schema->gen (first args))]
+    (g/such-that (fn [v]
+                   (loop [xs (next args)]
+                     (cond
+                       (nil? xs) true
+                       (not (v/valid? (first xs) v)) false
+                       :else (recur (next xs)))))
+                 base)))
+
+(defn- or-gen [args]
+  (g/one-of (into [] (map schema->gen args))))
+
+(defn- maybe-gen [args]
+  (g/frequency [[9 (schema->gen (first args))]
+                [1 (g/return nil)]]))
+
+(defn- re-gen [args]
+  (let [pattern (first args)]
+    (g/such-that (fn [s]
+                   (and (string? s)
+                        (php/=== 1 (php/preg_match
+                                     (cond
+                                       (string? pattern) pattern
+                                       :else (str pattern))
+                                     s))))
+                 g/string-alphanumeric
+                 200)))
+
+(defn- fn-gen [args]
+  (let [pred (first args)]
+    (g/such-that pred g/int)))
+
+(defn- ref-gen [args]
+  (let [target (reg/deref-ref (first args))]
+    (when (nil? target)
+      (throw (php/new \InvalidArgumentException
+                      (str "schema ref not registered: " (first args)))))
+    (schema->gen target)))
+
+(defn- vector-kind->gen
+  [schema]
+  (let [head (v/schema-head schema)
+        args (v/schema-args schema)]
+    (case head
+      :vector  (vector-of-gen args)
+      :list    (list-of-gen args)
+      :set     (set-of-gen args)
+      :map-of  (map-of-gen args)
+      :tuple   (tuple-gen args)
+      :map     (map-schema-gen args)
+      :enum    (enum-gen args)
+      :and     (and-gen args)
+      :or      (or-gen args)
+      :maybe   (maybe-gen args)
+      :re      (re-gen args)
+      :fn      (fn-gen args)
+      :ref     (ref-gen args)
+      :=>      (throw (php/new \InvalidArgumentException
+                                "cannot generate function schemas"))
+      (if (reg/registered? head)
+        (schema->gen (reg/deref-ref head))
+        (throw (php/new \InvalidArgumentException
+                        (str "no generator for schema kind: " head)))))))
+
+(defn schema->gen
+  "Returns a `phel\\test\\gen` generator for `schema`. Honours a
+  `{:gen <gen>}` override in the schema options when present."
+  {:example "(schema->gen [:int])"
+   :see-also ["phel\\schema/generate"]}
+  [schema]
+  (cond
+    (keyword? schema) (keyword-kind->gen schema)
+
+    (vector? schema)
+    (let [custom (get (v/schema-options schema) :gen)]
+      (if custom custom (vector-kind->gen schema)))
+
+    :else
+    (throw (php/new \InvalidArgumentException
+                    (str "unsupported schema shape: " (print-str schema))))))
+
+(defn generate
+  "Generates one random value conforming to `schema`. Accepts the same
+  `:size` and `:seed` options as `phel\\test\\gen/generate`."
+  {:example "(generate :int)"
+   :see-also ["schema->gen"]}
+  ([schema] (generate schema {}))
+  ([schema opts]
+   (g/generate (schema->gen schema) opts)))

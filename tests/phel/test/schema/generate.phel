@@ -1,0 +1,89 @@
+(ns phel-test\test\schema\generate
+  (:require phel\test :refer [deftest is testing])
+  (:require phel\schema :as s)
+  (:require phel\test\gen :as g))
+
+;; Generated values must conform to their source schema.
+
+(defn- generates-valid? [schema n]
+  (loop [i 0]
+    (cond
+      (>= i n) true
+      (not (s/validate schema (s/generate schema))) false
+      :else (recur (+ i 1)))))
+
+(deftest test-generate-scalar-kinds
+  (is (generates-valid? :int 20))
+  (is (generates-valid? :string 20))
+  (is (generates-valid? :boolean 20))
+  (is (generates-valid? :float 20))
+  (is (generates-valid? :keyword 20))
+  (is (generates-valid? :symbol 20)))
+
+(deftest test-generate-vector
+  (is (generates-valid? [:vector :int] 10))
+  (is (generates-valid? [:vector :keyword] 10)))
+
+(deftest test-generate-tuple
+  (is (generates-valid? [:tuple :int :string] 10)))
+
+(deftest test-generate-map
+  (let [schema [:map [:id :int] [:name :string]]]
+    (loop [i 0]
+      (when (< i 10)
+        (let [v (s/generate schema)]
+          (is (contains? v :id))
+          (is (contains? v :name))
+          (is (s/validate schema v))
+          (recur (+ i 1)))))))
+
+(deftest test-generate-optional-map-key
+  (let [schema [:map [:id :int] [:nick {:optional true} :string]]]
+    (loop [i 0]
+      (when (< i 10)
+        (is (s/validate schema (s/generate schema)))
+        (recur (+ i 1))))))
+
+(deftest test-generate-enum
+  (let [schema [:enum :red :green :blue]
+        samples (into [] (for [_ :range [0 30]] (s/generate schema)))]
+    (is (every? (fn [v] (s/validate schema v)) samples))))
+
+(deftest test-generate-maybe
+  (let [schema [:maybe :int]]
+    (loop [i 0]
+      (when (< i 30)
+        (is (s/validate schema (s/generate schema)))
+        (recur (+ i 1))))))
+
+(deftest test-generate-or
+  (let [schema [:or :int :boolean]]
+    (loop [i 0]
+      (when (< i 20)
+        (is (s/validate schema (s/generate schema)))
+        (recur (+ i 1))))))
+
+(deftest test-generate-map-of
+  (let [schema [:map-of :keyword :int]]
+    (loop [i 0]
+      (when (< i 10)
+        (is (s/validate schema (s/generate schema)))
+        (recur (+ i 1))))))
+
+(deftest test-generate-ref
+  (s/register! :my-int :int)
+  (loop [i 0]
+    (when (< i 10)
+      (is (s/validate [:ref :my-int] (s/generate [:ref :my-int])))
+      (recur (+ i 1))))
+  (s/unregister! :my-int))
+
+(deftest test-generate-custom-override
+  (let [schema [:int {:gen (g/return 99)}]]
+    (is (= 99 (s/generate schema)))))
+
+(deftest test-generate-reproducible-with-seed
+  (let [schema :int
+        a (s/generate schema {:seed 42})
+        b (s/generate schema {:seed 42})]
+    (is (= a b) "same seed -> same value")))

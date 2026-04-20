@@ -1,0 +1,93 @@
+(ns phel-test\test\schema\explain
+  (:require phel\test :refer [deftest is testing])
+  (:require phel\schema :as s))
+
+;; Structured error output from `explain`.
+
+(deftest test-explain-returns-nil-on-success
+  (is (nil? (s/explain :int 1)))
+  (is (nil? (s/explain [:vector :int] [1 2 3])))
+  (is (nil? (s/explain [:map [:x :int]] {:x 1}))))
+
+(deftest test-explain-scalar-mismatch
+  (let [r (s/explain :int "x")]
+    (is (not (nil? r)))
+    (is (= :int (get r :schema)))
+    (is (= "x" (get r :value)))
+    (is (= 1 (count (get r :errors))))
+    (let [err (first (get r :errors))]
+      (is (= :mismatch (get err :type)))
+      (is (= [] (get err :in)))
+      (is (= :int (get err :schema))))))
+
+(deftest test-explain-nested-path
+  (let [r (s/explain [:map [:user [:map [:id :int]]]]
+                     {:user {:id "x"}})]
+    (is (not (nil? r)))
+    (is (= 1 (count (get r :errors))))
+    (let [err (first (get r :errors))]
+      (is (= :mismatch (get err :type)))
+      (is (= [:user :id] (get err :in))))))
+
+(deftest test-explain-missing-key
+  (let [r (s/explain [:map [:id :int]] {})]
+    (is (= 1 (count (get r :errors))))
+    (let [err (first (get r :errors))]
+      (is (= :missing (get err :type)))
+      (is (= [:id] (get err :in))))))
+
+(deftest test-explain-optional-key-missing-is-ok
+  (is (nil? (s/explain [:map
+                        [:id :int]
+                        [:nick {:optional true} :string]]
+                       {:id 1}))))
+
+(deftest test-explain-closed-map-extra
+  (let [r (s/explain [:map {:closed true} [:id :int]]
+                     {:id 1 :extra "a"})]
+    (is (= 1 (count (get r :errors))))
+    (let [err (first (get r :errors))]
+      (is (= :extra (get err :type)))
+      (is (= [:extra] (get err :in))))))
+
+(deftest test-explain-vector-index-path
+  (let [r (s/explain [:vector :int] [1 "x" 3])]
+    (is (= 1 (count (get r :errors))))
+    (let [err (first (get r :errors))]
+      (is (= [1] (get err :in))))))
+
+(deftest test-explain-tuple-index-path
+  (let [r (s/explain [:tuple :int :string] [1 2])]
+    (is (= 1 (count (get r :errors))))
+    (let [err (first (get r :errors))]
+      (is (= [1] (get err :in))))))
+
+(deftest test-explain-multiple-errors
+  (let [r (s/explain [:map
+                      [:id :int]
+                      [:name :string]]
+                     {:id "x" :name 1})]
+    (is (= 2 (count (get r :errors))))))
+
+(deftest test-explain-or
+  (let [r (s/explain [:or :int :boolean] "s")]
+    (is (not (nil? r)))
+    (is (>= (count (get r :errors)) 1))))
+
+(deftest test-explain-and
+  (let [r (s/explain [:and :int [:fn pos?]] -3)]
+    (is (= 1 (count (get r :errors))))))
+
+(deftest test-explain-map-of
+  (let [r (s/explain [:map-of :keyword :int] {:a "x"})]
+    (is (not (nil? r)))
+    (is (= 1 (count (get r :errors))))
+    (let [err (first (get r :errors))]
+      (is (= [:a] (get err :in))))))
+
+(deftest test-human-readable-explain
+  (is (nil? (s/human-readable-explain nil)))
+  (let [text (s/human-readable-explain (s/explain :int "oops"))]
+    (is (string? text))
+    (is (php/str_contains text "mismatch"))
+    (is (php/str_contains text ":int"))))
