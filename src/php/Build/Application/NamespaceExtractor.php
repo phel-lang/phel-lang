@@ -44,7 +44,6 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 
     /**
      * @throws ExtractorException
-     * @throws LexerValueException
      */
     public function getNamespaceFromFile(string $path): NamespaceInformation
     {
@@ -91,7 +90,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
             }
 
             throw ExtractorException::cannotExtractNamespaceFromPath($path);
-        } catch (AbstractParserException|ReaderException) {
+        } catch (AbstractParserException|ReaderException|LexerValueException) {
             throw ExtractorException::cannotParseFile($path);
         }
     }
@@ -140,7 +139,15 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
                     continue;
                 }
 
-                $result[] = $this->getNamespaceFromFile($file[0]);
+                try {
+                    $result[] = $this->getNamespaceFromFile($file[0]);
+                } catch (ExtractorException) {
+                    // Skip files that cannot be parsed/lexed so one malformed
+                    // .phel file in a scanned directory does not abort the
+                    // whole scan (e.g. REPL starting in a cwd that contains
+                    // unrelated broken Phel files).
+                    continue;
+                }
             }
         } catch (UnexpectedValueException) {
             // Skip directories that cannot be read (e.g., permission denied)

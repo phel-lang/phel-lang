@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Build\Application;
 
 use Phel\Build\Application\CachedNamespaceExtractor;
+use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
@@ -77,6 +78,39 @@ final class CachedNamespaceExtractorTest extends TestCase
         self::assertStringEndsWith('/main.phel', $picked[0]->getFile());
         self::assertFalse($picked[1]->isPrimaryDefinition());
         self::assertStringEndsWith('/split/part.phel', $picked[1]->getFile());
+    }
+
+    public function test_directory_scan_skips_files_that_fail_to_extract(): void
+    {
+        $goodPath = $this->dir . '/good.phel';
+        $badPath = $this->dir . '/split/bad.phel';
+
+        file_put_contents($goodPath, '(ns good\\ns)');
+        file_put_contents($badPath, '(ns bad\\ns)');
+
+        $goodInfo = new NamespaceInformation($goodPath, 'good\\ns', [], isPrimaryDefinition: true);
+
+        $inner = $this->createMock(NamespaceExtractorInterface::class);
+        $inner->method('getNamespaceFromFile')->willReturnCallback(
+            static function (string $path) use ($goodInfo): NamespaceInformation {
+                if (str_ends_with($path, 'good.phel')) {
+                    return $goodInfo;
+                }
+
+                throw ExtractorException::cannotParseFile($path);
+            },
+        );
+
+        $extractor = new CachedNamespaceExtractor(
+            $inner,
+            new NullNamespaceCache(),
+            new TopologicalNamespaceSorter(),
+        );
+
+        $infos = $extractor->getNamespacesFromDirectories([$this->dir]);
+
+        self::assertCount(1, $infos, 'Malformed file must be skipped, good file still returned.');
+        self::assertSame('good\\ns', $infos[0]->getNamespace());
     }
 
     private function removeDir(string $dir): void

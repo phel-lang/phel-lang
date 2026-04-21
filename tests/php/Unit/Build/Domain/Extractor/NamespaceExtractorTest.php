@@ -69,6 +69,40 @@ final class NamespaceExtractorTest extends TestCase
         $this->extractNamespace($fileContent);
     }
 
+    public function test_get_namespace_from_file_unlexable_content_throws(): void
+    {
+        $this->expectException(ExtractorException::class);
+        $fileContent = '## markdown-style comments are not valid phel';
+        $this->extractNamespace($fileContent);
+    }
+
+    public function test_scan_skips_unparseable_files(): void
+    {
+        $dir = sys_get_temp_dir() . '/phel-extractor-test-' . uniqid();
+        mkdir($dir, 0777, true);
+
+        $goodPath = $dir . '/good.phel';
+        $badPath = $dir . '/bad.phel';
+
+        file_put_contents($goodPath, '(ns good\\ns)');
+        file_put_contents($badPath, '## not valid phel, lexer will throw');
+
+        $nsExtractor = new NamespaceExtractor(
+            new CompilerFacade(),
+            new TopologicalNamespaceSorter(),
+            new SystemFileIo(),
+        );
+
+        $infos = $nsExtractor->getNamespacesFromDirectories([$dir]);
+
+        self::assertCount(1, $infos, 'Malformed file must be skipped, good file still returned.');
+        self::assertSame('good\\ns', $infos[0]->getNamespace());
+
+        unlink($goodPath);
+        unlink($badPath);
+        rmdir($dir);
+    }
+
     public function test_primary_ns_file_comes_before_its_in_ns_siblings(): void
     {
         $dir = sys_get_temp_dir() . '/phel-extractor-test-' . uniqid();

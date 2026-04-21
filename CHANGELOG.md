@@ -8,6 +8,11 @@ All notable changes to this project will be documented in this file.
 
 - **BREAKING**: Minimum PHP version bumped from 8.3 to 8.4. PHP 8.3 is no longer supported.
 
+### Fixed
+
+#### Build
+- Directory scan skips unparseable `.phel` files instead of aborting; REPL boots even when the cwd tree contains malformed Phel sources
+
 ## [0.34.1](https://github.com/phel-lang/phel-lang/compare/v0.34.0...v0.34.1) - 2026-04-21
 
 ### Added
