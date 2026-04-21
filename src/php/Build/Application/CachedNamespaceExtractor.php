@@ -7,6 +7,7 @@ namespace Phel\Build\Application;
 use Phel\Build\Domain\Cache\NamespaceCacheEntry;
 use Phel\Build\Domain\Cache\NamespaceCacheInterface;
 use Phel\Build\Domain\Extractor\ExcludedScanPaths;
+use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceFileGrouper;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
@@ -59,7 +60,15 @@ final readonly class CachedNamespaceExtractor implements NamespaceExtractorInter
     {
         $allInfos = [];
         foreach ($this->findAllPhelFiles($directories) as $file) {
-            $allInfos[] = $this->getNamespaceFromFile($file);
+            try {
+                $allInfos[] = $this->getNamespaceFromFile($file);
+            } catch (ExtractorException) {
+                // Skip files that cannot be parsed/lexed so one malformed
+                // .phel file in a scanned directory does not abort the
+                // whole scan (e.g. REPL starting in a cwd that contains
+                // unrelated broken Phel files).
+                continue;
+            }
         }
 
         return $this->grouper->groupAndSort($allInfos);
