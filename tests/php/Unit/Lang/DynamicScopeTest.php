@@ -27,6 +27,20 @@ final class DynamicScopeTest extends TestCase
 
         self::assertFalse($scope->hasBinding('ns', 'x'));
         self::assertNull($scope->getBinding('ns', 'x'));
+        self::assertFalse($scope->hasAnyBinding(), 'fresh scope reports no active frames');
+    }
+
+    public function test_has_any_binding_flips_with_push_pop(): void
+    {
+        $scope = DynamicScope::getInstance();
+
+        self::assertFalse($scope->hasAnyBinding());
+
+        $scope->pushFrame(['ns/x' => 1]);
+        self::assertTrue($scope->hasAnyBinding());
+
+        $scope->popFrame();
+        self::assertFalse($scope->hasAnyBinding());
     }
 
     public function test_push_frame_exposes_bindings(): void

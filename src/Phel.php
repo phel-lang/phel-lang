@@ -64,8 +64,11 @@ final class Phel extends InternalPhel
      */
     public static function getDefinition(string $ns, string $name): mixed
     {
+        // Hot path: every resolved symbol hits this. Probe the scope for
+        // *any* live frame first (O(1)) so the common "no binding active"
+        // case skips the string concat and stack walk entirely.
         $scope = DynamicScope::getInstance();
-        if ($scope->hasBinding($ns, $name)) {
+        if ($scope->hasAnyBinding() && $scope->hasBinding($ns, $name)) {
             return $scope->getBinding($ns, $name);
         }
 

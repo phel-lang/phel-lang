@@ -157,16 +157,48 @@ final class DynamicScope
         }
     }
 
+    /**
+     * O(1) probe used by callers that want to short-circuit the common
+     * "no dynamic binding active" case before paying the
+     * {@see self::hasBinding()} / {@see self::getBinding()} cost on the
+     * hot global-read path.
+     */
+    public function hasAnyBinding(): bool
+    {
+        $fiber = Fiber::getCurrent();
+        if (!$fiber instanceof Fiber) {
+            return $this->mainStack !== [];
+        }
+
+        return isset($this->fiberStacks[$fiber]);
+    }
+
     public function hasBinding(string $ns, string $name): bool
     {
+        $stack = $this->currentStack();
+        if ($stack === []) {
+            return false;
+        }
+
         $key = $ns . '/' . $name;
-        return array_any(array_reverse($this->currentStack()), static fn($frame): bool => array_key_exists($key, $frame));
+        foreach (array_reverse($stack) as $frame) {
+            if (array_key_exists($key, $frame)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function getBinding(string $ns, string $name): mixed
     {
+        $stack = $this->currentStack();
+        if ($stack === []) {
+            return null;
+        }
+
         $key = $ns . '/' . $name;
-        foreach (array_reverse($this->currentStack()) as $frame) {
+        foreach (array_reverse($stack) as $frame) {
             if (array_key_exists($key, $frame)) {
                 return $frame[$key];
             }
