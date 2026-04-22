@@ -1,6 +1,6 @@
 (ns phel-test\test\async
   (:require phel\test :refer [deftest is])
-  (:require phel\async :refer [async await await-all await-any delay future future-cancel future-cancelled? future-done? pmap ->closure]))
+  (:require phel\async :refer [async await await-all await-any delay future-cancel future-cancelled? future-done? pmap ->closure]))
 
 ;; --- Pure function tests ---
 

@@ -1,0 +1,21 @@
+(ns phel-test\test\core\future-in-core
+  (:require phel\test :refer [deftest is]))
+
+;; Regression test for https://github.com/phel-lang/phel-lang/issues/1537
+;; `future` must be available from core without requiring `phel\async`,
+;; matching Clojure's out-of-the-box availability.
+
+(deftest test-future-macro-is-available-without-require
+  (let [expanded (macroexpand '(future 42))
+        source   (print-str expanded)]
+    (is (php/str_contains source "Phel\\Lang\\PhelFuture")
+        "future expansion constructs a PhelFuture")
+    (is (php/str_contains source "amp\\async")
+        "future expansion delegates to amp\\async")
+    (is (php/str_contains source "snapshotDynamicBindings")
+        "future expansion snapshots caller bindings")))
+
+(deftest test-future-returns-phel-future-without-require
+  (let [f (future 1)]
+    (is (= true (php/instanceof f \Phel\Lang\PhelFuture))
+        "future produces a PhelFuture instance at the top level")))

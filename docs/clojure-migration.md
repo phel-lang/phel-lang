@@ -176,7 +176,7 @@ Phel runs on PHP. A handful of Clojure features don't translate directly:
 | **Vars (Clojure sense)** | PHP has no thread-local bindings | `def` creates namespace-level bindings directly |
 | **`alter-var-root`** | No first-class vars to re-root | Use an `atom` with `swap!` for mutable state, or redefine the top-level binding with `def`. Calling `alter-var-root` at runtime throws `BadMethodCallException` with this hint |
 
-Phel does provide `future`, `future-cancel`, and `pmap` via the `phel\async` module, which uses AMPHP fibers. Semantics match Clojure's `future` where they can (including timeout-bounded `deref`), but cancellation is cooperative rather than thread-interrupt. For top-level scripting without an event loop, use the fiber primitives (`promise`, `deliver`, `future-call`, `future-fiber`); see [docs/async-guide.md](async-guide.md) for the decision guide.
+Phel provides `future` in `phel\core` (available without requiring any namespace, as in Clojure); `future-cancel` and `pmap` still live in `phel\async`. The implementation uses AMPHP fibers. Semantics match Clojure's `future` where they can (including timeout-bounded `deref`), but cancellation is cooperative rather than thread-interrupt. For top-level scripting without an event loop, use the fiber primitives (`promise`, `deliver`, `future-call`, `future-fiber`); see [docs/async-guide.md](async-guide.md) for the decision guide.
 
 ## Structural differences
 
