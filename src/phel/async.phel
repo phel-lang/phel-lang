@@ -25,11 +25,18 @@
   (php/:: \Closure (fromCallable f)))
 
 (defmacro async
-  "Runs body asynchronously in a new fiber. Returns an Amp\\Future."
+  "Runs body asynchronously in a new fiber. Returns an Amp\\Future.
+
+  Captures the caller's dynamic bindings and reinstalls them inside
+  the fiber, so `binding`s established outside `async` are visible to
+  `body` (binding conveyance, as in Clojure's `future`)."
   {:example "(async (do-something))"
    :see-also ["await" "delay" "await-all" "await-any"]}
   [& body]
-  `(php/amp\async (fn [] ~@body)))
+  `(let [frame# (php/:: \Phel (snapshotDynamicBindings))]
+     (php/amp\async
+       (fn []
+         (php/:: \Phel (withDynamicBindings frame# (fn [] ~@body)))))))
 
 (defmacro future
   "Starts evaluating `body` asynchronously and returns a `PhelFuture`
@@ -47,9 +54,12 @@
    :see-also ["async" "await" "realized?" "deref" "future-cancel"
               "future-done?" "future-fiber" "future?"]}
   [& body]
-  `(php/new \Phel\Lang\PhelFuture
-            (php/amp\async (fn [] ~@body))
-            (php/new \Amp\DeferredCancellation)))
+  `(let [frame# (php/:: \Phel (snapshotDynamicBindings))]
+     (php/new \Phel\Lang\PhelFuture
+              (php/amp\async
+                (fn []
+                  (php/:: \Phel (withDynamicBindings frame# (fn [] ~@body)))))
+              (php/new \Amp\DeferredCancellation))))
 
 (defn- unwrap-future
   "Returns the raw Amp\\Future for either a `PhelFuture` wrapper or
@@ -177,12 +187,18 @@
 (defn future-call
   "Invokes `f` (a zero-arg function) in a new fiber. Returns a
   `PhelFiberFuture` you can `deref` or inspect with `future-done?`
-  and `future-cancel`."
+  and `future-cancel`.
+
+  Captures the caller's dynamic bindings and reinstalls them inside
+  the fiber before invoking `f`, so bindings are conveyed the same
+  way as with `future`/`async`."
   {:example "(future-call (fn [] 42))"
    :see-also ["future-fiber" "deref" "future-done?" "future-cancel"
               "promise" "deliver"]}
   [f]
-  (php/-> (fiber-facade) (future (->closure f))))
+  (let [frame   (php/:: \Phel (snapshotDynamicBindings))
+        wrapped (fn [] (php/:: \Phel (withDynamicBindings frame f)))]
+    (php/-> (fiber-facade) (future (->closure wrapped)))))
 
 (defmacro future-fiber
   "Runs `body` in a new fiber via the cooperative scheduler. Returns a

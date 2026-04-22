@@ -10,6 +10,9 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+#### Core
+- `binding` on vars tagged `^:dynamic` now uses fiber-local storage, so concurrent fibers observe independent values and child futures/async blocks inherit the bindings active at their creation (Clojure-aligned binding conveyance). `^:dynamic` metadata on the name symbol of `def` is now honored. [#1536](https://github.com/phel-lang/phel-lang/issues/1536)
+
 #### Build
 - Directory scan skips unparseable `.phel` files instead of aborting; REPL boots even when the cwd tree contains malformed Phel sources
 
