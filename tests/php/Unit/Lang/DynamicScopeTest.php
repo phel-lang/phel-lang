@@ -67,7 +67,7 @@ final class DynamicScopeTest extends TestCase
         $scope = DynamicScope::getInstance();
 
         try {
-            $scope->withFrame(['ns/x' => 'boom'], static function (): void {
+            $scope->withFrame(['ns/x' => 'boom'], static function (): never {
                 throw new RuntimeException('fail');
             });
             self::fail('expected exception');
@@ -170,6 +170,7 @@ final class DynamicScopeTest extends TestCase
             self::assertFalse($scope->isRecording(), 'fiber starts without a recording');
             $scope->startRecording();
             $scope->recordDynamic('ns', 'x', 'fiber');
+
             $observed = $scope->popRecording()['dynamic'];
         });
         $fiber->start();
@@ -184,6 +185,7 @@ final class DynamicScopeTest extends TestCase
         // Simulating binding conveyance: caller snapshots, fiber re-applies.
         $scope = DynamicScope::getInstance();
         $scope->pushFrame(['ns/x' => 'caller']);
+
         $snapshot = $scope->snapshot();
 
         $seenInsideFiber = null;

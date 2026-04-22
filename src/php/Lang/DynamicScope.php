@@ -81,16 +81,7 @@ final class DynamicScope
      */
     public function startRecording(): void
     {
-        $entry = ['dynamic' => [], 'redefs' => []];
-        $fiber = Fiber::getCurrent();
-        if (!$fiber instanceof Fiber) {
-            $this->mainRecordings[] = $entry;
-            return;
-        }
-
-        $stack = $this->fiberRecordings[$fiber] ?? [];
-        $stack[] = $entry;
-        $this->fiberRecordings[$fiber] = $stack;
+        $this->pushRecording(['dynamic' => [], 'redefs' => []]);
     }
 
     public function isRecording(): bool
@@ -100,48 +91,24 @@ final class DynamicScope
 
     public function recordDynamic(string $ns, string $name, mixed $value): void
     {
-        $fiber = Fiber::getCurrent();
-        if (!$fiber instanceof Fiber) {
-            $top = array_key_last($this->mainRecordings);
-            if ($top === null) {
-                return;
-            }
-
-            $this->mainRecordings[$top]['dynamic'][$ns . '/' . $name] = $value;
+        $entry = $this->popTopRecording();
+        if ($entry === null) {
             return;
         }
 
-        $stack = $this->fiberRecordings[$fiber] ?? [];
-        $top = array_key_last($stack);
-        if ($top === null) {
-            return;
-        }
-
-        $stack[$top]['dynamic'][$ns . '/' . $name] = $value;
-        $this->fiberRecordings[$fiber] = $stack;
+        $entry['dynamic'][$ns . '/' . $name] = $value;
+        $this->pushRecording($entry);
     }
 
     public function recordRedef(string $ns, string $name, mixed $previous): void
     {
-        $fiber = Fiber::getCurrent();
-        if (!$fiber instanceof Fiber) {
-            $top = array_key_last($this->mainRecordings);
-            if ($top === null) {
-                return;
-            }
-
-            $this->mainRecordings[$top]['redefs'][] = [$ns, $name, $previous];
+        $entry = $this->popTopRecording();
+        if ($entry === null) {
             return;
         }
 
-        $stack = $this->fiberRecordings[$fiber] ?? [];
-        $top = array_key_last($stack);
-        if ($top === null) {
-            return;
-        }
-
-        $stack[$top]['redefs'][] = [$ns, $name, $previous];
-        $this->fiberRecordings[$fiber] = $stack;
+        $entry['redefs'][] = [$ns, $name, $previous];
+        $this->pushRecording($entry);
     }
 
     /**
@@ -149,21 +116,7 @@ final class DynamicScope
      */
     public function popRecording(): array
     {
-        $fiber = Fiber::getCurrent();
-        if (!$fiber instanceof Fiber) {
-            $entry = array_pop($this->mainRecordings);
-            return $entry ?? ['dynamic' => [], 'redefs' => []];
-        }
-
-        $stack = $this->fiberRecordings[$fiber] ?? [];
-        $entry = array_pop($stack);
-        if ($stack === []) {
-            unset($this->fiberRecordings[$fiber]);
-        } else {
-            $this->fiberRecordings[$fiber] = $stack;
-        }
-
-        return $entry ?? ['dynamic' => [], 'redefs' => []];
+        return $this->popTopRecording() ?? ['dynamic' => [], 'redefs' => []];
     }
 
     /**
@@ -190,7 +143,12 @@ final class DynamicScope
             return;
         }
 
-        $stack = $this->fiberStacks[$fiber] ?? [];
+        if (!isset($this->fiberStacks[$fiber])) {
+            return;
+        }
+
+        /** @var list<array<string, mixed>> $stack */
+        $stack = $this->fiberStacks[$fiber];
         array_pop($stack);
         if ($stack === []) {
             unset($this->fiberStacks[$fiber]);
@@ -202,13 +160,7 @@ final class DynamicScope
     public function hasBinding(string $ns, string $name): bool
     {
         $key = $ns . '/' . $name;
-        foreach (array_reverse($this->currentStack()) as $frame) {
-            if (array_key_exists($key, $frame)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(array_reverse($this->currentStack()), static fn($frame): bool => array_key_exists($key, $frame));
     }
 
     public function getBinding(string $ns, string $name): mixed
@@ -257,6 +209,51 @@ final class DynamicScope
     }
 
     /**
+     * @param array{dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>} $entry
+     */
+    private function pushRecording(array $entry): void
+    {
+        $fiber = Fiber::getCurrent();
+        if (!$fiber instanceof Fiber) {
+            $stack = $this->mainRecordings;
+            $stack[] = $entry;
+            $this->mainRecordings = $stack;
+            return;
+        }
+
+        /** @var list<array{dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>}> $stack */
+        $stack = $this->fiberRecordings[$fiber] ?? [];
+        $stack[] = $entry;
+        $this->fiberRecordings[$fiber] = $stack;
+    }
+
+    /**
+     * @return array{dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>}|null
+     */
+    private function popTopRecording(): ?array
+    {
+        $fiber = Fiber::getCurrent();
+        if (!$fiber instanceof Fiber) {
+            return array_pop($this->mainRecordings);
+        }
+
+        if (!isset($this->fiberRecordings[$fiber])) {
+            return null;
+        }
+
+        /** @var list<array{dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>}> $stack */
+        $stack = $this->fiberRecordings[$fiber];
+        $entry = array_pop($stack);
+        if ($stack === []) {
+            unset($this->fiberRecordings[$fiber]);
+        } else {
+            $this->fiberRecordings[$fiber] = $stack;
+        }
+
+        return $entry;
+    }
+
+    /**
      * @return list<array{dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>}>
      */
     private function currentRecordings(): array
@@ -266,7 +263,9 @@ final class DynamicScope
             return $this->mainRecordings;
         }
 
-        return $this->fiberRecordings[$fiber] ?? [];
+        /** @var list<array{dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>}> $stack */
+        $stack = $this->fiberRecordings[$fiber] ?? [];
+        return $stack;
     }
 
     /**
@@ -279,6 +278,8 @@ final class DynamicScope
             return $this->mainStack;
         }
 
-        return $this->fiberStacks[$fiber] ?? [];
+        /** @var list<array<string, mixed>> $stack */
+        $stack = $this->fiberStacks[$fiber] ?? [];
+        return $stack;
     }
 }
