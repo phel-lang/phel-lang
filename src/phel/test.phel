@@ -12,9 +12,9 @@
 
 (def- fail-fast? (atom false))
 
-(def- *current-test-name* nil)
+(def- ^:dynamic *current-test-name* nil)
 
-(def *testing-contexts*
+(def ^:dynamic *testing-contexts*
   "Stack of testing context strings, most recent first."
   [])
 
