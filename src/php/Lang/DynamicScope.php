@@ -181,13 +181,7 @@ final class DynamicScope
         }
 
         $key = $ns . '/' . $name;
-        foreach (array_reverse($stack) as $frame) {
-            if (array_key_exists($key, $frame)) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any(array_reverse($stack), static fn($frame): bool => array_key_exists($key, $frame));
     }
 
     public function getBinding(string $ns, string $name): mixed
