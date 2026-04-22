@@ -10,6 +10,9 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+#### Core
+- `binding` on `^:dynamic` vars is fiber-local; `future`/`async` convey caller bindings; `^:dynamic` on `def` name symbols is honored (#1536)
+
 #### Build
 - Directory scan skips unparseable `.phel` files instead of aborting; REPL boots even when the cwd tree contains malformed Phel sources
 

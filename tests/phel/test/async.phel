@@ -11,8 +11,14 @@
     (is (= 6 (c 3)) "Closure preserves function behavior")))
 
 (deftest test-async-macro-expands
-  (let [expanded (macroexpand-1 '(phel\async/async (+ 1 2)))]
-    (is (= 'php/amp\async (first expanded)) "async expands to php/amp\\async call")))
+  (let [expanded (macroexpand '(phel\async/async (+ 1 2)))
+        source (print-str expanded)]
+    (is (php/str_contains source "amp\\async")
+        "async expansion still delegates to amp\\async")
+    (is (php/str_contains source "withDynamicBindings")
+        "async expansion wraps body in binding conveyance")
+    (is (php/str_contains source "snapshotDynamicBindings")
+        "async expansion snapshots caller bindings")))
 
 ;; --- Runtime integration tests (amphp/amp) ---
 

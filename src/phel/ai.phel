@@ -21,8 +21,9 @@
    :example "@ai/config"}
   (atom default-config))
 
-(def *http-post*
-  {:doc "HTTP POST seam. Rebind with `binding` in tests to inject a fake transport."
+(def ^:dynamic *http-post*
+  {:doc "HTTP POST seam. Rebind with `binding` in tests to inject a fake transport.
+  Tagged `^:dynamic` so concurrent tests rebinding it stay isolated per fiber."
    :example "(binding [*http-post* (fn [url opts] {:status 200 :body \"...\"})] ...)"}
   hc/post)
 
