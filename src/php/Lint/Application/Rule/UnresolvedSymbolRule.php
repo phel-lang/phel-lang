@@ -10,6 +10,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
+use Phel\Lang\TypeInterface;
 use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
@@ -83,7 +84,7 @@ final readonly class UnresolvedSymbolRule implements LintRuleInterface
     }
 
     /**
-     * @param list<bool|float|int|\Phel\Lang\TypeInterface|string|null> $forms
+     * @param list<bool|float|int|string|TypeInterface|null> $forms
      *
      * @return array<string, true>
      */
@@ -140,7 +141,11 @@ final readonly class UnresolvedSymbolRule implements LintRuleInterface
         $size = count($vector);
         for ($i = 1; $i < $size - 1; ++$i) {
             $item = $vector->get($i);
-            if (!$item instanceof Keyword || $item->getName() !== 'as') {
+            if (!$item instanceof Keyword) {
+                continue;
+            }
+
+            if ($item->getName() !== 'as') {
                 continue;
             }
 
