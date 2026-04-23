@@ -45,6 +45,18 @@ final class AnalyzePersistentListTest extends TestCase
         );
     }
 
+    public function test_empty_list_analyzes_as_self_quoting_literal(): void
+    {
+        // `()` should be treated as the empty list literal, not as an
+        // invocation of a missing head (issue #1549).
+        $list = Phel::list([]);
+
+        $node = $this->listAnalyzer->analyze($list, NodeEnvironment::empty());
+
+        self::assertInstanceOf(QuoteNode::class, $node);
+        self::assertSame($list, $node->getValue());
+    }
+
     public function test_symbol_with_name_def(): void
     {
         $list = Phel::list([

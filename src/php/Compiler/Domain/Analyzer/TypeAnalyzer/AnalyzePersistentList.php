@@ -8,6 +8,7 @@ use Phel;
 use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Domain\Analyzer\Ast\QuoteNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ApplySymbol;
@@ -74,6 +75,13 @@ final class AnalyzePersistentList
      */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {
+        if (count($list) === 0) {
+            // `()` is a self-quoting empty list literal — not an invocation
+            // of a missing head. Matches Clojure/Janet and keeps forms like
+            // `(into () ...)` or `(= () (list))` usable.
+            return new QuoteNode($env, $list, $list->getStartLocation());
+        }
+
         $list = $this->expandConstructorShorthand($list);
         $list = $this->expandMemberAccessShorthand($list);
 
