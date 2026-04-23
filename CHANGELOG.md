@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+#### Core
+- Hierarchy functions `isa?`, `derive`, `underive`, `parents`, `ancestors`, `descendants` accept an optional hierarchy argument; the hierarchy arities of `derive`/`underive` are pure and return a new hierarchy (#1543)
+
 ### Changed
 
 - **BREAKING**: Minimum PHP version bumped from 8.3 to 8.4. PHP 8.3 is no longer supported.
