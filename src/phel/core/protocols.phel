@@ -85,76 +85,142 @@
          false
          direct)))))
 
+(defn- compute-ancestors-map
+  "Builds the full {tag #{ancestors}} map from a parents map."
+  [parents-map]
+  (reduce
+   (fn [acc tag]
+     (let [anc (compute-ancestors parents-map tag)]
+       (if (empty? anc) acc (assoc acc tag anc))))
+   {}
+   (keys parents-map)))
+
+(defn- compute-descendants-map
+  "Builds the full {tag #{descendants}} map from a parents map."
+  [parents-map]
+  (reduce
+   (fn [acc child]
+     (reduce
+      (fn [inner ancestor]
+        (let [existing (get inner ancestor (hash-set))]
+          (assoc inner ancestor (union existing (hash-set child)))))
+      acc
+      (compute-ancestors parents-map child)))
+   {}
+   (keys parents-map)))
+
+(defn- rebuild-hierarchy
+  "Rebuilds :ancestors and :descendants maps from the :parents map in h."
+  [h]
+  (let [pm (get h :parents)]
+    (assoc h
+           :ancestors   (compute-ancestors-map pm)
+           :descendants (compute-descendants-map pm))))
+
 (defn isa?
-  "Returns true if child equals parent, or child is a descendant of parent
-  in the global hierarchy."
+  "Returns true if child equals parent, or child is a descendant of parent.
+  When a hierarchy is provided, the check is performed against it; otherwise
+  the global hierarchy is used."
   {:example "(do (derive :square :shape) (isa? :square :shape)) ; => true"
    :see-also ["derive" "parents" "ancestors" "descendants"]}
-  [child parent]
-  (or (= child parent)
-      (isa-in? (get @*hierarchy* :parents) child parent)))
+  ([child parent]
+   (isa? @*hierarchy* child parent))
+  ([h child parent]
+   (or (= child parent)
+       (isa-in? (get h :parents) child parent))))
 
 (defn derive
-  "Establishes a parent/child relationship between child and parent keywords
-  in the global hierarchy. Throws on cyclic derivation."
+  "Establishes a parent/child relationship between child and parent keywords.
+  With two arguments, mutates the global hierarchy and returns nil.
+  With a hierarchy `h`, returns a new hierarchy with the relationship added;
+  the original hierarchy is not modified. Throws on cyclic derivation."
   {:example "(derive :square :shape)"
    :see-also ["underive" "isa?" "parents" "ancestors" "descendants"]}
-  [child parent]
-  (when (isa? parent child)
-    (throw (php/new \InvalidArgumentException
-                    (str "Cyclic derivation: " parent " already isa " child))))
-  (swap! *hierarchy*
-         (fn [h]
-           (let [parents-map (get h :parents)
-                 old-parents (get parents-map child (hash-set))
-                 new-parents (union old-parents (hash-set parent))]
-             (assoc h :parents (assoc parents-map child new-parents)))))
-  nil)
+  ([child parent]
+   (when (isa? parent child)
+     (throw (php/new \InvalidArgumentException
+                     (str "Cyclic derivation: " parent " already isa " child))))
+   (swap! *hierarchy*
+          (fn [h]
+            (let [parents-map (get h :parents)
+                  old-parents (get parents-map child (hash-set))
+                  new-parents (union old-parents (hash-set parent))]
+              (assoc h :parents (assoc parents-map child new-parents)))))
+   nil)
+  ([h child parent]
+   (when (isa? h parent child)
+     (throw (php/new \InvalidArgumentException
+                     (str "Cyclic derivation: " parent " already isa " child))))
+   (let [parents-map (get h :parents)
+         old-parents (get parents-map child (hash-set))
+         new-parents (union old-parents (hash-set parent))
+         new-pm      (assoc parents-map child new-parents)]
+     (rebuild-hierarchy (assoc h :parents new-pm)))))
 
 (defn underive
-  "Removes a parent/child relationship from the global hierarchy."
+  "Removes a parent/child relationship.
+  With two arguments, mutates the global hierarchy and returns nil.
+  With a hierarchy `h`, returns a new hierarchy without the relationship;
+  the original is unchanged."
   {:example "(underive :square :shape)"
    :see-also ["derive" "isa?" "parents" "ancestors" "descendants"]}
-  [child parent]
-  (swap! *hierarchy*
-         (fn [h]
-           (let [parents-map (get h :parents)
-                 old-parents (get parents-map child (hash-set))
-                 new-parents (difference old-parents (hash-set parent))
-                 new-map     (if (empty? new-parents)
-                               (dissoc parents-map child)
-                               (assoc parents-map child new-parents))]
-             (assoc h :parents new-map))))
-  nil)
+  ([child parent]
+   (swap! *hierarchy*
+          (fn [h]
+            (let [parents-map (get h :parents)
+                  old-parents (get parents-map child (hash-set))
+                  new-parents (difference old-parents (hash-set parent))
+                  new-map     (if (empty? new-parents)
+                                (dissoc parents-map child)
+                                (assoc parents-map child new-parents))]
+              (assoc h :parents new-map))))
+   nil)
+  ([h child parent]
+   (let [parents-map (get h :parents)
+         old-parents (get parents-map child (hash-set))
+         new-parents (difference old-parents (hash-set parent))
+         new-pm      (if (empty? new-parents)
+                       (dissoc parents-map child)
+                       (assoc parents-map child new-parents))]
+     (rebuild-hierarchy (assoc h :parents new-pm)))))
 
 (defn parents
-  "Returns the set of immediate parents of tag in the global hierarchy, or nil."
+  "Returns the set of immediate parents of tag, or nil.
+  When a hierarchy is provided, consults it; otherwise uses the global hierarchy."
   {:see-also ["ancestors" "descendants" "derive" "isa?"]}
-  [tag]
-  (let [p (get (get @*hierarchy* :parents) tag)]
-    (when (and p (not (empty? p))) p)))
+  ([tag]
+   (parents @*hierarchy* tag))
+  ([h tag]
+   (let [p (get (get h :parents) tag)]
+     (when (and p (not (empty? p))) p))))
 
 (defn ancestors
-  "Returns the set of all transitive ancestors of tag, or nil."
+  "Returns the set of all transitive ancestors of tag, or nil.
+  When a hierarchy is provided, consults it; otherwise uses the global hierarchy."
   {:see-also ["parents" "descendants" "derive" "isa?"]}
-  [tag]
-  (let [a (compute-ancestors (get @*hierarchy* :parents) tag)]
-    (when (not (empty? a)) a)))
+  ([tag]
+   (ancestors @*hierarchy* tag))
+  ([h tag]
+   (let [a (compute-ancestors (get h :parents) tag)]
+     (when (not (empty? a)) a))))
 
 (defn descendants
-  "Returns the set of all descendants of tag, or nil."
+  "Returns the set of all descendants of tag, or nil.
+  When a hierarchy is provided, consults it; otherwise uses the global hierarchy."
   {:see-also ["parents" "ancestors" "derive" "isa?"]}
-  [tag]
-  (let [parents-map  (get @*hierarchy* :parents)
-        all-children (keys parents-map)
-        result       (reduce
-                      (fn [acc child]
-                        (if (contains? (compute-ancestors parents-map child) tag)
-                          (union acc (hash-set child))
-                          acc))
-                      (hash-set)
-                      all-children)]
-    (when (not (empty? result)) result)))
+  ([tag]
+   (descendants @*hierarchy* tag))
+  ([h tag]
+   (let [parents-map  (get h :parents)
+         all-children (keys parents-map)
+         result       (reduce
+                       (fn [acc child]
+                         (if (contains? (compute-ancestors parents-map child) tag)
+                           (union acc (hash-set child))
+                           acc))
+                       (hash-set)
+                       all-children)]
+     (when (not (empty? result)) result))))
 
 (defn find-hierarchy-method
   "Finds the best matching method for dispatch-val using the global hierarchy.

@@ -91,6 +91,89 @@
     (is (= {} (get h :descendants)) "fresh hierarchy has no descendants")
     (is (= {} (get h :ancestors)) "fresh hierarchy has no ancestors")))
 
+;; --- hierarchy-arity variants ---
+
+(deftest test-derive-hierarchy-returns-new-hierarchy
+  (let [h  (make-hierarchy)
+        h' (derive h :hd-child :hd-parent)]
+    (is (= {} (get h :parents)) "original hierarchy left untouched")
+    (is (contains? (get (get h' :parents) :hd-child) :hd-parent)
+        "new hierarchy carries the parent link")
+    (is (contains? (get (get h' :ancestors) :hd-child) :hd-parent)
+        "new hierarchy populates :ancestors")
+    (is (contains? (get (get h' :descendants) :hd-parent) :hd-child)
+        "new hierarchy populates :descendants")))
+
+(deftest test-derive-hierarchy-transitive-ancestors
+  (let [h (-> (make-hierarchy)
+              (derive :hd2-c :hd2-b)
+              (derive :hd2-b :hd2-a))]
+    (is (contains? (get (get h :ancestors) :hd2-c) :hd2-a)
+        "ancestors map captures transitive parent")
+    (is (contains? (get (get h :descendants) :hd2-a) :hd2-c)
+        "descendants map captures transitive child")))
+
+(deftest test-derive-hierarchy-cyclic-throws
+  (let [h (derive (make-hierarchy) :hd3-a :hd3-b)]
+    (is (thrown? \InvalidArgumentException (derive h :hd3-b :hd3-a))
+        "pure derive rejects cycles")))
+
+(deftest test-derive-hierarchy-does-not-touch-global
+  (let [_ (derive (make-hierarchy) :hd4-child :hd4-parent)]
+    (is (false? (isa? :hd4-child :hd4-parent))
+        "pure derive must not leak into the global hierarchy")))
+
+(deftest test-underive-hierarchy-returns-new-hierarchy
+  (let [h  (derive (make-hierarchy) :hu-child :hu-parent)
+        h' (underive h :hu-child :hu-parent)]
+    (is (contains? (get (get h :parents) :hu-child) :hu-parent)
+        "original hierarchy preserved")
+    (is (nil? (get (get h' :parents) :hu-child))
+        "parent link removed in new hierarchy")))
+
+(deftest test-underive-hierarchy-preserves-other-parents
+  (let [h  (-> (make-hierarchy)
+               (derive :hu2-child :hu2-p1)
+               (derive :hu2-child :hu2-p2))
+        h' (underive h :hu2-child :hu2-p1)]
+    (is (false? (contains? (get (get h' :parents) :hu2-child) :hu2-p1))
+        "removed parent gone")
+    (is (contains? (get (get h' :parents) :hu2-child) :hu2-p2)
+        "other parent preserved")))
+
+(deftest test-isa-hierarchy
+  (let [h (-> (make-hierarchy)
+              (derive :hi-c :hi-b)
+              (derive :hi-b :hi-a))]
+    (is (true? (isa? h :hi-c :hi-a)) "transitive isa? in hierarchy")
+    (is (true? (isa? h :hi-c :hi-c)) "identity in hierarchy")
+    (is (false? (isa? h :hi-a :hi-c)) "no reverse in hierarchy")))
+
+(deftest test-parents-hierarchy
+  (let [h (derive (make-hierarchy) :hp-child :hp-parent)]
+    (is (contains? (parents h :hp-child) :hp-parent)
+        "parents in hierarchy")
+    (is (nil? (parents h :hp-unknown))
+        "nil for unknown tag in hierarchy")))
+
+(deftest test-ancestors-hierarchy
+  (let [h (-> (make-hierarchy)
+              (derive :ha-c :ha-b)
+              (derive :ha-b :ha-a))]
+    (let [anc (ancestors h :ha-c)]
+      (is (contains? anc :ha-b) "direct ancestor in hierarchy")
+      (is (contains? anc :ha-a) "transitive ancestor in hierarchy"))
+    (is (nil? (ancestors h :ha-unknown)) "nil for unknown tag")))
+
+(deftest test-descendants-hierarchy
+  (let [h (-> (make-hierarchy)
+              (derive :hdc-child :hdc-root)
+              (derive :hdc-grandchild :hdc-child))]
+    (let [desc (descendants h :hdc-root)]
+      (is (contains? desc :hdc-child) "direct descendant in hierarchy")
+      (is (contains? desc :hdc-grandchild) "transitive descendant in hierarchy"))
+    (is (nil? (descendants h :hdc-leaf)) "nil for leaf/unknown tag")))
+
 ;; --- multimethod with hierarchy dispatch ---
 
 ;; Multimethods must be top-level (defmulti expands to def)
