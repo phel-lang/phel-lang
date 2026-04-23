@@ -631,6 +631,41 @@ final class ParserTest extends TestCase
         );
     }
 
+    public function test_reader_conditional_trailing_newline_before_close_paren(): void
+    {
+        // Closing paren on its own line should not fail — issue #1547.
+        $node = $this->parse("#?(:phel nil\n          :default identity\n         )");
+        self::assertInstanceOf(NilNode::class, $node);
+    }
+
+    public function test_reader_conditional_trailing_whitespace_before_close_paren(): void
+    {
+        self::assertEquals(
+            new NumberNode('42', $this->loc(1, 9), $this->loc(1, 11), 42),
+            $this->parse('#?(:phel 42 :default 0   )'),
+        );
+    }
+
+    public function test_reader_conditional_splicing_trailing_newline_before_close_paren(): void
+    {
+        // [1 #?@(:phel [2 3]\n      ) 4] → [1 2 3 4]
+        $tokenStream = $this->compilerFacade->lexString("[1 #?@(:phel [2 3]\n      ) 4]");
+        $node = $this->compilerFacade->parseNext($tokenStream);
+
+        self::assertInstanceOf(ListNode::class, $node);
+
+        $nonTrivia = array_values(array_filter(
+            $node->getChildren(),
+            static fn(NodeInterface $n): bool => !$n instanceof WhitespaceNode && !$n instanceof NewlineNode,
+        ));
+
+        self::assertCount(4, $nonTrivia);
+        self::assertSame(1, $nonTrivia[0]->getValue());
+        self::assertSame(2, $nonTrivia[1]->getValue());
+        self::assertSame(3, $nonTrivia[2]->getValue());
+        self::assertSame(4, $nonTrivia[3]->getValue());
+    }
+
     public function test_reader_conditional_nested(): void
     {
         self::assertEquals(
