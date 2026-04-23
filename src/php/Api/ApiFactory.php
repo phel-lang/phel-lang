@@ -29,6 +29,7 @@ use Phel\Api\Infrastructure\Daemon\ApiDaemon;
 use Phel\Api\Infrastructure\PhelFnLoader;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\Facade\RunFacadeInterface;
 
 /**
  * @extends AbstractFactory<ApiConfig>
@@ -100,10 +101,18 @@ final class ApiFactory extends AbstractFactory
         );
     }
 
+    public function getRunFacade(): RunFacadeInterface
+    {
+        /** @var RunFacadeInterface $facade */
+        $facade = $this->getProvidedDependency(ApiProvider::FACADE_RUN);
+
+        return $facade;
+    }
+
     private function createPhelFnLoader(): PhelFnLoaderInterface
     {
         return new PhelFnLoader(
-            $this->getProvidedDependency(ApiProvider::FACADE_RUN),
+            $this->getRunFacade(),
         );
     }
 
