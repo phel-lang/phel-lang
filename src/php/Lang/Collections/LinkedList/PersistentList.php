@@ -145,7 +145,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
         $node = $this;
         $visited = 0;
         foreach ($other as $rightValue) {
-            if ($visited >= $this->count) {
+            if (!$node instanceof PersistentListInterface) {
                 return false;
             }
 
