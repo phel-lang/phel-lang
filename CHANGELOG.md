@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
 
 #### Compiler
 - `php/new` with a non-string, non-object class expression now throws a descriptive `InvalidArgumentException` including the offending value instead of PHP's cryptic `Class name must be a valid object or a string` (#1538)
+- `#?` and `#?@` reader conditionals no longer fail with `Unterminated list (BRACKETS)` when the closing paren sits on its own line; trailing whitespace, newlines, or comments before `)` are now tolerated (#1547)
 
 #### Lint
 - `phel lint` no longer reports `phel/unresolved-symbol` for alias-qualified calls (`alias/name`) when `alias` is declared via `(:require ... :as alias)` in the file's ns form; the linter cannot load other namespaces, so valid cross-namespace calls are now suppressed (#1540)
