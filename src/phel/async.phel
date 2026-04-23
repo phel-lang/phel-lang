@@ -3,8 +3,10 @@
 ;; Two cooperating concurrency layers in one module.
 ;;
 ;; - AMPHP-backed: `async`, `await`, `delay`, `await-all`, `await-any`,
-;;   `pmap`, `future`, `future-cancel`, `future-cancelled?`. Requires an
-;;   event loop; best for IO parallelism, timers, and combinators.
+;;   `pmap`, `future-cancel`, `future-cancelled?`. Requires an event
+;;   loop; best for IO parallelism, timers, and combinators. The core
+;;   `future` macro (available without requiring this namespace) is the
+;;   AMPHP-backed variant.
 ;; - Fiber-backed: `promise`, `deliver`, `future-call`, `future-fiber`,
 ;;   `future?`. Runs at the top level via a cooperative scheduler in
 ;;   `\Phel\Fiber\FiberFacade`; no loop required.
@@ -37,29 +39,6 @@
      (php/amp\async
        (fn []
          (php/:: \Phel (withDynamicBindings frame# (fn [] ~@body)))))))
-
-(defmacro future
-  "Starts evaluating `body` asynchronously and returns a `PhelFuture`
-  that can be `deref`ed (blocks the current fiber until the value is
-  available) or checked with `realized?`.
-
-  Supports the 3-arg `(deref f timeout-ms timeout-val)` form for
-  time-bounded blocking, as well as `future-cancel`, `future-cancelled?`
-  and `future-done?` for lifecycle management.
-
-  Must be called from inside a fiber context (e.g. the AMPHP event
-  loop or an enclosing `async` block), because `deref` resolves via
-  AMPHP's fiber-based `await`."
-  {:example "(let [f (future (expensive-computation))] @f)"
-   :see-also ["async" "await" "realized?" "deref" "future-cancel"
-              "future-done?" "future-fiber" "future?"]}
-  [& body]
-  `(let [frame# (php/:: \Phel (snapshotDynamicBindings))]
-     (php/new \Phel\Lang\PhelFuture
-              (php/amp\async
-                (fn []
-                  (php/:: \Phel (withDynamicBindings frame# (fn [] ~@body)))))
-              (php/new \Amp\DeferredCancellation))))
 
 (defn- unwrap-future
   "Returns the raw Amp\\Future for either a `PhelFuture` wrapper or

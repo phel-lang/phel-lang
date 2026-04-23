@@ -254,7 +254,7 @@ Wall time tracks the slowest branch, not the sum.
 
 ```phel
 (ns demo\cancel-on-error
-  (:require phel\async :refer [async await delay future future-cancel]))
+  (:require phel\async :refer [async await delay future-cancel]))
 
 (defn launch []
   (async

@@ -8,6 +8,9 @@ All notable changes to this project will be documented in this file.
 
 - **BREAKING**: Minimum PHP version bumped from 8.3 to 8.4. PHP 8.3 is no longer supported.
 
+#### Core
+- `future` is now available from `phel\core` without requiring `phel\async`, matching Clojure's out-of-the-box availability (#1537)
+
 ### Fixed
 
 #### Core

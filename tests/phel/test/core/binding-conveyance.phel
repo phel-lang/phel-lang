@@ -1,6 +1,6 @@
 (ns phel-test\test\core\binding-conveyance
   (:require phel\test :refer [deftest is])
-  (:require phel\async :refer [async await future future-fiber]))
+  (:require phel\async :refer [async await future-fiber]))
 
 ;; Regression tests for https://github.com/phel-lang/phel-lang/issues/1536
 ;;
