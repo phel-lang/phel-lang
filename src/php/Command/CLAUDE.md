@@ -18,6 +18,7 @@ Foundational infrastructure: error reporting, exception formatting, and project 
 - `getExceptionPrinter(): ExceptionPrinterInterface`
 - `getAllPhelDirectories(): array` — all source + test + vendor directories
 - `getSourceDirectories(): array` / `getTestDirectories(): array` / `getVendorSourceDirectories(): array`
+- `getProjectSourceDirectories(): array` — user-configured src dirs only (excludes phel's own bundled stdlib dir)
 - `getOutputDirectory(): string`
 - `readPhelConfig(string): array`
 

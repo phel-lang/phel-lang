@@ -43,7 +43,8 @@ final class CommandConfig extends AbstractConfig
         $phelInternalSrcDir = dirname(__DIR__, 2);
 
         return new CodeDirectories(
-            [$phelInternalSrcDir, ...(array) $this->get(PhelConfig::SRC_DIRS, self::DEFAULT_SRC_DIRS)],
+            $phelInternalSrcDir,
+            (array) $this->get(PhelConfig::SRC_DIRS, self::DEFAULT_SRC_DIRS),
             (array) $this->get(PhelConfig::TEST_DIRS, self::DEFAULT_TEST_DIRS),
             (string) ($buildConfig[PhelBuildConfig::DEST_DIR] ?? self::DEFAULT_OUTPUT_DIR),
         );

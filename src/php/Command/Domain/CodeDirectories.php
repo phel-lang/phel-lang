@@ -11,15 +11,29 @@ final readonly class CodeDirectories
      * @param list<string> $testDirs
      */
     public function __construct(
+        private string $phelInternalSrcDir,
         private array $srcDirs,
         private array $testDirs,
         private string $outputDir,
     ) {}
 
+    public function getPhelInternalSrcDir(): string
+    {
+        return $this->phelInternalSrcDir;
+    }
+
     /**
      * @return list<string>
      */
     public function getSourceDirs(): array
+    {
+        return [$this->phelInternalSrcDir, ...$this->srcDirs];
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getProjectSourceDirs(): array
     {
         return $this->srcDirs;
     }

@@ -27,6 +27,14 @@ final readonly class DirectoryFinder implements DirectoryFinderInterface
     /**
      * @return list<string>
      */
+    public function getProjectSourceDirectories(): array
+    {
+        return $this->toAbsoluteDirectories($this->codeDirectories->getProjectSourceDirs());
+    }
+
+    /**
+     * @return list<string>
+     */
     public function getTestDirectories(): array
     {
         return $this->toAbsoluteDirectories($this->codeDirectories->getTestDirs());
