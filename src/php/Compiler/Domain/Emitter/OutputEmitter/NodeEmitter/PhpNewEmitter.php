@@ -5,12 +5,14 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpNewNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Symbol;
 
 use function assert;
+use function is_string;
 
 final class PhpNewEmitter implements NodeEmitterInterface
 {
@@ -43,13 +45,33 @@ final class PhpNewEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitNode($classExpr);
             $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
 
-            $this->outputEmitter->emitStr('return new $' . $targetSym->getName() . '(', $node->getStartSourceLocation());
+            $targetVar = '$' . $targetSym->getName();
+            if (!$this->isKnownValidClassExpr($classExpr)) {
+                $this->outputEmitter->emitStr(
+                    'if (!is_string(' . $targetVar . ') && !is_object(' . $targetVar . ')) {',
+                    $node->getStartSourceLocation(),
+                );
+                $this->outputEmitter->emitLine();
+                $this->outputEmitter->emitStr(
+                    'throw new \InvalidArgumentException(sprintf("php/new expects a class name or object, %s given (%s)", get_debug_type(' . $targetVar . '), var_export(' . $targetVar . ', true)));',
+                    $node->getStartSourceLocation(),
+                );
+                $this->outputEmitter->emitLine();
+                $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
+            }
+
+            $this->outputEmitter->emitStr('return new ' . $targetVar . '(', $node->getStartSourceLocation());
         }
     }
 
     private function emitPhpNewArgs(PhpNewNode $node): void
     {
         $this->outputEmitter->emitArgList($node->getArgs(), $node->getStartSourceLocation());
+    }
+
+    private function isKnownValidClassExpr(AbstractNode $classExpr): bool
+    {
+        return $classExpr instanceof LiteralNode && is_string($classExpr->getValue());
     }
 
     private function emitPhpNewEnd(PhpNewNode $node): void
