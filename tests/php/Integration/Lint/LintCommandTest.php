@@ -85,6 +85,31 @@ final class LintCommandTest extends TestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
+    public function test_it_suppresses_unresolved_symbol_for_known_require_alias(): void
+    {
+        $this->bootstrap();
+
+        $tester = new CommandTester(new LintCommand());
+        $exit = $tester->execute([
+            'paths' => [__DIR__ . '/Fixtures/require_alias.phel'],
+            '--format' => 'json',
+            '--no-cache' => true,
+        ]);
+
+        $payload = json_decode(trim($tester->getDisplay()), true);
+        self::assertIsArray($payload);
+
+        $codes = array_map(static fn(array $d): string => $d['code'], $payload);
+        self::assertNotContains(
+            'phel/unresolved-symbol',
+            $codes,
+            'Alias-qualified call via (:require :as) must not be flagged as unresolved',
+        );
+        self::assertSame(0, $exit);
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_github_format_emits_annotation_commands(): void
     {
         $this->bootstrap();

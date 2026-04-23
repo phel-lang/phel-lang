@@ -31,6 +31,9 @@ All notable changes to this project will be documented in this file.
 #### Compiler
 - `php/new` with a non-string, non-object class expression now throws a descriptive `InvalidArgumentException` including the offending value instead of PHP's cryptic `Class name must be a valid object or a string` (#1538)
 
+#### Lint
+- `phel lint` no longer reports `phel/unresolved-symbol` for alias-qualified calls (`alias/name`) when `alias` is declared via `(:require ... :as alias)` in the file's ns form; the linter cannot load other namespaces, so valid cross-namespace calls are now suppressed (#1540)
+
 ## [0.34.1](https://github.com/phel-lang/phel-lang/compare/v0.34.0...v0.34.1) - 2026-04-21
 
 ### Added
