@@ -28,6 +28,9 @@ All notable changes to this project will be documented in this file.
 #### API
 - `phel analyze` now pre-loads `phel\core` so core macros like `when-not`, `defn`, and `let` resolve instead of being reported as unresolved symbols (#1539)
 
+#### Compiler
+- `php/new` with a non-string, non-object class expression now throws a descriptive `InvalidArgumentException` including the offending value instead of PHP's cryptic `Class name must be a valid object or a string` (#1538)
+
 ## [0.34.1](https://github.com/phel-lang/phel-lang/compare/v0.34.0...v0.34.1) - 2026-04-21
 
 ### Added
