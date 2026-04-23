@@ -55,6 +55,23 @@
   (is (false? (= [:a ["1"]] [:a [1]])) "nested vectors with different types are not equal")
   (is (false? (= [1] [1 2])) "vectors with different size are not equals"))
 
+; Regression tests for https://github.com/phel-lang/phel-lang/issues/1546.
+; Sequential collections with the same elements must compare equal regardless
+; of argument order or concrete type (list/vector/lazy-seq).
+(deftest test-=-list-vector
+  (is (true? (= '(1 2) [1 2])) "list = vector")
+  (is (true? (= [1 2] '(1 2))) "vector = list")
+  (is (true? (= '() [])) "empty list = empty vector")
+  (is (true? (= [] '())) "empty vector = empty list")
+  (is (true? (= '(0 1 2 3) (take 4 (range)))) "list = finite prefix of infinite range")
+  (is (true? (= (take 4 (range)) '(0 1 2 3))) "finite prefix of infinite range = list")
+  (is (false? (= '(1 2 3) [1 2])) "lists and vectors of different lengths are not equal")
+  (is (false? (= '(1 2) {1 2})) "list is not equal to a map")
+  (is (false? (= '(1 2) (hash-set 1 2))) "list is not equal to a set")
+  (let [a '(1 2) b [1 2]]
+    (is (true? (= a b)) "def a = def b (list vs vector)")
+    (is (true? (= b a)) "def b = def a (vector vs list)")))
+
 (deftest test-=-set
   (is (true? (= (hash-set) (hash-set))) "two empty sets are equal")
   (is (true? (= (hash-set "hello") (hash-set "hello"))) "two sets with the same values")

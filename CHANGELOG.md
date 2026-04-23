@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 
 #### Core
 - `binding` on `^:dynamic` vars is fiber-local; `future`/`async` convey caller bindings; `^:dynamic` on `def` name symbols is honored (#1536)
+- `=` between a list and any other sequential collection (vector, lazy seq) now returns the same result regardless of argument order (#1546)
 
 #### Build
 - Directory scan skips unparseable `.phel` files instead of aborting; REPL boots even when the cwd tree contains malformed Phel sources
