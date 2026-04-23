@@ -1,0 +1,3 @@
+(ns fixtures\uses-core)
+
+(when-not false :yes)

@@ -37,6 +37,24 @@ final class AnalyzeCommandTest extends TestCase
 
     #[PreserveGlobalState(false)]
     #[RunInSeparateProcess]
+    public function test_analyze_command_resolves_core_macros(): void
+    {
+        $this->bootstrap();
+
+        $tester = new CommandTester(new AnalyzeCommand());
+        $exit = $tester->execute(['file' => __DIR__ . '/Fixtures/uses_core_macro.phel']);
+        self::assertSame(0, $exit);
+
+        $decoded = json_decode(trim($tester->getDisplay()), true);
+        self::assertSame(
+            [],
+            $decoded,
+            'Expected no diagnostics when the analyzed file only references phel\\core macros',
+        );
+    }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
     public function test_analyze_command_fails_when_file_missing(): void
     {
         $this->bootstrap();

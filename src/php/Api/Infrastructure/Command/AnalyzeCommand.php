@@ -7,6 +7,7 @@ namespace Phel\Api\Infrastructure\Command;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Api\ApiFacade;
+use Phel\Api\ApiFactory;
 use Phel\Api\Transfer\Diagnostic;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -22,6 +23,7 @@ use const JSON_PRETTY_PRINT;
 use const JSON_THROW_ON_ERROR;
 
 #[ServiceMap(method: 'getFacade', className: ApiFacade::class)]
+#[ServiceMap(method: 'getFactory', className: ApiFactory::class)]
 final class AnalyzeCommand extends Command
 {
     use ServiceResolverAwareTrait;
@@ -47,6 +49,10 @@ final class AnalyzeCommand extends Command
             $output->writeln(sprintf('<error>Unable to read file: %s</error>', $file));
             return self::FAILURE;
         }
+
+        // Load phel core so analyzeSource() resolves core symbols like `when-not`, `defn`, `let`, etc.
+        // Without this the analyzer flags every core macro as "Cannot resolve symbol ...".
+        $this->getFactory()->getRunFacade()->loadPhelNamespaces();
 
         $diagnostics = $this->getFacade()->analyzeSource($source, $file);
         $payload = array_map(static fn(Diagnostic $d): array => $d->toArray(), $diagnostics);
