@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 #### Core
 - `binding` on `^:dynamic` vars is fiber-local; `future`/`async` convey caller bindings; `^:dynamic` on `def` name symbols is honored (#1536)
 - `=` between a list and any other sequential collection (vector, lazy seq) now returns the same result regardless of argument order (#1546)
+- `()` is now a self-quoting empty list literal instead of raising `Value nil of type null is not callable`; forms like `(into () coll)`, `(conj () 1)`, `(cons 1 ())`, `(= () (list))`, and `(if () :a :b)` now work as in Clojure (#1549)
 
 #### Build
 - Directory scan skips unparseable `.phel` files instead of aborting; REPL boots even when the cwd tree contains malformed Phel sources

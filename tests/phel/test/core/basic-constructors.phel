@@ -4,6 +4,16 @@
 (deftest create-list
   (is (= '(1 2 3) (list '1 '2 '3)) "construct list"))
 
+# Issue #1549: `()` is a self-quoting empty list literal, not an invocation
+(deftest empty-list-literal
+  (is (= () (list)) "() equals empty list constructor")
+  (is (= '() ()) "() equals quoted empty list")
+  (is (empty? ()) "() is empty")
+  (is (= '(1) (conj () 1)) "conj onto () works")
+  (is (= '(1) (cons 1 ())) "cons onto () works")
+  (is (= :truthy (if () :truthy :falsy)) "() is truthy in if")
+  (let [x ()] (is (= () x) "() usable in let binding")))
+
 (deftest create-vector
   (is (= '[1 2 3] (vector '1 '2 '3)) "construct vector"))
 
