@@ -11,6 +11,7 @@ use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
+use Phel\Lang\SeqInterface;
 
 use Traversable;
 
@@ -130,25 +131,33 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
 
     public function equals(mixed $other): bool
     {
-        if (!$other instanceof self) {
+        if ($this === $other) {
+            return true;
+        }
+
+        // Sequential collections compare equal when they yield the same elements
+        // in order, regardless of concrete type (list vs vector vs lazy seq).
+        // Maps and sets do not implement SeqInterface, so they are excluded.
+        if (!$other instanceof SeqInterface || !$other instanceof Traversable) {
             return false;
         }
 
-        if ($this->count !== $other->count()) {
-            return false;
-        }
-
-        $s = $this;
-        $ms = $other;
-        for ($s = $this; $s !== null; $s = $s->cdr(), $ms = $ms->cdr()) {
-            /** @var PersistentList $s */
-            /** @var ?PersistentList $ms */
-            if (!$ms instanceof self || !$this->equalizer->equals($s->first(), $ms->first())) {
+        $node = $this;
+        $visited = 0;
+        foreach ($other as $rightValue) {
+            if ($visited >= $this->count) {
                 return false;
             }
+
+            if (!$this->equalizer->equals($node->first(), $rightValue)) {
+                return false;
+            }
+
+            $node = $node->cdr();
+            ++$visited;
         }
 
-        return true;
+        return $visited === $this->count;
     }
 
     public function hash(): int

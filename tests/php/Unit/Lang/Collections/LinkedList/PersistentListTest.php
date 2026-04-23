@@ -7,10 +7,13 @@ namespace PhelTest\Unit\Lang\Collections\LinkedList;
 use InvalidArgumentException;
 use Phel;
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
+use Phel\Lang\Collections\LazySeq\LazySeq;
 use Phel\Lang\Collections\LinkedList\EmptyList;
 use Phel\Lang\Collections\LinkedList\PersistentList;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Map\PersistentArrayMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Vector\PersistentVector;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
@@ -138,6 +141,46 @@ final class PersistentListTest extends TestCase
 
         $this->assertTrue($a->equals($b));
         $this->assertTrue($b->equals($a));
+    }
+
+    public function test_equals_vector_with_same_values(): void
+    {
+        $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3]);
+        $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3]);
+
+        $this->assertTrue($list->equals($vector));
+    }
+
+    public function test_equals_vector_with_different_values(): void
+    {
+        $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3]);
+        $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 4]);
+
+        $this->assertFalse($list->equals($vector));
+    }
+
+    public function test_equals_vector_with_different_length(): void
+    {
+        $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3]);
+        $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2]);
+
+        $this->assertFalse($list->equals($vector));
+    }
+
+    public function test_equals_lazy_seq_with_same_values(): void
+    {
+        $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3]);
+        $lazy = LazySeq::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3]);
+
+        $this->assertTrue($list->equals($lazy));
+    }
+
+    public function test_equals_map_returns_false(): void
+    {
+        $list = PersistentList::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2]);
+        $map = PersistentArrayMap::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2]);
+
+        $this->assertFalse($list->equals($map));
     }
 
     public function test_hash(): void
