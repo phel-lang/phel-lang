@@ -68,6 +68,19 @@
     (php/array)
     (to-php-array coll)))
 
+(defn into-array
+  "Returns a PHP array containing the elements of `aseq`. Accepts any
+  collection (vector, list, set, map, PHP array) or `nil`, which yields
+  an empty PHP array. The optional `type` argument is accepted for
+  `.cljc` interop but has no runtime effect — PHP has no typed arrays,
+  so the result is always a plain PHP array. Use the dedicated coercion
+  helpers (`int-array`, `long-array`, `float-array`, `double-array`,
+  `short-array`) when element coercion is actually required."
+  {:example "(into-array [1 2 3]) ; => a PHP array [1, 2, 3]\n(into-array :Object [:a :b]) ; => a PHP array [:a, :b]"
+   :see-also ["to-array" "object-array" "int-array"]}
+  ([aseq] (to-array aseq))
+  ([_type aseq] (to-array aseq)))
+
 (defn- ensure-php-array
   "Returns `arr` when it is a PHP array, otherwise throws an
   `InvalidArgumentException` naming the calling operation."

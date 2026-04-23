@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 #### Core
 - Hierarchy functions `isa?`, `derive`, `underive`, `parents`, `ancestors`, `descendants` accept an optional hierarchy argument; the hierarchy arities of `derive`/`underive` are pure and return a new hierarchy (#1543)
+- `into-array` function for `.cljc` interop: `(into-array aseq)` and `(into-array type aseq)` both return a PHP array containing the elements of `aseq`. The `type` argument is accepted for Clojure source compatibility but is ignored in Phel — PHP has no typed arrays. Use `int-array`/`float-array`/etc. when element coercion is needed (#1550)
 
 ### Changed
 

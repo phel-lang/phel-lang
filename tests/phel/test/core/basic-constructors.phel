@@ -121,6 +121,44 @@
   (is (thrown? \InvalidArgumentException (object-array -1))
       "object-array raises InvalidArgumentException on negative size"))
 
+(deftest test-into-array-from-vector
+  (let [arr (into-array [1 2 3])]
+    (is (php/is_array arr) "into-array from vector returns a PHP array")
+    (is (= 3 (php/count arr)) "into-array preserves vector length")
+    (is (= 1 (php/aget arr 0)) "into-array element 0")
+    (is (= 3 (php/aget arr 2)) "into-array last element")))
+
+(deftest test-into-array-from-list
+  (let [arr (into-array '(:a :b :c))]
+    (is (php/is_array arr) "into-array from list returns a PHP array")
+    (is (= 3 (php/count arr)) "into-array preserves list length")
+    (is (= :a (php/aget arr 0)) "into-array element 0")
+    (is (= :c (php/aget arr 2)) "into-array last element")))
+
+(deftest test-into-array-from-empty
+  (let [arr (into-array [])]
+    (is (php/is_array arr) "into-array from empty vector is a PHP array")
+    (is (= 0 (php/count arr)) "into-array from empty vector is empty")))
+
+(deftest test-into-array-from-nil
+  (let [arr (into-array nil)]
+    (is (php/is_array arr) "into-array nil is a PHP array")
+    (is (= 0 (php/count arr)) "into-array nil is empty")))
+
+(deftest test-into-array-with-type-hint-ignored
+  ;; The type argument is accepted for .cljc interop but PHP has no
+  ;; typed arrays, so it is ignored — the result matches the 1-arity call.
+  (let [arr (into-array :Object [1 2 3])]
+    (is (php/is_array arr) "into-array with type hint returns a PHP array")
+    (is (= 3 (php/count arr)) "into-array with type hint preserves length")
+    (is (= 1 (php/aget arr 0)) "into-array with type hint element 0")))
+
+(deftest test-into-array-with-nil-type
+  (let [arr (into-array nil '(10 20))]
+    (is (php/is_array arr) "into-array nil-type returns a PHP array")
+    (is (= 10 (php/aget arr 0)) "into-array nil-type element 0")
+    (is (= 20 (php/aget arr 1)) "into-array nil-type element 1")))
+
 (deftest test-to-array-from-vector
   (let [arr (to-array [1 2 3])]
     (is (php/is_array arr) "to-array from vector returns a PHP array")
