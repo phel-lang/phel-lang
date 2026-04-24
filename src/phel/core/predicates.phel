@@ -277,9 +277,9 @@
   "Returns true if `x` is an instance of class `c`, false otherwise.
   Mirrors Clojure's `clojure.core/instance?` argument order (class first,
   value second). `c` should be a literal class reference such as
-  `\\DateTime` or a `:use`d short name; for runtime class names use
+  `DateTime` or a `:use`d short name; for runtime class names use
   `(php/is_a x class-name)`."
-  {:example "(instance? \\DateTime (php/new \\DateTime)) ; => true"
+  {:example "(instance? DateTime (php/new DateTime)) ; => true"
    :see-also ["type"]}
   [c x]
   `(php/instanceof ~x ~c))

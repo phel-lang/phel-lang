@@ -1,8 +1,8 @@
 (ns phel.test
   (:use Phel)
-  (:use Phel\Lang\SourceLocationInterface)
-  (:use Phel\Compiler\Application\Munge)
-  (:use Phel\Command\CommandFacade)
+  (:use Phel.Lang.SourceLocationInterface)
+  (:use Phel.Compiler.Application.Munge)
+  (:use Phel.Command.CommandFacade)
   (:require phel.string :as s)
   (:require phel.test.selector :as selector))
 

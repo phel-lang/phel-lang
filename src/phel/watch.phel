@@ -1,6 +1,6 @@
 (ns phel.watch
   (:use Phel)
-  (:use Phel\Watch\WatchFacade))
+  (:use Phel.Watch.WatchFacade))
 
 (def- on-reload-hooks (atom {}))
 

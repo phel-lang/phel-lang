@@ -1,6 +1,6 @@
 (ns phel.reader
   (:use Phel)
-  (:use Phel\Lang\TagRegistry))
+  (:use Phel.Lang.TagRegistry))
 
 ;; Reader tagged-literal registry.
 ;;

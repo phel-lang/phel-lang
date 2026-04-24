@@ -1,5 +1,5 @@
 (ns phel.html
-  (:use \InvalidArgumentException))
+  (:use InvalidArgumentException))
 
 (defstruct raw-string [s])
 

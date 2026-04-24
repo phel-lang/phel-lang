@@ -1,10 +1,10 @@
 (ns phel.core
   (:use InvalidArgumentException)
   (:use Phel)
-  (:use Phel\Lang\CdrInterface)
-  (:use Phel\Lang\Collections\Map\PersistentMapInterface)
-  (:use Phel\Lang\ConcatInterface)
-  (:use Phel\Lang\FirstInterface))
+  (:use Phel.Lang.CdrInterface)
+  (:use Phel.Lang.Collections.Map.PersistentMapInterface)
+  (:use Phel.Lang.ConcatInterface)
+  (:use Phel.Lang.FirstInterface))
 
 (def *ns*
   {:doc "Returns the namespace in the current scope."}
