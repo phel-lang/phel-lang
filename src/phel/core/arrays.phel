@@ -110,65 +110,93 @@
   [arr]
   (php/count (ensure-php-array "alength" arr)))
 
+(defn- typed-array-coerce-seq
+  [coerce-fn size seq-src]
+  (let [src (to-php-array seq-src)
+        n   (php/count src)
+        len (if (php/=== nil size)
+              n
+              (if (php/< n size) n size))
+        res (php/array)]
+    (loop [i 0]
+      (if (php/< i len)
+        (do
+          (php/aset res i (coerce-fn (php/aget src i)))
+          (recur (php/+ i 1)))
+        nil))
+    res))
+
+(defn- typed-array-with-size
+  [coerce-fn default size init]
+  (if (php/< size 0)
+    (throw (php/new InvalidArgumentException "Array size must be non-negative"))
+    (if (php/=== 0 size)
+      (php/array)
+      (if (php/=== nil init)
+        (php/array_fill 0 size default)
+        (if (if (php/is_int init) true (php/is_float init))
+          (php/array_fill 0 size (coerce-fn init))
+          (let [prefix (typed-array-coerce-seq coerce-fn size init)
+                pad    (php/- size (php/count prefix))]
+            (if (php/> pad 0)
+              (php/array_merge prefix (php/array_fill 0 pad default))
+              prefix)))))))
+
 (defn- typed-array
-  [coerce-fn default size-or-seq]
-  (if (php/is_int size-or-seq)
-    (if (php/< size-or-seq 0)
-      (throw (php/new InvalidArgumentException "Array size must be non-negative"))
-      (if (php/=== 0 size-or-seq)
-        (php/array)
-        (php/array_fill 0 size-or-seq default)))
-    (let [arr    (to-php-array size-or-seq)
-          len    (php/count arr)
-          result (php/array)]
-      (loop [i 0]
-        (if (php/< i len)
-          (do
-            (php/aset result i (coerce-fn (php/aget arr i)))
-            (recur (php/+ i 1)))
-          nil))
-      result)))
+  ([coerce-fn default size-or-seq]
+   (if (php/is_int size-or-seq)
+     (typed-array-with-size coerce-fn default size-or-seq nil)
+     (typed-array-coerce-seq coerce-fn nil size-or-seq)))
+  ([coerce-fn default size init-val-or-seq]
+   (typed-array-with-size coerce-fn default size init-val-or-seq)))
 
 (defn int-array
-  "Creates a PHP array of integers. Given a size, fills with `0`.
-   Given a sequence, coerces each element to int via `intval`.
-   PHP has no typed arrays, so the result is a plain PHP array."
-  {:example "(int-array 3) ; => PHP array [0, 0, 0]\n(int-array [1.5 2.7]) ; => PHP array [1, 2]"
+  "Creates a PHP array of integers, matching Clojure's `clojure.core/int-array`.
+
+  - `(int-array size-or-seq)` — given a non-negative integer, fills with `0`;
+    given a sequence, coerces each element to int via `intval`.
+  - `(int-array size init-val-or-seq)` — when `init-val-or-seq` is a number, every
+    slot is filled with it (coerced to int). When it is a sequence, its elements
+    fill the prefix of the array (truncated to `size` if longer) and the remaining
+    slots are zero-padded.
+
+  PHP has no typed arrays, so the result is a plain PHP array."
+  {:example "(int-array 3) ; => PHP array [0, 0, 0]\n(int-array [1.5 2.7]) ; => PHP array [1, 2]\n(int-array 4 7) ; => PHP array [7, 7, 7, 7]\n(int-array 5 [10 20]) ; => PHP array [10, 20, 0, 0, 0]"
    :see-also ["long-array" "float-array" "double-array" "short-array" "object-array"]}
-  [size-or-seq]
-  (typed-array php/intval 0 size-or-seq))
+  ([size-or-seq] (typed-array php/intval 0 size-or-seq))
+  ([size init-val-or-seq] (typed-array php/intval 0 size init-val-or-seq)))
 
 (defn long-array
-  "Creates a PHP array of longs (same as int-array in PHP).
-   Given a size, fills with `0`. Given a sequence, coerces each element to int."
-  {:example "(long-array 3) ; => PHP array [0, 0, 0]\n(long-array [1.5 2.7]) ; => PHP array [1, 2]"
+  "Creates a PHP array of longs (same as int-array in PHP). Accepts the same
+  arities and semantics as `int-array`."
+  {:example "(long-array 3) ; => PHP array [0, 0, 0]\n(long-array 4 7) ; => PHP array [7, 7, 7, 7]"
    :see-also ["int-array" "float-array" "double-array" "short-array"]}
-  [size-or-seq]
-  (typed-array php/intval 0 size-or-seq))
+  ([size-or-seq] (typed-array php/intval 0 size-or-seq))
+  ([size init-val-or-seq] (typed-array php/intval 0 size init-val-or-seq)))
 
 (defn float-array
-  "Creates a PHP array of floats. Given a size, fills with `0.0`.
-   Given a sequence, coerces each element to float via `floatval`."
-  {:example "(float-array 3) ; => PHP array [0.0, 0.0, 0.0]\n(float-array [1 2]) ; => PHP array [1.0, 2.0]"
+  "Creates a PHP array of floats. Accepts the same arities as `int-array`;
+  coerces elements to float via `floatval` and zero-pads with `0.0`."
+  {:example "(float-array 3) ; => PHP array [0.0, 0.0, 0.0]\n(float-array 4 1.5) ; => PHP array [1.5, 1.5, 1.5, 1.5]"
    :see-also ["double-array" "int-array" "long-array" "short-array"]}
-  [size-or-seq]
-  (typed-array php/floatval 0.0 size-or-seq))
+  ([size-or-seq] (typed-array php/floatval 0.0 size-or-seq))
+  ([size init-val-or-seq] (typed-array php/floatval 0.0 size init-val-or-seq)))
 
 (defn double-array
-  "Creates a PHP array of doubles (same as float-array in PHP).
-   Given a size, fills with `0.0`. Given a sequence, coerces each element to float."
-  {:example "(double-array 3) ; => PHP array [0.0, 0.0, 0.0]\n(double-array [1 2]) ; => PHP array [1.0, 2.0]"
+  "Creates a PHP array of doubles (same as float-array in PHP). Accepts the same
+  arities and semantics as `float-array`."
+  {:example "(double-array 3) ; => PHP array [0.0, 0.0, 0.0]\n(double-array 4 1.5) ; => PHP array [1.5, 1.5, 1.5, 1.5]"
    :see-also ["float-array" "int-array" "long-array" "short-array"]}
-  [size-or-seq]
-  (typed-array php/floatval 0.0 size-or-seq))
+  ([size-or-seq] (typed-array php/floatval 0.0 size-or-seq))
+  ([size init-val-or-seq] (typed-array php/floatval 0.0 size init-val-or-seq)))
 
 (defn short-array
-  "Creates a PHP array of shorts (16-bit integers). Given a size, fills with `0`.
-   Given a sequence, coerces each element to int via `intval`."
-  {:example "(short-array 3) ; => PHP array [0, 0, 0]\n(short-array [1.5 2.7]) ; => PHP array [1, 2]"
+  "Creates a PHP array of shorts (16-bit integers). Accepts the same arities
+  and semantics as `int-array`."
+  {:example "(short-array 3) ; => PHP array [0, 0, 0]\n(short-array 4 7) ; => PHP array [7, 7, 7, 7]"
    :see-also ["int-array" "long-array" "float-array" "double-array"]}
-  [size-or-seq]
-  (typed-array php/intval 0 size-or-seq))
+  ([size-or-seq] (typed-array php/intval 0 size-or-seq))
+  ([size init-val-or-seq] (typed-array php/intval 0 size init-val-or-seq)))
 
 (defn aget
   "Returns the value at `index` in a PHP array. With multiple indices,
