@@ -7,10 +7,12 @@ namespace Phel\Compiler\Domain\Analyzer\Environment;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
+use function in_array;
 use function sprintf;
 use function str_replace;
 use function str_starts_with;
 use function strtr;
+
 use function trigger_error;
 
 use const E_USER_DEPRECATED;
@@ -28,6 +30,8 @@ use const E_USER_DEPRECATED;
  */
 final class BackslashSeparatorDeprecator
 {
+    private static ?self $instance = null;
+
     /** @var array<string, true> */
     private array $seen = [];
 
@@ -41,6 +45,34 @@ final class BackslashSeparatorDeprecator
         $this->emitter = $emitter ?? static function (string $msg): void {
             @trigger_error($msg, E_USER_DEPRECATED);
         };
+    }
+
+    /**
+     * Returns the process-wide deprecator, creating it lazily from the
+     * `PHEL_WARN_DEPRECATIONS` env var so every detection site shares
+     * the same dedup state across a compile run.
+     */
+    public static function getInstance(): self
+    {
+        return self::$instance ??= new self(self::readEnvFlag());
+    }
+
+    /**
+     * Replace the singleton with a preconfigured instance — used by tests
+     * that need to assert on captured messages or flip the enabled flag.
+     */
+    public static function useInstance(self $instance): void
+    {
+        self::$instance = $instance;
+    }
+
+    /**
+     * Drop the cached singleton so the next `getInstance()` call re-reads
+     * the environment. Intended for test `tearDown()` hooks.
+     */
+    public static function resetInstance(): void
+    {
+        self::$instance = null;
     }
 
     public function maybeWarn(Symbol $symbol): void
@@ -71,6 +103,13 @@ final class BackslashSeparatorDeprecator
 
         $this->seen[$key] = true;
         ($this->emitter)($this->buildMessage($original, $file, $location->getLine()));
+    }
+
+    private static function readEnvFlag(): bool
+    {
+        $flag = getenv('PHEL_WARN_DEPRECATIONS');
+
+        return !in_array($flag, [false, '', '0'], true);
     }
 
     private function containsBackslashSeparator(string $fullName): bool
