@@ -266,6 +266,33 @@
     (is (= 2 (php/aget arr 1)) "int-array truncates float")
     (is (= 3 (php/aget arr 2)) "int-array truncates float")))
 
+(deftest test-int-array-size-with-init-value
+  (let [arr (int-array 4 7)]
+    (is (= 4 (php/count arr)) "int-array size with init has correct length")
+    (is (= 7 (php/aget arr 0)) "all slots filled with init value")
+    (is (= 7 (php/aget arr 1)))
+    (is (= 7 (php/aget arr 2)))
+    (is (= 7 (php/aget arr 3))))
+  (let [arr (int-array 3 1.9)]
+    (is (= 1 (php/aget arr 0)) "init value coerced to int")))
+
+(deftest test-int-array-size-with-seq-copies-and-pads
+  (let [arr (int-array 5 [10 20])]
+    (is (= 5 (php/count arr)) "int-array size takes precedence over shorter seq")
+    (is (= 10 (php/aget arr 0)) "seq element copied at 0")
+    (is (= 20 (php/aget arr 1)) "seq element copied at 1")
+    (is (= 0 (php/aget arr 2)) "remaining slots default-padded with 0")
+    (is (= 0 (php/aget arr 3)))
+    (is (= 0 (php/aget arr 4))))
+  (let [arr (int-array 2 [10 20 30 40 50])]
+    (is (= 2 (php/count arr)) "seq longer than size is truncated to size")
+    (is (= 10 (php/aget arr 0)))
+    (is (= 20 (php/aget arr 1)))))
+
+(deftest test-int-array-rejects-negative-size
+  (is (thrown? \InvalidArgumentException (int-array -1)))
+  (is (thrown? \InvalidArgumentException (int-array -1 7))))
+
 (deftest test-long-array-from-size
   (let [arr (long-array 2)]
     (is (php/is_array arr) "long-array returns a PHP array")
