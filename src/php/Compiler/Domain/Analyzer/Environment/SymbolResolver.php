@@ -58,9 +58,26 @@ final readonly class SymbolResolver
             return $useAliasNode;
         }
 
-        return ($name->getNamespace() !== null)
+        $resolved = ($name->getNamespace() !== null)
             ? $this->resolveWithAlias($name, $env)
             : $this->resolveWithoutAlias($name, $env);
+
+        if ($resolved instanceof AbstractNode) {
+            return $resolved;
+        }
+
+        // Fallback: a bare uppercase identifier with no other resolution is
+        // treated as a PHP root-namespace class FQN, so `Exception` resolves
+        // the same as `\Exception`. Kicks in *after* the normal resolution
+        // paths so user-defined definitions (`(def Foo …)`) still win.
+        if ($name->getNamespace() === null && $this->looksLikeBareClassName($strName)) {
+            $fqn = Symbol::create('\\' . $strName);
+            $fqn->copyLocationFrom($name);
+
+            return new PhpClassNameNode($env, $fqn, $name->getStartLocation());
+        }
+
+        return null;
     }
 
     private function resolveFromUseAlias(Symbol $name, NodeEnvironmentInterface $env): ?PhpClassNameNode
@@ -105,6 +122,17 @@ final readonly class SymbolResolver
     private function looksLikeDotSeparatedClassFqn(string $name): bool
     {
         return preg_match('/^[A-Z]\w*(\.[A-Za-z_]\w*)+$/', $name) === 1;
+    }
+
+    /**
+     * Accept bare uppercase identifiers as root-namespace PHP class FQN
+     * aliases, so `Exception` resolves the same as `\Exception`. Matches
+     * Clojure's convention where bare `Exception` resolves via
+     * `java.lang` autoimport.
+     */
+    private function looksLikeBareClassName(string $name): bool
+    {
+        return preg_match('/^[A-Z]\w*$/', $name) === 1;
     }
 
     private function remapClojureAlias(string $alias): string

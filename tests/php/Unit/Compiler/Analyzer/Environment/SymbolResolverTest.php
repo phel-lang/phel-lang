@@ -329,12 +329,37 @@ final class SymbolResolverTest extends TestCase
         );
     }
 
-    public function test_resolve_bare_name_without_dot_is_not_class_fqn(): void
+    public function test_resolve_bare_top_level_class(): void
+    {
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new PhpClassNameNode($nodeEnv, Symbol::create('\\Exception')),
+            $this->resolver->resolve(Symbol::create('Exception'), $nodeEnv),
+        );
+    }
+
+    public function test_bare_lowercase_name_does_not_become_class_fqn(): void
     {
         $nodeEnv = NodeEnvironment::empty();
 
         self::assertNotInstanceOf(
             PhpClassNameNode::class,
+            $this->resolver->resolve(Symbol::create('foo-undefined'), $nodeEnv),
+        );
+    }
+
+    public function test_user_defined_def_wins_over_bare_class_fallback(): void
+    {
+        // When a user defines `(def Foo 42)` in the current ns, the bare `Foo`
+        // must resolve to that GlobalVar, not to a PHP class FQN `\Foo`.
+        $this->globalEnv->setNs('user');
+        $this->globalEnv->addDefinition('user', Symbol::create('Foo'));
+
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new GlobalVarNode($nodeEnv, 'user', Symbol::create('Foo'), Phel::map()),
             $this->resolver->resolve(Symbol::create('Foo'), $nodeEnv),
         );
     }
