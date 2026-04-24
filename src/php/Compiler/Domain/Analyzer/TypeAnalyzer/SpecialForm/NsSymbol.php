@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
+use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
@@ -47,6 +48,8 @@ TXT;
         if (!($nsSymbol instanceof Symbol)) {
             throw AnalyzerException::wrongArgumentType("First argument of 'ns", 'Symbol', $nsSymbol, $list);
         }
+
+        BackslashSeparatorDeprecator::getInstance()->maybeWarn($nsSymbol);
 
         $ns = $this->normalizeNamespaceSeparators($nsSymbol->getName());
         $parts = explode('\\', $ns);
@@ -178,6 +181,7 @@ TXT;
 
         /** @var Symbol $requireSymbol */
         $requireSymbol = $elements[$index];
+        BackslashSeparatorDeprecator::getInstance()->maybeWarn($requireSymbol);
         $requireSymbol = $this->normalizeSymbolSeparators($requireSymbol);
 
         ++$index;
@@ -250,6 +254,7 @@ TXT;
             );
         }
 
+        BackslashSeparatorDeprecator::getInstance()->maybeWarn($requireSymbol);
         $requireSymbol = $this->normalizeSymbolSeparators($requireSymbol);
 
         $index = 1;

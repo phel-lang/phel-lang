@@ -22,29 +22,34 @@ PHEL_WARN_DEPRECATIONS=1 vendor/bin/phel test
 When enabled, the compiler emits one `E_USER_DEPRECATED` per unique
 `(file, symbol)` pair so large projects do not drown in duplicates.
 
-## What the current (Phase 1a) PR detects
+## What is detected today
 
-Only symbols flowing through the analyzer's `SymbolResolver` emit
-warnings — that covers:
+Symbols flowing through the analyzer's `SymbolResolver` **or** the
+`ns`-form analyzer emit warnings:
 
-- **Fully-qualified call sites**: `(phel\core/map inc xs)` → use
-  `(phel.core/map inc xs)`
-- **Leading-backslash class FQNs**: `\Phel\Lang\ExInfoException` →
-  use `Phel.Lang.ExInfoException` (the dot alias landed in
-  [#1553](https://github.com/phel-lang/phel-lang/issues/1553))
+- **Namespace declarations** (Phase 1b): `(ns phel\foo)` → use
+  `(ns phel.foo)`
+- **`:require` targets** (Phase 1b, flat and `[ns :as alias]` vector
+  forms): `(:require phel\walk)` → `(:require phel.walk)`
+- **Fully-qualified call sites** (Phase 1a): `(phel\core/map inc xs)`
+  → `(phel.core/map inc xs)`
+- **Leading-backslash class FQNs** (Phase 1a):
+  `\Phel\Lang\ExInfoException` → `Phel.Lang.ExInfoException` (the dot
+  alias landed in [#1553](https://github.com/phel-lang/phel-lang/issues/1553))
 
-## What is NOT yet detected (Phase 1b+)
+## What is NOT yet detected
 
 Tracked as follow-up sub-tasks in #1567:
 
-- `ns` declarations: `(ns phel\foo)` → `(ns phel.foo)`
-- `:require` / `:use` / `:refer` / `:as` clauses
+- `:use` clauses — deliberately excluded for now because `\` is
+  legitimate PHP-interop syntax there; a separate discussion will
+  decide whether `:use Foo.Bar` should be the canonical form
+- `:refer` targets inside a require
 - `load` forms
-- Reader-macro / quoting forms that carry namespace strings
+- Reader-macro / quoting forms that carry namespace strings as data
 
-Until those phases ship, running with `PHEL_WARN_DEPRECATIONS=1` only
-surfaces the call-site uses. It is safe to migrate the non-detected
-positions by hand now — the new dot forms already work.
+It is safe to migrate the non-detected positions by hand now — the
+new dot forms already work at the language level.
 
 ## Suppression
 
