@@ -74,6 +74,14 @@ final class CommandFacade extends AbstractFacade implements CommandFacadeInterfa
     }
 
     #[Cacheable]
+    public function getProjectSourceDirectories(): array
+    {
+        return $this->cached(fn(): array => $this->getFactory()
+            ->createDirectoryFinder()
+            ->getProjectSourceDirectories());
+    }
+
+    #[Cacheable]
     public function getTestDirectories(): array
     {
         return $this->cached(fn(): array => $this->getFactory()

@@ -142,7 +142,7 @@ final class LintCommand extends Command
     {
         $cmd = $this->getFactory()->getCommandFacade();
 
-        return $cmd->getSourceDirectories();
+        return $cmd->getProjectSourceDirectories();
     }
 
     /**

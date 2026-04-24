@@ -126,6 +126,69 @@ final class LintCommandTest extends TestCase
         self::assertMatchesRegularExpression('/^::(error|warning|notice) /m', $out);
     }
 
+    /**
+     * Regression test for https://github.com/phel-lang/phel-lang/issues/1541:
+     * running `phel lint` with no paths must not re-analyze phel's own bundled
+     * stdlib files (reachable because `CommandConfig` prepends phel's internal
+     * src dir for runtime namespace resolution). Re-analyzing them caused a
+     * `DuplicateDefinitionException` for symbols like `phel\walk/walk`.
+     */
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_default_paths_exclude_phel_internal_stdlib(): void
+    {
+        $originalCwd = getcwd();
+        $projectRoot = sys_get_temp_dir() . '/phel-lint-1541-' . uniqid('', true);
+        mkdir($projectRoot . '/src', 0o777, true);
+        file_put_contents($projectRoot . '/src/clean.phel', "(ns consumer\\clean)\n(defn f [] :ok)\n");
+
+        try {
+            chdir($projectRoot);
+            Phel::bootstrap($projectRoot);
+            Phel::clear();
+            Symbol::resetGen();
+            GlobalEnvironmentSingleton::initializeNew();
+
+            $tester = new CommandTester(new LintCommand());
+            $exit = $tester->execute([
+                '--format' => 'json',
+                '--no-cache' => true,
+            ]);
+
+            self::assertNotSame(
+                LintCommand::EXIT_INVOCATION_ERROR,
+                $exit,
+                'Lint with no paths must not abort from re-binding bundled stdlib symbols. '
+                . 'Output: ' . $tester->getDisplay(),
+            );
+            self::assertStringNotContainsString('already bound', $tester->getDisplay());
+        } finally {
+            if ($originalCwd !== false) {
+                chdir($originalCwd);
+            }
+
+            @unlink($projectRoot . '/src/clean.phel');
+            if (is_dir($projectRoot . '/src')) {
+                $leftovers = scandir($projectRoot . '/src') ?: [];
+                foreach ($leftovers as $entry) {
+                    if ($entry === '.') {
+                        continue;
+                    }
+
+                    if ($entry === '..') {
+                        continue;
+                    }
+
+                    @unlink($projectRoot . '/src/' . $entry);
+                }
+
+                @rmdir($projectRoot . '/src');
+            }
+
+            @rmdir($projectRoot);
+        }
+    }
+
     private function bootstrap(): void
     {
         Phel::bootstrap(__DIR__);
