@@ -1,6 +1,6 @@
-(ns phel.test\shrink
+(ns phel.test.shrink
   (:require phel.core)
-  (:require phel.test\rose :as r))
+  (:require phel.test.rose :as r))
 
 ;; Shrink driver that walks a rose tree of candidate values and returns
 ;; the smallest variant that still fails a property.

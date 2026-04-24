@@ -1,7 +1,7 @@
-(ns phel.schema\instrument
+(ns phel.schema.instrument
   (:require phel.core)
-  (:require phel.schema\validator :as v)
-  (:require phel.schema\explainer :as e))
+  (:require phel.schema.validator :as v)
+  (:require phel.schema.explainer :as e))
 
 ;; Function-level instrumentation.
 ;;

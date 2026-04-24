@@ -4,7 +4,7 @@
   (:use Phel\Compiler\Application\Munge)
   (:use Phel\Command\CommandFacade)
   (:require phel.string :as s)
-  (:require phel.test\selector :as selector))
+  (:require phel.test.selector :as selector))
 
 ;; ------
 ;; Report

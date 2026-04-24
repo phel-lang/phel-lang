@@ -283,7 +283,7 @@
 (defn apropos
   "Returns a vector of symbols whose name contains the given search string.
   Searches across all loaded namespaces."
-  {:example "(apropos \"map\") ; => [phel.\core/flat-map phel\\core/map ...]"}
+  {:example "(apropos \"map\") ; => [phel\\core/flat-map phel\\core/map ...]"}
   [search]
   (let [munge   (php/new Munge)
         results (transient [])]

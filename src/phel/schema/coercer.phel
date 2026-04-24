@@ -1,7 +1,7 @@
-(ns phel.schema\coercer
+(ns phel.schema.coercer
   (:require phel.core)
-  (:require phel.schema\registry :as reg)
-  (:require phel.schema\validator :as v))
+  (:require phel.schema.registry :as reg)
+  (:require phel.schema.validator :as v))
 
 ;; Type coercion driven by schemas.
 ;;
