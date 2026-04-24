@@ -8,7 +8,7 @@ All notable changes to this project will be documented in this file.
 
 #### Compiler
 - Bare dotted class FQNs like `Phel.Lang.Foo` resolve as aliases for `\Phel\Lang\Foo` (#1553)
-- Opt-in deprecation warning for `\` as namespace separator in `ns`, `:require`, call sites, and class FQNs — enable via `--warn-deprecations` CLI flag or `PHEL_WARN_DEPRECATIONS=1`; see `docs/migration/backslash-to-dot.md` (#1567)
+- Opt-in deprecation warning for `\` as namespace separator in `ns`, `:require`, `:use`, call sites, and class FQNs — enable via `--warn-deprecations` CLI flag or `PHEL_WARN_DEPRECATIONS=1`; see `docs/migration/backslash-to-dot.md` (#1567)
 - Phel stdlib rewritten to dot-separated namespaces (`phel.core`, `phel.walk`, …) (#1567)
 
 #### Core

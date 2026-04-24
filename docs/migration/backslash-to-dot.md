@@ -49,15 +49,16 @@ Symbols flowing through the analyzer's `SymbolResolver` **or** the
   `\Phel\Lang\ExInfoException` → `Phel.Lang.ExInfoException` (the dot
   alias landed in [#1553](https://github.com/phel-lang/phel-lang/issues/1553))
 
+- **`:use` targets**: `(:use Phel\Lang\Foo)` → `(:use Phel.Lang.Foo)`.
+  The analyzer already accepted the dot form; the warning just makes
+  the migration target explicit.
+
 ## What is NOT yet detected
 
 Tracked as follow-up sub-tasks in #1567:
 
-- `:use` clauses — deliberately excluded for now because `\` is
-  legitimate PHP-interop syntax there; a separate discussion will
-  decide whether `:use Foo.Bar` should be the canonical form
-- `:refer` targets inside a require
-- `load` forms
+- `:refer` targets inside a require (rarely contain `\` in practice)
+- `load` forms (take strings, not symbols)
 - Reader-macro / quoting forms that carry namespace strings as data
 
 It is safe to migrate the non-detected positions by hand now — the
@@ -66,9 +67,7 @@ new dot forms already work at the language level.
 ## Suppression
 
 Warnings are suppressed automatically for files under phel's bundled
-stdlib (`.../src/phel/...`). The stdlib itself is written in backslash
-form today and will be rewritten to dot form before the backslash form
-is removed.
+stdlib (`.../src/phel/...`).
 
 ## Removal target
 
