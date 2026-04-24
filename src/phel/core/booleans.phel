@@ -108,6 +108,33 @@
       (recur (first more) (next more))
       false)))
 
+(defn- num? [x]
+  (or (php/is_int x) (php/is_float x)))
+
+(defn- num-equals1 [a b]
+  (when-not (num? a)
+    (throw (php/new \InvalidArgumentException
+                    (str "Argument must be a number, got: " a))))
+  (when-not (num? b)
+    (throw (php/new \InvalidArgumentException
+                    (str "Argument must be a number, got: " b))))
+  (php/== a b))
+
+(defn ==
+  "Numeric equality comparison. Returns true if all arguments have the same
+  numeric value regardless of type (e.g. int vs float); throws on non-numeric
+  arguments. Unlike `=`, which is value-and-type-strict, `==` treats `1` and
+  `1.0` as equal, matching Clojure's `clojure.core/==`."
+  {:see-also ["=" "not=" "<" ">"]
+   :example "(== 1 1.0) ; => true"}
+  [a & more]
+  (case (count more)
+    0 (do (num-equals1 a a) true)
+    1 (num-equals1 a (first more))
+    (if (num-equals1 a (first more))
+      (recur (first more) (next more))
+      false)))
+
 (defn not
   "Returns true if value is falsy (nil or false), false otherwise."
   {:example "(not nil) ; => true"}
