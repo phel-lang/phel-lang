@@ -7,44 +7,43 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 #### Compiler
-- Dot-separated bare symbols that look like class FQNs (e.g. `Phel.Lang.ExInfoException`) now resolve as aliases for `\Phel\Lang\ExInfoException`, improving `.cljc` source portability with Clojure and sibling dialects (#1553)
-- `--warn-deprecations` CLI flag on the `phel` console turns on the backslash-separator deprecation warnings without needing the `PHEL_WARN_DEPRECATIONS=1` env var; strip-and-enable happens at bootstrap so every downstream command receives the cleaned argv (#1567)
-- Opt-in deprecation warning for backslash (`\`) as namespace separator. Covers call sites, class FQNs, `ns` declarations, and `:require` targets (flat + vector forms). Set `PHEL_WARN_DEPRECATIONS=1` to surface migration targets. Dot (`.`) is the Clojure-compatible form and will be the only supported form in a future release — see `docs/migration/backslash-to-dot.md` (#1567)
-- Phel stdlib sources (`src/phel/**/*.phel`) rewritten to use Clojure-compatible dot syntax in `ns`, `in-ns`, and `:require` forms; the stdlib-source suppression in the backslash deprecator was dropped as it is no longer needed (#1567)
+- Bare dotted class FQNs like `Phel.Lang.Foo` resolve as aliases for `\Phel\Lang\Foo` (#1553)
+- Opt-in deprecation warning for `\` as namespace separator in `ns`, `:require`, call sites, and class FQNs — enable via `--warn-deprecations` CLI flag or `PHEL_WARN_DEPRECATIONS=1`; see `docs/migration/backslash-to-dot.md` (#1567)
+- Phel stdlib rewritten to dot-separated namespaces (`phel.core`, `phel.walk`, …) (#1567)
 
 #### Core
-- Hierarchy functions `isa?`, `derive`, `underive`, `parents`, `ancestors`, `descendants` accept an optional hierarchy argument; the hierarchy arities of `derive`/`underive` are pure and return a new hierarchy (#1543)
-- `int-array`, `long-array`, `float-array`, `double-array`, and `short-array` gain a second arity `[size init-val-or-seq]` matching Clojure: when `init-val-or-seq` is a number every slot is filled with it (coerced); when a sequence, its elements fill the prefix (truncated to `size`) and remaining slots are zero-padded. Closes #1562
-- `into-array` function for `.cljc` interop: `(into-array aseq)` and `(into-array type aseq)` both return a PHP array containing the elements of `aseq`. The `type` argument is accepted for Clojure source compatibility but is ignored in Phel — PHP has no typed arrays. Use `int-array`/`float-array`/etc. when element coercion is needed (#1550)
-- `==` numeric equality function matching Clojure's `clojure.core/==`: type-independent so `(== 1 1.0)` is true, unlike `=` which is type-strict. Throws `\InvalidArgumentException` on non-numeric arguments (#1561)
+- Hierarchy functions `isa?`, `derive`, `underive`, `parents`, `ancestors`, `descendants` accept an optional hierarchy argument (#1543)
+- `into-array` function for `.cljc` interop (#1550)
+- `==` Clojure-compatible numeric equality: `(== 1 1.0) => true` (#1561)
+- `int-array`, `long-array`, `float-array`, `double-array`, `short-array` gain the `[size init-val-or-seq]` arity (#1562)
 
 ### Changed
 
-- **BREAKING**: Minimum PHP version bumped from 8.3 to 8.4. PHP 8.3 is no longer supported.
+- **BREAKING**: Minimum PHP version bumped from 8.3 to 8.4
 
 #### Core
-- `future` is now available from `phel\core` without requiring `phel\async`, matching Clojure's out-of-the-box availability (#1537)
+- `future` now available from `phel\core` without requiring `phel\async` (#1537)
 
 ### Fixed
 
 #### Core
-- `binding` on `^:dynamic` vars is fiber-local; `future`/`async` convey caller bindings; `^:dynamic` on `def` name symbols is honored (#1536)
-- `=` between a list and any other sequential collection (vector, lazy seq) now returns the same result regardless of argument order (#1546)
-- `()` is now a self-quoting empty list literal instead of raising `Value nil of type null is not callable`; forms like `(into () coll)`, `(conj () 1)`, `(cons 1 ())`, `(= () (list))`, and `(if () :a :b)` now work as in Clojure (#1549)
+- `binding` on `^:dynamic` vars is fiber-local; `future`/`async` convey caller bindings (#1536)
+- `=` between a list and any sequential collection (vector, lazy seq) is symmetric (#1546)
+- `()` is a self-quoting empty list literal — `(conj () 1)`, `(cons 1 ())`, `(if () :a :b)` all work (#1549)
 
 #### Build
-- Directory scan skips unparseable `.phel` files instead of aborting; REPL boots even when the cwd tree contains malformed Phel sources
+- Directory scan skips unparseable `.phel` files instead of aborting
 
 #### API
-- `phel analyze` now pre-loads `phel\core` so core macros like `when-not`, `defn`, and `let` resolve instead of being reported as unresolved symbols (#1539)
+- `phel analyze` pre-loads `phel\core` so core macros resolve (#1539)
 
 #### Compiler
-- `php/new` with a non-string, non-object class expression now throws a descriptive `InvalidArgumentException` including the offending value instead of PHP's cryptic `Class name must be a valid object or a string` (#1538)
-- `#?` and `#?@` reader conditionals no longer fail with `Unterminated list (BRACKETS)` when the closing paren sits on its own line; trailing whitespace, newlines, or comments before `)` are now tolerated (#1547)
+- `php/new` on a non-string, non-object throws a descriptive `InvalidArgumentException` (#1538)
+- `#?` and `#?@` reader conditionals tolerate a newline before the closing paren (#1547)
 
 #### Lint
-- `phel lint` no longer reports `phel/unresolved-symbol` for alias-qualified calls (`alias/name`) when `alias` is declared via `(:require ... :as alias)` in the file's ns form; the linter cannot load other namespaces, so valid cross-namespace calls are now suppressed (#1540)
-- `phel lint` with no arguments no longer aborts with `Symbol walk is already bound in namespace phel\walk` when run in a project that depends on phel via Composer; default paths now resolve to the project's own configured source dirs and skip phel's bundled stdlib (#1541)
+- `phel lint` no longer flags alias-qualified calls from `(:require ... :as alias)` as unresolved (#1540)
+- `phel lint` with no arguments skips phel's bundled stdlib in vendored installs (#1541)
 
 ## [0.34.1](https://github.com/phel-lang/phel-lang/compare/v0.34.0...v0.34.1) - 2026-04-21
 
