@@ -4,20 +4,20 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
-use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
-use Phel\Lang\SourceLocation;
 use Phel;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
+use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\NsSymbol;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;

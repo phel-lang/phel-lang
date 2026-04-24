@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
-use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
+use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
