@@ -1,4 +1,4 @@
-(ns phel\async)
+(ns phel.async)
 
 ;; Two cooperating concurrency layers in one module.
 ;;

@@ -1,11 +1,11 @@
-(ns phel\schema
-  (:require phel\core)
-  (:require phel\schema\registry :as reg)
-  (:require phel\schema\validator :as v)
-  (:require phel\schema\explainer :as e)
-  (:require phel\schema\coercer :as c)
-  (:require phel\schema\generator :as gen)
-  (:require phel\schema\instrument :as i))
+(ns phel.schema
+  (:require phel.core)
+  (:require phel.schema.registry :as reg)
+  (:require phel.schema.validator :as v)
+  (:require phel.schema.explainer :as e)
+  (:require phel.schema.coercer :as c)
+  (:require phel.schema.generator :as gen)
+  (:require phel.schema.instrument :as i))
 
 ;; Data-driven schemas for Phel.
 ;;

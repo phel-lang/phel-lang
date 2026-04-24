@@ -1,10 +1,10 @@
-(in-ns phel\core)
+(in-ns phel.core)
 
 ;; Core `future`: starts `body` asynchronously and returns a
 ;; `PhelFuture`. Kept in core so it mirrors Clojure, where `future`
 ;; is available without an explicit require. The fiber-backed
 ;; `future-fiber`, `future-call`, `promise`, and friends still live in
-;; `phel\async`.
+;; `phel.async`.
 
 (defmacro future
   "Starts evaluating `body` asynchronously and returns a `PhelFuture`

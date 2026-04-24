@@ -1,5 +1,5 @@
-(ns phel\router
-  (:require phel\http :as h)
+(ns phel.router
+  (:require phel.http :as h)
   (:use \Symfony\Component\Routing\Matcher\Dumper\CompiledUrlMatcherDumper)
   (:use \Symfony\Component\Routing\Generator\UrlGenerator)
   (:use \Symfony\Component\Routing\Generator\CompiledUrlGenerator)

@@ -1,4 +1,4 @@
-(in-ns phel\core)
+(in-ns phel.core)
 
 ;; Safe string → primitive parsers: `parse-long`, `parse-double`,
 ;; `parse-boolean`. Each returns `nil` on invalid input instead of

@@ -1,10 +1,10 @@
-(ns phel\schema\generator
-  (:require phel\core)
-  (:require phel\schema\registry :as reg)
-  (:require phel\schema\validator :as v)
-  (:require phel\test\gen :as g))
+(ns phel.schema.generator
+  (:require phel.core)
+  (:require phel.schema.registry :as reg)
+  (:require phel.schema.validator :as v)
+  (:require phel.test.gen :as g))
 
-;; Maps schemas to `phel\test\gen` generators so properties and examples
+;; Maps schemas to `phel.test.gen` generators so properties and examples
 ;; can exercise the schema without a hand-written generator. A schema
 ;; may attach its own generator via `{:gen <gen-fn>}` options to override
 ;; the default.

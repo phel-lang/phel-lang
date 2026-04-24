@@ -1,4 +1,4 @@
-(ns phel\reader
+(ns phel.reader
   (:use Phel)
   (:use Phel\Lang\TagRegistry))
 

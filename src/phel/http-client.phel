@@ -1,6 +1,6 @@
-(ns phel\http-client
-  (:require phel\http :as http)
-  (:require phel\json))
+(ns phel.http-client
+  (:require phel.http :as http)
+  (:require phel.json))
 
 ;; -----------
 ;; Key helpers

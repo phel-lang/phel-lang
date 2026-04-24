@@ -1,4 +1,4 @@
-(in-ns phel\core)
+(in-ns phel.core)
 
 (use InvalidArgumentException)
 (use OutOfBoundsException)

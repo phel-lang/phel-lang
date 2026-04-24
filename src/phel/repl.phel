@@ -1,4 +1,4 @@
-(ns phel\repl
+(ns phel.repl
   (:use Phel)
   (:use Phel\Lang\Symbol)
   (:use Phel\Lang\Registry)
@@ -11,8 +11,8 @@
   (:use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment)
   (:use Phel\Lang\FnInterface)
   (:use Phel\Printer\Printer)
-  (:require phel\ai :as ai)
-  (:require phel\test :as t))
+  (:require phel.ai :as ai)
+  (:require phel.test :as t))
 
 (def build-facade (php/new BuildFacade))
 

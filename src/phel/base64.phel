@@ -1,5 +1,5 @@
-(ns phel\base64
-  (:require phel\string :as s))
+(ns phel.base64
+  (:require phel.string :as s))
 
 (defn encode
   "Encodes a string to Base64."

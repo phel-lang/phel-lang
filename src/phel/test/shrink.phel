@@ -1,11 +1,11 @@
-(ns phel\test\shrink
-  (:require phel\core)
-  (:require phel\test\rose :as r))
+(ns phel.test.shrink
+  (:require phel.core)
+  (:require phel.test.rose :as r))
 
 ;; Shrink driver that walks a rose tree of candidate values and returns
 ;; the smallest variant that still fails a property.
 ;;
-;; Design: `phel\test\gen/quick-check` collects the failing trial's
+;; Design: `phel.test.gen/quick-check` collects the failing trial's
 ;; arguments and builds a rose tree from them using `value->rose`. The
 ;; driver then walks that tree depth-first, keeping any child whose
 ;; value still fails the property. The walk stops when no child of the

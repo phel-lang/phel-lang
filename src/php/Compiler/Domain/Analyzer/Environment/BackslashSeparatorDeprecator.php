@@ -11,8 +11,6 @@ use function in_array;
 use function sprintf;
 use function str_replace;
 use function str_starts_with;
-use function strtr;
-
 use function trigger_error;
 
 use const E_USER_DEPRECATED;
@@ -87,7 +85,7 @@ final class BackslashSeparatorDeprecator
         }
 
         $file = $location->getFile();
-        if ($file === '' || $this->isPhelStdlibSource($file)) {
+        if ($file === '') {
             return;
         }
 
@@ -115,16 +113,6 @@ final class BackslashSeparatorDeprecator
     private function containsBackslashSeparator(string $fullName): bool
     {
         return str_contains($fullName, '\\');
-    }
-
-    private function isPhelStdlibSource(string $file): bool
-    {
-        // Normalize separators so the check works on any OS and for both
-        // the dev-repo layout and Composer-vendored installs.
-        $normalized = strtr($file, '\\', '/');
-
-        return str_contains($normalized, '/src/phel/')
-            || str_ends_with($normalized, '/src/phel');
     }
 
     private function buildMessage(string $original, string $file, int $line): string

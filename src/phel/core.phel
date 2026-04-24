@@ -1,4 +1,4 @@
-(ns phel\core
+(ns phel.core
   (:use InvalidArgumentException)
   (:use Phel)
   (:use Phel\Lang\CdrInterface)

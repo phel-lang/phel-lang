@@ -1,4 +1,4 @@
-(ns phel\json
+(ns phel.json
   (:use \JsonException))
 
 (defn valid-key?
