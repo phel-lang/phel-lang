@@ -41,7 +41,7 @@ final class BackslashSeparatorDeprecator
         ?callable $emitter = null,
     ) {
         $this->emitter = $emitter ?? static function (string $msg): void {
-            @trigger_error($msg, E_USER_DEPRECATED);
+            trigger_error($msg, E_USER_DEPRECATED);
         };
     }
 
@@ -85,7 +85,7 @@ final class BackslashSeparatorDeprecator
         }
 
         $file = $location->getFile();
-        if ($file === '') {
+        if ($file === '' || $this->isPhelStdlibSource($file)) {
             return;
         }
 
@@ -108,6 +108,22 @@ final class BackslashSeparatorDeprecator
         $flag = getenv('PHEL_WARN_DEPRECATIONS');
 
         return !in_array($flag, [false, '', '0'], true);
+    }
+
+    /**
+     * Source-path suppression for phel's bundled stdlib. User code under
+     * `src/phel/foo.phel` that happens to match this pattern is rare; the
+     * false-positive trade-off is worth it because macro expansions in
+     * stdlib code (e.g. `@x` → `(phel\core/deref x)`) otherwise spam the
+     * output with warnings for compiler-synthesized FQ symbols that the
+     * user never wrote.
+     */
+    private function isPhelStdlibSource(string $file): bool
+    {
+        $normalized = str_replace('\\', '/', $file);
+
+        return str_contains($normalized, '/src/phel/')
+            || str_ends_with($normalized, '/src/phel');
     }
 
     private function containsBackslashSeparator(string $fullName): bool

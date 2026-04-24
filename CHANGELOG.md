@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 #### Compiler
 - Dot-separated bare symbols that look like class FQNs (e.g. `Phel.Lang.ExInfoException`) now resolve as aliases for `\Phel\Lang\ExInfoException`, improving `.cljc` source portability with Clojure and sibling dialects (#1553)
+- `--warn-deprecations` CLI flag on the `phel` console turns on the backslash-separator deprecation warnings without needing the `PHEL_WARN_DEPRECATIONS=1` env var; strip-and-enable happens at bootstrap so every downstream command receives the cleaned argv (#1567)
 - Opt-in deprecation warning for backslash (`\`) as namespace separator. Covers call sites, class FQNs, `ns` declarations, and `:require` targets (flat + vector forms). Set `PHEL_WARN_DEPRECATIONS=1` to surface migration targets. Dot (`.`) is the Clojure-compatible form and will be the only supported form in a future release — see `docs/migration/backslash-to-dot.md` (#1567)
 - Phel stdlib sources (`src/phel/**/*.phel`) rewritten to use Clojure-compatible dot syntax in `ns`, `in-ns`, and `:require` forms; the stdlib-source suppression in the backslash deprecator was dropped as it is no longer needed (#1567)
 
