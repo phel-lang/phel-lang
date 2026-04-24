@@ -1,0 +1,20 @@
+--PHEL--
+(ns test
+  (:use Phel.Lang.SourceLocation Phel.Lang.Variable :as V))
+
+(php/new SourceLocation "f" 1 1)
+(php/new V nil 42)
+--PHP--
+namespace test;
+require_once __DIR__ . '/phel/core.php';
+\Phel::addDefinition(
+  "phel\\core",
+  "*file*",
+  "Ns/use-dot-syntax.test"
+);
+\Phel::addDefinition(
+  "phel\\core",
+  "*ns*",
+  "test"
+);
+(new \Phel\Lang\SourceLocation("f", 1, 1));(new \Phel\Lang\Variable(null, 42));

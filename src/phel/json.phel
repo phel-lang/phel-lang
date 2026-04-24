@@ -1,5 +1,5 @@
 (ns phel.json
-  (:use \JsonException))
+  (:use JsonException))
 
 (defn valid-key?
   "Checks if a value can be used as a JSON key."

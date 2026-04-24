@@ -1,6 +1,6 @@
 (ns phel.pprint
   (:require phel.core)
-  (:use Phel\Printer\Printer))
+  (:use Phel.Printer.Printer))
 
 (def- *default-width* 72)
 
