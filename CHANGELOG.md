@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 #### Compiler
 - Dot-separated bare symbols that look like class FQNs (e.g. `Phel.Lang.ExInfoException`) now resolve as aliases for `\Phel\Lang\ExInfoException`, improving `.cljc` source portability with Clojure and sibling dialects (#1553)
+- Opt-in deprecation warning for backslash (`\`) as namespace separator in call sites and class FQNs; set `PHEL_WARN_DEPRECATIONS=1` to surface migration targets. Dot (`.`) is the Clojure-compatible form and will be the only supported form in a future release — see `docs/migration/backslash-to-dot.md` (#1567)
 
 #### Core
 - Hierarchy functions `isa?`, `derive`, `underive`, `parents`, `ancestors`, `descendants` accept an optional hierarchy argument; the hierarchy arities of `derive`/`underive` are pure and return a new hierarchy (#1543)
