@@ -36,6 +36,7 @@ All notable changes to this project will be documented in this file.
 
 #### Lint
 - `phel lint` no longer reports `phel/unresolved-symbol` for alias-qualified calls (`alias/name`) when `alias` is declared via `(:require ... :as alias)` in the file's ns form; the linter cannot load other namespaces, so valid cross-namespace calls are now suppressed (#1540)
+- `phel lint` with no arguments no longer aborts with `Symbol walk is already bound in namespace phel\walk` when run in a project that depends on phel via Composer; default paths now resolve to the project's own configured source dirs and skip phel's bundled stdlib (#1541)
 
 ## [0.34.1](https://github.com/phel-lang/phel-lang/compare/v0.34.0...v0.34.1) - 2026-04-21
 
