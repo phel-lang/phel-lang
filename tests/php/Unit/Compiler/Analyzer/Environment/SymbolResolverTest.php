@@ -308,6 +308,36 @@ final class SymbolResolverTest extends TestCase
         );
     }
 
+    public function test_resolve_bare_dot_fqn_as_php_class(): void
+    {
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new PhpClassNameNode($nodeEnv, Symbol::create('\\' . Symbol::class)),
+            $this->resolver->resolve(Symbol::create('Phel.Lang.Symbol'), $nodeEnv),
+        );
+    }
+
+    public function test_resolve_bare_dot_fqn_falls_through_when_lowercase(): void
+    {
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertNotInstanceOf(
+            PhpClassNameNode::class,
+            $this->resolver->resolve(Symbol::create('phel.foo'), $nodeEnv),
+        );
+    }
+
+    public function test_resolve_bare_name_without_dot_is_not_class_fqn(): void
+    {
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertNotInstanceOf(
+            PhpClassNameNode::class,
+            $this->resolver->resolve(Symbol::create('Foo'), $nodeEnv),
+        );
+    }
+
     public function test_resolve_clojure_fqn_uses_munged_registry_lookup(): void
     {
         Registry::getInstance()->addDefinition('phel\\my_lib', '__ns_marker', true);

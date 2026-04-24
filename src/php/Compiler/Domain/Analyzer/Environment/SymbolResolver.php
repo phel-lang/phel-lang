@@ -44,6 +44,13 @@ final readonly class SymbolResolver
             return new PhpClassNameNode($env, $name, $name->getStartLocation());
         }
 
+        if ($name->getNamespace() === null && $this->looksLikeDotSeparatedClassFqn($strName)) {
+            $fqn = Symbol::create('\\' . str_replace('.', '\\', $strName));
+            $fqn->copyLocationFrom($name);
+
+            return new PhpClassNameNode($env, $fqn, $name->getStartLocation());
+        }
+
         $useAliasNode = $this->resolveFromUseAlias($name, $env);
         if ($useAliasNode instanceof AbstractNode) {
             return $useAliasNode;
@@ -85,6 +92,17 @@ final readonly class SymbolResolver
         $ns = $this->globalEnv->resolveAlias($normalizedAlias) ?? $normalizedAlias;
 
         return $this->resolveInterfaceOrDefinition($finalName, $env, $ns);
+    }
+
+    /**
+     * Accept `Foo.Bar.Baz` as an alias for the PHP class FQN `\Foo\Bar\Baz`,
+     * matching Clojure's class-reference syntax in `.cljc` code. Only applies
+     * to names that look like class FQNs (contain a dot, start uppercase) so
+     * plain Phel symbols are left to the normal resolution path.
+     */
+    private function looksLikeDotSeparatedClassFqn(string $name): bool
+    {
+        return preg_match('/^[A-Z]\w*(\.[A-Za-z_]\w*)+$/', $name) === 1;
     }
 
     private function remapClojureAlias(string $alias): string
