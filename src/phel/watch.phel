@@ -1,4 +1,4 @@
-(ns phel\watch
+(ns phel.watch
   (:use Phel)
   (:use Phel\Watch\WatchFacade))
 

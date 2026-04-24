@@ -1,5 +1,5 @@
-(ns phel\schema\registry
-  (:require phel\core))
+(ns phel.schema\registry
+  (:require phel.core))
 
 ;; Named-schema registry.
 ;;

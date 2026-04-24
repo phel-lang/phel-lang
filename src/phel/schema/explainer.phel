@@ -1,7 +1,7 @@
-(ns phel\schema\explainer
-  (:require phel\core)
-  (:require phel\schema\registry :as reg)
-  (:require phel\schema\validator :as v))
+(ns phel.schema\explainer
+  (:require phel.core)
+  (:require phel.schema\registry :as reg)
+  (:require phel.schema\validator :as v))
 
 ;; Error-reporting companion to the validator.
 ;;

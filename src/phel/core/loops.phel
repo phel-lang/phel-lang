@@ -1,4 +1,4 @@
-(in-ns phel\core)
+(in-ns phel.core)
 
 ;; Side-effecting iteration that returns `nil`. Currently just `run!`;
 ;; `doseq` itself lives in the macro layer, but related helpers collect here.

@@ -1,4 +1,4 @@
-(ns phel\mock)
+(ns phel.mock)
 
 ;; -----------
 ;; Mock State Registry

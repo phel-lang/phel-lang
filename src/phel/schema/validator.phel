@@ -1,6 +1,6 @@
-(ns phel\schema\validator
-  (:require phel\core)
-  (:require phel\schema\registry :as reg))
+(ns phel.schema\validator
+  (:require phel.core)
+  (:require phel.schema\registry :as reg))
 
 ;; Core validation engine.
 ;;

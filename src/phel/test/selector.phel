@@ -1,6 +1,6 @@
-(ns phel\test\selector)
+(ns phel.test\selector)
 
-;; Pure test-selection helpers used by `phel\test/run-tests` to filter the
+;; Pure test-selection helpers used by `phel.test/run-tests` to filter the
 ;; set of test vars that will actually be invoked for a run. All functions
 ;; are side-effect-free: they accept a normalized option map and a
 ;; metadata map for a single test, and return booleans. Composition is

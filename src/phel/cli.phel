@@ -1,4 +1,4 @@
-(ns phel\cli
+(ns phel.cli
   (:use InvalidArgumentException)
   (:use Symfony\Component\Console\Application)
   (:use Symfony\Component\Console\Command\Command)

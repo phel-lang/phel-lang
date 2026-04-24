@@ -1,6 +1,6 @@
-(ns phel\ai
-  (:require phel\http-client :as hc)
-  (:require phel\json)
+(ns phel.ai
+  (:require phel.http-client :as hc)
+  (:require phel.json)
   (:use RuntimeException))
 
 ;; -----------

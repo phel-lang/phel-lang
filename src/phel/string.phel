@@ -1,5 +1,5 @@
-(ns phel\string
-  (:require phel\core)
+(ns phel.string
+  (:require phel.core)
   (:use InvalidArgumentException))
 
 (defn split

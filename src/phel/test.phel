@@ -1,10 +1,10 @@
-(ns phel\test
+(ns phel.test
   (:use Phel)
   (:use Phel\Lang\SourceLocationInterface)
   (:use Phel\Compiler\Application\Munge)
   (:use Phel\Command\CommandFacade)
-  (:require phel\string :as s)
-  (:require phel\test\selector :as selector))
+  (:require phel.string :as s)
+  (:require phel.test\selector :as selector))
 
 ;; ------
 ;; Report
@@ -320,7 +320,7 @@
 ;; Public extension point for the `is` macro: an open multimethod
 ;; dispatched on the first symbol of the asserted form (or `:default` for
 ;; non-list forms or lists not starting with a symbol). Extend with
-;; `(defmethod phel\test/assert-expr 'my-form [form message] ...)`,
+;; `(defmethod phel.test/assert-expr 'my-form [form message] ...)`,
 ;; returning a quoted form to be evaluated by `is`. Methods must be
 ;; loaded before any `is` form using their dispatch value is expanded.
 (defmulti assert-expr

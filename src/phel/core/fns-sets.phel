@@ -1,4 +1,4 @@
-(in-ns phel\core)
+(in-ns phel.core)
 
 ;; Two loosely-related groups, kept together because both build higher-level
 ;; abstractions over the seq/set primitives in core.phel:

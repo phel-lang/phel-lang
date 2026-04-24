@@ -74,15 +74,6 @@ final class BackslashSeparatorDeprecatorTest extends TestCase
         self::assertCount(2, $this->captured);
     }
 
-    public function test_suppresses_warnings_from_phel_stdlib_sources(): void
-    {
-        $deprecator = $this->deprecator(enabled: true);
-        $deprecator->maybeWarn($this->locatedSymbol('phel\\core', 'map', '/vendor/phel-lang/phel-lang/src/phel/walk.phel'));
-        $deprecator->maybeWarn($this->locatedSymbol('phel\\core', 'map', '/home/x/phel-lang/src/phel/core.phel'));
-
-        self::assertSame([], $this->captured);
-    }
-
     public function test_suppresses_when_location_is_missing(): void
     {
         $deprecator = $this->deprecator(enabled: true);

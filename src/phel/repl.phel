@@ -1,4 +1,4 @@
-(ns phel\repl
+(ns phel.repl
   (:use Phel)
   (:use Phel\Lang\Symbol)
   (:use Phel\Lang\Registry)
@@ -11,8 +11,8 @@
   (:use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment)
   (:use Phel\Lang\FnInterface)
   (:use Phel\Printer\Printer)
-  (:require phel\ai :as ai)
-  (:require phel\test :as t))
+  (:require phel.ai :as ai)
+  (:require phel.test :as t))
 
 (def build-facade (php/new BuildFacade))
 
@@ -283,7 +283,7 @@
 (defn apropos
   "Returns a vector of symbols whose name contains the given search string.
   Searches across all loaded namespaces."
-  {:example "(apropos \"map\") ; => [phel\\core/flat-map phel\\core/map ...]"}
+  {:example "(apropos \"map\") ; => [phel.\core/flat-map phel\\core/map ...]"}
   [search]
   (let [munge   (php/new Munge)
         results (transient [])]
