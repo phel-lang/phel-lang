@@ -1165,6 +1165,52 @@ final class NsSymbolTest extends TestCase
         BackslashSeparatorDeprecator::resetInstance();
     }
 
+    public function test_backslash_use_emits_deprecation(): void
+    {
+        $captured = [];
+        $this->installCapturingDeprecator($captured);
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            $this->locatedSymbol('my.project', '/app/user.phel'),
+            Phel::list([
+                Keyword::create('use'),
+                $this->locatedSymbol('Phel\\Lang\\Foo', '/app/user.phel'),
+            ]),
+        ]);
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+
+        $useWarnings = array_values(array_filter(
+            $captured,
+            static fn(string $m): bool => str_contains($m, "'Phel\\Lang\\Foo'"),
+        ));
+
+        self::assertCount(1, $useWarnings, 'exactly one warning for the backslash use symbol');
+        self::assertStringContainsString("'Phel.Lang.Foo'", $useWarnings[0]);
+
+        BackslashSeparatorDeprecator::resetInstance();
+    }
+
+    public function test_dot_use_emits_no_deprecation(): void
+    {
+        $captured = [];
+        $this->installCapturingDeprecator($captured);
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            $this->locatedSymbol('my.project', '/app/user.phel'),
+            Phel::list([
+                Keyword::create('use'),
+                $this->locatedSymbol('Phel.Lang.Foo', '/app/user.phel'),
+            ]),
+        ]);
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+
+        self::assertSame([], $captured);
+
+        BackslashSeparatorDeprecator::resetInstance();
+    }
+
     public function test_dot_ns_form_emits_no_deprecation(): void
     {
         $captured = [];

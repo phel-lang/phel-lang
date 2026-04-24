@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Keyword;
@@ -44,6 +45,7 @@ final readonly class UseAliasRegistrar
                 throw AnalyzerException::withLocation(sprintf('First argument in %s must be a symbol.', $label), $form);
             }
 
+            BackslashSeparatorDeprecator::getInstance()->maybeWarn($useSymbol);
             $useSymbol = $this->normalizeSymbolSeparators($useSymbol);
 
             if ($useSymbol->getName()[0] !== '\\') {
