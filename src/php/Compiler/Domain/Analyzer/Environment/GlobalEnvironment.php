@@ -16,6 +16,7 @@ use Phel\Shared\CompilerConstants;
 use Phel\Shared\ReplConstants;
 
 use function array_key_exists;
+use function in_array;
 
 final class GlobalEnvironment implements GlobalEnvironmentInterface
 {
@@ -42,7 +43,11 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     public function __construct()
     {
-        $this->symbolResolver = new SymbolResolver($this, new MagicConstantResolver());
+        $this->symbolResolver = new SymbolResolver(
+            $this,
+            new MagicConstantResolver(),
+            new BackslashSeparatorDeprecator($this->backslashDeprecationsEnabled()),
+        );
         $this->addInternalBuildModeDefinition();
     }
 
@@ -249,6 +254,13 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         }
 
         return array_keys($symbols);
+    }
+
+    private function backslashDeprecationsEnabled(): bool
+    {
+        $flag = getenv('PHEL_WARN_DEPRECATIONS');
+
+        return !in_array($flag, [false, '', '0'], true);
     }
 
     private function initializeNamespace(string $namespace): void

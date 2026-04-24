@@ -20,10 +20,12 @@ final readonly class SymbolResolver
     public function __construct(
         private GlobalEnvironment $globalEnv,
         private MagicConstantResolver $magicConstantResolver,
+        private ?BackslashSeparatorDeprecator $backslashDeprecator = null,
     ) {}
 
     public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
     {
+        $this->backslashDeprecator?->maybeWarn($name);
         $strName = $name->getName();
 
         if ($strName === '__DIR__') {

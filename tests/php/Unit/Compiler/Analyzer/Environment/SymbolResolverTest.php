@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
+use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\MagicConstantResolver;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -336,6 +337,26 @@ final class SymbolResolverTest extends TestCase
             PhpClassNameNode::class,
             $this->resolver->resolve(Symbol::create('Foo'), $nodeEnv),
         );
+    }
+
+    public function test_resolve_fires_backslash_deprecation_when_wired(): void
+    {
+        $captured = [];
+        $deprecator = new BackslashSeparatorDeprecator(
+            enabled: true,
+            emitter: static function (string $msg) use (&$captured): void {
+                $captured[] = $msg;
+            },
+        );
+        $resolver = new SymbolResolver($this->globalEnv, new MagicConstantResolver(), $deprecator);
+
+        $sym = Symbol::createForNamespace('phel\\core', 'map');
+        $sym->setStartLocation(new SourceLocation('/app/user.phel', 1, 1));
+
+        $resolver->resolve($sym, NodeEnvironment::empty());
+
+        self::assertCount(1, $captured);
+        self::assertStringContainsString("'phel\\core/map'", $captured[0]);
     }
 
     public function test_resolve_clojure_fqn_uses_munged_registry_lookup(): void
