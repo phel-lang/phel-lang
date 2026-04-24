@@ -12,15 +12,27 @@ See tracking issue:
 
 ## Opt-in to deprecation warnings
 
-Set `PHEL_WARN_DEPRECATIONS=1` before running `phel`:
+Two equivalent ways to turn the warnings on — pick whichever fits
+your pipeline:
+
+**CLI flag** (recommended for one-off runs and CI configs):
+
+```bash
+vendor/bin/phel run --warn-deprecations src/app.phel
+vendor/bin/phel test --warn-deprecations
+```
+
+**Environment variable** (recommended for shell-wide sessions):
 
 ```bash
 PHEL_WARN_DEPRECATIONS=1 vendor/bin/phel run src/app.phel
-PHEL_WARN_DEPRECATIONS=1 vendor/bin/phel test
 ```
 
 When enabled, the compiler emits one `E_USER_DEPRECATED` per unique
 `(file, symbol)` pair so large projects do not drown in duplicates.
+The `--warn-deprecations` flag is consumed by the `phel` bootstrap
+before Symfony's per-command parsers run, so it works with every
+subcommand.
 
 ## What is detected today
 
