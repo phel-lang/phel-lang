@@ -5,7 +5,9 @@
 (use-fixtures :each
   (fn [t]
     (s/reset)
-    (t)))
+    (let [result (t)]
+      (s/reset)
+      result)))
 
 (deftest create-assigns-sequential-ids
   (let [a (s/create "first")

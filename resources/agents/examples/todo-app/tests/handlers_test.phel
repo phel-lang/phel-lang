@@ -6,7 +6,11 @@
   (:require todo-app\handlers :as hdl))
 
 (use-fixtures :each
-  (fn [t] (s/reset) (t)))
+  (fn [t]
+    (s/reset)
+    (let [result (t)]
+      (s/reset)
+      result)))
 
 (defn- req [opts]
   (h/request-from-map opts))
