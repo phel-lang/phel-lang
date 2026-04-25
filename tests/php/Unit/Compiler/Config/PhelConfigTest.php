@@ -38,6 +38,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::TEMP_DIR => sys_get_temp_dir() . '/phel/tmp',
             PhelConfig::FORMAT_DIRS => ['src', 'tests'],
             PhelConfig::ASSERTS_ENABLED => true,
+            PhelConfig::WARN_DEPRECATIONS => false,
             PhelConfig::ENABLE_NAMESPACE_CACHE => true,
             PhelConfig::ENABLE_COMPILED_CODE_CACHE => true,
             PhelConfig::CACHE_DIR => sys_get_temp_dir() . '/phel/cache',
@@ -217,6 +218,7 @@ final class PhelConfigTest extends TestCase
             ->setTempDir('/tmp/custom')
             ->setFormatDirs(['src', 'tests', 'phel'])
             ->setEnableAsserts(false)
+            ->setWarnDeprecations(true)
             ->setCacheDir('.cache');
 
         $expected = [
@@ -241,6 +243,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::TEMP_DIR => '/tmp/custom',
             PhelConfig::FORMAT_DIRS => ['src', 'tests', 'phel'],
             PhelConfig::ASSERTS_ENABLED => false,
+            PhelConfig::WARN_DEPRECATIONS => true,
             PhelConfig::ENABLE_NAMESPACE_CACHE => true,
             PhelConfig::ENABLE_COMPILED_CODE_CACHE => true,
             PhelConfig::CACHE_DIR => '.cache',
@@ -264,6 +267,7 @@ final class PhelConfigTest extends TestCase
         self::assertFalse($config->getKeepGeneratedTempFiles());
         self::assertSame(['src', 'tests'], $config->getFormatDirs());
         self::assertTrue($config->isAssertsEnabled());
+        self::assertFalse($config->shouldWarnDeprecations());
         self::assertTrue($config->isNamespaceCacheEnabled());
         self::assertTrue($config->isCompiledCodeCacheEnabled());
     }

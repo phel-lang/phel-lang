@@ -9,6 +9,8 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 
+use function dirname;
+
 final class BackslashSeparatorDeprecatorTest extends TestCase
 {
     /** @var list<string> */
@@ -77,10 +79,31 @@ final class BackslashSeparatorDeprecatorTest extends TestCase
     public function test_suppresses_warnings_from_phel_stdlib_sources(): void
     {
         $deprecator = $this->deprecator(enabled: true);
-        $deprecator->maybeWarn($this->locatedSymbol('phel\\core', 'map', '/vendor/phel-lang/phel-lang/src/phel/walk.phel'));
-        $deprecator->maybeWarn($this->locatedSymbol('phel\\core', 'map', '/home/x/phel-lang/src/phel/core.phel'));
+        $deprecator->maybeWarn($this->locatedSymbol(
+            'phel\\core',
+            'map',
+            dirname(__DIR__, 6) . '/src/phel/walk.phel',
+        ));
 
         self::assertSame([], $this->captured);
+    }
+
+    public function test_warns_for_user_nested_layout_sources(): void
+    {
+        $deprecator = $this->deprecator(enabled: true);
+        $deprecator->maybeWarn($this->locatedSymbol('my\\project', 'run', '/app/src/phel/main.phel'));
+
+        self::assertCount(1, $this->captured);
+    }
+
+    public function test_emits_for_backslash_namespace_string(): void
+    {
+        $deprecator = $this->deprecator(enabled: true);
+        $deprecator->maybeWarnString('my\\project', new SourceLocation('/app/user.phel', 1, 1));
+
+        self::assertCount(1, $this->captured);
+        self::assertStringContainsString("'my\\project'", $this->captured[0]);
+        self::assertStringContainsString("'my.project'", $this->captured[0]);
     }
 
     public function test_suppresses_when_location_is_missing(): void
