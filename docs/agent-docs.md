@@ -50,10 +50,7 @@ The repository also contains AI tool config for maintaining phel-lang itself. Ke
 | `AGENTS.md` | Shared repository policy for Codex, Aider, and generic AGENTS.md-aware tools. |
 | `.codex/` | Codex-native config, hooks, exec rules, and custom subagents. |
 | `.claude/` | Claude Code-native settings, hooks, skills, agents, and scoped rules. |
-| `.agents/` | Reserved for repo-local agent assets. |
 | `resources/agents/` | Assets shipped to users building their own Phel projects. |
-
-Run `composer test-ai-config` after changing `.codex/`, `.claude/`, `.agents/README.md`, or `AGENTS.md`.
 
 ## Feedback
 

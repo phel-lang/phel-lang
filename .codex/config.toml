@@ -4,7 +4,6 @@ This is the Phel language repository. Treat AGENTS.md as the source of truth for
 
 Use .codex/ for Codex-native mechanics only. Do not move Claude Code settings into .codex/.
 The resources/agents/ tree is the downstream Phel user package installed into user projects as .agents/.
-This repository's .agents/ directory is reserved for repo-local agent assets.
 
 When touching src/php/<Module>/, read that module's src/php/<Module>/CLAUDE.md first; these module notes are still
 the canonical module-level docs even when using Codex.
