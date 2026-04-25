@@ -83,6 +83,17 @@
 ;; Function operation
 ;; ------------------
 
+(defn apply
+  "Applies function `f` to the argument list formed by prepending any
+  intervening arguments to the final collection argument."
+  {:example "(apply + [1 2 3]) ; => 6\n((identity apply) + 1 [2 3]) ; => 6"
+   :see-also ["partial" "comp"]}
+  ([f args] (apply f args))
+  ([f x args] (apply f (cons x args)))
+  ([f x y args] (apply f (cons x (cons y args))))
+  ([f x y z args] (apply f (cons x (cons y (cons z args)))))
+  ([f a b c d & args] (apply f (concat [a b c d] (butlast args) (last args)))))
+
 (defn constantly
   "Returns a function that always returns `x` and ignores any passed arguments."
   [x]

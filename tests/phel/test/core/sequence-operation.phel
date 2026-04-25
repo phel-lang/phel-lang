@@ -326,6 +326,13 @@
   (is (= {} (apply dissoc {} [])) "apply dissoc with no keys does not raise")
   (is (= {:b 2} (apply dissoc {:a 1 :b 2 :c 3} [:a :c])) "apply dissoc variadic through seq"))
 
+(deftest test-apply
+  (is (fn? apply) "bare apply resolves to a function")
+  (is (= 6 ((identity apply) + [1 2 3])) "apply can be invoked as a value")
+  (is (= 6 ((identity apply) + 1 [2 3])) "apply prepends one argument")
+  (is (= 10 ((identity apply) + 1 2 3 [4])) "apply prepends multiple arguments")
+  (is (= 21 ((identity apply) + 1 2 3 4 5 [6])) "apply handles variadic intervening arguments"))
+
 (deftest test-next
   (is (nil? (next [])) "next of empty vector")
   (is (nil? (next [1])) "next of one element vector")
