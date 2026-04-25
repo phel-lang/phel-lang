@@ -27,6 +27,16 @@
     (is (s/contains? out "reduce") "dir lists 'reduce'")
     (is (s/contains? out "filter") "dir lists 'filter'")))
 
+(deftest test-dir-accepts-bare-namespace-symbol
+  (let [out (with-output-buffer (dir phel\string))]
+    (is (s/contains? out "split") "dir lists phel\\string definitions")
+    (is (s/contains? out "trim") "dir lists phel\\string definitions")))
+
+(deftest test-dir-keeps-string-namespace-form
+  (let [out (with-output-buffer (dir "phel\\string"))]
+    (is (s/contains? out "split") "dir keeps string namespace support")
+    (is (s/contains? out "trim") "dir keeps string namespace support")))
+
 ;; --------
 ;; find-doc
 ;; --------

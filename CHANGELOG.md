@@ -42,6 +42,9 @@ All notable changes to this project will be documented in this file.
 #### API
 - `phel analyze` pre-loads `phel\core` so core macros resolve (#1539)
 
+#### REPL
+- `dir` accepts bare namespace symbols like `(dir phel\string)` while keeping string namespace support (#1588)
+
 #### Compiler
 - Bare lowercase PHP class names like `stdClass` resolve consistently with uppercase aliases like `StdClass` (#1567)
 - PHP class references imported with `use` can be bound and passed as class strings, while PHP constants imported with `use` still resolve as constants (#1560)
