@@ -201,7 +201,11 @@
   (is (= nil (read-string "")) "read empty string"))
 
 (deftest test-eval-form
-  (is (= 2 (eval '(+ 1 1))) "eval simple expression"))
+  (is (= 2 (eval '(+ 1 1))) "eval simple expression")
+  (is (function? (eval (fn [x] x))) "eval returns a closure passed in unchanged")
+  (let [identity-fn (fn [x] x)]
+    (is (= identity-fn (eval identity-fn)) "eval of a closure returns the same closure"))
+  (is (= 42 ((eval (fn [x] x)) 42)) "closure returned by eval is callable"))
 
 (deftest test-compile-form
   (is (= "(\\Phel::getDefinition(\"phel\\\\core\", \"assert-non-nil\"))(1, 1);\n(1 + 1);"

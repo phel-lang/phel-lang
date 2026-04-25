@@ -58,7 +58,7 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
     }
 
     public function evalForm(
-        TypeInterface|string|float|int|bool|null $form,
+        mixed $form,
         CompileOptions $compileOptions = new CompileOptions(),
     ): mixed {
         return $this->getFactory()
