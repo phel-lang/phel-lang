@@ -1,0 +1,4 @@
+--PHEL--
+(new stdClass)
+--PHP--
+(new \stdClass());
