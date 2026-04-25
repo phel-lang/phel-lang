@@ -1,6 +1,7 @@
 # Phel agent docs
 
-Agent-agnostic docs for AI assistants building apps **with** Phel. Compiler contributor guidance lives in the root `AGENTS.md` and `src/php/**/CLAUDE.md`.
+Agent-agnostic docs for AI assistants building apps **with** Phel. Repo-maintenance guidance lives in the root
+`AGENTS.md`, `.codex/`, `.claude/`, and `src/php/**/CLAUDE.md`.
 
 ## Install
 

@@ -14,10 +14,11 @@ case "$FILE" in
     *) exit 0 ;;
 esac
 
-cd "$CLAUDE_PROJECT_DIR" 2>/dev/null || exit 0
+PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
+cd "$PROJECT_DIR" 2>/dev/null || exit 0
 
 # Derive matching test file: src/phel/<ns>/<name>.phel -> tests/phel/<ns>/<name>-test.phel
-REL="${FILE#$CLAUDE_PROJECT_DIR/}"
+REL="${FILE#$PROJECT_DIR/}"
 REL="${REL#src/phel/}"
 BASE="${REL%.phel}"
 TEST_FILE="tests/phel/${BASE}-test.phel"

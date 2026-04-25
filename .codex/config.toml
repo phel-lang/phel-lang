@@ -1,0 +1,19 @@
+commit_attribution = ""
+developer_instructions = """
+This is the Phel language repository. Treat AGENTS.md as the source of truth for repository policy.
+
+Use .codex/ for Codex-native mechanics only. Do not move Claude Code settings into .codex/, and do not put
+repo-maintenance workflows under .agents/ because .agents/ is reserved for downstream Phel users.
+
+When touching src/php/<Module>/, read that module's src/php/<Module>/CLAUDE.md first; these module notes are still
+the canonical module-level docs even when using Codex.
+"""
+
+[features]
+codex_hooks = true
+multi_agent = true
+
+[agents]
+max_threads = 6
+max_depth = 1
+job_max_runtime_seconds = 1800

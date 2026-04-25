@@ -40,6 +40,20 @@ Each file routes the agent to `.agents/index.md` for task recipes: scaffolding, 
 
 `.agents/VERSION` tracks the targeted phel-lang release. `composer test-agents` runs every example's tests against the current source; breaking a public API surfaces as a red build on PR.
 
+## Repository maintenance adapters
+
+The repository also contains AI tool config for maintaining phel-lang itself. Keep these separate from the downstream
+`.agents/` package:
+
+| Path | Audience |
+|------|----------|
+| `AGENTS.md` | Shared repository policy for Codex, Aider, and generic AGENTS.md-aware tools. |
+| `.codex/` | Codex-native config, hooks, exec rules, and custom subagents. |
+| `.claude/` | Claude Code-native settings, hooks, skills, agents, and scoped rules. |
+| `.agents/` | Assets shipped to users building their own Phel projects. |
+
+Run `composer test-ai-config` after changing `.codex/`, `.claude/`, `.agents/README.md`, or `AGENTS.md`.
+
 ## Feedback
 
 Cold-start metrics and transcripts of agents building real apps surface gaps fastest. Open an issue with a failing transcript attached.
