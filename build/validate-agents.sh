@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 #
-# Runs ./vendor/bin/phel test in each .agents/examples/* project against
+# Runs ./vendor/bin/phel test in each resources/agents/examples/* project against
 # the local repo (symlinked via composer path repository). Exits non-zero
 # on the first failing project. Invoke via `composer test-agents`.
 
 set -euo pipefail
 
 repo_root=$(cd "$(dirname "$0")/.." && pwd)
-examples_dir="$repo_root/.agents/examples"
+examples_dir="$repo_root/resources/agents/examples"
 
 if [[ ! -d "$examples_dir" ]]; then
   echo "No examples directory at $examples_dir" >&2
@@ -17,7 +17,7 @@ fi
 failures=0
 for example in "$examples_dir"/*/; do
   name=$(basename "$example")
-  [[ -f "$example/phel-config.php" ]] || continue
+  [[ -f "$example/composer.json" ]] || continue
 
   echo "==> Validating example: $name"
   pushd "$example" > /dev/null

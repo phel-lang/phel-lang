@@ -3,7 +3,7 @@
 ```bash
 ./vendor/bin/phel agent-install <platform>           # single platform
 ./vendor/bin/phel agent-install --all                # every platform
-./vendor/bin/phel agent-install --all --with-docs    # also copy .agents/ tree
+./vendor/bin/phel agent-install --all --with-docs    # also install docs into .agents/
 ./vendor/bin/phel agent-install --dry-run claude     # preview
 ```
 
@@ -22,4 +22,4 @@ Existing targets back up to `<path>.pre-phel.bak`. `--force` skips backup.
 
 ## Manual fallback
 
-Copy source → installed path. Adapters fall back to `vendor/phel-lang/phel-lang/.agents/` when the user project lacks its own `.agents/` tree.
+Copy source → installed path. Adapters fall back to `vendor/phel-lang/phel-lang/resources/agents/` when the user project lacks its own `.agents/` tree.

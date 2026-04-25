@@ -72,13 +72,17 @@ final class ExcludedScanPathsTest extends TestCase
         ));
     }
 
-    public function test_dot_agents_subtree_is_pruned_when_outside_scan_root(): void
+    public function test_bundled_agent_examples_subtree_is_pruned_when_outside_scan_root(): void
     {
         $paths = ExcludedScanPaths::none();
 
         self::assertTrue($paths->contains(
-            '/repo/.agents/examples/todo-app/tests/phel/handlers_test.phel',
+            '/repo/resources/agents/examples/todo-app/tests/phel/handlers_test.phel',
             '/repo/tests/phel',
+        ));
+        self::assertTrue($paths->contains(
+            '/repo/.agents/skills/repo-helper/scripts/probe.phel',
+            '/repo/src/phel',
         ));
         self::assertFalse($paths->contains(
             '/repo/tests/phel/core/handlers_test.phel',
@@ -86,13 +90,13 @@ final class ExcludedScanPathsTest extends TestCase
         ));
     }
 
-    public function test_dot_agents_not_pruned_when_scan_root_already_inside_it(): void
+    public function test_bundled_agent_examples_not_pruned_when_scan_root_already_inside_it(): void
     {
         $paths = ExcludedScanPaths::none();
 
         self::assertFalse($paths->contains(
-            '/repo/.agents/examples/todo-app/src/phel/store.phel',
-            '/repo/.agents/examples/todo-app/src/phel',
+            '/repo/resources/agents/examples/todo-app/src/phel/store.phel',
+            '/repo/resources/agents/examples/todo-app/src/phel',
         ));
     }
 

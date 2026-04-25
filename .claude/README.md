@@ -12,5 +12,5 @@ This directory contains Claude Code-native repo-maintenance configuration for Ph
 | `skills/` | Claude Code slash-command and workflow skills. |
 | `rules/` | Claude Code scoped rules for repo-maintenance work. |
 
-Shared repository policy belongs in `AGENTS.md`. Codex-native config belongs in `.codex/`. Downstream Phel user assets
-belong in `.agents/`.
+Shared repository policy belongs in `AGENTS.md`. Codex-native config belongs in `.codex/`. Repo-local agent assets
+belong in `.agents/`. Downstream Phel user assets belong in `resources/agents/`.

@@ -1,4 +1,6 @@
 /.claude                export-ignore
+/.codex                 export-ignore
+/.agents                export-ignore
 /.github                export-ignore
 /adrs                   export-ignore
 /docker                 export-ignore

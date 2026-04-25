@@ -101,6 +101,7 @@ rsync -a "$REPO_ROOT/" "$WORK_DIR/" \
   --exclude='.idea' \
   --exclude='.vscode' \
   --exclude='.claude' \
+  --exclude='.codex' \
   --exclude='.agents' \
   --exclude='.phpbench' \
   --exclude='.phpunit.cache' \
@@ -111,6 +112,7 @@ rsync -a "$REPO_ROOT/" "$WORK_DIR/" \
   --exclude='data' \
   --exclude='vendor' \
   --exclude='build' \
+  --exclude='resources' \
   --exclude='tools' \
   --exclude='examples' \
   --exclude='fixtures' \

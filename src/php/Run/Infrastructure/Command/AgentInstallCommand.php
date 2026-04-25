@@ -70,7 +70,7 @@ final class AgentInstallCommand extends Command
                 sprintf('Platform: %s', implode(', ', array_keys(self::PLATFORMS))),
             )
             ->addOption(self::OPT_ALL, null, InputOption::VALUE_NONE, 'Install all supported platforms')
-            ->addOption(self::OPT_WITH_DOCS, null, InputOption::VALUE_NONE, 'Also copy the .agents/ docs tree')
+            ->addOption(self::OPT_WITH_DOCS, null, InputOption::VALUE_NONE, 'Also copy the bundled agent docs tree to .agents/')
             ->addOption(self::OPT_FORCE, null, InputOption::VALUE_NONE, 'Overwrite existing files (default: backup to .pre-phel.bak)')
             ->addOption(self::OPT_DRY_RUN, null, InputOption::VALUE_NONE, 'Print what would be written without changing files');
     }
@@ -102,7 +102,7 @@ final class AgentInstallCommand extends Command
         }
 
         if ((bool) $input->getOption(self::OPT_WITH_DOCS)) {
-            $this->copyDocs($output, dirname($sourceRoot), $projectRoot, $force, $dryRun);
+            $this->copyDocs($output, $sourceRoot, $projectRoot, $force, $dryRun);
         }
 
         return Command::SUCCESS;
@@ -192,15 +192,15 @@ final class AgentInstallCommand extends Command
     private function agentsRoot(): string
     {
         foreach ([5, 4, 6] as $levels) {
-            $candidate = dirname(__DIR__, $levels) . '/.agents';
+            $candidate = dirname(__DIR__, $levels) . '/resources/agents';
             if (is_dir($candidate)) {
                 return $candidate;
             }
         }
 
         throw new RuntimeException(
-            'Cannot locate bundled .agents/ directory. '
-            . 'The .agents/ tree is not shipped inside phel.phar; install phel-lang via '
+            'Cannot locate bundled resources/agents/ directory. '
+            . 'The downstream agent docs tree is not shipped inside phel.phar; install phel-lang via '
             . 'Composer (composer require phel-lang/phel-lang) and run agent-install from '
             . './vendor/bin/phel instead.',
         );

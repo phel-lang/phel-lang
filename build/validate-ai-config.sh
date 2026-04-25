@@ -33,11 +33,13 @@ require_file AGENTS.md
 require_dir .codex
 require_dir .claude
 require_dir .agents
+require_dir resources/agents
 require_file .codex/config.toml
 require_file .codex/hooks.json
 require_file .codex/rules/default.rules
 require_file .claude/settings.json
 require_file .claude/CLAUDE.md
+require_file resources/agents/VERSION
 
 if [[ -e .ai ]]; then
   fail ".ai exists; repo-maintenance adapter files should live in .codex/ or .claude/"
@@ -49,6 +51,12 @@ if find .codex .claude -type l -print -quit | grep -q .; then
   fail ".codex/.claude should contain concrete adapter files, not symlinks"
 else
   ok "No adapter symlinks"
+fi
+
+if find .agents -mindepth 1 ! -name README.md -print -quit | grep -q .; then
+  fail ".agents/ should only contain repo-local docs unless repo-local skills are intentionally added"
+else
+  ok ".agents contains no downstream package files"
 fi
 
 echo "==> JSON"
@@ -125,7 +133,7 @@ protected_decision=$(printf '%s' "$protected_output" | jq -r '.hookSpecificOutpu
 ok "Protected-file hook blocks protected edits"
 
 echo "==> Stale references"
-if rg -n --glob '!.claude/settings.local.json' '\.ai(/|$)|\.agents/project|AI/Claude|\.ai/project|/Users/chema' AGENTS.md .agents .claude .codex >/tmp/phel-ai-config-stale.txt; then
+if rg -n --glob '!.claude/settings.local.json' '\.ai(/|$)|\.agents/project|AI/Claude|\.ai/project|/Users/chema' AGENTS.md .agents .claude .codex resources/agents >/tmp/phel-ai-config-stale.txt; then
   cat /tmp/phel-ai-config-stale.txt >&2
   fail "Found stale adapter-layout references"
 else
@@ -133,10 +141,10 @@ else
 fi
 
 echo "==> Downstream skill boundary"
-if find .codex -path '*/SKILL.md' -print -quit | grep -q .; then
+if find .codex .agents -path '*/SKILL.md' -print -quit | grep -q .; then
   fail "Repo-maintenance skills must not live under .codex; use custom agents/hooks or .claude skills"
 else
-  ok "No Codex SKILL.md files"
+  ok "No repo-local Codex SKILL.md files"
 fi
 
 if (( failures > 0 )); then

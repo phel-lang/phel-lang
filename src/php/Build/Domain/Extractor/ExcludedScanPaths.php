@@ -18,12 +18,13 @@ final readonly class ExcludedScanPaths
      * Segments always pruned from a namespace scan regardless of scan root.
      * Agent tooling (Claude Code, Codex, etc.) drops repo clones under a
      * `worktrees/` directory whose `src/phel/` would shadow real sources.
-     * `.agents/` ships bundled example projects whose tests share namespaces
-     * across projects and must not leak into the host repo's scan.
+     * Agent config directories can contain examples, scripts, or worktrees
+     * whose Phel files must not leak into the host repo's scan.
      */
     private const array ALWAYS_EXCLUDED_SEGMENTS = [
         DIRECTORY_SEPARATOR . 'worktrees' . DIRECTORY_SEPARATOR,
         DIRECTORY_SEPARATOR . '.agents' . DIRECTORY_SEPARATOR,
+        DIRECTORY_SEPARATOR . 'resources' . DIRECTORY_SEPARATOR . 'agents' . DIRECTORY_SEPARATOR,
     ];
 
     /** @var list<string> */

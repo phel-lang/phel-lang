@@ -10,5 +10,5 @@ This directory contains Codex-native repo-maintenance configuration for Phel.
 | `rules/` | Codex exec-policy rules for approval and forbidden command prefixes. |
 | `agents/` | Codex custom subagents in TOML format. |
 
-Shared repository policy belongs in `AGENTS.md`. Claude Code-specific material belongs in `.claude/`. Downstream
-Phel user assets belong in `.agents/`.
+Shared repository policy belongs in `AGENTS.md`. Claude Code-specific material belongs in `.claude/`. Repo-local
+agent assets belong in `.agents/`. Downstream Phel user assets belong in `resources/agents/`.
