@@ -14,7 +14,12 @@ use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 
+use function array_map;
+use function array_unique;
+use function array_values;
 use function count;
+use function implode;
+use function sprintf;
 
 final class ApiFacadeTest extends TestCase
 {
@@ -40,15 +45,31 @@ final class ApiFacadeTest extends TestCase
      */
     private function assertAllNamespacesAreLoaded(array $functions): void
     {
-        $loadedNamespaces = array_unique(array_column($functions, 'namespace'));
+        $loadedNamespaces = array_values(array_unique(array_map(
+            static fn(PhelFunction $fn): string => $fn->namespace,
+            $functions,
+        )));
         $expectedNamespaces = array_map(
             static fn(string $ns): string => str_replace('phel\\', '', $ns),
             ApiConfig::allNamespaces(),
         );
 
         foreach ($expectedNamespaces as $expectedNamespace) {
-            self::assertContains($expectedNamespace, $loadedNamespaces);
+            self::assertContains(
+                $expectedNamespace,
+                $loadedNamespaces,
+                sprintf(
+                    "Expected namespace '%s' to be loaded. Loaded namespaces: %s",
+                    $expectedNamespace,
+                    implode(', ', $loadedNamespaces),
+                ),
+            );
         }
+
+        self::assertNotNull(
+            $this->findFunction($functions, 'async', 'delay'),
+            'Expected phel.async/delay to be loaded as the public phel.async function.',
+        );
     }
 
     /**
@@ -61,5 +82,19 @@ final class ApiFacadeTest extends TestCase
             self::assertNotEmpty($fn->namespace);
             self::assertNotEmpty($fn->name);
         }
+    }
+
+    /**
+     * @param list<PhelFunction> $functions
+     */
+    private function findFunction(array $functions, string $namespace, string $name): ?PhelFunction
+    {
+        foreach ($functions as $fn) {
+            if ($fn->namespace === $namespace && $fn->name === $name) {
+                return $fn;
+            }
+        }
+
+        return null;
     }
 }

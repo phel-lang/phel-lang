@@ -339,6 +339,16 @@ final class SymbolResolverTest extends TestCase
         );
     }
 
+    public function test_resolve_bare_lowercase_php_class(): void
+    {
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new PhpClassNameNode($nodeEnv, Symbol::create('\\stdClass')),
+            $this->resolver->resolve(Symbol::create('stdClass'), $nodeEnv),
+        );
+    }
+
     public function test_bare_lowercase_name_does_not_become_class_fqn(): void
     {
         $nodeEnv = NodeEnvironment::empty();
