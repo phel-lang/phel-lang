@@ -169,7 +169,7 @@ Single-file scratch layout: `./vendor/bin/phel init --minimal` (no subdirectorie
 - [Packagist](https://packagist.org/packages/phel-lang/phel-lang)
 
 **AI coding agents**
-- [.agents/](.agents/README.md) — Claude Code, Cursor, Codex, Gemini, Copilot, Aider
+- [resources/agents/](resources/agents/README.md) — Claude Code, Cursor, Codex, Gemini, Copilot, Aider
 - `./vendor/bin/phel agent-install [platform] [--all]` — install skill file for your agent
 
 ## Build PHAR

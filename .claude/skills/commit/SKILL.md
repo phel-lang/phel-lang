@@ -56,7 +56,7 @@ If any step fails, fix the issue and re-run from that step. Do NOT proceed to co
    - Otherwise, analyze the staged diff and generate one
    - Prefixes: `feat:`, `fix:`, `ref:`, `chore:`, `docs:`, `test:`
    - Add `(<scope>)` when changes are scoped to a single module
-   - **NEVER mention AI/Claude in the message**
+   - **NEVER mention AI tooling in the message**
 
 8. **Commit**:
    ```bash

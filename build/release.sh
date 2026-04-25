@@ -12,7 +12,7 @@ source "$SCRIPT_DIR/release-lib.sh"
 # File paths
 VERSION_FILE="$REPO_ROOT/src/php/Console/Application/VersionFinder.php"
 CHANGELOG_FILE="$REPO_ROOT/CHANGELOG.md"
-AGENTS_VERSION_FILE="$REPO_ROOT/.agents/VERSION"
+AGENTS_VERSION_FILE="$REPO_ROOT/resources/agents/VERSION"
 PHAR_SCRIPT="$SCRIPT_DIR/phar.sh"
 PHAR_OUTPUT="$SCRIPT_DIR/out/phel.phar"
 
@@ -73,7 +73,7 @@ confirm_release() {
     echo ""
     log "${BOLD}Release: v$current_version → v$version${NC}"
     [[ -n "$RELEASE_NAME" ]] && log "Name: $RELEASE_NAME"
-    log "Files: VersionFinder.php, CHANGELOG.md, .agents/VERSION"
+    log "Files: VersionFinder.php, CHANGELOG.md, resources/agents/VERSION"
     log "Actions: update files, commit, build PHAR, tag, push, create release"
     echo ""
 
@@ -189,11 +189,11 @@ main() {
     if [[ $DRY_RUN -eq 1 ]]; then
         log "[DRY-RUN] Updated VersionFinder.php to v$NEW_VERSION"
         log "[DRY-RUN] Updated CHANGELOG.md"
-        log "[DRY-RUN] Updated .agents/VERSION to $NEW_VERSION"
+        log "[DRY-RUN] Updated resources/agents/VERSION to $NEW_VERSION"
     else
         log_ok "Updated VersionFinder.php"
         log_ok "Updated CHANGELOG.md"
-        log_ok "Updated .agents/VERSION"
+        log_ok "Updated resources/agents/VERSION"
     fi
 
     # Git commit

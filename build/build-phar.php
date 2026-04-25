@@ -26,11 +26,11 @@ final class PharBuilder
      */
     private array $excludeDirs = [
         '', '.', '..',
-        '.git', '.github', '.idea', '.claude', '.vscode', '.agents', '.phpbench',
+        '.git', '.github', '.idea', '.claude', '.codex', '.vscode', '.agents', '.phpbench',
         'docs', 'Doc', 'doc',
         'tests', 'Tests', 'test', 'Test',
         'docker', 'benchmarks', 'bench',
-        'local', 'build', 'tools', 'examples', 'fixtures', 'out',
+        'local', 'build', 'tools', 'resources', 'examples', 'fixtures', 'out',
         '.phel-cache', '.phpunit.cache',
     ];
 
