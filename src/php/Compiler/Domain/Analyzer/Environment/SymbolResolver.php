@@ -15,6 +15,10 @@ use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
 use RuntimeException;
 
+use function class_exists;
+use function interface_exists;
+use function trait_exists;
+
 final readonly class SymbolResolver
 {
     public function __construct(
@@ -66,10 +70,11 @@ final readonly class SymbolResolver
             return $resolved;
         }
 
-        // Fallback: a bare uppercase identifier with no other resolution is
-        // treated as a PHP root-namespace class FQN, so `Exception` resolves
-        // the same as `\Exception`. Kicks in *after* the normal resolution
-        // paths so user-defined definitions (`(def Foo …)`) still win.
+        // Fallback: a bare class identifier with no other resolution is
+        // treated as a PHP root-namespace class FQN. Uppercase names keep
+        // Clojure-style behavior for unloaded classes, while lowercase PHP
+        // built-ins like `stdClass` resolve when PHP already knows them.
+        // Kicks in *after* normal resolution so `(def Foo ...)` still wins.
         if ($name->getNamespace() === null && $this->looksLikeBareClassName($strName)) {
             $fqn = Symbol::create('\\' . $strName);
             $fqn->copyLocationFrom($name);
@@ -126,13 +131,22 @@ final readonly class SymbolResolver
 
     /**
      * Accept bare uppercase identifiers as root-namespace PHP class FQN
-     * aliases, so `Exception` resolves the same as `\Exception`. Matches
-     * Clojure's convention where bare `Exception` resolves via
-     * `java.lang` autoimport.
+     * aliases, so `Exception` resolves the same as `\Exception`. Also
+     * accepts known PHP class/interface/trait names regardless of leading
+     * case, so `stdClass` matches PHP's case-insensitive class lookup.
      */
     private function looksLikeBareClassName(string $name): bool
     {
-        return preg_match('/^[A-Z]\w*$/', $name) === 1;
+        if (preg_match('/^[A-Z]\w*$/', $name) === 1) {
+            return true;
+        }
+
+        return preg_match('/^[A-Za-z_]\w*$/', $name) === 1
+            && (
+                class_exists($name, false)
+                || interface_exists($name, false)
+                || trait_exists($name, false)
+            );
     }
 
     private function remapClojureAlias(string $alias): string
