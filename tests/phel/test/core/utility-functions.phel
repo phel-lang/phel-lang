@@ -189,6 +189,12 @@
     (is (= "phel\\core" (namespace sym)) "resolve lives in phel\\core")
     (is (= "resolve" (name sym)) "resolve has correct name")))
 
+(deftest test-resolve-apply
+  (let [sym (resolve 'apply)]
+    (is (not (nil? sym)) "resolve returns non-nil for apply")
+    (is (= "phel\\core" (namespace sym)) "apply resolves to phel\\core")
+    (is (= "apply" (name sym)) "apply has correct name")))
+
 (deftest test-time
   (is (= 2 (+ 1 1)) "time returns expr value")
   (let [output-print (with-output-buffer (time (+ 1 1)))]
