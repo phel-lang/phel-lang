@@ -8,6 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
@@ -17,6 +18,7 @@ use RuntimeException;
 
 use function class_exists;
 use function interface_exists;
+use function ltrim;
 use function trait_exists;
 
 final readonly class SymbolResolver
@@ -70,10 +72,16 @@ final readonly class SymbolResolver
             return $resolved;
         }
 
+        if ($name->getNamespace() === null && $this->looksLikePhpConstantName($strName)) {
+            return new PhpVarNode($env, $strName, $name->getStartLocation());
+        }
+
         // Fallback: a bare class identifier with no other resolution is
-        // treated as a PHP root-namespace class FQN. Uppercase names keep
-        // Clojure-style behavior for unloaded classes, while lowercase PHP
-        // built-ins like `stdClass` resolve when PHP already knows them.
+        // treated as a PHP root-namespace class FQN. Class-shaped uppercase
+        // names keep Clojure-style behavior for unloaded classes, while
+        // constant-shaped names like JSON_HEX_AMP stay PHP constants.
+        // Lowercase PHP built-ins like `stdClass` resolve when PHP already
+        // knows them.
         // Kicks in *after* normal resolution so `(def Foo ...)` still wins.
         if ($name->getNamespace() === null && $this->looksLikeBareClassName($strName)) {
             $fqn = Symbol::create('\\' . $strName);
@@ -85,7 +93,7 @@ final readonly class SymbolResolver
         return null;
     }
 
-    private function resolveFromUseAlias(Symbol $name, NodeEnvironmentInterface $env): ?PhpClassNameNode
+    private function resolveFromUseAlias(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
     {
         $currentNs = $this->globalEnv->getNs();
         $useAliases = $this->globalEnv->getUseAliases($currentNs);
@@ -97,6 +105,10 @@ final readonly class SymbolResolver
 
         $alias = $useAliases[$strName];
         $alias->copyLocationFrom($name);
+
+        if ($alias->getNamespace() === null && $this->looksLikePhpConstantName(ltrim($alias->getName(), '\\'))) {
+            return new PhpVarNode($env, $alias->getName(), $name->getStartLocation());
+        }
 
         return new PhpClassNameNode($env, $alias, $name->getStartLocation());
     }
@@ -137,7 +149,7 @@ final readonly class SymbolResolver
      */
     private function looksLikeBareClassName(string $name): bool
     {
-        if (preg_match('/^[A-Z]\w*$/', $name) === 1) {
+        if (preg_match('/^[A-Z]\w*$/', $name) === 1 && preg_match('/[a-z]/', $name) === 1) {
             return true;
         }
 
@@ -147,6 +159,11 @@ final readonly class SymbolResolver
                 || interface_exists($name, false)
                 || trait_exists($name, false)
             );
+    }
+
+    private function looksLikePhpConstantName(string $name): bool
+    {
+        return preg_match('/^[A-Z_][A-Z0-9_]*$/', $name) === 1;
     }
 
     private function remapClojureAlias(string $alias): string

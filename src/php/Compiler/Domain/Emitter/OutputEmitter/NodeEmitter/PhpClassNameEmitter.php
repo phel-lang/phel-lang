@@ -19,7 +19,7 @@ final class PhpClassNameEmitter implements NodeEmitterInterface
         assert($node instanceof PhpClassNameNode);
 
         $this->outputEmitter->emitStr(
-            $node->getAbsolutePhpName(),
+            $node->getAbsolutePhpName() . '::class',
             $node->getName()->getStartLocation(),
         );
     }

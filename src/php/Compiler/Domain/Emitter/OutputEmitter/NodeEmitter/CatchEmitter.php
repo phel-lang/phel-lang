@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CatchNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 
 use function assert;
@@ -19,7 +20,13 @@ final class CatchEmitter implements NodeEmitterInterface
         assert($node instanceof CatchNode);
 
         $this->outputEmitter->emitStr(' catch (', $node->getStartSourceLocation());
-        $this->outputEmitter->emitNode($node->getType());
+        $type = $node->getType();
+        if ($type instanceof PhpClassNameNode) {
+            $this->outputEmitter->emitStr($type->getAbsolutePhpName(), $type->getName()->getStartLocation());
+        } else {
+            $this->outputEmitter->emitNode($type);
+        }
+
         $this->outputEmitter->emitStr(
             ' $' . $this->outputEmitter->mungeEncode($node->getName()->getName()),
             $node->getName()->getStartLocation(),
