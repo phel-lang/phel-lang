@@ -43,6 +43,7 @@ All notable changes to this project will be documented in this file.
 
 #### Compiler
 - Bare lowercase PHP class names like `stdClass` resolve consistently with uppercase aliases like `StdClass` (#1567)
+- PHP class references imported with `use` can be bound and passed as class strings, while PHP constants imported with `use` still resolve as constants (#1560)
 - `php/new` on a non-string, non-object throws a descriptive `InvalidArgumentException` (#1538)
 - `(new stdClass)` and `(php/new stdClass)` resolve lowercase-leading root PHP class names in class position (#1567)
 - `#?` and `#?@` reader conditionals tolerate a newline before the closing paren (#1547)

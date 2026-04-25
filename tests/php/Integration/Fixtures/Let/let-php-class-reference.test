@@ -1,0 +1,7 @@
+--PHEL--
+(use RecursiveArrayIterator)
+(let [PHPChildT RecursiveArrayIterator]
+  PHPChildT)
+--PHP--
+$PHPChildT_1 = \RecursiveArrayIterator::class;
+$PHPChildT_1;

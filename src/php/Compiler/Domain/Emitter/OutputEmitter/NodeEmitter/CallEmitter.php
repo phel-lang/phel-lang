@@ -6,8 +6,10 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
+use Phel\Lang\Symbol;
 
 use function assert;
 use function count;
@@ -28,7 +30,11 @@ final class CallEmitter implements NodeEmitterInterface
         }
 
         if ($fnNode instanceof PhpVarNode && $fnNode->isInfix()) {
-            $this->emitPhpVarNodeInfix($node, $fnNode);
+            if ($fnNode->getName() === 'instanceof' && count($node->getArguments()) === 2) {
+                $this->emitInstanceof($node);
+            } else {
+                $this->emitPhpVarNodeInfix($node, $fnNode);
+            }
         } else {
             $this->emitPhpVarNode($node, $fnNode);
         }
@@ -55,12 +61,66 @@ final class CallEmitter implements NodeEmitterInterface
     private function emitPhpVarNodeInfix(CallNode $node, PhpVarNode $fnNode): void
     {
         $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
-        $this->outputEmitter->emitArgList(
-            $node->getArguments(),
-            $node->getStartSourceLocation(),
-            ' ' . $fnNode->getName() . ' ',
-        );
+        $arguments = $node->getArguments();
+        $argumentCount = count($arguments);
+        foreach ($arguments as $i => $argument) {
+            $this->emitInfixArgument($fnNode, $argument, $i);
+
+            if ($i < $argumentCount - 1) {
+                $this->outputEmitter->emitStr(' ' . $fnNode->getName() . ' ', $node->getStartSourceLocation());
+            }
+        }
+
         $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
+    }
+
+    private function emitInstanceof(CallNode $node): void
+    {
+        $arguments = $node->getArguments();
+        assert(count($arguments) === 2);
+        [$value, $class] = $arguments;
+
+        if ($class instanceof PhpClassNameNode) {
+            $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
+            $this->outputEmitter->emitNode($value);
+            $this->outputEmitter->emitStr(' instanceof ', $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr($class->getAbsolutePhpName(), $class->getName()->getStartLocation());
+            $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
+            return;
+        }
+
+        $valueSym = Symbol::gen('instanceof_value_');
+        $classSym = Symbol::gen('instanceof_class_');
+
+        $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
+
+        $this->outputEmitter->emitPhpVariable($valueSym, $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
+        $this->outputEmitter->emitNode($value);
+        $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
+
+        $this->outputEmitter->emitPhpVariable($classSym, $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
+        $this->outputEmitter->emitNode($class);
+        $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
+
+        $this->outputEmitter->emitStr('return ', $node->getStartSourceLocation());
+        $this->outputEmitter->emitPhpVariable($valueSym, $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr(' instanceof ', $node->getStartSourceLocation());
+        $this->outputEmitter->emitPhpVariable($classSym, $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr(';', $node->getStartSourceLocation());
+
+        $this->outputEmitter->emitFnWrapSuffix($node->getStartSourceLocation());
+    }
+
+    private function emitInfixArgument(PhpVarNode $fnNode, AbstractNode $argument, int $index): void
+    {
+        if ($fnNode->getName() === 'instanceof' && $index === 1 && $argument instanceof PhpClassNameNode) {
+            $this->outputEmitter->emitStr($argument->getAbsolutePhpName(), $argument->getName()->getStartLocation());
+            return;
+        }
+
+        $this->outputEmitter->emitNode($argument);
     }
 
     private function emitPhpVarNode(CallNode $node, AbstractNode $fnNode): void

@@ -1,0 +1,23 @@
+--PHEL--
+(use RecursiveArrayIterator)
+(def PHPChildT RecursiveArrayIterator)
+PHPChildT
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "PHPChildT",
+  \RecursiveArrayIterator::class,
+  \Phel::map(
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/def-php-class-reference.test",
+      \Phel::keyword("line"), 2,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/def-php-class-reference.test",
+      \Phel::keyword("line"), 2,
+      \Phel::keyword("column"), 38
+    )
+  )
+);
+\Phel::getDefinition("user", "PHPChildT");

@@ -82,7 +82,8 @@ final readonly class DefExceptionEmitter implements NodeEmitterInterface
             'class ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' extends ',
             $node->getStartSourceLocation(),
         );
-        $this->outputEmitter->emitNode($node->getParent());
+        $parent = $node->getParent();
+        $this->outputEmitter->emitStr($parent->getAbsolutePhpName(), $parent->getName()->getStartLocation());
         $this->outputEmitter->emitLine(' {');
         $this->outputEmitter->increaseIndentLevel();
 

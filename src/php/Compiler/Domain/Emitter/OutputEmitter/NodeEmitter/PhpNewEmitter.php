@@ -34,7 +34,7 @@ final class PhpNewEmitter implements NodeEmitterInterface
 
         if ($classExpr instanceof PhpClassNameNode) {
             $this->outputEmitter->emitStr('(new ', $node->getStartSourceLocation());
-            $this->outputEmitter->emitNode($classExpr);
+            $this->outputEmitter->emitStr($classExpr->getAbsolutePhpName(), $classExpr->getName()->getStartLocation());
             $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
         } else {
             $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
