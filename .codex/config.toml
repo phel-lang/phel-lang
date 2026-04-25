@@ -1,4 +1,7 @@
 commit_attribution = ""
+model = "gpt-5.5"
+model_reasoning_effort = "medium"
+
 developer_instructions = """
 This is the Phel language repository. Treat AGENTS.md as the source of truth for repository policy.
 
