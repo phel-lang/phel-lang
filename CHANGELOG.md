@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 - `binding` on `^:dynamic` vars is fiber-local; `future`/`async` convey caller bindings (#1536)
 - `=` between a list and any sequential collection (vector, lazy seq) is symmetric (#1546)
 - `()` is a self-quoting empty list literal — `(conj () 1)`, `(cons 1 ())`, `(if () :a :b)` all work (#1549)
+- `eval` returns closures and other already-evaluated PHP objects unchanged instead of throwing a `TypeError` (#1563)
 
 #### Build
 - Directory scan skips unparseable `.phel` files instead of aborting

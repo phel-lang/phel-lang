@@ -26,6 +26,8 @@ use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Lang\TypeInterface;
 
+use function is_object;
+
 final readonly class EvalCompiler implements EvalCompilerInterface
 {
     public function __construct(
@@ -72,8 +74,14 @@ final readonly class EvalCompiler implements EvalCompilerInterface
         }
     }
 
-    public function evalForm(float|bool|int|string|TypeInterface|null $form, CompileOptions $compileOptions): mixed
+    public function evalForm(mixed $form, CompileOptions $compileOptions): mixed
     {
+        // Non-Phel objects (e.g. closures) are already evaluated values; return
+        // them as-is to match Clojure's self-evaluating semantics.
+        if (is_object($form) && !$form instanceof TypeInterface) {
+            return $form;
+        }
+
         $node = $this->analyzer->analyze($form, NodeEnvironment::empty()->withReturnContext());
         return $this->evalNode($node, $compileOptions);
     }
