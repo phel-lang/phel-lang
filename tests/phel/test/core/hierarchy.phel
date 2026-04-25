@@ -1,5 +1,9 @@
 (ns phel-test\test\core\hierarchy
-  (:require phel\test :refer [deftest is]))
+  (:require phel\test :refer [deftest is])
+  (:use RecursiveArrayIterator)
+  (:use ArrayIterator)
+  (:use RecursiveIterator)
+  (:use Traversable))
 
 ;; Each test uses unique keyword prefixes to avoid state leaking between tests.
 
@@ -52,6 +56,30 @@
 
 (deftest test-ancestors-nil-for-root
   (is (nil? (ancestors :a2-nonexistent)) "no ancestors returns nil"))
+
+;; --- PHP class hierarchy ---
+
+(def PHPChildT RecursiveArrayIterator)
+(def PHPAncestorT ArrayIterator)
+(def PHPInterfaceT RecursiveIterator)
+(def PHPTransitiveInterfaceT Traversable)
+
+(deftest test-php-class-parents
+  (let [p (parents PHPChildT)]
+    (is (contains? p PHPAncestorT) "parents contains PHP parent class")
+    (is (contains? p PHPInterfaceT) "parents contains implemented PHP interface")))
+
+(deftest test-php-class-ancestors
+  (let [anc (ancestors PHPChildT)]
+    (is (contains? anc PHPAncestorT) "ancestors contains PHP parent class")
+    (is (contains? anc PHPInterfaceT) "ancestors contains implemented PHP interface")
+    (is (contains? anc PHPTransitiveInterfaceT) "ancestors contains transitive PHP interface")))
+
+(deftest test-php-class-isa
+  (is (true? (isa? PHPChildT PHPAncestorT)) "PHP class isa parent class")
+  (is (true? (isa? PHPChildT PHPInterfaceT)) "PHP class isa implemented interface")
+  (is (true? (isa? PHPChildT PHPTransitiveInterfaceT)) "PHP class isa transitive interface")
+  (is (false? (isa? PHPAncestorT PHPChildT)) "PHP parent is not child"))
 
 ;; --- descendants ---
 
