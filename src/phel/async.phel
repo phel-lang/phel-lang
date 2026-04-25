@@ -1,200 +1,38 @@
 (ns phel.async)
 
-;; Two cooperating concurrency layers in one module.
+;; Historical home of Phel's async surface. As of #1548 the
+;; Clojure-parity primitives (`async`, `await`, `await-all`, `await-any`,
+;; `pmap`, `promise`, `deliver`, `future-call`, `future-fiber`, `future?`,
+;; `future-cancel`, `future-cancelled?`, `future-done?`, `->closure`)
+;; have moved to `phel.core` so `.cljc` portable code can use them
+;; without an explicit require, mirroring `clojure.core`.
 ;;
-;; - AMPHP-backed: `async`, `await`, `delay`, `await-all`, `await-any`,
-;;   `pmap`, `future-cancel`, `future-cancelled?`. Requires an event
-;;   loop; best for IO parallelism, timers, and combinators. The core
-;;   `future` macro (available without requiring this namespace) is the
-;;   AMPHP-backed variant.
-;; - Fiber-backed: `promise`, `deliver`, `future-call`, `future-fiber`,
-;;   `future?`. Runs at the top level via a cooperative scheduler in
-;;   `\Phel\Fiber\FiberFacade`; no loop required.
+;; This namespace stays alive because `delay` is intentionally divergent
+;; from `clojure.core/delay` (lazy thunk in Clojure, suspending sleep
+;; here) — keeping it behind `phel.async` makes the divergence explicit
+;; for `.cljc` portability work and avoids silently hijacking the
+;; Clojure name in core.
 ;;
-;; See `docs/async-guide.md` for a decision guide, pitfalls, and recipes.
-
-(defn- fiber-facade
-  "Lazily resolves the shared FiberFacade instance."
-  []
-  (php/new \Phel\Fiber\FiberFacade))
-
-(defn ->closure
-  "Converts a Phel function to a PHP Closure.
-  Many PHP libraries (AMPHP, ReactPHP) type-hint `\\Closure` and reject
-  Phel's `AbstractFn` even though it is callable. This bridges the gap."
-  {:example "(->closure (fn [x] (* x 2)))"}
-  [f]
-  (php/:: \Closure (fromCallable f)))
-
-(defmacro async
-  "Runs body asynchronously in a new fiber. Returns an Amp\\Future.
-
-  Captures the caller's dynamic bindings and reinstalls them inside
-  the fiber, so `binding`s established outside `async` are visible to
-  `body` (binding conveyance, as in Clojure's `future`)."
-  {:example "(async (do-something))"
-   :see-also ["await" "delay" "await-all" "await-any"]}
-  [& body]
-  `(let [frame# (php/:: \Phel (snapshotDynamicBindings))]
-     (php/amp\async
-       (fn []
-         (php/:: \Phel (withDynamicBindings frame# (fn [] ~@body)))))))
-
-(defn- unwrap-future
-  "Returns the raw Amp\\Future for either a `PhelFuture` wrapper or
-  a bare `Amp\\Future`."
-  [future]
-  (if (php/instanceof future \Phel\Lang\PhelFuture)
-    (php/-> future (unwrap))
-    future))
-
-(defn await
-  "Blocks the current fiber until the Future resolves and returns its value.
-  Accepts either a raw `Amp\\Future` or a `PhelFuture` wrapper."
-  {:example "(await (async (+ 1 2)))"
-   :see-also ["async" "await-all" "await-any" "delay"]}
-  [future]
-  (php/-> (unwrap-future future) (await)))
+;; See `docs/async-guide.md` for the full decision guide and examples.
 
 (defn delay
-  "Suspends the current fiber for the given number of seconds (float)."
-  {:example "(delay 0.5)"
-   :see-also ["async" "await"]}
+  "Suspends execution for `seconds` (a float; supports sub-second
+  precision such as `0.05`).
+
+  At the top level this behaves like `php/sleep` / `php/usleep`: it
+  blocks the script for the given duration. Inside an `async`/`future`
+  body — or any AMPHP fiber context — it suspends the *fiber* (not the
+  whole process), so other concurrent fibers keep running and the
+  delay is cancellable via `future-cancel`.
+
+  `phel.async/delay` is **not** the Clojure `clojure.core/delay`. The
+  Clojure form returns a lazy thunk that caches the result of evaluating
+  `body` on first `deref`; Phel's version is a sleep primitive. They are
+  unrelated. Reach for `phel.async/delay` when you want to throttle, time
+  out, or compose with `future` / `pmap`; reach for `php/sleep` when you
+  just want a blocking pause and don't care about fiber semantics."
+  {:example "(delay 0.5) ; suspends current fiber for 500ms
+  (async (delay 1.0) :done) ; => future that resolves after 1s"
+   :see-also ["async" "await" "future" "future-cancel"]}
   [seconds]
   (php/amp\delay seconds))
-
-(defn await-all
-  "Awaits all Futures in the given collection. Returns a vector of results.
-  Accepts a mix of raw `Amp\\Future` and `PhelFuture` wrappers."
-  {:example "(await-all [(async 1) (async 2)])"
-   :see-also ["await" "await-any" "pmap"]}
-  [futures]
-  (let [php-futures (to-php-array (map unwrap-future futures))]
-    (for [v :in (php/amp\future\await php-futures)]
-      v)))
-
-(defn await-any
-  "Awaits the first Future to resolve. Returns its value.
-  Accepts a mix of raw `Amp\\Future` and `PhelFuture` wrappers."
-  {:example "(await-any [(async 1) (async 2)])"
-   :see-also ["await" "await-all"]}
-  [futures]
-  (let [php-futures (to-php-array (map unwrap-future futures))]
-    (php/amp\future\awaitfirst php-futures)))
-
-(defn pmap
-  "Like `map`, but applies `f` to elements in parallel via fibers.
-
-  Returns a vector of results in the original order. With multiple
-  collections, applies `f` to corresponding elements from each collection,
-  stopping when the shortest collection is exhausted.
-
-  Best for IO-bound work (HTTP, DB, file IO). Because PHP fibers are
-  cooperative on a single thread, `pmap` does not speed up CPU-bound
-  computations."
-  {:example "(pmap inc [1 2 3]) ; => [2 3 4]"
-   :see-also ["map" "async" "await-all"]}
-  [f & colls]
-  (case (count colls)
-    0 (throw (php/new \InvalidArgumentException "pmap expects at least one collection"))
-    1 (await-all (map #(async (f %)) (first colls)))
-    (await-all (apply map (fn [& args] (async (apply f args))) colls))))
-
-(defn future-cancel
-  "Signals the future's internal cancellation token, causing any pending
-  or subsequent `deref` call to raise `CancelledException` (or return the
-  timeout value for the 3-arg form). Due to AMPHP's cooperative fibers,
-  the body keeps running until its next cancellation checkpoint; from
-  the caller's perspective the future behaves as cancelled after this
-  returns."
-  {:example "(future-cancel (future (expensive-call)))"
-   :see-also ["future" "future-cancelled?" "future-done?" "deref"]}
-  [f]
-  (php/-> f (cancel)))
-
-(defn future-cancelled?
-  "Returns `true` if `future-cancel` was called on `f`, `false` otherwise."
-  {:example "(future-cancelled? f)"
-   :see-also ["future-cancel" "future-done?" "future"]}
-  [f]
-  (php/-> f (isCancelled)))
-
-(defn future-done?
-  "Returns `true` if the future is in a final state (completed, failed,
-  or cancelled).
-
-  Dispatches on type: for a `\\Phel\\Fiber\\Domain\\Future` (fiber-backed)
-  it calls `isDone`; for any other value it falls back to `realized?`.
-  This lets the same predicate serve both the AMPHP `PhelFuture` wrapper
-  and the cooperative fiber future."
-  {:example "(future-done? f)"
-   :see-also ["realized?" "future-cancel" "future" "future-fiber"]}
-  [f]
-  (cond
-    (php/instanceof f \Phel\Fiber\Domain\Future) (php/-> f (isDone))
-    true                                         (realized? f)))
-
-;; -----------------------------------------------------------------
-;; Fiber-based promises and futures
-;;
-;; Unlike `future`/`async` above, these do not require AMPHP and work
-;; at the top level. They use a cooperative single-threaded scheduler
-;; exposed by `\Phel\Fiber\FiberFacade`.
-;; -----------------------------------------------------------------
-
-(defn promise
-  "Returns a new unrealized promise. Deliver a value with `(deliver p v)`
-  and read it back with `@p` (or `(deref p)`).
-
-  Once delivered the value is frozen; subsequent `deliver` calls are
-  no-ops. `deref` on an unrealized promise blocks: from inside a fiber
-  it suspends cooperatively, from the top level it drains the scheduler
-  ready queue and sleeps briefly between checks."
-  {:example "(let [p (promise)] (deliver p 42) @p) ; => 42"
-   :see-also ["deliver" "deref" "realized?" "future-call" "future-fiber"]}
-  []
-  (php/-> (fiber-facade) (createPromise)))
-
-(defn deliver
-  "Delivers `value` to `p` if it is still unrealized. Returns `p` on
-  first delivery, `nil` if `p` was already delivered."
-  {:example "(deliver (promise) 7)"
-   :see-also ["promise" "deref" "realized?"]}
-  [p value]
-  (if (php/-> p (deliver value)) p nil))
-
-(defn future-call
-  "Invokes `f` (a zero-arg function) in a new fiber. Returns a
-  `PhelFiberFuture` you can `deref` or inspect with `future-done?`
-  and `future-cancel`.
-
-  Captures the caller's dynamic bindings and reinstalls them inside
-  the fiber before invoking `f`, so bindings are conveyed the same
-  way as with `future`/`async`."
-  {:example "(future-call (fn [] 42))"
-   :see-also ["future-fiber" "deref" "future-done?" "future-cancel"
-              "promise" "deliver"]}
-  [f]
-  (let [frame   (php/:: \Phel (snapshotDynamicBindings))
-        wrapped (fn [] (php/:: \Phel (withDynamicBindings frame f)))]
-    (php/-> (fiber-facade) (future (->closure wrapped)))))
-
-(defmacro future-fiber
-  "Runs `body` in a new fiber via the cooperative scheduler. Returns a
-  fiber-future that supports `deref`, `realized?`, `future-done?`, and
-  `future-cancel`. Works at the top level (no enclosing `async` block
-  required), in contrast to `future` which requires an AMPHP fiber
-  context."
-  {:example "@(future-fiber (+ 1 2))"
-   :see-also ["future-call" "deref" "future-done?" "future-cancel"]}
-  [& body]
-  `(future-call (fn [] ~@body)))
-
-(defn future?
-  "Returns true if `x` is a fiber-future (from `future-call`/`future-fiber`)
-  or a `PhelFuture` (from the AMPHP-backed `future` macro)."
-  {:example "(future? (future-call (fn [] 1))) ; => true"
-   :see-also ["future" "future-call" "future-fiber"]}
-  [x]
-  (or (php/instanceof x \Phel\Fiber\Domain\Future)
-      (php/instanceof x \Phel\Lang\PhelFuture)))

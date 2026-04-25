@@ -201,3 +201,4 @@
 (load "core/uuid")
 (load "core/loops")
 (load "core/futures")
+(load "core/async")

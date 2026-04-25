@@ -169,14 +169,14 @@ Phel runs on PHP. A handful of Clojure features don't translate directly:
 |-----------------|----------------|-------------|
 | **Refs / STM** | No concurrent transactions in PHP | Use `atom` for mutable state |
 | **Agents** | No background threads | PHP job queues via interop |
-| **core.async** | No goroutines/CSP, but fiber primitives (`promise`, `deliver`, `future-fiber`) cover CSP-lite handoffs | Use `phel\async` (AMPHP for IO, fiber layer for top-level handoffs); see [docs/async-guide.md](async-guide.md) |
+| **core.async** | No goroutines/CSP, but fiber primitives (`promise`, `deliver`, `future-fiber`) cover CSP-lite handoffs — all in `phel\core`, no require needed | See [docs/async-guide.md](async-guide.md) |
 | **BigInt / BigDecimal / Ratio** | PHP number model | Suffix literals (`1N`, `1.5M`) and ratio literals (`1/2`) are accepted; ratios evaluate to `num / den` as a float. Use `bcmath` / `gmp` via `php/` interop for real arbitrary precision |
 | **Character type** | PHP has no char type | Character literals (`\a`) and `char` / `char?` are supported but compile to single-character strings |
 | **Spec** | Not ported | Use runtime assertions or PHP validation |
 | **Vars (Clojure sense)** | PHP has no thread-local bindings | `def` creates namespace-level bindings directly |
 | **`alter-var-root`** | No first-class vars to re-root | Use an `atom` with `swap!` for mutable state, or redefine the top-level binding with `def`. Calling `alter-var-root` at runtime throws `BadMethodCallException` with this hint |
 
-Phel provides `future` in `phel\core` (available without requiring any namespace, as in Clojure); `future-cancel` and `pmap` still live in `phel\async`. The implementation uses AMPHP fibers. Semantics match Clojure's `future` where they can (including timeout-bounded `deref`), but cancellation is cooperative rather than thread-interrupt. For top-level scripting without an event loop, use the fiber primitives (`promise`, `deliver`, `future-call`, `future-fiber`); see [docs/async-guide.md](async-guide.md) for the decision guide.
+The Clojure-parity async surface lives in `phel\core` and is reachable without any require: `future`, `future-cancel`, `future-cancelled?`, `future-done?`, `future?`, `pmap`, `promise`, `deliver`, plus the Phel fiber combinators `async`, `await`, `await-all`, `await-any`, `future-call`, `future-fiber`, and `->closure`. The implementation uses AMPHP fibers. Semantics match Clojure's `future` where they can (including timeout-bounded `deref`), but cancellation is cooperative rather than thread-interrupt and `pmap` is single-threaded (overlaps IO, does not parallelize CPU). The one async symbol that still needs `(:require phel\async)` is `delay`, deliberately kept out of core because Phel's `delay` is a sleep primitive while `clojure.core/delay` is a lazy thunk. See [docs/async-guide.md](async-guide.md) for the decision guide.
 
 ## Structural differences
 
@@ -263,5 +263,5 @@ Run tests with `./bin/phel test`.
 2. Update namespace separators: `my.app.core` → `my\app\core` (or keep `.`, both work)
 3. Replace Java interop with PHP interop (`(.method obj)` → `(php/-> obj (method))`)
 4. Rewrite `(:import [java.util Date])` clauses as `(:use DateTime)` in the `ns` form
-5. Check for concurrency primitives (refs, agents, core.async) and replace with `atom` or `phel\async` / AMPHP alternatives
+5. Check for concurrency primitives (refs, agents, core.async) and replace with `atom` or the AMPHP-backed primitives in `phel\core` (`future`, `pmap`, `promise`, `deliver`, …); add `(:require phel\async :refer [delay])` only when you need the sleep primitive
 6. Run `./bin/phel test` to verify

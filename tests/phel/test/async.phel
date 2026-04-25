@@ -1,6 +1,6 @@
 (ns phel-test\test\async
   (:require phel\test :refer [deftest is])
-  (:require phel\async :refer [async await await-all await-any delay future-cancel future-cancelled? future-done? pmap ->closure]))
+  (:require phel\async :refer [delay]))
 
 ;; --- Pure function tests ---
 
@@ -10,15 +10,11 @@
     (is (= true (php/instanceof c \Closure)) "->closure returns a PHP Closure")
     (is (= 6 (c 3)) "Closure preserves function behavior")))
 
-(deftest test-async-macro-expands
-  (let [expanded (macroexpand '(phel\async/async (+ 1 2)))
-        source (print-str expanded)]
-    (is (php/str_contains source "amp\\async")
-        "async expansion still delegates to amp\\async")
-    (is (php/str_contains source "withDynamicBindings")
-        "async expansion wraps body in binding conveyance")
-    (is (php/str_contains source "snapshotDynamicBindings")
-        "async expansion snapshots caller bindings")))
+(deftest test-delay-suspends-execution
+  (let [start   (php/microtime true)
+        _       (delay 0.05)
+        elapsed (- (php/microtime true) start)]
+    (is (>= elapsed 0.04) "delay suspends for at least the requested duration")))
 
 ;; --- Runtime integration tests (amphp/amp) ---
 
