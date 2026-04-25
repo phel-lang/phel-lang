@@ -58,7 +58,7 @@ prefix_rule(
 
 prefix_rule(
     pattern = ["gh"],
-    decision = "prompt",
-    justification = "GitHub CLI calls can touch remote state; review before running.",
-    match = ["gh pr create", "gh issue edit 123 --add-assignee @me"],
+    decision = "allow",
+    justification = "GitHub CLI is required for repo-maintenance workflows such as creating PRs and inspecting issues.",
+    match = ["gh pr create", "gh issue view 123", "gh issue edit 123 --add-assignee @me"],
 )
