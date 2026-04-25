@@ -65,6 +65,7 @@ To keep calls short, capture the function reference with `def`:
 (def now (php/new DateTime))
 (def now (new DateTime))
 (def now (DateTime.))
+(def data (new stdClass))         ; PHP class names keep their PHP casing
 
 ;; Call methods
 (php/-> now (format "Y-m-d"))     ; => "2024-01-15"

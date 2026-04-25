@@ -1,0 +1,15 @@
+--PHEL--
+(new stdClass)
+(php/new stdClass)
+(stdClass.)
+(new StdClass)
+(php/new StdClass)
+(StdClass.)
+(new \stdClass)
+(php/new \stdClass)
+(\stdClass.)
+(new \StdClass)
+(php/new \StdClass)
+(\StdClass.)
+--PHP--
+(new \stdClass());(new \stdClass());(new \stdClass());(new \StdClass());(new \StdClass());(new \StdClass());(new \stdClass());(new \stdClass());(new \stdClass());(new \StdClass());(new \StdClass());(new \StdClass());

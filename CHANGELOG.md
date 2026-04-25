@@ -40,6 +40,7 @@ All notable changes to this project will be documented in this file.
 
 #### Compiler
 - `php/new` on a non-string, non-object throws a descriptive `InvalidArgumentException` (#1538)
+- `(new stdClass)` and `(php/new stdClass)` resolve lowercase-leading root PHP class names in class position (#1567)
 - `#?` and `#?@` reader conditionals tolerate a newline before the closing paren (#1547)
 
 #### Lint
