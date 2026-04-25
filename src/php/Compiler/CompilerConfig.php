@@ -13,4 +13,9 @@ final class CompilerConfig extends AbstractConfig
     {
         return (bool) $this->get(PhelConfig::ASSERTS_ENABLED, true);
     }
+
+    public function warnDeprecationsEnabled(): bool
+    {
+        return (bool) $this->get(PhelConfig::WARN_DEPRECATIONS, false);
+    }
 }

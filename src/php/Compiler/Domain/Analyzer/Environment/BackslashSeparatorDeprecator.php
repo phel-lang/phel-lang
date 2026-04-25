@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Analyzer\Environment;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
+use function dirname;
 use function in_array;
 use function sprintf;
 use function str_replace;
@@ -64,6 +65,11 @@ final class BackslashSeparatorDeprecator
         self::$instance = $instance;
     }
 
+    public static function enable(): void
+    {
+        self::$instance = new self(true);
+    }
+
     /**
      * Drop the cached singleton so the next `getInstance()` call re-reads
      * the environment. Intended for test `tearDown()` hooks.
@@ -103,6 +109,30 @@ final class BackslashSeparatorDeprecator
         ($this->emitter)($this->buildMessage($original, $file, $location->getLine()));
     }
 
+    public function maybeWarnString(string $namespace, SourceLocation $location): void
+    {
+        if (!$this->enabled) {
+            return;
+        }
+
+        $file = $location->getFile();
+        if ($file === '' || $this->isPhelStdlibSource($file)) {
+            return;
+        }
+
+        if (!$this->containsBackslashSeparator($namespace)) {
+            return;
+        }
+
+        $key = $file . '|' . $namespace;
+        if (isset($this->seen[$key])) {
+            return;
+        }
+
+        $this->seen[$key] = true;
+        ($this->emitter)($this->buildMessage($namespace, $file, $location->getLine()));
+    }
+
     private static function readEnvFlag(): bool
     {
         $flag = getenv('PHEL_WARN_DEPRECATIONS');
@@ -111,19 +141,17 @@ final class BackslashSeparatorDeprecator
     }
 
     /**
-     * Source-path suppression for phel's bundled stdlib. User code under
-     * `src/phel/foo.phel` that happens to match this pattern is rare; the
-     * false-positive trade-off is worth it because macro expansions in
-     * stdlib code (e.g. `@x` → `(phel\core/deref x)`) otherwise spam the
-     * output with warnings for compiler-synthesized FQ symbols that the
-     * user never wrote.
+     * Source-path suppression for phel's bundled stdlib. The path is
+     * anchored to this package's own `src/phel`, so nested-layout user
+     * projects with their own `src/phel` still receive warnings.
      */
     private function isPhelStdlibSource(string $file): bool
     {
         $normalized = str_replace('\\', '/', $file);
+        $stdlibRoot = str_replace('\\', '/', dirname(__DIR__, 5) . '/phel');
 
-        return str_contains($normalized, '/src/phel/')
-            || str_ends_with($normalized, '/src/phel');
+        return $normalized === $stdlibRoot
+            || str_starts_with($normalized, $stdlibRoot . '/');
     }
 
     private function containsBackslashSeparator(string $fullName): bool

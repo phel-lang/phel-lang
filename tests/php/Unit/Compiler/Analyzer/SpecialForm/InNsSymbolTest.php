@@ -289,6 +289,25 @@ final class InNsSymbolTest extends TestCase
         BackslashSeparatorDeprecator::resetInstance();
     }
 
+    public function test_backslash_string_in_ns_form_emits_deprecation(): void
+    {
+        $captured = [];
+        $this->installCapturingDeprecator($captured);
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_IN_NS),
+            'my\\project',
+        ]);
+        $list->setStartLocation(new SourceLocation('/app/user.phel', 1, 1));
+        new InNsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+
+        self::assertCount(1, $captured);
+        self::assertStringContainsString("'my\\project'", $captured[0]);
+        self::assertStringContainsString("'my.project'", $captured[0]);
+
+        BackslashSeparatorDeprecator::resetInstance();
+    }
+
     /**
      * @param list<string> $captured
      */
