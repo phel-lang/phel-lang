@@ -36,9 +36,7 @@ final class WarnDeprecationsFlag
         ));
 
         if ($filtered !== $argv) {
-            BackslashSeparatorDeprecator::useInstance(
-                new BackslashSeparatorDeprecator(enabled: true),
-            );
+            BackslashSeparatorDeprecator::enable();
         }
 
         return $filtered;

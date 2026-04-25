@@ -34,6 +34,8 @@ final class PhelConfig implements JsonSerializable
 
     public const string ASSERTS_ENABLED = 'asserts-enabled';
 
+    public const string WARN_DEPRECATIONS = 'warn-deprecations';
+
     public const string ENABLE_NAMESPACE_CACHE = 'enable-namespace-cache';
 
     public const string ENABLE_COMPILED_CODE_CACHE = 'enable-compiled-code-cache';
@@ -75,6 +77,8 @@ final class PhelConfig implements JsonSerializable
     private array $formatDirs = ['src', 'tests'];
 
     private bool $enableAsserts = true;
+
+    private bool $warnDeprecations = false;
 
     private bool $enableNamespaceCache = true;
 
@@ -202,6 +206,11 @@ final class PhelConfig implements JsonSerializable
     public function isAssertsEnabled(): bool
     {
         return $this->enableAsserts;
+    }
+
+    public function shouldWarnDeprecations(): bool
+    {
+        return $this->warnDeprecations;
     }
 
     public function isNamespaceCacheEnabled(): bool
@@ -419,6 +428,13 @@ final class PhelConfig implements JsonSerializable
         return $this;
     }
 
+    public function setWarnDeprecations(bool $flag): self
+    {
+        $this->warnDeprecations = $flag;
+
+        return $this;
+    }
+
     public function setEnableNamespaceCache(bool $flag): self
     {
         $this->enableNamespaceCache = $flag;
@@ -491,6 +507,7 @@ final class PhelConfig implements JsonSerializable
             self::TEMP_DIR => $this->tempDir,
             self::FORMAT_DIRS => $this->formatDirs,
             self::ASSERTS_ENABLED => $this->enableAsserts,
+            self::WARN_DEPRECATIONS => $this->warnDeprecations,
             self::ENABLE_NAMESPACE_CACHE => $this->enableNamespaceCache,
             self::ENABLE_COMPILED_CODE_CACHE => $this->enableCompiledCodeCache,
             self::CACHE_DIR => $this->cacheDir,

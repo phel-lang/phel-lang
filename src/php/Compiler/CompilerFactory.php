@@ -17,6 +17,7 @@ use Phel\Compiler\Application\ParenthesesChecker;
 use Phel\Compiler\Application\Parser;
 use Phel\Compiler\Application\Reader;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Compiler\CodeCompilerInterface;
 use Phel\Compiler\Domain\Compiler\EvalCompilerInterface;
@@ -116,6 +117,10 @@ final class CompilerFactory extends AbstractFactory
 
     public function createAnalyzer(): AnalyzerInterface
     {
+        if ($this->getConfig()->warnDeprecationsEnabled()) {
+            BackslashSeparatorDeprecator::enable();
+        }
+
         return new Analyzer(
             $this->getGlobalEnvironment(),
             $this->getConfig()->assertsEnabled(),
