@@ -15,7 +15,7 @@ Factory: `PhelConfig::forProject(?string $mainNamespace)` — creates config wit
 **Build config**: `setBuildConfig(PhelBuildConfig)`, `setMainPhelNamespace()`, `setBuildDestDir()`
 **Export config**: `setExportConfig(PhelExportConfig)`, `setExportNamespacePrefix()`, `setExportTargetDirectory()`
 **Cache**: `setCacheDir()`, `setTempDir()`, `setEnableNamespaceCache()`, `setEnableCompiledCodeCache()`
-**Other**: `setIgnoreWhenBuilding()`, `setNoCacheWhenBuilding()`, `setKeepGeneratedTempFiles()`, `setEnableAsserts()`
+**Other**: `setIgnoreWhenBuilding()`, `setNoCacheWhenBuilding()`, `setKeepGeneratedTempFiles()`, `setEnableAsserts()`, `setWarnDeprecations()`
 **Validation**: `validate(): array` — returns list of errors
 **Serialization**: `jsonSerialize(): array` — implements `JsonSerializable`
 

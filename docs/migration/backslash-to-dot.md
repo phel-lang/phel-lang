@@ -28,6 +28,13 @@ vendor/bin/phel test --warn-deprecations
 PHEL_WARN_DEPRECATIONS=1 vendor/bin/phel run src/app.phel
 ```
 
+**Project config** (recommended when every local command should opt in):
+
+```php
+return PhelConfig::forProject()
+    ->setWarnDeprecations(true);
+```
+
 When enabled, the compiler emits one `E_USER_DEPRECATED` per unique
 `(file, symbol)` pair so large projects do not drown in duplicates.
 The `--warn-deprecations` flag is consumed by the `phel` bootstrap
@@ -67,7 +74,8 @@ new dot forms already work at the language level.
 ## Suppression
 
 Warnings are suppressed automatically for files under phel's bundled
-stdlib (`.../src/phel/...`).
+stdlib. User projects that use the nested `src/phel` layout still emit
+warnings normally.
 
 ## Removal target
 
