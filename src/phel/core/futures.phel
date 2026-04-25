@@ -3,8 +3,8 @@
 ;; Core `future`: starts `body` asynchronously and returns a
 ;; `PhelFuture`. Kept in core so it mirrors Clojure, where `future`
 ;; is available without an explicit require. The fiber-backed
-;; `future-fiber`, `future-call`, `promise`, and friends still live in
-;; `phel.async`.
+;; `future-fiber`, `future-call`, `promise`, and the rest of the
+;; Clojure-parity async surface live alongside in `core/async.phel`.
 
 (defmacro future
   "Starts evaluating `body` asynchronously and returns a `PhelFuture`

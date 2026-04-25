@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file.
 
 #### Core
 - `future` now available from `phel\core` without requiring `phel\async` (#1537)
+- **BREAKING**: `phel\async`'s Clojure-parity surface moved to `phel\core` so `.cljc` portable code mirrors `clojure.core`'s defaults (#1548). The following are now reachable without a require: `async`, `await`, `await-all`, `await-any`, `pmap`, `promise`, `deliver`, `future-call`, `future-fiber`, `future?`, `future-cancel`, `future-cancelled?`, `future-done?`, `->closure`. Update existing `(:require phel\async :refer [...])` clauses to drop these symbols. `delay` deliberately stays in `phel\async` because Phel's `delay` is a sleep primitive while `clojure.core/delay` is a lazy-thunk wrapper. `pmap`'s docstring now calls out that it is single-threaded (overlaps IO, does not parallelize CPU), matching Basilisp/ClojureScript
 
 ### Fixed
 

@@ -1,6 +1,5 @@
 (ns phel-test\test\async-fiber
-  (:require phel\test :refer [deftest is])
-  (:require phel\async :refer [promise deliver future-call future-fiber future? future-cancel future-done?]))
+  (:require phel\test :refer [deftest is]))
 
 ;; --- promise / deliver ---
 

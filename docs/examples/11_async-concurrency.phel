@@ -1,6 +1,5 @@
 (ns examples\async-concurrency
-  (:require phel\async :refer [async await await-all delay
-                               promise deliver future-call future-fiber]))
+  (:require phel\async :refer [delay]))
 
 ;; Async concurrency with Phel and AMPHP (amphp/amp).
 ;; Run: ./bin/phel run docs/examples/11_async-concurrency.phel
@@ -38,7 +37,7 @@
 (println)
 (println "--- Race: first to respond wins ---")
 
-(let [winner (phel\async/await-any
+(let [winner (await-any
                [(fetch-data "server-eu" 70)
                 (fetch-data "server-us" 30)
                 (fetch-data "server-asia" 50)])]

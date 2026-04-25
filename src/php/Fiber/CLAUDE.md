@@ -1,8 +1,8 @@
 # Fiber Module
 
 Cooperative fiber primitives: promises, futures, and a single-threaded
-scheduler used by Phel's `phel\async` library for `promise`/`deliver`
-and `future-call`/`future-fiber`.
+scheduler used by `phel\core` for `promise`/`deliver` and
+`future-call`/`future-fiber`.
 
 ## Gacela Pattern
 

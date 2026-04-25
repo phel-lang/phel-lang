@@ -1,6 +1,6 @@
 # Async Module Guide
 
-`phel\async` exposes two cooperating concurrency layers over PHP fibers. Both live in the same namespace so you can mix them, but each has its own best use.
+Phel ships two cooperating concurrency layers over PHP fibers, both available **from `phel.core` without an explicit require** so `.cljc` portable code mirrors `clojure.core`'s defaults. The single exception is `delay`, which stays in `phel.async` because Phel's `delay` is a sleep primitive while `clojure.core/delay` is a lazy-thunk wrapper — keeping the names separated avoids silently hijacking Clojure semantics.
 
 ## Contents
 
@@ -16,9 +16,9 @@
 
 ## Overview
 
-**AMPHP-backed layer.** Built on `amphp/amp`. An event loop drives fiber-based IO, timers, and combinators. `async`, `await`, `delay`, `await-all`, `await-any`, `pmap`, `future`, `future-cancel`, and `future-cancelled?` live here. Use this layer when you already run inside an event loop or when you need timers, IO multiplexing, or fan-out across many Futures.
+**AMPHP-backed layer.** Built on `amphp/amp`. An event loop drives fiber-based IO, timers, and combinators. `async`, `await`, `await-all`, `await-any`, `pmap`, `future`, `future-cancel`, and `future-cancelled?` are in `phel.core`; `delay` is in `phel.async`. Use this layer when you already run inside an event loop or when you need timers, IO multiplexing, or fan-out across many Futures.
 
-**Fiber-backed layer.** Uses a cooperative single-threaded scheduler in `\Phel\Fiber\FiberFacade` with no event loop. `promise`, `deliver`, `future-call`, `future-fiber`, and `future?` live here. Safe to call from the top level of a script or REPL and convenient for CPU coordination, producer/consumer handoffs, and lightweight deref-with-timeout.
+**Fiber-backed layer.** Uses a cooperative single-threaded scheduler in `\Phel\Fiber\FiberFacade` with no event loop. `promise`, `deliver`, `future-call`, `future-fiber`, and `future?` are in `phel.core`. Safe to call from the top level of a script or REPL and convenient for CPU coordination, producer/consumer handoffs, and lightweight deref-with-timeout.
 
 ## When to use which
 
@@ -54,15 +54,19 @@ Schedules `body` on the AMPHP event loop in a fresh fiber. Returns an `Amp\Futur
 
 Blocks the current fiber until the Future resolves, then returns its value. Accepts either a raw `Amp\Future` or a `PhelFuture` wrapper. Gotcha: must be called from inside a fiber.
 
-### `delay`
+### `delay` (in `phel.async`)
 
 ```phel
 (delay seconds)
 ```
 
-Suspends the current fiber for `seconds` (float). Uses `Amp\delay`. Gotcha: this is a fiber-aware sleep; plain `php/sleep` blocks the whole event loop.
+Suspends execution for `seconds` (float). At the top level it behaves like `php/sleep`; inside an `async`/`future` body it suspends the *fiber* (not the whole process) and the delay becomes cancellable via `future-cancel`. Uses `Amp\delay` under the hood.
+
+> **Not Clojure's `delay`.** `clojure.core/delay` is a lazy-thunk wrapper, not a sleep. Phel's `delay` lives in `phel.async` (not `phel.core`) precisely so this difference stays visible to `.cljc` portable code.
 
 ```phel
+(:require phel\async :refer [delay])
+
 (async (delay 0.1) :done)
 ```
 
@@ -92,7 +96,7 @@ Returns the value of the first Future to resolve. Gotcha: losing Futures are not
 (pmap f coll) (pmap f coll1 coll2 ...)
 ```
 
-Parallel `map` via fibers. Results are returned in input order. Gotcha: cooperative on a single thread, so CPU-bound work gains nothing. Great for HTTP, DB, or file IO.
+Concurrent `map` via fibers. Results are returned in input order. Gotcha: PHP fibers are cooperative on a single thread, so `pmap` overlaps IO-bound work (HTTP, DB, file IO) but does **not** parallelize CPU-bound computations across cores — unlike `clojure.core/pmap`, which uses a thread pool. ClojureScript and Basilisp follow the same single-threaded model.
 
 ### `future`
 
@@ -208,8 +212,7 @@ Phel's `deref` is overloaded and dispatches to the right layer at runtime.
 ### Producer/consumer via `promise`
 
 ```phel
-(ns demo\producer
-  (:require phel\async :refer [promise deliver future-call]))
+(ns demo\producer)
 
 (let [inbox (promise)]
   (future-call (fn []
@@ -223,7 +226,7 @@ Run with `./bin/phel run demo/producer.phel`.
 
 ```phel
 (ns demo\fanout
-  (:require phel\async :refer [async await-all delay]))
+  (:require phel\async :refer [delay]))
 
 (defn fetch [label ms]
   (async
@@ -241,8 +244,7 @@ Wall time tracks the slowest branch, not the sum.
 ### Timeout race with 3-arg `deref`
 
 ```phel
-(ns demo\timeout
-  (:require phel\async :refer [promise deref]))
+(ns demo\timeout)
 
 (let [p (promise)]
   ;; No producer wired up: the deref expires and returns the fallback.
@@ -254,7 +256,7 @@ Wall time tracks the slowest branch, not the sum.
 
 ```phel
 (ns demo\cancel-on-error
-  (:require phel\async :refer [async await delay future-cancel]))
+  (:require phel\async :refer [delay]))
 
 (defn launch []
   (async
