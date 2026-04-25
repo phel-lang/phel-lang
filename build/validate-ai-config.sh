@@ -55,7 +55,32 @@ echo "==> JSON"
 if jq empty .codex/hooks.json && jq empty .claude/settings.json; then
   ok "Hook/settings JSON parses"
 else
-  fail "Invalid JSON in .codex/hooks.json or .claude/settings.json"
+  fail "Invalid JSON in Codex or Claude settings"
+fi
+
+if [[ -f .claude/settings.local.json ]]; then
+  if jq empty .claude/settings.local.json; then
+    ok "Optional Claude local settings JSON parses"
+  else
+    fail "Invalid JSON in .claude/settings.local.json"
+  fi
+fi
+
+if jq -e '
+  [
+    .hooks
+    | to_entries[]
+    | .value[]
+    | .hooks[]
+    | select(.type == "command")
+    | .command
+    | contains("git rev-parse --show-toplevel")
+  ]
+  | all
+' .codex/hooks.json >/dev/null; then
+  ok "Codex hook commands resolve from git root"
+else
+  fail "Codex hook commands should resolve scripts from git root"
 fi
 
 echo "==> TOML"
@@ -100,7 +125,7 @@ protected_decision=$(printf '%s' "$protected_output" | jq -r '.hookSpecificOutpu
 ok "Protected-file hook blocks protected edits"
 
 echo "==> Stale references"
-if rg -n '\.ai(/|$)|\.agents/project|AI/Claude|\.ai/project' AGENTS.md .agents .claude .codex >/tmp/phel-ai-config-stale.txt; then
+if rg -n --glob '!.claude/settings.local.json' '\.ai(/|$)|\.agents/project|AI/Claude|\.ai/project|/Users/chema' AGENTS.md .agents .claude .codex >/tmp/phel-ai-config-stale.txt; then
   cat /tmp/phel-ai-config-stale.txt >&2
   fail "Found stale adapter-layout references"
 else

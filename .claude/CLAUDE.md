@@ -41,7 +41,7 @@ Run the **minimum** test scope for your changes:
 ## Git
 
 - Conventional commits: `feat:`, `fix:`, `ref:`, `chore:`, `docs:`, `test:`
-- Never mention Claude, AI, or LLM in commit messages
+- Never mention AI tooling in commit messages
 - After code changes, provide a one-liner commit message to copy/paste
 - Branch prefixes: `feat/`, `fix/`, `ref/`, `docs/`
 - PRs: read `.github/PULL_REQUEST_TEMPLATE.md` and follow exactly (including emoji prefixes); assign `@me`; label from: `bug`, `enhancement`, `refactoring`, `documentation`, `pure testing`, `dependencies`

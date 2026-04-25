@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".codex/hooks/session-context.sh",
+            "command": "\"$(git rev-parse --show-toplevel)/.codex/hooks/session-context.sh\"",
             "timeout": 5,
             "statusMessage": "Loading Phel repository context"
           }
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".codex/hooks/protect-files.sh",
+            "command": "\"$(git rev-parse --show-toplevel)/.codex/hooks/protect-files.sh\"",
             "timeout": 5,
             "statusMessage": "Checking protected files"
           }
@@ -32,7 +32,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".codex/hooks/format-php.sh",
+            "command": "\"$(git rev-parse --show-toplevel)/.codex/hooks/format-php.sh\"",
             "timeout": 30,
             "statusMessage": "Formatting touched PHP files"
           }
