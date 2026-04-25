@@ -58,11 +58,36 @@
   []
   {:parents {} :descendants {} :ancestors {}})
 
+(defn- php-class-tag?
+  "Returns true when tag is a PHP class/interface/trait name string."
+  [tag]
+  (and (string? tag)
+       (or (php/class_exists tag)
+           (php/interface_exists tag)
+           (php/trait_exists tag))))
+
+(defn- php-class-relations
+  "Returns PHP parent classes and implemented interfaces for a class tag."
+  [tag]
+  (if (php-class-tag? tag)
+    (let [parents    (php/class_parents tag)
+          interfaces (php/class_implements tag)]
+      (union
+       (if (php/=== parents false) (hash-set) (apply hash-set (vals parents)))
+       (if (php/=== interfaces false) (hash-set) (apply hash-set (vals interfaces)))))
+    (hash-set)))
+
+(defn- direct-parents
+  "Returns manually-derived parents plus PHP type parents for tag."
+  [parents-map tag]
+  (union (get parents-map tag (hash-set))
+         (php-class-relations tag)))
+
 (defn- compute-ancestors
   "Computes all transitive ancestors of tag from a parents map."
   [parents-map tag]
-  (let [direct (get parents-map tag)]
-    (if (nil? direct)
+  (let [direct (direct-parents parents-map tag)]
+    (if (empty? direct)
       (hash-set)
       (reduce
        (fn [acc p]
@@ -74,8 +99,8 @@
   "Checks if child is (transitively) a descendant of parent in parents-map.
   Walks up the parent chain without building the full ancestor set."
   [parents-map child parent]
-  (let [direct (get parents-map child)]
-    (if (nil? direct)
+  (let [direct (direct-parents parents-map child)]
+    (if (empty? direct)
       false
       (if (contains? direct parent)
         true
@@ -191,7 +216,7 @@
   ([tag]
    (parents @*hierarchy* tag))
   ([h tag]
-   (let [p (get (get h :parents) tag)]
+   (let [p (direct-parents (get h :parents) tag)]
      (when (and p (not (empty? p))) p))))
 
 (defn ancestors
