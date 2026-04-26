@@ -130,6 +130,14 @@ final class KeywordTest extends TestCase
         $this->assertSame('xyz', $keyword2($table, 'xyz'));
     }
 
+    public function test_invoke_returns_null_for_present_null_value_with_default(): void
+    {
+        $keyword = Keyword::create('a');
+        $table = Phel::map($keyword, null);
+
+        $this->assertNull($keyword($table, 'fallback'));
+    }
+
     public function test_invoke_on_set_returns_keyword_when_present(): void
     {
         $keyword1 = Keyword::create('test1');

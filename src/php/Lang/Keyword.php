@@ -35,6 +35,10 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
         float|bool|int|string|TypeInterface|null $default = null,
     ) {
         if ($obj instanceof ArrayAccess) {
+            if ($obj instanceof ContainsInterface) {
+                return $obj->contains($this) ? $obj[$this] : $default;
+            }
+
             return $obj[$this] ?? $default;
         }
 

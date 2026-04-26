@@ -6,9 +6,6 @@ namespace Phel\Lang\Generators;
 
 use Generator;
 
-use function is_string;
-use function mb_str_split;
-
 final class InfiniteGenerator
 {
     /**
@@ -65,7 +62,7 @@ final class InfiniteGenerator
     public static function cycle(mixed $iterable): Generator
     {
         $values = [];
-        foreach (self::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::toIterable($iterable) as $value) {
             $values[] = $value;
             yield $value;
         }
@@ -92,19 +89,4 @@ final class InfiniteGenerator
         }
     }
 
-    /**
-     * @template T
-     *
-     * @param iterable<T>|string|null $value
-     *
-     * @return iterable<string|T>
-     */
-    private static function toIterable(mixed $value): iterable
-    {
-        if (is_string($value)) {
-            return mb_str_split($value);
-        }
-
-        return $value ?? [];
-    }
 }

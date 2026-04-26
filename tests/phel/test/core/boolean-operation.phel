@@ -1,5 +1,5 @@
 (ns phel-test\test\core\boolean-operation
-  (:require phel\test :refer [deftest is])
+  (:require phel\test :refer [deftest is thrown?])
   (:require phel\string :as s))
 
 (deftest test-or
@@ -256,6 +256,10 @@
   (is (false? (contains? "hello" -1)) "negative index")
   (is (false? (contains? "hello" "e")) "non-integer key"))
 
+(deftest test-contains?-scalar
+  (is (thrown? \InvalidArgumentException (contains? 1 0))
+      "contains? on scalar throws InvalidArgumentException"))
+
 (deftest test-contains?-string-multibyte
   (is (true? (contains? "🎉" 0)) "emoji first index")
   (is (false? (contains? "🎉" 1)) "emoji has only 1 character despite 4 bytes")
@@ -330,6 +334,10 @@
   (is (= -1 (compare 'a 'b)) "symbols compare by name")
   (is (= -1 (compare [1 :a] [1 :b])) "vectors compare lexicographically")
   (is (= -1 (compare [1] [1 2])) "shorter vector sorts first when prefix matches")
+  (is (= 1 (compare [nil] [])) "vector with nil element sorts after empty vector")
+  (is (= -1 (compare [] [nil])) "empty vector sorts before vector with nil element")
+  (is (= [[] [nil] [nil nil]] (sort [[nil nil] [nil] []]))
+      "sort orders sequential values by length when nil prefixes match")
   (is (= 0 (compare nil nil)) "nil equals nil")
   (is (= -1 (compare nil 1)) "nil is less than any non-nil")
   (is (= 1 (compare 1 nil)) "non-nil is greater than nil"))
