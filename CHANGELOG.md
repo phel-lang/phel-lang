@@ -47,6 +47,9 @@ All notable changes to this project will be documented in this file.
 #### API
 - `phel analyze` preloads `phel\core` so core macros resolve (#1539)
 
+#### Test
+- Default test reporter prints string literals readably in failure output (#1601)
+
 #### REPL
 - `dir` accepts bare namespace symbols (#1588)
 

@@ -184,6 +184,21 @@
     (is (php/preg_match "/Failed: 1/" out) "prints Failed count")
     (is (php/preg_match "/Total: 3/" out) "prints Total count")))
 
+(deftest test-default-reporter-prints-error-forms-with-readable-strings
+  (let [rep   (t/resolve-reporter :default)
+        saved (t/get-stats)
+        prev  (t/get-reporters)
+        _     (t/set-reporters! [rep])
+        _     (t/reset-stats)
+        out   (with-output-buffer
+                (rep {:type :begin-test-run})
+                (is (= 0 (apply + "")))
+                (t/print-summary))
+        _     (t/set-reporters! prev)
+        _     (t/restore-stats saved)]
+    (is (php/preg_match "/Test: \\(= 0 \\(apply \\+ \"\"\\)\\)/" out)
+        "error output renders empty strings with quotes")))
+
 ;; ---------------------------------------------------------------------------
 ;; Default reporter — thrown-with-msg failure formatting
 ;; ---------------------------------------------------------------------------

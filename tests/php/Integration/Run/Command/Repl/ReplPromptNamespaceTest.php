@@ -89,6 +89,32 @@ final class ReplPromptNamespaceTest extends AbstractTestCommand
         self::assertStringContainsString('my-app:2> (php/+ 2 3)', $output);
     }
 
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_test_runner_error_output_prints_empty_strings_readably(): void
+    {
+        $io = $this->createReplTestIo();
+        $io->setInputs(
+            new InputLine('user:1> ', '(require phel\test :refer [deftest is run-tests])'),
+            new InputLine('user:2> ', '(deftest test-issue (is (= 0 (apply + ""))))'),
+            new InputLine('user:3> ', '(run-tests {} *ns*)'),
+            new InputLine('user:4> ', 'exit'),
+        );
+        $this->prepareRunFactory($io);
+
+        $replStartupFile = __DIR__ . '/../../../../../../src/php/Run/Domain/Repl/startup.phel';
+        ob_start();
+        new ReplCommand()->setReplStartupFile($replStartupFile)->run(
+            $this->createStub(InputInterface::class),
+            $this->stubOutput(),
+        );
+        $stdout = ob_get_clean();
+
+        $output = $io->getOutputString() . $stdout;
+        self::assertStringContainsString('Test: (= 0 (apply + ""))', $output);
+        self::assertStringNotContainsString('Test: (= 0 (apply + ))', $output);
+    }
+
     private function createReplTestIo(): ReplTestIo
     {
         $exceptionPrinter = new TextExceptionPrinter(
