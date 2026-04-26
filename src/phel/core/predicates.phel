@@ -361,6 +361,12 @@
     (and (php/instanceof coll Countable) (= 0 (count coll)))
     nil
 
+    (php/is_array coll)
+    (if (php/empty coll) nil (php/:: Phel (vector coll)))
+
+    (php/instanceof coll PersistentHashSetInterface)
+    (php/:: Phel (vector (to-php-array coll)))
+
     true
     coll))
 
