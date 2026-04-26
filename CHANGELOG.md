@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
 
 #### Core
 - `binding` on `^:dynamic` vars is fiber-local; `future`/`async` convey caller bindings (#1536)
+- `contains?` returns `false` for `nil` collections instead of throwing (#1592)
 - `=` between a list and any sequential collection (vector, lazy seq) is symmetric (#1546)
 - `()` is a self-quoting empty list literal — `(conj () 1)`, `(cons 1 ())`, `(if () :a :b)` all work (#1549)
 - `isa?`, `parents`, and `ancestors` include PHP parent classes and implemented interfaces for class-string tags (#1560)

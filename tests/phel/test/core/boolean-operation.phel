@@ -229,6 +229,10 @@
     (is (true? (contains? full-name :street)))
     (is (false? (contains? full-name :unknown)))))
 
+(deftest test-contains?-nil
+  (is (false? (contains? nil nil)))
+  (is (false? (contains? nil :anything))))
+
 (deftest test-contains?-list
   (is (false? (contains? '() 0)))
   (is (true? (contains? '(1) 0)))
