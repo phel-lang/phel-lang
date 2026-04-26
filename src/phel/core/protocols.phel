@@ -152,7 +152,7 @@
            :ancestors   (compute-ancestors-map pm)
            :descendants (compute-descendants-map pm))))
 
-(defn- hierarchy-parents-map
+(defn- valid-hierarchy-parents
   "Returns h's parents map when h has the expected hierarchy shape."
   [h]
   (when (map? h)
@@ -232,7 +232,7 @@
   ([tag]
    (parents @*hierarchy* tag))
   ([h tag]
-   (let [parents-map (hierarchy-parents-map h)]
+   (let [parents-map (valid-hierarchy-parents h)]
      (when parents-map
        (let [p (direct-parents parents-map tag)]
          (when (and p (not (empty? p))) p))))))
@@ -244,7 +244,7 @@
   ([tag]
    (ancestors @*hierarchy* tag))
   ([h tag]
-   (let [parents-map (hierarchy-parents-map h)]
+   (let [parents-map (valid-hierarchy-parents h)]
      (when parents-map
        (let [a (compute-ancestors parents-map tag)]
          (when (not (empty? a)) a))))))
@@ -256,7 +256,7 @@
   ([tag]
    (descendants @*hierarchy* tag))
   ([h tag]
-   (let [parents-map (hierarchy-parents-map h)]
+   (let [parents-map (valid-hierarchy-parents h)]
      (when parents-map
        (let [all-children (keys parents-map)
              result       (reduce
