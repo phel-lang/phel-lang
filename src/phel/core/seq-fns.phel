@@ -1022,8 +1022,7 @@
   {:example "(merge {:a 1 :b 2} {:b 3 :c 4}) ; => {:a 1 :b 3 :c 4}"}
   ([] {})
   ([map] map)
-  ([map other] (merge-two map other))
-  ([map other & more] (reduce merge-two (merge-two map other) more)))
+  ([map & more] (reduce merge-two map more)))
 
 (defn select-keys
   "Returns a new map including key value pairs from `m` selected with keys `ks`."
