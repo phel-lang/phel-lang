@@ -111,10 +111,10 @@ final class ReplPromptNamespaceTest extends AbstractTestCommand
                 $this->stubOutput(),
             );
             $stdout = ob_get_clean();
-        } catch (Throwable $e) {
+        } catch (Throwable $throwable) {
             ob_end_clean();
 
-            throw $e;
+            throw $throwable;
         }
 
         $output = $io->getOutputString() . $stdout;
