@@ -106,6 +106,7 @@
     `(do
        (defstruct* ~name ~keys ~@implementations)
        (defn ~name ~(php/. "Creates a new " name " struct.") ~keys (php/new ~class-name-str ~@keys))
+       (swap! *type-tag-registry* assoc ~name ~class-name-str)
        (defn ~is-name ~(php/. "Checks if `x` is an instance of the " name " struct.") [x] (php/is_a x ~class-name-str)))))
 
 (defmacro defexception

@@ -81,6 +81,32 @@
   (is (true? (isa? PHPChildT PHPTransitiveInterfaceT)) "PHP class isa transitive interface")
   (is (false? (isa? PHPAncestorT PHPChildT)) "PHP parent is not child"))
 
+;; --- generated type hierarchy ---
+
+(defprotocol AncestorRecordProtocol)
+(defrecord AncestorRecord [] AncestorRecordProtocol)
+
+(defprotocol AncestorTypeProtocol)
+(deftype AncestorType [] AncestorTypeProtocol)
+
+(deftest test-defrecord-ancestors-include-protocol-and-php-parents
+  (let [anc (ancestors AncestorRecord)]
+    (is (contains? anc "phel-test\\test\\core\\hierarchy\\AncestorRecordProtocol")
+        "defrecord ancestors include inline protocol")
+    (is (contains? anc "Phel\\Lang\\Collections\\Struct\\AbstractPersistentStruct")
+        "defrecord ancestors include generated PHP parent class")
+    (is (contains? anc "Phel\\Lang\\Collections\\Map\\PersistentMapInterface")
+        "defrecord ancestors include inherited PHP interface")))
+
+(deftest test-deftype-ancestors-include-protocol-and-php-parents
+  (let [anc (ancestors AncestorType)]
+    (is (contains? anc "phel-test\\test\\core\\hierarchy\\AncestorTypeProtocol")
+        "deftype ancestors include inline protocol")
+    (is (contains? anc "Phel\\Lang\\Collections\\Struct\\AbstractPersistentStruct")
+        "deftype ancestors include generated PHP parent class")
+    (is (contains? anc "Phel\\Lang\\Collections\\Map\\PersistentMapInterface")
+        "deftype ancestors include inherited PHP interface")))
+
 ;; --- descendants ---
 
 (deftest test-descendants

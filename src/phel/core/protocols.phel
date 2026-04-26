@@ -77,11 +77,21 @@
        (if (php/=== interfaces false) (hash-set) (apply hash-set (vals interfaces)))))
     (hash-set)))
 
+(def ^:private *type-tag-registry*
+  "Maps generated struct constructor functions to their PHP class tag."
+  (atom {}))
+
+(defn- hierarchy-tag
+  "Resolves public type constructor functions to their generated PHP class tag."
+  [tag]
+  (get @*type-tag-registry* tag tag))
+
 (defn- direct-parents
   "Returns manually-derived parents plus PHP type parents for tag."
   [parents-map tag]
-  (union (get parents-map tag (hash-set))
-         (php-class-relations tag)))
+  (let [resolved-tag (hierarchy-tag tag)]
+    (union (get parents-map resolved-tag (hash-set))
+           (php-class-relations resolved-tag))))
 
 (defn- compute-ancestors
   "Computes all transitive ancestors of tag from a parents map."
@@ -393,7 +403,11 @@
                   (fn [acc group]
                     (let [proto-name (first group)
                           methods    (second group)
-                          proto-str  (php/-> proto-name (getName))]
+                          proto-str  (php/-> proto-name (getName))
+                          proto-ns   (php/-> proto-name (getNamespace))
+                          proto-tag  (if proto-ns
+                                       (php/-> proto-name (getFullName))
+                                       (php/. *ns* "\\" proto-str))]
                       (reduce
                        (fn [inner method]
                          (let [mname-str (php/-> (first method) (getName))
@@ -402,7 +416,7 @@
                                dsym      (php/:: Symbol
                                                  (create (php/. proto-str "--" mname-str "--dispatch")))]
                            (conj inner `(swap! ~dsym assoc ~type-key (fn ~margs ~@body)))))
-                       acc
+                       (conj acc `(derive ~type-key ~proto-tag))
                        methods)))
                   []
                   groups)]
