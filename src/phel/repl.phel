@@ -263,13 +263,13 @@
     (when resolved-sym
       `(get-symbol-info ~(namespace resolved-sym) ~(name resolved-sym)))))
 
-(defn dir
-  "Prints all public definitions in the given namespace string.
+(defn- dir-fn
+  "Prints all public definitions in the given namespace symbol or string.
 
   Returns nil. Prints one name per line, sorted alphabetically."
-  {:example "(dir \"phel\\core\")"}
-  [ns-str]
-  (let [encoded (munge-ns ns-str)
+  [ns]
+  (let [ns-str  (name ns)
+        encoded (munge-ns ns-str)
         defs    (php/:: Phel (getDefinitionInNamespace encoded))
         munge   (php/new Munge)
         names   (for [fn-name :keys defs
@@ -279,6 +279,16 @@
     (foreach [n (sort names)]
       (println n))
     nil))
+
+(defmacro dir
+  "Prints all public definitions in the given namespace symbol or string.
+
+  Returns nil. Prints one name per line, sorted alphabetically."
+  {:example "(dir phel\\core)"}
+  [ns]
+  (if (string? ns)
+    `(dir-fn ~ns)
+    `(dir-fn '~ns)))
 
 (defn apropos
   "Returns a vector of symbols whose name contains the given search string.
