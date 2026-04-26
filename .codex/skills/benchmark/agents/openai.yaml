@@ -1,0 +1,7 @@
+interface:
+  display_name: "Benchmark Runner"
+  short_description: "Run and compare Phel benchmarks."
+  default_prompt: "Use $benchmark to compare this branch against the benchmark baseline."
+
+policy:
+  allow_implicit_invocation: true

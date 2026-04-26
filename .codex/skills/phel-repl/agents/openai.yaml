@@ -1,0 +1,7 @@
+interface:
+  display_name: "Phel REPL"
+  short_description: "Evaluate Phel expressions."
+  default_prompt: "Use $phel-repl to evaluate this Phel expression: (+ 1 2)"
+
+policy:
+  allow_implicit_invocation: true

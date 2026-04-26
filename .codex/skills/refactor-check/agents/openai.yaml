@@ -1,0 +1,7 @@
+interface:
+  display_name: "Refactor Check"
+  short_description: "Analyze SOLID and architecture risks."
+  default_prompt: "Use $refactor-check to analyze the current branch."
+
+policy:
+  allow_implicit_invocation: true

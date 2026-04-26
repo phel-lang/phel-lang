@@ -1,0 +1,7 @@
+interface:
+  display_name: "Fix Quality"
+  short_description: "Run fixers and quality checks."
+  default_prompt: "Use $fix to clean up quality issues in the current changes."
+
+policy:
+  allow_implicit_invocation: true
