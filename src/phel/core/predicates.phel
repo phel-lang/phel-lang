@@ -338,7 +338,8 @@
 
 (defn seq
   "Returns a seq on the collection. Strings are converted to a vector of characters.
-  Collections are unchanged. Returns nil if coll is empty or nil.
+  Non-sequential collections and PHP arrays are converted to vectors.
+  Returns nil if coll is empty or nil.
 
   This function is useful for explicitly converting strings to sequences of characters,
   enabling sequence operations like map, filter, and frequencies."
