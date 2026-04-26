@@ -1,0 +1,7 @@
+interface:
+  display_name: "Changelog"
+  short_description: "Update Unreleased changelog entries."
+  default_prompt: "Use $changelog to update CHANGELOG.md for the current branch."
+
+policy:
+  allow_implicit_invocation: true

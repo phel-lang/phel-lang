@@ -1,0 +1,7 @@
+interface:
+  display_name: "Release"
+  short_description: "Run Phel release workflow."
+  default_prompt: "Use $release to dry-run the next Phel release."
+
+policy:
+  allow_implicit_invocation: true

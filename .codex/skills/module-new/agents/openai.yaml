@@ -1,0 +1,7 @@
+interface:
+  display_name: "New Module"
+  short_description: "Scaffold a Phel PHP module."
+  default_prompt: "Use $module-new to scaffold a new src/php module."
+
+policy:
+  allow_implicit_invocation: true

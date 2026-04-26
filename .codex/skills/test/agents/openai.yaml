@@ -1,0 +1,7 @@
+interface:
+  display_name: "Test Runner"
+  short_description: "Run scoped Phel test commands."
+  default_prompt: "Use $test to run the relevant tests for this change."
+
+policy:
+  allow_implicit_invocation: true

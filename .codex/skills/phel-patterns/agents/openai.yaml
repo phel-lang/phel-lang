@@ -1,0 +1,7 @@
+interface:
+  display_name: "Phel Patterns"
+  short_description: "Use Phel language idioms."
+  default_prompt: "Use $phel-patterns while editing Phel source files."
+
+policy:
+  allow_implicit_invocation: true
