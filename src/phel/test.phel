@@ -911,27 +911,29 @@
 ;; error/failure printer
 ;; ---------------------
 
+(defn- summary-event
+  [snapshot]
+  (let [{:failed failed :error error :pass pass :skipped skipped}
+        (:counts snapshot)
+        failures (:failed snapshot)
+        skips    (:skipped snapshot)
+        total    (+ failed error pass)]
+    {:type :summary
+     :failures failures
+     :skips skips
+     :pass pass
+     :failed failed
+     :error error
+     :skipped (or skipped 0)
+     :total total}))
+
 (defn print-summary
   "Emits the `:summary` event to the active reporter set.
   Kept for backwards compatibility; prefer letting `run-tests` emit the
   event at the end of the run."
   {:example "(print-summary)"}
   []
-  (let [snapshot                                                  (deref stats)
-        {:failed failed :error error :pass pass :skipped skipped}
-        (get snapshot :counts)
-        failures                                                  (get snapshot :failed)
-        skips                                                     (get snapshot :skipped)
-        total                                                     (+ failed error pass)
-        event                                                     {:type :summary
-                  :failures failures
-                  :skips skips
-                  :pass pass
-                  :failed failed
-                  :error error
-                  :skipped (or skipped 0)
-                  :total total}]
-    (fan-out! event)))
+  (fan-out! (summary-event (deref stats))))
 
 ;; --------
 ;; Fixtures
