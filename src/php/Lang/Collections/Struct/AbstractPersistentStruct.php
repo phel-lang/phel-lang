@@ -48,10 +48,6 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
 
     public function contains($key): bool
     {
-        if (!$key instanceof Keyword) {
-            return false;
-        }
-
         return in_array($key->getName(), static::ALLOWED_KEYS, true);
     }
 
