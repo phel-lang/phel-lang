@@ -26,7 +26,12 @@
   (is (= 1 (case true false 2 1)) "case one failed test with default")
   (is (= 2 (case true true 2)) "case one successful test without default")
   (is (= 2 (case true true 2 1)) "case one successful test with default")
-  (is (= :one (case (+ 1 0) 1 :one)) "case with expression"))
+  (is (= :one (case (+ 1 0) 1 :one)) "case with expression")
+  (is (= :small (case 0 (0 1) :small 2 :two)) "case list matcher matches first element")
+  (is (= :small (case 1 (0 1) :small 2 :two)) "case list matcher matches later element")
+  (is (= :keyword (case :four (:four :five) :keyword :other)) "case list matcher supports keywords")
+  (is (= :symbol (case 'range (range 0 5) :symbol :other)) "case list matcher treats symbols as constants")
+  (is (= :default (case 3 (0 1) :small 2 :two :default)) "case list matcher falls through"))
 
 (deftest test-condp
   (is (= "one" (condp = 1 1 "one" 2 "two")) "condp basic match first")

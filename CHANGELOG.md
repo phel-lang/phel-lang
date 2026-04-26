@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 - Standard library `:use` clauses now use dot-separated PHP class names (#1576)
 
 #### Core
+- `case` accepts list matchers for Clojure-compatible alternatives (#1615)
 - Hierarchy functions accept an optional hierarchy argument (#1543)
 - Added `into-array` for `.cljc` interop (#1550)
 - `==` now follows Clojure-compatible numeric equality (#1561)
