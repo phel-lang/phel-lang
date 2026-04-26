@@ -210,6 +210,10 @@
     (is (nil? (parents h :hp-unknown))
         "nil for unknown tag in hierarchy")))
 
+(deftest test-parents-nil-for-invalid-hierarchy
+  (is (nil? (parents "anything" "anything"))
+      "invalid hierarchy returns nil"))
+
 (deftest test-ancestors-hierarchy
   (let [h (-> (make-hierarchy)
               (derive :ha-c :ha-b)
@@ -219,6 +223,10 @@
       (is (contains? anc :ha-a) "transitive ancestor in hierarchy"))
     (is (nil? (ancestors h :ha-unknown)) "nil for unknown tag")))
 
+(deftest test-ancestors-nil-for-invalid-hierarchy
+  (is (nil? (ancestors "anything" "anything"))
+      "invalid hierarchy returns nil"))
+
 (deftest test-descendants-hierarchy
   (let [h (-> (make-hierarchy)
               (derive :hdc-child :hdc-root)
@@ -227,6 +235,10 @@
       (is (contains? desc :hdc-child) "direct descendant in hierarchy")
       (is (contains? desc :hdc-grandchild) "transitive descendant in hierarchy"))
     (is (nil? (descendants h :hdc-leaf)) "nil for leaf/unknown tag")))
+
+(deftest test-descendants-nil-for-invalid-hierarchy
+  (is (nil? (descendants "anything" "anything"))
+      "invalid hierarchy returns nil"))
 
 ;; --- multimethod with hierarchy dispatch ---
 
