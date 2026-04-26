@@ -1121,6 +1121,7 @@
   {:example "(run-tests {} 'my-app\\test)"}
   [options & namespaces]
   (configure-run! options)
+  (reset! stats initial-stats)
   (fan-out! {:type :begin-test-run})
   (dofor [namespace :in namespaces
           :when (not (should-stop?))]

@@ -50,6 +50,7 @@ All notable changes to this project will be documented in this file.
 - `phel analyze` preloads `phel\core` so core macros resolve (#1539)
 
 #### Test
+- `run-tests` resets assertion counts for each run (#1604)
 - Default test reporter prints string literals readably in failure output (#1601)
 
 #### REPL
