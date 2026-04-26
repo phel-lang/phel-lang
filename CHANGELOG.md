@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 #### Core
+- `sort` accepts Clojure-compatible `(sort comp coll)` argument order (#1613)
 - `assoc!` handles trailing keys from `apply` with `nil` values (#1609)
 - `sort` orders map entries and nested vectors with Clojure-compatible `compare` (#1610)
 - `merge` returns `nil` for no or all-`nil` arguments (#1606)

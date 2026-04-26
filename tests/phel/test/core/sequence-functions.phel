@@ -342,6 +342,7 @@
   (is (= [nil 2 3 4] (sort [3 nil 2 4])) "sort nil before values")
   (is (= [1 2 2 3 3] (sort [3 2 1 2 3] <=>)) "sort ascending order")
   (is (= [3 3 2 2 1] (sort [3 2 1 2 3] >=<)) "sort descending order")
+  (is (= [4 3 2 1] (sort #(- (compare %1 %2)) [1 2 3 4])) "sort comparator before collection")
   (is (= [4 3 2 1] (sort [1 2 3 4] #(- (compare %1 %2)))) "sort with custom comparator")
   (is (= [[1 :a] [1 :e] [2 :b] [2 :d] [3 :c]]
          (sort [[1 :a] [2 :b] [3 :c] [2 :d] [1 :e]]
