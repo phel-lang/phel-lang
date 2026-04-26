@@ -347,6 +347,17 @@
   [x y]
   (php/<=> (php/-> x (getFullName)) (php/-> y (getFullName))))
 
+(defn- compare-same-category [category x y]
+  (cond
+    (or (= category :keyword) (= category :symbol))
+    (compare-named x y)
+
+    (= category :sequential)
+    (compare-sequential x y)
+
+    :else
+    (php/<=> x y)))
+
 (defn compare
   "Compares `x` and `y`, returning a negative
   integer, zero, or a positive integer when `x` is less than, equal to, or
@@ -363,10 +374,6 @@
     (let [cx (compare-category x)
           cy (compare-category y)]
       (if (= cx cy)
-        (case cx
-          :keyword    (compare-named x y)
-          :symbol     (compare-named x y)
-          :sequential (compare-sequential x y)
-          (php/<=> x y))
+        (compare-same-category cx x y)
         (throw (php/new InvalidArgumentException
                         (str "Cannot compare " cx " with " cy)))))))
