@@ -8,6 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ApplyNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
+use Phel\Lang\Seq;
 
 use function assert;
 use function count;
@@ -51,9 +52,9 @@ final class ApplyEmitter implements NodeEmitterInterface
                 $this->outputEmitter->emitNode($arg);
                 $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
             } else {
-                $this->outputEmitter->emitStr('...((', $node->getStartSourceLocation());
+                $this->outputEmitter->emitStr('...\\' . Seq::class . '::toApplyArguments(', $node->getStartSourceLocation());
                 $this->outputEmitter->emitNode($arg);
-                $this->outputEmitter->emitStr(') ?? [])', $node->getStartSourceLocation());
+                $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
             }
         }
     }

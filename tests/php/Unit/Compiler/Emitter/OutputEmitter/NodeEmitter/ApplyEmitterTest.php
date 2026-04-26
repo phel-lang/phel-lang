@@ -42,7 +42,7 @@ final class ApplyEmitterTest extends TestCase
         $this->applyEmitter->emit($applyNode);
 
         $this->expectOutputString(
-            'array_reduce([...((\Phel::vector([2, 3, 4])) ?? [])], function($a, $b) { return ($a + $b); });',
+            'array_reduce([...\Phel\Lang\Seq::toApplyArguments(\Phel::vector([2, 3, 4]))], function($a, $b) { return ($a + $b); });',
         );
     }
 
@@ -59,7 +59,7 @@ final class ApplyEmitterTest extends TestCase
         $applyNode = new ApplyNode(NodeEnvironment::empty(), $node, $args);
         $this->applyEmitter->emit($applyNode);
 
-        $this->expectOutputString('str("abc", ...((\Phel::vector(["def"])) ?? []));');
+        $this->expectOutputString('str("abc", ...\Phel\Lang\Seq::toApplyArguments(\Phel::vector(["def"])));');
     }
 
     public function test_no_php_var_node(): void
@@ -85,6 +85,6 @@ final class ApplyEmitterTest extends TestCase
         $this->expectOutputString('((function(...$x) {
   $x = \Phel::vector($x);
   return x;
-});)(...((\Phel::vector([1])) ?? []));');
+});)(...\Phel\Lang\Seq::toApplyArguments(\Phel::vector([1])));');
     }
 }

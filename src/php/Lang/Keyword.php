@@ -6,6 +6,7 @@ namespace Phel\Lang;
 
 use ArrayAccess;
 use Override;
+use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 
 final class Keyword extends AbstractType implements IdenticalInterface, FnInterface, NamedInterface
 {
@@ -30,14 +31,18 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
      * `(:k nil)` returning nil) instead of raising `TypeError`.
      */
     public function __invoke(
-        ?ArrayAccess $obj,
+        mixed $obj,
         float|bool|int|string|TypeInterface|null $default = null,
     ) {
-        if (!$obj instanceof ArrayAccess) {
-            return $default;
+        if ($obj instanceof ArrayAccess) {
+            return $obj[$this] ?? $default;
         }
 
-        return $obj[$this] ?? $default;
+        if ($obj instanceof PersistentHashSetInterface) {
+            return $obj->contains($this) ? $this : $default;
+        }
+
+        return $default;
     }
 
     #[Override]

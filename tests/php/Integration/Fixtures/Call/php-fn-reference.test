@@ -10,7 +10,7 @@
     public const BOUND_TO = "user\\reduce";
 
     public function __invoke($f, $xs) {
-      return ($f)(...(($xs) ?? []));
+      return ($f)(...\Phel\Lang\Seq::toApplyArguments($xs));
     }
   },
   \Phel::map(

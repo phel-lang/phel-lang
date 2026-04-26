@@ -338,7 +338,12 @@
   (is (= 6 ((identity apply) + [1 2 3])) "apply can be invoked as a value")
   (is (= 6 ((identity apply) + 1 [2 3])) "apply prepends one argument")
   (is (= 10 ((identity apply) + 1 2 3 [4])) "apply prepends multiple arguments")
-  (is (= 21 ((identity apply) + 1 2 3 4 5 [6])) "apply handles variadic intervening arguments"))
+  (is (= 21 ((identity apply) + 1 2 3 4 5 [6])) "apply handles variadic intervening arguments")
+  (is (= 0 (apply + "")) "apply treats empty string as an empty argument list")
+  (is (= 1 (apply + 1 "")) "apply appends no arguments for an empty string")
+  (is (= #{[:a 1] [:b 2]} (apply conj #{} {:a 1 :b 2})) "apply treats map final arg as entries")
+  (is (= ["a" "b" "c"] (apply conj [] "abc")) "apply treats string final arg as characters")
+  (is (= :a (apply :a [#{:a :b :c}])) "apply supports keyword lookup on a set"))
 
 (deftest test-next
   (is (nil? (next [])) "next of empty vector")
