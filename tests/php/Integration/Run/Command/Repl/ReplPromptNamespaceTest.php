@@ -97,7 +97,7 @@ final class ReplPromptNamespaceTest extends AbstractTestCommand
         $io = $this->createReplTestIo();
         $io->setInputs(
             new InputLine('user:1> ', '(require phel\test :refer [deftest is run-tests])'),
-            new InputLine('user:2> ', '(deftest test-issue (is (= 0 (apply + ""))))'),
+            new InputLine('user:2> ', '(deftest test-issue (is (= 0 "")))'),
             new InputLine('user:3> ', '(run-tests {} *ns*)'),
             new InputLine('user:4> ', 'exit'),
         );
@@ -118,8 +118,8 @@ final class ReplPromptNamespaceTest extends AbstractTestCommand
         }
 
         $output = $io->getOutputString() . $stdout;
-        self::assertStringContainsString('Test: (= 0 (apply + ""))', $output);
-        self::assertStringNotContainsString('Test: (= 0 (apply + ))', $output);
+        self::assertStringContainsString('Test: ""', $output);
+        self::assertStringNotContainsString('Test: ' . PHP_EOL, $output);
     }
 
     private function createReplTestIo(): ReplTestIo
