@@ -48,6 +48,10 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
 
     public function contains($key): bool
     {
+        if (!$key instanceof Keyword) {
+            return false;
+        }
+
         return in_array($key->getName(), static::ALLOWED_KEYS);
     }
 
@@ -62,11 +66,22 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
 
     public function remove($key): PersistentMapInterface
     {
-        $stringKey = $this->validateKey($key);
+        if (!$this->contains($key)) {
+            return $this;
+        }
 
-        $newInstance = clone $this;
-        $newInstance->{$stringKey} = null;
-        return $newInstance;
+        $kvs = [];
+        foreach (static::ALLOWED_KEYS as $allowedKey) {
+            $entryKey = Phel::keyword($allowedKey);
+            if ($this->equalizer->equals($entryKey, $key)) {
+                continue;
+            }
+
+            $kvs[] = $entryKey;
+            $kvs[] = $this->{$this->keyEncoder->encode($allowedKey)};
+        }
+
+        return TypeFactory::getInstance()->persistentMapFromArray($kvs);
     }
 
     public function count(): int
