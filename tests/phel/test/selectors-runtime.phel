@@ -52,6 +52,24 @@
     (is (= 3 (passing-count events))
         "all three fixtures run and pass")))
 
+(deftest test-run-tests-starts-each-run-with-fresh-stats
+  (let [saved-reporters (t/get-reporters)
+        saved-stats     (t/get-stats)
+        events          (atom [])
+        capture         (fn [e] (swap! events conj e))]
+    (t/reset-stats)
+    (with-output-buffer
+      (t/run-tests {:reporters [capture]} fixture-ns)
+      (t/run-tests {:reporters [capture]} fixture-ns))
+    (let [summaries (events-of (deref events) :summary)]
+      (t/set-reporters! saved-reporters)
+      (t/restore-stats saved-stats)
+      (is (= 2 (count summaries)) "both runs emit a summary")
+      (is (= [3 3] (vec (map :pass summaries)))
+          "pass counts are reset between runs")
+      (is (= [3 3] (vec (map :total summaries)))
+          "total counts are reset between runs"))))
+
 ;; ---------------------------------------------------------------------------
 ;; Include — only fixtures tagged :integration run
 ;; ---------------------------------------------------------------------------
