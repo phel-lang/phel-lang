@@ -1,4 +1,4 @@
 --PHEL--
 `[~'a 1 ~'b]
 --PHP--
-(\Phel::getDefinition("phel\\core", "vector"))(...(((\Phel::getDefinition("phel\\core", "concat"))((\Phel::getDefinition("phel\\core", "list"))((\Phel\Lang\Symbol::create("a"))), (\Phel::getDefinition("phel\\core", "list"))(1), (\Phel::getDefinition("phel\\core", "list"))((\Phel\Lang\Symbol::create("b"))))) ?? []));
+(\Phel::getDefinition("phel\\core", "vector"))(...\Phel\Lang\Seq::toApplyArguments((\Phel::getDefinition("phel\\core", "concat"))((\Phel::getDefinition("phel\\core", "list"))((\Phel\Lang\Symbol::create("a"))), (\Phel::getDefinition("phel\\core", "list"))(1), (\Phel::getDefinition("phel\\core", "list"))((\Phel\Lang\Symbol::create("b"))))));

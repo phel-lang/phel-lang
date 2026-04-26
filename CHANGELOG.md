@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
 
 #### Core
 - `merge` accepts non-map collection operands without TypeErrors (#1603)
+- `apply` accepts strings and maps as final arguments (#1602)
 - `seq` returns sequential values for sorted sets and PHP arrays (#1599)
 - `pop` handles `nil`, vectors, and lists with Clojure-compatible results (#1600)
 - Dynamic bindings are fiber-local and propagate through `future`/`async` (#1536)
