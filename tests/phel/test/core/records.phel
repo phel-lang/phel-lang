@@ -5,6 +5,8 @@
 
 (defrecord Point [x y])
 
+(defrecord TestDissocRecord [a b c])
+
 (deftest test-defrecord-positional-constructor
   (let [p (Point 1 2)]
     (is (= 1 (get p :x)) "defrecord: :x accessible via get")
@@ -27,6 +29,13 @@
 (deftest test-defrecord-equality
   (is (= (Point 1 2) (Point 1 2)) "defrecord instances with same values are equal")
   (is (not= (Point 1 2) (Point 1 3)) "defrecord instances with different values are not equal"))
+
+(deftest test-defrecord-dissoc
+  (let [r (TestDissocRecord 1 2 nil)]
+    (is (= {:b 2 :c nil} (apply dissoc r [:a])) "dissoc removes one record key")
+    (is (= {:b 2 :c nil} (apply dissoc r [:a :d])) "dissoc ignores missing record keys")
+    (is (= {} (apply dissoc r [:a :b :c])) "dissoc can remove all record keys")
+    (is (= r (apply dissoc r [:d])) "dissoc with only missing keys returns the record unchanged")))
 
 ;; --- defrecord with inline protocol methods ---
 
