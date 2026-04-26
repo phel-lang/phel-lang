@@ -4,6 +4,8 @@
 (use InvalidArgumentException)
 (use Phel)
 (use Phel\Lang\AbstractType)
+(use Phel\Lang\Collections\HashSet\PersistentHashSetInterface)
+(use Phel\Lang\Collections\Map\PersistentMapInterface)
 (use Phel\Lang\ConsInterface)
 (use Phel\Lang\RestInterface)
 
@@ -23,6 +25,24 @@
     (php/-> a (equals b))
     (php/=== a b)))
 
+(defn- cons-string [x coll]
+  (let [result (php/array x)]
+    (foreach [char (php/mb_str_split coll)]
+      (php/apush result char))
+    (php/:: Phel (vector result))))
+
+(defn- cons-map [x coll]
+  (let [result (php/array x)]
+    (foreach [k v coll]
+      (php/apush result [k v]))
+    (php/:: Phel (vector result))))
+
+(defn- cons-iterable [x coll]
+  (let [result (php/array x)]
+    (foreach [v coll]
+      (php/apush result v))
+    (php/:: Phel (vector result))))
+
 (defn cons
   "Prepends an element to the beginning of a collection."
   {:example "(cons 0 [1 2 3]) ; => [0 1 2 3]"}
@@ -35,8 +55,14 @@
       (php/-> coll (cons x))
       (if (php/=== coll nil)
         [x]
-        (throw (php/new InvalidArgumentException
-                        (php/. "cannot do cons " (php/print_r x true))))))))
+        (if (php/is_string coll)
+          (cons-string x coll)
+          (if (php/instanceof coll PersistentMapInterface)
+            (cons-map x coll)
+            (if (php/instanceof coll PersistentHashSetInterface)
+              (cons-iterable x coll)
+              (throw (php/new InvalidArgumentException
+                              (php/. "cannot do cons " (php/print_r x true)))))))))))
 
 (defn ffirst
   "Same as `(first (first coll))`."

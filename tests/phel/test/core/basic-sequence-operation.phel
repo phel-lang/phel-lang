@@ -9,6 +9,12 @@
   (is (= [1 2 3] (cons 1 [2 3])) "cons vector multiple elements")
   (is (= [1 2] (cons 1 (rest [1 2]))) "cons sub vector")
   (is (= [1 2 3] (cons 1 (rest [1 2 3]))) "cons sub vector multiple elements")
+  (is (= ["1" "2" "3"] (cons "1" "23")) "cons string")
+  (is (= [1] (cons 1 "")) "cons empty string")
+  (is (= [1 1 2 3] (cons 1 (sorted-set 1 2 3))) "cons sorted set")
+  (is (= [1] (cons 1 #{})) "cons empty set")
+  (is (= [1 [:2 2] [:3 3]] (cons 1 {:2 2 :3 3})) "cons map")
+  (is (= [1] (cons 1 {})) "cons empty map")
   (is (= [1] (cons 1 nil)) "cons nil"))
 
 (deftest test-cons-32-more-elements
