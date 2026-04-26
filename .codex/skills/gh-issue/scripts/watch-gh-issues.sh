@@ -110,16 +110,19 @@ poll_once() {
   fi
   lock_acquired=true
 
+  current_user="$(gh api user --jq '.login')"
+  [[ -n "$current_user" ]] || die "could not determine current GitHub user"
+
   issue="$(
     gh issue list \
       --state open \
       --limit "$limit" \
-      --json number,title \
-      --jq 'sort_by(.number) | .[0].number // empty'
+      --json number,title,assignees \
+      --jq "map(select((.assignees | length) == 0 or any(.assignees[]; .login == \"$current_user\"))) | sort_by(.number) | .[0].number // empty"
   )"
 
   if [[ -z "$issue" ]]; then
-    printf '[%s] no open issues found\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+    printf '[%s] no unassigned issues or issues assigned to %s found\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$current_user"
     release_lock
     return 1
   fi
