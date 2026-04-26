@@ -1008,17 +1008,21 @@
   [a b]
   (zipmap a b))
 
+(defn- merge-two
+  [left right]
+  (cond
+    (nil? left) (if (nil? right) {} (conj {} right))
+    (and (map? left) (nil? right)) left
+    :else (conj left right)))
+
 (defn merge
   "Merges multiple maps into one new map.
 
   If a key appears in more than one collection, later values replace previous ones."
   {:example "(merge {:a 1 :b 2} {:b 3 :c 4}) ; => {:a 1 :b 3 :c 4}"}
-  [& maps]
-  (persistent
-   (for [map :in maps
-         [k v] :pairs map
-         :reduce [res (transient {})]]
-     (assoc! res k v))))
+  ([] {})
+  ([map] map)
+  ([map & more] (reduce merge-two map more)))
 
 (defn select-keys
   "Returns a new map including key value pairs from `m` selected with keys `ks`."
