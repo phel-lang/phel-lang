@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
 
 #### Core
 - `assoc!` handles trailing keys from `apply` with `nil` values (#1609)
+- `sort` orders map entries and nested vectors with Clojure-compatible `compare` (#1610)
 - `merge` returns `nil` for no or all-`nil` arguments (#1606)
 - `merge` accepts non-map collection operands without TypeErrors (#1603)
 - `apply` accepts strings and maps as final arguments (#1602)

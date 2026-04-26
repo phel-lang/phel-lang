@@ -331,9 +331,22 @@
   (is (= (php/array 3 2 1) (to-php-array [3 2 1])) "to-php-array"))
 
 (deftest test-sort
+  (is (= [] (sort nil)) "sort nil")
   (is (= [1 2 3] (sort [3 2 1])) "sort")
+  (is (= [1 2 3] (sort '(3 2 1))) "sort list")
+  (is (= [1 2 3] (sort #{3 2 1})) "sort set")
+  (is (= [[:a 1] [:b 2] [:c 3]] (sort {:c 3 :b 2 :a 1})) "sort map entries")
+  (is (= [[1] [2] [3]] (sort [[3] [2] [1]])) "sort nested vectors")
+  (is (= ["c" "e" "j" "l" "o" "r" "u"] (sort "clojure")) "sort string characters")
+  (is (= [nil 2 3 4] (sort [3 nil 2 4])) "sort nil before values")
   (is (= [1 2 2 3 3] (sort [3 2 1 2 3] <=>)) "sort ascending order")
   (is (= [3 3 2 2 1] (sort [3 2 1 2 3] >=<)) "sort descending order")
+  (is (= [4 3 2 1] (sort [1 2 3 4] #(- (compare %1 %2)))) "sort with custom comparator")
+  (is (= [[1 :a] [1 :e] [2 :b] [2 :d] [3 :c]]
+         (sort [[1 :a] [2 :b] [3 :c] [2 :d] [1 :e]]
+               (fn [[a _] [b _]] (compare a b)))) "sort is stable")
+  (is (thrown? \TypeError (sort 1)) "sort non-seqable throws")
+  (is (thrown? \InvalidArgumentException (sort [1 []])) "sort incomparable values throws")
   (is (= [1 2 3] (sort-by identity [3 2 1])) "sort-by identity")
   (is (= [3 2 1] (sort-by - [3 2 1])) "sort-by reversed"))
 
