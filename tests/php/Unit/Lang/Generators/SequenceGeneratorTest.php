@@ -98,6 +98,29 @@ final class SequenceGeneratorTest extends TestCase
         self::assertSame(['🎉', '🎊'], iterator_to_array($result, false));
     }
 
+    // ==================== indexed tests ====================
+
+    public function test_indexed_pairs_values_with_zero_based_indexes(): void
+    {
+        $result = SequenceGenerator::indexed(['a', 'b', 'c']);
+
+        self::assertSame([[0, 'a'], [1, 'b'], [2, 'c']], iterator_to_array($result, false));
+    }
+
+    public function test_indexed_splits_multibyte_strings(): void
+    {
+        $result = SequenceGenerator::indexed('🎉🎊');
+
+        self::assertSame([[0, '🎉'], [1, '🎊']], iterator_to_array($result, false));
+    }
+
+    public function test_indexed_treats_null_as_empty(): void
+    {
+        $result = SequenceGenerator::indexed(null);
+
+        self::assertSame([], iterator_to_array($result, false));
+    }
+
     // ==================== range tests ====================
 
     public function test_range_basic(): void

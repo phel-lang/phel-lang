@@ -64,6 +64,24 @@ final class SequenceGenerator
     }
 
     /**
+     * Yields each value paired with its zero-based index.
+     *
+     * @template T
+     *
+     * @param iterable<T>|string|null $iterable
+     *
+     * @return Generator<int, array{0:int, 1:string|T}>
+     */
+    public static function indexed(mixed $iterable): Generator
+    {
+        $index = 0;
+        foreach (self::toIterable($iterable) as $value) {
+            yield [$index, $value];
+            ++$index;
+        }
+    }
+
+    /**
      * Generates a range of numbers [start, end) with given step.
      *
      * Examples:
