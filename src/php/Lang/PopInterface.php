@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+/**
+ * @template TSelf of PopInterface
+ */
 interface PopInterface
 {
     /**
-     * Removes the value at the beginning of a sequence and return this removed value.
+     * Removes a value from the data structure.
+     *
+     * @return TSelf
      */
-    public function pop(): mixed;
+    public function pop();
 }

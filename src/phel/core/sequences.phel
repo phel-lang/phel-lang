@@ -46,13 +46,23 @@
   [coll x]
   (conj coll x))
 
-(defn pop
-  "Removes the last element of the array `coll`. If the array is empty returns nil."
+(defn- pop*
+  "Removes the last element of `coll`. Returns nil for nil or empty PHP arrays."
   [^:reference coll]
   (cond
+    (nil? coll) nil
     (php-array? coll) (php/array_pop coll)
     (php/instanceof coll PopInterface) (php/-> coll (pop))
     (throw (php/new InvalidArgumentException "Cannot pop"))))
+
+(defmacro pop
+  "Removes the last element of a collection. Returns nil for nil."
+  [coll]
+  (if (symbol? coll)
+    `(pop* ~coll)
+    (let [coll-sym (gensym)]
+      `(let [~coll-sym ~coll]
+         (pop* ~coll-sym)))))
 
 (defn get
   "Gets the value at key in a collection. Returns default if not found."
@@ -242,4 +252,3 @@
    :superseded-by "dissoc"}
   [ds key]
   (dissoc ds key))
-
