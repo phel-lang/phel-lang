@@ -9,7 +9,7 @@ Fetch full GitHub issue context, including comments, into:
   .git/codex-gh-issues/issue-<number>.md
 
 Options:
-  --setup    also assign the issue author and create a branch from fresh main
+  --setup    also assign the current gh user and create a branch from fresh main
 USAGE
 }
 
@@ -161,7 +161,6 @@ context_path.write_text("\n".join(lines).rstrip() + "\n")
 metadata_path.write_text(
     "\n".join(
         [
-            f"issue_author={shell_quote(author)}",
             f"issue_state={shell_quote(state)}",
             f"issue_branch={shell_quote(branch)}",
         ]
@@ -170,7 +169,6 @@ metadata_path.write_text(
 )
 PY
 
-issue_author=
 issue_state=
 issue_branch=
 # shellcheck disable=SC1090
@@ -192,10 +190,13 @@ if [[ "$issue_state" != "OPEN" ]]; then
   die "issue is not open: $issue_state"
 fi
 
-if [[ -n "$issue_author" && "$issue_author" != "(unknown)" ]]; then
-  if ! gh issue edit "$issue" --add-assignee "$issue_author" >/dev/null; then
-    printf 'warning: could not assign issue author "%s"; continuing without changing assignee\n' "$issue_author" >&2
+runner_login="$(gh api user --jq .login 2>/dev/null || true)"
+if [[ -n "$runner_login" ]]; then
+  if ! gh issue edit "$issue" --add-assignee "$runner_login" >/dev/null; then
+    printf 'warning: could not assign current gh user "%s"; continuing without changing assignee\n' "$runner_login" >&2
   fi
+else
+  printf 'warning: could not determine current gh user; continuing without changing assignee\n' >&2
 fi
 
 git switch main

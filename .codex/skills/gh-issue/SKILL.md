@@ -19,7 +19,7 @@ If this skill is installed in the user Codex skill directory, the same helper is
 ~/.codex/skills/gh-issue/scripts/prepare-gh-issue.sh <issue-number-or-url> --setup
 ```
 
-The script fetches the issue title, body, author, labels, assignees, state, and all comments into `.git/codex-gh-issues/issue-<number>.md`. With `--setup`, it also attempts to assign the issue author and creates a branch from fresh `main`.
+The script fetches the issue title, body, author, labels, assignees, state, and all comments into `.git/codex-gh-issues/issue-<number>.md`. With `--setup`, it also attempts to assign the authenticated `gh` user running the script and creates a branch from fresh `main`.
 
 If the script fails because the worktree is dirty, inspect `git status --short`. Do not stash, reset, or discard changes without explicit user approval unless every change is known to be yours.
 

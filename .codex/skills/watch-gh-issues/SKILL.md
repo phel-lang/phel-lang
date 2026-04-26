@@ -21,7 +21,7 @@ Use this skill to start the repo-local issue watcher that repeatedly invokes `$g
 
 - Poll open GitHub issues.
 - Invoke Codex on the next issue with `$gh-issue`.
-- Let `$gh-issue` fetch issue body and comments, assign the author when possible, branch from fresh `main`, implement with TDD, create grouped commits, open a PR, make CI green, merge when allowed, and update local `main`.
+- Let `$gh-issue` fetch issue body and comments, assign the authenticated `gh` user running the script when possible, branch from fresh `main`, implement with TDD, create grouped commits, open a PR, make CI green, merge when allowed, and update local `main`.
 - After one issue run completes, immediately sync `main` and poll again.
 - Sleep for `--interval` only when no open issue is available.
 - Stop if Codex issue processing fails, so the failure can be inspected instead of retried blindly.

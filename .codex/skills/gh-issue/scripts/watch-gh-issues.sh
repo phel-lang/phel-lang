@@ -134,7 +134,7 @@ poll_once() {
   if ! codex exec \
     -C "$repo" \
     --dangerously-bypass-approvals-and-sandbox \
-    "Use \$gh-issue for #$issue. Follow the skill completely: fetch the issue and comments, assign the author when possible, branch from fresh main, plan, use TDD, commit by context, add a final refactor commit, open a PR, make CI green, merge when allowed, update local main, then stop."; then
+    "Use \$gh-issue for #$issue. Follow the skill completely: fetch the issue and comments, assign the authenticated gh user running the script when possible, branch from fresh main, plan, use TDD, commit by context, add a final refactor commit, open a PR, make CI green, merge when allowed, update local main, then stop."; then
     release_lock
     return 2
   fi
