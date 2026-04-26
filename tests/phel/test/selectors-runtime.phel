@@ -31,9 +31,6 @@
 (defn- events-of [events type]
   (vec (for [e :in events :when (= type (:type e))] e)))
 
-(defn- summaries-of [events]
-  (events-of events :summary))
-
 (defn- skipped-names [events]
   (vec (for [e :in (events-of events :skipped)] (:test-name e))))
 
@@ -64,7 +61,7 @@
     (with-output-buffer
       (t/run-tests {:reporters [capture]} fixture-ns)
       (t/run-tests {:reporters [capture]} fixture-ns))
-    (let [summaries (summaries-of (deref events))]
+    (let [summaries (events-of (deref events) :summary)]
       (t/set-reporters! saved-reporters)
       (t/restore-stats saved-stats)
       (is (= 2 (count summaries)) "both runs emit a summary")
