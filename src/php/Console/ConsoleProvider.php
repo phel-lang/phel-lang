@@ -13,7 +13,7 @@ use Phel\Console\Domain\ConsoleCommandProviderInterface;
 use Phel\Console\Infrastructure\Command\ApiCommands;
 use Phel\Console\Infrastructure\Command\BuildCommands;
 use Phel\Console\Infrastructure\Command\FormatterCommands;
-use Phel\Console\Infrastructure\Command\GacelaCommands;
+use Phel\Console\Infrastructure\Command\FrameworkCommands;
 use Phel\Console\Infrastructure\Command\InteropCommands;
 use Phel\Console\Infrastructure\Command\LintCommands;
 use Phel\Console\Infrastructure\Command\LspCommands;
@@ -104,7 +104,7 @@ final class ConsoleProvider extends AbstractProvider
             new FormatterCommands(),
             new ApiCommands(),
             new BuildCommands(),
-            new GacelaCommands(),
+            new FrameworkCommands(),
             new NreplCommands(),
             new LintCommands(),
             new LspCommands(),
