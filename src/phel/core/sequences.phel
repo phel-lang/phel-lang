@@ -47,7 +47,7 @@
   (conj coll x))
 
 (defn- pop*
-  "Removes the last element of the array `coll`. If the array is empty returns nil."
+  "Removes the last element of `coll`. Returns nil for nil or empty PHP arrays."
   [^:reference coll]
   (cond
     (nil? coll) nil
