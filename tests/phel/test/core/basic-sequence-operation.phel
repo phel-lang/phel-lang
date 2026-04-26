@@ -51,6 +51,18 @@
   (is (= [] (rest [1])) "rest of one element vector")
   (is (= [] (rest [])) "rest of empty vector"))
 
+(deftest test-seq-converts-non-sequential-collections
+  (is (= '(-2.5 1 3 4) (seq (sorted-set 3 1 -2.5 4)))
+      "seq of sorted-set returns ordered sequential values")
+  (is (not (set? (seq (sorted-set 3 1 -2.5 4))))
+      "seq of sorted-set does not return a set"))
+
+(deftest test-seq-converts-php-arrays
+  (is (= '(0 0 0) (seq (int-array 3)))
+      "seq of int-array returns a Phel sequence")
+  (is (not (php/is_array (seq (int-array 3))))
+      "seq of int-array does not return a raw PHP array"))
+
 (deftest test-nfirst
   (is (= [2] (nfirst [[1 2]])) "(nfirst [[1 2]])")
   (is (= [1] (nfirst {:a 1})) "nfirst of single-entry map is the rest of the entry"))

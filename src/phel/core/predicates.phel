@@ -338,7 +338,8 @@
 
 (defn seq
   "Returns a seq on the collection. Strings are converted to a vector of characters.
-  Collections are unchanged. Returns nil if coll is empty or nil.
+  Non-sequential collections and PHP arrays are converted to vectors.
+  Returns nil if coll is empty or nil.
 
   This function is useful for explicitly converting strings to sequences of characters,
   enabling sequence operations like map, filter, and frequencies."
@@ -360,6 +361,12 @@
     ;; For other countable collections, check count (won't force lazy seqs)
     (and (php/instanceof coll Countable) (= 0 (count coll)))
     nil
+
+    (php/is_array coll)
+    (if (php/empty coll) nil (php/:: Phel (vector coll)))
+
+    (php/instanceof coll PersistentHashSetInterface)
+    (php/:: Phel (vector (to-php-array coll)))
 
     true
     coll))
