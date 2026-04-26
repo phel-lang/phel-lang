@@ -13,6 +13,8 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\FnInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
+use Phel\Lang\TypeInterface;
+use Phel\Lang\TypeStringifier;
 use Phel\Lang\Variable;
 use Phel\Lang\VarReference;
 use Phel\Printer\TypePrinter\AnonymousClassPrinter;
@@ -49,6 +51,13 @@ final readonly class Printer implements PrinterInterface
         private bool $readable,
         private bool $withColor = false,
     ) {}
+
+    public static function installAsTypeStringifier(): void
+    {
+        TypeStringifier::install(
+            static fn(TypeInterface $value): string => self::readable()->print($value),
+        );
+    }
 
     public static function readable(): self
     {

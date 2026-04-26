@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
-use Phel\Printer\Printer;
 use Stringable;
 
 /**
@@ -18,7 +17,7 @@ abstract class AbstractType implements TypeInterface, Stringable
 
     public function __toString(): string
     {
-        return Printer::readable()->print($this);
+        return TypeStringifier::toString($this);
     }
 
     public function setStartLocation(?SourceLocation $startLocation): static
