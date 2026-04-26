@@ -1011,8 +1011,8 @@
 (defn- merge-two
   [left right]
   (cond
-    (nil? left) (if (nil? right) {} (conj {} right))
-    (and (map? left) (nil? right)) left
+    (nil? left)  (when-not (nil? right) (conj {} right))
+    (nil? right) (if (map? left) left (conj left right))
     :else (conj left right)))
 
 (defn merge
@@ -1020,7 +1020,7 @@
 
   If a key appears in more than one collection, later values replace previous ones."
   {:example "(merge {:a 1 :b 2} {:b 3 :c 4}) ; => {:a 1 :b 3 :c 4}"}
-  ([] {})
+  ([] nil)
   ([map] map)
   ([map & more] (reduce merge-two map more)))
 
