@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
 
 #### Core
 - `seq` returns sequential values for sorted sets and PHP arrays (#1599)
+- `pop` handles `nil`, vectors, and lists with Clojure-compatible results (#1600)
 - Dynamic bindings are fiber-local and propagate through `future`/`async` (#1536)
 - `contains?` returns `false` for `nil` collections (#1592)
 - `parents`, `ancestors`, and `descendants` return `nil` for invalid hierarchy arguments (#1597)

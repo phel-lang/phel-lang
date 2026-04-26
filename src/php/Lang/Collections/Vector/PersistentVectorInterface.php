@@ -12,6 +12,7 @@ use Phel\Lang\ConcatInterface;
 use Phel\Lang\ConsInterface;
 use Phel\Lang\ContainsInterface;
 use Phel\Lang\FnInterface;
+use Phel\Lang\PopInterface;
 use Phel\Lang\PushInterface;
 use Phel\Lang\SeqInterface;
 use Phel\Lang\SliceInterface;
@@ -24,11 +25,12 @@ use Phel\Lang\TypeInterface;
  * @extends IteratorAggregate<T>
  * @extends ArrayAccess<int, T>
  * @extends ConcatInterface<PersistentVectorInterface<T>>
+ * @extends PopInterface<PersistentVectorInterface<T>>
  * @extends PushInterface<PersistentVectorInterface<T>>
  * @extends AsTransientInterface<TransientVectorInterface>
  * @extends ContainsInterface<int>
  */
-interface PersistentVectorInterface extends TypeInterface, SeqInterface, IteratorAggregate, Countable, ConsInterface, ArrayAccess, ConcatInterface, PushInterface, SliceInterface, AsTransientInterface, FnInterface, ContainsInterface
+interface PersistentVectorInterface extends TypeInterface, SeqInterface, IteratorAggregate, Countable, ConsInterface, ArrayAccess, ConcatInterface, PopInterface, PushInterface, SliceInterface, AsTransientInterface, FnInterface, ContainsInterface
 {
     public const int BRANCH_FACTOR = 32;
 
