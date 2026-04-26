@@ -108,21 +108,23 @@
 (defn assoc!
   "Associates one or more key-value pairs with a transient collection,
    mutating it in place. Works on transient hash-maps and transient vectors.
-   Variadic forms apply each `key-value` pair in order. Raises
+   Variadic forms apply each `key-value` pair in order. A trailing key
+   without a value is associated with `nil`. Raises
    `InvalidArgumentException` when `tcoll` is not a supported transient
-   collection or when an odd number of extra arguments is provided.
-   Matches Clojure's `assoc!` semantics."
+   collection. Matches Clojure's `assoc!` semantics."
   {:example "(persistent! (assoc! (transient {}) :a 1 :b 2)) ; => {:a 1 :b 2}"
    :see-also ["assoc" "conj!" "transient" "persistent!"]}
   [tcoll key value & more]
-  (when (php/!== 0 (php/& (count more) 1))
-    (throw (php/new InvalidArgumentException
-                    (str "assoc! expects an even number of extra arguments (key-value pairs), got "
-                         (count more)))))
   (loop [acc       (assoc-bang-pair tcoll key value)
          remaining more]
-    (if (empty? remaining)
+    (cond
+      (empty? remaining)
       acc
+
+      (empty? (rest remaining))
+      (assoc-bang-pair acc (first remaining) nil)
+
+      :else
       (recur (assoc-bang-pair acc (first remaining) (second remaining))
              (rest (rest remaining))))))
 
