@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 #### Core
+- `merge` returns `nil` for no or all-`nil` arguments (#1606)
 - `merge` accepts non-map collection operands without TypeErrors (#1603)
 - `apply` accepts strings and maps as final arguments (#1602)
 - `seq` returns sequential values for sorted sets and PHP arrays (#1599)

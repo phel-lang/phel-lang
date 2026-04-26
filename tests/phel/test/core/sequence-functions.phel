@@ -351,11 +351,22 @@
 
 (deftest test-merge
   (is (= {:a -1 :b 2 :c 3 :d 4} (merge {:a 1 :b 2} {:a -1 :c 3} {:d 4})) "merge")
+  (is (nil? (merge)) "merge without arguments returns nil")
+  (is (nil? (merge nil)) "merge with nil returns nil")
+  (is (nil? (merge nil nil)) "merge with nil arguments returns nil")
+  (is (nil? (merge nil nil nil)) "merge with multiple nil arguments returns nil")
   (is (= {:a 1} (merge nil {:a 1})) "merge treats nil as an empty map")
   (is (= {:a 1} (merge {:a 1} nil)) "merge ignores nil after a map")
+  (is (= {:a "a" :b "b"} (merge {:a nil} (first {:a "a"}) {:b "b"})) "merge accepts map entries")
+  (is (= {:foo "foo"} (merge {} [:foo "foo"])) "merge accepts vector map entries")
+  (is (= {'x 1} (merge {} ['x 1])) "merge accepts symbol vector map entries")
+  (is (= {'x 10 'y 10} (merge {'x 10} ['y 10])) "merge preserves existing entries with vector map entries")
+  (is (= {:foo "foo" :bar "bar"} (merge {} [:foo "foo"] [:bar "bar"])) "merge accepts multiple vector map entries")
+  (is (= {'x 10 'y 10 'z 10} (merge {'x 10} ['y 10] ['z 10])) "merge accepts multiple symbol vector map entries")
   (is (= '(1 1 2 3) (merge '(1 2 3) 1)) "merge accepts a list and scalar value")
   (is (= [1 2 3 4 5] (merge [1 2] 3 4 5)) "merge accepts a vector and scalar values")
   (is (= [nil {} 1 {:a "c"}] (merge [] nil {} 1 {:a "c"})) "merge accepts mixed non-map values")
+  (is (= [:foo] (merge [:foo])) "merge with one vector argument returns it unchanged")
   (is (= :foo (merge :foo)) "merge with one argument returns it unchanged"))
 
 (deftest test-merge-with-zero-args
