@@ -336,6 +336,10 @@
     (php-array? coll)                                (php/array)
     :else                                            nil))
 
+(defn- seq-vector
+  [values]
+  (if (php/empty values) nil (php/:: Phel (vector values))))
+
 (defn seq
   "Returns a seq on the collection. Strings are converted to a vector of characters.
   Non-sequential collections and PHP arrays are converted to vectors.
@@ -348,8 +352,7 @@
   [coll]
   (cond
     (php/is_string coll)
-    (let [chars (php/mb_str_split coll)]
-      (if (php/empty chars) nil (php/:: Phel (vector chars))))
+    (seq-vector (php/mb_str_split coll))
 
     (php/=== coll nil)
     nil
@@ -363,10 +366,10 @@
     nil
 
     (php/is_array coll)
-    (if (php/empty coll) nil (php/:: Phel (vector coll)))
+    (seq-vector coll)
 
     (php/instanceof coll PersistentHashSetInterface)
-    (php/:: Phel (vector (to-php-array coll)))
+    (seq-vector (to-php-array coll))
 
     true
     coll))

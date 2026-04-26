@@ -310,23 +310,35 @@
     (php/is_string coll) (and (php/is_int key) (php/>= key 0) (php/< key (php/mb_strlen coll)))
     (throw (php/new InvalidArgumentException (php/. "cannot call 'contains?' on " (php/get_class coll))))))
 
+(defn- comparable-number?
+  [x]
+  (or (php/is_int x) (php/is_float x)))
+
+(defn- comparable-sequential?
+  [x]
+  (or (php/instanceof x PersistentVectorInterface)
+      (php/instanceof x PersistentListInterface)))
+
+(defn- named-comparison-category?
+  [category]
+  (or (= category :keyword) (= category :symbol)))
+
 (defn- compare-category
   "Returns a coarse category for `compare`'s type compatibility check. `nil` is
   its own category so it can be treated as less than anything. Numbers share a
   category so `(compare 1 1.5)` works."
   [x]
   (cond
-    (php/=== x nil)                                                                                      :nil
-    (php/is_bool x)                                                                                      :bool
-    (or (php/is_int x) (php/is_float x))                                                                 :number
-    (php/is_string x)                                                                                    :string
-    (php/instanceof x Keyword)                                                                           :keyword
-    (php/instanceof x Symbol)                                                                            :symbol
-    (or (php/instanceof x PersistentVectorInterface)
-        (php/instanceof x PersistentListInterface)) :sequential
-    (php/instanceof x PersistentMapInterface)                                                            :map
-    (php/instanceof x PersistentHashSetInterface)                                                        :set
-    :else                                                                                                :other))
+    (php/=== x nil)                              :nil
+    (php/is_bool x)                              :bool
+    (comparable-number? x)                       :number
+    (php/is_string x)                            :string
+    (php/instanceof x Keyword)                   :keyword
+    (php/instanceof x Symbol)                    :symbol
+    (comparable-sequential? x)                   :sequential
+    (php/instanceof x PersistentMapInterface)    :map
+    (php/instanceof x PersistentHashSetInterface) :set
+    :else                                        :other))
 
 (declare compare)
 
@@ -349,7 +361,7 @@
 
 (defn- compare-same-category [category x y]
   (cond
-    (or (= category :keyword) (= category :symbol))
+    (named-comparison-category? category)
     (compare-named x y)
 
     (= category :sequential)

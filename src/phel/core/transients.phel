@@ -117,16 +117,14 @@
   [tcoll key value & more]
   (loop [acc       (assoc-bang-pair tcoll key value)
          remaining more]
-    (cond
-      (empty? remaining)
+    (if (empty? remaining)
       acc
-
-      (empty? (rest remaining))
-      (assoc-bang-pair acc (first remaining) nil)
-
-      :else
-      (recur (assoc-bang-pair acc (first remaining) (second remaining))
-             (rest (rest remaining))))))
+      (let [next-key   (first remaining)
+            next-value (second remaining)]
+        (if (empty? (rest remaining))
+          (assoc-bang-pair acc next-key nil)
+          (recur (assoc-bang-pair acc next-key next-value)
+                 (rest (rest remaining))))))))
 
 (defn- dissoc-bang-single
   [tcoll key]
