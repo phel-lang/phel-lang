@@ -7,56 +7,56 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 #### Compiler
-- Bare dotted class FQNs like `Phel.Lang.Foo` resolve as aliases for `\Phel\Lang\Foo`; bare uppercase names like `Exception` resolve as root-namespace aliases for `\Exception` (#1553)
-- Opt-in deprecation warning for `\` as namespace separator in `ns`, `in-ns`, `:require`, `:use`, call sites, and class FQNs — enable via `--warn-deprecations`, `PHEL_WARN_DEPRECATIONS=1`, or `PhelConfig::setWarnDeprecations(true)`; see `docs/migration/backslash-to-dot.md` (#1567)
-- Phel stdlib rewritten to dot-separated namespaces (`phel.core`, `phel.walk`, …) (#1567)
-- Phel stdlib `:use` clauses rewritten to dot-separated PHP class FQNs (`Phel.Lang.Foo`, `Symfony.Component.Console.Application`) (#1576)
+- Dot-separated PHP class names and root-class aliases now resolve in Phel code (#1553)
+- Optional deprecation warnings for backslash namespace separators (#1567)
+- Standard library namespaces now use dot-separated names (#1567)
+- Standard library `:use` clauses now use dot-separated PHP class names (#1576)
 
 #### Core
-- Hierarchy functions `isa?`, `derive`, `underive`, `parents`, `ancestors`, `descendants` accept an optional hierarchy argument (#1543)
-- `into-array` function for `.cljc` interop (#1550)
-- `==` Clojure-compatible numeric equality: `(== 1 1.0) => true` (#1561)
-- `int-array`, `long-array`, `float-array`, `double-array`, `short-array` gain the `[size init-val-or-seq]` arity (#1562)
+- Hierarchy functions accept an optional hierarchy argument (#1543)
+- Added `into-array` for `.cljc` interop (#1550)
+- `==` now follows Clojure-compatible numeric equality (#1561)
+- Primitive array helpers support `[size init-val-or-seq]` (#1562)
 
 ### Changed
 
 - **BREAKING**: Minimum PHP version bumped from 8.3 to 8.4
 
 #### Core
-- `future` now available from `phel\core` without requiring `phel\async` (#1537)
-- **BREAKING**: `phel\async`'s Clojure-parity surface moved to `phel\core` so `.cljc` portable code mirrors `clojure.core`'s defaults (#1548). The following are now reachable without a require: `async`, `await`, `await-all`, `await-any`, `pmap`, `promise`, `deliver`, `future-call`, `future-fiber`, `future?`, `future-cancel`, `future-cancelled?`, `future-done?`, `->closure`. Update existing `(:require phel\async :refer [...])` clauses to drop these symbols. `delay` deliberately stays in `phel\async` because Phel's `delay` is a sleep primitive while `clojure.core/delay` is a lazy-thunk wrapper. `pmap`'s docstring now calls out that it is single-threaded (overlaps IO, does not parallelize CPU), matching Basilisp/ClojureScript
+- `future` is available from `phel\core` (#1537)
+- **BREAKING**: Clojure-parity async functions moved from `phel\async` to `phel\core`; `delay` remains in `phel\async` (#1548)
 
 ### Fixed
 
 #### Core
-- `binding` on `^:dynamic` vars is fiber-local; `future`/`async` convey caller bindings (#1536)
-- `contains?` returns `false` for `nil` collections instead of throwing (#1592)
-- `ancestors` includes inline protocols and PHP parents for `defrecord` and `deftype` constructor functions (#1591)
-- `=` between a list and any sequential collection (vector, lazy seq) is symmetric (#1546)
-- `()` is a self-quoting empty list literal — `(conj () 1)`, `(cons 1 ())`, `(if () :a :b)` all work (#1549)
-- `isa?`, `parents`, and `ancestors` include PHP parent classes and implemented interfaces for class-string tags (#1560)
-- Bare `apply` resolves as a first-class `phel\core` function while `(apply ...)` keeps its special-form behavior (#1564)
-- `eval` returns closures and other already-evaluated PHP objects unchanged instead of throwing a `TypeError` (#1563)
+- Dynamic bindings are fiber-local and propagate through `future`/`async` (#1536)
+- `contains?` returns `false` for `nil` collections (#1592)
+- `ancestors` includes inline protocols and PHP parents for records and types (#1591)
+- Sequential equality is symmetric across lists, vectors, and lazy seqs (#1546)
+- `()` works as a self-quoting empty list literal (#1549)
+- Hierarchy checks include PHP parents and interfaces for class-string tags (#1560)
+- Bare `apply` resolves as a first-class core function (#1564)
+- `eval` returns already-evaluated PHP objects unchanged (#1563)
 
 #### Build
 - Directory scan skips unparseable `.phel` files instead of aborting
 
 #### API
-- `phel analyze` pre-loads `phel\core` so core macros resolve (#1539)
+- `phel analyze` preloads `phel\core` so core macros resolve (#1539)
 
 #### REPL
-- `dir` accepts bare namespace symbols like `(dir phel\string)` while keeping string namespace support (#1588)
+- `dir` accepts bare namespace symbols (#1588)
 
 #### Compiler
-- Bare lowercase PHP class names like `stdClass` resolve consistently with uppercase aliases like `StdClass` (#1567)
-- PHP class references imported with `use` can be bound and passed as class strings, while PHP constants imported with `use` still resolve as constants (#1560)
-- `php/new` on a non-string, non-object throws a descriptive `InvalidArgumentException` (#1538)
-- `(new stdClass)` and `(php/new stdClass)` resolve lowercase-leading root PHP class names in class position (#1567)
-- `#?` and `#?@` reader conditionals tolerate a newline before the closing paren (#1547)
+- Lowercase PHP class names resolve consistently with uppercase aliases (#1567)
+- Imported PHP classes can be used as class-string values (#1560)
+- `php/new` reports invalid target types with a clearer exception (#1538)
+- Lowercase root PHP classes resolve in constructor positions (#1567)
+- Reader conditionals allow a newline before the closing paren (#1547)
 
 #### Lint
-- `phel lint` no longer flags alias-qualified calls from `(:require ... :as alias)` as unresolved (#1540)
-- `phel lint` with no arguments skips phel's bundled stdlib in vendored installs (#1541)
+- Alias-qualified required calls no longer report as unresolved (#1540)
+- Vendored stdlib files are skipped when linting with no arguments (#1541)
 
 ## [0.34.1](https://github.com/phel-lang/phel-lang/compare/v0.34.0...v0.34.1) - 2026-04-21
 
