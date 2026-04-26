@@ -328,7 +328,8 @@
   (is (= [0 3 1 2 2 1] (kvs [3 2 1])) "kvs of vector"))
 
 (deftest test-to-php-array
-  (is (= (php/array 3 2 1) (to-php-array [3 2 1])) "to-php-array"))
+  (is (= (php/array 3 2 1) (to-php-array [3 2 1])) "to-php-array")
+  (is (= (php/array "a" "b" "c") (to-php-array "abc")) "to-php-array string characters"))
 
 (deftest test-sort
   (is (= [] (sort nil)) "sort nil")
