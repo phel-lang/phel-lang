@@ -1,6 +1,7 @@
 (in-ns phel.core)
 
 (use InvalidArgumentException)
+(use Phel\Lang\Collections\LinkedList\PersistentListInterface)
 
 ;; Control-flow macros layered on the `if` special form: `if-not`, `when`,
 ;; `when-not`, `cond`, `case`, and `condp`. Pure macros — they expand at
@@ -42,6 +43,17 @@
               (second pairs)
               (cons 'cond (apply list (next (next pairs)))))))))
 
+(defn- case-list-tests [v matchers]
+  (if (php/=== matchers nil)
+    '()
+    (cons `(equals1 ~v '~(first matchers))
+          (case-list-tests v (next matchers)))))
+
+(defn- case-test [v matcher]
+  (if (php/instanceof matcher PersistentListInterface)
+    (cons 'or (case-list-tests v matcher))
+    `(equals1 ~v '~matcher)))
+
 (defmacro case
   "Evaluates expression and matches it against constant test values, returning the associated result."
   {:example "(case x 1 \"one\" 2 \"two\" \"other\") ; => \"one\" (when x is 1)"}
@@ -49,7 +61,7 @@
   (if (next pairs)
     (let [v (gensym)]
       `(let [~v ~e]
-         (if (equals1 ~v '~(first pairs))
+         (if ~(case-test v (first pairs))
            ~(first (next pairs))
            (case ~v ~@(next (next pairs))))))
     (first pairs)))
