@@ -7,68 +7,61 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 #### Compiler
-- Dot-separated PHP class names and root-class aliases now resolve in Phel code (#1553)
-- Optional deprecation warnings for backslash namespace separators (#1567)
-- Standard library namespaces now use dot-separated names (#1567)
-- Standard library `:use` clauses now use dot-separated PHP class names (#1576)
+- Resolve dot-separated PHP class names and root-class aliases (#1553)
+- Warn optionally about deprecated backslash namespace separators (#1567)
+- Use dot-separated names in stdlib namespaces and `:use` clauses (#1567, #1576)
 
 #### Core
-- `case` accepts list matchers for Clojure-compatible alternatives (#1615)
-- Hierarchy functions accept an optional hierarchy argument (#1543)
-- Added `into-array` for `.cljc` interop (#1550)
-- `==` now follows Clojure-compatible numeric equality (#1561)
-- Primitive array helpers support `[size init-val-or-seq]` (#1562)
+- Add list matchers to `case` (#1615)
+- Add optional hierarchy arguments to hierarchy functions (#1543)
+- Add `into-array` for `.cljc` interop (#1550)
+- Compare numeric values consistently in `==` (#1561)
+- Support `[size init-val-or-seq]` in primitive array helpers (#1562)
 
 ### Changed
 
-- **BREAKING**: Minimum PHP version bumped from 8.3 to 8.4
+- **BREAKING**: Require PHP 8.4
 
 #### Core
-- `future` is available from `phel\core` (#1537)
-- **BREAKING**: Clojure-parity async functions moved from `phel\async` to `phel\core`; `delay` remains in `phel\async` (#1548)
+- Expose `future` from `phel\core` (#1537)
+- **BREAKING**: Move async functions to `phel\core`; keep `delay` in `phel\async` (#1548)
 
 ### Fixed
 
 #### Core
-- `sort` accepts Clojure-compatible `(sort comp coll)` argument order (#1613)
-- `sort` orders maps by their `[key value]` entries (#1611)
-- `assoc!` handles trailing keys from `apply` with `nil` values (#1609)
-- `sort` orders map entries and nested vectors with Clojure-compatible `compare` (#1610)
-- `merge` returns `nil` for no or all-`nil` arguments (#1606)
-- `merge` accepts non-map collection operands without TypeErrors (#1603)
+- `sort` handles `(sort comp coll)`, maps, and nested vectors (#1610, #1611, #1613)
+- `assoc!` handles `apply` trailing keys with `nil` values (#1609)
+- `merge` handles no, `nil`, and non-map operands (#1603, #1606)
 - `apply` accepts strings and maps as final arguments (#1602)
-- `seq` returns sequential values for sorted sets and PHP arrays (#1599)
-- `pop` handles `nil`, vectors, and lists with Clojure-compatible results (#1600)
-- `dissoc` removes keys from records with Clojure-compatible map results (#1607)
-- Dynamic bindings are fiber-local and propagate through `future`/`async` (#1536)
+- `seq`, `cons`, and `pop` handle more seqable and empty values (#1598, #1599, #1600)
+- `dissoc` removes record keys with consistent map results (#1607)
+- Dynamic bindings are fiber-local and propagate through `future` and `async` (#1536)
 - `contains?` returns `false` for `nil` collections (#1592)
-- `cons` accepts strings, maps, sets, and empty seqable collections (#1598)
-- `parents`, `ancestors`, and `descendants` return `nil` for invalid hierarchy arguments (#1597)
-- `ancestors` includes inline protocols and PHP parents for records and types (#1591)
+- Hierarchy lookups handle invalid arguments, inline protocols, and PHP parents (#1591, #1597)
 - Sequential equality is symmetric across lists, vectors, and lazy seqs (#1546)
-- `()` works as a self-quoting empty list literal (#1549)
+- `()` is self-quoting (#1549)
 - Hierarchy checks include PHP parents and interfaces for class-string tags (#1560)
-- Bare `apply` resolves as a first-class core function (#1564)
+- Bare `apply` resolves as a first-class function (#1564)
 - `eval` returns already-evaluated PHP objects unchanged (#1563)
 
 #### Build
-- Directory scan skips unparseable `.phel` files instead of aborting
+- Skip unparseable `.phel` files during directory scans
 
 #### API
-- `phel analyze` preloads `phel\core` so core macros resolve (#1539)
+- Preload `phel\core` in `phel analyze` so core macros resolve (#1539)
 
 #### Test
 - `run-tests` resets assertion counts for each run (#1604)
-- Default test reporter prints string literals readably in failure output (#1601)
+- Default reporter prints string literals readably in failures (#1601)
 
 #### REPL
-- `dir` accepts bare namespace symbols (#1588)
+- Accept bare namespace symbols in `dir` (#1588)
 
 #### Compiler
 - Lowercase PHP class names resolve consistently with uppercase aliases (#1567)
 - Imported PHP classes can be used as class-string values (#1560)
-- `php/new` reports invalid target types with a clearer exception (#1538)
 - Lowercase root PHP classes resolve in constructor positions (#1567)
+- `php/new` reports invalid target types clearly (#1538)
 - Reader conditionals allow a newline before the closing paren (#1547)
 
 #### Lint
