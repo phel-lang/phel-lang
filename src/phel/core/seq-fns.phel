@@ -1011,8 +1011,8 @@
 (defn- merge-two
   [left right]
   (cond
-    (nil? left) (if (nil? right) nil (conj {} right))
-    (and (map? left) (nil? right)) left
+    (nil? left)  (when-not (nil? right) (conj {} right))
+    (nil? right) (if (map? left) left (conj left right))
     :else (conj left right)))
 
 (defn merge
