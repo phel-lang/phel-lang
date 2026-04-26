@@ -23,6 +23,7 @@ use PhelTest\Integration\Run\Command\AbstractTestCommand;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use Symfony\Component\Console\Input\InputInterface;
+use Throwable;
 
 final class ReplPromptNamespaceTest extends AbstractTestCommand
 {
@@ -104,11 +105,17 @@ final class ReplPromptNamespaceTest extends AbstractTestCommand
 
         $replStartupFile = __DIR__ . '/../../../../../../src/php/Run/Domain/Repl/startup.phel';
         ob_start();
-        new ReplCommand()->setReplStartupFile($replStartupFile)->run(
-            $this->createStub(InputInterface::class),
-            $this->stubOutput(),
-        );
-        $stdout = ob_get_clean();
+        try {
+            new ReplCommand()->setReplStartupFile($replStartupFile)->run(
+                $this->createStub(InputInterface::class),
+                $this->stubOutput(),
+            );
+            $stdout = ob_get_clean();
+        } catch (Throwable $e) {
+            ob_end_clean();
+
+            throw $e;
+        }
 
         $output = $io->getOutputString() . $stdout;
         self::assertStringContainsString('Test: (= 0 (apply + ""))', $output);
