@@ -54,14 +54,7 @@ final class Seq
     public static function toApplyArguments(mixed $value): array
     {
         if ($value instanceof PersistentMapInterface) {
-            $typeFactory = TypeFactory::getInstance();
-            $args = [];
-
-            foreach ($value as $key => $item) {
-                $args[] = $typeFactory->persistentVectorFromArray([$key, $item]);
-            }
-
-            return $args;
+            return self::mapToApplyArguments($value);
         }
 
         if ($value === null) {
@@ -350,5 +343,20 @@ final class Seq
         string $escape = '\\',
     ): Generator {
         return FileGenerator::csvLines($filename, $separator, $enclosure, $escape);
+    }
+
+    /**
+     * @return list<PersistentVectorInterface>
+     */
+    private static function mapToApplyArguments(PersistentMapInterface $value): array
+    {
+        $typeFactory = TypeFactory::getInstance();
+        $args = [];
+
+        foreach ($value as $key => $item) {
+            $args[] = $typeFactory->persistentVectorFromArray([$key, $item]);
+        }
+
+        return $args;
     }
 }

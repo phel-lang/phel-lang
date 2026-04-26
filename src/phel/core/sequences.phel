@@ -172,6 +172,26 @@
       (recur (php/- i 1) (next s))
       s)))
 
+(defn- transient-vector?
+  [coll]
+  (php/instanceof coll TransientVectorInterface))
+
+(defn- transient-set?
+  [coll]
+  (php/instanceof coll TransientHashSetInterface))
+
+(defn- vector-target?
+  [coll]
+  (or (php/instanceof coll PersistentVectorInterface) (transient-vector? coll)))
+
+(defn- set-target?
+  [coll]
+  (or (php/instanceof coll PersistentHashSetInterface) (transient-set? coll)))
+
+(defn- map-target?
+  [coll]
+  (or (php/instanceof coll PersistentMapInterface) (php/instanceof coll TransientMapInterface)))
+
 (defn- assoc-pair
   "Associates a single key-value pair with a collection."
   [ds key value]
@@ -183,10 +203,10 @@
     (php-array? ds)
     (throw (php/new InvalidArgumentException "Cannot call assoc on pure PHP arrays. Use (php/aset ds key value)"))
 
-    (or (php/instanceof ds PersistentMapInterface) (php/instanceof ds TransientMapInterface))
+    (map-target? ds)
     (php/-> ds (put key value))
 
-    (or (php/instanceof ds PersistentVectorInterface) (php/instanceof ds TransientVectorInterface))
+    (vector-target? ds)
     (php/-> ds (update key value))
 
     ;; Explicit rejection for any other shape (string, list, set, sorted set,
@@ -226,10 +246,10 @@
     (php/is_array ds)
     (throw (php/new InvalidArgumentException "Cannot call dissoc on pure PHP arrays. Use (php/aunset ds key)"))
 
-    (or (php/instanceof ds PersistentMapInterface) (php/instanceof ds TransientMapInterface))
+    (map-target? ds)
     (php/-> ds (remove key))
 
-    (or (php/instanceof ds PersistentHashSetInterface) (php/instanceof ds TransientHashSetInterface))
+    (set-target? ds)
     (php/-> ds (remove key))
 
     (let [x ds]

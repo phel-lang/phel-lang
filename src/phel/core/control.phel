@@ -43,15 +43,15 @@
               (second pairs)
               (cons 'cond (apply list (next (next pairs)))))))))
 
-(defn- case-list-tests [v matchers]
+(defn- case-list-match-tests [v matchers]
   (if (php/=== matchers nil)
     '()
     (cons `(equals1 ~v '~(first matchers))
-          (case-list-tests v (next matchers)))))
+          (case-list-match-tests v (next matchers)))))
 
-(defn- case-test [v matcher]
+(defn- case-match-test [v matcher]
   (if (php/instanceof matcher PersistentListInterface)
-    (cons 'or (case-list-tests v matcher))
+    (cons 'or (case-list-match-tests v matcher))
     `(equals1 ~v '~matcher)))
 
 (defmacro case
@@ -61,7 +61,7 @@
   (if (next pairs)
     (let [v (gensym)]
       `(let [~v ~e]
-         (if ~(case-test v (first pairs))
+         (if ~(case-match-test v (first pairs))
            ~(first (next pairs))
            (case ~v ~@(next (next pairs))))))
     (first pairs)))

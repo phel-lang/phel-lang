@@ -83,6 +83,37 @@
     2 #((first fs) (apply (second fs) %&))
     (reduce comp fs)))
 
+(defn- map-entry-source?
+  [x]
+  (or (php/instanceof x PersistentMapInterface)
+      (and (php/is_array x) (not (indexed-php-array? x)))))
+
+(defn- into-entries
+  [from]
+  (if (map-entry-source? from)
+    (for [entry :pairs from] entry)
+    from))
+
+(defn- assoc-into-entry
+  [acc entry]
+  (if (not (indexed? entry))
+    (throw (php/new InvalidArgumentException
+                    "into expects a collection of [key value] pairs"))
+    (if (php/!= (count entry) 2)
+      (throw (php/new InvalidArgumentException
+                      "into expects a collection of [key value] pairs"))
+      (let [k (first entry)
+            v (second entry)]
+        (if (php/is_array acc)
+          (do
+            (php/aset acc k v)
+            acc)
+          (assoc acc k v))))))
+
+(defn- map-into-target?
+  [to]
+  (or (map-entry-source? to) (php/instanceof to TransientMapInterface)))
+
 (defn into
   "Returns `to` with all elements of `from` added.
 
@@ -99,27 +130,7 @@
     1 (let [from (first rest)]
         (if (php/=== nil from)
           to
-          (let [map-like?   (fn [x]
-                              (or (php/instanceof x PersistentMapInterface)
-                                  (and (php/is_array x) (not (indexed-php-array? x)))))
-                entries     (if (map-like? from)
-                              (for [entry :pairs from] entry)
-                              from)
-                assoc-entry (fn [acc entry]
-                              (if (indexed? entry)
-                                (if (php/!= (count entry) 2)
-                                  (throw (php/new InvalidArgumentException
-                                                  "into expects a collection of [key value] pairs"))
-                                  (let [k (first entry)
-                                        v (second entry)]
-                                    (if (php/is_array acc)
-                                      (do
-                                        (php/aset acc k v)
-                                        acc)
-                                      (assoc acc k v))))
-                                (throw (php/new InvalidArgumentException
-                                                "into expects a collection of [key value] pairs"))))
-                map-target? (or (map-like? to) (php/instanceof to TransientMapInterface))]
+          (let [entries (into-entries from)]
             (cond
               ;; Fast paths: persistent vector/set/hash-map targets build via transients,
               ;; turning O(N log N) repeated copy-on-write into O(N).
@@ -139,19 +150,19 @@
               (persistent
                (for [entry :in entries
                      :reduce [acc (transient to)]]
-                 (assoc-entry acc entry)))
+                 (assoc-into-entry acc entry)))
 
-              map-target?
+              (map-into-target? to)
               (for [entry :in entries
                     :reduce [acc to]]
-                (assoc-entry acc entry))
+                (assoc-into-entry acc entry))
 
-              (php/instanceof to TransientVectorInterface)
+              (transient-vector? to)
               (for [value :in entries
                     :reduce [acc to]]
                 (conj acc value))
 
-              (php/instanceof to TransientHashSetInterface)
+              (transient-set? to)
               (for [value :in entries
                     :reduce [acc to]]
                 (conj acc value))
@@ -174,13 +185,13 @@
 (defn- conj-single
   [coll value]
   (cond
-    (php/=== coll nil)                                                                                    (list value)
-    (php/instanceof coll PersistentListInterface)                                                         (cons value coll)
-    (php/is_array coll)                                                                                   (do (php/apush coll value) coll)
-    (or (php/instanceof coll PersistentVectorInterface) (php/instanceof coll TransientVectorInterface))   (php/-> coll (append value))
-    (or (php/instanceof coll PersistentHashSetInterface) (php/instanceof coll TransientHashSetInterface)) (php/-> coll (add value))
-    (or (php/instanceof coll PersistentMapInterface) (php/instanceof coll TransientMapInterface))         (conj-map-entry coll value)
-    (php/instanceof coll PushInterface)                                                                   (php/-> coll (push value))
+    (php/=== coll nil)                            (list value)
+    (php/instanceof coll PersistentListInterface)  (cons value coll)
+    (php/is_array coll)                            (do (php/apush coll value) coll)
+    (vector-target? coll)                          (php/-> coll (append value))
+    (set-target? coll)                             (php/-> coll (add value))
+    (map-target? coll)                             (conj-map-entry coll value)
+    (php/instanceof coll PushInterface)            (php/-> coll (push value))
     :else
     (throw (php/new InvalidArgumentException
                     (str "Cannot conj on type " (type coll))))))
@@ -739,11 +750,19 @@
   [coll val]
   (some? #(= % val) (vals coll)))
 
-(defn- sort-with
+(defn- sort-comparator
+  [comp]
+  (or comp compare))
+
+(defn- sorted-vector
   [coll comp]
   (let [php-array (to-php-array coll)]
-    (php/usort php-array (or comp compare))
+    (php/usort php-array comp)
     (copy-meta coll (php/:: Phel (vector php-array)))))
+
+(defn- sort-with
+  [coll comp]
+  (sorted-vector coll (sort-comparator comp)))
 
 (defn sort
   "Returns a sorted vector. If no comparator is supplied compare is used."
@@ -763,10 +782,8 @@
   {:example "(sort-by count [\"aaa\" \"c\" \"bb\"]) ; => [\"c\" \"bb\" \"aaa\"]"
    :see-also ["sort" "compare"]}
   [keyfn coll & [comp]]
-  (let [php-array (to-php-array coll)
-        cmp       (or comp compare)]
-    (php/usort php-array #(cmp (keyfn %1) (keyfn %2)))
-    (copy-meta coll (php/:: Phel (vector php-array)))))
+  (let [cmp (sort-comparator comp)]
+    (sorted-vector coll #(cmp (keyfn %1) (keyfn %2)))))
 
 (defn shuffle
   "Returns a random permutation of coll."
@@ -1016,7 +1033,7 @@
   [a b]
   (zipmap a b))
 
-(defn- merge-two
+(defn- merge-right
   [left right]
   (cond
     (nil? left)  (when-not (nil? right) (conj {} right))
@@ -1030,7 +1047,7 @@
   {:example "(merge {:a 1 :b 2} {:b 3 :c 4}) ; => {:a 1 :b 3 :c 4}"}
   ([] nil)
   ([map] map)
-  ([map & more] (reduce merge-two map more)))
+  ([map & more] (reduce merge-right map more)))
 
 (defn select-keys
   "Returns a new map including key value pairs from `m` selected with keys `ks`."
