@@ -46,7 +46,7 @@ Use repository instructions as the authority for local practice. In the Phel rep
    - implement the minimum correct behavior
    - keep tests green as scope expands
 7. Commit by context as work lands. Use precise staged files, not blanket `git add .`, unless the status is fully understood.
-8. After the issue plan is complete, perform one explicit refactor pass over only the branch changes. Commit that pass separately, even if small. If no refactor is justified, create a commit that documents the reviewed no-op only when the repository accepts empty commits; otherwise state why no refactor commit was made.
+8. After the issue plan is complete, perform one explicit refactor pass over only the branch changes. Commit that pass separately when it produces a real diff. If no refactor is justified, mention that in the PR body or final summary instead of creating a ceremonial commit.
 9. Run the repository quality gate. For Phel, prefer `composer test`; use narrower tests first while iterating.
 10. Update changelog only for user-facing changes, following repository policy.
 11. Open a PR with `gh pr create`, following the repository PR template exactly when present.
