@@ -62,7 +62,7 @@ Replace dependencies with controlled stand-ins for testing.
 ;; Automatically reset here
 ```
 
-For wrapped mocks (PHP/Janet interop):
+For wrapped mocks (PHP interop):
 ```phel
 (with-mock-wrapper [symfony-service mock-http
                     (fn [args] (mock-http (adapt args)))]

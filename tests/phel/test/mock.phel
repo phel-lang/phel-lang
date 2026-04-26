@@ -327,7 +327,7 @@
 ;; -----------
 
 (defn call-external-service [http-fn endpoint]
-  "Simulates calling an external service (could be PHP, Janet, or any foreign function)"
+  "Simulates calling an external service (could be PHP, Clojure, or any foreign function)"
   (http-fn endpoint))
 
 (deftest test-mock-external-interop-function
