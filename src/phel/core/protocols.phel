@@ -152,6 +152,12 @@
            :ancestors   (compute-ancestors-map pm)
            :descendants (compute-descendants-map pm))))
 
+(defn- valid-hierarchy-parents
+  "Returns h's parents map when h has the expected hierarchy shape."
+  [h]
+  (when (map? h)
+    (get h :parents)))
+
 (defn isa?
   "Returns true if child equals parent, or child is a descendant of parent.
   When a hierarchy is provided, the check is performed against it; otherwise
@@ -226,8 +232,10 @@
   ([tag]
    (parents @*hierarchy* tag))
   ([h tag]
-   (let [p (direct-parents (get h :parents) tag)]
-     (when (and p (not (empty? p))) p))))
+   (let [parents-map (valid-hierarchy-parents h)]
+     (when parents-map
+       (let [p (direct-parents parents-map tag)]
+         (when (and p (not (empty? p))) p))))))
 
 (defn ancestors
   "Returns the set of all transitive ancestors of tag, or nil.
@@ -236,8 +244,10 @@
   ([tag]
    (ancestors @*hierarchy* tag))
   ([h tag]
-   (let [a (compute-ancestors (get h :parents) tag)]
-     (when (not (empty? a)) a))))
+   (let [parents-map (valid-hierarchy-parents h)]
+     (when parents-map
+       (let [a (compute-ancestors parents-map tag)]
+         (when (not (empty? a)) a))))))
 
 (defn descendants
   "Returns the set of all descendants of tag, or nil.
@@ -246,16 +256,17 @@
   ([tag]
    (descendants @*hierarchy* tag))
   ([h tag]
-   (let [parents-map  (get h :parents)
-         all-children (keys parents-map)
-         result       (reduce
-                       (fn [acc child]
-                         (if (contains? (compute-ancestors parents-map child) tag)
-                           (union acc (hash-set child))
-                           acc))
-                       (hash-set)
-                       all-children)]
-     (when (not (empty? result)) result))))
+   (let [parents-map (valid-hierarchy-parents h)]
+     (when parents-map
+       (let [all-children (keys parents-map)
+             result       (reduce
+                           (fn [acc child]
+                             (if (contains? (compute-ancestors parents-map child) tag)
+                               (union acc (hash-set child))
+                               acc))
+                           (hash-set)
+                           all-children)]
+         (when (not (empty? result)) result))))))
 
 (defn find-hierarchy-method
   "Finds the best matching method for dispatch-val using the global hierarchy.

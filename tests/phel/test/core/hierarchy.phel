@@ -228,6 +228,14 @@
       (is (contains? desc :hdc-grandchild) "transitive descendant in hierarchy"))
     (is (nil? (descendants h :hdc-leaf)) "nil for leaf/unknown tag")))
 
+(deftest test-hierarchy-queries-return-nil-for-invalid-hierarchy
+  (is (nil? (parents "anything" "anything"))
+      "parents returns nil")
+  (is (nil? (ancestors "anything" "anything"))
+      "ancestors returns nil")
+  (is (nil? (descendants "anything" "anything"))
+      "descendants returns nil"))
+
 ;; --- multimethod with hierarchy dispatch ---
 
 ;; Multimethods must be top-level (defmulti expands to def)
