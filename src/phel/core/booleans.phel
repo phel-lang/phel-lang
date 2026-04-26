@@ -343,8 +343,12 @@
           (recur (next xs) (next ys))
           c)))))
 
+(defn- compare-named
+  [x y]
+  (php/<=> (php/-> x (getFullName)) (php/-> y (getFullName))))
+
 (defn compare
-  "Compares `x` and `y` using PHP's spaceship operator, returning a negative
+  "Compares `x` and `y`, returning a negative
   integer, zero, or a positive integer when `x` is less than, equal to, or
   greater than `y`.
 
@@ -360,8 +364,8 @@
           cy (compare-category y)]
       (if (= cx cy)
         (case cx
-          :keyword    (php/<=> (php/-> x (getFullName)) (php/-> y (getFullName)))
-          :symbol     (php/<=> (php/-> x (getFullName)) (php/-> y (getFullName)))
+          :keyword    (compare-named x y)
+          :symbol     (compare-named x y)
           :sequential (compare-sequential x y)
           (php/<=> x y))
         (throw (php/new InvalidArgumentException
