@@ -1,6 +1,6 @@
 # Phel Language
 
-Functional programming language compiling to PHP. Lisp dialect inspired by Clojure and Janet.
+Functional programming language compiling to PHP. Lisp dialect inspired by Clojure.
 
 ## Architecture
 

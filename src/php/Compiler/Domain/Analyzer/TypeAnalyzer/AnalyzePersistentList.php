@@ -77,7 +77,7 @@ final class AnalyzePersistentList
     {
         if (count($list) === 0) {
             // `()` is a self-quoting empty list literal — not an invocation
-            // of a missing head. Matches Clojure/Janet and keeps forms like
+            // of a missing head. Matches Clojure and keeps forms like
             // `(into () ...)` or `(= () (list))` usable.
             return new QuoteNode($env, $list, $list->getStartLocation());
         }

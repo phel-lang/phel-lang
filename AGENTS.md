@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-Phel is a Lisp that compiles to PHP, inspired by Clojure and Janet. The codebase has two source trees:
+Phel is a Lisp that compiles to PHP, inspired by Clojure. The codebase has two source trees:
 
 - **`src/php/`** — PHP runtime and compiler (PSR-4: `Phel\`). Key modules: `Lang` (persistent data types), `Compiler` (lex/parse/analyze/emit pipeline), `Run` (namespace execution and REPL), `Console` (Symfony CLI), `Command` (shared command helpers), `Build` (build orchestration), `Config` (configuration), and `Shared` (constants and facades).
 - **`src/phel/`** — Core library written in Phel itself: `core`, `str`, `html`, `http`, `json`, `test`, `repl`, `walk`, `pprint`, `debug`, `mock`.
