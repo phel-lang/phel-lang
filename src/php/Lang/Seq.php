@@ -22,7 +22,6 @@ use function array_values;
 use function is_array;
 use function is_string;
 use function iterator_to_array;
-use function mb_str_split;
 
 final class Seq
 {
@@ -39,11 +38,7 @@ final class Seq
      */
     public static function toIterable(mixed $value): iterable
     {
-        if (is_string($value)) {
-            return mb_str_split($value);
-        }
-
-        return $value ?? [];
+        return SequenceGenerator::toIterable($value);
     }
 
     /**
@@ -62,7 +57,7 @@ final class Seq
         }
 
         if (is_string($value)) {
-            return mb_str_split($value);
+            return iterator_to_array(SequenceGenerator::toIterator($value), false);
         }
 
         if (is_array($value)) {

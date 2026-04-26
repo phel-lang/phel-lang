@@ -10,8 +10,6 @@ use Phel\Lang\TypeFactory;
 use function count;
 use function in_array;
 use function is_object;
-use function is_string;
-use function mb_str_split;
 
 /**
  * Value-equality and sentinel-removal generators: distinct, dedupe, and compact.
@@ -43,7 +41,7 @@ final class DedupeGenerator
         $equalizer = $typeFactory->getEqualizer();
         $seen = [];
 
-        foreach (self::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::toIterable($iterable) as $value) {
             $hash = $hasher->hash($value);
 
             // Check if we've seen an equal value with this hash
@@ -85,7 +83,7 @@ final class DedupeGenerator
         $first = true;
         $prev = null;
 
-        foreach (self::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::toIterable($iterable) as $value) {
             if ($first || !$equalizer->equals($value, $prev)) {
                 yield $value;
                 $prev = $value;
@@ -136,7 +134,7 @@ final class DedupeGenerator
 
         $lookups = self::prepareCompactLookups($valuesToRemove);
 
-        foreach (self::toIterable($iterable) as $item) {
+        foreach (SequenceGenerator::toIterable($iterable) as $item) {
             if (!self::shouldRemoveItem($item, $lookups['scalarLookup'], $lookups['objects'])) {
                 yield $item;
             }
@@ -154,7 +152,7 @@ final class DedupeGenerator
      */
     private static function compactSingleValue(mixed $iterable, mixed $valueToRemove): Generator
     {
-        foreach (self::toIterable($iterable) as $item) {
+        foreach (SequenceGenerator::toIterable($iterable) as $item) {
             if ($item !== $valueToRemove) {
                 yield $item;
             }
@@ -200,19 +198,4 @@ final class DedupeGenerator
         return isset($scalarLookup[var_export($item, true)]);
     }
 
-    /**
-     * @template T
-     *
-     * @param iterable<T>|string|null $value
-     *
-     * @return iterable<string|T>
-     */
-    private static function toIterable(mixed $value): iterable
-    {
-        if (is_string($value)) {
-            return mb_str_split($value);
-        }
-
-        return $value ?? [];
-    }
 }
