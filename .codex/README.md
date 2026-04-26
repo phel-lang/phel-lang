@@ -20,3 +20,9 @@ To install the shared project skills into a local Codex profile when repo-local 
 mkdir -p ~/.codex/skills
 cp -R .codex/skills/* ~/.codex/skills/
 ```
+
+To start autonomous GitHub issue processing from Codex, invoke the repo skill:
+
+```text
+Use $watch-gh-issues
+```

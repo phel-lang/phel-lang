@@ -85,7 +85,7 @@ This skill includes an optional local supervisor:
 .codex/skills/gh-issue/scripts/watch-gh-issues.sh --repo /path/to/repo --interval 900 --execute
 ```
 
-Without `--execute`, the watcher only prints the issue it would process. Use `--once` to process or print a single candidate and exit.
+Without `--execute`, the watcher only prints the issue it would process. Use `--once` to process or print a single candidate and exit. The interval is only an idle delay: after Codex finishes an issue run, the watcher syncs `main` and immediately checks for the next open issue. It sleeps only when no issue is available.
 
 ## Human Escalation
 

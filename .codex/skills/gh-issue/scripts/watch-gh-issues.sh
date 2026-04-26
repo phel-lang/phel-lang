@@ -12,7 +12,7 @@ Defaults to dry-run. Pass --execute to run:
 
 Options:
   --repo DIR            repository to operate in; defaults to current git root
-  --interval SECONDS    poll interval; defaults to 900
+  --interval SECONDS    idle poll interval; defaults to 900
   --once                run one poll cycle and exit
   --execute             actually invoke Codex
   --limit N             issue list page size; defaults to 20
@@ -85,6 +85,15 @@ repo="$(git rev-parse --show-toplevel 2>/dev/null)" || die "not a git repository
 lock_dir="$(git rev-parse --git-path codex-gh-issue-watch.lock)"
 lock_acquired=false
 
+sync_main() {
+  if [[ -n "$(git status --porcelain)" ]]; then
+    die "worktree is dirty; cannot sync main before polling"
+  fi
+
+  git switch --quiet main
+  git pull --ff-only --prune
+}
+
 release_lock() {
   if [[ "$lock_acquired" == true ]]; then
     rm -rf "$lock_dir"
@@ -112,28 +121,52 @@ poll_once() {
   if [[ -z "$issue" ]]; then
     printf '[%s] no open issues found\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
     release_lock
-    return 0
+    return 1
   fi
 
   printf '[%s] next issue: #%s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$issue"
   if [[ "$execute" != true ]]; then
     printf 'dry-run: pass --execute to run Codex for #%s\n' "$issue"
     release_lock
-    return 0
+    return 1
   fi
 
-  codex exec \
+  if ! codex exec \
     -C "$repo" \
     --sandbox danger-full-access \
     --ask-for-approval never \
-    "Use \$gh-issue for #$issue. Follow the skill completely: fetch the issue and comments, assign the author when possible, branch from fresh main, plan, use TDD, commit by context, add a final refactor commit, open a PR, make CI green, merge when allowed, update local main, then stop."
+    "Use \$gh-issue for #$issue. Follow the skill completely: fetch the issue and comments, assign the author when possible, branch from fresh main, plan, use TDD, commit by context, add a final refactor commit, open a PR, make CI green, merge when allowed, update local main, then stop."; then
+    release_lock
+    return 2
+  fi
+
   release_lock
+  return 0
 }
 
 while true; do
-  poll_once
-  if [[ "$once" == true ]]; then
-    exit 0
-  fi
-  sleep "$interval"
+  poll_status=0
+  poll_once || poll_status=$?
+
+  case "$poll_status" in
+    0)
+      sync_main
+      if [[ "$once" == true ]]; then
+        exit 0
+      fi
+      continue
+      ;;
+    1)
+      if [[ "$once" == true ]]; then
+        exit 0
+      fi
+
+      sync_main
+      printf '[%s] sleeping for %s seconds before polling again\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$interval"
+      sleep "$interval"
+      ;;
+    *)
+      die "Codex issue processing failed; watcher stopped"
+      ;;
+  esac
 done
