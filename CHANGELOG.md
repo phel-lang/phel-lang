@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 #### Core
 - Dynamic bindings are fiber-local and propagate through `future`/`async` (#1536)
 - `contains?` returns `false` for `nil` collections (#1592)
+- `cons` accepts strings, maps, sets, and empty seqable collections (#1598)
 - `parents`, `ancestors`, and `descendants` return `nil` for invalid hierarchy arguments (#1597)
 - `ancestors` includes inline protocols and PHP parents for records and types (#1591)
 - Sequential equality is symmetric across lists, vectors, and lazy seqs (#1546)
