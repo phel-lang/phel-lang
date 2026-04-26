@@ -103,14 +103,11 @@ final class TransformGenerator
      */
     public static function keepIndexed(callable $f, mixed $iterable): Generator
     {
-        $index = 0;
-        foreach (SequenceGenerator::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::indexed($iterable) as [$index, $value]) {
             $result = $f($index, $value);
             if ($result !== null) {
                 yield $result;
             }
-
-            ++$index;
         }
     }
 
@@ -174,11 +171,8 @@ final class TransformGenerator
      */
     public static function mapIndexed(callable $f, mixed $iterable): Generator
     {
-        $index = 0;
-        foreach (SequenceGenerator::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::indexed($iterable) as [$index, $value]) {
             yield $f($index, $value);
-            ++$index;
         }
     }
-
 }
