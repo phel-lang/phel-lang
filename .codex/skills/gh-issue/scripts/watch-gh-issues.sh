@@ -71,22 +71,35 @@ done
 
 require_cmd gh
 require_cmd git
-require_cmd codex
 
 if [[ -z "$repo" ]]; then
   repo="$(git rev-parse --show-toplevel 2>/dev/null)" || die "not inside a git repository; pass --repo"
 fi
 
+if [[ "$execute" == true ]]; then
+  require_cmd codex
+fi
+
 cd "$repo"
 repo="$(git rev-parse --show-toplevel 2>/dev/null)" || die "not a git repository: $repo"
 lock_dir="$(git rev-parse --git-path codex-gh-issue-watch.lock)"
+lock_acquired=false
+
+release_lock() {
+  if [[ "$lock_acquired" == true ]]; then
+    rm -rf "$lock_dir"
+    lock_acquired=false
+  fi
+}
+
+trap release_lock EXIT INT TERM
 
 poll_once() {
   if ! mkdir "$lock_dir" 2>/dev/null; then
     printf 'another watcher appears to be running: %s\n' "$lock_dir" >&2
     return 0
   fi
-  trap 'rm -rf "$lock_dir"' RETURN
+  lock_acquired=true
 
   issue="$(
     gh issue list \
@@ -97,13 +110,15 @@ poll_once() {
   )"
 
   if [[ -z "$issue" ]]; then
-    printf '[%s] no open issues found\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+    printf '[%s] no open issues found\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+    release_lock
     return 0
   fi
 
-  printf '[%s] next issue: #%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$issue"
+  printf '[%s] next issue: #%s\n' "$(date -u '+%Y-%m-%dT%H:%M:%SZ')" "$issue"
   if [[ "$execute" != true ]]; then
     printf 'dry-run: pass --execute to run Codex for #%s\n' "$issue"
+    release_lock
     return 0
   fi
 
@@ -112,6 +127,7 @@ poll_once() {
     --sandbox danger-full-access \
     --ask-for-approval never \
     "Use \$gh-issue for #$issue. Follow the skill completely: fetch the issue and comments, assign the author when possible, branch from fresh main, plan, use TDD, commit by context, add a final refactor commit, open a PR, make CI green, merge when allowed, update local main, then stop."
+  release_lock
 }
 
 while true; do

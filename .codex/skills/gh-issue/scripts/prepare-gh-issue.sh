@@ -41,10 +41,30 @@ done
 
 require_cmd gh
 require_cmd git
+require_cmd python3
 
-issue="$issue_arg"
-issue="${issue##*/}"
-issue="${issue#\#}"
+parse_issue_number() {
+  local value="$1"
+
+  if [[ "$value" =~ ^#?([0-9]+)$ ]]; then
+    printf '%s\n' "${BASH_REMATCH[1]}"
+    return 0
+  fi
+
+  if [[ "$value" =~ /issues/([0-9]+)($|[/?#]) ]]; then
+    printf '%s\n' "${BASH_REMATCH[1]}"
+    return 0
+  fi
+
+  value="${value%/}"
+  value="${value##*/}"
+  value="${value%%\?*}"
+  value="${value%%#*}"
+  [[ "$value" =~ ^[0-9]+$ ]] || return 1
+  printf '%s\n' "$value"
+}
+
+issue="$(parse_issue_number "$issue_arg")" || die "could not parse issue number from: $issue_arg"
 [[ "$issue" =~ ^[0-9]+$ ]] || die "could not parse issue number from: $issue_arg"
 
 repo_root="$(git rev-parse --show-toplevel 2>/dev/null)" || die "not inside a git repository"
@@ -54,18 +74,21 @@ context_dir="$(git rev-parse --git-path codex-gh-issues)"
 mkdir -p "$context_dir"
 json_file="$context_dir/issue-$issue.json"
 context_file="$context_dir/issue-$issue.md"
+metadata_file="$context_dir/issue-$issue.env"
 
 gh issue view "$issue" \
   --json number,title,body,author,comments,labels,assignees,state,url \
   >"$json_file"
 
-python3 - "$json_file" "$context_file" <<'PY'
+python3 - "$json_file" "$context_file" "$metadata_file" <<'PY'
 import json
+import re
 import sys
 from pathlib import Path
 
 json_path = Path(sys.argv[1])
 context_path = Path(sys.argv[2])
+metadata_path = Path(sys.argv[3])
 data = json.loads(json_path.read_text())
 
 def login(value):
@@ -73,9 +96,36 @@ def login(value):
         return value.get("login") or value.get("name") or ""
     return ""
 
-labels = ", ".join(label.get("name", "") for label in data.get("labels", []) if label.get("name")) or "(none)"
+def shell_quote(value):
+    return "'" + str(value).replace("'", "'\"'\"'") + "'"
+
+def branch_prefix(label_names):
+    labels = set(label_names)
+    if "bug" in labels:
+        return "fix"
+    if labels.intersection({"enhancement", "feature"}):
+        return "feat"
+    if labels.intersection({"documentation", "docs"}):
+        return "docs"
+    if labels.intersection({"performance", "perf"}):
+        return "perf"
+    if "refactor" in labels:
+        return "ref"
+    if labels.intersection({"test", "tests"}):
+        return "test"
+    return "feat"
+
+def slugify(title):
+    slug = re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+    return slug[:60].rstrip("-") or "issue"
+
+label_names = [label.get("name", "") for label in data.get("labels", []) if label.get("name")]
+labels = ", ".join(label_names) or "(none)"
 assignees = ", ".join(login(user) for user in data.get("assignees", []) if login(user)) or "(none)"
 author = login(data.get("author", {})) or "(unknown)"
+title = data.get("title", "")
+state = data.get("state", "")
+branch = f"{branch_prefix(label_names)}/{data.get('number')}-{slugify(title)}"
 
 lines = [
     f"# Issue #{data.get('number')}: {data.get('title', '')}",
@@ -108,35 +158,27 @@ else:
         ])
 
 context_path.write_text("\n".join(lines).rstrip() + "\n")
-print(context_path)
+metadata_path.write_text(
+    "\n".join(
+        [
+            f"issue_author={shell_quote(author)}",
+            f"issue_state={shell_quote(state)}",
+            f"issue_branch={shell_quote(branch)}",
+        ]
+    )
+    + "\n"
+)
 PY
 
-title="$(gh issue view "$issue" --json title --jq .title)"
-author="$(gh issue view "$issue" --json author --jq .author.login)"
-state="$(gh issue view "$issue" --json state --jq .state)"
-labels="$(gh issue view "$issue" --json labels --jq '[.labels[].name] | join(" ")')"
-
-prefix="feat"
-case " $labels " in
-  *" bug "*) prefix="fix" ;;
-  *" enhancement "*|*" feature "*) prefix="feat" ;;
-  *" documentation "*|*" docs "*) prefix="docs" ;;
-  *" performance "*|*" perf "*) prefix="perf" ;;
-  *" refactor "*) prefix="ref" ;;
-  *" test "*|*" tests "*) prefix="test" ;;
-esac
-
-slug="$(printf '%s' "$title" \
-  | tr '[:upper:]' '[:lower:]' \
-  | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//; s/-+/-/g' \
-  | cut -c 1-60 \
-  | sed -E 's/-+$//')"
-[[ -n "$slug" ]] || slug="issue"
-branch="$prefix/$issue-$slug"
+issue_author=
+issue_state=
+issue_branch=
+# shellcheck disable=SC1090
+source "$metadata_file"
 
 printf 'Issue context: %s\n' "$context_file"
-printf 'Issue state: %s\n' "$state"
-printf 'Suggested branch: %s\n' "$branch"
+printf 'Issue state: %s\n' "$issue_state"
+printf 'Suggested branch: %s\n' "$issue_branch"
 
 if [[ "$setup" != true ]]; then
   exit 0
@@ -146,17 +188,17 @@ if [[ -n "$(git status --porcelain)" ]]; then
   die "worktree is dirty; inspect changes before creating a fresh issue branch"
 fi
 
-if [[ "$state" != "OPEN" ]]; then
-  die "issue is not open: $state"
+if [[ "$issue_state" != "OPEN" ]]; then
+  die "issue is not open: $issue_state"
 fi
 
-if [[ -n "$author" && "$author" != "null" ]]; then
-  if ! gh issue edit "$issue" --add-assignee "$author" >/dev/null; then
-    printf 'warning: could not assign issue author "%s"; continuing without changing assignee\n' "$author" >&2
+if [[ -n "$issue_author" && "$issue_author" != "(unknown)" ]]; then
+  if ! gh issue edit "$issue" --add-assignee "$issue_author" >/dev/null; then
+    printf 'warning: could not assign issue author "%s"; continuing without changing assignee\n' "$issue_author" >&2
   fi
 fi
 
 git switch main
 git pull --ff-only --prune
-git switch -c "$branch"
-printf 'Created branch: %s\n' "$branch"
+git switch -c "$issue_branch"
+printf 'Created branch: %s\n' "$issue_branch"
