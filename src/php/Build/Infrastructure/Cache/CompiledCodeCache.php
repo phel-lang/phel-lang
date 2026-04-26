@@ -11,8 +11,6 @@ use function count;
 use function function_exists;
 use function is_array;
 use function is_string;
-use function md5;
-use function sprintf;
 
 use function token_get_all;
 
@@ -45,11 +43,20 @@ final class CompiledCodeCache
      */
     private array $envMemo = [];
 
+    private readonly CachePathResolver $pathResolver;
+
+    private readonly AtomicFileWriter $fileWriter;
+
     public function __construct(
         private readonly string $cacheDir,
         private readonly string $phelVersion = '',
         private readonly int $maxEntries = 500,
-    ) {}
+        ?CachePathResolver $pathResolver = null,
+        ?AtomicFileWriter $fileWriter = null,
+    ) {
+        $this->pathResolver = $pathResolver ?? new CachePathResolver($this->cacheDir);
+        $this->fileWriter = $fileWriter ?? new AtomicFileWriter();
+    }
 
     /**
      * Returns the path to the cached compiled PHP file if it exists and
@@ -143,9 +150,7 @@ final class CompiledCodeCache
      */
     public function getEnvironmentPath(string $namespace): string
     {
-        $mungedNamespace = str_replace(['\\', '/'], '_', $namespace);
-
-        return $this->cacheDir . '/compiled/' . $mungedNamespace . '.env.php';
+        return $this->pathResolver->environmentPath($namespace);
     }
 
     public function putEnvironment(string $namespace, array $envData): void
@@ -390,10 +395,7 @@ final class CompiledCodeCache
      */
     private function getCachePath(string $namespace, string $sourcePath, string $suffix): string
     {
-        $mungedNamespace = str_replace(['\\', '/'], '_', $namespace);
-        $sourceFingerprint = substr(md5($sourcePath), 0, 8);
-
-        return $this->cacheDir . '/compiled/' . $mungedNamespace . '__' . $sourceFingerprint . $suffix;
+        return $this->pathResolver->compiledPath($namespace, $sourcePath, $suffix);
     }
 
     /**
@@ -401,25 +403,7 @@ final class CompiledCodeCache
      */
     private function atomicWrite(string $path, string $content): bool
     {
-        $tempPath = $path . '.tmp.' . uniqid('', true);
-        if (file_put_contents($tempPath, $content) === false) {
-            trigger_error(
-                sprintf('Phel cache: failed to write temp file "%s"', $tempPath),
-                E_USER_WARNING,
-            );
-            return false;
-        }
-
-        if (!rename($tempPath, $path)) {
-            trigger_error(
-                sprintf('Phel cache: failed to rename "%s" to "%s"', $tempPath, $path),
-                E_USER_WARNING,
-            );
-            @unlink($tempPath);
-            return false;
-        }
-
-        return true;
+        return $this->fileWriter->write($path, $content);
     }
 
     private function ensureCacheDir(): void
