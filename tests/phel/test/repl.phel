@@ -207,6 +207,19 @@
     (is (= "side\n" (get result :out)) "eval-capturing captures side-effect output")
     (is (= true (get result :success)) "eval-capturing reports success")))
 
+(deftest test-eval-capturing-dir-accepts-bare-namespace-symbol
+  (let [original-ns *ns*]
+    (try
+      (eval-str "(ns user (:require phel\\repl :refer [dir]))")
+      (let [result (eval-capturing "(dir phel\\string)")
+            out    (get result :out)]
+        (is (= nil (get result :value)) "dir returns nil")
+        (is (= true (get result :success)) "dir succeeds from a REPL string")
+        (is (s/contains? out "split") "dir lists phel\\string definitions")
+        (is (s/contains? out "trim") "dir lists phel\\string definitions"))
+      (finally
+        (eval-str (str "(ns " original-ns ")"))))))
+
 (deftest test-eval-capturing-error-case
   (let [result (eval-capturing "(throw (php/new \\Exception \"boom\"))")]
     (is (= false (get result :success)) "eval-capturing reports failure on error")
