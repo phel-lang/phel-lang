@@ -13,7 +13,7 @@
   (is (= [1] (cons 1 "")) "cons empty string")
   (is (= [1 1 2 3] (cons 1 (sorted-set 1 2 3))) "cons sorted set")
   (is (= [1] (cons 1 #{})) "cons empty set")
-  (is (= [1 [:2 2] [:3 3]] (cons 1 {:2 2 :3 3})) "cons map")
+  (is (= [1 [:2 2] [:3 3]] (cons 1 (sorted-map :2 2 :3 3))) "cons sorted map")
   (is (= [1] (cons 1 {})) "cons empty map")
   (is (= [1] (cons 1 nil)) "cons nil"))
 

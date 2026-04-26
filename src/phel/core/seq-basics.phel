@@ -42,6 +42,20 @@
       (php/apush result v))
     (php/:: Phel (vector result))))
 
+(defn- cons-non-array [x coll]
+  (if (php/instanceof coll ConsInterface)
+    (php/-> coll (cons x))
+    (if (php/=== coll nil)
+      [x]
+      (if (php/is_string coll)
+        (cons-string x coll)
+        (if (php/instanceof coll PersistentMapInterface)
+          (cons-map x coll)
+          (if (php/is_iterable coll)
+            (cons-iterable x coll)
+            (throw (php/new InvalidArgumentException
+                            (php/. "cannot do cons " (php/print_r x true))))))))))
+
 (defn cons
   "Prepends an element to the beginning of a collection."
   {:example "(cons 0 [1 2 3]) ; => [0 1 2 3]"}
@@ -50,18 +64,7 @@
     (do
       (php/array_unshift coll x)
       coll)
-    (if (php/instanceof coll ConsInterface)
-      (php/-> coll (cons x))
-      (if (php/=== coll nil)
-        [x]
-        (if (php/is_string coll)
-          (cons-string x coll)
-          (if (php/instanceof coll PersistentMapInterface)
-            (cons-map x coll)
-            (if (php/is_iterable coll)
-              (cons-iterable x coll)
-              (throw (php/new InvalidArgumentException
-                              (php/. "cannot do cons " (php/print_r x true)))))))))))
+    (cons-non-array x coll)))
 
 (defn ffirst
   "Same as `(first (first coll))`."
