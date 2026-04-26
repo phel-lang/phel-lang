@@ -6,8 +6,6 @@ namespace Phel\Config;
 
 use JsonSerializable;
 
-use function sprintf;
-
 final class PhelConfig implements JsonSerializable
 {
     public const string SRC_DIRS = 'src-dirs';
@@ -467,25 +465,7 @@ final class PhelConfig implements JsonSerializable
      */
     public function validate(): array
     {
-        $errors = [];
-
-        foreach ($this->srcDirs as $dir) {
-            if (str_starts_with($dir, '/')) {
-                $errors[] = sprintf("Source directory '%s' should be relative, not absolute", $dir);
-            }
-        }
-
-        foreach ($this->testDirs as $dir) {
-            if (str_starts_with($dir, '/')) {
-                $errors[] = sprintf("Test directory '%s' should be relative, not absolute", $dir);
-            }
-        }
-
-        if ($this->vendorDir !== '' && str_starts_with($this->vendorDir, '/')) {
-            $errors[] = sprintf("Vendor directory '%s' should be relative, not absolute", $this->vendorDir);
-        }
-
-        return $errors;
+        return new PhelConfigValidator()->validate($this->srcDirs, $this->testDirs, $this->vendorDir);
     }
 
     // ========================================
@@ -520,19 +500,6 @@ final class PhelConfig implements JsonSerializable
      */
     private static function detectLayout(): ProjectLayout
     {
-        $cwd = getcwd();
-        if ($cwd === false) {
-            return ProjectLayout::Flat;
-        }
-
-        if (is_dir($cwd . '/src/phel')) {
-            return ProjectLayout::Nested;
-        }
-
-        if (is_dir($cwd . '/src')) {
-            return ProjectLayout::Flat;
-        }
-
-        return ProjectLayout::Root;
+        return new ProjectLayoutDetector()->detectFromCurrentWorkingDirectory();
     }
 }
