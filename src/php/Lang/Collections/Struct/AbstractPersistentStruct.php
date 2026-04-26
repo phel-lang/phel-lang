@@ -52,7 +52,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
             return false;
         }
 
-        return in_array($key->getName(), static::ALLOWED_KEYS);
+        return in_array($key->getName(), static::ALLOWED_KEYS, true);
     }
 
     public function put($key, $value): PersistentMapInterface
@@ -70,18 +70,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
             return $this;
         }
 
-        $kvs = [];
-        foreach (static::ALLOWED_KEYS as $allowedKey) {
-            $entryKey = Phel::keyword($allowedKey);
-            if ($this->equalizer->equals($entryKey, $key)) {
-                continue;
-            }
-
-            $kvs[] = $entryKey;
-            $kvs[] = $this->{$this->keyEncoder->encode($allowedKey)};
-        }
-
-        return TypeFactory::getInstance()->persistentMapFromArray($kvs);
+        return $this->toPersistentMapWithout($key);
     }
 
     public function count(): int
@@ -133,5 +122,21 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
 
         $structName = static::class;
         throw new InvalidArgumentException(sprintf("This key '%s' is not allowed for struct %s", (string) $key, $structName));
+    }
+
+    private function toPersistentMapWithout(Keyword $key): PersistentMapInterface
+    {
+        $kvs = [];
+        foreach (static::ALLOWED_KEYS as $allowedKey) {
+            $entryKey = Phel::keyword($allowedKey);
+            if ($this->equalizer->equals($entryKey, $key)) {
+                continue;
+            }
+
+            $kvs[] = $entryKey;
+            $kvs[] = $this->{$this->keyEncoder->encode($allowedKey)};
+        }
+
+        return TypeFactory::getInstance()->persistentMapFromArray($kvs);
     }
 }
