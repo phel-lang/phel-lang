@@ -328,6 +328,21 @@
     (php/instanceof x PersistentHashSetInterface)                                                        :set
     :else                                                                                                :other))
 
+(declare compare)
+
+(defn- compare-sequential
+  [xs ys]
+  (loop [xs xs
+         ys ys]
+    (cond
+      (nil? xs) (if (nil? ys) 0 -1)
+      (nil? ys) 1
+      :else
+      (let [c (compare (first xs) (first ys))]
+        (if (= c 0)
+          (recur (next xs) (next ys))
+          c)))))
+
 (defn compare
   "Compares `x` and `y` using PHP's spaceship operator, returning a negative
   integer, zero, or a positive integer when `x` is less than, equal to, or
@@ -344,6 +359,10 @@
     (let [cx (compare-category x)
           cy (compare-category y)]
       (if (= cx cy)
-        (php/<=> x y)
+        (case cx
+          :keyword    (php/<=> (php/-> x (getFullName)) (php/-> y (getFullName)))
+          :symbol     (php/<=> (php/-> x (getFullName)) (php/-> y (getFullName)))
+          :sequential (compare-sequential x y)
+          (php/<=> x y))
         (throw (php/new InvalidArgumentException
                         (str "Cannot compare " cx " with " cy)))))))
