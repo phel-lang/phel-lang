@@ -27,6 +27,7 @@ use Phel\Api\Domain\SourceAnalyzerInterface;
 use Phel\Api\Domain\SymbolResolverInterface;
 use Phel\Api\Infrastructure\Daemon\ApiDaemon;
 use Phel\Api\Infrastructure\PhelFnLoader;
+use Phel\Api\Infrastructure\PhelFunctionRuntimeLoader;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
@@ -112,7 +113,7 @@ final class ApiFactory extends AbstractFactory
     private function createPhelFnLoader(): PhelFnLoaderInterface
     {
         return new PhelFnLoader(
-            $this->getRunFacade(),
+            new PhelFunctionRuntimeLoader($this->getRunFacade()),
         );
     }
 
