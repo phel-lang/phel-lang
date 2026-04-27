@@ -434,7 +434,7 @@
               (copy-meta coll result)))))
     (throw (php/new InvalidArgumentException "take expects 1 or 2 arguments"))))
 
-(defn- take-last-seqable
+(defn- take-last-buffered
   [n coll]
   (let [buffer (php/array)]
     (dofor [x :in coll]
@@ -452,7 +452,7 @@
     (php/<= n 0) []
     (or (php-array? coll)
         (php/instanceof coll SliceInterface)) (slice coll (php/* -1 n))
-    :else (take-last-seqable n coll)))
+    :else (take-last-buffered n coll)))
 
 (defn take-while
   "Takes all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence.
