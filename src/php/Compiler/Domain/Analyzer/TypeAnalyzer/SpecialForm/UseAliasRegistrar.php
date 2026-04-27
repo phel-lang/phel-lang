@@ -120,19 +120,23 @@ final readonly class UseAliasRegistrar
     private function assertImportExists(Symbol $symbol, PersistentListInterface $form): void
     {
         $name = $symbol->getName();
-        $lookupName = ltrim($name, '\\');
 
-        if (
-            class_exists($lookupName)
-            || interface_exists($lookupName)
-            || trait_exists($lookupName)
-            || enum_exists($lookupName)
-            || defined($name)
-        ) {
+        if ($this->importExists($name)) {
             return;
         }
 
         throw AnalyzerException::withLocation(sprintf('Cannot import unknown PHP symbol %s.', $name), $form);
+    }
+
+    private function importExists(string $name): bool
+    {
+        $lookupName = ltrim($name, '\\');
+
+        return class_exists($lookupName)
+            || interface_exists($lookupName)
+            || trait_exists($lookupName)
+            || enum_exists($lookupName)
+            || defined($name);
     }
 
     private function createAliasFromSymbol(?Symbol $alias, Symbol $symbol): Symbol
