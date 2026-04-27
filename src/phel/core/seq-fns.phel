@@ -264,6 +264,10 @@
      (for [x :in coll :reduce [acc (transient [])]]
        (conj! acc x)))))
 
+(defn- get-in-traversable?
+  [x]
+  (or (coll? x) (php/is_array x)))
+
 (defn get-in
   "Accesses a value in a nested data structure via a sequence of keys.
 
@@ -278,7 +282,7 @@
       (if (nil? res) opt res)
 
       (or (nil? res)
-          (not (or (coll? res) (php/is_array res))))
+          (not (get-in-traversable? res)))
       opt
 
       :else
