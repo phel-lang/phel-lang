@@ -5,6 +5,7 @@
 (use Phel\Lang\Collections\HashSet\PersistentHashSetInterface)
 (use Phel\Lang\Collections\HashSet\TransientHashSetInterface)
 (use Phel\Lang\Collections\LazySeq\LazySeq)
+(use Phel\Lang\Collections\LazySeq\LazySeqInterface)
 (use Phel\Lang\Collections\LinkedList\PersistentListInterface)
 (use Phel\Lang\Collections\Map\PersistentMapInterface)
 (use Phel\Lang\Collections\Map\TransientMapInterface)
@@ -187,6 +188,7 @@
   (cond
     (php/=== coll nil)                            (list value)
     (php/instanceof coll PersistentListInterface)  (cons value coll)
+    (php/instanceof coll LazySeqInterface)         (cons value coll)
     (php/is_array coll)                            (do (php/apush coll value) coll)
     (vector-target? coll)                          (php/-> coll (append value))
     (set-target? coll)                             (php/-> coll (add value))
