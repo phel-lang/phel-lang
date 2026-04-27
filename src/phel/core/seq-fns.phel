@@ -487,12 +487,11 @@
                             (rf result input) result))))))
     1 (let [coll (first args)
             s    (seq coll)]
-        (if (nil? s)
-          []
-          (if (php/<= n 0)
-            (copy-meta coll (lazy-seq-from-generator (php/:: Seq (repeat (first s)))))
-            (let [result (lazy-seq-from-generator (php/:: Seq (takeNth n coll)))]
-              (copy-meta coll (or result []))))))
+        (cond
+          (nil? s)      []
+          (php/<= n 0) (copy-meta coll (lazy-seq-from-generator (php/:: Seq (repeat (first s)))))
+          :else        (let [result (lazy-seq-from-generator (php/:: Seq (takeNth n coll)))]
+                         (copy-meta coll (or result [])))))
     (throw (php/new InvalidArgumentException "take-nth expects 1 or 2 arguments"))))
 
 (defn filter
