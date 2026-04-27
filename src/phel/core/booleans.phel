@@ -264,12 +264,11 @@
   {:example "(some #(when (> % 10) %) [5 15 8]) ; => 15"}
   [pred coll]
   (loop [s (seq coll)]
-    (if (nil? s)
-      nil
-      (let [res (pred (first s))]
-        (if (truthy? res)
-          res
-          (recur (next s)))))))
+    (let [res (if (nil? s) nil (pred (first s)))]
+      (cond
+        (nil? s)      nil
+        (truthy? res) res
+        :else         (recur (next s))))))
 
 (defn true?
   "Checks if value is exactly true (not just truthy)."
