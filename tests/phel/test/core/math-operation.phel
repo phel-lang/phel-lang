@@ -113,6 +113,9 @@
 (deftest test-max
   (is (= 3 (max 1 2 3)) "(max 1 2 3)"))
 
+(deftest test-rand-nth
+  (is (nil? (rand-nth nil)) "(rand-nth nil)"))
+
 (deftest test-min-key
   (is (= {:a 1} (min-key :a {:a 1} {:a 3} {:a 2}))
       "min-key with keyword key")

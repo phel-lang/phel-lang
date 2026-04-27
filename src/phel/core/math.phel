@@ -346,7 +346,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 (defn rand-nth
   "Returns a random item from xs."
   [xs]
-  (get xs (rand-int (dec (count xs)))))
+  (when-not (nil? xs)
+    (get xs (rand-int (dec (count xs))))))
 
 (defn extreme
   "Returns the most extreme value in `args` based on the binary `order` function."
@@ -406,4 +407,3 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
       (if (odd? cnt)
         (php/aget arr mid)
         (/ (+ (php/aget arr (dec mid)) (php/aget arr mid)) 2)))))
-
