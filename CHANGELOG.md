@@ -40,7 +40,7 @@ All notable changes to this project will be documented in this file.
 - `nth` handles transient vectors (#1641)
 - `take-last` handles finite ranges (#1643)
 - `some` accepts sets as seqable collections (#1639)
-- `rest` returns an empty sequence for `nil` collections (#1638)
+- `rest` returns an empty sequence for `nil` collections (#1638, #1652)
 - `sort` handles `(sort comp coll)`, maps, and nested vectors (#1610, #1611, #1613)
 - `assoc!` handles `apply` trailing keys with `nil` values (#1609)
 - `merge` handles no, `nil`, and non-map operands (#1603, #1606)
