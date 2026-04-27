@@ -929,8 +929,9 @@
     1 (let [coll (first args)]
         (if (php/=== nil coll)
           '()
-          (let [result (lazy-seq-from-generator
-                        (php/:: \Phel\Lang\Seq (mapcat f coll)))]
+          (let [input  (if (map? coll) (pairs coll) coll)
+                result (lazy-seq-from-generator
+                        (php/:: \Phel\Lang\Seq (mapcat f input)))]
             (if (php/=== nil result)
               '()
               (copy-meta coll result)))))

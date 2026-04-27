@@ -447,6 +447,10 @@
   (is (= [1 2 3 4 5 6] (doall (mapcat identity [[1 2] [3 4] [5 6]])))
       "mapcat identity should flatten one level"))
 
+(deftest test-mapcat-identity-flattens-map-entries
+  (is (= [:a 1 :b 2 :c 3] (doall (mapcat identity {:a 1 :b 2 :c 3})))
+      "mapcat identity should flatten map key-value entries"))
+
 (deftest test-mapcat-with-infinite-sequence
   (is (= [0 0 1 1 2 2 3 3 4 4] (take 10 (mapcat #(list % %) (iterate inc 0))))
       "mapcat should work with infinite sequences"))
