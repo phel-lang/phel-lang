@@ -56,14 +56,29 @@
   (fn [& xs]
     (php/:: Phel (map (apply php/array xs)))))
 
+(def next-vector-or-nil
+  {:private true
+   :doc "Returns all values after the first array value as a persistent vector, or nil."}
+  (fn [values]
+    (let [sliced (php/array_slice values 1)]
+      (if (php/empty sliced)
+        nil
+        (php/:: Phel (vector sliced))))))
+
 (def next-of-set
   {:private true
    :doc "Returns all values after the first persistent set value, or nil."}
   (fn [s]
-    (let [sliced (php/array_slice (php/-> s (toPhpArray)) 1)]
-      (if (php/empty sliced)
-        nil
-        (php/:: Phel (vector sliced))))))
+    (next-vector-or-nil (php/-> s (toPhpArray)))))
+
+(def next-of-map
+  {:private true
+   :doc "Returns all `[k v]` entries after the first persistent map entry, or nil."}
+  (fn [m]
+    (let [entries (php/array)]
+      (foreach [k v m]
+        (php/apush entries [k v]))
+      (next-vector-or-nil entries))))
 
 (def next
   {:doc "Returns the sequence after the first element, or nil if empty."
@@ -85,8 +100,10 @@
                   sliced))
               (if (php/instanceof xs PersistentHashSetInterface)
                 (next-of-set xs)
-                (throw (php/new InvalidArgumentException
-                                (php/. "cannot call 'next on " (php/gettype xs)))))))))))
+                (if (php/instanceof xs PersistentMapInterface)
+                  (next-of-map xs)
+                  (throw (php/new InvalidArgumentException
+                                  (php/. "cannot call 'next on " (php/gettype xs))))))))))))
 
 (def first-map-entry
   {:private true
