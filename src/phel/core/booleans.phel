@@ -263,12 +263,13 @@
   "Returns the first truthy value of applying predicate to elements, or nil if none found."
   {:example "(some #(when (> % 10) %) [5 15 8]) ; => 15"}
   [pred coll]
-  (if (empty? coll)
-    nil
-    (let [res (pred (first coll))]
-      (if (truthy? res)
-        res
-        (recur pred (next coll))))))
+  (loop [s (seq coll)]
+    (if (nil? s)
+      nil
+      (let [res (pred (first s))]
+        (if (truthy? res)
+          res
+          (recur (next s)))))))
 
 (defn true?
   "Checks if value is exactly true (not just truthy)."

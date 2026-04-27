@@ -186,6 +186,7 @@
 
 (deftest test-some
   (is (= 3 (some #(if (> % 2) % nil) [1 2 3 4])) "some returns first truthy")
+  (is (true? (some odd? #{1 2 3 4})) "some works on sets")
   (is (nil? (some #(if (> % 10) % nil) [1 2 3])) "some returns nil when none matches")
   (is (nil? (some #(if (> % 1) % nil) [])) "some on empty list"))
 
