@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 #### Core
+- `conj` prepends values to lazy sequences like `(range)` (#1650)
 - `fnext` and `nnext` handle maps and sets consistently (#1649)
 - `find` supports Clojure-style map entry lookup (#1646)
 - `take-last` returns `nil` for `nil` collections (#1644)
