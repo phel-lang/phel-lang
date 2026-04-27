@@ -1,6 +1,5 @@
 --PHEL--
-(ns test
-  (:use \Phel\Lang\Nil))
+(ns test)
 
 (loop [[x & xs] [1 2 3 4]
        sum 0]

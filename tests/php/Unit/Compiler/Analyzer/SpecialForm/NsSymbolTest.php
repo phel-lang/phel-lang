@@ -535,7 +535,7 @@ final class NsSymbolTest extends TestCase
 
         $phpClassNode = $this->globalEnv->resolve(Symbol::create('Keyword'), NodeEnvironment::empty());
         self::assertInstanceOf(PhpClassNameNode::class, $phpClassNode);
-        self::assertSame('\\Phel\\Lang\\Keyword', $phpClassNode->getName()->getName());
+        self::assertSame('\\' . Keyword::class, $phpClassNode->getName()->getName());
     }
 
     public function test_mixed_separators_are_normalized(): void
@@ -751,11 +751,11 @@ final class NsSymbolTest extends TestCase
 
         $libraryNode = $this->globalEnv->resolve(Symbol::create('Keyword'), NodeEnvironment::empty());
         self::assertInstanceOf(PhpClassNameNode::class, $libraryNode);
-        self::assertSame('\\Phel\\Lang\\Keyword', $libraryNode->getName()->getName());
+        self::assertSame('\\' . Keyword::class, $libraryNode->getName()->getName());
 
         $toolkitNode = $this->globalEnv->resolve(Symbol::create('Symbol'), NodeEnvironment::empty());
         self::assertInstanceOf(PhpClassNameNode::class, $toolkitNode);
-        self::assertSame('\\Phel\\Lang\\Symbol', $toolkitNode->getName()->getName());
+        self::assertSame('\\' . Symbol::class, $toolkitNode->getName()->getName());
     }
 
     public function test_dot_separator_in_use_with_explicit_as_alias(): void
@@ -777,7 +777,7 @@ final class NsSymbolTest extends TestCase
 
         $kitNode = $this->globalEnv->resolve(Symbol::create('Kit'), NodeEnvironment::empty());
         self::assertInstanceOf(PhpClassNameNode::class, $kitNode);
-        self::assertSame('\\Phel\\Lang\\Symbol', $kitNode->getName()->getName());
+        self::assertSame('\\' . Symbol::class, $kitNode->getName()->getName());
     }
 
     public function test_clojure_namespace_remapped_to_phel_in_require(): void
@@ -1090,8 +1090,8 @@ final class NsSymbolTest extends TestCase
             Symbol::create('my\\project'),
             Phel::list([
                 Keyword::create('use'),
-                Symbol::create('Phel\\Lang\\Keyword'),
-                Symbol::create('Phel\\Lang\\Symbol'),
+                Symbol::create('\\' . Keyword::class),
+                Symbol::create('\\' . Symbol::class),
                 Keyword::create('as'),
                 Symbol::create('Kit'),
             ]),
@@ -1126,11 +1126,11 @@ final class NsSymbolTest extends TestCase
 
         $phpClassNode = $this->globalEnv->resolve(Symbol::create('Keyword'), NodeEnvironment::empty());
         self::assertInstanceOf(PhpClassNameNode::class, $phpClassNode);
-        self::assertSame('\\Phel\\Lang\\Keyword', $phpClassNode->getName()->getName());
+        self::assertSame('\\' . Keyword::class, $phpClassNode->getName()->getName());
 
         $phpClassNodeAlias = $this->globalEnv->resolve(Symbol::create('Kit'), NodeEnvironment::empty());
         self::assertInstanceOf(PhpClassNameNode::class, $phpClassNodeAlias);
-        self::assertSame('\\Phel\\Lang\\Symbol', $phpClassNodeAlias->getName()->getName());
+        self::assertSame('\\' . Symbol::class, $phpClassNodeAlias->getName()->getName());
 
         Phel::addDefinition('vendor\\package', 'foo', 'value', Phel::map());
         $globalVarNode = $this->globalEnv->resolve(Symbol::create('foo'), NodeEnvironment::empty());
@@ -1192,14 +1192,14 @@ final class NsSymbolTest extends TestCase
             $this->locatedSymbol('my.project', '/app/user.phel'),
             Phel::list([
                 Keyword::create('use'),
-                $this->locatedSymbol('Phel\\Lang\\Keyword', '/app/user.phel'),
+                $this->locatedSymbol('\\' . Keyword::class, '/app/user.phel'),
             ]),
         ]);
         new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         $useWarnings = array_values(array_filter(
             $captured,
-            static fn(string $m): bool => str_contains($m, "'Phel\\Lang\\Keyword'"),
+            static fn(string $m): bool => str_contains($m, "'\\Phel\\Lang\\Keyword'"),
         ));
 
         self::assertCount(1, $useWarnings, 'exactly one warning for the backslash use symbol');
