@@ -271,8 +271,18 @@
   {:example "(get-in {:a {:b {:c 42}}} [:a :b :c]) ; => 42"
    :see-also ["assoc-in" "update-in"]}
   [ds ks & [opt]]
-  (let [res (reduce get ds ks)]
-    (if (nil? res) opt res)))
+  (loop [res ds
+         path ks]
+    (cond
+      (empty? path)
+      (if (nil? res) opt res)
+
+      (or (nil? res)
+          (not (or (coll? res) (php/is_array res))))
+      opt
+
+      :else
+      (recur (get res (first path)) (next path)))))
 
 (defn assoc-in
   "Associates a value in a nested data structure at the given path.

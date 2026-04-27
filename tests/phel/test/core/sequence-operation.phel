@@ -271,7 +271,9 @@
   (is (= "a" (get-in ["a"] [0])) "get-in level 1")
   (is (= "a" (get-in {:a ["a"]} [:a 0])) "get-in level 2")
   (is (= "a" (get-in {:a [["b" "a"]]} [:a 0 1])) "get-in level 3")
-  (is (= "x" (get-in {:a [["b" "a"]]} [:b 0 1] "x")) "get-in level 3 with default"))
+  (is (= "x" (get-in {:a [["b" "a"]]} [:b 0 1] "x")) "get-in level 3 with default")
+  (is (nil? (get-in {:a {:b {:c :d}}} [:a :b :c :d])) "get-in too deep returns nil")
+  (is (= :not-found (get-in {:a {:b {:c :d}}} [:a :b :c :d] :not-found)) "get-in too deep returns default"))
 
 (deftest test-nth
   (is (= 2 (nth [1 2 3] 1)) "nth on vector")
