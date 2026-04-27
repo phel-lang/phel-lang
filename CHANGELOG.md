@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 #### Core
+- `reversible?` and `rseq` handle sorted sets (#1681)
 - `/` preserves `##Inf`, `##-Inf`, and `##NaN` when dividing by zero (#1658)
 - `sort-by` accepts the comparator before the collection (#1657)
 - `nth` returns `nil` for `nil` collections (#1656)

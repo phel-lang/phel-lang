@@ -10,6 +10,7 @@
 (use Phel\Lang\Collections\Map\PersistentMapInterface)
 (use Phel\Lang\Collections\Map\TransientMapInterface)
 (use Phel\Lang\Collections\SortedMap\PersistentSortedMap)
+(use Phel\Lang\Collections\SortedSet\PersistentSortedSet)
 (use Phel\Lang\Collections\Vector\PersistentVectorInterface)
 (use Phel\Lang\Collections\Vector\TransientVectorInterface)
 (use Phel\Lang\ConcatInterface)
@@ -629,24 +630,25 @@
 
 (defn reversible?
   "Returns true if `coll` can be reverse-iterated in constant time.
-  Currently this is true for vectors and sorted-maps."
+  Currently this is true for vectors, sorted-maps, and sorted-sets."
   {:example "(reversible? [1 2 3]) ; => true"
    :see-also ["rseq" "reverse"]}
   [coll]
   (or (vector? coll)
-      (php/instanceof coll PersistentSortedMap)))
+      (php/instanceof coll PersistentSortedMap)
+      (php/instanceof coll PersistentSortedSet)))
 
 (defn rseq
   "Returns, in constant time, a sequence of the items in `rev` in reverse
-  order. `rev` must be reversible (a vector or sorted-map); otherwise an
-  exception is thrown. For sorted-maps, returns reversed `[key value]` pairs.
+  order. `rev` must be reversible (a vector, sorted-map, or sorted-set);
+  otherwise an exception is thrown. For sorted-maps, returns reversed `[key value]` pairs.
   Returns nil if `rev` is empty."
   {:example "(rseq [1 2 3]) ; => [3 2 1]"
    :see-also ["reversible?" "reverse"]}
   [rev]
   (when-not (reversible? rev)
     (throw (php/new InvalidArgumentException
-                    "rseq requires a reversible collection (vector or sorted-map)")))
+                    "rseq requires a reversible collection (vector, sorted-map, or sorted-set)")))
   (when (php/> (count rev) 0)
     (reverse (if (vector? rev) rev (vec rev)))))
 
