@@ -4,6 +4,7 @@
 (use InvalidArgumentException)
 (use Phel)
 (use Phel\Lang\AbstractType)
+(use Phel\Lang\Collections\HashSet\PersistentHashSetInterface)
 (use Phel\Lang\Collections\Map\PersistentMapInterface)
 (use Phel\Lang\ConsInterface)
 (use Phel\Lang\RestInterface)
@@ -87,9 +88,11 @@
       (php/-> coll (rest))
       (if (php/is_string coll)
         (php/:: Phel (vector (php/array_slice (php/mb_str_split coll) 1)))
-        (if (php/is_array coll)
-          (php/array_slice coll 1)
-          (throw (php/new InvalidArgumentException "cannot do rest")))))))
+        (if (php/instanceof coll PersistentHashSetInterface)
+          (php/:: Phel (vector (php/array_slice (php/-> coll (toPhpArray)) 1)))
+          (if (php/is_array coll)
+            (php/array_slice coll 1)
+            (throw (php/new InvalidArgumentException "cannot do rest"))))))))
 
 (defn nfirst
   "Same as `(next (first coll))`."

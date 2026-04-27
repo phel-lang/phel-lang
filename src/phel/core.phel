@@ -2,6 +2,7 @@
   (:use InvalidArgumentException)
   (:use Phel)
   (:use Phel.Lang.CdrInterface)
+  (:use Phel.Lang.Collections.HashSet.PersistentHashSetInterface)
   (:use Phel.Lang.Collections.Map.PersistentMapInterface)
   (:use Phel.Lang.ConcatInterface)
   (:use Phel.Lang.FirstInterface))
@@ -68,13 +69,18 @@
             (if (php/<= (php/count chars) 1)
               nil
               (php/:: Phel (vector (php/array_slice chars 1)))))
-          (if (php/is_array xs)
-            (let [sliced (php/array_slice xs 1)]
-              (if (php/empty sliced)
-                nil
-                sliced))
-            (throw (php/new InvalidArgumentException
-                            (php/. "cannot call 'next on " (php/gettype xs))))))))))
+            (if (php/is_array xs)
+              (let [sliced (php/array_slice xs 1)]
+                (if (php/empty sliced)
+                  nil
+                  sliced))
+              (if (php/instanceof xs PersistentHashSetInterface)
+                (let [sliced (php/array_slice (php/-> xs (toPhpArray)) 1)]
+                  (if (php/empty sliced)
+                    nil
+                    (php/:: Phel (vector sliced))))
+                (throw (php/new InvalidArgumentException
+                                (php/. "cannot call 'next on " (php/gettype xs)))))))))))
 
 (def first-map-entry
   {:private true
@@ -92,6 +98,13 @@
   (fn [s]
     (if (php/=== "" s) nil (php/mb_substr s 0 1))))
 
+(def first-of-set
+  {:private true
+   :doc "Returns the first value of a persistent set, or nil if empty."}
+  (fn [s]
+    (let [values (php/-> s (toPhpArray))]
+      (if (php/empty values) nil (php/aget values 0)))))
+
 (def first
   {:doc "Returns the first element of a sequence, or nil if empty.
 
@@ -103,7 +116,8 @@
     (if (php/instanceof xs FirstInterface)         (php/-> xs (first))
         (if (php/instanceof xs PersistentMapInterface) (first-map-entry xs)
             (if (php/is_string xs)                      (first-of-string xs)
-                (php/aget xs 0))))))
+                (if (php/instanceof xs PersistentHashSetInterface) (first-of-set xs)
+                    (php/aget xs 0)))))))
 
 (def concat1
   {:private true

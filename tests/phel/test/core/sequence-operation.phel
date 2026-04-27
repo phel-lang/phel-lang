@@ -354,7 +354,9 @@
 (deftest test-next
   (is (nil? (next [])) "next of empty vector")
   (is (nil? (next [1])) "next of one element vector")
-  (is (= [2] (next [1 2])) "next of two element vector"))
+  (is (= [2] (next [1 2])) "next of two element vector")
+  (is (nil? (next #{})) "next of empty set")
+  (is (= 1 (count (next #{[1] [2]}))) "next of set"))
 
 (deftest test-concat
   (is (= [1 2] (concat [1 2])) "concat one argument")
