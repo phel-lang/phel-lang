@@ -37,7 +37,7 @@ final class ReplBareStdClassTest extends AbstractTestCommand
 
         $this->prepareRunFactory($io);
 
-        $exitCode = (new ReplCommand())->run(
+        $exitCode = new ReplCommand()->run(
             $this->createStub(InputInterface::class),
             $this->createStub(OutputInterface::class),
         );
