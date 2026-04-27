@@ -478,8 +478,6 @@
   {:example "(take-nth 2 [0 1 2 3 4 5 6 7 8]) ; => (0 2 4 6 8)"
    :see-also ["take" "filter" "transduce"]}
   [n & args]
-  (when (< n 1)
-    (throw (php/new InvalidArgumentException "First argument of 'take-nth must be greater than 0")))
   (case (count args)
     0 (fn [rf]
         (let [iv (volatile! -1)]
@@ -487,11 +485,13 @@
                         (let [i (vreset! iv (php/+ @iv 1))]
                           (if (php/=== 0 (php/% i n))
                             (rf result input) result))))))
-    1 (let [coll (first args)]
-        (if (nil? coll)
-          []
-          (let [result (lazy-seq-from-generator (php/:: Seq (takeNth n coll)))]
-            (copy-meta coll (or result [])))))
+    1 (let [coll (first args)
+            s    (seq coll)]
+        (cond
+          (nil? s)      []
+          (php/<= n 0) (copy-meta coll (lazy-seq-from-generator (php/:: Seq (repeat (first s)))))
+          :else        (let [result (lazy-seq-from-generator (php/:: Seq (takeNth n coll)))]
+                         (copy-meta coll (or result [])))))
     (throw (php/new InvalidArgumentException "take-nth expects 1 or 2 arguments"))))
 
 (defn filter

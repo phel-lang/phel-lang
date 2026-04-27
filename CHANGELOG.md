@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 #### Core
 - `find` supports Clojure-style map entry lookup (#1646)
 - `take-last` returns `nil` for `nil` collections (#1644)
+- `take-nth` supports negative integer arguments (#1645)
 - `first`, `ffirst`, `second`, `next`, `rest`, and `nfirst` handle sets (#1642)
 - `get-in` returns `nil` or default when traversal goes too deep (#1640)
 - `nth` handles transient vectors (#1641)
