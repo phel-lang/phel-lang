@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Resolve dot-separated PHP class names and root-class aliases (#1553)
 - Warn optionally about deprecated backslash namespace separators (#1567)
 - Use dot-separated names in stdlib namespaces and `:use` clauses (#1567, #1576)
+- Support `\uNNNN` Unicode escapes in string literals (#1679)
 
 #### Core
 - Add list matchers to `case` (#1615)

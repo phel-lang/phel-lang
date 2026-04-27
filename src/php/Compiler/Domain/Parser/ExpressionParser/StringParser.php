@@ -50,14 +50,16 @@ final class StringParser
             }
 
             if ($str[0] === 'u') {
-                return $this->codePointToUtf8(hexdec((string) $matches[2]));
+                $hexCodepoint = ($matches[2] ?? '') !== '' ? $matches[2] : $matches[3];
+
+                return $this->codePointToUtf8(hexdec((string) $hexCodepoint));
             }
 
             return chr((int) octdec((string) $str));
         };
 
         $result = preg_replace_callback(
-            '~\\\\([\\\\$nrtfve]|[xX][0-9a-fA-F]{1,2}|[0-7]{1,3}|u\{([0-9a-fA-F]+)\})~',
+            '~\\\\([\\\\$nrtfve]|[xX][0-9a-fA-F]{1,2}|[0-7]{1,3}|u\{([0-9a-fA-F]+)\}|u([0-9a-fA-F]{4}))~',
             $callback,
             str_replace('\\"', '"', $str),
         );
