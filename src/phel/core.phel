@@ -65,6 +65,18 @@
         nil
         (php/:: Phel (vector sliced))))))
 
+(def next-of-map
+  {:private true
+   :doc "Returns all `[k v]` entries after the first persistent map entry, or nil."}
+  (fn [m]
+    (let [entries (php/array)]
+      (foreach [k v m]
+        (php/apush entries [k v]))
+      (let [sliced (php/array_slice entries 1)]
+        (if (php/empty sliced)
+          nil
+          (php/:: Phel (vector sliced)))))))
+
 (def next
   {:doc "Returns the sequence after the first element, or nil if empty."
    :example "(next [1 2 3]) ; => [2 3]"}
@@ -85,8 +97,10 @@
                   sliced))
               (if (php/instanceof xs PersistentHashSetInterface)
                 (next-of-set xs)
-                (throw (php/new InvalidArgumentException
-                                (php/. "cannot call 'next on " (php/gettype xs)))))))))))
+                (if (php/instanceof xs PersistentMapInterface)
+                  (next-of-map xs)
+                  (throw (php/new InvalidArgumentException
+                                  (php/. "cannot call 'next on " (php/gettype xs))))))))))))
 
 (def first-map-entry
   {:private true

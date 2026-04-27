@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 #### Core
+- `fnext` and `nnext` handle maps and sets consistently (#1649)
 - `find` supports Clojure-style map entry lookup (#1646)
 - `take-last` returns `nil` for `nil` collections (#1644)
 - `take-nth` supports negative integer arguments (#1645)
