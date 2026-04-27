@@ -84,13 +84,10 @@ final class SliceGenerator
      */
     public static function takeNth(int $n, mixed $iterable): Generator
     {
-        $index = 0;
-        foreach (SequenceGenerator::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::indexed($iterable) as [$index, $value]) {
             if ($index % $n === 0) {
                 yield $value;
             }
-
-            ++$index;
         }
     }
 
