@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
 
 #### Core
 - `find` supports Clojure-style map entry lookup (#1646)
+- `fnext` and `nnext` handle maps and sets (#1649)
 - `take-last` returns `nil` for `nil` collections (#1644)
 - `first`, `ffirst`, `second`, `next`, `rest`, and `nfirst` handle sets (#1642)
 - `get-in` returns `nil` or default when traversal goes too deep (#1640)

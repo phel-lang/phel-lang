@@ -90,7 +90,10 @@
   (is (nil? (first {})) "first of empty map is nil"))
 
 (deftest test-nnext
-  (is (= [3] (nnext [1 2 3])) "(nnext [1 2 3])"))
+  (is (= [3] (nnext [1 2 3])) "(nnext [1 2 3])")
+  (is (= [[:c 3] [:d 4]] (nnext {:a 1 :b 2 :c 3 :d 4}))
+      "nnext on map returns entries after the first two")
+  (is (nil? (nnext #{})) "nnext on empty set"))
 
 (deftest test-count
   (is (= 0 (count [])) "count of empty vector")

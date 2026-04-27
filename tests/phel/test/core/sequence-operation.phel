@@ -7,6 +7,10 @@
   (is (= 2 (fnext '(1 2 3))) "fnext on list")
   (is (nil? (fnext [1])) "fnext on single-element vector")
   (is (nil? (fnext [])) "fnext on empty vector")
+  (is (nil? (fnext {})) "fnext on empty map")
+  (is (nil? (fnext #{})) "fnext on empty set")
+  (is (nil? (fnext {:a :b})) "fnext on single-entry map")
+  (is (nil? (fnext #{"abcd"})) "fnext on single-entry set")
   (is (nil? (fnext nil)) "fnext on nil")
   (is (= (second [1 2 3]) (fnext [1 2 3])) "fnext equals second"))
 
