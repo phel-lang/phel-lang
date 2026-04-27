@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+This release focuses on Clojure-compatible core behavior, PHP interop consistency, and stricter compiler diagnostics.
+
 ### Added
 
 #### Compiler
@@ -22,10 +24,10 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - **BREAKING**: Require PHP 8.4
+- **BREAKING**: Move async functions to `phel\core`; keep `delay` in `phel\async` (#1548)
 
 #### Core
 - Expose `future` from `phel\core` (#1537)
-- **BREAKING**: Move async functions to `phel\core`; keep `delay` in `phel\async` (#1548)
 
 ### Fixed
 
@@ -34,28 +36,15 @@ All notable changes to this project will be documented in this file.
 - `reversible?` and `rseq` handle sorted sets (#1681)
 - `/` preserves `##Inf`, `##-Inf`, and `##NaN` when dividing by zero (#1658)
 - `sort-by` accepts the comparator before the collection (#1657)
-- `nth` returns `nil` for `nil` collections (#1656)
-- `rand-nth` returns `nil` for `nil` collections (#1655)
-- `mapcat` flattens map key-value entries (#1651)
 - `conj` prepends values to lazy sequences like `(range)` (#1650)
-- `fnext` and `nnext` handle maps and sets consistently (#1649)
-- `find` supports Clojure-style map entry lookup (#1646)
-- `take-last` returns `nil` for `nil` collections (#1644)
-- `take-nth` supports negative integer arguments (#1645)
-- `first`, `ffirst`, `second`, `next`, `rest`, and `nfirst` handle sets (#1642)
-- `get-in` returns `nil` or default when traversal goes too deep (#1640)
-- `nth` handles transient vectors (#1641)
-- `take-last` handles finite ranges (#1643)
-- `some` accepts sets as seqable collections (#1639)
-- `rest` returns an empty sequence for `nil` collections (#1638, #1652)
-- `sort` handles `(sort comp coll)`, maps, and nested vectors (#1610, #1611, #1613)
+- Improve `nil` handling in `nth`, `rand-nth`, `take-last`, `rest`, and `contains?` (#1592, #1638, #1644, #1652, #1655, #1656)
+- Improve set support in sequence functions including `first`, `ffirst`, `second`, `next`, `nfirst`, `fnext`, `nnext`, and `some` (#1639, #1642, #1649)
+- Improve collection edge cases in `seq`, `cons`, `pop`, `nth`, `take-last`, and `take-nth` (#1598, #1599, #1600, #1641, #1643, #1645)
+- Improve map and seq behavior in `apply`, `merge`, `dissoc`, `find`, and `mapcat` (#1602, #1603, #1606, #1607, #1646, #1651, #1653)
 - `assoc!` handles `apply` trailing keys with `nil` values (#1609)
-- `merge` handles no, `nil`, and non-map operands (#1603, #1606)
-- `apply` accepts strings and maps as final arguments (#1602)
-- `seq`, `cons`, and `pop` handle more seqable and empty values (#1598, #1599, #1600)
-- `dissoc` removes record keys with consistent map results (#1607, #1653)
+- `get-in` returns `nil` or default when traversal goes too deep (#1640)
+- `sort` handles `(sort comp coll)`, maps, and nested vectors (#1610, #1611, #1613)
 - Dynamic bindings are fiber-local and propagate through `future` and `async` (#1536)
-- `contains?` returns `false` for `nil` collections (#1592)
 - Hierarchy lookups handle invalid arguments, inline protocols, and PHP parents (#1591, #1597)
 - Sequential equality is symmetric across lists, vectors, and lazy seqs (#1546)
 - `()` is self-quoting (#1549)
@@ -77,7 +66,7 @@ All notable changes to this project will be documented in this file.
 - Accept bare namespace symbols in `dir` (#1588)
 
 #### Compiler
-- Lowercase PHP class names resolve consistently with uppercase aliases (#1567)
+- Resolve PHP class aliases consistently regardless of case (#1567)
 - Imported PHP classes can be used as class-string values (#1560)
 - Lowercase root PHP classes resolve in constructor positions (#1567)
 - `php/new` reports invalid target types clearly (#1538)
