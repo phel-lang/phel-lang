@@ -280,6 +280,8 @@
   (is (= 1 (nth [1 2 3] 0)) "nth on vector first")
   (is (= 3 (nth [1 2 3] 2)) "nth on vector last")
   (is (= :default (nth [1 2 3] 5 :default)) "nth on vector out of bounds with default")
+  (is (= 2 (nth (transient [1 2 3]) 1)) "nth on transient vector")
+  (is (= :default (nth (transient [1 2 3]) 5 :default)) "nth on transient vector out of bounds with default")
   (is (= "b" (nth "abc" 1)) "nth on string")
   (is (= :default (nth "abc" 5 :default)) "nth on string out of bounds with default")
   (is (= 3 (nth '(1 2 3) 2)) "nth on list")
@@ -287,6 +289,7 @@
 
 (deftest test-nth-throws-on-out-of-bounds
   (is (thrown? OutOfBoundsException (nth [1 2 3] 5)) "nth throws on vector out of bounds")
+  (is (thrown? OutOfBoundsException (nth (transient [1 2 3]) 5)) "nth throws on transient vector out of bounds")
   (is (thrown? OutOfBoundsException (nth "abc" 5)) "nth throws on string out of bounds")
   (is (thrown? OutOfBoundsException (nth nil 0)) "nth throws on nil"))
 

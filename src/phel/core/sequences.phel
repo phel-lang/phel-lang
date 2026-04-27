@@ -97,6 +97,14 @@
         opt
         res))))
 
+(defn- transient-vector?
+  [coll]
+  (php/instanceof coll TransientVectorInterface))
+
+(defn- indexed-vector?
+  [coll]
+  (or (vector? coll) (transient-vector? coll)))
+
 (defn nth
   "Returns the value at `index` in `coll`. Throws an
    OutOfBoundsException if the index is out of range and no
@@ -114,7 +122,7 @@
        (php/mb_substr coll index 1 "UTF-8")
        (throw (php/new OutOfBoundsException (str "String index " index " out of bounds"))))
 
-     (vector? coll)
+     (indexed-vector? coll)
      (if (and (php/>= index 0) (php/< index (count coll)))
        (get coll index)
        (throw (php/new OutOfBoundsException (str "Vector index " index " out of bounds"))))
@@ -136,7 +144,7 @@
        (php/mb_substr coll index 1 "UTF-8")
        not-found)
 
-     (vector? coll)
+     (indexed-vector? coll)
      (if (and (php/>= index 0) (php/< index (count coll)))
        (get coll index)
        not-found)
@@ -171,10 +179,6 @@
     (if (and (php/> i 0) s)
       (recur (php/- i 1) (next s))
       s)))
-
-(defn- transient-vector?
-  [coll]
-  (php/instanceof coll TransientVectorInterface))
 
 (defn- transient-set?
   [coll]
