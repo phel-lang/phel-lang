@@ -18,6 +18,13 @@
     (when (php/=== nil x)
       (throw (php/new \InvalidArgumentException "Arithmetic functions do not accept nil values")))))
 
+(defn- divide
+  [nominator denominator]
+  (if (and (or (= denominator 0) (= denominator 0.0))
+           (or (php/is_infinite nominator) (php/is_nan nominator)))
+    (php/fdiv nominator denominator)
+    (php// nominator denominator)))
+
 ;; -----------------
 ;; Bitwise operation
 ;; -----------------
@@ -135,15 +142,15 @@ numbers. If `xs` is empty, return 1."
 (defn /
   "Returns the nominator divided by all the denominators. If `xs` is empty,
 returns 1. If `xs` has one value, returns the reciprocal of x."
-  {:inline (fn [& xs] `(do (assert-non-nil ~@xs) (php// ~@xs)))
-   :inline-arity (fn [n] (> n 1))}
+  {:inline (fn [& xs] `(do (assert-non-nil ~@xs) (divide ~@xs)))
+   :inline-arity (fn [n] (= n 2))}
   [& xs]
   (apply assert-non-nil xs)
   (case (count xs)
     0 1
-    1 (php// 1 (first xs))
-    2 (php// (first xs) (second xs))
-    (reduce #(php// %1 %2) xs)))
+    1 (divide 1 (first xs))
+    2 (divide (first xs) (second xs))
+    (reduce #(divide %1 %2) xs)))
 
 (defn %
   "Return the remainder of `dividend` / `divisor`."

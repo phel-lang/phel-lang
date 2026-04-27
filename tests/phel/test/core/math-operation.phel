@@ -23,6 +23,12 @@
   (is (= 2 (/ 4 2)) "/ two arguments")
   (is (= 2 (/ 16 4 2)) "/ three arguments"))
 
+(deftest test-special-floating-point-division-by-zero
+  (is (= ##Inf (/ ##Inf 0)) "##Inf divided by zero remains ##Inf")
+  (is (= ##-Inf (/ ##-Inf 0)) "##-Inf divided by zero remains ##-Inf")
+  (is (NaN? (/ ##NaN 0)) "##NaN divided by zero remains ##NaN")
+  (is (thrown? \DivisionByZeroError (/ 1 0)) "finite division by zero still throws"))
+
 (deftest test-%
   (is (= 0 (% 10 2)) "10 % 2")
   (is (= 1 (% 11 2)) "11 % 2"))
