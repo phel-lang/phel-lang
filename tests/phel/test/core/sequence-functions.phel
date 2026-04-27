@@ -210,6 +210,11 @@
   (is (nil? (find neg? [1 2 3 2 3])) "find: nothing to find")
   (is (nil? (find neg? [])) "find on empty array"))
 
+(deftest test-find-map-entry
+  (is (= [:a 1] (find {:a 1 :b 2 :c 3} :a)) "find returns map entry for existing key")
+  (is (= [:a nil] (find {:a nil} :a)) "find returns map entry when value is nil")
+  (is (nil? (find {:a 1 :b 2 :c 3} :d)) "find returns nil for missing key"))
+
 (deftest test-find-empty-element
   (is (nil? (find #(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
 
