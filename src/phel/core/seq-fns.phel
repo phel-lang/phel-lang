@@ -830,10 +830,10 @@
    :see-also ["sort" "compare"]}
   ([keyfn coll]
    (sort-by-with keyfn coll compare))
-  ([keyfn a b]
-   (if (fn? a)
-     (sort-by-with keyfn b a)
-     (sort-by-with keyfn a b))))
+  ([keyfn comp-or-coll coll-or-comp]
+   (if (fn? comp-or-coll)
+     (sort-by-with keyfn coll-or-comp comp-or-coll)
+     (sort-by-with keyfn comp-or-coll coll-or-comp))))
 
 (defn shuffle
   "Returns a random permutation of coll."
