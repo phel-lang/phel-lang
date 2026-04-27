@@ -174,7 +174,8 @@
   (is (= [] (take-last -1 ["a" "b" "c"])) "take-last with negative number on vector")
   (is (= (php/array "b" "c") (take-last 2 (php/array "a" "b" "c"))) "take-last on php array")
   (is (= (php/array) (take-last 1 (php/array))) "take-last on empty php array")
-  (is (= [] (take-last -1 (php/array "a" "b" "c"))) "take-last with negative number on php array"))
+  (is (= [] (take-last -1 (php/array "a" "b" "c"))) "take-last with negative number on php array")
+  (is (= [8 9] (take-last 2 (range 0 10))) "take-last on finite range"))
 
 (deftest test-take-while
   (is (= [-1 -2 -3] (take-while neg? [-1 -2 -3 1 2 3 4 -4 -5 -6])) "take-while: first three element")
