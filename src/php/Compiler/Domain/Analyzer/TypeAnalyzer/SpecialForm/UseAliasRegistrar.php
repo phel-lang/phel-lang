@@ -11,11 +11,17 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 
+use function class_exists;
 use function count;
+use function defined;
+use function enum_exists;
 use function explode;
+use function interface_exists;
+use function ltrim;
 use function sprintf;
 use function str_contains;
 use function str_replace;
+use function trait_exists;
 
 final readonly class UseAliasRegistrar
 {
@@ -91,6 +97,8 @@ final readonly class UseAliasRegistrar
                 );
             }
 
+            $this->assertImportExists($useSymbol, $form);
+
             $alias = $this->createAliasFromSymbol($aliasValue, $useSymbol);
             $this->analyzer->addUseAlias($ns, $alias, $useSymbol);
         }
@@ -107,6 +115,28 @@ final readonly class UseAliasRegistrar
             $symbol->getNamespace(),
             str_replace('.', '\\', $name),
         )->copyLocationFrom($symbol);
+    }
+
+    private function assertImportExists(Symbol $symbol, PersistentListInterface $form): void
+    {
+        $name = $symbol->getName();
+
+        if ($this->importExists($name)) {
+            return;
+        }
+
+        throw AnalyzerException::withLocation(sprintf('Cannot import unknown PHP symbol %s.', $name), $form);
+    }
+
+    private function importExists(string $name): bool
+    {
+        $lookupName = ltrim($name, '\\');
+
+        return class_exists($lookupName)
+            || interface_exists($lookupName)
+            || trait_exists($lookupName)
+            || enum_exists($lookupName)
+            || defined($name);
     }
 
     private function createAliasFromSymbol(?Symbol $alias, Symbol $symbol): Symbol

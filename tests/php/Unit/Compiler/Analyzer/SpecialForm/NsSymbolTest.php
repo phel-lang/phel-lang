@@ -143,6 +143,23 @@ final class NsSymbolTest extends TestCase
         new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
+    public function test_use_import_must_exist(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Cannot import unknown PHP symbol \\Missing\\NsUseClass.');
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('foo\\bar'),
+            Phel::list([
+                Keyword::create('use'),
+                Symbol::create('Missing\\NsUseClass'),
+            ]),
+        ]);
+
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+    }
+
     public function test_use_alias_must_be_symbol(): void
     {
         $this->expectException(AnalyzerException::class);
@@ -508,17 +525,17 @@ final class NsSymbolTest extends TestCase
             Symbol::create('app.core'),
             Phel::list([
                 Keyword::create('use'),
-                Symbol::create('Vendor.Library'),
+                Symbol::create('Phel.Lang.Keyword'),
             ]),
         ]);
 
         new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
-        self::assertTrue($this->globalEnv->hasUseAlias('app\\core', Symbol::create('Library')));
+        self::assertTrue($this->globalEnv->hasUseAlias('app\\core', Symbol::create('Keyword')));
 
-        $phpClassNode = $this->globalEnv->resolve(Symbol::create('Library'), NodeEnvironment::empty());
+        $phpClassNode = $this->globalEnv->resolve(Symbol::create('Keyword'), NodeEnvironment::empty());
         self::assertInstanceOf(PhpClassNameNode::class, $phpClassNode);
-        self::assertSame('\\Vendor\\Library', $phpClassNode->getName()->getName());
+        self::assertSame('\\' . Keyword::class, $phpClassNode->getName()->getName());
     }
 
     public function test_mixed_separators_are_normalized(): void
@@ -722,23 +739,23 @@ final class NsSymbolTest extends TestCase
             Symbol::create('app.core'),
             Phel::list([
                 Keyword::create('use'),
-                Symbol::create('Vendor.Library'),
-                Symbol::create('Vendor.Toolkit'),
+                Symbol::create('Phel.Lang.Keyword'),
+                Symbol::create('Phel.Lang.Symbol'),
             ]),
         ]);
 
         new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
-        self::assertTrue($this->globalEnv->hasUseAlias('app\\core', Symbol::create('Library')));
-        self::assertTrue($this->globalEnv->hasUseAlias('app\\core', Symbol::create('Toolkit')));
+        self::assertTrue($this->globalEnv->hasUseAlias('app\\core', Symbol::create('Keyword')));
+        self::assertTrue($this->globalEnv->hasUseAlias('app\\core', Symbol::create('Symbol')));
 
-        $libraryNode = $this->globalEnv->resolve(Symbol::create('Library'), NodeEnvironment::empty());
+        $libraryNode = $this->globalEnv->resolve(Symbol::create('Keyword'), NodeEnvironment::empty());
         self::assertInstanceOf(PhpClassNameNode::class, $libraryNode);
-        self::assertSame('\\Vendor\\Library', $libraryNode->getName()->getName());
+        self::assertSame('\\' . Keyword::class, $libraryNode->getName()->getName());
 
-        $toolkitNode = $this->globalEnv->resolve(Symbol::create('Toolkit'), NodeEnvironment::empty());
+        $toolkitNode = $this->globalEnv->resolve(Symbol::create('Symbol'), NodeEnvironment::empty());
         self::assertInstanceOf(PhpClassNameNode::class, $toolkitNode);
-        self::assertSame('\\Vendor\\Toolkit', $toolkitNode->getName()->getName());
+        self::assertSame('\\' . Symbol::class, $toolkitNode->getName()->getName());
     }
 
     public function test_dot_separator_in_use_with_explicit_as_alias(): void
@@ -748,7 +765,7 @@ final class NsSymbolTest extends TestCase
             Symbol::create('app.core'),
             Phel::list([
                 Keyword::create('use'),
-                Symbol::create('Vendor.Toolkit'),
+                Symbol::create('Phel.Lang.Symbol'),
                 Keyword::create('as'),
                 Symbol::create('Kit'),
             ]),
@@ -760,7 +777,7 @@ final class NsSymbolTest extends TestCase
 
         $kitNode = $this->globalEnv->resolve(Symbol::create('Kit'), NodeEnvironment::empty());
         self::assertInstanceOf(PhpClassNameNode::class, $kitNode);
-        self::assertSame('\\Vendor\\Toolkit', $kitNode->getName()->getName());
+        self::assertSame('\\' . Symbol::class, $kitNode->getName()->getName());
     }
 
     public function test_clojure_namespace_remapped_to_phel_in_require(): void
@@ -1073,8 +1090,8 @@ final class NsSymbolTest extends TestCase
             Symbol::create('my\\project'),
             Phel::list([
                 Keyword::create('use'),
-                Symbol::create('Vendor\\Library'),
-                Symbol::create('Vendor\\Toolkit'),
+                Symbol::create('\\' . Keyword::class),
+                Symbol::create('\\' . Symbol::class),
                 Keyword::create('as'),
                 Symbol::create('Kit'),
             ]),
@@ -1102,18 +1119,18 @@ final class NsSymbolTest extends TestCase
         ], $nsNode->getRequireNs());
         self::assertSame(['src/config.phel'], $nsNode->getRequireFiles());
         self::assertSame('my\\project', $this->analyzer->getNamespace());
-        self::assertTrue($this->globalEnv->hasUseAlias('my\\project', Symbol::create('Library')));
+        self::assertTrue($this->globalEnv->hasUseAlias('my\\project', Symbol::create('Keyword')));
         self::assertTrue($this->globalEnv->hasUseAlias('my\\project', Symbol::create('Kit')));
         self::assertTrue($this->globalEnv->hasRequireAlias('my\\project', Symbol::create('package')));
         self::assertSame('vendor\\package', $this->globalEnv->resolveAlias('package'));
 
-        $phpClassNode = $this->globalEnv->resolve(Symbol::create('Library'), NodeEnvironment::empty());
+        $phpClassNode = $this->globalEnv->resolve(Symbol::create('Keyword'), NodeEnvironment::empty());
         self::assertInstanceOf(PhpClassNameNode::class, $phpClassNode);
-        self::assertSame('\\Vendor\\Library', $phpClassNode->getName()->getName());
+        self::assertSame('\\' . Keyword::class, $phpClassNode->getName()->getName());
 
         $phpClassNodeAlias = $this->globalEnv->resolve(Symbol::create('Kit'), NodeEnvironment::empty());
         self::assertInstanceOf(PhpClassNameNode::class, $phpClassNodeAlias);
-        self::assertSame('\\Vendor\\Toolkit', $phpClassNodeAlias->getName()->getName());
+        self::assertSame('\\' . Symbol::class, $phpClassNodeAlias->getName()->getName());
 
         Phel::addDefinition('vendor\\package', 'foo', 'value', Phel::map());
         $globalVarNode = $this->globalEnv->resolve(Symbol::create('foo'), NodeEnvironment::empty());
@@ -1175,18 +1192,18 @@ final class NsSymbolTest extends TestCase
             $this->locatedSymbol('my.project', '/app/user.phel'),
             Phel::list([
                 Keyword::create('use'),
-                $this->locatedSymbol('Phel\\Lang\\Foo', '/app/user.phel'),
+                $this->locatedSymbol('\\' . Keyword::class, '/app/user.phel'),
             ]),
         ]);
         new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         $useWarnings = array_values(array_filter(
             $captured,
-            static fn(string $m): bool => str_contains($m, "'Phel\\Lang\\Foo'"),
+            static fn(string $m): bool => str_contains($m, "'\\Phel\\Lang\\Keyword'"),
         ));
 
         self::assertCount(1, $useWarnings, 'exactly one warning for the backslash use symbol');
-        self::assertStringContainsString("'Phel.Lang.Foo'", $useWarnings[0]);
+        self::assertStringContainsString("'Phel.Lang.Keyword'", $useWarnings[0]);
 
         BackslashSeparatorDeprecator::resetInstance();
     }
@@ -1201,7 +1218,7 @@ final class NsSymbolTest extends TestCase
             $this->locatedSymbol('my.project', '/app/user.phel'),
             Phel::list([
                 Keyword::create('use'),
-                $this->locatedSymbol('Phel.Lang.Foo', '/app/user.phel'),
+                $this->locatedSymbol('Phel.Lang.Keyword', '/app/user.phel'),
             ]),
         ]);
         new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());

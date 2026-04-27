@@ -1,7 +1,7 @@
 --PHEL--
 (ns hello-world
   (:require my-namespace\core)
-  (:use my_other-name\test))
+  (:use DateTimeImmutable))
 
 (def x :private 10)
 
