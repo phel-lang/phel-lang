@@ -12,6 +12,9 @@ use function chr;
 
 final class StringParser
 {
+    private const int BRACED_UNICODE_ESCAPE_MATCH = 2;
+    private const int FIXED_UNICODE_ESCAPE_MATCH = 3;
+
     private const array STRING_REPLACEMENTS = [
         '\\' => '\\',
         '$' => '$',
@@ -50,9 +53,7 @@ final class StringParser
             }
 
             if ($str[0] === 'u') {
-                $hexCodepoint = ($matches[2] ?? '') !== '' ? $matches[2] : $matches[3];
-
-                return $this->codePointToUtf8(hexdec((string) $hexCodepoint));
+                return $this->parseUnicodeEscape($matches);
             }
 
             return chr((int) octdec((string) $str));
@@ -69,6 +70,20 @@ final class StringParser
         }
 
         return $result;
+    }
+
+    /**
+     * @param list<string> $matches
+     *
+     * @throws StringParserException
+     */
+    private function parseUnicodeEscape(array $matches): string
+    {
+        $hexCodepoint = ($matches[self::BRACED_UNICODE_ESCAPE_MATCH] ?? '') !== ''
+            ? $matches[self::BRACED_UNICODE_ESCAPE_MATCH]
+            : $matches[self::FIXED_UNICODE_ESCAPE_MATCH];
+
+        return $this->codePointToUtf8(hexdec((string) $hexCodepoint));
     }
 
     /**
