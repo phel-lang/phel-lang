@@ -27,6 +27,18 @@ final class EvalCommandTest extends AbstractTestCommand
         );
     }
 
+    public function test_eval_resolves_bare_stdclass(): void
+    {
+        $this->expectOutputRegex('/Printer cannot print this type: .*stdClass/');
+
+        $exitCode = $this->createEvalCommand()->run(
+            $this->stubInput('(new stdClass)'),
+            $this->stubOutput(),
+        );
+
+        self::assertSame(0, $exitCode);
+    }
+
     public function test_eval_empty_expression(): void
     {
         $exitCode = $this->createEvalCommand()->run(
