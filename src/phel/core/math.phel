@@ -18,10 +18,18 @@
     (when (php/=== nil x)
       (throw (php/new \InvalidArgumentException "Arithmetic functions do not accept nil values")))))
 
+(defn- zero-divisor?
+  [x]
+  (or (= x 0) (= x 0.0)))
+
+(defn- non-finite-number?
+  [x]
+  (or (php/is_infinite x) (php/is_nan x)))
+
 (defn- divide
   [nominator denominator]
-  (if (and (or (= denominator 0) (= denominator 0.0))
-           (or (php/is_infinite nominator) (php/is_nan nominator)))
+  (if (and (zero-divisor? denominator)
+           (non-finite-number? nominator))
     (php/fdiv nominator denominator)
     (php// nominator denominator)))
 
