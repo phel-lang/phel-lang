@@ -113,7 +113,7 @@
 (deftest test-max
   (is (= 3 (max 1 2 3)) "(max 1 2 3)"))
 
-(deftest test-rand-nth
+(deftest test-rand-nth-on-nil
   (is (nil? (rand-nth nil)) "(rand-nth nil)"))
 
 (deftest test-min-key
