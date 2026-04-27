@@ -434,12 +434,25 @@
               (copy-meta coll result)))))
     (throw (php/new InvalidArgumentException "take expects 1 or 2 arguments"))))
 
+(defn- take-last-buffered
+  [n coll]
+  (let [buffer (php/array)]
+    (dofor [x :in coll]
+      (php/apush buffer x)
+      (when (php/> (php/count buffer) n)
+        (php/array_shift buffer)))
+    (php/:: Phel (vector buffer))))
+
 (defn take-last
   "Takes the last `n` elements of `coll`."
   {:example "(take-last 3 [1 2 3 4 5]) ; => [3 4 5]"
    :see-also ["take" "drop-last"]}
   [n coll]
-  (if (php/<= n 0) [] (slice coll (php/* -1 n))))
+  (cond
+    (php/<= n 0) []
+    (or (php-array? coll)
+        (php/instanceof coll SliceInterface)) (slice coll (php/* -1 n))
+    :else (take-last-buffered n coll)))
 
 (defn take-while
   "Takes all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence.
