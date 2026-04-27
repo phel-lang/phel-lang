@@ -9,8 +9,6 @@
 (use Phel\Lang\Collections\LinkedList\PersistentListInterface)
 (use Phel\Lang\Collections\Map\PersistentMapInterface)
 (use Phel\Lang\Collections\Map\TransientMapInterface)
-(use Phel\Lang\Collections\SortedMap\PersistentSortedMap)
-(use Phel\Lang\Collections\SortedSet\PersistentSortedSet)
 (use Phel\Lang\Collections\Vector\PersistentVectorInterface)
 (use Phel\Lang\Collections\Vector\TransientVectorInterface)
 (use Phel\Lang\ConcatInterface)
@@ -635,8 +633,7 @@
    :see-also ["rseq" "reverse"]}
   [coll]
   (or (vector? coll)
-      (php/instanceof coll PersistentSortedMap)
-      (php/instanceof coll PersistentSortedSet)))
+      (sorted? coll)))
 
 (defn rseq
   "Returns, in constant time, a sequence of the items in `rev` in reverse
