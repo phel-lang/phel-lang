@@ -67,6 +67,9 @@
       coll)
     (cons-non-array x coll)))
 
+(defn- rest-of-set [coll]
+  (php/:: Phel (vector (php/array_slice (php/-> coll (toPhpArray)) 1))))
+
 (defn ffirst
   "Same as `(first (first coll))`."
   [coll]
@@ -89,7 +92,7 @@
       (if (php/is_string coll)
         (php/:: Phel (vector (php/array_slice (php/mb_str_split coll) 1)))
         (if (php/instanceof coll PersistentHashSetInterface)
-          (php/:: Phel (vector (php/array_slice (php/-> coll (toPhpArray)) 1)))
+          (rest-of-set coll)
           (if (php/is_array coll)
             (php/array_slice coll 1)
             (throw (php/new InvalidArgumentException "cannot do rest"))))))))

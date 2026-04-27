@@ -55,7 +55,8 @@
   (is (= 2 (second (php/array 1 2))) "second of pgp array")
   (is (nil? (second (php/array))) "second of empty php array")
   (is (nil? (second #{})) "second of empty set")
-  (is (= #{[1] [2]} (set [(first #{[1] [2]}) (second #{[1] [2]})])) "second of set")
+  (let [values #{[1] [2]}]
+    (is (= values (set [(first values) (second values)])) "second of set"))
   (is (nil? (second nil)) "second of nil"))
 
 (deftest test-rest
