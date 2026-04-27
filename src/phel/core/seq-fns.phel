@@ -806,6 +806,11 @@
   [coll comp]
   (sorted-vector coll (sort-comparator comp)))
 
+(defn- sort-by-with
+  [keyfn coll comp]
+  (let [cmp (sort-comparator comp)]
+    (sorted-vector coll #(cmp (keyfn %1) (keyfn %2)))))
+
 (defn sort
   "Returns a sorted vector. If no comparator is supplied compare is used."
   {:example "(sort [3 1 4 1 5 9 2 6]) ; => [1 1 2 3 4 5 6 9]\n(sort (fn [a b] (compare b a)) [1 2 3]) ; => [3 2 1]"
@@ -821,11 +826,14 @@
   "Returns a sorted vector where the sort order is determined by comparing `(keyfn item)`.
 
   If no comparator is supplied compare is used."
-  {:example "(sort-by count [\"aaa\" \"c\" \"bb\"]) ; => [\"c\" \"bb\" \"aaa\"]"
+  {:example "(sort-by count [\"aaa\" \"c\" \"bb\"]) ; => [\"c\" \"bb\" \"aaa\"]\n(sort-by count compare [\"aaa\" \"c\" \"bb\"]) ; => [\"c\" \"bb\" \"aaa\"]"
    :see-also ["sort" "compare"]}
-  [keyfn coll & [comp]]
-  (let [cmp (sort-comparator comp)]
-    (sorted-vector coll #(cmp (keyfn %1) (keyfn %2)))))
+  ([keyfn coll]
+   (sort-by-with keyfn coll compare))
+  ([keyfn a b]
+   (if (fn? a)
+     (sort-by-with keyfn b a)
+     (sort-by-with keyfn a b))))
 
 (defn shuffle
   "Returns a random permutation of coll."

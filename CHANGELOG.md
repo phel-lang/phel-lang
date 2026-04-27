@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 #### Core
+- `sort-by` accepts the comparator before the collection (#1657)
 - `nth` returns `nil` for `nil` collections (#1656)
 - `rand-nth` returns `nil` for `nil` collections (#1655)
 - `mapcat` flattens map key-value entries (#1651)
