@@ -138,9 +138,10 @@
   (fn [name]
     `(def ~name nil)))
 
-;; Forward-declare `nil?` so sub-files loaded before `core/booleans` (the
-;; file that defines it) can still pass compile-time symbol resolution.
+;; Forward-declare symbols used by sub-files loaded before their definitions
+;; so they can still pass compile-time symbol resolution.
 (declare nil?)
+(declare seq)
 
 (def *program*
   "The script path or namespace being executed."
