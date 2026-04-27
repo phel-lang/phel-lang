@@ -560,14 +560,18 @@
     (throw (php/new InvalidArgumentException "keep-indexed expects 1 or 2 arguments"))))
 
 (defn find
-  "Returns the first item in `coll` where `(pred item)` evaluates to true."
-  {:example "(find #(> % 5) [1 2 3 6 7 8]) ; => 6"
+  "When called with a collection first, returns `[key value]` when `key` is present.
+  Otherwise returns the first item in `coll` where `(pred item)` evaluates to true."
+  {:example "(find {:a 1} :a) ; => [:a 1]\n(find #(> % 5) [1 2 3 6 7 8]) ; => 6"
    :see-also ["find-index" "filter" "some?"]}
-  [pred coll]
-  (loop [s coll]
-    (when-not (empty? s)
-      (let [x (first s)]
-        (if (pred x) x (recur (next s)))))))
+  [pred-or-coll coll-or-key]
+  (if (or (nil? pred-or-coll) (associative? pred-or-coll))
+    (when (contains? pred-or-coll coll-or-key)
+      [coll-or-key (get pred-or-coll coll-or-key)])
+    (loop [s coll-or-key]
+      (when-not (empty? s)
+        (let [x (first s)]
+          (if (pred-or-coll x) x (recur (next s))))))))
 
 (defn find-index
   "Returns the index of the first item in `coll` where `(pred item)` evaluates to true."
