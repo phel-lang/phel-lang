@@ -111,7 +111,8 @@
 (deftest test-conj-transients
   (is (= [1 2 3] (persistent (conj (transient [1 2]) 3))) "conj on transient vector appends")
   (is (= #{1 2 3} (persistent (conj (transient #{1 2}) 3))) "conj on transient set adds element")
-  (is (= {:a 1} (persistent (conj (transient {}) [:a 1]))) "conj on transient map with [key value] pair"))
+  (is (= {:a 1} (persistent (conj (transient {}) [:a 1]))) "conj on transient map with [key value] pair")
+  (is (= {} (persistent (conj (transient {}) nil))) "conj on transient map with nil is a no-op"))
 
 (deftest test-transient-invocation
   (is (= 20 ((transient [10 20 30]) 1)) "transient vector is callable by index")
@@ -125,6 +126,7 @@
 
 (deftest test-conj-empty-collections
   (is (= {:a 1} (conj {} [:a 1])) "conj on empty map with [key value] pair")
+  (is (= {} (conj {} nil)) "conj on empty map with nil is a no-op")
   (is (= #{1} (conj #{} 1)) "conj on empty set adds element")
   (is (= [1 2 3] (conj [] 1 2 3)) "conj on empty vector with multiple values"))
 
@@ -159,7 +161,8 @@
 
 (deftest test-conj-bang-map
   (is (= {:a 1} (persistent (conj! (transient {}) [:a 1]))) "conj! on transient map with [key value] pair")
-  (is (= {:a 1 :b 2 :c 3} (persistent (conj! (transient {:a 1}) [:b 2] [:c 3]))) "conj! variadic on transient map"))
+  (is (= {:a 1 :b 2 :c 3} (persistent (conj! (transient {:a 1}) [:b 2] [:c 3]))) "conj! variadic on transient map")
+  (is (= {} (persistent (conj! (transient {}) nil))) "conj! on transient map with nil is a no-op"))
 
 (deftest test-conj-bang-error-on-persistent
   (is (thrown? \InvalidArgumentException (conj! [1 2] 3)) "conj! on persistent vector throws")

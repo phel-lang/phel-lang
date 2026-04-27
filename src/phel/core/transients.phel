@@ -48,6 +48,9 @@
                      acc)
                    (php/-> acc (put key value))))]
     (cond
+      (php/=== entry nil)
+      coll
+
       (indexed? entry)
       (if (php/!= (count entry) 2)
         (throw (php/new InvalidArgumentException
