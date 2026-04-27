@@ -12,6 +12,12 @@ use function chr;
 
 final class StringParser
 {
+    private const string ESCAPE_SEQUENCE_PATTERN = '~\\\\([\\\\$nrtfve]|[xX][0-9a-fA-F]{1,2}|[0-7]{1,3}|u\{([0-9a-fA-F]+)\}|u([0-9a-fA-F]{4}))~';
+
+    private const int BRACED_UNICODE_ESCAPE_MATCH = 2;
+
+    private const int FIXED_UNICODE_ESCAPE_MATCH = 3;
+
     private const array STRING_REPLACEMENTS = [
         '\\' => '\\',
         '$' => '$',
@@ -50,14 +56,14 @@ final class StringParser
             }
 
             if ($str[0] === 'u') {
-                return $this->codePointToUtf8(hexdec((string) $matches[2]));
+                return $this->parseUnicodeEscape($matches);
             }
 
             return chr((int) octdec((string) $str));
         };
 
         $result = preg_replace_callback(
-            '~\\\\([\\\\$nrtfve]|[xX][0-9a-fA-F]{1,2}|[0-7]{1,3}|u\{([0-9a-fA-F]+)\})~',
+            self::ESCAPE_SEQUENCE_PATTERN,
             $callback,
             str_replace('\\"', '"', $str),
         );
@@ -67,6 +73,22 @@ final class StringParser
         }
 
         return $result;
+    }
+
+    /**
+     * @param list<string> $matches
+     *
+     * @throws StringParserException
+     */
+    private function parseUnicodeEscape(array $matches): string
+    {
+        $hexCodepoint = $matches[self::BRACED_UNICODE_ESCAPE_MATCH] ?? '';
+
+        if ($hexCodepoint === '') {
+            $hexCodepoint = $matches[self::FIXED_UNICODE_ESCAPE_MATCH] ?? '';
+        }
+
+        return $this->codePointToUtf8(hexdec($hexCodepoint));
     }
 
     /**

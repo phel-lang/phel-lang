@@ -303,6 +303,11 @@ final class ParserTest extends TestCase
         );
 
         self::assertEquals(
+            new StringNode('"\u2007"', $this->loc(1, 0), $this->loc(1, 8), "\u{2007}"),
+            $this->parse('"\u2007"'),
+        );
+
+        self::assertEquals(
             new StringNode('"\77"', $this->loc(1, 0), $this->loc(1, 5), "\77"),
             $this->parse('"\77"'),
         );

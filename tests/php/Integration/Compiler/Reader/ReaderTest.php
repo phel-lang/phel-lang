@@ -505,6 +505,11 @@ final class ReaderTest extends TestCase
         );
 
         self::assertSame(
+            "\u{2007}",
+            $this->read('"\u2007"'),
+        );
+
+        self::assertSame(
             "\77",
             $this->read('"\77"'),
         );
