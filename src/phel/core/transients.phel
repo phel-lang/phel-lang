@@ -41,27 +41,29 @@
 
 (defn- conj-map-entry
   [coll entry]
-  (let [assign (fn [acc key value]
-                 (if (php/is_array acc)
-                   (do
-                     (php/aset acc key value)
-                     acc)
-                   (php/-> acc (put key value))))]
-    (cond
-      (indexed? entry)
-      (if (php/!= (count entry) 2)
+  (if (php/=== entry nil)
+    coll
+    (let [assign (fn [acc key value]
+                   (if (php/is_array acc)
+                     (do
+                       (php/aset acc key value)
+                       acc)
+                     (php/-> acc (put key value))))]
+      (cond
+        (indexed? entry)
+        (if (php/!= (count entry) 2)
+          (throw (php/new InvalidArgumentException
+                          "conj on a map expects entries of length 2"))
+          (assign coll (first entry) (second entry)))
+
+        (associative? entry)
+        (for [[key value] :pairs entry
+              :reduce [acc coll]]
+          (assign acc key value))
+
+        :else
         (throw (php/new InvalidArgumentException
-                        "conj on a map expects entries of length 2"))
-        (assign coll (first entry) (second entry)))
-
-      (associative? entry)
-      (for [[key value] :pairs entry
-            :reduce [acc coll]]
-        (assign acc key value))
-
-      :else
-      (throw (php/new InvalidArgumentException
-                      "conj on a map expects a [key value] pair or an associative collection")))))
+                        "conj on a map expects a [key value] pair or an associative collection"))))))
 
 (defn- conj-bang-single
   [tcoll value]
