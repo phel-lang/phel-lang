@@ -105,6 +105,10 @@
   [coll]
   (or (vector? coll) (transient-vector? coll)))
 
+(defn- in-bounds?
+  [index size]
+  (and (php/>= index 0) (php/< index size)))
+
 (defn nth
   "Returns the value at `index` in `coll`. Throws an
    OutOfBoundsException if the index is out of range and no
@@ -118,12 +122,12 @@
      nil
 
      (php/is_string coll)
-     (if (and (php/>= index 0) (php/< index (php/mb_strlen coll "UTF-8")))
+     (if (in-bounds? index (php/mb_strlen coll "UTF-8"))
        (php/mb_substr coll index 1 "UTF-8")
        (throw (php/new OutOfBoundsException (str "String index " index " out of bounds"))))
 
      (indexed-vector? coll)
-     (if (and (php/>= index 0) (php/< index (count coll)))
+     (if (in-bounds? index (count coll))
        (get coll index)
        (throw (php/new OutOfBoundsException (str "Vector index " index " out of bounds"))))
 
@@ -140,12 +144,12 @@
      (nil? coll)          not-found
 
      (php/is_string coll)
-     (if (and (php/>= index 0) (php/< index (php/mb_strlen coll "UTF-8")))
+     (if (in-bounds? index (php/mb_strlen coll "UTF-8"))
        (php/mb_substr coll index 1 "UTF-8")
        not-found)
 
      (indexed-vector? coll)
-     (if (and (php/>= index 0) (php/< index (count coll)))
+     (if (in-bounds? index (count coll))
        (get coll index)
        not-found)
 
