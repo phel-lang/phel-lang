@@ -67,6 +67,7 @@ This release focuses on Clojure-compatible core behavior, PHP interop consistenc
 
 #### Compiler
 - Resolve PHP class aliases consistently regardless of case (#1567)
+- Reject unknown PHP symbols in `use` imports (#1688)
 - Imported PHP classes can be used as class-string values (#1560)
 - Lowercase root PHP classes resolve in constructor positions (#1567)
 - `php/new` reports invalid target types clearly (#1538)

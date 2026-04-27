@@ -99,6 +99,19 @@ final class UseSymbolTest extends TestCase
         $this->analyze($list);
     }
 
+    public function test_rejects_unknown_import(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Cannot import unknown PHP symbol \\Missing\\UseClass.');
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_USE),
+            Symbol::create('Missing\\UseClass'),
+        ]);
+
+        $this->analyze($list);
+    }
+
     public function test_preserves_source_location(): void
     {
         $list = Phel::list([
