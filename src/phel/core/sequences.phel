@@ -115,7 +115,7 @@
   ([coll index]
    (cond
      (nil? coll)
-     (throw (php/new OutOfBoundsException (str "Index " index " out of bounds on nil")))
+     nil
 
      (php/is_string coll)
      (if (and (php/>= index 0) (php/< index (php/mb_strlen coll "UTF-8")))

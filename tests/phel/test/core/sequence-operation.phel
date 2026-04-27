@@ -290,13 +290,13 @@
   (is (= "b" (nth "abc" 1)) "nth on string")
   (is (= :default (nth "abc" 5 :default)) "nth on string out of bounds with default")
   (is (= 3 (nth '(1 2 3) 2)) "nth on list")
+  (is (nil? (nth nil 10)) "nth on nil returns nil")
   (is (= :default (nth nil 0 :default)) "nth on nil with default"))
 
 (deftest test-nth-throws-on-out-of-bounds
   (is (thrown? OutOfBoundsException (nth [1 2 3] 5)) "nth throws on vector out of bounds")
   (is (thrown? OutOfBoundsException (nth (transient [1 2 3]) 5)) "nth throws on transient vector out of bounds")
-  (is (thrown? OutOfBoundsException (nth "abc" 5)) "nth throws on string out of bounds")
-  (is (thrown? OutOfBoundsException (nth nil 0)) "nth throws on nil"))
+  (is (thrown? OutOfBoundsException (nth "abc" 5)) "nth throws on string out of bounds"))
 
 (deftest test-nthrest
   (is (= [3 4 5] (nthrest [1 2 3 4 5] 2)) "nthrest drops first n")
