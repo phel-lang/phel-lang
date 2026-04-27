@@ -264,6 +264,10 @@
      (for [x :in coll :reduce [acc (transient [])]]
        (conj! acc x)))))
 
+(defn- get-in-traversable?
+  [x]
+  (or (coll? x) (php/is_array x)))
+
 (defn get-in
   "Accesses a value in a nested data structure via a sequence of keys.
 
@@ -271,8 +275,18 @@
   {:example "(get-in {:a {:b {:c 42}}} [:a :b :c]) ; => 42"
    :see-also ["assoc-in" "update-in"]}
   [ds ks & [opt]]
-  (let [res (reduce get ds ks)]
-    (if (nil? res) opt res)))
+  (loop [res ds
+         path ks]
+    (cond
+      (empty? path)
+      (if (nil? res) opt res)
+
+      (or (nil? res)
+          (not (get-in-traversable? res)))
+      opt
+
+      :else
+      (recur (get res (first path)) (next path)))))
 
 (defn assoc-in
   "Associates a value in a nested data structure at the given path.
