@@ -450,6 +450,7 @@
   [n coll]
   (cond
     (php/<= n 0) []
+    (nil? coll)    nil
     (or (php-array? coll)
         (php/instanceof coll SliceInterface)) (slice coll (php/* -1 n))
     :else (take-last-buffered n coll)))
