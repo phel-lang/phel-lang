@@ -81,13 +81,15 @@
   "Returns the sequence after the first element, or empty sequence if none."
   {:example "(rest [1 2 3]) ; => [2 3]"}
   [coll]
-  (if (php/instanceof coll RestInterface)
-    (php/-> coll (rest))
-    (if (php/is_string coll)
-      (php/:: Phel (vector (php/array_slice (php/mb_str_split coll) 1)))
-      (if (php/is_array coll)
-        (php/array_slice coll 1)
-        (throw (php/new InvalidArgumentException "cannot do rest"))))))
+  (if (nil? coll)
+    []
+    (if (php/instanceof coll RestInterface)
+      (php/-> coll (rest))
+      (if (php/is_string coll)
+        (php/:: Phel (vector (php/array_slice (php/mb_str_split coll) 1)))
+        (if (php/is_array coll)
+          (php/array_slice coll 1)
+          (throw (php/new InvalidArgumentException "cannot do rest")))))))
 
 (defn nfirst
   "Same as `(next (first coll))`."
