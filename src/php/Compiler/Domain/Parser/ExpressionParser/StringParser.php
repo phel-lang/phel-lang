@@ -13,6 +13,7 @@ use function chr;
 final class StringParser
 {
     private const int BRACED_UNICODE_ESCAPE_MATCH = 2;
+
     private const int FIXED_UNICODE_ESCAPE_MATCH = 3;
 
     private const array STRING_REPLACEMENTS = [
@@ -79,11 +80,13 @@ final class StringParser
      */
     private function parseUnicodeEscape(array $matches): string
     {
-        $hexCodepoint = ($matches[self::BRACED_UNICODE_ESCAPE_MATCH] ?? '') !== ''
-            ? $matches[self::BRACED_UNICODE_ESCAPE_MATCH]
-            : $matches[self::FIXED_UNICODE_ESCAPE_MATCH];
+        $hexCodepoint = $matches[self::BRACED_UNICODE_ESCAPE_MATCH] ?? '';
 
-        return $this->codePointToUtf8(hexdec((string) $hexCodepoint));
+        if ($hexCodepoint === '') {
+            $hexCodepoint = $matches[self::FIXED_UNICODE_ESCAPE_MATCH] ?? '';
+        }
+
+        return $this->codePointToUtf8(hexdec($hexCodepoint));
     }
 
     /**
