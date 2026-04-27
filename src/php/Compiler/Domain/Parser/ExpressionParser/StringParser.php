@@ -12,6 +12,8 @@ use function chr;
 
 final class StringParser
 {
+    private const string ESCAPE_SEQUENCE_PATTERN = '~\\\\([\\\\$nrtfve]|[xX][0-9a-fA-F]{1,2}|[0-7]{1,3}|u\{([0-9a-fA-F]+)\}|u([0-9a-fA-F]{4}))~';
+
     private const int BRACED_UNICODE_ESCAPE_MATCH = 2;
 
     private const int FIXED_UNICODE_ESCAPE_MATCH = 3;
@@ -61,7 +63,7 @@ final class StringParser
         };
 
         $result = preg_replace_callback(
-            '~\\\\([\\\\$nrtfve]|[xX][0-9a-fA-F]{1,2}|[0-7]{1,3}|u\{([0-9a-fA-F]+)\}|u([0-9a-fA-F]{4}))~',
+            self::ESCAPE_SEQUENCE_PATTERN,
             $callback,
             str_replace('\\"', '"', $str),
         );
