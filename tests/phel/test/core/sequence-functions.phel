@@ -357,6 +357,9 @@
   (is (thrown? \TypeError (sort 1)) "sort non-seqable throws")
   (is (thrown? \InvalidArgumentException (sort [1 []])) "sort incomparable values throws")
   (is (= [1 2 3] (sort-by identity [3 2 1])) "sort-by identity")
+  (is (= [{:a 1 :b 10} {:a 2 :b 9} {:a 3 :b 8} {:a 4 :b 7}]
+         (sort-by :a compare [{:a 2 :b 9} {:a 1 :b 10} {:a 4 :b 7} {:a 3 :b 8}]))
+      "sort-by comparator before collection")
   (is (= [3 2 1] (sort-by - [3 2 1])) "sort-by reversed"))
 
 (deftest test-group-by
