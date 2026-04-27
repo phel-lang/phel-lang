@@ -46,7 +46,7 @@ All notable changes to this project will be documented in this file.
 - `merge` handles no, `nil`, and non-map operands (#1603, #1606)
 - `apply` accepts strings and maps as final arguments (#1602)
 - `seq`, `cons`, and `pop` handle more seqable and empty values (#1598, #1599, #1600)
-- `dissoc` removes record keys with consistent map results (#1607)
+- `dissoc` removes record keys with consistent map results (#1607, #1653)
 - Dynamic bindings are fiber-local and propagate through `future` and `async` (#1536)
 - `contains?` returns `false` for `nil` collections (#1592)
 - Hierarchy lookups handle invalid arguments, inline protocols, and PHP parents (#1591, #1597)
