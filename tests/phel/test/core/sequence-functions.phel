@@ -169,7 +169,7 @@
   (is (= ["a" "b" "c"] (take-last 4 ["a" "b" "c"])) "take-last four elements")
   (is (= [] (take-last 0 ["a" "b" "c"])) "take-last zero elements")
   (is (= [] (take-last -1 ["a" "b" "c"])) "take-last with negative number")
-  (is (= nil (take-last 2 nil)) "take-last on nil")
+  (is (nil? (take-last 2 nil)) "take-last on nil")
   (is (= ["b" "c"] (take-last 2 ["a" "b" "c"])) "take-last on vector")
   (is (= [] (take-last 1 [])) "take-last on empty vector")
   (is (= [] (take-last -1 ["a" "b" "c"])) "take-last with negative number on vector")
