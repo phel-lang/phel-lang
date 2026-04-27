@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file.
 
 #### Core
 - `get-in` returns `nil` or default when traversal goes too deep (#1640)
+- `nth` handles transient vectors (#1641)
 - `some` accepts sets as seqable collections (#1639)
 - `rest` returns an empty sequence for `nil` collections (#1638)
 - `sort` handles `(sort comp coll)`, maps, and nested vectors (#1610, #1611, #1613)
