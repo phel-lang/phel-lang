@@ -3,7 +3,7 @@ set -euo pipefail
 
 usage() {
   cat <<'USAGE'
-Usage: watch-gh-issues.sh [--repo DIR] [--interval SECONDS] [--once] [--execute] [--limit N]
+Usage: gh-issues.sh [--repo DIR] [--interval SECONDS] [--once] [--execute] [--limit N]
 
 Poll open GitHub issues and invoke Codex on the next candidate.
 

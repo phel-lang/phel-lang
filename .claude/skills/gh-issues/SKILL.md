@@ -5,13 +5,13 @@ disable-model-invocation: true
 allowed-tools: "Read, Bash(gh *), Bash(git *), Bash(composer *), Skill(gh-issue), Skill(pr)"
 ---
 
-# Watch GitHub Issues
+# GitHub Issues Watcher
 
 ## Purpose
 
 Process every open, **unassigned** GitHub issue in this repo, one after another, by delegating each to the `/gh-issue` skill. Stop on first hard failure so it can be inspected.
 
-This is the Claude-side counterpart to `.codex/skills/watch-gh-issues/SKILL.md` — but driven from inside the Claude session rather than a polling shell script.
+This is the Claude-side counterpart to `.codex/skills/gh-issues/SKILL.md` — but driven from inside the Claude session rather than a polling shell script.
 
 ## Args
 
