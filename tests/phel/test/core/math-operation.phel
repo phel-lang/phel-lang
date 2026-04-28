@@ -149,12 +149,20 @@
       "min-key with single arg"))
 
 (deftest test-min-key-tie-break
-  (is (= "c" (min-key count "a" "bb" "c"))
-      "min-key keeps latest on ties, matching Clojure")
+  (is (= "a" (min-key count "a" "bb" "c"))
+      "min-key keeps the running best when later items only tie")
   (is (= "b" (min-key count "a" "b"))
-      "2-arg direct form - latest wins on tie")
+      "2-arg direct form returns the second argument on a tie")
   (is (= "b" (min-key count "aaa" "b" "cc"))
-      "no tie, lowest wins"))
+      "no tie, smallest key wins"))
+
+(deftest test-min-key-with-nan
+  (is (= 1 (apply min-key identity [##NaN 1])) "NaN as the first argument is replaced by the next non-NaN")
+  (is (nan? (apply min-key identity [1 ##NaN])) "NaN later in the list propagates to the result")
+  (is (= ##-Inf (apply min-key identity [##NaN ##-Inf 1])) "an early NaN is replaced and -Inf wins")
+  (is (= ##-Inf (apply min-key identity [##NaN 1 ##-Inf])) "an early NaN is replaced and a later -Inf wins")
+  (is (nan? (apply min-key identity [##-Inf ##NaN 1])) "a NaN that becomes the running best blocks further updates")
+  (is (nan? (apply min-key identity [1 ##NaN ##-Inf])) "NaN keeps blocking once it has been selected"))
 
 (deftest test-max-key
   (is (= {:a 3} (max-key :a {:a 1} {:a 3} {:a 2}))
@@ -165,12 +173,12 @@
       "max-key with single arg"))
 
 (deftest test-max-key-tie-break
-  (is (= "cc" (max-key count "aa" "b" "cc"))
-      "max-key keeps latest on ties, matching Clojure")
+  (is (= "aa" (max-key count "aa" "b" "cc"))
+      "max-key keeps the running best when later items only tie")
   (is (= "b" (max-key count "a" "b"))
-      "2-arg direct form - latest wins on tie")
+      "2-arg direct form returns the second argument on a tie")
   (is (= "aaa" (max-key count "aaa" "b" "cc"))
-      "no tie, highest wins"))
+      "no tie, largest key wins"))
 
 (deftest test-coerce-in
   (is (= 0.5 (coerce-in 0.5 0 1)) "(coerce-in 0.5 0 1)")

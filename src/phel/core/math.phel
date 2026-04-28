@@ -391,18 +391,32 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (extreme > numbers)))
 
 (defn min-key
-  "Returns the arg for which (k arg) is smallest. On ties, returns the latest argument, matching Clojure semantics."
+  "Returns the arg for which (k arg) is smallest. On ties, returns the latest argument."
   {:example "(min-key count \"bb\" \"aaa\" \"b\") ; => \"b\""
    :see-also ["max-key" "min" "sort-by"]}
   [k x & more]
-  (reduce (fn [best item] (if (<= (k item) (k best)) item best)) x more))
+  (if (php/=== 0 (count more))
+    x
+    (let [y    (first more)
+          rest (next more)
+          init (if (< (k x) (k y)) x y)]
+      (reduce (fn [acc item] (if (< (k item) (k acc)) item acc))
+              init
+              (or rest [])))))
 
 (defn max-key
-  "Returns the arg for which (k arg) is largest. On ties, returns the latest argument, matching Clojure semantics."
+  "Returns the arg for which (k arg) is largest. On ties, returns the latest argument."
   {:example "(max-key count \"bb\" \"aaa\" \"b\") ; => \"aaa\""
    :see-also ["min-key" "max" "sort-by"]}
   [k x & more]
-  (reduce (fn [best item] (if (>= (k item) (k best)) item best)) x more))
+  (if (php/=== 0 (count more))
+    x
+    (let [y    (first more)
+          rest (next more)
+          init (if (> (k x) (k y)) x y)]
+      (reduce (fn [acc item] (if (> (k item) (k acc)) item acc))
+              init
+              (or rest [])))))
 
 (defn coerce-in
   "Returns `v` if it is in the range, or `min` if `v` is less than `min`, or `max` if `v` is greater than `max`."
