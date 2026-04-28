@@ -55,6 +55,7 @@ This release focuses on Clojure-compatible core behavior, PHP interop consistenc
 - Hierarchy checks include PHP parents and interfaces for class-string tags (#1560)
 - Bare `apply` resolves as a first-class function (#1564)
 - `eval` returns already-evaluated PHP objects unchanged (#1563)
+- Promises implement IFn (`(p val)` delivers, `(p)` derefs) so `(ifn? (promise))` is `true` (#1698)
 
 #### Build
 - Skip unparseable `.phel` files during directory scans
