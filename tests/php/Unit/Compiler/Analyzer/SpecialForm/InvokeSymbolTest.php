@@ -98,11 +98,10 @@ final class InvokeSymbolTest extends TestCase
         $this->analyzer = new Analyzer($env);
     }
 
-    public function test_quoted_symbol_in_call_position_raises_phel011(): void
+    public function test_quoted_symbol_in_call_position_is_callable(): void
     {
-        $this->expectException(AnalyzerException::class);
-        $this->expectExceptionMessage('Value foobar of type Symbol is not callable. Did you quote or escape a symbol by mistake?');
-
+        // Symbols implement FnInterface (look themselves up in collections),
+        // so a quoted-symbol call head must be accepted by the analyzer.
         $list = Phel::list([
             Phel::list([
                 Symbol::create(Symbol::NAME_QUOTE),
@@ -110,7 +109,9 @@ final class InvokeSymbolTest extends TestCase
             ]),
         ]);
 
-        new InvokeSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+        $node = new InvokeSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+
+        self::assertNotNull($node);
     }
 
     public function test_integer_literal_in_call_position_raises_phel011(): void

@@ -4,9 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use ArrayAccess;
 use Override;
+use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 
-final class Symbol extends AbstractType implements IdenticalInterface, NamedInterface
+final class Symbol extends AbstractType implements IdenticalInterface, FnInterface, NamedInterface
 {
     use MetaTrait;
 
@@ -113,6 +115,29 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
     public function __toString(): string
     {
         return $this->name;
+    }
+
+    /**
+     * Symbol-as-accessor, mirroring `Keyword::__invoke`. `nil` target
+     * returns the default so `('foo nil)` is `nil` rather than raising.
+     */
+    public function __invoke(
+        mixed $obj,
+        float|bool|int|string|TypeInterface|null $default = null,
+    ) {
+        if ($obj instanceof ArrayAccess) {
+            if ($obj instanceof ContainsInterface) {
+                return $obj->contains($this) ? $obj[$this] : $default;
+            }
+
+            return $obj[$this] ?? $default;
+        }
+
+        if ($obj instanceof PersistentHashSetInterface) {
+            return $obj->contains($this) ? $this : $default;
+        }
+
+        return $default;
     }
 
     public static function create(string $name): self

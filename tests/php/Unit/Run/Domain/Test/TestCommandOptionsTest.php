@@ -13,14 +13,14 @@ final class TestCommandOptionsTest extends TestCase
     {
         $options = TestCommandOptions::empty();
 
-        self::assertSame('{:filter nil :testdox false :fail-fast false}', $options->asPhelHashMap());
+        self::assertSame('{:filter nil :testdox false :fail-fast false :stack-trace false}', $options->asPhelHashMap());
     }
 
     public function test_random_filter(): void
     {
         $options = TestCommandOptions::fromArray(['filter' => 'example']);
 
-        self::assertSame('{:filter "example" :testdox false :fail-fast false}', $options->asPhelHashMap());
+        self::assertSame('{:filter "example" :testdox false :fail-fast false :stack-trace false}', $options->asPhelHashMap());
     }
 
     public function test_include_tag_list(): void
@@ -30,7 +30,7 @@ final class TestCommandOptionsTest extends TestCase
         ]);
 
         self::assertSame(
-            '{:filter nil :testdox false :fail-fast false :include [:integration :smoke]}',
+            '{:filter nil :testdox false :fail-fast false :stack-trace false :include [:integration :smoke]}',
             $options->asPhelHashMap(),
         );
     }
@@ -42,7 +42,7 @@ final class TestCommandOptionsTest extends TestCase
         ]);
 
         self::assertSame(
-            '{:filter nil :testdox false :fail-fast false :exclude [:slow]}',
+            '{:filter nil :testdox false :fail-fast false :stack-trace false :exclude [:slow]}',
             $options->asPhelHashMap(),
         );
     }
@@ -54,7 +54,7 @@ final class TestCommandOptionsTest extends TestCase
         ]);
 
         self::assertSame(
-            '{:filter nil :testdox false :fail-fast false :ns-patterns ["phel.http.*" "phel.json.**"]}',
+            '{:filter nil :testdox false :fail-fast false :stack-trace false :ns-patterns ["phel.http.*" "phel.json.**"]}',
             $options->asPhelHashMap(),
         );
     }
@@ -66,7 +66,7 @@ final class TestCommandOptionsTest extends TestCase
         ]);
 
         self::assertSame(
-            '{:filter nil :testdox false :fail-fast false :filters ["foo-"]}',
+            '{:filter nil :testdox false :fail-fast false :stack-trace false :filters ["foo-"]}',
             $options->asPhelHashMap(),
         );
     }
@@ -81,7 +81,7 @@ final class TestCommandOptionsTest extends TestCase
         ]);
 
         self::assertSame(
-            '{:filter nil :testdox false :fail-fast false :include [:integration] :exclude [:slow] :ns-patterns ["phel.http.*"] :filters ["get-"]}',
+            '{:filter nil :testdox false :fail-fast false :stack-trace false :include [:integration] :exclude [:slow] :ns-patterns ["phel.http.*"] :filters ["get-"]}',
             $options->asPhelHashMap(),
         );
     }
@@ -96,7 +96,7 @@ final class TestCommandOptionsTest extends TestCase
         ]);
 
         self::assertSame(
-            '{:filter nil :testdox false :fail-fast false :include [:integration :smoke] :ns-patterns ["phel.http.*"]}',
+            '{:filter nil :testdox false :fail-fast false :stack-trace false :include [:integration :smoke] :ns-patterns ["phel.http.*"]}',
             $options->asPhelHashMap(),
         );
     }
@@ -109,7 +109,7 @@ final class TestCommandOptionsTest extends TestCase
         ]);
 
         self::assertSame(
-            '{:filter nil :testdox false :fail-fast false}',
+            '{:filter nil :testdox false :fail-fast false :stack-trace false}',
             $options->asPhelHashMap(),
         );
     }
@@ -118,35 +118,42 @@ final class TestCommandOptionsTest extends TestCase
     {
         $options = TestCommandOptions::fromArray([]);
 
-        self::assertSame('{:filter nil :testdox false :fail-fast false}', $options->asPhelHashMap());
+        self::assertSame('{:filter nil :testdox false :fail-fast false :stack-trace false}', $options->asPhelHashMap());
     }
 
     public function test_false_testdox(): void
     {
         $options = TestCommandOptions::fromArray(['testdox' => false]);
 
-        self::assertSame('{:filter nil :testdox false :fail-fast false}', $options->asPhelHashMap());
+        self::assertSame('{:filter nil :testdox false :fail-fast false :stack-trace false}', $options->asPhelHashMap());
     }
 
     public function test_null_testdox(): void
     {
         $options = TestCommandOptions::fromArray(['testdox' => null]);
 
-        self::assertSame('{:filter nil :testdox false :fail-fast false}', $options->asPhelHashMap());
+        self::assertSame('{:filter nil :testdox false :fail-fast false :stack-trace false}', $options->asPhelHashMap());
     }
 
     public function test_true_testdox(): void
     {
         $options = TestCommandOptions::fromArray(['testdox' => 'true']);
 
-        self::assertSame('{:filter nil :testdox true :fail-fast false}', $options->asPhelHashMap());
+        self::assertSame('{:filter nil :testdox true :fail-fast false :stack-trace false}', $options->asPhelHashMap());
     }
 
     public function test_fail_fast(): void
     {
         $options = TestCommandOptions::fromArray(['fail-fast' => true]);
 
-        self::assertSame('{:filter nil :testdox false :fail-fast true}', $options->asPhelHashMap());
+        self::assertSame('{:filter nil :testdox false :fail-fast true :stack-trace false}', $options->asPhelHashMap());
+    }
+
+    public function test_stack_trace(): void
+    {
+        $options = TestCommandOptions::fromArray(['stack-trace' => true]);
+
+        self::assertSame('{:filter nil :testdox false :fail-fast false :stack-trace true}', $options->asPhelHashMap());
     }
 
     public function test_single_reporter(): void
@@ -154,7 +161,7 @@ final class TestCommandOptionsTest extends TestCase
         $options = TestCommandOptions::fromArray(['reporters' => ['dot']]);
 
         self::assertSame(
-            '{:filter nil :testdox false :fail-fast false :reporters [:dot]}',
+            '{:filter nil :testdox false :fail-fast false :stack-trace false :reporters [:dot]}',
             $options->asPhelHashMap(),
         );
     }
@@ -164,7 +171,7 @@ final class TestCommandOptionsTest extends TestCase
         $options = TestCommandOptions::fromArray(['reporters' => ['dot', 'junit-xml']]);
 
         self::assertSame(
-            '{:filter nil :testdox false :fail-fast false :reporters [:dot :junit-xml]}',
+            '{:filter nil :testdox false :fail-fast false :stack-trace false :reporters [:dot :junit-xml]}',
             $options->asPhelHashMap(),
         );
     }
@@ -174,7 +181,7 @@ final class TestCommandOptionsTest extends TestCase
         $options = TestCommandOptions::fromArray(['reporters' => ['dot', '', 'tap']]);
 
         self::assertSame(
-            '{:filter nil :testdox false :fail-fast false :reporters [:dot :tap]}',
+            '{:filter nil :testdox false :fail-fast false :stack-trace false :reporters [:dot :tap]}',
             $options->asPhelHashMap(),
         );
     }
@@ -187,7 +194,7 @@ final class TestCommandOptionsTest extends TestCase
         ]);
 
         self::assertSame(
-            '{:filter nil :testdox false :fail-fast false :reporters [:junit-xml] :junit-output "build/junit.xml"}',
+            '{:filter nil :testdox false :fail-fast false :stack-trace false :reporters [:junit-xml] :junit-output "build/junit.xml"}',
             $options->asPhelHashMap(),
         );
     }
@@ -200,7 +207,7 @@ final class TestCommandOptionsTest extends TestCase
         ]);
 
         self::assertSame(
-            '{:filter nil :testdox false :fail-fast false :reporters [:junit-xml]}',
+            '{:filter nil :testdox false :fail-fast false :stack-trace false :reporters [:junit-xml]}',
             $options->asPhelHashMap(),
         );
     }
@@ -256,7 +263,7 @@ final class TestCommandOptionsTest extends TestCase
         ])->asPhelHashMap();
 
         self::assertSame(
-            '{:filter nil :testdox false :fail-fast false :include [:a :b] :exclude [:c] :ns-patterns ["x.*"] :filters ["y"]}',
+            '{:filter nil :testdox false :fail-fast false :stack-trace false :include [:a :b] :exclude [:c] :ns-patterns ["x.*"] :filters ["y"]}',
             $printed,
         );
     }
@@ -280,7 +287,7 @@ final class TestCommandOptionsTest extends TestCase
         ]);
 
         self::assertSame(
-            '{:filter nil :testdox false :fail-fast false :include [:ok :smoke] :filters ["keep"]}',
+            '{:filter nil :testdox false :fail-fast false :stack-trace false :include [:ok :smoke] :filters ["keep"]}',
             $options->asPhelHashMap(),
         );
     }
@@ -304,7 +311,7 @@ final class TestCommandOptionsTest extends TestCase
         ]);
 
         self::assertSame(
-            '{:filter "add-" :testdox false :fail-fast false}',
+            '{:filter "add-" :testdox false :fail-fast false :stack-trace false}',
             $options->asPhelHashMap(),
         );
     }
