@@ -33,7 +33,9 @@ final class TransientSortedMap implements TransientMapInterface
         private array $array,
         private readonly ?Closure $userComparator = null,
     ) {
-        $this->effectiveComparator = SortedArrayHelper::resolveComparator($userComparator);
+        $this->effectiveComparator = SortedArrayHelper::adaptForBinarySearch(
+            SortedArrayHelper::resolveComparator($userComparator),
+        );
     }
 
     public function contains($key): bool
