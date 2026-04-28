@@ -1,0 +1,131 @@
+(in-ns phel.core)
+
+(use Phel)
+(use Phel\Compiler\Application\Munge)
+(use Phel\Compiler\CompilerFacade)
+(use Phel\Compiler\Infrastructure\CompileOptions)
+(use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton)
+(use Phel\Lang\Symbol)
+
+;; --- Namespace introspection and manipulation ---
+
+(defn loaded-namespaces
+  "Returns all namespaces currently loaded."
+  {:example "(loaded-namespaces) ; => [\"phel\\core\" \"phel\\repl\"]"}
+  []
+  (php/:: Phel (getNamespaces)))
+
+(defn- core-munge-ns
+  "Encodes a namespace string for registry lookup."
+  [ns-str]
+  (let [munge (php/new Munge)]
+    (php/-> munge (encodeNs ns-str))))
+
+(defn find-ns
+  "Returns the namespace name if it is loaded, or nil if no namespace of
+  that name exists."
+  {:example "(find-ns \"phel\\core\") ; => \"phel\\core\""
+   :see-also ["create-ns" "remove-ns" "loaded-namespaces"]}
+  [ns-str]
+  (when (php/:: Phel (hasNamespace (core-munge-ns ns-str)))
+    ns-str))
+
+(defn create-ns
+  "Creates the given namespace if it does not already exist. Returns the
+  namespace name. Existing namespaces are left untouched."
+  {:example "(create-ns \"my-app\\tmp\") ; => \"my-app\\tmp\""
+   :see-also ["find-ns" "remove-ns" "intern"]}
+  [ns-str]
+  (php/:: Phel (registerNamespace (core-munge-ns ns-str)))
+  ns-str)
+
+(defn remove-ns
+  "Removes the namespace and all of its definitions from the registry.
+  Use with caution. Returns nil."
+  {:example "(remove-ns \"my-app\\tmp\")"
+   :see-also ["find-ns" "create-ns"]}
+  [ns-str]
+  (php/:: Phel (removeNamespace (core-munge-ns ns-str)))
+  nil)
+
+(defn intern
+  "Finds or creates a definition named by name-str in namespace ns-str,
+  setting its root value to val when supplied (defaults to nil). The
+  namespace is auto-registered by the underlying `addDefinition` call.
+  Returns the fully qualified symbol naming the definition."
+  {:example "(intern \"user\" \"x\" 42) ; => user/x"
+   :see-also ["find-ns" "create-ns" "ns-interns"]}
+  [ns-str name-str & [val]]
+  (let [encoded-ns   (core-munge-ns ns-str)
+        encoded-name (php/-> (php/new Munge) (encode name-str))]
+    (php/:: Phel (addDefinition encoded-ns encoded-name val))
+    (php/:: Symbol (createForNamespace ns-str name-str))))
+
+(defn ns-interns
+  "Returns a hash-map of {name => value} for every definition in the
+  given namespace, including private ones. Returns an empty map if the
+  namespace has no definitions."
+  {:example "(ns-interns \"phel\\core\")"
+   :see-also ["ns-publics" "intern" "find-ns"]}
+  [ns-str]
+  (let [defs   (php/:: Phel (getDefinitionInNamespace (core-munge-ns ns-str)))
+        munge  (php/new Munge)
+        result (transient {})]
+    (foreach [fn-name value defs]
+      (assoc! result (php/-> munge (decodeNs fn-name)) value))
+    (persistent result)))
+
+(defn ns-publics
+  "Returns a hash-map of {name => value} for all public definitions in the
+  given namespace string. Private definitions are excluded."
+  {:example "(ns-publics \"phel\\core\") ; => {\"map\" <fn> \"filter\" <fn> ...}"
+   :see-also ["ns-aliases" "ns-refers" "loaded-namespaces"]}
+  [ns-str]
+  (let [encoded (core-munge-ns ns-str)
+        defs    (php/:: Phel (getDefinitionInNamespace encoded))
+        munge   (php/new Munge)
+        result  (transient {})]
+    (foreach [fn-name value defs]
+      (let [meta (php/:: Phel (getDefinitionMetaData encoded fn-name))]
+        (when-not (get meta :private)
+          (assoc! result (php/-> munge (decodeNs fn-name)) value))))
+    (persistent result)))
+
+(defn ns-aliases
+  "Returns a hash-map of {alias => namespace} for all require aliases in the
+  given namespace string."
+  {:example "(ns-aliases *ns*) ; => {\"repl\" \"phel\\repl\" ...}"
+   :see-also ["ns-publics" "ns-refers" "loaded-namespaces"]}
+  [ns-str]
+  (let [env     (php/:: GlobalEnvironmentSingleton (getInstance))
+        aliases (php/-> env (getRequireAliases ns-str))
+        result  (transient {})]
+    (foreach [alias-name target-sym aliases]
+      (assoc! result alias-name (php/-> target-sym (getName))))
+    (persistent result)))
+
+(defn ns-refers
+  "Returns a hash-map of {name => source-namespace} for all referred symbols
+  in the given namespace string."
+  {:example "(ns-refers *ns*) ; => {\"doc\" \"phel\\repl\" ...}"
+   :see-also ["ns-publics" "ns-aliases" "loaded-namespaces"]}
+  [ns-str]
+  (let [env    (php/:: GlobalEnvironmentSingleton (getInstance))
+        refers (php/-> env (getRefers ns-str))
+        result (transient {})]
+    (foreach [refer-name source-sym refers]
+      (assoc! result refer-name (php/-> source-sym (getName))))
+    (persistent result)))
+
+(defn load-file
+  "Loads and evaluates a Phel source file. Reads the file content and
+  evaluates it using the compiler. Returns the result of the last
+  expression, or nil if the file cannot be read."
+  {:example "(load-file \"src/my-module.phel\")"
+   :see-also ["loaded-namespaces"]}
+  [path]
+  (let [content (php/file_get_contents path)]
+    (when content
+      (let [cf   (php/new CompilerFacade)
+            opts (php/-> (php/new CompileOptions) (setSource path))]
+        (php/-> cf (eval content opts))))))

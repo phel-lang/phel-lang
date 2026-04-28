@@ -20,6 +20,11 @@ This release focuses on Clojure-compatible core behavior, PHP interop consistenc
 - Add `into-array` for `.cljc` interop (#1550)
 - Compare numeric values consistently in `==` (#1561)
 - Support `[size init-val-or-seq]` in primitive array helpers (#1562)
+- Add namespace introspection: `loaded-namespaces`, `find-ns`, `create-ns`, `remove-ns`, `intern`, `ns-interns`, `ns-publics`, `ns-aliases`, `ns-refers`, `load-file` (#1694)
+- `rand` accepts an optional limit argument: `(rand n)` returns a number in `[0, n)` (#1696)
+
+#### REPL
+- `require` accepts vector syntax: `(require '[phel\string :as s])` (#1693)
 
 ### Changed
 
@@ -38,6 +43,13 @@ This release focuses on Clojure-compatible core behavior, PHP interop consistenc
 - `sort-by` accepts the comparator before the collection (#1657)
 - `conj` prepends values to lazy sequences like `(range)` (#1650)
 - Improve `nil` handling in `nth`, `rand-nth`, `take-last`, `rest`, and `contains?` (#1592, #1638, #1644, #1652, #1655, #1656)
+- `nthrest` returns `()` instead of `nil` when the collection is exhausted or `nil` (#1699)
+- `seq?` recognizes lists and the result of `seq`/`rseq` over vectors, sorted-maps, and sorted-sets (#1700)
+- `special-symbol?` recognizes the rest-args marker `&` and the `try` sub-forms `catch` and `finally` (#1701)
+- `binding` rebinds dynamic vars to `nil` correctly (#1702)
+- `min` and `max` return `##NaN` whenever any argument is `##NaN` (#1703)
+- `dissoc` throws a clear `InvalidArgumentException` instead of a low-level PHP error when called with a value that is not a map, set, or struct (#1704)
+- `sorted-map-by` and `sorted-set-by` accept predicate-style comparators such as `<` and `>`, treating a truthy result as "first arg sorts earlier" (#1705)
 - Improve set support in sequence functions including `first`, `ffirst`, `second`, `next`, `nfirst`, `fnext`, `nnext`, and `some` (#1639, #1642, #1649)
 - Improve collection edge cases in `seq`, `cons`, `pop`, `nth`, `take-last`, and `take-nth` (#1598, #1599, #1600, #1641, #1643, #1645)
 - Improve map and seq behavior in `apply`, `merge`, `dissoc`, `find`, and `mapcat` (#1602, #1603, #1606, #1607, #1646, #1651, #1653)
@@ -51,6 +63,8 @@ This release focuses on Clojure-compatible core behavior, PHP interop consistenc
 - Hierarchy checks include PHP parents and interfaces for class-string tags (#1560)
 - Bare `apply` resolves as a first-class function (#1564)
 - `eval` returns already-evaluated PHP objects unchanged (#1563)
+- Symbols are now callable like keywords (`('a {'a 1}) ; => 1`) so `(ifn? 'a)` is `true` (#1697)
+- Promises implement IFn (`(p val)` delivers, `(p)` derefs) so `(ifn? (promise))` is `true` (#1698)
 
 #### Build
 - Skip unparseable `.phel` files during directory scans
@@ -61,9 +75,11 @@ This release focuses on Clojure-compatible core behavior, PHP interop consistenc
 #### Test
 - `run-tests` resets assertion counts for each run (#1604)
 - Default reporter prints string literals readably in failures (#1601)
+- `phel test --stack-trace` opts into the full PHP stack trace for errored tests; default report omits it (#1695)
 
 #### REPL
 - Accept bare namespace symbols in `dir` (#1588)
+- Preserve current namespace and user definitions across autocompletion / nREPL `completions` and `lookup` requests, fixing the random switch to `phel-internal\doc` (#1692)
 
 #### Compiler
 - Resolve PHP class aliases consistently regardless of case (#1567)

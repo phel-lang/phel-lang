@@ -60,3 +60,14 @@
   (binding [*not-dynamic* :rebound]
     (is (= :rebound *not-dynamic*) "non-dynamic var is mutated in-place"))
   (is (= :root *not-dynamic*) "non-dynamic var is restored on exit"))
+
+;; --- nil values in dynamic bindings ---
+(deftest test-binding-with-nil-value
+  (binding [*x* nil]
+    (is (nil? *x*) "binding to nil makes the dynamic var read as nil")))
+
+(deftest test-binding-mixed-nil-and-value
+  (def ^:dynamic *y* :unset-y)
+  (binding [*x* :only-x *y* nil]
+    (is (= :only-x *x*) "non-nil entry retains its value")
+    (is (nil? *y*) "nil entry binds the var to nil")))

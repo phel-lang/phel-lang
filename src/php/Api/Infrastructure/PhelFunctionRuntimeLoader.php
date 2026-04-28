@@ -6,7 +6,9 @@ namespace Phel\Api\Infrastructure;
 
 use Phar;
 use Phel;
+use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Shared\Facade\RunFacadeInterface;
 use RuntimeException;
@@ -31,6 +33,14 @@ final readonly class PhelFunctionRuntimeLoader
      */
     public function load(array $namespaces): void
     {
+        $previousEnv = GlobalEnvironmentSingleton::isInitialized()
+            ? GlobalEnvironmentSingleton::getInstance()
+            : null;
+        $previousRegistry = $previousEnv instanceof GlobalEnvironmentInterface
+            ? Registry::getInstance()->snapshot()
+            : null;
+        $previousNs = $previousEnv?->getNs();
+
         Phel::clear();
         Symbol::resetGen();
         GlobalEnvironmentSingleton::initializeNew();
@@ -59,6 +69,48 @@ final readonly class PhelFunctionRuntimeLoader
             if ($tempDir !== null && is_dir($tempDir)) {
                 rmdir($tempDir);
             }
+
+            if ($previousEnv instanceof GlobalEnvironmentInterface && $previousRegistry !== null) {
+                $this->mergePreviousState($previousEnv, $previousRegistry, $previousNs);
+            }
+        }
+    }
+
+    /**
+     * Merges the snapshot taken before the destructive load back on top of
+     * the loaded state so that callers (REPL, nREPL) keep their session
+     * intact while still seeing the freshly loaded documentation namespaces.
+     *
+     * @param array{definitions: array<string, array<string, mixed>>, definitionsMetaData: array<string, array<string, mixed>>} $previousRegistry
+     */
+    private function mergePreviousState(
+        GlobalEnvironmentInterface $previousEnv,
+        array $previousRegistry,
+        ?string $previousNs,
+    ): void {
+        $registry = Registry::getInstance();
+        $current = $registry->snapshot();
+
+        // User-defined entries win on key collisions: a `(def map ...)` in the
+        // REPL must survive a doc/completion reload of `phel\core`.
+        $mergedDefinitions = $current['definitions'];
+        foreach ($previousRegistry['definitions'] as $ns => $entries) {
+            $mergedDefinitions[$ns] = $entries + ($mergedDefinitions[$ns] ?? []);
+        }
+
+        $mergedMeta = $current['definitionsMetaData'];
+        foreach ($previousRegistry['definitionsMetaData'] as $ns => $entries) {
+            $mergedMeta[$ns] = $entries + ($mergedMeta[$ns] ?? []);
+        }
+
+        $registry->restore([
+            'definitions' => $mergedDefinitions,
+            'definitionsMetaData' => $mergedMeta,
+        ]);
+
+        GlobalEnvironmentSingleton::setInstance($previousEnv);
+        if ($previousNs !== null && $previousNs !== '') {
+            $previousEnv->setNs($previousNs);
         }
     }
 

@@ -40,7 +40,9 @@ final class PersistentSortedMap extends AbstractPersistentMap
         private readonly ?Closure $userComparator = null,
     ) {
         parent::__construct($hasher, $equalizer, $meta);
-        $this->effectiveComparator = SortedArrayHelper::resolveComparator($userComparator);
+        $this->effectiveComparator = SortedArrayHelper::adaptForBinarySearch(
+            SortedArrayHelper::resolveComparator($userComparator),
+        );
     }
 
     /**

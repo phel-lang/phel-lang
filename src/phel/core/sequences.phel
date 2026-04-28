@@ -162,15 +162,16 @@
          :else         (recur (php/- i 1) (next s)))))))
 
 (defn nthrest
-  "Returns the nth rest of `coll`, `coll` when `n` is 0."
-  {:example "(nthrest [1 2 3 4 5] 2) ; => (3 4 5)"
+  "Returns the nth rest of `coll`, `coll` when `n` is 0. Returns an empty
+  list once the collection is exhausted or when `coll` is `nil`."
+  {:example "(nthrest [1 2 3 4 5] 2) ; => (3 4 5)\n(nthrest [1 2] 5) ; => ()"
    :see-also ["nth" "nthnext" "drop"]}
   [coll n]
   (loop [i n
          s coll]
     (if (and (php/> i 0) s)
       (recur (php/- i 1) (next s))
-      s)))
+      (if (nil? s) '() s))))
 
 (defn nthnext
   "Returns the nth next of `coll`, `(seq coll)` when `n` is 0.
@@ -260,9 +261,8 @@
     (set-target? ds)
     (php/-> ds (remove key))
 
-    (let [x ds]
-      (php/aunset x key)
-      x)))
+    (throw (php/new InvalidArgumentException
+                    (str "dissoc requires a map, set, or struct; got " (type ds))))))
 
 (defn dissoc
   "Returns `ds` without the given keys. With no keys returns `ds` unchanged."

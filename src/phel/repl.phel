@@ -131,14 +131,21 @@
     namespace))
 
 (defmacro require
-  "Requires a Phel module into the environment."
-  {:example "(require 'phel\\http :as http :refer [request]) ; => phel\\http"}
+  "Requires a Phel module into the environment.
+  Accepts both the flat form and the Clojure-compatible vector form:
+    (require 'phel\\string :as str)
+    (require '[phel\\string :as str])
+    (require '[phel\\string :as str :refer [blank?]])"
+  {:example "(require '[phel\\string :as str]) ; => phel\\string"}
   [sym & args]
-  (let [sym     (unquote-sym sym)
-        options (apply hash-map args)
-        alias   (extract-alias sym options)
-        refers  (or (:refer options) [])]
-    `(require-namespace '~sym '~alias '~refers)))
+  (let [unquoted        (unquote-sym sym)
+        [ns-sym opt-seq] (if (vector? unquoted)
+                           [(first unquoted) (or (next unquoted) [])]
+                           [unquoted args])
+        options         (apply hash-map opt-seq)
+        alias           (extract-alias ns-sym options)
+        refers          (or (:refer options) [])]
+    `(require-namespace '~ns-sym '~alias '~refers)))
 
 (defn- use-namespace
   [namespace alias]

@@ -18,7 +18,6 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
-use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Printer\Printer;
 use RuntimeException;
@@ -74,9 +73,9 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
 
     /**
      * Guards against call-position literals that PHP would reject with a raw
-     * `TypeError` at runtime (quoted symbols, numbers, strings, booleans,
-     * `nil`). Keywords and persistent maps/sets/vectors stay callable and are
-     * handled at runtime as before.
+     * `TypeError` at runtime (numbers, strings, booleans, `nil`). Keywords,
+     * symbols and persistent maps/sets/vectors stay callable and are handled
+     * at runtime.
      */
     private function rejectNonCallableLiteral(AbstractNode $f, PersistentListInterface $list): void
     {
@@ -87,15 +86,6 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
 
         if ($value === self::UNHANDLED) {
             return;
-        }
-
-        if ($value instanceof Symbol) {
-            throw AnalyzerException::notCallable(
-                Printer::readable()->print($value),
-                'Symbol',
-                $list,
-                'Did you quote or escape a symbol by mistake?',
-            );
         }
 
         if ($value === null || is_bool($value) || is_int($value) || is_float($value) || is_string($value)) {

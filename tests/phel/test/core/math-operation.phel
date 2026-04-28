@@ -114,13 +114,31 @@
   (is (true? (neg? ##-Inf)) "##-Inf is negative"))
 
 (deftest test-min
-  (is (= 1 (min 1 2 3)) "(min 1 2 3)"))
+  (is (= 1 (min 1 2 3)) "(min 1 2 3)")
+  (is (nan? (min ##NaN 1)) "min propagates NaN")
+  (is (nan? (min ##-Inf ##NaN ##Inf)) "min returns NaN regardless of position"))
 
 (deftest test-max
-  (is (= 3 (max 1 2 3)) "(max 1 2 3)"))
+  (is (= 3 (max 1 2 3)) "(max 1 2 3)")
+  (is (nan? (max ##NaN 1)) "max propagates NaN")
+  (is (nan? (max ##-Inf ##NaN ##Inf)) "max returns NaN regardless of position"))
 
 (deftest test-rand-nth-on-nil
   (is (nil? (rand-nth nil)) "(rand-nth nil)"))
+
+(deftest test-rand-no-arg-bounds
+  (let [samples (repeatedly 200 rand)]
+    (is (every? #(and (>= % 0) (< % 1)) samples)
+        "(rand) returns a number in [0, 1)")))
+
+(deftest test-rand-with-limit-bounds
+  (let [limit 0.01
+        samples (repeatedly 200 #(rand limit))]
+    (is (every? #(and (>= % 0) (< % limit)) samples)
+        "(rand n) returns a number in [0, n)")))
+
+(deftest test-rand-with-zero-limit
+  (is (zero? (rand 0)) "(rand 0) returns 0"))
 
 (deftest test-min-key
   (is (= {:a 1} (min-key :a {:a 1} {:a 3} {:a 2}))
