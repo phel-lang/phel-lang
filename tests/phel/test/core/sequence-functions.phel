@@ -130,8 +130,11 @@
 
 (deftest test-butlast
   (is (= ["a" "b"] (doall (butlast ["a" "b" "c"]))) "butlast element")
-  (is (= [] (doall (butlast ["a"]))) "butlast single element")
-  (is (= [] (doall (butlast []))) "butlast empty vector")
+  (is (nil? (butlast ["a"])) "butlast single element returns nil")
+  (is (nil? (butlast [])) "butlast empty vector returns nil")
+  (is (nil? (butlast '(0))) "butlast single-element list returns nil")
+  (is (nil? (butlast (range 1))) "butlast single-element range returns nil")
+  (is (nil? (butlast nil)) "butlast on nil returns nil")
   (is (= ["a" "b"] (doall (butlast (php/array "a" "b" "c")))) "butlast on php array"))
 
 (deftest test-drop-while

@@ -387,11 +387,13 @@
     (peek coll)))
 
 (defn butlast
-  "Returns all but the last item in `coll`."
-  {:example "(butlast [1 2 3 4]) ; => [1 2 3]"
+  "Returns all but the last item in `coll`. Returns `nil` when `coll` is
+  `nil` or has fewer than two items."
+  {:example "(butlast [1 2 3 4]) ; => [1 2 3]\n(butlast [0]) ; => nil"
    :see-also ["last" "drop-last"]}
   [coll]
-  (drop-last 1 coll))
+  (when (next coll)
+    (drop-last 1 coll)))
 
 (defn drop-while
   "Drops all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence.
