@@ -75,7 +75,23 @@ disable-model-invocation: true
    Related to #<issue-number>"
    ```
 
-10. **Create PR** using `/pr #<issue-number>`
+10. **Final refactor pass (mandatory before PR)**:
+    Re-review every file touched by this change. Look for:
+    - duplication introduced by the new code (extract or reuse)
+    - dead branches, unused params, leftover debug
+    - naming drift vs. surrounding module conventions
+    - violations of `.claude/rules/php.md`, `modules.md`, `compiler.md`
+    - over-engineering: speculative abstractions, premature interfaces
+
+    Apply fixes. Re-run `composer test`. Commit as a separate refactor commit:
+    ```bash
+    git commit -m "ref(<scope>): polish <area> after #<issue-number>
+
+    Related to #<issue-number>"
+    ```
+    Skip this commit only if the review surfaces zero changes.
+
+11. **Create PR** using `/pr #<issue-number>`
 
 ## Checklist
 - [ ] Issue fetched and understood
@@ -87,4 +103,5 @@ disable-model-invocation: true
 - [ ] `composer test` passes
 - [ ] Changelog updated
 - [ ] Commit with issue reference
+- [ ] Final refactor pass over all touched files (separate commit)
 - [ ] PR created via `/pr`
