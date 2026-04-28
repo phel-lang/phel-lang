@@ -350,7 +350,18 @@
   (is (= {:b 2} (dissoc {:a 1 :b 2 :c 3} :a :c)) "dissoc variadic removes multiple keys")
   (is (= {:a 1} (dissoc {:a 1} :missing :also-missing)) "dissoc skips missing keys")
   (is (= {} (apply dissoc {} [])) "apply dissoc with no keys does not raise")
-  (is (= {:b 2} (apply dissoc {:a 1 :b 2 :c 3} [:a :c])) "apply dissoc variadic through seq"))
+  (is (= {:b 2} (apply dissoc {:a 1 :b 2 :c 3} [:a :c])) "apply dissoc variadic through seq")
+  (is (thrown? \InvalidArgumentException (dissoc 42 :a)) "dissoc rejects scalars")
+  (is (thrown? \InvalidArgumentException (dissoc dissoc :a)) "dissoc rejects functions"))
+
+(defstruct dissoc-rec [a b c])
+
+(deftest test-dissoc-record
+  (let [r (dissoc-rec 1 2 nil)]
+    (is (= {:b 2 :c nil} (apply dissoc r [:a])) "dissoc on struct removes a key, preserving nil entries")
+    (is (= {:b 2 :c nil} (apply dissoc r [:a :d])) "dissoc on struct ignores unknown keys")
+    (is (= {} (apply dissoc r [:a :b :c])) "dissoc removing every key yields an empty map")
+    (is (= r (apply dissoc r [:d])) "dissoc with no matching keys returns the record itself")))
 
 (deftest test-apply
   (is (fn? apply) "bare apply resolves to a function")
