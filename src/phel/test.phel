@@ -461,19 +461,19 @@
 ;; Built-in reporters
 ;; ---------------------
 
-(defn- print-headline [prefix {:message message :location location}]
+(defn- print-headline [prefix {:test-name test-name :message message :location location}]
   (print prefix)
   (when message
-    (print (str " in '" message "'")))
+    (print (str " in (" test-name " '" message "')")))
   (when location
-    (print (str " (" (php/realpath (get location :file)) ":" (get location :line) ")")))
+    (print (str " (" (php/basename (get location :file)) ":" (get location :line) ")")))
   (println))
 
 (defn- print-failure-headline [data]
-  (print-headline "Failure" data))
+  (print-headline "FAIL" data))
 
 (defn- print-error-headline [data]
-  (print-headline "Error" data))
+  (print-headline "ERROR" data))
 
 (def- readable-printer (php/:: Printer (readable)))
 
@@ -485,28 +485,29 @@
   (let [{:exception exception :form form} data
         command-facade                    (php/new CommandFacade)
         printer                           (php/-> command-facade (getExceptionPrinter))]
-    (println "              Test:" (readable-str form))
-    (println "   threw exception:" (php/get_class exception))
-    (println)
+    (println "              Form:" (readable-str form))
+    (println "             threw:" (php/get_class exception))
+    (when-let [exception-message (ex-message exception)]
+      (println "      with message:" exception-message))
     (php/-> printer (printStackTrace exception))))
 
 (defn- print-predicate-failure [{:pred pred :value value :result result}]
-  (println "                 Test:" (readable-str value))
+  (println "                 Form:" (readable-str value))
   (println "         evaluated to:" (readable-str result))
   (println "  but doesn't satisfy:" (readable-str pred)))
 
 (defn- print-predicate-not-failure [{:pred pred :value value :result result}]
-  (println "              Test:" (readable-str value))
+  (println "              Form:" (readable-str value))
   (println "      evaluated to:" (readable-str result))
   (println "  but does satisfy:" (readable-str pred) " (it shouldn't)"))
 
 (defn- print-binary-failure [{:pred pred :expected expected :actual actual :result result}]
-  (println "          Test:" (readable-str actual))
+  (println "          Form:" (readable-str actual))
   (println "  evaluated to:" (readable-str result))
   (println "    but is not:" (readable-str pred) "to" (readable-str expected)))
 
 (defn- print-binary-not-failure [{:pred pred :expected expected :actual actual :result result}]
-  (println "          Test:" (readable-str actual))
+  (println "          Form:" (readable-str actual))
   (println "  evaluated to:" (readable-str result))
   (println "        but is:" (readable-str pred) "to" (readable-str expected) "(it shouldn't be)"))
 
@@ -526,7 +527,7 @@
       (println "       but got:" actual-message))))
 
 (defn- print-any-failure [{:form form :result result}]
-  (println "          Test:" (readable-str form))
+  (println "          Form:" (readable-str form))
   (println "  evaluated to:" (readable-str result) "(which is not truthy)"))
 
 (defn- print-failure [data]

@@ -118,8 +118,8 @@ final class ReplPromptNamespaceTest extends AbstractTestCommand
         }
 
         $output = $io->getOutputString() . $stdout;
-        self::assertStringContainsString('Test: ""', $output);
-        self::assertStringNotContainsString('Test: ' . PHP_EOL, $output);
+        self::assertStringContainsString('Form: ""', $output);
+        self::assertStringNotContainsString('Form: ' . PHP_EOL, $output);
     }
 
     private function createReplTestIo(): ReplTestIo
