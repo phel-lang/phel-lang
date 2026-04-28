@@ -268,10 +268,13 @@
 
 (deftest test-interleave
   (is (= [:a 1 :b 2 :c 3] (interleave [:a :b :c] [1 2 3])) "interleave equal size")
-  (is (= [:a 1 :b 2 :c nil] (interleave [:a :b :c] [1 2])) "interleave different size; more keys")
-  (is (= [:a 1 :b 2] (interleave [:a :b] [1 2 3])) "interleave different size; more values")
-  (is (= [:a 1 nil 2 :c 3] (interleave [:a nil :c] [1 2 3])) "interleave include nil keys")
-  (is (= [:a 1 :b nil :c 3] (interleave [:a :b :c] [1 nil 3])) "interleave include nil values"))
+  (is (= [:a 1 :b 2] (interleave [:a :b :c] [1 2])) "interleave stops at the shortest")
+  (is (= [:a 1 :b 2] (interleave [:a :b] [1 2 3])) "interleave stops when the first input ends first")
+  (is (= [:a 1 nil 2 :c 3] (interleave [:a nil :c] [1 2 3])) "interleave preserves nil values inside collections")
+  (is (= [:a 1 :b nil :c 3] (interleave [:a :b :c] [1 nil 3])) "interleave preserves nil values across collections")
+  (is (= [] (interleave (range) nil)) "interleave returns empty when any input is nil")
+  (is (= [[:a 1] "x" [:b 2] "y"] (interleave (sorted-map :a 1 :b 2) ["x" "y"])) "interleave on a map yields key-value pairs")
+  (is (= [0 "a" 1 "b"] (vec (take 4 (interleave (range) ["a" "b"])))) "interleave terminates against a finite collection"))
 
 (deftest test-interpose
   (is (= ["a" "," "b" "," "c"] (interpose "," ["a" "b" "c"])) "interpose"))
