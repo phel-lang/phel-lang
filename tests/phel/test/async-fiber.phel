@@ -74,3 +74,11 @@
   (let [p (promise)]
     (deliver p :via-reader)
     (is (= :via-reader @p) "@ reader shortcut derefs a promise")))
+
+(deftest test-promise-is-ifn
+  (is (true? (ifn? (promise))) "(ifn? (promise)) is true"))
+
+(deftest test-promise-as-fn-delivers
+  (let [p (promise)]
+    (p 99)
+    (is (= 99 @p) "calling a promise with one arg delivers that value")))

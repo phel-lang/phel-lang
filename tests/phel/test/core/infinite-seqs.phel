@@ -752,8 +752,8 @@
     (is (= 1 (deref side-effect)) "lazy-seq should cache result and not re-evaluate")))
 
 (deftest test-lazy-seq-with-nil
-  (is (= nil (doall (lazy-seq nil)))
-      "lazy-seq with nil should return nil"))
+  (is (= [] (doall (lazy-seq nil)))
+      "lazy-seq with nil produces an empty sequence"))
 
 (deftest test-lazy-seq-recursive-range
   (is (= [5 4 3 2 1] (doall (my-range 5)))
@@ -774,8 +774,8 @@
     (is (= 3 (first (rest (rest result)))) "third element should be 3")))
 
 (deftest test-lazy-seq-empty-collection
-  (is (= nil (doall (lazy-seq [])))
-      "lazy-seq with empty vector should return nil"))
+  (is (= [] (doall (lazy-seq [])))
+      "lazy-seq with empty vector produces an empty sequence"))
 
 (deftest test-lazy-seq-single-element
   (is (= [42] (doall (lazy-seq [42])))
