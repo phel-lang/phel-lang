@@ -46,6 +46,7 @@ This release focuses on Clojure-compatible core behavior, PHP interop consistenc
 - `nthrest` returns `()` instead of `nil` when the collection is exhausted or `nil` (#1699)
 - `seq?` recognizes lists and the result of `seq`/`rseq` over vectors, sorted-maps, and sorted-sets (#1700)
 - `special-symbol?` recognizes the rest-args marker `&` and the `try` sub-forms `catch` and `finally` (#1701)
+- `binding` rebinds dynamic vars to `nil` correctly (#1702)
 - Improve set support in sequence functions including `first`, `ffirst`, `second`, `next`, `nfirst`, `fnext`, `nnext`, and `some` (#1639, #1642, #1649)
 - Improve collection edge cases in `seq`, `cons`, `pop`, `nth`, `take-last`, and `take-nth` (#1598, #1599, #1600, #1641, #1643, #1645)
 - Improve map and seq behavior in `apply`, `merge`, `dissoc`, `find`, and `mapcat` (#1602, #1603, #1606, #1607, #1646, #1651, #1653)

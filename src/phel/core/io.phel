@@ -390,9 +390,10 @@
   mutation restored on exit — convenient for tests but shared
   across fibers."
   [bindings & body]
-  (let [names    (take-nth 2 bindings)
-        vals     (take-nth 2 (drop 1 bindings))
-        set-vars (map (fn [n v] (list 'set-var n v)) names vals)]
+  (let [pairs    (php/array_chunk (apply php/array bindings) 2)
+        set-vars (map (fn [pair]
+                        (list 'set-var (php/aget pair 0) (php/aget pair 1)))
+                      pairs)]
     `(do
        (php/:: \Phel (openBindingFrame))
        (try
