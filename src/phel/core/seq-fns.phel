@@ -794,8 +794,21 @@
   (some? #(= % val) (vals coll)))
 
 (defn- sort-comparator
+  "Wraps the user-supplied comparator (or `compare` when absent) so its
+  result is always an integer. A predicate-style comparator that
+  returns a boolean follows Clojure semantics: a truthy result means
+  the first argument should sort earlier (`-1`), the reverse-truthy
+  case means it should sort later (`+1`), otherwise the items are
+  considered equal."
   [comp]
-  (or comp compare))
+  (let [cmp (or comp compare)]
+    (fn [a b]
+      (let [result (cmp a b)]
+        (cond
+          (int? result)        result
+          result               -1
+          (cmp b a)            1
+          :else                0)))))
 
 (defn- sorted-vector
   [coll comp]
