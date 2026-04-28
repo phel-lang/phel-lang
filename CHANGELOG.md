@@ -65,6 +65,7 @@ This release focuses on Clojure-compatible core behavior, PHP interop consistenc
 #### Test
 - `run-tests` resets assertion counts for each run (#1604)
 - Default reporter prints string literals readably in failures (#1601)
+- `phel test --stack-trace` opts into the full PHP stack trace for errored tests; default report omits it (#1695)
 
 #### REPL
 - Accept bare namespace symbols in `dir` (#1588)

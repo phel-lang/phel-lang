@@ -12,6 +12,7 @@
 ;; ------
 
 (def- fail-fast? (atom false))
+(def- print-stack-trace? (atom false))
 
 (def- ^:dynamic *current-test-name* nil)
 
@@ -489,7 +490,8 @@
     (println "             threw:" (php/get_class exception))
     (when-let [exception-message (ex-message exception)]
       (println "      with message:" exception-message))
-    (php/-> printer (printStackTrace exception))))
+    (when (deref print-stack-trace?)
+      (php/-> printer (printStackTrace exception)))))
 
 (defn- print-predicate-failure [{:pred pred :value value :result result}]
   (println "                 Form:" (readable-str value))
@@ -1109,6 +1111,7 @@
 
 (defn- configure-run! [options]
   (reset! fail-fast? (:fail-fast options))
+  (reset! print-stack-trace? (:stack-trace options))
   (when-let [path (:junit-output options)]
     (set-junit-output! path))
   (set-reporters! (resolve-reporters-option options)))

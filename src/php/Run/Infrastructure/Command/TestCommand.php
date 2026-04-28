@@ -41,6 +41,8 @@ final class TestCommand extends Command
 
     private const string OPT_FAIL_FAST = 'fail-fast';
 
+    private const string OPT_STACK_TRACE = 'stack-trace';
+
     private const string OPT_REPORTER = 'reporter';
 
     private const string OPT_OUTPUT = 'output';
@@ -78,6 +80,11 @@ final class TestCommand extends Command
                 null,
                 InputOption::VALUE_NONE,
                 'Stop running tests after the first failure or error.',
+            )->addOption(
+                self::OPT_STACK_TRACE,
+                null,
+                InputOption::VALUE_NONE,
+                'Print the full PHP stack trace for each errored test.',
             )->addOption(
                 self::OPT_REPORTER,
                 null,
@@ -218,6 +225,7 @@ final class TestCommand extends Command
                 TestCommandOptions::FILTER => null,
                 TestCommandOptions::TESTDOX => (bool) $input->getOption(self::OPT_TESTDOX),
                 TestCommandOptions::FAIL_FAST => (bool) $input->getOption(self::OPT_FAIL_FAST),
+                TestCommandOptions::STACK_TRACE => (bool) $input->getOption(self::OPT_STACK_TRACE),
                 TestCommandOptions::REPORTERS => $reporters,
                 TestCommandOptions::JUNIT_OUTPUT => is_string($output) ? $output : null,
                 TestCommandOptions::INCLUDE => $includes,
