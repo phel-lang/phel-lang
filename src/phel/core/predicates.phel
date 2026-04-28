@@ -328,7 +328,7 @@
 
 (defn empty
   "Returns an empty collection of the same category as `coll`, or nil."
-  {:example "(empty [1 2 3]) ; => []\n(empty {:a 1}) ; => {}"
+  {:example "(empty [1 2 3]) ; => []\n(empty {:a 1}) ; => {}\n(empty (range 10)) ; => ()"
    :see-also ["empty?" "not-empty"]}
   [coll]
   (cond
@@ -337,6 +337,7 @@
     (map? coll)                                      {}
     (php/instanceof coll PersistentHashSetInterface) (hash-set)
     (list? coll)                                     '()
+    (php/instanceof coll LazySeqInterface)           '()
     (php-array? coll)                                (php/array)
     :else                                            nil))
 

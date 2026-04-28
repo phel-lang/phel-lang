@@ -319,6 +319,8 @@
   (is (= {} (empty {:a 1})) "empty of map")
   (is (= (hash-set) (empty (set [1 2]))) "empty of set")
   (is (= '() (empty '(1 2 3))) "empty of list")
+  (is (= '() (empty (range 10))) "empty of finite range")
+  (is (= '() (empty (range))) "empty of infinite range")
   (is (nil? (empty nil)) "empty of nil"))
 
 (deftest test-pairs
