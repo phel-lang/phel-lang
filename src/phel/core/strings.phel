@@ -11,16 +11,31 @@
 ;;     Handles nil → "", booleans → "true"/"false", integer-valued floats
 ;;     keeping the trailing `.0`.
 
-(defn symbol
-  "Returns a new symbol for given string with optional namespace.
+(defn- to-symbol-part
+  "Extracts the underlying string from `x` for use as a symbol or
+  namespace component. Keywords and symbols pass through their `name`."
+  [x]
+  (if (php/=== nil x)
+    nil
+    (if (php/instanceof x \Phel\Lang\NamedInterface)
+      (php/-> x (getName))
+      x)))
 
-  With one argument, creates a symbol without namespace.
-  With two arguments, creates a symbol in the given namespace."
-  {:example "(symbol \"foo\") ; => foo"}
+(defn symbol
+  "Returns a new symbol for the given name with an optional namespace.
+
+  With one argument, creates a symbol without namespace. Accepts a
+  string, a keyword, or another symbol. With two arguments, creates a
+  symbol in the given namespace."
+  {:example "(symbol \"foo\") ; => foo\n(symbol :abc) ; => abc"}
   [name-or-ns & [name]]
   (if name
-    (php/:: Symbol (createForNamespace name-or-ns name))
-    (php/:: Symbol (create name-or-ns))))
+    (php/:: Symbol (createForNamespace
+                    (to-symbol-part name-or-ns)
+                    (to-symbol-part name)))
+    (if (php/instanceof name-or-ns Symbol)
+      name-or-ns
+      (php/:: Symbol (create (to-symbol-part name-or-ns))))))
 
 (defn gensym
   "Generates a new unique symbol."

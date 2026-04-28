@@ -66,6 +66,7 @@ This release focuses on Clojure-compatible core behavior, PHP interop consistenc
 - `sort` and `sort-by` accept predicate-style comparators such as `<` and `>`, treating a truthy result as "first arg sorts earlier" (#1737)
 - `dissoc` returns `nil` when the data structure is `nil`, regardless of the keys supplied (#1738)
 - `min` and `max` accept a single non-numeric argument, returning it unchanged instead of forwarding to `is_nan` (#1740)
+- `symbol` accepts keywords and symbols, extracting their name; `(symbol 'foo)` returns the same symbol (#1750)
 - Improve set support in sequence functions including `first`, `ffirst`, `second`, `next`, `nfirst`, `fnext`, `nnext`, and `some` (#1639, #1642, #1649)
 - Improve collection edge cases in `seq`, `cons`, `pop`, `nth`, `take-last`, and `take-nth` (#1598, #1599, #1600, #1641, #1643, #1645)
 - Improve map and seq behavior in `apply`, `merge`, `dissoc`, `find`, and `mapcat` (#1602, #1603, #1606, #1607, #1646, #1651, #1653)

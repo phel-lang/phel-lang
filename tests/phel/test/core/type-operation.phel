@@ -399,7 +399,11 @@
   (is (= 'foo/bar (symbol "foo" "bar")) "symbol on string with namespace")
   (is (= "foo" (php/-> (symbol "foo" "bar") (getNamespace))) "symbol on string with namespace using getNamespace")
   (is (= nil (php/-> (symbol "bar") (getNamespace))) "symbol on string without namespace using getNamespace")
-  (is (= 'foo (php/:: (symbol (str "\Phel" "\Lang" "\Symbol")) (create "foo"))) "symbol on PHP class identifier string"))
+  (is (= 'foo (php/:: (symbol (str "\Phel" "\Lang" "\Symbol")) (create "foo"))) "symbol on PHP class identifier string")
+  (is (= 'abc (symbol :abc)) "symbol on a keyword extracts the name")
+  (is (= '+ (symbol :+)) "symbol on a single-character keyword")
+  (is (= 'a/b (symbol :a :b)) "symbol with keyword namespace and keyword name")
+  (is (identical? 'foo (symbol 'foo)) "symbol on a symbol returns it unchanged"))
 
 (deftest test-namespace
   (is (= nil (namespace 'symbol)) "namespace on symbol without ns")
