@@ -371,6 +371,16 @@
     (is (= {} (apply dissoc r [:a :b :c])) "dissoc removing every key yields an empty map")
     (is (= r (apply dissoc r [:d])) "dissoc with no matching keys returns the record itself")))
 
+(defrecord DissocDefRecord [a b c])
+
+(deftest test-dissoc-defrecord
+  (let [r (DissocDefRecord 1 2 nil)]
+    (is (= {:b 2 :c nil} (dissoc r :a)) "dissoc on defrecord removes a key, preserving nil entries")
+    (is (= {:b 2 :c nil} (apply dissoc r [:a])) "apply dissoc on defrecord removes a key")
+    (is (= {:b 2 :c nil} (apply dissoc r [:a :d])) "dissoc on defrecord ignores unknown keys")
+    (is (= {} (apply dissoc r [:a :b :c])) "dissoc removing every key yields an empty map")
+    (is (= r (apply dissoc r [:d])) "dissoc with no matching keys returns the defrecord itself")))
+
 (deftest test-apply
   (is (fn? apply) "bare apply resolves to a function")
   (is (= 6 ((identity apply) + [1 2 3])) "apply can be invoked as a value")
