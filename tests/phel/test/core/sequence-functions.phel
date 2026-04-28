@@ -277,7 +277,9 @@
   (is (= [0 "a" 1 "b"] (vec (take 4 (interleave (range) ["a" "b"])))) "interleave terminates against a finite collection"))
 
 (deftest test-interpose
-  (is (= ["a" "," "b" "," "c"] (interpose "," ["a" "b" "c"])) "interpose"))
+  (is (= ["a" "," "b" "," "c"] (interpose "," ["a" "b" "c"])) "interpose")
+  (is (= [[:a 1] "x" [:b 2]] (vec (interpose "x" (sorted-map :a 1 :b 2))))
+      "interpose on a sorted-map yields key-value pairs"))
 
 (deftest test-frequencies
   (is (= {1 2 2 3 3 2 4 1} (frequencies [1 1 2 3 2 2 3 4])) "frequencies on vector")

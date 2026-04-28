@@ -983,8 +983,9 @@
     1 (let [coll (first args)]
         (if (php/=== nil coll)
           '()
-          (let [result (lazy-seq-from-generator
-                        (php/:: \Phel\Lang\Seq (interpose sep coll)))]
+          (let [seqd   (or (seq coll) coll)
+                result (lazy-seq-from-generator
+                        (php/:: \Phel\Lang\Seq (interpose sep seqd)))]
             (if (php/=== nil result)
               '()
               (copy-meta coll result)))))
