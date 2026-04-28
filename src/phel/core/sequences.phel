@@ -261,9 +261,8 @@
     (set-target? ds)
     (php/-> ds (remove key))
 
-    (let [x ds]
-      (php/aunset x key)
-      x)))
+    (throw (php/new InvalidArgumentException
+                    (str "dissoc requires a map, set, or struct; got " (type ds))))))
 
 (defn dissoc
   "Returns `ds` without the given keys. With no keys returns `ds` unchanged."
