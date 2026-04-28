@@ -12,6 +12,7 @@
 (use Phel\Lang\Collections\Vector\PersistentVectorInterface)
 (use Phel\Lang\FnInterface)
 (use Phel\Lang\Keyword)
+(use Phel\Lang\MetaInterface)
 (use Phel\Lang\Symbol)
 (use Phel\Lang\Variable)
 
@@ -327,19 +328,23 @@
     coll))
 
 (defn empty
-  "Returns an empty collection of the same category as `coll`, or nil."
+  "Returns an empty collection of the same category as `coll`, preserving
+  the original metadata, or nil if `coll` has no empty equivalent."
   {:example "(empty [1 2 3]) ; => []\n(empty {:a 1}) ; => {}\n(empty (range 10)) ; => ()"
    :see-also ["empty?" "not-empty"]}
   [coll]
-  (cond
-    (nil? coll)                                      nil
-    (vector? coll)                                   []
-    (map? coll)                                      {}
-    (php/instanceof coll PersistentHashSetInterface) (hash-set)
-    (list? coll)                                     '()
-    (php/instanceof coll LazySeqInterface)           '()
-    (php-array? coll)                                (php/array)
-    :else                                            nil))
+  (let [empty-coll (cond
+                     (nil? coll)                                      nil
+                     (vector? coll)                                   []
+                     (map? coll)                                      {}
+                     (php/instanceof coll PersistentHashSetInterface) (hash-set)
+                     (list? coll)                                     '()
+                     (php/instanceof coll LazySeqInterface)           '()
+                     (php-array? coll)                                (php/array)
+                     :else                                            nil)]
+    (if (and empty-coll (php/instanceof coll MetaInterface))
+      (copy-meta coll empty-coll)
+      empty-coll)))
 
 (defn- seq-vector
   [values]

@@ -323,6 +323,14 @@
   (is (= '() (empty (range))) "empty of infinite range")
   (is (nil? (empty nil)) "empty of nil"))
 
+(deftest test-empty-preserves-meta
+  (let [m          {:foo 42}
+        apply-meta #(-> % (with-meta m) empty meta)]
+    (is (= m (apply-meta {})) "empty preserves meta on a map")
+    (is (= m (apply-meta [])) "empty preserves meta on a vector")
+    (is (= m (apply-meta #{})) "empty preserves meta on a set")
+    (is (= m (apply-meta '())) "empty preserves meta on a list")))
+
 (deftest test-pairs
   (is (= [[:a 1] [:b 2] [:c 3]] (pairs {:a 1 :b 2 :c 3})) "pairs of maps")
   (is (= [[0 3] [1 2] [2 1]] (pairs [3 2 1])) "pairs of vector"))
