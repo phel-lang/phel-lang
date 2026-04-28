@@ -4,6 +4,7 @@
 (use OutOfBoundsException)
 (use Phel\Lang\Collections\HashSet\PersistentHashSetInterface)
 (use Phel\Lang\Collections\HashSet\TransientHashSetInterface)
+(use Phel\Lang\Collections\LazySeq\LazySeqInterface)
 (use Phel\Lang\Collections\Map\PersistentMapInterface)
 (use Phel\Lang\Collections\Map\TransientMapInterface)
 (use Phel\Lang\Collections\Vector\PersistentVectorInterface)
@@ -21,22 +22,26 @@
 ;; ------------------
 
 (defn peek
-  "Returns the last element of a sequence, or nil if empty or nil.
-  Works on vectors, PHP arrays, lists, and lazy sequences."
-  {:example "(peek [1 2 3]) ; => 3"}
+  "Returns the head of a vector / PHP array (the last element) or the
+  head of a list / lazy sequence (the first element). Returns nil if
+  `coll` is empty or nil."
+  {:example "(peek [1 2 3]) ; => 3\n(peek '(:a :b :c)) ; => :a"}
   [coll]
   (cond
     (nil? coll)
     nil
 
-    (seq? coll)
-    (loop [s coll last-val nil]
-      (if (nil? (seq s))
-        last-val
-        (recur (next s) (first s))))
+    (list? coll)
+    (first coll)
+
+    (php/instanceof coll LazySeqInterface)
+    (first coll)
 
     :else
-    (php/aget coll (php/- (count coll) 1))))
+    (let [n (count coll)]
+      (if (php/=== 0 n)
+        nil
+        (php/aget coll (php/- n 1))))))
 
 
 (defn push

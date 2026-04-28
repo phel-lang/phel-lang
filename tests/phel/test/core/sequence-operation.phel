@@ -15,14 +15,16 @@
   (is (= (second [1 2 3]) (fnext [1 2 3])) "fnext equals second"))
 
 (deftest test-peek
-  (is (= 3 (peek [1 2 3])) "peek on vector")
+  (is (= 3 (peek [1 2 3])) "peek on a vector returns the last element")
   (is (nil? (peek [])) "peek on empty vector")
-  (is (= 3 (peek (php/array 1 2 3))) "peek on php array")
+  (is (= 3 (peek (php/array 1 2 3))) "peek on php array returns the last element")
   (is (nil? (peek (php/array))) "peek on empty php array")
   (is (nil? (peek nil)) "peek on nil")
-  ;; Lazy sequences (produced by filter, map, etc.) must also be supported
-  (is (= 3 (peek (filter #(> % 0) [1 2 3]))) "peek on lazy seq from filter")
-  (is (= 6 (peek (map #(* % 2) [1 2 3]))) "peek on lazy seq from map")
+  (is (= :a (peek '(:a :b :c))) "peek on a list returns the first element")
+  (is (nil? (peek '())) "peek on an empty list")
+  ;; Lazy sequences expose their head — the first element — like lists do
+  (is (= 1 (peek (filter #(> % 0) [1 2 3]))) "peek on lazy seq returns the first element")
+  (is (= 2 (peek (map #(* % 2) [1 2 3]))) "peek on lazy seq from map returns the head")
   (is (nil? (peek (filter false? [1 2 3]))) "peek on empty lazy seq"))
 
 (def- testing-set-global-array (php/array 1 2 3))
