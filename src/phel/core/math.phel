@@ -375,14 +375,20 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (reduce #(if (order %1 %2) %1 %2) args))
 
 (defn min
-  "Returns the numeric minimum of all numbers."
+  "Returns the numeric minimum of all numbers. Returns `##NaN` whenever any
+  argument is `##NaN`."
   [& numbers]
-  (extreme < numbers))
+  (if (some nan? numbers)
+    ##NaN
+    (extreme < numbers)))
 
 (defn max
-  "Returns the numeric maximum of all numbers."
+  "Returns the numeric maximum of all numbers. Returns `##NaN` whenever any
+  argument is `##NaN`."
   [& numbers]
-  (extreme > numbers))
+  (if (some nan? numbers)
+    ##NaN
+    (extreme > numbers)))
 
 (defn min-key
   "Returns the arg for which (k arg) is smallest. On ties, returns the latest argument, matching Clojure semantics."
