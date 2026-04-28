@@ -404,4 +404,54 @@ final class PersistentSortedMapTest extends TestCase
 
         $this->assertSame(['a', 'b', 'c'], $keys);
     }
+
+    /**
+     * Regression for https://github.com/phel-lang/phel-lang/issues/1705.
+     *
+     * Phel/Clojure idiom is to pass a *predicate* such as `>` (which
+     * returns bool) to `sorted-map-by`. Before the fix, the binary
+     * search treated `false` as `0` ("key found, replace value") and
+     * collapsed every key into a single slot. After the fix, the
+     * three keys (13, 14, 15) all appear, in descending order.
+     */
+    public function test_sorted_map_with_greater_than_predicate_keeps_all_keys(): void
+    {
+        $gt = static fn($a, $b): bool => $a > $b;
+
+        $h = PersistentSortedMap::empty(new ModuloHasher(), new SimpleEqualizer(), $gt)
+            ->put(13, 'a')
+            ->put(14, 'b')
+            ->put(15, 'c');
+
+        $this->assertCount(3, $h, 'all three keys must be retained');
+        $this->assertSame('a', $h->find(13));
+        $this->assertSame('b', $h->find(14));
+        $this->assertSame('c', $h->find(15));
+
+        $keys = [];
+        foreach ($h as $k => $v) {
+            $keys[] = $k;
+        }
+
+        $this->assertSame([15, 14, 13], $keys, 'keys iterate in descending order');
+    }
+
+    public function test_sorted_map_with_less_than_predicate_keeps_all_keys(): void
+    {
+        $lt = static fn($a, $b): bool => $a < $b;
+
+        $h = PersistentSortedMap::empty(new ModuloHasher(), new SimpleEqualizer(), $lt)
+            ->put(13, 'a')
+            ->put(15, 'c')
+            ->put(14, 'b');
+
+        $this->assertCount(3, $h);
+
+        $keys = [];
+        foreach ($h as $k => $v) {
+            $keys[] = $k;
+        }
+
+        $this->assertSame([13, 14, 15], $keys, 'keys iterate in ascending order');
+    }
 }

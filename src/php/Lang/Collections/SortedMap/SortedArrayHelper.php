@@ -39,7 +39,29 @@ final class SortedArrayHelper
             return self::$defaultComparator ??= static fn(mixed $a, mixed $b): int => self::defaultCompare($a, $b);
         }
 
-        return $comparator instanceof Closure ? $comparator : Closure::fromCallable($comparator);
+        $closure = $comparator instanceof Closure ? $comparator : Closure::fromCallable($comparator);
+
+        // Phel users routinely pass *predicates* such as `>` or `<` here
+        // (this matches Clojure semantics), but a predicate returns
+        // bool, not the -1/0/1 a comparator needs. Wrap so:
+        //   - bool true     -> a comes before b (-1)
+        //   - bool false    -> probe (b, a); true -> 1, otherwise 0
+        //   - int / numeric -> normalize to {-1, 0, 1} via spaceship
+        // Without this wrapping `(sorted-map-by > ...)` collapsed every
+        // key into a single slot because `>` returned `false` for the
+        // equal-or-greater inputs and binarySearch read `false === 0`
+        // as "key found, replace value" (issue #1705).
+        return static function (mixed $a, mixed $b) use ($closure): int {
+            $result = $closure($a, $b);
+            if (is_bool($result)) {
+                if ($result) {
+                    return -1;
+                }
+                return $closure($b, $a) === true ? 1 : 0;
+            }
+
+            return ((int) $result) <=> 0;
+        };
     }
 
     /**

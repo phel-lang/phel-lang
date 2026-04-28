@@ -48,7 +48,14 @@ final class PersistentSortedMap extends AbstractPersistentMap
      */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer, ?callable $comparator = null): self
     {
-        $closure = $comparator !== null ? SortedArrayHelper::resolveComparator($comparator) : null;
+        // The constructor resolves $userComparator into the wrapped
+        // $effectiveComparator used by the binary search. Storing the
+        // *un-wrapped* user closure here preserves the contract of
+        // getComparator() (it should hand back what the user passed in)
+        // and avoids double-wrapping the predicate adapter.
+        $closure = $comparator === null
+            ? null
+            : ($comparator instanceof Closure ? $comparator : Closure::fromCallable($comparator));
 
         return new self($hasher, $equalizer, null, [], $closure);
     }

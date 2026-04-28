@@ -75,12 +75,17 @@ final class SortedArrayHelperTest extends TestCase
         self::assertSame($comp1, $comp2);
     }
 
-    public function test_resolve_closure_returns_same_closure(): void
+    public function test_resolve_int_comparator_is_wrapped_and_normalized(): void
     {
+        // The wrapper preserves the *ordering* of an int comparator:
+        // negative -> -1, zero -> 0, positive -> 1.
         $custom = static fn(int $a, int $b): int => $b <=> $a;
         $result = SortedArrayHelper::resolveComparator($custom);
 
-        self::assertSame($custom, $result);
+        self::assertInstanceOf(Closure::class, $result);
+        self::assertSame(-1, $result(2, 1));
+        self::assertSame(0, $result(1, 1));
+        self::assertSame(1, $result(1, 2));
     }
 
     public function test_resolve_callable_converts_to_closure(): void
@@ -88,6 +93,35 @@ final class SortedArrayHelperTest extends TestCase
         $result = SortedArrayHelper::resolveComparator(strcmp(...));
 
         self::assertInstanceOf(Closure::class, $result);
+    }
+
+    /**
+     * Regression for #1705: passing a *predicate* such as `>` or `<`
+     * (i.e. a closure that returns `bool`) must be adapted to the
+     * `-1 / 0 / 1` contract a comparator needs. Without this, the
+     * binary-search collapsed every key into a single slot and
+     * `(sorted-map-by > 13 :a 14 :b 15 :c)` returned `{13 :c}`.
+     */
+    public function test_resolve_bool_predicate_is_adapted_to_int(): void
+    {
+        // Descending order via greater-than predicate.
+        $gt = static fn(int $a, int $b): bool => $a > $b;
+        $cmp = SortedArrayHelper::resolveComparator($gt);
+
+        self::assertSame(-1, $cmp(2, 1), '2 > 1 -> 2 sorts before 1');
+        self::assertSame(1, $cmp(1, 2), '1 < 2 -> 1 sorts after 2');
+        self::assertSame(0, $cmp(1, 1), 'equal keys must compare equal');
+    }
+
+    public function test_resolve_bool_predicate_ascending(): void
+    {
+        // Ascending order via less-than predicate.
+        $lt = static fn(int $a, int $b): bool => $a < $b;
+        $cmp = SortedArrayHelper::resolveComparator($lt);
+
+        self::assertSame(-1, $cmp(1, 2));
+        self::assertSame(1, $cmp(2, 1));
+        self::assertSame(0, $cmp(1, 1));
     }
 
     // ---- binarySearch ----
