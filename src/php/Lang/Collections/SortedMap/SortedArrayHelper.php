@@ -8,6 +8,7 @@ use Closure;
 use Phel\Lang\NamedInterface;
 
 use function count;
+use function is_int;
 
 /**
  * Shared binary search and comparator logic for sorted collections.
@@ -40,6 +41,28 @@ final class SortedArrayHelper
         }
 
         return $comparator instanceof Closure ? $comparator : Closure::fromCallable($comparator);
+    }
+
+    /**
+     * Wraps a comparator so the binary search receives an int regardless
+     * of whether the user passed a spaceship-style comparator (returning
+     * negative/zero/positive) or a predicate-style comparator returning
+     * a boolean (such as `<` or `>`).
+     */
+    public static function adaptForBinarySearch(Closure $comparator): Closure
+    {
+        return static function (mixed $a, mixed $b) use ($comparator): int {
+            $result = $comparator($a, $b);
+            if (is_int($result)) {
+                return $result;
+            }
+
+            if ($result) {
+                return -1;
+            }
+
+            return $comparator($b, $a) ? 1 : 0;
+        };
     }
 
     /**

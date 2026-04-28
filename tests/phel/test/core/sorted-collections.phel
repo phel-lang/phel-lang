@@ -55,6 +55,18 @@
     (is (= "a" (get m 1)) "get works with custom comparator")
     (is (= [3 2 1] (keys (put m 3 "c"))) "put maintains custom order")))
 
+(deftest test-sorted-map-by-with-predicate-comparator
+  (is (= [13 14 15] (keys (sorted-map-by < 13 :a 14 :b 15 :c)))
+      "predicate comparator < produces ascending order")
+  (is (= [15 14 13] (keys (sorted-map-by > 13 :a 14 :b 15 :c)))
+      "predicate comparator > produces descending order"))
+
+(deftest test-sorted-set-by-with-predicate-comparator
+  (is (= [1 2 3] (vec (sorted-set-by < 3 1 2)))
+      "predicate comparator < produces ascending order")
+  (is (= [3 2 1] (vec (sorted-set-by > 1 3 2)))
+      "predicate comparator > produces descending order"))
+
 ;; ---- sorted-set ----
 
 (deftest test-sorted-set-empty
