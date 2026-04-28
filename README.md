@@ -23,9 +23,9 @@
 
 ---
 
-Functional, Lisp-inspired language that compiles to PHP. Macros, persistent data structures, and expressive functional idioms for the PHP ecosystem.
+Functional, Lisp-inspired language compiling to PHP. Macros, persistent data structures, REPL.
 
-#### Example
+### Example
 <!--
 using "clojure" here is just for the md coloring
 we should use "phel" once GitHub accept phel coloring too
@@ -122,31 +122,27 @@ we should use "phel" once GitHub accept phel coloring too
 
 ## Getting Started
 
-Install and scaffold in under a minute:
-
 ```sh
 composer require phel-lang/phel-lang
-./vendor/bin/phel init
+./vendor/bin/phel init                     # add `--minimal` for a single-file layout
 ```
 
-Creates `phel-config.php`, `src/phel/main.phel`, `tests/phel/main_test.phel`. Then:
+Scaffolds `phel-config.php`, `src/phel/main.phel`, `tests/phel/main_test.phel`.
 
 ```sh
 ./vendor/bin/phel run src/phel/main.phel   # run
 ./vendor/bin/phel test                     # tests
-./vendor/bin/phel repl                     # interactive
-./vendor/bin/phel build                    # compile to PHP for production
+./vendor/bin/phel repl                     # REPL
+./vendor/bin/phel build                    # compile to PHP
 ```
 
-Inline snippets or shell pipelines via `phel eval`:
+Eval inline or via stdin:
 
 ```sh
 ./vendor/bin/phel eval '(+ 1 2)'           # prints 3
 echo '(println "hi")' | ./vendor/bin/phel eval -
 ./vendor/bin/phel eval - < script.phel
 ```
-
-Single-file scratch layout: `./vendor/bin/phel init --minimal` (no subdirectories).
 
 ## Documentation
 
@@ -174,12 +170,8 @@ Single-file scratch layout: `./vendor/bin/phel init --minimal` (no subdirectorie
 
 ## Build PHAR
 
-```sh
-./build/phar.sh
-```
-
-Produces `build/out/phel.phar`.
+`./build/phar.sh` produces `build/out/phel.phar`.
 
 ## Contribute
 
-New here? Start with [CONTRIBUTING.md](.github/CONTRIBUTING.md) — setup, workflow, "Where to Start". See [AGENTS.md](AGENTS.md) for architecture and review expectations.
+Setup and workflow: [CONTRIBUTING.md](.github/CONTRIBUTING.md). Architecture and review expectations: [AGENTS.md](AGENTS.md).
