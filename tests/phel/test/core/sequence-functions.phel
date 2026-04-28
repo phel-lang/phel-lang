@@ -379,7 +379,15 @@
   (is (= [{:a 1 :b 10} {:a 2 :b 9} {:a 3 :b 8} {:a 4 :b 7}]
          (sort-by :a compare [{:a 2 :b 9} {:a 1 :b 10} {:a 4 :b 7} {:a 3 :b 8}]))
       "sort-by comparator before collection")
-  (is (= [3 2 1] (sort-by - [3 2 1])) "sort-by reversed"))
+  (is (= [3 2 1] (sort-by - [3 2 1])) "sort-by reversed")
+  (is (= [1 2 3] (sort < [3 1 2])) "sort with predicate `<` is ascending")
+  (is (= [3 2 1] (sort > [3 1 2])) "sort with predicate `>` is descending")
+  (is (= [{:a 1} {:a 2} {:a 3}]
+         (sort-by :a < [{:a 2} {:a 1} {:a 3}]))
+      "sort-by with predicate `<` is ascending")
+  (is (= [{:a 3} {:a 2} {:a 1}]
+         (sort-by :a > [{:a 2} {:a 1} {:a 3}]))
+      "sort-by with predicate `>` is descending"))
 
 (deftest test-group-by
   (is (= {1 ["a"] 2 ["as" "aa"] 3 ["asd"] 4 ["asdf" "qwer"]}
