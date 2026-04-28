@@ -4,7 +4,7 @@
 
 Reader conditionals allow platform-specific code in shared source files. They are evaluated at read time (during parsing), before compilation. The Phel compiler selects the `:phel` branch, ignores branches for other platforms (`:clj`, `:cljs`, etc.), and optionally falls back to `:default`.
 
-This enables `.cljc` files — source files that can be shared between Phel, Clojure, and other Lisp dialects that support reader conditionals.
+This enables `.cljc` files: source files shared between Phel, Clojure, and other Lisp dialects that support reader conditionals.
 
 ## Basic usage: `#?()`
 
@@ -44,9 +44,9 @@ A reader conditional selects one form based on the platform:
 #?(:clj 99 :default 0)
 ; => 0
 
-;; No matching branch — form is dropped entirely
+;; No matching branch: form is dropped entirely
 #?(:clj 99 :cljs 88)
-; => (nothing — treated as whitespace)
+; => (nothing: treated as whitespace)
 ```
 
 ## Splicing: `#?@()`
@@ -61,7 +61,7 @@ Reader conditional splicing inserts multiple elements from a collection into the
 ; => array(0, 1, 2, 3, 4)
 ```
 
-The matched branch **must be a sequential collection** (vector or list). Its elements are spliced into the parent — the collection wrapper is removed.
+The matched branch **must be a sequential collection** (vector or list). Its elements are spliced into the parent; the collection wrapper is removed.
 
 ### Splicing with fallback
 
@@ -90,7 +90,7 @@ The matched branch **must be a sequential collection** (vector or list). Its ele
 
 ### Cross-platform source files (`.cljc`)
 
-Phel automatically discovers and compiles `.cljc` files alongside `.phel` files. This lets you share code between Phel and Clojure:
+Phel discovers and compiles `.cljc` files alongside `.phel` files, letting you share code between Phel and Clojure:
 
 ```phel
 ;; src/shared/utils.cljc
@@ -121,7 +121,7 @@ Phel automatically discovers and compiles `.cljc` files alongside `.phel` files.
      :clj  (json/read-str s)))
 ```
 
-> Phel accepts both Clojure-style vector entries (`[phel.json :as json :refer [encode]]`) and the older list form (`phel\json :as json`) inside `:require`, so the same `(ns ...)` form parses on both sides.
+> Phel accepts both vector entries (`[phel.json :as json :refer [encode]]`) and the older list form (`phel\json :as json`) inside `:require`, so the same `(ns ...)` form parses on both sides.
 
 ### Conditional data structures
 
@@ -148,7 +148,7 @@ Reader conditionals resolve at parse time, so they work naturally inside any for
 
 ## How it works
 
-Reader conditionals are resolved during the **parsing phase** of compilation (Lexer -> **Parser** -> Analyzer -> Emitter). The parser:
+Reader conditionals resolve during the **parsing phase** (Lexer -> **Parser** -> Analyzer -> Emitter). The parser:
 
 1. Reads keyword-form pairs inside `#?()` or `#?@()`
 2. Selects the `:phel` branch if present, otherwise `:default`
@@ -156,7 +156,7 @@ Reader conditionals are resolved during the **parsing phase** of compilation (Le
 4. For `#?@()`: splices the selected collection's elements into the parent
 5. If no branch matches: the conditional is dropped as trivia (like a comment)
 
-Since this happens at parse time, the analyzer and emitter never see the reader conditional — they only see the selected form.
+Since this happens at parse time, the analyzer and emitter never see the reader conditional; they only see the selected form.
 
 ## Summary
 

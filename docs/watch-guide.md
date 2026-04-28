@@ -1,6 +1,6 @@
 # Watch Guide
 
-`phel watch` recompiles and reloads changed namespaces in dependency order so you can iterate without restarting the REPL or a long-running process. Backends: `inotify` (Linux), `fswatch` (macOS), `polling` (everywhere).
+`phel watch` recompiles and reloads changed namespaces in dependency order, so you can iterate without restarting the REPL or a long-running process. Backends: `inotify` (Linux), `fswatch` (macOS), `polling` (everywhere).
 
 ## Contents
 
@@ -17,7 +17,7 @@
 ./vendor/bin/phel watch -b polling --poll=250   # force polling, 250ms interval
 ```
 
-On each change, `phel watch` reloads the changed namespace plus any downstream namespaces that depend on it, in topological order.
+On each change, `phel watch` reloads the changed namespace and its dependents in topological order.
 
 ## Options
 
@@ -36,13 +36,13 @@ On each change, `phel watch` reloads the changed namespace plus any downstream n
 (watch! ["src/" "tests/"])
 ```
 
-Returns a handle you can stop with `(stop-watch! h)`.
+Returns a handle. Stop with `(stop-watch! h)`.
 
 ## Pitfalls
 
-- The polling backend has the highest CPU cost; prefer `inotify` or `fswatch` when available
-- Reload order follows the dependency graph; cyclic requires will break live reload
-- Editors that write files atomically (rename) emit two events; `--debounce` handles this by default
+- Polling has the highest CPU cost; prefer `inotify` or `fswatch` when available
+- Reload follows the dependency graph; cyclic requires break live reload
+- Editors that write atomically (rename) emit two events; `--debounce` handles this by default
 
 ## See also
 

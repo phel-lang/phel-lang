@@ -1,6 +1,6 @@
 # Phel single-file showcase
 
-Standalone scripts that walk from primitive literals up to concurrency and a full CLI. Each file runs with:
+Standalone scripts from primitive literals through concurrency to a full CLI. Run any file with:
 
 ```bash
 ./bin/phel run docs/examples/<file>.phel
@@ -26,7 +26,7 @@ Standalone scripts that walk from primitive literals up to concurrency and a ful
 
 Copy any file into your project and tweak it.
 
-## Run them all
+## Run all
 
 ```bash
 find docs/examples -name "*.phel" -type f | \
@@ -39,4 +39,4 @@ find docs/examples -name "*.phel" -type f | \
     '
 ```
 
-This is the same command the CI `examples` job runs on every push.
+CI's `examples` job runs the same command on every push.

@@ -1,6 +1,6 @@
 # Data Structures Manipulation Guide
 
-This guide covers all functions for manipulating Phel's immutable data structures: vectors, maps, sets, and lists.
+Functions for manipulating Phel's immutable data structures: vectors, maps, sets, and lists.
 
 ## Contents
 
@@ -19,15 +19,15 @@ This guide covers all functions for manipulating Phel's immutable data structure
 
 ## Introduction
 
-Phel's data structures are **immutable** and **persistent**. Operations return new versions of the collection while sharing structure with the original, so reads stay O(1) amortized and updates cost log32(n).
+Phel's data structures are **immutable** and **persistent**. Operations return new versions while sharing structure with the original: reads stay O(1) amortized, updates cost log32(n).
 
-The function names follow the same conventions as most Lisps (`conj`, `assoc`, `dissoc`, `merge`, `update`, `get`, `keys`, `vals`, `into`, `group-by`, `frequencies`, ...). A short [quick reference](#quick-reference) appears at the end of the guide.
+Function names follow common Lisp conventions (`conj`, `assoc`, `dissoc`, `merge`, `update`, `get`, `keys`, `vals`, `into`, `group-by`, `frequencies`, ...). See the [quick reference](#quick-reference) at the end.
 
 ---
 
 ## String Iteration
 
-Strings work directly with all sequence functions, just like Clojure:
+Strings work directly with all sequence functions:
 
 ```phel
 ;; Iterate with for
@@ -104,7 +104,7 @@ All string operations properly handle multibyte UTF-8 characters:
 (map identity "🎉🎊🎈")  ; => ["🎉" "🎊" "🎈"]
 ```
 
-**Note:** Phel strings are now fully seqable, matching Clojure's behavior. The `seq` function is still available for backward compatibility and explicit conversion when needed.
+**Note:** Phel strings are fully seqable. `seq` remains available for backward compatibility and explicit conversion.
 
 ---
 
@@ -112,7 +112,7 @@ All string operations properly handle multibyte UTF-8 characters:
 
 ### `conj` - Conjoin (Universal Add)
 
-The universal function for adding elements to any collection type. Behavior varies by collection:
+Adds elements to any collection type. Behavior varies by collection:
 
 ```phel
 ;; Vectors - appends to end
@@ -150,7 +150,7 @@ The universal function for adding elements to any collection type. Behavior vari
 
 ### `assoc` - Associate Key-Value Pairs
 
-Associates a value with a key in a collection. For maps, adds/updates key-value pairs. For vectors, updates by index.
+Associates a value with a key. For maps, adds or updates key-value pairs. For vectors, updates by index.
 
 ```phel
 ;; Maps - add or update key
@@ -167,7 +167,7 @@ Associates a value with a key in a collection. For maps, adds/updates key-value 
 
 **Signature:** `[ds key value]`
 
-**See also:** For maps with structured data, consider `conj`. For nested updates, use `assoc-in`.
+**See also:** `conj` for structured data, `assoc-in` for nested updates.
 
 ---
 
@@ -195,7 +195,7 @@ Returns a collection with all elements from one or more source collections added
 
 **Signatures:** `[to from]`, `[to xform from]`
 
-See [Transducers](transducers.md) for building reusable transformations.
+See [Transducers](transducers.md).
 
 ---
 
@@ -203,7 +203,7 @@ See [Transducers](transducers.md) for building reusable transformations.
 
 ### `get` - Safe Access
 
-Gets the value at a key in a collection. Returns `nil` or an optional default if not found.
+Gets the value at a key. Returns `nil` or an optional default if not found.
 
 ```phel
 (get {:a 1 :b 2} :a)
@@ -226,7 +226,7 @@ Gets the value at a key in a collection. Returns `nil` or an optional default if
 
 ### `get-in` - Nested Access
 
-Accesses a value in a nested data structure via a sequence of keys.
+Accesses a value in nested data via a sequence of keys.
 
 ```phel
 (get-in {:a {:b {:c 1}}} [:a :b :c])
@@ -274,7 +274,7 @@ Returns a sequence of all values in a map.
 
 ### `contains?` - Check for Key
 
-Returns `true` if a key exists in the collection. **Important:** Checks for keys/indices, not values.
+Returns `true` if a key exists. **Important:** Checks keys/indices, not values.
 
 ```phel
 (contains? {:a 1 :b 2} :a)
@@ -293,7 +293,7 @@ Returns `true` if a key exists in the collection. **Important:** Checks for keys
 
 ### `find` - Find First Match
 
-Returns the first item in a collection where the predicate returns true.
+Returns the first item where the predicate returns true.
 
 ```phel
 (find #(> % 5) [1 3 7 2 9])
@@ -305,7 +305,7 @@ Returns the first item in a collection where the predicate returns true.
 
 **Signature:** `[pred coll]`
 
-**Clojure note:** Different from Clojure! Clojure's `find` returns a map entry `[key value]` for associative structures. Phel's `find` is a general search function.
+**Clojure note:** Differs from Clojure: Clojure's `find` returns a map entry `[key value]` for associative structures. Phel's `find` is a general search function.
 
 ---
 
@@ -313,7 +313,7 @@ Returns the first item in a collection where the predicate returns true.
 
 ### `update` - Transform a Value
 
-Updates a value in a data structure by applying a function to the current value.
+Applies a function to the value at a key.
 
 ```phel
 (update {:a 1} :a inc)
@@ -332,7 +332,7 @@ Updates a value in a data structure by applying a function to the current value.
 
 ### `update-in` - Nested Transform
 
-Updates a value in a nested data structure by applying a function.
+Applies a function to a nested value.
 
 ```phel
 (update-in {:a {:b 1}} [:a :b] inc)
@@ -348,7 +348,7 @@ Updates a value in a nested data structure by applying a function.
 
 ### `assoc-in` - Nested Association
 
-Associates a value in a nested data structure. Creates intermediate structures as needed.
+Associates a nested value, creating intermediate structures as needed.
 
 ```phel
 (assoc-in {:a {}} [:a :b :c] 1)
@@ -364,7 +364,7 @@ Associates a value in a nested data structure. Creates intermediate structures a
 
 ### `dissoc` - Dissociate Keys
 
-Removes a key from a data structure.
+Removes a key.
 
 ```phel
 (dissoc {:a 1 :b 2 :c 3} :b)
@@ -380,7 +380,7 @@ Removes a key from a data structure.
 
 ### `dissoc-in` - Nested Dissociation ⭐
 
-Removes a key from a nested data structure.
+Removes a nested key.
 
 ```phel
 (dissoc-in {:a {:b {:c 1 :d 2}}} [:a :b :c])
@@ -389,7 +389,7 @@ Removes a key from a nested data structure.
 
 **Signature:** `[ds [k & ks]]`
 
-**⭐ Phel-specific:** This function is not in Clojure core. It's a convenient extension for nested dissociation.
+**⭐ Phel-specific:** Not in Clojure core.
 
 ---
 
@@ -413,7 +413,7 @@ Merges multiple maps into one. Later values override earlier ones for duplicate 
 
 ### `merge-with` - Merge with Function
 
-Merges maps, using a function to resolve duplicate keys.
+Merges maps, resolving duplicate keys with a function.
 
 ```phel
 (merge-with + {:a 1 :b 2} {:b 3 :c 4})
@@ -444,7 +444,7 @@ Recursively merges nested data structures (maps, sets, vectors).
 
 **Signature:** `[& args]`
 
-**⭐ Phel-specific:** This recursive merge is not in Clojure core. It's particularly useful for configuration merging.
+**⭐ Phel-specific:** Not in Clojure core. Useful for configuration merging.
 
 ---
 
@@ -466,7 +466,7 @@ Returns a new map with only the specified keys.
 
 ### `zipmap` - Create Map from Sequences
 
-Creates a map by pairing up keys and values from two sequences.
+Pairs keys and values from two sequences into a map.
 
 ```phel
 (zipmap [:a :b :c] [1 2 3])
@@ -483,7 +483,7 @@ Creates a map by pairing up keys and values from two sequences.
 
 ### `invert` - Swap Keys and Values
 
-Returns a new map where keys and values are swapped.
+Returns a map with keys and values swapped.
 
 ```phel
 (invert {:a 1 :b 2})
@@ -492,7 +492,7 @@ Returns a new map where keys and values are swapped.
 
 **Signature:** `[map]`
 
-**Clojure note:** In Clojure, this is `clojure.set/map-invert`, not in core. Phel includes it in core.
+**Clojure note:** Equivalent to `clojure.set/map-invert`. Phel includes it in core.
 
 ---
 
@@ -500,7 +500,7 @@ Returns a new map where keys and values are swapped.
 
 ### `frequencies` - Count Occurrences
 
-Returns a map of items to the number of times they appear.
+Returns a map of items to occurrence counts.
 
 ```phel
 (frequencies [:a :b :a :c :b :a])
@@ -512,13 +512,13 @@ Returns a map of items to the number of times they appear.
 
 **Signature:** `[coll]`
 
-**Clojure note:** Identical behavior to Clojure's `frequencies`. Phel supports strings as iterable sequences!
+**Clojure note:** Identical to Clojure's `frequencies`. Phel also supports strings as iterable sequences.
 
 ---
 
 ### `group-by` - Organize by Function
 
-Groups elements by the result of applying a function to each element.
+Groups elements by the result of applying a function.
 
 ```phel
 (group-by count ["a" "bb" "ccc" "dd" "e"])
@@ -534,7 +534,7 @@ Groups elements by the result of applying a function to each element.
 
 ## Working with Nested Structures
 
-Phel provides powerful functions for working with deeply nested data structures. All `*-in` functions accept a path (sequence of keys) to navigate the structure.
+All `*-in` functions accept a path (sequence of keys) to navigate the structure.
 
 ### Common Patterns
 
@@ -573,7 +573,7 @@ Paths work with any combination of map keys and vector indices:
 
 ## Transient Collections
 
-For performance-critical code with many sequential updates, use **transient collections**. They allow efficient mutable operations, then convert back to persistent structures.
+For performance-critical code with many sequential updates, use **transient collections**. They allow efficient mutable operations, then convert back to persistent.
 
 ### Workflow
 
@@ -603,32 +603,30 @@ For performance-critical code with many sequential updates, use **transient coll
     (persistent t)))
 ```
 
-**Clojure note:** Phel uses `persistent` while Clojure uses `persistent!` (with exclamation mark).
+**Clojure note:** Phel uses `persistent`; Clojure uses `persistent!`.
 
-**Important:** After calling `persistent`, don't use the transient version anymore.
+**Important:** Don't use the transient version after calling `persistent`.
 
 ---
 
 ## Phel-Specific Extensions ⭐
 
-Phel includes several functions not found in Clojure core that provide additional convenience.
+Functions not found in Clojure core.
 
 ### `dissoc-in` - Nested Dissociation
 
-Remove keys from nested structures without manual path traversal.
+Removes keys from nested structures without manual path traversal.
 
 ```phel
 (dissoc-in {:a {:b {:c 1 :d 2} :e 3}} [:a :b :c])
 ;; => {:a {:b {:d 2} :e 3}}
 ```
 
-This is more convenient than manually navigating and updating each level.
-
 ---
 
 ### `deep-merge` - Recursive Merge
 
-Intelligently merges nested structures of the same type.
+Recursively merges nested structures of the same type.
 
 ```phel
 ;; Nested maps
@@ -646,13 +644,13 @@ Intelligently merges nested structures of the same type.
 ;; => {:tags #{:a :b :c}}
 ```
 
-Perfect for configuration merging and defaults.
+Useful for configuration merging and defaults.
 
 ---
 
 ### `pairs` - Get Key-Value Pairs
 
-Returns key-value pairs from an associative data structure.
+Returns key-value pairs from an associative structure.
 
 ```phel
 (pairs {:a 1 :b 2})
@@ -676,7 +674,7 @@ Useful for APIs that expect key-value arguments.
 
 ### `find-index` - Find with Index
 
-Returns the index of the first item where the predicate (called with index and item) returns true.
+Returns the index of the first item where the predicate (called with index and item) is true.
 
 ```phel
 (find-index #(> %2 5) [1 3 7 2 9])
@@ -686,7 +684,7 @@ Returns the index of the first item where the predicate (called with index and i
 ;; => 1  (first even index)
 ```
 
-The predicate receives two arguments: `%1` (index) and `%2` (item).
+The predicate receives `%1` (index) and `%2` (item).
 
 ---
 
@@ -737,7 +735,7 @@ These functions have been deprecated in favor of Clojure-compatible alternatives
 | `put-in` | `assoc-in` | Align with Clojure naming |
 | `unset-in` | `dissoc-in` | Align with Clojure naming |
 
-**Migration:** Simply replace the old function name with the new one. The function signatures and behavior are identical.
+**Migration:** Replace the old name with the new one. Signatures and behavior are identical.
 
 ```phel
 ;; Old (deprecated)
@@ -753,13 +751,13 @@ These functions have been deprecated in favor of Clojure-compatible alternatives
 
 ## Summary
 
-Phel provides a comprehensive set of functions for manipulating immutable data structures with strong Clojure compatibility. Key takeaways:
+Key takeaways:
 
-- Use **`conj`** as the universal "add" function
-- Use **`assoc`** for explicit key-value pairs
-- Use **`*-in` functions** for nested operations
-- Leverage **Phel-specific extensions** like `deep-merge` and `dissoc-in` for enhanced productivity
-- Use **transient collections** for performance-critical batch updates
+- **`conj`** is the universal "add" function
+- **`assoc`** sets explicit key-value pairs
+- **`*-in` functions** handle nested operations
+- **Phel extensions** like `deep-merge` and `dissoc-in` simplify nested work
+- **Transient collections** speed up performance-critical batch updates
 - Migrate from **deprecated functions** to Clojure-compatible names
 
-For more examples, see `docs/examples/05_data-structures.phel`.
+See `docs/examples/05_data-structures.phel`.

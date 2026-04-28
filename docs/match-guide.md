@@ -62,5 +62,5 @@
 
 ## See also
 
-- `phel\schema` for declaring shapes reusable across validation and matching
-- `cond`, `case`, `condp` for simpler dispatch without destructuring
+- `phel\schema`: shapes reusable across validation and matching
+- `cond`, `case`, `condp`: simpler dispatch without destructuring

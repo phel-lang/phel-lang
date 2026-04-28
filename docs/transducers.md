@@ -2,9 +2,9 @@
 
 ## What are transducers?
 
-Transducers are composable transformation pipelines that decouple the "what" (map, filter, take, etc.) from the "how" (building a vector, summing, writing to a file). They transform one reducing function into another, without creating intermediate collections at each step.
+Transducers are composable transformation pipelines that decouple the "what" (map, filter, take) from the "how" (building a vector, summing, writing to a file). They transform one reducing function into another without creating intermediate collections at each step.
 
-A regular pipeline like this creates a temporary sequence at every step:
+A regular pipeline creates a temporary sequence at every step:
 
 ```phel
 ;; Two intermediate lazy sequences created
@@ -21,11 +21,11 @@ With transducers, the transformations fuse into a single pass:
 
 ## Basic usage
 
-There are three ways to consume a transducer:
+Three ways to consume a transducer:
 
 ### `transduce` -- reduce with a transformation
 
-Applies a transducer, then reduces with a combining function:
+Apply a transducer, then reduce with a combining function:
 
 ```phel
 ;; Sum all values after incrementing
@@ -59,7 +59,7 @@ A shorthand for `(into [] xf coll)`:
 
 ## Transducer-producing functions
 
-Most sequence functions in Phel are dual-purpose: call them **with** a collection and they return a lazy sequence; call them **without** a collection and they return a transducer.
+Most sequence functions are dual-purpose: call them **with** a collection and they return a lazy sequence; call them **without** and they return a transducer.
 
 | Function | Transducer form | Description |
 |---|---|---|
@@ -93,7 +93,7 @@ Use `comp` to build a pipeline. Transducers compose left-to-right (the leftmost 
 ; => [4 16 36]
 ```
 
-This is the opposite of normal function composition, but matches the order you would write with threading:
+This is the opposite of normal function composition, but matches the order written with threading:
 
 ```phel
 ;; Equivalent lazy-sequence version (creates intermediates):
@@ -107,7 +107,7 @@ This is the opposite of normal function composition, but matches the order you w
 
 ### `reduced`, `reduced?`, `unreduced`
 
-A reducing function can signal "I'm done, stop iterating" by wrapping its return value in `reduced`:
+A reducing function signals "stop iterating" by wrapping its return value in `reduced`:
 
 ```phel
 ;; Sum until the accumulator exceeds 10
@@ -124,7 +124,7 @@ A reducing function can signal "I'm done, stop iterating" by wrapping its return
 
 ### How built-in transducers use early termination
 
-`take` and `take-while` rely on `reduced` internally. When `take` has collected enough elements, it wraps the result in `reduced` so the outer `reduce`/`transduce` stops iterating immediately rather than walking the rest of the collection.
+`take` and `take-while` use `reduced` internally. When `take` has collected enough elements, it wraps the result in `reduced` so the outer `reduce`/`transduce` stops immediately rather than walking the rest of the collection.
 
 ```phel
 ;; Stops processing after 2 elements, does not touch the rest
@@ -134,7 +134,7 @@ A reducing function can signal "I'm done, stop iterating" by wrapping its return
 
 ## Stateful transducers
 
-Some transducers need mutable state across steps (counters, sets of seen values, etc.). Phel provides volatile references for this:
+Some transducers need mutable state across steps (counters, sets of seen values). Phel provides volatile references:
 
 - `(volatile! val)` -- create a mutable reference initialized to `val`
 - `@vol` (deref) -- read the current value
@@ -153,7 +153,7 @@ For example, `distinct` internally uses a volatile hash-set to track seen elemen
 
 ## Custom transducers
 
-A transducer is a function that takes a reducing function `rf` and returns a new reducing function. The returned function must handle three arities:
+A transducer takes a reducing function `rf` and returns a new reducing function. The returned function handles three arities:
 
 - **0-arity** (init): return `(rf)` -- delegate to the downstream init
 - **1-arity** (completion): return `(rf result)` -- delegate completion, optionally flush state
@@ -163,7 +163,7 @@ Due to a compiler limitation with nested multi-arity `fn`, use variadic `[& args
 
 ### Using `xf-step` (recommended)
 
-The private helper `xf-step` handles the 0/1 arity boilerplate. You only write the 2-arity step:
+The private helper `xf-step` handles the 0/1 arity boilerplate. Write only the 2-arity step:
 
 ```phel
 ;; A transducer that doubles every element
@@ -178,7 +178,7 @@ The private helper `xf-step` handles the 0/1 arity boilerplate. You only write t
 
 ### Full manual example
 
-When you need custom completion logic (e.g., flushing buffered state), write all three arities:
+For custom completion logic (e.g. flushing buffered state), write all three arities:
 
 ```phel
 ;; A transducer that batches elements into groups of n
@@ -208,7 +208,7 @@ When you need custom completion logic (e.g., flushing buffered state), write all
 
 ### With early termination
 
-If your transducer needs to stop processing, wrap the result in `reduced`:
+To stop processing, wrap the result in `reduced`:
 
 ```phel
 ;; Take until predicate returns true (inclusive)
@@ -239,10 +239,10 @@ Every dual-purpose function works in two modes:
 
 **When to use which:**
 
-- **Lazy sequences** are fine for simple, linear pipelines. They compose naturally with `->>`.
-- **Transducers** shine when you need to:
+- **Lazy sequences** for simple, linear pipelines. Compose naturally with `->>`.
+- **Transducers** when you need to:
   - Avoid intermediate collections in a multi-step pipeline
-  - Reuse the same transformation with different sources or destinations
+  - Reuse one transformation with different sources or destinations
   - Reduce into something other than a sequence (sums, maps, side effects)
 
 ```phel

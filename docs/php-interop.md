@@ -1,6 +1,6 @@
 # PHP/Phel Interoperability Guide
 
-This guide shows how to seamlessly work between PHP and Phel code.
+How to work between PHP and Phel code.
 
 ## Quick Reference
 
@@ -35,17 +35,14 @@ Prefix PHP functions with `php/`:
 (php/abs -5)                      ; => 5
 (php/max 1 5 3)                   ; => 5
 
-;; Namespaced functions — keep the original casing
+;; Namespaced functions: keep the original casing
 (php/Amp\trapSignal [php/SIGINT php/SIGTERM])
 (php/\Monolog\Logger\Utils\detectAndCleanUtf8 "input")
 ```
 
-The `php/` prefix resolves any global or namespaced PHP function. For
-namespaced functions the name after `php/` is the full PHP path (use `\\`
-to disambiguate from the root namespace when needed). Case is preserved,
-so `php/Amp\trapSignal` compiles to `\Amp\trapSignal(...)`.
+The `php/` prefix resolves any global or namespaced PHP function. The name after `php/` is the full PHP path (use `\\` to disambiguate from the root namespace). Case is preserved, so `php/Amp\trapSignal` compiles to `\Amp\trapSignal(...)`.
 
-To keep calls short, capture the function reference with `def`:
+Capture the function reference with `def` to shorten calls:
 
 ```phel
 (def trap-signal php/\Amp\trapSignal)
@@ -71,11 +68,11 @@ To keep calls short, capture the function reference with `def`:
 (php/-> now (format "Y-m-d"))     ; => "2024-01-15"
 (php/-> now (getTimestamp))       ; => 1705334400
 
-;; Method call shorthand — `.method` expands to `(php/-> ...)`
+;; Method call shorthand: `.method` expands to `(php/-> ...)`
 (.format now "Y-m-d")             ; => "2024-01-15"
 (.getTimestamp now)               ; => 1705334400
 
-;; Property access shorthand — `.-field` expands to `(php/-> ...)`
+;; Property access shorthand: `.-field` expands to `(php/-> ...)`
 (.-y (new DateInterval "P1D"))    ; => 0
 
 ;; Chain method calls
@@ -87,7 +84,7 @@ To keep calls short, capture the function reference with `def`:
 (php/:: DateTime (createFromFormat "Y-m-d" "2024-01-15"))
 (DateTime/createFromFormat "Y-m-d" "2024-01-15")   ; shorthand
 
-;; Static constants and properties — bare `Class/MEMBER` shorthand
+;; Static constants and properties: bare `Class/MEMBER` shorthand
 (php/:: \DateTimeImmutable ATOM)                   ; => "Y-m-d\\TH:i:sP"
 \DateTimeImmutable/ATOM                            ; shorthand
 
@@ -121,32 +118,32 @@ Use `:use` for PHP classes:
 
 ```phel
 (ns app\services
-  (:use PDO)                      ; Import single class
-  (:use DateTime DateInterval)   ; Import multiple classes
+  (:use PDO)                      ; Single class
+  (:use DateTime DateInterval)   ; Multiple classes
   (:use Symfony\Component\HttpFoundation\Request))
 
-;; Now use them without namespace prefix
+;; Use them without namespace prefix
 (php/new PDO "mysql:host=localhost" "user" "pass")
 (php/new Request)
 ```
 
 ### Requiring Phel Namespaces
 
-`:require` accepts both list-style and Clojure-style vector entries, so the same form works in plain `.phel` files and shared `.cljc` files:
+`:require` accepts both list-style and vector entries, so the same form works in `.phel` and shared `.cljc` files:
 
 ```phel
-;; Phel-style list entry
+;; List entry
 (ns app\services
   (:require phel\string :as str)
   (:require phel\json :as json :refer [encode decode]))
 
-;; Clojure-style vector entry — same meaning
+;; Vector entry, same meaning
 (ns app\services
   (:require [phel\string :as str]
             [phel\json :as json :refer [encode decode]]))
 ```
 
-You can also use `.` as an alternate namespace separator (in addition to `\`), which makes Clojure-shaped namespaces parse cleanly in `.cljc` files:
+`.` works as an alternate namespace separator (alongside `\`):
 
 ```phel
 (ns my.cljc.file
@@ -160,24 +157,24 @@ Both `phel\string` and `phel.string` resolve to the same namespace.
 ### Phel → PHP
 
 ```phel
-;; Vectors → PHP arrays
+;; Vectors to PHP arrays
 (to-php-array [1 2 3])            ; => PHP [1, 2, 3]
 
-;; Maps → PHP associative arrays
+;; Maps to PHP associative arrays
 (to-php-array {:a 1 :b 2})        ; => PHP ["a" => 1, "b" => 2]
 
-;; Keywords → strings
+;; Keywords to strings
 (name :keyword)                   ; => "keyword"
 ```
 
 ### PHP → Phel
 
 ```phel
-;; PHP arrays → Phel collections
+;; PHP arrays to Phel collections
 (php-array-to-map $php_assoc_array)  ; => {:key value}
 (vals $php_indexed_array)            ; => [val1 val2 val3]
 
-;; Indexed PHP array → vector
+;; Indexed PHP array to vector
 [1 2 3]                           ; Already works as Phel vector
 ```
 
@@ -292,10 +289,10 @@ $response->send();
 ### Use Transients for Batch Updates
 
 ```phel
-;; Slow - creates new collection each time
+;; Slow: new collection each step
 (reduce (fn [acc x] (conj acc (* x 2))) [] large-list)
 
-;; Fast - mutable during build
+;; Fast: mutable during build
 (persistent
   (reduce (fn [acc x] (conj acc (* x 2))) (transient []) large-list))
 ```
@@ -303,10 +300,10 @@ $response->send();
 ### Prefer PHP Functions for Heavy Lifting
 
 ```phel
-;; Good - use PHP's optimized functions
+;; PHP's optimized functions
 (php/array_map #(* % 2) php-array)
 
-;; When you need Phel collections
+;; Phel collections
 (map #(* % 2) phel-vector)
 ```
 
@@ -316,7 +313,7 @@ $response->send();
 ;; Inefficient
 (to-php-array (map inc (php-array-to-map php-data)))
 
-;; Better - stay in PHP
+;; Better: stay in PHP
 (php/array_map inc php-data)
 ```
 
@@ -377,29 +374,29 @@ $response->send();
 
 ## Tips for PHP Developers
 
-- **Immutability**: Phel collections don't mutate. `(conj vec item)` returns a *new* vector
-- **No `$` sigil**: Variables don't need `$` in Phel
-- **Keywords**: Use `:keyword` instead of strings for map keys
-- **Truthiness**: Only `false` and `nil` are falsy (not `0` or `""`)
-- **Parens matter**: `(func arg)` calls the function, `func` is just the value
+- **Immutability**: collections don't mutate. `(conj vec item)` returns a *new* vector
+- **No `$` sigil**: variables don't need `$`
+- **Keywords**: use `:keyword` for map keys
+- **Truthiness**: only `false` and `nil` are falsy (not `0` or `""`)
+- **Parens matter**: `(func arg)` calls the function, `func` is the value
 
 ## Tips for Clojure Developers
 
-- **PHP interop**: Use `php/` prefix (not `.` or `..`)
+- **PHP interop**: use `php/` prefix (not `.` or `..`)
 - **Method calls**: `(php/-> obj (method))` not `(.method obj)`
-- **Deref**: `@my-atom` works as shorthand for `(deref my-atom)`, just like Clojure
-- **Import classes**: Use `:use` in `ns`, not `:import`
-- **Require vectors**: Clojure-style `(:require [phel\string :as str :refer [upper-case]])` works alongside the older list form
-- **Namespace separators**: Both `\` and `.` work — `phel\string` and `phel.string` resolve to the same namespace
-- **Reader conditionals**: `#?(:phel ...)` and `#?@(:phel ...)` work for cross-platform `.cljc` files
-- **Unquote**: Use `~` and `~@` inside syntax-quote (the older `,` / `,@` are deprecated)
-- **Auto-gensym**: `name#` inside syntax-quote produces a unique symbol (the older `name$` is deprecated)
-- **Macro env**: `&form` and `&env` are implicitly bound inside every `defmacro`, just like Clojure. `&env` is a map of in-scope locals keyed by symbol; `(:ns &env)` is always `nil` (matching Clojure on the JVM), so the standard `.cljc` `(if (:ns &env) "cljs" ...)` dialect-detection trick lands on the non-cljs branch
-- **Lambda syntax**: `#(+ %1 %2)` is the recommended syntax. `|(+ $1 $2)` is deprecated
-- **PHP arrays**: Work with them directly or convert to Phel collections
+- **Deref**: `@my-atom` is shorthand for `(deref my-atom)`
+- **Import classes**: use `:use` in `ns`, not `:import`
+- **Require vectors**: `(:require [phel\string :as str :refer [upper-case]])` works alongside the list form
+- **Namespace separators**: both `\` and `.` work; `phel\string` and `phel.string` resolve to the same namespace
+- **Reader conditionals**: `#?(:phel ...)` and `#?@(:phel ...)` for `.cljc` files
+- **Unquote**: `~` and `~@` inside syntax-quote (`,` / `,@` are deprecated)
+- **Auto-gensym**: `name#` inside syntax-quote produces a unique symbol (`name$` deprecated)
+- **Macro env**: `&form` and `&env` are implicitly bound inside every `defmacro`. `&env` is a map of in-scope locals keyed by symbol; `(:ns &env)` is always `nil`, so the `.cljc` `(if (:ns &env) "cljs" ...)` dialect-detection trick lands on the non-cljs branch
+- **Lambda syntax**: `#(+ %1 %2)` recommended; `|(+ $1 $2)` deprecated
+- **PHP arrays**: work with them directly or convert to Phel collections
 
 ## See Also
 
-- [Examples](examples/README.md) - Practical code samples
-- [Reader Shortcuts](reader-shortcuts.md) - Syntax reference
-- [Common Patterns](patterns.md) - Idiomatic Phel code
+- [Examples](examples/README.md): practical code samples
+- [Reader Shortcuts](reader-shortcuts.md): syntax reference
+- [Common Patterns](patterns.md): idiomatic Phel code

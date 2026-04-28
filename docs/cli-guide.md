@@ -1,8 +1,8 @@
 # Building CLIs with `phel\cli`
 
-`phel\cli` is a data-driven wrapper over [`symfony/console`](https://symfony.com/doc/current/components/console.html) that lets you build full-featured command-line tools in Phel — subcommands, arguments, options, interactive prompts, tables, progress bars, shell completion, signal handling — all described as plain Phel maps.
+`phel\cli` is a data-driven wrapper over [`symfony/console`](https://symfony.com/doc/current/components/console.html) for building command-line tools in Phel: subcommands, arguments, options, interactive prompts, tables, progress bars, shell completion, signal handling, all described as plain Phel maps.
 
-Because `symfony/console` is already a runtime dependency of `phel-lang`, using `phel\cli` adds zero new dependencies.
+`symfony/console` is already a runtime dependency of `phel-lang`, so `phel\cli` adds no new dependencies.
 
 ## Quickstart
 
@@ -46,27 +46,27 @@ Run:
 | `:help`     | string            | Long help text shown in `<cmd> --help`              |
 | `:aliases`  | vector of strings | Alternate names users can type                      |
 | `:hidden?`  | bool              | Hide from `list` but still invocable                |
-| `:args`    | vector of maps    | Positional argument specs — see below               |
-| `:opts`    | vector of maps    | Option (flag) specs — see below                     |
-| `:run`     | fn (required)     | Handler `(fn [ctx] ...)` — see "Handler contract"   |
+| `:args`    | vector of maps    | Positional argument specs, see below                |
+| `:opts`    | vector of maps    | Option (flag) specs, see below                      |
+| `:run`     | fn (required)     | Handler `(fn [ctx] ...)`, see "Handler contract"    |
 
 ### Argument spec (`:args`)
 
 | Key         | Type                              | Description                                        |
 | ----------- | --------------------------------- | -------------------------------------------------- |
-| `:name`     | string (required)                 | Arg name — used to read via `(arg ctx name)`       |
+| `:name`     | string (required)                 | Arg name, read via `(arg ctx name)`                |
 | `:mode`     | `:required` / `:optional` / `:array` | Default `:optional`                              |
 | `:doc`      | string                            | Shown in help output                               |
 | `:default`  | any                               | Default value when omitted                         |
 | `:coerce`   | `:int` / `:float` / `:bool` / `:keyword` / `:edn` | Value conversion applied by `arg`   |
-| `:complete` | fn                                | `(fn [input] [...])` — shell completion suggestions |
+| `:complete` | fn                                | `(fn [input] [...])`, shell completion suggestions |
 
 ### Option spec (`:opts`)
 
 | Key         | Type                                                              | Description                      |
 | ----------- | ----------------------------------------------------------------- | -------------------------------- |
-| `:name`     | string (required)                                                 | Option name — the `--name` flag  |
-| `:short`    | string                                                            | Single-char shortcut — e.g. `"v"` |
+| `:name`     | string (required)                                                 | Option name, the `--name` flag   |
+| `:short`    | string                                                            | Single-char shortcut, e.g. `"v"` |
 | `:mode`     | `:none` / `:required` / `:optional` / `:array` / `:negatable`     | Default `:optional`              |
 | `:doc`      | string                                                            | Shown in help                    |
 | `:default`  | any                                                               | Default when flag omitted        |
@@ -82,10 +82,10 @@ Run:
 | `:commands`   | vector of command specs| Commands to register                                              |
 | `:default`    | string                 | Name of command to run when no arg passed                         |
 | `:auto-exit?` | bool                   | When `false` (default), `run` returns exit code instead of `exit` |
-| `:before`     | fn                     | Hook on `ConsoleCommandEvent` — receives raw event                |
+| `:before`     | fn                     | Hook on `ConsoleCommandEvent`, receives raw event                 |
 | `:after`      | fn                     | Hook on `ConsoleTerminateEvent`                                   |
 | `:on-error`   | fn                     | Hook on `ConsoleErrorEvent`                                       |
-| `:on-signal`  | map                    | `{:sigint cleanup-fn :sigterm cleanup-fn …}`                      |
+| `:on-signal`  | map                    | `{:sigint cleanup-fn :sigterm cleanup-fn ...}`                    |
 
 ## Handler contract
 
@@ -101,10 +101,10 @@ Your `:run` handler receives a **context map**:
 
 Return:
 
-- `nil` or `0` → success
-- any other `int` → exit code
+- `nil` or `0` -> success
+- any other `int` -> exit code
 
-Uncaught `Throwable` becomes a red `<error>` line plus exit code `1`. With `-v`, the stack trace is also written.
+Uncaught `Throwable` becomes a red `<error>` line plus exit code `1`. With `-v`, the stack trace is written.
 
 ## Writing to output
 
@@ -116,7 +116,7 @@ Uncaught `Throwable` becomes a red `<error>` line plus exit code `1`. With `-v`,
 (cli/comment-line ctx "yellow comment")
 (cli/error        ctx "red error")
 
-;; Verbosity-aware — only emit when user passes -v / -vv / -vvv
+;; Verbosity-aware: only emit when user passes -v / -vv / -vvv
 (cli/info-v   ctx "extra detail")
 (cli/info-vv  ctx "even more")
 (cli/debug    ctx "only in -vvv")
@@ -160,7 +160,7 @@ Available `:style` values: `:default`, `:borderless`, `:compact`, `:symfony`, `:
 ## Progress bars
 
 ```phel
-;; Easy form — iterate and let cli manage start/advance/finish
+;; Easy form: iterate and let cli manage start/advance/finish
 (cli/run-with-progress ctx files
   (fn [f _bar] (process-file f)))
 
@@ -206,7 +206,7 @@ my-tool _complete --generate-hook=bash > ~/.bash_completion.d/my-tool
 
 ## Testing your CLI
 
-`phel\cli` ships test helpers so handlers can be exercised without spawning a process:
+`phel\cli` ships test helpers so handlers run without spawning a process:
 
 ```phel
 (ns my-tool-test\test\main
@@ -236,7 +236,7 @@ For prompt testing, pipe canned STDIN:
 
 ## Running under `phel run`
 
-When you run a CLI script via `./bin/phel run path/to/script.phel arg1 arg2`, Phel's own Symfony console occupies `$_SERVER['argv']`. The user-facing arguments come through as the Phel core var `argv`. Pass them to `cli/run` explicitly:
+When running a CLI script via `./bin/phel run path/to/script.phel arg1 arg2`, Phel's own Symfony console occupies `$_SERVER['argv']`. User-facing arguments come through the Phel core var `argv`. Pass them to `cli/run` explicitly:
 
 ```phel
 ;; Bad: reads the wrapper's argv, so "run" looks like your first command.
@@ -250,14 +250,14 @@ This is only needed when the script is invoked via `phel run`. A compiled standa
 
 ## Best practices
 
-- **Spec validation is eager.** Malformed maps throw `InvalidArgumentException` at build time with a Phel-friendly message — catch bugs before ship.
-- **Return exit codes.** Never call `php/exit` from a handler (except in signal handlers). Return an `int`, and `phel\cli` takes care of it.
-- **Use `:coerce`.** Don't `(php/intval (arg ctx "port"))` in every handler — specify `:coerce :int` once.
+- **Spec validation is eager.** Malformed maps throw `InvalidArgumentException` at build time with a Phel-friendly message: catch bugs before ship.
+- **Return exit codes.** Never call `php/exit` from a handler (except in signal handlers). Return an `int`, and `phel\cli` handles it.
+- **Use `:coerce`.** Don't `(php/intval (arg ctx "port"))` in every handler; specify `:coerce :int` once.
 - **Lift handlers to top-level fns.** Keeps `:run` small and testable.
-- **Keep `:default`** set to a safe command. If users run your tool with no args and there's no default, Symfony shows help — usually fine, but explicit is nicer.
+- **Keep `:default`** set to a safe command. With no args and no default, Symfony shows help, usually fine but explicit is nicer.
 
 ## See also
 
-- [`phel\router`](../src/phel/router.phel) — companion for HTTP apps
-- [`phel\http-client`](../src/phel/http-client.phel) — outbound HTTP
-- [symfony/console docs](https://symfony.com/doc/current/components/console.html) — full underlying API
+- [`phel\router`](../src/phel/router.phel): companion for HTTP apps
+- [`phel\http-client`](../src/phel/http-client.phel): outbound HTTP
+- [symfony/console docs](https://symfony.com/doc/current/components/console.html): full underlying API

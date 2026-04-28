@@ -1,7 +1,5 @@
 # Common Patterns and Idioms
 
-Practical patterns for writing idiomatic Phel code.
-
 ## Table of Contents
 
 - [Working with Nil](#working-with-nil)
@@ -222,8 +220,7 @@ Threads value as **last** argument:
 
 ## Pattern Matching
 
-`phel\match` provides a `match` macro that destructures by shape and binds symbols in one step. Use it when `cond`/`case` would force you to re-query the same value from multiple angles.
-
+`phel\match` destructures by shape and binds symbols in one step. Use it when `cond`/`case` would force you to re-query the same value from multiple angles.
 ```phel
 (ns app\commands
   (:require phel\match :refer [match]))
@@ -251,7 +248,7 @@ Pattern elements:
 | `(pat :as x)` | Match `pat` and also bind whole value to `x` |
 | `(:or a b c)` | Any of the alternatives |
 
-`match` requires multi-target targets (the outer `[event]` vector) so you can match several values at once:
+The outer `[event]` vector lets you match several values at once:
 
 ```phel
 (match [http-status role]
@@ -262,7 +259,7 @@ Pattern elements:
   :else              :unknown)
 ```
 
-Without an `:else` clause, `match` throws `RuntimeException` when nothing fits — add `:else` when "none of these" is a valid outcome.
+Without an `:else` clause, `match` throws `RuntimeException` when nothing fits. Add `:else` when "none of these" is a valid outcome.
 
 ## Error Handling
 
@@ -565,7 +562,7 @@ Without an `:else` clause, `match` throws `RuntimeException` when nothing fits �
 
 ### Auto-gensym for Hygienic Bindings
 
-Inside a syntax-quote (`` ` ``), a symbol ending in `#` is replaced with a freshly generated, unique symbol. Reuse the same `name#` to refer to the same generated binding:
+Inside a syntax-quote (`` ` ``), a symbol ending in `#` expands to a fresh unique symbol. Reuse the same `name#` to refer to the same generated binding:
 
 ```phel
 (defmacro unless
@@ -582,14 +579,14 @@ Inside a syntax-quote (`` ` ``), a symbol ending in `#` is replaced with a fresh
      ret#))
 ```
 
-`start#` and `ret#` will not collide with bindings in user code, even if the caller already has a `start` or `ret` in scope.
+`start#` and `ret#` won't collide with caller bindings, even if `start` or `ret` are already in scope.
 
 ### Implicit `&form` and `&env`
 
-Every `defmacro` body has two implicit symbols available, matching Clojure:
+Every `defmacro` body has two implicit symbols:
 
-- `&form` — the original macro call as written by the user (useful for source-aware error messages)
-- `&env` — a map of locals in scope at the call site, keyed by symbol
+- `&form`: the original macro call as written by the user (useful for source-aware error messages)
+- `&env`: a map of locals in scope at the call site, keyed by symbol
 
 ```phel
 ;; Inspect lexical scope at the call site
@@ -606,7 +603,7 @@ Every `defmacro` body has two implicit symbols available, matching Clojure:
                    " in " (quote ~&form))))))
 ```
 
-`.cljc` dialect detection works the same way as Clojure ↔ ClojureScript. `(:ns &env)` is always `nil` under Phel (just like Clojure on the JVM), so a portability macro lands on the right branch:
+`(:ns &env)` is always `nil` under Phel, so portability macros land on the right branch:
 
 ```phel
 (defmacro dialect [] (if (:ns &env) "cljs" "phel"))
@@ -615,7 +612,7 @@ Every `defmacro` body has two implicit symbols available, matching Clojure:
 
 ### Extending `is` with Custom Assertions
 
-`phel\test/assert-expr` is an open multimethod, so you can teach the `is` macro how to expand new assertion forms. A `defmethod` takes the original `form` and the user-supplied `message`, and returns the code that the outer `is` should run instead:
+`phel\test/assert-expr` is an open multimethod, so you can teach the `is` macro to expand new assertion forms. A `defmethod` takes the original `form` and the user-supplied `message`, and returns the code that the outer `is` should run:
 
 ```phel
 (ns my-app\test\helpers
@@ -632,9 +629,9 @@ Every `defmacro` body has two implicit symbols available, matching Clojure:
   (is (approx= 3.14159 (calc-pi)) "calc-pi should land near pi"))
 ```
 
-When the dispatch symbol has no registered method (e.g. `(is (= 1 1))`), the multimethod's `:default` arm handles binary equality and predicate forms exactly as before, so existing tests are unaffected.
+When the dispatch symbol has no registered method (e.g. `(is (= 1 1))`), the `:default` arm handles binary equality and predicate forms, so existing tests are unaffected.
 
-> Cross-namespace registration must use the fully-qualified `phel\test/assert-expr` so the methods table is resolved in `phel\test` rather than the local namespace.
+> Cross-namespace registration must use the fully-qualified `phel\test/assert-expr` so the methods table resolves in `phel\test` rather than the local namespace.
 
 ## Tips for Writing Idiomatic Phel
 
@@ -697,7 +694,7 @@ When the dispatch symbol has no registered method (e.g. `(is (= 1 1))`), the mul
 
 ## Build-safe Entry Points
 
-`phel build` evaluates every top-level form at compile time so macros, `def`, `defn`, and `ns` register correctly. Top-level **side effects** (starting a game loop, reading `stdin`, opening sockets, sleeping) also run, which can block the build indefinitely.
+`phel build` evaluates every top-level form at compile time so macros, `def`, `defn`, and `ns` register correctly. Top-level **side effects** (game loops, `stdin` reads, sockets, sleeps) also run, which can block the build indefinitely.
 
 Guard imperative entry calls with `*build-mode*`:
 
@@ -714,7 +711,7 @@ Guard imperative entry calls with `*build-mode*`:
   (play))
 ```
 
-`*build-mode*` is set to `true` while the compiler evaluates your file during `phel build`, and `false` during `phel run` or when the compiled artifact is loaded at runtime. The same idea applies to any stdin/network/sleep call at top level:
+`*build-mode*` is `true` while the compiler evaluates your file during `phel build`, and `false` during `phel run` or when the compiled artifact loads at runtime. The same applies to any stdin/network/sleep call at top level:
 
 ```phel
 ;; Bad: blocks `phel build` forever on fgets.
@@ -730,13 +727,13 @@ Guard imperative entry calls with `*build-mode*`:
   (println (read-line)))
 ```
 
-`defn`, `def` of pure values, `ns`, and `(:require ...)` forms are always safe at top level. Only imperative work needs the guard.
+`defn`, `def` of pure values, `ns`, and `(:require ...)` are always safe at top level. Only imperative work needs the guard.
 
-> Note: `phel build` suppresses stdout produced by compiled code during compilation, so stray `println` calls no longer leak to the terminal. Execution still happens though, so anything that **blocks** (stdin reads, `sleep`, sockets, infinite loops) still needs `(when-not *build-mode* ...)`.
+> `phel build` suppresses stdout from compiled code during compilation, so stray `println` calls no longer leak to the terminal. Execution still happens, so anything that **blocks** (stdin reads, `sleep`, sockets, infinite loops) still needs `(when-not *build-mode* ...)`.
 
 ## See Also
 
-- [PHP Interop](php-interop.md) - Working with PHP code
-- [Quick Start](quickstart.md) - Get started quickly
-- [Reader Shortcuts](reader-shortcuts.md) - Syntax reference
-- [Lazy Sequences](lazy-sequences.md) - Performance patterns
+- [PHP Interop](php-interop.md): Working with PHP code
+- [Quick Start](quickstart.md): Get started
+- [Reader Shortcuts](reader-shortcuts.md): Syntax reference
+- [Lazy Sequences](lazy-sequences.md): Performance patterns

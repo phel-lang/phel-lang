@@ -1,16 +1,16 @@
 # Lazy Sequences in Phel
 
-Lazy sequences allow you to work with potentially infinite collections by deferring computation until values are actually needed.
+Work with potentially infinite collections by deferring computation until values are needed.
 
 ## Overview
 
-Phel provides two key constructs for working with lazy sequences:
-- **`lazy-seq`**: Creates a lazy sequence from an expression
-- **`lazy-cat`**: Lazily concatenates multiple collections
+Two constructs:
+- **`lazy-seq`**: creates a lazy sequence from an expression
+- **`lazy-cat`**: lazily concatenates multiple collections
 
 ## The `lazy-seq` Macro
 
-`lazy-seq` takes a body of expressions that returns a sequence or nil, and yields a LazySeq that will invoke the body only the first time the sequence is accessed, caching the result for subsequent accesses.
+`lazy-seq` takes a body returning a sequence or nil and yields a LazySeq that invokes the body on first access, caching the result.
 
 ### Basic Usage
 
@@ -28,7 +28,7 @@ Phel provides two key constructs for working with lazy sequences:
 
 ### Infinite Sequences with `lazy-seq`
 
-The real power of `lazy-seq` is creating infinite sequences using recursion:
+Combine `lazy-seq` with recursion to build infinite sequences:
 
 ```phel
 ;; Generate infinite sequence of integers starting from n
@@ -42,18 +42,18 @@ The real power of `lazy-seq` is creating infinite sequences using recursion:
 
 ### How It Works
 
-When you wrap an expression in `lazy-seq`, it:
-1. Creates a thunk (a function with no arguments) that will evaluate the body
-2. Returns a LazySeq object that holds this thunk
-3. On first access (via `first`, `rest`, `take`, etc.), evaluates the thunk
-4. Caches the result for subsequent accesses
+`lazy-seq`:
+1. Creates a thunk (zero-arg function) that evaluates the body
+2. Returns a LazySeq holding the thunk
+3. On first access (`first`, `rest`, `take`, etc.), evaluates the thunk
+4. Caches the result
 
 ## The `lazy-cat` Macro
 
-`lazy-cat` provides a convenient syntax for concatenating collections.
+Convenient syntax for concatenating collections.
 
 **Important:** `lazy-cat` expands to `concat` and evaluates all arguments eagerly.
-It works well for combining finite or already-realized lazy sequences, but is
+Fine for combining finite or already-realized lazy sequences, but
 **NOT suitable for recursive infinite sequences**.
 
 ### Basic Concatenation
@@ -68,7 +68,7 @@ It works well for combining finite or already-realized lazy sequences, but is
 
 ### With Finite Lazy Sequences
 
-`lazy-cat` works with lazy sequences that will eventually terminate:
+Works with lazy sequences that terminate:
 
 ```phel
 (lazy-cat (take 3 (range 100)) (take 3 (range 10 20)))
@@ -91,9 +91,9 @@ When building recursive infinite sequences, use `cons` instead:
   (lazy-seq (lazy-cat [n] (ints (inc n)))))  ; Don't do this!
 ```
 
-**Why?** Since `lazy-cat` evaluates all arguments before concatenating, the
-recursive call `(ints (inc n))` immediately executes, causing infinite recursion.
-Use `cons` to properly defer evaluation.
+**Why?** `lazy-cat` evaluates all arguments before concatenating, so the
+recursive call `(ints (inc n))` runs immediately and recurses forever.
+Use `cons` to defer evaluation.
 
 ## Common Patterns
 
@@ -140,7 +140,7 @@ Use `cons` to properly defer evaluation.
 
 ## Built-in Lazy Functions
 
-Many Phel core functions return lazy sequences:
+Many core functions return lazy sequences:
 
 - **`range`** - Lazy sequence of numbers
 - **`iterate`** - Infinite sequence by repeatedly applying a function
@@ -191,7 +191,7 @@ Many Phel core functions return lazy sequences:
 
 ### Chunking
 
-Phel's lazy sequences use chunking for performance - they realize elements in chunks rather than one at a time. This reduces overhead but means:
+Phel's lazy sequences realize elements in chunks rather than one at a time. This reduces overhead but means:
 
 ```phel
 ;; Side effects may happen in chunks
@@ -201,7 +201,7 @@ Phel's lazy sequences use chunking for performance - they realize elements in ch
 
 ### Realizing Sequences
 
-Force full realization when needed:
+Force realization when needed:
 
 ```phel
 (doall lazy-seq)  ; Realizes entire sequence, returns it
@@ -225,7 +225,7 @@ Force full realization when needed:
 
 ### 2. Lazy Sequences in Tests
 
-When testing lazy sequences, realize them first:
+Realize lazy sequences before asserting:
 
 ```phel
 ;; ❌ May not fail even if lazy-seq has issues
@@ -237,7 +237,7 @@ When testing lazy sequences, realize them first:
 
 ### 3. Side Effects in Lazy Sequences
 
-Side effects in lazy sequences execute when realized, not when created:
+Side effects run on realization, not creation:
 
 ```phel
 (def log-and-inc
@@ -277,18 +277,18 @@ Side effects in lazy sequences execute when realized, not when created:
 
 - Lazy sequence examples: `docs/examples/`
 - Core function reference: docstrings in `src/phel/core.phel`
-- Clojure lazy sequences (similar concepts): https://clojure.org/reference/sequences
+- Clojure lazy sequences: https://clojure.org/reference/sequences
 
 ## Summary
 
-Lazy sequences in Phel provide:
-- **Memory efficiency** - process large datasets without loading everything
-- **Composability** - chain transformations elegantly
-- **Infinite sequences** - work with conceptually infinite collections
-- **Performance** - compute only what you need
+Lazy sequences provide:
+- **Memory efficiency**: process large datasets without loading everything
+- **Composability**: chain transformations
+- **Infinite sequences**: work with conceptually infinite collections
+- **Performance**: compute only what's needed
 
 Key takeaways:
 - Use `lazy-seq` for custom lazy sequences
 - Use `cons` (not `lazy-cat`) for recursive infinite sequences
-- Be aware of chunking and head retention
-- Realize sequences explicitly when needed with `doall`/`dorun`
+- Watch for chunking and head retention
+- Force realization with `doall`/`dorun` when needed

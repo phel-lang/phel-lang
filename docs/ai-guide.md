@@ -1,6 +1,6 @@
 # AI Module Guide
 
-`phel\ai` provides a small, provider-agnostic client for LLM chat, structured extraction, tool use, embeddings, and semantic search.
+`phel\ai` is a small, provider-agnostic client for LLM chat, structured extraction, tool use, embeddings, and semantic search.
 
 Supported providers:
 
@@ -38,7 +38,7 @@ Supported providers:
 | `:timeout` | `120` | HTTP timeout in seconds |
 | `:max-retries` | `2` | Retry 429/5xx with exponential backoff |
 
-Every per-call `opts` map on `chat`, `complete`, `chat-with-tools`, `extract`, and `extract-many` accepts the same keys (including `:max-retries`) to override per request.
+Every per-call `opts` map on `chat`, `complete`, `chat-with-tools`, `extract`, and `extract-many` accepts the same keys (including `:max-retries`) for per-request overrides.
 
 ```phel
 (ai/complete "Summarize the news" {:provider :openai :model "gpt-4o-mini"})
@@ -122,7 +122,7 @@ Vector math primitives are exported for custom pipelines: `dot-product`, `magnit
 
 ## Retry & timeouts
 
-`:max-retries` (default `2`) retries on HTTP 429 and 5xx with exponential backoff (500ms, 1s, 2s, ...). Network errors bubble up. Tune per call:
+`:max-retries` (default `2`) retries on HTTP 429 and 5xx with exponential backoff (500ms, 1s, 2s, ...). Network errors bubble up. Tune per call.
 
 ```phel
 (ai/complete "long task" {:timeout 300 :max-retries 4})
@@ -134,7 +134,7 @@ All failures throw `\RuntimeException`. The message includes the HTTP status and
 
 ## Testing without a live API
 
-`phel\ai` exposes an internal HTTP seam `*http-post*` that tests can rebind to return canned responses. Combined with `phel\mock`, this removes any dependency on a real provider.
+`phel\ai` exposes an internal HTTP seam `*http-post*` that tests can rebind to return canned responses. With `phel\mock`, this removes the dependency on a real provider.
 
 ```phel
 (ns my-app\test\ai-test
@@ -150,7 +150,7 @@ All failures throw `\RuntimeException`. The message includes the HTTP status and
       (is (= 1 (call-count fake))))))
 ```
 
-Note: `phel\json` stringifies floats during `json/encode`. When a mock must return embedding arrays, build the response body as a raw JSON string rather than going through `json/encode`.
+`phel\json` stringifies floats during `json/encode`. When a mock must return embedding arrays, build the response body as a raw JSON string rather than going through `json/encode`.
 
 ## See also
 

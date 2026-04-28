@@ -2,17 +2,16 @@
 
 Phel historically uses the PHP-style backslash (`\`) as the namespace
 separator in every position: `ns` forms, `:require`/`:use` clauses,
-fully-qualified call sites, and class FQNs. Clojure — and therefore
-`.cljc` code shared with sibling dialects — uses the dot (`.`). For
-long-term Clojure compatibility, the backslash form is being
-**deprecated** and will be removed in a future release.
+fully-qualified call sites, and class FQNs. The dot (`.`) is the
+target form going forward. The backslash form is **deprecated** and
+will be removed in a future release.
 
 See tracking issue:
 [phel-lang/phel-lang#1567](https://github.com/phel-lang/phel-lang/issues/1567).
 
 ## Opt-in to deprecation warnings
 
-Two equivalent ways to turn the warnings on — pick whichever fits
+Three equivalent ways to enable warnings; pick whichever fits
 your pipeline:
 
 **CLI flag** (recommended for one-off runs and CI configs):
@@ -37,13 +36,13 @@ return PhelConfig::forProject()
 
 When enabled, the compiler emits one `E_USER_DEPRECATED` per unique
 `(file, symbol)` pair so large projects do not drown in duplicates.
-The `--warn-deprecations` flag is consumed by the `phel` bootstrap
-before Symfony's per-command parsers run, so it works with every
-subcommand.
+`--warn-deprecations` is consumed by the `phel` bootstrap before
+Symfony's per-command parsers run, so it works with every subcommand.
+
 
 ## What is detected today
 
-Symbols flowing through the analyzer's `SymbolResolver` **or** the
+Symbols flowing through the analyzer's `SymbolResolver` or the
 `ns`-form analyzer emit warnings:
 
 - **Namespace declarations** (Phase 1b): `(ns phel\foo)` → use

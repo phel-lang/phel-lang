@@ -1,6 +1,6 @@
 # Language Server Guide
 
-`phel lsp` speaks LSP v3.17 over stdio (JSON-RPC 2.0 with Content-Length framing). It gives editors hover, goto-definition, completion, references, rename, formatting, document/workspace symbols, and live diagnostics.
+`phel lsp` speaks LSP v3.17 over stdio (JSON-RPC 2.0 with Content-Length framing). Provides hover, goto-definition, completion, references, rename, formatting, document/workspace symbols, and live diagnostics.
 
 ## Contents
 
@@ -16,7 +16,7 @@
 ./vendor/bin/phel lsp
 ```
 
-The server reads LSP messages on stdin and writes responses on stdout. Logs go to stderr.
+Reads LSP messages on stdin, writes responses on stdout, logs to stderr.
 
 ## Capabilities
 
@@ -58,13 +58,13 @@ vim.lsp.start({
 
 ## Diagnostics
 
-Diagnostics include compiler errors, unresolved symbols, arity mismatches, and lint rule violations. Publication is debounced so typing does not thrash.
+Diagnostics include compiler errors, unresolved symbols, arity mismatches, and lint violations. Publication is debounced so typing does not thrash.
 
 ## Pitfalls
 
-- The server scans files under the project root; keep `phel-config.php` up to date so require resolution works
-- Huge projects benefit from running `phel index` ahead of time to warm the symbol cache
-- LSP runs in the same PHP process; long-running REPL state is not shared with a running `phel nrepl`
+- The server scans files under the project root; keep `phel-config.php` current for require resolution
+- Large projects benefit from running `phel index` ahead of time to warm the symbol cache
+- LSP runs in its own PHP process; REPL state is not shared with a running `phel nrepl`
 
 ## See also
 

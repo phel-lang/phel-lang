@@ -11,9 +11,9 @@ composer require phel-lang/phel-lang
 ./vendor/bin/phel init
 ```
 
-That's it. `phel init` creates a `phel-config.php`, a starter `src/phel/main.phel`, and a matching `tests/phel/main_test.phel` so you can run, test, and REPL immediately.
+`phel init` creates a `phel-config.php`, a starter `src/phel/main.phel`, and a matching `tests/phel/main_test.phel` so you can run, test, and REPL immediately.
 
-For a single-file experiment or sandbox, use the root layout instead:
+For a single-file experiment or sandbox, use the root layout:
 
 ```bash
 ./vendor/bin/phel init --minimal
@@ -34,7 +34,7 @@ Useful `init` flags:
 
 ### Option 2: Add to an existing PHP project manually
 
-If `phel init` doesn't fit your existing project structure, you can write `phel-config.php` by hand:
+If `phel init` doesn't fit your project structure, write `phel-config.php` by hand:
 
 ```php
 <?php
@@ -102,7 +102,7 @@ user:5> (/ 1 0)
 user:6> *e                        ; last exception
 ```
 
-The prompt shows the current namespace (it switches on `(ns ...)` / `(in-ns ...)`) and `*1`, `*2`, `*3` hold the last three REPL results, `*e` the last exception. Type `(exit)` or press Ctrl-D to quit.
+The prompt shows the current namespace (it switches on `(ns ...)` / `(in-ns ...)`). `*1`, `*2`, `*3` hold the last three REPL results; `*e` the last exception. Type `(exit)` or press Ctrl-D to quit.
 
 ### 3. Working with Collections (1 minute)
 
@@ -130,7 +130,7 @@ The prompt shows the current namespace (it switches on `(ns ...)` / `(in-ns ...)
 ;; Tagged literals
 (def slug-rx #regex "^[a-z0-9-]+$")    ; PCRE pattern string
 
-;; `#inst` reads ISO-8601 into \DateTimeImmutable at read time — use in let/fn,
+;; `#inst` reads ISO-8601 into \DateTimeImmutable at read time. Use in let/fn,
 ;; not `def` (persistent defs require TypeInterface or scalar).
 (let [released #inst "2026-04-20T00:00:00Z"]
   (.format released "Y-m-d"))          ; => "2026-04-20"
@@ -189,7 +189,7 @@ See [Pattern Matching Guide](match-guide.md) for guards, destructuring, and more
 
 ## First Web Application (5 minutes)
 
-Let's build a simple API endpoint using modern Phel interop shortcuts.
+Build an API endpoint using the interop shortcuts.
 
 ### Step 1: Install Dependencies
 
@@ -228,7 +228,7 @@ Create `src/routes.phel`:
                   {:id 2 :name "Bob"   :email "bob@example.com"}] 200))
 ```
 
-The `(new Response ...)` form and `#php {...}` literal are the modern shortcuts for `(php/new Response ...)` and `(php-associative-array ...)`. They compile identically.
+`(new Response ...)` and `#php {...}` are shortcuts for `(php/new Response ...)` and `(php-associative-array ...)`. They compile identically.
 
 ### Step 3: Create PHP Entry Point
 
@@ -322,14 +322,14 @@ curl http://localhost:8000/users
 (defn days-between [d1 d2]
   (.-days (.diff d1 d2)))
 
-;; `#inst` reads ISO-8601 into \DateTimeImmutable at read time — no runtime cost.
+;; `#inst` reads ISO-8601 into \DateTimeImmutable at read time, no runtime cost.
 ;; Keep such values local; persistent `def` is reserved for scalars/TypeInterface.
 (let [launch   #inst "2026-04-20T00:00:00Z"
       tomorrow (add-days launch 1)]
   (format-date tomorrow "Y-m-d"))      ; => "2026-04-21"
 ```
 
-`.method`, `.-field`, and `(new ClassName ...)` are the modern shorthands for `php/->` and `php/new`. Both styles compile to identical PHP.
+`.method`, `.-field`, and `(new ClassName ...)` are shorthands for `php/->` and `php/new`. Both styles compile to identical PHP.
 
 ### Database Queries
 
@@ -357,21 +357,21 @@ curl http://localhost:8000/users
 
 ### Learn More
 
-- **[Common Patterns](patterns.md)** — Idiomatic Phel code including pattern matching
-- **[Data Structures Guide](data-structures-guide.md)** — Vectors, maps, sets, transients
-- **[PHP Interop](php-interop.md)** — Deep dive into PHP integration and shortcuts
-- **[Reader Shortcuts](reader-shortcuts.md)** — Syntax reference, `#inst`, `#regex`, `#php`
-- **[Async Guide](async-guide.md)** — Concurrency with fibers and AMPHP
-- **[CLI Guide](cli-guide.md)** — Build CLIs with `phel\cli`
-- **[Schema Guide](schema-guide.md)** — Data-driven validation, coercion, generation
-- **[Pattern Matching Guide](match-guide.md)** — `match` macro with guards and destructuring
-- **[Linter Guide](lint-guide.md)** — `phel lint` rules and configuration
-- **[Language Server Guide](lsp-guide.md)** — `phel lsp` editor integration
-- **[nREPL Guide](nrepl-guide.md)** — `phel nrepl` for editor tooling
-- **[Watch Guide](watch-guide.md)** — `phel watch` hot-reload
-- **[Framework Integration](framework-integration.md)** — Laravel, Symfony, framework-less
-- **[Performance Tips](performance.md)** — Opcache CLI setup, cache reset
-- **[Examples](examples/)** — Runnable single-file samples
+- **[Common Patterns](patterns.md)**: idiomatic Phel including pattern matching
+- **[Data Structures Guide](data-structures-guide.md)**: vectors, maps, sets, transients
+- **[PHP Interop](php-interop.md)**: PHP integration and shortcuts
+- **[Reader Shortcuts](reader-shortcuts.md)**: syntax reference, `#inst`, `#regex`, `#php`
+- **[Async Guide](async-guide.md)**: concurrency with fibers and AMPHP
+- **[CLI Guide](cli-guide.md)**: build CLIs with `phel\cli`
+- **[Schema Guide](schema-guide.md)**: data-driven validation, coercion, generation
+- **[Pattern Matching Guide](match-guide.md)**: `match` with guards and destructuring
+- **[Linter Guide](lint-guide.md)**: `phel lint` rules and configuration
+- **[Language Server Guide](lsp-guide.md)**: `phel lsp` editor integration
+- **[nREPL Guide](nrepl-guide.md)**: `phel nrepl` for editor tooling
+- **[Watch Guide](watch-guide.md)**: `phel watch` hot-reload
+- **[Framework Integration](framework-integration.md)**: Laravel, Symfony, framework-less
+- **[Performance Tips](performance.md)**: Opcache CLI setup, cache reset
+- **[Examples](examples/)**: runnable single-file samples
 
 ### REPL Workflow
 
@@ -421,32 +421,32 @@ Run tests:
 
 **For PHP Developers:**
 - Think immutable: functions return new values, don't modify arguments
-- Embrace recursion: use `loop`/`recur` instead of `for`/`while`
-- Use threading macros: `->` and `->>` for readable pipelines
-- Maps are better than classes for most data
-- Prefer the modern interop shortcuts (`.method`, `(new Class)`, `#php [...]`)
+- Recursion: use `loop`/`recur` instead of `for`/`while`
+- Threading macros: `->` and `->>` for readable pipelines
+- Maps beat classes for most data
+- Prefer interop shortcuts (`.method`, `(new Class)`, `#php [...]`)
 
 **For Clojure Developers:**
-- PHP interop uses `php/` prefix; shortcuts `.method`, `.-field`, `ClassName/method`, `(new Class)` are available too
-- Import PHP classes with `:use` in the `ns` form, not `:import`
+- PHP interop uses `php/` prefix; shortcuts `.method`, `.-field`, `ClassName/method`, `(new Class)` also work
+- Import PHP classes with `:use` in `ns`, not `:import`
 - Regex literals are `#"pattern"`; `#regex "..."` reads as a delimited PCRE string
-- Some Clojure functions have different names (check [Clojure Migration](clojure-migration.md))
+- Some function names differ (see [Clojure Migration](clojure-migration.md))
 
 ## Common Gotchas
 
 ```phel
-;; Wrong — forgot parens for function call
+;; Wrong: forgot parens for function call
 map square [1 2 3]              ; Error: not a function
 
 ;; Right
 (map square [1 2 3])            ; => [1 4 9]
 
-;; Wrong — trying to mutate
+;; Wrong: trying to mutate
 (def nums [1 2 3])
 (conj nums 4)                   ; Returns NEW vector
 nums                            ; Still [1 2 3]!
 
-;; Right — rebind or use result
+;; Right: rebind or use result
 (def nums [1 2 3])
 (def nums (conj nums 4))        ; Rebind to new vector
 nums                            ; => [1 2 3 4]

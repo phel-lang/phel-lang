@@ -1,6 +1,6 @@
 # Reader Shortcuts and Special Syntax
 
-Phel provides several reader shortcuts and special syntax forms for concise code. These shortcuts are processed by the reader during compilation.
+Reader shortcuts are processed by the reader during compilation.
 
 ## Collection Literals
 
@@ -56,7 +56,7 @@ Evaluates an expression within a quasiquote:
   `(1 ~x 3))      ; => (1 5 3)
 ```
 
-> **Deprecated:** `,` as an unquote reader macro is deprecated. Use `~` instead to match Clojure's syntax.
+> **Deprecated:** `,` as an unquote reader macro. Use `~` instead.
 
 ### Unquote-splicing `~@`
 Evaluates and splices a sequence into the containing form:
@@ -65,10 +65,10 @@ Evaluates and splices a sequence into the containing form:
   `(1 ~@xs 5))    ; => (1 2 3 4 5)
 ```
 
-> **Deprecated:** `,@` as an unquote-splicing reader macro is deprecated. Use `~@` instead to match Clojure's syntax.
+> **Deprecated:** `,@` as an unquote-splicing reader macro. Use `~@` instead.
 
 ### Auto-gensym `name#`
-Inside a syntax-quote, a symbol ending in `#` is replaced with a freshly generated, unique symbol. All occurrences of the same `name#` within the same syntax-quote resolve to the same generated name, which makes hygienic macros easy to write without manually calling `gensym`:
+Inside a syntax-quote, a symbol ending in `#` expands to a fresh unique symbol. All occurrences of the same `name#` within one syntax-quote resolve to the same generated name, enabling hygienic macros without calling `gensym`:
 
 ```phel
 (defmacro time
@@ -79,9 +79,9 @@ Inside a syntax-quote, a symbol ending in `#` is replaced with a freshly generat
      ret#))
 ```
 
-Each macro expansion produces a fresh `start__123__auto__` / `ret__124__auto__` pair, so the generated bindings cannot collide with user code.
+Each expansion produces a fresh `start__123__auto__` / `ret__124__auto__` pair, so generated bindings can't collide with user code.
 
-> **Deprecated:** `name$` as an auto-gensym suffix is deprecated. Use `name#` instead to match Clojure's reader macro.
+> **Deprecated:** `name$` as an auto-gensym suffix. Use `name#` instead.
 
 ## Reader Conditionals
 
@@ -113,7 +113,7 @@ Shorthand for `(deref ...)`:
 
 ## Tagged Literals `#<tag> form`
 
-Tagged literals let the reader convert an arbitrary form into a different value. Phel ships two built-ins:
+Tagged literals convert a form into a different value at read time. Two built-ins ship with Phel:
 
 ```phel
 #inst "2026-01-01T00:00:00Z"     ; reads as \DateTimeImmutable
@@ -133,7 +133,7 @@ Register your own with `phel\reader/register-tag`:
 ;; => {:kind :money :raw "10.00 EUR"}
 ```
 
-For project-wide tags, drop a `data-readers.phel` at any source root — it is auto-loaded and should register each tag explicitly:
+For project-wide tags, drop a `data-readers.phel` at any source root. It's auto-loaded and should register each tag explicitly:
 
 ```phel
 ;; src/phel/data-readers.phel
@@ -155,8 +155,8 @@ Creates a PCRE pattern string:
 
 ## Anonymous Functions
 
-### Clojure-Style `#(...)`
-Creates anonymous functions with `%` parameter placeholders:
+### `#(...)` syntax
+Anonymous function with `%` parameter placeholders:
 ```phel
 #(+ %1 %2)           ; Function taking 2 args
 #(* % %)             ; % is shorthand for %1
@@ -164,9 +164,9 @@ Creates anonymous functions with `%` parameter placeholders:
 ```
 
 ### Short Function Syntax `|(...)` (Deprecated)
-> **Deprecated:** Use `#(...)` with `%` placeholders instead. `|(...)` will be removed in a future release.
+> **Deprecated:** Use `#(...)` with `%` placeholders. `|(...)` will be removed in a future release.
 
-Creates anonymous functions with positional parameters:
+Anonymous function with positional parameters:
 ```phel
 |(+ $1 $2)        ; Function taking 2 args
 |(* $1 $1)        ; Function squaring its argument
@@ -174,23 +174,14 @@ Creates anonymous functions with positional parameters:
 ```
 
 **Parameters:**
-- `$1`, `$2`, `$3`, ... - Positional arguments (1-indexed)
-- `$&` - All arguments as a sequence (rest args)
+- `$1`, `$2`, `$3`, ...: positional arguments (1-indexed)
+- `$&`: rest args as a sequence
 
-**Examples:**
 ```phel
-(map |(* $ 2) [1 2 3])
-;; => [2 4 6]
+(map |(* $ 2) [1 2 3])         ; => [2 4 6]
+(filter |(> $ 5) [3 6 2 8 4])  ; => [6 8]
+(reduce |(+ $1 $2) 0 [1 2 3 4]) ; => 10
 
-(filter |(> $ 5) [3 6 2 8 4])
-;; => [6 8]
-
-(reduce |(+ $1 $2) 0 [1 2 3 4])
-;; => 10
-```
-
-Equivalent to traditional `fn` syntax:
-```phel
 |(* $ $)        ; Same as (fn [x] (* x x))
 |(+ $1 $2)      ; Same as (fn [a b] (+ a b))
 ```
@@ -198,14 +189,13 @@ Equivalent to traditional `fn` syntax:
 ## Comments
 
 ### Line Comments `;`
-Comment from the character to the end of the line. By convention, use `;;` for
-standalone line comments and `;` for inline comments after code:
+Comment to end of line. Convention: `;;` for standalone lines, `;` inline after code:
 ```phel
 ;; This is a standalone comment
 (+ 1 2)           ; inline comment
 ```
 
-> **Deprecated:** `#` as a line comment character is deprecated. Use `;` instead.
+> **Deprecated:** `#` as a line comment character. Use `;` instead.
 
 ### Multiline Comments `#| |#` (Deprecated)
 > **Deprecated:** Use `(comment ...)` instead. `#| |#` will be removed in a future release.
@@ -259,7 +249,7 @@ Attaches metadata to the following form:
 
 ## See Also
 
-- [Reader Conditionals](reader-conditionals.md) - Cross-platform code with `#?()` and `#?@()`
+- [Reader Conditionals](reader-conditionals.md): Cross-platform code with `#?()` and `#?@()`
 - Core library functions: `vector`, `hash-map`, `hash-set`, `list`
 - Coercion functions: `vec`, `set`
 - Quote functions: `quote`, `quasiquote`, `unquote`
