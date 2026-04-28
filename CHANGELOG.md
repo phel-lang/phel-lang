@@ -21,6 +21,7 @@ This release focuses on Clojure-compatible core behavior, PHP interop consistenc
 - Compare numeric values consistently in `==` (#1561)
 - Support `[size init-val-or-seq]` in primitive array helpers (#1562)
 - Add namespace introspection: `loaded-namespaces`, `find-ns`, `create-ns`, `remove-ns`, `intern`, `ns-interns`, `ns-publics`, `ns-aliases`, `ns-refers`, `load-file` (#1694)
+- `rand` accepts an optional limit argument: `(rand n)` returns a number in `[0, n)` (#1696)
 
 #### REPL
 - `require` accepts vector syntax: `(require '[phel\string :as s])` (#1693)

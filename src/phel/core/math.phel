@@ -349,9 +349,14 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
                     "char expects a non-negative integer or a single-character string"))))
 
 (defn rand
-  "Returns a random number between 0 and 1."
-  []
-  (/ (php/random_int 0 php/PHP_INT_MAX) php/PHP_INT_MAX))
+  "Without arguments, returns a random number in `[0, 1)`. With one
+  argument `n`, returns a random number in `[0, n)`."
+  {:example "(rand) ; => 0.42\n(rand 100) ; => 73.2"
+   :see-also ["rand-int" "rand-nth"]}
+  ([]
+   (/ (php/random_int 0 php/PHP_INT_MAX) php/PHP_INT_MAX))
+  ([n]
+   (* n (rand))))
 
 (defn rand-int
   "Returns a random number between 0 and `n`."
