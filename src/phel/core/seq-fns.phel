@@ -992,21 +992,24 @@
         '()
         (copy-meta coll result)))))
 
-;; Redefine interleave as lazy
 (defn interleave
-  "Interleaves multiple collections. Returns a lazy sequence.
-
-  Returns elements by taking one from each collection in turn.
-  Pads with nil when collections have different lengths.
-  Works with infinite sequences."
-  {:example "(interleave [1 2 3] [:a :b :c]) ; => (1 :a 2 :b 3 :c)"}
+  "Returns a lazy sequence of the first item in each `colls`, then the
+  second item in each, until any one of the collections is exhausted.
+  Any remaining items in the other collections are ignored. Returns an
+  empty sequence when no collections are supplied or when any
+  collection is empty or `nil`. Maps are iterated as `[key value]`
+  pairs."
+  {:example "(interleave [1 2 3] [:a :b :c]) ; => (1 :a 2 :b 3 :c)\n(interleave [1 2 3] [:a :b]) ; => (1 :a 2 :b)"}
   [& colls]
-  (if (php/=== nil colls)
-    '()
-    (let [result (lazy-seq-from-generator
+  (cond
+    (php/=== nil colls) '()
+    (some nil? colls)   '()
+    :else
+    (let [seqs   (apply php/array (map (fn [c] (or (seq c) (php/array))) colls))
+          result (lazy-seq-from-generator
                   (php/call_user_func_array
                    (php/array "\\Phel\\Lang\\Seq" "interleave")
-                   (apply php/array colls)))]
+                   seqs))]
       (if (php/=== nil result)
         '()
         (copy-meta (first colls) result)))))

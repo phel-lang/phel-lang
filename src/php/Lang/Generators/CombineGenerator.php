@@ -70,21 +70,24 @@ final class CombineGenerator
             return;
         }
 
-        $iterators = array_map(SequenceGenerator::toIterator(...), $iterables);
-        $first = $iterators[0] ?? null;
-
-        if ($first === null) {
-            return;
+        foreach ($iterables as $iterable) {
+            if ($iterable === null) {
+                return;
+            }
         }
 
-        while ($first->valid()) {
+        $iterators = array_map(SequenceGenerator::toIterator(...), $iterables);
+
+        while (true) {
             foreach ($iterators as $iterator) {
-                if ($iterator->valid()) {
-                    yield $iterator->current();
-                    $iterator->next();
-                } else {
-                    yield null;
+                if (!$iterator->valid()) {
+                    return;
                 }
+            }
+
+            foreach ($iterators as $iterator) {
+                yield $iterator->current();
+                $iterator->next();
             }
         }
     }

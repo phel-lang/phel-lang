@@ -68,7 +68,14 @@ final class CombineGeneratorTest extends TestCase
     {
         $result = CombineGenerator::interleave([1, 2, 3], ['a', 'b']);
 
-        self::assertSame([1, 'a', 2, 'b', 3, null], iterator_to_array($result, false));
+        self::assertSame([1, 'a', 2, 'b'], iterator_to_array($result, false));
+    }
+
+    public function test_interleave_stops_on_nil_input(): void
+    {
+        $result = CombineGenerator::interleave([1, 2, 3], null);
+
+        self::assertSame([], iterator_to_array($result, false));
     }
 
     public function test_interleave_empty(): void

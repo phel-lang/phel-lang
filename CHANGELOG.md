@@ -59,6 +59,7 @@ This release focuses on Clojure-compatible core behavior, PHP interop consistenc
 - `compare` orders namespaced keywords and symbols by namespace first, with unqualified entries sorting before namespaced ones (#1715)
 - `vector?` reports `false` for the result of `seq` and `rseq` over any input (#1716)
 - Keyword and symbol literals containing special characters such as `'`, `"`, or `\` round-trip through compilation without leaking escape characters into their names (#1718)
+- `interleave` stops at the shortest input, returns an empty sequence when any input is `nil`, and yields `[key value]` pairs for maps (#1726)
 - Improve set support in sequence functions including `first`, `ffirst`, `second`, `next`, `nfirst`, `fnext`, `nnext`, and `some` (#1639, #1642, #1649)
 - Improve collection edge cases in `seq`, `cons`, `pop`, `nth`, `take-last`, and `take-nth` (#1598, #1599, #1600, #1641, #1643, #1645)
 - Improve map and seq behavior in `apply`, `merge`, `dissoc`, `find`, and `mapcat` (#1602, #1603, #1606, #1607, #1646, #1651, #1653)
