@@ -53,6 +53,15 @@ final class TestCommandOptionsWiringTest extends TestCase
         self::assertSame([], $definition->getOption('filter')->getDefault());
     }
 
+    public function test_it_declares_stack_trace_flag(): void
+    {
+        $option = $this->optionFor('stack-trace');
+
+        self::assertFalse($option->isValueRequired(), 'stack-trace is a flag');
+        self::assertFalse($option->getDefault(), 'stack-trace defaults to false');
+        self::assertStringContainsString('stack trace', strtolower($option->getDescription()));
+    }
+
     public function test_description_mentions_selector_semantics(): void
     {
         $include = $this->optionFor('include');

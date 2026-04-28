@@ -18,6 +18,8 @@ final readonly class TestCommandOptions
 
     public const string FAIL_FAST = 'fail-fast';
 
+    public const string STACK_TRACE = 'stack-trace';
+
     public const string REPORTERS = 'reporters';
 
     public const string JUNIT_OUTPUT = 'junit-output';
@@ -41,6 +43,7 @@ final readonly class TestCommandOptions
         private ?string $filter,
         private bool $testdox,
         private bool $failFast,
+        private bool $stackTrace,
         private array $reporters,
         private ?string $junitOutput,
         private array $includes,
@@ -68,6 +71,7 @@ final readonly class TestCommandOptions
             $options[self::FILTER] ?? null,
             !empty($options[self::TESTDOX]),
             !empty($options[self::FAIL_FAST]),
+            !empty($options[self::STACK_TRACE]),
             $reporters,
             is_string($junitOutput) ? $junitOutput : null,
             self::normalizeStringList($options[self::INCLUDE] ?? null),
@@ -82,10 +86,11 @@ final readonly class TestCommandOptions
         $printer = Printer::readable();
 
         return sprintf(
-            '{:filter %s :testdox %s :fail-fast %s%s%s%s%s%s%s}',
+            '{:filter %s :testdox %s :fail-fast %s :stack-trace %s%s%s%s%s%s%s}',
             $this->filter === null ? 'nil' : $printer->print($this->filter),
             $printer->print($this->testdox),
             $printer->print($this->failFast),
+            $printer->print($this->stackTrace),
             $this->keywordVector(':reporters', $this->reporters),
             $this->optionalString(':junit-output', $this->junitOutput, $printer),
             $this->keywordVector(':include', $this->includes),
