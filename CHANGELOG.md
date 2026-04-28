@@ -56,6 +56,7 @@ This release focuses on Clojure-compatible core behavior, PHP interop consistenc
 - `butlast` returns `nil` instead of an empty vector when `coll` is `nil` or has fewer than two items (#1712)
 - `get-in` returns the supplied default when the data structure is `nil` regardless of whether the key path is `nil`, empty, or missing (#1713)
 - `some-fn` returns `false` instead of `nil` when no predicate matches (#1714)
+- `compare` orders namespaced keywords and symbols by namespace first, with unqualified entries sorting before namespaced ones (#1715)
 - Improve set support in sequence functions including `first`, `ffirst`, `second`, `next`, `nfirst`, `fnext`, `nnext`, and `some` (#1639, #1642, #1649)
 - Improve collection edge cases in `seq`, `cons`, `pop`, `nth`, `take-last`, and `take-nth` (#1598, #1599, #1600, #1641, #1643, #1645)
 - Improve map and seq behavior in `apply`, `merge`, `dissoc`, `find`, and `mapcat` (#1602, #1603, #1606, #1607, #1646, #1651, #1653)
