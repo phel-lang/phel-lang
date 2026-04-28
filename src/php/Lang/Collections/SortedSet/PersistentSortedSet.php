@@ -90,7 +90,7 @@ final class PersistentSortedSet extends AbstractType implements PersistentHashSe
 
     public function equals(mixed $other): bool
     {
-        if (!$other instanceof self) {
+        if (!$other instanceof PersistentHashSetInterface) {
             return false;
         }
 
