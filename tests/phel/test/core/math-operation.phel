@@ -118,11 +118,13 @@
 
 (deftest test-min
   (is (= 1 (min 1 2 3)) "(min 1 2 3)")
+  (is (= "x" (min "x")) "min with a single non-numeric argument returns it unchanged")
   (is (nan? (min ##NaN 1)) "min propagates NaN")
   (is (nan? (min ##-Inf ##NaN ##Inf)) "min returns NaN regardless of position"))
 
 (deftest test-max
   (is (= 3 (max 1 2 3)) "(max 1 2 3)")
+  (is (= "x" (max "x")) "max with a single non-numeric argument returns it unchanged")
   (is (nan? (max ##NaN 1)) "max propagates NaN")
   (is (nan? (max ##-Inf ##NaN ##Inf)) "max returns NaN regardless of position"))
 
