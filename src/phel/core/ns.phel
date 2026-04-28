@@ -55,11 +55,10 @@
   Returns the fully qualified symbol naming the definition."
   {:example "(intern \"user\" \"x\" 42) ; => user/x"
    :see-also ["find-ns" "create-ns" "ns-interns"]}
-  [ns-str name-str & rest]
+  [ns-str name-str & [val]]
   (let [encoded-ns   (core-munge-ns ns-str)
-        encoded-name (php/-> (php/new Munge) (encode name-str))
-        value        (first rest)]
-    (php/:: Phel (addDefinition encoded-ns encoded-name value))
+        encoded-name (php/-> (php/new Munge) (encode name-str))]
+    (php/:: Phel (addDefinition encoded-ns encoded-name val))
     (php/:: Symbol (createForNamespace ns-str name-str))))
 
 (defn ns-interns
