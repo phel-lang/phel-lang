@@ -200,7 +200,10 @@
 
 (deftest test-vector?
   (is (true? (vector? [])) "vector?")
-  (is (false? (vector? '())) "vector? on list"))
+  (is (false? (vector? '())) "vector? on list")
+  (is (false? (vector? (seq [1 2 3]))) "vector? on (seq vector) is false")
+  (is (false? (vector? (seq (sorted-set :a)))) "vector? on (seq sorted-set) is false")
+  (is (false? (vector? (rseq [1 2 3]))) "vector? on (rseq vector) is false"))
 
 (deftest test-list?
   (is (false? (list? [])) "list? on vector")
