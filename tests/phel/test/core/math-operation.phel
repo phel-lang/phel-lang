@@ -123,13 +123,13 @@
   (is (nil? (rand-nth nil)) "(rand-nth nil)"))
 
 (deftest test-rand-no-arg-bounds
-  (let [samples (for [_ :range [0 200]] (rand))]
+  (let [samples (repeatedly 200 rand)]
     (is (every? #(and (>= % 0) (< % 1)) samples)
         "(rand) returns a number in [0, 1)")))
 
 (deftest test-rand-with-limit-bounds
   (let [limit 0.01
-        samples (for [_ :range [0 200]] (rand limit))]
+        samples (repeatedly 200 #(rand limit))]
     (is (every? #(and (>= % 0) (< % limit)) samples)
         "(rand n) returns a number in [0, n)")))
 
