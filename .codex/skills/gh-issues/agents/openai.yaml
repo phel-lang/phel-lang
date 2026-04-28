@@ -1,0 +1,7 @@
+interface:
+  display_name: "GitHub Issues Watcher"
+  short_description: "Run autonomous issue polling."
+  default_prompt: "Use $gh-issues to process GitHub issues continuously."
+
+policy:
+  allow_implicit_invocation: true
