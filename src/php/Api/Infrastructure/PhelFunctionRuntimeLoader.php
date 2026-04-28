@@ -6,7 +6,9 @@ namespace Phel\Api\Infrastructure;
 
 use Phar;
 use Phel;
+use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Shared\Facade\RunFacadeInterface;
 use RuntimeException;
@@ -31,6 +33,14 @@ final readonly class PhelFunctionRuntimeLoader
      */
     public function load(array $namespaces): void
     {
+        $previousEnv = GlobalEnvironmentSingleton::isInitialized()
+            ? GlobalEnvironmentSingleton::getInstance()
+            : null;
+        $previousRegistry = $previousEnv !== null
+            ? Registry::getInstance()->snapshot()
+            : null;
+        $previousNs = $previousEnv?->getNs();
+
         Phel::clear();
         Symbol::resetGen();
         GlobalEnvironmentSingleton::initializeNew();
@@ -59,6 +69,46 @@ final readonly class PhelFunctionRuntimeLoader
             if ($tempDir !== null && is_dir($tempDir)) {
                 rmdir($tempDir);
             }
+
+            if ($previousEnv !== null && $previousRegistry !== null) {
+                $this->mergePreviousState($previousEnv, $previousRegistry, $previousNs);
+            }
+        }
+    }
+
+    /**
+     * Merges the snapshot taken before the destructive load back on top of
+     * the loaded state so that callers (REPL, nREPL) keep their session
+     * intact while still seeing the freshly loaded documentation namespaces.
+     *
+     * @param array{definitions: array<string, array<string, mixed>>, definitionsMetaData: array<string, array<string, mixed>>} $previousRegistry
+     */
+    private function mergePreviousState(
+        GlobalEnvironmentInterface $previousEnv,
+        array $previousRegistry,
+        ?string $previousNs,
+    ): void {
+        $registry = Registry::getInstance();
+        $current = $registry->snapshot();
+
+        $mergedDefinitions = $current['definitions'];
+        foreach ($previousRegistry['definitions'] as $ns => $entries) {
+            $mergedDefinitions[$ns] = ($mergedDefinitions[$ns] ?? []) + $entries;
+        }
+
+        $mergedMeta = $current['definitionsMetaData'];
+        foreach ($previousRegistry['definitionsMetaData'] as $ns => $entries) {
+            $mergedMeta[$ns] = ($mergedMeta[$ns] ?? []) + $entries;
+        }
+
+        $registry->restore([
+            'definitions' => $mergedDefinitions,
+            'definitionsMetaData' => $mergedMeta,
+        ]);
+
+        GlobalEnvironmentSingleton::setInstance($previousEnv);
+        if ($previousNs !== null && $previousNs !== '') {
+            $previousEnv->setNs($previousNs);
         }
     }
 

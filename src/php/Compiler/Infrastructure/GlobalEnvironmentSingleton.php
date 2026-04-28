@@ -80,4 +80,16 @@ final class GlobalEnvironmentSingleton
 
         return self::$instance;
     }
+
+    /**
+     * Replaces the singleton with a previously captured environment.
+     * Used to restore state after a transient operation (e.g.
+     * documentation/completion loading) that needed a clean environment.
+     *
+     * @internal
+     */
+    public static function setInstance(GlobalEnvironmentInterface $env): void
+    {
+        self::$instance = $env;
+    }
 }
