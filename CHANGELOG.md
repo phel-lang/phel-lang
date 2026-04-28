@@ -67,6 +67,7 @@ This release focuses on Clojure-compatible core behavior, PHP interop consistenc
 
 #### REPL
 - Accept bare namespace symbols in `dir` (#1588)
+- Preserve current namespace and user definitions across autocompletion / nREPL `completions` and `lookup` requests, fixing the random switch to `phel-internal\doc` (#1692)
 
 #### Compiler
 - Resolve PHP class aliases consistently regardless of case (#1567)

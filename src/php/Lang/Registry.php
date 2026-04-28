@@ -41,6 +41,26 @@ final class Registry
         $this->definitionsMetaData = [];
     }
 
+    /**
+     * @return array{definitions: array<string, array<string, mixed>>, definitionsMetaData: array<string, array<string, mixed>>}
+     */
+    public function snapshot(): array
+    {
+        return [
+            'definitions' => $this->definitions,
+            'definitionsMetaData' => $this->definitionsMetaData,
+        ];
+    }
+
+    /**
+     * @param array{definitions: array<string, array<string, mixed>>, definitionsMetaData: array<string, array<string, mixed>>} $snapshot
+     */
+    public function restore(array $snapshot): void
+    {
+        $this->definitions = $snapshot['definitions'];
+        $this->definitionsMetaData = $snapshot['definitionsMetaData'];
+    }
+
     public function addDefinition(string $ns, string $name, mixed $value, ?PersistentMapInterface $metaData = null): VarReference
     {
         $this->definitions[$ns][$name] = $value;
