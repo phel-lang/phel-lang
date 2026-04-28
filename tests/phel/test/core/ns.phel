@@ -1,0 +1,39 @@
+(ns phel-test\test\core\ns
+  (:require phel\test :refer [deftest is]))
+
+(deftest test-loaded-namespaces-includes-core
+  (is (php/in_array "phel\\core" (loaded-namespaces))
+      "loaded-namespaces lists phel\\core"))
+
+(deftest test-find-ns-known
+  (is (= "phel\\core" (find-ns "phel\\core"))
+      "find-ns returns the namespace name when loaded"))
+
+(deftest test-find-ns-unknown
+  (is (nil? (find-ns "no-such-ns\\nope"))
+      "find-ns returns nil for unknown namespace"))
+
+(deftest test-create-and-remove-ns
+  (let [name "phel-test\\tmp\\ns-roundtrip"]
+    (is (nil? (find-ns name)) "namespace does not exist initially")
+    (create-ns name)
+    (is (= name (find-ns name)) "namespace exists after create-ns")
+    (remove-ns name)
+    (is (nil? (find-ns name)) "namespace removed after remove-ns")))
+
+(deftest test-intern-and-ns-interns
+  (let [ns "phel-test\\tmp\\intern-test"]
+    (intern ns "x" 42)
+    (let [interns (ns-interns ns)]
+      (is (= 42 (get interns "x")) "ns-interns contains the interned value"))
+    (remove-ns ns)))
+
+(deftest test-ns-publics-returns-map
+  (let [publics (ns-publics "phel\\core")]
+    (is (hash-map? publics) "ns-publics returns a hash-map")
+    (is (> (count publics) 0) "ns-publics has entries for phel\\core")
+    (is (not (nil? (get publics "map"))) "ns-publics contains 'map'")))
+
+(deftest test-ns-aliases-and-refers
+  (is (hash-map? (ns-aliases "phel\\core")) "ns-aliases returns a hash-map")
+  (is (hash-map? (ns-refers "phel\\core")) "ns-refers returns a hash-map"))
