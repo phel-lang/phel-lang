@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Fiber\Domain;
 
 use Fiber;
+use Phel\Lang\FnInterface;
 
 use function microtime;
 use function usleep;
@@ -18,7 +19,7 @@ use function usleep;
  * the delivered flag each time. Top-level callers (no active Fiber)
  * drain the scheduler's ready queue and sleep briefly between polls.
  */
-final class Promise implements Awaitable
+final class Promise implements Awaitable, FnInterface
 {
     private bool $delivered = false;
 
@@ -27,6 +28,22 @@ final class Promise implements Awaitable
     public function __construct(
         private readonly Scheduler $scheduler,
     ) {}
+
+    /**
+     * Promise-as-IFn, matching Clojure: `(p val)` delivers `val` and
+     * returns the promise (or the existing value when already delivered);
+     * `(p)` blocks until the promise is realized and returns the value.
+     */
+    public function __invoke(mixed ...$args): mixed
+    {
+        if ($args === []) {
+            return $this->deref();
+        }
+
+        $this->deliver($args[0]);
+
+        return $this;
+    }
 
     /**
      * Deliver $value and freeze the promise. Returns true on the first
