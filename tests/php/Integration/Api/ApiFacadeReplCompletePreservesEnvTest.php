@@ -57,4 +57,23 @@ final class ApiFacadeReplCompletePreservesEnvTest extends TestCase
         self::assertSame('user', GlobalEnvironmentSingleton::getInstance()->getNs());
         self::assertSame(1, Phel::getDefinition('user', 'x'));
     }
+
+    #[PreserveGlobalState(false)]
+    #[RunInSeparateProcess]
+    public function test_user_redefinitions_win_over_reloaded_core_symbols(): void
+    {
+        Phel::bootstrap(__DIR__);
+        Phel::clear();
+        Symbol::resetGen();
+        GlobalEnvironmentSingleton::initializeNew();
+
+        GlobalEnvironmentSingleton::getInstance()->setNs('user');
+        // Pretend the user redefined `map` in `phel\core` from the REPL —
+        // the doc/completion reload must not clobber that override.
+        Phel::addDefinition('phel\\core', 'map', 'user-map');
+
+        new ApiFacade()->replComplete('m');
+
+        self::assertSame('user-map', Phel::getDefinition('phel\\core', 'map'));
+    }
 }

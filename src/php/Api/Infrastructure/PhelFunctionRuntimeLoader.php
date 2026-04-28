@@ -91,14 +91,16 @@ final readonly class PhelFunctionRuntimeLoader
         $registry = Registry::getInstance();
         $current = $registry->snapshot();
 
+        // User-defined entries win on key collisions: a `(def map ...)` in the
+        // REPL must survive a doc/completion reload of `phel\core`.
         $mergedDefinitions = $current['definitions'];
         foreach ($previousRegistry['definitions'] as $ns => $entries) {
-            $mergedDefinitions[$ns] = ($mergedDefinitions[$ns] ?? []) + $entries;
+            $mergedDefinitions[$ns] = $entries + ($mergedDefinitions[$ns] ?? []);
         }
 
         $mergedMeta = $current['definitionsMetaData'];
         foreach ($previousRegistry['definitionsMetaData'] as $ns => $entries) {
-            $mergedMeta[$ns] = ($mergedMeta[$ns] ?? []) + $entries;
+            $mergedMeta[$ns] = $entries + ($mergedMeta[$ns] ?? []);
         }
 
         $registry->restore([
