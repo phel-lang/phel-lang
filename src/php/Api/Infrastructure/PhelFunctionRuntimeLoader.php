@@ -36,7 +36,7 @@ final readonly class PhelFunctionRuntimeLoader
         $previousEnv = GlobalEnvironmentSingleton::isInitialized()
             ? GlobalEnvironmentSingleton::getInstance()
             : null;
-        $previousRegistry = $previousEnv !== null
+        $previousRegistry = $previousEnv instanceof GlobalEnvironmentInterface
             ? Registry::getInstance()->snapshot()
             : null;
         $previousNs = $previousEnv?->getNs();
@@ -70,7 +70,7 @@ final readonly class PhelFunctionRuntimeLoader
                 rmdir($tempDir);
             }
 
-            if ($previousEnv !== null && $previousRegistry !== null) {
+            if ($previousEnv instanceof GlobalEnvironmentInterface && $previousRegistry !== null) {
                 $this->mergePreviousState($previousEnv, $previousRegistry, $previousNs);
             }
         }
