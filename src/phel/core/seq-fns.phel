@@ -893,13 +893,14 @@
   (lazy-seq-from-generator (php/:: Seq (iterate f x))))
 
 (defn cycle
-  "Returns an infinite lazy sequence that cycles through the elements of collection."
+  "Returns an infinite lazy sequence that cycles through the elements of
+  collection. Maps are iterated as `[key value]` pairs."
   {:example "(take 7 (cycle [1 2 3])) ; => (1 2 3 1 2 3 1)"
    :see-also ["iterate" "repeat"]}
   [coll]
-  (if (empty? coll)
+  (if (or (php/=== nil coll) (empty? coll))
     []
-    (lazy-seq-from-generator (php/:: Seq (cycle coll)))))
+    (lazy-seq-from-generator (php/:: Seq (cycle (or (seq coll) coll))))))
 
 (defn concat
   "Concatenates multiple collections into a lazy sequence."
