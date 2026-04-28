@@ -254,6 +254,20 @@
                           (string/upper-case \"hello\")")]
     (is (= "HELLO" result) "runtime require resolves symbols without explicit src-dirs init")))
 
+(deftest test-eval-str-require-vector-with-alias
+  (let [result (eval-str "(ns test-rt-require-vec-alias
+                            (:require phel\\repl :refer [require]))
+                          (require '[phel\\string :as s])
+                          (s/upper-case \"hello\")")]
+    (is (= "HELLO" result) "require with vector syntax and :as alias works")))
+
+(deftest test-eval-str-require-vector-bare
+  (let [result (eval-str "(ns test-rt-require-vec-bare
+                            (:require phel\\repl :refer [require]))
+                          (require '[phel\\string])
+                          (string/upper-case \"hello\")")]
+    (is (= "HELLO" result) "require with vector syntax and no alias auto-generates alias")))
+
 (deftest test-eval-str-require-nonexistent-throws
   (let [result (eval-capturing "(ns test-rt-require-missing
                                   (:require phel\\repl :refer [require]))

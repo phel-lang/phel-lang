@@ -131,14 +131,19 @@
     namespace))
 
 (defmacro require
-  "Requires a Phel module into the environment."
-  {:example "(require 'phel\\http :as http :refer [request]) ; => phel\\http"}
+  "Requires a Phel module into the environment.
+  Accepts either flat or vector syntax:
+    (require 'phel\\http :as http :refer [request])
+    (require '[phel\\http :as http :refer [request]])"
+  {:example "(require '[phel\\http :as http :refer [request]]) ; => phel\\http"}
   [sym & args]
   (let [sym     (unquote-sym sym)
-        options (apply hash-map args)
-        alias   (extract-alias sym options)
+        vec?    (vector? sym)
+        ns-sym  (if vec? (first sym) sym)
+        options (if vec? (apply hash-map (rest sym)) (apply hash-map args))
+        alias   (extract-alias ns-sym options)
         refers  (or (:refer options) [])]
-    `(require-namespace '~sym '~alias '~refers)))
+    `(require-namespace '~ns-sym '~alias '~refers)))
 
 (defn- use-namespace
   [namespace alias]
