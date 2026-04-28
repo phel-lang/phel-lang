@@ -1,0 +1,7 @@
+interface:
+  display_name: "Integration Fixture"
+  short_description: "Create compiler .test fixtures."
+  default_prompt: "Use $integration-fixture to add a focused compiler fixture."
+
+policy:
+  allow_implicit_invocation: true

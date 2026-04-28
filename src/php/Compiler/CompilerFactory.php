@@ -8,6 +8,7 @@ use Gacela\Framework\AbstractFactory;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Application\CodeCompiler;
 use Phel\Compiler\Application\EvalCompiler;
+use Phel\Compiler\Application\GlobalEnvironmentManager;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\Application\MacroExpander;
 use Phel\Compiler\Application\Munge;
@@ -16,12 +17,14 @@ use Phel\Compiler\Application\ParenthesesChecker;
 use Phel\Compiler\Application\Parser;
 use Phel\Compiler\Application\Reader;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Compiler\CodeCompilerInterface;
 use Phel\Compiler\Domain\Compiler\EvalCompilerInterface;
 use Phel\Compiler\Domain\Emitter\FileEmitter;
 use Phel\Compiler\Domain\Emitter\FileEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\EmitMode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterFactory;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\OutputEmitterOptions;
@@ -42,6 +45,8 @@ use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Filesystem\FilesystemFacadeInterface;
+use Phel\Lang\TagHandlers\BuiltinTagHandlers;
+use Phel\Lang\TagRegistry;
 use Phel\Printer\Printer;
 
 /**
@@ -94,6 +99,8 @@ final class CompilerFactory extends AbstractFactory
 
     public function createReader(): ReaderInterface
     {
+        BuiltinTagHandlers::registerAll(TagRegistry::getInstance());
+
         return new Reader(
             new ExpressionReaderFactory(),
             new QuasiquoteTransformer($this->getGlobalEnvironment()),
@@ -110,6 +117,10 @@ final class CompilerFactory extends AbstractFactory
 
     public function createAnalyzer(): AnalyzerInterface
     {
+        if ($this->getConfig()->warnDeprecationsEnabled()) {
+            BackslashSeparatorDeprecator::enable();
+        }
+
         return new Analyzer(
             $this->getGlobalEnvironment(),
             $this->getConfig()->assertsEnabled(),
@@ -128,13 +139,13 @@ final class CompilerFactory extends AbstractFactory
     {
         return new FileEmitter(
             new SourceMapGenerator(),
-            $this->createOutputEmitterWithMode(OutputEmitterOptions::EMIT_MODE_FILE, $enableSourceMaps),
+            $this->createOutputEmitterWithMode(EmitMode::File, $enableSourceMaps),
         );
     }
 
     public function createOutputEmitter(bool $enableSourceMaps = true): OutputEmitterInterface
     {
-        return $this->createOutputEmitterWithMode(OutputEmitterOptions::EMIT_MODE_STATEMENT, $enableSourceMaps);
+        return $this->createOutputEmitterWithMode(EmitMode::Statement, $enableSourceMaps);
     }
 
     public function createEvaluator(): EvaluatorInterface
@@ -168,15 +179,20 @@ final class CompilerFactory extends AbstractFactory
         return new ParenthesesChecker();
     }
 
+    public function createGlobalEnvironmentManager(): GlobalEnvironmentManager
+    {
+        return new GlobalEnvironmentManager();
+    }
+
     private function createFileEmitterForCache(bool $enableSourceMaps = false): FileEmitterInterface
     {
         return new FileEmitter(
             new SourceMapGenerator(),
-            $this->createOutputEmitterWithMode(OutputEmitterOptions::EMIT_MODE_CACHE, $enableSourceMaps),
+            $this->createOutputEmitterWithMode(EmitMode::Cache, $enableSourceMaps),
         );
     }
 
-    private function createOutputEmitterWithMode(string $emitMode, bool $enableSourceMaps): OutputEmitter
+    private function createOutputEmitterWithMode(EmitMode $emitMode, bool $enableSourceMaps): OutputEmitter
     {
         return new OutputEmitter(
             $enableSourceMaps,

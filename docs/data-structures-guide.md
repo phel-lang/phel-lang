@@ -2,10 +2,10 @@
 
 This guide covers all functions for manipulating Phel's immutable data structures: vectors, maps, sets, and lists.
 
-## Table of Contents
+## Contents
 
 - [Introduction](#introduction)
-- [String Iteration](#string-iteration-)
+- [String Iteration](#string-iteration)
 - [Adding & Building Collections](#adding--building-collections)
 - [Accessing Elements](#accessing-elements)
 - [Modifying Collections](#modifying-collections)
@@ -13,17 +13,15 @@ This guide covers all functions for manipulating Phel's immutable data structure
 - [Analysis Functions](#analysis-functions)
 - [Working with Nested Structures](#working-with-nested-structures)
 - [Transient Collections](#transient-collections)
-- [Phel-Specific Extensions](#phel-specific-extensions-)
+- [Phel-Specific Extensions](#phel-specific-extensions)
 - [Quick Reference](#quick-reference)
 - [Deprecated Functions](#deprecated-functions)
 
 ## Introduction
 
-Phel's data structures are **immutable** and **persistent**. Operations return new versions of the data structure while efficiently sharing structure with the original. This guide focuses on functions that manipulate these structures.
+Phel's data structures are **immutable** and **persistent**. Operations return new versions of the collection while sharing structure with the original, so reads stay O(1) amortized and updates cost log32(n).
 
-### Clojure Compatibility
-
-Phel aims for strong compatibility with Clojure. Most functions work identically to their Clojure counterparts. Where differences exist, they're noted inline with **"Clojure note:"** annotations.
+The function names follow the same conventions as most Lisps (`conj`, `assoc`, `dissoc`, `merge`, `update`, `get`, `keys`, `vals`, `into`, `group-by`, `frequencies`, ...). A short [quick reference](#quick-reference) appears at the end of the guide.
 
 ---
 
@@ -88,9 +86,9 @@ All core sequence functions work directly with strings:
 ;; => ["h" "e" "l" "l" "o"]
 ```
 
-**`phel\str/chars`** - Convenience function for string → character vector:
+**`phel\string/chars`** - Convenience function for string → character vector:
 ```phel
-(use phel\str)
+(use phel\string)
 (chars "hello")
 ;; => ["h" "e" "l" "l" "o"]
 ```
@@ -148,8 +146,6 @@ The universal function for adding elements to any collection type. Behavior vari
 
 **Signature:** `([] [coll] [coll value] [coll value & more])`
 
-**Clojure note:** Identical behavior to Clojure's `conj`.
-
 ---
 
 ### `assoc` - Associate Key-Value Pairs
@@ -171,8 +167,6 @@ Associates a value with a key in a collection. For maps, adds/updates key-value 
 
 **Signature:** `[ds key value]`
 
-**Clojure note:** Identical behavior to Clojure's `assoc`.
-
 **See also:** For maps with structured data, consider `conj`. For nested updates, use `assoc-in`.
 
 ---
@@ -193,11 +187,15 @@ Returns a collection with all elements from one or more source collections added
 
 (into #{1 2} [2 3 4])
 ;; => #{1 2 3 4}
+
+;; With a transducer (middle argument)
+(into [] (map inc) [1 2 3])
+;; => [2 3 4]
 ```
 
-**Signature:** `[to & from]`
+**Signatures:** `[to from]`, `[to xform from]`
 
-**Clojure note:** Phel's `into` doesn't support transducers yet. Use `(into to from)` only.
+See [Transducers](transducers.md) for building reusable transformations.
 
 ---
 
@@ -224,8 +222,6 @@ Gets the value at a key in a collection. Returns `nil` or an optional default if
 
 **Signature:** `[ds k & [opt]]`
 
-**Clojure note:** Identical behavior to Clojure's `get`.
-
 ---
 
 ### `get-in` - Nested Access
@@ -246,8 +242,6 @@ Accesses a value in a nested data structure via a sequence of keys.
 
 **Signature:** `[ds ks & [opt]]`
 
-**Clojure note:** Identical behavior to Clojure's `get-in`.
-
 ---
 
 ### `keys` - Extract Keys
@@ -261,22 +255,20 @@ Returns a sequence of all keys in a map.
 
 **Signature:** `[coll]`
 
-**Clojure note:** Identical behavior to Clojure's `keys`.
-
 ---
 
-### `values` - Extract Values
+### `vals` - Extract Values
 
 Returns a sequence of all values in a map.
 
 ```phel
-(values {:a 1 :b 2 :c 3})
+(vals {:a 1 :b 2 :c 3})
 ;; => (1 2 3)
 ```
 
 **Signature:** `[coll]`
 
-**Clojure note:** Clojure uses `vals` instead of `values`. This is a naming difference only.
+> `values` is a deprecated alias that still works.
 
 ---
 
@@ -296,8 +288,6 @@ Returns `true` if a key exists in the collection. **Important:** Checks for keys
 ```
 
 **Signature:** `[coll key]`
-
-**Clojure note:** Identical behavior to Clojure's `contains?`.
 
 ---
 
@@ -338,8 +328,6 @@ Updates a value in a data structure by applying a function to the current value.
 
 **Signature:** `[ds k f & args]`
 
-**Clojure note:** Identical behavior to Clojure's `update`.
-
 ---
 
 ### `update-in` - Nested Transform
@@ -355,8 +343,6 @@ Updates a value in a nested data structure by applying a function.
 ```
 
 **Signature:** `[ds [k & ks] f & args]`
-
-**Clojure note:** Identical behavior to Clojure's `update-in`.
 
 ---
 
@@ -374,8 +360,6 @@ Associates a value in a nested data structure. Creates intermediate structures a
 
 **Signature:** `[ds [k & ks] v]`
 
-**Clojure note:** Identical behavior to Clojure's `assoc-in`.
-
 ---
 
 ### `dissoc` - Dissociate Keys
@@ -391,8 +375,6 @@ Removes a key from a data structure.
 ```
 
 **Signature:** `[ds key]`
-
-**Clojure note:** Identical behavior to Clojure's `dissoc`.
 
 ---
 
@@ -427,8 +409,6 @@ Merges multiple maps into one. Later values override earlier ones for duplicate 
 
 **Signature:** `[& maps]`
 
-**Clojure note:** Identical behavior to Clojure's `merge`.
-
 ---
 
 ### `merge-with` - Merge with Function
@@ -444,8 +424,6 @@ Merges maps, using a function to resolve duplicate keys.
 ```
 
 **Signature:** `[f & maps]`
-
-**Clojure note:** Identical behavior to Clojure's `merge-with`.
 
 ---
 
@@ -484,8 +462,6 @@ Returns a new map with only the specified keys.
 
 **Signature:** `[m ks]`
 
-**Clojure note:** Identical behavior to Clojure's `select-keys`.
-
 ---
 
 ### `zipmap` - Create Map from Sequences
@@ -502,8 +478,6 @@ Creates a map by pairing up keys and values from two sequences.
 ```
 
 **Signature:** `[keys vals]`
-
-**Clojure note:** Identical behavior to Clojure's `zipmap`.
 
 ---
 
@@ -555,8 +529,6 @@ Groups elements by the result of applying a function to each element.
 ```
 
 **Signature:** `[f coll]`
-
-**Clojure note:** Identical behavior to Clojure's `group-by`.
 
 ---
 
@@ -731,7 +703,7 @@ The predicate receives two arguments: `%1` (index) and `%2` (item).
 | Get nested | `get-in` | `(get-in {:a {:b 1}} [:a :b])` → `1` |
 | Check key exists | `contains?` | `(contains? {:a 1} :a)` → `true` |
 | Get all keys | `keys` | `(keys {:a 1 :b 2})` → `(:a :b)` |
-| Get all values | `values` | `(values {:a 1 :b 2})` → `(1 2)` |
+| Get all values | `vals` | `(vals {:a 1 :b 2})` → `(1 2)` |
 | **Modifying** |
 | Transform value | `update` | `(update {:a 1} :a inc)` → `{:a 2}` |
 | Transform nested | `update-in` | `(update-in {:a {:b 1}} [:a :b] inc)` → `{:a {:b 2}}` |

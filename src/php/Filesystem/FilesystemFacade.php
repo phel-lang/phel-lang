@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Filesystem;
 
 use Gacela\Framework\AbstractFacade;
+use Gacela\Framework\Health\ModuleHealthCheckInterface;
 
 /**
  * @extends AbstractFacade<FilesystemFactory>
@@ -30,5 +31,10 @@ final class FilesystemFacade extends AbstractFacade implements FilesystemFacadeI
         return $this->getFactory()
             ->createTempDirFinder()
             ->getOrCreateTempDir();
+    }
+
+    public function getHealthCheck(): ModuleHealthCheckInterface
+    {
+        return $this->getFactory()->createTempDirHealthCheck();
     }
 }

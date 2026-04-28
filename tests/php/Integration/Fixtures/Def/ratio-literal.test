@@ -1,0 +1,20 @@
+--PHEL--
+(def x 1/2)
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "x",
+  0.5,
+  \Phel::map(
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/ratio-literal.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/ratio-literal.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 11
+    )
+  )
+);

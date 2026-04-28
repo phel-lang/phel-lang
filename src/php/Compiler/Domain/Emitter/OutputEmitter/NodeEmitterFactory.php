@@ -40,6 +40,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\SetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\SetVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
 use Phel\Compiler\Domain\Analyzer\Ast\TryNode;
+use Phel\Compiler\Domain\Analyzer\Ast\UseNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Compiler\Domain\Emitter\Exceptions\NotSupportedAstException;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\ApplyEmitter;
@@ -80,6 +81,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\SetEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\SetVarEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\ThrowEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\TryEmitter;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\UseEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\VectorEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 
@@ -114,6 +116,7 @@ final class NodeEmitterFactory
         return match ($astNodeClassName) {
             NsNode::class => new NsEmitter($outputEmitter),
             InNsNode::class => new InNsEmitter($outputEmitter),
+            UseNode::class => new UseEmitter($outputEmitter),
             LoadNode::class => new LoadEmitter($outputEmitter),
             DefNode::class => new DefEmitter($outputEmitter),
             LiteralNode::class => new LiteralEmitter($outputEmitter),
@@ -147,7 +150,7 @@ final class NodeEmitterFactory
             MapNode::class => new MapEmitter($outputEmitter),
             SetVarNode::class => new SetVarEmitter($outputEmitter),
             DefInterfaceNode::class => new DefInterfaceEmitter($outputEmitter),
-            MultiFnNode::class => new MultiFnAsClassEmitter($outputEmitter),
+            MultiFnNode::class => new MultiFnAsClassEmitter($outputEmitter, $closureHelper),
             ReifyNode::class => new ReifyEmitter($outputEmitter, $methodEmitter, $closureHelper),
             default => throw NotSupportedAstException::withClassName($astNodeClassName),
         };
@@ -157,7 +160,7 @@ final class NodeEmitterFactory
     {
         $key = spl_object_id($outputEmitter);
 
-        return $this->methodEmitterCache[$key] ??= new MethodEmitter($outputEmitter);
+        return $this->methodEmitterCache[$key] ??= new MethodEmitter($outputEmitter, $this->getClosureHelper($outputEmitter));
     }
 
     private function getClosureHelper(OutputEmitterInterface $outputEmitter): ClosureEmitterHelper

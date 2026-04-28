@@ -98,6 +98,45 @@ final class InvokeSymbolTest extends TestCase
         $this->analyzer = new Analyzer($env);
     }
 
+    public function test_quoted_symbol_in_call_position_raises_phel011(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Value foobar of type Symbol is not callable. Did you quote or escape a symbol by mistake?');
+
+        $list = Phel::list([
+            Phel::list([
+                Symbol::create(Symbol::NAME_QUOTE),
+                Symbol::create('foobar'),
+            ]),
+        ]);
+
+        new InvokeSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+    }
+
+    public function test_integer_literal_in_call_position_raises_phel011(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Value 42 of type int is not callable.');
+
+        new InvokeSymbol($this->analyzer)->analyze(Phel::list([42]), NodeEnvironment::empty());
+    }
+
+    public function test_string_literal_in_call_position_raises_phel011(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Value "foo" of type string is not callable.');
+
+        new InvokeSymbol($this->analyzer)->analyze(Phel::list(['foo']), NodeEnvironment::empty());
+    }
+
+    public function test_nil_in_call_position_raises_phel011(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Value nil of type null is not callable.');
+
+        new InvokeSymbol($this->analyzer)->analyze(Phel::list([null]), NodeEnvironment::empty());
+    }
+
     public function test_not_enough_args_provided_then_error(): void
     {
         $this->expectException(AnalyzerException::class);
@@ -108,7 +147,7 @@ final class InvokeSymbolTest extends TestCase
             '1arg',
         ]);
 
-        (new InvokeSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new InvokeSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_variadic_function_error_message(): void
@@ -120,7 +159,7 @@ final class InvokeSymbolTest extends TestCase
             Symbol::createForNamespace('user', 'my-variadic-fn'),
         ]);
 
-        (new InvokeSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new InvokeSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_bounded_function_too_few_args(): void
@@ -132,7 +171,7 @@ final class InvokeSymbolTest extends TestCase
             Symbol::createForNamespace('user', 'my-bounded-fn'),
         ]);
 
-        (new InvokeSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new InvokeSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_bounded_function_too_many_args(): void
@@ -147,7 +186,7 @@ final class InvokeSymbolTest extends TestCase
             '3arg',
         ]);
 
-        (new InvokeSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new InvokeSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_valid_enough_args_provided(): void
@@ -158,7 +197,7 @@ final class InvokeSymbolTest extends TestCase
             '2arg',
         ]);
 
-        (new InvokeSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new InvokeSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         $this->expectNotToPerformAssertions();
     }
@@ -169,7 +208,7 @@ final class InvokeSymbolTest extends TestCase
             Symbol::createForNamespace('php', '+'),
         ]);
         $env = NodeEnvironment::empty();
-        $node = (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+        $node = new InvokeSymbol($this->analyzer)->analyze($list, $env);
 
         $this->assertEquals(
             new CallNode(
@@ -188,7 +227,7 @@ final class InvokeSymbolTest extends TestCase
             1,
         ]);
         $env = NodeEnvironment::empty();
-        $node = (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+        $node = new InvokeSymbol($this->analyzer)->analyze($list, $env);
 
         $this->assertEquals(
             new CallNode(
@@ -211,7 +250,7 @@ final class InvokeSymbolTest extends TestCase
             ]),
         ]);
         $env = NodeEnvironment::empty();
-        $node = (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+        $node = new InvokeSymbol($this->analyzer)->analyze($list, $env);
 
         $this->assertEquals(
             new VectorNode(
@@ -239,7 +278,7 @@ final class InvokeSymbolTest extends TestCase
         $env = NodeEnvironment::empty();
 
         try {
-            (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+            new InvokeSymbol($this->analyzer)->analyze($list, $env);
             self::fail('Expected AnalyzerException to be thrown');
         } catch (AnalyzerException $analyzerException) {
             self::assertStringContainsString('Error in expanding macro "user\\my-failed-macro"', $analyzerException->getMessage());
@@ -258,7 +297,7 @@ final class InvokeSymbolTest extends TestCase
             Phel::vector([1]),
         ]);
         $env = NodeEnvironment::empty();
-        (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+        new InvokeSymbol($this->analyzer)->analyze($list, $env);
     }
 
     public function test_inline_expand(): void
@@ -268,7 +307,7 @@ final class InvokeSymbolTest extends TestCase
             'foo',
         ]);
         $env = NodeEnvironment::empty();
-        $node = (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+        $node = new InvokeSymbol($this->analyzer)->analyze($list, $env);
 
         $this->assertEquals(
             new LiteralNode($env->withStatementContext(), 2),
@@ -283,7 +322,7 @@ final class InvokeSymbolTest extends TestCase
             'foo', 'bar',
         ]);
         $env = NodeEnvironment::empty();
-        $node = (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+        $node = new InvokeSymbol($this->analyzer)->analyze($list, $env);
 
         $this->assertEquals(
             new LiteralNode($env->withStatementContext(), 2),
@@ -298,7 +337,7 @@ final class InvokeSymbolTest extends TestCase
             'foo',
         ]);
         $env = NodeEnvironment::empty();
-        $node = (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+        $node = new InvokeSymbol($this->analyzer)->analyze($list, $env);
 
         $this->assertEquals(
             new CallNode(
@@ -329,7 +368,7 @@ final class InvokeSymbolTest extends TestCase
 
         $this->analyzer->addDefinition($ns, Symbol::create($macroName));
 
-        $mungedNs = (new Munge())->encodeNs($ns);
+        $mungedNs = new Munge()->encodeNs($ns);
         Phel::addDefinition(
             $mungedNs,
             $macroName,
@@ -342,7 +381,7 @@ final class InvokeSymbolTest extends TestCase
             'foo',
         ]);
         $env = NodeEnvironment::empty();
-        $node = (new InvokeSymbol($this->analyzer))->analyze($list, $env);
+        $node = new InvokeSymbol($this->analyzer)->analyze($list, $env);
 
         $this->assertEquals(
             new LiteralNode($env->withStatementContext(), 'foo'),

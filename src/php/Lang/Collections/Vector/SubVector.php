@@ -68,11 +68,8 @@ final class SubVector extends AbstractPersistentVector
      */
     public function getIterator(): Traversable
     {
-        for ($current = $this; $current instanceof self; $current = $current->cdr()) {
-            /** @var self<T> $current */
-            /** @var T $first */
-            $first = $current->first();
-            yield $first;
+        for ($i = $this->start; $i < $this->end; ++$i) {
+            yield $this->vector->get($i);
         }
     }
 

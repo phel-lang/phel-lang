@@ -1,0 +1,62 @@
+(ns phel-test\test\core\binding-conveyance
+  (:require phel\test :refer [deftest is]))
+
+;; Regression tests for https://github.com/phel-lang/phel-lang/issues/1536
+;;
+;; Dynamic vars must be fiber-local and bindings must convey into
+;; futures/async so Phel matches Clojure's `binding` semantics.
+
+(def ^:dynamic *x* :unset)
+
+(defn- read-x [] *x*)
+
+;; --- Snippet A from the issue ---
+;; Future created OUTSIDE binding, dereffed INSIDE binding.
+;; Clojure returns :unset because the future captured the outer
+;; (root) binding at creation time.
+(deftest test-future-captures-bindings-at-creation
+  (let [f (future (read-x))]
+    (binding [*x* :now-here]
+      (is (= :unset (await f))
+          "future created outside binding must not see the inner value"))))
+
+;; --- Snippet B from the issue ---
+;; Future created inside an OUTER binding, dereffed inside an INNER
+;; binding. Clojure returns :outer.
+(deftest test-future-captures-nearest-enclosing-binding
+  (binding [*x* :outer]
+    (let [f (future (read-x))]
+      (binding [*x* :inner]
+        (is (= :outer (await f))
+            "future must see the caller's binding at creation time")))))
+
+;; --- Snippet C from the issue (simplified without nested futures) ---
+(deftest test-binding-isolated-from-outer-deref-site
+  (binding [*x* :caller]
+    (let [f (future (binding [*x* :callee] (read-x)))]
+      (binding [*x* :derefer]
+        (is (= :callee (await f))
+            "innermost binding inside the future body wins")))))
+
+;; --- Isolation between concurrent fibers ---
+(deftest test-concurrent-fibers-see-independent-bindings
+  (let [a (async (binding [*x* :A] (read-x)))
+        b (async (binding [*x* :B] (read-x)))]
+    (is (= :A (await a)))
+    (is (= :B (await b)))
+    (is (= :unset *x*) "root value untouched after fibers complete")))
+
+;; --- Fiber-backed future-fiber ---
+(deftest test-future-fiber-also-conveys
+  (binding [*x* :outer]
+    (let [ff (future-fiber (read-x))]
+      (is (= :outer (deref ff))
+          "future-fiber captures the caller's dynamic bindings"))))
+
+;; --- binding on a non-dynamic var still uses with-redefs semantics ---
+(def *not-dynamic* :root)
+
+(deftest test-binding-non-dynamic-var-legacy-redef
+  (binding [*not-dynamic* :rebound]
+    (is (= :rebound *not-dynamic*) "non-dynamic var is mutated in-place"))
+  (is (= :root *not-dynamic*) "non-dynamic var is restored on exit"))

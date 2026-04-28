@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler;
 
 use Gacela\Framework\AbstractFacade;
+use Gacela\Framework\Attribute\Cacheable;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
@@ -22,7 +23,6 @@ use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Infrastructure\CompileOptions;
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
@@ -58,7 +58,7 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
     }
 
     public function evalForm(
-        TypeInterface|string|float|int|bool|null $form,
+        mixed $form,
         CompileOptions $compileOptions = new CompileOptions(),
     ): mixed {
         return $this->getFactory()
@@ -123,11 +123,6 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
     }
 
     /**
-     * Reads the next expression from the token stream.
-     * If the token stream reaches the end, null is returned.
-     *
-     * @param TokenStream $tokenStream The token stream to read
-     *
      * @throws UnexpectedParserException
      * @throws UnfinishedParserException
      */
@@ -159,11 +154,10 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
             ->read($parseTree);
     }
 
+    #[Cacheable]
     public function encodeNs(string $namespace): string
     {
-        return $this->getFactory()
-            ->createMunge()
-            ->encodeNs($namespace);
+        return $this->cached(fn(): string => $this->getFactory()->createMunge()->encodeNs($namespace));
     }
 
     public function hasBalancedParentheses(string $code): bool
@@ -175,18 +169,18 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
 
     public function initializeGlobalEnvironment(): void
     {
-        GlobalEnvironmentSingleton::ensureInitialized();
+        $this->getFactory()
+            ->createGlobalEnvironmentManager()
+            ->initialize();
     }
 
     public function resetGlobalEnvironment(): void
     {
-        GlobalEnvironmentSingleton::reset();
+        $this->getFactory()
+            ->createGlobalEnvironmentManager()
+            ->reset();
     }
 
-    /**
-     * Expands a macro form once. Returns the expanded Phel form,
-     * or the original form unchanged if it is not a macro call.
-     */
     public function macroexpand1(
         TypeInterface|string|float|int|bool|null $form,
     ): TypeInterface|string|float|int|bool|null {
@@ -195,10 +189,6 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
             ->macroexpand1($form);
     }
 
-    /**
-     * Repeatedly expands a macro form until it is no longer a macro call.
-     * Returns the fully expanded Phel form.
-     */
     public function macroexpand(
         TypeInterface|string|float|int|bool|null $form,
     ): TypeInterface|string|float|int|bool|null {

@@ -19,7 +19,7 @@ final class PersistentMapPrinterTest extends TestCase
     {
         self::assertSame(
             $expected,
-            (new PersistentMapPrinter(Printer::readable()))->print($map),
+            new PersistentMapPrinter(Printer::readable())->print($map),
         );
     }
 

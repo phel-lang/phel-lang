@@ -1,0 +1,511 @@
+(ns phel-test\test\reporters
+  (:require phel\test :as t :refer [deftest is]))
+
+;; Coverage for the pluggable `report` multimethod and the built-in
+;; reporter implementations shipped with `phel\test`.
+;;
+;; Each test resolves a built-in reporter, feeds it a scripted event
+;; sequence by binding `*reporters*` locally via `set-reporters!`, and
+;; captures the output (or JUnit file) with `with-output-buffer`.
+
+;; ---------------------------------------------------------------------------
+;; Registration + resolution
+;; ---------------------------------------------------------------------------
+
+(deftest test-resolve-built-in-reporters-by-keyword
+  (is (fn? (t/resolve-reporter :default)) "default reporter resolves")
+  (is (fn? (t/resolve-reporter :testdox)) "testdox reporter resolves")
+  (is (fn? (t/resolve-reporter :dot)) "dot reporter resolves")
+  (is (fn? (t/resolve-reporter :tap)) "tap reporter resolves")
+  (is (fn? (t/resolve-reporter :junit-xml)) "junit-xml reporter resolves"))
+
+(deftest test-resolve-built-in-reporters-by-string
+  (is (fn? (t/resolve-reporter "default")) "default resolves by string")
+  (is (fn? (t/resolve-reporter "junit-xml")) "junit-xml resolves by string"))
+
+(deftest test-resolve-unknown-reporter-returns-nil
+  (is (nil? (t/resolve-reporter :does-not-exist))
+      "resolve-reporter returns nil for unknown name"))
+
+(deftest test-register-custom-reporter
+  (let [calls (atom [])
+        _     (t/register-reporter! :captured (fn [event] (swap! calls conj (:type event))))
+        rep   (t/resolve-reporter :captured)]
+    (is (fn? rep) "registered reporter is resolvable")
+    (rep {:type :custom})
+    (is (= [:custom] (deref calls)) "registered reporter receives events")))
+
+;; ---------------------------------------------------------------------------
+;; Multimethod dispatch — report events flow through active reporters
+;; ---------------------------------------------------------------------------
+
+(deftest test-report-fans-out-to-active-reporters
+  (let [events (atom [])
+        saved  (t/get-stats)
+        prev   (t/get-reporters)]
+    (t/set-reporters! [(fn [e] (swap! events conj e))])
+    (t/reset-stats)
+    (t/report {:type :pass :state :pass :message "ok"})
+    (t/report {:type :failed :state :failed :message "boom"})
+    (t/set-reporters! prev)
+    (t/restore-stats saved)
+    (is (= 2 (count (deref events))) "both events fanned out")
+    (is (= :pass (:state (first (deref events)))) "pass state preserved")
+    (is (= :failed (:state (nth (deref events) 1))) "failed state preserved")))
+
+(deftest test-multiple-reporters-receive-events-in-order
+  (let [order  (atom [])
+        prev   (t/get-reporters)
+        saved  (t/get-stats)]
+    (t/set-reporters! [(fn [_] (swap! order conj :a))
+                       (fn [_] (swap! order conj :b))])
+    (t/reset-stats)
+    (t/report {:type :pass :state :pass})
+    (t/set-reporters! prev)
+    (t/restore-stats saved)
+    (is (= [:a :b] (deref order)) "reporters invoked in registration order")))
+
+(deftest test-default-report-method-preserves-event
+  (let [captured (atom nil)
+        prev     (t/get-reporters)
+        saved    (t/get-stats)]
+    (t/set-reporters! [(fn [e] (reset! captured e))])
+    (t/reset-stats)
+    (t/report {:type :my-custom-type :payload 42})
+    (t/set-reporters! prev)
+    (t/restore-stats saved)
+    (is (= :my-custom-type (:type (deref captured)))
+        "unknown event types reach reporters via :default method")
+    (is (= 42 (:payload (deref captured))) "payload flows through untouched")))
+
+;; ---------------------------------------------------------------------------
+;; Dot reporter — compact CI summary
+;; ---------------------------------------------------------------------------
+
+(deftest test-dot-reporter-emits-marker-per-assertion
+  (let [rep (t/resolve-reporter :dot)
+        out (with-output-buffer
+              (rep {:type :begin-test-run})
+              (rep {:type :pass :state :pass})
+              (rep {:type :failed :state :failed})
+              (rep {:type :error :state :error})
+              (rep {:type :summary :total 3 :pass 1 :failed 1 :error 1}))]
+    (is (= ".FE\nTests: 3, Passed: 1, Failed: 1, Errors: 1\n" out)
+        "dot reporter prints markers plus one-line summary")))
+
+;; ---------------------------------------------------------------------------
+;; TAP reporter — TAP v13 protocol
+;; ---------------------------------------------------------------------------
+
+(deftest test-tap-reporter-emits-version-and-plan
+  (let [rep (t/resolve-reporter :tap)
+        out (with-output-buffer
+              (rep {:type :begin-test-run})
+              (rep {:type :pass :state :pass :test-name "a" :message "ok"})
+              (rep {:type :failed :state :failed :test-name "b" :message "bad"})
+              (rep {:type :summary :total 2}))]
+    (is (php/preg_match "/^TAP version 13\\n/" out)
+        "starts with TAP version header")
+    (is (php/preg_match "/^ok 1 - a: ok$/m" out)
+        "emits ok line for passing assertion")
+    (is (php/preg_match "/^not ok 2 - b: bad$/m" out)
+        "emits not ok line for failing assertion")
+    (is (php/preg_match "/^1\\.\\.2$/m" out)
+        "emits 1..N plan after summary")))
+
+;; ---------------------------------------------------------------------------
+;; JUnit-XML reporter — <testsuites>/<testsuite>/<testcase>
+;; ---------------------------------------------------------------------------
+
+(deftest test-junit-xml-reporter-writes-valid-shape
+  (let [path (str "/tmp/phel-junit-" (php/mt_rand) ".xml")
+        rep  (t/resolve-reporter :junit-xml)
+        _    (t/set-junit-output! path)]
+    (rep {:type :begin-test-run})
+    (rep {:type :begin-test-ns :ns "sample.ns"})
+    (rep {:type :pass :state :pass :test-name "t1" :message "ok"
+          :location {:file "a.phel" :line 1}})
+    (rep {:type :failed :state :failed :test-name "t2" :message "bad"
+          :form "(= 1 2)"
+          :location {:file "a.phel" :line 2}})
+    (rep {:type :end-test-ns :ns "sample.ns"})
+    (rep {:type :summary :total 2 :pass 1 :failed 1 :error 0})
+    (t/set-junit-output! nil)
+    (let [xml (php/file_get_contents path)]
+      (is (php/preg_match "/^<\\?xml version=\"1\\.0\"/" xml)
+          "emits XML declaration")
+      (is (php/preg_match "/<testsuites tests=\"2\"/" xml)
+          "root element carries aggregate test count")
+      (is (php/preg_match "/<testsuite name=\"sample.ns\"/" xml)
+          "contains testsuite for the namespace")
+      (is (php/preg_match "/<testcase name=\"t2\"/" xml)
+          "failing testcase present")
+      (is (php/preg_match "/<failure /" xml)
+          "failing testcase has <failure> child"))
+    (php/unlink path)))
+
+(deftest test-junit-xml-reporter-escapes-xml-special-characters
+  (let [path (str "/tmp/phel-junit-" (php/mt_rand) ".xml")
+        rep  (t/resolve-reporter :junit-xml)
+        _    (t/set-junit-output! path)]
+    (rep {:type :begin-test-run})
+    (rep {:type :begin-test-ns :ns "ns<&>\"'"})
+    (rep {:type :failed :state :failed :test-name "x"
+          :message "a < b & c > d"
+          :form "(= \"<x>\" \"&y;\")"
+          :location {:file "f.phel" :line 1}})
+    (rep {:type :end-test-ns :ns "ns<&>\"'"})
+    (rep {:type :summary :total 1})
+    (t/set-junit-output! nil)
+    (let [xml (php/file_get_contents path)]
+      (is (php/preg_match "/ns&lt;&amp;&gt;&quot;&apos;/" xml)
+          "suite name escapes all five XML special characters")
+      (is (php/preg_match "/a &lt; b &amp; c &gt; d/" xml)
+          "failure message escapes angle brackets and ampersands"))
+    (php/unlink path)))
+
+;; ---------------------------------------------------------------------------
+;; Default reporter — legacy dot output plus summary block
+;; ---------------------------------------------------------------------------
+
+(deftest test-default-reporter-matches-legacy-output
+  (let [rep (t/resolve-reporter :default)
+        out (with-output-buffer
+              (rep {:type :begin-test-run})
+              (rep {:type :pass :state :pass})
+              (rep {:type :pass :state :pass})
+              (rep {:type :failed :state :failed :form "(= 1 2)"
+                    :type :binary :pred '= :expected 1 :actual 2 :result 2
+                    :message "boom"})
+              (rep {:type :summary :total 3 :pass 2 :failed 1 :error 0
+                    :failures []}))]
+    (is (php/preg_match "/\\.\\.F/" out) "emits marker sequence")
+    (is (php/preg_match "/Passed: 2/" out) "prints Passed count")
+    (is (php/preg_match "/Failed: 1/" out) "prints Failed count")
+    (is (php/preg_match "/Total: 3/" out) "prints Total count")))
+
+(deftest test-default-reporter-prints-error-forms-with-readable-strings
+  (let [rep   (t/resolve-reporter :default)
+        saved (t/get-stats)
+        prev  (t/get-reporters)
+        _     (t/set-reporters! [rep])
+        _     (t/reset-stats)
+        out   (with-output-buffer
+                (rep {:type :begin-test-run})
+                (is (= 0 (apply + "")))
+                (t/print-summary))
+        _     (t/set-reporters! prev)
+        _     (t/restore-stats saved)]
+    (is (php/preg_match "/Test: \\(= 0 \\(apply \\+ \"\"\\)\\)/" out)
+        "error output renders empty strings with quotes")))
+
+;; ---------------------------------------------------------------------------
+;; Default reporter — thrown-with-msg failure formatting
+;; ---------------------------------------------------------------------------
+
+(deftest test-default-reporter-thrown-with-msg-prints-when-exception-not-thrown
+  (let [rep (t/resolve-reporter :default)
+        out (with-output-buffer
+              (rep {:type :begin-test-run})
+              (rep {:type :thrown-with-msg :state :failed
+                    :form "(throw (new E 'x'))" :message "should throw"
+                    :exception-symbol "\\Exception"
+                    :expected-message "expected"
+                    :actual-message nil})
+              (rep {:type :summary :total 1 :pass 0 :failed 1 :error 0
+                    :failures [{:type :thrown-with-msg :state :failed
+                                :form "(throw (new E 'x'))" :message "should throw"
+                                :exception-symbol "\\Exception"
+                                :expected-message "expected"
+                                :actual-message nil}]}))]
+    (is (php/preg_match "/to throw a: \\\\Exception \\(it didn't\\)/" out)
+        "when no exception thrown, prints 'didn't throw' diagnostic")
+    (is (= 0 (php/preg_match "/with message:/" out))
+        "when no exception thrown, does NOT print 'with message' line")))
+
+(deftest test-default-reporter-thrown-with-msg-prints-when-message-differs
+  (let [rep (t/resolve-reporter :default)
+        out (with-output-buffer
+              (rep {:type :begin-test-run})
+              (rep {:type :thrown-with-msg :state :failed
+                    :form "(throw (new E 'actual'))" :message "msg mismatch"
+                    :exception-symbol "\\Exception"
+                    :expected-message "expected"
+                    :actual-message "actual"})
+              (rep {:type :summary :total 1 :pass 0 :failed 1 :error 0
+                    :failures [{:type :thrown-with-msg :state :failed
+                                :form "(throw (new E 'actual'))" :message "msg mismatch"
+                                :exception-symbol "\\Exception"
+                                :expected-message "expected"
+                                :actual-message "actual"}]}))]
+    (is (php/preg_match "/to throw a: \\\\Exception/" out)
+        "exception class is printed")
+    (is (php/preg_match "/with message: expected/" out)
+        "expected message is printed")
+    (is (php/preg_match "/but got: actual/" out)
+        "actual message is printed")))
+
+;; ---------------------------------------------------------------------------
+;; Pathological input — reporters tolerate missing fields
+;; ---------------------------------------------------------------------------
+
+(deftest test-dot-reporter-tolerates-missing-summary-fields
+  (let [rep (t/resolve-reporter :dot)
+        out (with-output-buffer
+              (rep {:type :begin-test-run})
+              (rep {:type :summary}))]
+    (is (php/preg_match "/Tests: /" out)
+        "dot reporter renders a summary line even when counts are absent")))
+
+(deftest test-default-reporter-tolerates-summary-without-failures
+  (let [rep (t/resolve-reporter :default)
+        out (with-output-buffer
+              (rep {:type :begin-test-run})
+              (rep {:type :summary :total 0 :pass 0 :failed 0 :error 0}))]
+    (is (php/preg_match "/Total: 0/" out)
+        "summary renders cleanly when :failures key is absent")))
+
+;; ---------------------------------------------------------------------------
+;; Assertion-like dispatch — :predicate with :state :error routes to error path
+;; ---------------------------------------------------------------------------
+
+(deftest test-assertion-like-state-error-is-recorded
+  (let [events (atom [])
+        saved  (t/get-stats)
+        prev   (t/get-reporters)]
+    (t/set-reporters! [(fn [e] (swap! events conj e))])
+    (t/reset-stats)
+    (t/report {:type :predicate :state :error :message "threw"})
+    (let [snapshot (t/get-stats)]
+      (t/set-reporters! prev)
+      (t/restore-stats saved)
+      (is (= 1 (count (deref events))) "event reached the reporter")
+      (is (= 1 (:error (:counts snapshot)))
+          ":predicate with :state :error increments :error count"))))
+
+(deftest test-assertion-like-without-state-flows-through
+  (let [events (atom [])
+        saved  (t/get-stats)
+        prev   (t/get-reporters)]
+    (t/set-reporters! [(fn [e] (swap! events conj e))])
+    (t/reset-stats)
+    (t/report {:type :binary :payload "no state"})
+    (let [snapshot (t/get-stats)]
+      (t/set-reporters! prev)
+      (t/restore-stats saved)
+      (is (= 1 (count (deref events))) "event still fans out")
+      (is (= 0 (:pass (:counts snapshot)))
+          "event without :state does not touch stats"))))
+
+;; ---------------------------------------------------------------------------
+;; Reporter resolution — edge cases
+;; ---------------------------------------------------------------------------
+
+(deftest test-resolve-reporter-nil-name-returns-nil
+  (is (nil? (t/resolve-reporter nil))
+      "resolve-reporter with nil returns nil instead of throwing"))
+
+(deftest test-register-reporter-rejects-non-name-types
+  (is (thrown-with-msg? \InvalidArgumentException
+                        "register-reporter! name must be a keyword or string"
+                        (t/register-reporter! 42 (fn [_])))
+      "register-reporter! rejects numeric names"))
+
+(deftest test-register-reporter-overrides-built-in
+  (let [built-in (t/resolve-reporter :my-override-target)
+        reporter (fn [_event] nil)]
+    (is (nil? built-in) "baseline: the target name is not yet registered")
+    (t/register-reporter! :my-override-target reporter)
+    (is (identical? reporter (t/resolve-reporter :my-override-target))
+        "user-registered reporter resolves via public API")))
+
+;; ---------------------------------------------------------------------------
+;; TAP reporter — description edge cases
+;; ---------------------------------------------------------------------------
+
+(deftest test-tap-reporter-falls-back-to-assertion-description
+  (let [rep (t/resolve-reporter :tap)
+        out (with-output-buffer
+              (rep {:type :begin-test-run})
+              (rep {:type :pass :state :pass})
+              (rep {:type :summary :total 1}))]
+    (is (php/preg_match "/^ok 1 - assertion$/m" out)
+        "events without :test-name or :message fall back to 'assertion'")))
+
+(deftest test-tap-reporter-description-uses-message-only-when-name-missing
+  (let [rep (t/resolve-reporter :tap)
+        out (with-output-buffer
+              (rep {:type :begin-test-run})
+              (rep {:type :pass :state :pass :message "only-message"})
+              (rep {:type :summary :total 1}))]
+    (is (php/preg_match "/^ok 1 - only-message$/m" out)
+        "events with :message only use it verbatim")))
+
+(deftest test-tap-reporter-description-uses-test-name-only-when-message-missing
+  (let [rep (t/resolve-reporter :tap)
+        out (with-output-buffer
+              (rep {:type :begin-test-run})
+              (rep {:type :pass :state :pass :test-name "only-test"})
+              (rep {:type :summary :total 1}))]
+    (is (php/preg_match "/^ok 1 - only-test$/m" out)
+        "events with :test-name only use it verbatim")))
+
+;; ---------------------------------------------------------------------------
+;; JUnit reporter — fallback to event :ns when begin-test-ns is missed
+;; ---------------------------------------------------------------------------
+
+(deftest test-junit-reporter-uses-event-ns-when-no-begin-test-ns
+  (let [path (str "/tmp/phel-junit-" (php/mt_rand) ".xml")
+        rep  (t/resolve-reporter :junit-xml)
+        _    (t/set-junit-output! path)]
+    (rep {:type :begin-test-run})
+    (rep {:type :pass :state :pass :test-name "t1" :ns "orphan.ns"})
+    (rep {:type :summary :total 1 :pass 1 :failed 0 :error 0})
+    (t/set-junit-output! nil)
+    (let [xml (php/file_get_contents path)]
+      (is (php/preg_match "/<testsuite name=\"orphan.ns\"/" xml)
+          "junit reporter falls back to event :ns when no begin-test-ns was seen"))
+    (php/unlink path)))
+
+(deftest test-junit-reporter-failure-without-exception-defaults-class
+  (let [path (str "/tmp/phel-junit-" (php/mt_rand) ".xml")
+        rep  (t/resolve-reporter :junit-xml)
+        _    (t/set-junit-output! path)]
+    (rep {:type :begin-test-run})
+    (rep {:type :begin-test-ns :ns "n"})
+    (rep {:type :failed :state :failed :test-name "t" :message "x"
+          :form "(= 1 2)"
+          :location {:file "a.phel" :line 1}})
+    (rep {:type :end-test-ns :ns "n"})
+    (rep {:type :summary :total 1 :pass 0 :failed 1 :error 0})
+    (t/set-junit-output! nil)
+    (let [xml (php/file_get_contents path)]
+      (is (php/preg_match "/type=\"AssertionFailed\"/" xml)
+          "failure without :exception/:exception-symbol falls back to AssertionFailed"))
+    (php/unlink path)))
+
+(deftest test-junit-reporter-summary-totals-reflect-pass-and-failure-counts
+  (let [path (str "/tmp/phel-junit-" (php/mt_rand) ".xml")
+        rep  (t/resolve-reporter :junit-xml)
+        _    (t/set-junit-output! path)]
+    (rep {:type :begin-test-run})
+    (rep {:type :begin-test-ns :ns "n"})
+    (rep {:type :pass :state :pass :test-name "t1"})
+    (rep {:type :pass :state :pass :test-name "t2"})
+    (rep {:type :error :state :error :test-name "t3"
+          :exception-symbol "\\RuntimeException"})
+    (rep {:type :end-test-ns :ns "n"})
+    (rep {:type :summary :total 3 :pass 2 :failed 0 :error 1})
+    (t/set-junit-output! nil)
+    (let [xml (php/file_get_contents path)]
+      (is (php/preg_match "/<testsuites tests=\"3\"/" xml)
+          "aggregate test count includes all cases")
+      (is (php/preg_match "/<testsuite[^>]*tests=\"3\"/" xml)
+          "per-suite test count matches")
+      (is (php/preg_match "/<error /" xml)
+          "error cases emit <error> child elements"))
+    (php/unlink path)))
+
+(deftest test-junit-reporter-preserves-suite-order-across-multiple-ns
+  (let [path (str "/tmp/phel-junit-" (php/mt_rand) ".xml")
+        rep  (t/resolve-reporter :junit-xml)
+        _    (t/set-junit-output! path)]
+    (rep {:type :begin-test-run})
+    (rep {:type :begin-test-ns :ns "first.ns"})
+    (rep {:type :pass :state :pass :test-name "t-first"})
+    (rep {:type :end-test-ns :ns "first.ns"})
+    (rep {:type :begin-test-ns :ns "second.ns"})
+    (rep {:type :pass :state :pass :test-name "t-second"})
+    (rep {:type :end-test-ns :ns "second.ns"})
+    (rep {:type :summary :total 2 :pass 2 :failed 0 :error 0})
+    (t/set-junit-output! nil)
+    (let [xml       (php/file_get_contents path)
+          first-pos (php/strpos xml "name=\"first.ns\"")
+          second-pos (php/strpos xml "name=\"second.ns\"")]
+      (is (and (not (false? first-pos))
+               (not (false? second-pos)))
+          "both suites present in output")
+      (is (< first-pos second-pos)
+          "suites emitted in the order their namespaces arrived"))
+    (php/unlink path)))
+
+;; ---------------------------------------------------------------------------
+;; Testdox reporter — per-assertion descriptive output
+;; ---------------------------------------------------------------------------
+
+(deftest test-testdox-reporter-uses-marker-per-outcome
+  (let [rep (t/resolve-reporter :testdox)
+        out (with-output-buffer
+              (rep {:type :pass :state :pass :test-name "t1" :message "ok"})
+              (rep {:type :failed :state :failed :test-name "t2" :message "bad"})
+              (rep {:type :error :state :error :test-name "t3" :message "boom"}))]
+    (is (php/preg_match "/^✔ t1: ok$/m" out)
+        "pass marker prints with test name and message")
+    (is (php/preg_match "/^✘ t2: bad$/m" out)
+        "fail marker prints with test name and message")
+    (is (php/preg_match "/^E t3: boom$/m" out)
+        "error marker prints with test name and message")))
+
+(deftest test-testdox-reporter-emits-skipped-marker
+  (let [rep (t/resolve-reporter :testdox)
+        out (with-output-buffer
+              (rep {:type :skipped :test-name "ignored-case"}))]
+    (is (php/preg_match "/↷ ignored-case \\(skipped\\)/" out)
+        "skip marker and parenthesised tag appear for skipped tests")))
+
+(deftest test-testdox-reporter-handles-missing-message-with-default
+  (let [rep (t/resolve-reporter :testdox)
+        out (with-output-buffer
+              (rep {:type :pass :state :pass :test-name "no-msg"}))]
+    (is (php/preg_match "/no test message found/" out)
+        "falls back to descriptive placeholder when :message absent")))
+
+(deftest test-junit-reporter-preserves-testcase-order-within-a-suite
+  (let [path (str "/tmp/phel-junit-" (php/mt_rand) ".xml")
+        rep  (t/resolve-reporter :junit-xml)
+        _    (t/set-junit-output! path)]
+    (rep {:type :begin-test-run})
+    (rep {:type :begin-test-ns :ns "ordered.ns"})
+    (rep {:type :pass :state :pass :test-name "alpha"})
+    (rep {:type :pass :state :pass :test-name "beta"})
+    (rep {:type :pass :state :pass :test-name "gamma"})
+    (rep {:type :end-test-ns :ns "ordered.ns"})
+    (rep {:type :summary :total 3 :pass 3 :failed 0 :error 0})
+    (t/set-junit-output! nil)
+    (let [xml     (php/file_get_contents path)
+          a-pos   (php/strpos xml "name=\"alpha\"")
+          b-pos   (php/strpos xml "name=\"beta\"")
+          g-pos   (php/strpos xml "name=\"gamma\"")]
+      (is (< a-pos b-pos) "alpha appears before beta")
+      (is (< b-pos g-pos) "beta appears before gamma"))
+    (php/unlink path)))
+
+;; ---------------------------------------------------------------------------
+;; resolve-reporters-option — unknown reporter throws
+;; ---------------------------------------------------------------------------
+
+(deftest test-run-tests-throws-on-unknown-reporter-keyword
+  (is (thrown-with-msg? \InvalidArgumentException
+                        "Unknown reporter: :does-not-exist"
+                        (t/run-tests {:reporters [:does-not-exist]}))
+      "run-tests rejects unknown reporter keywords at configure time"))
+
+(deftest test-run-tests-throws-on-invalid-reporter-value
+  (is (thrown-with-msg? \InvalidArgumentException
+                        "Invalid reporter value: 42"
+                        (t/run-tests {:reporters [42]}))
+      "run-tests rejects non-keyword, non-string, non-fn reporter values"))
+
+(deftest test-run-tests-accepts-inline-function-reporter
+  (let [events (atom [])
+        saved  (t/get-stats)
+        prev   (t/get-reporters)]
+    (t/reset-stats)
+    (with-output-buffer
+      (t/run-tests {:reporters [(fn [e] (swap! events conj (:type e)))]}))
+    (t/set-reporters! prev)
+    (t/restore-stats saved)
+    (is (contains? (into (hash-set) (deref events)) :begin-test-run)
+        "inline reporter function received :begin-test-run")
+    (is (contains? (into (hash-set) (deref events)) :summary)
+        "inline reporter function received :summary")))

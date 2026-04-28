@@ -98,15 +98,26 @@ mkdir -p "$WORK_DIR" "$CACHE_DIR" "$OUTPUT_DIR"
 rsync -a "$REPO_ROOT/" "$WORK_DIR/" \
   --exclude='.git' \
   --exclude='.github' \
+  --exclude='.idea' \
+  --exclude='.vscode' \
+  --exclude='.claude' \
+  --exclude='.codex' \
+  --exclude='.agents' \
+  --exclude='.phpbench' \
+  --exclude='.phpunit.cache' \
+  --exclude='/.phel-cache' \
   --exclude='docs' \
   --exclude='tests' \
   --exclude='docker' \
   --exclude='data' \
   --exclude='vendor' \
   --exclude='build' \
-  --exclude='/.phel-cache' \
-  --exclude='.idea' \
-  --exclude='.vscode' \
+  --exclude='resources' \
+  --exclude='tools' \
+  --exclude='examples' \
+  --exclude='fixtures' \
+  --exclude='out' \
+  --exclude='local' \
   --exclude='node_modules' \
   --delete
 
@@ -137,6 +148,17 @@ if [[ $VENDOR_CACHE_VALID -eq 0 ]]; then
     rm -rf "$VENDOR_CACHE_DIR"
     cp -a ./vendor "$VENDOR_CACHE_DIR"
     cp composer.lock "$LOCK_FILE_CACHE"
+else
+    # Vendor cache is keyed on composer.lock only, but the classmap-authoritative
+    # autoloader indexes project sources too. Regenerate the autoloader so new or
+    # renamed classes under src/ are picked up even when dependencies are cached.
+    if ! composer dump-autoload \
+        --no-dev \
+        --no-interaction \
+        --classmap-authoritative \
+        --no-scripts; then
+        error "Composer dump-autoload failed"
+    fi
 fi
 
 # Validate vendor directory
@@ -148,6 +170,13 @@ fi
 # Build PHAR Archive
 # ============================================================================
 export OFFICIAL_RELEASE SCRIPT_DIR
+
+# Stdlib compile cache: hash src/phel/ contents, reuse prior 'phel build'
+# output when the hash matches. Cache lives outside workdir so it survives
+# the workdir cleanup between runs. Override with STDLIB_CACHE_DIR.
+STDLIB_CACHE_DIR="${STDLIB_CACHE_DIR:-$CACHE_DIR/stdlib}"
+mkdir -p "$STDLIB_CACHE_DIR"
+export STDLIB_CACHE_DIR
 
 if ! php -d phar.readonly=0 "$BUILD_SCRIPT" "$WORK_DIR"; then
     error "PHAR build failed"

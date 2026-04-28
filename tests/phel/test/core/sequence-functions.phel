@@ -169,12 +169,14 @@
   (is (= ["a" "b" "c"] (take-last 4 ["a" "b" "c"])) "take-last four elements")
   (is (= [] (take-last 0 ["a" "b" "c"])) "take-last zero elements")
   (is (= [] (take-last -1 ["a" "b" "c"])) "take-last with negative number")
+  (is (nil? (take-last 2 nil)) "take-last on nil")
   (is (= ["b" "c"] (take-last 2 ["a" "b" "c"])) "take-last on vector")
   (is (= [] (take-last 1 [])) "take-last on empty vector")
   (is (= [] (take-last -1 ["a" "b" "c"])) "take-last with negative number on vector")
   (is (= (php/array "b" "c") (take-last 2 (php/array "a" "b" "c"))) "take-last on php array")
   (is (= (php/array) (take-last 1 (php/array))) "take-last on empty php array")
-  (is (= [] (take-last -1 (php/array "a" "b" "c"))) "take-last with negative number on php array"))
+  (is (= [] (take-last -1 (php/array "a" "b" "c"))) "take-last with negative number on php array")
+  (is (= [8 9] (take-last 2 (range 0 10))) "take-last on finite range"))
 
 (deftest test-take-while
   (is (= [-1 -2 -3] (take-while neg? [-1 -2 -3 1 2 3 4 -4 -5 -6])) "take-while: first three element")
@@ -208,6 +210,11 @@
   (is (nil? (find neg? [1 2 3 2 3])) "find: nothing to find")
   (is (nil? (find neg? [])) "find on empty array"))
 
+(deftest test-find-map-entry
+  (is (= [:a 1] (find {:a 1 :b 2 :c 3} :a)) "find returns map entry for existing key")
+  (is (= [:a nil] (find {:a nil} :a)) "find returns map entry when value is nil")
+  (is (nil? (find {:a 1 :b 2 :c 3} :d)) "find returns nil for missing key"))
+
 (deftest test-find-empty-element
   (is (nil? (find #(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
 
@@ -239,6 +246,7 @@
   (is (true? (reversible? [])) "empty vector is reversible")
   (is (true? (reversible? [1 2 3])) "vector is reversible")
   (is (true? (reversible? (sorted-map :a 1 :b 2))) "sorted-map is reversible")
+  (is (true? (reversible? (sorted-set :a))) "sorted-set is reversible")
   (is (false? (reversible? '(1 2 3))) "list is not reversible")
   (is (false? (reversible? {:a 1})) "hash-map is not reversible")
   (is (false? (reversible? "abc")) "string is not reversible")
@@ -250,6 +258,8 @@
   (is (= [[:c 3] [:b 2] [:a 1]] (rseq (sorted-map :a 1 :b 2 :c 3)))
       "rseq: sorted-map returns reversed entries")
   (is (nil? (rseq (sorted-map))) "rseq: empty sorted-map returns nil")
+  (is (= [3 2 1] (rseq (sorted-set 1 2 3))) "rseq: sorted-set returns reversed values")
+  (is (nil? (rseq (sorted-set))) "rseq: empty sorted-set returns nil")
   (is (thrown? \InvalidArgumentException (rseq '(1 2 3))) "rseq: throws on list")
   (is (thrown? \InvalidArgumentException (rseq {:a 1})) "rseq: throws on hash-map"))
 
@@ -328,13 +338,31 @@
   (is (= [0 3 1 2 2 1] (kvs [3 2 1])) "kvs of vector"))
 
 (deftest test-to-php-array
-  (is (= (php/array 3 2 1) (to-php-array [3 2 1])) "to-php-array"))
+  (is (= (php/array 3 2 1) (to-php-array [3 2 1])) "to-php-array")
+  (is (= (php/array "a" "b" "c") (to-php-array "abc")) "to-php-array string characters"))
 
 (deftest test-sort
+  (is (= [] (sort nil)) "sort nil")
   (is (= [1 2 3] (sort [3 2 1])) "sort")
+  (is (= [1 2 3] (sort '(3 2 1))) "sort list")
+  (is (= [1 2 3] (sort #{3 2 1})) "sort set")
+  (is (= [[:a 1] [:b 2] [:c 3]] (sort {:c 3 :b 2 :a 1})) "sort map entries")
+  (is (= [[1] [2] [3]] (sort [[3] [2] [1]])) "sort nested vectors")
+  (is (= ["c" "e" "j" "l" "o" "r" "u"] (sort "clojure")) "sort string characters")
+  (is (= [nil 2 3 4] (sort [3 nil 2 4])) "sort nil before values")
   (is (= [1 2 2 3 3] (sort [3 2 1 2 3] <=>)) "sort ascending order")
   (is (= [3 3 2 2 1] (sort [3 2 1 2 3] >=<)) "sort descending order")
+  (is (= [4 3 2 1] (sort #(- (compare %1 %2)) [1 2 3 4])) "sort comparator before collection")
+  (is (= [4 3 2 1] (sort [1 2 3 4] #(- (compare %1 %2)))) "sort with custom comparator")
+  (is (= [[1 :a] [1 :e] [2 :b] [2 :d] [3 :c]]
+         (sort [[1 :a] [2 :b] [3 :c] [2 :d] [1 :e]]
+               (fn [[a _] [b _]] (compare a b)))) "sort is stable")
+  (is (thrown? \TypeError (sort 1)) "sort non-seqable throws")
+  (is (thrown? \InvalidArgumentException (sort [1 []])) "sort incomparable values throws")
   (is (= [1 2 3] (sort-by identity [3 2 1])) "sort-by identity")
+  (is (= [{:a 1 :b 10} {:a 2 :b 9} {:a 3 :b 8} {:a 4 :b 7}]
+         (sort-by :a compare [{:a 2 :b 9} {:a 1 :b 10} {:a 4 :b 7} {:a 3 :b 8}]))
+      "sort-by comparator before collection")
   (is (= [3 2 1] (sort-by - [3 2 1])) "sort-by reversed"))
 
 (deftest test-group-by
@@ -347,10 +375,29 @@
 (deftest test-zipmap
   (is (= {:a 1 :b 2} (zipmap [:a :b :c] [1 2])) "zipmap drops extra keys")
   (is (= {:a 1 :b 2} (zipmap [:a :b] [1 2 3])) "zipmap drops extra values")
-  (is (= {:a 1 :b 2} (zipmap [:a :b] [1 2])) "zipmap equal length"))
+  (is (= {:a 1 :b 2} (zipmap [:a :b] [1 2])) "zipmap equal length")
+  (is (= {[:a 1] "a" [:b 2] "b"} (apply zipmap [(sorted-map :a 1 :b 2) ["a" "b"]]))
+      "zipmap supports sorted-map keys"))
 
 (deftest test-merge
-  (is (= {:a -1 :b 2 :c 3 :d 4} (merge {:a 1 :b 2} {:a -1 :c 3} {:d 4})) "merge"))
+  (is (= {:a -1 :b 2 :c 3 :d 4} (merge {:a 1 :b 2} {:a -1 :c 3} {:d 4})) "merge")
+  (is (nil? (merge)) "merge without arguments returns nil")
+  (is (nil? (merge nil)) "merge with nil returns nil")
+  (is (nil? (merge nil nil)) "merge with nil arguments returns nil")
+  (is (nil? (merge nil nil nil)) "merge with multiple nil arguments returns nil")
+  (is (= {:a 1} (merge nil {:a 1})) "merge treats nil as an empty map")
+  (is (= {:a 1} (merge {:a 1} nil)) "merge ignores nil after a map")
+  (is (= {:a "a" :b "b"} (merge {:a nil} (first {:a "a"}) {:b "b"})) "merge accepts map entries")
+  (is (= {:foo "foo"} (merge {} [:foo "foo"])) "merge accepts vector map entries")
+  (is (= {'x 1} (merge {} ['x 1])) "merge accepts symbol vector map entries")
+  (is (= {'x 10 'y 10} (merge {'x 10} ['y 10])) "merge preserves existing entries with vector map entries")
+  (is (= {:foo "foo" :bar "bar"} (merge {} [:foo "foo"] [:bar "bar"])) "merge accepts multiple vector map entries")
+  (is (= {'x 10 'y 10 'z 10} (merge {'x 10} ['y 10] ['z 10])) "merge accepts multiple symbol vector map entries")
+  (is (= '(1 1 2 3) (merge '(1 2 3) 1)) "merge accepts a list and scalar value")
+  (is (= [1 2 3 4 5] (merge [1 2] 3 4 5)) "merge accepts a vector and scalar values")
+  (is (= [nil {} 1 {:a "c"}] (merge [] nil {} 1 {:a "c"})) "merge accepts mixed non-map values")
+  (is (= [:foo] (merge [:foo])) "merge with one vector argument returns it unchanged")
+  (is (= :foo (merge :foo)) "merge with one argument returns it unchanged"))
 
 (deftest test-merge-with-zero-args
   (is (= {} (merge-with identity))))

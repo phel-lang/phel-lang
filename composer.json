@@ -22,11 +22,11 @@
     ],
     "homepage": "https://phel-lang.org/",
     "require": {
-        "php": ">=8.3",
+        "php": ">=8.4",
         "amphp/amp": "^3.1",
-        "gacela-project/gacela": "^1.12",
-        "phpunit/php-timer": "^6.0|^7.0|^8.0",
-        "symfony/console": "^6.0|^7.0|^8.0"
+        "gacela-project/gacela": "^1.14",
+        "symfony/console": "^6.0|^7.0|^8.0",
+        "symfony/routing": "^7.3"
     },
     "require-dev": {
         "ext-readline": "*",
@@ -62,7 +62,7 @@
             "ergebnis/composer-normalize": true
         },
         "platform": {
-            "php": "8.3.16"
+            "php": "8.4.6"
         },
         "sort-packages": true
     },
@@ -93,13 +93,16 @@
         ],
         "test-compiler": "./vendor/bin/phpunit --testsuite=unit,integration --log-junit=data/log-junit.xml",
         "test-compiler:coverage": "XDEBUG_MODE=coverage ./vendor/bin/phpunit --testsuite=unit,integration --coverage-html=data/coverage-html --coverage-xml=data/coverage-xml --log-junit=data/coverage-xml/junit.xml",
+        "test-agents": "./build/validate-agents.sh",
         "test-core": "php -d memory_limit=256M ./bin/phel test",
         "test-quality": [
             "@csrun",
             "@psalm",
             "@phpstan",
-            "@rector"
+            "@rector",
+            "@validate-config"
         ],
+        "validate-config": "./bin/phel validate:config",
         "create-pr": "./tools/create-pr"
     }
 }

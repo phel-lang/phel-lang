@@ -10,13 +10,15 @@ use Phel\Build\BuildFacade;
 use Phel\Build\Domain\Compile\BuildOptions;
 use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
-use SebastianBergmann\Timer\ResourceUsageFormatter;
+use Phel\Shared\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
+use function array_filter;
+use function count;
 use function sprintf;
 
 #[ServiceMap(method: 'getFacade', className: BuildFacade::class)]
@@ -50,7 +52,7 @@ final class BuildCommand extends Command
             $this->getFacade()->writeStackTrace($output, $e);
         }
 
-        $output->writeln((new ResourceUsageFormatter())->resourceUsageSinceStartOfRequest());
+        $output->writeln(new ResourceUsageFormatter()->resourceUsageSinceStartOfRequest());
 
         return self::SUCCESS;
     }
@@ -68,16 +70,52 @@ final class BuildCommand extends Command
      */
     private function printOutput(OutputInterface $output, array $compiledProject): void
     {
-        foreach ($compiledProject as $i => $compiledFile) {
+        $fresh = array_filter($compiledProject, static fn(CompiledFile $f): bool => !$f->isCached());
+        $cachedCount = count($compiledProject) - count($fresh);
+
+        $index = 0;
+        foreach ($fresh as $compiledFile) {
             $output->writeln(
                 sprintf(
                     "#%d | Namespace: %s\nSource: %s\nTarget: %s\n",
-                    $i,
+                    $index,
                     $compiledFile->getNamespace(),
                     $compiledFile->getSourceFile(),
                     $compiledFile->getTargetFile(),
                 ),
             );
+            ++$index;
         }
+
+        $this->printSummary($output, count($fresh), $cachedCount);
+    }
+
+    private function printSummary(OutputInterface $output, int $freshCount, int $cachedCount): void
+    {
+        $total = $freshCount + $cachedCount;
+        if ($total === 0) {
+            $output->writeln('No Phel namespaces found to build.');
+            return;
+        }
+
+        $outputDir = $this->getFacade()->getOutputDirectory();
+
+        if ($freshCount === 0) {
+            $output->writeln(sprintf(
+                "No changes detected. %d file%s reused from cache.\nCompiled output: %s",
+                $cachedCount,
+                $cachedCount === 1 ? '' : 's',
+                $outputDir,
+            ));
+            return;
+        }
+
+        $output->writeln(sprintf(
+            "Compiled %d file%s (%d reused from cache).\nOutput directory: %s",
+            $freshCount,
+            $freshCount === 1 ? '' : 's',
+            $cachedCount,
+            $outputDir,
+        ));
     }
 }

@@ -1,0 +1,403 @@
+(in-ns phel.core)
+
+(use InvalidArgumentException)
+(use Phel)
+(use Phel\Lang\Seq)
+(use Phel\Printer\Printer)
+
+;; I/O: stdout/formatting (`print`, `println`, `pr`, `prn`, `print-str`,
+;; `format`, `printf`, `with-output-buffer`); file helpers (`slurp`, `spit`,
+;; `line-seq`, `file-seq`, `read-file-lazy`, `csv-seq`); and regex helpers
+;; (`re-pattern`, `re-seq`, `re-find`, `re-matches`). Everything here touches
+;; the outside world — pure code belongs elsewhere.
+
+;; ---------------
+;; Print operation
+;; ---------------
+
+(defmacro with-output-buffer
+  "Everything that is printed inside the body will be stored in a buffer.
+   The result of the buffer is returned."
+  [& body]
+  (let [res (gensym)]
+    `(do
+       (php/ob_start)
+       ~@body
+       (let [~res (php/ob_get_contents)]
+         (php/ob_end_clean)
+         ~res))))
+
+(defn print-str
+  "Same as print. But instead of writing it to an output stream, the resulting string is returned."
+  [& xs]
+  (let [printer (php/:: Printer (nonReadable))
+        pp      #(php/-> printer (print %))]
+    (case (count xs)
+      0 ""
+      1 (pp (first xs))
+      (loop [res (pp (first xs))
+             seq (next xs)]
+        (if seq
+          (recur (str res " " (pp (first seq))) (next seq))
+          res)))))
+
+(defn print
+  "Prints the given values to the default output stream. Returns nil."
+  [& xs]
+  (php/print (apply print-str xs))
+  nil)
+
+(defn println
+  "Same as print followed by a newline."
+  [& xs]
+  (apply print xs)
+  (php/print "\n")
+  nil)
+
+(defn format
+  "Returns a formatted string. See PHP's [sprintf](https://www.php.net/manual/en/function.sprintf.php) for more information."
+  [fmt & xs]
+  (apply php/sprintf fmt xs))
+
+(defn printf
+  "Output a formatted string. See PHP's [printf](https://www.php.net/manual/en/function.printf.php) for more information."
+  [fmt & xs]
+  (apply php/printf fmt xs)
+  nil)
+
+;; ---------------
+;; File operations
+;; ---------------
+
+(defn- file-get-contents-silenced
+  "Wrapper around file_get_contents that suppresses PHP warnings.
+  We handle errors by checking the return value."
+  [path use-include-path context offset length]
+  (let [old-error-level (php/error_reporting 0)
+        content         (php/file_get_contents path use-include-path context offset length)]
+    (php/error_reporting old-error-level)
+    content))
+
+(defn slurp
+  "Reads entire file or URL into a string."
+  {:example "(slurp \"file.txt\") ; => \"file contents\""}
+  [path & [opts]]
+  (let [is-url? (php/preg_match "/^(https?|ftp):\/\//i" path)]
+    ;; Validate for non-URLs
+    (when-not is-url?
+      ;; Check if path is a directory
+      (when (php/is_dir path)
+        (throw (php/new \InvalidArgumentException
+                        (str "Cannot read directory: " path))))
+      ;; Check if file exists
+      (when-not (php/is_file path)
+        (throw (php/new \InvalidArgumentException
+                        (str "File not found: " path)))))
+    ;; Read content
+    (let [opts             (or opts {})
+          use-include-path (or (:use-include-path opts) false)
+          context          (or (:context opts) nil)
+          offset           (or (:offset opts) 0)
+          length           (or (:length opts) nil)
+          content          (file-get-contents-silenced path use-include-path context offset length)]
+      ;; Check if file_get_contents failed
+      (when (= content false)
+        (throw (php/new \InvalidArgumentException
+                        (str "Failed to read from: " path))))
+      content)))
+
+(defn spit
+  "Writes data to file, returning number of bytest that were written or `nil`
+  on failure. Accepts `opts` map for overriding default PHP file_put_contents
+  arguments, as example to append to file use `{:flags php/FILE_APPEND}`.
+
+  See PHP's [file_put_contents](https://www.php.net/manual/en/function.file-put-contents.php) for more information."
+  [filename data & [opts]]
+  (when (php/is_dir filename)
+    (throw (php/new \InvalidArgumentException
+                    "Argument filename should be a valid path to a file, directory given.")))
+  (let [opts    (or opts {})
+        flags   (or (:flags opts) 0)
+        context (or (:context opts) nil)
+        result  (php/file_put_contents filename data flags context)]
+    (when (int? result) result)))
+
+(defn line-seq
+  "Returns a lazy sequence of lines from a file."
+  {:example "(take 10 (line-seq \"large-file.txt\")) ; => [\"line1\" \"line2\" ...]"}
+  [filename]
+  (let [result (lazy-seq-from-generator
+                (php/call_user_func_array
+                 (php/array "\\Phel\\Lang\\Seq" "fileLines")
+                 (php/array filename)))]
+    (if (php/=== nil result)
+      '()
+      result)))
+
+(defn file-seq
+  "Returns a lazy sequence of all files and directories in a directory tree."
+  {:example "(filter #(php/str_ends_with % \".phel\") (file-seq \"src/\")) ; => [\"src/file1.phel\" \"src/file2.phel\" ...]"}
+  [path]
+  (let [result (lazy-seq-from-generator
+                (php/call_user_func_array
+                 (php/array "\\Phel\\Lang\\Seq" "fileSeq")
+                 (php/array path)))]
+    (if (php/=== nil result)
+      '()
+      result)))
+
+(defn read-file-lazy
+  "Returns a lazy sequence of byte chunks from a file."
+  {:example "(take 5 (read-file-lazy \"large-file.bin\" 1024)) ; => [\"chunk1\" \"chunk2\" ...]"}
+  ([filename]
+   (read-file-lazy filename 8192))
+  ([filename chunk-size]
+   (let [result (lazy-seq-from-generator
+                 (php/call_user_func_array
+                  (php/array "\\Phel\\Lang\\Seq" "readFileChunks")
+                  (php/array filename chunk-size)))]
+     (if (php/=== nil result)
+       '()
+       result))))
+
+(defn csv-seq
+  "Returns a lazy sequence of rows from a CSV file."
+  {:example "(take 10 (csv-seq \"data.csv\")) ; => [[\"col1\" \"col2\"] [\"val1\" \"val2\"] ...]"}
+  ([filename]
+   (csv-seq filename {}))
+  ([filename options]
+   (let [separator (get options :separator ",")
+         enclosure (get options :enclosure "\"")
+         escape    (get options :escape "\\")
+         result    (lazy-seq-from-generator
+                    (php/call_user_func_array
+                     (php/array "\\Phel\\Lang\\Seq" "csvLines")
+                     (php/array filename separator enclosure escape)))]
+     (if (php/=== nil result)
+       '()
+       result))))
+
+;; ----------------
+;; Threading macros
+;; ----------------
+
+(defmacro ->
+  "Threads the expr through the forms. Inserts `x` as the second item
+  in the first form, making a list of it if it is not a list already.
+  If there are more forms, insert the first form as the second item in
+  the second form, etc."
+  [x & forms]
+  (loop [x     x
+         forms (if (empty? forms) nil forms)]
+    (if forms
+      (let [form     (first forms)
+            threaded (if (list? form)
+                       (copy-meta form `(~(first form) ~x ~@(next form)))
+                       (copy-meta form (list form x)))]
+        (recur threaded (next forms)))
+      x)))
+
+(defmacro ->>
+  "Threads the expr through the forms. Inserts `x` as the
+  last item in the first form, making a list of it if it is not a
+  list already. If there are more forms, insert the first form as the
+  last item in the second form, etc."
+  [x & forms]
+  (loop [x     x
+         forms (if (empty? forms) nil forms)]
+    (if forms
+      (let [form     (first forms)
+            threaded (if (list? form)
+                       (copy-meta form `(~(first form) ~@(next form) ~x))
+                       (copy-meta form (list form x)))]
+        (recur threaded (next forms)))
+      x)))
+
+(defmacro some->
+  "Threads `x` through the forms like `->` but stops when a form returns `nil`."
+  [x & forms]
+  (loop [x     x
+         forms (if (empty? forms) nil forms)]
+    (if forms
+      (let [form     (first forms)
+            g        (gensym)
+            call     (if (list? form)
+                       (let [rest (next form)
+                             args (if rest
+                                    (cons g rest)
+                                    [g])]
+                         (copy-meta form (apply list (cons (first form) args))))
+                       (copy-meta form (list form g)))
+            threaded (list 'let
+                           [g x]
+                           (list 'if
+                                 (list 'php/=== nil g)
+                                 nil
+                                 call))]
+        (recur threaded (next forms)))
+      x)))
+
+(defmacro some->>
+  "Threads `x` through the forms like `->>` but stops when a form returns `nil`."
+  [x & forms]
+  (loop [x     x
+         forms (if (empty? forms) nil forms)]
+    (if forms
+      (let [form     (first forms)
+            g        (gensym)
+            call     (if (list? form)
+                       (let [rest (next form)
+                             args (if rest
+                                    (concat rest [g])
+                                    [g])]
+                         (copy-meta form (apply list (cons (first form) args))))
+                       (copy-meta form (list form g)))
+            threaded (list 'let
+                           [g x]
+                           (list 'if
+                                 (list 'php/=== nil g)
+                                 nil
+                                 call))]
+        (recur threaded (next forms)))
+      x)))
+
+(defmacro as->
+  "Binds `name` to `expr`, evaluates the first form in the lexical context
+  of that binding, then binds name to that result, repeating for each
+  successive form, returning the result of the last form."
+  [expr name & forms]
+  (let [x (gensym)]
+    `(let [~name ~expr
+           ~@(interleave (repeat (count forms) name) forms)]
+       ~name)))
+
+(defmacro doto
+  "Evaluates x then calls all of the methods and functions with the
+  value of x supplied at the front of the given arguments. The forms
+  are evaluated in order. Returns x."
+  [x & forms]
+  (let [gx (gensym)]
+    `(let [~gx ~x]
+       ~@(map (fn [f]
+                (if (list? f)
+                  (copy-meta f `(~(first f) ~gx ~@(next f)))
+                  (copy-meta f `(~f ~gx))))
+              forms)
+       ~gx)))
+
+(defmacro cond->
+  "Takes an expression and a set of test/form pairs. Threads `expr` (via `->`)
+  through each form for which the corresponding test expression is true.
+  Note that, unlike `cond` branching, `cond->` threading does not short-circuit
+  after the first true test expression."
+  {:example "(cond-> 1 true inc false (* 42) true (* 3)) ; => 6"}
+  [expr & clauses]
+  (let [g     (gensym)
+        steps (map (fn [pair]
+                     (let [test (first pair)
+                           step (second pair)]
+                       `(if ~test (-> ~g ~step) ~g)))
+                   (partition 2 clauses))]
+    `(let [~g ~expr
+           ~@(interleave (repeat (count steps) g) steps)]
+       ~g)))
+
+(defmacro cond->>
+  "Takes an expression and a set of test/form pairs. Threads `expr` (via `->>`)
+  through each form for which the corresponding test expression is true.
+  Note that, unlike `cond` branching, `cond->>` threading does not short-circuit
+  after the first true test expression."
+  {:example "(cond->> [1 2 3] true (map inc) false (filter odd?)) ; => [2 3 4]"}
+  [expr & clauses]
+  (let [g     (gensym)
+        steps (map (fn [pair]
+                     (let [test (first pair)
+                           step (second pair)]
+                       `(if ~test (->> ~g ~step) ~g)))
+                   (partition 2 clauses))]
+    `(let [~g ~expr
+           ~@(interleave (repeat (count steps) g) steps)]
+       ~g)))
+
+;; ---------------
+;; Regex functions
+;; ---------------
+
+(defn re-pattern
+  "Returns a PCRE pattern string from `s`. If `s` is already delimited,
+  returns it as-is. Otherwise wraps in `/` delimiters."
+  {:example "(re-pattern \"\\\\d+\") ; => \"/\\\\d+/\""
+   :see-also ["re-find" "re-matches" "re-seq"]}
+  [s]
+  (let [len (php/strlen s)]
+    (if (and (php/>= len 2)
+             (= (php/substr s 0 1) (php/substr s -1))
+             (not (php/ctype_alnum (php/substr s 0 1))))
+      s
+      (str "/" s "/"))))
+
+(defn re-seq
+  "Returns a sequence of successive matches of pattern in string."
+  {:example "(re-seq #\"\\d+\" \"a1b2c3\") ; => [\"1\" \"2\" \"3\"]"
+   :see-also ["re-find" "re-matches"]}
+  [re s]
+  (let [matches      (php/array)
+        match-result (php/preg_match_all re s matches)
+        matches      (php->phel matches)]
+    (if (= (count matches) 1)
+      (first matches)
+      (doall (apply map vector matches)))))
+
+(defn re-find
+  "Returns the first match of pattern in string, or nil if no match.
+  If the pattern has groups, returns a vector of [full-match group1 group2 ...]."
+  {:example "(re-find #\"\\d+\" \"abc123def\") ; => \"123\""
+   :see-also ["re-seq" "re-matches"]}
+  [re s]
+  (let [matches (php/array)
+        result  (php/preg_match re s matches)]
+    (when (= 1 result)
+      (let [matches (php->phel matches)]
+        (if (= 1 (count matches))
+          (first matches)
+          (into [] matches))))))
+
+(defn re-matches
+  "Returns the match, if any, of string to pattern. If the pattern has groups,
+  returns a vector of [full-match group1 group2 ...]. Returns nil if no match.
+  Unlike re-find, the entire string must match."
+  {:example "(re-matches #\"(\\d+)-(\\d+)\" \"12-34\") ; => [\"12-34\" \"12\" \"34\"]"
+   :see-also ["re-find" "re-seq"]}
+  [re s]
+  (let [result (re-find re s)]
+    (when (not (nil? result))
+      (let [full-match (if (string? result) result (first result))]
+        (when (= full-match s)
+          result)))))
+
+;; -------
+;; Binding
+;; -------
+
+(defmacro binding
+  "Temporarily rebinds vars while executing `body`.
+
+  Vars tagged `^:dynamic` use fiber-local storage: concurrent fibers
+  observe independent values and child futures (`future`, `async`,
+  `future-fiber`) inherit the bindings active at their creation.
+
+  Non-dynamic vars fall back to `with-redefs`-style registry
+  mutation restored on exit — convenient for tests but shared
+  across fibers."
+  [bindings & body]
+  (let [names    (take-nth 2 bindings)
+        vals     (take-nth 2 (drop 1 bindings))
+        set-vars (map (fn [n v] (list 'set-var n v)) names vals)]
+    `(do
+       (php/:: \Phel (openBindingFrame))
+       (try
+         (do
+           ~@set-vars
+           (php/:: \Phel (commitAndRunBindingFrame (fn [] ~@body))))
+         (finally
+           (php/:: \Phel (abortBindingFrameIfOpen)))))))

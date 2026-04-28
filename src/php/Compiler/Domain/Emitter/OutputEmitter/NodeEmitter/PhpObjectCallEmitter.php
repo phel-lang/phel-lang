@@ -37,7 +37,7 @@ final class PhpObjectCallEmitter implements NodeEmitterInterface
 
         if ($node->isStatic() && $targetExpr instanceof PhpClassNameNode) {
             $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
-            $this->outputEmitter->emitNode($targetExpr);
+            $this->outputEmitter->emitStr($targetExpr->getAbsolutePhpName(), $targetExpr->getName()->getStartLocation());
             $this->outputEmitter->emitStr($fnCode, $node->getStartSourceLocation());
         } else {
             $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());

@@ -1,0 +1,29 @@
+(in-ns phel.core)
+
+;; Core `future`: starts `body` asynchronously and returns a
+;; `PhelFuture`. Kept in core so it mirrors Clojure, where `future`
+;; is available without an explicit require. The fiber-backed
+;; `future-fiber`, `future-call`, `promise`, and the rest of the
+;; Clojure-parity async surface live alongside in `core/async.phel`.
+
+(defmacro future
+  "Starts evaluating `body` asynchronously and returns a `PhelFuture`
+  that can be `deref`ed (blocks the current fiber until the value is
+  available) or checked with `realized?`.
+
+  Supports the 3-arg `(deref f timeout-ms timeout-val)` form for
+  time-bounded blocking, as well as `future-cancel`, `future-cancelled?`
+  and `future-done?` for lifecycle management.
+
+  Must be called from inside a fiber context (e.g. the AMPHP event
+  loop or an enclosing `async` block), because `deref` resolves via
+  AMPHP's fiber-based `await`."
+  {:example "(let [f (future (expensive-computation))] @f)"
+   :see-also ["realized?" "deref"]}
+  [& body]
+  `(let [frame# (php/:: \Phel (snapshotDynamicBindings))]
+     (php/new \Phel\Lang\PhelFuture
+              (php/amp\async
+                (fn []
+                  (php/:: \Phel (withDynamicBindings frame# (fn [] ~@body)))))
+              (php/new \Amp\DeferredCancellation))))

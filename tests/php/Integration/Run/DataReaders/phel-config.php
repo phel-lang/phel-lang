@@ -1,0 +1,18 @@
+<?php
+
+declare(strict_types=1);
+
+return [
+    'src-dirs' => [
+        __DIR__ . '/../../../../src/phel/',
+        __DIR__ . '/Fixtures',
+    ],
+    'test-dirs' => [],
+    'vendor-dir' => '',
+
+    'export' => [
+        'directories' => [],
+        'namespace-prefix' => '',
+        'target-directory' => '',
+    ],
+];

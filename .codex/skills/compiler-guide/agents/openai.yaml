@@ -1,0 +1,7 @@
+interface:
+  display_name: "Compiler Guide"
+  short_description: "Reference Phel compiler internals."
+  default_prompt: "Use $compiler-guide while changing compiler behavior."
+
+policy:
+  allow_implicit_invocation: true

@@ -1,5 +1,0 @@
-(ns loadinns\main)
-
-(load "./util")
-
-(def main-loaded true)

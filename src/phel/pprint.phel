@@ -1,6 +1,6 @@
-(ns phel\pprint
-  (:require phel\core)
-  (:use Phel\Printer\Printer))
+(ns phel.pprint
+  (:require phel.core)
+  (:use Phel.Printer.Printer))
 
 (def- *default-width* 72)
 
@@ -12,18 +12,18 @@
 (defn- pp-str
   "Pretty-prints `form` to a string with the given indent level and max width."
   [form indent width]
-  (let [t (type form)
+  (let [t         (type form)
         available (- width indent)
-        flat (print-value form)]
+        flat      (print-value form)]
     (cond
       (= t :vector)
       (if (<= (count flat) available)
         flat
-        (let [prefix "["
-              suffix "]"
+        (let [prefix       "["
+              suffix       "]"
               inner-indent (+ indent 1)
-              pad (php/str_repeat " " inner-indent)
-              parts (for [x :in form] (pp-str x inner-indent width))]
+              pad          (php/str_repeat " " inner-indent)
+              parts        (for [x :in form] (pp-str x inner-indent width))]
           (str prefix
                (php/implode (str "\n" pad) (apply php-indexed-array parts))
                suffix)))
@@ -31,11 +31,11 @@
       (= t :list)
       (if (<= (count flat) available)
         flat
-        (let [prefix "("
-              suffix ")"
+        (let [prefix       "("
+              suffix       ")"
               inner-indent (+ indent 1)
-              pad (php/str_repeat " " inner-indent)
-              parts (for [x :in form] (pp-str x inner-indent width))]
+              pad          (php/str_repeat " " inner-indent)
+              parts        (for [x :in form] (pp-str x inner-indent width))]
           (str prefix
                (php/implode (str "\n" pad) (apply php-indexed-array parts))
                suffix)))
@@ -43,24 +43,24 @@
       (= t :hash-map)
       (if (<= (count flat) available)
         flat
-        (let [prefix "{"
-              suffix "}"
+        (let [prefix       "{"
+              suffix       "}"
               inner-indent (+ indent 1)
-              pad (php/str_repeat " " inner-indent)
-              pairs (for [[k v] :pairs form]
-                      (let [kstr (print-value k)]
-                        (str kstr " " (pp-str v (+ inner-indent (count kstr) 1) width))))
-              joined (php/implode (str "\n" pad) (apply php-indexed-array pairs))]
+              pad          (php/str_repeat " " inner-indent)
+              pairs        (for [[k v] :pairs form]
+                             (let [kstr (print-value k)]
+                               (str kstr " " (pp-str v (+ inner-indent (count kstr) 1) width))))
+              joined       (php/implode (str "\n" pad) (apply php-indexed-array pairs))]
           (str prefix joined suffix)))
 
       (= t :set)
       (if (<= (count flat) available)
         flat
-        (let [prefix "#{"
-              suffix "}"
+        (let [prefix       "#{"
+              suffix       "}"
               inner-indent (+ indent 2)
-              pad (php/str_repeat " " inner-indent)
-              parts (for [x :in form] (pp-str x inner-indent width))]
+              pad          (php/str_repeat " " inner-indent)
+              parts        (for [x :in form] (pp-str x inner-indent width))]
           (str prefix
                (php/implode (str "\n" pad) (apply php-indexed-array parts))
                suffix)))
@@ -68,14 +68,14 @@
       (= t :struct)
       (if (<= (count flat) available)
         flat
-        (let [prefix "{"
-              suffix "}"
+        (let [prefix       "{"
+              suffix       "}"
               inner-indent (+ indent 1)
-              pad (php/str_repeat " " inner-indent)
-              pairs (for [[k v] :pairs form]
-                      (let [kstr (print-value k)]
-                        (str kstr " " (pp-str v (+ inner-indent (count kstr) 1) width))))
-              joined (php/implode (str "\n" pad) (apply php-indexed-array pairs))]
+              pad          (php/str_repeat " " inner-indent)
+              pairs        (for [[k v] :pairs form]
+                             (let [kstr (print-value k)]
+                               (str kstr " " (pp-str v (+ inner-indent (count kstr) 1) width))))
+              joined       (php/implode (str "\n" pad) (apply php-indexed-array pairs))]
           (str prefix joined suffix)))
 
       flat)))

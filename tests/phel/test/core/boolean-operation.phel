@@ -1,6 +1,6 @@
 (ns phel-test\test\core\boolean-operation
-  (:require phel\test :refer [deftest is])
-  (:require phel\str :as s))
+  (:require phel\test :refer [deftest is thrown?])
+  (:require phel\string :as s))
 
 (deftest test-or
   (is (nil? (or)) "or zero args")
@@ -54,6 +54,23 @@
   (is (true? (= [1 [:b]] [1 [:b]])) "nested vectors are equal")
   (is (false? (= [:a ["1"]] [:a [1]])) "nested vectors with different types are not equal")
   (is (false? (= [1] [1 2])) "vectors with different size are not equals"))
+
+; Regression tests for https://github.com/phel-lang/phel-lang/issues/1546.
+; Sequential collections with the same elements must compare equal regardless
+; of argument order or concrete type (list/vector/lazy-seq).
+(deftest test-=-list-vector
+  (is (true? (= '(1 2) [1 2])) "list = vector")
+  (is (true? (= [1 2] '(1 2))) "vector = list")
+  (is (true? (= '() [])) "empty list = empty vector")
+  (is (true? (= [] '())) "empty vector = empty list")
+  (is (true? (= '(0 1 2 3) (take 4 (range)))) "list = finite prefix of infinite range")
+  (is (true? (= (take 4 (range)) '(0 1 2 3))) "finite prefix of infinite range = list")
+  (is (false? (= '(1 2 3) [1 2])) "lists and vectors of different lengths are not equal")
+  (is (false? (= '(1 2) {1 2})) "list is not equal to a map")
+  (is (false? (= '(1 2) (hash-set 1 2))) "list is not equal to a set")
+  (let [a '(1 2) b [1 2]]
+    (is (true? (= a b)) "def a = def b (list vs vector)")
+    (is (true? (= b a)) "def b = def a (vector vs list)")))
 
 (deftest test-=-set
   (is (true? (= (hash-set) (hash-set))) "two empty sets are equal")
@@ -169,6 +186,7 @@
 
 (deftest test-some
   (is (= 3 (some #(if (> % 2) % nil) [1 2 3 4])) "some returns first truthy")
+  (is (true? (some odd? #{1 2 3 4})) "some works on sets")
   (is (nil? (some #(if (> % 10) % nil) [1 2 3])) "some returns nil when none matches")
   (is (nil? (some #(if (> % 1) % nil) [])) "some on empty list"))
 
@@ -212,6 +230,10 @@
     (is (true? (contains? full-name :street)))
     (is (false? (contains? full-name :unknown)))))
 
+(deftest test-contains?-nil
+  (is (false? (contains? nil nil)))
+  (is (false? (contains? nil :anything))))
+
 (deftest test-contains?-list
   (is (false? (contains? '() 0)))
   (is (true? (contains? '(1) 0)))
@@ -234,6 +256,10 @@
   (is (false? (contains? "hello" 5)) "index out of bounds")
   (is (false? (contains? "hello" -1)) "negative index")
   (is (false? (contains? "hello" "e")) "non-integer key"))
+
+(deftest test-contains?-scalar
+  (is (thrown? \InvalidArgumentException (contains? 1 0))
+      "contains? on scalar throws InvalidArgumentException"))
 
 (deftest test-contains?-string-multibyte
   (is (true? (contains? "🎉" 0)) "emoji first index")
@@ -287,12 +313,32 @@
   (is (true? (contains-value? {:a [1 2] :b 3} [1 2])))
   (is (true? (contains-value? {:a nil :b 2} nil))))
 
+(deftest test-numeric-equals
+  (is (true? (== 42)) "(== 42) is true for single arg")
+  (is (true? (== 1 1)) "(== 1 1)")
+  (is (false? (== 1 2)) "(== 1 2)")
+  (is (true? (== 1 1.0)) "(== 1 1.0) — type-independent numeric equality, unlike =")
+  (is (false? (= 1 1.0)) "(= 1 1.0) stays type-strict for contrast")
+  (is (true? (== 1 1 1)) "(== 1 1 1)")
+  (is (true? (== 1.0 1 1.0 1)) "(== 1.0 1 1.0 1)")
+  (is (false? (== 1 1 2)) "(== 1 1 2)")
+  (is (false? (== 1 2 1)) "(== 1 2 1) — short-circuits on first inequality")
+  (is (thrown? \InvalidArgumentException (== 1 "1")) "(== 1 \"1\") rejects non-numeric operand"))
+
 (deftest test-compare
   (is (= -1 (compare 1 2)) "(compare 1 2)")
   (is (= 1 (compare 2 1)) "(compare 2 1)")
   (is (= 0 (compare 1 1)) "(compare 1 1)")
   (is (= 0 (compare 1 1.0)) "mixed int/float compare as same category")
   (is (= -1 (compare "a" "b")) "strings compare")
+  (is (= -1 (compare :a :b)) "keywords compare by name")
+  (is (= -1 (compare 'a 'b)) "symbols compare by name")
+  (is (= -1 (compare [1 :a] [1 :b])) "vectors compare lexicographically")
+  (is (= -1 (compare [1] [1 2])) "shorter vector sorts first when prefix matches")
+  (is (= 1 (compare [nil] [])) "vector with nil element sorts after empty vector")
+  (is (= -1 (compare [] [nil])) "empty vector sorts before vector with nil element")
+  (is (= [[] [nil] [nil nil]] (sort [[nil nil] [nil] []]))
+      "sort orders sequential values by length when nil prefixes match")
   (is (= 0 (compare nil nil)) "nil equals nil")
   (is (= -1 (compare nil 1)) "nil is less than any non-nil")
   (is (= 1 (compare 1 nil)) "non-nil is greater than nil"))

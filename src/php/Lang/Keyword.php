@@ -6,6 +6,7 @@ namespace Phel\Lang;
 
 use ArrayAccess;
 use Override;
+use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 
 final class Keyword extends AbstractType implements IdenticalInterface, FnInterface, NamedInterface
 {
@@ -26,16 +27,36 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
     }
 
     /**
-     * Callable behaviour for keyword-as-accessor. Accepts any `ArrayAccess`
-     * container so both persistent and transient maps work (previously the
-     * signature was narrowed to `PersistentMapInterface`, which raised a
-     * `TypeError` when called against a transient map).
+     * Keyword-as-accessor. `nil` target returns the default (matches
+     * `(:k nil)` returning nil) instead of raising `TypeError`.
      */
     public function __invoke(
-        ArrayAccess $obj,
+        mixed $obj,
         float|bool|int|string|TypeInterface|null $default = null,
     ) {
-        return $obj[$this] ?? $default;
+        if ($obj instanceof ArrayAccess) {
+            if ($obj instanceof ContainsInterface) {
+                return $obj->contains($this) ? $obj[$this] : $default;
+            }
+
+            return $obj[$this] ?? $default;
+        }
+
+        if ($obj instanceof PersistentHashSetInterface) {
+            return $obj->contains($this) ? $this : $default;
+        }
+
+        return $default;
+    }
+
+    #[Override]
+    public function __toString(): string
+    {
+        if ($this->namespace !== null && $this->namespace !== '') {
+            return ':' . $this->namespace . '/' . $this->name;
+        }
+
+        return ':' . $this->name;
     }
 
     public static function create(string $name, ?string $namespace = null): self
@@ -45,14 +66,6 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
             : $name;
 
         return self::$internPool[$key] ??= new self($namespace, $name);
-    }
-
-    /**
-     * @deprecated in favor of create()
-     */
-    public static function createForNamespace(string $namespace, string $name): self
-    {
-        return self::create($name, $namespace);
     }
 
     public function getName(): string

@@ -1,0 +1,8 @@
+(ns loade2e\core)
+
+(def- banner-prefix ">> ")
+
+(load "core/util")
+(load "core/greet")
+
+(println (greet "world"))

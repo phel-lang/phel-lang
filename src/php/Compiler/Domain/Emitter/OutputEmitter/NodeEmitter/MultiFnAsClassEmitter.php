@@ -18,6 +18,7 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
 {
     public function __construct(
         private OutputEmitterInterface $outputEmitter,
+        private ClosureEmitterHelper $closureHelper,
     ) {}
 
     public function emit(AbstractNode $node): void
@@ -63,21 +64,11 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
         $this->outputEmitter->emitStr('new class(', $node->getStartSourceLocation());
 
-        $usesCount = count($uses);
-        foreach ($uses as $i => $use) {
-            $loc = $use->getStartLocation();
-            /** @var Symbol $normalizedUse */
-            $normalizedUse = $node->getEnv()->getShadowed($use) instanceof Symbol
-                ? $node->getEnv()->getShadowed($use)
-                : $use;
-            $this->outputEmitter->emitPhpVariable($normalizedUse, $loc);
-            if ($i < $usesCount - 1) {
-                $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
-            }
-        }
+        $this->closureHelper->emitConstructorArguments($uses, $node->getEnv(), $node->getStartSourceLocation());
 
         $this->outputEmitter->emitLine(') extends \\Phel\\Lang\\AbstractFn {', $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();
+        $this->outputEmitter->enterClassScope();
     }
 
     /**
@@ -88,16 +79,7 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
         $ns = addslashes($this->outputEmitter->mungeEncodeNs($node->getEnv()->getBoundTo()));
         $this->outputEmitter->emitLine('public const BOUND_TO = "' . $ns . '";', $node->getStartSourceLocation());
 
-        foreach ($uses as $use) {
-            /** @var Symbol $normalizedUse */
-            $normalizedUse = $node->getEnv()->getShadowed($use) instanceof Symbol
-                ? $node->getEnv()->getShadowed($use)
-                : $use;
-            $this->outputEmitter->emitLine(
-                'private $' . $this->outputEmitter->mungeEncode($normalizedUse->getName()) . ';',
-                $node->getStartSourceLocation(),
-            );
-        }
+        $this->closureHelper->emitProperties($uses, $node->getEnv(), $node->getStartSourceLocation());
 
         for ($i = 0; $i < $fnCount; ++$i) {
             $this->outputEmitter->emitLine('private $fn' . $i . ';', $node->getStartSourceLocation());
@@ -110,43 +92,36 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
      */
     private function emitConstructor(MultiFnNode $node, array $uses, array $fnNodes): void
     {
+        $loc = $node->getStartSourceLocation();
+        $env = $node->getEnv();
         $usesCount = count($uses);
+
         $this->outputEmitter->emitLine();
-        $this->outputEmitter->emitStr('public function __construct(', $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr('public function __construct(', $loc);
+
         foreach ($uses as $i => $use) {
-            /** @var Symbol $normalizedUse */
-            $normalizedUse = $node->getEnv()->getShadowed($use) instanceof Symbol
-                ? $node->getEnv()->getShadowed($use)
-                : $use;
-            $this->outputEmitter->emitPhpVariable($normalizedUse, $node->getStartSourceLocation());
+            $this->outputEmitter->emitPhpVariable($this->closureHelper->normalizeUse($use, $env), $loc);
             if ($i < $usesCount - 1) {
-                $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
+                $this->outputEmitter->emitStr(', ', $loc);
             }
         }
 
-        $this->outputEmitter->emitLine(') {', $node->getStartSourceLocation());
+        $this->outputEmitter->emitLine(') {', $loc);
         $this->outputEmitter->increaseIndentLevel();
 
         foreach ($uses as $use) {
-            /** @var Symbol $normalizedUse */
-            $normalizedUse = $node->getEnv()->getShadowed($use) instanceof Symbol
-                ? $node->getEnv()->getShadowed($use)
-                : $use;
-            $varName = $this->outputEmitter->mungeEncode($normalizedUse->getName());
-            $this->outputEmitter->emitLine(
-                '$this->' . $varName . ' = $' . $varName . ';',
-                $node->getStartSourceLocation(),
-            );
+            $varName = $this->outputEmitter->mungeEncode($this->closureHelper->normalizeUse($use, $env)->getName());
+            $this->outputEmitter->emitLine('$this->' . $varName . ' = $' . $varName . ';', $loc);
         }
 
         foreach ($fnNodes as $i => $fnNode) {
-            $this->outputEmitter->emitStr('$this->fn' . $i . ' = ', $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr('$this->fn' . $i . ' = ', $loc);
             $this->outputEmitter->emitNode($fnNode);
-            $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
+            $this->outputEmitter->emitLine(';', $loc);
         }
 
         $this->outputEmitter->decreaseIndentLevel();
-        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
+        $this->outputEmitter->emitLine('}', $loc);
         $this->outputEmitter->emitLine();
     }
 
@@ -198,6 +173,7 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
 
     private function emitClassEnd(MultiFnNode $node): void
     {
+        $this->outputEmitter->exitClassScope();
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitStr('}', $node->getStartSourceLocation());
         $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());

@@ -16,7 +16,7 @@ final class NonPrintableClassPrinterTest extends TestCase
     #[DataProvider('providerPrint')]
     public function test_print(mixed $form, string $expected): void
     {
-        self::assertSame($expected, (new NonPrintableClassPrinter())->print($form));
+        self::assertSame($expected, new NonPrintableClassPrinter()->print($form));
     }
 
     public static function providerPrint(): Generator

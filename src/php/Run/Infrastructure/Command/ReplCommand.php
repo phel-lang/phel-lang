@@ -15,6 +15,8 @@ use Phel\Printer\PrinterInterface;
 use Phel\Run\Domain\Repl\ExitException;
 use Phel\Run\Domain\Repl\InputResult;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
+use Phel\Run\Domain\Repl\ReplHistory;
+use Phel\Run\Domain\Repl\ReplPrompt;
 use Phel\Run\RunConfig;
 use Phel\Run\RunFacade;
 use Phel\Run\RunFactory;
@@ -43,10 +45,6 @@ final class ReplCommand extends Command
 
     private const string DISABLE_BRACKETED_PASTE = "\e[?2004l";
 
-    private const string INITIAL_PROMPT = 'phel:%d> ';
-
-    private const string OPEN_PROMPT = '....:%d> ';
-
     private const string EXIT_REPL = 'exit';
 
     private InputResult $previousResult;
@@ -58,6 +56,10 @@ final class ReplCommand extends Command
     private readonly PrinterInterface $printer;
 
     private readonly CompilerFacadeInterface $compilerFacade;
+
+    private readonly ReplPrompt $prompt;
+
+    private ?ReplHistory $history = null;
 
     private ?string $replStartupFile = null;
 
@@ -75,6 +77,7 @@ final class ReplCommand extends Command
         $this->style = $this->getFactory()->createColorStyle();
         $this->printer = $this->getFactory()->createPrinter();
         $this->compilerFacade = $this->getFactory()->getCompilerFacade();
+        $this->prompt = $this->getFactory()->createReplPrompt();
     }
 
     /**
@@ -110,6 +113,9 @@ final class ReplCommand extends Command
 
             $this->getFacade()->loadPhelNamespaces($this->replStartupFile);
             Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, ReplConstants::REPL_MODE, true);
+
+            $this->history = $this->getFactory()->createReplHistory();
+            $this->history->register();
 
             $this->loopReadLineAndAnalyze();
 
@@ -152,8 +158,10 @@ final class ReplCommand extends Command
         }
 
         $isInitialInput = $this->inputBuffer === [];
-        $prompt = $isInitialInput ? self::INITIAL_PROMPT : self::OPEN_PROMPT;
-        $input = $this->io->readline(sprintf($prompt, $this->lineNumber));
+        $prompt = $isInitialInput
+            ? $this->prompt->initial($this->lineNumber)
+            : $this->prompt->continuation($this->lineNumber);
+        $input = $this->io->readline($prompt);
 
         if ($this->io->isBracketedPasteSupported()) {
             $this->io->write(self::DISABLE_BRACKETED_PASTE);
@@ -200,11 +208,12 @@ final class ReplCommand extends Command
         $fullInput = $this->previousResult->readBuffer($this->inputBuffer);
 
         try {
-            $options = (new CompileOptions())
+            $options = new CompileOptions()
                 ->setStartingLine($this->lineNumber - count($this->inputBuffer));
 
             $result = $this->getFacade()->eval($fullInput, $options);
             $this->previousResult = InputResult::fromAny($result);
+            $this->history?->recordResult($result);
 
             $this->addHistory($fullInput);
             $this->io->writeln($this->printer->print($result));
@@ -217,6 +226,7 @@ final class ReplCommand extends Command
                 $e = $e->getPrevious();
             }
 
+            $this->history?->recordException($e);
             $exceptionClass = array_reverse(explode('\\', $e::class))[0];
             $this->io->writeln(
                 sprintf(
@@ -228,10 +238,12 @@ final class ReplCommand extends Command
             $this->addHistory($fullInput);
             $this->inputBuffer = [];
         } catch (CompilerException $e) {
+            $this->history?->recordException($e->getNestedException());
             $this->io->writeLocatedException($e->getNestedException(), $e->getCodeSnippet());
             $this->addHistory($fullInput);
             $this->inputBuffer = [];
         } catch (Throwable $e) {
+            $this->history?->recordException($e);
             $this->io->writeStackTrace($e);
             $this->addHistory($fullInput);
             $this->inputBuffer = [];

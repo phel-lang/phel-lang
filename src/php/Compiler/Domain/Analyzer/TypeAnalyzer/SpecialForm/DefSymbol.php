@@ -128,6 +128,18 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
 
         $meta = $this->normalizeMeta($meta, $list);
 
+        // `^:dynamic`, `^:private`, etc. attach to the name symbol
+        // (`(def ^:dynamic *x* 1)`). Merge those flags into the def's
+        // metadata map so runtime code can read them off the var.
+        $nameMeta = $list->get(1)->getMeta();
+        if ($nameMeta instanceof PersistentMapInterface) {
+            foreach ($nameMeta->getIterator() as $key => $value) {
+                if ($key !== null) {
+                    $meta = $meta->put($key, $value);
+                }
+            }
+        }
+
         $listMeta = $list->getMeta();
         if ($listMeta instanceof PersistentMapInterface) {
             foreach ($listMeta->getIterator() as $key => $value) {

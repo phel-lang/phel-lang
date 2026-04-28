@@ -1,0 +1,64 @@
+# Codex exec-policy rules for Phel.
+
+prefix_rule(
+    pattern = ["rm", "-rf", "/"],
+    decision = "forbidden",
+    justification = "Never remove the filesystem root.",
+    match = ["rm -rf /"],
+)
+
+prefix_rule(
+    pattern = ["rm", "-fr", "/"],
+    decision = "forbidden",
+    justification = "Never remove the filesystem root.",
+    match = ["rm -fr /"],
+)
+
+prefix_rule(
+    pattern = ["sudo"],
+    decision = "forbidden",
+    justification = "Do not use sudo from repository automation.",
+    match = ["sudo composer install"],
+)
+
+prefix_rule(
+    pattern = ["composer"],
+    decision = "allow",
+    justification = "Composer scripts are the project test and quality entrypoints.",
+    match = ["composer test", "composer test-compiler", "composer test-core", "composer fix"],
+)
+
+prefix_rule(
+    pattern = ["./bin/phel"],
+    decision = "allow",
+    justification = "The local Phel CLI is required for repo tests and language checks.",
+    match = ["./bin/phel test", "./bin/phel run local/example.phel"],
+)
+
+prefix_rule(
+    pattern = ["./vendor/bin/phpunit"],
+    decision = "allow",
+    justification = "PHPUnit is the focused compiler/runtime test runner.",
+    match = ["./vendor/bin/phpunit --filter LexerTest"],
+)
+
+prefix_rule(
+    pattern = ["./vendor/bin/php-cs-fixer"],
+    decision = "allow",
+    justification = "PHP CS Fixer is the project formatter.",
+    match = ["./vendor/bin/php-cs-fixer fix src/php/Foo.php"],
+)
+
+prefix_rule(
+    pattern = ["./vendor/bin/phpbench"],
+    decision = "allow",
+    justification = "PHPBench is the project benchmark runner.",
+    match = ["./vendor/bin/phpbench run --report=aggregate"],
+)
+
+prefix_rule(
+    pattern = ["gh"],
+    decision = "allow",
+    justification = "GitHub CLI is required for repo-maintenance workflows such as creating PRs and inspecting issues.",
+    match = ["gh pr create", "gh issue view 123", "gh issue edit 123 --add-assignee @me"],
+)

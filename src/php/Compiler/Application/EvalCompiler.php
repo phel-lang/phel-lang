@@ -17,7 +17,6 @@ use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Lexer\LexerInterface;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
-use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Domain\Parser\ParserInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
@@ -26,6 +25,8 @@ use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Lang\TypeInterface;
+
+use function is_object;
 
 final readonly class EvalCompiler implements EvalCompilerInterface
 {
@@ -45,7 +46,6 @@ final readonly class EvalCompiler implements EvalCompilerInterface
      * @throws CompilerException
      * @throws FileException
      * @throws LexerValueException
-     * @throws UnfinishedParserException
      *
      * @return mixed The result of the executed code
      */
@@ -68,16 +68,20 @@ final readonly class EvalCompiler implements EvalCompilerInterface
 
                     $result = $this->evalNode($node, $compileOptions);
                 }
-            } catch (UnfinishedParserException $e) {
-                throw $e;
             } catch (AbstractParserException|ReaderException $e) {
                 throw new CompilerException($e, $e->getCodeSnippet());
             }
         }
     }
 
-    public function evalForm(float|bool|int|string|TypeInterface|null $form, CompileOptions $compileOptions): mixed
+    public function evalForm(mixed $form, CompileOptions $compileOptions): mixed
     {
+        // Non-Phel objects (e.g. closures) are already evaluated values; return
+        // them as-is to match Clojure's self-evaluating semantics.
+        if (is_object($form) && !$form instanceof TypeInterface) {
+            return $form;
+        }
+
         $node = $this->analyzer->analyze($form, NodeEnvironment::empty()->withReturnContext());
         return $this->evalNode($node, $compileOptions);
     }

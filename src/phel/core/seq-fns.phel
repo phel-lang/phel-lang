@@ -1,0 +1,1226 @@
+(in-ns phel.core)
+
+(use InvalidArgumentException)
+(use Phel)
+(use Phel\Lang\Collections\HashSet\PersistentHashSetInterface)
+(use Phel\Lang\Collections\HashSet\TransientHashSetInterface)
+(use Phel\Lang\Collections\LazySeq\LazySeq)
+(use Phel\Lang\Collections\LazySeq\LazySeqInterface)
+(use Phel\Lang\Collections\LinkedList\PersistentListInterface)
+(use Phel\Lang\Collections\Map\PersistentMapInterface)
+(use Phel\Lang\Collections\Map\TransientMapInterface)
+(use Phel\Lang\Collections\Vector\PersistentVectorInterface)
+(use Phel\Lang\Collections\Vector\TransientVectorInterface)
+(use Phel\Lang\ConcatInterface)
+(use Phel\Lang\Delay)
+(use Phel\Lang\Equalizer)
+(use Phel\Lang\Hasher)
+(use Phel\Lang\PushInterface)
+(use Phel\Lang\Seq)
+(use Phel\Lang\SliceInterface)
+
+;; The main sequence-function library. Covers:
+;;   - Core higher-order seq fns: `map`, `filter`, `remove`, `keep`,
+;;     `keep-indexed`, `map-indexed`, `mapcat`.
+;;   - Slicing: `take`, `take-last`, `take-while`, `take-nth`, `drop`,
+;;     `drop-last`, `drop-while`, `last`, `butlast`, `slice`.
+;;   - Generation: `iterate`, `cycle`, `repeat`, `repeatedly`, `lazy-seq`,
+;;     `lazy-cat`, `concat`, `cat`, `interpose`, `interleave`, `sequence`.
+;;   - Shaping: `partition`, `partition-by`, `partition-all`, `split-at`,
+;;     `split-with`, `group-by`, `frequencies`, `distinct`, `dedupe`,
+;;     `reverse`, `rseq`, `reversible?`, `sort`, `sort-by`, `shuffle`,
+;;     `compact`.
+;;   - Reduction forcing: `doall`, `dorun`, `realized?`.
+;;   - Collection coercion: `into`, `set`, `vec`.
+;;   - Persistent update: `conj`, `disj`, `get-in`, `assoc-in`, `put-in`,
+;;     `update`, `update-in`, `dissoc-in`, `unset-in`, `find`, `find-index`.
+;;     (The transient bang variants `conj!` / `assoc!` / `dissoc!` /
+;;     `disj!` / `pop!` live in `core/transients.phel`.)
+;;   - Map introspection / shape: `keys`, `vals`, `key`, `val`, `values`,
+;;     `pairs`, `kvs`, `merge`, `select-keys`, `rename-keys`, `invert`,
+;;     `zipmap`, `zipcoll`.
+;;   - Function composition: `comp`.
+;;   - PHP/Phel bridge helpers: `php-array-to-map`, `phel->php`, `php->phel`,
+;;     `contains-value?`.
+;; Loaded after `core/transducers` because `into` routes through
+;; `transduce` when given a transducer xform.
+
+;; ------------------
+;; Sequence functions
+;; ------------------
+
+(defn map
+  "Returns a lazy sequence of the result of applying `f` to all of the first items in each coll,
+   followed by applying `f` to all the second items in each coll until anyone of the colls is exhausted.
+
+  When given a single collection, applies the function to each element.
+  With multiple collections, applies the function to corresponding elements from each collection,
+  stopping when the shortest collection is exhausted."
+  {:example "(map inc [1 2 3]) ; => (2 3 4)"
+   :see-also ["filter" "reduce" "map-indexed" "mapcat" "transduce"]}
+  [f & colls]
+  (case (count colls)
+    0 (fn [rf]
+        (xf-step rf (fn [result input] (rf result (f input)))))
+    1 (let [coll (first colls)]
+        (if (empty? coll)
+          []
+          (copy-meta coll (lazy-seq-from-generator (php/:: Seq (map f coll))))))
+    (let [result (lazy-seq-from-generator
+                  (php/call_user_func_array
+                   (php/array "\\Phel\\Lang\\Seq" "mapMulti")
+                   (php/array_merge (php/array f) (apply php/array colls))))]
+      (if (php/=== nil result)
+        []
+        (copy-meta (first colls) result)))))
+
+(defn comp
+  "Takes a list of functions and returns a function that is the composition of those functions."
+  [& fs]
+  (case (count fs)
+    0 identity
+    1 (first fs)
+    2 #((first fs) (apply (second fs) %&))
+    (reduce comp fs)))
+
+(defn- map-entry-source?
+  [x]
+  (or (php/instanceof x PersistentMapInterface)
+      (and (php/is_array x) (not (indexed-php-array? x)))))
+
+(defn- into-entries
+  [from]
+  (if (map-entry-source? from)
+    (for [entry :pairs from] entry)
+    from))
+
+(defn- assoc-into-entry
+  [acc entry]
+  (if (not (indexed? entry))
+    (throw (php/new InvalidArgumentException
+                    "into expects a collection of [key value] pairs"))
+    (if (php/!= (count entry) 2)
+      (throw (php/new InvalidArgumentException
+                      "into expects a collection of [key value] pairs"))
+      (let [k (first entry)
+            v (second entry)]
+        (if (php/is_array acc)
+          (do
+            (php/aset acc k v)
+            acc)
+          (assoc acc k v))))))
+
+(defn- map-into-target?
+  [to]
+  (or (map-entry-source? to) (php/instanceof to TransientMapInterface)))
+
+(defn into
+  "Returns `to` with all elements of `from` added.
+
+  When `from` is associative, it is treated as a sequence of key-value pairs.
+  Supports persistent and transient collections."
+  {:example "(into [] '(1 2 3)) ; => [1 2 3]"
+   :see-also ["conj" "concat" "transduce"]}
+  [to & rest]
+  (case (count rest)
+    0 to
+    2 (let [xf   (first rest)
+            from (second rest)]
+        (transduce xf conj to from))
+    1 (let [from (first rest)]
+        (if (php/=== nil from)
+          to
+          (let [entries (into-entries from)]
+            (cond
+              ;; Fast paths: persistent vector/set/hash-map targets build via transients,
+              ;; turning O(N log N) repeated copy-on-write into O(N).
+              (vector? to)
+              (persistent
+               (for [value :in entries
+                     :reduce [acc (transient to)]]
+                 (conj acc value)))
+
+              (set? to)
+              (persistent
+               (for [value :in entries
+                     :reduce [acc (transient to)]]
+                 (conj acc value)))
+
+              (map? to)
+              (persistent
+               (for [entry :in entries
+                     :reduce [acc (transient to)]]
+                 (assoc-into-entry acc entry)))
+
+              (map-into-target? to)
+              (for [entry :in entries
+                    :reduce [acc to]]
+                (assoc-into-entry acc entry))
+
+              (transient-vector? to)
+              (for [value :in entries
+                    :reduce [acc to]]
+                (conj acc value))
+
+              (transient-set? to)
+              (for [value :in entries
+                    :reduce [acc to]]
+                (conj acc value))
+
+              (php/instanceof to PushInterface)
+              (for [value :in entries
+                    :reduce [acc to]]
+                (conj acc value))
+
+              (php/instanceof to ConcatInterface)
+              (php/-> to (concat (apply php/array entries)))
+
+              (php/is_array to)
+              (concat to entries)
+
+              (throw (php/new InvalidArgumentException
+                              (php/. "Cannot convert into type " (type to))))))))
+    (throw (php/new InvalidArgumentException "into expects 1, 2, or 3 arguments"))))
+
+(defn- conj-single
+  [coll value]
+  (cond
+    (php/=== coll nil)                            (list value)
+    (php/instanceof coll PersistentListInterface)  (cons value coll)
+    (php/instanceof coll LazySeqInterface)         (cons value coll)
+    (php/is_array coll)                            (do (php/apush coll value) coll)
+    (vector-target? coll)                          (php/-> coll (append value))
+    (set-target? coll)                             (php/-> coll (add value))
+    (map-target? coll)                             (conj-map-entry coll value)
+    (php/instanceof coll PushInterface)            (php/-> coll (push value))
+    :else
+    (throw (php/new InvalidArgumentException
+                    (str "Cannot conj on type " (type coll))))))
+
+(defn conj
+  "Returns a new collection with values added. Appends to vectors/sets, prepends to lists."
+  {:example "(conj [1 2] 3) ; => [1 2 3]"}
+  ([] [])
+  ([coll] coll)
+  ([coll value]
+   (conj-single coll value))
+  ([coll value & more]
+   (reduce conj-single (conj-single coll value) more)))
+
+(defn- disj-single
+  [coll k]
+  (cond
+    (php/=== coll nil) nil
+    (set? coll)        (php/-> coll (remove k))
+    :else
+    (throw (php/new InvalidArgumentException
+                    (str "Cannot disj on type " (type coll))))))
+
+(defn disj
+  "Returns a new set that does not contain the given key(s). Works on hash-sets and sorted-sets.
+  Removing a non-existent key is a no-op. Returns `nil` when called on `nil`."
+  {:example "(disj #{1 2 3} 2) ; => #{1 3}"
+   :see-also ["conj" "hash-set" "sorted-set"]}
+  ([set] set)
+  ([set k]
+   (disj-single set k))
+  ([set k & ks]
+   (reduce disj-single (disj-single set k) ks)))
+
+(defn slice
+  "Extracts a slice of `coll` starting at `offset` with optional `length`."
+  {:example "(slice [1 2 3 4 5] 1 3) ; => [2 3 4]"}
+  [coll & [offset & [length]]]
+  (cond
+    (php-array? coll) (php/array_slice coll offset length)
+    (php/instanceof coll SliceInterface) (php/-> coll (slice offset length))
+    (throw (php/new InvalidArgumentException "Cannot slice"))))
+
+(defn set
+  "Coerces a collection to a set. Returns a set containing the distinct elements of `coll`.
+  For creating sets from arguments, use `hash-set`."
+  {:example "(set [1 2 3 2 1]) ; => #{1 2 3}"
+   :see-also ["hash-set" "vec" "into"]}
+  [coll]
+  (if (php/=== nil coll)
+    #{}
+    (persistent
+     (for [x :in coll :reduce [acc (transient #{})]]
+       (conj! acc x)))))
+
+(defn vec
+  "Coerces a collection to a vector. For hash-maps and structs, entries
+  are returned as 2-element `[key value]` vectors, matching Clojure."
+  {:example "(vec {:a 1 :b 2}) ; => [[:a 1] [:b 2]]"
+   :see-also ["vector" "set" "into"]}
+  [coll]
+  (cond
+    (php/=== nil coll)              []
+    (or (map? coll) (struct? coll))
+    (persistent
+     (for [[k v] :pairs coll :reduce [acc (transient [])]]
+       (conj! acc [k v])))
+    :else
+    (persistent
+     (for [x :in coll :reduce [acc (transient [])]]
+       (conj! acc x)))))
+
+(defn- get-in-traversable?
+  [x]
+  (or (coll? x) (php/is_array x)))
+
+(defn get-in
+  "Accesses a value in a nested data structure via a sequence of keys.
+
+  Returns `opt` (default nil) if the path doesn't exist."
+  {:example "(get-in {:a {:b {:c 42}}} [:a :b :c]) ; => 42"
+   :see-also ["assoc-in" "update-in"]}
+  [ds ks & [opt]]
+  (loop [res ds
+         path ks]
+    (cond
+      (empty? path)
+      (if (nil? res) opt res)
+
+      (or (nil? res)
+          (not (get-in-traversable? res)))
+      opt
+
+      :else
+      (recur (get res (first path)) (next path)))))
+
+(defn assoc-in
+  "Associates a value in a nested data structure at the given path.
+
+  Creates intermediate maps if they don't exist."
+  {:example "(assoc-in {:a {:b 1}} [:a :c] 2) ; => {:a {:b 1 :c 2}}"
+   :see-also ["get-in" "update-in" "dissoc-in"]}
+  [ds [k & ks] v]
+  (if-not (nil? ks)
+    (assoc ds k (assoc-in (get ds k {}) ks v))
+    (assoc ds k v)))
+
+(defn put-in
+  "Puts a value into a nested data structure."
+  {:deprecated "0.25.0"
+   :superseded-by "assoc-in"}
+  [ds ks v]
+  (assoc-in ds ks v))
+
+(defn update
+  "Updates a value in a datastructure by applying `f` to the current value."
+  {:example "(update {:count 5} :count inc) ; => {:count 6}"
+   :see-also ["update-in" "assoc"]}
+  [ds k f & args]
+  (assoc ds k (apply f (get ds k) args)))
+
+(defn update-in
+  "Updates a value in a nested data structure by applying `f` to the value at path."
+  {:example "(update-in {:a {:b 5}} [:a :b] inc) ; => {:a {:b 6}}"
+   :see-also ["get-in" "assoc-in" "update"]}
+  [ds [k & ks] f & args]
+  (if ks
+    (assoc ds k (apply update-in (get ds k {}) ks f args))
+    (let [current (get ds k)] ; Extract value first for possible call-by-reference
+      (assoc ds k (apply f current args)))))
+
+(defn dissoc-in
+  "Dissociates a value from a nested data structure at the given path."
+  {:example "(dissoc-in {:a {:b 1 :c 2}} [:a :b]) ; => {:a {:c 2}}"
+   :see-also ["dissoc" "assoc-in" "get-in"]}
+  [ds [k & ks]]
+  (if ks
+    (let [sub (get ds k)]
+      (if (nil? sub)
+        ds
+        (assoc ds k (dissoc-in sub ks))))
+    (dissoc ds k)))
+
+(defn unset-in
+  "Removes a value from a nested data structure."
+  {:deprecated "0.25.0"
+   :superseded-by "dissoc-in"}
+  [ds ks]
+  (dissoc-in ds ks))
+
+(defn drop
+  "Drops the first `n` elements of `coll`. Returns a lazy sequence.
+  When called with n only, returns a transducer."
+  {:example "(drop 2 [1 2 3 4 5]) ; => (3 4 5)"
+   :see-also ["take" "drop-last" "transduce"]}
+  [n & args]
+  (case (count args)
+    0 (fn [rf]
+        (let [nv (volatile! n)]
+          (xf-step rf (fn [result input]
+                        (let [n @nv]
+                          (when (php/> n 0) (vreset! nv (php/- n 1)))
+                          (if (php/> n 0) result (rf result input)))))))
+    1 (let [coll (first args)]
+        (if (nil? coll)
+          []
+          (let [n (if (php/< n 0) 0 n)]
+            (if (php/=== n 0)
+              coll
+              (let [result (lazy-seq-from-generator (php/:: Seq (drop n coll)))]
+                (copy-meta coll (or result [])))))))
+    (throw (php/new InvalidArgumentException "drop expects 1 or 2 arguments"))))
+
+(defn drop-last
+  "Drops the last `n` elements of `coll`. `n` defaults to `1` when omitted,
+   matching Clojure's `(drop-last coll)` single-arity form. Returns an empty
+   sequence when `coll` is `nil`. Works with any seqable collection including
+   lazy sequences and ranges."
+  {:example "(drop-last [1 2 3 4 5]) ; => (1 2 3 4)\n(drop-last 2 [1 2 3 4 5]) ; => (1 2 3)\n(drop-last 5 nil) ; => ()"
+   :see-also ["drop" "butlast"]}
+  ([coll] (drop-last 1 coll))
+  ([n coll]
+   (map (fn [x _] x) coll (drop n coll))))
+
+(defn last
+  "Returns the last element of `coll` or nil if `coll` is empty or nil."
+  {:example "(last [1 2 3]) ; => 3"
+   :see-also ["first" "peek" "butlast"]}
+  [coll]
+  (if (or (php/=== coll nil) (empty? coll))
+    nil
+    (peek coll)))
+
+(defn butlast
+  "Returns all but the last item in `coll`."
+  {:example "(butlast [1 2 3 4]) ; => [1 2 3]"
+   :see-also ["last" "drop-last"]}
+  [coll]
+  (drop-last 1 coll))
+
+(defn drop-while
+  "Drops all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence.
+  When called with pred only, returns a transducer."
+  {:example "(drop-while #(< % 5) [1 2 3 4 5 6 3 2 1]) ; => (5 6 3 2 1)"
+   :see-also ["take-while" "drop" "transduce"]}
+  [pred & args]
+  (case (count args)
+    0 (fn [rf]
+        (let [dv (volatile! true)]
+          (xf-step rf (fn [result input]
+                        (if (and @dv (pred input))
+                          result
+                          (do (vreset! dv false) (rf result input)))))))
+    1 (let [coll (first args)]
+        (if (nil? coll)
+          []
+          (let [result (lazy-seq-from-generator (php/:: Seq (dropWhile pred coll)))]
+            (copy-meta coll (or result [])))))
+    (throw (php/new InvalidArgumentException "drop-while expects 1 or 2 arguments"))))
+
+(defn take
+  "Takes the first `n` elements of `coll`.
+  When called with n only, returns a transducer."
+  [n & args]
+  (case (count args)
+    0 (fn [rf]
+        (let [nv (volatile! n)]
+          (xf-step rf (fn [result input]
+                        (let [n      @nv
+                              nn     (vreset! nv (php/- n 1))
+                              result (if (php/> n 0) (rf result input) result)]
+                          (if (php/<= nn 0) (ensure-reduced result) result))))))
+    1 (let [coll (first args)
+            n    (if (php/< n 0) 0 n)]
+        (if (php/=== n 0)
+          []
+          (let [result (lazy-seq-from-generator (php/:: Seq (take n coll)))]
+            (if (nil? result)
+              []
+              (copy-meta coll result)))))
+    (throw (php/new InvalidArgumentException "take expects 1 or 2 arguments"))))
+
+(defn- take-last-buffered
+  [n coll]
+  (let [buffer (php/array)]
+    (dofor [x :in coll]
+      (php/apush buffer x)
+      (when (php/> (php/count buffer) n)
+        (php/array_shift buffer)))
+    (php/:: Phel (vector buffer))))
+
+(defn take-last
+  "Takes the last `n` elements of `coll`."
+  {:example "(take-last 3 [1 2 3 4 5]) ; => [3 4 5]"
+   :see-also ["take" "drop-last"]}
+  [n coll]
+  (cond
+    (php/<= n 0) []
+    (nil? coll)    nil
+    (or (php-array? coll)
+        (php/instanceof coll SliceInterface)) (slice coll (php/* -1 n))
+    :else (take-last-buffered n coll)))
+
+(defn take-while
+  "Takes all elements at the front of `coll` where `(pred x)` is true. Returns a lazy sequence.
+  When called with pred only, returns a transducer."
+  {:example "(take-while #(< % 5) [1 2 3 4 5 6 3 2 1]) ; => (1 2 3 4)"
+   :see-also ["drop-while" "take" "transduce"]}
+  [pred & args]
+  (case (count args)
+    0 (fn [rf]
+        (xf-step rf (fn [result input]
+                      (if (pred input) (rf result input) (reduced result)))))
+    1 (let [coll (first args)]
+        (if (nil? coll)
+          []
+          (let [result (lazy-seq-from-generator (php/:: Seq (takeWhile pred coll)))]
+            (copy-meta coll (or result [])))))
+    (throw (php/new InvalidArgumentException "take-while expects 1 or 2 arguments"))))
+
+(defn take-nth
+  "Returns every nth item in `coll`. Returns a lazy sequence.
+  When called with n only, returns a transducer."
+  {:example "(take-nth 2 [0 1 2 3 4 5 6 7 8]) ; => (0 2 4 6 8)"
+   :see-also ["take" "filter" "transduce"]}
+  [n & args]
+  (case (count args)
+    0 (fn [rf]
+        (let [iv (volatile! -1)]
+          (xf-step rf (fn [result input]
+                        (let [i (vreset! iv (php/+ @iv 1))]
+                          (if (php/=== 0 (php/% i n))
+                            (rf result input) result))))))
+    1 (let [coll (first args)
+            s    (seq coll)]
+        (cond
+          (nil? s)      []
+          (php/<= n 0) (copy-meta coll (lazy-seq-from-generator (php/:: Seq (repeat (first s)))))
+          :else        (let [result (lazy-seq-from-generator (php/:: Seq (takeNth n coll)))]
+                         (copy-meta coll (or result [])))))
+    (throw (php/new InvalidArgumentException "take-nth expects 1 or 2 arguments"))))
+
+(defn filter
+  "Returns a lazy sequence of elements where predicate returns true.
+  When called with pred only, returns a transducer."
+  {:example "(filter even? [1 2 3 4 5 6]) ; => (2 4 6)"
+   :see-also ["remove" "keep" "transduce"]}
+  [pred & args]
+  (case (count args)
+    0 (fn [rf]
+        (xf-step rf (fn [result input] (if (pred input) (rf result input) result))))
+    1 (let [coll   (first args)
+            result (lazy-seq-from-generator (php/:: Seq (filter pred coll)))]
+        (if (nil? result)
+          []
+          (copy-meta coll result)))
+    (throw (php/new InvalidArgumentException "filter expects 1 or 2 arguments"))))
+
+(defn remove
+  "Returns a lazy sequence of elements where predicate returns false.
+   Opposite of filter. When called with pred only, returns a transducer."
+  {:example "(remove even? [1 2 3 4 5 6]) ; => (1 3 5)"
+   :see-also ["filter" "transduce"]}
+  [pred & args]
+  (case (count args)
+    0 (filter #(not (pred %)))
+    1 (filter #(not (pred %)) (first args))
+    (throw (php/new InvalidArgumentException "remove expects 1 or 2 arguments"))))
+
+(defn keep
+  "Returns a lazy sequence of non-nil results of applying function to elements.
+  When called with f only, returns a transducer."
+  {:example "(keep #(when (even? %) (* % %)) [1 2 3 4 5]) ; => (4 16)"
+   :see-also ["keep-indexed" "filter" "transduce"]}
+  [pred & args]
+  (case (count args)
+    0 (fn [rf]
+        (xf-step rf (fn [result input]
+                      (let [v (pred input)]
+                        (if (nil? v) result (rf result v))))))
+    1 (let [coll (first args)]
+        (if (nil? coll)
+          []
+          (let [result (lazy-seq-from-generator (php/:: Seq (keep pred coll)))]
+            (copy-meta coll (or result [])))))
+    (throw (php/new InvalidArgumentException "keep expects 1 or 2 arguments"))))
+
+(defn keep-indexed
+  "Returns a lazy sequence of non-nil results of `(pred i x)`.
+  When called with f only, returns a transducer."
+  {:example "(keep-indexed #(when (even? %1) %2) [\"a\" \"b\" \"c\" \"d\"]) ; => (\"a\" \"c\")"
+   :see-also ["keep" "map-indexed" "transduce"]}
+  [pred & args]
+  (case (count args)
+    0 (fn [rf]
+        (let [iv (volatile! -1)]
+          (xf-step rf (fn [result input]
+                        (let [i (vreset! iv (php/+ @iv 1))
+                              v (pred i input)]
+                          (if (nil? v) result (rf result v)))))))
+    1 (let [coll (first args)]
+        (if (nil? coll)
+          []
+          (let [result (lazy-seq-from-generator (php/:: Seq (keepIndexed pred coll)))]
+            (copy-meta coll (or result [])))))
+    (throw (php/new InvalidArgumentException "keep-indexed expects 1 or 2 arguments"))))
+
+(defn- find-entry
+  [coll key]
+  (when (contains? coll key)
+    [key (get coll key)]))
+
+(defn- find-by-pred
+  [pred coll]
+  (loop [s coll]
+    (when-not (empty? s)
+      (let [x (first s)]
+        (if (pred x) x (recur (next s)))))))
+
+(defn find
+  "When called with a collection first, returns `[key value]` when `key` is present.
+  Otherwise returns the first item in `coll` where `(pred item)` evaluates to true."
+  {:example "(find {:a 1} :a) ; => [:a 1]\n(find #(> % 5) [1 2 3 6 7 8]) ; => 6"
+   :see-also ["find-index" "filter" "some?"]}
+  [pred-or-coll coll-or-key]
+  (if (or (nil? pred-or-coll) (associative? pred-or-coll))
+    (find-entry pred-or-coll coll-or-key)
+    (find-by-pred pred-or-coll coll-or-key)))
+
+(defn find-index
+  "Returns the index of the first item in `coll` where `(pred item)` evaluates to true."
+  {:example "(find-index #(> % 5) [1 2 3 6 7 8]) ; => 3"
+   :see-also ["find" "filter"]}
+  [pred coll]
+  (loop [s coll
+         i 0]
+    (cond
+      (empty? s)       nil
+      (pred (first s)) i
+      :else            (recur (next s) (php/+ i 1)))))
+
+(defn distinct
+  "Returns a lazy sequence with duplicated values removed in `coll`.
+  When called with no args, returns a transducer."
+  {:example "(distinct [1 2 1 3 2 4 3]) ; => (1 2 3 4)"
+   :see-also ["frequencies" "set" "dedupe" "transduce"]}
+  [& args]
+  (case (count args)
+    0 (fn [rf]
+        (let [seen (volatile! (hash-set))]
+          (xf-step rf (fn [result input]
+                        (if (contains? @seen input)
+                          result
+                          (do (vswap! seen conj input) (rf result input)))))))
+    1 (let [coll (first args)]
+        (if (nil? coll)
+          []
+          (let [result (lazy-seq-from-generator (php/:: Seq (distinct coll)))]
+            (copy-meta coll (or result [])))))
+    (throw (php/new InvalidArgumentException "distinct expects 0 or 1 arguments"))))
+
+
+(defn reverse
+  "Reverses the order of the elements in the given sequence."
+  {:example "(reverse [1 2 3 4]) ; => [4 3 2 1]"
+   :see-also ["rseq" "reversible?"]}
+  [coll]
+  (let [arr    (if (string? coll)
+                 (php/mb_str_split coll)
+                 (to-php-array coll))
+        result (php/:: Phel (vector (php/array_reverse arr)))]
+    (copy-meta coll result)))
+
+(defn reversible?
+  "Returns true if `coll` can be reverse-iterated in constant time.
+  Currently this is true for vectors, sorted-maps, and sorted-sets."
+  {:example "(reversible? [1 2 3]) ; => true"
+   :see-also ["rseq" "reverse"]}
+  [coll]
+  (or (vector? coll)
+      (sorted? coll)))
+
+(defn rseq
+  "Returns, in constant time, a sequence of the items in `rev` in reverse
+  order. `rev` must be reversible (a vector, sorted-map, or sorted-set);
+  otherwise an exception is thrown. For sorted-maps, returns reversed `[key value]` pairs.
+  Returns nil if `rev` is empty."
+  {:example "(rseq [1 2 3]) ; => [3 2 1]"
+   :see-also ["reversible?" "reverse"]}
+  [rev]
+  (when-not (reversible? rev)
+    (throw (php/new InvalidArgumentException
+                    "rseq requires a reversible collection (vector, sorted-map, or sorted-set)")))
+  (when (php/> (count rev) 0)
+    (reverse (if (vector? rev) rev (vec rev)))))
+
+(defn frequencies
+  "Returns a map from distinct items in `coll` to the number of times they appear.
+
+  Works with vectors, lists, sets, and strings."
+  {:example "(frequencies [:a :b :a :c :b :a]) ; => {:a 3 :b 2 :c 1}"}
+  [coll]
+  (let [result (persistent
+                (for [x :in coll
+                      :reduce [res (transient {})]]
+                  (let [n (get res x 0)]
+                    (assoc! res x (php/+ 1 n)))))]
+    (copy-meta coll result)))
+
+(defn keys
+  "Returns a sequence of all keys in a map, or `nil` when the map is `nil`
+  or empty."
+  {:example "(keys {:a 1 :b 2}) ; => (:a :b)\n(keys nil) ; => nil"}
+  [coll]
+  (when-not (empty? coll)
+    (copy-meta coll (for [k :keys coll] k))))
+
+(defn vals
+  "Returns a sequence of all values in a map, or `nil` when the map is `nil`
+  or empty."
+  {:example "(vals {:a 1 :b 2}) ; => (1 2)\n(vals nil) ; => nil"}
+  [coll]
+  (when-not (empty? coll)
+    (copy-meta coll (for [x :in coll] x))))
+
+(defn key
+  "Returns the key of a map entry (a two-element vector `[key value]`)."
+  {:example "(key (first (pairs {:a 1}))) ; => :a"
+   :see-also ["val" "keys" "pairs"]}
+  [entry]
+  (first entry))
+
+(defn val
+  "Returns the value of a map entry (a two-element vector `[key value]`)."
+  {:example "(val (first (pairs {:a 1}))) ; => 1"
+   :see-also ["key" "vals" "pairs"]}
+  [entry]
+  (second entry))
+
+(defn values
+  "Returns a sequence of all values in a map."
+  {:deprecated "0.32.0"
+   :superseded-by "vals"
+   :example "(values {:a 1 :b 2}) ; => (1 2)"}
+  [coll]
+  (vals coll))
+
+(defn pairs
+  "Gets the pairs of an associative data structure."
+  {:example "(pairs {:a 1 :b 2}) ; => ([:a 1] [:b 2])"
+   :see-also ["keys" "values" "kvs"]}
+  [coll]
+  (let [result (for [p :pairs coll] p)]
+    (copy-meta coll result)))
+
+(defn kvs
+  "Returns a vector of key-value pairs like `[k1 v1 k2 v2 k3 v3 ...]`."
+  {:example "(kvs {:a 1 :b 2}) ; => [:a 1 :b 2]"
+   :see-also ["pairs" "keys" "values"]}
+  [coll]
+  (let [res (transient [])]
+    (foreach [k v coll]
+      (php/-> res (append k))
+      (php/-> res (append v)))
+    (copy-meta coll (persistent res))))
+
+(defn php-array-to-map
+  "Converts a PHP Array to a Phel map."
+  {:example "(php-array-to-map (php-associative-array \"a\" 1 \"b\" 2)) ; => {\"a\" 1 \"b\" 2}"
+   :see-also ["to-php-array" "php->phel"]}
+  [arr]
+  (let [res (transient {})]
+    (foreach [k v arr]
+      (php/-> res (put k v)))
+    (persistent res)))
+
+
+(defn phel->php
+  "Recursively converts a Phel data structure to a PHP array."
+  {:example "(phel->php {:a [1 2 3] :b {:c 4}}) ; => (PHP array [\"a\" => [1, 2, 3], \"b\" => [\"c\" => 4]])"
+   :see-also ["php->phel"]}
+  [x]
+  (cond
+    (php-array? x)
+    (let [arr (php/array)]
+      (foreach [k v x]
+        (php/aset arr k (phel->php v)))
+      arr)
+
+    (indexed? x)
+    (let [arr (php/array)]
+      (foreach [v x]
+        (php/apush arr (phel->php v)))
+      arr)
+
+    (associative? x)
+    (let [arr (php/array)]
+      (foreach [k v x]
+        (php/aset arr (name k) (phel->php v)))
+      arr)
+
+    (set? x)
+    (let [arr (php/array)]
+      (foreach [v x]
+        (php/apush arr (phel->php v)))
+      arr)
+
+    true             x))
+
+(defn php->phel
+  "Recursively converts a PHP array to Phel data structures.
+
+  Indexed PHP arrays become vectors, associative PHP arrays become maps."
+  {:example "(php->phel (php-associative-array \"a\" 1 \"b\" 2)) ; => {\"a\" 1 \"b\" 2}"
+   :see-also ["phel->php"]}
+  [x]
+  (cond
+    (indexed-php-array? x)
+    (let [res (transient [])]
+      (foreach [v x]
+        (conj res (php->phel v)))
+      (persistent res))
+
+    (php-array? x)
+    (let [res (transient {})]
+      (foreach [k v x]
+        (assoc res k (php->phel v)))
+      (persistent res))
+
+    true                   x))
+
+(defn contains-value?
+  "Returns true if the value is present in the given collection, otherwise returns false."
+  {:example "(contains-value? {:a 1 :b 2} 2) ; => true"
+   :see-also ["contains?" "some?"]}
+  [coll val]
+  (some? #(= % val) (vals coll)))
+
+(defn- sort-comparator
+  [comp]
+  (or comp compare))
+
+(defn- sorted-vector
+  [coll comp]
+  (let [php-array (to-php-array coll)]
+    (php/usort php-array comp)
+    (copy-meta coll (php/:: Phel (vector php-array)))))
+
+(defn- sort-with
+  [coll comp]
+  (sorted-vector coll (sort-comparator comp)))
+
+(defn- sort-by-with
+  [keyfn coll comp]
+  (let [cmp (sort-comparator comp)]
+    (sorted-vector coll #(cmp (keyfn %1) (keyfn %2)))))
+
+(defn sort
+  "Returns a sorted vector. If no comparator is supplied compare is used."
+  {:example "(sort [3 1 4 1 5 9 2 6]) ; => [1 1 2 3 4 5 6 9]\n(sort (fn [a b] (compare b a)) [1 2 3]) ; => [3 2 1]"
+   :see-also ["sort-by" "compare"]}
+  ([coll]
+   (sort-with coll compare))
+  ([a b]
+   (if (fn? a)
+     (sort-with b a)
+     (sort-with a b))))
+
+(defn sort-by
+  "Returns a sorted vector where the sort order is determined by comparing `(keyfn item)`.
+
+  If no comparator is supplied compare is used."
+  {:example "(sort-by count [\"aaa\" \"c\" \"bb\"]) ; => [\"c\" \"bb\" \"aaa\"]\n(sort-by count compare [\"aaa\" \"c\" \"bb\"]) ; => [\"c\" \"bb\" \"aaa\"]"
+   :see-also ["sort" "compare"]}
+  ([keyfn coll]
+   (sort-by-with keyfn coll compare))
+  ([keyfn comp-or-coll coll-or-comp]
+   (if (fn? comp-or-coll)
+     (sort-by-with keyfn coll-or-comp comp-or-coll)
+     (sort-by-with keyfn comp-or-coll coll-or-comp))))
+
+(defn shuffle
+  "Returns a random permutation of coll."
+  {:example "(shuffle [1 2 3 4 5]) ; => [3 1 5 2 4] (random order)"}
+  [coll]
+  (let [php-array (to-php-array coll)]
+    (php/shuffle php-array)
+    (copy-meta coll (php/:: Phel (vector php-array)))))
+
+(defn repeat
+  "Returns a vector of length n where every element is x.
+
+  With one argument returns an infinite lazy sequence of x."
+  {:example "(repeat 3 :a) ; => [:a :a :a]"
+   :see-also ["repeatedly" "cycle"]}
+  [a & rest]
+  (case (count rest)
+    0 (lazy-seq-from-generator (php/:: Seq (repeat a)))
+    1 (for [i :range [a]] (get rest 0))
+    (throw (php/new InvalidArgumentException "repeat expects one or two arguments"))))
+
+(defn repeatedly
+  "Returns a vector of length n with values produced by repeatedly calling f.
+
+  With one argument returns an infinite lazy sequence of calls to f."
+  {:example "(repeatedly 3 rand) ; => [0.234 0.892 0.456] (random values)"
+   :see-also ["repeat" "iterate"]}
+  [a & rest]
+  (case (count rest)
+    0 (lazy-seq-from-generator (php/:: Seq (repeatedly a)))
+    1 (let [n a
+            f (get rest 0)]
+        (for [i :range [n]] (f)))
+    (throw (php/new InvalidArgumentException "repeatedly expects one or two arguments"))))
+
+(defmacro lazy-seq
+  "Creates a lazy sequence that evaluates the body only when accessed."
+  {:example "(lazy-seq (cons 1 (lazy-seq nil))) ; => (1)"}
+  [& body]
+  `(php/new \Phel\Lang\Collections\LazySeq\LazySeq
+            (php/new \Phel\Lang\Hasher)
+            (php/new \Phel\Lang\Equalizer)
+            (fn [] ~@body)))
+
+(defmacro lazy-cat
+  "Concatenates collections into a lazy sequence (expands to concat)."
+  {:example "(lazy-cat [1 2] [3 4]) ; => (1 2 3 4)"}
+  [& colls]
+  (apply list 'concat colls))
+
+(defn iterate
+  "Returns an infinite lazy sequence of x, (f x), (f (f x)), and so on."
+  {:example "(take 5 (iterate inc 0)) ; => (0 1 2 3 4)"
+   :see-also ["repeatedly" "cycle"]}
+  [f x]
+  (lazy-seq-from-generator (php/:: Seq (iterate f x))))
+
+(defn cycle
+  "Returns an infinite lazy sequence that cycles through the elements of collection."
+  {:example "(take 7 (cycle [1 2 3])) ; => (1 2 3 1 2 3 1)"
+   :see-also ["iterate" "repeat"]}
+  [coll]
+  (if (empty? coll)
+    []
+    (lazy-seq-from-generator (php/:: Seq (cycle coll)))))
+
+(defn concat
+  "Concatenates multiple collections into a lazy sequence."
+  {:example "(concat [1 2] [3 4]) ; => (1 2 3 4)"}
+  [& colls]
+  (if (php/=== nil colls)
+    '()
+    (let [result (lazy-seq-from-generator
+                  (php/call_user_func_array
+                   (php/array "\\Phel\\Lang\\Seq" "concat")
+                   (apply php/array colls)))]
+      (if (php/=== nil result)
+        '()
+        result))))
+
+(defn cat
+  "A transducer that concatenates the contents of each input into the reduction."
+  {:see-also ["mapcat" "transduce"]}
+  [rf]
+  (let [rrf (preserving-reduced rf)]
+    (xf-step rf (fn [result input] (reduce rrf result input)))))
+
+(defn mapcat
+  "Maps a function over one or more collections and concatenates the results.
+  Returns a lazy sequence. When called with `f` alone, returns a transducer.
+
+  With a single collection behaves like `(apply concat (map f coll))`. With
+  multiple collections, `f` is called with corresponding elements from each
+  (stopping when the shortest is exhausted) and the resulting sequences are
+  concatenated."
+  {:example "(mapcat reverse [[1 2] [3 4]]) ; => (2 1 4 3)\n(mapcat list [:a :b :c] [1 2 3]) ; => (:a 1 :b 2 :c 3)"
+   :see-also ["map" "cat" "transduce"]}
+  [f & args]
+  (case (count args)
+    0 (comp (map f) cat)
+    1 (let [coll (first args)]
+        (if (php/=== nil coll)
+          '()
+          (let [input  (if (map? coll) (pairs coll) coll)
+                result (lazy-seq-from-generator
+                        (php/:: \Phel\Lang\Seq (mapcat f input)))]
+            (if (php/=== nil result)
+              '()
+              (copy-meta coll result)))))
+    (apply concat (apply map f args))))
+
+(defn interpose
+  "Returns elements separated by a separator. Returns a lazy sequence.
+  When called with sep only, returns a transducer."
+  {:example "(interpose 0 [1 2 3]) ; => (1 0 2 0 3)"
+   :see-also ["transduce"]}
+  [sep & args]
+  (case (count args)
+    0 (fn [rf]
+        (let [started (volatile! false)]
+          (fn [& iargs]
+            (case (count iargs)
+              0 (rf)
+              1 (rf (first iargs))
+              2 (let [result (first iargs) input (second iargs)]
+                  (if @started
+                    (let [sepr (rf result sep)]
+                      (if (reduced? sepr)
+                        (ensure-reduced @sepr)
+                        (rf sepr input)))
+                    (do (vreset! started true) (rf result input))))))))
+    1 (let [coll (first args)]
+        (if (php/=== nil coll)
+          '()
+          (let [result (lazy-seq-from-generator
+                        (php/:: \Phel\Lang\Seq (interpose sep coll)))]
+            (if (php/=== nil result)
+              '()
+              (copy-meta coll result)))))
+    (throw (php/new InvalidArgumentException "interpose expects 1 or 2 arguments"))))
+
+(defn map-indexed
+  "Maps a function over a collection with index. Returns a lazy sequence.
+
+  Applies `f` to each element in `xs`. `f` is a two-argument function where
+  the first argument is the index (0-based) and the second is the element itself.
+  Works with infinite sequences."
+  {:example "(map-indexed vector [:a :b :c]) ; => ([0 :a] [1 :b] [2 :c])"}
+  [f coll]
+  (if (php/=== nil coll)
+    '()
+    (let [result (lazy-seq-from-generator
+                  (php/:: \Phel\Lang\Seq (mapIndexed f coll)))]
+      (if (php/=== nil result)
+        '()
+        (copy-meta coll result)))))
+
+;; Redefine interleave as lazy
+(defn interleave
+  "Interleaves multiple collections. Returns a lazy sequence.
+
+  Returns elements by taking one from each collection in turn.
+  Pads with nil when collections have different lengths.
+  Works with infinite sequences."
+  {:example "(interleave [1 2 3] [:a :b :c]) ; => (1 :a 2 :b 3 :c)"}
+  [& colls]
+  (if (php/=== nil colls)
+    '()
+    (let [result (lazy-seq-from-generator
+                  (php/call_user_func_array
+                   (php/array "\\Phel\\Lang\\Seq" "interleave")
+                   (apply php/array colls)))]
+      (if (php/=== nil result)
+        '()
+        (copy-meta (first colls) result)))))
+
+(defn doall
+  "Forces realization of a lazy sequence and returns it as a vector."
+  {:example "(doall (map println [1 2 3])) ; => [nil nil nil]"}
+  [coll]
+  (if (seq? coll)
+    (let [arr (php/-> coll (toArray))]
+      (if (php/empty arr)
+        nil
+        (php/:: Phel (vector arr))))
+    coll))
+
+(defn dorun
+  "Forces realization of a lazy sequence for side effects, returns nil."
+  {:example "(dorun (map println [1 2 3])) ; => nil"}
+  [coll]
+  (if (seq? coll)
+    (do
+      (doseq [x :in coll] x)
+      nil)
+    nil))
+
+(defn realized?
+  "Returns true if a lazy sequence, delay, promise, or future has been realized, false otherwise."
+  {:example "(realized? (take 5 (iterate inc 1))) ; => false"
+   :see-also ["delay" "force" "lazy-seq" "future"]}
+  [coll]
+  (cond
+    (seq? coll) (php/-> coll (isRealized))
+    (php/instanceof coll Delay) (php/-> coll (isRealized))
+    (php/instanceof coll \Phel\Lang\PhelFuture) (php/-> coll (isRealized))
+    (php/instanceof coll \Phel\Fiber\Domain\Future) (php/-> coll (isRealized))
+    (php/instanceof coll \Phel\Fiber\Domain\Promise) (php/-> coll (isRealized))
+    true))
+
+(defn group-by
+  "Returns a map of the elements of coll keyed by the result of `f` on each element."
+  {:example "(group-by count [\"a\" \"bb\" \"c\" \"ddd\" \"ee\"]) ; => {1 [\"a\" \"c\"] 2 [\"bb\" \"ee\"] 3 [\"ddd\"]}"
+   :see-also ["partition-by" "frequencies"]}
+  [f coll]
+  (let [tmap (persistent
+              (for [x :in coll
+                    :let [k (f x)]
+                    :reduce [res (transient {})]]
+                (let [bucket (get res k)]
+                  (if bucket
+                    (do (conj bucket x) res)
+                    (assoc res k (conj (transient []) x))))))]
+    (persistent
+     (for [[k tv] :pairs tmap
+           :reduce [acc (transient {})]]
+       (assoc acc k (persistent tv))))))
+
+(defn zipmap
+  "Returns a new map with the keys mapped to the corresponding values.
+
+  Stops when the shorter of `keys` or `vals` is exhausted.
+  Works safely with infinite lazy sequences."
+  {:example "(zipmap [:a :b :c] [1 2 3]) ; => {:a 1 :b 2 :c 3}"
+   :see-also ["zipcoll"]}
+  [keys vals]
+  (loop [ks  (seq keys)
+         vs  (seq vals)
+         res {}]
+    (if (or (nil? ks) (nil? vs))
+      res
+      (recur (next ks) (next vs) (assoc res (first ks) (first vs))))))
+
+(defn zipcoll
+  "Creates a map from two sequential data structures. Returns a new map."
+  {:example "(zipcoll [:a :b :c] [1 2 3]) ; => {:a 1 :b 2 :c 3}"
+   :see-also ["zipmap" "interleave"]}
+  [a b]
+  (zipmap a b))
+
+(defn- merge-right
+  [left right]
+  (cond
+    (nil? left)  (when-not (nil? right) (conj {} right))
+    (nil? right) (if (map? left) left (conj left right))
+    :else (conj left right)))
+
+(defn merge
+  "Merges multiple maps into one new map.
+
+  If a key appears in more than one collection, later values replace previous ones."
+  {:example "(merge {:a 1 :b 2} {:b 3 :c 4}) ; => {:a 1 :b 3 :c 4}"}
+  ([] nil)
+  ([map] map)
+  ([map & more] (reduce merge-right map more)))
+
+(defn select-keys
+  "Returns a new map including key value pairs from `m` selected with keys `ks`."
+  {:example "(select-keys {:a 1 :b 2 :c 3} [:a :c]) ; => {:a 1 :c 3}"
+   :see-also ["dissoc"]}
+  [m ks]
+  (if (nil? m)
+    {}
+    (let [result (persistent
+                  (for [k :in ks
+                        :when (contains? m k)
+                        :reduce [acc (transient {})]]
+                    (assoc! acc k (get m k))))]
+      (copy-meta m result))))
+
+(defn rename-keys
+  "Returns the map with keys renamed according to kmap.
+  Keys not present in kmap are left unchanged."
+  {:example "(rename-keys {:a 1 :b 2 :c 3} {:a :x :b :y}) ; => {:x 1 :y 2 :c 3}"
+   :see-also ["select-keys" "keys" "vals"]}
+  [m kmap]
+  (persistent
+   (for [[k v] :pairs m
+         :reduce [acc (transient {})]]
+     (assoc! acc (get kmap k k) v))))
+
+(defn invert
+  "Returns a new map where the keys and values are swapped.
+
+  If map has duplicated values, some keys will be ignored."
+  {:example "(invert {:a 1 :b 2 :c 3}) ; => {1 :a 2 :b 3 :c}"}
+  [map]
+  (persistent
+   (for [[k v] :pairs map
+         :reduce [res (transient {})]]
+     (assoc! res v k))))
+
+(defn split-at
+  "Returns a vector of `[(take n coll) (drop n coll)]`."
+  {:example "(split-at 2 [1 2 3 4 5]) ; => [[1 2] [3 4 5]]"
+   :see-also ["split-with" "take" "drop"]}
+  [n coll]
+  [(take n coll) (drop n coll)])
+
+(defn split-with
+  "Returns a vector of `[(take-while pred coll) (drop-while pred coll)]`."
+  {:example "(split-with #(< % 4) [1 2 3 4 5 6]) ; => [[1 2 3] [4 5 6]]"
+   :see-also ["split-at" "take-while" "drop-while"]}
+  [f coll]
+  [(take-while f coll) (drop-while f coll)])
+
+(defn partition-by
+  "Returns a lazy sequence of partitions. Applies `f` to each value in `coll`, splitting them each time the return value changes."
+  {:example "(partition-by #(< % 3) [1 2 3 4 5 1 2]) ; => [[1 2] [3 4 5] [1 2]]"
+   :see-also ["group-by" "partition"]}
+  [f coll]
+  (cond
+    (nil? coll)                              []
+    (and (indexed? coll) (= 0 (count coll))) []
+    true                                     (lazy-seq-from-generator (php/:: Seq (partitionBy f coll)))))
+
+(defn dedupe
+  "Returns a lazy sequence with consecutive duplicate values removed in `coll`.
+  When called with no args, returns a transducer."
+  {:example "(dedupe [1 1 2 2 2 3 1 1]) ; => (1 2 3 1)"
+   :see-also ["distinct" "transduce"]}
+  [& args]
+  (case (count args)
+    0 (fn [rf]
+        (let [pv (volatile! :phel/none)]
+          (xf-step rf (fn [result input]
+                        (let [prior @pv]
+                          (vreset! pv input)
+                          (if (= prior input) result (rf result input)))))))
+    1 (let [coll (first args)]
+        (cond
+          (nil? coll)                              []
+          (and (indexed? coll) (= 0 (count coll))) []
+          true                                     (lazy-seq-from-generator (php/:: Seq (dedupe coll)))))
+    (throw (php/new InvalidArgumentException "dedupe expects 0 or 1 arguments"))))
+
+(defn sequence
+  "Applies transducer `xform` to `coll`, returning a vector of results."
+  {:example "(sequence (comp (filter even?) (map inc)) [1 2 3 4 5]) ; => [3 5]"
+   :see-also ["transduce" "into"]}
+  [xform coll]
+  (into [] xform coll))
+
+(defn compact
+  "Returns a lazy sequence with specified values removed from `coll`.
+  If no values are specified, removes nil values by default."
+  {:example "(compact [1 nil 2 nil 3]) ; => (1 2 3)"}
+  [coll & values]
+  (cond
+    (nil? coll)                              []
+    (and (indexed? coll) (= 0 (count coll))) []
+    true                                     (lazy-seq-from-generator
+                                              (php/call_user_func_array
+                                               (php/array "\\Phel\\Lang\\Seq" "compact")
+                                               (php/array_merge (php/array coll) (apply php/array values))))))
+
+(defn partition
+  "Partitions collection into chunks of size n, dropping incomplete final partition."
+  {:example "(partition 3 [1 2 3 4 5 6 7]) ; => ([1 2 3] [4 5 6])"}
+  [n coll]
+  (let [result (lazy-seq-from-generator
+                (php/call_user_func_array
+                 (php/array "\\Phel\\Lang\\Seq" "partition")
+                 (php/array n coll)))]
+    (if (php/=== nil result)
+      '()
+      (copy-meta coll result))))
+
+(defn partition-all
+  "Partitions collection into chunks of size n, including incomplete final partition."
+  {:example "(partition-all 3 [1 2 3 4 5 6 7]) ; => ([1 2 3] [4 5 6] [7])"}
+  [n coll]
+  (let [result (lazy-seq-from-generator
+                (php/call_user_func_array
+                 (php/array "\\Phel\\Lang\\Seq" "partitionAll")
+                 (php/array n coll)))]
+    (if (php/=== nil result)
+      '()
+      (copy-meta coll result))))
+
+;; Functional core

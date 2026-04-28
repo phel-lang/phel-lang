@@ -13,3 +13,29 @@ parameters:
         -
             identifier: while.alwaysTrue
             reportUnmatched: false
+        # enableBuildMode/disableBuildMode must stay static: they are emitted
+        # as `\Phel\Build\BuildFacade::enableBuildMode();` into compiled PHP
+        # by NsEmitter / LoadEmitter and fire twice per `(load ...)`, so the
+        # instance `getFactory()` delegation pattern does not apply here.
+        -
+            identifier: gacela.facadeOnlyDelegates
+            path: src/php/Build/BuildFacade.php
+        # LazySeq::cdr() checks instanceof SeqInterface for runtime safety
+        # even though PHPDoc inference says the type is already narrowed.
+        -
+            identifier: instanceof.alwaysTrue
+            path: src/php/Lang/Collections/LazySeq/LazySeq.php
+        # Phel-domain classes whose suffix coincides with Gacela pillar names
+        # but are not Gacela modules (they're plain Phel runtime/config types).
+        -
+            identifier: gacela.suffixExtends
+            paths:
+                - src/php/Compiler/Domain/Analyzer/SymbolSuggestionProvider.php
+                - src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitterFactory.php
+                - src/php/Compiler/Domain/Parser/ExpressionParserFactory.php
+                - src/php/Compiler/Domain/Reader/ExpressionReaderFactory.php
+                - src/php/Config/PhelBuildConfig.php
+                - src/php/Config/PhelConfig.php
+                - src/php/Config/PhelExportConfig.php
+                - src/php/Lang/Collections/LazySeq/LazySeqConfig.php
+                - src/php/Lang/TypeFactory.php

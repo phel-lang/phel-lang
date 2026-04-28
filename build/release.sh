@@ -12,6 +12,7 @@ source "$SCRIPT_DIR/release-lib.sh"
 # File paths
 VERSION_FILE="$REPO_ROOT/src/php/Console/Application/VersionFinder.php"
 CHANGELOG_FILE="$REPO_ROOT/CHANGELOG.md"
+AGENTS_VERSION_FILE="$REPO_ROOT/resources/agents/VERSION"
 PHAR_SCRIPT="$SCRIPT_DIR/phar.sh"
 PHAR_OUTPUT="$SCRIPT_DIR/out/phel.phar"
 
@@ -29,7 +30,7 @@ cleanup_backup() {
 rollback() {
     if [[ -n "$BACKUP_DIR" ]] && [[ -d "$BACKUP_DIR" ]]; then
         log "[WARN] Rolling back..."
-        restore_backup "$BACKUP_DIR" "$VERSION_FILE" "$CHANGELOG_FILE"
+        restore_backup "$BACKUP_DIR" "$VERSION_FILE" "$CHANGELOG_FILE" "$AGENTS_VERSION_FILE"
         cleanup_backup
     fi
 }
@@ -53,7 +54,7 @@ run_preflight_checks() {
     check_gh_cli
     check_git_state "$REPO_ROOT"
     check_branch "$REPO_ROOT"
-    check_required_files "$VERSION_FILE" "$CHANGELOG_FILE" "$PHAR_SCRIPT"
+    check_required_files "$VERSION_FILE" "$CHANGELOG_FILE" "$PHAR_SCRIPT" "$AGENTS_VERSION_FILE"
     check_changelog_unreleased "$CHANGELOG_FILE"
     check_network
     check_tag_exists "$NEW_VERSION" "$REPO_ROOT"
@@ -72,7 +73,7 @@ confirm_release() {
     echo ""
     log "${BOLD}Release: v$current_version → v$version${NC}"
     [[ -n "$RELEASE_NAME" ]] && log "Name: $RELEASE_NAME"
-    log "Files: VersionFinder.php, CHANGELOG.md"
+    log "Files: VersionFinder.php, CHANGELOG.md, resources/agents/VERSION"
     log "Actions: update files, commit, build PHAR, tag, push, create release"
     echo ""
 
@@ -173,7 +174,7 @@ main() {
     # Backup (always create, even in dry-run, so we can restore after showing changes)
     log "\n${BOLD}Creating backup${NC}"
     BACKUP_DIR=$(mktemp -d)
-    create_backup "$BACKUP_DIR" "$VERSION_FILE" "$CHANGELOG_FILE"
+    create_backup "$BACKUP_DIR" "$VERSION_FILE" "$CHANGELOG_FILE" "$AGENTS_VERSION_FILE"
     if [[ $DRY_RUN -eq 1 ]]; then
         log "[DRY-RUN] Backup created: $BACKUP_DIR"
     else
@@ -184,12 +185,15 @@ main() {
     log "\n${BOLD}Updating files${NC}"
     update_version_finder "$NEW_VERSION" "$VERSION_FILE"
     update_changelog "$NEW_VERSION" "$CHANGELOG_FILE" "$current_version"
+    update_agents_version "$NEW_VERSION" "$AGENTS_VERSION_FILE"
     if [[ $DRY_RUN -eq 1 ]]; then
         log "[DRY-RUN] Updated VersionFinder.php to v$NEW_VERSION"
         log "[DRY-RUN] Updated CHANGELOG.md"
+        log "[DRY-RUN] Updated resources/agents/VERSION to $NEW_VERSION"
     else
         log_ok "Updated VersionFinder.php"
         log_ok "Updated CHANGELOG.md"
+        log_ok "Updated resources/agents/VERSION"
     fi
 
     # Git commit
@@ -197,12 +201,27 @@ main() {
     if [[ $DRY_RUN -eq 1 ]]; then
         log "[DRY-RUN] Would: git commit -m 'chore(release): v$NEW_VERSION'"
     else
-        git_commit_release "$NEW_VERSION" "$REPO_ROOT" "$VERSION_FILE" "$CHANGELOG_FILE"
+        git_commit_release "$NEW_VERSION" "$REPO_ROOT" "$VERSION_FILE" "$CHANGELOG_FILE" "$AGENTS_VERSION_FILE"
         log_ok "Created release commit"
     fi
 
     # Build PHAR
     build_phar
+
+    # QA smoke test against built PHAR
+    log "\n${BOLD}QA smoke test${NC}"
+    if [[ $SKIP_QA -eq 1 ]]; then
+        log "[WARN] Skipping QA suite (--skip-qa)"
+    elif [[ $SKIP_PHAR -eq 1 ]]; then
+        log "[WARN] Skipping QA suite (no PHAR built)"
+    elif [[ $DRY_RUN -eq 1 ]]; then
+        log "[DRY-RUN] Would: qa_smoke_test_phar $PHAR_OUTPUT $NEW_VERSION"
+    else
+        if ! qa_smoke_test_phar "$PHAR_OUTPUT" "$NEW_VERSION"; then
+            log_err "Aborting release due to QA failures. Pass --skip-qa to override."
+            return 1
+        fi
+    fi
 
     # Create tag
     log "\n${BOLD}Creating tag${NC}"
@@ -257,7 +276,7 @@ main() {
     echo ""
     if [[ $DRY_RUN -eq 1 ]]; then
         # Restore files in dry-run mode
-        restore_backup "$BACKUP_DIR" "$VERSION_FILE" "$CHANGELOG_FILE"
+        restore_backup "$BACKUP_DIR" "$VERSION_FILE" "$CHANGELOG_FILE" "$AGENTS_VERSION_FILE"
         cleanup_backup
         log_ok "Dry-run complete - files restored, no changes made"
     else

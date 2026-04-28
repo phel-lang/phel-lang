@@ -1,0 +1,30 @@
+(ns tests\store-test
+  (:require phel\test :refer [deftest is use-fixtures])
+  (:require todo-app\store :as s))
+
+(use-fixtures :each
+  (fn [t]
+    (s/reset)
+    (let [result (t)]
+      (s/reset)
+      result)))
+
+(deftest create-assigns-sequential-ids
+  (let [a (s/create "first")
+        b (s/create "second")]
+    (is (= 1 (get a :id)))
+    (is (= 2 (get b :id)))))
+
+(deftest find-by-id-returns-todo
+  (s/create "hello")
+  (is (= "hello" (get (s/find-by-id 1) :title))))
+
+(deftest delete-removes-todo
+  (s/create "bye")
+  (s/delete 1)
+  (is (nil? (s/find-by-id 1))))
+
+(deftest all-returns-vector
+  (s/create "a")
+  (s/create "b")
+  (is (= 2 (count (s/all)))))

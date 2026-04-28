@@ -22,8 +22,10 @@ final class FnSymbolTuple
 
     private const int PARENT_TUPLE_BODY_OFFSET = 2;
 
+    /** @var list<Symbol> */
     private array $params = [];
 
+    /** @var list<mixed> */
     private array $lets = [];
 
     private bool $isVariadic = false;
@@ -52,11 +54,17 @@ final class FnSymbolTuple
         return $self;
     }
 
+    /**
+     * @return list<Symbol>
+     */
     public function params(): array
     {
         return $this->params;
     }
 
+    /**
+     * @return list<mixed>
+     */
     public function lets(): array
     {
         return $this->lets;
@@ -67,6 +75,9 @@ final class FnSymbolTuple
         return $this->isVariadic;
     }
 
+    /**
+     * @return list<mixed>
+     */
     public function parentListBody(): array
     {
         return array_slice(
@@ -91,7 +102,7 @@ final class FnSymbolTuple
     private function checkAllVariablesStartWithALetterOrUnderscore(): void
     {
         foreach ($this->params as $param) {
-            $matchesPattern = preg_match("/^(?:&[a-zA-Z_]|[a-zA-Z_\x80-\xff]).*$/", (string) $param->getName());
+            $matchesPattern = preg_match("/^(?:&[a-zA-Z_]|[a-zA-Z_\x80-\xff]).*$/", $param->getName());
 
             if ($matchesPattern === 0 || $matchesPattern === false) {
                 throw AnalyzerException::withLocation(

@@ -11,10 +11,7 @@ trait PhelCallerTrait
     /** @var array<string, mixed> Cache of resolved Phel definitions */
     private static array $definitionCache = [];
 
-    /**
-     * @param mixed[] $arguments
-     */
-    private static function callPhel(string $namespace, string $definitionName, ...$arguments)
+    private static function callPhel(string $namespace, string $definitionName, mixed ...$arguments): mixed
     {
         $cacheKey = $namespace . '::' . $definitionName;
 

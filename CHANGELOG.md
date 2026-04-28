@@ -4,64 +4,305 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+This release focuses on Clojure-compatible core behavior, PHP interop consistency, and stricter compiler diagnostics.
+
+### Added
+
+#### Compiler
+- Resolve dot-separated PHP class names and root-class aliases (#1553)
+- Warn optionally about deprecated backslash namespace separators (#1567)
+- Use dot-separated names in stdlib namespaces and `:use` clauses (#1567, #1576)
+- Support `\uNNNN` Unicode escapes in string literals (#1679)
+
+#### Core
+- Add list matchers to `case` (#1615)
+- Add optional hierarchy arguments to hierarchy functions (#1543)
+- Add `into-array` for `.cljc` interop (#1550)
+- Compare numeric values consistently in `==` (#1561)
+- Support `[size init-val-or-seq]` in primitive array helpers (#1562)
+
+### Changed
+
+- **BREAKING**: Require PHP 8.4
+- **BREAKING**: Move async functions to `phel\core`; keep `delay` in `phel\async` (#1548)
+
+#### Core
+- Expose `future` from `phel\core` (#1537)
+
+### Fixed
+
+#### Core
+- `conj` and `conj!` ignore `nil` entries on maps (#1683)
+- `reversible?` and `rseq` handle sorted sets (#1681)
+- `/` preserves `##Inf`, `##-Inf`, and `##NaN` when dividing by zero (#1658)
+- `sort-by` accepts the comparator before the collection (#1657)
+- `conj` prepends values to lazy sequences like `(range)` (#1650)
+- Improve `nil` handling in `nth`, `rand-nth`, `take-last`, `rest`, and `contains?` (#1592, #1638, #1644, #1652, #1655, #1656)
+- Improve set support in sequence functions including `first`, `ffirst`, `second`, `next`, `nfirst`, `fnext`, `nnext`, and `some` (#1639, #1642, #1649)
+- Improve collection edge cases in `seq`, `cons`, `pop`, `nth`, `take-last`, and `take-nth` (#1598, #1599, #1600, #1641, #1643, #1645)
+- Improve map and seq behavior in `apply`, `merge`, `dissoc`, `find`, and `mapcat` (#1602, #1603, #1606, #1607, #1646, #1651, #1653)
+- `assoc!` handles `apply` trailing keys with `nil` values (#1609)
+- `get-in` returns `nil` or default when traversal goes too deep (#1640)
+- `sort` handles `(sort comp coll)`, maps, and nested vectors (#1610, #1611, #1613)
+- Dynamic bindings are fiber-local and propagate through `future` and `async` (#1536)
+- Hierarchy lookups handle invalid arguments, inline protocols, and PHP parents (#1591, #1597)
+- Sequential equality is symmetric across lists, vectors, and lazy seqs (#1546)
+- `()` is self-quoting (#1549)
+- Hierarchy checks include PHP parents and interfaces for class-string tags (#1560)
+- Bare `apply` resolves as a first-class function (#1564)
+- `eval` returns already-evaluated PHP objects unchanged (#1563)
+
+#### Build
+- Skip unparseable `.phel` files during directory scans
+
+#### API
+- Preload `phel\core` in `phel analyze` so core macros resolve (#1539)
+
+#### Test
+- `run-tests` resets assertion counts for each run (#1604)
+- Default reporter prints string literals readably in failures (#1601)
+
+#### REPL
+- Accept bare namespace symbols in `dir` (#1588)
+
+#### Compiler
+- Resolve PHP class aliases consistently regardless of case (#1567)
+- Reject unknown PHP symbols in `use` imports (#1688)
+- Imported PHP classes can be used as class-string values (#1560)
+- Lowercase root PHP classes resolve in constructor positions (#1567)
+- `php/new` reports invalid target types clearly (#1538)
+- Reader conditionals allow a newline before the closing paren (#1547)
+
+#### Lint
+- Alias-qualified required calls no longer report as unresolved (#1540)
+- Vendored stdlib files are skipped when linting with no arguments (#1541)
+
+## [0.34.1](https://github.com/phel-lang/phel-lang/compare/v0.34.0...v0.34.1) - 2026-04-21
+
+### Added
+
+#### CLI
+- `phel format --dry-run` lists files that would be reformatted; exits non-zero when any file would change (#1533)
+
+### Fixed
+
+#### Build
+- PHAR ships first-party `src/**/Test/` directories so `phel test` runs from the distributed archive (#1533)
+
+#### CLI
+- `bin/phel` sets `memory_limit=-1` for large-project tokenization
+- `phel doc` no longer emits `rmdir(...): No such file or directory` warnings when run from the PHAR
+
+### Docs
+- `docs/performance.md`: CLI opcache setup and cache reset
+
+## [0.34.0](https://github.com/phel-lang/phel-lang/compare/v0.33.0...v0.34.0) - 2026-04-20
+
 ### Added
 
 #### Reader & Compiler
-- `(ClassName. args)` constructor shorthand expands to `(php/new ClassName args)`, including namespaced classes like `\Some\Class.` (#1359)
-- `#uuid "…"` tagged literal reads as a canonical lowercase UUID string (#1376)
+- `#inst "..."` reads as `\DateTimeImmutable` and `#regex "..."` reads as a delimited PCRE string; user tags via `(register-tag "name" f)` in the new `phel\reader` namespace; `data-readers.phel` at any source root is auto-loaded (#1523)
+- `#php` reader literal: `#php [1 2 3]` expands to `(php-indexed-array 1 2 3)`; `#php {"a" 1}` to `(php-associative-array "a" 1)` (non-recursive) (#1472)
+- PHP interop shorthands: `(.method obj args)`, `(.-field obj)`, `(ClassName/method args)`, `\Ns\Class/MEMBER`, `(new ClassName args)` (#1467, #1471, #1477)
+- `def` returns a printable var ref (e.g. `#'user/my-var`) (#1468)
 
-#### Predicates
-- `ident?`, `simple-ident?`, `simple-keyword?`, `simple-symbol?` for symbol/keyword introspection (#1369, #1381)
-- `special-symbol?` — true if a symbol names a special form (#1384)
-- `ifn?` — true if the argument is callable as a function (#1370)
-- `neg-int?`, `pos-int?`, `nat-int?` integer predicates (#1374)
-- `sequential?` — true for ordered collections (vectors, lists, lazy sequences) (#1380)
-- `seqable?` — true if `seq` is supported for the argument (#1379)
+#### REPL
+- History vars `*1`, `*2`, `*3`, and `*e` for last exception (#1474)
+- Prompt shows current namespace and tracks `(ns ...)` switches (#1474)
 
-#### Sequences & Collections
-- `nth`, `nthrest`, `nthnext` with Clojure-compatible semantics (#1375)
-- `fnext` — equivalent to `(first (next coll))` (#1368)
-- `rseq` and `reversible?` — constant-time reverse view of a vector or sorted-map (#1378)
-- `empty` — returns an empty collection of the same type, or nil (#1365)
-- `key` and `val` for extracting from a map entry (#1372)
-- `(keyword ns name)` arity for namespaced keywords (#1428)
-- `mapcat` accepts multiple collections, zipping elements into `f` (#1428)
-- Transient vectors, maps, and sets are callable like their persistent counterparts (#1428)
+#### CLI
+- `phel eval -` reads the expression from stdin (#1494)
+- `phel agent-install [<platform>|--all]` writes skill files for Claude Code, Cursor, Codex, Gemini, Copilot, Aider; `--with-docs`, `--dry-run`, `--force` (#1495)
+- `phel nrepl --port=N --host=addr` bencode-over-TCP nREPL server with `eval`, `clone`, `close`, `describe`, `load-file`, `interrupt`, `completions`, `lookup`, `info`, `eldoc` (#1507)
+- `phel analyze <file>` prints JSON diagnostics; `phel index <dir>... [--out=file.json]` builds a symbol table; `phel api-daemon` serves the Api facade as JSON-RPC on stdio (#1508)
+- `ApiFacade::analyzeSource`, `indexProject`, `resolveSymbol`, `findReferences`, `completeAtPoint` (#1508, #1518, #1525)
+- `phel lint [paths]... [--format=human|json|github] [--config=path] [--no-cache]` with rules: unresolved-symbol, arity-mismatch, unused-binding, unused-require, unused-import, shadowed-binding, redundant-do, duplicate-key, invalid-destructuring, discouraged-var; configurable via `phel-lint.phel` (#1509)
+- `phel watch [paths]... [-b backend] [--poll=500] [--debounce=100]` reloads changed namespaces in dependency order (inotify, fswatch, polling); `(watch! ["src/"])` via `phel\watch` (#1512)
+- `phel lsp` LSP v3.17 server over stdio with hover, definition, references, completion, document/workspace symbols, rename, formatting, debounced publishDiagnostics (#1513)
 
-#### PHP Interop
-- `aget` and `aset` for PHP array access and mutation, with nested index support (#1356)
-- `int-array`, `long-array`, `float-array`, `double-array`, `short-array` typed array constructors (#1382)
-- `int`, `long`, `short` coercion functions for Clojure compatibility (#1371, #1383)
-- `uuid?` and `parse-uuid` complementing the existing `random-uuid` (#1377)
-- `alter-var-root` stub that throws `BadMethodCallException` with a migration hint; documented as out of scope in `docs/clojure-migration.md` (#1357)
-- `parse-double` accepts `Infinity`, `-Infinity`, and `NaN` (#1428)
+#### Agent docs
+- `.agents/` ships task recipes, per-platform adapters, and example projects (`todo-app`, `http-json-api`, `cli-wordcount`) (#1495)
+- `composer test-agents` validates every example; runs in CI (#1500)
+
+#### Formatter
+- Aligns key/value pairs in `cond`, `case`, `condp`, and bindings of `let`/`loop`/`binding`/`for`/`foreach`/`dofor`/`if-let`/`when-let` (#1452)
+
+#### Testing
+- `phel\test/report` is a multimethod dispatching on event `:type` (#1516)
+- Reporters: `default`, `testdox`, `dot`, `tap`, `junit-xml`; select via `phel test --reporter=<name>` (repeatable); `--output=path` for junit-xml (#1516)
+- `phel test` selectors: `--include=<tag>`, `--exclude=<tag>`, `--ns=<glob>`, `--filter=<regex>` (repeatable); tag via `^:integration` or `^{:tags [:integration :slow]}`; skipped tests emit `:skipped` (#1517)
+- `defspec` shrinks counterexamples via rose-tree `phel\test\shrink`; emits `:defspec-failed` with `:shrunk-args`, `:original-args`, `:shrink-steps`, `:seed`; `^:no-shrink` or `:shrink? false` opts out (#1519)
 
 #### Modules
-- `phel\http-client` — outbound HTTP requests over PHP streams
-- `phel\ai` — chat, completions, structured extraction, tool use, embeddings, semantic search
+- `phel\test\gen`: generators, `sample`, `quick-check`, `defspec` with seedable PRNG (#1451)
+- `phel\ai`: `chat-with-tools` OpenAI tool use, `tool-calls`, `tool-result`; exponential backoff on 429/5xx; per-call `opts` (`:provider`, `:timeout`, `:base-url`, `:api-key`, `:max-retries`); `*http-post*` seam; `docs/ai-guide.md` (#1456)
+- `phel\core`: `uuid=`, `uuid-nil?`, `uuid-version`, `uuid-variant` (#1476)
+- `phel\core`: `defmulti` accepts optional docstring `(defmulti name "doc" dispatch-fn)` (#1515)
+- `phel\repl`: `find-ns`, `create-ns`, `remove-ns`, `intern`, `ns-interns` (#1488)
+- `phel\cli`: spec-map wrapper over `symfony/console` with prompts, tables, progress, coercion, hooks, signals, test helpers; `docs/cli-guide.md` (#1498)
+- `phel\match`: `match` macro with literal, vector, map, wildcard, `:as`, `:guard`, `:or`, rest-binding patterns (#1511)
+- `phel\schema`: `validate`, `explain`, `conform`, `coerce`, `generate`, `instrument!`; kinds `:vector`, `:set`, `:map`, `:map-of`, `:tuple`, `:enum`, `:and`, `:or`, `:maybe`, `:re`, `:fn`, `:ref`, `[:=> args ret]`; named-schema registry (#1520)
+- `phel\async`: fiber-backed `promise`, `deliver`, `future-call`, `future-fiber`, `future?`; 3-arg `deref` timeouts; `docs/async-guide.md` (#1521, #1522)
+- `phel doc` and REPL completion cover `phel\async`, `phel\cli`, `phel\match`, `phel\pprint`, `phel\router`, `phel\walk`, `phel\test\gen` (#1518)
+
+### Fixed
+
+#### REPL & Compiler
+- `eval()` runtime errors map to user `string:N` via source map (#1475)
+- Non-callable literal calls (`('foo)`, `(42)`, `(nil)`, `("x")`) raise `PHEL011` at analysis time with source location (#1473)
+- REPL multi-line buffer counts `#(...)`, `|(...)`, `#?(...)`, `#?@(...)`, `[]`, `{}`, `#{...}` toward balance (#1493)
+
+#### Build
+- `phel build` suppresses compiled-program stdout during compilation (#1455)
+- Windows cache: drive-letter and UNC paths preserved verbatim (#1465)
+- `build/release.sh` bumps `.agents/VERSION` alongside `VersionFinder.php` and `CHANGELOG.md`
+
+#### Modules
+- `phel\ai/check-response` raises `RuntimeException` with provider message when body lacks `:error :message` (#1456)
+- `phel\ai` text extraction picks first `text` block, skipping preceding `tool_use` (#1456)
+- `phel\http/request-from-globals` error points to `request-from-map` for tests (#1524)
+- `(:key nil)` returns default (#1504)
+- `(get v nil)` and `(get l nil)` return default on vectors/lists (#1504)
+- Vector/list with nil index raise `InvalidArgumentException` (#1504)
+- Stack-trace arg rendering truncates each Phel argument at 200 chars (#1504)
+- `phel test --reporter=junit-xml` preserves namespace and testcase order in output (#1528)
+
+### Changed
+
+- `docs/php-interop.md`: namespaced PHP functions (`php/Amp\trapSignal`) and `(def alias php/\Ns\fn)` capture (#1469)
+- `phel build` prints summary with fresh/cached counts and output directory (#1455)
+- `phel\ai/chat-with-tools` returns `{:text :tool-calls :stop-reason :raw}` (#1456)
+
+### Removed
+
+#### Public API
+- `phel\http/create-response-from-map`, `phel\http/create-response-from-string` (use `response-from-map` / `response-from-string`) (#1491)
+- `Keyword::createForNamespace()` (use `Keyword::create($name, $namespace)`) (#1485)
+- `PhelConfig::setOut()` (use `PhelConfig::setBuildConfig()`) (#1485)
+- `PhelBuildConfig::setMainPhpFilename()` (use `PhelBuildConfig::setMainPhpPath()`) (#1485)
+- `PhelFunction` accessors `name()`, `doc()`, `fnSignatures()`, `signature()`, `description()`, `groupKey()`, `githubUrl()`, `docUrl()`, `file()`, `line()`, `namespace()` (use readonly properties) (#1485)
+
+#### Internals
+- `GlobalEnvironmentNotInitializedException`, `PhelFileFinder`, `PhelFileFinderInterface` (#1482, #1490)
+- `FileException::canNotCreateTempFile()`, `ExtractorException::duplicateNamespace()`, `EmitterResult::getSource()`, `TokenStream::getReadTokens()`, `LoadClasspath::resetCache()` (#1482, #1490)
+
+### Changed (breaking)
+
+- `phel init` defaults to Flat layout (`src/`, `tests/`); pass `--nested` to keep the legacy `src/phel/<name>/` layout. Existing projects keep working since scaffolding only runs on new projects (#1453).
+- `ProjectLayout::Conventional` renamed to `ProjectLayout::Nested`; `PhelConfig::useConventionalLayout()` renamed to `useNestedLayout()` (#1453).
+
+## [0.33.0](https://github.com/phel-lang/phel-lang/compare/v0.32.0...v0.33.0) - 2026-04-17
+
+### Added
+
+#### Tooling & CLI
+- `cache:warm` command
+- `debug:container`, `debug:dependencies`, `debug:modules`, `list:modules`, `profile:report`, `validate:config` commands
+- `build/preload.php` opcache preload script
+- `phel doctor` Build health check and Gacela module health checks
+
+#### Build & Caching
+- `ScopedCache` for dependency-aware cache invalidation
+- `#[Cacheable]` on directory lookups and namespace encoding
+- `cache:clear` clears Gacela class-name and merged-config caches
+
+#### Testing
+- `ContainerFixture` trait resets Gacela container between tests
+- `use-fixtures` for `:each` / `:once` fixtures (#1439)
+
+#### Reader & Compiler
+- `(use ClassName [:as Alias] ...)` top-level form
+- `(ClassName. args)` constructor shorthand (#1359)
+- `#uuid "…"` tagged literal (#1376)
+- Ratio literals `N/M`; `1/0` → `INF`, `0/0` → `NaN`
+- `:syms` map destructuring
+
+#### Predicates
+- `ident?`, `simple-ident?`, `simple-keyword?`, `simple-symbol?` (#1369, #1381)
+- `special-symbol?` (#1384), `ifn?` (#1370)
+- `neg-int?`, `pos-int?`, `nat-int?` (#1374)
+- `sequential?` (#1380), `seqable?` (#1379)
+- `any?`, `ratio?`, `instance?` (#1433)
+
+#### Sequences & Collections
+- `nth`, `nthrest`, `nthnext` (#1375)
+- `fnext` (#1368)
+- `rseq`, `reversible?` (#1378)
+- `empty` (#1365)
+- `key`, `val` (#1372)
+- `(keyword ns name)` arity (#1428)
+- `mapcat` multi-collection arity (#1428)
+- Transients callable like persistents (#1428)
+
+#### PHP Interop
+- `aget`, `aset` with nested index support (#1356)
+- `int-array`, `long-array`, `float-array`, `double-array`, `short-array` (#1382)
+- `int`, `long`, `short` coercion (#1371, #1383)
+- `uuid?`, `parse-uuid` (#1377)
+- `alter-var-root` stub (out of scope) (#1357)
+- `parse-double` accepts `Infinity`, `-Infinity`, `NaN` (#1428)
+- `alength` (#1433)
+
+#### Observability
+- `tap>`, `add-tap`, `remove-tap`; synchronous dispatch, swallows tap exceptions
+
+#### Modules
+- `phel\router`: data-driven router on `symfony/routing`; `routes`, `:route-name`, per-case error handlers
+- `phel\http-client`: outbound HTTP over PHP streams
+- `phel\ai`: chat, completions, structured extraction, tool use, embeddings, semantic search
 - `phel\repl` AI helpers: `explain`, `suggest`, `fix`, `review`, `embed-ns`, `search-ns`
 
 ### Fixed
 
-- `keyword` is idempotent on keywords and handles `nil` / symbol input (#1428)
-- `dissoc` accepts zero keys and reduces over variadic key lists (#1428)
-- `keys` / `vals` return `nil` for `nil` or empty collections (#1428)
-- `make-hierarchy` exposes `:parents`, `:descendants`, and `:ancestors` keys (#1428)
-- `first` on a map returns its first entry, so `ffirst` / `nfirst` work on maps (#1428)
-- `str` preserves float representation — `(str 0.0)` → `"0.0"`, readable `NaN` / `±Infinity` (#1428)
-- `compare` throws `InvalidArgumentException` on cross-category arguments; `nil` stays less than every non-nil value (#1428)
-- `:keyword` lookup works on transient maps (#1428)
-- `deftest` rejects a missing/non-symbol name with a clear `InvalidArgumentException` instead of crashing inside macro expansion (#1364)
-- `(def name)` without a value no longer throws; binds `nil`, matching Clojure (#1361)
-- `doseq` accepts Clojure-style pairs `(doseq [x coll] body)` without requiring the `:in` verb (#1362)
-- `drop-last` works with lazy sequences and ranges, returning a lazy sequence (#1360)
-- `(empty? (range))` no longer hangs; `empty?` checks `first` for lazy sequences instead of `count` (#1366)
-- `is` no longer misinterprets `let`/`when`/`cond` forms as binary predicates (#1367)
-- `defrecord`/`defstruct`/`defexception`/`definterface` no longer emit invalid PHP namespace declarations in statement mode (#1358)
+- `CompiledCodeCache` keys by source file path (cache version 1.2)
+- `keyword` idempotent; handles `nil` / symbol (#1428)
+- `dissoc` accepts zero keys and variadic (#1428)
+- `keys` / `vals` return `nil` for `nil` or empty (#1428)
+- `make-hierarchy` exposes `:parents`, `:descendants`, `:ancestors` (#1428)
+- `first` on map returns its first entry (#1428)
+- `str` preserves float representation; readable `NaN` / `±Infinity` (#1428)
+- `compare` throws on cross-category; `nil` less than non-nil (#1428)
+- `:keyword` lookup on transient maps (#1428)
+- `deftest` rejects missing/non-symbol names (#1364)
+- `(def name)` binds `nil` (#1361)
+- `doseq` pair bindings without `:in` (#1362)
+- `doseq` iterates maps as `[k v]` entries (#1433)
+- `is` accepts scalar literals (#1433)
+- `drop-last` on lazy sequences and ranges (#1360)
+- `(empty? (range))` terminates (#1366)
+- `is` handles `let` / `when` / `cond` (#1367)
+- `defrecord` / `defstruct` / `defexception` / `definterface` valid in statement mode (#1358)
+- `defstruct` / `defrecord` / `defexception` / `definterface` nestable in function bodies
+- `phel\router` error dispatch: 404/405/406
+- Namespace extractors skip build output directory
 
 ### Changed
 
-- Reorganized Phel test files: dissolved `core.phel` into topic files under `core/`; moved `comments.phel`, `special-forms.phel`, `multi-arity-fn.phel` into `core/`
+- Upgraded Gacela to ^1.14; `#[Provides]` providers with `getRequired()`
+- `Phel::run()` resolves `FilesystemFacade` via `Gacela::getRequired()`
+- `composer test-quality` runs `validate:config`
+- Dropped `phpunit/php-timer`; internal resource-usage formatter
+- **Breaking:** `phel\str` renamed to `phel\string` (#1440)
+- `(load path)`: relative from caller file; `/path` classpath-absolute via `phel\repl/src-dirs`; `./`, `../`, `.phel` rejected
+- `src/phel/core.phel` split into topic files under `src/phel/core/`
+- Phel test files reorganized into `core/`
+- `phel\router` caches Symfony matcher/generator and precompiles middleware
+- `phel test` skips compile failures; `--fail-fast` aborts
+
+### Removed
+
+- `phel\debug` namespace (`dotrace`, `dbg`, `spy`, `tap`, `reset-trace-state!`, `set-trace-id-padding!`)
+
+### Performance
+
+- Hot type predicates via `php/instanceof` / `php/is_*`: `vector?`, `list?`, `set?`, `keyword?`, `symbol?`, `string?`, `boolean?`, `integer?`, `float?`, `number?`, `php-array?`, `indexed?`, `associative?`, `sequential?`, `coll?`
+- `every?` / `all?` use `empty?` (O(1) on lazy seqs)
+- `select-keys` O(|ks|)
+- `into` transient fast-path
+- Transient accumulators in `set`, `vec`, `frequencies`, `merge`, `merge-with`, `select-keys`, `rename-keys`, `update-keys`, `update-vals`, `invert`, `group-by`
+- `reverse`, `sort`, `sort-by`, `shuffle`, `doall`, string `next` / `rest` / `seq` build vectors from PHP array directly
+- `zipcoll` delegates to `zipmap`
+- Removed shadowed eager `interleave` / `interpose`
 
 ## [0.32.0](https://github.com/phel-lang/phel-lang/compare/v0.31.0...v0.32.0) - 2026-04-12
 

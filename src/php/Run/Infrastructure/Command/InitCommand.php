@@ -19,7 +19,7 @@ final class InitCommand extends Command
 {
     private const string ARG_PROJECT_NAME = 'project-name';
 
-    private const string OPT_FLAT = 'flat';
+    private const string OPT_NESTED = 'nested';
 
     private const string OPT_MINIMAL = 'minimal';
 
@@ -51,10 +51,10 @@ final class InitCommand extends Command
                 'app',
             )
             ->addOption(
-                self::OPT_FLAT,
-                'f',
+                self::OPT_NESTED,
+                null,
                 InputOption::VALUE_NONE,
-                'Use flat directory layout (src/ instead of src/phel/)',
+                'Use nested directory layout (src/phel/ instead of src/)',
             )
             ->addOption(
                 self::OPT_MINIMAL,
@@ -175,11 +175,11 @@ final class InitCommand extends Command
             return ProjectLayout::Root;
         }
 
-        if ((bool) $input->getOption(self::OPT_FLAT)) {
-            return ProjectLayout::Flat;
+        if ((bool) $input->getOption(self::OPT_NESTED)) {
+            return ProjectLayout::Nested;
         }
 
-        return ProjectLayout::Conventional;
+        return ProjectLayout::Flat;
     }
 
     private function mainFilename(ProjectLayout $layout): string

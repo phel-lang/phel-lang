@@ -1,131 +1,38 @@
-(ns phel\async)
+(ns phel.async)
 
-;; Thin convenience layer over AMPHP (amphp/amp).
-
-(defn ->closure
-  "Converts a Phel function to a PHP Closure.
-  Many PHP libraries (AMPHP, ReactPHP) type-hint `\\Closure` and reject
-  Phel's `AbstractFn` even though it is callable. This bridges the gap."
-  {:doc "Converts a callable (e.g. Phel function) to a PHP \\Closure."
-   :example "(->closure (fn [x] (* x 2)))"}
-  [f]
-  (php/:: \Closure (fromCallable f)))
-
-(defmacro async
-  "Runs body asynchronously in a new fiber. Returns an Amp\\Future."
-  {:doc "Runs body asynchronously. Returns a Future."
-   :example "(async (do-something))"}
-  [& body]
-  `(php/amp\async (fn [] ~@body)))
-
-(defmacro future
-  "Starts evaluating `body` asynchronously and returns a `PhelFuture`
-  that can be `deref`ed (blocks the current fiber until the value is
-  available) or checked with `realized?`. Matches Clojure's `future`.
-
-  Supports the 3-arg `(deref f timeout-ms timeout-val)` form for
-  time-bounded blocking, as well as `future-cancel`, `future-cancelled?`
-  and `future-done?` for lifecycle management.
-
-  Must be called from inside a fiber context (e.g. the AMPHP event
-  loop or an enclosing `async` block), because `deref` resolves via
-  AMPHP's fiber-based `await`."
-  {:doc "Clojure-style `future`: runs body asynchronously, deref for result."
-   :example "(let [f (future (expensive-computation))] @f)"
-   :see-also ["async" "await" "realized?" "deref" "future-cancel" "future-done?"]}
-  [& body]
-  `(php/new \Phel\Lang\PhelFuture
-            (php/amp\async (fn [] ~@body))
-            (php/new \Amp\DeferredCancellation)))
-
-(defn- unwrap-future
-  "Returns the raw Amp\\Future for either a `PhelFuture` wrapper or
-  a bare `Amp\\Future`."
-  [future]
-  (if (php/instanceof future \Phel\Lang\PhelFuture)
-    (php/-> future (unwrap))
-    future))
-
-(defn await
-  "Blocks the current fiber until the Future resolves and returns its value.
-  Accepts either a raw `Amp\\Future` or a `PhelFuture` wrapper."
-  {:doc "Awaits a Future (Amp\\Future or PhelFuture), returning its resolved value."
-   :example "(await (async (+ 1 2)))"}
-  [future]
-  (php/-> (unwrap-future future) (await)))
+;; Historical home of Phel's async surface. As of #1548 the
+;; Clojure-parity primitives (`async`, `await`, `await-all`, `await-any`,
+;; `pmap`, `promise`, `deliver`, `future-call`, `future-fiber`, `future?`,
+;; `future-cancel`, `future-cancelled?`, `future-done?`, `->closure`)
+;; have moved to `phel.core` so `.cljc` portable code can use them
+;; without an explicit require, mirroring `clojure.core`.
+;;
+;; This namespace stays alive because `delay` is intentionally divergent
+;; from `clojure.core/delay` (lazy thunk in Clojure, suspending sleep
+;; here) — keeping it behind `phel.async` makes the divergence explicit
+;; for `.cljc` portability work and avoids silently hijacking the
+;; Clojure name in core.
+;;
+;; See `docs/async-guide.md` for the full decision guide and examples.
 
 (defn delay
-  "Suspends the current fiber for the given number of seconds (float)."
-  {:doc "Suspends the current fiber for `seconds`."
-   :example "(delay 0.5)"}
+  "Suspends execution for `seconds` (a float; supports sub-second
+  precision such as `0.05`).
+
+  At the top level this behaves like `php/sleep` / `php/usleep`: it
+  blocks the script for the given duration. Inside an `async`/`future`
+  body — or any AMPHP fiber context — it suspends the *fiber* (not the
+  whole process), so other concurrent fibers keep running and the
+  delay is cancellable via `future-cancel`.
+
+  `phel.async/delay` is **not** the Clojure `clojure.core/delay`. The
+  Clojure form returns a lazy thunk that caches the result of evaluating
+  `body` on first `deref`; Phel's version is a sleep primitive. They are
+  unrelated. Reach for `phel.async/delay` when you want to throttle, time
+  out, or compose with `future` / `pmap`; reach for `php/sleep` when you
+  just want a blocking pause and don't care about fiber semantics."
+  {:example "(delay 0.5) ; suspends current fiber for 500ms
+  (async (delay 1.0) :done) ; => future that resolves after 1s"
+   :see-also ["async" "await" "future" "future-cancel"]}
   [seconds]
   (php/amp\delay seconds))
-
-(defn await-all
-  "Awaits all Futures in the given collection. Returns a vector of results.
-  Accepts a mix of raw `Amp\\Future` and `PhelFuture` wrappers."
-  {:doc "Awaits all Futures, returning a vector of their resolved values."
-   :example "(await-all [(async 1) (async 2)])"}
-  [futures]
-  (let [php-futures (to-php-array (map unwrap-future futures))]
-    (for [v :in (php/amp\future\await php-futures)]
-      v)))
-
-(defn await-any
-  "Awaits the first Future to resolve. Returns its value.
-  Accepts a mix of raw `Amp\\Future` and `PhelFuture` wrappers."
-  {:doc "Returns the value of the first Future to resolve."
-   :example "(await-any [(async 1) (async 2)])"}
-  [futures]
-  (let [php-futures (to-php-array (map unwrap-future futures))]
-    (php/amp\future\awaitfirst php-futures)))
-
-(defn pmap
-  "Like `map`, but applies `f` to elements in parallel via fibers.
-
-  Returns a vector of results in the original order. With multiple
-  collections, applies `f` to corresponding elements from each collection,
-  stopping when the shortest collection is exhausted.
-
-  Best for IO-bound work (HTTP, DB, file IO). Because PHP fibers are
-  cooperative on a single thread, `pmap` does not speed up CPU-bound
-  computations — unlike Clojure's thread-based `pmap`."
-  {:doc "Parallel map via AMPHP fibers. IO-parallel, not CPU-parallel."
-   :example "(pmap inc [1 2 3]) ; => [2 3 4]"
-   :see-also ["map" "async" "await-all"]}
-  [f & colls]
-  (case (count colls)
-    0 (throw (php/new \InvalidArgumentException "pmap expects at least one collection"))
-    1 (await-all (map #(async (f %)) (first colls)))
-    (await-all (apply map (fn [& args] (async (apply f args))) colls))))
-
-(defn future-cancel
-  "Signals the future's internal cancellation token, causing any pending
-  or subsequent `deref` call to raise `CancelledException` (or return the
-  timeout value for the 3-arg form). Due to AMPHP's cooperative fibers,
-  the body keeps running until its next cancellation checkpoint; from
-  the caller's perspective the future behaves as cancelled after this
-  returns. Matches Clojure's `future-cancel` semantics at the API level,
-  with cooperative-fiber caveats."
-  {:doc "Cancels a PhelFuture by signalling its internal DeferredCancellation token."
-   :example "(future-cancel (future (expensive-call)))"
-   :see-also ["future" "future-cancelled?" "future-done?" "deref"]}
-  [f]
-  (php/-> f (cancel)))
-
-(defn future-cancelled?
-  "Returns `true` if `future-cancel` was called on `f`, `false` otherwise."
-  {:doc "Returns true if future-cancel was called on the given PhelFuture."
-   :example "(future-cancelled? f)"
-   :see-also ["future-cancel" "future-done?" "future"]}
-  [f]
-  (php/-> f (isCancelled)))
-
-(defn future-done?
-  "Returns `true` if the future is in a final state (completed, failed,
-  or cancelled). Alias for `realized?` when applied to a `PhelFuture`."
-  {:doc "Returns true if the future is in any final state (completed, failed, or cancelled)."
-   :example "(future-done? f)"
-   :see-also ["realized?" "future-cancel" "future"]}
-  [f]
-  (realized? f))

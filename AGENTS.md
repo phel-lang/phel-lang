@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 
-Phel is a Lisp that compiles to PHP, inspired by Clojure and Janet. The codebase has two source trees:
+Phel is a Lisp that compiles to PHP, inspired by Clojure. The codebase has two source trees:
 
 - **`src/php/`** — PHP runtime and compiler (PSR-4: `Phel\`). Key modules: `Lang` (persistent data types), `Compiler` (lex/parse/analyze/emit pipeline), `Run` (namespace execution and REPL), `Console` (Symfony CLI), `Command` (shared command helpers), `Build` (build orchestration), `Config` (configuration), and `Shared` (constants and facades).
 - **`src/phel/`** — Core library written in Phel itself: `core`, `str`, `html`, `http`, `json`, `test`, `repl`, `walk`, `pprint`, `debug`, `mock`.
@@ -17,7 +17,7 @@ Entry points live in `Phel.php` and `bin/`, distributable artifacts and scripts 
 - `composer test-compiler`: PHPUnit suites (`unit`, `integration`).
 - `composer test-core`: exercises Phel core tests via `bin/phel test`.
 - `composer fix`: auto-fix code style (chains Rector and CS Fixer).
-- `composer phpstan` / `composer psalm`: static analysis tuned for PHP 8.3.
+- `composer phpstan` / `composer psalm`: static analysis tuned for PHP 8.4.
 - `composer phpbench`: run benchmarks; `composer phpbench-base` (baseline), `composer phpbench-ref` (compare).
 - `./build/phar.sh`: creates `build/out/phel.phar` for distribution testing.
 
@@ -44,3 +44,15 @@ Commit history uses conventional prefixes (`feat:`, `fix:`, `ref:`, `chore:`, `d
 terse imperative summary; include issue refs (e.g., `#123`) when applicable. PR descriptions should follow
 `.github/PULL_REQUEST_TEMPLATE.md` exactly (including emoji prefixes), link related issues with "Closes #X", and update
 `CHANGELOG.md` under `## Unreleased` for user-facing changes.
+
+## Agent Tooling
+
+Repo-maintenance agent files are adapter-native:
+
+- `.codex/` contains Codex config, hooks, exec rules, and custom subagents.
+- `.claude/` contains Claude Code settings, hooks, skills, agents, and scoped rules.
+- `resources/agents/` contains downstream assets installed into user projects as `.agents/`.
+
+Avoid duplicating long-form guidance across adapter folders. Keep durable repository policy here in `AGENTS.md`, keep
+tool-specific mechanics inside the matching adapter directory, and update both adapters only when the behavior truly
+differs by tool.

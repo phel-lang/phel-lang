@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phel\Build;
 
 use Gacela\Framework\AbstractFactory;
+use Gacela\Framework\Health\ModuleHealthCheckInterface;
+use Phel\Build\Application\BuildHealthCheck;
 use Phel\Build\Application\CacheClearer;
 use Phel\Build\Application\CachedNamespaceExtractor;
 use Phel\Build\Application\DependenciesForNamespace;
@@ -13,16 +15,20 @@ use Phel\Build\Application\FileEvaluator;
 use Phel\Build\Application\NamespaceExtractor;
 use Phel\Build\Application\ProjectCompiler;
 use Phel\Build\Domain\Cache\NamespaceCacheInterface;
+use Phel\Build\Domain\Compile\CompiledTargetPathResolver;
 use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFile;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
 use Phel\Build\Domain\Compile\Output\NamespacePathTransformer;
+use Phel\Build\Domain\Compile\SecondaryFileHarvester;
+use Phel\Build\Domain\Extractor\ExcludedScanPaths;
 use Phel\Build\Domain\Extractor\FirstFormExtractor;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Domain\IO\FileIoInterface;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
+use Phel\Build\Infrastructure\Cache\DependencyTracker;
 use Phel\Build\Infrastructure\Cache\PhpNamespaceCache;
 use Phel\Build\Infrastructure\IO\SystemFileIo;
 use Phel\Console\Application\VersionFinder;
@@ -43,6 +49,7 @@ final class BuildFactory extends AbstractFactory
             $this->getCommandFacade(),
             $this->createMainPhpEntryPointFile(),
             $this->getConfig(),
+            $this->createSecondaryFileHarvester(),
         );
     }
 
@@ -64,30 +71,47 @@ final class BuildFactory extends AbstractFactory
 
     public function createFileEvaluator(): FileEvaluator
     {
-        return new FileEvaluator(
-            $this->getCompilerFacade(),
-            $this->createNamespaceExtractor(),
-            $this->createCompiledCodeCache(),
-            $this->createFirstFormExtractor(),
+        // `singleton()` so repeated `(load ...)` calls reuse one
+        // evaluator — otherwise each fresh `new BuildFacade()` would
+        // rebuild its dependency tree and the on-disk compiled-code
+        // index would be re-included per load.
+        return $this->singleton(
+            FileEvaluator::class,
+            fn(): FileEvaluator => new FileEvaluator(
+                $this->getCompilerFacade(),
+                $this->createNamespaceExtractor(),
+                $this->createCompiledCodeCache(),
+                $this->createFirstFormExtractor(),
+                $this->createDependencyTracker(),
+            ),
         );
     }
 
     public function createNamespaceExtractor(): NamespaceExtractorInterface
     {
-        $innerExtractor = new NamespaceExtractor(
-            $this->getCompilerFacade(),
-            $this->createNamespaceSorter(),
-            $this->createFileIo(),
-        );
+        return $this->singleton(
+            NamespaceExtractorInterface::class,
+            function (): NamespaceExtractorInterface {
+                $excludedPaths = $this->createExcludedScanPaths();
 
-        if (!$this->getConfig()->isNamespaceCacheEnabled()) {
-            return $innerExtractor;
-        }
+                $innerExtractor = new NamespaceExtractor(
+                    $this->getCompilerFacade(),
+                    $this->createNamespaceSorter(),
+                    $this->createFileIo(),
+                    $excludedPaths,
+                );
 
-        return new CachedNamespaceExtractor(
-            $innerExtractor,
-            $this->createNamespaceCache(),
-            $this->createNamespaceSorter(),
+                if (!$this->getConfig()->isNamespaceCacheEnabled()) {
+                    return $innerExtractor;
+                }
+
+                return new CachedNamespaceExtractor(
+                    $innerExtractor,
+                    $this->createNamespaceCache(),
+                    $this->createNamespaceSorter(),
+                    $excludedPaths,
+                );
+            },
         );
     }
 
@@ -96,6 +120,15 @@ final class BuildFactory extends AbstractFactory
         return new CacheClearer(
             $this->getConfig()->getTempDir(),
             $this->getConfig()->getCacheDir(),
+        );
+    }
+
+    public function createBuildHealthCheck(): ModuleHealthCheckInterface
+    {
+        return new BuildHealthCheck(
+            $this->getConfig()->getCacheDir(),
+            $this->getCommandFacade()->getOutputDirectory(),
+            $this->getCommandFacade()->getSourceDirectories(),
         );
     }
 
@@ -109,7 +142,29 @@ final class BuildFactory extends AbstractFactory
         return $this->getProvidedDependency(BuildProvider::FACADE_COMMAND);
     }
 
+    private function createSecondaryFileHarvester(): ?SecondaryFileHarvester
+    {
+        $compiledCodeCache = $this->createCompiledCodeCache();
+        if (!$compiledCodeCache instanceof CompiledCodeCache) {
+            return null;
+        }
+
+        return new SecondaryFileHarvester(
+            $compiledCodeCache,
+            new CompiledTargetPathResolver($this->getCompilerFacade()),
+            $this->createFileIo(),
+        );
+    }
+
     private function createCompiledCodeCache(): ?CompiledCodeCache
+    {
+        return $this->singleton(
+            CompiledCodeCache::class,
+            fn(): ?CompiledCodeCache => $this->buildCompiledCodeCache(),
+        );
+    }
+
+    private function buildCompiledCodeCache(): ?CompiledCodeCache
     {
         if (!$this->getConfig()->isCompiledCodeCacheEnabled()) {
             return null;
@@ -118,6 +173,16 @@ final class BuildFactory extends AbstractFactory
         return new CompiledCodeCache(
             $this->getConfig()->getCacheDir(),
             VersionFinder::LATEST_VERSION,
+        );
+    }
+
+    private function createDependencyTracker(): ?DependencyTracker
+    {
+        return $this->singleton(
+            DependencyTracker::class,
+            fn(): ?DependencyTracker => $this->getConfig()->isCompiledCodeCacheEnabled()
+                ? new DependencyTracker($this->getConfig()->getCacheDir())
+                : null,
         );
     }
 
@@ -138,6 +203,21 @@ final class BuildFactory extends AbstractFactory
     private function createNamespaceSorter(): NamespaceSorterInterface
     {
         return new TopologicalNamespaceSorter();
+    }
+
+    /**
+     * Compiled output contains a `.phel` source copy next to every generated
+     * `.php`; excluding that dir prevents duplicate-namespace shadowing when a
+     * scan root (e.g. cwd) sits above it.
+     */
+    private function createExcludedScanPaths(): ExcludedScanPaths
+    {
+        $outputDirectory = $this->getCommandFacade()->getOutputDirectory();
+
+        return new ExcludedScanPaths(
+            excludedDirectories: [$outputDirectory],
+            destDirBasename: basename($outputDirectory),
+        );
     }
 
     private function createFileIo(): FileIoInterface

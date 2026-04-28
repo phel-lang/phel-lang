@@ -104,6 +104,20 @@ final class SliceGeneratorTest extends TestCase
         self::assertSame([1, 2, 3], iterator_to_array($result, false));
     }
 
+    public function test_take_nth_negative(): void
+    {
+        $result = SliceGenerator::takeNth(-2, [1, 2, 3, 4, 5, 6]);
+
+        self::assertSame([1, 3, 5], iterator_to_array($result, false));
+    }
+
+    public function test_take_nth_with_multibyte_string(): void
+    {
+        $result = SliceGenerator::takeNth(2, '🎉a🎊b');
+
+        self::assertSame(['🎉', '🎊'], iterator_to_array($result, false));
+    }
+
     // ==================== drop tests ====================
 
     public function test_drop_basic(): void

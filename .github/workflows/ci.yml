@@ -15,7 +15,7 @@ jobs:
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
+          php-version: 8.4
           coverage: none
           tools: composer
 
@@ -30,7 +30,7 @@ jobs:
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
+          php-version: 8.4
           coverage: none
           tools: composer
 
@@ -62,7 +62,7 @@ jobs:
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
+          php-version: 8.4
           coverage: none
           tools: composer
 
@@ -92,7 +92,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ '8.3', '8.4', '8.5' ]
+        php: [ '8.4', '8.5' ]
     steps:
       - uses: actions/checkout@v4
 
@@ -128,7 +128,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        php: [ '8.3' , '8.4', '8.5' ]
+        php: [ '8.4', '8.5' ]
     steps:
       - uses: actions/checkout@v4
 
@@ -163,7 +163,7 @@ jobs:
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
+          php-version: 8.4
           coverage: none
           tools: composer
 
@@ -192,7 +192,7 @@ jobs:
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
+          php-version: 8.4
           coverage: none
           tools: composer
 
@@ -222,6 +222,123 @@ jobs:
             '
 
 
+  agents-tests:
+    name: Agent docs validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.4
+          coverage: none
+          tools: composer
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-ansi --no-progress
+
+      - name: Validate .agents/ examples and core reference drift
+        run: composer test-agents
+
+  phar-smoke:
+    name: PHAR smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.4
+          coverage: none
+          tools: composer
+          ini-values: phar.readonly=0
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
+          restore-keys: ${{ runner.os }}-composer-
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-ansi --no-progress
+
+      - name: Build PHAR
+        run: ./build/phar.sh
+
+      - name: Assert PHAR exists and is under size budget
+        run: |
+          test -x build/out/phel.phar
+          size=$(stat -c%s build/out/phel.phar)
+          echo "PHAR size: $size bytes"
+          test "$size" -lt 2097152  # 2 MiB budget
+
+      - name: Boot PHAR from a clean directory
+        working-directory: /tmp
+        run: |
+          PHAR=$GITHUB_WORKSPACE/build/out/phel.phar
+          "$PHAR" --version
+          result=$("$PHAR" eval '(apply + [1 2 3 4])')
+          echo "$result"
+          echo "$result" | grep -q '10'
+
+      - name: Happy-path smoke for major PHAR commands
+        run: |
+          PHAR=$GITHUB_WORKSPACE/build/out/phel.phar
+          WORK=$(mktemp -d)
+          cd "$WORK"
+
+          echo "::group::phel init (flat layout)"
+          "$PHAR" init --no-interaction
+          test -f phel-config.php
+          test -d src
+          test -d tests
+          echo "::endgroup::"
+
+          echo "::group::phel doctor"
+          "$PHAR" doctor
+          echo "::endgroup::"
+
+          echo "::group::phel test (scaffolded tests must pass)"
+          "$PHAR" test
+          echo "::endgroup::"
+
+          echo "::group::phel build"
+          "$PHAR" build
+          echo "::endgroup::"
+
+          echo "::group::phel lint"
+          "$PHAR" lint src/
+          echo "::endgroup::"
+
+          echo "::group::phel format --dry-run (scaffolded project is already formatted)"
+          "$PHAR" format --dry-run src/
+          echo "::endgroup::"
+
+          echo "::group::phel eval - (stdin)"
+          result=$(echo '(println (+ 1 2 3))' | "$PHAR" eval -)
+          echo "$result" | grep -q '6'
+          echo "::endgroup::"
+
+          echo "::group::phel analyze (JSON diagnostics)"
+          "$PHAR" analyze src/main.phel > /tmp/analyze.json
+          echo "::endgroup::"
+
   bash-tests:
     name: Bash tests
     runs-on: ubuntu-latest
@@ -230,7 +347,7 @@ jobs:
 
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
+          php-version: 8.4
           coverage: none
           tools: composer
 

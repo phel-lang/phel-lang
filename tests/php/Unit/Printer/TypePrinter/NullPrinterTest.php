@@ -11,6 +11,6 @@ final class NullPrinterTest extends TestCase
 {
     public function test_print(): void
     {
-        self::assertSame('nil', (new NullPrinter())->print(null));
+        self::assertSame('nil', new NullPrinter()->print(null));
     }
 }

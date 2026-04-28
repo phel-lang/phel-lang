@@ -1,0 +1,4 @@
+(in-ns loade2e\core)
+
+(defn format-name [n]
+  (php/. banner-prefix "Hello, " n "!"))

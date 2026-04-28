@@ -10,7 +10,6 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\OutputEmitterOptions;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapState;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeInterface;
 
 interface OutputEmitterInterface
 {
@@ -49,9 +48,22 @@ interface OutputEmitterInterface
 
     public function emitFnWrapSuffix(?SourceLocation $sl = null): void;
 
-    public function emitLiteral(array|bool|float|int|TypeInterface|string|null $value): void;
+    public function emitLiteral(mixed $value): void;
 
     public function increaseIndentLevel(): void;
 
     public function decreaseIndentLevel(): void;
+
+    /**
+     * Record that the emitter is now writing into a class body (e.g. the
+     * `__invoke` method of a `new class() extends AbstractFn`). Nested
+     * `defstruct`/`definterface`/`defexception` forms must then emit via
+     * `eval()`, because PHP rejects class declarations nested inside
+     * another class's method body.
+     */
+    public function enterClassScope(): void;
+
+    public function exitClassScope(): void;
+
+    public function isInsideClassScope(): bool;
 }

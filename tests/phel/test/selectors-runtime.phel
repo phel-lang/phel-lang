@@ -1,0 +1,178 @@
+(ns phel-test\test\selectors-runtime
+  (:require phel\test :as t :refer [deftest is testing])
+  (:require phel-test\test\fixtures\tagged-tests))
+
+;; End-to-end coverage for selectors in `run-tests`.
+;;
+;; The fixture namespace `phel-test\test\fixtures\tagged-tests` defines
+;; three tests with distinct metadata shapes. Each scenario runs that
+;; namespace with a scripted option map, captures every emitted event
+;; (via a temporary reporter), then restores the outer suite's stats
+;; and reporter set.
+
+(def- fixture-ns 'phel-test\test\fixtures\tagged-tests)
+
+(defn- snapshot-run [options]
+  (let [saved-reporters (t/get-reporters)
+        saved-stats     (t/get-stats)
+        events          (atom [])
+        capture         (fn [e] (swap! events conj e))
+        run-options     (assoc options :reporters
+                               (conj (vec (:reporters options)) capture))]
+    (t/reset-stats)
+    (with-output-buffer
+      (t/run-tests run-options fixture-ns))
+    (let [snapshot (t/get-stats)]
+      (t/set-reporters! saved-reporters)
+      (t/restore-stats saved-stats)
+      {:events (deref events)
+       :stats  snapshot})))
+
+(defn- events-of [events type]
+  (vec (for [e :in events :when (= type (:type e))] e)))
+
+(defn- skipped-names [events]
+  (vec (for [e :in (events-of events :skipped)] (:test-name e))))
+
+(defn- passing-count [events]
+  (count (for [e :in events :when (and (= :pass (:state e))
+                                       (not= :skipped (:type e)))])))
+
+(defn- names-skipped-set [events]
+  (let [skipped (skipped-names events)]
+    (into (hash-set) skipped)))
+
+;; ---------------------------------------------------------------------------
+;; Baseline: no selectors — every fixture runs, none skipped
+;; ---------------------------------------------------------------------------
+
+(deftest test-run-with-no-selectors-runs-every-fixture
+  (let [{:events events} (snapshot-run {:reporters []})]
+    (is (= 0 (count (skipped-names events))) "no tests are skipped")
+    (is (= 3 (passing-count events))
+        "all three fixtures run and pass")))
+
+(deftest test-run-tests-starts-each-run-with-fresh-stats
+  (let [saved-reporters (t/get-reporters)
+        saved-stats     (t/get-stats)
+        events          (atom [])
+        capture         (fn [e] (swap! events conj e))]
+    (t/reset-stats)
+    (with-output-buffer
+      (t/run-tests {:reporters [capture]} fixture-ns)
+      (t/run-tests {:reporters [capture]} fixture-ns))
+    (let [summaries (events-of (deref events) :summary)]
+      (t/set-reporters! saved-reporters)
+      (t/restore-stats saved-stats)
+      (is (= 2 (count summaries)) "both runs emit a summary")
+      (is (= [3 3] (vec (map :pass summaries)))
+          "pass counts are reset between runs")
+      (is (= [3 3] (vec (map :total summaries)))
+          "total counts are reset between runs"))))
+
+;; ---------------------------------------------------------------------------
+;; Include — only fixtures tagged :integration run
+;; ---------------------------------------------------------------------------
+
+(deftest test-include-only-runs-matching-tag
+  (let [{:events events} (snapshot-run {:reporters []
+                                        :include [:integration]})
+        skipped          (names-skipped-set events)]
+    (is (contains? skipped "fixture-unit-passes")
+        "unit-only fixture is skipped")
+    (is (not (contains? skipped "fixture-integration-passes"))
+        "integration fixture is not skipped")
+    (is (not (contains? skipped "fixture-slow-integration-passes"))
+        "tags-vector integration fixture is not skipped")))
+
+;; ---------------------------------------------------------------------------
+;; Exclude — slow fixtures skipped even if included
+;; ---------------------------------------------------------------------------
+
+(deftest test-exclude-wins-over-include
+  (let [{:events events} (snapshot-run {:reporters []
+                                        :include [:integration]
+                                        :exclude [:slow]})
+        skipped          (names-skipped-set events)]
+    (is (contains? skipped "fixture-unit-passes")
+        "unit fixture skipped (not in include)")
+    (is (contains? skipped "fixture-slow-integration-passes")
+        "slow integration fixture skipped (exclude wins)")
+    (is (not (contains? skipped "fixture-integration-passes"))
+        "non-slow integration fixture still runs")))
+
+;; ---------------------------------------------------------------------------
+;; Namespace glob — selector restricts by namespace
+;; ---------------------------------------------------------------------------
+
+(deftest test-ns-glob-skips-everything-when-no-match
+  (let [{:events events} (snapshot-run {:reporters []
+                                        :ns-patterns ["does.not.match.*"]})
+        skipped          (skipped-names events)]
+    (is (= 3 (count skipped))
+        "every fixture is skipped when the ns glob doesn't match")))
+
+(deftest test-ns-glob-keeps-everything-when-match
+  (let [{:events events} (snapshot-run {:reporters []
+                                        :ns-patterns ["phel-test.test.**"]})
+        skipped          (skipped-names events)]
+    (is (= 0 (count skipped))
+        "every fixture runs when the ns glob matches the namespace")))
+
+;; ---------------------------------------------------------------------------
+;; Filter by test name — regex/substring OR semantics
+;; ---------------------------------------------------------------------------
+
+(deftest test-filter-by-name-substring
+  (let [{:events events} (snapshot-run {:reporters []
+                                        :filters ["slow"]})
+        skipped          (names-skipped-set events)]
+    (is (contains? skipped "fixture-unit-passes")
+        "unit fixture skipped (name doesn't match)")
+    (is (contains? skipped "fixture-integration-passes")
+        "integration fixture skipped (name doesn't match)")
+    (is (not (contains? skipped "fixture-slow-integration-passes"))
+        "slow integration fixture runs (name contains 'slow')")))
+
+;; ---------------------------------------------------------------------------
+;; Backwards compat — no selectors behave identical to pre-feature run
+;; ---------------------------------------------------------------------------
+
+(deftest test-backwards-compat-empty-selector-options-ignored
+  (let [{:events events} (snapshot-run {:reporters []
+                                        :include []
+                                        :exclude []
+                                        :ns-patterns []
+                                        :filters []})]
+    (is (= 0 (count (skipped-names events)))
+        "all-empty selector vectors impose no restriction")
+    (is (= 3 (passing-count events))
+        "all fixtures still run")))
+
+;; ---------------------------------------------------------------------------
+;; Skip events carry identifying data
+;; ---------------------------------------------------------------------------
+
+(deftest test-skip-event-carries-test-name-and-reason
+  (let [{:events events} (snapshot-run {:reporters []
+                                        :include [:integration]})
+        skip-events      (events-of events :skipped)
+        unit-skip        (first (for [e :in skip-events
+                                      :when (= "fixture-unit-passes"
+                                               (:test-name e))]
+                                  e))]
+    (is (not (nil? unit-skip)) "skip event emitted for filtered fixture")
+    (is (= :selector (:reason unit-skip))
+        "skip event reason is :selector")))
+
+;; ---------------------------------------------------------------------------
+;; Skip count flows through to the :summary event
+;; ---------------------------------------------------------------------------
+
+(deftest test-summary-includes-skipped-count
+  (let [{:events events} (snapshot-run {:reporters []
+                                        :include [:integration]})
+        summary          (first (events-of events :summary))]
+    (is (not (nil? summary)) "summary event emitted")
+    (is (= 1 (:skipped summary))
+        "summary :skipped reflects filtered-out tests")))

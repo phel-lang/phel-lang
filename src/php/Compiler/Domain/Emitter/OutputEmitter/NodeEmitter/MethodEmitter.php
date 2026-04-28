@@ -5,15 +5,19 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
+use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 
 use function count;
 
-final class MethodEmitter
+final readonly class MethodEmitter
 {
-    use WithOutputEmitterTrait;
+    public function __construct(
+        private OutputEmitterInterface $outputEmitter,
+        private ClosureEmitterHelper $closureHelper,
+    ) {}
 
     public function emit(string $methodName, FnNode $node): void
     {
@@ -98,11 +102,7 @@ final class MethodEmitter
     private function emitMethodParametersExtraction(FnNode $node): void
     {
         foreach ($node->getUses() as $use) {
-            /** @var Symbol $normalizedUse */
-            $normalizedUse = $node->getEnv()->getShadowed($use) instanceof Symbol
-                ? $node->getEnv()->getShadowed($use)
-                : $use;
-            $varName = $this->munge($normalizedUse);
+            $varName = $this->munge($this->closureHelper->normalizeUse($use, $node->getEnv()));
 
             $this->outputEmitter->emitLine(
                 '$' . $varName . ' = $this->' . $varName . ';',

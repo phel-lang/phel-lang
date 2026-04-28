@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
+use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\MagicConstantResolver;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -306,6 +307,91 @@ final class SymbolResolverTest extends TestCase
             new GlobalVarNode($nodeEnv, 'phel\\stacktrace', Symbol::create('print-cause-trace'), Phel::map()),
             $this->resolver->resolve(Symbol::createForNamespace('phel\\stacktrace', 'print-cause-trace'), $nodeEnv),
         );
+    }
+
+    public function test_resolve_bare_dot_fqn_as_php_class(): void
+    {
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new PhpClassNameNode($nodeEnv, Symbol::create('\\' . Symbol::class)),
+            $this->resolver->resolve(Symbol::create('Phel.Lang.Symbol'), $nodeEnv),
+        );
+    }
+
+    public function test_resolve_bare_dot_fqn_falls_through_when_lowercase(): void
+    {
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertNotInstanceOf(
+            PhpClassNameNode::class,
+            $this->resolver->resolve(Symbol::create('phel.foo'), $nodeEnv),
+        );
+    }
+
+    public function test_resolve_bare_top_level_class(): void
+    {
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new PhpClassNameNode($nodeEnv, Symbol::create('\\Exception')),
+            $this->resolver->resolve(Symbol::create('Exception'), $nodeEnv),
+        );
+    }
+
+    public function test_resolve_bare_lowercase_php_class(): void
+    {
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new PhpClassNameNode($nodeEnv, Symbol::create('\\stdClass')),
+            $this->resolver->resolve(Symbol::create('stdClass'), $nodeEnv),
+        );
+    }
+
+    public function test_bare_lowercase_name_does_not_become_class_fqn(): void
+    {
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertNotInstanceOf(
+            PhpClassNameNode::class,
+            $this->resolver->resolve(Symbol::create('foo-undefined'), $nodeEnv),
+        );
+    }
+
+    public function test_user_defined_def_wins_over_bare_class_fallback(): void
+    {
+        // When a user defines `(def Foo 42)` in the current ns, the bare `Foo`
+        // must resolve to that GlobalVar, not to a PHP class FQN `\Foo`.
+        $this->globalEnv->setNs('user');
+        $this->globalEnv->addDefinition('user', Symbol::create('Foo'));
+
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new GlobalVarNode($nodeEnv, 'user', Symbol::create('Foo'), Phel::map()),
+            $this->resolver->resolve(Symbol::create('Foo'), $nodeEnv),
+        );
+    }
+
+    public function test_resolve_fires_backslash_deprecation_when_wired(): void
+    {
+        $captured = [];
+        $deprecator = new BackslashSeparatorDeprecator(
+            enabled: true,
+            emitter: static function (string $msg) use (&$captured): void {
+                $captured[] = $msg;
+            },
+        );
+        $resolver = new SymbolResolver($this->globalEnv, new MagicConstantResolver(), $deprecator);
+
+        $sym = Symbol::createForNamespace('phel\\core', 'map');
+        $sym->setStartLocation(new SourceLocation('/app/user.phel', 1, 1));
+
+        $resolver->resolve($sym, NodeEnvironment::empty());
+
+        self::assertCount(1, $captured);
+        self::assertStringContainsString("'phel\\core/map'", $captured[0]);
     }
 
     public function test_resolve_clojure_fqn_uses_munged_registry_lookup(): void

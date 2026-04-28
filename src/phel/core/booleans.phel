@@ -1,0 +1,395 @@
+(in-ns phel.core)
+
+(use InvalidArgumentException)
+(use Phel\Lang\Collections\HashSet\PersistentHashSetInterface)
+(use Phel\Lang\Collections\LinkedList\PersistentListInterface)
+(use Phel\Lang\Collections\Map\PersistentMapInterface)
+(use Phel\Lang\Collections\Vector\PersistentVectorInterface)
+(use Phel\Lang\ContainsInterface)
+(use Phel\Lang\IdenticalInterface)
+(use Phel\Lang\Keyword)
+(use Phel\Lang\Symbol)
+(use Phel\Lang\Truthy)
+
+;; Logic, equality, ordering, and the family of "is this thing X?" tests
+;; that don't fit into the type-dispatch table in `predicates.phel`:
+;;   - Short-circuit logic macros: `or`, `and`.
+;;   - Identity / equality: `identical?`, `id`, `=`, `not=`.
+;;   - Negation: `not`.
+;;   - Ordering: `<`, `<=`, `>`, `>=`, `<=>`, `>=<`.
+;;   - Quantifiers over collections: `all?`, `every?`, `not-every?`,
+;;     `some?`, `not-any?`, `some`.
+;;   - Boolean / nil predicates: `true?`, `truthy?`, `false?`, `nil?`.
+;;   - Membership: `str-contains?`, `contains?`.
+;;   - Total ordering bridge: `compare-category`, `compare`.
+;; Also hosts the `keyword` constructor: it lived inside this section
+;; historically (it is not a logical predicate) and is kept here to avoid
+;; load-order churn — moving it out would require shuffling several
+;; interdependent forward-declarations.
+
+;; -----------------
+;; Boolean operation
+;; -----------------
+
+(defmacro or
+  "Evaluates expressions left to right, returning the first truthy value or the last value."
+  {:example "(or false nil 42 100) ; => 42"}
+  [& args]
+  (case (count args)
+    0 nil
+    1 (first args)
+    (let [v (gensym)]
+      `(let [~v ~(first args)]
+         (if ~v ~v (or ~@(next args)))))))
+
+(defmacro and
+  "Evaluates expressions left to right, returning the first falsy value or the last value."
+  {:example "(and true 1 \"hello\") ; => \"hello\""}
+  [& args]
+  (case (count args)
+    0 'true
+    1 (first args)
+    (let [v (gensym)]
+      `(let [~v ~(first args)]
+         (if ~v (and ~@(next args)) ~v)))))
+
+(defn keyword
+  "Creates a new Keyword.
+
+  Arity-1 accepts a string, keyword, or symbol. Returns `nil` when `x` is `nil`.
+  If `x` is already a keyword, it is returned unchanged.
+
+  Arity-2 builds a namespaced keyword from the namespace and name parts; returns
+  `nil` when `name` is `nil`."
+  {:example "(keyword \"name\") ; => :name\n(keyword :abc) ; => :abc\n(keyword \"ns\" \"name\") ; => :ns/name"}
+  ([x]
+   (cond
+     (php/=== nil x)            nil
+     (php/instanceof x Keyword) x
+     (php/instanceof x Symbol)  (php/:: Keyword (create (php/-> x (getName))
+                                                        (php/-> x (getNamespace))))
+     (php/is_string x)          (php/:: Keyword (create x))
+     :else                      nil))
+  ([ns nm]
+   (when-not (php/=== nil nm)
+     (php/:: Keyword (create (php/strval nm)
+                             (when-not (php/=== nil ns) (php/strval ns)))))))
+
+(defn- id2 [a b]
+  (if (php/instanceof a IdenticalInterface)
+    (php/-> a (identical b))
+    (php/=== a b)))
+
+(defn identical?
+  "Checks if all values are identical. Same as `a === b` in PHP."
+  [a & more]
+  (case (count more)
+    0 true
+    1 (id2 a (first more))
+    (if (id2 a (first more))
+      (recur (first more) (next more))
+      false)))
+
+(defn id
+  "Checks if all values are identical. Same as `a === b` in PHP."
+  {:deprecated "0.32.0"
+   :superseded-by "identical?"}
+  [a & more]
+  (apply identical? a more))
+
+(defn =
+  "Checks if all values are equal (value equality, not identity)."
+  {:example "(= [1 2 3] [1 2 3]) ; => true"}
+  [a & more]
+  (case (count more)
+    0 true
+    1 (equals1 a (first more))
+    (if (equals1 a (first more))
+      (recur (first more) (next more))
+      false)))
+
+(defn- num? [x]
+  (or (php/is_int x) (php/is_float x)))
+
+(defn- num-equals1 [a b]
+  (when-not (num? a)
+    (throw (php/new \InvalidArgumentException
+                    (str "Argument must be a number, got: " a))))
+  (when-not (num? b)
+    (throw (php/new \InvalidArgumentException
+                    (str "Argument must be a number, got: " b))))
+  (php/== a b))
+
+(defn ==
+  "Numeric equality comparison. Returns true if all arguments have the same
+  numeric value regardless of type (e.g. int vs float); throws on non-numeric
+  arguments. Unlike `=`, which is value-and-type-strict, `==` treats `1` and
+  `1.0` as equal, matching Clojure's `clojure.core/==`."
+  {:see-also ["=" "not=" "<" ">"]
+   :example "(== 1 1.0) ; => true"}
+  [a & more]
+  (case (count more)
+    0 (do (num-equals1 a a) true)
+    1 (num-equals1 a (first more))
+    (if (num-equals1 a (first more))
+      (recur (first more) (next more))
+      false)))
+
+(defn not
+  "Returns true if value is falsy (nil or false), false otherwise."
+  {:example "(not nil) ; => true"}
+  [x]
+  (if x false true))
+
+(defn not=
+  "Checks if all values are unequal. Same as `a != b` in PHP."
+  [a & more]
+  (case (count more)
+    0 false
+    1 (not (= a (first more)))
+    (not (apply = a more))))
+
+(defn <
+  "Checks if each argument is strictly less than the following argument."
+  {:inline (fn [a b] `(php/< ~a ~b))
+   :inline-arity (fn [n] (php/=== n 2))
+   :example "(< 1 2 3 4) ; => true"}
+  [a & more]
+  (case (count more)
+    0 true
+    1 (php/< a (first more))
+    (if (php/< a (first more))
+      (recur (first more) (next more))
+      false)))
+
+(defn <=
+  "Checks if each argument is less than or equal to the following argument. Returns a boolean."
+  {:inline (fn [a b] `(php/<= ~a ~b))
+   :inline-arity (fn [n] (php/=== n 2))}
+  [a & more]
+  (case (count more)
+    0 true
+    1 (php/<= a (first more))
+    (if (php/<= a (first more))
+      (recur (first more) (next more))
+      false)))
+
+(defn >
+  "Checks if each argument is strictly greater than the following argument."
+  {:inline (fn [a b] `(php/> ~a ~b))
+   :inline-arity (fn [n] (php/=== n 2))
+   :example "(> 4 3 2 1) ; => true"}
+  [a & more]
+  (case (count more)
+    0 true
+    1 (php/> a (first more))
+    (if (php/> a (first more))
+      (recur (first more) (next more))
+      false)))
+
+(defn >=
+  "Checks if each argument is greater than or equal to the following argument. Returns a boolean."
+  {:inline (fn [a b] `(php/>= ~a ~b))
+   :inline-arity (fn [n] (php/=== n 2))}
+  [a & more]
+  (case (count more)
+    0 true
+    1 (php/>= a (first more))
+    (if (php/>= a (first more))
+      (recur (first more) (next more))
+      false)))
+
+(defn <=>
+  "Alias for the spaceship PHP operator in ascending order. Returns an int."
+  {:inline (fn [a b] `(php/<=> ~a ~b))}
+  [a b]
+  (php/<=> a b))
+
+(defn >=<
+  "Alias for the spaceship PHP operator in descending order. Returns an int."
+  {:inline (fn [a b] `(php/<=> ~b ~a))}
+  [a b]
+  (php/<=> b a))
+
+(declare empty?)
+
+(defn all?
+  "Returns true if predicate is true for every element in collection, false otherwise."
+  {:example "(all? even? [2 4 6 8]) ; => true"}
+  [pred coll]
+  (cond
+    (empty? coll)       true
+    (pred (first coll)) (recur pred (next coll))
+    false))
+
+(defn every?
+  "Returns true if predicate is true for every element in collection, false otherwise.
+  Alias for `all?`."
+  {:example "(every? even? [2 4 6 8]) ; => true"
+   :see-also ["all?" "not-every?"]}
+  [pred coll]
+  (cond
+    (empty? coll)       true
+    (pred (first coll)) (recur pred (next coll))
+    false))
+
+(defn not-every?
+  "Returns false if `(pred x)` is logical true for every `x` in collection `coll`
+   or if `coll` is empty. Otherwise returns true."
+  [pred coll]
+  (not (all? pred coll)))
+
+(declare truthy?)
+(declare name)
+
+(defn some?
+  "With 1 arg, returns true if `x` is not nil (Clojure semantics).
+   With 2 args, returns true if `pred` is true for at least one element in `coll`."
+  {:example "(some? 1) ; => true\n(some? even? [1 3 5 6 7]) ; => true"}
+  ([x] (not (nil? x)))
+  ([pred coll]
+   (cond
+     (empty? coll)                 false
+     (truthy? (pred (first coll))) true
+     :else                         (recur pred (next coll)))))
+
+(defn not-any?
+  "Returns true if `(pred x)` is logical false for every `x` in `coll`
+   or if `coll` is empty. Otherwise returns false."
+  [pred coll]
+  (not (some? pred coll)))
+
+(defn some
+  "Returns the first truthy value of applying predicate to elements, or nil if none found."
+  {:example "(some #(when (> % 10) %) [5 15 8]) ; => 15"}
+  [pred coll]
+  (loop [s (seq coll)]
+    (let [res (if (nil? s) nil (pred (first s)))]
+      (cond
+        (nil? s)      nil
+        (truthy? res) res
+        :else         (recur (next s))))))
+
+(defn true?
+  "Checks if value is exactly true (not just truthy)."
+  {:example "(true? 1) ; => false"}
+  [x]
+  (id x true))
+
+(defn truthy?
+  "Checks if `x` is truthy. Same as `x == true` in PHP."
+  [x]
+  (php/:: Truthy (isTruthy x)))
+
+(defn false?
+  "Checks if value is exactly false (not just falsy)."
+  {:example "(false? nil) ; => false"}
+  [x]
+  (id x false))
+
+(defn nil?
+  "Returns true if value is nil, false otherwise."
+  {:example "(nil? (get {:a 1} :b)) ; => true"}
+  [x]
+  (id x nil))
+
+(defn str-contains?
+  "Returns true if str contains s."
+  {:deprecated "Use phel\\string\\contains?"}
+  [str s]
+  (php/str_contains str s))
+
+(defn contains?
+  "Returns true if key is present in collection (checks keys/indices, not values)."
+  {:example "(contains? [10 20 30] 1) ; => true"}
+  [coll key]
+  (cond
+    (nil? coll) false
+    (php/instanceof coll ContainsInterface) (php/-> coll (contains key))
+    (php/is_array coll) (php/array_key_exists key coll)
+    (php/is_string coll) (and (php/is_int key) (php/>= key 0) (php/< key (php/mb_strlen coll)))
+    (throw (php/new InvalidArgumentException
+                    (str "cannot call 'contains?' on "
+                         (if (php/is_object coll)
+                           (php/get_class coll)
+                           (php/gettype coll)))))))
+
+(defn- comparable-number?
+  [x]
+  (or (php/is_int x) (php/is_float x)))
+
+(defn- comparable-sequential?
+  [x]
+  (or (php/instanceof x PersistentVectorInterface)
+      (php/instanceof x PersistentListInterface)))
+
+(defn- named-comparison-category?
+  [category]
+  (or (= category :keyword) (= category :symbol)))
+
+(defn- compare-category
+  "Returns a coarse category for `compare`'s type compatibility check. `nil` is
+  its own category so it can be treated as less than anything. Numbers share a
+  category so `(compare 1 1.5)` works."
+  [x]
+  (cond
+    (php/=== x nil)                              :nil
+    (php/is_bool x)                              :bool
+    (comparable-number? x)                       :number
+    (php/is_string x)                            :string
+    (php/instanceof x Keyword)                   :keyword
+    (php/instanceof x Symbol)                    :symbol
+    (comparable-sequential? x)                   :sequential
+    (php/instanceof x PersistentMapInterface)    :map
+    (php/instanceof x PersistentHashSetInterface) :set
+    :else                                        :other))
+
+(declare compare)
+
+(defn- compare-sequential
+  [xs ys]
+  (loop [xs xs
+         ys ys]
+    (cond
+      (= 0 (count xs)) (if (= 0 (count ys)) 0 -1)
+      (= 0 (count ys)) 1
+      :else
+      (let [c (compare (first xs) (first ys))]
+        (if (= c 0)
+          (recur (next xs) (next ys))
+          c)))))
+
+(defn- compare-named
+  [x y]
+  (php/<=> (php/-> x (getFullName)) (php/-> y (getFullName))))
+
+(defn- compare-same-category [category x y]
+  (cond
+    (named-comparison-category? category)
+    (compare-named x y)
+
+    (= category :sequential)
+    (compare-sequential x y)
+
+    :else
+    (php/<=> x y)))
+
+(defn compare
+  "Compares `x` and `y`, returning a negative
+  integer, zero, or a positive integer when `x` is less than, equal to, or
+  greater than `y`.
+
+  `nil` is less than every non-nil value and equal to itself. Throws
+  `InvalidArgumentException` when `x` and `y` come from mutually incomparable
+  categories (e.g. `(compare 1 [])`)."
+  [x y]
+  (cond
+    (php/=== x nil) (if (php/=== y nil) 0 -1)
+    (php/=== y nil) 1
+    :else
+    (let [cx (compare-category x)
+          cy (compare-category y)]
+      (if (= cx cy)
+        (compare-same-category cx x y)
+        (throw (php/new InvalidArgumentException
+                        (str "Cannot compare " cx " with " cy)))))))

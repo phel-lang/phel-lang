@@ -45,6 +45,18 @@ final class AnalyzePersistentListTest extends TestCase
         );
     }
 
+    public function test_empty_list_analyzes_as_self_quoting_literal(): void
+    {
+        // `()` should be treated as the empty list literal, not as an
+        // invocation of a missing head (issue #1549).
+        $list = Phel::list([]);
+
+        $node = $this->listAnalyzer->analyze($list, NodeEnvironment::empty());
+
+        self::assertInstanceOf(QuoteNode::class, $node);
+        self::assertSame($list, $node->getValue());
+    }
+
     public function test_symbol_with_name_def(): void
     {
         $list = Phel::list([
@@ -126,10 +138,53 @@ final class AnalyzePersistentListTest extends TestCase
         self::assertInstanceOf(PhpNewNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
     }
 
+    public function test_symbol_with_name_new(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NEW), '',
+        ]);
+        self::assertInstanceOf(PhpNewNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));
+    }
+
     public function test_symbol_with_name_php_object_call(): void
     {
         $list = Phel::list([
             Symbol::create(Symbol::NAME_PHP_OBJECT_CALL), '', Symbol::create(''),
+        ]);
+        self::assertInstanceOf(
+            PhpObjectCallNode::class,
+            $this->listAnalyzer->analyze($list, NodeEnvironment::empty()),
+        );
+    }
+
+    public function test_dot_method_shorthand_expands_to_object_call(): void
+    {
+        $list = Phel::list([
+            Symbol::create('.method'), '',
+        ]);
+        self::assertInstanceOf(
+            PhpObjectCallNode::class,
+            $this->listAnalyzer->analyze($list, NodeEnvironment::empty()),
+        );
+    }
+
+    public function test_dot_dash_field_shorthand_expands_to_object_call(): void
+    {
+        $list = Phel::list([
+            Symbol::create('.-field'), '',
+        ]);
+        self::assertInstanceOf(
+            PhpObjectCallNode::class,
+            $this->listAnalyzer->analyze($list, NodeEnvironment::empty()),
+        );
+    }
+
+    public function test_class_slash_method_shorthand_expands_to_static_call(): void
+    {
+        $list = Phel::list([
+            Symbol::createForNamespace('\\DateTimeImmutable', 'createFromFormat'),
+            'Y-m-d',
+            '2024-01-15',
         ]);
         self::assertInstanceOf(
             PhpObjectCallNode::class,

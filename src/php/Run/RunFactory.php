@@ -5,17 +5,25 @@ declare(strict_types=1);
 namespace Phel\Run;
 
 use Gacela\Framework\AbstractFactory;
+use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
+use Phel\Run\Application\EntryPointDetector;
 use Phel\Run\Application\EvalExecutor;
+use Phel\Run\Application\FileRunner;
 use Phel\Run\Application\NamespaceLoader;
 use Phel\Run\Application\NamespaceRunner;
 use Phel\Run\Application\NamespacesLoader;
+use Phel\Run\Application\StructuredEvaluator;
 use Phel\Run\Domain\Repl\ReplCommandFallbackIo;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Domain\Repl\ReplCommandSystemIo;
+use Phel\Run\Domain\Repl\ReplHistory;
+use Phel\Run\Domain\Repl\ReplPrompt;
 use Phel\Run\Domain\Runner\NamespaceCollector;
 use Phel\Run\Domain\Runner\NamespaceRunnerInterface;
+use Phel\Run\Domain\StdinReaderInterface;
+use Phel\Run\Infrastructure\PhpStdinReader;
 use Phel\Shared\ColorStyle;
 use Phel\Shared\ColorStyleInterface;
 use Phel\Shared\Facade\ApiFacadeInterface;
@@ -87,6 +95,16 @@ class RunFactory extends AbstractFactory
         );
     }
 
+    public function createReplHistory(): ReplHistory
+    {
+        return new ReplHistory(GlobalEnvironmentSingleton::getInstance());
+    }
+
+    public function createReplPrompt(): ReplPrompt
+    {
+        return new ReplPrompt();
+    }
+
     public function createNamespacesLoader(): NamespacesLoader
     {
         return new NamespacesLoader(
@@ -122,5 +140,32 @@ class RunFactory extends AbstractFactory
             $this->getCommandFacade(),
             $this->getConfig()->getReplStartupFile(),
         );
+    }
+
+    public function createFileRunner(): FileRunner
+    {
+        return new FileRunner(
+            $this->getBuildFacade(),
+            $this->getCommandFacade(),
+        );
+    }
+
+    public function createStructuredEvaluator(): StructuredEvaluator
+    {
+        return new StructuredEvaluator(
+            $this->getCompilerFacade(),
+        );
+    }
+
+    public function createEntryPointDetector(): EntryPointDetector
+    {
+        return new EntryPointDetector(
+            $this->getCommandFacade(),
+        );
+    }
+
+    public function createStdinReader(): StdinReaderInterface
+    {
+        return new PhpStdinReader();
     }
 }

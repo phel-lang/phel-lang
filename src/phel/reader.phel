@@ -1,0 +1,56 @@
+(ns phel.reader
+  (:use Phel)
+  (:use Phel.Lang.TagRegistry))
+
+;; Reader tagged-literal registry.
+;;
+;; When the reader encounters `#foo value`, it looks `foo` up in the
+;; global tag registry. If a handler is found, the handler is called
+;; with the already-read value and its return value replaces the
+;; tagged literal. Built-in tags (`#uuid`, `#inst`, `#regex`) are
+;; registered at compiler boot; user handlers can be added with
+;; `register-tag` at runtime.
+
+(defn- registry
+  "Returns the shared TagRegistry singleton."
+  []
+  (php/:: TagRegistry (getInstance)))
+
+(defn register-tag
+  "Registers a handler for reader tag `tag-name` (a string without the
+  leading `#`). The handler `f` is a 1-arg function receiving the
+  already-read form value and returning the value that should replace
+  the tagged literal.
+
+  Re-registering an existing tag overwrites the previous handler."
+  {:example "(register-tag \"date\" my-ns/parse-date)
+  ; later: #date \"2026-04-20\" => (my-ns/parse-date \"2026-04-20\")"
+   :see-also ["tag-registered?" "unregister-tag" "registered-tags"]}
+  [tag-name f]
+  (php/-> (registry) (register tag-name f))
+  nil)
+
+(defn tag-registered?
+  "Returns true if a handler is registered for reader tag `tag-name`."
+  {:example "(tag-registered? \"inst\") ; => true"
+   :see-also ["register-tag" "unregister-tag" "registered-tags"]}
+  [tag-name]
+  (php/-> (registry) (has tag-name)))
+
+(defn unregister-tag
+  "Removes any handler registered for reader tag `tag-name`. Built-in
+  tags can be unregistered but are re-installed on the next reader
+  bootstrap."
+  {:example "(unregister-tag \"date\")"
+   :see-also ["register-tag" "tag-registered?" "registered-tags"]}
+  [tag-name]
+  (php/-> (registry) (unregister tag-name))
+  nil)
+
+(defn registered-tags
+  "Returns a sorted vector of the currently registered reader tag
+  names."
+  {:example "(registered-tags) ; => [\"inst\" \"regex\" \"uuid\"]"
+   :see-also ["register-tag" "tag-registered?" "unregister-tag"]}
+  []
+  (php/:: Phel (vector (php/-> (registry) (tags)))))

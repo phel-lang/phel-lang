@@ -122,6 +122,16 @@ final class TransformGeneratorTest extends TestCase
         self::assertSame([], iterator_to_array($result, false));
     }
 
+    public function test_map_indexed_with_multibyte_string(): void
+    {
+        $result = TransformGenerator::mapIndexed(
+            static fn(int $idx, $val): string => sprintf('%d:%s', $idx, $val),
+            '🎉🎊',
+        );
+
+        self::assertSame(['0:🎉', '1:🎊'], iterator_to_array($result, false));
+    }
+
     // ==================== filter tests ====================
 
     public function test_filter_basic(): void
@@ -216,5 +226,15 @@ final class TransformGeneratorTest extends TestCase
         );
 
         self::assertSame([], iterator_to_array($result, false));
+    }
+
+    public function test_keep_indexed_with_multibyte_string(): void
+    {
+        $result = TransformGenerator::keepIndexed(
+            static fn(int $idx, $val): ?string => $idx === 1 ? sprintf('%d:%s', $idx, $val) : null,
+            '🎉🎊',
+        );
+
+        self::assertSame(['1:🎊'], iterator_to_array($result, false));
     }
 }

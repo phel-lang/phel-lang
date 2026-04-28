@@ -1,0 +1,52 @@
+(ns phel-test\test\core\async-in-core
+  (:require phel\test :refer [deftest is]))
+
+;; Regression test for https://github.com/phel-lang/phel-lang/issues/1548
+;; The Clojure-parity async surface (and Phel's fiber combinators that
+;; pair with `future`) must be available from `phel.core` without
+;; requiring `phel.async`, mirroring `clojure.core` and the prior
+;; `future`-in-core change (#1537).
+
+(deftest test-closure-bridge-is-available-without-require
+  (let [c (->closure (fn [x] (* x 2)))]
+    (is (= true (php/instanceof c \Closure)) "->closure is in core")
+    (is (= 6 (c 3)) "the produced Closure is callable")))
+
+(deftest test-async-await-are-available-without-require
+  (is (= 3 (await (async (+ 1 2))))
+      "async/await round-trip a value without requiring phel.async"))
+
+(deftest test-await-all-is-available-without-require
+  (is (= [1 2 3] (await-all [(async 1) (async 2) (async 3)]))
+      "await-all is in core"))
+
+(deftest test-await-any-is-available-without-require
+  (is (= 42 (await-any [(async 42)])) "await-any is in core"))
+
+(deftest test-pmap-is-available-without-require
+  (is (= [2 3 4] (pmap inc [1 2 3])) "pmap is in core"))
+
+(deftest test-promise-deliver-deref-are-available-without-require
+  (let [p (promise)]
+    (is (= p (deliver p 7)) "deliver returns the promise on first delivery")
+    (is (= 7 @p) "deref reads the delivered value")))
+
+(deftest test-future-call-and-future-fiber-are-available-without-require
+  (let [f1 @(future-call (fn [] 41))
+        f2 @(future-fiber (+ 20 22))]
+    (is (= 41 f1) "future-call works in core")
+    (is (= 42 f2) "future-fiber works in core")))
+
+(deftest test-future-predicate-is-available-without-require
+  (let [f (future-call (fn [] 1))]
+    (is (= true (future? f)) "future? recognizes a fiber-future")
+    (is (= false (future? 1)) "future? returns false for non-futures")))
+
+(deftest test-future-lifecycle-helpers-are-available-without-require
+  (let [result (await (async
+                        (let [f (future (do (php/amp\delay 0.5) 42))]
+                          (future-cancel f)
+                          {:cancelled (future-cancelled? f)
+                           :done      (future-done? f)})))]
+    (is (= true (get result :cancelled)) "future-cancelled? in core")
+    (is (= true (get result :done)) "future-done? in core")))

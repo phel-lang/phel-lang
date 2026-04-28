@@ -7,10 +7,10 @@ namespace Phel\Run\Infrastructure\Command;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
+use Phel\Compiler\Infrastructure\Service\DebugLineTap;
 use Phel\Phel;
-use Phel\Run\Infrastructure\Service\DebugLineTap;
 use Phel\Run\RunFacade;
-use SebastianBergmann\Timer\ResourceUsageFormatter;
+use Phel\Shared\ResourceUsageFormatter;
 
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -91,7 +91,7 @@ final class RunCommand extends Command
             if ($path === null || $path === '') {
                 $path = $this->getFacade()->autoDetectEntryPoint();
                 if ($path === null) {
-                    $output->writeln('<error>No entry point found. Create src/phel/main.phel or specify a path.</error>');
+                    $output->writeln('<error>No entry point found. Create src/main.phel or specify a path.</error>');
                     return self::FAILURE;
                 }
 
@@ -117,7 +117,7 @@ final class RunCommand extends Command
             }
 
             if ($input->getOption('with-time')) {
-                $output->writeln((new ResourceUsageFormatter())->resourceUsageSinceStartOfRequest());
+                $output->writeln(new ResourceUsageFormatter()->resourceUsageSinceStartOfRequest());
             }
 
             DebugLineTap::disable();

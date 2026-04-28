@@ -1,0 +1,51 @@
+(ns phel.watch
+  (:use Phel)
+  (:use Phel.Watch.WatchFacade))
+
+(def- on-reload-hooks (atom {}))
+
+(defn register-on-reload
+  "Registers a zero-arg function to run every time `namespace` is
+  reloaded by the watcher. Replaces any previously registered hook
+  with the same `name`."
+  {:example "(register-on-reload \"my-app\\core\" :refresh (fn [] (println \"reloaded\")))"}
+  [namespace name hook-fn]
+  (swap! on-reload-hooks
+         (fn [m]
+           (let [entry (or (get m namespace) {})]
+             (assoc m namespace (assoc entry name hook-fn))))))
+
+(defn clear-on-reload
+  "Removes every hook registered for `namespace`."
+  {:example "(clear-on-reload \"my-app\\core\")"}
+  [namespace]
+  (swap! on-reload-hooks (fn [m] (assoc m namespace {}))))
+
+(defn run-on-reload-hooks
+  "Executes every hook registered for `namespace`. Returns the
+  number of hooks that fired."
+  {:example "(run-on-reload-hooks \"my-app\\core\")"}
+  [namespace]
+  (let [entry (get (deref on-reload-hooks) namespace {})]
+    (foreach [_ hook entry]
+      (try
+        (hook)
+        (catch \Throwable _e nil)))
+    (count entry)))
+
+(defn watch!
+  "Starts the file watcher on the given vector of paths. Blocks until
+  the watcher is stopped (e.g. Ctrl+C). Reloads changed namespaces in
+  dependency order and runs any hooks registered with `register-on-reload`."
+  {:example "(watch! [\"src/\" \"tests/\"])"}
+  [paths & [opts]]
+  (let [facade  (php/new WatchFacade)
+        phpOpts (php/array)]
+    (when (and opts (get opts :backend))
+      (php/aset phpOpts "backend" (get opts :backend)))
+    (when (and opts (get opts :poll))
+      (php/aset phpOpts "poll" (get opts :poll)))
+    (when (and opts (get opts :debounce))
+      (php/aset phpOpts "debounce" (get opts :debounce)))
+    (php/-> facade (watch (to-php-array paths) phpOpts))
+    nil))

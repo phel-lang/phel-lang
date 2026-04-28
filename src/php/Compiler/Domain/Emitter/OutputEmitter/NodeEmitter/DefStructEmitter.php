@@ -24,7 +24,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
     {
         assert($node instanceof DefStructNode);
 
-        if ($this->outputEmitter->getOptions()->isStatementEmitMode()) {
+        if ($this->shouldEmitViaEval()) {
             $this->emitViaEval($node);
         } else {
             $this->emitInline($node);
@@ -32,23 +32,34 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
     }
 
     /**
-     * In statement mode, the class definition may end up inside a function
-     * wrapper (when a do-form is in expression context). PHP forbids namespace
-     * declarations inside functions, so we capture the class body at compile
-     * time and emit it as an eval() call. This guarantees the namespace is
-     * always the first statement within its own isolated eval context.
+     * The class declaration must be lifted into an `eval()` when it would
+     * otherwise land somewhere PHP forbids: inside a function wrapper in
+     * statement mode (namespace not allowed), or inside another class's
+     * method body, e.g. `defrecord` used inside a `deftest` body.
+     */
+    private function shouldEmitViaEval(): bool
+    {
+        if ($this->outputEmitter->getOptions()->isStatementEmitMode()) {
+            return true;
+        }
+
+        return $this->outputEmitter->isInsideClassScope();
+    }
+
+    /**
+     * Captures the class body at compile time and emits it as an `eval()`
+     * call guarded by `class_exists`. Works anywhere in the emitted PHP,
+     * because `eval` starts a fresh top-level scope.
      */
     private function emitViaEval(DefStructNode $node): void
     {
         $ns = $this->outputEmitter->mungeEncodeNs($node->getNamespace());
         $fqcn = $ns . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
 
-        // Capture the class body at compile time
         ob_start();
         $this->emitClassBody($node);
         $classBody = (string) ob_get_clean();
 
-        // Emit: if (!class_exists(...)) { eval('namespace ...; <class body>'); }
         $this->outputEmitter->emitLine("if (!class_exists('" . $fqcn . "')) {", $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();
 

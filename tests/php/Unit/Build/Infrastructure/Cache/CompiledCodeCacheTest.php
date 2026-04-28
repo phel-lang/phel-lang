@@ -9,13 +9,18 @@ use PHPUnit\Framework\TestCase;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 
+use function sprintf;
+
 final class CompiledCodeCacheTest extends TestCase
 {
     private string $cacheDir;
 
+    private string $sourceFile;
+
     protected function setUp(): void
     {
         $this->cacheDir = sys_get_temp_dir() . '/phel-test-' . uniqid('', true);
+        $this->sourceFile = $this->cacheDir . '/test.phel';
     }
 
     protected function tearDown(): void
@@ -23,31 +28,27 @@ final class CompiledCodeCacheTest extends TestCase
         $this->removeDir($this->cacheDir);
     }
 
-    public function test_get_returns_null_for_unknown_namespace(): void
+    public function test_get_returns_null_for_unknown_source(): void
     {
         $cache = new CompiledCodeCache($this->cacheDir);
 
-        $result = $cache->get('unknown\\namespace', 'abc123');
-
-        self::assertNull($result);
+        self::assertNull($cache->get('/unknown/file.phel', 'abc123'));
     }
 
     public function test_get_returns_null_for_wrong_hash(): void
     {
         $cache = new CompiledCodeCache($this->cacheDir);
-        $cache->put('test\\namespace', 'original_hash', '// compiled code');
+        $cache->put($this->sourceFile, 'test\\namespace', 'original_hash', '// compiled code');
 
-        $result = $cache->get('test\\namespace', 'different_hash');
-
-        self::assertNull($result);
+        self::assertNull($cache->get($this->sourceFile, 'different_hash'));
     }
 
     public function test_get_returns_path_for_valid_entry(): void
     {
         $cache = new CompiledCodeCache($this->cacheDir);
-        $cache->put('test\\namespace', 'source_hash', '// compiled code');
+        $cache->put($this->sourceFile, 'test\\namespace', 'source_hash', '// compiled code');
 
-        $result = $cache->get('test\\namespace', 'source_hash');
+        $result = $cache->get($this->sourceFile, 'source_hash');
 
         self::assertNotNull($result);
         self::assertFileExists($result);
@@ -58,9 +59,9 @@ final class CompiledCodeCacheTest extends TestCase
         $cache = new CompiledCodeCache($this->cacheDir);
         $phpCode = '$x = 1 + 2;';
 
-        $cache->put('test\\namespace', 'hash', $phpCode);
+        $cache->put($this->sourceFile, 'test\\namespace', 'hash', $phpCode);
 
-        $compiledPath = $cache->getCompiledPath('test\\namespace');
+        $compiledPath = $cache->getCompiledPath($this->sourceFile, 'test\\namespace');
         self::assertFileExists($compiledPath);
         self::assertStringContainsString($phpCode, (string) file_get_contents($compiledPath));
     }
@@ -68,59 +69,74 @@ final class CompiledCodeCacheTest extends TestCase
     public function test_put_adds_php_header(): void
     {
         $cache = new CompiledCodeCache($this->cacheDir);
-        $phpCode = '$x = 1;';
 
-        $cache->put('test\\namespace', 'hash', $phpCode);
+        $cache->put($this->sourceFile, 'test\\namespace', 'hash', '$x = 1;');
 
-        $compiledPath = $cache->getCompiledPath('test\\namespace');
-        $content = file_get_contents($compiledPath);
-        self::assertStringStartsWith('<?php', $content);
+        $compiledPath = $cache->getCompiledPath($this->sourceFile, 'test\\namespace');
+        self::assertStringStartsWith('<?php', (string) file_get_contents($compiledPath));
     }
 
     public function test_invalidate_removes_entry(): void
     {
         $cache = new CompiledCodeCache($this->cacheDir);
-        $cache->put('test\\namespace', 'hash', '// code');
+        $cache->put($this->sourceFile, 'test\\namespace', 'hash', '// code');
 
-        $cache->invalidate('test\\namespace');
+        $cache->invalidate($this->sourceFile);
 
-        $result = $cache->get('test\\namespace', 'hash');
-        self::assertNull($result);
+        self::assertNull($cache->get($this->sourceFile, 'hash'));
     }
 
     public function test_invalidate_deletes_file(): void
     {
         $cache = new CompiledCodeCache($this->cacheDir);
-        $cache->put('test\\namespace', 'hash', '// code');
+        $cache->put($this->sourceFile, 'test\\namespace', 'hash', '// code');
 
-        $compiledPath = $cache->getCompiledPath('test\\namespace');
+        $compiledPath = $cache->getCompiledPath($this->sourceFile, 'test\\namespace');
         self::assertFileExists($compiledPath);
 
-        $cache->invalidate('test\\namespace');
+        $cache->invalidate($this->sourceFile);
 
         self::assertFileDoesNotExist($compiledPath);
+    }
+
+    public function test_invalidate_only_removes_targeted_file(): void
+    {
+        $cache = new CompiledCodeCache($this->cacheDir);
+        $fileA = $this->cacheDir . '/a.phel';
+        $fileB = $this->cacheDir . '/b.phel';
+        $cache->put($fileA, 'shared\\ns', 'hashA', '// A');
+        $cache->put($fileB, 'shared\\ns', 'hashB', '// B');
+
+        $cache->invalidate($fileA);
+
+        self::assertNull($cache->get($fileA, 'hashA'));
+        self::assertNotNull($cache->get($fileB, 'hashB'));
     }
 
     public function test_clear_removes_all_entries(): void
     {
         $cache = new CompiledCodeCache($this->cacheDir);
-        $cache->put('namespace\\one', 'hash1', '// code 1');
-        $cache->put('namespace\\two', 'hash2', '// code 2');
+        $fileA = $this->cacheDir . '/a.phel';
+        $fileB = $this->cacheDir . '/b.phel';
+        $cache->put($fileA, 'namespace\\one', 'hash1', '// code 1');
+        $cache->put($fileB, 'namespace\\two', 'hash2', '// code 2');
 
         $cache->clear();
 
-        self::assertNull($cache->get('namespace\\one', 'hash1'));
-        self::assertNull($cache->get('namespace\\two', 'hash2'));
+        self::assertNull($cache->get($fileA, 'hash1'));
+        self::assertNull($cache->get($fileB, 'hash2'));
     }
 
     public function test_clear_deletes_all_files(): void
     {
         $cache = new CompiledCodeCache($this->cacheDir);
-        $cache->put('namespace\\one', 'hash1', '// code 1');
-        $cache->put('namespace\\two', 'hash2', '// code 2');
+        $fileA = $this->cacheDir . '/a.phel';
+        $fileB = $this->cacheDir . '/b.phel';
+        $cache->put($fileA, 'namespace\\one', 'hash1', '// code 1');
+        $cache->put($fileB, 'namespace\\two', 'hash2', '// code 2');
 
-        $path1 = $cache->getCompiledPath('namespace\\one');
-        $path2 = $cache->getCompiledPath('namespace\\two');
+        $path1 = $cache->getCompiledPath($fileA, 'namespace\\one');
+        $path2 = $cache->getCompiledPath($fileB, 'namespace\\two');
 
         $cache->clear();
 
@@ -128,104 +144,118 @@ final class CompiledCodeCacheTest extends TestCase
         self::assertFileDoesNotExist($path2);
     }
 
-    public function test_get_compiled_path_munges_namespace(): void
+    public function test_get_compiled_path_munges_namespace_and_includes_source_fingerprint(): void
     {
         $cache = new CompiledCodeCache($this->cacheDir);
 
-        $path = $cache->getCompiledPath('my\\test\\namespace');
+        $path = $cache->getCompiledPath($this->sourceFile, 'my\\test\\namespace');
 
-        self::assertStringContainsString('my_test_namespace.php', $path);
+        self::assertStringContainsString('my_test_namespace__', $path);
+        self::assertStringEndsWith('.php', $path);
+    }
+
+    public function test_two_files_sharing_a_namespace_get_distinct_cache_files(): void
+    {
+        $cache = new CompiledCodeCache($this->cacheDir);
+        $fileA = $this->cacheDir . '/a.phel';
+        $fileB = $this->cacheDir . '/b.phel';
+
+        $pathA = $cache->getCompiledPath($fileA, 'shared\\ns');
+        $pathB = $cache->getCompiledPath($fileB, 'shared\\ns');
+
+        self::assertNotSame($pathA, $pathB);
+    }
+
+    public function test_two_files_sharing_a_namespace_do_not_clobber_each_other(): void
+    {
+        $cache = new CompiledCodeCache($this->cacheDir);
+        $fileA = $this->cacheDir . '/a.phel';
+        $fileB = $this->cacheDir . '/b.phel';
+        $cache->put($fileA, 'shared\\ns', 'hashA', '$a = 1;');
+        $cache->put($fileB, 'shared\\ns', 'hashB', '$b = 2;');
+
+        $pathA = $cache->get($fileA, 'hashA');
+        $pathB = $cache->get($fileB, 'hashB');
+
+        self::assertNotNull($pathA);
+        self::assertNotNull($pathB);
+        self::assertStringContainsString('$a = 1;', (string) file_get_contents($pathA));
+        self::assertStringContainsString('$b = 2;', (string) file_get_contents($pathB));
     }
 
     public function test_get_returns_null_when_file_deleted_externally(): void
     {
         $cache = new CompiledCodeCache($this->cacheDir);
-        $cache->put('test\\namespace', 'hash', '// code');
+        $cache->put($this->sourceFile, 'test\\namespace', 'hash', '// code');
 
-        $compiledPath = $cache->getCompiledPath('test\\namespace');
+        $compiledPath = $cache->getCompiledPath($this->sourceFile, 'test\\namespace');
         unlink($compiledPath);
 
-        $result = $cache->get('test\\namespace', 'hash');
-
-        self::assertNull($result);
+        self::assertNull($cache->get($this->sourceFile, 'hash'));
     }
 
     public function test_cache_persists_across_instances(): void
     {
         $cache1 = new CompiledCodeCache($this->cacheDir);
-        $cache1->put('test\\namespace', 'hash', '// code');
+        $cache1->put($this->sourceFile, 'test\\namespace', 'hash', '// code');
 
         $cache2 = new CompiledCodeCache($this->cacheDir);
-        $result = $cache2->get('test\\namespace', 'hash');
 
-        self::assertNotNull($result);
+        self::assertNotNull($cache2->get($this->sourceFile, 'hash'));
     }
 
     public function test_cache_persists_across_instances_with_same_version(): void
     {
         $cache1 = new CompiledCodeCache($this->cacheDir, 'v1.0.0');
-        $cache1->put('test\\namespace', 'hash', '// code');
+        $cache1->put($this->sourceFile, 'test\\namespace', 'hash', '// code');
 
         $cache2 = new CompiledCodeCache($this->cacheDir, 'v1.0.0');
-        $result = $cache2->get('test\\namespace', 'hash');
 
-        self::assertNotNull($result);
+        self::assertNotNull($cache2->get($this->sourceFile, 'hash'));
     }
 
     public function test_cache_invalidates_when_phel_version_changes(): void
     {
         $cache1 = new CompiledCodeCache($this->cacheDir, 'v1.0.0');
-        $cache1->put('test\\namespace', 'hash', '// code');
+        $cache1->put($this->sourceFile, 'test\\namespace', 'hash', '// code');
 
-        // New instance with different Phel version should not find the cached entry
         $cache2 = new CompiledCodeCache($this->cacheDir, 'v2.0.0');
-        $result = $cache2->get('test\\namespace', 'hash');
 
-        self::assertNull($result);
+        self::assertNull($cache2->get($this->sourceFile, 'hash'));
     }
 
     public function test_lru_eviction_removes_oldest_entries(): void
     {
-        // Create cache with max 5 entries
         $cache = new CompiledCodeCache($this->cacheDir, '', 5);
 
-        // Add 5 entries
         for ($i = 1; $i <= 5; ++$i) {
-            $cache->put('namespace\ns' . $i, 'hash' . $i, '// code ' . $i);
+            $cache->put($this->cacheDir . sprintf('/ns%d.phel', $i), 'ns' . $i, 'hash' . $i, '// code ' . $i);
         }
 
-        // Access ns3 to make it recently used
-        $cache->get('namespace\\ns3', 'hash3');
+        // Access ns3 to mark it recently used
+        $cache->get($this->cacheDir . '/ns3.phel', 'hash3');
 
-        // Add a 6th entry - should trigger eviction of oldest (ns1)
-        $cache->put('namespace\\ns6', 'hash6', '// code 6');
+        // Add a 6th entry — should evict the oldest (ns1)
+        $cache->put($this->cacheDir . '/ns6.phel', 'ns6', 'hash6', '// code 6');
 
-        // ns1 should be evicted (oldest, never accessed after put)
-        self::assertNull($cache->get('namespace\\ns1', 'hash1'));
-
-        // ns3 should still exist (was accessed, so more recent)
-        self::assertNotNull($cache->get('namespace\\ns3', 'hash3'));
-
-        // ns6 should exist (just added)
-        self::assertNotNull($cache->get('namespace\\ns6', 'hash6'));
+        self::assertNull($cache->get($this->cacheDir . '/ns1.phel', 'hash1'));
+        self::assertNotNull($cache->get($this->cacheDir . '/ns3.phel', 'hash3'));
+        self::assertNotNull($cache->get($this->cacheDir . '/ns6.phel', 'hash6'));
     }
 
     public function test_lru_eviction_deletes_files(): void
     {
         $cache = new CompiledCodeCache($this->cacheDir, '', 3);
 
-        // Add 3 entries
-        $cache->put('namespace\\ns1', 'hash1', '// code 1');
-        $cache->put('namespace\\ns2', 'hash2', '// code 2');
-        $cache->put('namespace\\ns3', 'hash3', '// code 3');
+        $cache->put($this->cacheDir . '/ns1.phel', 'ns1', 'hash1', '// code 1');
+        $cache->put($this->cacheDir . '/ns2.phel', 'ns2', 'hash2', '// code 2');
+        $cache->put($this->cacheDir . '/ns3.phel', 'ns3', 'hash3', '// code 3');
 
-        $path1 = $cache->getCompiledPath('namespace\\ns1');
+        $path1 = $cache->getCompiledPath($this->cacheDir . '/ns1.phel', 'ns1');
         self::assertFileExists($path1);
 
-        // Add 4th entry - should trigger eviction
-        $cache->put('namespace\\ns4', 'hash4', '// code 4');
+        $cache->put($this->cacheDir . '/ns4.phel', 'ns4', 'hash4', '// code 4');
 
-        // File for evicted entry should be deleted
         self::assertFileDoesNotExist($path1);
     }
 
@@ -233,14 +263,12 @@ final class CompiledCodeCacheTest extends TestCase
     {
         $cache = new CompiledCodeCache($this->cacheDir, '', 10);
 
-        // Add 5 entries (under max of 10)
         for ($i = 1; $i <= 5; ++$i) {
-            $cache->put('namespace\ns' . $i, 'hash' . $i, '// code ' . $i);
+            $cache->put($this->cacheDir . sprintf('/ns%d.phel', $i), 'ns' . $i, 'hash' . $i, '// code ' . $i);
         }
 
-        // All entries should still exist
         for ($i = 1; $i <= 5; ++$i) {
-            self::assertNotNull($cache->get('namespace\ns' . $i, 'hash' . $i));
+            self::assertNotNull($cache->get($this->cacheDir . sprintf('/ns%d.phel', $i), 'hash' . $i));
         }
     }
 
@@ -249,23 +277,20 @@ final class CompiledCodeCacheTest extends TestCase
         $cache = new CompiledCodeCache($this->cacheDir);
         $envData = [
             'refers' => ['map' => ['ns' => null, 'name' => 'phel\\core']],
-            'require_aliases' => ['str' => ['ns' => null, 'name' => 'phel\\str']],
+            'require_aliases' => ['str' => ['ns' => null, 'name' => 'phel\\string']],
             'use_aliases' => ['Exception' => ['ns' => null, 'name' => 'Exception']],
         ];
 
         $cache->putEnvironment('test\\namespace', $envData);
 
-        $result = $cache->getEnvironment('test\\namespace');
-        self::assertSame($envData, $result);
+        self::assertSame($envData, $cache->getEnvironment('test\\namespace'));
     }
 
     public function test_get_environment_returns_null_when_no_env_file(): void
     {
         $cache = new CompiledCodeCache($this->cacheDir);
 
-        $result = $cache->getEnvironment('nonexistent\\namespace');
-
-        self::assertNull($result);
+        self::assertNull($cache->getEnvironment('nonexistent\\namespace'));
     }
 
     public function test_get_environment_path_munges_namespace(): void
@@ -277,34 +302,20 @@ final class CompiledCodeCacheTest extends TestCase
         self::assertStringContainsString('my_test_namespace.env.php', $path);
     }
 
-    public function test_invalidate_removes_env_file(): void
-    {
-        $cache = new CompiledCodeCache($this->cacheDir);
-        $cache->put('test\\namespace', 'hash', '// code');
-        $cache->putEnvironment('test\\namespace', ['refers' => [], 'require_aliases' => [], 'use_aliases' => []]);
-
-        $envPath = $cache->getEnvironmentPath('test\\namespace');
-        self::assertFileExists($envPath);
-
-        $cache->invalidate('test\\namespace');
-
-        self::assertFileDoesNotExist($envPath);
-    }
-
     public function test_put_environment_persists_across_instances(): void
     {
-        $cache1 = new CompiledCodeCache($this->cacheDir);
         $envData = [
             'refers' => ['x' => ['ns' => null, 'name' => 'foo']],
             'require_aliases' => [],
             'use_aliases' => [],
         ];
+
+        $cache1 = new CompiledCodeCache($this->cacheDir);
         $cache1->putEnvironment('test\\namespace', $envData);
 
         $cache2 = new CompiledCodeCache($this->cacheDir);
-        $result = $cache2->getEnvironment('test\\namespace');
 
-        self::assertSame($envData, $result);
+        self::assertSame($envData, $cache2->getEnvironment('test\\namespace'));
     }
 
     public function test_put_environment_with_empty_data(): void
@@ -318,8 +329,7 @@ final class CompiledCodeCacheTest extends TestCase
 
         $cache->putEnvironment('test\\namespace', $envData);
 
-        $result = $cache->getEnvironment('test\\namespace');
-        self::assertSame($envData, $result);
+        self::assertSame($envData, $cache->getEnvironment('test\\namespace'));
     }
 
     private function removeDir(string $dir): void

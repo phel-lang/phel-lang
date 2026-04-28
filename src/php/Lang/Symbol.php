@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use Override;
+
 final class Symbol extends AbstractType implements IdenticalInterface, NamedInterface
 {
     use MetaTrait;
@@ -49,6 +51,8 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
     public const string NAME_PHP_ARRAY_UNSET_IN = 'php/aunset-in';
 
     public const string NAME_PHP_NEW = 'php/new';
+
+    public const string NAME_NEW = 'new';
 
     public const string NAME_PHP_OBJECT_CALL = 'php/->';
 
@@ -96,12 +100,20 @@ final class Symbol extends AbstractType implements IdenticalInterface, NamedInte
 
     public const string NAME_IN_NS = 'in-ns';
 
+    public const string NAME_USE = 'use';
+
     private static int $symGenCounter = 1;
 
     public function __construct(
         private readonly ?string $namespace,
         private readonly string $name,
     ) {}
+
+    #[Override]
+    public function __toString(): string
+    {
+        return $this->name;
+    }
 
     public static function create(string $name): self
     {

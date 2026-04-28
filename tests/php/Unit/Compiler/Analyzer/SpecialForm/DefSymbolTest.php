@@ -41,7 +41,7 @@ final class DefSymbolTest extends TestCase
                 1,
             ]),
         ]);
-        $defNode = (new DefSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $defNode = new DefSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertSame('outer', $defNode->getName()->getName());
         self::assertInstanceOf(DefNode::class, $defNode->getInit());
@@ -55,7 +55,7 @@ final class DefSymbolTest extends TestCase
         $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF),
         ]);
-        (new DefSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new DefSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_def_without_value(): void
@@ -65,7 +65,7 @@ final class DefSymbolTest extends TestCase
             Symbol::create('baz'),
         ]);
         $env = NodeEnvironment::empty();
-        $defNode = (new DefSymbol($this->analyzer))->analyze($list, $env);
+        $defNode = new DefSymbol($this->analyzer)->analyze($list, $env);
 
         self::assertSame('baz', $defNode->getName()->getName());
         self::assertInstanceOf(LiteralNode::class, $defNode->getInit());
@@ -82,7 +82,7 @@ final class DefSymbolTest extends TestCase
             'not a symbol',
             '2',
         ]);
-        (new DefSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new DefSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_false_init_value(): void
@@ -95,7 +95,7 @@ final class DefSymbolTest extends TestCase
             Symbol::create('name'),
             new stdClass(),
         ]);
-        (new DefSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new DefSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_init_values(): void
@@ -106,7 +106,7 @@ final class DefSymbolTest extends TestCase
             'any value',
         ]);
         $env = NodeEnvironment::empty();
-        $defNode = (new DefSymbol($this->analyzer))->analyze($list, $env);
+        $defNode = new DefSymbol($this->analyzer)->analyze($list, $env);
 
         self::assertEquals(
             new DefNode(
@@ -138,7 +138,7 @@ final class DefSymbolTest extends TestCase
             'any value',
         ]);
         $env = NodeEnvironment::empty();
-        $defNode = (new DefSymbol($this->analyzer))->analyze($list, $env);
+        $defNode = new DefSymbol($this->analyzer)->analyze($list, $env);
 
         self::assertEquals(
             new DefNode(
@@ -179,7 +179,7 @@ final class DefSymbolTest extends TestCase
             'any value',
         ]);
         $env = NodeEnvironment::empty();
-        $defNode = (new DefSymbol($this->analyzer))->analyze($list, $env);
+        $defNode = new DefSymbol($this->analyzer)->analyze($list, $env);
 
         self::assertEquals(
             new DefNode(
@@ -232,7 +232,7 @@ final class DefSymbolTest extends TestCase
         ]);
 
         $env = NodeEnvironment::empty();
-        $defNode = (new DefSymbol($this->analyzer))->analyze($list, $env);
+        $defNode = new DefSymbol($this->analyzer)->analyze($list, $env);
 
         $meta = $defNode->getMeta()->getKeyValues();
         $found = false;
@@ -259,7 +259,7 @@ final class DefSymbolTest extends TestCase
             'any value',
         ]);
         $env = NodeEnvironment::empty();
-        $defNode = (new DefSymbol($this->analyzer))->analyze($list, $env);
+        $defNode = new DefSymbol($this->analyzer)->analyze($list, $env);
 
         self::assertEquals(
             new DefNode(
@@ -303,7 +303,7 @@ final class DefSymbolTest extends TestCase
             'any value',
         ]);
         $env = NodeEnvironment::empty();
-        (new DefSymbol($this->analyzer))->analyze($list, $env);
+        new DefSymbol($this->analyzer)->analyze($list, $env);
     }
 
     public function test_arglists_for_single_arity_fn(): void
@@ -323,7 +323,7 @@ final class DefSymbolTest extends TestCase
         ]);
 
         $env = NodeEnvironment::empty();
-        $defNode = (new DefSymbol($this->analyzer))->analyze($list, $env);
+        $defNode = new DefSymbol($this->analyzer)->analyze($list, $env);
 
         self::assertSame('[x y]', $this->findMetaValue($defNode, 'arglists'));
     }
@@ -346,7 +346,7 @@ final class DefSymbolTest extends TestCase
         ]);
 
         $env = NodeEnvironment::empty();
-        $defNode = (new DefSymbol($this->analyzer))->analyze($list, $env);
+        $defNode = new DefSymbol($this->analyzer)->analyze($list, $env);
 
         self::assertSame('[x & rest]', $this->findMetaValue($defNode, 'arglists'));
     }
@@ -373,7 +373,7 @@ final class DefSymbolTest extends TestCase
         ]);
 
         $env = NodeEnvironment::empty();
-        $defNode = (new DefSymbol($this->analyzer))->analyze($list, $env);
+        $defNode = new DefSymbol($this->analyzer)->analyze($list, $env);
 
         self::assertSame('([] [x])', $this->findMetaValue($defNode, 'arglists'));
     }
@@ -392,7 +392,7 @@ final class DefSymbolTest extends TestCase
         ]);
 
         $env = NodeEnvironment::empty();
-        $defNode = (new DefSymbol($this->analyzer))->analyze($list, $env);
+        $defNode = new DefSymbol($this->analyzer)->analyze($list, $env);
 
         self::assertSame('[]', $this->findMetaValue($defNode, 'arglists'));
     }
@@ -407,7 +407,7 @@ final class DefSymbolTest extends TestCase
         ]);
 
         $env = NodeEnvironment::empty();
-        $defNode = (new DefSymbol($this->analyzer))->analyze($list, $env);
+        $defNode = new DefSymbol($this->analyzer)->analyze($list, $env);
 
         self::assertNull($this->findMetaValue($defNode, 'arglists'));
     }

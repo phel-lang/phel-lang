@@ -1,0 +1,248 @@
+(ns phel.schema.explainer
+  (:require phel.core)
+  (:require phel.schema.registry :as reg)
+  (:require phel.schema.validator :as v))
+
+;; Error-reporting companion to the validator.
+;;
+;; `explain` returns `nil` on success, otherwise a map
+;; `{:schema <root> :value <root> :errors [error ...]}` where each error
+;; carries:
+;;   :path   - path into the schema that failed
+;;   :in     - path into the value that failed
+;;   :schema - sub-schema that rejected the value
+;;   :value  - value at that path
+;;   :type   - :missing | :mismatch | :extra | :exception
+;;
+;; The explainer accumulates errors rather than short-circuiting so the
+;; caller can report every violation in one pass.
+
+(declare -explain)
+
+(defn- make-error
+  [path in schema value type]
+  {:path   path
+   :in     in
+   :schema schema
+   :value  value
+   :type   type})
+
+(defn- -explain-kind-keyword
+  [schema value path in]
+  (if (v/valid? schema value)
+    []
+    (if (reg/registered? schema)
+      (-explain (reg/deref-ref schema) value path in)
+      [(make-error path in schema value :mismatch)])))
+
+(defn- -explain-collection
+  [schema value type-pred path in]
+  (let [head (v/schema-head schema)
+        args (v/schema-args schema)]
+    (if (not (type-pred value))
+      [(make-error path in schema value :mismatch)]
+      (if (empty? args)
+        []
+        (let [elem-schema (first args)
+              items       (into [] value)]
+          (loop [i 0 acc []]
+            (cond
+              (>= i (count items)) acc
+              :else
+              (let [nested-path (conj path head 0)
+                    nested-in   (conj in i)
+                    sub         (-explain elem-schema (get items i) nested-path nested-in)]
+                (recur (+ i 1) (into acc sub))))))))))
+
+(defn- -explain-map-of
+  [schema value path in]
+  (if (not (map? value))
+    [(make-error path in schema value :mismatch)]
+    (let [args       (v/schema-args schema)
+          key-schema (get args 0)
+          val-schema (get args 1)
+          pairs      (into [] (for [[k v] :pairs value] [k v]))]
+      (loop [i 0 acc []]
+        (cond
+          (>= i (count pairs)) acc
+          :else
+          (let [entry (get pairs i)
+                k     (get entry 0)
+                val   (get entry 1)
+                ksub  (-explain key-schema k (conj path :map-of 0) (conj in k))
+                vsub  (-explain val-schema val (conj path :map-of 1) (conj in k))]
+            (recur (+ i 1) (into (into acc ksub) vsub))))))))
+
+(defn- -explain-tuple
+  [schema value path in]
+  (if (not (vector? value))
+    [(make-error path in schema value :mismatch)]
+    (let [args (v/schema-args schema)]
+      (if (not= (count value) (count args))
+        [(make-error path in schema value :mismatch)]
+        (loop [i 0 acc []]
+          (if (>= i (count args))
+            acc
+            (let [sub (-explain (get args i) (get value i)
+                                (conj path :tuple i)
+                                (conj in i))]
+              (recur (+ i 1) (into acc sub)))))))))
+
+(defn- -explain-map
+  [schema value path in]
+  (if (not (map? value))
+    [(make-error path in schema value :mismatch)]
+    (let [entries      (v/schema-args schema)
+          closed?      (true? (get (v/schema-options schema) :closed))
+          declared     (into (hash-set) (map (fn [e] (get e 0)) entries))
+          entry-errors
+          (loop [es (seq entries) acc []]
+            (cond
+              (nil? es) acc
+              :else
+              (let [entry (first es)
+                    k     (get entry 0)
+                    inner (v/map-entry-schema entry)
+                    opt?  (v/map-entry-optional? entry)
+                    path' (conj path :map k)
+                    in'   (conj in k)]
+                (cond
+                  (not (contains? value k))
+                  (if opt?
+                    (recur (next es) acc)
+                    (recur (next es)
+                           (conj acc (make-error path' in' inner nil :missing))))
+
+                  :else
+                  (let [sub (-explain inner (get value k) path' in')]
+                    (recur (next es) (into acc sub)))))))
+          extra-errors
+          (if closed?
+            (loop [ks (seq (keys value)) acc []]
+              (cond
+                (nil? ks)                       acc
+                (contains? declared (first ks)) (recur (next ks) acc)
+                :else
+                (recur (next ks)
+                       (conj acc (make-error (conj path :map (first ks))
+                                             (conj in (first ks))
+                                             schema
+                                             (get value (first ks))
+                                             :extra)))))
+            [])]
+      (into entry-errors extra-errors))))
+
+(defn- -explain-enum
+  [schema value path in]
+  (let [args (v/schema-args schema)]
+    (if (v/valid? schema value)
+      []
+      [(make-error path in schema value :mismatch)])))
+
+(defn- -explain-and
+  [schema value path in]
+  (let [args (v/schema-args schema)]
+    (loop [sch (seq args) idx 0 acc []]
+      (cond
+        (nil? sch) acc
+        :else
+        (let [sub (-explain (first sch) value (conj path :and idx) in)]
+          (if (empty? sub)
+            (recur (next sch) (+ idx 1) acc)
+            (recur (next sch) (+ idx 1) (into acc sub))))))))
+
+(defn- -explain-or
+  [schema value path in]
+  (let [args (v/schema-args schema)]
+    (if (v/valid? schema value)
+      []
+      (loop [sch (seq args) idx 0 acc []]
+        (cond
+          (nil? sch) (into [(make-error path in schema value :mismatch)] acc)
+          :else
+          (let [sub (-explain (first sch) value (conj path :or idx) in)]
+            (recur (next sch) (+ idx 1) (into acc sub))))))))
+
+(defn- -explain-ref
+  [schema value path in]
+  (let [name   (first (v/schema-args schema))
+        target (reg/deref-ref name)]
+    (if (nil? target)
+      [(make-error path in schema value :mismatch)]
+      (-explain target value (conj path :ref name) in))))
+
+(defn- -explain-vector-kind
+  [schema value path in]
+  (let [head (v/schema-head schema)
+        args (v/schema-args schema)]
+    (case head
+      :vector (-explain-collection schema value vector? path in)
+      :list   (-explain-collection schema value list? path in)
+      :set    (-explain-collection schema value set? path in)
+      :map-of (-explain-map-of schema value path in)
+      :tuple  (-explain-tuple schema value path in)
+      :map    (-explain-map schema value path in)
+      :enum   (-explain-enum schema value path in)
+      :and    (-explain-and schema value path in)
+      :or     (-explain-or schema value path in)
+      :maybe  (cond
+                (nil? value)                  []
+                (v/valid? (first args) value) []
+                :else                         (-explain (first args) value (conj path :maybe) in))
+      :re     (if (v/valid? schema value)
+                []
+                [(make-error path in schema value :mismatch)])
+      :fn     (if (v/valid? schema value)
+                []
+                [(make-error path in schema value :mismatch)])
+      :ref    (-explain-ref schema value path in)
+      :=>     []
+      (if (v/valid? schema value)
+        []
+        [(make-error path in schema value :mismatch)]))))
+
+(defn- -explain
+  [schema value path in]
+  (cond
+    (keyword? schema)
+    (-explain-kind-keyword schema value path in)
+
+    (vector? schema)
+    (-explain-vector-kind schema value path in)
+
+    :else
+    [(make-error path in schema value :mismatch)]))
+
+(defn explain
+  "Returns `nil` if `value` conforms to `schema`, otherwise a map
+  describing the violations."
+  {:example "(explain :int :oops)"
+   :see-also ["phel\\schema/validate" "phel\\schema/human-readable-explain"]}
+  [schema value]
+  (let [errors (-explain schema value [] [])]
+    (if (empty? errors)
+      nil
+      {:schema schema :value value :errors errors})))
+
+(defn- format-error
+  [err]
+  (str "  " (print-str (get err :in))
+       " -> "
+       (name (get err :type))
+       ": expected "
+       (print-str (get err :schema))
+       ", got "
+       (print-str (get err :value))))
+
+(defn human-readable-explain
+  "Renders an explain result as a multi-line human string suitable for
+  REPL or CI output. Returns `nil` for a `nil` result."
+  {:example "(human-readable-explain (explain :int :oops))"
+   :see-also ["explain"]}
+  [result]
+  (when result
+    (let [header (str "Schema " (print-str (get result :schema))
+                      " failed for value " (print-str (get result :value)))
+          lines  (into [] (map format-error (get result :errors)))
+          body   (php/implode "\n" (to-php-array lines))]
+      (str header "\n" body))))

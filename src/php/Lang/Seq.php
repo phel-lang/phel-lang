@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Lang;
 
 use Generator;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Generators\CombineGenerator;
 use Phel\Lang\Generators\DedupeGenerator;
@@ -14,9 +15,13 @@ use Phel\Lang\Generators\PartitionGenerator;
 use Phel\Lang\Generators\SequenceGenerator;
 use Phel\Lang\Generators\SliceGenerator;
 use Phel\Lang\Generators\TransformGenerator;
+use Traversable;
+use TypeError;
 
+use function array_values;
+use function is_array;
 use function is_string;
-use function mb_str_split;
+use function iterator_to_array;
 
 final class Seq
 {
@@ -33,11 +38,37 @@ final class Seq
      */
     public static function toIterable(mixed $value): iterable
     {
-        if (is_string($value)) {
-            return mb_str_split($value);
+        return SequenceGenerator::toIterable($value);
+    }
+
+    /**
+     * Converts the final collection argument of `apply` to positional PHP args.
+     *
+     * @return list<mixed>
+     */
+    public static function toApplyArguments(mixed $value): array
+    {
+        if ($value instanceof PersistentMapInterface) {
+            return self::mapToApplyArguments($value);
         }
 
-        return $value ?? [];
+        if ($value === null) {
+            return [];
+        }
+
+        if (is_string($value)) {
+            return iterator_to_array(SequenceGenerator::toIterator($value), false);
+        }
+
+        if (is_array($value)) {
+            return array_values($value);
+        }
+
+        if ($value instanceof Traversable) {
+            return iterator_to_array($value, false);
+        }
+
+        throw new TypeError('apply final argument must be nil, string, array, or Traversable');
     }
 
     /**
@@ -307,5 +338,20 @@ final class Seq
         string $escape = '\\',
     ): Generator {
         return FileGenerator::csvLines($filename, $separator, $enclosure, $escape);
+    }
+
+    /**
+     * @return list<PersistentVectorInterface>
+     */
+    private static function mapToApplyArguments(PersistentMapInterface $value): array
+    {
+        $typeFactory = TypeFactory::getInstance();
+        $args = [];
+
+        foreach ($value as $key => $item) {
+            $args[] = $typeFactory->persistentVectorFromArray([$key, $item]);
+        }
+
+        return $args;
     }
 }

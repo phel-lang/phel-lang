@@ -10,12 +10,14 @@ use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
+use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\NsSymbol;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
@@ -36,6 +38,11 @@ final class NsSymbolTest extends TestCase
         Phel::addDefinition('phel\\test', '__ns_marker', true, Phel::map());
     }
 
+    protected function tearDown(): void
+    {
+        BackslashSeparatorDeprecator::resetInstance();
+    }
+
     public function test_first_argument_must_be_symbol(): void
     {
         $this->expectException(AnalyzerException::class);
@@ -46,7 +53,7 @@ final class NsSymbolTest extends TestCase
             'not-a-symbol',
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_invalid_namespace(): void
@@ -59,7 +66,7 @@ final class NsSymbolTest extends TestCase
             Symbol::create('1invalid'),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     #[DataProvider('phpKeywordNamespacePartProvider')]
@@ -70,7 +77,7 @@ final class NsSymbolTest extends TestCase
             Symbol::create('foo\\' . $keyword),
         ]);
 
-        $node = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $node = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertSame('foo\\' . $keyword, $node->getNamespace());
     }
@@ -93,7 +100,7 @@ final class NsSymbolTest extends TestCase
             Symbol::create('foo\\' . $keyword),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public static function invalidNamespacePartProvider(): iterable
@@ -116,7 +123,7 @@ final class NsSymbolTest extends TestCase
             'not-a-list',
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_use_first_argument_must_be_symbol(): void
@@ -133,7 +140,24 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+    }
+
+    public function test_use_import_must_exist(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('Cannot import unknown PHP symbol \\Missing\\NsUseClass.');
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('foo\\bar'),
+            Phel::list([
+                Keyword::create('use'),
+                Symbol::create('Missing\\NsUseClass'),
+            ]),
+        ]);
+
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_use_alias_must_be_symbol(): void
@@ -152,7 +176,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_require_first_argument_must_be_symbol(): void
@@ -169,7 +193,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_require_accepts_single_vector_entry(): void
@@ -185,7 +209,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
             Symbol::create('phel\\core'),
@@ -210,7 +234,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('vp')));
         self::assertSame('vendor\\package', $this->globalEnv->resolveAlias('vp'));
@@ -237,7 +261,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         $fooNode = $this->globalEnv->resolve(Symbol::create('foo'), NodeEnvironment::empty());
         self::assertInstanceOf(GlobalVarNode::class, $fooNode);
@@ -269,7 +293,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('vp')));
         self::assertSame('vendor\\package', $this->globalEnv->resolveAlias('vp'));
@@ -299,7 +323,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
             Symbol::create('phel\\core'),
@@ -330,7 +354,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
             Symbol::create('phel\\core'),
@@ -356,7 +380,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
             Symbol::create('phel\\core'),
@@ -382,7 +406,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_require_alias_must_be_symbol(): void
@@ -401,7 +425,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_require_refer_must_be_vector(): void
@@ -420,7 +444,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_require_refer_elements_must_be_symbol(): void
@@ -439,7 +463,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_require_file_first_argument_must_be_string(): void
@@ -456,7 +480,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_dot_separator_in_namespace_is_normalized_to_backslash(): void
@@ -466,7 +490,7 @@ final class NsSymbolTest extends TestCase
             Symbol::create('my.cljc.file'),
         ]);
 
-        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertSame('my\\cljc\\file', $nsNode->getNamespace());
         self::assertSame('my\\cljc\\file', $this->analyzer->getNamespace());
@@ -483,7 +507,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertSame('app\\core', $nsNode->getNamespace());
         self::assertEquals([
@@ -501,17 +525,17 @@ final class NsSymbolTest extends TestCase
             Symbol::create('app.core'),
             Phel::list([
                 Keyword::create('use'),
-                Symbol::create('Vendor.Library'),
+                Symbol::create('Phel.Lang.Keyword'),
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
-        self::assertTrue($this->globalEnv->hasUseAlias('app\\core', Symbol::create('Library')));
+        self::assertTrue($this->globalEnv->hasUseAlias('app\\core', Symbol::create('Keyword')));
 
-        $phpClassNode = $this->globalEnv->resolve(Symbol::create('Library'), NodeEnvironment::empty());
+        $phpClassNode = $this->globalEnv->resolve(Symbol::create('Keyword'), NodeEnvironment::empty());
         self::assertInstanceOf(PhpClassNameNode::class, $phpClassNode);
-        self::assertSame('\\Vendor\\Library', $phpClassNode->getName()->getName());
+        self::assertSame('\\' . Keyword::class, $phpClassNode->getName()->getName());
     }
 
     public function test_mixed_separators_are_normalized(): void
@@ -521,7 +545,7 @@ final class NsSymbolTest extends TestCase
             Symbol::create('my.foo\\bar'),
         ]);
 
-        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertSame('my\\foo\\bar', $nsNode->getNamespace());
     }
@@ -536,7 +560,7 @@ final class NsSymbolTest extends TestCase
             Symbol::create('my..bar'),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_dot_namespace_with_php_keyword_part_is_allowed(): void
@@ -546,7 +570,7 @@ final class NsSymbolTest extends TestCase
             Symbol::create('my.list'),
         ]);
 
-        $node = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $node = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertSame('my\\list', $node->getNamespace());
     }
@@ -561,7 +585,7 @@ final class NsSymbolTest extends TestCase
             Symbol::create('my.foo@bar'),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     public function test_dot_separator_in_require_auto_derives_last_segment_alias(): void
@@ -575,7 +599,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         // Auto-derived alias should be the last segment after normalization
         self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('file')));
@@ -595,7 +619,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('mcf')));
         self::assertSame('my\\cljc\\file', $this->globalEnv->resolveAlias('mcf'));
@@ -620,7 +644,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         // Both refers should resolve through the normalized vendor namespace
         $fooNode = $this->globalEnv->resolve(Symbol::create('foo'), NodeEnvironment::empty());
@@ -651,7 +675,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('vp')));
         self::assertSame('vendor\\package', $this->globalEnv->resolveAlias('vp'));
@@ -673,7 +697,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
             Symbol::create('phel\\core'),
@@ -699,7 +723,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
             Symbol::create('phel\\core'),
@@ -715,23 +739,23 @@ final class NsSymbolTest extends TestCase
             Symbol::create('app.core'),
             Phel::list([
                 Keyword::create('use'),
-                Symbol::create('Vendor.Library'),
-                Symbol::create('Vendor.Toolkit'),
+                Symbol::create('Phel.Lang.Keyword'),
+                Symbol::create('Phel.Lang.Symbol'),
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
-        self::assertTrue($this->globalEnv->hasUseAlias('app\\core', Symbol::create('Library')));
-        self::assertTrue($this->globalEnv->hasUseAlias('app\\core', Symbol::create('Toolkit')));
+        self::assertTrue($this->globalEnv->hasUseAlias('app\\core', Symbol::create('Keyword')));
+        self::assertTrue($this->globalEnv->hasUseAlias('app\\core', Symbol::create('Symbol')));
 
-        $libraryNode = $this->globalEnv->resolve(Symbol::create('Library'), NodeEnvironment::empty());
+        $libraryNode = $this->globalEnv->resolve(Symbol::create('Keyword'), NodeEnvironment::empty());
         self::assertInstanceOf(PhpClassNameNode::class, $libraryNode);
-        self::assertSame('\\Vendor\\Library', $libraryNode->getName()->getName());
+        self::assertSame('\\' . Keyword::class, $libraryNode->getName()->getName());
 
-        $toolkitNode = $this->globalEnv->resolve(Symbol::create('Toolkit'), NodeEnvironment::empty());
+        $toolkitNode = $this->globalEnv->resolve(Symbol::create('Symbol'), NodeEnvironment::empty());
         self::assertInstanceOf(PhpClassNameNode::class, $toolkitNode);
-        self::assertSame('\\Vendor\\Toolkit', $toolkitNode->getName()->getName());
+        self::assertSame('\\' . Symbol::class, $toolkitNode->getName()->getName());
     }
 
     public function test_dot_separator_in_use_with_explicit_as_alias(): void
@@ -741,19 +765,19 @@ final class NsSymbolTest extends TestCase
             Symbol::create('app.core'),
             Phel::list([
                 Keyword::create('use'),
-                Symbol::create('Vendor.Toolkit'),
+                Symbol::create('Phel.Lang.Symbol'),
                 Keyword::create('as'),
                 Symbol::create('Kit'),
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertTrue($this->globalEnv->hasUseAlias('app\\core', Symbol::create('Kit')));
 
         $kitNode = $this->globalEnv->resolve(Symbol::create('Kit'), NodeEnvironment::empty());
         self::assertInstanceOf(PhpClassNameNode::class, $kitNode);
-        self::assertSame('\\Vendor\\Toolkit', $kitNode->getName()->getName());
+        self::assertSame('\\' . Symbol::class, $kitNode->getName()->getName());
     }
 
     public function test_clojure_namespace_remapped_to_phel_in_require(): void
@@ -767,7 +791,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
             Symbol::create('phel\\core'),
@@ -786,7 +810,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('test')));
         self::assertSame('phel\\test', $this->globalEnv->resolveAlias('test'));
@@ -805,7 +829,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('t')));
         self::assertSame('phel\\test', $this->globalEnv->resolveAlias('t'));
@@ -828,7 +852,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         $node = $this->globalEnv->resolve(Symbol::create('deftest'), NodeEnvironment::empty());
         self::assertInstanceOf(GlobalVarNode::class, $node);
@@ -846,7 +870,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('clojure\\test')));
         self::assertSame('phel\\test', $this->globalEnv->resolveAlias('clojure\\test'));
@@ -863,7 +887,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
             Symbol::create('phel\\core'),
@@ -894,7 +918,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
             Symbol::create('phel\\core'),
@@ -919,7 +943,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
             Symbol::create('phel\\core'),
@@ -939,7 +963,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
             Symbol::create('phel\\core'),
@@ -963,7 +987,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
             Symbol::create('phel\\core'),
@@ -984,7 +1008,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         // When no remap happens, resolvedSymbol === requireSymbol,
         // so the original clojure\* name should NOT be registered as a separate alias
@@ -1006,7 +1030,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         // Should remap because phel\my_lib exists (munged form of phel\my-lib)
         self::assertEquals([
@@ -1026,7 +1050,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
             Symbol::create('phel\\core'),
@@ -1049,7 +1073,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertSame('vendor\\package', $nsNode->getNamespace());
         self::assertEquals([
@@ -1066,8 +1090,8 @@ final class NsSymbolTest extends TestCase
             Symbol::create('my\\project'),
             Phel::list([
                 Keyword::create('use'),
-                Symbol::create('Vendor\\Library'),
-                Symbol::create('Vendor\\Toolkit'),
+                Symbol::create('\\' . Keyword::class),
+                Symbol::create('\\' . Symbol::class),
                 Keyword::create('as'),
                 Symbol::create('Kit'),
             ]),
@@ -1085,7 +1109,7 @@ final class NsSymbolTest extends TestCase
             ]),
         ]);
 
-        $nsNode = (new NsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertInstanceOf(NsNode::class, $nsNode);
         self::assertSame('my\\project', $nsNode->getNamespace());
@@ -1095,22 +1119,153 @@ final class NsSymbolTest extends TestCase
         ], $nsNode->getRequireNs());
         self::assertSame(['src/config.phel'], $nsNode->getRequireFiles());
         self::assertSame('my\\project', $this->analyzer->getNamespace());
-        self::assertTrue($this->globalEnv->hasUseAlias('my\\project', Symbol::create('Library')));
+        self::assertTrue($this->globalEnv->hasUseAlias('my\\project', Symbol::create('Keyword')));
         self::assertTrue($this->globalEnv->hasUseAlias('my\\project', Symbol::create('Kit')));
         self::assertTrue($this->globalEnv->hasRequireAlias('my\\project', Symbol::create('package')));
         self::assertSame('vendor\\package', $this->globalEnv->resolveAlias('package'));
 
-        $phpClassNode = $this->globalEnv->resolve(Symbol::create('Library'), NodeEnvironment::empty());
+        $phpClassNode = $this->globalEnv->resolve(Symbol::create('Keyword'), NodeEnvironment::empty());
         self::assertInstanceOf(PhpClassNameNode::class, $phpClassNode);
-        self::assertSame('\\Vendor\\Library', $phpClassNode->getName()->getName());
+        self::assertSame('\\' . Keyword::class, $phpClassNode->getName()->getName());
 
         $phpClassNodeAlias = $this->globalEnv->resolve(Symbol::create('Kit'), NodeEnvironment::empty());
         self::assertInstanceOf(PhpClassNameNode::class, $phpClassNodeAlias);
-        self::assertSame('\\Vendor\\Toolkit', $phpClassNodeAlias->getName()->getName());
+        self::assertSame('\\' . Symbol::class, $phpClassNodeAlias->getName()->getName());
 
         Phel::addDefinition('vendor\\package', 'foo', 'value', Phel::map());
         $globalVarNode = $this->globalEnv->resolve(Symbol::create('foo'), NodeEnvironment::empty());
         self::assertInstanceOf(GlobalVarNode::class, $globalVarNode);
         self::assertSame('vendor\\package', $globalVarNode->getNamespace());
+    }
+
+    public function test_backslash_ns_form_emits_deprecation(): void
+    {
+        $captured = [];
+        $this->installCapturingDeprecator($captured);
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            $this->locatedSymbol('my\\project', '/app/user.phel'),
+        ]);
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+
+        self::assertCount(1, $captured);
+        self::assertStringContainsString("'my\\project'", $captured[0]);
+        self::assertStringContainsString("'my.project'", $captured[0]);
+
+        BackslashSeparatorDeprecator::resetInstance();
+    }
+
+    public function test_backslash_require_emits_deprecation(): void
+    {
+        $captured = [];
+        $this->installCapturingDeprecator($captured);
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            $this->locatedSymbol('my\\project', '/app/user.phel'),
+            Phel::list([
+                Keyword::create('require'),
+                $this->locatedSymbol('phel\\walk', '/app/user.phel'),
+            ]),
+        ]);
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+
+        $requireWarnings = array_values(array_filter(
+            $captured,
+            static fn(string $m): bool => str_contains($m, "'phel\\walk'"),
+        ));
+
+        self::assertCount(1, $requireWarnings, 'exactly one warning for the backslash require symbol');
+        self::assertStringContainsString("'phel.walk'", $requireWarnings[0]);
+
+        BackslashSeparatorDeprecator::resetInstance();
+    }
+
+    public function test_backslash_use_emits_deprecation(): void
+    {
+        $captured = [];
+        $this->installCapturingDeprecator($captured);
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            $this->locatedSymbol('my.project', '/app/user.phel'),
+            Phel::list([
+                Keyword::create('use'),
+                $this->locatedSymbol('\\' . Keyword::class, '/app/user.phel'),
+            ]),
+        ]);
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+
+        $useWarnings = array_values(array_filter(
+            $captured,
+            static fn(string $m): bool => str_contains($m, "'\\Phel\\Lang\\Keyword'"),
+        ));
+
+        self::assertCount(1, $useWarnings, 'exactly one warning for the backslash use symbol');
+        self::assertStringContainsString("'Phel.Lang.Keyword'", $useWarnings[0]);
+
+        BackslashSeparatorDeprecator::resetInstance();
+    }
+
+    public function test_dot_use_emits_no_deprecation(): void
+    {
+        $captured = [];
+        $this->installCapturingDeprecator($captured);
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            $this->locatedSymbol('my.project', '/app/user.phel'),
+            Phel::list([
+                Keyword::create('use'),
+                $this->locatedSymbol('Phel.Lang.Keyword', '/app/user.phel'),
+            ]),
+        ]);
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+
+        self::assertSame([], $captured);
+
+        BackslashSeparatorDeprecator::resetInstance();
+    }
+
+    public function test_dot_ns_form_emits_no_deprecation(): void
+    {
+        $captured = [];
+        $this->installCapturingDeprecator($captured);
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            $this->locatedSymbol('my.project', '/app/user.phel'),
+            Phel::list([
+                Keyword::create('require'),
+                $this->locatedSymbol('phel.walk', '/app/user.phel'),
+            ]),
+        ]);
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+
+        self::assertSame([], $captured);
+
+        BackslashSeparatorDeprecator::resetInstance();
+    }
+
+    /**
+     * @param list<string> $captured
+     */
+    private function installCapturingDeprecator(array &$captured): void
+    {
+        BackslashSeparatorDeprecator::useInstance(new BackslashSeparatorDeprecator(
+            enabled: true,
+            emitter: static function (string $msg) use (&$captured): void {
+                $captured[] = $msg;
+            },
+        ));
+    }
+
+    private function locatedSymbol(string $name, string $file): Symbol
+    {
+        $symbol = Symbol::create($name);
+        $symbol->setStartLocation(new SourceLocation($file, 1, 1));
+
+        return $symbol;
     }
 }

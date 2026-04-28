@@ -6,12 +6,12 @@ Code formatting for Phel source files: parses code into AST, applies formatting 
 
 - **Facade**: `FormatterFacade` implements `FormatterFacadeInterface`
 - **Factory**: `FormatterFactory` — creates `PathsFormatter`, `Formatter`, individual rules
-- **Config**: `FormatterConfig` — `getFormatDirs()` (default: `['src/phel', 'tests/phel']`)
+- **Config**: `FormatterConfig` — `getFormatDirs()` (default: `['src', 'tests']`)
 - **Provider**: `FormatterProvider` — injects `CompilerFacade` (`FACADE_COMPILER`) and `CommandFacade` (`FACADE_COMMAND`)
 
 ## Public API (Facade)
 
-- `format(array $paths, OutputInterface $output): array` — format files, returns list of successfully formatted paths
+- `format(array $paths, OutputInterface $output, bool $dryRun = false): array` — format files, returns list of paths whose contents changed (or would change under `$dryRun`). When `$dryRun`, files are left untouched.
 
 ## Formatting Rules (applied in order)
 

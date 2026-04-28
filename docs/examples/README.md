@@ -1,29 +1,32 @@
 # Phel single-file showcase
 
-These standalone scripts demonstrate how Phel scales from a friendly first contact to
-more expressive programs that lean on both functional patterns and the underlying PHP
-runtime. Each file can be executed with the Phel CLI:
+Standalone scripts that walk from primitive literals up to concurrency and a full CLI. Each file runs with:
 
 ```bash
-bin/phel run docs/examples/<file>.phel
+./bin/phel run docs/examples/<file>.phel
 ```
 
 ## Example overview
 
-1. **basic-types.phel** – Explore primitive values, keywords, and common collection literals.
-2. **arithmetic.phel** – Crunch numbers with helper functions for common operations.
-3. **control-flow.phel** – Use `cond` and `case` for branching logic.
-4. **functions-recursion.phel** – Build reusable helpers and recursive algorithms.
-5. **data-structures.phel** – Traverse vectors, maps, and strings with destructuring and iteration patterns.
-6. **data-pipeline.phel** – Compose sequence operations with higher-order helpers and threading.
-7. **macro-playground.phel** – Craft a macro to generate structured launch plans.
-8. **interfaces.phel** – Model behaviour with interfaces and multiple implementations.
-9. **php-integration.phel** – Interoperate with PHP classes, dates, and JSON encoding.
-10. **html-rendering.phel** – Render dynamic HTML with Phel's templating macros.
+| # | File | Topic |
+|---|------|-------|
+| 01 | `01_basic-types.phel` | Primitive values, keywords, collection literals |
+| 02 | `02_arithmetic.phel` | Numeric operations and helper functions |
+| 03 | `03_control-flow.phel` | `cond` and `case` for branching |
+| 04 | `04_functions-recursion.phel` | Reusable helpers, `loop`/`recur`, recursion |
+| 05 | `05_data-structures.phel` | Vectors, maps, `conj`, `assoc`, nested updates, transients |
+| 06 | `06_data-pipeline.phel` | Threading macros, `filter`/`map`/`reduce`, `group-by` |
+| 07 | `07_macro-playground.phel` | A small DSL built with `defmacro` |
+| 08 | `08_interfaces.phel` | `definterface` + `defstruct` polymorphism |
+| 09 | `09_php-integration.phel` | PHP interop: `DateTimeImmutable`, `DateInterval`, JSON |
+| 10 | `10_html-rendering.phel` | HTML templating with `phel\html` |
+| 11 | `11_async-concurrency.phel` | AMPHP + fiber concurrency (`async`, `await`, `promise`) |
+| 12 | `12_cli.phel` | A todo-list CLI on `phel\cli` with subcommands and tables |
+| — | `transducers.phel` | Composable transformations: `into`, `transduce`, `sequence` |
 
-Feel free to copy these files into your own project and experiment.
+Copy any file into your project and tweak it.
 
-## Test all examples
+## Run them all
 
 ```bash
 find docs/examples -name "*.phel" -type f | \
@@ -32,6 +35,8 @@ find docs/examples -name "*.phel" -type f | \
       echo "=== Running: {} ===" && \
       ./bin/phel run {} && \
       echo "" || \
-      (echo "❌ ERROR in {}" && exit 1)
+      (echo "ERROR in {}" && exit 1)
     '
 ```
+
+This is the same command the CI `examples` job runs on every push.

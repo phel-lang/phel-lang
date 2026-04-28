@@ -27,7 +27,7 @@ final class FnPrinter implements TypePrinterInterface
 
     private function extractName(object $form): ?string
     {
-        $boundTo = (new ReflectionClass($form))->getConstant('BOUND_TO');
+        $boundTo = new ReflectionClass($form)->getConstant('BOUND_TO');
 
         if ($boundTo === false || $boundTo === '') {
             return null;

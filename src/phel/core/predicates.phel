@@ -1,0 +1,469 @@
+(in-ns phel.core)
+
+(use Countable)
+(use Phel)
+(use Phel\Lang\Collections\HashSet\PersistentHashSetInterface)
+(use Phel\Lang\Collections\LazySeq\LazySeqInterface)
+(use Phel\Lang\Collections\LinkedList\PersistentListInterface)
+(use Phel\Lang\Collections\Map\PersistentMapInterface)
+(use Phel\Lang\Collections\SortedMap\PersistentSortedMap)
+(use Phel\Lang\Collections\SortedSet\PersistentSortedSet)
+(use Phel\Lang\Collections\Struct\AbstractPersistentStruct)
+(use Phel\Lang\Collections\Vector\PersistentVectorInterface)
+(use Phel\Lang\FnInterface)
+(use Phel\Lang\Keyword)
+(use Phel\Lang\Symbol)
+(use Phel\Lang\Variable)
+
+;; Type-dispatch primitives: the `type` function and every `*?` predicate
+;; (`vector?`, `map?`, `list?`, `set?`, `keyword?`, `symbol?`, `int?`,
+;; `float?`, `string?`, `fn?`, `coll?`, `seq?`, `seqable?`, `counted?`,
+;; `sorted?`, …) along with the collection-shape helpers `seq`, `empty?`,
+;; `empty`, `not-empty`, `boolean`, and the `instance?` macro.
+
+;; --------------
+;; Type operation
+;; --------------
+
+(defn type
+  "Returns the type of `x`. The following types can be returned:
+
+* `:vector`
+* `:list`
+* `:struct`
+* `:hash-map`
+* `:set`
+* `:keyword`
+* `:symbol`
+* `:var`
+* `:int`
+* `:float`
+* `:string`
+* `:nil`
+* `:boolean`
+* `:function`
+* `:php/array`
+* `:php/resource`
+* `:php/object`
+* `:unknown`"
+  [x]
+  (cond
+    (php/instanceof x PersistentVectorInterface)  :vector
+    (php/instanceof x PersistentListInterface)    :list
+    (php/instanceof x AbstractPersistentStruct)   :struct
+    (php/instanceof x PersistentMapInterface)     :hash-map
+    (php/instanceof x PersistentHashSetInterface) :set
+    (php/instanceof x Keyword)                    :keyword
+    (php/instanceof x Symbol)                     :symbol
+    (php/instanceof x Variable)                   :var
+    (php/is_int x)                                :int
+    (php/is_float x)                              :float
+    (php/is_string x)                             :string
+    (php/is_null x)                               :nil
+    (php/is_bool x)                               :boolean
+    (php/is_callable x)                           :function
+    (php/is_array x)                              :php/array
+    (php/is_resource x)                           :php/resource
+    (php/is_object x)                             :php/object
+    :unknown))
+
+(defn float?
+  "Returns true if `x` is float point number, false otherwise."
+  [x]
+  (php/is_float x))
+
+(defn integer?
+  "Returns true if `x` is an integer number, false otherwise."
+  {:see-also ["int?"]}
+  [x]
+  (php/is_int x))
+
+(defn int?
+  "Returns true if `x` is an integer number, false otherwise.
+   Alias for `integer?`.
+
+   Note that, unlike Clojure, Phel uses PHP integers and there is no
+   distinction between standard and fixed-precision integers.
+   Integer sizes are also limited by platform (see php/PHP_INT_MAX constant)."
+  {:see-also ["integer?"]}
+  [x]
+  (integer? x))
+
+(defn neg-int?
+  "Returns true if `x` is a negative integer."
+  {:example "(neg-int? -1) ; => true\n(neg-int? 0) ; => false\n(neg-int? 1) ; => false"
+   :see-also ["int?" "pos-int?" "nat-int?"]}
+  [x]
+  (and (integer? x) (php/< x 0)))
+
+(defn pos-int?
+  "Returns true if `x` is a positive integer (greater than zero)."
+  {:example "(pos-int? 1) ; => true\n(pos-int? 0) ; => false\n(pos-int? -1) ; => false"
+   :see-also ["int?" "neg-int?" "nat-int?"]}
+  [x]
+  (and (integer? x) (php/> x 0)))
+
+(defn nat-int?
+  "Returns true if `x` is a non-negative integer (zero or positive)."
+  {:example "(nat-int? 0) ; => true\n(nat-int? 1) ; => true\n(nat-int? -1) ; => false"
+   :see-also ["int?" "pos-int?" "neg-int?"]}
+  [x]
+  (and (integer? x) (php/>= x 0)))
+
+(defn number?
+  "Returns true if `x` is a number, false otherwise."
+  [x]
+  (or (php/is_int x) (php/is_float x)))
+
+(defn ratio?
+  "Always returns false. Phel has no Ratio type — Clojure-style ratio
+  literals like `1/2` are accepted by the reader but evaluate to floats
+  (`num / den`). Provided for `.cljc` interop so cross-host code can
+  call `ratio?` without compilation errors."
+  {:example "(ratio? 1/2) ; => false"
+   :see-also ["number?" "float?" "double?"]}
+  [_]
+  false)
+
+(defn double?
+  "Returns true if `x` is a floating-point number, false otherwise.
+   Alias for `float?`, matching Clojure's `double?` naming. Since Phel
+   uses PHP floats (IEEE 754 doubles) there is no separate single-precision
+   float type."
+  {:see-also ["float?" "number?"]}
+  [x]
+  (float? x))
+
+(defn string?
+  "Returns true if `x` is a string, false otherwise."
+  [x]
+  (php/is_string x))
+
+(defn char?
+  "Returns true if `x` is a single-character string, false otherwise.
+   Phel has no dedicated character type — character literals such as
+   `\\A` are already single-character strings — so `char?` is true for
+   any string of length 1 (UTF-8 counted). Matches ClojureScript's
+   `char?` for `.cljc` interop; Clojure/JVM's `char?` tests for the
+   distinct `Character` type, which does not exist here."
+  {:example "(char? \\A) ; => true\n(char? \"a\") ; => true\n(char? \"ab\") ; => false"
+   :see-also ["char" "string?"]}
+  [x]
+  (and (php/is_string x)
+       (= 1 (php/mb_strlen x "UTF-8"))))
+
+(defn keyword?
+  "Returns true if `x` is a keyword, false otherwise."
+  [x]
+  (php/instanceof x Keyword))
+
+(defn symbol?
+  "Returns true if `x` is a symbol, false otherwise."
+  [x]
+  (php/instanceof x Symbol))
+
+(defn ident?
+  "Returns true if `x` is a symbol or keyword."
+  {:example "(ident? 'x) ; => true\n(ident? :a) ; => true\n(ident? 42) ; => false"
+   :see-also ["symbol?" "keyword?" "simple-ident?"]}
+  [x]
+  (or (symbol? x) (keyword? x)))
+
+(defn simple-symbol?
+  "Returns true if `x` is a symbol without a namespace."
+  {:see-also ["symbol?" "simple-ident?"]}
+  [x]
+  (and (symbol? x) (nil? (php/-> x (getNamespace)))))
+
+(defn simple-keyword?
+  "Returns true if `x` is a keyword without a namespace."
+  {:see-also ["keyword?" "simple-ident?"]}
+  [x]
+  (and (keyword? x) (nil? (php/-> x (getNamespace)))))
+
+(defn simple-ident?
+  "Returns true if `x` is a symbol or keyword without a namespace."
+  {:see-also ["simple-symbol?" "simple-keyword?" "ident?"]}
+  [x]
+  (or (simple-symbol? x) (simple-keyword? x)))
+
+(def ^:private special-symbols
+  "The set of symbols that name Phel special forms."
+  (hash-set 'def 'ns 'in-ns 'load 'fn 'quote 'do 'if 'apply
+            'let 'recur 'try 'throw 'loop 'foreach 'set-var
+            'defstruct* 'definterface* 'defexception* 'reify*
+            'php/new 'php/-> 'php/:: 'php/aget 'php/aget-in
+            'php/aset 'php/aset-in 'php/apush 'php/apush-in
+            'php/aunset 'php/aunset-in 'php/oset))
+
+(defn special-symbol?
+  "Returns true if `s` names a special form."
+  {:example "(special-symbol? 'def) ; => true\n(special-symbol? 'map) ; => false"
+   :see-also ["symbol?"]}
+  [s]
+  (and (symbol? s) (contains? special-symbols s)))
+
+(defn fn?
+  "Returns true if `x` is a function, false otherwise."
+  [x]
+  (= (type x) :function))
+
+(defn ifn?
+  "Returns true if `x` can be invoked as a function.
+   This includes functions, keywords, maps, vectors, sets, and lists."
+  {:example "(ifn? inc) ; => true\n(ifn? :a) ; => true\n(ifn? {}) ; => true\n(ifn? 42) ; => false"
+   :see-also ["fn?"]}
+  [x]
+  (or (php/instanceof x FnInterface)
+      (php/is_callable x)))
+
+(defn function?
+  "Returns true if `x` is a function, false otherwise."
+  {:deprecated "0.32.0"
+   :superseded-by "fn?"}
+  [x]
+  (fn? x))
+
+(defn struct?
+  "Returns true if `x` is a struct, false otherwise."
+  [x]
+  (php/instanceof x AbstractPersistentStruct))
+
+(defn map?
+  "Returns true if `x` is a hash map, false otherwise."
+  [x]
+  (and (php/instanceof x PersistentMapInterface)
+       (not (php/instanceof x AbstractPersistentStruct))))
+
+(defn hash-map?
+  "Returns true if `x` is a hash map, false otherwise."
+  {:deprecated "0.32.0"
+   :superseded-by "map?"}
+  [x]
+  (map? x))
+
+(defn vector?
+  "Returns true if `x` is a vector, false otherwise."
+  [x]
+  (php/instanceof x PersistentVectorInterface))
+
+(defn list?
+  "Returns true if `x` is a list, false otherwise."
+  [x]
+  (php/instanceof x PersistentListInterface))
+
+(defn boolean?
+  "Returns true if `x` is a boolean, false otherwise."
+  [x]
+  (php/is_bool x))
+
+(defn boolean
+  "Coerces `x` to a boolean. Returns `false` if `x` is `nil` or `false`,
+   `true` otherwise."
+  {:example "(boolean nil) ; => false"}
+  [x]
+  (if x true false))
+
+(defn any?
+  "Returns true given any argument, including `nil` and `false`. Mirrors
+  Clojure's `clojure.core/any?` — useful as a default predicate in spec
+  / validation contexts where every value should be accepted."
+  {:example "(any? nil) ; => true\n(any? 0) ; => true"
+   :see-also ["some?" "every?" "ifn?"]}
+  [_]
+  true)
+
+(defmacro instance?
+  "Returns true if `x` is an instance of class `c`, false otherwise.
+  Mirrors Clojure's `clojure.core/instance?` argument order (class first,
+  value second). `c` should be a literal class reference such as
+  `DateTime` or a `:use`d short name; for runtime class names use
+  `(php/is_a x class-name)`."
+  {:example "(instance? DateTime (php/new DateTime)) ; => true"
+   :see-also ["type"]}
+  [c x]
+  `(php/instanceof ~x ~c))
+
+(defn php-array?
+  "Returns true if `x` is a PHP Array, false otherwise."
+  [x]
+  (php/is_array x))
+
+(defn php-resource?
+  "Returns true if `x` is a PHP resource, false otherwise."
+  [x]
+  (php/is_resource x))
+
+(defn php-object?
+  "Returns true if `x` is a PHP object, false otherwise."
+  [x]
+  (= (type x) :php/object))
+
+(defn seq?
+  "Returns true if `x` is a seq (implements LazySeqInterface), false otherwise."
+  {:see-also ["seq" "lazy-seq"]}
+  [x]
+  (php/instanceof x LazySeqInterface))
+
+(defn empty?
+  "Returns true if x would be 0, \"\" or empty collection, false otherwise.
+  Safe on infinite/lazy sequences: checks the first element instead of counting."
+  [x]
+  (cond
+    (php/is_numeric x)                  (= 0 x)
+    (php/is_string x)                   (true? (php/empty x))
+    (php/instanceof x LazySeqInterface) (nil? (first x))
+    :else                               (= 0 (count x))))
+
+(defn not-empty
+  "Returns `coll` if it contains elements, otherwise nil."
+  [coll]
+  (if (empty? coll)
+    nil
+    coll))
+
+(defn empty
+  "Returns an empty collection of the same category as `coll`, or nil."
+  {:example "(empty [1 2 3]) ; => []\n(empty {:a 1}) ; => {}"
+   :see-also ["empty?" "not-empty"]}
+  [coll]
+  (cond
+    (nil? coll)                                      nil
+    (vector? coll)                                   []
+    (map? coll)                                      {}
+    (php/instanceof coll PersistentHashSetInterface) (hash-set)
+    (list? coll)                                     '()
+    (php-array? coll)                                (php/array)
+    :else                                            nil))
+
+(defn- seq-vector
+  [values]
+  (if (php/empty values) nil (php/:: Phel (vector values))))
+
+(defn seq
+  "Returns a seq on the collection. Strings are converted to a vector of characters.
+  Non-sequential collections and PHP arrays are converted to vectors.
+  Returns nil if coll is empty or nil.
+
+  This function is useful for explicitly converting strings to sequences of characters,
+  enabling sequence operations like map, filter, and frequencies."
+  {:example "(seq \"hello\") ; => [\"h\" \"e\" \"l\" \"l\" \"o\"]"
+   :see-also ["count"]}
+  [coll]
+  (cond
+    (php/is_string coll)
+    (seq-vector (php/mb_str_split coll))
+
+    (php/=== coll nil)
+    nil
+
+    ;; For lazy sequences, don't force them - just check if first element exists
+    (seq? coll)
+    (if (php/=== nil (php/-> coll (first))) nil coll)
+
+    ;; For other countable collections, check count (won't force lazy seqs)
+    (and (php/instanceof coll Countable) (= 0 (count coll)))
+    nil
+
+    (php/is_array coll)
+    (seq-vector coll)
+
+    (php/instanceof coll PersistentHashSetInterface)
+    (seq-vector (to-php-array coll))
+
+    true
+    coll))
+
+(defn- indexed-php-array?
+  [x]
+  (and (php/is_array x)
+       (or (php/empty x) (php/array_is_list x))))
+
+(defn indexed?
+  "Returns true if `x` is an indexed sequence, false otherwise.
+
+  Indexed sequences include lists, vectors, and indexed PHP arrays."
+  {:example "(indexed? [1 2 3]) ; => true"}
+  [x]
+  (or (php/instanceof x PersistentVectorInterface)
+      (php/instanceof x PersistentListInterface)
+      (indexed-php-array? x)))
+
+(defn associative?
+  "Returns true if `x` is an associative data structure, false otherwise.
+
+  Associative data structures include vectors, hash maps, structs, and PHP arrays
+  (both indexed and associative), matching Clojure's `Associative` protocol."
+  {:example "(associative? [1 2 3]) ; => true"
+   :see-also ["vector?" "map?" "hash-map?"]}
+  [x]
+  (or (php/instanceof x PersistentMapInterface)
+      (php/instanceof x PersistentVectorInterface)
+      (php/is_array x)))
+
+(defn sequential?
+  "Returns true if `x` is a sequential collection (vector, list, or lazy
+   sequence), false otherwise. Sequential collections maintain insertion
+   order and support indexed or linear access. Maps, sets, and structs
+   are not sequential, matching Clojure's `Sequential` marker."
+  {:example "(sequential? [1 2 3]) ; => true\n(sequential? {:a 1}) ; => false"
+   :see-also ["coll?" "vector?" "list?" "seq?"]}
+  [x]
+  (or (php/instanceof x PersistentVectorInterface)
+      (php/instanceof x PersistentListInterface)
+      (php/instanceof x LazySeqInterface)))
+
+(defn coll?
+  "Returns true if `x` is a persistent collection — vector, list, hash-map
+   (including sorted-map), struct, set (including sorted-set), or lazy-seq —
+   and false otherwise. Strings, numbers, `nil`, booleans, keywords, symbols,
+   and plain PHP arrays are not considered collections, matching Clojure's
+   `IPersistentCollection` membership."
+  {:example "(coll? [1 2 3]) ; => true\n(coll? \"abc\") ; => false"
+   :see-also ["vector?" "map?" "list?" "set?" "seq?" "sequential?"]}
+  [x]
+  (or (php/instanceof x PersistentVectorInterface)
+      (php/instanceof x PersistentListInterface)
+      (php/instanceof x PersistentMapInterface)
+      (php/instanceof x PersistentHashSetInterface)
+      (php/instanceof x LazySeqInterface)))
+
+(defn seqable?
+  "Returns true if `(seq x)` is supported: collections (vectors, lists,
+   maps, sets, structs), lazy sequences, strings, PHP arrays, and nil.
+   Returns false for numbers, booleans, keywords, symbols, and other types."
+  {:example "(seqable? [1 2]) ; => true\n(seqable? 42) ; => false"
+   :see-also ["seq" "coll?" "seq?"]}
+  [x]
+  (or (nil? x)
+      (coll? x)
+      (php/is_string x)
+      (php/is_array x)))
+
+(defn counted?
+  "Returns true if `coll` can report its length in constant time — persistent
+   vectors, lists, hash-maps (including sorted-map), structs, and sets
+   (including sorted-set). Returns false for lazy sequences (counting them
+   requires realizing the whole sequence), strings, numbers, `nil`, and every
+   other non-counted type. Matches Clojure's `counted?` semantics, which
+   mirror the `clojure.lang.Counted` marker interface."
+  {:example "(counted? [1 2 3]) ; => true\n(counted? (range)) ; => false"
+   :see-also ["count" "coll?"]}
+  [coll]
+  (or (php/instanceof coll PersistentVectorInterface)
+      (php/instanceof coll PersistentListInterface)
+      (php/instanceof coll PersistentMapInterface)
+      (php/instanceof coll PersistentHashSetInterface)))
+
+(defn set?
+  "Returns true if `x` is a set, false otherwise."
+  [x]
+  (php/instanceof x PersistentHashSetInterface))
+
+(defn sorted?
+  "Returns true if `coll` is a sorted collection (sorted-map or sorted-set), false otherwise."
+  {:example "(sorted? (sorted-set 1 2 3)) ; => true"
+   :see-also ["sorted-map" "sorted-set"]}
+  [coll]
+  (or (php/instanceof coll PersistentSortedMap)
+      (php/instanceof coll PersistentSortedSet)))

@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Run\Command\Repl;
 
-use FilesystemIterator;
-
-use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
 use Override;
 use Phel\Command\Application\TextExceptionPrinter;
@@ -25,8 +22,6 @@ use Phel\Shared\ColorStyleInterface;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
-use RecursiveDirectoryIterator;
-use RecursiveIteratorIterator;
 use Symfony\Component\Console\Input\InputInterface;
 
 final class ReplCwdNamespaceTest extends AbstractTestCommand
@@ -39,33 +34,22 @@ final class ReplCwdNamespaceTest extends AbstractTestCommand
     {
         parent::setUp();
         $this->previousCwd = getcwd() ?: '';
-        $this->tempDir = sys_get_temp_dir() . '/phel-repl-cwd-' . uniqid('', true);
-        mkdir($this->tempDir, 0777, true);
+        $this->tempDir = $this->containerTempDir();
         chdir($this->tempDir);
-        file_put_contents('my-module.phel', <<<'PHEL'
+        file_put_contents($this->tempDir . '/my-module.phel', <<<'PHEL'
 (ns my-module)
 
 (defn hello [x]
   (str "(module.phel at cwd): " x))
 PHEL);
-        Gacela::bootstrap($this->tempDir, static function (GacelaConfig $config): void {
-            $config->resetInMemoryCache();
-        });
+        Gacela::bootstrap($this->tempDir);
     }
 
     #[Override]
     protected function tearDown(): void
     {
         chdir($this->previousCwd);
-        if (is_dir($this->tempDir)) {
-            $it = new RecursiveDirectoryIterator($this->tempDir, FilesystemIterator::SKIP_DOTS);
-            $files = new RecursiveIteratorIterator($it, RecursiveIteratorIterator::CHILD_FIRST);
-            foreach ($files as $file) {
-                $file->isDir() ? rmdir($file->getRealPath()) : unlink($file->getRealPath());
-            }
-
-            rmdir($this->tempDir);
-        }
+        $this->cleanupContainerTempDirs();
     }
 
     #[RunInSeparateProcess]
@@ -74,9 +58,9 @@ PHEL);
     {
         $io = $this->createReplTestIo();
         $io->setInputs(
-            new InputLine('phel:1> ', '(require my-module)'),
-            new InputLine('phel:2> ', '(my-module/hello "foo")'),
-            new InputLine('phel:3> ', 'exit'),
+            new InputLine('user:1> ', '(require my-module)'),
+            new InputLine('user:2> ', '(my-module/hello "foo")'),
+            new InputLine('user:3> ', 'exit'),
         );
         $this->prepareRunFactory($io);
 

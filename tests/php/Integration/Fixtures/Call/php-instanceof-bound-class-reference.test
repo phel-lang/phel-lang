@@ -1,0 +1,17 @@
+--PHEL--
+(use RecursiveArrayIterator)
+(let [PHPChildT RecursiveArrayIterator]
+  (php/instanceof (php/new PHPChildT (php/array)) PHPChildT))
+--PHP--
+$PHPChildT_1 = \RecursiveArrayIterator::class;
+(function() use($PHPChildT_1) {
+  $instanceof_value_2 = (function() use($PHPChildT_1) {
+    $target_4 = $PHPChildT_1;
+    if (!is_string($target_4) && !is_object($target_4)) {
+    throw new \InvalidArgumentException(sprintf("php/new expects a class name or object, %s given (%s)", get_debug_type($target_4), var_export($target_4, true)));
+    }
+    return new $target_4(array());
+  })();
+  $instanceof_class_3 = $PHPChildT_1;
+  return $instanceof_value_2 instanceof $instanceof_class_3;
+})();

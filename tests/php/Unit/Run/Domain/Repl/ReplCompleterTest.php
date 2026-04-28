@@ -158,14 +158,7 @@ final class ReplCompleterTest extends TestCase
     public function test_php_function_has_php_function_type(): void
     {
         $results = $this->completer->completeWithTypes('php/strl');
-
-        $strlen = null;
-        foreach ($results as $result) {
-            if ($result->candidate === 'php/strlen') {
-                $strlen = $result;
-                break;
-            }
-        }
+        $strlen = array_find($results, static fn($result): bool => $result->candidate === 'php/strlen');
 
         self::assertNotNull($strlen);
         self::assertSame('php-function', $strlen->type);
@@ -174,14 +167,7 @@ final class ReplCompleterTest extends TestCase
     public function test_php_class_has_class_type(): void
     {
         $results = $this->completer->completeWithTypes('php/DateT');
-
-        $dateTime = null;
-        foreach ($results as $result) {
-            if ($result->candidate === 'php/DateTime') {
-                $dateTime = $result;
-                break;
-            }
-        }
+        $dateTime = array_find($results, static fn($result): bool => $result->candidate === 'php/DateTime');
 
         self::assertNotNull($dateTime);
         self::assertSame('class', $dateTime->type);
@@ -244,25 +230,15 @@ final class ReplCompleterTest extends TestCase
         self::assertContainsOnly('string', $results);
     }
 
-    public function test_completion_result_transfer_to_array(): void
-    {
-        $result = new CompletionResultTransfer('map', 'function');
-
-        self::assertSame([
-            'candidate' => 'map',
-            'type' => 'function',
-        ], $result->toArray());
-    }
-
     public function test_qualified_function_in_non_core_namespace(): void
     {
         $fn = self::createStub(FnInterface::class);
-        Phel::addDefinition('phel\\str', 'join', $fn);
+        Phel::addDefinition('phel\\string', 'join', $fn);
 
-        $results = $this->completer->completeWithTypes('phel\\str\\jo');
+        $results = $this->completer->completeWithTypes('phel\\string\\jo');
 
         self::assertCount(1, $results);
-        self::assertSame('phel\\str\\join', $results[0]->candidate);
+        self::assertSame('phel\\string\\join', $results[0]->candidate);
         self::assertSame('function', $results[0]->type);
     }
 }

@@ -337,25 +337,42 @@ final readonly class Parser implements ParserInterface
             ->parse($tokenStream, $token->getType());
     }
 
+    /**
+     * Reads the next non-trivia expression inside a reader conditional.
+     * Returns null when only trivia remains before the closing paren (or EOF),
+     * letting the caller exit the branch loop cleanly.
+     */
+    private function readNonTriviaExpression(TokenStream $tokenStream): ?NodeInterface
+    {
+        while ($tokenStream->valid()) {
+            if ($tokenStream->current()->getType() === Token::T_CLOSE_PARENTHESIS) {
+                return null;
+            }
+
+            $node = $this->readExpression($tokenStream);
+            if (!$node instanceof TriviaNodeInterface) {
+                return $node;
+            }
+        }
+
+        return null;
+    }
+
     private function parseReaderCondNode(TokenStream $tokenStream, Token $openToken): NodeInterface
     {
         $phelNode = null;
         $defaultNode = null;
 
-        while ($tokenStream->valid() && $tokenStream->current()->getType() !== Token::T_CLOSE_PARENTHESIS) {
-            // Read keyword (skip trivia)
-            do {
-                $keywordNode = $this->readExpression($tokenStream);
-            } while ($keywordNode instanceof TriviaNodeInterface);
-
-            if ($tokenStream->valid() && $tokenStream->current()->getType() === Token::T_CLOSE_PARENTHESIS) {
+        while ($tokenStream->valid()) {
+            $keywordNode = $this->readNonTriviaExpression($tokenStream);
+            if (!$keywordNode instanceof NodeInterface) {
                 break;
             }
 
-            // Read form (skip trivia)
-            do {
-                $formNode = $this->readExpression($tokenStream);
-            } while ($formNode instanceof TriviaNodeInterface);
+            $formNode = $this->readNonTriviaExpression($tokenStream);
+            if (!$formNode instanceof NodeInterface) {
+                break;
+            }
 
             // Check keyword
             if ($keywordNode instanceof KeywordNode) {
@@ -389,20 +406,16 @@ final readonly class Parser implements ParserInterface
         $phelNode = null;
         $defaultNode = null;
 
-        while ($tokenStream->valid() && $tokenStream->current()->getType() !== Token::T_CLOSE_PARENTHESIS) {
-            // Read keyword (skip trivia)
-            do {
-                $keywordNode = $this->readExpression($tokenStream);
-            } while ($keywordNode instanceof TriviaNodeInterface);
-
-            if ($tokenStream->valid() && $tokenStream->current()->getType() === Token::T_CLOSE_PARENTHESIS) {
+        while ($tokenStream->valid()) {
+            $keywordNode = $this->readNonTriviaExpression($tokenStream);
+            if (!$keywordNode instanceof NodeInterface) {
                 break;
             }
 
-            // Read form (skip trivia)
-            do {
-                $formNode = $this->readExpression($tokenStream);
-            } while ($formNode instanceof TriviaNodeInterface);
+            $formNode = $this->readNonTriviaExpression($tokenStream);
+            if (!$formNode instanceof NodeInterface) {
+                break;
+            }
 
             // Check keyword
             if ($keywordNode instanceof KeywordNode) {

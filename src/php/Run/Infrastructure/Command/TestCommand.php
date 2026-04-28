@@ -11,7 +11,7 @@ use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Run\RunFacade;
-use SebastianBergmann\Timer\ResourceUsageFormatter;
+use Phel\Shared\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -19,6 +19,8 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
+use function count;
+use function is_string;
 use function sprintf;
 
 /**
@@ -39,6 +41,16 @@ final class TestCommand extends Command
 
     private const string OPT_FAIL_FAST = 'fail-fast';
 
+    private const string OPT_REPORTER = 'reporter';
+
+    private const string OPT_OUTPUT = 'output';
+
+    private const string OPT_INCLUDE = 'include';
+
+    private const string OPT_EXCLUDE = 'exclude';
+
+    private const string OPT_NS = 'ns';
+
     protected function configure(): void
     {
         $this->setName(self::COMMAND_NAME)
@@ -53,18 +65,48 @@ final class TestCommand extends Command
             )->addOption(
                 self::OPT_FILTER,
                 'f',
-                InputOption::VALUE_OPTIONAL,
-                'Filter by test names.',
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                "Regex or substring matched against test names. Repeatable; matches are OR'd.",
+                [],
             )->addOption(
                 self::OPT_TESTDOX,
                 null,
                 InputOption::VALUE_NONE,
-                'Report test execution progress in TestDox format.',
+                'Report test execution progress in TestDox format. Shortcut for --reporter=testdox.',
             )->addOption(
                 self::OPT_FAIL_FAST,
                 null,
                 InputOption::VALUE_NONE,
                 'Stop running tests after the first failure or error.',
+            )->addOption(
+                self::OPT_REPORTER,
+                null,
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                'Reporter to emit test events through. Repeatable. Built-ins: default, testdox, dot, tap, junit-xml.',
+                [],
+            )->addOption(
+                self::OPT_OUTPUT,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Write the junit-xml reporter to a file instead of stdout.',
+            )->addOption(
+                self::OPT_INCLUDE,
+                null,
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                "Tag name (e.g. integration). Only tests carrying this tag run. Repeatable; tags are OR'd.",
+                [],
+            )->addOption(
+                self::OPT_EXCLUDE,
+                null,
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                'Tag name (e.g. slow). Tests carrying this tag are skipped. Repeatable; wins over --include.',
+                [],
+            )->addOption(
+                self::OPT_NS,
+                null,
+                InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+                "Namespace glob (e.g. phel.http.*). Repeatable; globs are OR'd. `*` matches one segment, `**` any.",
+                [],
             );
     }
 
@@ -74,10 +116,13 @@ final class TestCommand extends Command
             /** @var list<string> $paths */
             $paths = (array) $input->getArgument(self::ARG_PATHS);
             $namespacesInformation = $this->getFacade()->getDependenciesFromPaths($paths);
+            $failFast = (bool) $input->getOption(self::OPT_FAIL_FAST);
 
             // Suppress output during file loading phase and filter out integration test fixtures
             ob_start();
             $filteredNamespaces = [];
+            /** @var list<array{0: NamespaceInformation, 1: Throwable}> $compileErrors */
+            $compileErrors = [];
             foreach ($namespacesInformation as $info) {
                 // Skip integration test fixture files - they are for PHPUnit tests only
                 if (str_contains($info->getFile(), 'tests/php/Integration/')) {
@@ -88,23 +133,36 @@ final class TestCommand extends Command
                     continue;
                 }
 
-                $filteredNamespaces[] = $info;
-
                 try {
                     $this->getFacade()->evalFile($info);
+                    $filteredNamespaces[] = $info;
                 } catch (Throwable $e) {
-                    ob_end_clean();
-                    throw $e;
+                    if ($failFast) {
+                        ob_end_clean();
+                        throw $e;
+                    }
+
+                    $compileErrors[] = [$info, $e];
                 }
             }
 
             ob_end_clean();
 
+            $this->reportCompileErrors($output, $compileErrors);
+
+            if ($filteredNamespaces === []) {
+                return ($compileErrors === []) ? self::SUCCESS : self::FAILURE;
+            }
+
             $phelCode = $this->generatePhelTestCode($input, $filteredNamespaces);
-            $compileOptions = (new CompileOptions())->setIsEnabledSourceMaps(false);
+            $compileOptions = new CompileOptions()->setIsEnabledSourceMaps(false);
             $result = $this->getFacade()->eval($phelCode, $compileOptions);
 
-            $output->writeln((new ResourceUsageFormatter())->resourceUsageSinceStartOfRequest());
+            $output->writeln(new ResourceUsageFormatter()->resourceUsageSinceStartOfRequest());
+
+            if ($compileErrors !== []) {
+                return self::FAILURE;
+            }
 
             return ($result) ? self::SUCCESS : self::FAILURE;
         } catch (CompilerException $e) {
@@ -116,14 +174,56 @@ final class TestCommand extends Command
         return self::FAILURE;
     }
 
+    /**
+     * @param list<array{0: NamespaceInformation, 1: Throwable}> $compileErrors
+     */
+    private function reportCompileErrors(OutputInterface $output, array $compileErrors): void
+    {
+        if ($compileErrors === []) {
+            return;
+        }
+
+        foreach ($compileErrors as [$info, $e]) {
+            $output->writeln(sprintf('<error>Failed to compile %s</error>', $info->getFile()));
+            if ($e instanceof CompilerException) {
+                $this->getFacade()->writeLocatedException($output, $e);
+            } else {
+                $output->writeln($e->getMessage());
+            }
+        }
+
+        $output->writeln(sprintf(
+            '<comment>Skipped %d file(s) due to compile errors; continuing with the rest.</comment>',
+            count($compileErrors),
+        ));
+    }
+
     private function generatePhelTestCode(InputInterface $input, array $namespacesInformation): string
     {
+        /** @var list<string> $reporters */
+        $reporters = (array) $input->getOption(self::OPT_REPORTER);
+        $output = $input->getOption(self::OPT_OUTPUT);
+        /** @var list<string> $filters */
+        $filters = (array) $input->getOption(self::OPT_FILTER);
+        /** @var list<string> $includes */
+        $includes = (array) $input->getOption(self::OPT_INCLUDE);
+        /** @var list<string> $excludes */
+        $excludes = (array) $input->getOption(self::OPT_EXCLUDE);
+        /** @var list<string> $nsPatterns */
+        $nsPatterns = (array) $input->getOption(self::OPT_NS);
+
         return sprintf(
             '(do (phel\test/run-tests %s %s) (phel\test/successful?))',
             TestCommandOptions::fromArray([
-                TestCommandOptions::FILTER => (string) $input->getOption(self::OPT_FILTER),
+                TestCommandOptions::FILTER => null,
                 TestCommandOptions::TESTDOX => (bool) $input->getOption(self::OPT_TESTDOX),
                 TestCommandOptions::FAIL_FAST => (bool) $input->getOption(self::OPT_FAIL_FAST),
+                TestCommandOptions::REPORTERS => $reporters,
+                TestCommandOptions::JUNIT_OUTPUT => is_string($output) ? $output : null,
+                TestCommandOptions::INCLUDE => $includes,
+                TestCommandOptions::EXCLUDE => $excludes,
+                TestCommandOptions::NS_PATTERNS => $nsPatterns,
+                TestCommandOptions::FILTERS => $filters,
             ])->asPhelHashMap(),
             $this->namespacesAsString($namespacesInformation),
         );

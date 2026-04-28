@@ -44,14 +44,17 @@ interface CompilerFacadeInterface
     public function eval(string $phelCode, CompileOptions $compileOptions): mixed;
 
     /**
-     * @param bool|float|int|string|TypeInterface|null $form           The phel form to evaluate
-     * @param CompileOptions                           $compileOptions The compile options
+     * Evaluates a Phel form. Non-Phel objects (e.g. closures) are returned
+     * as-is, matching Clojure's self-evaluating semantics.
+     *
+     * @param mixed          $form           The phel form to evaluate
+     * @param CompileOptions $compileOptions The compile options
      *
      * @throws CompilerException
      *
      * @return mixed The evaluated result
      */
-    public function evalForm(TypeInterface|string|float|int|bool|null $form, CompileOptions $compileOptions): mixed;
+    public function evalForm(mixed $form, CompileOptions $compileOptions): mixed;
 
     /**
      * Compiles the given phel code to PHP code.

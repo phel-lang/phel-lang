@@ -40,7 +40,7 @@ final class FileEvaluatorTest extends TestCase
 
         // Set up cache with valid entry
         $cache = new CompiledCodeCache($cacheDir);
-        $cache->put($namespace, $sourceHash, '$result = 42;');
+        $cache->put($sourceFile, $namespace, $sourceHash, '$result = 42;');
 
         // Compiler should NOT be called when cache hits
         $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
@@ -57,7 +57,8 @@ final class FileEvaluatorTest extends TestCase
 
         self::assertSame($sourceFile, $result->getSourceFile());
         self::assertSame($namespace, $result->getNamespace());
-        self::assertStringContainsString('test_namespace.php', $result->getTargetFile());
+        self::assertStringContainsString('test_namespace__', $result->getTargetFile());
+        self::assertStringEndsWith('.php', $result->getTargetFile());
     }
 
     public function test_eval_file_compiles_on_cache_miss(): void
@@ -112,7 +113,7 @@ final class FileEvaluatorTest extends TestCase
         $evaluator->evalFile($sourceFile);
 
         // Verify cache now has the entry
-        $cachedPath = $cache->get($namespace, $sourceHash);
+        $cachedPath = $cache->get($sourceFile, $sourceHash);
         self::assertNotNull($cachedPath);
         self::assertFileExists($cachedPath);
         self::assertStringContainsString($compiledCode, (string) file_get_contents($cachedPath));
@@ -154,7 +155,7 @@ final class FileEvaluatorTest extends TestCase
         // Put old version in cache
         file_put_contents($sourceFile, $oldCode);
         $cache = new CompiledCodeCache($cacheDir);
-        $cache->put($namespace, $oldHash, '$old = true;');
+        $cache->put($sourceFile, $namespace, $oldHash, '$old = true;');
 
         // Update source file
         file_put_contents($sourceFile, $newCode);
@@ -186,7 +187,7 @@ final class FileEvaluatorTest extends TestCase
 
         // Put corrupt PHP (syntax error) in cache
         $cache = new CompiledCodeCache($cacheDir);
-        $cache->put($namespace, md5($sourceCode), 'this is not valid php syntax {{{');
+        $cache->put($sourceFile, $namespace, md5($sourceCode), 'this is not valid php syntax {{{');
 
         $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
         $compilerFacade->method('compileForCache')
@@ -213,7 +214,7 @@ final class FileEvaluatorTest extends TestCase
 
         // Put code that throws a user exception in cache
         $cache = new CompiledCodeCache($cacheDir);
-        $cache->put($namespace, md5($sourceCode), 'throw new \\RuntimeException("User code error");');
+        $cache->put($sourceFile, $namespace, md5($sourceCode), 'throw new \\RuntimeException("User code error");');
 
         $compilerFacade = $this->createStub(CompilerFacadeInterface::class);
         $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
@@ -238,7 +239,7 @@ final class FileEvaluatorTest extends TestCase
         $namespace = 'test\\namespace';
 
         $cache = new CompiledCodeCache($cacheDir);
-        $cache->put($namespace, md5($sourceCode), '$result = 1;');
+        $cache->put($sourceFile, $namespace, md5($sourceCode), '$result = 1;');
 
         $envData = [
             'refers' => ['map' => ['ns' => null, 'name' => 'phel\\core']],
@@ -275,7 +276,7 @@ final class FileEvaluatorTest extends TestCase
         $namespace = 'test\\namespace';
 
         $cache = new CompiledCodeCache($cacheDir);
-        $cache->put($namespace, md5($sourceCode), '$result = 1;');
+        $cache->put($sourceFile, $namespace, md5($sourceCode), '$result = 1;');
         // No putEnvironment call - simulating old cache without env data
 
         $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
@@ -307,7 +308,7 @@ final class FileEvaluatorTest extends TestCase
         $cache = new CompiledCodeCache($cacheDir);
         $envData = [
             'refers' => [],
-            'require_aliases' => ['str' => ['ns' => null, 'name' => 'phel\\str']],
+            'require_aliases' => ['str' => ['ns' => null, 'name' => 'phel\\string']],
             'use_aliases' => [],
         ];
 
@@ -342,7 +343,7 @@ final class FileEvaluatorTest extends TestCase
         $namespace = 'test\\namespace';
 
         $cache = new CompiledCodeCache($cacheDir);
-        $cache->put($namespace, md5($sourceCode), '$result = 1;');
+        $cache->put($sourceFile, $namespace, md5($sourceCode), '$result = 1;');
 
         $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
         $compilerFacade->expects($this->once())->method('initializeGlobalEnvironment');
@@ -371,7 +372,7 @@ final class FileEvaluatorTest extends TestCase
         $namespace = 'test\\namespace';
 
         $cache = new CompiledCodeCache($cacheDir);
-        $cache->put($namespace, md5($sourceCode), '$result = 1;');
+        $cache->put($sourceFile, $namespace, md5($sourceCode), '$result = 1;');
 
         $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
         $compilerFacade->method('lexString')

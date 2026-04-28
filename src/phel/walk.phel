@@ -1,5 +1,5 @@
-(ns phel\walk
-  (:require phel\core))
+(ns phel.walk
+  (:require phel.core))
 
 (defn walk
   "Traverses `form`, an arbitrary data structure. Applies `inner` to each
@@ -10,25 +10,21 @@
    :see-also ["postwalk" "prewalk"]
    :example "(walk inc identity [1 2 3]) ; => [2 3 4]"}
   [inner outer form]
-  (let [t (type form)]
-    (outer
-      (cond
-        (= t :list)
-        (apply list (map inner form))
+  (outer
+   (cond
+     (list? form)
+     (apply list (map inner form))
 
-        (= t :vector)
-        (vec (map inner form))
+     (vector? form)
+     (vec (map inner form))
 
-        (= t :hash-map)
-        (into {} (for [[k v] :pairs form] [(inner k) (inner v)]))
+     (or (map? form) (struct? form))
+     (into {} (for [[k v] :pairs form] [(inner k) (inner v)]))
 
-        (= t :set)
-        (into (hash-set) (map inner form))
+     (set? form)
+     (into (hash-set) (map inner form))
 
-        (= t :struct)
-        (into {} (for [[k v] :pairs form] [(inner k) (inner v)]))
-
-        form))))
+     form)))
 
 (defn postwalk
   "Performs a depth-first, post-order traversal of `form`. Calls `f` on each
@@ -74,13 +70,13 @@
    :example "(keywordize-keys {\"name\" \"phel\"}) ; => {:name \"phel\"}"}
   [m]
   (postwalk
-    (fn [form]
-      (if (= (type form) :hash-map)
-        (into {}
-          (for [[k v] :pairs form]
-            [(if (string? k) (keyword k) k) v]))
-        form))
-    m))
+   (fn [form]
+     (if (map? form)
+       (into {}
+             (for [[k v] :pairs form]
+               [(if (string? k) (keyword k) k) v]))
+       form))
+   m))
 
 (defn stringify-keys
   "Recursively transforms all keyword keys in hash-maps to strings."
@@ -89,10 +85,10 @@
    :example "(stringify-keys {:name \"phel\"}) ; => {\"name\" \"phel\"}"}
   [m]
   (postwalk
-    (fn [form]
-      (if (= (type form) :hash-map)
-        (into {}
-          (for [[k v] :pairs form]
-            [(if (keyword? k) (name k) k) v]))
-        form))
-    m))
+   (fn [form]
+     (if (map? form)
+       (into {}
+             (for [[k v] :pairs form]
+               [(if (keyword? k) (name k) k) v]))
+       form))
+   m))

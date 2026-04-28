@@ -8,6 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ApplyNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
+use Phel\Lang\Seq;
 
 use function assert;
 use function count;
@@ -45,17 +46,25 @@ final class ApplyEmitter implements NodeEmitterInterface
 
     private function emitArguments(ApplyNode $node): void
     {
-        $argCount = count($node->getArguments());
-        foreach ($node->getArguments() as $i => $arg) {
-            if ($i < $argCount - 1) {
-                $this->outputEmitter->emitNode($arg);
-                $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
-            } else {
-                $this->outputEmitter->emitStr('...((', $node->getStartSourceLocation());
-                $this->outputEmitter->emitNode($arg);
-                $this->outputEmitter->emitStr(') ?? [])', $node->getStartSourceLocation());
+        $arguments = $node->getArguments();
+        $lastIndex = count($arguments) - 1;
+
+        foreach ($arguments as $i => $arg) {
+            if ($i === $lastIndex) {
+                $this->emitFinalArgument($node, $arg);
+                continue;
             }
+
+            $this->outputEmitter->emitNode($arg);
+            $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
         }
+    }
+
+    private function emitFinalArgument(ApplyNode $node, AbstractNode $arg): void
+    {
+        $this->outputEmitter->emitStr('...\\' . Seq::class . '::toApplyArguments(', $node->getStartSourceLocation());
+        $this->outputEmitter->emitNode($arg);
+        $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
     }
 
     private function phpVarNodeButNoInfix(ApplyNode $node, PhpVarNode $fnNode): void

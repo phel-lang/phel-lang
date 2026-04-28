@@ -50,6 +50,13 @@ final readonly class AtomParser
      */
     private const string REGEX_BIGDEC_LITERAL = '/^([+-]?\d+(?:_\d+)*(?:\.\d+(?:_\d+)*)?(?:[eE][+-]?\d+)?)M$/';
 
+    /**
+     * Ratio literal, e.g. `1/2`, `-3/4`, `0/5`. Phel has no first-class
+     * rational type, so the literal is parsed as `num / den` using PHP
+     * float division. Accepted mainly for `.cljc` source compatibility.
+     */
+    private const string REGEX_RATIO_LITERAL = '/^([+-]?\d+(?:_\d+)*)\/(\d+(?:_\d+)*)$/';
+
     private const string REGEX_DECIMAL_NUMBER = '/^(?:([+-])?\d+(_\d+)*[\.(_\d+]?|0)$/';
 
     public function __construct(private GlobalEnvironmentInterface $globalEnvironment) {}
@@ -98,6 +105,10 @@ final readonly class AtomParser
 
         if (preg_match(self::REGEX_BIGDEC_LITERAL, $word, $matches)) {
             return $this->parseBigdecLiteral($matches, $word, $token);
+        }
+
+        if (preg_match(self::REGEX_RATIO_LITERAL, $word, $matches)) {
+            return $this->parseRatioLiteral($matches, $word, $token);
         }
 
         if (is_numeric($word)) {
@@ -296,6 +307,22 @@ final readonly class AtomParser
     private function parseBigdecLiteral(array $matches, string $word, Token $token): NumberNode
     {
         $value = (float) str_replace('_', '', (string) $matches[1]);
+
+        return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
+    }
+
+    /**
+     * Parses a ratio literal `N/M` as the float `N / M`. A zero denominator
+     * yields a non-finite float (`NAN` for `0/0`, `INF`/`-INF` otherwise)
+     * rather than a runtime error.
+     */
+    private function parseRatioLiteral(array $matches, string $word, Token $token): NumberNode
+    {
+        $numerator = (float) str_replace('_', '', (string) $matches[1]);
+        $denominator = (float) str_replace('_', '', (string) $matches[2]);
+        $value = $denominator === 0.0
+            ? ($numerator === 0.0 ? NAN : ($numerator > 0 ? INF : -INF))
+            : $numerator / $denominator;
 
         return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
     }

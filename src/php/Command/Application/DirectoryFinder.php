@@ -27,6 +27,14 @@ final readonly class DirectoryFinder implements DirectoryFinderInterface
     /**
      * @return list<string>
      */
+    public function getProjectSourceDirectories(): array
+    {
+        return $this->toAbsoluteDirectories($this->codeDirectories->getProjectSourceDirs());
+    }
+
+    /**
+     * @return list<string>
+     */
     public function getTestDirectories(): array
     {
         return $this->toAbsoluteDirectories($this->codeDirectories->getTestDirs());
@@ -38,6 +46,18 @@ final readonly class DirectoryFinder implements DirectoryFinderInterface
     public function getVendorSourceDirectories(): array
     {
         return $this->vendorDirectoriesFinder->findPhelSourceDirectories();
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function getAllPhelDirectories(): array
+    {
+        return [
+            ...$this->getSourceDirectories(),
+            ...$this->getTestDirectories(),
+            ...$this->getVendorSourceDirectories(),
+        ];
     }
 
     public function getOutputDirectory(): string

@@ -28,7 +28,7 @@ For a deeper architecture overview, see [AGENTS.md](../AGENTS.md).
 
 ## Quick Start
 
-You'll need **PHP 8.3+** and **Composer**.
+You'll need **PHP 8.4+** and **Composer**.
 
 ```bash
 # Fork and clone, then:
@@ -167,7 +167,7 @@ You can also pick a path based on your interest:
 ## Troubleshooting
 
 **`composer test` fails after fresh clone?**
-Make sure you have PHP 8.3+ (`php -v`) and a recent Composer (`composer --version`). Run `composer install` again.
+Make sure you have PHP 8.4+ (`php -v`) and a recent Composer (`composer --version`). Run `composer install` again.
 
 **Tests pass locally but CI fails?**
 CI runs the full `composer test` suite. Make sure you ran that, not just a subset.

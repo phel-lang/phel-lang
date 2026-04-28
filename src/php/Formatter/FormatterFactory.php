@@ -11,6 +11,7 @@ use Phel\Formatter\Application\PathsFormatter;
 use Phel\Formatter\Application\PhelPathFilter;
 use Phel\Formatter\Domain\FormatterInterface;
 use Phel\Formatter\Domain\PathFilterInterface;
+use Phel\Formatter\Domain\Rules\AlignPairsRule;
 use Phel\Formatter\Domain\Rules\Indenter\BlockIndenter;
 use Phel\Formatter\Domain\Rules\Indenter\InnerIndenter;
 use Phel\Formatter\Domain\Rules\IndentRule;
@@ -41,6 +42,7 @@ final class FormatterFactory extends AbstractFactory
                 $this->createRemoveSurroundingWhitespaceRule(),
                 $this->createUnindentRule(),
                 $this->createIndentRule(),
+                $this->createAlignPairsRule(),
                 $this->createRemoveTrailingWhitespaceRule(),
             ],
         );
@@ -80,11 +82,22 @@ final class FormatterFactory extends AbstractFactory
             new BlockIndenter('loop', 1),
             new BlockIndenter('case', 1),
             new BlockIndenter('cond', 0),
+            new BlockIndenter('condp', 2),
             new BlockIndenter('try', 0),
             new BlockIndenter('finally', 0),
             new BlockIndenter('when', 1),
             new BlockIndenter('when-not', 1),
+            new BlockIndenter('when-let', 1),
+            new BlockIndenter('when-some', 1),
+            new BlockIndenter('if-let', 1),
+            new BlockIndenter('if-some', 1),
+            new BlockIndenter('binding', 1),
         ]);
+    }
+
+    private function createAlignPairsRule(): AlignPairsRule
+    {
+        return new AlignPairsRule();
     }
 
     private function createRemoveTrailingWhitespaceRule(): RemoveTrailingWhitespaceRule

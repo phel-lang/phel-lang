@@ -239,6 +239,6 @@ final class TrySymbolTest extends TestCase
     {
         $analyzer = new Analyzer(new GlobalEnvironment());
 
-        return (new TrySymbol($analyzer))->analyze($list, NodeEnvironment::empty());
+        return new TrySymbol($analyzer)->analyze($list, NodeEnvironment::empty());
     }
 }

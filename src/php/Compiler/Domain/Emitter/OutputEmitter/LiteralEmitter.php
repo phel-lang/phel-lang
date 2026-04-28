@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
+use DateTimeImmutable;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
@@ -11,10 +12,10 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeInterface;
 use Phel\Printer\PrinterInterface;
 use RuntimeException;
 
+use function addslashes;
 use function count;
 use function is_array;
 use function is_bool;
@@ -29,7 +30,7 @@ final readonly class LiteralEmitter
         private PrinterInterface $printer,
     ) {}
 
-    public function emitLiteral(TypeInterface|array|string|float|bool|int|null $x): void
+    public function emitLiteral(mixed $x): void
     {
         if (is_float($x)) {
             $this->emitFloat($x);
@@ -53,6 +54,8 @@ final readonly class LiteralEmitter
             $this->emitVector($x);
         } elseif ($x instanceof PersistentListInterface) {
             $this->emitList($x);
+        } elseif ($x instanceof DateTimeImmutable) {
+            $this->emitDateTime($x);
         } elseif (is_array($x)) {
             $this->emitArray($x);
         } else {
@@ -60,6 +63,14 @@ final readonly class LiteralEmitter
 
             throw new RuntimeException('literal not supported: ' . $typeName);
         }
+    }
+
+    private function emitDateTime(DateTimeImmutable $x): void
+    {
+        // Emit an expression that reconstructs the exact instant and timezone.
+        // RFC 3339 with microseconds preserves both.
+        $iso = $x->format('Y-m-d\\TH:i:s.uP');
+        $this->outputEmitter->emitStr('(new \\DateTimeImmutable("' . addslashes($iso) . '"))');
     }
 
     private function emitFloat(float $x): void

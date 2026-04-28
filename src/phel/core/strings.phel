@@ -1,0 +1,71 @@
+(in-ns phel.core)
+
+(use Phel\Lang\Symbol)
+
+;; Two families of primitive value constructors grouped together:
+;;   - Symbol constructors: `symbol` (a runtime symbol from a string or
+;;     namespace+name pair) and `gensym` (a fresh unique symbol, used by
+;;     macros to avoid capture).
+;;   - String conversion: `str` (concatenate any number of values into a
+;;     string) plus its private helpers `float-to-str` and `val-to-str`.
+;;     Handles nil → "", booleans → "true"/"false", integer-valued floats
+;;     keeping the trailing `.0`.
+
+(defn symbol
+  "Returns a new symbol for given string with optional namespace.
+
+  With one argument, creates a symbol without namespace.
+  With two arguments, creates a symbol in the given namespace."
+  {:example "(symbol \"foo\") ; => foo"}
+  [name-or-ns & [name]]
+  (if name
+    (php/:: Symbol (createForNamespace name-or-ns name))
+    (php/:: Symbol (create name-or-ns))))
+
+(defn gensym
+  "Generates a new unique symbol."
+  []
+  (php/:: Symbol (gen)))
+
+(defn- float-to-str
+  "Renders a float so integer-valued floats keep the trailing `.0`, while `NaN`
+  and ±Infinity stringify readably."
+  [x]
+  (if (php/is_nan x)
+    "NaN"
+    (if (php/is_infinite x)
+      (if (php/> x 0) "Infinity" "-Infinity")
+      (let [s (php/. "" x)]
+        (if (php/=== 1 (php/preg_match "/[.eE]/" s))
+          s
+          (php/. s ".0"))))))
+
+(defn- val-to-str
+  "Converts a value to its string representation. Booleans become \"true\" or
+\"false\". Nil becomes an empty string. Integer-valued floats keep their `.0`
+suffix (so `(str 0.0)` is `\"0.0\"`, not `\"0\"`). All other values use PHP
+string cast."
+  [x]
+  (if (php/=== x true)      "true"
+      (if (php/=== x false)   "false"
+          (if (php/=== x nil)   ""
+              (if (php/is_float x) (float-to-str x)
+                  (php/. "" x))))))
+
+(defn str
+  "Creates a string by concatenating values together. If no arguments are
+provided an empty string is returned. Nil is represented as an empty string.
+Booleans are represented as \"true\" or \"false\" (matching Clojure semantics).
+Otherwise, it tries to call `__toString`."
+  [& args]
+  (let [cnt (php/count args)]
+    (if (php/=== cnt 0)
+      ""
+      (if (php/=== cnt 1)
+        (val-to-str (php/aget args 0))
+        (let [parts (php/array)]
+          (loop [i 0]
+            (if (php/< i cnt)
+              (do (php/apush parts (val-to-str (php/aget args i)))
+                  (recur (php/+ i 1)))
+              (php/implode "" parts))))))))

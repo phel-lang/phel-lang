@@ -1,0 +1,233 @@
+(in-ns phel.core)
+
+(use InvalidArgumentException)
+(use Phel)
+
+;; PHP-array and typed-array interop. Two related groups:
+;;   1. Constructors that produce native PHP arrays from Phel values:
+;;      `php-indexed-array`, `php-associative-array`, `object-array`,
+;;      `to-array`.
+;;   2. Array access / mutation API over PHP arrays: `aclone`, `alength`,
+;;      `aget`, `aset`, and the typed-array builders `int-array`,
+;;      `long-array`, `float-array`, `double-array`, `short-array`. PHP
+;;      has no typed arrays, so these all return plain PHP arrays — the
+;;      typed builders just coerce element type.
+;; Persistent collection constructors (`hash-set`, `sorted-map`, …) live
+;; in core.phel because they are required earlier in the bootstrap.
+
+(defn php-indexed-array
+  "Creates a PHP indexed array from the given values."
+  {:example "(php-indexed-array 1 2 3) ; => (PHP array [1, 2, 3])"}
+  [& xs]
+  (apply php/array xs))
+
+(defn php-associative-array
+  "Creates a PHP associative array from key-value pairs.
+
+  Arguments:
+    Key-value pairs (must be even number of arguments)"
+  {:example "(php-associative-array \"name\" \"Alice\" \"age\" 30) ; => (PHP array [\"name\" => \"Alice\", \"age\" => 30])"}
+  [& xs]
+  (let [cnt (php/count xs)
+        res (php/array)]
+    (if (php/=== 1 (php/% cnt 2))
+      (throw (php/new InvalidArgumentException "An even number of parameters must be provided for 'php-associative-array'")))
+    (loop [i 0]
+      (if (php/< i cnt)
+        (do
+          (php/aset res (php/aget xs i) (php/aget xs (php/+ i 1)))
+          (recur (php/+ i 2)))
+        res))))
+
+(defn object-array
+  "Creates a PHP array of the given size initialized to `nil`, or a PHP
+  array containing the elements of the given sequence. Matches Clojure's
+  `object-array` for `.cljc` interop — in Phel the result is a plain PHP
+  array (accessible via `php/aget`/`php/aset`) since PHP has no typed
+  array distinction."
+  {:example "(object-array 3) ; => a PHP array [nil, nil, nil]\n(object-array [1 2 3]) ; => a PHP array [1, 2, 3]"
+   :see-also ["php-indexed-array" "to-php-array"]}
+  [size-or-seq]
+  (if (php/is_int size-or-seq)
+    (if (php/< size-or-seq 0)
+      (throw (php/new InvalidArgumentException "Size for 'object-array' must be non-negative"))
+      (if (php/=== 0 size-or-seq)
+        (php/array)
+        (php/array_fill 0 size-or-seq nil)))
+    (to-php-array size-or-seq)))
+
+(defn to-array
+  "Returns a PHP array containing the elements of `coll`. Accepts any
+  collection (vector, list, set, map, PHP array) or `nil`, which yields
+  an empty PHP array. Matches Clojure's `to-array` for `.cljc` interop —
+  in Phel the result is a plain PHP array since PHP has no `Object[]`."
+  {:example "(to-array [1 2 3]) ; => a PHP array [1, 2, 3]\n(to-array nil) ; => a PHP array []"
+   :see-also ["to-php-array" "object-array"]}
+  [coll]
+  (if (php/=== coll nil)
+    (php/array)
+    (to-php-array coll)))
+
+(defn into-array
+  "Returns a PHP array containing the elements of `aseq`. Accepts any
+  collection (vector, list, set, map, PHP array) or `nil`, which yields
+  an empty PHP array. The optional `type` argument is accepted for
+  `.cljc` interop but has no runtime effect — PHP has no typed arrays,
+  so the result is always a plain PHP array. Use the dedicated coercion
+  helpers (`int-array`, `long-array`, `float-array`, `double-array`,
+  `short-array`) when element coercion is actually required."
+  {:example "(into-array [1 2 3]) ; => a PHP array [1, 2, 3]\n(into-array :Object [:a :b]) ; => a PHP array [:a, :b]"
+   :see-also ["to-array" "object-array" "int-array"]}
+  ([aseq] (to-array aseq))
+  ([_type aseq] (to-array aseq)))
+
+(defn- ensure-php-array
+  "Returns `arr` when it is a PHP array, otherwise throws an
+  `InvalidArgumentException` naming the calling operation."
+  [op-name arr]
+  (if (php/is_array arr)
+    arr
+    (throw (php/new InvalidArgumentException (str op-name " expects a PHP array")))))
+
+(defn aclone
+  "Returns a shallow copy of a PHP array. The returned array is a
+  distinct value — mutating the copy via `php/aset` does not affect the
+  original, and vice versa. Matches Clojure's `aclone` for `.cljc`
+  interop; raises `InvalidArgumentException` on non-array inputs since
+  Phel's persistent collections are already immutable and don't need
+  cloning."
+  {:example "(aclone (object-array 3)) ; => a fresh PHP array [nil, nil, nil]"
+   :see-also ["object-array" "to-array"]}
+  [arr]
+  (php/array_merge (ensure-php-array "aclone" arr)))
+
+(defn alength
+  "Returns the number of elements in a PHP array. Matches Clojure's
+  `alength` for `.cljc` interop; raises `InvalidArgumentException` on
+  non-array inputs (use `count` for collections)."
+  {:example "(alength (int-array 3)) ; => 3"
+   :see-also ["aget" "aset" "count" "object-array"]}
+  [arr]
+  (php/count (ensure-php-array "alength" arr)))
+
+(defn- typed-array-coerce-seq
+  [coerce-fn size seq-src]
+  (let [src (to-php-array seq-src)
+        n   (php/count src)
+        len (if (php/=== nil size)
+              n
+              (if (php/< n size) n size))
+        res (php/array)]
+    (loop [i 0]
+      (if (php/< i len)
+        (do
+          (php/aset res i (coerce-fn (php/aget src i)))
+          (recur (php/+ i 1)))
+        nil))
+    res))
+
+(defn- typed-array-with-size
+  [coerce-fn default size init]
+  (if (php/< size 0)
+    (throw (php/new InvalidArgumentException "Array size must be non-negative"))
+    (if (php/=== 0 size)
+      (php/array)
+      (if (php/=== nil init)
+        (php/array_fill 0 size default)
+        (if (if (php/is_int init) true (php/is_float init))
+          (php/array_fill 0 size (coerce-fn init))
+          (let [prefix (typed-array-coerce-seq coerce-fn size init)
+                pad    (php/- size (php/count prefix))]
+            (if (php/> pad 0)
+              (php/array_merge prefix (php/array_fill 0 pad default))
+              prefix)))))))
+
+(defn- typed-array
+  ([coerce-fn default size-or-seq]
+   (if (php/is_int size-or-seq)
+     (typed-array-with-size coerce-fn default size-or-seq nil)
+     (typed-array-coerce-seq coerce-fn nil size-or-seq)))
+  ([coerce-fn default size init-val-or-seq]
+   (typed-array-with-size coerce-fn default size init-val-or-seq)))
+
+(defn int-array
+  "Creates a PHP array of integers, matching Clojure's `clojure.core/int-array`.
+
+  - `(int-array size-or-seq)` — given a non-negative integer, fills with `0`;
+    given a sequence, coerces each element to int via `intval`.
+  - `(int-array size init-val-or-seq)` — when `init-val-or-seq` is a number, every
+    slot is filled with it (coerced to int). When it is a sequence, its elements
+    fill the prefix of the array (truncated to `size` if longer) and the remaining
+    slots are zero-padded.
+
+  PHP has no typed arrays, so the result is a plain PHP array."
+  {:example "(int-array 3) ; => PHP array [0, 0, 0]\n(int-array [1.5 2.7]) ; => PHP array [1, 2]\n(int-array 4 7) ; => PHP array [7, 7, 7, 7]\n(int-array 5 [10 20]) ; => PHP array [10, 20, 0, 0, 0]"
+   :see-also ["long-array" "float-array" "double-array" "short-array" "object-array"]}
+  ([size-or-seq] (typed-array php/intval 0 size-or-seq))
+  ([size init-val-or-seq] (typed-array php/intval 0 size init-val-or-seq)))
+
+(defn long-array
+  "Creates a PHP array of longs (same as int-array in PHP). Accepts the same
+  arities and semantics as `int-array`."
+  {:example "(long-array 3) ; => PHP array [0, 0, 0]\n(long-array 4 7) ; => PHP array [7, 7, 7, 7]"
+   :see-also ["int-array" "float-array" "double-array" "short-array"]}
+  ([size-or-seq] (typed-array php/intval 0 size-or-seq))
+  ([size init-val-or-seq] (typed-array php/intval 0 size init-val-or-seq)))
+
+(defn float-array
+  "Creates a PHP array of floats. Accepts the same arities as `int-array`;
+  coerces elements to float via `floatval` and zero-pads with `0.0`."
+  {:example "(float-array 3) ; => PHP array [0.0, 0.0, 0.0]\n(float-array 4 1.5) ; => PHP array [1.5, 1.5, 1.5, 1.5]"
+   :see-also ["double-array" "int-array" "long-array" "short-array"]}
+  ([size-or-seq] (typed-array php/floatval 0.0 size-or-seq))
+  ([size init-val-or-seq] (typed-array php/floatval 0.0 size init-val-or-seq)))
+
+(defn double-array
+  "Creates a PHP array of doubles (same as float-array in PHP). Accepts the same
+  arities and semantics as `float-array`."
+  {:example "(double-array 3) ; => PHP array [0.0, 0.0, 0.0]\n(double-array 4 1.5) ; => PHP array [1.5, 1.5, 1.5, 1.5]"
+   :see-also ["float-array" "int-array" "long-array" "short-array"]}
+  ([size-or-seq] (typed-array php/floatval 0.0 size-or-seq))
+  ([size init-val-or-seq] (typed-array php/floatval 0.0 size init-val-or-seq)))
+
+(defn short-array
+  "Creates a PHP array of shorts (16-bit integers). Accepts the same arities
+  and semantics as `int-array`."
+  {:example "(short-array 3) ; => PHP array [0, 0, 0]\n(short-array 4 7) ; => PHP array [7, 7, 7, 7]"
+   :see-also ["int-array" "long-array" "float-array" "double-array"]}
+  ([size-or-seq] (typed-array php/intval 0 size-or-seq))
+  ([size init-val-or-seq] (typed-array php/intval 0 size init-val-or-seq)))
+
+(defn aget
+  "Returns the value at `index` in a PHP array. With multiple indices,
+   accesses nested arrays: `(aget arr i j)` is `(aget (aget arr i) j)`.
+   Matches Clojure's `aget` for `.cljc` interop."
+  {:example "(aget (php/array 10 20 30) 1) ; => 20"
+   :see-also ["aset" "aclone" "object-array"]}
+  [arr & indices]
+  (loop [a    arr
+         idxs indices]
+    (if (nil? idxs)
+      a
+      (recur (php/aget a (first idxs)) (next idxs)))))
+
+(defmacro aset
+  "Sets the value at `index` in a PHP array to `val`. Returns `val`.
+   With additional indices, navigates nested arrays before setting:
+   `(aset arr i j val)` sets index `j` in `(aget arr i)`.
+   Matches Clojure's `aset` for `.cljc` interop.
+   This is a macro because PHP arrays are value types; a function
+   wrapper would mutate a copy rather than the original."
+  {:example "(let [a (php/array 1 2 3)] (aset a 0 42) (aget a 0)) ; => 42"
+   :see-also ["aget" "aclone" "object-array"]}
+  [arr idx & more]
+  (let [n   (php/-> more (count))
+        val (php/-> more (get (php/- n 1)))]
+    (if (php/=== 1 n)
+      `(do (php/aset ,arr ,idx ,val) ,val)
+      (let [extra-keys (loop [i  0
+                              ks [idx]]
+                         (if (php/< i (php/- n 1))
+                           (recur (php/+ i 1) (php/-> ks (push (php/-> more (get i)))))
+                           ks))]
+        `(do (php/aset-in ,arr ,extra-keys ,val) ,val)))))

@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel\Compiler\Domain\Analyzer\Ast\InNsNode;
+use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 
 use function is_string;
@@ -43,6 +45,15 @@ final class InNsSymbol implements SpecialFormAnalyzerInterface
 
         if (!($nsArg instanceof Symbol) && !is_string($nsArg)) {
             throw AnalyzerException::withLocation("First argument of 'in-ns must be a Symbol or String, got: " . get_debug_type($nsArg), $list);
+        }
+
+        if ($nsArg instanceof Symbol) {
+            BackslashSeparatorDeprecator::getInstance()->maybeWarn($nsArg);
+        } else {
+            $location = $list->getStartLocation();
+            if ($location instanceof SourceLocation) {
+                BackslashSeparatorDeprecator::getInstance()->maybeWarnString($nsArg, $location);
+            }
         }
 
         $rawNs = $nsArg instanceof Symbol ? $nsArg->getName() : $nsArg;

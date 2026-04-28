@@ -6,8 +6,6 @@ namespace Phel\Config;
 
 use JsonSerializable;
 
-use function sprintf;
-
 final class PhelConfig implements JsonSerializable
 {
     public const string SRC_DIRS = 'src-dirs';
@@ -34,6 +32,8 @@ final class PhelConfig implements JsonSerializable
 
     public const string ASSERTS_ENABLED = 'asserts-enabled';
 
+    public const string WARN_DEPRECATIONS = 'warn-deprecations';
+
     public const string ENABLE_NAMESPACE_CACHE = 'enable-namespace-cache';
 
     public const string ENABLE_COMPILED_CODE_CACHE = 'enable-compiled-code-cache';
@@ -41,7 +41,7 @@ final class PhelConfig implements JsonSerializable
     public const string CACHE_DIR = 'cache-dir';
 
     /** @var list<string> */
-    public const array DEFAULT_SRC_DIRS = ['src/phel'];
+    public const array DEFAULT_SRC_DIRS = ['src'];
 
     private const string PHEL_TEMP_SUBDIR = '/phel';
 
@@ -49,7 +49,7 @@ final class PhelConfig implements JsonSerializable
     private array $srcDirs = self::DEFAULT_SRC_DIRS;
 
     /** @var list<string> */
-    private array $testDirs = ['tests/phel'];
+    private array $testDirs = ['tests'];
 
     private string $vendorDir = 'vendor';
 
@@ -72,9 +72,11 @@ final class PhelConfig implements JsonSerializable
     private string $cacheDir;
 
     /** @var list<string> */
-    private array $formatDirs = ['src/phel', 'tests/phel'];
+    private array $formatDirs = ['src', 'tests'];
 
     private bool $enableAsserts = true;
+
+    private bool $warnDeprecations = false;
 
     private bool $enableNamespaceCache = true;
 
@@ -96,7 +98,7 @@ final class PhelConfig implements JsonSerializable
      *
      * - Pass `$layout` to force a specific layout. When omitted, the layout is
      *   auto-detected from the current working directory: `src/phel/` →
-     *   Conventional, `src/` → Flat, otherwise → Root.
+     *   Nested, `src/` → Flat, otherwise → Root.
      * - `$mainNamespace` is optional; when left blank, the build step infers it
      *   from `core.phel` / `main.phel` at the configured source roots.
      *
@@ -104,7 +106,7 @@ final class PhelConfig implements JsonSerializable
      *   return PhelConfig::forProject();                                 // zero-config, auto-detects layout + namespace
      *   return PhelConfig::forProject('my-app\core');                    // explicit namespace
      *   return PhelConfig::forProject(layout: ProjectLayout::Root);      // single-file / scratch project
-     *   return PhelConfig::forProject('my-app\main', ProjectLayout::Flat);
+     *   return PhelConfig::forProject('my-app\main', ProjectLayout::Nested);
      */
     public static function forProject(
         string $mainNamespace = '',
@@ -204,6 +206,11 @@ final class PhelConfig implements JsonSerializable
         return $this->enableAsserts;
     }
 
+    public function shouldWarnDeprecations(): bool
+    {
+        return $this->warnDeprecations;
+    }
+
     public function isNamespaceCacheEnabled(): bool
     {
         return $this->enableNamespaceCache;
@@ -219,7 +226,7 @@ final class PhelConfig implements JsonSerializable
     // ========================================
 
     /**
-     * Apply a project layout (conventional or flat).
+     * Apply a project layout (nested or flat).
      */
     public function useLayout(ProjectLayout $layout): self
     {
@@ -232,16 +239,16 @@ final class PhelConfig implements JsonSerializable
     }
 
     /**
-     * Use conventional directory layout: src/phel and tests/phel.
-     * This is the recommended structure for Phel projects.
+     * Use nested directory layout: src/phel and tests/phel.
+     * Useful when the project also hosts PHP sources alongside Phel.
      */
-    public function useConventionalLayout(): self
+    public function useNestedLayout(): self
     {
-        return $this->useLayout(ProjectLayout::Conventional);
+        return $this->useLayout(ProjectLayout::Nested);
     }
 
     /**
-     * Use flat directory layout: src and tests (for simpler projects).
+     * Use flat directory layout: src and tests (default, simpler projects).
      */
     public function useFlatLayout(): self
     {
@@ -361,14 +368,6 @@ final class PhelConfig implements JsonSerializable
         return $this;
     }
 
-    /**
-     * @deprecated use `setBuildConfig(PhelBuildConfig)`
-     */
-    public function setOut(PhelBuildConfig $buildConfig): self
-    {
-        return $this->setBuildConfig($buildConfig);
-    }
-
     public function setBuildConfig(PhelBuildConfig $buildConfig): self
     {
         $this->buildConfig = $buildConfig;
@@ -427,6 +426,13 @@ final class PhelConfig implements JsonSerializable
         return $this;
     }
 
+    public function setWarnDeprecations(bool $flag): self
+    {
+        $this->warnDeprecations = $flag;
+
+        return $this;
+    }
+
     public function setEnableNamespaceCache(bool $flag): self
     {
         $this->enableNamespaceCache = $flag;
@@ -459,25 +465,7 @@ final class PhelConfig implements JsonSerializable
      */
     public function validate(): array
     {
-        $errors = [];
-
-        foreach ($this->srcDirs as $dir) {
-            if (str_starts_with($dir, '/')) {
-                $errors[] = sprintf("Source directory '%s' should be relative, not absolute", $dir);
-            }
-        }
-
-        foreach ($this->testDirs as $dir) {
-            if (str_starts_with($dir, '/')) {
-                $errors[] = sprintf("Test directory '%s' should be relative, not absolute", $dir);
-            }
-        }
-
-        if ($this->vendorDir !== '' && str_starts_with($this->vendorDir, '/')) {
-            $errors[] = sprintf("Vendor directory '%s' should be relative, not absolute", $this->vendorDir);
-        }
-
-        return $errors;
+        return new PhelConfigValidator()->validate($this->srcDirs, $this->testDirs, $this->vendorDir);
     }
 
     // ========================================
@@ -499,6 +487,7 @@ final class PhelConfig implements JsonSerializable
             self::TEMP_DIR => $this->tempDir,
             self::FORMAT_DIRS => $this->formatDirs,
             self::ASSERTS_ENABLED => $this->enableAsserts,
+            self::WARN_DEPRECATIONS => $this->warnDeprecations,
             self::ENABLE_NAMESPACE_CACHE => $this->enableNamespaceCache,
             self::ENABLE_COMPILED_CODE_CACHE => $this->enableCompiledCodeCache,
             self::CACHE_DIR => $this->cacheDir,
@@ -507,23 +496,10 @@ final class PhelConfig implements JsonSerializable
 
     /**
      * Auto-detect the most likely layout from the current working directory.
-     * Falls back to Conventional when the cwd is not available or probing fails.
+     * Falls back to Flat when the cwd is not available or probing fails.
      */
     private static function detectLayout(): ProjectLayout
     {
-        $cwd = getcwd();
-        if ($cwd === false) {
-            return ProjectLayout::Conventional;
-        }
-
-        if (is_dir($cwd . '/src/phel')) {
-            return ProjectLayout::Conventional;
-        }
-
-        if (is_dir($cwd . '/src')) {
-            return ProjectLayout::Flat;
-        }
-
-        return ProjectLayout::Root;
+        return new ProjectLayoutDetector()->detectFromCurrentWorkingDirectory();
     }
 }

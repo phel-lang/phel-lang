@@ -6,6 +6,7 @@ namespace PhelTest\Integration\Run\Command;
 
 use Gacela\Framework\Bootstrap\GacelaConfig;
 use Gacela\Framework\Gacela;
+use Gacela\Framework\Testing\ContainerFixture;
 use Override;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Filesystem\Infrastructure\RealFilesystem;
@@ -19,20 +20,19 @@ use function dirname;
 
 abstract class AbstractTestCommand extends TestCase
 {
+    use ContainerFixture;
+
     #[Override]
     protected function setUp(): void
     {
+        $this->resetContainer();
         GlobalEnvironmentSingleton::initializeNew();
         RealFilesystem::reset();
 
-        // Bootstrap from the child class's directory
-        // This allows each test class to use its own phel-config.php
         $reflection = new ReflectionClass($this);
         $childDir = dirname($reflection->getFileName());
 
-        // Reset Gacela's cache and bootstrap with test-specific config
         Gacela::bootstrap($childDir, static function (GacelaConfig $config): void {
-            $config->resetInMemoryCache();
             $config->enableFileCache('');
             $config->addAppConfig('phel-config.php');
         });

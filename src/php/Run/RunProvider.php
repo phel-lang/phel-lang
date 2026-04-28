@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Run;
 
 use Gacela\Framework\AbstractProvider;
+use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
 use Phel\Api\ApiFacade;
 use Phel\Build\BuildFacade;
@@ -30,70 +31,45 @@ final class RunProvider extends AbstractProvider
 
     public const string FACADE_CONSOLE = 'FACADE_CONSOLE';
 
-    public function provideModuleDependencies(Container $container): void
+    #[Provides(self::FACADE_COMMAND)]
+    public function commandFacade(Container $container): CommandFacade
     {
-        $this->addFacadeCommand($container);
-        $this->addFacadeCompiler($container);
-        $this->addFacadeFormatter($container);
-        $this->addFacadeInterop($container);
-        $this->addFacadeBuild($container);
-        $this->addFacadeApi($container);
-        $this->addFacadeConsole($container);
+        return $container->getLocator()->getRequired(CommandFacade::class);
     }
 
-    private function addFacadeCommand(Container $container): void
+    #[Provides(self::FACADE_COMPILER)]
+    public function compilerFacade(Container $container): CompilerFacade
     {
-        $container->set(
-            self::FACADE_COMMAND,
-            static fn(Container $container) => $container->getLocator()->get(CommandFacade::class),
-        );
+        return $container->getLocator()->getRequired(CompilerFacade::class);
     }
 
-    private function addFacadeCompiler(Container $container): void
+    #[Provides(self::FACADE_FORMATTER)]
+    public function formatterFacade(Container $container): FormatterFacade
     {
-        $container->set(
-            self::FACADE_COMPILER,
-            static fn(Container $container) => $container->getLocator()->get(CompilerFacade::class),
-        );
+        return $container->getLocator()->getRequired(FormatterFacade::class);
     }
 
-    private function addFacadeFormatter(Container $container): void
+    #[Provides(self::FACADE_INTEROP)]
+    public function interopFacade(Container $container): InteropFacade
     {
-        $container->set(
-            self::FACADE_FORMATTER,
-            static fn(Container $container) => $container->getLocator()->get(FormatterFacade::class),
-        );
+        return $container->getLocator()->getRequired(InteropFacade::class);
     }
 
-    private function addFacadeInterop(Container $container): void
+    #[Provides(self::FACADE_BUILD)]
+    public function buildFacade(Container $container): BuildFacade
     {
-        $container->set(
-            self::FACADE_INTEROP,
-            static fn(Container $container) => $container->getLocator()->get(InteropFacade::class),
-        );
+        return $container->getLocator()->getRequired(BuildFacade::class);
     }
 
-    private function addFacadeBuild(Container $container): void
+    #[Provides(self::FACADE_API)]
+    public function apiFacade(Container $container): ApiFacade
     {
-        $container->set(
-            self::FACADE_BUILD,
-            static fn(Container $container) => $container->getLocator()->get(BuildFacade::class),
-        );
+        return $container->getLocator()->getRequired(ApiFacade::class);
     }
 
-    private function addFacadeApi(Container $container): void
+    #[Provides(self::FACADE_CONSOLE)]
+    public function consoleFacade(Container $container): ConsoleFacade
     {
-        $container->set(
-            self::FACADE_API,
-            static fn(Container $container) => $container->getLocator()->get(ApiFacade::class),
-        );
-    }
-
-    private function addFacadeConsole(Container $container): void
-    {
-        $container->set(
-            self::FACADE_CONSOLE,
-            static fn(Container $container) => $container->getLocator()->get(ConsoleFacade::class),
-        );
+        return $container->getLocator()->getRequired(ConsoleFacade::class);
     }
 }

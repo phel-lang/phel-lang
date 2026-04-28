@@ -1,40 +1,73 @@
-(ns phel\test
+(ns phel.test
   (:use Phel)
-  (:use Phel\Lang\Symbol)
-  (:use Phel\Compiler\Application\Munge)
-  (:use Phel\Command\CommandFacade)
-  (:require phel\str :as s))
+  (:use Phel.Lang.SourceLocationInterface)
+  (:use Phel.Compiler.Application.Munge)
+  (:use Phel.Command.CommandFacade)
+  (:use Phel.Printer.Printer)
+  (:require phel.string :as s)
+  (:require phel.test.selector :as selector))
 
 ;; ------
 ;; Report
 ;; ------
 
-(def- testdox? (var false))
+(def- fail-fast? (atom false))
 
-(def- fail-fast? (var false))
+(def- ^:dynamic *current-test-name* nil)
 
-(def- *current-test-name* nil)
-
-(def *testing-contexts*
+(def ^:dynamic *testing-contexts*
   "Stack of testing context strings, most recent first."
   [])
 
-(def- stats (var {:failed []
-                  :counts {:failed 0
-                           :error 0
-                           :pass 0
-                           :total 0}}))
+(def- initial-stats
+  {:failed []
+   :skipped []
+   :counts {:failed 0
+            :error 0
+            :pass 0
+            :skipped 0
+            :total 0}})
 
-(defn- print-report-testdox-state [data state]
-  (let [s (case state :failed "✘" :pass "✔" :error "E")
-        message (str *current-test-name* ": " (or (:message data) "no test message found"))]
-    (println s message)))
+(def- stats (atom initial-stats))
 
-(defn- print-report-state [state]
-  (print (case state :failed "F" :pass "." :error "E")))
+;; Dynamic registry of active reporter functions. Each reporter is a
+;; function of a single argument — the event map with a `:type` key — and
+;; is called once per event (pass/fail/error/summary/begin-test-ns/...).
+;;
+;; Reporters are invoked in the order they are registered. Use
+;; `set-reporters!`, `add-reporter!`, and `clear-reporters!` to manage
+;; the set.
+(def- *reporters* (atom []))
 
-(defn- should-report-println? [total-columns]
-  (= (% (get-in (deref stats) [:counts :total]) total-columns) 0))
+(defn set-reporters!
+  "Replaces the active reporter set with `reporters` (a sequence of
+  single-argument functions). Returns the new reporter list."
+  {:example "(set-reporters! [my-reporter-fn])"
+   :see-also ["add-reporter!" "clear-reporters!" "report"]}
+  [reporters]
+  (reset! *reporters* (vec reporters)))
+
+(defn add-reporter!
+  "Appends `reporter-fn` to the active reporter set. Returns the updated
+  reporter list."
+  {:example "(add-reporter! tap-reporter)"
+   :see-also ["set-reporters!" "clear-reporters!" "report"]}
+  [reporter-fn]
+  (swap! *reporters* conj reporter-fn))
+
+(defn clear-reporters!
+  "Removes every registered reporter. Returns an empty vector."
+  {:example "(clear-reporters!)"
+   :see-also ["set-reporters!" "add-reporter!"]}
+  []
+  (reset! *reporters* []))
+
+(defn get-reporters
+  "Returns the currently registered reporter functions as a vector."
+  {:example "(get-reporters)"
+   :see-also ["set-reporters!"]}
+  []
+  (deref *reporters*))
 
 (defn- should-stop? []
   (and (deref fail-fast?)
@@ -46,26 +79,109 @@
   (when (not (empty? *testing-contexts*))
     (str (s/join " > " *testing-contexts*) " - ")))
 
-(defn report
-  "Records test results and prints status indicators."
-  {:example "(report {:state :pass})"}
+(defn- decorate-event
+  "Prepends testing-context information to the event message and injects
+  the current test name."
   [data]
-  (let [ctx (testing-contexts-str)
+  (let [ctx  (testing-contexts-str)
         data (cond
-               (and ctx (:message data)) (put data :message (str ctx (:message data)))
-               ctx (put data :message (s/join " > " *testing-contexts*))
-               :else data)
-        {:state state :type type} data
-        ok (= state :pass)
-        total-columns 80]
-    (if (deref testdox?)
-      (print-report-testdox-state data state)
-      (print-report-state state))
-    (swap! stats update-in [:counts :total] inc)
-    (swap! stats update-in [:counts state] inc)
-    (when (should-report-println? total-columns) (println))
-    (when-not ok
-      (swap! stats update-in [:failed] push data))))
+               (and ctx (:message data)) (assoc data :message (str ctx (:message data)))
+               ctx                       (assoc data :message (s/join " > " *testing-contexts*))
+               :else                     data)]
+    (if *current-test-name*
+      (assoc data :test-name *current-test-name*)
+      data)))
+
+(defn- bump-stat [s path]
+  (update-in s path inc))
+
+(defn- record-stats!
+  "Mutates the internal stats atom based on an assertion-result event."
+  [data]
+  (let [state (get data :state)
+        ok?   (= state :pass)]
+    (swap! stats
+           (fn [s]
+             (let [s (-> s
+                         (bump-stat [:counts :total])
+                         (bump-stat [:counts state]))]
+               (if ok?
+                 s
+                 (update s :failed conj data)))))))
+
+(defn- fan-out! [event]
+  (dofor [reporter :in (deref *reporters*)]
+    (reporter event)))
+
+;; `report` is the public multimethod dispatched on the event `:type`.
+;; Built-in event types include:
+;;   :pass, :failed, :error — assertion outcomes emitted by `is`
+;;   :begin-test-ns, :end-test-ns — lifecycle events around each namespace run
+;;   :begin-test-run, :summary — lifecycle events around the whole run
+;;
+;; Users extend the reporting surface with:
+;;   (defmethod report :custom-type [event] ...)
+;; or by registering a function through `set-reporters!`/`add-reporter!`.
+(defmulti report
+          "Records a test-framework event and dispatches it to the active
+  reporters. `data` must contain a `:type` key (`:pass`, `:failed`,
+  `:error`, `:begin-test-ns`, `:end-test-ns`, `:begin-test-run`,
+  `:summary`, or a user-defined event). The default methods for
+  assertion outcomes update the internal stats and invoke every
+  registered reporter. Other event types flow straight through to the
+  reporter set. Extend by registering
+  `(defmethod report :custom-type [event] ...)`."
+          (fn [data] (:type data)))
+
+(defn- report-assertion! [data]
+  (let [decorated (decorate-event data)]
+    (record-stats! decorated)
+    (fan-out! decorated)))
+
+(defmethod report :pass [data]
+           (report-assertion! (assoc data :state :pass)))
+
+(defmethod report :failed [data]
+           (report-assertion! (assoc data :state :failed)))
+
+(defmethod report :error [data]
+           (report-assertion! (assoc data :state :error)))
+
+;; `:predicate`, `:binary`, `:any`, `:thrown`, `:thrown-with-msg` — the
+;; legacy assertion-level types emitted by the built-in `is` macro. Each
+;; carries a `:state` field (`:pass`/`:failed`/`:error`) that records the
+;; real outcome, so we recover the logical type and delegate.
+(def- assertion-like-states
+  (hash-set :pass :failed :error))
+
+(defn- handle-assertion-like [data]
+  (if (contains? assertion-like-states (get data :state))
+    (report-assertion! data)
+    (fan-out! (decorate-event data))))
+
+(dofor [event-type :in [:predicate :predicate-not :binary :binary-not
+                        :any :thrown :thrown-with-msg]]
+  (swap! report-methods assoc event-type handle-assertion-like))
+
+(defn- record-skip! [data]
+  (swap! stats
+         (fn [s]
+           (-> s
+               (bump-stat [:counts :skipped])
+               (update :skipped conj data)))))
+
+;; Lifecycle events that flow straight through to every registered
+;; reporter without touching the stats atom.
+(dofor [event-type :in [:begin-test-ns :end-test-ns :begin-test-run
+                        :summary :defspec-failed]]
+  (swap! report-methods assoc event-type fan-out!))
+
+(defmethod report :skipped [data]
+           (record-skip! data)
+           (fan-out! data))
+
+(defmethod report :default [data]
+           (fan-out! (decorate-event data)))
 
 (defn do-report
   "Add file and line information to a test result and call report.
@@ -82,77 +198,78 @@
 ;; ---------------------------
 
 (defn- location [form]
-  (let [loc (php/-> form (getStartLocation))]
-    (when loc
-      {:file (php/-> loc (getFile))
-       :line (php/-> loc (getLine))
-       :column (php/-> loc (getColumn))})))
+  (when (php/instanceof form SourceLocationInterface)
+    (let [loc (php/-> form (getStartLocation))]
+      (when loc
+        {:file (php/-> loc (getFile))
+         :line (php/-> loc (getLine))
+         :column (php/-> loc (getColumn))}))))
 
 (defn- assert-predicate [form message negated]
-  (let [pred (first form)
-        value (second form)
+  (let [pred            (first form)
+        value           (second form)
         value-evaluated (gensym)
-        type (if negated :predicate-not :predicate)
-        loc (location form)
-        result (gensym)
-        report-data (gensym)]
+        type            (if negated :predicate-not :predicate)
+        loc             (location form)
+        result          (gensym)
+        report-data     (gensym)]
     `(let [~value-evaluated ~value
-           ~result (~pred ~value-evaluated)
-           ~result (if ~negated (not ~result) ~result)
-           ~report-data {:type ~type
-                         :message ~message
-                         :location ~loc
-                         :pred '~pred
-                         :value '~value
-                         :form '~form
-                         :result ~value-evaluated}]
+           ~result          (~pred ~value-evaluated)
+           ~result          (if ~negated (not ~result) ~result)
+           ~report-data     {:type ~type
+                             :message ~message
+                             :location ~loc
+                             :pred '~pred
+                             :value '~value
+                             :form '~form
+                             :result ~value-evaluated}]
        (if ~result
-         (report (merge ~report-data {:state :pass}))
-         (report (merge ~report-data {:state :failed}))))))
+         (report (assoc ~report-data :state :pass))
+         (report (assoc ~report-data :state :failed))))))
 
 (defn- assert-binary [form message negated]
-  (let [pred (first form)
-        expected (second form)
-        actual (second (next form))
-        type (if negated :binary :binary-not)
-        loc (location form)
+  (let [pred               (first form)
+        expected           (second form)
+        actual             (second (next form))
+        type               (if negated :binary :binary-not)
+        loc                (location form)
         expected-evaluated (gensym)
-        actual-evaluated (gensym)
-        result (gensym)
-        report-data (gensym)]
+        actual-evaluated   (gensym)
+        result             (gensym)
+        report-data        (gensym)]
     `(let [~expected-evaluated ~expected
-           ~actual-evaluated ~actual
-           ~result (~pred ~expected-evaluated ~actual-evaluated)
-           ~result (if ~negated (not ~result) ~result)
-           ~report-data {:type ~type
-                         :message ~message
-                         :location ~loc
-                         :pred '~pred
-                         :expected ~expected-evaluated
-                         :actual '~actual
-                         :form '~form
-                         :result ~actual-evaluated}]
+           ~actual-evaluated   ~actual
+           ~result             (~pred ~expected-evaluated ~actual-evaluated)
+           ~result             (if ~negated (not ~result) ~result)
+           ~report-data        {:type ~type
+                                :message ~message
+                                :location ~loc
+                                :pred '~pred
+                                :expected ~expected-evaluated
+                                :actual '~actual
+                                :form '~form
+                                :result ~actual-evaluated}]
        (if ~result
          (report (merge ~report-data {:type :binary :state :pass}))
          (report (merge ~report-data {:type :binary :state :failed}))))))
 
 (defn- assert-output [form message]
   (let [expected (second form)
-        body (second (next form))]
+        body     (second (next form))]
     (assert-binary `(= ~expected (with-output-buffer ~body)) message false)))
 
 (defn- assert-thrown [form message]
   ;; `(thrown? ExceptionClass body...)` asserts that `body` throws an instance of
-  ;; `ExceptionClass` (or a subclass). The Clojure-style single-arg form
-  ;; `(thrown? body)` — used by portability shims like `jank-lang/clojure-test-suite` —
-  ;; asserts only that `body` throws *anything*, so we default the caught type to
-  ;; `\Throwable` (the root of all PHP throwables since PHP 7).
-  (let [single-arg? (= 2 (count form))
+  ;; `ExceptionClass` (or a subclass). The single-argument form `(thrown? body)`
+  ;; used by portability shims asserts only that `body` throws *anything*, so
+  ;; the caught type defaults to `\Throwable` (the root of all PHP throwables
+  ;; since PHP 7).
+  (let [single-arg?      (= 2 (count form))
         exception-symbol (if single-arg? '\Throwable (second form))
-        body (if single-arg? (next form) (nnext form))
-        loc (location form)
-        report-data (gensym)
-        e (gensym)]
+        body             (if single-arg? (next form) (nnext form))
+        loc              (location form)
+        report-data      (gensym)
+        e                (gensym)]
     `(let [~report-data {:type :thrown
                          :location ~loc
                          :form '~form
@@ -160,18 +277,18 @@
                          :message ~message}]
        (try
          ~@body
-         (report (merge ~report-data {:state :failed}))
+         (report (assoc ~report-data :state :failed))
          (catch ~exception-symbol ~e
-           (report (merge ~report-data {:state :pass})))))))
+           (report (assoc ~report-data :state :pass)))))))
 
 (defn- assert-thrown-with-msg [form message]
   (let [exception-symbol (second form)
         expected-message (second (next form))
-        body (next (nnext form))
-        loc (location form)
-        actual-message (gensym)
-        report-data (gensym)
-        e (gensym)]
+        body             (next (nnext form))
+        loc              (location form)
+        actual-message   (gensym)
+        report-data      (gensym)
+        e                (gensym)]
     `(let [~report-data {:type :thrown-with-msg
                          :form '~form
                          :location ~loc
@@ -188,48 +305,48 @@
                (report (merge ~report-data {:state :failed :actual-message ~actual-message})))))))))
 
 (defn- assert-any [form message]
-  (let [loc (location form)
-        result (gensym)
+  (let [loc         (location form)
+        result      (gensym)
         report-data (gensym)]
-    `(let [~result ~form
+    `(let [~result      ~form
            ~report-data {:type :any
                          :message ~message
                          :location ~loc
                          :form '~form
                          :result ~result}]
        (if ~result
-         (report (merge ~report-data {:state :pass}))
-         (report (merge ~report-data {:state :failed}))))))
+         (report (assoc ~report-data :state :pass))
+         (report (assoc ~report-data :state :failed))))))
 
 ;; Public extension point for the `is` macro: an open multimethod
 ;; dispatched on the first symbol of the asserted form (or `:default` for
 ;; non-list forms or lists not starting with a symbol). Extend with
-;; `(defmethod phel\test/assert-expr 'my-form [form message] ...)`,
+;; `(defmethod phel.test/assert-expr 'my-form [form message] ...)`,
 ;; returning a quoted form to be evaluated by `is`. Methods must be
 ;; loaded before any `is` form using their dispatch value is expanded.
 (defmulti assert-expr
-  (fn [form _]
-    (if (and (list? form) (symbol? (first form)))
-      (first form)
-      :default)))
+          (fn [form _]
+            (if (and (list? form) (symbol? (first form)))
+              (first form)
+              :default)))
 
 (defmethod assert-expr 'not [form message]
-  (let [inner (second form)]
-    (cond
-      (and (list? inner) (= 3 (count inner)))
-      (assert-binary inner message true)
-      (and (list? inner) (= 2 (count inner)))
-      (assert-predicate inner message true)
-      (assert-any form message))))
+           (let [inner (second form)]
+             (cond
+               (and (list? inner) (= 3 (count inner)))
+               (assert-binary inner message true)
+               (and (list? inner) (= 2 (count inner)))
+               (assert-predicate inner message true)
+               (assert-any form message))))
 
 (defmethod assert-expr 'thrown? [form message]
-  (assert-thrown form message))
+           (assert-thrown form message))
 
 (defmethod assert-expr 'thrown-with-msg? [form message]
-  (assert-thrown-with-msg form message))
+           (assert-thrown-with-msg form message))
 
 (defmethod assert-expr 'output? [form message]
-  (assert-output form message))
+           (assert-output form message))
 
 (def- assert-expr-special-forms
   ;; Special forms and structured-syntax macros that must not be treated as
@@ -240,15 +357,15 @@
             'cond 'case 'binding 'for 'dofor 'doseq))
 
 (defmethod assert-expr :default [form message]
-  (let [head (when (list? form) (first form))
-        fn-call (and (symbol? head)
-                     (not (contains? assert-expr-special-forms head)))]
-    (cond
-      (and fn-call (= 3 (count form)))
-      (assert-binary form message false)
-      (and fn-call (= 2 (count form)))
-      (assert-predicate form message false)
-      (assert-any form message))))
+           (let [head    (when (list? form) (first form))
+                 fn-call (and (symbol? head)
+                              (not (contains? assert-expr-special-forms head)))]
+             (cond
+               (and fn-call (= 3 (count form)))
+               (assert-binary form message false)
+               (and fn-call (= 2 (count form)))
+               (assert-predicate form message false)
+               (assert-any form message))))
 
 (defmacro is
   "Asserts that an expression is true."
@@ -257,7 +374,8 @@
   (let [loc (location form) e (gensym)]
     `(try ~(assert-expr form message)
           (catch \Throwable ~e
-            (report {:state :error
+            (report {:type :error
+                     :state :error
                      :location ~loc
                      :message ~message
                      :form '~form
@@ -268,16 +386,24 @@
 ;; --------------
 
 (defmacro deftest
-  "Defines a test function."
+  "Defines a test function.
+
+  Metadata attached to `test-name` is forwarded to the defined function
+  so selectors can inspect it at runtime. `^:integration` (shorthand
+  for `{:integration true}`) and `^{:tags [:integration :slow]}`
+  multi-tag maps are both honoured."
   {:example "(deftest test-add)"}
   [test-name & body]
   (when-not (symbol? test-name)
     (throw (php/new \InvalidArgumentException
-             (str "deftest requires a symbol name as its first argument, got "
-                  (type test-name) ". Example: (deftest test-add ...)."))))
-  `(defn ~test-name {:test true :test-name ~(name test-name)} []
-     (binding [*current-test-name* ~(name test-name)]
-              ~@body)))
+                    (str "deftest requires a symbol name as its first argument, got "
+                         (type test-name) ". Example: (deftest test-add ...)."))))
+  (let [sym-meta (or (php/-> test-name (getMeta)) {})
+        base     {:test true :test-name (name test-name)}
+        merged   (merge sym-meta base)]
+    `(defn ~test-name ~merged []
+       (binding [*current-test-name* ~(name test-name)]
+         ~@body))))
 
 (defmacro testing
   "Adds a testing context string. Used inside deftest to describe a group of assertions.
@@ -306,13 +432,13 @@
   [smap form]
   (cond
     (contains? smap form) (quote-if-empty-list (get smap form))
-    (list? form) (apply list (map #(substitute-symbols smap %) form))
-    (vector? form) (apply vector (map #(substitute-symbols smap %) form))
-    (hash-map? form) (apply hash-map
-                            (interleave (keys form)
-                                        (map #(substitute-symbols smap %) (vals form))))
-    (set? form) (into (hash-set) (map #(substitute-symbols smap %) form))
-    :else form))
+    (list? form)          (apply list (map #(substitute-symbols smap %) form))
+    (vector? form)        (apply vector (map #(substitute-symbols smap %) form))
+    (map? form)           (apply hash-map
+                                 (interleave (keys form)
+                                             (map #(substitute-symbols smap %) (vals form))))
+    (set? form)           (into (hash-set) (map #(substitute-symbols smap %) form))
+    :else                 form))
 
 (defmacro are
   "Checks multiple assertions with a template expression.
@@ -324,144 +450,685 @@
   {:see-also ["is" "deftest" "testing"]
    :example "(are [x y] (= x y)\n  2 (+ 1 1)\n  4 (* 2 2))"}
   [argv expr & args]
-  (let [n (count argv)
-        groups (partition n args)
+  (let [n          (count argv)
+        groups     (partition n args)
         assertions (for [group :in groups
                          :let [smap (zipmap argv group)]]
                      `(is ~(substitute-symbols smap expr)))]
     `(do ~@assertions)))
 
 ;; ---------------------
-;; error/failure printer
+;; Built-in reporters
 ;; ---------------------
 
-(defn- print-headline [prefix {:message message :location location}]
+(defn- print-headline [prefix {:test-name test-name :message message :location location}]
   (print prefix)
   (when message
-    (print (str " in '" message "'")))
+    (print (str " in (" test-name " '" message "')")))
   (when location
-    (print (str " (" (php/realpath (get location :file)) ":" (get location :line) ")")))
+    (print (str " (" (php/basename (get location :file)) ":" (get location :line) ")")))
   (println))
 
 (defn- print-failure-headline [data]
-  (print-headline "Failure" data))
+  (print-headline "FAIL" data))
 
 (defn- print-error-headline [data]
-  (print-headline "Error" data))
+  (print-headline "ERROR" data))
+
+(def- readable-printer (php/:: Printer (readable)))
+
+(defn- readable-str [value]
+  (php/-> readable-printer (print value)))
 
 (defn- print-error [data]
   (print-error-headline data)
   (let [{:exception exception :form form} data
-        command-facade (php/new CommandFacade)
-        printer (php/-> command-facade (getExceptionPrinter))]
-    (println "              Test:" form)
-    (println "   threw exception:" (php/get_class exception))
-    (println)
+        command-facade                    (php/new CommandFacade)
+        printer                           (php/-> command-facade (getExceptionPrinter))]
+    (println "              Form:" (readable-str form))
+    (println "             threw:" (php/get_class exception))
+    (when-let [exception-message (ex-message exception)]
+      (println "      with message:" exception-message))
     (php/-> printer (printStackTrace exception))))
 
 (defn- print-predicate-failure [{:pred pred :value value :result result}]
-  (println "                 Test:" value)
-  (println "         evaluated to:" result)
-  (println "  but doesn't satisfy:" pred))
+  (println "                 Form:" (readable-str value))
+  (println "         evaluated to:" (readable-str result))
+  (println "  but doesn't satisfy:" (readable-str pred)))
 
 (defn- print-predicate-not-failure [{:pred pred :value value :result result}]
-  (println "              Test:" value)
-  (println "      evaluated to:" result)
-  (println "  but does satisfy:" pred " (it shouldn't)"))
+  (println "              Form:" (readable-str value))
+  (println "      evaluated to:" (readable-str result))
+  (println "  but does satisfy:" (readable-str pred) " (it shouldn't)"))
 
 (defn- print-binary-failure [{:pred pred :expected expected :actual actual :result result}]
-  (println "          Test:" actual)
-  (println "  evaluated to:" result)
-  (println "    but is not:" pred "to" expected))
+  (println "          Form:" (readable-str actual))
+  (println "  evaluated to:" (readable-str result))
+  (println "    but is not:" (readable-str pred) "to" (readable-str expected)))
 
 (defn- print-binary-not-failure [{:pred pred :expected expected :actual actual :result result}]
-  (println "          Test:" actual)
-  (println "  evaluated to:" result)
-  (println "        but is:" pred "to" expected "(it shouldn't be)"))
+  (println "          Form:" (readable-str actual))
+  (println "  evaluated to:" (readable-str result))
+  (println "        but is:" (readable-str pred) "to" (readable-str expected) "(it shouldn't be)"))
 
 (defn- print-thrown-failure [{:form form :exception-symbol exception-symbol}]
-  (println "    expected:" form)
+  (println "    expected:" (readable-str form))
   (println "  to throw a:" exception-symbol "(it didn't)"))
 
 (defn- print-thrown-with-msg-failure [{:form form :exception-symbol exception-symbol :expected-message expected-message :actual-message actual-message}]
   (if (nil? actual-message)
     (do
-      (println "    expected:" form)
-      (println "  to throw a:" exception-symbol "(it didn't)")
-      (do
-        (println "      expected:" form)
-        (println "    to throw a:" exception-symbol)
-        (println "  with message:" expected-message)
-        (println "       but got:" actual-message)))))
+      (println "    expected:" (readable-str form))
+      (println "  to throw a:" exception-symbol "(it didn't)"))
+    (do
+      (println "      expected:" (readable-str form))
+      (println "    to throw a:" exception-symbol)
+      (println "  with message:" expected-message)
+      (println "       but got:" actual-message))))
 
 (defn- print-any-failure [{:form form :result result}]
-  (println "          Test:" form)
-  (println "  evaluated to:" result "(which is not truthy)"))
+  (println "          Form:" (readable-str form))
+  (println "  evaluated to:" (readable-str result) "(which is not truthy)"))
 
 (defn- print-failure [data]
   (print-failure-headline data)
   (case (get data :type)
-    :predicate (print-predicate-failure data)
-    :predicate-not (print-predicate-not-failure data)
-    :binary (print-binary-failure data)
-    :binary-not (print-binary-not-failure data)
-    :thrown (print-thrown-failure data)
+    :predicate       (print-predicate-failure data)
+    :predicate-not   (print-predicate-not-failure data)
+    :binary          (print-binary-failure data)
+    :binary-not      (print-binary-not-failure data)
+    :thrown          (print-thrown-failure data)
     :thrown-with-msg (print-thrown-with-msg-failure data)
-    :any (print-any-failure data)))
+    :any             (print-any-failure data)))
 
 (defn- print-failure-or-error [data]
   (case (get data :state)
-    :error (print-error data)
+    :error  (print-error data)
     :failed (print-failure data)))
 
+(def- default-line-count (atom 0))
+
+(defn- assertion-event? [event]
+  (contains? event :state))
+
+(defn- print-failures-block [failures]
+  (when-not (empty? failures)
+    (println)
+    (for [data :in failures]
+      (println "~~~~~~~~~~")
+      (print-failure-or-error data))
+    (println)))
+
+(defn- print-counts-summary [event]
+  (println "Passed:" (:pass event))
+  (println "Failed:" (:failed event))
+  (println "Error:" (:error event))
+  (when (pos? (or (:skipped event) 0))
+    (println "Skipped:" (:skipped event)))
+  (println "Total:" (:total event)))
+
+(defn- print-summary-block [event]
+  (println)
+  (print-failures-block (:failures event))
+  (println)
+  (print-counts-summary event))
+
+(defn- default-reporter
+  "Human-readable dot output. Preserves the legacy behavior: `.` for
+  pass, `F` for fail, `E` for error, plus periodic newlines so long
+  runs wrap at 80 columns. `S` marks a skipped test."
+  [event]
+  (let [type (:type event)]
+    (cond
+      (= type :begin-test-run)
+      (reset! default-line-count 0)
+
+      (assertion-event? event)
+      (let [state (:state event)
+            ch    (case state :failed "F" :error "E" ".")
+            n     (swap! default-line-count inc)]
+        (print ch)
+        (when (= 0 (% n 80)) (println)))
+
+      (= type :skipped)
+      (let [n (swap! default-line-count inc)]
+        (print "S")
+        (when (= 0 (% n 80)) (println)))
+
+      (= type :summary)
+      (print-summary-block event))))
+
+(defn- testdox-reporter
+  "Per-assertion single-line description used by the `--reporter=testdox`
+  flag."
+  [event]
+  (let [type (:type event)]
+    (cond
+      (assertion-event? event)
+      (let [state  (:state event)
+            marker (case state :failed "✘" :error "E" "✔")
+            tname  (or (:test-name event) "")
+            msg    (or (:message event) "no test message found")]
+        (println marker (str tname ": " msg)))
+
+      (= type :skipped)
+      (let [tname (or (:test-name event) "")]
+        (println "↷" (str tname " (skipped)")))
+
+      (= type :summary)
+      (print-summary-block event))))
+
+;; -------------
+;; Dot reporter
+;; -------------
+
+(defn- dot-reporter
+  "Minimal CI-friendly reporter. Prints `.` per pass, `F` per failure,
+  `E` per error, `S` per skipped test, and a compact one-line summary
+  at the end. Does not print failure/error diagnostics."
+  [event]
+  (let [type (:type event)]
+    (cond
+      (assertion-event? event)
+      (let [state (:state event)]
+        (print (case state :failed "F" :error "E" ".")))
+
+      (= type :skipped)
+      (print "S")
+
+      (= type :summary)
+      (do
+        (println)
+        (let [skipped (or (:skipped event) 0)
+              base    (str "Tests: " (:total event)
+                           ", Passed: " (:pass event)
+                           ", Failed: " (:failed event)
+                           ", Errors: " (:error event))]
+          (if (pos? skipped)
+            (println (str base ", Skipped: " skipped))
+            (println base)))))))
+
+;; -------------
+;; TAP reporter
+;; -------------
+
+(def- tap-counter (atom 0))
+
+(defn- tap-description [event]
+  (let [tname (:test-name event)
+        msg   (:message event)]
+    (cond
+      (and tname msg) (str tname ": " msg)
+      tname           tname
+      msg             msg
+      :else           "assertion")))
+
+(defn- tap-failure-yaml [event]
+  (let [loc    (:location event)
+        file   (when loc (get loc :file))
+        line   (when loc (get loc :line))
+        etype  (:type event)
+        output ["  ---"
+                (when file (str "  file: " file))
+                (when line (str "  line: " line))
+                (str "  type: " etype)
+                (when (:expected event)
+                  (str "  expected: " (:expected event)))
+                (when (contains? event :actual)
+                  (str "  actual: " (:actual event)))
+                "  ..."]]
+    (s/join "\n" (filter some? output))))
+
+(defn- tap-reporter
+  "TAP v13 output. Emits `TAP version 13`, `1..N` plan, `ok`/`not ok`
+  lines per assertion, and a YAML block per failure. `N` is the total
+  number of assertions observed during the run."
+  [event]
+  (let [type (:type event)]
+    (cond
+      (= type :begin-test-run)
+      (do
+        (reset! tap-counter 0)
+        (println "TAP version 13"))
+
+      (assertion-event? event)
+      (let [state (:state event)
+            n     (swap! tap-counter inc)
+            desc  (tap-description event)]
+        (if (= state :pass)
+          (println (str "ok " n " - " desc))
+          (do
+            (println (str "not ok " n " - " desc))
+            (println (tap-failure-yaml event)))))
+
+      (= type :summary)
+      (println (str "1.." (:total event))))))
+
+;; -----------------
+;; JUnit-XML reporter
+;; -----------------
+
+(def- junit-state
+  (atom {:tests 0
+         :failures 0
+         :errors 0
+         :time 0.0
+         :testsuites []
+         :current nil
+         :output-path nil}))
+
+(defn- junit-xml-escape [value]
+  (when-not (nil? value)
+    (let [s (if (string? value) value (str value))]
+      (-> s
+          (s/replace "&" "&amp;")
+          (s/replace "<" "&lt;")
+          (s/replace ">" "&gt;")
+          (s/replace "\"" "&quot;")
+          (s/replace "'" "&apos;")))))
+
+(defn- junit-attr [k v]
+  (str (name k) "=\"" (junit-xml-escape v) "\""))
+
+(defn- junit-exception-class [event]
+  (let [ex (:exception event)]
+    (if ex
+      (php/get_class ex)
+      (or (:exception-symbol event) "AssertionFailed"))))
+
+(defn- junit-nested-element [tag event]
+  (str "<" tag
+       " message=\"" (junit-xml-escape (or (:message event) "")) "\""
+       " type=\"" (junit-xml-escape (junit-exception-class event)) "\">"
+       (junit-xml-escape (str (:form event)))
+       "</" tag ">"))
+
+(defn- junit-testcase-body [event]
+  (let [state (get event :state (:type event))]
+    (cond
+      (= state :error)  (junit-nested-element "error"   event)
+      (= state :failed) (junit-nested-element "failure" event))))
+
+(defn- junit-build-testcase [event]
+  (let [tname   (or (:test-name event) "assertion")
+        ns-name (or (:ns event) "")
+        loc     (or (:location event) {})
+        file    (or (:file loc) "")
+        line    (or (:line loc) 0)
+        body    (junit-testcase-body event)
+        opening (str "<testcase "
+                      (junit-attr :name tname) " "
+                      (junit-attr :classname ns-name) " "
+                      (junit-attr :file file) " "
+                      (junit-attr :line line) ">")]
+    (str opening
+         (or body "")
+         "</testcase>")))
+
+(defn- junit-render [state]
+  (let [suites (get state :testsuites)
+        parts  (for [{:name ns-name :tests t :failures f :errors e :time tm :cases cases} :in suites]
+                 (str "<testsuite "
+                      (junit-attr :name ns-name) " "
+                      (junit-attr :tests t) " "
+                      (junit-attr :failures f) " "
+                      (junit-attr :errors e) " "
+                      (junit-attr :time tm) ">"
+                      (s/join "" cases)
+                      "</testsuite>"))]
+    (str "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+         "<testsuites "
+         (junit-attr :tests (:tests state)) " "
+         (junit-attr :failures (:failures state)) " "
+         (junit-attr :errors (:errors state)) " "
+         (junit-attr :time (:time state)) ">"
+         (s/join "" parts)
+         "</testsuites>")))
+
+(def- empty-junit-suite
+  {:tests 0 :failures 0 :errors 0 :time 0.0 :cases []})
+
+(defn- junit-finalize-current [state]
+  (let [current (:current state)]
+    (if current
+      (-> state
+          (assoc :testsuites (conj (get state :testsuites) current))
+          (assoc :current nil))
+      state)))
+
+(defn- junit-start-ns [state ns-name]
+  (-> state
+      (junit-finalize-current)
+      (assoc :current (assoc empty-junit-suite :name ns-name))))
+
+(defn- bump-junit-counters
+  "Increments `:tests`, plus `:failures`/`:errors` based on the event's
+  `:state`. Used to aggregate both the per-suite and per-run totals."
+  [m event]
+  (let [state (get event :state)]
+    (cond-> (update m :tests inc)
+            (= :failed state) (update :failures inc)
+            (= :error state)  (update :errors inc))))
+
+(defn- junit-ensure-current
+  "Ensures `state` has a `:current` suite; lazily initialised from the
+  event's `:ns` when a testcase arrives outside a `begin-test-ns`."
+  [state event]
+  (or (:current state)
+      (assoc empty-junit-suite :name (or (:ns event) ""))))
+
+(defn- junit-record-case [state event]
+  (let [current (-> (junit-ensure-current state event)
+                    (bump-junit-counters event)
+                    (update :cases conj (junit-build-testcase event)))]
+    (-> state
+        (bump-junit-counters event)
+        (assoc :current current))))
+
+(defn- junit-write-output [state]
+  (let [xml  (junit-render state)
+        path (:output-path state)]
+    (if path
+      (php/file_put_contents path xml)
+      (println xml))))
+
+(defn- junit-reporter
+  "JUnit-XML v1 output. Emits a `<testsuites>` root with one
+  `<testsuite>` per Phel namespace. Each assertion becomes a
+  `<testcase>`; failures and errors are nested accordingly."
+  [event]
+  (let [type (:type event)]
+    (cond
+      (= type :begin-test-run)
+      (swap! junit-state
+             (fn [s] (assoc s :tests 0 :failures 0 :errors 0
+                            :testsuites []
+                            :current nil)))
+
+      (= type :begin-test-ns)
+      (swap! junit-state junit-start-ns (:ns event))
+
+      (= type :end-test-ns)
+      (swap! junit-state junit-finalize-current)
+
+      (assertion-event? event)
+      (swap! junit-state junit-record-case event)
+
+      (= type :summary)
+      (let [state (swap! junit-state junit-finalize-current)]
+        (junit-write-output state)))))
+
+(defn set-junit-output!
+  "Configures the output path the JUnit reporter writes to. When `nil`,
+  the XML is printed to stdout."
+  {:example "(set-junit-output! \"build/junit.xml\")"}
+  [path]
+  (swap! junit-state assoc :output-path path))
+
+;; ---------------------
+;; Reporter resolution
+;; ---------------------
+
+(def- built-in-reporters
+  {:default  default-reporter
+   :dot      dot-reporter
+   :testdox  testdox-reporter
+   :tap      tap-reporter
+   :junit-xml junit-reporter})
+
+(def- custom-reporters (atom {}))
+
+(defn- reporter-key [name]
+  (cond
+    (keyword? name) name
+    (string? name)  (keyword name)
+    :else           nil))
+
+(defn resolve-reporter
+  "Returns the reporter function registered for `name` (keyword or
+  string). Checks user-registered reporters before the built-in set.
+  Returns `nil` if the name is unknown."
+  {:see-also ["set-reporters!" "register-reporter!"]
+   :example "(resolve-reporter :junit-xml)"}
+  [name]
+  (let [kw (reporter-key name)]
+    (or (get (deref custom-reporters) kw)
+        (get built-in-reporters kw))))
+
+(defn register-reporter!
+  "Registers a custom reporter function under `name` (keyword or
+  keyword-castable string). Returns `name`."
+  {:example "(register-reporter! :my-reporter (fn [event] ...))"
+   :see-also ["resolve-reporter"]}
+  [name reporter-fn]
+  (let [kw (reporter-key name)]
+    (when (nil? kw)
+      (throw (php/new \InvalidArgumentException
+                      "register-reporter! name must be a keyword or string")))
+    (swap! custom-reporters assoc kw reporter-fn)
+    kw))
+
+;; ---------------------
+;; error/failure printer
+;; ---------------------
+
+(defn- summary-event
+  [snapshot]
+  (let [{:failed failed :error error :pass pass :skipped skipped}
+        (:counts snapshot)
+        failures (:failed snapshot)
+        skips    (:skipped snapshot)
+        total    (+ failed error pass)]
+    {:type :summary
+     :failures failures
+     :skips skips
+     :pass pass
+     :failed failed
+     :error error
+     :skipped (or skipped 0)
+     :total total}))
+
 (defn print-summary
-  "Prints test results summary."
+  "Emits the `:summary` event to the active reporter set.
+  Kept for backwards compatibility; prefer letting `run-tests` emit the
+  event at the end of the run."
   {:example "(print-summary)"}
   []
-  (println)
-  (let [failures (get (deref stats) :failed)]
-    (when (not (empty? failures))
-      (println)
-      (for [data :in failures]
-        (println "~~~~~~~~~~")
-        (print-failure-or-error data))
-      (println)))
-  (println)
-  (let [{:failed failed :error error :pass pass} (get (deref stats) :counts)
-        total (+ failed error pass)]
-    (println "Passed:" pass)
-    (println "Failed:" failed)
-    (println "Error:" error)
-    (println "Total:" total)))
+  (fan-out! (summary-event (deref stats))))
+
+;; --------
+;; Fixtures
+;; --------
+
+(def- fixtures-by-ns (atom {}))
+
+(defn- default-fixture
+  "Identity fixture: just invokes the wrapped function."
+  [f]
+  (f))
+
+(defn- compose-two-fixtures
+  "Returns a fixture that applies f1 around a fixture that applies f2 around g."
+  [f1 f2]
+  (fn [g] (f1 (fn [] (f2 g)))))
+
+(defn- join-fixtures
+  "Composes a collection of fixtures into a single fixture function."
+  [fixtures]
+  (reduce compose-two-fixtures default-fixture fixtures))
+
+(defn use-fixtures
+  "Registers fixture functions for the current namespace.
+
+  `fixture-type` is either `:each` (wraps every individual test) or
+  `:once` (wraps the whole run in a single function). Each fixture is
+  a function of one argument — a thunk `(fn [])` representing the tests
+  to run — and is expected to invoke that thunk somewhere in its body.
+
+  Calling `use-fixtures` with no fixture functions removes all fixtures
+  of that type previously registered on the namespace."
+  {:example "(use-fixtures :once (fn [t] (setup) (t) (teardown)))"
+   :see-also ["deftest" "run-tests"]}
+  [fixture-type & fns]
+  (when (some (fn [f] (not (fn? f))) fns)
+    (throw (php/new \InvalidArgumentException
+                    "All arguments to use-fixtures must be functions")))
+  (let [key     (case fixture-type
+                  :each :each-fixtures
+                  :once :once-fixtures
+                  (throw (php/new \InvalidArgumentException
+                                  (str "use-fixtures: invalid fixture-type "
+                                       fixture-type ", expected :each or :once"))))
+        ns-name *ns*]
+    (swap! fixtures-by-ns
+           (fn [m]
+             (let [entry (or (get m ns-name) {})]
+               (assoc m ns-name (assoc entry key fns)))))
+    nil))
+
+(defn- fixtures-for [ns kind]
+  (or (get-in (deref fixtures-by-ns) [ns kind]) []))
 
 ;; -------------
 ;; Running tests
 ;; -------------
 
-(defn- find-test-fns [ns {:filter filter}]
-  (let [munge (php/new Munge)
+(defn- legacy-filter-matches?
+  "Back-compat: the original `--filter` option accepted a single
+  substring matched against the test name. When selectors are also
+  active, this check still applies so existing callers keep behaving."
+  [filter-value test-name]
+  (or (nil? filter-value)
+      (s/contains? (or test-name "") filter-value)))
+
+(defn- find-test-vars
+  "Discovers every `deftest`-defined function in `ns` and returns a
+  vector of `{:fn <callable> :meta <map>}` entries. The caller is
+  responsible for applying selectors."
+  [ns]
+  (let [munge    (php/new Munge)
         munge-ns (php/-> munge (encodeNs ns))]
-    (for [fn-name :keys (php/:: Phel (getDefinitionInNamespace munge-ns))
-          :let [meta (php/:: Phel (getDefinitionMetaData munge-ns fn-name))]
-          :when (and (:test meta) (or (nil? filter) (s/contains? (:test-name meta) filter)))]
-      (php/:: Phel (getDefinition munge-ns fn-name)))))
+    (vec (for [fn-name :keys (php/:: Phel (getDefinitionInNamespace munge-ns))
+               :let [meta (php/:: Phel (getDefinitionMetaData munge-ns fn-name))]
+               :when (:test meta)]
+           {:fn   (php/:: Phel (getDefinition munge-ns fn-name))
+            :meta meta}))))
+
+(defn- selector-options
+  "Extracts the selector subset from the full options map."
+  [options]
+  {:include     (:include options)
+   :exclude     (:exclude options)
+   :ns-patterns (:ns-patterns options)
+   :filters     (:filters options)})
+
+(defn- skip-reason
+  "Returns the reason the test should be skipped — `:filtered` for the
+  legacy `--filter` gate, `:selector` for any other selector miss, or
+  `nil` when the test should run."
+  [options sel-opts ns-name m]
+  (cond
+    (not (legacy-filter-matches? (:filter options) (:test-name m)))
+    :filtered
+
+    (not (selector/keep-test? sel-opts ns-name m))
+    :selector
+
+    :else
+    nil))
+
+(defn- partition-tests
+  "Splits the discovered tests into a `{:keep [...] :skip [...]}` map
+  using the selector options. `:keep` preserves original order; each
+  `:skip` entry is annotated with its metadata so reporters can surface
+  skip events."
+  [options ns-name tests]
+  (let [sel-opts (selector-options options)]
+    (reduce
+     (fn [acc {:fn f :meta m}]
+       (if-let [reason (skip-reason options sel-opts ns-name m)]
+         (update acc :skip conj {:fn f :meta m :reason reason})
+         (update acc :keep conj {:fn f :meta m})))
+     {:keep [] :skip []}
+     tests)))
+
+(defn- emit-skip-events! [ns-name skipped]
+  (dofor [{:meta m :reason reason} :in skipped]
+    (report {:type :skipped
+             :ns ns-name
+             :test-name (:test-name m)
+             :reason reason
+             :tags (:tags m)})))
 
 (defn- run-test [options ns]
-  (let [tests (find-test-fns ns options)]
-    (dofor [test :in tests
-            :when (not (should-stop?))]
-      (test))))
+  (let [all-tests (find-test-vars ns)
+        parts     (partition-tests options ns all-tests)
+        keeps     (:keep parts)
+        skips     (:skip parts)
+        each-wrap (join-fixtures (fixtures-for ns :each-fixtures))
+        once-wrap (join-fixtures (fixtures-for ns :once-fixtures))]
+    (emit-skip-events! ns skips)
+    (when-not (empty? keeps)
+      (once-wrap
+       (fn []
+         (dofor [{:fn f} :in keeps
+                 :when (not (should-stop?))]
+           (each-wrap f)))))))
+
+(defn- coerce-reporter
+  "Turns a single `:reporters` entry (function, keyword, or string) into
+  a reporter function. Throws on unknown names or invalid values."
+  [r]
+  (cond
+    (fn? r)
+    r
+
+    (or (keyword? r) (string? r))
+    (or (resolve-reporter r)
+        (throw (php/new \InvalidArgumentException
+                        (str "Unknown reporter: " r))))
+
+    :else
+    (throw (php/new \InvalidArgumentException
+                    (str "Invalid reporter value: " r)))))
+
+(defn- requested-reporters
+  "Returns the user-selected reporter identifiers, honouring the
+  `--testdox` shortcut and defaulting to `[:default]`."
+  [options]
+  (or (:reporters options)
+      (when (:testdox options) [:testdox])
+      [:default]))
+
+(defn- resolve-reporters-option
+  "Resolves the `:reporters` option into a vector of reporter functions.
+  Accepts a sequence of keywords or strings (built-in names), or a
+  sequence of functions, or a mix. Defaults to `[:default]`."
+  [options]
+  (vec (map coerce-reporter (requested-reporters options))))
+
+(defn- configure-run! [options]
+  (reset! fail-fast? (:fail-fast options))
+  (when-let [path (:junit-output options)]
+    (set-junit-output! path))
+  (set-reporters! (resolve-reporters-option options)))
+
+(defn- run-one-ns! [options namespace]
+  (let [ns-name (name namespace)]
+    (fan-out! {:type :begin-test-ns :ns ns-name})
+    (run-test options ns-name)
+    (fan-out! {:type :end-test-ns :ns ns-name})))
 
 (defn run-tests
   "Runs all tests in the given namespaces."
-  {:example "(run-tests {} 'my-app\test)"}
+  {:example "(run-tests {} 'my-app\\test)"}
   [options & namespaces]
-  (set! testdox? (:testdox options))
-  (set! fail-fast? (:fail-fast options))
+  (configure-run! options)
+  (reset! stats initial-stats)
+  (fan-out! {:type :begin-test-run})
   (dofor [namespace :in namespaces
-          :let [ns-name (name namespace)]
           :when (not (should-stop?))]
-    (run-test options ns-name))
+    (run-one-ns! options namespace))
   (print-summary))
 
 (defn reset-stats
@@ -469,11 +1136,7 @@
   Call this before running a new batch of tests to get fresh results."
   {:example "(reset-stats)"}
   []
-  (set! stats {:failed []
-               :counts {:failed 0
-                        :error 0
-                        :pass 0
-                        :total 0}}))
+  (reset! stats initial-stats))
 
 (defn successful?
   "Checks if all tests passed."
@@ -492,4 +1155,4 @@
   "Restores test statistics from a previously saved state."
   {:example "(restore-stats saved)"}
   [saved]
-  (set! stats saved))
+  (reset! stats saved))

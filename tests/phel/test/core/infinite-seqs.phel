@@ -266,6 +266,12 @@
   (is (= [1] (doall (take-nth 10 [1 2 3])))
       "take-nth larger than collection should return first element"))
 
+(deftest test-take-nth-negative-repeats-first-element
+  (is (= [1 1 1] (take 3 (take-nth -1 [1 2 3 4])))
+      "take-nth with -1 should repeat the first element lazily")
+  (is (= [1 1 1] (take 3 (take-nth -2 [1 2 3 4])))
+      "take-nth with a negative step should repeat the first element lazily"))
+
 (deftest test-take-nth-preserves-metadata
   (let [m {:foo "bar"}
         data (set-meta! [1 2 3 4 5 6] m)]
@@ -440,6 +446,10 @@
 (deftest test-mapcat-identity-flattens-one-level
   (is (= [1 2 3 4 5 6] (doall (mapcat identity [[1 2] [3 4] [5 6]])))
       "mapcat identity should flatten one level"))
+
+(deftest test-mapcat-identity-flattens-map-entries
+  (is (= [:a 1 :b 2 :c 3] (doall (mapcat identity {:a 1 :b 2 :c 3})))
+      "mapcat identity should flatten map key-value entries"))
 
 (deftest test-mapcat-with-infinite-sequence
   (is (= [0 0 1 1 2 2 3 3 4 4] (take 10 (mapcat #(list % %) (iterate inc 0))))

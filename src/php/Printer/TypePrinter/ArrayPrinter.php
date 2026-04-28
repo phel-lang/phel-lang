@@ -36,6 +36,11 @@ final readonly class ArrayPrinter implements TypePrinterInterface
         return array_keys($form) === range(0, count($form) - 1);
     }
 
+    /**
+     * @param array<int, mixed> $form
+     *
+     * @return list<string>
+     */
     private function formatValuesFromList(array $form): array
     {
         $result = [];
@@ -46,6 +51,11 @@ final readonly class ArrayPrinter implements TypePrinterInterface
         return $result;
     }
 
+    /**
+     * @param array<int|string, mixed> $form
+     *
+     * @return list<string>
+     */
     private function formatKeyValuesFromDict(array $form): array
     {
         $result = [];

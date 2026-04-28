@@ -14,7 +14,6 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\OutputEmitterOptions;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapState;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
-use Phel\Lang\TypeInterface;
 use Phel\Printer\PrinterInterface;
 
 use function count;
@@ -24,6 +23,8 @@ use function strlen;
 final class OutputEmitter implements OutputEmitterInterface
 {
     private int $indentLevel = 0;
+
+    private int $classScopeDepth = 0;
 
     /** @var array<int, string> */
     private array $indentCache = [];
@@ -186,9 +187,9 @@ final class OutputEmitter implements OutputEmitterInterface
         $this->emitStr('})()', $sl);
     }
 
-    public function emitLiteral(array|bool|float|int|TypeInterface|string|null $value): void
+    public function emitLiteral(mixed $value): void
     {
-        (new LiteralEmitter($this, $this->printer))->emitLiteral($value);
+        new LiteralEmitter($this, $this->printer)->emitLiteral($value);
     }
 
     public function increaseIndentLevel(): void
@@ -199,5 +200,20 @@ final class OutputEmitter implements OutputEmitterInterface
     public function decreaseIndentLevel(): void
     {
         --$this->indentLevel;
+    }
+
+    public function enterClassScope(): void
+    {
+        ++$this->classScopeDepth;
+    }
+
+    public function exitClassScope(): void
+    {
+        --$this->classScopeDepth;
+    }
+
+    public function isInsideClassScope(): bool
+    {
+        return $this->classScopeDepth > 0;
     }
 }

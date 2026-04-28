@@ -39,7 +39,7 @@ final readonly class EvalExecutor
             return false;
         }
 
-        $options = (new CompileOptions())->setStartingLine(1);
+        $options = new CompileOptions()->setStartingLine(1);
 
         try {
             $result = $this->compilerFacade->eval($input, $options);

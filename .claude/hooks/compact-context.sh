@@ -3,9 +3,9 @@
 cat <<'EOF'
 ## Context Reminder (post-compaction)
 
-**Phel** is a Lisp that compiles to PHP (Clojure/Janet-inspired).
+**Phel** is a Lisp that compiles to PHP (Clojure-inspired).
 
-- Conventional commits (`feat:`, `fix:`, `ref:`, `chore:`). NEVER mention AI/Claude.
+- Conventional commits (`feat:`, `fix:`, `ref:`, `chore:`). NEVER mention AI tooling.
 - Test: `composer test` (all), `test-compiler` (PHP), `test-core` (Phel)
 - Auto-fix: `composer fix` (rector + cs-fixer). PHP edits auto-format via PostToolUse hook.
 - Compiler: Lexer → Parser → Analyzer → Emitter (never skip phases)

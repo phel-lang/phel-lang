@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
+use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
@@ -47,6 +48,8 @@ TXT;
         if (!($nsSymbol instanceof Symbol)) {
             throw AnalyzerException::wrongArgumentType("First argument of 'ns", 'Symbol', $nsSymbol, $list);
         }
+
+        BackslashSeparatorDeprecator::getInstance()->maybeWarn($nsSymbol);
 
         $ns = $this->normalizeNamespaceSeparators($nsSymbol->getName());
         $parts = explode('\\', $ns);
@@ -93,65 +96,7 @@ TXT;
 
     private function analyzeUse(string $ns, PersistentListInterface $import): void
     {
-        $elements = $import->toArray();
-        $count = count($elements);
-        $i = 1;
-
-        while ($i < $count) {
-            $useSymbol = $elements[$i];
-
-            if (!($useSymbol instanceof Symbol)) {
-                throw AnalyzerException::withLocation('First argument in :use must be a symbol.', $import);
-            }
-
-            $useSymbol = $this->normalizeSymbolSeparators($useSymbol);
-
-            if ($useSymbol->getName()[0] !== '\\') {
-                $useSymbol = Symbol::createForNamespace($useSymbol->getNamespace(), '\\' . $useSymbol->getName())
-                    ->copyLocationFrom($useSymbol);
-            }
-
-            ++$i;
-            $aliasValue = null;
-
-            while ($i < $count) {
-                $option = $elements[$i];
-
-                if ($option instanceof Symbol) {
-                    break;
-                }
-
-                if (!($option instanceof Keyword)) {
-                    throw AnalyzerException::withLocation('Unexpected argument in :use. Expected a keyword.', $import);
-                }
-
-                ++$i;
-
-                if ($option->getName() === 'as') {
-                    if ($i >= $count) {
-                        throw AnalyzerException::wrongArgumentType('Alias', 'Symbol', null, $import);
-                    }
-
-                    $aliasCandidate = $elements[$i];
-                    if (!($aliasCandidate instanceof Symbol)) {
-                        throw AnalyzerException::wrongArgumentType('Alias', 'Symbol', $aliasCandidate, $import);
-                    }
-
-                    $aliasValue = $aliasCandidate;
-                    ++$i;
-
-                    continue;
-                }
-
-                throw AnalyzerException::withLocation(
-                    sprintf('Unexpected keyword %s encountered in :use. Expected :as.', $option->getName()),
-                    $option,
-                );
-            }
-
-            $alias = $this->createAliasFromSymbol($aliasValue, $useSymbol);
-            $this->analyzer->addUseAlias($ns, $alias, $useSymbol);
-        }
+        new UseAliasRegistrar($this->analyzer)->register($ns, $import);
     }
 
     /**
@@ -236,6 +181,7 @@ TXT;
 
         /** @var Symbol $requireSymbol */
         $requireSymbol = $elements[$index];
+        BackslashSeparatorDeprecator::getInstance()->maybeWarn($requireSymbol);
         $requireSymbol = $this->normalizeSymbolSeparators($requireSymbol);
 
         ++$index;
@@ -308,6 +254,7 @@ TXT;
             );
         }
 
+        BackslashSeparatorDeprecator::getInstance()->maybeWarn($requireSymbol);
         $requireSymbol = $this->normalizeSymbolSeparators($requireSymbol);
 
         $index = 1;

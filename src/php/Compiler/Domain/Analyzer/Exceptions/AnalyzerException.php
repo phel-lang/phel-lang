@@ -73,6 +73,24 @@ final class AnalyzerException extends AbstractLocatedException
         return $e;
     }
 
+    public static function notCallable(
+        string $displayValue,
+        string $typeName,
+        TypeInterface $location,
+        string $hint = '',
+    ): self {
+        $message = sprintf('Value %s of type %s is not callable.', $displayValue, $typeName);
+
+        if ($hint !== '') {
+            $message .= ' ' . $hint;
+        }
+
+        $e = self::withLocation($message, $location);
+        $e->setErrorCode(ErrorCode::NOT_CALLABLE);
+
+        return $e;
+    }
+
     public static function notEnoughArgsProvided(
         GlobalVarNode $f,
         PersistentListInterface $list,
@@ -214,7 +232,6 @@ final class AnalyzerException extends AbstractLocatedException
             return sprintf("'%s' or '%s'", $suggestions[0], $suggestions[1]);
         }
 
-        /** @var string $lastSuggestion */
         $lastSuggestion = array_pop($suggestions);
         $quotedSuggestions = array_map(static fn(string $s): string => sprintf("'%s'", $s), $suggestions);
 

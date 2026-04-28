@@ -21,6 +21,7 @@ Core build orchestrator: compiles Phel projects to PHP with dependency resolutio
 - `writeLocatedException(OutputInterface $output, CompilerException $e): void`
 - `writeStackTrace(OutputInterface $output, Throwable $e): void`
 - `clearCache(): array` — clear all build caches
+- `getHealthCheck(): ModuleHealthCheckInterface` — checks cache dir, output dir, and configured source dirs; consumed by `phel doctor`
 
 ## Dependencies
 
@@ -44,3 +45,4 @@ Build/
 - `CachedNamespaceExtractor` decorates `NamespaceExtractor` with caching
 - `BuildOptions` controls source maps and cache behavior
 - Auto-detects main namespace from `core.phel` or `main.phel`
+- Namespace extractors prune the build output from recursive scans (absolute excluded dirs + per-scan-root `<dest_dir>/` subtree) to avoid duplicate-namespace shadowing when `FileCompiler::writeSourceReference` mirrors sources next to compiled files

@@ -1,0 +1,165 @@
+(ns phel-test\test\rose
+  (:require phel\test :refer [deftest is testing])
+  (:require phel\test\rose :as r))
+
+;; Coverage for the `phel\test\rose` namespace: rose-tree constructors,
+;; monadic helpers (`rose-fmap`, `rose-bind`), and the lazy-evaluation
+;; invariant that keeps the shrink tree cheap to build.
+
+(deftest test-rose-pure-has-no-children
+  (let [t (r/rose-pure 42)]
+    (is (= 42 (r/rose-root t)) "root is the wrapped value")
+    (is (empty? (r/rose-children t)) "a leaf has no shrinks")
+    (is (r/rose? t) "rose? recognises pure trees")))
+
+(deftest test-rose-tree-constructor-keeps-children
+  (let [child (r/rose-pure 1)
+        t     (r/rose-tree 2 [child])]
+    (is (= 2 (r/rose-root t)))
+    (is (= 1 (r/rose-root (first (r/rose-children t))))
+        "children are retained as a seq")))
+
+(deftest test-rose-shrinks-is-alias-for-children
+  (let [t (r/int-rose-tree 5)]
+    (is (= (into [] (map r/rose-root (r/rose-children t)))
+           (into [] (map r/rose-root (r/rose-shrinks t))))
+        "rose-shrinks returns the same sequence as rose-children")))
+
+(deftest test-rose-fmap-applies-f-to-root-and-descendants
+  (let [t (r/int-rose-tree 4)
+        mapped (r/rose-fmap inc t)]
+    (is (= 5 (r/rose-root mapped)) "root is incremented")
+    (is (= (into [] (map (fn [c] (inc (r/rose-root c))) (r/rose-children t)))
+           (into [] (map r/rose-root (r/rose-children mapped))))
+        "every child root is incremented")))
+
+(deftest test-rose-bind-sequences-shrinks
+  (let [t      (r/rose-pure 3)
+        bound  (r/rose-bind t (fn [n] (r/int-rose-tree n)))]
+    (is (= 3 (r/rose-root bound)))
+    (is (every? integer? (into [] (map r/rose-root (r/rose-children bound))))
+        "bound tree exposes int shrinks")))
+
+(deftest test-rose-fmap-is-lazy
+  (testing "rose-fmap never calls `f` more often than the caller consumes"
+    (let [calls (atom 0)
+          f     (fn [n] (swap! calls inc) (* 10 n))
+          t     (r/int-rose-tree 10)
+          mapped (r/rose-fmap f t)]
+      (is (= 100 (r/rose-root mapped)) "root is realised on demand")
+      (is (= 1 (deref calls)) "only the root has been realised")
+      (let [first-child (first (r/rose-children mapped))]
+        (is (= 0 (r/rose-root first-child)) "first shrink realised")
+        (is (= 2 (deref calls))
+            "only the root and first shrink's root have been realised")))))
+
+(deftest test-int-rose-tree-shrinks-toward-zero
+  (let [t (r/int-rose-tree 10)
+        roots (into [] (map r/rose-root (r/rose-children t)))]
+    (is (= 10 (r/rose-root t)))
+    (is (contains? (into (hash-set) roots) 0)
+        "target is always among the direct shrinks")
+    (is (every? (fn [n] (< (if (< n 0) (- n) n) 10)) roots)
+        "every shrink is strictly closer to zero")))
+
+(deftest test-shrink-int-towards-yields-monotonic-candidates
+  (is (= [] (into [] (r/shrink-int-towards 0 0))) "no shrinks at the target")
+  (is (= [0 5 8 9] (into [] (r/shrink-int-towards 0 10)))
+      "classic halving plus decrement pattern"))
+
+(deftest test-rose-vector-shrinks-by-removal-and-elementwise
+  (let [t (r/rose-vector [(r/int-rose-tree 1)
+                          (r/int-rose-tree 2)
+                          (r/int-rose-tree 3)])
+        child-roots (into [] (map r/rose-root (r/rose-children t)))]
+    (is (= [1 2 3] (r/rose-root t)))
+    (is (some (fn [v] (< (count v) 3)) child-roots)
+        "at least one child drops an element")
+    (is (some (fn [v] (= 3 (count v))) child-roots)
+        "at least one child preserves length and shrinks an element")))
+
+(deftest test-rose-zip-produces-combined-shrinks
+  (let [t (r/rose-zip [(r/int-rose-tree 2) (r/int-rose-tree 4)])]
+    (is (= [2 4] (r/rose-root t)))
+    (is (every? (fn [v] (= 2 (count v)))
+                (into [] (map r/rose-root (r/rose-children t))))
+        "rose-zip preserves arity")))
+
+;; ---------------------------------------------------------------------------
+;; shrink-int-towards — negative-direction shrinks and same-input short-circuit
+;; ---------------------------------------------------------------------------
+
+(deftest test-shrink-int-towards-negative-shrinks-toward-zero
+  (let [candidates (into [] (r/shrink-int-towards 0 -8))]
+    (is (contains? (into (hash-set) candidates) 0)
+        "target is among the shrinks")
+    (is (every? (fn [v] (< v 0)) (rest candidates))
+        "non-target shrinks are still negative")
+    (is (not (contains? (into (hash-set) candidates) -8))
+        "the input itself is never a shrink of itself")))
+
+(deftest test-shrink-int-towards-uses-non-zero-target
+  (is (= [10 15 18 19] (into [] (r/shrink-int-towards 10 20)))
+      "halving candidates converge on the configured target")
+  (is (= [-5 -8 -9] (into [] (r/shrink-int-towards -5 -10)))
+      "negative target still produces strictly-closer candidates"))
+
+;; ---------------------------------------------------------------------------
+;; rose-filter — keep only matching nodes, children pruned
+;; ---------------------------------------------------------------------------
+
+(deftest test-rose-filter-nil-when-root-fails-predicate
+  (is (nil? (r/rose-filter pos? (r/rose-pure -1)))
+      "when root fails the predicate, filter returns nil"))
+
+(deftest test-rose-filter-keeps-matching-subtree
+  (let [filtered (r/rose-filter (fn [n] (>= n 0)) (r/int-rose-tree 8))]
+    (is (not (nil? filtered)) "root passes pred, subtree is kept")
+    (is (= 8 (r/rose-root filtered)) "root value preserved")
+    (is (every? (fn [n] (>= n 0))
+                (into [] (map r/rose-root (r/rose-children filtered))))
+        "all surviving children satisfy the predicate")))
+
+;; ---------------------------------------------------------------------------
+;; rose-join — flattens nested rose trees
+;; ---------------------------------------------------------------------------
+
+(deftest test-rose-join-flattens-inner-tree
+  (let [inner  (r/rose-pure 42)
+        outer  (r/rose-pure inner)
+        joined (r/rose-join outer)]
+    (is (= 42 (r/rose-root joined))
+        "joined tree root is the inner root")))
+
+;; ---------------------------------------------------------------------------
+;; rose-string — shrinks via the underlying vector strategy
+;; ---------------------------------------------------------------------------
+
+(deftest test-rose-string-builds-string-from-char-leaves
+  (let [chars [(r/rose-pure "a") (r/rose-pure "b") (r/rose-pure "c")]
+        t     (r/rose-string chars)]
+    (is (= "abc" (r/rose-root t)) "root concatenates char leaves")))
+
+;; ---------------------------------------------------------------------------
+;; rose-map — shrinks of a hash-map preserve its associative nature
+;; ---------------------------------------------------------------------------
+
+(deftest test-rose-map-root-is-hash-map
+  (let [entries [(r/rose-pure [:a 1])
+                 (r/rose-pure [:b 2])]
+        t       (r/rose-map entries)]
+    (is (hash-map? (r/rose-root t)) "root is a hash-map")
+    (is (= 1 (get (r/rose-root t) :a)) "value preserved under key :a")
+    (is (= 2 (get (r/rose-root t) :b)) "value preserved under key :b")))
+
+;; ---------------------------------------------------------------------------
+;; rose-vector-lax — shrinks positions but never drops elements
+;; ---------------------------------------------------------------------------
+
+(deftest test-rose-vector-lax-preserves-length-in-children
+  (let [t (r/rose-vector-lax [(r/int-rose-tree 2) (r/int-rose-tree 3)])
+        child-lengths (into [] (map (fn [v] (count v))
+                                    (map r/rose-root (r/rose-children t))))]
+    (is (= [2 3] (r/rose-root t)) "root is the vector of roots")
+    (is (every? (fn [n] (= 2 n)) child-lengths)
+        "every child preserves the original arity")))

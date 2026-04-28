@@ -1,4 +1,4 @@
 --PHEL--
 (apply php/array 1 2 [3])
 --PHP--
-array(1, 2, ...((\Phel::vector([3])) ?? []));
+array(1, 2, ...\Phel\Lang\Seq::toApplyArguments(\Phel::vector([3])));

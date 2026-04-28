@@ -270,23 +270,6 @@ abstract class AbstractZipper
 
     /**
      * @param T $node
-     */
-    public function setNode(mixed $node): self
-    {
-        $this->node = $node;
-
-        return $this;
-    }
-
-    public function setHasChanged(bool $status): self
-    {
-        $this->hasChanged = $status;
-
-        return $this;
-    }
-
-    /**
-     * @param T $node
      *
      * @throws ZipperException
      */

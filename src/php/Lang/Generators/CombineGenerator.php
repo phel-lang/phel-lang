@@ -4,21 +4,16 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Generators;
 
-use ArrayIterator;
 use Generator;
 use Iterator;
-
-use function is_array;
-use function is_string;
-use function mb_str_split;
 
 /**
  * Multi-source and separator-aware combining generators.
  *
  * Each operation orchestrates one or more input sequences to produce a combined
  * output — concatenation, round-robin interleaving, element-wise zipping, and
- * separator insertion. The private helpers normalize arbitrary iterables into
- * Iterator instances so advancement can be controlled step by step.
+ * separator insertion. Shared sequence helpers normalize arbitrary iterables
+ * into Iterator instances so advancement can be controlled step by step.
  */
 final class CombineGenerator
 {
@@ -49,7 +44,7 @@ final class CombineGenerator
                 continue;
             }
 
-            foreach (self::toIterable($iterable) as $value) {
+            foreach (SequenceGenerator::toIterable($iterable) as $value) {
                 yield $value;
             }
         }
@@ -75,7 +70,7 @@ final class CombineGenerator
             return;
         }
 
-        $iterators = array_map(self::toIterator(...), $iterables);
+        $iterators = array_map(SequenceGenerator::toIterator(...), $iterables);
         $first = $iterators[0] ?? null;
 
         if ($first === null) {
@@ -114,7 +109,7 @@ final class CombineGenerator
     public static function interpose(mixed $separator, mixed $iterable): Generator
     {
         $first = true;
-        foreach (self::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::toIterable($iterable) as $value) {
             if (!$first) {
                 yield $separator;
             }
@@ -145,7 +140,7 @@ final class CombineGenerator
             return;
         }
 
-        $iterators = array_map(self::toIterator(...), $iterables);
+        $iterators = array_map(SequenceGenerator::toIterator(...), $iterables);
 
         while (self::allIteratorsValid($iterators)) {
             $values = self::extractCurrentValues($iterators);
@@ -160,13 +155,7 @@ final class CombineGenerator
      */
     private static function allIteratorsValid(array $iterators): bool
     {
-        foreach ($iterators as $iterator) {
-            if (!$iterator->valid()) {
-                return false;
-            }
-        }
-
-        return true;
+        return array_all($iterators, static fn($iterator) => $iterator->valid());
     }
 
     /**
@@ -185,41 +174,5 @@ final class CombineGenerator
         }
 
         return $values;
-    }
-
-    /**
-     * Converts an iterable or string to an Iterator.
-     *
-     * @return Iterator<int|string, mixed>
-     */
-    private static function toIterator(mixed $value): Iterator
-    {
-        $iterable = self::toIterable($value);
-
-        if ($iterable instanceof Iterator) {
-            return $iterable;
-        }
-
-        if (is_array($iterable)) {
-            return new ArrayIterator($iterable);
-        }
-
-        return (static fn() => yield from $iterable)();
-    }
-
-    /**
-     * @template T
-     *
-     * @param iterable<T>|string|null $value
-     *
-     * @return iterable<string|T>
-     */
-    private static function toIterable(mixed $value): iterable
-    {
-        if (is_string($value)) {
-            return mb_str_split($value);
-        }
-
-        return $value ?? [];
     }
 }

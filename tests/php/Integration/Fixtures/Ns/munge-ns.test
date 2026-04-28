@@ -1,7 +1,7 @@
 --PHEL--
 (ns hello-world
   (:require my-namespace\core)
-  (:use my_other-name\test))
+  (:use DateTimeImmutable))
 
 (def x :private 10)
 
@@ -84,6 +84,7 @@ class abc extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
   )
 );
 
+(\Phel::getDefinition("phel\\core", "swap!"))(\Phel::getDefinition("phel\\core", "*type-tag-registry*"), \Phel::getDefinition("phel\\core", "assoc"), \Phel::getDefinition("hello_world", "abc"), "hello_world\\abc");
 \Phel::addDefinition(
   "hello_world",
   "abc?",

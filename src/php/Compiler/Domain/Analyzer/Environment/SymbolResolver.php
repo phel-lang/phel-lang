@@ -8,6 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
@@ -15,15 +16,22 @@ use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
 use RuntimeException;
 
+use function class_exists;
+use function interface_exists;
+use function ltrim;
+use function trait_exists;
+
 final readonly class SymbolResolver
 {
     public function __construct(
         private GlobalEnvironment $globalEnv,
         private MagicConstantResolver $magicConstantResolver,
+        private ?BackslashSeparatorDeprecator $backslashDeprecator = null,
     ) {}
 
     public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
     {
+        $this->backslashDeprecator?->maybeWarn($name);
         $strName = $name->getName();
 
         if ($strName === '__DIR__') {
@@ -44,17 +52,48 @@ final readonly class SymbolResolver
             return new PhpClassNameNode($env, $name, $name->getStartLocation());
         }
 
+        if ($name->getNamespace() === null && $this->looksLikeDotSeparatedClassFqn($strName)) {
+            $fqn = Symbol::create('\\' . str_replace('.', '\\', $strName));
+            $fqn->copyLocationFrom($name);
+
+            return new PhpClassNameNode($env, $fqn, $name->getStartLocation());
+        }
+
         $useAliasNode = $this->resolveFromUseAlias($name, $env);
         if ($useAliasNode instanceof AbstractNode) {
             return $useAliasNode;
         }
 
-        return ($name->getNamespace() !== null)
+        $resolved = ($name->getNamespace() !== null)
             ? $this->resolveWithAlias($name, $env)
             : $this->resolveWithoutAlias($name, $env);
+
+        if ($resolved instanceof AbstractNode) {
+            return $resolved;
+        }
+
+        if ($name->getNamespace() === null && $this->looksLikePhpConstantName($strName)) {
+            return new PhpVarNode($env, $strName, $name->getStartLocation());
+        }
+
+        // Fallback: a bare class identifier with no other resolution is
+        // treated as a PHP root-namespace class FQN. Class-shaped uppercase
+        // names keep Clojure-style behavior for unloaded classes, while
+        // constant-shaped names like JSON_HEX_AMP stay PHP constants.
+        // Lowercase PHP built-ins like `stdClass` resolve when PHP already
+        // knows them.
+        // Kicks in *after* normal resolution so `(def Foo ...)` still wins.
+        if ($name->getNamespace() === null && $this->looksLikeBareClassName($strName)) {
+            $fqn = Symbol::create('\\' . $strName);
+            $fqn->copyLocationFrom($name);
+
+            return new PhpClassNameNode($env, $fqn, $name->getStartLocation());
+        }
+
+        return null;
     }
 
-    private function resolveFromUseAlias(Symbol $name, NodeEnvironmentInterface $env): ?PhpClassNameNode
+    private function resolveFromUseAlias(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
     {
         $currentNs = $this->globalEnv->getNs();
         $useAliases = $this->globalEnv->getUseAliases($currentNs);
@@ -66,6 +105,10 @@ final readonly class SymbolResolver
 
         $alias = $useAliases[$strName];
         $alias->copyLocationFrom($name);
+
+        if ($alias->getNamespace() === null && $this->looksLikePhpConstantName(ltrim($alias->getName(), '\\'))) {
+            return new PhpVarNode($env, $alias->getName(), $name->getStartLocation());
+        }
 
         return new PhpClassNameNode($env, $alias, $name->getStartLocation());
     }
@@ -85,6 +128,42 @@ final readonly class SymbolResolver
         $ns = $this->globalEnv->resolveAlias($normalizedAlias) ?? $normalizedAlias;
 
         return $this->resolveInterfaceOrDefinition($finalName, $env, $ns);
+    }
+
+    /**
+     * Accept `Foo.Bar.Baz` as an alias for the PHP class FQN `\Foo\Bar\Baz`,
+     * matching Clojure's class-reference syntax in `.cljc` code. Only applies
+     * to names that look like class FQNs (contain a dot, start uppercase) so
+     * plain Phel symbols are left to the normal resolution path.
+     */
+    private function looksLikeDotSeparatedClassFqn(string $name): bool
+    {
+        return preg_match('/^[A-Z]\w*(\.[A-Za-z_]\w*)+$/', $name) === 1;
+    }
+
+    /**
+     * Accept bare uppercase identifiers as root-namespace PHP class FQN
+     * aliases, so `Exception` resolves the same as `\Exception`. Also
+     * accepts known PHP class/interface/trait names regardless of leading
+     * case, so `stdClass` matches PHP's case-insensitive class lookup.
+     */
+    private function looksLikeBareClassName(string $name): bool
+    {
+        if (preg_match('/^[A-Z]\w*$/', $name) === 1 && preg_match('/[a-z]/', $name) === 1) {
+            return true;
+        }
+
+        return preg_match('/^[A-Za-z_]\w*$/', $name) === 1
+            && (
+                class_exists($name, false)
+                || interface_exists($name, false)
+                || trait_exists($name, false)
+            );
+    }
+
+    private function looksLikePhpConstantName(string $name): bool
+    {
+        return preg_match('/^[A-Z_][A-Z0-9_]*$/', $name) === 1;
     }
 
     private function remapClojureAlias(string $alias): string

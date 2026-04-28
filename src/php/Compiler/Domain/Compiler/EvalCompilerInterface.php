@@ -7,7 +7,6 @@ namespace Phel\Compiler\Domain\Compiler;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Infrastructure\CompileOptions;
-use Phel\Lang\TypeInterface;
 
 interface EvalCompilerInterface
 {
@@ -23,11 +22,14 @@ interface EvalCompilerInterface
     /**
      * Evaluates a provided Phel form.
      *
-     * @param bool|float|int|string|TypeInterface|null $form The phel form to evaluate
+     * Phel forms (literals, symbols, lists, vectors, etc.) are compiled and
+     * executed. Any other PHP value (e.g. a Closure or arbitrary object) is
+     * already evaluated and is returned as-is, matching Clojure's
+     * self-evaluating semantics.
      *
      * @throws CompilerException|UnfinishedParserException
      *
      * @return mixed The result of the executed code
      */
-    public function evalForm(float|bool|int|string|TypeInterface|null $form, CompileOptions $compileOptions): mixed;
+    public function evalForm(mixed $form, CompileOptions $compileOptions): mixed;
 }

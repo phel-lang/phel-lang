@@ -1,0 +1,320 @@
+(ns phel.test.rose
+  (:require phel.core))
+
+;; Rose trees used to carry a value alongside lazy shrink candidates.
+;;
+;; A rose tree is a hash-map `{:root v :children seq}` where `seq` is a
+;; lazy sequence of rose trees representing smaller variants of `v`.
+;; The shrinker walks the tree depth-first and keeps the smallest
+;; descendant that still fails the property.
+;;
+;; Children are intentionally lazy so building a shrink tree is cheap
+;; even when the value space is large. Only the branches explored
+;; during a failure are realised. All helpers below use the classic
+;; `(lazy-seq (cons first (rest-thunk)))` pattern so each step of a
+;; recursive expansion is evaluated on demand rather than up-front.
+
+;; ----------------
+;; Lazy helpers (pure, no Clojure references)
+;; ----------------
+
+(defn- lazy-map
+  "Element-wise `(map f coll)` that realises one element at a time.
+  Necessary because the built-in `map` realises a full chunk at once,
+  which is incompatible with the self-recursive rose-tree structure."
+  [f coll]
+  (lazy-seq
+   (when-let [s (seq coll)]
+     (cons (f (first s)) (lazy-map f (rest s))))))
+
+(defn- lazy-filter
+  "One-element-at-a-time `filter`."
+  [pred coll]
+  (lazy-seq
+   (when-let [s (seq coll)]
+     (let [x (first s)]
+       (if (pred x)
+         (cons x (lazy-filter pred (rest s)))
+         (lazy-filter pred (rest s)))))))
+
+(defn- lazy-concat
+  "One-element-at-a-time concatenation of two lazy seqs."
+  [a b]
+  (lazy-seq
+   (if-let [s (seq a)]
+     (cons (first s) (lazy-concat (rest s) b))
+     b)))
+
+;; ----------------
+;; Constructors
+;; ----------------
+
+(defn rose-pure
+  "Leaf rose tree: value `x` with no shrink candidates."
+  {:example "(rose-pure 42)"
+   :see-also ["rose-tree" "rose-fmap"]}
+  [x]
+  {:root x :children (lazy-seq nil)})
+
+(defn rose-tree
+  "Rose tree constructor. `children` should be a lazy sequence of rose
+  trees (or any seqable value)."
+  {:example "(rose-tree 1 (list (rose-pure 0)))"
+   :see-also ["rose-pure" "rose-fmap"]}
+  [root children]
+  {:root root :children children})
+
+(defn rose-root
+  "Returns the root value of rose tree `t`."
+  {:example "(rose-root (rose-pure 42)) ; => 42"
+   :see-also ["rose-children" "rose-shrinks"]}
+  [t]
+  (get t :root))
+
+(defn rose-children
+  "Returns the lazy sequence of immediate child rose trees."
+  {:example "(rose-children (rose-pure 1)) ; => ()"
+   :see-also ["rose-root" "rose-shrinks"]}
+  [t]
+  (or (get t :children) (lazy-seq nil)))
+
+(defn rose-shrinks
+  "Alias for `rose-children`: the lazy sequence of immediate smaller
+  variants of the current root."
+  {:example "(rose-shrinks (rose-pure 1)) ; => ()"
+   :see-also ["rose-children"]}
+  [t]
+  (rose-children t))
+
+(defn rose?
+  "Returns `true` if `x` looks like a rose tree."
+  {:example "(rose? (rose-pure 1)) ; => true"}
+  [x]
+  (and (hash-map? x) (contains? x :root) (contains? x :children)))
+
+;; ----------------
+;; Structural ops
+;; ----------------
+
+(defn rose-fmap
+  "Applies `f` to every value in rose tree `t` (the root and, lazily,
+  every descendant)."
+  {:example "(rose-fmap inc (rose-pure 1)) ; root = 2"
+   :see-also ["rose-bind" "rose-filter"]}
+  [f t]
+  {:root     (f (rose-root t))
+   :children (lazy-map (fn [child] (rose-fmap f child))
+                       (rose-children t))})
+
+(defn rose-bind
+  "Monadic bind. `f` takes a value and returns a rose tree; the resulting
+  tree combines the shrinks of `t` (each fed through `f`) with the
+  shrinks produced by `f` on the root."
+  {:example "(rose-bind (rose-pure 1) (fn [n] (rose-pure (inc n))))"
+   :see-also ["rose-fmap" "rose-pure"]}
+  [t f]
+  (let [root-tree (f (rose-root t))]
+    {:root     (rose-root root-tree)
+     :children (lazy-concat
+                 ;; shrinks from walking the outer tree
+                (lazy-map (fn [child] (rose-bind child f))
+                          (rose-children t))
+                 ;; shrinks from the inner tree for the chosen root
+                (rose-children root-tree))}))
+
+(defn rose-filter
+  "Returns the subtree consisting only of nodes whose value satisfies
+  `pred`. Children that fail `pred` are pruned. If the root fails
+  `pred`, returns `nil` (caller is responsible for handling)."
+  {:example "(rose-filter pos? (rose-pure 1))"
+   :see-also ["rose-fmap"]}
+  [pred t]
+  (when (pred (rose-root t))
+    {:root     (rose-root t)
+     :children (lazy-filter some?
+                            (lazy-map (fn [child] (rose-filter pred child))
+                                      (rose-children t)))}))
+
+(defn rose-join
+  "Flattens a rose tree of rose trees into a single rose tree."
+  {:example "(rose-join (rose-pure (rose-pure 1)))"
+   :see-also ["rose-bind"]}
+  [t]
+  (rose-bind t (fn [inner] inner)))
+
+;; ----------------
+;; Combinators over several rose trees
+;; ----------------
+
+(defn- positional-shrinks
+  "For index `i`, emits a lazy seq of variants of `trees` where only
+  position `i` has been replaced with each of its shrinks."
+  [trees i]
+  (lazy-map (fn [shrunk-i] (assoc trees i shrunk-i))
+            (rose-children (get trees i))))
+
+(defn- shrinks-of-many*
+  "Helper: lazily iterates each position in turn."
+  [trees i n]
+  (lazy-seq
+   (when (< i n)
+     (lazy-concat (positional-shrinks trees i)
+                  (shrinks-of-many* trees (+ i 1) n)))))
+
+(defn- shrinks-of-many
+  "Given a vector of rose trees, returns a lazy sequence of rose-tree
+  vectors where each vector shrinks exactly one of the inputs in turn."
+  [trees]
+  (shrinks-of-many* trees 0 (count trees)))
+
+(defn rose-zip
+  "Takes a vector of rose trees and returns a rose tree whose root is
+  the vector of roots and whose children shrink one position at a time."
+  {:example "(rose-zip [(rose-pure 1) (rose-pure 2)])"
+   :see-also ["rose-bind"]}
+  [trees]
+  (let [trees (into [] trees)]
+    {:root     (into [] (map rose-root trees))
+     :children (lazy-map rose-zip (shrinks-of-many trees))}))
+
+;; ----------------
+;; Built-in shrink strategies
+;; ----------------
+
+(defn- halves [n]
+  (loop [n n acc []]
+    (let [h (php/intdiv n 2)]
+      (if (= 0 h)
+        acc
+        (recur h (conj acc h))))))
+
+(defn shrink-int-towards
+  "Returns a seq of integer candidates strictly closer to `target` than
+  `n`. Yields the target first, then halving steps."
+  {:example "(shrink-int-towards 0 10) ; => (0 5 7 8 9)"
+   :see-also ["shrink-int" "int-rose-tree"]}
+  [target n]
+  (if (= target n)
+    []
+    (let [diff       (- n target)
+          abs-diff   (if (< diff 0) (- diff) diff)
+          halves-seq (halves abs-diff)
+          raw        (concat [target]
+                             (map (fn [h]
+                                    (if (< diff 0) (+ n h) (- n h)))
+                                  halves-seq))]
+      (into []
+            (distinct
+             (filter (fn [v] (not= v n))
+                     raw))))))
+
+(defn shrink-int
+  "Shrink strategy toward zero: halving steps (`n/2`, `n/4`, …) and then
+  decrement toward zero."
+  {:example "(shrink-int 8)"
+   :see-also ["shrink-int-towards"]}
+  [n]
+  (shrink-int-towards 0 n))
+
+;; ----------------
+;; Int rose tree
+;; ----------------
+
+(declare int-rose-tree-towards)
+
+(defn int-rose-tree
+  "Rose tree for an integer `n` that shrinks toward zero."
+  {:example "(int-rose-tree 10)"
+   :see-also ["shrink-int"]}
+  [n]
+  (int-rose-tree-towards 0 n))
+
+(defn int-rose-tree-towards
+  "Rose tree for `n` whose children shrink strictly toward `target`."
+  [target n]
+  {:root     n
+   :children (lazy-map (fn [c] (int-rose-tree-towards target c))
+                       (shrink-int-towards target n))})
+
+;; ----------------
+;; Collection shrink helpers
+;; ----------------
+
+(defn- drop-leading [v k]
+  (into [] (drop k v)))
+
+(defn- remove-at [v i]
+  (into [] (concat (take i v) (drop (+ i 1) v))))
+
+(defn- shrink-vector-by-removal
+  "Candidates formed by dropping a leading block of halving sizes, then
+  single-element drops."
+  [trees]
+  (let [n (count trees)]
+    (if (= 0 n)
+      (lazy-seq nil)
+      (lazy-concat
+        ;; drop a leading sublist of halving sizes
+       (into []
+             (for [k :in (halves n) :when (> k 0)]
+               (drop-leading trees k)))
+        ;; one-at-a-time drops
+       (into []
+             (for [i :range [0 n]]
+               (remove-at trees i)))))))
+
+(defn rose-vector
+  "Rose tree for a vector whose children are built from the rose trees
+  of its elements. Shrinks by removing elements and by shrinking each
+  element in place."
+  {:example "(rose-vector [(int-rose-tree 3) (int-rose-tree 5)])"
+   :see-also ["rose-zip"]}
+  [element-trees]
+  (let [trees (into [] element-trees)]
+    {:root     (into [] (map rose-root trees))
+     :children (lazy-concat
+                 ;; shrink by dropping elements
+                (lazy-map rose-vector (shrink-vector-by-removal trees))
+                 ;; shrink each element in place
+                (lazy-map rose-vector (shrinks-of-many trees)))}))
+
+(defn rose-vector-lax
+  "Like `rose-vector` but preserves original length; only shrinks each
+  element in place (no removal)."
+  [element-trees]
+  (let [trees (into [] element-trees)]
+    {:root     (into [] (map rose-root trees))
+     :children (lazy-map rose-vector-lax (shrinks-of-many trees))}))
+
+;; ----------------
+;; String rose tree
+;; ----------------
+
+(defn- vec->string [v]
+  (apply str v))
+
+(defn rose-string
+  "Rose tree for a string whose elements are char rose trees."
+  {:example "(rose-string [(rose-pure \" \")])"
+   :see-also ["rose-vector"]}
+  [char-trees]
+  (rose-fmap vec->string (rose-vector char-trees)))
+
+;; ----------------
+;; Map rose tree
+;; ----------------
+
+(defn- map-from-pair-vec [pairs]
+  (reduce (fn [m pair]
+            (assoc m (get pair 0) (get pair 1)))
+          {}
+          pairs))
+
+(defn rose-map
+  "Rose tree for a hash-map. `entry-trees` is a vector of rose trees of
+  `[k v]` pairs. Shrinks by removing entries and by shrinking each
+  pair in place."
+  {:example "(rose-map [...])"
+   :see-also ["rose-vector"]}
+  [entry-trees]
+  (rose-fmap map-from-pair-vec (rose-vector entry-trees)))

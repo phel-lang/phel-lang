@@ -6,9 +6,6 @@ namespace Phel\Lang\Generators;
 
 use Generator;
 
-use function is_string;
-use function mb_str_split;
-
 /**
  * Positional slicing generators: take and drop and their variants.
  *
@@ -35,7 +32,7 @@ final class SliceGenerator
     public static function take(int $n, mixed $iterable): Generator
     {
         $count = 0;
-        foreach (self::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::toIterable($iterable) as $value) {
             if ($count >= $n) {
                 break;
             }
@@ -62,7 +59,7 @@ final class SliceGenerator
      */
     public static function takeWhile(callable $predicate, mixed $iterable): Generator
     {
-        foreach (self::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::toIterable($iterable) as $value) {
             if (!$predicate($value)) {
                 break;
             }
@@ -87,13 +84,10 @@ final class SliceGenerator
      */
     public static function takeNth(int $n, mixed $iterable): Generator
     {
-        $index = 0;
-        foreach (self::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::indexed($iterable) as [$index, $value]) {
             if ($index % $n === 0) {
                 yield $value;
             }
-
-            ++$index;
         }
     }
 
@@ -114,7 +108,7 @@ final class SliceGenerator
     public static function drop(int $n, mixed $iterable): Generator
     {
         $count = 0;
-        foreach (self::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::toIterable($iterable) as $value) {
             if ($count >= $n) {
                 yield $value;
             }
@@ -141,7 +135,7 @@ final class SliceGenerator
     public static function dropWhile(callable $predicate, mixed $iterable): Generator
     {
         $dropping = true;
-        foreach (self::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::toIterable($iterable) as $value) {
             if ($dropping && $predicate($value)) {
                 continue;
             }
@@ -151,19 +145,4 @@ final class SliceGenerator
         }
     }
 
-    /**
-     * @template T
-     *
-     * @param iterable<T>|string|null $value
-     *
-     * @return iterable<string|T>
-     */
-    private static function toIterable(mixed $value): iterable
-    {
-        if (is_string($value)) {
-            return mb_str_split($value);
-        }
-
-        return $value ?? [];
-    }
 }

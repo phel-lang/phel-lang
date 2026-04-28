@@ -1,0 +1,4 @@
+(ns phel-snake\main
+  (:require [phel-snake\game :as game]))
+
+(game/run)

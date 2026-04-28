@@ -1,0 +1,189 @@
+(ns phel-test\test\shrink
+  (:require phel\test :refer [deftest is testing])
+  (:require phel\test\shrink :as shrink)
+  (:require phel\test\rose :as r))
+
+;; Coverage for the value-based shrink driver in `phel\test\shrink`.
+;; Each test constructs a failing property and verifies that the
+;; driver reaches the expected minimal counterexample.
+
+;; ---------------------------
+;; Value → rose tree inference
+;; ---------------------------
+
+(deftest test-value-to-rose-uses-int-strategy
+  (let [t (shrink/value->rose 16)]
+    (is (= 16 (r/rose-root t)))
+    (is (contains? (into (hash-set) (map r/rose-root (r/rose-children t))) 0)
+        "zero appears as a shrink candidate")))
+
+(deftest test-value-to-rose-uses-vector-strategy
+  (let [t (shrink/value->rose [1 2 3])
+        shrinks (into [] (map r/rose-root (r/rose-children t)))]
+    (is (= [1 2 3] (r/rose-root t)))
+    (is (some (fn [v] (< (count v) 3)) shrinks)
+        "vector shrinks drop elements")))
+
+(deftest test-value-to-rose-returns-leaf-for-unknown-types
+  (let [t (shrink/value->rose :keyword-literal)]
+    (is (= :keyword-literal (r/rose-root t)))
+    (is (empty? (r/rose-children t))
+        "unknown types fall back to a leaf")))
+
+;; ---------------------------
+;; Int shrink driver
+;; ---------------------------
+
+(deftest test-shrink-int-reaches-minimal-failing-value
+  (testing "property (< n 100) — failing starts at 1000, shrinks to 100"
+    (let [res (shrink/shrink-args (fn [n] (< n 100)) [1000])]
+      (is (= [100] (:smallest res)) "100 is the smallest int failing (< n 100)")
+      (is (> (:shrink-steps res) 0) "at least one shrink step was taken"))))
+
+(deftest test-shrink-int-returns-original-when-already-minimal
+  (let [res (shrink/shrink-args (fn [n] (< n 100)) [100])]
+    (is (= [100] (:smallest res)))
+    (is (= 0 (:shrink-steps res)) "already minimal: zero shrink steps")))
+
+;; ---------------------------
+;; Vector shrink driver
+;; ---------------------------
+
+(deftest test-shrink-vector-reaches-single-element
+  (testing "property: vector must not contain 0"
+    (let [pred (fn [v] (not (some (fn [x] (= 0 x)) v)))
+          res  (shrink/shrink-args pred [[3 1 0 4 2]])]
+      (is (= [[0]] (:smallest res)) "shrinks down to a single-zero vector")
+      (is (> (:shrink-steps res) 0) "at least one shrink"))))
+
+(deftest test-shrink-empty-vector-has-no-shrinks
+  (let [pred (fn [v] false)
+        res  (shrink/shrink-args pred [[]])]
+    (is (= [[]] (:smallest res)) "empty vector remains empty")
+    (is (= 0 (:shrink-steps res)))))
+
+;; ---------------------------
+;; String shrink driver
+;; ---------------------------
+
+(defn- has-space? [s]
+  (some (fn [c] (= " " c))
+        (for [i :range [0 (php/strlen s)]]
+          (php/substr s i 1))))
+
+(deftest test-shrink-string-reduces-to-single-space
+  (testing "property: string must not contain a space"
+    (let [pred (fn [s] (not (has-space? s)))
+          res  (shrink/shrink-args pred ["hello world"])]
+      (is (= [" "] (:smallest res)) "shrinks to a lone space")
+      (is (> (:shrink-steps res) 0)))))
+
+;; ---------------------------
+;; Map shrink driver
+;; ---------------------------
+
+(deftest test-shrink-map-reduces-to-minimal-failing-entry
+  (testing "property: map must not contain the key :bad"
+    (let [pred (fn [m] (not (contains? m :bad)))
+          res  (shrink/shrink-args pred [{:a 1 :bad 2 :c 3}])]
+      (is (contains? (first (:smallest res)) :bad)
+          "shrunk map still contains the failing key")
+      (is (<= (count (first (:smallest res))) 3)
+          "shrunk map is no larger than the original"))))
+
+;; ---------------------------
+;; Always-failing pred — driver doesn't loop forever
+;; ---------------------------
+
+(deftest test-shrink-halts-when-property-always-fails
+  (testing "int shrink with a predicate that always fails reaches 0"
+    (let [res (shrink/shrink-args (fn [_] false) [1000])]
+      (is (= [0] (:smallest res)) "lands at zero, the global minimum")
+      (is (> (:shrink-steps res) 0)))))
+
+(deftest test-shrink-exceptions-count-as-failures
+  (testing "a predicate that throws is treated as a failing trial"
+    (let [res (shrink/shrink-args
+                (fn [n]
+                  (when (> n 0) (throw (php/new \RuntimeException "boom")))
+                  true)
+                [100])]
+      (is (= [1] (:smallest res)) "shrinks to the smallest throwing value")
+      (is (> (:shrink-steps res) 0)))))
+
+;; ---------------------------
+;; Leaf values — no children, driver returns the value unchanged
+;; ---------------------------
+
+(deftest test-shrink-leaf-value-has-no-shrinks
+  (testing "keyword has no default shrink strategy - driver returns it as-is"
+    (let [res (shrink/shrink-args (fn [_] false) [:keyword-value])]
+      (is (= [:keyword-value] (:smallest res))
+          "leaf values are returned unchanged")
+      (is (= 0 (:shrink-steps res))
+          "no shrink steps attempted on leaf values"))))
+
+;; ---------------------------
+;; Multi-argument shrinking
+;; ---------------------------
+
+(deftest test-shrink-multi-argument-shrinks-each-position
+  (testing "property with two arguments shrinks toward a minimal failing pair"
+    (let [prop (fn [a b] (and (< a 100) (< b 50)))
+          res  (shrink/shrink-args prop [1000 800])
+          a    (get (:smallest res) 0)
+          b    (get (:smallest res) 1)]
+      (is (= 2 (count (:smallest res)))
+          "arity is preserved during shrinking")
+      (is (not (prop a b))
+          "the shrunk pair still fails the property")
+      (is (> (:shrink-steps res) 0)
+          "at least one shrink step was taken"))))
+
+;; ---------------------------
+;; value->rose falls back to leaf for unsupported types
+;; ---------------------------
+
+(deftest test-value-to-rose-list-shrinks-by-removal
+  (let [t (shrink/value->rose '(1 2 3))]
+    (is (= '(1 2 3) (r/rose-root t))
+        "list root is preserved")
+    (is (some (fn [v] (< (count v) 3))
+              (into [] (map r/rose-root (r/rose-children t))))
+        "list shrinks by element removal")))
+
+(deftest test-value-to-rose-set-shrinks-by-removal
+  (let [t (shrink/value->rose (hash-set 1 2 3))
+        shrinks (into [] (map r/rose-root (r/rose-children t)))]
+    (is (set? (r/rose-root t))
+        "set root is preserved as a set")
+    (is (some (fn [v] (< (count v) 3)) shrinks)
+        "set shrinks by element removal")))
+
+;; ---------------------------
+;; Shrink driver terminates on nil children seq
+;; ---------------------------
+
+(deftest test-shrink-returns-original-for-leaf-when-property-fails
+  (testing "leaf value with failing pred returns original with zero steps"
+    (let [res (shrink/shrink-args (fn [_] false) [true])]
+      (is (= [true] (:smallest res))
+          "leaf bool returned unchanged")
+      (is (= 0 (:shrink-steps res))
+          "no shrink attempts on a leaf rose tree"))))
+
+;; ---------------------------
+;; value->rose dispatches on type
+;; ---------------------------
+
+(deftest test-value-to-rose-float-is-leaf
+  (testing "floats are not shrunk by the default strategy"
+    (let [t (shrink/value->rose 3.14)]
+      (is (= 3.14 (r/rose-root t)) "root is the input float")
+      (is (empty? (r/rose-children t)) "no shrinks for floats"))))
+
+(deftest test-value-to-rose-empty-string-is-a-leaf
+  (testing "empty strings have no shrinks"
+    (let [t (shrink/value->rose "")]
+      (is (= "" (r/rose-root t)))
+      (is (empty? (r/rose-children t)) "empty string shrinks to nothing"))))

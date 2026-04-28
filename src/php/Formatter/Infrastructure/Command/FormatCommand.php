@@ -11,8 +11,10 @@ use Phel\Formatter\FormatterFacade;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function count;
 use function sprintf;
 
 #[ServiceMap(method: 'getFacade', className: FormatterFacade::class)]
@@ -31,6 +33,12 @@ final class FormatCommand extends Command
                 InputArgument::IS_ARRAY,
                 'The file paths that you want to format.',
                 $this->getConfig()->getFormatDirs(),
+            )
+            ->addOption(
+                'dry-run',
+                null,
+                InputOption::VALUE_NONE,
+                'Report files that would be reformatted without modifying them. Exits non-zero when any file would change.',
             );
     }
 
@@ -38,19 +46,25 @@ final class FormatCommand extends Command
     {
         /** @var list<string> $paths */
         $paths = $input->getArgument('paths');
+        $dryRun = (bool) $input->getOption('dry-run');
 
-        $formattedFilePaths = $this->getFacade()->format($paths, $output);
+        $changedFilePaths = $this->getFacade()->format($paths, $output, $dryRun);
 
-        if (empty($formattedFilePaths)) {
-            $output->writeln('No files were formatted.');
+        if ($changedFilePaths === []) {
+            $output->writeln($dryRun ? 'No files would be reformatted.' : 'No files were formatted.');
 
             return self::SUCCESS;
         }
 
-        $output->writeln('Formatted files:');
+        $output->writeln($dryRun ? 'Would reformat:' : 'Formatted files:');
 
-        foreach ($formattedFilePaths as $k => $filePath) {
+        foreach ($changedFilePaths as $k => $filePath) {
             $output->writeln(sprintf('  %d) %s', $k + 1, $filePath));
+        }
+
+        if ($dryRun) {
+            $output->writeln(sprintf('%d file(s) need reformatting.', count($changedFilePaths)));
+            return self::FAILURE;
         }
 
         return self::SUCCESS;

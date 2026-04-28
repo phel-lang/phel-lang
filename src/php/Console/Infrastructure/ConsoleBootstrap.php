@@ -7,6 +7,7 @@ namespace Phel\Console\Infrastructure;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Override;
+use Phel\Console\Application\WarnDeprecationsFlag;
 use Phel\Console\ConsoleFactory;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Command\Command;
@@ -15,6 +16,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function array_slice;
+use function array_values;
 use function in_array;
 
 #[ServiceMap(method: 'getFactory', className: ConsoleFactory::class)]
@@ -30,6 +32,8 @@ final class ConsoleBootstrap extends Application
         $sanitizedArgs = $this->getFactory()
             ->createArgvInputSanitizer()
             ->sanitize($_SERVER['argv'] ?? []);
+
+        $sanitizedArgs = WarnDeprecationsFlag::applyAndStrip($sanitizedArgs);
 
         $this->setDefaultCommand('repl');
 

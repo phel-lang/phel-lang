@@ -40,11 +40,13 @@ This is a **foundational module** with no Facade, Factory, or DependencyProvider
 - **LinkedList/** — `PersistentList` (implements `PersistentListInterface`)
 - **HashSet/** — `PersistentHashSet` (implements `PersistentHashSetInterface`)
 - **LazySeq/** — `LazySeq` (implements `LazySeqInterface`)
-- **Struct/** — `AbstractPersistentStruct`
+- **Struct/** — `AbstractPersistentStruct`, `StructKeyEncoder` (mirrors compiler name-mangling)
 
 ## Dependencies
 
-None. This is a **leaf module** — it depends on nothing else in the project.
+This module aims to be a **leaf module** with no dependencies on other modules.
+
+The only remaining outbound import is `AbstractType::__toString()` calling `Phel\Printer\Printer::readable()` to render collection types; collapsing that edge requires installing a printer adapter at bootstrap and is tracked separately.
 
 ## Used By
 

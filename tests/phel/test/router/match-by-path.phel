@@ -1,0 +1,21 @@
+(ns phel-test\test\router\match-by-path
+  (:require phel\router :as r)
+  (:require phel\test :refer [deftest is]))
+
+(def- routes
+  (apply
+   concat
+   (for [i :range [0 400]]
+     [[(str "/abc" i) {:name (str "r" i)}]
+      [(str "/abc{foo}/" i) {:name (str "f" i)}]])))
+
+(def- dynamic-router (r/router routes {}))
+(def- compiled-router (r/compiled-router routes {}))
+
+(deftest test-dynamic-router-matches
+  (is (some? (r/match-by-path dynamic-router "/abcdef/399"))
+      "dynamic router resolves a templated route"))
+
+(deftest test-compiled-router-matches
+  (is (some? (r/match-by-path compiled-router "/abcdef/399"))
+      "compiled router resolves a templated route"))

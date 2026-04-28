@@ -1,0 +1,5 @@
+--PHEL--
+(use \JSON_HEX_AMP)
+JSON_HEX_AMP
+--PHP--
+\JSON_HEX_AMP;

@@ -6,14 +6,14 @@ namespace Phel\Config;
 
 enum ProjectLayout: string
 {
-    case Conventional = 'conventional';
+    case Nested = 'nested';
     case Flat = 'flat';
     case Root = 'root';
 
     public function getSrcDir(): string
     {
         return match ($this) {
-            self::Conventional => 'src/phel',
+            self::Nested => 'src/phel',
             self::Flat => 'src',
             self::Root => '.',
         };
@@ -22,7 +22,7 @@ enum ProjectLayout: string
     public function getTestDir(): string
     {
         return match ($this) {
-            self::Conventional => 'tests/phel',
+            self::Nested => 'tests/phel',
             self::Flat => 'tests',
             self::Root => '.',
         };

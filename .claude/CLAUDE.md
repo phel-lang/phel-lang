@@ -1,12 +1,12 @@
 # Phel Language
 
-Functional programming language compiling to PHP. Lisp dialect inspired by Clojure and Janet.
+Functional programming language compiling to PHP. Lisp dialect inspired by Clojure.
 
 ## Architecture
 
 ```
 src/php/       → Compiler, runtime, CLI (PHP, PSR-4: Phel\)
-src/phel/      → Core library (Phel source: core, str, html, http, json, test)
+src/phel/      → Core library (Phel source: core, string, html, http, json, test)
 tests/php/     → PHPUnit tests (unit + integration)
 tests/phel/    → Phel test files
 build/         → PHAR build scripts, release tooling
@@ -41,7 +41,7 @@ Run the **minimum** test scope for your changes:
 ## Git
 
 - Conventional commits: `feat:`, `fix:`, `ref:`, `chore:`, `docs:`, `test:`
-- Never mention Claude, AI, or LLM in commit messages
+- Never mention AI tooling in commit messages
 - After code changes, provide a one-liner commit message to copy/paste
 - Branch prefixes: `feat/`, `fix/`, `ref/`, `docs/`
 - PRs: read `.github/PULL_REQUEST_TEMPLATE.md` and follow exactly (including emoji prefixes); assign `@me`; label from: `bug`, `enhancement`, `refactoring`, `documentation`, `pure testing`, `dependencies`

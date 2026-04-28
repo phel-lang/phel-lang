@@ -16,9 +16,32 @@ final class DirectoryFinderTest extends TestCase
         $vendorFinder = $this->createStub(VendorDirectoriesFinderInterface::class);
         $vendorFinder->method('findPhelSourceDirectories')->willReturn([]);
 
-        $codeDirs = new CodeDirectories(['phar://phel.phar/src'], [], 'out');
+        $codeDirs = new CodeDirectories('phar://phel.phar/src', ['phar://phel.phar/src'], [], 'out');
         $finder = new DirectoryFinder('/project', $codeDirs, $vendorFinder);
 
         self::assertSame(['phar://phel.phar/src'], $finder->getSourceDirectories());
+    }
+
+    public function test_project_source_directories_exclude_phel_internal_dir(): void
+    {
+        $vendorFinder = $this->createStub(VendorDirectoriesFinderInterface::class);
+        $vendorFinder->method('findPhelSourceDirectories')->willReturn([]);
+
+        $codeDirs = new CodeDirectories(
+            'phar://phel.phar/phel-internal',
+            ['phar://phel.phar/src'],
+            [],
+            'out',
+        );
+        $finder = new DirectoryFinder('/project', $codeDirs, $vendorFinder);
+
+        self::assertSame(
+            ['phar://phel.phar/phel-internal', 'phar://phel.phar/src'],
+            $finder->getSourceDirectories(),
+        );
+        self::assertSame(
+            ['phar://phel.phar/src'],
+            $finder->getProjectSourceDirectories(),
+        );
     }
 }

@@ -46,14 +46,14 @@ final class StructTest extends TestCase
     {
         $s = FakeStruct::fromKVs(Keyword::create('a'), 1, Keyword::create('b'), 2);
         $s = $s->remove(Keyword::create('a'));
-        self::assertEquals(FakeStruct::fromKVs(Keyword::create('b'), 2), $s);
+        self::assertEquals([Keyword::create('b'), 2], $this->toKeyValueList($s));
+        self::assertNotInstanceOf(FakeStruct::class, $s);
     }
 
     public function test_remove_invalid_key(): void
     {
-        $this->expectException(InvalidArgumentException::class);
         $s = FakeStruct::fromKVs(Keyword::create('a'), 1, Keyword::create('b'), 2);
-        $s->remove(Keyword::create('c'));
+        self::assertSame($s, $s->remove(Keyword::create('c')));
     }
 
     public function test_offset_get(): void

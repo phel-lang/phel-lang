@@ -1,0 +1,222 @@
+(ns phel.schema.coercer
+  (:require phel.core)
+  (:require phel.schema.registry :as reg)
+  (:require phel.schema.validator :as v))
+
+;; Type coercion driven by schemas.
+;;
+;; `coerce` walks a schema and turns string-shaped input (typically from
+;; HTTP query strings, JSON bodies with numeric strings, form data) into
+;; the underlying Phel type. Idempotent: a value already of the target
+;; type passes through unchanged. Unknown input is returned unchanged so
+;; validation downstream can flag the real failure.
+
+(declare coerce)
+
+(def invalid-marker :phel.schema/invalid)
+
+(defn- coerce-int [value]
+  (cond
+    (int? value)                                                          value
+    (and (string? value) (php/=== 1 (php/preg_match "/^-?\\d+$/" value)))
+    (php/intval value)
+    (and (float? value) (= value (php/floatval (php/intval value))))
+    (php/intval value)
+    (true? value)                                                         1
+    (false? value)                                                        0
+    :else                                                                 value))
+
+(defn- coerce-float [value]
+  (cond
+    (float? value)                                                                             value
+    (int? value)                                                                               (php/floatval value)
+    (and (string? value)
+         (php/=== 1 (php/preg_match "/^-?\\d+(?:\\.\\d+)?$/" value)))
+    (php/floatval value)
+    :else                                                                                      value))
+
+(defn- coerce-boolean [value]
+  (cond
+    (boolean? value) value
+    (string? value)
+    (case (php/strtolower value)
+      "true"  true
+      "false" false
+      "1"     true
+      "0"     false
+      "yes"   true
+      "no"    false
+      "on"    true
+      "off"   false
+      value)
+    (= value 1)      true
+    (= value 0)      false
+    :else            value))
+
+(defn- coerce-keyword [value]
+  (cond
+    (keyword? value) value
+    (string? value)  (keyword value)
+    (symbol? value)  (keyword (name value))
+    :else            value))
+
+(defn- coerce-symbol [value]
+  (cond
+    (symbol? value)  value
+    (string? value)  (symbol value)
+    (keyword? value) (symbol (name value))
+    :else            value))
+
+(defn- coerce-uuid [value]
+  (cond
+    (uuid? value) (php/strtolower value)
+    :else         value))
+
+(defn- coerce-inst [value]
+  (cond
+    (php/instanceof value \DateTimeInterface) value
+    (string? value)
+    (try
+      (php/new \DateTimeImmutable value)
+      (catch \Throwable _ value))
+    (int? value)
+    (try
+      (php/:: \DateTimeImmutable (createFromFormat "U" (str value)))
+      (catch \Throwable _ value))
+    :else                                     value))
+
+(defn- coerce-keyword-kind [head value]
+  (case head
+    :any     value
+    :nil     value
+    :string  (cond
+               (string? value)                  value
+               (or (int? value) (float? value)) (str value)
+               (boolean? value)                 (if value "true" "false")
+               (keyword? value)                 (name value)
+               (symbol? value)                  (name value)
+               :else                            value)
+    :int     (coerce-int value)
+    :float   (coerce-float value)
+    :number  (coerce-float value)
+    :boolean (coerce-boolean value)
+    :keyword (coerce-keyword value)
+    :symbol  (coerce-symbol value)
+    :uuid    (coerce-uuid value)
+    :inst    (coerce-inst value)
+    (v/resolve-or-default head
+                          (fn [target] (coerce target value))
+                          value)))
+
+(defn- coerce-collection
+  [schema value type-ctor]
+  (let [args (v/schema-args schema)]
+    (cond
+      (or (vector? value) (list? value) (set? value))
+      (if (empty? args)
+        (type-ctor value)
+        (let [elem-schema (first args)]
+          (type-ctor (into [] (map (fn [v] (coerce elem-schema v)) value)))))
+      :else                                           value)))
+
+(defn- coerce-map-of
+  [schema value]
+  (if (not (map? value))
+    value
+    (let [args       (v/schema-args schema)
+          key-schema (get args 0)
+          val-schema (get args 1)
+          pairs      (into [] (for [[k v] :pairs value] [k v]))]
+      (loop [i 0 acc {}]
+        (cond
+          (>= i (count pairs)) acc
+          :else
+          (let [e (get pairs i)
+                k (coerce key-schema (get e 0))
+                v (coerce val-schema (get e 1))]
+            (recur (+ i 1) (assoc acc k v))))))))
+
+(defn- coerce-tuple
+  [schema value]
+  (if (not (or (vector? value) (list? value)))
+    value
+    (let [args (v/schema-args schema)
+          src  (into [] value)]
+      (if (not= (count src) (count args))
+        value
+        (loop [i 0 acc []]
+          (if (>= i (count args))
+            acc
+            (recur (+ i 1) (conj acc (coerce (get args i) (get src i))))))))))
+
+(defn- coerce-map
+  [schema value]
+  (if (not (map? value))
+    value
+    (let [entries (v/schema-args schema)]
+      (loop [es (seq entries) acc value]
+        (cond
+          (nil? es) acc
+          :else
+          (let [entry (first es)
+                k     (get entry 0)
+                inner (v/map-entry-schema entry)]
+            (if (contains? acc k)
+              (recur (next es) (assoc acc k (coerce inner (get acc k))))
+              (recur (next es) acc))))))))
+
+(defn- coerce-vector-kind
+  [schema value]
+  (let [head (v/schema-head schema)
+        args (v/schema-args schema)]
+    (case head
+      :vector (coerce-collection schema value (fn [xs] (into [] xs)))
+      :list   (coerce-collection schema value (fn [xs] (apply list xs)))
+      :set    (coerce-collection schema value (fn [xs] (into (hash-set) xs)))
+      :map-of (coerce-map-of schema value)
+      :tuple  (coerce-tuple schema value)
+      :map    (coerce-map schema value)
+      :enum   value
+      :and    (loop [sch (seq args) v value]
+                (if (nil? sch) v (recur (next sch) (coerce (first sch) v))))
+      :or     (loop [sch (seq args)]
+                (cond
+                  (nil? sch) value
+                  :else
+                  (let [coerced (coerce (first sch) value)]
+                    (if (v/valid? (first sch) coerced)
+                      coerced
+                      (recur (next sch))))))
+      :maybe  (if (nil? value) nil (coerce (first args) value))
+      :re     value
+      :fn     value
+      :ref    (let [target (reg/deref-ref (first args))]
+                (if (nil? target) value (coerce target value)))
+      :=>     value
+      (v/resolve-or-default head
+                            (fn [target] (coerce target value))
+                            value))))
+
+(defn coerce
+  "Walks `schema` and returns `value` with string-typed inputs coerced
+  into their schema-required types. Already-typed values pass through.
+  Unknown or untranslatable values are returned unchanged so validation
+  can report the real failure."
+  {:example "(coerce :int \"42\") ; => 42"
+   :see-also ["phel\\schema/conform" "phel\\schema/validate"]}
+  [schema value]
+  (cond
+    (keyword? schema) (coerce-keyword-kind schema value)
+    (vector? schema)  (coerce-vector-kind schema value)
+    :else             value))
+
+(defn conform
+  "Coerces `value` against `schema`. Returns the coerced value if it
+  then validates, otherwise the invalid marker `:phel.schema/invalid`."
+  {:example "(conform :int \"42\") ; => 42"
+   :see-also ["coerce" "phel\\schema/validate"]}
+  [schema value]
+  (let [coerced (coerce schema value)]
+    (if (v/valid? schema coerced)
+      coerced
+      invalid-marker)))

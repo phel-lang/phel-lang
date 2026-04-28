@@ -6,14 +6,13 @@ namespace Phel\Lang;
 
 /**
  * Deferred computation evaluated at most once and cached.
- * Matches Clojure's delay semantics.
  */
 final class Delay
 {
     private mixed $value = null;
 
-    /** @var ?callable */
-    private mixed $fn;
+    /** @var callable|null */
+    private $fn;
 
     public function __construct(callable $fn)
     {

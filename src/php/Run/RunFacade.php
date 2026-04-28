@@ -13,8 +13,6 @@ use Phel\Shared\Facade\RunFacadeInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
-use function dirname;
-
 /**
  * @extends AbstractFacade<RunFactory>
  */
@@ -29,18 +27,9 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
 
     public function runFile(string $filename): void
     {
-        $namespace = $this->getNamespaceFromFile($filename)->getNamespace();
-
-        $directories = [
-            dirname($filename),
-            ...$this->getFactory()->getCommandFacade()->getSourceDirectories(),
-            ...$this->getFactory()->getCommandFacade()->getVendorSourceDirectories(),
-        ];
-
-        $infos = $this->getDependenciesForNamespace($directories, [$namespace, 'phel\\core']);
-        foreach ($infos as $info) {
-            $this->evalFile($info);
-        }
+        $this->getFactory()
+            ->createFileRunner()
+            ->run($filename);
     }
 
     public function getNamespaceFromFile(string $fileOrPath): NamespaceInformation
@@ -80,11 +69,9 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
 
     public function structuredEval(string $phelCode, CompileOptions $compileOptions = new CompileOptions()): EvalResult
     {
-        return EvalResult::fromEval(
-            $this->getFactory()->getCompilerFacade(),
-            $phelCode,
-            $compileOptions,
-        );
+        return $this->getFactory()
+            ->createStructuredEvaluator()
+            ->eval($phelCode, $compileOptions);
     }
 
     public function writeLocatedException(OutputInterface $output, CompilerException $e): void
@@ -145,17 +132,8 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
      */
     public function autoDetectEntryPoint(): ?string
     {
-        $srcDirs = $this->getFactory()->getCommandFacade()->getSourceDirectories();
-
-        foreach ($srcDirs as $srcDir) {
-            foreach (['main.phel', 'core.phel'] as $entryFile) {
-                $path = $srcDir . '/' . $entryFile;
-                if (file_exists($path)) {
-                    return $path;
-                }
-            }
-        }
-
-        return null;
+        return $this->getFactory()
+            ->createEntryPointDetector()
+            ->detect();
     }
 }

@@ -6,6 +6,7 @@ use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use Phel\Lang\DynamicScope;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
@@ -53,6 +54,142 @@ final class Phel extends InternalPhel
         $definition = &Registry::getInstance()->getDefinitionReference($ns, $name);
 
         return $definition;
+    }
+
+    /**
+     * Look up a global definition, consulting the fiber-local dynamic scope
+     * first for vars tagged `:dynamic`. This is the read path emitted by
+     * {@see Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\GlobalVarEmitter}
+     * for non-reference reads.
+     */
+    public static function getDefinition(string $ns, string $name): mixed
+    {
+        // Hot path: every resolved symbol hits this. Probe the scope for
+        // *any* live frame first (O(1)) so the common "no binding active"
+        // case skips the string concat and stack walk entirely.
+        $scope = DynamicScope::getInstance();
+        if ($scope->hasAnyBinding() && $scope->hasBinding($ns, $name)) {
+            return $scope->getBinding($ns, $name);
+        }
+
+        return Registry::getInstance()->getDefinition($ns, $name);
+    }
+
+    /**
+     * Returns true if the given var was defined with `^:dynamic` metadata.
+     */
+    public static function isDynamicVar(string $ns, string $name): bool
+    {
+        $meta = Registry::getInstance()->getDefinitionMetaData($ns, $name);
+        if ($meta === null) {
+            return false;
+        }
+
+        return ($meta[Keyword::create('dynamic')] ?? false) === true;
+    }
+
+    /**
+     * Runtime target for the `set-var` special form. Routes by whether a
+     * `binding` macro is currently recording on the current fiber:
+     *
+     *  - Recording + `:dynamic` var → stage into the pending fiber frame.
+     *  - Recording + non-dynamic var → record old value for with-redefs
+     *    restore, then mutate the registry.
+     *  - Not recording → plain registry mutation, as `set-var` always did.
+     */
+    public static function setVar(string $ns, string $name, mixed $value): mixed
+    {
+        $registry = Registry::getInstance();
+        $scope = DynamicScope::getInstance();
+
+        if ($scope->isRecording()) {
+            if (self::isDynamicVar($ns, $name)) {
+                $scope->recordDynamic($ns, $name, $value);
+                return $value;
+            }
+
+            $scope->recordRedef($ns, $name, $registry->getDefinition($ns, $name));
+        }
+
+        $registry->addDefinition($ns, $name, $value, $registry->getDefinitionMetaData($ns, $name));
+        return $value;
+    }
+
+    /**
+     * Open a pending fiber-local binding recording. The subsequent
+     * `set-var` calls emitted by the `binding` macro feed into it, and
+     * {@see self::commitAndRunBindingFrame()} consumes it.
+     */
+    public static function openBindingFrame(): void
+    {
+        DynamicScope::getInstance()->startRecording();
+    }
+
+    /**
+     * Clean up a binding recording that was never committed because a
+     * value expression threw between `openBindingFrame` and
+     * {@see self::commitAndRunBindingFrame()}. Safe to call as the
+     * `finally` branch of a `binding` expansion even on the success
+     * path: it no-ops when no pending recording remains on this fiber.
+     */
+    public static function abortBindingFrameIfOpen(): void
+    {
+        $scope = DynamicScope::getInstance();
+        if (!$scope->isRecording()) {
+            return;
+        }
+
+        $entry = $scope->popRecording();
+        $registry = Registry::getInstance();
+        foreach (array_reverse($entry['redefs']) as [$ns, $name, $prev]) {
+            $registry->addDefinition($ns, $name, $prev, $registry->getDefinitionMetaData($ns, $name));
+        }
+    }
+
+    /**
+     * Close the pending binding recording, push its dynamic values as
+     * a fiber-local frame, run `$body`, then always pop the frame and
+     * undo any with-redefs mutations (even on exception).
+     */
+    public static function commitAndRunBindingFrame(Closure $body): mixed
+    {
+        $scope = DynamicScope::getInstance();
+        $entry = $scope->popRecording();
+        $dynamic = $entry['dynamic'];
+        $redefs = $entry['redefs'];
+
+        try {
+            return $dynamic === []
+                ? $body()
+                : $scope->withFrame($dynamic, $body);
+        } finally {
+            $registry = Registry::getInstance();
+            foreach (array_reverse($redefs) as [$ns, $name, $prev]) {
+                $registry->addDefinition($ns, $name, $prev, $registry->getDefinitionMetaData($ns, $name));
+            }
+        }
+    }
+
+    /**
+     * Snapshot the current fiber's dynamic bindings for conveyance into
+     * a new fiber (`future`/`async`/`future-fiber`).
+     *
+     * @return array<string, mixed>
+     */
+    public static function snapshotDynamicBindings(): array
+    {
+        return DynamicScope::getInstance()->snapshot();
+    }
+
+    /**
+     * Install a snapshotted frame while executing `$body`. Used by the
+     * fiber entry point of conveyed futures.
+     *
+     * @param array<string, mixed> $frame
+     */
+    public static function withDynamicBindings(array $frame, Closure $body): mixed
+    {
+        return DynamicScope::getInstance()->withFrame($frame, $body);
     }
 
     /**

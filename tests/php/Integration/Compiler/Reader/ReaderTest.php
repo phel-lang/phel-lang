@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Integration\Compiler\Reader;
 
+use DateTimeImmutable;
 use Phel;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\CompilerFacade;
@@ -11,15 +12,23 @@ use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Lang\TagHandlers\BuiltinTagHandlers;
+use Phel\Lang\TagRegistry;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use PHPUnit\Framework\TestCase;
 
+use RuntimeException;
+
+use function get_debug_type;
+use function is_scalar;
 use function sprintf;
+use function strtoupper;
 
 final class ReaderTest extends TestCase
 {
@@ -493,6 +502,11 @@ final class ReaderTest extends TestCase
         self::assertSame(
             "\u{10000}",
             $this->read('"\u{10000}"'),
+        );
+
+        self::assertSame(
+            "\u{2007}",
+            $this->read('"\u2007"'),
         );
 
         self::assertSame(
@@ -1332,7 +1346,141 @@ final class ReaderTest extends TestCase
         $this->read('#something "x"');
     }
 
+    public function test_php_tagged_literal_on_vector_expands_to_indexed_array_call(): void
+    {
+        $form = $this->read('#php [1 2 3]');
+
+        self::assertInstanceOf(PersistentListInterface::class, $form);
+        self::assertSame('php-indexed-array', $form->get(0)->getName());
+        self::assertSame(1, $form->get(1));
+        self::assertSame(2, $form->get(2));
+        self::assertSame(3, $form->get(3));
+    }
+
+    public function test_php_tagged_literal_on_map_expands_to_associative_array_call(): void
+    {
+        $form = $this->read('#php {"a" 1 "b" 2}');
+
+        self::assertInstanceOf(PersistentListInterface::class, $form);
+        self::assertSame('php-associative-array', $form->get(0)->getName());
+    }
+
+    public function test_php_tagged_literal_rejects_non_collection_form(): void
+    {
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('#php expects a vector literal');
+        $this->read('#php 42');
+    }
+
+    public function test_inst_tagged_literal_returns_datetime(): void
+    {
+        BuiltinTagHandlers::registerAll(TagRegistry::getInstance());
+
+        $result = $this->readAny('#inst "2026-04-20T12:00:00Z"');
+
+        self::assertInstanceOf(DateTimeImmutable::class, $result);
+        self::assertSame('2026-04-20T12:00:00+00:00', $result->format(DATE_ATOM));
+    }
+
+    public function test_inst_tagged_literal_defaults_missing_offset_to_utc(): void
+    {
+        BuiltinTagHandlers::registerAll(TagRegistry::getInstance());
+
+        $result = $this->readAny('#inst "2026-04-20T12:00:00"');
+
+        self::assertInstanceOf(DateTimeImmutable::class, $result);
+        self::assertSame('2026-04-20T12:00:00+00:00', $result->format(DATE_ATOM));
+    }
+
+    public function test_inst_tagged_literal_rejects_invalid_string(): void
+    {
+        BuiltinTagHandlers::registerAll(TagRegistry::getInstance());
+
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('is not a valid ISO 8601');
+        $this->read('#inst "bad-date"');
+    }
+
+    public function test_regex_tagged_literal_returns_delimited_pattern(): void
+    {
+        BuiltinTagHandlers::registerAll(TagRegistry::getInstance());
+
+        self::assertSame('/[a-z]+/', $this->read('#regex "[a-z]+"'));
+    }
+
+    public function test_regex_tagged_literal_rejects_non_string(): void
+    {
+        BuiltinTagHandlers::registerAll(TagRegistry::getInstance());
+
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('#regex expects a string literal');
+        $this->read('#regex 42');
+    }
+
+    public function test_unknown_tag_lists_registered_tags(): void
+    {
+        $registry = TagRegistry::getInstance();
+        $registry->clear();
+        BuiltinTagHandlers::registerAll($registry);
+
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('Registered tags: #inst, #php, #regex, #uuid');
+        $this->read('#xyz "x"');
+    }
+
+    public function test_runtime_registered_tag_applies_handler(): void
+    {
+        $registry = TagRegistry::getInstance();
+        BuiltinTagHandlers::registerAll($registry);
+        $registry->register('shout', static fn(mixed $s): string => strtoupper((string) $s));
+
+        try {
+            self::assertSame('HELLO', $this->read('#shout "hello"'));
+        } finally {
+            $registry->unregister('shout');
+        }
+    }
+
+    public function test_handler_throwing_arbitrary_error_is_wrapped_with_tag_name(): void
+    {
+        $registry = TagRegistry::getInstance();
+        BuiltinTagHandlers::registerAll($registry);
+        $registry->register('boom', static function (mixed $_): never {
+            throw new RuntimeException('kaboom');
+        });
+
+        try {
+            $this->expectException(ReaderException::class);
+            $this->expectExceptionMessage("Tagged-literal handler for '#boom' threw an error: kaboom");
+            $this->read('#boom "ignored"');
+        } finally {
+            $registry->unregister('boom');
+        }
+    }
+
+    public function test_unknown_tag_error_points_to_register_tag_api(): void
+    {
+        $registry = TagRegistry::getInstance();
+        $registry->clear();
+        BuiltinTagHandlers::registerAll($registry);
+
+        $this->expectException(ReaderException::class);
+        $this->expectExceptionMessage('Use `(register-tag "xyz" f)` to register a handler');
+        $this->read('#xyz "x"');
+    }
+
     private function read(string $string, bool $withLocation = true): float|bool|int|string|TypeInterface|null
+    {
+        $ast = $this->readAny($string, $withLocation);
+
+        if ($ast === null || is_scalar($ast) || $ast instanceof TypeInterface) {
+            return $ast;
+        }
+
+        self::fail(sprintf('Unexpected read result of type %s', get_debug_type($ast)));
+    }
+
+    private function readAny(string $string, bool $withLocation = true): mixed
     {
         Symbol::resetGen();
         $tokenStream = $this->compilerFacade->lexString($string, Lexer::DEFAULT_SOURCE, $withLocation);

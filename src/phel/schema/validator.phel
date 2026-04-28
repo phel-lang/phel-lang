@@ -1,0 +1,327 @@
+(ns phel.schema.validator
+  (:require phel.core)
+  (:require phel.schema.registry :as reg))
+
+;; Core validation engine.
+;;
+;; `valid?` answers "does this value satisfy this schema" with a plain
+;; boolean. It is the fast path used by `validate` and short-circuits
+;; on the first mismatch.
+;;
+;; The implementation dispatches on `schema-head`, which is the schema
+;; itself when the schema is a keyword and the first element when it is
+;; a vector. Every dispatch target is a small focused predicate so
+;; adding new schema kinds is purely additive.
+
+(declare valid?)
+(declare schema-head)
+(declare schema-args)
+(declare schema-options)
+
+;; ----------------
+;; Head-dispatch fallback
+;; ----------------
+
+(defn resolve-or-throw
+  "Resolves an unknown head by looking it up in the registry. When
+  `head` names a registered schema, invokes `f` with the registered
+  schema; otherwise throws an `InvalidArgumentException` mentioning
+  `label` (e.g. `\"unknown schema kind\"` or `\"no generator for schema kind\"`).
+
+  Every head-dispatching caller uses this so the error shape is
+  consistent across validator/explainer/coercer/generator."
+  [label head f]
+  (if (reg/registered? head)
+    (f (reg/deref-ref head))
+    (throw (php/new \InvalidArgumentException
+                    (str label ": " head)))))
+
+(defn resolve-or-default
+  "Like `resolve-or-throw`, but returns `default` when `head` is not
+  registered instead of throwing. Used by `coerce` where unknown heads
+  are intentionally passed through unchanged for downstream validation
+  to flag."
+  [head f default]
+  (if (reg/registered? head)
+    (f (reg/deref-ref head))
+    default))
+
+;; ----------------
+;; Schema shape helpers
+;; ----------------
+
+(defn schema-head
+  "Returns the head (kind keyword) of `schema`. Keyword schemas are
+  their own head; vector schemas use their first element."
+  [schema]
+  (cond
+    (keyword? schema)                            schema
+    (and (vector? schema) (not (empty? schema))) (get schema 0)
+    :else                                        nil))
+
+(defn- extract-options
+  "Returns `[options remaining]` where `options` is a map (possibly
+  empty) of trailing options pulled from the second position of a
+  parametric schema, and `remaining` is the rest of the args after
+  the options map."
+  [args]
+  (if (and (not (empty? args))
+           (map? (first args)))
+    [(first args) (apply vector (next args))]
+    [{} args]))
+
+(defn schema-args
+  "Returns the positional arguments of `schema` (children past the
+  head and optional options map)."
+  [schema]
+  (if (vector? schema)
+    (let [tail         (apply vector (next schema))
+          [_opts rest] (extract-options tail)]
+      rest)
+    []))
+
+(defn schema-options
+  "Returns the options map of `schema` or `{}` if none."
+  [schema]
+  (if (vector? schema)
+    (let [tail         (apply vector (next schema))
+          [opts _rest] (extract-options tail)]
+      opts)
+    {}))
+
+;; ----------------
+;; Scalar predicates
+;; ----------------
+
+(defn- valid-inst?
+  "PHP has no native instant type; canonical inst values are
+  `\\DateTimeInterface` instances."
+  [x]
+  (php/instanceof x \DateTimeInterface))
+
+;; ----------------
+;; Collection predicates
+;; ----------------
+
+(defn- valid-sequential?
+  "Vectors and lists are sequential."
+  [x]
+  (or (vector? x) (list? x)))
+
+(defn- valid-seqable?
+  "Collections that `seq` accepts."
+  [x]
+  (or (nil? x)
+      (vector? x)
+      (list? x)
+      (map? x)
+      (set? x)
+      (string? x)))
+
+;; ----------------
+;; Keyword-kind validators
+;; ----------------
+
+(defn- validate-keyword-kind
+  [head value]
+  (case head
+    :any        true
+    :nil        (nil? value)
+    :boolean    (boolean? value)
+    :string     (string? value)
+    :int        (int? value)
+    :float      (float? value)
+    :number     (number? value)
+    :keyword    (keyword? value)
+    :symbol     (symbol? value)
+    :uuid       (uuid? value)
+    :inst       (valid-inst? value)
+    :vector     (vector? value)
+    :list       (list? value)
+    :map        (map? value)
+    :set        (set? value)
+    :sequential (valid-sequential? value)
+    :seqable    (valid-seqable? value)
+    (resolve-or-throw "unknown schema kind" head
+                      (fn [target] (valid? target value)))))
+
+;; ----------------
+;; Parametric validators
+;; ----------------
+
+(defn- validate-collection
+  "Generic collection validator used by `[:vector s]` and `[:set s]`."
+  [schema value type-pred elem-schemas]
+  (and (type-pred value)
+       (if (empty? elem-schemas)
+         true
+         (let [elem-schema (first elem-schemas)
+               items       (into [] value)]
+           (loop [i 0]
+             (cond
+               (>= i (count items))                     true
+               (not (valid? elem-schema (get items i))) false
+               :else                                    (recur (+ i 1))))))))
+
+(defn- validate-map-of
+  [value key-schema val-schema]
+  (and (map? value)
+       (let [pairs (into [] (for [[k v] :pairs value] [k v]))]
+         (loop [i 0]
+           (cond
+             (>= i (count pairs)) true
+             :else
+             (let [entry (get pairs i)
+                   k     (get entry 0)
+                   v     (get entry 1)]
+               (cond
+                 (not (valid? key-schema k)) false
+                 (not (valid? val-schema v)) false
+                 :else                       (recur (+ i 1)))))))))
+
+(defn- validate-tuple
+  [value elem-schemas]
+  (and (vector? value)
+       (= (count value) (count elem-schemas))
+       (loop [i 0]
+         (if (>= i (count elem-schemas))
+           true
+           (if (valid? (get elem-schemas i) (get value i))
+             (recur (+ i 1))
+             false)))))
+
+(defn map-entry-options
+  "Options map for a `[:map ...]` entry `[key opts? schema]`. Returns an
+  empty map when the entry has no options position."
+  [entry]
+  (if (and (>= (count entry) 3) (map? (get entry 1)))
+    (get entry 1)
+    {}))
+
+(defn map-entry-schema
+  "Inner schema of a `[:map ...]` entry, skipping the options map when
+  present."
+  [entry]
+  (if (and (>= (count entry) 3) (map? (get entry 1)))
+    (get entry 2)
+    (get entry 1)))
+
+(defn map-entry-optional?
+  "Returns `true` when a `[:map ...]` entry is declared with
+  `{:optional true}`."
+  [entry]
+  (true? (get (map-entry-options entry) :optional)))
+
+(defn- validate-map
+  [value entries closed?]
+  (if (not (map? value))
+    false
+    (let [keys-ok?  (loop [es (seq entries)]
+                     (cond
+                       (nil? es) true
+                       :else
+                       (let [entry (first es)
+                             k     (get entry 0)
+                             inner (map-entry-schema entry)
+                             opt?  (map-entry-optional? entry)]
+                         (cond
+                           (not (contains? value k))
+                           (if opt? (recur (next es)) false)
+                           (not (valid? inner (get value k)))
+                           false
+                           :else                              (recur (next es))))))
+          extra-ok? (if closed?
+                      (let [declared (into (hash-set) (map (fn [e] (get e 0)) entries))]
+                        (loop [ks (seq (keys value))]
+                          (cond
+                            (nil? ks)                       true
+                            (contains? declared (first ks)) (recur (next ks))
+                            :else                           false)))
+                      true)]
+      (and keys-ok? extra-ok?))))
+
+(defn- validate-enum
+  [value alts]
+  (loop [alts (seq alts)]
+    (cond
+      (nil? alts)            false
+      (= (first alts) value) true
+      :else                  (recur (next alts)))))
+
+(defn- validate-and
+  [value schemas]
+  (loop [schemas (seq schemas)]
+    (cond
+      (nil? schemas)                       true
+      (not (valid? (first schemas) value)) false
+      :else                                (recur (next schemas)))))
+
+(defn- validate-or
+  [value schemas]
+  (loop [schemas (seq schemas)]
+    (cond
+      (nil? schemas)                 false
+      (valid? (first schemas) value) true
+      :else                          (recur (next schemas)))))
+
+(defn- pattern-source
+  "Returns the raw regex string for a `:re` schema. Accepts either a
+  string pattern (used verbatim) or a compiled PHP regex handle."
+  [pattern]
+  (cond
+    (string? pattern) pattern
+    :else             (str pattern)))
+
+(defn- valid-regex?
+  [pattern value]
+  (and (string? value)
+       (php/=== 1 (php/preg_match (pattern-source pattern) value))))
+
+(defn- validate-vector-kind
+  [schema value]
+  (let [head (schema-head schema)
+        args (schema-args schema)]
+    (case head
+      :vector (validate-collection schema value vector? args)
+      :list   (validate-collection schema value list? args)
+      :set    (validate-collection schema value set? args)
+      :map-of (validate-map-of value (get args 0) (get args 1))
+      :tuple  (validate-tuple value args)
+      :map    (validate-map value args
+                             (true? (get (schema-options schema) :closed)))
+      :enum   (validate-enum value args)
+      :and    (validate-and value args)
+      :or     (validate-or value args)
+      :maybe  (or (nil? value) (valid? (get args 0) value))
+      :re     (valid-regex? (get args 0) value)
+      :fn     (try
+                 (boolean ((get args 0) value))
+                 (catch \Throwable _ false))
+      :ref    (let [target (reg/deref-ref (get args 0))]
+                 (when (nil? target)
+                   (throw (php/new \InvalidArgumentException
+                                   (str "schema ref not registered: " (get args 0)))))
+                 (valid? target value))
+      :=>     true
+      (resolve-or-throw "unknown schema kind" head
+                        (fn [target] (valid? target value))))))
+
+;; ----------------
+;; Public entry point
+;; ----------------
+
+(defn valid?
+  "Returns `true` if `value` conforms to `schema`, otherwise `false`."
+  {:example "(valid? :int 1) ; => true"
+   :see-also ["phel\\schema/validate"]}
+  [schema value]
+  (cond
+    (keyword? schema)
+    (validate-keyword-kind schema value)
+
+    (vector? schema)
+    (validate-vector-kind schema value)
+
+    :else
+    (throw (php/new \InvalidArgumentException
+                    (str "unsupported schema shape: " (print-str schema))))))

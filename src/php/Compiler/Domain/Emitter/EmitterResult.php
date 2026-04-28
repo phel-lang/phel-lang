@@ -23,11 +23,6 @@ final readonly class EmitterResult
         return $this->sourceMap;
     }
 
-    public function getSource(): string
-    {
-        return $this->source;
-    }
-
     public function getCodeWithSourceMap(): string
     {
         if ($this->enableSourceMaps) {

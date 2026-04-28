@@ -71,6 +71,13 @@ Run it:
 # => Hello, World!
 ```
 
+Or evaluate a snippet without a file:
+```bash
+./vendor/bin/phel eval '(println "Hello, World!")'
+echo '(println "from stdin")' | ./vendor/bin/phel eval -
+./vendor/bin/phel eval - < src/hello.phel
+```
+
 ### 2. Interactive REPL (1 minute)
 
 Start the REPL:
@@ -80,39 +87,53 @@ Start the REPL:
 
 Try it out:
 ```phel
-phel:1> (+ 1 2 3)
+Welcome to the Phel Repl (v0.34.0)
+Type "exit" or press Ctrl-D to exit.
+user:1> (+ 1 2 3)
 6
-
-phel:2> (map #(* % 2) [1 2 3 4 5])
+user:2> (map #(* % 2) [1 2 3 4 5])
 [2 4 6 8 10]
-
-phel:3> (def numbers [10 20 30 40])
-numbers
-
-phel:4> (filter #(> % 25) numbers)
+user:3> (def numbers [10 20 30 40])
+#'user/numbers
+user:4> (filter #(> % 25) numbers)
 [30 40]
+user:5> (/ 1 0)
+; ...error...
+user:6> *e                        ; last exception
 ```
 
-Type `(exit)` or press Ctrl+D to quit.
+The prompt shows the current namespace (it switches on `(ns ...)` / `(in-ns ...)`) and `*1`, `*2`, `*3` hold the last three REPL results, `*e` the last exception. Type `(exit)` or press Ctrl-D to quit.
 
 ### 3. Working with Collections (1 minute)
 
 ```phel
-;; Vectors (like PHP arrays)
+;; Vectors (immutable)
 (def fruits ["apple" "banana" "cherry"])
 (get fruits 1)                    ; => "banana"
 (count fruits)                    ; => 3
 (conj fruits "date")              ; => ["apple" "banana" "cherry" "date"]
 
-;; Maps (associative arrays)
+;; Maps
 (def user {:name "Alice" :age 30 :city "NYC"})
 (get user :name)                  ; => "Alice"
 (assoc user :email "alice@example.com")
 ;; => {:name "Alice" :age 30 :city "NYC" :email "alice@example.com"}
 
-;; Sets (unique values)
+;; Sets
 (def tags #{:clojure :php :lisp})
 (contains? tags :php)             ; => true
+
+;; PHP arrays via #php reader literal
+(def indexed #php [1 2 3])             ; PHP indexed array
+(def assoc   #php {"a" 1 "b" 2})       ; PHP associative array
+
+;; Tagged literals
+(def slug-rx #regex "^[a-z0-9-]+$")    ; PCRE pattern string
+
+;; `#inst` reads ISO-8601 into \DateTimeImmutable at read time — use in let/fn,
+;; not `def` (persistent defs require TypeInterface or scalar).
+(let [released #inst "2026-04-20T00:00:00Z"]
+  (.format released "Y-m-d"))          ; => "2026-04-20"
 ```
 
 ### 4. Functions and Higher-Order Functions (1 minute)
@@ -133,6 +154,12 @@ Type `(exit)` or press Ctrl+D to quit.
 (filter even? [1 2 3 4 5 6])      ; => [2 4 6]
 (reduce + 0 [1 2 3 4])            ; => 10
 
+;; Threading macros for readable pipelines
+(->> [1 2 3 4 5 6]
+     (filter even?)
+     (map square)
+     (reduce +))                  ; => 56
+
 ;; Function composition
 (def double #(* % 2))
 (def add-ten #(+ % 10))
@@ -141,9 +168,28 @@ Type `(exit)` or press Ctrl+D to quit.
 (process 5)                       ; => 20 (5 * 2 + 10)
 ```
 
+### 5. Pattern Matching (1 minute)
+
+```phel
+(ns app\routing
+  (:require phel\match :refer [match]))
+
+(defn route [req]
+  (match [req]
+    [{:method "GET"  :path "/"}]              :home
+    [{:method "GET"  :path ["users" id]}]     [:show-user id]
+    [{:method "POST" :path "/login"}]         :login
+    :else                                     :not-found))
+
+(route {:method "GET" :path "/"})               ; => :home
+(route {:method "GET" :path ["users" "42"]})    ; => [:show-user "42"]
+```
+
+See [Pattern Matching Guide](match-guide.md) for guards, destructuring, and more patterns.
+
 ## First Web Application (5 minutes)
 
-Let's build a simple API endpoint.
+Let's build a simple API endpoint using modern Phel interop shortcuts.
 
 ### Step 1: Install Dependencies
 
@@ -160,35 +206,29 @@ Create `src/routes.phel`:
   (:use Symfony\Component\HttpFoundation\Response)
   (:require phel\json :as json))
 
-(defn handle-home [request]
-  (php/new Response
-    "<h1>Welcome to Phel!</h1>"
-    200
-    (php-associative-array "Content-Type" "text/html")))
+(defn- html-response [body status]
+  (new Response body status #php {"Content-Type" "text/html"}))
 
-(defn handle-greet [request name]
-  (let [greeting (str "Hello, " name "!")]
-    (php/new Response greeting 200)))
+(defn- json-response [data status]
+  (new Response (json/encode data) status #php {"Content-Type" "application/json"}))
 
-(defn handle-api [request]
-  (let [data {:status "ok"
-              :message "Phel API is running"
-              :timestamp (php/time)}
-        json-str (json/encode data)]
-    (php/new Response
-      json-str
-      200
-      (php-associative-array "Content-Type" "application/json"))))
+(defn handle-home [_request]
+  (html-response "<h1>Welcome to Phel!</h1>" 200))
 
-(defn handle-users [request]
-  (let [users [{:id 1 :name "Alice" :email "alice@example.com"}
-               {:id 2 :name "Bob" :email "bob@example.com"}]
-        json-str (json/encode users)]
-    (php/new Response
-      json-str
-      200
-      (php-associative-array "Content-Type" "application/json"))))
+(defn handle-greet [_request name]
+  (html-response (str "Hello, " name "!") 200))
+
+(defn handle-api [_request]
+  (json-response {:status    "ok"
+                  :message   "Phel API is running"
+                  :timestamp (php/time)} 200))
+
+(defn handle-users [_request]
+  (json-response [{:id 1 :name "Alice" :email "alice@example.com"}
+                  {:id 2 :name "Bob"   :email "bob@example.com"}] 200))
 ```
+
+The `(new Response ...)` form and `#php {...}` literal are the modern shortcuts for `(php/new Response ...)` and `(php-associative-array ...)`. They compile identically.
 
 ### Step 3: Create PHP Entry Point
 
@@ -199,35 +239,33 @@ Create `public/index.php`:
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use Phel\Run\RunFacade;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-RunFacade::initialize(__DIR__ . '/../');
+// Boot the Phel runtime and load the routes namespace.
+\Phel::bootstrap(__DIR__ . '/..');
+\Phel::run(__DIR__ . '/..', 'app\\routes');
 
 $request = Request::createFromGlobals();
-$path = $request->getPathInfo();
+$path    = $request->getPathInfo();
 
-// Simple routing
+// Resolve Phel functions as callables. Namespace hyphens become underscores.
+$call = static fn (string $fn, mixed ...$args) =>
+    \Phel::getDefinition('app_routes', $fn)(...$args);
+
 $response = match (true) {
-    $path === '/' =>
-        \Phel::callPhel('app\routes', 'handle-home', $request),
-
-    $path === '/api' =>
-        \Phel::callPhel('app\routes', 'handle-api', $request),
-
-    $path === '/users' =>
-        \Phel::callPhel('app\routes', 'handle-users', $request),
-
-    preg_match('#^/greet/(\w+)$#', $path, $matches) =>
-        \Phel::callPhel('app\routes', 'handle-greet', $request, $matches[1]),
-
-    default =>
-        new Response('Not Found', 404),
+    $path === '/'      => $call('handle-home',  $request),
+    $path === '/api'   => $call('handle-api',   $request),
+    $path === '/users' => $call('handle-users', $request),
+    (bool) preg_match('#^/greet/(\w+)$#', $path, $m)
+                       => $call('handle-greet', $request, $m[1]),
+    default            => new Response('Not Found', 404),
 };
 
 $response->send();
 ```
+
+`\Phel::bootstrap()` sets up the runtime, `\Phel::run()` compiles and loads a namespace, and `\Phel::getDefinition()` resolves a Phel function as a PHP callable. No facade wiring, no DI container.
 
 ### Step 4: Run the Server
 
@@ -249,51 +287,49 @@ curl http://localhost:8000/users
 
 ```phel
 (ns app\files
-  (:require phel\str :as str))
+  (:require phel\string :as str))
 
 (defn read-csv [filename]
   (let [content (php/file_get_contents filename)
-        lines (str/split content #"\n")]
+        lines   (str/split content #"\n")]
     (map #(str/split % #",") lines)))
 
 (defn process-users [filename]
-  (let [rows (read-csv filename)
+  (let [rows    (read-csv filename)
         headers (first rows)
-        data (rest rows)]
-    (map (fn [row]
-           (zipmap (map keyword headers) row))
+        data    (rest rows)]
+    (map (fn [row] (zipmap (map keyword headers) row))
          data)))
 
 ;; Usage
 (process-users "users.csv")
 ;; => [{:id "1" :name "Alice" :email "alice@example.com"}
-;;     {:id "2" :name "Bob" :email "bob@example.com"}]
+;;     {:id "2" :name "Bob"   :email "bob@example.com"}]
 ```
 
 ### Work with Dates
 
 ```phel
 (ns app\dates
-  (:use DateTime DateInterval DateTimeZone))
+  (:use DateTime DateInterval))
 
-(defn format-date [timestamp format]
-  (let [dt (php/new DateTime)]
-    (php/-> dt (setTimestamp timestamp))
-    (php/-> dt (format format))))
+(defn format-date [dt fmt]
+  (.format dt fmt))
 
-(defn add-days [date days]
-  (let [interval (php/new DateInterval (str "P" days "D"))]
-    (php/-> date (add interval))))
+(defn add-days [dt days]
+  (.add dt (new DateInterval (str "P" days "D"))))
 
-(defn days-between [date1 date2]
-  (let [diff (php/-> date1 (diff date2))]
-    (php/-> diff -days)))
+(defn days-between [d1 d2]
+  (.-days (.diff d1 d2)))
 
-;; Usage
-(def now (php/new DateTime))
-(def tomorrow (add-days now 1))
-(format-date (php/time) "Y-m-d H:i:s")
+;; `#inst` reads ISO-8601 into \DateTimeImmutable at read time — no runtime cost.
+;; Keep such values local; persistent `def` is reserved for scalars/TypeInterface.
+(let [launch   #inst "2026-04-20T00:00:00Z"
+      tomorrow (add-days launch 1)]
+  (format-date tomorrow "Y-m-d"))      ; => "2026-04-21"
 ```
+
+`.method`, `.-field`, and `(new ClassName ...)` are the modern shorthands for `php/->` and `php/new`. Both styles compile to identical PHP.
 
 ### Database Queries
 
@@ -302,51 +338,56 @@ curl http://localhost:8000/users
   (:use PDO))
 
 (defn connect []
-  (php/new PDO "sqlite::memory:"))
+  (new PDO "sqlite::memory:"))
 
 (defn fetch-all [pdo sql params]
-  (let [stmt (php/-> pdo (prepare sql))]
-    (php/-> stmt (execute (to-php-array params)))
-    (map php-array-to-map
-         (php/-> stmt (fetchAll)))))
+  (let [stmt (.prepare pdo sql)]
+    (.execute stmt (to-php-array params))
+    (map php-array-to-map (.fetchAll stmt))))
 
 (defn find-user [pdo email]
-  (let [results (fetch-all pdo
-                  "SELECT * FROM users WHERE email = ?"
-                  [email])]
-    (first results)))
+  (first (fetch-all pdo "SELECT * FROM users WHERE email = ?" [email])))
 
 (defn create-user [pdo user]
-  (let [stmt (php/-> pdo (prepare
-                "INSERT INTO users (name, email) VALUES (?, ?)"))]
-    (php/-> stmt (execute (to-php-array [(get user :name)
-                                          (get user :email)])))))
+  (let [stmt (.prepare pdo "INSERT INTO users (name, email) VALUES (?, ?)")]
+    (.execute stmt (to-php-array [(:name user) (:email user)]))))
 ```
 
 ## Next Steps
 
 ### Learn More
 
-- **[Common Patterns](patterns.md)** - Idiomatic Phel code
-- **[PHP Interop](php-interop.md)** - Deep dive into PHP integration
-- **[Reader Shortcuts](reader-shortcuts.md)** - Syntax reference
-- **[Examples](examples/)** - More code samples
+- **[Common Patterns](patterns.md)** — Idiomatic Phel code including pattern matching
+- **[Data Structures Guide](data-structures-guide.md)** — Vectors, maps, sets, transients
+- **[PHP Interop](php-interop.md)** — Deep dive into PHP integration and shortcuts
+- **[Reader Shortcuts](reader-shortcuts.md)** — Syntax reference, `#inst`, `#regex`, `#php`
+- **[Async Guide](async-guide.md)** — Concurrency with fibers and AMPHP
+- **[CLI Guide](cli-guide.md)** — Build CLIs with `phel\cli`
+- **[Schema Guide](schema-guide.md)** — Data-driven validation, coercion, generation
+- **[Pattern Matching Guide](match-guide.md)** — `match` macro with guards and destructuring
+- **[Linter Guide](lint-guide.md)** — `phel lint` rules and configuration
+- **[Language Server Guide](lsp-guide.md)** — `phel lsp` editor integration
+- **[nREPL Guide](nrepl-guide.md)** — `phel nrepl` for editor tooling
+- **[Watch Guide](watch-guide.md)** — `phel watch` hot-reload
+- **[Framework Integration](framework-integration.md)** — Laravel, Symfony, framework-less
+- **[Performance Tips](performance.md)** — Opcache CLI setup, cache reset
+- **[Examples](examples/)** — Runnable single-file samples
 
 ### REPL Workflow
 
 Load your code in the REPL:
 ```phel
-phel:1> (require 'app\hello)
-phel:2> (in-ns 'app\hello)
-phel:3> (greet "REPL")
+user:1> (require 'app\hello)
+user:2> (in-ns 'app\hello)
+app\hello:3> (greet "REPL")
 "Hello, REPL!"
 ```
 
 Get documentation and inspect symbols:
 ```phel
-phel:1> (doc map)
-phel:2> (doc filter)
-phel:3> (resolve 'map)        ; resolves the symbol to the actual map fn (now in phel\core, no :require needed)
+app\hello:4> (doc map)
+app\hello:5> (doc filter)
+app\hello:6> (resolve 'map)        ; => #'phel\core/map
 ```
 
 ### Testing Your Code
@@ -361,11 +402,19 @@ Create `tests/hello_test.phel`:
 (deftest test-greet
   (is (= "Hello, World!" (greet "World")))
   (is (= "Hello, Alice!" (greet "Alice"))))
+
+;; Tag a slow or integration test so it can be included/excluded at the CLI.
+(deftest ^{:tags [:integration]} test-external-api
+  (is (= 200 (:status (fetch-remote)))))
 ```
 
 Run tests:
 ```bash
-./vendor/bin/phel test
+./vendor/bin/phel test                         # all tests
+./vendor/bin/phel test --filter greet          # substring/regex over test names
+./vendor/bin/phel test --exclude integration   # skip tagged tests
+./vendor/bin/phel test --ns 'app.*'            # namespace glob
+./vendor/bin/phel test --reporter=testdox      # also: dot, tap, junit-xml
 ```
 
 ## Tips for Getting Started
@@ -375,31 +424,32 @@ Run tests:
 - Embrace recursion: use `loop`/`recur` instead of `for`/`while`
 - Use threading macros: `->` and `->>` for readable pipelines
 - Maps are better than classes for most data
+- Prefer the modern interop shortcuts (`.method`, `(new Class)`, `#php [...]`)
 
 **For Clojure Developers:**
-- PHP interop uses `php/` prefix (not `.` or `..`)
-- Import PHP classes with `:use` in namespace
-- No reader literals for regex, use `#"pattern"`
-- Some Clojure functions have different names (check docs)
+- PHP interop uses `php/` prefix; shortcuts `.method`, `.-field`, `ClassName/method`, `(new Class)` are available too
+- Import PHP classes with `:use` in the `ns` form, not `:import`
+- Regex literals are `#"pattern"`; `#regex "..."` reads as a delimited PCRE string
+- Some Clojure functions have different names (check [Clojure Migration](clojure-migration.md))
 
 ## Common Gotchas
 
 ```phel
-;; Wrong - forgot parens for function call
+;; Wrong — forgot parens for function call
 map square [1 2 3]              ; Error: not a function
 
 ;; Right
 (map square [1 2 3])            ; => [1 4 9]
 
-;; Wrong - trying to mutate
+;; Wrong — trying to mutate
 (def nums [1 2 3])
 (conj nums 4)                   ; Returns NEW vector
 nums                            ; Still [1 2 3]!
 
-;; Right - rebind or use result
+;; Right — rebind or use result
 (def nums [1 2 3])
 (def nums (conj nums 4))        ; Rebind to new vector
 nums                            ; => [1 2 3 4]
 ```
 
-Happy coding! 🎉
+Happy coding.

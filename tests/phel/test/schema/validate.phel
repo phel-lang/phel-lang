@@ -1,0 +1,183 @@
+(ns phel-test\test\schema\validate
+  (:require phel\test :refer [deftest is testing])
+  (:require phel\schema :as s))
+
+;; Positive and negative coverage for every built-in schema form.
+
+(deftest test-scalar-predicates
+  (testing ":any always matches"
+    (is (s/validate :any 1))
+    (is (s/validate :any nil))
+    (is (s/validate :any "x")))
+  (testing ":nil"
+    (is (s/validate :nil nil))
+    (is (not (s/validate :nil 0))))
+  (testing ":boolean"
+    (is (s/validate :boolean true))
+    (is (s/validate :boolean false))
+    (is (not (s/validate :boolean 0))))
+  (testing ":string"
+    (is (s/validate :string "abc"))
+    (is (not (s/validate :string 1))))
+  (testing ":int"
+    (is (s/validate :int 7))
+    (is (not (s/validate :int 7.5))))
+  (testing ":float"
+    (is (s/validate :float 1.5))
+    (is (not (s/validate :float 1))))
+  (testing ":number"
+    (is (s/validate :number 1))
+    (is (s/validate :number 1.5))
+    (is (not (s/validate :number "1"))))
+  (testing ":keyword"
+    (is (s/validate :keyword :a))
+    (is (not (s/validate :keyword "a"))))
+  (testing ":symbol"
+    (is (s/validate :symbol 'foo))
+    (is (not (s/validate :symbol :foo))))
+  (testing ":uuid"
+    (is (s/validate :uuid "550e8400-e29b-41d4-a716-446655440000"))
+    (is (not (s/validate :uuid "not-a-uuid")))))
+
+(deftest test-inst
+  (testing ":inst matches DateTime instances"
+    (let [now (php/new \DateTimeImmutable)]
+      (is (s/validate :inst now))))
+  (testing ":inst rejects strings"
+    (is (not (s/validate :inst "2026-01-01")))))
+
+(deftest test-collection-predicates
+  (testing ":vector / :list / :map / :set"
+    (is (s/validate :vector [1 2]))
+    (is (not (s/validate :vector '(1 2))))
+    (is (s/validate :list '(1 2)))
+    (is (s/validate :map {:a 1}))
+    (is (s/validate :set (hash-set 1)))
+    (is (s/validate :sequential [1 2]))
+    (is (s/validate :sequential '(1 2)))
+    (is (not (s/validate :sequential {:a 1})))
+    (is (s/validate :seqable {:a 1}))
+    (is (s/validate :seqable nil))
+    (is (s/validate :seqable "ab"))))
+
+(deftest test-parametric-vector
+  (testing "[:vector :int]"
+    (is (s/validate [:vector :int] [1 2 3]))
+    (is (s/validate [:vector :int] []))
+    (is (not (s/validate [:vector :int] [1 "x"])))
+    (is (not (s/validate [:vector :int] '(1 2 3)))))
+  (testing "[:set :int]"
+    (is (s/validate [:set :int] (hash-set 1 2 3)))
+    (is (not (s/validate [:set :int] (hash-set 1 "x"))))))
+
+(deftest test-map-of
+  (is (s/validate [:map-of :keyword :int] {:a 1 :b 2}))
+  (is (not (s/validate [:map-of :keyword :int] {:a "x"})))
+  (is (not (s/validate [:map-of :keyword :int] {"a" 1}))))
+
+(deftest test-tuple
+  (is (s/validate [:tuple :int :string] [1 "hi"]))
+  (is (not (s/validate [:tuple :int :string] [1 2])))
+  (is (not (s/validate [:tuple :int :string] [1])))
+  (is (not (s/validate [:tuple :int :string] [1 "hi" :extra]))))
+
+(deftest test-map-schema
+  (testing "required keys"
+    (is (s/validate [:map [:id :int] [:name :string]] {:id 1 :name "a"}))
+    (is (not (s/validate [:map [:id :int] [:name :string]] {:id 1})))
+    (is (not (s/validate [:map [:id :int] [:name :string]] {:id "x" :name "a"}))))
+  (testing "optional keys"
+    (is (s/validate [:map [:id :int] [:nick {:optional true} :string]]
+                    {:id 1}))
+    (is (s/validate [:map [:id :int] [:nick {:optional true} :string]]
+                    {:id 1 :nick "n"}))
+    (is (not (s/validate [:map [:id :int] [:nick {:optional true} :string]]
+                         {:id 1 :nick 5}))))
+  (testing "closed map rejects extra keys"
+    (is (not (s/validate [:map {:closed true} [:id :int]] {:id 1 :extra 2})))
+    (is (s/validate [:map {:closed true} [:id :int]] {:id 1}))))
+
+(deftest test-enum
+  (is (s/validate [:enum :red :green :blue] :red))
+  (is (not (s/validate [:enum :red :green :blue] :yellow))))
+
+(deftest test-and-or
+  (testing ":and"
+    (is (s/validate [:and :int [:fn pos?]] 5))
+    (is (not (s/validate [:and :int [:fn pos?]] -1)))
+    (is (not (s/validate [:and :int [:fn pos?]] "x"))))
+  (testing ":or"
+    (is (s/validate [:or :int :string] 1))
+    (is (s/validate [:or :int :string] "a"))
+    (is (not (s/validate [:or :int :string] :kw)))))
+
+(deftest test-maybe
+  (is (s/validate [:maybe :int] nil))
+  (is (s/validate [:maybe :int] 5))
+  (is (not (s/validate [:maybe :int] "x"))))
+
+(deftest test-regex
+  (is (s/validate [:re "/^\\d+$/"] "42"))
+  (is (not (s/validate [:re "/^\\d+$/"] "x")))
+  (is (not (s/validate [:re "/^\\d+$/"] 42))))
+
+(deftest test-fn-schema
+  (is (s/validate [:fn even?] 2))
+  (is (not (s/validate [:fn even?] 3))))
+
+(deftest test-ref
+  (s/register! :positive-int [:and :int [:fn pos?]])
+  (is (s/validate [:ref :positive-int] 5))
+  (is (not (s/validate [:ref :positive-int] -1)))
+  (is (s/validate :positive-int 5))
+  (s/unregister! :positive-int))
+
+(deftest test-nested-map
+  (let [user [:map
+              [:id :uuid]
+              [:name :string]
+              [:tags [:vector :keyword]]
+              [:address {:optional true} [:map
+                                          [:city :string]
+                                          [:zip :int]]]]]
+    (is (s/validate user {:id   "550e8400-e29b-41d4-a716-446655440000"
+                          :name "Alice"
+                          :tags [:admin :user]}))
+    (is (s/validate user {:id   "550e8400-e29b-41d4-a716-446655440000"
+                          :name "Alice"
+                          :tags [:admin]
+                          :address {:city "NY" :zip 12345}}))
+    (is (not (s/validate user {:id   "x"
+                               :name "Alice"
+                               :tags []})))))
+
+(deftest test-schema?
+  (is (s/schema? :int))
+  (is (s/schema? [:int]))
+  (is (s/schema? [:vector :int]))
+  (is (s/schema? [:enum :a :b]))
+  (is (not (s/schema? "not a schema")))
+  (is (not (s/schema? 1))))
+
+(deftest test-validate-rejects-unknown-keyword-head
+  (is (thrown? \InvalidArgumentException (s/validate :not-a-real-kind 1))))
+
+(deftest test-validate-rejects-unknown-vector-head
+  (is (thrown? \InvalidArgumentException (s/validate [:not-a-real-kind 1] 1))))
+
+(deftest test-validate-rejects-non-schema-shape
+  (is (thrown? \InvalidArgumentException (s/validate "string-is-not-a-schema" 1)))
+  (is (thrown? \InvalidArgumentException (s/validate 42 1))))
+
+(deftest test-empty-and-matches-anything
+  (is (s/validate [:and] 1))
+  (is (s/validate [:and] "x"))
+  (is (s/validate [:and] nil)))
+
+(deftest test-empty-or-matches-nothing
+  (is (not (s/validate [:or] 1)))
+  (is (not (s/validate [:or] nil))))
+
+(deftest test-empty-enum-matches-nothing
+  (is (not (s/validate [:enum] 1)))
+  (is (not (s/validate [:enum] nil))))

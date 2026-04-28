@@ -6,9 +6,11 @@ namespace PhelTest\Unit\Lang\Collections\LinkedList;
 
 use Phel;
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
+use Phel\Lang\Collections\LazySeq\LazySeq;
 use Phel\Lang\Collections\LinkedList\EmptyList;
 use Phel\Lang\Collections\LinkedList\PersistentList;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Vector\PersistentVector;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
 use PHPUnit\Framework\TestCase;
@@ -18,7 +20,7 @@ final class EmptyListTest extends TestCase
 {
     public function test_prepend_on_empty_list(): void
     {
-        $list = (new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null))->prepend('foo');
+        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null)->prepend('foo');
 
         $this->assertInstanceOf(PersistentList::class, $list);
         $this->assertCount(1, $list);
@@ -57,6 +59,30 @@ final class EmptyListTest extends TestCase
     {
         $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
         $this->assertTrue($list->equals(new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null)));
+    }
+
+    public function test_equals_empty_vector(): void
+    {
+        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
+        $vector = PersistentVector::empty(new ModuloHasher(), new SimpleEqualizer());
+
+        $this->assertTrue($list->equals($vector));
+    }
+
+    public function test_equals_non_empty_vector(): void
+    {
+        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
+        $vector = PersistentVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1]);
+
+        $this->assertFalse($list->equals($vector));
+    }
+
+    public function test_equals_empty_lazy_seq(): void
+    {
+        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null);
+        $empty = new LazySeq(new ModuloHasher(), new SimpleEqualizer(), static fn(): null => null);
+
+        $this->assertTrue($list->equals($empty));
     }
 
     public function test_hash(): void
@@ -115,7 +141,7 @@ final class EmptyListTest extends TestCase
 
     public function test_cons_on_empty_list(): void
     {
-        $list = (new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null))->cons('foo');
+        $list = new EmptyList(new ModuloHasher(), new SimpleEqualizer(), null)->cons('foo');
 
         $this->assertInstanceOf(PersistentList::class, $list);
         $this->assertCount(1, $list);

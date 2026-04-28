@@ -1,0 +1,8 @@
+(ns http-json-api\entry
+  (:require phel\http :as h)
+  (:require http-json-api\routes :refer [app-handler]))
+
+(when-not *build-mode*
+  (-> (h/request-from-globals)
+      app-handler
+      h/emit-response))

@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lang\Generators;
 
+use ArrayIterator;
 use Generator;
+use IteratorAggregate;
 use Phel\Lang\Generators\SequenceGenerator;
 use PHPUnit\Framework\TestCase;
+use Traversable;
 
 final class SequenceGeneratorTest extends TestCase
 {
@@ -51,6 +54,71 @@ final class SequenceGeneratorTest extends TestCase
         $result = SequenceGenerator::toIterable($generator);
 
         self::assertSame([1, 2, 3], iterator_to_array($result, false));
+    }
+
+    // ==================== toIterator tests ====================
+
+    public function test_to_iterator_reuses_iterator_instances(): void
+    {
+        $iterator = new ArrayIterator([1, 2, 3]);
+
+        $result = SequenceGenerator::toIterator($iterator);
+
+        self::assertSame($iterator, $result);
+        self::assertSame([1, 2, 3], iterator_to_array($result, false));
+    }
+
+    public function test_to_iterator_wraps_arrays(): void
+    {
+        $result = SequenceGenerator::toIterator(['a', 'b', 'c']);
+
+        self::assertInstanceOf(ArrayIterator::class, $result);
+        self::assertSame(['a', 'b', 'c'], iterator_to_array($result, false));
+    }
+
+    public function test_to_iterator_wraps_iterator_aggregate(): void
+    {
+        $aggregate = new class() implements IteratorAggregate {
+            public function getIterator(): Traversable
+            {
+                yield 'x';
+                yield 'y';
+            }
+        };
+
+        $result = SequenceGenerator::toIterator($aggregate);
+
+        self::assertSame(['x', 'y'], iterator_to_array($result, false));
+    }
+
+    public function test_to_iterator_splits_multibyte_strings(): void
+    {
+        $result = SequenceGenerator::toIterator('🎉🎊');
+
+        self::assertSame(['🎉', '🎊'], iterator_to_array($result, false));
+    }
+
+    // ==================== indexed tests ====================
+
+    public function test_indexed_pairs_values_with_zero_based_indexes(): void
+    {
+        $result = SequenceGenerator::indexed(['a', 'b', 'c']);
+
+        self::assertSame([[0, 'a'], [1, 'b'], [2, 'c']], iterator_to_array($result, false));
+    }
+
+    public function test_indexed_splits_multibyte_strings(): void
+    {
+        $result = SequenceGenerator::indexed('🎉🎊');
+
+        self::assertSame([[0, '🎉'], [1, '🎊']], iterator_to_array($result, false));
+    }
+
+    public function test_indexed_treats_null_as_empty(): void
+    {
+        $result = SequenceGenerator::indexed(null);
+
+        self::assertSame([], iterator_to_array($result, false));
     }
 
     // ==================== range tests ====================

@@ -6,7 +6,9 @@ namespace Phel\Compiler\Domain\Evaluator;
 
 use ParseError;
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
-use Phel\Run\Infrastructure\Service\DebugLineTap;
+use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
+use Phel\Compiler\Infrastructure\Service\DebugLineTap;
+use Throwable;
 
 /**
  * Evaluates compiled PHP code in-memory using eval().
@@ -24,6 +26,9 @@ final class InMemoryEvaluator implements EvaluatorInterface
             return eval($phpCode);
         } catch (ParseError $parseError) {
             throw CompiledCodeIsMalformedException::fromThrowable($parseError);
+        } catch (Throwable $throwable) {
+            $headerOffset = substr_count($phpCode, "\n") - substr_count($code, "\n");
+            throw EvaluatedCodeException::fromThrowableAndCompiledCode($throwable, $code, $headerOffset);
         }
     }
 }

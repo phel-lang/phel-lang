@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Generators;
 
+use ArrayIterator;
 use Generator;
+use Iterator;
 
+use function is_array;
 use function is_string;
 use function mb_str_split;
 
@@ -38,6 +41,44 @@ final class SequenceGenerator
         }
 
         return $value ?? [];
+    }
+
+    /**
+     * Converts a value to an Iterator for code that needs controlled advancement.
+     *
+     * @return Iterator<int|string, mixed>
+     */
+    public static function toIterator(mixed $value): Iterator
+    {
+        $iterable = self::toIterable($value);
+
+        if ($iterable instanceof Iterator) {
+            return $iterable;
+        }
+
+        if (is_array($iterable)) {
+            return new ArrayIterator($iterable);
+        }
+
+        return (static fn(): Generator => yield from $iterable)();
+    }
+
+    /**
+     * Yields each value paired with its zero-based index.
+     *
+     * @template T
+     *
+     * @param iterable<T>|string|null $iterable
+     *
+     * @return Generator<int, array{0:int, 1:string|T}>
+     */
+    public static function indexed(mixed $iterable): Generator
+    {
+        $index = 0;
+        foreach (self::toIterable($iterable) as $value) {
+            yield [$index, $value];
+            ++$index;
+        }
     }
 
     /**

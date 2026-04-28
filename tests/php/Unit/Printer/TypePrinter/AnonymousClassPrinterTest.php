@@ -15,7 +15,7 @@ final class AnonymousClassPrinterTest extends TestCase
 
         self::assertSame(
             '<PHP-AnonymousClass>',
-            (new AnonymousClassPrinter())->print($class),
+            new AnonymousClassPrinter()->print($class),
         );
     }
 }

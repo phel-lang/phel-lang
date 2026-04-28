@@ -15,7 +15,7 @@ final class PhelExportConfig implements JsonSerializable
     public const string TARGET_DIRECTORY = 'target-directory';
 
     /** @var list<string> */
-    private array $fromDirectories = ['src/phel'];
+    private array $fromDirectories = ['src'];
 
     private string $namespacePrefix = 'PhelGenerated';
 
@@ -45,6 +45,9 @@ final class PhelExportConfig implements JsonSerializable
         return $this;
     }
 
+    /**
+     * @return array{target-directory: string, from-directories: list<string>, namespace-prefix: string}
+     */
     public function jsonSerialize(): array
     {
         return [

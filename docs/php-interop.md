@@ -7,10 +7,10 @@ This guide shows how to seamlessly work between PHP and Phel code.
 | Task | PHP | Phel |
 |------|-----|------|
 | Call function | `strlen($str)` | `(php/strlen str)` |
-| Method call | `$obj->method($arg)` | `(php/-> obj (method arg))` |
-| Static call | `DateTime::createFromFormat(...)` | `(php/:: DateTime (createFromFormat ...))` |
-| New instance | `new DateTime()` | `(php/new DateTime)` or `(DateTime.)` |
-| Property access | `$obj->prop` | `(php/-> obj -prop)` |
+| Method call | `$obj->method($arg)` | `(php/-> obj (method arg))` or `(.method obj arg)` |
+| Static call | `DateTime::createFromFormat(...)` | `(php/:: DateTime (createFromFormat ...))` or `(DateTime/createFromFormat ...)` |
+| New instance | `new DateTime()` | `(php/new DateTime)`, `(new DateTime)`, or `(DateTime.)` |
+| Property access | `$obj->prop` | `(php/-> obj prop)` or `(.-prop obj)` |
 | Array access | `$arr[$key]` | `(php/aget arr key)` |
 
 ## Calling PHP from Phel
@@ -34,6 +34,25 @@ Prefix PHP functions with `php/`:
 ;; Math functions
 (php/abs -5)                      ; => 5
 (php/max 1 5 3)                   ; => 5
+
+;; Namespaced functions — keep the original casing
+(php/Amp\trapSignal [php/SIGINT php/SIGTERM])
+(php/\Monolog\Logger\Utils\detectAndCleanUtf8 "input")
+```
+
+The `php/` prefix resolves any global or namespaced PHP function. For
+namespaced functions the name after `php/` is the full PHP path (use `\\`
+to disambiguate from the root namespace when needed). Case is preserved,
+so `php/Amp\trapSignal` compiles to `\Amp\trapSignal(...)`.
+
+To keep calls short, capture the function reference with `def`:
+
+```phel
+(def trap-signal php/\Amp\trapSignal)
+(def detect-utf8 php/\Monolog\Logger\Utils\detectAndCleanUtf8)
+
+(trap-signal [php/SIGINT php/SIGTERM])
+(detect-utf8 "input")
 ```
 
 ### Classes and Objects
@@ -42,13 +61,22 @@ Prefix PHP functions with `php/`:
 (ns app\example
   (:use DateTime DateInterval))
 
-;; Create instance (both forms are equivalent)
+;; Create instance (all forms are equivalent)
 (def now (php/new DateTime))
-(def now (DateTime.))   ; Clojure-style shorthand for (php/new DateTime)
+(def now (new DateTime))
+(def now (DateTime.))
+(def data (new stdClass))         ; PHP class names keep their PHP casing
 
 ;; Call methods
 (php/-> now (format "Y-m-d"))     ; => "2024-01-15"
 (php/-> now (getTimestamp))       ; => 1705334400
+
+;; Method call shorthand — `.method` expands to `(php/-> ...)`
+(.format now "Y-m-d")             ; => "2024-01-15"
+(.getTimestamp now)               ; => 1705334400
+
+;; Property access shorthand — `.-field` expands to `(php/-> ...)`
+(.-y (new DateInterval "P1D"))    ; => 0
 
 ;; Chain method calls
 (php/-> now
@@ -57,9 +85,14 @@ Prefix PHP functions with `php/`:
 
 ;; Static methods
 (php/:: DateTime (createFromFormat "Y-m-d" "2024-01-15"))
+(DateTime/createFromFormat "Y-m-d" "2024-01-15")   ; shorthand
+
+;; Static constants and properties — bare `Class/MEMBER` shorthand
+(php/:: \DateTimeImmutable ATOM)                   ; => "Y-m-d\\TH:i:sP"
+\DateTimeImmutable/ATOM                            ; shorthand
 
 ;; Access properties
-(php/-> obj -propertyName)
+(php/-> obj propertyName)
 ```
 
 ### Working with PHP Arrays
@@ -68,6 +101,10 @@ Prefix PHP functions with `php/`:
 ;; Create PHP array
 (def php-arr (php/array 1 2 3))
 (def assoc-arr (php-associative-array "name" "Alice" "age" 30))
+
+;; `#php` reader literal (non-recursive): next vector/map becomes a PHP array
+(def php-arr   #php [1 2 3])                    ; => (php-indexed-array 1 2 3)
+(def assoc-arr #php {"name" "Alice" "age" 30})  ; => (php-associative-array "name" "Alice" "age" 30)
 
 ;; Access elements
 (php/aget php-arr 0)              ; => 1
@@ -100,12 +137,12 @@ Use `:use` for PHP classes:
 ```phel
 ;; Phel-style list entry
 (ns app\services
-  (:require phel\str :as str)
+  (:require phel\string :as str)
   (:require phel\json :as json :refer [encode decode]))
 
 ;; Clojure-style vector entry — same meaning
 (ns app\services
-  (:require [phel\str :as str]
+  (:require [phel\string :as str]
             [phel\json :as json :refer [encode decode]]))
 ```
 
@@ -113,10 +150,10 @@ You can also use `.` as an alternate namespace separator (in addition to `\`), w
 
 ```phel
 (ns my.cljc.file
-  (:require [phel.str :as str]))
+  (:require [phel.string :as str]))
 ```
 
-Both `phel\str` and `phel.str` resolve to the same namespace.
+Both `phel\string` and `phel.string` resolve to the same namespace.
 
 ## Type Conversions
 
@@ -138,7 +175,7 @@ Both `phel\str` and `phel.str` resolve to the same namespace.
 ```phel
 ;; PHP arrays → Phel collections
 (php-array-to-map $php_assoc_array)  ; => {:key value}
-(values $php_indexed_array)          ; => [val1 val2 val3]
+(vals $php_indexed_array)            ; => [val1 val2 val3]
 
 ;; Indexed PHP array → vector
 [1 2 3]                           ; Already works as Phel vector
@@ -352,8 +389,8 @@ $response->send();
 - **Method calls**: `(php/-> obj (method))` not `(.method obj)`
 - **Deref**: `@my-atom` works as shorthand for `(deref my-atom)`, just like Clojure
 - **Import classes**: Use `:use` in `ns`, not `:import`
-- **Require vectors**: Clojure-style `(:require [phel\str :as str :refer [upper-case]])` works alongside the older list form
-- **Namespace separators**: Both `\` and `.` work — `phel\str` and `phel.str` resolve to the same namespace
+- **Require vectors**: Clojure-style `(:require [phel\string :as str :refer [upper-case]])` works alongside the older list form
+- **Namespace separators**: Both `\` and `.` work — `phel\string` and `phel.string` resolve to the same namespace
 - **Reader conditionals**: `#?(:phel ...)` and `#?@(:phel ...)` work for cross-platform `.cljc` files
 - **Unquote**: Use `~` and `~@` inside syntax-quote (the older `,` / `,@` are deprecated)
 - **Auto-gensym**: `name#` inside syntax-quote produces a unique symbol (the older `name$` is deprecated)

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Emitter\OutputEmitter;
 
+use Phel\Compiler\Domain\Emitter\OutputEmitter\EmitMode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\OutputEmitterOptions;
 use PHPUnit\Framework\TestCase;
 
@@ -20,7 +21,7 @@ final class OutputEmitterOptionsTest extends TestCase
 
     public function test_is_file_emit_mode(): void
     {
-        $options = new OutputEmitterOptions(OutputEmitterOptions::EMIT_MODE_FILE);
+        $options = new OutputEmitterOptions(EmitMode::File);
 
         self::assertTrue($options->isFileEmitMode());
         self::assertFalse($options->isStatementEmitMode());
@@ -29,7 +30,7 @@ final class OutputEmitterOptionsTest extends TestCase
 
     public function test_is_statement_emit_mode(): void
     {
-        $options = new OutputEmitterOptions(OutputEmitterOptions::EMIT_MODE_STATEMENT);
+        $options = new OutputEmitterOptions(EmitMode::Statement);
 
         self::assertTrue($options->isStatementEmitMode());
         self::assertFalse($options->isFileEmitMode());
@@ -38,7 +39,7 @@ final class OutputEmitterOptionsTest extends TestCase
 
     public function test_is_cache_emit_mode(): void
     {
-        $options = new OutputEmitterOptions(OutputEmitterOptions::EMIT_MODE_CACHE);
+        $options = new OutputEmitterOptions(EmitMode::Cache);
 
         self::assertTrue($options->isCacheEmitMode());
         self::assertFalse($options->isStatementEmitMode());

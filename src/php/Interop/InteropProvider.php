@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Interop;
 
 use Gacela\Framework\AbstractProvider;
+use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
 use Phel\Build\BuildFacade;
 use Phel\Command\CommandFacade;
@@ -15,25 +16,15 @@ final class InteropProvider extends AbstractProvider
 
     public const string FACADE_BUILD = 'FACADE_BUILD';
 
-    public function provideModuleDependencies(Container $container): void
+    #[Provides(self::FACADE_COMMAND)]
+    public function commandFacade(Container $container): CommandFacade
     {
-        $this->addFacadeCommand($container);
-        $this->addFacadeBuild($container);
+        return $container->getLocator()->getRequired(CommandFacade::class);
     }
 
-    private function addFacadeCommand(Container $container): void
+    #[Provides(self::FACADE_BUILD)]
+    public function buildFacade(Container $container): BuildFacade
     {
-        $container->set(
-            self::FACADE_COMMAND,
-            static fn(Container $container) => $container->getLocator()->get(CommandFacade::class),
-        );
-    }
-
-    private function addFacadeBuild(Container $container): void
-    {
-        $container->set(
-            self::FACADE_BUILD,
-            static fn(Container $container) => $container->getLocator()->get(BuildFacade::class),
-        );
+        return $container->getLocator()->getRequired(BuildFacade::class);
     }
 }

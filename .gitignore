@@ -3,6 +3,7 @@
 .vscode/
 .claude/settings.local.json
 .claude/worktrees/
+.claude/scheduled_tasks.lock
 /cache/
 data/
 out/
@@ -24,6 +25,7 @@ tests/**/out/
 .env
 .php-cs-fixer.php
 .phel-repl-history
+*.phel-repl-history
 phel-debug.log
 phel-error.log
 local.phel

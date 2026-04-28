@@ -1,0 +1,7 @@
+interface:
+  display_name: "GitHub Issue Worker"
+  short_description: "Work GitHub issues end to end."
+  default_prompt: "Use $gh-issue for #123."
+
+policy:
+  allow_implicit_invocation: true

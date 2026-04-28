@@ -19,17 +19,26 @@ final readonly class DefExceptionEmitter implements NodeEmitterInterface
     {
         assert($node instanceof DefExceptionNode);
 
-        if ($this->outputEmitter->getOptions()->isStatementEmitMode()) {
+        if ($this->shouldEmitViaEval()) {
             $this->emitViaEval($node);
         } else {
             $this->emitInline($node);
         }
     }
 
+    private function shouldEmitViaEval(): bool
+    {
+        if ($this->outputEmitter->getOptions()->isStatementEmitMode()) {
+            return true;
+        }
+
+        return $this->outputEmitter->isInsideClassScope();
+    }
+
     /**
-     * In statement mode, the class definition may end up inside a function
-     * wrapper. PHP forbids namespace declarations inside functions, so we
-     * capture the class body at compile time and emit it as an eval() call.
+     * Captures the class body at compile time and emits it as an `eval()`
+     * call guarded by `class_exists`. Needed both in statement mode and
+     * when we are inside another class's method body.
      */
     private function emitViaEval(DefExceptionNode $node): void
     {
@@ -73,7 +82,8 @@ final readonly class DefExceptionEmitter implements NodeEmitterInterface
             'class ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' extends ',
             $node->getStartSourceLocation(),
         );
-        $this->outputEmitter->emitNode($node->getParent());
+        $parent = $node->getParent();
+        $this->outputEmitter->emitStr($parent->getAbsolutePhpName(), $parent->getName()->getStartLocation());
         $this->outputEmitter->emitLine(' {');
         $this->outputEmitter->increaseIndentLevel();
 

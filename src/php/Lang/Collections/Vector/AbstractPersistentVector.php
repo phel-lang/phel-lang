@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\Vector;
 
+use InvalidArgumentException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\Collections\LazySeq\LazySeqInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
+
 use Phel\Lang\HasherInterface;
 
 use function count;
@@ -34,8 +36,12 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
     /**
      * @return T
      */
-    public function __invoke(int $index)
+    public function __invoke(?int $index)
     {
+        if ($index === null) {
+            throw new InvalidArgumentException('Vector cannot be indexed with nil');
+        }
+
         return $this->get($index);
     }
 
@@ -78,15 +84,13 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
     public function equals(mixed $other): bool
     {
         if ($other instanceof PersistentVectorInterface) {
-            if ($this->count() !== $other->count()) {
+            $count = $this->count();
+            if ($count !== $other->count()) {
                 return false;
             }
 
-            $ms = $other;
-            for ($s = $this; $s !== null; $s = $s->cdr(), $ms = $ms->cdr()) {
-                /** @var PersistentVectorInterface $s */
-                /** @var ?PersistentVectorInterface $ms */
-                if (!$ms instanceof PersistentVectorInterface || !$this->equalizer->equals($s->first(), $ms->first())) {
+            for ($i = 0; $i < $count; ++$i) {
+                if (!$this->equalizer->equals($this->get($i), $other->get($i))) {
                     return false;
                 }
             }
@@ -109,13 +113,7 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
                 return false;
             }
 
-            foreach ($thisArray as $i => $value) {
-                if (!$this->equalizer->equals($value, $otherArray[$i])) {
-                    return false;
-                }
-            }
-
-            return true;
+            return array_all($thisArray, fn($value, int $i): bool => $this->equalizer->equals($value, $otherArray[$i]));
         }
 
         return false;
@@ -163,6 +161,15 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
      */
     public function concat($xs)
     {
+        if ($this instanceof PersistentVector) {
+            $tv = $this->asTransient();
+            foreach ($xs as $x) {
+                $tv->append($x);
+            }
+
+            return $tv->persistent();
+        }
+
         $result = $this;
         foreach ($xs as $x) {
             $result = $result->append($x);

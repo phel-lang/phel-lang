@@ -7,6 +7,7 @@ namespace Phel\Filesystem;
 use Gacela\Framework\AbstractFactory;
 use Phel\Filesystem\Application\FileIo;
 use Phel\Filesystem\Application\TempDirFinder;
+use Phel\Filesystem\Application\TempDirHealthCheck;
 use Phel\Filesystem\Domain\FilesystemInterface;
 use Phel\Filesystem\Domain\NullFilesystem;
 use Phel\Filesystem\Infrastructure\RealFilesystem;
@@ -31,5 +32,10 @@ final class FilesystemFactory extends AbstractFactory
             new FileIo(),
             $this->getConfig()->getTempDir(),
         );
+    }
+
+    public function createTempDirHealthCheck(): TempDirHealthCheck
+    {
+        return new TempDirHealthCheck($this->getConfig()->getTempDir());
     }
 }

@@ -10,11 +10,19 @@
             "Bash(gh *)",
             "Bash(timeout *)",
             "Bash(ls *)",
-            "Bash(wc *)"
+            "Bash(wc *)",
+            "Bash(rm -rf /tmp/phel)",
+            "Bash(rm -rf /tmp/phel/*)",
+            "Bash(rm -rf data/cache)",
+            "Bash(rm -rf data/cache/*)",
+            "Bash(rm -rf /tmp/phel data/cache)"
         ],
         "deny": [
-            "Bash(rm -rf:*)",
-            "Bash(rm -fr:*)",
+            "Bash(rm -rf /:*)",
+            "Bash(rm -rf ~*)",
+            "Bash(rm -rf $HOME*)",
+            "Bash(rm -rf ..*)",
+            "Bash(rm -fr /:*)",
             "Bash(sudo:*)",
             "Bash(shutdown:*)",
             "Bash(reboot:*)",
@@ -57,5 +65,9 @@
                 ]
             }
         ]
+    },
+    "statusLine": {
+        "type": "command",
+        "command": "/bin/bash .claude/statusline.sh"
     }
 }

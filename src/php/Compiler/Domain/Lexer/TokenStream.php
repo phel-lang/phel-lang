@@ -84,11 +84,6 @@ final class TokenStream implements Iterator
         }
     }
 
-    public function getReadTokens(): array
-    {
-        return $this->readTokens;
-    }
-
     public function getCodeSnippet(): CodeSnippet
     {
         $tokens = $this->removeLeadingWhitespace($this->readTokens);

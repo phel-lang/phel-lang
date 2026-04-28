@@ -49,12 +49,4 @@ final class MemoizedThunk
 
         return $this->result;
     }
-
-    /**
-     * Returns whether the thunk has been realized (invoked).
-     */
-    public function isRealized(): bool
-    {
-        return $this->realized;
-    }
 }

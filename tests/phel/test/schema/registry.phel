@@ -1,0 +1,64 @@
+(ns phel-test\test\schema\registry
+  (:require phel\test :refer [deftest is testing])
+  (:require phel\schema :as s))
+
+;; Named-schema registry behaviour and recursive references.
+
+(deftest test-register-and-deref
+  (s/register! :age :int)
+  (is (s/registered? :age))
+  (is (= :int (s/deref-ref :age)))
+  (s/unregister! :age)
+  (is (not (s/registered? :age))))
+
+(deftest test-ref-validates-through-registry
+  (s/register! :email [:and :string [:re "/.+@.+/"]])
+  (is (s/validate [:ref :email] "a@b.co"))
+  (is (not (s/validate [:ref :email] "noatsign")))
+  (s/unregister! :email))
+
+(deftest test-bare-keyword-lookup-falls-back-to-registry
+  (s/register! :my-int :int)
+  (is (s/validate :my-int 5))
+  (is (not (s/validate :my-int "x")))
+  (s/unregister! :my-int))
+
+(deftest test-recursive-schema-tree
+  ;; A classic recursive tree: each node has a value and a vector of
+  ;; children, each of which is another tree.
+  (s/register! :tree [:map
+                      [:value :int]
+                      [:children [:vector [:ref :tree]]]])
+  (is (s/validate [:ref :tree] {:value 1 :children []}))
+  (is (s/validate [:ref :tree] {:value 1
+                                 :children [{:value 2 :children []}
+                                            {:value 3
+                                             :children [{:value 4 :children []}]}]}))
+  (is (not (s/validate [:ref :tree] {:value "x" :children []})))
+  (s/unregister! :tree))
+
+(deftest test-unregistered-ref-throws
+  (let [caught (try
+                 (s/validate [:ref :definitely-not-registered] 1)
+                 :no-throw
+                 (catch \InvalidArgumentException _ :caught))]
+    (is (= :caught caught))))
+
+(deftest test-re-register-overwrites-previous-schema
+  (s/register! :rate :int)
+  (is (s/validate :rate 5))
+  (s/register! :rate :string)
+  (is (not (s/validate :rate 5)))
+  (is (s/validate :rate "fast"))
+  (s/unregister! :rate))
+
+(deftest test-unregister-missing-name-is-noop
+  (is (nil? (s/unregister! :never-registered))))
+
+(deftest test-generate-recursive-tree-schema-uses-registry
+  (s/register! :leaf :int)
+  (s/register! :branch [:map
+                        [:value [:ref :leaf]]])
+  (is (s/validate [:ref :branch] (s/generate [:ref :branch])))
+  (s/unregister! :branch)
+  (s/unregister! :leaf))

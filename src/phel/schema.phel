@@ -1,0 +1,212 @@
+(ns phel.schema
+  (:require phel.core)
+  (:require phel.schema.registry :as reg)
+  (:require phel.schema.validator :as v)
+  (:require phel.schema.explainer :as e)
+  (:require phel.schema.coercer :as c)
+  (:require phel.schema.generator :as gen)
+  (:require phel.schema.instrument :as i))
+
+;; Data-driven schemas for Phel.
+;;
+;; Schemas are plain Phel values (keywords or vectors) that describe the
+;; shape of data. This namespace re-exports the primary operations so
+;; callers can use a single import:
+;;
+;;   (validate schema value)             ; boolean
+;;   (explain schema value)              ; nil on success, map on failure
+;;   (conform schema value)              ; coerced value or :phel.schema/invalid
+;;   (coerce schema value)               ; type-coerce input to schema-required type
+;;   (generate schema)                   ; random value conforming to schema
+;;   (instrument! name f schema)         ; validating fn wrapper
+;;   (register! name schema)             ; global named-schema registry
+;;
+;; All supported schema forms are documented in the repository README
+;; and exercised in `tests/phel/test/schema/*.phel`.
+
+;; ------
+;; Predicates
+;; ------
+
+(defn schema?
+  "Returns `true` if `x` has the shape of a schema value."
+  {:example "(schema? :int) ; => true"}
+  [x]
+  (i/schema? x))
+
+(defn schema-head
+  "Returns the dispatch head (kind keyword) of `schema`."
+  {:example "(schema-head [:vector :int]) ; => :vector"}
+  [schema]
+  (v/schema-head schema))
+
+(defn schema-args
+  "Returns the positional arguments of `schema` (children past the head
+  and optional options map)."
+  {:example "(schema-args [:vector :int]) ; => [:int]"}
+  [schema]
+  (v/schema-args schema))
+
+(defn schema-options
+  "Returns the options map of `schema` or `{}`."
+  {:example "(schema-options [:map {:closed true} [:k :int]]) ; => {:closed true}"}
+  [schema]
+  (v/schema-options schema))
+
+;; ------
+;; Core operations
+;; ------
+
+(defn validate
+  "Returns `true` if `value` conforms to `schema`, otherwise `false`."
+  {:example "(validate :int 1) ; => true"
+   :see-also ["explain" "conform"]}
+  [schema value]
+  (v/valid? schema value))
+
+(defn explain
+  "Returns `nil` when `value` conforms to `schema`. On mismatch returns
+  `{:schema schema :value value :errors [...]}` with one error per
+  violation, each carrying `:path`, `:in`, `:schema`, `:value`, `:type`."
+  {:example "(explain :int :oops)"
+   :see-also ["validate" "human-readable-explain"]}
+  [schema value]
+  (e/explain schema value))
+
+(defn human-readable-explain
+  "Renders an `explain` result as a multi-line human string. Returns
+  `nil` for a `nil` input."
+  {:example "(human-readable-explain (explain :int :oops))"
+   :see-also ["explain"]}
+  [result]
+  (e/human-readable-explain result))
+
+(defn coerce
+  "Walks `schema` and coerces string-shaped input into schema-required
+  types. Idempotent for already-typed values."
+  {:example "(coerce :int \"42\") ; => 42"
+   :see-also ["conform" "validate"]}
+  [schema value]
+  (c/coerce schema value))
+
+(defn conform
+  "Coerces `value` against `schema`. Returns the coerced value on
+  success, otherwise `:phel.schema/invalid`."
+  {:example "(conform :int \"42\") ; => 42"
+   :see-also ["coerce" "validate"]}
+  [schema value]
+  (c/conform schema value))
+
+(def invalid-marker
+  "Sentinel returned by `conform` when a value cannot be made to fit a
+  schema."
+  c/invalid-marker)
+
+(defn generate
+  "Generates a single value conforming to `schema`. Accepts `:size` and
+  `:seed` options."
+  {:example "(generate :int)"
+   :see-also ["schema->gen"]}
+  ([schema] (gen/generate schema))
+  ([schema opts] (gen/generate schema opts)))
+
+(defn schema->gen
+  "Returns the `phel\\test\\gen` generator associated with `schema`."
+  {:example "(schema->gen :int)"
+   :see-also ["generate"]}
+  [schema]
+  (gen/schema->gen schema))
+
+;; ------
+;; Registry
+;; ------
+
+(defn register!
+  "Registers `schema` under `name` in the global schema registry."
+  {:example "(register! :email [:and :string [:re \"/@/\"]])"
+   :see-also ["deref-ref" "registered?"]}
+  [name schema]
+  (reg/register! name schema))
+
+(defn unregister!
+  "Removes the schema bound to `name`. Returns `nil`."
+  {:example "(unregister! :email)"
+   :see-also ["register!"]}
+  [name]
+  (reg/unregister! name))
+
+(defn deref-ref
+  "Returns the schema registered under `name`, or `nil`."
+  {:example "(deref-ref :email)"}
+  [name]
+  (reg/deref-ref name))
+
+(defn registered?
+  "Returns `true` if a schema is registered under `name`."
+  {:example "(registered? :email)"}
+  [name]
+  (reg/registered? name))
+
+;; ------
+;; Instrumentation
+;; ------
+
+(defn schema-check?
+  "Returns `true` when runtime validation performed by the instrument
+  helpers is currently enabled."
+  {:example "(schema-check?) ; => true"
+   :see-also ["set-schema-check!" "with-schema-check"]}
+  []
+  (i/schema-check?))
+
+(defn set-schema-check!
+  "Enables (`true`) or disables (`false`) runtime validation. Returns
+  the new value."
+  {:example "(set-schema-check! false)"
+   :see-also ["schema-check?"]}
+  [enabled?]
+  (i/set-schema-check! enabled?))
+
+(defn with-schema-check
+  "Invokes zero-arg thunk `f` with runtime validation forced to
+  `enabled?`. The previous value is restored on return or exception."
+  {:example "(with-schema-check false (fn [] (risky-fn)))"
+   :see-also ["schema-check?"]}
+  [enabled? f]
+  (i/with-schema-check enabled? f))
+
+(defn wrap-with-schema
+  "Wraps `f` so calls validate arguments and return values against the
+  supplied schemas."
+  {:example "(wrap-with-schema add [:int :int] :int)"
+   :see-also ["instrument!"]}
+  [f arg-schema return-schema]
+  (i/wrap-with-schema f arg-schema return-schema))
+
+(defn wrap-with-function-schema
+  "Wraps `f` with the `[:=> args ret]` function schema."
+  {:example "(wrap-with-function-schema add [:=> [:int :int] :int])"
+   :see-also ["wrap-with-schema"]}
+  [f schema]
+  (i/wrap-with-function-schema f schema))
+
+(defn instrument!
+  "Registers `f` wrapped with `schema` under `name`. Returns the wrapped
+  function. The original is preserved so `unstrument!` can restore it."
+  {:example "(instrument! :add add [:=> [:int :int] :int])"
+   :see-also ["unstrument!"]}
+  [name f schema]
+  (i/instrument! name f schema))
+
+(defn unstrument!
+  "Removes the instrumentation registered under `name` and returns the
+  original, unwrapped function (or `nil` if no entry)."
+  {:example "(unstrument! :add)"}
+  [name]
+  (i/unstrument! name))
+
+(defn instrumented?
+  "Returns `true` if `name` is currently instrumented."
+  {:example "(instrumented? :add)"}
+  [name]
+  (i/instrumented? name))

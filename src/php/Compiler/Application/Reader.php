@@ -64,7 +64,7 @@ final class Reader implements ReaderInterface
     public function readExpression(
         NodeInterface $node,
         NodeInterface $root,
-    ): Symbol|float|bool|int|string|TypeInterface|MetaInterface|null {
+    ): mixed {
         if ($node instanceof SymbolNode) {
             return $this->readSymbolNode($node);
         }
@@ -85,12 +85,13 @@ final class Reader implements ReaderInterface
             return $this->readMetaNode($node, $root);
         }
 
-        // Built-in tagged literals (e.g. `#uuid`) are dispatched to a dedicated
-        // reader. Unknown tags throw there; unselected `#?` branches are already
-        // discarded by the parser so their tags never reach this point.
+        // Tagged literals (e.g. `#uuid`, `#inst`, `#regex`, user tags) are
+        // dispatched through the TagRegistry. Unknown tags throw there; unselected
+        // `#?` branches are already discarded by the parser so their tags never
+        // reach this point.
         if ($node instanceof TaggedLiteralNode) {
             return $this->readerFactory
-                ->createTaggedLiteralReader()
+                ->createTaggedLiteralReader($this)
                 ->read($node, $root);
         }
 

@@ -12,6 +12,7 @@ use Phel\Lang\ConcatInterface;
 use Phel\Lang\ConsInterface;
 use Phel\Lang\ContainsInterface;
 use Phel\Lang\FnInterface;
+use Phel\Lang\PopInterface;
 use Phel\Lang\SeqInterface;
 use Phel\Lang\TypeInterface;
 
@@ -23,9 +24,10 @@ use Phel\Lang\TypeInterface;
  * @extends ConsInterface<PersistentListInterface<TValue>>
  * @extends ArrayAccess<int, TValue>
  * @extends ConcatInterface<PersistentListInterface<TValue>>
+ * @extends PopInterface<PersistentListInterface<TValue>>
  * @extends ContainsInterface<int>
  */
-interface PersistentListInterface extends TypeInterface, SeqInterface, IteratorAggregate, Countable, ConsInterface, ArrayAccess, ConcatInterface, FnInterface, ContainsInterface
+interface PersistentListInterface extends TypeInterface, SeqInterface, IteratorAggregate, Countable, ConsInterface, ArrayAccess, ConcatInterface, PopInterface, FnInterface, ContainsInterface
 {
     /**
      * @param TValue $value

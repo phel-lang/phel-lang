@@ -35,3 +35,72 @@
             :when (odd? x)]
            (swap! captured (fn [xs] (push xs x))))
     (is (= [1 3 5] (deref captured)) "doseq Clojure-style with :when modifier")))
+
+(deftest test-doseq-map-destructuring
+  (let [captured (var {})]
+    (doseq [[k v] {:a 0 :b 1}]
+           (swap! captured put k v))
+    (is (= {:a 0 :b 1} (deref captured))
+        "doseq binds [k v] from map entries, Clojure-aligned"))
+  (let [captured (var [])]
+    (doseq [entry {:a 0 :b 1}]
+           (swap! captured (fn [xs] (push xs entry))))
+    (is (= [[:a 0] [:b 1]] (deref captured))
+        "doseq yields [k v] pair vectors when iterating a map"))
+  (let [acc (atom {})]
+    (doseq [[k v] {:a 0 :b 1}]
+      (swap! acc assoc k v))
+    (is (= {:a 0 :b 1} @acc)
+        "doseq [k v] destructuring over a map with (swap! acc assoc k v)")))
+
+(deftest test-doseq-vector-of-vectors-destructuring
+  (let [captured (var [])]
+    (doseq [[a b] [[1 2] [3 4]]]
+           (swap! captured (fn [xs] (push xs (+ a b)))))
+    (is (= [3 7] (deref captured))
+        "doseq destructuring over vector of vectors still iterates elements")))
+
+(deftest test-doseq-map-empty
+  (let [captured (var 0)]
+    (doseq [[_ _] {}]
+           (swap! captured inc))
+    (is (= 0 (deref captured)) "doseq over empty map does not execute body")))
+
+(deftest test-doseq-map-with-when
+  (let [captured (var {})]
+    (doseq [[k v] {:a 1 :b 2 :c 3}
+            :when (odd? v)]
+           (swap! captured put k v))
+    (is (= {:a 1 :c 3} (deref captured))
+        "doseq over map honors :when modifier after destructuring")))
+
+(deftest test-doseq-map-with-let
+  (let [captured (var {})]
+    (doseq [[k v] {:a 1 :b 2}
+            :let [v2 (* v 10)]]
+           (swap! captured put k v2))
+    (is (= {:a 10 :b 20} (deref captured))
+        "doseq over map supports :let over destructured bindings")))
+
+(deftest test-doseq-set-iterates-values
+  (let [captured (var #{})]
+    (doseq [x #{:a :b :c}]
+           (swap! captured (fn [s] (conj s x))))
+    (is (= #{:a :b :c} (deref captured))
+        "doseq over a set still iterates values (not treated as pairs)")))
+
+(deftest test-doseq-nested-map-and-vector
+  (let [captured (var [])]
+    (doseq [[k v] {:a 1 :b 2}
+            i [10 20]]
+           (swap! captured (fn [xs] (push xs [k (+ v i)]))))
+    (is (= [[:a 11] [:a 21] [:b 12] [:b 22]] (deref captured))
+        "doseq supports Clojure-style map destructuring nested with a vector iteration")))
+
+(deftest test-doseq-iterable-helper
+  (is (= [[:a 1] [:b 2]] (doseq-iterable {:a 1 :b 2}))
+      "doseq-iterable expands a map to a sequence of entry pairs")
+  (is (= [1 2 3] (doseq-iterable [1 2 3]))
+      "doseq-iterable returns vectors unchanged")
+  (is (nil? (doseq-iterable nil))
+      "doseq-iterable passes nil through unchanged"))

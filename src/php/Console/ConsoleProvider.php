@@ -6,21 +6,21 @@ namespace Phel\Console;
 
 use Composer\InstalledVersions;
 use Gacela\Framework\AbstractProvider;
+use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
-use Phel\Api\Infrastructure\Command\DocCommand;
-use Phel\Build\Infrastructure\Command\BuildCommand;
-use Phel\Build\Infrastructure\Command\CacheClearCommand;
 use Phel\Console\Application\VersionFinder;
+use Phel\Console\Domain\ConsoleCommandProviderInterface;
+use Phel\Console\Infrastructure\Command\ApiCommands;
+use Phel\Console\Infrastructure\Command\BuildCommands;
+use Phel\Console\Infrastructure\Command\FormatterCommands;
+use Phel\Console\Infrastructure\Command\FrameworkCommands;
+use Phel\Console\Infrastructure\Command\InteropCommands;
+use Phel\Console\Infrastructure\Command\LintCommands;
+use Phel\Console\Infrastructure\Command\LspCommands;
+use Phel\Console\Infrastructure\Command\NreplCommands;
+use Phel\Console\Infrastructure\Command\RunCommands;
+use Phel\Console\Infrastructure\Command\WatchCommands;
 use Phel\Filesystem\FilesystemFacade;
-use Phel\Formatter\Infrastructure\Command\FormatCommand;
-use Phel\Interop\Infrastructure\Command\ExportCommand;
-use Phel\Run\Infrastructure\Command\DoctorCommand;
-use Phel\Run\Infrastructure\Command\EvalCommand;
-use Phel\Run\Infrastructure\Command\InitCommand;
-use Phel\Run\Infrastructure\Command\NsCommand;
-use Phel\Run\Infrastructure\Command\ReplCommand;
-use Phel\Run\Infrastructure\Command\RunCommand;
-use Phel\Run\Infrastructure\Command\TestCommand;
 
 final class ConsoleProvider extends AbstractProvider
 {
@@ -34,47 +34,25 @@ final class ConsoleProvider extends AbstractProvider
 
     private const string PACKAGE_NAME = 'phel-lang/phel-lang';
 
-    public function provideModuleDependencies(Container $container): void
+    #[Provides(self::FACADE_FILESYSTEM)]
+    public function filesystemFacade(Container $container): FilesystemFacade
     {
-        $this->addFilesystemFacade($container);
-        $this->addCommands($container);
-        $this->addVersionInfo($container);
+        return $container->getLocator()->getRequired(FilesystemFacade::class);
     }
 
-    private function addFilesystemFacade(Container $container): void
+    #[Provides(self::COMMANDS)]
+    public function commands(): array
     {
-        $container->set(
-            self::FACADE_FILESYSTEM,
-            static fn(Container $container) => $container->getLocator()->get(FilesystemFacade::class),
-        );
+        $commands = [];
+        foreach ($this->commandProviders() as $provider) {
+            array_push($commands, ...$provider->commands());
+        }
+
+        return $commands;
     }
 
-    private function addCommands(Container $container): void
-    {
-        $container->set(self::COMMANDS, static fn(): array => [
-            new InitCommand(),
-            new ExportCommand(),
-            new FormatCommand(),
-            new NsCommand(),
-            new ReplCommand(),
-            new EvalCommand(),
-            new RunCommand(),
-            new TestCommand(),
-            new DocCommand(),
-            new BuildCommand(),
-            new CacheClearCommand(),
-            new DoctorCommand(),
-        ]);
-    }
-
-    private function addVersionInfo(Container $container): void
-    {
-        $container->set(self::TAG_COMMIT_HASH, $this->resolveTagCommitHash(...));
-
-        $container->set(self::CURRENT_COMMIT, $this->resolveCurrentCommit(...));
-    }
-
-    private function resolveTagCommitHash(): string
+    #[Provides(self::TAG_COMMIT_HASH)]
+    public function tagCommitHash(): string
     {
         $hash = $this->execGitCommand('git rev-list -n 1 ' . VersionFinder::LATEST_VERSION);
         if ($hash !== '') {
@@ -92,7 +70,8 @@ final class ConsoleProvider extends AbstractProvider
         return InstalledVersions::getReference(self::PACKAGE_NAME) ?? '';
     }
 
-    private function resolveCurrentCommit(): string
+    #[Provides(self::CURRENT_COMMIT)]
+    public function currentCommit(): string
     {
         $hash = $this->execGitCommand('git rev-parse --verify HEAD');
         if ($hash !== '') {
@@ -112,5 +91,24 @@ final class ConsoleProvider extends AbstractProvider
         @exec($command . ' 2>/dev/null', $output);
 
         return trim($output[0] ?? '');
+    }
+
+    /**
+     * @return list<ConsoleCommandProviderInterface>
+     */
+    private function commandProviders(): array
+    {
+        return [
+            new RunCommands(),
+            new InteropCommands(),
+            new FormatterCommands(),
+            new ApiCommands(),
+            new BuildCommands(),
+            new FrameworkCommands(),
+            new NreplCommands(),
+            new LintCommands(),
+            new LspCommands(),
+            new WatchCommands(),
+        ];
     }
 }

@@ -160,6 +160,11 @@
             alias   (extract-alias unquoted options)
             refers  (or (:refer options) [])]
         `(require-namespace '~unquoted '~alias '~refers)))))
+  (let [sym     (unquote-sym sym)
+        options (apply hash-map args)
+        alias   (extract-alias sym options)
+        refers  (or (:refer options) [])]
+    `(require-namespace '~sym '~alias '~refers)))
 
 (defn- use-namespace
   [namespace alias]

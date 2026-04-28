@@ -7,14 +7,11 @@ namespace Phel\Lang\Collections\Struct;
 use InvalidArgumentException;
 use Override;
 use Phel;
-use Phel\Compiler\Application\Munge;
-use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\Collections\Map\AbstractPersistentMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\TypeFactory;
-use Phel\Printer\Printer;
 use Traversable;
 
 use function count;
@@ -30,7 +27,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
 {
     protected const array ALLOWED_KEYS = [];
 
-    private MungeInterface $munge;
+    private StructKeyEncoder $keyEncoder;
 
     public function __construct()
     {
@@ -39,7 +36,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
             TypeFactory::getInstance()->getEqualizer(),
             null,
         );
-        $this->munge = new Munge();
+        $this->keyEncoder = new StructKeyEncoder();
     }
 
     public function withMeta(?PersistentMapInterface $meta): static
@@ -51,7 +48,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
 
     public function contains($key): bool
     {
-        return in_array($key->getName(), static::ALLOWED_KEYS);
+        return in_array($key->getName(), static::ALLOWED_KEYS, true);
     }
 
     public function put($key, $value): PersistentMapInterface
@@ -65,11 +62,11 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
 
     public function remove($key): PersistentMapInterface
     {
-        $stringKey = $this->validateKey($key);
+        if (!$this->contains($key)) {
+            return $this;
+        }
 
-        $newInstance = clone $this;
-        $newInstance->{$stringKey} = null;
-        return $newInstance;
+        return $this->toPersistentMapWithout($key);
     }
 
     public function count(): int
@@ -86,7 +83,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
     public function getIterator(): Traversable
     {
         foreach (static::ALLOWED_KEYS as $key) {
-            yield Phel::keyword($key) => $this->{$this->munge->encode($key)};
+            yield Phel::keyword($key) => $this->{$this->keyEncoder->encode($key)};
         }
     }
 
@@ -116,11 +113,26 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
     protected function validateKey(Keyword $key): string
     {
         if (in_array($key->getName(), static::ALLOWED_KEYS)) {
-            return $this->munge->encode($key->getName());
+            return $this->keyEncoder->encode($key->getName());
         }
 
-        $keyName = Printer::nonReadable()->print($key);
         $structName = static::class;
-        throw new InvalidArgumentException(sprintf("This key '%s' is not allowed for struct %s", $keyName, $structName));
+        throw new InvalidArgumentException(sprintf("This key '%s' is not allowed for struct %s", (string) $key, $structName));
+    }
+
+    private function toPersistentMapWithout(Keyword $key): PersistentMapInterface
+    {
+        $kvs = [];
+        foreach (static::ALLOWED_KEYS as $allowedKey) {
+            $entryKey = Phel::keyword($allowedKey);
+            if ($this->equalizer->equals($entryKey, $key)) {
+                continue;
+            }
+
+            $kvs[] = $entryKey;
+            $kvs[] = $this->{$this->keyEncoder->encode($allowedKey)};
+        }
+
+        return TypeFactory::getInstance()->persistentMapFromArray($kvs);
     }
 }

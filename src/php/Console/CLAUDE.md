@@ -15,7 +15,9 @@ CLI application entry point: bootstraps Symfony Console, registers commands, det
 
 ## CLI Commands (registered via Provider)
 
-`InitCommand`, `ExportCommand`, `FormatCommand`, `NsCommand`, `ReplCommand`, `EvalCommand`, `RunCommand`, `TestCommand`, `DocCommand`, `BuildCommand`, `CacheClearCommand`, `DoctorCommand`
+Phel commands: `InitCommand`, `AgentInstallCommand`, `ExportCommand`, `FormatCommand`, `NsCommand`, `ReplCommand`, `EvalCommand`, `RunCommand`, `TestCommand`, `DocCommand`, `BuildCommand`, `CacheClearCommand`, `DoctorCommand`.
+
+Gacela 1.13 commands re-exposed under the `phel` CLI: `CacheWarmCommand`, `DebugContainerCommand`, `DebugDependenciesCommand`, `DebugModulesCommand`, `ListModulesCommand`, `ProfileReportCommand`, `ValidateConfigCommand`.
 
 ## Dependencies
 

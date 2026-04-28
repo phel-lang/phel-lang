@@ -6,9 +6,6 @@ namespace Phel\Lang\Generators;
 
 use Generator;
 
-use function is_string;
-use function mb_str_split;
-
 /**
  * Element-wise transformation generators: map, filter, and their variants.
  *
@@ -35,7 +32,7 @@ final class TransformGenerator
      */
     public static function map(callable $f, mixed $iterable): Generator
     {
-        foreach (self::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::toIterable($iterable) as $value) {
             yield $f($value);
         }
     }
@@ -56,7 +53,7 @@ final class TransformGenerator
      */
     public static function filter(callable $predicate, mixed $iterable): Generator
     {
-        foreach (self::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::toIterable($iterable) as $value) {
             if ($predicate($value)) {
                 yield $value;
             }
@@ -81,7 +78,7 @@ final class TransformGenerator
      */
     public static function keep(callable $f, mixed $iterable): Generator
     {
-        foreach (self::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::toIterable($iterable) as $value) {
             $result = $f($value);
             if ($result !== null) {
                 yield $result;
@@ -106,14 +103,11 @@ final class TransformGenerator
      */
     public static function keepIndexed(callable $f, mixed $iterable): Generator
     {
-        $index = 0;
-        foreach (self::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::indexed($iterable) as [$index, $value]) {
             $result = $f($index, $value);
             if ($result !== null) {
                 yield $result;
             }
-
-            ++$index;
         }
     }
 
@@ -145,7 +139,7 @@ final class TransformGenerator
      */
     public static function mapcat(callable $f, mixed $iterable): Generator
     {
-        foreach (self::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::toIterable($iterable) as $value) {
             $result = $f($value);
 
             // Skip null results - they contribute nothing to concatenation
@@ -153,7 +147,7 @@ final class TransformGenerator
                 continue;
             }
 
-            foreach (self::toIterable($result) as $item) {
+            foreach (SequenceGenerator::toIterable($result) as $item) {
                 yield $item;
             }
         }
@@ -177,26 +171,8 @@ final class TransformGenerator
      */
     public static function mapIndexed(callable $f, mixed $iterable): Generator
     {
-        $index = 0;
-        foreach (self::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::indexed($iterable) as [$index, $value]) {
             yield $f($index, $value);
-            ++$index;
         }
-    }
-
-    /**
-     * @template T
-     *
-     * @param iterable<T>|string|null $value
-     *
-     * @return iterable<string|T>
-     */
-    private static function toIterable(mixed $value): iterable
-    {
-        if (is_string($value)) {
-            return mb_str_split($value);
-        }
-
-        return $value ?? [];
     }
 }

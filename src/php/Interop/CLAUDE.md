@@ -6,7 +6,7 @@ PHP-Phel interoperability: generates PHP wrapper classes for Phel functions mark
 
 - **Facade**: `InteropFacade` implements `InteropFacadeInterface`
 - **Factory**: `InteropFactory` extends `AbstractFactory<InteropConfig>`
-- **Config**: `InteropConfig` — export dirs (`src/phel`), namespace prefix (`PhelGenerated`), target dir (`src/PhelGenerated`)
+- **Config**: `InteropConfig` — export dirs (`src`), namespace prefix (`PhelGenerated`), target dir (`src/PhelGenerated`)
 - **Provider**: `InteropProvider` — injects `CommandFacade` (`FACADE_COMMAND`) and `BuildFacade` (`FACADE_BUILD`)
 
 ## Public API (Facade)

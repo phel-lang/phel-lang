@@ -429,6 +429,24 @@ EOF
     assert_not_contains "v0.27.0" "$result"
 }
 
+function test_update_agents_version() {
+    local agents_version_file="$TEMP_DIR/VERSION"
+    echo "0.27.0" > "$agents_version_file"
+
+    update_agents_version "0.28.0" "$agents_version_file"
+
+    assert_equals "0.28.0" "$(cat "$agents_version_file")"
+}
+
+function test_update_agents_version_creates_file() {
+    local agents_version_file="$TEMP_DIR/VERSION"
+
+    update_agents_version "0.29.0" "$agents_version_file"
+
+    assert_file_exists "$agents_version_file"
+    assert_equals "0.29.0" "$(cat "$agents_version_file")"
+}
+
 function test_update_changelog() {
     local changelog_file="$TEMP_DIR/CHANGELOG.md"
     cat > "$changelog_file" << 'EOF'
@@ -547,6 +565,50 @@ function test_create_backup() {
     assert_file_exists "$backup_dir/CHANGELOG.md"
     assert_equals "version content" "$(cat "$backup_dir/VersionFinder.php")"
     assert_equals "changelog content" "$(cat "$backup_dir/CHANGELOG.md")"
+}
+
+function test_create_backup_variadic() {
+    local backup_dir="$TEMP_DIR/backup"
+    mkdir -p "$backup_dir"
+
+    local version_file="$TEMP_DIR/VersionFinder.php"
+    local changelog_file="$TEMP_DIR/CHANGELOG.md"
+    local agents_version_file="$TEMP_DIR/VERSION"
+    echo "version content" > "$version_file"
+    echo "changelog content" > "$changelog_file"
+    echo "0.27.0" > "$agents_version_file"
+
+    create_backup "$backup_dir" "$version_file" "$changelog_file" "$agents_version_file"
+
+    assert_file_exists "$backup_dir/VersionFinder.php"
+    assert_file_exists "$backup_dir/CHANGELOG.md"
+    assert_file_exists "$backup_dir/VERSION"
+    assert_equals "0.27.0" "$(cat "$backup_dir/VERSION")"
+}
+
+function test_restore_backup_variadic() {
+    local backup_dir="$TEMP_DIR/backup"
+    mkdir -p "$backup_dir"
+
+    local version_file="$TEMP_DIR/VersionFinder.php"
+    local changelog_file="$TEMP_DIR/CHANGELOG.md"
+    local agents_version_file="$TEMP_DIR/VERSION"
+
+    echo "original version" > "$version_file"
+    echo "original changelog" > "$changelog_file"
+    echo "0.27.0" > "$agents_version_file"
+
+    create_backup "$backup_dir" "$version_file" "$changelog_file" "$agents_version_file"
+
+    echo "modified" > "$version_file"
+    echo "modified" > "$changelog_file"
+    echo "0.99.0" > "$agents_version_file"
+
+    restore_backup "$backup_dir" "$version_file" "$changelog_file" "$agents_version_file"
+
+    assert_equals "original version" "$(cat "$version_file")"
+    assert_equals "original changelog" "$(cat "$changelog_file")"
+    assert_equals "0.27.0" "$(cat "$agents_version_file")"
 }
 
 function test_restore_backup() {

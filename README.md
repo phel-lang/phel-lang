@@ -23,7 +23,7 @@
 
 ---
 
-Phel is a functional, [Lisp](https://en.wikipedia.org/wiki/Lisp_(programming_language))-inspired programming language that compiles to PHP. It brings the expressive power of [Clojure](https://clojure.org/) and the simplicity of [Janet](https://janet-lang.org/) to the PHP ecosystem — enabling you to write concise, immutable, and composable code that runs anywhere PHP does.
+Functional, Lisp-inspired language that compiles to PHP. Macros, persistent data structures, and expressive functional idioms for the PHP ecosystem.
 
 #### Example
 <!--
@@ -31,103 +31,155 @@ using "clojure" here is just for the md coloring
 we should use "phel" once GitHub accept phel coloring too
 -->
 ```clojure
-; Define a namespace
 (ns my\example)
 
-; Define a variable with name "my-name" and value "world"
-(def my-name "world")
+(defn greet [name] (str "Hello, " name "!"))
 
-; Define a function with name "print-name" and one argument "your-name"
-(defn print-name [your-name]
-  (print "hello" your-name))
-
-; Call the function
-(print-name my-name)
+(println (greet "Phel"))
+;; => Hello, Phel!
 ```
+
+<details>
+<summary><b>More examples →</b></summary>
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+**Data pipeline**
+
+```clojure
+(def users
+  [{:name "Ada" :age 36}
+   {:name "Bob" :age 17}
+   {:name "Cam" :age 41}])
+
+(->> users
+     (filter #(>= (:age %) 18))
+     (map :name)
+     sort)
+;; => ["Ada" "Cam"]
+```
+
+</td>
+<td width="50%" valign="top">
+
+**HTTP response**
+
+```clojure
+(ns app (:require phel\http :as h))
+
+(def req (h/request-from-globals))
+
+(h/emit-response
+  (h/response-from-map
+    {:status 200
+     :headers {"Content-Type" "text/plain"}
+     :body (str "Hello " (:uri req))}))
+```
+
+</td>
+</tr>
+<tr>
+<td valign="top">
+
+**Macros**
+
+```clojure
+(defmacro unless [pred & body]
+  `(if (not ,pred)
+     (do ,@body)))
+
+(unless (zero? 1)
+  (println "not zero"))
+;; => not zero
+
+(unless false (println "ok"))
+;; => ok
+```
+
+</td>
+<td valign="top">
+
+**PHP interop**
+
+```clojure
+(ns app)
+
+(def now (php/new \DateTime))
+(.format now "Y-m-d")
+;; => "2026-04-20"
+
+(def epoch (php/new \DateTime "1970-01-01"))
+(.-days (.diff now epoch))
+;; => 20564
+```
+
+</td>
+</tr>
+</table>
+</details>
 
 ## Getting Started
 
-Install Phel in any PHP project and scaffold a ready-to-run app in under a minute:
+Install and scaffold in under a minute:
 
 ```sh
 composer require phel-lang/phel-lang
 ./vendor/bin/phel init
 ```
 
-That creates `phel-config.php`, `src/phel/main.phel`, and a matching `tests/phel/main_test.phel`. Then:
+Creates `phel-config.php`, `src/phel/main.phel`, `tests/phel/main_test.phel`. Then:
 
 ```sh
-./vendor/bin/phel run src/phel/main.phel   # run your code
-./vendor/bin/phel test                     # run the tests
-./vendor/bin/phel repl                     # poke at it interactively
+./vendor/bin/phel run src/phel/main.phel   # run
+./vendor/bin/phel test                     # tests
+./vendor/bin/phel repl                     # interactive
 ./vendor/bin/phel build                    # compile to PHP for production
 ```
 
-For a single-file experiment or scratch project, use the root layout:
+Inline snippets or shell pipelines via `phel eval`:
 
 ```sh
-./vendor/bin/phel init --minimal
+./vendor/bin/phel eval '(+ 1 2)'           # prints 3
+echo '(println "hi")' | ./vendor/bin/phel eval -
+./vendor/bin/phel eval - < script.phel
 ```
 
-You get a single `main.phel` + `main_test.phel` + a one-line `phel-config.php` at the repo root, no subdirectories.
+Single-file scratch layout: `./vendor/bin/phel init --minimal` (no subdirectories).
 
 ## Documentation
 
-### Getting Started
-- [Quick Start Tutorial](docs/quickstart.md)
-  Get up and running in 5 minutes with your first Phel application.
-- [Installation](https://phel-lang.org/documentation/getting-started/)
-  Detailed installation guide and project setup.
+**Start here**
+- [Quick Start](docs/quickstart.md) — 5-minute tutorial
+- [Installation](https://phel-lang.org/documentation/getting-started/) — full setup guide
+- [phel-lang.org](https://phel-lang.org) — tutorials, exercises, blog
 
-### Learning Resources
-- [Clojure Migration Guide](docs/clojure-migration.md)
-  Coming from Clojure? Key differences, interop cheat sheet, and what's the same.
-- [Common Patterns](docs/patterns.md)
-  Idiomatic Phel code patterns for everyday tasks.
+**Guides**
+- [Clojure Migration](docs/clojure-migration.md) — differences, interop cheat sheet
+- [Common Patterns](docs/patterns.md) — everyday idioms
 - [PHP/Phel Interop](docs/php-interop.md)
-  Complete guide to working between PHP and Phel code.
-- [Reader Shortcuts](docs/reader-shortcuts.md)
-  Reference for all special syntax and reader macros.
-- [Reader Conditionals](docs/reader-conditionals.md)
-  Cross-platform code with `#?()`, `#?@()`, and `.cljc` files.
-- [Transducers](docs/transducers.md)
-  Composable transformation pipelines without intermediate collections.
-- [Data Structures](docs/data-structures-guide.md)
-  Guide to Phel's persistent, immutable collections.
-- [Lazy Sequences](docs/lazy-sequences.md)
-  Performance patterns and common pitfalls.
-- [Mocking Guide](docs/mocking-guide.md)
-  Testing with mocks and test doubles.
-- [Examples](docs/examples/README.md)
-  Runnable code samples covering key features.
+- [Reader Shortcuts](docs/reader-shortcuts.md) · [Reader Conditionals](docs/reader-conditionals.md)
+- [Transducers](docs/transducers.md) · [Data Structures](docs/data-structures-guide.md) · [Lazy Sequences](docs/lazy-sequences.md)
+- [Mocking](docs/mocking-guide.md) · [Examples](docs/examples/README.md) · [Performance](docs/performance.md)
 
-### Reference
-- [Website](https://phel-lang.org)
-  Official website with tutorials, exercises, and blog posts.
-- [Packagist](https://packagist.org/packages/phel-lang/phel-lang)
-  Official PHP package repository.
-- [Internals](docs/internals/compiler.md)
-  Deep dive into the compiler architecture.
+**Reference**
+- [Compiler Internals](docs/internals/compiler.md)
 - [Repository Guidelines](AGENTS.md)
-  Project structure, modules, build commands, and review expectations.
+- [Packagist](https://packagist.org/packages/phel-lang/phel-lang)
+
+**AI coding agents**
+- [resources/agents/](resources/agents/README.md) — Claude Code, Cursor, Codex, Gemini, Copilot, Aider
+- `./vendor/bin/phel agent-install [platform] [--all]` — install skill file for your agent
 
 ## Build PHAR
-
-Run the following command to create a standalone PHAR executable:
 
 ```sh
 ./build/phar.sh
 ```
 
-The generated `build/out/phel.phar` can then be executed directly.
+Produces `build/out/phel.phar`.
 
 ## Contribute
 
-| Resource | What's there |
-|----------|-------------|
-| [CONTRIBUTING.md](.github/CONTRIBUTING.md) | Setup, workflow, testing, and PR guidelines |
-| [Repository Guidelines](AGENTS.md) | Architecture, modules, build commands, review expectations |
-| [docs/](docs/) | Guides, examples, and compiler internals |
-| [phel-lang.org](https://phel-lang.org) | Tutorials, exercises, and blog posts |
-
-New here? Start with [CONTRIBUTING.md](.github/CONTRIBUTING.md) — it explains the two-language codebase and has a "Where to Start" section based on your interests.
+New here? Start with [CONTRIBUTING.md](.github/CONTRIBUTING.md) — setup, workflow, "Where to Start". See [AGENTS.md](AGENTS.md) for architecture and review expectations.

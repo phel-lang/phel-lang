@@ -11,6 +11,7 @@ use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
+use Phel\Lang\SeqInterface;
 use RuntimeException;
 use Traversable;
 
@@ -69,7 +70,22 @@ final class EmptyList extends AbstractType implements PersistentListInterface
 
     public function equals(mixed $other): bool
     {
-        return $other instanceof self;
+        if ($other instanceof self) {
+            return true;
+        }
+
+        // Any empty sequential collection (vector, lazy seq, …) compares equal
+        // to the empty list. Maps and sets don't implement SeqInterface so
+        // they're excluded even when empty.
+        if (!$other instanceof SeqInterface || !$other instanceof Traversable) {
+            return false;
+        }
+
+        foreach ($other as $ignored) {
+            return false;
+        }
+
+        return true;
     }
 
     public function hash(): int

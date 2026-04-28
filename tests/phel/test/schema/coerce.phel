@@ -1,0 +1,103 @@
+(ns phel-test\test\schema\coerce
+  (:require phel\test :refer [deftest is testing])
+  (:require phel\schema :as s))
+
+;; Type coercion — converting HTTP-style string input to schema-required types.
+
+(deftest test-coerce-int
+  (is (= 42 (s/coerce :int "42")))
+  (is (= -7 (s/coerce :int "-7")))
+  (is (= 1 (s/coerce :int true)))
+  (is (= 0 (s/coerce :int false)))
+  (is (= 5 (s/coerce :int 5)))
+  (is (= "abc" (s/coerce :int "abc")) "non-numeric string passes through"))
+
+(deftest test-coerce-float
+  (is (= 1.5 (s/coerce :float "1.5")))
+  (is (= 3.0 (s/coerce :float "3")))
+  (is (= 2.5 (s/coerce :float 2.5))))
+
+(deftest test-coerce-boolean
+  (is (= true (s/coerce :boolean "true")))
+  (is (= false (s/coerce :boolean "false")))
+  (is (= true (s/coerce :boolean "1")))
+  (is (= false (s/coerce :boolean "0")))
+  (is (= true (s/coerce :boolean "yes")))
+  (is (= false (s/coerce :boolean "no")))
+  (is (= true (s/coerce :boolean true)))
+  (is (= true (s/coerce :boolean 1)))
+  (is (= false (s/coerce :boolean 0))))
+
+(deftest test-coerce-keyword
+  (is (= :abc (s/coerce :keyword "abc")))
+  (is (= :x (s/coerce :keyword :x))))
+
+(deftest test-coerce-symbol
+  (is (= 'abc (s/coerce :symbol "abc")))
+  (is (= 'x (s/coerce :symbol :x))))
+
+(deftest test-coerce-uuid
+  (is (= "550e8400-e29b-41d4-a716-446655440000"
+         (s/coerce :uuid "550E8400-E29B-41D4-A716-446655440000"))
+      "lowercases a UUID"))
+
+(deftest test-coerce-inst-string-to-datetime
+  (let [v (s/coerce :inst "2026-04-20T12:00:00Z")]
+    (is (= true (php/instanceof v \DateTimeInterface)))))
+
+(deftest test-coerce-inst-int-epoch
+  (let [v (s/coerce :inst 1000000)]
+    (is (= true (php/instanceof v \DateTimeInterface)))))
+
+(deftest test-coerce-string
+  (is (= "42" (s/coerce :string 42)))
+  (is (= "1.5" (s/coerce :string 1.5)))
+  (is (= "true" (s/coerce :string true)))
+  (is (= "abc" (s/coerce :string :abc))))
+
+(deftest test-coerce-collection
+  (is (= [1 2 3] (s/coerce [:vector :int] ["1" "2" "3"])))
+  (is (= (hash-set 1 2) (s/coerce [:set :int] (hash-set "1" "2"))))
+  (is (= {:a 1 :b 2} (s/coerce [:map-of :keyword :int] {"a" "1" "b" "2"}))))
+
+(deftest test-coerce-tuple
+  (is (= [1 "a"] (s/coerce [:tuple :int :string] ["1" "a"]))))
+
+(deftest test-coerce-map
+  (is (= {:id 1 :name "Alice"}
+         (s/coerce [:map [:id :int] [:name :string]]
+                   {:id "1" :name "Alice"}))))
+
+(deftest test-coerce-idempotent-already-typed
+  (is (= 42 (s/coerce :int 42)))
+  (is (= [1 2] (s/coerce [:vector :int] [1 2]))))
+
+(deftest test-conform-returns-value-or-invalid
+  (is (= 42 (s/conform :int "42")))
+  (is (= s/invalid-marker (s/conform :int "abc")))
+  (is (= {:id 1} (s/conform [:map [:id :int]] {:id "1"}))))
+
+(deftest test-coerce-maybe
+  (is (= nil (s/coerce [:maybe :int] nil)))
+  (is (= 5 (s/coerce [:maybe :int] "5"))))
+
+(deftest test-coerce-unknown-head-passes-through-unchanged
+  (is (= "42" (s/coerce :no-such-head "42")))
+  (is (= "42" (s/coerce [:no-such-head] "42"))))
+
+(deftest test-coerce-through-registered-schema
+  (s/register! :price :int)
+  (is (= 7 (s/coerce :price "7")))
+  (is (= 7 (s/coerce [:ref :price] "7")))
+  (s/unregister! :price))
+
+(deftest test-coerce-map-preserves-non-schema-entries
+  (let [result (s/coerce [:map [:id :int]]
+                         {:id "1" :extra "unchanged"})]
+    (is (= 1 (get result :id)))
+    (is (= "unchanged" (get result :extra))))
+  "undeclared keys stay intact so the caller can validate shape separately")
+
+(deftest test-coerce-non-schema-input-is-identity
+  (is (= 42 (s/coerce 99 42)) "numeric schema shape returns value as-is")
+  (is (= "x" (s/coerce "schema-string" "x"))))

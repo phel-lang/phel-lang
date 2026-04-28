@@ -40,7 +40,7 @@ final class RecurSymbolTest extends TestCase
         $list = Phel::list([Symbol::create('unknown')]);
         $env = NodeEnvironment::empty();
 
-        (new RecurSymbol($this->analyzer))->analyze($list, $env);
+        new RecurSymbol($this->analyzer)->analyze($list, $env);
     }
 
     public function test_missing_frame(): void

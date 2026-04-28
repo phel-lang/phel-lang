@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Build\Infrastructure\Command;
 
+use Gacela\Console\Infrastructure\Command\CacheClearCommand as GacelaCacheClearCommand;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Build\BuildFacade;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -28,6 +30,11 @@ final class CacheClearCommand extends Command
 
         foreach ($clearedPaths as $path) {
             $output->writeln('Cleared: ' . $path);
+        }
+
+        $gacelaStatus = new GacelaCacheClearCommand()->run(new ArrayInput([]), $output);
+        if ($gacelaStatus !== Command::SUCCESS) {
+            return $gacelaStatus;
         }
 
         $output->writeln('<info>Cache cleared successfully.</info>');

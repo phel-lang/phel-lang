@@ -56,7 +56,7 @@ Core compilation pipeline: Phel source -> tokens -> AST -> analyzed nodes -> PHP
 
 ```
 Compiler/
-├── Application/        Analyzer, CodeCompiler, EvalCompiler, Lexer, Parser, Reader, MacroExpander, Munge
+├── Application/        Analyzer, CodeCompiler, EvalCompiler, GlobalEnvironmentManager, Lexer, Parser, Reader, MacroExpander, Munge
 ├── Domain/
 │   ├── Analyzer/       AST nodes, special form handlers, environments
 │   ├── Compiler/       CodeCompilerInterface, EvalCompilerInterface

@@ -48,15 +48,17 @@ Runtime execution: runs Phel namespaces/files, REPL, evaluation, testing, and al
 
 ```
 Run/
-├── Application/        EvalExecutor, NamespaceLoader, NamespaceRunner, NamespacesLoader
+├── Application/        EntryPointDetector, EvalExecutor, FileRunner, NamespaceLoader, NamespaceRunner, NamespacesLoader, StructuredEvaluator
 ├── Domain/
 │   ├── Init/           NamespaceNormalizer, ProjectTemplateGenerator
-│   ├── Repl/           EvalResult, EvalError, ReplCommandIoInterface, startup.phel
+│   ├── Repl/           EvalResult, EvalError, ReplCommandIoInterface, ReplHistory, ReplPrompt, startup.phel
 │   ├── Runner/         NamespaceCollector, NamespaceRunnerInterface
-│   └── Test/           TestCommandOptions, CannotFindAnyTestsException
+│   ├── Test/           TestCommandOptions, CannotFindAnyTestsException
+│   └── StdinReaderInterface
 ├── Infrastructure/
-│   ├── Command/        DoctorCommand, EvalCommand, InitCommand, NsCommand, ReplCommand, RunCommand, TestCommand
-│   └── Service/        DebugLineTap
+│   ├── Command/        AgentInstallCommand, DoctorCommand, EvalCommand, InitCommand, NsCommand, ReplCommand, RunCommand, TestCommand
+│   ├── Service/        DebugLineTap
+│   └── PhpStdinReader
 └── Gacela files        RunFacade, RunFactory, RunConfig, RunProvider
 ```
 
@@ -65,5 +67,7 @@ Run/
 - `EvalResult` uses static constructors: `success()`, `incomplete()`, `failure()` — never throws
 - REPL supports environment snapshot/restore on eval failure
 - `ReplCommandSystemIo` requires PHP `readline` extension; falls back to `ReplCommandFallbackIo`
+- `ReplHistory` registers `*1`/`*2`/`*3`/`*e` in `phel\core` after REPL boot; updates on every eval/exception
+- `ReplPrompt` reads `GlobalEnvironmentSingleton::getNs()` to render the current namespace in the prompt
 - `NamespaceRunner` resolves full dependency tree before executing
 - This is the **most connected module** — depends on 7 other modules via Provider

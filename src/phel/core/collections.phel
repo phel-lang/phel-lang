@@ -1,0 +1,50 @@
+(in-ns phel.core)
+
+(use Phel)
+
+;; Persistent collection constructors. Hash and sorted variants for both
+;; maps and sets: `hash-set`, `sorted-map`, `sorted-map-by`, `sorted-set`,
+;; `sorted-set-by`. Thin wrappers around `Phel\Lang\Collections` factories —
+;; `hash-map` / `array-map` / `list` / `vector` live in core.phel itself
+;; because they are needed by the bootstrap primitives.
+
+;; ------------------
+;; Basic constructors
+;; ------------------
+
+(defn hash-set
+  "Creates a new Set from the given arguments. Shortcut: #{}"
+  {:example "(hash-set 1 2 3) ; => #{1 2 3}"}
+  [& xs]
+  (php/:: Phel (set (apply php/array xs))))
+
+(defn sorted-map
+  "Creates a new sorted map. Keys are in natural sorted order.
+  The number of parameters must be even."
+  {:example "(sorted-map :c 3 :a 1 :b 2) ; keys iterate as :a :b :c"
+   :see-also ["sorted-map-by" "hash-map"]}
+  [& xs]
+  (php/:: Phel (sortedMap (apply php/array xs))))
+
+(defn sorted-map-by
+  "Creates a new sorted map using the given comparator for key ordering.
+  The comparator takes two arguments and returns a negative integer,
+  zero, or a positive integer."
+  {:example "(sorted-map-by (fn [a b] (compare b a)) :a 1 :b 2) ; keys iterate as :b :a"
+   :see-also ["sorted-map" "compare"]}
+  [comp & xs]
+  (php/:: Phel (sortedMapBy comp (apply php/array xs))))
+
+(defn sorted-set
+  "Creates a new sorted set. Elements are in natural sorted order."
+  {:example "(sorted-set 3 1 2) ; iterates as 1 2 3"
+   :see-also ["sorted-set-by" "hash-set"]}
+  [& xs]
+  (php/:: Phel (sortedSet (apply php/array xs))))
+
+(defn sorted-set-by
+  "Creates a new sorted set using the given comparator for element ordering."
+  {:example "(sorted-set-by (fn [a b] (compare b a)) 3 1 2) ; iterates as 3 2 1"
+   :see-also ["sorted-set" "compare"]}
+  [comp & xs]
+  (php/:: Phel (sortedSetBy comp (apply php/array xs))))

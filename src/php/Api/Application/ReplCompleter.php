@@ -13,8 +13,6 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\FnInterface;
 use Phel\Lang\Keyword;
 
-use function get_declared_classes;
-use function get_defined_functions;
 use function str_starts_with;
 use function trim;
 
@@ -23,13 +21,9 @@ use function trim;
  */
 final class ReplCompleter implements ReplCompleterInterface
 {
-    private static bool $loaded = false;
+    private bool $phelFunctionsLoaded = false;
 
-    /** @var list<string> */
-    private static array $phpFunctions = [];
-
-    /** @var list<string> */
-    private static array $phpClasses = [];
+    private readonly PhpSymbolCatalog $phpSymbols;
 
     /**
      * @param list<string> $allNamespaces
@@ -38,7 +32,10 @@ final class ReplCompleter implements ReplCompleterInterface
         private readonly PhelFnLoaderInterface $phelFnLoader,
         private readonly array $allNamespaces = [],
         private readonly ?GlobalEnvironmentInterface $globalEnvironment = null,
-    ) {}
+        ?PhpSymbolCatalog $phpSymbols = null,
+    ) {
+        $this->phpSymbols = $phpSymbols ?? new PhpSymbolCatalog();
+    }
 
     /**
      * Complete input from either PHP or Phel context.
@@ -62,9 +59,9 @@ final class ReplCompleter implements ReplCompleterInterface
      */
     public function completeWithTypes(string $input): array
     {
-        if (!self::$loaded) {
+        if (!$this->phelFunctionsLoaded) {
             $this->phelFnLoader->loadAllPhelFunctions($this->allNamespaces);
-            self::$loaded = true;
+            $this->phelFunctionsLoaded = true;
         }
 
         $input = trim($input);
@@ -86,23 +83,15 @@ final class ReplCompleter implements ReplCompleterInterface
      */
     private function completePhpSymbolsWithTypes(string $prefix): array
     {
-        if (self::$phpFunctions === []) {
-            self::$phpFunctions = get_defined_functions()['internal'];
-        }
-
-        if (self::$phpClasses === []) {
-            self::$phpClasses = get_declared_classes();
-        }
-
         $matches = [];
 
-        foreach (self::$phpFunctions as $fn) {
+        foreach ($this->phpSymbols->functions() as $fn) {
             if (str_starts_with($fn, $prefix)) {
                 $matches[] = new CompletionResultTransfer('php/' . $fn, 'php-function');
             }
         }
 
-        foreach (self::$phpClasses as $class) {
+        foreach ($this->phpSymbols->classes() as $class) {
             if (str_starts_with($class, $prefix)) {
                 $matches[] = new CompletionResultTransfer('php/' . $class, 'class');
             }

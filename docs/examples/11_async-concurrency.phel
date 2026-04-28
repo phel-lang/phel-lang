@@ -1,5 +1,5 @@
 (ns examples\async-concurrency
-  (:require phel\async :refer [async await await-all delay]))
+  (:require phel\async :refer [delay]))
 
 ;; Async concurrency with Phel and AMPHP (amphp/amp).
 ;; Run: ./bin/phel run docs/examples/11_async-concurrency.phel
@@ -37,7 +37,7 @@
 (println)
 (println "--- Race: first to respond wins ---")
 
-(let [winner (phel\async/await-any
+(let [winner (await-any
                [(fetch-data "server-eu" 70)
                 (fetch-data "server-us" 30)
                 (fetch-data "server-asia" 50)])]
@@ -55,6 +55,40 @@
     (await risky)
     (catch \RuntimeException e
       (println "  Caught:" (php/-> e (getMessage))))))
+
+;; --- 5. Promise handoff (fiber layer) ---
+
+(println)
+(println "--- Promise handoff (fiber layer) ---")
+
+(let [p (promise)]
+  ;; Producer: fiber computes a value, then hands it off via deliver.
+  (future-call (fn []
+                 (deliver p {:user-id 42 :name "Ada"})))
+  ;; Consumer: block on the promise; returns once the producer delivers.
+  (let [msg @p]
+    (println "  Received:" msg)))
+
+;; --- 6. Top-level future-fiber ---
+
+(println)
+(println "--- Top-level future-fiber ---")
+
+;; Works without an enclosing `async` block; no event loop required.
+(let [sum @(future-fiber
+             (apply + (range 1 11)))]
+  (println "  Sum 1..10:" sum))
+
+;; --- 7. Timeout via 3-arg deref ---
+
+(println)
+(println "--- Timeout via 3-arg deref ---")
+
+;; `deref` with (deref x timeout-ms timeout-val) returns the fallback
+;; value when the deadline elapses instead of raising.
+(let [p (promise)
+      result (deref p 20 :timed-out)]
+  (println "  Result:" result))
 
 (println)
 (println "Done!")

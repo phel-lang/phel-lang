@@ -19,6 +19,6 @@ final class FnPrinterTest extends TestCase
             }
         };
 
-        self::assertSame('<function>', (new FnPrinter())->print($class));
+        self::assertSame('<function>', new FnPrinter()->print($class));
     }
 }

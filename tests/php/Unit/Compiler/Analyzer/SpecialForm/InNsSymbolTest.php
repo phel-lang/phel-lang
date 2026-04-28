@@ -8,12 +8,14 @@ use Generator;
 use Phel;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\Ast\InNsNode;
+use Phel\Compiler\Domain\Analyzer\Environment\BackslashSeparatorDeprecator;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\InNsSymbol;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Registry;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
 use Phel\Shared\ReplConstants;
@@ -253,9 +255,83 @@ final class InNsSymbolTest extends TestCase
         self::assertEmpty($refers, 'No refers should be injected when not in REPL mode');
     }
 
+    public function test_backslash_in_ns_form_emits_deprecation(): void
+    {
+        $captured = [];
+        $this->installCapturingDeprecator($captured);
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_IN_NS),
+            $this->locatedSymbol('my\\project', '/app/user.phel'),
+        ]);
+        new InNsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+
+        self::assertCount(1, $captured);
+        self::assertStringContainsString("'my\\project'", $captured[0]);
+        self::assertStringContainsString("'my.project'", $captured[0]);
+
+        BackslashSeparatorDeprecator::resetInstance();
+    }
+
+    public function test_dot_in_ns_form_emits_no_deprecation(): void
+    {
+        $captured = [];
+        $this->installCapturingDeprecator($captured);
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_IN_NS),
+            $this->locatedSymbol('my.project', '/app/user.phel'),
+        ]);
+        new InNsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+
+        self::assertSame([], $captured);
+
+        BackslashSeparatorDeprecator::resetInstance();
+    }
+
+    public function test_backslash_string_in_ns_form_emits_deprecation(): void
+    {
+        $captured = [];
+        $this->installCapturingDeprecator($captured);
+
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_IN_NS),
+            'my\\project',
+        ]);
+        $list->setStartLocation(new SourceLocation('/app/user.phel', 1, 1));
+        new InNsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+
+        self::assertCount(1, $captured);
+        self::assertStringContainsString("'my\\project'", $captured[0]);
+        self::assertStringContainsString("'my.project'", $captured[0]);
+
+        BackslashSeparatorDeprecator::resetInstance();
+    }
+
+    /**
+     * @param list<string> $captured
+     */
+    private function installCapturingDeprecator(array &$captured): void
+    {
+        BackslashSeparatorDeprecator::useInstance(new BackslashSeparatorDeprecator(
+            enabled: true,
+            emitter: static function (string $msg) use (&$captured): void {
+                $captured[] = $msg;
+            },
+        ));
+    }
+
+    private function locatedSymbol(string $name, string $file): Symbol
+    {
+        $symbol = Symbol::create($name);
+        $symbol->setStartLocation(new SourceLocation($file, 1, 1));
+
+        return $symbol;
+    }
+
     private function analyze(PersistentListInterface $list): InNsNode
     {
-        return (new InNsSymbol($this->analyzer))->analyze($list, NodeEnvironment::empty());
+        return new InNsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
     }
 
     private function getGlobalEnvironment(): GlobalEnvironment

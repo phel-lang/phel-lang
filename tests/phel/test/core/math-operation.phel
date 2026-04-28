@@ -23,6 +23,12 @@
   (is (= 2 (/ 4 2)) "/ two arguments")
   (is (= 2 (/ 16 4 2)) "/ three arguments"))
 
+(deftest test-special-floating-point-division-by-zero
+  (is (= ##Inf (/ ##Inf 0)) "##Inf divided by zero remains ##Inf")
+  (is (= ##-Inf (/ ##-Inf 0)) "##-Inf divided by zero remains ##-Inf")
+  (is (NaN? (/ ##NaN 0)) "##NaN divided by zero remains ##NaN")
+  (is (thrown? \DivisionByZeroError (/ 1 0)) "finite division by zero still throws"))
+
 (deftest test-%
   (is (= 0 (% 10 2)) "10 % 2")
   (is (= 1 (% 11 2)) "11 % 2"))
@@ -112,6 +118,9 @@
 
 (deftest test-max
   (is (= 3 (max 1 2 3)) "(max 1 2 3)"))
+
+(deftest test-rand-nth-on-nil
+  (is (nil? (rand-nth nil)) "(rand-nth nil)"))
 
 (deftest test-min-key
   (is (= {:a 1} (min-key :a {:a 1} {:a 3} {:a 2}))

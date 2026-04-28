@@ -41,15 +41,35 @@ final class Registry
         $this->definitionsMetaData = [];
     }
 
-    public function addDefinition(string $ns, string $name, mixed $value, ?PersistentMapInterface $metaData = null): void
+    public function addDefinition(string $ns, string $name, mixed $value, ?PersistentMapInterface $metaData = null): VarReference
     {
         $this->definitions[$ns][$name] = $value;
         $this->definitionsMetaData[$ns][$name] = $metaData;
+
+        return new VarReference($ns, $name);
     }
 
     public function hasDefinition(string $ns, string $name): bool
     {
         return isset($this->definitions[$ns][$name]);
+    }
+
+    public function hasNamespace(string $ns): bool
+    {
+        return isset($this->definitions[$ns]);
+    }
+
+    public function registerNamespace(string $ns): void
+    {
+        if (!isset($this->definitions[$ns])) {
+            $this->definitions[$ns] = [];
+            $this->definitionsMetaData[$ns] = [];
+        }
+    }
+
+    public function removeNamespace(string $ns): void
+    {
+        unset($this->definitions[$ns], $this->definitionsMetaData[$ns]);
     }
 
     public function getDefinition(string $ns, string $name): mixed

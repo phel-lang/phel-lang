@@ -51,7 +51,6 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation('Bindings must be a even number of parameters', $list);
         }
 
-        /** @var PersistentVectorInterface $loopBindings */
         $loopBindings = $list->get(1);
         $loopBindingsCount = count($loopBindings);
 

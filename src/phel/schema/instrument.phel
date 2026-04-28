@@ -1,0 +1,169 @@
+(ns phel.schema.instrument
+  (:require phel.core)
+  (:require phel.schema.validator :as v)
+  (:require phel.schema.explainer :as e))
+
+;; Function-level instrumentation.
+;;
+;; A function schema looks like `[=> [:int :int] :int]` where the second
+;; element is the vector of argument schemas and the third is the return
+;; schema. `wrap-with-schema` returns a wrapped fn that validates its
+;; arguments and return value against the declared schema. Violations
+;; throw `\InvalidArgumentException` with a human-readable message built
+;; from `explain`.
+;;
+;; Phel has no `alter-var-root`, so true in-place instrumentation of an
+;; existing named fn is not possible at runtime — `instrument` therefore
+;; returns the wrapped fn and the caller is expected to bind it back.
+;; A separate registry records every `instrument!` call so `unstrument!`
+;; can fetch the original fn again.
+
+(def- schema-check?-atom
+  ;; Atom-backed toggle so callers in any namespace can flip runtime
+  ;; validation on or off without rebinding a dynamic var across module
+  ;; boundaries.
+  (atom true))
+
+(defn schema-check?
+  "Returns `true` when runtime validation is enabled."
+  []
+  @schema-check?-atom)
+
+(defn set-schema-check!
+  "Enables (`true`) or disables (`false`) runtime validation performed by
+  `wrap-with-schema`/`instrument!`. Returns the new value."
+  [enabled?]
+  (reset! schema-check?-atom (boolean enabled?)))
+
+(defn with-schema-check
+  "Runs thunk `f` with runtime validation set to `enabled?`, restoring
+  the previous value even if `f` throws."
+  [enabled? f]
+  (let [prev @schema-check?-atom]
+    (reset! schema-check?-atom (boolean enabled?))
+    (try
+      (f)
+      (finally
+        (reset! schema-check?-atom prev)))))
+
+(def- instrumented (atom {}))
+
+(defn schema?
+  "Returns `true` if `x` has the shape of a schema value (a keyword or a
+  vector whose head is a keyword, including the `:=>` function marker)."
+  {:example "(schema? :int) ; => true"
+   :see-also ["phel\\schema/validate"]}
+  [x]
+  (cond
+    (keyword? x)                       true
+    (and (vector? x) (not (empty? x))) (keyword? (get x 0))
+    :else                              false))
+
+(defn function-schema?
+  "Returns `true` if `schema` is a function schema of the shape
+  `[:=> args-schema return-schema]`."
+  {:example "(function-schema? [:=> [:int] :int])"
+   :see-also ["wrap-with-schema"]}
+  [schema]
+  (and (vector? schema)
+       (>= (count schema) 3)
+       (= :=> (get schema 0))))
+
+(defn- schema-violation!
+  [label schema value]
+  (let [result (e/explain schema value)]
+    (throw (php/new \InvalidArgumentException
+                    (str label "\n"
+                         (e/human-readable-explain result))))))
+
+(defn- validate-args!
+  [arg-schemas args]
+  (let [expected (if (vector? arg-schemas) arg-schemas [arg-schemas])
+        actual   (into [] args)]
+    (when (not= (count actual) (count expected))
+      (throw (php/new \InvalidArgumentException
+                      (str "schema arity mismatch: expected "
+                           (count expected) " args, got " (count actual)))))
+    (loop [i 0]
+      (when (< i (count expected))
+        (let [s (get expected i)
+              v (get actual i)]
+          (when-not (v/valid? s v)
+            (schema-violation! (str "argument " i " failed schema") s v))
+          (recur (+ i 1)))))))
+
+(defn- validate-return!
+  [return-schema result]
+  (when-not (v/valid? return-schema result)
+    (schema-violation! "return value failed schema" return-schema result)))
+
+(defn wrap-with-schema
+  "Wraps `f` so each call validates its arguments against `arg-schema`
+  (a vector of per-arg schemas) and its return value against
+  `return-schema`. When `schema-check?` returns `false` at call time
+  the wrapper short-circuits and invokes `f` directly, skipping
+  validation on both sides."
+  {:example "(wrap-with-schema add [:int :int] :int)"
+   :see-also ["instrument!" "schema-check?" "set-schema-check!"]}
+  [f arg-schema return-schema]
+  (fn [& args]
+    (if (not (schema-check?))
+      (apply f args)
+      (do
+        (validate-args! arg-schema args)
+        (let [result (apply f args)]
+          (validate-return! return-schema result)
+          result)))))
+
+(defn wrap-with-function-schema
+  "Convenience: accepts a `[:=> args-schema return-schema]` schema vector
+  and returns `f` wrapped accordingly."
+  {:example "(wrap-with-function-schema add [:=> [:int :int] :int])"
+   :see-also ["wrap-with-schema"]}
+  [f schema]
+  (when-not (function-schema? schema)
+    (throw (php/new \InvalidArgumentException
+                    (str "expected function schema `[:=> args ret]`, got "
+                         (print-str schema)))))
+  (wrap-with-schema f (get schema 1) (get schema 2)))
+
+(defn instrument!
+  "Registers `f` under `name` (any key) wrapped with `schema`. Returns
+  the wrapped fn. Subsequent calls to `unstrument!` with the same name
+  can restore the original via `(instrumented-original name)`."
+  {:example "(def add* (instrument! :add add [:=> [:int :int] :int]))"
+   :see-also ["unstrument!" "*schema-check*"]}
+  [name f schema]
+  (let [wrapped (wrap-with-function-schema f schema)]
+    (swap! instrumented assoc name {:original f :wrapped wrapped :schema schema})
+    wrapped))
+
+(defn unstrument!
+  "Unregisters the instrumentation bound to `name` and returns the
+  original (unwrapped) function if present, otherwise `nil`."
+  {:example "(unstrument! :add)"
+   :see-also ["instrument!"]}
+  [name]
+  (let [entry (get @instrumented name)]
+    (swap! instrumented dissoc name)
+    (when entry (get entry :original))))
+
+(defn instrumented?
+  "Returns `true` if `name` currently has an instrumentation entry."
+  {:example "(instrumented? :add)"}
+  [name]
+  (contains? @instrumented name))
+
+(defn instrumented-original
+  "Returns the original, unwrapped function associated with `name`, or
+  `nil` if no instrumentation is registered under `name`."
+  {:example "(instrumented-original :add)"}
+  [name]
+  (when (contains? @instrumented name)
+    (get (get @instrumented name) :original)))
+
+(defn clear-instrumented!
+  "Removes every instrumentation entry. Returns `nil`."
+  []
+  (reset! instrumented {})
+  nil)

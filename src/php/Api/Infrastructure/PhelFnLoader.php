@@ -4,24 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Api\Infrastructure;
 
-use Phar;
 use Phel;
 use Phel\Api\Domain\PhelFnLoaderInterface;
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Symbol;
-use Phel\Shared\Facade\RunFacadeInterface;
-use RuntimeException;
 
-use function dirname;
-use function getcwd;
 use function in_array;
-use function is_dir;
-use function mkdir;
-use function rmdir;
-use function sprintf;
-use function uniqid;
-use function unlink;
 
 final readonly class PhelFnLoader implements PhelFnLoaderInterface
 {
@@ -220,7 +208,7 @@ Defines the namespace for the current file and adds imports to the environment. 
             'docUrl' => '/documentation/namespaces/#namespace-ns',
             'signatures' => ['(ns name imports*)'],
             'desc' => 'Defines the namespace for the current file and adds imports to the environment. Imports can either be uses or requires. The keyword :use is used to import PHP classes, the keyword :require is used to import Phel modules and the keyword :require-file is used to load php files.',
-            'example' => '(ns my-app\\core (:require phel\\str :as str))',
+            'example' => '(ns my-app\\core (:require phel\\string :as str))',
         ],
         Symbol::NAME_PHP_ARRAY_GET => [
             'doc' => '```phel
@@ -430,7 +418,7 @@ Creates a new vector. If no argument is provided, an empty vector is created. Sh
     ];
 
     public function __construct(
-        private RunFacadeInterface $runFacade,
+        private PhelFunctionRuntimeLoader $runtimeLoader,
     ) {}
 
     /**
@@ -483,76 +471,7 @@ Creates a new vector. If no argument is provided, an empty vector is created. Sh
 
     public function loadAllPhelFunctions(array $namespaces): void
     {
-        Phel::clear();
-        Symbol::resetGen();
-        GlobalEnvironmentSingleton::initializeNew();
-
-        $template = <<<EOF
-# Simply require all namespaces that should be documented
-(ns phel-internal\doc
-  %REQUIRES%
-)
-EOF;
-        $requireNamespaces = '';
-        foreach ($namespaces as $ns) {
-            $requireNamespaces .= sprintf('(:require %s)', $ns);
-        }
-
-        $docPhelContent = str_replace('%REQUIRES%', $requireNamespaces, $template);
-
-        // When running in a phar, we can't write to __DIR__ due to phar.readonly
-        // Use a temporary directory in the current working directory instead
-        if (Phar::running() !== '') {
-            $cwd = getcwd();
-            if ($cwd === false) {
-                throw new RuntimeException('Unable to determine current working directory.');
-            }
-
-            $tempDir = $cwd . '/.phel_temp_' . uniqid('', true);
-            if (!mkdir($tempDir, 0755, true) && !is_dir($tempDir)) {
-                throw new RuntimeException(sprintf('Unable to create temporary directory at "%s".', $tempDir));
-            }
-
-            $phelFile = $tempDir . '/doc.phel';
-        } else {
-            $phelDir = __DIR__ . '/phel';
-            if (!is_dir($phelDir) && !mkdir($phelDir, 0755, true) && !is_dir($phelDir)) {
-                throw new RuntimeException(sprintf('Unable to create directory at "%s".', $phelDir));
-            }
-
-            $phelFile = $phelDir . '/doc.phel';
-        }
-
-        file_put_contents($phelFile, $docPhelContent);
-
-        $namespace = $this->runFacade
-            ->getNamespaceFromFile($phelFile)
-            ->getNamespace();
-
-        $srcDirectories = [
-            dirname($phelFile),
-            ...$this->runFacade->getAllPhelDirectories(),
-        ];
-
-        $namespaceInformation = $this->runFacade->getDependenciesForNamespace(
-            $srcDirectories,
-            [$namespace, 'phel\\core'],
-        );
-
-        foreach ($namespaceInformation as $info) {
-            $this->runFacade->evalFile($info);
-        }
-
-        unlink($phelFile);
-
-        if (isset($tempDir)) {
-            @rmdir($tempDir);
-        }
-
-        // Clean up temporary directory if running in phar
-        if (Phar::running() !== '' && dirname($phelFile) !== __DIR__) {
-            rmdir(dirname($phelFile));
-        }
+        $this->runtimeLoader->load($namespaces);
     }
 
     /**

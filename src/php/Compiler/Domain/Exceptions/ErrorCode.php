@@ -27,6 +27,7 @@ enum ErrorCode: string
     case BINDING_ERROR = 'PHEL008';
     case INTERFACE_ERROR = 'PHEL009';
     case RECUR_ERROR = 'PHEL010';
+    case NOT_CALLABLE = 'PHEL011';
 
     // Parser errors (PHEL100-199)
     case UNTERMINATED_LIST = 'PHEL100';

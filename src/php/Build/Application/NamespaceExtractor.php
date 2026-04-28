@@ -4,8 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Build\Application;
 
+use Phel\Build\Domain\Extractor\ExcludedScanPaths;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
+use Phel\Build\Domain\Extractor\NamespaceFileGrouper;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
 use Phel\Build\Domain\IO\FileIoInterface;
@@ -24,20 +26,24 @@ use RecursiveIteratorIterator;
 use RegexIterator;
 use UnexpectedValueException;
 
-use function count;
-use function sprintf;
-
 final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 {
+    private NamespaceFileGrouper $grouper;
+
+    private ExcludedScanPaths $excludedPaths;
+
     public function __construct(
         private CompilerFacadeInterface $compilerFacade,
-        private NamespaceSorterInterface $namespaceSorter,
+        NamespaceSorterInterface $namespaceSorter,
         private FileIoInterface $fileIo,
-    ) {}
+        ?ExcludedScanPaths $excludedPaths = null,
+    ) {
+        $this->grouper = new NamespaceFileGrouper($namespaceSorter);
+        $this->excludedPaths = $excludedPaths ?? ExcludedScanPaths::none();
+    }
 
     /**
      * @throws ExtractorException
-     * @throws LexerValueException
      */
     public function getNamespaceFromFile(string $path): NamespaceInformation
     {
@@ -84,7 +90,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
             }
 
             throw ExtractorException::cannotExtractNamespaceFromPath($path);
-        } catch (AbstractParserException|ReaderException) {
+        } catch (AbstractParserException|ReaderException|LexerValueException) {
             throw ExtractorException::cannotParseFile($path);
         }
     }
@@ -98,71 +104,14 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
      */
     public function getNamespacesFromDirectories(array $directories): array
     {
-        /** @var array<string, NamespaceInformation> $namespaces */
-        $namespaces = [];
-        /** @var array<string, list<string>> $primaryDefinitions */
-        $primaryDefinitions = [];
-
+        $allInfos = [];
         foreach ($directories as $directory) {
-            foreach ($this->findAllNs($directory) as $ns) {
-                $namespace = $ns->getNamespace();
-                if ($ns->isPrimaryDefinition()) {
-                    $primaryDefinitions[$namespace][] = $ns->getFile();
-                }
-
-                $namespaces[$namespace] = $ns;
+            foreach ($this->findAllNs($directory) as $info) {
+                $allInfos[] = $info;
             }
         }
 
-        $this->warnAboutDuplicateNamespaces($primaryDefinitions);
-
-        return $this->sortNamespaceInformationList(array_values($namespaces));
-    }
-
-    /**
-     * @param array<string, list<string>> $allLocations
-     */
-    private function warnAboutDuplicateNamespaces(array $allLocations): void
-    {
-        foreach ($allLocations as $namespace => $files) {
-            if (count($files) <= 1) {
-                continue;
-            }
-
-            $fileList = implode("\n", array_map(static fn(string $f): string => '  - ' . $f, $files));
-            fwrite(STDERR, sprintf(
-                "\nWARNING: Namespace '%s' is defined in multiple locations:\n%s\n"
-                . "The last one will be used. Check your phel-config.php srcDirs/testDirs settings.\n",
-                $namespace,
-                $fileList,
-            ));
-        }
-    }
-
-    /**
-     * @param list<NamespaceInformation> $namespaceInformationList
-     *
-     * @return list<NamespaceInformation>
-     */
-    private function sortNamespaceInformationList(array $namespaceInformationList): array
-    {
-        $dependencyIndex = [];
-        $infoIndex = [];
-        foreach ($namespaceInformationList as $info) {
-            $dependencyIndex[$info->getNamespace()] = $info->getDependencies();
-            $infoIndex[$info->getNamespace()] = $info;
-        }
-
-        $orderedNamespaces = $this->namespaceSorter->sort(array_keys($dependencyIndex), $dependencyIndex);
-
-        $result = [];
-        foreach ($orderedNamespaces as $namespace) {
-            if (isset($infoIndex[$namespace])) {
-                $result[] = $infoIndex[$namespace];
-            }
-        }
-
-        return $result;
+        return $this->grouper->groupAndSort($allInfos);
     }
 
     /**
@@ -186,7 +135,19 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 
             $result = [];
             foreach ($phelIterator as $file) {
-                $result[] = $this->getNamespaceFromFile($file[0]);
+                if ($this->excludedPaths->contains($file[0], $realpath)) {
+                    continue;
+                }
+
+                try {
+                    $result[] = $this->getNamespaceFromFile($file[0]);
+                } catch (ExtractorException) {
+                    // Skip files that cannot be parsed/lexed so one malformed
+                    // .phel file in a scanned directory does not abort the
+                    // whole scan (e.g. REPL starting in a cwd that contains
+                    // unrelated broken Phel files).
+                    continue;
+                }
             }
         } catch (UnexpectedValueException) {
             // Skip directories that cannot be read (e.g., permission denied)

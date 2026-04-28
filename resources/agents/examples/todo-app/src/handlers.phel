@@ -1,0 +1,32 @@
+(ns todo-app\handlers
+  (:require phel\http :as h)
+  (:require phel\json :as json)
+  (:require todo-app\store :as s))
+
+(defn- json-response [status data]
+  (h/response-from-map
+    {:status status
+     :headers {:content-type "application/json"}
+     :body (json/encode data)}))
+
+(defn- path-id [request]
+  (let [raw (get-in request [:attributes :match :path-params :id])]
+    (when raw (php/intval raw))))
+
+(defn list-todos [_request]
+  (json-response 200 {:todos (s/all)}))
+
+(defn create-todo [request]
+  (let [title (get (get request :parsed-body {}) :title)]
+    (if (and (string? title) (not (php/empty title)))
+      (json-response 201 (s/create title))
+      (json-response 400 {:error "title required"}))))
+
+(defn show-todo [request]
+  (if-let [todo (s/find-by-id (path-id request))]
+    (json-response 200 todo)
+    (json-response 404 {:error "not found"})))
+
+(defn delete-todo [request]
+  (s/delete (path-id request))
+  (h/response-from-map {:status 204}))

@@ -77,11 +77,11 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
                 $value = $generator->current();
                 $generator->next();
 
-                return (new self(
+                return new self(
                     $hasher,
                     $equalizer,
                     static fn(): LazySeq => self::fromGenerator($hasher, $equalizer, $generator),
-                ))->cons($value);
+                )->cons($value);
             },
             $meta,
         );
@@ -140,12 +140,12 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
 
         $first = array_shift($array);
 
-        return (new self(
+        return new self(
             $hasher,
             $equalizer,
             static fn(): ?LazySeq => self::fromArray($hasher, $equalizer, $array),
             $meta,
-        ))->cons($first);
+        )->cons($first);
     }
 
     public function isRealized(): bool
@@ -198,7 +198,6 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
             return $rest;
         }
 
-        /** @phpstan-ignore return.type */
         return new self($this->hasher, $this->equalizer, static fn(): SeqInterface => $rest);
     }
 

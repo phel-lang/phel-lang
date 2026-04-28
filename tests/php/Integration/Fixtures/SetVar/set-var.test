@@ -19,7 +19,7 @@
     )
   )
 );
-\Phel::addDefinition(
+\Phel::setVar(
   "user",
   "x",
   2

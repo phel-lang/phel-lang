@@ -8,6 +8,7 @@ use Phel;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -20,9 +21,12 @@ final class AnalyzeSymbolTest extends TestCase
 {
     private AnalyzeSymbol $symbolAnalyzer;
 
+    private Analyzer $analyzer;
+
     protected function setUp(): void
     {
-        $this->symbolAnalyzer = new AnalyzeSymbol(new Analyzer(new GlobalEnvironment()));
+        $this->analyzer = new Analyzer(new GlobalEnvironment());
+        $this->symbolAnalyzer = new AnalyzeSymbol($this->analyzer);
         Phel::clear();
     }
 
@@ -123,5 +127,26 @@ final class AnalyzeSymbolTest extends TestCase
 
         $env = NodeEnvironment::empty();
         $symbolAnalyzer->analyze(Symbol::create('zzzzzzzzzzz'), $env);
+    }
+
+    public function test_fqn_class_slash_member_shorthand_expands_to_static_call(): void
+    {
+        $env = NodeEnvironment::empty();
+        $node = $this->analyzer->analyze(
+            Symbol::createForNamespace('\\DateTimeImmutable', 'ATOM'),
+            $env,
+        );
+
+        self::assertInstanceOf(PhpObjectCallNode::class, $node);
+        self::assertTrue($node->isStatic());
+    }
+
+    public function test_lowercase_namespace_does_not_expand_to_static_call(): void
+    {
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage("Cannot resolve symbol 'foo/bar'");
+
+        $env = NodeEnvironment::empty();
+        $this->symbolAnalyzer->analyze(Symbol::createForNamespace('foo', 'bar'), $env);
     }
 }

@@ -42,7 +42,11 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     public function __construct()
     {
-        $this->symbolResolver = new SymbolResolver($this, new MagicConstantResolver());
+        $this->symbolResolver = new SymbolResolver(
+            $this,
+            new MagicConstantResolver(),
+            BackslashSeparatorDeprecator::getInstance(),
+        );
         $this->addInternalBuildModeDefinition();
     }
 

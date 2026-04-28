@@ -43,7 +43,7 @@ final class HashCollisionNodeTest extends TestCase
     {
         $hasher = new ModuloHasher(2);
         $box = new Box(null);
-        $node = (new HashCollisionNode($hasher, new SimpleEqualizer(), $hasher->hash(1), 1, [1, 'foo']))
+        $node = new HashCollisionNode($hasher, new SimpleEqualizer(), $hasher->hash(1), 1, [1, 'foo'])
             ->put(0, $hasher->hash(3), 3, 'bar', $box);
 
         $this->assertTrue($box->getValue());
@@ -56,7 +56,7 @@ final class HashCollisionNodeTest extends TestCase
     {
         $hasher = new ModuloHasher(2);
         $box = new Box(null);
-        $node = (new HashCollisionNode($hasher, new SimpleEqualizer(), $hasher->hash(1), 1, [1, 'foo']))
+        $node = new HashCollisionNode($hasher, new SimpleEqualizer(), $hasher->hash(1), 1, [1, 'foo'])
             ->put(0, $hasher->hash(1), 1, 'bar', $box);
 
         $this->assertNull($box->getValue());
@@ -68,7 +68,7 @@ final class HashCollisionNodeTest extends TestCase
     {
         $hasher = new ModuloHasher(2);
         $box = new Box(false);
-        $node = (new HashCollisionNode($hasher, new SimpleEqualizer(), $hasher->hash(1), 1, [1, 'foo']))
+        $node = new HashCollisionNode($hasher, new SimpleEqualizer(), $hasher->hash(1), 1, [1, 'foo'])
             ->put(0, $hasher->hash(1), 1, 'foo', $box);
 
         $this->assertFalse($box->getValue());
@@ -80,7 +80,7 @@ final class HashCollisionNodeTest extends TestCase
     {
         $hasher = new ModuloHasher(2);
         $box = new Box(null);
-        $node = (new HashCollisionNode($hasher, new SimpleEqualizer(), $hasher->hash(1), 1, [1, 'foo']))
+        $node = new HashCollisionNode($hasher, new SimpleEqualizer(), $hasher->hash(1), 1, [1, 'foo'])
             ->put(0, $hasher->hash(2), 2, 'bar', $box);
 
         $this->assertTrue($box->getValue());
@@ -93,7 +93,7 @@ final class HashCollisionNodeTest extends TestCase
     public function test_remove_only_inserted_key(): void
     {
         $hasher = new ModuloHasher(2);
-        $node = (new HashCollisionNode($hasher, new SimpleEqualizer(), $hasher->hash(1), 1, [1, 'foo']))
+        $node = new HashCollisionNode($hasher, new SimpleEqualizer(), $hasher->hash(1), 1, [1, 'foo'])
             ->remove(0, $hasher->hash(1), 1);
 
         $this->assertNotInstanceOf(HashMapNodeInterface::class, $node);
@@ -102,7 +102,7 @@ final class HashCollisionNodeTest extends TestCase
     public function test_remove_non_existing_key(): void
     {
         $hasher = new ModuloHasher(2);
-        $node = (new HashCollisionNode($hasher, new SimpleEqualizer(), $hasher->hash(1), 1, [1, 'foo']))
+        $node = new HashCollisionNode($hasher, new SimpleEqualizer(), $hasher->hash(1), 1, [1, 'foo'])
             ->remove(0, $hasher->hash(2), 2);
         $this->assertInstanceOf(HashMapNodeInterface::class, $node);
 
@@ -113,13 +113,13 @@ final class HashCollisionNodeTest extends TestCase
     public function test_remove_one_collision_key(): void
     {
         $hasher = new ModuloHasher(2);
-        $node = (new HashCollisionNode(
+        $node = new HashCollisionNode(
             $hasher,
             new SimpleEqualizer(),
             $hasher->hash(1),
             2,
             [1, 'foo', 3, 'bar'],
-        ))->remove(0, $hasher->hash(3), 3);
+        )->remove(0, $hasher->hash(3), 3);
         $this->assertInstanceOf(HashMapNodeInterface::class, $node);
 
         $this->assertSame('foo', $node->find(0, $hasher->hash(1), 1, null));

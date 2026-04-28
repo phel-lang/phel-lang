@@ -10,8 +10,6 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\TypeFactory;
 
 use function count;
-use function is_string;
-use function mb_str_split;
 
 final class PartitionGenerator
 {
@@ -31,7 +29,7 @@ final class PartitionGenerator
         }
 
         $partition = [];
-        foreach (self::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::toIterable($iterable) as $value) {
             $partition[] = $value;
 
             if (count($partition) === $n) {
@@ -57,7 +55,7 @@ final class PartitionGenerator
         }
 
         $partition = [];
-        foreach (self::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::toIterable($iterable) as $value) {
             $partition[] = $value;
 
             if (count($partition) === $n) {
@@ -85,7 +83,7 @@ final class PartitionGenerator
         $prevKey = null;
         $first = true;
 
-        foreach (self::toIterable($iterable) as $value) {
+        foreach (SequenceGenerator::toIterable($iterable) as $value) {
             $key = $f($value);
 
             if ($first || $equalizer->equals($key, $prevKey)) {
@@ -104,19 +102,4 @@ final class PartitionGenerator
         }
     }
 
-    /**
-     * @template T
-     *
-     * @param iterable<T>|string|null $value
-     *
-     * @return iterable<string|T>
-     */
-    private static function toIterable(mixed $value): iterable
-    {
-        if (is_string($value)) {
-            return mb_str_split($value);
-        }
-
-        return $value ?? [];
-    }
 }

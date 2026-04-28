@@ -136,7 +136,7 @@ final class ReplTestCommand extends AbstractTestCommand
     {
         $replStartupFile = __DIR__ . '/../../../../../../src/php/Run/Domain/Repl/startup.phel';
 
-        return (new ReplCommand())->setReplStartupFile($replStartupFile);
+        return new ReplCommand()->setReplStartupFile($replStartupFile);
     }
 
     /**
@@ -147,7 +147,7 @@ final class ReplTestCommand extends AbstractTestCommand
         $inputs = [];
 
         foreach (explode(PHP_EOL, $fileContent) as $line) {
-            preg_match('/(?<prompt>....:\d> ?)(?<phel_code>.+)?/', $line, $out);
+            preg_match('/(?<prompt>(?:[\w\\\\.-]+|\.{4}):\d+> ?)(?<phel_code>.+)?/', $line, $out);
             if ($out !== []) {
                 $prompt = $out['prompt'];
                 $code = $out['phel_code'] ?? '';
