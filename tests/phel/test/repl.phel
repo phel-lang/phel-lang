@@ -1,7 +1,7 @@
 (ns phel-test\test\repl
-  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers find-fn test-ns eval-capturing eval-str macroexpand-1-form macroexpand-form macroexpand-1 macroexpand ns-list loaded-namespaces explain suggest fix review embed-ns search-ns])
+  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers ns-interns find-fn test-ns eval-capturing eval-str macroexpand-1-form macroexpand-form macroexpand-1 macroexpand ns-list loaded-namespaces explain suggest fix review embed-ns search-ns find-ns create-ns remove-ns intern])
   (:require phel\ai :as ai)
-  (:require phel\str :as s)
+  (:require phel\string :as s)
   (:require phel\test :refer [deftest is]))
 
 ;; -------
@@ -26,6 +26,16 @@
     (is (s/contains? out "map") "dir lists 'map'")
     (is (s/contains? out "reduce") "dir lists 'reduce'")
     (is (s/contains? out "filter") "dir lists 'filter'")))
+
+(deftest test-dir-accepts-bare-namespace-symbol
+  (let [out (with-output-buffer (dir phel\string))]
+    (is (s/contains? out "split") "dir lists phel\\string definitions")
+    (is (s/contains? out "trim") "dir lists phel\\string definitions")))
+
+(deftest test-dir-keeps-string-namespace-form
+  (let [out (with-output-buffer (dir "phel\\string"))]
+    (is (s/contains? out "split") "dir keeps string namespace support")
+    (is (s/contains? out "trim") "dir keeps string namespace support")))
 
 ;; --------
 ;; find-doc
@@ -112,7 +122,7 @@
 
 (deftest test-ns-aliases-contains-expected-alias
   (let [aliases (ns-aliases "phel-test\\test\\repl")]
-    (is (= "phel\\str" (get aliases "s")) "ns-aliases contains 's' => 'phel\\str'")))
+    (is (= "phel\\string" (get aliases "s")) "ns-aliases contains 's' => 'phel\\string'")))
 
 ;; ---------
 ;; ns-refers
@@ -197,6 +207,19 @@
     (is (= "side\n" (get result :out)) "eval-capturing captures side-effect output")
     (is (= true (get result :success)) "eval-capturing reports success")))
 
+(deftest test-eval-capturing-dir-accepts-bare-namespace-symbol
+  (let [original-ns *ns*]
+    (try
+      (eval-str "(ns user (:require phel\\repl :refer [dir]))")
+      (let [result (eval-capturing "(dir phel\\string)")
+            out    (get result :out)]
+        (is (= nil (get result :value)) "dir returns nil")
+        (is (= true (get result :success)) "dir succeeds from a REPL string")
+        (is (s/contains? out "split") "dir lists phel\\string definitions")
+        (is (s/contains? out "trim") "dir lists phel\\string definitions"))
+      (finally
+        (eval-str (str "(ns " original-ns ")"))))))
+
 (deftest test-eval-capturing-error-case
   (let [result (eval-capturing "(throw (php/new \\Exception \"boom\"))")]
     (is (= false (get result :success)) "eval-capturing reports failure on error")
@@ -227,8 +250,8 @@
 (deftest test-eval-str-runtime-require-resolves
   (let [result (eval-str "(ns test-rt-require-demo
                             (:require phel\\repl :refer [require]))
-                          (require phel\\str)
-                          (str/upper-case \"hello\")")]
+                          (require phel\\string)
+                          (string/upper-case \"hello\")")]
     (is (= "HELLO" result) "runtime require resolves symbols without explicit src-dirs init")))
 
 (deftest test-eval-str-require-nonexistent-throws
@@ -238,6 +261,38 @@
     (is (= false (get result :success)) "requiring non-existent namespace fails")
     (is (s/contains? (get result :error) "nonexistent\\foo")
         "error message includes the missing namespace name")))
+
+;; --------------------------------
+;; require — Clojure vector form
+;; --------------------------------
+
+(deftest test-require-vector-form-with-alias
+  (let [result (eval-str "(ns test-require-vec-alias
+                            (:require phel\\repl :refer [require]))
+                          (require '[phel.string :as str])
+                          (str/upper-case \"hello\")")]
+    (is (= "HELLO" result) "vector form require with :as alias resolves functions")))
+
+(deftest test-require-vector-form-with-refer
+  (let [result (eval-str "(ns test-require-vec-refer
+                            (:require phel\\repl :refer [require]))
+                          (require '[phel.string :as ps :refer [upper-case]])
+                          (upper-case \"world\")")]
+    (is (= "WORLD" result) "vector form require with :refer brings symbols into scope")))
+
+(deftest test-require-vector-form-clojure-ns-mapping
+  (let [result (eval-str "(ns test-require-vec-clojure
+                            (:require phel\\repl :refer [require]))
+                          (require '[clojure.string :as cs])
+                          (cs/upper-case \"mapped\")")]
+    (is (= "MAPPED" result) "vector form require maps clojure.string to phel.string")))
+
+(deftest test-require-flat-form-still-works
+  (let [result (eval-str "(ns test-require-flat-compat
+                            (:require phel\\repl :refer [require]))
+                          (require 'phel.string :as flat-str)
+                          (flat-str/upper-case \"flat\")")]
+    (is (= "FLAT" result) "flat require form continues to work after vector-form addition")))
 
 ;; ---------------------
 ;; eval-str ns consistency
@@ -446,3 +501,91 @@
   (is (function? review) "review is defined")
   (is (function? embed-ns) "embed-ns is defined")
   (is (function? search-ns) "search-ns is defined"))
+
+;; ------------------
+;; find-ns / create-ns / remove-ns / intern / ns-interns
+;; ------------------
+
+(deftest test-find-ns-returns-nil-for-unknown
+  (is (nil? (find-ns "phel-test-repl-unknown-ns"))))
+
+(deftest test-create-ns-registers-empty-namespace
+  (let [ns "phel-test-repl\\create-ns-fixture"]
+    (remove-ns ns)
+    (is (nil? (find-ns ns)) "pre: namespace not registered")
+    (let [created (create-ns ns)]
+      (is (= ns created) "create-ns returns the namespace string")
+      (is (= ns (find-ns ns)) "namespace is now discoverable"))
+    (remove-ns ns)))
+
+(deftest test-create-ns-is-idempotent
+  (let [ns "phel-test-repl\\create-ns-idempotent"]
+    (create-ns ns)
+    (intern ns "keeper" 7)
+    (create-ns ns)
+    (is (= {"keeper" 7} (ns-interns ns))
+        "re-creating a namespace keeps existing definitions")
+    (remove-ns ns)))
+
+(deftest test-intern-stores-value-and-creates-namespace
+  (let [ns "phel-test-repl\\intern-fixture"]
+    (remove-ns ns)
+    (intern ns "answer" 42)
+    (is (= ns (find-ns ns)) "intern auto-registers the namespace")
+    (is (= {"answer" 42} (ns-interns ns)) "intern stores the value")
+    (remove-ns ns)))
+
+(deftest test-intern-returns-fully-qualified-symbol
+  (let [ns  "phel-test-repl\\intern-return"
+        sym (intern ns "pointer" 1)]
+    (is (= "pointer" (php/-> sym (getName))) "symbol name matches")
+    (is (= ns (php/-> sym (getNamespace))) "symbol namespace matches")
+    (is (= (str ns "/pointer") (php/-> sym (getFullName)))
+        "symbol full name is ns/name")
+    (remove-ns ns)))
+
+(deftest test-intern-munges-dashes-in-name
+  (let [ns "phel-test-repl\\intern-munge"]
+    (remove-ns ns)
+    (intern ns "kebab-name" 1)
+    (is (= {"kebab-name" 1} (ns-interns ns))
+        "intern encodes dashes and ns-interns decodes them")
+    (remove-ns ns)))
+
+(deftest test-intern-defaults-to-nil-value
+  (let [ns "phel-test-repl\\intern-nil"]
+    (remove-ns ns)
+    (intern ns "placeholder")
+    (is (= {"placeholder" nil} (ns-interns ns))
+        "intern with no value uses nil")
+    (remove-ns ns)))
+
+(deftest test-intern-overwrites-existing-value
+  (let [ns "phel-test-repl\\intern-overwrite"]
+    (remove-ns ns)
+    (intern ns "x" 1)
+    (intern ns "x" 2)
+    (is (= {"x" 2} (ns-interns ns)) "subsequent intern replaces the value")
+    (remove-ns ns)))
+
+(deftest test-ns-interns-empty-for-missing-namespace
+  (is (= {} (ns-interns "phel-test-repl-missing"))
+      "ns-interns returns an empty map for unknown namespaces"))
+
+(deftest test-ns-interns-includes-private-definitions
+  (let [ns "phel-test-repl\\interns-all"]
+    (remove-ns ns)
+    (intern ns "pub" 1)
+    (intern ns "priv" 2)
+    (is (= {"pub" 1 "priv" 2} (ns-interns ns))
+        "ns-interns exposes every definition")
+    (remove-ns ns)))
+
+(deftest test-remove-ns-drops-all-definitions
+  (let [ns "phel-test-repl\\remove-me"]
+    (create-ns ns)
+    (intern ns "gone" 99)
+    (remove-ns ns)
+    (is (nil? (find-ns ns)) "find-ns returns nil after remove-ns")
+    (is (= {} (ns-interns ns))
+        "ns-interns returns an empty map after remove-ns")))
