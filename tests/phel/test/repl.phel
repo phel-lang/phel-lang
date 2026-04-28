@@ -262,6 +262,45 @@
     (is (s/contains? (get result :error) "nonexistent\\foo")
         "error message includes the missing namespace name")))
 
+;; --------------------------------
+;; require — Clojure vector form
+;; --------------------------------
+
+(deftest test-require-vector-form-with-alias
+  (let [result (eval-str "(ns test-require-vec-alias
+                            (:require phel\\repl :refer [require]))
+                          (require '[phel\\string :as str])
+                          (str/upper-case \"hello\")")]
+    (is (= "HELLO" result) "vector form require with :as alias resolves functions")))
+
+(deftest test-require-vector-form-bare
+  (let [result (eval-str "(ns test-require-vec-bare
+                            (:require phel\\repl :refer [require]))
+                          (require '[phel\\string])
+                          (string/upper-case \"hello\")")]
+    (is (= "HELLO" result) "vector form require without :as auto-generates alias from ns tail")))
+
+(deftest test-require-vector-form-with-refer
+  (let [result (eval-str "(ns test-require-vec-refer
+                            (:require phel\\repl :refer [require]))
+                          (require '[phel\\string :as ps :refer [upper-case]])
+                          (upper-case \"world\")")]
+    (is (= "WORLD" result) "vector form require with :refer brings symbols into scope")))
+
+(deftest test-require-vector-form-clojure-ns-mapping
+  (let [result (eval-str "(ns test-require-vec-clojure
+                            (:require phel\\repl :refer [require]))
+                          (require '[clojure.string :as cs])
+                          (cs/upper-case \"mapped\")")]
+    (is (= "MAPPED" result) "vector form require maps clojure.string to phel.string")))
+
+(deftest test-require-flat-form-still-works
+  (let [result (eval-str "(ns test-require-flat-compat
+                            (:require phel\\repl :refer [require]))
+                          (require 'phel\\string :as flat-str)
+                          (flat-str/upper-case \"flat\")")]
+    (is (= "FLAT" result) "flat require form continues to work after vector-form addition")))
+
 ;; ---------------------
 ;; eval-str ns consistency
 ;; ---------------------
