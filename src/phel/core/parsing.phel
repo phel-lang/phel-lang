@@ -34,12 +34,14 @@
         :else                                               nil))))
 
 (defn parse-boolean
-  "Parses a string as a boolean. Returns true for \"true\", false for \"false\", nil otherwise."
-  {:example "(parse-boolean \"true\") ; => true"}
+  "Parses a string as a boolean. Returns `true` for the exact string
+  `\"true\"`, `false` for `\"false\"`, and `nil` for any other input.
+  The match is case-sensitive and does not tolerate surrounding
+  whitespace."
+  {:example "(parse-boolean \"true\") ; => true\n(parse-boolean \"True\") ; => nil"}
   [s]
   (when (string? s)
-    (let [lower (php/strtolower (php/trim s))]
-      (cond
-        (= lower "true")  true
-        (= lower "false") false))))
+    (cond
+      (= s "true")  true
+      (= s "false") false)))
 

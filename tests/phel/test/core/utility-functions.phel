@@ -62,9 +62,9 @@
 (deftest test-parse-boolean
   (is (true? (parse-boolean "true")) "parse-boolean true")
   (is (false? (parse-boolean "false")) "parse-boolean false")
-  (is (true? (parse-boolean "TRUE")) "parse-boolean TRUE")
-  (is (false? (parse-boolean "FALSE")) "parse-boolean FALSE")
-  (is (true? (parse-boolean "  true  ")) "parse-boolean with whitespace")
+  (is (nil? (parse-boolean "TRUE")) "parse-boolean is case-sensitive")
+  (is (nil? (parse-boolean "False")) "parse-boolean rejects mixed-case input")
+  (is (nil? (parse-boolean "  true  ")) "parse-boolean does not trim whitespace")
   (is (nil? (parse-boolean "yes")) "parse-boolean invalid")
   (is (nil? (parse-boolean "1")) "parse-boolean 1")
   (is (nil? (parse-boolean "")) "parse-boolean empty")
