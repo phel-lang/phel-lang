@@ -485,29 +485,29 @@
   (let [{:exception exception :form form} data
         command-facade                    (php/new CommandFacade)
         printer                           (php/-> command-facade (getExceptionPrinter))]
-    (println "            Assert:" (readable-str form))
+    (println "              Form:" (readable-str form))
     (println "             threw:" (php/get_class exception))
     (when-let [exception-message (ex-message exception)]
       (println "      with message:" exception-message))
     (php/-> printer (printStackTrace exception))))
 
 (defn- print-predicate-failure [{:pred pred :value value :result result}]
-  (println "               Assert:" (readable-str value))
+  (println "                 Form:" (readable-str value))
   (println "         evaluated to:" (readable-str result))
   (println "  but doesn't satisfy:" (readable-str pred)))
 
 (defn- print-predicate-not-failure [{:pred pred :value value :result result}]
-  (println "            Assert:" (readable-str value))
+  (println "              Form:" (readable-str value))
   (println "      evaluated to:" (readable-str result))
   (println "  but does satisfy:" (readable-str pred) " (it shouldn't)"))
 
 (defn- print-binary-failure [{:pred pred :expected expected :actual actual :result result}]
-  (println "        Assert:" (readable-str actual))
+  (println "          Form:" (readable-str actual))
   (println "  evaluated to:" (readable-str result))
   (println "    but is not:" (readable-str pred) "to" (readable-str expected)))
 
 (defn- print-binary-not-failure [{:pred pred :expected expected :actual actual :result result}]
-  (println "        Assert:" (readable-str actual))
+  (println "          Form:" (readable-str actual))
   (println "  evaluated to:" (readable-str result))
   (println "        but is:" (readable-str pred) "to" (readable-str expected) "(it shouldn't be)"))
 
@@ -527,7 +527,7 @@
       (println "       but got:" actual-message))))
 
 (defn- print-any-failure [{:form form :result result}]
-  (println "        Assert:" (readable-str form))
+  (println "          Form:" (readable-str form))
   (println "  evaluated to:" (readable-str result) "(which is not truthy)"))
 
 (defn- print-failure [data]
