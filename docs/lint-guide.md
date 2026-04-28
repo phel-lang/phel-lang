@@ -1,6 +1,6 @@
 # Linter Guide
 
-`phel lint` is a semantic linter that catches common mistakes without running code. It runs on source files or directories and emits diagnostics in human, JSON, or GitHub Actions format.
+`phel lint` is a semantic linter that catches common mistakes without running code. Runs on source files or directories; emits diagnostics in human, JSON, or GitHub Actions format.
 
 ## Contents
 
@@ -37,9 +37,9 @@
 
 ## Output formats
 
-- `human` (default): colored terminal output, suitable for local use
+- `human` (default): colored terminal output for local use
 - `json`: array of `{file, line, column, rule, severity, message}` records
-- `github`: `::error file=...` directives for GitHub Actions annotations
+- `github`: `::error file=...` directives for GitHub Actions
 
 ## Configuration
 
@@ -57,11 +57,11 @@ Pass a custom path with `--config=path/to/lint.phel`.
 
 ## Cache
 
-Lint results are cached per file by content hash; subsequent runs only reanalyze changed files. Disable with `--no-cache`.
+Results are cached per file by content hash; subsequent runs only reanalyze changed files. Disable with `--no-cache`.
 
 ## Editor integration
 
-Use `--format=json` from an editor plugin, or launch `phel lsp` for real-time diagnostics as you type.
+Use `--format=json` from an editor plugin, or run `phel lsp` for real-time diagnostics as you type.
 
 ## See also
 

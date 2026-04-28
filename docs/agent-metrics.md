@@ -1,6 +1,6 @@
 # Cold-start metrics
 
-Template for tracking how long each agent takes to build a representative app from a cold session, with and without the Phel agent skill installed.
+Template for tracking how long each agent takes to build a representative app from a cold session, with and without the Phel agent skill.
 
 ## Scenario
 
@@ -38,4 +38,4 @@ Target:
 
 ## Why this matters
 
-The baseline before bundled agent assets for a cold run was around 23 minutes for Claude Code building a todo app, most of it spent scraping phel-lang.org. The goal of `resources/agents/` is to drive that well under 5 minutes for any supported agent.
+Before bundled agent assets, a cold run took around 23 minutes for Claude Code to build a todo app, most of it scraping phel-lang.org. The goal of `resources/agents/` is to drive that well under 5 minutes for any supported agent.

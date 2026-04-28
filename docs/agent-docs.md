@@ -1,6 +1,6 @@
 # AI coding agents
 
-`resources/agents/` ships docs, task recipes, and skill files so AI coding tools (Claude Code, Cursor, Codex, Gemini, Copilot, Aider) can build apps with Phel without scraping the website on cold start.
+`resources/agents/` ships docs, task recipes, and skill files so AI coding tools (Claude Code, Cursor, Codex, Gemini, Copilot, Aider) can build Phel apps without scraping the website on cold start.
 
 ## Install
 
@@ -32,9 +32,9 @@ Each installed file routes the agent to `.agents/index.md` for task recipes: sca
 
 `resources/agents/examples/` ships three projects:
 
-- `todo-app/` — HTTP CRUD on `phel\router`, atom store, tests
-- `http-json-api/` — three JSON endpoints
-- `cli-wordcount/` — stdin + argv, PHP shim binary
+- `todo-app/`: HTTP CRUD on `phel\router`, atom store, tests
+- `http-json-api/`: three JSON endpoints
+- `cli-wordcount/`: stdin + argv, PHP shim binary
 
 ## Sync
 
@@ -42,8 +42,7 @@ Each installed file routes the agent to `.agents/index.md` for task recipes: sca
 
 ## Repository maintenance adapters
 
-The repository also contains AI tool config for maintaining phel-lang itself. Keep these separate from the downstream
-`resources/agents/` package:
+The repository also contains AI tool config for maintaining phel-lang itself. Keep these separate from the downstream `resources/agents/` package:
 
 | Path | Audience |
 |------|----------|
@@ -54,4 +53,4 @@ The repository also contains AI tool config for maintaining phel-lang itself. Ke
 
 ## Feedback
 
-Cold-start metrics and transcripts of agents building real apps surface gaps fastest. Open an issue with a failing transcript attached.
+Cold-start metrics and transcripts of agents building real apps surface gaps fastest. Open an issue with a failing transcript.

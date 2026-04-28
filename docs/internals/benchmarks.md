@@ -1,22 +1,22 @@
 # Benchmarking Phel
 
-This project keeps [PHPBench](https://phpbench.readthedocs.io/) in `require-dev` so we can measure the runtime cost of important developer workflows and core data structures. Running the benchmark suite regularly makes it easier to spot performance regressions before they reach a release.
+[PHPBench](https://phpbench.readthedocs.io/) is in `require-dev` to measure runtime cost of developer workflows and core data structures. Run the suite regularly to spot regressions before release.
 
-The suite currently focuses on three high-impact areas:
+The suite covers three areas:
 
-- **CLI commands** &ndash; `phel run` and `phel test` are exercised end-to-end to make sure command line tooling stays responsive.
-- **Persistent collections** &ndash; vectors and hash maps are checked for hot operations such as `append`, `update`, and `put`.
-- **Core bootstrap** &ndash; loading and executing the bundled `phel\core` namespace ensures the compiler pipeline keeps its startup time predictable.
+- **CLI commands**: `phel run` and `phel test` exercised end-to-end.
+- **Persistent collections**: vectors and hash maps checked for hot operations like `append`, `update`, and `put`.
+- **Core bootstrap**: loading and executing the bundled `phel\core` namespace keeps compiler startup time predictable.
 
 ## Running the suite
 
-You can execute the complete suite with:
+Execute the full suite with:
 
 ```bash
 composer phpbench
 ```
 
-To keep historical measurements for comparison, record a baseline run and then compare the current branch against it:
+Record a baseline and compare the current branch against it:
 
 ```bash
 # Create or update the baseline numbers (stored under the `baseline` tag)
@@ -26,12 +26,12 @@ composer phpbench-base
 composer phpbench-ref
 ```
 
-The assertion configured in [`phpbench.json`](../../phpbench.json) will fail the comparison when the measured mode deviates by more than some % from the baseline.
+The assertion in [`phpbench.json`](../../phpbench.json) fails the comparison when the measured mode deviates beyond the configured threshold.
 
-For quick local checks you can override the number of iterations and revolutions:
+For quick local checks, override iterations and revolutions:
 
 ```bash
 composer phpbench -- --iterations=2 --revs=10
 ```
 
-Refer to the [official documentation](https://phpbench.readthedocs.io/) for advanced reporting and configuration options.
+See the [PHPBench docs](https://phpbench.readthedocs.io/) for advanced reporting and configuration.
