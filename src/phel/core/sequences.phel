@@ -252,6 +252,9 @@
 (defn- dissoc-one
   [ds key]
   (cond
+    (php/=== nil ds)
+    nil
+
     (php/is_array ds)
     (throw (php/new InvalidArgumentException "Cannot call dissoc on pure PHP arrays. Use (php/aunset ds key)"))
 
