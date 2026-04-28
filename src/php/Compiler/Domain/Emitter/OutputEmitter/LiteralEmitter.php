@@ -119,12 +119,12 @@ final readonly class LiteralEmitter
     {
         if ($x->getNamespace() !== null && $x->getNamespace() !== '') {
             $this->outputEmitter->emitStr(
-                '\Phel::keyword("' . addslashes($x->getName()) . '", "' . addslashes($x->getNamespace()) . '")',
+                '\Phel::keyword("' . $this->escapeForDoubleQuotedString($x->getName()) . '", "' . $this->escapeForDoubleQuotedString($x->getNamespace()) . '")',
                 $x->getStartLocation(),
             );
         } else {
             $this->outputEmitter->emitStr(
-                '\Phel::keyword("' . addslashes($x->getName()) . '")',
+                '\Phel::keyword("' . $this->escapeForDoubleQuotedString($x->getName()) . '")',
                 $x->getStartLocation(),
             );
         }
@@ -133,9 +133,24 @@ final readonly class LiteralEmitter
     private function emitSymbol(Symbol $x): void
     {
         $this->outputEmitter->emitStr(
-            '(\Phel\Lang\Symbol::create("' . addslashes($x->getFullName()) . '"))',
+            '(\Phel\Lang\Symbol::create("' . $this->escapeForDoubleQuotedString($x->getFullName()) . '"))',
             $x->getStartLocation(),
         );
+    }
+
+    /**
+     * Escape a string so it can be embedded inside a PHP double-quoted
+     * literal without losing characters. `addslashes` is wrong here
+     * because it escapes the apostrophe with a backslash that PHP keeps
+     * verbatim inside `"..."`, polluting symbol/keyword names.
+     */
+    private function escapeForDoubleQuotedString(string $value): string
+    {
+        return strtr($value, [
+            '\\' => '\\\\',
+            '"' => '\\"',
+            '$' => '\\$',
+        ]);
     }
 
     private function emitMap(PersistentMapInterface $x): void
