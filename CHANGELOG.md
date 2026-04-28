@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-This release focuses on Clojure-compatible core behavior, PHP interop consistency, and stricter compiler diagnostics.
+Core behavior, PHP interop consistency, and stricter compiler diagnostics.
 
 ### Added
 
@@ -15,13 +15,13 @@ This release focuses on Clojure-compatible core behavior, PHP interop consistenc
 - Support `\uNNNN` Unicode escapes in string literals (#1679)
 
 #### Core
-- Add list matchers to `case` (#1615)
-- Add optional hierarchy arguments to hierarchy functions (#1543)
-- Add `into-array` for `.cljc` interop (#1550)
-- Compare numeric values consistently in `==` (#1561)
-- Support `[size init-val-or-seq]` in primitive array helpers (#1562)
-- Add namespace introspection: `loaded-namespaces`, `find-ns`, `create-ns`, `remove-ns`, `intern`, `ns-interns`, `ns-publics`, `ns-aliases`, `ns-refers`, `load-file` (#1694)
-- `rand` accepts an optional limit argument: `(rand n)` returns a number in `[0, n)` (#1696)
+- List matchers in `case` (#1615)
+- Optional hierarchy argument on hierarchy functions (#1543)
+- `into-array` for `.cljc` interop (#1550)
+- Consistent numeric comparison in `==` (#1561)
+- `[size init-val-or-seq]` in primitive array helpers (#1562)
+- Namespace introspection: `loaded-namespaces`, `find-ns`, `create-ns`, `remove-ns`, `intern`, `ns-interns`, `ns-publics`, `ns-aliases`, `ns-refers`, `load-file` (#1694)
+- `(rand n)` returns a number in `[0, n)` (#1696)
 
 #### REPL
 - `require` accepts vector syntax: `(require '[phel\string :as s])` (#1693)
@@ -29,7 +29,7 @@ This release focuses on Clojure-compatible core behavior, PHP interop consistenc
 ### Changed
 
 - **BREAKING**: Require PHP 8.4
-- **BREAKING**: Move async functions to `phel\core`; keep `delay` in `phel\async` (#1548)
+- **BREAKING**: Async functions move to `phel\core`; `delay` stays in `phel\async` (#1548)
 
 #### Core
 - Expose `future` from `phel\core` (#1537)
@@ -39,42 +39,42 @@ This release focuses on Clojure-compatible core behavior, PHP interop consistenc
 #### Core
 - `conj` and `conj!` ignore `nil` entries on maps (#1683)
 - `reversible?` and `rseq` handle sorted sets (#1681)
-- `/` preserves `##Inf`, `##-Inf`, and `##NaN` when dividing by zero (#1658)
+- `/` preserves `##Inf`, `##-Inf`, and `##NaN` on division by zero (#1658)
 - `sort-by` accepts the comparator before the collection (#1657)
-- `conj` prepends values to lazy sequences like `(range)` (#1650)
-- Improve `nil` handling in `nth`, `rand-nth`, `take-last`, `rest`, and `contains?` (#1592, #1638, #1644, #1652, #1655, #1656)
-- `nthrest` returns `()` instead of `nil` when the collection is exhausted or `nil` (#1699)
-- `seq?` recognizes lists and the result of `seq`/`rseq` over vectors, sorted-maps, and sorted-sets (#1700)
-- `special-symbol?` recognizes the rest-args marker `&` and the `try` sub-forms `catch` and `finally` (#1701)
-- `binding` rebinds dynamic vars to `nil` correctly (#1702)
-- `min` and `max` return `##NaN` whenever any argument is `##NaN` (#1703)
-- `dissoc` throws a clear `InvalidArgumentException` instead of a low-level PHP error when called with a value that is not a map, set, or struct (#1704)
-- `sorted-map-by` and `sorted-set-by` accept predicate-style comparators such as `<` and `>`, treating a truthy result as "first arg sorts earlier" (#1705)
-- Sets compare equal regardless of their underlying ordering: `(= (sorted-set 4 2 6) #{4 2 6})` returns `true` (#1708)
-- `empty` returns `()` for lazy sequences such as `(range)` instead of `nil` (#1710)
-- `empty` preserves the metadata of the original collection (#1711)
-- `butlast` returns `nil` instead of an empty vector when `coll` is `nil` or has fewer than two items (#1712)
-- `get-in` returns the supplied default when the data structure is `nil` regardless of whether the key path is `nil`, empty, or missing (#1713)
-- `some-fn` returns `false` instead of `nil` when no predicate matches (#1714)
-- `compare` orders namespaced keywords and symbols by namespace first, with unqualified entries sorting before namespaced ones (#1715)
-- `vector?` reports `false` for the result of `seq` and `rseq` over any input (#1716)
-- Keyword and symbol literals containing special characters such as `'`, `"`, or `\` round-trip through compilation without leaking escape characters into their names (#1718)
-- `interleave` stops at the shortest input, returns an empty sequence when any input is `nil`, and yields `[key value]` pairs for maps (#1726)
-- `min-key` and `max-key` use a strict comparison so a `##NaN` running best stays selected and propagates through later arguments (#1730)
+- `conj` prepends to lazy sequences like `(range)` (#1650)
+- `nil` handling in `nth`, `rand-nth`, `take-last`, `rest`, `contains?` (#1592, #1638, #1644, #1652, #1655, #1656)
+- `nthrest` returns `()` when the collection is exhausted or `nil` (#1699)
+- `seq?` recognizes lists and the result of `seq`/`rseq` over vectors, sorted-maps, sorted-sets (#1700)
+- `special-symbol?` recognizes `&`, `catch`, and `finally` (#1701)
+- `binding` rebinds dynamic vars to `nil` (#1702)
+- `min` and `max` return `##NaN` when any argument is `##NaN` (#1703)
+- `dissoc` rejects non-map/set/struct targets with `InvalidArgumentException` (#1704)
+- `sorted-map-by` and `sorted-set-by` accept predicate comparators like `<` and `>` (#1705)
+- Sets compare equal regardless of underlying ordering (#1708)
+- `empty` returns `()` for lazy sequences (#1710)
+- `empty` preserves source metadata (#1711)
+- `butlast` returns `nil` for `nil` or single-item collections (#1712)
+- `get-in` returns the default when the data structure is `nil` (#1713)
+- `some-fn` returns `false` when no predicate matches (#1714)
+- `compare` orders namespaced keywords and symbols by namespace first (#1715)
+- `vector?` reports `false` for `seq` and `rseq` results (#1716)
+- Keyword and symbol literals preserve `'`, `"`, and `\` through compilation (#1718)
+- `interleave` stops at the shortest input and yields `[key value]` pairs for maps (#1726)
+- `min-key` and `max-key` propagate `##NaN` through subsequent arguments (#1730)
 - `cycle` over a map yields `[key value]` pairs (#1734)
-- `odd?` reports negative odd numbers as odd; previously `(odd? -119)` returned `false` because PHP's `%` truncates towards zero (#1736)
-- `sort` and `sort-by` accept predicate-style comparators such as `<` and `>`, treating a truthy result as "first arg sorts earlier" (#1737)
-- `dissoc` returns `nil` when the data structure is `nil`, regardless of the keys supplied (#1738)
-- `min` and `max` accept a single non-numeric argument, returning it unchanged instead of forwarding to `is_nan` (#1740)
-- `symbol` accepts keywords and symbols, extracting their name; `(symbol 'foo)` returns the same symbol (#1750)
-- `parse-boolean` is case-sensitive and no longer trims whitespace: only the exact strings `"true"` and `"false"` round-trip (#1753)
+- `odd?` reports negative odd numbers as odd (#1736)
+- `sort` and `sort-by` accept predicate comparators like `<` and `>` (#1737)
+- `dissoc` returns `nil` when the data structure is `nil` (#1738)
+- `min` and `max` return a single non-numeric argument unchanged (#1740)
+- `symbol` accepts keywords and symbols (#1750)
+- `parse-boolean` matches only exact `"true"`/`"false"` (case-sensitive, no trim) (#1753)
 - `interpose` over a map yields `[key value]` pairs (#1757)
-- `peek` returns the first element of a list or lazy sequence and the last element of a vector / PHP array (#1761)
-- Improve set support in sequence functions including `first`, `ffirst`, `second`, `next`, `nfirst`, `fnext`, `nnext`, and `some` (#1639, #1642, #1649)
-- Improve collection edge cases in `seq`, `cons`, `pop`, `nth`, `take-last`, and `take-nth` (#1598, #1599, #1600, #1641, #1643, #1645)
-- Improve map and seq behavior in `apply`, `merge`, `dissoc`, `find`, and `mapcat` (#1602, #1603, #1606, #1607, #1646, #1651, #1653)
+- `peek` returns the head of lists and lazy seqs, last of vectors and PHP arrays (#1761)
+- Set support in `first`, `ffirst`, `second`, `next`, `nfirst`, `fnext`, `nnext`, `some` (#1639, #1642, #1649)
+- Edge cases in `seq`, `cons`, `pop`, `nth`, `take-last`, `take-nth` (#1598, #1599, #1600, #1641, #1643, #1645)
+- Map and seq behavior in `apply`, `merge`, `dissoc`, `find`, `mapcat` (#1602, #1603, #1606, #1607, #1646, #1651, #1653)
 - `assoc!` handles `apply` trailing keys with `nil` values (#1609)
-- `get-in` returns `nil` or default when traversal goes too deep (#1640)
+- `get-in` returns `nil`/default when traversal exceeds depth (#1640)
 - `sort` handles `(sort comp coll)`, maps, and nested vectors (#1610, #1611, #1613)
 - Dynamic bindings are fiber-local and propagate through `future` and `async` (#1536)
 - Hierarchy lookups handle invalid arguments, inline protocols, and PHP parents (#1591, #1597)
@@ -83,35 +83,35 @@ This release focuses on Clojure-compatible core behavior, PHP interop consistenc
 - Hierarchy checks include PHP parents and interfaces for class-string tags (#1560)
 - Bare `apply` resolves as a first-class function (#1564)
 - `eval` returns already-evaluated PHP objects unchanged (#1563)
-- Symbols are now callable like keywords (`('a {'a 1}) ; => 1`) so `(ifn? 'a)` is `true` (#1697)
-- Promises implement IFn (`(p val)` delivers, `(p)` derefs) so `(ifn? (promise))` is `true` (#1698)
+- Symbols are callable like keywords; `(ifn? 'a)` is `true` (#1697)
+- Promises implement IFn: `(p val)` delivers, `(p)` derefs (#1698)
 
 #### Build
 - Skip unparseable `.phel` files during directory scans
 
 #### API
-- Preload `phel\core` in `phel analyze` so core macros resolve (#1539)
+- `phel analyze` preloads `phel\core` so core macros resolve (#1539)
 
 #### Test
-- `run-tests` resets assertion counts for each run (#1604)
+- `run-tests` resets assertion counts per run (#1604)
 - Default reporter prints string literals readably in failures (#1601)
-- `phel test --stack-trace` opts into the full PHP stack trace for errored tests; default report omits it (#1695)
+- `phel test --stack-trace` opts into the full PHP stack trace; default omits it (#1695)
 
 #### REPL
 - Accept bare namespace symbols in `dir` (#1588)
-- Preserve current namespace and user definitions across autocompletion / nREPL `completions` and `lookup` requests, fixing the random switch to `phel-internal\doc` (#1692)
+- Preserve current namespace across autocompletion and nREPL `completions`/`lookup` (#1692)
 
 #### Compiler
 - Resolve PHP class aliases consistently regardless of case (#1567)
 - Reject unknown PHP symbols in `use` imports (#1688)
-- Imported PHP classes can be used as class-string values (#1560)
+- Imported PHP classes usable as class-string values (#1560)
 - Lowercase root PHP classes resolve in constructor positions (#1567)
 - `php/new` reports invalid target types clearly (#1538)
 - Reader conditionals allow a newline before the closing paren (#1547)
 
 #### Lint
-- Alias-qualified required calls no longer report as unresolved (#1540)
-- Vendored stdlib files are skipped when linting with no arguments (#1541)
+- Alias-qualified required calls no longer flagged as unresolved (#1540)
+- Vendored stdlib files skipped when linting with no arguments (#1541)
 
 ## [0.34.1](https://github.com/phel-lang/phel-lang/compare/v0.34.0...v0.34.1) - 2026-04-21
 
