@@ -304,8 +304,10 @@
 (deftest test-nthrest
   (is (= [3 4 5] (nthrest [1 2 3 4 5] 2)) "nthrest drops first n")
   (is (= [1 2 3] (nthrest [1 2 3] 0)) "nthrest 0 returns coll")
-  (is (nil? (nthrest [1 2] 5)) "nthrest past end returns nil")
-  (is (nil? (nthrest nil 3)) "nthrest on nil returns nil"))
+  (is (= '() (nthrest [1 2] 5)) "nthrest past end returns empty list")
+  (is (= '() (nthrest nil 3)) "nthrest on nil returns empty list")
+  (is (= '() (nthrest [] 100)) "nthrest on empty vector returns empty list")
+  (is (= '() (nthrest (range 0 10) 10)) "nthrest exhausting a range returns empty list"))
 
 (deftest test-nthnext
   (is (= [3 4 5] (nthnext [1 2 3 4 5] 2)) "nthnext drops first n")
