@@ -53,6 +53,7 @@ This release focuses on Clojure-compatible core behavior, PHP interop consistenc
 - Sets compare equal regardless of their underlying ordering: `(= (sorted-set 4 2 6) #{4 2 6})` returns `true` (#1708)
 - `empty` returns `()` for lazy sequences such as `(range)` instead of `nil` (#1710)
 - `empty` preserves the metadata of the original collection (#1711)
+- `butlast` returns `nil` instead of an empty vector when `coll` is `nil` or has fewer than two items (#1712)
 - Improve set support in sequence functions including `first`, `ffirst`, `second`, `next`, `nfirst`, `fnext`, `nnext`, and `some` (#1639, #1642, #1649)
 - Improve collection edge cases in `seq`, `cons`, `pop`, `nth`, `take-last`, and `take-nth` (#1598, #1599, #1600, #1641, #1643, #1645)
 - Improve map and seq behavior in `apply`, `merge`, `dissoc`, `find`, and `mapcat` (#1602, #1603, #1606, #1607, #1646, #1651, #1653)
