@@ -26,7 +26,12 @@
   (is (= :ns/name (keyword "ns" "name")) "keyword with namespace and name")
   (is (= :ns/name (keyword 'ns 'name)) "keyword accepts symbols as ns/name")
   (is (= :name (keyword nil "name")) "keyword with nil namespace is unqualified")
-  (is (nil? (keyword "ns" nil)) "keyword with nil name is nil"))
+  (is (nil? (keyword "ns" nil)) "keyword with nil name is nil")
+  (is (= :abc*+!-_'?<>= (keyword "abc*+!-_'?<>="))
+      "keyword literal with special characters round-trips against (keyword string)")
+  (is (= :abc*+!-_'?<>=/abc*+!-_'?<>=
+         (keyword "abc*+!-_'?<>=" "abc*+!-_'?<>="))
+      "namespaced keyword literal with special characters round-trips against (keyword ns name)"))
 
 (deftest create-hash-map
   (is (= {:a 1 :b 2} (hash-map :a 1 :b 2)) "construct hash-map"))
