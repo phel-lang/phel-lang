@@ -281,7 +281,10 @@
   (is (= "a" (get-in {:a [["b" "a"]]} [:a 0 1])) "get-in level 3")
   (is (= "x" (get-in {:a [["b" "a"]]} [:b 0 1] "x")) "get-in level 3 with default")
   (is (nil? (get-in {:a {:b {:c :d}}} [:a :b :c :d])) "get-in too deep returns nil")
-  (is (= :d (get-in {:a {:b {:c :d} :e (range)}} [:a :b :c :d] :d)) "get-in too deep returns default"))
+  (is (= :d (get-in {:a {:b {:c :d} :e (range)}} [:a :b :c :d] :d)) "get-in too deep returns default")
+  (is (= "not found" (get-in nil nil "not found")) "get-in on nil ds with nil keys returns the default")
+  (is (= "not found" (get-in nil [] "not found")) "get-in on nil ds with empty path returns the default")
+  (is (= "not found" (get-in nil [:a] "not found")) "get-in on nil ds with missing key returns the default"))
 
 (deftest test-nth
   (is (= 2 (nth [1 2 3] 1)) "nth on vector")
