@@ -279,7 +279,12 @@
 (deftest test-seq?
   (is (true? (seq? (take 5 (iterate inc 1)))) "seq? on lazy sequence")
   (is (false? (seq? [])) "seq? on vector")
-  (is (false? (seq? '())) "seq? on list")
+  (is (true? (seq? '())) "seq? on empty list")
+  (is (true? (seq? '(1 2 3))) "seq? on quoted list")
+  (is (true? (seq? (seq [1 2 3]))) "seq? on (seq vector)")
+  (is (true? (seq? (rseq [1 2 3]))) "seq? on (rseq vector)")
+  (is (true? (seq? (seq (sorted-map :a 1)))) "seq? on (seq sorted-map)")
+  (is (true? (seq? (seq (sorted-set :a)))) "seq? on (seq sorted-set)")
   (is (false? (seq? {})) "seq? on map")
   (is (false? (seq? nil)) "seq? on nil"))
 

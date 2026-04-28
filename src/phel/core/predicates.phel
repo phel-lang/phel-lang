@@ -300,10 +300,11 @@
   (= (type x) :php/object))
 
 (defn seq?
-  "Returns true if `x` is a seq (implements LazySeqInterface), false otherwise."
+  "Returns true if `x` is a seq (a list or a lazy sequence)."
   {:see-also ["seq" "lazy-seq"]}
   [x]
-  (php/instanceof x LazySeqInterface))
+  (or (php/instanceof x LazySeqInterface)
+      (php/instanceof x PersistentListInterface)))
 
 (defn empty?
   "Returns true if x would be 0, \"\" or empty collection, false otherwise.
@@ -342,12 +343,12 @@
 
 (defn seq
   "Returns a seq on the collection. Strings are converted to a vector of characters.
-  Non-sequential collections and PHP arrays are converted to vectors.
-  Returns nil if coll is empty or nil.
+  Other non-empty collections (vectors, sets, sorted-maps, sorted-sets, PHP arrays)
+  are converted to a list. Returns nil if `coll` is empty or nil.
 
   This function is useful for explicitly converting strings to sequences of characters,
   enabling sequence operations like map, filter, and frequencies."
-  {:example "(seq \"hello\") ; => [\"h\" \"e\" \"l\" \"l\" \"o\"]"
+  {:example "(seq \"hello\") ; => [\"h\" \"e\" \"l\" \"l\" \"o\"]\n(seq [1 2 3]) ; => (1 2 3)"
    :see-also ["count"]}
   [coll]
   (cond
@@ -357,7 +358,7 @@
     (php/=== coll nil)
     nil
 
-    ;; For lazy sequences, don't force them - just check if first element exists
+    ;; For lazy sequences and lists, don't force them - just check if first element exists
     (seq? coll)
     (if (php/=== nil (php/-> coll (first))) nil coll)
 
@@ -366,13 +367,13 @@
     nil
 
     (php/is_array coll)
-    (seq-vector coll)
+    (apply list coll)
 
     (php/instanceof coll PersistentHashSetInterface)
-    (seq-vector (to-php-array coll))
+    (apply list (to-php-array coll))
 
     true
-    coll))
+    (apply list coll)))
 
 (defn- indexed-php-array?
   [x]
