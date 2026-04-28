@@ -133,10 +133,10 @@
 (defmacro require
   "Requires a Phel module into the environment.
   Accepts both the flat form and the Clojure-compatible vector form:
-    (require 'phel.string :as str)
-    (require '[phel.string :as str])
-    (require '[phel.string :as str :refer [blank?]])"
-  {:example "(require '[phel.string :as str]) ; => phel\\string"}
+    (require 'phel\\string :as str)
+    (require '[phel\\string :as str])
+    (require '[phel\\string :as str :refer [blank?]])"
+  {:example "(require '[phel\\string :as str]) ; => phel\\string"}
   [sym & args]
   (let [unquoted        (unquote-sym sym)
         [ns-sym opt-seq] (if (vector? unquoted)

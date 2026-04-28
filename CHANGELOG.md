@@ -21,6 +21,9 @@ This release focuses on Clojure-compatible core behavior, PHP interop consistenc
 - Compare numeric values consistently in `==` (#1561)
 - Support `[size init-val-or-seq]` in primitive array helpers (#1562)
 
+#### REPL
+- `require` accepts vector syntax: `(require '[phel\string :as s])` (#1693)
+
 ### Changed
 
 - **BREAKING**: Require PHP 8.4
