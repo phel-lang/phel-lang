@@ -22,6 +22,9 @@ This release focuses on Clojure-compatible core behavior, PHP interop consistenc
 - Support `[size init-val-or-seq]` in primitive array helpers (#1562)
 - Add namespace introspection: `loaded-namespaces`, `find-ns`, `create-ns`, `remove-ns`, `intern`, `ns-interns`, `ns-publics`, `ns-aliases`, `ns-refers`, `load-file` (#1694)
 
+#### REPL
+- `require` accepts vector syntax: `(require '[phel\string :as s])` (#1693)
+
 ### Changed
 
 - **BREAKING**: Require PHP 8.4
