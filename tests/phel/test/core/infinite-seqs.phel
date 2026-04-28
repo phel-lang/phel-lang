@@ -330,6 +330,10 @@
   (is (= [2 4 2 4 2] (take 5 (filter even? (cycle [1 2 3 4]))))
       "cycle should work with filter"))
 
+(deftest test-cycle-on-map
+  (is (= [[:a 1] [:b 2] [:a 1]] (vec (take 3 (cycle (sorted-map :a 1 :b 2)))))
+      "cycle on a map yields key-value pairs"))
+
 (deftest test-keep-on-vector-returns-lazy
   (is (= [2 4] (doall (keep #(when (even? %) %) [1 2 3 4])))
       "keep on vector should return lazy sequence"))
