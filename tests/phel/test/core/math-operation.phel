@@ -64,7 +64,10 @@
 (deftest test-odd?
   (is (false? (odd? 0)) "(odd? 0)")
   (is (true? (odd? 1)) "(odd? 1)")
-  (is (false? (odd? 2)) "(odd? 2)"))
+  (is (false? (odd? 2)) "(odd? 2)")
+  (is (true? (odd? -119)) "(odd? -119)")
+  (is (true? (odd? -1)) "(odd? -1)")
+  (is (false? (odd? -2)) "(odd? -2)"))
 
 (deftest test-zero?
   (is (true? (zero? 0)) "(zero? 0)")

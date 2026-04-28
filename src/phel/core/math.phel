@@ -196,7 +196,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 (defn odd?
   "Checks if `x` is odd."
   [x]
-  (= 1 (% x 2)))
+  (not (even? x)))
 
 (defn zero?
   "Checks if `x` is zero."
