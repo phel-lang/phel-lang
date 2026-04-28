@@ -640,14 +640,14 @@
   order. `rev` must be reversible (a vector, sorted-map, or sorted-set);
   otherwise an exception is thrown. For sorted-maps, returns reversed `[key value]` pairs.
   Returns nil if `rev` is empty."
-  {:example "(rseq [1 2 3]) ; => [3 2 1]"
+  {:example "(rseq [1 2 3]) ; => (3 2 1)"
    :see-also ["reversible?" "reverse"]}
   [rev]
   (when-not (reversible? rev)
     (throw (php/new InvalidArgumentException
                     "rseq requires a reversible collection (vector, sorted-map, or sorted-set)")))
   (when (php/> (count rev) 0)
-    (reverse (if (vector? rev) rev (vec rev)))))
+    (apply list (reverse (if (vector? rev) rev (vec rev))))))
 
 (defn frequencies
   "Returns a map from distinct items in `coll` to the number of times they appear.
@@ -1014,10 +1014,7 @@
   {:example "(doall (map println [1 2 3])) ; => [nil nil nil]"}
   [coll]
   (if (seq? coll)
-    (let [arr (php/-> coll (toArray))]
-      (if (php/empty arr)
-        nil
-        (php/:: Phel (vector arr))))
+    (php/:: Phel (vector (php/-> coll (toArray))))
     coll))
 
 (defn dorun
@@ -1036,7 +1033,8 @@
    :see-also ["delay" "force" "lazy-seq" "future"]}
   [coll]
   (cond
-    (seq? coll) (php/-> coll (isRealized))
+    (php/instanceof coll LazySeqInterface) (php/-> coll (isRealized))
+    (php/instanceof coll PersistentListInterface) true
     (php/instanceof coll Delay) (php/-> coll (isRealized))
     (php/instanceof coll \Phel\Lang\PhelFuture) (php/-> coll (isRealized))
     (php/instanceof coll \Phel\Fiber\Domain\Future) (php/-> coll (isRealized))
