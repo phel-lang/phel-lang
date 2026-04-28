@@ -58,6 +58,7 @@ This release focuses on Clojure-compatible core behavior, PHP interop consistenc
 - Hierarchy checks include PHP parents and interfaces for class-string tags (#1560)
 - Bare `apply` resolves as a first-class function (#1564)
 - `eval` returns already-evaluated PHP objects unchanged (#1563)
+- Symbols are now callable like keywords (`('a {'a 1}) ; => 1`) so `(ifn? 'a)` is `true` (#1697)
 - Promises implement IFn (`(p val)` delivers, `(p)` derefs) so `(ifn? (promise))` is `true` (#1698)
 
 #### Build

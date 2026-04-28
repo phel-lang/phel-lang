@@ -181,6 +181,7 @@
 (deftest test-ifn?
   (is (true? (ifn? inc)) "ifn? on function")
   (is (true? (ifn? :a)) "ifn? on keyword")
+  (is (true? (ifn? 'a)) "ifn? on symbol")
   (is (true? (ifn? {})) "ifn? on map")
   (is (true? (ifn? [])) "ifn? on vector")
   (is (true? (ifn? #{})) "ifn? on set")
@@ -188,6 +189,11 @@
   (is (false? (ifn? 42)) "ifn? on integer")
   (is (false? (ifn? "str")) "ifn? on string")
   (is (false? (ifn? nil)) "ifn? on nil"))
+
+(deftest test-symbol-as-fn
+  (is (= 1 ('a {'a 1})) "symbol looks itself up in a map")
+  (is (= "default" ('a {} "default")) "symbol returns default when key missing")
+  (is (nil? ('a nil)) "symbol on nil returns nil"))
 
 (deftest test-hash-map?
   (is (true? (hash-map? {})) "hash-map?"))
