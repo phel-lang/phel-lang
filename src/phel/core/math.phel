@@ -374,21 +374,27 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   [order args]
   (reduce #(if (order %1 %2) %1 %2) args))
 
+(defn- numeric-nan?
+  [x]
+  (and (php/is_float x) (php/is_nan x)))
+
 (defn min
-  "Returns the numeric minimum of all numbers. Returns `##NaN` whenever any
-  argument is `##NaN`."
+  "Returns the minimum of all arguments. Returns `##NaN` whenever any
+  numeric argument is `##NaN`."
   [& numbers]
-  (if (some nan? numbers)
-    ##NaN
-    (extreme < numbers)))
+  (cond
+    (php/=== 1 (count numbers)) (first numbers)
+    (some numeric-nan? numbers) ##NaN
+    :else                       (extreme < numbers)))
 
 (defn max
-  "Returns the numeric maximum of all numbers. Returns `##NaN` whenever any
-  argument is `##NaN`."
+  "Returns the maximum of all arguments. Returns `##NaN` whenever any
+  numeric argument is `##NaN`."
   [& numbers]
-  (if (some nan? numbers)
-    ##NaN
-    (extreme > numbers)))
+  (cond
+    (php/=== 1 (count numbers)) (first numbers)
+    (some numeric-nan? numbers) ##NaN
+    :else                       (extreme > numbers)))
 
 (defn min-key
   "Returns the arg for which (k arg) is smallest. On ties, returns the latest argument."
