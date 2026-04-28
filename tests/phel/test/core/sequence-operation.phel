@@ -355,7 +355,10 @@
   (is (= {} (apply dissoc {} [])) "apply dissoc with no keys does not raise")
   (is (= {:b 2} (apply dissoc {:a 1 :b 2 :c 3} [:a :c])) "apply dissoc variadic through seq")
   (is (thrown? \InvalidArgumentException (dissoc 42 :a)) "dissoc rejects scalars")
-  (is (thrown? \InvalidArgumentException (dissoc dissoc :a)) "dissoc rejects functions"))
+  (is (thrown? \InvalidArgumentException (dissoc dissoc :a)) "dissoc rejects functions")
+  (is (nil? (dissoc nil :a)) "dissoc on nil returns nil")
+  (is (nil? (dissoc nil)) "dissoc on nil with no keys returns nil")
+  (is (nil? (apply dissoc nil [nil])) "apply dissoc on nil with a nil key returns nil"))
 
 (defstruct dissoc-rec [a b c])
 
