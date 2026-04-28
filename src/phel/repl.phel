@@ -130,17 +130,6 @@
     (set-ns current-ns)
     namespace))
 
-(defn- parse-require-vector
-  "Parses a Clojure-style require vector [ns-sym :as alias :refer [f g]]
-  into [ns-sym alias refers]."
-  [v]
-  (let [ns-sym  (first v)
-        rest-v  (or (next v) [])
-        options (apply hash-map rest-v)
-        alias   (extract-alias ns-sym options)
-        refers  (or (:refer options) [])]
-    [ns-sym alias refers]))
-
 (defmacro require
   "Requires a Phel module into the environment.
   Accepts both the flat form and the Clojure-compatible vector form:
@@ -149,22 +138,14 @@
     (require '[phel.string :as str :refer [blank?]])"
   {:example "(require '[phel.string :as str]) ; => phel\\string"}
   [sym & args]
-  (let [unquoted (unquote-sym sym)]
-    (if (vector? unquoted)
-      (let [parsed  (parse-require-vector unquoted)
-            ns-sym  (get parsed 0)
-            alias   (get parsed 1)
-            refers  (get parsed 2)]
-        `(require-namespace '~ns-sym '~alias '~refers))
-      (let [options (apply hash-map args)
-            alias   (extract-alias unquoted options)
-            refers  (or (:refer options) [])]
-        `(require-namespace '~unquoted '~alias '~refers)))))
-  (let [sym     (unquote-sym sym)
-        options (apply hash-map args)
-        alias   (extract-alias sym options)
-        refers  (or (:refer options) [])]
-    `(require-namespace '~sym '~alias '~refers)))
+  (let [unquoted        (unquote-sym sym)
+        [ns-sym opt-seq] (if (vector? unquoted)
+                           [(first unquoted) (or (next unquoted) [])]
+                           [unquoted args])
+        options         (apply hash-map opt-seq)
+        alias           (extract-alias ns-sym options)
+        refers          (or (:refer options) [])]
+    `(require-namespace '~ns-sym '~alias '~refers)))
 
 (defn- use-namespace
   [namespace alias]
