@@ -134,7 +134,7 @@
         "(rand n) returns a number in [0, n)")))
 
 (deftest test-rand-with-zero-limit
-  (is (= 0 (rand 0)) "(rand 0) returns 0"))
+  (is (zero? (rand 0)) "(rand 0) returns 0"))
 
 (deftest test-min-key
   (is (= {:a 1} (min-key :a {:a 1} {:a 3} {:a 2}))
