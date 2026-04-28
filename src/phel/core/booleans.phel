@@ -361,7 +361,16 @@
 
 (defn- compare-named
   [x y]
-  (php/<=> (php/-> x (getFullName)) (php/-> y (getFullName))))
+  (let [ns-x   (php/-> x (getNamespace))
+        ns-y   (php/-> y (getNamespace))
+        ns-cmp (cond
+                 (php/=== ns-x ns-y) 0
+                 (php/=== ns-x nil)  -1
+                 (php/=== ns-y nil)  1
+                 :else               (php/<=> ns-x ns-y))]
+    (if (php/!== 0 ns-cmp)
+      ns-cmp
+      (php/<=> (php/-> x (getName)) (php/-> y (getName))))))
 
 (defn- compare-same-category [category x y]
   (cond
