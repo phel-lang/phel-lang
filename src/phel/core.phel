@@ -240,3 +240,6 @@
 (load "core/loops")
 (load "core/futures")
 (load "core/async")
+
+;; Namespace introspection and manipulation
+(load "core/ns")
