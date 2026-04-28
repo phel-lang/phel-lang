@@ -108,18 +108,17 @@
   "Takes a variadic set of predicates and returns a function `f` that,
    when called with any number of arguments, returns the first logical
    true value produced by applying any of the composing predicates to
-   any of its arguments, and `nil` otherwise. The returned function
-   short-circuits on the first truthy result: arguments after it are
-   not inspected, and predicates after it are not tried.
+   any of its arguments, and `false` when none match. The returned
+   function short-circuits on the first truthy result: arguments after
+   it are not inspected, and predicates after it are not tried.
    Predicates are consulted in the order supplied; for a given
-   predicate, arguments are consulted left-to-right. Matches Clojure's
-   `some-fn` semantics."
-  {:example "((some-fn even? nil?) 1 2) ; => true\n((some-fn pos? even?) -3 -1) ; => nil"
+   predicate, arguments are consulted left-to-right."
+  {:example "((some-fn even? nil?) 1 2) ; => true\n((some-fn pos? even?) -3 -1) ; => false"
    :see-also ["some" "complement" "every?" "not-any?"]}
   [p & ps]
   (let [preds (cons p ps)]
     (fn [& args]
-      (some (fn [pred] (some pred args)) preds))))
+      (or (some (fn [pred] (some pred args)) preds) false))))
 
 (defn juxt
   "Takes a list of functions and returns a new function that is the juxtaposition of those functions."
