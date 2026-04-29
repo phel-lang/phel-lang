@@ -51,6 +51,7 @@
     (let [tmp-ns "phel-test\\tmp\\intern-var-get-test"]
       (is (= 99 (var-get (intern tmp-ns "x" 99))) "retrieves value when intern is called with value")
       (is (= 99 (var-get (intern tmp-ns "x"))) "preserves existing value when intern called without value")
+      (is (= 100 (var-get (intern tmp-ns "x" 100))) "arity-3 overwrites existing value")
       (is (nil? (var-get (intern tmp-ns "x" nil))) "explicit nil overwrites existing value")
       (remove-ns tmp-ns))
 

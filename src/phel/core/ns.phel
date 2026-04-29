@@ -69,9 +69,9 @@
 (defn intern
   "Finds or creates a definition named by name-str in namespace ns-str.
   When a value is supplied, sets the root value to val (overwriting any
-  existing value). When no value is supplied, finds an existing definition
-  without overwriting it, or creates it with a nil value if it doesn't exist.
-  The namespace is auto-registered by the underlying `addDefinition` call.
+  existing value). When no value is supplied, returns the existing
+  definition unchanged, or creates it with nil if it doesn't exist.
+  Creating a definition auto-registers the namespace.
   Returns the fully qualified symbol naming the definition."
   {:example "(intern \"user\" \"x\" 42) ; => user/x"
    :see-also ["find-ns" "create-ns" "ns-interns"]}
