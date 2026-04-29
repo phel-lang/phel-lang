@@ -1,5 +1,6 @@
 (ns phel-test\test\core\ns
-  (:require phel\test :refer [deftest is]))
+  (:require phel\test :refer [deftest is testing])
+  (:use Phel\Lang\Symbol))
 
 (deftest test-loaded-namespaces-includes-core
   (is (php/in_array "phel\\core" (loaded-namespaces))
@@ -28,16 +29,43 @@
       (is (= 42 (get interns "x")) "ns-interns contains the interned value"))
     (remove-ns ns)))
 
-(deftest test-intern-and-var-get
-  (let [a-var (intern 'phel-test\tmp\intern-var-get-test 'x 99)]
-    (is (= 99 (var-get a-var)) "var-get retrieves value when intern is called with value"))
-  (let [a-var (intern 'phel-test\tmp\intern-var-get-test 'x)]
-    (is (= 99 (var-get a-var)) "var-get preserves existing value when intern called without value"))
-  (let [new-ns (create-ns 'new-ns-name)
-        a-var (intern new-ns 'x 99)]
-    (is (= 99 (var-get a-var)) "var-get works with explicitly created namespace"))
-  (let [a-var (intern 'new-ns-name 'x)]
-    (is (= 99 (var-get a-var)) "var-get works when intern auto-creates namespace")))
+(deftest test-var-get
+  (testing "general var-get behavior"
+    (let [test-ns "phel-test-var-get"]
+      (remove-ns test-ns)
+      (intern test-ns "existing" 100)
+      (intern test-ns "another" "hello")
+
+      (testing "successful lookups"
+        (def test-var-get-def 123)
+        (is (= 123 (var-get (symbol *ns* "test-var-get-def"))) "def in current namespace")
+
+        (let [sym1 (Symbol/createForNamespace test-ns "existing")
+              sym2 (Symbol/createForNamespace test-ns "another")]
+          (is (= 100 (var-get sym1)) "existing int value")
+          (is (= "hello" (var-get sym2)) "existing string value")))
+
+      (testing "failing lookups"
+        (let [missing-sym (Symbol/createForNamespace test-ns "missing")]
+          (is (= nil (var-get missing-sym)) "returns nil for non-existent symbol"))
+        (let [empty-ns "phel-test-empty"
+              empty-sym (Symbol/createForNamespace empty-ns "anything")]
+          (remove-ns empty-ns)
+          (is (= nil (var-get empty-sym)) "returns nil for empty namespace")))
+
+      (remove-ns test-ns)
+      (remove-ns "phel-test-empty")))
+
+  (testing "var-get with return value of intern"
+    (let [a-var (intern 'phel-test\tmp\intern-var-get-test 'x 99)]
+      (is (= 99 (var-get a-var)) "retrieves value when intern is called with value"))
+    (let [a-var (intern 'phel-test\tmp\intern-var-get-test 'x)]
+      (is (= 99 (var-get a-var)) "preserves existing value when intern called without value"))
+    (let [new-ns (create-ns 'new-ns-name)
+          a-var (intern new-ns 'x 99)]
+      (is (= 99 (var-get a-var)) "works with explicitly created namespace"))
+    (let [a-var (intern 'new-ns-name 'x)]
+      (is (= 99 (var-get a-var)) "works when intern auto-creates namespace"))))
 
 (deftest test-ns-publics-returns-map
   (let [publics (ns-publics "phel\\core")]
