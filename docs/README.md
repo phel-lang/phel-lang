@@ -40,15 +40,15 @@ Coming from Clojure? Read [Clojure Migration](clojure-migration.md).
 
 ## Internals
 
-Start with the [internals overview](internals/README.md) for a guided path.
+Overview: [internals/](internals/README.md).
 
-- [Architecture](internals/architecture.md) — modules, Gacela pattern, dependency map
-- [Compiler](internals/compiler.md) — phases, AST, emitter
-- [Special forms](internals/special-forms.md) — full list, dispatch, how to add one
-- [Macros](internals/macros.md) — `macroexpand`, quasiquote, gensym
-- [Runtime](internals/runtime.md) — `Lang/`, persistent collections, `Registry`
-- [FAQ](internals/faq.md) — questions grouped by reader
-- [Benchmarks](internals/benchmarks.md) — PHPBench setup
+- [Architecture](internals/architecture.md): modules, Gacela pattern, dependency map
+- [Compiler](internals/compiler.md): phases, AST, emitter
+- [Special forms](internals/special-forms.md): list, dispatch, how to add one
+- [Macros](internals/macros.md): `macroexpand`, quasiquote, gensym
+- [Runtime](internals/runtime.md): `Lang/`, persistent collections, `Registry`
+- [FAQ](internals/faq.md): questions grouped by reader
+- [Benchmarks](internals/benchmarks.md): PHPBench setup
 - [Migration: backslash to dot](migration/backslash-to-dot.md)
 
 ## AI agents
