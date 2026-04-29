@@ -1,82 +1,80 @@
-# Compiler Internals
+# Compiler
 
-How the Phel compiler processes source code. The compiler is a pipeline; each step transforms its input and passes the result to the next.
+Six-stage pipeline. Each stage consumes only the previous stage's output. Source locations propagate end-to-end.
 
-## Compiler pipeline
+| Stage | Class | In | Out |
+|-------|-------|----|-----|
+| Lexer | `Application/Lexer.php` | `string` | `TokenStream` |
+| Parser | `Application/Parser.php` | `TokenStream` | parse tree (`NodeInterface`) |
+| Reader | `Application/Reader.php` | parse tree | `ReaderResult` (Phel data) |
+| Analyzer | `Application/Analyzer.php` | Phel data | `AbstractNode` |
+| Emitter | `Domain/Emitter/OutputEmitter.php` | `AbstractNode` | PHP `string` |
+| Evaluator | `Domain/Evaluator/` | PHP `string` | values / side effects |
 
-1. **Lexer**: source string into a stream of tokens.
-2. **Parser**: tokens into a parse tree retaining whitespace and comments.
-3. **Reader**: parse tree into Phel data structures. Trivia like whitespace is dropped.
-4. **Analyzer**: validates the data structures and produces an abstract syntax tree (AST).
-5. **Emitter**: AST into PHP code.
-6. **Evaluator**: executes the generated PHP code.
+Paths are relative to `src/php/Compiler/`.
 
-Examples below use `(print "hi")` to illustrate each stage.
+## Public entry points (`CompilerFacade`)
 
-## Lexer
+- `compile()` / `compileForCache()`: full pipeline → `EmitterResult`
+- `compileForm()`: start from already-read Phel data
+- `eval()` / `evalForm()`: compile + execute
+- `lexString()` / `parseAll()` / `read()` / `analyze()`: single-stage hooks for LSP, nREPL, linter
 
-The lexer splits the input string into tokens. Every token has a `type`, the lexeme `code`, and start/end `SourceLocation`. Tokens are collected in a `TokenStream` consumed by the parser.
+## Tracing `(print "hi")`
 
-Example output:
+**Lexer**: `Token` per lexeme with type, code, `SourceLocation`. Trivia kept (`T_WHITESPACE`, `T_COMMENT`) for formatter/linter.
 
 ```text
-T_OPEN_PARENTHESIS "("
-T_ATOM "print"
-T_WHITESPACE " "
-T_STRING "\"hi\""
+T_OPEN_PARENTHESIS  "("
+T_ATOM              "print"
+T_WHITESPACE        " "
+T_STRING            "\"hi\""
 T_CLOSE_PARENTHESIS ")"
 ```
 
-## Parser
-
-The parser reads from the `TokenStream` and produces a parse tree. The tree retains every token, including whitespace and comments, so macros can access the original layout.
-
-Example output:
+**Parser**: sub-parsers under `Domain/Parser/ExpressionParser/` (`ListParser`, `VectorParser`, `MapParser`, …) wired by `ExpressionParserFactory`. Tree retains trivia.
 
 ```text
-ListNode
-  AtomNode("print")
-  StringNode("hi")
+ListNode → SymbolNode("print"), WhitespaceNode, StringNode("\"hi\"")
 ```
 
-## Reader
+**Reader**: parse tree → Phel data backed by `Lang/Collections/`. Drops trivia. Expands reader macros: `'x`, `` `x ``, `~x`, `~@x`, `#(...)`, `#inst`, `#regex`, `#php`, custom `#tag` (`Lang/TagHandlers/`). Quasiquote rewrite + auto-gensym in `Domain/Reader/QuasiquoteTransformer.php`.
 
-The reader converts the parse tree into Phel data structures, dropping trivia tokens. The result is wrapped in a `ReaderResult` that keeps a reference to the original snippet for error reporting.
+**Analyzer**: Phel data → AST in `Domain/Analyzer/Ast/`. Dispatch by value type in `Domain/Analyzer/TypeAnalyzer/`:
 
-Example output:
+- `AnalyzeLiteral`: scalars, keywords
+- `AnalyzeSymbol`: locals → globals → suggestion error
+- `AnalyzePersistentList`: special form (see [special-forms.md](special-forms.md)) or `InvokeSymbol`
+- `AnalyzePersistentVector` / `Map` / `Set`: collection literals
 
-```lisp
-(print "hi")
-```
+Side effect: top-level `def`/`defmacro`/`ns` register names in `GlobalEnvironment` so later forms resolve.
 
-## Analyzer
+Every node carries `NodeEnvironment` with:
 
-The analyzer validates the reader's forms and transforms them into an AST. It enriches a global environment with variables and macro definitions. On success, returns an `AbstractNode` tree.
+- **context**: `Expression`, `Statement`, `Return` (drives emitter output shape)
+- **locals** + **shadowed**: `withMergedLocals`, `withShadowedLocal`
+- **recur frame**: innermost `loop`/`fn`
 
-Example output:
+Wrong context → wrong PHP. Emitter trusts what analyzer wrote.
 
-```text
-CallNode
-  Symbol("print")
-  Literal("hi")
-```
+**Emitter**: one `*Emitter.php` per AST node under `Domain/Emitter/OutputEmitter/NodeEmitter/`. Unknown node = throw.
 
-## Emitter
-
-The emitter walks the AST and produces PHP source code. To produce valid PHP identifiers it uses the *munge* component, which replaces special characters in Phel symbols (e.g. `-` becomes `_`, `+` becomes `_PLUS_`). The emitter can also generate source maps.
-
-Example output:
+- **Munge** (`Application/Munge.php`): `my-fn?` → `my_fn_QMARK_`, `+` → `_PLUS_`. Same algorithm in `Lang/Collections/Struct/StructKeyEncoder`.
+- **Source maps** (`Domain/Emitter/OutputEmitter/SourceMap/`): emitted line → Phel `SourceLocation`.
+- **Modes** (`EmitMode`): `STATEMENT` (REPL, `eval`), `FILE` (cached compilation). `StatementEmitter` vs `FileEmitter`.
 
 ```php
-print("hi");
+\phel\core\print_("hi");
 ```
 
-## Evaluator
+**Evaluator**
 
-The evaluator executes the emitted PHP. `RequireEvaluator` writes the code to a temp file and includes it so macros and top-level forms have side effects during compilation.
+- `RequireEvaluator`: temp file + `require`. Production path; opcache-friendly.
+- `InMemoryEvaluator`: `eval()` for tests.
 
-Example output:
+Each top-level form runs lex→…→eval before the next is analysed, so `defmacro` is available to following forms. See `Application/CodeCompiler.php`.
 
-```
-hi
-```
+## See also
+
+- [special-forms.md](special-forms.md), [macros.md](macros.md), [architecture.md](architecture.md), [runtime.md](runtime.md), [faq.md](faq.md)
+- `src/php/Compiler/CLAUDE.md`
