@@ -69,6 +69,8 @@
   without overwriting it, or creates it with a nil value if it doesn't exist.
   The namespace is auto-registered by the underlying `addDefinition` call.
   Returns the fully qualified symbol naming the definition."
+  {:example "(intern \"user\" \"x\" 42) ; => user/x"
+   :see-also ["find-ns" "create-ns" "ns-interns"]}
   [ns-str name-str & rest]
   (let [encoded-ns   (core-munge-ns ns-str)
         encoded-name (php/-> (php/new Munge) (encode name-str))]
@@ -81,7 +83,7 @@
 
 (defn var-get
   "Takes a fully-qualified symbol and resolves it from namespace registry,
-  returning it's value or nil if the symbol is not defined.
+  returning its value or nil if the symbol is not defined.
   This is useful for dereferencing symbols returned by `intern` or
   other functions that return symbol references rather than values."
   [x]
