@@ -1,5 +1,5 @@
 ---
-description: Walk over all unassigned GitHub issues and process each one via the /gh-issue skill, sequentially.
+description: Walk over all open GitHub issues that are unassigned or assigned to the current user, and process each one via the /gh-issue skill, sequentially.
 argument-hint: "[--limit N] [--label foo] [--dry-run]"
 disable-model-invocation: true
 allowed-tools: "Read, Bash(gh *), Bash(git *), Bash(composer *), Skill(gh-issue), Skill(pr)"
@@ -9,7 +9,7 @@ allowed-tools: "Read, Bash(gh *), Bash(git *), Bash(composer *), Skill(gh-issue)
 
 ## Purpose
 
-Process every open, **unassigned** GitHub issue in this repo, one after another, by delegating each to the `/gh-issue` skill. Stop on first hard failure so it can be inspected.
+Process every open GitHub issue that is **unassigned** or **assigned to the current user (`@me`)**, one after another, by delegating each to the `/gh-issue` skill. Stop on first hard failure so it can be inspected.
 
 This is the Claude-side counterpart to `.codex/skills/gh-issues/SKILL.md` — but driven from inside the Claude session rather than a polling shell script.
 
@@ -23,23 +23,33 @@ Strip leading `#` if user passes `#123` style.
 
 ## Phase 1: Discover
 
-Fetch open, unassigned issues, oldest first:
+Fetch open issues that are unassigned **or** assigned to `@me`, oldest first. GitHub search does not OR these cleanly, so run two queries and merge:
 
 ```bash
+# Unassigned
 gh issue list \
   --state open \
   --search "no:assignee" \
-  --json number,title,labels,createdAt \
+  --json number,title,labels,assignees,createdAt \
+  --limit 200
+
+# Assigned to me
+gh issue list \
+  --state open \
+  --assignee "@me" \
+  --json number,title,labels,assignees,createdAt \
   --limit 200
 ```
 
-Filters:
-- Drop issues with any assignee (defensive — `no:assignee` should already exclude).
+Merge:
+- Deduplicate by `number`.
+- Keep only issues whose `assignees` array is empty **or** contains the current user (`gh api user -q .login`).
+- Drop issues assigned to anyone else (defensive).
 - Apply `--label` filter if given.
 - Apply `--limit` if given.
 - Sort ascending by `createdAt` (FIFO).
 
-Print the queue: `#<num> <title>` per line. If empty, exit cleanly.
+Print the queue: `#<num> <title> [assignee]` per line, where `[assignee]` is `unassigned` or `@me`. If empty, exit cleanly.
 
 ## Phase 2: Worktree Sanity
 
@@ -57,14 +67,17 @@ Abort if worktree dirty. Never auto-stash.
 
 For each issue in the queue:
 
-1. Re-check it is still unassigned (someone may have grabbed it):
+1. Re-check assignment state (someone else may have grabbed it):
    ```bash
-   gh issue view <num> --json assignees -q '.assignees | length'
+   gh issue view <num> --json assignees -q '.assignees[].login'
+   me=$(gh api user -q .login)
    ```
-   If `> 0`, skip.
+   - Empty output → unassigned, proceed.
+   - Only `$me` listed → already mine, proceed (skip self-assign step).
+   - Any other login present → skip this issue.
 
 2. Invoke the `/gh-issue` skill with the issue number. That skill owns:
-   - self-assign via `gh issue edit <num> --add-assignee @me`
+   - self-assign via `gh issue edit <num> --add-assignee @me` (no-op if already assigned)
    - branch from fresh `main` (prefix from labels: `fix/`, `feat/`, `docs/`)
    - TDD implementation
    - `composer test` green locally
