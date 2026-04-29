@@ -21,6 +21,7 @@ Core behavior, PHP interop consistency, and stricter compiler diagnostics.
 - Consistent numeric comparison in `==` (#1561)
 - `[size init-val-or-seq]` in primitive array helpers (#1562)
 - Namespace introspection: `loaded-namespaces`, `find-ns`, `create-ns`, `remove-ns`, `intern`, `ns-interns`, `ns-publics`, `ns-aliases`, `ns-refers`, `load-file` (#1694)
+- `var-get` resolves a symbol to its registry value (#1774)
 - `(rand n)` returns a number in `[0, n)` (#1696)
 
 #### REPL
@@ -33,6 +34,7 @@ Core behavior, PHP interop consistency, and stricter compiler diagnostics.
 
 #### Core
 - Expose `future` from `phel\core` (#1537)
+- `intern` without a value preserves an existing root instead of resetting it to `nil` (#1774)
 
 ### Fixed
 

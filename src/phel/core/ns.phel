@@ -15,11 +15,19 @@
   []
   (php/:: Phel (getNamespaces)))
 
+(def ^:private munge-instance
+  ;; Munge is a final readonly class; reuse a single instance to avoid per-call allocation.
+  (php/new Munge))
+
 (defn- core-munge-ns
   "Encodes a namespace string for registry lookup."
   [ns-str]
-  (let [munge (php/new Munge)]
-    (php/-> munge (encodeNs ns-str))))
+  (php/-> munge-instance (encodeNs ns-str)))
+
+(defn- core-munge-name
+  "Encodes a definition name for registry lookup."
+  [name-str]
+  (php/-> munge-instance (encode name-str)))
 
 (defn find-ns
   "Returns the namespace name if it is loaded, or nil if no namespace of
@@ -48,19 +56,6 @@
   (php/:: Phel (removeNamespace (core-munge-ns ns-str)))
   nil)
 
-(defn intern
-  "Finds or creates a definition named by name-str in namespace ns-str,
-  setting its root value to val when supplied (defaults to nil). The
-  namespace is auto-registered by the underlying `addDefinition` call.
-  Returns the fully qualified symbol naming the definition."
-  {:example "(intern \"user\" \"x\" 42) ; => user/x"
-   :see-also ["find-ns" "create-ns" "ns-interns"]}
-  [ns-str name-str & [val]]
-  (let [encoded-ns   (core-munge-ns ns-str)
-        encoded-name (php/-> (php/new Munge) (encode name-str))]
-    (php/:: Phel (addDefinition encoded-ns encoded-name val))
-    (php/:: Symbol (createForNamespace ns-str name-str))))
-
 (defn ns-interns
   "Returns a hash-map of {name => value} for every definition in the
   given namespace, including private ones. Returns an empty map if the
@@ -74,6 +69,44 @@
     (foreach [fn-name value defs]
       (assoc! result (php/-> munge (decodeNs fn-name)) value))
     (persistent result)))
+
+(defn intern
+  "Finds or creates a definition named by name-str in namespace ns-str.
+  When a value is supplied, sets the root value to val (overwriting any
+  existing value). When no value is supplied, returns the existing
+  definition unchanged, or creates a new one with nil if none exists.
+  Auto-registers the namespace when creating a new definition; the
+  arity-2 form is a no-op when the definition already exists.
+  Returns the fully qualified symbol naming the definition."
+  {:example "(intern \"user\" \"x\" 42) ; => user/x"
+   :see-also ["var-get" "find-ns" "create-ns" "ns-interns"]}
+  [ns-str name-str & rest]
+  (let [encoded-ns   (core-munge-ns ns-str)
+        encoded-name (core-munge-name name-str)]
+    (if (seq rest)
+      (php/:: Phel (addDefinition encoded-ns encoded-name (first rest)))
+      ;; skip when no value is provided and the definition already exists
+      (when-not (php/:: Phel (isDefined encoded-ns encoded-name))
+        (php/:: Phel (addDefinition encoded-ns encoded-name nil))))
+    (php/:: Symbol (createForNamespace ns-str name-str))))
+
+(defn var-get
+  "Takes a fully-qualified symbol and resolves it from the namespace registry,
+  returning its value. With one argument, returns nil when the symbol is not
+  defined. With two arguments, returns `not-found` instead, which lets callers
+  disambiguate a stored nil from a missing definition. Returns `not-found`
+  for non-symbol or unqualified inputs."
+  {:example "(var-get (intern \"user\" \"x\" 42)) ; => 42\n(var-get 'user/missing ::none) ; => ::none"
+   :see-also ["intern" "ns-interns" "find-ns"]}
+  ([x] (var-get x nil))
+  ([x not-found]
+   (if (and (symbol? x) (namespace x))
+     (let [encoded-ns   (core-munge-ns (namespace x))
+           encoded-name (core-munge-name (name x))]
+       (if (php/:: Phel (isDefined encoded-ns encoded-name))
+         (php/:: Phel (getDefinition encoded-ns encoded-name))
+         not-found))
+     not-found)))
 
 (defn ns-publics
   "Returns a hash-map of {name => value} for all public definitions in the

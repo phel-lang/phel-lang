@@ -1,5 +1,5 @@
 (ns phel-test\test\core\ns
-  (:require phel\test :refer [deftest is]))
+  (:require phel\test :refer [deftest is testing]))
 
 (deftest test-loaded-namespaces-includes-core
   (is (php/in_array "phel\\core" (loaded-namespaces))
@@ -27,6 +27,50 @@
     (let [interns (ns-interns ns)]
       (is (= 42 (get interns "x")) "ns-interns contains the interned value"))
     (remove-ns ns)))
+
+(deftest test-var-get
+  (testing "general var-get behavior"
+    (let [test-ns  "phel-test-var-get"
+          empty-ns "phel-test-empty"]
+      (remove-ns test-ns)
+      (remove-ns empty-ns)
+      (intern test-ns "existing" 100)
+      (intern test-ns "another" "hello")
+
+      (testing "successful lookups"
+        (is (= 100 (var-get (symbol test-ns "existing"))) "existing int value")
+        (is (= "hello" (var-get (symbol test-ns "another"))) "existing string value"))
+
+      (testing "failing lookups"
+        (is (nil? (var-get (symbol test-ns "missing"))) "returns nil for non-existent symbol")
+        (is (nil? (var-get (symbol empty-ns "anything"))) "returns nil for empty namespace"))
+
+      (remove-ns test-ns)))
+
+  (testing "var-get with return value of intern"
+    (let [tmp-ns "phel-test\\tmp\\intern-var-get-test"]
+      (is (= 99 (var-get (intern tmp-ns "x" 99))) "retrieves value when intern is called with value")
+      (is (= 99 (var-get (intern tmp-ns "x"))) "preserves existing value when intern called without value")
+      (is (= 100 (var-get (intern tmp-ns "x" 100))) "arity-3 overwrites existing value")
+      (is (nil? (var-get (intern tmp-ns "x" nil))) "explicit nil overwrites existing value")
+      (remove-ns tmp-ns))
+
+    (let [created-ns (create-ns "new-ns-name")]
+      (is (= 99 (var-get (intern created-ns "x" 99))) "works with explicitly created namespace")
+      (is (= 99 (var-get (intern "new-ns-name" "x"))) "works when intern auto-creates namespace")
+      (remove-ns "new-ns-name")))
+
+  (testing "var-get on unqualified input returns nil"
+    (is (nil? (var-get (symbol "no-ns"))) "unqualified symbol resolves to nil"))
+
+  (testing "var-get not-found arity disambiguates nil-vs-missing"
+    (let [tmp-ns "phel-test\\tmp\\var-get-not-found"]
+      (intern tmp-ns "stored-nil" nil)
+      (is (nil? (var-get (symbol tmp-ns "stored-nil") :missing)) "stored nil returns nil, not the sentinel")
+      (is (= :missing (var-get (symbol tmp-ns "absent") :missing)) "missing definition returns the sentinel")
+      (is (= :missing (var-get (symbol "absent") :missing)) "unqualified symbol returns the sentinel")
+      (is (= :missing (var-get "not-a-symbol" :missing)) "non-symbol input returns the sentinel")
+      (remove-ns tmp-ns))))
 
 (deftest test-ns-publics-returns-map
   (let [publics (ns-publics "phel\\core")]

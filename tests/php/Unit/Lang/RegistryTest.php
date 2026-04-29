@@ -108,4 +108,36 @@ final class RegistryTest extends TestCase
 
         self::assertFalse($this->registry->hasNamespace('never-registered'));
     }
+
+    public function test_has_definition_false_when_missing(): void
+    {
+        self::assertFalse($this->registry->hasDefinition('ns', 'missing'));
+    }
+
+    public function test_has_definition_true_after_add(): void
+    {
+        $this->registry->addDefinition('ns', 'x', 1);
+
+        self::assertTrue($this->registry->hasDefinition('ns', 'x'));
+    }
+
+    public function test_has_definition_false_for_stored_null(): void
+    {
+        $this->registry->addDefinition('ns', 'x', null);
+
+        self::assertFalse($this->registry->hasDefinition('ns', 'x'));
+    }
+
+    public function test_is_defined_true_for_stored_null(): void
+    {
+        $this->registry->addDefinition('ns', 'x', null);
+
+        self::assertTrue($this->registry->isDefined('ns', 'x'));
+        self::assertNull($this->registry->getDefinition('ns', 'x'));
+    }
+
+    public function test_is_defined_false_when_missing(): void
+    {
+        self::assertFalse($this->registry->isDefined('ns', 'missing'));
+    }
 }
