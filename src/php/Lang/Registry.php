@@ -74,6 +74,16 @@ final class Registry
         return isset($this->definitions[$ns][$name]);
     }
 
+    /**
+     * Like {@see self::hasDefinition()} but treats a stored `null` as present.
+     * Use this when you need to disambiguate "stored null" from "not defined".
+     */
+    public function isDefined(string $ns, string $name): bool
+    {
+        return isset($this->definitions[$ns])
+            && array_key_exists($name, $this->definitions[$ns]);
+    }
+
     public function hasNamespace(string $ns): bool
     {
         return isset($this->definitions[$ns]);

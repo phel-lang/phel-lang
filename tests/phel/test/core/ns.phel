@@ -61,7 +61,16 @@
       (remove-ns "new-ns-name")))
 
   (testing "var-get on unqualified input returns nil"
-    (is (nil? (var-get (symbol "no-ns"))) "unqualified symbol resolves to nil")))
+    (is (nil? (var-get (symbol "no-ns"))) "unqualified symbol resolves to nil"))
+
+  (testing "var-get not-found arity disambiguates nil-vs-missing"
+    (let [tmp-ns "phel-test\\tmp\\var-get-not-found"]
+      (intern tmp-ns "stored-nil" nil)
+      (is (nil? (var-get (symbol tmp-ns "stored-nil") :missing)) "stored nil returns nil, not the sentinel")
+      (is (= :missing (var-get (symbol tmp-ns "absent") :missing)) "missing definition returns the sentinel")
+      (is (= :missing (var-get (symbol "absent") :missing)) "unqualified symbol returns the sentinel")
+      (is (= :missing (var-get "not-a-symbol" :missing)) "non-symbol input returns the sentinel")
+      (remove-ns tmp-ns))))
 
 (deftest test-ns-publics-returns-map
   (let [publics (ns-publics "phel\\core")]
