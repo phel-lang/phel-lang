@@ -18,8 +18,12 @@
 (defn- core-munge-ns
   "Encodes a namespace string for registry lookup."
   [ns-str]
-  (let [munge (php/new Munge)]
-    (php/-> munge (encodeNs ns-str))))
+  (php/-> (php/new Munge) (encodeNs ns-str)))
+
+(defn- core-munge-name
+  "Encodes a definition name for registry lookup."
+  [name-str]
+  (php/-> (php/new Munge) (encode name-str)))
 
 (defn find-ns
   "Returns the namespace name if it is loaded, or nil if no namespace of
@@ -73,7 +77,7 @@
    :see-also ["find-ns" "create-ns" "ns-interns"]}
   [ns-str name-str & rest]
   (let [encoded-ns   (core-munge-ns ns-str)
-        encoded-name (php/-> (php/new Munge) (encode name-str))]
+        encoded-name (core-munge-name name-str)]
     (if (seq rest)
       (php/:: Phel (addDefinition encoded-ns encoded-name (first rest)))
       ;; skip when no value is provided and the definition already exists
@@ -90,11 +94,8 @@
   {:example "(var-get (intern \"user\" \"x\" 42)) ; => 42"
    :see-also ["intern" "ns-interns" "find-ns"]}
   [x]
-  (let [ns-str (namespace x)]
-    (when ns-str
-      (let [encoded-ns   (core-munge-ns ns-str)
-            encoded-name (php/-> (php/new Munge) (encode (name x)))]
-        (php/:: Phel (getDefinition encoded-ns encoded-name))))))
+  (when-let [ns-str (namespace x)]
+    (php/:: Phel (getDefinition (core-munge-ns ns-str) (core-munge-name (name x))))))
 
 (defn ns-publics
   "Returns a hash-map of {name => value} for all public definitions in the
