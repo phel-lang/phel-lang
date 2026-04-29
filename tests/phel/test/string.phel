@@ -114,7 +114,11 @@
   (is (s/blank? ""))
   (is (s/blank? " "))
   (is (s/blank? " \t \n  \r "))
-  (is (not (s/blank? "  foo  "))))
+  (is (not (s/blank? "  foo  ")))
+  (is (not (s/blank? " ")) "U+00A0 NBSP is not blank")
+  (is (not (s/blank? " ")) "U+2007 figure space is not blank")
+  (is (not (s/blank? " ")) "U+202F narrow NBSP is not blank")
+  (is (s/blank? " ") "U+2003 em space is blank"))
 
 (deftest test-split-lines
   (let [result (s/split-lines "one\ntwo\r\nthree")]

@@ -134,11 +134,14 @@
   (php/preg_replace "/[\s]+$/u" "" s))
 
 (defn blank?
-  "True if s is nil, empty, or contains only whitespace."
+  "True if s is nil, empty, or contains only whitespace. Non-breaking
+  separators (`U+00A0`, `U+2007`, `U+202F`) are not treated as whitespace."
   {:example "(blank? \"   \") ; => true"}
   [s]
   (if s
-    (not= 0 (php/preg_match "/^\\s*$/u" s))
+    (not= 0 (php/preg_match
+             "/^[\\t\\n\\x0B\\f\\r\\x1C-\\x1F \\x{1680}\\x{2000}-\\x{2006}\\x{2008}-\\x{200A}\\x{2028}\\x{2029}\\x{205F}\\x{3000}]*$/u"
+             s))
     true))
 
 (defn starts-with?

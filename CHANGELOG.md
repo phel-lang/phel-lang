@@ -45,6 +45,10 @@ All notable changes to this project will be documented in this file.
 - `nil` handling in `nth`, `rand-nth`, `take-last`, `rest`, `contains?`, `nthrest`, `butlast`, `get-in`, `dissoc` (#1592, #1638, #1640, #1644, #1652, #1655, #1656, #1699, #1712, #1713, #1738)
 - `nthrest` over a nil collection returns nil only when `n` is 0; otherwise an empty list (#1778)
 - `get-in` traverses into strings by integer index
+
+#### String
+
+- `blank?` excludes non-breaking separators `U+00A0`, `U+2007`, `U+202F` from whitespace
 - `seq?` recognizes lists and `seq`/`rseq` over vectors, sorted-maps, sorted-sets (#1700)
 - `special-symbol?` recognizes `&`, `catch`, `finally` (#1701)
 - `binding` rebinds dynamic vars to `nil` (#1702)
