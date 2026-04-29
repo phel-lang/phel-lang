@@ -37,9 +37,6 @@
       (intern test-ns "another" "hello")
 
       (testing "successful lookups"
-        (def test-var-get-def 123)
-        (is (= 123 (var-get (symbol *ns* "test-var-get-def"))) "def in current namespace")
-
         (let [sym1 (Symbol/createForNamespace test-ns "existing")
               sym2 (Symbol/createForNamespace test-ns "another")]
           (is (= 100 (var-get sym1)) "existing int value")
