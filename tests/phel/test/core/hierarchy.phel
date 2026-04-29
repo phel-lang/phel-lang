@@ -107,6 +107,33 @@
     (is (contains? anc "Phel\\Lang\\Collections\\Map\\PersistentMapInterface")
         "deftype ancestors include inherited PHP interface")))
 
+(deftest test-defrecord-ancestors-include-protocol-value
+  (let [anc (ancestors AncestorRecord)]
+    (is (contains? anc AncestorRecordProtocol)
+        "defrecord ancestors contain the protocol value (not just its FQN)")))
+
+(deftest test-deftype-ancestors-include-protocol-value
+  (let [anc (ancestors AncestorType)]
+    (is (contains? anc AncestorTypeProtocol)
+        "deftype ancestors contain the protocol value (not just its FQN)")))
+
+(deftest test-ancestors-with-custom-hierarchy-include-protocol-value
+  (let [h   (-> (make-hierarchy)
+                (derive AncestorRecord :hier-test/datatype))
+        anc (ancestors h AncestorRecord)]
+    (is (contains? anc AncestorRecordProtocol)
+        "custom hierarchy ancestors still surface the protocol value via type inheritance")
+    (is (contains? anc :hier-test/datatype)
+        "custom hierarchy ancestors include user-derived parents")))
+
+(defprotocol ParentsProtocolMarker)
+(defrecord ParentsRecordMarker [] ParentsProtocolMarker)
+
+(deftest test-parents-include-protocol-value
+  (let [ps (parents ParentsRecordMarker)]
+    (is (contains? ps ParentsProtocolMarker)
+        "parents contain the protocol value")))
+
 ;; --- descendants ---
 
 (deftest test-descendants

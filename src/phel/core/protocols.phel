@@ -81,22 +81,50 @@
   "Maps generated struct constructor functions to their PHP class tag."
   (atom {}))
 
+(def ^:private *protocol-type-relations*
+  "Maps PHP class tags to the set of protocol values they implement.
+
+  Maintained in parallel with `derive`'s class -> proto-class-string entry
+  so hierarchy queries surface the protocol value itself (the map produced
+  by `defprotocol`) and not just its FQN string."
+  (atom {}))
+
 (defn- hierarchy-tag
   "Resolves public type constructor functions to their generated PHP class tag."
   [tag]
   (get @*type-tag-registry* tag tag))
+
+(defn- protocol-relations
+  "Returns the set of protocol values registered for a PHP class tag.
+  Hierarchy-independent: surfaced by every `parents`/`ancestors`/`descendants`
+  call, mirroring PHP class inheritance."
+  [tag]
+  (get @*protocol-type-relations* tag (hash-set)))
+
+(defn register-protocol-implementor!
+  "Records that `type-key` implements `protocol-value`. Called from
+  `extend-type`'s expansion to keep the registry in sync with `derive`."
+  [type-key protocol-value]
+  (swap! *protocol-type-relations*
+         (fn [m]
+           (assoc m type-key
+                  (conj (get m type-key (hash-set)) protocol-value))))
+  nil)
 
 (defn- direct-parents
   "Returns manually-derived parents plus PHP type parents for tag.
 
   Looks up the parents map under both the original tag and the resolved
   tag (constructor function vs PHP class string) so a `derive` call made
-  with a record/type constructor still surfaces in `parents`/`ancestors`."
+  with a record/type constructor still surfaces in `parents`/`ancestors`.
+  Also unions the protocol values registered against the resolved tag so
+  the surfaced ancestors include the protocol map, not only its FQN."
   [parents-map tag]
   (let [resolved-tag (hierarchy-tag tag)]
     (union (get parents-map tag (hash-set))
            (get parents-map resolved-tag (hash-set))
-           (php-class-relations resolved-tag))))
+           (php-class-relations resolved-tag)
+           (protocol-relations resolved-tag))))
 
 (defn- compute-ancestors
   "Computes all transitive ancestors of tag from a parents map."
@@ -432,7 +460,9 @@
                                dsym      (php/:: Symbol
                                                  (create (php/. proto-str "--" mname-str "--dispatch")))]
                            (conj inner `(swap! ~dsym assoc ~type-key (fn ~margs ~@body)))))
-                       (conj acc `(derive ~type-key ~proto-tag))
+                       (conj acc
+                             `(derive ~type-key ~proto-tag)
+                             `(register-protocol-implementor! ~type-key ~proto-name))
                        methods)))
                   []
                   groups)]
