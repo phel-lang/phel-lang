@@ -154,12 +154,16 @@
       "min-key with single arg"))
 
 (deftest test-min-key-tie-break
-  (is (= "a" (min-key count "a" "bb" "c"))
-      "min-key keeps the running best when later items only tie")
+  (is (= "c" (min-key count "a" "bb" "c"))
+      "min-key returns the last argument on a tie")
   (is (= "b" (min-key count "a" "b"))
       "2-arg direct form returns the second argument on a tie")
   (is (= "b" (min-key count "aaa" "b" "cc"))
-      "no tie, smallest key wins"))
+      "no tie, smallest key wins")
+  (is (= "c" (apply min-key count ["a" "bb" "c"]))
+      "apply form returns the last argument on a tie")
+  (is (= "a" (apply min-key (constantly 5) [nil 1 {:k 2} [3] '(4) #{5} "a"]))
+      "apply form with constant key returns the last argument"))
 
 (deftest test-min-key-with-nan
   (is (= 1 (apply min-key identity [##NaN 1])) "NaN as the first argument is replaced by the next non-NaN")
@@ -178,12 +182,14 @@
       "max-key with single arg"))
 
 (deftest test-max-key-tie-break
-  (is (= "aa" (max-key count "aa" "b" "cc"))
-      "max-key keeps the running best when later items only tie")
+  (is (= "cc" (max-key count "aa" "b" "cc"))
+      "max-key returns the last argument on a tie")
   (is (= "b" (max-key count "a" "b"))
       "2-arg direct form returns the second argument on a tie")
   (is (= "aaa" (max-key count "aaa" "b" "cc"))
-      "no tie, largest key wins"))
+      "no tie, largest key wins")
+  (is (= "dd" (apply max-key count ["a" "bb" "c" "dd"]))
+      "apply form returns the last argument on a tie"))
 
 (deftest test-coerce-in
   (is (= 0.5 (coerce-in 0.5 0 1)) "(coerce-in 0.5 0 1)")
