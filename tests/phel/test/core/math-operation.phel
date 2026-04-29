@@ -189,7 +189,7 @@
   (is (= "aaa" (max-key count "aaa" "b" "cc"))
       "no tie, largest key wins")
   (is (= "dd" (apply max-key count ["a" "bb" "c" "dd"]))
-      "apply form returns the last argument on a tie among the maxes"))
+      "apply form returns the last argument on a tie"))
 
 (deftest test-coerce-in
   (is (= 0.5 (coerce-in 0.5 0 1)) "(coerce-in 0.5 0 1)")
