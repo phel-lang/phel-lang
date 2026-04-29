@@ -54,6 +54,7 @@ All notable changes to this project will be documented in this file.
 - `vector?` reports `false` for `seq` and `rseq` results (#1716)
 - `list?` reports `false` for `seq` and `rseq` results over vectors, sorted-maps, sorted-sets (#1759)
 - `keyword` preserves an empty-string namespace; `(namespace (keyword "" "hi"))` returns `""` and the keyword prints as `:/hi` (#1775)
+- `last` returns the final element of ranges and lists (#1776)
 - Keyword and symbol literals preserve `'`, `"`, `\` through compilation (#1718)
 - `interleave`, `cycle`, `interpose` over maps yield `[key value]` pairs; `interleave` stops at shortest input (#1726, #1734, #1757)
 - `odd?` reports negative odd numbers as odd (#1736)

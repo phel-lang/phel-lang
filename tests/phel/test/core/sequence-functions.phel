@@ -126,7 +126,13 @@
   (is (= "c" (last ["a" "b" "c"])) "last element")
   (is (nil? (last [])) "last on empty vector")
   (is (= "c" (last (php/array "a" "b" "c"))) "last on php array")
-  (is (nil? (last (php/array))) "last on empty php array"))
+  (is (nil? (last (php/array))) "last on empty php array")
+  (is (= 3 (last [1 2 3])) "last on numeric vector")
+  (is (nil? (last nil)) "last on nil")
+  (is (= "c" (last "abc")) "last on string")
+  (is (= 9 (last (range 0 10))) "last on range")
+  (is (= :c (last '(:a :b :c))) "last on quoted list")
+  (is (= 3 (last '(1 2 3))) "last on numeric list"))
 
 (deftest test-butlast
   (is (= ["a" "b"] (doall (butlast ["a" "b" "c"]))) "butlast element")
