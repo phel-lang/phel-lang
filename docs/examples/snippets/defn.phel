@@ -1,0 +1,22 @@
+(ns examples\snippets\defn)
+
+(defn square [x] (* x x))
+(println (square 5))                       ; 25
+
+;; Multi-arity
+(defn greet
+  ([] (greet "stranger"))
+  ([name] (str "Hello, " name "!")))
+
+(println (greet))                          ; "Hello, stranger!"
+(println (greet "Alice"))                  ; "Hello, Alice!"
+
+;; Variadic
+(defn sum-of [& xs] (apply + xs))
+(println (sum-of 1 2 3 4 5))               ; 15
+
+;; Docstring + private (defn-)
+(defn- helper
+  "Multiply by ten."
+  [x] (* x 10))
+(println (helper 7))                       ; 70

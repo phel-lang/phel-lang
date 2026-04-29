@@ -1,0 +1,18 @@
+(ns examples\snippets\atom)
+
+(defn main []
+  (let [counter (atom 0)]
+    (println @counter)                     ; 0
+    (swap! counter inc)
+    (swap! counter inc)
+    (println @counter)                     ; 2
+    (swap! counter + 10)
+    (println @counter)                     ; 12
+    (reset! counter 100)
+    (println @counter))                    ; 100
+
+  (let [state (atom {:requests 0})]
+    (swap! state update :requests inc)
+    (println @state)))                     ; {:requests 1}
+
+(main)

@@ -1,0 +1,11 @@
+(ns examples\snippets\merge)
+
+(println (merge {:a 1} {:b 2}))            ; {:a 1 :b 2}
+
+;; Right-most map wins on conflicts
+(println (merge {:a 1 :b 2} {:b 99}))      ; {:a 1 :b 99}
+
+(println (merge {:a 1} {:b 2} {:c 3}))     ; {:a 1 :b 2 :c 3}
+
+;; merge-with combines values via a function
+(println (merge-with + {:a 1 :b 2} {:b 10 :c 3})) ; {:a 1 :b 12 :c 3}

@@ -1,0 +1,8 @@
+(ns examples\snippets\map)
+
+(println (map inc [1 2 3]))                ; @[2 3 4]
+(println (map + [1 2 3] [10 20 30]))       ; @[11 22 33]
+(println (map (fn [x] (* x x)) [1 2 3 4])) ; @[1 4 9 16]
+
+;; Result length follows the shortest input
+(println (map vector [:a :b :c] [1 2]))    ; @[@[:a 1] @[:b 2]]

@@ -1,0 +1,11 @@
+(ns examples\snippets\threading)
+
+;; -> threads as the second argument
+(println (-> 5 (+ 3) (* 2)))               ; 16   ; (* (+ 5 3) 2)
+(println (-> {:a 1} (assoc :b 2) (get :b))); 2
+
+;; ->> threads as the last argument
+(println (->> [1 2 3 4 5 6]
+              (filter even?)
+              (map #(* % %))
+              (reduce +)))                 ; 56   ; 4+16+36

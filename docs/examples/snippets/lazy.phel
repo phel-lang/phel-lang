@@ -1,0 +1,18 @@
+(ns examples\snippets\lazy)
+
+;; lazy-seq defers computation until elements are realized
+(defn ints-from [n] (lazy-seq (cons n (ints-from (inc n)))))
+
+(println (take 5 (ints-from 10)))          ; (10 11 12 13 14)
+
+;; Infinite Fibonacci sequence
+(defn fibs
+  ([] (fibs 0 1))
+  ([a b] (lazy-seq (cons a (fibs b (+ a b))))))
+
+(println (take 8 (fibs)))                  ; (0 1 1 2 3 5 8 13)
+
+;; Combine with filter and take
+(println (->> (ints-from 1)
+              (filter even?)
+              (take 5)))                   ; (2 4 6 8 10)

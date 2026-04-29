@@ -1,0 +1,12 @@
+(ns examples\snippets\get)
+
+(println (get {:a 1 :b 2} :a))             ; 1
+(println (get {:a 1} :missing))            ; nil
+(println (get {:a 1} :missing :default))   ; :default
+
+(println (get [10 20 30] 1))               ; 20
+(println (get "hello" 0))                  ; "h"
+
+;; Nested lookup
+(println (get-in {:user {:profile {:age 30}}}
+                 [:user :profile :age]))   ; 30

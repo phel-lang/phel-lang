@@ -1,0 +1,8 @@
+(ns examples\snippets\apply)
+
+(println (apply + [1 2 3 4 5]))            ; 15
+(println (apply max [3 1 4 1 5 9 2 6]))    ; 9
+(println (apply str ["hello" " " "world"])) ; "hello world"
+
+;; Mix positional args and a trailing seq
+(println (apply + 100 [1 2 3]))            ; 106

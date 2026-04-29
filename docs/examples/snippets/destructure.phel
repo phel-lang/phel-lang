@@ -1,0 +1,17 @@
+(ns examples\snippets\destructure)
+
+;; Vector destructuring
+(let [[a b c] [10 20 30]]
+  (println (+ a b c)))                     ; 60
+
+(let [[head & tail] [1 2 3 4]]
+  (println head)                           ; 1
+  (println tail))                          ; @[2 3 4]
+
+;; Map destructuring
+(let [{:keys [name age]} {:name "Alice" :age 30}]
+  (println (str name " is " age)))         ; "Alice is 30"
+
+;; Defaults
+(let [{:keys [host port] :or {port 8080}} {:host "localhost"}]
+  (println (str host ":" port)))           ; "localhost:8080"

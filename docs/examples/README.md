@@ -26,6 +26,33 @@ Standalone scripts from primitive literals through concurrency to a full CLI. Ru
 
 Copy any file into your project and tweak it.
 
+## Snippets
+
+`snippets/` holds tiny single-function demos, one symbol per file (Janet-style):
+
+| Topic | File |
+|-------|------|
+| `+`, `-`, `apply` | `snippets/apply.phel` |
+| `map` | `snippets/map.phel` |
+| `filter`, `remove` | `snippets/filter.phel` |
+| `reduce` | `snippets/reduce.phel` |
+| `conj` | `snippets/conj.phel` |
+| `assoc`, `assoc-in` | `snippets/assoc.phel` |
+| `get`, `get-in` | `snippets/get.phel` |
+| `into` | `snippets/into.phel` |
+| `merge`, `merge-with` | `snippets/merge.phel` |
+| `range` | `snippets/range.phel` |
+| `if`, `cond` | `snippets/if-cond.phel` |
+| `let`, destructuring | `snippets/let.phel`, `snippets/destructure.phel` |
+| `loop`/`recur` | `snippets/loop-recur.phel` |
+| `->`, `->>` | `snippets/threading.phel` |
+| `defn`, multi-arity | `snippets/defn.phel` |
+| `lazy-seq`, infinite seqs | `snippets/lazy.phel` |
+| `atom`, `swap!`, `reset!` | `snippets/atom.phel` |
+| `phel\string` ops | `snippets/string.phel` |
+
+Each snippet is runnable: `./bin/phel run docs/examples/snippets/<name>.phel`. Use as REPL warm-ups or copy/paste recipes.
+
 ## Run all
 
 ```bash

@@ -1,0 +1,17 @@
+(ns examples\snippets\if-cond)
+
+(println (if (> 5 3) :yes :no))            ; :yes
+(println (if nil :yes :no))                ; :no
+
+;; if without else returns nil for the false branch
+(println (if false :yes))                  ; nil
+
+;; cond: linear if/elseif/else
+(defn describe [n]
+  (cond
+    (neg? n)  :negative
+    (zero? n) :zero
+    (< n 10)  :small
+    :else     :big))
+
+(println (map describe [-3 0 5 99]))       ; @[:negative :zero :small :big]

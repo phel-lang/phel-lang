@@ -1,0 +1,17 @@
+(ns examples\snippets\let)
+
+(println (let [x 10 y 20] (+ x y)))        ; 30
+
+;; Bindings see earlier ones
+(println (let [x 5
+               y (* x 2)
+               z (+ x y)]
+           [x y z]))                        ; @[5 10 15]
+
+;; Destructure a vector
+(println (let [[a b & rest] [1 2 3 4 5]]
+           {:a a :b b :rest rest}))        ; {:a 1 :b 2 :rest @[3 4 5]}
+
+;; Destructure a map
+(println (let [{:keys [name age]} {:name "Alice" :age 30}]
+           (str name " is " age)))         ; "Alice is 30"

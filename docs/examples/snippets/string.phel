@@ -1,0 +1,11 @@
+(ns examples\snippets\string
+  (:require phel\string :as str))
+
+(println (str "Hello, " "World" "!"))      ; "Hello, World!"
+(println (str/upper-case "phel"))          ; "PHEL"
+(println (str/lower-case "PHEL"))          ; "phel"
+(println (str/split "a,b,c" #","))         ; @["a" "b" "c"]
+(println (str/join "-" ["a" "b" "c"]))     ; "a-b-c"
+(println (str/trim "  spaced  "))          ; "spaced"
+(println (str/replace "hello" #"l" "L"))   ; "heLLo"
+(println (str/starts-with? "phel-lang" "phel")) ; true

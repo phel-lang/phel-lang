@@ -1,0 +1,9 @@
+(ns examples\snippets\range)
+
+(println (range 5))                        ; (0 1 2 3 4)
+(println (range 2 8))                      ; (2 3 4 5 6 7)
+(println (range 0 10 2))                   ; (0 2 4 6 8)
+(println (range 10 0 -1))                  ; (10 9 8 7 6 5 4 3 2 1)
+
+;; Lazy and infinite when called with no args
+(println (take 5 (range)))                 ; (0 1 2 3 4)

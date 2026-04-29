@@ -1,0 +1,14 @@
+(ns examples\snippets\conj)
+
+;; Vectors: append
+(println (conj [1 2 3] 4))                 ; @[1 2 3 4]
+(println (conj [] :a :b))                  ; @[:a :b]
+
+;; Lists: prepend
+(println (conj '(2 3) 1))                  ; (1 2 3)
+
+;; Maps: add an entry as [k v]
+(println (conj {:a 1} [:b 2]))             ; {:a 1 :b 2}
+
+;; Sets: add member
+(println (conj #{:a :b} :c))               ; (:a :b :c)
