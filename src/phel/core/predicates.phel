@@ -384,9 +384,6 @@
     (php/is_array coll)
     (seq-list coll)
 
-    (php/instanceof coll PersistentHashSetInterface)
-    (seq-list (to-php-array coll))
-
     true
     (seq-list (to-php-array coll))))
 
