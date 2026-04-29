@@ -168,6 +168,12 @@
 (deftest test-take-generator
   (is (= [0 1 2] (take 3 (naturals))) "take on generator"))
 
+(deftest test-take-realizes-exactly-n
+  (let [calls  (atom 0)
+        seq-fn (fn s [] (lazy-seq (swap! calls inc) (cons 1 (s))))]
+    (doall (take 5 (seq-fn)))
+    (is (= 5 @calls) "take pulls exactly n elements from a lazy source")))
+
 (deftest test-iterate
   (is (= [0 1 2] (take 3 (iterate inc 0))) "iterate infinite sequence"))
 
