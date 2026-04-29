@@ -387,6 +387,14 @@
     (is (= {} (apply dissoc r [:a :b :c])) "dissoc removing every key yields an empty map")
     (is (= r (apply dissoc r [:d])) "dissoc with no matching keys returns the defrecord itself")))
 
+(deftest test-dissoc-defrecord-dot-constructor
+  (let [r (DissocDefRecord. 1 2 nil)]
+    (is (= {:b 2 :c nil} (dissoc r :a)) "dot-constructor: dissoc removes a key")
+    (is (= {:b 2 :c nil} (apply dissoc r [:a])) "dot-constructor: apply dissoc removes a key")
+    (is (= {:b 2 :c nil} (apply dissoc r [:a :d])) "dot-constructor: dissoc ignores unknown keys")
+    (is (= {} (apply dissoc r [:a :b :c])) "dot-constructor: dissoc removing every key yields an empty map")
+    (is (= r (apply dissoc r [:d])) "dot-constructor: dissoc with no matching keys returns the record")))
+
 (deftest test-apply
   (is (fn? apply) "bare apply resolves to a function")
   (is (= 6 ((identity apply) + [1 2 3])) "apply can be invoked as a value")
