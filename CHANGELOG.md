@@ -4,15 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-Core behavior, PHP interop consistency, and stricter compiler diagnostics.
-
 ### Added
 
 #### Compiler
 - Resolve dot-separated PHP class names and root-class aliases (#1553)
-- Warn optionally about deprecated backslash namespace separators (#1567)
-- Use dot-separated names in stdlib namespaces and `:use` clauses (#1567, #1576)
-- Support `\uNNNN` Unicode escapes in string literals (#1679)
+- Optional warning for deprecated backslash namespace separators (#1567)
+- Dot-separated names in stdlib namespaces and `:use` clauses (#1567, #1576)
+- `\uNNNN` Unicode escapes in string literals (#1679)
 
 #### Core
 - List matchers in `case` (#1615)
@@ -34,55 +32,40 @@ Core behavior, PHP interop consistency, and stricter compiler diagnostics.
 
 #### Core
 - Expose `future` from `phel\core` (#1537)
-- `intern` without a value preserves an existing root instead of resetting it to `nil` (#1774)
+- `intern` without a value preserves an existing root instead of resetting to `nil` (#1774)
 
 ### Fixed
 
 #### Core
-- `conj` and `conj!` ignore `nil` entries on maps (#1683)
+- `conj`/`conj!` ignore `nil` map entries; `conj` prepends to lazy seqs (#1650, #1683)
 - `reversible?` and `rseq` handle sorted sets (#1681)
-- `/` preserves `##Inf`, `##-Inf`, and `##NaN` on division by zero (#1658)
-- `sort-by` accepts the comparator before the collection (#1657)
-- `conj` prepends to lazy sequences like `(range)` (#1650)
-- `nil` handling in `nth`, `rand-nth`, `take-last`, `rest`, `contains?` (#1592, #1638, #1644, #1652, #1655, #1656)
-- `nthrest` returns `()` when the collection is exhausted or `nil` (#1699)
-- `seq?` recognizes lists and the result of `seq`/`rseq` over vectors, sorted-maps, sorted-sets (#1700)
-- `special-symbol?` recognizes `&`, `catch`, and `finally` (#1701)
+- `/` preserves `##Inf`, `##-Inf`, `##NaN` on division by zero (#1658)
+- `nil` handling in `nth`, `rand-nth`, `take-last`, `rest`, `contains?`, `nthrest`, `butlast`, `get-in`, `dissoc` (#1592, #1638, #1640, #1644, #1652, #1655, #1656, #1699, #1712, #1713, #1738)
+- `seq?` recognizes lists and `seq`/`rseq` over vectors, sorted-maps, sorted-sets (#1700)
+- `special-symbol?` recognizes `&`, `catch`, `finally` (#1701)
 - `binding` rebinds dynamic vars to `nil` (#1702)
-- `min` and `max` return `##NaN` when any argument is `##NaN` (#1703)
+- `min`/`max`/`min-key`/`max-key` propagate `##NaN`; `min`/`max` return a single non-numeric arg unchanged (#1703, #1730, #1740)
 - `dissoc` rejects non-map/set/struct targets with `InvalidArgumentException` (#1704)
-- `sorted-map-by` and `sorted-set-by` accept predicate comparators like `<` and `>` (#1705)
+- `sort`, `sort-by`, `sorted-map-by`, `sorted-set-by` accept predicate comparators like `<`/`>`; `sort-by` accepts comparator before collection; `sort` handles maps and nested vectors (#1610, #1611, #1613, #1657, #1705, #1737)
 - Sets compare equal regardless of underlying ordering (#1708)
-- `empty` returns `()` for lazy sequences (#1710)
-- `empty` preserves source metadata (#1711)
-- `butlast` returns `nil` for `nil` or single-item collections (#1712)
-- `get-in` returns the default when the data structure is `nil` (#1713)
+- `empty` returns `()` for lazy seqs and preserves source metadata (#1710, #1711)
 - `some-fn` returns `false` when no predicate matches (#1714)
 - `compare` orders namespaced keywords and symbols by namespace first (#1715)
 - `vector?` reports `false` for `seq` and `rseq` results (#1716)
-- Keyword and symbol literals preserve `'`, `"`, and `\` through compilation (#1718)
-- `interleave` stops at the shortest input and yields `[key value]` pairs for maps (#1726)
-- `min-key` and `max-key` propagate `##NaN` through subsequent arguments (#1730)
-- `cycle` over a map yields `[key value]` pairs (#1734)
+- Keyword and symbol literals preserve `'`, `"`, `\` through compilation (#1718)
+- `interleave`, `cycle`, `interpose` over maps yield `[key value]` pairs; `interleave` stops at shortest input (#1726, #1734, #1757)
 - `odd?` reports negative odd numbers as odd (#1736)
-- `sort` and `sort-by` accept predicate comparators like `<` and `>` (#1737)
-- `dissoc` returns `nil` when the data structure is `nil` (#1738)
-- `min` and `max` return a single non-numeric argument unchanged (#1740)
 - `symbol` accepts keywords and symbols (#1750)
 - `parse-boolean` matches only exact `"true"`/`"false"` (case-sensitive, no trim) (#1753)
-- `interpose` over a map yields `[key value]` pairs (#1757)
-- `peek` returns the head of lists and lazy seqs, last of vectors and PHP arrays (#1761)
+- `peek` returns head of lists/lazy seqs, last of vectors and PHP arrays (#1761)
 - Set support in `first`, `ffirst`, `second`, `next`, `nfirst`, `fnext`, `nnext`, `some` (#1639, #1642, #1649)
 - Edge cases in `seq`, `cons`, `pop`, `nth`, `take-last`, `take-nth` (#1598, #1599, #1600, #1641, #1643, #1645)
 - Map and seq behavior in `apply`, `merge`, `dissoc`, `find`, `mapcat` (#1602, #1603, #1606, #1607, #1646, #1651, #1653)
 - `assoc!` handles `apply` trailing keys with `nil` values (#1609)
-- `get-in` returns `nil`/default when traversal exceeds depth (#1640)
-- `sort` handles `(sort comp coll)`, maps, and nested vectors (#1610, #1611, #1613)
 - Dynamic bindings are fiber-local and propagate through `future` and `async` (#1536)
-- Hierarchy lookups handle invalid arguments, inline protocols, and PHP parents (#1591, #1597)
-- Sequential equality is symmetric across lists, vectors, and lazy seqs (#1546)
+- Hierarchy lookups handle invalid arguments, inline protocols, PHP parents and interfaces for class-string tags (#1560, #1591, #1597)
+- Sequential equality is symmetric across lists, vectors, lazy seqs (#1546)
 - `()` is self-quoting (#1549)
-- Hierarchy checks include PHP parents and interfaces for class-string tags (#1560)
 - Bare `apply` resolves as a first-class function (#1564)
 - `eval` returns already-evaluated PHP objects unchanged (#1563)
 - Symbols are callable like keywords; `(ifn? 'a)` is `true` (#1697)
@@ -100,7 +83,7 @@ Core behavior, PHP interop consistency, and stricter compiler diagnostics.
 - `phel test --stack-trace` opts into the full PHP stack trace; default omits it (#1695)
 
 #### REPL
-- Accept bare namespace symbols in `dir` (#1588)
+- Bare namespace symbols in `dir` (#1588)
 - Preserve current namespace across autocompletion and nREPL `completions`/`lookup` (#1692)
 
 #### Compiler
@@ -109,7 +92,7 @@ Core behavior, PHP interop consistency, and stricter compiler diagnostics.
 - Imported PHP classes usable as class-string values (#1560)
 - Lowercase root PHP classes resolve in constructor positions (#1567)
 - `php/new` reports invalid target types clearly (#1538)
-- Reader conditionals allow a newline before the closing paren (#1547)
+- Reader conditionals allow newline before closing paren (#1547)
 
 #### Lint
 - Alias-qualified required calls no longer flagged as unresolved (#1540)
