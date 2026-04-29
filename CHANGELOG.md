@@ -34,6 +34,9 @@ All notable changes to this project will be documented in this file.
 - Expose `future` from `phel\core` (#1537)
 - `intern` without a value preserves an existing root instead of resetting to `nil` (#1774)
 
+#### Lang
+- `(str sym)` and printer output for a qualified symbol now include the namespace (`namespace/name`)
+
 ### Fixed
 
 #### Core

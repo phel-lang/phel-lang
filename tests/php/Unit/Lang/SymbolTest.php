@@ -44,6 +44,12 @@ final class SymbolTest extends TestCase
     public function test_to_string(): void
     {
         $s = Symbol::createForNamespace('namespace', 'test');
+        $this->assertSame('namespace/test', $s->__toString());
+    }
+
+    public function test_to_string_without_namespace(): void
+    {
+        $s = Symbol::create('test');
         $this->assertSame('test', $s->__toString());
     }
 

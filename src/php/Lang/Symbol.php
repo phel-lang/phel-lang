@@ -114,7 +114,7 @@ final class Symbol extends AbstractType implements IdenticalInterface, FnInterfa
     #[Override]
     public function __toString(): string
     {
-        return $this->name;
+        return $this->getFullName();
     }
 
     /**

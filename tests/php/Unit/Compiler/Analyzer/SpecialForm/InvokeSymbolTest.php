@@ -283,7 +283,7 @@ final class InvokeSymbolTest extends TestCase
             self::fail('Expected AnalyzerException to be thrown');
         } catch (AnalyzerException $analyzerException) {
             self::assertStringContainsString('Error in expanding macro "user\\my-failed-macro"', $analyzerException->getMessage());
-            self::assertStringContainsString('Expanding: (my-failed-macro [1])', $analyzerException->getMessage());
+            self::assertStringContainsString('Expanding: (user/my-failed-macro [1])', $analyzerException->getMessage());
             self::assertStringContainsString('Cause: my-failed-macro message', $analyzerException->getMessage());
         }
     }

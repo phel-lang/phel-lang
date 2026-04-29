@@ -24,7 +24,7 @@ final class SymbolPrinterTest extends TestCase
     public static function printerDataProvider(): Generator
     {
         yield 'symbol with namespace' => [
-            'name',
+            'ns/test/name',
             Symbol::createForNamespace('ns/test', 'name'),
         ];
 
@@ -34,7 +34,7 @@ final class SymbolPrinterTest extends TestCase
         ];
 
         yield 'symbol with namespace explicit' => [
-            '\/?#__\|',
+            'ns/\/?#__\|',
             Symbol::create('ns/\\/?#__\|'),
         ];
 
