@@ -27,6 +27,10 @@
   (is (= :ns/name (keyword 'ns 'name)) "keyword accepts symbols as ns/name")
   (is (= :name (keyword nil "name")) "keyword with nil namespace is unqualified")
   (is (nil? (keyword "ns" nil)) "keyword with nil name is nil")
+  (is (= "" (namespace (keyword "" "hi"))) "keyword with empty-string namespace preserves it")
+  (is (= "hi" (name (keyword "" "hi"))) "keyword with empty-string namespace keeps name")
+  (is (= ":/hi" (str (keyword "" "hi"))) "keyword with empty-string namespace prints as :/hi")
+  (is (nil? (namespace (keyword "hi"))) "single-arg keyword still has nil namespace")
   (is (= :abc*+!-_'?<>= (keyword "abc*+!-_'?<>="))
       "keyword literal with special characters round-trips against (keyword string)")
   (is (= :abc*+!-_'?<>=/abc*+!-_'?<>=

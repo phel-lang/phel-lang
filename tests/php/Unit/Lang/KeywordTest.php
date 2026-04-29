@@ -34,6 +34,33 @@ final class KeywordTest extends TestCase
         $this->assertNull($keyword->getNamespace());
     }
 
+    public function test_empty_string_namespace_is_preserved(): void
+    {
+        $keyword = Keyword::create('hi', '');
+        $this->assertSame('', $keyword->getNamespace());
+        $this->assertSame('hi', $keyword->getName());
+        $this->assertSame('/hi', $keyword->getFullName());
+        $this->assertSame(':/hi', $keyword->__toString());
+    }
+
+    public function test_empty_string_namespace_distinct_from_null(): void
+    {
+        $withEmptyNs = Keyword::create('hi', '');
+        $withNullNs = Keyword::create('hi');
+
+        $this->assertSame('', $withEmptyNs->getNamespace());
+        $this->assertNull($withNullNs->getNamespace());
+        $this->assertNotSame($withEmptyNs, $withNullNs);
+        $this->assertFalse($withEmptyNs->equals($withNullNs));
+    }
+
+    public function test_empty_string_namespace_interns_same_instance(): void
+    {
+        $keyword1 = Keyword::create('hi', '');
+        $keyword2 = Keyword::create('hi', '');
+        $this->assertSame($keyword1, $keyword2);
+    }
+
     public function test_equals(): void
     {
         $keyword1 = Keyword::create('test');

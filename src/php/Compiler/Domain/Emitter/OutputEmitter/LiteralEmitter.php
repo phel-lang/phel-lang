@@ -117,7 +117,7 @@ final readonly class LiteralEmitter
 
     private function emitKeyword(Keyword $x): void
     {
-        if ($x->getNamespace() !== null && $x->getNamespace() !== '') {
+        if ($x->getNamespace() !== null) {
             $this->outputEmitter->emitStr(
                 '\Phel::keyword("' . $this->escapeForDoubleQuotedString($x->getName()) . '", "' . $this->escapeForDoubleQuotedString($x->getNamespace()) . '")',
                 $x->getStartLocation(),
