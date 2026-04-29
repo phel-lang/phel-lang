@@ -28,6 +28,17 @@
       (is (= 42 (get interns "x")) "ns-interns contains the interned value"))
     (remove-ns ns)))
 
+(deftest test-intern-and-var-get
+  (let [a-var (intern 'phel-test\tmp\intern-var-get-test 'x 99)]
+    (is (= 99 (var-get a-var)) "var-get retrieves value when intern is called with value"))
+  (let [a-var (intern 'phel-test\tmp\intern-var-get-test 'x)]
+    (is (= 99 (var-get a-var)) "var-get preserves existing value when intern called without value"))
+  (let [new-ns (create-ns 'new-ns-name)
+        a-var (intern new-ns 'x 99)]
+    (is (= 99 (var-get a-var)) "var-get works with explicitly created namespace"))
+  (let [a-var (intern 'new-ns-name 'x)]
+    (is (= 99 (var-get a-var)) "var-get works when intern auto-creates namespace")))
+
 (deftest test-ns-publics-returns-map
   (let [publics (ns-publics "phel\\core")]
     (is (hash-map? publics) "ns-publics returns a hash-map")
