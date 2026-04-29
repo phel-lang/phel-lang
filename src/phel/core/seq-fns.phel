@@ -267,7 +267,7 @@
 
 (defn- get-in-traversable?
   [x]
-  (or (coll? x) (php/is_array x)))
+  (or (coll? x) (php/is_array x) (string? x)))
 
 (defn get-in
   "Accesses a value in a nested data structure via a sequence of keys.

@@ -20,7 +20,7 @@ final class SymbolPrinter implements TypePrinterInterface
      */
     public function print(mixed $form): string
     {
-        return $this->color($form->getName());
+        return $this->color($form->getFullName());
     }
 
     private function color(string $str): string

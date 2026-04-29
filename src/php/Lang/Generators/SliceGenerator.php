@@ -31,14 +31,17 @@ final class SliceGenerator
      */
     public static function take(int $n, mixed $iterable): Generator
     {
+        if ($n <= 0) {
+            return;
+        }
+
         $count = 0;
         foreach (SequenceGenerator::toIterable($iterable) as $value) {
-            if ($count >= $n) {
-                break;
-            }
-
             yield $value;
             ++$count;
+            if ($count >= $n) {
+                return;
+            }
         }
     }
 
