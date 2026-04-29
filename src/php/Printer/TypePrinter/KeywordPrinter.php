@@ -20,11 +20,7 @@ final class KeywordPrinter implements TypePrinterInterface
      */
     public function print(mixed $form): string
     {
-        if ($form->getNamespace() !== null) {
-            return $this->color(':' . $form->getNamespace() . '/' . $form->getName());
-        }
-
-        return $this->color(':' . $form->getName());
+        return $this->color($form->__toString());
     }
 
     private function color(string $str): string

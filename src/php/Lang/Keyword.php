@@ -52,11 +52,7 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
     #[Override]
     public function __toString(): string
     {
-        if ($this->namespace !== null) {
-            return ':' . $this->namespace . '/' . $this->name;
-        }
-
-        return ':' . $this->name;
+        return ':' . $this->getFullName();
     }
 
     public static function create(string $name, ?string $namespace = null): self
