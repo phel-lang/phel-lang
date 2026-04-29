@@ -316,7 +316,7 @@
   (is (= [1 2 3] (nthrest [1 2 3] 0)) "nthrest 0 returns coll")
   (is (= '() (nthrest [1 2] 5)) "nthrest past end returns empty list")
   (is (nil? (nthrest nil 0)) "nthrest on nil with 0 returns nil")
-  (is (nil? (nthrest nil 3)) "nthrest on nil returns nil")
+  (is (= '() (nthrest nil 3)) "nthrest on nil with positive n returns empty list")
   (is (= '() (nthrest [] 100)) "nthrest on empty vector returns empty list")
   (is (= '() (nthrest (range 0 10) 10)) "nthrest exhausting a range returns empty list"))
 
