@@ -100,6 +100,7 @@ All notable changes to this project will be documented in this file.
 - Lowercase root PHP classes resolve in constructor positions (#1567)
 - `php/new` reports invalid target types clearly (#1538)
 - Reader conditionals allow newline before closing paren (#1547)
+- `(Name. args)` invokes the Phel constructor for `defstruct`/`defrecord`/`deftype` instead of constructing the wrapper function (#1607)
 
 #### Lint
 - Alias-qualified required calls no longer flagged as unresolved (#1540)
