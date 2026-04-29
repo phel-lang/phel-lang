@@ -406,7 +406,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (let [y    (first more)
           rest (next more)
           init (if (< (k x) (k y)) x y)]
-      (reduce (fn [acc item] (if (< (k item) (k acc)) item acc))
+      (reduce (fn [acc item] (if (<= (k item) (k acc)) item acc))
               init
               (or rest [])))))
 
@@ -420,7 +420,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (let [y    (first more)
           rest (next more)
           init (if (> (k x) (k y)) x y)]
-      (reduce (fn [acc item] (if (> (k item) (k acc)) item acc))
+      (reduce (fn [acc item] (if (>= (k item) (k acc)) item acc))
               init
               (or rest [])))))
 
