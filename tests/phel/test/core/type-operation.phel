@@ -207,7 +207,14 @@
 
 (deftest test-list?
   (is (false? (list? [])) "list? on vector")
-  (is (true? (list? '())) "list?"))
+  (is (true? (list? '())) "list?")
+  (is (true? (list? '(1 2 3))) "list? on quoted list")
+  (is (true? (list? (list 1 2 3))) "list? on list constructor")
+  (is (false? (list? (seq [1 2 3]))) "list? on (seq vector)")
+  (is (false? (list? (seq (sorted-map :a 1)))) "list? on (seq sorted-map)")
+  (is (false? (list? (seq (sorted-set :a)))) "list? on (seq sorted-set)")
+  (is (false? (list? (rest (seq [1 2 3])))) "list? on (rest (seq vector))")
+  (is (false? (list? (cons 0 (seq [1 2 3])))) "list? on cons over (seq vector)"))
 
 (deftest test-boolean?
   (is (true? (boolean? true)) "boolean? on true")

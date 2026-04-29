@@ -39,6 +39,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
         private readonly mixed $first,
         private $rest,
         private readonly int $count,
+        private readonly bool $isList = true,
     ) {}
 
     /**
@@ -56,18 +57,18 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
     /**
      * @return EmptyList<T>
      */
-    public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): PersistentListInterface
+    public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer, bool $isList = true): PersistentListInterface
     {
-        return new EmptyList($hasher, $equalizer, null);
+        return new EmptyList($hasher, $equalizer, null, $isList);
     }
 
-    public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $values): PersistentListInterface
+    public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $values, bool $isList = true): PersistentListInterface
     {
         if ($values === []) {
-            return self::empty($hasher, $equalizer);
+            return self::empty($hasher, $equalizer, $isList);
         }
 
-        $result = self::empty($hasher, $equalizer);
+        $result = self::empty($hasher, $equalizer, $isList);
         for ($i = count($values) - 1; $i >= 0; --$i) {
             $result = $result->prepend($values[$i]);
         }
@@ -82,7 +83,12 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
 
     public function withMeta(?PersistentMapInterface $meta): static
     {
-        return new self($this->hasher, $this->equalizer, $meta, $this->first, $this->rest, $this->count);
+        return new self($this->hasher, $this->equalizer, $meta, $this->first, $this->rest, $this->count, $this->isList);
+    }
+
+    public function isList(): bool
+    {
+        return $this->isList;
     }
 
     /**
@@ -92,7 +98,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
      */
     public function prepend($value): PersistentListInterface
     {
-        return new self($this->hasher, $this->equalizer, $this->meta, $value, $this, $this->count + 1);
+        return new self($this->hasher, $this->equalizer, $this->meta, $value, $this, $this->count + 1, $this->isList);
     }
 
     /**
@@ -222,7 +228,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
      */
     public function concat($xs): PersistentListInterface
     {
-        return self::fromArray($this->hasher, $this->equalizer, [...$this->toArray(), ...$xs]);
+        return self::fromArray($this->hasher, $this->equalizer, [...$this->toArray(), ...$xs], $this->isList);
     }
 
     public function cons(mixed $x): PersistentListInterface

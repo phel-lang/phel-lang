@@ -28,6 +28,7 @@ final class EmptyList extends AbstractType implements PersistentListInterface
         private readonly HasherInterface $hasher,
         private readonly EqualizerInterface $equalizer,
         private readonly ?PersistentMapInterface $meta,
+        private readonly bool $isList = true,
     ) {}
 
     public function getMeta(): ?PersistentMapInterface
@@ -37,7 +38,12 @@ final class EmptyList extends AbstractType implements PersistentListInterface
 
     public function withMeta(?PersistentMapInterface $meta): static
     {
-        return new self($this->hasher, $this->equalizer, $meta);
+        return new self($this->hasher, $this->equalizer, $meta, $this->isList);
+    }
+
+    public function isList(): bool
+    {
+        return $this->isList;
     }
 
     /**
@@ -47,7 +53,7 @@ final class EmptyList extends AbstractType implements PersistentListInterface
      */
     public function prepend($value): PersistentListInterface
     {
-        return new PersistentList($this->hasher, $this->equalizer, $this->meta, $value, $this, 1);
+        return new PersistentList($this->hasher, $this->equalizer, $this->meta, $value, $this, 1, $this->isList);
     }
 
     public function pop(): PersistentListInterface
@@ -125,7 +131,7 @@ final class EmptyList extends AbstractType implements PersistentListInterface
      */
     public function concat($xs): PersistentListInterface
     {
-        return PersistentList::fromArray($this->hasher, $this->equalizer, $xs);
+        return PersistentList::fromArray($this->hasher, $this->equalizer, $xs, $this->isList);
     }
 
     public function cons(mixed $x): PersistentListInterface

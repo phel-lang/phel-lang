@@ -47,4 +47,11 @@ interface PersistentListInterface extends TypeInterface, SeqInterface, IteratorA
      * @return PersistentListInterface<TValue>
      */
     public function pop(): self;
+
+    /**
+     * Returns true when this value originated from a list literal or the
+     * `list` constructor; false when it was synthesised by `seq` over a
+     * non-list collection.
+     */
+    public function isList(): bool;
 }
