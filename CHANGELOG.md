@@ -98,6 +98,9 @@ All notable changes to this project will be documented in this file.
 - Alias-qualified required calls no longer flagged as unresolved (#1540)
 - Vendored stdlib files skipped when linting with no arguments (#1541)
 
+### Docs
+- `docs/internals/`: architecture, special forms, macros, runtime, FAQ; expanded compiler pipeline
+
 ## [0.34.1](https://github.com/phel-lang/phel-lang/compare/v0.34.0...v0.34.1) - 2026-04-21
 
 ### Added
