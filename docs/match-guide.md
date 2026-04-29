@@ -1,14 +1,6 @@
 # Pattern Matching Guide
 
-`phel\match` provides a `match` macro that destructures by shape. It expands to nested `cond` + `let` at compile time.
-
-## Contents
-
-- [Quickstart](#quickstart)
-- [Pattern kinds](#pattern-kinds)
-- [Guards](#guards)
-- [Rest binding](#rest-binding)
-- [Pitfalls](#pitfalls)
+`phel\match` provides a `match` macro that destructures by shape. Expands to nested `cond` + `let` at compile time.
 
 ## Quickstart
 

@@ -1,6 +1,6 @@
-# PHP/Phel Interoperability Guide
+# PHP/Phel Interop
 
-How to work between PHP and Phel code.
+Call PHP from Phel and Phel from PHP.
 
 ## Quick Reference
 

@@ -1,15 +1,6 @@
 # Schema Guide
 
-`phel\schema` provides data-driven schemas for validating, coercing, and generating values. Schemas are plain Phel data (keywords or vectors); there is no DSL to parse.
-
-## Contents
-
-- [Quickstart](#quickstart)
-- [Schema kinds](#schema-kinds)
-- [Core operations](#core-operations)
-- [Named-schema registry](#named-schema-registry)
-- [Function instrumentation](#function-instrumentation)
-- [Pitfalls](#pitfalls)
+`phel\schema` validates, coerces, and generates values. Schemas are plain Phel data (keywords or vectors); no DSL.
 
 ## Quickstart
 

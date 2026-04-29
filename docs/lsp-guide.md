@@ -1,14 +1,6 @@
 # Language Server Guide
 
-`phel lsp` speaks LSP v3.17 over stdio (JSON-RPC 2.0 with Content-Length framing). Provides hover, goto-definition, completion, references, rename, formatting, document/workspace symbols, and live diagnostics.
-
-## Contents
-
-- [Starting the server](#starting-the-server)
-- [Capabilities](#capabilities)
-- [Editor setup](#editor-setup)
-- [Diagnostics](#diagnostics)
-- [Pitfalls](#pitfalls)
+`phel lsp` speaks LSP v3.17 over stdio (JSON-RPC 2.0). Provides hover, goto-definition, completion, references, rename, formatting, document/workspace symbols, and live diagnostics.
 
 ## Starting the server
 

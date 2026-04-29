@@ -1,13 +1,6 @@
 # Watch Guide
 
-`phel watch` recompiles and reloads changed namespaces in dependency order, so you can iterate without restarting the REPL or a long-running process. Backends: `inotify` (Linux), `fswatch` (macOS), `polling` (everywhere).
-
-## Contents
-
-- [Quickstart](#quickstart)
-- [Options](#options)
-- [Programmatic API](#programmatic-api)
-- [Pitfalls](#pitfalls)
+`phel watch` recompiles and reloads changed namespaces in dependency order. Backends: `inotify` (Linux), `fswatch` (macOS), `polling` (everywhere).
 
 ## Quickstart
 

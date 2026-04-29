@@ -1,8 +1,6 @@
 # Building CLIs with `phel\cli`
 
-`phel\cli` is a data-driven wrapper over [`symfony/console`](https://symfony.com/doc/current/components/console.html) for building command-line tools in Phel: subcommands, arguments, options, interactive prompts, tables, progress bars, shell completion, signal handling, all described as plain Phel maps.
-
-`symfony/console` is already a runtime dependency of `phel-lang`, so `phel\cli` adds no new dependencies.
+`phel\cli` is a data-driven wrapper over [`symfony/console`](https://symfony.com/doc/current/components/console.html): subcommands, arguments, options, prompts, tables, progress bars, shell completion, signal handling, all as plain Phel maps. No extra dependency; `symfony/console` already ships with phel-lang.
 
 ## Quickstart
 

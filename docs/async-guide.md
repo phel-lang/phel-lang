@@ -1,18 +1,6 @@
 # Async Module Guide
 
-Phel ships two cooperating concurrency layers over PHP fibers, both available **from `phel.core` without an explicit require** so `.cljc` portable code mirrors `clojure.core`'s defaults. The exception is `delay`, kept in `phel.async`: Phel's `delay` is a sleep primitive while `clojure.core/delay` is a lazy-thunk wrapper, so the names stay separate to avoid hijacking Clojure semantics.
-
-## Contents
-
-- [Overview](#overview)
-- [When to use which](#when-to-use-which)
-- [AMPHP layer reference](#amphp-layer-reference)
-- [Fiber layer reference](#fiber-layer-reference)
-- [Shared primitives](#shared-primitives)
-- [Error and cancellation model](#error-and-cancellation-model)
-- [Interop](#interop)
-- [Pitfalls](#pitfalls)
-- [Recipes](#recipes)
+Two cooperating concurrency layers over PHP fibers. Most primitives live in `phel.core` and need no require; `delay` lives in `phel.async` because Phel's `delay` sleeps while `clojure.core/delay` is a lazy-thunk wrapper.
 
 ## Overview
 

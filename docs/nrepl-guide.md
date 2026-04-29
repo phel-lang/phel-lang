@@ -1,13 +1,6 @@
 # nREPL Guide
 
-`phel nrepl` starts a bencode-over-TCP nREPL server for editor tooling and interactive development. Any nREPL client (CIDER, Calva, vim-iced, neovim-nrepl) can connect.
-
-## Contents
-
-- [Starting the server](#starting-the-server)
-- [Operations](#operations)
-- [Client setup](#client-setup)
-- [Pitfalls](#pitfalls)
+`phel nrepl` starts a bencode-over-TCP nREPL server. Any nREPL client (CIDER, Calva, vim-iced, neovim-nrepl) connects.
 
 ## Starting the server
 

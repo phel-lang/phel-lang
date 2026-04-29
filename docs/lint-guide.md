@@ -1,15 +1,6 @@
 # Linter Guide
 
-`phel lint` is a semantic linter that catches common mistakes without running code. Runs on source files or directories; emits diagnostics in human, JSON, or GitHub Actions format.
-
-## Contents
-
-- [Quickstart](#quickstart)
-- [Rules](#rules)
-- [Output formats](#output-formats)
-- [Configuration](#configuration)
-- [Cache](#cache)
-- [Editor integration](#editor-integration)
+`phel lint` catches common mistakes without running code. Source files or directories; outputs human, JSON, or GitHub Actions format.
 
 ## Quickstart
 
