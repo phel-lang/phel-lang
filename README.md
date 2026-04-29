@@ -146,23 +146,10 @@ echo '(println "hi")' | ./vendor/bin/phel eval -
 
 ## Documentation
 
-**Start here**
-- [Quick Start](docs/quickstart.md) — 5-minute tutorial
-- [Installation](https://phel-lang.org/documentation/getting-started/) — full setup guide
+- [Quick Start](docs/quickstart.md) — install, REPL, first script (5 min)
+- [Documentation Index](docs/README.md) — every guide, grouped by purpose
 - [phel-lang.org](https://phel-lang.org) — tutorials, exercises, blog
-
-**Guides**
-- [Clojure Migration](docs/clojure-migration.md) — differences, interop cheat sheet
-- [Common Patterns](docs/patterns.md) — everyday idioms
-- [PHP/Phel Interop](docs/php-interop.md)
-- [Reader Shortcuts](docs/reader-shortcuts.md) · [Reader Conditionals](docs/reader-conditionals.md)
-- [Transducers](docs/transducers.md) · [Data Structures](docs/data-structures-guide.md) · [Lazy Sequences](docs/lazy-sequences.md)
-- [Mocking](docs/mocking-guide.md) · [Examples](docs/examples/README.md) · [Performance](docs/performance.md)
-
-**Reference**
-- [Compiler Internals](docs/internals/compiler.md)
-- [Repository Guidelines](AGENTS.md)
-- [Packagist](https://packagist.org/packages/phel-lang/phel-lang)
+- [Repository Guidelines](AGENTS.md) · [Packagist](https://packagist.org/packages/phel-lang/phel-lang)
 
 **AI coding agents**
 - [resources/agents/](resources/agents/README.md) — Claude Code, Cursor, Codex, Gemini, Copilot, Aider
