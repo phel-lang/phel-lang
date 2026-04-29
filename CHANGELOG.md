@@ -37,6 +37,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 #### Core
+- `atom` accepts `:meta` and `:validator` options (#1785)
 - `conj`/`conj!` ignore `nil` map entries; `conj` prepends to lazy seqs (#1650, #1683)
 - `reversible?` and `rseq` handle sorted sets (#1681)
 - `/` preserves `##Inf`, `##-Inf`, `##NaN` on division by zero (#1658)

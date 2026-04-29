@@ -1,0 +1,43 @@
+(ns phel-test\test\core\atom-options
+  (:require phel\test :refer [deftest is]))
+
+(deftest test-atom-meta-empty
+  (is (= {} (meta (atom nil :meta {}))) "atom :meta {} preserves empty map"))
+
+(deftest test-atom-meta-hash-map-literal
+  (is (= {:foo "foo"} (meta (atom nil :meta {:foo "foo"}))) "atom :meta with hash-map literal"))
+
+(deftest test-atom-meta-hash-map-fn
+  (is (= {:a "a"} (meta (atom nil :meta (hash-map :a "a")))) "atom :meta with hash-map fn"))
+
+(deftest test-atom-meta-array-map
+  (is (= {:a "a"} (meta (atom nil :meta (array-map :a "a")))) "atom :meta with array-map"))
+
+(deftest test-atom-meta-sorted-map
+  (let [sm (sorted-map :a "a")]
+    (is (= {:a "a"} (meta (atom nil :meta sm))) "atom :meta with sorted-map")))
+
+(deftest test-atom-validator-stored
+  (let [a (atom 0 :validator even?)]
+    (is (= even? (get-validator a)) "atom :validator stored")
+    (is (= 0 (deref a)) "atom :validator does not change value")))
+
+(deftest test-atom-validator-rejects-on-set
+  (let [a (atom 0 :validator even?)
+        rejected? (atom false)]
+    (try
+      (reset! a 3)
+      (catch \InvalidArgumentException _e
+        (reset! rejected? true)))
+    (is (true? (deref rejected?)) "validator throws on rejected value")
+    (is (= 0 (deref a)) "rejected value does not mutate atom")))
+
+(deftest test-atom-meta-and-validator-both-orders
+  (let [m  {:foo "foo"}
+        vf even?
+        a  (atom 0 :validator vf :meta m)
+        b  (atom 0 :meta m :validator vf)]
+    (is (= vf (get-validator a)) "validator first, meta second")
+    (is (= m (meta a)) "meta after validator")
+    (is (= vf (get-validator b)) "meta first, validator second")
+    (is (= m (meta b)) "validator after meta")))

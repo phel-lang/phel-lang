@@ -21,11 +21,19 @@
   "Creates a new atom with the given value.
 
   Atoms provide a way to manage mutable state. Use `reset!` to set a new value
-  and `swap!` to update based on the current value."
-  {:example "(def counter (atom 0))"
-   :see-also ["reset!" "deref" "swap!"]}
-  [value]
-  (php/:: Phel (variable value)))
+  and `swap!` to update based on the current value.
+
+  Optional `:meta` and `:validator` keyword arguments may follow the value in
+  any order. The validator is applied to the initial value when set."
+  {:example "(def counter (atom 0))\n(atom 0 :meta {:tag :counter} :validator number?)"
+   :see-also ["reset!" "deref" "swap!" "set-validator!"]}
+  [value & opts]
+  (let [pairs (apply hash-map opts)
+        m     (get pairs :meta)
+        vf    (get pairs :validator)
+        v     (php/:: Phel (variable value m))]
+    (when vf (php/-> v (setValidator vf)))
+    v))
 
 (defn var
   "Creates a new variable with the given value."
