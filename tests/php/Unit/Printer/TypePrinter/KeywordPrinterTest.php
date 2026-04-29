@@ -32,5 +32,10 @@ final class KeywordPrinterTest extends TestCase
             ':\\?#__\|\/',
             Keyword::create('\\?#__\|\/'),
         ];
+
+        yield 'empty string namespace' => [
+            ':/hi',
+            Keyword::create('hi', ''),
+        ];
     }
 }

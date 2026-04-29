@@ -21,7 +21,7 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
         private readonly ?string $namespace,
         private readonly string $name,
     ) {
-        $this->hash = $namespace !== null && $namespace !== ''
+        $this->hash = $namespace !== null
             ? crc32(':' . $namespace . '/' . $name)
             : crc32(':' . $name);
     }
@@ -52,7 +52,7 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
     #[Override]
     public function __toString(): string
     {
-        if ($this->namespace !== null && $this->namespace !== '') {
+        if ($this->namespace !== null) {
             return ':' . $this->namespace . '/' . $this->name;
         }
 
@@ -61,7 +61,7 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
 
     public static function create(string $name, ?string $namespace = null): self
     {
-        $key = $namespace !== null && $namespace !== ''
+        $key = $namespace !== null
             ? $namespace . '/' . $name
             : $name;
 
@@ -80,7 +80,7 @@ final class Keyword extends AbstractType implements IdenticalInterface, FnInterf
 
     public function getFullName(): string
     {
-        if ($this->namespace !== null && $this->namespace !== '') {
+        if ($this->namespace !== null) {
             return $this->namespace . '/' . $this->name;
         }
 
