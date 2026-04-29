@@ -87,10 +87,15 @@
   (get @*type-tag-registry* tag tag))
 
 (defn- direct-parents
-  "Returns manually-derived parents plus PHP type parents for tag."
+  "Returns manually-derived parents plus PHP type parents for tag.
+
+  Looks up the parents map under both the original tag and the resolved
+  tag (constructor function vs PHP class string) so a `derive` call made
+  with a record/type constructor still surfaces in `parents`/`ancestors`."
   [parents-map tag]
   (let [resolved-tag (hierarchy-tag tag)]
-    (union (get parents-map resolved-tag (hash-set))
+    (union (get parents-map tag (hash-set))
+           (get parents-map resolved-tag (hash-set))
            (php-class-relations resolved-tag))))
 
 (defn- compute-ancestors
