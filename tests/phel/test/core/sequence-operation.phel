@@ -291,7 +291,8 @@
   (is (nil? (get-in nil [] "not found")) "get-in on nil ds with empty path returns the coll (nil)")
   (is (= "not found" (get-in nil [:a] "not found")) "get-in on nil ds with missing key returns the default")
   (is (= {:a 1} (get-in {:a 1} [])) "get-in with empty path returns the coll")
-  (is (= {:a 1} (get-in {:a 1} nil)) "get-in with nil path returns the coll"))
+  (is (= {:a 1} (get-in {:a 1} nil)) "get-in with nil path returns the coll")
+  (is (= "a" (get-in {:k "abc"} [:k 0])) "get-in steps into a string by index"))
 
 (deftest test-nth
   (is (= 2 (nth [1 2 3] 1)) "nth on vector")
