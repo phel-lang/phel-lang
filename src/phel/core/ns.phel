@@ -48,19 +48,6 @@
   (php/:: Phel (removeNamespace (core-munge-ns ns-str)))
   nil)
 
-(defn intern
-  "Finds or creates a definition named by name-str in namespace ns-str,
-  setting its root value to val when supplied (defaults to nil). The
-  namespace is auto-registered by the underlying `addDefinition` call.
-  Returns the fully qualified symbol naming the definition."
-  {:example "(intern \"user\" \"x\" 42) ; => user/x"
-   :see-also ["find-ns" "create-ns" "ns-interns"]}
-  [ns-str name-str & [val]]
-  (let [encoded-ns   (core-munge-ns ns-str)
-        encoded-name (php/-> (php/new Munge) (encode name-str))]
-    (php/:: Phel (addDefinition encoded-ns encoded-name val))
-    (php/:: Symbol (createForNamespace ns-str name-str))))
-
 (defn ns-interns
   "Returns a hash-map of {name => value} for every definition in the
   given namespace, including private ones. Returns an empty map if the
@@ -74,6 +61,31 @@
     (foreach [fn-name value defs]
       (assoc! result (php/-> munge (decodeNs fn-name)) value))
     (persistent result)))
+
+(defn intern
+  "Finds or creates a definition named by name-str in namespace ns-str.
+  When a value is supplied, sets the root value to val (overwriting any
+  existing value). When no value is supplied, finds an existing definition
+  without overwriting it, or creates it with a nil value if it doesn't exist.
+  The namespace is auto-registered by the underlying `addDefinition` call.
+  Returns the fully qualified symbol naming the definition."
+  [ns-str name-str & rest]
+  (let [encoded-ns   (core-munge-ns ns-str)
+        encoded-name (php/-> (php/new Munge) (encode name-str))]
+    (if (seq rest)
+      (php/:: Phel (addDefinition encoded-ns encoded-name (first rest)))
+      ;; skip when no value is provided and the definition already exists
+      (when-not (php/:: Phel (hasDefinition encoded-ns encoded-name))
+        (php/:: Phel (addDefinition encoded-ns encoded-name nil))))
+    (php/:: Symbol (createForNamespace ns-str name-str))))
+
+(defn var-get
+  "Takes a fully-qualified symbol and resolves it from namespace registry,
+  returning it's value or nil if the symbol is not defined.
+  This is useful for dereferencing symbols returned by `intern` or
+  other functions that return symbol references rather than values."
+  [x]
+  (get (ns-interns (namespace x)) (name x)))
 
 (defn ns-publics
   "Returns a hash-map of {name => value} for all public definitions in the
