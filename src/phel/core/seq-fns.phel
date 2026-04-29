@@ -382,9 +382,14 @@
   {:example "(last [1 2 3]) ; => 3"
    :see-also ["first" "peek" "butlast"]}
   [coll]
-  (if (or (php/=== coll nil) (empty? coll))
-    nil
-    (peek coll)))
+  (cond
+    (or (php/=== coll nil) (empty? coll)) nil
+    (seq? coll) (loop [s coll]
+                  (let [n (next s)]
+                    (if (nil? n)
+                      (first s)
+                      (recur n))))
+    :else (peek coll)))
 
 (defn butlast
   "Returns all but the last item in `coll`. Returns `nil` when `coll` is
