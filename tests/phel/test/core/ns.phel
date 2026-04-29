@@ -58,11 +58,18 @@
       (is (= 99 (var-get a-var)) "retrieves value when intern is called with value"))
     (let [a-var (intern 'phel-test\tmp\intern-var-get-test 'x)]
       (is (= 99 (var-get a-var)) "preserves existing value when intern called without value"))
+    (let [a-var (intern 'phel-test\tmp\intern-var-get-test 'x nil)]
+      (is (= nil (var-get a-var)) "explicit nil overwrites existing value"))
     (let [new-ns (create-ns 'new-ns-name)
           a-var (intern new-ns 'x 99)]
       (is (= 99 (var-get a-var)) "works with explicitly created namespace"))
     (let [a-var (intern 'new-ns-name 'x)]
-      (is (= 99 (var-get a-var)) "works when intern auto-creates namespace"))))
+      (is (= 99 (var-get a-var)) "works when intern auto-creates namespace"))
+    (remove-ns "phel-test\\tmp\\intern-var-get-test")
+    (remove-ns "new-ns-name"))
+
+  (testing "var-get on unqualified input returns nil"
+    (is (nil? (var-get (symbol "no-ns"))) "unqualified symbol resolves to nil")))
 
 (deftest test-ns-publics-returns-map
   (let [publics (ns-publics "phel\\core")]

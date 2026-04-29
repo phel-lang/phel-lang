@@ -82,12 +82,19 @@
     (php/:: Symbol (createForNamespace ns-str name-str))))
 
 (defn var-get
-  "Takes a fully-qualified symbol and resolves it from namespace registry,
-  returning its value or nil if the symbol is not defined.
-  This is useful for dereferencing symbols returned by `intern` or
-  other functions that return symbol references rather than values."
+  "Takes a fully-qualified symbol and resolves it from the namespace registry,
+  returning its value or nil if the symbol is not defined. Useful for
+  dereferencing symbols returned by `intern`. Returns nil for symbols whose
+  namespace is missing; a stored value of nil is indistinguishable from
+  'not defined'."
+  {:example "(var-get (intern \"user\" \"x\" 42)) ; => 42"
+   :see-also ["intern" "ns-interns" "find-ns"]}
   [x]
-  (get (ns-interns (namespace x)) (name x)))
+  (let [ns-str (namespace x)]
+    (when ns-str
+      (let [encoded-ns   (core-munge-ns ns-str)
+            encoded-name (php/-> (php/new Munge) (encode (name x)))]
+        (php/:: Phel (getDefinition encoded-ns encoded-name))))))
 
 (defn ns-publics
   "Returns a hash-map of {name => value} for all public definitions in the
