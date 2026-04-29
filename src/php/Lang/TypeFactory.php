@@ -73,6 +73,11 @@ final class TypeFactory
         return PersistentList::fromArray($this->hasher, $this->equalizer, $values);
     }
 
+    public function persistentSeqListFromArray(array $values): PersistentListInterface
+    {
+        return PersistentList::fromArray($this->hasher, $this->equalizer, $values, false);
+    }
+
     public function persistentVectorFromArray(array $values): PersistentVectorInterface
     {
         return PersistentVector::fromArray($this->hasher, $this->equalizer, $values);

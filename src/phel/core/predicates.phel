@@ -252,9 +252,11 @@
   (php/instanceof x PersistentVectorInterface))
 
 (defn list?
-  "Returns true if `x` is a list, false otherwise."
+  "Returns true if `x` is a list, false otherwise.
+  Returns false for the seq view of non-list collections produced by `seq`."
   [x]
-  (php/instanceof x PersistentListInterface))
+  (and (php/instanceof x PersistentListInterface)
+       (php/-> x (isList))))
 
 (defn boolean?
   "Returns true if `x` is a boolean, false otherwise."
@@ -350,10 +352,14 @@
   [values]
   (if (php/empty values) nil (php/:: Phel (vector values))))
 
+(defn- seq-list
+  [values]
+  (php/:: Phel (seqList values)))
+
 (defn seq
   "Returns a seq on the collection. Strings are converted to a vector of characters.
   Other non-empty collections (vectors, sets, sorted-maps, sorted-sets, PHP arrays)
-  are converted to a list. Returns nil if `coll` is empty or nil.
+  are converted to a non-list seq. Returns nil if `coll` is empty or nil.
 
   This function is useful for explicitly converting strings to sequences of characters,
   enabling sequence operations like map, filter, and frequencies."
@@ -376,13 +382,10 @@
     nil
 
     (php/is_array coll)
-    (apply list coll)
-
-    (php/instanceof coll PersistentHashSetInterface)
-    (apply list (to-php-array coll))
+    (seq-list coll)
 
     true
-    (apply list coll)))
+    (seq-list (to-php-array coll))))
 
 (defn- indexed-php-array?
   [x]

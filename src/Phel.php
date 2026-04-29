@@ -213,6 +213,18 @@ final class Phel extends InternalPhel
     }
 
     /**
+     * Create a non-list persistent list, used as the seq view over
+     * non-list collections (vector, set, sorted map/set, php array).
+     * The resulting value satisfies `seq?` but not `list?`.
+     *
+     * @param list<mixed>|null $values
+     */
+    public static function seqList(?array $values = []): PersistentListInterface
+    {
+        return TypeFactory::getInstance()->persistentSeqListFromArray($values ?? []);
+    }
+
+    /**
      * Create a persistent map from key-value pairs.
      *
      * @param mixed ...$kvs

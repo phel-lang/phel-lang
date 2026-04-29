@@ -52,6 +52,7 @@ All notable changes to this project will be documented in this file.
 - `some-fn` returns `false` when no predicate matches (#1714)
 - `compare` orders namespaced keywords and symbols by namespace first (#1715)
 - `vector?` reports `false` for `seq` and `rseq` results (#1716)
+- `list?` reports `false` for `seq` and `rseq` results over vectors, sorted-maps, sorted-sets (#1759)
 - Keyword and symbol literals preserve `'`, `"`, `\` through compilation (#1718)
 - `interleave`, `cycle`, `interpose` over maps yield `[key value]` pairs; `interleave` stops at shortest input (#1726, #1734, #1757)
 - `odd?` reports negative odd numbers as odd (#1736)
