@@ -167,16 +167,18 @@
          :else         (recur (php/- i 1) (next s)))))))
 
 (defn nthrest
-  "Returns the nth rest of `coll`, `coll` when `n` is 0. Returns an empty
-  list once the collection is exhausted or when `coll` is `nil`."
-  {:example "(nthrest [1 2 3 4 5] 2) ; => (3 4 5)\n(nthrest [1 2] 5) ; => ()"
+  "Returns the nth rest of `coll`, `coll` when `n` is 0. Returns `nil` when
+  `coll` is `nil`, or an empty list once the collection is exhausted."
+  {:example "(nthrest [1 2 3 4 5] 2) ; => (3 4 5)\n(nthrest [1 2] 5) ; => ()\n(nthrest nil 3) ; => nil"
    :see-also ["nth" "nthnext" "drop"]}
   [coll n]
-  (loop [i n
-         s coll]
-    (if (and (php/> i 0) s)
-      (recur (php/- i 1) (next s))
-      (if (nil? s) '() s))))
+  (if (nil? coll)
+    nil
+    (loop [i n
+           s coll]
+      (if (and (php/> i 0) s)
+        (recur (php/- i 1) (next s))
+        (if (nil? s) '() s)))))
 
 (defn nthnext
   "Returns the nth next of `coll`, `(seq coll)` when `n` is 0.
