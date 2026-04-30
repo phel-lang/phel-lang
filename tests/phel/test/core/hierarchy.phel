@@ -91,7 +91,7 @@
 
 (deftest test-defrecord-ancestors-include-protocol-and-php-parents
   (let [anc (ancestors AncestorRecord)]
-    (is (contains? anc "phel-test\\test\\core\\hierarchy\\AncestorRecordProtocol")
+    (is (contains? anc "phel-test.test.core.hierarchy\\AncestorRecordProtocol")
         "defrecord ancestors include inline protocol")
     (is (contains? anc "Phel\\Lang\\Collections\\Struct\\AbstractPersistentStruct")
         "defrecord ancestors include generated PHP parent class")
@@ -100,7 +100,7 @@
 
 (deftest test-deftype-ancestors-include-protocol-and-php-parents
   (let [anc (ancestors AncestorType)]
-    (is (contains? anc "phel-test\\test\\core\\hierarchy\\AncestorTypeProtocol")
+    (is (contains? anc "phel-test.test.core.hierarchy\\AncestorTypeProtocol")
         "deftype ancestors include inline protocol")
     (is (contains? anc "Phel\\Lang\\Collections\\Struct\\AbstractPersistentStruct")
         "deftype ancestors include generated PHP parent class")

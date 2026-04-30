@@ -46,7 +46,7 @@ final readonly class CompiledPhpClassBuilder
     private function buildClassName(string $phelNs): string
     {
         $words = $this->splitNamespace($phelNs);
-        $className = array_pop($words);
+        $className = array_pop($words) ?? $phelNs;
 
         return $this->underscoreToPascalCase($className);
     }

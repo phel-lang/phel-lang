@@ -19,7 +19,7 @@
      (is (= {:route-name "/pong" :template "/pong" :data {} :path "/pong" :path-params {}}
             (match-by-path (~mk-router [["/ping"] ["/pong"]]) "/pong"))
          "two static route")
-     (is (= {:route-name "phel-test\\test\\router/ping"
+     (is (= {:route-name "phel-test.test.router/ping"
              :template "/ping/{id<\\d+>}" :data {:name ::ping} :path "/ping/123" :path-params {:id "123"}}
             (match-by-path (~mk-router [["/ping/{id<\\d+>}" {:name ::ping}]]) "/ping/123"))
          "route with path parameter")
@@ -176,7 +176,7 @@
     (let [attrs (get @captured :attributes)
           match (:match attrs)
           rd    (:route-data attrs)]
-      (is (= "phel-test\\test\\router/hello" (:route-name match))
+      (is (= "phel-test.test.router/hello" (:route-name match))
           "match exposes the route's :route-name")
       (is (= "/hello/{who}" (:template match))
           "match exposes the route template")
@@ -200,10 +200,10 @@
                         (fn [req] (reset! captured-406 req) {:status 406})})]
     (app (req "/ping" "POST"))
     (app (req "/ping" "GET"))
-    (is (= "phel-test\\test\\router/ping"
+    (is (= "phel-test.test.router/ping"
            (get-in @captured-405 [:attributes :match :route-name]))
         ":method-not-allowed handler sees the matched route")
-    (is (= "phel-test\\test\\router/ping"
+    (is (= "phel-test.test.router/ping"
            (get-in @captured-406 [:attributes :match :route-name]))
         ":not-acceptable handler sees the matched route")
     (is (nil? (get-in @captured-405 [:attributes :route-data]))

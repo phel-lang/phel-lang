@@ -204,13 +204,15 @@ final class Symbol extends AbstractType implements IdenticalInterface, FnInterfa
 
     private function displayNamespace(): string
     {
+        $namespace = $this->namespace ?? '';
+
         // PHP class FQNs (leading `\\`) keep their backslash form so static
         // method calls compile correctly. Plain Phel namespaces translate to
         // dot to match the canonical form.
-        if (isset($this->namespace[0]) && $this->namespace[0] === '\\') {
-            return $this->namespace;
+        if (isset($namespace[0]) && $namespace[0] === '\\') {
+            return $namespace;
         }
 
-        return str_replace('\\', '.', $this->namespace);
+        return str_replace('\\', '.', $namespace);
     }
 }
