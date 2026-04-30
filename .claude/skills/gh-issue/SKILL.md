@@ -8,7 +8,9 @@ disable-model-invocation: true
 
 ## Context
 
-!`gh issue view ${ARGUMENTS#\#} --json title,body,labels,assignees,state 2>/dev/null || echo "Provide an issue number"`
+Read both the issue body **and every comment** as requirements input. Maintainer follow-ups frequently add scope, edge cases, or override the original description; when a later comment conflicts with the body, prefer the comment.
+
+!`gh issue view ${ARGUMENTS#\#} --json number,url,title,body,labels,assignees,state,comments 2>/dev/null || echo "Provide an issue number"`
 
 ## Instructions
 
