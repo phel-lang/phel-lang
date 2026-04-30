@@ -2,19 +2,19 @@
   (:require phel\test :refer [deftest is testing]))
 
 (deftest test-loaded-namespaces-includes-core
-  (is (php/in_array "phel\\core" (loaded-namespaces))
-      "loaded-namespaces lists phel\\core"))
+  (is (some #(= "phel.core" %) (loaded-namespaces))
+      "loaded-namespaces lists phel.core in display form"))
 
 (deftest test-find-ns-known
-  (is (= "phel\\core" (find-ns "phel\\core"))
-      "find-ns returns the namespace name when loaded"))
+  (is (= "phel.core" (find-ns "phel.core"))
+      "find-ns returns the namespace name in display form"))
 
 (deftest test-find-ns-unknown
-  (is (nil? (find-ns "no-such-ns\\nope"))
+  (is (nil? (find-ns "no-such-ns.nope"))
       "find-ns returns nil for unknown namespace"))
 
 (deftest test-create-and-remove-ns
-  (let [name "phel-test\\tmp\\ns-roundtrip"]
+  (let [name "phel-test.tmp.ns-roundtrip"]
     (is (nil? (find-ns name)) "namespace does not exist initially")
     (create-ns name)
     (is (= name (find-ns name)) "namespace exists after create-ns")

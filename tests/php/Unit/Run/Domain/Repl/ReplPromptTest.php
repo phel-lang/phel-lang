@@ -34,13 +34,13 @@ final class ReplPromptTest extends TestCase
         self::assertSame('....:7> ', $prompt->continuation(7));
     }
 
-    public function test_initial_prompt_reflects_current_namespace(): void
+    public function test_initial_prompt_renders_namespace_in_display_form(): void
     {
         GlobalEnvironmentSingleton::initializeNew();
         GlobalEnvironmentSingleton::getInstance()->setNs('my-app\\core');
 
         $prompt = new ReplPrompt();
 
-        self::assertSame('my-app\\core:3> ', $prompt->initial(3));
+        self::assertSame('my-app.core:3> ', $prompt->initial(3));
     }
 }

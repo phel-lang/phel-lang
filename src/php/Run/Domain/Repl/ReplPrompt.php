@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Repl;
 
+use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 
 use function sprintf;
@@ -30,6 +31,6 @@ final class ReplPrompt
 
         $ns = GlobalEnvironmentSingleton::getInstance()->getNs();
 
-        return $ns !== '' ? $ns : self::DEFAULT_NAMESPACE;
+        return $ns !== '' ? Munge::displayNs($ns) : self::DEFAULT_NAMESPACE;
     }
 }

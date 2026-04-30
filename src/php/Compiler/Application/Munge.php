@@ -67,12 +67,23 @@ final readonly class Munge implements MungeInterface
 
     /**
      * Canonicalize a namespace string by translating dot separators to
-     * backslash. Dot is the deprecated source-level separator (#1567);
-     * the registry, emitter, and analyzer all key off the backslash form.
+     * backslash. The registry, emitter, and analyzer key off the backslash
+     * form; pass user-supplied namespace strings through this before any
+     * registry lookup or write.
      */
     public static function canonicalNs(string $str): string
     {
         return str_replace('.', '\\', $str);
+    }
+
+    /**
+     * Convert an internal namespace string to its display form by translating
+     * backslash separators to dot. The dot form is the source-level separator
+     * surfaced by user-facing APIs and printed output.
+     */
+    public static function displayNs(string $str): string
+    {
+        return str_replace('\\', '.', $str);
     }
 
     /**
