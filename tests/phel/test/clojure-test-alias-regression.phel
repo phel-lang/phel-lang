@@ -1,0 +1,5 @@
+(ns phel\test\clojure-test-alias-regression
+  (:require clojure.test :as t))
+
+(t/deftest clojure-test-alias-resolves-via-remap
+  (t/is (= 1 1)))

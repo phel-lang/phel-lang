@@ -26,7 +26,7 @@ final readonly class NamespaceCollector
             throw CannotFindAnyTestsException::inPaths($paths);
         }
 
-        $namespaces[] = 'phel\\test';
+        $namespaces[] = 'phel.test';
 
         return $this->buildFacade->getDependenciesForNamespace(
             [
