@@ -6,4 +6,4 @@
   (:require phel\pprint :refer [pprint pprint-str])
   (:require phel\walk :refer [walk postwalk prewalk postwalk-replace
                               prewalk-replace keywordize-keys stringify-keys])
-  (:require phel\async))
+  (:require phel.async))
