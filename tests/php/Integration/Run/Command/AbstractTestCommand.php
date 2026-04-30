@@ -10,6 +10,7 @@ use Gacela\Framework\Testing\ContainerFixture;
 use Override;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Filesystem\Infrastructure\RealFilesystem;
+use Phel\Run\Application\NamespaceLoader;
 use PHPUnit\Framework\TestCase;
 use ReflectionClass;
 use Symfony\Component\Console\Formatter\OutputFormatter;
@@ -28,6 +29,7 @@ abstract class AbstractTestCommand extends TestCase
         $this->resetContainer();
         GlobalEnvironmentSingleton::initializeNew();
         RealFilesystem::reset();
+        NamespaceLoader::reset();
 
         $reflection = new ReflectionClass($this);
         $childDir = dirname($reflection->getFileName());

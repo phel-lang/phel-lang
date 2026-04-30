@@ -27,6 +27,18 @@ final class EvalCommandTest extends AbstractTestCommand
         );
     }
 
+    public function test_eval_resolves_phel_async_fqn_without_explicit_require(): void
+    {
+        $this->expectOutputRegex('/<function:delay>/');
+
+        $exitCode = $this->createEvalCommand()->run(
+            $this->stubInput('phel.async/delay'),
+            $this->stubOutput(),
+        );
+
+        self::assertSame(0, $exitCode);
+    }
+
     public function test_eval_resolves_bare_stdclass(): void
     {
         $this->expectOutputRegex('/Printer cannot print this type: .*stdClass/');
