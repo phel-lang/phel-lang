@@ -115,18 +115,25 @@
                         (conj protocol-tag))))))
   nil)
 
-(defn- direct-parents
-  "Returns manually-derived parents plus PHP type parents for tag.
-
-  Looks up the parents map under both the original tag and the resolved
-  tag (constructor function vs PHP class string) so a `derive` call made
-  with a record/type constructor still surfaces in `parents`/`ancestors`.
-  Also unions the protocol values registered against the resolved tag so
-  the surfaced ancestors include the protocol map, not only its FQN."
+(defn- derive-only-parents
+  "Returns parents recorded by `derive` for tag, ignoring PHP class
+  inheritance and protocol relations. Used by `descendants` to match
+  Clojure's contract that type inheritance is not surfaced."
   [parents-map tag]
   (let [resolved-tag (hierarchy-tag tag)]
     (union (get parents-map tag (hash-set))
-           (get parents-map resolved-tag (hash-set))
+           (get parents-map resolved-tag (hash-set)))))
+
+(defn- direct-parents
+  "Returns manually-derived parents plus PHP type parents for tag.
+
+  Layers `derive`-recorded edges with PHP class inheritance and the
+  protocol-implementor registry so `parents`/`ancestors` surface every
+  relationship. `descendants` (which must ignore type inheritance) uses
+  `derive-only-parents` directly."
+  [parents-map tag]
+  (let [resolved-tag (hierarchy-tag tag)]
+    (union (derive-only-parents parents-map tag)
            (php-class-relations resolved-tag)
            (protocol-relations resolved-tag))))
 
@@ -141,15 +148,6 @@
          (union acc (hash-set p) (compute-ancestors parents-map p)))
        (hash-set)
        direct))))
-
-(defn- derive-only-parents
-  "Returns parents recorded by `derive` for tag, ignoring PHP class
-  inheritance and protocol relations. Used by `descendants` to match
-  Clojure's contract that type inheritance is not surfaced."
-  [parents-map tag]
-  (let [resolved-tag (hierarchy-tag tag)]
-    (union (get parents-map tag (hash-set))
-           (get parents-map resolved-tag (hash-set)))))
 
 (defn- compute-derive-ancestors
   "Like `compute-ancestors` but only follows `derive`-recorded edges."
