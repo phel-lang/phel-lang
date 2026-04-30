@@ -64,7 +64,7 @@
   (let [info (get-symbol-info "phel\\core" "map")]
     (is (hash-map? info) "get-symbol-info returns a map for a known symbol")
     (is (string? (get info :doc)) "info contains :doc as a string")
-    (is (= "phel\\core" (get info :ns)) "info contains :ns")
+    (is (= "phel.core" (get info :ns)) "info contains :ns in display form")
     (is (= "map" (get info :name)) "info contains :name")))
 
 (deftest test-get-symbol-info-has-arity-keys
@@ -133,7 +133,7 @@
 
 (deftest test-ns-aliases-contains-expected-alias
   (let [aliases (ns-aliases "phel-test\\test\\repl")]
-    (is (= "phel\\string" (get aliases "s")) "ns-aliases contains 's' => 'phel\\string'")))
+    (is (= "phel.string" (get aliases "s")) "ns-aliases contains 's' => 'phel.string'")))
 
 ;; ---------
 ;; ns-refers
@@ -145,8 +145,8 @@
 
 (deftest test-ns-refers-contains-expected-refers
   (let [refers (ns-refers "phel-test\\test\\repl")]
-    (is (= "phel\\repl" (get refers "apropos")) "ns-refers contains 'apropos' from phel\\repl")
-    (is (= "phel\\test" (get refers "deftest")) "ns-refers contains 'deftest' from phel\\test")))
+    (is (= "phel.repl" (get refers "apropos")) "ns-refers contains 'apropos' from phel.repl")
+    (is (= "phel.test" (get refers "deftest")) "ns-refers contains 'deftest' from phel.test")))
 
 ;; -------
 ;; find-fn
@@ -439,8 +439,8 @@
 
 (deftest test-ns-list-contains-known-namespaces
   (let [results (ns-list)]
-    (is (some? #(= % "phel\\core") results) "ns-list contains phel\\core")
-    (is (some? #(= % "phel\\repl") results) "ns-list contains phel\\repl")))
+    (is (some #(= % "phel.core") results) "ns-list contains phel.core")
+    (is (some #(= % "phel.repl") results) "ns-list contains phel.repl")))
 
 (deftest test-ns-list-is-sorted
   (let [results (ns-list)]
@@ -528,7 +528,7 @@
   (is (nil? (find-ns "phel-test-repl-unknown-ns"))))
 
 (deftest test-create-ns-registers-empty-namespace
-  (let [ns "phel-test-repl\\create-ns-fixture"]
+  (let [ns "phel-test-repl.create-ns-fixture"]
     (remove-ns ns)
     (is (nil? (find-ns ns)) "pre: namespace not registered")
     (let [created (create-ns ns)]
@@ -537,7 +537,7 @@
     (remove-ns ns)))
 
 (deftest test-create-ns-is-idempotent
-  (let [ns "phel-test-repl\\create-ns-idempotent"]
+  (let [ns "phel-test-repl.create-ns-idempotent"]
     (create-ns ns)
     (intern ns "keeper" 7)
     (create-ns ns)
@@ -546,7 +546,7 @@
     (remove-ns ns)))
 
 (deftest test-intern-stores-value-and-creates-namespace
-  (let [ns "phel-test-repl\\intern-fixture"]
+  (let [ns "phel-test-repl.intern-fixture"]
     (remove-ns ns)
     (intern ns "answer" 42)
     (is (= ns (find-ns ns)) "intern auto-registers the namespace")
@@ -554,7 +554,7 @@
     (remove-ns ns)))
 
 (deftest test-intern-returns-fully-qualified-symbol
-  (let [ns  "phel-test-repl\\intern-return"
+  (let [ns  "phel-test-repl.intern-return"
         sym (intern ns "pointer" 1)]
     (is (= "pointer" (php/-> sym (getName))) "symbol name matches")
     (is (= ns (php/-> sym (getNamespace))) "symbol namespace matches")
@@ -563,7 +563,7 @@
     (remove-ns ns)))
 
 (deftest test-intern-munges-dashes-in-name
-  (let [ns "phel-test-repl\\intern-munge"]
+  (let [ns "phel-test-repl.intern-munge"]
     (remove-ns ns)
     (intern ns "kebab-name" 1)
     (is (= {"kebab-name" 1} (ns-interns ns))
@@ -571,7 +571,7 @@
     (remove-ns ns)))
 
 (deftest test-intern-defaults-to-nil-value
-  (let [ns "phel-test-repl\\intern-nil"]
+  (let [ns "phel-test-repl.intern-nil"]
     (remove-ns ns)
     (intern ns "placeholder")
     (is (= {"placeholder" nil} (ns-interns ns))
@@ -579,7 +579,7 @@
     (remove-ns ns)))
 
 (deftest test-intern-overwrites-existing-value
-  (let [ns "phel-test-repl\\intern-overwrite"]
+  (let [ns "phel-test-repl.intern-overwrite"]
     (remove-ns ns)
     (intern ns "x" 1)
     (intern ns "x" 2)
@@ -591,7 +591,7 @@
       "ns-interns returns an empty map for unknown namespaces"))
 
 (deftest test-ns-interns-includes-private-definitions
-  (let [ns "phel-test-repl\\interns-all"]
+  (let [ns "phel-test-repl.interns-all"]
     (remove-ns ns)
     (intern ns "pub" 1)
     (intern ns "priv" 2)
@@ -600,7 +600,7 @@
     (remove-ns ns)))
 
 (deftest test-remove-ns-drops-all-definitions
-  (let [ns "phel-test-repl\\remove-me"]
+  (let [ns "phel-test-repl.remove-me"]
     (create-ns ns)
     (intern ns "gone" 99)
     (remove-ns ns)

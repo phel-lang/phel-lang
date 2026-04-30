@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - `var-get` resolves a symbol to its registry value (#1774)
 - `(rand n)` returns a number in `[0, n)` (#1696)
 - `canonical-ns` returns the canonical (backslash) form of a namespace string (#1795)
+- `display-ns` returns the display (dot) form of a namespace string (#1795)
 
 #### REPL
 - `require` accepts vector syntax: `(require '[phel\string :as s])` (#1693)
@@ -37,6 +38,7 @@ All notable changes to this project will be documented in this file.
 
 #### Lang
 - `(str sym)` and printer output for qualified symbols include the namespace
+- User-facing namespace APIs return strings in dot-separated display form: `loaded-namespaces`, `find-ns`, `create-ns`, `intern`, `ns-aliases`, `ns-refers`, `get-symbol-info`, `apropos`, `find-fn`, REPL prompt, `phel ns` (#1795)
 
 ### Fixed
 

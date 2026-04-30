@@ -9,26 +9,37 @@
 
 ;; --- Namespace introspection and manipulation ---
 
-(defn loaded-namespaces
-  "Returns all namespaces currently loaded."
-  {:example "(loaded-namespaces) ; => [\"phel\\core\" \"phel\\repl\"]"}
-  []
-  (php/:: Phel (getNamespaces)))
-
 (def ^:private munge-instance
   ;; Munge is a final readonly class; reuse a single instance to avoid per-call allocation.
   (php/new Munge))
 
 (defn canonical-ns
   "Returns the canonical form of a namespace string by translating dot
-  separators to backslash. The dot form is the source-level separator
-  introduced for Clojure-aligned syntax; the registry, emitter, and
-  analyzer key off the backslash form. Use this when accepting a
-  namespace string from a user and forwarding it to namespace APIs."
+  separators to backslash. The registry, emitter, and analyzer key off the
+  backslash form; pass user-supplied namespace strings through this before
+  any registry lookup or write."
   {:example "(canonical-ns \"phel.core\") ; => \"phel\\core\""
-   :see-also ["find-ns" "create-ns" "intern"]}
+   :see-also ["display-ns" "find-ns" "create-ns" "intern"]}
   [ns-str]
   (php/:: Munge (canonicalNs ns-str)))
+
+(defn display-ns
+  "Returns the display form of a namespace string by translating backslash
+  separators to dot. User-facing namespace APIs return strings in this form."
+  {:example "(display-ns \"phel\\core\") ; => \"phel.core\""
+   :see-also ["canonical-ns" "find-ns" "loaded-namespaces"]}
+  [ns-str]
+  (php/:: Munge (displayNs ns-str)))
+
+(defn loaded-namespaces
+  "Returns all namespaces currently loaded, in dot-separated display form."
+  {:example "(loaded-namespaces) ; => [\"phel.core\" \"phel.repl\"]"}
+  []
+  (let [raw    (php/:: Phel (getNamespaces))
+        result (transient [])]
+    (foreach [ns raw]
+      (conj result (display-ns (php/-> munge-instance (decodeNs ns)))))
+    (persistent result)))
 
 (defn- core-munge-ns
   "Encodes a namespace string for registry lookup."
@@ -41,24 +52,24 @@
   (php/-> munge-instance (encode name-str)))
 
 (defn find-ns
-  "Returns the namespace name if it is loaded, or nil if no namespace of
-  that name exists."
-  {:example "(find-ns \"phel\\core\") ; => \"phel\\core\""
+  "Returns the namespace name in display form if it is loaded, or nil if no
+  namespace of that name exists. Accepts dot or backslash separators on input."
+  {:example "(find-ns \"phel.core\") ; => \"phel.core\""
    :see-also ["create-ns" "remove-ns" "loaded-namespaces"]}
   [ns-str]
   (let [canonical (canonical-ns ns-str)]
     (when (php/:: Phel (hasNamespace (core-munge-ns canonical)))
-      canonical)))
+      (display-ns canonical))))
 
 (defn create-ns
   "Creates the given namespace if it does not already exist. Returns the
-  namespace name. Existing namespaces are left untouched."
-  {:example "(create-ns \"my-app\\tmp\") ; => \"my-app\\tmp\""
+  namespace name in display form. Existing namespaces are left untouched."
+  {:example "(create-ns \"my-app.tmp\") ; => \"my-app.tmp\""
    :see-also ["find-ns" "remove-ns" "intern"]}
   [ns-str]
   (let [canonical (canonical-ns ns-str)]
     (php/:: Phel (registerNamespace (core-munge-ns canonical)))
-    canonical))
+    (display-ns canonical)))
 
 (defn remove-ns
   "Removes the namespace and all of its definitions from the registry.
@@ -90,7 +101,8 @@
   definition unchanged, or creates a new one with nil if none exists.
   Auto-registers the namespace when creating a new definition; the
   arity-2 form is a no-op when the definition already exists.
-  Returns the fully qualified symbol naming the definition."
+  Returns the fully qualified symbol naming the definition (with the
+  namespace in display form)."
   {:example "(intern \"user\" \"x\" 42) ; => user/x"
    :see-also ["var-get" "find-ns" "create-ns" "ns-interns"]}
   [ns-str name-str & rest]
@@ -102,7 +114,7 @@
       ;; skip when no value is provided and the definition already exists
       (when-not (php/:: Phel (isDefined encoded-ns encoded-name))
         (php/:: Phel (addDefinition encoded-ns encoded-name nil))))
-    (php/:: Symbol (createForNamespace canonical name-str))))
+    (php/:: Symbol (createForNamespace (display-ns canonical) name-str))))
 
 (defn var-get
   "Takes a fully-qualified symbol and resolves it from the namespace registry,
@@ -140,28 +152,28 @@
 
 (defn ns-aliases
   "Returns a hash-map of {alias => namespace} for all require aliases in the
-  given namespace string."
-  {:example "(ns-aliases *ns*) ; => {\"repl\" \"phel\\repl\" ...}"
+  given namespace string. Target namespaces are returned in display form."
+  {:example "(ns-aliases *ns*) ; => {\"repl\" \"phel.repl\" ...}"
    :see-also ["ns-publics" "ns-refers" "loaded-namespaces"]}
   [ns-str]
   (let [env     (php/:: GlobalEnvironmentSingleton (getInstance))
         aliases (php/-> env (getRequireAliases (canonical-ns ns-str)))
         result  (transient {})]
     (foreach [alias-name target-sym aliases]
-      (assoc! result alias-name (php/-> target-sym (getName))))
+      (assoc! result alias-name (display-ns (php/-> target-sym (getName)))))
     (persistent result)))
 
 (defn ns-refers
   "Returns a hash-map of {name => source-namespace} for all referred symbols
-  in the given namespace string."
-  {:example "(ns-refers *ns*) ; => {\"doc\" \"phel\\repl\" ...}"
+  in the given namespace string. Source namespaces are returned in display form."
+  {:example "(ns-refers *ns*) ; => {\"doc\" \"phel.repl\" ...}"
    :see-also ["ns-publics" "ns-aliases" "loaded-namespaces"]}
   [ns-str]
   (let [env    (php/:: GlobalEnvironmentSingleton (getInstance))
         refers (php/-> env (getRefers (canonical-ns ns-str)))
         result (transient {})]
     (foreach [refer-name source-sym refers]
-      (assoc! result refer-name (php/-> source-sym (getName))))
+      (assoc! result refer-name (display-ns (php/-> source-sym (getName)))))
     (persistent result)))
 
 (defn load-file

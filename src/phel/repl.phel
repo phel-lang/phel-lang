@@ -22,20 +22,23 @@
   (php/:: GlobalEnvironmentSingleton (getInstance)))
 
 (defn loaded-namespaces
-  "Returns all namespaces currently loaded in the REPL."
-  {:example "(loaded-namespaces) ; => [\"phel\\core\" \"phel\\repl\"]"}
+  "Returns all namespaces currently loaded in the REPL, in dot-separated
+  display form."
+  {:example "(loaded-namespaces) ; => [\"phel.core\" \"phel.repl\"]"}
   []
-  (php/:: Phel (getNamespaces)))
+  (let [raw    (php/:: Phel (getNamespaces))
+        munge  (php/new Munge)
+        result (transient [])]
+    (foreach [ns raw]
+      (conj result (php/:: Munge (displayNs (php/-> munge (decodeNs ns))))))
+    (persistent result)))
 
 (defn ns-list
-  "Returns a sorted vector of all loaded namespace names, decoded to
-  human-readable form (hyphens restored instead of underscores)."
-  {:example "(ns-list) ; => [\"phel\\core\" \"phel\\repl\" ...]"
+  "Returns a sorted vector of all loaded namespace names in display form."
+  {:example "(ns-list) ; => [\"phel.core\" \"phel.repl\" ...]"
    :see-also ["loaded-namespaces" "dir" "ns-publics"]}
   []
-  (let [munge (php/new Munge)]
-    (sort (for [ns :in (loaded-namespaces)]
-            (php/-> munge (decodeNs ns))))))
+  (sort (loaded-namespaces)))
 
 (defn- eval-file [file]
   (php/-> build-facade (evalFile file)))
@@ -59,7 +62,7 @@
       (throw (php/new \RuntimeException
                       (str "Could not locate namespace '" namespace "' on the source paths."))))
     (foreach [dep dependencies]
-      (when-not (php/in_array (php/-> dep (getNamespace)) (loaded-namespaces))
+      (when-not (php/in_array (php/-> dep (getNamespace)) (php/:: Phel (getNamespaces)))
         (eval-file (php/-> dep (getFile)))))))
 
 (defn- clean-doc [str]
@@ -255,7 +258,7 @@
          :min-arity (get meta "min-arity")
          :max-arity (get meta "max-arity")
          :is-variadic (or (get meta "is-variadic") false)
-         :ns canonical
+         :ns (php/:: Munge (displayNs canonical))
          :name name-str}))))
 
 (defmacro symbol-info
@@ -301,11 +304,11 @@
 (defn apropos
   "Returns a vector of symbols whose name contains the given search string.
   Searches across all loaded namespaces."
-  {:example "(apropos \"map\") ; => [phel\\core/flat-map phel\\core/map ...]"}
+  {:example "(apropos \"map\") ; => [phel.core/flat-map phel.core/map ...]"}
   [search]
   (let [munge   (php/new Munge)
         results (transient [])]
-    (foreach [ns (loaded-namespaces)]
+    (foreach [ns (php/:: Phel (getNamespaces))]
       (let [defs     (php/:: Phel (getDefinitionInNamespace ns))
             fn-names (php/array_keys defs)]
         (foreach [fn-name fn-names]
@@ -313,19 +316,20 @@
                 meta    (php/:: Phel (getDefinitionMetaData ns fn-name))]
             (when (and (not (get meta :private))
                        (php/str_contains decoded search))
-              (conj results (str (php/-> munge (decodeNs ns)) "/" decoded)))))))
+              (conj results (str (php/:: Munge (displayNs (php/-> munge (decodeNs ns))))
+                                 "/" decoded)))))))
     (sort (persistent results))))
 
 (defn find-fn
   "Searches for functions whose name or docstring contains the search string.
   Returns a vector of maps with :ns, :name, :doc, :private, :min-arity, :max-arity, :is-variadic."
-  {:example "(find-fn \"map\") ; => [{:ns \"phel\\core\" :name \"map\" ...} ...]"
+  {:example "(find-fn \"map\") ; => [{:ns \"phel.core\" :name \"map\" ...} ...]"
    :see-also ["apropos" "search-doc" "get-symbol-info"]}
   [search]
   (let [munge        (php/new Munge)
         search-lower (php/strtolower search)
         results      (transient [])]
-    (foreach [ns (loaded-namespaces)]
+    (foreach [ns (php/:: Phel (getNamespaces))]
       (let [defs     (php/:: Phel (getDefinitionInNamespace ns))
             fn-names (php/array_keys defs)]
         (foreach [fn-name fn-names]
@@ -333,7 +337,7 @@
             (when (php/instanceof definition FnInterface)
               (let [meta         (php/:: Phel (getDefinitionMetaData ns fn-name))
                     decoded-name (php/-> munge (decodeNs fn-name))
-                    decoded-ns   (php/-> munge (decodeNs ns))
+                    decoded-ns   (php/:: Munge (displayNs (php/-> munge (decodeNs ns))))
                     doc          (or (get meta :doc) "")
                     name-lower   (php/strtolower decoded-name)
                     doc-lower    (php/strtolower doc)]
@@ -375,27 +379,29 @@
       `(get-source-code ~(namespace resolved-sym) ~(name resolved-sym)))))
 
 (defn find-ns
-  "Returns the namespace name if it is loaded, or nil if no namespace of
-  that name exists."
-  {:example "(find-ns \"phel\\core\") ; => \"phel\\core\""
+  "Returns the namespace name in display form if it is loaded, or nil if no
+  namespace of that name exists. Accepts dot or backslash separators on input."
+  {:example "(find-ns \"phel.core\") ; => \"phel.core\""
    :see-also ["create-ns" "remove-ns" "loaded-namespaces"]}
   [ns-str]
-  (when (php/:: Phel (hasNamespace (munge-ns ns-str)))
-    ns-str))
+  (let [canonical (php/:: Munge (canonicalNs ns-str))]
+    (when (php/:: Phel (hasNamespace (munge-ns canonical)))
+      (php/:: Munge (displayNs canonical)))))
 
 (defn create-ns
   "Creates the given namespace if it does not already exist. Returns the
-  namespace name. Existing namespaces are left untouched."
-  {:example "(create-ns \"my-app\\tmp\") ; => \"my-app\\tmp\""
+  namespace name in display form. Existing namespaces are left untouched."
+  {:example "(create-ns \"my-app.tmp\") ; => \"my-app.tmp\""
    :see-also ["find-ns" "remove-ns" "intern"]}
   [ns-str]
-  (php/:: Phel (registerNamespace (munge-ns ns-str)))
-  ns-str)
+  (let [canonical (php/:: Munge (canonicalNs ns-str))]
+    (php/:: Phel (registerNamespace (munge-ns canonical)))
+    (php/:: Munge (displayNs canonical))))
 
 (defn remove-ns
   "Removes the namespace and all of its definitions from the registry.
   Use with caution. Returns nil."
-  {:example "(remove-ns \"my-app\\tmp\")"
+  {:example "(remove-ns \"my-app.tmp\")"
    :see-also ["find-ns" "create-ns"]}
   [ns-str]
   (php/:: Phel (removeNamespace (munge-ns ns-str)))
@@ -405,15 +411,16 @@
   "Finds or creates a definition named by name-str in namespace ns-str,
   setting its root value to val when supplied (defaults to nil). The
   namespace is auto-registered by the underlying `addDefinition` call.
-  Returns the fully qualified symbol naming the definition."
+  Returns the fully qualified symbol (with the namespace in display form)."
   {:example "(intern \"user\" \"x\" 42) ; => user/x"
    :see-also ["find-ns" "create-ns" "ns-interns"]}
   [ns-str name-str & rest]
-  (let [encoded-ns   (munge-ns ns-str)
+  (let [canonical    (php/:: Munge (canonicalNs ns-str))
+        encoded-ns   (munge-ns canonical)
         encoded-name (php/-> (php/new Munge) (encode name-str))
         value        (first rest)]
     (php/:: Phel (addDefinition encoded-ns encoded-name value))
-    (php/:: Symbol (createForNamespace ns-str name-str))))
+    (php/:: Symbol (createForNamespace (php/:: Munge (displayNs canonical)) name-str))))
 
 (defn ns-interns
   "Returns a hash-map of {name => value} for every definition in the
@@ -447,28 +454,28 @@
 
 (defn ns-aliases
   "Returns a hash-map of {alias => namespace} for all require aliases in the
-  given namespace string."
-  {:example "(ns-aliases *ns*) ; => {\"repl\" \"phel\\repl\" ...}"
+  given namespace string. Target namespaces are returned in display form."
+  {:example "(ns-aliases *ns*) ; => {\"repl\" \"phel.repl\" ...}"
    :see-also ["ns-publics" "ns-refers" "loaded-namespaces"]}
   [ns-str]
   (let [env     (get-global-env)
-        aliases (php/-> env (getRequireAliases ns-str))
+        aliases (php/-> env (getRequireAliases (php/:: Munge (canonicalNs ns-str))))
         result  (transient {})]
     (foreach [alias-name target-sym aliases]
-      (assoc! result alias-name (php/-> target-sym (getName))))
+      (assoc! result alias-name (php/:: Munge (displayNs (php/-> target-sym (getName))))))
     (persistent result)))
 
 (defn ns-refers
   "Returns a hash-map of {name => source-namespace} for all referred symbols
-  in the given namespace string."
-  {:example "(ns-refers *ns*) ; => {\"doc\" \"phel\\repl\" ...}"
+  in the given namespace string. Source namespaces are returned in display form."
+  {:example "(ns-refers *ns*) ; => {\"doc\" \"phel.repl\" ...}"
    :see-also ["ns-publics" "ns-aliases" "loaded-namespaces"]}
   [ns-str]
   (let [env    (get-global-env)
-        refers (php/-> env (getRefers ns-str))
+        refers (php/-> env (getRefers (php/:: Munge (canonicalNs ns-str))))
         result (transient {})]
     (foreach [refer-name source-sym refers]
-      (assoc! result refer-name (php/-> source-sym (getName))))
+      (assoc! result refer-name (php/:: Munge (displayNs (php/-> source-sym (getName))))))
     (persistent result)))
 
 (defn search-doc
@@ -478,7 +485,7 @@
   [search]
   (let [munge        (php/new Munge)
         search-lower (php/strtolower search)]
-    (foreach [ns (loaded-namespaces)]
+    (foreach [ns (php/:: Phel (getNamespaces))]
       (let [defs     (php/:: Phel (getDefinitionInNamespace ns))
             fn-names (php/array_keys defs)]
         (foreach [fn-name fn-names]
@@ -487,7 +494,7 @@
               (let [doc          (or (get meta :doc) "")
                     doc-lower    (php/strtolower doc)
                     decoded-name (php/-> munge (decodeNs fn-name))
-                    decoded-ns   (php/-> munge (decodeNs ns))]
+                    decoded-ns   (php/:: Munge (displayNs (php/-> munge (decodeNs ns))))]
                 (when (and (not (get meta :private))
                            (php/str_contains doc-lower search-lower))
                   (println (str "--- " decoded-ns "/" decoded-name " ---"))

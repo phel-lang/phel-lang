@@ -44,4 +44,26 @@ final class MungeTest extends TestCase
     {
         self::assertSame('my_app\\my_module', $this->munge->encodeNs('my-app.my-module'));
     }
+
+    public function test_display_ns_translates_backslash_to_dot(): void
+    {
+        self::assertSame('phel.core', Munge::displayNs('phel\\core'));
+        self::assertSame('a.b.c', Munge::displayNs('a\\b\\c'));
+    }
+
+    public function test_display_ns_keeps_already_display_form(): void
+    {
+        self::assertSame('phel.core', Munge::displayNs('phel.core'));
+    }
+
+    public function test_display_ns_handles_empty_string(): void
+    {
+        self::assertSame('', Munge::displayNs(''));
+    }
+
+    public function test_canonical_and_display_round_trip(): void
+    {
+        self::assertSame('phel.core', Munge::displayNs(Munge::canonicalNs('phel.core')));
+        self::assertSame('phel\\core', Munge::canonicalNs(Munge::displayNs('phel\\core')));
+    }
 }

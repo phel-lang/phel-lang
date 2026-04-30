@@ -40,8 +40,8 @@ final class NsCommandTest extends AbstractTestCommand
             }
         };
 
-        $this->expectOutputRegex('/app\\\\foo/');
-        $this->expectOutputRegex('/app\\\\bar/');
+        $this->expectOutputRegex('/app\.foo/');
+        $this->expectOutputRegex('/app\.bar/');
 
         $command->run(
             self::createStub(InputInterface::class),
@@ -75,11 +75,10 @@ final class NsCommandTest extends AbstractTestCommand
         $input = self::createStub(InputInterface::class);
         $input->method('getArgument')->willReturn('app\\bar');
 
-        $this->expectOutputRegex('/Dependencies for namespace: app\\\\bar/');
-        $this->expectOutputRegex('/1\) Namespace: app\\\\foo/');
-        $this->expectOutputRegex('/Used by: app\\\\bar/');
-        $this->expectOutputRegex('/Dependencies: app\\\\foo \(foo\.phel\)/');
-        $this->expectOutputRegex('/2\) Namespace: app\\\\bar/');
+        $this->expectOutputRegex('/Dependencies for namespace: app\.bar/');
+        $this->expectOutputRegex('/1\) Namespace: app\.foo/');
+        $this->expectOutputRegex('/2\) Namespace: app\.bar/');
+        $this->expectOutputRegex('/Dependencies \(1\): app\.foo/');
         $this->expectOutputRegex('/File: bar\.phel/');
 
         $command->run(

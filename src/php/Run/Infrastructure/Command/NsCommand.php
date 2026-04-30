@@ -15,6 +15,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+use function array_map;
 use function count;
 use function implode;
 use function is_string;
@@ -60,7 +61,7 @@ class NsCommand extends Command
 
         foreach ($loadedNamespaces as $i => $ns) {
             if ($simple) {
-                $output->writeln($ns->getNamespace());
+                $output->writeln(Munge::displayNs($ns->getNamespace()));
                 continue;
             }
 
@@ -76,13 +77,13 @@ class NsCommand extends Command
 
         if ($simple) {
             foreach ($nsInfoList as $info) {
-                $output->writeln($info->getNamespace());
+                $output->writeln(Munge::displayNs($info->getNamespace()));
             }
 
             return self::SUCCESS;
         }
 
-        $output->writeln(sprintf('Dependencies for namespace: %s', $ns));
+        $output->writeln(sprintf('Dependencies for namespace: %s', Munge::displayNs($ns)));
 
         foreach ($nsInfoList as $index => $info) {
             $this->renderNamespaceInfo($output, $index, $info);
@@ -101,11 +102,14 @@ class NsCommand extends Command
 
     private function renderNamespaceInfo(OutputInterface $output, int $index, NamespaceInformation $info): void
     {
-        $dependencies = $info->getDependencies();
+        $dependencies = array_map(
+            Munge::displayNs(...),
+            $info->getDependencies(),
+        );
         $depsCount = count($dependencies);
         $depsString = $depsCount === 0 ? '-' : implode(', ', $dependencies);
 
-        $output->writeln(sprintf('%d) Namespace: %s', $index + 1, $info->getNamespace()));
+        $output->writeln(sprintf('%d) Namespace: %s', $index + 1, Munge::displayNs($info->getNamespace())));
         $output->writeln(sprintf('   File: %s', $info->getFile()));
         $output->writeln(sprintf('   Dependencies (%d): %s', $depsCount, $depsString));
     }
