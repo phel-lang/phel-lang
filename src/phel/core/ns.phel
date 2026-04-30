@@ -14,23 +14,22 @@
   (php/new Munge))
 
 (defn canonical-ns
-  "Returns the canonical form of a namespace string by translating backslash
-  separators to dot. The registry, runtime, and user-facing APIs key off the
-  dot form; pass user-supplied namespace strings through this before any
-  registry lookup or write."
+  "Returns the canonical (dot-separated) form of a namespace string.
+  Pass user-supplied namespace strings through this before any registry
+  lookup or write."
   {:example "(canonical-ns \"phel\\core\") ; => \"phel.core\""
    :see-also ["display-ns" "find-ns" "create-ns" "intern"]}
   [ns-str]
   (php/:: Munge (canonicalNs ns-str)))
 
 (defn display-ns
-  "Returns the display form of a namespace string by translating backslash
-  separators to dot. Equivalent to `canonical-ns` since dot is the canonical
-  form; kept for API stability."
+  "Returns the display (dot-separated) form of a namespace string.
+  Equivalent to `canonical-ns`; kept as a separate name so call sites
+  read intent (display vs. canonicalize)."
   {:example "(display-ns \"phel\\core\") ; => \"phel.core\""
    :see-also ["canonical-ns" "find-ns" "loaded-namespaces"]}
   [ns-str]
-  (php/:: Munge (displayNs ns-str)))
+  (canonical-ns ns-str))
 
 (defn loaded-namespaces
   "Returns all namespaces currently loaded, in dot-separated display form."

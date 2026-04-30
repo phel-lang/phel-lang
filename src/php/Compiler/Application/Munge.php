@@ -56,9 +56,7 @@ final readonly class Munge implements MungeInterface
     }
 
     /**
-     * Encode a namespace into the backslash form used by PHP `namespace`
-     * declarations and class FQNs. Translates dots to backslashes, then
-     * mangles dashes via the namespace mapping.
+     * Backslash form, used by PHP `namespace ...;` and class FQN emission.
      */
     public function encodePhpNs(string $str): string
     {
@@ -66,13 +64,11 @@ final readonly class Munge implements MungeInterface
     }
 
     /**
-     * Encode a namespace into the dot form used as the runtime registry key
-     * (`\Phel::addDefinition`, `setNs`, `*ns*`). Translates backslashes to
-     * dots, then mangles dashes via the namespace mapping.
+     * Dot form, used as the runtime registry key.
      */
     public function encodeRegistryKey(string $str): string
     {
-        return $this->encodeWithMap(str_replace('\\', '.', $str), $this->nsMapping);
+        return $this->encodeWithMap(self::canonicalNs($str), $this->nsMapping);
     }
 
     public function decodeNs(string $str): string
@@ -81,10 +77,8 @@ final readonly class Munge implements MungeInterface
     }
 
     /**
-     * Canonicalize a namespace string by translating backslash separators to
-     * dot. The registry, runtime, and user-facing APIs key off the dot form;
-     * pass user-supplied namespace strings through this before any registry
-     * lookup or write.
+     * Canonical (dot) form. Pass user-supplied namespace strings through this
+     * before any registry lookup or write.
      */
     public static function canonicalNs(string $str): string
     {
@@ -92,13 +86,12 @@ final readonly class Munge implements MungeInterface
     }
 
     /**
-     * Convert an internal namespace string to its display form by translating
-     * backslash separators to dot. Equivalent to {@see self::canonicalNs()}
-     * since dot is now the canonical form; kept for API stability.
+     * Display form. Equivalent to {@see self::canonicalNs()}; kept as a
+     * separate name so call sites read intent (display vs. canonicalize).
      */
     public static function displayNs(string $str): string
     {
-        return str_replace('\\', '.', $str);
+        return self::canonicalNs($str);
     }
 
     /**

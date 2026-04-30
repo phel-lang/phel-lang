@@ -408,14 +408,10 @@ TXT;
     }
 
     /**
-     * Remaps `clojure\*` namespaces to `phel\*` for Clojure compatibility.
-     *
-     * If a required namespace starts with `clojure\` and the corresponding
-     * `phel\*` namespace exists in the Registry, the prefix is replaced
-     * so that e.g. `clojure\test` resolves to `phel\test`.
-     *
-     * User-defined `clojure\*` namespaces (e.g. `clojure\core-test\portability`)
-     * are left untouched when no matching `phel\*` namespace is registered.
+     * Remaps `clojure.*` namespaces to `phel.*` when a matching `phel.*`
+     * namespace is registered (e.g. `clojure.test` -> `phel.test`).
+     * User-defined `clojure.*` namespaces with no matching `phel.*` target
+     * are left untouched.
      */
     private function remapClojureNamespace(Symbol $symbol): Symbol
     {

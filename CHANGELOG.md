@@ -31,7 +31,7 @@ All notable changes to this project will be documented in this file.
 
 - **BREAKING**: Require PHP 8.4
 - **BREAKING**: Async functions move to `phel\core`; `delay` stays in `phel\async` (#1548)
-- **BREAKING**: Internal canonical namespace form is dot: registry keys, `*ns*`, `setNs`, `Symbol::getFullName` for Phel symbols (PHP `namespace ...;` and class FQNs stay backslash). Backslash input still accepted; warns under `PHEL_WARN_DEPRECATIONS=1`. `Munge::encodeNs` split into `encodePhpNs` and `encodeRegistryKey`; `canonical-ns` direction flipped (#1798)
+- **BREAKING**: Canonical namespace form is dot: registry keys, `*ns*` and `Symbol::getFullName` for Phel symbols. PHP `namespace ...;` and class FQNs stay backslash. Backslash input is still accepted (warns under `PHEL_WARN_DEPRECATIONS=1`) (#1798)
 
 #### Core
 - Expose `future` from `phel\core` (#1537)
