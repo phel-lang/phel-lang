@@ -46,7 +46,7 @@ final class WarnDeprecationsFlagTest extends TestCase
         );
         BackslashSeparatorDeprecator::useInstance($viaFlag);
 
-        $sym = Symbol::createForNamespace('phel.core', 'map');
+        $sym = Symbol::createForNamespace(null, 'phel\\core/map');
         $sym->setStartLocation(new SourceLocation('/app/user.phel', 1, 1));
 
         $viaFlag->maybeWarn($sym);

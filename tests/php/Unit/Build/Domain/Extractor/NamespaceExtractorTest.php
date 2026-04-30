@@ -26,8 +26,8 @@ final class NamespaceExtractorTest extends TestCase
         $fileContent = '(ns get\\ns\\from\\file)';
         $result = $this->extractNamespace($fileContent);
 
-        $this->assertSame('get\\ns\\from\\file', $result->getNamespace());
-        $this->assertSame(['phel\core'], $result->getDependencies());
+        $this->assertSame('get.ns.from.file', $result->getNamespace());
+        $this->assertSame(['phel.core'], $result->getDependencies());
     }
 
     public function test_get_namespace_from_file_with_dependencies(): void
@@ -35,8 +35,8 @@ final class NamespaceExtractorTest extends TestCase
         $fileContent = '(ns get\\ns\\from\\file (:require phel\html))';
         $result = $this->extractNamespace($fileContent);
 
-        $this->assertSame('get\\ns\\from\\file', $result->getNamespace());
-        $this->assertSame(['phel\core', 'phel\html'], $result->getDependencies());
+        $this->assertSame('get.ns.from.file', $result->getNamespace());
+        $this->assertSame(['phel.core', 'phel.html'], $result->getDependencies());
     }
 
     public function test_get_namespace_from_file_with_in_ns(): void
@@ -44,8 +44,8 @@ final class NamespaceExtractorTest extends TestCase
         $fileContent = '(in-ns get\\ns\\from\\file)';
         $result = $this->extractNamespace($fileContent);
 
-        $this->assertSame('get\\ns\\from\\file', $result->getNamespace());
-        $this->assertSame(['phel\core'], $result->getDependencies());
+        $this->assertSame('get.ns.from.file', $result->getNamespace());
+        $this->assertSame(['phel.core'], $result->getDependencies());
     }
 
     public function test_get_namespace_from_file_not_parsable(): void
@@ -96,7 +96,7 @@ final class NamespaceExtractorTest extends TestCase
         $infos = $nsExtractor->getNamespacesFromDirectories([$dir]);
 
         self::assertCount(1, $infos, 'Malformed file must be skipped, good file still returned.');
-        self::assertSame('good\\ns', $infos[0]->getNamespace());
+        self::assertSame('good.ns', $infos[0]->getNamespace());
 
         unlink($goodPath);
         unlink($badPath);
@@ -126,7 +126,7 @@ final class NamespaceExtractorTest extends TestCase
 
         $matches = array_values(array_filter(
             $infos,
-            static fn(NamespaceInformation $i): bool => $i->getNamespace() === 'split\\ns',
+            static fn(NamespaceInformation $i): bool => $i->getNamespace() === 'split.ns',
         ));
 
         self::assertCount(2, $matches, 'Both primary and secondary files must be surfaced for build emission.');

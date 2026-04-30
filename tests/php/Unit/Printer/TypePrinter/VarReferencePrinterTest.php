@@ -17,10 +17,10 @@ final class VarReferencePrinterTest extends TestCase
         self::assertSame("#'user/my-var", new VarReferencePrinter()->print($ref));
     }
 
-    public function test_prints_namespace_with_backslashes(): void
+    public function test_prints_namespace_with_dot_separator(): void
     {
         $ref = new VarReference('phel.core', 'map');
 
-        self::assertSame("#'phel\\core/map", new VarReferencePrinter()->print($ref));
+        self::assertSame("#'phel.core/map", new VarReferencePrinter()->print($ref));
     }
 }

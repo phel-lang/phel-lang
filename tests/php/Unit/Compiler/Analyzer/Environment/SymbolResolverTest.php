@@ -230,81 +230,81 @@ final class SymbolResolverTest extends TestCase
 
     public function test_resolve_fqn_with_dot_namespace_separator(): void
     {
-        $this->globalEnv->addDefinition('phel\\stacktrace', Symbol::create('print-cause-trace'));
-        $this->globalEnv->setNs('app\\core');
+        $this->globalEnv->addDefinition('phel.stacktrace', Symbol::create('print-cause-trace'));
+        $this->globalEnv->setNs('app.core');
 
         $nodeEnv = NodeEnvironment::empty();
 
         self::assertEquals(
-            new GlobalVarNode($nodeEnv, 'phel\\stacktrace', Symbol::create('print-cause-trace'), Phel::map()),
+            new GlobalVarNode($nodeEnv, 'phel.stacktrace', Symbol::create('print-cause-trace'), Phel::map()),
             $this->resolver->resolve(Symbol::createForNamespace('phel.stacktrace', 'print-cause-trace'), $nodeEnv),
         );
     }
 
     public function test_resolve_dot_namespace_via_require_alias(): void
     {
-        $this->globalEnv->addDefinition('phel\\stacktrace', Symbol::create('print-cause-trace'));
-        $this->globalEnv->setNs('app\\core');
-        $this->globalEnv->addRequireAlias('app\\core', Symbol::create('phel\\stacktrace'), Symbol::create('phel\\stacktrace'));
+        $this->globalEnv->addDefinition('phel.stacktrace', Symbol::create('print-cause-trace'));
+        $this->globalEnv->setNs('app.core');
+        $this->globalEnv->addRequireAlias('app.core', Symbol::create('phel.stacktrace'), Symbol::create('phel.stacktrace'));
 
         $nodeEnv = NodeEnvironment::empty();
 
         self::assertEquals(
-            new GlobalVarNode($nodeEnv, 'phel\\stacktrace', Symbol::create('print-cause-trace'), Phel::map()),
+            new GlobalVarNode($nodeEnv, 'phel.stacktrace', Symbol::create('print-cause-trace'), Phel::map()),
             $this->resolver->resolve(Symbol::createForNamespace('phel.stacktrace', 'print-cause-trace'), $nodeEnv),
         );
     }
 
     public function test_resolve_clojure_backslash_fqn_remaps_to_phel(): void
     {
-        Registry::getInstance()->addDefinition('phel\\stacktrace', '__ns_marker', true);
-        $this->globalEnv->addDefinition('phel\\stacktrace', Symbol::create('print-cause-trace'));
-        $this->globalEnv->setNs('app\\core');
+        Registry::getInstance()->addDefinition('phel.stacktrace', '__ns_marker', true);
+        $this->globalEnv->addDefinition('phel.stacktrace', Symbol::create('print-cause-trace'));
+        $this->globalEnv->setNs('app.core');
 
         $nodeEnv = NodeEnvironment::empty();
 
         self::assertEquals(
-            new GlobalVarNode($nodeEnv, 'phel\\stacktrace', Symbol::create('print-cause-trace'), Phel::map()),
+            new GlobalVarNode($nodeEnv, 'phel.stacktrace', Symbol::create('print-cause-trace'), Phel::map()),
             $this->resolver->resolve(Symbol::createForNamespace('clojure\\stacktrace', 'print-cause-trace'), $nodeEnv),
         );
     }
 
     public function test_resolve_clojure_dot_fqn_normalizes_and_remaps(): void
     {
-        Registry::getInstance()->addDefinition('phel\\stacktrace', '__ns_marker', true);
-        $this->globalEnv->addDefinition('phel\\stacktrace', Symbol::create('print-cause-trace'));
-        $this->globalEnv->setNs('app\\core');
+        Registry::getInstance()->addDefinition('phel.stacktrace', '__ns_marker', true);
+        $this->globalEnv->addDefinition('phel.stacktrace', Symbol::create('print-cause-trace'));
+        $this->globalEnv->setNs('app.core');
 
         $nodeEnv = NodeEnvironment::empty();
 
         self::assertEquals(
-            new GlobalVarNode($nodeEnv, 'phel\\stacktrace', Symbol::create('print-cause-trace'), Phel::map()),
+            new GlobalVarNode($nodeEnv, 'phel.stacktrace', Symbol::create('print-cause-trace'), Phel::map()),
             $this->resolver->resolve(Symbol::createForNamespace('clojure.stacktrace', 'print-cause-trace'), $nodeEnv),
         );
     }
 
     public function test_resolve_clojure_fqn_not_remapped_when_phel_missing(): void
     {
-        $this->globalEnv->addDefinition('clojure\\custom-lib', Symbol::create('my-fn'));
-        $this->globalEnv->setNs('app\\core');
+        $this->globalEnv->addDefinition('clojure.custom-lib', Symbol::create('my-fn'));
+        $this->globalEnv->setNs('app.core');
 
         $nodeEnv = NodeEnvironment::empty();
 
         self::assertEquals(
-            new GlobalVarNode($nodeEnv, 'clojure\\custom-lib', Symbol::create('my-fn'), Phel::map()),
+            new GlobalVarNode($nodeEnv, 'clojure.custom-lib', Symbol::create('my-fn'), Phel::map()),
             $this->resolver->resolve(Symbol::createForNamespace('clojure\\custom-lib', 'my-fn'), $nodeEnv),
         );
     }
 
     public function test_resolve_backslash_fqn_still_works(): void
     {
-        $this->globalEnv->addDefinition('phel\\stacktrace', Symbol::create('print-cause-trace'));
-        $this->globalEnv->setNs('app\\core');
+        $this->globalEnv->addDefinition('phel.stacktrace', Symbol::create('print-cause-trace'));
+        $this->globalEnv->setNs('app.core');
 
         $nodeEnv = NodeEnvironment::empty();
 
         self::assertEquals(
-            new GlobalVarNode($nodeEnv, 'phel\\stacktrace', Symbol::create('print-cause-trace'), Phel::map()),
+            new GlobalVarNode($nodeEnv, 'phel.stacktrace', Symbol::create('print-cause-trace'), Phel::map()),
             $this->resolver->resolve(Symbol::createForNamespace('phel\\stacktrace', 'print-cause-trace'), $nodeEnv),
         );
     }
@@ -385,7 +385,7 @@ final class SymbolResolverTest extends TestCase
         );
         $resolver = new SymbolResolver($this->globalEnv, new MagicConstantResolver(), $deprecator);
 
-        $sym = Symbol::createForNamespace('phel.core', 'map');
+        $sym = Symbol::createForNamespace(null, 'phel\\core/map');
         $sym->setStartLocation(new SourceLocation('/app/user.phel', 1, 1));
 
         $resolver->resolve($sym, NodeEnvironment::empty());
@@ -396,14 +396,14 @@ final class SymbolResolverTest extends TestCase
 
     public function test_resolve_clojure_fqn_uses_munged_registry_lookup(): void
     {
-        Registry::getInstance()->addDefinition('phel\\my_lib', '__ns_marker', true);
-        $this->globalEnv->addDefinition('phel\\my-lib', Symbol::create('some-fn'));
-        $this->globalEnv->setNs('app\\core');
+        Registry::getInstance()->addDefinition('phel.my_lib', '__ns_marker', true);
+        $this->globalEnv->addDefinition('phel.my-lib', Symbol::create('some-fn'));
+        $this->globalEnv->setNs('app.core');
 
         $nodeEnv = NodeEnvironment::empty();
 
         self::assertEquals(
-            new GlobalVarNode($nodeEnv, 'phel\\my-lib', Symbol::create('some-fn'), Phel::map()),
+            new GlobalVarNode($nodeEnv, 'phel.my-lib', Symbol::create('some-fn'), Phel::map()),
             $this->resolver->resolve(Symbol::createForNamespace('clojure.my-lib', 'some-fn'), $nodeEnv),
         );
     }

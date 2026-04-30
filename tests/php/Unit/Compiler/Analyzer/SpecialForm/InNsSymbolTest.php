@@ -119,12 +119,12 @@ final class InNsSymbolTest extends TestCase
     {
         yield 'Symbol namespace' => [
             Symbol::create('my\\namespace'),
-            'my\\namespace',
+            'my.namespace',
         ];
 
         yield 'String namespace' => [
             'my\\namespace',
-            'my\\namespace',
+            'my.namespace',
         ];
 
         yield 'Simple namespace' => [
@@ -134,37 +134,37 @@ final class InNsSymbolTest extends TestCase
 
         yield 'Deep namespace' => [
             'app\\modules\\user\\domain',
-            'app\\modules\\user\\domain',
+            'app.modules.user.domain',
         ];
 
         yield 'Dot-separated symbol' => [
             Symbol::create('my.cljc.file'),
-            'my\\cljc\\file',
+            'my.cljc.file',
         ];
 
         yield 'Dot-separated string' => [
             'app.modules.user',
-            'app\\modules\\user',
+            'app.modules.user',
         ];
 
         yield 'Mixed separators' => [
             Symbol::create('my.foo\\bar'),
-            'my\\foo\\bar',
+            'my.foo.bar',
         ];
 
         yield 'Dot-separated 4 segments' => [
             Symbol::create('a.b.c.d'),
-            'a\\b\\c\\d',
+            'a.b.c.d',
         ];
 
         yield 'Mixed separators in string form' => [
             'app\\modules.user.domain',
-            'app\\modules\\user\\domain',
+            'app.modules.user.domain',
         ];
 
         yield 'Single dotted segment' => [
             Symbol::create('foo.bar'),
-            'foo\\bar',
+            'foo.bar',
         ];
     }
 
@@ -179,10 +179,10 @@ final class InNsSymbolTest extends TestCase
 
         $node = $this->analyze($list);
 
-        self::assertSame('my\\cljc\\file', $node->getNamespace());
+        self::assertSame('my.cljc.file', $node->getNamespace());
 
         $globalEnv = $this->getGlobalEnvironment();
-        $aliases = $globalEnv->getRequireAliases('my\\cljc\\file');
+        $aliases = $globalEnv->getRequireAliases('my.cljc.file');
         self::assertArrayHasKey('repl', $aliases, 'repl alias should be registered under the normalized namespace');
     }
 
@@ -194,12 +194,12 @@ final class InNsSymbolTest extends TestCase
         ]);
 
         // Initially should be empty or default
-        self::assertNotSame('test\\namespace', $this->analyzer->getNamespace());
+        self::assertNotSame('test.namespace', $this->analyzer->getNamespace());
 
         $this->analyze($list);
 
         // After analyzing, namespace should be set
-        self::assertSame('test\\namespace', $this->analyzer->getNamespace());
+        self::assertSame('test.namespace', $this->analyzer->getNamespace());
     }
 
     public function test_preserves_source_location(): void
@@ -227,11 +227,11 @@ final class InNsSymbolTest extends TestCase
 
         $globalEnv = $this->getGlobalEnvironment();
 
-        $aliases = $globalEnv->getRequireAliases('my\\new-ns');
+        $aliases = $globalEnv->getRequireAliases('my.new-ns');
         self::assertArrayHasKey('repl', $aliases, 'repl alias should be registered after in-ns in REPL mode');
         self::assertSame('phel.repl', $aliases['repl']->getName());
 
-        $refers = $globalEnv->getRefers('my\\new-ns');
+        $refers = $globalEnv->getRefers('my.new-ns');
         self::assertArrayHasKey('doc', $refers, 'doc should be referred after in-ns in REPL mode');
         self::assertArrayHasKey('require', $refers, 'require should be referred after in-ns in REPL mode');
         self::assertArrayHasKey('use', $refers, 'use should be referred after in-ns in REPL mode');
@@ -248,10 +248,10 @@ final class InNsSymbolTest extends TestCase
 
         $globalEnv = $this->getGlobalEnvironment();
 
-        $aliases = $globalEnv->getRequireAliases('my\\other-ns');
+        $aliases = $globalEnv->getRequireAliases('my.other-ns');
         self::assertArrayNotHasKey('repl', $aliases, 'repl alias should not exist when not in REPL mode');
 
-        $refers = $globalEnv->getRefers('my\\other-ns');
+        $refers = $globalEnv->getRefers('my.other-ns');
         self::assertEmpty($refers, 'No refers should be injected when not in REPL mode');
     }
 

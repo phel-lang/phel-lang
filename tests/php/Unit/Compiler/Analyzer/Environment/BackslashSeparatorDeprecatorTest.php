@@ -24,7 +24,7 @@ final class BackslashSeparatorDeprecatorTest extends TestCase
     public function test_emits_for_backslash_namespace_symbol(): void
     {
         $deprecator = $this->deprecator(enabled: true);
-        $deprecator->maybeWarn($this->locatedSymbol('phel.core', 'map', '/app/user.phel'));
+        $deprecator->maybeWarn($this->locatedRawNameSymbol('phel\\core/map', '/app/user.phel'));
 
         self::assertCount(1, $this->captured);
         self::assertStringContainsString("'phel\\core/map'", $this->captured[0]);
@@ -61,8 +61,8 @@ final class BackslashSeparatorDeprecatorTest extends TestCase
     public function test_dedupes_same_file_and_pattern(): void
     {
         $deprecator = $this->deprecator(enabled: true);
-        $deprecator->maybeWarn($this->locatedSymbol('phel.core', 'map', '/app/user.phel'));
-        $deprecator->maybeWarn($this->locatedSymbol('phel.core', 'map', '/app/user.phel'));
+        $deprecator->maybeWarn($this->locatedRawNameSymbol('phel\\core/map', '/app/user.phel'));
+        $deprecator->maybeWarn($this->locatedRawNameSymbol('phel\\core/map', '/app/user.phel'));
 
         self::assertCount(1, $this->captured);
     }
@@ -70,8 +70,8 @@ final class BackslashSeparatorDeprecatorTest extends TestCase
     public function test_emits_again_for_different_file(): void
     {
         $deprecator = $this->deprecator(enabled: true);
-        $deprecator->maybeWarn($this->locatedSymbol('phel.core', 'map', '/app/a.phel'));
-        $deprecator->maybeWarn($this->locatedSymbol('phel.core', 'map', '/app/b.phel'));
+        $deprecator->maybeWarn($this->locatedRawNameSymbol('phel\\core/map', '/app/a.phel'));
+        $deprecator->maybeWarn($this->locatedRawNameSymbol('phel\\core/map', '/app/b.phel'));
 
         self::assertCount(2, $this->captured);
     }
@@ -91,7 +91,7 @@ final class BackslashSeparatorDeprecatorTest extends TestCase
     public function test_warns_for_user_nested_layout_sources(): void
     {
         $deprecator = $this->deprecator(enabled: true);
-        $deprecator->maybeWarn($this->locatedSymbol('my\\project', 'run', '/app/src/phel/main.phel'));
+        $deprecator->maybeWarn($this->locatedRawNameSymbol('my\\project/run', '/app/src/phel/main.phel'));
 
         self::assertCount(1, $this->captured);
     }
@@ -127,6 +127,19 @@ final class BackslashSeparatorDeprecatorTest extends TestCase
     private function locatedSymbol(?string $ns, string $name, string $file): Symbol
     {
         $symbol = $ns === null ? Symbol::create($name) : Symbol::createForNamespace($ns, $name);
+        $symbol->setStartLocation(new SourceLocation($file, 1, 1));
+
+        return $symbol;
+    }
+
+    /**
+     * Builds a Symbol whose raw name preserves backslash separators verbatim
+     * so the deprecator sees the legacy form via `getFullName()` without the
+     * canonical dot translation kicking in.
+     */
+    private function locatedRawNameSymbol(string $rawName, string $file): Symbol
+    {
+        $symbol = Symbol::createForNamespace(null, $rawName);
         $symbol->setStartLocation(new SourceLocation($file, 1, 1));
 
         return $symbol;
