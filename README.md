@@ -6,8 +6,29 @@
   <a href="https://github.com/phel-lang/phel-lang/actions">
     <img src="https://github.com/phel-lang/phel-lang/workflows/CI/badge.svg" alt="GitHub Build Status">
   </a>
+  <a href="https://github.com/phel-lang/phel-lang/blob/main/phpstan.neon">
+    <img src="https://img.shields.io/badge/PHPStan-level%205-brightgreen" alt="PHPStan level 5">
+  </a>
+  <a href="https://github.com/phel-lang/phel-lang/blob/main/psalm.xml">
+    <img src="https://img.shields.io/badge/Psalm-level%201-brightgreen" alt="Psalm level 1">
+  </a>
   <a href="https://shepherd.dev/github/phel-lang/phel-lang">
     <img src="https://shepherd.dev/github/phel-lang/phel-lang/coverage.svg" alt="Psalm Type-coverage Status">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://packagist.org/packages/phel-lang/phel-lang">
+    <img src="https://img.shields.io/packagist/v/phel-lang/phel-lang" alt="Packagist Version">
+  </a>
+  <a href="https://packagist.org/packages/phel-lang/phel-lang/stats">
+    <img src="https://img.shields.io/packagist/dt/phel-lang/phel-lang" alt="Packagist Downloads">
+  </a>
+  <a href="https://packagist.org/packages/phel-lang/phel-lang">
+    <img src="https://img.shields.io/packagist/php-v/phel-lang/phel-lang" alt="PHP Version Required">
+  </a>
+  <a href="https://github.com/phel-lang/phel-lang/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/phel-lang/phel-lang" alt="License">
   </a>
   <a href="https://deepwiki.com/phel-lang/phel-lang">
     <img src="https://deepwiki.com/badge.svg" alt="Ask DeepWiki">
