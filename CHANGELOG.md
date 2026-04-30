@@ -32,10 +32,10 @@ All notable changes to this project will be documented in this file.
 
 #### Core
 - Expose `future` from `phel\core` (#1537)
-- `intern` without a value preserves an existing root instead of resetting to `nil` (#1774)
+- `intern` without a value preserves the existing root (#1774)
 
 #### Lang
-- `(str sym)` and printer output for a qualified symbol now include the namespace (`namespace/name`)
+- `(str sym)` and printer output for qualified symbols include the namespace
 
 ### Fixed
 
@@ -49,13 +49,9 @@ All notable changes to this project will be documented in this file.
 - `nthrest` over a nil collection returns nil only when `n` is 0; otherwise an empty list (#1778)
 - `get-in` traverses into strings by integer index
 - `parents`, `ancestors`, `descendants` find derive entries when the tag is a struct/record constructor function
-- `parents`/`ancestors` of a record/type extended with a protocol include the protocol value itself, not only its FQN string (#1791)
-- `descendants` of a protocol no longer reports records/types extended via `defrecord`/`deftype` (type inheritance is excluded, matching `clojure.core/descendants`)
-- `take` realizes exactly `n` elements from a lazy source (no off-by-one over-realization)
-
-#### String
-
-- `blank?` excludes non-breaking separators `U+00A0`, `U+2007`, `U+202F` from whitespace
+- `parents`/`ancestors` of a record/type extended with a protocol include the protocol value (#1791, #1792)
+- `descendants` of a protocol returns nil for records/types extended via `defrecord`/`deftype` (#1793)
+- `take` realizes exactly `n` elements from a lazy source
 - `seq?` recognizes lists and `seq`/`rseq` over vectors, sorted-maps, sorted-sets (#1700)
 - `special-symbol?` recognizes `&`, `catch`, `finally` (#1701)
 - `binding` rebinds dynamic vars to `nil` (#1702)
@@ -68,9 +64,9 @@ All notable changes to this project will be documented in this file.
 - `compare` orders namespaced keywords and symbols by namespace first (#1715)
 - `vector?` reports `false` for `seq` and `rseq` results (#1716)
 - `list?` reports `false` for `seq` and `rseq` results over vectors, sorted-maps, sorted-sets (#1759)
-- `keyword` preserves an empty-string namespace; `(namespace (keyword "" "hi"))` returns `""` and the keyword prints as `:/hi` (#1775)
+- `keyword` preserves empty-string namespace; prints as `:/hi` (#1775)
 - `last` returns the final element of ranges and lists (#1776)
-- `get-in` returns the collection (or nil) when the path is nil or empty; the default only applies on missing keys (#1777)
+- `get-in` returns the collection for nil/empty path; default applies only on missing keys (#1777)
 - Keyword and symbol literals preserve `'`, `"`, `\` through compilation (#1718)
 - `interleave`, `cycle`, `interpose` over maps yield `[key value]` pairs; `interleave` stops at shortest input (#1726, #1734, #1757)
 - `odd?` reports negative odd numbers as odd (#1736)
@@ -89,6 +85,9 @@ All notable changes to this project will be documented in this file.
 - `eval` returns already-evaluated PHP objects unchanged (#1563)
 - Symbols are callable like keywords; `(ifn? 'a)` is `true` (#1697)
 - Promises implement IFn: `(p val)` delivers, `(p)` derefs (#1698)
+
+#### String
+- `blank?` excludes non-breaking separators `U+00A0`, `U+2007`, `U+202F` from whitespace
 
 #### Build
 - Skip unparseable `.phel` files during directory scans
@@ -112,7 +111,7 @@ All notable changes to this project will be documented in this file.
 - Lowercase root PHP classes resolve in constructor positions (#1567)
 - `php/new` reports invalid target types clearly (#1538)
 - Reader conditionals allow newline before closing paren (#1547)
-- `(Name. args)` invokes the Phel constructor for `defstruct`/`defrecord`/`deftype` instead of constructing the wrapper function (#1607)
+- `(Name. args)` invokes the Phel constructor for `defstruct`/`defrecord`/`deftype` (#1607)
 
 #### Lint
 - Alias-qualified required calls no longer flagged as unresolved (#1540)
