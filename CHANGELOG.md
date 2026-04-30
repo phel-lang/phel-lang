@@ -111,6 +111,7 @@ All notable changes to this project will be documented in this file.
 #### REPL
 - Bare namespace symbols in `dir` (#1588)
 - Preserve current namespace across autocompletion and nREPL `completions`/`lookup` (#1692)
+- `phel.async/delay` resolves via fully qualified name without explicit `(require phel.async)` (#1805)
 
 #### Compiler
 - Resolve PHP class aliases consistently regardless of case (#1567)
