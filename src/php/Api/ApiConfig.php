@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Api;
 
 use Gacela\Framework\AbstractConfig;
+use Phel\Console\Application\VersionFinder;
 
 final class ApiConfig extends AbstractConfig
 {
@@ -37,5 +38,10 @@ final class ApiConfig extends AbstractConfig
             'phel\\walk',
             'phel\\watch',
         ];
+    }
+
+    public static function githubRef(): string
+    {
+        return VersionFinder::LATEST_VERSION;
     }
 }

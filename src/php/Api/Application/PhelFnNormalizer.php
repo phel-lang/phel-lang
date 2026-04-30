@@ -13,7 +13,7 @@ use Phel\Lang\Keyword;
 
 final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
 {
-    private const string GITHUB_BASE_URL = 'https://github.com/phel-lang/phel-lang/blob/main/';
+    private const string GITHUB_BASE_URL = 'https://github.com/phel-lang/phel-lang/blob/';
 
     private const string DEFAULT_NAMESPACE = 'core';
 
@@ -24,6 +24,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
         private PhelFnLoaderInterface $phelFnLoader,
         private PhelFnGroupKeyGeneratorInterface $phelFnGroupKeyGenerator,
         private array $allNamespaces = [],
+        private string $githubRef = 'main',
     ) {}
 
     /**
@@ -215,7 +216,7 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
             return '';
         }
 
-        $url = self::GITHUB_BASE_URL . $file;
+        $url = self::GITHUB_BASE_URL . $this->githubRef . '/' . $file;
         if ($line > 0) {
             $url .= '#L' . $line;
         }

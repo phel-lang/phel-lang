@@ -397,6 +397,38 @@ final class PhelFnNormalizerTest extends TestCase
         self::assertEquals($expected, $actual);
     }
 
+    public function test_returns_source_location_with_custom_github_ref(): void
+    {
+        $meta = Phel::map(
+            Keyword::create('start-location'),
+            Phel::map(
+                Keyword::create('file'),
+                '/var/www/project/src/phel/my-file.phel',
+                Keyword::create('line'),
+                5,
+            ),
+        );
+
+        $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
+        $phelFnLoader->method('getNormalizedPhelFunctions')->willReturn([
+            'fn-name' => $meta,
+        ]);
+
+        $normalizer = new PhelFnNormalizer(
+            $phelFnLoader,
+            new PhelFnGroupKeyGenerator(),
+            [],
+            'v1.2.3',
+        );
+        $actual = $normalizer->getPhelFunctions();
+
+        self::assertCount(1, $actual);
+        self::assertSame(
+            'https://github.com/phel-lang/phel-lang/blob/v1.2.3/src/phel/my-file.phel#L5',
+            $actual[0]->githubUrl,
+        );
+    }
+
     public function test_normalize_native_symbol_doc_url(): void
     {
         $phelFnLoader = $this->createMock(PhelFnLoaderInterface::class);
