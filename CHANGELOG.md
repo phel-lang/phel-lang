@@ -49,6 +49,7 @@ All notable changes to this project will be documented in this file.
 - `nthrest` over a nil collection returns nil only when `n` is 0; otherwise an empty list (#1778)
 - `get-in` traverses into strings by integer index
 - `parents`, `ancestors`, `descendants` find derive entries when the tag is a struct/record constructor function
+- `parents`/`ancestors` of a record/type extended with a protocol include the protocol value itself, not only its FQN string (#1791)
 - `take` realizes exactly `n` elements from a lazy source (no off-by-one over-realization)
 
 #### String
