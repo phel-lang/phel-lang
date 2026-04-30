@@ -57,12 +57,22 @@ final readonly class Munge implements MungeInterface
 
     public function encodeNs(string $str): string
     {
-        return $this->encodeWithMap($str, $this->nsMapping);
+        return $this->encodeWithMap(self::canonicalNs($str), $this->nsMapping);
     }
 
     public function decodeNs(string $str): string
     {
         return $this->encodeWithMap($str, array_flip($this->nsMapping));
+    }
+
+    /**
+     * Canonicalize a namespace string by translating dot separators to
+     * backslash. Dot is the deprecated source-level separator (#1567);
+     * the registry, emitter, and analyzer all key off the backslash form.
+     */
+    public static function canonicalNs(string $str): string
+    {
+        return str_replace('.', '\\', $str);
     }
 
     /**

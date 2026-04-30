@@ -37,6 +37,17 @@
     (is (s/contains? out "split") "dir keeps string namespace support")
     (is (s/contains? out "trim") "dir keeps string namespace support")))
 
+(deftest test-dir-accepts-dot-form
+  (let [bs-out  (with-output-buffer (dir "phel\\string"))
+        dot-out (with-output-buffer (dir "phel.string"))]
+    (is (= bs-out dot-out)
+        "dir output is identical for dot and backslash forms")))
+
+(deftest test-get-symbol-info-accepts-dot-form
+  (is (= (get-symbol-info "phel\\core" "map")
+         (get-symbol-info "phel.core" "map"))
+      "get-symbol-info returns the same metadata for dot and backslash namespace strings"))
+
 ;; --------
 ;; find-doc
 ;; --------

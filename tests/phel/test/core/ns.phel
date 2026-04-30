@@ -81,3 +81,47 @@
 (deftest test-ns-aliases-and-refers
   (is (hash-map? (ns-aliases "phel\\core")) "ns-aliases returns a hash-map")
   (is (hash-map? (ns-refers "phel\\core")) "ns-refers returns a hash-map"))
+
+;; ----------------------------------------------------------------------------
+;; Dot-separator parity (#1795)
+;; ----------------------------------------------------------------------------
+
+(deftest test-find-ns-accepts-dot-form
+  (is (= (find-ns "phel\\core") (find-ns "phel.core"))
+      "find-ns resolves dot and backslash forms identically"))
+
+(deftest test-ns-publics-accepts-dot-form
+  (is (= (count (ns-publics "phel\\core"))
+         (count (ns-publics "phel.core")))
+      "ns-publics returns the same map count for dot and backslash forms"))
+
+(deftest test-ns-interns-accepts-dot-form
+  (let [ns "phel-test\\tmp\\dot-interns"]
+    (intern ns "x" 7)
+    (is (= 7 (get (ns-interns "phel-test.tmp.dot-interns") "x"))
+        "ns-interns dot form reaches the same registry bucket")
+    (remove-ns ns)))
+
+(deftest test-create-and-remove-ns-accept-dot-form
+  (let [bs-ns  "phel-test\\tmp\\dot-create"
+        dot-ns "phel-test.tmp.dot-create"]
+    (create-ns dot-ns)
+    (is (not (nil? (find-ns bs-ns))) "create-ns dot form registers the canonical namespace")
+    (remove-ns dot-ns)
+    (is (nil? (find-ns bs-ns)) "remove-ns dot form drops the canonical namespace")))
+
+(deftest test-intern-canonicalizes-namespace-key
+  (let [bs-ns  "phel-test\\tmp\\dot-intern"
+        dot-ns "phel-test.tmp.dot-intern"]
+    (intern dot-ns "x" 99)
+    (is (= 99 (var-get (symbol bs-ns "x")))
+        "intern dot form is reachable via the backslash form")
+    (remove-ns dot-ns)))
+
+(deftest test-ns-aliases-accepts-dot-form
+  (is (= (ns-aliases "phel\\core") (ns-aliases "phel.core"))
+      "ns-aliases dot form parity"))
+
+(deftest test-ns-refers-accepts-dot-form
+  (is (= (ns-refers "phel\\core") (ns-refers "phel.core"))
+      "ns-refers dot form parity"))

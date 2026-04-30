@@ -6,6 +6,7 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
+use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Infrastructure\Service\DebugLineTap;
 use Phel\Phel;
@@ -109,11 +110,14 @@ final class RunCommand extends Command
 
             if (file_exists($path)) {
                 $this->getFacade()->runFile($path);
-            } elseif ($this->namespaceExists($path)) {
-                $this->getFacade()->runNamespace($path);
             } else {
-                $output->writeln(sprintf('<error>Namespace "%s" not found in any source directory.</error>', $path));
-                return self::FAILURE;
+                $namespace = Munge::canonicalNs($path);
+                if (!$this->namespaceExists($namespace)) {
+                    $output->writeln(sprintf('<error>Namespace "%s" not found in any source directory.</error>', $path));
+                    return self::FAILURE;
+                }
+
+                $this->getFacade()->runNamespace($namespace);
             }
 
             if ($input->getOption('with-time')) {
