@@ -176,7 +176,7 @@ final readonly class FnAsClassEmitter implements NodeEmitterInterface
 
     private function emitProperties(FnNode $node): void
     {
-        $ns = addslashes($this->outputEmitter->mungeEncodeNs($node->getEnv()->getBoundTo()));
+        $ns = addslashes($this->outputEmitter->mungeEncodePhpNs($node->getEnv()->getBoundTo()));
         $this->outputEmitter->emitLine('public const BOUND_TO = "' . $ns . '";', $node->getStartSourceLocation());
 
         $this->closureHelper->emitProperties($node->getUses(), $node->getEnv(), $node->getStartSourceLocation());

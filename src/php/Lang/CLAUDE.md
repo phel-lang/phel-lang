@@ -59,3 +59,4 @@ Every module: Compiler (AST representation), Printer (value display), Build (nam
 - `Registry` is a singleton; `TypeFactory` is a singleton — both use `getInstance()`
 - Clojure-aligned semantics: Keyword callability, ex-info exceptions, Variable with watches
 - Source locations must be preserved via `SourceLocationInterface` for error reporting
+- `Registry` keys are dot-separated: `phel.core`, `my-app.lib` (after `-` → `_` munge → `my_app.lib`). Compiler emitters and analyzer feed the registry through `Munge::encodeRegistryKey`. `Symbol::getFullName` returns the dot form for Phel symbols; symbols whose namespace is a PHP class FQN (leading `\`) keep backslash so static-method shorthand still resolves.

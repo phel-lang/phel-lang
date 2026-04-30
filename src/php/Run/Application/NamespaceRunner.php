@@ -35,7 +35,7 @@ final readonly class NamespaceRunner implements NamespaceRunnerInterface
 
         $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
             $srcDirectories,
-            [$namespace, 'phel\\core'],
+            [$namespace, 'phel.core'],
         );
 
         foreach ($namespaceInformation as $info) {

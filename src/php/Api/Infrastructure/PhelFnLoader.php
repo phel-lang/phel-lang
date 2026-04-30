@@ -445,16 +445,16 @@ Creates a new vector. If no argument is provided, an empty vector is created. Sh
     public function getNormalizedPhelFunctions(array $namespaces = []): array
     {
         $this->loadAllPhelFunctions($namespaces);
-        $containsCoreFunctions = in_array('phel\\core', $namespaces, true);
+        $containsCoreFunctions = in_array('phel.core', $namespaces, true);
 
         /** @var array<string,PersistentMapInterface> $normalizedData */
         $normalizedData = [];
         foreach ($this->getNamespaces() as $ns) {
-            if (!$containsCoreFunctions && $ns === 'phel\\core') {
+            if (!$containsCoreFunctions && $ns === 'phel.core') {
                 continue;
             }
 
-            $normalizedNs = str_replace('phel\\', '', $ns);
+            $normalizedNs = str_replace('phel.', '', $ns);
             $moduleName = $normalizedNs === 'core' ? '' : $normalizedNs . '/';
 
             foreach (array_keys($this->getDefinitionsInNamespace($ns)) as $fnName) {

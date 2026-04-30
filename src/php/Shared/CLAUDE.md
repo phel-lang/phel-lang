@@ -23,7 +23,7 @@ Located in `Facade/` subdirectory. Each module implements its corresponding inte
 
 ## Constants
 
-- **CompilerConstants** — `PHEL_CORE_NAMESPACE = 'phel\core'`
+- **CompilerConstants** — `PHEL_CORE_NAMESPACE = 'phel.core'`
 - **BuildConstants** — `BUILD_MODE = '*build-mode*'`
 - **ReplConstants** — `REPL_MODE = '*repl-mode*'`
 

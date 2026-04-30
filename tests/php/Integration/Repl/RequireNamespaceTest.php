@@ -21,11 +21,11 @@ final class RequireNamespaceTest extends TestCase
     public function test_require_loads_namespace(): void
     {
         Phel::bootstrap(__DIR__);
-        Phel::addDefinition('phel\\repl', 'src-dirs', [__DIR__ . '/../../../../src']);
+        Phel::addDefinition('phel.repl', 'src-dirs', [__DIR__ . '/../../../../src']);
 
         $srcDir = __DIR__ . '/../../../../src';
         $build = new BuildFacade();
-        $deps = $build->getDependenciesForNamespace([$srcDir], ['phel\\repl']);
+        $deps = $build->getDependenciesForNamespace([$srcDir], ['phel.repl']);
         foreach ($deps as $dep) {
             $build->evalFile($dep->getFile());
         }
@@ -34,7 +34,7 @@ final class RequireNamespaceTest extends TestCase
         $result = $facade->eval('(phel\\repl/require phel\\string)', new CompileOptions());
 
         self::assertInstanceOf(Symbol::class, $result);
-        self::assertSame('phel\\string', $result->getFullName());
+        self::assertSame('phel.string', $result->getFullName());
     }
 
     #[RunInSeparateProcess]
@@ -42,17 +42,17 @@ final class RequireNamespaceTest extends TestCase
     public function test_require_nonexistent_namespace_throws(): void
     {
         Phel::bootstrap(__DIR__);
-        Phel::addDefinition('phel\\repl', 'src-dirs', [__DIR__ . '/../../../../src']);
+        Phel::addDefinition('phel.repl', 'src-dirs', [__DIR__ . '/../../../../src']);
 
         $srcDir = __DIR__ . '/../../../../src';
         $build = new BuildFacade();
-        $deps = $build->getDependenciesForNamespace([$srcDir], ['phel\\repl']);
+        $deps = $build->getDependenciesForNamespace([$srcDir], ['phel.repl']);
         foreach ($deps as $dep) {
             $build->evalFile($dep->getFile());
         }
 
         $this->expectException(RuntimeException::class);
-        $this->expectExceptionMessage("Could not locate namespace 'nonexistent\\foo'");
+        $this->expectExceptionMessage("Could not locate namespace 'nonexistent.foo'");
 
         $facade = new CompilerFacade();
         $facade->eval('(phel\\repl/require nonexistent\\foo)', new CompileOptions());
@@ -63,11 +63,11 @@ final class RequireNamespaceTest extends TestCase
     public function test_require_with_dot_separator(): void
     {
         Phel::bootstrap(__DIR__);
-        Phel::addDefinition('phel\\repl', 'src-dirs', [__DIR__ . '/../../../../src']);
+        Phel::addDefinition('phel.repl', 'src-dirs', [__DIR__ . '/../../../../src']);
 
         $srcDir = __DIR__ . '/../../../../src';
         $build = new BuildFacade();
-        $deps = $build->getDependenciesForNamespace([$srcDir], ['phel\\repl']);
+        $deps = $build->getDependenciesForNamespace([$srcDir], ['phel.repl']);
         foreach ($deps as $dep) {
             $build->evalFile($dep->getFile());
         }
@@ -76,7 +76,7 @@ final class RequireNamespaceTest extends TestCase
         $result = $facade->eval('(phel\\repl/require phel.string)', new CompileOptions());
 
         self::assertInstanceOf(Symbol::class, $result);
-        self::assertSame('phel\\string', $result->getFullName());
+        self::assertSame('phel.string', $result->getFullName());
     }
 
     #[RunInSeparateProcess]
@@ -84,11 +84,11 @@ final class RequireNamespaceTest extends TestCase
     public function test_require_with_clojure_alias(): void
     {
         Phel::bootstrap(__DIR__);
-        Phel::addDefinition('phel\\repl', 'src-dirs', [__DIR__ . '/../../../../src']);
+        Phel::addDefinition('phel.repl', 'src-dirs', [__DIR__ . '/../../../../src']);
 
         $srcDir = __DIR__ . '/../../../../src';
         $build = new BuildFacade();
-        $deps = $build->getDependenciesForNamespace([$srcDir], ['phel\\repl']);
+        $deps = $build->getDependenciesForNamespace([$srcDir], ['phel.repl']);
         foreach ($deps as $dep) {
             $build->evalFile($dep->getFile());
         }
@@ -97,7 +97,7 @@ final class RequireNamespaceTest extends TestCase
         $result = $facade->eval('(phel\\repl/require clojure.string)', new CompileOptions());
 
         self::assertInstanceOf(Symbol::class, $result);
-        self::assertSame('phel\\string', $result->getFullName());
+        self::assertSame('phel.string', $result->getFullName());
     }
 
     #[RunInSeparateProcess]
@@ -105,11 +105,11 @@ final class RequireNamespaceTest extends TestCase
     public function test_require_vector_form(): void
     {
         Phel::bootstrap(__DIR__);
-        Phel::addDefinition('phel\\repl', 'src-dirs', [__DIR__ . '/../../../../src']);
+        Phel::addDefinition('phel.repl', 'src-dirs', [__DIR__ . '/../../../../src']);
 
         $srcDir = __DIR__ . '/../../../../src';
         $build = new BuildFacade();
-        $deps = $build->getDependenciesForNamespace([$srcDir], ['phel\\repl']);
+        $deps = $build->getDependenciesForNamespace([$srcDir], ['phel.repl']);
         foreach ($deps as $dep) {
             $build->evalFile($dep->getFile());
         }
@@ -121,6 +121,6 @@ final class RequireNamespaceTest extends TestCase
         );
 
         self::assertInstanceOf(Symbol::class, $result);
-        self::assertSame('phel\\string', $result->getFullName());
+        self::assertSame('phel.string', $result->getFullName());
     }
 }

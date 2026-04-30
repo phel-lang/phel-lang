@@ -32,7 +32,7 @@ Core compilation pipeline: Phel source -> tokens -> AST -> analyzed nodes -> PHP
 - `getNamespaceEnvironmentData(string $ns): array` / `restoreNamespaceEnvironmentData(string $ns, array $data): void`
 
 **Utility**
-- `encodeNs(string $namespace): string`
+- `encodeNs(string $namespace): string` — PHP-form encoder (delegates to `Munge::encodePhpNs`); used for build/path resolution
 - `hasBalancedParentheses(string $code): bool`
 
 ## Dependencies
@@ -78,3 +78,14 @@ Compiler/
 - Special forms are registered centrally — no ad-hoc handling in the analyzer loop
 - Source locations must propagate through all phases for error reporting
 - `GlobalEnvironmentSingleton` manages the single global compile-time environment
+
+## Namespace Encoding
+
+`Munge` exposes two encoders, used at different boundaries:
+
+| Encoder | Form | Used by |
+|---|---|---|
+| `encodePhpNs` | backslash | PHP `namespace ...;` declaration, class FQNs, `BOUND_TO`, `(load ...)` filename derivation |
+| `encodeRegistryKey` | dot | `\Phel::addDefinition` first arg, `\Phel::getDefinition` first arg, `\Phel::setVar` first arg, in-mem registry lookups |
+
+`Munge::canonicalNs` and `Munge::displayNs` both translate backslash to dot — dot is the canonical form. The analyzer's internal namespace string (`GlobalEnvironment::$ns`, `definitions[$ns]`, `requireAliases[$ns]`) is dot-separated; PHP-emission paths route the same string through `encodePhpNs` when emitting PHP class FQNs / `namespace ...;` declarations.

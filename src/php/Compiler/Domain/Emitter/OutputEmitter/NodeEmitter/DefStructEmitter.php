@@ -53,7 +53,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
      */
     private function emitViaEval(DefStructNode $node): void
     {
-        $ns = $this->outputEmitter->mungeEncodeNs($node->getNamespace());
+        $ns = $this->outputEmitter->mungeEncodePhpNs($node->getNamespace());
         $fqcn = $ns . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
 
         ob_start();
@@ -87,7 +87,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
 
     private function emitClassExistsGuard(DefStructNode $node): void
     {
-        $fqcn = $this->outputEmitter->mungeEncodeNs($node->getNamespace())
+        $fqcn = $this->outputEmitter->mungeEncodePhpNs($node->getNamespace())
             . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
         $this->outputEmitter->emitLine("if (!class_exists('" . $fqcn . "')) {", $node->getStartSourceLocation());
     }

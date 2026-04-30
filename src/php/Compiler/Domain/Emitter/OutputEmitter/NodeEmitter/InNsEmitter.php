@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel;
+use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\InNsNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
@@ -30,7 +31,7 @@ final class InNsEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('\\' . Phel::class . '::addDefinition(');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitStr('"');
-        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\core')));
+        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeRegistryKey('phel.core')));
         $this->outputEmitter->emitLine('",');
         $this->outputEmitter->emitStr('"');
         $this->outputEmitter->emitStr(addslashes('*file*'));
@@ -45,12 +46,12 @@ final class InNsEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('\\' . Phel::class . '::addDefinition(');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitStr('"');
-        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\core')));
+        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeRegistryKey('phel.core')));
         $this->outputEmitter->emitLine('",');
         $this->outputEmitter->emitStr('"');
         $this->outputEmitter->emitStr(addslashes('*ns*'));
         $this->outputEmitter->emitLine('",');
-        $this->outputEmitter->emitLiteral($node->getNamespace());
+        $this->outputEmitter->emitLiteral(Munge::displayNs($node->getNamespace()));
         $this->outputEmitter->emitLine();
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine(');');

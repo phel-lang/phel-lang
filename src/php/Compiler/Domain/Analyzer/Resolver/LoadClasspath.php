@@ -24,7 +24,7 @@ use function is_array;
  */
 final class LoadClasspath
 {
-    public const string NAMESPACE = 'phel\\core';
+    public const string NAMESPACE = 'phel.core';
 
     public const string NAME = '*load-classpath*';
 
@@ -33,7 +33,7 @@ final class LoadClasspath
      * read-only fallback so existing programs and tests that only set
      * the old slot continue to work.
      */
-    private const string LEGACY_NAMESPACE = 'phel\\repl';
+    private const string LEGACY_NAMESPACE = 'phel.repl';
 
     private const string LEGACY_NAME = 'src-dirs';
 

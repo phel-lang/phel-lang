@@ -298,7 +298,7 @@ final readonly class PointCompleter implements PointCompleterInterface
     {
         $result = [];
         try {
-            foreach ($this->phelFnNormalizer->getPhelFunctions(['phel\\core']) as $fn) {
+            foreach ($this->phelFnNormalizer->getPhelFunctions(['phel.core']) as $fn) {
                 $result[] = new Completion(
                     label: $fn->name,
                     kind: Completion::KIND_GLOBAL,

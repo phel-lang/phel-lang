@@ -101,7 +101,7 @@
   [name keys & implementations]
   (let [name-str       (php/-> name (getName))
         munge          (php/new Munge)
-        class-name-str (php/. (php/-> munge (encodeNs *ns*)) "\\" (php/-> munge (encode name-str)))
+        class-name-str (php/. (php/-> munge (encodePhpNs *ns*)) "\\" (php/-> munge (encode name-str)))
         is-name        (php/:: Symbol (create (php/. name-str "?")))]
     `(do
        (defstruct* ~name ~keys ~@implementations)
@@ -114,7 +114,7 @@
   [name]
   (let [name-str       (php/-> name (getName))
         munge          (php/new Munge)
-        class-name-str (php/. (php/-> munge (encodeNs *ns*)) "\\" (php/-> munge (encode name-str)))
+        class-name-str (php/. (php/-> munge (encodePhpNs *ns*)) "\\" (php/-> munge (encode name-str)))
         is-name        (php/:: Symbol (create (php/. name-str "?")))]
     `(do
        (defexception* ~name)

@@ -31,13 +31,13 @@ final class NsEmitterTest extends TestCase
         $output = (string) ob_get_clean();
 
         self::assertStringContainsString(
-            '"my-great\\\\ns"',
+            '"my-great.ns"',
             $output,
-            'The *ns* definition should contain the original unhyphenated namespace',
+            'The *ns* definition should contain the original hyphenated namespace in display form',
         );
 
         self::assertStringNotContainsString(
-            '"my_great\\\\ns"',
+            '"my_great.ns"',
             $output,
             'The *ns* definition should not contain the munged namespace',
         );
@@ -51,7 +51,7 @@ final class NsEmitterTest extends TestCase
         $this->nsEmitter->emit($node);
         $output = (string) ob_get_clean();
 
-        self::assertStringContainsString('"app\\\\module"', $output);
+        self::assertStringContainsString('"app.module"', $output);
     }
 
     public function test_ns_with_requires_emits_repl_gated_fallback(): void

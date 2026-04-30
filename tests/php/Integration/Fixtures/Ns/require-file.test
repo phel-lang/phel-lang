@@ -8,12 +8,12 @@ require_once "vendor/autoload.php";
 require_once __DIR__ . '/phel/core.php';
 require_once __DIR__ . '/xzy/core.php';
 \Phel::addDefinition(
-  "phel\\core",
+  "phel.core",
   "*file*",
   "Ns/require-file.test"
 );
 \Phel::addDefinition(
-  "phel\\core",
+  "phel.core",
   "*ns*",
   "test"
 );

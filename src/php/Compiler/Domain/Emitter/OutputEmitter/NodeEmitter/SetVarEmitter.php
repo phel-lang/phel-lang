@@ -28,7 +28,7 @@ final class SetVarEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('\\Phel::setVar(');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitStr('"');
-        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs($symbolNode->getNamespace())));
+        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeRegistryKey($symbolNode->getNamespace())));
         $this->outputEmitter->emitLine('",');
         $this->outputEmitter->emitStr('"');
         $this->outputEmitter->emitStr(addslashes($symbolNode->getName()->getName()));

@@ -69,7 +69,7 @@ final readonly class HoverHandler implements HandlerInterface
             }
         }
 
-        foreach ($this->apiFacade->getPhelFunctions(['phel\\core']) as $fn) {
+        foreach ($this->apiFacade->getPhelFunctions(['phel.core']) as $fn) {
             if ($fn->name === $word || $fn->nameWithNamespace() === $word) {
                 return $this->renderPhelFunction($fn);
             }

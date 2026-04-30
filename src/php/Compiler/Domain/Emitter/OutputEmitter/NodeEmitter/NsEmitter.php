@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
+use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\NsNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
@@ -33,7 +34,7 @@ final class NsEmitter implements NodeEmitterInterface
             || $this->outputEmitter->getOptions()->isCacheEmitMode()
         ) {
             $this->outputEmitter->emitStr('namespace ', $node->getStartSourceLocation());
-            $this->outputEmitter->emitStr($this->outputEmitter->mungeEncodeNs($node->getNamespace()), $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr($this->outputEmitter->mungeEncodePhpNs($node->getNamespace()), $node->getStartSourceLocation());
             $this->outputEmitter->emitLine(';', $node->getStartSourceLocation());
         }
     }
@@ -53,8 +54,8 @@ final class NsEmitter implements NodeEmitterInterface
     {
         if ($this->outputEmitter->getOptions()->isFileEmitMode()) {
             foreach ($node->getRequireNs() as $ns) {
-                $depth = count(explode('\\', $node->getNamespace())) - 1;
-                $filename = str_replace('\\', '/', $this->outputEmitter->mungeEncodeNs($ns->getName()));
+                $depth = count(explode('.', $node->getNamespace())) - 1;
+                $filename = str_replace('\\', '/', $this->outputEmitter->mungeEncodePhpNs($ns->getName()));
                 $relativePath = str_repeat('/..', $depth) . '/' . $filename . '.php';
                 $absolutePath = "__DIR__ . '" . $relativePath . "'";
 
@@ -71,7 +72,7 @@ final class NsEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitLine('$__phelSrcDirs = \\Phel::getDefinition(');
             $this->outputEmitter->increaseIndentLevel();
             $this->outputEmitter->emitStr('"');
-            $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\repl')));
+            $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeRegistryKey('phel.repl')));
             $this->outputEmitter->emitLine('",');
             $this->outputEmitter->emitStr('"src-dirs"');
             $this->outputEmitter->emitLine(') ?? [];');
@@ -79,7 +80,7 @@ final class NsEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitLine('if ($__phelSrcDirs === [] && \\Phel::getDefinition(');
             $this->outputEmitter->increaseIndentLevel();
             $this->outputEmitter->emitStr('"');
-            $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\core')));
+            $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeRegistryKey('phel.core')));
             $this->outputEmitter->emitLine('",');
             $this->outputEmitter->emitStr('"');
             $this->outputEmitter->emitStr(addslashes('*repl-mode*'));
@@ -124,7 +125,7 @@ final class NsEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('\\Phel::addDefinition(');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitStr('"');
-        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\core')));
+        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeRegistryKey('phel.core')));
         $this->outputEmitter->emitLine('",');
         $this->outputEmitter->emitStr('"');
         $this->outputEmitter->emitStr(addslashes('*file*'));
@@ -139,12 +140,12 @@ final class NsEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('\\Phel::addDefinition(');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitStr('"');
-        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs('phel\\core')));
+        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeRegistryKey('phel.core')));
         $this->outputEmitter->emitLine('",');
         $this->outputEmitter->emitStr('"');
         $this->outputEmitter->emitStr(addslashes('*ns*'));
         $this->outputEmitter->emitLine('",');
-        $this->outputEmitter->emitLiteral($node->getNamespace());
+        $this->outputEmitter->emitLiteral(Munge::displayNs($node->getNamespace()));
         $this->outputEmitter->emitLine();
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine(');');

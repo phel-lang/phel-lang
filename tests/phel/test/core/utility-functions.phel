@@ -170,7 +170,7 @@
 (deftest test-resolve-known-symbol
   (let [sym (resolve 'map)]
     (is (not (nil? sym)) "resolve returns non-nil for known symbol")
-    (is (= "phel\\core" (namespace sym)) "resolve returns correct namespace")
+    (is (= "phel.core" (namespace sym)) "resolve returns correct namespace")
     (is (= "map" (name sym)) "resolve returns correct name")))
 
 (deftest test-resolve-unknown-symbol
@@ -180,19 +180,19 @@
 (deftest test-resolve-special-char-symbol
   (let [sym (resolve '+)]
     (is (not (nil? sym)) "resolve handles special-char names")
-    (is (= "phel\\core" (namespace sym)) "+ resolves to phel\\core")
+    (is (= "phel.core" (namespace sym)) "+ resolves to phel.core")
     (is (= "+" (name sym)) "+ resolves with correct name")))
 
 (deftest test-resolve-itself-in-core
   (let [sym (resolve 'resolve)]
     (is (not (nil? sym)) "resolve resolves itself")
-    (is (= "phel\\core" (namespace sym)) "resolve lives in phel\\core")
+    (is (= "phel.core" (namespace sym)) "resolve lives in phel.core")
     (is (= "resolve" (name sym)) "resolve has correct name")))
 
 (deftest test-resolve-apply
   (let [sym (resolve 'apply)]
     (is (not (nil? sym)) "resolve returns non-nil for apply")
-    (is (= "phel\\core" (namespace sym)) "apply resolves to phel\\core")
+    (is (= "phel.core" (namespace sym)) "apply resolves to phel.core")
     (is (= "apply" (name sym)) "apply has correct name")))
 
 (deftest test-time
@@ -214,6 +214,6 @@
   (is (= 42 ((eval (fn [x] x)) 42)) "closure returned by eval is callable"))
 
 (deftest test-compile-form
-  (is (= "(\\Phel::getDefinition(\"phel\\\\core\", \"assert-non-nil\"))(1, 1);\n(1 + 1);"
+  (is (= "(\\Phel::getDefinition(\"phel.core\", \"assert-non-nil\"))(1, 1);\n(1 + 1);"
          (compile '(+ 1 1)))
       "compile simple expression"))

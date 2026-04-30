@@ -56,11 +56,12 @@
       dirs)))
 
 (defn- eval-namespace [namespace]
-  (let [dependencies (php/-> build-facade (getDependenciesForNamespace (get-src-dirs) (php/array namespace)))
+  (let [canonical    (php/:: Munge (canonicalNs namespace))
+        dependencies (php/-> build-facade (getDependenciesForNamespace (get-src-dirs) (php/array canonical)))
         found        (php/> (php/count dependencies) 0)]
     (when-not found
       (throw (php/new \RuntimeException
-                      (str "Could not locate namespace '" namespace "' on the source paths."))))
+                      (str "Could not locate namespace '" canonical "' on the source paths."))))
     (foreach [dep dependencies]
       (when-not (php/in_array (php/-> dep (getNamespace)) (php/:: Phel (getNamespaces)))
         (eval-file (php/-> dep (getFile)))))))
@@ -94,20 +95,21 @@
 (defn- extract-alias [sym options]
   (if (:as options)
     (:as options)
-    (let [parts (php/explode "\\" (name sym))
-          last  (php/array_pop parts)]
+    (let [normalized (php/str_replace "\\" "." (name sym))
+          parts      (php/explode "." normalized)
+          last       (php/array_pop parts)]
       (php/:: Symbol (create last)))))
 
 (defn- set-ns [namespace]
   (set-var *ns* namespace))
 
 (defn- normalize-ns-str
-  "Converts dots to backslashes and remaps clojure\\* to phel\\* when the target exists."
+  "Converts backslashes to dots and remaps clojure.* to phel.* when the target exists."
   [ns-str]
-  (let [ns-str (php/str_replace "." "\\" ns-str)]
-    (if-not (php/str_starts_with ns-str "clojure\\")
+  (let [ns-str (php/str_replace "\\" "." ns-str)]
+    (if-not (php/str_starts_with ns-str "clojure.")
       ns-str
-      (let [target (str "phel\\" (php/substr ns-str 8))
+      (let [target (str "phel." (php/substr ns-str 8))
             munged (php/str_replace "-" "_" target)
             exists (not (php/empty (php/-> (php/:: Registry (getInstance)) (getDefinitionInNamespace munged))))]
         (if exists target ns-str)))))
@@ -229,7 +231,7 @@
   "Encodes a namespace string for registry lookup."
   [ns-str]
   (let [munge (php/new Munge)]
-    (php/-> munge (encodeNs ns-str))))
+    (php/-> munge (encodeRegistryKey ns-str))))
 
 (defn get-symbol-info
   "Returns a hash-map of structured metadata for the definition identified by

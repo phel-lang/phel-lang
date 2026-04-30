@@ -26,8 +26,8 @@ final class CacheableCompilerFacadeTest extends TestCase
     {
         $facade = new CompilerFacade();
 
-        $first = $facade->encodeNs('phel\\core');
-        $second = $facade->encodeNs('phel\\core');
+        $first = $facade->encodeNs('phel.core');
+        $second = $facade->encodeNs('phel.core');
 
         self::assertSame($first, $second);
         self::assertSame('phel\core', $first);
@@ -37,7 +37,7 @@ final class CacheableCompilerFacadeTest extends TestCase
     {
         $facade = new CompilerFacade();
 
-        $core = $facade->encodeNs('phel\\core');
+        $core = $facade->encodeNs('phel.core');
         $string = $facade->encodeNs('phel\\string');
 
         self::assertNotSame($core, $string);
@@ -49,9 +49,9 @@ final class CacheableCompilerFacadeTest extends TestCase
     {
         $facade = new CompilerFacade();
 
-        $before = $facade->encodeNs('phel\\core');
+        $before = $facade->encodeNs('phel.core');
         CompilerFacade::clearMethodCache();
-        $after = $facade->encodeNs('phel\\core');
+        $after = $facade->encodeNs('phel.core');
 
         self::assertSame($before, $after);
     }

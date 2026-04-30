@@ -23,7 +23,7 @@ final class DefEmitter implements NodeEmitterInterface
         // In cache mode, also register the definition in GlobalEnvironment
         // so the analyzer can resolve symbols when other files have cache misses
         if ($this->outputEmitter->getOptions()->isCacheEmitMode()) {
-            $ns = addslashes($this->outputEmitter->mungeEncodeNs($node->getNamespace()));
+            $ns = addslashes($this->outputEmitter->mungeEncodeRegistryKey($node->getNamespace()));
             $name = addslashes($node->getName()->getName());
             $this->outputEmitter->emitLine('if (!\\' . GlobalEnvironmentSingleton::class . '::getInstance()->hasDefinition("' . $ns . '", \\' . Symbol::class . '::create("' . $name . '"))) {');
             $this->outputEmitter->increaseIndentLevel();
@@ -43,7 +43,7 @@ final class DefEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('\\Phel::addDefinition(');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitStr('"');
-        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeNs($node->getNamespace())));
+        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeRegistryKey($node->getNamespace())));
         $this->outputEmitter->emitLine('",');
         $this->outputEmitter->emitStr('"');
         $this->outputEmitter->emitStr(addslashes($node->getName()->getName()));

@@ -122,7 +122,14 @@ final readonly class SymbolResolver
 
         $finalName = Symbol::create($name->getName());
 
-        $normalizedAlias = str_replace('.', '\\', $alias);
+        // A leading backslash marks a PHP class FQN (e.g. `\DateTimeImmutable/foo`).
+        // Don't translate those — let the alias pass through verbatim so static
+        // method calls keep their backslash form.
+        if (str_starts_with($alias, '\\')) {
+            return $this->resolveInterfaceOrDefinition($finalName, $env, $alias);
+        }
+
+        $normalizedAlias = str_replace('\\', '.', $alias);
         $normalizedAlias = $this->remapClojureAlias($normalizedAlias);
 
         $ns = $this->globalEnv->resolveAlias($normalizedAlias) ?? $normalizedAlias;
@@ -168,11 +175,11 @@ final readonly class SymbolResolver
 
     private function remapClojureAlias(string $alias): string
     {
-        if (!str_starts_with($alias, 'clojure\\')) {
+        if (!str_starts_with($alias, 'clojure.')) {
             return $alias;
         }
 
-        $targetNs = 'phel\\' . substr($alias, 8);
+        $targetNs = 'phel.' . substr($alias, 8);
         $mungedNs = str_replace('-', '_', $targetNs);
 
         if (Registry::getInstance()->getDefinitionInNamespace($mungedNs) === []) {

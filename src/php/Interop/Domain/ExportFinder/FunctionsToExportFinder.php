@@ -60,7 +60,7 @@ final readonly class FunctionsToExportFinder implements FunctionsToExportFinderI
                 ...$this->commandFacade->getSourceDirectories(),
                 ...$this->commandFacade->getVendorSourceDirectories(),
             ],
-            [...$namespaces, 'phel\\core'],
+            [...$namespaces, 'phel.core'],
         );
 
         foreach ($namespaceInformation as $info) {

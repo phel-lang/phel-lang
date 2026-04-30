@@ -16,7 +16,7 @@ trait PhelCallerTrait
         $cacheKey = $namespace . '::' . $definitionName;
 
         if (!isset(self::$definitionCache[$cacheKey])) {
-            $phelNs = str_replace('-', '_', $namespace);
+            $phelNs = str_replace(['\\', '-'], ['.', '_'], $namespace);
             self::$definitionCache[$cacheKey] = Phel::getDefinition($phelNs, $definitionName);
         }
 

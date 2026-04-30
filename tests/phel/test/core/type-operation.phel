@@ -416,11 +416,11 @@
   (is (= nil (namespace 'symbol)) "namespace on symbol without ns")
   (is (= nil (namespace :keyword)) "namespace of keyword without ns")
   (is (= "test" (namespace (php/:: Symbol (createForNamespace "test" "symbol")))) "namespace on symbol with ns")
-  (is (= "phel-test\\test\\core\\type-operation" (namespace ::keyword)) "namespace of keyword with ns"))
+  (is (= "phel-test.test.core.type-operation" (namespace ::keyword)) "namespace of keyword with ns"))
 
 (deftest test-full-name
   (is (= "string" (name "string")) "full-name on string")
   (is (= "symbol" (full-name 'symbol)) "full-name on symbol without ns")
   (is (= "keyword" (full-name :keyword)) "full-name of keyword without ns")
   (is (= "test/symbol" (full-name (php/:: Symbol (createForNamespace "test" "symbol")))) "full-name on symbol with ns")
-  (is (= "phel-test\\test\\core\\type-operation/keyword" (full-name ::keyword)) "full-name of keyword with ns"))
+  (is (= "phel-test.test.core.type-operation/keyword" (full-name ::keyword)) "full-name of keyword with ns"))

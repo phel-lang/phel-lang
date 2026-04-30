@@ -14,22 +14,22 @@
   (php/new Munge))
 
 (defn canonical-ns
-  "Returns the canonical form of a namespace string by translating dot
-  separators to backslash. The registry, emitter, and analyzer key off the
-  backslash form; pass user-supplied namespace strings through this before
-  any registry lookup or write."
-  {:example "(canonical-ns \"phel.core\") ; => \"phel\\core\""
+  "Returns the canonical (dot-separated) form of a namespace string.
+  Pass user-supplied namespace strings through this before any registry
+  lookup or write."
+  {:example "(canonical-ns \"phel\\core\") ; => \"phel.core\""
    :see-also ["display-ns" "find-ns" "create-ns" "intern"]}
   [ns-str]
   (php/:: Munge (canonicalNs ns-str)))
 
 (defn display-ns
-  "Returns the display form of a namespace string by translating backslash
-  separators to dot. User-facing namespace APIs return strings in this form."
+  "Returns the display (dot-separated) form of a namespace string.
+  Equivalent to `canonical-ns`; kept as a separate name so call sites
+  read intent (display vs. canonicalize)."
   {:example "(display-ns \"phel\\core\") ; => \"phel.core\""
    :see-also ["canonical-ns" "find-ns" "loaded-namespaces"]}
   [ns-str]
-  (php/:: Munge (displayNs ns-str)))
+  (canonical-ns ns-str))
 
 (defn loaded-namespaces
   "Returns all namespaces currently loaded, in dot-separated display form."
@@ -38,13 +38,13 @@
   (let [raw    (php/:: Phel (getNamespaces))
         result (transient [])]
     (foreach [ns raw]
-      (conj result (display-ns (php/-> munge-instance (decodeNs ns)))))
+      (conj result (php/-> munge-instance (decodeNs ns))))
     (persistent result)))
 
 (defn- core-munge-ns
   "Encodes a namespace string for registry lookup."
   [ns-str]
-  (php/-> munge-instance (encodeNs ns-str)))
+  (php/-> munge-instance (encodeRegistryKey ns-str)))
 
 (defn- core-munge-name
   "Encodes a definition name for registry lookup."

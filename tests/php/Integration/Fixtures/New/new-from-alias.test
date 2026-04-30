@@ -7,13 +7,13 @@
 namespace test\abc;
 require_once __DIR__ . '/../phel/core.php';
 \Phel::addDefinition(
-  "phel\\core",
+  "phel.core",
   "*file*",
   "New/new-from-alias.test"
 );
 \Phel::addDefinition(
-  "phel\\core",
+  "phel.core",
   "*ns*",
-  "test\\abc"
+  "test.abc"
 );
 (new \DateTimeImmutable("2020-03-22"));

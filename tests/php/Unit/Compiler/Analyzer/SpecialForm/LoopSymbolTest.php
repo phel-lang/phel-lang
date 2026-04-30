@@ -27,8 +27,8 @@ final class LoopSymbolTest extends TestCase
     protected function setUp(): void
     {
         $env = new GlobalEnvironment();
-        $env->addDefinition('phel\\core', Symbol::create('first'));
-        $env->addDefinition('phel\\core', Symbol::create('next'));
+        $env->addDefinition('phel.core', Symbol::create('first'));
+        $env->addDefinition('phel.core', Symbol::create('next'));
 
         $this->analyzer = new Analyzer($env);
     }

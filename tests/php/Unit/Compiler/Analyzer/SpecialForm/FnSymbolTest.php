@@ -35,9 +35,9 @@ final class FnSymbolTest extends TestCase
     protected function setUp(): void
     {
         $env = new GlobalEnvironment();
-        $env->addDefinition('phel\\core', Symbol::create('first'));
-        $env->addDefinition('phel\\core', Symbol::create('next'));
-        $env->addDefinition('phel\\core', Symbol::create('print-str'));
+        $env->addDefinition('phel.core', Symbol::create('first'));
+        $env->addDefinition('phel.core', Symbol::create('next'));
+        $env->addDefinition('phel.core', Symbol::create('print-str'));
 
         $this->analyzer = new Analyzer($env);
     }

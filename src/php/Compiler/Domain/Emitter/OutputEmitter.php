@@ -175,9 +175,14 @@ final class OutputEmitter implements OutputEmitterInterface
         return $this->munge->encode($str);
     }
 
-    public function mungeEncodeNs(string $str): string
+    public function mungeEncodePhpNs(string $str): string
     {
-        return $this->munge->encodeNs($str);
+        return $this->munge->encodePhpNs($str);
+    }
+
+    public function mungeEncodeRegistryKey(string $str): string
+    {
+        return $this->munge->encodeRegistryKey($str);
     }
 
     public function emitFnWrapSuffix(?SourceLocation $sl = null): void

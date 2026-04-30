@@ -48,7 +48,7 @@ final readonly class DataReadersLoader
         try {
             $readerInfos = $this->buildFacade->getDependenciesForNamespace(
                 $srcDirectories,
-                ['phel\\reader', 'phel\\core'],
+                ['phel.reader', 'phel.core'],
             );
         } catch (Throwable) {
             return;

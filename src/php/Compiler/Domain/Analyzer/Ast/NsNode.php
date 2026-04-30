@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Analyzer\Ast;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Shared\CompilerConstants;
 
 final class NsNode extends AbstractNode
 {
@@ -21,10 +22,9 @@ final class NsNode extends AbstractNode
         ?SourceLocation $sourceLocation = null,
     ) {
         parent::__construct(NodeEnvironment::empty(), $sourceLocation);
-        if ($namespace !== 'phel\\core') {
-            // All other files implicitly depend on phel\core
+        if ($namespace !== CompilerConstants::PHEL_CORE_NAMESPACE) {
             $this->requireNs = [
-                Symbol::create('phel\\core'),
+                Symbol::create(CompilerConstants::PHEL_CORE_NAMESPACE),
                 ...$requireNs,
             ];
         }

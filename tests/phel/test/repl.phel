@@ -270,7 +270,7 @@
                                   (:require phel\\repl :refer [require]))
                                 (require nonexistent\\foo)")]
     (is (= false (get result :success)) "requiring non-existent namespace fails")
-    (is (s/contains? (get result :error) "nonexistent\\foo")
+    (is (s/contains? (get result :error) "nonexistent.foo")
         "error message includes the missing namespace name")))
 
 ;; --------------------------------

@@ -43,7 +43,7 @@ final class DefInterfaceEmitter implements NodeEmitterInterface
      */
     private function emitViaEval(DefInterfaceNode $node): void
     {
-        $ns = $this->outputEmitter->mungeEncodeNs($node->getNamespace());
+        $ns = $this->outputEmitter->mungeEncodePhpNs($node->getNamespace());
         $fqcn = $ns . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
 
         ob_start();
@@ -68,7 +68,7 @@ final class DefInterfaceEmitter implements NodeEmitterInterface
      */
     private function emitInline(DefInterfaceNode $node): void
     {
-        $fqcn = $this->outputEmitter->mungeEncodeNs($node->getNamespace())
+        $fqcn = $this->outputEmitter->mungeEncodePhpNs($node->getNamespace())
             . '\\' . $this->outputEmitter->mungeEncode($node->getName()->getName());
         $this->outputEmitter->emitLine("if (!interface_exists('" . $fqcn . "')) {", $node->getStartSourceLocation());
 

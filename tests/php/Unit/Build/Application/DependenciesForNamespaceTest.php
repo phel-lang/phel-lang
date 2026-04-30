@@ -16,7 +16,7 @@ final class DependenciesForNamespaceTest extends TestCase
         $extractor = $this->createStub(NamespaceExtractorInterface::class);
         $extractor->method('getNamespacesFromDirectories')
             ->willReturn([
-                new NamespaceInformation('core.phel', 'phel\\core', []),
+                new NamespaceInformation('core.phel', 'phel.core', []),
             ]);
 
         $deps = new DependenciesForNamespace($extractor);
@@ -30,15 +30,15 @@ final class DependenciesForNamespaceTest extends TestCase
         $extractor = $this->createStub(NamespaceExtractorInterface::class);
         $extractor->method('getNamespacesFromDirectories')
             ->willReturn([
-                new NamespaceInformation('core.phel', 'phel\\core', []),
-                new NamespaceInformation('app.phel', 'app\\main', ['phel\\core']),
+                new NamespaceInformation('core.phel', 'phel.core', []),
+                new NamespaceInformation('app.phel', 'app\\main', ['phel.core']),
             ]);
 
         $deps = new DependenciesForNamespace($extractor);
         $result = $deps->getDependenciesForNamespace(['/src'], ['app\\main']);
 
         self::assertCount(2, $result);
-        self::assertSame('phel\\core', $result[0]->getNamespace());
+        self::assertSame('phel.core', $result[0]->getNamespace());
         self::assertSame('app\\main', $result[1]->getNamespace());
     }
 }

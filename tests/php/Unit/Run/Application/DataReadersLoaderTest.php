@@ -63,7 +63,7 @@ final class DataReadersLoaderTest extends TestCase
 
         $readerInfo = new NamespaceInformation(
             $readerFile,
-            'phel\\reader',
+            'phel.reader',
             [],
         );
 
@@ -79,13 +79,13 @@ final class DataReadersLoaderTest extends TestCase
         $buildFacade->method('evalFile')
             ->willReturnCallback(static function (string $path) use (&$calls): CompiledFile {
                 $calls[] = ['eval', $path];
-                return new CompiledFile($path, $path, 'phel\\reader');
+                return new CompiledFile($path, $path, 'phel.reader');
             });
 
         new DataReadersLoader($buildFacade)->load([$dir]);
 
         self::assertSame('deps', $calls[0][0]);
-        self::assertSame(['phel\\reader', 'phel\\core'], $calls[0][1]);
+        self::assertSame(['phel.reader', 'phel.core'], $calls[0][1]);
         self::assertSame('eval', $calls[1][0]);
         self::assertSame($readerFile, $calls[1][1]);
         self::assertSame('eval', $calls[2][0]);

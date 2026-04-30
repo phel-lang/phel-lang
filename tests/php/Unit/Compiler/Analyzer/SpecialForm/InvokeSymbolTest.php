@@ -369,7 +369,7 @@ final class InvokeSymbolTest extends TestCase
 
         $this->analyzer->addDefinition($ns, Symbol::create($macroName));
 
-        $mungedNs = new Munge()->encodeNs($ns);
+        $mungedNs = new Munge()->encodeRegistryKey($ns);
         Phel::addDefinition(
             $mungedNs,
             $macroName,

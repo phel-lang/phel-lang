@@ -6,23 +6,23 @@
 namespace initial\ns;
 require_once __DIR__ . '/../phel/core.php';
 \Phel::addDefinition(
-  "phel\\core",
+  "phel.core",
   "*file*",
   "Ns/in-ns-dot-syntax.test"
 );
 \Phel::addDefinition(
-  "phel\\core",
+  "phel.core",
   "*ns*",
-  "initial\\ns"
+  "initial.ns"
 );
-\Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton::getInstance()->setNs("target\\ns");
+\Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton::getInstance()->setNs("target.ns");
 \Phel::addDefinition(
-  "phel\\core",
+  "phel.core",
   "*file*",
   "Ns/in-ns-dot-syntax.test"
 );
 \Phel::addDefinition(
-  "phel\\core",
+  "phel.core",
   "*ns*",
-  "target\\ns"
+  "target.ns"
 );

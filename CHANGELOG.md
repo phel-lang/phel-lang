@@ -21,7 +21,7 @@ All notable changes to this project will be documented in this file.
 - Namespace introspection: `loaded-namespaces`, `find-ns`, `create-ns`, `remove-ns`, `intern`, `ns-interns`, `ns-publics`, `ns-aliases`, `ns-refers`, `load-file` (#1694)
 - `var-get` resolves a symbol to its registry value (#1774)
 - `(rand n)` returns a number in `[0, n)` (#1696)
-- `canonical-ns` returns the canonical (backslash) form of a namespace string (#1795)
+- `canonical-ns` returns the canonical (dot) form of a namespace string (#1795, #1798)
 - `display-ns` returns the display (dot) form of a namespace string (#1795)
 
 #### REPL
@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file.
 
 - **BREAKING**: Require PHP 8.4
 - **BREAKING**: Async functions move to `phel\core`; `delay` stays in `phel\async` (#1548)
+- **BREAKING**: Canonical namespace form is dot: registry keys, `*ns*` and `Symbol::getFullName` for Phel symbols. PHP `namespace ...;` and class FQNs stay backslash. Backslash input is still accepted (warns under `PHEL_WARN_DEPRECATIONS=1`) (#1798)
 
 #### Core
 - Expose `future` from `phel\core` (#1537)

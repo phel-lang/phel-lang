@@ -10,12 +10,12 @@
 namespace interface_instance;
 require_once __DIR__ . '/phel/core.php';
 \Phel::addDefinition(
-  "phel\\core",
+  "phel.core",
   "*file*",
   "Def/definterface-instance-of.test"
 );
 \Phel::addDefinition(
-  "phel\\core",
+  "phel.core",
   "*ns*",
   "interface-instance"
 );

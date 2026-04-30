@@ -202,7 +202,7 @@ final class GlobalEnvironmentTest extends TestCase
     public function test_resolve_definition_in_phel_core(): void
     {
         $env = new GlobalEnvironment();
-        $env->addDefinition('phel\\core', Symbol::create('x'));
+        $env->addDefinition('phel.core', Symbol::create('x'));
         $env->setNs('bar');
 
         $nodeEnv = NodeEnvironment::empty();
@@ -210,7 +210,7 @@ final class GlobalEnvironmentTest extends TestCase
         $this->assertEquals(
             new GlobalVarNode(
                 $nodeEnv,
-                'phel\\core',
+                'phel.core',
                 Symbol::create('x'),
                 Phel::map(),
             ),
@@ -221,8 +221,8 @@ final class GlobalEnvironmentTest extends TestCase
     public function test_resolve_private_definition_in_phel_core(): void
     {
         $env = new GlobalEnvironment();
-        $env->addDefinition('phel\\core', Symbol::create('x'));
-        Phel::addDefinition('phel\\core', 'x', null, Phel::map(Keyword::create('private'), true));
+        $env->addDefinition('phel.core', Symbol::create('x'));
+        Phel::addDefinition('phel.core', 'x', null, Phel::map(Keyword::create('private'), true));
         $env->setNs('bar');
         $nodeEnv = NodeEnvironment::empty();
 
@@ -235,7 +235,7 @@ final class GlobalEnvironmentTest extends TestCase
     public function test_resolve_interface_in_phel_core(): void
     {
         $env = new GlobalEnvironment();
-        $env->addInterface('phel\\core', Symbol::create('x'));
+        $env->addInterface('phel.core', Symbol::create('x'));
         $env->setNs('bar');
 
         $nodeEnv = NodeEnvironment::empty();
@@ -243,7 +243,7 @@ final class GlobalEnvironmentTest extends TestCase
         $this->assertEquals(
             new PhpClassNameNode(
                 $nodeEnv,
-                Symbol::createForNamespace('phel\\core', 'x'),
+                Symbol::createForNamespace('phel.core', 'x'),
             ),
             $env->resolve(Symbol::create('x'), $nodeEnv),
         );

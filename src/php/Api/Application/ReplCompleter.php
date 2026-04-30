@@ -129,7 +129,7 @@ final class ReplCompleter implements ReplCompleterInterface
         // Referred symbol completion and fully qualified completion
         foreach (Phel::getNamespaces() as $namespace) {
             foreach (Phel::getDefinitionInNamespace($namespace) as $name => $definition) {
-                $qualifiedName = $namespace === 'phel\\core'
+                $qualifiedName = $namespace === 'phel.core'
                     ? $name
                     : $namespace . '\\' . $name;
 
