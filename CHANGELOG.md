@@ -40,6 +40,9 @@ All notable changes to this project will be documented in this file.
 - `(str sym)` and printer output for qualified symbols include the namespace
 - User-facing namespace APIs return strings in dot-separated display form: `loaded-namespaces`, `find-ns`, `create-ns`, `intern`, `ns-aliases`, `ns-refers`, `get-symbol-info`, `apropos`, `find-fn`, REPL prompt, `phel ns` (#1795)
 
+#### API
+- `PhelFunction.githubUrl` anchors to the latest release tag instead of `main`, so doc links remain valid across releases
+
 ### Fixed
 
 #### Core

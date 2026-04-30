@@ -52,6 +52,7 @@ final class ApiFactory extends AbstractFactory
             $this->createPhelFnLoader(),
             $this->createPhelFnGroupKeyGenerator(),
             $this->getConfig()->allNamespaces(),
+            $this->getConfig()->githubRef(),
         );
     }
 
