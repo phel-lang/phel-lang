@@ -50,7 +50,7 @@ final class ApiFacadeTest extends TestCase
             $functions,
         )));
         $expectedNamespaces = array_map(
-            static fn(string $ns): string => str_replace('phel\\', '', $ns),
+            static fn(string $ns): string => str_replace('phel.', '', $ns),
             ApiConfig::allNamespaces(),
         );
 

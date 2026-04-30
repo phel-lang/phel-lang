@@ -1009,7 +1009,7 @@
   responsible for applying selectors."
   [ns]
   (let [munge    (php/new Munge)
-        munge-ns (php/-> munge (encodePhpNs ns))]
+        munge-ns (php/-> munge (encodeRegistryKey ns))]
     (vec (for [fn-name :keys (php/:: Phel (getDefinitionInNamespace munge-ns))
                :let [meta (php/:: Phel (getDefinitionMetaData munge-ns fn-name))]
                :when (:test meta)]

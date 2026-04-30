@@ -31,7 +31,7 @@ final readonly class CompiledPhpClassBuilder
 
     private function buildNamespace(string $phelNs): string
     {
-        $phelNsWords = explode('\\', $phelNs);
+        $phelNsWords = $this->splitNamespace($phelNs);
         array_pop($phelNsWords);
         $pascalWords = array_map($this->underscoreToPascalCase(...), $phelNsWords);
         $normalizedNamespace = implode('\\', $pascalWords);
@@ -45,10 +45,18 @@ final readonly class CompiledPhpClassBuilder
 
     private function buildClassName(string $phelNs): string
     {
-        $words = explode('\\', $phelNs);
+        $words = $this->splitNamespace($phelNs);
         $className = array_pop($words);
 
         return $this->underscoreToPascalCase($className);
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function splitNamespace(string $phelNs): array
+    {
+        return explode('.', str_replace('\\', '.', $phelNs));
     }
 
     /**

@@ -21,11 +21,11 @@ final class LoadFileTest extends TestCase
         parent::setUp();
 
         Phel::bootstrap(__DIR__);
-        Phel::addDefinition('phel\\repl', 'src-dirs', [__DIR__ . '/../../../../src']);
+        Phel::addDefinition('phel.repl', 'src-dirs', [__DIR__ . '/../../../../src']);
 
         $srcDir = __DIR__ . '/../../../../src';
         $build = new BuildFacade();
-        $deps = $build->getDependenciesForNamespace([$srcDir], ['phel\\repl']);
+        $deps = $build->getDependenciesForNamespace([$srcDir], ['phel.repl']);
         foreach ($deps as $dep) {
             $build->evalFile($dep->getFile());
         }

@@ -94,7 +94,7 @@
 (defn- extract-alias [sym options]
   (if (:as options)
     (:as options)
-    (let [parts (php/explode "\\" (name sym))
+    (let [parts (php/explode "." (name sym))
           last  (php/array_pop parts)]
       (php/:: Symbol (create last)))))
 
@@ -102,12 +102,12 @@
   (set-var *ns* namespace))
 
 (defn- normalize-ns-str
-  "Converts dots to backslashes and remaps clojure\\* to phel\\* when the target exists."
+  "Converts backslashes to dots and remaps clojure.* to phel.* when the target exists."
   [ns-str]
-  (let [ns-str (php/str_replace "." "\\" ns-str)]
-    (if-not (php/str_starts_with ns-str "clojure\\")
+  (let [ns-str (php/str_replace "\\" "." ns-str)]
+    (if-not (php/str_starts_with ns-str "clojure.")
       ns-str
-      (let [target (str "phel\\" (php/substr ns-str 8))
+      (let [target (str "phel." (php/substr ns-str 8))
             munged (php/str_replace "-" "_" target)
             exists (not (php/empty (php/-> (php/:: Registry (getInstance)) (getDefinitionInNamespace munged))))]
         (if exists target ns-str)))))

@@ -454,7 +454,7 @@ Creates a new vector. If no argument is provided, an empty vector is created. Sh
                 continue;
             }
 
-            $normalizedNs = str_replace('phel\\', '', $ns);
+            $normalizedNs = str_replace('phel.', '', $ns);
             $moduleName = $normalizedNs === 'core' ? '' : $normalizedNs . '/';
 
             foreach (array_keys($this->getDefinitionsInNamespace($ns)) as $fnName) {

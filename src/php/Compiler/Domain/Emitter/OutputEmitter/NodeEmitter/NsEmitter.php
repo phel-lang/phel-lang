@@ -104,7 +104,7 @@ final class NsEmitter implements NodeEmitterInterface
                 $this->outputEmitter->emitLine('\\Phel\\Build\\BuildFacade::enableBuildMode();');
                 $this->outputEmitter->emitLine('$__phelBuildFacade->evalFile($__phelNsInfo->getFile());');
                 $this->outputEmitter->emitLine('\\Phel\\Build\\BuildFacade::disableBuildMode();');
-                $this->outputEmitter->emitLine('\\Phel\\Compiler\\Infrastructure\\GlobalEnvironmentSingleton::getInstance()->setNs("' . addslashes($this->outputEmitter->mungeEncodeRegistryKey($node->getNamespace())) . '");');
+                $this->outputEmitter->emitLine('\\Phel\\Compiler\\Infrastructure\\GlobalEnvironmentSingleton::getInstance()->setNs("' . addslashes($node->getNamespace()) . '");');
                 $this->outputEmitter->decreaseIndentLevel();
                 $this->outputEmitter->emitLine('}');
                 $this->outputEmitter->decreaseIndentLevel();
@@ -117,7 +117,7 @@ final class NsEmitter implements NodeEmitterInterface
     {
         if (!$this->outputEmitter->getOptions()->isFileEmitMode()) {
             $this->outputEmitter->emitLine(
-                '\Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton::getInstance()->setNs("' . addslashes($this->outputEmitter->mungeEncodeRegistryKey($node->getNamespace())) . '");',
+                '\Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton::getInstance()->setNs("' . addslashes($node->getNamespace()) . '");',
                 $node->getStartSourceLocation(),
             );
         }

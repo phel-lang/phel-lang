@@ -25,7 +25,7 @@ final class RequireVectorTest extends TestCase
         $fixtures = __DIR__ . '/Fixtures';
         Phel::bootstrap(__DIR__);
 
-        Phel::addDefinition('phel\\repl', 'src-dirs', [$fixtures]);
+        Phel::addDefinition('phel.repl', 'src-dirs', [$fixtures]);
 
         $buildFacade = new BuildFacade();
 
@@ -49,14 +49,14 @@ final class RequireVectorTest extends TestCase
         // call resolved successfully — proves both vector parsing AND :refer.
         self::assertSame(
             'hello from one',
-            Phel::getDefinition('requirevector\\main', 'greeting'),
+            Phel::getDefinition('requirevector.main', 'greeting'),
         );
 
         // `:as two` aliased lib-two so `(two/two-shout ...)` resolved correctly
         // — proves the :as alias was registered through the vector form.
         self::assertSame(
             'shout!',
-            Phel::getDefinition('requirevector\\main', 'shouted'),
+            Phel::getDefinition('requirevector.main', 'shouted'),
         );
     }
 }

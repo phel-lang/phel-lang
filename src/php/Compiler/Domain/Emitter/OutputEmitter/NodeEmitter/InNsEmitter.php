@@ -23,7 +23,7 @@ final class InNsEmitter implements NodeEmitterInterface
         assert($node instanceof InNsNode);
 
         $this->outputEmitter->emitLine(
-            '\\' . GlobalEnvironmentSingleton::class . '::getInstance()->setNs("' . addslashes($this->outputEmitter->mungeEncodeRegistryKey($node->getNamespace())) . '");',
+            '\\' . GlobalEnvironmentSingleton::class . '::getInstance()->setNs("' . addslashes($node->getNamespace()) . '");',
             $node->getStartSourceLocation(),
         );
 
