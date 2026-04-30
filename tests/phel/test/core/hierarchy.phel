@@ -134,6 +134,16 @@
     (is (contains? ps ParentsProtocolMarker)
         "parents contain the protocol value")))
 
+(defprotocol DescendantsLeafProtocol)
+(defrecord DescendantsLeafRecord [] DescendantsLeafProtocol)
+(deftype DescendantsLeafType [] DescendantsLeafProtocol)
+
+(deftest test-descendants-of-protocol-is-nil
+  (is (nil? (descendants DescendantsLeafProtocol))
+      "descendants of a protocol does not list extending records/types")
+  (is (nil? (descendants "phel-test\\test\\core\\hierarchy\\DescendantsLeafProtocol"))
+      "descendants of a protocol's PHP class string does not list extenders either"))
+
 ;; --- descendants ---
 
 (deftest test-descendants

@@ -50,6 +50,7 @@ All notable changes to this project will be documented in this file.
 - `get-in` traverses into strings by integer index
 - `parents`, `ancestors`, `descendants` find derive entries when the tag is a struct/record constructor function
 - `parents`/`ancestors` of a record/type extended with a protocol include the protocol value itself, not only its FQN string (#1791)
+- `descendants` of a protocol no longer reports records/types extended via `defrecord`/`deftype` (type inheritance is excluded, matching `clojure.core/descendants`)
 - `take` realizes exactly `n` elements from a lazy source (no off-by-one over-realization)
 
 #### String
