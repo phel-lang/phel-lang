@@ -102,13 +102,17 @@
   (get @*protocol-type-relations* tag (hash-set)))
 
 (defn register-protocol-implementor!
-  "Records that `type-key` implements `protocol-value`. Called from
-  `extend-type`'s expansion to keep the registry in sync with `derive`."
-  [type-key protocol-value]
+  "Records that `type-key` implements the protocol identified by both
+  `protocol-value` (the `defprotocol` map) and `protocol-tag` (its FQN
+  string). Called from `extend-type`'s expansion."
+  [type-key protocol-value protocol-tag]
   (swap! *protocol-type-relations*
          (fn [m]
-           (assoc m type-key
-                  (conj (get m type-key (hash-set)) protocol-value))))
+           (let [existing (get m type-key (hash-set))]
+             (assoc m type-key
+                    (-> existing
+                        (conj protocol-value)
+                        (conj protocol-tag))))))
   nil)
 
 (defn- direct-parents
@@ -138,6 +142,27 @@
        (hash-set)
        direct))))
 
+(defn- derive-only-parents
+  "Returns parents recorded by `derive` for tag, ignoring PHP class
+  inheritance and protocol relations. Used by `descendants` to match
+  Clojure's contract that type inheritance is not surfaced."
+  [parents-map tag]
+  (let [resolved-tag (hierarchy-tag tag)]
+    (union (get parents-map tag (hash-set))
+           (get parents-map resolved-tag (hash-set)))))
+
+(defn- compute-derive-ancestors
+  "Like `compute-ancestors` but only follows `derive`-recorded edges."
+  [parents-map tag]
+  (let [direct (derive-only-parents parents-map tag)]
+    (if (empty? direct)
+      (hash-set)
+      (reduce
+       (fn [acc p]
+         (union acc (hash-set p) (compute-derive-ancestors parents-map p)))
+       (hash-set)
+       direct))))
+
 (defn- isa-in?
   "Checks if child is (transitively) a descendant of parent in parents-map.
   Walks up the parent chain without building the full ancestor set."
@@ -164,7 +189,8 @@
    (keys parents-map)))
 
 (defn- compute-descendants-map
-  "Builds the full {tag #{descendants}} map from a parents map."
+  "Builds the full {tag #{descendants}} map from a parents map.
+  Walks only `derive`-recorded edges, mirroring `descendants`'s contract."
   [parents-map]
   (reduce
    (fn [acc child]
@@ -173,7 +199,7 @@
         (let [existing (get inner ancestor (hash-set))]
           (assoc inner ancestor (union existing (hash-set child)))))
       acc
-      (compute-ancestors parents-map child)))
+      (compute-derive-ancestors parents-map child)))
    {}
    (keys parents-map)))
 
@@ -284,7 +310,9 @@
 
 (defn descendants
   "Returns the set of all descendants of tag, or nil.
-  When a hierarchy is provided, consults it; otherwise uses the global hierarchy."
+  Only `derive`-recorded relationships are walked: type inheritance
+  (PHP class hierarchy, protocol extensions) is not surfaced, matching
+  Clojure's contract."
   {:see-also ["parents" "ancestors" "derive" "isa?"]}
   ([tag]
    (descendants @*hierarchy* tag))
@@ -294,7 +322,7 @@
        (let [all-children (keys parents-map)
              result       (reduce
                            (fn [acc child]
-                             (if (contains? (compute-ancestors parents-map child) tag)
+                             (if (contains? (compute-derive-ancestors parents-map child) tag)
                                (union acc (hash-set child))
                                acc))
                            (hash-set)
@@ -461,8 +489,7 @@
                                                  (create (php/. proto-str "--" mname-str "--dispatch")))]
                            (conj inner `(swap! ~dsym assoc ~type-key (fn ~margs ~@body)))))
                        (conj acc
-                             `(derive ~type-key ~proto-tag)
-                             `(register-protocol-implementor! ~type-key ~proto-name))
+                             `(register-protocol-implementor! ~type-key ~proto-name ~proto-tag))
                        methods)))
                   []
                   groups)]
