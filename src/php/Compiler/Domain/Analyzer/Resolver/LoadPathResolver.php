@@ -57,7 +57,7 @@ final readonly class LoadPathResolver
      */
     private function classpathDirOf(string $namespace): string
     {
-        $munged = $this->munge->encodeNs($namespace);
+        $munged = $this->munge->encodePhpNs($namespace);
         $parts = explode('\\', $munged);
         array_pop($parts);
 

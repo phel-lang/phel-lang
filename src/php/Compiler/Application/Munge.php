@@ -55,9 +55,24 @@ final readonly class Munge implements MungeInterface
         return $this->encodeWithMap($str, $this->mapping);
     }
 
-    public function encodeNs(string $str): string
+    /**
+     * Encode a namespace into the backslash form used by PHP `namespace`
+     * declarations and class FQNs. Translates dots to backslashes, then
+     * mangles dashes via the namespace mapping.
+     */
+    public function encodePhpNs(string $str): string
     {
-        return $this->encodeWithMap(self::canonicalNs($str), $this->nsMapping);
+        return $this->encodeWithMap(str_replace('.', '\\', $str), $this->nsMapping);
+    }
+
+    /**
+     * Encode a namespace into the dot form used as the runtime registry key
+     * (`\Phel::addDefinition`, `setNs`, `*ns*`). Translates backslashes to
+     * dots, then mangles dashes via the namespace mapping.
+     */
+    public function encodeRegistryKey(string $str): string
+    {
+        return $this->encodeWithMap(str_replace('\\', '.', $str), $this->nsMapping);
     }
 
     public function decodeNs(string $str): string
@@ -66,20 +81,20 @@ final readonly class Munge implements MungeInterface
     }
 
     /**
-     * Canonicalize a namespace string by translating dot separators to
-     * backslash. The registry, emitter, and analyzer key off the backslash
-     * form; pass user-supplied namespace strings through this before any
-     * registry lookup or write.
+     * Canonicalize a namespace string by translating backslash separators to
+     * dot. The registry, runtime, and user-facing APIs key off the dot form;
+     * pass user-supplied namespace strings through this before any registry
+     * lookup or write.
      */
     public static function canonicalNs(string $str): string
     {
-        return str_replace('.', '\\', $str);
+        return str_replace('\\', '.', $str);
     }
 
     /**
      * Convert an internal namespace string to its display form by translating
-     * backslash separators to dot. The dot form is the source-level separator
-     * surfaced by user-facing APIs and printed output.
+     * backslash separators to dot. Equivalent to {@see self::canonicalNs()}
+     * since dot is now the canonical form; kept for API stability.
      */
     public static function displayNs(string $str): string
     {

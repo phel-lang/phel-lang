@@ -24,7 +24,7 @@ final class BackslashSeparatorDeprecatorTest extends TestCase
     public function test_emits_for_backslash_namespace_symbol(): void
     {
         $deprecator = $this->deprecator(enabled: true);
-        $deprecator->maybeWarn($this->locatedSymbol('phel\\core', 'map', '/app/user.phel'));
+        $deprecator->maybeWarn($this->locatedSymbol('phel.core', 'map', '/app/user.phel'));
 
         self::assertCount(1, $this->captured);
         self::assertStringContainsString("'phel\\core/map'", $this->captured[0]);
@@ -45,7 +45,7 @@ final class BackslashSeparatorDeprecatorTest extends TestCase
     public function test_stays_silent_when_disabled(): void
     {
         $deprecator = $this->deprecator(enabled: false);
-        $deprecator->maybeWarn($this->locatedSymbol('phel\\core', 'map', '/app/user.phel'));
+        $deprecator->maybeWarn($this->locatedSymbol('phel.core', 'map', '/app/user.phel'));
 
         self::assertSame([], $this->captured);
     }
@@ -61,8 +61,8 @@ final class BackslashSeparatorDeprecatorTest extends TestCase
     public function test_dedupes_same_file_and_pattern(): void
     {
         $deprecator = $this->deprecator(enabled: true);
-        $deprecator->maybeWarn($this->locatedSymbol('phel\\core', 'map', '/app/user.phel'));
-        $deprecator->maybeWarn($this->locatedSymbol('phel\\core', 'map', '/app/user.phel'));
+        $deprecator->maybeWarn($this->locatedSymbol('phel.core', 'map', '/app/user.phel'));
+        $deprecator->maybeWarn($this->locatedSymbol('phel.core', 'map', '/app/user.phel'));
 
         self::assertCount(1, $this->captured);
     }
@@ -70,8 +70,8 @@ final class BackslashSeparatorDeprecatorTest extends TestCase
     public function test_emits_again_for_different_file(): void
     {
         $deprecator = $this->deprecator(enabled: true);
-        $deprecator->maybeWarn($this->locatedSymbol('phel\\core', 'map', '/app/a.phel'));
-        $deprecator->maybeWarn($this->locatedSymbol('phel\\core', 'map', '/app/b.phel'));
+        $deprecator->maybeWarn($this->locatedSymbol('phel.core', 'map', '/app/a.phel'));
+        $deprecator->maybeWarn($this->locatedSymbol('phel.core', 'map', '/app/b.phel'));
 
         self::assertCount(2, $this->captured);
     }
@@ -80,7 +80,7 @@ final class BackslashSeparatorDeprecatorTest extends TestCase
     {
         $deprecator = $this->deprecator(enabled: true);
         $deprecator->maybeWarn($this->locatedSymbol(
-            'phel\\core',
+            'phel.core',
             'map',
             dirname(__DIR__, 6) . '/src/phel/walk.phel',
         ));
@@ -109,7 +109,7 @@ final class BackslashSeparatorDeprecatorTest extends TestCase
     public function test_suppresses_when_location_is_missing(): void
     {
         $deprecator = $this->deprecator(enabled: true);
-        $deprecator->maybeWarn(Symbol::createForNamespace('phel\\core', 'map'));
+        $deprecator->maybeWarn(Symbol::createForNamespace('phel.core', 'map'));
 
         self::assertSame([], $this->captured);
     }

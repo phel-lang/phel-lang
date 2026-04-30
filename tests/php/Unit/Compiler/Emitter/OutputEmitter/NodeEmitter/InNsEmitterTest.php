@@ -30,13 +30,13 @@ final class InNsEmitterTest extends TestCase
         $output = (string) ob_get_clean();
 
         self::assertStringContainsString(
-            '"my-great\\\\ns"',
+            '"my-great.ns"',
             $output,
-            'The *ns* definition should contain the original unhyphenated namespace',
+            'The *ns* definition should contain the original hyphenated namespace in display form',
         );
 
         self::assertStringNotContainsString(
-            '"my_great\\\\ns"',
+            '"my_great.ns"',
             $output,
             'The *ns* definition should not contain the munged namespace',
         );
@@ -50,6 +50,6 @@ final class InNsEmitterTest extends TestCase
         $this->inNsEmitter->emit($node);
         $output = (string) ob_get_clean();
 
-        self::assertStringContainsString('"app\\\\module"', $output);
+        self::assertStringContainsString('"app.module"', $output);
     }
 }

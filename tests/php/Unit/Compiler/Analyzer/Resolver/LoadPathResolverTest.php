@@ -35,8 +35,8 @@ final class LoadPathResolverTest extends TestCase
 
     public static function provideRelativeCases(): Generator
     {
-        yield 'sibling file' => ['phel\\core', 'extras', 'extras', 'phel'];
-        yield 'nested relative path' => ['phel\\core', 'core/extras', 'core/extras', 'phel'];
+        yield 'sibling file' => ['phel.core', 'extras', 'extras', 'phel'];
+        yield 'nested relative path' => ['phel.core', 'core/extras', 'core/extras', 'phel'];
         yield 'caller in nested namespace' => ['phel\\http\\server', 'handler', 'handler', 'phel/http'];
         yield 'top-level caller namespace' => ['app', 'helper', 'helper', ''];
     }

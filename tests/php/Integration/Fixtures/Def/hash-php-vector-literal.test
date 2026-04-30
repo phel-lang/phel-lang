@@ -4,7 +4,7 @@
 \Phel::addDefinition(
   "user",
   "arr",
-  (\Phel::getDefinition("phel\\core", "php-indexed-array"))(1, 2, 3),
+  (\Phel::getDefinition("phel.core", "php-indexed-array"))(1, 2, 3),
   \Phel::map(
     \Phel::keyword("start-location"), \Phel::map(
       \Phel::keyword("file"), "Def/hash-php-vector-literal.test",

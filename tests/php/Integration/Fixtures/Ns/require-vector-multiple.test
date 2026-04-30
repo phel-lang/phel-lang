@@ -13,19 +13,19 @@ require_once __DIR__ . '/xyz/core.php';
 require_once __DIR__ . '/xyz/foo.php';
 require_once __DIR__ . '/xyz/core2.php';
 \Phel::addDefinition(
-  "phel\\core",
+  "phel.core",
   "*file*",
   "Ns/require-vector-multiple.test"
 );
 \Phel::addDefinition(
-  "phel\\core",
+  "phel.core",
   "*ns*",
   "test"
 );
 \Phel::addDefinition(
   "test",
   "kw",
-  \Phel::keyword("f1", "xyz\\core"),
+  \Phel::keyword("f1", "xyz.core"),
   \Phel::map(
     \Phel::keyword("start-location"), \Phel::map(
       \Phel::keyword("file"), "Ns/require-vector-multiple.test",
@@ -42,7 +42,7 @@ require_once __DIR__ . '/xyz/core2.php';
 \Phel::addDefinition(
   "test",
   "kw2",
-  \Phel::keyword("f3", "xyz\\core2"),
+  \Phel::keyword("f3", "xyz.core2"),
   \Phel::map(
     \Phel::keyword("start-location"), \Phel::map(
       \Phel::keyword("file"), "Ns/require-vector-multiple.test",

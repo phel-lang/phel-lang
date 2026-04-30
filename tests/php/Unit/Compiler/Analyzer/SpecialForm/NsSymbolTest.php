@@ -212,7 +212,7 @@ final class NsSymbolTest extends TestCase
         $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
-            Symbol::create('phel\\core'),
+            Symbol::create('phel.core'),
             Symbol::create('vendor\\package'),
         ], $nsNode->getRequireNs());
         self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('package')));
@@ -326,7 +326,7 @@ final class NsSymbolTest extends TestCase
         $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
-            Symbol::create('phel\\core'),
+            Symbol::create('phel.core'),
             Symbol::create('lib\\one'),
             Symbol::create('lib\\two'),
         ], $nsNode->getRequireNs());
@@ -357,7 +357,7 @@ final class NsSymbolTest extends TestCase
         $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
-            Symbol::create('phel\\core'),
+            Symbol::create('phel.core'),
             Symbol::create('lib\\one'),
             Symbol::create('lib\\two'),
         ], $nsNode->getRequireNs());
@@ -383,7 +383,7 @@ final class NsSymbolTest extends TestCase
         $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
-            Symbol::create('phel\\core'),
+            Symbol::create('phel.core'),
             Symbol::create('my\\cljc\\file'),
         ], $nsNode->getRequireNs());
         self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('mcf')));
@@ -511,7 +511,7 @@ final class NsSymbolTest extends TestCase
 
         self::assertSame('app\\core', $nsNode->getNamespace());
         self::assertEquals([
-            Symbol::create('phel\\core'),
+            Symbol::create('phel.core'),
             Symbol::create('vendor\\package'),
         ], $nsNode->getRequireNs());
         self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('package')));
@@ -700,7 +700,7 @@ final class NsSymbolTest extends TestCase
         $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
-            Symbol::create('phel\\core'),
+            Symbol::create('phel.core'),
             Symbol::create('lib\\one'),
             Symbol::create('lib\\two'),
         ], $nsNode->getRequireNs());
@@ -726,7 +726,7 @@ final class NsSymbolTest extends TestCase
         $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
-            Symbol::create('phel\\core'),
+            Symbol::create('phel.core'),
             Symbol::create('first\\lib'),
             Symbol::create('second\\lib'),
         ], $nsNode->getRequireNs());
@@ -794,7 +794,7 @@ final class NsSymbolTest extends TestCase
         $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
-            Symbol::create('phel\\core'),
+            Symbol::create('phel.core'),
             Symbol::create('phel\\test'),
         ], $nsNode->getRequireNs());
     }
@@ -890,7 +890,7 @@ final class NsSymbolTest extends TestCase
         $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
-            Symbol::create('phel\\core'),
+            Symbol::create('phel.core'),
             Symbol::create('phel\\test'),
         ], $nsNode->getRequireNs());
         self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('test')));
@@ -921,7 +921,7 @@ final class NsSymbolTest extends TestCase
         $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
-            Symbol::create('phel\\core'),
+            Symbol::create('phel.core'),
             Symbol::create('phel\\test'),
         ], $nsNode->getRequireNs());
         self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('t')));
@@ -946,7 +946,7 @@ final class NsSymbolTest extends TestCase
         $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
-            Symbol::create('phel\\core'),
+            Symbol::create('phel.core'),
             Symbol::create('clojure\\core-test\\portability'),
         ], $nsNode->getRequireNs());
         self::assertSame('clojure\\core-test\\portability', $this->globalEnv->resolveAlias('portability'));
@@ -966,7 +966,7 @@ final class NsSymbolTest extends TestCase
         $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
-            Symbol::create('phel\\core'),
+            Symbol::create('phel.core'),
             Symbol::create('clojure\\core-test\\portability'),
         ], $nsNode->getRequireNs());
         self::assertSame('clojure\\core-test\\portability', $this->globalEnv->resolveAlias('portability'));
@@ -990,7 +990,7 @@ final class NsSymbolTest extends TestCase
         $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
-            Symbol::create('phel\\core'),
+            Symbol::create('phel.core'),
             Symbol::create('clojure\\core-test\\portability'),
         ], $nsNode->getRequireNs());
         self::assertTrue($this->globalEnv->hasRequireAlias('app\\core', Symbol::create('p')));
@@ -1034,7 +1034,7 @@ final class NsSymbolTest extends TestCase
 
         // Should remap because phel\my_lib exists (munged form of phel\my-lib)
         self::assertEquals([
-            Symbol::create('phel\\core'),
+            Symbol::create('phel.core'),
             Symbol::create('phel\\my-lib'),
         ], $nsNode->getRequireNs());
     }
@@ -1053,7 +1053,7 @@ final class NsSymbolTest extends TestCase
         $nsNode = new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
 
         self::assertEquals([
-            Symbol::create('phel\\core'),
+            Symbol::create('phel.core'),
             Symbol::create('vendor\\package'),
         ], $nsNode->getRequireNs());
         self::assertSame('vendor\\package', $this->globalEnv->resolveAlias('package'));
@@ -1077,7 +1077,7 @@ final class NsSymbolTest extends TestCase
 
         self::assertSame('vendor\\package', $nsNode->getNamespace());
         self::assertEquals([
-            Symbol::create('phel\\core'),
+            Symbol::create('phel.core'),
             Symbol::create('other\\lib'),
         ], $nsNode->getRequireNs());
         self::assertTrue($this->globalEnv->hasRequireAlias('vendor\\package', Symbol::create('ol')));
@@ -1114,7 +1114,7 @@ final class NsSymbolTest extends TestCase
         self::assertInstanceOf(NsNode::class, $nsNode);
         self::assertSame('my\\project', $nsNode->getNamespace());
         self::assertEquals([
-            Symbol::create('phel\\core'),
+            Symbol::create('phel.core'),
             Symbol::create('vendor\\package'),
         ], $nsNode->getRequireNs());
         self::assertSame(['src/config.phel'], $nsNode->getRequireFiles());

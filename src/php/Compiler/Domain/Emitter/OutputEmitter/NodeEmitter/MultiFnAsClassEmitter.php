@@ -76,7 +76,7 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
      */
     private function emitProperties(MultiFnNode $node, array $uses, int $fnCount): void
     {
-        $ns = addslashes($this->outputEmitter->mungeEncodeNs($node->getEnv()->getBoundTo()));
+        $ns = addslashes($this->outputEmitter->mungeEncodePhpNs($node->getEnv()->getBoundTo()));
         $this->outputEmitter->emitLine('public const BOUND_TO = "' . $ns . '";', $node->getStartSourceLocation());
 
         $this->closureHelper->emitProperties($uses, $node->getEnv(), $node->getStartSourceLocation());

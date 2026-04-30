@@ -57,7 +57,7 @@ final readonly class PhelFunctionRuntimeLoader
                     dirname($phelFile),
                     ...$this->runFacade->getAllPhelDirectories(),
                 ],
-                [$namespace, 'phel\\core'],
+                [$namespace, 'phel.core'],
             );
 
             foreach ($namespaceInformation as $info) {

@@ -19,7 +19,7 @@ final class VarReferencePrinterTest extends TestCase
 
     public function test_prints_namespace_with_backslashes(): void
     {
-        $ref = new VarReference('phel\\core', 'map');
+        $ref = new VarReference('phel.core', 'map');
 
         self::assertSame("#'phel\\core/map", new VarReferencePrinter()->print($ref));
     }

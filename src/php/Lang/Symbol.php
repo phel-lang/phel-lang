@@ -169,7 +169,7 @@ final class Symbol extends AbstractType implements IdenticalInterface, FnInterfa
     public function getFullName(): string
     {
         if ($this->namespace !== null && $this->namespace !== '') {
-            return $this->namespace . '/' . $this->name;
+            return $this->displayNamespace() . '/' . $this->name;
         }
 
         return $this->name;
@@ -200,5 +200,17 @@ final class Symbol extends AbstractType implements IdenticalInterface, FnInterfa
     public function identical(mixed $other): bool
     {
         return $this->equals($other);
+    }
+
+    private function displayNamespace(): string
+    {
+        // PHP class FQNs (leading `\\`) keep their backslash form so static
+        // method calls compile correctly. Plain Phel namespaces translate to
+        // dot to match the canonical form.
+        if (isset($this->namespace[0]) && $this->namespace[0] === '\\') {
+            return $this->namespace;
+        }
+
+        return str_replace('\\', '.', $this->namespace);
     }
 }

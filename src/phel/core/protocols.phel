@@ -27,7 +27,7 @@
   [name & fns]
   (let [name-str       (php/-> name (getName))
         munge          (php/new Munge)
-        class-name-str (php/. (php/-> munge (encodeNs *ns*)) "\\" (php/-> munge (encode name-str)))
+        class-name-str (php/. (php/-> munge (encodePhpNs *ns*)) "\\" (php/-> munge (encode name-str)))
         defs           (for [[fn-name args doc] :in fns
                              :let [fn-name-str (php/-> fn-name (getName))
                                    munged-fn-name (php/-> munge (encode fn-name-str))
@@ -450,7 +450,7 @@
                    (php/instanceof type-spec Symbol)
                    (let [munge    (php/new Munge)
                          name-str (php/-> type-spec (getName))]
-                     (php/. (php/-> munge (encodeNs *ns*)) "\\" (php/-> munge (encode name-str)))))
+                     (php/. (php/-> munge (encodePhpNs *ns*)) "\\" (php/-> munge (encode name-str)))))
         groups   (loop [remaining       specs
                         current-proto   nil
                         current-methods []

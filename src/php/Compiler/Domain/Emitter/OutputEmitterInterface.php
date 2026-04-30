@@ -44,7 +44,9 @@ interface OutputEmitterInterface
 
     public function mungeEncode(string $str): string;
 
-    public function mungeEncodeNs(string $str): string;
+    public function mungeEncodePhpNs(string $str): string;
+
+    public function mungeEncodeRegistryKey(string $str): string;
 
     public function emitFnWrapSuffix(?SourceLocation $sl = null): void;
 

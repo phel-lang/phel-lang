@@ -6,17 +6,17 @@
 namespace my\ns;
 require_once __DIR__ . '/../phel/core.php';
 \Phel::addDefinition(
-  "phel\\core",
+  "phel.core",
   "*file*",
   "Def/namespace-def.test"
 );
 \Phel::addDefinition(
-  "phel\\core",
+  "phel.core",
   "*ns*",
-  "my\\ns"
+  "my.ns"
 );
 \Phel::addDefinition(
-  "my\\ns",
+  "my.ns",
   "x",
   1,
   \Phel::map(

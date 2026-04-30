@@ -180,8 +180,8 @@ final class ForeachSymbolTest extends TestCase
     private function analyze(PersistentListInterface $list): ForeachNode
     {
         $env = new GlobalEnvironment();
-        $env->addDefinition('phel\\core', Symbol::create('first'));
-        $env->addDefinition('phel\\core', Symbol::create('next'));
+        $env->addDefinition('phel.core', Symbol::create('first'));
+        $env->addDefinition('phel.core', Symbol::create('next'));
 
         $analyzer = new Analyzer($env);
 

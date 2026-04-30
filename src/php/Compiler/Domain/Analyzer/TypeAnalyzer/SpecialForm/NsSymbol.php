@@ -37,7 +37,7 @@ final class NsSymbol implements SpecialFormAnalyzerInterface
     private const string INVALID_NAMESPACE_MESSAGE = <<<'TXT'
 Invalid namespace. A valid namespace name starts with a letter or underscore,
 followed by any number of letters, numbers, underscores, or dashes.
-Elements are split by a backslash.
+Elements are split by a dot.
 TXT;
 
     private const string NAMESPACE_PART_PATTERN = '/^[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\-\x7f-\xff]*$/';
@@ -52,7 +52,7 @@ TXT;
         BackslashSeparatorDeprecator::getInstance()->maybeWarn($nsSymbol);
 
         $ns = $this->normalizeNamespaceSeparators($nsSymbol->getName());
-        $parts = explode('\\', $ns);
+        $parts = explode('.', $ns);
 
         $this->assertValidNamespace($parts, $nsSymbol);
 
@@ -127,7 +127,7 @@ TXT;
             return $alias;
         }
 
-        $parts = explode('\\', $symbol->getName());
+        $parts = explode('.', $symbol->getName());
 
         return Symbol::create($parts[count($parts) - 1]);
     }
@@ -385,19 +385,19 @@ TXT;
     }
 
     /**
-     * Accepts `.` as an alternate namespace separator (Clojure / `.cljc`
-     * style) and rewrites it to Phel's canonical `\` so the rest of the
-     * compiler pipeline only ever sees backslash-separated names.
+     * Accepts `\` as an alternate namespace separator (legacy Phel form)
+     * and rewrites it to the canonical `.` so the rest of the compiler
+     * pipeline only ever sees dot-separated names.
      */
     private function normalizeNamespaceSeparators(string $ns): string
     {
-        return str_replace('.', '\\', $ns);
+        return str_replace('\\', '.', $ns);
     }
 
     private function normalizeSymbolSeparators(Symbol $symbol): Symbol
     {
         $name = $symbol->getName();
-        if (!str_contains($name, '.')) {
+        if (!str_contains($name, '\\')) {
             return $symbol;
         }
 
@@ -420,11 +420,11 @@ TXT;
     private function remapClojureNamespace(Symbol $symbol): Symbol
     {
         $name = $symbol->getName();
-        if (!str_starts_with($name, 'clojure\\')) {
+        if (!str_starts_with($name, 'clojure.')) {
             return $symbol;
         }
 
-        $targetNs = 'phel\\' . substr($name, 8);
+        $targetNs = 'phel.' . substr($name, 8);
         $mungedNs = str_replace('-', '_', $targetNs);
 
         if (Registry::getInstance()->getDefinitionInNamespace($mungedNs) === []) {

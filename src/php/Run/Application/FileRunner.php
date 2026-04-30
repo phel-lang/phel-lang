@@ -34,7 +34,7 @@ final readonly class FileRunner
         // the user source is compiled.
         new DataReadersLoader($this->buildFacade)->load($directories);
 
-        $infos = $this->buildFacade->getDependenciesForNamespace($directories, [$namespace, 'phel\\core']);
+        $infos = $this->buildFacade->getDependenciesForNamespace($directories, [$namespace, 'phel.core']);
         foreach ($infos as $info) {
             $this->buildFacade->evalFile($info->getFile());
         }

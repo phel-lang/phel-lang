@@ -4,7 +4,7 @@
 \Phel::addDefinition(
   "user",
   "arr",
-  (\Phel::getDefinition("phel\\core", "php-associative-array"))("a", 1, "b", 2),
+  (\Phel::getDefinition("phel.core", "php-associative-array"))("a", 1, "b", 2),
   \Phel::map(
     \Phel::keyword("start-location"), \Phel::map(
       \Phel::keyword("file"), "Def/hash-php-map-literal.test",

@@ -58,10 +58,10 @@ final class SessionRegistryTest extends TestCase
         self::assertSame('user', $session->namespace());
         self::assertNull($session->lastValue());
 
-        $session->setNamespace('phel\\core');
+        $session->setNamespace('phel.core');
         $session->recordValue(42);
 
-        self::assertSame('phel\\core', $session->namespace());
+        self::assertSame('phel.core', $session->namespace());
         self::assertSame(42, $session->lastValue());
     }
 }

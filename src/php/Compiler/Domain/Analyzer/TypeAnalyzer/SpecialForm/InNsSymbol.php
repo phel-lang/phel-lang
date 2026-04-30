@@ -62,9 +62,9 @@ final class InNsSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation('Namespace cannot be empty', $list);
         }
 
-        // Accept `.` as an alternate namespace separator (Clojure / `.cljc`
-        // style) and rewrite it to Phel's canonical `\`.
-        $ns = str_replace('.', '\\', $rawNs);
+        // Accept `\` as an alternate namespace separator (legacy Phel form)
+        // and rewrite it to the canonical `.`.
+        $ns = str_replace('\\', '.', $rawNs);
 
         $this->analyzer->setNamespace($ns);
 

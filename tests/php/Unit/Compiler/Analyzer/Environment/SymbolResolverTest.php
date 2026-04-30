@@ -136,13 +136,13 @@ final class SymbolResolverTest extends TestCase
 
     public function test_resolve_unqualified_falls_back_to_phel_core(): void
     {
-        $this->globalEnv->addDefinition('phel\\core', Symbol::create('x'));
+        $this->globalEnv->addDefinition('phel.core', Symbol::create('x'));
         $this->globalEnv->setNs('bar');
 
         $nodeEnv = NodeEnvironment::empty();
 
         self::assertEquals(
-            new GlobalVarNode($nodeEnv, 'phel\\core', Symbol::create('x'), Phel::map()),
+            new GlobalVarNode($nodeEnv, 'phel.core', Symbol::create('x'), Phel::map()),
             $this->resolver->resolve(Symbol::create('x'), $nodeEnv),
         );
     }
@@ -385,7 +385,7 @@ final class SymbolResolverTest extends TestCase
         );
         $resolver = new SymbolResolver($this->globalEnv, new MagicConstantResolver(), $deprecator);
 
-        $sym = Symbol::createForNamespace('phel\\core', 'map');
+        $sym = Symbol::createForNamespace('phel.core', 'map');
         $sym->setStartLocation(new SourceLocation('/app/user.phel', 1, 1));
 
         $resolver->resolve($sym, NodeEnvironment::empty());

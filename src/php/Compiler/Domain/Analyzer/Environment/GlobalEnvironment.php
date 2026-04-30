@@ -298,6 +298,6 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     private function mungeEncodeNs(string $ns): string
     {
-        return str_replace('-', '_', $ns);
+        return str_replace(['\\', '-'], ['.', '_'], $ns);
     }
 }

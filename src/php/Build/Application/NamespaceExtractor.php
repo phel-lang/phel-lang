@@ -84,7 +84,7 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
                 return new NamespaceInformation(
                     $realFile !== false ? $realFile : $path,
                     $namespace,
-                    ($namespace === 'phel\\core') ? [] : ['phel\\core'],
+                    ($namespace === 'phel.core') ? [] : ['phel.core'],
                     isPrimaryDefinition: false,
                 );
             }

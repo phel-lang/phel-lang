@@ -32,11 +32,11 @@ final class SymbolResolverTest extends TestCase
 
     public function test_split_resolves_bare_name_against_index(): void
     {
-        $def = new Definition('phel\\core', 'map', 'file:///core.phel', 1, 1, Definition::KIND_DEFN, [], '', false);
+        $def = new Definition('phel.core', 'map', 'file:///core.phel', 1, 1, Definition::KIND_DEFN, [], '', false);
         $index = new ProjectIndex(['phel\\core/map' => $def]);
         $resolver = new SymbolResolver();
 
-        self::assertSame(['phel\\core', 'map'], $resolver->split('map', $index));
+        self::assertSame(['phel.core', 'map'], $resolver->split('map', $index));
     }
 
     public function test_split_returns_empty_namespace_for_unknown_bare_name(): void

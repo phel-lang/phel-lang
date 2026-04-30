@@ -18,7 +18,7 @@ final class ReplReferInjector
             return;
         }
 
-        $replSymbol = Symbol::create('phel\\repl');
+        $replSymbol = Symbol::create('phel.repl');
         $analyzer->addRequireAlias($ns, Symbol::create('repl'), $replSymbol);
         $analyzer->addRefers(
             $ns,

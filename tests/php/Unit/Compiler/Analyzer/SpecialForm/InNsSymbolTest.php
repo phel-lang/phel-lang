@@ -229,7 +229,7 @@ final class InNsSymbolTest extends TestCase
 
         $aliases = $globalEnv->getRequireAliases('my\\new-ns');
         self::assertArrayHasKey('repl', $aliases, 'repl alias should be registered after in-ns in REPL mode');
-        self::assertSame('phel\\repl', $aliases['repl']->getName());
+        self::assertSame('phel.repl', $aliases['repl']->getName());
 
         $refers = $globalEnv->getRefers('my\\new-ns');
         self::assertArrayHasKey('doc', $refers, 'doc should be referred after in-ns in REPL mode');

@@ -229,7 +229,7 @@
   "Encodes a namespace string for registry lookup."
   [ns-str]
   (let [munge (php/new Munge)]
-    (php/-> munge (encodeNs ns-str))))
+    (php/-> munge (encodePhpNs ns-str))))
 
 (defn get-symbol-info
   "Returns a hash-map of structured metadata for the definition identified by

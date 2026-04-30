@@ -96,7 +96,7 @@ class NsCommand extends Command
     {
         return $this->getFacade()->getDependenciesForNamespace(
             $this->getFacade()->getAllPhelDirectories(),
-            [$ns, 'phel\\core'],
+            [$ns, 'phel.core'],
         );
     }
 

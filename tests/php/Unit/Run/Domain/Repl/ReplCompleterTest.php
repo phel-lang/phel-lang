@@ -39,7 +39,7 @@ final class ReplCompleterTest extends TestCase
     public function test_phel_function_completion(): void
     {
         $fn = self::createStub(FnInterface::class);
-        Phel::addDefinition('phel\\core', 'myfn', $fn);
+        Phel::addDefinition('phel.core', 'myfn', $fn);
 
         self::assertSame(['myfn'], $this->completer->complete('my'));
     }
@@ -110,7 +110,7 @@ final class ReplCompleterTest extends TestCase
     public function test_function_has_function_type(): void
     {
         $fn = self::createStub(FnInterface::class);
-        Phel::addDefinition('phel\\core', 'myfn', $fn);
+        Phel::addDefinition('phel.core', 'myfn', $fn);
 
         $results = $this->completer->completeWithTypes('my');
 
@@ -124,7 +124,7 @@ final class ReplCompleterTest extends TestCase
     {
         $fn = self::createStub(FnInterface::class);
         $meta = Phel::map(Keyword::create('macro'), true);
-        Phel::addDefinition('phel\\core', 'my-macro', $fn, $meta);
+        Phel::addDefinition('phel.core', 'my-macro', $fn, $meta);
 
         $results = $this->completer->completeWithTypes('my-mac');
 
@@ -135,7 +135,7 @@ final class ReplCompleterTest extends TestCase
 
     public function test_var_has_var_type(): void
     {
-        Phel::addDefinition('phel\\core', 'my-var', 42);
+        Phel::addDefinition('phel.core', 'my-var', 42);
 
         $results = $this->completer->completeWithTypes('my-va');
 
@@ -146,7 +146,7 @@ final class ReplCompleterTest extends TestCase
 
     public function test_keyword_has_keyword_type(): void
     {
-        Phel::addDefinition('phel\\core', 'my-kw', Keyword::create('test'));
+        Phel::addDefinition('phel.core', 'my-kw', Keyword::create('test'));
 
         $results = $this->completer->completeWithTypes('my-kw');
 
@@ -222,7 +222,7 @@ final class ReplCompleterTest extends TestCase
     public function test_complete_still_returns_strings(): void
     {
         $fn = self::createStub(FnInterface::class);
-        Phel::addDefinition('phel\\core', 'myfn', $fn);
+        Phel::addDefinition('phel.core', 'myfn', $fn);
 
         $results = $this->completer->complete('my');
 

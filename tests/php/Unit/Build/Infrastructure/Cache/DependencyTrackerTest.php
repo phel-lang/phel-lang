@@ -40,7 +40,7 @@ final class DependencyTrackerTest extends TestCase
         $compiledCache->put($fileA, 'app\\a', md5('(ns app\\a)'), '$x = 1;');
         $compiledCache->put($fileB, 'app\\b', md5('(ns app\\b)'), '$y = 2;');
 
-        $tracker->registerDependencies($fileA, 'app\\a', ['phel\\core']);
+        $tracker->registerDependencies($fileA, 'app\\a', ['phel.core']);
         $tracker->registerDependencies($fileB, 'app\\b', ['app\\a']);
 
         // Verify both are cached
@@ -67,8 +67,8 @@ final class DependencyTrackerTest extends TestCase
         $compiledCache->put($fileA, 'app\\a', md5('(ns app\\a)'), '$x = 1;');
         $compiledCache->put($fileC, 'app\\c', md5('(ns app\\c)'), '$z = 3;');
 
-        $tracker->registerDependencies($fileA, 'app\\a', ['phel\\core']);
-        $tracker->registerDependencies($fileC, 'app\\c', ['phel\\core']);
+        $tracker->registerDependencies($fileA, 'app\\a', ['phel.core']);
+        $tracker->registerDependencies($fileC, 'app\\c', ['phel.core']);
 
         // Invalidate app\a — file-c should NOT be invalidated (no dependency on app\a)
         $invalidated = $tracker->invalidateDependentsOf('app\\a', $compiledCache);

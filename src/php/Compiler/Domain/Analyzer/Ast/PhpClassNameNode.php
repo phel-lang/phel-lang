@@ -32,7 +32,7 @@ final class PhpClassNameNode extends AbstractNode
     {
         if ($this->name->getNamespace() !== null && $this->name->getNamespace() !== '') {
             $munge = new Munge();
-            $mungeNs = $munge->encodeNs($this->name->getNamespace());
+            $mungeNs = $munge->encodePhpNs($this->name->getNamespace());
             /** @psalm-var class-string $classString */
             $classString = '\\' . $mungeNs . '\\' . $this->name->getName();
             return $classString;

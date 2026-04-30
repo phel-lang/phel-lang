@@ -55,7 +55,7 @@ final class NamespaceLoader
 
         $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
             $srcDirectories,
-            [$namespace, 'phel\\core'],
+            [$namespace, 'phel.core'],
         );
 
         foreach ($namespaceInformation as $info) {

@@ -36,8 +36,8 @@ final class NamespaceFileGrouperTest extends TestCase
 
     public function test_local_primary_wins_over_phar_bundle(): void
     {
-        $pharInfo = new NamespaceInformation('phar:///tmp/phel.phar/src/phel/core.phel', 'phel\\core', []);
-        $localInfo = new NamespaceInformation('/workspace/src/phel/core.phel', 'phel\\core', []);
+        $pharInfo = new NamespaceInformation('phar:///tmp/phel.phar/src/phel/core.phel', 'phel.core', []);
+        $localInfo = new NamespaceInformation('/workspace/src/phel/core.phel', 'phel.core', []);
 
         $result = $this->grouper->groupAndSort([$pharInfo, $localInfo]);
 
@@ -48,8 +48,8 @@ final class NamespaceFileGrouperTest extends TestCase
 
     public function test_local_primary_wins_even_when_phar_iterated_last(): void
     {
-        $localInfo = new NamespaceInformation('/workspace/src/phel/core.phel', 'phel\\core', []);
-        $pharInfo = new NamespaceInformation('phar:///tmp/phel.phar/src/phel/core.phel', 'phel\\core', []);
+        $localInfo = new NamespaceInformation('/workspace/src/phel/core.phel', 'phel.core', []);
+        $pharInfo = new NamespaceInformation('phar:///tmp/phel.phar/src/phel/core.phel', 'phel.core', []);
 
         $result = $this->grouper->groupAndSort([$localInfo, $pharInfo]);
 
@@ -86,11 +86,11 @@ final class NamespaceFileGrouperTest extends TestCase
 
     public function test_local_secondaries_are_preserved_alongside_phar_primary(): void
     {
-        $pharPrimary = new NamespaceInformation('phar:///tmp/phel.phar/src/phel/core.phel', 'phel\\core', []);
-        $localPrimary = new NamespaceInformation('/workspace/src/phel/core.phel', 'phel\\core', []);
+        $pharPrimary = new NamespaceInformation('phar:///tmp/phel.phar/src/phel/core.phel', 'phel.core', []);
+        $localPrimary = new NamespaceInformation('/workspace/src/phel/core.phel', 'phel.core', []);
         $localSecondary = new NamespaceInformation(
             '/workspace/src/phel/core_helpers.phel',
-            'phel\\core',
+            'phel.core',
             [],
             isPrimaryDefinition: false,
         );
