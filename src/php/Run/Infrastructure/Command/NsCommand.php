@@ -7,6 +7,7 @@ namespace Phel\Run\Infrastructure\Command;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
+use Phel\Compiler\Application\Munge;
 use Phel\Run\RunFacade;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -16,6 +17,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 use function count;
 use function implode;
+use function is_string;
 use function sprintf;
 
 #[ServiceMap(method: 'getFacade', className: RunFacade::class)]
@@ -42,7 +44,9 @@ class NsCommand extends Command
             return $this->listLoadedNamespaces($output, $isSimple);
         }
 
-        return $this->displayNamespaceDependencies($nsToInspect, $output, $isSimple);
+        $namespace = is_string($nsToInspect) ? Munge::canonicalNs($nsToInspect) : $nsToInspect;
+
+        return $this->displayNamespaceDependencies($namespace, $output, $isSimple);
     }
 
     private function listLoadedNamespaces(OutputInterface $output, bool $simple): int

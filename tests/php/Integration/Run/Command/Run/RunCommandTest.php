@@ -32,6 +32,16 @@ final class RunCommandTest extends AbstractTestCommand
         );
     }
 
+    public function test_run_by_namespace_accepts_dot_form(): void
+    {
+        $this->expectOutputRegex('~hello world~');
+
+        $this->createRunCommand()->run(
+            $this->stubInput('test.test-script'),
+            $this->stubOutput(),
+        );
+    }
+
     public function test_run_by_filename(): void
     {
         $this->expectOutputRegex('~hello world~');

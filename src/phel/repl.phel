@@ -236,7 +236,8 @@
         :deprecated, :min-arity, :max-arity, :is-variadic, :ns, :name"
   {:example "(get-symbol-info \"phel\\core\" \"map\")"}
   [ns-str name-str]
-  (let [encoded-ns   (munge-ns ns-str)
+  (let [canonical    (canonical-ns ns-str)
+        encoded-ns   (munge-ns canonical)
         munge        (php/new Munge)
         encoded-name (php/-> munge (encode name-str))
         meta         (php/:: Phel (getDefinitionMetaData encoded-ns encoded-name))]
@@ -254,7 +255,7 @@
          :min-arity (get meta "min-arity")
          :max-arity (get meta "max-arity")
          :is-variadic (or (get meta "is-variadic") false)
-         :ns ns-str
+         :ns canonical
          :name name-str}))))
 
 (defmacro symbol-info

@@ -19,6 +19,17 @@
   ;; Munge is a final readonly class; reuse a single instance to avoid per-call allocation.
   (php/new Munge))
 
+(defn canonical-ns
+  "Returns the canonical form of a namespace string by translating dot
+  separators to backslash. The dot form is the source-level separator
+  introduced for Clojure-aligned syntax; the registry, emitter, and
+  analyzer key off the backslash form. Use this when accepting a
+  namespace string from a user and forwarding it to namespace APIs."
+  {:example "(canonical-ns \"phel.core\") ; => \"phel\\core\""
+   :see-also ["find-ns" "create-ns" "intern"]}
+  [ns-str]
+  (php/:: Munge (canonicalNs ns-str)))
+
 (defn- core-munge-ns
   "Encodes a namespace string for registry lookup."
   [ns-str]
@@ -35,8 +46,9 @@
   {:example "(find-ns \"phel\\core\") ; => \"phel\\core\""
    :see-also ["create-ns" "remove-ns" "loaded-namespaces"]}
   [ns-str]
-  (when (php/:: Phel (hasNamespace (core-munge-ns ns-str)))
-    ns-str))
+  (let [canonical (canonical-ns ns-str)]
+    (when (php/:: Phel (hasNamespace (core-munge-ns canonical)))
+      canonical)))
 
 (defn create-ns
   "Creates the given namespace if it does not already exist. Returns the
@@ -44,8 +56,9 @@
   {:example "(create-ns \"my-app\\tmp\") ; => \"my-app\\tmp\""
    :see-also ["find-ns" "remove-ns" "intern"]}
   [ns-str]
-  (php/:: Phel (registerNamespace (core-munge-ns ns-str)))
-  ns-str)
+  (let [canonical (canonical-ns ns-str)]
+    (php/:: Phel (registerNamespace (core-munge-ns canonical)))
+    canonical))
 
 (defn remove-ns
   "Removes the namespace and all of its definitions from the registry.
@@ -81,14 +94,15 @@
   {:example "(intern \"user\" \"x\" 42) ; => user/x"
    :see-also ["var-get" "find-ns" "create-ns" "ns-interns"]}
   [ns-str name-str & rest]
-  (let [encoded-ns   (core-munge-ns ns-str)
+  (let [canonical    (canonical-ns ns-str)
+        encoded-ns   (core-munge-ns canonical)
         encoded-name (core-munge-name name-str)]
     (if (seq rest)
       (php/:: Phel (addDefinition encoded-ns encoded-name (first rest)))
       ;; skip when no value is provided and the definition already exists
       (when-not (php/:: Phel (isDefined encoded-ns encoded-name))
         (php/:: Phel (addDefinition encoded-ns encoded-name nil))))
-    (php/:: Symbol (createForNamespace ns-str name-str))))
+    (php/:: Symbol (createForNamespace canonical name-str))))
 
 (defn var-get
   "Takes a fully-qualified symbol and resolves it from the namespace registry,
@@ -131,7 +145,7 @@
    :see-also ["ns-publics" "ns-refers" "loaded-namespaces"]}
   [ns-str]
   (let [env     (php/:: GlobalEnvironmentSingleton (getInstance))
-        aliases (php/-> env (getRequireAliases ns-str))
+        aliases (php/-> env (getRequireAliases (canonical-ns ns-str)))
         result  (transient {})]
     (foreach [alias-name target-sym aliases]
       (assoc! result alias-name (php/-> target-sym (getName))))
@@ -144,7 +158,7 @@
    :see-also ["ns-publics" "ns-aliases" "loaded-namespaces"]}
   [ns-str]
   (let [env    (php/:: GlobalEnvironmentSingleton (getInstance))
-        refers (php/-> env (getRefers ns-str))
+        refers (php/-> env (getRefers (canonical-ns ns-str)))
         result (transient {})]
     (foreach [refer-name source-sym refers]
       (assoc! result refer-name (php/-> source-sym (getName))))

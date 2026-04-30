@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - Namespace introspection: `loaded-namespaces`, `find-ns`, `create-ns`, `remove-ns`, `intern`, `ns-interns`, `ns-publics`, `ns-aliases`, `ns-refers`, `load-file` (#1694)
 - `var-get` resolves a symbol to its registry value (#1774)
 - `(rand n)` returns a number in `[0, n)` (#1696)
+- `canonical-ns` returns the canonical (backslash) form of a namespace string (#1795)
 
 #### REPL
 - `require` accepts vector syntax: `(require '[phel\string :as s])` (#1693)
@@ -52,6 +53,7 @@ All notable changes to this project will be documented in this file.
 - `parents`/`ancestors` of a record/type extended with a protocol include the protocol value (#1791, #1792)
 - `descendants` of a protocol returns nil for records/types extended via `defrecord`/`deftype` (#1793)
 - `take` realizes exactly `n` elements from a lazy source
+- Namespace-string APIs (`find-ns`, `create-ns`, `remove-ns`, `ns-interns`, `ns-publics`, `ns-aliases`, `ns-refers`, `intern`, `dir`, `get-symbol-info`) and CLI commands (`phel run`, `phel ns`) accept dot and backslash separators interchangeably (#1795)
 - `seq?` recognizes lists and `seq`/`rseq` over vectors, sorted-maps, sorted-sets (#1700)
 - `special-symbol?` recognizes `&`, `catch`, `finally` (#1701)
 - `binding` rebinds dynamic vars to `nil` (#1702)
