@@ -58,15 +58,21 @@ final class NamespaceLoader
         LoadClasspath::publish($srcDirectories);
 
         $this->evaluateAll($this->resolveSeeds($namespace), $srcDirectories);
-
-        // Bundled modules each switch the global namespace as they evaluate;
-        // restore the startup namespace so the REPL/eval session lands in the
-        // expected scope (matching the pre-bundled-seeding behavior).
-        GlobalEnvironmentSingleton::getInstance()->setNs($namespace);
+        $this->restoreStartupNamespace($namespace);
 
         Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, '*file*', '');
 
         $this->loadDataReaders($srcDirectories);
+    }
+
+    /**
+     * Bundled modules each switch the global namespace as they evaluate;
+     * restore the startup namespace so the REPL/eval session lands in the
+     * expected scope (matching the pre-bundled-seeding behavior).
+     */
+    private function restoreStartupNamespace(string $namespace): void
+    {
+        GlobalEnvironmentSingleton::getInstance()->setNs($namespace);
     }
 
     /**
