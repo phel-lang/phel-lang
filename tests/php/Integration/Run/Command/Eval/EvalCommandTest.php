@@ -8,6 +8,7 @@ use Phel\Phel;
 use Phel\Run\Infrastructure\Command\EvalCommand;
 use Phel\Run\Infrastructure\PhpStdinReader;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
+use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\Console\Input\InputInterface;
 
 final class EvalCommandTest extends AbstractTestCommand
@@ -27,12 +28,25 @@ final class EvalCommandTest extends AbstractTestCommand
         );
     }
 
-    public function test_eval_resolves_phel_async_fqn_without_explicit_require(): void
+    /**
+     * @return iterable<string, array{0: string, 1: string}>
+     */
+    public static function bundledNamespaceFqnProvider(): iterable
     {
-        $this->expectOutputRegex('/<function:delay>/');
+        yield 'phel.async/delay'        => ['phel.async/delay',        '/<function:delay>/'];
+        yield 'phel.html/escape-html'   => ['phel.html/escape-html',   '/<function:escape-html>/'];
+        yield 'phel.json/encode'        => ['phel.json/encode',        '/<function:encode>/'];
+    }
+
+    #[DataProvider('bundledNamespaceFqnProvider')]
+    public function test_eval_resolves_bundled_namespace_fqn_without_explicit_require(
+        string $expression,
+        string $expectedOutputRegex,
+    ): void {
+        $this->expectOutputRegex($expectedOutputRegex);
 
         $exitCode = $this->createEvalCommand()->run(
-            $this->stubInput('phel.async/delay'),
+            $this->stubInput($expression),
             $this->stubOutput(),
         );
 

@@ -8,6 +8,7 @@ use Gacela\Framework\AbstractFactory;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
+use Phel\Run\Application\BundledNamespaces;
 use Phel\Run\Application\EntryPointDetector;
 use Phel\Run\Application\EvalExecutor;
 use Phel\Run\Application\FileRunner;
@@ -65,6 +66,15 @@ class RunFactory extends AbstractFactory
     public function createNamespaceCollector(): NamespaceCollector
     {
         return new NamespaceCollector(
+            $this->getBuildFacade(),
+            $this->getCommandFacade(),
+            $this->createBundledNamespaces(),
+        );
+    }
+
+    public function createBundledNamespaces(): BundledNamespaces
+    {
+        return new BundledNamespaces(
             $this->getBuildFacade(),
             $this->getCommandFacade(),
         );
@@ -138,6 +148,7 @@ class RunFactory extends AbstractFactory
         return new NamespaceLoader(
             $this->getBuildFacade(),
             $this->getCommandFacade(),
+            $this->createBundledNamespaces(),
             $this->getConfig()->getReplStartupFile(),
         );
     }
