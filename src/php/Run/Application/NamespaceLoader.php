@@ -6,10 +6,13 @@ namespace Phel\Run\Application;
 
 use Phel;
 use Phel\Compiler\Domain\Analyzer\Resolver\LoadClasspath;
+use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Shared\CompilerConstants;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 
+use function array_unique;
+use function array_values;
 use function dirname;
 use function file_exists;
 use function getcwd;
@@ -23,6 +26,7 @@ final class NamespaceLoader
     public function __construct(
         private readonly BuildFacadeInterface $buildFacade,
         private readonly CommandFacadeInterface $commandFacade,
+        private readonly BundledNamespaces $bundledNamespaces,
         private readonly string $defaultReplStartupFile,
     ) {}
 
@@ -53,9 +57,18 @@ final class NamespaceLoader
         // classpath-relative paths against the search roots.
         LoadClasspath::publish($srcDirectories);
 
+        // Seed dependency resolution with both the startup namespace and every
+        // bundled `phel.*` module so fully qualified references like
+        // `phel.async/delay` or `phel.json/encode` work without forcing user
+        // code to spell out a `(:require ...)` for each one.
+        $seeds = [$namespace, CompilerConstants::PHEL_CORE_NAMESPACE];
+        foreach ($this->bundledNamespaces->all() as $bundled) {
+            $seeds[] = $bundled;
+        }
+
         $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
             $srcDirectories,
-            [$namespace, 'phel.core'],
+            array_values(array_unique($seeds)),
         );
 
         foreach ($namespaceInformation as $info) {
@@ -65,6 +78,11 @@ final class NamespaceLoader
                 self::$loadedFiles[$file] = true;
             }
         }
+
+        // Bundled modules each switch the global namespace as they evaluate;
+        // restore the startup namespace so the REPL/eval session lands in the
+        // expected scope (matching the pre-bundled-seeding behavior).
+        GlobalEnvironmentSingleton::getInstance()->setNs($namespace);
 
         Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, '*file*', '');
 

@@ -1,0 +1,11 @@
+(ns phel\test\phel-async-fqn-regression
+  (:require phel.test :refer [deftest is]))
+
+(deftest phel-async-delay-resolves-via-fqn
+  (is (function? phel.async/delay)))
+
+(deftest phel-html-escape-resolves-via-fqn
+  (is (function? phel.html/escape-html)))
+
+(deftest phel-json-encode-resolves-via-fqn
+  (is (function? phel.json/encode)))

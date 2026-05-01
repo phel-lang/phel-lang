@@ -5,15 +5,20 @@ declare(strict_types=1);
 namespace Phel\Run\Domain\Runner;
 
 use Phel\Build\Domain\Extractor\NamespaceInformation;
+use Phel\Run\Application\BundledNamespaces;
 use Phel\Run\Domain\Test\CannotFindAnyTestsException;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
+
+use function array_unique;
+use function array_values;
 
 final readonly class NamespaceCollector
 {
     public function __construct(
         private BuildFacadeInterface $buildFacade,
         private CommandFacadeInterface $commandFacade,
+        private BundledNamespaces $bundledNamespaces,
     ) {}
 
     /**
@@ -26,7 +31,9 @@ final readonly class NamespaceCollector
             throw CannotFindAnyTestsException::inPaths($paths);
         }
 
-        $namespaces[] = 'phel.test';
+        foreach ($this->bundledNamespaces->all() as $bundled) {
+            $namespaces[] = $bundled;
+        }
 
         return $this->buildFacade->getDependenciesForNamespace(
             [
@@ -34,7 +41,7 @@ final readonly class NamespaceCollector
                 ...$this->commandFacade->getTestDirectories(),
                 ...$this->commandFacade->getVendorSourceDirectories(),
             ],
-            $namespaces,
+            array_values(array_unique($namespaces)),
         );
     }
 

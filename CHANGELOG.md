@@ -108,11 +108,12 @@ All notable changes to this project will be documented in this file.
 - Default reporter prints string literals readably in failures (#1601)
 - `phel test --stack-trace` opts into the full PHP stack trace; default omits it (#1695)
 - `phel test` seeds `phel.test` in canonical dot form so `clojure.test :as t` aliases remap correctly in `.cljc` sources (#1807)
+- `phel test` seeds every bundled `phel.*` module so fully qualified references like `phel.async/delay`, `phel.html/escape-html`, `phel.json/encode` compile in test files without an explicit `(:require ...)` (#1805)
 
 #### REPL
 - Bare namespace symbols in `dir` (#1588)
 - Preserve current namespace across autocompletion and nREPL `completions`/`lookup` (#1692)
-- `phel.async/delay` resolves via fully qualified name without explicit `(require phel.async)` (#1805)
+- Every bundled `phel.*` module (`phel.async`, `phel.html`, `phel.json`, ...) resolves via fully qualified name without explicit `(:require ...)` from REPL and `phel eval` (#1805)
 
 #### Compiler
 - Resolve PHP class aliases consistently regardless of case (#1567)

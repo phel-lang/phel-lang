@@ -39,6 +39,30 @@ final class EvalCommandTest extends AbstractTestCommand
         self::assertSame(0, $exitCode);
     }
 
+    public function test_eval_resolves_phel_html_fqn_without_explicit_require(): void
+    {
+        $this->expectOutputRegex('/<function:escape-html>/');
+
+        $exitCode = $this->createEvalCommand()->run(
+            $this->stubInput('phel.html/escape-html'),
+            $this->stubOutput(),
+        );
+
+        self::assertSame(0, $exitCode);
+    }
+
+    public function test_eval_resolves_phel_json_fqn_without_explicit_require(): void
+    {
+        $this->expectOutputRegex('/<function:encode>/');
+
+        $exitCode = $this->createEvalCommand()->run(
+            $this->stubInput('phel.json/encode'),
+            $this->stubOutput(),
+        );
+
+        self::assertSame(0, $exitCode);
+    }
+
     public function test_eval_resolves_bare_stdclass(): void
     {
         $this->expectOutputRegex('/Printer cannot print this type: .*stdClass/');
