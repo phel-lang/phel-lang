@@ -31,9 +31,13 @@ final readonly class NamespaceCollector
             throw CannotFindAnyTestsException::inPaths($paths);
         }
 
-        foreach ($this->bundledNamespaces->all() as $bundled) {
-            $namespaces[] = $bundled;
-        }
+        // Seed the bundled `phel.*` modules alongside the user test namespaces
+        // so test files can reach them via FQN (`phel.async/delay`, ...) without
+        // forcing each one to declare a `(:require ...)`.
+        $seeds = array_values(array_unique([
+            ...$namespaces,
+            ...$this->bundledNamespaces->all(),
+        ]));
 
         return $this->buildFacade->getDependenciesForNamespace(
             [
@@ -41,7 +45,7 @@ final readonly class NamespaceCollector
                 ...$this->commandFacade->getTestDirectories(),
                 ...$this->commandFacade->getVendorSourceDirectories(),
             ],
-            array_values(array_unique($namespaces)),
+            $seeds,
         );
     }
 

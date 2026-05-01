@@ -4,14 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Run\Application;
 
-use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 
-use function array_filter;
-use function array_map;
-use function array_unique;
-use function array_values;
+use function sort;
 use function str_starts_with;
 
 final readonly class BundledNamespaces
@@ -48,16 +44,17 @@ final readonly class BundledNamespaces
             return [];
         }
 
-        $namespaces = array_map(
-            static fn(NamespaceInformation $info): string => $info->getNamespace(),
-            $this->buildFacade->getNamespaceFromDirectories($directories),
-        );
+        $bundled = [];
+        foreach ($this->buildFacade->getNamespaceFromDirectories($directories) as $info) {
+            $ns = $info->getNamespace();
+            if (str_starts_with($ns, self::BUNDLED_NAMESPACE_PREFIX)) {
+                $bundled[$ns] = true;
+            }
+        }
 
-        $bundled = array_filter(
-            $namespaces,
-            static fn(string $ns): bool => str_starts_with($ns, self::BUNDLED_NAMESPACE_PREFIX),
-        );
+        $namespaces = array_keys($bundled);
+        sort($namespaces);
 
-        return array_values(array_unique($bundled));
+        return $namespaces;
     }
 }

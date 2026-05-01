@@ -57,27 +57,7 @@ final class NamespaceLoader
         // classpath-relative paths against the search roots.
         LoadClasspath::publish($srcDirectories);
 
-        // Seed dependency resolution with both the startup namespace and every
-        // bundled `phel.*` module so fully qualified references like
-        // `phel.async/delay` or `phel.json/encode` work without forcing user
-        // code to spell out a `(:require ...)` for each one.
-        $seeds = [$namespace, CompilerConstants::PHEL_CORE_NAMESPACE];
-        foreach ($this->bundledNamespaces->all() as $bundled) {
-            $seeds[] = $bundled;
-        }
-
-        $namespaceInformation = $this->buildFacade->getDependenciesForNamespace(
-            $srcDirectories,
-            array_values(array_unique($seeds)),
-        );
-
-        foreach ($namespaceInformation as $info) {
-            $file = $info->getFile();
-            if (!isset(self::$loadedFiles[$file])) {
-                $this->buildFacade->evalFile($file);
-                self::$loadedFiles[$file] = true;
-            }
-        }
+        $this->evaluateAll($this->resolveSeeds($namespace), $srcDirectories);
 
         // Bundled modules each switch the global namespace as they evaluate;
         // restore the startup namespace so the REPL/eval session lands in the
@@ -87,6 +67,38 @@ final class NamespaceLoader
         Phel::addDefinition(CompilerConstants::PHEL_CORE_NAMESPACE, '*file*', '');
 
         $this->loadDataReaders($srcDirectories);
+    }
+
+    /**
+     * Seed dependency resolution with both the startup namespace and every
+     * bundled `phel.*` module so fully qualified references like
+     * `phel.async/delay` or `phel.json/encode` work without forcing user code
+     * to spell out a `(:require ...)` for each one.
+     *
+     * @return list<string>
+     */
+    private function resolveSeeds(string $startupNamespace): array
+    {
+        return array_values(array_unique([
+            $startupNamespace,
+            CompilerConstants::PHEL_CORE_NAMESPACE,
+            ...$this->bundledNamespaces->all(),
+        ]));
+    }
+
+    /**
+     * @param list<string> $seeds
+     * @param list<string> $srcDirectories
+     */
+    private function evaluateAll(array $seeds, array $srcDirectories): void
+    {
+        foreach ($this->buildFacade->getDependenciesForNamespace($srcDirectories, $seeds) as $info) {
+            $file = $info->getFile();
+            if (!isset(self::$loadedFiles[$file])) {
+                $this->buildFacade->evalFile($file);
+                self::$loadedFiles[$file] = true;
+            }
+        }
     }
 
     /**
