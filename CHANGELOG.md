@@ -107,6 +107,7 @@ All notable changes to this project will be documented in this file.
 - `run-tests` resets assertion counts per run (#1604)
 - Default reporter prints string literals readably in failures (#1601)
 - `phel test --stack-trace` opts into the full PHP stack trace; default omits it (#1695)
+- `phel test` seeds `phel.test` in canonical dot form so `clojure.test :as t` aliases remap correctly in `.cljc` sources (#1807)
 
 #### REPL
 - Bare namespace symbols in `dir` (#1588)
