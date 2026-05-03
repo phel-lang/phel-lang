@@ -27,6 +27,10 @@ All notable changes to this project will be documented in this file.
 #### REPL
 - `require` accepts vector syntax: `(require '[phel\string :as s])` (#1693)
 
+#### AI
+- `with-config` macro for scoped, auto-restoring configuration overrides
+- `run-tools` helper that drives a tool-calling loop end-to-end (Anthropic)
+
 ### Changed
 
 - **BREAKING**: Require PHP 8.4
@@ -102,6 +106,12 @@ All notable changes to this project will be documented in this file.
 
 #### API
 - `phel analyze` preloads `phel\core` so core macros resolve (#1539)
+
+#### AI
+- API key error names the right env var per provider (`OPENAI_API_KEY`, `VOYAGE_API_KEY`, `ANTHROPIC_API_KEY`)
+- Per-call opts honour explicit falsy values (`:max-tokens 0` no longer ignored)
+- JSON-extraction errors truncate the model response so logs don't echo full prompts
+- Default chat model is `claude-sonnet-4-5` (alias) instead of a dated id
 
 #### Test
 - `run-tests` resets assertion counts per run (#1604)
