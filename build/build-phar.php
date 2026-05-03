@@ -531,14 +531,16 @@ EOF;
     }
 
     /**
-     * Compress the PHAR archive
+     * Compress the PHAR archive. Compression is optional, but record the
+     * failure in stats.errors so the build report surfaces the warning
+     * instead of silently shipping an uncompressed PHAR.
      */
     private function compressPhar(Phar $phar): void
     {
         try {
             $phar->compressFiles(Phar::GZ);
         } catch (Exception $e) {
-            // Compression is optional, silently skip if not available
+            $this->stats['errors'][] = "compressFiles failed: {$e->getMessage()}";
         }
     }
 
