@@ -39,9 +39,23 @@
     :timeout     - HTTP timeout in seconds (default 120)
     :max-retries - Retry attempts on 429/5xx (default 2)"
   {:example "(configure {:api-key \"sk-ant-...\" :model \"claude-sonnet-4-5\"})"
-   :see-also ["config" "complete" "chat"]}
+   :see-also ["config" "complete" "chat" "with-config"]}
   [opts]
   (swap! config merge opts))
+
+(defmacro with-config
+  "Temporarily merges `opts` into the global config for the duration of `body`,
+  then restores the previous config. Safer than `configure` for embedded use,
+  since it won't leave global state mutated when `body` throws."
+  {:example "(with-config {:provider :openai :model \"gpt-4o\"} (complete \"hi\"))"
+   :see-also ["configure" "config"]}
+  [opts & body]
+  `(let [original# @config]
+     (try
+       (do (swap! config merge ~opts)
+           ~@body)
+       (finally
+         (reset! config original#)))))
 
 ;; -----------
 ;; API key resolution

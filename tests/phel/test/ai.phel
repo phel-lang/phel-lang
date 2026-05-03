@@ -26,6 +26,22 @@
     (is (= :anthropic (get @ai/config :provider)) "configure preserves unset keys")
     (reset! ai/config original)))
 
+(deftest test-with-config-restores-original
+  (let [original @ai/config]
+    (ai/with-config {:provider :openai :model "gpt-4o"}
+      (is (= :openai (get @ai/config :provider)) "provider switched inside body")
+      (is (= "gpt-4o" (get @ai/config :model)) "model switched inside body"))
+    (is (= (get original :provider) (get @ai/config :provider)) "provider restored")
+    (is (= (get original :model) (get @ai/config :model)) "model restored")))
+
+(deftest test-with-config-restores-on-throw
+  (let [original @ai/config]
+    (try
+      (ai/with-config {:provider :openai}
+        (throw (php/new \RuntimeException "boom")))
+      (catch \RuntimeException _e nil))
+    (is (= (get original :provider) (get @ai/config :provider)) "config restored after throw")))
+
 (deftest test-configure-changes-provider
   (let [original @ai/config]
     (ai/configure {:provider :openai :model "gpt-4o" :api-key "test-key"})
@@ -295,6 +311,7 @@
   ;; Chat API
   (is (function? ai/configure) "configure is defined")
   (is (function? ai/chat) "chat is defined")
+  ;; with-config is a macro, can't use function? directly
   (is (function? ai/complete) "complete is defined")
   (is (function? ai/chat-with-history) "chat-with-history is defined")
   ;; Structured extraction & tools
