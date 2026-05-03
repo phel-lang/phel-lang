@@ -671,8 +671,8 @@
     :provider - :openai (default) or :voyageai"
   {:example "(embed [\"hello world\"]) ; => [[0.123 -0.456 ...]]"
    :see-also ["embed-one" "cosine-similarity" "nearest"]}
-  [texts & [{:model model :provider provider}]]
-  (embed-request (or provider :openai) texts model))
+  [texts & [{:keys [model provider] :or {provider :openai}}]]
+  (embed-request provider texts model))
 
 (defn embed-one
   "Generates an embedding for a single text string.
@@ -695,7 +695,7 @@
   {:example "(nearest query-embedding index 5)"
    :see-also ["cosine-similarity" "build-index" "embed-one"]}
   [query-embedding index & [k]]
-  (let [k      (or k 5)
+  (let [k      (if (nil? k) 5 k)
         scored (for [item :in index]
                  (assoc item :similarity
                         (cosine-similarity query-embedding (get item :embedding))))
@@ -724,6 +724,6 @@
   Returns a vector of {:text, :embedding, :similarity} maps."
   {:example "(search \"greeting\" my-index 3)"
    :see-also ["nearest" "build-index" "embed-one"]}
-  [query index & [{:k k :model model :provider provider}]]
+  [query index & [{:keys [k model provider] :or {k 5}}]]
   (let [query-embedding (embed-one query {:model model :provider provider})]
-    (nearest query-embedding index (or k 5))))
+    (nearest query-embedding index k)))
