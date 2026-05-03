@@ -31,8 +31,16 @@ final class PharBuilder
         'tests', 'Tests', 'test', 'Test',
         'docker', 'benchmarks', 'bench',
         'local', 'build', 'tools', 'resources', 'examples', 'fixtures', 'out',
-        'data', 'node_modules', 'var',
         '.phel-cache', '.phpunit.cache',
+    ];
+
+    /**
+     * Directories excluded only when they sit at the workdir root. Used for
+     * names that legitimately appear inside vendor packages — `data` (e.g.
+     * symfony/string/Resources/data) is the canonical example.
+     */
+    private array $excludeDirsAtRoot = [
+        'data', 'node_modules', 'var',
     ];
 
     private array $excludeFiles = [
@@ -441,6 +449,7 @@ final class PharBuilder
     private function addFiles(Phar $phar): void
     {
         $excludeDirMap = array_fill_keys($this->excludeDirs, true);
+        $excludeRootDirMap = array_fill_keys($this->excludeDirsAtRoot, true);
         $excludeFiles = $this->excludeFiles;
         $excludeExtensions = $this->excludeExtensions;
         $versionedDocPattern = $this->versionedDocPattern;
@@ -448,6 +457,7 @@ final class PharBuilder
 
         $filter = static function ($current) use (
             $excludeDirMap,
+            $excludeRootDirMap,
             $excludeFiles,
             $excludeExtensions,
             $versionedDocPattern,
@@ -457,6 +467,13 @@ final class PharBuilder
 
             if ($current->isDir()) {
                 $relative = str_replace('\\', '/', substr($current->getPathname(), $rootLen));
+
+                // Root-only excludes — match `data` at the workdir top level
+                // without breaking nested vendor dirs like
+                // vendor/symfony/string/Resources/data.
+                if (isset($excludeRootDirMap[$basename]) && $relative === '/' . $basename) {
+                    return false;
+                }
 
                 if (isset($excludeDirMap[$basename])) {
                     // Directories under /src/ are first-party source trees and must
