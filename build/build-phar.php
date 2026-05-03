@@ -156,7 +156,10 @@ final class PharBuilder
         $compiledDir = $cacheDir . '/compiled';
         $outDir = $this->root . '/out';
 
-        // Clean previous compiled cache to avoid stale entries
+        // Clean previous compiled cache to avoid stale entries. Wipe both the
+        // compiled/ files and the sibling compiled-index.php — leaving the
+        // index in place can fool the next run into seeing a populated cache
+        // that no longer points at real files.
         if (is_dir($compiledDir)) {
             $files = glob($compiledDir . '/*');
             if ($files !== false) {
@@ -164,6 +167,11 @@ final class PharBuilder
                     @unlink($file);
                 }
             }
+        }
+
+        $staleIndex = $cacheDir . '/compiled-index.php';
+        if (is_file($staleIndex)) {
+            @unlink($staleIndex);
         }
 
         $hash = $this->stdlibSourceHash();
