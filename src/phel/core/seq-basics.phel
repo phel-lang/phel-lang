@@ -3,11 +3,11 @@
 (use Countable)
 (use InvalidArgumentException)
 (use Phel)
-(use Phel\Lang\AbstractType)
-(use Phel\Lang\Collections\HashSet\PersistentHashSetInterface)
-(use Phel\Lang\Collections\Map\PersistentMapInterface)
-(use Phel\Lang\ConsInterface)
-(use Phel\Lang\RestInterface)
+(use Phel.Lang.AbstractType)
+(use Phel.Lang.Collections.HashSet.PersistentHashSetInterface)
+(use Phel.Lang.Collections.Map.PersistentMapInterface)
+(use Phel.Lang.ConsInterface)
+(use Phel.Lang.RestInterface)
 
 ;; Tier-1 sequence primitives that every higher-level operation builds on:
 ;; `cons`, `first` companions (`ffirst`, `second`, `nfirst`, `fnext`,

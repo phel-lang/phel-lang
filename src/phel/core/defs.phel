@@ -1,10 +1,10 @@
 (in-ns phel.core)
 
-(use Phel\Compiler\Application\Munge)
-(use Phel\Lang\Collections\LinkedList\PersistentListInterface)
-(use Phel\Lang\Collections\Map\PersistentMapInterface)
-(use Phel\Lang\Collections\Vector\PersistentVectorInterface)
-(use Phel\Lang\Symbol)
+(use Phel.Compiler.Application.Munge)
+(use Phel.Lang.Collections.LinkedList.PersistentListInterface)
+(use Phel.Lang.Collections.Map.PersistentMapInterface)
+(use Phel.Lang.Collections.Vector.PersistentVectorInterface)
+(use Phel.Lang.Symbol)
 
 ;; The macro-definition layer that the rest of the language is built on.
 ;; `def` is a special form handled by the compiler; everything here is the

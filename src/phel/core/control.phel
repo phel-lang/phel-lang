@@ -1,7 +1,7 @@
 (in-ns phel.core)
 
 (use InvalidArgumentException)
-(use Phel\Lang\Collections\LinkedList\PersistentListInterface)
+(use Phel.Lang.Collections.LinkedList.PersistentListInterface)
 
 ;; Control-flow macros layered on the `if` special form: `if-not`, `when`,
 ;; `when-not`, `cond`, `case`, and `condp`. Pure macros — they expand at

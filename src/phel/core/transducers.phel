@@ -2,8 +2,8 @@
 
 (use InvalidArgumentException)
 (use Phel)
-(use Phel\Lang\Reduced)
-(use Phel\Lang\Volatile)
+(use Phel.Lang.Reduced)
+(use Phel.Lang.Volatile)
 
 ;; Reduce / transduce pipeline plus the volatile reference cells that power
 ;; transducer state: `reduced`, `reduced?`, `unreduced`, `reduce`,

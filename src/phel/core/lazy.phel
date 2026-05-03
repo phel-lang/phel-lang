@@ -1,7 +1,7 @@
 (in-ns phel.core)
 
 (use Phel)
-(use Phel\Lang\Delay)
+(use Phel.Lang.Delay)
 
 ;; Deferred evaluation: the `delay` macro plus `force`, `delay?`, and the
 ;; `iteration` generator. Lazy sequences themselves live in `core.phel`;
