@@ -47,18 +47,26 @@
 ;; API key resolution
 ;; -----------
 
+(defn- provider-env-var
+  "Returns the canonical environment variable name for the given provider."
+  [provider]
+  (case provider
+    :openai   "OPENAI_API_KEY"
+    :voyageai "VOYAGE_API_KEY"
+    "ANTHROPIC_API_KEY"))
+
 (defn- resolve-api-key
   "Resolves the API key from config or environment variables.
   Supports :anthropic, :openai, and :voyageai providers."
   [cfg]
-  (or (get cfg :api-key)
-      (case (get cfg :provider)
-        :anthropic (php/getenv "ANTHROPIC_API_KEY")
-        :openai    (php/getenv "OPENAI_API_KEY")
-        :voyageai  (php/getenv "VOYAGE_API_KEY")
-        (php/getenv "ANTHROPIC_API_KEY"))
-      (throw (php/new RuntimeException
-                      "No API key configured. Use (ai/configure {:api-key \"...\"}) or set ANTHROPIC_API_KEY env var."))))
+  (let [provider (get cfg :provider)
+        env-var  (provider-env-var provider)]
+    (or (get cfg :api-key)
+        (php/getenv env-var)
+        (throw (php/new RuntimeException
+                        (str "No API key configured for provider " provider
+                             ". Use (ai/configure {:api-key \"...\"}) or set "
+                             env-var " env var."))))))
 
 ;; -----------
 ;; Provider-specific request builders
