@@ -524,6 +524,54 @@
                   :tool_use_id call-id
                   :content result-str}]})))
 
+(defn- assistant-message
+  "Builds an assistant message preserving the model's tool_use blocks so the
+  next turn can carry the conversation forward. Anthropic-only for now."
+  [raw-response]
+  {:role "assistant"
+   :content (or (get raw-response :content) [])})
+
+(defn run-tools
+  "Drives a tool-calling loop: repeatedly sends `messages` with `tools`,
+  resolves any tool calls via `handlers`, and feeds the results back in
+  until the model returns a final text response (or `:max-turns` is hit).
+
+  - `messages`: initial conversation (vector of role/content maps)
+  - `tools`: tool definitions built with `tool`
+  - `handlers`: map of tool-name (string) -> fn taking the call's :input map
+                and returning a value (stringified into the tool result)
+  - `opts`: same keys as `chat-with-tools`, plus `:max-turns` (default 5)
+
+  Returns the assistant's final text. Throws if a tool name has no handler
+  or if `:max-turns` is reached without a final response. Anthropic-only;
+  OpenAI tool loops require a different message shape and are not handled."
+  {:example "(run-tools [{:role \"user\" :content \"weather?\"}]
+                       [(tool \"get-weather\" \"...\" {:city \"string\"})]
+                       {\"get-weather\" (fn [args] \"72F\")})"
+   :see-also ["chat-with-tools" "tool" "tool-result"]}
+  [messages tools handlers & [opts]]
+  (let [max-turns (or (get opts :max-turns) 5)]
+    (loop [msgs messages
+           turn 0]
+      (when (>= turn max-turns)
+        (throw (php/new RuntimeException
+                        (str "run-tools exceeded :max-turns (" max-turns ")"))))
+      (let [response (chat-with-tools msgs tools opts)
+            calls    (get response :tool-calls)]
+        (if (empty? calls)
+          (or (get response :text)
+              (throw (php/new RuntimeException "run-tools: model returned no text and no tool calls")))
+          (let [assistant (assistant-message (get response :raw))
+                results   (for [c :in calls]
+                            (let [name-str (get c :name)
+                                  handler  (get handlers name-str)]
+                              (when (nil? handler)
+                                (throw (php/new RuntimeException
+                                                (str "run-tools: no handler for tool '" name-str "'"))))
+                              (tool-result (get c :id) (handler (get c :input)))))
+                next-msgs (concat msgs [assistant] results)]
+            (recur next-msgs (+ turn 1))))))))
+
 ;; -----------
 ;; Vector math
 ;; -----------
