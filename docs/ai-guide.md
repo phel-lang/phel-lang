@@ -44,6 +44,14 @@ Every per-call `opts` map on `chat`, `complete`, `chat-with-tools`, `extract`, a
 (ai/complete "Summarize the news" {:provider :openai :model "gpt-4o-mini"})
 ```
 
+For scoped configuration that auto-restores (including on exceptions), use `with-config`:
+
+```phel
+(ai/with-config {:provider :openai :model "gpt-4o"}
+  (ai/complete "Summarize the news"))
+;; global config restored here, even if the body threw
+```
+
 ## Chat
 
 ```phel
@@ -76,7 +84,7 @@ Ask the model to populate a schema:
 
 ## Tool use
 
-Define tools with provider-agnostic `tool`, pass them to `chat-with-tools`, dispatch on the returned calls, and feed results back with `tool-result`.
+Define tools with provider-agnostic `tool`, then either drive the loop manually with `chat-with-tools` + `tool-result`, or hand it off to `run-tools`.
 
 ```phel
 (def tools
@@ -84,19 +92,24 @@ Define tools with provider-agnostic `tool`, pass them to `chat-with-tools`, disp
             "Returns current weather for a city."
             {:city {:type "string" :description "City name"}})])
 
-(defn dispatch [call]
-  (case (get call :name)
-    "get-weather" (str "72F sunny in " (get (get call :input) :city))
-    "unknown tool"))
+(def handlers
+  {"get-weather" (fn [args] (str "72F sunny in " (get args :city)))})
 
-(defn run-loop [messages]
-  (let [resp (ai/chat-with-tools messages tools)
-        calls (get resp :tool-calls)]
-    (if (empty? calls)
-      (get resp :text)
-      (let [tool-msgs (map #(ai/tool-result (get % :id) (dispatch %)) calls)
-            assistant-msg {:role "assistant" :content (get resp :raw)}]
-        (recur (concat messages [assistant-msg] tool-msgs))))))
+(ai/run-tools [{:role "user" :content "weather in Paris?"}]
+              tools
+              handlers
+              {:max-turns 5})
+;; => "It's 72F and sunny in Paris."
+```
+
+`run-tools` repeatedly sends the conversation, resolves any tool calls via `handlers` (a map of tool name to fn), feeds the results back, and stops when the model returns plain text or `:max-turns` is reached. Anthropic-only.
+
+For finer control, use `chat-with-tools` directly:
+
+```phel
+(let [resp (ai/chat-with-tools messages tools)
+      calls (ai/tool-calls resp)]
+  ...)
 ```
 
 `chat-with-tools` returns:
