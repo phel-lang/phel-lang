@@ -9,7 +9,7 @@
 
 (def- default-config
   {:provider :anthropic
-   :model "claude-sonnet-4-20250514"
+   :model "claude-sonnet-4-5"
    :max-tokens 1024
    :api-key nil
    :base-url nil
@@ -38,7 +38,7 @@
     :base-url    - Override the API base URL
     :timeout     - HTTP timeout in seconds (default 120)
     :max-retries - Retry attempts on 429/5xx (default 2)"
-  {:example "(configure {:api-key \"sk-ant-...\" :model \"claude-sonnet-4-20250514\"})"
+  {:example "(configure {:api-key \"sk-ant-...\" :model \"claude-sonnet-4-5\"})"
    :see-also ["config" "complete" "chat"]}
   [opts]
   (swap! config merge opts))

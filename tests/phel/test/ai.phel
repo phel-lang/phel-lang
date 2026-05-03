@@ -54,7 +54,7 @@
 
 (deftest test-anthropic-response-extraction
   (let [response-body {:content [{:type "text" :text "Hello from Claude!"}]
-                       :model "claude-sonnet-4-20250514"
+                       :model "claude-sonnet-4-5"
                        :role "assistant"}]
     (is (= "Hello from Claude!"
            (get (first (get response-body :content)) :text))

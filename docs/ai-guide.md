@@ -31,7 +31,7 @@ Supported providers:
 | Key | Default | Purpose |
 |-----|---------|---------|
 | `:provider` | `:anthropic` | `:anthropic`, `:openai`, `:voyageai` |
-| `:model` | `"claude-sonnet-4-20250514"` | Model name |
+| `:model` | `"claude-sonnet-4-5"` | Model name |
 | `:max-tokens` | `1024` | Output token cap |
 | `:api-key` | `nil` | Falls back to env var |
 | `:base-url` | `nil` | Override endpoint (proxies, self-hosted) |
