@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+#### Stdlib
+- Bare top-level `(use ...)` forms in `src/phel/core/*` now use dot-separated class FQNs to match the canonical syntax already used by `(ns ... :use ...)`
+
 ## [0.35.0](https://github.com/phel-lang/phel-lang/compare/v0.34.1...v0.35.0) - 2026-05-03
 
 ### Added

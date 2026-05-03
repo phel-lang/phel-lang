@@ -1,7 +1,7 @@
 (in-ns phel.core)
 
 (use Phel)
-(use Phel\Lang\MetaInterface)
+(use Phel.Lang.MetaInterface)
 
 ;; Metadata attached to quoted symbols and to values that implement
 ;; `MetaInterface`: `meta` reads it, `with-meta` / `set-meta!` replace it,

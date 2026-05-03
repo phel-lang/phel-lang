@@ -1,11 +1,11 @@
 (in-ns phel.core)
 
 (use Phel)
-(use Phel\Compiler\Application\Munge)
-(use Phel\Compiler\CompilerFacade)
-(use Phel\Compiler\Infrastructure\CompileOptions)
-(use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton)
-(use Phel\Lang\Symbol)
+(use Phel.Compiler.Application.Munge)
+(use Phel.Compiler.CompilerFacade)
+(use Phel.Compiler.Infrastructure.CompileOptions)
+(use Phel.Compiler.Infrastructure.GlobalEnvironmentSingleton)
+(use Phel.Lang.Symbol)
 
 ;; --- Namespace introspection and manipulation ---
 

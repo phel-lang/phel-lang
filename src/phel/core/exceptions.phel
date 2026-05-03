@@ -1,7 +1,7 @@
 (in-ns phel.core)
 
 (use Phel)
-(use Phel\Lang\ExInfoException)
+(use Phel.Lang.ExInfoException)
 
 ;; Structured exceptions: the `ex-info` constructor and the `ex-data` /
 ;; `ex-message` / `ex-cause` accessors for carrying a data map alongside
