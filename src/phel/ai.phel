@@ -270,18 +270,21 @@
     (check-response response)
     (json/decode (get response :body))))
 
+;; Per-call option keys that override the global config when present.
+(def- carry-keys [:model :max-tokens :provider :timeout :base-url :api-key :max-retries])
+
 (defn- apply-opts
-  "Merges per-call opts into cfg."
+  "Merges per-call opts into cfg, copying over only keys that were explicitly
+  set in `opts`. Uses `contains?` so falsy values (`0`, `nil`, `false`) still
+  override the default."
   [cfg opts]
-  (let [opts (or opts {})
-        cfg  (if (get opts :model) (assoc cfg :model (get opts :model)) cfg)
-        cfg  (if (get opts :max-tokens) (assoc cfg :max-tokens (get opts :max-tokens)) cfg)
-        cfg  (if (get opts :provider) (assoc cfg :provider (get opts :provider)) cfg)
-        cfg  (if (get opts :timeout) (assoc cfg :timeout (get opts :timeout)) cfg)
-        cfg  (if (get opts :base-url) (assoc cfg :base-url (get opts :base-url)) cfg)
-        cfg  (if (get opts :api-key) (assoc cfg :api-key (get opts :api-key)) cfg)
-        cfg  (if (contains? opts :max-retries) (assoc cfg :max-retries (get opts :max-retries)) cfg)]
-    cfg))
+  (let [opts (or opts {})]
+    (reduce (fn [acc k]
+              (if (contains? opts k)
+                (assoc acc k (get opts k))
+                acc))
+            cfg
+            carry-keys)))
 
 ;; -----------
 ;; Chat API
