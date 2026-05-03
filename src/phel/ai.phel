@@ -375,6 +375,16 @@
 ;; Structured extraction
 ;; -----------
 
+(defn- truncate-for-error
+  "Truncates a string for inclusion in an error message so we don't echo the
+  full model response (which may contain prompt content) into logs."
+  [s]
+  (let [limit 120
+        len   (php/strlen s)]
+    (if (<= len limit)
+      s
+      (str (php/substr s 0 limit) "... (" len " chars total)"))))
+
 (defn- extract-json-from-response
   "Extracts JSON from an AI response, handling markdown code blocks."
   [response]
@@ -390,7 +400,8 @@
             (if (and start end (>= end start))
               (php/substr trimmed start (+ (- end start) 1))
               (throw (php/new RuntimeException
-                              (str "Could not extract JSON from AI response: " trimmed))))))))))
+                              (str "Could not extract JSON from AI response: "
+                                   (truncate-for-error trimmed)))))))))))
 
 (defn extract
   "Extracts structured data from text using AI.
@@ -441,7 +452,8 @@
                         (if (and start end (>= end start))
                           (php/substr trimmed start (+ (- end start) 1))
                           (throw (php/new RuntimeException
-                                          (str "Could not extract JSON array from AI response: " trimmed))))))]
+                                          (str "Could not extract JSON array from AI response: "
+                                               (truncate-for-error trimmed)))))))]
     (json/decode json-str)))
 
 ;; -----------
