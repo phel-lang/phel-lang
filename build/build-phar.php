@@ -203,9 +203,15 @@ final class PharBuilder
             mkdir($compiledDir, 0755, true);
         }
 
-        // Copy only stdlib compiled files (phel_* prefix)
-        $compiledFiles = glob($tempCacheDir . '/compiled/phel_*');
-        if ($compiledFiles === false) {
+        // Copy only stdlib compiled files. Cache filenames use the canonical
+        // dot-separated namespace prefix since #1798 (e.g. `phel.core__abc.php`),
+        // so match both the legacy underscore prefix and the current dotted one.
+        $compiledFiles = array_merge(
+            glob($tempCacheDir . '/compiled/phel.*') ?: [],
+            glob($tempCacheDir . '/compiled/phel_*') ?: [],
+        );
+        if ($compiledFiles === []) {
+            echo "⚠️  No compiled phel.* / phel_* files found in {$tempCacheDir}/compiled\n";
             return;
         }
 
@@ -224,7 +230,7 @@ final class PharBuilder
             if (\is_array($indexData) && isset($indexData['entries'])) {
                 $stdlibEntries = [];
                 foreach ($indexData['entries'] as $namespace => $entry) {
-                    if (str_starts_with($namespace, 'phel\\')) {
+                    if (str_starts_with($namespace, 'phel.') || str_starts_with($namespace, 'phel\\')) {
                         // Rewrite compiled_path to be relative to phar cache dir
                         $entry['compiled_path'] = $compiledDir . '/' . basename($entry['compiled_path']);
                         // Drop wall-clock timestamps so the index is deterministic
