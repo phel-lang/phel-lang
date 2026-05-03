@@ -319,6 +319,9 @@ final class PharBuilder
 
         if (!empty($this->stats['errors'])) {
             $report .= '⚠️  Warnings:           ' . \count($this->stats['errors']) . "\n";
+            foreach ($this->stats['errors'] as $message) {
+                $report .= "   • {$message}\n";
+            }
         }
 
         return $report;
