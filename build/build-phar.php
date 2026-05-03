@@ -550,7 +550,10 @@ EOF;
     {
         try {
             $phar->compressFiles(Phar::GZ);
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
+            // Catch Throwable, not just Exception, because PHP 8.x can raise
+            // BadMethodCallException, ValueError, or PharException variants
+            // depending on the underlying gzip support.
             $this->stats['errors'][] = "compressFiles failed: {$e->getMessage()}";
         }
     }
