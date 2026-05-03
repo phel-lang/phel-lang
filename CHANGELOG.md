@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.35.0](https://github.com/phel-lang/phel-lang/compare/v0.34.1...v0.35.0) - 2026-05-03
+
 ### Added
 
 #### Compiler

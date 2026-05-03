@@ -8,7 +8,7 @@ use function in_array;
 
 final class VersionFinder
 {
-    public const string LATEST_VERSION = 'v0.34.1';
+    public const string LATEST_VERSION = 'v0.35.0';
 
     private ?string $cachedVersion = null;
 
