@@ -31,6 +31,7 @@ final class PharBuilder
         'tests', 'Tests', 'test', 'Test',
         'docker', 'benchmarks', 'bench',
         'local', 'build', 'tools', 'resources', 'examples', 'fixtures', 'out',
+        'data', 'node_modules', 'var',
         '.phel-cache', '.phpunit.cache',
     ];
 
@@ -203,9 +204,15 @@ final class PharBuilder
             mkdir($compiledDir, 0755, true);
         }
 
-        // Copy only stdlib compiled files (phel_* prefix)
-        $compiledFiles = glob($tempCacheDir . '/compiled/phel_*');
-        if ($compiledFiles === false) {
+        // Copy only stdlib compiled files. Cache filenames use the canonical
+        // dot-separated namespace prefix since #1798 (e.g. `phel.core__abc.php`),
+        // so match both the legacy underscore prefix and the current dotted one.
+        $compiledFiles = array_merge(
+            glob($tempCacheDir . '/compiled/phel.*') ?: [],
+            glob($tempCacheDir . '/compiled/phel_*') ?: [],
+        );
+        if ($compiledFiles === []) {
+            echo "⚠️  No compiled phel.* / phel_* files found in {$tempCacheDir}/compiled\n";
             return;
         }
 
@@ -224,7 +231,7 @@ final class PharBuilder
             if (\is_array($indexData) && isset($indexData['entries'])) {
                 $stdlibEntries = [];
                 foreach ($indexData['entries'] as $namespace => $entry) {
-                    if (str_starts_with($namespace, 'phel\\')) {
+                    if (str_starts_with($namespace, 'phel.') || str_starts_with($namespace, 'phel\\')) {
                         // Rewrite compiled_path to be relative to phar cache dir
                         $entry['compiled_path'] = $compiledDir . '/' . basename($entry['compiled_path']);
                         // Drop wall-clock timestamps so the index is deterministic
@@ -354,12 +361,14 @@ final class PharBuilder
             return false;
         }
 
-        if (!is_dir($compiledDir) && !mkdir($compiledDir, 0o755, true) && !is_dir($compiledDir)) {
+        $cached = glob($bucket . '/compiled/*') ?: [];
+        if ($cached === []) {
+            // Empty bucket means an earlier build wrote the index without any
+            // compiled files. Treat it as a miss and force a rebuild.
             return false;
         }
 
-        $cached = glob($bucket . '/compiled/*');
-        if ($cached === false) {
+        if (!is_dir($compiledDir) && !mkdir($compiledDir, 0o755, true) && !is_dir($compiledDir)) {
             return false;
         }
 
@@ -382,13 +391,19 @@ final class PharBuilder
             return;
         }
 
+        $files = glob($compiledDir . '/*') ?: [];
+        if ($files === []) {
+            // Refuse to persist an empty bucket — a future restore would think
+            // it succeeded and ship a PHAR without any compiled stdlib.
+            return;
+        }
+
         $bucket = $this->stdlibCacheDir . '/' . $hash;
         $bucketCompiled = $bucket . '/compiled';
         if (!is_dir($bucketCompiled) && !mkdir($bucketCompiled, 0o755, true) && !is_dir($bucketCompiled)) {
             return;
         }
 
-        $files = glob($compiledDir . '/*') ?: [];
         foreach ($files as $file) {
             @copy($file, $bucketCompiled . '/' . basename($file));
         }
@@ -430,19 +445,26 @@ final class PharBuilder
             $basename = $current->getBasename();
 
             if ($current->isDir()) {
-                if (!isset($excludeDirMap[$basename])) {
-                    return true;
-                }
-
-                // Directories under /src/ are first-party source trees and must
-                // never be filtered out by generic excludes like 'test'/'Test'.
-                // Examples: src/phel/test/ (stdlib), src/php/Run/Domain/Test/ (PHP classes).
                 $relative = str_replace('\\', '/', substr($current->getPathname(), $rootLen));
-                if (str_starts_with($relative, '/src/')) {
-                    return true;
+
+                if (isset($excludeDirMap[$basename])) {
+                    // Directories under /src/ are first-party source trees and must
+                    // never be filtered out by generic excludes like 'test'/'Test'.
+                    // Examples: src/phel/test/ (stdlib), src/php/Run/Domain/Test/ (PHP classes).
+                    return str_starts_with($relative, '/src/');
                 }
 
-                return false;
+                // Default-deny unknown hidden directories anywhere outside /src/
+                // and /vendor/ to stop tooling caches (e.g. /.foo, /var/folders/.../T)
+                // from leaking into the PHAR.
+                if ($basename !== '' && $basename[0] === '.'
+                    && !str_starts_with($relative, '/src/')
+                    && !str_starts_with($relative, '/vendor/')
+                ) {
+                    return false;
+                }
+
+                return true;
             }
 
             if (isset($excludeFiles[$basename])) {
@@ -509,14 +531,16 @@ EOF;
     }
 
     /**
-     * Compress the PHAR archive
+     * Compress the PHAR archive. Compression is optional, but record the
+     * failure in stats.errors so the build report surfaces the warning
+     * instead of silently shipping an uncompressed PHAR.
      */
     private function compressPhar(Phar $phar): void
     {
         try {
             $phar->compressFiles(Phar::GZ);
         } catch (Exception $e) {
-            // Compression is optional, silently skip if not available
+            $this->stats['errors'][] = "compressFiles failed: {$e->getMessage()}";
         }
     }
 
