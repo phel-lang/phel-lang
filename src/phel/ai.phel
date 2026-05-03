@@ -274,15 +274,16 @@
 (def- carry-keys [:model :max-tokens :provider :timeout :base-url :api-key :max-retries])
 
 (defn- apply-opts
-  "Merges per-call opts into cfg, copying over only keys that were explicitly
-  set in `opts`. Uses `contains?` so falsy values (`0`, `nil`, `false`) still
-  override the default."
+  "Merges per-call opts into cfg. Copies over keys whose value is non-nil so
+  numeric zero and `false` propagate (e.g. `:max-tokens 0`), while an
+  explicit `nil` is treated as 'leave the config alone'."
   [cfg opts]
   (let [opts (or opts {})]
     (reduce (fn [acc k]
-              (if (contains? opts k)
-                (assoc acc k (get opts k))
-                acc))
+              (let [v (get opts k)]
+                (if (nil? v)
+                  acc
+                  (assoc acc k v))))
             cfg
             carry-keys)))
 
