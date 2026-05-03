@@ -42,6 +42,22 @@
       (catch \RuntimeException _e nil))
     (is (= (get original :provider) (get @ai/config :provider)) "config restored after throw")))
 
+(deftest test-with-config-nests
+  (let [original @ai/config]
+    (ai/with-config {:provider :openai :model "gpt-4o"}
+      (is (= :openai (get @ai/config :provider)) "outer scope: openai")
+      (ai/with-config {:model "gpt-4o-mini"}
+        (is (= :openai (get @ai/config :provider)) "inner: provider preserved")
+        (is (= "gpt-4o-mini" (get @ai/config :model)) "inner: model overridden"))
+      (is (= "gpt-4o" (get @ai/config :model)) "outer model restored after inner exits"))
+    (is (= (get original :model) (get @ai/config :model)) "fully restored")))
+
+(deftest test-with-config-returns-body-result
+  (let [original @ai/config
+        result   (ai/with-config {:model "x"} 42)]
+    (is (= 42 result) "with-config returns body's last expression")
+    (reset! ai/config original)))
+
 (deftest test-configure-changes-provider
   (let [original @ai/config]
     (ai/configure {:provider :openai :model "gpt-4o" :api-key "test-key"})
@@ -176,6 +192,14 @@
     (is (= "tool" (get msg :role)) "openai tool message uses tool role")
     (is (= "call-1" (get msg :tool_call_id)) "openai message carries tool_call_id")
     (is (= "42" (get msg :content)) "openai message carries content")))
+
+(deftest test-tool-result-honors-provider-opt-without-mutating-config
+  (let [original @ai/config]
+    (ai/configure {:provider :anthropic})
+    (let [msg (ai/tool-result "id" "result" {:provider :openai})]
+      (is (= "tool" (get msg :role)) "explicit provider opt overrides global"))
+    (is (= :anthropic (get @ai/config :provider)) "global provider unchanged")
+    (reset! ai/config original)))
 
 (deftest test-tool-result-coerces-non-string
   (let [msg (ai/tool-result "call-1" 42 {:provider :openai})]
@@ -442,6 +466,22 @@
         (is (= "user" (get (first msgs) :role)) "role user")
         (is (= "prompt" (get (first msgs) :content)) "prompt reaches content")))))
 
+(deftest test-chat-with-history-honors-provider-override
+  (let [fake (mock-fn (fn [_ _] (ok-response {:choices [{:message {:content "yo"}}]})))]
+    (binding [ai/*http-post* fake]
+      (let [history [{:role "user" :content "hi"}
+                     {:role "assistant" :content "hello"}]
+            result (ai/chat-with-history history "again?" {:api-key "k" :provider :openai})]
+        (is (= "yo" (get (last result) :content)) "provider override flows into chat-with-history")
+        (is (php/str_contains (url-of (first-call fake)) "api.openai.com") "openai endpoint hit")))))
+
+(deftest test-chat-honors-zero-max-tokens
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "ok"}]})))]
+    (binding [ai/*http-post* fake]
+      (ai/chat [{:role "user" :content "hi"}]
+               {:api-key "k" :max-tokens 0})
+      (is (= 0 (get (body-of (first-call fake)) :max_tokens)) "explicit 0 max-tokens reaches body"))))
+
 (deftest test-chat-with-history-appends-assistant
   (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "reply"}]})))]
     (binding [ai/*http-post* fake]
@@ -593,6 +633,34 @@
                                  {"loop" (fn [_] "again")}
                                  {:api-key "k" :max-turns 2}))
           "loops over max-turns throws"))))
+
+(deftest test-run-tools-handles-multiple-calls-in-one-turn
+  (let [responses (atom [(ok-response {:content [{:type "tool_use" :id "a1" :name "add" :input {:n 1}}
+                                                 {:type "tool_use" :id "a2" :name "add" :input {:n 2}}]
+                                       :stop_reason "tool_use"})
+                         (ok-response {:content [{:type "text" :text "summed"}]
+                                       :stop_reason "end_turn"})])
+        fake (mock-fn (fn [_ _]
+                        (let [r (first @responses)]
+                          (swap! responses rest)
+                          r)))]
+    (binding [ai/*http-post* fake]
+      (let [result (ai/run-tools [{:role "user" :content "add 1 and 2"}]
+                                 [(ai/tool "add" "Adds n" {:n "integer"})]
+                                 {"add" (fn [args] (str (get args :n)))}
+                                 {:api-key "k"})]
+        (is (= "summed" result) "final text after two parallel tool calls")))))
+
+(deftest test-run-tools-passes-through-empty-final
+  (let [fake (mock-fn (fn [_ _]
+                        (ok-response {:content [] :stop_reason "end_turn"})))]
+    (binding [ai/*http-post* fake]
+      (is (thrown? \RuntimeException
+                   (ai/run-tools [{:role "user" :content "hi"}]
+                                 []
+                                 {}
+                                 {:api-key "k"}))
+          "empty final response throws"))))
 
 ;; --- Retry / backoff ---
 
