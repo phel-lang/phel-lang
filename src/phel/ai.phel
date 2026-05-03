@@ -315,7 +315,7 @@
    :see-also ["chat" "complete"]}
   [history user-message & [opts]]
   (let [messages (concat history [{:role "user" :content user-message}])
-        response (chat (to-php-array messages) opts)]
+        response (chat messages opts)]
     (concat messages [{:role "assistant" :content response}])))
 
 ;; -----------
