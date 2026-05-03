@@ -94,6 +94,12 @@
     :voyageai "https://api.voyageai.com"
     "https://api.anthropic.com"))
 
+(defn- resolve-base-url
+  "Resolves the base URL: explicit `:base-url` from config, otherwise the
+  provider default."
+  [cfg provider]
+  (or (get cfg :base-url) (provider-base-url provider)))
+
 (defn- anthropic-headers
   [api-key]
   {:x-api-key api-key
@@ -110,7 +116,7 @@
   Optionally includes tool definitions."
   [cfg messages system-prompt & [tools]]
   (let [api-key (resolve-api-key cfg)
-        base    (or (get cfg :base-url) (provider-base-url :anthropic))
+        base    (resolve-base-url cfg :anthropic)
         body    {:model (get cfg :model)
                  :max_tokens (get cfg :max-tokens)
                  :messages messages}
@@ -133,7 +139,7 @@
   "Builds an HTTP request for the OpenAI Chat Completions API."
   [cfg messages system-prompt & [tools]]
   (let [api-key (resolve-api-key cfg)
-        base    (or (get cfg :base-url) (provider-base-url :openai))
+        base    (resolve-base-url cfg :openai)
         msgs    (if system-prompt
                   (concat [{:role "system" :content system-prompt}] messages)
                   messages)
@@ -613,7 +619,7 @@
   [provider texts model]
   (let [cfg           (assoc @config :provider provider)
         api-key       (resolve-api-key cfg)
-        base-url      (or (get cfg :base-url) (provider-base-url provider))
+        base-url      (resolve-base-url cfg provider)
         default-model (if (= provider :voyageai) "voyage-3-lite" "text-embedding-3-small")
         timeout       (or (get cfg :timeout) 60)
         max-retries   (or (get cfg :max-retries) 2)
