@@ -360,12 +360,14 @@ final class PharBuilder
             return false;
         }
 
-        if (!is_dir($compiledDir) && !mkdir($compiledDir, 0o755, true) && !is_dir($compiledDir)) {
+        $cached = glob($bucket . '/compiled/*') ?: [];
+        if ($cached === []) {
+            // Empty bucket means an earlier build wrote the index without any
+            // compiled files. Treat it as a miss and force a rebuild.
             return false;
         }
 
-        $cached = glob($bucket . '/compiled/*');
-        if ($cached === false) {
+        if (!is_dir($compiledDir) && !mkdir($compiledDir, 0o755, true) && !is_dir($compiledDir)) {
             return false;
         }
 
@@ -388,13 +390,19 @@ final class PharBuilder
             return;
         }
 
+        $files = glob($compiledDir . '/*') ?: [];
+        if ($files === []) {
+            // Refuse to persist an empty bucket — a future restore would think
+            // it succeeded and ship a PHAR without any compiled stdlib.
+            return;
+        }
+
         $bucket = $this->stdlibCacheDir . '/' . $hash;
         $bucketCompiled = $bucket . '/compiled';
         if (!is_dir($bucketCompiled) && !mkdir($bucketCompiled, 0o755, true) && !is_dir($bucketCompiled)) {
             return;
         }
 
-        $files = glob($compiledDir . '/*') ?: [];
         foreach ($files as $file) {
             @copy($file, $bucketCompiled . '/' . basename($file));
         }
