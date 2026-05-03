@@ -353,6 +353,18 @@
                 (str "  \"" (name k) "\": " (if (string? v) v (str v))))]
     (str "{\n" (php/implode ",\n" (to-php-array lines)) "\n}")))
 
+(defn- schema-prop-spec
+  "Resolves a schema field value into a JSON Schema property spec."
+  [v]
+  (cond
+    (map? v)        v
+    (= v "string")  {:type "string"}
+    (= v "integer") {:type "integer"}
+    (= v "number")  {:type "number"}
+    (= v "boolean") {:type "boolean"}
+    (string? v)     {:type "string" :description v}
+    :else           {:type "string" :description (str v)}))
+
 (defn- schema->json-schema
   "Converts a field schema map to a JSON Schema object for tool use."
   [schema]
@@ -360,19 +372,11 @@
         required   (transient [])]
     (foreach [k v schema]
       (let [prop-name (name k)]
-        (conj required prop-name)
-        (assoc properties (keyword prop-name)
-               (cond
-                 (map? v) v
-                 (= v "string") {:type "string"}
-                 (= v "integer") {:type "integer"}
-                 (= v "number") {:type "number"}
-                 (= v "boolean") {:type "boolean"}
-                 (string? v) {:type "string" :description v}
-                 {:type "string" :description (str v)}))))
+        (conj! required prop-name)
+        (assoc! properties (keyword prop-name) (schema-prop-spec v))))
     {:type "object"
-     :properties (persistent properties)
-     :required (persistent required)}))
+     :properties (persistent! properties)
+     :required (persistent! required)}))
 
 ;; -----------
 ;; Structured extraction
