@@ -31,6 +31,7 @@ final class PharBuilder
         'tests', 'Tests', 'test', 'Test',
         'docker', 'benchmarks', 'bench',
         'local', 'build', 'tools', 'resources', 'examples', 'fixtures', 'out',
+        'data', 'node_modules', 'var',
         '.phel-cache', '.phpunit.cache',
     ];
 
@@ -444,19 +445,26 @@ final class PharBuilder
             $basename = $current->getBasename();
 
             if ($current->isDir()) {
-                if (!isset($excludeDirMap[$basename])) {
-                    return true;
-                }
-
-                // Directories under /src/ are first-party source trees and must
-                // never be filtered out by generic excludes like 'test'/'Test'.
-                // Examples: src/phel/test/ (stdlib), src/php/Run/Domain/Test/ (PHP classes).
                 $relative = str_replace('\\', '/', substr($current->getPathname(), $rootLen));
-                if (str_starts_with($relative, '/src/')) {
-                    return true;
+
+                if (isset($excludeDirMap[$basename])) {
+                    // Directories under /src/ are first-party source trees and must
+                    // never be filtered out by generic excludes like 'test'/'Test'.
+                    // Examples: src/phel/test/ (stdlib), src/php/Run/Domain/Test/ (PHP classes).
+                    return str_starts_with($relative, '/src/');
                 }
 
-                return false;
+                // Default-deny unknown hidden directories anywhere outside /src/
+                // and /vendor/ to stop tooling caches (e.g. /.foo, /var/folders/.../T)
+                // from leaking into the PHAR.
+                if ($basename !== '' && $basename[0] === '.'
+                    && !str_starts_with($relative, '/src/')
+                    && !str_starts_with($relative, '/vendor/')
+                ) {
+                    return false;
+                }
+
+                return true;
             }
 
             if (isset($excludeFiles[$basename])) {

@@ -119,6 +119,7 @@ rsync -a "$REPO_ROOT/" "$WORK_DIR/" \
   --exclude='out' \
   --exclude='local' \
   --exclude='node_modules' \
+  --exclude='var' \
   --delete
 
 # ============================================================================
