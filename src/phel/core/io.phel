@@ -379,6 +379,29 @@
 ;; Binding
 ;; -------
 
+(defn- emit-set-vars
+  "Expands a `[v1 e1 v2 e2 ...]` binding vector into the sequence of
+  `(set-var v e)` forms consumed by an open binding/with-redefs frame."
+  [bindings]
+  (map (fn [pair]
+         (list 'set-var (php/aget pair 0) (php/aget pair 1)))
+       (php/array_chunk (apply php/array bindings) 2)))
+
+(defn- emit-binding-form
+  "Builds the open/try/commit/finally skeleton shared by `binding` and
+  `with-redefs`. `open-method` is the `\\Phel` static used to start the
+  fiber-local recording (`openBindingFrame` for dynamic-only,
+  `openRedefsFrame` for any var)."
+  [open-method bindings body]
+  `(do
+     (php/:: \Phel (~open-method))
+     (try
+       (do
+         ~@(emit-set-vars bindings)
+         (php/:: \Phel (commitAndRunBindingFrame (fn [] ~@body))))
+       (finally
+         (php/:: \Phel (abortBindingFrameIfOpen))))))
+
 (defmacro binding
   "Temporarily rebinds dynamic vars while executing `body`.
 
@@ -391,18 +414,7 @@
   `:dynamic`. To swap a non-dynamic var for the duration of an
   expression (e.g. mocking in tests), use `with-redefs`."
   [bindings & body]
-  (let [pairs    (php/array_chunk (apply php/array bindings) 2)
-        set-vars (map (fn [pair]
-                        (list 'set-var (php/aget pair 0) (php/aget pair 1)))
-                      pairs)]
-    `(do
-       (php/:: \Phel (openBindingFrame))
-       (try
-         (do
-           ~@set-vars
-           (php/:: \Phel (commitAndRunBindingFrame (fn [] ~@body))))
-         (finally
-           (php/:: \Phel (abortBindingFrameIfOpen)))))))
+  (emit-binding-form 'openBindingFrame bindings body))
 
 (defmacro with-redefs
   "Temporarily replaces the root values of vars while executing `body`.
@@ -415,18 +427,7 @@
   production code. Use `binding` for fiber-local rebinding of
   `^:dynamic` vars."
   [bindings & body]
-  (let [pairs    (php/array_chunk (apply php/array bindings) 2)
-        set-vars (map (fn [pair]
-                        (list 'set-var (php/aget pair 0) (php/aget pair 1)))
-                      pairs)]
-    `(do
-       (php/:: \Phel (openRedefsFrame))
-       (try
-         (do
-           ~@set-vars
-           (php/:: \Phel (commitAndRunBindingFrame (fn [] ~@body))))
-         (finally
-           (php/:: \Phel (abortBindingFrameIfOpen)))))))
+  (emit-binding-form 'openRedefsFrame bindings body))
 
 (defmacro with-bindings
   "Like `binding` but takes a map of `Var -> value` instead of a binding
