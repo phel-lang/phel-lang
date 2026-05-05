@@ -158,6 +158,34 @@
                        (php/-> v (getName))
                        val)))
 
+(defn alter-meta!
+  "Replaces the metadata on `r` with `(apply f current-meta args)`.
+  Works on `Var` handles (mutates per-var metadata, surviving subsequent
+  `def` redefinitions) and on atoms (mutates the atom's own meta map).
+  Returns the new metadata map."
+  {:example "(alter-meta! #'my-var assoc :tag :int)"
+   :see-also ["reset-meta!" "meta" "with-meta"]}
+  [r f & args]
+  (cond
+    (var? r) (php/-> r (alterMeta (fn [current] (apply f current args))))
+    (atom? r) (let [next (apply f (php/-> r (getMeta)) args)]
+                (php/-> r (withMeta next))
+                next)
+    :else (throw (php/new \InvalidArgumentException
+                          "alter-meta! expects a Var or atom as first argument"))))
+
+(defn reset-meta!
+  "Installs `meta-map` as the metadata on `r`, replacing any prior metadata.
+  Works on `Var` handles and on atoms. Returns the installed map."
+  {:example "(reset-meta! #'my-var {:tag :int})"
+   :see-also ["alter-meta!" "meta" "with-meta"]}
+  [r meta-map]
+  (cond
+    (var? r) (php/-> r (resetMeta meta-map))
+    (atom? r) (do (php/-> r (withMeta meta-map)) meta-map)
+    :else (throw (php/new \InvalidArgumentException
+                          "reset-meta! expects a Var or atom as first argument"))))
+
 (defn remove-watch
   "Removes a watch function from a variable by key."
   {:see-also ["add-watch"]}

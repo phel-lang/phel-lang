@@ -11,7 +11,8 @@ This is a **foundational module** with no Facade, Factory, or DependencyProvider
 - **Symbol** — names with optional namespace; special constants for language forms (`def`, `fn`, `if`, etc.)
 - **Keyword** — interned with pool; callable as functions to access map values (implements `FnInterface`)
 - **Variable** — mutable box (atom) with watches, validators, deref
-- **PhelVar** — first-class handle to a global definition (`def`); produced by `Registry::addDefinition`/`getVar` and the `(var sym)` / `#'sym` forms; offers `deref`, `meta`, `alterRoot`
+- **PhelVar** — first-class handle to a global definition (`def`); produced by `Registry::addDefinition`/`getVar` and the `(var sym)` / `#'sym` forms; offers `deref`, `meta`, `alterRoot`, `addWatch`/`removeWatch`, `alterMeta`/`resetMeta`, and cached `isDynamic`; implements `FnInterface` so handles are callable (`__invoke` forwards to the current root value)
+- **PhelVarStateRegistry** — singleton side table for per-var watches, metadata overrides, and dynamic-flag cache keyed by `(ns, name)`; lets `PhelVar` stay `readonly` while `alter-meta!` / `add-watch` mutate canonical state
 - **Delay** — lazy evaluation with caching
 - **Volatile** — lightweight mutable container for transducer state
 - **Reduced** — signals early termination from reduce/transduce

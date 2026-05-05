@@ -39,6 +39,7 @@ final class Registry
     {
         $this->definitions = [];
         $this->definitionsMetaData = [];
+        PhelVarStateRegistry::getInstance()->clear();
     }
 
     /**
@@ -65,6 +66,7 @@ final class Registry
     {
         $this->definitions[$ns][$name] = $value;
         $this->definitionsMetaData[$ns][$name] = $metaData;
+        PhelVarStateRegistry::getInstance()->invalidateDynamicCache($ns, $name);
 
         return new PhelVar($ns, $name);
     }
