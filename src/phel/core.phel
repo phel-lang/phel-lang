@@ -9,7 +9,7 @@
 
 (def *ns*
   {:doc "Returns the namespace in the current scope."}
-  "\\phel\\core")
+  "phel.core")
 
 (def *file*
   {:doc "Returns the path of the current source file."}

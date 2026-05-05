@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 - `alter-var-root` mutates the root binding of a `Var`; rejects atoms with a clear error pointing at `swap!` (#1717)
 - `deref` works on both atoms and `Var` instances (#1717)
 - `phel\mock`'s `with-mocks` and `with-mock-wrapper` now expand to `with-redefs` so they keep working when the target functions are not tagged `^:dynamic`
+- `*ns*` bootstrap value in `phel.core` is now `"phel.core"` (dot form) to match the value emitted for every other namespace by `(ns ...)`
 
 ### Breaking
 

@@ -30,7 +30,7 @@ Returns the path of the current source file.',
 Returns the namespace in the current scope.',
             'signatures' => ['*ns*'],
             'desc' => 'Returns the namespace in the current scope.',
-            'example' => '(println *ns*) ; => "my-app\\core"',
+            'example' => '(println *ns*) ; => "my-app.core"',
         ],
         Symbol::NAME_APPLY => [
             'doc' => '```phel
