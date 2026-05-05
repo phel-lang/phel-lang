@@ -46,7 +46,7 @@ using "clojure" here is just for the md coloring
 we should use "phel" once GitHub accept phel coloring too
 -->
 ```clojure
-(ns my\example)
+(ns my.example)
 
 (defn greet [name] (str "Hello, " name "!"))
 
@@ -82,7 +82,7 @@ we should use "phel" once GitHub accept phel coloring too
 **HTTP response**
 
 ```clojure
-(ns app (:require phel\http :as h))
+(ns app (:require phel.http :as h))
 
 (def req (h/request-from-globals))
 
