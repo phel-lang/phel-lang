@@ -8,6 +8,7 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\DynamicScope;
 use Phel\Lang\Keyword;
+use Phel\Lang\PhelVarStateRegistry;
 use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
@@ -76,16 +77,12 @@ final class Phel extends InternalPhel
     }
 
     /**
-     * Returns true if the given var was defined with `^:dynamic` metadata.
+     * Returns true if the given var carries `^:dynamic` metadata. Honors
+     * per-var meta overrides installed via `alter-meta!` / `reset-meta!`.
      */
     public static function isDynamicVar(string $ns, string $name): bool
     {
-        $meta = Registry::getInstance()->getDefinitionMetaData($ns, $name);
-        if ($meta === null) {
-            return false;
-        }
-
-        return ($meta[Keyword::create('dynamic')] ?? false) === true;
+        return PhelVarStateRegistry::getInstance()->isDynamic($ns, $name);
     }
 
     /**

@@ -63,11 +63,7 @@ final class PhelVarStateRegistry
     public function setMetaOverride(string $ns, string $name, ?PersistentMapInterface $meta): void
     {
         $this->metaOverrides[$this->key($ns, $name)] = $meta;
-    }
-
-    public function clearMetaOverride(string $ns, string $name): void
-    {
-        unset($this->metaOverrides[$this->key($ns, $name)]);
+        $this->invalidateDynamicCache($ns, $name);
     }
 
     public function addWatch(string $ns, string $name, string $watchKey, callable $fn): void
@@ -92,19 +88,39 @@ final class PhelVarStateRegistry
         return $this->watches[$this->key($ns, $name)] ?? [];
     }
 
-    public function rememberDynamic(string $ns, string $name, bool $isDynamic): void
+    /**
+     * Returns true when the var carries `^:dynamic` metadata, consulting
+     * any per-var override installed via `alter-meta!` / `reset-meta!`
+     * before falling back to the definition meta. Result is memoized;
+     * {@see self::invalidateDynamicCache()} clears the cache.
+     */
+    public function isDynamic(string $ns, string $name): bool
     {
-        $this->dynamicCache[$this->key($ns, $name)] = $isDynamic;
-    }
+        $cacheKey = $this->key($ns, $name);
+        if (array_key_exists($cacheKey, $this->dynamicCache)) {
+            return $this->dynamicCache[$cacheKey];
+        }
 
-    public function getCachedDynamic(string $ns, string $name): ?bool
-    {
-        return $this->dynamicCache[$this->key($ns, $name)] ?? null;
+        $meta = $this->effectiveMeta($ns, $name);
+        $value = $meta instanceof PersistentMapInterface
+            && ($meta[Keyword::create('dynamic')] ?? false) === true;
+        $this->dynamicCache[$cacheKey] = $value;
+
+        return $value;
     }
 
     public function invalidateDynamicCache(string $ns, string $name): void
     {
         unset($this->dynamicCache[$this->key($ns, $name)]);
+    }
+
+    private function effectiveMeta(string $ns, string $name): ?PersistentMapInterface
+    {
+        if ($this->hasMetaOverride($ns, $name)) {
+            return $this->getMetaOverride($ns, $name);
+        }
+
+        return Registry::getInstance()->getDefinitionMetaData($ns, $name);
     }
 
     private function key(string $ns, string $name): string

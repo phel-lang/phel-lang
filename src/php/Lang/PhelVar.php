@@ -132,7 +132,6 @@ final readonly class PhelVar implements EqualsInterface, FnInterface, HashableIn
     {
         $next = $f($this->meta(), ...$args);
         PhelVarStateRegistry::getInstance()->setMetaOverride($this->namespace, $this->name, $next);
-        $this->refreshDynamicCache($next);
 
         return $next;
     }
@@ -144,7 +143,6 @@ final readonly class PhelVar implements EqualsInterface, FnInterface, HashableIn
     public function resetMeta(?PersistentMapInterface $meta): ?PersistentMapInterface
     {
         PhelVarStateRegistry::getInstance()->setMetaOverride($this->namespace, $this->name, $meta);
-        $this->refreshDynamicCache($meta);
 
         return $meta;
     }
@@ -194,22 +192,13 @@ final readonly class PhelVar implements EqualsInterface, FnInterface, HashableIn
     }
 
     /**
-     * True when this var was defined with `^:dynamic` metadata. The lookup
-     * is cached on first call and refreshed when `alter-meta!` /
-     * `reset-meta!` mutate the per-var metadata.
+     * True when this var carries `^:dynamic` metadata. The lookup is cached
+     * by {@see PhelVarStateRegistry} and invalidated automatically when
+     * `alter-meta!` / `reset-meta!` mutate the per-var metadata.
      */
     public function isDynamic(): bool
     {
-        $state = PhelVarStateRegistry::getInstance();
-        $cached = $state->getCachedDynamic($this->namespace, $this->name);
-        if ($cached !== null) {
-            return $cached;
-        }
-
-        $value = $this->computeIsDynamic($this->meta());
-        $state->rememberDynamic($this->namespace, $this->name, $value);
-
-        return $value;
+        return PhelVarStateRegistry::getInstance()->isDynamic($this->namespace, $this->name);
     }
 
     public function equals(mixed $other): bool
@@ -234,23 +223,5 @@ final readonly class PhelVar implements EqualsInterface, FnInterface, HashableIn
         foreach ($watches as $key => $callback) {
             $callback(Keyword::create($key), $this, $oldValue, $newValue);
         }
-    }
-
-    private function refreshDynamicCache(?PersistentMapInterface $meta): void
-    {
-        PhelVarStateRegistry::getInstance()->rememberDynamic(
-            $this->namespace,
-            $this->name,
-            $this->computeIsDynamic($meta),
-        );
-    }
-
-    private function computeIsDynamic(?PersistentMapInterface $meta): bool
-    {
-        if (!$meta instanceof PersistentMapInterface) {
-            return false;
-        }
-
-        return ($meta[Keyword::create('dynamic')] ?? false) === true;
     }
 }
