@@ -1,0 +1,33 @@
+(ns phel-test\test\core\vars-callable
+  (:require phel\test :refer [deftest is thrown?]))
+
+;; Var handles forward calls to their current root value when that value
+;; is callable. Throws a clear error when the root value cannot be invoked.
+
+(defn callable-target [a b] (+ a b))
+
+(deftest test-invoke-var-with-args
+  (is (= 5 (#'callable-target 2 3)) "calling a var fns its root value"))
+
+(deftest test-invoke-var-no-args
+  (defn pi [] 3.14)
+  (is (= 3.14 (#'pi)) "zero-arg var call works"))
+
+(deftest test-invoke-var-variadic
+  (defn vsum [& xs] (apply + xs))
+  (is (= 10 (#'vsum 1 2 3 4)) "variadic var call forwards all args"))
+
+(deftest test-invoke-var-tracks-root-changes
+  (defn rebound-fn [] :first)
+  (is (= :first (#'rebound-fn)) "initial root value")
+  (alter-var-root #'rebound-fn (fn [_] (fn [] :second)))
+  (is (= :second (#'rebound-fn)) "invocation reflects new root"))
+
+(def non-callable-data 42)
+
+(deftest test-invoke-var-non-callable-throws
+  (is (thrown? \RuntimeException (#'non-callable-data))
+      "invoking a var whose root is not callable raises RuntimeException"))
+
+(deftest test-invoke-core-var
+  (is (= 6 ((var +) 1 2 3)) "(var +) is callable like the underlying fn"))

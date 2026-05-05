@@ -20,6 +20,13 @@ All notable changes to this project will be documented in this file.
 - `bound?` returns true when a var has a current root binding in the registry
 - `thread-bound?` returns true when a fiber-local frame currently overrides the var
 - `var-set` mutates the topmost active fiber-local binding frame for a var
+- `Var` handles are callable: `((var f) ...args)` invokes the var's current root value and forwards the arguments
+- `add-watch` and `remove-watch` accept a `Var` as the target; watch fns fire on `alter-var-root`
+- `alter-meta!` and `reset-meta!` mutate per-var metadata on `Var` handles and atoms; per-var metadata survives subsequent `def` redefinitions
+
+#### Lang
+- `PhelVar` implements `FnInterface` and exposes `__invoke`, `addWatch`, `removeWatch`, `alterMeta`, `resetMeta`, and a cached `isDynamic()` lookup
+- `PhelVarStateRegistry` singleton holds per-var watch fns, metadata overrides, and dynamic-flag cache keyed by `(ns, name)` so all handles to the same slot share state
 
 ### Changed
 
