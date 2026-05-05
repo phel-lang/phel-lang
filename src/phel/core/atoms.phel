@@ -3,6 +3,7 @@
 (use InvalidArgumentException)
 (use Phel)
 (use Phel.Lang.Collections.LazySeq.ChunkedSeq)
+(use Phel.Lang.DynamicScope)
 (use Phel.Lang.Equalizer)
 (use Phel.Lang.Hasher)
 (use Phel.Lang.PhelVar)
@@ -117,6 +118,45 @@
     (throw (php/new \InvalidArgumentException
                     "alter-var-root expects a Var as first argument; use swap! for atoms")))
   (php/-> v (alterRoot (fn [current] (apply f current args)))))
+
+(defn bound?
+  "Returns true when `v` has a current root binding in the namespace
+  registry. `v` must be a `Var`."
+  {:example "(bound? #'phel.core/map) ; => true"
+   :see-also ["thread-bound?" "var-get" "find-var"]}
+  [v]
+  (when-not (var? v)
+    (throw (php/new \InvalidArgumentException
+                    "bound? expects a Var as its argument")))
+  (php/:: Phel (isDefined (php/-> v (getNamespace))
+                          (php/-> v (getName)))))
+
+(defn thread-bound?
+  "Returns true when a fiber-local `binding` (or `with-bindings`) frame
+  currently overrides the value of `v` on the calling fiber."
+  {:example "(binding [*foo* 1] (thread-bound? #'*foo*)) ; => true"
+   :see-also ["bound?" "binding" "var-set"]}
+  [v]
+  (when-not (var? v)
+    (throw (php/new \InvalidArgumentException
+                    "thread-bound? expects a Var as its argument")))
+  (let [scope (php/:: DynamicScope (getInstance))]
+    (php/-> scope (hasBinding (php/-> v (getNamespace))
+                              (php/-> v (getName))))))
+
+(defn var-set
+  "Sets the value of the topmost active fiber-local binding frame for
+  `v` to `val`. Throws when no `binding` (or `with-bindings`) frame is
+  currently overriding `v`. Returns `val`."
+  {:example "(def ^:dynamic *x* 0)\n(binding [*x* 1] (var-set #'*x* 2) *x*) ; => 2"
+   :see-also ["binding" "thread-bound?" "alter-var-root"]}
+  [v val]
+  (when-not (var? v)
+    (throw (php/new \InvalidArgumentException
+                    "var-set expects a Var as its first argument")))
+  (php/:: Phel (varSet (php/-> v (getNamespace))
+                       (php/-> v (getName))
+                       val)))
 
 (defn remove-watch
   "Removes a watch function from a variable by key."

@@ -1,0 +1,95 @@
+(ns phel-test\test\core\var-introspection
+  (:require phel\test :refer [deftest is]))
+
+;; Coverage for `bound?`, `thread-bound?`, `var-set`, `with-bindings`,
+;; and `with-redefs` introspection / mutation primitives.
+
+(def ^:dynamic *intro-dyn* :root)
+(def *intro-static* :static-root)
+
+;; ---- bound? -------------------------------------------------------------
+
+(deftest test-bound-true-on-defined-var
+  (is (true? (bound? #'*intro-dyn*)) "bound? true for a defined var")
+  (is (true? (bound? #'*intro-static*)) "bound? true for a static def")
+  (is (true? (bound? #'phel.core/map)) "bound? true on core defs"))
+
+(deftest test-bound-rejects-non-var
+  (is (php/instanceof
+       (try (bound? 42) nil (catch \Throwable e e))
+       \InvalidArgumentException)
+      "bound? throws on non-var input"))
+
+;; ---- thread-bound? -------------------------------------------------------
+
+(deftest test-thread-bound-false-outside-binding
+  (is (false? (thread-bound? #'*intro-dyn*))
+      "no thread-local frame outside binding"))
+
+(deftest test-thread-bound-true-inside-binding
+  (binding [*intro-dyn* :inside]
+    (is (true? (thread-bound? #'*intro-dyn*))
+        "thread-bound? true inside binding")))
+
+(deftest test-thread-bound-rejects-non-var
+  (is (php/instanceof
+       (try (thread-bound? :not-a-var) nil (catch \Throwable e e))
+       \InvalidArgumentException)
+      "thread-bound? throws on non-var input"))
+
+;; ---- var-set -------------------------------------------------------------
+
+(deftest test-var-set-mutates-active-binding
+  (binding [*intro-dyn* :first]
+    (is (= :first *intro-dyn*) "binding seeds the value")
+    (var-set #'*intro-dyn* :second)
+    (is (= :second *intro-dyn*) "var-set updates the active frame"))
+  (is (= :root *intro-dyn*) "root value is restored on exit"))
+
+(deftest test-var-set-returns-new-value
+  (binding [*intro-dyn* :a]
+    (is (= :b (var-set #'*intro-dyn* :b))
+        "var-set returns the value it stored")))
+
+(deftest test-var-set-without-binding-throws
+  (is (php/instanceof
+       (try (var-set #'*intro-dyn* :nope) nil (catch \Throwable e e))
+       \InvalidArgumentException)
+      "var-set outside any binding frame throws"))
+
+(deftest test-var-set-rejects-non-var
+  (is (php/instanceof
+       (try (var-set "string" 1) nil (catch \Throwable e e))
+       \InvalidArgumentException)
+      "var-set rejects non-var first arg"))
+
+;; ---- with-bindings -------------------------------------------------------
+
+(def ^:dynamic *intro-dyn-2* :root-2)
+
+(deftest test-with-bindings-rebinds-from-map
+  (with-bindings {#'*intro-dyn* :wb-a #'*intro-dyn-2* :wb-b}
+    (is (= :wb-a *intro-dyn*) "first var rebound")
+    (is (= :wb-b *intro-dyn-2*) "second var rebound"))
+  (is (= :root *intro-dyn*) "first var restored")
+  (is (= :root-2 *intro-dyn-2*) "second var restored"))
+
+(deftest test-with-bindings-throws-on-non-dynamic
+  (is (php/instanceof
+       (try
+         (with-bindings {#'*intro-static* :nope} :unreached)
+         nil
+         (catch \Throwable e e))
+       \InvalidArgumentException)
+      "with-bindings rejects non-dynamic vars")
+  (is (= :static-root *intro-static*)
+      "non-dynamic var left untouched after the failed with-bindings"))
+
+;; ---- with-redefs ---------------------------------------------------------
+
+(deftest test-with-redefs-rebinds-any-var
+  (with-redefs [*intro-static* :swapped *intro-dyn* :also-swapped]
+    (is (= :swapped *intro-static*) "with-redefs accepts non-dynamic vars")
+    (is (= :also-swapped *intro-dyn*) "with-redefs accepts dynamic vars too"))
+  (is (= :static-root *intro-static*) "static restored on exit")
+  (is (= :root *intro-dyn*) "dynamic restored on exit"))
