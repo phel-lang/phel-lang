@@ -15,6 +15,11 @@ All notable changes to this project will be documented in this file.
 - `find-var` returns the `Var` named by a fully-qualified symbol (#1717)
 - `var-get` accepts a `Var` instance in addition to a fully-qualified symbol (#1717)
 - `var?` predicate returns true on `Var` values (#1717)
+- `with-redefs` macro temporarily replaces the root values of vars (any var, dynamic or not) and restores them on exit, including on exceptions
+- `with-bindings` macro takes a map of `Var -> value` and rebinds dynamic vars for the body
+- `bound?` returns true when a var has a current root binding in the registry
+- `thread-bound?` returns true when a fiber-local frame currently overrides the var
+- `var-set` mutates the topmost active fiber-local binding frame for a var
 
 ### Changed
 
@@ -23,6 +28,12 @@ All notable changes to this project will be documented in this file.
 - `type` returns `:atom` for `atom` values; `:var` is now reserved for `Var` handles (#1717)
 - `alter-var-root` mutates the root binding of a `Var`; rejects atoms with a clear error pointing at `swap!` (#1717)
 - `deref` works on both atoms and `Var` instances (#1717)
+- `phel\mock`'s `with-mocks` and `with-mock-wrapper` now expand to `with-redefs` so they keep working when the target functions are not tagged `^:dynamic`
+
+### Breaking
+
+#### Core
+- `binding` throws `InvalidArgumentException` when any var in the bindings vector is not tagged `^:dynamic`. Previously it silently fell back to `with-redefs` semantics. Switch test mocks and other non-dynamic rebindings to `with-redefs`.
 
 ### Removed
 

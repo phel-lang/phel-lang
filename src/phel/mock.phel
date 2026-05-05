@@ -177,7 +177,7 @@
 ;; -----------
 
 (defmacro with-mocks
-  "Temporarily replaces functions with mocks using binding.
+  "Temporarily replaces functions with mocks using `with-redefs`.
   Automatically resets mocks after the body executes.
 
   Works with inline mock creation:
@@ -206,7 +206,7 @@
         values    (take-nth 2 (drop 1 bindings))
         mock-syms (map (fn [_] (gensym "mock")) values)]
     `(let [~@(interleave mock-syms values)]
-       (binding [~@(interleave symbols mock-syms)]
+       (with-redefs [~@(interleave symbols mock-syms)]
          (try
            (do ~@body)
            (finally
@@ -239,7 +239,7 @@
         reset-forms  (map (fn [m] `(reset-mock! ~m)) mock-syms)]
     `(let [~@(interleave mock-syms mocks)
            ~@(interleave wrapper-syms wrappers)]
-       (binding [~@(interleave symbols wrapper-syms)]
+       (with-redefs [~@(interleave symbols wrapper-syms)]
          (try
            (do ~@body)
            (finally

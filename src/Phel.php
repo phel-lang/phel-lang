@@ -90,11 +90,15 @@ final class Phel extends InternalPhel
 
     /**
      * Runtime target for the `set-var` special form. Routes by whether a
-     * `binding` macro is currently recording on the current fiber:
+     * `binding` / `with-redefs` macro is currently recording on the
+     * current fiber:
      *
-     *  - Recording + `:dynamic` var → stage into the pending fiber frame.
-     *  - Recording + non-dynamic var → record old value for with-redefs
-     *    restore, then mutate the registry.
+     *  - Recording in `binding` mode + `:dynamic` var → stage into the
+     *    pending fiber frame.
+     *  - Recording in `binding` mode + non-dynamic var → throw, pointing
+     *    callers at `with-redefs` for tests.
+     *  - Recording in `redefs` mode → record old value for restore, then
+     *    mutate the registry. Allowed for any var.
      *  - Not recording → plain registry mutation, as `set-var` always did.
      */
     public static function setVar(string $ns, string $name, mixed $value): mixed
@@ -103,11 +107,22 @@ final class Phel extends InternalPhel
         $scope = DynamicScope::getInstance();
 
         if ($scope->isRecording()) {
-            if (self::isDynamicVar($ns, $name)) {
+            $mode = $scope->currentRecordingMode();
+
+            if ($mode === DynamicScope::MODE_BINDING) {
+                if (!self::isDynamicVar($ns, $name)) {
+                    throw new InvalidArgumentException(\sprintf(
+                        "Can't dynamically bind non-dynamic var: %s/%s. Tag the def with ^:dynamic, or use `with-redefs` to rebind for tests.",
+                        $ns,
+                        $name,
+                    ));
+                }
+
                 $scope->recordDynamic($ns, $name, $value);
                 return $value;
             }
 
+            // MODE_REDEFS: capture previous value and fall through to mutate.
             $scope->recordRedef($ns, $name, $registry->getDefinition($ns, $name));
         }
 
@@ -116,13 +131,43 @@ final class Phel extends InternalPhel
     }
 
     /**
+     * Mutate the topmost active dynamic frame slot for the named var.
+     * Backing call for `var-set`. Throws when the var is not currently
+     * bound on the calling fiber's stack.
+     */
+    public static function varSet(string $ns, string $name, mixed $value): mixed
+    {
+        $scope = DynamicScope::getInstance();
+        if (!$scope->setBinding($ns, $name, $value)) {
+            throw new InvalidArgumentException(\sprintf(
+                "Can't change/establish root binding of %s/%s with var-set; no thread-local binding is active.",
+                $ns,
+                $name,
+            ));
+        }
+
+        return $value;
+    }
+
+    /**
      * Open a pending fiber-local binding recording. The subsequent
      * `set-var` calls emitted by the `binding` macro feed into it, and
-     * {@see self::commitAndRunBindingFrame()} consumes it.
+     * {@see self::commitAndRunBindingFrame()} consumes it. Use
+     * {@see self::openRedefsFrame()} for `with-redefs`-style mutation.
      */
     public static function openBindingFrame(): void
     {
-        DynamicScope::getInstance()->startRecording();
+        DynamicScope::getInstance()->startRecording(DynamicScope::MODE_BINDING);
+    }
+
+    /**
+     * Open a pending fiber-local recording in `with-redefs` mode: any
+     * var (dynamic or not) may be re-bound, with the previous root
+     * captured for restore on exit.
+     */
+    public static function openRedefsFrame(): void
+    {
+        DynamicScope::getInstance()->startRecording(DynamicScope::MODE_REDEFS);
     }
 
     /**

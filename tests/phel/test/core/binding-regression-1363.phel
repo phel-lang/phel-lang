@@ -12,7 +12,7 @@
 ;;      parse cleanly because the selected branch wins and unselected branches
 ;;      are discarded.
 
-(def *x* :unset)
+(def ^:dynamic *x* :unset)
 
 (deftest binding-inside-is-compiles
   (is (binding [*x* :set] (= *x* :set))

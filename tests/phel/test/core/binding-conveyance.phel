@@ -53,13 +53,21 @@
       (is (= :outer (deref ff))
           "future-fiber captures the caller's dynamic bindings"))))
 
-;; --- binding on a non-dynamic var still uses with-redefs semantics ---
+;; --- with-redefs handles non-dynamic vars; binding throws ---
 (def *not-dynamic* :root)
 
-(deftest test-binding-non-dynamic-var-legacy-redef
-  (binding [*not-dynamic* :rebound]
-    (is (= :rebound *not-dynamic*) "non-dynamic var is mutated in-place"))
-  (is (= :root *not-dynamic*) "non-dynamic var is restored on exit"))
+(deftest test-with-redefs-on-non-dynamic-var
+  (with-redefs [*not-dynamic* :rebound]
+    (is (= :rebound *not-dynamic*) "with-redefs mutates the root in-place"))
+  (is (= :root *not-dynamic*) "with-redefs restores the root on exit"))
+
+(deftest test-binding-on-non-dynamic-var-throws
+  (let [thrown? (try
+                  (binding [*not-dynamic* :rebound] :unreached)
+                  false
+                  (catch \Throwable _ true))]
+    (is thrown? "binding on a non-dynamic var raises an exception"))
+  (is (= :root *not-dynamic*) "non-dynamic var is left untouched after the failed bind"))
 
 ;; --- nil values in dynamic bindings ---
 (deftest test-binding-with-nil-value

@@ -170,7 +170,58 @@ final class DynamicScopeTest extends TestCase
 
         $entry = $scope->popRecording();
 
-        self::assertSame(['dynamic' => [], 'redefs' => []], $entry);
+        self::assertSame(
+            ['mode' => DynamicScope::MODE_BINDING, 'dynamic' => [], 'redefs' => []],
+            $entry,
+        );
+    }
+
+    public function test_recording_mode_defaults_to_binding(): void
+    {
+        $scope = DynamicScope::getInstance();
+        $scope->startRecording();
+
+        self::assertSame(DynamicScope::MODE_BINDING, $scope->currentRecordingMode());
+
+        $scope->popRecording();
+        self::assertNull($scope->currentRecordingMode());
+    }
+
+    public function test_redefs_recording_mode_is_distinguishable(): void
+    {
+        $scope = DynamicScope::getInstance();
+        $scope->startRecording(DynamicScope::MODE_REDEFS);
+
+        self::assertSame(DynamicScope::MODE_REDEFS, $scope->currentRecordingMode());
+
+        $entry = $scope->popRecording();
+        self::assertSame(DynamicScope::MODE_REDEFS, $entry['mode']);
+    }
+
+    public function test_set_binding_updates_topmost_frame(): void
+    {
+        $scope = DynamicScope::getInstance();
+        $scope->pushFrame(['ns/x' => 'outer']);
+        $scope->pushFrame(['ns/x' => 'inner']);
+
+        self::assertTrue($scope->setBinding('ns', 'x', 'inner-edited'));
+        self::assertSame('inner-edited', $scope->getBinding('ns', 'x'));
+
+        $scope->popFrame();
+        self::assertSame('outer', $scope->getBinding('ns', 'x'), 'lower frame remains untouched');
+
+        $scope->popFrame();
+    }
+
+    public function test_set_binding_returns_false_when_no_frame_holds_key(): void
+    {
+        $scope = DynamicScope::getInstance();
+
+        self::assertFalse($scope->setBinding('ns', 'unbound', 1));
+
+        $scope->pushFrame(['ns/other' => 1]);
+        self::assertFalse($scope->setBinding('ns', 'unbound', 1));
+        $scope->popFrame();
     }
 
     public function test_recording_stacks_are_isolated_per_fiber(): void

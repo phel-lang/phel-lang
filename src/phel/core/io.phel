@@ -379,26 +379,73 @@
 ;; Binding
 ;; -------
 
+(defn- emit-set-vars
+  "Expands a `[v1 e1 v2 e2 ...]` binding vector into the sequence of
+  `(set-var v e)` forms consumed by an open binding/with-redefs frame."
+  [bindings]
+  (map (fn [pair]
+         (list 'set-var (php/aget pair 0) (php/aget pair 1)))
+       (php/array_chunk (apply php/array bindings) 2)))
+
+(defn- emit-binding-form
+  "Builds the open/try/commit/finally skeleton shared by `binding` and
+  `with-redefs`. `open-method` is the `\\Phel` static used to start the
+  fiber-local recording (`openBindingFrame` for dynamic-only,
+  `openRedefsFrame` for any var)."
+  [open-method bindings body]
+  `(do
+     (php/:: \Phel (~open-method))
+     (try
+       (do
+         ~@(emit-set-vars bindings)
+         (php/:: \Phel (commitAndRunBindingFrame (fn [] ~@body))))
+       (finally
+         (php/:: \Phel (abortBindingFrameIfOpen))))))
+
 (defmacro binding
-  "Temporarily rebinds vars while executing `body`.
+  "Temporarily rebinds dynamic vars while executing `body`.
 
-  Vars tagged `^:dynamic` use fiber-local storage: concurrent fibers
-  observe independent values and child futures (`future`, `async`,
-  `future-fiber`) inherit the bindings active at their creation.
+  Each var in `bindings` must be tagged `^:dynamic` at its `def`. The
+  rebinding is fiber-local: concurrent fibers observe independent
+  values, and child futures (`future`, `async`, `future-fiber`)
+  inherit the bindings active at their creation.
 
-  Non-dynamic vars fall back to `with-redefs`-style registry
-  mutation restored on exit — convenient for tests but shared
-  across fibers."
+  Throws at runtime if any var in the bindings vector is not
+  `:dynamic`. To swap a non-dynamic var for the duration of an
+  expression (e.g. mocking in tests), use `with-redefs`."
   [bindings & body]
-  (let [pairs    (php/array_chunk (apply php/array bindings) 2)
-        set-vars (map (fn [pair]
-                        (list 'set-var (php/aget pair 0) (php/aget pair 1)))
-                      pairs)]
-    `(do
+  (emit-binding-form 'openBindingFrame bindings body))
+
+(defmacro with-redefs
+  "Temporarily replaces the root values of vars while executing `body`.
+
+  Accepts any var, dynamic or not. The previous root values are
+  captured before `body` runs and restored on exit, including when
+  `body` throws. The replacement is process-global: every fiber sees
+  the new root for the duration of the body, which makes this a
+  convenient mocking primitive for tests but unsafe for concurrent
+  production code. Use `binding` for fiber-local rebinding of
+  `^:dynamic` vars."
+  [bindings & body]
+  (emit-binding-form 'openRedefsFrame bindings body))
+
+(defmacro with-bindings
+  "Like `binding` but takes a map of `Var -> value` instead of a binding
+  vector. Same dynamic-only enforcement: throws when any key resolves
+  to a non-dynamic var."
+  [m & body]
+  (let [m-sym (gensym "m__")
+        v-sym (gensym "v__")
+        x-sym (gensym "x__")]
+    `(let [~m-sym ~m]
        (php/:: \Phel (openBindingFrame))
        (try
          (do
-           ~@set-vars
+           (foreach [~v-sym ~x-sym ~m-sym]
+             (php/:: \Phel
+                    (setVar (php/-> ~v-sym (getNamespace))
+                            (php/-> ~v-sym (getName))
+                            ~x-sym)))
            (php/:: \Phel (commitAndRunBindingFrame (fn [] ~@body))))
          (finally
            (php/:: \Phel (abortBindingFrameIfOpen)))))))
