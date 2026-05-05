@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lang;
 
+use Phel\Lang\PhelVar;
 use Phel\Lang\Registry;
-use Phel\Lang\VarReference;
 use PHPUnit\Framework\TestCase;
 
 final class RegistryTest extends TestCase
@@ -59,7 +59,7 @@ final class RegistryTest extends TestCase
     {
         $actual = $this->registry->addDefinition('my-ns', 'my-var', 42);
 
-        self::assertInstanceOf(VarReference::class, $actual);
+        self::assertInstanceOf(PhelVar::class, $actual);
         self::assertSame('my-ns', $actual->getNamespace());
         self::assertSame('my-var', $actual->getName());
         self::assertSame('my-ns/my-var', $actual->getFullName());

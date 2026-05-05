@@ -13,6 +13,7 @@
 (use Phel.Lang.FnInterface)
 (use Phel.Lang.Keyword)
 (use Phel.Lang.MetaInterface)
+(use Phel.Lang.PhelVar)
 (use Phel.Lang.Symbol)
 (use Phel.Lang.Variable)
 
@@ -36,6 +37,7 @@
 * `:set`
 * `:keyword`
 * `:symbol`
+* `:atom`
 * `:var`
 * `:int`
 * `:float`
@@ -56,7 +58,8 @@
     (php/instanceof x PersistentHashSetInterface) :set
     (php/instanceof x Keyword)                    :keyword
     (php/instanceof x Symbol)                     :symbol
-    (php/instanceof x Variable)                   :var
+    (php/instanceof x Variable)                   :atom
+    (php/instanceof x PhelVar)                    :var
     (php/is_int x)                                :int
     (php/is_float x)                              :float
     (php/is_string x)                             :string

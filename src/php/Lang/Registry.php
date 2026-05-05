@@ -61,12 +61,27 @@ final class Registry
         $this->definitionsMetaData = $snapshot['definitionsMetaData'];
     }
 
-    public function addDefinition(string $ns, string $name, mixed $value, ?PersistentMapInterface $metaData = null): VarReference
+    public function addDefinition(string $ns, string $name, mixed $value, ?PersistentMapInterface $metaData = null): PhelVar
     {
         $this->definitions[$ns][$name] = $value;
         $this->definitionsMetaData[$ns][$name] = $metaData;
 
-        return new VarReference($ns, $name);
+        return new PhelVar($ns, $name);
+    }
+
+    /**
+     * Returns a `PhelVar` handle to an existing definition. The slot must
+     * already exist; callers should typically be the analyzer-emitted output
+     * of the `(var sym)` special form, where resolution has already
+     * established that the symbol points at a known def.
+     */
+    public function getVar(string $ns, string $name): PhelVar
+    {
+        if (!$this->isDefined($ns, $name)) {
+            throw new RuntimeException(sprintf('Var "%s/%s" not found', $ns, $name));
+        }
+
+        return new PhelVar($ns, $name);
     }
 
     public function hasDefinition(string $ns, string $name): bool

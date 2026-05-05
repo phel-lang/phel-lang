@@ -255,7 +255,7 @@
 (deftest test-with-mock-wrapper-inline-creation
   ;; Test that inline mock expressions are evaluated once, not re-evaluated in finally
   ;; This verifies the fix for the bug where reset-forms would create a new mock
-  (let [call-count-atom (var 0)
+  (let [call-count-atom (atom 0)
         ;; Create a mock factory that tracks how many times it's called
         counted-mock (fn []
                        (swap! call-count-atom inc)

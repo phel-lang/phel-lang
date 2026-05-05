@@ -11,13 +11,13 @@
   (let [form (read-string "(do (def *my-binding-var* 1) (binding [*my-binding-var* 2] *my-binding-var*))")]
     (is (= 2 (eval form)) "binding atom")))
 
-(deftest test-var
-  (is (= :var (type (var 10))) "type of var is :var")
-  (is (= 10 (deref (var 10))) "deref variable")
-  (is (true? (var? (var 10))) "var? return true if x is a variable")
-  (is (false? (var? 10)) "var? return false if x is a number")
-  (is (= 20 (let [x (var 10)] (set! x 20) (deref x))) "set new value to variable")
-  (is (= 11 (let [x (var 10)] (swap! x + 1) (deref x))) "swap a value by incrementing the number"))
+(deftest test-atom
+  (is (= :atom (type (atom 10))) "type of atom is :atom")
+  (is (= 10 (deref (atom 10))) "deref atom")
+  (is (true? (atom? (atom 10))) "atom? returns true on atom")
+  (is (false? (atom? 10)) "atom? returns false on non-atom")
+  (is (= 20 (let [x (atom 10)] (reset! x 20) (deref x))) "reset! sets a new value")
+  (is (= 11 (let [x (atom 10)] (swap! x + 1) (deref x))) "swap! increments the number"))
 
 (deftest test-if-let
   (is (= 1 (if-let [a 1] a)))

@@ -41,6 +41,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\SetVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
 use Phel\Compiler\Domain\Analyzer\Ast\TryNode;
 use Phel\Compiler\Domain\Analyzer\Ast\UseNode;
+use Phel\Compiler\Domain\Analyzer\Ast\VarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Compiler\Domain\Emitter\Exceptions\NotSupportedAstException;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\ApplyEmitter;
@@ -82,6 +83,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\SetVarEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\ThrowEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\TryEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\UseEmitter;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\VarEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\VectorEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 
@@ -121,6 +123,7 @@ final class NodeEmitterFactory
             DefNode::class => new DefEmitter($outputEmitter),
             LiteralNode::class => new LiteralEmitter($outputEmitter),
             QuoteNode::class => new QuoteEmitter($outputEmitter),
+            VarNode::class => new VarEmitter($outputEmitter),
             FnNode::class => new FnAsClassEmitter($outputEmitter, $methodEmitter, $closureHelper),
             DoNode::class => new DoEmitter($outputEmitter),
             LetNode::class => new LetEmitter($outputEmitter),

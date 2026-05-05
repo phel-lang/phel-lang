@@ -52,7 +52,7 @@ final class Lexer implements LexerInterface
         '(#\?@\()', // reader conditional splicing (index: 26 = T_READER_COND_SPLICING)
         '(##(?:-?Inf|NaN)(?![A-Za-z0-9_\-]))', // symbolic number literal (index: 27 = T_SYMBOLIC_NUMBER) - Clojure-style ##Inf, ##-Inf, ##NaN
         '(#[A-Za-z][A-Za-z0-9_\-]*)', // tagged literal start (index: 28 = T_TAGGED_LITERAL) - e.g. #cpp, #uuid, #inst
-        "(#')", // var-quote prefix (index: 29 = T_VAR_QUOTE) - Clojure-style #'foo reads as a reference to the var `foo`; Phel currently treats it as the bare symbol since it has no first-class Var type
+        "(#')", // var-quote prefix (index: 29 = T_VAR_QUOTE) - `#'foo` expands to `(var foo)` in the reader, yielding a `PhelVar` handle to the named definition
     ];
 
     private const string MULTILINE_COMMENT_BEGIN = '#|';

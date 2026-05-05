@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Phel\Printer\TypePrinter;
 
-use Phel\Lang\VarReference;
+use Phel\Lang\PhelVar;
 
 use function sprintf;
 
 /**
- * @implements TypePrinterInterface<VarReference>
+ * @implements TypePrinterInterface<PhelVar>
  */
-final class VarReferencePrinter implements TypePrinterInterface
+final class VarPrinter implements TypePrinterInterface
 {
     use WithColorTrait;
 
     /**
-     * @param VarReference $form
+     * @param PhelVar $form
      */
     public function print(mixed $form): string
     {

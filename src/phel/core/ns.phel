@@ -5,6 +5,7 @@
 (use Phel.Compiler.CompilerFacade)
 (use Phel.Compiler.Infrastructure.CompileOptions)
 (use Phel.Compiler.Infrastructure.GlobalEnvironmentSingleton)
+(use Phel.Lang.PhelVar)
 (use Phel.Lang.Symbol)
 
 ;; --- Namespace introspection and manipulation ---
@@ -117,22 +118,59 @@
     (php/:: Symbol (createForNamespace (display-ns canonical) name-str))))
 
 (defn var-get
-  "Takes a fully-qualified symbol and resolves it from the namespace registry,
-  returning its value. With one argument, returns nil when the symbol is not
-  defined. With two arguments, returns `not-found` instead, which lets callers
-  disambiguate a stored nil from a missing definition. Returns `not-found`
-  for non-symbol or unqualified inputs."
-  {:example "(var-get (intern \"user\" \"x\" 42)) ; => 42\n(var-get 'user/missing ::none) ; => ::none"
-   :see-also ["intern" "ns-interns" "find-ns"]}
+  "Resolves the value bound to a `Var` or to a fully-qualified symbol.
+
+  Accepts a `Var` instance (typically from `(var sym)` or `#'sym`) and
+  returns its current root value. Accepts a fully-qualified symbol and
+  reads the matching definition from the registry; tries the symbol name
+  verbatim first, then the encoded form, so it pairs with both `def` and
+  `intern`.
+
+  With one argument, returns nil when the symbol is not defined. With two
+  arguments, returns `not-found` instead, which lets callers disambiguate a
+  stored nil from a missing definition. Returns `not-found` for non-symbol
+  or unqualified inputs."
+  {:example "(var-get #'phel.core/map) ; => <fn>\n(var-get (intern \"user\" \"x\" 42)) ; => 42\n(var-get 'user/missing ::none) ; => ::none"
+   :see-also ["find-var" "intern" "ns-interns" "find-ns"]}
   ([x] (var-get x nil))
   ([x not-found]
-   (if (and (symbol? x) (namespace x))
-     (let [encoded-ns   (core-munge-ns (namespace x))
-           encoded-name (core-munge-name (name x))]
-       (if (php/:: Phel (isDefined encoded-ns encoded-name))
-         (php/:: Phel (getDefinition encoded-ns encoded-name))
-         not-found))
-     not-found)))
+   (cond
+     (php/instanceof x PhelVar)
+     (php/-> x (deref))
+
+     (and (symbol? x) (namespace x))
+     (let [encoded-ns (core-munge-ns (namespace x))
+           raw-name   (name x)]
+       (cond
+         (php/:: Phel (isDefined encoded-ns raw-name))
+         (php/:: Phel (getDefinition encoded-ns raw-name))
+
+         (php/:: Phel (isDefined encoded-ns (core-munge-name raw-name)))
+         (php/:: Phel (getDefinition encoded-ns (core-munge-name raw-name)))
+
+         true not-found))
+
+     true not-found)))
+
+(defn find-var
+  "Returns the `Var` named by the fully-qualified symbol, or nil if no
+  matching definition exists. Tries the symbol name verbatim first (matching
+  how `def` stores entries), then falls back to the encoded form (matching
+  how `intern` stores entries)."
+  {:example "(find-var 'phel.core/map) ; => #'phel.core/map"
+   :see-also ["var-get" "intern" "find-ns"]}
+  [sym]
+  (when (and (symbol? sym) (namespace sym))
+    (let [encoded-ns (core-munge-ns (namespace sym))
+          raw-name   (name sym)]
+      (cond
+        (php/:: Phel (isDefined encoded-ns raw-name))
+        (php/:: Phel (getVar encoded-ns raw-name))
+
+        (php/:: Phel (isDefined encoded-ns (core-munge-name raw-name)))
+        (php/:: Phel (getVar encoded-ns (core-munge-name raw-name)))
+
+        true nil))))
 
 (defn ns-publics
   "Returns a hash-map of {name => value} for all public definitions in the

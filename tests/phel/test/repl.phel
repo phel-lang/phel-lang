@@ -185,8 +185,8 @@
     (is (s/contains? result "Failed:") "test-ns output contains Failed summary")))
 
 (deftest test-test-ns-result-has-expected-keys
-  (let [result (let [r (var nil)]
-                 (with-output-buffer (set! r (test-ns "phel-test\\test\\test-framework")))
+  (let [result (let [r (atom nil)]
+                 (with-output-buffer (reset! r (test-ns "phel-test\\test\\test-framework")))
                  (deref r))]
     (is (hash-map? result) "test-ns returns a hash-map")
     (is (not (nil? (get result :pass))) "result contains :pass key")

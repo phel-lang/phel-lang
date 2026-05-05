@@ -62,6 +62,8 @@ final class Symbol extends AbstractType implements IdenticalInterface, FnInterfa
 
     public const string NAME_QUOTE = 'quote';
 
+    public const string NAME_VAR = 'var';
+
     public const string NAME_RECUR = 'recur';
 
     public const string NAME_UNQUOTE = 'unquote';

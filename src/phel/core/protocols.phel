@@ -427,7 +427,7 @@
   - `nil` for the nil type
   - a type keyword matching what `type` returns: `:string`, `:int`, `:float`,
     `:boolean`, `:keyword`, `:symbol`, `:vector`, `:list`, `:hash-map`, `:set`,
-    `:var`, `:function`, `:php/array`
+    `:atom`, `:var`, `:function`, `:php/array`
   - a symbol for struct names (resolved in current namespace)
   - a string for explicit PHP class names (cross-namespace structs)
 
