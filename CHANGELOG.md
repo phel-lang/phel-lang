@@ -43,6 +43,9 @@ All notable changes to this project will be documented in this file.
 - Deprecated `var?` alias for `atom?` (#1717)
 - Deprecated `set!` alias for `reset!` (#1717)
 
+#### Documentation
+- Update README with new namespace syntax using dot separator
+
 ## [0.35.0](https://github.com/phel-lang/phel-lang/compare/v0.34.1...v0.35.0) - 2026-05-03
 
 ### Added
