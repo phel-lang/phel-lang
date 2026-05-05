@@ -49,6 +49,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\SpecialFormAnalyzerIn
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ThrowSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\TrySymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\UseSymbol;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\VarSymbol;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
@@ -295,6 +296,7 @@ final class AnalyzePersistentList
             Symbol::NAME_LOAD => new LoadSymbol($this->analyzer),
             Symbol::NAME_FN => new FnSymbol($this->analyzer, $this->assertsEnabled),
             Symbol::NAME_QUOTE => new QuoteSymbol(),
+            Symbol::NAME_VAR => new VarSymbol($this->analyzer),
             Symbol::NAME_DO => new DoSymbol($this->analyzer),
             Symbol::NAME_IF => new IfSymbol($this->analyzer),
             Symbol::NAME_APPLY => new ApplySymbol($this->analyzer),

@@ -1,6 +1,6 @@
 --PHEL--
 (def x 1)
-#'x
+(var x)
 --PHP--
 \Phel::addDefinition(
   "user",
@@ -8,15 +8,15 @@
   1,
   \Phel::map(
     \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "VarQuote/var-quote-reads-as-bare-symbol.test",
+      \Phel::keyword("file"), "VarQuote/var-special-form.test",
       \Phel::keyword("line"), 1,
       \Phel::keyword("column"), 0
     ),
     \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "VarQuote/var-quote-reads-as-bare-symbol.test",
+      \Phel::keyword("file"), "VarQuote/var-special-form.test",
       \Phel::keyword("line"), 1,
       \Phel::keyword("column"), 9
     )
   )
 );
-\Phel::getDefinition("user", "x");
+Phel\Lang\Registry::getInstance()->getVar("user", "x");

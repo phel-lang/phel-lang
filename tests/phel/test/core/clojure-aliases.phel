@@ -1,7 +1,7 @@
 (ns phel-test\test\core\clojure-aliases
   (:require phel\test :refer [deftest is]))
 
-;; --- atom / var aliases ---
+;; --- atom basics ---
 
 (deftest test-atom-creates-mutable-ref
   (let [a (atom 42)]
@@ -15,18 +15,6 @@
   (let [a (atom 0)]
     (reset! a 10)
     (is (= 10 (deref a)) "reset! updates value")))
-
-(deftest test-var-still-works
-  (let [v (var 5)]
-    (is (= 5 (deref v)) "deprecated var still works")))
-
-(deftest test-var?-still-works
-  (is (true? (var? (var 0))) "deprecated var? still works"))
-
-(deftest test-set!-still-works
-  (let [v (var 0)]
-    (set! v 99)
-    (is (= 99 (deref v)) "deprecated set! still works")))
 
 ;; --- identical? / id aliases ---
 

@@ -4,10 +4,32 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+#### Compiler
+- `(var sym)` special form returns a first-class `Var` handle to a global definition (#1717)
+- `#'sym` reader macro expands to `(var sym)` (#1717)
+
+#### Core
+- `Var` type with `deref`, `meta`, and `alter-var-root` operations on top of the namespace registry (#1717)
+- `find-var` returns the `Var` named by a fully-qualified symbol (#1717)
+- `var-get` accepts a `Var` instance in addition to a fully-qualified symbol (#1717)
+- `var?` predicate returns true on `Var` values (#1717)
+
 ### Changed
 
 #### Stdlib
 - Bare top-level `(use ...)` forms in `src/phel/core/*` now use dot-separated class FQNs to match the canonical syntax already used by `(ns ... :use ...)`
+- `type` returns `:atom` for `atom` values; `:var` is now reserved for `Var` handles (#1717)
+- `alter-var-root` mutates the root binding of a `Var`; rejects atoms with a clear error pointing at `swap!` (#1717)
+- `deref` works on both atoms and `Var` instances (#1717)
+
+### Removed
+
+#### Core
+- Deprecated `var` alias for `atom` (#1717)
+- Deprecated `var?` alias for `atom?` (#1717)
+- Deprecated `set!` alias for `reset!` (#1717)
 
 ## [0.35.0](https://github.com/phel-lang/phel-lang/compare/v0.34.1...v0.35.0) - 2026-05-03
 

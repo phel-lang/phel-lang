@@ -12,11 +12,11 @@ use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\FnInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\PhelVar;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Lang\TypeStringifier;
 use Phel\Lang\Variable;
-use Phel\Lang\VarReference;
 use Phel\Printer\TypePrinter\AnonymousClassPrinter;
 use Phel\Printer\TypePrinter\ArrayPrinter;
 use Phel\Printer\TypePrinter\BooleanPrinter;
@@ -38,7 +38,7 @@ use Phel\Printer\TypePrinter\SymbolPrinter;
 use Phel\Printer\TypePrinter\ToStringPrinter;
 use Phel\Printer\TypePrinter\TypePrinterInterface;
 use Phel\Printer\TypePrinter\VariablePrinter;
-use Phel\Printer\TypePrinter\VarReferencePrinter;
+use Phel\Printer\TypePrinter\VarPrinter;
 use ReflectionClass;
 use RuntimeException;
 
@@ -129,8 +129,8 @@ final readonly class Printer implements PrinterInterface
             return new VariablePrinter($this);
         }
 
-        if ($form instanceof VarReference) {
-            return new VarReferencePrinter($this->withColor);
+        if ($form instanceof PhelVar) {
+            return new VarPrinter($this->withColor);
         }
 
         if ($form instanceof FnInterface) {

@@ -10,7 +10,8 @@ This is a **foundational module** with no Facade, Factory, or DependencyProvider
 
 - **Symbol** — names with optional namespace; special constants for language forms (`def`, `fn`, `if`, etc.)
 - **Keyword** — interned with pool; callable as functions to access map values (implements `FnInterface`)
-- **Variable** — mutable box with watches, validators, deref (Clojure-like)
+- **Variable** — mutable box (atom) with watches, validators, deref
+- **PhelVar** — first-class handle to a global definition (`def`); produced by `Registry::addDefinition`/`getVar` and the `(var sym)` / `#'sym` forms; offers `deref`, `meta`, `alterRoot`
 - **Delay** — lazy evaluation with caching
 - **Volatile** — lightweight mutable container for transducer state
 - **Reduced** — signals early termination from reduce/transduce
@@ -57,6 +58,6 @@ Every module: Compiler (AST representation), Printer (value display), Build (nam
 - All collection types are **persistent** (immutable) with transient variants for bulk building
 - `Keyword` uses an intern pool for memory efficiency — identical keywords share the same instance
 - `Registry` is a singleton; `TypeFactory` is a singleton — both use `getInstance()`
-- Clojure-aligned semantics: Keyword callability, ex-info exceptions, Variable with watches
+- Keyword callability, ex-info exceptions, atom-style mutation on `Variable`, first-class `PhelVar` for global defs
 - Source locations must be preserved via `SourceLocationInterface` for error reporting
 - `Registry` keys are dot-separated: `phel.core`, `my-app.lib` (after `-` → `_` munge → `my_app.lib`). Compiler emitters and analyzer feed the registry through `Munge::encodeRegistryKey`. `Symbol::getFullName` returns the dot form for Phel symbols; symbols whose namespace is a PHP class FQN (leading `\`) keep backslash so static-method shorthand still resolves.

@@ -741,14 +741,14 @@
         "lazy-seq should return a LazySeq instance")))
 
 (deftest test-lazy-seq-defers-evaluation
-  (let [side-effect (var 0)
+  (let [side-effect (atom 0)
         lazy-result (lazy-seq (do (swap! side-effect inc) [1 2 3]))]
     (is (= 0 (deref side-effect)) "lazy-seq should not evaluate body immediately")
     (first lazy-result)
     (is (= 1 (deref side-effect)) "lazy-seq should evaluate body when accessed")))
 
 (deftest test-lazy-seq-caches-result
-  (let [side-effect (var 0)
+  (let [side-effect (atom 0)
         lazy-result (lazy-seq (do (swap! side-effect inc) [1 2 3]))]
     (doall lazy-result)
     (is (= 1 (deref side-effect)) "lazy-seq should evaluate once")

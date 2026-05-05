@@ -5,13 +5,14 @@
 (use Phel.Lang.Collections.LazySeq.ChunkedSeq)
 (use Phel.Lang.Equalizer)
 (use Phel.Lang.Hasher)
+(use Phel.Lang.PhelVar)
 (use Phel.Lang.Seq)
 (use Phel.Lang.Variable)
 
-;; Mutable reference cells (`atom`, `var`), their mutation protocol
-;; (`reset!`, `swap!`, `deref`, `add-watch`, `alter-var-root`, `set-validator!`),
-;; and the iteration primitives built on them: `range` and the `for`
-;; comprehension macro.
+;; Mutable reference cells (`atom`), first-class `Var` handles for global
+;; definitions, their mutation protocol (`reset!`, `swap!`, `deref`,
+;; `add-watch`, `alter-var-root`, `set-validator!`), and the iteration
+;; primitives built on them: `range` and the `for` comprehension macro.
 
 ;; -----
 ;; Atoms
@@ -35,26 +36,17 @@
     (when vf (php/-> v (setValidator vf)))
     v))
 
-(defn var
-  "Creates a new variable with the given value."
-  {:deprecated "0.32.0"
-   :superseded-by "atom"
-   :example "(def counter (var 0))"
-   :see-also ["set!" "deref" "swap!"]}
-  [value]
-  (atom value))
-
 (defn atom?
   "Returns true if the given value is an atom."
   [x]
   (php/instanceof x Variable))
 
 (defn var?
-  "Checks if the given value is a variable."
-  {:deprecated "0.32.0"
-   :superseded-by "atom?"}
+  "Returns true if the given value is a `Var`, the first-class handle to a
+  global definition produced by `(var sym)` and `#'sym`."
+  {:see-also ["var-get" "find-var" "alter-var-root"]}
   [x]
-  (atom? x))
+  (php/instanceof x PhelVar))
 
 (defn reset!
   "Sets a new value on the given atom. Returns the new value."
@@ -63,23 +55,17 @@
   [variable value]
   (php/-> variable (set value)))
 
-(defn set!
-  "Sets a new value to the given variable."
-  {:deprecated "0.32.0"
-   :superseded-by "reset!"
-   :example "(def x (var 10))"
-   :see-also ["var" "deref" "swap!"]}
-  [variable value]
-  (reset! variable value))
-
 (defn deref
-  "Returns the current value inside the variable.
+  "Returns the current value inside an atom or var.
+
+  For atoms returns the current cell value; for `Var` instances returns the
+  current root binding from the namespace registry.
 
   With three arguments, and when `variable` is a future or promise, blocks
   for at most `timeout-ms` milliseconds waiting for it to resolve. If the
   awaitable has not completed within the timeout, returns `timeout-val`."
-  {:example "(deref (atom 42)) ; => 42"
-   :see-also ["atom" "reset!" "swap!" "future"]}
+  {:example "(deref (atom 42)) ; => 42\n(deref #'phel.core/map) ; => <fn>"
+   :see-also ["atom" "reset!" "swap!" "future" "var-get"]}
   [variable & args]
   (case (count args)
     0 (php/-> variable (deref))
@@ -115,22 +101,22 @@
   "Adds a watch function to a variable. The watch fn is called when the variable
   changes with four arguments: key, ref, old-value, new-value."
   {:example "(add-watch my-var :logger (fn [key ref old new] (println old \"->\" new)))"
-   :see-also ["remove-watch" "var" "swap!"]}
+   :see-also ["remove-watch" "atom" "swap!"]}
   [variable key f]
   (php/-> variable (addWatch (name key) f))
   variable)
 
 (defn alter-var-root
-  "Clojure's `alter-var-root` is out of scope in Phel: there are no first-class
-  vars whose root binding could be swapped. Reaching for this function in
-  `.cljc` code is nearly always a bug; prefer an `atom` and `swap!` for mutable
-  state, or redefine the top-level binding with `def` if the intent was to
-  replace it at load time. Calling `alter-var-root` at runtime throws to make
-  the mismatch obvious instead of silently no-oping."
-  {:see-also ["swap!" "atom" "def"]}
-  [& _]
-  (throw (php/new \BadMethodCallException
-                  "alter-var-root is not supported in Phel: Phel has no first-class vars. Use an `atom` with `swap!` for mutable state, or redefine the top-level with `def`.")))
+  "Replaces the root binding of `v` with `(apply f current-root args)`.
+  Returns the new root value. `v` must be a `Var`; pass an atom and you get a
+  clear error pointing at `swap!` instead."
+  {:example "(def counter 0)\n(alter-var-root #'counter inc) ; => 1"
+   :see-also ["var" "var?" "swap!"]}
+  [v f & args]
+  (when-not (var? v)
+    (throw (php/new \InvalidArgumentException
+                    "alter-var-root expects a Var as first argument; use swap! for atoms")))
+  (php/-> v (alterRoot (fn [current] (apply f current args)))))
 
 (defn remove-watch
   "Removes a watch function from a variable by key."
@@ -144,7 +130,7 @@
   state change with the proposed new value. If it returns a falsy value, an
   exception is thrown and the state is not changed. Pass nil to remove."
   {:example "(set-validator! my-var pos?)"
-   :see-also ["get-validator" "var"]}
+   :see-also ["get-validator" "atom"]}
   [variable f]
   (php/-> variable (setValidator f))
   variable)
