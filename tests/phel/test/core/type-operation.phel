@@ -535,7 +535,9 @@
   (is (= 'abc (symbol :abc)) "symbol on a keyword extracts the name")
   (is (= '+ (symbol :+)) "symbol on a single-character keyword")
   (is (= 'a/b (symbol :a :b)) "symbol with keyword namespace and keyword name")
-  (is (identical? 'foo (symbol 'foo)) "symbol on a symbol returns it unchanged"))
+  (is (identical? 'foo (symbol 'foo)) "symbol on a symbol returns it unchanged")
+  (is (= 'abc (symbol nil "abc")) "symbol with nil namespace yields unqualified symbol")
+  (is (nil? (namespace (symbol nil "hi"))) "symbol with nil namespace has no namespace"))
 
 (deftest test-namespace
   (is (= nil (namespace 'symbol)) "namespace on symbol without ns")
