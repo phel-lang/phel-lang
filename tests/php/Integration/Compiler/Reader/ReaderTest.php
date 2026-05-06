@@ -22,6 +22,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\TagHandlers\BuiltinTagHandlers;
 use Phel\Lang\TagRegistry;
 use Phel\Lang\TypeInterface;
+use Phel\Lang\Uuid;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -1333,20 +1334,20 @@ final class ReaderTest extends TestCase
         );
     }
 
-    public function test_uuid_tagged_literal_reads_as_string(): void
+    public function test_uuid_tagged_literal_reads_as_uuid_value(): void
     {
-        self::assertSame(
-            '00000000-0000-0000-0000-000000000000',
-            $this->read('#uuid "00000000-0000-0000-0000-000000000000"'),
-        );
+        $value = $this->read('#uuid "00000000-0000-0000-0000-000000000000"');
+
+        self::assertInstanceOf(Uuid::class, $value);
+        self::assertSame('00000000-0000-0000-0000-000000000000', (string) $value);
     }
 
     public function test_uuid_tagged_literal_lowercases_input(): void
     {
-        self::assertSame(
-            '550e8400-e29b-41d4-a716-446655440000',
-            $this->read('#uuid "550E8400-E29B-41D4-A716-446655440000"'),
-        );
+        $value = $this->read('#uuid "550E8400-E29B-41D4-A716-446655440000"');
+
+        self::assertInstanceOf(Uuid::class, $value);
+        self::assertSame('550e8400-e29b-41d4-a716-446655440000', (string) $value);
     }
 
     public function test_uuid_tagged_literal_rejects_invalid_format(): void
