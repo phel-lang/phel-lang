@@ -99,19 +99,13 @@ final readonly class Uuid implements TypeInterface, Stringable
     public function variant(): string
     {
         $nibble = (int) hexdec($this->value[19]);
-        if (($nibble & 0x8) === 0) {
-            return 'ncs';
-        }
 
-        if (($nibble & 0x4) === 0) {
-            return 'rfc-4122';
-        }
-
-        if (($nibble & 0x2) === 0) {
-            return 'microsoft';
-        }
-
-        return 'reserved';
+        return match (true) {
+            ($nibble & 0x8) === 0 => 'ncs',
+            ($nibble & 0x4) === 0 => 'rfc-4122',
+            ($nibble & 0x2) === 0 => 'microsoft',
+            default => 'reserved',
+        };
     }
 
     public function isNil(): bool
