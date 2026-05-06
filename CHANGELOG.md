@@ -6,9 +6,13 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+#### Compiler
+- Decimal integer literals that overflow `PHP_INT_MAX` now lex as `float` instead of silently clamping to the platform integer bound (#1837)
+
 #### Core
 - `rationalize` uses the shortest round-trip decimal so `(rationalize 0.1)` is `1/10` and small floats in scientific notation no longer error (#1832)
 - `float` and `double` collapse `Rational` and `BigInteger` values, so `phel.async/delay` (and other PHP-typed-float interop) accepts results of `/` (#1836)
+- `integer?` accepts `BigInteger` values (mathematical integers); `int?` stays restricted to fixed-precision PHP `int` (#1837)
 
 #### Lang
 - `=` between an integer and a `BigInteger` is now symmetric in both directions (#1830)

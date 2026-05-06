@@ -52,13 +52,17 @@
   (is (false? (int? 10.0)) "int? on 10.0")
   (is (false? (int? 0.0)) "int? on 0.0")
   (is (true? (int? 10)) "int? on 10")
-  (is (true? (int? 0)) "int? on 10"))
+  (is (true? (int? 0)) "int? on 10")
+  (is (false? (int? (bigint "9999999999999999999999999")))
+      "int? on BigInteger is false: only fixed-precision PHP int qualifies"))
 
 (deftest test-integer?
   (is (false? (integer? 10.0)) "integer? on 10.0")
   (is (false? (integer? 0.0)) "integer? on 0.0")
   (is (true? (integer? 10)) "integer? on 10")
-  (is (true? (integer? 0)) "integer? on 10"))
+  (is (true? (integer? 0)) "integer? on 10")
+  (is (true? (integer? (bigint "9999999999999999999999999")))
+      "integer? on BigInteger is true: any mathematical integer qualifies"))
 
 (deftest test-neg-int?
   (is (true? (neg-int? -1)) "neg-int? on -1")
