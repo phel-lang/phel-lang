@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - `int`, `long`, `short`, `byte` accept `Rational` and `BigInteger` inputs and truncate toward zero, replacing the prior `Object of class Rational could not be converted to int` PHP warning (#1842)
 - `quot` keeps the float type when any operand is a float, so `(quot 10.0 3.0)` returns `3.0` instead of `3` (#1844)
 - `abs` of `PHP_INT_MIN` promotes to `BigInteger` (`9223372036854775808`) instead of dropping to a float (#1844)
+- `bigint` accepts floats (truncates toward zero, rejects `NaN`/`Inf`), so `(bigint 0.0)` is `0N` and `(bigint php/PHP_FLOAT_MAX)` returns the exact integer (#1845)
 
 #### Lang
 - `=` between an integer and a `BigInteger` is now symmetric in both directions (#1830)

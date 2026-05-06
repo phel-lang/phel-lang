@@ -89,6 +89,23 @@ final readonly class BigInteger implements EqualsInterface, HashableInterface, S
         return new self(-1, self::splitNonNegative(-$value));
     }
 
+    /**
+     * Truncates `$value` toward zero and converts the integer part to a
+     * BigInteger. Throws on NaN or infinity.
+     */
+    public static function fromFloat(float $value): self
+    {
+        if (!is_finite($value)) {
+            throw new InvalidArgumentException(
+                sprintf("Cannot convert non-finite float '%s' to BigInteger", $value),
+            );
+        }
+
+        $truncated = $value < 0.0 ? ceil($value) : floor($value);
+
+        return self::fromString(sprintf('%.0F', $truncated));
+    }
+
     public static function fromString(string $value): self
     {
         if (preg_match('/^-?(0|[1-9]\d*)$/', $value) !== 1) {
