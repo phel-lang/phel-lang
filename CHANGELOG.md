@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 #### Core
 - `rationalize` uses the shortest round-trip decimal so `(rationalize 0.1)` is `1/10` and small floats in scientific notation no longer error (#1832)
+- `float` and `double` collapse `Rational` and `BigInteger` values, so `phel.async/delay` (and other PHP-typed-float interop) accepts results of `/` (#1836)
 
 #### Lang
 - `=` between an integer and a `BigInteger` is now symmetric in both directions (#1830)
