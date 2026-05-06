@@ -270,6 +270,18 @@ final class RationalTest extends TestCase
         self::assertEqualsWithDelta(1.0 / 3.0, Rational::create(1, 3)->toFloat(), 1e-15);
     }
 
+    public function test_to_int_truncates_toward_zero(): void
+    {
+        self::assertSame(0, Rational::create(1, 10)->toInt());
+        self::assertSame(0, Rational::create(-1, 10)->toInt());
+        self::assertSame(0, Rational::create(9, 10)->toInt());
+        self::assertSame(0, Rational::create(-9, 10)->toInt());
+        self::assertSame(1, Rational::create(11, 10)->toInt());
+        self::assertSame(-1, Rational::create(-11, 10)->toInt());
+        self::assertSame(3, Rational::create(22, 7)->toInt());
+        self::assertSame(-3, Rational::create(-22, 7)->toInt());
+    }
+
     public function test_to_string_format(): void
     {
         self::assertSame('1/2', (string) Rational::create(1, 2));

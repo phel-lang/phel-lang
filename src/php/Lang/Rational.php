@@ -174,6 +174,15 @@ final readonly class Rational implements Stringable, TypeInterface
         return (float) ((string) $this->numerator) / (float) ((string) $this->denominator);
     }
 
+    /**
+     * Truncates toward zero. Throws {@see OverflowException} if the integer
+     * quotient does not fit in a native PHP int.
+     */
+    public function toInt(): int
+    {
+        return $this->numerator->divide($this->denominator)->toInt();
+    }
+
     public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta;

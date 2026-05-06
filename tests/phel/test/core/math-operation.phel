@@ -260,7 +260,14 @@
   (is (= 42 (int "42")) "(int \"42\") parses string")
   (is (= 0 (int nil)) "(int nil) returns 0")
   (is (= 0 (int 0)) "(int 0)")
-  (is (= -3 (int -3)) "(int -3)"))
+  (is (= -3 (int -3)) "(int -3)")
+  (is (= 0 (int 1/10)) "(int 1/10) truncates Rational toward zero")
+  (is (= 0 (int -1/10)) "(int -1/10) truncates Rational toward zero")
+  (is (= 1 (int 11/10)) "(int 11/10) truncates Rational toward zero")
+  (is (= -1 (int -11/10)) "(int -11/10) truncates Rational toward zero")
+  (is (true? (int? (int 1/10))) "(int 1/10) returns a PHP int")
+  (is (= 7 (int (bigint 7))) "(int (bigint 7)) collapses BigInteger")
+  (is (true? (int? (int (bigint 7)))) "(int (bigint 7)) returns a PHP int"))
 
 (deftest test-float
   (is (= 1.0 (float 1)) "(float 1)")
@@ -291,7 +298,9 @@
   (is (= -1 (long -1.9)) "(long -1.9) truncates toward zero")
   (is (true? (int? (long 1.5))) "(long 1.5) returns an int")
   (is (= 42 (long "42")) "(long \"42\") parses string")
-  (is (= 0 (long nil)) "(long nil) returns 0"))
+  (is (= 0 (long nil)) "(long nil) returns 0")
+  (is (= 0 (long 1/10)) "(long 1/10) truncates Rational toward zero")
+  (is (= 7 (long (bigint 7))) "(long (bigint 7)) collapses BigInteger"))
 
 (deftest test-short
   (is (= 0 (short 0)) "(short 0)")
@@ -301,7 +310,10 @@
   (is (= -32768 (short -32768)) "(short -32768) is min")
   (is (int? (short 0)) "(short 0) returns an int")
   (is (= 1 (short 1.9)) "(short 1.9) truncates toward zero")
-  (is (= -1 (short -1.9)) "(short -1.9) truncates toward zero"))
+  (is (= -1 (short -1.9)) "(short -1.9) truncates toward zero")
+  (is (= 0 (short 1/10)) "(short 1/10) truncates Rational toward zero")
+  (is (= 0 (short -1/10)) "(short -1/10) truncates Rational toward zero")
+  (is (= 7 (short (bigint 7))) "(short (bigint 7)) collapses BigInteger"))
 
 (deftest test-short-out-of-range
   (is (thrown? \InvalidArgumentException (short 32768))
@@ -330,6 +342,19 @@
   (is (= -1 (byte -1.9)) "(byte -1.9) truncates toward zero")
   (is (= 0 (byte 0.5)) "(byte 0.5) truncates to 0")
   (is (= 0 (byte -0.5)) "(byte -0.5) truncates to 0"))
+
+(deftest test-byte-truncates-rationals
+  (is (= 0 (byte 1/10)) "(byte 1/10) truncates Rational toward zero")
+  (is (= 0 (byte -1/10)) "(byte -1/10) truncates Rational toward zero")
+  (is (= 1 (byte 11/10)) "(byte 11/10) truncates Rational toward zero")
+  (is (= -1 (byte -11/10)) "(byte -11/10) truncates Rational toward zero")
+  (is (int? (byte 1/10)) "(byte 1/10) returns a PHP int"))
+
+(deftest test-byte-bigint
+  (is (= 7 (byte (bigint 7))) "(byte (bigint 7)) collapses BigInteger")
+  (is (int? (byte (bigint 7))) "(byte (bigint 7)) returns a PHP int")
+  (is (thrown? \InvalidArgumentException (byte (bigint 200)))
+      "(byte (bigint 200)) raises out-of-range"))
 
 (deftest test-byte-out-of-range
   (is (thrown? \InvalidArgumentException (byte 128))
