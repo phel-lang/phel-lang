@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+#### Lang
+- `=` between an integer and a `BigInteger` is now symmetric in both directions (#1830)
+- `+`, `-`, `*`, `**` on native PHP ints auto-promote to `BigInteger` on overflow instead of silently widening to a float (#1830)
+- `(/ 1.0 0.0)` returns `##Inf`, `(/ -1.0 0.0)` returns `##-Inf`, `(/ 0.0 0.0)` returns `##NaN`; finite integer division by zero still throws (#1830)
+
 ### Added
 
 #### Compiler

@@ -135,6 +135,23 @@ final class NumericOperationsTest extends TestCase
         self::assertSame(INF, NumericOperations::divide(INF, 0));
     }
 
+    public function test_divide_finite_float_by_zero_returns_inf(): void
+    {
+        $result = NumericOperations::divide(1.0, 0.0);
+        self::assertTrue(is_infinite($result) && $result > 0);
+    }
+
+    public function test_divide_negative_finite_float_by_zero_returns_negative_inf(): void
+    {
+        $result = NumericOperations::divide(-1.0, 0.0);
+        self::assertTrue(is_infinite($result) && $result < 0);
+    }
+
+    public function test_divide_zero_float_by_zero_returns_nan(): void
+    {
+        self::assertNan(NumericOperations::divide(0.0, 0.0));
+    }
+
     public function test_divide_int_rational(): void
     {
         $half = Rational::create(1, 2);
@@ -276,5 +293,84 @@ final class NumericOperationsTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         NumericOperations::add('not a number', 1);
+    }
+
+    public function test_add_int_int_overflow_promotes_to_bigint(): void
+    {
+        $result = NumericOperations::add(PHP_INT_MAX, 1);
+
+        self::assertInstanceOf(BigInteger::class, $result);
+        self::assertSame(bcadd((string) PHP_INT_MAX, '1'), (string) $result);
+    }
+
+    public function test_add_int_int_negative_overflow_promotes_to_bigint(): void
+    {
+        $result = NumericOperations::add(PHP_INT_MIN, -1);
+
+        self::assertInstanceOf(BigInteger::class, $result);
+        self::assertSame(bcadd((string) PHP_INT_MIN, '-1'), (string) $result);
+    }
+
+    public function test_subtract_int_int_overflow_promotes_to_bigint(): void
+    {
+        $result = NumericOperations::subtract(PHP_INT_MIN, 1);
+
+        self::assertInstanceOf(BigInteger::class, $result);
+        self::assertSame(bcsub((string) PHP_INT_MIN, '1'), (string) $result);
+    }
+
+    public function test_subtract_int_int_positive_overflow_promotes_to_bigint(): void
+    {
+        $result = NumericOperations::subtract(PHP_INT_MAX, -1);
+
+        self::assertInstanceOf(BigInteger::class, $result);
+        self::assertSame(bcsub((string) PHP_INT_MAX, '-1'), (string) $result);
+    }
+
+    public function test_multiply_int_int_overflow_promotes_to_bigint(): void
+    {
+        // 100000000 ^ 3 = 1e24, well outside PHP int range.
+        $result = NumericOperations::multiply(NumericOperations::multiply(100000000, 100000000), 100000000);
+
+        self::assertInstanceOf(BigInteger::class, $result);
+        self::assertSame('1000000000000000000000000', (string) $result);
+    }
+
+    public function test_multiply_int_min_by_negative_one_promotes_to_bigint(): void
+    {
+        $result = NumericOperations::multiply(PHP_INT_MIN, -1);
+
+        self::assertInstanceOf(BigInteger::class, $result);
+        self::assertSame(bcmul((string) PHP_INT_MIN, '-1'), (string) $result);
+    }
+
+    public function test_multiply_int_int_within_range_stays_int(): void
+    {
+        self::assertSame(6, NumericOperations::multiply(2, 3));
+        self::assertSame(0, NumericOperations::multiply(0, PHP_INT_MAX));
+        self::assertSame(PHP_INT_MIN, NumericOperations::multiply(PHP_INT_MIN, 1));
+        self::assertSame(PHP_INT_MIN, NumericOperations::multiply(1, PHP_INT_MIN));
+    }
+
+    public function test_multiply_int_min_by_two_promotes_to_bigint(): void
+    {
+        $result = NumericOperations::multiply(PHP_INT_MIN, 2);
+
+        self::assertInstanceOf(BigInteger::class, $result);
+        self::assertSame(bcmul((string) PHP_INT_MIN, '2'), (string) $result);
+    }
+
+    public function test_power_int_int_overflow_promotes_to_bigint(): void
+    {
+        $result = NumericOperations::power(2, 64);
+
+        self::assertInstanceOf(BigInteger::class, $result);
+        self::assertSame('18446744073709551616', (string) $result);
+    }
+
+    public function test_power_int_int_within_range_stays_int(): void
+    {
+        self::assertSame(8, NumericOperations::power(2, 3));
+        self::assertSame(1, NumericOperations::power(1, 100));
     }
 }
