@@ -28,6 +28,7 @@ Each implements `TypePrinterInterface`. Selected at runtime based on value type:
 | `NullPrinter` | null |
 | `KeywordPrinter` | Keyword objects |
 | `SymbolPrinter` | Symbol objects |
+| `RationalPrinter` | Rational numbers (`n/d`) |
 | `VariablePrinter` | Variable objects (recursive) |
 | `PersistentListPrinter` | Lists (recursive) |
 | `PersistentVectorPrinter` | Vectors (recursive) |
