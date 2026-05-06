@@ -5,6 +5,7 @@
 (use Phel.Lang.Collections.HashSet.PersistentHashSetInterface)
 (use Phel.Lang.Collections.LazySeq.LazySeqInterface)
 (use Phel.Lang.Collections.LinkedList.PersistentListInterface)
+(use Phel.Lang.Collections.Map.MapEntry)
 (use Phel.Lang.Collections.Map.PersistentMapInterface)
 (use Phel.Lang.Collections.SortedMap.PersistentSortedMap)
 (use Phel.Lang.Collections.SortedSet.PersistentSortedSet)
@@ -39,6 +40,7 @@
 * `:list`
 * `:struct`
 * `:hash-map`
+* `:map-entry`
 * `:set`
 * `:keyword`
 * `:symbol`
@@ -64,6 +66,7 @@
     (php/instanceof x PersistentListInterface)    :list
     (php/instanceof x AbstractPersistentStruct)   :struct
     (php/instanceof x PersistentMapInterface)     :hash-map
+    (php/instanceof x MapEntry)                   :map-entry
     (php/instanceof x PersistentHashSetInterface) :set
     (php/instanceof x Keyword)                    :keyword
     (php/instanceof x Symbol)                     :symbol
@@ -314,13 +317,14 @@
   (php/instanceof x PersistentVectorInterface))
 
 (defn map-entry?
-  "Returns true if `x` is a map entry. Phel represents map entries as
-  two-element vectors, so this predicate accepts any vector of length
-  exactly 2."
-  {:example "(map-entry? [:a 1]) ; => true\n(map-entry? [1 2 3]) ; => false"
-   :see-also ["vector?" "map?" "key" "val"]}
+  "Returns true if `x` is a map entry. Accepts both the typed
+  `Phel\\Lang\\Collections\\Map\\MapEntry` value and any 2-element vector
+  (Phel maps still yield vectors when iterated)."
+  {:example "(map-entry? [:a 1]) ; => true\n(map-entry? (map-entry :a 1)) ; => true\n(map-entry? [1 2 3]) ; => false"
+   :see-also ["vector?" "map?" "key" "val" "map-entry"]}
   [x]
-  (and (vector? x) (php/=== 2 (php/count x))))
+  (or (php/instanceof x MapEntry)
+      (and (vector? x) (php/=== 2 (php/count x)))))
 
 (defn list?
   "Returns true if `x` is a list, false otherwise.

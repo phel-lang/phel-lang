@@ -40,6 +40,7 @@ All notable changes to this project will be documented in this file.
 #### Lang
 - `Phel\Lang\Uuid` value type; `#uuid "..."` and `random-uuid`/`parse-uuid` return typed values
 - `Phel\Lang\PhpClass` value type wrapping a normalised PHP class or interface FQN; `equals`/`hash` by FQN, `isInstance` for runtime checks
+- `Phel\Lang\Collections\Map\MapEntry` value type for typed map entries; equal by value to a 2-element vector, with `key()`/`value()` accessors
 - `Phel\Lang\NumericOperations` runtime dispatch for `Rational`, `BigInteger`, native numbers (#1825)
 
 #### Core
@@ -50,7 +51,8 @@ All notable changes to this project will be documented in this file.
 - `bigint`, `biginteger` constructors (#1831)
 - `map-entry?` predicate; true for any 2-element vector
 - `class`, `class?`, `class-name` for working with PHP class FQNs as `PhpClass` values
-- `type` returns `:uuid` for `Uuid` and `:php/class` for `PhpClass`
+- `map-entry` constructor returning a typed `MapEntry`; `map-entry?` accepts both `MapEntry` and 2-element vectors; `key`/`val` work on either form
+- `type` returns `:uuid` for `Uuid`, `:php/class` for `PhpClass`, and `:map-entry` for `MapEntry`
 
 #### Documentation
 - `docs/numeric-tower.md` documents the `int`/`BigInteger`/`Rational`/`float` tower (#1832)

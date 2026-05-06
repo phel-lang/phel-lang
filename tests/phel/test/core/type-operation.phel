@@ -150,6 +150,17 @@
   (is (= :uuid (type #uuid "00000000-0000-0000-0000-000000000000"))
       "type of Uuid value is :uuid"))
 
+(deftest test-map-entry-value-type
+  (let [e (map-entry :k 1)]
+    (is (= :map-entry (type e)) "type of MapEntry is :map-entry")
+    (is (true? (map-entry? e)) "map-entry? accepts MapEntry")
+    (is (= :k (key e)) "key of MapEntry returns the key slot")
+    (is (= 1 (val e)) "val of MapEntry returns the value slot")
+    (is (= e [:k 1]) "MapEntry compares equal to a 2-vector"))
+  (is (true? (map-entry? [:a 1])) "map-entry? still accepts 2-vector")
+  (is (false? (map-entry? [1 2 3])) "map-entry? rejects 3-element vector")
+  (is (false? (map-entry? "k")) "map-entry? rejects string"))
+
 (deftest test-number?
   (is (true? (number? 10.0)) "number? on 10.0")
   (is (true? (number? 0.0)) "number? on 0.0")
