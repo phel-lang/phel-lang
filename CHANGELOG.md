@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file.
 - `bigint` of a float uses the shortest round-trip decimal (#1852)
 - `pos-int?` / `neg-int?` / `nat-int?` accept `BigInteger` values
 - `symbol` rejects non-name input (`nil`, fns, numbers, collections) with `InvalidArgumentException`
+- `(symbol nil name)` returns an unqualified symbol instead of throwing (#1859)
 
 #### Lang
 - `=` between `int` and `BigInteger` is symmetric (#1830)

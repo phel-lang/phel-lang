@@ -50,19 +50,23 @@
   With one argument, creates a symbol without namespace. Accepts a
   string, a keyword, another symbol, or a `Var` (in which case the
   result is a fully qualified symbol naming the var). With two
-  arguments, creates a symbol in the given namespace.
+  arguments, creates a symbol in the given namespace; a `nil`
+  namespace yields a symbol without a namespace.
 
   Throws `InvalidArgumentException` for any other input (including
-  `nil`, functions, numbers, and collections)."
-  {:example "(symbol \"foo\") ; => foo\n(symbol :abc) ; => abc\n(symbol #'phel.core/+) ; => phel.core/+"}
+  functions, numbers, and collections)."
+  {:example "(symbol \"foo\") ; => foo\n(symbol :abc) ; => abc\n(symbol nil \"foo\") ; => foo\n(symbol #'phel.core/+) ; => phel.core/+"}
   [name-or-ns & [name]]
   (if name
     (do
-      (assert-symbol-name "namespace" name-or-ns)
       (assert-symbol-name "name" name)
-      (php/:: Symbol (createForNamespace
-                      (to-symbol-part name-or-ns)
-                      (to-symbol-part name))))
+      (if (php/=== nil name-or-ns)
+        (php/:: Symbol (create (to-symbol-part name)))
+        (do
+          (assert-symbol-name "namespace" name-or-ns)
+          (php/:: Symbol (createForNamespace
+                          (to-symbol-part name-or-ns)
+                          (to-symbol-part name))))))
     (if (php/instanceof name-or-ns Symbol)
       name-or-ns
       (if (php/instanceof name-or-ns PhelVar)
