@@ -1,5 +1,5 @@
-(ns phel-test\test\are
-  (:require phel\test :refer [deftest is are testing get-stats reset-stats restore-stats]))
+(ns phel-test.test.are
+  (:require phel.test :refer [deftest is are testing get-stats reset-stats restore-stats]))
 
 ;; ---------------------------------------------------------------------------
 ;; Basic 2-variable usage — the canonical use case

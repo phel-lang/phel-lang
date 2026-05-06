@@ -1,6 +1,6 @@
-(ns phel-test\test\pprint
-  (:require phel\test :refer [deftest is])
-  (:require phel\pprint :refer [pprint-str]))
+(ns phel-test.test.pprint
+  (:require phel.test :refer [deftest is])
+  (:require phel.pprint :refer [pprint-str]))
 
 ;; ---------------------------
 ;; Scalar values (no wrapping)

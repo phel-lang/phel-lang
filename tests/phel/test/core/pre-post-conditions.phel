@@ -1,5 +1,5 @@
-(ns phel-test\test\core\pre-post-conditions
-  (:require phel\test :refer [deftest is thrown? thrown-with-msg?])
+(ns phel-test.test.core.pre-post-conditions
+  (:require phel.test :refer [deftest is thrown? thrown-with-msg?])
   (:use RuntimeException))
 
 (deftest test-pre-condition

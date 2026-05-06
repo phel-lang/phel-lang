@@ -1,5 +1,5 @@
-(ns phel-test\test\core\regex-functions
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.regex-functions
+  (:require phel.test :refer [deftest is]))
 
 (deftest test-re-seq
   (let [input "Hello, 1 regex 2 test"]

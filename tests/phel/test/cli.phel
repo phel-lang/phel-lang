@@ -1,6 +1,6 @@
-(ns phel-test\test\cli
-  (:require phel\cli :as cli)
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.cli
+  (:require phel.cli :as cli)
+  (:require phel.test :refer [deftest is]))
 
 (defn- run-app [app args]
   (let [input  (cli/argv args)

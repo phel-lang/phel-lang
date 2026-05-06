@@ -1,5 +1,5 @@
-(ns phel-test\test\core\vars-meta
-  (:require phel\test :refer [deftest is thrown?]))
+(ns phel-test.test.core.vars-meta
+  (:require phel.test :refer [deftest is thrown?]))
 
 ;; Per-var metadata mutation: `alter-meta!` updates a var's metadata in
 ;; place; `reset-meta!` replaces it wholesale. Both work on atoms too.

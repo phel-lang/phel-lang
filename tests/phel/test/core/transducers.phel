@@ -1,5 +1,5 @@
-(ns phel-test\test\core\transducers
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.transducers
+  (:require phel.test :refer [deftest is]))
 
 (deftest test-reduced-and-reduced?
   (let [r (reduced 42)]

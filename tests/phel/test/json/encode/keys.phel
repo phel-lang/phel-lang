@@ -1,6 +1,6 @@
-(ns phel-test\test\json\encode\keys
-  (:require phel\json)
-  (:require phel\test :refer [deftest is])
+(ns phel-test.test.json.encode.keys
+  (:require phel.json)
+  (:require phel.test :refer [deftest is])
   (:use \Exception))
 
 (deftest test-json-encode-valid-keys

@@ -1,6 +1,6 @@
-(ns phel-test\test\router\match-by-path
-  (:require phel\router :as r)
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.router.match-by-path
+  (:require phel.router :as r)
+  (:require phel.test :refer [deftest is]))
 
 (def- routes
   (apply

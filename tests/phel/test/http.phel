@@ -1,6 +1,6 @@
-(ns phel-test\test\http
-  (:require phel\http :as h)
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.http
+  (:require phel.http :as h)
+  (:require phel.test :refer [deftest is]))
 
 ;; Tests adopted from nyholm/psr7-server
 

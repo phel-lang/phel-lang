@@ -1,5 +1,5 @@
-(ns phel-test\test\core\binding
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.binding
+  (:require phel.test :refer [deftest is]))
 
 (def ^:dynamic *my-binding-var* 1)
 

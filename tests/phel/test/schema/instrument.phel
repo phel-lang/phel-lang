@@ -1,6 +1,6 @@
-(ns phel-test\test\schema\instrument
-  (:require phel\test :refer [deftest is testing])
-  (:require phel\schema :as s))
+(ns phel-test.test.schema.instrument
+  (:require phel.test :refer [deftest is testing])
+  (:require phel.schema :as s))
 
 ;; Function-level instrumentation wrappers: a wrapped fn validates its
 ;; arguments and return value against the declared schema, throwing

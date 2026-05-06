@@ -1,5 +1,5 @@
-(ns phel-test\test\core\ns
-  (:require phel\test :refer [deftest is testing]))
+(ns phel-test.test.core.ns
+  (:require phel.test :refer [deftest is testing]))
 
 (deftest test-loaded-namespaces-includes-core
   (is (some #(= "phel.core" %) (loaded-namespaces))

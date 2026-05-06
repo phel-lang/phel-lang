@@ -1,5 +1,5 @@
-(ns phel-test\test\core\vars-watchers
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.vars-watchers
+  (:require phel.test :refer [deftest is]))
 
 ;; `add-watch` / `remove-watch` work on `Var` handles. Watch fns are called
 ;; with `[key var old-value new-value]` after `alter-var-root` succeeds.

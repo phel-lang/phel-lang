@@ -1,8 +1,8 @@
-(ns phel-test\test\selectors
-  (:require phel\test :refer [deftest is testing])
-  (:require phel\test\selector :as selector))
+(ns phel-test.test.selectors
+  (:require phel.test :refer [deftest is testing])
+  (:require phel.test.selector :as selector))
 
-;; Coverage for the pure test-selection helpers in `phel\test\selector`.
+;; Coverage for the pure test-selection helpers in `phel.test.selector`.
 ;;
 ;; Every predicate is exercised in isolation using hand-rolled metadata
 ;; maps (no macro expansion), so the tests are independent of the

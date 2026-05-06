@@ -1,6 +1,6 @@
-(ns phel-test\test\html
-  (:require phel\html :refer [html raw-string doctype])
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.html
+  (:require phel.html :refer [html raw-string doctype])
+  (:require phel.test :refer [deftest is]))
 
 (deftest basic-tags
   (is (= "<div></div>" (html [:div])))

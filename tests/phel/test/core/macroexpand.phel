@@ -1,5 +1,5 @@
-(ns phel-test\test\core\macroexpand
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.macroexpand
+  (:require phel.test :refer [deftest is]))
 
 (deftest test-macroexpand-1-when
   (is (= '(if true (do 1 2))

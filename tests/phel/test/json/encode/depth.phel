@@ -1,6 +1,6 @@
-(ns phel-test\test\json\encode\depth
-  (:require phel\json)
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.json.encode.depth
+  (:require phel.json)
+  (:require phel.test :refer [deftest is]))
 
 (deftest test-json-encode-encode-depth
   (let [sample-data [1 [2] [[3]]]]

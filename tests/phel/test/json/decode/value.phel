@@ -1,6 +1,6 @@
-(ns phel-test\test\json\decode\value
-  (:require phel\json)
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.json.decode.value
+  (:require phel.json)
+  (:require phel.test :refer [deftest is]))
 
 (deftest test-json-decode-sample-value
   (let [sample-data (php/file_get_contents (str __DIR__ "/sample-value.json"))]

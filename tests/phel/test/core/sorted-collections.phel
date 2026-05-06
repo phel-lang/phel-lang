@@ -1,5 +1,5 @@
-(ns phel-test\test\core\sorted-collections
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.sorted-collections
+  (:require phel.test :refer [deftest is]))
 
 ;; ---- sorted-map ----
 

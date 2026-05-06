@@ -1,6 +1,6 @@
-(ns phel-test\test\schema\validate
-  (:require phel\test :refer [deftest is testing])
-  (:require phel\schema :as s))
+(ns phel-test.test.schema.validate
+  (:require phel.test :refer [deftest is testing])
+  (:require phel.schema :as s))
 
 ;; Positive and negative coverage for every built-in schema form.
 

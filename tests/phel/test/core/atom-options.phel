@@ -1,5 +1,5 @@
-(ns phel-test\test\core\atom-options
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.atom-options
+  (:require phel.test :refer [deftest is]))
 
 (deftest test-atom-meta-empty
   (is (= {} (meta (atom nil :meta {}))) "atom :meta {} preserves empty map"))

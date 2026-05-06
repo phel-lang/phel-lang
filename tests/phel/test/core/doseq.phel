@@ -1,5 +1,5 @@
-(ns phel-test\test\core\doseq
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.doseq
+  (:require phel.test :refer [deftest is]))
 
 (deftest test-doseq-range-side-effects
   (let [sum (atom 0)

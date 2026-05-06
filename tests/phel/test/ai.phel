@@ -1,8 +1,8 @@
-(ns phel-test\test\ai
-  (:require phel\test :refer [deftest is])
-  (:require phel\ai :as ai)
-  (:require phel\json)
-  (:require phel\mock :refer [mock-fn calls call-count first-call]))
+(ns phel-test.test.ai
+  (:require phel.test :refer [deftest is])
+  (:require phel.ai :as ai)
+  (:require phel.json)
+  (:require phel.mock :refer [mock-fn calls call-count first-call]))
 
 ;; --- Mock HTTP helpers ---
 
@@ -711,7 +711,7 @@
           (is (php/str_contains (php/-> e (getMessage)) "400") "error includes status code"))))))
 
 ;; --- Embeddings ---
-;; Note: responses use raw JSON strings because phel\json stringifies floats
+;; Note: responses use raw JSON strings because phel.json stringifies floats
 ;; during encode (e.g. 0.1 → "0.1"), which would corrupt embedding vectors.
 
 (defn- raw-ok [json-str] {:status 200 :body json-str})

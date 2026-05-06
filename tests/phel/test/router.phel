@@ -1,7 +1,7 @@
-(ns phel-test\test\router
-  (:require phel\http :as h)
-  (:require phel\test :refer [deftest is])
-  (:require phel\router :as r :refer [routes match-by-path match-by-name generate])
+(ns phel-test.test.router
+  (:require phel.http :as h)
+  (:require phel.test :refer [deftest is])
+  (:require phel.router :as r :refer [routes match-by-path match-by-name generate])
   (:use Symfony\Component\Routing\Exception\RouteNotFoundException)
   (:use Symfony\Component\Routing\Exception\MissingMandatoryParametersException))
 

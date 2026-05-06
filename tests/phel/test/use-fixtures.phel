@@ -1,5 +1,5 @@
-(ns phel-test\test\use-fixtures
-  (:require phel\test :refer [deftest is use-fixtures]))
+(ns phel-test.test.use-fixtures
+  (:require phel.test :refer [deftest is use-fixtures]))
 
 ;; Behaviour coverage for `use-fixtures`. The fixtures registered below
 ;; wrap tests in this namespace, so we observe their effect by recording

@@ -1,5 +1,5 @@
-(ns phel-test\test\core\bitwise-operation
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.bitwise-operation
+  (:require phel.test :refer [deftest is]))
 
 (deftest test-bit-and
   (is (= 0b1000 (bit-and 0b1100 0b1001)) "bit-and of two number")

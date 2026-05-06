@@ -1,16 +1,16 @@
-(ns phel-test\test\selectors-runtime
-  (:require phel\test :as t :refer [deftest is testing])
-  (:require phel-test\test\fixtures\tagged-tests))
+(ns phel-test.test.selectors-runtime
+  (:require phel.test :as t :refer [deftest is testing])
+  (:require phel-test.test.fixtures.tagged-tests))
 
 ;; End-to-end coverage for selectors in `run-tests`.
 ;;
-;; The fixture namespace `phel-test\test\fixtures\tagged-tests` defines
+;; The fixture namespace `phel-test.test.fixtures.tagged-tests` defines
 ;; three tests with distinct metadata shapes. Each scenario runs that
 ;; namespace with a scripted option map, captures every emitted event
 ;; (via a temporary reporter), then restores the outer suite's stats
 ;; and reporter set.
 
-(def- fixture-ns 'phel-test\test\fixtures\tagged-tests)
+(def- fixture-ns 'phel-test.test.fixtures.tagged-tests)
 
 (defn- snapshot-run [options]
   (let [saved-reporters (t/get-reporters)

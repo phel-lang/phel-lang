@@ -1,5 +1,5 @@
-(ns phel-test\test\core\set-operation
-  (:require phel\test :refer [deftest is thrown?]))
+(ns phel-test.test.core.set-operation
+  (:require phel.test :refer [deftest is thrown?]))
 
 (deftest test-set-union
   (is (= (hash-set) (union)) "set 0-ary union")

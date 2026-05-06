@@ -1,5 +1,5 @@
-(ns phel-test\test\core\destructuring
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.destructuring
+  (:require phel.test :refer [deftest is]))
 
 (deftest destructure-vector
   (is (= 3 (let [[a b] [1 2]] (+ a b))) "from vector")

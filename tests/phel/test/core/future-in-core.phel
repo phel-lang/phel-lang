@@ -1,8 +1,8 @@
-(ns phel-test\test\core\future-in-core
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.future-in-core
+  (:require phel.test :refer [deftest is]))
 
 ;; Regression test for https://github.com/phel-lang/phel-lang/issues/1537
-;; `future` must be available from core without requiring `phel\async`,
+;; `future` must be available from core without requiring `phel.async`,
 ;; matching Clojure's out-of-the-box availability.
 
 (deftest test-future-macro-is-available-without-require

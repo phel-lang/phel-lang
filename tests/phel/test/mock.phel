@@ -1,6 +1,6 @@
-(ns phel-test\test\mock
-  (:require phel\test :refer [deftest is])
-  (:require phel\mock :refer [mock mock-fn spy mock-returning mock-throwing
+(ns phel-test.test.mock
+  (:require phel.test :refer [deftest is])
+  (:require phel.mock :refer [mock mock-fn spy mock-returning mock-throwing
                               calls call-count called? called-with? called-once?
                               called-times? never-called? last-call first-call
                               reset-mock! clear-all-mocks! mock? with-mocks

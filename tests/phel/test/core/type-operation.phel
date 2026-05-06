@@ -1,8 +1,8 @@
-(ns phel-test\test\core\type-operation
+(ns phel-test.test.core.type-operation
   (:use DateTime)
   (:use RuntimeException)
   (:use Phel\Lang\Symbol)
-  (:require phel\test :refer [deftest is are]))
+  (:require phel.test :refer [deftest is are]))
 
 (deftest test-type
   (is (= :vector (type [])) "type of vector")

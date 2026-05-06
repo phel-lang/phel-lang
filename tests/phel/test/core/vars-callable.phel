@@ -1,5 +1,5 @@
-(ns phel-test\test\core\vars-callable
-  (:require phel\test :refer [deftest is thrown?]))
+(ns phel-test.test.core.vars-callable
+  (:require phel.test :refer [deftest is thrown?]))
 
 ;; Var handles forward calls to their current root value when that value
 ;; is callable. Throws a clear error when the root value cannot be invoked.

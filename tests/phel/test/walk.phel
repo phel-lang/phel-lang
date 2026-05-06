@@ -1,6 +1,6 @@
-(ns phel-test\test\walk
-  (:require phel\test :refer [deftest is])
-  (:require phel\walk :refer [walk postwalk prewalk postwalk-replace
+(ns phel-test.test.walk
+  (:require phel.test :refer [deftest is])
+  (:require phel.walk :refer [walk postwalk prewalk postwalk-replace
                                prewalk-replace keywordize-keys stringify-keys]))
 
 (defstruct point [x y])

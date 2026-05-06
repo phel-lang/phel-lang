@@ -1,5 +1,5 @@
-(ns phel-test\test\core\ex-info
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.ex-info
+  (:require phel.test :refer [deftest is]))
 
 (deftest test-ex-info-creates-exception
   (let [ex (ex-info "bad input" {:field :email})]

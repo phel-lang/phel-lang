@@ -1,5 +1,5 @@
-(ns phel-test\test\core\clojure-aliases
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.clojure-aliases
+  (:require phel.test :refer [deftest is]))
 
 ;; --- atom basics ---
 

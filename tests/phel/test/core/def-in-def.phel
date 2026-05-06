@@ -1,5 +1,5 @@
-(ns phel-test\test\core\def-in-def
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.def-in-def
+  (:require phel.test :refer [deftest is]))
 
 ;; `def` inside `def` is permitted, matching Clojure's semantics:
 ;;   (defn a [] (def x 1) x) => 1

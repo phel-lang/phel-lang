@@ -1,5 +1,5 @@
-(ns phel-test\test\core\fn-map-body
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.fn-map-body
+  (:require phel.test :refer [deftest is]))
 
 (deftest test-fn-map-body
   (let [xfun (fn [x] {:value x})]

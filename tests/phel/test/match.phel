@@ -1,6 +1,6 @@
-(ns phel-test\test\match
-  (:require phel\test :refer [deftest is testing])
-  (:require phel\match :refer [match]))
+(ns phel-test.test.match
+  (:require phel.test :refer [deftest is testing])
+  (:require phel.match :refer [match]))
 
 (deftest test-literal-patterns
   (testing "integers"
@@ -148,15 +148,15 @@
   ;; expression under test itself would fail to expand. Verify the
   ;; error via `macroexpand-1` instead.
   (is (thrown? \InvalidArgumentException
-               (macroexpand-1 '(phel\match/match [1 2] [1 2 3] :x :else :y)))
+               (macroexpand-1 '(phel.match/match [1 2] [1 2 3] :x :else :y)))
       "mismatched target/pattern count raises at expansion"))
 
 (deftest test-invalid-pattern-shapes-throw-at-expand
   (is (thrown? \InvalidArgumentException
-               (macroexpand-1 '(phel\match/match "not-a-vector" [1] :x :else :y)))
+               (macroexpand-1 '(phel.match/match "not-a-vector" [1] :x :else :y)))
       "non-vector target list raises")
   (is (thrown? \InvalidArgumentException
-               (macroexpand-1 '(phel\match/match [1] :not-a-vector-pattern :x :else :y)))
+               (macroexpand-1 '(phel.match/match [1] :not-a-vector-pattern :x :else :y)))
       "non-vector pattern raises"))
 
 (deftest test-target-evaluated-once
@@ -245,12 +245,12 @@
         "no alternative matches"))
   (testing ":or requires at least one alternative"
     (is (thrown? \InvalidArgumentException
-                 (macroexpand-1 '(phel\match/match [1] [(:or)] :x :else :y)))
+                 (macroexpand-1 '(phel.match/match [1] [(:or)] :x :else :y)))
         "empty :or raises at expansion")))
 
 (deftest test-or-pattern-rejects-binding-alternatives
   (is (thrown? \InvalidArgumentException
-               (macroexpand-1 '(phel\match/match [1] [(:or x 2)] x :else :none)))
+               (macroexpand-1 '(phel.match/match [1] [(:or x 2)] x :else :none)))
       ":or alternatives may not introduce bindings"))
 
 (deftest test-as-pattern-bindings-accumulate
@@ -273,10 +273,10 @@
            (match [[1 2 3]] [[_ & tail]] [:ok tail] :else :else))))
   (testing "rest position must be symbol"
     (is (thrown? \InvalidArgumentException
-                 (macroexpand-1 '(phel\match/match [[1 2]] [[a & 3]] :x :else :y)))
+                 (macroexpand-1 '(phel.match/match [[1 2]] [[a & 3]] :x :else :y)))
         "non-symbol rest binding raises")
     (is (thrown? \InvalidArgumentException
-                 (macroexpand-1 '(phel\match/match [[1 2]] [[a & b c]] :x :else :y)))
+                 (macroexpand-1 '(phel.match/match [[1 2]] [[a & b c]] :x :else :y)))
         "multiple items after & raises")))
 
 (deftest test-map-pattern-with-string-keys

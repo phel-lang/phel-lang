@@ -1,6 +1,6 @@
-(ns phel-test\test\json\encode\value
-  (:require phel\json)
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.json.encode.value
+  (:require phel.json)
+  (:require phel.test :refer [deftest is]))
 
 (deftest test-json-encode-nil
   (is (= "null" (json/encode nil))))

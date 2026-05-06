@@ -1,6 +1,6 @@
-(ns phel-test\test\core\threading-macros
+(ns phel-test.test.core.threading-macros
   (:use DateTime)
-  (:require phel\test :refer [deftest is]))
+  (:require phel.test :refer [deftest is]))
 
 (deftest test->
   (is (= 1 (-> 1)))

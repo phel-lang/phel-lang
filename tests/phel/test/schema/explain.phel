@@ -1,6 +1,6 @@
-(ns phel-test\test\schema\explain
-  (:require phel\test :refer [deftest is testing])
-  (:require phel\schema :as s))
+(ns phel-test.test.schema.explain
+  (:require phel.test :refer [deftest is testing])
+  (:require phel.schema :as s))
 
 ;; Structured error output from `explain`.
 
