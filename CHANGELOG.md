@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+#### Core
+- `rationalize` uses the shortest round-trip decimal so `(rationalize 0.1)` is `1/10` and small floats in scientific notation no longer error (#1832)
+
 #### Lang
 - `=` between an integer and a `BigInteger` is now symmetric in both directions (#1830)
 - `+`, `-`, `*`, `**` on native PHP ints auto-promote to `BigInteger` on overflow instead of silently widening to a float (#1830)
@@ -27,6 +30,9 @@ All notable changes to this project will be documented in this file.
 
 #### Lang
 - `Phel\Lang\NumericOperations` runtime dispatch helper for arithmetic and comparison on `Rational`, `BigInteger`, and native PHP numbers (#1825)
+
+#### Documentation
+- `docs/numeric-tower.md` covers the `int` / `BigInteger` / `Rational` / `float` tower: no `BigDecimal`, no `1N`/`1M` literal suffixes, oversize int literals lex as `float`, arithmetic `bit-shift-right`, single-argument `==` asserts numeric (#1832)
 
 ### Changed
 
