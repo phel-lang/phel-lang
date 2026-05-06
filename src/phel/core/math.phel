@@ -606,8 +606,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
         eff-exp    (php/- exponent (php/strlen frac-part))]
     (if (php/>= eff-exp 0)
       (let [scale (php/-> (php/:: BigInteger (fromInt 10)) (pow eff-exp))]
-        (php/:: Rational (create (php/-> num (multiply scale))
-                                 (php/:: BigInteger (fromInt 1)))))
+        (php/:: Rational (create (php/-> num (multiply scale)) 1)))
       (let [denom (php/-> (php/:: BigInteger (fromInt 10)) (pow (php/- 0 eff-exp)))]
         (php/:: Rational (create num denom))))))
 
