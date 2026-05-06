@@ -319,10 +319,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(int 1.9) ; => 1\n(int \"42\") ; => 42\n(int 1/10) ; => 0"
    :see-also ["float" "double" "int?" "number?"]}
   [x]
-  (cond
-    (php/instanceof x Rational)   (php/-> x (toInt))
-    (php/instanceof x BigInteger) (php/-> x (toInt))
-    :else                         (php/intval x)))
+  (if (or (php/instanceof x Rational) (php/instanceof x BigInteger))
+    (php/-> x (toInt))
+    (php/intval x)))
 
 (defn float
   "Coerces `x` to a float. In PHP there is no distinction between float and
