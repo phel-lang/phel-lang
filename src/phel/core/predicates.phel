@@ -98,13 +98,20 @@
   [x]
   (php/is_int x))
 
+(defn- compare-to-zero
+  "Returns the sign comparison of `x` against zero across the numeric tower
+  (PHP int, BigInteger, Rational, float). Negative for x<0, 0 for x=0,
+  positive for x>0."
+  [x]
+  (php/:: NumericOperations (compare x 0)))
+
 (defn neg-int?
   "Returns true if `x` is a negative integer. Accepts both fixed-precision
   PHP `int` and arbitrary-precision `BigInteger` values."
   {:example "(neg-int? -1) ; => true\n(neg-int? 0) ; => false\n(neg-int? (bigint -5)) ; => true"
    :see-also ["int?" "integer?" "pos-int?" "nat-int?"]}
   [x]
-  (and (integer? x) (php/< (php/:: NumericOperations (compare x 0)) 0)))
+  (and (integer? x) (php/< (compare-to-zero x) 0)))
 
 (defn pos-int?
   "Returns true if `x` is a positive integer (greater than zero). Accepts both
@@ -112,7 +119,7 @@
   {:example "(pos-int? 1) ; => true\n(pos-int? 0) ; => false\n(pos-int? (bigint 5)) ; => true"
    :see-also ["int?" "integer?" "neg-int?" "nat-int?"]}
   [x]
-  (and (integer? x) (php/> (php/:: NumericOperations (compare x 0)) 0)))
+  (and (integer? x) (php/> (compare-to-zero x) 0)))
 
 (defn nat-int?
   "Returns true if `x` is a non-negative integer (zero or positive). Accepts
@@ -120,7 +127,7 @@
   {:example "(nat-int? 0) ; => true\n(nat-int? 1) ; => true\n(nat-int? (bigint 5)) ; => true"
    :see-also ["int?" "integer?" "pos-int?" "neg-int?"]}
   [x]
-  (and (integer? x) (php/>= (php/:: NumericOperations (compare x 0)) 0)))
+  (and (integer? x) (php/>= (compare-to-zero x) 0)))
 
 (defn number?
   "Returns true if `x` is a number — int, float, `Rational`, or `BigInteger`."
