@@ -11,6 +11,7 @@
 (use Phel.Lang.Collections.SortedSet.PersistentSortedSet)
 (use Phel.Lang.Collections.Struct.AbstractPersistentStruct)
 (use Phel.Lang.Collections.Vector.PersistentVectorInterface)
+(use Phel.Lang.BigDecimal)
 (use Phel.Lang.BigInteger)
 (use Phel.Lang.FnInterface)
 (use Phel.Lang.NumericOperations)
@@ -50,6 +51,7 @@
 * `:float`
 * `:ratio`
 * `:bigint`
+* `:bigdec`
 * `:uuid`
 * `:php/class`
 * `:string`
@@ -74,6 +76,7 @@
     (php/instanceof x PhelVar)                    :var
     (php/instanceof x Rational)                   :ratio
     (php/instanceof x BigInteger)                 :bigint
+    (php/instanceof x BigDecimal)                 :bigdec
     (php/instanceof x Uuid)                       :uuid
     (php/instanceof x PhpClass)                   :php/class
     (php/is_int x)                                :int

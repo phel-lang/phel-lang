@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
 use DateTimeImmutable;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
+use Phel\Lang\BigDecimal;
 use Phel\Lang\BigInteger;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
@@ -64,6 +65,8 @@ final readonly class LiteralEmitter
             $this->emitRational($x);
         } elseif ($x instanceof BigInteger) {
             $this->emitBigInteger($x);
+        } elseif ($x instanceof BigDecimal) {
+            $this->emitBigDecimal($x);
         } elseif ($x instanceof Uuid) {
             $this->emitUuid($x);
         } elseif (is_array($x)) {
@@ -94,6 +97,14 @@ final readonly class LiteralEmitter
     {
         $this->outputEmitter->emitStr(
             '\Phel\Lang\Uuid::fromString("' . $x->__toString() . '")',
+            $x->getStartLocation(),
+        );
+    }
+
+    private function emitBigDecimal(BigDecimal $x): void
+    {
+        $this->outputEmitter->emitStr(
+            '\Phel\Lang\BigDecimal::fromString("' . $x->toPlainString() . '")',
             $x->getStartLocation(),
         );
     }

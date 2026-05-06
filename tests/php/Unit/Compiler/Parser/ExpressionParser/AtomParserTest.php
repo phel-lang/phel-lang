@@ -14,6 +14,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\KeywordNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NilNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NumberNode;
 use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
+use Phel\Lang\BigDecimal;
 use Phel\Lang\BigInteger;
 use Phel\Lang\Keyword;
 use Phel\Lang\Rational;
@@ -648,7 +649,9 @@ final class AtomParserTest extends TestCase
         $node = $parser->parse(new Token(Token::T_ATOM, '1M', $start, $end));
 
         self::assertInstanceOf(NumberNode::class, $node);
-        self::assertSame(1.0, $node->getValue());
+        $value = $node->getValue();
+        self::assertInstanceOf(BigDecimal::class, $value);
+        self::assertSame('1M', (string) $value);
     }
 
     public function test_parse_bigdec_literal_decimal(): void
@@ -659,7 +662,9 @@ final class AtomParserTest extends TestCase
         $node = $parser->parse(new Token(Token::T_ATOM, '1.5M', $start, $end));
 
         self::assertInstanceOf(NumberNode::class, $node);
-        self::assertSame(1.5, $node->getValue());
+        $value = $node->getValue();
+        self::assertInstanceOf(BigDecimal::class, $value);
+        self::assertSame('1.5M', (string) $value);
     }
 
     public function test_parse_negative_bigdec_literal(): void
@@ -670,7 +675,9 @@ final class AtomParserTest extends TestCase
         $node = $parser->parse(new Token(Token::T_ATOM, '-123.456M', $start, $end));
 
         self::assertInstanceOf(NumberNode::class, $node);
-        self::assertSame(-123.456, $node->getValue());
+        $value = $node->getValue();
+        self::assertInstanceOf(BigDecimal::class, $value);
+        self::assertSame('-123.456M', (string) $value);
     }
 
     public function test_parse_zero_bigdec_literal(): void
@@ -681,7 +688,9 @@ final class AtomParserTest extends TestCase
         $node = $parser->parse(new Token(Token::T_ATOM, '0M', $start, $end));
 
         self::assertInstanceOf(NumberNode::class, $node);
-        self::assertSame(0.0, $node->getValue());
+        $value = $node->getValue();
+        self::assertInstanceOf(BigDecimal::class, $value);
+        self::assertSame('0M', (string) $value);
     }
 
     public function test_parse_bigdec_literal_with_exponent(): void
@@ -692,7 +701,9 @@ final class AtomParserTest extends TestCase
         $node = $parser->parse(new Token(Token::T_ATOM, '1.5e3M', $start, $end));
 
         self::assertInstanceOf(NumberNode::class, $node);
-        self::assertSame(1500.0, $node->getValue());
+        $value = $node->getValue();
+        self::assertInstanceOf(BigDecimal::class, $value);
+        self::assertSame('1500M', (string) $value);
     }
 
     public function test_parse_bigdec_literal_with_underscores(): void
@@ -703,7 +714,9 @@ final class AtomParserTest extends TestCase
         $node = $parser->parse(new Token(Token::T_ATOM, '1_000.5_5M', $start, $end));
 
         self::assertInstanceOf(NumberNode::class, $node);
-        self::assertSame(1000.55, $node->getValue());
+        $value = $node->getValue();
+        self::assertInstanceOf(BigDecimal::class, $value);
+        self::assertSame('1000.55M', (string) $value);
     }
 
     public function test_symbol_with_trailing_n_is_not_bigint(): void
