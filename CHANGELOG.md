@@ -9,15 +9,12 @@ All notable changes to this project will be documented in this file.
 #### Compiler
 - `(var sym)` special form returns a first-class `Var` handle to a global definition (#1717)
 - `#'sym` reader macro expands to `(var sym)` (#1717)
-- Ratio literals (`1/2`, `-3/4`) parse to exact `Rational` values; integral results collapse to `int` or `BigInteger`
-
-#### Lang
-- `BigInteger` and `Rational` value types power exact ratio arithmetic (#1825)
+- Ratio literals (`1/2`, `-3/4`) parse to exact `Rational` values; integral results collapse to `int` or `BigInteger` (#1825)
 
 ### Changed
 
 #### Compiler
-- Zero-denominator ratio literals (`1/0`, `0/0`) now raise `ZeroDenominatorRatioParserException` at parse time instead of producing `INF` or `NAN`
+- Zero-denominator ratio literals (`1/0`, `0/0`) now raise `ZeroDenominatorRatioParserException` at parse time instead of producing `INF` or `NAN` (#1825)
 
 #### Core
 - `Var` type with `deref`, `meta`, and `alter-var-root` operations on top of the namespace registry (#1717)
