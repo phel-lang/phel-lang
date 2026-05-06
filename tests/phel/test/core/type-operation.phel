@@ -123,6 +123,33 @@
   (is (thrown? \InvalidArgumentException (symbol [:a]))
       "(symbol vector) throws InvalidArgumentException"))
 
+(deftest test-class-and-class?
+  (let [c (class (php/new \stdClass))]
+    (is (class? c) "(class? (class obj)) returns true")
+    (is (= :php/class (type c)) "type of PhpClass is :php/class")
+    (is (= "stdClass" (class-name c)) "class-name returns the FQN")
+    (is (= c (class "stdClass")) "PhpClass equality compares FQN"))
+  (is (= "Phel\\Lang\\Symbol" (class-name (class "Phel\\Lang\\Symbol")))
+      "class accepts FQN string with backslashes")
+  (is (= "Phel\\Lang\\Symbol" (class-name (class "\\Phel\\Lang\\Symbol")))
+      "class strips leading backslash")
+  (is (false? (class? "stdClass")) "raw FQN string is not a PhpClass")
+  (is (false? (class? nil)) "class? rejects nil"))
+
+(deftest test-class-rejects-bad-input
+  (is (thrown? \InvalidArgumentException (class nil))
+      "(class nil) throws")
+  (is (thrown? \InvalidArgumentException (class 42))
+      "(class int) throws")
+  (is (thrown? \InvalidArgumentException (class "Phel\\Lang\\NoSuch"))
+      "unknown FQN throws")
+  (is (thrown? \InvalidArgumentException (class-name "stdClass"))
+      "class-name rejects raw string"))
+
+(deftest test-uuid-type-keyword
+  (is (= :uuid (type #uuid "00000000-0000-0000-0000-000000000000"))
+      "type of Uuid value is :uuid"))
+
 (deftest test-number?
   (is (true? (number? 10.0)) "number? on 10.0")
   (is (true? (number? 0.0)) "number? on 0.0")
