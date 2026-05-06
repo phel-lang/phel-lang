@@ -19,10 +19,25 @@ use RuntimeException;
 use function class_exists;
 use function interface_exists;
 use function ltrim;
+use function strlen;
 use function trait_exists;
 
 final readonly class SymbolResolver
 {
+    /**
+     * Renames where the Phel class name diverges from its `clojure.lang.X`
+     * counterpart. Names that match 1:1 (e.g. `Symbol`, `Keyword`) are picked
+     * up by the auto-resolution fallback below and need no entry here.
+     */
+    private const array CLOJURE_CLASS_RENAMES = [
+        'BigInt' => 'BigInteger',
+        'Ratio' => 'Rational',
+    ];
+
+    private const string CLOJURE_LANG_PREFIX = 'clojure.lang.';
+
+    private const string PHEL_LANG_NAMESPACE = '\\Phel\\Lang\\';
+
     public function __construct(
         private GlobalEnvironment $globalEnv,
         private MagicConstantResolver $magicConstantResolver,
@@ -50,6 +65,16 @@ final readonly class SymbolResolver
 
         if ($strName[0] === '\\') {
             return new PhpClassNameNode($env, $name, $name->getStartLocation());
+        }
+
+        if ($name->getNamespace() === null) {
+            $clojureClassFqn = $this->remapClojureClassFqn($strName);
+            if ($clojureClassFqn !== null) {
+                $fqn = Symbol::create($clojureClassFqn);
+                $fqn->copyLocationFrom($name);
+
+                return new PhpClassNameNode($env, $fqn, $name->getStartLocation());
+            }
         }
 
         if ($name->getNamespace() === null && $this->looksLikeDotSeparatedClassFqn($strName)) {
@@ -171,6 +196,34 @@ final readonly class SymbolResolver
     private function looksLikePhpConstantName(string $name): bool
     {
         return preg_match('/^[A-Z_][A-Z0-9_]*$/', $name) === 1;
+    }
+
+    /**
+     * Maps `clojure.lang.X` references to the matching Phel runtime class.
+     * Auto-resolves when `\Phel\Lang\X` exists (covers `Symbol`, `Keyword`,
+     * `Variable`, etc.); a small rename table handles cases where Phel
+     * diverged from the Clojure name (`BigInt` vs `BigInteger`, `Ratio` vs
+     * `Rational`). Returns null when no Phel counterpart exists.
+     */
+    private function remapClojureClassFqn(string $name): ?string
+    {
+        if (!str_starts_with($name, self::CLOJURE_LANG_PREFIX)) {
+            return null;
+        }
+
+        $shortName = substr($name, strlen(self::CLOJURE_LANG_PREFIX));
+        if ($shortName === '' || str_contains($shortName, '.')) {
+            return null;
+        }
+
+        $phelShortName = self::CLOJURE_CLASS_RENAMES[$shortName] ?? $shortName;
+        $fqn = self::PHEL_LANG_NAMESPACE . $phelShortName;
+
+        if (!class_exists($fqn) && !interface_exists($fqn) && !trait_exists($fqn)) {
+            return null;
+        }
+
+        return $fqn;
     }
 
     private function remapClojureAlias(string $alias): string

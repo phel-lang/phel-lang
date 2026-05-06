@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 #### Compiler
 - Decimal integer literals that overflow `PHP_INT_MAX` now lex as `float` instead of silently clamping to the platform integer bound (#1837)
+- `clojure.lang.X` class FQNs resolve to `\Phel\Lang\X` (with renames `BigInt` -> `BigInteger`, `Ratio` -> `Rational`) (#1840)
 
 #### Core
 - `rationalize` uses the shortest round-trip decimal so `(rationalize 0.1)` is `1/10` and small floats in scientific notation no longer error (#1832)
