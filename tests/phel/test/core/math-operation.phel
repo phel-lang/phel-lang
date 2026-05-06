@@ -520,8 +520,18 @@
   (is (= "1000000000000000000000000" (str (bigint "1000000000000000000000000"))) "(bigint big-string)")
   (let [b (php/:: \Phel\Lang\BigInteger (fromInt 5))]
     (is (= b (bigint b)) "(bigint BigInteger) is identity"))
-  (is (thrown? \InvalidArgumentException (bigint 1.5)) "(bigint 1.5) rejects floats")
   (is (thrown? \InvalidArgumentException (bigint nil)) "(bigint nil) rejects nil"))
+
+(deftest test-bigint-from-float
+  (is (= 0 (bigint 0.0)) "(bigint 0.0) is 0")
+  (is (bigint? (bigint 0.0)) "(bigint 0.0) is BigInteger")
+  (is (= 1 (bigint 1.9)) "(bigint 1.9) truncates toward zero")
+  (is (= -1 (bigint -1.9)) "(bigint -1.9) truncates toward zero")
+  (is (= 42 (bigint 42.5)) "(bigint 42.5) truncates toward zero")
+  (is (bigint? (bigint php/PHP_FLOAT_MAX)) "(bigint PHP_FLOAT_MAX) returns BigInteger")
+  (is (thrown? \InvalidArgumentException (bigint php/NAN)) "(bigint NaN) rejects NaN")
+  (is (thrown? \InvalidArgumentException (bigint php/INF)) "(bigint Inf) rejects Inf")
+  (is (thrown? \InvalidArgumentException (bigint (- php/INF))) "(bigint -Inf) rejects -Inf"))
 
 (deftest test-biginteger-alias
   (is (= 42 (biginteger 42)) "(biginteger 42)")

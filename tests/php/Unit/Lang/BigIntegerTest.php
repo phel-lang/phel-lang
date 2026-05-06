@@ -10,6 +10,8 @@ use OverflowException;
 use Phel\Lang\BigInteger;
 use PHPUnit\Framework\TestCase;
 
+use function sprintf;
+
 final class BigIntegerTest extends TestCase
 {
     public function test_zero_factory(): void
@@ -65,6 +67,42 @@ final class BigIntegerTest extends TestCase
     {
         $this->expectException(InvalidArgumentException::class);
         BigInteger::fromString('');
+    }
+
+    public function test_from_float_truncates_toward_zero(): void
+    {
+        self::assertSame('0', (string) BigInteger::fromFloat(0.0));
+        self::assertSame('0', (string) BigInteger::fromFloat(0.9));
+        self::assertSame('0', (string) BigInteger::fromFloat(-0.9));
+        self::assertSame('1', (string) BigInteger::fromFloat(1.9));
+        self::assertSame('-1', (string) BigInteger::fromFloat(-1.9));
+        self::assertSame('42', (string) BigInteger::fromFloat(42.5));
+        self::assertSame('-42', (string) BigInteger::fromFloat(-42.5));
+    }
+
+    public function test_from_float_handles_php_float_max(): void
+    {
+        $result = BigInteger::fromFloat(PHP_FLOAT_MAX);
+
+        self::assertSame(sprintf('%.0F', PHP_FLOAT_MAX), (string) $result);
+    }
+
+    public function test_from_float_rejects_nan(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        BigInteger::fromFloat(NAN);
+    }
+
+    public function test_from_float_rejects_positive_infinity(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        BigInteger::fromFloat(INF);
+    }
+
+    public function test_from_float_rejects_negative_infinity(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        BigInteger::fromFloat(-INF);
     }
 
     public function test_from_string_rejects_only_minus(): void

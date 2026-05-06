@@ -646,18 +646,20 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
                     (str "rationalize expects a number, got " (type x))))))
 
 (defn bigint
-  "Coerces `x` to a `Phel\\Lang\\BigInteger`. Accepts ints, numeric
-  strings, and `BigInteger` values."
-  {:example "(bigint 42) ; => 42N\n(bigint \"123\") ; => 123N"
+  "Coerces `x` to a `Phel\\Lang\\BigInteger`. Accepts ints, floats
+  (truncated toward zero, rejecting `NaN`/`Inf`), numeric strings, and
+  `BigInteger` values."
+  {:example "(bigint 42) ; => 42N\n(bigint 1.9) ; => 1N\n(bigint \"123\") ; => 123N"
    :see-also ["bigint?" "int" "rationalize"]}
   [x]
   (cond
     (php/instanceof x BigInteger) x
     (php/is_int x)                (php/:: BigInteger (fromInt x))
+    (php/is_float x)              (php/:: BigInteger (fromFloat x))
     (string? x)                   (php/:: BigInteger (fromString x))
     :else
     (throw (php/new InvalidArgumentException
-                    (str "bigint expects an int, numeric string, or BigInteger, got " (type x))))))
+                    (str "bigint expects an int, float, numeric string, or BigInteger, got " (type x))))))
 
 (defn biginteger
   "Alias for `bigint`. Coerces `x` to a `Phel\\Lang\\BigInteger`."
