@@ -84,6 +84,11 @@
     (php/is_object x)                             :php/object
     :unknown))
 
+(defn- throw-class-type-error [op-name expected-suffix x]
+  (throw (php/new \InvalidArgumentException
+                  (php/. op-name " expects " expected-suffix ", got "
+                         (php/get_debug_type x)))))
+
 (defn class?
   "Returns true if `x` is a `Phel\\Lang\\PhpClass` value."
   {:example "(class? (class (php/new \\stdClass))) ; => true"
@@ -103,10 +108,7 @@
     (php/instanceof x PhpClass) x
     (php/is_object x)           (php/:: PhpClass (ofValue x))
     (php/is_string x)           (php/:: PhpClass (fromName x))
-    :else
-    (throw (php/new \InvalidArgumentException
-                    (php/. "class expects an object or class-name string, got "
-                           (php/get_debug_type x))))))
+    :else (throw-class-type-error "class" "an object or class-name string" x)))
 
 (defn class-name
   "Returns the FQN string of `c` (a `Phel\\Lang\\PhpClass`). Leading
@@ -116,9 +118,7 @@
   [c]
   (if (php/instanceof c PhpClass)
     (php/-> c (name))
-    (throw (php/new \InvalidArgumentException
-                    (php/. "class-name expects a Phel\\Lang\\PhpClass, got "
-                           (php/get_debug_type c))))))
+    (throw-class-type-error "class-name" "a Phel\\Lang\\PhpClass" c)))
 
 (defn float?
   "Returns true if `x` is float point number, false otherwise."
