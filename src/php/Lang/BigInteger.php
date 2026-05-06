@@ -18,6 +18,7 @@ use function preg_match;
 use function sprintf;
 use function str_pad;
 use function str_split;
+use function strlen;
 use function strrev;
 use function substr;
 
@@ -135,8 +136,12 @@ final readonly class BigInteger implements TypeInterface, Stringable
     }
 
     /**
-     * Truncates `$value` toward zero and converts the integer part to a
-     * BigInteger. Throws on NaN or infinity.
+     * Converts a finite float to a BigInteger via its shortest round-trip
+     * decimal representation, truncating fractional digits toward zero.
+     * Floats too large to represent every digit (e.g. `PHP_FLOAT_MAX`)
+     * round-trip through ~17 significant digits and pad with trailing
+     * zeros, so equality with the literal printed by the same float
+     * holds. Throws on `NaN`/`Inf`.
      */
     public static function fromFloat(float $value): self
     {
@@ -146,9 +151,11 @@ final readonly class BigInteger implements TypeInterface, Stringable
             );
         }
 
-        $truncated = $value < 0.0 ? ceil($value) : floor($value);
+        if ($value == 0.0) {
+            return self::zero();
+        }
 
-        return self::fromString(sprintf('%.0F', $truncated));
+        return self::fromString(self::floatToIntegerString($value));
     }
 
     public static function fromString(string $value): self
@@ -669,5 +676,56 @@ final readonly class BigInteger implements TypeInterface, Stringable
         /** @var list<int>|null $cached */
         static $cached = null;
         return $cached ??= self::trim(self::addMagnitudes($this->phpIntMaxMagnitude(), [1]));
+    }
+
+    /**
+     * Renders `$value` as the shortest %g-formatted decimal that round-trips
+     * back to the same float, then expands scientific notation and truncates
+     * the fractional digits toward zero so the result is a plain integer
+     * string suitable for {@see self::fromString()}.
+     */
+    private static function floatToIntegerString(float $value): string
+    {
+        $repr = self::shortestRoundTripDecimal($value);
+        if (preg_match('/^(-?)(\d+)(?:\.(\d*))?(?:[eE]([+-]?\d+))?$/', $repr, $matches) !== 1) {
+            throw new InvalidArgumentException(
+                sprintf("Unrecognised float string: '%s'", $repr),
+            );
+        }
+
+        $sign = $matches[1];
+        $intPart = $matches[2];
+        $fracPart = $matches[3] ?? '';
+        $exponent = (int) ($matches[4] ?? '0');
+
+        $digits = $intPart . $fracPart;
+        $pointPosition = strlen($intPart) + $exponent;
+
+        if ($pointPosition <= 0) {
+            return '0';
+        }
+
+        $intStr = $pointPosition >= strlen($digits)
+            ? $digits . str_repeat('0', $pointPosition - strlen($digits))
+            : substr($digits, 0, $pointPosition);
+
+        $intStr = ltrim($intStr, '0');
+        if ($intStr === '') {
+            return '0';
+        }
+
+        return $sign . $intStr;
+    }
+
+    private static function shortestRoundTripDecimal(float $value): string
+    {
+        for ($precision = 1; $precision < 17; ++$precision) {
+            $repr = sprintf('%.' . $precision . 'g', $value);
+            if ((float) $repr === $value) {
+                return $repr;
+            }
+        }
+
+        return sprintf('%.17g', $value);
     }
 }

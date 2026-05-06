@@ -558,6 +558,13 @@
   (is (thrown? \InvalidArgumentException (bigint php/INF)) "(bigint Inf) rejects Inf")
   (is (thrown? \InvalidArgumentException (bigint (- php/INF))) "(bigint -Inf) rejects -Inf"))
 
+(deftest test-bigint-float-uses-shortest-round-trip
+  ;; PHP_FLOAT_MAX renders as 1.7976931348623157e+308, so (bigint ...) must
+  ;; expand to 17 significant digits + trailing zeros, matching the printed
+  ;; literal of the same float.
+  (let [expected (bigint (str "17976931348623157" (php/str_repeat "0" 292)))]
+    (is (= expected (bigint php/PHP_FLOAT_MAX)) "(bigint PHP_FLOAT_MAX) round-trips through shortest decimal")))
+
 (deftest test-biginteger-alias
   (is (= 42 (biginteger 42)) "(biginteger 42)")
   (is (bigint? (biginteger 42)) "(biginteger 42) is BigInteger"))
