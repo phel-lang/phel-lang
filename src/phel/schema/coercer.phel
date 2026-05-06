@@ -69,8 +69,9 @@
 
 (defn- coerce-uuid [value]
   (cond
-    (uuid? value) (php/strtolower value)
-    :else         value))
+    (uuid? value)   value
+    (string? value) (or (parse-uuid value) value)
+    :else           value))
 
 (defn- coerce-inst [value]
   (cond

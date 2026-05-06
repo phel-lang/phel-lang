@@ -17,6 +17,7 @@ use Phel\Lang\Rational;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Lang\TypeStringifier;
+use Phel\Lang\Uuid;
 use Phel\Lang\Variable;
 use Phel\Printer\TypePrinter\AnonymousClassPrinter;
 use Phel\Printer\TypePrinter\ArrayPrinter;
@@ -39,6 +40,7 @@ use Phel\Printer\TypePrinter\StructPrinter;
 use Phel\Printer\TypePrinter\SymbolPrinter;
 use Phel\Printer\TypePrinter\ToStringPrinter;
 use Phel\Printer\TypePrinter\TypePrinterInterface;
+use Phel\Printer\TypePrinter\UuidPrinter;
 use Phel\Printer\TypePrinter\VariablePrinter;
 use Phel\Printer\TypePrinter\VarPrinter;
 use ReflectionClass;
@@ -137,6 +139,10 @@ final readonly class Printer implements PrinterInterface
 
         if ($form instanceof Rational) {
             return new RationalPrinter($this->withColor);
+        }
+
+        if ($form instanceof Uuid) {
+            return new UuidPrinter($this->withColor);
         }
 
         if ($form instanceof FnInterface) {
