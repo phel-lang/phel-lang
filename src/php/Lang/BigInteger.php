@@ -151,7 +151,7 @@ final readonly class BigInteger implements TypeInterface, Stringable
             );
         }
 
-        if ($value == 0.0) {
+        if ($value === 0.0) {
             return self::zero();
         }
 
