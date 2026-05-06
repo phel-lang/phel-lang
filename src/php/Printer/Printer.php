@@ -13,6 +13,7 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\FnInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelVar;
+use Phel\Lang\Rational;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Lang\TypeStringifier;
@@ -31,6 +32,7 @@ use Phel\Printer\TypePrinter\PersistentHashSetPrinter;
 use Phel\Printer\TypePrinter\PersistentListPrinter;
 use Phel\Printer\TypePrinter\PersistentMapPrinter;
 use Phel\Printer\TypePrinter\PersistentVectorPrinter;
+use Phel\Printer\TypePrinter\RationalPrinter;
 use Phel\Printer\TypePrinter\ResourcePrinter;
 use Phel\Printer\TypePrinter\StringPrinter;
 use Phel\Printer\TypePrinter\StructPrinter;
@@ -131,6 +133,10 @@ final readonly class Printer implements PrinterInterface
 
         if ($form instanceof PhelVar) {
             return new VarPrinter($this->withColor);
+        }
+
+        if ($form instanceof Rational) {
+            return new RationalPrinter($this->withColor);
         }
 
         if ($form instanceof FnInterface) {
