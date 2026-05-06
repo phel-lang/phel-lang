@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - `bigint` accepts floats (truncates toward zero, rejects `NaN`/`Inf`), so `(bigint 0.0)` is `0N` and `(bigint php/PHP_FLOAT_MAX)` returns the exact integer (#1845)
 - Float literals in scientific notation no longer emit invalid PHP like `-9.22E+18.0`; the emitter only appends `.0` when the rendered float lacks a decimal point or exponent (#1846)
 - `int`, `long`, `short`, `byte` route float operands through `BigInteger::fromFloat`, so out-of-range values such as `(long -9223372036854775809)` raise `OverflowException` instead of silently wrapping; `NaN`/`Inf` raise `InvalidArgumentException` (#1846)
+- `N`-suffix integer literals beyond `PHP_INT_MAX` parse as `BigInteger` (e.g. `9223372036854775808N`), so equality between `(inc (bigint php/PHP_INT_MAX))`, `(inc' php/PHP_INT_MAX)`, and the matching `N` literal now holds (#1850)
 
 #### Lang
 - `=` between an integer and a `BigInteger` is now symmetric in both directions (#1830)

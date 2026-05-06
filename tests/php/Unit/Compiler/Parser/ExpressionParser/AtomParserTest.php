@@ -614,6 +614,32 @@ final class AtomParserTest extends TestCase
         self::assertSame(1_000_000, $node->getValue());
     }
 
+    public function test_parse_bigint_literal_above_php_int_max_promotes(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 20);
+        $node = $parser->parse(new Token(Token::T_ATOM, '9223372036854775808N', $start, $end));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        $value = $node->getValue();
+        self::assertInstanceOf(BigInteger::class, $value);
+        self::assertSame('9223372036854775808', (string) $value);
+    }
+
+    public function test_parse_bigint_literal_below_php_int_min_promotes(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 21);
+        $node = $parser->parse(new Token(Token::T_ATOM, '-9223372036854775809N', $start, $end));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        $value = $node->getValue();
+        self::assertInstanceOf(BigInteger::class, $value);
+        self::assertSame('-9223372036854775809', (string) $value);
+    }
+
     public function test_parse_bigdec_literal_integer(): void
     {
         $parser = new AtomParser(new GlobalEnvironment());

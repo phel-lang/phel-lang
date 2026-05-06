@@ -305,15 +305,17 @@ final readonly class AtomParser
     }
 
     /**
-     * Parses a Clojure-style `N`-suffixed integer literal. The `N` marker
-     * is stripped and the remainder is parsed as a plain PHP int. Phel has
-     * no first-class arbitrary-precision integer type — values beyond
-     * `PHP_INT_MAX` will overflow exactly as with an unsuffixed literal.
-     * The suffix is accepted purely for `.cljc` source compatibility.
+     * Parses an `N`-suffixed integer literal (e.g. `42N`, `9223372036854775808N`).
+     * Returns a native PHP int when the value fits in the PHP int range,
+     * otherwise a {@see BigInteger}, mirroring the auto-collapse used by
+     * arithmetic overflow promotion.
      */
     private function parseBigintLiteral(array $matches, string $word, Token $token): NumberNode
     {
-        $value = (int) str_replace('_', '', (string) $matches[1]);
+        // BigInteger::fromString rejects an explicit `+` sign; strip it.
+        $digits = ltrim(str_replace('_', '', (string) $matches[1]), '+');
+        $bigInt = BigInteger::fromString($digits);
+        $value = $bigInt->fitsInPhpInt() ? $bigInt->toInt() : $bigInt;
 
         return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
     }
