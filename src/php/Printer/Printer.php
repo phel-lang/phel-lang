@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Printer;
 
+use Phel\Lang\BigDecimal;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LazySeq\LazySeqInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
@@ -21,6 +22,7 @@ use Phel\Lang\Uuid;
 use Phel\Lang\Variable;
 use Phel\Printer\TypePrinter\AnonymousClassPrinter;
 use Phel\Printer\TypePrinter\ArrayPrinter;
+use Phel\Printer\TypePrinter\BigDecimalPrinter;
 use Phel\Printer\TypePrinter\BooleanPrinter;
 use Phel\Printer\TypePrinter\FnPrinter;
 use Phel\Printer\TypePrinter\KeywordPrinter;
@@ -139,6 +141,10 @@ final readonly class Printer implements PrinterInterface
 
         if ($form instanceof Rational) {
             return new RationalPrinter($this->withColor);
+        }
+
+        if ($form instanceof BigDecimal) {
+            return new BigDecimalPrinter($this->withColor);
         }
 
         if ($form instanceof Uuid) {

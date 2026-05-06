@@ -14,6 +14,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\KeywordNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NilNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NumberNode;
 use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
+use Phel\Lang\BigDecimal;
 use Phel\Lang\BigInteger;
 use Phel\Lang\Keyword;
 use Phel\Lang\Rational;
@@ -321,15 +322,13 @@ final readonly class AtomParser
     }
 
     /**
-     * Parses a Clojure-style `M`-suffixed decimal literal. The `M` marker
-     * is stripped and the remainder is parsed as a plain PHP float. Phel
-     * has no first-class arbitrary-precision decimal type — values beyond
-     * IEEE-754 precision will round exactly as with an unsuffixed literal.
-     * The suffix is accepted purely for `.cljc` source compatibility.
+     * Parses an `M`-suffixed decimal literal (e.g. `1.5M`,
+     * `9999999999999999999.123M`) into a {@see BigDecimal} value with
+     * arbitrary precision.
      */
     private function parseBigdecLiteral(array $matches, string $word, Token $token): NumberNode
     {
-        $value = (float) str_replace('_', '', (string) $matches[1]);
+        $value = BigDecimal::fromString(str_replace('_', '', (string) $matches[1]));
 
         return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
     }
