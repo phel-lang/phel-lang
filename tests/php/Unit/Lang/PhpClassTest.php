@@ -15,10 +15,10 @@ final class PhpClassTest extends TestCase
 {
     public function test_from_name_strips_leading_backslash(): void
     {
-        $a = PhpClass::fromName('\\Phel\\Lang\\Symbol');
-        $b = PhpClass::fromName('Phel\\Lang\\Symbol');
+        $a = PhpClass::fromName('\\' . Symbol::class);
+        $b = PhpClass::fromName(Symbol::class);
 
-        self::assertSame('Phel\\Lang\\Symbol', $a->name());
+        self::assertSame(Symbol::class, $a->name());
         self::assertTrue($a->equals($b));
     }
 
