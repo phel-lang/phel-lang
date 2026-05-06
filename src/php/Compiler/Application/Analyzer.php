@@ -15,11 +15,13 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzePersistentMap;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzePersistentSet;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzePersistentVector;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzeSymbol;
+use Phel\Lang\BigInteger;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\Rational;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 
@@ -165,6 +167,8 @@ final class Analyzer implements AnalyzerInterface
             || is_bool($x)
             || $x === null
             || $x instanceof Keyword
+            || $x instanceof Rational
+            || $x instanceof BigInteger
             || is_array($x);
     }
 }

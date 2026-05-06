@@ -9,6 +9,15 @@ All notable changes to this project will be documented in this file.
 #### Compiler
 - `(var sym)` special form returns a first-class `Var` handle to a global definition (#1717)
 - `#'sym` reader macro expands to `(var sym)` (#1717)
+- Ratio literals (`1/2`, `-3/4`) parse to exact `Rational` values; integral results collapse to `int` or `BigInteger`
+
+#### Lang
+- `BigInteger` and `Rational` value types power exact ratio arithmetic (#1825)
+
+### Changed
+
+#### Compiler
+- Zero-denominator ratio literals (`1/0`, `0/0`) now raise `ZeroDenominatorRatioParserException` at parse time instead of producing `INF` or `NAN`
 
 #### Core
 - `Var` type with `deref`, `meta`, and `alter-var-root` operations on top of the namespace registry (#1717)
@@ -30,8 +39,6 @@ All notable changes to this project will be documented in this file.
 - `PhelVar` implements `FnInterface` and exposes `__invoke`, `addWatch`, `removeWatch`, `alterMeta`, `resetMeta`, and a cached `isDynamic()` lookup
 - `PhelVarStateRegistry` singleton holds per-var watch fns, metadata overrides, and dynamic-flag cache keyed by `(ns, name)` so all handles to the same slot share state
 - `BigInteger` arbitrary-precision integer and `Rational` value types in `Phel\Lang`, with printer support that renders rationals as `n/d` (#1825)
-
-### Changed
 
 #### Stdlib
 - Bare top-level `(use ...)` forms in `src/phel/core/*` now use dot-separated class FQNs to match the canonical syntax already used by `(ns ... :use ...)`
