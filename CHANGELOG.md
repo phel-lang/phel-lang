@@ -18,6 +18,8 @@ All notable changes to this project will be documented in this file.
 - `quot` keeps the float type when any operand is a float, so `(quot 10.0 3.0)` returns `3.0` instead of `3` (#1844)
 - `abs` of `PHP_INT_MIN` promotes to `BigInteger` (`9223372036854775808`) instead of dropping to a float (#1844)
 - `bigint` accepts floats (truncates toward zero, rejects `NaN`/`Inf`), so `(bigint 0.0)` is `0N` and `(bigint php/PHP_FLOAT_MAX)` returns the exact integer (#1845)
+- Float literals in scientific notation no longer emit invalid PHP like `-9.22E+18.0`; the emitter only appends `.0` when the rendered float lacks a decimal point or exponent (#1846)
+- `int`, `long`, `short`, `byte` route float operands through `BigInteger::fromFloat`, so out-of-range values such as `(long -9223372036854775809)` raise `OverflowException` instead of silently wrapping; `NaN`/`Inf` raise `InvalidArgumentException` (#1846)
 
 #### Lang
 - `=` between an integer and a `BigInteger` is now symmetric in both directions (#1830)

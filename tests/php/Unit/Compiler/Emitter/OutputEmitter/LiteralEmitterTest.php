@@ -69,4 +69,18 @@ final class LiteralEmitterTest extends TestCase
             . ')',
         );
     }
+
+    public function test_emit_integer_valued_float_appends_decimal(): void
+    {
+        $this->literalEmitter->emitLiteral(10.0);
+
+        $this->expectOutputString('10.0');
+    }
+
+    public function test_emit_scientific_float_does_not_append_decimal(): void
+    {
+        $this->literalEmitter->emitLiteral(-9.223372036854776E+18);
+
+        $this->expectOutputString('-9.2233720368548E+18');
+    }
 }

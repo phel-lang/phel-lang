@@ -278,6 +278,22 @@
   (is (= 7 (int (bigint 7))) "(int (bigint 7)) collapses BigInteger")
   (is (true? (int? (int (bigint 7)))) "(int (bigint 7)) returns a PHP int"))
 
+(deftest test-int-float-out-of-range
+  (is (thrown? \OverflowException (int -9.223372036854776E+18))
+      "(int oversize-negative-float) throws OverflowException")
+  (is (thrown? \OverflowException (int 9.223372036854776E+18))
+      "(int oversize-positive-float) throws OverflowException")
+  (is (thrown? \InvalidArgumentException (int php/NAN))
+      "(int NaN) throws InvalidArgumentException")
+  (is (thrown? \InvalidArgumentException (int php/INF))
+      "(int Inf) throws InvalidArgumentException"))
+
+(deftest test-long-float-out-of-range
+  (is (thrown? \OverflowException (long -9223372036854775809))
+      "(long oversize-negative-literal) throws OverflowException after lexing as float")
+  (is (thrown? \OverflowException (long 9223372036854775808))
+      "(long oversize-positive-literal) throws OverflowException after lexing as float"))
+
 (deftest test-float
   (is (= 1.0 (float 1)) "(float 1)")
   (is (true? (float? (float 1))) "(float 1) is float")
