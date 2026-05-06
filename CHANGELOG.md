@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 #### Lang
 - `PhelVar` implements `FnInterface` and exposes `__invoke`, `addWatch`, `removeWatch`, `alterMeta`, `resetMeta`, and a cached `isDynamic()` lookup
 - `PhelVarStateRegistry` singleton holds per-var watch fns, metadata overrides, and dynamic-flag cache keyed by `(ns, name)` so all handles to the same slot share state
+- `BigInteger` arbitrary-precision integer and `Rational` value types in `Phel\Lang`, with printer support that renders rationals as `n/d` (#1825)
 
 ### Changed
 
