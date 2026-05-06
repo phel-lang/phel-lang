@@ -28,26 +28,50 @@
       (php/-> x (getName))
       x)))
 
+(defn- valid-symbol-name? [x]
+  (if (php/is_string x)
+    true
+    (if (php/instanceof x \Phel\Lang\Keyword)
+      true
+      (php/instanceof x \Phel\Lang\Symbol))))
+
+(defn- assert-symbol-name [arg-name x]
+  (if (valid-symbol-name? x)
+    nil
+    (throw (php/new \InvalidArgumentException
+                    (php/. "symbol expects a string, keyword, or symbol for "
+                           arg-name
+                           ", got "
+                           (php/get_debug_type x))))))
+
 (defn symbol
   "Returns a new symbol for the given name with an optional namespace.
 
   With one argument, creates a symbol without namespace. Accepts a
   string, a keyword, another symbol, or a `Var` (in which case the
   result is a fully qualified symbol naming the var). With two
-  arguments, creates a symbol in the given namespace."
+  arguments, creates a symbol in the given namespace.
+
+  Throws `InvalidArgumentException` for any other input (including
+  `nil`, functions, numbers, and collections)."
   {:example "(symbol \"foo\") ; => foo\n(symbol :abc) ; => abc\n(symbol #'phel.core/+) ; => phel.core/+"}
   [name-or-ns & [name]]
   (if name
-    (php/:: Symbol (createForNamespace
-                    (to-symbol-part name-or-ns)
-                    (to-symbol-part name)))
+    (do
+      (assert-symbol-name "namespace" name-or-ns)
+      (assert-symbol-name "name" name)
+      (php/:: Symbol (createForNamespace
+                      (to-symbol-part name-or-ns)
+                      (to-symbol-part name))))
     (if (php/instanceof name-or-ns Symbol)
       name-or-ns
       (if (php/instanceof name-or-ns PhelVar)
         (php/:: Symbol (createForNamespace
                         (php/-> symbol-munge (decodeNs (php/-> name-or-ns (getNamespace))))
                         (php/-> name-or-ns (getName))))
-        (php/:: Symbol (create (to-symbol-part name-or-ns)))))))
+        (do
+          (assert-symbol-name "name-or-ns" name-or-ns)
+          (php/:: Symbol (create (to-symbol-part name-or-ns))))))))
 
 (defn gensym
   "Generates a new unique symbol."

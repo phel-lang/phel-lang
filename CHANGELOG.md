@@ -22,6 +22,8 @@ All notable changes to this project will be documented in this file.
 - `abs(PHP_INT_MIN)` returns `BigInteger 9223372036854775808` (#1844)
 - `bigint` accepts floats; truncates toward zero, rejects `NaN`/`Inf` (#1845)
 - `bigint` of a float uses the shortest round-trip decimal (#1852)
+- `pos-int?` / `neg-int?` / `nat-int?` accept `BigInteger` values
+- `symbol` rejects non-name input (`nil`, fns, numbers, collections) with `InvalidArgumentException`
 
 #### Lang
 - `=` between `int` and `BigInteger` is symmetric (#1830)
@@ -45,6 +47,7 @@ All notable changes to this project will be documented in this file.
 - `floor`, `ceil`, `round`, `sqrt` (#1831)
 - `+'`, `-'`, `*'`, `inc'`, `dec'` auto-promoting variants (#1831)
 - `bigint`, `biginteger` constructors (#1831)
+- `map-entry?` predicate; true for any 2-element vector
 
 #### Documentation
 - `docs/numeric-tower.md` documents the `int`/`BigInteger`/`Rational`/`float` tower (#1832)
