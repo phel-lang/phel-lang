@@ -38,7 +38,7 @@ final class NumericOperations
         self::ensureNumeric($b);
 
         if (is_float($a) || is_float($b)) {
-            return self::ensureFloatOperands($a, $b, static fn(float $x, float $y): float => $x + $y);
+            return self::toFloat($a) + self::toFloat($b);
         }
 
         if ($a instanceof Rational) {
@@ -62,7 +62,7 @@ final class NumericOperations
         self::ensureNumeric($b);
 
         if (is_float($a) || is_float($b)) {
-            return self::ensureFloatOperands($a, $b, static fn(float $x, float $y): float => $x - $y);
+            return self::toFloat($a) - self::toFloat($b);
         }
 
         if ($a instanceof Rational) {
@@ -87,7 +87,7 @@ final class NumericOperations
         self::ensureNumeric($b);
 
         if (is_float($a) || is_float($b)) {
-            return self::ensureFloatOperands($a, $b, static fn(float $x, float $y): float => $x * $y);
+            return self::toFloat($a) * self::toFloat($b);
         }
 
         if ($a instanceof Rational) {
@@ -378,14 +378,6 @@ final class NumericOperations
         throw new InvalidArgumentException(
             sprintf('Expected a number, got %s', get_debug_type($value)),
         );
-    }
-
-    /**
-     * @param callable(float, float): float $op
-     */
-    private static function ensureFloatOperands(mixed $a, mixed $b, callable $op): float
-    {
-        return $op(self::toFloat($a), self::toFloat($b));
     }
 
     private static function toFloat(mixed $value): float

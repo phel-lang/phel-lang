@@ -222,16 +222,20 @@
       false)))
 
 (defn <=>
-  "Alias for the spaceship PHP operator in ascending order. Returns an int."
-  {:inline (fn [a b] `(php/<=> ~a ~b))}
+  "Alias for the spaceship PHP operator in ascending order. Returns an int.
+  Dispatches on `Rational` and `BigInteger` so numeric ordering stays correct
+  for those types."
   [a b]
-  (php/<=> a b))
+  (if (or (numeric-object? a) (numeric-object? b))
+    (php/:: NumericOperations (compare a b))
+    (php/<=> a b)))
 
 (defn >=<
   "Alias for the spaceship PHP operator in descending order. Returns an int."
-  {:inline (fn [a b] `(php/<=> ~b ~a))}
   [a b]
-  (php/<=> b a))
+  (if (or (numeric-object? a) (numeric-object? b))
+    (php/:: NumericOperations (compare b a))
+    (php/<=> b a)))
 
 (declare empty?)
 
