@@ -538,6 +538,15 @@
     (is (= b (bigint b)) "(bigint BigInteger) is identity"))
   (is (thrown? \InvalidArgumentException (bigint nil)) "(bigint nil) rejects nil"))
 
+(deftest test-bigint-literal-promotes-beyond-int-range
+  (is (bigint? 9223372036854775808N) "(N-literal beyond PHP_INT_MAX) parses as BigInteger")
+  (is (bigint? -9223372036854775809N) "(negative N-literal beyond PHP_INT_MIN) parses as BigInteger")
+  (is (= (bigint "9223372036854775808") 9223372036854775808N) "literal equals fromString")
+  (is (= 9223372036854775808N (inc (bigint php/PHP_INT_MAX))) "(inc (bigint max)) equals literal")
+  (is (= 9223372036854775808N (inc' php/PHP_INT_MAX)) "(inc' max) equals literal")
+  (is (= -9223372036854775809N (dec (bigint php/PHP_INT_MIN))) "(dec (bigint min)) equals literal")
+  (is (= -9223372036854775809N (dec' php/PHP_INT_MIN)) "(dec' min) equals literal"))
+
 (deftest test-bigint-from-float
   (is (= 0 (bigint 0.0)) "(bigint 0.0) is 0")
   (is (bigint? (bigint 0.0)) "(bigint 0.0) is BigInteger")

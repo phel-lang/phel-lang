@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Reader\ExpressionReader;
 
 use Phel\Compiler\Domain\Parser\ParserNode\AbstractAtomNode;
+use Phel\Lang\BigInteger;
 use Phel\Lang\TypeInterface;
 
 final class AtomReader
 {
-    public function read(AbstractAtomNode $node): float|bool|int|string|TypeInterface|null
+    public function read(AbstractAtomNode $node): float|bool|int|string|TypeInterface|BigInteger|null
     {
         $value = $node->getValue();
 

@@ -7,6 +7,7 @@ namespace Phel\Lang;
 use DivisionByZeroError;
 use InvalidArgumentException;
 use OverflowException;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Stringable;
 
 use function array_pop;
@@ -28,7 +29,7 @@ use function substr;
  * 10^9 keeps any single multiplication of two digits inside 64-bit signed
  * integer range with margin (10^18 < 9.22e18 = PHP_INT_MAX).
  */
-final readonly class BigInteger implements EqualsInterface, HashableInterface, Stringable
+final readonly class BigInteger implements TypeInterface, Stringable
 {
     private const int BASE = 1_000_000_000;
 
@@ -41,6 +42,9 @@ final readonly class BigInteger implements EqualsInterface, HashableInterface, S
     private function __construct(
         private int $sign,
         private array $magnitude,
+        private ?PersistentMapInterface $meta = null,
+        private ?SourceLocation $startLocation = null,
+        private ?SourceLocation $endLocation = null,
     ) {}
 
     public function __toString(): string
@@ -57,6 +61,47 @@ final readonly class BigInteger implements EqualsInterface, HashableInterface, S
         }
 
         return $this->sign < 0 ? '-' . $out : $out;
+    }
+
+    public function getMeta(): ?PersistentMapInterface
+    {
+        return $this->meta;
+    }
+
+    public function withMeta(?PersistentMapInterface $meta): static
+    {
+        return new self($this->sign, $this->magnitude, $meta, $this->startLocation, $this->endLocation);
+    }
+
+    public function setStartLocation(?SourceLocation $startLocation): static
+    {
+        return new self($this->sign, $this->magnitude, $this->meta, $startLocation, $this->endLocation);
+    }
+
+    public function setEndLocation(?SourceLocation $endLocation): static
+    {
+        return new self($this->sign, $this->magnitude, $this->meta, $this->startLocation, $endLocation);
+    }
+
+    public function getStartLocation(): ?SourceLocation
+    {
+        return $this->startLocation;
+    }
+
+    public function getEndLocation(): ?SourceLocation
+    {
+        return $this->endLocation;
+    }
+
+    public function copyLocationFrom(mixed $other): static
+    {
+        if ($other instanceof SourceLocationInterface) {
+            return $this
+                ->setStartLocation($other->getStartLocation())
+                ->setEndLocation($other->getEndLocation());
+        }
+
+        return $this;
     }
 
     public static function zero(): self
