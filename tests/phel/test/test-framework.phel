@@ -1,9 +1,9 @@
-(ns phel-test\test\test-framework
-  (:require phel\test :refer [deftest is testing get-stats reset-stats restore-stats do-report]))
+(ns phel-test.test.test-framework
+  (:require phel.test :refer [deftest is testing get-stats reset-stats restore-stats do-report]))
 
 ;; Behavior coverage for the `is` macro and its built-in dispatch arms.
 ;;
-;; These tests exercise the public surface of `phel\test/is` end-to-end:
+;; These tests exercise the public surface of `phel.test/is` end-to-end:
 ;; pass paths run as ordinary `is` assertions, while fail/error paths use
 ;; the `get-stats`/`reset-stats`/`restore-stats` snapshot pattern so the
 ;; failure is observed in isolation without polluting the outer suite.

@@ -1,8 +1,8 @@
-(ns phel-test\test\rose
-  (:require phel\test :refer [deftest is testing])
-  (:require phel\test\rose :as r))
+(ns phel-test.test.rose
+  (:require phel.test :refer [deftest is testing])
+  (:require phel.test.rose :as r))
 
-;; Coverage for the `phel\test\rose` namespace: rose-tree constructors,
+;; Coverage for the `phel.test.rose` namespace: rose-tree constructors,
 ;; monadic helpers (`rose-fmap`, `rose-bind`), and the lazy-evaluation
 ;; invariant that keeps the shrink tree cheap to build.
 

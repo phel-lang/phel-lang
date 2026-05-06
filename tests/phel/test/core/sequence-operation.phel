@@ -1,6 +1,6 @@
-(ns phel-test\test\core\sequence-operation
+(ns phel-test.test.core.sequence-operation
   (:use OutOfBoundsException)
-  (:require phel\test :refer [deftest is]))
+  (:require phel.test :refer [deftest is]))
 
 (deftest test-fnext
   (is (= 2 (fnext [1 2 3])) "fnext on vector")

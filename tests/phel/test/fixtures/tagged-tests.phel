@@ -1,5 +1,5 @@
-(ns phel-test\test\fixtures\tagged-tests
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.fixtures.tagged-tests
+  (:require phel.test :refer [deftest is]))
 
 ;; Fixture namespace consumed by `tests/phel/test/selectors-runtime.phel`.
 ;;

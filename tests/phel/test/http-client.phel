@@ -1,7 +1,7 @@
-(ns phel-test\test\http-client
-  (:require phel\test :refer [deftest is])
-  (:require phel\http-client :as hc)
-  (:require phel\http :as http))
+(ns phel-test.test.http-client
+  (:require phel.test :refer [deftest is])
+  (:require phel.http-client :as hc)
+  (:require phel.http :as http))
 
 ;; --- Response parser integration (via PHP static call) ---
 

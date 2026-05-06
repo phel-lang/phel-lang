@@ -1,5 +1,5 @@
-(ns phel-test\test\core\hash-gensym
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.hash-gensym
+  (:require phel.test :refer [deftest is]))
 
 ;; Phel accepts Clojure-style `name#` as an auto-gensym suffix inside
 ;; syntax-quote (alongside the deprecated Phel-specific `name$`). These

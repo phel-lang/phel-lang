@@ -1,5 +1,5 @@
-(ns phel-test\test\core\letfn
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.letfn
+  (:require phel.test :refer [deftest is]))
 
 (deftest test-letfn-mutual-recursion
   (is (true? (letfn [(my-even? [n] (if (zero? n) true (my-odd? (dec n))))

@@ -1,5 +1,5 @@
-(ns phel-test\test\core\defmacro-env
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.defmacro-env
+  (:require phel.test :refer [deftest is]))
 
 ;; `&form` and `&env` are implicit leading params that every `defmacro`
 ;; receives. `&form` holds the call form (the list written at the call

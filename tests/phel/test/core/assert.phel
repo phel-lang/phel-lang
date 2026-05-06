@@ -1,5 +1,5 @@
-(ns phel-test\test\core\assert
-  (:require phel\test :refer [deftest is thrown? thrown-with-msg?]))
+(ns phel-test.test.core.assert
+  (:require phel.test :refer [deftest is thrown? thrown-with-msg?]))
 
 (deftest test-assert-passes
   (assert true)
@@ -19,7 +19,7 @@
 (deftest test-assert-var-default
   (is (= true *assert*) "*assert* defaults to true"))
 
-;; Toggle phel\core/*assert* at file load time so the forms below are
+;; Toggle phel.core/*assert* at file load time so the forms below are
 ;; macroexpanded while the flag is false. The macro must read the current
 ;; value of *assert* from the core namespace on each expansion.
 (php/:: \Phel (addDefinition "phel.core" "*assert*" false))

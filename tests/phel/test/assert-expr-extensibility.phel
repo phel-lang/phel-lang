@@ -1,10 +1,10 @@
-(ns phel-test\test\assert-expr-extensibility
-  (:require phel\test :refer [deftest is get-stats reset-stats restore-stats]))
+(ns phel-test.test.assert-expr-extensibility
+  (:require phel.test :refer [deftest is get-stats reset-stats restore-stats]))
 
-;; Issue #1188: `phel\test/assert-expr` is a public multimethod, so users
+;; Issue #1188: `phel.test/assert-expr` is a public multimethod, so users
 ;; can register custom assertion forms for the `is` macro from any
 ;; namespace via `defmethod`. Cross-namespace defmethod must fully
-;; qualify the multi-name so the methods table is resolved in phel\test,
+;; qualify the multi-name so the methods table is resolved in phel.test,
 ;; not the local namespace.
 ;;
 ;; These tests cover the multimethod behavior end-to-end:
@@ -19,7 +19,7 @@
 ;; Custom binary assertion: approx= for near-equal floats
 ;; ---------------------------------------------------------------------------
 
-(defmethod phel\test/assert-expr 'approx= [form message]
+(defmethod phel.test/assert-expr 'approx= [form message]
   (let [a (second form)
         b (second (next form))
         epsilon 0.001]
@@ -41,7 +41,7 @@
 ;; Second custom method: divisible? — proves multiple methods coexist
 ;; ---------------------------------------------------------------------------
 
-(defmethod phel\test/assert-expr 'divisible? [form message]
+(defmethod phel.test/assert-expr 'divisible? [form message]
   (let [n (second form)
         d (second (next form))]
     `(is (zero? (php/% ~n ~d)) ~message)))
@@ -63,7 +63,7 @@
 ;; Custom unary assertion: even-positive? — single-arg form
 ;; ---------------------------------------------------------------------------
 
-(defmethod phel\test/assert-expr 'even-positive? [form message]
+(defmethod phel.test/assert-expr 'even-positive? [form message]
   (let [n (second form)]
     `(is (and (pos? ~n) (even? ~n)) ~message)))
 
@@ -87,7 +87,7 @@
 ;; as :error rather than :failed.
 ;; ---------------------------------------------------------------------------
 
-(defmethod phel\test/assert-expr 'always-throws [_form _message]
+(defmethod phel.test/assert-expr 'always-throws [_form _message]
   `(throw (php/new \RuntimeException "boom from custom assertion")))
 
 (deftest test-custom-method-exception-is-reported-as-error
@@ -120,7 +120,7 @@
 ;; method (not through :default), proving dispatch precedence.
 ;; ---------------------------------------------------------------------------
 
-(defmethod phel\test/assert-expr 'tagged= [form message]
+(defmethod phel.test/assert-expr 'tagged= [form message]
   `(is (= ~(second form) ~(second (next form))) ~message))
 
 (deftest test-custom-dispatch-routes-through-new-method

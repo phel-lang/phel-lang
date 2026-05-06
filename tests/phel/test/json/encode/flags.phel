@@ -1,6 +1,6 @@
-(ns phel-test\test\json\encode\flags
-  (:require phel\json)
-  (:require phel\test :refer [deftest is])
+(ns phel-test.test.json.encode.flags
+  (:require phel.json)
+  (:require phel.test :refer [deftest is])
   (:use \JSON_HEX_TAG)
   (:use \JSON_HEX_AMP))
 

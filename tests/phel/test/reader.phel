@@ -1,6 +1,6 @@
-(ns phel-test\test\reader
-  (:require phel\reader :as reader)
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.reader
+  (:require phel.reader :as reader)
+  (:require phel.test :refer [deftest is]))
 
 (defn- datetime? [x]
   (php/instanceof x \DateTimeImmutable))

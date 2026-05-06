@@ -1,5 +1,5 @@
-(ns phel-test\test\core\are-regression-1364
-  (:require phel\test :refer [deftest testing are is]))
+(ns phel-test.test.core.are-regression-1364
+  (:require phel.test :refer [deftest testing are is]))
 
 ;; Regression coverage for https://github.com/phel-lang/phel-lang/issues/1364
 ;;

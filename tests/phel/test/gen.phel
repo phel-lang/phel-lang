@@ -1,6 +1,6 @@
-(ns phel-test\test\gen
-  (:require phel\test :refer [deftest is testing])
-  (:require phel\test\gen :as g))
+(ns phel-test.test.gen
+  (:require phel.test :refer [deftest is testing])
+  (:require phel.test.gen :as g))
 
 (def- fixed-seed 1729)
 

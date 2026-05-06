@@ -1,6 +1,6 @@
-(ns phel-test\test\json\decode\flags
-  (:require phel\json)
-  (:require phel\test :refer [deftest is])
+(ns phel-test.test.json.decode.flags
+  (:require phel.json)
+  (:require phel.test :refer [deftest is])
   (:use \JSON_INVALID_UTF8_IGNORE)
   (:use \JSON_INVALID_UTF8_SUBSTITUTE))
 

@@ -1,5 +1,5 @@
-(ns phel-test\test\core\infinite-seqs
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.infinite-seqs
+  (:require phel.test :refer [deftest is]))
 
 (deftest test-repeat-infinite
   (is (= [:a :a :a] (take 3 (repeat :a)))

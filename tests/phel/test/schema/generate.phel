@@ -1,7 +1,7 @@
-(ns phel-test\test\schema\generate
-  (:require phel\test :refer [deftest is testing])
-  (:require phel\schema :as s)
-  (:require phel\test\gen :as g))
+(ns phel-test.test.schema.generate
+  (:require phel.test :refer [deftest is testing])
+  (:require phel.schema :as s)
+  (:require phel.test.gen :as g))
 
 ;; Generated values must conform to their source schema.
 

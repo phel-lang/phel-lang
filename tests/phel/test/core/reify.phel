@@ -1,5 +1,5 @@
-(ns phel-test\test\core\reify
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.reify
+  (:require phel.test :refer [deftest is]))
 
 ;; --- Protocol definitions ---
 

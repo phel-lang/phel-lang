@@ -1,8 +1,8 @@
-(ns phel-test\test\reporters
-  (:require phel\test :as t :refer [deftest is]))
+(ns phel-test.test.reporters
+  (:require phel.test :as t :refer [deftest is]))
 
 ;; Coverage for the pluggable `report` multimethod and the built-in
-;; reporter implementations shipped with `phel\test`.
+;; reporter implementations shipped with `phel.test`.
 ;;
 ;; Each test resolves a built-in reporter, feeds it a scripted event
 ;; sequence by binding `*reporters*` locally via `set-reporters!`, and

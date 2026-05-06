@@ -1,5 +1,5 @@
-(ns phel-test\test\core\char-literals
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.char-literals
+  (:require phel.test :refer [deftest is]))
 
 (deftest test-char-literal-alpha
   (is (= "a" \a) "lowercase alpha char")

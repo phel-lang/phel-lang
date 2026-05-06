@@ -1,5 +1,5 @@
-(ns phel-test\test\core\var-quote
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.var-quote
+  (:require phel.test :refer [deftest is]))
 
 ;; `#'foo` expands to `(var foo)` and yields a `Var` handle to the named
 ;; definition. Calling the var derefs to the current root.

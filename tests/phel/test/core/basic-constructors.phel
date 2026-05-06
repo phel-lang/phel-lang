@@ -1,5 +1,5 @@
-(ns phel-test\test\core\basic-constructors
-  (:require phel\test :refer [deftest is are]))
+(ns phel-test.test.core.basic-constructors
+  (:require phel.test :refer [deftest is are]))
 
 (deftest create-list
   (is (= '(1 2 3) (list '1 '2 '3)) "construct list"))

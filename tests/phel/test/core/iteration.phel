@@ -1,5 +1,5 @@
-(ns phel-test\test\core\iteration
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.iteration
+  (:require phel.test :refer [deftest is]))
 
 (defn- mock-paginated-api
   "Simulates a paginated API with 3 pages."

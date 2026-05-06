@@ -1,5 +1,5 @@
-(ns phel-test\test\core\basic-sequence-operation
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.basic-sequence-operation
+  (:require phel.test :refer [deftest is]))
 
 (deftest test-cons
   (is (= (php/array 1 2) (cons 1 (php/array 2))) "cons php array")

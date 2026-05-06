@@ -1,5 +1,5 @@
-(ns phel-test\test\core\binding-conveyance
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.binding-conveyance
+  (:require phel.test :refer [deftest is]))
 
 ;; Regression tests for https://github.com/phel-lang/phel-lang/issues/1536
 ;;

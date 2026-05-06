@@ -1,5 +1,5 @@
-(ns phel-test\test\core\tap
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.tap
+  (:require phel.test :refer [deftest is]))
 
 (deftest tap-single-listener
   (let [seen (atom [])

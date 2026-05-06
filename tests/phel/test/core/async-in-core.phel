@@ -1,5 +1,5 @@
-(ns phel-test\test\core\async-in-core
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.async-in-core
+  (:require phel.test :refer [deftest is]))
 
 ;; Regression test for https://github.com/phel-lang/phel-lang/issues/1548
 ;; The Clojure-parity async surface (and Phel's fiber combinators that

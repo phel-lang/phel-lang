@@ -1,8 +1,8 @@
-(ns phel-test\test\repl
-  (:require phel\repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers ns-interns find-fn test-ns eval-capturing eval-str macroexpand-1-form macroexpand-form macroexpand-1 macroexpand ns-list loaded-namespaces explain suggest fix review embed-ns search-ns find-ns create-ns remove-ns intern])
-  (:require phel\ai :as ai)
-  (:require phel\string :as s)
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.repl
+  (:require phel.repl :refer [apropos dir search-doc get-symbol-info get-source-code ns-publics ns-aliases ns-refers ns-interns find-fn test-ns eval-capturing eval-str macroexpand-1-form macroexpand-form macroexpand-1 macroexpand ns-list loaded-namespaces explain suggest fix review embed-ns search-ns find-ns create-ns remove-ns intern])
+  (:require phel.ai :as ai)
+  (:require phel.string :as s)
+  (:require phel.test :refer [deftest is]))
 
 ;; -------
 ;; apropos
@@ -28,7 +28,7 @@
     (is (s/contains? out "filter") "dir lists 'filter'")))
 
 (deftest test-dir-accepts-bare-namespace-symbol
-  (let [out (with-output-buffer (dir phel\string))]
+  (let [out (with-output-buffer (dir phel.string))]
     (is (s/contains? out "split") "dir lists phel\\string definitions")
     (is (s/contains? out "trim") "dir lists phel\\string definitions")))
 
@@ -128,11 +128,11 @@
 ;; ----------
 
 (deftest test-ns-aliases-returns-map
-  (let [aliases (ns-aliases "phel-test\\test\\repl")]
+  (let [aliases (ns-aliases "phel-test.test.repl")]
     (is (hash-map? aliases) "ns-aliases returns a hash-map")))
 
 (deftest test-ns-aliases-contains-expected-alias
-  (let [aliases (ns-aliases "phel-test\\test\\repl")]
+  (let [aliases (ns-aliases "phel-test.test.repl")]
     (is (= "phel.string" (get aliases "s")) "ns-aliases contains 's' => 'phel.string'")))
 
 ;; ---------
@@ -140,11 +140,11 @@
 ;; ---------
 
 (deftest test-ns-refers-returns-map
-  (let [refers (ns-refers "phel-test\\test\\repl")]
+  (let [refers (ns-refers "phel-test.test.repl")]
     (is (hash-map? refers) "ns-refers returns a hash-map")))
 
 (deftest test-ns-refers-contains-expected-refers
-  (let [refers (ns-refers "phel-test\\test\\repl")]
+  (let [refers (ns-refers "phel-test.test.repl")]
     (is (= "phel.repl" (get refers "apropos")) "ns-refers contains 'apropos' from phel.repl")
     (is (= "phel.test" (get refers "deftest")) "ns-refers contains 'deftest' from phel.test")))
 
@@ -180,13 +180,13 @@
 ;; -------
 
 (deftest test-test-ns-returns-result-map
-  (let [result (with-output-buffer (test-ns "phel-test\\test\\test-framework"))]
+  (let [result (with-output-buffer (test-ns "phel-test.test.test-framework"))]
     (is (s/contains? result "Passed:") "test-ns output contains Passed summary")
     (is (s/contains? result "Failed:") "test-ns output contains Failed summary")))
 
 (deftest test-test-ns-result-has-expected-keys
   (let [result (let [r (atom nil)]
-                 (with-output-buffer (reset! r (test-ns "phel-test\\test\\test-framework")))
+                 (with-output-buffer (reset! r (test-ns "phel-test.test.test-framework")))
                  (deref r))]
     (is (hash-map? result) "test-ns returns a hash-map")
     (is (not (nil? (get result :pass))) "result contains :pass key")

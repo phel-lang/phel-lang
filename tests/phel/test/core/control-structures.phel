@@ -1,5 +1,5 @@
-(ns phel-test\test\core\control-structures
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.control-structures
+  (:require phel.test :refer [deftest is]))
 
 (deftest test-if-not
   (is (= 2 (if-not true 1 2)) "if-not true")

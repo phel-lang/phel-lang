@@ -1,5 +1,5 @@
-(ns phel-test\test\core\tilde-unquote
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.tilde-unquote
+  (:require phel.test :refer [deftest is]))
 
 ;; Phel accepts Clojure-style `~` / `~@` as aliases for `,` / `,@` inside
 ;; syntax-quote (`). These tests drive the full pipeline — lex, parse,

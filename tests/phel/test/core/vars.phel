@@ -1,5 +1,5 @@
-(ns phel-test\test\core\vars
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.vars
+  (:require phel.test :refer [deftest is]))
 
 ;; First-class `Var` handles: produced by `(var sym)` / `#'sym`, manipulated
 ;; by `deref`, `alter-var-root`, `meta`, `find-var`, `var-get`, and tested by
@@ -45,9 +45,9 @@
       "two #'sym handles to the same slot compare equal"))
 
 (deftest test-find-var
-  (is (var? (find-var 'phel-test\test\core\vars/var-target-value))
+  (is (var? (find-var 'phel-test.test.core.vars/var-target-value))
       "find-var on a defined symbol returns a Var")
-  (is (nil? (find-var 'phel-test\test\core\vars/missing-symbol))
+  (is (nil? (find-var 'phel-test.test.core.vars/missing-symbol))
       "find-var on a missing symbol returns nil")
   (is (nil? (find-var 'unqualified))
       "find-var on an unqualified symbol returns nil")
@@ -59,11 +59,11 @@
   (is (= var-target-fn (var-get #'var-target-fn)) "var-get on Var fn returns fn"))
 
 (deftest test-var-get-on-symbol
-  (is (= 1 (var-get 'phel-test\test\core\vars/var-target-value))
+  (is (= 1 (var-get 'phel-test.test.core.vars/var-target-value))
       "var-get on a fully-qualified symbol returns the value")
-  (is (nil? (var-get 'phel-test\test\core\vars/missing))
+  (is (nil? (var-get 'phel-test.test.core.vars/missing))
       "var-get on a missing symbol returns nil")
-  (is (= ::none (var-get 'phel-test\test\core\vars/missing ::none))
+  (is (= ::none (var-get 'phel-test.test.core.vars/missing ::none))
       "var-get with not-found arg returns it"))
 
 (deftest test-var-get-on-core

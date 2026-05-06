@@ -1,5 +1,5 @@
-(ns phel-test\test\core\sequence-functions
-  (:require phel\test :refer [deftest is thrown?]))
+(ns phel-test.test.core.sequence-functions
+  (:require phel.test :refer [deftest is thrown?]))
 
 (defn naturals []
   (loop [i 0]

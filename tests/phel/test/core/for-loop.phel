@@ -1,5 +1,5 @@
-(ns phel-test\test\core\for-loop
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.for-loop
+  (:require phel.test :refer [deftest is]))
 
 (deftest test-range
   (is (= [0 1 2 3 4] (take 5 (range))) "(range) infinite")

@@ -1,5 +1,5 @@
-(ns phel-test\test\core\print-operation
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.print-operation
+  (:require phel.test :refer [deftest is]))
 
 (deftest test-str
   (is (= "" (str)) "str with no arg")

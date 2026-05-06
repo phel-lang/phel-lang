@@ -1,5 +1,5 @@
-(ns phel-test\test\core\function-operation
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.function-operation
+  (:require phel.test :refer [deftest is]))
 
 (deftest test-identity
   (is (= "a" (identity "a")) "identity returns itself"))

@@ -1,5 +1,5 @@
-(ns phel-test\test\core\meta
-  (:require phel\test :refer [deftest is]))
+(ns phel-test.test.core.meta
+  (:require phel.test :refer [deftest is]))
 
 (def secret {:private true} 1)
 

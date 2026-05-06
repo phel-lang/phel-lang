@@ -1,5 +1,5 @@
-(ns phel-test\test\core\watches-validators
-  (:require phel\test :refer [deftest is thrown?]))
+(ns phel-test.test.core.watches-validators
+  (:require phel.test :refer [deftest is thrown?]))
 
 ;; --- Return values ---
 
