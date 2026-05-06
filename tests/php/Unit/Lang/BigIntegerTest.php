@@ -10,8 +10,6 @@ use OverflowException;
 use Phel\Lang\BigInteger;
 use PHPUnit\Framework\TestCase;
 
-use function sprintf;
-
 final class BigIntegerTest extends TestCase
 {
     public function test_zero_factory(): void
@@ -80,11 +78,14 @@ final class BigIntegerTest extends TestCase
         self::assertSame('-42', (string) BigInteger::fromFloat(-42.5));
     }
 
-    public function test_from_float_handles_php_float_max(): void
+    public function test_from_float_uses_shortest_round_trip_decimal(): void
     {
+        // PHP_FLOAT_MAX renders as 1.7976931348623157e+308 (17 sig digits),
+        // so the resulting integer has those 17 digits followed by 292 zeros.
         $result = BigInteger::fromFloat(PHP_FLOAT_MAX);
+        $expected = '17976931348623157' . str_repeat('0', 292);
 
-        self::assertSame(sprintf('%.0F', PHP_FLOAT_MAX), (string) $result);
+        self::assertSame($expected, (string) $result);
     }
 
     public function test_from_float_rejects_nan(): void
