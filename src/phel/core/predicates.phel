@@ -12,6 +12,7 @@
 (use Phel.Lang.Collections.Vector.PersistentVectorInterface)
 (use Phel.Lang.BigInteger)
 (use Phel.Lang.FnInterface)
+(use Phel.Lang.NumericOperations)
 (use Phel.Lang.Keyword)
 (use Phel.Lang.MetaInterface)
 (use Phel.Lang.PhelVar)
@@ -97,26 +98,36 @@
   [x]
   (php/is_int x))
 
-(defn neg-int?
-  "Returns true if `x` is a negative fixed-precision integer."
-  {:example "(neg-int? -1) ; => true\n(neg-int? 0) ; => false\n(neg-int? 1) ; => false"
-   :see-also ["int?" "pos-int?" "nat-int?"]}
+(defn- compare-to-zero
+  "Returns the sign comparison of `x` against zero across the numeric tower
+  (PHP int, BigInteger, Rational, float). Negative for x<0, 0 for x=0,
+  positive for x>0."
   [x]
-  (and (int? x) (php/< x 0)))
+  (php/:: NumericOperations (compare x 0)))
+
+(defn neg-int?
+  "Returns true if `x` is a negative integer. Accepts both fixed-precision
+  PHP `int` and arbitrary-precision `BigInteger` values."
+  {:example "(neg-int? -1) ; => true\n(neg-int? 0) ; => false\n(neg-int? (bigint -5)) ; => true"
+   :see-also ["int?" "integer?" "pos-int?" "nat-int?"]}
+  [x]
+  (and (integer? x) (php/< (compare-to-zero x) 0)))
 
 (defn pos-int?
-  "Returns true if `x` is a positive fixed-precision integer (greater than zero)."
-  {:example "(pos-int? 1) ; => true\n(pos-int? 0) ; => false\n(pos-int? -1) ; => false"
-   :see-also ["int?" "neg-int?" "nat-int?"]}
+  "Returns true if `x` is a positive integer (greater than zero). Accepts both
+  fixed-precision PHP `int` and arbitrary-precision `BigInteger` values."
+  {:example "(pos-int? 1) ; => true\n(pos-int? 0) ; => false\n(pos-int? (bigint 5)) ; => true"
+   :see-also ["int?" "integer?" "neg-int?" "nat-int?"]}
   [x]
-  (and (int? x) (php/> x 0)))
+  (and (integer? x) (php/> (compare-to-zero x) 0)))
 
 (defn nat-int?
-  "Returns true if `x` is a non-negative fixed-precision integer (zero or positive)."
-  {:example "(nat-int? 0) ; => true\n(nat-int? 1) ; => true\n(nat-int? -1) ; => false"
-   :see-also ["int?" "pos-int?" "neg-int?"]}
+  "Returns true if `x` is a non-negative integer (zero or positive). Accepts
+  both fixed-precision PHP `int` and arbitrary-precision `BigInteger` values."
+  {:example "(nat-int? 0) ; => true\n(nat-int? 1) ; => true\n(nat-int? (bigint 5)) ; => true"
+   :see-also ["int?" "integer?" "pos-int?" "neg-int?"]}
   [x]
-  (and (int? x) (php/>= x 0)))
+  (and (integer? x) (php/>= (compare-to-zero x) 0)))
 
 (defn number?
   "Returns true if `x` is a number — int, float, `Rational`, or `BigInteger`."
@@ -259,6 +270,15 @@
   "Returns true if `x` is a vector, false otherwise."
   [x]
   (php/instanceof x PersistentVectorInterface))
+
+(defn map-entry?
+  "Returns true if `x` is a map entry. Phel represents map entries as
+  two-element vectors, so this predicate accepts any vector of length
+  exactly 2."
+  {:example "(map-entry? [:a 1]) ; => true\n(map-entry? [1 2 3]) ; => false"
+   :see-also ["vector?" "map?" "key" "val"]}
+  [x]
+  (and (vector? x) (php/=== 2 (php/count x))))
 
 (defn list?
   "Returns true if `x` is a list, false otherwise.

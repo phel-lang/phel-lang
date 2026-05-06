@@ -89,6 +89,40 @@
   (is (false? (nat-int? 0.0)) "nat-int? on 0.0")
   (is (false? (nat-int? nil)) "nat-int? on nil"))
 
+(deftest test-int-predicates-bigint
+  (is (true? (pos-int? (bigint 5))) "pos-int? on BigInteger 5")
+  (is (false? (pos-int? (bigint -5))) "pos-int? on BigInteger -5")
+  (is (false? (pos-int? (bigint 0))) "pos-int? on BigInteger 0")
+  (is (true? (neg-int? (bigint -5))) "neg-int? on BigInteger -5")
+  (is (false? (neg-int? (bigint 5))) "neg-int? on BigInteger 5")
+  (is (true? (nat-int? (bigint 0))) "nat-int? on BigInteger 0")
+  (is (true? (nat-int? (bigint 5))) "nat-int? on BigInteger 5")
+  (is (false? (nat-int? (bigint -5))) "nat-int? on BigInteger -5")
+  (is (true? (pos-int? (bigint "100000000000000000000")))
+      "pos-int? on huge BigInteger")
+  (is (true? (neg-int? (bigint "-100000000000000000000")))
+      "neg-int? on huge negative BigInteger"))
+
+(deftest test-map-entry?
+  (is (true? (map-entry? [:a 1])) "map-entry? on 2-element vector")
+  (is (true? (map-entry? ["k" "v"])) "map-entry? on string pair vector")
+  (is (false? (map-entry? [1 2 3])) "map-entry? rejects 3-element vector")
+  (is (false? (map-entry? [:a])) "map-entry? rejects 1-element vector")
+  (is (false? (map-entry? [])) "map-entry? rejects empty vector")
+  (is (false? (map-entry? '(:a 1))) "map-entry? rejects list")
+  (is (false? (map-entry? {:a 1})) "map-entry? rejects map")
+  (is (false? (map-entry? nil)) "map-entry? rejects nil"))
+
+(deftest test-symbol-rejects-non-name-input
+  (is (thrown? \InvalidArgumentException (symbol nil))
+      "(symbol nil) throws InvalidArgumentException")
+  (is (thrown? \InvalidArgumentException (symbol map))
+      "(symbol fn) throws InvalidArgumentException")
+  (is (thrown? \InvalidArgumentException (symbol 42))
+      "(symbol int) throws InvalidArgumentException")
+  (is (thrown? \InvalidArgumentException (symbol [:a]))
+      "(symbol vector) throws InvalidArgumentException"))
+
 (deftest test-number?
   (is (true? (number? 10.0)) "number? on 10.0")
   (is (true? (number? 0.0)) "number? on 0.0")
