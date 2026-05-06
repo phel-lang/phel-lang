@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - `Var` handles are callable: `((var f) ...args)` invokes the var's current root value and forwards the arguments
 - `add-watch` and `remove-watch` accept a `Var` as the target; watch fns fire on `alter-var-root`
 - `alter-meta!` and `reset-meta!` mutate per-var metadata on `Var` handles and atoms; per-var metadata survives subsequent `def` redefinitions
+- `symbol` accepts a `Var` and returns its fully qualified name as a symbol (#1821)
 
 #### Lang
 - `PhelVar` implements `FnInterface` and exposes `__invoke`, `addWatch`, `removeWatch`, `alterMeta`, `resetMeta`, and a cached `isDynamic()` lookup

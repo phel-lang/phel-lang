@@ -1,6 +1,13 @@
 (in-ns phel.core)
 
+(use Phel.Compiler.Application.Munge)
+(use Phel.Lang.PhelVar)
 (use Phel.Lang.Symbol)
+
+(def ^:private symbol-munge
+  ;; Munge is a final readonly class; reuse one instance to decode var
+  ;; namespaces back to their display form when constructing symbols.
+  (php/new Munge))
 
 ;; Two families of primitive value constructors grouped together:
 ;;   - Symbol constructors: `symbol` (a runtime symbol from a string or
@@ -25,9 +32,10 @@
   "Returns a new symbol for the given name with an optional namespace.
 
   With one argument, creates a symbol without namespace. Accepts a
-  string, a keyword, or another symbol. With two arguments, creates a
-  symbol in the given namespace."
-  {:example "(symbol \"foo\") ; => foo\n(symbol :abc) ; => abc"}
+  string, a keyword, another symbol, or a `Var` (in which case the
+  result is a fully qualified symbol naming the var). With two
+  arguments, creates a symbol in the given namespace."
+  {:example "(symbol \"foo\") ; => foo\n(symbol :abc) ; => abc\n(symbol #'phel.core/+) ; => phel.core/+"}
   [name-or-ns & [name]]
   (if name
     (php/:: Symbol (createForNamespace
@@ -35,7 +43,11 @@
                     (to-symbol-part name)))
     (if (php/instanceof name-or-ns Symbol)
       name-or-ns
-      (php/:: Symbol (create (to-symbol-part name-or-ns))))))
+      (if (php/instanceof name-or-ns PhelVar)
+        (php/:: Symbol (createForNamespace
+                        (php/-> symbol-munge (decodeNs (php/-> name-or-ns (getNamespace))))
+                        (php/-> name-or-ns (getName))))
+        (php/:: Symbol (create (to-symbol-part name-or-ns)))))))
 
 (defn gensym
   "Generates a new unique symbol."

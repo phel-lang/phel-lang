@@ -69,3 +69,9 @@
 (deftest test-var-get-on-core
   (is (= map (var-get 'phel.core/map))
       "var-get reads phel.core function values"))
+
+(deftest test-symbol-on-var
+  (is (= 'phel-test.test.core.vars/var-target-value (symbol #'var-target-value))
+      "symbol on a var returns its fully qualified name as a symbol")
+  (is (= 'phel.core/+ (symbol #'phel.core/+))
+      "symbol on a core var returns its namespaced symbol"))
