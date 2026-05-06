@@ -269,7 +269,11 @@
   (is (= -3.0 (float -3)) "(float -3)")
   (is (= 0.0 (float 0)) "(float 0)")
   (is (= 3.14 (float "3.14")) "(float \"3.14\")")
-  (is (= 0.0 (float nil)) "(float nil)"))
+  (is (= 0.0 (float nil)) "(float nil)")
+  (is (= 0.5 (float 1/2)) "(float 1/2) collapses Rational")
+  (is (true? (float? (float 1/2))) "(float 1/2) returns float")
+  (is (= 0.001 (float (/ 1 1000))) "(float (/ 1 1000)) survives Rational division")
+  (is (= 1.0 (float (bigint 1))) "(float (bigint 1)) collapses BigInteger"))
 
 (deftest test-double
   (is (= 1.0 (double 1)) "(double 1)")
@@ -278,7 +282,9 @@
   (is (= -3.0 (double -3)) "(double -3)")
   (is (= 0.0 (double 0)) "(double 0)")
   (is (= 3.14 (double "3.14")) "(double \"3.14\")")
-  (is (= 0.0 (double nil)) "(double nil)"))
+  (is (= 0.0 (double nil)) "(double nil)")
+  (is (= 0.5 (double 1/2)) "(double 1/2) collapses Rational")
+  (is (= 1.0 (double (bigint 1))) "(double (bigint 1)) collapses BigInteger"))
 
 (deftest test-long
   (is (= 1 (long 1.9)) "(long 1.9) truncates toward zero")

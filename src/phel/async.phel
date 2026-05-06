@@ -17,13 +17,13 @@
 ;; See `docs/async-guide.md` for the full decision guide and examples.
 
 (defn delay
-  "Suspends execution for `seconds` (a float; supports sub-second
-  precision such as `0.05`).
+  "Suspends execution for `seconds`. Accepts any number (int, float, or
+  `Rational`); sub-second precision such as `0.05` is supported.
 
   At the top level this behaves like `php/sleep` / `php/usleep`: it
   blocks the script for the given duration. Inside an `async`/`future`
-  body — or any AMPHP fiber context — it suspends the *fiber* (not the
-  whole process), so other concurrent fibers keep running and the
+  body (or any AMPHP fiber context) it suspends the *fiber*, not the
+  whole process, so other concurrent fibers keep running and the
   delay is cancellable via `future-cancel`.
 
   `phel.async/delay` is **not** the Clojure `clojure.core/delay`. The
@@ -33,7 +33,8 @@
   out, or compose with `future` / `pmap`; reach for `php/sleep` when you
   just want a blocking pause and don't care about fiber semantics."
   {:example "(delay 0.5) ; suspends current fiber for 500ms
-  (async (delay 1.0) :done) ; => future that resolves after 1s"
+  (async (delay 1.0) :done) ; => future that resolves after 1s
+  (delay (/ 1 1000)) ; ratio collapses to a float"
    :see-also ["async" "await" "future" "future-cancel"]}
   [seconds]
-  (php/amp\delay seconds))
+  (php/amp\delay (float seconds)))

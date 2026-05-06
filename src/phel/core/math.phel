@@ -320,12 +320,17 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 
 (defn float
   "Coerces `x` to a float. In PHP there is no distinction between float and
-   double; both map to the same native PHP float type. Delegates to PHP's
-   `floatval`, so non-numeric strings return `0.0` and `nil` returns `0.0`."
-  {:example "(float 1) ; => 1.0"
+   double; both map to the same native PHP float type. `Rational` and
+   `BigInteger` values collapse to their float value; everything else
+   delegates to PHP's `floatval`, so non-numeric strings return `0.0` and
+   `nil` returns `0.0`."
+  {:example "(float 1) ; => 1.0\n(float 1/2) ; => 0.5"
    :see-also ["double" "int?" "number?"]}
   [x]
-  (php/floatval x))
+  (cond
+    (php/instanceof x Rational)   (php/-> x (toFloat))
+    (php/instanceof x BigInteger) (php/floatval (str x))
+    :else                         (php/floatval x)))
 
 (defn double
   "Coerces `x` to a double. In PHP there is no distinction between float and
@@ -333,7 +338,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(double 1) ; => 1.0"
    :see-also ["float" "int?" "number?"]}
   [x]
-  (php/floatval x))
+  (float x))
 
 (defn long
   "Coerces `x` to a long integer. In PHP there is no distinction between int
@@ -663,12 +668,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 
 (defn- number->float
   [x]
-  (cond
-    (php/is_int x)                (php/floatval x)
-    (php/is_float x)              x
-    (php/instanceof x BigInteger) (php/floatval (str x))
-    (php/instanceof x Rational)   (php/-> x (toFloat))
-    :else
+  (if (number? x)
+    (float x)
     (throw (php/new InvalidArgumentException
                     (str "expected a number, got " (type x))))))
 
