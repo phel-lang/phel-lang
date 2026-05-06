@@ -20,6 +20,10 @@ All notable changes to this project will be documented in this file.
 
 #### Core
 - `ratio?`, `bigint?`, `numerator`, `denominator`, and `rationalize` core fns (#1825)
+- `quot`, `rem`, `mod` integer division fns; `%` becomes an alias for `rem` (#1831)
+- `floor`, `ceil`, `round`, `sqrt` float math fns (#1831)
+- `+'`, `-'`, `*'`, `inc'`, `dec'` auto-promoting arithmetic variants that return `BigInteger` for integer results (#1831)
+- `bigint` and `biginteger` constructors that coerce ints, numeric strings, and `BigInteger` values (#1831)
 
 #### Lang
 - `Phel\Lang\NumericOperations` runtime dispatch helper for arithmetic and comparison on `Rational`, `BigInteger`, and native PHP numbers (#1825)

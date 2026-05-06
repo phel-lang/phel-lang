@@ -147,12 +147,42 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
     2 (php/:: NumericOperations (divide (first xs) (second xs)))
     (reduce #(php/:: NumericOperations (divide %1 %2)) xs)))
 
-(defn %
-  "Return the remainder of `dividend` / `divisor`. Result has the same sign
-  as `dividend` (truncated remainder, matching PHP's `%`)."
+(defn quot
+  "Returns the truncated integer quotient of `dividend` / `divisor`.
+  Truncates toward zero. Throws `\\DivisionByZeroError` when `divisor`
+  is zero."
+  {:example "(quot 7 3) ; => 2\n(quot -7 3) ; => -2"
+   :see-also ["rem" "mod" "/"]}
+  [dividend divisor]
+  (assert-non-nil dividend divisor)
+  (php/:: NumericOperations (quot dividend divisor)))
+
+(defn rem
+  "Returns the truncated remainder of `dividend` / `divisor`. The result
+  has the same sign as `dividend` (matches PHP's `%`)."
+  {:example "(rem 7 3) ; => 1\n(rem -7 3) ; => -1"
+   :see-also ["quot" "mod" "%"]}
   [dividend divisor]
   (assert-non-nil dividend divisor)
   (php/:: NumericOperations (rem dividend divisor)))
+
+(defn mod
+  "Returns the floor remainder of `dividend` / `divisor`. The result has
+  the same sign as `divisor`. Differs from `rem` on mixed-sign operands:
+  `(mod -7 3) => 2` while `(rem -7 3) => -1`."
+  {:example "(mod 7 3) ; => 1\n(mod -7 3) ; => 2"
+   :see-also ["quot" "rem" "%"]}
+  [dividend divisor]
+  (assert-non-nil dividend divisor)
+  (php/:: NumericOperations (mod dividend divisor)))
+
+(defn %
+  "Alias for `rem`. Returns the truncated remainder of `dividend` /
+  `divisor`. Result has the same sign as `dividend`."
+  {:example "(% 11 2) ; => 1"
+   :see-also ["rem" "quot" "mod"]}
+  [dividend divisor]
+  (rem dividend divisor))
 
 (defn **
   "Return `a` to the power of `x`."
@@ -171,6 +201,55 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   [x]
   (assert-non-nil x)
   (php/:: NumericOperations (subtract x 1)))
+
+(defn- promote-int->bigint
+  [x]
+  (if (php/is_int x)
+    (php/:: BigInteger (fromInt x))
+    x))
+
+(defn +'
+  "Auto-promoting variant of `+`. Integer results are returned as
+  `BigInteger` so callers get explicit promotion semantics; floats and
+  rationals pass through unchanged. Equivalent to `+` for overflow
+  protection (Phel's `+` already auto-promotes on overflow), kept for
+  `.cljc` interop."
+  {:example "(+' 1 2) ; => 3N"
+   :see-also ["+" "*'" "-'"]}
+  [& xs]
+  (promote-int->bigint (apply + xs)))
+
+(defn -'
+  "Auto-promoting variant of `-`. Integer results are returned as
+  `BigInteger`; floats and rationals pass through unchanged."
+  {:example "(-' 5 2) ; => 3N"
+   :see-also ["-" "+'" "*'"]}
+  [& xs]
+  (promote-int->bigint (apply - xs)))
+
+(defn *'
+  "Auto-promoting variant of `*`. Integer results are returned as
+  `BigInteger`; floats and rationals pass through unchanged."
+  {:example "(*' 2 3) ; => 6N"
+   :see-also ["*" "+'" "-'"]}
+  [& xs]
+  (promote-int->bigint (apply * xs)))
+
+(defn inc'
+  "Auto-promoting variant of `inc`. Integer results are returned as
+  `BigInteger`; floats and rationals pass through unchanged."
+  {:example "(inc' 1) ; => 2N"
+   :see-also ["inc" "dec'"]}
+  [x]
+  (promote-int->bigint (inc x)))
+
+(defn dec'
+  "Auto-promoting variant of `dec`. Integer results are returned as
+  `BigInteger`; floats and rationals pass through unchanged."
+  {:example "(dec' 1) ; => 0N"
+   :see-also ["dec" "inc'"]}
+  [x]
+  (promote-int->bigint (dec x)))
 
 (defn even?
   "Checks if `x` is even."
@@ -533,3 +612,102 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
     :else
     (throw (php/new InvalidArgumentException
                     (str "rationalize expects a number, got " (type x))))))
+
+(defn bigint
+  "Coerces `x` to a `Phel\\Lang\\BigInteger`. Accepts ints, numeric
+  strings, and `BigInteger` values."
+  {:example "(bigint 42) ; => 42N\n(bigint \"123\") ; => 123N"
+   :see-also ["bigint?" "int" "rationalize"]}
+  [x]
+  (cond
+    (php/instanceof x BigInteger) x
+    (php/is_int x)                (php/:: BigInteger (fromInt x))
+    (string? x)                   (php/:: BigInteger (fromString x))
+    :else
+    (throw (php/new InvalidArgumentException
+                    (str "bigint expects an int, numeric string, or BigInteger, got " (type x))))))
+
+(defn biginteger
+  "Alias for `bigint`. Coerces `x` to a `Phel\\Lang\\BigInteger`."
+  {:example "(biginteger 42) ; => 42N"
+   :see-also ["bigint" "bigint?"]}
+  [x]
+  (bigint x))
+
+;; -----------
+;; Float math
+;; -----------
+
+(defn- number->float
+  [x]
+  (cond
+    (php/is_int x)                (php/floatval x)
+    (php/is_float x)              x
+    (php/instanceof x BigInteger) (php/floatval (str x))
+    (php/instanceof x Rational)   (php/-> x (toFloat))
+    :else
+    (throw (php/new InvalidArgumentException
+                    (str "expected a number, got " (type x))))))
+
+(defn- rational-floor
+  ;; floor(n/d) = (n - mod(n,d)) / d; Rational denominators are positive.
+  [r]
+  (let [n (numerator r)
+        d (denominator r)]
+    (quot (- n (mod n d)) d)))
+
+(defn floor
+  "Returns the largest integer not greater than `x`. Ints and `BigInteger`
+  values are returned unchanged. Rationals collapse via floor division.
+  Floats route through PHP's `floor`."
+  {:example "(floor 1.7) ; => 1.0\n(floor -1.2) ; => -2.0\n(floor 7/3) ; => 2"
+   :see-also ["ceil" "round" "quot"]}
+  [x]
+  (assert-non-nil x)
+  (cond
+    (php/is_int x)                x
+    (php/instanceof x BigInteger) x
+    (php/instanceof x Rational)   (rational-floor x)
+    (php/is_float x)              (php/floor x)
+    :else
+    (throw (php/new InvalidArgumentException
+                    (str "floor expects a number, got " (type x))))))
+
+(defn ceil
+  "Returns the smallest integer not less than `x`. Ints and `BigInteger`
+  values are returned unchanged. Rationals collapse via ceiling division.
+  Floats route through PHP's `ceil`."
+  {:example "(ceil 1.2) ; => 2.0\n(ceil -1.7) ; => -1.0\n(ceil 7/3) ; => 3"
+   :see-also ["floor" "round" "quot"]}
+  [x]
+  (assert-non-nil x)
+  (cond
+    (php/is_int x)                x
+    (php/instanceof x BigInteger) x
+    (php/instanceof x Rational)   (- (rational-floor (- x)))
+    (php/is_float x)              (php/ceil x)
+    :else
+    (throw (php/new InvalidArgumentException
+                    (str "ceil expects a number, got " (type x))))))
+
+(defn round
+  "Rounds `x` to the nearest integer using PHP's `round` (half away from
+  zero). Ints and `BigInteger` values are returned unchanged. Rationals
+  and floats return floats."
+  {:example "(round 1.5) ; => 2.0\n(round -1.5) ; => -2.0\n(round 5) ; => 5"
+   :see-also ["floor" "ceil"]}
+  [x]
+  (assert-non-nil x)
+  (cond
+    (php/is_int x)                x
+    (php/instanceof x BigInteger) x
+    :else                         (php/round (number->float x))))
+
+(defn sqrt
+  "Returns the square root of `x` as a float. Negative inputs return
+  `##NaN` (matches PHP's `sqrt`)."
+  {:example "(sqrt 9) ; => 3.0\n(sqrt 2) ; => 1.4142135623730951"
+   :see-also ["**" "abs"]}
+  [x]
+  (assert-non-nil x)
+  (php/sqrt (number->float x)))
