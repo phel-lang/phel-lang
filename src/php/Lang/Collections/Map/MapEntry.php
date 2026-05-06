@@ -6,7 +6,6 @@ namespace Phel\Lang\Collections\Map;
 
 use Countable;
 use IteratorAggregate;
-use Phel\Lang\Collections\Map\PersistentMapInterface as MapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\EqualsInterface;
 use Phel\Lang\SourceLocation;
@@ -33,7 +32,7 @@ final readonly class MapEntry implements TypeInterface, Stringable, Countable, I
     private function __construct(
         private mixed $key,
         private mixed $value,
-        private ?MapInterface $meta = null,
+        private ?PersistentMapInterface $meta = null,
         private ?SourceLocation $startLocation = null,
         private ?SourceLocation $endLocation = null,
     ) {}
@@ -91,12 +90,12 @@ final readonly class MapEntry implements TypeInterface, Stringable, Countable, I
             ->hash();
     }
 
-    public function getMeta(): ?MapInterface
+    public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta;
     }
 
-    public function withMeta(?MapInterface $meta): static
+    public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->key, $this->value, $meta, $this->startLocation, $this->endLocation);
     }
