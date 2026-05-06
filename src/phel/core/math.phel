@@ -311,12 +311,17 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
                     (str "abs expects a number, got " (type x))))))
 
 (defn int
-  "Coerces `x` to an integer. Delegates to PHP's `intval`, so floats are
-   truncated toward zero, numeric strings are parsed, and `nil` returns `0`."
-  {:example "(int 1.9) ; => 1\n(int \"42\") ; => 42"
+  "Coerces `x` to an integer. `Rational` values truncate toward zero
+   (`(int 1/10)` is `0`); `BigInteger` values collapse to their PHP int
+   value or throw `OverflowException` when outside the PHP int range.
+   Other inputs delegate to PHP's `intval`, so floats are truncated toward
+   zero, numeric strings are parsed, and `nil` returns `0`."
+  {:example "(int 1.9) ; => 1\n(int \"42\") ; => 42\n(int 1/10) ; => 0"
    :see-also ["float" "double" "int?" "number?"]}
   [x]
-  (php/intval x))
+  (if (or (php/instanceof x Rational) (php/instanceof x BigInteger))
+    (php/-> x (toInt))
+    (php/intval x)))
 
 (defn float
   "Coerces `x` to a float. In PHP there is no distinction between float and
@@ -346,40 +351,39 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   {:example "(long 1.9) ; => 1"
    :see-also ["int" "float" "double"]}
   [x]
-  (php/intval x))
+  (int x))
 
 (defn short
   "Coerces `x` to a signed 16-bit integer in the range `-32768..32767`.
-   Decimal values are truncated toward zero (as in Clojure on the JVM).
-   Values outside the range or non-numeric inputs raise
-   `InvalidArgumentException`. Phel has no dedicated short type, so the
-   result is a plain PHP int."
+   Decimal values are truncated toward zero. `Rational` and `BigInteger`
+   values are accepted (truncate toward zero, then range-check). Values
+   outside the range or non-numeric inputs raise `InvalidArgumentException`.
+   Phel has no dedicated short type, so the result is a plain PHP int."
   {:example "(short 32767) ; => 32767\n(short 1.9) ; => 1\n(short -32768) ; => -32768"
    :see-also ["int" "byte" "long"]}
   [x]
   (if (number? x)
-    (let [truncated (php/intval x)]
+    (let [truncated (int x)]
       (if (or (php/< truncated -32768) (php/> truncated 32767))
         (throw (php/new InvalidArgumentException
-                        (php/. "Value out of range for short: " (php/strval x))))
+                        (php/. "Value out of range for short: " (php/strval truncated))))
         truncated))
     (throw (php/new InvalidArgumentException "short expects a numeric value"))))
 
 (defn byte
   "Coerces `x` to a signed 8-bit integer in the range `-128..127`.
-   Decimal values are truncated toward zero (as in Clojure on the JVM).
-   Values outside the range or non-numeric inputs raise
-   `InvalidArgumentException`. Phel has no dedicated byte type, so the
-   result is a plain PHP int — `byte` exists for `.cljc` interop with
-   Clojure sources."
+   Decimal values are truncated toward zero. `Rational` and `BigInteger`
+   values are accepted (truncate toward zero, then range-check). Values
+   outside the range or non-numeric inputs raise `InvalidArgumentException`.
+   Phel has no dedicated byte type, so the result is a plain PHP int."
   {:example "(byte 127) ; => 127\n(byte 1.9) ; => 1\n(byte -128) ; => -128"
    :see-also ["int?" "float" "double"]}
   [x]
   (if (number? x)
-    (let [truncated (php/intval x)]
+    (let [truncated (int x)]
       (if (or (php/< truncated -128) (php/> truncated 127))
         (throw (php/new InvalidArgumentException
-                        (php/. "Value out of range for byte: " (php/strval x))))
+                        (php/. "Value out of range for byte: " (php/strval truncated))))
         truncated))
     (throw (php/new InvalidArgumentException "byte expects a numeric value"))))
 
