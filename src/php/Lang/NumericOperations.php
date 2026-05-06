@@ -8,7 +8,9 @@ use DivisionByZeroError;
 use InvalidArgumentException;
 
 use function abs;
+use function ceil;
 use function fdiv;
+use function floor;
 use function intdiv;
 use function is_float;
 use function is_int;
@@ -252,6 +254,12 @@ final class NumericOperations
             return self::collapseBigInt($a->abs());
         }
 
+        // |PHP_INT_MIN| overflows the PHP int range; native abs() drops
+        // to float, so promote to BigInteger to preserve exactness.
+        if ($a === PHP_INT_MIN) {
+            return BigInteger::fromInt($a)->abs();
+        }
+
         return abs($a);
     }
 
@@ -297,7 +305,8 @@ final class NumericOperations
 
         if (is_float($a) || is_float($b)) {
             $ratio = self::toFloat($a) / self::toFloat($b);
-            return (int) $ratio;
+            // Float operands keep float result; truncate toward zero.
+            return $ratio < 0 ? ceil($ratio) : floor($ratio);
         }
 
         if ($a instanceof Rational || $b instanceof Rational) {

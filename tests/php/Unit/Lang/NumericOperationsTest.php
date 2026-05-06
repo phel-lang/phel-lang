@@ -276,6 +276,24 @@ final class NumericOperationsTest extends TestCase
         self::assertSame(3, NumericOperations::quot($half, 1));
     }
 
+    public function test_quot_float_preserves_float_type(): void
+    {
+        self::assertSame(3.0, NumericOperations::quot(10.0, 3.0));
+        self::assertSame(-3.0, NumericOperations::quot(-10.0, 3.0));
+        self::assertSame(3.0, NumericOperations::quot(-10.0, -3.0));
+        self::assertSame(-3.0, NumericOperations::quot(10.0, -3.0));
+        self::assertSame(3.0, NumericOperations::quot(10, 3.0));
+        self::assertSame(3.0, NumericOperations::quot(10.0, 3));
+    }
+
+    public function test_abs_php_int_min_promotes_to_big_integer(): void
+    {
+        $result = NumericOperations::abs(PHP_INT_MIN);
+
+        self::assertInstanceOf(BigInteger::class, $result);
+        self::assertSame(bcmul((string) PHP_INT_MIN, '-1'), (string) $result);
+    }
+
     public function test_rem_int(): void
     {
         self::assertSame(1, NumericOperations::rem(10, 3));
