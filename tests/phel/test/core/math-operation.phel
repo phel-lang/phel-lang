@@ -43,7 +43,39 @@
 
 (deftest test-%
   (is (= 0 (% 10 2)) "10 % 2")
-  (is (= 1 (% 11 2)) "11 % 2"))
+  (is (= 1 (% 11 2)) "11 % 2")
+  (is (= -1 (% -7 3)) "% follows dividend sign"))
+
+(deftest test-quot
+  (is (= 2 (quot 7 3)) "(quot 7 3)")
+  (is (= -2 (quot -7 3)) "(quot -7 3) truncates toward zero")
+  (is (= -2 (quot 7 -3)) "(quot 7 -3) truncates toward zero")
+  (is (= 0 (quot 1 3)) "(quot 1 3)")
+  (is (= 2 (quot 7/2 3/2)) "quot on rationals truncates")
+  (is (thrown? \DivisionByZeroError (quot 1 0)) "quot by zero throws"))
+
+(deftest test-rem
+  (is (= 1 (rem 7 3)) "(rem 7 3)")
+  (is (= -1 (rem -7 3)) "(rem -7 3) follows dividend sign")
+  (is (= 1 (rem 7 -3)) "(rem 7 -3) follows dividend sign")
+  (is (= 0 (rem 6 3)) "(rem 6 3)")
+  (is (thrown? \DivisionByZeroError (rem 1 0)) "rem by zero throws"))
+
+(deftest test-mod
+  (is (= 1 (mod 7 3)) "(mod 7 3)")
+  (is (= 2 (mod -7 3)) "(mod -7 3) follows divisor sign (Clojure reference)")
+  (is (= -2 (mod 7 -3)) "(mod 7 -3) follows divisor sign")
+  (is (= -1 (mod -7 -3)) "(mod -7 -3)")
+  (is (= 0 (mod 6 3)) "(mod 6 3)")
+  (is (thrown? \DivisionByZeroError (mod 1 0)) "mod by zero throws"))
+
+(deftest test-quot-rem-mod-bigint
+  (let [big (php/:: \Phel\Lang\BigInteger (fromString "1000000000000000000"))]
+    (is (= 333333333333333333 (quot big 3)) "quot on BigInteger collapses to int when fits")
+    (is (= 1 (rem big 3)) "rem on BigInteger collapses to int when fits")
+    (is (= 1 (mod big 3)) "mod on BigInteger collapses to int when fits"))
+  (let [huge (php/:: \Phel\Lang\BigInteger (fromString "100000000000000000000"))]
+    (is (bigint? (quot huge 3)) "quot stays BigInteger when result overflows int")))
 
 (deftest test-**
   (is (= 8 (** 2 3)) "2 ** 3"))
@@ -409,3 +441,69 @@
   (is (= 1500.0 1.5e3M) "(= 1500.0 1.5e3M)")
   (is (float? 1M) "(float? 1M)")
   (is (float? -1.1M) "(float? -1.1M)"))
+
+(deftest test-floor
+  (is (= 1.0 (floor 1.7)) "(floor 1.7)")
+  (is (= -2.0 (floor -1.2)) "(floor -1.2) toward negative infinity")
+  (is (= 5 (floor 5)) "(floor 5) on int")
+  (is (= 2 (floor 7/3)) "(floor 7/3)")
+  (is (= -3 (floor -7/3)) "(floor -7/3)")
+  (is (= 2 (floor 6/3)) "(floor 6/3) collapses to int"))
+
+(deftest test-ceil
+  (is (= 2.0 (ceil 1.2)) "(ceil 1.2)")
+  (is (= -1.0 (ceil -1.7)) "(ceil -1.7)")
+  (is (= 5 (ceil 5)) "(ceil 5) on int")
+  (is (= 3 (ceil 7/3)) "(ceil 7/3)")
+  (is (= -2 (ceil -7/3)) "(ceil -7/3)")
+  (is (= 2 (ceil 6/3)) "(ceil 6/3) collapses to int"))
+
+(deftest test-round
+  (is (= 2.0 (round 1.5)) "(round 1.5) half away from zero")
+  (is (= -2.0 (round -1.5)) "(round -1.5) half away from zero")
+  (is (= 5 (round 5)) "(round 5) on int")
+  (is (= 1.0 (round 1.4)) "(round 1.4)")
+  (is (= 2.0 (round 1.6)) "(round 1.6)")
+  (is (= 0.0 (round 1/3)) "(round 1/3)")
+  (is (= 1.0 (round 2/3)) "(round 2/3)"))
+
+(deftest test-sqrt
+  (is (= 3.0 (sqrt 9)) "(sqrt 9)")
+  (is (= 2.0 (sqrt 4)) "(sqrt 4)")
+  (is (= 0.0 (sqrt 0)) "(sqrt 0)")
+  (is (NaN? (sqrt -1)) "(sqrt -1) returns NaN"))
+
+(deftest test-bigint
+  (is (= 42 (bigint 42)) "(bigint 42)")
+  (is (bigint? (bigint 42)) "(bigint 42) is BigInteger")
+  (is (bigint? (bigint "1000000000000000000000000")) "(bigint string) parses")
+  (is (= "1000000000000000000000000" (str (bigint "1000000000000000000000000"))) "(bigint big-string)")
+  (let [b (php/:: \Phel\Lang\BigInteger (fromInt 5))]
+    (is (= b (bigint b)) "(bigint BigInteger) is identity"))
+  (is (thrown? \InvalidArgumentException (bigint 1.5)) "(bigint 1.5) rejects floats")
+  (is (thrown? \InvalidArgumentException (bigint nil)) "(bigint nil) rejects nil"))
+
+(deftest test-biginteger-alias
+  (is (= 42 (biginteger 42)) "(biginteger 42)")
+  (is (bigint? (biginteger 42)) "(biginteger 42) is BigInteger"))
+
+(deftest test-promotion-arithmetic
+  (is (bigint? (+' 2 3)) "(+' 2 3) returns BigInteger")
+  (is (= 5 (+' 2 3)) "(+' 2 3) value")
+  (is (bigint? (-' 5 2)) "(-' 5 2) returns BigInteger")
+  (is (= 3 (-' 5 2)) "(-' 5 2) value")
+  (is (bigint? (*' 2 3)) "(*' 2 3) returns BigInteger")
+  (is (= 6 (*' 2 3)) "(*' 2 3) value")
+  (is (bigint? (inc' 1)) "(inc' 1) returns BigInteger")
+  (is (= 2 (inc' 1)) "(inc' 1) value")
+  (is (bigint? (dec' 5)) "(dec' 5) returns BigInteger")
+  (is (= 4 (dec' 5)) "(dec' 5) value"))
+
+(deftest test-promotion-arithmetic-floats-pass-through
+  (is (float? (+' 1.5 2.5)) "(+' 1.5 2.5) stays float")
+  (is (= 4.0 (+' 1.5 2.5)) "(+' 1.5 2.5) value")
+  (is (float? (*' 2.0 3)) "(*' 2.0 3) stays float"))
+
+(deftest test-promotion-arithmetic-rationals
+  (is (true? (ratio? (+' 1/2 1/3))) "(+' 1/2 1/3) stays rational")
+  (is (= 5/6 (+' 1/2 1/3)) "(+' 1/2 1/3) value"))
