@@ -195,7 +195,7 @@
   "The set of symbols that name Phel special forms, including the
   syntactic markers `&`, `catch`, and `finally` recognised by `fn`,
   `let`, and `try`."
-  (hash-set 'def 'ns 'in-ns 'load 'fn 'quote 'do 'if 'apply
+  (hash-set 'def 'ns 'in-ns 'load 'fn 'quote 'var 'do 'if 'apply
             'let 'recur 'try 'throw 'loop 'foreach 'set-var
             'defstruct* 'definterface* 'defexception* 'reify*
             'php/new 'php/-> 'php/:: 'php/aget 'php/aget-in

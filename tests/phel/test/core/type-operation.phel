@@ -159,6 +159,7 @@
   (is (true? (special-symbol? 'do)) "special-symbol? on do")
   (is (true? (special-symbol? 'let)) "special-symbol? on let")
   (is (true? (special-symbol? 'quote)) "special-symbol? on quote")
+  (is (true? (special-symbol? 'var)) "special-symbol? on var")
   (is (true? (special-symbol? 'try)) "special-symbol? on try")
   (is (true? (special-symbol? 'throw)) "special-symbol? on throw")
   (is (true? (special-symbol? 'recur)) "special-symbol? on recur")
