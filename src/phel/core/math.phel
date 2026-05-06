@@ -572,35 +572,58 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
                     (str "denominator expects a rational, integer, or BigInteger, got "
                          (type r))))))
 
+(defn- float-shortest-decimal
+  "Shortest %g-formatted decimal that round-trips back to `x`. Tries
+  increasing precision so 0.1 becomes \"0.1\", not \"0.10000000000000001\"."
+  [x]
+  (loop [p 1]
+    (let [s (php/sprintf (str "%." p "g") x)]
+      (if (or (php/=== (php/floatval s) x) (php/>= p 17))
+        s
+        (recur (php/+ p 1))))))
+
+(defn- decimal-string->rational
+  "Parses a decimal or scientific-notation string into a Rational
+  (auto-collapsed to int / BigInteger when integral)."
+  [s]
+  (let [lower      (php/strtolower s)
+        e-pos      (php/strpos lower "e")
+        mantissa   (if (php/=== false e-pos) lower (php/substr lower 0 e-pos))
+        exponent   (if (php/=== false e-pos) 0 (php/intval (php/substr lower (php/+ e-pos 1))))
+        first-char (php/substr mantissa 0 1)
+        negative?  (php/=== "-" first-char)
+        unsigned   (if (or negative? (php/=== "+" first-char))
+                     (php/substr mantissa 1)
+                     mantissa)
+        dot-pos    (php/strpos unsigned ".")
+        int-part   (if (php/=== false dot-pos) unsigned (php/substr unsigned 0 dot-pos))
+        frac-part  (if (php/=== false dot-pos) "" (php/substr unsigned (php/+ dot-pos 1)))
+        joined     (php/. (if (php/=== "" int-part) "0" int-part) frac-part)
+        stripped   (php/ltrim joined "0")
+        digits     (if (php/=== "" stripped) "0" stripped)
+        signed     (if negative? (php/. "-" digits) digits)
+        num        (php/:: BigInteger (fromString signed))
+        eff-exp    (php/- exponent (php/strlen frac-part))]
+    (if (php/>= eff-exp 0)
+      (let [scale (php/-> (php/:: BigInteger (fromInt 10)) (pow eff-exp))]
+        (php/:: Rational (create (php/-> num (multiply scale)) 1)))
+      (let [denom (php/-> (php/:: BigInteger (fromInt 10)) (pow (php/- 0 eff-exp)))]
+        (php/:: Rational (create num denom))))))
+
 (defn- float->rational
-  "Converts a finite float to a Rational by parsing its decimal expansion.
-  Non-finite floats are rejected."
+  "Converts a finite float to a Rational using its shortest round-trip
+  decimal expansion. Non-finite floats are rejected."
   [x]
   (when (or (php/is_infinite x) (php/is_nan x))
     (throw (php/new InvalidArgumentException
                     "rationalize cannot convert ##Inf, ##-Inf, or ##NaN")))
-  (let [s   (php/sprintf "%.17g" x)
-        dot (php/strpos s ".")]
-    (if (php/=== false dot)
-      (php/:: Rational (create (php/:: BigInteger (fromString s))
-                               (php/:: BigInteger (fromInt 1))))
-      (let [negative?  (php/=== "-" (php/substr s 0 1))
-            body       (if negative? (php/substr s 1) s)
-            body-dot   (php/strpos body ".")
-            int-part   (php/substr body 0 body-dot)
-            frac-part  (php/substr body (php/+ body-dot 1))
-            digits     (php/strlen frac-part)
-            normalised (php/. (if (php/=== "" int-part) "0" int-part) frac-part)
-            stripped   (php/ltrim normalised "0")
-            num-string (if (php/=== "" stripped) "0" stripped)
-            num        (php/:: BigInteger (fromString (if negative? (php/. "-" num-string) num-string)))
-            den        (php/-> (php/:: BigInteger (fromInt 10)) (pow digits))]
-        (php/:: Rational (create num den))))))
+  (decimal-string->rational (float-shortest-decimal x)))
 
 (defn rationalize
-  "Converts `x` to a `Rational`. Floats use a decimal-expansion best-effort
-  conversion; ints and `BigInteger` values become `n/1` and auto-collapse,
-  so they are returned unchanged."
+  "Converts `x` to a `Rational`. Floats use the shortest decimal expansion
+  that round-trips back to the same float, so `(rationalize 0.1)` is `1/10`
+  rather than the float-noise denominator. Ints and `BigInteger` values
+  become `n/1` and auto-collapse, so they are returned unchanged."
   {:example "(rationalize 0.5) ; => 1/2\n(rationalize 3) ; => 3"
    :see-also ["numerator" "denominator" "ratio?"]}
   [x]
