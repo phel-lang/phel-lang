@@ -16,11 +16,16 @@
   (is (= 5 (abs 5)) "(abs 5)")
   (is (= 0 (abs 0)) "(abs 0)")
   (is (= 3.14 (abs -3.14)) "(abs -3.14)")
-  ;; Clojure-compat: reject non-numbers instead of PHP's permissive coercion
+  ;; Reject non-numbers instead of PHP's permissive coercion
   ;; (which would silently return 0 for nil and throw a raw TypeError for strings).
   (is (thrown? \InvalidArgumentException (abs nil)) "(abs nil) throws")
   (is (thrown? \InvalidArgumentException (abs "abc")) "(abs string) throws")
   (is (thrown? \InvalidArgumentException (abs :k)) "(abs keyword) throws"))
+
+(deftest test-abs-php-int-min-promotes
+  (let [r (abs php/PHP_INT_MIN)]
+    (is (bigint? r) "(abs PHP_INT_MIN) promotes to BigInteger to keep exactness")
+    (is (= (bigint "9223372036854775808") r) "(abs PHP_INT_MIN) equals 2^63")))
 
 ;; --- Map utilities ---
 

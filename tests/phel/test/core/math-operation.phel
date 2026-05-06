@@ -54,6 +54,15 @@
   (is (= 2 (quot 7/2 3/2)) "quot on rationals truncates")
   (is (thrown? \DivisionByZeroError (quot 1 0)) "quot by zero throws"))
 
+(deftest test-quot-float
+  (is (= 3.0 (quot 10.0 3.0)) "(quot 10.0 3.0) keeps float and truncates toward zero")
+  (is (= -3.0 (quot -10.0 3.0)) "(quot -10.0 3.0) truncates toward zero")
+  (is (= 3.0 (quot -10.0 -3.0)) "(quot -10.0 -3.0) truncates toward zero")
+  (is (= -3.0 (quot 10.0 -3.0)) "(quot 10.0 -3.0) truncates toward zero")
+  (is (double? (quot 10.0 3.0)) "(quot 10.0 3.0) returns a float")
+  (is (double? (quot 10 3.0)) "(quot 10 3.0) promotes to float")
+  (is (double? (quot 10.0 3)) "(quot 10.0 3) promotes to float"))
+
 (deftest test-rem
   (is (= 1 (rem 7 3)) "(rem 7 3)")
   (is (= -1 (rem -7 3)) "(rem -7 3) follows dividend sign")
