@@ -13,6 +13,8 @@
 (use Phel.Lang.BigInteger)
 (use Phel.Lang.FnInterface)
 (use Phel.Lang.NumericOperations)
+(use Phel.Lang.PhpClass)
+(use Phel.Lang.Uuid)
 (use Phel.Lang.Keyword)
 (use Phel.Lang.MetaInterface)
 (use Phel.Lang.PhelVar)
@@ -46,6 +48,8 @@
 * `:float`
 * `:ratio`
 * `:bigint`
+* `:uuid`
+* `:php/class`
 * `:string`
 * `:nil`
 * `:boolean`
@@ -67,6 +71,8 @@
     (php/instanceof x PhelVar)                    :var
     (php/instanceof x Rational)                   :ratio
     (php/instanceof x BigInteger)                 :bigint
+    (php/instanceof x Uuid)                       :uuid
+    (php/instanceof x PhpClass)                   :php/class
     (php/is_int x)                                :int
     (php/is_float x)                              :float
     (php/is_string x)                             :string
@@ -77,6 +83,42 @@
     (php/is_resource x)                           :php/resource
     (php/is_object x)                             :php/object
     :unknown))
+
+(defn class?
+  "Returns true if `x` is a `Phel\\Lang\\PhpClass` value."
+  {:example "(class? (class (php/new \\stdClass))) ; => true"
+   :see-also ["class" "class-name" "type"]}
+  [x]
+  (php/instanceof x PhpClass))
+
+(defn class
+  "Returns a `Phel\\Lang\\PhpClass` for `x`. With an object argument
+  returns the class of the object. With a string argument resolves the
+  named class or interface FQN. Throws `InvalidArgumentException` for
+  any other input."
+  {:example "(class (php/new \\stdClass)) ; => stdClass"
+   :see-also ["class?" "class-name" "type"]}
+  [x]
+  (cond
+    (php/instanceof x PhpClass) x
+    (php/is_object x)           (php/:: PhpClass (ofValue x))
+    (php/is_string x)           (php/:: PhpClass (fromName x))
+    :else
+    (throw (php/new \InvalidArgumentException
+                    (php/. "class expects an object or class-name string, got "
+                           (php/get_debug_type x))))))
+
+(defn class-name
+  "Returns the FQN string of `c` (a `Phel\\Lang\\PhpClass`). Leading
+  backslashes are not preserved (e.g. `\\stdClass` becomes `stdClass`)."
+  {:example "(class-name (class \"stdClass\")) ; => \"stdClass\""
+   :see-also ["class" "class?"]}
+  [c]
+  (if (php/instanceof c PhpClass)
+    (php/-> c (name))
+    (throw (php/new \InvalidArgumentException
+                    (php/. "class-name expects a Phel\\Lang\\PhpClass, got "
+                           (php/get_debug_type c))))))
 
 (defn float?
   "Returns true if `x` is float point number, false otherwise."
