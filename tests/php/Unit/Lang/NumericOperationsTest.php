@@ -348,6 +348,16 @@ final class NumericOperationsTest extends TestCase
     {
         self::assertSame(6, NumericOperations::multiply(2, 3));
         self::assertSame(0, NumericOperations::multiply(0, PHP_INT_MAX));
+        self::assertSame(PHP_INT_MIN, NumericOperations::multiply(PHP_INT_MIN, 1));
+        self::assertSame(PHP_INT_MIN, NumericOperations::multiply(1, PHP_INT_MIN));
+    }
+
+    public function test_multiply_int_min_by_two_promotes_to_bigint(): void
+    {
+        $result = NumericOperations::multiply(PHP_INT_MIN, 2);
+
+        self::assertInstanceOf(BigInteger::class, $result);
+        self::assertSame(bcmul((string) PHP_INT_MIN, '2'), (string) $result);
     }
 
     public function test_power_int_int_overflow_promotes_to_bigint(): void

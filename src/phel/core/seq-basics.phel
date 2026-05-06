@@ -3,7 +3,6 @@
 (use Countable)
 (use InvalidArgumentException)
 (use Phel)
-(use Phel.Lang.AbstractType)
 (use Phel.Lang.Collections.HashSet.PersistentHashSetInterface)
 (use Phel.Lang.Collections.Map.PersistentMapInterface)
 (use Phel.Lang.ConsInterface)
@@ -21,15 +20,14 @@
 ;; ------------------------
 
 (defn- equals1 [a b]
-  (if (php/instanceof a AbstractType)
+  ;; Symmetric dispatch: prefer the side that carries equality semantics.
+  ;; `AbstractType` already implements `EqualsInterface` via `TypeInterface`,
+  ;; so a single instanceof check per side is enough.
+  (if (php/instanceof a \Phel\Lang\EqualsInterface)
     (php/-> a (equals b))
-    (if (php/instanceof a \Phel\Lang\EqualsInterface)
-      (php/-> a (equals b))
-      (if (php/instanceof b AbstractType)
-        (php/-> b (equals a))
-        (if (php/instanceof b \Phel\Lang\EqualsInterface)
-          (php/-> b (equals a))
-          (php/=== a b))))))
+    (if (php/instanceof b \Phel\Lang\EqualsInterface)
+      (php/-> b (equals a))
+      (php/=== a b))))
 
 (defn- cons-string [x coll]
   (let [result (php/array x)]

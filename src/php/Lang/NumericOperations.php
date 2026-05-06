@@ -272,21 +272,15 @@ final class NumericOperations
             return self::rationalPower($base, $exponent);
         }
 
-        if ($base instanceof BigInteger) {
-            if ($exponent < 0) {
-                return Rational::create(BigInteger::one(), $base->pow(-$exponent));
-            }
-
-            return self::collapseBigInt($base->pow($exponent));
-        }
+        // Route int^int and BigInteger^int through BigInteger so overflow
+        // auto-promotes; cheap exponents collapse back to int.
+        $baseBig = self::toBigInt($base);
 
         if ($exponent < 0) {
-            return Rational::create(1, BigInteger::fromInt($base)->pow(-$exponent));
+            return Rational::create(BigInteger::one(), $baseBig->pow(-$exponent));
         }
 
-        // Always route int^int through BigInteger so overflow auto-promotes.
-        // Cheap exponents collapse straight back to int.
-        return self::collapseBigInt(BigInteger::fromInt($base)->pow($exponent));
+        return self::collapseBigInt($baseBig->pow($exponent));
     }
 
     /**
@@ -408,16 +402,18 @@ final class NumericOperations
 
     private static function multiplyOverflows(int $a, int $b): bool
     {
-        if ($a === 0 || $b === 0) {
+        if ($a === 0 || $b === 0 || $a === 1 || $b === 1) {
             return false;
         }
 
-        // PHP_INT_MIN * -1 overflows to PHP_INT_MAX + 1.
-        if (($a === PHP_INT_MIN && $b === -1) || ($b === PHP_INT_MIN && $a === -1)) {
+        // PHP_INT_MIN cannot be negated within int range, so any multiply of
+        // PHP_INT_MIN by anything other than 0 or 1 leaves the int range.
+        if ($a === PHP_INT_MIN || $b === PHP_INT_MIN) {
             return true;
         }
 
         // Compare against PHP_INT_MAX magnitude using truncating intdiv.
+        // Both operands are now safe to negate within int range.
         return intdiv(PHP_INT_MAX, abs($a)) < abs($b);
     }
 
