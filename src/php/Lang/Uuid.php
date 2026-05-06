@@ -102,12 +102,15 @@ final readonly class Uuid implements TypeInterface, Stringable
         if (($nibble & 0x8) === 0) {
             return 'ncs';
         }
+
         if (($nibble & 0x4) === 0) {
             return 'rfc-4122';
         }
+
         if (($nibble & 0x2) === 0) {
             return 'microsoft';
         }
+
         return 'reserved';
     }
 
