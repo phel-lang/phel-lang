@@ -650,16 +650,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
                     (str "expected a number, got " (type x))))))
 
 (defn- rational-floor
-  ;; floor(n/d) = (n - mod(n, d)) / d. Rational denominators are always
-  ;; positive, so `mod` (floor-modulo) yields a non-negative remainder
-  ;; whose subtraction lands the dividend on a clean multiple of `d`.
+  ;; floor(n/d) = (n - mod(n,d)) / d; Rational denominators are positive.
   [r]
-  (let [n (php/-> r (numerator))
-        d (php/-> r (denominator))]
-    (php/:: NumericOperations
-            (quot (php/:: NumericOperations (subtract n
-                                                      (php/:: NumericOperations (mod n d))))
-                  d))))
+  (let [n (numerator r)
+        d (denominator r)]
+    (quot (- n (mod n d)) d)))
 
 (defn floor
   "Returns the largest integer not greater than `x`. Ints and `BigInteger`
@@ -689,8 +684,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   (cond
     (php/is_int x)                x
     (php/instanceof x BigInteger) x
-    (php/instanceof x Rational)
-    (php/:: NumericOperations (negate (rational-floor (php/:: NumericOperations (negate x)))))
+    (php/instanceof x Rational)   (- (rational-floor (- x)))
     (php/is_float x)              (php/ceil x)
     :else
     (throw (php/new InvalidArgumentException
