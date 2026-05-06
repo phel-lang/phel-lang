@@ -14,7 +14,9 @@ use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\MagicConstantResolver;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\SymbolResolver;
+use Phel\Lang\BigInteger;
 use Phel\Lang\Keyword;
+use Phel\Lang\Rational;
 use Phel\Lang\Registry;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
@@ -371,6 +373,59 @@ final class SymbolResolverTest extends TestCase
         self::assertEquals(
             new GlobalVarNode($nodeEnv, 'user', Symbol::create('Foo'), Phel::map()),
             $this->resolver->resolve(Symbol::create('Foo'), $nodeEnv),
+        );
+    }
+
+    public function test_resolve_clojure_lang_bigint_remaps_to_phel_biginteger(): void
+    {
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new PhpClassNameNode($nodeEnv, Symbol::create('\\' . BigInteger::class)),
+            $this->resolver->resolve(Symbol::create('clojure.lang.BigInt'), $nodeEnv),
+        );
+    }
+
+    public function test_resolve_clojure_lang_ratio_remaps_to_phel_rational(): void
+    {
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new PhpClassNameNode($nodeEnv, Symbol::create('\\' . Rational::class)),
+            $this->resolver->resolve(Symbol::create('clojure.lang.Ratio'), $nodeEnv),
+        );
+    }
+
+    public function test_resolve_clojure_lang_auto_aliases_matching_phel_class(): void
+    {
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertEquals(
+            new PhpClassNameNode($nodeEnv, Symbol::create('\\' . Symbol::class)),
+            $this->resolver->resolve(Symbol::create('clojure.lang.Symbol'), $nodeEnv),
+        );
+
+        self::assertEquals(
+            new PhpClassNameNode($nodeEnv, Symbol::create('\\' . Keyword::class)),
+            $this->resolver->resolve(Symbol::create('clojure.lang.Keyword'), $nodeEnv),
+        );
+    }
+
+    public function test_resolve_clojure_lang_unknown_class_falls_through(): void
+    {
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertNull(
+            $this->resolver->resolve(Symbol::create('clojure.lang.DoesNotExist'), $nodeEnv),
+        );
+    }
+
+    public function test_resolve_clojure_lang_nested_segment_falls_through(): void
+    {
+        $nodeEnv = NodeEnvironment::empty();
+
+        self::assertNull(
+            $this->resolver->resolve(Symbol::create('clojure.lang.foo.Bar'), $nodeEnv),
         );
     }
 

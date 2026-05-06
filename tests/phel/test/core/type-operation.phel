@@ -289,6 +289,18 @@
       \DateTime "not-a-date"
       \DateTime nil)))
 
+(deftest test-instance-clojure-lang-aliases
+  (is (true? (instance? clojure.lang.BigInt (bigint 0)))
+      "clojure.lang.BigInt resolves to Phel\\Lang\\BigInteger")
+  (is (false? (instance? clojure.lang.BigInt 0))
+      "clojure.lang.BigInt does not match a native int")
+  (is (true? (instance? clojure.lang.Ratio 1/2))
+      "clojure.lang.Ratio resolves to Phel\\Lang\\Rational")
+  (is (true? (instance? clojure.lang.Keyword :foo))
+      "clojure.lang.Keyword auto-aliases to Phel\\Lang\\Keyword")
+  (is (true? (instance? clojure.lang.Symbol 'foo))
+      "clojure.lang.Symbol auto-aliases to Phel\\Lang\\Symbol"))
+
 (deftest test-php-array?
   (is (true? (php-array? (php/array))) "php-array? on php array")
   (is (false? (php-array? [])) "php-array? on vector"))
