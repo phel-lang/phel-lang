@@ -7,13 +7,16 @@ namespace PhelTest\Unit\Compiler\Parser\ExpressionParser;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Parser\Exceptions\KeywordParserException;
+use Phel\Compiler\Domain\Parser\Exceptions\ZeroDenominatorRatioParserException;
 use Phel\Compiler\Domain\Parser\ExpressionParser\AtomParser;
 use Phel\Compiler\Domain\Parser\ParserNode\BooleanNode;
 use Phel\Compiler\Domain\Parser\ParserNode\KeywordNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NilNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NumberNode;
 use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
+use Phel\Lang\BigInteger;
 use Phel\Lang\Keyword;
+use Phel\Lang\Rational;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
@@ -732,5 +735,106 @@ final class AtomParserTest extends TestCase
                 new Token(Token::T_ATOM, 'x0', $start, $end),
             ),
         );
+    }
+
+    public function test_parse_ratio_literal_returns_rational(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 3);
+        $node = $parser->parse(new Token(Token::T_ATOM, '1/2', $start, $end));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        $value = $node->getValue();
+        self::assertInstanceOf(Rational::class, $value);
+        self::assertSame('1', (string) $value->numerator());
+        self::assertSame('2', (string) $value->denominator());
+    }
+
+    public function test_parse_negative_ratio_literal_returns_rational(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 4);
+        $node = $parser->parse(new Token(Token::T_ATOM, '-3/4', $start, $end));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        $value = $node->getValue();
+        self::assertInstanceOf(Rational::class, $value);
+        self::assertSame('-3', (string) $value->numerator());
+        self::assertSame('4', (string) $value->denominator());
+    }
+
+    public function test_parse_ratio_literal_normalises_to_int_when_integral(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 3);
+        $node = $parser->parse(new Token(Token::T_ATOM, '4/2', $start, $end));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(2, $node->getValue());
+    }
+
+    public function test_parse_ratio_literal_zero_numerator_returns_int_zero(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 3);
+        $node = $parser->parse(new Token(Token::T_ATOM, '0/5', $start, $end));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(0, $node->getValue());
+    }
+
+    public function test_parse_ratio_literal_with_underscores(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 11);
+        $node = $parser->parse(new Token(Token::T_ATOM, '1_000/3_000', $start, $end));
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        $value = $node->getValue();
+        self::assertInstanceOf(Rational::class, $value);
+        self::assertSame('1', (string) $value->numerator());
+        self::assertSame('3', (string) $value->denominator());
+    }
+
+    public function test_parse_ratio_literal_with_huge_integral_value_returns_big_integer(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 23);
+        $node = $parser->parse(
+            new Token(Token::T_ATOM, '20000000000000000000/2', $start, $end),
+        );
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        $value = $node->getValue();
+        self::assertInstanceOf(BigInteger::class, $value);
+        self::assertSame('10000000000000000000', (string) $value);
+    }
+
+    public function test_parse_ratio_literal_zero_denominator_throws(): void
+    {
+        $this->expectException(ZeroDenominatorRatioParserException::class);
+        $this->expectExceptionMessage('Ratio literal denominator cannot be zero: 1/0');
+
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 3);
+        $parser->parse(new Token(Token::T_ATOM, '1/0', $start, $end));
+    }
+
+    public function test_parse_ratio_literal_zero_over_zero_throws(): void
+    {
+        $this->expectException(ZeroDenominatorRatioParserException::class);
+        $this->expectExceptionMessage('Ratio literal denominator cannot be zero: 0/0');
+
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 3);
+        $parser->parse(new Token(Token::T_ATOM, '0/0', $start, $end));
     }
 }

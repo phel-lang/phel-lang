@@ -7,13 +7,16 @@ namespace Phel\Compiler\Domain\Parser\ExpressionParser;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Parser\Exceptions\KeywordParserException;
+use Phel\Compiler\Domain\Parser\Exceptions\ZeroDenominatorRatioParserException;
 use Phel\Compiler\Domain\Parser\ParserNode\AbstractAtomNode;
 use Phel\Compiler\Domain\Parser\ParserNode\BooleanNode;
 use Phel\Compiler\Domain\Parser\ParserNode\KeywordNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NilNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NumberNode;
 use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
+use Phel\Lang\BigInteger;
 use Phel\Lang\Keyword;
+use Phel\Lang\Rational;
 use Phel\Lang\Symbol;
 
 use function is_float;
@@ -51,9 +54,9 @@ final readonly class AtomParser
     private const string REGEX_BIGDEC_LITERAL = '/^([+-]?\d+(?:_\d+)*(?:\.\d+(?:_\d+)*)?(?:[eE][+-]?\d+)?)M$/';
 
     /**
-     * Ratio literal, e.g. `1/2`, `-3/4`, `0/5`. Phel has no first-class
-     * rational type, so the literal is parsed as `num / den` using PHP
-     * float division. Accepted mainly for `.cljc` source compatibility.
+     * Ratio literal, e.g. `1/2`, `-3/4`, `0/5`. Parsed into an exact
+     * {@see Rational} (or collapsed int / BigInteger when integral).
+     * Zero denominators are rejected at parse time.
      */
     private const string REGEX_RATIO_LITERAL = '/^([+-]?\d+(?:_\d+)*)\/(\d+(?:_\d+)*)$/';
 
@@ -312,17 +315,23 @@ final readonly class AtomParser
     }
 
     /**
-     * Parses a ratio literal `N/M` as the float `N / M`. A zero denominator
-     * yields a non-finite float (`NAN` for `0/0`, `INF`/`-INF` otherwise)
-     * rather than a runtime error.
+     * Parses a ratio literal `N/M` into an exact value. The result is a
+     * {@see Rational} when irreducible, a {@see BigInteger} when the
+     * normalised numerator no longer fits in a PHP int, otherwise a
+     * native int. Zero denominators are rejected at parse time.
      */
     private function parseRatioLiteral(array $matches, string $word, Token $token): NumberNode
     {
-        $numerator = (float) str_replace('_', '', (string) $matches[1]);
-        $denominator = (float) str_replace('_', '', (string) $matches[2]);
-        $value = $denominator === 0.0
-            ? ($numerator === 0.0 ? NAN : ($numerator > 0 ? INF : -INF))
-            : $numerator / $denominator;
+        $numerator = BigInteger::fromString(str_replace('_', '', (string) $matches[1]));
+        $denominator = BigInteger::fromString(str_replace('_', '', (string) $matches[2]));
+
+        if ($denominator->isZero()) {
+            throw new ZeroDenominatorRatioParserException(
+                sprintf('Ratio literal denominator cannot be zero: %s', $word),
+            );
+        }
+
+        $value = Rational::create($numerator, $denominator);
 
         return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
     }

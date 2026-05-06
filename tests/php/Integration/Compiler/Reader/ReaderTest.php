@@ -8,6 +8,7 @@ use DateTimeImmutable;
 use Phel;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\CompilerFacade;
+use Phel\Compiler\Domain\Parser\Exceptions\ZeroDenominatorRatioParserException;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
@@ -15,6 +16,7 @@ use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\Rational;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TagHandlers\BuiltinTagHandlers;
@@ -72,6 +74,26 @@ final class ReaderTest extends TestCase
         self::assertSame(1337.0, $this->read('+1337.0'));
         self::assertSame(1.2e3, $this->read('1.2e3'));
         self::assertSame(7E-10, $this->read('7E-10'));
+    }
+
+    public function test_read_ratio_literal_returns_rational(): void
+    {
+        $value = $this->read('1/2');
+
+        self::assertInstanceOf(Rational::class, $value);
+        self::assertSame('1', (string) $value->numerator());
+        self::assertSame('2', (string) $value->denominator());
+    }
+
+    public function test_read_ratio_literal_normalises_to_int_when_integral(): void
+    {
+        self::assertSame(2, $this->read('4/2'));
+    }
+
+    public function test_read_zero_denominator_ratio_throws_at_parse_time(): void
+    {
+        $this->expectException(ZeroDenominatorRatioParserException::class);
+        $this->read('1/0');
     }
 
     public function test_read_keyword(): void

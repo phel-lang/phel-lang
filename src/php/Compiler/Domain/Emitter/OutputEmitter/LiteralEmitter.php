@@ -6,11 +6,13 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 
 use DateTimeImmutable;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
+use Phel\Lang\BigInteger;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Keyword;
+use Phel\Lang\Rational;
 use Phel\Lang\Symbol;
 use Phel\Printer\PrinterInterface;
 use RuntimeException;
@@ -56,6 +58,10 @@ final readonly class LiteralEmitter
             $this->emitList($x);
         } elseif ($x instanceof DateTimeImmutable) {
             $this->emitDateTime($x);
+        } elseif ($x instanceof Rational) {
+            $this->emitRational($x);
+        } elseif ($x instanceof BigInteger) {
+            $this->emitBigInteger($x);
         } elseif (is_array($x)) {
             $this->emitArray($x);
         } else {
@@ -71,6 +77,24 @@ final readonly class LiteralEmitter
         // RFC 3339 with microseconds preserves both.
         $iso = $x->format('Y-m-d\\TH:i:s.uP');
         $this->outputEmitter->emitStr('(new \\DateTimeImmutable("' . addslashes($iso) . '"))');
+    }
+
+    private function emitBigInteger(BigInteger $x): void
+    {
+        $this->outputEmitter->emitStr(
+            '\Phel\Lang\BigInteger::fromString("' . $x->__toString() . '")',
+        );
+    }
+
+    private function emitRational(Rational $x): void
+    {
+        $this->outputEmitter->emitStr(
+            '\Phel\Lang\Rational::create('
+            . '\Phel\Lang\BigInteger::fromString("' . $x->numerator()->__toString() . '"), '
+            . '\Phel\Lang\BigInteger::fromString("' . $x->denominator()->__toString() . '")'
+            . ')',
+            $x->getStartLocation(),
+        );
     }
 
     private function emitFloat(float $x): void
