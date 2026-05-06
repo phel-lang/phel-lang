@@ -1,6 +1,7 @@
 (in-ns phel.core)
 
 (use InvalidArgumentException)
+(use Phel.Lang.BigInteger)
 (use Phel.Lang.Collections.HashSet.PersistentHashSetInterface)
 (use Phel.Lang.Collections.LinkedList.PersistentListInterface)
 (use Phel.Lang.Collections.Map.PersistentMapInterface)
@@ -8,6 +9,8 @@
 (use Phel.Lang.ContainsInterface)
 (use Phel.Lang.IdenticalInterface)
 (use Phel.Lang.Keyword)
+(use Phel.Lang.NumericOperations)
+(use Phel.Lang.Rational)
 (use Phel.Lang.Symbol)
 (use Phel.Lang.Truthy)
 
@@ -109,7 +112,10 @@
       false)))
 
 (defn- num? [x]
-  (or (php/is_int x) (php/is_float x)))
+  (or (php/is_int x)
+      (php/is_float x)
+      (php/instanceof x Rational)
+      (php/instanceof x BigInteger)))
 
 (defn- num-equals1 [a b]
   (when-not (num? a)
@@ -118,7 +124,7 @@
   (when-not (num? b)
     (throw (php/new \InvalidArgumentException
                     (str "Argument must be a number, got: " b))))
-  (php/== a b))
+  (php/:: NumericOperations (isEqual a b)))
 
 (defn ==
   "Numeric equality comparison. Returns true if all arguments have the same
@@ -149,67 +155,87 @@
     1 (not (= a (first more)))
     (not (apply = a more))))
 
+(defn- numeric-object?
+  [x]
+  (or (php/instanceof x Rational) (php/instanceof x BigInteger)))
+
+(defn- lt2 [a b]
+  (if (or (numeric-object? a) (numeric-object? b))
+    (php/< (php/:: NumericOperations (compare a b)) 0)
+    (php/< a b)))
+
+(defn- lte2 [a b]
+  (if (or (numeric-object? a) (numeric-object? b))
+    (php/<= (php/:: NumericOperations (compare a b)) 0)
+    (php/<= a b)))
+
+(defn- gt2 [a b]
+  (if (or (numeric-object? a) (numeric-object? b))
+    (php/> (php/:: NumericOperations (compare a b)) 0)
+    (php/> a b)))
+
+(defn- gte2 [a b]
+  (if (or (numeric-object? a) (numeric-object? b))
+    (php/>= (php/:: NumericOperations (compare a b)) 0)
+    (php/>= a b)))
+
 (defn <
   "Checks if each argument is strictly less than the following argument."
-  {:inline (fn [a b] `(php/< ~a ~b))
-   :inline-arity (fn [n] (php/=== n 2))
-   :example "(< 1 2 3 4) ; => true"}
+  {:example "(< 1 2 3 4) ; => true"}
   [a & more]
   (case (count more)
     0 true
-    1 (php/< a (first more))
-    (if (php/< a (first more))
+    1 (lt2 a (first more))
+    (if (lt2 a (first more))
       (recur (first more) (next more))
       false)))
 
 (defn <=
   "Checks if each argument is less than or equal to the following argument. Returns a boolean."
-  {:inline (fn [a b] `(php/<= ~a ~b))
-   :inline-arity (fn [n] (php/=== n 2))}
   [a & more]
   (case (count more)
     0 true
-    1 (php/<= a (first more))
-    (if (php/<= a (first more))
+    1 (lte2 a (first more))
+    (if (lte2 a (first more))
       (recur (first more) (next more))
       false)))
 
 (defn >
   "Checks if each argument is strictly greater than the following argument."
-  {:inline (fn [a b] `(php/> ~a ~b))
-   :inline-arity (fn [n] (php/=== n 2))
-   :example "(> 4 3 2 1) ; => true"}
+  {:example "(> 4 3 2 1) ; => true"}
   [a & more]
   (case (count more)
     0 true
-    1 (php/> a (first more))
-    (if (php/> a (first more))
+    1 (gt2 a (first more))
+    (if (gt2 a (first more))
       (recur (first more) (next more))
       false)))
 
 (defn >=
   "Checks if each argument is greater than or equal to the following argument. Returns a boolean."
-  {:inline (fn [a b] `(php/>= ~a ~b))
-   :inline-arity (fn [n] (php/=== n 2))}
   [a & more]
   (case (count more)
     0 true
-    1 (php/>= a (first more))
-    (if (php/>= a (first more))
+    1 (gte2 a (first more))
+    (if (gte2 a (first more))
       (recur (first more) (next more))
       false)))
 
 (defn <=>
-  "Alias for the spaceship PHP operator in ascending order. Returns an int."
-  {:inline (fn [a b] `(php/<=> ~a ~b))}
+  "Alias for the spaceship PHP operator in ascending order. Returns an int.
+  Dispatches on `Rational` and `BigInteger` so numeric ordering stays correct
+  for those types."
   [a b]
-  (php/<=> a b))
+  (if (or (numeric-object? a) (numeric-object? b))
+    (php/:: NumericOperations (compare a b))
+    (php/<=> a b)))
 
 (defn >=<
   "Alias for the spaceship PHP operator in descending order. Returns an int."
-  {:inline (fn [a b] `(php/<=> ~b ~a))}
   [a b]
-  (php/<=> b a))
+  (if (or (numeric-object? a) (numeric-object? b))
+    (php/:: NumericOperations (compare b a))
+    (php/<=> b a)))
 
 (declare empty?)
 
@@ -316,7 +342,10 @@
 
 (defn- comparable-number?
   [x]
-  (or (php/is_int x) (php/is_float x)))
+  (or (php/is_int x)
+      (php/is_float x)
+      (php/instanceof x Rational)
+      (php/instanceof x BigInteger)))
 
 (defn- comparable-sequential?
   [x]
@@ -379,6 +408,9 @@
 
     (= category :sequential)
     (compare-sequential x y)
+
+    (= category :number)
+    (php/:: NumericOperations (compare x y))
 
     :else
     (php/<=> x y)))

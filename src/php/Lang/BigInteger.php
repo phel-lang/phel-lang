@@ -12,6 +12,7 @@ use Stringable;
 use function array_pop;
 use function count;
 use function intdiv;
+use function is_int;
 use function preg_match;
 use function sprintf;
 use function str_pad;
@@ -27,7 +28,7 @@ use function substr;
  * 10^9 keeps any single multiplication of two digits inside 64-bit signed
  * integer range with margin (10^18 < 9.22e18 = PHP_INT_MAX).
  */
-final readonly class BigInteger implements Stringable
+final readonly class BigInteger implements EqualsInterface, HashableInterface, Stringable
 {
     private const int BASE = 1_000_000_000;
 
@@ -269,9 +270,26 @@ final readonly class BigInteger implements Stringable
         return $this->sign > 0 ? $magCmp : -$magCmp;
     }
 
-    public function equals(self $other): bool
+    public function equals(mixed $other): bool
     {
-        return $this->compareTo($other) === 0;
+        if ($other instanceof self) {
+            return $this->compareTo($other) === 0;
+        }
+
+        if (is_int($other)) {
+            return $this->compareTo(self::fromInt($other)) === 0;
+        }
+
+        return false;
+    }
+
+    public function hash(): int
+    {
+        if ($this->fitsInPhpInt()) {
+            return $this->toInt();
+        }
+
+        return crc32((string) $this);
     }
 
     public function signum(): int

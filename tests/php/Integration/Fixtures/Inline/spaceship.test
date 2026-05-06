@@ -3,4 +3,4 @@
 (<=> 1 2)
 (>=< 1 2)
 --PHP--
-(1 <=> 2);(1 <=> 2);(2 <=> 1);
+(\Phel::getDefinition("phel.core", "<=>"))(1, 2);(\Phel::getDefinition("phel.core", "<=>"))(1, 2);(\Phel::getDefinition("phel.core", ">=<"))(1, 2);
