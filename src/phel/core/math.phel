@@ -2,11 +2,15 @@
 
 (use InvalidArgumentException)
 (use Phel)
+(use Phel.Lang.BigInteger)
+(use Phel.Lang.NumericOperations)
+(use Phel.Lang.Rational)
 
 ;; Numeric operations: arithmetic (`+`, `-`, `*`, `/`, `%`, `**`), bit ops
 ;; (`bit-and`, `bit-or`, `bit-xor`, `bit-shift-*`, `bit-set`, `bit-test`, …),
-;; successor/predecessor (`inc`, `dec`), and constants (`NAN`). Most fns
-;; dispatch to PHP's native numeric operators via `php/*`.
+;; successor/predecessor (`inc`, `dec`), and constants (`NAN`). Arithmetic
+;; fns route through `Phel\Lang\NumericOperations` so they dispatch on
+;; `Rational` and `BigInteger` values; bit ops still rely on PHP integers.
 
 ;; ---
 ;; Math helpers
@@ -17,21 +21,6 @@
   (foreach [x xs]
     (when (php/=== nil x)
       (throw (php/new \InvalidArgumentException "Arithmetic functions do not accept nil values")))))
-
-(defn- zero-divisor?
-  [x]
-  (or (= x 0) (= x 0.0)))
-
-(defn- non-finite-number?
-  [x]
-  (or (php/is_infinite x) (php/is_nan x)))
-
-(defn- divide
-  [nominator denominator]
-  (if (and (zero-divisor? denominator)
-           (non-finite-number? nominator))
-    (php/fdiv nominator denominator)
-    (php// nominator denominator)))
 
 ;; -----------------
 ;; Bitwise operation
@@ -113,85 +102,80 @@
 (defn +
   "Returns the sum of all elements in `xs`. All elements `xs` must be numbers.
   If `xs` is empty, return 0."
-  {:inline (fn [& xs] `(do (assert-non-nil ~@xs) (php/+ ~@xs)))
-   :inline-arity (fn [n] (> n 0))}
-  [& xs]
-  (apply assert-non-nil xs)
-  (if (empty? xs)
-    0
-    (apply php/+ xs)))
-
-(defn -
-  "Returns the difference of all elements in `xs`. If `xs` is empty, return 0. If `xs`
-  has one element, return the negative value of that element."
-  {:inline (fn [& xs] `(do (assert-non-nil ~@xs) (php/- ~@xs)))
-   :inline-arity (fn [n] (> n 1))}
   [& xs]
   (apply assert-non-nil xs)
   (case (count xs)
     0 0
-    1 (php/* -1 (first xs))
-    2 (php/- (first xs) (second xs))
-    (reduce #(php/- %1 %2) xs)))
+    1 (first xs)
+    2 (php/:: NumericOperations (add (first xs) (second xs)))
+    (reduce #(php/:: NumericOperations (add %1 %2)) xs)))
+
+(defn -
+  "Returns the difference of all elements in `xs`. If `xs` is empty, return 0. If `xs`
+  has one element, return the negative value of that element."
+  [& xs]
+  (apply assert-non-nil xs)
+  (case (count xs)
+    0 0
+    1 (php/:: NumericOperations (negate (first xs)))
+    2 (php/:: NumericOperations (subtract (first xs) (second xs)))
+    (reduce #(php/:: NumericOperations (subtract %1 %2)) xs)))
 
 (defn *
   "Returns the product of all elements in `xs`. All elements in `xs` must be
 numbers. If `xs` is empty, return 1."
-  {:inline (fn [& xs] `(do (assert-non-nil ~@xs) (php/* ~@xs)))
-   :inline-arity (fn [n] (> n 0))}
   [& xs]
   (apply assert-non-nil xs)
   (case (count xs)
     0 1
     1 (first xs)
-    2 (php/* (first xs) (second xs))
-    (reduce #(php/* %1 %2) xs)))
+    2 (php/:: NumericOperations (multiply (first xs) (second xs)))
+    (reduce #(php/:: NumericOperations (multiply %1 %2)) xs)))
 
 (defn /
   "Returns the nominator divided by all the denominators. If `xs` is empty,
-returns 1. If `xs` has one value, returns the reciprocal of x."
-  {:inline (fn [& xs] `(do (assert-non-nil ~@xs) (divide ~@xs)))
-   :inline-arity (fn [n] (= n 2))}
+returns 1. If `xs` has one value, returns the reciprocal of x.
+
+  Integer division with a non-zero remainder returns a `Rational`
+  (e.g. `(/ 1 2) => 1/2`). Use `(/ 1.0 2)` or `(double ...)` for float
+  division."
   [& xs]
   (apply assert-non-nil xs)
   (case (count xs)
     0 1
-    1 (divide 1 (first xs))
-    2 (divide (first xs) (second xs))
-    (reduce #(divide %1 %2) xs)))
+    1 (php/:: NumericOperations (divide 1 (first xs)))
+    2 (php/:: NumericOperations (divide (first xs) (second xs)))
+    (reduce #(php/:: NumericOperations (divide %1 %2)) xs)))
 
 (defn %
-  "Return the remainder of `dividend` / `divisor`."
-  {:inline (fn [dividend divisor] `(do (assert-non-nil ~dividend ~divisor) (php/% ~dividend ~divisor)))}
+  "Return the remainder of `dividend` / `divisor`. Result has the same sign
+  as `dividend` (truncated remainder, matching PHP's `%`)."
   [dividend divisor]
   (assert-non-nil dividend divisor)
-  (php/% dividend divisor))
+  (php/:: NumericOperations (rem dividend divisor)))
 
 (defn **
   "Return `a` to the power of `x`."
-  {:inline (fn [a x] `(do (assert-non-nil ~a ~x) (php/** ~a ~x)))}
   [a x]
   (assert-non-nil a x)
-  (php/** a x))
+  (php/:: NumericOperations (power a x)))
 
 (defn inc
   "Increments `x` by one."
-  {:inline (fn [x] `(do (assert-non-nil ~x) (php/+ ~x 1)))}
   [x]
   (assert-non-nil x)
-  (+ x 1))
+  (php/:: NumericOperations (add x 1)))
 
 (defn dec
   "Decrements `x` by one."
-  {:inline (fn [x] `(do (assert-non-nil ~x) (php/- ~x 1)))}
   [x]
   (assert-non-nil x)
-  (- x 1))
+  (php/:: NumericOperations (subtract x 1)))
 
 (defn even?
   "Checks if `x` is even."
   [x]
-  (= 0 (% x 2)))
+  (php/:: NumericOperations (isZero (% x 2))))
 
 (defn odd?
   "Checks if `x` is odd."
@@ -201,7 +185,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 (defn zero?
   "Checks if `x` is zero."
   [x]
-  (or (= x 0) (= x 0.0)))
+  (php/:: NumericOperations (isZero x)))
 
 (defn one?
   "Checks if `x` is one."
@@ -238,12 +222,12 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
 
 (defn abs
   "Returns the absolute value of `x`.
-  Throws `InvalidArgumentException` if `x` is not a number, matching Clojure
-  rather than PHP's permissive `abs(null) => 0` / `abs(\"abc\")` coercions."
+  Throws `InvalidArgumentException` if `x` is not a number; PHP's
+  permissive `abs(null) => 0` / `abs(\"abc\")` coercions are rejected."
   {:example "(abs -5) ; => 5"}
   [x]
   (if (number? x)
-    (php/abs x)
+    (php/:: NumericOperations (abs x))
     (throw (php/new InvalidArgumentException
                     (str "abs expects a number, got " (type x))))))
 
@@ -354,7 +338,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   {:example "(rand) ; => 0.42\n(rand 100) ; => 73.2"
    :see-also ["rand-int" "rand-nth"]}
   ([]
-   (/ (php/random_int 0 php/PHP_INT_MAX) php/PHP_INT_MAX))
+   (php/fdiv (php/random_int 0 php/PHP_INT_MAX) php/PHP_INT_MAX))
   ([n]
    (* n (rand))))
 
@@ -437,12 +421,13 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
   (apply + xs))
 
 (defn mean
-  "Returns the mean of `xs`."
+  "Returns the mean of `xs` as a float."
   [xs]
-  (/ (sum xs) (count xs)))
+  (php/fdiv (sum xs) (count xs)))
 
 (defn median
-  "Returns the median of `xs`."
+  "Returns the median of `xs`. With an even-sized collection the result is
+  the float average of the two middle elements."
   [xs]
   (let [arr (to-php-array xs)
         cnt (count arr)]
@@ -452,4 +437,99 @@ returns 1. If `xs` has one value, returns the reciprocal of x."
     (let [mid (php/intdiv cnt 2)]
       (if (odd? cnt)
         (php/aget arr mid)
-        (/ (+ (php/aget arr (dec mid)) (php/aget arr mid)) 2)))))
+        (php/fdiv (+ (php/aget arr (dec mid)) (php/aget arr mid)) 2)))))
+
+;; -----------------------
+;; Rational / BigInteger predicates and accessors
+;; -----------------------
+
+(defn bigint?
+  "Returns true when `x` is a `Phel\\Lang\\BigInteger` value."
+  {:example "(bigint? (php/:: \\Phel\\Lang\\BigInteger (fromInt 1))) ; => true"
+   :see-also ["int?" "ratio?" "number?"]}
+  [x]
+  (php/instanceof x BigInteger))
+
+(defn numerator
+  "Returns the numerator of `r`. For rationals the numerator collapses to a
+  PHP int when it fits; for plain ints and `BigInteger` values `r` is returned
+  unchanged."
+  {:example "(numerator 1/2) ; => 1\n(numerator 5) ; => 5"
+   :see-also ["denominator" "rationalize" "ratio?"]}
+  [r]
+  (cond
+    (php/instanceof r Rational)
+    (let [n (php/-> r (numerator))]
+      (if (php/-> n (fitsInPhpInt))
+        (php/-> n (toInt))
+        n))
+
+    (or (php/is_int r) (php/instanceof r BigInteger))
+    r
+
+    :else
+    (throw (php/new InvalidArgumentException
+                    (str "numerator expects a rational, integer, or BigInteger, got "
+                         (type r))))))
+
+(defn denominator
+  "Returns the denominator of `r`. For rationals the denominator collapses
+  to a PHP int when it fits; integers and `BigInteger` values report `1`."
+  {:example "(denominator 1/2) ; => 2\n(denominator 5) ; => 1"
+   :see-also ["numerator" "rationalize" "ratio?"]}
+  [r]
+  (cond
+    (php/instanceof r Rational)
+    (let [d (php/-> r (denominator))]
+      (if (php/-> d (fitsInPhpInt))
+        (php/-> d (toInt))
+        d))
+
+    (or (php/is_int r) (php/instanceof r BigInteger))
+    1
+
+    :else
+    (throw (php/new InvalidArgumentException
+                    (str "denominator expects a rational, integer, or BigInteger, got "
+                         (type r))))))
+
+(defn- float->rational
+  "Converts a finite float to a Rational by parsing its decimal expansion.
+  Non-finite floats are rejected."
+  [x]
+  (when (or (php/is_infinite x) (php/is_nan x))
+    (throw (php/new InvalidArgumentException
+                    "rationalize cannot convert ##Inf, ##-Inf, or ##NaN")))
+  (let [s   (php/sprintf "%.17g" x)
+        dot (php/strpos s ".")]
+    (if (php/=== false dot)
+      (php/:: Rational (create (php/:: BigInteger (fromString s))
+                               (php/:: BigInteger (fromInt 1))))
+      (let [negative?  (php/=== "-" (php/substr s 0 1))
+            body       (if negative? (php/substr s 1) s)
+            body-dot   (php/strpos body ".")
+            int-part   (php/substr body 0 body-dot)
+            frac-part  (php/substr body (php/+ body-dot 1))
+            digits     (php/strlen frac-part)
+            normalised (php/. (if (php/=== "" int-part) "0" int-part) frac-part)
+            stripped   (php/ltrim normalised "0")
+            num-string (if (php/=== "" stripped) "0" stripped)
+            num        (php/:: BigInteger (fromString (if negative? (php/. "-" num-string) num-string)))
+            den        (php/-> (php/:: BigInteger (fromInt 10)) (pow digits))]
+        (php/:: Rational (create num den))))))
+
+(defn rationalize
+  "Converts `x` to a `Rational`. Floats use a decimal-expansion best-effort
+  conversion; ints and `BigInteger` values become `n/1` and auto-collapse,
+  so they are returned unchanged."
+  {:example "(rationalize 0.5) ; => 1/2\n(rationalize 3) ; => 3"
+   :see-also ["numerator" "denominator" "ratio?"]}
+  [x]
+  (cond
+    (php/instanceof x Rational)   x
+    (php/instanceof x BigInteger) x
+    (php/is_int x)                x
+    (php/is_float x)              (float->rational x)
+    :else
+    (throw (php/new InvalidArgumentException
+                    (str "rationalize expects a number, got " (type x))))))

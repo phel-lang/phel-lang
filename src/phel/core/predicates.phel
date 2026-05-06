@@ -10,10 +10,12 @@
 (use Phel.Lang.Collections.SortedSet.PersistentSortedSet)
 (use Phel.Lang.Collections.Struct.AbstractPersistentStruct)
 (use Phel.Lang.Collections.Vector.PersistentVectorInterface)
+(use Phel.Lang.BigInteger)
 (use Phel.Lang.FnInterface)
 (use Phel.Lang.Keyword)
 (use Phel.Lang.MetaInterface)
 (use Phel.Lang.PhelVar)
+(use Phel.Lang.Rational)
 (use Phel.Lang.Symbol)
 (use Phel.Lang.Variable)
 
@@ -41,6 +43,8 @@
 * `:var`
 * `:int`
 * `:float`
+* `:ratio`
+* `:bigint`
 * `:string`
 * `:nil`
 * `:boolean`
@@ -60,6 +64,8 @@
     (php/instanceof x Symbol)                     :symbol
     (php/instanceof x Variable)                   :atom
     (php/instanceof x PhelVar)                    :var
+    (php/instanceof x Rational)                   :ratio
+    (php/instanceof x BigInteger)                 :bigint
     (php/is_int x)                                :int
     (php/is_float x)                              :float
     (php/is_string x)                             :string
@@ -115,19 +121,21 @@
   (and (integer? x) (php/>= x 0)))
 
 (defn number?
-  "Returns true if `x` is a number, false otherwise."
+  "Returns true if `x` is a number — int, float, `Rational`, or `BigInteger`."
   [x]
-  (or (php/is_int x) (php/is_float x)))
+  (or (php/is_int x)
+      (php/is_float x)
+      (php/instanceof x Rational)
+      (php/instanceof x BigInteger)))
 
 (defn ratio?
-  "Always returns false. Phel has no Ratio type — Clojure-style ratio
-  literals like `1/2` are accepted by the reader but evaluate to floats
-  (`num / den`). Provided for `.cljc` interop so cross-host code can
-  call `ratio?` without compilation errors."
-  {:example "(ratio? 1/2) ; => false"
-   :see-also ["number?" "float?" "double?"]}
-  [_]
-  false)
+  "Returns true if `x` is a `Rational` value. Integer-valued rationals
+  auto-collapse to `int`/`BigInteger` at construction time, so `(ratio? 2/2)`
+  is `false`."
+  {:example "(ratio? 1/2) ; => true\n(ratio? 0.5) ; => false"
+   :see-also ["number?" "numerator" "denominator" "rationalize"]}
+  [x]
+  (php/instanceof x Rational))
 
 (defn double?
   "Returns true if `x` is a floating-point number, false otherwise.

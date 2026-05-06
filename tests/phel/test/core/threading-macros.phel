@@ -9,7 +9,7 @@
 
 (deftest test->>
   (is (= 1 (->> 1)))
-  (is (= 0.75 (->> 5 (+ 3) (/ 2) (- 1))))
+  (is (= 3/4 (->> 5 (+ 3) (/ 2) (- 1))))
   (is (= [2 3 4 5 6] (->> [1 2 [3 4] 5] flatten (map inc)))))
 
 (deftest test-some->
@@ -21,7 +21,7 @@
 
 (deftest test-some->>
   (is (= 1 (some->> 1)))
-  (is (= 0.75 (some->> 5 (+ 3) (/ 2) (- 1))))
+  (is (= 3/4 (some->> 5 (+ 3) (/ 2) (- 1))))
   (is (= 3 (some->> [1 2 3] (map inc) (filter #(> % 1)) first inc)))
   (is (nil? (some->> [1 2 3] (filter #(> % 5)) first inc)))
   (is (nil? (some->> nil (+ 3)))))

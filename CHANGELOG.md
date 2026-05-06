@@ -11,6 +11,12 @@ All notable changes to this project will be documented in this file.
 - `#'sym` reader macro expands to `(var sym)` (#1717)
 - Ratio literals (`1/2`, `-3/4`) parse to exact `Rational` values; integral results collapse to `int` or `BigInteger` (#1825)
 
+#### Core
+- `ratio?`, `bigint?`, `numerator`, `denominator`, and `rationalize` core fns (#1825)
+
+#### Lang
+- `Phel\Lang\NumericOperations` runtime dispatch helper for arithmetic and comparison on `Rational`, `BigInteger`, and native PHP numbers (#1825)
+
 ### Changed
 
 #### Compiler
@@ -44,11 +50,13 @@ All notable changes to this project will be documented in this file.
 - `deref` works on both atoms and `Var` instances (#1717)
 - `phel\mock`'s `with-mocks` and `with-mock-wrapper` now expand to `with-redefs` so they keep working when the target functions are not tagged `^:dynamic`
 - `*ns*` bootstrap value in `phel.core` is now `"phel.core"` (dot form) to match the value emitted for every other namespace by `(ns ...)`
+- `+`, `-`, `*`, `/`, `%`, `**`, comparisons, and `min`/`max`/`abs`/`inc`/`dec`/`even?`/`odd?`/`zero?`/`one?` dispatch on `Rational` and `BigInteger`; `number?` returns true for both, and `type` returns `:ratio` and `:bigint` for them (#1825)
 
 ### Breaking
 
 #### Core
 - `binding` throws `InvalidArgumentException` when any var in the bindings vector is not tagged `^:dynamic`. Previously it silently fell back to `with-redefs` semantics. Switch test mocks and other non-dynamic rebindings to `with-redefs`.
+- `(/ int int)` with a non-integer result returns a `Rational` instead of a float (e.g. `(/ 1 2) => 1/2`); use `(/ 1.0 2)` or `(double ...)` for float division (#1825)
 
 ### Removed
 

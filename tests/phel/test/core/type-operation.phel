@@ -231,12 +231,48 @@
     []))
 
 (deftest test-ratio?
+  (is (true? (ratio? 1/2)) "ratio? on a Rational literal")
+  (is (true? (ratio? 3/4)) "ratio? on a non-collapsing Rational")
   (are [x] (false? (ratio? x))
-    1/2
     0.5
     1
+    2/2
     nil
     "1/2"))
+
+(deftest test-bigint?
+  (is (true? (bigint? (php/:: \Phel\Lang\BigInteger (fromString "100000000000000000000000"))))
+      "bigint? on a BigInteger value")
+  (are [x] (false? (bigint? x))
+    1
+    1.0
+    1/2
+    "100"
+    nil))
+
+(deftest test-numerator
+  (is (= 1 (numerator 1/2)) "numerator of 1/2")
+  (is (= 5 (numerator 5)) "numerator of an integer")
+  (is (= -3 (numerator -3/4)) "numerator preserves sign")
+  (is (thrown? \InvalidArgumentException (numerator "x"))
+      "numerator rejects non-numbers"))
+
+(deftest test-denominator
+  (is (= 2 (denominator 1/2)) "denominator of 1/2")
+  (is (= 1 (denominator 5)) "denominator of an integer is 1")
+  (is (= 4 (denominator -3/4)) "denominator is always positive")
+  (is (thrown? \InvalidArgumentException (denominator nil))
+      "denominator rejects nil"))
+
+(deftest test-rationalize
+  (is (= 1/2 (rationalize 0.5)) "rationalize 0.5 -> 1/2")
+  (is (= 5 (rationalize 5)) "rationalize int returns int")
+  (is (= 1/2 (rationalize 1/2)) "rationalize Rational returns Rational")
+  (is (true? (ratio? (rationalize 0.25))) "rationalize float returns a Rational")
+  (is (thrown? \InvalidArgumentException (rationalize ##Inf))
+      "rationalize rejects ##Inf")
+  (is (thrown? \InvalidArgumentException (rationalize ##NaN))
+      "rationalize rejects ##NaN"))
 
 (deftest test-instance?
   (let [now (php/new DateTime)
