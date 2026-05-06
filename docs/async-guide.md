@@ -218,7 +218,7 @@ Run with `./bin/phel run demo/producer.phel`.
 
 (defn fetch [label ms]
   (async
-    (delay (/ ms 1000))
+    (delay (php/fdiv ms 1000))
     (str label ":" ms "ms")))
 
 (println
