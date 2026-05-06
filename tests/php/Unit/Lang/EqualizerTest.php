@@ -1,0 +1,103 @@
+<?php
+
+declare(strict_types=1);
+
+namespace PhelTest\Unit\Lang;
+
+use Phel\Lang\BigInteger;
+use Phel\Lang\Equalizer;
+use Phel\Lang\Rational;
+use PHPUnit\Framework\TestCase;
+
+final class EqualizerTest extends TestCase
+{
+    private Equalizer $equalizer;
+
+    protected function setUp(): void
+    {
+        $this->equalizer = new Equalizer();
+    }
+
+    public function test_it_returns_true_for_identical_values(): void
+    {
+        self::assertTrue($this->equalizer->equals(1, 1));
+        self::assertTrue($this->equalizer->equals('hello', 'hello'));
+        self::assertTrue($this->equalizer->equals(null, null));
+    }
+
+    public function test_it_returns_false_for_different_native_values(): void
+    {
+        self::assertFalse($this->equalizer->equals(1, 2));
+        self::assertFalse($this->equalizer->equals(1, '1'));
+    }
+
+    public function test_it_compares_bigint_and_int_symmetrically(): void
+    {
+        $big = BigInteger::fromInt(5);
+
+        self::assertTrue($this->equalizer->equals($big, 5));
+        self::assertTrue($this->equalizer->equals(5, $big));
+    }
+
+    public function test_it_returns_false_for_bigint_and_unequal_int(): void
+    {
+        $big = BigInteger::fromInt(5);
+
+        self::assertFalse($this->equalizer->equals($big, 6));
+        self::assertFalse($this->equalizer->equals(6, $big));
+    }
+
+    public function test_it_compares_two_bigints(): void
+    {
+        $a = BigInteger::fromString('12345678901234567890');
+        $b = BigInteger::fromString('12345678901234567890');
+        $c = BigInteger::fromString('12345678901234567891');
+
+        self::assertTrue($this->equalizer->equals($a, $b));
+        self::assertFalse($this->equalizer->equals($a, $c));
+    }
+
+    public function test_it_returns_false_for_int_and_float_with_same_value(): void
+    {
+        // Different categories: integers and floats are not equal under `=`.
+        self::assertFalse($this->equalizer->equals(1, 1.0));
+        self::assertFalse($this->equalizer->equals(1.0, 1));
+    }
+
+    public function test_it_returns_false_for_bigint_and_float(): void
+    {
+        $big = BigInteger::fromInt(5);
+
+        self::assertFalse($this->equalizer->equals($big, 5.0));
+        self::assertFalse($this->equalizer->equals(5.0, $big));
+    }
+
+    public function test_it_returns_false_for_rational_and_int(): void
+    {
+        // Rational instances are by construction non-integral.
+        $half = Rational::create(1, 2);
+
+        self::assertFalse($this->equalizer->equals($half, 1));
+        self::assertFalse($this->equalizer->equals(1, $half));
+    }
+
+    public function test_it_returns_false_for_rational_and_bigint(): void
+    {
+        $half = Rational::create(1, 2);
+        $big = BigInteger::fromInt(1);
+
+        self::assertFalse($this->equalizer->equals($half, $big));
+        self::assertFalse($this->equalizer->equals($big, $half));
+    }
+
+    public function test_it_compares_two_rationals(): void
+    {
+        $half = Rational::create(1, 2);
+        $sameHalf = Rational::create(2, 4);
+        $third = Rational::create(1, 3);
+
+        self::assertTrue($this->equalizer->equals($half, $sameHalf));
+        self::assertTrue($this->equalizer->equals($sameHalf, $half));
+        self::assertFalse($this->equalizer->equals($half, $third));
+    }
+}

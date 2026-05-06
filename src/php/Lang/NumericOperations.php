@@ -10,7 +10,6 @@ use InvalidArgumentException;
 use function abs;
 use function fdiv;
 use function intdiv;
-use function is_finite;
 use function is_float;
 use function is_int;
 use function sprintf;
@@ -53,6 +52,10 @@ final class NumericOperations
             return self::collapseBigInt(self::toBigInt($a)->add(self::toBigInt($b)));
         }
 
+        if (self::addOverflows($a, $b)) {
+            return self::collapseBigInt(BigInteger::fromInt($a)->add(BigInteger::fromInt($b)));
+        }
+
         return $a + $b;
     }
 
@@ -76,6 +79,10 @@ final class NumericOperations
 
         if ($a instanceof BigInteger || $b instanceof BigInteger) {
             return self::collapseBigInt(self::toBigInt($a)->subtract(self::toBigInt($b)));
+        }
+
+        if (self::subtractOverflows($a, $b)) {
+            return self::collapseBigInt(BigInteger::fromInt($a)->subtract(BigInteger::fromInt($b)));
         }
 
         return $a - $b;
@@ -102,6 +109,10 @@ final class NumericOperations
             return self::collapseBigInt(self::toBigInt($a)->multiply(self::toBigInt($b)));
         }
 
+        if (self::multiplyOverflows($a, $b)) {
+            return self::collapseBigInt(BigInteger::fromInt($a)->multiply(BigInteger::fromInt($b)));
+        }
+
         return $a * $b;
     }
 
@@ -117,9 +128,10 @@ final class NumericOperations
         if (is_float($a) || is_float($b)) {
             $left = self::toFloat($a);
             $right = self::toFloat($b);
-            // Preserve PHP's `fdiv` semantics for Inf/NaN over zero so that
-            // `(/ ##Inf 0) => Inf` and `(/ ##NaN 0) => NaN` keep working.
-            if ($right === 0.0 && !is_finite($left)) {
+            // Route any float-over-zero division through `fdiv` so
+            // `(/ 1.0 0)` => `INF`, `(/ -1.0 0)` => `-INF`, `(/ 0.0 0)` => `NAN`,
+            // and `(/ ##Inf 0)` / `(/ ##NaN 0)` keep their IEEE-754 results.
+            if ($right === 0.0) {
                 return fdiv($left, $right);
             }
 
@@ -272,7 +284,9 @@ final class NumericOperations
             return Rational::create(1, BigInteger::fromInt($base)->pow(-$exponent));
         }
 
-        return $base ** $exponent;
+        // Always route int^int through BigInteger so overflow auto-promotes.
+        // Cheap exponents collapse straight back to int.
+        return self::collapseBigInt(BigInteger::fromInt($base)->pow($exponent));
     }
 
     /**
@@ -363,6 +377,48 @@ final class NumericOperations
         }
 
         return $rem;
+    }
+
+    private static function addOverflows(int $a, int $b): bool
+    {
+        if ($a > 0 && $b > 0) {
+            return $a > PHP_INT_MAX - $b;
+        }
+
+        if ($a < 0 && $b < 0) {
+            return $a < PHP_INT_MIN - $b;
+        }
+
+        return false;
+    }
+
+    private static function subtractOverflows(int $a, int $b): bool
+    {
+        if ($a >= 0 && $b < 0) {
+            // a - b > PHP_INT_MAX when b < a - PHP_INT_MAX.
+            return $a > PHP_INT_MAX + $b;
+        }
+
+        if ($a < 0 && $b > 0) {
+            return $a < PHP_INT_MIN + $b;
+        }
+
+        return false;
+    }
+
+    private static function multiplyOverflows(int $a, int $b): bool
+    {
+        if ($a === 0 || $b === 0) {
+            return false;
+        }
+
+        // PHP_INT_MIN * -1 overflows to PHP_INT_MAX + 1.
+        if (($a === PHP_INT_MIN && $b === -1) || ($b === PHP_INT_MIN && $a === -1)) {
+            return true;
+        }
+
+        // Compare against PHP_INT_MAX magnitude using truncating intdiv.
+        return intdiv(PHP_INT_MAX, abs($a)) < abs($b);
     }
 
     private static function ensureNumeric(mixed $value): void

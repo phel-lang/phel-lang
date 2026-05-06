@@ -36,6 +36,9 @@
   (is (= ##Inf (/ ##Inf 0)) "##Inf divided by zero remains ##Inf")
   (is (= ##-Inf (/ ##-Inf 0)) "##-Inf divided by zero remains ##-Inf")
   (is (NaN? (/ ##NaN 0)) "##NaN divided by zero remains ##NaN")
+  (is (= ##Inf (/ 1.0 0.0)) "finite positive float divided by zero is ##Inf")
+  (is (= ##-Inf (/ -1.0 0.0)) "finite negative float divided by zero is ##-Inf")
+  (is (NaN? (/ 0.0 0.0)) "0.0 divided by 0.0 is ##NaN")
   (is (thrown? \DivisionByZeroError (/ 1 0)) "finite division by zero still throws"))
 
 (deftest test-%
@@ -374,6 +377,29 @@
   (is (= 1000000 1_000_000N) "(= 1000000 1_000_000N)")
   (is (int? 1N) "(int? 1N)")
   (is (int? -1N) "(int? -1N)"))
+
+(deftest test-equality-bigint-int-symmetric
+  (let [b (php/:: \Phel\Lang\BigInteger (fromString "5"))]
+    (is (= b 5) "(= bigint int) is true when values match")
+    (is (= 5 b) "(= int bigint) is true when values match")
+    (is (false? (= b 6)) "(= bigint int) is false on mismatch")
+    (is (false? (= 6 b)) "(= int bigint) is false on mismatch")))
+
+(deftest test-equality-bigint-large-symmetric
+  (let [big (php/:: \Phel\Lang\BigInteger (fromString "1000000000000000000000000"))
+        product (* 100000000 100000000 100000000)]
+    (is (= big product) "(= bigint product) is true when values match")
+    (is (= product big) "(= product bigint) is true when values match")))
+
+(deftest test-multiply-int-overflow-promotes-to-bigint
+  (let [r (* 100000000 100000000 100000000)]
+    (is (bigint? r) "int multiplication overflow promotes to BigInteger")
+    (is (= "1000000000000000000000000" (str r)) "value is preserved exactly")))
+
+(deftest test-power-int-overflow-promotes-to-bigint
+  (let [r (** 2 64)]
+    (is (bigint? r) "int power overflow promotes to BigInteger")
+    (is (= "18446744073709551616" (str r)) "value is preserved exactly")))
 
 (deftest test-bigdec-literals
   (is (= 1.0 1M) "(= 1.0 1M)")

@@ -25,7 +25,11 @@
     (php/-> a (equals b))
     (if (php/instanceof a \Phel\Lang\EqualsInterface)
       (php/-> a (equals b))
-      (php/=== a b))))
+      (if (php/instanceof b AbstractType)
+        (php/-> b (equals a))
+        (if (php/instanceof b \Phel\Lang\EqualsInterface)
+          (php/-> b (equals a))
+          (php/=== a b))))))
 
 (defn- cons-string [x coll]
   (let [result (php/array x)]
