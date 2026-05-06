@@ -7,6 +7,7 @@
 (use Phel.Lang.Collections.LazySeq.LazySeq)
 (use Phel.Lang.Collections.LazySeq.LazySeqInterface)
 (use Phel.Lang.Collections.LinkedList.PersistentListInterface)
+(use Phel.Lang.Collections.Map.MapEntry)
 (use Phel.Lang.Collections.Map.PersistentMapInterface)
 (use Phel.Lang.Collections.Map.TransientMapInterface)
 (use Phel.Lang.Collections.Vector.PersistentVectorInterface)
@@ -688,19 +689,36 @@
   (when-not (empty? coll)
     (copy-meta coll (for [x :in coll] x))))
 
+(defn map-entry
+  "Returns a typed `Phel\\Lang\\Collections\\Map\\MapEntry` for `k`/`v`.
+  Equal to the two-element vector `[k v]` so existing code that
+  destructures `[k v]` keeps working."
+  {:example "(map-entry :a 1) ; => [:a 1]"
+   :see-also ["map-entry?" "key" "val"]}
+  [k v]
+  (php/:: MapEntry (create k v)))
+
 (defn key
-  "Returns the key of a map entry (a two-element vector `[key value]`)."
+  "Returns the key of a map entry. Accepts a typed
+  `Phel\\Lang\\Collections\\Map\\MapEntry` value or a 2-element vector
+  `[key value]` (the form Phel maps yield when iterated)."
   {:example "(key (first (pairs {:a 1}))) ; => :a"
-   :see-also ["val" "keys" "pairs"]}
+   :see-also ["val" "keys" "pairs" "map-entry"]}
   [entry]
-  (first entry))
+  (if (php/instanceof entry MapEntry)
+    (php/-> entry (key))
+    (first entry)))
 
 (defn val
-  "Returns the value of a map entry (a two-element vector `[key value]`)."
+  "Returns the value of a map entry. Accepts a typed
+  `Phel\\Lang\\Collections\\Map\\MapEntry` value or a 2-element vector
+  `[key value]`."
   {:example "(val (first (pairs {:a 1}))) ; => 1"
-   :see-also ["key" "vals" "pairs"]}
+   :see-also ["key" "vals" "pairs" "map-entry"]}
   [entry]
-  (second entry))
+  (if (php/instanceof entry MapEntry)
+    (php/-> entry (value))
+    (second entry)))
 
 (defn values
   "Returns a sequence of all values in a map."
