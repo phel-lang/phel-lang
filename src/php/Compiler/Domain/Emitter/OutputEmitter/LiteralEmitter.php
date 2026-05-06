@@ -24,6 +24,7 @@ use function is_bool;
 use function is_float;
 use function is_int;
 use function is_string;
+use function preg_match;
 
 final readonly class LiteralEmitter
 {
@@ -99,14 +100,16 @@ final readonly class LiteralEmitter
 
     private function emitFloat(float $x): void
     {
-        /** @psalm-suppress InvalidCast */
-        $float = ((int) $x == $x)
-            // (string) 10.0 will return 10 and not 10.0
-            // so, we just add a .0 at the end
-            ? ($x) . '.0'
-            : ((string) $x);
+        $str = (string) $x;
+        // (string) 10.0 renders as "10"; append .0 so the literal stays
+        // a float in PHP. Skip when the string already carries a decimal
+        // point or scientific notation (e.g. -9.22E+18) — appending .0
+        // would yield invalid PHP like "-9.22E+18.0".
+        if (preg_match('/^-?\d+$/', $str) === 1) {
+            $str .= '.0';
+        }
 
-        $this->outputEmitter->emitStr($float);
+        $this->outputEmitter->emitStr($str);
     }
 
     private function emitInt(int $x): void

@@ -312,16 +312,18 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 
 (defn int
   "Coerces `x` to an integer. `Rational` values truncate toward zero
-   (`(int 1/10)` is `0`); `BigInteger` values collapse to their PHP int
-   value or throw `OverflowException` when outside the PHP int range.
-   Other inputs delegate to PHP's `intval`, so floats are truncated toward
-   zero, numeric strings are parsed, and `nil` returns `0`."
+   (`(int 1/10)` is `0`); `BigInteger` and `float` values collapse to
+   their PHP int value or throw `OverflowException` when outside the PHP
+   int range (`NaN`/`Inf` floats raise `InvalidArgumentException`).
+   Numeric strings are parsed via PHP's `intval`, and `nil` returns `0`."
   {:example "(int 1.9) ; => 1\n(int \"42\") ; => 42\n(int 1/10) ; => 0"
    :see-also ["float" "double" "int?" "number?"]}
   [x]
-  (if (or (php/instanceof x Rational) (php/instanceof x BigInteger))
-    (php/-> x (toInt))
-    (php/intval x)))
+  (cond
+    (or (php/instanceof x Rational) (php/instanceof x BigInteger))
+                     (php/-> x (toInt))
+    (php/is_float x) (php/-> (php/:: BigInteger (fromFloat x)) (toInt))
+    :else            (php/intval x)))
 
 (defn float
   "Coerces `x` to a float. In PHP there is no distinction between float and
