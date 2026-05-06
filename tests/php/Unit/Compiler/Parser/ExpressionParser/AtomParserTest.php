@@ -21,6 +21,8 @@ use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
 
+use function strlen;
+
 final class AtomParserTest extends TestCase
 {
     public function test_parse_true(): void
@@ -836,5 +838,47 @@ final class AtomParserTest extends TestCase
         $start = new SourceLocation('string', 0, 0);
         $end = new SourceLocation('string', 0, 3);
         $parser->parse(new Token(Token::T_ATOM, '0/0', $start, $end));
+    }
+
+    public function test_parse_oversize_decimal_int_literal_returns_float(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 20);
+        $node = $parser->parse(
+            new Token(Token::T_ATOM, '99999999999999999999', $start, $end),
+        );
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        $value = $node->getValue();
+        self::assertIsFloat($value);
+        self::assertSame((float) '99999999999999999999', $value);
+    }
+
+    public function test_parse_oversize_negative_decimal_int_literal_returns_float(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 21);
+        $node = $parser->parse(
+            new Token(Token::T_ATOM, '-99999999999999999999', $start, $end),
+        );
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertIsFloat($node->getValue());
+    }
+
+    public function test_parse_php_int_max_decimal_literal_stays_int(): void
+    {
+        $parser = new AtomParser(new GlobalEnvironment());
+        $word = (string) PHP_INT_MAX;
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, strlen($word));
+        $node = $parser->parse(
+            new Token(Token::T_ATOM, $word, $start, $end),
+        );
+
+        self::assertInstanceOf(NumberNode::class, $node);
+        self::assertSame(PHP_INT_MAX, $node->getValue());
     }
 }

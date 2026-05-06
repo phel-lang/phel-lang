@@ -115,7 +115,9 @@ final readonly class AtomParser
         }
 
         if (is_numeric($word)) {
-            $value = strpbrk($word, '.eE') !== false ? (float) $word : (int) $word;
+            $value = strpbrk($word, '.eE') !== false
+                ? (float) $word
+                : $this->parseIntegerWithOverflowFallback($word);
 
             return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
         }
@@ -272,6 +274,22 @@ final readonly class AtomParser
         }
 
         return $value;
+    }
+
+    /**
+     * Casts a numeric integer literal to PHP `int`, falling back to `float`
+     * when the literal exceeds `PHP_INT_MAX` / `PHP_INT_MIN`. Without this
+     * fallback PHP's `(int)` cast silently clamps oversize literals to the
+     * platform integer bound, so a literal like `99999999999999999999` would
+     * compare equal to `PHP_INT_MAX` instead of preserving its magnitude.
+     */
+    private function parseIntegerWithOverflowFallback(string $word): float|int
+    {
+        $intValue = (int) $word;
+        $magnitude = ltrim($word, '+-0') ?: '0';
+        $canonical = ($word[0] === '-' && $magnitude !== '0' ? '-' : '') . $magnitude;
+
+        return ((string) $intValue === $canonical) ? $intValue : (float) $word;
     }
 
     private function parseDecimalNumber(array $matches, string $word, Token $token): NumberNode

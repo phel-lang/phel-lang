@@ -396,7 +396,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
    :see-also ["byte" "int?" "string?"]}
   [x]
   (cond
-    (integer? x)
+    (int? x)
     (if (php/< x 0)
       (throw (php/new InvalidArgumentException
                       (php/. "Value out of range for char: " (php/strval x))))
