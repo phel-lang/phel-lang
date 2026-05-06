@@ -16,7 +16,7 @@
 
 (deftest test-uuid-regression
   (is (= "550e8400-e29b-41d4-a716-446655440000"
-         #uuid "550E8400-E29B-41D4-A716-446655440000")))
+         (str #uuid "550E8400-E29B-41D4-A716-446655440000"))))
 
 (deftest test-regex-literal-tag
   (is (= "/[a-z]+/" #regex "[a-z]+")))

@@ -29,6 +29,7 @@ Each implements `TypePrinterInterface`. Selected at runtime based on value type:
 | `KeywordPrinter` | Keyword objects |
 | `SymbolPrinter` | Symbol objects |
 | `RationalPrinter` | Rational numbers (`n/d`) |
+| `UuidPrinter` | UUID values (rendered as `#uuid "..."`) |
 | `VariablePrinter` | Variable objects (recursive) |
 | `PersistentListPrinter` | Lists (recursive) |
 | `PersistentVectorPrinter` | Vectors (recursive) |

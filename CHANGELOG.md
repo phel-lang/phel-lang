@@ -7,87 +7,85 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 #### Compiler
-- Decimal integer literals that overflow `PHP_INT_MAX` now lex as `float` instead of silently clamping to the platform integer bound (#1837)
-- `clojure.lang.X` class FQNs resolve to `\Phel\Lang\X` (with renames `BigInt` -> `BigInteger`, `Ratio` -> `Rational`) (#1840)
+- Oversize decimal int literals lex as `float` (#1837)
+- `clojure.lang.X` FQNs resolve to `\Phel\Lang\X` (`BigInt` to `BigInteger`, `Ratio` to `Rational`) (#1840)
+- `LiteralEmitter::emitFloat` skips `.0` when the rendered float carries `.` or an exponent (#1846)
+- `N`-suffix int literals beyond `PHP_INT_MAX` parse as `BigInteger` (#1850)
 
 #### Core
-- `rationalize` uses the shortest round-trip decimal so `(rationalize 0.1)` is `1/10` and small floats in scientific notation no longer error (#1832)
-- `float` and `double` collapse `Rational` and `BigInteger` values, so `phel.async/delay` (and other PHP-typed-float interop) accepts results of `/` (#1836)
-- `integer?` accepts `BigInteger` values (mathematical integers); `int?` stays restricted to fixed-precision PHP `int` (#1837)
-- `int`, `long`, `short`, `byte` accept `Rational` and `BigInteger` inputs and truncate toward zero, replacing the prior `Object of class Rational could not be converted to int` PHP warning (#1842)
-- `quot` keeps the float type when any operand is a float, so `(quot 10.0 3.0)` returns `3.0` instead of `3` (#1844)
-- `abs` of `PHP_INT_MIN` promotes to `BigInteger` (`9223372036854775808`) instead of dropping to a float (#1844)
-- `bigint` accepts floats (truncates toward zero, rejects `NaN`/`Inf`), so `(bigint 0.0)` is `0N` and `(bigint php/PHP_FLOAT_MAX)` returns the exact integer (#1845)
-- Float literals in scientific notation no longer emit invalid PHP like `-9.22E+18.0`; the emitter only appends `.0` when the rendered float lacks a decimal point or exponent (#1846)
-- `int`, `long`, `short`, `byte` route float operands through `BigInteger::fromFloat`, so out-of-range values such as `(long -9223372036854775809)` raise `OverflowException` instead of silently wrapping; `NaN`/`Inf` raise `InvalidArgumentException` (#1846)
-- `N`-suffix integer literals beyond `PHP_INT_MAX` parse as `BigInteger` (e.g. `9223372036854775808N`), so equality between `(inc (bigint php/PHP_INT_MAX))`, `(inc' php/PHP_INT_MAX)`, and the matching `N` literal now holds (#1850)
-- `(bigint <float>)` rounds through the shortest round-trip decimal of the float (so `(bigint php/PHP_FLOAT_MAX)` is the 17-significant-digit value plus trailing zeros) instead of materialising the exact bit-level integer, matching the integer literal printed by the same float (#1852)
+- `rationalize` uses the shortest round-trip decimal (#1832)
+- `float`/`double` collapse `Rational` and `BigInteger` (#1836)
+- `integer?` accepts `BigInteger`; `int?` stays PHP-int only (#1837)
+- `int`/`long`/`short`/`byte` accept `Rational` and `BigInteger` inputs (#1842)
+- `int`/`long`/`short`/`byte` route floats through `BigInteger::fromFloat`; out-of-range raises `OverflowException`, `NaN`/`Inf` raise `InvalidArgumentException` (#1846)
+- `quot` returns a `float` when any operand is a `float` (#1844)
+- `abs(PHP_INT_MIN)` returns `BigInteger 9223372036854775808` (#1844)
+- `bigint` accepts floats; truncates toward zero, rejects `NaN`/`Inf` (#1845)
+- `bigint` of a float uses the shortest round-trip decimal (#1852)
 
 #### Lang
-- `=` between an integer and a `BigInteger` is now symmetric in both directions (#1830)
-- `+`, `-`, `*`, `**` on native PHP ints auto-promote to `BigInteger` on overflow instead of silently widening to a float (#1830)
-- `(/ 1.0 0.0)` returns `##Inf`, `(/ -1.0 0.0)` returns `##-Inf`, `(/ 0.0 0.0)` returns `##NaN`; finite integer division by zero still throws (#1830)
+- `=` between `int` and `BigInteger` is symmetric (#1830)
+- `+`, `-`, `*`, `**` on PHP ints auto-promote to `BigInteger` on overflow (#1830)
+- `(/ 1.0 0.0)` returns `##Inf`; `(/ -1.0 0.0)` returns `##-Inf`; `(/ 0.0 0.0)` returns `##NaN` (#1830)
 
 ### Added
 
 #### Compiler
-- `(var sym)` special form returns a first-class `Var` handle to a global definition (#1717)
-- `#'sym` reader macro expands to `(var sym)` (#1717)
-- Ratio literals (`1/2`, `-3/4`) parse to exact `Rational` values; integral results collapse to `int` or `BigInteger` (#1825)
-
-#### Core
-- `ratio?`, `bigint?`, `numerator`, `denominator`, and `rationalize` core fns (#1825)
-- `quot`, `rem`, `mod` integer division fns; `%` becomes an alias for `rem` (#1831)
-- `floor`, `ceil`, `round`, `sqrt` float math fns (#1831)
-- `+'`, `-'`, `*'`, `inc'`, `dec'` auto-promoting arithmetic variants that return `BigInteger` for integer results (#1831)
-- `bigint` and `biginteger` constructors that coerce ints, numeric strings, and `BigInteger` values (#1831)
+- `(var sym)` special form for first-class `Var` handles (#1717)
+- `#'sym` reader macro for `(var sym)` (#1717)
+- Ratio literals (`1/2`, `-3/4`) parse to `Rational` (#1825)
 
 #### Lang
-- `Phel\Lang\NumericOperations` runtime dispatch helper for arithmetic and comparison on `Rational`, `BigInteger`, and native PHP numbers (#1825)
+- `Phel\Lang\Uuid` value type; `#uuid "..."` and `random-uuid`/`parse-uuid` return typed values
+- `Phel\Lang\NumericOperations` runtime dispatch for `Rational`, `BigInteger`, native numbers (#1825)
+
+#### Core
+- `ratio?`, `bigint?`, `numerator`, `denominator`, `rationalize` (#1825)
+- `quot`, `rem`, `mod`; `%` aliases `rem` (#1831)
+- `floor`, `ceil`, `round`, `sqrt` (#1831)
+- `+'`, `-'`, `*'`, `inc'`, `dec'` auto-promoting variants (#1831)
+- `bigint`, `biginteger` constructors (#1831)
 
 #### Documentation
-- `docs/numeric-tower.md` covers the `int` / `BigInteger` / `Rational` / `float` tower: no `BigDecimal`, no `1N`/`1M` literal suffixes, oversize int literals lex as `float`, arithmetic `bit-shift-right`, single-argument `==` asserts numeric (#1832)
+- `docs/numeric-tower.md` documents the `int`/`BigInteger`/`Rational`/`float` tower (#1832)
 
 ### Changed
 
 #### Compiler
-- Zero-denominator ratio literals (`1/0`, `0/0`) now raise `ZeroDenominatorRatioParserException` at parse time instead of producing `INF` or `NAN` (#1825)
+- Zero-denominator ratio literals raise `ZeroDenominatorRatioParserException` at parse time (#1825)
 
 #### Core
-- `Var` type with `deref`, `meta`, and `alter-var-root` operations on top of the namespace registry (#1717)
-- `find-var` returns the `Var` named by a fully-qualified symbol (#1717)
-- `var-get` accepts a `Var` instance in addition to a fully-qualified symbol (#1717)
-- `var?` predicate returns true on `Var` values (#1717)
-- `with-redefs` macro temporarily replaces the root values of vars (any var, dynamic or not) and restores them on exit, including on exceptions
-- `with-bindings` macro takes a map of `Var -> value` and rebinds dynamic vars for the body
-- `bound?` returns true when a var has a current root binding in the registry
-- `thread-bound?` returns true when a fiber-local frame currently overrides the var
-- `var-set` mutates the topmost active fiber-local binding frame for a var
-- `Var` handles are callable: `((var f) ...args)` invokes the var's current root value and forwards the arguments
-- `add-watch` and `remove-watch` accept a `Var` as the target; watch fns fire on `alter-var-root`
-- `alter-meta!` and `reset-meta!` mutate per-var metadata on `Var` handles and atoms; per-var metadata survives subsequent `def` redefinitions
-- `symbol` accepts a `Var` and returns its fully qualified name as a symbol (#1821)
+- `Var` type with `deref`, `meta`, `alter-var-root` (#1717)
+- `find-var`, `var-get`, `var?` operate on `Var` (#1717)
+- `with-redefs` swaps root values for any var; restores on exception
+- `with-bindings` rebinds dynamic vars from a `Var -> value` map
+- `bound?`, `thread-bound?`, `var-set` for fiber-local binding state
+- `Var` handles are callable; forward args to root value
+- `add-watch`/`remove-watch` target `Var`; fire on `alter-var-root`
+- `alter-meta!`/`reset-meta!` survive `def` redefinitions
+- `symbol` accepts a `Var` (#1821)
 - `special-symbol?` recognizes `var` (#1822)
 
 #### Lang
-- `PhelVar` implements `FnInterface` and exposes `__invoke`, `addWatch`, `removeWatch`, `alterMeta`, `resetMeta`, and a cached `isDynamic()` lookup
-- `PhelVarStateRegistry` singleton holds per-var watch fns, metadata overrides, and dynamic-flag cache keyed by `(ns, name)` so all handles to the same slot share state
-- `BigInteger` arbitrary-precision integer and `Rational` value types in `Phel\Lang`, with printer support that renders rationals as `n/d` (#1825)
+- `PhelVar` implements `FnInterface`; exposes `addWatch`/`removeWatch`/`alterMeta`/`resetMeta`/`isDynamic`
+- `PhelVarStateRegistry` singleton holds watches, meta overrides, dynamic-flag cache
+- `BigInteger` and `Rational` value types in `Phel\Lang`; printer renders rationals as `n/d` (#1825)
 
 #### Stdlib
-- Bare top-level `(use ...)` forms in `src/phel/core/*` now use dot-separated class FQNs to match the canonical syntax already used by `(ns ... :use ...)`
-- `type` returns `:atom` for `atom` values; `:var` is now reserved for `Var` handles (#1717)
-- `alter-var-root` mutates the root binding of a `Var`; rejects atoms with a clear error pointing at `swap!` (#1717)
-- `deref` works on both atoms and `Var` instances (#1717)
-- `phel\mock`'s `with-mocks` and `with-mock-wrapper` now expand to `with-redefs` so they keep working when the target functions are not tagged `^:dynamic`
-- `*ns*` bootstrap value in `phel.core` is now `"phel.core"` (dot form) to match the value emitted for every other namespace by `(ns ...)`
-- `+`, `-`, `*`, `/`, `%`, `**`, comparisons, and `min`/`max`/`abs`/`inc`/`dec`/`even?`/`odd?`/`zero?`/`one?` dispatch on `Rational` and `BigInteger`; `number?` returns true for both, and `type` returns `:ratio` and `:bigint` for them (#1825)
+- Top-level `(use ...)` in `src/phel/core/*` uses dot-separated class FQNs
+- `type` returns `:atom` for atoms, `:var` for `Var` handles (#1717)
+- `alter-var-root` rejects atoms with a `swap!` hint (#1717)
+- `deref` works on atoms and `Var` (#1717)
+- `with-mocks`/`with-mock-wrapper` expand to `with-redefs`
+- `*ns*` bootstrap is `"phel.core"` (dot form)
+- Arithmetic, comparisons, and predicates dispatch on `Rational`/`BigInteger`; `type` returns `:ratio`/`:bigint` (#1825)
 
 ### Breaking
 
 #### Core
-- `binding` throws `InvalidArgumentException` when any var in the bindings vector is not tagged `^:dynamic`. Previously it silently fell back to `with-redefs` semantics. Switch test mocks and other non-dynamic rebindings to `with-redefs`.
-- `(/ int int)` with a non-integer result returns a `Rational` instead of a float (e.g. `(/ 1 2) => 1/2`); use `(/ 1.0 2)` or `(double ...)` for float division (#1825)
+- `binding` throws `InvalidArgumentException` for non-`^:dynamic` vars; use `with-redefs`
+- `(/ int int)` with non-integer result returns `Rational`; use `(/ 1.0 2)` or `(double ...)` for float division (#1825)
+- `uuid?` accepts only `Phel\Lang\Uuid`; wrap strings with `parse-uuid` or `#uuid "..."`. `random-uuid`/`parse-uuid` return `Uuid`. `s/coerce :uuid` returns `Uuid`; `s/validate :uuid` still accepts canonical strings.
 
 ### Removed
 

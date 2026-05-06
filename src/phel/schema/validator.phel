@@ -134,7 +134,7 @@
     :number     (number? value)
     :keyword    (keyword? value)
     :symbol     (symbol? value)
-    :uuid       (uuid? value)
+    :uuid       (or (uuid? value) (some? (parse-uuid value)))
     :inst       (valid-inst? value)
     :vector     (vector? value)
     :list       (list? value)

@@ -24,6 +24,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\Rational;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
+use Phel\Lang\Uuid;
 
 use function is_array;
 use function is_bool;
@@ -169,6 +170,7 @@ final class Analyzer implements AnalyzerInterface
             || $x instanceof Keyword
             || $x instanceof Rational
             || $x instanceof BigInteger
+            || $x instanceof Uuid
             || is_array($x);
     }
 }
