@@ -158,11 +158,10 @@ final readonly class BigDecimal implements TypeInterface, Stringable
     }
 
     /**
-     * Exact decimal division. Repeatedly extends the scale by appending
-     * zeros to the dividend until the remainder is zero, up to
+     * Exact decimal division. Extends the scale by appending zeros to the
+     * dividend until the remainder is zero, up to
      * {@see self::MAX_DIVIDE_SCALE} digits past the natural alignment;
-     * throws when the expansion does not terminate (matching Clojure's
-     * `BigDecimal/divide` without an explicit `MathContext`).
+     * throws when the expansion does not terminate.
      */
     public function divideExact(self $other): self
     {
@@ -170,16 +169,16 @@ final readonly class BigDecimal implements TypeInterface, Stringable
             throw new ArithmeticError('Division by zero');
         }
 
+        $ten = BigInteger::fromInt(10);
         $resultScale = $this->scale - $other->scale;
         $dividend = $this->mantissa;
         $divisor = $other->mantissa;
 
         if ($resultScale < 0) {
-            $dividend = $dividend->multiply(BigInteger::fromInt(10)->pow(-$resultScale));
+            $dividend = $dividend->multiply($ten->pow(-$resultScale));
             $resultScale = 0;
         }
 
-        $ten = BigInteger::fromInt(10);
         $extraScale = 0;
         while (true) {
             $quotient = $dividend->divide($divisor);
@@ -216,8 +215,6 @@ final readonly class BigDecimal implements TypeInterface, Stringable
 
     public function hash(): int
     {
-        // Hash on the canonical decimal string so 1.20M and 1.2M collide
-        // (they compare equal via compareTo).
         return crc32($this->toCanonicalString());
     }
 
@@ -270,10 +267,8 @@ final readonly class BigDecimal implements TypeInterface, Stringable
     private function toCanonicalString(): string
     {
         $rendered = $this->renderDigits();
-        // Strip trailing zeros after a decimal point so 1.20 -> 1.2.
         if (str_contains($rendered, '.')) {
-            $rendered = rtrim($rendered, '0');
-            $rendered = rtrim($rendered, '.');
+            $rendered = rtrim(rtrim($rendered, '0'), '.');
         }
 
         return $rendered === '' ? '0' : $rendered;
@@ -282,23 +277,23 @@ final readonly class BigDecimal implements TypeInterface, Stringable
     private function renderDigits(): string
     {
         $digits = (string) $this->mantissa;
-        $negative = $digits[0] === '-';
-        if ($negative) {
+        $sign = '';
+        if ($digits[0] === '-') {
+            $sign = '-';
             $digits = substr($digits, 1);
         }
 
         if ($this->scale === 0) {
-            return ($negative ? '-' : '') . $digits;
+            return $sign . $digits;
         }
 
         if (strlen($digits) <= $this->scale) {
             $digits = str_pad($digits, $this->scale + 1, '0', STR_PAD_LEFT);
         }
 
-        $intPart = substr($digits, 0, strlen($digits) - $this->scale);
-        $fracPart = substr($digits, strlen($digits) - $this->scale);
+        $cut = strlen($digits) - $this->scale;
 
-        return ($negative ? '-' : '') . $intPart . '.' . $fracPart;
+        return $sign . substr($digits, 0, $cut) . '.' . substr($digits, $cut);
     }
 
     /**
