@@ -6,7 +6,9 @@ namespace Phel\Lang;
 
 use ArithmeticError;
 use InvalidArgumentException;
+use OverflowException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+
 use Stringable;
 
 use function crc32;
@@ -206,6 +208,46 @@ final readonly class BigDecimal implements TypeInterface, Stringable
     public function isZero(): bool
     {
         return $this->mantissa->isZero();
+    }
+
+    /**
+     * Sign of this value: -1, 0, or 1.
+     */
+    public function signum(): int
+    {
+        if ($this->mantissa->isZero()) {
+            return 0;
+        }
+
+        return $this->mantissa->compareTo(BigInteger::fromInt(0));
+    }
+
+    /**
+     * Truncates toward zero and returns a PHP int. Throws when the
+     * truncated integer part does not fit in `PHP_INT_MIN..PHP_INT_MAX`.
+     */
+    public function toInt(): int
+    {
+        $integerPart = $this->scale === 0
+            ? $this->mantissa
+            : $this->mantissa->divide(BigInteger::fromInt(10)->pow($this->scale));
+
+        if (!$integerPart->fitsInPhpInt()) {
+            throw new OverflowException(
+                sprintf('BigDecimal value %s does not fit in PHP int range', $this),
+            );
+        }
+
+        return $integerPart->toInt();
+    }
+
+    /**
+     * Returns the closest IEEE-754 double to this value. Subject to the
+     * usual float precision limits for very large or very small magnitudes.
+     */
+    public function toFloat(): float
+    {
+        return (float) $this->renderDigits();
     }
 
     public function equals(mixed $other): bool

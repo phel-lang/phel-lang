@@ -184,6 +184,10 @@ final class NumericOperations
         self::ensureNumeric($a);
         self::ensureNumeric($b);
 
+        if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
+            return self::toBigDecimal($a)->compareTo(self::toBigDecimal($b));
+        }
+
         if (is_float($a) || is_float($b)) {
             return self::toFloat($a) <=> self::toFloat($b);
         }
@@ -207,6 +211,10 @@ final class NumericOperations
     {
         self::ensureNumeric($a);
         self::ensureNumeric($b);
+
+        if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
+            return self::compare($a, $b) === 0;
+        }
 
         if (is_float($a) || is_float($b)) {
             return self::toFloat($a) === self::toFloat($b);
@@ -236,6 +244,10 @@ final class NumericOperations
         }
 
         if ($a instanceof BigInteger) {
+            return $a->isZero();
+        }
+
+        if ($a instanceof BigDecimal) {
             return $a->isZero();
         }
 
@@ -432,12 +444,40 @@ final class NumericOperations
             return;
         }
 
-        if ($value instanceof BigInteger || $value instanceof Rational) {
+        if ($value instanceof BigInteger || $value instanceof Rational || $value instanceof BigDecimal) {
             return;
         }
 
         throw new InvalidArgumentException(
             sprintf('Expected a number, got %s', get_debug_type($value)),
+        );
+    }
+
+    private static function toBigDecimal(mixed $value): BigDecimal
+    {
+        if ($value instanceof BigDecimal) {
+            return $value;
+        }
+
+        if ($value instanceof BigInteger) {
+            return BigDecimal::fromBigInteger($value);
+        }
+
+        if (is_int($value)) {
+            return BigDecimal::fromInt($value);
+        }
+
+        if (is_float($value)) {
+            return BigDecimal::fromFloat($value);
+        }
+
+        if ($value instanceof Rational) {
+            return BigDecimal::fromBigInteger($value->numerator())
+                ->divideExact(BigDecimal::fromBigInteger($value->denominator()));
+        }
+
+        throw new InvalidArgumentException(
+            sprintf('Cannot lift %s to BigDecimal', get_debug_type($value)),
         );
     }
 

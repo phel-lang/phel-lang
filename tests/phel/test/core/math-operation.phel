@@ -501,6 +501,41 @@
   (is (= 1.5M (bigdec "1.5")) "literal equals constructor")
   (is (= "1500M" (str 1.5e3M)) "(str 1.5e3M)"))
 
+(deftest test-bigdec-coercions
+  (is (= 0 (int 0M)) "(int 0M)")
+  (is (= -1 (int -1M)) "(int -1M)")
+  (is (= -1 (int -1.1M)) "(int -1.1M) truncates toward zero")
+  (is (= 2 (int 2.7M)) "(int 2.7M) truncates toward zero")
+  (is (= 0 (long 0M)) "(long 0M)")
+  (is (= -1 (long -1M)) "(long -1M)")
+  (is (= 0.0 (float 0M)) "(float 0M)")
+  (is (= -1.0 (float -1M)) "(float -1M)")
+  (is (= -1.1 (float -1.1M)) "(float -1.1M)")
+  (is (= 0.0 (double 0M)) "(double 0M)")
+  (is (= -1.0 (double -1M)) "(double -1M)"))
+
+(deftest test-bigdec-sign-predicates
+  (is (zero? 0M) "(zero? 0M)")
+  (is (not (zero? 1M)) "(zero? 1M)")
+  (is (not (zero? -1M)) "(zero? -1M)")
+  (is (pos? 1M) "(pos? 1M)")
+  (is (not (pos? 0M)) "(pos? 0M)")
+  (is (not (pos? -1M)) "(pos? -1M)")
+  (is (neg? -1M) "(neg? -1M)")
+  (is (neg? -1.1M) "(neg? -1.1M)")
+  (is (not (neg? 0M)) "(neg? 0M)")
+  (is (not (neg? 1M)) "(neg? 1M)"))
+
+(deftest test-bigdec-numeric-equality
+  (is (== 0 0M) "(== 0 0M)")
+  (is (== 1 1M) "(== 1 1M)")
+  (is (== 1.5 1.5M) "(== 1.5 1.5M)")
+  (is (not (== 1M 2M)) "(== 1M 2M)")
+  (is (number? 0M) "(number? 0M)")
+  (is (< -1M 0M) "(< -1M 0M)")
+  (is (< 0M 1M) "(< 0M 1M)")
+  (is (> 1M 0M) "(> 1M 0M)"))
+
 (deftest test-floor
   (is (= 1.0 (floor 1.7)) "(floor 1.7)")
   (is (= -2.0 (floor -1.2)) "(floor -1.2) toward negative infinity")

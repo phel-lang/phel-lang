@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Lang;
 
 use ArithmeticError;
 use InvalidArgumentException;
+use OverflowException;
 use Phel\Lang\BigDecimal;
 use Phel\Lang\BigInteger;
 use PHPUnit\Framework\TestCase;
@@ -141,5 +142,39 @@ final class BigDecimalTest extends TestCase
     public function test_to_plain_string_keeps_trailing_zeros(): void
     {
         self::assertSame('1.20', BigDecimal::fromString('1.20')->toPlainString());
+    }
+
+    public function test_signum_reports_sign(): void
+    {
+        self::assertSame(0, BigDecimal::fromString('0')->signum());
+        self::assertSame(0, BigDecimal::fromString('0.000')->signum());
+        self::assertSame(1, BigDecimal::fromString('0.0001')->signum());
+        self::assertSame(-1, BigDecimal::fromString('-0.0001')->signum());
+        self::assertSame(1, BigDecimal::fromString('42')->signum());
+        self::assertSame(-1, BigDecimal::fromString('-42.5')->signum());
+    }
+
+    public function test_to_int_truncates_toward_zero(): void
+    {
+        self::assertSame(0, BigDecimal::fromString('0')->toInt());
+        self::assertSame(1, BigDecimal::fromString('1')->toInt());
+        self::assertSame(-1, BigDecimal::fromString('-1')->toInt());
+        self::assertSame(2, BigDecimal::fromString('2.7')->toInt());
+        self::assertSame(-1, BigDecimal::fromString('-1.9')->toInt());
+        self::assertSame(0, BigDecimal::fromString('-0.5')->toInt());
+    }
+
+    public function test_to_int_throws_when_out_of_range(): void
+    {
+        $this->expectException(OverflowException::class);
+        BigDecimal::fromString('99999999999999999999999')->toInt();
+    }
+
+    public function test_to_float_returns_native_double(): void
+    {
+        self::assertSame(0.0, BigDecimal::fromString('0')->toFloat());
+        self::assertSame(1.5, BigDecimal::fromString('1.5')->toFloat());
+        self::assertSame(-1.1, BigDecimal::fromString('-1.1')->toFloat());
+        self::assertSame(1500.0, BigDecimal::fromString('1.5e3')->toFloat());
     }
 }
