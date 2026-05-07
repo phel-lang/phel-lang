@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 - Mixing `BigDecimal` with a float in `+`, `-`, `*`, `/`, `quot`, `rem`, `mod`, `compare` returns a float instead of a `BigDecimal` (#1891)
 
 #### Compiler
+- Symbol/keyword names ending in `'` (`inc'`, `dec'`, `+'`, `-'`, `*'`) now resolve cross-namespace; emitter no longer escapes the apostrophe with a backslash inside double-quoted PHP literals
 - Oversize decimal int literals lex as `float` (#1837)
 - `clojure.lang.X` FQNs resolve to `\Phel\Lang\X` (`BigInt` to `BigInteger`, `Ratio` to `Rational`) (#1840)
 - `LiteralEmitter::emitFloat` skips `.0` when the rendered float carries `.` or an exponent (#1846)
@@ -40,6 +41,9 @@ All notable changes to this project will be documented in this file.
 - `int`/`long`/`float`/`double` accept `BigDecimal`; `zero?`/`pos?`/`neg?`, `<`/`<=`/`>`/`>=`, `==`, `number?` route `BigDecimal` through the numeric tower (#1867)
 - `bigdec` accepts `Rational`; non-terminating expansions raise `ArithmeticError` (#1873)
 - `+`, `-`, `*`, `/`, `abs`, `quot`, `rem`, `mod`, `rationalize` accept `BigDecimal` operands; `/` raises `ArithmeticError` on non-terminating expansions (#1875)
+
+#### Testing
+- `--filter` (and `:filters`) now acts as a discovery filter: non-matching tests are silently dropped instead of emitting `S` (skipped) markers and inflating the `Skipped:` counter (#1888)
 
 #### Lang
 - `=` between `int` and `BigInteger` is symmetric (#1830)

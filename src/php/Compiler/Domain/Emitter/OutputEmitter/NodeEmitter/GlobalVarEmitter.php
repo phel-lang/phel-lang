@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\PhpStringEscape;
 
 use function assert;
 
@@ -25,9 +26,9 @@ final class GlobalVarEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitStr('\\Phel::getDefinition("');
         }
 
-        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeRegistryKey($node->getNamespace())));
+        $this->outputEmitter->emitStr(PhpStringEscape::doubleQuoted($this->outputEmitter->mungeEncodeRegistryKey($node->getNamespace())));
         $this->outputEmitter->emitStr('", "');
-        $this->outputEmitter->emitStr(addslashes($node->getName()->getName()));
+        $this->outputEmitter->emitStr(PhpStringEscape::doubleQuoted($node->getName()->getName()));
         $this->outputEmitter->emitStr('")');
         $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }

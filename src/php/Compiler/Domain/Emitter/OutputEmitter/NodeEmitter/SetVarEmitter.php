@@ -8,6 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\SetVarNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\PhpStringEscape;
 
 use function assert;
 
@@ -28,10 +29,10 @@ final class SetVarEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('\\Phel::setVar(');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitStr('"');
-        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeRegistryKey($symbolNode->getNamespace())));
+        $this->outputEmitter->emitStr(PhpStringEscape::doubleQuoted($this->outputEmitter->mungeEncodeRegistryKey($symbolNode->getNamespace())));
         $this->outputEmitter->emitLine('",');
         $this->outputEmitter->emitStr('"');
-        $this->outputEmitter->emitStr(addslashes($symbolNode->getName()->getName()));
+        $this->outputEmitter->emitStr(PhpStringEscape::doubleQuoted($symbolNode->getName()->getName()));
         $this->outputEmitter->emitLine('",');
         $this->outputEmitter->emitNode($node->getValueExpr());
         $this->outputEmitter->emitLine();
