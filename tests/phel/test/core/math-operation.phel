@@ -494,12 +494,14 @@
   (is (bigdec? 1.5M) "(bigdec? 1.5M)")
   (is (bigdec? -1.1M) "(bigdec? -1.1M)")
   (is (decimal? 1M) "(decimal? 1M)")
-  (is (= "1M" (str 1M)) "(str 1M)")
-  (is (= "1.5M" (str 1.5M)) "(str 1.5M)")
-  (is (= "-1.1M" (str -1.1M)) "(str -1.1M)")
+  (is (= "1" (str 1M)) "(str 1M) drops the M suffix")
+  (is (= "1.5" (str 1.5M)) "(str 1.5M) drops the M suffix")
+  (is (= "-1.1" (str -1.1M)) "(str -1.1M) drops the M suffix")
+  (is (= "0" (str 0M)) "(str 0M)")
   (is (= 1M 1M) "(= 1M 1M) reflexive")
   (is (= 1.5M (bigdec "1.5")) "literal equals constructor")
-  (is (= "1500M" (str 1.5e3M)) "(str 1.5e3M)"))
+  (is (= "1500" (str 1.5e3M)) "(str 1.5e3M)"))
+
 
 (deftest test-bigdec-coercions
   (is (= 0 (int 0M)) "(int 0M)")

@@ -44,7 +44,7 @@ final readonly class BigDecimal implements TypeInterface, Stringable
 
     public function __toString(): string
     {
-        return $this->toCanonicalString() . 'M';
+        return $this->renderDigits();
     }
 
     /**
