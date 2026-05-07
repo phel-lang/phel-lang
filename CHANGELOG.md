@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Performance
+
+- Cold REPL boot prunes `vendor/`, `.git/`, `node_modules/` at namespace-scan descent and memoises directory scans per process (#1885)
+
 ### Fixed
 
 #### Compiler

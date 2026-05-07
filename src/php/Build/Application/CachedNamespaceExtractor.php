@@ -12,20 +12,25 @@ use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceFileGrouper;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
+use RecursiveCallbackFilterIterator;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RegexIterator;
+use SplFileInfo;
 use UnexpectedValueException;
 
-final readonly class CachedNamespaceExtractor implements NamespaceExtractorInterface
+final class CachedNamespaceExtractor implements NamespaceExtractorInterface
 {
-    private NamespaceFileGrouper $grouper;
+    private readonly NamespaceFileGrouper $grouper;
 
-    private ExcludedScanPaths $excludedPaths;
+    private readonly ExcludedScanPaths $excludedPaths;
+
+    /** @var array<string, list<NamespaceInformation>> */
+    private array $directoriesScanCache = [];
 
     public function __construct(
-        private NamespaceExtractorInterface $innerExtractor,
-        private NamespaceCacheInterface $cache,
+        private readonly NamespaceExtractorInterface $innerExtractor,
+        private readonly NamespaceCacheInterface $cache,
         NamespaceSorterInterface $namespaceSorter,
         ?ExcludedScanPaths $excludedPaths = null,
     ) {
@@ -58,6 +63,11 @@ final readonly class CachedNamespaceExtractor implements NamespaceExtractorInter
      */
     public function getNamespacesFromDirectories(array $directories): array
     {
+        $cacheKey = $this->scanCacheKey($directories);
+        if (isset($this->directoriesScanCache[$cacheKey])) {
+            return $this->directoriesScanCache[$cacheKey];
+        }
+
         $allInfos = [];
         foreach ($this->findAllPhelFiles($directories) as $file) {
             try {
@@ -71,7 +81,23 @@ final readonly class CachedNamespaceExtractor implements NamespaceExtractorInter
             }
         }
 
-        return $this->grouper->groupAndSort($allInfos);
+        return $this->directoriesScanCache[$cacheKey] = $this->grouper->groupAndSort($allInfos);
+    }
+
+    /**
+     * @param list<string> $directories
+     */
+    private function scanCacheKey(array $directories): string
+    {
+        $resolved = [];
+        foreach ($directories as $directory) {
+            $real = $this->resolvePath($directory);
+            $resolved[] = $real ?? $directory;
+        }
+
+        sort($resolved);
+
+        return implode("\0", $resolved);
     }
 
     private function cacheNamespaceInfo(NamespaceInformation $info): void
@@ -114,11 +140,7 @@ final readonly class CachedNamespaceExtractor implements NamespaceExtractorInter
             }
 
             try {
-                $directoryIterator = new RecursiveDirectoryIterator($realpath);
-                $iterator = new RecursiveIteratorIterator($directoryIterator);
-                $phelIterator = new RegexIterator($iterator, '/^.+\.(phel|cljc)$/i', RegexIterator::GET_MATCH);
-
-                foreach ($phelIterator as $file) {
+                foreach ($this->phelFileIterator($realpath) as $file) {
                     if ($this->excludedPaths->contains($file[0], $realpath)) {
                         continue;
                     }
@@ -135,6 +157,40 @@ final readonly class CachedNamespaceExtractor implements NamespaceExtractorInter
         }
 
         return array_unique($files);
+    }
+
+    /**
+     * Build the recursive iterator that yields `.phel`/`.cljc` files under
+     * `$root`, pruning subtrees flagged by `ExcludedScanPaths` at descent
+     * time so vendor/.git/node_modules never get walked.
+     */
+    private function phelFileIterator(string $root): RegexIterator
+    {
+        $directoryIterator = new RecursiveDirectoryIterator(
+            $root,
+            RecursiveDirectoryIterator::SKIP_DOTS,
+        );
+        $excludedPaths = $this->excludedPaths;
+        $prunedDescent = new RecursiveCallbackFilterIterator(
+            $directoryIterator,
+            static function (mixed $current) use ($excludedPaths, $root): bool {
+                if (!$current instanceof SplFileInfo || !$current->isDir()) {
+                    return true;
+                }
+
+                return !$excludedPaths->shouldPruneDirectory(
+                    $current->getFilename(),
+                    $current->getPathname(),
+                    $root,
+                );
+            },
+        );
+
+        return new RegexIterator(
+            new RecursiveIteratorIterator($prunedDescent),
+            '/^.+\.(phel|cljc)$/i',
+            RegexIterator::GET_MATCH,
+        );
     }
 
     private function resolvePath(string $path): ?string
