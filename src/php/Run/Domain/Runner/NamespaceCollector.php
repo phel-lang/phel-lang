@@ -120,6 +120,6 @@ final readonly class NamespaceCollector
      */
     private function isFileUnderAny(string $file, array $roots): bool
     {
-        return array_any($roots, fn($root): bool => $file === $root || str_starts_with($file, $root . '/'));
+        return array_any($roots, static fn($root): bool => $file === $root || str_starts_with($file, $root . '/'));
     }
 }

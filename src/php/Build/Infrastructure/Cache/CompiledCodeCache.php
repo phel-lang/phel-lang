@@ -319,13 +319,15 @@ final class CompiledCodeCache
                 && is_string($entryData['source_hash'])
                 && is_string($entryData['compiled_path'])
             ) {
+                $rawMtime = $entryData['source_mtime'] ?? null;
+                $rawSize = $entryData['source_size'] ?? null;
                 $entries[$sourcePath] = [
                     'namespace' => $entryData['namespace'],
                     'source_hash' => $entryData['source_hash'],
                     'compiled_path' => $entryData['compiled_path'],
                     'last_accessed' => $entryData['last_accessed'] ?? time(),
-                    'source_mtime' => is_int($entryData['source_mtime'] ?? null) ? $entryData['source_mtime'] : 0,
-                    'source_size' => is_int($entryData['source_size'] ?? null) ? $entryData['source_size'] : -1,
+                    'source_mtime' => is_int($rawMtime) ? $rawMtime : 0,
+                    'source_size' => is_int($rawSize) ? $rawSize : -1,
                 ];
             }
         }
@@ -434,13 +436,15 @@ final class CompiledCodeCache
                 && is_string($entryData['source_hash'])
                 && is_string($entryData['compiled_path'])
             ) {
+                $rawMtime = $entryData['source_mtime'] ?? null;
+                $rawSize = $entryData['source_size'] ?? null;
                 $entries[$sourcePath] = [
                     'namespace' => $entryData['namespace'],
                     'source_hash' => $entryData['source_hash'],
                     'compiled_path' => $entryData['compiled_path'],
                     'last_accessed' => $entryData['last_accessed'] ?? time(),
-                    'source_mtime' => is_int($entryData['source_mtime'] ?? null) ? $entryData['source_mtime'] : 0,
-                    'source_size' => is_int($entryData['source_size'] ?? null) ? $entryData['source_size'] : -1,
+                    'source_mtime' => is_int($rawMtime) ? $rawMtime : 0,
+                    'source_size' => is_int($rawSize) ? $rawSize : -1,
                 ];
             }
         }
