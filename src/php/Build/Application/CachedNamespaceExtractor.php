@@ -131,7 +131,11 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
 
         foreach ($directories as $directory) {
             $realpath = $this->resolvePath($directory);
-            if ($realpath === null || !is_dir($realpath)) {
+            if ($realpath === null) {
+                continue;
+            }
+
+            if (!is_dir($realpath)) {
                 continue;
             }
 
@@ -169,8 +173,8 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
         $excludedPaths = $this->excludedPaths;
         $prunedDescent = new RecursiveCallbackFilterIterator(
             $directoryIterator,
-            static function (SplFileInfo $current) use ($excludedPaths, $root): bool {
-                if (!$current->isDir()) {
+            static function (mixed $current) use ($excludedPaths, $root): bool {
+                if (!$current instanceof SplFileInfo || !$current->isDir()) {
                     return true;
                 }
 
