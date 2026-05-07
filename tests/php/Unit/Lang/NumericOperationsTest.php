@@ -435,4 +435,20 @@ final class NumericOperationsTest extends TestCase
     {
         self::assertSame(INF, NumericOperations::multiply(INF, BigDecimal::fromString('2.0')));
     }
+
+    public function test_compare_inf_and_bigdecimal_returns_positive(): void
+    {
+        self::assertSame(1, NumericOperations::compare(INF, BigDecimal::fromString('1.0')));
+        self::assertSame(-1, NumericOperations::compare(BigDecimal::fromString('1.0'), INF));
+    }
+
+    public function test_compare_negative_inf_and_bigdecimal_returns_negative(): void
+    {
+        self::assertSame(-1, NumericOperations::compare(-INF, BigDecimal::fromString('1.0')));
+    }
+
+    public function test_is_equal_inf_and_bigdecimal_is_false(): void
+    {
+        self::assertFalse(NumericOperations::isEqual(INF, BigDecimal::fromString('1.0')));
+    }
 }

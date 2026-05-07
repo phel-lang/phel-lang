@@ -223,6 +223,10 @@ final class NumericOperations
         self::ensureNumeric($a);
         self::ensureNumeric($b);
 
+        if (self::hasNonFiniteFloat($a, $b)) {
+            return self::toFloat($a) <=> self::toFloat($b);
+        }
+
         if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
             return self::toBigDecimal($a)->compareTo(self::toBigDecimal($b));
         }
