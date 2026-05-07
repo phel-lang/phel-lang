@@ -131,38 +131,12 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
 
         foreach ($directories as $directory) {
             $realpath = $this->resolvePath($directory);
-            if ($realpath === null) {
-                continue;
-            }
-
-            if (!is_dir($realpath)) {
+            if ($realpath === null || !is_dir($realpath)) {
                 continue;
             }
 
             try {
-                $directoryIterator = new RecursiveDirectoryIterator(
-                    $realpath,
-                    RecursiveDirectoryIterator::SKIP_DOTS,
-                );
-                $excludedPaths = $this->excludedPaths;
-                $prunedDescent = new RecursiveCallbackFilterIterator(
-                    $directoryIterator,
-                    static function (SplFileInfo $current) use ($excludedPaths, $realpath): bool {
-                        if (!$current->isDir()) {
-                            return true;
-                        }
-
-                        return !$excludedPaths->shouldPruneDirectory(
-                            $current->getFilename(),
-                            $current->getPathname(),
-                            $realpath,
-                        );
-                    },
-                );
-                $iterator = new RecursiveIteratorIterator($prunedDescent);
-                $phelIterator = new RegexIterator($iterator, '/^.+\.(phel|cljc)$/i', RegexIterator::GET_MATCH);
-
-                foreach ($phelIterator as $file) {
+                foreach ($this->phelFileIterator($realpath) as $file) {
                     if ($this->excludedPaths->contains($file[0], $realpath)) {
                         continue;
                     }
@@ -179,6 +153,40 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
         }
 
         return array_unique($files);
+    }
+
+    /**
+     * Build the recursive iterator that yields `.phel`/`.cljc` files under
+     * `$root`, pruning subtrees flagged by `ExcludedScanPaths` at descent
+     * time so vendor/.git/node_modules never get walked.
+     */
+    private function phelFileIterator(string $root): RegexIterator
+    {
+        $directoryIterator = new RecursiveDirectoryIterator(
+            $root,
+            RecursiveDirectoryIterator::SKIP_DOTS,
+        );
+        $excludedPaths = $this->excludedPaths;
+        $prunedDescent = new RecursiveCallbackFilterIterator(
+            $directoryIterator,
+            static function (SplFileInfo $current) use ($excludedPaths, $root): bool {
+                if (!$current->isDir()) {
+                    return true;
+                }
+
+                return !$excludedPaths->shouldPruneDirectory(
+                    $current->getFilename(),
+                    $current->getPathname(),
+                    $root,
+                );
+            },
+        );
+
+        return new RegexIterator(
+            new RecursiveIteratorIterator($prunedDescent),
+            '/^.+\.(phel|cljc)$/i',
+            RegexIterator::GET_MATCH,
+        );
     }
 
     private function resolvePath(string $path): ?string
