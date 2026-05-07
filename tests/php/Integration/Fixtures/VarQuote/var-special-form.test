@@ -19,4 +19,4 @@
     )
   )
 );
-Phel\Lang\Registry::getInstance()->getVar("user", "x");
+\Phel\Lang\Registry::getInstance()->getVar("user", "x");
