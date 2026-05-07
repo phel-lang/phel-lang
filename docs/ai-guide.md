@@ -168,4 +168,4 @@ All failures throw `\RuntimeException`. The message includes the HTTP status and
 ## See also
 
 - Source: `src/phel/ai.phel`
-- Tests: `tests/phel/test/ai.phel`
+- Tests: `tests/phel/ai.phel`

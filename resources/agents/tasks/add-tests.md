@@ -109,4 +109,4 @@ Full: `docs/mocking-guide.md`.
 
 ## Next
 
-`src/phel/test.phel`, `docs/mocking-guide.md`, `tests/phel/test/*.phel`
+`src/phel/test.phel`, `docs/mocking-guide.md`, `tests/phel/*.phel`

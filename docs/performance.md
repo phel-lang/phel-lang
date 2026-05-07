@@ -60,7 +60,7 @@ Next invocation repopulates cleanly.
 
 ## Benchmarks (reference)
 
-Measured locally on 6-test file `tests/phel/test/core/var-quote.phel`:
+Measured locally on 6-test file `tests/phel/core/var-quote.phel`:
 
 | State | Time |
 |---|---|

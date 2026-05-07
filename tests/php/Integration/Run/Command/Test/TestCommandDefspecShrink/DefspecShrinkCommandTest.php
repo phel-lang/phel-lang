@@ -11,7 +11,7 @@ use function exec;
 use function implode;
 
 /**
- * Boots `./bin/phel test tests/phel/test/defspec-shrink.phel` and
+ * Boots `./bin/phel test tests/phel/defspec-shrink.phel` and
  * asserts the fixture suite runs cleanly. Covers the
  * rose-tree/shrinker/defspec pipeline end-to-end through the public
  * CLI entry point.
@@ -22,7 +22,7 @@ final class DefspecShrinkCommandTest extends TestCase
     {
         $projectRoot = __DIR__ . '/../../../../../../..';
         $bin         = $projectRoot . '/bin/phel';
-        $fixture     = $projectRoot . '/tests/phel/test/defspec-shrink.phel';
+        $fixture     = $projectRoot . '/tests/phel/defspec-shrink.phel';
 
         $cmd = 'cd ' . escapeshellarg($projectRoot)
             . ' && php -d memory_limit=256M ' . escapeshellarg($bin)
@@ -42,7 +42,7 @@ final class DefspecShrinkCommandTest extends TestCase
     {
         $projectRoot = __DIR__ . '/../../../../../../..';
         $bin         = $projectRoot . '/bin/phel';
-        $fixture     = $projectRoot . '/tests/phel/test/rose.phel';
+        $fixture     = $projectRoot . '/tests/phel/rose.phel';
 
         $cmd = 'cd ' . escapeshellarg($projectRoot)
             . ' && php -d memory_limit=256M ' . escapeshellarg($bin)
@@ -61,7 +61,7 @@ final class DefspecShrinkCommandTest extends TestCase
     {
         $projectRoot = __DIR__ . '/../../../../../../..';
         $bin         = $projectRoot . '/bin/phel';
-        $fixture     = $projectRoot . '/tests/phel/test/shrink.phel';
+        $fixture     = $projectRoot . '/tests/phel/shrink.phel';
 
         $cmd = 'cd ' . escapeshellarg($projectRoot)
             . ' && php -d memory_limit=256M ' . escapeshellarg($bin)

@@ -1,0 +1,453 @@
+(ns phel-test.core.file-operation
+  (:require phel.test :refer [deftest is thrown?]))
+
+(deftest test-slurp
+  (is (string? (slurp php/__FILE__)) "reads current file successfully")
+  (is (thrown? \InvalidArgumentException
+               (slurp "/non/existent/file.txt")) "reading non-existent file throws exception"))
+
+(deftest test-slurp-backwards-compatibility
+  ;; Ensure slurp still works with regular files (backwards compatibility)
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-slurp-compat.txt")
+        test-content "Backwards compatibility test"]
+    (spit target-file test-content)
+    (is (= test-content (slurp target-file)) "slurp should still work with regular files")
+    (php/unlink target-file)))
+
+(deftest test-slurp-relative-path
+  ;; Test that relative file paths still work
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-slurp-relative.txt")
+        test-content "Relative path test"]
+    (spit target-file test-content)
+    (let [old-cwd (php/getcwd)]
+      (php/chdir target-directory)
+      (is (= test-content (slurp "test-slurp-relative.txt"))
+          "slurp should work with relative file paths")
+      (php/chdir old-cwd))
+    (php/unlink target-file)))
+
+;; Note: URL tests are commented out to avoid network dependencies in CI
+;; These can be tested manually or in integration test suites
+;;
+;; (deftest test-slurp-with-url
+;;   (let [result (slurp "https://httpbin.org/robots.txt")]
+;;     (is (string? result) "slurp should successfully read from URL")
+;;     (is (> (php/strlen result) 0) "slurp should return non-empty content from URL")))
+
+(deftest test-spit
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-spit.txt")]
+    (is (= 6 (spit target-file "FOOBAR"))
+        "successful writing returning number of bytes written")
+    (is (= "FOOBAR" (slurp target-file)) "written file reads back correctly")
+    (is (= 3 (spit target-file "BAZ" {:flags php/FILE_APPEND}))
+        "successful writing with append, returning number of bytes written")
+    (is (= "FOOBARBAZ" (slurp target-file)) "written file reads back correctly after appending")
+    (is (= 4 (spit target-file "TEST"))
+        "successful writing returning number of bytes written")
+    (is (= "TEST" (slurp target-file)) "written file reads back correctly after over writing")
+    (is (thrown? \InvalidArgumentException (spit target-directory "test"))
+        "writing to a directory path throws exception")
+    (php/unlink target-file)))
+
+(deftest test-line-seq-basic
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-line-seq.txt")]
+    (spit target-file "line1\nline2\nline3")
+    (is (= ["line1" "line2" "line3"] (doall (line-seq target-file)))
+        "line-seq reads all lines correctly")
+    (php/unlink target-file)))
+
+(deftest test-line-seq-empty-file
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-line-seq-empty.txt")]
+    (spit target-file "")
+    (is (= [] (doall (line-seq target-file)))
+        "line-seq returns empty sequence for empty file")
+    (php/unlink target-file)))
+
+(deftest test-line-seq-single-line
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-line-seq-single.txt")]
+    (spit target-file "single line")
+    (is (= ["single line"] (doall (line-seq target-file)))
+        "line-seq reads single line correctly")
+    (php/unlink target-file)))
+
+(deftest test-line-seq-with-crlf
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-line-seq-crlf.txt")]
+    (spit target-file "line1\r\nline2\r\nline3")
+    (is (= ["line1" "line2" "line3"] (doall (line-seq target-file)))
+        "line-seq handles CRLF line endings correctly")
+    (php/unlink target-file)))
+
+(deftest test-line-seq-is-lazy
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-line-seq-lazy.txt")]
+    (spit target-file "line1\nline2\nline3\nline4\nline5\nline6\nline7\nline8\nline9\nline10")
+    (is (= ["line1" "line2" "line3"] (take 3 (line-seq target-file)))
+        "line-seq is lazy and works with take")
+    (php/unlink target-file)))
+
+(deftest test-line-seq-trailing-newline
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-line-seq-trailing.txt")]
+    (spit target-file "line1\nline2\n")
+    (is (= ["line1" "line2"] (doall (line-seq target-file)))
+        "line-seq handles trailing newline correctly")
+    (php/unlink target-file)))
+
+(deftest test-line-seq-non-existent-file
+  (is (thrown? \InvalidArgumentException (doall (line-seq "/non/existent/file.txt")))
+      "line-seq throws exception for non-existent file"))
+
+(deftest test-line-seq-directory
+  (is (thrown? \InvalidArgumentException (doall (line-seq (php/sys_get_temp_dir))))
+      "line-seq throws exception for directory"))
+
+(deftest test-line-seq-returns-lazy-seq
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-line-seq-type.txt")]
+    (spit target-file "line1\nline2")
+    (let [result (line-seq target-file)]
+      (is (true? (seq? result))
+          "line-seq should return a lazy sequence"))
+    (php/unlink target-file)))
+
+(deftest test-file-seq-with-directory
+  (let [target-directory (str (php/sys_get_temp_dir) php/DIRECTORY_SEPARATOR "test-file-seq")
+        sub-dir (str target-directory php/DIRECTORY_SEPARATOR "subdir")
+        file1 (str target-directory php/DIRECTORY_SEPARATOR "file1.txt")
+        file2 (str sub-dir php/DIRECTORY_SEPARATOR "file2.txt")]
+    (php/mkdir target-directory)
+    (php/mkdir sub-dir)
+    (spit file1 "content1")
+    (spit file2 "content2")
+    (let [result (doall (file-seq target-directory))
+          result-count (count result)]
+      (is (>= result-count 3) "file-seq should return at least the directory and subdirectory and files")
+      (is (true? (some #(php/str_ends_with % "file1.txt") result))
+          "file-seq should include file1.txt")
+      (is (true? (some #(php/str_ends_with % "file2.txt") result))
+          "file-seq should include file2.txt"))
+    (php/unlink file2)
+    (php/unlink file1)
+    (php/rmdir sub-dir)
+    (php/rmdir target-directory)))
+
+(deftest test-file-seq-with-file
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-file-seq-single.txt")]
+    (spit target-file "content")
+    (let [result (doall (file-seq target-file))]
+      (is (= 1 (count result)) "file-seq with file should return single item")
+      (is (= target-file (first result)) "file-seq with file should return the file path"))
+    (php/unlink target-file)))
+
+(deftest test-file-seq-is-lazy
+  (let [target-directory (str (php/sys_get_temp_dir) php/DIRECTORY_SEPARATOR "test-file-seq-lazy")
+        file1 (str target-directory php/DIRECTORY_SEPARATOR "file1.txt")
+        file2 (str target-directory php/DIRECTORY_SEPARATOR "file2.txt")
+        file3 (str target-directory php/DIRECTORY_SEPARATOR "file3.txt")]
+    (php/mkdir target-directory)
+    (spit file1 "content1")
+    (spit file2 "content2")
+    (spit file3 "content3")
+    (let [result (take 2 (file-seq target-directory))]
+      (is (= 2 (count result)) "file-seq should be lazy and work with take"))
+    (php/unlink file3)
+    (php/unlink file2)
+    (php/unlink file1)
+    (php/rmdir target-directory)))
+
+(deftest test-file-seq-non-existent-path
+  (is (thrown? \InvalidArgumentException (doall (file-seq "/non/existent/path")))
+      "file-seq throws exception for non-existent path"))
+
+(deftest test-file-seq-returns-lazy-seq
+  (let [target-directory (str (php/sys_get_temp_dir) php/DIRECTORY_SEPARATOR "test-file-seq-type")
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test.txt")]
+    (php/mkdir target-directory)
+    (spit target-file "content")
+    (let [result (file-seq target-directory)]
+      (is (true? (seq? result))
+          "file-seq should return a lazy sequence"))
+    (php/unlink target-file)
+    (php/rmdir target-directory)))
+
+(deftest test-file-seq-filter-by-extension
+  (let [target-directory (str (php/sys_get_temp_dir) php/DIRECTORY_SEPARATOR "test-file-seq-filter")
+        file1 (str target-directory php/DIRECTORY_SEPARATOR "test.phel")
+        file2 (str target-directory php/DIRECTORY_SEPARATOR "test.txt")
+        file3 (str target-directory php/DIRECTORY_SEPARATOR "test.md")]
+    (php/mkdir target-directory)
+    (spit file1 "phel content")
+    (spit file2 "txt content")
+    (spit file3 "md content")
+    (let [phel-files (filter #(php/str_ends_with % ".phel") (file-seq target-directory))]
+      (is (= 1 (count (doall phel-files))) "should filter to only .phel files"))
+    (php/unlink file3)
+    (php/unlink file2)
+    (php/unlink file1)
+    (php/rmdir target-directory)))
+
+(deftest test-file-seq-with-symlink
+  (let [target-directory (str (php/sys_get_temp_dir) php/DIRECTORY_SEPARATOR "test-file-seq-symlink")
+        real-dir (str target-directory php/DIRECTORY_SEPARATOR "real")
+        symlink-dir (str target-directory php/DIRECTORY_SEPARATOR "link")
+        file1 (str real-dir php/DIRECTORY_SEPARATOR "test.txt")]
+    (php/mkdir target-directory)
+    (php/mkdir real-dir)
+    (spit file1 "content")
+    (php/symlink real-dir symlink-dir)
+    (let [result (doall (file-seq target-directory))
+          file-count (count (filter php/is_file result))]
+      (is (>= file-count 1) "file-seq should traverse symlinked directories")
+      (is (true? (some #(php/str_ends_with % "test.txt") result))
+          "file-seq should include files from symlinked directories"))
+    (php/unlink file1)
+    (php/unlink symlink-dir)
+    (php/rmdir real-dir)
+    (php/rmdir target-directory)))
+
+(deftest test-file-seq-with-symlink-cycle
+  (let [target-directory (str (php/sys_get_temp_dir) php/DIRECTORY_SEPARATOR "test-file-seq-cycle")
+        subdir (str target-directory php/DIRECTORY_SEPARATOR "subdir")
+        cycle-link (str subdir php/DIRECTORY_SEPARATOR "cycle")
+        file1 (str target-directory php/DIRECTORY_SEPARATOR "test.txt")]
+    (php/mkdir target-directory)
+    (php/mkdir subdir)
+    (spit file1 "content")
+    (php/symlink target-directory cycle-link)
+    (let [result (doall (file-seq target-directory))]
+      (is (true? (> (count result) 0)) "file-seq should not hang on symlink cycles")
+      (is (true? (some #(php/str_ends_with % "test.txt") result))
+          "file-seq should still traverse non-cycle paths"))
+    (php/unlink file1)
+    (php/unlink cycle-link)
+    (php/rmdir subdir)
+    (php/rmdir target-directory)))
+
+(deftest test-read-file-lazy-basic
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-read-file-lazy.txt")
+        content "ABCDEFGHIJKLMNOPQRSTUVWXYZ"]
+    (spit target-file content)
+    (let [chunks (doall (read-file-lazy target-file 5))]
+      (is (= 6 (count chunks)) "should read file in 6 chunks of 5 bytes")
+      (is (= content (apply str chunks)) "concatenated chunks should equal original content"))
+    (php/unlink target-file)))
+
+(deftest test-read-file-lazy-default-chunk-size
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-read-file-lazy-default.txt")
+        content (apply str (repeat 10000 "x"))]
+    (spit target-file content)
+    (let [chunks (doall (read-file-lazy target-file))]
+      (is (= 2 (count chunks)) "should read 10000 bytes in 2 chunks with default 8192 chunk size")
+      (is (= content (apply str chunks)) "concatenated chunks should equal original content"))
+    (php/unlink target-file)))
+
+(deftest test-read-file-lazy-empty-file
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-read-file-lazy-empty.txt")]
+    (spit target-file "")
+    (is (= [] (doall (read-file-lazy target-file)))
+        "read-file-lazy returns empty sequence for empty file")
+    (php/unlink target-file)))
+
+(deftest test-read-file-lazy-single-byte
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-read-file-lazy-single.txt")]
+    (spit target-file "X")
+    (let [chunks (doall (read-file-lazy target-file 1))]
+      (is (= 1 (count chunks)) "single byte should be one chunk")
+      (is (= "X" (first chunks)) "chunk should contain the single byte"))
+    (php/unlink target-file)))
+
+(deftest test-read-file-lazy-exact-chunk-size
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-read-file-lazy-exact.txt")
+        content "12345678901234567890"]
+    (spit target-file content)
+    (let [chunks (doall (read-file-lazy target-file 10))]
+      (is (= 2 (count chunks)) "20 bytes with chunk size 10 should produce 2 chunks")
+      (is (= "1234567890" (first chunks)) "first chunk should be exactly 10 bytes")
+      (is (= "1234567890" (second chunks)) "second chunk should be exactly 10 bytes"))
+    (php/unlink target-file)))
+
+(deftest test-read-file-lazy-is-lazy
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-read-file-lazy-lazy.txt")
+        content (apply str (repeat 1000 "ABCDEFGHIJ"))]
+    (spit target-file content)
+    (let [first-three (take 3 (read-file-lazy target-file 100))]
+      (is (= 3 (count first-three)) "read-file-lazy should be lazy and work with take")
+      (is (= 300 (php/strlen (apply str first-three))) "first 3 chunks should total 300 bytes"))
+    (php/unlink target-file)))
+
+(deftest test-read-file-lazy-non-existent-file
+  (is (thrown? \InvalidArgumentException (doall (read-file-lazy "/non/existent/file.bin")))
+      "read-file-lazy throws exception for non-existent file"))
+
+(deftest test-read-file-lazy-directory
+  (is (thrown? \InvalidArgumentException (doall (read-file-lazy (php/sys_get_temp_dir))))
+      "read-file-lazy throws exception for directory"))
+
+(deftest test-read-file-lazy-invalid-chunk-size
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-read-file-lazy-invalid-chunk.txt")]
+    (spit target-file "content")
+    (is (thrown? \InvalidArgumentException (doall (read-file-lazy target-file 0)))
+        "read-file-lazy throws exception for zero chunk size")
+    (is (thrown? \InvalidArgumentException (doall (read-file-lazy target-file -1)))
+        "read-file-lazy throws exception for negative chunk size")
+    (php/unlink target-file)))
+
+(deftest test-read-file-lazy-returns-lazy-seq
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-read-file-lazy-type.txt")]
+    (spit target-file "some content")
+    (let [result (read-file-lazy target-file)]
+      (is (true? (seq? result))
+          "read-file-lazy should return a lazy sequence"))
+    (php/unlink target-file)))
+
+(deftest test-read-file-lazy-binary-content
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-read-file-lazy-binary.bin")
+        binary-content (php/pack "C*" 0 1 2 3 4 255 254 253)]
+    (php/file_put_contents target-file binary-content)
+    (let [chunks (doall (read-file-lazy target-file 4))]
+      (is (= 2 (count chunks)) "8 bytes with chunk size 4 should produce 2 chunks")
+      (is (= binary-content (apply str chunks)) "binary content should be preserved"))
+    (php/unlink target-file)))
+
+(deftest test-csv-seq-basic
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq.csv")
+        csv-content "name,age,city\nAlice,30,NYC\nBob,25,LA\nCharlie,35,SF"]
+    (spit target-file csv-content)
+    (let [rows (doall (csv-seq target-file))]
+      (is (= 4 (count rows)) "should read 4 rows including header")
+      (is (= ["name" "age" "city"] (first rows)) "first row should be header")
+      (is (= ["Alice" "30" "NYC"] (second rows)) "second row should be Alice")
+      (is (= ["Bob" "25" "LA"] (get rows 2)) "third row should be Bob"))
+    (php/unlink target-file)))
+
+(deftest test-csv-seq-with-quotes
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq-quotes.csv")
+        csv-content "name,description\n\"Smith, John\",\"A person named \"\"John\"\" Smith\""]
+    (spit target-file csv-content)
+    (let [rows (doall (csv-seq target-file))]
+      (is (= 2 (count rows)) "should read 2 rows")
+      (is (= ["name" "description"] (first rows)) "first row should be header")
+      (is (= ["Smith, John" "A person named \"John\" Smith"] (second rows))
+          "should handle quoted commas and escaped quotes"))
+    (php/unlink target-file)))
+
+(deftest test-csv-seq-with-newlines-in-quotes
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq-newlines.csv")
+        csv-content "name,address\nAlice,\"123 Main St\nApt 4\nNYC\""]
+    (spit target-file csv-content)
+    (let [rows (doall (csv-seq target-file))]
+      (is (= 2 (count rows)) "should read 2 rows")
+      (is (= ["Alice" "123 Main St\nApt 4\nNYC"] (second rows))
+          "should handle newlines within quoted fields"))
+    (php/unlink target-file)))
+
+(deftest test-csv-seq-with-custom-separator
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq-tsv.tsv")
+        tsv-content "name\tage\tcity\nAlice\t30\tNYC\nBob\t25\tLA"]
+    (spit target-file tsv-content)
+    (let [rows (doall (csv-seq target-file {:separator "\t"}))]
+      (is (= 3 (count rows)) "should read 3 rows")
+      (is (= ["name" "age" "city"] (first rows)) "should parse tab-separated values"))
+    (php/unlink target-file)))
+
+(deftest test-csv-seq-with-pipe-separator
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq-pipe.csv")
+        pipe-content "name|age|city\nAlice|30|NYC"]
+    (spit target-file pipe-content)
+    (let [rows (doall (csv-seq target-file {:separator "|"}))]
+      (is (= 2 (count rows)) "should read 2 rows")
+      (is (= ["Alice" "30" "NYC"] (second rows)) "should parse pipe-separated values"))
+    (php/unlink target-file)))
+
+(deftest test-csv-seq-empty-file
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq-empty.csv")]
+    (spit target-file "")
+    (is (= [] (doall (csv-seq target-file)))
+        "csv-seq returns empty sequence for empty file")
+    (php/unlink target-file)))
+
+(deftest test-csv-seq-single-row
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq-single.csv")]
+    (spit target-file "name,age,city")
+    (let [rows (doall (csv-seq target-file))]
+      (is (= 1 (count rows)) "should read single row")
+      (is (= ["name" "age" "city"] (first rows)) "should parse single row"))
+    (php/unlink target-file)))
+
+(deftest test-csv-seq-empty-fields
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq-empty-fields.csv")
+        csv-content "name,age,city\nAlice,,NYC\n,25,"]
+    (spit target-file csv-content)
+    (let [rows (doall (csv-seq target-file))]
+      (is (= 3 (count rows)) "should read 3 rows")
+      (is (= ["Alice" "" "NYC"] (second rows)) "should handle empty fields in middle")
+      (is (= ["" "25" ""] (get rows 2)) "should handle empty fields at start and end"))
+    (php/unlink target-file)))
+
+(deftest test-csv-seq-is-lazy
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq-lazy.csv")
+        rows (map #(str % ",value" %) (range 1000))]
+    (spit target-file (apply str (interpose "\n" rows)))
+    (let [first-five (take 5 (csv-seq target-file))]
+      (is (= 5 (count first-five)) "csv-seq should be lazy and work with take")
+      (is (= ["0" "value0"] (first first-five)) "first row should be correct"))
+    (php/unlink target-file)))
+
+(deftest test-csv-seq-non-existent-file
+  (is (thrown? \InvalidArgumentException (doall (csv-seq "/non/existent/file.csv")))
+      "csv-seq throws exception for non-existent file"))
+
+(deftest test-csv-seq-directory
+  (is (thrown? \InvalidArgumentException (doall (csv-seq (php/sys_get_temp_dir))))
+      "csv-seq throws exception for directory"))
+
+(deftest test-csv-seq-returns-lazy-seq
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq-type.csv")]
+    (spit target-file "a,b,c\n1,2,3")
+    (let [result (csv-seq target-file)]
+      (is (true? (seq? result))
+          "csv-seq should return a lazy sequence"))
+    (php/unlink target-file)))
+
+(deftest test-csv-seq-with-trailing-newline
+  (let [target-directory (str (php/sys_get_temp_dir))
+        target-file (str target-directory php/DIRECTORY_SEPARATOR "test-csv-seq-trailing.csv")
+        csv-content "name,age\nAlice,30\n"]
+    (spit target-file csv-content)
+    (let [rows (doall (csv-seq target-file))]
+      (is (= 2 (count rows)) "should read 2 rows, ignoring trailing newline")
+      (is (= ["Alice" "30"] (second rows)) "last row should be parsed correctly"))
+    (php/unlink target-file)))
+
+(deftest test-__FILE__
+  (is (true? (>= (php/strpos __FILE__ "tests/phel/core/file-operation.phel") 0)) "__FILE__"))
+
+(deftest test-__DIR__
+  (is (true? (and (false? (php/strpos __DIR__ "tests/phel/core/file-operation.phel")) (>= (php/strpos __DIR__ "tests/phel/core") 0))) "__DIR__"))

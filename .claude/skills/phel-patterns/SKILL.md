@@ -47,7 +47,7 @@ user-invocable: false
 ## Testing Patterns
 
 ```phel
-(ns phel-test\test\module-name
+(ns phel-test\module-name
   (:require phel\test :refer [deftest is are]))
 
 (deftest test-descriptive-name

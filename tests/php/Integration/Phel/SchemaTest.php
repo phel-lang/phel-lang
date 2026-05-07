@@ -15,7 +15,7 @@ use function sprintf;
 use function stream_get_contents;
 
 /**
- * Runs each file of `tests/phel/test/schema/*.phel` end-to-end so
+ * Runs each file of `tests/phel/schema/*.phel` end-to-end so
  * `composer test-compiler` exercises the data-driven schema module.
  */
 final class SchemaTest extends TestCase
@@ -25,12 +25,12 @@ final class SchemaTest extends TestCase
      */
     public static function schemaFiles(): iterable
     {
-        yield 'validate' => ['tests/phel/test/schema/validate.phel'];
-        yield 'explain' => ['tests/phel/test/schema/explain.phel'];
-        yield 'coerce' => ['tests/phel/test/schema/coerce.phel'];
-        yield 'generate' => ['tests/phel/test/schema/generate.phel'];
-        yield 'instrument' => ['tests/phel/test/schema/instrument.phel'];
-        yield 'registry' => ['tests/phel/test/schema/registry.phel'];
+        yield 'validate' => ['tests/phel/schema/validate.phel'];
+        yield 'explain' => ['tests/phel/schema/explain.phel'];
+        yield 'coerce' => ['tests/phel/schema/coerce.phel'];
+        yield 'generate' => ['tests/phel/schema/generate.phel'];
+        yield 'instrument' => ['tests/phel/schema/instrument.phel'];
+        yield 'registry' => ['tests/phel/schema/registry.phel'];
     }
 
     #[DataProvider('schemaFiles')]
