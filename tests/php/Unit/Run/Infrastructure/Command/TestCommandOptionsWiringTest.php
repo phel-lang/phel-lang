@@ -62,6 +62,33 @@ final class TestCommandOptionsWiringTest extends TestCase
         self::assertStringContainsString('stack trace', strtolower($option->getDescription()));
     }
 
+    public function test_it_declares_list_flag(): void
+    {
+        $option = $this->optionFor('list');
+
+        self::assertFalse($option->isValueRequired(), 'list is a flag');
+        self::assertFalse($option->getDefault(), 'list defaults to false');
+        self::assertStringContainsString('list', strtolower($option->getDescription()));
+    }
+
+    public function test_it_declares_last_failed_flag(): void
+    {
+        $option = $this->optionFor('last-failed');
+
+        self::assertFalse($option->isValueRequired(), 'last-failed is a flag');
+        self::assertFalse($option->getDefault(), 'last-failed defaults to false');
+        self::assertStringContainsString('failed', strtolower($option->getDescription()));
+    }
+
+    public function test_it_declares_slowest_option(): void
+    {
+        $option = $this->optionFor('slowest');
+
+        self::assertTrue($option->isValueRequired(), 'slowest takes a value');
+        self::assertSame(0, $option->getDefault(), 'slowest defaults to 0');
+        self::assertStringContainsString('slowest', strtolower($option->getDescription()));
+    }
+
     public function test_description_mentions_selector_semantics(): void
     {
         $include = $this->optionFor('include');

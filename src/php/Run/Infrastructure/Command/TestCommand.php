@@ -54,6 +54,14 @@ final class TestCommand extends Command
 
     private const string OPT_NS = 'ns';
 
+    private const string OPT_LIST = 'list';
+
+    private const string OPT_LAST_FAILED = 'last-failed';
+
+    private const string OPT_SLOWEST = 'slowest';
+
+    private const string LAST_FAILED_FILE = '.phel/last-failed.txt';
+
     protected function configure(): void
     {
         $this->setName(self::COMMAND_NAME)
@@ -115,6 +123,22 @@ final class TestCommand extends Command
                 InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
                 "Namespace glob (e.g. phel.http.*). Repeatable; globs are OR'd. `*` matches one segment, `**` any.",
                 [],
+            )->addOption(
+                self::OPT_LIST,
+                null,
+                InputOption::VALUE_NONE,
+                'List discovered tests after applying filters/selectors. Does not run them.',
+            )->addOption(
+                self::OPT_LAST_FAILED,
+                null,
+                InputOption::VALUE_NONE,
+                'Re-run only tests that failed on the previous run. Reads ' . self::LAST_FAILED_FILE . ' from the current directory.',
+            )->addOption(
+                self::OPT_SLOWEST,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Print the N slowest tests after the summary. 0 disables.',
+                0,
             );
     }
 
@@ -223,6 +247,11 @@ final class TestCommand extends Command
         /** @var list<string> $nsPatterns */
         $nsPatterns = (array) $input->getOption(self::OPT_NS);
 
+        $listOnly = (bool) $input->getOption(self::OPT_LIST);
+        $lastFailed = (bool) $input->getOption(self::OPT_LAST_FAILED);
+        $onlyTests = $lastFailed ? $this->readLastFailed() : [];
+        $slowest = (int) $input->getOption(self::OPT_SLOWEST);
+
         return sprintf(
             '(do (phel\test/run-tests %s %s) (phel\test/successful?))',
             TestCommandOptions::fromArray([
@@ -236,9 +265,38 @@ final class TestCommand extends Command
                 TestCommandOptions::EXCLUDE => $excludes,
                 TestCommandOptions::NS_PATTERNS => $nsPatterns,
                 TestCommandOptions::FILTERS => $filters,
+                TestCommandOptions::LIST_ONLY => $listOnly,
+                TestCommandOptions::ONLY_TESTS => $onlyTests,
+                TestCommandOptions::LAST_FAILED_FILE => $listOnly ? null : self::LAST_FAILED_FILE,
+                TestCommandOptions::SLOWEST => $slowest,
             ])->asPhelHashMap(),
             $this->namespacesAsString($namespacesInformation),
         );
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function readLastFailed(): array
+    {
+        if (!is_file(self::LAST_FAILED_FILE)) {
+            return [];
+        }
+
+        $contents = @file_get_contents(self::LAST_FAILED_FILE);
+        if (!is_string($contents) || $contents === '') {
+            return [];
+        }
+
+        $entries = [];
+        foreach (preg_split('/\R/', $contents) ?: [] as $line) {
+            $line = trim($line);
+            if ($line !== '') {
+                $entries[] = $line;
+            }
+        }
+
+        return $entries;
     }
 
     /**

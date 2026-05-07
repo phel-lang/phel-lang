@@ -13,6 +13,8 @@
 
 (def- fail-fast? (atom false))
 (def- print-stack-trace? (atom false))
+(def- timings (atom []))
+(def- failed-tests (atom []))
 
 (def- ^:dynamic *current-test-name* nil)
 
@@ -1057,17 +1059,40 @@
              :reason reason
              :tags (:tags m)})))
 
-(defn- run-test [options ns]
+(defn- only-tests-matches?
+  "Returns true when `only-tests` is empty (no restriction) or when
+  `ns/test-name` matches one of the entries verbatim."
+  [only-tests ns test-name]
+  (or (nil? only-tests)
+      (empty? only-tests)
+      (some (fn [t] (= t (str ns "/" test-name))) only-tests)))
+
+(defn- visible-test-pred
+  "Returns the predicate that decides whether a discovered test passes
+  the discovery filters (`:filter`, `:filters`, `:only-tests`)."
+  [options ns]
   (let [filter-value    (:filter options)
         filter-patterns (:filters options)
-        all-tests       (find-test-vars ns)
+        only-tests      (:only-tests options)]
+    (fn [{:meta m}]
+      (let [tname (:test-name m)]
+        (and (legacy-filter-matches? filter-value tname)
+             (selector/matches-filter? filter-patterns tname)
+             (only-tests-matches? only-tests ns tname))))))
+
+(defn- failure-count []
+  (let [{:failed f :error e} (get (deref stats) :counts)]
+    (+ f e)))
+
+(defn- record-test-time! [ns test-name duration-ms]
+  (swap! timings conj {:ns ns :test-name test-name :duration-ms duration-ms}))
+
+(defn- run-test [options ns]
+  (let [track-slowest? (pos? (or (:slowest options) 0))
+        all-tests      (find-test-vars ns)
         ;; Name filters act as discovery: silently drop non-matching tests.
         ;; Only tag/ns selectors (include/exclude/ns-patterns) surface as :skipped events.
-        visible-tests   (vec (filter
-                               (fn [{:meta m}]
-                                 (and (legacy-filter-matches? filter-value (:test-name m))
-                                      (selector/matches-filter? filter-patterns (:test-name m))))
-                               all-tests))
+        visible-tests  (vec (filter (visible-test-pred options ns) all-tests))
         parts     (partition-tests options ns visible-tests)
         keeps     (:keep parts)
         skips     (:skip parts)
@@ -1077,9 +1102,16 @@
     (when-not (empty? keeps)
       (once-wrap
        (fn []
-         (dofor [{:fn f} :in keeps
+         (dofor [{:fn f :meta m} :in keeps
                  :when (not (should-stop?))]
-           (each-wrap f)))))))
+           (let [test-name (:test-name m)
+                 t0        (when track-slowest? (php/microtime true))
+                 c0        (failure-count)]
+             (each-wrap f)
+             (when track-slowest?
+               (record-test-time! ns test-name (* 1000.0 (- (php/microtime true) t0))))
+             (when (> (failure-count) c0)
+               (swap! failed-tests conj (str ns "/" test-name))))))))))
 
 (defn- coerce-reporter
   "Turns a single `:reporters` entry (function, keyword, or string) into
@@ -1126,17 +1158,78 @@
     (run-test options ns-name)
     (fan-out! {:type :end-test-ns :ns ns-name})))
 
+(defn- list-tests-for-ns! [options ns-name]
+  (let [sel-opts  (selector-options options)
+        all-tests (find-test-vars ns-name)
+        visible   (filter (visible-test-pred options ns-name) all-tests)]
+    (reduce
+     (fn [count {:meta m}]
+       (let [test-name (:test-name m)
+             skip      (skip-reason sel-opts ns-name m)
+             tags      (or (:tags m) [])
+             tag-str   (if (empty? tags) "" (str " [" (s/join "," (map name tags)) "]"))]
+         (if skip
+           (println (str "- " ns-name "/" test-name tag-str " (skipped: " (name skip) ")"))
+           (println (str "+ " ns-name "/" test-name tag-str)))
+         (if skip count (inc count))))
+     0
+     visible)))
+
+(defn- list-tests! [options namespaces]
+  (println "Discovered tests:")
+  (let [total (reduce
+               (fn [acc namespace]
+                 (+ acc (list-tests-for-ns! options (name namespace))))
+               0
+               namespaces)]
+    (println (str "Total runnable: " total))))
+
+(defn- write-last-failed!
+  "Persists the failed-test list to `path` so a subsequent
+  `--last-failed` run can replay it. Always overwrites; an empty list
+  produces an empty file."
+  [path]
+  (let [dir (php/dirname path)]
+    (when (and dir (not= dir "") (not (php/is_dir dir)))
+      (php/mkdir dir 0755 true)))
+  (php/file_put_contents path (s/join "\n" (deref failed-tests))))
+
+(defn- format-duration [ms]
+  (if (>= ms 1000)
+    (php/sprintf "%.2f s"  (/ ms 1000.0))
+    (php/sprintf "%.2f ms" ms)))
+
+(defn- print-slowest! [options]
+  (let [n (or (:slowest options) 0)]
+    (when (pos? n)
+      (let [sorted (take n (sort-by (fn [t] (- 0 (:duration-ms t))) (deref timings)))]
+        (when-not (empty? sorted)
+          (println)
+          (println (str "Slowest " (count sorted) " test(s):"))
+          (dofor [t :in sorted]
+            (println (str "  " (format-duration (:duration-ms t))
+                          "  " (:ns t) "/" (:test-name t)))))))))
+
 (defn run-tests
-  "Runs all tests in the given namespaces."
+  "Runs all tests in the given namespaces. When `:list-only` is true,
+  prints the discovered tests and skips execution."
   {:example "(run-tests {} 'my-app\\test)"}
   [options & namespaces]
   (configure-run! options)
   (reset! stats initial-stats)
-  (fan-out! {:type :begin-test-run})
-  (dofor [namespace :in namespaces
-          :when (not (should-stop?))]
-    (run-one-ns! options namespace))
-  (print-summary))
+  (reset! timings [])
+  (reset! failed-tests [])
+  (if (:list-only options)
+    (list-tests! options namespaces)
+    (do
+      (fan-out! {:type :begin-test-run})
+      (dofor [namespace :in namespaces
+              :when (not (should-stop?))]
+        (run-one-ns! options namespace))
+      (print-summary)
+      (print-slowest! options)
+      (when-let [path (:last-failed-file options)]
+        (write-last-failed! path)))))
 
 (defn reset-stats
   "Resets the test statistics to their initial state.

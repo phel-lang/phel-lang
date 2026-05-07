@@ -338,6 +338,103 @@ final class TestCommandOptionsTest extends TestCase
         self::assertStringNotContainsString(':junit-output', $options->asPhelHashMap());
     }
 
+    public function test_list_only_flag_emits_keyword(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::LIST_ONLY => true,
+        ]);
+
+        self::assertStringContainsString(':list-only true', $options->asPhelHashMap());
+    }
+
+    public function test_list_only_default_false_is_omitted(): void
+    {
+        $options = TestCommandOptions::fromArray([]);
+
+        self::assertStringNotContainsString(':list-only', $options->asPhelHashMap());
+    }
+
+    public function test_only_tests_emits_string_vector(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::ONLY_TESTS => ['phel.core/foo', 'phel.core/bar'],
+        ]);
+
+        self::assertStringContainsString(
+            ':only-tests ["phel.core/foo" "phel.core/bar"]',
+            $options->asPhelHashMap(),
+        );
+    }
+
+    public function test_only_tests_drops_empty_entries(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::ONLY_TESTS => ['', 'phel.core/foo', ''],
+        ]);
+
+        self::assertStringContainsString(
+            ':only-tests ["phel.core/foo"]',
+            $options->asPhelHashMap(),
+        );
+    }
+
+    public function test_last_failed_file_emits_string(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::LAST_FAILED_FILE => '.phel/last-failed.txt',
+        ]);
+
+        self::assertStringContainsString(
+            ':last-failed-file ".phel/last-failed.txt"',
+            $options->asPhelHashMap(),
+        );
+    }
+
+    public function test_last_failed_file_empty_string_is_dropped(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::LAST_FAILED_FILE => '',
+        ]);
+
+        self::assertStringNotContainsString(':last-failed-file', $options->asPhelHashMap());
+    }
+
+    public function test_slowest_emits_int_when_positive(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::SLOWEST => 5,
+        ]);
+
+        self::assertStringContainsString(':slowest 5', $options->asPhelHashMap());
+    }
+
+    public function test_slowest_zero_is_omitted(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::SLOWEST => 0,
+        ]);
+
+        self::assertStringNotContainsString(':slowest', $options->asPhelHashMap());
+    }
+
+    public function test_slowest_negative_is_clamped_to_zero(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::SLOWEST => -3,
+        ]);
+
+        self::assertStringNotContainsString(':slowest', $options->asPhelHashMap());
+    }
+
+    public function test_slowest_string_is_coerced_to_int(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::SLOWEST => '7',
+        ]);
+
+        self::assertStringContainsString(':slowest 7', $options->asPhelHashMap());
+    }
+
     public function test_selector_order_in_output_is_stable_across_inputs(): void
     {
         // Regardless of input order, the output always emits selector keys

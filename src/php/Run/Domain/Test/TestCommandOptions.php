@@ -32,12 +32,21 @@ final readonly class TestCommandOptions
 
     public const string FILTERS = 'filters';
 
+    public const string LIST_ONLY = 'list-only';
+
+    public const string ONLY_TESTS = 'only-tests';
+
+    public const string LAST_FAILED_FILE = 'last-failed-file';
+
+    public const string SLOWEST = 'slowest';
+
     /**
      * @param list<string> $reporters
      * @param list<string> $filters
      * @param list<string> $includes
      * @param list<string> $excludes
      * @param list<string> $nsPatterns
+     * @param list<string> $onlyTests
      */
     private function __construct(
         private ?string $filter,
@@ -50,6 +59,10 @@ final readonly class TestCommandOptions
         private array $excludes,
         private array $nsPatterns,
         private array $filters,
+        private bool $listOnly,
+        private array $onlyTests,
+        private ?string $lastFailedFile,
+        private int $slowest,
     ) {}
 
     public static function empty(): self
@@ -67,6 +80,16 @@ final readonly class TestCommandOptions
             $junitOutput = null;
         }
 
+        $lastFailedFile = $options[self::LAST_FAILED_FILE] ?? null;
+        if ($lastFailedFile === '') {
+            $lastFailedFile = null;
+        }
+
+        $slowest = (int) ($options[self::SLOWEST] ?? 0);
+        if ($slowest < 0) {
+            $slowest = 0;
+        }
+
         return new self(
             $options[self::FILTER] ?? null,
             !empty($options[self::TESTDOX]),
@@ -78,6 +101,10 @@ final readonly class TestCommandOptions
             self::normalizeStringList($options[self::EXCLUDE] ?? null),
             self::normalizeStringList($options[self::NS_PATTERNS] ?? null),
             self::normalizeStringList($options[self::FILTERS] ?? null),
+            !empty($options[self::LIST_ONLY]),
+            self::normalizeStringList($options[self::ONLY_TESTS] ?? null),
+            is_string($lastFailedFile) ? $lastFailedFile : null,
+            $slowest,
         );
     }
 
@@ -86,7 +113,7 @@ final readonly class TestCommandOptions
         $printer = Printer::readable();
 
         return sprintf(
-            '{:filter %s :testdox %s :fail-fast %s :stack-trace %s%s%s%s%s%s%s}',
+            '{:filter %s :testdox %s :fail-fast %s :stack-trace %s%s%s%s%s%s%s%s%s%s%s}',
             $this->filter === null ? 'nil' : $printer->print($this->filter),
             $printer->print($this->testdox),
             $printer->print($this->failFast),
@@ -97,6 +124,10 @@ final readonly class TestCommandOptions
             $this->keywordVector(':exclude', $this->excludes),
             $this->stringVector(':ns-patterns', $this->nsPatterns),
             $this->stringVector(':filters', $this->filters),
+            $this->listOnly ? ' :list-only true' : '',
+            $this->stringVector(':only-tests', $this->onlyTests),
+            $this->optionalString(':last-failed-file', $this->lastFailedFile, $printer),
+            $this->slowest > 0 ? ' :slowest ' . $this->slowest : '',
         );
     }
 
