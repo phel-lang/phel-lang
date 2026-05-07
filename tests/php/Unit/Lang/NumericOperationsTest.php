@@ -451,4 +451,74 @@ final class NumericOperationsTest extends TestCase
     {
         self::assertFalse(NumericOperations::isEqual(INF, BigDecimal::fromString('1.0')));
     }
+
+    public function test_divide_bigdecimal_by_float_returns_float(): void
+    {
+        $result = NumericOperations::divide(BigDecimal::fromString('2.0'), 1.0);
+
+        self::assertIsFloat($result);
+        self::assertSame(2.0, $result);
+    }
+
+    public function test_divide_float_by_bigdecimal_returns_float(): void
+    {
+        $result = NumericOperations::divide(2.0, BigDecimal::fromString('1.0'));
+
+        self::assertIsFloat($result);
+        self::assertSame(2.0, $result);
+    }
+
+    public function test_add_bigdecimal_and_float_returns_float(): void
+    {
+        $result = NumericOperations::add(BigDecimal::fromString('1.5'), 2.0);
+
+        self::assertIsFloat($result);
+        self::assertSame(3.5, $result);
+    }
+
+    public function test_subtract_float_and_bigdecimal_returns_float(): void
+    {
+        $result = NumericOperations::subtract(2.5, BigDecimal::fromString('1.0'));
+
+        self::assertIsFloat($result);
+        self::assertSame(1.5, $result);
+    }
+
+    public function test_multiply_bigdecimal_and_float_returns_float(): void
+    {
+        $result = NumericOperations::multiply(BigDecimal::fromString('2.0'), 3.0);
+
+        self::assertIsFloat($result);
+        self::assertSame(6.0, $result);
+    }
+
+    public function test_quot_bigdecimal_by_float_returns_float(): void
+    {
+        $result = NumericOperations::quot(BigDecimal::fromString('5.5'), 2.0);
+
+        self::assertIsFloat($result);
+        self::assertSame(2.0, $result);
+    }
+
+    public function test_rem_bigdecimal_by_float_returns_float(): void
+    {
+        $result = NumericOperations::rem(BigDecimal::fromString('5.5'), 2.0);
+
+        self::assertIsFloat($result);
+        self::assertSame(1.5, $result);
+    }
+
+    public function test_mod_bigdecimal_by_float_returns_float(): void
+    {
+        $result = NumericOperations::mod(BigDecimal::fromString('5.5'), 2.0);
+
+        self::assertIsFloat($result);
+        self::assertSame(1.5, $result);
+    }
+
+    public function test_compare_bigdecimal_and_float_routes_through_floats(): void
+    {
+        self::assertSame(0, NumericOperations::compare(BigDecimal::fromString('1.0'), 1.0));
+        self::assertSame(-1, NumericOperations::compare(BigDecimal::fromString('1.0'), 2.0));
+    }
 }
