@@ -33,6 +33,9 @@ All notable changes to this project will be documented in this file.
 - `bigdec` accepts `Rational`; non-terminating expansions raise `ArithmeticError` (#1873)
 - `+`, `-`, `*`, `/`, `abs`, `quot`, `rem`, `mod`, `rationalize` accept `BigDecimal` operands; `/` raises `ArithmeticError` on non-terminating expansions (#1875)
 
+#### Testing
+- `--filter` (and `:filters`) now acts as a discovery filter: non-matching tests are silently dropped instead of emitting `S` (skipped) markers and inflating the `Skipped:` counter (#1888)
+
 #### Lang
 - `=` between `int` and `BigInteger` is symmetric (#1830)
 - `+`, `-`, `*`, `**` on PHP ints auto-promote to `BigInteger` on overflow (#1830)

@@ -123,16 +123,41 @@
 ;; Filter by test name — regex/substring OR semantics
 ;; ---------------------------------------------------------------------------
 
-(deftest test-filter-by-name-substring
+(deftest test-filter-by-name-excludes-silently
   (let [{:events events} (snapshot-run {:reporters []
                                         :filters ["slow"]})
+        summary          (first (events-of events :summary))]
+    (is (= 0 (count (skipped-names events)))
+        ":filters miss produces no :skipped events")
+    (is (= 0 (:skipped summary))
+        ":filters miss is not counted in the summary :skipped field")
+    (is (= 1 (passing-count events))
+        "only the one matching fixture runs")))
+
+(deftest test-legacy-filter-key-excludes-silently
+  (let [{:events events} (snapshot-run {:reporters []
+                                        :filter "slow"})
+        summary          (first (events-of events :summary))]
+    (is (= 0 (count (skipped-names events)))
+        "legacy :filter miss produces no :skipped events")
+    (is (= 0 (:skipped summary))
+        "legacy :filter miss is not counted in the summary :skipped field")
+    (is (= 1 (passing-count events))
+        "only the one matching fixture runs")))
+
+(deftest test-filter-and-tag-selector-combined
+  (let [{:events events} (snapshot-run {:reporters []
+                                        :filters ["fixture"]
+                                        :include [:unit]})
         skipped          (names-skipped-set events)]
-    (is (contains? skipped "fixture-unit-passes")
-        "unit fixture skipped (name doesn't match)")
+    (is (= 2 (count (skipped-names events)))
+        "tag-excluded tests emit :skipped events; name-filtered tests do not")
     (is (contains? skipped "fixture-integration-passes")
-        "integration fixture skipped (name doesn't match)")
-    (is (not (contains? skipped "fixture-slow-integration-passes"))
-        "slow integration fixture runs (name contains 'slow')")))
+        "integration fixture skipped by :include selector")
+    (is (contains? skipped "fixture-slow-integration-passes")
+        "slow fixture skipped by :include selector")
+    (is (= 1 (passing-count events))
+        "only unit fixture runs")))
 
 ;; ---------------------------------------------------------------------------
 ;; Backwards compat — no selectors behave identical to pre-feature run

@@ -1017,27 +1017,22 @@
             :meta meta}))))
 
 (defn- selector-options
-  "Extracts the selector subset from the full options map."
+  "Extracts the tag/namespace selector subset from the full options map.
+  Name-based filters (`:filter` / `:filters`) are handled separately as
+  discovery filters and are intentionally excluded here."
   [options]
   {:include     (:include options)
    :exclude     (:exclude options)
-   :ns-patterns (:ns-patterns options)
-   :filters     (:filters options)})
+   :ns-patterns (:ns-patterns options)})
 
 (defn- skip-reason
-  "Returns the reason the test should be skipped — `:filtered` for the
-  legacy `--filter` gate, `:selector` for any other selector miss, or
-  `nil` when the test should run."
-  [options sel-opts ns-name m]
-  (cond
-    (not (legacy-filter-matches? (:filter options) (:test-name m)))
-    :filtered
-
-    (not (selector/keep-test? sel-opts ns-name m))
-    :selector
-
-    :else
-    nil))
+  "Returns `:selector` when the test is excluded by a tag or namespace
+  selector, or `nil` when it should run. Name-based filters
+  (`:filter` / `:filters`) are applied upstream as discovery filters and
+  never reach this function."
+  [sel-opts ns-name m]
+  (when (not (selector/keep-test? sel-opts ns-name m))
+    :selector))
 
 (defn- partition-tests
   "Splits the discovered tests into a `{:keep [...] :skip [...]}` map
@@ -1048,7 +1043,7 @@
   (let [sel-opts (selector-options options)]
     (reduce
      (fn [acc {:fn f :meta m}]
-       (if-let [reason (skip-reason options sel-opts ns-name m)]
+       (if-let [reason (skip-reason sel-opts ns-name m)]
          (update acc :skip conj {:fn f :meta m :reason reason})
          (update acc :keep conj {:fn f :meta m})))
      {:keep [] :skip []}
@@ -1063,8 +1058,17 @@
              :tags (:tags m)})))
 
 (defn- run-test [options ns]
-  (let [all-tests (find-test-vars ns)
-        parts     (partition-tests options ns all-tests)
+  (let [filter-value    (:filter options)
+        filter-patterns (:filters options)
+        all-tests       (find-test-vars ns)
+        ;; Name filters act as discovery: silently drop non-matching tests.
+        ;; Only tag/ns selectors (include/exclude/ns-patterns) surface as :skipped events.
+        visible-tests   (vec (filter
+                               (fn [{:meta m}]
+                                 (and (legacy-filter-matches? filter-value (:test-name m))
+                                      (selector/matches-filter? filter-patterns (:test-name m))))
+                               all-tests))
+        parts     (partition-tests options ns visible-tests)
         keeps     (:keep parts)
         skips     (:skip parts)
         each-wrap (join-fixtures (fixtures-for ns :each-fixtures))
