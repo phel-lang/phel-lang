@@ -36,6 +36,7 @@ Each implements `TypePrinterInterface`. Selected at runtime based on value type:
 | `PersistentVectorPrinter` | Vectors (recursive) |
 | `PersistentMapPrinter` | Maps (recursive) |
 | `PersistentHashSetPrinter` | Sets (recursive) |
+| `PersistentQueuePrinter` | Queues (recursive, rendered as `<-(...)-<` so the FIFO direction reads left-to-right) |
 | `StructPrinter` | Structs (recursive) |
 | `LazySeqPrinter` | Lazy sequences (recursive) |
 | `ArrayPrinter` | PHP arrays (recursive) |

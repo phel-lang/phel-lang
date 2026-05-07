@@ -9,6 +9,7 @@ use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LazySeq\LazySeqInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Queue\PersistentQueue;
 use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\FnInterface;
@@ -34,6 +35,7 @@ use Phel\Printer\TypePrinter\ObjectPrinter;
 use Phel\Printer\TypePrinter\PersistentHashSetPrinter;
 use Phel\Printer\TypePrinter\PersistentListPrinter;
 use Phel\Printer\TypePrinter\PersistentMapPrinter;
+use Phel\Printer\TypePrinter\PersistentQueuePrinter;
 use Phel\Printer\TypePrinter\PersistentVectorPrinter;
 use Phel\Printer\TypePrinter\RationalPrinter;
 use Phel\Printer\TypePrinter\ResourcePrinter;
@@ -121,6 +123,10 @@ final readonly class Printer implements PrinterInterface
 
         if ($form instanceof LazySeqInterface) {
             return new LazySeqPrinter($this);
+        }
+
+        if ($form instanceof PersistentQueue) {
+            return new PersistentQueuePrinter($this);
         }
 
         if ($form instanceof Keyword) {

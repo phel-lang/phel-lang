@@ -1,0 +1,49 @@
+(ns phel-test.test.core.queue
+  (:require phel.test :refer [deftest is]))
+
+(deftest test-queue-constructor
+  (is (queue? (queue)) "(queue) returns a queue")
+  (is (queue? (queue 1 2 3)) "(queue 1 2 3) returns a queue")
+  (is (= 0 (count (queue))) "empty queue has count 0")
+  (is (= 3 (count (queue 1 2 3))) "queue with three values has count 3")
+  (is (false? (queue? [1 2 3])) "queue? rejects vector")
+  (is (false? (queue? '(1 2 3))) "queue? rejects list")
+  (is (= :queue (type (queue))) "type of queue is :queue"))
+
+(deftest test-queue-fifo-semantics
+  (let [q (queue 1 2 3)]
+    (is (= 1 (first q)) "first of queue is the front")
+    (is (= 1 (peek q)) "peek of queue is the front")
+    (is (= 2 (peek (pop q))) "peek after pop is the next element")
+    (is (= 3 (count q)) "pop returns a new queue, original count unchanged")
+    (let [popped (pop q)]
+      (is (queue? popped) "pop returns a queue")
+      (is (= 2 (count popped)) "pop reduces count by one"))))
+
+(deftest test-queue-conj-appends-to-back
+  (let [q (conj (queue 1 2) 3)]
+    (is (queue? q) "conj on queue returns a queue")
+    (is (= 1 (peek q)) "front is unchanged after conj")
+    (is (= 4 (count (conj (queue 1 2 3) 4))) "conj increases count"))
+  (let [drained (loop [q (conj (queue 1 2) 3 4)
+                       out []]
+                  (if (= 0 (count q))
+                    out
+                    (recur (pop q) (conj out (peek q)))))]
+    (is (= [1 2 3 4] drained) "fifo order preserved across conj/pop cycle")))
+
+(deftest test-queue-equality
+  (is (= (queue 1 2 3) (queue 1 2 3)) "queues with same elements are equal")
+  (is (not= (queue 1 2 3) (queue 1 2 4)) "queues with different elements are not equal")
+  (is (not= (queue 1 2 3) [1 2 3]) "queue is not equal to a vector")
+  (is (= (queue 1 2 3) (-> (queue) (conj 1) (conj 2) (conj 3)))
+      "queue built via conj equals queue built via constructor"))
+
+(deftest test-queue-iteration
+  (let [seen (loop [q (queue :a :b :c)
+                    acc []]
+               (if (= 0 (count q))
+                 acc
+                 (recur (pop q) (conj acc (peek q)))))]
+    (is (= [:a :b :c] seen) "iteration via peek/pop preserves FIFO order"))
+  (is (= 6 (reduce + 0 (queue 1 2 3))) "reduce iterates queue values"))

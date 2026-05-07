@@ -7,6 +7,7 @@
 (use Phel.Lang.Collections.LinkedList.PersistentListInterface)
 (use Phel.Lang.Collections.Map.MapEntry)
 (use Phel.Lang.Collections.Map.PersistentMapInterface)
+(use Phel.Lang.Collections.Queue.PersistentQueue)
 (use Phel.Lang.Collections.SortedMap.PersistentSortedMap)
 (use Phel.Lang.Collections.SortedSet.PersistentSortedSet)
 (use Phel.Lang.Collections.Struct.AbstractPersistentStruct)
@@ -54,6 +55,7 @@
 * `:bigdec`
 * `:uuid`
 * `:php/class`
+* `:queue`
 * `:string`
 * `:nil`
 * `:boolean`
@@ -70,6 +72,7 @@
     (php/instanceof x PersistentMapInterface)     :hash-map
     (php/instanceof x MapEntry)                   :map-entry
     (php/instanceof x PersistentHashSetInterface) :set
+    (php/instanceof x PersistentQueue)            :queue
     (php/instanceof x Keyword)                    :keyword
     (php/instanceof x Symbol)                     :symbol
     (php/instanceof x Variable)                   :atom
@@ -336,6 +339,13 @@
   [x]
   (and (php/instanceof x PersistentListInterface)
        (php/-> x (isList))))
+
+(defn queue?
+  "Returns true if `x` is a `Phel\\Lang\\Collections\\Queue\\PersistentQueue` value."
+  {:example "(queue? (queue 1 2 3)) ; => true"
+   :see-also ["queue" "list?" "vector?"]}
+  [x]
+  (php/instanceof x PersistentQueue))
 
 (defn boolean?
   "Returns true if `x` is a boolean, false otherwise."

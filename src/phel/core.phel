@@ -40,6 +40,14 @@
   (fn [& xs]
     (php/:: Phel (vector (apply php/array xs)))))
 
+(def queue
+  {:doc "Creates a persistent FIFO queue. With no arguments returns an empty
+  queue; with arguments returns a queue with the values pushed in order so
+  that the first argument is at the front."
+   :example "(queue 1 2 3) ; => first 1, then 2, then 3"}
+  (fn [& xs]
+    (php/:: Phel (queue (apply php/array xs)))))
+
 (def hash-map
   {:doc "Creates a new hash map. If no argument is provided, an empty hash map is created. The number of parameters must be even. Shortcut: {}"
    :example "(hash-map :a 1 :b 2) ; => {:a 1 :b 2}"}

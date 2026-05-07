@@ -11,6 +11,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentArrayMap;
 use Phel\Lang\Collections\Map\PersistentHashMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Queue\PersistentQueue;
 use Phel\Lang\Collections\SortedMap\PersistentSortedMap;
 use Phel\Lang\Collections\SortedSet\TransientSortedSet;
 use Phel\Lang\Collections\Vector\PersistentVector;
@@ -81,6 +82,11 @@ final class TypeFactory
     public function persistentVectorFromArray(array $values): PersistentVectorInterface
     {
         return PersistentVector::fromArray($this->hasher, $this->equalizer, $values);
+    }
+
+    public function persistentQueueFromArray(array $values = []): PersistentQueue
+    {
+        return PersistentQueue::fromArray($this->hasher, $this->equalizer, $values);
     }
 
     /**

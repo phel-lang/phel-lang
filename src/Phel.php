@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Queue\PersistentQueue;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\DynamicScope;
 use Phel\Lang\Keyword;
@@ -297,6 +298,16 @@ final class Phel extends InternalPhel
     public static function set(?array $values = []): PersistentHashSetInterface
     {
         return TypeFactory::getInstance()->persistentHashSetFromArray($values ?? []);
+    }
+
+    /**
+     * Create a persistent FIFO queue from an array of values.
+     *
+     * @param list<mixed>|null $values
+     */
+    public static function queue(?array $values = []): PersistentQueue
+    {
+        return TypeFactory::getInstance()->persistentQueueFromArray($values ?? []);
     }
 
     /**

@@ -52,6 +52,7 @@ All notable changes to this project will be documented in this file.
 - `Phel\Lang\Uuid` value type; `#uuid "..."` and `random-uuid`/`parse-uuid` return typed values
 - `Phel\Lang\PhpClass` value type wrapping a normalised PHP class or interface FQN; `equals`/`hash` by FQN, `isInstance` for runtime checks
 - `Phel\Lang\Collections\Map\MapEntry` value type for typed map entries; equal by value to a 2-element vector, with `key()`/`value()` accessors
+- `Phel\Lang\Collections\Queue\PersistentQueue` value type: persistent FIFO with amortised O(1) `push` / `peek` / `pop` via a two-stack representation (#1869)
 - `Phel\Lang\BigDecimal` value type (`mantissa * 10^-scale`); `M`-suffix literals (`1.5M`, `1.5e3M`) flow through reader/analyzer/emitter as typed values
 - `Phel\Lang\NumericOperations` runtime dispatch for `Rational`, `BigInteger`, native numbers (#1825)
 
@@ -65,7 +66,8 @@ All notable changes to this project will be documented in this file.
 - `class`, `class?`, `class-name` for working with PHP class FQNs as `PhpClass` values
 - `map-entry` constructor returning a typed `MapEntry`; `map-entry?` accepts both `MapEntry` and 2-element vectors; `key`/`val` work on either form
 - `bigdec` constructor; `bigdec?`/`decimal?` predicates
-- `type` returns `:uuid` for `Uuid`, `:php/class` for `PhpClass`, `:map-entry` for `MapEntry`, and `:bigdec` for `BigDecimal`
+- `(queue & xs)` constructor and `queue?` predicate; `peek` / `pop` / `conj` follow FIFO semantics (#1869)
+- `type` returns `:uuid` for `Uuid`, `:php/class` for `PhpClass`, `:map-entry` for `MapEntry`, `:queue` for `PersistentQueue`, and `:bigdec` for `BigDecimal`
 
 #### Documentation
 - `docs/numeric-tower.md` documents the `int`/`BigInteger`/`Rational`/`float` tower (#1832)
