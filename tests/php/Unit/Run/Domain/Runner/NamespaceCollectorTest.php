@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Run\Domain\Runner;
 
 use Phel\Build\Domain\Extractor\NamespaceInformation;
-use Phel\Run\Application\BundledNamespaces;
 use Phel\Run\Domain\Runner\NamespaceCollector;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
@@ -94,7 +93,6 @@ final class NamespaceCollectorTest extends TestCase
         new NamespaceCollector(
             $buildFacade,
             $commandFacade,
-            new BundledNamespaces($buildFacade, $commandFacade),
         )->getDependenciesFromPaths(['/src/app.phel']);
 
         return $captured;
