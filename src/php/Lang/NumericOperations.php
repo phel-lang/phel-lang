@@ -24,12 +24,12 @@ use function sprintf;
  *
  * Contagion rules (left to right yields the result type):
  *
+ *  - any op float                        -> float (highest priority; BigDecimal
+ *                                                  cannot represent Inf/NaN)
+ *  - BigDecimal op BigDecimal/int        -> BigDecimal
  *  - Rational op Rational/int/BigInteger -> Rational (auto-collapsed)
- *  - Rational op float                   -> float
  *  - BigInteger op BigInteger/int        -> BigInteger (auto-collapsed)
- *  - BigInteger op float                 -> float
  *  - int op int                          -> int (or Rational for non-integer divisions)
- *  - any op float                        -> float
  */
 final class NumericOperations
 {
