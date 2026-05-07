@@ -560,9 +560,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 
 (defn bigdec
   "Coerces `x` to a `Phel\\Lang\\BigDecimal`. Accepts `BigDecimal` (returned
-  as-is), ints, floats (truncated through the shortest round-trip
-  decimal of the float), `BigInteger`, and numeric strings."
-  {:example "(bigdec 1.5) ; => 1.5M\n(bigdec \"3.14\") ; => 3.14M"
+  as-is), ints, floats (via the shortest round-trip decimal of the
+  float), `BigInteger`, `Rational` (computed via exact decimal division;
+  throws `ArithmeticError` when the expansion does not terminate,
+  matching `(bigdec 1/3)`), and numeric strings."
+  {:example "(bigdec 1.5) ; => 1.5M\n(bigdec 1/2) ; => 0.5M\n(bigdec \"3.14\") ; => 3.14M"
    :see-also ["bigdec?" "decimal?" "rationalize"]}
   [x]
   (cond
@@ -570,10 +572,12 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
     (php/is_int x)                 (php/:: BigDecimal (fromInt x))
     (php/is_float x)               (php/:: BigDecimal (fromFloat x))
     (php/instanceof x BigInteger)  (php/:: BigDecimal (fromBigInteger x))
+    (php/instanceof x Rational)    (php/-> (php/:: BigDecimal (fromBigInteger (php/-> x (numerator))))
+                                           (divideExact (php/:: BigDecimal (fromBigInteger (php/-> x (denominator))))))
     (string? x)                    (php/:: BigDecimal (fromString x))
     :else
     (throw (php/new \InvalidArgumentException
-                    (php/. "bigdec expects a BigDecimal, int, float, BigInteger, or numeric string, got "
+                    (php/. "bigdec expects a BigDecimal, int, float, BigInteger, Rational, or numeric string, got "
                            (php/get_debug_type x))))))
 
 (defn numerator
