@@ -27,6 +27,7 @@ All notable changes to this project will be documented in this file.
 - `(symbol nil name)` returns an unqualified symbol instead of throwing (#1859)
 - `int`/`long`/`float`/`double` accept `BigDecimal`; `zero?`/`pos?`/`neg?`, `<`/`<=`/`>`/`>=`, `==`, `number?` route `BigDecimal` through the numeric tower (#1867)
 - `bigdec` accepts `Rational`; non-terminating expansions raise `ArithmeticError` (#1873)
+- `+`, `-`, `*`, `/`, `abs`, `quot`, `rem`, `mod`, `rationalize` accept `BigDecimal` operands; `/` raises `ArithmeticError` on non-terminating expansions (#1875)
 
 #### Lang
 - `=` between `int` and `BigInteger` is symmetric (#1830)

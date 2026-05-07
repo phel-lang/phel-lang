@@ -38,6 +38,10 @@ final class NumericOperations
         self::ensureNumeric($a);
         self::ensureNumeric($b);
 
+        if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
+            return self::toBigDecimal($a)->add(self::toBigDecimal($b));
+        }
+
         if (is_float($a) || is_float($b)) {
             return self::toFloat($a) + self::toFloat($b);
         }
@@ -65,6 +69,10 @@ final class NumericOperations
     {
         self::ensureNumeric($a);
         self::ensureNumeric($b);
+
+        if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
+            return self::toBigDecimal($a)->subtract(self::toBigDecimal($b));
+        }
 
         if (is_float($a) || is_float($b)) {
             return self::toFloat($a) - self::toFloat($b);
@@ -94,6 +102,10 @@ final class NumericOperations
     {
         self::ensureNumeric($a);
         self::ensureNumeric($b);
+
+        if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
+            return self::toBigDecimal($a)->multiply(self::toBigDecimal($b));
+        }
 
         if (is_float($a) || is_float($b)) {
             return self::toFloat($a) * self::toFloat($b);
@@ -126,6 +138,10 @@ final class NumericOperations
     {
         self::ensureNumeric($a);
         self::ensureNumeric($b);
+
+        if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
+            return self::toBigDecimal($a)->divideExact(self::toBigDecimal($b));
+        }
 
         if (is_float($a) || is_float($b)) {
             $left = self::toFloat($a);
@@ -174,6 +190,10 @@ final class NumericOperations
 
         if ($a instanceof BigInteger) {
             return self::collapseBigInt($a->negate());
+        }
+
+        if ($a instanceof BigDecimal) {
+            return $a->negate();
         }
 
         return -$a;
@@ -266,6 +286,10 @@ final class NumericOperations
             return self::collapseBigInt($a->abs());
         }
 
+        if ($a instanceof BigDecimal) {
+            return $a->abs();
+        }
+
         // |PHP_INT_MIN| overflows the PHP int range; native abs() drops
         // to float, so promote to BigInteger to preserve exactness.
         if ($a === PHP_INT_MIN) {
@@ -315,6 +339,13 @@ final class NumericOperations
             throw new DivisionByZeroError('Division by zero');
         }
 
+        if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
+            return self::truncateBigDecimalQuot(
+                self::toBigDecimal($a),
+                self::toBigDecimal($b),
+            );
+        }
+
         if (is_float($a) || is_float($b)) {
             $ratio = self::toFloat($a) / self::toFloat($b);
             // Float operands keep float result; truncate toward zero.
@@ -343,6 +374,13 @@ final class NumericOperations
 
         if (self::isZero($b)) {
             throw new DivisionByZeroError('Division by zero');
+        }
+
+        if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
+            $aBig = self::toBigDecimal($a);
+            $bBig = self::toBigDecimal($b);
+            $q = self::truncateBigDecimalQuot($aBig, $bBig);
+            return $aBig->subtract($bBig->multiply($q));
         }
 
         if (is_float($a) || is_float($b)) {
@@ -451,6 +489,19 @@ final class NumericOperations
         throw new InvalidArgumentException(
             sprintf('Expected a number, got %s', get_debug_type($value)),
         );
+    }
+
+    /**
+     * Truncates `a / b` toward zero and returns the result as a scale-0
+     * `BigDecimal`. Used by `quot` and `rem` for BigDecimal operands.
+     */
+    private static function truncateBigDecimalQuot(BigDecimal $a, BigDecimal $b): BigDecimal
+    {
+        $scale = max($a->scale(), $b->scale());
+        $aLifted = $a->mantissa()->multiply(BigInteger::fromInt(10)->pow($scale - $a->scale()));
+        $bLifted = $b->mantissa()->multiply(BigInteger::fromInt(10)->pow($scale - $b->scale()));
+
+        return BigDecimal::fromBigInteger($aLifted->divide($bLifted));
     }
 
     private static function toBigDecimal(mixed $value): BigDecimal

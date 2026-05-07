@@ -673,9 +673,11 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 (defn rationalize
   "Converts `x` to a `Rational`. Floats use the shortest decimal expansion
   that round-trips back to the same float, so `(rationalize 0.1)` is `1/10`
-  rather than the float-noise denominator. Ints and `BigInteger` values
-  become `n/1` and auto-collapse, so they are returned unchanged."
-  {:example "(rationalize 0.5) ; => 1/2\n(rationalize 3) ; => 3"
+  rather than the float-noise denominator. Ints, `BigInteger`, and
+  integer-valued `BigDecimal` values become `n/1` and auto-collapse, so
+  they are returned as the integer value. `BigDecimal` with a fractional
+  part rationalizes through its canonical decimal form."
+  {:example "(rationalize 0.5) ; => 1/2\n(rationalize 3) ; => 3\n(rationalize 1M) ; => 1"
    :see-also ["numerator" "denominator" "ratio?"]}
   [x]
   (cond
@@ -683,6 +685,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
     (php/instanceof x BigInteger) x
     (php/is_int x)                x
     (php/is_float x)              (float->rational x)
+    (php/instanceof x BigDecimal) (decimal-string->rational (php/-> x (toPlainString)))
     :else
     (throw (php/new InvalidArgumentException
                     (str "rationalize expects a number, got " (type x))))))
