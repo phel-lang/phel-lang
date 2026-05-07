@@ -16,7 +16,7 @@ final class ClojureTestAliasRegressionTest extends TestCase
     {
         $projectRoot = __DIR__ . '/../../../../../../..';
         $bin         = $projectRoot . '/bin/phel';
-        $fixture     = $projectRoot . '/tests/phel/test/clojure-test-alias-regression.phel';
+        $fixture     = $projectRoot . '/tests/phel/clojure-test-alias-regression.phel';
 
         $cmd = 'cd ' . escapeshellarg($projectRoot)
             . ' && php -d memory_limit=256M ' . escapeshellarg($bin)

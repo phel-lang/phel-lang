@@ -1,0 +1,355 @@
+(ns phel-test.core.boolean-operation
+  (:require phel.test :refer [deftest is thrown?])
+  (:require phel.string :as s))
+
+(deftest test-or
+  (is (nil? (or)) "or zero args")
+  (is (true? (or true)) "(or true)")
+  (is (false? (or false)) "(or false")
+  (is (true? (or true false)) "(or true false)")
+  (is (true? (or false true)) "(or false true)")
+  (is (false? (or false false)) "(or false false)")
+  (is (= 10 (or false 10)) "(or false 10)")
+  (is (= 10 (or 10)) "(or 10)"))
+
+(deftest test-and
+  (is (true? (and)) "(and)")
+  (is (true? (and true)) "(and true)")
+  (is (true? (and true true)) "(and true true)")
+  (is (false? (and false)) "(and false)")
+  (is (false? (and true false)) "(and true false)")
+  (is (false? (and true false true)) "(and true false true)")
+  (is (= 10 (and true 10)) "(and true 10)")
+  (is (false? (and false 10)) "(and false 10)")
+  (is (= 10 (and 10)) "(and 10)"))
+
+(deftest test-id
+  (is (true? (id false)) "(id false)")
+  (is (true? (id false false)) "(id false false)")
+  (is (true? (id false false false)) "(id false false false)")
+  (is (false? (id false true false)) "(id false true false)")
+  (is (true? (id 10 10)) "(id 10 10)")
+  (is (false? (id 10 10.0)) "(id 10 10.0)")
+  (is (true? (id :test :test)) "keywords are always identical")
+  (is (true? (id 'test 'test)) "symbol are always identical")
+  (is (false? (id [] [])) "two empty vectors are not identical")
+  (is (false? (id {} {})) "two empty maps are not identical"))
+
+(deftest test-=
+  (is (true? (= false)) "(= false)")
+  (is (true? (false? false)) "(false? false)")
+  (is (true? (false? false false)) "(false? false false)")
+  (is (false? (false? true false)) "(false? true false)")
+  (is (true? (= 10 10)) "(= 10 10)")
+  (is (false? (= 10 10.0)) "(= 10 10.0)")
+  (is (true? (= :test :test)) "keywords are always equal")
+  (is (true? (= 'test 'test)) "symbol are always equal"))
+
+(deftest test-=-vector
+  (is (true? (= [] [])) "two empty vectors are equal")
+  (is (true? (= ["hello"] ["hello"])) "two vectors with the same values")
+  (is (false? (= ["hello"] [0])) "two vectors with different values")
+  (is (false? (= ["1"] [1])) "two vectors with the same value but different types")
+  (is (true? (= [:a :b] [:a :b])) "two vectors with keywords are equal")
+  (is (true? (= [1 [:b]] [1 [:b]])) "nested vectors are equal")
+  (is (false? (= [:a ["1"]] [:a [1]])) "nested vectors with different types are not equal")
+  (is (false? (= [1] [1 2])) "vectors with different size are not equals"))
+
+; Regression tests for https://github.com/phel-lang/phel-lang/issues/1546.
+; Sequential collections with the same elements must compare equal regardless
+; of argument order or concrete type (list/vector/lazy-seq).
+(deftest test-=-list-vector
+  (is (true? (= '(1 2) [1 2])) "list = vector")
+  (is (true? (= [1 2] '(1 2))) "vector = list")
+  (is (true? (= '() [])) "empty list = empty vector")
+  (is (true? (= [] '())) "empty vector = empty list")
+  (is (true? (= '(0 1 2 3) (take 4 (range)))) "list = finite prefix of infinite range")
+  (is (true? (= (take 4 (range)) '(0 1 2 3))) "finite prefix of infinite range = list")
+  (is (false? (= '(1 2 3) [1 2])) "lists and vectors of different lengths are not equal")
+  (is (false? (= '(1 2) {1 2})) "list is not equal to a map")
+  (is (false? (= '(1 2) (hash-set 1 2))) "list is not equal to a set")
+  (let [a '(1 2) b [1 2]]
+    (is (true? (= a b)) "def a = def b (list vs vector)")
+    (is (true? (= b a)) "def b = def a (vector vs list)")))
+
+(deftest test-=-set
+  (is (true? (= (hash-set) (hash-set))) "two empty sets are equal")
+  (is (true? (= (hash-set "hello") (hash-set "hello"))) "two sets with the same values")
+  (is (false? (= (hash-set "hello") (hash-set 0))) "two sets with different values")
+  (is (false? (= (hash-set "1") (hash-set 1))) "two sets with the same value but different types")
+  (is (true? (= (hash-set :a :b) (hash-set :a :b))) "two sets with keywords are equal")
+  (is (true? (= (hash-set :a :b) (hash-set :b :a))) "two sets with unordered keywords are equal")
+  (is (true? (= (hash-set 1 (hash-set :b)) (hash-set 1 (hash-set :b)))) "nested sets are equal")
+  (is (true? (= (hash-set 1 (hash-set :b)) (hash-set (hash-set :b) 1))) "nested sets in different order are equal")
+  (is (false? (= (hash-set :a (hash-set "1")) (hash-set :a (hash-set 1)))) "nested sets with different types are not equal")
+  (is (false? (= (hash-set 1) (hash-set 1 2))) "sets with different size are not equals"))
+
+(deftest test-=-on-map
+  (is (true? (= {} {})) "two empty hash maps are equal")
+  (is (true? (= {:key "value"} {:key "value"})) "two hash maps with the same values")
+  (is (false? (= {:key "value"} {:key 0})) "two hash maps with same keys but different values")
+  (is (true? (= {:key {:k "v"}} {:key {:k "v"}})) "nested hash maps are equal")
+  (is (false? (= {:key {:k "v"}} {:key {:k 0}})) "nested hash maps with different types are not equal")
+  (is (false? (= {:key "value"} {})) "two hash maps with different values")
+  (is (true? (= {:k1 "v1" :k2 "v2"} {:k1 "v1" :k2 "v2"})) "two keys with same value")
+  (is (true? (= {:k1 "v1" :k2 "v2"} {:k2 "v2" :k1 "v1"})) "two keys with same value but different order"))
+
+(deftest test-not
+  (is (false? (not true)) "(not true)")
+  (is (true? (not false)) "(not false)")
+  (is (false? (not 10)) "(not 10)")
+  (is (false? (not [])) "(not [])"))
+
+(deftest test-not=
+  (is (false? (not= false)) "(not= false)")
+  (is (false? (not= false false)) "(notfalse? false)")
+  (is (false? (not= false false false)) "(notfalse? false false)")
+  (is (true? (not= false true false)) "(notfalse? true false)")
+  (is (false? (not= 10 10)) "(not= 10 10)")
+  (is (true? (not= 10 10.0)) "(not= 10 10.0)"))
+
+(deftest test-<
+  (is (true? (< 10)) "(< 10)")
+  (is (true? (< 10 20)) "(< 10 20)")
+  (is (true? (< 10 20 30)) "(< 10 20 30)")
+  (is (false? (< 10 10)) "(< 10 10)")
+  (is (false? (< 10 9)) "(< 10 9)")
+  (is (false? (< 10 20 15)) "(< 10 20 15)")
+  (is (false? (< 10 20 20)) "(< 10 20 20)"))
+
+(deftest test-<=
+  (is (true? (<= 10)) "(<= 10)")
+  (is (true? (<= 10 20)) "(<= 10 20)")
+  (is (true? (<= 10 20 30)) "(<= 10 20 30)")
+  (is (true? (<= 10 10)) "(<= 10 10)")
+  (is (false? (<= 10 9)) "(<= 10 9)")
+  (is (false? (<= 10 20 15)) "(<= 10 20 15)")
+  (is (true? (<= 10 20 20)) "(<= 10 20 20)"))
+
+(deftest test->
+  (is (true? (> 10)) "(> 10)")
+  (is (true? (> 20 10)) "(> 20 10)")
+  (is (true? (> 30 20 10)) "(> 30 20 10)")
+  (is (false? (> 10 10)) "(> 10 10)")
+  (is (false? (> 9 10)) "(> 9 10)")
+  (is (false? (> 20 10 15)) "(> 20 20 15)")
+  (is (false? (> 20 20 10)) "(> 20 20 10)"))
+
+(deftest test->=
+  (is (true? (>= 10)) "(>= 10)")
+  (is (true? (>= 20 10)) "(>= 20 10)")
+  (is (true? (>= 30 20 10)) "(>= 30 20 10)")
+  (is (true? (>= 10 10)) "(>= 10 10)")
+  (is (false? (>= 9 10)) "(>= 9 10)")
+  (is (false? (>= 20 10 15)) "(>= 20 20 15)")
+  (is (true? (>= 20 20 10)) "(>= 20 20 10)"))
+
+(deftest test-all?
+  (is (true? (all? pos? [1 2 3])) "all pos? in list")
+  (is (true? (all? pos? [])) "all pos? in empty list")
+  (is (false? (all? pos? [1 -1 3])) "all pos? in list"))
+
+(deftest test-all?-empty-element
+  (is (true? (all? #(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
+
+(deftest test-every?
+  (is (true? (every? pos? [1 2 3])) "every? pos? in list")
+  (is (true? (every? pos? [])) "every? pos? in empty list")
+  (is (false? (every? pos? [1 -1 3])) "every? pos? in list"))
+
+(deftest test-not-every?
+  (is (false? (not-every? pos? [1 2 3])) "not-every? all pos")
+  (is (false? (not-every? pos? [])) "not-every? empty list")
+  (is (true? (not-every? pos? [1 -1 3])) "not-every?"))
+
+(deftest test-some?
+  (is (true? (some? pos? [1 2 3])) "some pos? in list")
+  (is (false? (some? pos? [])) "some pos? in empty list")
+  (is (true? (some? pos? [1 -1 3])) "some pos? in list")
+  (is (false? (some? pos? [-1 -1 -3])) "some pos? in list"))
+
+(deftest test-some?-empty-element
+  (is (false? (some? #(throw (php/new \Exception)) [])) "`pred` is not executed when searching for empty vectors."))
+
+(deftest test-some?-1-arg-clojure-semantics
+  (is (true? (some? 0))           "0 is not nil")
+  (is (true? (some? false))       "false is not nil (nil-test, not truthy-test)")
+  (is (true? (some? ""))          "empty string is not nil")
+  (is (true? (some? []))          "empty vector is not nil")
+  (is (false? (some? nil))        "nil returns false")
+  (is (true? (some? "anything"))  "string value is not nil"))
+
+(deftest test-not-any?
+  (is (false? (not-any? pos? [1 -1 3])) "not-any? one pos")
+  (is (true? (not-any? pos? [])) "not-any? empty list")
+  (is (true? (not-any? pos? [-1 -2 -3])) "not-any? only neg"))
+
+(deftest test-some
+  (is (= 3 (some #(if (> % 2) % nil) [1 2 3 4])) "some returns first truthy")
+  (is (true? (some odd? #{1 2 3 4})) "some works on sets")
+  (is (nil? (some #(if (> % 10) % nil) [1 2 3])) "some returns nil when none matches")
+  (is (nil? (some #(if (> % 1) % nil) [])) "some on empty list"))
+
+(deftest test-true?
+  (is (true? (true? true)) "(true? true)")
+  (is (false? (true? [])) "(true? [])")
+  (is (false? (true? 10)) "(true? 10)")
+  (is (false? (true? nil)) "(true? nil)")
+  (is (false? (true? false)) "(true? false)"))
+
+(deftest test-truthy?
+  (is (true? (truthy? true)) "(truthy? true)")
+  (is (true? (truthy? [])) "(truthy? [])")
+  (is (true? (truthy? 10)) "(truthy? 10)")
+  (is (false? (truthy? nil)) "(truthy? nil)")
+  (is (false? (truthy? false)) "(truthy? false)"))
+
+(deftest test-boolean
+  (is (true? (boolean true)) "(boolean true)")
+  (is (true? (boolean [])) "(boolean [])")
+  (is (true? (boolean 10)) "(boolean 10)")
+  (is (true? (boolean 0)) "(boolean 0)")
+  (is (true? (boolean "")) "(boolean \"\")")
+  (is (true? (boolean :a)) "(boolean :a)")
+  (is (false? (boolean nil)) "(boolean nil)")
+  (is (false? (boolean false)) "(boolean false)"))
+
+(deftest test-false?
+  (is (true? (false? false)) "(false? false)")
+  (is (false? (false? nil)) "(false? nil)")
+  (is (false? (false? true)) "(false? true)"))
+
+(deftest test-str-contains?
+  (is (true? (str-contains? "abc" "a")))
+  (is (false? (str-contains? "abc" "d"))))
+
+(deftest test-contains?-map
+  (let [full-name {:first-name "Marco" :last-name "Polo" :street nil}]
+    (is (true? (contains? full-name :first-name)))
+    (is (true? (contains? full-name :last-name)))
+    (is (true? (contains? full-name :street)))
+    (is (false? (contains? full-name :unknown)))))
+
+(deftest test-contains?-nil
+  (is (false? (contains? nil nil)))
+  (is (false? (contains? nil :anything))))
+
+(deftest test-contains?-list
+  (is (false? (contains? '() 0)))
+  (is (true? (contains? '(1) 0)))
+  (is (false? (contains? '(1) 1))))
+
+(deftest test-contains?-vector
+  (is (false? (contains? [] 0)))
+  (is (true? (contains? [1] 0)))
+  (is (false? (contains? [1] 1))))
+
+(deftest test-contains?-set
+  (is (false? (contains? (hash-set) 1)))
+  (is (true? (contains? (hash-set 1) 1)))
+  (is (false? (contains? (hash-set 1) 2))))
+
+(deftest test-contains?-string
+  (is (false? (contains? "" 0)) "empty string has no indices")
+  (is (true? (contains? "hello" 0)) "first index")
+  (is (true? (contains? "hello" 4)) "last valid index")
+  (is (false? (contains? "hello" 5)) "index out of bounds")
+  (is (false? (contains? "hello" -1)) "negative index")
+  (is (false? (contains? "hello" "e")) "non-integer key"))
+
+(deftest test-contains?-scalar
+  (is (thrown? \InvalidArgumentException (contains? 1 0))
+      "contains? on scalar throws InvalidArgumentException"))
+
+(deftest test-contains?-string-multibyte
+  (is (true? (contains? "🎉" 0)) "emoji first index")
+  (is (false? (contains? "🎉" 1)) "emoji has only 1 character despite 4 bytes")
+  (is (true? (contains? "café" 3)) "last index of UTF-8 string")
+  (is (false? (contains? "café" 4)) "out of bounds for UTF-8 string")
+  (is (true? (contains? "🎉🎊" 0)) "first emoji in multi-emoji string")
+  (is (true? (contains? "🎉🎊" 1)) "second emoji in multi-emoji string")
+  (is (false? (contains? "🎉🎊" 2)) "out of bounds for multi-emoji string")
+  (is (true? (contains? "你好" 0)) "Chinese characters first index")
+  (is (true? (contains? "你好" 1)) "Chinese characters second index")
+  (is (false? (contains? "你好" 2)) "Chinese characters out of bounds"))
+
+(deftest test-contains-value?-php-indexed-array
+  (is (false? (contains-value? (php-indexed-array) 1)))
+  (is (false? (contains-value? (php-indexed-array 1) 2)))
+  (is (true? (contains-value? (php-indexed-array 1) 1)))
+  (is (true? (contains-value? (php-indexed-array nil) nil))))
+
+(deftest test-contains-value?-list
+  (is (false? (contains-value? '() 1)))
+  (is (false? (contains-value? '(1) 0)))
+  (is (true? (contains-value? '(1) 1)))
+  (is (true? (contains-value? '(nil) nil))))
+
+(deftest test-contains-value?-vector
+  (is (false? (contains-value? [] 1)))
+  (is (false? (contains-value? [1] 0)))
+  (is (true? (contains-value? [1] 1)))
+  (is (false? (contains-value? [] nil)))
+  (is (false? (contains-value? [nil] 0)))
+  (is (false? (contains-value? [""] nil)))
+  (is (true? (contains-value? [nil] nil)))
+  (let [f (fn [x] (+ x 1))
+        g (fn [x] (+ x 1))]
+    (is (true? (contains-value? [f] f)))
+    (is (false? (contains-value? [f] g)))))
+
+(deftest test-contains-value?-set
+  (is (false? (contains-value? (hash-set) 1)))
+  (is (false? (contains-value? (hash-set 1) 0)))
+  (is (true? (contains-value? (hash-set 1) 1)))
+  (is (true? (contains-value? (hash-set nil) nil))))
+
+(deftest test-contains-value?-map
+  (let [full-name {:first-name "Marco" :last-name "Polo" :street nil}]
+    (is (true? (contains-value? full-name "Marco")))
+    (is (true? (contains-value? full-name "Polo")))
+    (is (true? (contains-value? full-name nil)))
+    (is (false? (contains-value? full-name "unknown"))))
+  (is (true? (contains-value? {:a [1 2] :b 3} [1 2])))
+  (is (true? (contains-value? {:a nil :b 2} nil))))
+
+(deftest test-numeric-equals
+  (is (true? (== 42)) "(== 42) is true for single arg")
+  (is (true? (== 1 1)) "(== 1 1)")
+  (is (false? (== 1 2)) "(== 1 2)")
+  (is (true? (== 1 1.0)) "(== 1 1.0) — type-independent numeric equality, unlike =")
+  (is (false? (= 1 1.0)) "(= 1 1.0) stays type-strict for contrast")
+  (is (true? (== 1 1 1)) "(== 1 1 1)")
+  (is (true? (== 1.0 1 1.0 1)) "(== 1.0 1 1.0 1)")
+  (is (false? (== 1 1 2)) "(== 1 1 2)")
+  (is (false? (== 1 2 1)) "(== 1 2 1) — short-circuits on first inequality")
+  (is (thrown? \InvalidArgumentException (== 1 "1")) "(== 1 \"1\") rejects non-numeric operand"))
+
+(deftest test-compare
+  (is (= -1 (compare 1 2)) "(compare 1 2)")
+  (is (= 1 (compare 2 1)) "(compare 2 1)")
+  (is (= 0 (compare 1 1)) "(compare 1 1)")
+  (is (= 0 (compare 1 1.0)) "mixed int/float compare as same category")
+  (is (= -1 (compare "a" "b")) "strings compare")
+  (is (= -1 (compare :a :b)) "keywords compare by name")
+  (is (= -1 (compare 'a 'b)) "symbols compare by name")
+  (is (= -1 (compare :cat :animal/cat)) "unqualified keyword sorts before namespaced one")
+  (is (= 1 (compare :animal/cat :cat)) "namespaced keyword sorts after unqualified one")
+  (is (= -1 (compare :animal/cat :zoo/cat)) "namespaced keywords compare by namespace first")
+  (is (= -1 (compare :animal/cat :animal/dog)) "namespaced keywords with the same ns compare by name")
+  (is (= -1 (compare [1 :a] [1 :b])) "vectors compare lexicographically")
+  (is (= -1 (compare [1] [1 2])) "shorter vector sorts first when prefix matches")
+  (is (= 1 (compare [nil] [])) "vector with nil element sorts after empty vector")
+  (is (= -1 (compare [] [nil])) "empty vector sorts before vector with nil element")
+  (is (= [[] [nil] [nil nil]] (sort [[nil nil] [nil] []]))
+      "sort orders sequential values by length when nil prefixes match")
+  (is (= 0 (compare nil nil)) "nil equals nil")
+  (is (= -1 (compare nil 1)) "nil is less than any non-nil")
+  (is (= 1 (compare 1 nil)) "non-nil is greater than nil"))
+
+(deftest test-compare-type-mismatch
+  (is (thrown? \InvalidArgumentException (compare 1 [])) "number vs vector throws")
+  (is (thrown? \InvalidArgumentException (compare 'x [])) "symbol vs vector throws")
+  (is (thrown? \InvalidArgumentException (compare 'x '(x))) "symbol vs list throws")
+  (is (thrown? \InvalidArgumentException (compare :a "a")) "keyword vs string throws")
+  (is (thrown? \InvalidArgumentException (compare {} [])) "map vs vector throws"))

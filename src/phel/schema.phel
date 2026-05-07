@@ -22,7 +22,7 @@
 ;;   (register! name schema)             ; global named-schema registry
 ;;
 ;; All supported schema forms are documented in the repository README
-;; and exercised in `tests/phel/test/schema/*.phel`.
+;; and exercised in `tests/phel/schema/*.phel`.
 
 ;; ------
 ;; Predicates

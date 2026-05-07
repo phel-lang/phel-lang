@@ -1,0 +1,77 @@
+(ns phel-test.core.vars
+  (:require phel.test :refer [deftest is]))
+
+;; First-class `Var` handles: produced by `(var sym)` / `#'sym`, manipulated
+;; by `deref`, `alter-var-root`, `meta`, `find-var`, `var-get`, and tested by
+;; `var?`.
+
+(def var-target-value 1)
+(defn var-target-fn [] :hello)
+
+(deftest test-var-special-form
+  (is (var? (var var-target-value)) "(var sym) returns a Var")
+  (is (= #'var-target-value (var var-target-value))
+      "(var sym) and #'sym yield equal Vars"))
+
+(deftest test-var?-on-non-vars
+  (is (false? (var? (atom 1))) "var? false on atom")
+  (is (false? (var? 42)) "var? false on int")
+  (is (false? (var? :keyword)) "var? false on keyword")
+  (is (false? (var? nil)) "var? false on nil"))
+
+(deftest test-deref-var
+  (is (= 1 (deref #'var-target-value)) "deref var returns root value")
+  (is (= 1 @#'var-target-value) "@ on var returns root value"))
+
+(def alter-counter 0)
+
+(deftest test-alter-var-root
+  (is (= 1 (alter-var-root #'alter-counter inc)) "alter-var-root returns new root")
+  (is (= 1 (deref #'alter-counter)) "alter-var-root mutates the root")
+  (alter-var-root #'alter-counter (fn [n a b] (+ n a b)) 10 100)
+  (is (= 111 (deref #'alter-counter)) "alter-var-root passes extra args"))
+
+(def meta-target
+  "docstring on a var"
+  :value)
+
+(deftest test-meta-on-var
+  (let [m (meta #'meta-target)]
+    (is (= "docstring on a var" (get m :doc))
+        "meta returns metadata attached to the definition")))
+
+(deftest test-var-equality
+  (is (= #'var-target-value #'var-target-value)
+      "two #'sym handles to the same slot compare equal"))
+
+(deftest test-find-var
+  (is (var? (find-var 'phel-test.core.vars/var-target-value))
+      "find-var on a defined symbol returns a Var")
+  (is (nil? (find-var 'phel-test.core.vars/missing-symbol))
+      "find-var on a missing symbol returns nil")
+  (is (nil? (find-var 'unqualified))
+      "find-var on an unqualified symbol returns nil")
+  (is (nil? (find-var 42))
+      "find-var on a non-symbol returns nil"))
+
+(deftest test-var-get-on-var
+  (is (= 1 (var-get #'var-target-value)) "var-get on Var returns root")
+  (is (= var-target-fn (var-get #'var-target-fn)) "var-get on Var fn returns fn"))
+
+(deftest test-var-get-on-symbol
+  (is (= 1 (var-get 'phel-test.core.vars/var-target-value))
+      "var-get on a fully-qualified symbol returns the value")
+  (is (nil? (var-get 'phel-test.core.vars/missing))
+      "var-get on a missing symbol returns nil")
+  (is (= ::none (var-get 'phel-test.core.vars/missing ::none))
+      "var-get with not-found arg returns it"))
+
+(deftest test-var-get-on-core
+  (is (= map (var-get 'phel.core/map))
+      "var-get reads phel.core function values"))
+
+(deftest test-symbol-on-var
+  (is (= 'phel-test.core.vars/var-target-value (symbol #'var-target-value))
+      "symbol on a var returns its fully qualified name as a symbol")
+  (is (= 'phel.core/+ (symbol #'phel.core/+))
+      "symbol on a core var returns its namespaced symbol"))

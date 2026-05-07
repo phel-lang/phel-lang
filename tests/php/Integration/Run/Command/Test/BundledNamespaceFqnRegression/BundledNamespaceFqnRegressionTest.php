@@ -16,7 +16,7 @@ final class BundledNamespaceFqnRegressionTest extends TestCase
     {
         $projectRoot = __DIR__ . '/../../../../../../..';
         $bin         = $projectRoot . '/bin/phel';
-        $fixture     = $projectRoot . '/tests/phel/test/phel-async-fqn-regression.phel';
+        $fixture     = $projectRoot . '/tests/phel/phel-async-fqn-regression.phel';
 
         $cmd = 'cd ' . escapeshellarg($projectRoot)
             . ' && php -d memory_limit=256M ' . escapeshellarg($bin)

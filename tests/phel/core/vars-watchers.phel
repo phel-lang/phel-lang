@@ -1,0 +1,70 @@
+(ns phel-test.core.vars-watchers
+  (:require phel.test :refer [deftest is]))
+
+;; `add-watch` / `remove-watch` work on `Var` handles. Watch fns are called
+;; with `[key var old-value new-value]` after `alter-var-root` succeeds.
+
+(def watched-counter 0)
+
+(deftest test-add-watch-fires-on-alter-var-root
+  (let [log (atom [])]
+    (add-watch #'watched-counter :log
+      (fn [k r o n] (swap! log (fn [xs] (push xs [o n])))))
+    (alter-var-root #'watched-counter inc)
+    (alter-var-root #'watched-counter inc)
+    (is (= [[0 1] [1 2]] (deref log))
+        "watch fires once per alter-var-root with old/new values")
+    (remove-watch #'watched-counter :log)))
+
+(def receives-key-target 0)
+
+(deftest test-watch-receives-keyword-key
+  (let [received-key (atom nil)]
+    (add-watch #'receives-key-target :my-key
+      (fn [k r o n] (reset! received-key k)))
+    (alter-var-root #'receives-key-target inc)
+    (is (= :my-key (deref received-key)) "watch receives keyword key")
+    (remove-watch #'receives-key-target :my-key)))
+
+(def receives-ref-target 0)
+
+(deftest test-watch-receives-var-handle
+  (let [ref-is-var (atom false)]
+    (add-watch #'receives-ref-target :ref-check
+      (fn [k r o n] (reset! ref-is-var (var? r))))
+    (alter-var-root #'receives-ref-target inc)
+    (is (true? (deref ref-is-var)) "watch receives a Var as the ref arg")
+    (remove-watch #'receives-ref-target :ref-check)))
+
+(def remove-target 0)
+
+(deftest test-remove-watch-on-var
+  (let [count (atom 0)]
+    (add-watch #'remove-target :counter (fn [k r o n] (swap! count inc)))
+    (alter-var-root #'remove-target inc)
+    (is (= 1 (deref count)) "watch fires once")
+    (remove-watch #'remove-target :counter)
+    (alter-var-root #'remove-target inc)
+    (is (= 1 (deref count)) "watch no longer fires after remove")))
+
+(def shared-state-target 0)
+
+(deftest test-watches-shared-across-handles
+  (let [hits (atom 0)]
+    (add-watch #'shared-state-target :h (fn [k r o n] (swap! hits inc)))
+    (alter-var-root (var shared-state-target) inc)
+    (is (= 1 (deref hits))
+        "watch fires when alter-var-root targets a different handle to the same slot")
+    (remove-watch #'shared-state-target :h)))
+
+(def multi-watch-target 0)
+
+(deftest test-multiple-watches-on-var
+  (let [a (atom 0) b (atom 0)]
+    (add-watch #'multi-watch-target :a (fn [k r o n] (swap! a inc)))
+    (add-watch #'multi-watch-target :b (fn [k r o n] (swap! b inc)))
+    (alter-var-root #'multi-watch-target inc)
+    (is (= 1 (deref a)) "first watch fires")
+    (is (= 1 (deref b)) "second watch fires")
+    (remove-watch #'multi-watch-target :a)
+    (remove-watch #'multi-watch-target :b)))

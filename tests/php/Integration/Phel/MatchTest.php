@@ -14,7 +14,7 @@ use function sprintf;
 use function stream_get_contents;
 
 /**
- * Runs `./bin/phel test tests/phel/test/match.phel` end-to-end so
+ * Runs `./bin/phel test tests/phel/match.phel` end-to-end so
  * `composer test-compiler` exercises the core.match macro on every CI
  * run (not only `composer test-core`).
  */
@@ -27,7 +27,7 @@ final class MatchTest extends TestCase
             '%s %s %s 2>&1',
             escapeshellarg(PHP_BINARY),
             escapeshellarg($repoRoot . '/bin/phel'),
-            escapeshellarg('test') . ' ' . escapeshellarg('tests/phel/test/match.phel'),
+            escapeshellarg('test') . ' ' . escapeshellarg('tests/phel/match.phel'),
         );
 
         $descriptors = [
@@ -51,7 +51,7 @@ final class MatchTest extends TestCase
             0,
             $exitCode,
             sprintf(
-                "`phel test tests/phel/test/match.phel` failed.\nSTDOUT:\n%s\nSTDERR:\n%s",
+                "`phel test tests/phel/match.phel` failed.\nSTDOUT:\n%s\nSTDERR:\n%s",
                 $stdout,
                 $stderr,
             ),

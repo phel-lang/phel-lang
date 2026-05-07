@@ -1,0 +1,33 @@
+(ns phel-test.core.var-quote
+  (:require phel.test :refer [deftest is]))
+
+;; `#'foo` expands to `(var foo)` and yields a `Var` handle to the named
+;; definition. Calling the var derefs to the current root.
+
+(defn var-quote-target-fn [] 42)
+(def var-quote-target-value :ok)
+
+(deftest test-var-quote-yields-var
+  (is (var? #'var-quote-target-fn) "#'fn-name yields a Var")
+  (is (var? #'var-quote-target-value) "#'value yields a Var"))
+
+(deftest test-var-deref-on-fn
+  (is (= var-quote-target-fn (deref #'var-quote-target-fn))
+      "deref of var-quote returns the function value"))
+
+(deftest test-var-deref-on-value
+  (is (= :ok (deref #'var-quote-target-value))
+      "deref of var-quote returns the bound value"))
+
+(deftest test-var-quote-equality
+  (is (= #'var-quote-target-fn #'var-quote-target-fn)
+      "two #'sym handles to the same slot are equal"))
+
+(defmulti var-quote-multi first)
+(defprotocol VarQuoteProtocol)
+
+(deftest test-var-quote-on-defmulti-and-defprotocol
+  (is (var? #'var-quote-multi)
+      "#'defmulti-name yields a Var")
+  (is (var? #'VarQuoteProtocol)
+      "#'defprotocol-name yields a Var"))

@@ -1,0 +1,432 @@
+(ns phel-test.core.sequence-operation
+  (:use OutOfBoundsException)
+  (:require phel.test :refer [deftest is]))
+
+(deftest test-fnext
+  (is (= 2 (fnext [1 2 3])) "fnext on vector")
+  (is (= 2 (fnext '(1 2 3))) "fnext on list")
+  (is (nil? (fnext {})) "fnext on empty map")
+  (is (nil? (fnext {:a :b})) "fnext on single-entry map")
+  (is (nil? (fnext #{})) "fnext on empty set")
+  (is (nil? (fnext #{"abcd"})) "fnext on single-entry set")
+  (is (nil? (fnext [1])) "fnext on single-element vector")
+  (is (nil? (fnext [])) "fnext on empty vector")
+  (is (nil? (fnext nil)) "fnext on nil")
+  (is (= (second [1 2 3]) (fnext [1 2 3])) "fnext equals second"))
+
+(deftest test-peek
+  (is (= 3 (peek [1 2 3])) "peek on a vector returns the last element")
+  (is (nil? (peek [])) "peek on empty vector")
+  (is (= 3 (peek (php/array 1 2 3))) "peek on php array returns the last element")
+  (is (nil? (peek (php/array))) "peek on empty php array")
+  (is (nil? (peek nil)) "peek on nil")
+  (is (= :a (peek '(:a :b :c))) "peek on a list returns the first element")
+  (is (nil? (peek '())) "peek on an empty list")
+  ;; Lazy sequences expose their head — the first element — like lists do
+  (is (= 1 (peek (filter #(> % 0) [1 2 3]))) "peek on lazy seq returns the first element")
+  (is (= 2 (peek (map #(* % 2) [1 2 3]))) "peek on lazy seq from map returns the head")
+  (is (nil? (peek (filter false? [1 2 3]))) "peek on empty lazy seq"))
+
+(def- testing-set-global-array (php/array 1 2 3))
+
+(deftest test-native-global-array-set
+  (php/aset testing-set-global-array 0 4)
+  (is (= (php/array 4 2 3) testing-set-global-array) "native global set on PHP array"))
+
+(def- testing-unset-global-array (php/array 1 2 3))
+
+(deftest test-native-global-array-unset
+  (php/aunset testing-unset-global-array 2)
+  (is (= (php/array 1 2) testing-unset-global-array) "native global unset on PHP array"))
+
+(def- testing-push-global-array (php/array 1 2 3))
+
+(deftest test-native-global-array-push
+  (php/apush testing-push-global-array 4)
+  (is (= (php/array 1 2 3 4) testing-push-global-array) "native global push on PHP array"))
+
+(deftest test-native-array-aget-in
+  (let [arr (php/array (php/array 1 2 3))]
+    (is (= 2 (php/aget-in arr [0 1])) "nested php array get")))
+
+(deftest test-native-array-aset-in
+  (let [arr (php/array (php/array 1 2 3))]
+    (php/aset-in arr [0 1] 4)
+    (is (= (php/array (php/array 1 4 3)) arr) "nested php array set")))
+
+(deftest test-native-array-aunset-in
+  (let [arr (php/array (php/array 1 2 3))]
+    (php/aunset-in arr [0 2])
+    (is (= (php/array (php/array 1 2)) arr) "nested php array unset")))
+
+(deftest test-native-array-apush-in
+  (let [arr (php/array (php/array 1 2))]
+    (php/apush-in arr [0] 3)
+    (is (= (php/array (php/array 1 2 3)) arr) "nested php array push")))
+
+(deftest test-push
+  (let [x (php/array)]
+    (php/apush x 1)
+    (is (= (php/array 1) x) "native push on PHP array"))
+
+  (let [x (php/array)]
+    (is (= (php/array 1) (push x 1)) "push on PHP array"))
+
+  (let [x (php/array)]
+    (push x 1)
+    (is (= (php/array) x) "push on PHP array, keeps initial state because it's immutable"))
+
+  (let [x []]
+    (push x 1)
+    (is (= [] x) "push on existing vector, keeps initial state because it's immutable"))
+
+  (is (= [1] (push [] 1)) "push on vector")
+
+  (let [x (hash-set)]
+    (push x 1)
+    (is (= (hash-set) x) "push on existing set, keeps initial state because it's immutable"))
+
+  (is (= #{1} (push #{} 1)) "push on set"))
+
+(deftest test-conj
+  (is (= [] (conj)) "conj without arguments returns an empty vector")
+  (is (= [1 2] (conj [1 2])) "conj without new elements returns the original collection")
+  (is (nil? (conj nil)) "conj on nil without new elements returns nil")
+  (is (= [1 2 3 4] (conj [1 2 3] 4)) "conj on a vector adds elements at the end")
+  (is (= (list 4 1 2 3) (conj '(1 2 3) 4)) "conj on a list adds elements at the beginning")
+  (is (= ["a" "b" "c" "d"] (conj ["a" "b" "c"] "d")) "conj handles vectors of strings")
+  (is (= [1 2 3 4] (conj [1 2] 3 4)) "conj with multiple values on a vector preserves order")
+  (is (= (list 4 3 1 2) (conj '(1 2) 3 4)) "conj with multiple values on a list adds from left to right")
+  (is (= [[1 2] [3 4] [5 6]] (conj [[1 2] [3 4]] [5 6])) "conj appends nested vectors")
+  (is (= {1 2 3 4 5 6} (conj {1 2 3 4} [5 6])) "conj on a map accepts [key value] vectors")
+  (is (= {:firstname "John" :lastname "Doe" :age 25 :nationality "Chinese"}
+         (conj {:firstname "John" :lastname "Doe"} {:age 25 :nationality "Chinese"}))
+      "conj on a map merges associative collections")
+  (is (= #{1 2 3 4} (conj #{1 3 4} 2)) "conj on a set adds elements")
+  (is (= -1 (first (conj (range) -1))) "conj on a lazy range adds elements at the beginning")
+  (is (= (list 1) (conj nil 1)) "conj on nil with a value returns a single-item list"))
+
+(deftest test-conj-php-arrays
+  (is (= (php/array 1 2 3) (conj (php/array 1 2) 3)) "conj on PHP array appends element")
+  (is (= (php/array 1 2 3 4) (conj (php/array 1 2) 3 4)) "conj on PHP array with multiple values"))
+
+(deftest test-conj-transients
+  (is (= [1 2 3] (persistent (conj (transient [1 2]) 3))) "conj on transient vector appends")
+  (is (= #{1 2 3} (persistent (conj (transient #{1 2}) 3))) "conj on transient set adds element")
+  (is (= {:a 1} (persistent (conj (transient {}) [:a 1]))) "conj on transient map with [key value] pair")
+  (is (= {} (persistent (conj (transient {}) nil))) "conj on transient map with nil is a no-op"))
+
+(deftest test-transient-invocation
+  (is (= 20 ((transient [10 20 30]) 1)) "transient vector is callable by index")
+  (is (= 1 ((transient {:a 1 :b 2}) :a)) "transient map is callable by key")
+  (is (nil? ((transient {:a 1}) :missing)) "transient map missing key returns nil")
+  (is (= "fallback" ((transient {:a 1}) :missing "fallback"))
+      "transient map missing key returns default")
+  (is (= :a ((transient #{:a :b}) :a)) "transient set returns member on lookup")
+  (is (nil? ((transient #{:a}) :missing)) "transient set missing element returns nil")
+  (is (= 1 (:a (transient {:a 1}))) "keyword-as-fn works on transient map"))
+
+(deftest test-conj-empty-collections
+  (is (= {:a 1} (conj {} [:a 1])) "conj on empty map with [key value] pair")
+  (is (= {} (conj {} nil)) "conj on empty map with nil is a no-op")
+  (is (= #{1} (conj #{} 1)) "conj on empty set adds element")
+  (is (= [1 2 3] (conj [] 1 2 3)) "conj on empty vector with multiple values"))
+
+(deftest test-conj-edge-cases
+  (is (= #{1 2} (conj #{1 2} 1)) "conj on set with duplicate element keeps set unchanged")
+  (is (= {:a 1 :b 2} (conj {} [:a 1] [:b 2])) "conj on map with multiple [key value] pairs")
+  (is (= {1 2 3 4} (conj {1 2} {3 4})) "conj merges two maps"))
+
+(deftest test-conj-error-cases
+  (is (thrown? \InvalidArgumentException (conj {} [1])) "conj on map with single-element vector throws error")
+  (is (thrown? \InvalidArgumentException (conj {} [1 2 3])) "conj on map with three-element vector throws error")
+  (is (thrown? \InvalidArgumentException (conj {} "invalid")) "conj on map with non-indexed, non-associative entry throws error")
+  (is (thrown? \InvalidArgumentException (conj "string" 1)) "conj on invalid collection type throws error"))
+
+(deftest test-conj-bang-zero-arity
+  (is (= [] (persistent (conj!))) "conj! with no args returns a new empty transient vector")
+  (is (= [1 2 3] (persistent (conj! (conj!) 1 2 3))) "conj! chained from zero-arity accumulates values"))
+
+(deftest test-conj-bang-identity
+  (let [t (transient [1 2])]
+    (is (= [1 2] (persistent (conj! t))) "conj! with only tcoll returns tcoll unchanged")))
+
+(deftest test-conj-bang-vector
+  (is (= [1 2 3] (persistent (conj! (transient [1 2]) 3))) "conj! on transient vector appends")
+  (is (= [1 2 3 4 5] (persistent (conj! (transient [1 2]) 3 4 5))) "conj! variadic on transient vector appends all")
+  (is (= [1] (persistent (conj! (transient []) 1))) "conj! on empty transient vector"))
+
+(deftest test-conj-bang-set
+  (is (= #{1 2 3} (persistent (conj! (transient #{1 2}) 3))) "conj! on transient set adds element")
+  (is (= #{1 2 3 4} (persistent (conj! (transient #{1 2}) 3 4))) "conj! variadic on transient set adds all")
+  (is (= #{1 2} (persistent (conj! (transient #{1 2}) 1))) "conj! on transient set with duplicate is a no-op"))
+
+(deftest test-conj-bang-map
+  (is (= {:a 1} (persistent (conj! (transient {}) [:a 1]))) "conj! on transient map with [key value] pair")
+  (is (= {:a 1 :b 2 :c 3} (persistent (conj! (transient {:a 1}) [:b 2] [:c 3]))) "conj! variadic on transient map")
+  (is (= {} (persistent (conj! (transient {}) nil))) "conj! on transient map with nil is a no-op"))
+
+(deftest test-conj-bang-error-on-persistent
+  (is (thrown? \InvalidArgumentException (conj! [1 2] 3)) "conj! on persistent vector throws")
+  (is (thrown? \InvalidArgumentException (conj! #{1 2} 3)) "conj! on persistent set throws")
+  (is (thrown? \InvalidArgumentException (conj! {} [:a 1])) "conj! on persistent map throws")
+  (is (thrown? \InvalidArgumentException (conj! "string" 1)) "conj! on string throws")
+  (is (thrown? \InvalidArgumentException (conj! nil 1)) "conj! on nil throws"))
+
+(deftest test-persistent-bang
+  (is (= [1 2 3] (persistent! (conj! (transient []) 1 2 3))) "persistent! round-trips a transient vector")
+  (is (= {:a 1} (persistent! (transient {:a 1}))) "persistent! round-trips a transient map")
+  (is (= #{1 2} (persistent! (transient #{1 2}))) "persistent! round-trips a transient set"))
+
+(deftest test-assoc-bang-map
+  (is (= {:a 1} (persistent! (assoc! (transient {}) :a 1))) "assoc! on empty transient map")
+  (is (= {:a 1 :b 2} (persistent! (assoc! (transient {:a 1}) :b 2))) "assoc! on transient map")
+  (is (= {:a 3 :b 2} (persistent! (assoc! (transient {:a 1 :b 2}) :a 3))) "assoc! overwrites existing key")
+  (is (= {:a 1 :b 2 :c 3} (persistent! (assoc! (transient {}) :a 1 :b 2 :c 3))) "assoc! variadic on transient map")
+  (is (= {:a 1 :b 2 :c 3 :d nil}
+         (persistent! (apply assoc! (transient {:a 1}) [:b 2 :c 3 :d])))
+      "assoc! with apply treats a trailing key as nil"))
+
+(deftest test-assoc-bang-vector
+  (is (= [9 2 3] (persistent! (assoc! (transient [1 2 3]) 0 9))) "assoc! on transient vector by index")
+  (is (= [1 2 9] (persistent! (assoc! (transient [1 2 3]) 2 9))) "assoc! at last index")
+  (is (= [9 2 8] (persistent! (assoc! (transient [1 2 3]) 0 9 2 8))) "assoc! variadic on transient vector")
+  (is (= [1 nil] (persistent! (apply assoc! (transient []) [0 1 1])))
+      "assoc! with apply treats a trailing vector index as nil"))
+
+(deftest test-assoc-bang-errors
+  (is (thrown? \InvalidArgumentException (assoc! {:a 1} :b 2)) "assoc! on persistent map throws")
+  (is (thrown? \InvalidArgumentException (assoc! [1 2] 0 9)) "assoc! on persistent vector throws")
+  (is (thrown? \InvalidArgumentException (assoc! (transient #{1 2}) 0 9)) "assoc! on transient set throws")
+  (is (thrown? \InvalidArgumentException (assoc! nil :a 1)) "assoc! on nil throws"))
+
+(deftest test-dissoc-bang
+  (is (= {} (persistent! (dissoc! (transient {:a 1}) :a))) "dissoc! single key")
+  (is (= {:b 2} (persistent! (dissoc! (transient {:a 1 :b 2}) :a))) "dissoc! leaves other keys intact")
+  (is (= {} (persistent! (dissoc! (transient {:a 1}) :a :a))) "dissoc! missing key is a no-op")
+  (is (= {:b 2} (persistent! (dissoc! (transient {:a 1 :b 2 :c 3}) :a :c))) "dissoc! variadic"))
+
+(deftest test-dissoc-bang-errors
+  (is (thrown? \InvalidArgumentException (dissoc! {:a 1} :a)) "dissoc! on persistent map throws")
+  (is (thrown? \InvalidArgumentException (dissoc! (transient [1 2]) 0)) "dissoc! on transient vector throws")
+  (is (thrown? \InvalidArgumentException (dissoc! (transient #{:a}) :a)) "dissoc! on transient set throws")
+  (is (thrown? \InvalidArgumentException (dissoc! nil :a)) "dissoc! on nil throws"))
+
+(deftest test-disj-bang
+  (is (= #{1 3} (persistent! (disj! (transient #{1 2 3}) 2))) "disj! single element")
+  (is (= #{1 2 3} (persistent! (disj! (transient #{1 2 3}) 4))) "disj! missing element is a no-op")
+  (is (= #{3} (persistent! (disj! (transient #{1 2 3}) 1 2))) "disj! variadic")
+  (is (= #{} (persistent! (disj! (transient #{1 2 3}) 1 2 3))) "disj! removes all"))
+
+(deftest test-disj-bang-errors
+  (is (thrown? \InvalidArgumentException (disj! #{1 2} 1)) "disj! on persistent set throws")
+  (is (thrown? \InvalidArgumentException (disj! (transient [1 2]) 0)) "disj! on transient vector throws")
+  (is (thrown? \InvalidArgumentException (disj! (transient {:a 1}) :a)) "disj! on transient map throws")
+  (is (thrown? \InvalidArgumentException (disj! nil 1)) "disj! on nil throws"))
+
+(deftest test-pop-bang
+  (is (= [1 2] (persistent! (pop! (transient [1 2 3])))) "pop! on transient vector")
+  (is (= [] (persistent! (pop! (transient [1])))) "pop! on single-element transient vector"))
+
+(deftest test-pop-bang-errors
+  (is (thrown? \InvalidArgumentException (pop! [1 2 3])) "pop! on persistent vector throws")
+  (is (thrown? \InvalidArgumentException (pop! (transient #{1 2}))) "pop! on transient set throws")
+  (is (thrown? \InvalidArgumentException (pop! (transient {:a 1}))) "pop! on transient map throws")
+  (is (thrown? \InvalidArgumentException (pop! nil)) "pop! on nil throws"))
+
+(deftest test-pop
+  (let [x (php/array 1 2)
+        y (pop x)]
+    (is (= (php/array 1) x) "pop on PHP array: last element is removed")
+    (is (= 2 y) "pop on PHP array: last element is returned"))
+
+  (is (nil? (pop nil)) "pop on nil returns nil")
+  (is (= [1 2] (pop [1 2 3])) "pop on vector returns vector without last element")
+  (is (= [1 2] (pop [1 2 (range)])) "pop on vector does not realize popped value")
+  (is (= '(nil) (pop '(nil nil))) "pop on list of nil values returns rest")
+  (is (= '(2 3) (pop '(1 2 3))) "pop on list returns rest")
+  (is (= '(2 3) (pop '((range) 2 3))) "pop on quoted list does not evaluate popped value"))
+
+(deftest test-remove
+  (is (= [1 3 5] (into [] (remove even? [1 2 3 4 5 6]))) "remove even numbers from vector")
+  (is (= [-2 -1 0] (into [] (remove pos? [1 -2 2 -1 3 7 0]))) "remove positive numbers")
+  (is (= [1 2 3] (into [] (remove nil? [1 nil 2 nil 3 nil]))) "remove nil values")
+  (is (= [:b :c :d :e :f] (into [] (remove #{:a} [:b :c :d :a :e :a :f]))) "remove with set as predicate")
+  (is (= [nil false] (into [] (remove identity [nil false]))) "remove keeps falsy values")
+  (is (= [nil false] (into [] (remove identity [nil false true 1]))) "remove truthy values"))
+
+(deftest test-slice
+  (is (= [3 4] (slice [1 2 3 4] 2)) "slice on vector")
+  (is (= [3] (slice [1 2 3 4] 2 1)) "slice with length on vector"))
+
+(deftest test-get
+  (is (= "b" (get (php/array "a" "b" "c") 1)) "get on php array")
+  (is (= "b" (get ["a" "b" "c"] 1)) "get on vector")
+  (is (= "a" (get {:a "a" :b "b"} :a)) "get on map")
+  (is (= 1 (get #{1 2 3} 1)) "get on set")
+  (is (nil? (get nil 1)) "get on nil")
+  (is (nil? (get {:a "a" :b "b"} :c)) "get undefined key on map")
+  (is (nil? (get #{1 2 3} 4)) "get undefined key on set")
+  (is (= "x" (get nil 1 "x")) "get on nil with optional value")
+  (is (= "x" (get {:a "a" :b "b"} :c "x")) "get on undefined key with optional value on map")
+  (is (= "x" (get #{} 4 "x")) "get on undefined key with optional value on set")
+  (is (id 0 (get {:a 0} :a)) "gets zero from a map"))
+
+(deftest test-get-keyword
+  (is (= 1 (:a {:a 1 :b 2})))
+  (is (nil? (:c {:a 1 :b 2})))
+  (is (= 3 (:c {:a 1 :b 2} 3))))
+
+(deftest test-get-in
+  (is (= "a" (get-in ["a"] [0])) "get-in level 1")
+  (is (= "a" (get-in {:a ["a"]} [:a 0])) "get-in level 2")
+  (is (= "a" (get-in {:a [["b" "a"]]} [:a 0 1])) "get-in level 3")
+  (is (= "x" (get-in {:a [["b" "a"]]} [:b 0 1] "x")) "get-in level 3 with default")
+  (is (nil? (get-in {:a {:b {:c :d}}} [:a :b :c :d])) "get-in too deep returns nil")
+  (is (= :d (get-in {:a {:b {:c :d} :e (range)}} [:a :b :c :d] :d)) "get-in too deep returns default")
+  (is (= 1 (get-in {:a {:b 1}} [:a :b])) "get-in nested map")
+  (is (= :missing (get-in {:a {:b 1}} [:a :c] :missing)) "get-in missing nested key returns default")
+  (is (= 1 (get-in {:a 1} [:a])) "get-in single key hit")
+  (is (nil? (get-in nil nil "not found")) "get-in on nil ds with nil keys returns the coll (nil)")
+  (is (nil? (get-in nil [] "not found")) "get-in on nil ds with empty path returns the coll (nil)")
+  (is (= "not found" (get-in nil [:a] "not found")) "get-in on nil ds with missing key returns the default")
+  (is (= {:a 1} (get-in {:a 1} [])) "get-in with empty path returns the coll")
+  (is (= {:a 1} (get-in {:a 1} nil)) "get-in with nil path returns the coll")
+  (is (= "a" (get-in {:k "abc"} [:k 0])) "get-in steps into a string by index"))
+
+(deftest test-nth
+  (is (= 2 (nth [1 2 3] 1)) "nth on vector")
+  (is (= 1 (nth [1 2 3] 0)) "nth on vector first")
+  (is (= 3 (nth [1 2 3] 2)) "nth on vector last")
+  (is (= :default (nth [1 2 3] 5 :default)) "nth on vector out of bounds with default")
+  (is (= 2 (nth (transient [1 2 3]) 1)) "nth on transient vector")
+  (is (= :default (nth (transient [1 2 3]) 5 :default)) "nth on transient vector out of bounds with default")
+  (is (= "b" (nth "abc" 1)) "nth on string")
+  (is (= :default (nth "abc" 5 :default)) "nth on string out of bounds with default")
+  (is (= 3 (nth '(1 2 3) 2)) "nth on list")
+  (is (nil? (nth nil 10)) "nth on nil returns nil")
+  (is (= :default (nth nil 0 :default)) "nth on nil with default"))
+
+(deftest test-nth-throws-on-out-of-bounds
+  (is (thrown? OutOfBoundsException (nth [1 2 3] 5)) "nth throws on vector out of bounds")
+  (is (thrown? OutOfBoundsException (nth (transient [1 2 3]) 5)) "nth throws on transient vector out of bounds")
+  (is (thrown? OutOfBoundsException (nth "abc" 5)) "nth throws on string out of bounds"))
+
+(deftest test-nthrest
+  (is (= [3 4 5] (nthrest [1 2 3 4 5] 2)) "nthrest drops first n")
+  (is (= [1 2 3] (nthrest [1 2 3] 0)) "nthrest 0 returns coll")
+  (is (= '() (nthrest [1 2] 5)) "nthrest past end returns empty list")
+  (is (nil? (nthrest nil 0)) "nthrest on nil with 0 returns nil")
+  (is (= '() (nthrest nil 3)) "nthrest on nil with positive n returns empty list")
+  (is (= '() (nthrest [] 100)) "nthrest on empty vector returns empty list")
+  (is (= '() (nthrest (range 0 10) 10)) "nthrest exhausting a range returns empty list"))
+
+(deftest test-nthnext
+  (is (= [3 4 5] (nthnext [1 2 3 4 5] 2)) "nthnext drops first n")
+  (is (= [1 2 3] (nthnext [1 2 3] 0)) "nthnext 0 returns seq of coll")
+  (is (nil? (nthnext [1 2] 5)) "nthnext past end returns nil")
+  (is (nil? (nthnext nil 3)) "nthnext on nil returns nil"))
+
+(deftest test-put
+  (is (= {:a nil :b 2} (put {:a 1 :b 2} :a nil)) "put: nil on map")
+  (is (= {:a 3 :b 2} (put {:a 1 :b 2} :a 3)) "put: replace entry on map")
+  (is (= {:a 1 :b 2 :c 3} (put {:a 1 :b 2} :c 3)) "put: append entry on map"))
+
+(deftest test-assoc
+  (is (= {:a nil :b 2} (assoc {:a 1 :b 2} :a nil)) "assoc: nil on map")
+  (is (= {:a 3 :b 2} (assoc {:a 1 :b 2} :a 3)) "assoc: replace entry on map")
+  (is (= {:a 1 :b 2 :c 3} (assoc {:a 1 :b 2} :c 3)) "assoc: append entry on map")
+  ;; Variadic k-v pairs
+  (is (= {:a 1 :b 2 :c 3} (assoc {} :a 1 :b 2 :c 3)) "assoc: multiple pairs on empty map")
+  (is (= {:a 9 :b 9 :c 9} (assoc {:a 1 :b 2 :c 3} :a 9 :b 9 :c 9)) "assoc: replace multiple entries")
+  (is (= [10 2 3] (assoc [1 2 3] 0 10)) "assoc: single pair on vector unchanged")
+  (is (= [10 20 3] (assoc [1 2 3] 0 10 1 20)) "assoc: multiple pairs on vector")
+  (is (thrown? \InvalidArgumentException (assoc {} :a 1 :b)) "assoc: odd extra args throws")
+  ;; nil → empty map (Clojure-compat)
+  (is (= {:a 1} (assoc nil :a 1)) "assoc: nil becomes a new map")
+  (is (= {:a 1 :b 2} (assoc nil :a 1 :b 2)) "assoc: nil with multiple pairs")
+  ;; Unsupported targets raise a clean `InvalidArgumentException` instead of
+  ;; silently mutating strings or leaking raw PHP messages from lists/sets.
+  (is (thrown? \InvalidArgumentException (assoc "abc" 0 "z")) "assoc: rejects strings")
+  (is (thrown? \InvalidArgumentException (assoc '(1 2 3) 0 99)) "assoc: rejects lists")
+  (is (thrown? \InvalidArgumentException (assoc #{1 2 3} 1 9)) "assoc: rejects sets")
+  (is (thrown? \InvalidArgumentException (assoc 42 :a 1)) "assoc: rejects scalars"))
+
+(deftest test-unset
+  (is (= {:b 2} (unset {:a 1 :b 2} :a)) "unset: remove key from map"))
+
+(deftest test-dissoc
+  (is (= {:b 2} (dissoc {:a 1 :b 2} :a)) "dissoc: remove key from map")
+  (is (= {:a 1} (dissoc {:a 1})) "dissoc with no keys returns map unchanged")
+  (is (= {} (dissoc {:a 1 :b 2 :c 3} :a :b :c)) "dissoc variadic removes all keys")
+  (is (= {:b 2} (dissoc {:a 1 :b 2 :c 3} :a :c)) "dissoc variadic removes multiple keys")
+  (is (= {:a 1} (dissoc {:a 1} :missing :also-missing)) "dissoc skips missing keys")
+  (is (= {} (apply dissoc {} [])) "apply dissoc with no keys does not raise")
+  (is (= {:b 2} (apply dissoc {:a 1 :b 2 :c 3} [:a :c])) "apply dissoc variadic through seq")
+  (is (thrown? \InvalidArgumentException (dissoc 42 :a)) "dissoc rejects scalars")
+  (is (thrown? \InvalidArgumentException (dissoc dissoc :a)) "dissoc rejects functions")
+  (is (nil? (dissoc nil :a)) "dissoc on nil returns nil")
+  (is (nil? (dissoc nil)) "dissoc on nil with no keys returns nil")
+  (is (nil? (apply dissoc nil [nil])) "apply dissoc on nil with a nil key returns nil"))
+
+(defstruct dissoc-rec [a b c])
+
+(deftest test-dissoc-record
+  (let [r (dissoc-rec 1 2 nil)]
+    (is (= {:b 2 :c nil} (apply dissoc r [:a])) "dissoc on struct removes a key, preserving nil entries")
+    (is (= {:b 2 :c nil} (apply dissoc r [:a :d])) "dissoc on struct ignores unknown keys")
+    (is (= {} (apply dissoc r [:a :b :c])) "dissoc removing every key yields an empty map")
+    (is (= r (apply dissoc r [:d])) "dissoc with no matching keys returns the record itself")))
+
+(defrecord DissocDefRecord [a b c])
+
+(deftest test-dissoc-defrecord
+  (let [r (DissocDefRecord 1 2 nil)]
+    (is (= {:b 2 :c nil} (dissoc r :a)) "dissoc on defrecord removes a key, preserving nil entries")
+    (is (= {:b 2 :c nil} (apply dissoc r [:a])) "apply dissoc on defrecord removes a key")
+    (is (= {:b 2 :c nil} (apply dissoc r [:a :d])) "dissoc on defrecord ignores unknown keys")
+    (is (= {} (apply dissoc r [:a :b :c])) "dissoc removing every key yields an empty map")
+    (is (= r (apply dissoc r [:d])) "dissoc with no matching keys returns the defrecord itself")))
+
+(deftest test-dissoc-defrecord-dot-constructor
+  (let [r (DissocDefRecord. 1 2 nil)]
+    (is (= {:b 2 :c nil} (dissoc r :a)) "dot-constructor: dissoc removes a key")
+    (is (= {:b 2 :c nil} (apply dissoc r [:a])) "dot-constructor: apply dissoc removes a key")
+    (is (= {:b 2 :c nil} (apply dissoc r [:a :d])) "dot-constructor: dissoc ignores unknown keys")
+    (is (= {} (apply dissoc r [:a :b :c])) "dot-constructor: dissoc removing every key yields an empty map")
+    (is (= r (apply dissoc r [:d])) "dot-constructor: dissoc with no matching keys returns the record")))
+
+(deftest test-apply
+  (is (fn? apply) "bare apply resolves to a function")
+  (is (= 6 ((identity apply) + [1 2 3])) "apply can be invoked as a value")
+  (is (= 6 ((identity apply) + 1 [2 3])) "apply prepends one argument")
+  (is (= 10 ((identity apply) + 1 2 3 [4])) "apply prepends multiple arguments")
+  (is (= 21 ((identity apply) + 1 2 3 4 5 [6])) "apply handles variadic intervening arguments")
+  (is (= 0 (apply + "")) "apply treats empty string as an empty argument list")
+  (is (= 1 (apply + 1 "")) "apply appends no arguments for an empty string")
+  (is (= #{[:a 1] [:b 2]} (apply conj #{} {:a 1 :b 2})) "apply treats map final arg as entries")
+  (is (= ["a" "b" "c"] (apply conj [] "abc")) "apply treats string final arg as characters")
+  (is (= :a (apply :a [#{:a :b :c}])) "apply supports keyword lookup on a set"))
+
+(deftest test-next
+  (is (nil? (next [])) "next of empty vector")
+  (is (nil? (next [1])) "next of one element vector")
+  (is (= [2] (next [1 2])) "next of two element vector")
+  (is (nil? (next #{})) "next of empty set")
+  (is (= 1 (count (next #{[1] [2]}))) "next of set"))
+
+(deftest test-concat
+  (is (= [1 2] (concat [1 2])) "concat one argument")
+  (is (= [1 2 3 4] (concat [1 2] [3 4])) "concat two arguments")
+  (is (= [1 2 3 4] (concat [1] [2 3] [4])) "concat three arguments")
+  (is (= '() (concat nil)) "concat nil")
+  (is (= '() (concat nil nil)) "concat two nil")
+  (is (= [1 2 3 4 5 6] (concat [1 2 3] nil [4 5 6])) "concat vectors and nil"))
+
+(deftest test-compact
+  (is (= [1 2 3] (compact [1 nil 2 nil 3])) "compact removes nil by default")
+  (is (= [1 2 3] (compact [1 0 2 false 3] 0 false)) "compact removes specified values")
+  (is (= [] (compact nil)) "compact nil returns empty vector")
+  (is (= [] (compact [])) "compact empty vector returns empty vector")
+  (is (= [1 false 2 3] (compact [1 false 2 nil 3] nil)) "compact preserves non-matching falsy values")
+  (is (= [1 2 3] (compact [1 nil 2 false 3 0] nil false 0)) "compact removes multiple specified values"))

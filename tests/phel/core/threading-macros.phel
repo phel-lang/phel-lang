@@ -1,0 +1,87 @@
+(ns phel-test.core.threading-macros
+  (:use DateTime)
+  (:require phel.test :refer [deftest is]))
+
+(deftest test->
+  (is (= 1 (-> 1)))
+  (is (= 3 (-> 5 (+ 3) (/ 2) (- 1))))
+  (is (= 8 (-> [1 8 3 4] sort reverse first))))
+
+(deftest test->>
+  (is (= 1 (->> 1)))
+  (is (= 3/4 (->> 5 (+ 3) (/ 2) (- 1))))
+  (is (= [2 3 4 5 6] (->> [1 2 [3 4] 5] flatten (map inc)))))
+
+(deftest test-some->
+  (is (= 1 (some-> 1)))
+  (is (= 3 (some-> 5 (+ 3) (/ 2) (- 1))))
+  (is (= 2 (some-> {:a 1} :a inc)))
+  (is (nil? (some-> {:a 1} :b inc)))
+  (is (nil? (some-> nil (+ 3)))))
+
+(deftest test-some->>
+  (is (= 1 (some->> 1)))
+  (is (= 3/4 (some->> 5 (+ 3) (/ 2) (- 1))))
+  (is (= 3 (some->> [1 2 3] (map inc) (filter #(> % 1)) first inc)))
+  (is (nil? (some->> [1 2 3] (filter #(> % 5)) first inc)))
+  (is (nil? (some->> nil (+ 3)))))
+
+(deftest test-as->
+  (is (= 1 (as-> 1 v)))
+  (is (= -3 (as-> 5 v (+ 3 v) (/ v 2) (- 1 v))))
+  (is (= "oo" (as-> [:foo :bar] v (map #(php/-> % (getName)) v) (first v) (php/substr v 1))))
+  (let [animals [{:name "Rex" :type :dog} {:name "Kitty" :type :cat}]]
+    (is (= :cat (as-> animals o (o 1) (o :type))))
+    (is (= :cat (as-> animals $ ($ 1) ($ :type))))))
+
+(deftest test-doto
+  (let [dt (doto (php/new DateTime "2025-02-02 12:00:00")
+                 (php/-> (modify "+1 hour"))
+                 (php/-> (modify "+1 week"))
+                 (php/-> (modify "+1 year")))]
+    (is (= :php/object (type dt)))
+    (is (= "DateTime" (php/get_class dt)))
+    (is (= "2026-02-09 13:00:00" (php/-> dt (format "Y-m-d H:i:s"))))))
+
+(deftest test-cond->
+  (is (= 1 (cond-> 1)) "identity when no clauses")
+  (is (= 2 (cond-> 1 true inc)) "threads when test is true")
+  (is (= 1 (cond-> 1 false inc)) "skips when test is false")
+  (is (= 6 (cond-> 1 true inc false (* 42) true (* 3)))
+      "threads selectively based on tests")
+  (is (= 3 (cond-> {:a 1 :b 2} true (assoc :c 3) false (dissoc :a) true count))
+      "works with map operations"))
+
+(deftest test-cond->>
+  (is (= 1 (cond->> 1)) "identity when no clauses")
+  (is (= [2 3 4] (cond->> [1 2 3] true (map inc))) "threads when test is true")
+  (is (= [1 2 3] (cond->> [1 2 3] false (map inc))) "skips when test is false")
+  (is (= [2 4] (cond->> (range 1 6) true (filter even?) false (map inc)))
+      "threads selectively"))
+
+(deftest threading-macros-preserve-form-metadata
+  (let [m {:line 1}]
+    (let [form (set-meta! '(+ 2) m)
+          expanded (macroexpand-1 (list '-> 1 form))]
+      (is (= m (meta (identity expanded))) "-> preserves metadata"))
+
+    (let [form (set-meta! '(+ 2) m)
+          expanded (macroexpand-1 (list '->> 1 form))]
+      (is (= m (meta (identity expanded))) "->> preserves metadata"))
+
+    (let [form (set-meta! '(+ 2) m)
+          expanded (macroexpand-1 (list 'some-> 'x form))
+          if-expr (second (rest expanded))
+          call (first (rest (rest (rest if-expr))))]
+      (is (= m (meta (identity call))) "some-> preserves metadata"))
+
+    (let [form (set-meta! '(+ 2) m)
+          expanded (macroexpand-1 (list 'some->> 'xs form))
+          if-expr (second (rest expanded))
+          call (first (rest (rest (rest if-expr))))]
+      (is (= m (meta (identity call))) "some->> preserves metadata"))
+
+    (let [form (set-meta! '(foo 42) m)
+          expanded (macroexpand-1 (list 'doto 'obj form))
+          call (second (rest expanded))]
+      (is (= m (meta (identity call))) "doto preserves metadata"))))

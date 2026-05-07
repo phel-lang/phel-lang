@@ -80,4 +80,4 @@ For long-running processes:
 
 ---
 
-See `tests/phel/test/mock.phel` for more examples.
+See `tests/phel/mock.phel` for more examples.

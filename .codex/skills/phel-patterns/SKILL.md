@@ -45,7 +45,7 @@ description: Phel language idioms and core-library conventions. Use when Codex e
 ## Tests
 
 ```phel
-(ns phel-test\test\module-name
+(ns phel-test\module-name
   (:require phel\test :refer [deftest is are]))
 
 (deftest test-descriptive-name

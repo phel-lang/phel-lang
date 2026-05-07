@@ -15,7 +15,7 @@ use function sprintf;
 use function stream_get_contents;
 
 /**
- * Runs `./bin/phel test tests/phel/test/async-fiber.phel` end-to-end so
+ * Runs `./bin/phel test tests/phel/async-fiber.phel` end-to-end so
  * `composer test-compiler` exercises the fiber-based promise/future
  * primitives in `phel\async` on every CI run.
  */
@@ -28,7 +28,7 @@ final class AsyncFiberTest extends TestCase
             '%s %s %s 2>&1',
             escapeshellarg(PHP_BINARY),
             escapeshellarg($repoRoot . '/bin/phel'),
-            escapeshellarg('test') . ' ' . escapeshellarg('tests/phel/test/async-fiber.phel'),
+            escapeshellarg('test') . ' ' . escapeshellarg('tests/phel/async-fiber.phel'),
         );
 
         $descriptors = [
@@ -52,7 +52,7 @@ final class AsyncFiberTest extends TestCase
             0,
             $exitCode,
             sprintf(
-                "`phel test tests/phel/test/async-fiber.phel` failed.\nSTDOUT:\n%s\nSTDERR:\n%s",
+                "`phel test tests/phel/async-fiber.phel` failed.\nSTDOUT:\n%s\nSTDERR:\n%s",
                 $stdout,
                 $stderr,
             ),

@@ -1,0 +1,877 @@
+(ns phel-test.core.infinite-seqs
+  (:require phel.test :refer [deftest is]))
+
+(deftest test-repeat-infinite
+  (is (= [:a :a :a] (take 3 (repeat :a)))
+      "(take 3 (repeat :a))"))
+
+(deftest test-repeatedly-infinite
+  (is (= [:x :x :x] (take 3 (repeatedly (fn [] :x))))
+      "(take 3 (repeatedly (fn [] :x)))"))
+
+(deftest test-range-infinite
+  (is (= [0 1 2 3 4] (take 5 (range)))
+      "(take 5 (range)) should return first 5 natural numbers")
+  (is (= [0 1 2 3 4 5 6 7 8 9] (take 10 (range)))
+      "(take 10 (range)) should return 0..9")
+  (is (some? (and (range)))
+      "range with no args should return truthy value"))
+
+; Regression tests for https://github.com/phel-lang/phel-lang/issues/1286.
+; Comparisons that can short-circuit must not realize an infinite lazy
+; sequence — previously these blew up with an integer-overflow allocation.
+(deftest test-infinite-range-equality-short-circuits
+  (let [r (range)]
+    (is (= r r)
+        "infinite range must short-circuit on identity"))
+  (is (false? (= [] (range)))
+      "empty vector vs infinite range short-circuits on length")
+  (is (false? (= (range) []))
+      "infinite range vs empty vector short-circuits on length")
+  (is (false? (= [1 2 3] (range)))
+      "mismatched prefix vs infinite range short-circuits on element divergence")
+  (is (false? (= (range) [1 2 3]))
+      "infinite range vs mismatched prefix short-circuits on element divergence")
+  (is (= [0 1 2 3 4] (take 5 (range)))
+      "finite prefix compares equal without realizing the infinite tail"))
+
+(deftest test-iterate
+  (is (= [1 2 4 8] (take 4 (iterate (fn [x] (* 2 x)) 1)))
+      "(take 4 (iterate (fn [x] (* 2 x)) 1))"))
+
+(deftest test-doall-with-lazy-sequence-from-iterate
+  (is (= [1 2 3 4 5] (doall (take 5 (iterate inc 1))))
+      "doall should realize lazy sequence and return vector"))
+
+(deftest test-doall-with-lazy-sequence-from-repeat
+  (is (= [:a :a :a] (doall (take 3 (repeat :a))))
+      "doall should work with repeat"))
+
+(deftest test-doall-with-lazy-sequence-from-repeatedly
+  (is (= [:x :x :x] (doall (take 3 (repeatedly (fn [] :x)))))
+      "doall should return realized values from repeatedly"))
+
+(deftest test-doall-with-vector
+  (is (= [1 2 3] (doall [1 2 3]))
+      "doall should return vectors unchanged"))
+
+(deftest test-doall-with-list
+  (is (= '(1 2 3) (doall '(1 2 3)))
+      "doall should return lists unchanged"))
+
+(deftest test-dorun-with-lazy-sequence-returns-nil
+  (is (= nil (dorun (take 5 (iterate inc 1))))
+      "dorun should return nil"))
+
+(deftest test-dorun-executes-lazy-sequence
+  (is (= nil (dorun (take 5 (repeatedly (fn [] :x)))))
+      "dorun should execute lazy sequence and return nil"))
+
+(deftest test-dorun-with-vector-returns-nil
+  (is (= nil (dorun [1 2 3]))
+      "dorun should return nil for vectors"))
+
+(deftest test-dorun-with-list-returns-nil
+  (is (= nil (dorun '(1 2 3)))
+      "dorun should return nil for lists"))
+
+(deftest test-doall-with-empty-lazy-sequence
+  (is (= [] (doall (take 0 (iterate inc 1))))
+      "doall should return empty vector for empty sequences"))
+
+(deftest test-chained-lazy-operations-with-doall
+  (is (= [2 4 6 8 10]
+         (doall (take 5 (iterate (fn [x] (+ x 2)) 2))))
+      "doall should work with chained lazy operations"))
+
+(deftest test-realized-with-vector
+  (is (= true (realized? [1 2 3]))
+      "realized? should return true for vectors"))
+
+(deftest test-realized-with-list
+  (is (= true (realized? '(1 2 3)))
+      "realized? should return true for lists"))
+
+(deftest test-realized-with-lazy-sequence-from-iterate
+  (is (= true (realized? (take 5 (iterate inc 1))))
+      "realized? returns true for ChunkedSeq (first chunk is always realized)"))
+
+(deftest test-realized-with-lazy-sequence-from-repeat
+  (is (= true (realized? (take 3 (repeat :a))))
+      "realized? returns true for ChunkedSeq from repeat"))
+
+(deftest test-realized-with-nil
+  (is (= true (realized? nil))
+      "realized? should return true for nil"))
+
+(deftest test-realized-with-empty-vector
+  (is (= true (realized? []))
+      "realized? should return true for empty vectors"))
+
+(deftest test-get-on-infinite-lazy-seq
+  (is (= 5 (get (iterate inc 0) 5))
+      "get should work on infinite lazy sequences without hanging"))
+
+(deftest test-get-on-finite-lazy-seq
+  (is (= 2 (get (map inc [1 2 3]) 0))
+      "get should work on finite lazy sequences"))
+
+(deftest test-get-on-lazy-seq-out-of-bounds
+  (is (= nil (get (map inc [1 2 3]) 10))
+      "get should return nil for out of bounds index"))
+
+(deftest test-get-on-lazy-seq-with-default
+  (is (= :default (get (map inc [1 2 3]) 10 :default))
+      "get should return default value for out of bounds index"))
+
+(deftest test-filter-on-vector-returns-lazy
+  (is (= [2 4] (doall (filter even? [1 2 3 4])))
+      "filter on vector should return lazy sequence"))
+
+(deftest test-filter-on-infinite-seq
+  (is (= [0 2 4 6 8] (take 5 (filter even? (iterate inc 0))))
+      "filter on infinite sequence should work without hanging"))
+
+(deftest test-filter-empty-collection
+  (is (= [] (filter even? []))
+      "filter on empty collection should return empty vector"))
+
+(deftest test-filter-preserves-metadata
+  (let [m {:foo "bar"}
+        data (set-meta! [1 2 3 4] m)]
+    (is (= m (meta (filter even? data)))
+        "filter should preserve metadata")))
+
+(deftest test-take-on-vector-returns-lazy
+  (is (= [1 2 3] (doall (take 3 [1 2 3 4 5])))
+      "take on vector should return lazy sequence"))
+
+(deftest test-take-on-infinite-seq
+  (is (= [0 1 2 3 4] (doall (take 5 (iterate inc 0))))
+      "take on infinite sequence should work"))
+
+(deftest test-take-zero
+  (is (= [] (take 0 [1 2 3]))
+      "take 0 should return empty vector"))
+
+(deftest test-take-negative
+  (is (= [] (take -5 [1 2 3]))
+      "take negative should return empty vector"))
+
+(deftest test-take-empty-collection
+  (is (= [] (take 5 []))
+      "take on empty collection should return empty vector"))
+
+(deftest test-take-preserves-metadata
+  (let [m {:foo "bar"}
+        data (set-meta! [1 2 3 4 5] m)]
+    (is (= m (meta (take 3 data)))
+        "take should preserve metadata")))
+
+(deftest test-drop-on-vector-returns-lazy
+  (is (= [3 4 5] (doall (drop 2 [1 2 3 4 5])))
+      "drop on vector should return lazy sequence"))
+
+(deftest test-drop-on-infinite-seq
+  (is (= [5 6 7 8 9] (take 5 (drop 5 (iterate inc 0))))
+      "drop on infinite sequence should work"))
+
+(deftest test-drop-zero
+  (is (= [1 2 3] (drop 0 [1 2 3]))
+      "drop 0 should return original sequence"))
+
+(deftest test-drop-negative
+  (is (= [1 2 3] (doall (drop -5 [1 2 3])))
+      "drop negative should return full sequence"))
+
+(deftest test-drop-empty-collection
+  (is (= [] (drop 5 []))
+      "drop on empty collection should return empty vector"))
+
+(deftest test-drop-preserves-metadata
+  (let [m {:foo "bar"}
+        data (set-meta! [1 2 3 4 5] m)]
+    (is (= m (meta (drop 2 data)))
+        "drop should preserve metadata")))
+
+(deftest test-drop-while-on-vector-returns-lazy
+  (is (= [3 4 5] (doall (drop-while #(< % 3) [1 2 3 4 5])))
+      "drop-while on vector should return lazy sequence"))
+
+(deftest test-drop-while-on-infinite-seq
+  (is (= [0 1 2 3 4] (take 5 (drop-while neg? (iterate inc -10))))
+      "drop-while on infinite sequence should work"))
+
+(deftest test-drop-while-empty-collection
+  (is (= [] (drop-while #(< % 10) []))
+      "drop-while on empty collection should return empty vector"))
+
+(deftest test-drop-while-all-dropped
+  (is (= [] (drop-while #(< % 10) [1 2 3]))
+      "drop-while should return empty when all elements match"))
+
+(deftest test-drop-while-none-dropped
+  (is (= [1 2 3] (doall (drop-while #(> % 10) [1 2 3])))
+      "drop-while should return full sequence when no elements match"))
+
+(deftest test-drop-while-preserves-metadata
+  (let [m {:foo "bar"}
+        data (set-meta! [1 2 3 4 5] m)]
+    (is (= m (meta (drop-while #(< % 3) data)))
+        "drop-while should preserve metadata")))
+
+(deftest test-take-while-on-vector-returns-lazy
+  (is (= [1 2] (doall (take-while #(< % 3) [1 2 3 4 5])))
+      "take-while on vector should return lazy sequence"))
+
+(deftest test-take-while-on-infinite-seq
+  (is (= [-5 -4 -3 -2 -1] (doall (take-while neg? (iterate inc -5))))
+      "take-while on infinite sequence should work"))
+
+(deftest test-take-while-empty-collection
+  (is (= [] (take-while #(< % 10) []))
+      "take-while on empty collection should return empty vector"))
+
+(deftest test-take-while-nothing-taken
+  (is (= [] (doall (take-while #(> % 10) [1 2 3])))
+      "take-while should return empty when first element doesn't match"))
+
+(deftest test-take-while-all-taken
+  (is (= [1 2 3] (doall (take-while #(< % 10) [1 2 3])))
+      "take-while should return full sequence when all elements match"))
+
+(deftest test-take-while-preserves-metadata
+  (let [m {:foo "bar"}
+        data (set-meta! [1 2 3 4 5] m)]
+    (is (= m (meta (take-while #(< % 3) data)))
+        "take-while should preserve metadata")))
+
+(deftest test-take-nth-on-vector-returns-lazy
+  (is (= [1 3 5] (doall (take-nth 2 [1 2 3 4 5 6])))
+      "take-nth on vector should return lazy sequence"))
+
+(deftest test-take-nth-on-infinite-seq
+  (is (= [0 2 4 6 8] (take 5 (take-nth 2 (iterate inc 0))))
+      "take-nth on infinite sequence should work"))
+
+(deftest test-take-nth-empty-collection
+  (is (= [] (take-nth 2 []))
+      "take-nth on empty collection should return empty vector"))
+
+(deftest test-take-nth-every-element
+  (is (= [1 2 3 4 5] (doall (take-nth 1 [1 2 3 4 5])))
+      "take-nth 1 should return all elements"))
+
+(deftest test-take-nth-larger-than-collection
+  (is (= [1] (doall (take-nth 10 [1 2 3])))
+      "take-nth larger than collection should return first element"))
+
+(deftest test-take-nth-negative-repeats-first-element
+  (is (= [1 1 1] (take 3 (take-nth -1 [1 2 3 4])))
+      "take-nth with -1 should repeat the first element lazily")
+  (is (= [1 1 1] (take 3 (take-nth -2 [1 2 3 4])))
+      "take-nth with a negative step should repeat the first element lazily"))
+
+(deftest test-take-nth-preserves-metadata
+  (let [m {:foo "bar"}
+        data (set-meta! [1 2 3 4 5 6] m)]
+    (is (= m (meta (take-nth 2 data)))
+        "take-nth should preserve metadata")))
+
+(deftest test-chained-drop-take-on-infinite-seq
+  (is (= [10 11 12 13 14] (take 5 (drop 10 (iterate inc 0))))
+      "chaining drop and take on infinite sequence should work"))
+
+(deftest test-chained-take-while-filter-on-infinite-seq
+  (is (= [0 2 4] (doall (take-while #(< % 5) (filter even? (iterate inc 0)))))
+      "chaining take-while and filter on infinite sequence should work"))
+
+(deftest test-chained-drop-while-take-nth-on-infinite-seq
+  (is (= [0 2 4 6 8] (take 5 (take-nth 2 (drop-while neg? (iterate inc -10)))))
+      "chaining drop-while, take-nth, and take on infinite sequence should work"))
+
+(deftest test-drop-with-nil
+  (is (= [] (drop 5 nil))
+      "drop with nil should return empty vector"))
+
+(deftest test-drop-while-with-nil
+  (is (= [] (drop-while pos? nil))
+      "drop-while with nil should return empty vector"))
+
+(deftest test-take-while-with-nil
+  (is (= [] (take-while pos? nil))
+      "take-while with nil should return empty vector"))
+
+(deftest test-take-nth-with-nil
+  (is (= [] (take-nth 2 nil))
+      "take-nth with nil should return empty vector"))
+
+(deftest test-cycle-basic
+  (is (= [1 2 3 1 2 3 1 2] (take 8 (cycle [1 2 3])))
+      "cycle should repeat elements indefinitely"))
+
+(deftest test-cycle-single-element
+  (is (= [:a :a :a :a :a] (take 5 (cycle [:a])))
+      "cycle with single element should work"))
+
+(deftest test-cycle-empty-collection
+  (is (= [] (take 5 (cycle [])))
+      "cycle with empty collection should return empty"))
+
+(deftest test-cycle-with-doall
+  (is (= [1 2 1 2 1] (doall (take 5 (cycle [1 2]))))
+      "cycle should work with doall"))
+
+(deftest test-cycle-with-drop
+  (is (= [3 1 2 3 1] (take 5 (drop 2 (cycle [1 2 3]))))
+      "cycle should work with drop"))
+
+(deftest test-cycle-with-filter
+  (is (= [2 4 2 4 2] (take 5 (filter even? (cycle [1 2 3 4]))))
+      "cycle should work with filter"))
+
+(deftest test-cycle-on-map
+  (is (= [[:a 1] [:b 2] [:a 1]] (vec (take 3 (cycle (sorted-map :a 1 :b 2)))))
+      "cycle on a map yields key-value pairs"))
+
+(deftest test-keep-on-vector-returns-lazy
+  (is (= [2 4] (doall (keep #(when (even? %) %) [1 2 3 4])))
+      "keep on vector should return lazy sequence"))
+
+(deftest test-keep-on-infinite-seq
+  (is (= [0 2 4 6 8] (take 5 (keep #(when (even? %) %) (iterate inc 0))))
+      "keep on infinite sequence should work without hanging"))
+
+(deftest test-keep-with-nil-results
+  (is (= [4] (doall (keep #(when (even? %) (* 2 %)) [1 2 3])))
+      "keep should filter out nil results"))
+
+(deftest test-keep-empty-collection
+  (is (= [] (keep #(when (even? %) %) []))
+      "keep on empty collection should return empty vector"))
+
+(deftest test-keep-all-filtered
+  (is (= [] (doall (keep #(when (> % 10) %) [1 2 3])))
+      "keep should return empty when all results are nil"))
+
+(deftest test-keep-with-doall
+  (is (= [0 2 4] (doall (take 3 (keep #(when (even? %) %) (iterate inc 0)))))
+      "keep should work with doall on infinite sequences"))
+
+(deftest test-keep-with-nil
+  (is (= [] (keep #(when (even? %) %) nil))
+      "keep with nil should return empty vector"))
+
+(deftest test-keep-indexed-on-vector-returns-lazy
+  (is (= [20 40] (doall (keep-indexed #(when (odd? %1) %2) [10 20 30 40])))
+      "keep-indexed on vector should return lazy sequence"))
+
+(deftest test-keep-indexed-on-infinite-seq
+  (is (= [0 2 4 6 8] (take 5 (keep-indexed #(when (even? %1) %1) (iterate inc 0))))
+      "keep-indexed on infinite sequence should work without hanging"))
+
+(deftest test-keep-indexed-with-index
+  (is (= [0 2 4] (doall (keep-indexed #(when (even? %1) %1) [:a :b :c :d :e])))
+      "keep-indexed should pass correct index"))
+
+(deftest test-keep-indexed-empty-collection
+  (is (= [] (keep-indexed #(when (even? %1) %2) []))
+      "keep-indexed on empty collection should return empty vector"))
+
+(deftest test-keep-indexed-all-filtered
+  (is (= [] (doall (keep-indexed #(when (> %1 10) %2) [1 2 3])))
+      "keep-indexed should return empty when all results are nil"))
+
+(deftest test-keep-indexed-with-nil
+  (is (= [] (keep-indexed #(when (even? %1) %2) nil))
+      "keep-indexed with nil should return empty vector"))
+
+(deftest test-distinct-on-vector-returns-lazy
+  (is (= [1 2 3 4] (doall (distinct [1 2 3 2 1 4 3])))
+      "distinct on vector should return lazy sequence"))
+
+(deftest test-distinct-on-infinite-seq
+  (is (= [0 1 2 3 4] (take 5 (distinct (iterate inc 0))))
+      "distinct on infinite sequence should work without hanging"))
+
+(deftest test-distinct-empty-collection
+  (is (= [] (distinct []))
+      "distinct on empty collection should return empty vector"))
+
+(deftest test-distinct-with-doall
+  (is (= [1 2 3] (doall (distinct [1 1 2 2 3 3])))
+      "distinct should work with doall"))
+
+(deftest test-distinct-with-nil
+  (is (= [] (distinct nil))
+      "distinct with nil should return empty vector"))
+
+(deftest test-dedupe-on-vector-returns-lazy
+  (is (= [1 2 3 2 1] (doall (dedupe [1 1 2 2 3 3 2 2 1])))
+      "dedupe on vector should return lazy sequence"))
+
+(deftest test-dedupe-on-infinite-seq
+  (is (= [0 1 2 3 4] (take 5 (dedupe (iterate inc 0))))
+      "dedupe on infinite sequence should work"))
+
+(deftest test-dedupe-empty-collection
+  (is (= [] (dedupe []))
+      "dedupe on empty collection should return empty vector"))
+
+(deftest test-dedupe-all-same
+  (is (= [1] (doall (dedupe [1 1 1 1 1])))
+      "dedupe should return single element when all are same"))
+
+(deftest test-dedupe-with-nil
+  (is (= [] (dedupe nil))
+      "dedupe with nil should return empty vector"))
+
+(deftest test-partition-by-on-vector-returns-lazy
+  (is (= [[1 2] [3 4 5]] (doall (partition-by #(< % 3) [1 2 3 4 5])))
+      "partition-by on vector should return lazy sequence"))
+
+(deftest test-partition-by-on-infinite-seq
+  (is (= [[0] [1] [2] [3] [4]] (take 5 (partition-by identity (iterate inc 0))))
+      "partition-by on infinite sequence should work"))
+
+(deftest test-partition-by-empty-collection
+  (is (= [] (partition-by #(< % 3) []))
+      "partition-by on empty collection should return empty vector"))
+
+(deftest test-partition-by-all-same-group
+  (is (= [[1 1 1 1]] (doall (partition-by #(< % 10) [1 1 1 1])))
+      "partition-by should return single partition when all elements have same key"))
+
+;; Lazy mapcat tests
+(deftest test-mapcat-is-lazy
+  (is (= [1 1 1 2 2 2] (take 6 (mapcat #(list % % %) [1 2 3 4 5])))
+      "mapcat should be lazy and work with take"))
+
+(deftest test-mapcat-identity-flattens-one-level
+  (is (= [1 2 3 4 5 6] (doall (mapcat identity [[1 2] [3 4] [5 6]])))
+      "mapcat identity should flatten one level"))
+
+(deftest test-mapcat-identity-flattens-map-entries
+  (is (= [:a 1 :b 2 :c 3] (doall (mapcat identity {:a 1 :b 2 :c 3})))
+      "mapcat identity should flatten map key-value entries"))
+
+(deftest test-mapcat-with-infinite-sequence
+  (is (= [0 0 1 1 2 2 3 3 4 4] (take 10 (mapcat #(list % %) (iterate inc 0))))
+      "mapcat should work with infinite sequences"))
+
+(deftest test-mapcat-empty-collection
+  (is (= '() (mapcat reverse []))
+      "mapcat on empty collection should return empty list"))
+
+(deftest test-mapcat-with-empty-results
+  (is (= [2 2 4 4 6 6] (doall (mapcat #(if (even? %) [% %] []) [1 2 3 4 5 6])))
+      "mapcat should handle functions that return empty collections"))
+
+(deftest test-mapcat-preserves-laziness
+  (is (= [1 2 2 3 3 3] (take 6 (mapcat #(repeat % %) (iterate inc 1))))
+      "mapcat should preserve laziness with nested lazy sequences"))
+
+(deftest test-mapcat-returns-lazy-seq
+  (let [result (mapcat identity [[1 2] [3 4]])]
+    (is (true? (seq? result))
+        "mapcat should return a lazy sequence")))
+
+;; Lazy interpose tests
+(deftest test-interpose-basic
+  (is (= [1 0 2 0 3] (doall (interpose 0 [1 2 3])))
+      "interpose should insert separator between elements"))
+
+(deftest test-interpose-is-lazy
+  (is (= [1 0 2 0 3] (take 5 (interpose 0 [1 2 3 4 5])))
+      "interpose should be lazy and work with take"))
+
+(deftest test-interpose-with-infinite-sequence
+  (is (= [0 :sep 1 :sep 2 :sep 3 :sep 4] (take 9 (interpose :sep (iterate inc 0))))
+      "interpose should work with infinite sequences"))
+
+(deftest test-interpose-empty-collection
+  (is (= '() (interpose 0 []))
+      "interpose on empty collection should return empty list"))
+
+(deftest test-interpose-single-element
+  (is (= [1] (doall (interpose 0 [1])))
+      "interpose on single element should return just that element"))
+
+(deftest test-interpose-two-elements
+  (is (= [1 0 2] (doall (interpose 0 [1 2])))
+      "interpose on two elements should have one separator"))
+
+(deftest test-interpose-with-strings
+  (is (= ["a" "," "b" "," "c"] (doall (interpose "," ["a" "b" "c"])))
+      "interpose should work with strings"))
+
+(deftest test-interpose-returns-lazy-seq
+  (let [result (interpose 0 [1 2 3])]
+    (is (true? (seq? result))
+        "interpose should return a lazy sequence")))
+
+;; Lazy map-indexed tests
+(deftest test-map-indexed-basic
+  (is (= [[0 "a"] [1 "b"] [2 "c"]] (doall (map-indexed vector ["a" "b" "c"])))
+      "map-indexed should apply function with index and value"))
+
+(deftest test-map-indexed-is-lazy
+  (is (= [[0 1] [1 2] [2 3]] (take 3 (map-indexed vector [1 2 3 4 5])))
+      "map-indexed should be lazy and work with take"))
+
+(deftest test-map-indexed-with-infinite-sequence
+  (is (= [[0 0] [1 1] [2 2] [3 3] [4 4]] (take 5 (map-indexed vector (iterate inc 0))))
+      "map-indexed should work with infinite sequences"))
+
+(deftest test-map-indexed-empty-collection
+  (is (= '() (map-indexed vector []))
+      "map-indexed on empty collection should return empty list"))
+
+(deftest test-map-indexed-single-element
+  (is (= [[0 :x]] (doall (map-indexed vector [:x])))
+      "map-indexed on single element should work correctly"))
+
+(deftest test-map-indexed-custom-function
+  (is (= [0 11 22] (doall (map-indexed (fn [i v] (+ (* i 10) v)) [0 1 2])))
+      "map-indexed should work with custom functions"))
+
+(deftest test-map-indexed-returns-index-first
+  (is (= [0 1 2] (doall (map-indexed (fn [i v] i) ["a" "b" "c"])))
+      "map-indexed should pass index as first argument"))
+
+(deftest test-map-indexed-returns-lazy-seq
+  (let [result (map-indexed vector [1 2 3])]
+    (is (true? (seq? result))
+        "map-indexed should return a lazy sequence")))
+
+;; Lazy interleave tests
+(deftest test-interleave-two-vectors
+  (is (= [1 :a 2 :b 3 :c] (doall (interleave [1 2 3] [:a :b :c])))
+      "interleave should alternate elements from two vectors"))
+
+(deftest test-interleave-is-lazy
+  (is (= [1 :a 2 :b 3] (take 5 (interleave [1 2 3 4 5] [:a :b :c :d :e])))
+      "interleave should be lazy and work with take"))
+
+(deftest test-interleave-with-infinite-sequence
+  (is (= [0 :x 1 :x 2 :x 3 :x 4 :x] (take 10 (interleave (iterate inc 0) (repeat :x))))
+      "interleave should work with infinite sequences"))
+
+(deftest test-interleave-stops-at-first
+  (is (= [1 :a 2 :b] (doall (interleave [1 2] [:a :b :c :d])))
+      "interleave should stop when first collection is exhausted"))
+
+(deftest test-interleave-three-collections
+  (is (= [1 :a "x" 2 :b "y" 3 :c "z"] (doall (interleave [1 2 3] [:a :b :c] ["x" "y" "z"])))
+      "interleave should work with three collections"))
+
+(deftest test-interleave-empty-collection
+  (is (= '() (interleave))
+      "interleave with no arguments should return empty list"))
+
+(deftest test-interleave-first-empty
+  (is (= [] (doall (interleave [] [1 2 3])))
+      "interleave should return empty when first collection is empty"))
+
+(deftest test-interleave-single-collection
+  (is (= [1 2 3] (doall (interleave [1 2 3])))
+      "interleave with single collection should return that collection"))
+
+(deftest test-interleave-returns-lazy-seq
+  (let [result (interleave [1 2 3] [:a :b :c])]
+    (is (true? (seq? result))
+        "interleave should return a lazy sequence")))
+
+;; Lazy flatten tests
+(deftest test-flatten-basic
+  (is (= [1 2 3 4 5 6] (doall (flatten [[1 2] [3 [4 5]] 6])))
+      "flatten should flatten nested vectors"))
+
+(deftest test-flatten-is-lazy
+  (is (= [1 2 3 4 5] (take 5 (flatten [[1 2] [3 4 5 6 7 8]])))
+      "flatten should be lazy and work with take"))
+
+(deftest test-flatten-deeply-nested
+  (is (= [1 2 3 4 5] (doall (flatten [1 [2 [3 [4 [5]]]]])))
+      "flatten should handle deeply nested structures"))
+
+(deftest test-flatten-empty-collection
+  (is (= [] (doall (flatten [])))
+      "flatten on empty collection should return empty vector"))
+
+(deftest test-flatten-already-flat
+  (is (= [1 2 3 4] (doall (flatten [1 2 3 4])))
+      "flatten on already flat collection should return same elements"))
+
+(deftest test-flatten-mixed-types
+  (is (= [1 :a "x" 2 :b "y"] (doall (flatten [[1 :a] ["x" [2]] [:b "y"]])))
+      "flatten should work with mixed types"))
+
+(deftest test-flatten-with-nil
+  (is (= [1 nil 2 3] (doall (flatten [[1 nil] [2 3]])))
+      "flatten should preserve nil values"))
+
+(deftest test-flatten-returns-lazy-seq
+  (let [result (flatten [[1 2] [3 4]])]
+    (is (true? (seq? result))
+        "flatten should return a lazy sequence")))
+
+;; Lazy variadic map tests
+(deftest test-map-two-collections
+  (is (= [[1 :a] [2 :b] [3 :c]] (doall (map vector [1 2 3] [:a :b :c])))
+      "map should work with two collections"))
+
+(deftest test-map-variadic-is-lazy
+  (is (= [[1 :a] [2 :b] [3 :c]] (take 3 (map vector [1 2 3 4 5] [:a :b :c :d :e])))
+      "variadic map should be lazy and work with take"))
+
+(deftest test-map-with-infinite-sequences
+  (is (= [[0 10] [1 11] [2 12] [3 13] [4 14]] (take 5 (map vector (iterate inc 0) (iterate inc 10))))
+      "variadic map should work with infinite sequences"))
+
+(deftest test-map-stops-at-shortest
+  (is (= [[1 :a] [2 :b]] (doall (map vector [1 2] [:a :b :c :d])))
+      "variadic map should stop at shortest collection"))
+
+(deftest test-map-three-collections
+  (is (= [[1 :a "x"] [2 :b "y"] [3 :c "z"]] (doall (map vector [1 2 3] [:a :b :c] ["x" "y" "z"])))
+      "variadic map should work with three collections"))
+
+(deftest test-map-with-function
+  (is (= [11 22 33] (doall (map + [1 2 3] [10 20 30])))
+      "variadic map should apply function to corresponding elements"))
+
+(deftest test-map-empty-collection
+  (is (= [] (doall (map vector [] [1 2 3])))
+      "variadic map with empty first collection should return empty"))
+
+(deftest test-map-variadic-returns-lazy-seq
+  (let [result (map vector [1 2 3] [:a :b :c])]
+    (is (true? (seq? result))
+        "variadic map should return a lazy sequence")))
+
+;; Tests for partition
+(deftest test-partition-basic
+  (is (= [[1 2 3] [4 5 6]] (doall (partition 3 [1 2 3 4 5 6])))
+      "partition should divide collection into chunks of size n"))
+
+(deftest test-partition-is-lazy
+  (is (= [[1 2] [3 4] [5 6]] (take 3 (partition 2 [1 2 3 4 5 6 7 8 9 10])))
+      "partition should be lazy and work with take"))
+
+(deftest test-partition-with-infinite-sequence
+  (is (= [[0 1] [2 3] [4 5]] (doall (take 3 (partition 2 (iterate inc 0)))))
+      "partition should work with infinite sequences"))
+
+(deftest test-partition-drops-incomplete
+  (is (= [[1 2 3] [4 5 6]] (doall (partition 3 [1 2 3 4 5 6 7])))
+      "partition should drop incomplete final partition"))
+
+(deftest test-partition-empty-collection
+  (is (= [] (doall (partition 3 [])))
+      "partition of empty collection should return empty"))
+
+(deftest test-partition-single-chunk
+  (is (= [[1 2 3]] (doall (partition 3 [1 2 3])))
+      "partition with exact chunk size should return single chunk"))
+
+(deftest test-partition-size-one
+  (is (= [[1] [2] [3]] (doall (partition 1 [1 2 3])))
+      "partition with size 1 should return individual elements"))
+
+(deftest test-partition-returns-lazy-seq
+  (let [result (partition 2 [1 2 3 4])]
+    (is (true? (seq? result))
+        "partition should return a lazy sequence")))
+
+;; Tests for partition-all
+(deftest test-partition-all-basic
+  (is (= [[1 2 3] [4 5 6]] (doall (partition-all 3 [1 2 3 4 5 6])))
+      "partition-all should divide collection into chunks of size n"))
+
+(deftest test-partition-all-is-lazy
+  (is (= [[1 2] [3 4] [5 6]] (take 3 (partition-all 2 [1 2 3 4 5 6 7 8 9 10])))
+      "partition-all should be lazy and work with take"))
+
+(deftest test-partition-all-with-infinite-sequence
+  (is (= [[0 1 2] [3 4 5] [6 7 8]] (doall (take 3 (partition-all 3 (iterate inc 0)))))
+      "partition-all should work with infinite sequences"))
+
+(deftest test-partition-all-keeps-incomplete
+  (is (= [[1 2 3] [4 5 6] [7]] (doall (partition-all 3 [1 2 3 4 5 6 7])))
+      "partition-all should keep incomplete final partition"))
+
+(deftest test-partition-all-empty-collection
+  (is (= [] (doall (partition-all 3 [])))
+      "partition-all of empty collection should return empty"))
+
+(deftest test-partition-all-single-chunk
+  (is (= [[1 2 3]] (doall (partition-all 3 [1 2 3])))
+      "partition-all with exact chunk size should return single chunk"))
+
+(deftest test-partition-all-size-one
+  (is (= [[1] [2] [3]] (doall (partition-all 1 [1 2 3])))
+      "partition-all with size 1 should return individual elements"))
+
+(deftest test-partition-all-returns-lazy-seq
+  (let [result (partition-all 2 [1 2 3 4 5])]
+    (is (true? (seq? result))
+        "partition-all should return a lazy sequence")))
+
+;; Helper functions for lazy-seq tests
+(defn my-range [n]
+  (when (> n 0)
+    (lazy-seq (cons n (my-range (dec n))))))
+
+(defn naturals [n]
+  (lazy-seq (cons n (naturals (inc n)))))
+
+(defn fib-seq
+  ([] (fib-seq 0 1))
+  ([a b] (lazy-seq (cons a (fib-seq b (+ a b))))))
+
+;; Tests for lazy-seq macro
+(deftest test-lazy-seq-basic
+  (is (= [1 2 3] (doall (lazy-seq [1 2 3])))
+      "lazy-seq should wrap a simple vector"))
+
+(deftest test-lazy-seq-returns-lazy-seq
+  (let [result (lazy-seq [1 2 3])]
+    (is (true? (php/instanceof result \Phel\Lang\Collections\LazySeq\LazySeq))
+        "lazy-seq should return a LazySeq instance")))
+
+(deftest test-lazy-seq-defers-evaluation
+  (let [side-effect (atom 0)
+        lazy-result (lazy-seq (do (swap! side-effect inc) [1 2 3]))]
+    (is (= 0 (deref side-effect)) "lazy-seq should not evaluate body immediately")
+    (first lazy-result)
+    (is (= 1 (deref side-effect)) "lazy-seq should evaluate body when accessed")))
+
+(deftest test-lazy-seq-caches-result
+  (let [side-effect (atom 0)
+        lazy-result (lazy-seq (do (swap! side-effect inc) [1 2 3]))]
+    (doall lazy-result)
+    (is (= 1 (deref side-effect)) "lazy-seq should evaluate once")
+    (doall lazy-result)
+    (is (= 1 (deref side-effect)) "lazy-seq should cache result and not re-evaluate")))
+
+(deftest test-lazy-seq-with-nil
+  (is (= [] (doall (lazy-seq nil)))
+      "lazy-seq with nil produces an empty sequence"))
+
+(deftest test-lazy-seq-recursive-range
+  (is (= [5 4 3 2 1] (doall (my-range 5)))
+      "lazy-seq should work in recursive functions"))
+
+(deftest test-lazy-seq-infinite-naturals
+  (is (= [0 1 2 3 4] (take 5 (naturals 0)))
+      "lazy-seq should support infinite sequences"))
+
+(deftest test-lazy-seq-fibonacci
+  (is (= [0 1 1 2 3 5 8 13] (take 8 (fib-seq)))
+      "lazy-seq should work for fibonacci sequence"))
+
+(deftest test-lazy-seq-with-cons
+  (let [result (lazy-seq (cons 1 (cons 2 (cons 3 nil))))]
+    (is (= 1 (first result)) "first element should be 1")
+    (is (= 2 (first (rest result))) "second element should be 2")
+    (is (= 3 (first (rest (rest result)))) "third element should be 3")))
+
+(deftest test-lazy-seq-empty-collection
+  (is (= [] (doall (lazy-seq [])))
+      "lazy-seq with empty vector produces an empty sequence"))
+
+(deftest test-lazy-seq-single-element
+  (is (= [42] (doall (lazy-seq [42])))
+      "lazy-seq with single element should work"))
+
+(deftest test-lazy-seq-with-list
+  (is (= [1 2 3] (doall (lazy-seq '(1 2 3))))
+      "lazy-seq should work with lists"))
+
+(deftest test-lazy-seq-nested
+  (is (= [1 2 3 4] (doall (lazy-seq (lazy-seq [1 2 3 4]))))
+      "nested lazy-seq should work correctly"))
+
+;; Tests for lazy-cat macro
+(deftest test-lazy-cat-basic
+  (is (= [1 2 3 4 5 6] (doall (lazy-cat [1 2 3] [4 5 6])))
+      "lazy-cat should concatenate two vectors"))
+
+(deftest test-lazy-cat-returns-lazy-seq
+  (let [result (lazy-cat [1 2] [3 4])]
+    (is (true? (seq? result))
+        "lazy-cat should return a lazy sequence")))
+
+(deftest test-lazy-cat-three-collections
+  (is (= [1 2 3 4 5 6 7 8 9] (doall (lazy-cat [1 2 3] [4 5 6] [7 8 9])))
+      "lazy-cat should concatenate three collections"))
+
+(deftest test-lazy-cat-with-empty-collections
+  (is (= [1 2 3] (doall (lazy-cat [] [1 2 3] [])))
+      "lazy-cat should handle empty collections"))
+
+(deftest test-lazy-cat-single-collection
+  (is (= [1 2 3] (doall (lazy-cat [1 2 3])))
+      "lazy-cat with single collection should return that collection"))
+
+(deftest test-lazy-cat-no-arguments
+  (is (= [] (doall (lazy-cat)))
+      "lazy-cat with no arguments should return empty"))
+
+(deftest test-lazy-cat-with-lazy-seqs
+  (is (= [0 1 2 3 4 5 6 7] (take 8 (lazy-cat (range 5) (range 5 10))))
+      "lazy-cat should work with lazy sequences"))
+
+(deftest test-lazy-cat-infinite-sequences
+  (is (= [1 1 1 0 1 2 3 4] (take 8 (lazy-cat (repeat 3 1) (iterate inc 0))))
+      "lazy-cat should work with infinite sequences"))
+
+(deftest test-lazy-cat-with-lists
+  (is (= [1 2 3 4 5 6] (doall (lazy-cat '(1 2 3) '(4 5 6))))
+      "lazy-cat should work with lists"))
+
+(deftest test-lazy-cat-mixed-types
+  (is (= [1 2 3 4 5 6] (doall (lazy-cat [1 2] '(3 4) [5 6])))
+      "lazy-cat should work with mixed collection types"))
+
+(deftest test-lazy-cat-with-take
+  (is (= [1 2 3 4 5] (take 5 (lazy-cat [1 2 3] [4 5 6 7 8])))
+      "lazy-cat should work with take"))
+
+(deftest test-lazy-cat-with-nil-result
+  (is (= [1 2] (doall (lazy-cat [1 2] nil)))
+      "lazy-cat should handle nil as empty"))
+
+(deftest test-lazy-cat-with-range
+  (is (= [0 1 2 3 4 5 6 7 8 9] (doall (lazy-cat (range 5) (range 5 10))))
+      "lazy-cat should work with range function"))
+
+(deftest test-lazy-cat-composition
+  (is (= [1 2 3 4 5 6 7 8 9]
+         (doall (lazy-cat (take 3 (range 1 10))
+                          (take 3 (range 4 10))
+                          (take 3 (range 7 10)))))
+      "lazy-cat should compose with other lazy operations"))
+
+(defn- test-ints [n]
+  (lazy-seq (cons n (test-ints (inc n)))))
+
+(deftest test-lazy-seq-cons-recursion
+  (is (= [0 1 2 3 4] (take 5 (test-ints 0)))
+      "lazy-seq with cons should work for recursive infinite sequences")
+  (is (= [10 11 12] (take 3 (test-ints 10)))
+      "lazy-seq recursive sequences should work from any starting point"))
+
+(deftest test-lazy-cat-with-finite-sequences
+  (is (= [0 1 2 10 11 12] (lazy-cat (take 3 (range 100)) (take 3 (range 10 20))))
+      "lazy-cat should work with finite lazy sequences")
+  (is (= [1 2 3 4 5 6] (lazy-cat [1 2 3] [4 5 6]))
+      "lazy-cat should work with vectors"))
+
+(deftest test-equals-infinite-range-to-self
+  (let [r (range)]
+    (is (true? (= r (deref (atom r))))
+        "identity equality on infinite range via atom/deref should not realize the sequence")
+    (is (true? (= r r))
+        "identity equality on infinite range directly should not realize the sequence")))
