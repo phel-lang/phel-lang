@@ -80,6 +80,77 @@ final class CachedNamespaceExtractorTest extends TestCase
         self::assertStringEndsWith('/split/part.phel', $picked[1]->getFile());
     }
 
+    public function test_repeated_directory_scan_uses_in_memory_cache(): void
+    {
+        $primaryPath = $this->dir . '/main.phel';
+        file_put_contents($primaryPath, '(ns split\\ns)');
+
+        $primaryInfo = new NamespaceInformation(
+            $primaryPath,
+            'split\\ns',
+            [],
+            isPrimaryDefinition: true,
+        );
+
+        $inner = $this->createMock(NamespaceExtractorInterface::class);
+        $inner->expects(self::once())
+            ->method('getNamespaceFromFile')
+            ->willReturn($primaryInfo);
+
+        $extractor = new CachedNamespaceExtractor(
+            $inner,
+            new NullNamespaceCache(),
+            new TopologicalNamespaceSorter(),
+        );
+
+        $first = $extractor->getNamespacesFromDirectories([$this->dir]);
+        $second = $extractor->getNamespacesFromDirectories([$this->dir]);
+
+        self::assertSame($first, $second, 'Second scan must return the cached result.');
+    }
+
+    public function test_directory_scan_prunes_vendor_and_git_subtrees(): void
+    {
+        mkdir($this->dir . '/vendor/foo/bar', 0777, true);
+        mkdir($this->dir . '/.git/objects', 0777, true);
+        mkdir($this->dir . '/node_modules/pkg', 0777, true);
+
+        file_put_contents($this->dir . '/vendor/foo/bar/inside.phel', '(ns vendor\\inside)');
+        file_put_contents($this->dir . '/.git/objects/inside.phel', '(ns git\\inside)');
+        file_put_contents($this->dir . '/node_modules/pkg/inside.phel', '(ns node\\inside)');
+        file_put_contents($this->dir . '/visible.phel', '(ns visible)');
+
+        $visibleInfo = new NamespaceInformation(
+            $this->dir . '/visible.phel',
+            'visible',
+            [],
+            isPrimaryDefinition: true,
+        );
+
+        $seenPaths = [];
+        $inner = $this->createMock(NamespaceExtractorInterface::class);
+        $inner->method('getNamespaceFromFile')->willReturnCallback(
+            static function (string $path) use (&$seenPaths, $visibleInfo): NamespaceInformation {
+                $seenPaths[] = $path;
+                return $visibleInfo;
+            },
+        );
+
+        $extractor = new CachedNamespaceExtractor(
+            $inner,
+            new NullNamespaceCache(),
+            new TopologicalNamespaceSorter(),
+        );
+
+        $extractor->getNamespacesFromDirectories([$this->dir]);
+
+        self::assertSame(
+            [realpath($this->dir) . '/visible.phel'],
+            $seenPaths,
+            'Only the visible.phel must be scanned; vendor/.git/node_modules pruned.',
+        );
+    }
+
     public function test_directory_scan_skips_files_that_fail_to_extract(): void
     {
         $goodPath = $this->dir . '/good.phel';
