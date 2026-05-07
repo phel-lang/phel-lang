@@ -24,7 +24,9 @@ use function count;
 use function is_array;
 use function is_bool;
 use function is_float;
+use function is_infinite;
 use function is_int;
+use function is_nan;
 use function is_string;
 use function preg_match;
 
@@ -122,6 +124,20 @@ final readonly class LiteralEmitter
 
     private function emitFloat(float $x): void
     {
+        // NAN and INF have no PHP literal form, and (string) coercion of NAN
+        // emits an E_WARNING on PHP 8.5+. Emit constant expressions instead.
+        if (is_nan($x)) {
+            $this->outputEmitter->emitStr('NAN');
+
+            return;
+        }
+
+        if (is_infinite($x)) {
+            $this->outputEmitter->emitStr($x > 0 ? 'INF' : '-INF');
+
+            return;
+        }
+
         $str = (string) $x;
         // (string) 10.0 renders as "10"; append .0 so the literal stays
         // a float in PHP. Skip when the string already carries a decimal
