@@ -178,12 +178,13 @@
   (and (integer? x) (php/>= (compare-to-zero x) 0)))
 
 (defn number?
-  "Returns true if `x` is a number — int, float, `Rational`, or `BigInteger`."
+  "Returns true if `x` is a number: int, float, `Rational`, `BigInteger`, or `BigDecimal`."
   [x]
   (or (php/is_int x)
       (php/is_float x)
       (php/instanceof x Rational)
-      (php/instanceof x BigInteger)))
+      (php/instanceof x BigInteger)
+      (php/instanceof x BigDecimal)))
 
 (defn ratio?
   "Returns true if `x` is a `Rational` value. Integer-valued rationals

@@ -1,6 +1,7 @@
 (in-ns phel.core)
 
 (use InvalidArgumentException)
+(use Phel.Lang.BigDecimal)
 (use Phel.Lang.BigInteger)
 (use Phel.Lang.Collections.HashSet.PersistentHashSetInterface)
 (use Phel.Lang.Collections.LinkedList.PersistentListInterface)
@@ -115,7 +116,8 @@
   (or (php/is_int x)
       (php/is_float x)
       (php/instanceof x Rational)
-      (php/instanceof x BigInteger)))
+      (php/instanceof x BigInteger)
+      (php/instanceof x BigDecimal)))
 
 (defn- num-equals1 [a b]
   (when-not (num? a)
@@ -157,7 +159,9 @@
 
 (defn- numeric-object?
   [x]
-  (or (php/instanceof x Rational) (php/instanceof x BigInteger)))
+  (or (php/instanceof x Rational)
+      (php/instanceof x BigInteger)
+      (php/instanceof x BigDecimal)))
 
 (defn- lt2 [a b]
   (if (or (numeric-object? a) (numeric-object? b))

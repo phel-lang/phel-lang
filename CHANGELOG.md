@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - `pos-int?` / `neg-int?` / `nat-int?` accept `BigInteger` values
 - `symbol` rejects non-name input (`nil`, fns, numbers, collections) with `InvalidArgumentException`
 - `(symbol nil name)` returns an unqualified symbol instead of throwing (#1859)
+- `int`/`long`/`float`/`double` accept `BigDecimal`; `zero?`/`pos?`/`neg?`, `<`/`<=`/`>`/`>=`, `==`, `number?` route `BigDecimal` through the numeric tower (#1867)
 
 #### Lang
 - `=` between `int` and `BigInteger` is symmetric (#1830)
