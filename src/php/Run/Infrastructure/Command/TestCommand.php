@@ -10,6 +10,7 @@ use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Run\Domain\Test\TestCommandOptions;
+use Phel\Run\Domain\Test\TestNamespacePruner;
 use Phel\Run\RunFacade;
 use Phel\Shared\ResourceUsageFormatter;
 use Symfony\Component\Console\Command\Command;
@@ -124,6 +125,9 @@ final class TestCommand extends Command
             $paths = (array) $input->getArgument(self::ARG_PATHS);
             $namespacesInformation = $this->getFacade()->getDependenciesFromPaths($paths);
             $failFast = (bool) $input->getOption(self::OPT_FAIL_FAST);
+            /** @var list<string> $nsPatterns */
+            $nsPatterns = (array) $input->getOption(self::OPT_NS);
+            $namespacesInformation = new TestNamespacePruner()->prune($namespacesInformation, $nsPatterns);
 
             // Suppress output during file loading phase and filter out integration test fixtures
             ob_start();

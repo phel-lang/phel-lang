@@ -7,6 +7,8 @@ All notable changes to this project will be documented in this file.
 ### Performance
 
 - Cold REPL boot prunes `vendor/`, `.git/`, `node_modules/` at namespace-scan descent and memoises directory scans per process (#1885)
+- `bin/phel test --ns 'pat.**'` preloads only matching namespaces and their dependency closure
+- `bin/phel test` skips re-registering dependency-graph entries on cache hits and re-restoring a namespace's environment after the first file in it
 
 ### Fixed
 

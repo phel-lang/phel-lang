@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Build\Application;
 
 use Phel\Build\Application\FileEvaluator;
+use Phel\Build\Domain\Cache\DependencyTrackerInterface;
+use Phel\Build\Domain\Extractor\FirstFormExtractor;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
@@ -23,11 +25,13 @@ final class FileEvaluatorTest extends TestCase
     {
         $this->tempDir = sys_get_temp_dir() . '/phel-test-' . uniqid();
         mkdir($this->tempDir, 0755, true);
+        FileEvaluator::resetState();
     }
 
     protected function tearDown(): void
     {
         $this->removeDir($this->tempDir);
+        FileEvaluator::resetState();
     }
 
     public function test_eval_file_uses_cache_on_hit(): void
@@ -389,6 +393,102 @@ final class FileEvaluatorTest extends TestCase
         // evalFile succeeds despite analysis failure
         self::assertSame($sourceFile, $result->getSourceFile());
         self::assertSame($namespace, $result->getNamespace());
+    }
+
+    public function test_register_dependencies_skipped_on_cache_hit(): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        $sourceCode = '(ns test\\namespace)';
+        file_put_contents($sourceFile, $sourceCode);
+        $cacheDir = $this->tempDir . '/cache';
+        $namespace = 'test\\namespace';
+
+        $cache = new CompiledCodeCache($cacheDir);
+        $cache->put($sourceFile, $namespace, md5($sourceCode), '$result = 1;');
+
+        $tracker = $this->createMock(DependencyTrackerInterface::class);
+        $tracker->expects($this->never())->method('registerDependencies');
+
+        $compilerFacade = $this->createStub(CompilerFacadeInterface::class);
+        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
+        );
+
+        $evaluator = new FileEvaluator(
+            $compilerFacade,
+            $namespaceExtractor,
+            $cache,
+            new FirstFormExtractor(),
+            $tracker,
+        );
+
+        $evaluator->evalFile($sourceFile);
+    }
+
+    public function test_restore_environment_skipped_on_second_call_for_same_namespace(): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        $sourceCode = '(ns test\\namespace)';
+        file_put_contents($sourceFile, $sourceCode);
+        $cacheDir = $this->tempDir . '/cache';
+        $namespace = 'test\\namespace';
+
+        $cache = new CompiledCodeCache($cacheDir);
+        $cache->put($sourceFile, $namespace, md5($sourceCode), '$result = 1;');
+        $cache->putEnvironment($namespace, [
+            'refers' => ['map' => ['ns' => null, 'name' => 'phel.core']],
+            'require_aliases' => [],
+            'use_aliases' => [],
+        ]);
+
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade->expects($this->exactly(2))->method('initializeGlobalEnvironment');
+        $compilerFacade->expects($this->once())->method('restoreNamespaceEnvironmentData');
+
+        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
+        );
+
+        $evaluator = new FileEvaluator($compilerFacade, $namespaceExtractor, $cache);
+        $evaluator->evalFile($sourceFile);
+        $evaluator->evalFile($sourceFile);
+    }
+
+    public function test_register_dependencies_called_on_cache_miss(): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        $sourceCode = '(ns test\\namespace)';
+        file_put_contents($sourceFile, $sourceCode);
+        $cacheDir = $this->tempDir . '/cache';
+        $namespace = 'test\\namespace';
+
+        $cache = new CompiledCodeCache($cacheDir);
+
+        $tracker = $this->createMock(DependencyTrackerInterface::class);
+        $tracker->expects($this->once())
+            ->method('registerDependencies')
+            ->with($sourceFile, $namespace, ['phel.core']);
+
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade->method('compileForCache')
+            ->willReturn(new EmitterResult(false, '$compiled = true;', '', ''));
+
+        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
+        );
+
+        $evaluator = new FileEvaluator(
+            $compilerFacade,
+            $namespaceExtractor,
+            $cache,
+            new FirstFormExtractor(),
+            $tracker,
+        );
+
+        $evaluator->evalFile($sourceFile);
     }
 
     private function removeDir(string $dir): void
