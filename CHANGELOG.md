@@ -75,6 +75,7 @@ All notable changes to this project will be documented in this file.
 - `LiteralEmitter::emitFloat` skips `.0` when the rendered float carries `.` or an exponent (#1846)
 - `N`-suffix int literals beyond `PHP_INT_MAX` parse as `BigInteger` (#1850)
 - `LiteralEmitter::emitFloat` emits `NAN`/`INF`/`-INF` as constants on PHP 8.5 (#1898)
+- `VarEmitter` prefixes `\Phel\Lang\Registry` with leading backslash so `(var sym)` resolves outside `phel\\` namespaces
 
 #### Core
 - `+`, `-`, `*`, `/` mixing `##Inf`/`##NaN` with `BigDecimal` fall back to float arithmetic (#1887)

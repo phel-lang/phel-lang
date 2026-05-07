@@ -21,7 +21,7 @@ final class VarEmitter implements NodeEmitterInterface
         assert($node instanceof VarNode);
 
         $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-        $this->outputEmitter->emitStr(Registry::class . '::getInstance()->getVar("');
+        $this->outputEmitter->emitStr('\\' . Registry::class . '::getInstance()->getVar("');
         $this->outputEmitter->emitStr(PhpStringEscape::doubleQuoted($this->outputEmitter->mungeEncodeRegistryKey($node->getNamespace())));
         $this->outputEmitter->emitStr('", "');
         $this->outputEmitter->emitStr(PhpStringEscape::doubleQuoted($node->getName()));
