@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Lang;
 
 use DivisionByZeroError;
 use InvalidArgumentException;
+use Phel\Lang\BigDecimal;
 use Phel\Lang\BigInteger;
 use Phel\Lang\NumericOperations;
 use Phel\Lang\Rational;
@@ -390,5 +391,48 @@ final class NumericOperationsTest extends TestCase
     {
         self::assertSame(8, NumericOperations::power(2, 3));
         self::assertSame(1, NumericOperations::power(1, 100));
+    }
+
+    public function test_divide_inf_by_bigdecimal_returns_inf(): void
+    {
+        $result = NumericOperations::divide(INF, BigDecimal::fromString('1.0'));
+
+        self::assertSame(INF, $result);
+    }
+
+    public function test_divide_negative_inf_by_bigdecimal_returns_negative_inf(): void
+    {
+        $result = NumericOperations::divide(-INF, BigDecimal::fromString('2.5'));
+
+        self::assertSame(-INF, $result);
+    }
+
+    public function test_divide_bigdecimal_by_inf_returns_zero_float(): void
+    {
+        $result = NumericOperations::divide(BigDecimal::fromString('1.0'), INF);
+
+        self::assertSame(0.0, $result);
+    }
+
+    public function test_divide_nan_by_bigdecimal_returns_nan(): void
+    {
+        $result = NumericOperations::divide(NAN, BigDecimal::fromString('1.0'));
+
+        self::assertNan($result);
+    }
+
+    public function test_add_inf_and_bigdecimal_returns_inf(): void
+    {
+        self::assertSame(INF, NumericOperations::add(INF, BigDecimal::fromString('1.0')));
+    }
+
+    public function test_subtract_bigdecimal_minus_inf_returns_negative_inf(): void
+    {
+        self::assertSame(-INF, NumericOperations::subtract(BigDecimal::fromString('1.0'), INF));
+    }
+
+    public function test_multiply_inf_and_bigdecimal_returns_inf(): void
+    {
+        self::assertSame(INF, NumericOperations::multiply(INF, BigDecimal::fromString('2.0')));
     }
 }

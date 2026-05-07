@@ -12,6 +12,9 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+#### Core
+- `+`, `-`, `*`, `/` mixing `##Inf`/`##NaN` with `BigDecimal` fall back to float arithmetic instead of throwing (#1887)
+
 #### Compiler
 - Oversize decimal int literals lex as `float` (#1837)
 - `clojure.lang.X` FQNs resolve to `\Phel\Lang\X` (`BigInt` to `BigInteger`, `Ratio` to `Rational`) (#1840)
