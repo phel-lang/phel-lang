@@ -3,7 +3,7 @@
 --PHP--
 \Phel::addDefinition(
   "user",
-  "a\'",
+  "a'",
   42,
   \Phel::map(
     \Phel::keyword("start-location"), \Phel::map(
