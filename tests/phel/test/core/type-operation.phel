@@ -183,6 +183,19 @@
   (let [pairs (next {:a 1 :b 2})]
     (is (true? (every? map-entry? pairs)) "next over a map yields MapEntry instances")))
 
+(deftest test-map-entry-indexed-access
+  (let [e (first {:a 1})]
+    (is (= 2 (count e)) "(count entry) is 2")
+    (is (= :a (nth e 0)) "(nth entry 0) is the key")
+    (is (= 1 (nth e 1)) "(nth entry 1) is the value"))
+  (let [e (map-entry :k 42)]
+    (is (= [:b 42] (assoc e 0 :b)) "(assoc entry 0 :b) degrades to a vector")
+    (is (= :vector (type (assoc e 0 :b))) "assoc result is a vector, not a MapEntry instance")
+    (is (true? (vector? (assoc e 0 :b))) "assoc result is a vector")
+    (is (= [:k 42 :extra] (conj e :extra)) "(conj entry x) degrades to a 3-vector")
+    (is (= :vector (type (conj e :extra))) "conj result is a vector, not a MapEntry instance")
+    (is (true? (vector? (conj e :extra))) "conj result is a vector")))
+
 (deftest test-number?
   (is (true? (number? 10.0)) "number? on 10.0")
   (is (true? (number? 0.0)) "number? on 0.0")
