@@ -4,137 +4,121 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-### Performance
-
-- Cold REPL boot prunes `vendor/`, `.git/`, `node_modules/` at namespace-scan descent and memoises directory scans per process (#1885)
-- `bin/phel test --ns 'pat.**'` preloads only matching namespaces and their dependency closure
-- `bin/phel test` skips re-registering dependency-graph entries on cache hits and re-restoring a namespace's environment after the first file in it
-
-### Fixed
-
-#### Core
-- `+`, `-`, `*`, `/` mixing `##Inf`/`##NaN` with `BigDecimal` fall back to float arithmetic instead of throwing (#1887)
-- `vector?` returns `true` for `MapEntry` produced by iterating a hash map (#1889)
-- Mixing `BigDecimal` with a float in `+`, `-`, `*`, `/`, `quot`, `rem`, `mod`, `compare` returns a float instead of a `BigDecimal` (#1891)
-
-#### Compiler
-- Symbol/keyword names ending in `'` (`inc'`, `dec'`, `+'`, `-'`, `*'`) now resolve cross-namespace; emitter no longer escapes the apostrophe with a backslash inside double-quoted PHP literals
-- Oversize decimal int literals lex as `float` (#1837)
-- `clojure.lang.X` FQNs resolve to `\Phel\Lang\X` (`BigInt` to `BigInteger`, `Ratio` to `Rational`) (#1840)
-- `LiteralEmitter::emitFloat` skips `.0` when the rendered float carries `.` or an exponent (#1846)
-- `N`-suffix int literals beyond `PHP_INT_MAX` parse as `BigInteger` (#1850)
-- `LiteralEmitter::emitFloat` emits `NAN`/`INF`/`-INF` as constants, avoiding the PHP 8.5 string-coercion warning (#1898)
-
-#### Core
-- `rationalize` uses the shortest round-trip decimal (#1832)
-- `float`/`double` collapse `Rational` and `BigInteger` (#1836)
-- `integer?` accepts `BigInteger`; `int?` stays PHP-int only (#1837)
-- `int`/`long`/`short`/`byte` accept `Rational` and `BigInteger` inputs (#1842)
-- `int`/`long`/`short`/`byte` route floats through `BigInteger::fromFloat`; out-of-range raises `OverflowException`, `NaN`/`Inf` raise `InvalidArgumentException` (#1846)
-- `quot` returns a `float` when any operand is a `float` (#1844)
-- `abs(PHP_INT_MIN)` returns `BigInteger 9223372036854775808` (#1844)
-- `bigint` accepts floats; truncates toward zero, rejects `NaN`/`Inf` (#1845)
-- `bigint` of a float uses the shortest round-trip decimal (#1852)
-- `pos-int?` / `neg-int?` / `nat-int?` accept `BigInteger` values
-- `symbol` rejects non-name input (`nil`, fns, numbers, collections) with `InvalidArgumentException`
-- `(symbol nil name)` returns an unqualified symbol instead of throwing (#1859)
-- `int`/`long`/`float`/`double` accept `BigDecimal`; `zero?`/`pos?`/`neg?`, `<`/`<=`/`>`/`>=`, `==`, `number?` route `BigDecimal` through the numeric tower (#1867)
-- `bigdec` accepts `Rational`; non-terminating expansions raise `ArithmeticError` (#1873)
-- `+`, `-`, `*`, `/`, `abs`, `quot`, `rem`, `mod`, `rationalize` accept `BigDecimal` operands; `/` raises `ArithmeticError` on non-terminating expansions (#1875)
-
-#### Testing
-- `--filter` (and `:filters`) now acts as a discovery filter: non-matching tests are silently dropped instead of emitting `S` (skipped) markers and inflating the `Skipped:` counter (#1888)
-
-#### Lang
-- `=` between `int` and `BigInteger` is symmetric (#1830)
-- `+`, `-`, `*`, `**` on PHP ints auto-promote to `BigInteger` on overflow (#1830)
-- `(/ 1.0 0.0)` returns `##Inf`; `(/ -1.0 0.0)` returns `##-Inf`; `(/ 0.0 0.0)` returns `##NaN` (#1830)
-
-### Changed
-
-#### Lang
-- `(first m)` and `(next m)` yield `MapEntry` instances; equality between `MapEntry` and a 2-vector is symmetric in both directions (#1868)
-- `assoc` and `conj` accept `MapEntry` and degrade to a `PersistentVector` (the result is no longer an entry); `(nth entry idx)` and `(count entry)` work directly (#1871)
-- `BigDecimal::__toString` (and therefore `(str 0M)`, `(str 1.5M)`, etc.) returns the canonical decimal form without the `M` suffix and preserves trailing zeros, matching `java.math.BigDecimal.toString` and Clojure's `str`. The readable form via the printer (`pr`/`prn`) keeps the `M` suffix (#1877)
-
 ### Added
 
 #### Compiler
 - `(var sym)` special form for first-class `Var` handles (#1717)
 - `#'sym` reader macro for `(var sym)` (#1717)
-- Ratio literals (`1/2`, `-3/4`) parse to `Rational` (#1825)
+- Ratio literals `1/2`, `-3/4` parse to `Rational` (#1825)
 
 #### Lang
-- `Phel\Lang\Uuid` value type; `#uuid "..."` and `random-uuid`/`parse-uuid` return typed values
-- `Phel\Lang\PhpClass` value type wrapping a normalised PHP class or interface FQN; `equals`/`hash` by FQN, `isInstance` for runtime checks
-- `Phel\Lang\Collections\Map\MapEntry` value type for typed map entries; equal by value to a 2-element vector, with `key()`/`value()` accessors
-- `Phel\Lang\Collections\Queue\PersistentQueue` value type: persistent FIFO with amortised O(1) `push` / `peek` / `pop` via a two-stack representation (#1869)
-- `Phel\Lang\BigDecimal` value type (`mantissa * 10^-scale`); `M`-suffix literals (`1.5M`, `1.5e3M`) flow through reader/analyzer/emitter as typed values
+- `Phel\Lang\Uuid` value type; `#uuid "..."`, `random-uuid`, `parse-uuid` return `Uuid`
+- `Phel\Lang\PhpClass` value type wrapping a normalised PHP class/interface FQN
+- `Phel\Lang\Collections\Map\MapEntry` value type, equal by value to a 2-element vector
+- `Phel\Lang\Collections\Queue\PersistentQueue` persistent FIFO with amortised O(1) `push`/`peek`/`pop` (#1869)
+- `Phel\Lang\BigDecimal` value type; `M`-suffix literals `1.5M`, `1.5e3M`
+- `Phel\Lang\BigInteger` and `Phel\Lang\Rational` value types (#1825)
 - `Phel\Lang\NumericOperations` runtime dispatch for `Rational`, `BigInteger`, native numbers (#1825)
+- `PhelVar` is callable, exposes `addWatch`/`removeWatch`/`alterMeta`/`resetMeta`/`isDynamic`
+- `PhelVarStateRegistry` singleton for watches, meta overrides, dynamic-flag cache
 
 #### Core
+- `Var` type with `deref`, `meta`, `alter-var-root` (#1717)
+- `find-var`, `var-get`, `var?`, `bound?`, `thread-bound?`, `var-set` (#1717)
+- `with-redefs` for any var, restores on exception
+- `with-bindings` rebinds dynamic vars from a `Var -> value` map
+- `add-watch`/`remove-watch` target `Var`, fire on `alter-var-root`
+- `alter-meta!`/`reset-meta!` survive `def` redefinitions
+- `symbol` accepts a `Var` (#1821); `special-symbol?` recognizes `var` (#1822)
 - `ratio?`, `bigint?`, `numerator`, `denominator`, `rationalize` (#1825)
 - `quot`, `rem`, `mod`; `%` aliases `rem` (#1831)
 - `floor`, `ceil`, `round`, `sqrt` (#1831)
 - `+'`, `-'`, `*'`, `inc'`, `dec'` auto-promoting variants (#1831)
 - `bigint`, `biginteger` constructors (#1831)
-- `map-entry?` predicate; true for any 2-element vector
-- `class`, `class?`, `class-name` for working with PHP class FQNs as `PhpClass` values
-- `map-entry` constructor returning a typed `MapEntry`; `map-entry?` accepts both `MapEntry` and 2-element vectors; `key`/`val` work on either form
+- `map-entry` constructor; `map-entry?` predicate (`MapEntry` or 2-element vector); `key`/`val` work on either
+- `class`, `class?`, `class-name` for `PhpClass`
 - `bigdec` constructor; `bigdec?`/`decimal?` predicates
-- `(queue & xs)` constructor and `queue?` predicate; `peek` / `pop` / `conj` follow FIFO semantics (#1869)
-- `type` returns `:uuid` for `Uuid`, `:php/class` for `PhpClass`, `:map-entry` for `MapEntry`, `:queue` for `PersistentQueue`, and `:bigdec` for `BigDecimal`
+- `(queue & xs)` constructor and `queue?` predicate (#1869)
+- `type` returns `:uuid`, `:php/class`, `:map-entry`, `:queue`, `:bigdec`, `:atom`, `:var`, `:ratio`, `:bigint`
 
 #### Documentation
-- `docs/numeric-tower.md` documents the `int`/`BigInteger`/`Rational`/`float` tower (#1832)
+- `docs/numeric-tower.md` covers `int`/`BigInteger`/`Rational`/`float` (#1832)
 
 ### Changed
 
 #### Compiler
 - Zero-denominator ratio literals raise `ZeroDenominatorRatioParserException` at parse time (#1825)
 
-#### Core
-- `Var` type with `deref`, `meta`, `alter-var-root` (#1717)
-- `find-var`, `var-get`, `var?` operate on `Var` (#1717)
-- `with-redefs` swaps root values for any var; restores on exception
-- `with-bindings` rebinds dynamic vars from a `Var -> value` map
-- `bound?`, `thread-bound?`, `var-set` for fiber-local binding state
-- `Var` handles are callable; forward args to root value
-- `add-watch`/`remove-watch` target `Var`; fire on `alter-var-root`
-- `alter-meta!`/`reset-meta!` survive `def` redefinitions
-- `symbol` accepts a `Var` (#1821)
-- `special-symbol?` recognizes `var` (#1822)
-
 #### Lang
-- `PhelVar` implements `FnInterface`; exposes `addWatch`/`removeWatch`/`alterMeta`/`resetMeta`/`isDynamic`
-- `PhelVarStateRegistry` singleton holds watches, meta overrides, dynamic-flag cache
-- `BigInteger` and `Rational` value types in `Phel\Lang`; printer renders rationals as `n/d` (#1825)
+- `(first m)` and `(next m)` yield `MapEntry` instances; `MapEntry` equals a 2-vector both ways (#1868)
+- `assoc` and `conj` on `MapEntry` return a `PersistentVector`; `(nth entry idx)` and `(count entry)` work directly (#1871)
+- `BigDecimal::__toString` returns the canonical decimal form without the `M` suffix; `pr`/`prn` keep the suffix (#1877)
+- `printer` renders rationals as `n/d` (#1825)
 
 #### Stdlib
 - Top-level `(use ...)` in `src/phel/core/*` uses dot-separated class FQNs
-- `type` returns `:atom` for atoms, `:var` for `Var` handles (#1717)
-- `alter-var-root` rejects atoms with a `swap!` hint (#1717)
-- `deref` works on atoms and `Var` (#1717)
 - `with-mocks`/`with-mock-wrapper` expand to `with-redefs`
 - `*ns*` bootstrap is `"phel.core"` (dot form)
-- Arithmetic, comparisons, and predicates dispatch on `Rational`/`BigInteger`; `type` returns `:ratio`/`:bigint` (#1825)
+- Arithmetic, comparisons, predicates dispatch on `Rational`/`BigInteger` (#1825)
+
+### Fixed
+
+#### Compiler
+- Symbol/keyword names ending in `'` (`inc'`, `dec'`, `+'`, `-'`, `*'`) resolve cross-namespace
+- Oversize decimal int literals lex as `float` (#1837)
+- `clojure.lang.X` FQNs resolve to `\Phel\Lang\X` (`BigInt` to `BigInteger`, `Ratio` to `Rational`) (#1840)
+- `LiteralEmitter::emitFloat` skips `.0` when the rendered float carries `.` or an exponent (#1846)
+- `N`-suffix int literals beyond `PHP_INT_MAX` parse as `BigInteger` (#1850)
+- `LiteralEmitter::emitFloat` emits `NAN`/`INF`/`-INF` as constants on PHP 8.5 (#1898)
+
+#### Core
+- `+`, `-`, `*`, `/` mixing `##Inf`/`##NaN` with `BigDecimal` fall back to float arithmetic (#1887)
+- `vector?` returns `true` for `MapEntry` produced by hash map iteration (#1889)
+- `BigDecimal` with a float in `+`, `-`, `*`, `/`, `quot`, `rem`, `mod`, `compare` returns a float (#1891)
+- `rationalize` uses the shortest round-trip decimal (#1832)
+- `float`/`double` accept `Rational` and `BigInteger` (#1836)
+- `integer?` accepts `BigInteger`; `int?` stays PHP-int only (#1837)
+- `int`/`long`/`short`/`byte` accept `Rational`, `BigInteger`, `BigDecimal` (#1842, #1867)
+- `int`/`long`/`short`/`byte` on float route through `BigInteger::fromFloat`; out-of-range raises `OverflowException`, `NaN`/`Inf` raise `InvalidArgumentException` (#1846)
+- `quot` returns `float` when any operand is float (#1844)
+- `abs(PHP_INT_MIN)` returns `BigInteger 9223372036854775808` (#1844)
+- `bigint` accepts floats, truncates toward zero, rejects `NaN`/`Inf`; uses shortest round-trip decimal (#1845, #1852)
+- `pos-int?`/`neg-int?`/`nat-int?` accept `BigInteger`
+- `symbol` rejects non-name input with `InvalidArgumentException`; `(symbol nil name)` returns unqualified symbol (#1859)
+- `zero?`/`pos?`/`neg?`, `<`/`<=`/`>`/`>=`, `==`, `number?` route `BigDecimal` through the numeric tower (#1867)
+- `bigdec` accepts `Rational`; non-terminating expansions raise `ArithmeticError` (#1873)
+- `+`, `-`, `*`, `/`, `abs`, `quot`, `rem`, `mod`, `rationalize` accept `BigDecimal`; `/` raises `ArithmeticError` on non-terminating expansions (#1875)
+
+#### Lang
+- `=` between `int` and `BigInteger` is symmetric (#1830)
+- `+`, `-`, `*`, `**` on PHP ints auto-promote to `BigInteger` on overflow (#1830)
+- `(/ 1.0 0.0)` returns `##Inf`; `(/ -1.0 0.0)` returns `##-Inf`; `(/ 0.0 0.0)` returns `##NaN` (#1830)
+
+#### Testing
+- `--filter` and `:filters` drop non-matching tests at discovery instead of marking `S` (#1888)
+
+### Performance
+- REPL boot prunes `vendor/`, `.git/`, `node_modules/` at scan descent; directory scans memoised per process (#1885)
+- `bin/phel test --ns 'pat.**'` preloads only matching namespaces and their dependency closure
+- `bin/phel test` skips re-registering dependency-graph entries on cache hits and re-restoring a namespace's environment after the first file
+- `NamespaceCollector` collapses three overlapping directory scans into one (#1901)
 
 ### Breaking
 
 #### Core
 - `binding` throws `InvalidArgumentException` for non-`^:dynamic` vars; use `with-redefs`
 - `(/ int int)` with non-integer result returns `Rational`; use `(/ 1.0 2)` or `(double ...)` for float division (#1825)
-- `uuid?` accepts only `Phel\Lang\Uuid`; wrap strings with `parse-uuid` or `#uuid "..."`. `random-uuid`/`parse-uuid` return `Uuid`. `s/coerce :uuid` returns `Uuid`; `s/validate :uuid` still accepts canonical strings.
+- `uuid?` accepts only `Phel\Lang\Uuid`; wrap strings with `parse-uuid` or `#uuid "..."`; `random-uuid`/`parse-uuid` and `s/coerce :uuid` return `Uuid`; `s/validate :uuid` still accepts canonical strings
 
 ### Removed
 
 #### Core
-- Deprecated `var` alias for `atom` (#1717)
-- Deprecated `var?` alias for `atom?` (#1717)
-- Deprecated `set!` alias for `reset!` (#1717)
+- `var` alias for `atom` (#1717)
+- `var?` alias for `atom?` (#1717)
+- `set!` alias for `reset!` (#1717)
 
 #### Documentation
-- Update README with new namespace syntax using dot separator
+- README updated for dot-separated namespace syntax
 
 ## [0.35.0](https://github.com/phel-lang/phel-lang/compare/v0.34.1...v0.35.0) - 2026-05-03
 
