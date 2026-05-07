@@ -5,6 +5,7 @@
 (use Phel.Lang.Collections.HashSet.PersistentHashSetInterface)
 (use Phel.Lang.Collections.HashSet.TransientHashSetInterface)
 (use Phel.Lang.Collections.LazySeq.LazySeqInterface)
+(use Phel.Lang.Collections.Map.MapEntry)
 (use Phel.Lang.Collections.Map.PersistentMapInterface)
 (use Phel.Lang.Collections.Map.TransientMapInterface)
 (use Phel.Lang.Collections.Vector.PersistentVectorInterface)
@@ -224,6 +225,12 @@
 
     (vector-target? ds)
     (php/-> ds (update key value))
+
+    ;; MapEntry degrades to a 2-vector once mutated, since the result no
+    ;; longer represents a real map entry. Matches Clojure's MapEntry
+    ;; behavior under assoc.
+    (php/instanceof ds MapEntry)
+    (php/-> [(php/-> ds (key)) (php/-> ds (value))] (update key value))
 
     ;; Explicit rejection for any other shape (string, list, set, sorted set,
     ;; number, …). Without this the old fall-through silently mutated strings

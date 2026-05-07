@@ -38,6 +38,7 @@ All notable changes to this project will be documented in this file.
 
 #### Lang
 - `(first m)` and `(next m)` yield `MapEntry` instances; equality between `MapEntry` and a 2-vector is symmetric in both directions (#1868)
+- `assoc` and `conj` accept `MapEntry` and degrade to a `PersistentVector` (the result is no longer an entry); `(nth entry idx)` and `(count entry)` work directly (#1871)
 - `BigDecimal::__toString` (and therefore `(str 0M)`, `(str 1.5M)`, etc.) returns the canonical decimal form without the `M` suffix and preserves trailing zeros, matching `java.math.BigDecimal.toString` and Clojure's `str`. The readable form via the printer (`pr`/`prn`) keeps the `M` suffix (#1877)
 
 ### Added

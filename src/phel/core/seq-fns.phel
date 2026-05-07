@@ -193,6 +193,10 @@
     (vector-target? coll)                          (php/-> coll (append value))
     (set-target? coll)                             (php/-> coll (add value))
     (map-target? coll)                             (conj-map-entry coll value)
+    ;; MapEntry degrades to a 3-vector when grown; the result is no longer
+    ;; an entry. Matches Clojure's MapEntry under conj.
+    (php/instanceof coll MapEntry)
+    (php/-> [(php/-> coll (key)) (php/-> coll (value))] (append value))
     (php/instanceof coll PushInterface)            (php/-> coll (push value))
     :else
     (throw (php/new InvalidArgumentException
