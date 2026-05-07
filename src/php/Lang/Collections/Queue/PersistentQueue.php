@@ -32,25 +32,12 @@ use function array_reverse;
  * head of `front`. When `front` becomes empty, the queue swaps `rear`
  * (reversed) into `front`, giving amortised O(1) `push` / `peek` / `pop`.
  *
- * @template T
- *
- * @implements IteratorAggregate<int, T>
- * @implements ConsInterface<self<T>>
- * @implements PushInterface<self<T>>
- * @implements PopInterface<self<T>>
- * @implements FirstInterface<T>
- * @implements CdrInterface<self<T>>
- *
- * @extends AbstractType<self<T>>
+ * @extends AbstractType<PersistentQueue>
  */
 final class PersistentQueue extends AbstractType implements TypeInterface, Countable, IteratorAggregate, FirstInterface, CdrInterface, ConsInterface, PushInterface, PopInterface
 {
     private int $hashCache = 0;
 
-    /**
-     * @param PersistentListInterface<T> $front
-     * @param PersistentListInterface<T> $rear
-     */
     public function __construct(
         private readonly HasherInterface $hasher,
         private readonly EqualizerInterface $equalizer,
@@ -60,9 +47,6 @@ final class PersistentQueue extends AbstractType implements TypeInterface, Count
         private readonly int $count,
     ) {}
 
-    /**
-     * @return self<T>
-     */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
         $emptyList = PersistentList::empty($hasher, $equalizer);
@@ -70,9 +54,7 @@ final class PersistentQueue extends AbstractType implements TypeInterface, Count
     }
 
     /**
-     * @param array<int, T> $values
-     *
-     * @return self<T>
+     * @param array<int, mixed> $values
      */
     public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $values): self
     {
@@ -95,20 +77,16 @@ final class PersistentQueue extends AbstractType implements TypeInterface, Count
     }
 
     /**
-     * Pushes `$value` onto the back of the queue.
-     *
-     * @param T $value
-     *
-     * @return self<T>
+     * Pushes `$x` onto the back of the queue.
      */
-    public function push(mixed $value): self
+    public function push(mixed $x): self
     {
         if ($this->count === 0) {
             return new self(
                 $this->hasher,
                 $this->equalizer,
                 $this->meta,
-                $this->front->cons($value),
+                $this->front->cons($x),
                 $this->rear,
                 1,
             );
@@ -119,7 +97,7 @@ final class PersistentQueue extends AbstractType implements TypeInterface, Count
             $this->equalizer,
             $this->meta,
             $this->front,
-            $this->rear->cons($value),
+            $this->rear->cons($x),
             $this->count + 1,
         );
     }
@@ -127,21 +105,15 @@ final class PersistentQueue extends AbstractType implements TypeInterface, Count
     /**
      * Alias for `push`. Lets `(conj queue x)` append at the back, matching
      * Clojure's queue semantics.
-     *
-     * @param T $value
-     *
-     * @return self<T>
      */
-    public function cons(mixed $value): self
+    public function cons(mixed $x): self
     {
-        return $this->push($value);
+        return $this->push($x);
     }
 
     /**
      * Removes the front element. Throws `UnderflowException` when the
      * queue is empty.
-     *
-     * @return self<T>
      */
     public function pop(): self
     {
@@ -177,9 +149,6 @@ final class PersistentQueue extends AbstractType implements TypeInterface, Count
         );
     }
 
-    /**
-     * @return T|null
-     */
     public function first(): mixed
     {
         if ($this->count === 0) {
@@ -189,9 +158,6 @@ final class PersistentQueue extends AbstractType implements TypeInterface, Count
         return $this->front->first();
     }
 
-    /**
-     * @return self<T>|null
-     */
     public function cdr(): ?self
     {
         return $this->count <= 1 ? null : $this->pop();
@@ -202,9 +168,6 @@ final class PersistentQueue extends AbstractType implements TypeInterface, Count
         return $this->count;
     }
 
-    /**
-     * @return Traversable<int, T>
-     */
     public function getIterator(): Traversable
     {
         $i = 0;
@@ -228,13 +191,10 @@ final class PersistentQueue extends AbstractType implements TypeInterface, Count
         }
 
         $right = iterator_to_array($other, false);
-        $i = 0;
-        foreach ($this as $value) {
-            if (!$this->equalizer->equals($value, $right[$i])) {
+        foreach ($this as $idx => $value) {
+            if (!$this->equalizer->equals($value, $right[$idx])) {
                 return false;
             }
-
-            ++$i;
         }
 
         return true;
@@ -252,9 +212,6 @@ final class PersistentQueue extends AbstractType implements TypeInterface, Count
         return $this->hashCache;
     }
 
-    /**
-     * @return PersistentListInterface<T>
-     */
     private function reverseRear(): PersistentListInterface
     {
         $reversed = PersistentList::empty($this->hasher, $this->equalizer);
