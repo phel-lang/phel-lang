@@ -7,6 +7,7 @@ namespace Phel\Build\Infrastructure\Cache;
 use Gacela\Framework\Cache\CycleDetectedException;
 use Gacela\Framework\Cache\FileCache;
 use Gacela\Framework\Cache\ScopedCache;
+use Phel\Build\Domain\Cache\DependencyTrackerInterface;
 
 use function is_string;
 
@@ -22,7 +23,7 @@ use function is_string;
  * A file that requires namespace B is registered as:
  *   dependsOn("file:{sourcePath}", "ns:B")
  */
-final readonly class DependencyTracker
+final readonly class DependencyTracker implements DependencyTrackerInterface
 {
     private ScopedCache $cache;
 
