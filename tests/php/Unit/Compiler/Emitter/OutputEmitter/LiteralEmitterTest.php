@@ -83,4 +83,25 @@ final class LiteralEmitterTest extends TestCase
 
         $this->expectOutputString('-9.2233720368548E+18');
     }
+
+    public function test_emit_nan_uses_constant(): void
+    {
+        $this->literalEmitter->emitLiteral(NAN);
+
+        $this->expectOutputString('NAN');
+    }
+
+    public function test_emit_positive_infinity_uses_constant(): void
+    {
+        $this->literalEmitter->emitLiteral(INF);
+
+        $this->expectOutputString('INF');
+    }
+
+    public function test_emit_negative_infinity_uses_constant(): void
+    {
+        $this->literalEmitter->emitLiteral(-INF);
+
+        $this->expectOutputString('-INF');
+    }
 }
