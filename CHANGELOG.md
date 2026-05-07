@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - `clojure.lang.X` FQNs resolve to `\Phel\Lang\X` (`BigInt` to `BigInteger`, `Ratio` to `Rational`) (#1840)
 - `LiteralEmitter::emitFloat` skips `.0` when the rendered float carries `.` or an exponent (#1846)
 - `N`-suffix int literals beyond `PHP_INT_MAX` parse as `BigInteger` (#1850)
+- `LiteralEmitter::emitFloat` emits `NAN`/`INF`/`-INF` as constants, avoiding the PHP 8.5 string-coercion warning (#1898)
 
 #### Core
 - `rationalize` uses the shortest round-trip decimal (#1832)

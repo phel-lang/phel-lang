@@ -124,18 +124,19 @@ final readonly class LiteralEmitter
 
     private function emitFloat(float $x): void
     {
+        $this->outputEmitter->emitStr($this->formatFloatLiteral($x));
+    }
+
+    private function formatFloatLiteral(float $x): string
+    {
         // NAN and INF have no PHP literal form, and (string) coercion of NAN
         // emits an E_WARNING on PHP 8.5+. Emit constant expressions instead.
         if (is_nan($x)) {
-            $this->outputEmitter->emitStr('NAN');
-
-            return;
+            return 'NAN';
         }
 
         if (is_infinite($x)) {
-            $this->outputEmitter->emitStr($x > 0 ? 'INF' : '-INF');
-
-            return;
+            return $x > 0 ? 'INF' : '-INF';
         }
 
         $str = (string) $x;
@@ -147,7 +148,7 @@ final readonly class LiteralEmitter
             $str .= '.0';
         }
 
-        $this->outputEmitter->emitStr($str);
+        return $str;
     }
 
     private function emitInt(int $x): void
