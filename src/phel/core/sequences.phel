@@ -8,6 +8,7 @@
 (use Phel.Lang.Collections.Map.MapEntry)
 (use Phel.Lang.Collections.Map.PersistentMapInterface)
 (use Phel.Lang.Collections.Map.TransientMapInterface)
+(use Phel.Lang.Collections.Queue.PersistentQueue)
 (use Phel.Lang.Collections.Vector.PersistentVectorInterface)
 (use Phel.Lang.Collections.Vector.TransientVectorInterface)
 (use Phel.Lang.PopInterface)
@@ -24,8 +25,8 @@
 
 (defn peek
   "Returns the head of a vector / PHP array (the last element) or the
-  head of a list / lazy sequence (the first element). Returns nil if
-  `coll` is empty or nil."
+  head of a list / lazy sequence / queue (the first element). Returns nil
+  if `coll` is empty or nil."
   {:example "(peek [1 2 3]) ; => 3\n(peek '(:a :b :c)) ; => :a"}
   [coll]
   (cond
@@ -36,6 +37,9 @@
     (first coll)
 
     (php/instanceof coll LazySeqInterface)
+    (first coll)
+
+    (php/instanceof coll PersistentQueue)
     (first coll)
 
     :else
