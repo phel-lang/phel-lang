@@ -38,16 +38,15 @@ final class NumericOperations
         self::ensureNumeric($a);
         self::ensureNumeric($b);
 
-        if (self::hasNonFiniteFloat($a, $b)) {
+        if (is_float($a) || is_float($b)) {
+            // Float wins over BigDecimal: `(+ 1.0M 2.0)` returns a float, not a
+            // BigDecimal. BigDecimal also cannot represent `##Inf`/`##NaN`, so a
+            // non-finite float operand still routes here.
             return self::toFloat($a) + self::toFloat($b);
         }
 
         if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
             return self::toBigDecimal($a)->add(self::toBigDecimal($b));
-        }
-
-        if (is_float($a) || is_float($b)) {
-            return self::toFloat($a) + self::toFloat($b);
         }
 
         if ($a instanceof Rational) {
@@ -74,16 +73,12 @@ final class NumericOperations
         self::ensureNumeric($a);
         self::ensureNumeric($b);
 
-        if (self::hasNonFiniteFloat($a, $b)) {
+        if (is_float($a) || is_float($b)) {
             return self::toFloat($a) - self::toFloat($b);
         }
 
         if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
             return self::toBigDecimal($a)->subtract(self::toBigDecimal($b));
-        }
-
-        if (is_float($a) || is_float($b)) {
-            return self::toFloat($a) - self::toFloat($b);
         }
 
         if ($a instanceof Rational) {
@@ -111,16 +106,12 @@ final class NumericOperations
         self::ensureNumeric($a);
         self::ensureNumeric($b);
 
-        if (self::hasNonFiniteFloat($a, $b)) {
+        if (is_float($a) || is_float($b)) {
             return self::toFloat($a) * self::toFloat($b);
         }
 
         if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
             return self::toBigDecimal($a)->multiply(self::toBigDecimal($b));
-        }
-
-        if (is_float($a) || is_float($b)) {
-            return self::toFloat($a) * self::toFloat($b);
         }
 
         if ($a instanceof Rational) {
@@ -151,28 +142,22 @@ final class NumericOperations
         self::ensureNumeric($a);
         self::ensureNumeric($b);
 
-        if (self::hasNonFiniteFloat($a, $b)) {
-            // BigDecimal cannot represent Inf/NaN; fall back to float arithmetic
-            // so `(/ ##Inf 1.0M)` => `##Inf`, `(/ 1.0M ##Inf)` => `0.0`, etc.
-            // Route through `fdiv` so `(/ ##Inf 0)` keeps its IEEE-754 result.
-            return fdiv(self::toFloat($a), self::toFloat($b));
-        }
-
-        if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
-            return self::toBigDecimal($a)->divideExact(self::toBigDecimal($b));
-        }
-
         if (is_float($a) || is_float($b)) {
             $left = self::toFloat($a);
             $right = self::toFloat($b);
             // Route any float-over-zero division through `fdiv` so
             // `(/ 1.0 0)` => `INF`, `(/ -1.0 0)` => `-INF`, `(/ 0.0 0)` => `NAN`,
             // and `(/ ##Inf 0)` / `(/ ##NaN 0)` keep their IEEE-754 results.
+            // Float wins over BigDecimal (`(/ 1.0M 2.0)` returns a float).
             if ($right === 0.0) {
                 return fdiv($left, $right);
             }
 
             return $left / $right;
+        }
+
+        if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
+            return self::toBigDecimal($a)->divideExact(self::toBigDecimal($b));
         }
 
         if ($a instanceof Rational) {
@@ -223,16 +208,12 @@ final class NumericOperations
         self::ensureNumeric($a);
         self::ensureNumeric($b);
 
-        if (self::hasNonFiniteFloat($a, $b)) {
+        if (is_float($a) || is_float($b)) {
             return self::toFloat($a) <=> self::toFloat($b);
         }
 
         if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
             return self::toBigDecimal($a)->compareTo(self::toBigDecimal($b));
-        }
-
-        if (is_float($a) || is_float($b)) {
-            return self::toFloat($a) <=> self::toFloat($b);
         }
 
         if ($a instanceof Rational) {
@@ -362,17 +343,18 @@ final class NumericOperations
             throw new DivisionByZeroError('Division by zero');
         }
 
+        if (is_float($a) || is_float($b)) {
+            $ratio = self::toFloat($a) / self::toFloat($b);
+            // Float operands keep float result; truncate toward zero.
+            // Float wins over BigDecimal (`(quot 1.0M 1.0)` returns a float).
+            return $ratio < 0 ? ceil($ratio) : floor($ratio);
+        }
+
         if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
             return self::truncateBigDecimalQuot(
                 self::toBigDecimal($a),
                 self::toBigDecimal($b),
             );
-        }
-
-        if (is_float($a) || is_float($b)) {
-            $ratio = self::toFloat($a) / self::toFloat($b);
-            // Float operands keep float result; truncate toward zero.
-            return $ratio < 0 ? ceil($ratio) : floor($ratio);
         }
 
         if ($a instanceof Rational || $b instanceof Rational) {
@@ -399,16 +381,17 @@ final class NumericOperations
             throw new DivisionByZeroError('Division by zero');
         }
 
+        if (is_float($a) || is_float($b)) {
+            // Float wins over BigDecimal (`(rem 1.0M 1.0)` returns a float).
+            $q = (float) self::quot($a, $b);
+            return self::toFloat($a) - (self::toFloat($b) * $q);
+        }
+
         if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
             $aBig = self::toBigDecimal($a);
             $bBig = self::toBigDecimal($b);
             $q = self::truncateBigDecimalQuot($aBig, $bBig);
             return $aBig->subtract($bBig->multiply($q));
-        }
-
-        if (is_float($a) || is_float($b)) {
-            $q = (float) self::quot($a, $b);
-            return self::toFloat($a) - (self::toFloat($b) * $q);
         }
 
         if ($a instanceof Rational || $b instanceof Rational) {
@@ -566,16 +549,6 @@ final class NumericOperations
         }
 
         return (float) $value;
-    }
-
-    /**
-     * `BigDecimal` cannot represent `INF`/`NAN`, so any op that mixes a
-     * non-finite float with a `BigDecimal` must fall back to float arithmetic
-     * before the BigDecimal branch tries (and fails) to convert the float.
-     */
-    private static function hasNonFiniteFloat(mixed $a, mixed $b): bool
-    {
-        return (is_float($a) && !is_finite($a)) || (is_float($b) && !is_finite($b));
     }
 
     private static function toBigInt(mixed $value): BigInteger
