@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DefNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\PhpStringEscape;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
 
@@ -23,8 +24,8 @@ final class DefEmitter implements NodeEmitterInterface
         // In cache mode, also register the definition in GlobalEnvironment
         // so the analyzer can resolve symbols when other files have cache misses
         if ($this->outputEmitter->getOptions()->isCacheEmitMode()) {
-            $ns = addslashes($this->outputEmitter->mungeEncodeRegistryKey($node->getNamespace()));
-            $name = addslashes($node->getName()->getName());
+            $ns = PhpStringEscape::doubleQuoted($this->outputEmitter->mungeEncodeRegistryKey($node->getNamespace()));
+            $name = PhpStringEscape::doubleQuoted($node->getName()->getName());
             $this->outputEmitter->emitLine('if (!\\' . GlobalEnvironmentSingleton::class . '::getInstance()->hasDefinition("' . $ns . '", \\' . Symbol::class . '::create("' . $name . '"))) {');
             $this->outputEmitter->increaseIndentLevel();
             $this->outputEmitter->emitLine('\\' . GlobalEnvironmentSingleton::class . '::getInstance()->addDefinition(');
@@ -43,10 +44,10 @@ final class DefEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine('\\Phel::addDefinition(');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitStr('"');
-        $this->outputEmitter->emitStr(addslashes($this->outputEmitter->mungeEncodeRegistryKey($node->getNamespace())));
+        $this->outputEmitter->emitStr(PhpStringEscape::doubleQuoted($this->outputEmitter->mungeEncodeRegistryKey($node->getNamespace())));
         $this->outputEmitter->emitLine('",');
         $this->outputEmitter->emitStr('"');
-        $this->outputEmitter->emitStr(addslashes($node->getName()->getName()));
+        $this->outputEmitter->emitStr(PhpStringEscape::doubleQuoted($node->getName()->getName()));
         $this->outputEmitter->emitLine('",');
         $this->outputEmitter->emitNode($node->getInit());
         if ($node->getMeta()->getKeyValues() !== []) {
