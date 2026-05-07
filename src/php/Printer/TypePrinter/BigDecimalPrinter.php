@@ -20,7 +20,7 @@ final class BigDecimalPrinter implements TypePrinterInterface
      */
     public function print(mixed $form): string
     {
-        return $this->color($form->__toString());
+        return $this->color($form->__toString() . 'M');
     }
 
     private function color(string $str): string

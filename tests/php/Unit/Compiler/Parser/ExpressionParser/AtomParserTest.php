@@ -651,7 +651,7 @@ final class AtomParserTest extends TestCase
         self::assertInstanceOf(NumberNode::class, $node);
         $value = $node->getValue();
         self::assertInstanceOf(BigDecimal::class, $value);
-        self::assertSame('1M', (string) $value);
+        self::assertSame('1', (string) $value);
     }
 
     public function test_parse_bigdec_literal_decimal(): void
@@ -664,7 +664,7 @@ final class AtomParserTest extends TestCase
         self::assertInstanceOf(NumberNode::class, $node);
         $value = $node->getValue();
         self::assertInstanceOf(BigDecimal::class, $value);
-        self::assertSame('1.5M', (string) $value);
+        self::assertSame('1.5', (string) $value);
     }
 
     public function test_parse_negative_bigdec_literal(): void
@@ -677,7 +677,7 @@ final class AtomParserTest extends TestCase
         self::assertInstanceOf(NumberNode::class, $node);
         $value = $node->getValue();
         self::assertInstanceOf(BigDecimal::class, $value);
-        self::assertSame('-123.456M', (string) $value);
+        self::assertSame('-123.456', (string) $value);
     }
 
     public function test_parse_zero_bigdec_literal(): void
@@ -690,7 +690,7 @@ final class AtomParserTest extends TestCase
         self::assertInstanceOf(NumberNode::class, $node);
         $value = $node->getValue();
         self::assertInstanceOf(BigDecimal::class, $value);
-        self::assertSame('0M', (string) $value);
+        self::assertSame('0', (string) $value);
     }
 
     public function test_parse_bigdec_literal_with_exponent(): void
@@ -703,7 +703,7 @@ final class AtomParserTest extends TestCase
         self::assertInstanceOf(NumberNode::class, $node);
         $value = $node->getValue();
         self::assertInstanceOf(BigDecimal::class, $value);
-        self::assertSame('1500M', (string) $value);
+        self::assertSame('1500', (string) $value);
     }
 
     public function test_parse_bigdec_literal_with_underscores(): void
@@ -716,7 +716,7 @@ final class AtomParserTest extends TestCase
         self::assertInstanceOf(NumberNode::class, $node);
         $value = $node->getValue();
         self::assertInstanceOf(BigDecimal::class, $value);
-        self::assertSame('1000.55M', (string) $value);
+        self::assertSame('1000.55', (string) $value);
     }
 
     public function test_symbol_with_trailing_n_is_not_bigint(): void

@@ -29,7 +29,7 @@ Each implements `TypePrinterInterface`. Selected at runtime based on value type:
 | `KeywordPrinter` | Keyword objects |
 | `SymbolPrinter` | Symbol objects |
 | `RationalPrinter` | Rational numbers (`n/d`) |
-| `BigDecimalPrinter` | BigDecimal values (rendered with `M` suffix) |
+| `BigDecimalPrinter` | BigDecimal values (appends the `M` suffix so the readable form round-trips through the reader) |
 | `UuidPrinter` | UUID values (rendered as `#uuid "..."`) |
 | `VariablePrinter` | Variable objects (recursive) |
 | `PersistentListPrinter` | Lists (recursive) |
