@@ -41,6 +41,11 @@ All notable changes to this project will be documented in this file.
 - `(queue & xs)` constructor and `queue?` predicate (#1869)
 - `type` returns `:uuid`, `:php/class`, `:map-entry`, `:queue`, `:bigdec`, `:atom`, `:var`, `:ratio`, `:bigint`
 
+#### Testing
+- `phel test --list` prints discovered tests after applying filters/selectors and skips execution
+- `phel test --last-failed` re-runs only tests that failed on the previous run; failures persist to `.phel/last-failed.txt`
+- `phel test --slowest=N` prints the N slowest tests after the summary
+
 #### Documentation
 - `docs/numeric-tower.md` covers `int`/`BigInteger`/`Rational`/`float` (#1832)
 

@@ -26,6 +26,7 @@ tests/**/out/
 .php-cs-fixer.php
 .phel-repl-history
 *.phel-repl-history
+.phel/
 phel-debug.log
 phel-error.log
 local.phel
