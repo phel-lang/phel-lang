@@ -2,6 +2,7 @@
 
 (use InvalidArgumentException)
 (use Phel.Lang.Collections.HashSet.TransientHashSetInterface)
+(use Phel.Lang.Collections.Map.MapEntry)
 (use Phel.Lang.Collections.Map.TransientMapInterface)
 (use Phel.Lang.Collections.Vector.TransientVectorInterface)
 
@@ -50,6 +51,9 @@
                        acc)
                      (php/-> acc (put key value))))]
       (cond
+        (php/instanceof entry MapEntry)
+        (assign coll (php/-> entry (key)) (php/-> entry (value)))
+
         (indexed? entry)
         (if (php/!= (count entry) 2)
           (throw (php/new InvalidArgumentException

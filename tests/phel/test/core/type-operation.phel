@@ -161,6 +161,28 @@
   (is (false? (map-entry? [1 2 3])) "map-entry? rejects 3-element vector")
   (is (false? (map-entry? "k")) "map-entry? rejects string"))
 
+(deftest test-map-entry-symmetric-equality
+  (let [e (map-entry :a 1)]
+    (is (= [:a 1] e) "(= [k v] entry) is true")
+    (is (= e [:a 1]) "(= entry [k v]) is true")
+    (is (true? (contains? #{[:a 1]} e)) "set with vector contains MapEntry")
+    (is (true? (contains? #{e} [:a 1])) "set with MapEntry contains vector")))
+
+(deftest test-map-iteration-yields-map-entry
+  (let [e (first {:a 1})]
+    (is (= :map-entry (type e)) "first of a map yields MapEntry")
+    (is (true? (map-entry? e)) "map-entry? on iteration product")
+    (is (false? (vector? e)) "vector? on MapEntry is false")
+    (is (= :a (key e)) "key on iteration product")
+    (is (= 1 (val e)) "val on iteration product")
+    (is (= [:a 1] e) "iteration product equals a 2-vector"))
+  (is (true? (every? map-entry? {:a 1 :b 2})) "every entry from map iteration is a MapEntry")
+  (let [[k v] (first {:a 1})]
+    (is (= :a k) "destructure key from MapEntry")
+    (is (= 1 v) "destructure value from MapEntry"))
+  (let [pairs (next {:a 1 :b 2})]
+    (is (true? (every? map-entry? pairs)) "next over a map yields MapEntry instances")))
+
 (deftest test-number?
   (is (true? (number? 10.0)) "number? on 10.0")
   (is (true? (number? 0.0)) "number? on 0.0")

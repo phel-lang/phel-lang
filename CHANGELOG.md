@@ -32,6 +32,11 @@ All notable changes to this project will be documented in this file.
 - `+`, `-`, `*`, `**` on PHP ints auto-promote to `BigInteger` on overflow (#1830)
 - `(/ 1.0 0.0)` returns `##Inf`; `(/ -1.0 0.0)` returns `##-Inf`; `(/ 0.0 0.0)` returns `##NaN` (#1830)
 
+### Changed
+
+#### Lang
+- `(first m)` and `(next m)` yield `MapEntry` instances; equality between `MapEntry` and a 2-vector is symmetric in both directions (#1868)
+
 ### Added
 
 #### Compiler
