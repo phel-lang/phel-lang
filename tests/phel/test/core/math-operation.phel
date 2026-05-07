@@ -544,6 +544,38 @@
   (is (thrown? \ArithmeticError (bigdec 1/3))
       "(bigdec 1/3) throws on non-terminating decimal expansion"))
 
+(deftest test-bigdec-arithmetic
+  (is (= 3M (+ 1M 2M)) "(+ 1M 2M)")
+  (is (= 3M (+ 1 2M)) "mixed (+ 1 2M)")
+  (is (= 3M (+ 1M 2)) "mixed (+ 1M 2)")
+  (is (= 1M (- 2M 1M)) "(- 2M 1M)")
+  (is (= -1M (- 1M 2M)) "(- 1M 2M)")
+  (is (= -2M (- 2M)) "unary (- 2M)")
+  (is (= 6M (* 2M 3M)) "(* 2M 3M)")
+  (is (= 6M (* 2M 3)) "mixed (* 2M 3)")
+  (is (= 2M (/ 2M 1M)) "(/ 2M 1M)")
+  (is (= 2.5M (/ 5M 2M)) "(/ 5M 2M) terminating")
+  (is (thrown? \ArithmeticError (/ 1M 3M))
+      "(/ 1M 3M) raises on non-terminating expansion"))
+
+(deftest test-bigdec-abs
+  (is (= 123.456M (abs -123.456M)) "(abs -123.456M)")
+  (is (= 0M (abs 0M)) "(abs 0M)")
+  (is (= 5M (abs 5M)) "(abs 5M) on positive")
+  (is (= 1.5M (abs -1.5M)) "(abs -1.5M)"))
+
+(deftest test-bigdec-quot-rem-mod
+  (is (= -3M (quot -10M 3)) "(quot -10M 3)")
+  (is (= -1M (rem -10 3M)) "(rem -10 3M)")
+  (is (= 1M (mod 10 3M)) "(mod 10 3M)"))
+
+(deftest test-bigdec-rationalize
+  (let [r (rationalize 1M)]
+    (is (= 1 r) "(rationalize 1M) value")
+    (is (or (integer? r) (ratio? r)) "(rationalize 1M) is integer or ratio"))
+  (let [r (rationalize 0.5M)]
+    (is (= 1/2 r) "(rationalize 0.5M)")))
+
 (deftest test-floor
   (is (= 1.0 (floor 1.7)) "(floor 1.7)")
   (is (= -2.0 (floor -1.2)) "(floor -1.2) toward negative infinity")
