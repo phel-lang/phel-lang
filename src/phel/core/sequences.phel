@@ -113,7 +113,11 @@
 
 (defn- indexed-vector?
   [coll]
-  (or (vector? coll) (transient-vector? coll)))
+  ;; Strict: persistent or transient `PersistentVectorInterface`. `MapEntry`
+  ;; is a vector to `vector?` callers but does not support `php/aget`, so
+  ;; `nth`/`get` must keep walking to their seq fallbacks for it.
+  (or (php/instanceof coll PersistentVectorInterface)
+      (transient-vector? coll)))
 
 (defn- in-bounds?
   [index size]

@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 
 #### Core
 - `+`, `-`, `*`, `/` mixing `##Inf`/`##NaN` with `BigDecimal` fall back to float arithmetic instead of throwing (#1887)
+- `vector?` returns `true` for `MapEntry` produced by iterating a hash map (#1889)
 
 #### Compiler
 - Oversize decimal int literals lex as `float` (#1837)
