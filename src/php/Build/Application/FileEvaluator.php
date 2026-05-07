@@ -10,6 +10,7 @@ use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Build\Domain\Extractor\FirstFormExtractor;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
 use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
+use Phel\Build\Infrastructure\Cache\DependencyTracker;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
@@ -93,7 +94,7 @@ final class FileEvaluator
                     $this->compiledCodeCache->invalidate($src);
                     throw $e;
                 }
-            } elseif ($this->dependencyTracker instanceof DependencyTrackerInterface
+            } elseif ($this->dependencyTracker instanceof DependencyTracker
                 && $this->compiledCodeCache->has($src)
             ) {
                 // Stale cache entry — source changed. Cascade invalidation to dependents.
