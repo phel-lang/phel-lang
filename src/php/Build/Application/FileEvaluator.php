@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Build\Application;
 
 use ParseError;
+use Phel\Build\Domain\Cache\DependencyTrackerInterface;
 use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Build\Domain\Extractor\FirstFormExtractor;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
@@ -20,15 +21,34 @@ use Throwable;
 
 use function sprintf;
 
-final readonly class FileEvaluator
+final class FileEvaluator
 {
+    /**
+     * Per-process record of namespaces whose env data was already restored
+     * from cache. Restoring re-iterates every refer/alias of a namespace, so
+     * repeating it for `phel.core` or other large namespaces during a single
+     * `bin/phel test` run is pure overhead.
+     *
+     * @var array<string, true>
+     */
+    private static array $restoredNamespaces = [];
+
     public function __construct(
-        private CompilerFacadeInterface $compilerFacade,
-        private NamespaceExtractorInterface $namespaceExtractor,
-        private ?CompiledCodeCache $compiledCodeCache = null,
-        private FirstFormExtractor $firstFormExtractor = new FirstFormExtractor(),
-        private ?DependencyTracker $dependencyTracker = null,
+        private readonly CompilerFacadeInterface $compilerFacade,
+        private readonly NamespaceExtractorInterface $namespaceExtractor,
+        private readonly ?CompiledCodeCache $compiledCodeCache = null,
+        private readonly FirstFormExtractor $firstFormExtractor = new FirstFormExtractor(),
+        private readonly ?DependencyTrackerInterface $dependencyTracker = null,
     ) {}
+
+    /**
+     * Reset the per-process namespace restoration cache. Tests should call
+     * this between scenarios so static state does not leak across runs.
+     */
+    public static function resetState(): void
+    {
+        self::$restoredNamespaces = [];
+    }
 
     public function evalFile(string $src): CompiledFile
     {
@@ -45,15 +65,6 @@ final readonly class FileEvaluator
         $namespaceInfo = $this->namespaceExtractor->getNamespaceFromFile($src);
         $namespace = $namespaceInfo->getNamespace();
 
-        // Register dependencies in the tracker for cascading invalidation
-        if ($this->dependencyTracker instanceof DependencyTracker) {
-            $this->dependencyTracker->registerDependencies(
-                $src,
-                $namespace,
-                $namespaceInfo->getDependencies(),
-            );
-        }
-
         if ($this->compiledCodeCache instanceof CompiledCodeCache) {
             $sourceHash = md5($code);
             $cachedPath = $this->compiledCodeCache->get($src, $sourceHash);
@@ -61,12 +72,16 @@ final readonly class FileEvaluator
             if ($cachedPath !== null) {
                 $this->compilerFacade->initializeGlobalEnvironment();
                 try {
-                    $envData = $this->compiledCodeCache->getEnvironment($namespace);
+                    if (!isset(self::$restoredNamespaces[$namespace])) {
+                        $envData = $this->compiledCodeCache->getEnvironment($namespace);
 
-                    if ($envData !== null) {
-                        $this->compilerFacade->restoreNamespaceEnvironmentData($namespace, $envData);
-                    } else {
-                        $this->analyzeNsForm($code, $src);
+                        if ($envData !== null) {
+                            $this->compilerFacade->restoreNamespaceEnvironmentData($namespace, $envData);
+                        } else {
+                            $this->analyzeNsForm($code, $src);
+                        }
+
+                        self::$restoredNamespaces[$namespace] = true;
                     }
 
                     /** @psalm-suppress UnresolvableInclude */
@@ -84,6 +99,17 @@ final readonly class FileEvaluator
             ) {
                 // Stale cache entry — source changed. Cascade invalidation to dependents.
                 $this->dependencyTracker->invalidateDependentsOf($namespace, $this->compiledCodeCache);
+            }
+
+            // Fresh compile: register dependencies so future runs can cascade
+            // invalidations. Skipped on cache hit since the previous fresh
+            // compile already registered them.
+            if ($this->dependencyTracker instanceof DependencyTrackerInterface) {
+                $this->dependencyTracker->registerDependencies(
+                    $src,
+                    $namespace,
+                    $namespaceInfo->getDependencies(),
+                );
             }
 
             $options = new CompileOptions()

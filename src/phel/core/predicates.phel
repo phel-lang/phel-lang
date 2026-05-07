@@ -319,9 +319,12 @@
   (map? x))
 
 (defn vector?
-  "Returns true if `x` is a vector, false otherwise."
+  "Returns true if `x` is a vector. Map entries returned by iterating a
+  hash map (`(first {:a 1})`) are vector-shaped two-element values, so
+  this predicate also accepts the typed `MapEntry`."
   [x]
-  (php/instanceof x PersistentVectorInterface))
+  (or (php/instanceof x PersistentVectorInterface)
+      (php/instanceof x MapEntry)))
 
 (defn map-entry?
   "Returns true if `x` is a map entry. Accepts both the typed

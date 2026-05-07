@@ -24,12 +24,12 @@ use function sprintf;
  *
  * Contagion rules (left to right yields the result type):
  *
+ *  - any op float                        -> float (highest priority; BigDecimal
+ *                                                  cannot represent Inf/NaN)
+ *  - BigDecimal op BigDecimal/int        -> BigDecimal
  *  - Rational op Rational/int/BigInteger -> Rational (auto-collapsed)
- *  - Rational op float                   -> float
  *  - BigInteger op BigInteger/int        -> BigInteger (auto-collapsed)
- *  - BigInteger op float                 -> float
  *  - int op int                          -> int (or Rational for non-integer divisions)
- *  - any op float                        -> float
  */
 final class NumericOperations
 {
@@ -38,12 +38,15 @@ final class NumericOperations
         self::ensureNumeric($a);
         self::ensureNumeric($b);
 
-        if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
-            return self::toBigDecimal($a)->add(self::toBigDecimal($b));
+        if (is_float($a) || is_float($b)) {
+            // Float wins over BigDecimal: `(+ 1.0M 2.0)` returns a float, not a
+            // BigDecimal. BigDecimal also cannot represent `##Inf`/`##NaN`, so a
+            // non-finite float operand still routes here.
+            return self::toFloat($a) + self::toFloat($b);
         }
 
-        if (is_float($a) || is_float($b)) {
-            return self::toFloat($a) + self::toFloat($b);
+        if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
+            return self::toBigDecimal($a)->add(self::toBigDecimal($b));
         }
 
         if ($a instanceof Rational) {
@@ -70,12 +73,12 @@ final class NumericOperations
         self::ensureNumeric($a);
         self::ensureNumeric($b);
 
-        if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
-            return self::toBigDecimal($a)->subtract(self::toBigDecimal($b));
-        }
-
         if (is_float($a) || is_float($b)) {
             return self::toFloat($a) - self::toFloat($b);
+        }
+
+        if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
+            return self::toBigDecimal($a)->subtract(self::toBigDecimal($b));
         }
 
         if ($a instanceof Rational) {
@@ -103,12 +106,12 @@ final class NumericOperations
         self::ensureNumeric($a);
         self::ensureNumeric($b);
 
-        if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
-            return self::toBigDecimal($a)->multiply(self::toBigDecimal($b));
-        }
-
         if (is_float($a) || is_float($b)) {
             return self::toFloat($a) * self::toFloat($b);
+        }
+
+        if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
+            return self::toBigDecimal($a)->multiply(self::toBigDecimal($b));
         }
 
         if ($a instanceof Rational) {
@@ -139,21 +142,22 @@ final class NumericOperations
         self::ensureNumeric($a);
         self::ensureNumeric($b);
 
-        if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
-            return self::toBigDecimal($a)->divideExact(self::toBigDecimal($b));
-        }
-
         if (is_float($a) || is_float($b)) {
             $left = self::toFloat($a);
             $right = self::toFloat($b);
             // Route any float-over-zero division through `fdiv` so
             // `(/ 1.0 0)` => `INF`, `(/ -1.0 0)` => `-INF`, `(/ 0.0 0)` => `NAN`,
             // and `(/ ##Inf 0)` / `(/ ##NaN 0)` keep their IEEE-754 results.
+            // Float wins over BigDecimal (`(/ 1.0M 2.0)` returns a float).
             if ($right === 0.0) {
                 return fdiv($left, $right);
             }
 
             return $left / $right;
+        }
+
+        if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
+            return self::toBigDecimal($a)->divideExact(self::toBigDecimal($b));
         }
 
         if ($a instanceof Rational) {
@@ -204,12 +208,12 @@ final class NumericOperations
         self::ensureNumeric($a);
         self::ensureNumeric($b);
 
-        if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
-            return self::toBigDecimal($a)->compareTo(self::toBigDecimal($b));
-        }
-
         if (is_float($a) || is_float($b)) {
             return self::toFloat($a) <=> self::toFloat($b);
+        }
+
+        if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
+            return self::toBigDecimal($a)->compareTo(self::toBigDecimal($b));
         }
 
         if ($a instanceof Rational) {
@@ -339,17 +343,18 @@ final class NumericOperations
             throw new DivisionByZeroError('Division by zero');
         }
 
+        if (is_float($a) || is_float($b)) {
+            $ratio = self::toFloat($a) / self::toFloat($b);
+            // Float operands keep float result; truncate toward zero.
+            // Float wins over BigDecimal (`(quot 1.0M 1.0)` returns a float).
+            return $ratio < 0 ? ceil($ratio) : floor($ratio);
+        }
+
         if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
             return self::truncateBigDecimalQuot(
                 self::toBigDecimal($a),
                 self::toBigDecimal($b),
             );
-        }
-
-        if (is_float($a) || is_float($b)) {
-            $ratio = self::toFloat($a) / self::toFloat($b);
-            // Float operands keep float result; truncate toward zero.
-            return $ratio < 0 ? ceil($ratio) : floor($ratio);
         }
 
         if ($a instanceof Rational || $b instanceof Rational) {
@@ -376,16 +381,17 @@ final class NumericOperations
             throw new DivisionByZeroError('Division by zero');
         }
 
+        if (is_float($a) || is_float($b)) {
+            // Float wins over BigDecimal (`(rem 1.0M 1.0)` returns a float).
+            $q = (float) self::quot($a, $b);
+            return self::toFloat($a) - (self::toFloat($b) * $q);
+        }
+
         if ($a instanceof BigDecimal || $b instanceof BigDecimal) {
             $aBig = self::toBigDecimal($a);
             $bBig = self::toBigDecimal($b);
             $q = self::truncateBigDecimalQuot($aBig, $bBig);
             return $aBig->subtract($bBig->multiply($q));
-        }
-
-        if (is_float($a) || is_float($b)) {
-            $q = (float) self::quot($a, $b);
-            return self::toFloat($a) - (self::toFloat($b) * $q);
         }
 
         if ($a instanceof Rational || $b instanceof Rational) {
@@ -538,7 +544,7 @@ final class NumericOperations
             return $value->toFloat();
         }
 
-        if ($value instanceof BigInteger) {
+        if ($value instanceof BigInteger || $value instanceof BigDecimal) {
             return (float) (string) $value;
         }
 

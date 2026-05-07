@@ -7,8 +7,15 @@ All notable changes to this project will be documented in this file.
 ### Performance
 
 - Cold REPL boot prunes `vendor/`, `.git/`, `node_modules/` at namespace-scan descent and memoises directory scans per process (#1885)
+- `bin/phel test --ns 'pat.**'` preloads only matching namespaces and their dependency closure
+- `bin/phel test` skips re-registering dependency-graph entries on cache hits and re-restoring a namespace's environment after the first file in it
 
 ### Fixed
+
+#### Core
+- `+`, `-`, `*`, `/` mixing `##Inf`/`##NaN` with `BigDecimal` fall back to float arithmetic instead of throwing (#1887)
+- `vector?` returns `true` for `MapEntry` produced by iterating a hash map (#1889)
+- Mixing `BigDecimal` with a float in `+`, `-`, `*`, `/`, `quot`, `rem`, `mod`, `compare` returns a float instead of a `BigDecimal` (#1891)
 
 #### Compiler
 - Oversize decimal int literals lex as `float` (#1837)
