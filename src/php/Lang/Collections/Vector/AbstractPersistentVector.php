@@ -8,6 +8,7 @@ use InvalidArgumentException;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\Collections\LazySeq\LazySeqInterface;
+use Phel\Lang\Collections\Map\MapEntry;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\EqualizerInterface;
 
@@ -96,6 +97,10 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
             }
 
             return true;
+        }
+
+        if ($other instanceof MapEntry) {
+            return $other->equals($this);
         }
 
         // Lazy sequences may be infinite — delegate to their own `equals`

@@ -3,6 +3,7 @@
   (:use Phel)
   (:use Phel.Lang.CdrInterface)
   (:use Phel.Lang.Collections.HashSet.PersistentHashSetInterface)
+  (:use Phel.Lang.Collections.Map.MapEntry)
   (:use Phel.Lang.Collections.Map.PersistentMapInterface)
   (:use Phel.Lang.ConcatInterface)
   (:use Phel.Lang.FirstInterface))
@@ -73,11 +74,11 @@
 
 (def next-of-map
   {:private true
-   :doc "Returns all `[k v]` entries after the first persistent map entry, or nil."}
+   :doc "Returns all entries after the first persistent map entry as `MapEntry` instances, or nil."}
   (fn [m]
     (let [entries (php/array)]
       (foreach [k v m]
-        (php/apush entries [k v]))
+        (php/apush entries (php/:: MapEntry (create k v))))
       (next-vector-or-nil entries))))
 
 (def next
@@ -107,12 +108,12 @@
 
 (def first-map-entry
   {:private true
-   :doc "Returns the first `[k v]` entry of a persistent map, or nil if empty."}
+   :doc "Returns the first entry of a persistent map as a typed `MapEntry`, or nil if empty."}
   (fn [m]
     (let [it (php/-> m (getIterator))]
       (php/-> it (rewind))
       (if (php/-> it (valid))
-        [(php/-> it (key)) (php/-> it (current))]
+        (php/:: MapEntry (create (php/-> it (key)) (php/-> it (current))))
         nil))))
 
 (def first-of-string
@@ -131,9 +132,9 @@
 (def first
   {:doc "Returns the first element of a sequence, or nil if empty.
 
-  Maps are treated as a sequence of entries: `(first {:a 1})` returns the
-  first `[:a 1]` vector. Strings are treated as sequences of multibyte
-  characters."
+  Maps are treated as a sequence of entries: `(first {:a 1})` returns a
+  typed `MapEntry` equal by value to `[:a 1]`. Strings are treated as
+  sequences of multibyte characters."
    :example "(first [1 2 3]) ; => 1"}
   (fn [xs]
     (if (php/instanceof xs FirstInterface)         (php/-> xs (first))

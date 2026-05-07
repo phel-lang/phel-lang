@@ -6,8 +6,10 @@ namespace Phel\Lang\Collections\Map;
 
 use Countable;
 use IteratorAggregate;
+use Phel\Lang\CdrInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\EqualsInterface;
+use Phel\Lang\FirstInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\SourceLocationInterface;
 use Phel\Lang\TypeFactory;
@@ -27,7 +29,7 @@ use function sprintf;
  * `(map-entry? x)` distinguishes a real entry from a coincidental
  * 2-vector.
  */
-final readonly class MapEntry implements TypeInterface, Stringable, Countable, IteratorAggregate
+final readonly class MapEntry implements TypeInterface, Stringable, Countable, IteratorAggregate, FirstInterface, CdrInterface
 {
     private function __construct(
         private mixed $key,
@@ -66,6 +68,21 @@ final readonly class MapEntry implements TypeInterface, Stringable, Countable, I
     {
         yield $this->key;
         yield $this->value;
+    }
+
+    public function first(): mixed
+    {
+        return $this->key;
+    }
+
+    /**
+     * Returns the rest of the entry as a single-element vector containing
+     * the value, mirroring `(next [k v])` on a 2-vector. Lets destructuring
+     * `[a b]` bind `b` to the value.
+     */
+    public function cdr(): PersistentVectorInterface
+    {
+        return TypeFactory::getInstance()->persistentVectorFromArray([$this->value]);
     }
 
     public function equals(mixed $other): bool
