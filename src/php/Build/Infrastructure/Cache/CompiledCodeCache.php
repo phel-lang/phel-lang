@@ -10,6 +10,8 @@ use function array_key_exists;
 use function count;
 use function function_exists;
 use function is_array;
+use function is_int;
+
 use function is_string;
 
 use function token_get_all;
@@ -28,7 +30,9 @@ final class CompiledCodeCache
 {
     private const string VERSION = '1.2';
 
-    /** @var array<string, array{namespace: string, source_hash: string, compiled_path: string, last_accessed: int}> */
+    private const int MTIME_GRACE_SECONDS = 2;
+
+    /** @var array<string, array{namespace: string, source_hash: string, compiled_path: string, last_accessed: int, source_mtime?: int, source_size?: int}> */
     private array $entries = [];
 
     private bool $loaded = false;
@@ -90,6 +94,59 @@ final class CompiledCodeCache
     }
 
     /**
+     * Mtime+size fast-path: if the cached entry's recorded mtime AND size
+     * match the current source's, return the compiled path without forcing
+     * the caller to read + hash the source. Returns null on any mismatch —
+     * the caller must then fall back to {@see self::get()} with a content
+     * hash, which still validates correctness.
+     *
+     * The mtime is required to be at least 2 seconds old so a same-second
+     * write that produced an identical size cannot serve a stale entry —
+     * filesystem mtime resolution is one second, so within that window a
+     * size-preserving content swap could collide otherwise.
+     *
+     * @param string $sourcePath  Absolute path to the .phel source file
+     * @param int    $sourceMtime Current `filemtime($sourcePath)`
+     * @param int    $sourceSize  Current `filesize($sourcePath)`
+     */
+    public function getByFingerprint(string $sourcePath, int $sourceMtime, int $sourceSize): ?string
+    {
+        $this->loadEntries();
+
+        $entry = $this->entries[$sourcePath] ?? null;
+        if ($entry === null) {
+            return null;
+        }
+
+        $cachedMtime = $entry['source_mtime'] ?? 0;
+        $cachedSize = $entry['source_size'] ?? -1;
+        if ($cachedMtime <= 0 || $cachedSize < 0) {
+            return null;
+        }
+
+        if ($cachedMtime !== $sourceMtime || $cachedSize !== $sourceSize) {
+            return null;
+        }
+
+        // Force hash path while the source is still within the 1-second
+        // mtime granularity window — a same-second write could have
+        // happened between cache write and this read.
+        if ($sourceMtime + self::MTIME_GRACE_SECONDS > time()) {
+            return null;
+        }
+
+        $compiledPath = $this->getCompiledPath($sourcePath, $entry['namespace']);
+
+        if (!file_exists($compiledPath)) {
+            return null;
+        }
+
+        $this->entries[$sourcePath]['last_accessed'] = time();
+
+        return $compiledPath;
+    }
+
+    /**
      * Returns true if an entry exists for this source file, regardless
      * of whether the hash matches. Used to distinguish "first build"
      * (no entry at all) from "source changed" (stale entry).
@@ -120,11 +177,15 @@ final class CompiledCodeCache
             return;
         }
 
+        $sourceMtime = @filemtime($sourcePath);
+        $sourceSize = @filesize($sourcePath);
         $this->entries[$sourcePath] = [
             'namespace' => $namespace,
             'source_hash' => $sourceHash,
             'compiled_path' => $compiledPath,
             'last_accessed' => time(),
+            'source_mtime' => $sourceMtime !== false ? $sourceMtime : 0,
+            'source_size' => $sourceSize !== false ? $sourceSize : -1,
         ];
 
         $this->evictLRU();
@@ -263,6 +324,8 @@ final class CompiledCodeCache
                     'source_hash' => $entryData['source_hash'],
                     'compiled_path' => $entryData['compiled_path'],
                     'last_accessed' => $entryData['last_accessed'] ?? time(),
+                    'source_mtime' => is_int($entryData['source_mtime'] ?? null) ? $entryData['source_mtime'] : 0,
+                    'source_size' => is_int($entryData['source_size'] ?? null) ? $entryData['source_size'] : -1,
                 ];
             }
         }
@@ -323,7 +386,7 @@ final class CompiledCodeCache
      *
      * @param resource $handle Open, exclusively-locked file handle for the index file
      *
-     * @return array<string, array{namespace: string, source_hash: string, compiled_path: string, last_accessed: int}>
+     * @return array<string, array{namespace: string, source_hash: string, compiled_path: string, last_accessed: int, source_mtime?: int, source_size?: int}>
      */
     private function mergeWithDiskEntries($handle): array
     {
@@ -339,7 +402,7 @@ final class CompiledCodeCache
     }
 
     /**
-     * @return array<string, array{namespace: string, source_hash: string, compiled_path: string, last_accessed: int}>
+     * @return array<string, array{namespace: string, source_hash: string, compiled_path: string, last_accessed: int, source_mtime?: int, source_size?: int}>
      */
     private function parseIndexContent(string $content): array
     {
@@ -376,6 +439,8 @@ final class CompiledCodeCache
                     'source_hash' => $entryData['source_hash'],
                     'compiled_path' => $entryData['compiled_path'],
                     'last_accessed' => $entryData['last_accessed'] ?? time(),
+                    'source_mtime' => is_int($entryData['source_mtime'] ?? null) ? $entryData['source_mtime'] : 0,
+                    'source_size' => is_int($entryData['source_size'] ?? null) ? $entryData['source_size'] : -1,
                 ];
             }
         }

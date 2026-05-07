@@ -332,6 +332,74 @@ final class CompiledCodeCacheTest extends TestCase
         self::assertSame($envData, $cache->getEnvironment('test\\namespace'));
     }
 
+    public function test_get_by_fingerprint_hits_when_mtime_and_size_match_after_grace(): void
+    {
+        $cache = new CompiledCodeCache($this->cacheDir);
+        $sourcePath = $this->cacheDir . '/test.phel';
+        @mkdir($this->cacheDir, 0o755, true);
+        file_put_contents($sourcePath, '(ns x)');
+
+        $cache->put($sourcePath, 'x', 'hash', '// code');
+
+        // Push the source mtime out of the grace window (>2s old).
+        $past = time() - 10;
+        touch($sourcePath, $past, $past);
+
+        // Refresh entry mtime so cache record matches the touched mtime.
+        $cache->put($sourcePath, 'x', 'hash', '// code');
+        touch($sourcePath, $past, $past);
+
+        $hit = $cache->getByFingerprint($sourcePath, $past, (int) filesize($sourcePath));
+
+        self::assertNotNull($hit);
+        self::assertFileExists($hit);
+    }
+
+    public function test_get_by_fingerprint_misses_when_size_differs(): void
+    {
+        $cache = new CompiledCodeCache($this->cacheDir);
+        $sourcePath = $this->cacheDir . '/test.phel';
+        @mkdir($this->cacheDir, 0o755, true);
+        file_put_contents($sourcePath, '(ns x)');
+
+        $cache->put($sourcePath, 'x', 'hash', '// code');
+
+        $past = time() - 10;
+        touch($sourcePath, $past, $past);
+
+        $cache->put($sourcePath, 'x', 'hash', '// code');
+        touch($sourcePath, $past, $past);
+
+        // Mtime matches, but size differs by one byte — must miss.
+        self::assertNull(
+            $cache->getByFingerprint($sourcePath, $past, (int) filesize($sourcePath) + 1),
+        );
+    }
+
+    public function test_get_by_fingerprint_misses_within_grace_window(): void
+    {
+        $cache = new CompiledCodeCache($this->cacheDir);
+        $sourcePath = $this->cacheDir . '/test.phel';
+        @mkdir($this->cacheDir, 0o755, true);
+        file_put_contents($sourcePath, '(ns x)');
+
+        $cache->put($sourcePath, 'x', 'hash', '// code');
+
+        // Source mtime is "now" — within the 2-second grace window — so the
+        // fingerprint path must defer to the content-hash path.
+        $now = time();
+        self::assertNull(
+            $cache->getByFingerprint($sourcePath, $now, (int) filesize($sourcePath)),
+        );
+    }
+
+    public function test_get_by_fingerprint_misses_when_no_cached_entry(): void
+    {
+        $cache = new CompiledCodeCache($this->cacheDir);
+
+        self::assertNull($cache->getByFingerprint('/no/such/file.phel', time() - 100, 10));
+    }
+
     private function removeDir(string $dir): void
     {
         if (!is_dir($dir)) {

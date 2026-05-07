@@ -491,6 +491,38 @@ final class FileEvaluatorTest extends TestCase
         $evaluator->evalFile($sourceFile);
     }
 
+    public function test_fingerprint_fast_path_skips_compile_for_stable_files(): void
+    {
+        $sourceFile = $this->tempDir . '/test.phel';
+        $sourceCode = '(ns test\\namespace)';
+        file_put_contents($sourceFile, $sourceCode);
+        $cacheDir = $this->tempDir . '/cache';
+        $namespace = 'test\\namespace';
+
+        $cache = new CompiledCodeCache($cacheDir);
+        $cache->put($sourceFile, $namespace, md5($sourceCode), '$result = 1;');
+
+        // Push mtime out of the grace window so the fingerprint path is eligible.
+        $past = time() - 10;
+        touch($sourceFile, $past, $past);
+        $cache->put($sourceFile, $namespace, md5($sourceCode), '$result = 1;');
+        touch($sourceFile, $past, $past);
+
+        $compilerFacade = $this->createMock(CompilerFacadeInterface::class);
+        $compilerFacade->expects($this->never())->method('compileForCache');
+        $compilerFacade->expects($this->once())->method('initializeGlobalEnvironment');
+
+        $namespaceExtractor = $this->createMock(NamespaceExtractorInterface::class);
+        $namespaceExtractor->method('getNamespaceFromFile')->willReturn(
+            new NamespaceInformation($sourceFile, $namespace, ['phel.core']),
+        );
+
+        $evaluator = new FileEvaluator($compilerFacade, $namespaceExtractor, $cache);
+        $result = $evaluator->evalFile($sourceFile);
+
+        self::assertSame($namespace, $result->getNamespace());
+    }
+
     private function removeDir(string $dir): void
     {
         if (!is_dir($dir)) {

@@ -19,6 +19,8 @@ use Phel\Shared\Facade\CompilerFacadeInterface;
 use RuntimeException;
 use Throwable;
 
+use function assert;
+use function is_string;
 use function sprintf;
 
 final class FileEvaluator
@@ -52,6 +54,25 @@ final class FileEvaluator
 
     public function evalFile(string $src): CompiledFile
     {
+        if ($this->compiledCodeCache instanceof CompiledCodeCache) {
+            // Fast-path: skip reading and hashing the source when the cached
+            // entry's recorded (mtime, size) still match. Falls through to
+            // the content-hash path on any mismatch or grace-window hit.
+            $sourceMtime = @filemtime($src);
+            $sourceSize = @filesize($src);
+            if ($sourceMtime !== false && $sourceSize !== false) {
+                $cachedPath = $this->compiledCodeCache->getByFingerprint($src, $sourceMtime, $sourceSize);
+                if ($cachedPath !== null) {
+                    $namespaceInfo = $this->namespaceExtractor->getNamespaceFromFile($src);
+                    $namespace = $namespaceInfo->getNamespace();
+                    $compiled = $this->loadFromCache($src, $cachedPath, $namespace, null);
+                    if ($compiled instanceof CompiledFile) {
+                        return $compiled;
+                    }
+                }
+            }
+        }
+
         $code = @file_get_contents($src);
         if ($code === false) {
             $error = error_get_last();
@@ -70,29 +91,9 @@ final class FileEvaluator
             $cachedPath = $this->compiledCodeCache->get($src, $sourceHash);
 
             if ($cachedPath !== null) {
-                $this->compilerFacade->initializeGlobalEnvironment();
-                try {
-                    if (!isset(self::$restoredNamespaces[$namespace])) {
-                        $envData = $this->compiledCodeCache->getEnvironment($namespace);
-
-                        if ($envData !== null) {
-                            $this->compilerFacade->restoreNamespaceEnvironmentData($namespace, $envData);
-                        } else {
-                            $this->analyzeNsForm($code, $src);
-                        }
-
-                        self::$restoredNamespaces[$namespace] = true;
-                    }
-
-                    /** @psalm-suppress UnresolvableInclude */
-                    require $cachedPath;
-
-                    return new CompiledFile($src, $cachedPath, $namespace);
-                } catch (ParseError) {
-                    $this->compiledCodeCache->invalidate($src);
-                } catch (Throwable $e) {
-                    $this->compiledCodeCache->invalidate($src);
-                    throw $e;
+                $compiled = $this->loadFromCache($src, $cachedPath, $namespace, $code);
+                if ($compiled instanceof CompiledFile) {
+                    return $compiled;
                 }
             } elseif ($this->dependencyTracker instanceof DependencyTracker
                 && $this->compiledCodeCache->has($src)
@@ -136,6 +137,39 @@ final class FileEvaluator
         $this->compilerFacade->eval($code, $options);
 
         return new CompiledFile($src, '', $namespace);
+    }
+
+    private function loadFromCache(string $src, string $cachedPath, string $namespace, ?string $code): ?CompiledFile
+    {
+        assert($this->compiledCodeCache instanceof CompiledCodeCache);
+        $this->compilerFacade->initializeGlobalEnvironment();
+        try {
+            if (!isset(self::$restoredNamespaces[$namespace])) {
+                $envData = $this->compiledCodeCache->getEnvironment($namespace);
+
+                if ($envData !== null) {
+                    $this->compilerFacade->restoreNamespaceEnvironmentData($namespace, $envData);
+                } else {
+                    $sourceCode = $code ?? @file_get_contents($src);
+                    if (is_string($sourceCode)) {
+                        $this->analyzeNsForm($sourceCode, $src);
+                    }
+                }
+
+                self::$restoredNamespaces[$namespace] = true;
+            }
+
+            /** @psalm-suppress UnresolvableInclude */
+            require $cachedPath;
+
+            return new CompiledFile($src, $cachedPath, $namespace);
+        } catch (ParseError) {
+            $this->compiledCodeCache->invalidate($src);
+            return null;
+        } catch (Throwable $e) {
+            $this->compiledCodeCache->invalidate($src);
+            throw $e;
+        }
     }
 
     private function analyzeNsForm(string $code, string $src): void

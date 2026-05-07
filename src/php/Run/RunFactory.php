@@ -68,7 +68,6 @@ class RunFactory extends AbstractFactory
         return new NamespaceCollector(
             $this->getBuildFacade(),
             $this->getCommandFacade(),
-            $this->createBundledNamespaces(),
         );
     }
 

@@ -9,6 +9,8 @@ All notable changes to this project will be documented in this file.
 - Cold REPL boot prunes `vendor/`, `.git/`, `node_modules/` at namespace-scan descent and memoises directory scans per process (#1885)
 - `bin/phel test --ns 'pat.**'` preloads only matching namespaces and their dependency closure
 - `bin/phel test` skips re-registering dependency-graph entries on cache hits and re-restoring a namespace's environment after the first file in it
+- `FileEvaluator` skips reading and hashing a source on cache hits when the recorded mtime+size still match (after a 2s grace window); falls back to the content-hash check otherwise
+- `bin/phel test` collapses three overlapping namespace-directory scans into one to seed user tests, bundled `phel.*` modules, and the dependency walk
 
 ### Fixed
 
