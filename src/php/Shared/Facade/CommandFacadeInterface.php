@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Facade;
 
+use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -22,6 +23,8 @@ interface CommandFacadeInterface
     public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string;
 
     public function getStackTraceString(Throwable $e): string;
+
+    public function getExceptionPrinter(): ExceptionPrinterInterface;
 
     /**
      * All src, tests, and vendor directories.

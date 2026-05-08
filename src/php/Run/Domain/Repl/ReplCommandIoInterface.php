@@ -18,6 +18,8 @@ interface ReplCommandIoInterface
 
     public function writeStackTrace(Throwable $e): void;
 
+    public function writeReplError(Throwable $e): void;
+
     public function writeLocatedException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void;
 
     /**

@@ -51,7 +51,7 @@ Run/
 ├── Application/        BundledNamespaces, EntryPointDetector, EvalExecutor, FileRunner, NamespaceLoader, NamespaceRunner, NamespacesLoader, StructuredEvaluator
 ├── Domain/
 │   ├── Init/           NamespaceNormalizer, ProjectTemplateGenerator
-│   ├── Repl/           EvalResult, EvalError, ReplCommandIoInterface, ReplHistory, ReplPrompt, startup.phel
+│   ├── Repl/           EvalResult, EvalError, ReplCommandIoInterface, ReplErrorFormatter, ReplFormattedError, ReplHistory, ReplPrompt, startup.phel, Hint/
 │   ├── Runner/         NamespaceCollector, NamespaceRunnerInterface
 │   ├── Test/           TestCommandOptions, CannotFindAnyTestsException
 │   └── StdinReaderInterface
@@ -69,6 +69,7 @@ Run/
 - `ReplCommandSystemIo` requires PHP `readline` extension; falls back to `ReplCommandFallbackIo`
 - `ReplHistory` registers `*1`/`*2`/`*3`/`*e` in `phel\core` after REPL boot; updates on every eval/exception
 - `ReplPrompt` reads `GlobalEnvironmentSingleton::getNs()` to render the current namespace in the prompt
+- `ReplErrorFormatter` renders eval-time `Throwable`s for REPL output: short headline, optional hint, trace with internal compiler/run/build/command frames hidden. `Hint/` holds `ReplHintInterface` implementations (`NotCallableHint`, `ArgumentCountHint`, `UndefinedSymbolHint`); register new hints via `RunFactory::createReplHints`
 - `NamespaceRunner` resolves full dependency tree before executing
 - `BundledNamespaces` lists every `phel.*` module shipped by Phel/installed Phel packages; `NamespaceLoader` and `NamespaceCollector` use it as eager seeds so fully qualified references (`phel.async/delay`, `phel.json/encode`) resolve without explicit `(:require ...)`. `NamespaceLoader` restores the startup namespace via `GlobalEnvironmentSingleton::setNs` after seeding so the REPL/eval session lands in the expected scope.
 - This is the **most connected module** — depends on 7 other modules via Provider

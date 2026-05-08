@@ -16,6 +16,7 @@ final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
         private string $historyFile,
         private CommandFacadeInterface $commandFacade,
         private ApiFacadeInterface $apiFacade,
+        private ReplErrorFormatter $errorFormatter,
     ) {
         readline_completion_function(
             $this->apiFacade->replComplete(...),
@@ -48,6 +49,11 @@ final readonly class ReplCommandSystemIo implements ReplCommandIoInterface
     public function writeStackTrace(Throwable $e): void
     {
         $this->writeln($this->commandFacade->getStackTraceString($e));
+    }
+
+    public function writeReplError(Throwable $e): void
+    {
+        $this->writeln($this->errorFormatter->render($e));
     }
 
     public function writeLocatedException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void
