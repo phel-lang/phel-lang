@@ -195,3 +195,16 @@
   (memoize-lru-sized 3) ; evicts 2 (least recently used)
   (memoize-lru-sized 2) ; recompute since evicted
   (is (= 4 (deref memoize-lru-sized-counter)) "eviction triggers recompute"))
+
+(def memoize-false-counter (atom 0))
+
+(defn ^{:memoize false} memoize-false-flag [x]
+  (swap! memoize-false-counter inc)
+  x)
+
+(deftest test-defn-memoize-false-opts-out
+  (reset! memoize-false-counter 0)
+  (memoize-false-flag 1)
+  (memoize-false-flag 1)
+  ;; `:memoize false` is a deliberate opt-out; the wrapper must not be applied.
+  (is (= 2 (deref memoize-false-counter)) "fn body re-runs when meta is false"))

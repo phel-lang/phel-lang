@@ -231,16 +231,17 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         return $this->analyzer->analyze($init, $initEnv);
     }
 
+    /**
+     * Matches the Phel-truthy check `defn-builder` uses on the same keys, so
+     * a literal `^{:memoize false}` does not flip the wrapper on.
+     */
     private function isMemoised(PersistentMapInterface $meta): bool
     {
-        return $this->metaTruthy($meta, 'memoize')
-            || $this->metaTruthy($meta, 'memoize-lru');
-    }
+        if ((bool) $meta[Keyword::create('memoize')]) {
+            return true;
+        }
 
-    private function metaTruthy(PersistentMapInterface $meta, string $key): bool
-    {
-        $value = $meta[Keyword::create($key)];
-        return $value !== null && $value !== false;
+        return (bool) $meta[Keyword::create('memoize-lru')];
     }
 
     private function buildFnNodeArglist(FnNode $fnNode, int $skipFirst = 0): string
