@@ -1,0 +1,157 @@
+(ns phel-test.reporter-diff
+  (:require phel.test :as t :refer [deftest is]))
+
+;; Coverage for the unified-diff block emitted by the default reporter
+;; when an `=` failure compares two large collections of the same
+;; shape. The diff supplements the existing "Form / evaluated to / but
+;; is not" summary; small primitives keep the legacy single-line view.
+
+(defn- failure-event
+  "Builds the synthetic `:failed` event a `=` assertion would produce
+  with `expected` on the left and `actual` on the right."
+  [expected actual]
+  {:type :binary
+   :state :failed
+   :pred '=
+   :expected expected
+   :actual 'actual-form
+   :result actual
+   :form '(= expected actual)
+   :location {:file "diff.phel" :line 1}})
+
+(defn- run-default-reporter
+  "Captures the default reporter's stdout when fed a single failure
+  event for the given pair."
+  [expected actual]
+  (let [rep (t/resolve-reporter :default)]
+    (with-output-buffer
+      (rep {:type :begin-test-run})
+      (rep (failure-event expected actual))
+      (rep {:type :summary :total 1 :pass 0 :failed 1 :error 0
+            :failures [(failure-event expected actual)]}))))
+
+;; ---------------------------------------------------------------------------
+;; Threshold: small primitive failures keep the legacy single-line summary
+;; ---------------------------------------------------------------------------
+
+(deftest test-small-primitive-failure-skips-diff-block
+  (let [out (run-default-reporter 1 2)]
+    (is (php/preg_match "/but is not: = to 1/" out)
+        "summary line still rendered for primitive `=` failure")
+    (is (= 0 (php/preg_match "/Diff:/" out))
+        "no Diff block for non-collection values")))
+
+(deftest test-tiny-vector-failure-skips-diff-block
+  (let [out (run-default-reporter [1 2] [3 4])]
+    (is (= 0 (php/preg_match "/Diff:/" out))
+        "vectors with 2 entries fall under the diff threshold")))
+
+;; ---------------------------------------------------------------------------
+;; Map diff: + added, - removed, ~ changed (sorted by key)
+;; ---------------------------------------------------------------------------
+
+(deftest test-map-diff-marks-added-removed-and-changed-keys
+  (let [out (run-default-reporter
+              {:a 1 :b 2 :c 3 :d 4}
+              {:a 1 :b 99 :c 3 :e 5})]
+    (is (php/preg_match "/Diff:/" out) "Diff block is rendered")
+    (is (php/preg_match "/- :d 4/" out) "removed key is prefixed with -")
+    (is (php/preg_match "/\\+ :e 5/" out) "added key is prefixed with +")
+    (is (php/preg_match "/~ :b 2 -> 99/" out)
+        "changed key is prefixed with ~ and shows old -> new")))
+
+;; ---------------------------------------------------------------------------
+;; Vector diff: index-aligned, with - / + for differing rows and a leading
+;; space for matching ones
+;; ---------------------------------------------------------------------------
+
+(deftest test-vector-diff-shows-index-aligned-rows
+  (let [out (run-default-reporter [1 2 3 4 5] [1 2 99 4 5 6])]
+    (is (php/preg_match "/Diff:/" out) "Diff block is rendered")
+    (is (php/preg_match "/- \\[2\\] 3/" out) "differing index marked with -")
+    (is (php/preg_match "/\\+ \\[2\\] 99/" out) "differing index marked with +")
+    (is (php/preg_match "/\\+ \\[5\\] 6/" out) "extra trailing entry marked with +")
+    (is (php/preg_match "/  \\[0\\] 1/" out) "matching row keeps a leading space")))
+
+;; ---------------------------------------------------------------------------
+;; Set diff: items only on each side, no order alignment
+;; ---------------------------------------------------------------------------
+
+(deftest test-set-diff-shows-symmetric-difference
+  (let [out (run-default-reporter
+              (hash-set 1 2 3 4 5)
+              (hash-set 2 3 4 5 6))]
+    (is (php/preg_match "/Diff:/" out) "Diff block is rendered")
+    (is (php/preg_match "/- 1/" out) "item only in expected is prefixed with -")
+    (is (php/preg_match "/\\+ 6/" out) "item only in actual is prefixed with +")))
+
+;; ---------------------------------------------------------------------------
+;; Mixed shapes (vector vs map) fall back to the summary printer
+;; ---------------------------------------------------------------------------
+
+(deftest test-mixed-shape-skips-diff-block
+  (let [out (run-default-reporter [1 2 3 4] {:a 1 :b 2 :c 3 :d 4})]
+    (is (= 0 (php/preg_match "/Diff:/" out))
+        "no diff when expected is a vector and actual is a map")))
+
+;; ---------------------------------------------------------------------------
+;; Nested collections render values with their readable form
+;; ---------------------------------------------------------------------------
+
+(deftest test-nested-map-diff-prints-inner-readable-form
+  (let [out (run-default-reporter
+              {:a {:x 1 :y 2 :z 3} :b 2 :c [1 2 3 4] :d "kept"}
+              {:a {:x 1 :y 99 :z 3} :b 2 :c [1 2 9 4] :d "kept"})]
+    (is (php/preg_match "/Diff:/" out)
+        "outer Diff block is rendered for the top-level map")
+    (is (php/preg_match "/~ :a/" out)
+        "differing nested map shows up as a changed key")
+    (is (php/preg_match "/~ :c/" out)
+        "differing nested vector shows up as a changed key")))
+
+;; ---------------------------------------------------------------------------
+;; not=: the diff trigger only fires when the failure proves inequality
+;; ---------------------------------------------------------------------------
+
+(deftest test-not=-failure-skips-diff-block
+  ;; A `(is (not= a b))` failure means a and b were equal; a diff would
+  ;; be empty, so the reporter should keep the original summary only.
+  (let [rep   (t/resolve-reporter :default)
+        equal (vec (range 5))
+        out   (with-output-buffer
+                (rep {:type :begin-test-run})
+                (rep {:type :binary :state :failed
+                      :pred 'not= :expected equal :actual 'actual-form
+                      :result equal
+                      :form '(not= expected actual)
+                      :location {:file "diff.phel" :line 1}})
+                (rep {:type :summary :total 1 :pass 0 :failed 1 :error 0
+                      :failures []}))]
+    (is (= 0 (php/preg_match "/Diff:/" out))
+        "no diff block for not= failures: the values are equal")))
+
+;; ---------------------------------------------------------------------------
+;; Long-printed-but-small collections still trigger the diff
+;; ---------------------------------------------------------------------------
+
+(deftest test-long-printed-vector-triggers-diff-even-with-few-entries
+  (let [long-a "this is a fairly long string that pushes the readable length over the threshold"
+        long-b "another fairly long string that also pushes the readable length over the threshold"
+        out    (run-default-reporter [long-a] [long-b])]
+    (is (php/preg_match "/Diff:/" out)
+        "vector with one long element still renders as a diff block")))
+
+;; ---------------------------------------------------------------------------
+;; Mixed-type keys do not break the diff sort
+;; ---------------------------------------------------------------------------
+
+(deftest test-map-diff-handles-mixed-type-keys-without-throwing
+  ;; Phel's default comparator refuses to sort across keyword/string/int
+  ;; together. The diff sorts on the readable form so it stays robust.
+  (let [out (run-default-reporter
+              {:a 1 "b" 2 3 :three :extra 9}
+              {:a 1 "b" 99 3 :three :other 7})]
+    (is (php/preg_match "/Diff:/" out)
+        "diff renders for maps with mixed-type keys")
+    (is (php/preg_match "/~ \"b\" 2 -> 99/" out)
+        "string-keyed change is reported")))

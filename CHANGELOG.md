@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+#### Test
+- `(is (= a b))` failures on collections render a `+`/`-`/`~` diff block under the existing summary
+
 ## [0.36.0](https://github.com/phel-lang/phel-lang/compare/v0.35.0...v0.36.0) - 2026-05-08
 
 ### Added
