@@ -10,6 +10,9 @@ All notable changes to this project will be documented in this file.
 - `(is (= a b))` failures on collections render a `+`/`-`/`~` diff block under the existing summary
 - `phel test --repeat=N`, `--seed=<int>`, and `--random-order` flags for flake hunting and reproducible test order
 
+#### REPL
+- Eval errors render with a Phel-flavored headline, an optional hint (e.g. calling a sequence as a function, wrong arity, undefined symbol), and a trace that hides internal compiler/run/build/command frames
+
 ### Fixed
 
 #### Test

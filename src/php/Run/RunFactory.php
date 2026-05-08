@@ -16,9 +16,14 @@ use Phel\Run\Application\NamespaceLoader;
 use Phel\Run\Application\NamespaceRunner;
 use Phel\Run\Application\NamespacesLoader;
 use Phel\Run\Application\StructuredEvaluator;
+use Phel\Run\Domain\Repl\Hint\ArgumentCountHint;
+use Phel\Run\Domain\Repl\Hint\NotCallableHint;
+use Phel\Run\Domain\Repl\Hint\ReplHintInterface;
+use Phel\Run\Domain\Repl\Hint\UndefinedSymbolHint;
 use Phel\Run\Domain\Repl\ReplCommandFallbackIo;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Domain\Repl\ReplCommandSystemIo;
+use Phel\Run\Domain\Repl\ReplErrorFormatter;
 use Phel\Run\Domain\Repl\ReplHistory;
 use Phel\Run\Domain\Repl\ReplPrompt;
 use Phel\Run\Domain\Runner\NamespaceCollector;
@@ -96,12 +101,35 @@ class RunFactory extends AbstractFactory
                 $this->getConfig()->getPhelReplHistory(),
                 $this->getCommandFacade(),
                 $this->getApiFacade(),
+                $this->createReplErrorFormatter(),
             );
         }
 
         return new ReplCommandFallbackIo(
             $this->getCommandFacade(),
+            $this->createReplErrorFormatter(),
         );
+    }
+
+    public function createReplErrorFormatter(): ReplErrorFormatter
+    {
+        return new ReplErrorFormatter(
+            $this->createReplHints(),
+            $this->getCommandFacade()->getExceptionPrinter(),
+            $this->createColorStyle(),
+        );
+    }
+
+    /**
+     * @return list<ReplHintInterface>
+     */
+    public function createReplHints(): array
+    {
+        return [
+            new NotCallableHint(),
+            new ArgumentCountHint(),
+            new UndefinedSymbolHint(),
+        ];
     }
 
     public function createReplHistory(): ReplHistory

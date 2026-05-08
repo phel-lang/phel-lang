@@ -7,7 +7,12 @@ namespace PhelTest\Integration\Run\Command\Repl;
 use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
+use Phel\Run\Domain\Repl\Hint\ArgumentCountHint;
+use Phel\Run\Domain\Repl\Hint\NotCallableHint;
+use Phel\Run\Domain\Repl\Hint\UndefinedSymbolHint;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
+use Phel\Run\Domain\Repl\ReplErrorFormatter;
+use Phel\Shared\ColorStyle;
 use Throwable;
 
 use function array_slice;
@@ -23,9 +28,22 @@ final class ReplTestIo implements ReplCommandIoInterface
 
     private int $currentIndex = 0;
 
+    private readonly ReplErrorFormatter $errorFormatter;
+
     public function __construct(
         private readonly ExceptionPrinterInterface $exceptionPrinter,
-    ) {}
+        ?ReplErrorFormatter $errorFormatter = null,
+    ) {
+        $this->errorFormatter = $errorFormatter ?? new ReplErrorFormatter(
+            [
+                new NotCallableHint(),
+                new ArgumentCountHint(),
+                new UndefinedSymbolHint(),
+            ],
+            $exceptionPrinter,
+            ColorStyle::noStyles(),
+        );
+    }
 
     public function readHistory(): void {}
 
@@ -51,6 +69,11 @@ final class ReplTestIo implements ReplCommandIoInterface
     public function writeStackTrace(Throwable $e): void
     {
         $this->write($this->exceptionPrinter->getStackTraceString($e));
+    }
+
+    public function writeReplError(Throwable $e): void
+    {
+        $this->write($this->errorFormatter->render($e));
     }
 
     public function writeLocatedException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void

@@ -144,7 +144,7 @@ final class ReplCommand extends Command
                 break;
             } catch (Throwable $e) {
                 $this->inputBuffer = [];
-                $this->io->writeStackTrace($e);
+                $this->io->writeReplError($e);
             }
         }
 
@@ -244,7 +244,7 @@ final class ReplCommand extends Command
             $this->inputBuffer = [];
         } catch (Throwable $e) {
             $this->history?->recordException($e);
-            $this->io->writeStackTrace($e);
+            $this->io->writeReplError($e);
             $this->addHistory($fullInput);
             $this->inputBuffer = [];
         }

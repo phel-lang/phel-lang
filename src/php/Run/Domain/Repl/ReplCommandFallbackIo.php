@@ -19,6 +19,7 @@ final readonly class ReplCommandFallbackIo implements ReplCommandIoInterface
 {
     public function __construct(
         private CommandFacadeInterface $commandFacade,
+        private ReplErrorFormatter $errorFormatter,
     ) {}
 
     public function readHistory(): void {}
@@ -43,6 +44,11 @@ final readonly class ReplCommandFallbackIo implements ReplCommandIoInterface
     public function writeStackTrace(Throwable $e): void
     {
         $this->writeln($this->commandFacade->getStackTraceString($e));
+    }
+
+    public function writeReplError(Throwable $e): void
+    {
+        $this->writeln($this->errorFormatter->render($e));
     }
 
     public function writeLocatedException(AbstractLocatedException $e, CodeSnippet $codeSnippet): void
