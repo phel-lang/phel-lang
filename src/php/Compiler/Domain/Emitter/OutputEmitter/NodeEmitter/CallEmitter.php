@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
+use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 
 use function assert;
@@ -187,6 +188,9 @@ final class CallEmitter implements NodeEmitterInterface
      *
      * `let` and `loop` extend boundTo with a `.<sym>` suffix while analysing
      * their inits, so an exact match is not enough.
+     *
+     * Memoized fns must keep the registry-lookup path so self-recursion goes
+     * through the wrapper instead of the inner `$this`.
      */
     private function isSelfCall(CallNode $node): bool
     {
@@ -201,8 +205,19 @@ final class CallEmitter implements NodeEmitterInterface
         }
 
         $expected = $fn->getNamespace() . '\\' . $fn->getName()->getName();
-        return $boundTo === $expected
+        $matchesEnclosing = $boundTo === $expected
             || str_starts_with($boundTo, $expected . '.');
+
+        if (!$matchesEnclosing) {
+            return false;
+        }
+
+        $meta = $fn->getMeta();
+        if ($meta[Keyword::create('memoize')] || $meta[Keyword::create('memoize-lru')]) {
+            return false;
+        }
+
+        return true;
     }
 
     private function emitFunctionArguments(CallNode $node): void
