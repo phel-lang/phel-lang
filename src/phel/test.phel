@@ -497,6 +497,128 @@
   (print-label label-form form)
   (print-label label-eval result))
 
+;; --------------------------
+;; Collection diff (= failures)
+;; --------------------------
+
+(def- diff-min-count
+  ;; Render a collection diff only when at least one side has more than this
+  ;; many entries, so small literals keep the original single-line summary.
+  3)
+
+(def- diff-min-readable-length
+  ;; Or when either side prints longer than this many characters; small
+  ;; collections of long values still benefit from a stacked diff.
+  80)
+
+(defn- sequential?
+  "Returns true when `v` is a vector or a list: the two ordered shapes
+  the diff renderer aligns by index."
+  [v]
+  (or (vector? v) (list? v)))
+
+(defn- same-shape?
+  "Returns true when `a` and `b` are both maps, both sets, or both
+  sequential. Mixed-shape pairs fall back to the summary printer."
+  [a b]
+  (or (and (map? a) (map? b))
+      (and (set? a) (set? b))
+      (and (sequential? a) (sequential? b))))
+
+(defn- diff-worth-rendering?
+  "Decides whether `expected` and `actual` are large enough to justify a
+  block-style diff. Below the thresholds the existing summary line is
+  more readable than the diff."
+  [expected actual]
+  (or (> (count expected) diff-min-count)
+      (> (count actual) diff-min-count)
+      (> (php/strlen (readable-str expected)) diff-min-readable-length)
+      (> (php/strlen (readable-str actual)) diff-min-readable-length)))
+
+(defn- print-diff-line [marker text]
+  (println (str "    " marker " " text)))
+
+(defn- sort-by-readable
+  "Sorts `coll` by the readable representation of each entry. Used to
+  give the diff a deterministic order even when keys or values mix
+  types that Phel's default comparator rejects."
+  [coll]
+  (sort-by readable-str coll))
+
+(defn- print-map-diff [expected actual]
+  (let [expected-keys (into (hash-set) (keys expected))
+        actual-keys   (into (hash-set) (keys actual))
+        removed       (sort-by-readable (vec (difference expected-keys actual-keys)))
+        added         (sort-by-readable (vec (difference actual-keys expected-keys)))
+        shared        (sort-by-readable (vec (intersection expected-keys actual-keys)))]
+    (dofor [k :in removed]
+      (print-diff-line "-" (str (readable-str k) " " (readable-str (get expected k)))))
+    (dofor [k :in added]
+      (print-diff-line "+" (str (readable-str k) " " (readable-str (get actual k)))))
+    (dofor [k :in shared
+            :when (not= (get expected k) (get actual k))]
+      (print-diff-line "~" (str (readable-str k) " "
+                                (readable-str (get expected k))
+                                " -> "
+                                (readable-str (get actual k)))))))
+
+(defn- print-sequential-diff [expected actual]
+  (let [exp-vec (vec expected)
+        act-vec (vec actual)
+        n       (max (count exp-vec) (count act-vec))]
+    (dofor [i :range [0 n]]
+      (let [in-exp? (< i (count exp-vec))
+            in-act? (< i (count act-vec))
+            exp-v   (when in-exp? (nth exp-vec i))
+            act-v   (when in-act? (nth act-vec i))]
+        (cond
+          (and in-exp? (not in-act?))
+          (print-diff-line "-" (str "[" i "] " (readable-str exp-v)))
+
+          (and (not in-exp?) in-act?)
+          (print-diff-line "+" (str "[" i "] " (readable-str act-v)))
+
+          (not= exp-v act-v)
+          (do
+            (print-diff-line "-" (str "[" i "] " (readable-str exp-v)))
+            (print-diff-line "+" (str "[" i "] " (readable-str act-v))))
+
+          :else
+          (print-diff-line " " (str "[" i "] " (readable-str exp-v))))))))
+
+(defn- print-set-diff [expected actual]
+  (let [removed (sort-by-readable (vec (difference expected actual)))
+        added   (sort-by-readable (vec (difference actual expected)))]
+    (dofor [v :in removed]
+      (print-diff-line "-" (readable-str v)))
+    (dofor [v :in added]
+      (print-diff-line "+" (readable-str v)))))
+
+(defn- print-collection-diff
+  "Prints a unified-diff-like block comparing the `expected` and `actual`
+  collections. Maps show added/removed/changed keys with `+`, `-`, `~`;
+  vectors and lists show index-aligned `+`, `-`, ` ` rows; sets show the
+  symmetric difference. Callers should invoke this only after checking
+  `same-shape?` and `diff-worth-rendering?`."
+  [expected actual]
+  (println "  Diff:")
+  (cond
+    (and (map? expected) (map? actual))
+    (print-map-diff expected actual)
+
+    (and (set? expected) (set? actual))
+    (print-set-diff expected actual)
+
+    :else
+    (print-sequential-diff expected actual)))
+
+(defn- collection-diff-applicable?
+  "Returns true when a `=`/`not=` failure carries two same-shape
+  collections big enough to benefit from a stacked diff."
+  [expected actual]
+  (and (same-shape? expected actual)
+       (diff-worth-rendering? expected actual)))
+
 (defn- print-error [data]
   (print-error-headline data)
   (let [{:exception exception :form form} data
@@ -522,12 +644,18 @@
 (defn- print-binary-failure [{:pred pred :expected expected :actual actual :result result}]
   (print-form-evaluated "          Form" actual
                         "  evaluated to" result)
-  (print-label "    but is not" pred "to" (readable-str expected)))
+  (print-label "    but is not" pred "to" (readable-str expected))
+  (when (and (= pred '=)
+             (collection-diff-applicable? expected result))
+    (print-collection-diff expected result)))
 
 (defn- print-binary-not-failure [{:pred pred :expected expected :actual actual :result result}]
   (print-form-evaluated "          Form" actual
                         "  evaluated to" result)
-  (print-label "        but is" pred "to" (readable-str expected) "(it shouldn't be)"))
+  (print-label "        but is" pred "to" (readable-str expected) "(it shouldn't be)")
+  (when (and (= pred 'not=)
+             (collection-diff-applicable? expected result))
+    (print-collection-diff expected result)))
 
 (defn- print-thrown-failure [{:form form :exception-symbol exception-symbol}]
   (print-label "    expected" form)
