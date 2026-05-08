@@ -7,16 +7,16 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 #### Test
-- `(is (= a b))` failures on collections render a `+`/`-`/`~` diff block under the existing summary
-- `phel test --repeat=N`, `--seed=<int>`, and `--random-order` flags for flake hunting and reproducible test order
+- `(is (= a b))` failures on collections render a unified diff block
+- `phel test --repeat=N`, `--seed=<int>`, and `--random-order` flags
 
 #### REPL
-- Eval errors render with a Phel-flavored headline, an optional hint (e.g. calling a sequence as a function, wrong arity, undefined symbol), and a trace that hides internal compiler/run/build/command/console, symfony console, and `bin/phel` frames; `EvaluatedCodeException` wrappers are unwrapped to the inner exception class for the headline
+- Eval errors show a short headline, optional hint, and a trace with internal frames hidden
 
 ### Fixed
 
 #### Test
-- Default reporter dot output wraps uniformly at 80 columns when tests use `with-output-buffer`
+- Default reporter wraps dot output at 80 columns under `with-output-buffer`
 
 ## [0.36.0](https://github.com/phel-lang/phel-lang/compare/v0.35.0...v0.36.0) - 2026-05-08
 

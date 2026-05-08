@@ -13,8 +13,10 @@ use Throwable;
 use function explode;
 use function implode;
 use function preg_match;
+use function preg_replace;
 use function sprintf;
 use function str_contains;
+use function trim;
 
 use const PHP_EOL;
 
@@ -81,9 +83,24 @@ final readonly class ReplErrorFormatter
     private function buildHeadline(Throwable $e): string
     {
         $type = $this->shortClassName($e::class);
-        $message = $e->getMessage() !== '' ? $e->getMessage() : '*no message*';
+        $message = $this->cleanMessage($e->getMessage());
 
         return $this->style->red(sprintf('%s: %s', $type, $message));
+    }
+
+    private function cleanMessage(string $message): string
+    {
+        if ($message === '') {
+            return '*no message*';
+        }
+
+        $cleaned = preg_replace(
+            '/ in [^\s]+\(\d+\)\s*:\s*eval\(\)\'d code on line \d+/',
+            '',
+            $message,
+        );
+
+        return trim($cleaned ?? $message);
     }
 
     private function lookupHint(Throwable $e): ?string
