@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Run\Domain\Repl;
 
 use Error;
 use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
+use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Phel\Run\Domain\Repl\Hint\NotCallableHint;
@@ -35,6 +36,58 @@ final class ReplErrorFormatterTest extends TestCase
         self::assertStringNotContainsString('InMemoryEvaluator', $result->trace);
         self::assertStringNotContainsString('ReplCommand.php', $result->trace);
         self::assertStringContainsString('2 internal frames hidden', $result->trace);
+    }
+
+    public function test_drops_prefix_lines_before_first_frame(): void
+    {
+        $trace = implode(PHP_EOL, [
+            'Error: original message',
+            'in string:5 (gen: /tmp/eval.php:3)',
+            '',
+            '#0 /home/user/code/myproject.phel(3): user_call()',
+        ]);
+
+        $formatter = $this->buildFormatter($trace);
+        $result = $formatter->format(new RuntimeException('original message'));
+
+        self::assertStringNotContainsString('Error: original message', $result->trace);
+        self::assertStringNotContainsString('in string:5', $result->trace);
+        self::assertStringContainsString('#0 /home/user/code/myproject.phel', $result->trace);
+    }
+
+    public function test_filters_symfony_console_and_bin_phel_frames(): void
+    {
+        $trace = implode(PHP_EOL, [
+            '#0 /home/runner/work/phel-lang/phel-lang/vendor/symfony/console/Application.php(195): Foo->run()',
+            '#1 /home/runner/work/phel-lang/phel-lang/bin/phel(97): Bar->call()',
+            '#2 /home/user/code/myproject.phel(3): user_call()',
+        ]);
+
+        $formatter = $this->buildFormatter($trace);
+        $result = $formatter->format(new RuntimeException('boom'));
+
+        self::assertStringNotContainsString('symfony/console', $result->trace);
+        self::assertStringNotContainsString('bin/phel', $result->trace);
+        self::assertStringContainsString('myproject.phel', $result->trace);
+        self::assertStringContainsString('2 internal frames hidden', $result->trace);
+    }
+
+    public function test_unwraps_evaluated_code_exception_for_headline_and_hint(): void
+    {
+        $original = new Error('Object of type Phel\\Lang\\Collections\\LazySeq\\ChunkedSeq is not callable');
+        $wrapped = EvaluatedCodeException::fromThrowableAndCompiledCode($original, "// some.phel\n", 0);
+
+        $formatter = new ReplErrorFormatter(
+            [new NotCallableHint()],
+            $this->stubPrinter(''),
+            ColorStyle::noStyles(),
+        );
+
+        $rendered = $formatter->render($wrapped);
+
+        self::assertStringContainsString('Error: Object of type', $rendered);
+        self::assertStringNotContainsString('EvaluatedCodeException', $rendered);
+        self::assertStringContainsString("'sequence'", $rendered);
     }
 
     public function test_renders_headline_with_short_class_name(): void

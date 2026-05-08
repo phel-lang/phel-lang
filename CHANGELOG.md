@@ -11,7 +11,7 @@ All notable changes to this project will be documented in this file.
 - `phel test --repeat=N`, `--seed=<int>`, and `--random-order` flags for flake hunting and reproducible test order
 
 #### REPL
-- Eval errors render with a Phel-flavored headline, an optional hint (e.g. calling a sequence as a function, wrong arity, undefined symbol), and a trace that hides internal compiler/run/build/command frames
+- Eval errors render with a Phel-flavored headline, an optional hint (e.g. calling a sequence as a function, wrong arity, undefined symbol), and a trace that hides internal compiler/run/build/command/console, symfony console, and `bin/phel` frames; `EvaluatedCodeException` wrappers are unwrapped to the inner exception class for the headline
 
 ### Fixed
 
