@@ -231,13 +231,17 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         return $this->analyzer->analyze($init, $initEnv);
     }
 
+    /**
+     * Matches the Phel-truthy check `defn-builder` uses on the same keys, so
+     * a literal `^{:memoize false}` does not flip the wrapper on.
+     */
     private function isMemoised(PersistentMapInterface $meta): bool
     {
-        if ($meta[Keyword::create('memoize')] !== null) {
+        if ((bool) $meta[Keyword::create('memoize')]) {
             return true;
         }
 
-        return $meta[Keyword::create('memoize-lru')] !== null;
+        return (bool) $meta[Keyword::create('memoize-lru')];
     }
 
     private function buildFnNodeArglist(FnNode $fnNode, int $skipFirst = 0): string
