@@ -30,7 +30,9 @@
 (def defn-builder
   {:macro true :private true}
   (fn [name meta & fdecl]
-    (let [meta            (if (php/is_string (first fdecl))
+    (let [sym-meta        (php/-> name (getMeta))
+          meta            (if sym-meta (php/-> sym-meta (merge meta)) meta)
+          meta            (if (php/is_string (first fdecl))
                             (php/-> meta (put :doc (first fdecl)))
                             meta)
           fdecl           (if (php/is_string (first fdecl))

@@ -173,7 +173,10 @@
         (if (contains? c args)
           (get c args)
           (let [res (apply f args)]
-            (reset! memoize-cache (assoc c args res))
+            ;; Merge into the *current* cache so recursive calls that
+            ;; populated it inside `(apply f args)` are not overwritten by
+            ;; this stale `c` snapshot.
+            (swap! memoize-cache assoc args res)
             res))))))
 
 (defn memoize-lru
@@ -199,23 +202,26 @@
              t (swap! tick #(php/+ 1 %))]
          (if (contains? c args)
            (let [entry (get c args)]
-             (reset! cache (assoc c args {:value (get entry :value) :accessed t}))
+             (swap! cache assoc args {:value (get entry :value) :accessed t})
              (get entry :value))
-           (let [res       (apply f args)
-                 new-entry {:value res :accessed t}
-                 new-cache (assoc c args new-entry)]
-             (if (php/> (count new-cache) max-size)
-               (let [ks      (keys new-cache)
-                     lru-key (reduce
-                              (fn [oldest-key current-key]
-                                (if (php/< (get (get new-cache current-key) :accessed)
-                                           (get (get new-cache oldest-key) :accessed))
-                                  current-key
-                                  oldest-key))
-                              (first ks)
-                              ks)]
-                 (reset! cache (dissoc new-cache lru-key)))
-               (reset! cache new-cache))
+           ;; Compute first so any recursive populates land in the atom; then
+           ;; merge against the *current* cache and apply the LRU eviction.
+           (let [res (apply f args)]
+             (swap! cache
+                    (fn [latest]
+                      (let [merged    (assoc latest args {:value res :accessed t})]
+                        (if (php/> (count merged) max-size)
+                          (let [ks      (keys merged)
+                                lru-key (reduce
+                                         (fn [oldest-key current-key]
+                                           (if (php/< (get (get merged current-key) :accessed)
+                                                      (get (get merged oldest-key) :accessed))
+                                             current-key
+                                             oldest-key))
+                                         (first ks)
+                                         ks)]
+                            (dissoc merged lru-key))
+                          merged))))
              res)))))))
 
 ;; -----------------------

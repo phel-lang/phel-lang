@@ -162,10 +162,10 @@
 
 (deftest test-defn-memoize-skips-self-call
   (reset! memoize-fib-counter 0)
-  (is (= 832040 (memoize-fib 30)) "fib 30")
-  ;; Without ^:memoize, naive recursion runs the body ~2.7M times for fib(30).
+  (is (= 6765 (memoize-fib 20)) "fib 20")
+  ;; Without ^:memoize, naive recursion runs the body ~21k times for fib(20).
   ;; Memoized self-recursion runs the body exactly n+1 times.
-  (is (= 31 (deref memoize-fib-counter)) "memo cache hit during recursion"))
+  (is (= 21 (deref memoize-fib-counter)) "memo cache hit during recursion"))
 
 (def memoize-lru-meta-counter (atom 0))
 
