@@ -70,11 +70,11 @@
           docstring       (php/. "```phel\n" signatures "\n```\n" docstring)
           meta            (php/-> meta (put :doc docstring))
           memoize-flag    (php/aget meta :memoize)
-          memoize-lru     (php/aget meta :memoize-lru)]
-      (if memoize-lru
-        (if (php/=== memoize-lru true)
+          memoize-lru-arg (php/aget meta :memoize-lru)]
+      (if memoize-lru-arg
+        (if (php/=== memoize-lru-arg true)
           `(def ~name ~meta (memoize-lru (fn ~@fdecl)))
-          `(def ~name ~meta (memoize-lru (fn ~@fdecl) ~memoize-lru)))
+          `(def ~name ~meta (memoize-lru (fn ~@fdecl) ~memoize-lru-arg)))
         (if memoize-flag
           `(def ~name ~meta (memoize (fn ~@fdecl)))
           `(def ~name ~meta (fn ~@fdecl)))))))

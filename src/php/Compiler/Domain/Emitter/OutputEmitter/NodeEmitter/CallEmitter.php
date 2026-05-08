@@ -213,11 +213,7 @@ final class CallEmitter implements NodeEmitterInterface
         }
 
         $meta = $fn->getMeta();
-        if ($meta[Keyword::create('memoize')] || $meta[Keyword::create('memoize-lru')]) {
-            return false;
-        }
-
-        return true;
+        return !$meta[Keyword::create('memoize')] && !$meta[Keyword::create('memoize-lru')];
     }
 
     private function emitFunctionArguments(CallNode $node): void
