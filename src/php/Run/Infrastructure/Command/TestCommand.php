@@ -235,43 +235,38 @@ final class TestCommand extends Command
 
     private function generatePhelTestCode(InputInterface $input, array $namespacesInformation): string
     {
-        /** @var list<string> $reporters */
-        $reporters = (array) $input->getOption(self::OPT_REPORTER);
-        $output = $input->getOption(self::OPT_OUTPUT);
-        /** @var list<string> $filters */
-        $filters = (array) $input->getOption(self::OPT_FILTER);
-        /** @var list<string> $includes */
-        $includes = (array) $input->getOption(self::OPT_INCLUDE);
-        /** @var list<string> $excludes */
-        $excludes = (array) $input->getOption(self::OPT_EXCLUDE);
-        /** @var list<string> $nsPatterns */
-        $nsPatterns = (array) $input->getOption(self::OPT_NS);
-
-        $listOnly = (bool) $input->getOption(self::OPT_LIST);
-        $lastFailed = (bool) $input->getOption(self::OPT_LAST_FAILED);
-        $onlyTests = $lastFailed ? $this->readLastFailed() : [];
-        $slowest = (int) $input->getOption(self::OPT_SLOWEST);
-
         return sprintf(
             '(do (phel\test/run-tests %s %s) (phel\test/successful?))',
-            TestCommandOptions::fromArray([
-                TestCommandOptions::FILTER => null,
-                TestCommandOptions::TESTDOX => (bool) $input->getOption(self::OPT_TESTDOX),
-                TestCommandOptions::FAIL_FAST => (bool) $input->getOption(self::OPT_FAIL_FAST),
-                TestCommandOptions::STACK_TRACE => (bool) $input->getOption(self::OPT_STACK_TRACE),
-                TestCommandOptions::REPORTERS => $reporters,
-                TestCommandOptions::JUNIT_OUTPUT => is_string($output) ? $output : null,
-                TestCommandOptions::INCLUDE => $includes,
-                TestCommandOptions::EXCLUDE => $excludes,
-                TestCommandOptions::NS_PATTERNS => $nsPatterns,
-                TestCommandOptions::FILTERS => $filters,
-                TestCommandOptions::LIST_ONLY => $listOnly,
-                TestCommandOptions::ONLY_TESTS => $onlyTests,
-                TestCommandOptions::LAST_FAILED_FILE => $listOnly ? null : self::LAST_FAILED_FILE,
-                TestCommandOptions::SLOWEST => $slowest,
-            ])->asPhelHashMap(),
+            TestCommandOptions::fromArray($this->collectOptions($input))->asPhelHashMap(),
             $this->namespacesAsString($namespacesInformation),
         );
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function collectOptions(InputInterface $input): array
+    {
+        $output = $input->getOption(self::OPT_OUTPUT);
+        $listOnly = (bool) $input->getOption(self::OPT_LIST);
+        $lastFailed = (bool) $input->getOption(self::OPT_LAST_FAILED);
+
+        return [
+            TestCommandOptions::FILTER => null,
+            TestCommandOptions::TESTDOX => (bool) $input->getOption(self::OPT_TESTDOX),
+            TestCommandOptions::FAIL_FAST => (bool) $input->getOption(self::OPT_FAIL_FAST),
+            TestCommandOptions::STACK_TRACE => (bool) $input->getOption(self::OPT_STACK_TRACE),
+            TestCommandOptions::REPORTERS => (array) $input->getOption(self::OPT_REPORTER),
+            TestCommandOptions::JUNIT_OUTPUT => is_string($output) ? $output : null,
+            TestCommandOptions::INCLUDE => (array) $input->getOption(self::OPT_INCLUDE),
+            TestCommandOptions::EXCLUDE => (array) $input->getOption(self::OPT_EXCLUDE),
+            TestCommandOptions::NS_PATTERNS => (array) $input->getOption(self::OPT_NS),
+            TestCommandOptions::FILTERS => (array) $input->getOption(self::OPT_FILTER),
+            TestCommandOptions::LIST_ONLY => $listOnly,
+            TestCommandOptions::ONLY_TESTS => $lastFailed ? $this->readLastFailed() : [],
+            TestCommandOptions::LAST_FAILED_FILE => $listOnly ? null : self::LAST_FAILED_FILE,
+            TestCommandOptions::SLOWEST => (int) $input->getOption(self::OPT_SLOWEST),
+        ];
     }
 
     /**

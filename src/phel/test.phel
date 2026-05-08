@@ -1229,31 +1229,36 @@
 (defn- record-test-time! [ns test-name duration-ms]
   (swap! timings conj {:ns ns :test-name test-name :duration-ms duration-ms}))
 
+(defn- visible-tests-for-ns
+  "Returns the discovered tests in `ns` that survive the discovery filters
+  (`:filter`, `:filters`, `:only-tests`). Tag and namespace selectors are
+  applied later by `partition-tests` so they can surface as skip events."
+  [options ns]
+  (vec (filter (visible-test-pred options ns) (find-test-vars ns))))
+
+(defn- run-one-test! [options ns each-wrap {:fn f :meta m}]
+  (let [test-name      (:test-name m)
+        track-slowest? (pos? (or (:slowest options) 0))
+        t0             (when track-slowest? (php/microtime true))
+        c0             (failure-count)]
+    (each-wrap f)
+    (when track-slowest?
+      (record-test-time! ns test-name (* 1000.0 (- (php/microtime true) t0))))
+    (when (> (failure-count) c0)
+      (swap! failed-tests conj (str ns "/" test-name)))))
+
 (defn- run-test [options ns]
-  (let [track-slowest? (pos? (or (:slowest options) 0))
-        all-tests      (find-test-vars ns)
-        ;; Name filters act as discovery: silently drop non-matching tests.
-        ;; Only tag/ns selectors (include/exclude/ns-patterns) surface as :skipped events.
-        visible-tests  (vec (filter (visible-test-pred options ns) all-tests))
-        parts     (partition-tests options ns visible-tests)
+  (let [parts     (partition-tests options ns (visible-tests-for-ns options ns))
         keeps     (:keep parts)
-        skips     (:skip parts)
         each-wrap (join-fixtures (fixtures-for ns :each-fixtures))
         once-wrap (join-fixtures (fixtures-for ns :once-fixtures))]
-    (emit-skip-events! ns skips)
+    (emit-skip-events! ns (:skip parts))
     (when-not (empty? keeps)
       (once-wrap
        (fn []
-         (dofor [{:fn f :meta m} :in keeps
+         (dofor [test :in keeps
                  :when (not (should-stop?))]
-           (let [test-name (:test-name m)
-                 t0        (when track-slowest? (php/microtime true))
-                 c0        (failure-count)]
-             (each-wrap f)
-             (when track-slowest?
-               (record-test-time! ns test-name (* 1000.0 (- (php/microtime true) t0))))
-             (when (> (failure-count) c0)
-               (swap! failed-tests conj (str ns "/" test-name))))))))))
+           (run-one-test! options ns each-wrap test)))))))
 
 (defn- coerce-reporter
   "Turns a single `:reporters` entry (function, keyword, or string) into
@@ -1301,9 +1306,7 @@
     (fan-out! {:type :end-test-ns :ns ns-name})))
 
 (defn- list-tests-for-ns! [options ns-name]
-  (let [sel-opts  (selector-options options)
-        all-tests (find-test-vars ns-name)
-        visible   (filter (visible-test-pred options ns-name) all-tests)]
+  (let [sel-opts (selector-options options)]
     (reduce
      (fn [count {:meta m}]
        (let [test-name (:test-name m)
@@ -1315,7 +1318,7 @@
            (println (str "+ " ns-name "/" test-name tag-str)))
          (if skip count (inc count))))
      0
-     visible)))
+     (visible-tests-for-ns options ns-name))))
 
 (defn- list-tests! [options namespaces]
   (println "Discovered tests:")
@@ -1352,26 +1355,31 @@
             (println (str "  " (format-duration (:duration-ms t))
                           "  " (:ns t) "/" (:test-name t)))))))))
 
+(defn- reset-run-state! []
+  (reset! stats initial-stats)
+  (reset! timings [])
+  (reset! failed-tests []))
+
+(defn- execute-run! [options namespaces]
+  (fan-out! {:type :begin-test-run})
+  (dofor [namespace :in namespaces
+          :when (not (should-stop?))]
+    (run-one-ns! options namespace))
+  (print-summary)
+  (print-slowest! options)
+  (when-let [path (:last-failed-file options)]
+    (write-last-failed! path)))
+
 (defn run-tests
   "Runs all tests in the given namespaces. When `:list-only` is true,
   prints the discovered tests and skips execution."
   {:example "(run-tests {} 'my-app\\test)"}
   [options & namespaces]
   (configure-run! options)
-  (reset! stats initial-stats)
-  (reset! timings [])
-  (reset! failed-tests [])
+  (reset-run-state!)
   (if (:list-only options)
     (list-tests! options namespaces)
-    (do
-      (fan-out! {:type :begin-test-run})
-      (dofor [namespace :in namespaces
-              :when (not (should-stop?))]
-        (run-one-ns! options namespace))
-      (print-summary)
-      (print-slowest! options)
-      (when-let [path (:last-failed-file options)]
-        (write-last-failed! path)))))
+    (execute-run! options namespaces)))
 
 (defn reset-stats
   "Resets the test statistics to their initial state.
