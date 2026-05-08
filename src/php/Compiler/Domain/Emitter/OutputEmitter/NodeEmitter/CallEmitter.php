@@ -187,6 +187,10 @@ final class CallEmitter implements NodeEmitterInterface
      *
      * `let` and `loop` extend boundTo with a `.<sym>` suffix while analysing
      * their inits, so an exact match is not enough.
+     *
+     * Memoised defs deliberately leave boundTo unset in `DefSymbol`, so self
+     * recursion routes through the registry (and therefore the memo wrapper)
+     * rather than `$this`.
      */
     private function isSelfCall(CallNode $node): bool
     {

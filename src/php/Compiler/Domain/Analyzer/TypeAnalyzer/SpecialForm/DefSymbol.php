@@ -69,7 +69,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
             $init = $this->injectMacroImplicitParams($init);
         }
 
-        $initNode = $this->analyzeInit($init, $env, $namespace, $nameSymbol);
+        $initNode = $this->analyzeInit($init, $env, $namespace, $nameSymbol, $metaMap);
         if ($initNode instanceof FnNode) {
             $initNode->markAsDefinition();
         }
@@ -215,13 +215,32 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         NodeEnvironmentInterface $env,
         string $namespace,
         Symbol $nameSymbol,
+        PersistentMapInterface $meta,
     ): AbstractNode {
         $initEnv = $env
-            ->withBoundTo($namespace . '\\' . $nameSymbol->__toString())
             ->withExpressionContext()
             ->withDisallowRecurFrame();
 
+        // The self-call shortcut keys off boundTo. For memoised defs the
+        // wrapper, not the inner fn, must receive recursive calls, so leave
+        // boundTo unset to keep recursion routed through the registry.
+        if (!$this->isMemoised($meta)) {
+            $initEnv = $initEnv->withBoundTo($namespace . '\\' . $nameSymbol->__toString());
+        }
+
         return $this->analyzer->analyze($init, $initEnv);
+    }
+
+    private function isMemoised(PersistentMapInterface $meta): bool
+    {
+        return $this->metaTruthy($meta, 'memoize')
+            || $this->metaTruthy($meta, 'memoize-lru');
+    }
+
+    private function metaTruthy(PersistentMapInterface $meta, string $key): bool
+    {
+        $value = $meta[Keyword::create($key)];
+        return $value !== null && $value !== false;
     }
 
     private function buildFnNodeArglist(FnNode $fnNode, int $skipFirst = 0): string

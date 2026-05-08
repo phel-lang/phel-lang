@@ -30,7 +30,9 @@
 (def defn-builder
   {:macro true :private true}
   (fn [name meta & fdecl]
-    (let [meta            (if (php/is_string (first fdecl))
+    (let [sym-meta        (php/-> name (getMeta))
+          meta            (if sym-meta (php/-> sym-meta (merge meta)) meta)
+          meta            (if (php/is_string (first fdecl))
                             (php/-> meta (put :doc (first fdecl)))
                             meta)
           fdecl           (if (php/is_string (first fdecl))
@@ -68,8 +70,16 @@
                                   nil))
                               (php/implode "\n" sigs)))
           docstring       (php/. "```phel\n" signatures "\n```\n" docstring)
-          meta            (php/-> meta (put :doc docstring))]
-      `(def ~name ~meta (fn ~@fdecl)))))
+          meta            (php/-> meta (put :doc docstring))
+          memoize-flag    (php/aget meta :memoize)
+          memoize-lru-arg (php/aget meta :memoize-lru)]
+      (if memoize-lru-arg
+        (if (php/=== memoize-lru-arg true)
+          `(def ~name ~meta (memoize-lru (fn ~@fdecl)))
+          `(def ~name ~meta (memoize-lru (fn ~@fdecl) ~memoize-lru-arg)))
+        (if memoize-flag
+          `(def ~name ~meta (memoize (fn ~@fdecl)))
+          `(def ~name ~meta (fn ~@fdecl)))))))
 
 (def defn
   {:macro true

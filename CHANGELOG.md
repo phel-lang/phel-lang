@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+#### Core
+- `^:memoize` and `^{:memoize-lru N}` metadata on `defn` wrap the fn with `memoize` / `memoize-lru` (#1915)
+
 #### Test
 - `(is (= a b))` failures on collections render a unified diff block
 - `phel test --repeat=N`, `--seed=<int>`, and `--random-order` flags
@@ -19,6 +22,9 @@ All notable changes to this project will be documented in this file.
 - Recursive global-fn calls inside their own body emit `$this(...)` instead of a registry lookup; ~3.66x faster on `fib(22)` (#1914)
 
 ### Fixed
+
+#### Core
+- `memoize` / `memoize-lru` no longer drop entries that recursive calls add to the cache during a single invocation (#1915)
 
 #### Test
 - Default reporter wraps dot output at 80 columns under `with-output-buffer`

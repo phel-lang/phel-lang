@@ -137,3 +137,61 @@
     (is (= 3 (f 1 2)) "cached multi-arg call")
     (is (= 7 (f 3 4)) "different multi-arg call")
     (is (= 2 (deref counter)) "two executions")))
+
+(def memoize-meta-counter (atom 0))
+
+(defn ^:memoize memoize-meta-add [a b]
+  (swap! memoize-meta-counter inc)
+  (+ a b))
+
+(deftest test-defn-memoize-basic
+  (reset! memoize-meta-counter 0)
+  (is (= 3 (memoize-meta-add 1 2)) "first call computes")
+  (is (= 3 (memoize-meta-add 1 2)) "second call cached")
+  (is (= 1 (deref memoize-meta-counter)) "fn body ran exactly once")
+  (is (= 7 (memoize-meta-add 3 4)) "different args compute")
+  (is (= 2 (deref memoize-meta-counter)) "second compute for new args"))
+
+(def memoize-fib-counter (atom 0))
+
+(defn ^:memoize memoize-fib [n]
+  (swap! memoize-fib-counter inc)
+  (if (< n 2)
+    n
+    (+ (memoize-fib (- n 1)) (memoize-fib (- n 2)))))
+
+(deftest test-defn-memoize-skips-self-call
+  (reset! memoize-fib-counter 0)
+  (is (= 6765 (memoize-fib 20)) "fib 20")
+  ;; Without ^:memoize, naive recursion runs the body ~21k times for fib(20).
+  ;; Memoized self-recursion runs the body exactly n+1 times.
+  (is (= 21 (deref memoize-fib-counter)) "memo cache hit during recursion"))
+
+(def memoize-lru-meta-counter (atom 0))
+
+(defn ^:memoize-lru memoize-lru-meta-default [x]
+  (swap! memoize-lru-meta-counter inc)
+  (* x 10))
+
+(deftest test-defn-memoize-lru-default
+  (reset! memoize-lru-meta-counter 0)
+  (is (= 10 (memoize-lru-meta-default 1)) "first call")
+  (is (= 10 (memoize-lru-meta-default 1)) "cached call")
+  (is (= 20 (memoize-lru-meta-default 2)) "different arg")
+  (is (= 2 (deref memoize-lru-meta-counter)) "two executions"))
+
+(def memoize-lru-sized-counter (atom 0))
+
+(defn ^{:memoize-lru 2} memoize-lru-sized [x]
+  (swap! memoize-lru-sized-counter inc)
+  x)
+
+(deftest test-defn-memoize-lru-with-size
+  (reset! memoize-lru-sized-counter 0)
+  (memoize-lru-sized 1)
+  (memoize-lru-sized 2)
+  (memoize-lru-sized 1)
+  (is (= 2 (deref memoize-lru-sized-counter)) "two distinct args within cap")
+  (memoize-lru-sized 3) ; evicts 2 (least recently used)
+  (memoize-lru-sized 2) ; recompute since evicted
+  (is (= 4 (deref memoize-lru-sized-counter)) "eviction triggers recompute"))
