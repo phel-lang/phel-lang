@@ -13,6 +13,11 @@ All notable changes to this project will be documented in this file.
 #### REPL
 - Eval errors show a short headline, optional hint, and a trace with internal frames hidden
 
+### Changed
+
+#### Compiler
+- Recursive global-fn calls inside their own body emit `$this(...)` instead of a registry lookup (#1914)
+
 ### Fixed
 
 #### Test

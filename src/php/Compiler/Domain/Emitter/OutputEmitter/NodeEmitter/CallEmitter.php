@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
+use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
@@ -169,9 +170,39 @@ final class CallEmitter implements NodeEmitterInterface
 
     private function emitDynamicFunctionName(CallNode $node): void
     {
+        if ($this->isSelfCall($node)) {
+            $this->outputEmitter->emitStr('$this', $node->getStartSourceLocation());
+            return;
+        }
+
         $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
         $this->outputEmitter->emitNode($node->getFn());
         $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
+    }
+
+    /**
+     * A call is a self-call when the callee resolves to the same global fn
+     * whose body we are currently emitting. In that case `$this` already
+     * references the AbstractFn instance, so we skip the registry lookup.
+     *
+     * `let` and `loop` extend boundTo with a `.<sym>` suffix while analysing
+     * their inits, so an exact match is not enough.
+     */
+    private function isSelfCall(CallNode $node): bool
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode) {
+            return false;
+        }
+
+        $boundTo = $node->getEnv()->getBoundTo();
+        if ($boundTo === '') {
+            return false;
+        }
+
+        $expected = $fn->getNamespace() . '\\' . $fn->getName()->getName();
+        return $boundTo === $expected
+            || str_starts_with($boundTo, $expected . '.');
     }
 
     private function emitFunctionArguments(CallNode $node): void
