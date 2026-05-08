@@ -1,0 +1,35 @@
+--PHEL--
+(defn rec [n] (if (php/== n 0) n (rec (php/- n 1))))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "rec",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\rec";
+
+    public function __invoke($n) {
+      if (($__truthy = ($n == 0)) !== null && $__truthy !== false) {
+        return $n;
+      } else {
+        return $this(($n - 1));
+      }
+
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("doc"), "```phel\n(rec n)\n```\n",
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Call/self-call-with-if.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Call/self-call-with-if.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 52
+    ),
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[n]"
+  )
+);
