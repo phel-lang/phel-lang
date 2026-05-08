@@ -32,5 +32,4 @@ Every public function should have metadata:
 
 ## Macros
 
-- Read [macro-hygiene.md](macro-hygiene.md) before editing any `defmacro` body or quasiquote expansion
-- Local `let` names inside `` ` `` can silently shadow globals; suffix with `-arg`/`-flag` or use `name#` auto-gensym
+Editing a `defmacro` body or `` ` `` quasiquote? Load [macro-hygiene.md](macro-hygiene.md) first — local `let` names can silently shadow globals.
