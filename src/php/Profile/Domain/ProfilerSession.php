@@ -24,8 +24,6 @@ final class ProfilerSession implements ProfilerHookInterface
 
     private readonly int $startedAtNs;
 
-    private int $stoppedAtNs = 0;
-
     public function __construct()
     {
         $this->startedAtNs = hrtime(true);
@@ -40,35 +38,20 @@ final class ProfilerSession implements ProfilerHookInterface
         return new ProfilingFn($fn, $this);
     }
 
-    public function enter(string $name): int
+    public function enter(string $name): void
     {
-        $now = hrtime(true);
-        $this->stack[] = ['name' => $name, 'enter' => $now, 'sub' => 0];
-
-        return $now;
+        $this->stack[] = ['name' => $name, 'enter' => hrtime(true), 'sub' => 0];
     }
 
-    public function exit(string $name, int $startNs): void
+    public function exit(): void
     {
-        $now = hrtime(true);
         $frame = array_pop($this->stack);
         if ($frame === null) {
             return;
         }
 
-        $inclusive = $now - $frame['enter'];
-        $self = $inclusive - $frame['sub'];
-
-        if (!isset($this->fnStats[$name])) {
-            $this->fnStats[$name] = ['calls' => 0, 'totalNs' => 0, 'selfNs' => 0, 'maxNs' => 0];
-        }
-
-        ++$this->fnStats[$name]['calls'];
-        $this->fnStats[$name]['totalNs'] += $inclusive;
-        $this->fnStats[$name]['selfNs'] += $self;
-        if ($inclusive > $this->fnStats[$name]['maxNs']) {
-            $this->fnStats[$name]['maxNs'] = $inclusive;
-        }
+        $inclusive = hrtime(true) - $frame['enter'];
+        $this->recordCall($frame['name'], $inclusive, $inclusive - $frame['sub']);
 
         $depth = count($this->stack);
         if ($depth > 0) {
@@ -79,22 +62,29 @@ final class ProfilerSession implements ProfilerHookInterface
 
     public function recordPhase(string $phase, string $source, float $elapsedMs): void
     {
-        if (!isset($this->phaseMs[$source])) {
-            $this->phaseMs[$source] = [];
-        }
-
-        $current = $this->phaseMs[$source][$phase] ?? 0.0;
-        $this->phaseMs[$source][$phase] = $current + $elapsedMs;
+        $this->phaseMs[$source][$phase] = ($this->phaseMs[$source][$phase] ?? 0.0) + $elapsedMs;
     }
 
     public function stop(): ProfileReport
     {
-        $this->stoppedAtNs = hrtime(true);
-
         return new ProfileReport(
             $this->fnStats,
             $this->phaseMs,
-            ($this->stoppedAtNs - $this->startedAtNs) / 1_000_000,
+            (hrtime(true) - $this->startedAtNs) / 1_000_000,
         );
+    }
+
+    private function recordCall(string $name, int $inclusive, int $self): void
+    {
+        if (!isset($this->fnStats[$name])) {
+            $this->fnStats[$name] = ['calls' => 0, 'totalNs' => 0, 'selfNs' => 0, 'maxNs' => 0];
+        }
+
+        ++$this->fnStats[$name]['calls'];
+        $this->fnStats[$name]['totalNs'] += $inclusive;
+        $this->fnStats[$name]['selfNs'] += $self;
+        if ($inclusive > $this->fnStats[$name]['maxNs']) {
+            $this->fnStats[$name]['maxNs'] = $inclusive;
+        }
     }
 }

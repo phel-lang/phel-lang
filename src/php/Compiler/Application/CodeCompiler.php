@@ -18,6 +18,7 @@ use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Lexer\LexerInterface;
+use Phel\Compiler\Domain\Lexer\TokenStream;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Domain\Parser\ParserInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
@@ -55,50 +56,29 @@ final readonly class CodeCompiler implements CodeCompilerInterface
         $hook = Registry::$profilerHook;
         $source = $compileOptions->getSource();
 
-        if ($hook instanceof ProfilerHookInterface) {
-            $tStart = hrtime(true);
-            $tokenStream = $this->lexer->lexString($phelCode, $source, $compileOptions->getStartingLine());
-            $hook->recordPhase('lex', $source, (hrtime(true) - $tStart) / 1_000_000);
-        } else {
-            $tokenStream = $this->lexer->lexString($phelCode, $source, $compileOptions->getStartingLine());
-        }
+        $tokenStream = $this->timed($hook, 'lex', $source, fn(): TokenStream => $this->lexer->lexString(
+            $phelCode,
+            $source,
+            $compileOptions->getStartingLine(),
+        ));
 
         $this->fileEmitter->startFile($source);
         while (true) {
             try {
-                if ($hook instanceof ProfilerHookInterface) {
-                    $tStart = hrtime(true);
-                    $parseTree = $this->parser->parseNext($tokenStream);
-                    $hook->recordPhase('parse', $source, (hrtime(true) - $tStart) / 1_000_000);
-                } else {
-                    $parseTree = $this->parser->parseNext($tokenStream);
-                }
+                $parseTree = $this->timed($hook, 'parse', $source, fn(): ?NodeInterface => $this->parser->parseNext($tokenStream));
 
-                // If we reached the end exit this loop
                 if (!$parseTree instanceof NodeInterface) {
                     break;
                 }
 
-                if (!$parseTree instanceof TriviaNodeInterface) {
-                    if ($hook instanceof ProfilerHookInterface) {
-                        $tStart = hrtime(true);
-                        $readerResult = $this->reader->read($parseTree);
-                        $hook->recordPhase('read', $source, (hrtime(true) - $tStart) / 1_000_000);
-
-                        $tStart = hrtime(true);
-                        $node = $this->analyze($readerResult);
-                        $hook->recordPhase('analyze', $source, (hrtime(true) - $tStart) / 1_000_000);
-
-                        $tStart = hrtime(true);
-                        $this->emitNode($node, $compileOptions);
-                        $hook->recordPhase('emit', $source, (hrtime(true) - $tStart) / 1_000_000);
-                    } else {
-                        $readerResult = $this->reader->read($parseTree);
-                        $node = $this->analyze($readerResult);
-                        // We need to evaluate every statement because we may need it for macros.
-                        $this->emitNode($node, $compileOptions);
-                    }
+                if ($parseTree instanceof TriviaNodeInterface) {
+                    continue;
                 }
+
+                $readerResult = $this->timed($hook, 'read', $source, fn(): ReaderResult => $this->reader->read($parseTree));
+                $node = $this->timed($hook, 'analyze', $source, fn(): AbstractNode => $this->analyze($readerResult));
+                // We need to evaluate every statement because we may need it for macros.
+                $this->timed($hook, 'emit', $source, fn() => $this->emitNode($node, $compileOptions));
             } catch (AbstractParserException|ReaderException $e) {
                 throw new CompilerException($e, $e->getCodeSnippet());
             }
@@ -115,6 +95,26 @@ final readonly class CodeCompiler implements CodeCompilerInterface
         $node = $this->analyzer->analyze($form, NodeEnvironment::empty());
         $this->emitNode($node, $compileOptions);
         return $this->fileEmitter->endFile($compileOptions->isSourceMapsEnabled());
+    }
+
+    /**
+     * @template T
+     *
+     * @param callable(): T $fn
+     *
+     * @return T
+     */
+    private function timed(?ProfilerHookInterface $hook, string $phase, string $source, callable $fn): mixed
+    {
+        if (!$hook instanceof ProfilerHookInterface) {
+            return $fn();
+        }
+
+        $start = hrtime(true);
+        $result = $fn();
+        $hook->recordPhase($phase, $source, (hrtime(true) - $start) / 1_000_000);
+
+        return $result;
     }
 
     /**

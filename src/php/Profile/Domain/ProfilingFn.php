@@ -30,12 +30,12 @@ final class ProfilingFn extends AbstractFn
 
     public function __invoke(mixed ...$args): mixed
     {
-        $start = $this->session->enter($this->boundTo);
+        $this->session->enter($this->boundTo);
         try {
             /** @psalm-suppress InvalidFunctionCall */
             return ($this->inner)(...$args);
         } finally {
-            $this->session->exit($this->boundTo, $start);
+            $this->session->exit();
         }
     }
 
@@ -43,15 +43,5 @@ final class ProfilingFn extends AbstractFn
     public function __toString(): string
     {
         return (string) $this->inner;
-    }
-
-    public function unwrap(): AbstractFn
-    {
-        return $this->inner;
-    }
-
-    public function boundTo(): string
-    {
-        return $this->boundTo;
     }
 }

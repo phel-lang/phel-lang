@@ -14,12 +14,11 @@ final class ProfilerSessionTest extends TestCase
     {
         $session = new ProfilerSession();
 
-        $start = $session->enter('user/foo');
+        $session->enter('user/foo');
         usleep(1_000);
-        $session->exit('user/foo', $start);
+        $session->exit();
 
-        $report = $session->stop();
-        $stats = $report->fnStats();
+        $stats = $session->stop()->fnStats();
 
         self::assertArrayHasKey('user/foo', $stats);
         self::assertSame(1, $stats['user/foo']['calls']);
@@ -31,13 +30,13 @@ final class ProfilerSessionTest extends TestCase
     {
         $session = new ProfilerSession();
 
-        $outer = $session->enter('parent');
+        $session->enter('parent');
         usleep(500);
-        $inner = $session->enter('child');
+        $session->enter('child');
         usleep(2_000);
-        $session->exit('child', $inner);
+        $session->exit();
         usleep(500);
-        $session->exit('parent', $outer);
+        $session->exit();
 
         $stats = $session->stop()->fnStats();
 
@@ -50,8 +49,8 @@ final class ProfilerSessionTest extends TestCase
         $session = new ProfilerSession();
 
         for ($i = 0; $i < 5; ++$i) {
-            $token = $session->enter('user/loop');
-            $session->exit('user/loop', $token);
+            $session->enter('user/loop');
+            $session->exit();
         }
 
         $stats = $session->stop()->fnStats();

@@ -10,6 +10,7 @@ use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Lang\Registry;
 use Phel\Phel;
+use Phel\Profile\Domain\ProfileReport;
 use Phel\Profile\ProfileConfig;
 use Phel\Profile\ProfileFacade;
 use Phel\Profile\ProfileFactory;
@@ -74,52 +75,75 @@ final class ProfileCommand extends Command
             return self::FAILURE;
         }
 
-        $sort = $this->resolveSort($input, $output);
+        $sort = $this->validateChoice(
+            $input,
+            $output,
+            self::OPT_SORT,
+            [ProfileConfig::SORT_SELF, ProfileConfig::SORT_TOTAL, ProfileConfig::SORT_CALLS, ProfileConfig::SORT_AVG],
+        );
         if ($sort === null) {
             return self::FAILURE;
         }
 
-        $format = $this->resolveFormat($input, $output);
+        $format = $this->validateChoice(
+            $input,
+            $output,
+            self::OPT_FORMAT,
+            [ProfileConfig::FORMAT_TABLE, ProfileConfig::FORMAT_JSON, ProfileConfig::FORMAT_BOTH],
+        );
         if ($format === null) {
             return self::FAILURE;
         }
 
         /** @var list<string>|string|null $rawArgv */
         $rawArgv = $input->getArgument(self::ARG_ARGV);
-        $userArgv = is_array($rawArgv) ? $rawArgv : [];
-        Phel::setupRuntimeArgs($path, $userArgv);
+        Phel::setupRuntimeArgs($path, is_array($rawArgv) ? $rawArgv : []);
 
+        $report = $this->runWithProfiler($path, $output);
+        if (!$report instanceof ProfileReport) {
+            return self::FAILURE;
+        }
+
+        $this->renderReport($report, $input, $output, $sort, $format);
+
+        return self::SUCCESS;
+    }
+
+    private function runWithProfiler(string $path, OutputInterface $output): ?ProfileReport
+    {
+        $runFacade = $this->getFactory()->getRunFacade();
         $session = $this->getFacade()->startSession();
         Registry::$profilerHook = $session;
 
         try {
-            $runFacade = $this->getFactory()->getRunFacade();
             if (file_exists($path)) {
                 $runFacade->runFile($path);
             } else {
                 $runFacade->runNamespace(Munge::canonicalNs($path));
             }
         } catch (CompilerException $e) {
-            Registry::$profilerHook = null;
-            $this->getFactory()->getRunFacade()->writeLocatedException($output, $e);
+            $runFacade->writeLocatedException($output, $e);
 
-            return self::FAILURE;
+            return null;
         } catch (Throwable $e) {
-            Registry::$profilerHook = null;
-            $this->getFactory()->getRunFacade()->writeStackTrace($output, $e);
+            $runFacade->writeStackTrace($output, $e);
 
-            return self::FAILURE;
+            return null;
         } finally {
             Registry::$profilerHook = null;
         }
 
-        $report = $session->stop();
+        return $session->stop();
+    }
 
-        $top = (int) $input->getOption(self::OPT_TOP);
-        if ($top <= 0) {
-            $top = ProfileConfig::DEFAULT_TOP;
-        }
-
+    private function renderReport(
+        ProfileReport $report,
+        InputInterface $input,
+        OutputInterface $output,
+        string $sort,
+        string $format,
+    ): void {
+        $top = $this->resolveTop($input);
         $includeCompilePhases = !$input->getOption(self::OPT_NO_COMPILE_PHASES);
 
         if (in_array($format, [ProfileConfig::FORMAT_TABLE, ProfileConfig::FORMAT_BOTH], true)) {
@@ -127,22 +151,25 @@ final class ProfileCommand extends Command
         }
 
         $outputFile = $input->getOption(self::OPT_OUTPUT);
-        $writeJsonToFile = is_string($outputFile) && $outputFile !== '';
-
-        if ($writeJsonToFile || in_array($format, [ProfileConfig::FORMAT_JSON, ProfileConfig::FORMAT_BOTH], true)) {
-            $json = $this->getFacade()->renderJson($report);
-            if ($writeJsonToFile) {
-                file_put_contents($outputFile, $json);
-                $output->writeln(sprintf('<info>JSON report written to %s</info>', $outputFile));
-            } elseif ($format === ProfileConfig::FORMAT_JSON) {
-                $output->writeln($json);
-            } else {
-                $output->writeln('');
-                $output->writeln($json);
-            }
+        $writeToFile = is_string($outputFile) && $outputFile !== '';
+        $emitJson = $writeToFile || in_array($format, [ProfileConfig::FORMAT_JSON, ProfileConfig::FORMAT_BOTH], true);
+        if (!$emitJson) {
+            return;
         }
 
-        return self::SUCCESS;
+        $json = $this->getFacade()->renderJson($report);
+        if ($writeToFile) {
+            file_put_contents($outputFile, $json);
+            $output->writeln(sprintf('<info>JSON report written to %s</info>', $outputFile));
+
+            return;
+        }
+
+        if ($format === ProfileConfig::FORMAT_BOTH) {
+            $output->writeln('');
+        }
+
+        $output->writeln($json);
     }
 
     private function resolvePath(InputInterface $input, OutputInterface $output): ?string
@@ -163,29 +190,30 @@ final class ProfileCommand extends Command
         return $detected;
     }
 
-    private function resolveSort(InputInterface $input, OutputInterface $output): ?string
+    private function resolveTop(InputInterface $input): int
     {
-        $sort = (string) $input->getOption(self::OPT_SORT);
-        $valid = [ProfileConfig::SORT_SELF, ProfileConfig::SORT_TOTAL, ProfileConfig::SORT_CALLS, ProfileConfig::SORT_AVG];
-        if (!in_array($sort, $valid, true)) {
-            $output->writeln(sprintf('<error>Unknown sort: %s. Allowed: %s.</error>', $sort, implode(', ', $valid)));
+        $top = (int) $input->getOption(self::OPT_TOP);
 
-            return null;
-        }
-
-        return $sort;
+        return $top > 0 ? $top : ProfileConfig::DEFAULT_TOP;
     }
 
-    private function resolveFormat(InputInterface $input, OutputInterface $output): ?string
+    /**
+     * @param list<string> $allowed
+     */
+    private function validateChoice(InputInterface $input, OutputInterface $output, string $option, array $allowed): ?string
     {
-        $format = (string) $input->getOption(self::OPT_FORMAT);
-        $valid = [ProfileConfig::FORMAT_TABLE, ProfileConfig::FORMAT_JSON, ProfileConfig::FORMAT_BOTH];
-        if (!in_array($format, $valid, true)) {
-            $output->writeln(sprintf('<error>Unknown format: %s. Allowed: %s.</error>', $format, implode(', ', $valid)));
-
-            return null;
+        $value = (string) $input->getOption($option);
+        if (in_array($value, $allowed, true)) {
+            return $value;
         }
 
-        return $format;
+        $output->writeln(sprintf(
+            '<error>Unknown %s: %s. Allowed: %s.</error>',
+            $option,
+            $value,
+            implode(', ', $allowed),
+        ));
+
+        return null;
     }
 }
