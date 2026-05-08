@@ -8,7 +8,6 @@ use Phel\Printer\Printer;
 
 use function is_array;
 use function is_string;
-use function sprintf;
 
 final readonly class TestCommandOptions
 {
@@ -111,29 +110,68 @@ final readonly class TestCommandOptions
     public function asPhelHashMap(): string
     {
         $printer = Printer::readable();
+        $entries = [];
 
-        return sprintf(
-            '{:filter %s :testdox %s :fail-fast %s :stack-trace %s%s%s%s%s%s%s%s%s%s%s}',
-            $this->filter === null ? 'nil' : $printer->print($this->filter),
-            $printer->print($this->testdox),
-            $printer->print($this->failFast),
-            $printer->print($this->stackTrace),
-            $this->keywordVector(':reporters', $this->reporters),
-            $this->optionalString(':junit-output', $this->junitOutput, $printer),
-            $this->keywordVector(':include', $this->includes),
-            $this->keywordVector(':exclude', $this->excludes),
-            $this->stringVector(':ns-patterns', $this->nsPatterns),
-            $this->stringVector(':filters', $this->filters),
-            $this->listOnly ? ' :list-only true' : '',
-            $this->stringVector(':only-tests', $this->onlyTests),
-            $this->optionalString(':last-failed-file', $this->lastFailedFile, $printer),
-            $this->slowest > 0 ? ' :slowest ' . $this->slowest : '',
-        );
+        $entries[] = ':filter ' . ($this->filter === null ? 'nil' : $printer->print($this->filter));
+        $entries[] = ':testdox ' . $printer->print($this->testdox);
+        $entries[] = ':fail-fast ' . $printer->print($this->failFast);
+        $entries[] = ':stack-trace ' . $printer->print($this->stackTrace);
+
+        $this->appendKeywordVector($entries, ':reporters', $this->reporters);
+        $this->appendOptionalString($entries, ':junit-output', $this->junitOutput, $printer);
+        $this->appendKeywordVector($entries, ':include', $this->includes);
+        $this->appendKeywordVector($entries, ':exclude', $this->excludes);
+        $this->appendStringVector($entries, ':ns-patterns', $this->nsPatterns, $printer);
+        $this->appendStringVector($entries, ':filters', $this->filters, $printer);
+        if ($this->listOnly) {
+            $entries[] = ':list-only true';
+        }
+
+        $this->appendStringVector($entries, ':only-tests', $this->onlyTests, $printer);
+        $this->appendOptionalString($entries, ':last-failed-file', $this->lastFailedFile, $printer);
+        if ($this->slowest > 0) {
+            $entries[] = ':slowest ' . $this->slowest;
+        }
+
+        return '{' . implode(' ', $entries) . '}';
     }
 
-    private function optionalString(string $key, ?string $value, Printer $printer): string
+    /**
+     * @param list<string> $entries
+     */
+    private function appendOptionalString(array &$entries, string $key, ?string $value, Printer $printer): void
     {
-        return $value === null ? '' : ' ' . $key . ' ' . $printer->print($value);
+        if ($value === null) {
+            return;
+        }
+
+        $entries[] = $key . ' ' . $printer->print($value);
+    }
+
+    /**
+     * @param list<string> $entries
+     * @param list<string> $values
+     */
+    private function appendKeywordVector(array &$entries, string $key, array $values): void
+    {
+        if ($values === []) {
+            return;
+        }
+
+        $entries[] = $key . ' [' . implode(' ', array_map(static fn(string $name): string => ':' . $name, $values)) . ']';
+    }
+
+    /**
+     * @param list<string> $entries
+     * @param list<string> $values
+     */
+    private function appendStringVector(array &$entries, string $key, array $values, Printer $printer): void
+    {
+        if ($values === []) {
+            return;
+        }
+
+        $entries[] = $key . ' [' . implode(' ', array_map($printer->print(...), $values)) . ']';
     }
 
     /**
@@ -153,38 +191,5 @@ final readonly class TestCommandOptions
         }
 
         return $result;
-    }
-
-    /**
-     * @param list<string> $values
-     */
-    private function keywordVector(string $key, array $values): string
-    {
-        return $this->renderVector(
-            $key,
-            $values,
-            static fn(string $name): string => ':' . $name,
-        );
-    }
-
-    /**
-     * @param list<string> $values
-     */
-    private function stringVector(string $key, array $values): string
-    {
-        return $this->renderVector($key, $values, Printer::readable()->print(...));
-    }
-
-    /**
-     * @param list<string>             $values
-     * @param callable(string): string $mapper
-     */
-    private function renderVector(string $key, array $values, callable $mapper): string
-    {
-        if ($values === []) {
-            return '';
-        }
-
-        return ' ' . $key . ' [' . implode(' ', array_map($mapper, $values)) . ']';
     }
 }
