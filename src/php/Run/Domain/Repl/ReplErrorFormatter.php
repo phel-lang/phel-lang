@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Run\Domain\Repl;
 
 use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
+use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
 use Phel\Run\Domain\Repl\Hint\ReplHintInterface;
 use Phel\Shared\ColorStyleInterface;
 use Throwable;
@@ -19,6 +20,16 @@ use const PHP_EOL;
 
 final readonly class ReplErrorFormatter
 {
+    private const array INTERNAL_FRAME_PATHS = [
+        '/phel-lang/src/php/Compiler/',
+        '/phel-lang/src/php/Run/',
+        '/phel-lang/src/php/Build/',
+        '/phel-lang/src/php/Command/',
+        '/phel-lang/src/php/Console/',
+        '/vendor/symfony/console/',
+        '/phel-lang/bin/phel',
+    ];
+
     /**
      * @param list<ReplHintInterface> $hints
      */
@@ -30,11 +41,12 @@ final readonly class ReplErrorFormatter
 
     public function format(Throwable $e): ReplFormattedError
     {
+        $cause = $this->unwrap($e);
         $fullTrace = $this->exceptionPrinter->getStackTraceString($e);
 
         return new ReplFormattedError(
-            $this->buildHeadline($e),
-            $this->lookupHint($e),
+            $this->buildHeadline($cause),
+            $this->lookupHint($cause),
             $this->filterTrace($fullTrace),
             $fullTrace,
         );
@@ -55,6 +67,15 @@ final readonly class ReplErrorFormatter
         }
 
         return implode(PHP_EOL, $parts);
+    }
+
+    private function unwrap(Throwable $e): Throwable
+    {
+        if ($e instanceof EvaluatedCodeException) {
+            return $e->getOriginalException();
+        }
+
+        return $e;
     }
 
     private function buildHeadline(Throwable $e): string
@@ -81,14 +102,33 @@ final readonly class ReplErrorFormatter
         $lines = explode(PHP_EOL, $trace);
         $kept = [];
         $dropped = 0;
+        $sawFrame = false;
+        $keepingCurrentFrame = false;
 
         foreach ($lines as $line) {
-            if ($this->isInternalFrame($line)) {
-                ++$dropped;
+            $isFrame = preg_match('/^#\d+\s/', $line) === 1;
+
+            if (!$sawFrame && !$isFrame) {
                 continue;
             }
 
-            $kept[] = $line;
+            if ($isFrame) {
+                $sawFrame = true;
+
+                if ($this->isInternalFrame($line)) {
+                    ++$dropped;
+                    $keepingCurrentFrame = false;
+                    continue;
+                }
+
+                $keepingCurrentFrame = true;
+                $kept[] = $line;
+                continue;
+            }
+
+            if ($keepingCurrentFrame) {
+                $kept[] = $line;
+            }
         }
 
         if ($dropped > 0) {
@@ -100,14 +140,7 @@ final readonly class ReplErrorFormatter
 
     private function isInternalFrame(string $line): bool
     {
-        if (preg_match('/^#\d+\s/', $line) !== 1) {
-            return false;
-        }
-
-        return str_contains($line, '/phel-lang/src/php/Compiler/')
-            || str_contains($line, '/phel-lang/src/php/Run/')
-            || str_contains($line, '/phel-lang/src/php/Build/')
-            || str_contains($line, '/phel-lang/src/php/Command/');
+        return array_any(self::INTERNAL_FRAME_PATHS, static fn(string $needle): bool => str_contains($line, $needle));
     }
 
     private function shortClassName(string $fqcn): string
