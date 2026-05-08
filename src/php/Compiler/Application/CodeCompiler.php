@@ -18,6 +18,7 @@ use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Lexer\LexerInterface;
+use Phel\Compiler\Domain\Lexer\TokenStream;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Domain\Parser\ParserInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
@@ -26,7 +27,11 @@ use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Lang\ProfilerHookInterface;
+use Phel\Lang\Registry;
 use Phel\Lang\TypeInterface;
+
+use function hrtime;
 
 final readonly class CodeCompiler implements CodeCompilerInterface
 {
@@ -48,27 +53,32 @@ final readonly class CodeCompiler implements CodeCompilerInterface
      */
     public function compileString(string $phelCode, CompileOptions $compileOptions): EmitterResult
     {
-        $tokenStream = $this->lexer->lexString(
-            $phelCode,
-            $compileOptions->getSource(),
-            $compileOptions->getStartingLine(),
-        );
+        $hook = Registry::$profilerHook;
+        $source = $compileOptions->getSource();
 
-        $this->fileEmitter->startFile($compileOptions->getSource());
+        $tokenStream = $this->timed($hook, 'lex', $source, fn(): TokenStream => $this->lexer->lexString(
+            $phelCode,
+            $source,
+            $compileOptions->getStartingLine(),
+        ));
+
+        $this->fileEmitter->startFile($source);
         while (true) {
             try {
-                $parseTree = $this->parser->parseNext($tokenStream);
-                // If we reached the end exit this loop
+                $parseTree = $this->timed($hook, 'parse', $source, fn(): ?NodeInterface => $this->parser->parseNext($tokenStream));
+
                 if (!$parseTree instanceof NodeInterface) {
                     break;
                 }
 
-                if (!$parseTree instanceof TriviaNodeInterface) {
-                    $readerResult = $this->reader->read($parseTree);
-                    $node = $this->analyze($readerResult);
-                    // We need to evaluate every statement because we may need it for macros.
-                    $this->emitNode($node, $compileOptions);
+                if ($parseTree instanceof TriviaNodeInterface) {
+                    continue;
                 }
+
+                $readerResult = $this->timed($hook, 'read', $source, fn(): ReaderResult => $this->reader->read($parseTree));
+                $node = $this->timed($hook, 'analyze', $source, fn(): AbstractNode => $this->analyze($readerResult));
+                // We need to evaluate every statement because we may need it for macros.
+                $this->timed($hook, 'emit', $source, fn() => $this->emitNode($node, $compileOptions));
             } catch (AbstractParserException|ReaderException $e) {
                 throw new CompilerException($e, $e->getCodeSnippet());
             }
@@ -85,6 +95,26 @@ final readonly class CodeCompiler implements CodeCompilerInterface
         $node = $this->analyzer->analyze($form, NodeEnvironment::empty());
         $this->emitNode($node, $compileOptions);
         return $this->fileEmitter->endFile($compileOptions->isSourceMapsEnabled());
+    }
+
+    /**
+     * @template T
+     *
+     * @param callable(): T $fn
+     *
+     * @return T
+     */
+    private function timed(?ProfilerHookInterface $hook, string $phase, string $source, callable $fn): mixed
+    {
+        if (!$hook instanceof ProfilerHookInterface) {
+            return $fn();
+        }
+
+        $start = hrtime(true);
+        $result = $fn();
+        $hook->recordPhase($phase, $source, (hrtime(true) - $start) / 1_000_000);
+
+        return $result;
     }
 
     /**

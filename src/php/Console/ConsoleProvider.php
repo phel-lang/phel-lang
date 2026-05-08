@@ -18,6 +18,7 @@ use Phel\Console\Infrastructure\Command\InteropCommands;
 use Phel\Console\Infrastructure\Command\LintCommands;
 use Phel\Console\Infrastructure\Command\LspCommands;
 use Phel\Console\Infrastructure\Command\NreplCommands;
+use Phel\Console\Infrastructure\Command\ProfileCommands;
 use Phel\Console\Infrastructure\Command\RunCommands;
 use Phel\Console\Infrastructure\Command\WatchCommands;
 use Phel\Filesystem\FilesystemFacade;
@@ -107,6 +108,7 @@ final class ConsoleProvider extends AbstractProvider
             new FrameworkCommands(),
             new NreplCommands(),
             new LintCommands(),
+            new ProfileCommands(),
             new LspCommands(),
             new WatchCommands(),
         ];

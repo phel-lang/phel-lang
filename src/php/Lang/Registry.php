@@ -13,6 +13,13 @@ use function sprintf;
 
 final class Registry
 {
+    /**
+     * Set by `phel profile` to install a profiler hook. When non-null,
+     * `addDefinition` wraps every `AbstractFn` value with a profiling proxy
+     * before storing it. Off-state cost: one null-check per definition.
+     */
+    public static ?ProfilerHookInterface $profilerHook = null;
+
     /** @var array<string, array<string, mixed>> */
     private array $definitions = [];
 
@@ -64,6 +71,10 @@ final class Registry
 
     public function addDefinition(string $ns, string $name, mixed $value, ?PersistentMapInterface $metaData = null): PhelVar
     {
+        if (self::$profilerHook instanceof ProfilerHookInterface && $value instanceof AbstractFn) {
+            $value = self::$profilerHook->wrapFn($value);
+        }
+
         $this->definitions[$ns][$name] = $value;
         $this->definitionsMetaData[$ns][$name] = $metaData;
         PhelVarStateRegistry::getInstance()->invalidateDynamicCache($ns, $name);
