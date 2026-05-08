@@ -483,12 +483,26 @@
 (defn- readable-str [value]
   (php/-> readable-printer (print value)))
 
+(defn- print-label
+  "Prints `label:`, the readable form of `value`, then any extra
+  trailing words on a single line. Used by the built-in failure
+  printers to keep the right-aligned two-column layout consistent."
+  [label value & extras]
+  (apply println (str label ":") (readable-str value) extras))
+
+(defn- print-form-evaluated
+  "Prints the `Form: ... / evaluated to: ...` pair shared by every
+  failure printer that reports a single value and its computed result."
+  [label-form form label-eval result]
+  (print-label label-form form)
+  (print-label label-eval result))
+
 (defn- print-error [data]
   (print-error-headline data)
   (let [{:exception exception :form form} data
         command-facade                    (php/new CommandFacade)
         printer                           (php/-> command-facade (getExceptionPrinter))]
-    (println "              Form:" (readable-str form))
+    (print-label "              Form" form)
     (println "             threw:" (php/get_class exception))
     (when-let [exception-message (ex-message exception)]
       (println "      with message:" exception-message))
@@ -496,43 +510,43 @@
       (php/-> printer (printStackTrace exception)))))
 
 (defn- print-predicate-failure [{:pred pred :value value :result result}]
-  (println "                 Form:" (readable-str value))
-  (println "         evaluated to:" (readable-str result))
-  (println "  but doesn't satisfy:" (readable-str pred)))
+  (print-form-evaluated "                 Form" value
+                        "         evaluated to" result)
+  (print-label "  but doesn't satisfy" pred))
 
 (defn- print-predicate-not-failure [{:pred pred :value value :result result}]
-  (println "              Form:" (readable-str value))
-  (println "      evaluated to:" (readable-str result))
-  (println "  but does satisfy:" (readable-str pred) " (it shouldn't)"))
+  (print-form-evaluated "              Form" value
+                        "      evaluated to" result)
+  (print-label "  but does satisfy" pred " (it shouldn't)"))
 
 (defn- print-binary-failure [{:pred pred :expected expected :actual actual :result result}]
-  (println "          Form:" (readable-str actual))
-  (println "  evaluated to:" (readable-str result))
-  (println "    but is not:" (readable-str pred) "to" (readable-str expected)))
+  (print-form-evaluated "          Form" actual
+                        "  evaluated to" result)
+  (print-label "    but is not" pred "to" (readable-str expected)))
 
 (defn- print-binary-not-failure [{:pred pred :expected expected :actual actual :result result}]
-  (println "          Form:" (readable-str actual))
-  (println "  evaluated to:" (readable-str result))
-  (println "        but is:" (readable-str pred) "to" (readable-str expected) "(it shouldn't be)"))
+  (print-form-evaluated "          Form" actual
+                        "  evaluated to" result)
+  (print-label "        but is" pred "to" (readable-str expected) "(it shouldn't be)"))
 
 (defn- print-thrown-failure [{:form form :exception-symbol exception-symbol}]
-  (println "    expected:" (readable-str form))
+  (print-label "    expected" form)
   (println "  to throw a:" exception-symbol "(it didn't)"))
 
 (defn- print-thrown-with-msg-failure [{:form form :exception-symbol exception-symbol :expected-message expected-message :actual-message actual-message}]
   (if (nil? actual-message)
     (do
-      (println "    expected:" (readable-str form))
+      (print-label "    expected" form)
       (println "  to throw a:" exception-symbol "(it didn't)"))
     (do
-      (println "      expected:" (readable-str form))
+      (print-label "      expected" form)
       (println "    to throw a:" exception-symbol)
       (println "  with message:" expected-message)
       (println "       but got:" actual-message))))
 
 (defn- print-any-failure [{:form form :result result}]
-  (println "          Form:" (readable-str form))
-  (println "  evaluated to:" (readable-str result) "(which is not truthy)"))
+  (print-label "          Form" form)
+  (print-label "  evaluated to" result "(which is not truthy)"))
 
 (defn- print-failure [data]
   (print-failure-headline data)
