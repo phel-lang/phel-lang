@@ -23,6 +23,9 @@ All notable changes to this project will be documented in this file.
 #### Test
 - Default reporter wraps dot output at 80 columns under `with-output-buffer`
 
+#### Api
+- `phel analyze` preloads namespaces required by the file under analysis, eliminating false `PHEL001 Cannot resolve symbol` diagnostics for aliased project symbols (#1919)
+
 ## [0.36.0](https://github.com/phel-lang/phel-lang/compare/v0.35.0...v0.36.0) - 2026-05-08
 
 ### Added

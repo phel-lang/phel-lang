@@ -42,7 +42,7 @@ Tooling support layer: REPL autocompletion, function introspection, documentatio
 ```
 Api/
 ├── Application/
-│   ├── Analysis/              LexAndParseStage, ReadAndAnalyzeStage
+│   ├── Analysis/              PreloadDependenciesStage, LexAndParseStage, ReadAndAnalyzeStage
 │   ├── PhelFnGroupKeyGenerator, PhelFnNormalizer, ReplCompleter
 │   ├── SourceAnalyzer         pipeline runner over AnalysisStageInterface
 │   ├── SymbolExtractor        per-file def/ref extractor (read + traverse forms)

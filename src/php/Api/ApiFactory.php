@@ -6,6 +6,7 @@ namespace Phel\Api;
 
 use Gacela\Framework\AbstractFactory;
 use Phel\Api\Application\Analysis\LexAndParseStage;
+use Phel\Api\Application\Analysis\PreloadDependenciesStage;
 use Phel\Api\Application\Analysis\ReadAndAnalyzeStage;
 use Phel\Api\Application\PhelFnGroupKeyGenerator;
 use Phel\Api\Application\PhelFnNormalizer;
@@ -61,6 +62,7 @@ final class ApiFactory extends AbstractFactory
         $compilerFacade = $this->getCompilerFacade();
 
         return new SourceAnalyzer([
+            new PreloadDependenciesStage($this->getRunFacade()),
             new LexAndParseStage($compilerFacade),
             new ReadAndAnalyzeStage($compilerFacade),
         ]);
