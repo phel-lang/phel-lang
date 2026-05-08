@@ -1229,12 +1229,27 @@
 (defn- record-test-time! [ns test-name duration-ms]
   (swap! timings conj {:ns ns :test-name test-name :duration-ms duration-ms}))
 
+(defn- maybe-shuffle-tests
+  "Returns `tests` shuffled when `:random-order` is set in `options`, or
+  unchanged otherwise. The active seed (`:seed-resolved`) reseeds PHP's
+  Mersenne Twister so the resulting order is reproducible."
+  [options tests]
+  (if (:random-order options)
+    (do
+      (when-let [seed (:seed-resolved options)]
+        (php/mt_srand seed))
+      (shuffle tests))
+    tests))
+
 (defn- visible-tests-for-ns
   "Returns the discovered tests in `ns` that survive the discovery filters
   (`:filter`, `:filters`, `:only-tests`). Tag and namespace selectors are
-  applied later by `partition-tests` so they can surface as skip events."
+  applied later by `partition-tests` so they can surface as skip events.
+  Honours `:random-order` to shuffle the result deterministically."
   [options ns]
-  (vec (filter (visible-test-pred options ns) (find-test-vars ns))))
+  (maybe-shuffle-tests
+   options
+   (vec (filter (visible-test-pred options ns) (find-test-vars ns)))))
 
 (defn- run-one-test! [options ns each-wrap {:fn f :meta m}]
   (let [test-name      (:test-name m)
@@ -1247,18 +1262,27 @@
     (when (> (failure-count) c0)
       (swap! failed-tests conj (str ns "/" test-name)))))
 
+(defn- repeat-count
+  "Returns the validated `:repeat` count from `options`, defaulting to 1."
+  [options]
+  (let [n (or (:repeat options) 1)]
+    (if (pos? n) n 1)))
+
 (defn- run-test [options ns]
   (let [parts     (partition-tests options ns (visible-tests-for-ns options ns))
         keeps     (:keep parts)
         each-wrap (join-fixtures (fixtures-for ns :each-fixtures))
-        once-wrap (join-fixtures (fixtures-for ns :once-fixtures))]
+        once-wrap (join-fixtures (fixtures-for ns :once-fixtures))
+        rounds    (repeat-count options)]
     (emit-skip-events! ns (:skip parts))
     (when-not (empty? keeps)
       (once-wrap
        (fn []
-         (dofor [test :in keeps
+         (dofor [_ :range [0 rounds]
                  :when (not (should-stop?))]
-           (run-one-test! options ns each-wrap test)))))))
+           (dofor [test :in keeps
+                   :when (not (should-stop?))]
+             (run-one-test! options ns each-wrap test))))))))
 
 (defn- coerce-reporter
   "Turns a single `:reporters` entry (function, keyword, or string) into
@@ -1291,6 +1315,21 @@
   sequence of functions, or a mix. Defaults to `[:default]`."
   [options]
   (vec (map coerce-reporter (requested-reporters options))))
+
+(defn- generate-seed
+  "Returns a fresh non-negative integer seed suitable for PHP's RNG."
+  []
+  (php/random_int 0 php/PHP_INT_MAX))
+
+(defn- resolve-seed
+  "Returns the seed `run-tests` should use, or `nil` when ordering is
+  deterministic and no seed was requested. An explicit `:seed` always
+  wins; `:random-order` without a seed gets a freshly generated one."
+  [options]
+  (cond
+    (:seed options)         (:seed options)
+    (:random-order options) (generate-seed)
+    :else                   nil))
 
 (defn- configure-run! [options]
   (reset! fail-fast? (:fail-fast options))
@@ -1360,7 +1399,15 @@
   (reset! timings [])
   (reset! failed-tests []))
 
+(defn- announce-seed!
+  "Prints `Seed: <n>` once at the start of a randomized run so failures
+  can be reproduced with `--seed=<n>`."
+  [options]
+  (when-let [seed (:seed-resolved options)]
+    (println (str "Seed: " seed))))
+
 (defn- execute-run! [options namespaces]
+  (announce-seed! options)
   (fan-out! {:type :begin-test-run})
   (dofor [namespace :in namespaces
           :when (not (should-stop?))]
@@ -1372,14 +1419,22 @@
 
 (defn run-tests
   "Runs all tests in the given namespaces. When `:list-only` is true,
-  prints the discovered tests and skips execution."
+  prints the discovered tests and skips execution.
+
+  Recognized option keys include `:filter`, `:filters`, `:include`,
+  `:exclude`, `:ns-patterns`, `:fail-fast`, `:stack-trace`, `:reporters`,
+  `:junit-output`, `:list-only`, `:only-tests`, `:last-failed-file`,
+  `:slowest`, `:repeat` (run the selected tests N times), `:seed`
+  (integer seed for the order RNG), and `:random-order` (shuffle tests
+  per namespace)."
   {:example "(run-tests {} 'my-app\\test)"}
   [options & namespaces]
-  (configure-run! options)
-  (reset-run-state!)
-  (if (:list-only options)
-    (list-tests! options namespaces)
-    (execute-run! options namespaces)))
+  (let [options (assoc options :seed-resolved (resolve-seed options))]
+    (configure-run! options)
+    (reset-run-state!)
+    (if (:list-only options)
+      (list-tests! options namespaces)
+      (execute-run! options namespaces))))
 
 (defn reset-stats
   "Resets the test statistics to their initial state.

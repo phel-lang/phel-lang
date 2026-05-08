@@ -1,0 +1,113 @@
+(ns phel-test.repeat-seed
+  (:require phel.test :as t :refer [deftest is])
+  (:require phel-test.fixtures.tagged-tests))
+
+;; Behavior coverage for `phel.test/run-tests` `:repeat`, `:seed`, and
+;; `:random-order` options.
+;;
+;; Each scenario uses the snapshot-and-restore pattern: the outer
+;; suite's stats and reporter set are saved, the inner run executes
+;; against a tiny fixture namespace, then everything is restored. The
+;; inner run's output is captured with `with-output-buffer` so it does
+;; not pollute the outer suite's reporter output.
+
+(def- fixture-ns 'phel-test.fixtures.tagged-tests)
+
+(defn- snapshot-run [options]
+  (let [saved-reporters (t/get-reporters)
+        saved-stats     (t/get-stats)
+        events          (atom [])
+        capture         (fn [e] (swap! events conj e))
+        run-options     (assoc options :reporters
+                               (conj (vec (:reporters options)) capture))]
+    (t/reset-stats)
+    (with-output-buffer
+      (t/run-tests run-options fixture-ns))
+    (let [snapshot (t/get-stats)]
+      (t/set-reporters! saved-reporters)
+      (t/restore-stats saved-stats)
+      {:events (deref events)
+       :stats  snapshot})))
+
+(defn- pass-count [events]
+  (count (for [e :in events
+               :when (and (= :pass (:state e))
+                          (not= :skipped (:type e)))])))
+
+(defn- begin-test-run-events [events]
+  (vec (for [e :in events :when (= :begin-test-run (:type e))])))
+
+;; ---------------------------------------------------------------------------
+;; :repeat — selected tests run N times, stats accumulate
+;; ---------------------------------------------------------------------------
+
+(deftest test-repeat-default-runs-each-test-once
+  (let [{:events events} (snapshot-run {:reporters []})]
+    ;; The fixture namespace exposes 3 deftests; each emits 1 assertion.
+    (is (= 3 (pass-count events)) "with default repeat each fixture runs once")))
+
+(deftest test-repeat-greater-than-one-multiplies-assertion-count
+  (let [{:events events} (snapshot-run {:reporters [] :repeat 3})]
+    (is (= 9 (pass-count events))
+        "repeat=3 yields 3x the assertions across the fixture namespace")))
+
+(deftest test-repeat-counter-increments-once-per-iteration
+  (let [counter         (atom 0)
+        bump-reporter   (fn [e]
+                          (when (and (= :pass (:state e))
+                                     (not= :skipped (:type e)))
+                            (swap! counter inc)))
+        saved-reporters (t/get-reporters)
+        saved-stats     (t/get-stats)]
+    (t/reset-stats)
+    (with-output-buffer
+      (t/run-tests {:reporters [bump-reporter] :repeat 4} fixture-ns))
+    (t/set-reporters! saved-reporters)
+    (t/restore-stats saved-stats)
+    ;; 3 fixtures × 4 iterations = 12 pass events.
+    (is (= 12 (deref counter))
+        "the per-iteration counter sees every assertion in every iteration")))
+
+;; ---------------------------------------------------------------------------
+;; :seed — fixed seed yields reproducible test order under :random-order
+;; ---------------------------------------------------------------------------
+
+(defn- ordered-test-names [seed]
+  (let [order (atom [])
+        capture (fn [e]
+                  (when (= :pass (:state e))
+                    (swap! order conj (:test-name e))))
+        saved-reporters (t/get-reporters)
+        saved-stats     (t/get-stats)]
+    (t/reset-stats)
+    (with-output-buffer
+      (t/run-tests {:reporters [capture]
+                    :random-order true
+                    :seed seed}
+                   fixture-ns))
+    (t/set-reporters! saved-reporters)
+    (t/restore-stats saved-stats)
+    (deref order)))
+
+(deftest test-fixed-seed-yields-deterministic-order
+  (let [first-run  (ordered-test-names 12345)
+        second-run (ordered-test-names 12345)]
+    (is (= first-run second-run)
+        "the same seed produces the same test order across runs")
+    (is (= 3 (count first-run))
+        "every fixture test appears in the captured order")))
+
+(deftest test-fixed-seed-produces-permutation-of-fixture-tests
+  (let [order (into (hash-set) (ordered-test-names 99))]
+    (is (contains? order "fixture-unit-passes") "unit fixture present")
+    (is (contains? order "fixture-integration-passes") "integration fixture present")
+    (is (contains? order "fixture-slow-integration-passes") "slow integration fixture present")))
+
+;; ---------------------------------------------------------------------------
+;; Lifecycle: :begin-test-run still fires exactly once even with repeat > 1
+;; ---------------------------------------------------------------------------
+
+(deftest test-repeat-emits-single-begin-test-run
+  (let [{:events events} (snapshot-run {:reporters [] :repeat 5})]
+    (is (= 1 (count (begin-test-run-events events)))
+        ":begin-test-run is still fired exactly once per run-tests call")))

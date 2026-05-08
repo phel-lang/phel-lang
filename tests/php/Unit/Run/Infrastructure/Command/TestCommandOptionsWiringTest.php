@@ -89,6 +89,33 @@ final class TestCommandOptionsWiringTest extends TestCase
         self::assertStringContainsString('slowest', strtolower($option->getDescription()));
     }
 
+    public function test_it_declares_repeat_option(): void
+    {
+        $option = $this->optionFor('repeat');
+
+        self::assertTrue($option->isValueRequired(), 'repeat takes a value');
+        self::assertSame(1, $option->getDefault(), 'repeat defaults to 1');
+        self::assertStringContainsString('flaky', strtolower($option->getDescription()));
+    }
+
+    public function test_it_declares_seed_option(): void
+    {
+        $option = $this->optionFor('seed');
+
+        self::assertTrue($option->isValueRequired(), 'seed takes a value');
+        self::assertNull($option->getDefault(), 'seed defaults to null');
+        self::assertStringContainsString('seed', strtolower($option->getDescription()));
+    }
+
+    public function test_it_declares_random_order_flag(): void
+    {
+        $option = $this->optionFor('random-order');
+
+        self::assertFalse($option->isValueRequired(), 'random-order is a flag');
+        self::assertFalse($option->getDefault(), 'random-order defaults to false');
+        self::assertStringContainsString('shuffle', strtolower($option->getDescription()));
+    }
+
     public function test_description_mentions_selector_semantics(): void
     {
         $include = $this->optionFor('include');
