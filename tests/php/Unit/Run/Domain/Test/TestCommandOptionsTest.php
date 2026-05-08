@@ -435,6 +435,87 @@ final class TestCommandOptionsTest extends TestCase
         self::assertStringContainsString(':slowest 7', $options->asPhelHashMap());
     }
 
+    public function test_repeat_emits_when_greater_than_one(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::REPEAT => 3,
+        ]);
+
+        self::assertStringContainsString(':repeat 3', $options->asPhelHashMap());
+    }
+
+    public function test_repeat_default_is_omitted(): void
+    {
+        $options = TestCommandOptions::fromArray([]);
+
+        self::assertStringNotContainsString(':repeat', $options->asPhelHashMap());
+    }
+
+    public function test_repeat_zero_or_negative_falls_back_to_one(): void
+    {
+        $zero = TestCommandOptions::fromArray([TestCommandOptions::REPEAT => 0]);
+        $negative = TestCommandOptions::fromArray([TestCommandOptions::REPEAT => -5]);
+
+        self::assertStringNotContainsString(':repeat', $zero->asPhelHashMap());
+        self::assertStringNotContainsString(':repeat', $negative->asPhelHashMap());
+    }
+
+    public function test_seed_emits_when_set(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::SEED => 42,
+        ]);
+
+        self::assertStringContainsString(':seed 42', $options->asPhelHashMap());
+    }
+
+    public function test_seed_default_is_omitted(): void
+    {
+        $options = TestCommandOptions::fromArray([]);
+
+        self::assertStringNotContainsString(':seed', $options->asPhelHashMap());
+    }
+
+    public function test_seed_non_int_is_dropped(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::SEED => 'not-a-number',
+        ]);
+
+        self::assertStringNotContainsString(':seed', $options->asPhelHashMap());
+    }
+
+    public function test_random_order_emits_keyword(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::RANDOM_ORDER => true,
+        ]);
+
+        self::assertStringContainsString(':random-order true', $options->asPhelHashMap());
+    }
+
+    public function test_random_order_default_is_omitted(): void
+    {
+        $options = TestCommandOptions::fromArray([]);
+
+        self::assertStringNotContainsString(':random-order', $options->asPhelHashMap());
+    }
+
+    public function test_repeat_seed_random_order_combined(): void
+    {
+        $options = TestCommandOptions::fromArray([
+            TestCommandOptions::REPEAT => 5,
+            TestCommandOptions::SEED => 1234,
+            TestCommandOptions::RANDOM_ORDER => true,
+        ]);
+
+        $printed = $options->asPhelHashMap();
+
+        self::assertStringContainsString(':repeat 5', $printed);
+        self::assertStringContainsString(':seed 1234', $printed);
+        self::assertStringContainsString(':random-order true', $printed);
+    }
+
     public function test_selector_order_in_output_is_stable_across_inputs(): void
     {
         // Regardless of input order, the output always emits selector keys

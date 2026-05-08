@@ -6,6 +6,7 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
+use InvalidArgumentException;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Infrastructure\CompileOptions;
@@ -21,6 +22,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
 use function count;
+use function is_numeric;
 use function is_string;
 use function sprintf;
 
@@ -59,6 +61,12 @@ final class TestCommand extends Command
     private const string OPT_LAST_FAILED = 'last-failed';
 
     private const string OPT_SLOWEST = 'slowest';
+
+    private const string OPT_REPEAT = 'repeat';
+
+    private const string OPT_SEED = 'seed';
+
+    private const string OPT_RANDOM_ORDER = 'random-order';
 
     private const string LAST_FAILED_FILE = '.phel/last-failed.txt';
 
@@ -132,13 +140,29 @@ final class TestCommand extends Command
                 self::OPT_LAST_FAILED,
                 null,
                 InputOption::VALUE_NONE,
-                'Re-run only tests that failed on the previous run. Reads ' . self::LAST_FAILED_FILE . ' from the current directory.',
+                'Re-run only tests that failed on the previous run. Reads ' . self::LAST_FAILED_FILE . ' from the current directory. Combine with --repeat to hammer flaky tests.',
             )->addOption(
                 self::OPT_SLOWEST,
                 null,
                 InputOption::VALUE_REQUIRED,
                 'Print the N slowest tests after the summary. 0 disables.',
                 0,
+            )->addOption(
+                self::OPT_REPEAT,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Run the selected tests N times in a row. Useful for catching flaky tests. Must be >= 1.',
+                1,
+            )->addOption(
+                self::OPT_SEED,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Integer seed for the test-order RNG. Printed at the start of every randomized run so failures can be reproduced.',
+            )->addOption(
+                self::OPT_RANDOM_ORDER,
+                null,
+                InputOption::VALUE_NONE,
+                'Shuffle the order of tests within each namespace. Uses --seed when provided, otherwise picks a fresh random seed.',
             );
     }
 
@@ -266,7 +290,38 @@ final class TestCommand extends Command
             TestCommandOptions::ONLY_TESTS => $lastFailed ? $this->readLastFailed() : [],
             TestCommandOptions::LAST_FAILED_FILE => $listOnly ? null : self::LAST_FAILED_FILE,
             TestCommandOptions::SLOWEST => (int) $input->getOption(self::OPT_SLOWEST),
+            TestCommandOptions::REPEAT => $this->parseRepeat($input),
+            TestCommandOptions::SEED => $this->parseSeed($input),
+            TestCommandOptions::RANDOM_ORDER => (bool) $input->getOption(self::OPT_RANDOM_ORDER),
         ];
+    }
+
+    private function parseRepeat(InputInterface $input): int
+    {
+        $raw = $input->getOption(self::OPT_REPEAT);
+        $value = is_numeric($raw) ? (int) $raw : 1;
+        if ($value < 1) {
+            throw new InvalidArgumentException(sprintf(
+                '--repeat must be a positive integer, got %s.',
+                is_string($raw) ? $raw : (string) $value,
+            ));
+        }
+
+        return $value;
+    }
+
+    private function parseSeed(InputInterface $input): ?int
+    {
+        $raw = $input->getOption(self::OPT_SEED);
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+
+        if (!is_numeric($raw)) {
+            throw new InvalidArgumentException(sprintf('--seed must be an integer, got %s.', (string) $raw));
+        }
+
+        return (int) $raw;
     }
 
     /**

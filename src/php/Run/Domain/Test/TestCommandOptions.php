@@ -7,6 +7,7 @@ namespace Phel\Run\Domain\Test;
 use Phel\Printer\Printer;
 
 use function is_array;
+use function is_int;
 use function is_string;
 
 final readonly class TestCommandOptions
@@ -39,6 +40,12 @@ final readonly class TestCommandOptions
 
     public const string SLOWEST = 'slowest';
 
+    public const string REPEAT = 'repeat';
+
+    public const string SEED = 'seed';
+
+    public const string RANDOM_ORDER = 'random-order';
+
     /**
      * @param list<string> $reporters
      * @param list<string> $filters
@@ -62,6 +69,9 @@ final readonly class TestCommandOptions
         private array $onlyTests,
         private ?string $lastFailedFile,
         private int $slowest,
+        private int $repeat,
+        private ?int $seed,
+        private bool $randomOrder,
     ) {}
 
     public static function empty(): self
@@ -89,6 +99,14 @@ final readonly class TestCommandOptions
             $slowest = 0;
         }
 
+        $repeat = (int) ($options[self::REPEAT] ?? 1);
+        if ($repeat < 1) {
+            $repeat = 1;
+        }
+
+        $seedRaw = $options[self::SEED] ?? null;
+        $seed = is_int($seedRaw) ? $seedRaw : null;
+
         return new self(
             $options[self::FILTER] ?? null,
             !empty($options[self::TESTDOX]),
@@ -104,6 +122,9 @@ final readonly class TestCommandOptions
             self::normalizeStringList($options[self::ONLY_TESTS] ?? null),
             is_string($lastFailedFile) ? $lastFailedFile : null,
             $slowest,
+            $repeat,
+            $seed,
+            !empty($options[self::RANDOM_ORDER]),
         );
     }
 
@@ -131,6 +152,18 @@ final readonly class TestCommandOptions
         $this->appendOptionalString($entries, ':last-failed-file', $this->lastFailedFile, $printer);
         if ($this->slowest > 0) {
             $entries[] = ':slowest ' . $this->slowest;
+        }
+
+        if ($this->repeat > 1) {
+            $entries[] = ':repeat ' . $this->repeat;
+        }
+
+        if ($this->seed !== null) {
+            $entries[] = ':seed ' . $this->seed;
+        }
+
+        if ($this->randomOrder) {
+            $entries[] = ':random-order true';
         }
 
         return '{' . implode(' ', $entries) . '}';
