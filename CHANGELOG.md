@@ -10,6 +10,11 @@ All notable changes to this project will be documented in this file.
 - `(is (= a b))` failures on collections render a `+`/`-`/`~` diff block under the existing summary
 - `phel test --repeat=N`, `--seed=<int>`, and `--random-order` flags for flake hunting and reproducible test order
 
+### Fixed
+
+#### Test
+- Default reporter dot output wraps uniformly at 80 columns when tests use `with-output-buffer`
+
 ## [0.36.0](https://github.com/phel-lang/phel-lang/compare/v0.35.0...v0.36.0) - 2026-05-08
 
 ### Added
