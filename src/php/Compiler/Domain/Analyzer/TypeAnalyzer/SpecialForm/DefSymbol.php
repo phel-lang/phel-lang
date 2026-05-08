@@ -233,8 +233,14 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
 
     private function isMemoised(PersistentMapInterface $meta): bool
     {
-        return $meta[Keyword::create('memoize')] === true
-            || $meta[Keyword::create('memoize-lru')] !== null;
+        return $this->metaTruthy($meta, 'memoize')
+            || $this->metaTruthy($meta, 'memoize-lru');
+    }
+
+    private function metaTruthy(PersistentMapInterface $meta, string $key): bool
+    {
+        $value = $meta[Keyword::create($key)];
+        return $value !== null && $value !== false;
     }
 
     private function buildFnNodeArglist(FnNode $fnNode, int $skipFirst = 0): string
