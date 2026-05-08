@@ -16,7 +16,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 #### Compiler
-- Recursive global-fn calls inside their own body emit `$this(...)` instead of a registry lookup (#1914)
+- Recursive global-fn calls inside their own body emit `$this(...)` instead of a registry lookup; ~3.66x faster on `fib(22)` (#1914)
 
 ### Fixed
 
