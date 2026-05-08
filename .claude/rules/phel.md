@@ -29,3 +29,8 @@ Every public function should have metadata:
 - Follow Clojure-aligned semantics where possible
 - Prefer `conj` over `put` for collection operations
 - Use `defstruct` for data types, not PHP classes
+
+## Macros
+
+- Read [macro-hygiene.md](macro-hygiene.md) before editing any `defmacro` body or quasiquote expansion
+- Local `let` names inside `` ` `` can silently shadow globals; suffix with `-arg`/`-flag` or use `name#` auto-gensym
