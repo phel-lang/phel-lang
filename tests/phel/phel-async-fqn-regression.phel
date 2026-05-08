@@ -1,4 +1,4 @@
-(ns phel.test.phel-async-fqn-regression
+(ns phel-test.phel-async-fqn-regression
   (:require phel.test :refer [deftest is]))
 
 (deftest phel-async-delay-resolves-via-fqn
