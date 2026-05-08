@@ -719,30 +719,40 @@
   (println)
   (print-counts-summary event))
 
+(defn- emit-marker!
+  "Prints a single progress marker and wraps the line every 80 markers."
+  [ch]
+  (let [n (swap! default-line-count inc)]
+    (print ch)
+    (when (= 0 (% n 80)) (println))))
+
+(defn- assertion-marker [state]
+  (case state :failed "F" :error "E" "."))
+
 (defn- default-reporter
   "Human-readable dot output. Preserves the legacy behavior: `.` for
   pass, `F` for fail, `E` for error, plus periodic newlines so long
   runs wrap at 80 columns. `S` marks a skipped test."
   [event]
+  ;; Dot/wrap branches are skipped when an outer `with-output-buffer`
+  ;; silences this reporter: counting invisible dots and resetting the
+  ;; shared counter would break the 80-column wrap of the surrounding run.
   (let [type (:type event)]
     (cond
+      (= type :summary)
+      (print-summary-block event)
+
+      (pos? (php/ob_get_level))
+      nil
+
       (= type :begin-test-run)
       (reset! default-line-count 0)
 
       (assertion-event? event)
-      (let [state (:state event)
-            ch    (case state :failed "F" :error "E" ".")
-            n     (swap! default-line-count inc)]
-        (print ch)
-        (when (= 0 (% n 80)) (println)))
+      (emit-marker! (assertion-marker (:state event)))
 
       (= type :skipped)
-      (let [n (swap! default-line-count inc)]
-        (print "S")
-        (when (= 0 (% n 80)) (println)))
-
-      (= type :summary)
-      (print-summary-block event))))
+      (emit-marker! "S"))))
 
 (defn- testdox-reporter
   "Per-assertion single-line description used by the `--reporter=testdox`
