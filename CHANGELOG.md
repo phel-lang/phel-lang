@@ -9,6 +9,9 @@ All notable changes to this project will be documented in this file.
 #### Core
 - `^:memoize` and `^{:memoize-lru N}` metadata on `defn` wrap the fn with `memoize` / `memoize-lru` (#1915)
 
+#### Profile
+- `phel profile <path>` command: per-fn call counts and self/total/avg/max timings, plus compile-time phase costs (lex, parse, read, analyze, emit). Text table by default; `--format=json|both` and `--output=<file>` for tooling
+
 #### Test
 - `(is (= a b))` failures on collections render a unified diff block
 - `phel test --repeat=N`, `--seed=<int>`, and `--random-order` flags

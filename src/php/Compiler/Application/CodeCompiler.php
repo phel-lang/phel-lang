@@ -26,7 +26,11 @@ use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Lang\ProfilerHookInterface;
+use Phel\Lang\Registry;
 use Phel\Lang\TypeInterface;
+
+use function hrtime;
 
 final readonly class CodeCompiler implements CodeCompilerInterface
 {
@@ -48,26 +52,52 @@ final readonly class CodeCompiler implements CodeCompilerInterface
      */
     public function compileString(string $phelCode, CompileOptions $compileOptions): EmitterResult
     {
-        $tokenStream = $this->lexer->lexString(
-            $phelCode,
-            $compileOptions->getSource(),
-            $compileOptions->getStartingLine(),
-        );
+        $hook = Registry::$profilerHook;
+        $source = $compileOptions->getSource();
 
-        $this->fileEmitter->startFile($compileOptions->getSource());
+        if ($hook instanceof ProfilerHookInterface) {
+            $tStart = hrtime(true);
+            $tokenStream = $this->lexer->lexString($phelCode, $source, $compileOptions->getStartingLine());
+            $hook->recordPhase('lex', $source, (hrtime(true) - $tStart) / 1_000_000);
+        } else {
+            $tokenStream = $this->lexer->lexString($phelCode, $source, $compileOptions->getStartingLine());
+        }
+
+        $this->fileEmitter->startFile($source);
         while (true) {
             try {
-                $parseTree = $this->parser->parseNext($tokenStream);
+                if ($hook instanceof ProfilerHookInterface) {
+                    $tStart = hrtime(true);
+                    $parseTree = $this->parser->parseNext($tokenStream);
+                    $hook->recordPhase('parse', $source, (hrtime(true) - $tStart) / 1_000_000);
+                } else {
+                    $parseTree = $this->parser->parseNext($tokenStream);
+                }
+
                 // If we reached the end exit this loop
                 if (!$parseTree instanceof NodeInterface) {
                     break;
                 }
 
                 if (!$parseTree instanceof TriviaNodeInterface) {
-                    $readerResult = $this->reader->read($parseTree);
-                    $node = $this->analyze($readerResult);
-                    // We need to evaluate every statement because we may need it for macros.
-                    $this->emitNode($node, $compileOptions);
+                    if ($hook instanceof ProfilerHookInterface) {
+                        $tStart = hrtime(true);
+                        $readerResult = $this->reader->read($parseTree);
+                        $hook->recordPhase('read', $source, (hrtime(true) - $tStart) / 1_000_000);
+
+                        $tStart = hrtime(true);
+                        $node = $this->analyze($readerResult);
+                        $hook->recordPhase('analyze', $source, (hrtime(true) - $tStart) / 1_000_000);
+
+                        $tStart = hrtime(true);
+                        $this->emitNode($node, $compileOptions);
+                        $hook->recordPhase('emit', $source, (hrtime(true) - $tStart) / 1_000_000);
+                    } else {
+                        $readerResult = $this->reader->read($parseTree);
+                        $node = $this->analyze($readerResult);
+                        // We need to evaluate every statement because we may need it for macros.
+                        $this->emitNode($node, $compileOptions);
+                    }
                 }
             } catch (AbstractParserException|ReaderException $e) {
                 throw new CompilerException($e, $e->getCodeSnippet());
