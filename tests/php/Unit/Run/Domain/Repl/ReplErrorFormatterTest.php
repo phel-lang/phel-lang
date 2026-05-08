@@ -137,6 +137,27 @@ final class ReplErrorFormatterTest extends TestCase
         self::assertStringContainsString('*no message*', $rendered);
     }
 
+    public function test_strips_eval_path_from_php_injected_message(): void
+    {
+        $formatter = $this->buildFormatter('');
+        $message = "Too few arguments to function Foo::bar(), 0 passed in /Users/dev/repo/src/php/Compiler/Domain/Evaluator/InMemoryEvaluator.php(26) : eval()'d code on line 3 and exactly 1 expected";
+
+        $rendered = $formatter->render(new RuntimeException($message));
+
+        self::assertStringContainsString('0 passed and exactly 1 expected', $rendered);
+        self::assertStringNotContainsString('InMemoryEvaluator.php', $rendered);
+        self::assertStringNotContainsString("eval()'d code", $rendered);
+    }
+
+    public function test_leaves_message_untouched_when_no_eval_path_present(): void
+    {
+        $formatter = $this->buildFormatter('');
+
+        $rendered = $formatter->render(new RuntimeException('plain user-provided message'));
+
+        self::assertStringContainsString('plain user-provided message', $rendered);
+    }
+
     private function buildFormatter(string $trace): ReplErrorFormatter
     {
         return new ReplErrorFormatter(
