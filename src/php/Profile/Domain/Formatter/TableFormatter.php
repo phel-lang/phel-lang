@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Profile\Domain\Formatter;
 
 use Phel\Profile\Domain\ProfileReport;
-use Phel\Profile\ProfileConfig;
+use Phel\Profile\Domain\SortOrder;
 
 use function array_keys;
 use function array_map;
@@ -25,7 +25,7 @@ use function uasort;
 
 final class TableFormatter
 {
-    public function render(ProfileReport $report, int $top, string $sort, bool $includeCompilePhases): string
+    public function render(ProfileReport $report, int $top, SortOrder $sort, bool $includeCompilePhases): string
     {
         $out = '';
 
@@ -85,7 +85,7 @@ final class TableFormatter
         return $line . '  ' . str_pad('total', 8, ' ', STR_PAD_LEFT) . "\n";
     }
 
-    private function renderFnStats(ProfileReport $report, int $top, string $sort): string
+    private function renderFnStats(ProfileReport $report, int $top, SortOrder $sort): string
     {
         $stats = $report->fnStats();
         if ($stats === []) {
@@ -98,7 +98,7 @@ final class TableFormatter
         $names = array_map($this->displayName(...), array_keys($rows));
         $nameWidth = max(20, ...array_map(strlen(...), $names));
 
-        $out = sprintf("Runtime fn profile (top %d, sort by %s)\n", count($rows), $sort);
+        $out = sprintf("Runtime fn profile (top %d, sort by %s)\n", count($rows), $sort->value);
         $out .= '  ' . str_pad('fn', $nameWidth) . '  '
             . str_pad('calls', 9, ' ', STR_PAD_LEFT) . '  '
             . str_pad('self ms', 10, ' ', STR_PAD_LEFT) . '  '
@@ -130,13 +130,13 @@ final class TableFormatter
     /**
      * @return callable(array{calls:int, totalNs:int, selfNs:int, maxNs:int}, array{calls:int, totalNs:int, selfNs:int, maxNs:int}): int
      */
-    private function sortComparator(string $sort): callable
+    private function sortComparator(SortOrder $sort): callable
     {
         return match ($sort) {
-            ProfileConfig::SORT_TOTAL => static fn(array $a, array $b): int => $b['totalNs'] <=> $a['totalNs'],
-            ProfileConfig::SORT_CALLS => static fn(array $a, array $b): int => $b['calls'] <=> $a['calls'],
-            ProfileConfig::SORT_AVG => static fn(array $a, array $b): int => ((float) $b['totalNs'] / (float) max($b['calls'], 1)) <=> ((float) $a['totalNs'] / (float) max($a['calls'], 1)),
-            default => static fn(array $a, array $b): int => $b['selfNs'] <=> $a['selfNs'],
+            SortOrder::TotalTime => static fn(array $a, array $b): int => $b['totalNs'] <=> $a['totalNs'],
+            SortOrder::Calls => static fn(array $a, array $b): int => $b['calls'] <=> $a['calls'],
+            SortOrder::Avg => static fn(array $a, array $b): int => ((float) $b['totalNs'] / (float) max($b['calls'], 1)) <=> ((float) $a['totalNs'] / (float) max($a['calls'], 1)),
+            SortOrder::SelfTime => static fn(array $a, array $b): int => $b['selfNs'] <=> $a['selfNs'],
         };
     }
 

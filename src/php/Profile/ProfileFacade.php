@@ -7,6 +7,7 @@ namespace Phel\Profile;
 use Gacela\Framework\AbstractFacade;
 use Phel\Profile\Domain\ProfileReport;
 use Phel\Profile\Domain\ProfilerSession;
+use Phel\Profile\Domain\SortOrder;
 
 /**
  * @extends AbstractFacade<ProfileFactory>
@@ -18,7 +19,7 @@ final class ProfileFacade extends AbstractFacade
         return $this->getFactory()->createSession();
     }
 
-    public function renderTable(ProfileReport $report, int $top, string $sort, bool $includeCompilePhases): string
+    public function renderTable(ProfileReport $report, int $top, SortOrder $sort, bool $includeCompilePhases): string
     {
         return $this->getFactory()->createTableFormatter()->render($report, $top, $sort, $includeCompilePhases);
     }

@@ -31,7 +31,9 @@ Profile/
 │   │   └── TableFormatter.php
 │   ├── ProfileReport.php       Immutable result: per-fn stats + per-source phase ms + wall-clock ms
 │   ├── ProfilerSession.php     Implements ProfilerHookInterface; stack-based self/total accounting
-│   └── ProfilingFn.php         AbstractFn proxy; times each __invoke via session
+│   ├── ProfilingFn.php         AbstractFn proxy; times each __invoke via session
+│   ├── ReportFormat.php        Enum: Table, Json, Both (with emitsTable/emitsJson predicates)
+│   └── SortOrder.php           Enum: SelfTime, TotalTime, Calls, Avg
 ├── Infrastructure/
 │   └── Command/
 │       └── ProfileCommand.php  Symfony Command; reuses RunFacade::runFile / runNamespace

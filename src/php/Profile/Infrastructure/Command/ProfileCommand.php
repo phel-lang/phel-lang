@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Profile\Infrastructure\Command;
 
+use BackedEnum;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Compiler\Application\Munge;
@@ -11,6 +12,8 @@ use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Lang\Registry;
 use Phel\Phel;
 use Phel\Profile\Domain\ProfileReport;
+use Phel\Profile\Domain\ReportFormat;
+use Phel\Profile\Domain\SortOrder;
 use Phel\Profile\ProfileConfig;
 use Phel\Profile\ProfileFacade;
 use Phel\Profile\ProfileFactory;
@@ -19,12 +22,13 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+
 use Throwable;
 
+use function array_map;
 use function file_exists;
 use function file_put_contents;
 use function implode;
-use function in_array;
 use function is_array;
 use function is_string;
 use function sprintf;
@@ -62,9 +66,9 @@ final class ProfileCommand extends Command
             ->addArgument(self::ARG_PATH, InputArgument::OPTIONAL, 'File path or namespace to profile.')
             ->addArgument(self::ARG_ARGV, InputArgument::IS_ARRAY | InputArgument::OPTIONAL, 'Optional script arguments.', [])
             ->addOption(self::OPT_TOP, null, InputOption::VALUE_REQUIRED, 'Show top N fns in the table.', (string) ProfileConfig::DEFAULT_TOP)
-            ->addOption(self::OPT_FORMAT, null, InputOption::VALUE_REQUIRED, 'Output format: table, json, both.', ProfileConfig::FORMAT_TABLE)
+            ->addOption(self::OPT_FORMAT, null, InputOption::VALUE_REQUIRED, 'Output format: table, json, both.', ReportFormat::Table->value)
             ->addOption(self::OPT_OUTPUT, null, InputOption::VALUE_REQUIRED, 'Write JSON report to this file.')
-            ->addOption(self::OPT_SORT, null, InputOption::VALUE_REQUIRED, 'Sort fns by: self, total, calls, avg.', ProfileConfig::SORT_SELF)
+            ->addOption(self::OPT_SORT, null, InputOption::VALUE_REQUIRED, 'Sort fns by: self, total, calls, avg.', SortOrder::SelfTime->value)
             ->addOption(self::OPT_NO_COMPILE_PHASES, null, InputOption::VALUE_NONE, 'Skip the compile-time phase report.');
     }
 
@@ -75,23 +79,17 @@ final class ProfileCommand extends Command
             return self::FAILURE;
         }
 
-        $sort = $this->validateChoice(
-            $input,
-            $output,
-            self::OPT_SORT,
-            [ProfileConfig::SORT_SELF, ProfileConfig::SORT_TOTAL, ProfileConfig::SORT_CALLS, ProfileConfig::SORT_AVG],
-        );
+        $sort = SortOrder::tryFrom((string) $input->getOption(self::OPT_SORT));
         if ($sort === null) {
+            $this->writeUnknownOption($output, self::OPT_SORT, (string) $input->getOption(self::OPT_SORT), SortOrder::cases());
+
             return self::FAILURE;
         }
 
-        $format = $this->validateChoice(
-            $input,
-            $output,
-            self::OPT_FORMAT,
-            [ProfileConfig::FORMAT_TABLE, ProfileConfig::FORMAT_JSON, ProfileConfig::FORMAT_BOTH],
-        );
+        $format = ReportFormat::tryFrom((string) $input->getOption(self::OPT_FORMAT));
         if ($format === null) {
+            $this->writeUnknownOption($output, self::OPT_FORMAT, (string) $input->getOption(self::OPT_FORMAT), ReportFormat::cases());
+
             return self::FAILURE;
         }
 
@@ -140,20 +138,19 @@ final class ProfileCommand extends Command
         ProfileReport $report,
         InputInterface $input,
         OutputInterface $output,
-        string $sort,
-        string $format,
+        SortOrder $sort,
+        ReportFormat $format,
     ): void {
         $top = $this->resolveTop($input);
         $includeCompilePhases = !$input->getOption(self::OPT_NO_COMPILE_PHASES);
 
-        if (in_array($format, [ProfileConfig::FORMAT_TABLE, ProfileConfig::FORMAT_BOTH], true)) {
+        if ($format->emitsTable()) {
             $output->write($this->getFacade()->renderTable($report, $top, $sort, $includeCompilePhases));
         }
 
         $outputFile = $input->getOption(self::OPT_OUTPUT);
         $writeToFile = is_string($outputFile) && $outputFile !== '';
-        $emitJson = $writeToFile || in_array($format, [ProfileConfig::FORMAT_JSON, ProfileConfig::FORMAT_BOTH], true);
-        if (!$emitJson) {
+        if (!$writeToFile && !$format->emitsJson()) {
             return;
         }
 
@@ -165,7 +162,7 @@ final class ProfileCommand extends Command
             return;
         }
 
-        if ($format === ProfileConfig::FORMAT_BOTH) {
+        if ($format === ReportFormat::Both) {
             $output->writeln('');
         }
 
@@ -198,14 +195,11 @@ final class ProfileCommand extends Command
     }
 
     /**
-     * @param list<string> $allowed
+     * @param list<BackedEnum> $cases
      */
-    private function validateChoice(InputInterface $input, OutputInterface $output, string $option, array $allowed): ?string
+    private function writeUnknownOption(OutputInterface $output, string $option, string $value, array $cases): void
     {
-        $value = (string) $input->getOption($option);
-        if (in_array($value, $allowed, true)) {
-            return $value;
-        }
+        $allowed = array_map(static fn(BackedEnum $c): string => (string) $c->value, $cases);
 
         $output->writeln(sprintf(
             '<error>Unknown %s: %s. Allowed: %s.</error>',
@@ -213,7 +207,5 @@ final class ProfileCommand extends Command
             $value,
             implode(', ', $allowed),
         ));
-
-        return null;
     }
 }
