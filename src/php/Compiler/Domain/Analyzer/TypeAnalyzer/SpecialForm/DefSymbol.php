@@ -419,7 +419,11 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
             }
 
             $arityItems = $arity->toArray();
-            if ($arityItems === [] || !$arityItems[0] instanceof PersistentVectorInterface) {
+            if ($arityItems === []) {
+                continue;
+            }
+
+            if (!$arityItems[0] instanceof PersistentVectorInterface) {
                 continue;
             }
 
