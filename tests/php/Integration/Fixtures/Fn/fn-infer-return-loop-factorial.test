@@ -1,0 +1,24 @@
+--PHEL--
+(fn [^int n]
+  (loop [i n acc 1]
+    (if (php/<= i 1)
+      acc
+      (recur (php/- i 1) (php/* acc i)))))
+--PHP--
+(function(int $n): int {
+  $i_1 = $n;
+  $acc_2 = 1;
+  while (true) {
+    if (($__truthy = ($i_1 <= 1)) !== null && $__truthy !== false) {
+      return $acc_2;
+    } else {
+      $__phel_3 = ($i_1 - 1);
+      $__phel_4 = ($acc_2 * $i_1);
+      $i_1 = $__phel_3;
+      $acc_2 = $__phel_4;
+      continue;
+
+    }
+    break;
+  }
+});

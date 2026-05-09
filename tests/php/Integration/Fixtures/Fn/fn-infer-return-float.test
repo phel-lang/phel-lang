@@ -1,0 +1,6 @@
+--PHEL--
+(fn [^float x ^int n] (php/+ x n))
+--PHP--
+(function(float $x, int $n): float {
+  return ($x + $n);
+});

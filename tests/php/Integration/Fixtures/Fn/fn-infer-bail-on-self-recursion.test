@@ -1,0 +1,35 @@
+--PHEL--
+(defn fib [^int n] (if (php/< n 2) n (php/+ (fib (php/- n 1)) (fib (php/- n 2)))))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "fib",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\fib";
+
+    public function __invoke(int $n) {
+      if (($__truthy = ($n < 2)) !== null && $__truthy !== false) {
+        return $n;
+      } else {
+        return ($this(($n - 1)) + $this(($n - 2)));
+      }
+
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("doc"), "```phel\n(fib n)\n```\n",
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-infer-bail-on-self-recursion.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-infer-bail-on-self-recursion.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 82
+    ),
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[n]"
+  )
+);

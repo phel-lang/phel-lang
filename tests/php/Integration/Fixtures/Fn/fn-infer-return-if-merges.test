@@ -1,0 +1,11 @@
+--PHEL--
+(fn [^int x] (if (php/< x 0) 0 (php/+ x 1)))
+--PHP--
+(function(int $x): int {
+  if (($__truthy = ($x < 0)) !== null && $__truthy !== false) {
+    return 0;
+  } else {
+    return ($x + 1);
+  }
+
+});

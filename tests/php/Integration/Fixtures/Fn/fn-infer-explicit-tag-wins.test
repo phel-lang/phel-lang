@@ -1,0 +1,6 @@
+--PHEL--
+(fn ^bool [^int x ^int y] (php/+ x y))
+--PHP--
+(function(int $x, int $y): bool {
+  return ($x + $y);
+});

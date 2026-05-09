@@ -37,6 +37,7 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
     public function __construct(
         private AnalyzerInterface $analyzer,
         private bool $assertsEnabled = true,
+        private ReturnTypeInferrer $returnTypeInferrer = new ReturnTypeInferrer(),
     ) {}
 
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
@@ -143,16 +144,25 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         // don't emit a colliding `use (&$name)` / `$name = $this;`.
         $effectiveName = $this->resolveEffectiveName($name, $fnSymbolTuple->params());
 
+        $body = $this->analyzeBody($fnSymbolTuple, $recurFrame, $env, $effectiveName);
+        $declaredReturnType = $this->extractReturnType($list->get(1));
+        $returnType = $declaredReturnType
+            ?? $this->returnTypeInferrer->infer(
+                $body,
+                $fnSymbolTuple->params(),
+                $fnSymbolTuple->isVariadic(),
+            );
+
         return new FnNode(
             $env,
             $fnSymbolTuple->params(),
-            $this->analyzeBody($fnSymbolTuple, $recurFrame, $env, $effectiveName),
+            $body,
             $this->buildUsesFromEnv($env, $fnSymbolTuple, $effectiveName),
             $fnSymbolTuple->isVariadic(),
             $recurFrame->isActive(),
             $list->getStartLocation(),
             $effectiveName,
-            $this->extractReturnType($list->get(1)),
+            $returnType,
         );
     }
 
