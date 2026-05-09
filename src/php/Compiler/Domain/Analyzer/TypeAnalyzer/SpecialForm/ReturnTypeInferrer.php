@@ -245,25 +245,26 @@ final class ReturnTypeInferrer
     private function inferCall(CallNode $node, array $locals): ?string
     {
         $fn = $node->getFn();
+        return match (true) {
+            $fn instanceof GlobalVarNode => $this->inferGlobalCall($fn),
+            $fn instanceof PhpVarNode => $this->inferPhpCall($fn, $node, $locals),
+            default => null,
+        };
+    }
 
-        if ($fn instanceof GlobalVarNode) {
-            return $this->inferGlobalCall($fn);
-        }
-
-        if (!$fn instanceof PhpVarNode) {
-            return null;
-        }
-
+    /**
+     * @param array<string, string> $locals
+     */
+    private function inferPhpCall(PhpVarNode $fn, CallNode $node, array $locals): ?string
+    {
         $op = $fn->getName();
 
         if (isset(self::COMPARISON_OPS[$op])) {
-            $this->sawOperator = true;
-            return self::COMPARISON_OPS[$op];
+            return $this->publish(self::COMPARISON_OPS[$op]);
         }
 
         if ($op === '.') {
-            $this->sawOperator = true;
-            return 'string';
+            return $this->publish('string');
         }
 
         if (in_array($op, self::NUMERIC_OPS, true)) {
@@ -272,8 +273,7 @@ final class ReturnTypeInferrer
         }
 
         if (isset(self::PURE_PHP_FN_RETURN[$op])) {
-            $this->sawOperator = true;
-            return self::PURE_PHP_FN_RETURN[$op];
+            return $this->publish(self::PURE_PHP_FN_RETURN[$op]);
         }
 
         return null;
@@ -289,18 +289,14 @@ final class ReturnTypeInferrer
      */
     private function inferGlobalCall(GlobalVarNode $fn): ?string
     {
-        $meta = $fn->getMeta();
-        $tag = $meta->find(Keyword::create('tag'));
-        if ($tag instanceof Symbol) {
-            $tag = $tag->getName();
-        }
+        $tag = $this->tagFromMeta($fn->getMeta());
+        return $tag === null ? null : $this->publish($tag);
+    }
 
-        if (!is_string($tag) || $tag === '') {
-            return null;
-        }
-
+    private function publish(string $type): string
+    {
         $this->sawOperator = true;
-        return $tag;
+        return $type;
     }
 
     /**
@@ -343,10 +339,14 @@ final class ReturnTypeInferrer
     private function extractTag(Symbol $param): ?string
     {
         $meta = $param->getMeta();
-        if (!$meta instanceof PersistentMapInterface) {
-            return null;
-        }
+        return $meta instanceof PersistentMapInterface ? $this->tagFromMeta($meta) : null;
+    }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed> $meta
+     */
+    private function tagFromMeta(PersistentMapInterface $meta): ?string
+    {
         $tag = $meta->find(Keyword::create('tag'));
         if ($tag instanceof Symbol) {
             return $tag->getName();
