@@ -9,7 +9,7 @@ Replace dependencies with controlled stand-ins for testing.
 
 (deftest test-fetch-user
   (let [mock-http (mock {:id 1 :name "Alice"})]
-    (binding [http-get mock-http]
+    (with-redefs [http-get mock-http]
       (fetch-user 123)
       (is (called-with? mock-http "/users/123")))))
 ```
@@ -77,7 +77,5 @@ For long-running processes:
 ```phel
 (clear-all-mocks!)
 ```
-
----
 
 See `tests/phel/mock.phel` for more examples.
