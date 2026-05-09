@@ -72,14 +72,22 @@
           docstring       (php/. "```phel\n" signatures "\n```\n" docstring)
           meta            (php/-> meta (put :doc docstring))
           memoize-flag    (php/aget meta :memoize)
-          memoize-lru-arg (php/aget meta :memoize-lru)]
+          memoize-lru-arg (php/aget meta :memoize-lru)
+          async-flag      (php/aget meta :async)
+          fn-form         (if async-flag
+                            (if (php/instanceof (first fdecl) PersistentVectorInterface)
+                              `(fn ~(first fdecl) (async ~@(next fdecl)))
+                              `(fn ~@(map (fn [arity]
+                                            `(~(first arity) (async ~@(next arity))))
+                                          fdecl)))
+                            `(fn ~@fdecl))]
       (if memoize-lru-arg
         (if (php/=== memoize-lru-arg true)
-          `(def ~name ~meta (memoize-lru (fn ~@fdecl)))
-          `(def ~name ~meta (memoize-lru (fn ~@fdecl) ~memoize-lru-arg)))
+          `(def ~name ~meta (memoize-lru ~fn-form))
+          `(def ~name ~meta (memoize-lru ~fn-form ~memoize-lru-arg)))
         (if memoize-flag
-          `(def ~name ~meta (memoize (fn ~@fdecl)))
-          `(def ~name ~meta (fn ~@fdecl)))))))
+          `(def ~name ~meta (memoize ~fn-form))
+          `(def ~name ~meta ~fn-form))))))
 
 (def defn
   {:macro true
