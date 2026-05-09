@@ -1,0 +1,7 @@
+--PHEL--
+(fn [& ^{:tag "int"} xs] xs)
+--PHP--
+(function(int ...$xs) {
+  $xs = \Phel::vector($xs);
+  return $xs;
+});

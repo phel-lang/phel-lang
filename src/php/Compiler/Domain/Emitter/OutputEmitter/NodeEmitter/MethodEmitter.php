@@ -11,6 +11,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 
 use function count;
+use function is_string;
 
 final readonly class MethodEmitter
 {
@@ -41,10 +42,16 @@ final readonly class MethodEmitter
         $paramsCount = count($node->getParams());
 
         foreach ($node->getParams() as $i => $symbol) {
-            if ($i === $paramsCount - 1 && $node->isVariadic()) {
+            $isVariadicTail = $i === $paramsCount - 1 && $node->isVariadic();
+            $meta = $symbol->getMeta();
+            $tag = $this->extractTypeTag($meta);
+            if ($tag !== null) {
+                $this->outputEmitter->emitStr($tag . ' ', $node->getStartSourceLocation());
+            }
+
+            if ($isVariadicTail) {
                 $this->outputEmitter->emitPhpVariable($symbol, $loc = null, $asReference = false, $isVariadic = true);
             } else {
-                $meta = $symbol->getMeta();
                 $isReference = $meta instanceof PersistentMapInterface && $meta->find(Keyword::create('reference')) === true;
                 $this->outputEmitter->emitPhpVariable($symbol, $loc = null, $isReference);
             }
@@ -67,6 +74,16 @@ final readonly class MethodEmitter
 
         $this->emitMethodVariadicParameters($node);
         $this->emitMethodBody($node);
+    }
+
+    private function extractTypeTag(mixed $meta): ?string
+    {
+        if (!$meta instanceof PersistentMapInterface) {
+            return null;
+        }
+
+        $tag = $meta->find(Keyword::create('tag'));
+        return is_string($tag) && $tag !== '' ? $tag : null;
     }
 
     /**
