@@ -52,12 +52,17 @@ final readonly class PhelFunctionRuntimeLoader
                 ->getNamespaceFromFile($phelFile)
                 ->getNamespace();
 
+            // Seed the topological sort with every requested namespace
+            // (in addition to the temp doc namespace and core) so a stray
+            // parse / require failure on the generated doc.phel cannot
+            // silently drop one of them. CI saw `phel.async` go missing
+            // intermittently otherwise.
             $namespaceInformation = $this->runFacade->getDependenciesForNamespace(
                 [
                     dirname($phelFile),
                     ...$this->runFacade->getAllPhelDirectories(),
                 ],
-                [$namespace, 'phel.core'],
+                [$namespace, 'phel.core', ...$namespaces],
             );
 
             foreach ($namespaceInformation as $info) {
