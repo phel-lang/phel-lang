@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Analyzer;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Symbol;
 
 interface AnalyzerInterface
@@ -34,6 +35,8 @@ interface AnalyzerInterface
     public function addRefers(string $ns, array $referSymbols, Symbol $nsSymbol): void;
 
     public function addDefinition(string $ns, Symbol $symbol): void;
+
+    public function setCompileTimeMeta(string $ns, Symbol $symbol, PersistentMapInterface $meta): void;
 
     public function addInterface(string $ns, Symbol $name): void;
 

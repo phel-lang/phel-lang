@@ -89,6 +89,23 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
             $metaMap = $metaMap->put('arglists', $this->buildMultiFnNodeArglists($initNode, $skip));
         }
 
+        // Stash a compile-time-only superset of the meta with `:param-tags`
+        // attached so subsequent calls in the same compilation unit can
+        // run static type checks against the def's declared param tags
+        // without round-tripping through the runtime registry (which
+        // `compile`-only flows never populate). The runtime `$meta`
+        // built below intentionally omits `:param-tags` so the emitted
+        // PHP keeps its existing shape.
+        if ($initNode instanceof FnNode) {
+            $this->analyzer->setCompileTimeMeta(
+                $namespace,
+                $nameSymbol,
+                $metaMap->put(Keyword::create('param-tags'), $this->buildParamTags($initNode, $skip)),
+            );
+        } else {
+            $this->analyzer->setCompileTimeMeta($namespace, $nameSymbol, $metaMap);
+        }
+
         $meta = $this->analyzer->analyze($metaMap, $env->withExpressionContext());
         assert($meta instanceof MapNode);
 
@@ -265,6 +282,32 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     private function buildFnNodeArglist(FnNode $fnNode, int $skipFirst = 0): string
     {
         return $this->formatParamsVector($fnNode->getParams(), $fnNode->isVariadic(), $skipFirst);
+    }
+
+    /**
+     * Static-checker view of the params: a Phel vector with the same
+     * arity, where each slot is the param's `:tag` (string) or `null`
+     * if untagged. The variadic tail is excluded — its `:tag` describes
+     * element type, not the bound `Vector`.
+     */
+    private function buildParamTags(FnNode $fnNode, int $skipFirst = 0): PersistentVectorInterface
+    {
+        $params = $fnNode->getParams();
+        if ($skipFirst > 0) {
+            $params = array_slice($params, $skipFirst);
+        }
+
+        $count = count($params);
+        if ($fnNode->isVariadic() && $count > 0) {
+            --$count;
+        }
+
+        $tags = [];
+        for ($i = 0; $i < $count; ++$i) {
+            $tags[] = TagCompatibility::extractParamTag($params[$i]);
+        }
+
+        return Phel::vector($tags);
     }
 
     private function buildMultiFnNodeArglists(MultiFnNode $multiFnNode, int $skipFirst = 0): string

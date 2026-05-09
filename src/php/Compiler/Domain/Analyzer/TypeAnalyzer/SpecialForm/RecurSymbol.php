@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
+use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\RecurFrame;
 use Phel\Compiler\Domain\Analyzer\Ast\RecurNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
@@ -13,6 +14,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 
 use function count;
+use function sprintf;
 
 /**
  * (recur args...).
@@ -47,10 +49,13 @@ final class RecurSymbol implements SpecialFormAnalyzerInterface
 
         $currentFrame->setIsActive(true);
 
+        $expressions = $this->expressions($list, $env);
+        $this->verifyParamTagsAgainstExpressions($currentFrame, $expressions, $list);
+
         return new RecurNode(
             $env,
             $currentFrame,
-            $this->expressions($list, $env),
+            $expressions,
             $list->getStartLocation(),
         );
     }
@@ -66,6 +71,40 @@ final class RecurSymbol implements SpecialFormAnalyzerInterface
         }
 
         return $expressions;
+    }
+
+    /**
+     * @param list<AbstractNode> $expressions
+     */
+    private function verifyParamTagsAgainstExpressions(
+        RecurFrame $frame,
+        array $expressions,
+        PersistentListInterface $list,
+    ): void {
+        foreach ($frame->getParams() as $i => $param) {
+            $tag = TagCompatibility::extractParamTag($param);
+            if ($tag === null) {
+                continue;
+            }
+
+            $arg = $expressions[$i] ?? null;
+            if ($arg === null) {
+                continue;
+            }
+
+            $literalType = TagCompatibility::literalTypeOf($arg);
+            if ($literalType === null) {
+                continue;
+            }
+
+            if (!TagCompatibility::accepts($tag, $literalType)) {
+                throw AnalyzerException::withLocation(
+                    "'recur arg #" . ($i + 1) . sprintf(" has type '%s' but param '", $literalType)
+                    . $param->getName() . sprintf("' is tagged '%s'", $tag),
+                    $list,
+                );
+            }
+        }
     }
 
     private function isValidRecurTuple(PersistentListInterface $list): bool

@@ -16,6 +16,7 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\TypeInterface;
@@ -63,12 +64,61 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
 
         $this->rejectNonCallableLiteral($f, $list);
 
+        $args = $this->arguments($list->rest(), $env);
+
+        if ($f instanceof GlobalVarNode) {
+            $this->verifyArgsAgainstParamTags($f, $args, $list);
+        }
+
         return new CallNode(
             $env,
             $f,
-            $this->arguments($list->rest(), $env),
+            $args,
             $list->getStartLocation(),
         );
+    }
+
+    /**
+     * @param list<AbstractNode> $args
+     */
+    private function verifyArgsAgainstParamTags(
+        GlobalVarNode $f,
+        array $args,
+        PersistentListInterface $list,
+    ): void {
+        $paramTags = $f->getMeta()->find(Keyword::create('param-tags'));
+        if (!$paramTags instanceof PersistentVectorInterface) {
+            return;
+        }
+
+        $tagsCount = count($paramTags);
+        foreach ($args as $i => $arg) {
+            if ($i >= $tagsCount) {
+                return;
+            }
+
+            $tag = $paramTags->get($i);
+            if (!is_string($tag)) {
+                continue;
+            }
+
+            if ($tag === '') {
+                continue;
+            }
+
+            $literalType = TagCompatibility::literalTypeOf($arg);
+            if ($literalType === null) {
+                continue;
+            }
+
+            if (!TagCompatibility::accepts($tag, $literalType)) {
+                throw AnalyzerException::withLocation(
+                    'Arg #' . ($i + 1) . " to '" . $f->getName()->getName()
+                    . sprintf("' has type '%s' but param is tagged '%s'", $literalType, $tag),
+                    $list,
+                );
+            }
+        }
     }
 
     /**
