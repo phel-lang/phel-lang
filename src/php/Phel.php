@@ -68,6 +68,9 @@ class Phel
         return $GLOBALS['__phel_argv'] ?? [];
     }
 
+    /**
+     * @param list<string>|null $argv
+     */
     public static function bootstrap(string $projectRootDir, ?array $argv = null): void
     {
         if ($argv !== null && $argv !== []) {

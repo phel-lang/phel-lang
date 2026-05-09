@@ -23,11 +23,7 @@ final class SliceGenerator
      *   take(10, [1, 2, 3])       // => [1, 2, 3] (fewer than n available)
      *   take(0, [1, 2, 3])        // => []
      *
-     * @template T
-     *
-     * @param iterable<T>|string $iterable
-     *
-     * @return Generator<int, T>
+     * @return Generator<int, mixed>
      */
     public static function take(int $n, mixed $iterable): Generator
     {
@@ -53,12 +49,7 @@ final class SliceGenerator
      *   takeWhile(fn($x) => $x < 0, [1, 2, 3])        // => []
      *   takeWhile(fn($x) => $x > 0, [1, 2, 3])        // => [1, 2, 3]
      *
-     * @template T
-     *
-     * @param callable(T):bool   $predicate
-     * @param iterable<T>|string $iterable
-     *
-     * @return Generator<int, T>
+     * @return Generator<int, mixed>
      */
     public static function takeWhile(callable $predicate, mixed $iterable): Generator
     {
@@ -79,11 +70,7 @@ final class SliceGenerator
      *   takeNth(3, [1, 2, 3, 4, 5, 6])  // => [1, 4]
      *   takeNth(1, [1, 2, 3])           // => [1, 2, 3]
      *
-     * @template T
-     *
-     * @param iterable<T>|string $iterable
-     *
-     * @return Generator<int, T>
+     * @return Generator<int, mixed>
      */
     public static function takeNth(int $n, mixed $iterable): Generator
     {
@@ -102,11 +89,7 @@ final class SliceGenerator
      *   drop(10, [1, 2, 3])       // => []
      *   drop(0, [1, 2, 3])        // => [1, 2, 3]
      *
-     * @template T
-     *
-     * @param iterable<T>|string $iterable
-     *
-     * @return Generator<int, T>
+     * @return Generator<int, mixed>
      */
     public static function drop(int $n, mixed $iterable): Generator
     {
@@ -128,12 +111,7 @@ final class SliceGenerator
      *   dropWhile(fn($x) => $x < 0, [1, 2, 3])        // => [1, 2, 3]
      *   dropWhile(fn($x) => $x > 0, [1, 2, 3])        // => []
      *
-     * @template T
-     *
-     * @param callable(T):bool   $predicate
-     * @param iterable<T>|string $iterable
-     *
-     * @return Generator<int, T>
+     * @return Generator<int, mixed>
      */
     public static function dropWhile(callable $predicate, mixed $iterable): Generator
     {

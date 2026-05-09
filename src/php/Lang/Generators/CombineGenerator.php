@@ -30,11 +30,7 @@ final class CombineGenerator
      *   concat([1, 2], null, [3, 4])  // => [1, 2, 3, 4]  - null arg skipped
      *   concat([1, null, 2], [3])     // => [1, null, 2, 3] - null value kept
      *
-     * @template T
-     *
-     * @param iterable<T>|string|null ...$iterables
-     *
-     * @return Generator<int, T>
+     * @return Generator<int, mixed>
      */
     public static function concat(mixed ...$iterables): Generator
     {
@@ -101,13 +97,7 @@ final class CombineGenerator
      *   interpose('-', 'abc')      // => ['a', '-', 'b', '-', 'c']
      *   interpose(',', [1])        // => [1]
      *
-     * @template T
-     * @template S
-     *
-     * @param S                  $separator The separator to insert between elements
-     * @param iterable<T>|string $iterable  The input sequence
-     *
-     * @return Generator<int, S|T>
+     * @return Generator<int, mixed>
      */
     public static function interpose(mixed $separator, mixed $iterable): Generator
     {

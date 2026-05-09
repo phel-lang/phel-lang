@@ -22,6 +22,9 @@ use Phel\Formatter\Infrastructure\IO\FileIoInterface;
 use Phel\Formatter\Infrastructure\IO\SystemFileIo;
 use Phel\Shared\Facade\CommandFacadeInterface;
 
+/**
+ * @extends AbstractFactory<FormatterConfig>
+ */
 final class FormatterFactory extends AbstractFactory
 {
     public function createPathsFormatter(): PathsFormatter

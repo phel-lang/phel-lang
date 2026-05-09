@@ -23,8 +23,12 @@ final class IndexedNodeIterator implements Iterator
 
     private int $index = 0;
 
+    /** @var Iterator<K, V>|null */
     private ?Iterator $nestedIterator = null;
 
+    /**
+     * @param array<int, array{0: K|null, 1: HashMapNodeInterface<K, V>|V}> $entries
+     */
     public function __construct(array $entries)
     {
         $this->entries = array_values($entries);

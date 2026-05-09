@@ -38,9 +38,10 @@ final class PersistentVector extends AbstractPersistentVector
     private readonly int $tailSize;
 
     /**
-     * @param int           $count The number of elements stored in this vector
-     * @param array<array>  $root  The root node of this vector
-     * @param array<int, T> $tail  The tail of the vector. This is an optimization
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     * @param int                                       $count The number of elements stored in this vector
+     * @param array<int, array<mixed>>                  $root  The root node of this vector
+     * @param array<int, T>                             $tail  The tail of the vector. This is an optimization
      */
     public function __construct(
         HasherInterface $hasher,
@@ -55,11 +56,19 @@ final class PersistentVector extends AbstractPersistentVector
         $this->tailSize = count($tail);
     }
 
+    /**
+     * @return self<T>
+     */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
         return new self($hasher, $equalizer, null, 0, self::SHIFT, [], []);
     }
 
+    /**
+     * @param array<int, T> $values
+     *
+     * @return PersistentVectorInterface<T>
+     */
     public static function fromArray(
         HasherInterface $hasher,
         EqualizerInterface $equalizer,
@@ -77,6 +86,9 @@ final class PersistentVector extends AbstractPersistentVector
         return $tv->persistent();
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->count, $this->shift, $this->root, $this->tail);
@@ -102,6 +114,8 @@ final class PersistentVector extends AbstractPersistentVector
      * (Source: https://hypirion.com/musings/understanding-persistent-vector-pt-1)
      *
      * @param T $value
+     *
+     * @return self<T>
      */
     public function append($value): self
     {
@@ -152,6 +166,8 @@ final class PersistentVector extends AbstractPersistentVector
      *
      * @param int $i     the index in the vector
      * @param T   $value The new value
+     *
+     * @return self<T>
      */
     public function update(int $i, $value): self
     {
@@ -202,6 +218,9 @@ final class PersistentVector extends AbstractPersistentVector
         return $arr[$i & self::INDEX_MASK];
     }
 
+    /**
+     * @return array<int, mixed>
+     */
     public function getArrayForIndex(int $i): array
     {
         if ($i >= 0 && $i < $this->count) {
@@ -228,6 +247,8 @@ final class PersistentVector extends AbstractPersistentVector
      * 1. The tail contains more than one element.
      * 2. The tail contains exactly one element (zero after popping).
      * 3. The root node contains exactly one element after popping.
+     *
+     * @return self<T>
      */
     public function pop(): self
     {
@@ -279,6 +300,9 @@ final class PersistentVector extends AbstractPersistentVector
         );
     }
 
+    /**
+     * @return array<int, T>
+     */
     public function toArray(): array
     {
         $result = [];
@@ -288,16 +312,25 @@ final class PersistentVector extends AbstractPersistentVector
         return $result;
     }
 
+    /**
+     * @return Traversable<int, T>
+     */
     public function getIterator(): Traversable
     {
         return $this->getRangeIterator(0, $this->count);
     }
 
+    /**
+     * @return Traversable<int, T>
+     */
     public function getRangeIterator(int $start, int $end): Traversable
     {
         return new RangeIterator($this, $start, $end);
     }
 
+    /**
+     * @return SubVector<T>|null
+     */
     public function cdr(): ?SubVector
     {
         if ($this->count <= 1) {
@@ -307,6 +340,9 @@ final class PersistentVector extends AbstractPersistentVector
         return new SubVector($this->hasher, $this->equalizer, $this->meta, $this, 1, $this->count);
     }
 
+    /**
+     * @return TransientVector<T>
+     */
     public function asTransient(): TransientVector
     {
         return new TransientVector(
@@ -319,6 +355,9 @@ final class PersistentVector extends AbstractPersistentVector
         );
     }
 
+    /**
+     * @return PersistentVectorInterface<T>
+     */
     public function cons(mixed $x): PersistentVectorInterface
     {
         $transient = TransientVector::empty($this->hasher, $this->equalizer);
@@ -330,11 +369,20 @@ final class PersistentVector extends AbstractPersistentVector
         return $transient->persistent();
     }
 
+    /**
+     * @return PersistentVectorInterface<T>
+     */
     protected function sliceNormalized(int $start, int $end): PersistentVectorInterface
     {
         return new SubVector($this->hasher, $this->equalizer, $this->meta, $this, $start, $end);
     }
 
+    /**
+     * @param array<int, mixed> $parent
+     * @param array<int, T>     $tailNode
+     *
+     * @return array<int, mixed>
+     */
     private function pushTail(int $level, array $parent, array $tailNode): array
     {
         $ret = $parent;
@@ -355,6 +403,11 @@ final class PersistentVector extends AbstractPersistentVector
         return $ret;
     }
 
+    /**
+     * @param array<int, mixed> $node
+     *
+     * @return array<int, mixed>
+     */
     private function newPath(int $level, array $node): array
     {
         if ($level === 0) {
@@ -365,7 +418,10 @@ final class PersistentVector extends AbstractPersistentVector
     }
 
     /**
-     * @param T $value
+     * @param array<int, mixed> $node
+     * @param T                 $value
+     *
+     * @return array<int, mixed>
      */
     private function doUpdate(int $level, array $node, int $i, mixed $value): array
     {
@@ -380,6 +436,11 @@ final class PersistentVector extends AbstractPersistentVector
         return $ret;
     }
 
+    /**
+     * @param array<int, mixed> $node
+     *
+     * @return array<int, mixed>|null
+     */
     private function popTail(int $level, array $node): ?array
     {
         $subIndex = ($this->count - 2 >> $level) & self::INDEX_MASK;
@@ -404,6 +465,10 @@ final class PersistentVector extends AbstractPersistentVector
         return $ret;
     }
 
+    /**
+     * @param array<int, mixed> $node
+     * @param array<int, mixed> $targetArr
+     */
     private function flattenIntoArray(array $node, int $shift, array &$targetArr): void
     {
         $shift -= self::SHIFT;

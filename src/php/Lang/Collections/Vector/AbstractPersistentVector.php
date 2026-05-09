@@ -28,6 +28,9 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
 {
     private int $hashCache = 0;
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function __construct(
         protected HasherInterface $hasher,
         protected EqualizerInterface $equalizer,
@@ -56,7 +59,7 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
     }
 
     /**
-     * @return PersistentVectorInterface
+     * @return PersistentVectorInterface<T>
      */
     public function rest()
     {
@@ -65,6 +68,9 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
         return $cdr ?? PersistentVector::empty($this->hasher, $this->equalizer);
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta;
@@ -152,6 +158,9 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
         throw new MethodNotSupportedException('Method offsetUnset is not supported on VectorSequence');
     }
 
+    /**
+     * @return PersistentVectorInterface<T>
+     */
     public function push(mixed $x): PersistentVectorInterface
     {
         return $this->append($x);
@@ -160,9 +169,9 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
     /**
      * Concatenates a value to the data structure.
      *
-     * @param mixed[] $xs The value to concatenate
+     * @param iterable<mixed> $xs The value to concatenate
      *
-     * @return PersistentVectorInterface
+     * @return PersistentVectorInterface<T>
      */
     public function concat($xs)
     {
@@ -189,6 +198,9 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
      * @param int  $offset The offset where to start to remove values
      * @param ?int $length The number of how many elements should be removed
      */
+    /**
+     * @return PersistentVectorInterface<T>
+     */
     public function slice(int $offset = 0, ?int $length = null): PersistentVectorInterface
     {
         $count = $this->count();
@@ -214,5 +226,8 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
         return $this->offsetExists($key);
     }
 
+    /**
+     * @return PersistentVectorInterface<T>
+     */
     abstract protected function sliceNormalized(int $start, int $end): PersistentVectorInterface;
 }

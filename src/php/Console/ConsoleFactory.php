@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Console;
 
+use Gacela\Framework\AbstractConfig;
 use Gacela\Framework\AbstractFactory;
 use Phel\Console\Application\ArgvInputSanitizer;
 use Phel\Console\Application\VersionFinder;
@@ -12,6 +13,9 @@ use Phel\Filesystem\FilesystemFacadeInterface;
 
 use function in_array;
 
+/**
+ * @extends AbstractFactory<AbstractConfig>
+ */
 final class ConsoleFactory extends AbstractFactory
 {
     public const string CONSOLE_NAME = 'Phel';

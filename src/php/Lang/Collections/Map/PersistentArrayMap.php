@@ -26,6 +26,10 @@ final class PersistentArrayMap extends AbstractPersistentMap
 {
     public const int MAX_SIZE = 16;
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     * @param array<int, mixed>                         $array
+     */
     public function __construct(
         HasherInterface $hasher,
         EqualizerInterface $equalizer,
@@ -35,11 +39,19 @@ final class PersistentArrayMap extends AbstractPersistentMap
         parent::__construct($hasher, $equalizer, $meta);
     }
 
+    /**
+     * @return self<K, V>
+     */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
         return new self($hasher, $equalizer, null, []);
     }
 
+    /**
+     * @param array<int, mixed> $kvs
+     *
+     * @return PersistentMapInterface<K, V>
+     */
     public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $kvs): PersistentMapInterface
     {
         if (count($kvs) % 2 !== 0) {
@@ -54,6 +66,9 @@ final class PersistentArrayMap extends AbstractPersistentMap
         return $result->persistent();
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->array);
@@ -116,6 +131,9 @@ final class PersistentArrayMap extends AbstractPersistentMap
         return (int) (count($this->array) / 2);
     }
 
+    /**
+     * @return Traversable<K, V>
+     */
     public function getIterator(): Traversable
     {
         for ($i = 0, $cnt = count($this->array); $i < $cnt; $i += 2) {
@@ -123,6 +141,9 @@ final class PersistentArrayMap extends AbstractPersistentMap
         }
     }
 
+    /**
+     * @return TransientMapWrapper<K, V>
+     */
     public function asTransient(): TransientMapWrapper
     {
         return new TransientMapWrapper(

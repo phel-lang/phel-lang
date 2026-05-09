@@ -55,6 +55,8 @@ final readonly class Chunk
 
     /**
      * Creates a new chunk with the first n elements dropped.
+     *
+     * @return self<T>
      */
     public function drop(int $n): self
     {

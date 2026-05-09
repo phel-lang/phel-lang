@@ -28,11 +28,7 @@ final class DedupeGenerator
      *   distinct([1, 2, 1, 3, 2, 4])  // => [1, 2, 3, 4]
      *   distinct('abracadabra')       // => ['a', 'b', 'r', 'c', 'd']
      *
-     * @template T
-     *
-     * @param iterable<T>|string $iterable
-     *
-     * @return Generator<int, T>
+     * @return Generator<int, mixed>
      */
     public static function distinct(mixed $iterable): Generator
     {
@@ -71,11 +67,7 @@ final class DedupeGenerator
      *   dedupe('aabbcc')                  // => ['a', 'b', 'c']
      *   dedupe([1, 2, 3, 4])              // => [1, 2, 3, 4] (no consecutive dupes)
      *
-     * @template T
-     *
-     * @param iterable<T>|string $iterable
-     *
-     * @return Generator<int, T>
+     * @return Generator<int, mixed>
      */
     public static function dedupe(mixed $iterable): Generator
     {
@@ -116,12 +108,9 @@ final class DedupeGenerator
      * Unlike filter(), compact() is specifically designed for removing unwanted
      * sentinel values, making intent clearer in code.
      *
-     * @template T
+     * @param mixed ...$values Values to remove (default: just null)
      *
-     * @param iterable<T>|string $iterable  The input sequence
-     * @param mixed              ...$values Values to remove (default: just null)
-     *
-     * @return Generator<int, T>
+     * @return Generator<int, mixed>
      */
     public static function compact(mixed $iterable, mixed ...$values): Generator
     {
@@ -144,11 +133,7 @@ final class DedupeGenerator
     /**
      * Optimized path for removing a single value from an iterable.
      *
-     * @template T
-     *
-     * @param iterable<T>|string $iterable
-     *
-     * @return Generator<int, T>
+     * @return Generator<int, mixed>
      */
     private static function compactSingleValue(mixed $iterable, mixed $valueToRemove): Generator
     {

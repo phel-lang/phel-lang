@@ -12,6 +12,7 @@ use Phel\Lang\ContainsInterface;
  * @template K
  * @template V
  *
+ * @extends ArrayAccess<K, V>
  * @extends ContainsInterface<K>
  */
 interface TransientMapInterface extends Countable, ArrayAccess, ContainsInterface
@@ -19,11 +20,15 @@ interface TransientMapInterface extends Countable, ArrayAccess, ContainsInterfac
     /**
      * @param K $key
      * @param V $value
+     *
+     * @return self<K, V>
      */
     public function put(mixed $key, mixed $value): self;
 
     /**
      * @param K $key
+     *
+     * @return self<K, V>
      */
     public function remove(mixed $key): self;
 
@@ -34,5 +39,8 @@ interface TransientMapInterface extends Countable, ArrayAccess, ContainsInterfac
      */
     public function find(mixed $key);
 
+    /**
+     * @return PersistentMapInterface<K, V>
+     */
     public function persistent(): PersistentMapInterface;
 }

@@ -33,11 +33,23 @@ use function array_reverse;
  * (reversed) into `front`, giving amortised O(1) `push` / `peek` / `pop`.
  *
  * @extends AbstractType<PersistentQueue>
+ *
+ * @implements IteratorAggregate<int, mixed>
+ * @implements FirstInterface<mixed>
+ * @implements CdrInterface<PersistentQueue>
+ * @implements ConsInterface<PersistentQueue>
+ * @implements PushInterface<PersistentQueue>
+ * @implements PopInterface<PersistentQueue>
  */
 final class PersistentQueue extends AbstractType implements TypeInterface, Countable, IteratorAggregate, FirstInterface, CdrInterface, ConsInterface, PushInterface, PopInterface
 {
     private int $hashCache = 0;
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     * @param PersistentListInterface<mixed>            $front
+     * @param PersistentListInterface<mixed>            $rear
+     */
     public function __construct(
         private readonly HasherInterface $hasher,
         private readonly EqualizerInterface $equalizer,
@@ -66,11 +78,17 @@ final class PersistentQueue extends AbstractType implements TypeInterface, Count
         return $queue;
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta;
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->front, $this->rear, $this->count);
@@ -168,6 +186,9 @@ final class PersistentQueue extends AbstractType implements TypeInterface, Count
         return $this->count;
     }
 
+    /**
+     * @return Traversable<int, mixed>
+     */
     public function getIterator(): Traversable
     {
         $i = 0;
@@ -212,6 +233,9 @@ final class PersistentQueue extends AbstractType implements TypeInterface, Count
         return $this->hashCache;
     }
 
+    /**
+     * @return PersistentListInterface<mixed>
+     */
     private function reverseRear(): PersistentListInterface
     {
         $reversed = PersistentList::empty($this->hasher, $this->equalizer);

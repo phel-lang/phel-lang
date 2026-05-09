@@ -21,6 +21,9 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
 {
     private int $hashCache = 0;
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function __construct(
         protected HasherInterface $hasher,
         protected EqualizerInterface $equalizer,
@@ -37,6 +40,9 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
         return $this->find($key);
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta;
@@ -77,6 +83,11 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
         return true;
     }
 
+    /**
+     * @param PersistentMapInterface<K, V> $other
+     *
+     * @return PersistentMapInterface<K, V>
+     */
     public function merge(PersistentMapInterface $other): PersistentMapInterface
     {
         if ($this instanceof PersistentHashMap || $this instanceof PersistentArrayMap) {

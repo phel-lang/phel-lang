@@ -24,7 +24,9 @@ final class PersistentHashMap extends AbstractPersistentMap
     private static ?stdClass $NOT_FOUND = null;
 
     /**
-     * @param V|null $nullValue
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     * @param HashMapNodeInterface<K, V>|null           $root
+     * @param V|null                                    $nullValue
      */
     public function __construct(
         HasherInterface $hasher,
@@ -43,6 +45,11 @@ final class PersistentHashMap extends AbstractPersistentMap
         return new self($hasher, $equalizer, null, 0, null, false, null);
     }
 
+    /**
+     * @param array<int, mixed> $kvs
+     *
+     * @return PersistentMapInterface<K, V>
+     */
     public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $kvs): PersistentMapInterface
     {
         if ($kvs === []) {
@@ -70,6 +77,9 @@ final class PersistentHashMap extends AbstractPersistentMap
         return self::$NOT_FOUND;
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->count, $this->root, $this->hasNull, $this->nullValue);
@@ -88,6 +98,12 @@ final class PersistentHashMap extends AbstractPersistentMap
         return $this->root->find(0, $this->hasher->hash($key), $key, self::getNotFound()) !== self::getNotFound();
     }
 
+    /**
+     * @param mixed $key
+     * @param mixed $value
+     *
+     * @return self<K, V>
+     */
     public function put($key, $value): self
     {
         if ($key === null) {
@@ -109,6 +125,11 @@ final class PersistentHashMap extends AbstractPersistentMap
         return new self($this->hasher, $this->equalizer, $this->meta, $addedLeaf->getValue() === false ? $this->count : $this->count + 1, $newRoot, $this->hasNull, $this->nullValue);
     }
 
+    /**
+     * @param mixed $key
+     *
+     * @return self<K, V>
+     */
     public function remove($key): self
     {
         if ($key === null) {
@@ -150,6 +171,9 @@ final class PersistentHashMap extends AbstractPersistentMap
         return $this->count;
     }
 
+    /**
+     * @return Traversable<K, V>
+     */
     public function getIterator(): Traversable
     {
         if ($this->root instanceof HashMapNodeInterface) {
@@ -159,6 +183,9 @@ final class PersistentHashMap extends AbstractPersistentMap
         return new EmptyIterator();
     }
 
+    /**
+     * @return TransientMapWrapper<K, V>
+     */
     public function asTransient(): TransientMapWrapper
     {
         return new TransientMapWrapper(

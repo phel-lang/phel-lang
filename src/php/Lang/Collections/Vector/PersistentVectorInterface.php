@@ -27,8 +27,10 @@ use Phel\Lang\TypeInterface;
  * @extends ConcatInterface<PersistentVectorInterface<T>>
  * @extends PopInterface<PersistentVectorInterface<T>>
  * @extends PushInterface<PersistentVectorInterface<T>>
- * @extends AsTransientInterface<TransientVectorInterface>
+ * @extends AsTransientInterface<TransientVectorInterface<T>>
  * @extends ContainsInterface<int>
+ * @extends ConsInterface<PersistentVectorInterface<T>>
+ * @extends SliceInterface<PersistentVectorInterface<T>>
  */
 interface PersistentVectorInterface extends TypeInterface, SeqInterface, IteratorAggregate, Countable, ConsInterface, ArrayAccess, ConcatInterface, PopInterface, PushInterface, SliceInterface, AsTransientInterface, FnInterface, ContainsInterface
 {
@@ -40,11 +42,15 @@ interface PersistentVectorInterface extends TypeInterface, SeqInterface, Iterato
 
     /**
      * @param T $value
+     *
+     * @return self<T>
      */
     public function append(mixed $value): self;
 
     /**
      * @param T $value
+     *
+     * @return self<T>
      */
     public function update(int $i, mixed $value): self;
 

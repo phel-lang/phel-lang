@@ -15,6 +15,9 @@ use Stringable;
  */
 final readonly class TransientHashSet implements TransientHashSetInterface, Stringable
 {
+    /**
+     * @param TransientMapInterface<V, V> $transientMap
+     */
     public function __construct(
         private HasherInterface $hasher,
         private TransientMapInterface $transientMap,
@@ -53,6 +56,8 @@ final readonly class TransientHashSet implements TransientHashSetInterface, Stri
 
     /**
      * @param V $value
+     *
+     * @return TransientHashSetInterface<V>
      */
     public function add($value): TransientHashSetInterface
     {
@@ -63,6 +68,8 @@ final readonly class TransientHashSet implements TransientHashSetInterface, Stri
 
     /**
      * @param V $value
+     *
+     * @return TransientHashSetInterface<V>
      */
     public function remove($value): TransientHashSetInterface
     {
@@ -71,6 +78,9 @@ final readonly class TransientHashSet implements TransientHashSetInterface, Stri
         return $this;
     }
 
+    /**
+     * @return PersistentHashSetInterface<V>
+     */
     public function persistent(): PersistentHashSetInterface
     {
         return new PersistentHashSet($this->hasher, null, $this->transientMap->persistent());

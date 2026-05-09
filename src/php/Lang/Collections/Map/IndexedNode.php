@@ -31,6 +31,9 @@ final readonly class IndexedNode implements HashMapNodeInterface
         private array $objects,
     ) {}
 
+    /**
+     * @return self<TKey, TValue>
+     */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
         return new self($hasher, $equalizer, []);
@@ -74,6 +77,8 @@ final readonly class IndexedNode implements HashMapNodeInterface
 
     /**
      * @param mixed $key
+     *
+     * @return HashMapNodeInterface<TKey, TValue>|null
      */
     public function remove(int $shift, int $hash, $key): ?HashMapNodeInterface
     {
@@ -150,6 +155,9 @@ final readonly class IndexedNode implements HashMapNodeInterface
         return $notFound;
     }
 
+    /**
+     * @return Traversable<TKey, TValue>
+     */
     public function getIterator(): Traversable
     {
         return new IndexedNodeIterator($this->objects);

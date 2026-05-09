@@ -8,14 +8,21 @@ use Iterator;
 
 use function assert;
 
+/**
+ * @implements Iterator<int, mixed>
+ */
 final class RangeIterator implements Iterator
 {
     private int $currentIndex;
 
     private readonly int $vectorCount;
 
+    /** @var array<int, mixed>|null */
     private ?array $currentArray = null;
 
+    /**
+     * @param PersistentVector<mixed> $vector
+     */
     public function __construct(
         private readonly PersistentVector $vector,
         private readonly int $start,

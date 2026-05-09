@@ -239,6 +239,8 @@ final class Phel extends InternalPhel
      * Create a persistent vector from an array of values.
      *
      * @param list<mixed>|null $values
+     *
+     * @return PersistentVectorInterface<mixed>
      */
     public static function vector(?array $values = []): PersistentVectorInterface
     {
@@ -249,6 +251,8 @@ final class Phel extends InternalPhel
      * Create a persistent list from an array of values.
      *
      * @param list<mixed>|null $values
+     *
+     * @return PersistentListInterface<mixed>
      */
     public static function list(?array $values = []): PersistentListInterface
     {
@@ -261,6 +265,8 @@ final class Phel extends InternalPhel
      * The resulting value satisfies `seq?` but not `list?`.
      *
      * @param list<mixed>|null $values
+     *
+     * @return PersistentListInterface<mixed>
      */
     public static function seqList(?array $values = []): PersistentListInterface
     {
@@ -271,6 +277,8 @@ final class Phel extends InternalPhel
      * Create a persistent map from key-value pairs.
      *
      * @param mixed ...$kvs
+     *
+     * @return PersistentMapInterface<mixed, mixed>
      */
     public static function map(...$kvs): PersistentMapInterface
     {
@@ -294,6 +302,8 @@ final class Phel extends InternalPhel
      * Create a persistent hash set from an array of values.
      *
      * @param list<mixed>|null $values
+     *
+     * @return PersistentHashSetInterface<mixed>
      */
     public static function set(?array $values = []): PersistentHashSetInterface
     {
@@ -312,6 +322,8 @@ final class Phel extends InternalPhel
 
     /**
      * Create a persistent sorted map from key-value pairs.
+     *
+     * @return PersistentMapInterface<mixed, mixed>
      */
     public static function sortedMap(mixed ...$kvs): PersistentMapInterface
     {
@@ -325,6 +337,8 @@ final class Phel extends InternalPhel
 
     /**
      * Create a persistent sorted map with a custom comparator.
+     *
+     * @return PersistentMapInterface<mixed, mixed>
      */
     public static function sortedMapBy(callable $comparator, mixed ...$kvs): PersistentMapInterface
     {
@@ -340,6 +354,8 @@ final class Phel extends InternalPhel
      * Create a persistent sorted set from an array of values.
      *
      * @param list<mixed>|null $values
+     *
+     * @return PersistentHashSetInterface<mixed>
      */
     public static function sortedSet(?array $values = []): PersistentHashSetInterface
     {
@@ -350,6 +366,8 @@ final class Phel extends InternalPhel
      * Create a persistent sorted set with a custom comparator.
      *
      * @param list<mixed>|null $values
+     *
+     * @return PersistentHashSetInterface<mixed>
      */
     public static function sortedSetBy(callable $comparator, ?array $values = []): PersistentHashSetInterface
     {
@@ -359,7 +377,8 @@ final class Phel extends InternalPhel
     /**
      * @template T
      *
-     * @param T $value The initial value of the variable
+     * @param T                                         $value The initial value of the variable
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
      *
      * @return Variable<T>
      */

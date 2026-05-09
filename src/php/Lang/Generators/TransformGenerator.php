@@ -129,13 +129,7 @@ final class TransformGenerator
      *   - keep() for mapping with automatic null-removal
      *   - compact() for removing nulls from existing collections
      *
-     * @template T
-     * @template U
-     *
-     * @param callable(T): (iterable<U>|string|null) $f        The mapping function
-     * @param iterable<T>|string                     $iterable The input sequence
-     *
-     * @return Generator<int, string|U>
+     * @return Generator<int, mixed>
      */
     public static function mapcat(callable $f, mixed $iterable): Generator
     {

@@ -20,6 +20,10 @@ use function sprintf;
  */
 final class SubVector extends AbstractPersistentVector
 {
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     * @param PersistentVectorInterface<T>              $vector
+     */
     public function __construct(
         HasherInterface $hasher,
         EqualizerInterface $equalizer,
@@ -36,6 +40,9 @@ final class SubVector extends AbstractPersistentVector
         return $this->end - $this->start;
     }
 
+    /**
+     * @return self<T>|null
+     */
     public function cdr(): ?self
     {
         if ($this->start + 1 < $this->end) {
@@ -58,6 +65,9 @@ final class SubVector extends AbstractPersistentVector
         return $result;
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->vector, $this->start, $this->end);
@@ -75,6 +85,8 @@ final class SubVector extends AbstractPersistentVector
 
     /**
      * @param T $value
+     *
+     * @return PersistentVectorInterface<T>
      */
     public function append($value): PersistentVectorInterface
     {
@@ -83,6 +95,8 @@ final class SubVector extends AbstractPersistentVector
 
     /**
      * @param T $value
+     *
+     * @return PersistentVectorInterface<T>
      */
     public function update(int $i, $value): PersistentVectorInterface
     {
@@ -110,6 +124,9 @@ final class SubVector extends AbstractPersistentVector
         throw new IndexOutOfBoundsException(sprintf('Cannot access value at index %d.', $i));
     }
 
+    /**
+     * @return PersistentVectorInterface<T>
+     */
     public function pop(): PersistentVectorInterface
     {
         if ($this->end - 1 <= $this->start) {
@@ -124,11 +141,17 @@ final class SubVector extends AbstractPersistentVector
         throw new MethodNotSupportedException('asTransient is not supported on SubVector');
     }
 
+    /**
+     * @return PersistentVectorInterface<T>
+     */
     public function cons(mixed $x): PersistentVectorInterface
     {
         return PersistentVector::fromArray($this->hasher, $this->equalizer, [$x, ...$this->toArray()]);
     }
 
+    /**
+     * @return PersistentVectorInterface<T>
+     */
     protected function sliceNormalized(int $start, int $end): PersistentVectorInterface
     {
         return new self($this->hasher, $this->equalizer, $this->meta, $this->vector, $this->start + $start, $this->start + $end);

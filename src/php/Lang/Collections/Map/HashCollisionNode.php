@@ -32,6 +32,8 @@ final class HashCollisionNode implements HashMapNodeInterface
     /**
      * @param K $key
      * @param V $value
+     *
+     * @return HashMapNodeInterface<K, V>
      */
     public function put(int $shift, int $hash, $key, $value, Box $addedLeaf): HashMapNodeInterface
     {
@@ -53,6 +55,11 @@ final class HashCollisionNode implements HashMapNodeInterface
         return $node->put($shift, $hash, $key, $value, $addedLeaf);
     }
 
+    /**
+     * @param mixed $key
+     *
+     * @return HashMapNodeInterface<K, V>|null
+     */
     public function remove(int $shift, int $hash, $key): ?HashMapNodeInterface
     {
         $index = $this->findIndex($key);
@@ -80,6 +87,9 @@ final class HashCollisionNode implements HashMapNodeInterface
         return $value;
     }
 
+    /**
+     * @return Traversable<K, V>
+     */
     public function getIterator(): Traversable
     {
         return new HashCollisionNodeIterator($this->objects);
@@ -101,6 +111,8 @@ final class HashCollisionNode implements HashMapNodeInterface
 
     /**
      * @param V $value
+     *
+     * @return array<int, mixed>
      */
     private function cloneAndSet(int $index, mixed $value): array
     {
@@ -113,6 +125,8 @@ final class HashCollisionNode implements HashMapNodeInterface
     /**
      * @param K $key
      * @param V $value
+     *
+     * @return array<int, mixed>
      */
     private function cloneAndAdd(mixed $key, mixed $value): array
     {
@@ -123,6 +137,9 @@ final class HashCollisionNode implements HashMapNodeInterface
         return $newObjects;
     }
 
+    /**
+     * @return array<int, mixed>
+     */
     private function removePair(int $index): array
     {
         return [...array_slice($this->objects, 0, $index), ...array_slice($this->objects, $index + 2)];

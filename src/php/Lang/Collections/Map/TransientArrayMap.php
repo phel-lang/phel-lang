@@ -18,12 +18,18 @@ use function count;
  */
 final class TransientArrayMap implements TransientMapInterface
 {
+    /**
+     * @param array<int, mixed> $array
+     */
     public function __construct(
         private readonly HasherInterface $hasher,
         private readonly EqualizerInterface $equalizer,
         private array $array,
     ) {}
 
+    /**
+     * @return self<K, V>
+     */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
         return new self($hasher, $equalizer, []);
@@ -34,6 +40,12 @@ final class TransientArrayMap implements TransientMapInterface
         return $this->findIndex($key) !== false;
     }
 
+    /**
+     * @param mixed $key
+     * @param mixed $value
+     *
+     * @return TransientMapInterface<K, V>
+     */
     public function put($key, $value): TransientMapInterface
     {
         $index = $this->findIndex($key);
@@ -64,6 +76,11 @@ final class TransientArrayMap implements TransientMapInterface
         return $this;
     }
 
+    /**
+     * @param mixed $key
+     *
+     * @return self<K, V>
+     */
     public function remove($key): self
     {
         $index = $this->findIndex($key);
@@ -122,6 +139,9 @@ final class TransientArrayMap implements TransientMapInterface
         throw new MethodNotSupportedException('Method offsetUnset is not supported on TransientArrayMap');
     }
 
+    /**
+     * @return PersistentMapInterface<K, V>
+     */
     public function persistent(): PersistentMapInterface
     {
         return new PersistentArrayMap($this->hasher, $this->equalizer, null, $this->array);

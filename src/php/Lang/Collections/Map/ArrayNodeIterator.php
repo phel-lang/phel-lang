@@ -26,8 +26,12 @@ final class ArrayNodeIterator implements Iterator
 
     private int $index = 0;
 
+    /** @var Iterator<K, V>|null */
     private ?Iterator $nestedIterator = null;
 
+    /**
+     * @param list<?HashMapNodeInterface<K, V>> $childNodes
+     */
     public function __construct(array $childNodes)
     {
         $this->childNodes = array_values(array_filter($childNodes));

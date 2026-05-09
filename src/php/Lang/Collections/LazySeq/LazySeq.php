@@ -27,6 +27,7 @@ use function is_object;
  * @template T
  *
  * @implements LazySeqInterface<T>
+ * @implements IteratorAggregate<int, T>
  *
  * @extends AbstractType<LazySeqInterface<T>>
  */
@@ -35,12 +36,12 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     /** @var callable|null The thunk that produces the sequence (null once realized) */
     private $fn;
 
-    /** @var SeqInterface|null The realized sequence (null until computed) */
+    /** @var SeqInterface<mixed, SeqInterface<mixed, LazySeqInterface<mixed>>>|null The realized sequence (null until computed) */
     private $realized;
 
     /**
-     * @param callable                    $fn   A thunk (nullary function) that returns a sequence or null
-     * @param PersistentMapInterface|null $meta Metadata for this sequence
+     * @param callable                                  $fn   A thunk (nullary function) that returns a sequence or null
+     * @param PersistentMapInterface<mixed, mixed>|null $meta Metadata for this sequence
      */
     public function __construct(
         private readonly HasherInterface $hasher,
@@ -56,7 +57,8 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
      *
      * @template U
      *
-     * @param Generator<int, U> $generator
+     * @param Generator<int, U>                         $generator
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
      *
      * @return self<U>
      */
@@ -92,7 +94,8 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
      *
      * @template U
      *
-     * @param iterable<U> $iterable
+     * @param iterable<U>                               $iterable
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
      *
      * @return self<U>|null
      */
@@ -124,7 +127,8 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
      *
      * @template U
      *
-     * @param array<int, U> $array
+     * @param array<int, U>                             $array
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
      *
      * @return self<U>|null
      */
@@ -231,6 +235,9 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
             /** @psalm-suppress InvalidReturnType, InvalidReturnStatement */
             static fn(): SeqInterface // Create a simple cons cell
             => new readonly class($x, $self) implements SeqInterface {
+                /**
+                 * @param LazySeqInterface<mixed> $rest
+                 */
                 public function __construct(
                     private mixed $first,
                     private LazySeqInterface $rest,
@@ -241,11 +248,17 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
                     return $this->first;
                 }
 
+                /**
+                 * @return LazySeqInterface<mixed>
+                 */
                 public function cdr(): LazySeqInterface
                 {
                     return $this->rest;
                 }
 
+                /**
+                 * @return LazySeqInterface<mixed>
+                 */
                 public function rest(): LazySeqInterface
                 {
                     return $this->rest;
@@ -326,6 +339,9 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
         return $result;
     }
 
+    /**
+     * @return Traversable<int, T>
+     */
     public function getIterator(): Traversable
     {
         $seq = $this;
@@ -345,11 +361,17 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
         }
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta;
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function withMeta(?PersistentMapInterface $meta): static
     {
         $clone = clone $this;
@@ -388,6 +410,9 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
      * Converts an arbitrary value into a lazy iterator, or returns `null`
      * when the value is not sequence-like. Used by `equals` to compare
      * element-by-element without realizing infinite lazy sequences.
+     */
+    /**
+     * @return Generator<int, mixed>|null
      */
     private function lazyIteratorFor(mixed $value): ?Generator
     {
@@ -429,6 +454,10 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
      * Clojure's behavior — it is the caller's responsibility to avoid
      * comparing two infinite sequences for equality.
      */
+    /**
+     * @param Traversable<mixed> $left
+     * @param Traversable<mixed> $right
+     */
     private function walkPairwise(Traversable $left, Traversable $right, EqualizerInterface $equalizer): bool
     {
         $leftIter = $this->asIterator($left);
@@ -463,6 +492,11 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
      * Traversable that must be unwrapped before `valid`/`current`/`next`
      * can be called directly.
      */
+    /**
+     * @param Traversable<mixed> $traversable
+     *
+     * @return Iterator<mixed, mixed>
+     */
     private function asIterator(Traversable $traversable): Iterator
     {
         while ($traversable instanceof IteratorAggregate) {
@@ -476,6 +510,9 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     /**
      * Realizes this lazy sequence if not already realized.
      * Uses iterative approach to avoid stack overflow.
+     */
+    /**
+     * @return SeqInterface<mixed, SeqInterface<mixed, LazySeqInterface<mixed>>>|null
      */
     private function realize(): ?SeqInterface
     {

@@ -29,8 +29,9 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
     private int $hashCache = 0;
 
     /**
-     * @param T                          $first
-     * @param PersistentListInterface<T> $rest
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     * @param T                                         $first
+     * @param PersistentListInterface<T>                $rest
      */
     public function __construct(
         private readonly HasherInterface $hasher,
@@ -62,6 +63,11 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
         return new EmptyList($hasher, $equalizer, null, $isList);
     }
 
+    /**
+     * @param array<int, mixed> $values
+     *
+     * @return PersistentListInterface<mixed>
+     */
     public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $values, bool $isList = true): PersistentListInterface
     {
         if ($values === []) {
@@ -76,11 +82,17 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
         return $result;
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta;
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->first, $this->rest, $this->count, $this->isList);
@@ -197,7 +209,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
     }
 
     /**
-     * @return PersistentListInterface
+     * @return PersistentListInterface<T>
      */
     public function rest()
     {
@@ -205,7 +217,7 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
     }
 
     /**
-     * @return PersistentListInterface|null
+     * @return PersistentListInterface<T>|null
      */
     public function cdr()
     {
@@ -216,6 +228,9 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
         return $this->rest;
     }
 
+    /**
+     * @return list<T>
+     */
     public function toArray(): array
     {
         return iterator_to_array($this->getIterator());
@@ -225,12 +240,17 @@ final class PersistentList extends AbstractType implements PersistentListInterfa
      * Concatenates a value to the data structure.
      *
      * @param array<int, mixed> $xs The value to concatenate
+     *
+     * @return PersistentListInterface<T>
      */
     public function concat($xs): PersistentListInterface
     {
         return self::fromArray($this->hasher, $this->equalizer, [...$this->toArray(), ...$xs], $this->isList);
     }
 
+    /**
+     * @return PersistentListInterface<T>
+     */
     public function cons(mixed $x): PersistentListInterface
     {
         return $this->prepend($x);
