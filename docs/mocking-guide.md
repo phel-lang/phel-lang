@@ -3,9 +3,9 @@
 Replace dependencies with controlled stand-ins for testing.
 
 ```phel
-(ns my-app\test\user-test
-  (:require phel\test :refer [deftest is])
-  (:require phel\mock :refer [mock called-with?]))
+(ns my-app.test.user-test
+  (:require phel.test :refer [deftest is])
+  (:require phel.mock :refer [mock called-with?]))
 
 (deftest test-fetch-user
   (let [mock-http (mock {:id 1 :name "Alice"})]

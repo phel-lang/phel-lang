@@ -1,4 +1,4 @@
-(ns examples\snippets\lazy)
+(ns examples.snippets.lazy)
 
 ;; lazy-seq defers computation until elements are realized
 (defn ints-from [^int n] (lazy-seq (cons n (ints-from (inc n)))))

@@ -1,4 +1,4 @@
-(ns examples\snippets\threading)
+(ns examples.snippets.threading)
 
 ;; -> threads as the second argument
 (println (-> 5 (+ 3) (* 2)))               ; 16   ; (* (+ 5 3) 2)

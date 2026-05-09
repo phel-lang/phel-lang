@@ -105,7 +105,7 @@ Phel discovers and compiles `.cljc` files alongside `.phel` files:
      :default "unknown"))
 ```
 
-> **Tip:** `.cljc` files can use either `\` or `.` as the namespace separator (`shared\utils` or `shared.utils`). Both forms resolve to the same namespace, so the dot form parses cleanly under Clojure too.
+> **Tip:** `.cljc` files should use `.` as the namespace separator (`shared.utils`) so the file parses cleanly under Clojure too. The legacy `\` separator (`shared\utils`) still resolves but is deprecated.
 
 ### Platform-specific dependencies
 
@@ -119,7 +119,7 @@ Phel discovers and compiles `.cljc` files alongside `.phel` files:
      :clj  (json/read-str s)))
 ```
 
-> Phel accepts both vector entries (`[phel.json :as json :refer [encode]]`) and the older list form (`phel\json :as json`) inside `:require`, so the same `(ns ...)` form parses on both sides.
+> Phel accepts both vector entries (`[phel.json :as json :refer [encode]]`) and the list form (`phel.json :as json`) inside `:require`, so the same `(ns ...)` form parses on both sides.
 
 ### Conditional data structures
 

@@ -1,4 +1,4 @@
-(ns examples\snippets\range)
+(ns examples.snippets.range)
 
 (println (range 5))                        ; (0 1 2 3 4)
 (println (range 2 8))                      ; (2 3 4 5 6 7)

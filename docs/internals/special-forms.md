@@ -74,9 +74,9 @@ Trailing `*` means not user-facing. Macros `defstruct`, `definterface`, `defexce
 
 ## Not special forms
 
-- `if-let`, `when`, `cond`, `case`, `match`, `->`, `->>`: macros in `phel\core`
+- `if-let`, `when`, `cond`, `case`, `match`, `->`, `->>`: macros in `phel.core`
 - `defn`, `defmacro`, `defstruct`, `definterface`, `defexception`, `reify`: macros over `*` forms
-- `+`, `-`, `=`, `map`, `filter`, ...: functions in `phel\core`
+- `+`, `-`, `=`, `map`, `filter`, ...: functions in `phel.core`
 
 Run `(macroexpand-1 'form)` to see the truth.
 

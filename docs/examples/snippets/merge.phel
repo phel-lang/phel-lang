@@ -1,4 +1,4 @@
-(ns examples\snippets\merge)
+(ns examples.snippets.merge)
 
 (println (merge {:a 1} {:b 2}))            ; {:a 1 :b 2}
 

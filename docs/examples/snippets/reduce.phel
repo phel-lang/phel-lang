@@ -1,4 +1,4 @@
-(ns examples\snippets\reduce)
+(ns examples.snippets.reduce)
 
 (println (reduce + [1 2 3 4 5]))           ; 15
 (println (reduce + 100 [1 2 3]))           ; 106

@@ -1,4 +1,4 @@
-(ns examples\snippets\into)
+(ns examples.snippets.into)
 
 ;; into adds all elements of src into dest, keeping dest's type
 (println (into [] (range 5)))              ; @[0 1 2 3 4]

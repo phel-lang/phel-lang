@@ -56,7 +56,7 @@ Matches user-facing `&form` / `&env`.
 | `` `(a ~@xs b) `` | `(concat (list (quote a)) xs (list (quote b)))` |
 | `` `[a ~x] `` | `(vec (concat (list (quote a)) (list x)))` |
 
-Symbols inside quasiquote get namespace-qualified to the *defining* namespace. Easy half of hygiene: `` `(map f xs) `` resolves to `phel\core/map` regardless of caller shadowing.
+Symbols inside quasiquote get namespace-qualified to the *defining* namespace. Easy half of hygiene: `` `(map f xs) `` resolves to `phel.core/map` regardless of caller shadowing.
 
 ## Auto-gensym (`x#`)
 

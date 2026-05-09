@@ -1,5 +1,5 @@
-(ns examples\html-rendering
-  (:require phel\html :as html))
+(ns examples.html-rendering
+  (:require phel.html :as html))
 
 ;; Generate HTML strings with the built-in templating helpers.
 (def sessions

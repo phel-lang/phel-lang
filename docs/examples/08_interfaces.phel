@@ -1,4 +1,4 @@
-(ns examples\interfaces)
+(ns examples.interfaces)
 
 ;; Define an interface and implement it with a struct.
 (definterface Greeter

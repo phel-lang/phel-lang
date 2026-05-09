@@ -1,4 +1,4 @@
-(ns examples\snippets\defn)
+(ns examples.snippets.defn)
 
 ;; ^int :tag emits a PHP int parameter type and unlocks JIT-friendly call shape.
 (defn ^int square [^int x] (* x x))

@@ -1,4 +1,4 @@
-(ns examples\snippets\assoc)
+(ns examples.snippets.assoc)
 
 (println (assoc {:a 1} :b 2))              ; {:a 1 :b 2}
 (println (assoc {:a 1 :b 2} :a 99))        ; {:a 99 :b 2}

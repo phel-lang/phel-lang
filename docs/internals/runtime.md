@@ -8,7 +8,7 @@ What emitted PHP runs against. `src/php/Lang/` plus `src/php/Phel.php`. Independ
 \Phel::addDefinition(
     "user",
     "greet",
-    function ($name) { return \phel\core\str("hello, ", $name); },
+    function ($name) { return (\Phel::getDefinition("phel.core", "str"))("hello, ", $name); },
     \Phel::map(\Phel::keyword("doc"), "Greet someone."),
 );
 ```

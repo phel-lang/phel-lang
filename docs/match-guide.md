@@ -1,12 +1,12 @@
 # Pattern Matching Guide
 
-`phel\match` provides a `match` macro that destructures by shape. Expands to nested `cond` + `let` at compile time.
+`phel.match` provides a `match` macro that destructures by shape. Expands to nested `cond` + `let` at compile time.
 
 ## Quickstart
 
 ```phel
-(ns my-app\main
-  (:require phel\match :refer [match]))
+(ns my-app.main
+  (:require phel.match :refer [match]))
 
 (defn describe [x]
   (match [x]
@@ -54,5 +54,5 @@
 
 ## See also
 
-- `phel\schema`: shapes reusable across validation and matching
+- `phel.schema`: shapes reusable across validation and matching
 - `cond`, `case`, `condp`: simpler dispatch without destructuring

@@ -64,7 +64,7 @@ Wrong context yields wrong PHP. Emitter trusts what analyzer wrote.
 - **Modes** (`EmitMode`): `STATEMENT` (REPL, `eval`), `FILE` (cached compilation). `StatementEmitter` vs `FileEmitter`.
 
 ```php
-\phel\core\print_("hi");
+(\Phel::getDefinition("phel.core", "print"))("hi");
 ```
 
 **Evaluator**

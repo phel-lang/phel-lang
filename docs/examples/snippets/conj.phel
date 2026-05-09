@@ -1,4 +1,4 @@
-(ns examples\snippets\conj)
+(ns examples.snippets.conj)
 
 ;; Vectors: append
 (println (conj [1 2 3] 4))                 ; @[1 2 3 4]

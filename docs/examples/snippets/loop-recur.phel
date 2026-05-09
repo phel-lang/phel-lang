@@ -1,4 +1,4 @@
-(ns examples\snippets\loop-recur)
+(ns examples.snippets.loop-recur)
 
 ;; Factorial with loop/recur (constant stack).
 ;; `*'` auto-promotes to BigInteger if PHP int overflows, e.g. (fact 21).

@@ -1,4 +1,4 @@
-(ns examples\snippets\atom)
+(ns examples.snippets.atom)
 
 (defn main []
   (let [counter (atom 0)]

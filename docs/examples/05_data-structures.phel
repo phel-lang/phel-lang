@@ -1,4 +1,4 @@
-(ns examples\data-structures)
+(ns examples.data-structures)
 
 ;; Explore vectors, maps, destructuring, and data manipulation.
 

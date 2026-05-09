@@ -1,12 +1,12 @@
 # Schema Guide
 
-`phel\schema` validates, coerces, and generates values. Schemas are plain Phel data (keywords or vectors), no DSL.
+`phel.schema` validates, coerces, and generates values. Schemas are plain Phel data (keywords or vectors), no DSL.
 
 ## Quickstart
 
 ```phel
-(ns my-app\main
-  (:require phel\schema :as s))
+(ns my-app.main
+  (:require phel.schema :as s))
 
 (def User
   [:map {:closed? true}
@@ -66,5 +66,5 @@
 
 ## See also
 
-- `phel\match` for destructuring matched shapes
-- `phel\test\gen` for property-based testing driven by schemas
+- `phel.match` for destructuring matched shapes
+- `phel.test.gen` for property-based testing driven by schemas

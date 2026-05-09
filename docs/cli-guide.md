@@ -1,12 +1,12 @@
-# Building CLIs with `phel\cli`
+# Building CLIs with `phel.cli`
 
-`phel\cli` is a data-driven wrapper over [`symfony/console`](https://symfony.com/doc/current/components/console.html). Subcommands, arguments, options, prompts, tables, progress bars, shell completion, and signal handling all defined as plain Phel maps. No extra dependency; `symfony/console` ships with phel-lang.
+`phel.cli` is a data-driven wrapper over [`symfony/console`](https://symfony.com/doc/current/components/console.html). Subcommands, arguments, options, prompts, tables, progress bars, shell completion, and signal handling all defined as plain Phel maps. No extra dependency; `symfony/console` ships with phel-lang.
 
 ## Quickstart
 
 ```phel
-(ns my-tool\main
-  (:require phel\cli :as cli))
+(ns my-tool.main
+  (:require phel.cli :as cli))
 
 (defn- greet [ctx]
   (let [name (or (cli/arg ctx "name")
@@ -204,9 +204,9 @@ my-tool _complete --generate-hook=bash > ~/.bash_completion.d/my-tool
 Test helpers run handlers without spawning a process:
 
 ```phel
-(ns my-tool-test\test\main
-  (:require phel\cli :as cli)
-  (:require phel\test :refer [deftest is]))
+(ns my-tool-test.test.main
+  (:require phel.cli :as cli)
+  (:require phel.test :refer [deftest is]))
 
 (deftest test-greet
   (let [spec   {:name "greet"
@@ -253,6 +253,6 @@ Only needed under `phel run`. A standalone binary built with `phel build` uses `
 
 ## See also
 
-- [`phel\router`](../src/phel/router.phel): companion for HTTP apps
-- [`phel\http-client`](../src/phel/http-client.phel): outbound HTTP
+- [`phel.router`](../src/phel/router.phel): companion for HTTP apps
+- [`phel.http-client`](../src/phel/http-client.phel): outbound HTTP
 - [symfony/console docs](https://symfony.com/doc/current/components/console.html): underlying API

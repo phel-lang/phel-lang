@@ -89,7 +89,7 @@ Each module ships `CLAUDE.md` with API + constraints. Read it before editing.
 ## Compile-time vs runtime
 
 - **Compile**: `CompilerFacade::compile()`. Holds `GlobalEnvironment`, macros, `TypeFactory`/`Registry`.
-- **Runtime**: executes emitted PHP. Sees only `\Phel::*`, `\phel\core\*`, `Lang/` types.
+- **Runtime**: executes emitted PHP. Sees only `\Phel::*` (with dot-form registry keys like `"phel.core"`) and `Lang/` types.
 
 Same physical PHP process (REPL, `phel run`) or different (cached files in a framework). Boundary is "being analysed" vs "being executed".
 

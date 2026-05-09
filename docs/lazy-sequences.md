@@ -119,7 +119,7 @@ When building recursive infinite sequences, use `cons` instead:
 (defn process-records [records]
   (->> records
        (filter (fn [x] (not (empty? x))))
-       (map (fn [x] (phel\string/trim x)))
+       (map (fn [x] (phel.string/trim x)))
        (map parse-record)))
 
 ;; Only processes records as needed
