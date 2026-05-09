@@ -89,3 +89,31 @@
   (is (= 7 (async-meta-false 7)) "^{:async false} returns the value, not a future")
   (is (= false (php/instanceof (async-meta-false 7) \Amp\Future))
       "^{:async false} bypasses async wrapper"))
+
+(def async-memoize-counter (atom 0))
+
+(defn ^{:async true :memoize true} async-memoize-add [a b]
+  (swap! async-memoize-counter inc)
+  (+ a b))
+
+(deftest test-defn-async-memoize-combo
+  (reset! async-memoize-counter 0)
+  (is (= 5 (await (async-memoize-add 2 3))) "first call resolves to value")
+  (is (= 5 (await (async-memoize-add 2 3))) "second call returns cached future")
+  (is (= 1 (deref async-memoize-counter)) "fn body ran once across cached calls")
+  (is (= 7 (await (async-memoize-add 3 4))) "different args compute fresh")
+  (is (= 2 (deref async-memoize-counter)) "second compute for new args"))
+
+(def async-memoize-lru-counter (atom 0))
+
+(defn ^{:async true :memoize-lru 4} async-memoize-lru-add [a b]
+  (swap! async-memoize-lru-counter inc)
+  (+ a b))
+
+(deftest test-defn-async-memoize-lru-combo
+  (reset! async-memoize-lru-counter 0)
+  (is (= 5 (await (async-memoize-lru-add 2 3))) "first call resolves to value")
+  (is (= 5 (await (async-memoize-lru-add 2 3))) "second call returns cached future")
+  (is (= 1 (deref async-memoize-lru-counter)) "fn body ran once across cached calls")
+  (is (= 7 (await (async-memoize-lru-add 3 4))) "different args compute fresh")
+  (is (= 2 (deref async-memoize-lru-counter)) "second compute for new args"))
