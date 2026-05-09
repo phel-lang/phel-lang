@@ -7,7 +7,7 @@
   new class() extends \Phel\Lang\AbstractFn {
     public const BOUND_TO = "user\\add";
 
-    public function __invoke(int $x, int $y) {
+    public function __invoke(int $x, int $y): int {
       return ($x + $y);
     }
   },

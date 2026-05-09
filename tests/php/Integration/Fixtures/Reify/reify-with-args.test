@@ -2,7 +2,7 @@
 (reify* (greet [this name] (php/. "Hello, " name)))
 --PHP--
 new class() {
-  public function greet($name) {
+  public function greet($name): string {
     $this_1 = $this;
     return ("Hello, " . $name);
   }

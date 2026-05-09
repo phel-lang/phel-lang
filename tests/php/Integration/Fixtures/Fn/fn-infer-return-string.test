@@ -1,0 +1,6 @@
+--PHEL--
+(fn [^string a ^string b] (php/. a b))
+--PHP--
+(function(string $a, string $b): string {
+  return ($a . $b);
+});
