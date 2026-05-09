@@ -11,5 +11,8 @@ Before suggesting code:
 - Collections are immutable. Rebind with `def`/`let`.
 - PHP interop prefix `php/`. See `.agents/RULES.md` for full syntax.
 - Guard top-level side effects with `(when-not *build-mode* ...)`.
+- Hot or public `defn`: add `:tag` to params + return (`^int`, `^string`, `^"?int"`, `^"\\Foo\\Bar"`, `^{:tag "..."}`). See `.agents/tasks/typed-defn.md`.
+- Opt-in defn metadata: `^:async`, `^:memoize`, `^{:memoize-lru N}`.
+- Prefer `.` ns separator (`app.main`); `\` still parses but is deprecated.
 
 Working examples: `.agents/examples/{todo-app, http-json-api, cli-wordcount}/`.

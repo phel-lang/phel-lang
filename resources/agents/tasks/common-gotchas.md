@@ -47,17 +47,19 @@ For the full `phel\cli` module (subcommands, options, prompts), see `tasks/cli-t
 (for [x :in xs :when (odd? x)] (* x x))
 ```
 
-## 4. `phel\string` (not `phel\str`)
+## 4. `phel.string` (not `phel.str`)
 
-Since v0.33, the string module is `phel\string`:
+Since v0.33, the string module is `phel.string`:
 
 ```phel
 ;; DON'T
-(:require phel\str :as str)
+(:require phel.str :as str)
 
 ;; DO
-(:require phel\string :as string)
+(:require phel.string :as string)
 ```
+
+(`\` separator still parses but is deprecated.)
 
 ## 5. Namespace segment count
 
@@ -107,7 +109,35 @@ Don't try `to-list` (doesn't exist) or `to-vec` (doesn't exist). Use `vec`.
 ```phel
 (defrecord Point [x y])
 (let [p (->Point 1 2)]
-  ;; DON'T: (.-x p) — this is PHP property access
+  ;; DON'T: (.-x p); this is PHP property access
   ;; DO:
   (get p :x))
 ```
+
+## 9. `:tag` literal-arg mismatch is a compile error
+
+```phel
+(defn ^int square [^int x] (* x x))
+
+;; DON'T: literal mismatch fails at compile time, not runtime
+(square "abc")
+
+;; DO: pass an int, or widen the tag
+(square 7)
+(defn ^int square [^"int|string" x] ...)   ; if you really want both
+```
+
+Same for `recur` args vs. binding tags and tail literal vs. declared return tag. See `tasks/typed-defn.md`.
+
+## 10. `^` tags one symbol; map form for unusual types
+
+```phel
+;; DON'T: ^?int parses as a symbol named "?int"
+(defn parse [^?int s] ...)
+
+;; DO: quote the type string
+(defn parse [^"?int" s] ...)
+(defn parse [^{:tag "?int"} s] ...)
+```
+
+Class FQNs need leading `\\`: `^"\\App\\User"`.

@@ -8,9 +8,9 @@ Errors print `file:line:col` when available. Re-read the snippet there.
 |-------|---------------|
 | Lexer | Unbalanced paren, unterminated string |
 | Reader | Invalid literal, bad `#reader` form |
-| Analyzer | "Can not resolve symbol", arity mismatch, bad special form |
+| Analyzer | "Can not resolve symbol", arity mismatch, bad special form, `:tag` mismatch |
 | Emitter | Rare; compiler bug, report upstream |
-| Runtime | PHP exception, nil method call |
+| Runtime | PHP exception, nil method call, untyped `recur` arity mismatch |
 
 ## Common fixes
 
@@ -64,6 +64,18 @@ Use `some->`:
 (php-array-to-map arr)                         ; reverse
 ```
 
+### `:phel/static-type` mismatch
+
+Compile-time arg vs. param tag, `recur` vs. binding tag, or tail vs. declared return tag. Either fix the call site, widen the tag (`^"?int"`, `^"int|string"`), or drop the tag if the caller really is dynamic.
+
+### Profiling a slow path
+
+```bash
+./vendor/bin/phel profile src/main.phel --format=both --output=profile.json
+```
+
+Per-fn self/total/avg/max + compile-phase costs. Tag the top-N self-time fns; see `tasks/typed-defn.md`.
+
 ### Macro surprises
 
 ```phel
@@ -96,4 +108,4 @@ Check `~`, `` ` ``, auto-gensym `name#`.
 
 ## Next
 
-`docs/patterns.md` § Error Handling, `docs/php-interop.md` § Error Handling, `tasks/repl-workflow.md`
+`docs/patterns.md` § Error Handling, `docs/php-interop.md` § Error Handling, `tasks/repl-workflow.md`, `tasks/typed-defn.md`

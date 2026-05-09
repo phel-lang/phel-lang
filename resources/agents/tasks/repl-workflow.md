@@ -61,6 +61,15 @@ Errors print trace and keep REPL alive. `(try expr (catch php\Foo e (.getMessage
 - `in-ns` on missing ns creates empty one. `require` first.
 - `(def map ...)` shadows core until restart.
 
+## Profile from CLI
+
+```bash
+./vendor/bin/phel profile src/main.phel             # text table
+./vendor/bin/phel profile src/main.phel --format=json --output=profile.json
+```
+
+Per-fn call counts and self/total/avg/max plus compile-phase costs. Use to pick fns worth tagging (`tasks/typed-defn.md`).
+
 ## Next
 
-`tasks/use-core-lib.md`, `tasks/debug-errors.md`, `src/phel/repl.phel`
+`tasks/use-core-lib.md`, `tasks/debug-errors.md`, `tasks/typed-defn.md`, `src/phel/repl.phel`
