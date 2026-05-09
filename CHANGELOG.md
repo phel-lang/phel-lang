@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 #### Compiler
 - `^{:tag "<php-type>"}` metadata on a fn or defn parameter emits a PHP type declaration on the compiled signature; reader shorthands `^int x`, `^"?int" x`, `^"\\Foo\\Bar" x` all reduce to the same `:tag` form (#1916)
 - Return-type declarations: `(fn ^int [x] x)`, `(defn ^int add [x y] ...)`, and per-arity `(fn (^int [x] x) (^int [x y] y))` emit `): <type>` on the compiled signature. `:tag` on the defn name propagates to every arity's param vector unless the vector already declares its own `:tag` (#1916)
+- `composer bench-jit-baseline` and `composer bench-jit-tracing` run a phpbench harness over `fib`, `sum-squares`, and `mandel-point` kernels in untyped vs. `:tag`-annotated variants, so the OPcache JIT speedup of typed signatures is measurable (#1931)
 
 #### Profile
 - `phel profile <path>` command: per-fn call counts and self/total/avg/max timings, plus compile-time phase costs (lex, parse, read, analyze, emit). Text table by default; `--format=json|both` and `--output=<file>` for tooling

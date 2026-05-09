@@ -1,0 +1,27 @@
+(ns phel\bench\jit\untyped)
+
+;; Recursive fib with untyped params and return.
+(defn fib [n]
+  (if (php/< n 2)
+    n
+    (php/+ (fib (php/- n 1)) (fib (php/- n 2)))))
+
+;; Tight integer accumulator: hot loop with a single recursive __invoke.
+(defn sum-squares [n]
+  (loop [i 0 acc 0]
+    (if (php/== i n)
+      acc
+      (recur (php/+ i 1) (php/+ acc (php/* i i))))))
+
+;; Mandelbrot escape iteration count for a single (cx, cy) point.
+(defn mandel-point [cx cy max-iter]
+  (loop [zx 0.0 zy 0.0 i 0]
+    (if (php/== i max-iter)
+      i
+      (let [zx2 (php/* zx zx)
+            zy2 (php/* zy zy)]
+        (if (php/> (php/+ zx2 zy2) 4.0)
+          i
+          (recur (php/+ (php/- zx2 zy2) cx)
+                 (php/+ (php/* 2.0 zx zy) cy)
+                 (php/+ i 1)))))))

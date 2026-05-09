@@ -67,6 +67,8 @@
         "sort-packages": true
     },
     "scripts": {
+        "bench-jit-baseline": "XDEBUG_MODE=off ./vendor/bin/phpbench run --filter=TypedSignatureBench --report=aggregate --progress=plain --ansi --php-config='{\"opcache.enable_cli\":0,\"xdebug.mode\":\"off\"}'",
+        "bench-jit-tracing": "XDEBUG_MODE=off ./vendor/bin/phpbench run --filter=TypedSignatureBench --report=aggregate --progress=plain --ansi --php-config='{\"opcache.enable_cli\":1,\"opcache.jit_buffer_size\":\"64M\",\"opcache.jit\":\"tracing\",\"xdebug.mode\":\"off\"}'",
         "csfix": "./vendor/bin/php-cs-fixer fix",
         "csrun": "./vendor/bin/php-cs-fixer fix --dry-run",
         "fix": [
