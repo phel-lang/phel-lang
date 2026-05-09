@@ -1,0 +1,6 @@
+--PHEL--
+(fn [x] (php/is_int x))
+--PHP--
+(function($x): bool {
+  return is_int($x);
+});

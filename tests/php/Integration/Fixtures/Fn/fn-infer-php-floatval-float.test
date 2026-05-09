@@ -1,0 +1,6 @@
+--PHEL--
+(fn [x] (php/floatval x))
+--PHP--
+(function($x): float {
+  return floatval($x);
+});

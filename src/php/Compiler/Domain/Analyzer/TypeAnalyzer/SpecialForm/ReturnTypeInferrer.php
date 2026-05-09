@@ -8,6 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\BindingNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
+use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
@@ -57,6 +58,50 @@ final class ReturnTypeInferrer
     /** @var list<string> */
     private const array NUMERIC_OPS = [
         '+', '-', '*', '/', '%', '**', '<<', '>>', '|', '&', '^',
+    ];
+
+    /**
+     * Pure PHP built-ins whose return type is fixed regardless of argument
+     * type. Limited to side-effect-free functions with a stable signature
+     * across supported PHP versions; anything whose return type depends on
+     * argument types or runtime mode stays out so the inferrer never
+     * stamps the wrong tag.
+     *
+     * @var array<string, string>
+     */
+    private const array PURE_PHP_FN_RETURN = [
+        'strlen' => 'int',
+        'intval' => 'int',
+        'mb_strlen' => 'int',
+        'count' => 'int',
+        'floatval' => 'float',
+        'doubleval' => 'float',
+        'floor' => 'float',
+        'ceil' => 'float',
+        'round' => 'float',
+        'boolval' => 'bool',
+        'is_int' => 'bool',
+        'is_integer' => 'bool',
+        'is_long' => 'bool',
+        'is_float' => 'bool',
+        'is_double' => 'bool',
+        'is_string' => 'bool',
+        'is_bool' => 'bool',
+        'is_null' => 'bool',
+        'is_array' => 'bool',
+        'is_object' => 'bool',
+        'is_callable' => 'bool',
+        'is_numeric' => 'bool',
+        'strval' => 'string',
+        'strtolower' => 'string',
+        'strtoupper' => 'string',
+        'mb_strtolower' => 'string',
+        'mb_strtoupper' => 'string',
+        'trim' => 'string',
+        'ltrim' => 'string',
+        'rtrim' => 'string',
+        'sprintf' => 'string',
+        'gettype' => 'string',
     ];
 
     /**
@@ -200,6 +245,11 @@ final class ReturnTypeInferrer
     private function inferCall(CallNode $node, array $locals): ?string
     {
         $fn = $node->getFn();
+
+        if ($fn instanceof GlobalVarNode) {
+            return $this->inferGlobalCall($fn);
+        }
+
         if (!$fn instanceof PhpVarNode) {
             return null;
         }
@@ -221,7 +271,36 @@ final class ReturnTypeInferrer
             return $this->inferNumeric($node, $locals);
         }
 
+        if (isset(self::PURE_PHP_FN_RETURN[$op])) {
+            $this->sawOperator = true;
+            return self::PURE_PHP_FN_RETURN[$op];
+        }
+
         return null;
+    }
+
+    /**
+     * Cross-fn propagation: when the tail call resolves to another
+     * global definition, trust its `:tag` meta as the inferred return
+     * type. The callee's tag is either user-declared or already filled
+     * by this inferrer on a previous pass; either way it represents the
+     * same contract the call site is bound to honour, so propagating it
+     * cannot disagree with what the callee actually returns.
+     */
+    private function inferGlobalCall(GlobalVarNode $fn): ?string
+    {
+        $meta = $fn->getMeta();
+        $tag = $meta->find(Keyword::create('tag'));
+        if ($tag instanceof Symbol) {
+            $tag = $tag->getName();
+        }
+
+        if (!is_string($tag) || $tag === '') {
+            return null;
+        }
+
+        $this->sawOperator = true;
+        return $tag;
     }
 
     /**

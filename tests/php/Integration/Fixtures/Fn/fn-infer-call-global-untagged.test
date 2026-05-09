@@ -1,0 +1,34 @@
+--PHEL--
+(defn add [^int a ^int b] (php/+ a b))
+(fn [^int x] (add x 1))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "add",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\add";
+
+    public function __invoke(int $a, int $b): int {
+      return ($a + $b);
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("doc"), "```phel\n(add a b)\n```\n",
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-infer-call-global-untagged.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-infer-call-global-untagged.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 38
+    ),
+    "min-arity", 2,
+    "is-variadic", false,
+    "arglists", "[a b]"
+  )
+);
+(function(int $x) {
+  return (\Phel::getDefinition("user", "add"))($x, 1);
+});
