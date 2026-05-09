@@ -22,9 +22,9 @@ Targets: [`skills/INSTALL.md`](skills/INSTALL.md).
 
 | Path | Purpose |
 |------|---------|
-| [`RULES.md`](RULES.md) | Rules + CLI cheatsheet. Every installed adapter loads this from `.agents/RULES.md`. |
+| [`RULES.md`](RULES.md) | Rules, modern-feature reference (typed `defn`, `^:async`, `^:memoize`), CLI cheatsheet. Every installed adapter loads this from `.agents/RULES.md`. |
 | [`index.md`](index.md) | Intent → task recipe. |
-| [`tasks/`](tasks/) | One recipe per workflow. |
+| [`tasks/`](tasks/) | One recipe per workflow (`typed-defn`, `http-app`, `cli-tool`, ...). |
 | [`skills/`](skills/) | Per-platform adapters. |
 | [`examples/`](examples/) | Runnable projects (`todo-app`, `http-json-api`, `cli-wordcount`). |
 | [`VERSION`](VERSION) | phel-lang release this doc targets. |

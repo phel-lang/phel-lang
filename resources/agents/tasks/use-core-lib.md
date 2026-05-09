@@ -140,6 +140,19 @@ Core: `(str a b c)`, `(name :k)`, `(keyword "x")`, `(symbol "x")`.
 git grep 'defn <fn>' src/phel/core
 ```
 
+## Modern fn shape
+
+Hot or public `defn`: tag params + return. PHP type emission, JIT-friendly call shape, compile-time mismatch diagnostics.
+
+```phel
+(defn ^int sum-squares [^int n]
+  (loop [i 0 acc 0]
+    (if (php/=== i n) acc
+        (recur (php/+ i 1) (php/+ acc (php/* i i))))))
+```
+
+Detail: [`tasks/typed-defn.md`](typed-defn.md). Find candidates: `phel profile <path>`.
+
 ## Next
 
-`docs/patterns.md`, `docs/data-structures-guide.md`, `docs/lazy-sequences.md`, `docs/transducers.md`, `docs/cli-guide.md`, `tasks/http-app.md`, `tasks/cli-tool.md`
+`docs/patterns.md`, `docs/data-structures-guide.md`, `docs/lazy-sequences.md`, `docs/transducers.md`, `docs/cli-guide.md`, `tasks/http-app.md`, `tasks/cli-tool.md`, `tasks/typed-defn.md`

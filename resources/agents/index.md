@@ -12,7 +12,11 @@ Rules + CLI: [`RULES.md`](RULES.md).
 | Add tests | [`tasks/add-tests.md`](tasks/add-tests.md) | `src/phel/test.phel`, `docs/mocking-guide.md` |
 | REPL | [`tasks/repl-workflow.md`](tasks/repl-workflow.md) | `src/phel/repl.phel` |
 | Find core fn | [`tasks/use-core-lib.md`](tasks/use-core-lib.md) | `(phel doc <fn>)`, `docs/patterns.md` |
+| Type a fn (params + return) | [`tasks/typed-defn.md`](tasks/typed-defn.md) | `docs/quickstart.md`, `docs/schema-guide.md` |
 | Debug errors | [`tasks/debug-errors.md`](tasks/debug-errors.md) | `docs/patterns.md` § Error Handling |
+| Profile hot paths | [`tasks/typed-defn.md`](tasks/typed-defn.md) § Find hot paths | `phel profile <path>` |
+| Async / fibers | — | `docs/async-guide.md`, `src/phel/async.phel` |
+| Memoize | — | `(doc memoize)`, `(doc memoize-lru)` |
 | Common pitfalls | [`tasks/common-gotchas.md`](tasks/common-gotchas.md) | `RULES.md` § Gotchas |
 | Use a PHP library | [`tasks/use-php-libs.md`](tasks/use-php-libs.md) | `docs/php-interop.md` |
 | Validate data | [`tasks/validate-with-schema.md`](tasks/validate-with-schema.md) | `src/phel/schema.phel`, `docs/schema-guide.md` |

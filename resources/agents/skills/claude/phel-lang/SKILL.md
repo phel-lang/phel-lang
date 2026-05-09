@@ -17,22 +17,40 @@ Lisp dialect that compiles to PHP. PHP interop via `php/` prefix.
 
 ## Before you start coding
 
-- Read `.agents/RULES.md` § Gotchas — saves 5-10 min of debugging
+- Read `.agents/RULES.md` § Gotchas; saves 5-10 min of debugging
 - Use `*argv*` for CLI args, NOT `php/$argv`
 - Use `doseq` for side effects, `for` for building sequences
-- String module is `phel\string` (not `phel\str`)
-- Use `defrecord`, `defprotocol`, `defmulti` for structured code — they are stable since v0.30-0.32
+- String module is `phel.string` (not `phel.str`); prefer `.` ns separator (`\` deprecated)
+- Use `defrecord`, `defprotocol`, `defmulti` for structured code; stable since v0.30-0.32
+- Add `:tag` to params + return on hot or public fns; PHP type emission, JIT-friendly call shape, compile-time mismatch diagnostics. See `.agents/tasks/typed-defn.md`
+- Opt-in `defn` metadata: `^:async` (wraps body in `async`, returns `Amp\Future`), `^:memoize` / `^{:memoize-lru N}` (cache by arg vector)
+- `phel profile <path>` finds the fns to type first
 
 ## Working examples
 
-`.agents/examples/{todo-app, http-json-api, cli-wordcount}/` — copy, adapt, run.
+`.agents/examples/{todo-app, http-json-api, cli-wordcount}/`; copy, adapt, run.
 
 ## Quick syntax reference
 
 ```phel
-;; Define + call
-(defn greet [name] (str "Hello, " name "!"))
+;; Define + call (^int :tag emits PHP int return-type and unlocks JIT-friendly call shape)
+(defn ^string greet [^string name] (str "Hello, " name "!"))
 (greet "World")
+
+;; Multi-arity, name-tag propagates to every arity unless overridden
+(defn ^int fib
+  ([^int n] (fib n 0 1))
+  ([^int n ^int a ^int b]
+   (if (zero? n) a (recur (dec n) b (+ a b)))))
+
+;; Memoize + type tag together
+(defn ^{:memoize-lru 256 :tag "int"} slow-fib
+  [^int n]
+  (if (< n 2) n (+ (slow-fib (- n 1)) (slow-fib (- n 2)))))
+
+;; Async defn -> Amp\Future
+(defn ^:async fetch [^string url]
+  (await (http-get url)))
 
 ;; Records
 (defrecord Todo [id text done])
@@ -56,7 +74,7 @@ Lisp dialect that compiles to PHP. PHP interop via `php/` prefix.
 (re-find #"\d+" "abc123")  ; => "123"
 
 ;; JSON
-(:require phel\json :as json)
+(:require phel.json :as json)
 (json/encode {:a 1})  ; => "{\"a\":1}"
 (json/decode "{\"a\":1}")  ; => {:a 1}
 

@@ -10,14 +10,15 @@ Single source for every skill adapter.
 4. PHP interop: `(php/fn args)`, `(php/-> obj (method args))`, `(php/:: Class (static args))`, `(php/new Class args)`. Shorthands: `(.method obj args)`, `(.-prop obj)`, `(Class/method args)`, `Class/CONST`.
 5. Threading: `->` first-arg, `->>` last-arg, `some->` / `some->>` nil-safe, `cond->` conditional.
 6. Only `false` and `nil` are falsy. `0`, `""`, `[]` truthy.
-7. Namespaces need ≥ 2 segments (`app\main`). File path matches ns under src dir.
+7. Namespaces need ≥ 2 segments. Prefer `.` separator (`app.main`); `\` still parses but is deprecated. File path matches ns under src dir.
 8. Comments: `;` inline, `;;` standalone, `#_` form, `#| |#` block.
 9. PHP assoc array: `#php {"k" "v"}` or `(to-php-array m)`. Not `{:k "v"}`.
 10. Catch PHP: `(catch php\SomeException e ...)`.
+11. Annotate hot-path `defn` with `:tag` on params + return for PHP type emission, JIT-friendly call shape, and compile-time mismatch diagnostics. See `tasks/typed-defn.md`.
 
 ## New features (v0.30 – main)
 
-Use these when appropriate — they are stable and tested.
+Use these when appropriate; stable and tested.
 
 | Feature | Syntax | Since |
 |---------|--------|-------|
@@ -26,12 +27,27 @@ Use these when appropriate — they are stable and tested.
 | Multimethods | `(defmulti area :shape)` + `(defmethod area :circle [{:radius r}] ...)` | v0.30 |
 | Transducers | `(into [] (filter odd?) [1 2 3])`, `(transduce (map inc) + 0 coll)` | v0.31 |
 | Regex literals | `#"^\d+$"`, `(re-find #"\d+" "abc123")` → `"123"` | v0.31 |
-| Pretty-print | `(require phel\pprint)` → `(pprint data)` | v0.30 |
+| Pretty-print | `(require phel.pprint)` → `(pprint data)` | v0.30 |
 | Sorted colls | `(sorted-map :a 1 :b 2)`, `(sorted-set 3 1 2)` | v0.32 |
 | `condp` | `(condp = x 1 "one" 2 "two" "other")` | v0.32 |
 | `defrecord` w/ protocols | `(defrecord Foo [x] MyProto (my-fn [this] ...))` | v0.32 |
-| `doseq` | `(doseq [x :in coll] (println x))` — side-effecting iteration | v0.31 |
-| `for` comprehension | `(for [x :in xs :when (odd? x)] (* x x))` — builds sequence | v0.31 |
+| `doseq` | `(doseq [x :in coll] (println x))`; side-effecting iteration | v0.31 |
+| `for` comprehension | `(for [x :in xs :when (odd? x)] (* x x))`; builds sequence | v0.31 |
+| `:tag` types | `(defn ^int square [^int x] (* x x))`, `^"?int"`, `^"\\Foo\\Bar"`, `^{:tag "..."}`. Emits PHP type decls; static checker rejects literal mismatches | main |
+| Return inference | Tagged params + tail primitive op (`(php/+ ...)` -> `int`, `(php/. ...)` -> `string`, comparisons -> `bool`) infers return; `if` / `let` / `loop` propagate. Explicit `:tag` always wins | main |
+| `^:async` defn | `(defn ^:async fetch [url] (await (http-get url)))`; body wrapped in `async`, returns `Amp\Future` | main |
+| `^:memoize` / `^{:memoize-lru N}` | `(defn ^{:memoize-lru 32} fib [^int n] ...)`; opt-in caching by arg vector, LRU bound optional | main |
+
+`:tag` reader shorthands:
+
+```phel
+(defn ^int  add  [^int a ^int b] (+ a b))               ; param + return
+(defn ^"?int" maybe-id [^string s] ...)                 ; nullable
+(defn ^"\\DateTimeImmutable" now [] (php/new \DateTimeImmutable))
+(defn ^{:tag "array"} pairs [m] ...)                    ; map form
+```
+
+Defn-name tag propagates to every arity unless an arity vector overrides it. See `tasks/typed-defn.md`.
 
 ## Gotchas
 
@@ -54,6 +70,7 @@ See [`tasks/common-gotchas.md`](tasks/common-gotchas.md) for details. Quick summ
 | Build | `./vendor/bin/phel build` |
 | Doc | `./vendor/bin/phel doc <fn>` |
 | Format | `./vendor/bin/phel format <file>` |
+| Profile | `./vendor/bin/phel profile <path> [--format=text\|json\|both] [--output=<file>]` |
 | Install skill | `./vendor/bin/phel agent-install <platform>\|--all` |
 
 ## Workflow
@@ -61,8 +78,9 @@ See [`tasks/common-gotchas.md`](tasks/common-gotchas.md) for details. Quick summ
 1. `phel init` if empty.
 2. Unknowns → REPL `(doc <fn>)` before guessing.
 3. Code `src/<ns>.phel` (flat) or `src/phel/<ns>.phel` (`--nested`).
-4. `phel\test`: `deftest`, `is`. Run `phel test`.
+4. `phel.test`: `deftest`, `is`. Run `phel test`.
 5. `phel run` or web entry.
+6. Hot loops: add `:tag` to params + return; `phel profile` to find them.
 
 ## Commits
 

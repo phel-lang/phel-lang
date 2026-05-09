@@ -19,9 +19,9 @@ Namespace: `tests\<name>-test`.
 ```phel
 (ns my-app\math)
 
-(defn add [a b] (+ a b))
+(defn ^int add [^int a ^int b] (+ a b))
 
-(defn divide [a b]
+(defn divide [^"int|float" a ^"int|float" b]
   (when (zero? b)
     (throw (php/new \InvalidArgumentException "division by zero")))
   (/ a b))
@@ -106,7 +106,8 @@ Full: `docs/mocking-guide.md`.
 - `:refer [deftest is]` required.
 - `(thrown? body)` catches any `\Throwable`; specify class to target.
 - No `:reload`. Restart REPL or run `phel test`.
+- Typed fn under test: literal arg mismatch is now a compile error in the test file too. Cast or use a non-literal binding to test runtime paths.
 
 ## Next
 
-`src/phel/test.phel`, `docs/mocking-guide.md`, `tests/phel/*.phel`
+`src/phel/test.phel`, `docs/mocking-guide.md`, `tests/phel/*.phel`, `tasks/typed-defn.md`
