@@ -11,11 +11,10 @@ All notable changes to this project will be documented in this file.
 - `^:async` metadata on `defn` wraps the body in `async`, returning an `Amp\Future` that callers `await` (#1924)
 
 #### Compiler
-- `^{:tag "<php-type>"}` metadata on a fn or defn parameter emits a PHP type declaration on the compiled signature; reader shorthands `^int x`, `^"?int" x`, `^"\\Foo\\Bar" x` all reduce to the same `:tag` form (#1916)
-- Return-type declarations: `(fn ^int [x] x)`, `(defn ^int add [x y] ...)`, and per-arity `(fn (^int [x] x) (^int [x y] y))` emit `): <type>` on the compiled signature. `:tag` on the defn name propagates to every arity's param vector unless the vector already declares its own `:tag` (#1916)
-- `composer bench-jit-baseline` and `composer bench-jit-tracing` run typed-vs-untyped `fib`, `sum-squares`, and `mandel-point` kernels under OPcache JIT (#1931)
-- Fn return type is inferred from a tail-position primitive op on tagged params (`(php/+ ...)` -> `int`, `(php/. ...)` -> `string`, comparisons -> `bool`, with `if` / `let` / `loop` propagation), unless the user supplied an explicit `:tag` (#1932)
-- Static type checker flags `:tag` mismatches at compile time with a Phel diagnostic instead of a deeper PHP `TypeError`: literal call args vs. param tags, `recur` args vs. binding tags, and tail literal vs. declared return tag (#1933)
+- `:tag` metadata emits PHP type declarations on the compiled fn / defn signature: params, return slot, and per-arity. Reader shorthands `^int`, `^"?int"`, `^"\\Foo\\Bar"`, `^{:tag "..."}`. `:tag` on a defn name propagates to every arity unless the vector overrides it (#1916)
+- Return type inferred from a tail-position primitive op on tagged params (`(php/+ ...)` -> `int`, `(php/. ...)` -> `string`, comparisons -> `bool`; `if` / `let` / `loop` propagate). Explicit `:tag` always wins (#1932)
+- Static checker turns `:tag` mismatches into a Phel diagnostic at compile time instead of a runtime PHP `TypeError`: literal call args vs. param tags, `recur` args vs. binding tags, tail literal vs. declared return tag (#1933)
+- `composer bench-jit-baseline` / `bench-jit-tracing` measure typed-vs-untyped `fib`, `sum-squares`, `mandel-point` kernels under OPcache JIT (#1931)
 
 #### Profile
 - `phel profile <path>` command: per-fn call counts and self/total/avg/max timings, plus compile-time phase costs (lex, parse, read, analyze, emit). Text table by default; `--format=json|both` and `--output=<file>` for tooling
