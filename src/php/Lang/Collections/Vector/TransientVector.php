@@ -77,9 +77,11 @@ final class TransientVector implements TransientVectorInterface, Stringable
     }
 
     /**
-     * @param array<int, T> $array
+     * @template U
      *
-     * @return self<T>
+     * @param array<int, U> $array
+     *
+     * @return self<U>
      */
     public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $array): self
     {

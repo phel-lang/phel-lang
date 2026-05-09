@@ -27,7 +27,7 @@ final class IndexedNodeIterator implements Iterator
     private ?Iterator $nestedIterator = null;
 
     /**
-     * @param array<int, array{0: K|null, 1: HashMapNodeInterface<K, V>|V}> $entries
+     * @param array<int, array{0: mixed, 1: mixed}> $entries
      */
     public function __construct(array $entries)
     {

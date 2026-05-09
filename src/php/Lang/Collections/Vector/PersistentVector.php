@@ -65,9 +65,11 @@ final class PersistentVector extends AbstractPersistentVector
     }
 
     /**
-     * @param array<int, T> $values
+     * @template U
      *
-     * @return PersistentVectorInterface<T>
+     * @param array<int, U> $values
+     *
+     * @return PersistentVectorInterface<U>
      */
     public static function fromArray(
         HasherInterface $hasher,
