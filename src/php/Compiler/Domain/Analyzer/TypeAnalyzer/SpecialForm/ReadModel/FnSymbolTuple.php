@@ -34,13 +34,19 @@ final class FnSymbolTuple
 
     private string $buildParamsState = self::STATE_START;
 
+    /**
+     * @param PersistentListInterface<mixed> $parentList
+     */
     private function __construct(
         private readonly PersistentListInterface $parentList,
     ) {}
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     public static function createWithTuple(PersistentListInterface $list): self
     {
-        /** @var PersistentVectorInterface $params */
+        /** @var PersistentVectorInterface<mixed> $params */
         $params = $list->get(1);
         $self = new self($list);
 

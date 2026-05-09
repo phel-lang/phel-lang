@@ -24,6 +24,9 @@ final class DoSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): DoNode
     {
         $sym = $list->first();
@@ -31,6 +34,7 @@ final class DoSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::withLocation("This is not a 'do.", $list);
         }
 
+        /** @var PersistentListInterface<mixed>|null $forms */
         $forms = $list->cdr();
         $stmts = [];
         for (; $forms !== null; $forms = $forms->cdr()) {

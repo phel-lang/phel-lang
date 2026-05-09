@@ -110,7 +110,7 @@ final class ConsoleBootstrap extends Application
     {
         $filtered = array_values(array_filter(
             $argv,
-            static fn($arg): bool => $arg !== '--help' && $arg !== '-h',
+            static fn(string $arg): bool => $arg !== '--help' && $arg !== '-h',
         ));
 
         array_splice($filtered, 1, 0, ['list']);

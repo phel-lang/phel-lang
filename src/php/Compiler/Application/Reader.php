@@ -105,6 +105,9 @@ final class Reader implements ReaderInterface
             ->read($node, $this->fnArgs, $this->fnPlaceholderPrefix ?? '$');
     }
 
+    /**
+     * @param AbstractAtomNode<mixed> $node
+     */
     private function readAtomNode(AbstractAtomNode $node): float|bool|int|string|TypeInterface|null
     {
         return $this->readerFactory

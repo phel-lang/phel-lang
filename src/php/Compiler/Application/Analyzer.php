@@ -91,6 +91,9 @@ final class Analyzer implements AnalyzerInterface
         $this->globalEnvironment->addDefinition($ns, $symbol);
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed> $meta
+     */
     public function setCompileTimeMeta(string $ns, Symbol $symbol, PersistentMapInterface $meta): void
     {
         $this->globalEnvironment->setCompileTimeMeta($ns, $symbol, $meta);

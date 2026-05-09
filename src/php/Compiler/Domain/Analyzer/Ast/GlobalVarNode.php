@@ -12,6 +12,9 @@ use Phel\Lang\Symbol;
 
 final class GlobalVarNode extends AbstractNode
 {
+    /**
+     * @param PersistentMapInterface<mixed, mixed> $meta
+     */
     public function __construct(
         NodeEnvironmentInterface $env,
         private readonly string $namespace,
@@ -32,6 +35,9 @@ final class GlobalVarNode extends AbstractNode
         return $this->name;
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>
+     */
     public function getMeta(): PersistentMapInterface
     {
         return $this->meta;

@@ -31,7 +31,7 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
      * evaluated (e.g. a `defn` followed by a call to it in the same
      * file under compile-only flows).
      *
-     * @var array<string, array<string, PersistentMapInterface>>
+     * @var array<string, array<string, PersistentMapInterface<mixed, mixed>>>
      */
     private array $compileTimeMeta = [];
 
@@ -82,6 +82,9 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         $this->definitions[$namespace][$name->getName()] = true;
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed> $meta
+     */
     public function setCompileTimeMeta(string $namespace, Symbol $name, PersistentMapInterface $meta): void
     {
         $this->compileTimeMeta[$namespace][$name->getName()] = $meta;
@@ -98,6 +101,9 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         );
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     public function getDefinition(string $namespace, Symbol $name): ?PersistentMapInterface
     {
         if (!$this->hasDefinition($namespace, $name)) {

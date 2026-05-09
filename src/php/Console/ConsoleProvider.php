@@ -22,6 +22,7 @@ use Phel\Console\Infrastructure\Command\ProfileCommands;
 use Phel\Console\Infrastructure\Command\RunCommands;
 use Phel\Console\Infrastructure\Command\WatchCommands;
 use Phel\Filesystem\FilesystemFacade;
+use Symfony\Component\Console\Command\Command;
 
 final class ConsoleProvider extends AbstractProvider
 {
@@ -42,7 +43,7 @@ final class ConsoleProvider extends AbstractProvider
     }
 
     /**
-     * @return list<\Symfony\Component\Console\Command\Command>
+     * @return list<Command>
      */
     #[Provides(self::COMMANDS)]
     public function commands(): array

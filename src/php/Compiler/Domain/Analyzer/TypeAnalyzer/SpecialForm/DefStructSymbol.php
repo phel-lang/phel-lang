@@ -32,6 +32,9 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
         private MethodBodyAnalyzer $methodBodyAnalyzer,
     ) {}
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): DefStructNode
     {
         if (count($list) < 3) {
@@ -53,13 +56,20 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
 
         $params = $this->params($structParams);
 
+        /** @var PersistentListInterface<mixed> $rest1 */
+        $rest1 = $list->rest();
+        /** @var PersistentListInterface<mixed> $rest2 */
+        $rest2 = $rest1->rest();
+        /** @var PersistentListInterface<mixed> $rest3 */
+        $rest3 = $rest2->rest();
+
         return new DefStructNode(
             $env,
             $this->analyzer->getNamespace(),
             $structSymbol,
             $params,
             $this->interfaces(
-                $list->rest()->rest()->rest(),
+                $rest3,
                 $env->withMergedLocals($params),
             ),
             $list->getStartLocation(),
@@ -86,6 +96,8 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
+     * @param PersistentListInterface<mixed> $list
+     *
      * @return list<DefStructInterface>
      */
     private function interfaces(PersistentListInterface $list, NodeEnvironmentInterface $env): array
@@ -95,7 +107,8 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
         }
 
         $interfaces = [];
-        for ($forms = $list; $forms !== null; $forms = $forms->cdr()) {
+        $forms = $list;
+        for (; $forms !== null; $forms = $forms->cdr()) {
             $first = $forms->first();
 
             if (!$first instanceof Symbol) {
@@ -149,6 +162,7 @@ final readonly class DefStructSymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
+     * @param PersistentListInterface<mixed>  $list
      * @param array<string, ReflectionMethod> $expectedMethodIndex
      */
     private function analyzeInterfaceMethod(

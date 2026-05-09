@@ -10,5 +10,8 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 
 interface SpecialFormAnalyzerInterface
 {
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode;
 }

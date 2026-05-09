@@ -60,10 +60,16 @@ final class RecurSymbol implements SpecialFormAnalyzerInterface
         );
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     *
+     * @return list<AbstractNode>
+     */
     public function expressions(PersistentListInterface $list, NodeEnvironmentInterface $env): array
     {
         $expressions = [];
-        for ($forms = $list->cdr(); $forms !== null; $forms = $forms->cdr()) {
+        $forms = $list->cdr();
+        for (; $forms !== null; $forms = $forms->cdr()) {
             $expressions[] = $this->analyzer->analyze(
                 $forms->first(),
                 $env->withExpressionContext()->withDisallowRecurFrame(),
@@ -74,7 +80,8 @@ final class RecurSymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
-     * @param list<AbstractNode> $expressions
+     * @param list<AbstractNode>             $expressions
+     * @param PersistentListInterface<mixed> $list
      */
     private function verifyParamTagsAgainstExpressions(
         RecurFrame $frame,
@@ -107,6 +114,9 @@ final class RecurSymbol implements SpecialFormAnalyzerInterface
         }
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     private function isValidRecurTuple(PersistentListInterface $list): bool
     {
         return $list->get(0) instanceof Symbol

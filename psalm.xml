@@ -34,6 +34,19 @@
         <PossiblyUndefinedMethod errorLevel="suppress" />
         <InvalidArrayOffset errorLevel="suppress" />
         <NamedArgumentNotAllowed errorLevel="suppress" />
+        <!-- phpstan annotates Fiber<TStart, TResume, TReturn, TSuspend>
+             via the bundled stubs; psalm core has no such generics, so
+             the annotation reads as four extra params here. Generics are
+             accurate for phpstan, suppressed for psalm. -->
+        <TooManyTemplateParams errorLevel="suppress" />
+        <!-- Subclass-narrowed PHPDoc returns required by phpstan's
+             missingType.generics rule (e.g. AbstractAtomNode<mixed>);
+             psalm sees concrete subclasses and reports a mismatch. -->
+        <InvalidReturnStatement errorLevel="suppress" />
+        <InvalidReturnType errorLevel="suppress" />
+        <ImplementedReturnTypeMismatch errorLevel="suppress" />
+        <MoreSpecificImplementedParamType errorLevel="suppress" />
+        <RedundantCastGivenDocblockType errorLevel="suppress" />
 
         <!-- Type safety suppressions for dynamic code -->
         <MixedArgument errorLevel="suppress" />

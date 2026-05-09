@@ -10,6 +10,7 @@ final class SourceMapState
 
     private int $generatedColumns = 0;
 
+    /** @var list<array{generated: array{line: int, column: int}, original: array{line: int, column: int}, source?: string, name?: string}> */
     private array $mappings = [];
 
     public function reset(): self
@@ -49,11 +50,17 @@ final class SourceMapState
         return $this;
     }
 
+    /**
+     * @return list<array{generated: array{line: int, column: int}, original: array{line: int, column: int}, source?: string, name?: string}>
+     */
     public function getMappings(): array
     {
         return $this->mappings;
     }
 
+    /**
+     * @param array{generated: array{line: int, column: int}, original: array{line: int, column: int}, source?: string, name?: string} $mapping
+     */
     public function addMapping(array $mapping): self
     {
         $this->mappings[] = $mapping;

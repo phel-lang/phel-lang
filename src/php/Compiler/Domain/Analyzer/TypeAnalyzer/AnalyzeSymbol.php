@@ -92,6 +92,9 @@ final class AnalyzeSymbol
             || ($ns[0] >= 'A' && $ns[0] <= 'Z');
     }
 
+    /**
+     * @return PersistentListInterface<mixed>
+     */
     private function expandStaticMemberShorthand(Symbol $symbol): PersistentListInterface
     {
         $staticSymbol = Symbol::create(Symbol::NAME_PHP_OBJECT_STATIC_CALL)->copyLocationFrom($symbol);

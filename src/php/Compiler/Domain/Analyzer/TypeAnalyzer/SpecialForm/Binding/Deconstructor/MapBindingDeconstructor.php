@@ -15,9 +15,6 @@ use Phel\Lang\TypeInterface;
 
 use function array_key_exists;
 
-/**
- * @implements BindingDeconstructorInterface<PersistentMapInterface>
- */
 final class MapBindingDeconstructor implements BindingDeconstructorInterface
 {
     /** @psalm-suppress PropertyNotSetInConstructor */
@@ -31,8 +28,9 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
     ) {}
 
     /**
-     * @param PersistentMapInterface                   $binding The binding form
-     * @param bool|float|int|string|TypeInterface|null $value   The value form
+     * @param list<array{0: Symbol, 1: mixed}>         $bindings
+     * @param PersistentMapInterface<mixed, mixed>     $binding  The binding form
+     * @param bool|float|int|string|TypeInterface|null $value    The value form
      */
     public function deconstruct(array &$bindings, $binding, $value): void
     {
@@ -121,6 +119,10 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
         }
     }
 
+    /**
+     * @param list<array{0: Symbol, 1: mixed}>     $bindings
+     * @param PersistentMapInterface<mixed, mixed> $binding
+     */
     private function bindingIteration(
         array &$bindings,
         PersistentMapInterface $binding,
@@ -159,6 +161,11 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
         return [$this->orDefaults[$name]];
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed> $binding
+     *
+     * @return PersistentListInterface<mixed>
+     */
     private function createAccessValue(
         PersistentMapInterface $binding,
         float|bool|int|string|TypeInterface|null $key,
@@ -172,6 +179,10 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
 
     /**
      * Generates: (if (contains? mapSym key) (php/aget mapSym key) default)
+     *
+     * @param PersistentMapInterface<mixed, mixed> $binding
+     *
+     * @return PersistentListInterface<mixed>
      */
     private function createAccessValueWithDefault(
         PersistentMapInterface $binding,

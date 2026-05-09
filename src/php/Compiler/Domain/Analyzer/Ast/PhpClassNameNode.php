@@ -43,6 +43,9 @@ final class PhpClassNameNode extends AbstractNode
         return $classString;
     }
 
+    /**
+     * @return ReflectionClass<object>
+     */
     public function getReflectionClass(): ReflectionClass
     {
         return new ReflectionClass($this->getAbsolutePhpName());

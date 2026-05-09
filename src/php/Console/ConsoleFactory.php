@@ -10,6 +10,7 @@ use Phel\Console\Application\ArgvInputSanitizer;
 use Phel\Console\Application\VersionFinder;
 use Phel\Console\Infrastructure\ConsoleBootstrap;
 use Phel\Filesystem\FilesystemFacadeInterface;
+use Symfony\Component\Console\Command\Command;
 
 use function in_array;
 
@@ -29,7 +30,7 @@ final class ConsoleFactory extends AbstractFactory
     }
 
     /**
-     * @return list<\Symfony\Component\Console\Command\Command>
+     * @return list<Command>
      */
     public function getConsoleCommands(): array
     {

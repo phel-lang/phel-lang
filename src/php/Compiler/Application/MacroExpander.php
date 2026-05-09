@@ -34,6 +34,8 @@ final readonly class MacroExpander
             return $form;
         }
 
+        /** @var PersistentListInterface<mixed> $form */
+
         $first = $form->first();
         if (!$first instanceof Symbol) {
             return $form;

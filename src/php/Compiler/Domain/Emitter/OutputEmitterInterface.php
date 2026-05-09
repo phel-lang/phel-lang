@@ -27,6 +27,9 @@ interface OutputEmitterInterface
 
     public function emitStr(string $str, ?SourceLocation $sl = null): void;
 
+    /**
+     * @param list<AbstractNode> $nodes
+     */
     public function emitArgList(array $nodes, ?SourceLocation $sepLoc, string $sep = ', '): void;
 
     public function emitContextPrefix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null): void;

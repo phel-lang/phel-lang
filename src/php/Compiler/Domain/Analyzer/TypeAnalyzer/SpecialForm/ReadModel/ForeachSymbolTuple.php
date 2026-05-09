@@ -10,6 +10,9 @@ use Phel\Lang\Symbol;
 
 final readonly class ForeachSymbolTuple
 {
+    /**
+     * @param list<mixed> $lets
+     */
     public function __construct(
         private array $lets,
         private NodeEnvironmentInterface $bodyEnv,
@@ -18,6 +21,9 @@ final readonly class ForeachSymbolTuple
         private ?Symbol $keySymbol = null,
     ) {}
 
+    /**
+     * @return list<mixed>
+     */
     public function lets(): array
     {
         return $this->lets;

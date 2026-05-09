@@ -73,6 +73,8 @@ final class AnalyzePersistentList
     ) {}
 
     /**
+     * @param PersistentListInterface<mixed> $list
+     *
      * @throws AbstractLocatedException|AnalyzerException
      */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
@@ -94,6 +96,9 @@ final class AnalyzePersistentList
             ->analyze($list, $env);
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     private function getSymbolName(PersistentListInterface $list): string
     {
         $first = $list->first();
@@ -116,6 +121,11 @@ final class AnalyzePersistentList
      * character is a PHP identifier character or namespace separator, so
      * operator-style symbols like `php/.`, `..`, `:.`, … are left alone.
      * Source locations are preserved.
+     */
+    /**
+     * @param PersistentListInterface<mixed> $list
+     *
+     * @return PersistentListInterface<mixed>
      */
     private function expandConstructorShorthand(
         PersistentListInterface $list,
@@ -183,6 +193,10 @@ final class AnalyzePersistentList
      * looks like a PHP class reference (uppercase first letter or `\` prefix).
      * Operator-style symbols like `php/.`, `.` and `..` are left alone, and
      * Phel-style namespaces (lowercase first letter) resolve as before.
+     *
+     * @param PersistentListInterface<mixed> $list
+     *
+     * @return PersistentListInterface<mixed>
      */
     private function expandMemberAccessShorthand(PersistentListInterface $list): PersistentListInterface
     {

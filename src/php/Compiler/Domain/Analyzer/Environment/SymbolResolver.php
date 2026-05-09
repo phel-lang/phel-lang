@@ -321,6 +321,9 @@ final readonly class SymbolResolver
         );
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed> $meta
+     */
     private function isPrivateDefinitionAllowed(PersistentMapInterface $meta): bool
     {
         if ($this->globalEnv->isPrivateAccessAllowed()) {

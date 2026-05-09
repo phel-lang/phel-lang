@@ -25,11 +25,14 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): ForeachNode
     {
         $this->verifyArguments($list);
 
-        /** @var PersistentVectorInterface $foreachTuple */
+        /** @var PersistentVectorInterface<mixed> $foreachTuple */
         $foreachTuple = $list->get(1);
         $foreachSymbolTuple = $this->buildForeachSymbolTuple($foreachTuple, $env);
 
@@ -48,6 +51,9 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
         );
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     private function verifyArguments(PersistentListInterface $list): void
     {
         if (count($list) < 2) {
@@ -71,6 +77,9 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
         throw AnalyzerException::withLocation("Vector of 'foreach must have exactly two or three elements.", $list);
     }
 
+    /**
+     * @param PersistentVectorInterface<mixed> $foreachTuple
+     */
     private function buildForeachSymbolTuple(PersistentVectorInterface $foreachTuple, NodeEnvironmentInterface $env): ForeachSymbolTuple
     {
         if (count($foreachTuple) === 2) {
@@ -80,6 +89,9 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
         return $this->buildForeachTupleWhen3Args($foreachTuple, $env);
     }
 
+    /**
+     * @param PersistentVectorInterface<mixed> $foreachTuple
+     */
     private function buildForeachTupleWhen2Args(PersistentVectorInterface $foreachTuple, NodeEnvironmentInterface $env): ForeachSymbolTuple
     {
         $lets = [];
@@ -101,6 +113,9 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
         return new ForeachSymbolTuple($lets, $bodyEnv, $listExpr, $valueSymbol);
     }
 
+    /**
+     * @param PersistentVectorInterface<mixed> $foreachTuple
+     */
     private function buildForeachTupleWhen3Args(PersistentVectorInterface $foreachTuple, NodeEnvironmentInterface $env): ForeachSymbolTuple
     {
         $lets = [];
@@ -130,9 +145,19 @@ final class ForeachSymbol implements SpecialFormAnalyzerInterface
         return new ForeachSymbolTuple($lets, $bodyEnv, $listExpr, $valueSymbol, $keySymbol);
     }
 
+    /**
+     * @param list<mixed>                    $lets
+     * @param PersistentListInterface<mixed> $list
+     *
+     * @return PersistentListInterface<mixed>
+     */
     private function buildTupleBody(array $lets, PersistentListInterface $list): PersistentListInterface
     {
-        $bodys = $list->rest()->rest()->toArray();
+        /** @var PersistentListInterface<mixed> $rest1 */
+        $rest1 = $list->rest();
+        /** @var PersistentListInterface<mixed> $rest2 */
+        $rest2 = $rest1->rest();
+        $bodys = $rest2->toArray();
 
         if ($lets !== []) {
             return Phel::list([

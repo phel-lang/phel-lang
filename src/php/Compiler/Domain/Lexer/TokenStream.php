@@ -98,6 +98,8 @@ final class TokenStream implements Iterator
 
     /**
      * @param list<Token> $readTokens
+     *
+     * @return list<Token>
      */
     private function removeLeadingWhitespace(array $readTokens): array
     {

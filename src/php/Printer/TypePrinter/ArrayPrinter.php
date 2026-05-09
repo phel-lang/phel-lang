@@ -40,7 +40,7 @@ final readonly class ArrayPrinter implements TypePrinterInterface
     }
 
     /**
-     * @param array<int, mixed> $form
+     * @param array<int|string, mixed> $form
      *
      * @return list<string>
      */

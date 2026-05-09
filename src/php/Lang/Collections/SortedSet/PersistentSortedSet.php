@@ -7,6 +7,7 @@ namespace Phel\Lang\Collections\SortedSet;
 use Phel\Lang\AbstractType;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Map\TransientMapInterface;
 use Phel\Lang\Collections\SortedMap\PersistentSortedMap;
 use Phel\Lang\HasherInterface;
 use Traversable;
@@ -140,7 +141,7 @@ final class PersistentSortedSet extends AbstractType implements PersistentHashSe
      */
     public function asTransient(): TransientSortedSet
     {
-        /** @var \Phel\Lang\Collections\Map\TransientMapInterface<V, V> $transient */
+        /** @var TransientMapInterface<V, V> $transient */
         $transient = $this->map->asTransient();
         return new TransientSortedSet($this->hasher, $transient);
     }

@@ -15,6 +15,9 @@ final readonly class VectorReader
 {
     public function __construct(private Reader $reader) {}
 
+    /**
+     * @return PersistentVectorInterface<mixed>
+     */
     public function read(ListNode $node, NodeInterface $root): PersistentVectorInterface
     {
         $acc = [];

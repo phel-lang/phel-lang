@@ -13,6 +13,9 @@ final class AnalyzePersistentMap
 {
     use WithAnalyzerTrait;
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed> $map
+     */
     public function analyze(PersistentMapInterface $map, NodeEnvironmentInterface $env): MapNode
     {
         $keyValues = [];

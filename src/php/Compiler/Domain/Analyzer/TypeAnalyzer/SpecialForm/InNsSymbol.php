@@ -29,6 +29,9 @@ final class InNsSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): InNsNode
     {
         $listCount = $list->count();

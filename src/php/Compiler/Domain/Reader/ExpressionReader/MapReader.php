@@ -15,6 +15,9 @@ final readonly class MapReader
 {
     public function __construct(private Reader $reader) {}
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>
+     */
     public function read(ListNode $node, NodeInterface $root): PersistentMapInterface
     {
         $list = new ListReader($this->reader)->read($node, $root);

@@ -34,6 +34,9 @@ final readonly class UseAliasRegistrar
      * `(use ...)` (which passes the `use` symbol at index 0) — both shapes
      * are skipped via `$startIndex`.
      */
+    /**
+     * @param PersistentListInterface<mixed> $form
+     */
     public function register(
         string $ns,
         PersistentListInterface $form,
@@ -117,6 +120,9 @@ final readonly class UseAliasRegistrar
         )->copyLocationFrom($symbol);
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $form
+     */
     private function assertImportExists(Symbol $symbol, PersistentListInterface $form): void
     {
         $name = $symbol->getName();

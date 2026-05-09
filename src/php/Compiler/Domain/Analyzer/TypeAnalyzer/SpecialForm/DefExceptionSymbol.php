@@ -23,6 +23,9 @@ final class DefExceptionSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): DefExceptionNode
     {
         if (count($list) !== 2) {

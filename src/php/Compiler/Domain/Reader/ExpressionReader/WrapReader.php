@@ -15,6 +15,9 @@ final readonly class WrapReader
 {
     public function __construct(private Reader $reader) {}
 
+    /**
+     * @return PersistentListInterface<mixed>
+     */
     public function read(QuoteNode $node, string $wrapFn, NodeInterface $root): PersistentListInterface
     {
         $expression = $this->reader->readExpression($node->getExpression(), $root);

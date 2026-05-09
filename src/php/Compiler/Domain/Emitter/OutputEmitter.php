@@ -103,6 +103,9 @@ final class OutputEmitter implements OutputEmitterInterface
         echo $str;
     }
 
+    /**
+     * @param list<AbstractNode> $nodes
+     */
     public function emitArgList(array $nodes, ?SourceLocation $sepLoc, string $sep = ', '): void
     {
         $nodesCount = count($nodes);

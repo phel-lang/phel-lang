@@ -47,6 +47,8 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     private const int MACRO_IMPLICIT_PARAMS = 2;
 
     /**
+     * @param PersistentListInterface<mixed> $list
+     *
      * @throws AbstractLocatedException
      */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): DefNode
@@ -119,6 +121,9 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         );
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     private function verifySizeOfTuple(PersistentListInterface $list): void
     {
         $listSize = count($list);
@@ -132,7 +137,9 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
-     * @return array{0:PersistentMapInterface, 1:mixed}
+     * @param PersistentListInterface<mixed> $list
+     *
+     * @return array{0:PersistentMapInterface<mixed, mixed>, 1:mixed}
      */
     private function createMetaMapAndInit(PersistentListInterface $list): array
     {
@@ -211,6 +218,11 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         return $value;
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     *
+     * @return PersistentMapInterface<mixed, mixed>
+     */
     private function normalizeMeta(mixed $meta, PersistentListInterface $list): PersistentMapInterface
     {
         if (is_string($meta)) {
@@ -232,6 +244,11 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         throw AnalyzerException::wrongArgumentType('Metadata', ['String', 'Keyword', 'Map'], $meta, $list);
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     *
+     * @return array{0: mixed, 1: mixed}
+     */
     private function getInitialMetaAndInit(PersistentListInterface $list): array
     {
         if (count($list) === 2) {
@@ -245,6 +262,9 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         return [$list->get(2), $list->get(3)];
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed> $meta
+     */
     private function analyzeInit(
         float|bool|int|string|TypeInterface|null $init,
         NodeEnvironmentInterface $env,
@@ -269,6 +289,8 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     /**
      * Matches the Phel-truthy check `defn-builder` uses on the same keys, so
      * a literal `^{:memoize false}` does not flip the wrapper on.
+     *
+     * @param PersistentMapInterface<mixed, mixed> $meta
      */
     private function isMemoised(PersistentMapInterface $meta): bool
     {
@@ -289,6 +311,8 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
      * arity, where each slot is the param's `:tag` (string) or `null`
      * if untagged. The variadic tail is excluded — its `:tag` describes
      * element type, not the bound `Vector`.
+     *
+     * @return PersistentVectorInterface<mixed>
      */
     private function buildParamTags(FnNode $fnNode, int $skipFirst = 0): PersistentVectorInterface
     {
@@ -372,16 +396,26 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         return $init;
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $fnList
+     *
+     * @return PersistentListInterface<mixed>
+     */
     private function rewriteSingleArityFn(PersistentListInterface $fnList): PersistentListInterface
     {
         $items = $fnList->toArray();
-        /** @var PersistentVectorInterface $params */
+        /** @var PersistentVectorInterface<mixed> $params */
         $params = $items[1];
         $items[1] = $this->prependImplicitParams($params);
 
         return Phel::list($items)->copyLocationFrom($fnList);
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $fnList
+     *
+     * @return PersistentListInterface<mixed>
+     */
     private function rewriteMultiArityFn(PersistentListInterface $fnList): PersistentListInterface
     {
         $items = $fnList->toArray();
@@ -414,6 +448,9 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
      * return type. Skips arities that already declare their own vector `:tag`
      * (more local declaration wins).
      */
+    /**
+     * @param PersistentMapInterface<mixed, mixed> $meta
+     */
     private function injectReturnTypeFromMeta(mixed $init, PersistentMapInterface $meta): mixed
     {
         $tag = $meta->find(Keyword::create('tag'));
@@ -442,16 +479,26 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         return $init;
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $fnList
+     *
+     * @return PersistentListInterface<mixed>
+     */
     private function rewriteSingleArityWithTag(PersistentListInterface $fnList, mixed $tag): PersistentListInterface
     {
         $items = $fnList->toArray();
-        /** @var PersistentVectorInterface $params */
+        /** @var PersistentVectorInterface<mixed> $params */
         $params = $items[1];
         $items[1] = $this->withReturnTypeTag($params, $tag);
 
         return Phel::list($items)->copyLocationFrom($fnList);
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $fnList
+     *
+     * @return PersistentListInterface<mixed>
+     */
     private function rewriteMultiArityWithTag(PersistentListInterface $fnList, mixed $tag): PersistentListInterface
     {
         $items = $fnList->toArray();
@@ -477,6 +524,11 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         return Phel::list($items)->copyLocationFrom($fnList);
     }
 
+    /**
+     * @param PersistentVectorInterface<mixed> $params
+     *
+     * @return PersistentVectorInterface<mixed>
+     */
     private function withReturnTypeTag(PersistentVectorInterface $params, mixed $tag): PersistentVectorInterface
     {
         $existing = $params->getMeta();
@@ -491,6 +543,11 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         return $params->withMeta($merged);
     }
 
+    /**
+     * @param PersistentVectorInterface<mixed> $params
+     *
+     * @return PersistentVectorInterface<mixed>
+     */
     private function prependImplicitParams(PersistentVectorInterface $params): PersistentVectorInterface
     {
         // Idempotency / shadowing guard: if the first two params are already `&form` and `&env`,
