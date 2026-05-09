@@ -1,6 +1,6 @@
 # Performance Tips
 
-How to make `phel test`, `phel run`, and other CLI commands fast. Applies to source-checkout use; PHAR users get the same benefits.
+Make `phel test`, `phel run`, and other CLI commands fast. Applies to source-checkout use; PHAR users get the same benefits.
 
 ## TL;DR
 
@@ -17,15 +17,17 @@ Create the directory once: `mkdir -p /tmp/php-opcache`. Restart your shell. Repe
 
 ## Why it is slow without opcache
 
-Every `bin/phel` invocation is a fresh PHP process. Without CLI opcache, PHP re-parses every `.php` file on every run: `vendor/`, Phel compiler, Symfony console, project classes. With `opcache.file_cache` enabled, compiled bytecode persists across processes.
+Every `bin/phel` invocation is a fresh PHP process. Without CLI opcache, PHP re-parses every `.php` file every run: `vendor/`, Phel compiler, Symfony console, project classes. With `opcache.file_cache`, compiled bytecode persists across processes.
 
-Phel also maintains its own compiled-code cache (under `sys_get_temp_dir() . '/phel'` by default) that memoizes Phel-to-PHP compilation per source hash. The two caches are complementary: Phel's cache skips recompilation; opcache skips re-parsing the resulting PHP.
+Phel also maintains a compiled-code cache (under `sys_get_temp_dir() . '/phel'` by default) memoizing Phel-to-PHP compilation per source hash. The two caches complement each other: Phel's cache skips recompilation; opcache skips re-parsing the resulting PHP.
 
-Cache invalidation is automatic. Each run hashes the `.phel` source (`md5`) and compares against the stored entry; on mismatch, the file is recompiled and transitive dependents are invalidated. No manual clear is needed after editing a `.phel` file. Fresh compiles also call `opcache_compile_file()` on the generated PHP. Use the reset steps below only if something gets wedged.
+Cache invalidation is automatic. Each run hashes the `.phel` source (`md5`) against the stored entry. On mismatch, the file is recompiled and transitive dependents are invalidated. No manual clear is needed after editing a `.phel` file. Fresh compiles also call `opcache_compile_file()` on the generated PHP. Use the reset steps below only if something gets wedged.
+
+For hot numeric / string fns, add `:tag` annotations on params and return slot (`^int`, `^float`, `^string`, `^bool`). The compiler emits the matching PHP type declarations and infers the return type from primitive ops in tail position, which lets the tracing JIT specialize the call. Tag mismatches surface as Phel diagnostics at compile time. Measure the win locally with `composer bench-jit-baseline` and `composer bench-jit-tracing` (see [`internals/benchmarks.md`](internals/benchmarks.md)).
 
 ## Memory limit
 
-`bin/phel` raises `memory_limit` to `-1` automatically. If you invoke PHP directly (`php bin/phel ...`) or embed Phel in another tool, bump the limit yourself; the compiler's `token_get_all` validation can exceed 128M on large projects.
+`bin/phel` raises `memory_limit` to `-1` automatically. If you invoke PHP directly (`php bin/phel ...`) or embed Phel, bump the limit yourself. The compiler's `token_get_all` validation can exceed 128M on large projects.
 
 ```bash
 php -d memory_limit=-1 bin/phel test

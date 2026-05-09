@@ -1,27 +1,33 @@
 # Numeric tower
 
-Phel has a numeric tower built around four scalar shapes:
+Phel has a numeric tower built around five scalar shapes:
 
 | Type | Where it comes from | Notes |
 |------|---------------------|-------|
 | `int` | Native PHP `int` | 64-bit signed on common platforms |
 | `Phel\Lang\BigInteger` | `bigint`, `+'`, `*'`, etc. | Arbitrary-precision signed integer |
 | `Phel\Lang\Rational` | `1/2` literals, `/`, `rationalize` | Always normalised; collapses to `int`/`BigInteger` when integral |
+| `Phel\Lang\BigDecimal` | `1.5M` literal, `bigdec` | Arbitrary-precision exact decimal |
 | `float` | Native PHP `float` (IEEE-754 double) | Inexact |
 
 `+`, `-`, `*`, `/`, comparisons, and the predicates dispatch on these types via `Phel\Lang\NumericOperations`. PHP's native operators do not dispatch on objects, so the runtime helper does.
 
-## Differences from Clojure
+## Notes
 
-Phel diverges from Clojure's numeric tower in deliberate ways. Map your mental model:
+### Exact decimal literals: `1.5M`
 
-### No `BigDecimal`
+`M`-suffixed numerals read as `BigDecimal`. Use for monetary values and any computation where binary float drift is unacceptable.
 
-Phel does not have a base-10 floating-point type. For exact non-integer values use `Rational` (`1/3`, `(/ 1 3)`, `(rationalize 0.1)`). For inexact use `float`.
+```phel
+1.5M                ; => 1.5M (a BigDecimal)
+(+ 0.1M 0.2M)       ; => 0.3M (no float drift)
+(bigdec "3.14159")  ; => 3.14159M
+(bigdec? 1.5M)      ; => true
+```
 
-### No `1N` / `1M` literal suffixes
+### Promoting integers: `bigint` and `+'`
 
-Clojure writes `1N` for `BigInt` and `1M` for `BigDecimal`. Phel has neither suffix. Promote with the explicit constructors:
+Promote with the explicit constructors:
 
 ```phel
 (bigint 42)         ; => 42N (a BigInteger)
@@ -29,7 +35,12 @@ Clojure writes `1N` for `BigInt` and `1M` for `BigDecimal`. Phel has neither suf
 (rationalize 0.1)   ; => 1/10
 ```
 
-The promoting arithmetic ops (`+'`, `-'`, `*'`, `inc'`, `dec'`) return `BigInteger`.
+The promoting arithmetic ops (`+'`, `-'`, `*'`, `inc'`, `dec'`) auto-promote to `BigInteger` on overflow, so use them whenever overflow is possible:
+
+```phel
+(*' 1000000000 1000000000 1000000000)  ; => big enough to overflow PHP int
+(inc' 9223372036854775807)             ; => 9223372036854775808N
+```
 
 ### Large integer literals lex as `float`
 
@@ -49,7 +60,7 @@ PHP's lexer parses oversize integer literals as `float`, so the same happens in 
 
 ### `==` arity-1 asserts numeric
 
-Clojure's `(==)` and `(== x)` return `true` for any single argument. Phel's `==` requires its argument to be numeric and otherwise throws — single-argument `==` is treated as a numeric assertion, not an identity.
+Clojure's `(==)` and `(== x)` return `true` for any single argument. Phel's `==` requires its argument to be numeric and otherwise throws. Single-argument `==` is a numeric assertion, not an identity.
 
 ### `rationalize` uses shortest round-trip decimal
 
@@ -62,8 +73,9 @@ Clojure's `(==)` and `(== x)` return `true` for any single argument. Phel's `==`
 | Need | Use |
 |------|-----|
 | Exact integer beyond PHP `int` | `(bigint "...")` or promoting ops `+'`, `*'` |
-| Exact non-integer | `Rational` literal `1/2`, `(/ a b)`, `(rationalize x)` |
+| Exact non-integer ratio | `Rational` literal `1/2`, `(/ a b)`, `(rationalize x)` |
+| Exact decimal (money, etc.) | `BigDecimal` literal `1.5M`, `(bigdec "...")` |
 | Inexact decimal | native `float` |
-| Predicate | `int?`, `bigint?`, `ratio?`, `float?`, `number?` |
+| Predicate | `int?`, `bigint?`, `ratio?`, `bigdec?`, `decimal?`, `float?`, `number?` |
 | Numerator / denominator | `numerator`, `denominator` |
 | Float to exact | `rationalize` |

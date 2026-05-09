@@ -1,6 +1,6 @@
 # Reader Shortcuts and Special Syntax
 
-Reader shortcuts are processed by the reader during compilation.
+Reader shortcuts are resolved by the reader during compilation.
 
 ## Collection Literals
 
@@ -68,7 +68,7 @@ Evaluates and splices a sequence into the containing form:
 > **Deprecated:** `,@` as an unquote-splicing reader macro. Use `~@` instead.
 
 ### Auto-gensym `name#`
-Inside a syntax-quote, a symbol ending in `#` expands to a fresh unique symbol. All occurrences of the same `name#` within one syntax-quote resolve to the same generated name, enabling hygienic macros without calling `gensym`:
+Inside a syntax-quote, a symbol ending in `#` expands to a fresh unique name. All occurrences of the same `name#` in one syntax-quote share that name, giving hygienic macros without calling `gensym`:
 
 ```phel
 (defmacro time
@@ -113,11 +113,12 @@ Shorthand for `(deref ...)`:
 
 ## Tagged Literals `#<tag> form`
 
-Tagged literals convert a form into a different value at read time. Two built-ins ship with Phel:
+Tagged literals convert a form to a value at read time. Three ship built-in:
 
 ```phel
 #inst "2026-01-01T00:00:00Z"     ; reads as \DateTimeImmutable
 #regex "\\d+"                     ; reads as a PCRE pattern string
+#uuid "550e8400-e29b-41d4-a716-446655440000"  ; reads as Phel\Lang\Uuid
 ```
 
 Register your own with `phel\reader/register-tag`:
