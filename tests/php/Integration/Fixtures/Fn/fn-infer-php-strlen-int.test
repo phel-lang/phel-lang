@@ -1,0 +1,6 @@
+--PHEL--
+(fn [^string s] (php/strlen s))
+--PHP--
+(function(string $s): int {
+  return strlen($s);
+});

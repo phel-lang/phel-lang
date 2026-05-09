@@ -1,0 +1,35 @@
+--PHEL--
+(defn ^int sum [^int a ^int b] (php/+ a b))
+(fn [^int x] (sum x 1))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "sum",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\sum";
+
+    public function __invoke(int $a, int $b): int {
+      return ($a + $b);
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("tag"), "int",
+    \Phel::keyword("doc"), "```phel\n(sum a b)\n```\n",
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-infer-call-global-tagged.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-infer-call-global-tagged.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 43
+    ),
+    "min-arity", 2,
+    "is-variadic", false,
+    "arglists", "[a b]"
+  )
+);
+(function(int $x): int {
+  return (\Phel::getDefinition("user", "sum"))($x, 1);
+});

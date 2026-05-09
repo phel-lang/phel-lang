@@ -1,0 +1,6 @@
+--PHEL--
+(fn [^string s] (php/strtolower s))
+--PHP--
+(function(string $s): string {
+  return strtolower($s);
+});

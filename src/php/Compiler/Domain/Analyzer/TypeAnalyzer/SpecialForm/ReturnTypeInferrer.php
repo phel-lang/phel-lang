@@ -8,6 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\BindingNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
+use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
@@ -57,6 +58,50 @@ final class ReturnTypeInferrer
     /** @var list<string> */
     private const array NUMERIC_OPS = [
         '+', '-', '*', '/', '%', '**', '<<', '>>', '|', '&', '^',
+    ];
+
+    /**
+     * Pure PHP built-ins whose return type is fixed regardless of argument
+     * type. Limited to side-effect-free functions with a stable signature
+     * across supported PHP versions; anything whose return type depends on
+     * argument types or runtime mode stays out so the inferrer never
+     * stamps the wrong tag.
+     *
+     * @var array<string, string>
+     */
+    private const array PURE_PHP_FN_RETURN = [
+        'strlen' => 'int',
+        'intval' => 'int',
+        'mb_strlen' => 'int',
+        'count' => 'int',
+        'floatval' => 'float',
+        'doubleval' => 'float',
+        'floor' => 'float',
+        'ceil' => 'float',
+        'round' => 'float',
+        'boolval' => 'bool',
+        'is_int' => 'bool',
+        'is_integer' => 'bool',
+        'is_long' => 'bool',
+        'is_float' => 'bool',
+        'is_double' => 'bool',
+        'is_string' => 'bool',
+        'is_bool' => 'bool',
+        'is_null' => 'bool',
+        'is_array' => 'bool',
+        'is_object' => 'bool',
+        'is_callable' => 'bool',
+        'is_numeric' => 'bool',
+        'strval' => 'string',
+        'strtolower' => 'string',
+        'strtoupper' => 'string',
+        'mb_strtolower' => 'string',
+        'mb_strtoupper' => 'string',
+        'trim' => 'string',
+        'ltrim' => 'string',
+        'rtrim' => 'string',
+        'sprintf' => 'string',
+        'gettype' => 'string',
     ];
 
     /**
@@ -200,20 +245,26 @@ final class ReturnTypeInferrer
     private function inferCall(CallNode $node, array $locals): ?string
     {
         $fn = $node->getFn();
-        if (!$fn instanceof PhpVarNode) {
-            return null;
-        }
+        return match (true) {
+            $fn instanceof GlobalVarNode => $this->inferGlobalCall($fn),
+            $fn instanceof PhpVarNode => $this->inferPhpCall($fn, $node, $locals),
+            default => null,
+        };
+    }
 
+    /**
+     * @param array<string, string> $locals
+     */
+    private function inferPhpCall(PhpVarNode $fn, CallNode $node, array $locals): ?string
+    {
         $op = $fn->getName();
 
         if (isset(self::COMPARISON_OPS[$op])) {
-            $this->sawOperator = true;
-            return self::COMPARISON_OPS[$op];
+            return $this->publish(self::COMPARISON_OPS[$op]);
         }
 
         if ($op === '.') {
-            $this->sawOperator = true;
-            return 'string';
+            return $this->publish('string');
         }
 
         if (in_array($op, self::NUMERIC_OPS, true)) {
@@ -221,7 +272,31 @@ final class ReturnTypeInferrer
             return $this->inferNumeric($node, $locals);
         }
 
+        if (isset(self::PURE_PHP_FN_RETURN[$op])) {
+            return $this->publish(self::PURE_PHP_FN_RETURN[$op]);
+        }
+
         return null;
+    }
+
+    /**
+     * Cross-fn propagation: when the tail call resolves to another
+     * global definition, trust its `:tag` meta as the inferred return
+     * type. The callee's tag is either user-declared or already filled
+     * by this inferrer on a previous pass; either way it represents the
+     * same contract the call site is bound to honour, so propagating it
+     * cannot disagree with what the callee actually returns.
+     */
+    private function inferGlobalCall(GlobalVarNode $fn): ?string
+    {
+        $tag = $this->tagFromMeta($fn->getMeta());
+        return $tag === null ? null : $this->publish($tag);
+    }
+
+    private function publish(string $type): string
+    {
+        $this->sawOperator = true;
+        return $type;
     }
 
     /**
@@ -264,10 +339,14 @@ final class ReturnTypeInferrer
     private function extractTag(Symbol $param): ?string
     {
         $meta = $param->getMeta();
-        if (!$meta instanceof PersistentMapInterface) {
-            return null;
-        }
+        return $meta instanceof PersistentMapInterface ? $this->tagFromMeta($meta) : null;
+    }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed> $meta
+     */
+    private function tagFromMeta(PersistentMapInterface $meta): ?string
+    {
         $tag = $meta->find(Keyword::create('tag'));
         if ($tag instanceof Symbol) {
             return $tag->getName();
