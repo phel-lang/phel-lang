@@ -16,11 +16,13 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ReadModel\FnSymbolTup
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use RuntimeException;
 
 use function array_slice;
 use function count;
+use function is_string;
 
 /**
  * (fn name? [params] body) or (fn name? ([params] body)+).
@@ -150,7 +152,27 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
             $recurFrame->isActive(),
             $list->getStartLocation(),
             $effectiveName,
+            $this->extractReturnType($list->get(1)),
         );
+    }
+
+    private function extractReturnType(mixed $paramVector): ?string
+    {
+        if (!$paramVector instanceof PersistentVectorInterface) {
+            return null;
+        }
+
+        $meta = $paramVector->getMeta();
+        if (!$meta instanceof PersistentMapInterface) {
+            return null;
+        }
+
+        $tag = $meta->find(Keyword::create('tag'));
+        if ($tag instanceof Symbol) {
+            $tag = $tag->getName();
+        }
+
+        return is_string($tag) && $tag !== '' ? $tag : null;
     }
 
     /**

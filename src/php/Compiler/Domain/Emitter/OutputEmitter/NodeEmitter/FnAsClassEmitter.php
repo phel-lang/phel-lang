@@ -50,7 +50,7 @@ final readonly class FnAsClassEmitter implements NodeEmitterInterface
         $this->methodEmitter->emitParameters($node);
         $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
         $this->emitUseClause($node);
-        $this->outputEmitter->emitLine(' {', $node->getStartSourceLocation());
+        $this->outputEmitter->emitLine($this->methodEmitter->returnTypeSuffix($node) . ' {', $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();
 
         $this->methodEmitter->emitBody($node);
@@ -90,7 +90,7 @@ final readonly class FnAsClassEmitter implements NodeEmitterInterface
         $this->methodEmitter->emitParameters($node);
         $this->outputEmitter->emitStr(')', $loc);
         $this->emitUseClauseWithSelfReference($node, $nameVar);
-        $this->outputEmitter->emitLine(' {', $loc);
+        $this->outputEmitter->emitLine($this->methodEmitter->returnTypeSuffix($node) . ' {', $loc);
         $this->outputEmitter->increaseIndentLevel();
 
         $this->methodEmitter->emitBody($node);

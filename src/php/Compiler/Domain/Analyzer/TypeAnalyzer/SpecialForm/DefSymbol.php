@@ -69,6 +69,8 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
             $init = $this->injectMacroImplicitParams($init);
         }
 
+        $init = $this->injectReturnTypeFromMeta($init, $metaMap);
+
         $initNode = $this->analyzeInit($init, $env, $namespace, $nameSymbol, $metaMap);
         if ($initNode instanceof FnNode) {
             $initNode->markAsDefinition();
@@ -135,7 +137,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         if ($nameMeta instanceof PersistentMapInterface) {
             foreach ($nameMeta->getIterator() as $key => $value) {
                 if ($key !== null) {
-                    $meta = $meta->put($key, $value);
+                    $meta = $meta->put($key, $this->normalizeMetaValue($key, $value));
                 }
             }
         }
@@ -174,6 +176,22 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         }
 
         return [$meta, $init];
+    }
+
+    /**
+     * `:tag` carries a PHP type expression used by the emitter for return-type
+     * declarations. The reader hands it in as a `Symbol` (`^int x`) or `String`
+     * (`^"?int" x`); store it as a string in the runtime meta map so the
+     * compiled `\Phel::map(:tag, ...)` literal does not resolve `int` against
+     * the global environment as a var reference.
+     */
+    private function normalizeMetaValue(mixed $key, mixed $value): mixed
+    {
+        if ($key instanceof Keyword && $key->getName() === 'tag' && $value instanceof Symbol) {
+            return $value->getName();
+        }
+
+        return $value;
     }
 
     private function normalizeMeta(mixed $meta, PersistentListInterface $list): PersistentMapInterface
@@ -344,6 +362,86 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         }
 
         return Phel::list($items)->copyLocationFrom($fnList);
+    }
+
+    /**
+     * When the def's metadata carries `:tag` (typically from the name symbol,
+     * e.g. `(defn ^int add [x y] ...)`), splice that tag onto each fn arity's
+     * param vector so `FnSymbol` can pick it up as the compiled signature's
+     * return type. Skips arities that already declare their own vector `:tag`
+     * (more local declaration wins).
+     */
+    private function injectReturnTypeFromMeta(mixed $init, PersistentMapInterface $meta): mixed
+    {
+        $tag = $meta->find(Keyword::create('tag'));
+        if (!($tag instanceof Symbol) && !is_string($tag)) {
+            return $init;
+        }
+
+        if (!$init instanceof PersistentListInterface) {
+            return $init;
+        }
+
+        $head = $init->first();
+        if (!$head instanceof Symbol || $head->getName() !== Symbol::NAME_FN) {
+            return $init;
+        }
+
+        $second = $init->get(1);
+        if ($second instanceof PersistentVectorInterface) {
+            return $this->rewriteSingleArityWithTag($init, $tag);
+        }
+
+        if ($second instanceof PersistentListInterface) {
+            return $this->rewriteMultiArityWithTag($init, $tag);
+        }
+
+        return $init;
+    }
+
+    private function rewriteSingleArityWithTag(PersistentListInterface $fnList, mixed $tag): PersistentListInterface
+    {
+        $items = $fnList->toArray();
+        /** @var PersistentVectorInterface $params */
+        $params = $items[1];
+        $items[1] = $this->withReturnTypeTag($params, $tag);
+
+        return Phel::list($items)->copyLocationFrom($fnList);
+    }
+
+    private function rewriteMultiArityWithTag(PersistentListInterface $fnList, mixed $tag): PersistentListInterface
+    {
+        $items = $fnList->toArray();
+        for ($i = 1, $n = count($items); $i < $n; ++$i) {
+            $arity = $items[$i];
+            if (!$arity instanceof PersistentListInterface) {
+                continue;
+            }
+
+            $arityItems = $arity->toArray();
+            if ($arityItems === [] || !$arityItems[0] instanceof PersistentVectorInterface) {
+                continue;
+            }
+
+            $arityItems[0] = $this->withReturnTypeTag($arityItems[0], $tag);
+            $items[$i] = Phel::list($arityItems)->copyLocationFrom($arity);
+        }
+
+        return Phel::list($items)->copyLocationFrom($fnList);
+    }
+
+    private function withReturnTypeTag(PersistentVectorInterface $params, mixed $tag): PersistentVectorInterface
+    {
+        $existing = $params->getMeta();
+        if ($existing instanceof PersistentMapInterface
+            && $existing->find(Keyword::create('tag')) !== null
+        ) {
+            return $params;
+        }
+
+        $merged = ($existing ?? Phel::map())->put(Keyword::create('tag'), $tag);
+
+        return $params->withMeta($merged);
     }
 
     private function prependImplicitParams(PersistentVectorInterface $params): PersistentVectorInterface

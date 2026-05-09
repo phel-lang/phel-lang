@@ -24,13 +24,24 @@ final readonly class MethodEmitter
     {
         $this->emitMethodBegin($methodName, $node);
         $this->emitMethodParameterList($node);
-        $this->outputEmitter->emitLine(') {', $node->getStartSourceLocation());
+        $this->outputEmitter->emitLine(')' . $this->returnTypeSuffix($node) . ' {', $node->getStartSourceLocation());
         $this->outputEmitter->increaseIndentLevel();
         $this->emitMethodParametersExtraction($node);
         $this->emitSelfNameBinding($node);
         $this->emitMethodVariadicParameters($node);
         $this->emitMethodBody($node);
         $this->emitMethodEnd($node);
+    }
+
+    /**
+     * Returns `: <type>` when the fn carries an explicit return type tag,
+     * otherwise an empty string. Used to splice the return-type declaration
+     * into a PHP signature between the closing paren and the opening brace.
+     */
+    public function returnTypeSuffix(FnNode $node): string
+    {
+        $type = $node->getReturnType();
+        return $type === null ? '' : ': ' . $type;
     }
 
     /**

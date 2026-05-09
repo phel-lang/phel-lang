@@ -1,0 +1,31 @@
+--PHEL--
+(defn ^int add [^int x ^int y] (php/+ x y))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "add",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\add";
+
+    public function __invoke(int $x, int $y): int {
+      return ($x + $y);
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("tag"), "int",
+    \Phel::keyword("doc"), "```phel\n(add x y)\n```\n",
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/defn-return-type-name.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/defn-return-type-name.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 43
+    ),
+    "min-arity", 2,
+    "is-variadic", false,
+    "arglists", "[x y]"
+  )
+);

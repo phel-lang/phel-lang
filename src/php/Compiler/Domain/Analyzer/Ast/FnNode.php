@@ -29,8 +29,14 @@ final class FnNode extends AbstractNode
         private readonly bool $recurs,
         ?SourceLocation $sourceLocation = null,
         private readonly ?Symbol $name = null,
+        private readonly ?string $returnType = null,
     ) {
         parent::__construct($env, $sourceLocation);
+    }
+
+    public function getReturnType(): ?string
+    {
+        return $this->returnType;
     }
 
     public function getName(): ?Symbol
