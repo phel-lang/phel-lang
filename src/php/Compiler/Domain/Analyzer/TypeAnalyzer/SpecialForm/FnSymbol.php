@@ -23,6 +23,7 @@ use RuntimeException;
 use function array_slice;
 use function count;
 use function is_string;
+use function sprintf;
 
 /**
  * (fn name? [params] body) or (fn name? ([params] body)+).
@@ -146,6 +147,16 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
 
         $body = $this->analyzeBody($fnSymbolTuple, $recurFrame, $env, $effectiveName);
         $declaredReturnType = $this->extractReturnType($list->get(1));
+        if ($declaredReturnType !== null) {
+            $tailType = TagCompatibility::tailLiteralType($body);
+            if ($tailType !== null && !TagCompatibility::accepts($declaredReturnType, $tailType)) {
+                throw AnalyzerException::withLocation(
+                    sprintf("Fn return type '%s' is incompatible with tail expression of type '%s'", $declaredReturnType, $tailType),
+                    $list,
+                );
+            }
+        }
+
         $returnType = $declaredReturnType
             ?? $this->returnTypeInferrer->infer(
                 $body,

@@ -24,6 +24,17 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     /** @var array<string, array<string, bool>> */
     private array $definitions = [];
 
+    /**
+     * Compile-time metadata stash for definitions analyzed in the
+     * current session. Lets `getDefinition` return a richer map than
+     * the runtime registry can offer for forms that have not yet been
+     * evaluated (e.g. a `defn` followed by a call to it in the same
+     * file under compile-only flows).
+     *
+     * @var array<string, array<string, PersistentMapInterface>>
+     */
+    private array $compileTimeMeta = [];
+
     /** @var array<string, array<string, Symbol>> */
     private array $refers = [];
 
@@ -71,6 +82,11 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         $this->definitions[$namespace][$name->getName()] = true;
     }
 
+    public function setCompileTimeMeta(string $namespace, Symbol $name, PersistentMapInterface $meta): void
+    {
+        $this->compileTimeMeta[$namespace][$name->getName()] = $meta;
+    }
+
     public function hasDefinition(string $namespace, Symbol $name): bool
     {
         return (
@@ -84,14 +100,36 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     public function getDefinition(string $namespace, Symbol $name): ?PersistentMapInterface
     {
-        if ($this->hasDefinition($namespace, $name)) {
-            return Phel::getDefinitionMetaData(
-                $this->mungeEncodeNs($namespace),
-                $name->getName(),
-            ) ?? Phel::map();
+        if (!$this->hasDefinition($namespace, $name)) {
+            return null;
         }
 
-        return null;
+        $key = $name->getName();
+        $registryMeta = Phel::getDefinitionMetaData($this->mungeEncodeNs($namespace), $key);
+        $compileMeta = $this->compileTimeMeta[$namespace][$key] ?? null;
+
+        if ($registryMeta instanceof PersistentMapInterface) {
+            // Runtime meta wins because forms like `:inline` carry an
+            // evaluated callable that the analyzer-time map only has
+            // as a source-form `(fn ...)` list. The compile-time-only
+            // `:param-tags` channel is folded back in so the static
+            // type checker has its inputs even after the def has been
+            // evaluated into the registry.
+            if ($compileMeta instanceof PersistentMapInterface) {
+                $paramTags = $compileMeta->find(Keyword::create('param-tags'));
+                if ($paramTags !== null) {
+                    return $registryMeta->put(Keyword::create('param-tags'), $paramTags);
+                }
+            }
+
+            return $registryMeta;
+        }
+
+        if ($compileMeta instanceof PersistentMapInterface) {
+            return $compileMeta;
+        }
+
+        return Phel::map();
     }
 
     /**

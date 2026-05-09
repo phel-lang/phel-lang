@@ -16,6 +16,8 @@ interface GlobalEnvironmentInterface
 
     public function addDefinition(string $namespace, Symbol $name): void;
 
+    public function setCompileTimeMeta(string $namespace, Symbol $name, PersistentMapInterface $meta): void;
+
     public function hasDefinition(string $namespace, Symbol $name): bool;
 
     public function getDefinition(string $namespace, Symbol $name): ?PersistentMapInterface;
