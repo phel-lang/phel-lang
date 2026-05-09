@@ -35,8 +35,8 @@ use function is_string;
  * Inference is intentionally narrow: any non-recognized node, an
  * untyped local, or a branch disagreement returns `null`, leaving the
  * fn's return type unset. Explicit `:tag` declarations on the param
- * vector or the def name take precedence — this class only fills the
- * gap when the user has not annotated.
+ * vector or the def name take precedence; this class only fills the
+ * gap when no `:tag` is present.
  */
 final class ReturnTypeInferrer
 {
