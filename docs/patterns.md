@@ -19,7 +19,7 @@
 ### Safe Navigation
 
 ```phel
-;; Instead of nested ifs
+;; Nested ifs
 (if user
   (if (get user :profile)
     (if (get (get user :profile) :address)
@@ -28,22 +28,21 @@
     nil)
   nil)
 
-;; Use threading with get
+;; Threading with get
 (-> user
     (get :profile)
     (get :address)
     (get :city))
 
-;; Or use get-in
+;; Or get-in
 (get-in user [:profile :address :city])
 ```
 
 ### Default Values
 
 ```phel
-;; Provide defaults
-(get config :port 8080)                    ; Default to 8080
-(or (get config :host) "localhost")        ; Fallback to localhost
+(get config :port 8080)                    ; Default 8080
+(or (get config :host) "localhost")        ; Fallback
 
 ;; Multiple fallbacks
 (or (get-in user [:settings :theme])
@@ -54,27 +53,27 @@
 ### Nil-Safe Operations
 
 ```phel
-;; when - executes body only if condition is truthy
+;; when: body runs only on truthy
 (when user
   (println "User:" (get user :name))
   (send-email user))
 
-;; when-let - bind and check in one
+;; when-let: bind + check
 (when-let [email (get user :email)]
   (send-notification email))
 
-;; if-let - with else clause
+;; if-let: with else
 (if-let [role (get user :role)]
   (str "User is a " role)
   "User has no role")
 
-;; some? - true when value is not nil (1-arg form)
-(some? user)                              ; => true if user is not nil
+;; some?: not nil
+(some? user)                              ; => true if not nil
 (filter some? [1 nil 2 nil 3])            ; => [1 2 3]
 
-;; boolean - coerce any value to true/false
+;; boolean: coerce
 (boolean nil)                             ; => false
-(boolean 0)                               ; => true   ; only nil/false are falsy
+(boolean 0)                               ; => true   (only nil/false falsy)
 (boolean "")                              ; => true
 ```
 
@@ -83,16 +82,15 @@
 ### Map Operations
 
 ```phel
-;; Transform all elements
 (map inc [1 2 3])                          ; => [2 3 4]
 (map str/upper-case ["hello" "world"])     ; => ["HELLO" "WORLD"]
 (map #(* % 2) [1 2 3 4])                   ; => [2 4 6 8]
 
-;; Map with index
+;; With index
 (map-indexed (fn [i x] [i x]) ["a" "b" "c"])
 ;; => [[0 "a"] [1 "b"] [2 "c"]]
 
-;; Map over multiple collections
+;; Multiple collections
 (map + [1 2 3] [10 20 30])                 ; => [11 22 33]
 (map str ["a" "b"] [1 2])                  ; => ["a1" "b2"]
 ```
@@ -100,11 +98,11 @@
 ### Filter Operations
 
 ```phel
-;; Keep matching elements
+;; Keep matching
 (filter even? [1 2 3 4 5 6])               ; => [2 4 6]
 (filter #(> % 10) [5 15 8 20 3])           ; => [15 20]
 
-;; Remove matching elements
+;; Remove matching
 (remove nil? [1 nil 2 nil 3])              ; => [1 2 3]
 (remove empty? ["a" "" "b" "" "c"])        ; => ["a" "b" "c"]
 
@@ -132,7 +130,7 @@
         [1 2 3 4 5 6])
 ;; => {:even [2 4 6] :odd [1 3 5]}
 
-;; Find maximum
+;; Maximum
 (let [coll [3 1 4 1 5 9 2 6]]
   (reduce (fn [max x] (if (> x max) x max))
           (first coll)
@@ -143,7 +141,7 @@
 ### Partition and Group
 
 ```phel
-;; Split into chunks
+;; Chunks
 (partition 2 [1 2 3 4 5 6])                ; => [[1 2] [3 4] [5 6]]
 (partition-all 3 [1 2 3 4 5])              ; => [[1 2 3] [4 5]]
 
@@ -166,16 +164,15 @@
 Threads value as **first** argument:
 
 ```phel
-;; Without threading
+;; Without
 (get (assoc (dissoc user :password) :active true) :name)
 
-;; With threading
+;; With
 (-> user
     (dissoc :password)
     (assoc :active true)
     (get :name))
 
-;; Practical example
 (-> "  Hello World  "
     (str/trim)
     (str/lower-case)
@@ -188,14 +185,12 @@ Threads value as **first** argument:
 Threads value as **last** argument:
 
 ```phel
-;; Process a collection
 (->> [1 2 3 4 5 6 7 8 9 10]
      (filter even?)
      (map #(* % 2))
      (reduce +))
 ;; => 60
 
-;; Data pipeline
 (->> users
      (filter #(get % :active))
      (map #(get % :email))
@@ -206,12 +201,12 @@ Threads value as **last** argument:
 ### When to Use Which
 
 ```phel
-;; -> for object/map operations (first arg)
+;; -> for object/map ops (first arg)
 (-> user
     (get :profile)
     (assoc :verified true))
 
-;; ->> for collection operations (last arg)
+;; ->> for collection ops (last arg)
 (->> numbers
      (filter pos?)
      (map square)
@@ -220,7 +215,7 @@ Threads value as **last** argument:
 
 ## Pattern Matching
 
-`phel\match` destructures by shape and binds symbols in one step. Use it when `cond`/`case` would force you to re-query the same value from multiple angles.
+`phel\match` destructures by shape and binds symbols in one step. Use when `cond`/`case` would re-query the same value from multiple angles.
 ```phel
 (ns app\commands
   (:require phel\match :refer [match]))
@@ -248,7 +243,7 @@ Pattern elements:
 | `(pat :as x)` | Match `pat` and also bind whole value to `x` |
 | `(:or a b c)` | Any of the alternatives |
 
-The outer `[event]` vector lets you match several values at once:
+The outer `[event]` vector matches several values at once:
 
 ```phel
 (match [http-status role]
@@ -259,7 +254,7 @@ The outer `[event]` vector lets you match several values at once:
   :else              :unknown)
 ```
 
-Without an `:else` clause, `match` throws `RuntimeException` when nothing fits. Add `:else` when "none of these" is a valid outcome.
+Without `:else`, `match` throws `RuntimeException` when nothing fits. Add `:else` when "none of these" is valid.
 
 ## Error Handling
 
@@ -283,7 +278,7 @@ Without an `:else` clause, `match` throws `RuntimeException` when nothing fits. 
 ### Result Types (Either Pattern)
 
 ```phel
-;; Return maps with :ok or :error
+;; Maps with :ok or :error
 (defn validate-email [email]
   (if (str/contains? email "@")
     {:ok email}
@@ -295,7 +290,7 @@ Without an `:else` clause, `match` throws `RuntimeException` when nothing fits. 
       (create-user data)
       result)))
 
-;; Alternative: use nil for errors
+;; Or nil for errors
 (defn safe-parse-int [s]
   (when (php/is_numeric s)
     (php/intval s)))
@@ -324,19 +319,18 @@ Without an `:else` clause, `match` throws `RuntimeException` when nothing fits. 
 ### Atoms (Mutable References)
 
 ```phel
-;; Create atom
 (def counter (atom 0))
 
-;; Read value
+;; Read
 (deref counter)                            ; => 0
-@counter                                   ; Same (@ is shorthand)
+@counter                                   ; shorthand
 
-;; Update value
+;; Update
 (swap! counter inc)                        ; => 1
 (swap! counter #(+ % 10))                  ; => 11
 (swap! counter + 5)                        ; => 16
 
-;; Set value directly
+;; Set
 (reset! counter 0)                         ; => 0
 ```
 
@@ -372,7 +366,7 @@ Without an `:else` clause, `match` throws `RuntimeException` when nothing fits. 
   (when *debug*
     (println "[DEBUG]" msg)))
 
-;; Temporarily override
+;; Override temporarily
 (binding [*debug* true]
   (log "This will print")
   (do-something))
@@ -385,10 +379,11 @@ Without an `:else` clause, `match` throws `RuntimeException` when nothing fits. 
 ### Simple Recursion
 
 ```phel
-(defn factorial [n]
+;; Note: `*'` auto-promotes to BigInteger if PHP int overflows.
+(defn factorial [^int n]
   (if (<= n 1)
     1
-    (* n (factorial (dec n)))))
+    (*' n (factorial (dec n)))))
 
 (defn sum-list [coll]
   (if (empty? coll)
@@ -399,14 +394,12 @@ Without an `:else` clause, `match` throws `RuntimeException` when nothing fits. 
 ### Tail Recursion with `recur`
 
 ```phel
-;; Tail-recursive factorial
-(defn factorial [n]
+(defn factorial [^int n]
   (loop [n n acc 1]
     (if (<= n 1)
       acc
-      (recur (dec n) (* acc n)))))
+      (recur (dec n) (*' acc n)))))
 
-;; Tail-recursive sum
 (defn sum-list [coll]
   (loop [items coll total 0]
     (if (empty? items)
@@ -417,7 +410,6 @@ Without an `:else` clause, `match` throws `RuntimeException` when nothing fits. 
 ### Iterating with `loop`
 
 ```phel
-;; Process items with accumulator
 (loop [items [1 2 3 4 5]
        evens []
        odds []]
@@ -448,11 +440,10 @@ Without an `:else` clause, `match` throws `RuntimeException` when nothing fits. 
 ### Vector Destructuring
 
 ```phel
-;; Basic
 (let [[a b c] [1 2 3]]
   (+ a b c))                               ; => 6
 
-;; With rest
+;; Rest
 (let [[first & rest] [1 2 3 4 5]]
   [first rest])                            ; => [1 [2 3 4 5]]
 
@@ -460,7 +451,7 @@ Without an `:else` clause, `match` throws `RuntimeException` when nothing fits. 
 (let [[a [b c]] [1 [2 3]]]
   (+ a b c))                               ; => 6
 
-;; In function parameters
+;; Function params
 (defn process-coords [[x y]]
   (+ x y))
 
@@ -470,20 +461,19 @@ Without an `:else` clause, `match` throws `RuntimeException` when nothing fits. 
 ### Map Destructuring
 
 ```phel
-;; Basic keys
 (let [{:name name :age age} {:name "Alice" :age 30}]
   (str name " is " age))
 ;; => "Alice is 30"
 
-;; Shorthand (keys same as binding names)
+;; :keys shorthand
 (let [{:keys [name age]} {:name "Alice" :age 30}]
   (str name " is " age))
 
-;; With defaults
+;; :or defaults
 (let [{:keys [name age] :or {age 18}} {:name "Bob"}]
   age)                                     ; => 18
 
-;; In function parameters
+;; Function params
 (defn greet-user [{:keys [name title] :or {title "User"}}]
   (str "Hello, " title " " name))
 
@@ -518,12 +508,12 @@ Without an `:else` clause, `match` throws `RuntimeException` when nothing fits. 
 (defn validate-user [user]
   (let [errors (transient [])]
     (when-not (valid-email? (get user :email))
-      (conj errors "Invalid email"))
+      (conj! errors "Invalid email"))
     (when-not (valid-age? (get user :age))
-      (conj errors "Invalid age"))
+      (conj! errors "Invalid age"))
     (when-not (php/is_string (get user :name))
-      (conj errors "Name must be a string"))
-    (let [err-list (persistent errors)]
+      (conj! errors "Name must be a string"))
+    (let [err-list (persistent! errors)]
       (if (empty? err-list)
         {:ok user}
         {:errors err-list}))))
@@ -562,7 +552,7 @@ Without an `:else` clause, `match` throws `RuntimeException` when nothing fits. 
 
 ### Auto-gensym for Hygienic Bindings
 
-Inside a syntax-quote (`` ` ``), a symbol ending in `#` expands to a fresh unique symbol. Reuse the same `name#` to refer to the same generated binding:
+Inside syntax-quote (`` ` ``), a symbol ending in `#` expands to a fresh unique symbol. Reuse `name#` to refer to the same generated binding:
 
 ```phel
 (defmacro unless
@@ -579,14 +569,14 @@ Inside a syntax-quote (`` ` ``), a symbol ending in `#` expands to a fresh uniqu
      ret#))
 ```
 
-`start#` and `ret#` won't collide with caller bindings, even if `start` or `ret` are already in scope.
+`start#` and `ret#` won't collide with caller bindings.
 
 ### Implicit `&form` and `&env`
 
 Every `defmacro` body has two implicit symbols:
 
-- `&form`: the original macro call as written by the user (useful for source-aware error messages)
-- `&env`: a map of locals in scope at the call site, keyed by symbol
+- `&form`: the original macro call (for source-aware error messages)
+- `&env`: a map of in-scope locals, keyed by symbol
 
 ```phel
 ;; Inspect lexical scope at the call site
@@ -603,7 +593,7 @@ Every `defmacro` body has two implicit symbols:
                    " in " (quote ~&form))))))
 ```
 
-`(:ns &env)` is always `nil` under Phel, so portability macros land on the right branch:
+`(:ns &env)` is always `nil` in Phel, so portability macros land on the right branch:
 
 ```phel
 (defmacro dialect [] (if (:ns &env) "cljs" "phel"))
@@ -612,13 +602,13 @@ Every `defmacro` body has two implicit symbols:
 
 ### Extending `is` with Custom Assertions
 
-`phel\test/assert-expr` is an open multimethod, so you can teach the `is` macro to expand new assertion forms. A `defmethod` takes the original `form` and the user-supplied `message`, and returns the code that the outer `is` should run:
+`phel\test/assert-expr` is an open multimethod. Teach `is` to expand new assertion forms via `defmethod`. The method takes the original `form` and user-supplied `message`, and returns the code `is` should run:
 
 ```phel
 (ns my-app\test\helpers
   (:require phel\test :refer [deftest is]))
 
-;; Approximate equality for floats — expand to a plain `is` over a tolerance check.
+;; Approximate equality for floats: expand to `is` over a tolerance check.
 (defmethod phel\test/assert-expr 'approx= [form message]
   (let [a (second form)
         b (second (next form))
@@ -629,22 +619,22 @@ Every `defmacro` body has two implicit symbols:
   (is (approx= 3.14159 (calc-pi)) "calc-pi should land near pi"))
 ```
 
-When the dispatch symbol has no registered method (e.g. `(is (= 1 1))`), the `:default` arm handles binary equality and predicate forms, so existing tests are unaffected.
+When the dispatch symbol has no registered method (e.g. `(is (= 1 1))`), the `:default` arm handles binary equality and predicate forms.
 
-> Cross-namespace registration must use the fully-qualified `phel\test/assert-expr` so the methods table resolves in `phel\test` rather than the local namespace.
+> Cross-namespace registration must use fully-qualified `phel\test/assert-expr` so the methods table resolves in `phel\test`, not the local namespace.
 
 ## Tips for Writing Idiomatic Phel
 
 ### Prefer Higher-Order Functions
 
 ```phel
-;; Instead of loop
+;; Loop
 (loop [coll [1 2 3 4] result []]
   (if (empty? coll)
     result
     (recur (rest coll) (conj result (* 2 (first coll))))))
 
-;; Use map
+;; map
 (map #(* % 2) [1 2 3 4])
 ```
 
@@ -654,7 +644,7 @@ When the dispatch symbol has no registered method (e.g. `(is (= 1 1))`), the `:d
 ;; Hard to read
 (reduce + (map #(* % 2) (filter even? numbers)))
 
-;; Clear pipeline
+;; Pipeline
 (->> numbers
      (filter even?)
      (map #(* % 2))
@@ -664,7 +654,6 @@ When the dispatch symbol has no registered method (e.g. `(is (= 1 1))`), the `:d
 ### Keep Functions Small
 
 ```phel
-;; Instead of one big function
 (defn process-order [order]
   (-> order
       validate-order
@@ -685,7 +674,7 @@ When the dispatch symbol has no registered method (e.g. `(is (= 1 1))`), the `:d
 (defn active-users [users]
   (filter :active users))
 
-;; Best - with docstring
+;; Best (with docstring)
 (defn active-users
   "Returns only active users from the collection."
   [users]
@@ -694,7 +683,7 @@ When the dispatch symbol has no registered method (e.g. `(is (= 1 1))`), the `:d
 
 ## Build-safe Entry Points
 
-`phel build` evaluates every top-level form at compile time so macros, `def`, `defn`, and `ns` register correctly. Top-level **side effects** (game loops, `stdin` reads, sockets, sleeps) also run, which can block the build indefinitely.
+`phel build` evaluates every top-level form at compile time so macros, `def`, `defn`, and `ns` register. Top-level **side effects** (game loops, `stdin` reads, sockets, sleeps) also run and can block the build indefinitely.
 
 Guard imperative entry calls with `*build-mode*`:
 
@@ -711,7 +700,7 @@ Guard imperative entry calls with `*build-mode*`:
   (play))
 ```
 
-`*build-mode*` is `true` while the compiler evaluates your file during `phel build`, and `false` during `phel run` or when the compiled artifact loads at runtime. The same applies to any stdin/network/sleep call at top level:
+`*build-mode*` is `true` while the compiler evaluates your file during `phel build`, `false` during `phel run` or runtime artifact loading. Same applies to any top-level stdin/network/sleep call:
 
 ```phel
 ;; Bad: blocks `phel build` forever on fgets.
@@ -729,11 +718,11 @@ Guard imperative entry calls with `*build-mode*`:
 
 `defn`, `def` of pure values, `ns`, and `(:require ...)` are always safe at top level. Only imperative work needs the guard.
 
-> `phel build` suppresses stdout from compiled code during compilation, so stray `println` calls no longer leak to the terminal. Execution still happens, so anything that **blocks** (stdin reads, `sleep`, sockets, infinite loops) still needs `(when-not *build-mode* ...)`.
+> `phel build` suppresses stdout from compiled code during compilation, so stray `println` calls don't leak. Execution still happens, so anything that **blocks** (stdin reads, `sleep`, sockets, infinite loops) needs `(when-not *build-mode* ...)`.
 
 ## See Also
 
-- [PHP Interop](php-interop.md): Working with PHP code
-- [Quick Start](quickstart.md): Get started
-- [Reader Shortcuts](reader-shortcuts.md): Syntax reference
-- [Lazy Sequences](lazy-sequences.md): Performance patterns
+- [PHP Interop](php-interop.md)
+- [Quick Start](quickstart.md)
+- [Reader Shortcuts](reader-shortcuts.md)
+- [Lazy Sequences](lazy-sequences.md)
