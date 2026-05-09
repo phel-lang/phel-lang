@@ -1,0 +1,6 @@
+--PHEL--
+(fn [^int x ^string y] x)
+--PHP--
+(function(int $x, string $y) {
+  return $x;
+});
