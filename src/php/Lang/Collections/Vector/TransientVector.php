@@ -85,6 +85,7 @@ final class TransientVector implements TransientVectorInterface, Stringable
      */
     public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $array): self
     {
+        /** @var self<U> $v */
         $v = self::empty($hasher, $equalizer);
         foreach ($array as $a) {
             $v->append($a);

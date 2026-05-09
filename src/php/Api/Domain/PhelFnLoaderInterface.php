@@ -11,7 +11,7 @@ interface PhelFnLoaderInterface
     /**
      * @param list<string> $namespaces
      *
-     * @return array<string,PersistentMapInterface>
+     * @return array<string,PersistentMapInterface<mixed, mixed>>
      */
     public function getNormalizedPhelFunctions(array $namespaces = []): array;
 
@@ -28,5 +28,8 @@ interface PhelFnLoaderInterface
      */
     public function getNormalizedNativeSymbols(): array;
 
+    /**
+     * @param list<string> $namespaces
+     */
     public function loadAllPhelFunctions(array $namespaces): void;
 }

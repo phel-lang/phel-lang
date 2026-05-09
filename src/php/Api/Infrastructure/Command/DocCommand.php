@@ -81,6 +81,11 @@ final class DocCommand extends Command
         return self::SUCCESS;
     }
 
+    /**
+     * @param list<string> $namespaces
+     *
+     * @return list<string>
+     */
     private function normalizeNamespaces(array $namespaces): array
     {
         array_walk($namespaces, static function (string &$ns): void {

@@ -11,6 +11,9 @@ final class FormatterConfig extends AbstractConfig
 {
     private const array DEFAULT_FORMAT_DIRS = ['src', 'tests'];
 
+    /**
+     * @return list<string>
+     */
     public function getFormatDirs(): array
     {
         return $this->get(PhelConfig::FORMAT_DIRS, self::DEFAULT_FORMAT_DIRS);

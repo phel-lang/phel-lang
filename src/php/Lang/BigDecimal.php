@@ -34,6 +34,9 @@ final readonly class BigDecimal implements TypeInterface, Stringable
 {
     private const int MAX_DIVIDE_SCALE = 100;
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     private function __construct(
         private BigInteger $mantissa,
         private int $scale,
@@ -265,11 +268,17 @@ final readonly class BigDecimal implements TypeInterface, Stringable
         return $this->renderDigits();
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta;
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->mantissa, $this->scale, $meta, $this->startLocation, $this->endLocation);

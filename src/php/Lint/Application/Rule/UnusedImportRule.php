@@ -56,6 +56,8 @@ final readonly class UnusedImportRule implements LintRuleInterface
     }
 
     /**
+     * @param PersistentListInterface<mixed> $nsForm
+     *
      * @return list<array{alias:string, display:string, anchor: mixed}>
      */
     private function collectImports(PersistentListInterface $nsForm): array
@@ -71,6 +73,8 @@ final readonly class UnusedImportRule implements LintRuleInterface
     }
 
     /**
+     * @param PersistentListInterface<mixed> $clause
+     *
      * @return list<array{alias:string, display:string, anchor: mixed}>
      */
     private function importsInClause(PersistentListInterface $clause): array

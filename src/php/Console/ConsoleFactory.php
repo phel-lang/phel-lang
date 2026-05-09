@@ -28,6 +28,9 @@ final class ConsoleFactory extends AbstractFactory
         );
     }
 
+    /**
+     * @return list<\Symfony\Component\Console\Command\Command>
+     */
     public function getConsoleCommands(): array
     {
         return $this->getProvidedDependency(ConsoleProvider::COMMANDS);

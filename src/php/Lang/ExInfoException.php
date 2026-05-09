@@ -13,6 +13,9 @@ use Throwable;
  */
 final class ExInfoException extends Exception
 {
+    /**
+     * @param PersistentMapInterface<mixed, mixed> $data
+     */
     public function __construct(
         string $message,
         private readonly PersistentMapInterface $data,
@@ -21,6 +24,9 @@ final class ExInfoException extends Exception
         parent::__construct($message, 0, $cause);
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>
+     */
     public function getData(): PersistentMapInterface
     {
         return $this->data;

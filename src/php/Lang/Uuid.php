@@ -30,6 +30,9 @@ final readonly class Uuid implements TypeInterface, Stringable
 {
     private const string CANONICAL_REGEX = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     private function __construct(
         private string $value,
         private ?PersistentMapInterface $meta = null,
@@ -123,11 +126,17 @@ final readonly class Uuid implements TypeInterface, Stringable
         return crc32($this->value);
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta;
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->value, $meta, $this->startLocation, $this->endLocation);

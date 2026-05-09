@@ -8,12 +8,15 @@ use Phel\Lang\Collections\LazySeq\LazySeqConfig;
 use Phel\Lang\Collections\LazySeq\LazySeqInterface;
 use Phel\Printer\PrinterInterface;
 
+/**
+ * @implements TypePrinterInterface<LazySeqInterface<mixed>>
+ */
 final readonly class LazySeqPrinter implements TypePrinterInterface
 {
     public function __construct(private PrinterInterface $printer) {}
 
     /**
-     * @param LazySeqInterface $form
+     * @param LazySeqInterface<mixed> $form
      *
      * @psalm-suppress MoreSpecificImplementedParamType
      * @psalm-suppress RawObjectIteration

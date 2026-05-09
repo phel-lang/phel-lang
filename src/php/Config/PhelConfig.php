@@ -315,6 +315,8 @@ final class PhelConfig implements JsonSerializable
 
     /**
      * Direct setter for export from directories (convenience method).
+     *
+     * @param list<string> $dirs
      */
     public function setExportFromDirectories(array $dirs): self
     {
@@ -472,6 +474,9 @@ final class PhelConfig implements JsonSerializable
     // Serialization
     // ========================================
 
+    /**
+     * @return array<string, mixed>
+     */
     public function jsonSerialize(): array
     {
         return [

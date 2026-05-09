@@ -100,6 +100,8 @@ final readonly class ArityMismatchRule implements LintRuleInterface
     }
 
     /**
+     * @param PersistentListInterface<mixed> $form
+     *
      * @return ?array{min:int, max:int}
      */
     private function collectArities(PersistentListInterface $form): ?array
@@ -130,6 +132,8 @@ final readonly class ArityMismatchRule implements LintRuleInterface
     }
 
     /**
+     * @param PersistentVectorInterface<mixed> $params
+     *
      * @return array{int, bool}
      */
     private function analyseArityVector(PersistentVectorInterface $params): array

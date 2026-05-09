@@ -98,6 +98,8 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
     }
 
     /**
+     * @param PersistentMapInterface<mixed, mixed> $meta
+     *
      * @return array<string, mixed>
      */
     private function metaToArray(PersistentMapInterface $meta): array

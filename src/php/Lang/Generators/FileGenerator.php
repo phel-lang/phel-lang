@@ -162,7 +162,7 @@ final class FileGenerator
     }
 
     /**
-     * @return Generator<int, PersistentVectorInterface>
+     * @return Generator<int, PersistentVectorInterface<string>>
      */
     public static function csvLines(
         string $filename,

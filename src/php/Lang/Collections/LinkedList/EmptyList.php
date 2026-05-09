@@ -124,6 +124,9 @@ final class EmptyList extends AbstractType implements PersistentListInterface
         return null;
     }
 
+    /**
+     * @return self<T>
+     */
     public function rest(): self
     {
         return $this;

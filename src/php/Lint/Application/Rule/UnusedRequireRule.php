@@ -78,6 +78,8 @@ final readonly class UnusedRequireRule implements LintRuleInterface
     }
 
     /**
+     * @param PersistentListInterface<mixed> $nsForm
+     *
      * @return list<array{alias:string, refers:list<string>, display:string, anchor: mixed}>
      */
     private function collectRequires(PersistentListInterface $nsForm): array
@@ -93,6 +95,8 @@ final readonly class UnusedRequireRule implements LintRuleInterface
     }
 
     /**
+     * @param PersistentListInterface<mixed> $clause
+     *
      * @return list<array{alias:string, refers:list<string>, display:string, anchor: mixed}>
      */
     private function parseRequireClauseEntries(PersistentListInterface $clause): array
@@ -120,6 +124,8 @@ final readonly class UnusedRequireRule implements LintRuleInterface
     }
 
     /**
+     * @param PersistentVectorInterface<mixed> $vector
+     *
      * @return array{alias:string, refers:list<string>, display:string, anchor: mixed}
      */
     private function parseVectorEntry(PersistentVectorInterface $vector): array
@@ -166,6 +172,8 @@ final readonly class UnusedRequireRule implements LintRuleInterface
     }
 
     /**
+     * @param PersistentListInterface<mixed> $clause
+     *
      * @return array{0: array{alias:string, refers:list<string>, display:string, anchor: mixed}, 1: int}
      */
     private function parseFlatEntry(PersistentListInterface $clause, int $startIndex): array

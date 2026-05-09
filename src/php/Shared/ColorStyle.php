@@ -18,10 +18,16 @@ final class ColorStyle implements ColorStyleInterface
         'blue' => "\033[33;34m%s\033[0m",
     ];
 
+    /**
+     * @param array<string, string> $styles
+     */
     private function __construct(
         private array $styles,
     ) {}
 
+    /**
+     * @param array<string, string> $styles
+     */
     public static function withStyles(array $styles = []): self
     {
         return new self([...self::DEFAULT_STYLES, ...$styles]);

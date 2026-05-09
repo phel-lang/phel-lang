@@ -30,6 +30,9 @@ use function sprintf;
  */
 final readonly class PhpClass implements TypeInterface, Stringable
 {
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     private function __construct(
         private string $fqn,
         private ?PersistentMapInterface $meta = null,
@@ -98,11 +101,17 @@ final readonly class PhpClass implements TypeInterface, Stringable
         return crc32($this->fqn);
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta;
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->fqn, $meta, $this->startLocation, $this->endLocation);

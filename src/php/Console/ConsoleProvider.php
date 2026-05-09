@@ -41,6 +41,9 @@ final class ConsoleProvider extends AbstractProvider
         return $container->getLocator()->getRequired(FilesystemFacade::class);
     }
 
+    /**
+     * @return list<\Symfony\Component\Console\Command\Command>
+     */
     #[Provides(self::COMMANDS)]
     public function commands(): array
     {

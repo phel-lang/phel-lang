@@ -51,6 +51,7 @@ final class HashCollisionNode implements HashMapNodeInterface
             return new self($this->hasher, $this->equalizer, $this->hash, $this->count + 1, $this->cloneAndAdd($key, $value));
         }
 
+        /** @var IndexedNode<K, V> $node */
         $node = new IndexedNode($this->hasher, $this->equalizer, [$this->mask($this->hash, $shift) => [null, $this]]);
         return $node->put($shift, $hash, $key, $value, $addedLeaf);
     }

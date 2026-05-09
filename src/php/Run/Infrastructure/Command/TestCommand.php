@@ -257,6 +257,9 @@ final class TestCommand extends Command
         ));
     }
 
+    /**
+     * @param list<NamespaceInformation> $namespacesInformation
+     */
     private function generatePhelTestCode(InputInterface $input, array $namespacesInformation): string
     {
         return sprintf(

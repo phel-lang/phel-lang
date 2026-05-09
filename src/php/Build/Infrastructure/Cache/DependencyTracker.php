@@ -25,6 +25,7 @@ use function is_string;
  */
 final readonly class DependencyTracker implements DependencyTrackerInterface
 {
+    /** @var ScopedCache<mixed> */
     private ScopedCache $cache;
 
     public function __construct(string $cacheDir)

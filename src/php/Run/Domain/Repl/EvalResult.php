@@ -159,6 +159,9 @@ final readonly class EvalResult
             : null;
     }
 
+    /**
+     * @param array<string, mixed>|null $snapshot
+     */
     private static function restoreIfNeeded(?GlobalEnvironmentInterface $env, ?array $snapshot): void
     {
         if ($env instanceof GlobalEnvironmentInterface && $snapshot !== null) {

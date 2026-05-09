@@ -9,6 +9,8 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
 
 /**
  * @template T
+ *
+ * @extends AbstractType<T>
  */
 final class Variable extends AbstractType
 {
@@ -21,7 +23,8 @@ final class Variable extends AbstractType
     private $validator;
 
     /**
-     * @param T $value
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     * @param T                                         $value
      */
     public function __construct(
         ?PersistentMapInterface $meta,

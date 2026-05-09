@@ -77,9 +77,12 @@ final class PersistentVector extends AbstractPersistentVector
         array $values,
     ): PersistentVectorInterface {
         if ($values === []) {
-            return self::empty($hasher, $equalizer);
+            /** @var self<U> $empty */
+            $empty = self::empty($hasher, $equalizer);
+            return $empty;
         }
 
+        /** @var TransientVector<U> $tv */
         $tv = TransientVector::empty($hasher, $equalizer);
         foreach ($values as $value) {
             $tv->append($value);

@@ -47,6 +47,8 @@ final class PersistentSortedMap extends AbstractPersistentMap
 
     /**
      * @param ?callable(mixed, mixed): int $comparator
+     *
+     * @return self<K, V>
      */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer, ?callable $comparator = null): self
     {
@@ -58,6 +60,8 @@ final class PersistentSortedMap extends AbstractPersistentMap
     /**
      * @param array<int, mixed>            $kvs
      * @param ?callable(mixed, mixed): int $comparator
+     *
+     * @return self<K, V>
      */
     public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $kvs, ?callable $comparator = null): self
     {
@@ -70,10 +74,13 @@ final class PersistentSortedMap extends AbstractPersistentMap
             $result->put($kvs[$i], $kvs[$i + 1]);
         }
 
-        /** @var self */
+        /** @var self<K, V> */
         return $result->persistent();
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->array, $this->userComparator);
@@ -106,6 +113,11 @@ final class PersistentSortedMap extends AbstractPersistentMap
         return new self($this->hasher, $this->equalizer, $this->meta, $newArray, $this->userComparator);
     }
 
+    /**
+     * @param mixed $key
+     *
+     * @return self<K, V>
+     */
     public function remove($key): self
     {
         $idx = SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator);
@@ -142,6 +154,9 @@ final class PersistentSortedMap extends AbstractPersistentMap
         }
     }
 
+    /**
+     * @return TransientMapWrapper<K, V>
+     */
     public function asTransient(): TransientMapWrapper
     {
         return new TransientMapWrapper(

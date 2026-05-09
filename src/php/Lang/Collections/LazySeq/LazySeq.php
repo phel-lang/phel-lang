@@ -248,11 +248,17 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
                     return $this->first;
                 }
 
+                /**
+                 * @return LazySeqInterface<mixed>
+                 */
                 public function cdr(): LazySeqInterface
                 {
                     return $this->rest;
                 }
 
+                /**
+                 * @return LazySeqInterface<mixed>
+                 */
                 public function rest(): LazySeqInterface
                 {
                     return $this->rest;

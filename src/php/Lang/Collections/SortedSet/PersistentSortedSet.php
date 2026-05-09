@@ -22,6 +22,10 @@ final class PersistentSortedSet extends AbstractType implements PersistentHashSe
 {
     private int $hashCache = 0;
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     * @param PersistentMapInterface<V, V>              $map
+     */
     public function __construct(
         private readonly HasherInterface $hasher,
         private readonly ?PersistentMapInterface $meta,
@@ -38,11 +42,17 @@ final class PersistentSortedSet extends AbstractType implements PersistentHashSe
         return $this->map->find($key);
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta;
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $meta, $this->map);
@@ -66,7 +76,7 @@ final class PersistentSortedSet extends AbstractType implements PersistentHashSe
             return $this;
         }
 
-        /** @var PersistentSortedMap $newMap */
+        /** @var PersistentSortedMap<V, V> $newMap */
         return new self($this->hasher, $this->meta, $newMap);
     }
 
@@ -125,9 +135,14 @@ final class PersistentSortedSet extends AbstractType implements PersistentHashSe
         }
     }
 
+    /**
+     * @return TransientSortedSet<V>
+     */
     public function asTransient(): TransientSortedSet
     {
-        return new TransientSortedSet($this->hasher, $this->map->asTransient());
+        /** @var \Phel\Lang\Collections\Map\TransientMapInterface<V, V> $transient */
+        $transient = $this->map->asTransient();
+        return new TransientSortedSet($this->hasher, $transient);
     }
 
     public function toPhpArray(): array

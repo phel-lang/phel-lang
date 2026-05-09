@@ -21,7 +21,7 @@ use function count;
  */
 final class ClientFiberPool
 {
-    /** @var list<Fiber> */
+    /** @var list<Fiber<mixed, mixed, mixed, mixed>> */
     private array $fibers = [];
 
     private readonly ?Closure $errorLogger;
@@ -31,6 +31,9 @@ final class ClientFiberPool
         $this->errorLogger = $errorLogger === null ? null : Closure::fromCallable($errorLogger);
     }
 
+    /**
+     * @param Fiber<mixed, mixed, mixed, mixed> $fiber
+     */
     public function add(Fiber $fiber): void
     {
         if (!$fiber->isTerminated()) {
@@ -56,6 +59,8 @@ final class ClientFiberPool
     }
 
     /**
+     * @param Fiber<mixed, mixed, mixed, mixed> $fiber
+     *
      * @return bool true if the fiber should stay in the pool
      */
     private function advance(Fiber $fiber): bool

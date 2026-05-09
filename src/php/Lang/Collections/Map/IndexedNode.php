@@ -90,7 +90,7 @@ final readonly class IndexedNode implements HashMapNodeInterface
         [$currentKey, $currentValue] = $this->objects[$index];
 
         if ($currentKey === null) {
-            /** @var HashMapNodeInterface $node */
+            /** @var HashMapNodeInterface<TKey, TValue> $node */
             $node = $currentValue;
             $n = $node->remove($shift + 5, $hash, $key);
 
@@ -142,7 +142,7 @@ final readonly class IndexedNode implements HashMapNodeInterface
         [$currentKey, $currentValue] = $this->objects[$index];
 
         if ($currentKey === null) {
-            /** @var HashMapNodeInterface $node */
+            /** @var HashMapNodeInterface<TKey, TValue> $node */
             $node = $currentValue;
 
             return $node->find($shift + 5, $hash, $key, $notFound);
@@ -209,7 +209,7 @@ final readonly class IndexedNode implements HashMapNodeInterface
      */
     private function addToChild(int $idx, int $shift, int $hash, mixed $key, mixed $value, Box $addedLeaf): HashMapNodeInterface
     {
-        /** @var HashMapNodeInterface $childNode */
+        /** @var HashMapNodeInterface<TKey, TValue> $childNode */
         $childNode = $this->objects[$idx][1];
         $newChild = $childNode->put($shift + 5, $hash, $key, $value, $addedLeaf);
         if ($childNode === $newChild) {

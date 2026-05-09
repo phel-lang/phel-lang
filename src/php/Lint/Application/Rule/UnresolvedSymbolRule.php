@@ -106,6 +106,8 @@ final readonly class UnresolvedSymbolRule implements LintRuleInterface
     }
 
     /**
+     * @param PersistentListInterface<mixed> $clause
+     *
      * @return list<string>
      */
     private function extractAliasesFromClause(PersistentListInterface $clause): array
@@ -136,6 +138,9 @@ final readonly class UnresolvedSymbolRule implements LintRuleInterface
         return $aliases;
     }
 
+    /**
+     * @param PersistentVectorInterface<mixed> $vector
+     */
     private function aliasFromVector(PersistentVectorInterface $vector): ?string
     {
         $size = count($vector);
@@ -158,6 +163,9 @@ final readonly class UnresolvedSymbolRule implements LintRuleInterface
         return null;
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $clause
+     */
     private function aliasFromFlatClause(PersistentListInterface $clause, int $startIndex): ?string
     {
         $size = count($clause);

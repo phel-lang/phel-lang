@@ -102,6 +102,11 @@ final class PersistentArrayMap extends AbstractPersistentMap
         return new self($this->hasher, $this->equalizer, $this->meta, $newArray);
     }
 
+    /**
+     * @param mixed $key
+     *
+     * @return self<K, V>
+     */
     public function remove($key): self
     {
         $index = $this->findIndex($key);

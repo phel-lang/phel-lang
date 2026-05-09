@@ -8,14 +8,14 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Printer\PrinterInterface;
 
 /**
- * @implements TypePrinterInterface<PersistentVectorInterface>
+ * @implements TypePrinterInterface<PersistentVectorInterface<mixed>>
  */
 final readonly class PersistentVectorPrinter implements TypePrinterInterface
 {
     public function __construct(private PrinterInterface $printer) {}
 
     /**
-     * @param PersistentVectorInterface $form
+     * @param PersistentVectorInterface<mixed> $form
      */
     public function print(mixed $form): string
     {

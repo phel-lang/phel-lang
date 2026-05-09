@@ -43,6 +43,12 @@ final class TransientSortedMap implements TransientMapInterface
         return SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator) >= 0;
     }
 
+    /**
+     * @param mixed $key
+     * @param mixed $value
+     *
+     * @return self<K, V>
+     */
     public function put($key, $value): self
     {
         $idx = SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator);
@@ -63,6 +69,11 @@ final class TransientSortedMap implements TransientMapInterface
         return $this;
     }
 
+    /**
+     * @param mixed $key
+     *
+     * @return self<K, V>
+     */
     public function remove($key): self
     {
         $idx = SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator);

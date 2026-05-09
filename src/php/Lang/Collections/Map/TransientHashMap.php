@@ -21,7 +21,7 @@ final class TransientHashMap implements TransientMapInterface
 
     /**
      * @param HashMapNodeInterface<K, V>|null $root
-     * @param V|null                          $nullValue
+     * @param mixed                           $nullValue
      */
     public function __construct(
         private readonly HasherInterface $hasher,
@@ -32,6 +32,9 @@ final class TransientHashMap implements TransientMapInterface
         private $nullValue,
     ) {}
 
+    /**
+     * @return self<K, V>
+     */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
         return new self($hasher, $equalizer, 0, null, false, null);

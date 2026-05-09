@@ -8,6 +8,9 @@ use ArrayAccess;
 use Override;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 
+/**
+ * @extends AbstractType<string>
+ */
 final class Symbol extends AbstractType implements IdenticalInterface, FnInterface, NamedInterface
 {
     use MetaTrait;
@@ -126,7 +129,7 @@ final class Symbol extends AbstractType implements IdenticalInterface, FnInterfa
     public function __invoke(
         mixed $obj,
         float|bool|int|string|TypeInterface|null $default = null,
-    ) {
+    ): mixed {
         if ($obj instanceof ArrayAccess) {
             if ($obj instanceof ContainsInterface) {
                 return $obj->contains($this) ? $obj[$this] : $default;

@@ -19,6 +19,9 @@ final readonly class DependenciesForNamespace
     ) {}
 
     /**
+     * @param list<string> $directories
+     * @param list<string> $ns
+     *
      * @return list<NamespaceInformation>
      */
     public function getDependenciesForNamespace(array $directories, array $ns): array

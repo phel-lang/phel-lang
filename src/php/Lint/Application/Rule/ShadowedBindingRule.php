@@ -83,8 +83,9 @@ final readonly class ShadowedBindingRule implements LintRuleInterface
     }
 
     /**
-     * @param list<string>     $scope
-     * @param list<Diagnostic> $result
+     * @param PersistentListInterface<mixed> $form
+     * @param list<string>                   $scope
+     * @param list<Diagnostic>               $result
      *
      * @return list<string>
      */
@@ -132,8 +133,9 @@ final readonly class ShadowedBindingRule implements LintRuleInterface
     }
 
     /**
-     * @param list<string>     $scope
-     * @param list<Diagnostic> $result
+     * @param PersistentListInterface<mixed> $form
+     * @param list<string>                   $scope
+     * @param list<Diagnostic>               $result
      *
      * @return list<string>
      */
@@ -157,8 +159,9 @@ final readonly class ShadowedBindingRule implements LintRuleInterface
     }
 
     /**
-     * @param list<string>     $scope
-     * @param list<Diagnostic> $result
+     * @param PersistentVectorInterface<mixed> $params
+     * @param list<string>                     $scope
+     * @param list<Diagnostic>                 $result
      *
      * @return list<string>
      */

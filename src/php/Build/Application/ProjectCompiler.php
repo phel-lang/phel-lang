@@ -56,6 +56,8 @@ final readonly class ProjectCompiler
     }
 
     /**
+     * @param list<string> $srcDirectories
+     *
      * @return list<CompiledFile>
      */
     private function compileFromTo(array $srcDirectories, string $dest, BuildOptions $buildOptions): array

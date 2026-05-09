@@ -51,7 +51,7 @@ final class ArrayNode implements HashMapNodeInterface, Countable
         $index = $this->mask($hash, $shift);
 
         if (isset($this->childNodes[$index])) {
-            /** @var HashMapNodeInterface $node */
+            /** @var HashMapNodeInterface<K, V> $node */
             $node = $this->childNodes[$index];
             $n = $node->put($shift + 5, $hash, $key, $value, $addedLeaf);
             if ($n === $node) {
@@ -149,6 +149,7 @@ final class ArrayNode implements HashMapNodeInterface, Countable
      */
     private function pack(int $index): HashMapNodeInterface
     {
+        /** @var list<array{0: K|null, 1: HashMapNodeInterface<K, V>|V}> $objects */
         $objects = [];
         foreach ($this->childNodes as $i => $node) {
             if ($i === $index) {
@@ -162,7 +163,9 @@ final class ArrayNode implements HashMapNodeInterface, Countable
             $objects[$i] = [null, $node];
         }
 
-        return new IndexedNode($this->hasher, $this->equalizer, $objects);
+        /** @var IndexedNode<K, V> $result */
+        $result = new IndexedNode($this->hasher, $this->equalizer, $objects);
+        return $result;
     }
 
     private function mask(int $hash, int $shift): int

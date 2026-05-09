@@ -69,6 +69,8 @@ final class ConsoleBootstrap extends Application
     /**
      * Detect when --help/-h is requested without an explicit command,
      * so we show top-level help listing all commands instead of repl help.
+     *
+     * @param list<string> $argv
      */
     private function isTopLevelHelp(array $argv): bool
     {
@@ -99,6 +101,10 @@ final class ConsoleBootstrap extends Application
     /**
      * Strip --help/-h flags and insert 'list' as the command,
      * so Symfony Console executes the list command directly.
+     *
+     * @param list<string> $argv
+     *
+     * @return list<string>
      */
     private function replaceHelpWithList(array $argv): array
     {

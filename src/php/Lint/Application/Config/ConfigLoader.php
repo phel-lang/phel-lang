@@ -61,6 +61,9 @@ final readonly class ConfigLoader
         return $defaults->withOverrides($severities, $excludes);
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     private function parseMap(string $source, string $uri): ?PersistentMapInterface
     {
         try {
@@ -99,6 +102,8 @@ final readonly class ConfigLoader
     }
 
     /**
+     * @param PersistentMapInterface<mixed, mixed> $map
+     *
      * @return array<string, string>
      */
     private function extractSeverities(PersistentMapInterface $map): array
@@ -127,6 +132,8 @@ final readonly class ConfigLoader
     }
 
     /**
+     * @param PersistentMapInterface<mixed, mixed> $map
+     *
      * @return array<string, list<string>>
      */
     private function extractExcludes(PersistentMapInterface $map): array

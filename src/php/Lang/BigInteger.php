@@ -37,8 +37,9 @@ final readonly class BigInteger implements TypeInterface, Stringable
     private const int BASE_DIGITS = 9;
 
     /**
-     * @param int       $sign      -1, 0, or 1; must be 0 iff magnitude is empty
-     * @param list<int> $magnitude base-10^9 digits, least-significant first; no trailing zeros
+     * @param int                                       $sign      -1, 0, or 1; must be 0 iff magnitude is empty
+     * @param list<int>                                 $magnitude base-10^9 digits, least-significant first; no trailing zeros
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
     private function __construct(
         private int $sign,
@@ -64,11 +65,17 @@ final readonly class BigInteger implements TypeInterface, Stringable
         return $this->sign < 0 ? '-' . $out : $out;
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta;
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->sign, $this->magnitude, $meta, $this->startLocation, $this->endLocation);

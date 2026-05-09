@@ -35,6 +35,9 @@ final class PhelFuture
 {
     private bool $cancelled = false;
 
+    /**
+     * @param Future<mixed> $future
+     */
     public function __construct(
         private readonly Future $future,
         private readonly DeferredCancellation $cancellation,
@@ -99,6 +102,8 @@ final class PhelFuture
     /**
      * Exposes the underlying Amp\Future for interop with code that expects
      * the raw Amphp type (e.g. `await-all`, `await-any`).
+     *
+     * @return Future<mixed>
      */
     public function unwrap(): Future
     {

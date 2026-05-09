@@ -440,14 +440,14 @@ Creates a new vector. If no argument is provided, an empty vector is created. Sh
     /**
      * @param list<string> $namespaces
      *
-     * @return array<string,PersistentMapInterface>
+     * @return array<string,PersistentMapInterface<mixed, mixed>>
      */
     public function getNormalizedPhelFunctions(array $namespaces = []): array
     {
         $this->loadAllPhelFunctions($namespaces);
         $containsCoreFunctions = in_array('phel.core', $namespaces, true);
 
-        /** @var array<string,PersistentMapInterface> $normalizedData */
+        /** @var array<string,PersistentMapInterface<mixed, mixed>> $normalizedData */
         $normalizedData = [];
         foreach ($this->getNamespaces() as $ns) {
             if (!$containsCoreFunctions && $ns === 'phel.core') {
@@ -469,6 +469,9 @@ Creates a new vector. If no argument is provided, an empty vector is created. Sh
         return $normalizedData;
     }
 
+    /**
+     * @param list<string> $namespaces
+     */
     public function loadAllPhelFunctions(array $namespaces): void
     {
         $this->runtimeLoader->load($namespaces);
@@ -490,6 +493,9 @@ Creates a new vector. If no argument is provided, an empty vector is created. Sh
         return Phel::getDefinitionInNamespace($ns);
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>
+     */
     private function getPhelMeta(string $ns, string $fnName): PersistentMapInterface
     {
         return Phel::getDefinitionMetaData($ns, $fnName)

@@ -18,6 +18,9 @@ use Phel\Shared\Facade\CommandFacadeInterface;
 
 final readonly class FunctionsToExportFinder implements FunctionsToExportFinderInterface
 {
+    /**
+     * @param list<string> $exportDirs
+     */
     public function __construct(
         private BuildFacadeInterface $buildFacade,
         private CommandFacadeInterface $commandFacade,
@@ -89,7 +92,7 @@ final readonly class FunctionsToExportFinder implements FunctionsToExportFinderI
 
     private function isExport(string $ns, string $fnName): bool
     {
-        /** @var PersistentMapInterface $meta */
+        /** @var PersistentMapInterface<mixed, mixed> $meta */
         $meta = Phel::getDefinitionMetaData($ns, $fnName)
             ?? Phel::list();
 

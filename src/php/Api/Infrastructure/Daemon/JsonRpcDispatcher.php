@@ -117,6 +117,8 @@ final class JsonRpcDispatcher
 
     /**
      * @param array<string, mixed> $params
+     *
+     * @return array<string, mixed>|null
      */
     private function resolveSymbol(array $params): ?array
     {

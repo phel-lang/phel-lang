@@ -8,7 +8,7 @@ use Phel\Lang\Variable;
 use Phel\Printer\PrinterInterface;
 
 /**
- * @implements TypePrinterInterface<Variable>
+ * @implements TypePrinterInterface<Variable<mixed>>
  */
 final readonly class VariablePrinter implements TypePrinterInterface
 {
@@ -17,7 +17,7 @@ final readonly class VariablePrinter implements TypePrinterInterface
     ) {}
 
     /**
-     * @param Variable $form
+     * @param Variable<mixed> $form
      */
     public function print(mixed $form): string
     {

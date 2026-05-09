@@ -26,7 +26,7 @@ final class PersistentHashMap extends AbstractPersistentMap
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      * @param HashMapNodeInterface<K, V>|null           $root
-     * @param V|null                                    $nullValue
+     * @param mixed                                     $nullValue
      */
     public function __construct(
         HasherInterface $hasher,
@@ -40,6 +40,9 @@ final class PersistentHashMap extends AbstractPersistentMap
         parent::__construct($hasher, $equalizer, $meta);
     }
 
+    /**
+     * @return self<K, V>
+     */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
         return new self($hasher, $equalizer, null, 0, null, false, null);
