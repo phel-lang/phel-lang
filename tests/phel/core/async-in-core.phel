@@ -50,3 +50,42 @@
                            :done      (future-done? f)})))]
     (is (= true (get result :cancelled)) "future-cancelled? in core")
     (is (= true (get result :done)) "future-done? in core")))
+
+(defn ^:async async-meta-add [a b]
+  (+ a b))
+
+(deftest test-defn-async-basic
+  (is (= 5 (await (async-meta-add 2 3))) "^:async defn returns awaitable")
+  (is (= true (php/instanceof (async-meta-add 1 1) \Amp\Future))
+      "^:async defn returns Amp\\Future"))
+
+(defn ^:async async-meta-doc
+  "Adds two numbers asynchronously."
+  [a b]
+  (+ a b))
+
+(deftest test-defn-async-with-docstring
+  (is (= 7 (await (async-meta-doc 3 4)))
+      "^:async coexists with docstring"))
+
+(defn ^:async async-meta-await-inside [n]
+  (+ n (await (async 10))))
+
+(deftest test-defn-async-can-use-await-inside
+  (is (= 11 (await (async-meta-await-inside 1)))
+      "body can use await; outer caller awaits the future"))
+
+(defn ^:async async-meta-await-all [xs]
+  (await-all (for [x :in xs] (async (* x 2)))))
+
+(deftest test-defn-async-composes-with-await-all
+  (is (= [2 4 6] (await (async-meta-await-all [1 2 3])))
+      "^:async body can drive await-all"))
+
+(defn ^{:async false} async-meta-false [x]
+  x)
+
+(deftest test-defn-async-false-opts-out
+  (is (= 7 (async-meta-false 7)) "^{:async false} returns the value, not a future")
+  (is (= false (php/instanceof (async-meta-false 7) \Amp\Future))
+      "^{:async false} bypasses async wrapper"))

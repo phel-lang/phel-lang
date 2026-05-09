@@ -188,6 +188,7 @@
 ;; so they can still pass compile-time symbol resolution.
 (declare nil?)
 (declare seq)
+(declare map)
 
 (def *program*
   "The script path or namespace being executed."

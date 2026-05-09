@@ -42,6 +42,19 @@ Schedules `body` on the AMPHP event loop in a fresh fiber. Returns an `Amp\Futur
 
 Blocks the current fiber until the Future resolves, then returns its value. Accepts a raw `Amp\Future` or a `PhelFuture` wrapper. Gotcha: must be called from inside a fiber.
 
+### `^:async` on `defn`
+
+`^:async` on `defn` wraps the body in `(async ...)`, so the function returns an `Amp\Future` that callers `await`.
+
+```phel
+(defn ^:async fetch [url]
+  (await (http-get url)))
+
+(await (fetch "https://example.com"))
+```
+
+Multi-arity bodies are wrapped per arity. `^{:async false}` opts out without removing the metadata key.
+
 ### `delay` (in `phel.async`)
 
 ```phel

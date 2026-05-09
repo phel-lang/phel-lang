@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 #### Core
 - `^:memoize` and `^{:memoize-lru N}` metadata on `defn` wrap the fn with `memoize` / `memoize-lru` (#1915)
+- `^:async` metadata on `defn` wraps the body in `async`, returning an `Amp\Future` that callers `await` (#1924)
 
 #### Compiler
 - `^{:tag "<php-type>"}` metadata on a fn or defn parameter emits a PHP type declaration on the compiled signature; reader shorthands `^int x`, `^"?int" x`, `^"\\Foo\\Bar" x` all reduce to the same `:tag` form (#1916)
