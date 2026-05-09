@@ -20,7 +20,7 @@ Call PHP from Phel and Phel from PHP.
 Prefix PHP functions with `php/`:
 
 ```phel
-(ns app\example)
+(ns app.example)
 
 ;; String functions
 (php/strlen "hello")              ; => 5
@@ -55,7 +55,7 @@ Capture references with `def` to shorten calls:
 ### Classes and Objects
 
 ```phel
-(ns app\example
+(ns app.example
   (:use DateTime DateInterval))
 
 ;; Create instance (all forms are equivalent)
@@ -117,7 +117,7 @@ Capture references with `def` to shorten calls:
 Use `:use` for PHP classes:
 
 ```phel
-(ns app\services
+(ns app.services
   (:use PDO)                      ; Single class
   (:use DateTime DateInterval)   ; Multiple classes
   (:use Symfony\Component\HttpFoundation\Request))
@@ -133,24 +133,22 @@ Use `:use` for PHP classes:
 
 ```phel
 ;; List entry
-(ns app\services
-  (:require phel\string :as str)
-  (:require phel\json :as json :refer [encode decode]))
+(ns app.services
+  (:require phel.string :as str)
+  (:require phel.json :as json :refer [encode decode]))
 
 ;; Vector entry, same meaning
-(ns app\services
-  (:require [phel\string :as str]
-            [phel\json :as json :refer [encode decode]]))
+(ns app.services
+  (:require [phel.string :as str]
+            [phel.json :as json :refer [encode decode]]))
 ```
 
-`.` is an alternate separator (alongside `\`):
+Phel uses `.` as the namespace separator, matching Clojure. The legacy `\` separator is still accepted for back-compat but deprecated; new code should use `.`.
 
 ```phel
 (ns my.cljc.file
   (:require [phel.string :as str]))
 ```
-
-Both `phel\string` and `phel.string` resolve to the same namespace.
 
 ## Type Conversions
 
@@ -184,7 +182,7 @@ Both `phel\string` and `phel.string` resolve to the same namespace.
 
 **hello.phel:**
 ```phel
-(ns app\hello)
+(ns app.hello)
 
 (defn greet [name]
   (str "Hello, " name "!"))
@@ -199,13 +197,13 @@ Both `phel\string` and `phel.string` resolve to the same namespace.
 require 'vendor/autoload.php';
 
 // Bootstrap Phel and load the namespace (compiles on first call).
-\Phel::run(__DIR__, 'app\\hello');
+\Phel::run(__DIR__, 'app.hello');
 
 // Call Phel functions by name; getDefinition returns the registered fn.
-$greet = \Phel::getDefinition('app\\hello', 'greet');
+$greet = \Phel::getDefinition('app.hello', 'greet');
 echo $greet('World'); // => "Hello, World!"
 
-$add = \Phel::getDefinition('app\\hello', 'add');
+$add = \Phel::getDefinition('app.hello', 'add');
 echo $add(5, 10); // => 15
 ```
 
@@ -213,7 +211,7 @@ echo $add(5, 10); // => 15
 
 **routes.phel:**
 ```phel
-(ns app\routes
+(ns app.routes
   (:use Symfony\Component\HttpFoundation\Response))
 
 (defn handle-home [request]
@@ -234,13 +232,13 @@ require 'vendor/autoload.php';
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-\Phel::run(__DIR__, 'app\\routes');
+\Phel::run(__DIR__, 'app.routes');
 
 $request = Request::createFromGlobals();
 $path = $request->getPathInfo();
 
-$home = \Phel::getDefinition('app\\routes', 'handle-home');
-$api  = \Phel::getDefinition('app\\routes', 'handle-api');
+$home = \Phel::getDefinition('app.routes', 'handle-home');
+$api  = \Phel::getDefinition('app.routes', 'handle-api');
 
 $response = match ($path) {
     '/'    => $home($request),
@@ -256,7 +254,7 @@ $response->send();
 ### Catching PHP Exceptions
 
 ```phel
-(ns app\db
+(ns app.db
   (:use PDO PDOException))
 
 (defn connect [dsn user pass]
@@ -277,7 +275,7 @@ $response->send();
 ### Throwing Exceptions
 
 ```phel
-(ns app\validator
+(ns app.validator
   (:use InvalidArgumentException))
 
 (defn validate-age [age]
@@ -324,7 +322,7 @@ $response->send();
 ### Database Access
 
 ```phel
-(ns app\db
+(ns app.db
   (:use PDO))
 
 (defn query-all [pdo sql params]
@@ -341,8 +339,8 @@ $response->send();
 ### HTTP Requests
 
 ```phel
-(ns app\http
-  (:require phel\json :as json))
+(ns app.http
+  (:require phel.json :as json))
 
 (defn fetch-json [url]
   (let [response (php/file_get_contents url)
@@ -363,7 +361,7 @@ $response->send();
 ### File Operations
 
 ```phel
-(ns app\files)
+(ns app.files)
 
 (defn read-lines [filename]
   (let [content (php/file_get_contents filename)]
@@ -388,8 +386,8 @@ $response->send();
 - **Method calls**: `(php/-> obj (method))` (also `(.method obj)`).
 - **Deref**: `@my-atom` shortcuts `(deref my-atom)`.
 - **Import classes**: `:use` in `ns`, not `:import`.
-- **Require vectors**: `(:require [phel\string :as str :refer [upper-case]])` works alongside the list form.
-- **Namespace separators**: `\` and `.` both work; `phel\string` and `phel.string` resolve to the same namespace.
+- **Require vectors**: `(:require [phel.string :as str :refer [upper-case]])` works alongside the list form.
+- **Namespace separators**: Phel uses `.` matching Clojure. The legacy `\` separator is still accepted for back-compat but deprecated.
 - **Reader conditionals**: `#?(:phel ...)` and `#?@(:phel ...)` for `.cljc` files.
 - **Unquote**: `~` and `~@` inside syntax-quote (`,` / `,@` deprecated).
 - **Auto-gensym**: `name#` inside syntax-quote produces a unique symbol (`name$` deprecated).

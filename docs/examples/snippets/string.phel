@@ -1,5 +1,5 @@
-(ns examples\snippets\string
-  (:require phel\string :as str))
+(ns examples.snippets.string
+  (:require phel.string :as str))
 
 (println (str "Hello, " "World" "!"))      ; "Hello, World!"
 (println (str/upper-case "phel"))          ; "PHEL"

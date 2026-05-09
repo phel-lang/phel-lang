@@ -84,9 +84,9 @@ Strings work with all sequence functions:
 ;; => ["h" "e" "l" "l" "o"]
 ```
 
-**`phel\string/chars`** - String to character vector:
+**`phel.string/chars`** - String to character vector:
 ```phel
-(use phel\string)
+(use phel.string)
 (chars "hello")
 ;; => ["h" "e" "l" "l" "o"]
 ```

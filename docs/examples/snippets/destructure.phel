@@ -1,4 +1,4 @@
-(ns examples\snippets\destructure)
+(ns examples.snippets.destructure)
 
 ;; Vector destructuring
 (let [[a b c] [10 20 30]]

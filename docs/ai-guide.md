@@ -1,6 +1,6 @@
 # AI Module Guide
 
-`phel\ai` is a small, provider-agnostic client for LLM chat, structured extraction, tool use, embeddings, and semantic search.
+`phel.ai` is a small, provider-agnostic client for LLM chat, structured extraction, tool use, embeddings, and semantic search.
 
 Supported providers:
 
@@ -13,8 +13,8 @@ Supported providers:
 ## Quickstart
 
 ```phel
-(ns my-app\main
-  (:require phel\ai :as ai))
+(ns my-app.main
+  (:require phel.ai :as ai))
 
 ;; Either set env vars (ANTHROPIC_API_KEY, OPENAI_API_KEY, VOYAGE_API_KEY)
 ;; or configure explicitly:
@@ -147,13 +147,13 @@ All failures throw `\RuntimeException`. Messages include HTTP status and provide
 
 ## Testing without a live API
 
-`phel\ai` exposes an HTTP seam `*http-post*` that tests rebind to return canned responses. Combined with `phel\mock`, this removes the dependency on a real provider.
+`phel.ai` exposes an HTTP seam `*http-post*` that tests rebind to return canned responses. Combined with `phel.mock`, this removes the dependency on a real provider.
 
 ```phel
-(ns my-app\test\ai-test
-  (:require phel\test :refer [deftest is])
-  (:require phel\ai :as ai)
-  (:require phel\mock :refer [mock-fn call-count first-call]))
+(ns my-app.test.ai-test
+  (:require phel.test :refer [deftest is])
+  (:require phel.ai :as ai)
+  (:require phel.mock :refer [mock-fn call-count first-call]))
 
 (deftest test-my-ai-logic
   (let [fake (mock-fn (fn [_ _] {:status 200
@@ -163,7 +163,7 @@ All failures throw `\RuntimeException`. Messages include HTTP status and provide
       (is (= 1 (call-count fake))))))
 ```
 
-`phel\json` stringifies floats during `json/encode`. When a mock must return embedding arrays, build the response body as a raw JSON string instead of using `json/encode`.
+`phel.json` stringifies floats during `json/encode`. When a mock must return embedding arrays, build the response body as a raw JSON string instead of using `json/encode`.
 
 ## See also
 

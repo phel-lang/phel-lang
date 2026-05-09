@@ -1,4 +1,4 @@
-;; Runnable phel\cli demo: a tiny todo-list CLI.
+;; Runnable phel.cli demo: a tiny todo-list CLI.
 ;;
 ;;   ./bin/phel run docs/examples/12_cli.phel add "buy milk"
 ;;   ./bin/phel run docs/examples/12_cli.phel list
@@ -8,9 +8,9 @@
 ;;
 ;; Persists to /tmp/phel-todo.json, not production-grade, just a demo.
 
-(ns examples\cli
-  (:require phel\cli :as cli)
-  (:require phel\json :as json))
+(ns examples.cli
+  (:require phel.cli :as cli)
+  (:require phel.json :as json))
 
 (def store-file "/tmp/phel-todo.json")
 

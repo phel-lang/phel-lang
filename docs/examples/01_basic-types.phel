@@ -1,4 +1,4 @@
-(ns examples\basic-types)
+(ns examples.basic-types)
 
 ;; Demonstrates literals for strings, integers, floats, keywords, booleans, lists, tuples, and maps.
 ;; Also: BigInteger (1N), BigDecimal (1.5M), Rational (1/2), and #uuid tagged literal.

@@ -1,5 +1,5 @@
-(ns examples\async-concurrency
-  (:require phel\async :refer [delay]))
+(ns examples.async-concurrency
+  (:require phel.async :refer [delay]))
 
 ;; Async concurrency with Phel and AMPHP (amphp/amp).
 ;; Run: ./bin/phel run docs/examples/11_async-concurrency.phel

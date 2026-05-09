@@ -1,4 +1,4 @@
-(ns examples\snippets\if-cond)
+(ns examples.snippets.if-cond)
 
 (println (if (> 5 3) :yes :no))            ; :yes
 (println (if nil :yes :no))                ; :no

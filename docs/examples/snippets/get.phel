@@ -1,4 +1,4 @@
-(ns examples\snippets\get)
+(ns examples.snippets.get)
 
 (println (get {:a 1 :b 2} :a))             ; 1
 (println (get {:a 1} :missing))            ; nil

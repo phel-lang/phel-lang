@@ -1,4 +1,4 @@
-(ns examples\arithmetic)
+(ns examples.arithmetic)
 
 ;; Play with numeric operations and helper functions.
 ;; ^int :tag emits a PHP int parameter type and unlocks a JIT-friendly call shape.

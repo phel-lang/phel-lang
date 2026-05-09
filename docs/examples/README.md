@@ -19,9 +19,9 @@ Standalone scripts from primitive literals through concurrency to a full CLI. Ru
 | 07 | `07_macro-playground.phel` | A small DSL built with `defmacro` |
 | 08 | `08_interfaces.phel` | `definterface` + `defstruct` polymorphism |
 | 09 | `09_php-integration.phel` | PHP interop: `DateTimeImmutable`, `DateInterval`, JSON |
-| 10 | `10_html-rendering.phel` | HTML templating with `phel\html` |
+| 10 | `10_html-rendering.phel` | HTML templating with `phel.html` |
 | 11 | `11_async-concurrency.phel` | AMPHP + fiber concurrency (`async`, `await`, `promise`) |
-| 12 | `12_cli.phel` | A todo-list CLI on `phel\cli` with subcommands and tables |
+| 12 | `12_cli.phel` | A todo-list CLI on `phel.cli` with subcommands and tables |
 | extra | `transducers.phel` | Composable transformations: `into`, `transduce`, `sequence` |
 
 Copy any file into your project and tweak it.
@@ -49,7 +49,7 @@ Copy any file into your project and tweak it.
 | `defn`, multi-arity | `snippets/defn.phel` |
 | `lazy-seq`, infinite seqs | `snippets/lazy.phel` |
 | `atom`, `swap!`, `reset!` | `snippets/atom.phel` |
-| `phel\string` ops | `snippets/string.phel` |
+| `phel.string` ops | `snippets/string.phel` |
 
 Each snippet is runnable: `./bin/phel run docs/examples/snippets/<name>.phel`. Use as REPL warm-ups or copy-paste recipes.
 

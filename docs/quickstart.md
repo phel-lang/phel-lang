@@ -26,7 +26,7 @@ return PhelConfig::forProject();          // auto-detects layout and namespace
 Create `src/hello.phel`:
 
 ```phel
-(ns app\hello)
+(ns app.hello)
 
 (defn greet [name]
   (str "Hello, " name "!"))
@@ -141,8 +141,8 @@ The prompt shows the current namespace; it switches on `(ns ...)` / `(in-ns ...)
 ## Pattern Matching
 
 ```phel
-(ns app\routing
-  (:require phel\match :refer [match]))
+(ns app.routing
+  (:require phel.match :refer [match]))
 
 (defn route [req]
   (match [req]
@@ -162,7 +162,7 @@ See [Pattern Matching Guide](match-guide.md) for guards, destructuring, and more
 `src/greet.phel`:
 
 ```phel
-(ns app\greet)
+(ns app.greet)
 
 (defn hello [name] (str "Hello, " name "!"))
 ```
@@ -174,12 +174,12 @@ See [Pattern Matching Guide](match-guide.md) for guards, destructuring, and more
 require __DIR__ . '/../vendor/autoload.php';
 
 \Phel::bootstrap(__DIR__ . '/..');
-\Phel::run(__DIR__ . '/..', 'app\\greet');
+\Phel::run(__DIR__ . '/..', 'app.greet');
 
-echo \Phel::getDefinition('app_greet', 'hello')('World');
+echo \Phel::getDefinition('app.greet', 'hello')('World');
 ```
 
-`getDefinition` resolves any Phel function as a PHP callable. Namespace hyphens become underscores.
+`getDefinition` resolves any Phel function as a PHP callable. Namespace hyphens become underscores in registry keys (`my-app.lib` becomes `my_app.lib`).
 
 Full HTTP example: [Framework Integration](framework-integration.md).
 
@@ -188,9 +188,9 @@ Full HTTP example: [Framework Integration](framework-integration.md).
 `tests/hello_test.phel`:
 
 ```phel
-(ns tests\hello-test
-  (:require phel\test :refer [deftest is])
-  (:require app\hello :refer [greet]))
+(ns tests.hello-test
+  (:require phel.test :refer [deftest is])
+  (:require app.hello :refer [greet]))
 
 (deftest test-greet
   (is (= "Hello, World!" (greet "World"))))
@@ -207,11 +207,11 @@ Tag tests with `^{:tags [:integration]}` and select via `--include`/`--exclude`.
 ## REPL Workflow
 
 ```phel
-user:1> (require 'app\hello)
-user:2> (in-ns 'app\hello)
-app\hello:3> (greet "REPL")        ; => "Hello, REPL!"
-app\hello:4> (doc map)             ; show docs
-app\hello:5> (resolve 'map)        ; => #'phel\core/map
+user:1> (require 'app.hello)
+user:2> (in-ns 'app.hello)
+app.hello:3> (greet "REPL")        ; => "Hello, REPL!"
+app.hello:4> (doc map)             ; show docs
+app.hello:5> (resolve 'map)        ; => #'phel.core/map
 ```
 
 ## Common Gotchas

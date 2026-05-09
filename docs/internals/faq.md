@@ -6,7 +6,7 @@ Grouped by reader.
 
 **Interpreter or compiler?** Compiler. Each top-level form lowers to PHP source, written to a file, then `require`d. No runtime AST walker.
 
-**What does emitted PHP look like?** Cached files under `var/cache/` after one `phel run`, or the `--PHP--` section of any fixture in `tests/php/Integration/Fixtures/`. Regular PHP calling `\Phel::*` and `\phel\core\*`.
+**What does emitted PHP look like?** Cached files under `var/cache/` after one `phel run`, or the `--PHP--` section of any fixture in `tests/php/Integration/Fixtures/`. Regular PHP calling `\Phel::*` with dot-form registry keys like `"phel.core"`.
 
 **Why `\Phel::addDefinition()` instead of plain functions?** Phel namespaces are runtime values (see [runtime.md](runtime.md)). Single static surface tracks definitions, metadata, reloads. One `require` registers a whole namespace, no per-definition class-loading.
 
@@ -79,7 +79,7 @@ $emit   = $facade->compile('(print "hi")', new CompileOptions());
 
 ## Bug hunting
 
-**"Cannot resolve symbol X".** `AnalyzeSymbol` checks locals, then current-ns globals, then `use` aliases, then `phel\core`. Miss: `SymbolSuggestionProvider` builds a suggestion and throws with `SourceLocation`. Common cause: missing `(require ...)`.
+**"Cannot resolve symbol X".** `AnalyzeSymbol` checks locals, then current-ns globals, then `use` aliases, then `phel.core`. Miss: `SymbolSuggestionProvider` builds a suggestion and throws with `SourceLocation`. Common cause: missing `(require ...)`.
 
 **"Type X cannot be coerced" or unexpected `nil`.** Run `(macroexpand-1 'form)`. Often a macro expansion surprise.
 

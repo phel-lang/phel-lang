@@ -1,4 +1,4 @@
-(ns examples\snippets\map)
+(ns examples.snippets.map)
 
 (println (map inc [1 2 3]))                ; @[2 3 4]
 (println (map + [1 2 3] [10 20 30]))       ; @[11 22 33]

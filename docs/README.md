@@ -23,7 +23,7 @@ Coming from Clojure? Read [Clojure Migration](clojure-migration.md).
 - [Language Server](lsp-guide.md): hover, definition, references, completion
 - [Linter](lint-guide.md): `phel lint` rules and config
 - [Watch](watch-guide.md): hot-reload changed namespaces
-- [CLI Builder](cli-guide.md): build CLIs with `phel\cli`
+- [CLI Builder](cli-guide.md): build CLIs with `phel.cli`
 - [Performance](performance.md): opcache setup, cache reset
 - [Mocking](mocking-guide.md): test seams for PHP calls
 

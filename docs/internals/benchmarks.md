@@ -6,7 +6,7 @@ Three areas:
 
 - **CLI commands**: `phel run` and `phel test` end-to-end.
 - **Persistent collections**: vectors and hash maps for hot ops like `append`, `update`, `put`.
-- **Core bootstrap**: loading and executing the bundled `phel\core` namespace, to track compiler startup time.
+- **Core bootstrap**: loading and executing the bundled `phel.core` namespace, to track compiler startup time.
 
 ## Running the suite
 

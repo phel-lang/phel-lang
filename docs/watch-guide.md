@@ -23,8 +23,8 @@ On each change, `phel watch` reloads the changed namespace and its dependents in
 ## Programmatic API
 
 ```phel
-(ns dev\watcher
-  (:require phel\watch :refer [watch!]))
+(ns dev.watcher
+  (:require phel.watch :refer [watch!]))
 
 (watch! ["src/" "tests/"])
 ```

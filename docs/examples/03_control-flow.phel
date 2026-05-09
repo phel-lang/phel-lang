@@ -1,4 +1,4 @@
-(ns examples\control-flow)
+(ns examples.control-flow)
 
 ;; Showcase conditionals and pattern matching via cond and case.
 (defn classify-temperature [^int celsius]

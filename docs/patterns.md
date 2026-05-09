@@ -215,10 +215,10 @@ Threads value as **last** argument:
 
 ## Pattern Matching
 
-`phel\match` destructures by shape and binds symbols in one step. Use when `cond`/`case` would re-query the same value from multiple angles.
+`phel.match` destructures by shape and binds symbols in one step. Use when `cond`/`case` would re-query the same value from multiple angles.
 ```phel
-(ns app\commands
-  (:require phel\match :refer [match]))
+(ns app.commands
+  (:require phel.match :refer [match]))
 
 (defn handle [event]
   (match [event]
@@ -264,14 +264,14 @@ Without `:else`, `match` throws `RuntimeException` when nothing fits. Add `:else
 (defn safe-divide [a b]
   (try
     (/ a b)
-    (catch php\DivisionByZeroError e
+    (catch \DivisionByZeroError e
       (println "Cannot divide by zero")
       nil)))
 
 (defn parse-json [str]
   (try
     (php/json_decode str true)
-    (catch php\JsonException e
+    (catch \JsonException e
       {:error (php/-> e (getMessage))})))
 ```
 
@@ -602,14 +602,14 @@ Every `defmacro` body has two implicit symbols:
 
 ### Extending `is` with Custom Assertions
 
-`phel\test/assert-expr` is an open multimethod. Teach `is` to expand new assertion forms via `defmethod`. The method takes the original `form` and user-supplied `message`, and returns the code `is` should run:
+`phel.test/assert-expr` is an open multimethod. Teach `is` to expand new assertion forms via `defmethod`. The method takes the original `form` and user-supplied `message`, and returns the code `is` should run:
 
 ```phel
-(ns my-app\test\helpers
-  (:require phel\test :refer [deftest is]))
+(ns my-app.test.helpers
+  (:require phel.test :refer [deftest is]))
 
 ;; Approximate equality for floats: expand to `is` over a tolerance check.
-(defmethod phel\test/assert-expr 'approx= [form message]
+(defmethod phel.test/assert-expr 'approx= [form message]
   (let [a (second form)
         b (second (next form))
         epsilon 0.001]
@@ -621,7 +621,7 @@ Every `defmacro` body has two implicit symbols:
 
 When the dispatch symbol has no registered method (e.g. `(is (= 1 1))`), the `:default` arm handles binary equality and predicate forms.
 
-> Cross-namespace registration must use fully-qualified `phel\test/assert-expr` so the methods table resolves in `phel\test`, not the local namespace.
+> Cross-namespace registration must use fully-qualified `phel.test/assert-expr` so the methods table resolves in `phel.test`, not the local namespace.
 
 ## Tips for Writing Idiomatic Phel
 
@@ -688,7 +688,7 @@ When the dispatch symbol has no registered method (e.g. `(is (= 1 1))`), the `:d
 Guard imperative entry calls with `*build-mode*`:
 
 ```phel
-(ns app\main)
+(ns app.main)
 
 (defn play []
   (loop [state (initial-state)]

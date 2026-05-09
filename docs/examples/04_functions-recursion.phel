@@ -1,4 +1,4 @@
-(ns examples\functions-recursion)
+(ns examples.functions-recursion)
 
 ;; Define reusable functions and a classic recursive implementation.
 (defn ^string shout [^string message]

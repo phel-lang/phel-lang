@@ -1,4 +1,4 @@
-(ns examples\snippets\let)
+(ns examples.snippets.let)
 
 (println (let [x 10 y 20] (+ x y)))        ; 30
 

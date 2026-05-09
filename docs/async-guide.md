@@ -66,7 +66,7 @@ Suspends for `seconds` (float). At top level behaves like `php/sleep`. Inside `a
 > **Not Clojure's `delay`.** `clojure.core/delay` is a lazy-thunk wrapper, not a sleep. Phel's `delay` lives in `phel.async` (not `phel.core`) to keep the difference visible to `.cljc` portable code.
 
 ```phel
-(:require phel\async :refer [delay])
+(:require phel.async :refer [delay])
 
 (async (delay 0.1) :done)
 ```
@@ -213,7 +213,7 @@ Returns `true` if `x` is a fiber-future or `PhelFuture`. Useful when receiving F
 ### Producer/consumer via `promise`
 
 ```phel
-(ns demo\producer)
+(ns demo.producer)
 
 (let [inbox (promise)]
   (future-call (fn []
@@ -226,8 +226,8 @@ Run with `./bin/phel run demo/producer.phel`.
 ### Fan-out, fan-in with `await-all`
 
 ```phel
-(ns demo\fanout
-  (:require phel\async :refer [delay]))
+(ns demo.fanout
+  (:require phel.async :refer [delay]))
 
 (defn fetch [label ms]
   (async
@@ -245,7 +245,7 @@ Wall time tracks the slowest branch, not the sum.
 ### Timeout race with 3-arg `deref`
 
 ```phel
-(ns demo\timeout)
+(ns demo.timeout)
 
 (let [p (promise)]
   ;; No producer wired up: the deref expires and returns the fallback.
@@ -256,8 +256,8 @@ Wall time tracks the slowest branch, not the sum.
 ### Cancel on first error
 
 ```phel
-(ns demo\cancel-on-error
-  (:require phel\async :refer [delay]))
+(ns demo.cancel-on-error
+  (:require phel.async :refer [delay]))
 
 (defn launch []
   (async
@@ -278,4 +278,4 @@ Wall time tracks the slowest branch, not the sum.
 ## See also
 
 - [Example: `docs/examples/11_async-concurrency.phel`](examples/11_async-concurrency.phel)
-- [`phel\http-client`](../src/phel/http-client.phel) for AMPHP-based HTTP calls
+- [`phel.http-client`](../src/phel/http-client.phel) for AMPHP-based HTTP calls
