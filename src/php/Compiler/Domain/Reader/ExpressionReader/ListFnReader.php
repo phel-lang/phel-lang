@@ -19,6 +19,8 @@ final readonly class ListFnReader
      * @param array<int, Symbol>|null $fnArgs
      *
      * @param-out null $fnArgs
+     *
+     * @return PersistentListInterface<mixed>
      */
     public function read(ListNode $node, ?array &$fnArgs, NodeInterface $root): PersistentListInterface
     {
@@ -34,6 +36,11 @@ final readonly class ListFnReader
             ->setEndLocation($node->getEndLocation());
     }
 
+    /**
+     * @param array<int, Symbol>|null $fnArgs
+     *
+     * @return list<Symbol>
+     */
     private function extractParams(?array $fnArgs): array
     {
         if ($fnArgs === null || $fnArgs === []) {

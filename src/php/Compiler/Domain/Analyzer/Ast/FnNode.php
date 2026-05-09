@@ -12,14 +12,14 @@ use function count;
 
 final class FnNode extends AbstractNode
 {
-    /**
-     * @param list<Symbol> $params
-     * @param list<Symbol> $uses
-     */
     private bool $isDefinition = false;
 
     private bool $isMultiArityChild = false;
 
+    /**
+     * @param list<Symbol> $params
+     * @param list<Symbol> $uses
+     */
     public function __construct(
         NodeEnvironmentInterface $env,
         private readonly array $params,

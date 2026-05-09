@@ -7,7 +7,7 @@ namespace Phel\Compiler\Domain\Parser\ParserNode;
 use Phel\Lang\SourceLocation;
 
 /**
- * @template T
+ * @template-covariant T
  */
 abstract class AbstractAtomNode implements NodeInterface
 {

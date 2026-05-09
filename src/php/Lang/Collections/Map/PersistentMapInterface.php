@@ -18,7 +18,7 @@ use Phel\Lang\TypeInterface;
  *
  * @extends IteratorAggregate<K, V>
  * @extends ArrayAccess<K,V>
- * @extends AsTransientInterface<TransientMapInterface>
+ * @extends AsTransientInterface<TransientMapInterface<K, V>>
  * @extends ContainsInterface<K>
  */
 interface PersistentMapInterface extends TypeInterface, Countable, IteratorAggregate, ArrayAccess, AsTransientInterface, FnInterface, ContainsInterface
@@ -26,11 +26,15 @@ interface PersistentMapInterface extends TypeInterface, Countable, IteratorAggre
     /**
      * @param K $key
      * @param V $value
+     *
+     * @return self<K, V>
      */
     public function put(mixed $key, mixed $value): self;
 
     /**
      * @param K $key
+     *
+     * @return self<K, V>
      */
     public function remove(mixed $key): self;
 
@@ -41,5 +45,10 @@ interface PersistentMapInterface extends TypeInterface, Countable, IteratorAggre
      */
     public function find(mixed $key);
 
+    /**
+     * @param self<K, V> $other
+     *
+     * @return self<K, V>
+     */
     public function merge(self $other): self;
 }

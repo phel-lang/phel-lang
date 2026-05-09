@@ -24,6 +24,9 @@ use Traversable;
  */
 final class EmptyList extends AbstractType implements PersistentListInterface
 {
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function __construct(
         private readonly HasherInterface $hasher,
         private readonly EqualizerInterface $equalizer,
@@ -31,11 +34,17 @@ final class EmptyList extends AbstractType implements PersistentListInterface
         private readonly bool $isList = true,
     ) {}
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta;
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $this->equalizer, $meta, $this->isList);
@@ -56,6 +65,9 @@ final class EmptyList extends AbstractType implements PersistentListInterface
         return new PersistentList($this->hasher, $this->equalizer, $this->meta, $value, $this, 1, $this->isList);
     }
 
+    /**
+     * @return PersistentListInterface<T>
+     */
     public function pop(): PersistentListInterface
     {
         throw new RuntimeException('Cannot pop empty list');
@@ -99,6 +111,9 @@ final class EmptyList extends AbstractType implements PersistentListInterface
         return 1;
     }
 
+    /**
+     * @return Traversable<int, T>
+     */
     public function getIterator(): Traversable
     {
         return new EmptyIterator();
@@ -109,6 +124,9 @@ final class EmptyList extends AbstractType implements PersistentListInterface
         return null;
     }
 
+    /**
+     * @return self<T>
+     */
     public function rest(): self
     {
         return $this;
@@ -119,6 +137,9 @@ final class EmptyList extends AbstractType implements PersistentListInterface
         return null;
     }
 
+    /**
+     * @return array<int, T>
+     */
     public function toArray(): array
     {
         return [];
@@ -128,12 +149,17 @@ final class EmptyList extends AbstractType implements PersistentListInterface
      * Concatenates a value to the data structure.
      *
      * @param array<int, mixed> $xs The value to concatenate
+     *
+     * @return PersistentListInterface<T>
      */
     public function concat($xs): PersistentListInterface
     {
         return PersistentList::fromArray($this->hasher, $this->equalizer, $xs, $this->isList);
     }
 
+    /**
+     * @return PersistentListInterface<T>
+     */
     public function cons(mixed $x): PersistentListInterface
     {
         return $this->prepend($x);

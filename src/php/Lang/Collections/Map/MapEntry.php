@@ -28,9 +28,16 @@ use function sprintf;
  * callers that destructure `[k v]` keep working; the difference is that
  * `(map-entry? x)` distinguishes a real entry from a coincidental
  * 2-vector.
+ *
+ * @implements IteratorAggregate<int, mixed>
+ * @implements FirstInterface<mixed>
+ * @implements CdrInterface<PersistentVectorInterface<mixed>>
  */
 final readonly class MapEntry implements TypeInterface, Stringable, Countable, IteratorAggregate, FirstInterface, CdrInterface
 {
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     private function __construct(
         private mixed $key,
         private mixed $value,
@@ -64,6 +71,9 @@ final readonly class MapEntry implements TypeInterface, Stringable, Countable, I
         return 2;
     }
 
+    /**
+     * @return Traversable<int, mixed>
+     */
     public function getIterator(): Traversable
     {
         yield $this->key;
@@ -79,6 +89,9 @@ final readonly class MapEntry implements TypeInterface, Stringable, Countable, I
      * Returns the rest of the entry as a single-element vector containing
      * the value, mirroring `(next [k v])` on a 2-vector. Lets destructuring
      * `[a b]` bind `b` to the value.
+     */
+    /**
+     * @return PersistentVectorInterface<mixed>
      */
     public function cdr(): PersistentVectorInterface
     {
@@ -107,11 +120,17 @@ final readonly class MapEntry implements TypeInterface, Stringable, Countable, I
             ->hash();
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta;
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->key, $this->value, $meta, $this->startLocation, $this->endLocation);

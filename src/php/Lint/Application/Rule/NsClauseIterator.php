@@ -25,7 +25,9 @@ final class NsClauseIterator
      * Yield each child list of `$nsForm` whose first element is the
      * given keyword name (without the leading `:`).
      *
-     * @return Generator<int, PersistentListInterface>
+     * @param PersistentListInterface<mixed> $nsForm
+     *
+     * @return Generator<int, PersistentListInterface<mixed>>
      */
     public static function clauses(PersistentListInterface $nsForm, string $keywordName): Generator
     {

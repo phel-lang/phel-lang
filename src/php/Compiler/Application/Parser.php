@@ -52,6 +52,7 @@ final readonly class Parser implements ParserInterface
         Token::T_TAGGED_LITERAL,
     ];
 
+    /** @var SplStack<bool> */
     private SplStack $quasiquoteStack;
 
     public function __construct(
@@ -193,6 +194,9 @@ final readonly class Parser implements ParserInterface
             && $tokenStream->current()->getType() !== Token::T_EOF;
     }
 
+    /**
+     * @return AbstractAtomNode<mixed>
+     */
     private function parseAtomNode(Token $token, TokenStream $tokenStream): AbstractAtomNode
     {
         try {

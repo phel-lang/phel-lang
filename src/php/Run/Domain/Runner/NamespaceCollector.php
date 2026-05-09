@@ -22,6 +22,8 @@ final readonly class NamespaceCollector
     ) {}
 
     /**
+     * @param list<string> $paths
+     *
      * @return list<NamespaceInformation>
      */
     public function getDependenciesFromPaths(array $paths): array

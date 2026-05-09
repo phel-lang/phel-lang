@@ -90,6 +90,9 @@ final readonly class Printer implements PrinterInterface
         return $this->createTypePrinter($form)->print($form);
     }
 
+    /**
+     * @return TypePrinterInterface<mixed>
+     */
     private function createTypePrinter(mixed $form): TypePrinterInterface
     {
         if (is_object($form)) {
@@ -99,6 +102,9 @@ final readonly class Printer implements PrinterInterface
         return $this->createScalarTypePrinter($form);
     }
 
+    /**
+     * @return TypePrinterInterface<mixed>
+     */
     private function createObjectTypePrinter(object $form): TypePrinterInterface
     {
         if ($form instanceof AbstractPersistentStruct) {
@@ -172,6 +178,9 @@ final readonly class Printer implements PrinterInterface
         return new NonPrintableClassPrinter($this->withColor);
     }
 
+    /**
+     * @return TypePrinterInterface<mixed>
+     */
     private function createScalarTypePrinter(mixed $form): TypePrinterInterface
     {
         $printerName = gettype($form);

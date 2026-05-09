@@ -21,7 +21,8 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
     private int $hashCache = 0;
 
     /**
-     * @param PersistentMapInterface<V, V> $map
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     * @param PersistentMapInterface<V, V>              $map
      */
     public function __construct(
         private readonly HasherInterface $hasher,
@@ -39,11 +40,17 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
         return $this->map->find($key);
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta;
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $meta, $this->map);
@@ -59,6 +66,8 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
 
     /**
      * @param V $value
+     *
+     * @return PersistentHashSetInterface<V>
      */
     public function add($value): PersistentHashSetInterface
     {
@@ -72,6 +81,8 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
 
     /**
      * @param V $value
+     *
+     * @return PersistentHashSetInterface<V>
      */
     public function remove($value): PersistentHashSetInterface
     {
@@ -118,6 +129,9 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
         return $this->hashCache;
     }
 
+    /**
+     * @return Traversable<int, V>
+     */
     public function getIterator(): Traversable
     {
         foreach ($this->map as $value) {
@@ -125,11 +139,17 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
         }
     }
 
+    /**
+     * @return TransientHashSet<V>
+     */
     public function asTransient(): TransientHashSet
     {
         return new TransientHashSet($this->hasher, $this->map->asTransient());
     }
 
+    /**
+     * @return array<int, V>
+     */
     public function toPhpArray(): array
     {
         return iterator_to_array($this);
@@ -138,7 +158,9 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
     /**
      * Concatenates a value to the data structure.
      *
-     * @param array<int, mixed> $xs The value to concatenate
+     * @param iterable<mixed> $xs The value to concatenate
+     *
+     * @return PersistentHashSetInterface<V>
      */
     public function concat($xs): PersistentHashSetInterface
     {

@@ -179,7 +179,8 @@ final readonly class PointCompleter implements PointCompleterInterface
     }
 
     /**
-     * @param list<string> $scope
+     * @param PersistentListInterface<mixed> $form
+     * @param list<string>                   $scope
      *
      * @return list<string>
      */
@@ -219,7 +220,8 @@ final readonly class PointCompleter implements PointCompleterInterface
     }
 
     /**
-     * @param list<string> $scope
+     * @param PersistentListInterface<mixed> $form
+     * @param list<string>                   $scope
      *
      * @return list<string>
      */
@@ -254,6 +256,9 @@ final readonly class PointCompleter implements PointCompleterInterface
         return array_values(array_unique($result));
     }
 
+    /**
+     * @param PersistentListInterface<mixed>|PersistentMapInterface<mixed, mixed>|PersistentVectorInterface<mixed> $form
+     */
     private function pointInside(PersistentListInterface|PersistentVectorInterface|PersistentMapInterface $form, int $line, int $col): bool
     {
         $start = $form->getStartLocation();

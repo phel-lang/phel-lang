@@ -80,6 +80,9 @@ final readonly class OpResponse
         );
     }
 
+    /**
+     * @param array<string, mixed> $extra
+     */
     public function withExtra(array $extra): self
     {
         return new self(array_merge($this->payload, $extra));

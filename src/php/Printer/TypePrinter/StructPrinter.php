@@ -8,14 +8,14 @@ use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
 use Phel\Printer\PrinterInterface;
 
 /**
- * @implements TypePrinterInterface<AbstractPersistentStruct>
+ * @implements TypePrinterInterface<AbstractPersistentStruct<mixed>>
  */
 final readonly class StructPrinter implements TypePrinterInterface
 {
     public function __construct(private PrinterInterface $printer) {}
 
     /**
-     * @param AbstractPersistentStruct $form
+     * @param AbstractPersistentStruct<mixed> $form
      */
     public function print(mixed $form): string
     {

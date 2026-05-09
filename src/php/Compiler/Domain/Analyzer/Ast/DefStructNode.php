@@ -35,6 +35,9 @@ final class DefStructNode extends AbstractNode
         return $this->name;
     }
 
+    /**
+     * @return list<Symbol>
+     */
     public function getParams(): array
     {
         return $this->params;

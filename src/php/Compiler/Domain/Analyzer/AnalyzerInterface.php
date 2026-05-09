@@ -36,6 +36,9 @@ interface AnalyzerInterface
 
     public function addDefinition(string $ns, Symbol $symbol): void;
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed> $meta
+     */
     public function setCompileTimeMeta(string $ns, Symbol $symbol, PersistentMapInterface $meta): void;
 
     public function addInterface(string $ns, Symbol $name): void;

@@ -37,7 +37,7 @@ final class DynamicScope
      */
     private array $mainStack = [];
 
-    /** @var WeakMap<Fiber, list<array<string, mixed>>> */
+    /** @var WeakMap<Fiber<mixed, mixed, mixed, mixed>, list<array<string, mixed>>> */
     private WeakMap $fiberStacks;
 
     /**
@@ -51,15 +51,15 @@ final class DynamicScope
      */
     private array $mainRecordings = [];
 
-    /** @var WeakMap<Fiber, list<array{mode: string, dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>}>> */
+    /** @var WeakMap<Fiber<mixed, mixed, mixed, mixed>, list<array{mode: string, dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>}>> */
     private WeakMap $fiberRecordings;
 
     private function __construct()
     {
-        /** @var WeakMap<Fiber, list<array<string, mixed>>> $map */
+        /** @var WeakMap<Fiber<mixed, mixed, mixed, mixed>, list<array<string, mixed>>> $map */
         $map = new WeakMap();
         $this->fiberStacks = $map;
-        /** @var WeakMap<Fiber, list<array{mode: string, dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>}>> $recMap */
+        /** @var WeakMap<Fiber<mixed, mixed, mixed, mixed>, list<array{mode: string, dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>}>> $recMap */
         $recMap = new WeakMap();
         $this->fiberRecordings = $recMap;
     }
@@ -73,10 +73,10 @@ final class DynamicScope
     {
         $this->mainStack = [];
         $this->mainRecordings = [];
-        /** @var WeakMap<Fiber, list<array<string, mixed>>> $map */
+        /** @var WeakMap<Fiber<mixed, mixed, mixed, mixed>, list<array<string, mixed>>> $map */
         $map = new WeakMap();
         $this->fiberStacks = $map;
-        /** @var WeakMap<Fiber, list<array{mode: string, dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>}>> $recMap */
+        /** @var WeakMap<Fiber<mixed, mixed, mixed, mixed>, list<array{mode: string, dynamic: array<string, mixed>, redefs: list<array{0: string, 1: string, 2: mixed}>}>> $recMap */
         $recMap = new WeakMap();
         $this->fiberRecordings = $recMap;
     }
@@ -147,6 +147,7 @@ final class DynamicScope
      */
     public function pushFrame(array $frame): void
     {
+        /** @var Fiber<mixed, mixed, mixed, mixed>|null $fiber */
         $fiber = Fiber::getCurrent();
         if (!$fiber instanceof Fiber) {
             $this->mainStack[] = $frame;
@@ -160,6 +161,7 @@ final class DynamicScope
 
     public function popFrame(): void
     {
+        /** @var Fiber<mixed, mixed, mixed, mixed>|null $fiber */
         $fiber = Fiber::getCurrent();
         if (!$fiber instanceof Fiber) {
             array_pop($this->mainStack);
@@ -232,6 +234,7 @@ final class DynamicScope
      */
     public function setBinding(string $ns, string $name, mixed $value): bool
     {
+        /** @var Fiber<mixed, mixed, mixed, mixed>|null $fiber */
         $fiber = Fiber::getCurrent();
         $key = $ns . '/' . $name;
 
@@ -298,6 +301,7 @@ final class DynamicScope
      */
     private function pushRecording(array $entry): void
     {
+        /** @var Fiber<mixed, mixed, mixed, mixed>|null $fiber */
         $fiber = Fiber::getCurrent();
         if (!$fiber instanceof Fiber) {
             $stack = $this->mainRecordings;
@@ -317,6 +321,7 @@ final class DynamicScope
      */
     private function popTopRecording(): ?array
     {
+        /** @var Fiber<mixed, mixed, mixed, mixed>|null $fiber */
         $fiber = Fiber::getCurrent();
         if (!$fiber instanceof Fiber) {
             return array_pop($this->mainRecordings);

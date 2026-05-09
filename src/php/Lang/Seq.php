@@ -281,7 +281,7 @@ final class Seq
     }
 
     /**
-     * @return Generator<int, PersistentVectorInterface>
+     * @return Generator<int, PersistentVectorInterface<mixed>>
      */
     public static function partition(int $n, mixed $iterable): Generator
     {
@@ -289,7 +289,7 @@ final class Seq
     }
 
     /**
-     * @return Generator<int, PersistentVectorInterface>
+     * @return Generator<int, PersistentVectorInterface<mixed>>
      */
     public static function partitionAll(int $n, mixed $iterable): Generator
     {
@@ -297,7 +297,7 @@ final class Seq
     }
 
     /**
-     * @return Generator<int, PersistentVectorInterface>
+     * @return Generator<int, PersistentVectorInterface<mixed>>
      */
     public static function partitionBy(callable $f, mixed $iterable): Generator
     {
@@ -329,7 +329,7 @@ final class Seq
     }
 
     /**
-     * @return Generator<int, PersistentVectorInterface>
+     * @return Generator<int, PersistentVectorInterface<mixed>>
      */
     public static function csvLines(
         string $filename,
@@ -341,7 +341,9 @@ final class Seq
     }
 
     /**
-     * @return list<PersistentVectorInterface>
+     * @param PersistentMapInterface<mixed, mixed> $value
+     *
+     * @return list<PersistentVectorInterface<mixed>>
      */
     private static function mapToApplyArguments(PersistentMapInterface $value): array
     {

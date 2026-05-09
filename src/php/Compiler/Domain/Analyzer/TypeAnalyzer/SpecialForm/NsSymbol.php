@@ -69,7 +69,7 @@ TXT;
 
             $value = $import->get(0);
 
-            /** @var PersistentListInterface $import */
+            /** @var PersistentListInterface<mixed> $import */
             if ($this->isKeywordWithName($value, 'use')) {
                 $this->analyzeUse($ns, $import);
             } elseif ($this->isKeywordWithName($value, 'require')) {
@@ -94,12 +94,18 @@ TXT;
         return $x instanceof Keyword && $x->getName() === $name;
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $import
+     */
     private function analyzeUse(string $ns, PersistentListInterface $import): void
     {
         new UseAliasRegistrar($this->analyzer)->register($ns, $import);
     }
 
     /**
+     * @param PersistentVectorInterface<mixed>|null $refer
+     * @param PersistentListInterface<mixed>        $import
+     *
      * @return list<Symbol>
      */
     private function extractRefer(?PersistentVectorInterface $refer, PersistentListInterface $import): array
@@ -109,7 +115,6 @@ TXT;
         }
 
         $result = [];
-        /** @var PersistentListInterface<mixed> $refer */
         foreach ($refer as $ref) {
             if (!$ref instanceof Symbol) {
                 throw AnalyzerException::wrongArgumentType('Each refer element', 'Symbol', $ref, $import);
@@ -133,6 +138,8 @@ TXT;
     }
 
     /**
+     * @param PersistentListInterface<mixed> $import
+     *
      * @return list<Symbol>
      */
     private function analyzeRequire(string $ns, PersistentListInterface $import): array
@@ -169,7 +176,8 @@ TXT;
      * Handles a single legacy flat entry (symbol followed by `:as` / `:refer`
      * options), advancing `$index` past the options this entry consumed.
      *
-     * @param list<mixed> $elements
+     * @param list<mixed>                    $elements
+     * @param PersistentListInterface<mixed> $import
      */
     private function analyzeRequireFlatEntry(
         string $ns,
@@ -227,6 +235,9 @@ TXT;
 
     /**
      * Handles a single Clojure-style vector entry `[ns-sym & options]`.
+     *
+     * @param PersistentVectorInterface<mixed> $vector
+     * @param PersistentListInterface<mixed>   $import
      */
     private function analyzeRequireVectorEntry(
         string $ns,
@@ -295,7 +306,8 @@ TXT;
     }
 
     /**
-     * @param list<mixed> $elements
+     * @param list<mixed>                    $elements
+     * @param PersistentListInterface<mixed> $import
      */
     private function consumeAsAlias(array $elements, int &$index, PersistentListInterface $import): Symbol
     {
@@ -314,7 +326,10 @@ TXT;
     }
 
     /**
-     * @param list<mixed> $elements
+     * @param list<mixed>                    $elements
+     * @param PersistentListInterface<mixed> $import
+     *
+     * @return PersistentVectorInterface<mixed>
      */
     private function consumeReferVector(
         array $elements,
@@ -335,6 +350,10 @@ TXT;
         return $referCandidate;
     }
 
+    /**
+     * @param PersistentVectorInterface<mixed>|null $referValue
+     * @param PersistentListInterface<mixed>        $import
+     */
     private function registerRequire(
         string $ns,
         Symbol $requireSymbol,
@@ -357,6 +376,9 @@ TXT;
         return $resolvedSymbol;
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $import
+     */
     private function analyzeRequireFile(PersistentListInterface $import): string
     {
         $file = $import->get(1);

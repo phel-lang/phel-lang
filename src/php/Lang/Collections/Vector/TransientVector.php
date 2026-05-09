@@ -25,10 +25,10 @@ final class TransientVector implements TransientVectorInterface, Stringable
     private int $tailSize;
 
     /**
-     * @param int          $count The number of elements inside this vector
-     * @param int          $shift The shift value
-     * @param array<array> $root  The root node of this vector
-     * @param T[]          $tail  The tail of the vector. This is an optimization
+     * @param int                      $count The number of elements inside this vector
+     * @param int                      $shift The shift value
+     * @param array<int, array<mixed>> $root  The root node of this vector
+     * @param T[]                      $tail  The tail of the vector. This is an optimization
      */
     public function __construct(
         private readonly HasherInterface $hasher,
@@ -61,6 +61,9 @@ final class TransientVector implements TransientVectorInterface, Stringable
         return $this->get($index);
     }
 
+    /**
+     * @return self<T>
+     */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
         return new self(
@@ -73,8 +76,16 @@ final class TransientVector implements TransientVectorInterface, Stringable
         );
     }
 
+    /**
+     * @template U
+     *
+     * @param array<int, U> $array
+     *
+     * @return self<U>
+     */
     public static function fromArray(HasherInterface $hasher, EqualizerInterface $equalizer, array $array): self
     {
+        /** @var self<U> $v */
         $v = self::empty($hasher, $equalizer);
         foreach ($array as $a) {
             $v->append($a);
@@ -88,6 +99,9 @@ final class TransientVector implements TransientVectorInterface, Stringable
         return $this->count;
     }
 
+    /**
+     * @return PersistentVectorInterface<T>
+     */
     public function persistent(): PersistentVectorInterface
     {
         return new PersistentVector($this->hasher, $this->equalizer, null, $this->count, $this->shift, $this->root, $this->tail);
@@ -95,6 +109,8 @@ final class TransientVector implements TransientVectorInterface, Stringable
 
     /**
      * @param T $value
+     *
+     * @return TransientVectorInterface<T>
      */
     public function append($value): TransientVectorInterface
     {
@@ -129,6 +145,8 @@ final class TransientVector implements TransientVectorInterface, Stringable
 
     /**
      * @param T $value
+     *
+     * @return TransientVectorInterface<T>
      */
     public function update(int $i, $value): TransientVectorInterface
     {
@@ -158,6 +176,9 @@ final class TransientVector implements TransientVectorInterface, Stringable
         return $arr[$i & self::INDEX_MASK];
     }
 
+    /**
+     * @return TransientVectorInterface<T>
+     */
     public function pop(): TransientVectorInterface
     {
         if ($this->count === 0) {
@@ -231,6 +252,12 @@ final class TransientVector implements TransientVectorInterface, Stringable
         return $this->offsetExists($key);
     }
 
+    /**
+     * @param array<int, mixed> $parent
+     * @param array<int, T>     $tailNode
+     *
+     * @return array<int, mixed>
+     */
     private function pushTail(int $level, array $parent, array $tailNode): array
     {
         $ret = $parent;
@@ -251,6 +278,11 @@ final class TransientVector implements TransientVectorInterface, Stringable
         return $ret;
     }
 
+    /**
+     * @param array<int, mixed> $node
+     *
+     * @return array<int, mixed>
+     */
     private function newPath(int $level, array $node): array
     {
         if ($level === 0) {
@@ -261,7 +293,10 @@ final class TransientVector implements TransientVectorInterface, Stringable
     }
 
     /**
-     * @param T $value
+     * @param array<int, mixed> $node
+     * @param T                 $value
+     *
+     * @return array<int, mixed>
      */
     private function doUpdate(int $level, array $node, int $i, mixed $value): array
     {
@@ -276,6 +311,11 @@ final class TransientVector implements TransientVectorInterface, Stringable
         return $ret;
     }
 
+    /**
+     * @param array<int, mixed> $node
+     *
+     * @return array<int, mixed>|null
+     */
     private function popTail(int $level, array $node): ?array
     {
         $subIndex = ($this->count - 2 >> $level) & self::INDEX_MASK;

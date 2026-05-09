@@ -22,6 +22,9 @@ final class IfSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): IfNode
     {
         $this->verifyArguments($list);
@@ -35,6 +38,9 @@ final class IfSymbol implements SpecialFormAnalyzerInterface
         );
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     private function verifyArguments(PersistentListInterface $list): void
     {
         $listCount = count($list);
@@ -44,6 +50,9 @@ final class IfSymbol implements SpecialFormAnalyzerInterface
         }
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     private function testExpression(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {
         $envWithDisallowRecurFrame = $env
@@ -53,11 +62,17 @@ final class IfSymbol implements SpecialFormAnalyzerInterface
         return $this->analyzer->analyze($list->get(1), $envWithDisallowRecurFrame);
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     private function thenExpression(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {
         return $this->analyzer->analyze($list->get(2), $env);
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     private function elseExpression(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {
         if (count($list) === 3) {

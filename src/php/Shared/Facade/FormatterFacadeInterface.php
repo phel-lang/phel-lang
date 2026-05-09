@@ -9,6 +9,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 interface FormatterFacadeInterface
 {
     /**
+     * @param list<string> $paths
+     *
      * @return list<string> paths whose contents changed (or would change under $dryRun)
      */
     public function format(array $paths, OutputInterface $output, bool $dryRun = false): array;

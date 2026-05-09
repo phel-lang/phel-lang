@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Lang\Collections\Vector;
 
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Map\PersistentHashMap;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Collections\Vector\SubVector;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
@@ -37,7 +38,7 @@ final class SubVectorTest extends TestCase
             ->slice(1, 2);
         $subVectorWithMeta = $subVector->withMeta($meta);
 
-        $this->assertNull($subVector->getMeta());
+        $this->assertNotInstanceOf(PersistentMapInterface::class, $subVector->getMeta());
         $this->assertEquals($meta, $subVectorWithMeta->getMeta());
     }
 

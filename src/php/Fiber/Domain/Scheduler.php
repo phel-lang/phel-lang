@@ -25,7 +25,7 @@ final class Scheduler
 {
     private static ?self $instance = null;
 
-    /** @var list<Fiber> */
+    /** @var list<Fiber<mixed, mixed, mixed, mixed>> */
     private array $ready = [];
 
     private int $sleepUsec = 500;
@@ -61,6 +61,8 @@ final class Scheduler
     /**
      * Enqueue a suspended fiber for later resumption. Terminated fibers are
      * silently dropped so callers do not need to pre-filter.
+     *
+     * @param Fiber<mixed, mixed, mixed, mixed> $fiber
      */
     public function enqueue(Fiber $fiber): void
     {
@@ -135,6 +137,9 @@ final class Scheduler
         return $awaitable->deref();
     }
 
+    /**
+     * @param Fiber<mixed, mixed, mixed, mixed> $fiber
+     */
     private function advance(Fiber $fiber): void
     {
         if ($fiber->isTerminated()) {
@@ -165,6 +170,8 @@ final class Scheduler
      * internally and PHPStan cannot see the mutation through the extension.
      *
      * @phpstan-impure
+     *
+     * @param Fiber<mixed, mixed, mixed, mixed> $fiber
      */
     private function stillRunnable(Fiber $fiber): bool
     {

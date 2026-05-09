@@ -44,12 +44,19 @@ final class TypeFactory
 
     /**
      * @param list<mixed> $kvs
+     *
+     * @return PersistentMapInterface<mixed, mixed>
      */
     public function persistentMapFromKVs(...$kvs): PersistentMapInterface
     {
         return $this->persistentMapFromArray($kvs);
     }
 
+    /**
+     * @param array<int, mixed> $kvs
+     *
+     * @return PersistentMapInterface<mixed, mixed>
+     */
     public function persistentMapFromArray(array $kvs = []): PersistentMapInterface
     {
         if (count($kvs) <= PersistentArrayMap::MAX_SIZE) {
@@ -59,6 +66,11 @@ final class TypeFactory
         return PersistentHashMap::fromArray($this->hasher, $this->equalizer, $kvs);
     }
 
+    /**
+     * @param array<int, mixed> $values
+     *
+     * @return PersistentHashSetInterface<mixed>
+     */
     public function persistentHashSetFromArray(array $values): PersistentHashSetInterface
     {
         $set = new TransientHashSet($this->hasher, $this->persistentMapFromArray()->asTransient());
@@ -69,28 +81,49 @@ final class TypeFactory
         return $set->persistent();
     }
 
+    /**
+     * @param array<int, mixed> $values
+     *
+     * @return PersistentListInterface<mixed>
+     */
     public function persistentListFromArray(array $values): PersistentListInterface
     {
         return PersistentList::fromArray($this->hasher, $this->equalizer, $values);
     }
 
+    /**
+     * @param array<int, mixed> $values
+     *
+     * @return PersistentListInterface<mixed>
+     */
     public function persistentSeqListFromArray(array $values): PersistentListInterface
     {
         return PersistentList::fromArray($this->hasher, $this->equalizer, $values, false);
     }
 
+    /**
+     * @param array<int, mixed> $values
+     *
+     * @return PersistentVectorInterface<mixed>
+     */
     public function persistentVectorFromArray(array $values): PersistentVectorInterface
     {
         return PersistentVector::fromArray($this->hasher, $this->equalizer, $values);
     }
 
+    /**
+     * @param array<int, mixed> $values
+     */
     public function persistentQueueFromArray(array $values = []): PersistentQueue
     {
         return PersistentQueue::fromArray($this->hasher, $this->equalizer, $values);
     }
 
     /**
+     * @param array<int, mixed>            $kvs
      * @param ?callable(mixed, mixed): int $comparator
+     *
+     * @return PersistentMapInterface<mixed, mixed>
      */
     public function persistentSortedMapFromArray(array $kvs = [], ?callable $comparator = null): PersistentMapInterface
     {
@@ -98,7 +131,10 @@ final class TypeFactory
     }
 
     /**
+     * @param array<int, mixed>            $values
      * @param ?callable(mixed, mixed): int $comparator
+     *
+     * @return PersistentHashSetInterface<mixed>
      */
     public function persistentSortedSetFromArray(array $values = [], ?callable $comparator = null): PersistentHashSetInterface
     {

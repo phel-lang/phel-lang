@@ -73,6 +73,9 @@ final readonly class PhelVar implements EqualsInterface, FnInterface, HashableIn
      * `MetaInterface` lets `(meta #'sym)` route through the standard runtime
      * path instead of the quoted-symbol special case.
      */
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta();
@@ -84,6 +87,9 @@ final readonly class PhelVar implements EqualsInterface, FnInterface, HashableIn
      * receiver unchanged. Use `alter-meta!` / `reset-meta!` to mutate the
      * canonical per-var metadata, or redefine the var to rotate the
      * metadata attached to the underlying definition.
+     */
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
     public function withMeta(?PersistentMapInterface $meta): static
     {
@@ -112,6 +118,9 @@ final readonly class PhelVar implements EqualsInterface, FnInterface, HashableIn
         return $registry->getDefinition($this->namespace, $this->name);
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     public function meta(): ?PersistentMapInterface
     {
         $state = PhelVarStateRegistry::getInstance();
@@ -128,6 +137,9 @@ final readonly class PhelVar implements EqualsInterface, FnInterface, HashableIn
      * definition meta when no override was set) is fed in as the first
      * argument.
      */
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     public function alterMeta(callable $f, mixed ...$args): ?PersistentMapInterface
     {
         $next = $f($this->meta(), ...$args);
@@ -139,6 +151,11 @@ final readonly class PhelVar implements EqualsInterface, FnInterface, HashableIn
     /**
      * Installs `$meta` as this var's per-var metadata, replacing any prior
      * override. Returns the installed map.
+     */
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     *
+     * @return PersistentMapInterface<mixed, mixed>|null
      */
     public function resetMeta(?PersistentMapInterface $meta): ?PersistentMapInterface
     {

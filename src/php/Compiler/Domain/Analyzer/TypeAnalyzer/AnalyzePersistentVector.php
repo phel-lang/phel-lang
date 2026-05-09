@@ -13,6 +13,9 @@ final class AnalyzePersistentVector
 {
     use WithAnalyzerTrait;
 
+    /**
+     * @param PersistentVectorInterface<mixed> $vector
+     */
     public function analyze(PersistentVectorInterface $vector, NodeEnvironmentInterface $env): VectorNode
     {
         $args = [];

@@ -55,7 +55,8 @@ final readonly class UnusedBindingRule implements LintRuleInterface
     }
 
     /**
-     * @param list<Diagnostic> $result
+     * @param PersistentListInterface<mixed> $form
+     * @param list<Diagnostic>               $result
      */
     private function inspectLet(PersistentListInterface $form, string $uri, array &$result): void
     {

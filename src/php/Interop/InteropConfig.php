@@ -43,6 +43,9 @@ final class InteropConfig extends AbstractConfig
         );
     }
 
+    /**
+     * @return array<string, mixed>
+     */
     private function getExport(): array
     {
         return $this->get(PhelConfig::EXPORT_CONFIG, self::DEFAULT_EXPORT);

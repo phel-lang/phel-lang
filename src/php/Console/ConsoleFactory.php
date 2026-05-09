@@ -4,14 +4,19 @@ declare(strict_types=1);
 
 namespace Phel\Console;
 
+use Gacela\Framework\AbstractConfig;
 use Gacela\Framework\AbstractFactory;
 use Phel\Console\Application\ArgvInputSanitizer;
 use Phel\Console\Application\VersionFinder;
 use Phel\Console\Infrastructure\ConsoleBootstrap;
 use Phel\Filesystem\FilesystemFacadeInterface;
+use Symfony\Component\Console\Command\Command;
 
 use function in_array;
 
+/**
+ * @extends AbstractFactory<AbstractConfig>
+ */
 final class ConsoleFactory extends AbstractFactory
 {
     public const string CONSOLE_NAME = 'Phel';
@@ -24,6 +29,9 @@ final class ConsoleFactory extends AbstractFactory
         );
     }
 
+    /**
+     * @return list<Command>
+     */
     public function getConsoleCommands(): array
     {
         return $this->getProvidedDependency(ConsoleProvider::COMMANDS);

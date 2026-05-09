@@ -69,6 +69,9 @@ final class Registry
         $this->definitionsMetaData = $snapshot['definitionsMetaData'];
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $metaData
+     */
     public function addDefinition(string $ns, string $name, mixed $value, ?PersistentMapInterface $metaData = null): PhelVar
     {
         if (self::$profilerHook instanceof ProfilerHookInterface && $value instanceof AbstractFn) {
@@ -146,6 +149,9 @@ final class Registry
         throw new RuntimeException(sprintf('Definition "%s/%s" not found', $ns, $name));
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     public function getDefinitionMetaData(string $ns, string $name): ?PersistentMapInterface
     {
         if (!array_key_exists($ns, $this->definitions)

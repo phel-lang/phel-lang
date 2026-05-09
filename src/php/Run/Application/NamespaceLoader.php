@@ -19,6 +19,7 @@ use function getcwd;
 
 final class NamespaceLoader
 {
+    /** @var array<string, true> */
     private static array $loadedFiles = [];
 
     private static bool $dataReadersLoaded = false;

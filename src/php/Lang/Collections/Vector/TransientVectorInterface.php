@@ -24,11 +24,15 @@ interface TransientVectorInterface extends Countable, ArrayAccess, ContainsInter
 
     /**
      * @param T $value
+     *
+     * @return self<T>
      */
     public function append(mixed $value): self;
 
     /**
      * @param T $value
+     *
+     * @return self<T>
      */
     public function update(int $i, mixed $value): self;
 
@@ -37,7 +41,13 @@ interface TransientVectorInterface extends Countable, ArrayAccess, ContainsInter
      */
     public function get(int $i);
 
+    /**
+     * @return self<T>
+     */
     public function pop(): self;
 
+    /**
+     * @return PersistentVectorInterface<T>
+     */
     public function persistent(): PersistentVectorInterface;
 }

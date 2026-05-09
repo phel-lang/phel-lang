@@ -15,6 +15,9 @@ final readonly class SourceMapGenerator
         $this->vlq = new VLQ();
     }
 
+    /**
+     * @param list<array{generated: array{line: int, column: int}, original: array{line: int, column: int}, source?: string, name?: string}> $mappings
+     */
     public function encode(array $mappings): string
     {
         $previousGeneratedLine = 0;
@@ -55,6 +58,10 @@ final readonly class SourceMapGenerator
         return $result;
     }
 
+    /**
+     * @param array{generated: array{line: int, column: int}, original: array{line: int, column: int}, source?: string, name?: string} $mappingA
+     * @param array{generated: array{line: int, column: int}, original: array{line: int, column: int}, source?: string, name?: string} $mappingB
+     */
     private function compareByGeneratedPositionsInflated(array $mappingA, array $mappingB): int
     {
         /** @var int $cmp */

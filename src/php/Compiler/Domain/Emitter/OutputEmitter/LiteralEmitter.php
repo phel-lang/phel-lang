@@ -204,6 +204,9 @@ final readonly class LiteralEmitter
         );
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed> $x
+     */
     private function emitMap(PersistentMapInterface $x): void
     {
         $count = count($x);
@@ -233,6 +236,9 @@ final readonly class LiteralEmitter
         $this->outputEmitter->emitStr(')', $x->getStartLocation());
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $x
+     */
     private function emitList(PersistentListInterface $x): void
     {
         $count = count($x);
@@ -259,6 +265,9 @@ final readonly class LiteralEmitter
         $this->outputEmitter->emitStr('])', $x->getStartLocation());
     }
 
+    /**
+     * @param PersistentHashSetInterface<mixed> $x
+     */
     private function emitSet(PersistentHashSetInterface $x): void
     {
         $count = count($x);
@@ -287,6 +296,9 @@ final readonly class LiteralEmitter
         $this->outputEmitter->emitStr('])', $x->getStartLocation());
     }
 
+    /**
+     * @param PersistentVector<mixed> $x
+     */
     private function emitVector(PersistentVector $x): void
     {
         $countVector = count($x);
@@ -313,6 +325,9 @@ final readonly class LiteralEmitter
         $this->outputEmitter->emitStr('])', $x->getStartLocation());
     }
 
+    /**
+     * @param array<mixed, mixed> $x
+     */
     private function emitArray(array $x): void
     {
         $this->outputEmitter->emitStr('[');

@@ -28,6 +28,9 @@ final readonly class MethodBodyAnalyzer
         private AnalyzerInterface $analyzer,
     ) {}
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): DefStructMethod
     {
         $methodName = $this->extractMethodName($list);
@@ -37,6 +40,9 @@ final readonly class MethodBodyAnalyzer
         return new DefStructMethod($methodName, $fnNode);
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     private function extractMethodName(PersistentListInterface $list): Symbol
     {
         $methodName = $list->get(0);
@@ -47,6 +53,11 @@ final readonly class MethodBodyAnalyzer
         return $methodName;
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     *
+     * @return PersistentVectorInterface<mixed>
+     */
     private function extractArguments(PersistentListInterface $list): PersistentVectorInterface
     {
         $arguments = $list->get(1);
@@ -64,22 +75,32 @@ final readonly class MethodBodyAnalyzer
         return $arguments;
     }
 
+    /**
+     * @param PersistentListInterface<mixed>   $list
+     * @param PersistentVectorInterface<mixed> $arguments
+     */
     private function analyzeBody(
         PersistentListInterface $list,
         PersistentVectorInterface $arguments,
         NodeEnvironmentInterface $env,
     ): FnNode {
+        /** @var PersistentVectorInterface<mixed> $argumentsRest */
+        $argumentsRest = $arguments->rest();
+        /** @var PersistentListInterface<mixed> $listRest1 */
+        $listRest1 = $list->rest();
+        /** @var PersistentListInterface<mixed> $listRest2 */
+        $listRest2 = $listRest1->rest();
         $fnNode = $this->analyzer->analyze(
             Phel::list([
                 Symbol::create('fn'),
-                $arguments->rest(),
+                $argumentsRest,
                 Phel::list([
                     Symbol::create('let'),
                     Phel::vector([
                         $arguments->first(),
                         Symbol::createForNamespace('php', '$this'),
                     ]),
-                    ...($list->rest()->rest()->toArray()),
+                    ...$listRest2->toArray(),
                 ]),
             ]),
             $env,

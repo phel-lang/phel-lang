@@ -8,14 +8,14 @@ use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Printer\PrinterInterface;
 
 /**
- * @implements TypePrinterInterface<PersistentHashSetInterface>
+ * @implements TypePrinterInterface<PersistentHashSetInterface<mixed>>
  */
 final readonly class PersistentHashSetPrinter implements TypePrinterInterface
 {
     public function __construct(private PrinterInterface $printer) {}
 
     /**
-     * @param PersistentHashSetInterface $form
+     * @param PersistentHashSetInterface<mixed> $form
      */
     public function print(mixed $form): string
     {

@@ -20,7 +20,8 @@ final class TransientHashMap implements TransientMapInterface
     private static ?stdClass $NOT_FOUND = null;
 
     /**
-     * @param V|null $nullValue
+     * @param HashMapNodeInterface<K, V>|null $root
+     * @param mixed                           $nullValue
      */
     public function __construct(
         private readonly HasherInterface $hasher,
@@ -31,6 +32,9 @@ final class TransientHashMap implements TransientMapInterface
         private $nullValue,
     ) {}
 
+    /**
+     * @return self<K, V>
+     */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
         return new self($hasher, $equalizer, 0, null, false, null);
@@ -58,6 +62,12 @@ final class TransientHashMap implements TransientMapInterface
         return $this->root->find(0, $this->hasher->hash($key), $key, self::getNotFound()) !== self::getNotFound();
     }
 
+    /**
+     * @param mixed $key
+     * @param mixed $value
+     *
+     * @return self<K, V>
+     */
     public function put($key, $value): self
     {
         if ($key === null) {
@@ -88,6 +98,11 @@ final class TransientHashMap implements TransientMapInterface
         return $this;
     }
 
+    /**
+     * @param mixed $key
+     *
+     * @return self<K, V>
+     */
     public function remove($key): self
     {
         if ($key === null) {
@@ -138,6 +153,9 @@ final class TransientHashMap implements TransientMapInterface
         return $this->count;
     }
 
+    /**
+     * @return PersistentMapInterface<K, V>
+     */
     public function persistent(): PersistentMapInterface
     {
         return new PersistentHashMap($this->hasher, $this->equalizer, null, $this->count, $this->root, $this->hasNull, $this->nullValue);

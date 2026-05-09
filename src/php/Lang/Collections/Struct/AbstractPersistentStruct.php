@@ -39,6 +39,9 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         $this->keyEncoder = new StructKeyEncoder();
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function withMeta(?PersistentMapInterface $meta): static
     {
         $newInstance = clone $this;
@@ -102,6 +105,9 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         return parent::equals($other);
     }
 
+    /**
+     * @return list<Keyword>
+     */
     public function getAllowedKeys(): array
     {
         return array_map(
@@ -120,6 +126,9 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         throw new InvalidArgumentException(sprintf("This key '%s' is not allowed for struct %s", (string) $key, $structName));
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>
+     */
     private function toPersistentMapWithout(Keyword $key): PersistentMapInterface
     {
         $kvs = [];

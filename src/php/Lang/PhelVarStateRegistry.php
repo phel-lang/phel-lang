@@ -25,7 +25,7 @@ final class PhelVarStateRegistry
 {
     private static ?self $instance = null;
 
-    /** @var array<string, ?PersistentMapInterface> */
+    /** @var array<string, ?PersistentMapInterface<mixed, mixed>> */
     private array $metaOverrides = [];
 
     /** @var array<string, array<string, callable>> */
@@ -55,11 +55,17 @@ final class PhelVarStateRegistry
         return array_key_exists($this->key($ns, $name), $this->metaOverrides);
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     public function getMetaOverride(string $ns, string $name): ?PersistentMapInterface
     {
         return $this->metaOverrides[$this->key($ns, $name)] ?? null;
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function setMetaOverride(string $ns, string $name, ?PersistentMapInterface $meta): void
     {
         $this->metaOverrides[$this->key($ns, $name)] = $meta;
@@ -114,6 +120,9 @@ final class PhelVarStateRegistry
         unset($this->dynamicCache[$this->key($ns, $name)]);
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     private function effectiveMeta(string $ns, string $name): ?PersistentMapInterface
     {
         if ($this->hasMetaOverride($ns, $name)) {

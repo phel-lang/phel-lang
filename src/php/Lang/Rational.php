@@ -22,6 +22,9 @@ use function sprintf;
  */
 final readonly class Rational implements Stringable, TypeInterface
 {
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     private function __construct(
         private BigInteger $numerator,
         private BigInteger $denominator,
@@ -183,11 +186,17 @@ final readonly class Rational implements Stringable, TypeInterface
         return $this->numerator->divide($this->denominator)->toInt();
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta;
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self(

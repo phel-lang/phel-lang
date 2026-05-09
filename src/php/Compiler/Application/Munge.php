@@ -41,6 +41,10 @@ final readonly class Munge implements MungeInterface
         '$' => '_DOLLAR_',
     ];
 
+    /**
+     * @param array<string, string> $mapping
+     * @param array<string, string> $nsMapping
+     */
     public function __construct(
         private array $mapping = self::DEFAULT_MAPPING,
         private array $nsMapping = self::DEFAULT_NS_MAPPING,

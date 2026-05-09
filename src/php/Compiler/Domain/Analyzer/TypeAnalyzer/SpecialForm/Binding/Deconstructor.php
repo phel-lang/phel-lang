@@ -36,9 +36,9 @@ final readonly class Deconstructor implements DeconstructorInterface
     /**
      * Destructure a $binding $value pair and add the result to $bindings.
      *
-     * @param array $bindings A reference to already defined bindings
-     * @param mixed $binding  The binding form
-     * @param mixed $value    The value form
+     * @param list<array{0: Symbol, 1: mixed}> $bindings A reference to already defined bindings
+     * @param mixed                            $binding  The binding form
+     * @param mixed                            $value    The value form
      *
      * @throws AnalyzerException
      */

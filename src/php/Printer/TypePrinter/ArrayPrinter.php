@@ -10,7 +10,7 @@ use function count;
 use function sprintf;
 
 /**
- * @implements TypePrinterInterface<array>
+ * @implements TypePrinterInterface<array<int|string, mixed>>
  */
 final readonly class ArrayPrinter implements TypePrinterInterface
 {
@@ -20,7 +20,7 @@ final readonly class ArrayPrinter implements TypePrinterInterface
     ) {}
 
     /**
-     * @param array $form
+     * @param array<int|string, mixed> $form
      */
     public function print(mixed $form): string
     {
@@ -31,13 +31,16 @@ final readonly class ArrayPrinter implements TypePrinterInterface
         return sprintf('<PHP-Array [%s]>', $this->color(implode(', ', $arr)));
     }
 
+    /**
+     * @param array<int|string, mixed> $form
+     */
     private function isList(array $form): bool
     {
         return array_keys($form) === range(0, count($form) - 1);
     }
 
     /**
-     * @param array<int, mixed> $form
+     * @param array<int|string, mixed> $form
      *
      * @return list<string>
      */

@@ -15,20 +15,29 @@ use Phel\Lang\TypeInterface;
 /**
  * @template V
  *
- * @extends AsTransientInterface<TransientHashSetInterface>
+ * @extends AsTransientInterface<TransientHashSetInterface<V>>
+ * @extends IteratorAggregate<int, V>
  * @extends ContainsInterface<V>
+ * @extends ConcatInterface<PersistentHashSetInterface<V>>
  */
 interface PersistentHashSetInterface extends TypeInterface, Countable, IteratorAggregate, AsTransientInterface, FnInterface, ConcatInterface, ContainsInterface
 {
     /**
      * @param V $value
+     *
+     * @return self<V>
      */
     public function add(mixed $value): self;
 
     /**
      * @param V $value
+     *
+     * @return self<V>
      */
     public function remove(mixed $value): self;
 
+    /**
+     * @return array<int, V>
+     */
     public function toPhpArray(): array;
 }

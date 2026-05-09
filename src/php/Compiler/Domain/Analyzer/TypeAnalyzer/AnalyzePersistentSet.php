@@ -13,6 +13,9 @@ final class AnalyzePersistentSet
 {
     use WithAnalyzerTrait;
 
+    /**
+     * @param PersistentHashSetInterface<mixed> $set
+     */
     public function analyze(PersistentHashSetInterface $set, NodeEnvironmentInterface $env): SetNode
     {
         $values = [];

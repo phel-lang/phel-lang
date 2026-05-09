@@ -2,7 +2,7 @@ includes:
     - vendor/gacela-project/gacela/phpstan-gacela.neon
 
 parameters:
-    level: 5
+    level: 6
     parallel:
         maximumNumberOfProcesses: 4
         processTimeout: 3000.0

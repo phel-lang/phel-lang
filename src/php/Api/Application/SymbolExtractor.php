@@ -193,6 +193,8 @@ final readonly class SymbolExtractor
     }
 
     /**
+     * @param PersistentListInterface<mixed> $form
+     *
      * @return list<string>
      */
     private function extractSignature(PersistentListInterface $form, string $formName): array
@@ -227,6 +229,9 @@ final readonly class SymbolExtractor
         return $arities;
     }
 
+    /**
+     * @param PersistentVectorInterface<mixed> $vector
+     */
     private function vectorToSignature(PersistentVectorInterface $vector): string
     {
         $parts = [];
@@ -243,6 +248,9 @@ final readonly class SymbolExtractor
         return '[' . implode(' ', $parts) . ']';
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $form
+     */
     private function extractDocstring(PersistentListInterface $form, string $formName): string
     {
         if (!in_array(self::DEFINITION_FORMS[$formName] ?? '', [
@@ -264,6 +272,9 @@ final readonly class SymbolExtractor
         return '';
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $form
+     */
     private function isPrivate(PersistentListInterface $form, string $formName): bool
     {
         if (str_ends_with($formName, '-')) {

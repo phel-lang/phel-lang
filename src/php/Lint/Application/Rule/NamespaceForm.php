@@ -21,6 +21,8 @@ final class NamespaceForm
 {
     /**
      * @param list<mixed> $forms
+     *
+     * @return PersistentListInterface<mixed>|null
      */
     public static function find(array $forms): ?PersistentListInterface
     {
@@ -43,7 +45,8 @@ final class NamespaceForm
     }
 
     /**
-     * @param list<mixed> $forms
+     * @param list<mixed>                    $forms
+     * @param PersistentListInterface<mixed> $nsForm
      *
      * @return array<string, true>
      */

@@ -31,6 +31,9 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
         private DeconstructorInterface $deconstructor,
     ) {}
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): LetNode
     {
         if (!($list->get(0) instanceof Symbol && $list->get(0)->getName() === Symbol::NAME_LET)) {
@@ -65,10 +68,13 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
         return $this->analyzeLetOrLoop($newList, $env);
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     private function analyzeLetOrLoop(PersistentListInterface $list, NodeEnvironmentInterface $env): LetNode
     {
         /** @psalm-suppress PossiblyNullArgument */
-        /** @var PersistentVectorInterface $bindingVector */
+        /** @var PersistentVectorInterface<mixed> $bindingVector */
         $bindingVector = $list->get(1);
         $bindings = $this->analyzeBindings($bindingVector, $env->withDisallowRecurFrame());
 
@@ -86,7 +92,11 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
             $bodyEnv = $bodyEnv->withShadowedLocal($binding->getSymbol(), $binding->getShadow());
         }
 
-        $exprs = $list->rest()->rest()->toArray();
+        /** @var PersistentListInterface<mixed> $rest1 */
+        $rest1 = $list->rest();
+        /** @var PersistentListInterface<mixed> $rest2 */
+        $rest2 = $rest1->rest();
+        $exprs = $rest2->toArray();
         $bodyExpr = $this->analyzer->analyze(
             Phel::list([
                 Symbol::create(Symbol::NAME_DO),
@@ -105,6 +115,8 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
+     * @param PersistentVectorInterface<mixed> $vector
+     *
      * @return list<BindingNode>
      */
     private function analyzeBindings(PersistentVectorInterface $vector, NodeEnvironmentInterface $env): array

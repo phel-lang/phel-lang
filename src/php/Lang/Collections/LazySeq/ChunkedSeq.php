@@ -28,15 +28,16 @@ use function is_object;
  * @template T
  *
  * @implements LazySeqInterface<T>
+ * @implements IteratorAggregate<int, T>
  *
  * @extends AbstractType<LazySeqInterface<T>>
  */
 final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countable, IteratorAggregate
 {
     /**
-     * @param Chunk<T>                    $chunk The current chunk of realized values
-     * @param MemoizedThunk|null          $thunk A memoized thunk that produces the rest of the sequence
-     * @param PersistentMapInterface|null $meta  Metadata for this sequence
+     * @param Chunk<T>                                  $chunk The current chunk of realized values
+     * @param MemoizedThunk|null                        $thunk A memoized thunk that produces the rest of the sequence
+     * @param PersistentMapInterface<mixed, mixed>|null $meta  Metadata for this sequence
      */
     public function __construct(
         private readonly HasherInterface $hasher,
@@ -51,7 +52,8 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
      *
      * @template U
      *
-     * @param Generator<int, U> $generator
+     * @param Generator<int, U>                         $generator
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
      *
      * @return ChunkedSeq<U>|null
      */
@@ -89,7 +91,8 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
      *
      * @template U
      *
-     * @param array<int, U> $array
+     * @param array<int, U>                             $array
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
      *
      * @return ChunkedSeq<U>|null
      */
@@ -261,11 +264,17 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
         }
     }
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     public function getMeta(): ?PersistentMapInterface
     {
         return $this->meta;
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
     public function withMeta(?PersistentMapInterface $meta): static
     {
         return new self($this->hasher, $this->equalizer, $this->chunk, $this->thunk, $meta);
@@ -341,6 +350,9 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
      * Running this against two infinite sequences loops forever, matching
      * Clojure's behavior — it is the caller's responsibility to avoid
      * comparing two infinite sequences for equality.
+     *
+     * @param Traversable<mixed> $left
+     * @param Traversable<mixed> $right
      */
     private function walkPairwise(Traversable $left, Traversable $right, EqualizerInterface $equalizer): bool
     {
@@ -375,6 +387,11 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
      * already iterators, but an `IteratorAggregate` returns a nested
      * Traversable that must be unwrapped before `valid`/`current`/`next`
      * can be called directly.
+     */
+    /**
+     * @param Traversable<mixed> $traversable
+     *
+     * @return Iterator<mixed, mixed>
      */
     private function asIterator(Traversable $traversable): Iterator
     {

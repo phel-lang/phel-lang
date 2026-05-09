@@ -44,6 +44,9 @@ final class PhelPathFilter implements PathFilterInterface
         return pathinfo($path, PATHINFO_EXTENSION) === self::PHEL_EXTENSION;
     }
 
+    /**
+     * @return RecursiveIteratorIterator<RecursiveDirectoryIterator>
+     */
     private function createRecursiveIterator(string $path): RecursiveIteratorIterator
     {
         return new RecursiveIteratorIterator(

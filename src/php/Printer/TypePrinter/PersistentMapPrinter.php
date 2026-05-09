@@ -10,14 +10,14 @@ use Phel\Printer\PrinterInterface;
 use function sprintf;
 
 /**
- * @implements TypePrinterInterface<PersistentMapInterface>
+ * @implements TypePrinterInterface<PersistentMapInterface<mixed, mixed>>
  */
 final readonly class PersistentMapPrinter implements TypePrinterInterface
 {
     public function __construct(private PrinterInterface $printer) {}
 
     /**
-     * @param PersistentMapInterface $form
+     * @param PersistentMapInterface<mixed, mixed> $form
      */
     public function print(mixed $form): string
     {

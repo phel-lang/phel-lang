@@ -14,9 +14,6 @@ use Phel\Lang\Symbol;
 
 use function sprintf;
 
-/**
- * @implements BindingDeconstructorInterface<PersistentVectorInterface<mixed>>
- */
 final class VectorBindingDeconstructor implements BindingDeconstructorInterface
 {
     public const string FIRST_SYMBOL_NAME = 'first';
@@ -41,8 +38,9 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
     ) {}
 
     /**
-     * @param mixed $binding
-     * @param mixed $value
+     * @param list<array{0: Symbol, 1: mixed}> $bindings
+     * @param mixed                            $binding
+     * @param mixed                            $value
      *
      * @throws AbstractLocatedException
      */
@@ -66,6 +64,9 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
         }
     }
 
+    /**
+     * @param list<array{0: Symbol, 1: mixed}> $bindings
+     */
     private function stateStart(array &$bindings, mixed $current): void
     {
         if ($this->isRest($current)) {
@@ -85,6 +86,9 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
         $this->deconstructor->deconstructBindings($bindings, $current, $accessSymbol);
     }
 
+    /**
+     * @param list<array{0: Symbol, 1: mixed}> $bindings
+     */
     private function stateRest(array &$bindings, mixed $current): void
     {
         $this->currentState = self::STATE_DONE;
@@ -100,6 +104,9 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
             && $current->getName() === self::REST_SYMBOL_NAME;
     }
 
+    /**
+     * @return PersistentListInterface<mixed>
+     */
     private function createBindingValue(string $symbolName, mixed $current): PersistentListInterface
     {
         return Phel::list([
@@ -109,6 +116,8 @@ final class VectorBindingDeconstructor implements BindingDeconstructorInterface
     }
 
     /**
+     * @param PersistentVectorInterface<mixed> $binding
+     *
      * @throws AnalyzerException
      */
     private function triggerUnsupportedBindingFormException(PersistentVectorInterface $binding): never

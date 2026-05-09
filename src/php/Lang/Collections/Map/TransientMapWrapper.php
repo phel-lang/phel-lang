@@ -43,6 +43,12 @@ final class TransientMapWrapper implements TransientMapInterface, Stringable
         return $this->internal->contains($key);
     }
 
+    /**
+     * @param mixed $key
+     * @param mixed $value
+     *
+     * @return self<K, V>
+     */
     public function put($key, $value): self
     {
         $this->internal = $this->internal->put($key, $value);
@@ -50,6 +56,11 @@ final class TransientMapWrapper implements TransientMapInterface, Stringable
         return $this;
     }
 
+    /**
+     * @param mixed $key
+     *
+     * @return self<K, V>
+     */
     public function remove($key): self
     {
         $this->internal = $this->internal->remove($key);
@@ -67,6 +78,9 @@ final class TransientMapWrapper implements TransientMapInterface, Stringable
         return $this->internal->count();
     }
 
+    /**
+     * @return PersistentMapInterface<K, V>
+     */
     public function persistent(): PersistentMapInterface
     {
         return $this->internal->persistent();

@@ -41,6 +41,9 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         private ReturnTypeInferrer $returnTypeInferrer = new ReturnTypeInferrer(),
     ) {}
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {
         if (count($list) < 2) {
@@ -107,7 +110,9 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
      * arguments uniformly. The rebuilt list reuses the source location of the
      * original so error reporting still points at the user's form.
      *
-     * @return array{0: ?Symbol, 1: PersistentListInterface}
+     * @param PersistentListInterface<mixed> $list
+     *
+     * @return array{0: ?Symbol, 1: PersistentListInterface<mixed>}
      */
     private function extractOptionalName(PersistentListInterface $list): array
     {
@@ -129,6 +134,9 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         return [$second, Phel::list($elements)->copyLocationFrom($list)];
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     private function analyzeSingle(
         PersistentListInterface $list,
         NodeEnvironmentInterface $env,
@@ -214,6 +222,9 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         return $name;
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     private function verifyArguments(PersistentListInterface $list): void
     {
         if (count($list) < 2) {
@@ -259,6 +270,8 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
 
     /**
      * @param array<int, mixed> $body
+     *
+     * @return PersistentListInterface<mixed>
      */
     private function createDoTupleWithBody(array $body): PersistentListInterface
     {
@@ -270,6 +283,8 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
 
     /**
      * @param array<int, mixed> $listBody
+     *
+     * @return PersistentListInterface<mixed>
      */
     private function createLetTupleWithBody(FnSymbolTuple $fnSymbolTuple, array $listBody): PersistentListInterface
     {
@@ -280,6 +295,9 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         ])->copyLocationFrom($listBody);
     }
 
+    /**
+     * @return list<Symbol>
+     */
     private function buildUsesFromEnv(
         NodeEnvironmentInterface $env,
         FnSymbolTuple $fnSymbolTuple,
@@ -337,8 +355,11 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
-     * @param list<mixed> $pre
-     * @param list<mixed> $post
+     * @param PersistentListInterface<mixed> $body
+     * @param list<mixed>                    $pre
+     * @param list<mixed>                    $post
+     *
+     * @return PersistentListInterface<mixed>
      */
     private function wrapWithPreAndPostConditions(
         PersistentListInterface $body,
@@ -356,7 +377,7 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         // inner body and wrap it again.
         $first = $body->get(0);
         if ($first instanceof Symbol && $first->getName() === Symbol::NAME_LET) {
-            /** @var PersistentVectorInterface $bindings */
+            /** @var PersistentVectorInterface<mixed> $bindings */
             $bindings = $body->get(1);
             $innerBodyExpressions = array_slice($body->toArray(), 2);
             $innerBody = $this->createDoTupleWithBody($innerBodyExpressions);
@@ -406,6 +427,9 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         ])->copyLocationFrom($body);
     }
 
+    /**
+     * @return PersistentListInterface<mixed>
+     */
     private function createAssertForm(mixed $form, mixed $formForMessage): PersistentListInterface
     {
         $message = Phel::list([

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Application;
 
+use Iterator;
 use Phel\Build\Domain\Cache\NamespaceCacheEntry;
 use Phel\Build\Domain\Cache\NamespaceCacheInterface;
 use Phel\Build\Domain\Extractor\ExcludedScanPaths;
@@ -163,8 +164,10 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
      * Build the recursive iterator that yields `.phel`/`.cljc` files under
      * `$root`, pruning subtrees flagged by `ExcludedScanPaths` at descent
      * time so vendor/.git/node_modules never get walked.
+     *
+     * @return Iterator<mixed, mixed>
      */
-    private function phelFileIterator(string $root): RegexIterator
+    private function phelFileIterator(string $root): Iterator
     {
         $directoryIterator = new RecursiveDirectoryIterator(
             $root,
@@ -186,8 +189,10 @@ final class CachedNamespaceExtractor implements NamespaceExtractorInterface
             },
         );
 
+        $iterator = new RecursiveIteratorIterator($prunedDescent);
+
         return new RegexIterator(
-            new RecursiveIteratorIterator($prunedDescent),
+            $iterator,
             '/^.+\.(phel|cljc)$/i',
             RegexIterator::GET_MATCH,
         );

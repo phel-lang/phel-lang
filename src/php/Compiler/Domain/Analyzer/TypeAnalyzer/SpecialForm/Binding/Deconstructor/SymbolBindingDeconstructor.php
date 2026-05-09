@@ -7,14 +7,12 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconst
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 
-/**
- * @implements BindingDeconstructorInterface<Symbol>
- */
 final class SymbolBindingDeconstructor implements BindingDeconstructorInterface
 {
     /**
-     * @param Symbol                                   $binding The binding form
-     * @param bool|float|int|string|TypeInterface|null $value   The value form
+     * @param list<array{0: Symbol, 1: mixed}>         $bindings
+     * @param Symbol                                   $binding  The binding form
+     * @param bool|float|int|string|TypeInterface|null $value    The value form
      */
     public function deconstruct(array &$bindings, $binding, $value): void
     {

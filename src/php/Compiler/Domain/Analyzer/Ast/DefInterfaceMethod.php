@@ -12,7 +12,7 @@ use function count;
 final readonly class DefInterfaceMethod
 {
     /**
-     * @param list<string> $arguments
+     * @param list<Symbol> $arguments
      */
     public function __construct(
         private Symbol $name,
@@ -29,6 +29,9 @@ final readonly class DefInterfaceMethod
         return count($this->arguments);
     }
 
+    /**
+     * @return list<Symbol>
+     */
     public function getArgumentsWithoutFirst(): array
     {
         return array_slice($this->arguments, 1);

@@ -116,6 +116,8 @@ final readonly class NamespaceExtractor implements NamespaceExtractorInterface
 
     /**
      * @throws ExtractorException
+     *
+     * @return list<NamespaceInformation>
      */
     private function findAllNs(string $directory): array
     {

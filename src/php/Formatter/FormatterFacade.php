@@ -15,6 +15,8 @@ use Symfony\Component\Console\Output\OutputInterface;
 final class FormatterFacade extends AbstractFacade implements FormatterFacadeInterface
 {
     /**
+     * @param list<string> $paths
+     *
      * @return list<string> paths whose contents changed (or would change under $dryRun)
      */
     public function format(array $paths, OutputInterface $output, bool $dryRun = false): array

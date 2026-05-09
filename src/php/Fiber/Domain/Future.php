@@ -20,6 +20,7 @@ final class Future implements Awaitable
 {
     private readonly Promise $promise;
 
+    /** @var Fiber<mixed, mixed, mixed, mixed> */
     private readonly Fiber $fiber;
 
     private bool $cancelled = false;

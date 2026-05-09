@@ -27,6 +27,9 @@ final readonly class InputResult
         return new self(self::NO_VALUE);
     }
 
+    /**
+     * @param list<string> $buffer
+     */
     public function readBuffer(array $buffer): string
     {
         $fullInput = implode(PHP_EOL, $buffer);

@@ -66,6 +66,8 @@ final readonly class DirectoryFinder implements DirectoryFinderInterface
     }
 
     /**
+     * @param list<string> $relativeDirectories
+     *
      * @return list<string>
      */
     private function toAbsoluteDirectories(array $relativeDirectories): array

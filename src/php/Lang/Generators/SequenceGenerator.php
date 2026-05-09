@@ -28,11 +28,7 @@ final class SequenceGenerator
      * Strings are split into an array of characters using mb_str_split.
      * Other values are returned as-is (or empty array if null).
      *
-     * @template T
-     *
-     * @param iterable<T>|string|null $value
-     *
-     * @return iterable<string|T>
+     * @return iterable<mixed>
      */
     public static function toIterable(mixed $value): iterable
     {
@@ -66,11 +62,7 @@ final class SequenceGenerator
     /**
      * Yields each value paired with its zero-based index.
      *
-     * @template T
-     *
-     * @param iterable<T>|string|null $iterable
-     *
-     * @return Generator<int, array{0:int, 1:string|T}>
+     * @return Generator<int, array{0:int, 1:mixed}>
      */
     public static function indexed(mixed $iterable): Generator
     {

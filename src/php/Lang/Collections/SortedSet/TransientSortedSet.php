@@ -17,6 +17,9 @@ use Stringable;
  */
 final readonly class TransientSortedSet implements TransientHashSetInterface, Stringable
 {
+    /**
+     * @param TransientMapInterface<V, V> $transientMap
+     */
     public function __construct(
         private HasherInterface $hasher,
         private TransientMapInterface $transientMap,

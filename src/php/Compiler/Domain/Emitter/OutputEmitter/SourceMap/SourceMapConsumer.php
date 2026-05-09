@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap;
 
 final class SourceMapConsumer
 {
+    /** @var array<int, list<int>> */
     private array $lineMapping;
 
     private readonly VLQ $vlq;
@@ -25,6 +26,9 @@ final class SourceMapConsumer
         return null;
     }
 
+    /**
+     * @return array<int, list<int>>
+     */
     private function decodeMapping(string $mapping): array
     {
         $lines = explode(';', $mapping);

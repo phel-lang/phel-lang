@@ -335,6 +335,8 @@ abstract class AbstractZipper
 
     /**
      * @throws ZipperException
+     *
+     * @return self<T>
      */
     public function remove(): self
     {

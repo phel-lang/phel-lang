@@ -79,10 +79,14 @@ final readonly class PhpObjectCallSymbol implements SpecialFormAnalyzerInterface
         return $targetExpr;
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $segment
+     */
     private function callExprForMethodCall(NodeEnvironmentInterface $env, PersistentListInterface $segment): MethodCallNode
     {
         $args = [];
-        for ($forms = $segment->cdr(); $forms !== null; $forms = $forms->cdr()) {
+        $forms = $segment->cdr();
+        for (; $forms !== null; $forms = $forms->cdr()) {
             $args[] = $this->analyzer->analyze(
                 $forms->first(),
                 $env->withExpressionContext()->withDisallowRecurFrame(),

@@ -82,6 +82,8 @@ final readonly class TaggedLiteralReader
 
     /**
      * @throws ReaderException
+     *
+     * @return PersistentListInterface<mixed>
      */
     private function readPhp(TaggedLiteralNode $node, NodeInterface $root): PersistentListInterface
     {
@@ -113,6 +115,8 @@ final readonly class TaggedLiteralReader
 
     /**
      * @throws ReaderException
+     *
+     * @return PersistentListInterface<mixed>
      */
     private function buildCall(TaggedLiteralNode $node, string $fnName, ListNode $form): PersistentListInterface
     {

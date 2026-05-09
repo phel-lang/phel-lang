@@ -23,8 +23,12 @@ final class IndexedNodeIterator implements Iterator
 
     private int $index = 0;
 
+    /** @var Iterator<K, V>|null */
     private ?Iterator $nestedIterator = null;
 
+    /**
+     * @param array<int, array{0: mixed, 1: mixed}> $entries
+     */
     public function __construct(array $entries)
     {
         $this->entries = array_values($entries);

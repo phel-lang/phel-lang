@@ -15,6 +15,9 @@ final readonly class SetReader
 {
     public function __construct(private Reader $reader) {}
 
+    /**
+     * @return PersistentHashSetInterface<mixed>
+     */
     public function read(ListNode $node, NodeInterface $root): PersistentHashSetInterface
     {
         $acc = [];

@@ -22,6 +22,9 @@ final readonly class ExceptionArgsPrinter implements ExceptionArgsPrinterInterfa
         private PrinterInterface $printer,
     ) {}
 
+    /**
+     * @param list<mixed> $frameArgs
+     */
     public function parseArgsAsString(array $frameArgs): string
     {
         $argParts = array_map(
@@ -37,6 +40,9 @@ final readonly class ExceptionArgsPrinter implements ExceptionArgsPrinterInterfa
         return $argString;
     }
 
+    /**
+     * @param list<mixed> $args
+     */
     public function buildPhpArgsString(array $args): string
     {
         $result = array_map(

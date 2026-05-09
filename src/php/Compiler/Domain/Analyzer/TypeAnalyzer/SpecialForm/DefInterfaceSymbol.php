@@ -25,6 +25,9 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): DefInterfaceNode
     {
         $interfaceSymbol = $list->get(1);
@@ -34,16 +37,23 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
 
         $this->analyzer->addInterface($this->analyzer->getNamespace(), $interfaceSymbol);
 
+        /** @var PersistentListInterface<mixed> $rest */
+        $rest = $list->rest();
+        /** @var PersistentListInterface<mixed>|null $methodsList */
+        $methodsList = $rest->cdr();
+
         return new DefInterfaceNode(
             $env,
             $this->analyzer->getNamespace(),
             $interfaceSymbol,
-            $this->methods($list->rest()->cdr()),
+            $this->methods($methodsList),
             $list->getStartLocation(),
         );
     }
 
     /**
+     * @param PersistentListInterface<mixed>|null $list
+     *
      * @return list<DefInterfaceMethod>
      */
     private function methods(?PersistentListInterface $list): array
@@ -66,6 +76,9 @@ final class DefInterfaceSymbol implements SpecialFormAnalyzerInterface
         return $methods;
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $method
+     */
     private function createDefInterfaceMethod(PersistentListInterface $method): DefInterfaceMethod
     {
         $name = $method->get(0);

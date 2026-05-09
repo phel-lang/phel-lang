@@ -23,14 +23,19 @@ final class ApplySymbol implements SpecialFormAnalyzerInterface
 {
     use WithAnalyzerTrait;
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): ApplyNode
     {
         if (count($list) < 3) {
             throw AnalyzerException::withLocation("At least three arguments are required for 'apply", $list);
         }
 
+        /** @var PersistentListInterface<mixed> $data */
         $data = $list->rest();
         $fnExpr = $data->first();
+        /** @var PersistentListInterface<mixed> $args */
         $args = $data->rest();
 
         return new ApplyNode(
@@ -52,6 +57,11 @@ final class ApplySymbol implements SpecialFormAnalyzerInterface
         );
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $argsList
+     *
+     * @return list<AbstractNode>
+     */
     private function arguments(PersistentListInterface $argsList, NodeEnvironmentInterface $env): array
     {
         $args = [];

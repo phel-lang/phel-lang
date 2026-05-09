@@ -92,6 +92,9 @@ class NsCommand extends Command
         return self::SUCCESS;
     }
 
+    /**
+     * @return list<NamespaceInformation>
+     */
     private function getNamespaceInfoList(string $ns): array
     {
         return $this->getFacade()->getDependenciesForNamespace(

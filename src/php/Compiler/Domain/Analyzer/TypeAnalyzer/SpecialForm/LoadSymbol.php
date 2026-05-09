@@ -50,6 +50,9 @@ final readonly class LoadSymbol implements SpecialFormAnalyzerInterface
         );
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     private function extractPathArg(PersistentListInterface $list): string
     {
         $listCount = $list->count();

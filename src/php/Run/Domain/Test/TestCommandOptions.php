@@ -79,6 +79,9 @@ final readonly class TestCommandOptions
         return self::fromArray([self::FILTER => null]);
     }
 
+    /**
+     * @param array<string, mixed> $options
+     */
     public static function fromArray(array $options): self
     {
         /** @var list<string> $reporters */

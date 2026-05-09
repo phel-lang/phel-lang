@@ -21,7 +21,9 @@ use function count;
 final class FnParamVectors
 {
     /**
-     * @return Generator<int, PersistentVectorInterface>
+     * @param PersistentListInterface<mixed> $fnForm
+     *
+     * @return Generator<int, PersistentVectorInterface<mixed>>
      */
     public static function of(PersistentListInterface $fnForm): Generator
     {

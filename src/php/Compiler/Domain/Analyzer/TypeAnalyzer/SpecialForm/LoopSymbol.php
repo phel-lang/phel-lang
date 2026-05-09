@@ -32,6 +32,9 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
         private BindingValidator $bindingValidator,
     ) {}
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): LetNode
     {
         if (!($list->get(0) instanceof Symbol && $list->get(0)->getName() === Symbol::NAME_LOOP)) {
@@ -75,7 +78,11 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
         }
 
         if ($lets !== []) {
-            $bodyExpr = $list->rest()->rest()->toArray();
+            /** @var PersistentListInterface<mixed> $rest1 */
+            $rest1 = $list->rest();
+            /** @var PersistentListInterface<mixed> $rest2 */
+            $rest2 = $rest1->rest();
+            $bodyExpr = $rest2->toArray();
             $letSym = Symbol::create(Symbol::NAME_LET)->copyLocationFrom($list->get(0));
             $letExpr = Phel::list([
                 $letSym,
@@ -94,12 +101,19 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
         return $this->analyzeLetOrLoop($list, $env);
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     private function analyzeLetOrLoop(PersistentListInterface $list, NodeEnvironmentInterface $env): LetNode
     {
-        $exprs = $list->rest()->rest()->toArray();
+        /** @var PersistentListInterface<mixed> $rest1 */
+        $rest1 = $list->rest();
+        /** @var PersistentListInterface<mixed> $rest2 */
+        $rest2 = $rest1->rest();
+        $exprs = $rest2->toArray();
 
         /** @psalm-suppress PossiblyNullArgument */
-        /** @var PersistentVectorInterface $bindingVector */
+        /** @var PersistentVectorInterface<mixed> $bindingVector */
         $bindingVector = $list->get(1);
         $bindings = $this->analyzeBindings($bindingVector, $env->withDisallowRecurFrame());
 
@@ -139,7 +153,9 @@ final readonly class LoopSymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
-     * @return BindingNode[]
+     * @param PersistentVectorInterface<mixed> $vector
+     *
+     * @return list<BindingNode>
      */
     private function analyzeBindings(PersistentVectorInterface $vector, NodeEnvironmentInterface $env): array
     {

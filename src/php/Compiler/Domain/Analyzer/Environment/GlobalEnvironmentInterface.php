@@ -16,10 +16,16 @@ interface GlobalEnvironmentInterface
 
     public function addDefinition(string $namespace, Symbol $name): void;
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed> $meta
+     */
     public function setCompileTimeMeta(string $namespace, Symbol $name, PersistentMapInterface $meta): void;
 
     public function hasDefinition(string $namespace, Symbol $name): bool;
 
+    /**
+     * @return PersistentMapInterface<mixed, mixed>|null
+     */
     public function getDefinition(string $namespace, Symbol $name): ?PersistentMapInterface;
 
     public function addRequireAlias(string $inNamespace, Symbol $name, Symbol $fullName): void;

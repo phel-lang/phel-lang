@@ -30,6 +30,9 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
 
     private const string STATE_DONE = 'done';
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): TryNode
     {
         $parsedTry = $this->parseTryForm($list);
@@ -49,10 +52,12 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
+     * @param PersistentListInterface<mixed> $list
+     *
      * @return array{
      *     body: list<mixed>,
-     *     catches: list<PersistentListInterface>,
-     *     finally: PersistentListInterface|null,
+     *     catches: list<PersistentListInterface<mixed>>,
+     *     finally: PersistentListInterface<mixed>|null,
      * }
      */
     private function parseTryForm(PersistentListInterface $list): array
@@ -62,7 +67,8 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         $catches = [];
         $finally = null;
 
-        for ($forms = $list->cdr(); $forms instanceof PersistentListInterface; $forms = $forms->cdr()) {
+        $forms = $list->cdr();
+        for (; $forms instanceof PersistentListInterface; $forms = $forms->cdr()) {
             $form = $forms->first();
 
             if ($this->isCatchForm($form)) {
@@ -95,10 +101,11 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
-     * @param list<PersistentListInterface> $catches
-     * @param PersistentListInterface       $form
+     * @param list<PersistentListInterface<mixed>> $catches
+     * @param PersistentListInterface<mixed>       $form
+     * @param PersistentListInterface<mixed>       $list
      *
-     * @param-out non-empty-list<PersistentListInterface> $catches
+     * @param-out non-empty-list<PersistentListInterface<mixed>> $catches
      */
     private function handleCatchForm(string $state, mixed $form, array &$catches, PersistentListInterface $list): string
     {
@@ -110,6 +117,12 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         return self::STATE_CATCHES;
     }
 
+    /**
+     * @param PersistentListInterface<mixed>|null $finally
+     * @param PersistentListInterface<mixed>      $list
+     *
+     * @param-out PersistentListInterface<mixed> $finally
+     */
     private function handleFinallyForm(string $state, mixed $form, ?PersistentListInterface &$finally, PersistentListInterface $list): string
     {
         if ($state === self::STATE_DONE) {
@@ -121,7 +134,8 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
-     * @param list<mixed> $body
+     * @param list<mixed>                    $body
+     * @param PersistentListInterface<mixed> $list
      */
     private function handleBodyForm(string $state, mixed $form, array &$body, PersistentListInterface $list): void
     {
@@ -143,16 +157,21 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
             : $env->getContext();
     }
 
+    /**
+     * @param PersistentListInterface<mixed>|null $finally
+     */
     private function analyzeFinallyBlock(?PersistentListInterface $finally, NodeEnvironmentInterface $env): ?AbstractNode
     {
         if (!$finally instanceof PersistentListInterface) {
             return null;
         }
 
+        /** @var PersistentListInterface<mixed> $rest */
+        $rest = $finally->rest();
         /** @psalm-suppress InvalidOperand */
         $finallyList = Phel::list([
             Symbol::create(Symbol::NAME_DO),
-            ...$finally->rest(),
+            ...$rest,
         ])->copyLocationFrom($finally);
 
         return $this->analyzer->analyze(
@@ -162,7 +181,7 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
-     * @param list<PersistentListInterface> $catches
+     * @param list<PersistentListInterface<mixed>> $catches
      *
      * @return list<CatchNode>
      */
@@ -177,6 +196,9 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         return $catchNodes;
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $catch
+     */
     private function analyzeSingleCatch(PersistentListInterface $catch, NodeEnvironmentInterface $env, string $catchContext): CatchNode
     {
         $type = $catch->get(1);
@@ -196,6 +218,9 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         );
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $catch
+     */
     private function validateCatchArguments(mixed $type, mixed $name, PersistentListInterface $catch): void
     {
         if (!($type instanceof Symbol)) {
@@ -207,6 +232,9 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         }
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $catch
+     */
     private function resolveCatchType(Symbol $type, NodeEnvironmentInterface $env, PersistentListInterface $catch): AbstractNode
     {
         $resolvedType = $this->analyzer->resolve($type, $env);
@@ -218,11 +246,20 @@ final class TrySymbol implements SpecialFormAnalyzerInterface
         return $resolvedType;
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $catch
+     */
     private function analyzeCatchBody(PersistentListInterface $catch, Symbol $name, NodeEnvironmentInterface $env, string $catchContext): AbstractNode
     {
+        /** @var PersistentListInterface<mixed> $rest1 */
+        $rest1 = $catch->rest();
+        /** @var PersistentListInterface<mixed> $rest2 */
+        $rest2 = $rest1->rest();
+        /** @var PersistentListInterface<mixed> $rest3 */
+        $rest3 = $rest2->rest();
         $exprs = [
             Symbol::create(Symbol::NAME_DO),
-            ...$catch->rest()->rest()->rest()->toArray(),
+            ...$rest3->toArray(),
         ];
 
         return $this->analyzer->analyze(

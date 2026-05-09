@@ -16,11 +16,7 @@ final class PartitionGenerator
     /**
      * Only yields complete partitions (drops incomplete final partition).
      *
-     * @template T
-     *
-     * @param iterable<T>|string $iterable
-     *
-     * @return Generator<int, PersistentVectorInterface>
+     * @return Generator<int, PersistentVectorInterface<mixed>>
      */
     public static function partition(int $n, mixed $iterable): Generator
     {
@@ -42,11 +38,7 @@ final class PartitionGenerator
     /**
      * Yields all partitions including incomplete final partition.
      *
-     * @template T
-     *
-     * @param iterable<T>|string $iterable
-     *
-     * @return Generator<int, PersistentVectorInterface>
+     * @return Generator<int, PersistentVectorInterface<mixed>>
      */
     public static function partitionAll(int $n, mixed $iterable): Generator
     {
@@ -70,11 +62,7 @@ final class PartitionGenerator
     }
 
     /**
-     * @template T
-     *
-     * @param iterable<T>|string $iterable
-     *
-     * @return Generator<int, PersistentVectorInterface>
+     * @return Generator<int, PersistentVectorInterface<mixed>>
      */
     public static function partitionBy(callable $f, mixed $iterable): Generator
     {

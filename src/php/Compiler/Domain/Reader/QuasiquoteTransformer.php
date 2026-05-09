@@ -60,7 +60,7 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
     private function doTransform($form, GensymContext $context)
     {
         if ($this->isUnquote($form)) {
-            /** @var PersistentList $form */
+            /** @var PersistentList<mixed> $form */
             return $form->get(1);
         }
 
@@ -103,6 +103,11 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
         return $form instanceof PersistentListInterface && $form->get(0) == Symbol::NAME_UNQUOTE_SPLICING;
     }
 
+    /**
+     * @param PersistentList<mixed> $form
+     *
+     * @return PersistentListInterface<mixed>
+     */
     private function createFromPersistentList(PersistentList $form, GensymContext $context): PersistentListInterface
     {
         return Phel::list([
@@ -115,6 +120,11 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
         ])->copyLocationFrom($form);
     }
 
+    /**
+     * @param PersistentVector<mixed> $form
+     *
+     * @return PersistentListInterface<mixed>
+     */
     private function createFromPersistentVector(PersistentVector $form, GensymContext $context): PersistentListInterface
     {
         return Phel::list([
@@ -127,6 +137,11 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
         ])->copyLocationFrom($form);
     }
 
+    /**
+     * @param PersistentMapInterface<mixed, mixed> $form
+     *
+     * @return PersistentListInterface<mixed>
+     */
     private function createFromMap(PersistentMapInterface $form, GensymContext $context): PersistentListInterface
     {
         $kvs = [];
@@ -146,6 +161,8 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
     }
 
     /**
+     * @param iterable<mixed> $seq
+     *
      * @return array<int, mixed>
      */
     private function expandList(iterable $seq, GensymContext $context): array

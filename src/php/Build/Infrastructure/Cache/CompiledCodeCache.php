@@ -39,7 +39,7 @@ final class CompiledCodeCache
      * same namespace would otherwise re-`require` the same env file,
      * which without opcache is a fresh parse each time.
      *
-     * @var array<string, array|null>
+     * @var array<string, array<string, mixed>|null>
      */
     private array $envMemo = [];
 
@@ -153,6 +153,9 @@ final class CompiledCodeCache
         return $this->pathResolver->environmentPath($namespace);
     }
 
+    /**
+     * @param array<string, mixed> $envData
+     */
     public function putEnvironment(string $namespace, array $envData): void
     {
         $this->ensureCacheDir();
@@ -164,6 +167,9 @@ final class CompiledCodeCache
         $this->envMemo[$envPath] = $envData;
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function getEnvironment(string $namespace): ?array
     {
         $envPath = $this->getEnvironmentPath($namespace);
@@ -176,7 +182,7 @@ final class CompiledCodeCache
             return $this->envMemo[$envPath] = null;
         }
 
-        /** @var array|null $data */
+        /** @var array<string, mixed>|null $data */
         $data = require $envPath;
 
         return $this->envMemo[$envPath] = $data;

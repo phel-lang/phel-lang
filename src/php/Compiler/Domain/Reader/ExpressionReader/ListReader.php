@@ -15,6 +15,9 @@ final readonly class ListReader
 {
     public function __construct(private Reader $reader) {}
 
+    /**
+     * @return PersistentListInterface<mixed>
+     */
     public function read(ListNode $node, NodeInterface $root): PersistentListInterface
     {
         $acc = [];

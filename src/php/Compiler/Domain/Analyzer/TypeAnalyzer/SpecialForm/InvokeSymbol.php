@@ -43,6 +43,9 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
 
     private const string UNHANDLED = "\0__phel_unhandled__";
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {
         $f = $this->analyzer->analyze(
@@ -64,7 +67,9 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
 
         $this->rejectNonCallableLiteral($f, $list);
 
-        $args = $this->arguments($list->rest(), $env);
+        /** @var PersistentListInterface<mixed> $rest */
+        $rest = $list->rest();
+        $args = $this->arguments($rest, $env);
 
         if ($f instanceof GlobalVarNode) {
             $this->verifyArgsAgainstParamTags($f, $args, $list);
@@ -79,7 +84,8 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
-     * @param list<AbstractNode> $args
+     * @param list<AbstractNode>             $args
+     * @param PersistentListInterface<mixed> $list
      */
     private function verifyArgsAgainstParamTags(
         GlobalVarNode $f,
@@ -127,6 +133,9 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
      * symbols and persistent maps/sets/vectors stay callable and are handled
      * at runtime.
      */
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     private function rejectNonCallableLiteral(AbstractNode $f, PersistentListInterface $list): void
     {
         $value = match (true) {
@@ -147,6 +156,9 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         }
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     private function inlineMacro(
         PersistentListInterface $list,
         GlobalVarNode $f,
@@ -172,6 +184,9 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         return $arityFn($arity);
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     private function globalMacro(
         PersistentListInterface $list,
         GlobalVarNode $f,
@@ -180,6 +195,11 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         return $this->analyzer->analyzeMacro($this->macroExpand($list, $f, $env), $env);
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     *
+     * @return array<mixed>|bool|float|int|string|TypeInterface|null
+     */
     private function inlineExpand(
         PersistentListInterface $list,
         GlobalVarNode $node,
@@ -198,6 +218,11 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         }
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     *
+     * @return array<mixed>|bool|float|int|string|TypeInterface|null
+     */
     private function macroExpand(
         PersistentListInterface $list,
         GlobalVarNode $macroNode,
@@ -220,23 +245,37 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         }
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     *
+     * @return array<mixed>|bool|float|int|string|TypeInterface|null
+     */
     private function callMacroFn(
         callable $fn,
         PersistentListInterface $list,
         NodeEnvironmentInterface $env,
     ): float|bool|int|string|TypeInterface|array|null {
         $envMap = $this->buildEnvMap($env);
-        $arguments = $list->rest()->toArray();
+        /** @var PersistentListInterface<mixed> $rest */
+        $rest = $list->rest();
+        $arguments = $rest->toArray();
 
         $result = $fn($list, $envMap, ...$arguments);
         return $this->enrichLocation($result, $list);
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     *
+     * @return array<mixed>|bool|float|int|string|TypeInterface|null
+     */
     private function callInlineFn(
         callable $fn,
         PersistentListInterface $list,
     ): float|bool|int|string|TypeInterface|array|null {
-        $arguments = $list->rest()->toArray();
+        /** @var PersistentListInterface<mixed> $rest */
+        $rest = $list->rest();
+        $arguments = $rest->toArray();
 
         $result = $fn(...$arguments);
         return $this->enrichLocation($result, $list);
@@ -247,6 +286,9 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
      * locals in scope at the macro call site; values mirror the keys. This
      * mirrors Clojure's `&env` shape enough to support patterns like
      * `(contains? &env 'x)`, `(keys &env)`, and `(:ns &env)`.
+     */
+    /**
+     * @return PersistentMapInterface<mixed, mixed>
      */
     private function buildEnvMap(NodeEnvironmentInterface $env): PersistentMapInterface
     {
@@ -259,6 +301,11 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         return Phel::map(...$kvs);
     }
 
+    /**
+     * @param array<mixed>|bool|float|int|string|TypeInterface|null $x
+     *
+     * @return array<mixed>|bool|float|int|string|TypeInterface|null
+     */
     private function enrichLocation(
         float|bool|int|string|TypeInterface|array|null $x,
         TypeInterface $parent,
@@ -274,6 +321,9 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         return $x;
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     private function enrichLocationForList(PersistentListInterface $list, TypeInterface $parent): TypeInterface
     {
         $result = [];
@@ -300,6 +350,11 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         return $type;
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $argsList
+     *
+     * @return list<AbstractNode>
+     */
     private function arguments(PersistentListInterface $argsList, NodeEnvironmentInterface $env): array
     {
         $arguments = [];
@@ -313,6 +368,9 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         return $arguments;
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     private function validateEnoughArgsProvided(GlobalVarNode $f, PersistentListInterface $list): void
     {
         $nodeName = $f->getName()->getName();
@@ -328,7 +386,9 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
             return;
         }
 
-        $gotCount = count($list->rest());
+        /** @var PersistentListInterface<mixed> $rest */
+        $rest = $list->rest();
+        $gotCount = count($rest);
         $isVariadic = (bool) $data->find('is-variadic');
         $maxArity = $data->find('max-arity');
 

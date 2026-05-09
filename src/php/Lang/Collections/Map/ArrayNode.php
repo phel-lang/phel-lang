@@ -27,6 +27,9 @@ final class ArrayNode implements HashMapNodeInterface, Countable
         private array $childNodes,
     ) {}
 
+    /**
+     * @return self<K, V>
+     */
     public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
     {
         return new self($hasher, $equalizer, 0, []);
@@ -40,13 +43,15 @@ final class ArrayNode implements HashMapNodeInterface, Countable
     /**
      * @param mixed $key
      * @param mixed $value
+     *
+     * @return HashMapNodeInterface<K, V>
      */
     public function put(int $shift, int $hash, $key, $value, Box $addedLeaf): HashMapNodeInterface
     {
         $index = $this->mask($hash, $shift);
 
         if (isset($this->childNodes[$index])) {
-            /** @var HashMapNodeInterface $node */
+            /** @var HashMapNodeInterface<K, V> $node */
             $node = $this->childNodes[$index];
             $n = $node->put($shift + 5, $hash, $key, $value, $addedLeaf);
             if ($n === $node) {
@@ -69,6 +74,11 @@ final class ArrayNode implements HashMapNodeInterface, Countable
         );
     }
 
+    /**
+     * @param mixed $key
+     *
+     * @return HashMapNodeInterface<K, V>
+     */
     public function remove(int $shift, int $hash, $key): HashMapNodeInterface
     {
         $index = $this->mask($hash, $shift);
@@ -113,11 +123,19 @@ final class ArrayNode implements HashMapNodeInterface, Countable
         return $node->find($shift + 5, $hash, $key, $notFound);
     }
 
+    /**
+     * @return Traversable<K, V>
+     */
     public function getIterator(): Traversable
     {
         return new ArrayNodeIterator($this->childNodes);
     }
 
+    /**
+     * @param HashMapNodeInterface<K, V>|null $node
+     *
+     * @return list<?HashMapNodeInterface<K, V>>
+     */
     private function cloneAndSet(int $index, ?HashMapNodeInterface $node): array
     {
         $newChildNodes = $this->childNodes;
@@ -126,8 +144,12 @@ final class ArrayNode implements HashMapNodeInterface, Countable
         return $newChildNodes;
     }
 
+    /**
+     * @return HashMapNodeInterface<K, V>
+     */
     private function pack(int $index): HashMapNodeInterface
     {
+        /** @var list<array{0: K|null, 1: HashMapNodeInterface<K, V>|V}> $objects */
         $objects = [];
         foreach ($this->childNodes as $i => $node) {
             if ($i === $index) {
@@ -141,7 +163,9 @@ final class ArrayNode implements HashMapNodeInterface, Countable
             $objects[$i] = [null, $node];
         }
 
-        return new IndexedNode($this->hasher, $this->equalizer, $objects);
+        /** @var IndexedNode<K, V> $result */
+        $result = new IndexedNode($this->hasher, $this->equalizer, $objects);
+        return $result;
     }
 
     private function mask(int $hash, int $shift): int

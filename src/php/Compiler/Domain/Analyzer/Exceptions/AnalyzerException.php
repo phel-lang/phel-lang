@@ -91,6 +91,9 @@ final class AnalyzerException extends AbstractLocatedException
         return $e;
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     public static function notEnoughArgsProvided(
         GlobalVarNode $f,
         PersistentListInterface $list,
@@ -115,6 +118,9 @@ final class AnalyzerException extends AbstractLocatedException
         return $e;
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     public static function tooManyArgsProvided(
         GlobalVarNode $f,
         PersistentListInterface $list,
@@ -138,6 +144,9 @@ final class AnalyzerException extends AbstractLocatedException
         return $e;
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     public static function whenExpandingInlineFn(
         PersistentListInterface $list,
         GlobalVarNode $node,
@@ -159,6 +168,9 @@ final class AnalyzerException extends AbstractLocatedException
         throw $e;
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
     public static function whenExpandingMacro(
         PersistentListInterface $list,
         GlobalVarNode $node,
@@ -198,6 +210,9 @@ final class AnalyzerException extends AbstractLocatedException
         return sprintf('%d to %d', $minArity, $maxArity);
     }
 
+    /**
+     * @param PersistentListInterface<mixed> $form
+     */
     private static function formatMacroExpansionError(
         string $type,
         string $namespace,

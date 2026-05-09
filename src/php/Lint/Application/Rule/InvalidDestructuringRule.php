@@ -62,7 +62,8 @@ final readonly class InvalidDestructuringRule implements LintRuleInterface
     }
 
     /**
-     * @param list<Diagnostic> $result
+     * @param PersistentListInterface<mixed> $form
+     * @param list<Diagnostic>               $result
      */
     private function inspectLet(PersistentListInterface $form, string $uri, array &$result): void
     {
@@ -93,7 +94,8 @@ final readonly class InvalidDestructuringRule implements LintRuleInterface
     }
 
     /**
-     * @param list<Diagnostic> $result
+     * @param PersistentListInterface<mixed> $form
+     * @param list<Diagnostic>               $result
      */
     private function inspectFn(PersistentListInterface $form, string $uri, array &$result): void
     {
@@ -103,7 +105,8 @@ final readonly class InvalidDestructuringRule implements LintRuleInterface
     }
 
     /**
-     * @param list<Diagnostic> $result
+     * @param PersistentVectorInterface<mixed> $params
+     * @param list<Diagnostic>                 $result
      */
     private function validateParamVector(PersistentVectorInterface $params, string $uri, array &$result): void
     {

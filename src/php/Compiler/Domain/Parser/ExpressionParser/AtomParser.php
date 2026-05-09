@@ -65,6 +65,9 @@ final readonly class AtomParser
 
     public function __construct(private GlobalEnvironmentInterface $globalEnvironment) {}
 
+    /**
+     * @return AbstractAtomNode<mixed>
+     */
     public function parse(Token $token): AbstractAtomNode
     {
         $word = $token->getCode();
@@ -169,6 +172,9 @@ final readonly class AtomParser
         );
     }
 
+    /**
+     * @param array<int|string, string> $matches
+     */
     private function parseBinaryNumber(array $matches, string $word, Token $token): NumberNode
     {
         $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
@@ -182,6 +188,9 @@ final readonly class AtomParser
         return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
     }
 
+    /**
+     * @param array<int|string, string> $matches
+     */
     private function parseHexadecimalNumber(array $matches, string $word, Token $token): NumberNode
     {
         $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
@@ -195,6 +204,9 @@ final readonly class AtomParser
         return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
     }
 
+    /**
+     * @param array<int|string, string> $matches
+     */
     private function parseOctalNumber(array $matches, string $word, Token $token): NumberNode
     {
         $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
@@ -212,6 +224,8 @@ final readonly class AtomParser
      * Parses Clojure-style radix literals of the form `NrXXX` where `N` is the
      * base (2–36) and `XXX` are digits valid for that base (case-insensitive
      * for bases greater than 10). Examples: `2r1111`, `16rFF`, `36rZZ`.
+     *
+     * @param array<int|string, string> $matches
      */
     private function parseRadixNumber(array $matches, string $word, Token $token): NumberNode
     {
@@ -293,6 +307,9 @@ final readonly class AtomParser
         return ((string) $intValue === $canonical) ? $intValue : (float) $word;
     }
 
+    /**
+     * @param array<int|string, string> $matches
+     */
     private function parseDecimalNumber(array $matches, string $word, Token $token): NumberNode
     {
         $sign = (isset($matches[1]) && $matches[1] === '-') ? -1 : 1;
@@ -310,6 +327,8 @@ final readonly class AtomParser
      * Returns a native PHP int when the value fits in the PHP int range,
      * otherwise a {@see BigInteger}, mirroring the auto-collapse used by
      * arithmetic overflow promotion.
+     *
+     * @param array<int|string, string> $matches
      */
     private function parseBigintLiteral(array $matches, string $word, Token $token): NumberNode
     {
@@ -325,6 +344,8 @@ final readonly class AtomParser
      * Parses an `M`-suffixed decimal literal (e.g. `1.5M`,
      * `9999999999999999999.123M`) into a {@see BigDecimal} value with
      * arbitrary precision.
+     *
+     * @param array<int|string, string> $matches
      */
     private function parseBigdecLiteral(array $matches, string $word, Token $token): NumberNode
     {
@@ -338,6 +359,8 @@ final readonly class AtomParser
      * {@see Rational} when irreducible, a {@see BigInteger} when the
      * normalised numerator no longer fits in a PHP int, otherwise a
      * native int. Zero denominators are rejected at parse time.
+     *
+     * @param array<int|string, string> $matches
      */
     private function parseRatioLiteral(array $matches, string $word, Token $token): NumberNode
     {
