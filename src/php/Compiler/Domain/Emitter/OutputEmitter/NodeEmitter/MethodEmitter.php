@@ -83,6 +83,10 @@ final readonly class MethodEmitter
         }
 
         $tag = $meta->find(Keyword::create('tag'));
+        if ($tag instanceof Symbol) {
+            $tag = $tag->getName();
+        }
+
         return is_string($tag) && $tag !== '' ? $tag : null;
     }
 

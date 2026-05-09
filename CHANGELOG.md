@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file.
 - `^:memoize` and `^{:memoize-lru N}` metadata on `defn` wrap the fn with `memoize` / `memoize-lru` (#1915)
 
 #### Compiler
-- `^{:tag "<php-type>"}` metadata on a fn or defn parameter emits a PHP type declaration on the compiled signature (#1916)
+- `^{:tag "<php-type>"}` metadata on a fn or defn parameter emits a PHP type declaration on the compiled signature; reader shorthands `^int x`, `^"?int" x`, `^"\\Foo\\Bar" x` all reduce to the same `:tag` form (#1916)
 
 #### Profile
 - `phel profile <path>` command: per-fn call counts and self/total/avg/max timings, plus compile-time phase costs (lex, parse, read, analyze, emit). Text table by default; `--format=json|both` and `--output=<file>` for tooling
