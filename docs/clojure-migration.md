@@ -1,6 +1,6 @@
 # Clojure to Phel Migration Guide
 
-Phel is a functional Lisp inspired by Clojure that compiles to PHP. If you know Clojure, you already know most of Phel. This guide covers the differences. Jump to [Quick reference](#quick-reference) for the at-a-glance view.
+Phel is a Lisp compiling to PHP. If you know Clojure, you know most of Phel. This guide covers the differences. Jump to [Quick reference](#quick-reference) for the at-a-glance view.
 
 ## Quick reference
 
@@ -19,7 +19,7 @@ Phel is a functional Lisp inspired by Clojure that compiles to PHP. If you know 
 
 ## What's the same
 
-Most of Clojure's core library works identically in Phel:
+Most of Clojure's core library works identically:
 
 - **Data structures**: persistent vectors `[]`, maps `{}`, sets, lists `'()`, lazy-seqs, sorted collections (`sorted-map`, `sorted-map-by`, `sorted-set`, `sorted-set-by`)
 - **Collection API**: `conj`, `conj!`, `disj`, `into`, `assoc`, `dissoc`, `get`, `get-in`, `update`, `update-in`, `merge`, `select-keys`, `keys`, `vals`, `update-keys`, `update-vals`, `rename-keys`, `zipmap`, `frequencies`, `group-by`
@@ -43,7 +43,7 @@ Most of Clojure's core library works identically in Phel:
 
 ## Reader syntax
 
-Clojure's reader syntax is accepted wholesale. Older Phel-specific forms still work but are deprecated:
+Clojure reader syntax is accepted wholesale. Older Phel-specific forms still work but are deprecated:
 
 | Syntax | Meaning | Old Phel form (deprecated) |
 |--------|---------|----------------------------|
@@ -54,8 +54,8 @@ Clojure's reader syntax is accepted wholesale. Older Phel-specific forms still w
 | `\a`, `\space`, `\uNNNN`, `\oNNN` | Character literal (compiles to single-char PHP string) | |
 | `##Inf`, `##-Inf`, `##NaN` | Symbolic numeric literal | |
 | `2r1111`, `16rFF` | Radix literal (bases 2 to 36) | |
-| `1N`, `1.5M` | BigInt / BigDecimal suffix (accepted, truncated to PHP int/float) | |
-| `1/2`, `-3/4` | Ratio literal (accepted, evaluated as float division; `1/0` → `INF`, `0/0` → `NaN`) | |
+| `1N`, `1.5M` | BigInteger / BigDecimal suffix (read as `Phel\Lang\BigInteger` / `Phel\Lang\BigDecimal`) | |
+| `1/2`, `-3/4` | Ratio literal (read as `Phel\Lang\Rational`; integer-valued ratios collapse to `int`/`BigInteger`) | |
 | `#"regex"` | Regex literal | |
 | `#?(...)`, `#?@(...)` | Reader conditionals (for `.cljc`) | |
 | `#<tag> form` | Tagged literal dispatch | |
@@ -64,12 +64,12 @@ Notes:
 
 - Named `fn` for self-recursion: `(fn fact [n] (if (zero? n) 1 (* n (fact (dec n)))))`. Multi-arity named fns resolve the name across arities.
 - `defmacro` bodies have `&form` (original macro call) and `&env` (locals at the call site), enabling dialect detection via `(:ns &env)` in `.cljc` sources.
-- No first-class `Var` or `Char` type. `#'foo` compiles to a bare symbol reference; `\A` compiles to the single-character string `"A"`.
+- `#'foo` reads as a first-class `Phel\Lang\Var` (see `var?`, `var-get`, `find-var`, `bound?`, `with-redefs`). No `Char` type: `\A` compiles to the single-character string `"A"`.
 - Unknown `#<tag>` literals inside unselected `#?` branches parse without error, so `.cljc` files with foreign tags like `#cpp` in non-`:phel` branches work.
 
 ## Namespace syntax
 
-Phel uses `\` as the native namespace separator (matching PHP), but accepts `.` for Clojure compatibility:
+Phel uses `\` as the native namespace separator (matching PHP). It also accepts `.`:
 
 ```phel
 ;; Both work:
@@ -80,9 +80,9 @@ Phel uses `\` as the native namespace separator (matching PHP), but accepts `.` 
 (ns my.app (:require [phel\string :as str :refer [upper-case]]))
 ```
 
-**Automatic aliasing**: `clojure.*` namespaces in `:require` resolve to `phel.*` when the target exists, so `.cljc` files that `(:require [clojure.string :as str])` work without changes.
+**Automatic aliasing**: `clojure.*` namespaces in `:require` resolve to `phel.*` when the target exists. `.cljc` files using `(:require [clojure.string :as str])` work unchanged.
 
-**Importing PHP classes**: use `(:use ...)` in the `ns` form to import a PHP class by short name, like PHP's `use` statement. This is Phel's equivalent of Clojure's `(:import ...)`:
+**Importing PHP classes**: use `(:use ...)` in the `ns` form (Phel's equivalent of `(:import ...)`):
 
 ```phel
 (ns my\app
@@ -94,7 +94,7 @@ Phel uses `\` as the native namespace separator (matching PHP), but accepts `.` 
 (php/:: Symbol (create "foo"))  ; FQN Phel\Lang\Symbol is aliased
 ```
 
-`:use` is optional. Classes can always be referenced by fully-qualified name at the call site: `(php/new \DateTime)`.
+`:use` is optional. Classes can always be referenced by FQN: `(php/new \DateTime)`.
 
 ## PHP interop (vs Java interop)
 
@@ -111,7 +111,7 @@ Phel uses `\` as the native namespace separator (matching PHP), but accepts `.` 
 | PHP function | N/A | `(php/strlen "hello")` |
 | String concat | `(str a b)` | `(str a b)` or `(php/. a b)` |
 
-Any PHP function can be called with the `php/` prefix:
+Any PHP function works with the `php/` prefix:
 
 ```phel
 (php/array_map f arr)
@@ -122,7 +122,7 @@ Any PHP function can be called with the `php/` prefix:
 
 ## .cljc cross-compilation
 
-Phel supports `.cljc` files with reader conditionals for sharing code between Clojure and Phel:
+`.cljc` files with reader conditionals share code between Clojure and Phel:
 
 ```clojure
 (ns shared.utils
@@ -145,11 +145,11 @@ Splice variant for embedding multiple forms:
 
 ## Clojure-compatible renames
 
-These Clojure names were added; the old Phel-specific names still work but are deprecated:
+Old Phel-specific names still work but are deprecated:
 
 | Clojure name | Old Phel name |
 |--------------|---------------|
-| `atom`, `atom?` | `var`, `var?` |
+| `atom`, `atom?` | `var`, `var?` (legacy alias; `var` / `var?` now refer to first-class Vars) |
 | `reset!` | `set!` |
 | `identical?` | `id` |
 | `fn?` | `function?` |
@@ -159,30 +159,29 @@ These Clojure names were added; the old Phel-specific names still work but are d
 | `NaN?` | `nan?` |
 | `integer?` | `int?` (alias, not deprecated) |
 
-The deprecated names will be removed in a future major version.
+Deprecated names are removed in a future major version.
 
 ## What's not available (and why)
 
-Phel runs on PHP. Some Clojure features don't translate directly:
+Some Clojure features don't translate to PHP:
 
 | Clojure feature | Why it's absent | Alternative |
 |-----------------|----------------|-------------|
 | **Refs / STM** | No concurrent transactions in PHP | Use `atom` for mutable state |
 | **Agents** | No background threads | PHP job queues via interop |
 | **core.async** | No goroutines/CSP, but fiber primitives (`promise`, `deliver`, `future-fiber`) cover CSP-lite handoffs, all in `phel\core`, no require needed | See [docs/async-guide.md](async-guide.md) |
-| **BigInt / BigDecimal / Ratio** | PHP number model | Suffix literals (`1N`, `1.5M`) and ratio literals (`1/2`) are accepted; ratios evaluate to `num / den` as a float. Use `bcmath` / `gmp` via `php/` interop for real arbitrary precision |
+| **BigInt / BigDecimal / Ratio** | First-class `Phel\Lang\BigInteger`, `Phel\Lang\BigDecimal`, `Phel\Lang\Rational` ship in core | Use literals `1N`, `1.5M`, `1/2` or constructors `bigint`, `bigdec`, `rationalize`. See [numeric-tower.md](numeric-tower.md) |
 | **Character type** | PHP has no char type | Character literals (`\a`) and `char` / `char?` are supported but compile to single-character strings |
 | **Spec** | Not ported | Use runtime assertions or PHP validation |
-| **Vars (Clojure sense)** | PHP has no thread-local bindings | `def` creates namespace-level bindings directly |
-| **`alter-var-root`** | No first-class vars to re-root | Use an `atom` with `swap!` for mutable state, or redefine the top-level binding with `def`. Calling `alter-var-root` at runtime throws `BadMethodCallException` with this hint |
+| **`alter-var-root`** | Available: `(alter-var-root #'sym f)` re-roots the global binding | Use `with-redefs` for scoped overrides; `add-watch`/`remove-watch` on vars for change tracking |
 
-The Clojure-parity async surface lives in `phel\core`, reachable without any require: `future`, `future-cancel`, `future-cancelled?`, `future-done?`, `future?`, `pmap`, `promise`, `deliver`, plus the Phel fiber combinators `async`, `await`, `await-all`, `await-any`, `future-call`, `future-fiber`, and `->closure`. The implementation uses AMPHP fibers. Semantics match Clojure's `future` where possible (including timeout-bounded `deref`), but cancellation is cooperative rather than thread-interrupt, and `pmap` is single-threaded (overlaps IO, does not parallelize CPU). The one async symbol that still needs `(:require phel\async)` is `delay`, kept out of core because Phel's `delay` is a sleep primitive while `clojure.core/delay` is a lazy thunk. See [docs/async-guide.md](async-guide.md) for the decision guide.
+The async surface lives in `phel\core`, no require needed: `future`, `future-cancel`, `future-cancelled?`, `future-done?`, `future?`, `pmap`, `promise`, `deliver`, plus fiber combinators `async`, `await`, `await-all`, `await-any`, `future-call`, `future-fiber`, and `->closure`. Built on AMPHP fibers. Semantics match `future` where possible (including timeout-bounded `deref`), but cancellation is cooperative, and `pmap` is single-threaded (overlaps IO, does not parallelize CPU). Only `delay` needs `(:require phel\async)`, since Phel's `delay` is a sleep primitive while `clojure.core/delay` is a lazy thunk. See [docs/async-guide.md](async-guide.md).
 
 ## Structural differences
 
 ### defstruct, defrecord, and deftype
 
-Phel's native type form is `defstruct`. `defrecord` and `deftype` are thin macros over `defstruct` and produce the `->Name` / `map->Name` factory functions Clojure programmers expect:
+Phel's native type form is `defstruct`. `defrecord` and `deftype` are thin macros over `defstruct` and produce the `->Name` / `map->Name` factories:
 
 ```phel
 ;; defstruct (native)
@@ -200,7 +199,7 @@ Phel's native type form is `defstruct`. `defrecord` and `deftype` are thin macro
 (->PointT 1 2)           ;; positional factory (no map-> counterpart)
 ```
 
-Inline protocol methods work in both macro bodies; they are spliced into an `extend-type` call:
+Inline protocol methods work in both macro bodies (spliced into `extend-type`):
 
 ```phel
 (defprotocol Drawable
@@ -211,18 +210,18 @@ Inline protocol methods work in both macro bodies; they are spliced into an `ext
   (draw [this canvas] (str canvas ":" (get this :label))))
 ```
 
-`reify` is also supported for anonymous protocol implementation:
+`reify` supports anonymous protocol implementation:
 
 ```phel
 (reify Drawable
   (draw [this canvas] (str canvas ":anon")))
 ```
 
-Phel's `deftype` shares the map-backed `defstruct` infrastructure, so instances remain map-like (keys accessible via `get`). Clojure's `deftype` creates a non-map type; if you need that, fall back to native PHP interop.
+Phel's `deftype` shares the map-backed `defstruct` infrastructure: instances stay map-like (keys accessible via `get`). For Clojure's non-map `deftype`, fall back to native PHP interop.
 
 ### No lazy-seq by default
 
-Phel sequences are eager by default. Use `lazy-seq` explicitly when needed:
+Phel sequences are eager. Use `lazy-seq` when needed:
 
 ```phel
 (defn lazy-fib
@@ -230,11 +229,11 @@ Phel sequences are eager by default. Use `lazy-seq` explicitly when needed:
   ([a b] (lazy-seq (cons a (lazy-fib b (+ a b))))))
 ```
 
-`(range)` with 0 arguments returns an infinite lazy sequence (matching Clojure).
+`(range)` with 0 arguments returns an infinite lazy sequence.
 
 ### Test framework
 
-Phel's test framework lives in `phel\test` and mirrors `clojure.test`:
+`phel\test` mirrors `clojure.test`:
 
 ```phel
 (ns my-app\test
@@ -249,7 +248,7 @@ Phel's test framework lives in `phel\test` and mirrors `clojure.test`:
       3 3 6)))
 ```
 
-Extend `is` with custom assertion forms by adding a `phel\test/assert-expr` method:
+Extend `is` with custom assertions via `phel\test/assert-expr`:
 
 ```phel
 (defmethod phel\test/assert-expr 'my-form [msg form] ...)

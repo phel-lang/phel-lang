@@ -1,6 +1,6 @@
 # Building CLIs with `phel\cli`
 
-`phel\cli` is a data-driven wrapper over [`symfony/console`](https://symfony.com/doc/current/components/console.html): subcommands, arguments, options, prompts, tables, progress bars, shell completion, signal handling, all as plain Phel maps. No extra dependency; `symfony/console` already ships with phel-lang.
+`phel\cli` is a data-driven wrapper over [`symfony/console`](https://symfony.com/doc/current/components/console.html). Subcommands, arguments, options, prompts, tables, progress bars, shell completion, and signal handling all defined as plain Phel maps. No extra dependency; `symfony/console` ships with phel-lang.
 
 ## Quickstart
 
@@ -97,10 +97,7 @@ Your `:run` handler receives a **context map**:
  :style     <SymfonyStyle>}
 ```
 
-Return:
-
-- `nil` or `0` -> success
-- any other `int` -> exit code
+Return `nil` or `0` for success, any other `int` for an exit code.
 
 Uncaught `Throwable` becomes a red `<error>` line plus exit code `1`. With `-v`, the stack trace is written.
 
@@ -204,7 +201,7 @@ my-tool _complete --generate-hook=bash > ~/.bash_completion.d/my-tool
 
 ## Testing your CLI
 
-`phel\cli` ships test helpers so handlers run without spawning a process:
+Test helpers run handlers without spawning a process:
 
 ```phel
 (ns my-tool-test\test\main
@@ -234,7 +231,7 @@ For prompt testing, pipe canned STDIN:
 
 ## Running under `phel run`
 
-When running a CLI script via `./bin/phel run path/to/script.phel arg1 arg2`, Phel's own Symfony console occupies `$_SERVER['argv']`. User-facing arguments come through the Phel core var `argv`. Pass them to `cli/run` explicitly:
+When invoked via `./bin/phel run path/to/script.phel arg1 arg2`, Phel's own Symfony console occupies `$_SERVER['argv']`. User-facing arguments come through the Phel core var `argv`. Pass them to `cli/run` explicitly:
 
 ```phel
 ;; Bad: reads the wrapper's argv, so "run" looks like your first command.
@@ -244,18 +241,18 @@ When running a CLI script via `./bin/phel run path/to/script.phel arg1 arg2`, Ph
 (cli/run app (cli/argv argv))
 ```
 
-This is only needed when the script is invoked via `phel run`. A compiled standalone binary built with `phel build` uses `$_SERVER['argv']` directly, so `(cli/run app)` is fine there.
+Only needed under `phel run`. A standalone binary built with `phel build` uses `$_SERVER['argv']` directly, so `(cli/run app)` is fine there.
 
 ## Best practices
 
-- **Spec validation is eager.** Malformed maps throw `InvalidArgumentException` at build time with a Phel-friendly message: catch bugs before ship.
-- **Return exit codes.** Never call `php/exit` from a handler (except in signal handlers). Return an `int`, and `phel\cli` handles it.
-- **Use `:coerce`.** Don't `(php/intval (arg ctx "port"))` in every handler; specify `:coerce :int` once.
+- **Spec validation is eager.** Malformed maps throw `InvalidArgumentException` at build time with a Phel-friendly message.
+- **Return exit codes.** Never call `php/exit` from a handler (except in signal handlers). Return an `int`.
+- **Use `:coerce`.** Avoid `(php/intval (arg ctx "port"))` in every handler; specify `:coerce :int` once.
 - **Lift handlers to top-level fns.** Keeps `:run` small and testable.
-- **Keep `:default`** set to a safe command. With no args and no default, Symfony shows help, usually fine but explicit is nicer.
+- **Keep `:default`** set to a safe command. With no args and no default, Symfony shows help.
 
 ## See also
 
 - [`phel\router`](../src/phel/router.phel): companion for HTTP apps
 - [`phel\http-client`](../src/phel/http-client.phel): outbound HTTP
-- [symfony/console docs](https://symfony.com/doc/current/components/console.html): full underlying API
+- [symfony/console docs](https://symfony.com/doc/current/components/console.html): underlying API

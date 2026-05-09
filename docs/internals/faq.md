@@ -14,7 +14,7 @@ Grouped by reader.
 
 **Xdebug, Psalm, PHPStan?** Yes, on the generated PHP. Source maps point traces back to `.phel`. `composer test-quality` runs Psalm + PHPStan on `src/php/`.
 
-**Call cost?** Function: one `__invoke` plus arg unpacking. Negligible. Collections: trie-backed, O(log32 n) with small constants. See [benchmarks.md](benchmarks.md).
+**Call cost?** Function: one `__invoke` plus arg unpacking, negligible. Collections: trie-backed, O(log32 n) with small constants. See [benchmarks.md](benchmarks.md).
 
 ## Coming from Clojure
 
@@ -24,7 +24,7 @@ Grouped by reader.
 
 **Hygienic macros?** Quasiquote namespace-qualifies symbols at read time. `x#` inside a quasiquote expands to a fresh gensym consistent within that quasiquote. See [macros.md](macros.md).
 
-**REPL? nREPL?** Both. `phel repl` interactive; `phel nrepl` over bencode/TCP. See [nrepl-guide.md](../nrepl-guide.md).
+**REPL? nREPL?** Both. `phel repl` is interactive. `phel nrepl` runs over bencode/TCP. See [nrepl-guide.md](../nrepl-guide.md).
 
 **`recur` and tail calls.** Loop body becomes `while (true) { ... }` rebinding parameters. No stack growth. PHP has no TCO; `recur` does not need it.
 
@@ -51,7 +51,7 @@ $emit   = $facade->compile('(print "hi")', new CompileOptions());
 
 **Add a core function.** Pure Phel: `src/phel/core/...` with `:doc`, `:see-also`, `:example`. Run `composer test-core`. Needs PHP: thin wrapper under `src/phel/...` calling a PHP helper, run `composer test-compiler` + `composer test-core`.
 
-**`NodeEnvironment` context.** `Expression`, `Statement`, `Return`. Analyzer picks based on position (function body last form: `Return`; `if` branch in expression position: `Expression`). Wrong PHP output? 90% of the time wrong context, not the emitter. Helpers: `withReturnContext()`, `withStatementContext()`, `withExpressionContext()`.
+**`NodeEnvironment` context.** `Expression`, `Statement`, `Return`. Analyzer picks based on position (function body last form: `Return`; `if` branch in expression position: `Expression`). Wrong PHP output is usually a wrong context, not an emitter bug. Helpers: `withReturnContext()`, `withStatementContext()`, `withExpressionContext()`.
 
 **Broken integration fixture.** Update only if new PHP is intentional. Verify by hand first. The `fixture-reviewer` agent (`.claude/agents/`) audits drift.
 
@@ -79,11 +79,11 @@ $emit   = $facade->compile('(print "hi")', new CompileOptions());
 
 ## Bug hunting
 
-**"Cannot resolve symbol X".** `AnalyzeSymbol` checks locals → current ns globals → `use` aliases → `phel\core`. Miss: `SymbolSuggestionProvider` builds a suggestion + throws with `SourceLocation`. Common cause: missing `(require ...)`.
+**"Cannot resolve symbol X".** `AnalyzeSymbol` checks locals, then current-ns globals, then `use` aliases, then `phel\core`. Miss: `SymbolSuggestionProvider` builds a suggestion and throws with `SourceLocation`. Common cause: missing `(require ...)`.
 
 **"Type X cannot be coerced" or unexpected `nil`.** Run `(macroexpand-1 'form)`. Often a macro expansion surprise.
 
-**Compiles fine, runtime is weird.** Read the cached `.php`. Surprising emit = analyzer bug (wrong context, wrong recur frame, wrong locals). Emitter just transcribes.
+**Compiles fine, runtime is weird.** Read the cached `.php`. Surprising emit usually means an analyzer bug (wrong context, wrong recur frame, wrong locals). The emitter only transcribes.
 
 **`Lang/` change breaks ten modules.** Working as designed. `composer test` before push. Faster signal: `composer test-compiler`.
 

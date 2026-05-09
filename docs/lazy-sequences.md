@@ -1,16 +1,10 @@
 # Lazy Sequences in Phel
 
-Work with potentially infinite collections by deferring computation until values are needed.
-
-## Overview
-
-Two constructs:
-- **`lazy-seq`**: creates a lazy sequence from an expression
-- **`lazy-cat`**: lazily concatenates multiple collections
+Defer computation until values are needed. Two constructs: `lazy-seq` wraps an expression; `lazy-cat` concatenates collections.
 
 ## The `lazy-seq` Macro
 
-`lazy-seq` takes a body returning a sequence or nil and yields a LazySeq that invokes the body on first access, caching the result.
+`lazy-seq` takes a body returning a sequence or nil. It yields a LazySeq that runs the body on first access and caches the result.
 
 ### Basic Usage
 
@@ -32,7 +26,7 @@ Combine `lazy-seq` with recursion to build infinite sequences:
 
 ```phel
 ;; Generate infinite sequence of integers starting from n
-(defn ints-from [n]
+(defn ints-from [^int n]
   (lazy-seq
     (cons n (ints-from (inc n)))))
 
@@ -50,11 +44,7 @@ Combine `lazy-seq` with recursion to build infinite sequences:
 
 ## The `lazy-cat` Macro
 
-Convenient syntax for concatenating collections.
-
-**Important:** `lazy-cat` expands to `concat` and evaluates all arguments eagerly.
-Fine for combining finite or already-realized lazy sequences, but
-**NOT suitable for recursive infinite sequences**.
+Concatenates collections. Expands to `concat` and evaluates arguments eagerly. Fine for finite or already-realized sequences, **not** for recursive infinite ones.
 
 ### Basic Concatenation
 
@@ -91,9 +81,7 @@ When building recursive infinite sequences, use `cons` instead:
   (lazy-seq (lazy-cat [n] (ints (inc n)))))  ; Don't do this!
 ```
 
-**Why?** `lazy-cat` evaluates all arguments before concatenating, so the
-recursive call `(ints (inc n))` runs immediately and recurses forever.
-Use `cons` to defer evaluation.
+`lazy-cat` evaluates all arguments before concatenating, so the recursive call runs immediately and never returns. `cons` defers evaluation.
 
 ## Common Patterns
 
@@ -116,7 +104,7 @@ Use `cons` to defer evaluation.
   (let [sieve (fn sieve [s]
                 (lazy-seq
                   (cons (first s)
-                        (sieve (filter (fn [x] (not= 0 (php/% x (first s))))
+                        (sieve (filter (fn [x] (not= 0 (mod x (first s))))
                                        (rest s))))))]
     (sieve (ints-from 2))))
 
@@ -164,7 +152,7 @@ Many core functions return lazy sequences:
 
 ;; Lazy composition
 (->> (range 100)
-     (filter (fn [x] (= 0 (php/% x 2))))
+     (filter even?)
      (map (fn [x] (* x x)))
      (take 5))
 ;; => [0 4 16 36 64]
@@ -178,20 +166,20 @@ Many core functions return lazy sequences:
 
 ### When to Use Lazy Sequences
 
-**Use lazy sequences when:**
-- Working with large or infinite collections
+**Use:**
+- Large or infinite collections
 - Not all elements will be consumed
-- Composition of transformations is important
+- Composing transformations
 - Memory efficiency matters
 
-**Avoid lazy sequences when:**
-- All elements will be accessed immediately
+**Avoid:**
+- All elements accessed immediately
 - Multiple iterations over the same sequence
-- Holding onto the head causes memory leaks
+- Holding the head causes memory leaks
 
 ### Chunking
 
-Phel's lazy sequences realize elements in chunks rather than one at a time. This reduces overhead but means:
+Lazy sequences realize elements in chunks. Lower overhead, but:
 
 ```phel
 ;; Side effects may happen in chunks
@@ -275,20 +263,6 @@ Side effects run on realization, not creation:
 
 ## Further Reading
 
-- Lazy sequence examples: `docs/examples/`
-- Core function reference: docstrings in `src/phel/core.phel`
+- Examples: `docs/examples/`
+- Core function reference: docstrings in `src/phel/core/`
 - Clojure lazy sequences: https://clojure.org/reference/sequences
-
-## Summary
-
-Lazy sequences provide:
-- **Memory efficiency**: process large datasets without loading everything
-- **Composability**: chain transformations
-- **Infinite sequences**: work with conceptually infinite collections
-- **Performance**: compute only what's needed
-
-Key takeaways:
-- Use `lazy-seq` for custom lazy sequences
-- Use `cons` (not `lazy-cat`) for recursive infinite sequences
-- Watch for chunking and head retention
-- Force realization with `doall`/`dorun` when needed

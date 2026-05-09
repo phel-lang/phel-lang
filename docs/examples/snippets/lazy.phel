@@ -1,7 +1,7 @@
 (ns examples\snippets\lazy)
 
 ;; lazy-seq defers computation until elements are realized
-(defn ints-from [n] (lazy-seq (cons n (ints-from (inc n)))))
+(defn ints-from [^int n] (lazy-seq (cons n (ints-from (inc n)))))
 
 (println (take 5 (ints-from 10)))          ; (10 11 12 13 14)
 

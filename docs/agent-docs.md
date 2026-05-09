@@ -1,6 +1,6 @@
 # AI coding agents
 
-`resources/agents/` ships docs, task recipes, and skill files so AI coding tools (Claude Code, Cursor, Codex, Gemini, Copilot, Aider) can build Phel apps without scraping the website on cold start.
+`resources/agents/` ships docs, task recipes, and skill files so AI coding tools (Claude Code, Cursor, Codex, Gemini, Copilot, Aider) build Phel apps without scraping the website on cold start.
 
 ## Install
 
@@ -42,7 +42,7 @@ Each installed file routes the agent to `.agents/index.md` for task recipes: sca
 
 ## Repository maintenance adapters
 
-The repository also contains AI tool config for maintaining phel-lang itself. Keep these separate from the downstream `resources/agents/` package:
+The repo also contains AI tool config for maintaining phel-lang itself. Keep these separate from the downstream `resources/agents/` package:
 
 | Path | Audience |
 |------|----------|

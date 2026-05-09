@@ -20,8 +20,8 @@ Three concerns: types, per-namespace `Registry`, value equality + hashing.
 | Type | Notes |
 |------|-------|
 | `Symbol` | Identifier with optional ns. `NAME_*` constants name special forms. |
-| `Keyword` | Interned `:foo`. Implements `FnInterface` → `(:foo m)` is a map lookup. |
-| `Variable` | Mutable cell with watches/validators; `def` wraps values in one. |
+| `Keyword` | Interned `:foo`. Implements `FnInterface`, so `(:foo m)` is a map lookup. |
+| `Variable` | Mutable cell with watches/validators. `def` wraps values in one. |
 | `Delay` | One-shot lazy value (not a sequence). |
 | `Volatile` | Mutable box for transducer state. |
 | `Reduced` | Early-termination sentinel for `reduce`/`transduce`. |
@@ -32,27 +32,27 @@ All types implement `TypeInterface` (composes `MetaInterface`, `SourceLocationIn
 
 ## Persistent collections (`Lang/Collections/`)
 
-Immutable; "modify" returns a new value with structural sharing.
+Immutable. "Modify" returns a new value with structural sharing.
 
 | Type | Impl |
 |------|------|
 | Vector | `PersistentVector`: 32-way trie |
-| Map | `PersistentArrayMap` (small) → `PersistentHashMap` (HAMT) |
+| Map | `PersistentArrayMap` (small) promoted to `PersistentHashMap` (HAMT) |
 | List | `PersistentList` (singly linked) |
 | Set | `PersistentHashSet` (over hash map) |
 | Lazy seq | `LazySeq`: realise + cache per element |
 | Struct | `AbstractPersistentStruct`: fixed-key map, subclassed by `defstruct` |
 
-Transients for bulk building: `as-transient` → mutate → `persistent!`. Never let a transient escape its scope.
+Transients for bulk building: `as-transient`, mutate, `persistent!`. Never let a transient escape its scope.
 
 `TypeFactory` (singleton): `emptyVector()`, `emptyMap()`, `vectorFromArray()`. Compiler emits via `\Phel::vector(...)`, `\Phel::map(...)`, `\Phel::set(...)`.
 
 ## Equality + hashing
 
-Value equality: `(= [1 2] [1 2])` true regardless of object identity.
+Value equality: `(= [1 2] [1 2])` is true regardless of object identity.
 
 - `Equalizer`: `===` for scalars, structural for collections.
-- `Hasher`: `int` hashes that agree with `Equalizer`. Mismatch = lost map entries.
+- `Hasher`: `int` hashes that agree with `Equalizer`. A mismatch loses map entries.
 
 Built-in types participate. PHP objects fall back to `spl_object_hash` (identity).
 
@@ -63,18 +63,18 @@ Built-in types participate. PHP objects fall back to `spl_object_hash` (identity
 | `Lang\Registry` (singleton) | runtime | `ns → name → value` + metadata |
 | `GlobalEnvironment` (`Compiler/Domain/Analyzer/Environment/`) | compile time | what analyzer knows about declared names |
 
-Each top-level form compiles + evaluates before the next is analysed → both stay in sync. `defmacro` becomes available immediately to following forms. Reset both: `CompilerFacade::resetGlobalEnvironment()`.
+Each top-level form compiles + evaluates before the next is analysed, so both stay in sync. `defmacro` becomes available immediately to following forms. Reset both with `CompilerFacade::resetGlobalEnvironment()`.
 
 ## `\Phel` static facade
 
-`src/php/Phel.php` is the runtime ABI. Cached `.php` files in the wild call into it. Signature changes = breaking.
+`src/php/Phel.php` is the runtime ABI. Cached `.php` files in the wild call into it. Signature changes are breaking.
 
 - `addDefinition($ns, $name, $value, $meta = null)`
 - `keyword($name)` / `namespacedKeyword($ns, $name)` / `symbol($name)`
 - `vector(...$items)` / `map(...$kvs)` / `set(...$items)`
 - `ns($name)`: switch current namespace
 
-Change a signature → audit `Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/*Emitter.php`.
+Changing a signature requires auditing `Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/*Emitter.php`.
 
 ## Reader tags (`#tag`)
 
@@ -82,7 +82,7 @@ Change a signature → audit `Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/
 
 ## Source locations
 
-Carried lexer → AST → emitted source map. Don't drop. When constructing a form inside a special-form handler, `Symbol::copyLocationFrom($nearby)` (examples throughout `Compiler/Domain/Analyzer/TypeAnalyzer/SpecialForm/`).
+Carried lexer to AST to emitted source map. Don't drop. When constructing a form inside a special-form handler, use `Symbol::copyLocationFrom($nearby)`. Examples throughout `Compiler/Domain/Analyzer/TypeAnalyzer/SpecialForm/`.
 
 ## See also
 

@@ -1,10 +1,10 @@
 # Special Forms
 
-List with a recognised head symbol routed to a dedicated analyzer. Anything else (not a special form, not a macro, not a literal collection) is a function call. Macros expand into special forms: special forms are the bottom.
+A list with a recognised head symbol routes to a dedicated analyzer. Anything else (not a special form, not a macro, not a literal collection) is a function call. Macros expand into special forms; special forms are the bottom.
 
 ## Dispatch
 
-`Compiler/Domain/Analyzer/TypeAnalyzer/AnalyzePersistentList.php` matches the head against `Symbol::NAME_*` constants in `src/php/Lang/Symbol.php`. Match → `SpecialFormAnalyzerInterface` impl in `Compiler/Domain/Analyzer/TypeAnalyzer/SpecialForm/`. Miss → `InvokeSymbol`.
+`Compiler/Domain/Analyzer/TypeAnalyzer/AnalyzePersistentList.php` matches the head against `Symbol::NAME_*` constants in `src/php/Lang/Symbol.php`. On match, dispatches to a `SpecialFormAnalyzerInterface` impl in `Compiler/Domain/Analyzer/TypeAnalyzer/SpecialForm/`. On miss, falls through to `InvokeSymbol`.
 
 ```php
 match ($symbolName) {
@@ -49,7 +49,7 @@ Each handler returns one `AbstractNode`. Emitter has 1:1 mapping to `*Emitter.ph
 
 ## Type definitions (low-level)
 
-Trailing `*` = not user-facing. Macros `defstruct`, `definterface`, `defexception`, `reify` expand into these.
+Trailing `*` means not user-facing. Macros `defstruct`, `definterface`, `defexception`, `reify` expand into these.
 
 | Form | Const | Handler | Node |
 |------|-------|---------|------|
@@ -74,15 +74,15 @@ Trailing `*` = not user-facing. Macros `defstruct`, `definterface`, `defexceptio
 
 ## Not special forms
 
-- `if-let`, `when`, `cond`, `case`, `match`, `->`, `->>` → macros in `phel\core`
-- `defn`, `defmacro`, `defstruct`, `definterface`, `defexception`, `reify` → macros over `*` forms
-- `+`, `-`, `=`, `map`, `filter`, … → functions in `phel\core`
+- `if-let`, `when`, `cond`, `case`, `match`, `->`, `->>`: macros in `phel\core`
+- `defn`, `defmacro`, `defstruct`, `definterface`, `defexception`, `reify`: macros over `*` forms
+- `+`, `-`, `=`, `map`, `filter`, ...: functions in `phel\core`
 
-`(macroexpand-1 'form)` to see the truth.
+Run `(macroexpand-1 'form)` to see the truth.
 
 ## Adding one
 
-5 touches. Skip → throws at compile time.
+5 touches. Skipping any throws at compile time.
 
 1. `public const string NAME_FOO = 'foo';` in `src/php/Lang/Symbol.php`
 2. `FooNode extends AbstractNode` in `Compiler/Domain/Analyzer/Ast/`

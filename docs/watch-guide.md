@@ -29,7 +29,7 @@ On each change, `phel watch` reloads the changed namespace and its dependents in
 (watch! ["src/" "tests/"])
 ```
 
-Returns a handle. Stop with `(stop-watch! h)`.
+Blocks until interrupted (Ctrl+C). Reloads changed namespaces in dependency order. Register per-namespace hooks with `register-on-reload`.
 
 ## Pitfalls
 

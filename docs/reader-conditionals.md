@@ -1,14 +1,12 @@
 # Reader Conditionals in Phel
 
-## What are reader conditionals?
+Reader conditionals enable platform-specific code in shared source files. They resolve at parse time, before compilation. Phel selects the `:phel` branch, ignores other platforms (`:clj`, `:cljs`, ...), and falls back to `:default` when present.
 
-Reader conditionals allow platform-specific code in shared source files. They are evaluated at read time (during parsing), before compilation. The Phel compiler selects the `:phel` branch, ignores branches for other platforms (`:clj`, `:cljs`, etc.), and optionally falls back to `:default`.
-
-This enables `.cljc` files: source files shared between Phel, Clojure, and other Lisp dialects that support reader conditionals.
+This enables `.cljc` files shared between Phel, Clojure, and other Lisp dialects.
 
 ## Basic usage: `#?()`
 
-A reader conditional selects one form based on the platform:
+Selects one form based on platform:
 
 ```phel
 #?(:phel  (php/time)
@@ -51,7 +49,7 @@ A reader conditional selects one form based on the platform:
 
 ## Splicing: `#?@()`
 
-Reader conditional splicing inserts multiple elements from a collection into the surrounding form:
+Splices multiple elements from a collection into the surrounding form:
 
 ```phel
 [1 #?@(:phel [2 3]) 4]
@@ -79,7 +77,7 @@ The matched branch **must be a sequential collection** (vector or list). Its ele
 
 ### Top-level restriction
 
-`#?@()` is only valid inside a collection (list, vector, map, set). Using it at the top level is an error:
+`#?@()` is only valid inside a collection (list, vector, map, set). Top-level use is an error:
 
 ```phel
 ;; ERROR: Reader conditional splicing #?@() is not allowed at the top level
@@ -90,7 +88,7 @@ The matched branch **must be a sequential collection** (vector or list). Its ele
 
 ### Cross-platform source files (`.cljc`)
 
-Phel discovers and compiles `.cljc` files alongside `.phel` files, letting you share code between Phel and Clojure:
+Phel discovers and compiles `.cljc` files alongside `.phel` files:
 
 ```phel
 ;; src/shared/utils.cljc
@@ -137,7 +135,7 @@ Phel discovers and compiles `.cljc` files alongside `.phel` files, letting you s
 
 ### Inside control flow
 
-Reader conditionals resolve at parse time, so they work naturally inside any form:
+Reader conditionals resolve at parse time, so they work inside any form:
 
 ```phel
 (if #?(:phel true :clj false)
@@ -151,12 +149,12 @@ Reader conditionals resolve at parse time, so they work naturally inside any for
 Reader conditionals resolve during the **parsing phase** (Lexer -> **Parser** -> Analyzer -> Emitter). The parser:
 
 1. Reads keyword-form pairs inside `#?()` or `#?@()`
-2. Selects the `:phel` branch if present, otherwise `:default`
-3. For `#?()`: replaces the entire conditional with the selected form
-4. For `#?@()`: splices the selected collection's elements into the parent
-5. If no branch matches: the conditional is dropped as trivia (like a comment)
+2. Selects `:phel` if present, else `:default`
+3. `#?()`: replaces the conditional with the selected form
+4. `#?@()`: splices the selected collection into the parent
+5. No match: drops the conditional as trivia
 
-Since this happens at parse time, the analyzer and emitter never see the reader conditional; they only see the selected form.
+The analyzer and emitter only see the selected form.
 
 ## Summary
 

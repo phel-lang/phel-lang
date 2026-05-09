@@ -19,15 +19,15 @@ Functions for manipulating Phel's immutable data structures: vectors, maps, sets
 
 ## Introduction
 
-Phel's data structures are **immutable** and **persistent**. Operations return new versions while sharing structure with the original: reads stay O(1) amortized, updates cost log32(n).
+Phel's data structures are **immutable** and **persistent**. Operations return new versions while sharing structure with the original. Reads stay O(1) amortized; updates cost log32(n).
 
-Function names follow common Lisp conventions (`conj`, `assoc`, `dissoc`, `merge`, `update`, `get`, `keys`, `vals`, `into`, `group-by`, `frequencies`, ...). See the [quick reference](#quick-reference) at the end.
+Function names follow common Lisp conventions (`conj`, `assoc`, `dissoc`, `merge`, `update`, `get`, `keys`, `vals`, `into`, `group-by`, `frequencies`, ...). See the [quick reference](#quick-reference).
 
 ---
 
 ## String Iteration
 
-Strings work directly with all sequence functions:
+Strings work with all sequence functions:
 
 ```phel
 ;; Iterate with for
@@ -56,8 +56,6 @@ Strings work directly with all sequence functions:
 
 ### Sequence Operations on Strings
 
-All core sequence functions work directly with strings:
-
 ```phel
 ;; first, next, rest
 (first "hello")   ; => "h"
@@ -80,13 +78,13 @@ All core sequence functions work directly with strings:
 
 ### String Conversion Functions
 
-**`seq`** - Convert string to vector of characters (optional, for backward compatibility):
+**`seq`** - Convert string to vector of characters:
 ```phel
 (seq "hello")
 ;; => ["h" "e" "l" "l" "o"]
 ```
 
-**`phel\string/chars`** - Convenience function for string → character vector:
+**`phel\string/chars`** - String to character vector:
 ```phel
 (use phel\string)
 (chars "hello")
@@ -95,7 +93,7 @@ All core sequence functions work directly with strings:
 
 ### Unicode Support
 
-All string operations properly handle multibyte UTF-8 characters:
+String operations handle multibyte UTF-8:
 
 ```phel
 (count "café")      ; => 4
@@ -104,15 +102,13 @@ All string operations properly handle multibyte UTF-8 characters:
 (map identity "🎉🎊🎈")  ; => ["🎉" "🎊" "🎈"]
 ```
 
-**Note:** Phel strings are fully seqable. `seq` remains available for backward compatibility and explicit conversion.
-
 ---
 
 ## Adding & Building Collections
 
 ### `conj` - Conjoin (Universal Add)
 
-Adds elements to any collection type. Behavior varies by collection:
+Adds elements to any collection. Behavior varies by type:
 
 ```phel
 ;; Vectors - appends to end
@@ -150,7 +146,7 @@ Adds elements to any collection type. Behavior varies by collection:
 
 ### `assoc` - Associate Key-Value Pairs
 
-Associates a value with a key. For maps, adds or updates key-value pairs. For vectors, updates by index.
+Associates a value with a key. Maps: add or update entries. Vectors: update by index.
 
 ```phel
 ;; Maps - add or update key
@@ -173,7 +169,7 @@ Associates a value with a key. For maps, adds or updates key-value pairs. For ve
 
 ### `into` - Bulk Addition
 
-Returns a collection with all elements from one or more source collections added.
+Returns a collection with all elements from the source(s) added.
 
 ```phel
 (into [1 2] [3 4 5])
@@ -305,7 +301,7 @@ Returns the first item where the predicate returns true.
 
 **Signature:** `[pred coll]`
 
-**Clojure note:** Differs from Clojure: Clojure's `find` returns a map entry `[key value]` for associative structures. Phel's `find` is a general search function.
+**Clojure note:** Clojure's `find` returns a `[key value]` entry on associative structures. Phel's `find` is a general search function.
 
 ---
 
@@ -492,8 +488,6 @@ Returns a map with keys and values swapped.
 
 **Signature:** `[map]`
 
-**Clojure note:** Equivalent to `clojure.set/map-invert`. Phel includes it in core.
-
 ---
 
 ## Analysis Functions
@@ -512,7 +506,7 @@ Returns a map of items to occurrence counts.
 
 **Signature:** `[coll]`
 
-**Clojure note:** Identical to Clojure's `frequencies`. Phel also supports strings as iterable sequences.
+Phel additionally accepts strings as iterable sequences.
 
 ---
 
@@ -534,7 +528,7 @@ Groups elements by the result of applying a function.
 
 ## Working with Nested Structures
 
-All `*-in` functions accept a path (sequence of keys) to navigate the structure.
+`*-in` functions take a path (sequence of keys) to navigate the structure.
 
 ### Common Patterns
 
@@ -573,7 +567,7 @@ Paths work with any combination of map keys and vector indices:
 
 ## Transient Collections
 
-For performance-critical code with many sequential updates, use **transient collections**. They allow efficient mutable operations, then convert back to persistent.
+For hot paths with many sequential updates, use **transient collections**. They allow efficient mutable operations, then convert back to persistent.
 
 ### Workflow
 
@@ -581,37 +575,35 @@ For performance-critical code with many sequential updates, use **transient coll
 ;; 1. Create transient version
 (def t (transient []))
 
-;; 2. Perform mutations (use same functions: conj, assoc, dissoc)
-(conj t 1)
-(conj t 2)
-(conj t 3)
+;; 2. Perform mutations (use bang variants: conj!, assoc!, dissoc!)
+(conj! t 1)
+(conj! t 2)
+(conj! t 3)
 
 ;; 3. Convert back to persistent
-(def result (persistent t))
+(def result (persistent! t))
 ;; => [1 2 3]
 ```
 
 ### Example: Building a large map
 
 ```phel
-(defn build-map [n]
+(defn build-map [^int n]
   (let [t (transient {})]
     (loop [i 0]
       (when (< i n)
-        (assoc t i (* i i))
+        (assoc! t i (* i i))
         (recur (inc i))))
-    (persistent t)))
+    (persistent! t)))
 ```
 
-**Clojure note:** Phel uses `persistent`; Clojure uses `persistent!`.
-
-**Important:** Don't use the transient version after calling `persistent`.
+Phel ships both `persistent` and `persistent!` (alias). Don't use the transient after calling either.
 
 ---
 
 ## Phel-Specific Extensions ⭐
 
-Functions not found in Clojure core.
+Functions not in Clojure core.
 
 ### `dissoc-in` - Nested Dissociation
 
@@ -725,17 +717,15 @@ The predicate receives `%1` (index) and `%2` (item).
 
 ## Deprecated Functions
 
-These functions have been deprecated in favor of Clojure-compatible alternatives:
+| Deprecated (v0.25.0) | Use Instead |
+|---------------------|-------------|
+| `push` | `conj` |
+| `put` | `assoc` |
+| `unset` | `dissoc` |
+| `put-in` | `assoc-in` |
+| `unset-in` | `dissoc-in` |
 
-| Deprecated (v0.25.0) | Use Instead | Reason |
-|---------------------|-------------|---------|
-| `push` | `conj` | Align with Clojure naming |
-| `put` | `assoc` | Align with Clojure naming |
-| `unset` | `dissoc` | Align with Clojure naming |
-| `put-in` | `assoc-in` | Align with Clojure naming |
-| `unset-in` | `dissoc-in` | Align with Clojure naming |
-
-**Migration:** Replace the old name with the new one. Signatures and behavior are identical.
+Signatures and behavior are identical; replace the name.
 
 ```phel
 ;; Old (deprecated)
@@ -751,13 +741,11 @@ These functions have been deprecated in favor of Clojure-compatible alternatives
 
 ## Summary
 
-Key takeaways:
-
-- **`conj`** is the universal "add" function
-- **`assoc`** sets explicit key-value pairs
-- **`*-in` functions** handle nested operations
-- **Phel extensions** like `deep-merge` and `dissoc-in` simplify nested work
-- **Transient collections** speed up performance-critical batch updates
-- Migrate from **deprecated functions** to Clojure-compatible names
+- `conj`: universal add
+- `assoc`: set key-value
+- `*-in`: nested operations
+- `deep-merge`, `dissoc-in`: Phel extensions for nested work
+- Transients: batch update performance
+- Migrate deprecated names to Clojure-compatible ones
 
 See `docs/examples/05_data-structures.phel`.

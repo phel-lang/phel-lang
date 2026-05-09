@@ -14,7 +14,7 @@ Compiler is PHP. Stdlib is Phel: bulk in `src/phel/core.phel`.
 
 ## Modules
 
-Every directory under `src/php/` is a [Gacela](https://gacela-project.com/) module: `Facade` for public API, `Provider` for cross-module deps, `Factory` for internal wiring.
+Every directory under `src/php/` is a [Gacela](https://gacela-project.com/) module. `Facade` for public API, `Provider` for cross-module deps, `Factory` for internal wiring.
 
 | Module | Purpose |
 |--------|---------|
@@ -52,7 +52,7 @@ Rules:
 
 - Never instantiate another module's class directly. Go via Facade.
 - Never reach into another module's `Domain/`.
-- Add a method to *your* facade before consuming someone else's internals.
+- Add a method to your facade before consuming someone else's internals.
 
 Provider declares deps as facade constants:
 
@@ -82,13 +82,11 @@ Each module ships `CLAUDE.md` with API + constraints. Read it before editing.
           Lang  ◄── Printer
 ```
 
-- Everything → `Compiler/`, `Lang/`.
+- Everything depends on `Compiler/` and `Lang/`.
 - `Lang/` is a leaf (one outbound `__toString()` to `Printer`).
 - `Lsp/`, `Nrepl/`, `Watch/` reuse the compiler facade; not on the compile path.
 
 ## Compile-time vs runtime
-
-Two conceptual processes:
 
 - **Compile**: `CompilerFacade::compile()`. Holds `GlobalEnvironment`, macros, `TypeFactory`/`Registry`.
 - **Runtime**: executes emitted PHP. Sees only `\Phel::*`, `\phel\core\*`, `Lang/` types.

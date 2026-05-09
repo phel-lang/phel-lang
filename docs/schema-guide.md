@@ -1,6 +1,6 @@
 # Schema Guide
 
-`phel\schema` validates, coerces, and generates values. Schemas are plain Phel data (keywords or vectors); no DSL.
+`phel\schema` validates, coerces, and generates values. Schemas are plain Phel data (keywords or vectors), no DSL.
 
 ## Quickstart
 
@@ -53,7 +53,7 @@
 ## Function instrumentation
 
 ```phel
-(defn add [a b] (+ a b))
+(defn ^int add [^int a ^int b] (+ a b))
 (s/instrument! 'add add [:=> [:int :int] :int])
 ;; (add "x" 2)  ; throws with schema failure
 ```
@@ -62,7 +62,7 @@
 
 - `:map` is open by default; add `{:closed? true}` to reject extra keys
 - `[:re ...]` expects a `#"regex"` literal, not a string
-- `generate` may fail for over-constrained `[:and ...]` or `[:re ...]` schemas; add a `[:gen ...]` hint if needed
+- `generate` may fail on over-constrained `[:and ...]` or `[:re ...]` schemas; pass `{:gen <gen-fn>}` in schema options to override
 
 ## See also
 

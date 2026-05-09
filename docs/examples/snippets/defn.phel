@@ -1,6 +1,7 @@
 (ns examples\snippets\defn)
 
-(defn square [x] (* x x))
+;; ^int :tag emits a PHP int parameter type and unlocks JIT-friendly call shape.
+(defn ^int square [^int x] (* x x))
 (println (square 5))                       ; 25
 
 ;; Multi-arity
@@ -18,5 +19,14 @@
 ;; Docstring + private (defn-)
 (defn- helper
   "Multiply by ten."
-  [x] (* x 10))
+  [^int x] (* x 10))
 (println (helper 7))                       ; 70
+
+;; Memoization metadata (^:memoize) caches by argument vector.
+;; Use ^{:memoize-lru N} to bound the cache size.
+(defn ^{:memoize-lru 32} fib
+  "Memoized Fibonacci."
+  [^int n]
+  (if (< n 2) n
+      (+ (fib (- n 1)) (fib (- n 2)))))
+(println (fib 30))                         ; 832040

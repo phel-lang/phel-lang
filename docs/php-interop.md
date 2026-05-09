@@ -40,9 +40,9 @@ Prefix PHP functions with `php/`:
 (php/\Monolog\Logger\Utils\detectAndCleanUtf8 "input")
 ```
 
-The `php/` prefix resolves any global or namespaced PHP function. The name after `php/` is the full PHP path (use `\\` to disambiguate from the root namespace). Case is preserved, so `php/Amp\trapSignal` compiles to `\Amp\trapSignal(...)`.
+The `php/` prefix resolves any global or namespaced PHP function. The name after `php/` is the full PHP path (use `\\` to disambiguate from the root namespace). Case is preserved: `php/Amp\trapSignal` compiles to `\Amp\trapSignal(...)`.
 
-Capture the function reference with `def` to shorten calls:
+Capture references with `def` to shorten calls:
 
 ```phel
 (def trap-signal php/\Amp\trapSignal)
@@ -129,7 +129,7 @@ Use `:use` for PHP classes:
 
 ### Requiring Phel Namespaces
 
-`:require` accepts both list-style and vector entries, so the same form works in `.phel` and shared `.cljc` files:
+`:require` accepts list-style and vector entries (works in both `.phel` and `.cljc`):
 
 ```phel
 ;; List entry
@@ -143,7 +143,7 @@ Use `:use` for PHP classes:
             [phel\json :as json :refer [encode decode]]))
 ```
 
-`.` works as an alternate namespace separator (alongside `\`):
+`.` is an alternate separator (alongside `\`):
 
 ```phel
 (ns my.cljc.file
@@ -198,16 +198,15 @@ Both `phel\string` and `phel.string` resolve to the same namespace.
 <?php
 require 'vendor/autoload.php';
 
-use Phel\Run\RunFacade;
+// Bootstrap Phel and load the namespace (compiles on first call).
+\Phel::run(__DIR__, 'app\\hello');
 
-$phel = RunFacade::initialize();
+// Call Phel functions by name; getDefinition returns the registered fn.
+$greet = \Phel::getDefinition('app\\hello', 'greet');
+echo $greet('World'); // => "Hello, World!"
 
-// Call Phel function
-$result = \Phel::callPhel('app\hello', 'greet', 'World');
-echo $result; // => "Hello, World!"
-
-$sum = \Phel::callPhel('app\hello', 'add', 5, 10);
-echo $sum; // => 15
+$add = \Phel::getDefinition('app\\hello', 'add');
+echo $add(5, 10); // => 15
 ```
 
 ### Web Application Example
@@ -232,17 +231,20 @@ echo $sum; // => 15
 <?php
 require 'vendor/autoload.php';
 
-use Phel\Run\RunFacade;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
-RunFacade::initialize();
+\Phel::run(__DIR__, 'app\\routes');
 
 $request = Request::createFromGlobals();
 $path = $request->getPathInfo();
 
+$home = \Phel::getDefinition('app\\routes', 'handle-home');
+$api  = \Phel::getDefinition('app\\routes', 'handle-api');
+
 $response = match ($path) {
-    '/' => \Phel::callPhel('app\routes', 'handle-home', $request),
-    '/api' => \Phel::callPhel('app\routes', 'handle-api', $request),
+    '/'    => $home($request),
+    '/api' => $api($request),
     default => new Response('Not Found', 404),
 };
 
@@ -374,29 +376,29 @@ $response->send();
 
 ## Tips for PHP Developers
 
-- **Immutability**: collections don't mutate. `(conj vec item)` returns a *new* vector
-- **No `$` sigil**: variables don't need `$`
-- **Keywords**: use `:keyword` for map keys
-- **Truthiness**: only `false` and `nil` are falsy (not `0` or `""`)
-- **Parens matter**: `(func arg)` calls the function, `func` is the value
+- **Immutability**: collections don't mutate. `(conj vec item)` returns a *new* vector.
+- **No `$` sigil**: variables don't need `$`.
+- **Keywords**: use `:keyword` for map keys.
+- **Truthiness**: only `false` and `nil` are falsy (not `0` or `""`).
+- **Parens**: `(func arg)` calls; `func` is the value.
 
 ## Tips for Clojure Developers
 
-- **PHP interop**: use `php/` prefix (not `.` or `..`)
-- **Method calls**: `(php/-> obj (method))` not `(.method obj)`
-- **Deref**: `@my-atom` is shorthand for `(deref my-atom)`
-- **Import classes**: use `:use` in `ns`, not `:import`
-- **Require vectors**: `(:require [phel\string :as str :refer [upper-case]])` works alongside the list form
-- **Namespace separators**: both `\` and `.` work; `phel\string` and `phel.string` resolve to the same namespace
-- **Reader conditionals**: `#?(:phel ...)` and `#?@(:phel ...)` for `.cljc` files
-- **Unquote**: `~` and `~@` inside syntax-quote (`,` / `,@` are deprecated)
-- **Auto-gensym**: `name#` inside syntax-quote produces a unique symbol (`name$` deprecated)
-- **Macro env**: `&form` and `&env` are implicitly bound inside every `defmacro`. `&env` is a map of in-scope locals keyed by symbol; `(:ns &env)` is always `nil`, so the `.cljc` `(if (:ns &env) "cljs" ...)` dialect-detection trick lands on the non-cljs branch
-- **Lambda syntax**: `#(+ %1 %2)` recommended; `|(+ $1 $2)` deprecated
-- **PHP arrays**: work with them directly or convert to Phel collections
+- **PHP interop**: use `php/` prefix (not `.` or `..`).
+- **Method calls**: `(php/-> obj (method))` (also `(.method obj)`).
+- **Deref**: `@my-atom` shortcuts `(deref my-atom)`.
+- **Import classes**: `:use` in `ns`, not `:import`.
+- **Require vectors**: `(:require [phel\string :as str :refer [upper-case]])` works alongside the list form.
+- **Namespace separators**: `\` and `.` both work; `phel\string` and `phel.string` resolve to the same namespace.
+- **Reader conditionals**: `#?(:phel ...)` and `#?@(:phel ...)` for `.cljc` files.
+- **Unquote**: `~` and `~@` inside syntax-quote (`,` / `,@` deprecated).
+- **Auto-gensym**: `name#` inside syntax-quote produces a unique symbol (`name$` deprecated).
+- **Macro env**: `&form` and `&env` are implicit in every `defmacro`. `&env` is a map of in-scope locals keyed by symbol. `(:ns &env)` is always `nil`, so the `.cljc` `(if (:ns &env) "cljs" ...)` trick lands on the non-cljs branch.
+- **Lambda syntax**: `#(+ %1 %2)` recommended; `|(+ $1 $2)` deprecated.
+- **PHP arrays**: use directly or convert to Phel collections.
 
 ## See Also
 
-- [Examples](examples/README.md): practical code samples
-- [Reader Shortcuts](reader-shortcuts.md): syntax reference
-- [Common Patterns](patterns.md): idiomatic Phel code
+- [Examples](examples/README.md)
+- [Reader Shortcuts](reader-shortcuts.md)
+- [Common Patterns](patterns.md)
