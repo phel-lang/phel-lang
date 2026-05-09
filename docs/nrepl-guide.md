@@ -1,6 +1,6 @@
 # nREPL Guide
 
-`phel nrepl` starts a bencode-over-TCP nREPL server. Any nREPL client (CIDER, Calva, vim-iced, neovim-nrepl) connects.
+`phel nrepl` starts a bencode-over-TCP nREPL server. Compatible with CIDER, Calva, vim-iced, and neovim-nrepl.
 
 ## Starting the server
 
@@ -42,13 +42,13 @@ Run `Calva: Connect to a running REPL`, choose `Generic nREPL`, and point at `12
 
 ### Neovim (vim-iced or Conjure)
 
-Both detect `.nrepl-port` in the repo root; set it after launching the server.
+Both detect `.nrepl-port` in the repo root. Set it after launching the server.
 
 ## Pitfalls
 
-- Single-user by default; multiple clients sharing a session see interleaved output
-- Bind to `127.0.0.1` unless on a trusted network; there is no auth
-- `interrupt` stops the eval in that session only, not other sessions or fibers
+- Single-user by default. Multiple clients sharing a session see interleaved output.
+- Bind to `127.0.0.1` unless on a trusted network. No auth.
+- `interrupt` stops the eval in that session only, not other sessions or fibers.
 
 ## See also
 

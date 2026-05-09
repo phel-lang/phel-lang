@@ -1,6 +1,6 @@
 # Quick Start
 
-Up and running with Phel in five minutes.
+Phel running in five minutes.
 
 ## Install
 
@@ -9,7 +9,7 @@ composer require phel-lang/phel-lang
 ./vendor/bin/phel init
 ```
 
-`phel init` writes `phel-config.php`, `src/phel/main.phel`, and `tests/phel/main_test.phel`. Add `--minimal` for a single-file root layout, `--flat` to drop the `phel/` subdirectory, `--dry-run` to preview.
+`phel init` writes `phel-config.php`, `src/phel/main.phel`, and `tests/phel/main_test.phel`. Flags: `--minimal` (single-file root layout), `--flat` (drop the `phel/` subdirectory), `--dry-run` (preview).
 
 Already have a PHP project? Write `phel-config.php` by hand:
 
@@ -72,7 +72,7 @@ user:5> (/ 1 0)
 user:6> *e                        ; last exception
 ```
 
-The prompt shows the current namespace (it switches on `(ns ...)` / `(in-ns ...)`). `*1`, `*2`, `*3` hold the last three REPL results; `*e` the last exception. Type `(exit)` or press Ctrl-D to quit.
+The prompt shows the current namespace; it switches on `(ns ...)` / `(in-ns ...)`. `*1`, `*2`, `*3` hold the last three REPL results; `*e` holds the last exception. Type `(exit)` or press Ctrl-D to quit.
 
 ## Collections
 
@@ -109,8 +109,8 @@ The prompt shows the current namespace (it switches on `(ns ...)` / `(in-ns ...)
 ## Functions
 
 ```phel
-;; Define a function
-(defn square [x]
+;; Define a function (^int :tag emits a PHP int return-type)
+(defn ^int square [^int x]
   (* x x))
 
 (square 5)                        ; => 25
@@ -181,7 +181,7 @@ echo \Phel::getDefinition('app_greet', 'hello')('World');
 
 `getDefinition` resolves any Phel function as a PHP callable. Namespace hyphens become underscores.
 
-For a full HTTP example see [Framework Integration](framework-integration.md).
+Full HTTP example: [Framework Integration](framework-integration.md).
 
 ## Tests
 
@@ -234,4 +234,4 @@ Clojure devs: PHP interop uses `php/` prefix or shortcuts (`.method`, `.-field`,
 
 ## Next Steps
 
-Full guide index: [docs/README.md](README.md).
+Guide index: [docs/README.md](README.md).

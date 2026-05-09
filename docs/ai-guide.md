@@ -44,7 +44,7 @@ Every per-call `opts` map on `chat`, `complete`, `chat-with-tools`, `extract`, a
 (ai/complete "Summarize the news" {:provider :openai :model "gpt-4o-mini"})
 ```
 
-For scoped configuration that auto-restores (including on exceptions), use `with-config`:
+For scoped config that auto-restores (even on exceptions), use `with-config`:
 
 ```phel
 (ai/with-config {:provider :openai :model "gpt-4o"}
@@ -71,7 +71,7 @@ Multi-turn via `chat-with-history`:
 
 ## Structured extraction
 
-Ask the model to populate a schema:
+Populate a schema:
 
 ```phel
 (ai/extract
@@ -84,7 +84,7 @@ Ask the model to populate a schema:
 
 ## Tool use
 
-Define tools with provider-agnostic `tool`, then either drive the loop manually with `chat-with-tools` + `tool-result`, or hand it off to `run-tools`.
+Define tools with provider-agnostic `tool`, then drive the loop manually with `chat-with-tools` + `tool-result`, or hand off to `run-tools`.
 
 ```phel
 (def tools
@@ -102,7 +102,7 @@ Define tools with provider-agnostic `tool`, then either drive the loop manually 
 ;; => "It's 72F and sunny in Paris."
 ```
 
-`run-tools` repeatedly sends the conversation, resolves any tool calls via `handlers` (a map of tool name to fn), feeds the results back, and stops when the model returns plain text or `:max-turns` is reached. Anthropic-only.
+`run-tools` sends the conversation, resolves tool calls via `handlers` (map of tool name to fn), feeds results back, and stops when the model returns plain text or `:max-turns` is reached. Anthropic-only.
 
 For finer control, use `chat-with-tools` directly:
 
@@ -131,7 +131,7 @@ For finer control, use `chat-with-tools` directly:
 ; => [{:text "cats purr" :embedding [...] :similarity 0.87}]
 ```
 
-Vector math primitives are exported for custom pipelines: `dot-product`, `magnitude`, `cosine-similarity`, `nearest`.
+Vector math primitives for custom pipelines: `dot-product`, `magnitude`, `cosine-similarity`, `nearest`.
 
 ## Retry & timeouts
 
@@ -143,11 +143,11 @@ Vector math primitives are exported for custom pipelines: `dot-product`, `magnit
 
 ## Errors
 
-All failures throw `\RuntimeException`. The message includes the HTTP status and provider error body when available.
+All failures throw `\RuntimeException`. Messages include HTTP status and provider error body when available.
 
 ## Testing without a live API
 
-`phel\ai` exposes an internal HTTP seam `*http-post*` that tests can rebind to return canned responses. With `phel\mock`, this removes the dependency on a real provider.
+`phel\ai` exposes an HTTP seam `*http-post*` that tests rebind to return canned responses. Combined with `phel\mock`, this removes the dependency on a real provider.
 
 ```phel
 (ns my-app\test\ai-test
@@ -163,7 +163,7 @@ All failures throw `\RuntimeException`. The message includes the HTTP status and
       (is (= 1 (call-count fake))))))
 ```
 
-`phel\json` stringifies floats during `json/encode`. When a mock must return embedding arrays, build the response body as a raw JSON string rather than going through `json/encode`.
+`phel\json` stringifies floats during `json/encode`. When a mock must return embedding arrays, build the response body as a raw JSON string instead of using `json/encode`.
 
 ## See also
 

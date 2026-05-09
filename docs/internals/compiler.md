@@ -15,7 +15,7 @@ Paths are relative to `src/php/Compiler/`.
 
 ## Public entry points (`CompilerFacade`)
 
-- `compile()` / `compileForCache()`: full pipeline → `EmitterResult`
+- `compile()` / `compileForCache()`: full pipeline to `EmitterResult`
 - `compileForm()`: start from already-read Phel data
 - `eval()` / `evalForm()`: compile + execute
 - `lexString()` / `parseAll()` / `read()` / `analyze()`: single-stage hooks for LSP, nREPL, linter
@@ -32,18 +32,18 @@ T_STRING            "\"hi\""
 T_CLOSE_PARENTHESIS ")"
 ```
 
-**Parser**: sub-parsers under `Domain/Parser/ExpressionParser/` (`ListParser`, `VectorParser`, `MapParser`, …) wired by `ExpressionParserFactory`. Tree retains trivia.
+**Parser**: sub-parsers under `Domain/Parser/ExpressionParser/` (`ListParser`, `VectorParser`, `MapParser`, ...) wired by `ExpressionParserFactory`. Tree retains trivia.
 
 ```text
 ListNode → SymbolNode("print"), WhitespaceNode, StringNode("\"hi\"")
 ```
 
-**Reader**: parse tree → Phel data backed by `Lang/Collections/`. Drops trivia. Expands reader macros: `'x`, `` `x ``, `~x`, `~@x`, `#(...)`, `#inst`, `#regex`, `#php`, custom `#tag` (`Lang/TagHandlers/`). Quasiquote rewrite + auto-gensym in `Domain/Reader/QuasiquoteTransformer.php`.
+**Reader**: parse tree to Phel data backed by `Lang/Collections/`. Drops trivia. Expands reader macros: `'x`, `` `x ``, `~x`, `~@x`, `#(...)`, `#inst`, `#regex`, `#php`, custom `#tag` (`Lang/TagHandlers/`). Quasiquote rewrite + auto-gensym in `Domain/Reader/QuasiquoteTransformer.php`.
 
-**Analyzer**: Phel data → AST in `Domain/Analyzer/Ast/`. Dispatch by value type in `Domain/Analyzer/TypeAnalyzer/`:
+**Analyzer**: Phel data to AST in `Domain/Analyzer/Ast/`. Dispatch by value type in `Domain/Analyzer/TypeAnalyzer/`:
 
 - `AnalyzeLiteral`: scalars, keywords
-- `AnalyzeSymbol`: locals → globals → suggestion error
+- `AnalyzeSymbol`: locals, then globals, then suggestion error
 - `AnalyzePersistentList`: special form (see [special-forms.md](special-forms.md)) or `InvokeSymbol`
 - `AnalyzePersistentVector` / `Map` / `Set`: collection literals
 
@@ -55,12 +55,12 @@ Every node carries `NodeEnvironment` with:
 - **locals** + **shadowed**: `withMergedLocals`, `withShadowedLocal`
 - **recur frame**: innermost `loop`/`fn`
 
-Wrong context → wrong PHP. Emitter trusts what analyzer wrote.
+Wrong context yields wrong PHP. Emitter trusts what analyzer wrote.
 
-**Emitter**: one `*Emitter.php` per AST node under `Domain/Emitter/OutputEmitter/NodeEmitter/`. Unknown node = throw.
+**Emitter**: one `*Emitter.php` per AST node under `Domain/Emitter/OutputEmitter/NodeEmitter/`. Unknown node throws.
 
-- **Munge** (`Application/Munge.php`): `my-fn?` → `my_fn_QMARK_`, `+` → `_PLUS_`. Same algorithm in `Lang/Collections/Struct/StructKeyEncoder`.
-- **Source maps** (`Domain/Emitter/OutputEmitter/SourceMap/`): emitted line → Phel `SourceLocation`.
+- **Munge** (`Application/Munge.php`): `my-fn?` becomes `my_fn_QMARK_`, `+` becomes `_PLUS_`. Same algorithm in `Lang/Collections/Struct/StructKeyEncoder`.
+- **Source maps** (`Domain/Emitter/OutputEmitter/SourceMap/`): emitted line back to Phel `SourceLocation`.
 - **Modes** (`EmitMode`): `STATEMENT` (REPL, `eval`), `FILE` (cached compilation). `StatementEmitter` vs `FileEmitter`.
 
 ```php
@@ -69,10 +69,10 @@ Wrong context → wrong PHP. Emitter trusts what analyzer wrote.
 
 **Evaluator**
 
-- `RequireEvaluator`: temp file + `require`. Production path; opcache-friendly.
+- `RequireEvaluator`: temp file + `require`. Production path, opcache-friendly.
 - `InMemoryEvaluator`: `eval()` for tests.
 
-Each top-level form runs lex→…→eval before the next is analysed, so `defmacro` is available to following forms. See `Application/CodeCompiler.php`.
+Each top-level form runs lex through eval before the next is analysed, so `defmacro` is available to following forms. See `Application/CodeCompiler.php`.
 
 ## See also
 

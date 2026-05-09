@@ -1,6 +1,6 @@
 # Linter Guide
 
-`phel lint` catches common mistakes without running code. Source files or directories; outputs human, JSON, or GitHub Actions format.
+`phel lint` catches common mistakes without running code. Accepts files or directories; outputs human, JSON, or GitHub Actions format.
 
 ## Quickstart
 
@@ -48,11 +48,11 @@ Pass a custom path with `--config=path/to/lint.phel`.
 
 ## Cache
 
-Results are cached per file by content hash; subsequent runs only reanalyze changed files. Disable with `--no-cache`.
+Results are cached per file by content hash. Subsequent runs only reanalyze changed files. Disable with `--no-cache`.
 
 ## Editor integration
 
-Use `--format=json` from an editor plugin, or run `phel lsp` for real-time diagnostics as you type.
+Use `--format=json` from an editor plugin, or run `phel lsp` for live diagnostics.
 
 ## See also
 

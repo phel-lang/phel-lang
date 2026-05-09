@@ -9,7 +9,7 @@ Fresh project, fresh chat session. Prompt: **"Build a todo HTTP API in Phel with
 Target:
 - HTTP endpoint for create/list/show/delete
 - Tests pass via `./vendor/bin/phel test`
-- Total wall time from first prompt to green tests
+- Wall time: first prompt to green tests
 
 ## Table
 
@@ -30,12 +30,12 @@ Target:
 
 ## How to contribute a run
 
-1. Pick an agent and start a fresh session in an empty directory.
+1. Pick an agent. Start a fresh session in an empty directory.
 2. Run `composer require phel-lang/phel-lang`.
 3. For "yes" rows only: `./vendor/bin/phel agent-install <platform>`.
 4. Feed the prompt above. Time from send to green `phel test`.
-5. Open a PR updating this table with your result and attach the transcript as a gist or comment link.
+5. Open a PR updating this table with your result. Attach the transcript as a gist or comment link.
 
 ## Why this matters
 
-Before bundled agent assets, a cold run took around 23 minutes for Claude Code to build a todo app, most of it scraping phel-lang.org. The goal of `resources/agents/` is to drive that well under 5 minutes for any supported agent.
+Before bundled agent assets, a cold run took ~23 minutes for Claude Code to build a todo app, most of it scraping phel-lang.org. `resources/agents/` aims to drive that well under 5 minutes for any supported agent.

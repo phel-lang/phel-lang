@@ -1,10 +1,10 @@
 # Macros
 
-Compile-time function. Takes Phel forms, returns Phel forms. Analyzer replaces the call with the result. Emitter never sees the macro.
+Compile-time function. Takes Phel forms, returns Phel forms. Analyzer replaces the call with the result. The emitter never sees the macro.
 
 ## Mechanism
 
-`(defmacro when [test & body] ...)` is a `def` whose `Variable` carries `:macro true`. At runtime: a function. At compile time, the analyzer:
+`(defmacro when [test & body] ...)` is a `def` whose `Variable` carries `:macro true`. At runtime it is a function. At compile time, the analyzer:
 
 1. Sees `(when x y)`.
 2. Resolves head to `GlobalVarNode`.
@@ -73,10 +73,10 @@ Explicit form: `(gensym)` or `(gensym "prefix")`.
 
 ## Common bites
 
-- **Order matters.** `defmacro` only affects later forms. `(defmacro foo ...)` and `(foo ...)` in the same compilation unit will not see each other; split.
+- **Order matters.** `defmacro` only affects later forms. `(defmacro foo ...)` and `(foo ...)` in the same compilation unit will not see each other. Split them.
 - **Return Phel data, not PHP values.** `(rand)` in a macro body bakes one number into source.
 - **Compile-time side effects fire during compile.** `println` in a macro runs at build, not runtime.
-- **`macroexpand` ends on `equals()`.** A macro that produces a structurally identical form terminates fine; non-converging chain is a bug.
+- **`macroexpand` ends on `equals()`.** A macro that produces a structurally identical form terminates fine. A non-converging chain is a bug.
 
 ## Debugging
 

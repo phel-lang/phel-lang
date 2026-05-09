@@ -1,6 +1,6 @@
 # Language Server Guide
 
-`phel lsp` speaks LSP v3.17 over stdio (JSON-RPC 2.0). Provides hover, goto-definition, completion, references, rename, formatting, document/workspace symbols, and live diagnostics.
+`phel lsp` speaks LSP v3.17 over stdio (JSON-RPC 2.0). Hover, goto-definition, completion, references, rename, formatting, document/workspace symbols, live diagnostics.
 
 ## Starting the server
 
@@ -8,7 +8,7 @@
 ./vendor/bin/phel lsp
 ```
 
-Reads LSP messages on stdin, writes responses on stdout, logs to stderr.
+Reads on stdin, writes on stdout, logs to stderr.
 
 ## Capabilities
 
@@ -28,7 +28,7 @@ Reads LSP messages on stdin, writes responses on stdout, logs to stderr.
 
 ### VS Code
 
-Install a generic LSP client extension and point it at `./vendor/bin/phel lsp` with `phel` as the language id and `.phel` as the file extension.
+Install a generic LSP client extension. Point it at `./vendor/bin/phel lsp` with `phel` as the language id and `.phel` as the file extension.
 
 ### Neovim (built-in LSP)
 
@@ -50,13 +50,13 @@ vim.lsp.start({
 
 ## Diagnostics
 
-Diagnostics include compiler errors, unresolved symbols, arity mismatches, and lint violations. Publication is debounced so typing does not thrash.
+Compiler errors, unresolved symbols, arity mismatches, and lint violations. Publication is debounced so typing does not thrash.
 
 ## Pitfalls
 
-- The server scans files under the project root; keep `phel-config.php` current for require resolution
-- Large projects benefit from running `phel index` ahead of time to warm the symbol cache
-- LSP runs in its own PHP process; REPL state is not shared with a running `phel nrepl`
+- The server scans files under the project root. Keep `phel-config.php` current for require resolution.
+- Large projects benefit from running `phel index` to warm the symbol cache.
+- LSP runs in its own PHP process. REPL state is not shared with a running `phel nrepl`.
 
 ## See also
 

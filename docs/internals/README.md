@@ -8,17 +8,17 @@
 4. [Macros](macros.md): `macroexpand`, quasiquote, auto-gensym.
 5. [Runtime](runtime.md): `Lang/`, persistent collections, `Registry`, `\Phel` facade.
 6. [Benchmarks](benchmarks.md): PHPBench setup.
-7. [FAQ](faq.md): grouped by reader (PHP dev, Clojure dev, compiler hacker, tool builder, bug hunter).
+7. [FAQ](faq.md): grouped by reader.
 
 ## What to read for what
 
 | Goal | Path |
 |------|------|
-| Whole system | architecture → compiler → runtime |
-| Add a special form / fix analyzer | compiler → special-forms |
+| Whole system | architecture, compiler, runtime |
+| Add a special form / fix analyzer | compiler, special-forms |
 | Write or debug a macro | macros + `(macroexpand-1 ...)` |
-| Build an editor / linter / tool | architecture → faq (tool builder) |
-| Compilation bug | compiler → faq (bug hunting) |
+| Build an editor / linter / tool | architecture, faq (tool builder) |
+| Compilation bug | compiler, faq (bug hunting) |
 | Profile | benchmarks |
 
 ## Adjacent
