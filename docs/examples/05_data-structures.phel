@@ -206,13 +206,13 @@
 
 (println "\n=== Transient Collections ===")
 
-(defn build-large-map [n]
+(defn build-large-map [^int n]
   (let [t (transient {})]
     (loop [i 0]
       (when (< i n)
-        (assoc t i (* i i))
+        (assoc! t i (* i i))
         (recur (inc i))))
-    (persistent t)))
+    (persistent! t)))
 
 (def large-map (build-large-map 100))
 (println "Built large map with" (count large-map) "entries")

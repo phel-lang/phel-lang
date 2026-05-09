@@ -22,7 +22,7 @@ Standalone scripts from primitive literals through concurrency to a full CLI. Ru
 | 10 | `10_html-rendering.phel` | HTML templating with `phel\html` |
 | 11 | `11_async-concurrency.phel` | AMPHP + fiber concurrency (`async`, `await`, `promise`) |
 | 12 | `12_cli.phel` | A todo-list CLI on `phel\cli` with subcommands and tables |
-| — | `transducers.phel` | Composable transformations: `into`, `transduce`, `sequence` |
+| extra | `transducers.phel` | Composable transformations: `into`, `transduce`, `sequence` |
 
 Copy any file into your project and tweak it.
 
@@ -51,7 +51,7 @@ Copy any file into your project and tweak it.
 | `atom`, `swap!`, `reset!` | `snippets/atom.phel` |
 | `phel\string` ops | `snippets/string.phel` |
 
-Each snippet is runnable: `./bin/phel run docs/examples/snippets/<name>.phel`. Use as REPL warm-ups or copy/paste recipes.
+Each snippet is runnable: `./bin/phel run docs/examples/snippets/<name>.phel`. Use as REPL warm-ups or copy-paste recipes.
 
 ## Run all
 

@@ -342,12 +342,14 @@
 
 (def raw-scores [nil 85 "invalid" 92 nil 78 101 65 -5 88])
 
-;; Pipeline: remove nils -> keep numbers in 0..100 -> normalize to 0.0..1.0
+;; Pipeline: remove nils -> keep numbers in 0..100 -> normalize to 0.0..1.0.
+;; Use `(/ % 100.0)` (float divisor) to get floats; `(/ 85 100)` returns the
+;; rational 17/20 under the numeric tower.
 (def normalized-scores
   (let [xf (comp (filter #(not (nil? %)))
                  (filter number?)
                  (filter #(and (>= % 0) (<= % 100)))
-                 (map #(/ % 100)))]
+                 (map #(/ % 100.0)))]
     (into [] xf raw-scores)))
 ;; => [0.85 0.92 0.78 0.65 0.88]
 
@@ -362,7 +364,7 @@
                    (case (count args)
                      0 {:sum 0 :count 0}
                      1 (let [r (first args)]
-                         (/ (get r :sum) (get r :count)))
+                         (/ (get r :sum) (double (get r :count))))
                      2 (let [acc (first args)
                              x (second args)]
                          {:sum (+ (get acc :sum) x)

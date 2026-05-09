@@ -1,19 +1,20 @@
 (ns examples\functions-recursion)
 
 ;; Define reusable functions and a classic recursive implementation.
-(defn shout [message]
+(defn ^string shout [^string message]
   (str message "!!!"))
 
-(defn factorial [n]
+;; `*'` auto-promotes to BigInteger if PHP int overflows: factorial(21) needs it.
+(defn factorial [^int n]
   (if (<= n 1)
     1
-    (* n (factorial (- n 1)))))
+    (*' n (factorial (dec n)))))
 
-(defn fib [n]
-  (loop [a 0 b 1 count n]
-    (if (zero? count)
+(defn fib [^int n]
+  (loop [a 0 b 1 c n]
+    (if (zero? c)
       a
-      (recur b (+ a b) (- count 1)))))
+      (recur b (+' a b) (dec c)))))
 
 (defn main []
   (println (shout "Functions compose wonderfully"))

@@ -13,12 +13,13 @@
 
 ;; --- 2. Concurrent work ---
 
-(defn fetch-data
+;; `^:async` metadata wraps the body in `async` automatically: every call
+;; returns a future. Equivalent to wrapping the body manually with `(async ...)`.
+(defn ^:async fetch-data
   "Simulates an async I/O operation with a delay."
   [label ms]
-  (async
-    (delay (php/fdiv ms 1000))
-    (str label " (took " ms "ms)")))
+  (delay (php/fdiv ms 1000))
+  (str label " (took " ms "ms)"))
 
 (println)
 (println "--- Concurrent fetches ---")

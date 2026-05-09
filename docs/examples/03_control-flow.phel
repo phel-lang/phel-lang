@@ -1,7 +1,7 @@
 (ns examples\control-flow)
 
 ;; Showcase conditionals and pattern matching via cond and case.
-(defn classify-temperature [celsius]
+(defn classify-temperature [^int celsius]
   (cond
     (< celsius 0) :freezing
     (< celsius 10) :cold
