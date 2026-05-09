@@ -75,7 +75,7 @@
           memoize-lru-arg (php/aget meta :memoize-lru)
           async-flag      (php/aget meta :async)
           fn-form         (if async-flag
-                            (if (php/instanceof (first fdecl) PersistentVectorInterface)
+                            (if is-single-arity
                               `(fn ~(first fdecl) (async ~@(next fdecl)))
                               `(fn ~@(map (fn [arity]
                                             `(~(first arity) (async ~@(next arity))))

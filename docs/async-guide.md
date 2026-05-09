@@ -44,14 +44,13 @@ Blocks the current fiber until the Future resolves, then returns its value. Acce
 
 ### `^:async` on `defn`
 
-Marking a `defn` with `^:async` wraps its body in `(async ...)`, so the function returns an `Amp\Future` that callers `await`. Saves the boilerplate of writing `(async ...)` at the top of every concurrent function body.
+`^:async` on `defn` wraps the body in `(async ...)`, so the function returns an `Amp\Future` that callers `await`.
 
 ```phel
-(defn ^:async fetch-pair [a b]
-  [(await (async a))
-   (await (async b))])
+(defn ^:async fetch [url]
+  (await (http-get url)))
 
-(await (fetch-pair 1 2)) ;; => [1 2]
+(await (fetch "https://example.com"))
 ```
 
 Multi-arity bodies are wrapped per arity. `^{:async false}` opts out without removing the metadata key.
