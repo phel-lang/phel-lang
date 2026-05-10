@@ -7,7 +7,7 @@
   new class() extends \Phel\Lang\AbstractFn {
     public const BOUND_TO = "user\\rec";
 
-    public function __invoke($n) {
+    public function __invoke(int $n) {
       if (($__truthy = ($n == 0)) !== null && $__truthy !== false) {
         return $n;
       } else {

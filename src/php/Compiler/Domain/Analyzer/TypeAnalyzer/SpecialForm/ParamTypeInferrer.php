@@ -22,19 +22,24 @@ use function array_unique;
 use function count;
 use function in_array;
 use function is_float;
+use function is_int;
+use function strlen;
 
 /**
- * Walks a fn body to surface conservative param-type contracts that the
- * static type checker can use to flag obvious call-site mismatches. The
- * inferred map is advisory only: it never reaches the emitter, so the
- * compiled PHP signature stays untyped and runtime coercion behaviour is
- * preserved.
+ * Walks a fn body to surface conservative param-type contracts. Results
+ * feed two consumers: the static checker (call-site mismatch diagnostics)
+ * and `DefSymbol`, which grafts the inferred tag onto each param Symbol's
+ * meta so the emitter renders `int $x` / `string $x` in the compiled PHP
+ * signature. OPcache JIT specialises on those typed slots.
  *
  * Inference is deliberately narrow. A param earns a tag only when every
- * use across every reached branch agrees on the same primitive. Any
- * operator that coerces (comparisons), any nested fn body (closures own
- * their own params), or any disagreement drops the param so the checker
- * never raises a spurious diagnostic.
+ * use across every reached branch agrees on the same primitive. Type
+ * guards drop the param so the runtime contract stays permissive:
+ *   - `?`-suffixed Phel predicates and `assert-non-nil`/`assert` globals
+ *   - PHP `is_*` predicates
+ *   - identity comparisons against `nil`/`true`/`false`
+ *   - disagreeing observations across branches (e.g. compared to int and
+ *     concatenated as string)
  */
 final class ParamTypeInferrer
 {
@@ -44,6 +49,12 @@ final class ParamTypeInferrer
     ];
 
     private const string STRING_CONCAT_OP = '.';
+
+    /** @var list<string> */
+    private const array IDENTITY_OPS = ['===', '!==', '==', '!='];
+
+    /** @var list<string> */
+    private const array ORDERING_OPS = ['<', '>', '<=', '>=', '<=>'];
 
     /**
      * Globals that signal "the function defensively rejects bad inputs at
@@ -57,6 +68,30 @@ final class ParamTypeInferrer
     private const array GUARD_GLOBALS = [
         'assert-non-nil',
         'assert',
+    ];
+
+    /**
+     * PHP type predicates used as type-discriminating guards. When a
+     * param is fed to one of these, the user is admitting the value
+     * could be of multiple types, so the runtime contract must stay
+     * permissive even if a sibling branch concatenates or arithmetic's
+     * the same param.
+     *
+     * @var list<string>
+     */
+    private const array GUARD_PHP_FNS = [
+        'is_int', 'is_integer', 'is_long',
+        'is_float', 'is_double',
+        'is_string',
+        'is_bool',
+        'is_null',
+        'is_array',
+        'is_object',
+        'is_callable',
+        'is_numeric',
+        'is_iterable',
+        'is_countable',
+        'is_scalar',
     ];
 
     /** @var array<string, list<string>> */
@@ -183,6 +218,11 @@ final class ParamTypeInferrer
 
         $op = $fn->getName();
 
+        if (in_array($op, self::GUARD_PHP_FNS, true)) {
+            $this->walkArgs($node, fn(AbstractNode $a) => $this->markGuarded($a));
+            return;
+        }
+
         if ($op === self::STRING_CONCAT_OP) {
             $this->walkArgs($node, fn(AbstractNode $a) => $this->constrainArgAsScalar($a, 'string'));
             return;
@@ -193,20 +233,126 @@ final class ParamTypeInferrer
             return;
         }
 
-        // Everything else (comparisons, `aget`, unknown PHP fns) walks
-        // arg expressions for nested operators without constraining the
-        // local: PHP comparisons coerce both sides at runtime, and
-        // unknown functions could accept anything.
+        if (in_array($op, self::IDENTITY_OPS, true)) {
+            $this->walkIdentityCall($node);
+            return;
+        }
+
+        if (in_array($op, self::ORDERING_OPS, true)) {
+            $this->walkOrderingCall($node);
+            return;
+        }
+
+        // Everything else (`aget`, unknown PHP fns) walks arg expressions
+        // for nested operators without constraining the local: unknown
+        // functions could accept anything.
         $this->walkArgs($node);
     }
 
+    /**
+     * `(php/=== x nil)` and friends are how Phel code type-discriminates
+     * before concatenating or arithmetic'ing the value. When a param is
+     * compared to `nil`, `true`, or `false`, the body branches that
+     * "look like a primitive use" only fire after the user has already
+     * filtered the off-type values out. Marking the param guarded keeps
+     * the runtime contract permissive so callers can still pass the
+     * full union the body actually accepts.
+     */
+    private function walkIdentityCall(CallNode $node): void
+    {
+        $args = $node->getArguments();
+        $hasNullableLiteral = array_any(
+            $args,
+            static fn(AbstractNode $a): bool => $a instanceof LiteralNode
+                && self::isNullableLiteral($a->getValue()),
+        );
+
+        if ($hasNullableLiteral) {
+            $this->walkArgs($node, fn(AbstractNode $a) => $this->markGuarded($a));
+            return;
+        }
+
+        $this->walkArgs($node);
+    }
+
+    private static function isNullableLiteral(mixed $value): bool
+    {
+        return in_array($value, [null, true, false], true);
+    }
+
+    /**
+     * `<`, `>`, `<=`, `>=`, `<=>` against a numeric literal hint that the
+     * param is meant to be numeric. We treat the comparison as a soft
+     * observation so a body that *also* concatenates the same param ends
+     * up with disagreeing observations and drops out, leaving the runtime
+     * contract permissive in the face of a coerce-then-concat pattern
+     * (e.g. `(php/> x 0)` followed by `(php/. "" x)`).
+     */
+    private function walkOrderingCall(CallNode $node): void
+    {
+        $args = $node->getArguments();
+        $type = $this->literalNumericType($args);
+
+        if ($type !== null) {
+            $this->walkArgs($node, fn(AbstractNode $a) => $this->constrainArgAsScalar($a, $type));
+            return;
+        }
+
+        $this->walkArgs($node);
+    }
+
+    /**
+     * Reads a numeric type hint from the literal args of a call: `float`
+     * if any literal is float, `int` if any literal is int and none are
+     * float, otherwise `null`. Both `walkNumericCall` and
+     * `walkOrderingCall` need this so they only constrain a param when
+     * the call actually disambiguates the runtime type.
+     *
+     * @param list<AbstractNode> $args
+     */
+    private function literalNumericType(array $args): ?string
+    {
+        $hasFloat = false;
+        $hasInt = false;
+        foreach ($args as $arg) {
+            if (!$arg instanceof LiteralNode) {
+                continue;
+            }
+
+            $value = $arg->getValue();
+            if (is_float($value)) {
+                $hasFloat = true;
+            } elseif (is_int($value)) {
+                $hasInt = true;
+            }
+        }
+
+        if ($hasFloat) {
+            return 'float';
+        }
+
+        return $hasInt ? 'int' : null;
+    }
+
+    /**
+     * `(php/+ x ...)` and friends. We only commit to a numeric type when
+     * a literal in the same call disambiguates int vs float. Without
+     * that hint, mixing call expressions for both operands (e.g.
+     * `(php/+ (php/- zx2 zy2) cx)` in a float Mandelbrot kernel) would
+     * over-narrow the param to int. Walking arg expressions still
+     * captures any nested operator without polluting the local.
+     */
     private function walkNumericCall(CallNode $node): void
     {
         $args = $node->getArguments();
-        $hasFloat = array_any($args, static fn($arg): bool => $arg instanceof LiteralNode && is_float($arg->getValue()));
+        $type = $this->literalNumericType($args);
 
-        $type = $hasFloat ? 'float' : 'int';
-        $this->walkArgs($node, fn(AbstractNode $a) => $this->constrainArgAsScalar($a, $type));
+        if ($type !== null) {
+            $this->walkArgs($node, fn(AbstractNode $a) => $this->constrainArgAsScalar($a, $type));
+            return;
+        }
+
+        $this->walkArgs($node);
     }
 
     /**
@@ -251,6 +397,15 @@ final class ParamTypeInferrer
 
     private function isGuardGlobal(GlobalVarNode $fn): bool
     {
-        return in_array($fn->getName()->getName(), self::GUARD_GLOBALS, true);
+        $name = $fn->getName()->getName();
+        if (in_array($name, self::GUARD_GLOBALS, true)) {
+            return true;
+        }
+
+        // Phel convention: predicate names end in `?`. Calling one on a
+        // param signals "this value can be of multiple types, I'm
+        // type-discriminating" (same intent as the explicit `assert*`
+        // guards), so mark the arg guarded.
+        return $name !== '' && $name[strlen($name) - 1] === '?';
     }
 }

@@ -98,16 +98,13 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
             return;
         }
 
-        $inferredTags = $meta->find(Keyword::create('inferred-param-tags'));
         $tagsCount = count($paramTags);
         foreach ($args as $i => $arg) {
             if ($i >= $tagsCount) {
                 return;
             }
 
-            // Explicit `:param-tags` wins; the inferred companion is
-            // consulted only when the explicit slot is empty.
-            $tag = $this->tagAt($paramTags, $i) ?? $this->tagAt($inferredTags, $i);
+            $tag = $this->tagAt($paramTags, $i);
             if ($tag !== null) {
                 $this->ensureLiteralMatchesTag($f, $list, $i, $arg, $tag);
             }
@@ -136,9 +133,12 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         );
     }
 
-    private function tagAt(mixed $vec, int $i): ?string
+    /**
+     * @param PersistentVectorInterface<mixed> $vec
+     */
+    private function tagAt(PersistentVectorInterface $vec, int $i): ?string
     {
-        if (!$vec instanceof PersistentVectorInterface || $i >= count($vec)) {
+        if ($i >= count($vec)) {
             return null;
         }
 

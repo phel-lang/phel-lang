@@ -75,12 +75,17 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         $init = $this->injectReturnTypeFromMeta($init, $metaMap);
 
         $initNode = $this->analyzeInit($init, $env, $namespace, $nameSymbol, $metaMap);
+        $skip = $isMacro ? self::MACRO_IMPLICIT_PARAMS : 0;
+
         if ($initNode instanceof FnNode) {
             $initNode->markAsDefinition();
-        }
+            // Macro args bind to raw Phel forms regardless of how the
+            // body manipulates them, so a primitive-op observation in
+            // the macro body must not type-narrow the runtime signature.
+            if (!$isMacro) {
+                $this->graftInferredParamTags($initNode, $skip);
+            }
 
-        $skip = $isMacro ? self::MACRO_IMPLICIT_PARAMS : 0;
-        if ($initNode instanceof FnNode) {
             $metaMap = $metaMap->put('min-arity', max(0, $initNode->getMinArity() - $skip));
             $metaMap = $metaMap->put('is-variadic', $initNode->isVariadic());
             $metaMap = $metaMap->put('arglists', $this->buildFnNodeArglist($initNode, $skip));
@@ -101,24 +106,9 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         // `compile`-only flows never populate). The runtime `$meta`
         // built below intentionally omits `:param-tags` so the emitted
         // PHP keeps its existing shape.
-        //
-        // `:inferred-param-tags` is the advisory companion: a same-shape
-        // vector filled in for params that have no user `:tag` but show
-        // an unambiguous primitive use in the body. It rides the same
-        // compile-time channel and is folded back into the meta read by
-        // `InvokeSymbol`, but the emitter never sees it so PHP signatures
-        // stay coercion-friendly.
         if ($initNode instanceof FnNode) {
             $paramTags = $this->buildParamTags($initNode, $skip);
             $compileTimeMeta = $metaMap->put(Keyword::create('param-tags'), $paramTags);
-            $inferredTags = $this->buildInferredParamTags($initNode, $paramTags, $skip);
-            if ($inferredTags instanceof PersistentVectorInterface) {
-                $compileTimeMeta = $compileTimeMeta->put(
-                    Keyword::create('inferred-param-tags'),
-                    $inferredTags,
-                );
-            }
-
             $this->analyzer->setCompileTimeMeta($namespace, $nameSymbol, $compileTimeMeta);
         } else {
             $this->analyzer->setCompileTimeMeta($namespace, $nameSymbol, $metaMap);
@@ -385,7 +375,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     /**
      * Static-checker view of the params: a Phel vector with the same
      * arity, where each slot is the param's `:tag` (string) or `null`
-     * if untagged. The variadic tail is excluded — its `:tag` describes
+     * if untagged. The variadic tail is excluded; its `:tag` describes
      * element type, not the bound `Vector`.
      *
      * @return PersistentVectorInterface<mixed>
@@ -402,27 +392,24 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
-     * Companion vector to `:param-tags` filled by walking the fn body
-     * with `ParamTypeInferrer`. Slots stay `null` for params the user
-     * already tagged or that the inferrer could not resolve, so the
-     * call-site checker can use `:inferred-param-tags` only as a
-     * fallback when no explicit tag is present.
+     * Walks the fn body with `ParamTypeInferrer` and stamps each
+     * unambiguously-typed param's `:tag` directly onto the Symbol's
+     * metadata so the emitter renders `int $x` / `string $x` in the
+     * compiled PHP signature. User tags win: a Symbol that already
+     * carries `:tag` is left alone.
      *
-     * Returns `null` when the inferrer found nothing — keeps the
-     * compile-time meta map free of empty advisory data.
-     *
-     * @param PersistentVectorInterface<mixed> $explicitTags
-     *
-     * @return PersistentVectorInterface<mixed>|null
+     * Mutates the param Symbols held by `FnNode::$params` in place via
+     * `Symbol::withMeta`. The variadic tail and any leading macro
+     * implicit params are excluded. After grafting, re-runs return-type
+     * inference so the body's tail expression sees the now-tagged
+     * locals and the fn surfaces a return-type declaration when it
+     * could not before.
      */
-    private function buildInferredParamTags(
-        FnNode $fnNode,
-        PersistentVectorInterface $explicitTags,
-        int $skipFirst = 0,
-    ): ?PersistentVectorInterface {
+    private function graftInferredParamTags(FnNode $fnNode, int $skipFirst = 0): void
+    {
         $params = $this->scalarParamSlice($fnNode, $skipFirst);
         if ($params === []) {
-            return null;
+            return;
         }
 
         $inferred = new ParamTypeInferrer()->infer(
@@ -432,24 +419,38 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         );
 
         if ($inferred === []) {
-            return null;
+            return;
         }
 
-        $tags = [];
-        $any = false;
-        foreach ($params as $i => $param) {
-            // User tag wins; never overwrite an explicit declaration.
-            if ($this->hasExplicitTag($explicitTags, $i)) {
-                $tags[] = null;
+        $grafted = false;
+        foreach ($params as $param) {
+            $tag = $inferred[$param->getName()] ?? null;
+            if ($tag === null) {
                 continue;
             }
 
-            $tag = $inferred[$param->getName()] ?? null;
-            $any = $any || $tag !== null;
-            $tags[] = $tag;
+            $existing = $param->getMeta();
+            if ($existing instanceof PersistentMapInterface
+                && $existing->find(Keyword::create('tag')) !== null
+            ) {
+                continue;
+            }
+
+            $merged = ($existing ?? Phel::map())
+                ->put(Keyword::create('tag'), Symbol::create($tag));
+            $param->withMeta($merged);
+            $grafted = true;
         }
 
-        return $any ? Phel::vector($tags) : null;
+        if ($grafted && $fnNode->getReturnType() === null) {
+            $fnNode->fillInferredReturnType(
+                new ReturnTypeInferrer()->infer(
+                    $fnNode->getBody(),
+                    $fnNode->getParams(),
+                    $fnNode->isVariadic(),
+                ),
+            );
+        }
     }
 
     /**
@@ -472,15 +473,6 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         }
 
         return $params;
-    }
-
-    /**
-     * @param PersistentVectorInterface<mixed> $explicitTags
-     */
-    private function hasExplicitTag(PersistentVectorInterface $explicitTags, int $i): bool
-    {
-        $tag = $explicitTags->get($i);
-        return is_string($tag) && $tag !== '';
     }
 
     private function buildMultiFnNodeArglists(MultiFnNode $multiFnNode, int $skipFirst = 0): string
@@ -596,8 +588,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
      * param vector so `FnSymbol` can pick it up as the compiled signature's
      * return type. Skips arities that already declare their own vector `:tag`
      * (more local declaration wins).
-     */
-    /**
+     *
      * @param PersistentMapInterface<mixed, mixed> $meta
      */
     private function injectReturnTypeFromMeta(mixed $init, PersistentMapInterface $meta): mixed
