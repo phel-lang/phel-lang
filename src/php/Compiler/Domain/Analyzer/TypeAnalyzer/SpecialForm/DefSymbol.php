@@ -23,7 +23,9 @@ use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 
 use function array_map;
+use function array_pop;
 use function array_slice;
+use function array_values;
 use function assert;
 use function count;
 use function implode;
@@ -391,20 +393,11 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
      */
     private function buildParamTags(FnNode $fnNode, int $skipFirst = 0): PersistentVectorInterface
     {
-        $params = $fnNode->getParams();
-        if ($skipFirst > 0) {
-            $params = array_slice($params, $skipFirst);
-        }
-
-        $count = count($params);
-        if ($fnNode->isVariadic() && $count > 0) {
-            --$count;
-        }
-
-        $tags = [];
-        for ($i = 0; $i < $count; ++$i) {
-            $tags[] = TagCompatibility::extractParamTag($params[$i]);
-        }
+        $params = $this->scalarParamSlice($fnNode, $skipFirst);
+        $tags = array_map(
+            static fn(Symbol $p): ?string => TagCompatibility::extractParamTag($p),
+            $params,
+        );
 
         return Phel::vector($tags);
     }
@@ -428,24 +421,14 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         PersistentVectorInterface $explicitTags,
         int $skipFirst = 0,
     ): ?PersistentVectorInterface {
-        $params = $fnNode->getParams();
-        if ($skipFirst > 0) {
-            $params = array_slice($params, $skipFirst);
-        }
-
-        $count = count($params);
-        if ($fnNode->isVariadic() && $count > 0) {
-            --$count;
-        }
-
-        if ($count === 0) {
+        $params = $this->scalarParamSlice($fnNode, $skipFirst);
+        if ($params === []) {
             return null;
         }
 
-        $paramSlice = array_slice($params, 0, $count);
         $inferred = new ParamTypeInferrer()->infer(
             $fnNode->getBody(),
-            $paramSlice,
+            $params,
             $fnNode->isVariadic(),
         );
 
@@ -455,24 +438,50 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
 
         $tags = [];
         $any = false;
-        for ($i = 0; $i < $count; ++$i) {
-            $explicit = $explicitTags->get($i);
-            if (is_string($explicit) && $explicit !== '') {
-                // User tag wins; never overwrite an explicit declaration.
+        foreach ($params as $i => $param) {
+            // User tag wins; never overwrite an explicit declaration.
+            if ($this->hasExplicitTag($explicitTags, $i)) {
                 $tags[] = null;
                 continue;
             }
 
-            $name = $params[$i]->getName();
-            $tag = $inferred[$name] ?? null;
-            if ($tag !== null) {
-                $any = true;
-            }
-
+            $tag = $inferred[$param->getName()] ?? null;
+            $any = $any || $tag !== null;
             $tags[] = $tag;
         }
 
         return $any ? Phel::vector($tags) : null;
+    }
+
+    /**
+     * Skips the leading macro implicit params (`&form`, `&env`) and the
+     * variadic tail. Both `:param-tags` consumers operate on this slice
+     * because the variadic tail's `:tag` describes the element type, not
+     * the bound `Vector`.
+     *
+     * @return list<Symbol>
+     */
+    private function scalarParamSlice(FnNode $fnNode, int $skipFirst): array
+    {
+        $params = $fnNode->getParams();
+        if ($skipFirst > 0) {
+            $params = array_slice($params, $skipFirst);
+        }
+
+        if ($fnNode->isVariadic() && $params !== []) {
+            array_pop($params);
+        }
+
+        return array_values($params);
+    }
+
+    /**
+     * @param PersistentVectorInterface<mixed> $explicitTags
+     */
+    private function hasExplicitTag(PersistentVectorInterface $explicitTags, int $i): bool
+    {
+        $tag = $explicitTags->get($i);
+        return is_string($tag) && $tag !== '';
     }
 
     private function buildMultiFnNodeArglists(MultiFnNode $multiFnNode, int $skipFirst = 0): string
