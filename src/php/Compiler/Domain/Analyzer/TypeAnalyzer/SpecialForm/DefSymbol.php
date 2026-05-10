@@ -91,6 +91,8 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
             $metaMap = $metaMap->put('arglists', $this->buildMultiFnNodeArglists($initNode, $skip));
         }
 
+        $metaMap = $this->persistInferredReturnTag($metaMap, $this->inferredReturnTypeOf($initNode));
+
         // Stash a compile-time-only superset of the meta with `:param-tags`
         // attached so subsequent calls in the same compilation unit can
         // run static type checks against the def's declared param tags
@@ -304,6 +306,66 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     private function buildFnNodeArglist(FnNode $fnNode, int $skipFirst = 0): string
     {
         return $this->formatParamsVector($fnNode->getParams(), $fnNode->isVariadic(), $skipFirst);
+    }
+
+    /**
+     * Inferred return type writes back to the def's runtime meta as `:tag`
+     * so cross-fn inference can see it on the next call site without
+     * having to re-walk the callee's body. User `:tag` already in meta
+     * stays untouched.
+     *
+     * @param PersistentMapInterface<mixed, mixed> $metaMap
+     *
+     * @return PersistentMapInterface<mixed, mixed>
+     */
+    private function persistInferredReturnTag(PersistentMapInterface $metaMap, ?string $returnType): PersistentMapInterface
+    {
+        if ($returnType === null || $returnType === '') {
+            return $metaMap;
+        }
+
+        if ($metaMap->find(Keyword::create('tag')) !== null) {
+            return $metaMap;
+        }
+
+        return $metaMap->put(Keyword::create('tag'), $returnType);
+    }
+
+    /**
+     * Single source of truth for the inferred return type used to
+     * stamp `:tag` on the def's runtime meta. Single-arity surfaces
+     * its FnNode return type directly; multi-arity surfaces a return
+     * type only when every arity agrees, mirroring how the inferrer
+     * bails on `if` branches that disagree.
+     */
+    private function inferredReturnTypeOf(?AbstractNode $initNode): ?string
+    {
+        if ($initNode instanceof FnNode) {
+            return $initNode->getReturnType();
+        }
+
+        if (!$initNode instanceof MultiFnNode) {
+            return null;
+        }
+
+        $shared = null;
+        foreach ($initNode->getFnNodes() as $fnNode) {
+            $type = $fnNode->getReturnType();
+            if ($type === null) {
+                return null;
+            }
+
+            if ($shared === null) {
+                $shared = $type;
+                continue;
+            }
+
+            if ($shared !== $type) {
+                return null;
+            }
+        }
+
+        return $shared;
     }
 
     /**

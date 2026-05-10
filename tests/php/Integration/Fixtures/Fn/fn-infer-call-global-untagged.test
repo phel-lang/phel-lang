@@ -26,9 +26,10 @@
     ),
     "min-arity", 2,
     "is-variadic", false,
-    "arglists", "[a b]"
+    "arglists", "[a b]",
+    \Phel::keyword("tag"), "int"
   )
 );
-(function(int $x) {
+(function(int $x): int {
   return (\Phel::getDefinition("user", "add"))($x, 1);
 });

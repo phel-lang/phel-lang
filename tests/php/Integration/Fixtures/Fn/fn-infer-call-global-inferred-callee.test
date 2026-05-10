@@ -1,0 +1,35 @@
+--PHEL--
+(defn check [x] (php/is_int x))
+(fn [x] (check x))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "check",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\check";
+
+    public function __invoke($x): bool {
+      return is_int($x);
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("doc"), "```phel\n(check x)\n```\n",
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-infer-call-global-inferred-callee.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-infer-call-global-inferred-callee.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 31
+    ),
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[x]",
+    \Phel::keyword("tag"), "bool"
+  )
+);
+(function($x): bool {
+  return (\Phel::getDefinition("user", "check"))($x);
+});
