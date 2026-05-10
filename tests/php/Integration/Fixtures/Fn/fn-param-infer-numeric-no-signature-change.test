@@ -1,0 +1,32 @@
+--PHEL--
+(defn add1 [x] (php/+ x 1))
+(add1 42)
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "add1",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\add1";
+
+    public function __invoke($x) {
+      return ($x + 1);
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("doc"), "```phel\n(add1 x)\n```\n",
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-param-infer-numeric-no-signature-change.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-param-infer-numeric-no-signature-change.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 27
+    ),
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[x]"
+  )
+);
+(\Phel::getDefinition("user", "add1"))(42);

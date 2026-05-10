@@ -1,0 +1,37 @@
+--PHEL--
+(defn mixed [x flag] (if flag (php/+ x 1) (php/. x "!")))
+(mixed "x" false)
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "mixed",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\mixed";
+
+    public function __invoke($x, $flag) {
+      if (($__truthy = $flag) !== null && $__truthy !== false) {
+        return ($x + 1);
+      } else {
+        return ($x . "!");
+      }
+
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("doc"), "```phel\n(mixed x flag)\n```\n",
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-param-infer-mixed-branches-bails.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-param-infer-mixed-branches-bails.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 57
+    ),
+    "min-arity", 2,
+    "is-variadic", false,
+    "arglists", "[x flag]"
+  )
+);
+(\Phel::getDefinition("user", "mixed"))("x", false);

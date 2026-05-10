@@ -92,10 +92,14 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         array $args,
         PersistentListInterface $list,
     ): void {
-        $paramTags = $f->getMeta()->find(Keyword::create('param-tags'));
+        $meta = $f->getMeta();
+        $paramTags = $meta->find(Keyword::create('param-tags'));
         if (!$paramTags instanceof PersistentVectorInterface) {
             return;
         }
+
+        $rawInferred = $meta->find(Keyword::create('inferred-param-tags'));
+        $inferredTags = $rawInferred instanceof PersistentVectorInterface ? $rawInferred : null;
 
         $tagsCount = count($paramTags);
         foreach ($args as $i => $arg) {
@@ -103,12 +107,8 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
                 return;
             }
 
-            $tag = $paramTags->get($i);
-            if (!is_string($tag)) {
-                continue;
-            }
-
-            if ($tag === '') {
+            $tag = $this->resolveParamTag($paramTags, $inferredTags, $i);
+            if ($tag === null) {
                 continue;
             }
 
@@ -125,6 +125,36 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
                 );
             }
         }
+    }
+
+    /**
+     * Resolves the contract for a single param slot. Explicit `:param-tags`
+     * wins; the inferred companion is consulted only when the explicit slot
+     * is empty (`null` or `''`). Returns `null` when no contract applies.
+     *
+     * @param PersistentVectorInterface<mixed>      $explicitTags
+     * @param PersistentVectorInterface<mixed>|null $inferredTags
+     */
+    private function resolveParamTag(
+        PersistentVectorInterface $explicitTags,
+        ?PersistentVectorInterface $inferredTags,
+        int $i,
+    ): ?string {
+        $explicit = $explicitTags->get($i);
+        if (is_string($explicit) && $explicit !== '') {
+            return $explicit;
+        }
+
+        if (!$inferredTags instanceof PersistentVectorInterface) {
+            return null;
+        }
+
+        if ($i >= count($inferredTags)) {
+            return null;
+        }
+
+        $inferred = $inferredTags->get($i);
+        return is_string($inferred) && $inferred !== '' ? $inferred : null;
     }
 
     /**

@@ -1,0 +1,33 @@
+--PHEL--
+(defn greet [x] (php/. "hi " x))
+(greet "world")
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "greet",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\greet";
+
+    public function __invoke($x): string {
+      return ("hi " . $x);
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("doc"), "```phel\n(greet x)\n```\n",
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-param-infer-string-no-signature-change.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-param-infer-string-no-signature-change.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 32
+    ),
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[x]",
+    \Phel::keyword("tag"), "string"
+  )
+);
+(\Phel::getDefinition("user", "greet"))("world");

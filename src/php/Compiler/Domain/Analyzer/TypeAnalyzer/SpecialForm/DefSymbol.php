@@ -100,12 +100,25 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         // `compile`-only flows never populate). The runtime `$meta`
         // built below intentionally omits `:param-tags` so the emitted
         // PHP keeps its existing shape.
+        //
+        // `:inferred-param-tags` is the advisory companion: a same-shape
+        // vector filled in for params that have no user `:tag` but show
+        // an unambiguous primitive use in the body. It rides the same
+        // compile-time channel and is folded back into the meta read by
+        // `InvokeSymbol`, but the emitter never sees it so PHP signatures
+        // stay coercion-friendly.
         if ($initNode instanceof FnNode) {
-            $this->analyzer->setCompileTimeMeta(
-                $namespace,
-                $nameSymbol,
-                $metaMap->put(Keyword::create('param-tags'), $this->buildParamTags($initNode, $skip)),
-            );
+            $paramTags = $this->buildParamTags($initNode, $skip);
+            $compileTimeMeta = $metaMap->put(Keyword::create('param-tags'), $paramTags);
+            $inferredTags = $this->buildInferredParamTags($initNode, $paramTags, $skip);
+            if ($inferredTags instanceof PersistentVectorInterface) {
+                $compileTimeMeta = $compileTimeMeta->put(
+                    Keyword::create('inferred-param-tags'),
+                    $inferredTags,
+                );
+            }
+
+            $this->analyzer->setCompileTimeMeta($namespace, $nameSymbol, $compileTimeMeta);
         } else {
             $this->analyzer->setCompileTimeMeta($namespace, $nameSymbol, $metaMap);
         }
@@ -394,6 +407,72 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         }
 
         return Phel::vector($tags);
+    }
+
+    /**
+     * Companion vector to `:param-tags` filled by walking the fn body
+     * with `ParamTypeInferrer`. Slots stay `null` for params the user
+     * already tagged or that the inferrer could not resolve, so the
+     * call-site checker can use `:inferred-param-tags` only as a
+     * fallback when no explicit tag is present.
+     *
+     * Returns `null` when the inferrer found nothing — keeps the
+     * compile-time meta map free of empty advisory data.
+     *
+     * @param PersistentVectorInterface<mixed> $explicitTags
+     *
+     * @return PersistentVectorInterface<mixed>|null
+     */
+    private function buildInferredParamTags(
+        FnNode $fnNode,
+        PersistentVectorInterface $explicitTags,
+        int $skipFirst = 0,
+    ): ?PersistentVectorInterface {
+        $params = $fnNode->getParams();
+        if ($skipFirst > 0) {
+            $params = array_slice($params, $skipFirst);
+        }
+
+        $count = count($params);
+        if ($fnNode->isVariadic() && $count > 0) {
+            --$count;
+        }
+
+        if ($count === 0) {
+            return null;
+        }
+
+        $paramSlice = array_slice($params, 0, $count);
+        $inferred = new ParamTypeInferrer()->infer(
+            $fnNode->getBody(),
+            $paramSlice,
+            $fnNode->isVariadic(),
+        );
+
+        if ($inferred === []) {
+            return null;
+        }
+
+        $tags = [];
+        $any = false;
+        for ($i = 0; $i < $count; ++$i) {
+            $explicit = $explicitTags->get($i);
+            if (is_string($explicit) && $explicit !== '') {
+                // User tag wins; never overwrite an explicit declaration.
+                $tags[] = null;
+                continue;
+            }
+
+            $name = $params[$i]->getName();
+            $tag = $inferred[$name] ?? null;
+            if ($tag !== null) {
+                $any = true;
+            }
+
+            $tags[] = $tag;
+        }
+
+        return $any ? Phel::vector($tags) : null;
     }
 
     private function buildMultiFnNodeArglists(MultiFnNode $multiFnNode, int $skipFirst = 0): string
