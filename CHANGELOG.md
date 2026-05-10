@@ -35,6 +35,9 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+#### Compiler
+- Return-type inference no longer stamps a tag on a `loop` whose `recur` rebinds a binding to a different (or unknown) type, preventing runtime `TypeError`s when a loop accumulator widens (e.g. `*'` promoting to `BigInteger`)
+
 #### Core
 - `memoize` / `memoize-lru` no longer drop entries that recursive calls add to the cache during a single invocation (#1915)
 

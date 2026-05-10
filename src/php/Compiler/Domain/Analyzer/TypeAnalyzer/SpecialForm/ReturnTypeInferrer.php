@@ -229,14 +229,71 @@ final class ReturnTypeInferrer
      */
     private function inferLet(LetNode $node, array $locals): ?string
     {
-        foreach ($node->getBindings() as $binding) {
+        $bindings = $node->getBindings();
+        $names = [];
+        foreach ($bindings as $i => $binding) {
+            $name = $this->bindingName($binding);
+            $names[$i] = $name;
             $type = $this->inferNode($binding->getInitExpr(), $locals);
             if ($type !== null && $type !== self::BOTTOM) {
-                $locals[$this->bindingName($binding)] = $type;
+                $locals[$name] = $type;
+            }
+        }
+
+        if ($node->isLoop()) {
+            // Loop bindings are rebindable via recur; drop any whose recur
+            // argument types disagree with (or are unknown relative to) the
+            // initial type, so the body never sees an over-narrow tag.
+            $recurTypes = [];
+            $this->collectRecurArgTypes($node->getBodyExpr(), $locals, $recurTypes);
+            foreach ($names as $i => $name) {
+                if (!isset($locals[$name])) {
+                    continue;
+                }
+
+                $alts = $recurTypes[$i] ?? null;
+                if ($alts === null || !in_array($locals[$name], $alts, true) || count($alts) > 1) {
+                    unset($locals[$name]);
+                }
             }
         }
 
         return $this->inferNode($node->getBodyExpr(), $locals);
+    }
+
+    /**
+     * Walks tail-position descendants for `recur` invocations targeting the
+     * enclosing loop and records each argument's inferred type per binding
+     * index. Nested loops own their own recurs and are skipped.
+     *
+     * @param array<string, string>     $locals
+     * @param array<int, list<?string>> $types
+     */
+    private function collectRecurArgTypes(AbstractNode $node, array $locals, array &$types): void
+    {
+        if ($node instanceof RecurNode) {
+            foreach ($node->getExpressions() as $i => $expr) {
+                $type = $this->inferNode($expr, $locals);
+                $types[$i][] = ($type === null || $type === self::BOTTOM) ? null : $type;
+            }
+
+            return;
+        }
+
+        if ($node instanceof IfNode) {
+            $this->collectRecurArgTypes($node->getThenExpr(), $locals, $types);
+            $this->collectRecurArgTypes($node->getElseExpr(), $locals, $types);
+            return;
+        }
+
+        if ($node instanceof DoNode) {
+            $this->collectRecurArgTypes($node->getRet(), $locals, $types);
+            return;
+        }
+
+        if ($node instanceof LetNode && !$node->isLoop()) {
+            $this->collectRecurArgTypes($node->getBodyExpr(), $locals, $types);
+        }
     }
 
     /**
