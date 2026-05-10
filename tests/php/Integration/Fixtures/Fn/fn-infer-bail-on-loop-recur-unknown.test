@@ -1,0 +1,19 @@
+--PHEL--
+(fn [^int n stop]
+  (loop [acc n]
+    (if (php/<= acc 1) acc (recur stop))))
+--PHP--
+(function(int $n, $stop) {
+  $acc_1 = $n;
+  while (true) {
+    if (($__truthy = ($acc_1 <= 1)) !== null && $__truthy !== false) {
+      return $acc_1;
+    } else {
+      $__phel_2 = $stop;
+      $acc_1 = $__phel_2;
+      continue;
+
+    }
+    break;
+  }
+});

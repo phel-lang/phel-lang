@@ -1,0 +1,34 @@
+--PHEL--
+(fn [^int n]
+  (loop [outer n]
+    (if (php/<= outer 0)
+      outer
+      (recur (loop [inner outer] (if (php/<= inner 1) inner (recur (php/- inner 1))))))))
+--PHP--
+(function(int $n): int {
+  $outer_1 = $n;
+  while (true) {
+    if (($__truthy = ($outer_1 <= 0)) !== null && $__truthy !== false) {
+      return $outer_1;
+    } else {
+      $__phel_3 = (function() use($n,$outer_1) {
+        $inner_2 = $outer_1;
+        while (true) {
+          if (($__truthy = ($inner_2 <= 1)) !== null && $__truthy !== false) {
+            return $inner_2;
+          } else {
+            $__phel_4 = ($inner_2 - 1);
+            $inner_2 = $__phel_4;
+            continue;
+
+          }
+          break;
+        }
+      })();
+      $outer_1 = $__phel_3;
+      continue;
+
+    }
+    break;
+  }
+});
