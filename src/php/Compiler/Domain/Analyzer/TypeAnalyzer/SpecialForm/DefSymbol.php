@@ -25,7 +25,6 @@ use Phel\Lang\TypeInterface;
 use function array_map;
 use function array_pop;
 use function array_slice;
-use function array_values;
 use function assert;
 use function count;
 use function implode;
@@ -395,7 +394,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     {
         $params = $this->scalarParamSlice($fnNode, $skipFirst);
         $tags = array_map(
-            static fn(Symbol $p): ?string => TagCompatibility::extractParamTag($p),
+            TagCompatibility::extractParamTag(...),
             $params,
         );
 
@@ -472,7 +471,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
             array_pop($params);
         }
 
-        return array_values($params);
+        return $params;
     }
 
     /**

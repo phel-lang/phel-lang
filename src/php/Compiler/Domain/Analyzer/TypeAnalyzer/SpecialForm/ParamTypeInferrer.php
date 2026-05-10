@@ -8,6 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
+use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
