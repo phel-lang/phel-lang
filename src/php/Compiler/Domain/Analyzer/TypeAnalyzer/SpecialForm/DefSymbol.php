@@ -83,12 +83,14 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
             $metaMap = $metaMap->put('min-arity', max(0, $initNode->getMinArity() - $skip));
             $metaMap = $metaMap->put('is-variadic', $initNode->isVariadic());
             $metaMap = $metaMap->put('arglists', $this->buildFnNodeArglist($initNode, $skip));
+            $metaMap = $this->persistInferredReturnTag($metaMap, $initNode->getReturnType());
         } elseif ($initNode instanceof MultiFnNode) {
             $metaMap = $metaMap->put('min-arity', max(0, $initNode->getMinArity() - $skip));
             $metaMap = $metaMap->put('is-variadic', $initNode->isVariadic());
             $maxArity = $initNode->getMaxArity();
             $metaMap = $metaMap->put('max-arity', $maxArity === null ? null : max(0, $maxArity - $skip));
             $metaMap = $metaMap->put('arglists', $this->buildMultiFnNodeArglists($initNode, $skip));
+            $metaMap = $this->persistInferredReturnTag($metaMap, $this->commonMultiFnReturnType($initNode));
         }
 
         // Stash a compile-time-only superset of the meta with `:param-tags`
@@ -304,6 +306,56 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     private function buildFnNodeArglist(FnNode $fnNode, int $skipFirst = 0): string
     {
         return $this->formatParamsVector($fnNode->getParams(), $fnNode->isVariadic(), $skipFirst);
+    }
+
+    /**
+     * Inferred return type writes back to the def's runtime meta as `:tag`
+     * so cross-fn inference can see it on the next call site without
+     * having to re-walk the callee's body. User `:tag` already in meta
+     * stays untouched.
+     *
+     * @param PersistentMapInterface<mixed, mixed> $metaMap
+     *
+     * @return PersistentMapInterface<mixed, mixed>
+     */
+    private function persistInferredReturnTag(PersistentMapInterface $metaMap, ?string $returnType): PersistentMapInterface
+    {
+        if ($returnType === null || $returnType === '') {
+            return $metaMap;
+        }
+
+        if ($metaMap->find(Keyword::create('tag')) !== null) {
+            return $metaMap;
+        }
+
+        return $metaMap->put(Keyword::create('tag'), $returnType);
+    }
+
+    /**
+     * Multi-arity defns expose a single declared return type only when
+     * every arity agrees. Disagreement leaves the def untyped, mirroring
+     * how the inferrer bails on branches that disagree.
+     */
+    private function commonMultiFnReturnType(MultiFnNode $multiFnNode): ?string
+    {
+        $shared = null;
+        foreach ($multiFnNode->getFnNodes() as $fnNode) {
+            $type = $fnNode->getReturnType();
+            if ($type === null) {
+                return null;
+            }
+
+            if ($shared === null) {
+                $shared = $type;
+                continue;
+            }
+
+            if ($shared !== $type) {
+                return null;
+            }
+        }
+
+        return $shared;
     }
 
     /**

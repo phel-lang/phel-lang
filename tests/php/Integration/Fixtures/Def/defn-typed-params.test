@@ -25,6 +25,7 @@
     ),
     "min-arity", 2,
     "is-variadic", false,
-    "arglists", "[x y]"
+    "arglists", "[x y]",
+    \Phel::keyword("tag"), "int"
   )
 );

@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - `:tag` metadata emits PHP type declarations on the compiled fn / defn signature: params, return slot, and per-arity. Reader shorthands `^int`, `^"?int"`, `^"\\Foo\\Bar"`, `^{:tag "..."}`. `:tag` on a defn name propagates to every arity unless the vector overrides it (#1916)
 - Return type inferred from a tail-position primitive op on tagged params (`(php/+ ...)` -> `int`, `(php/. ...)` -> `string`, comparisons -> `bool`; `if` / `let` / `loop` propagate). Explicit `:tag` always wins (#1932)
 - Return type inference also covers tail calls to globals with a `:tag` (cross-fn propagation) and a curated set of pure PHP built-ins (`strlen`, `intval`, `is_*`, `floatval`, `floor`, `ceil`, `round`, `boolval`, `strtolower`, `strtoupper`, `trim`, `sprintf`, …) (#1941)
+- Inferred return types now persist into the def's runtime meta as `:tag`, so cross-fn propagation cascades through callees that the user never tagged explicitly (#1941)
 - Static checker turns `:tag` mismatches into a Phel diagnostic at compile time instead of a runtime PHP `TypeError`: literal call args vs. param tags, `recur` args vs. binding tags, tail literal vs. declared return tag (#1933)
 - `composer bench-jit-baseline` / `bench-jit-tracing` measure typed-vs-untyped `fib`, `sum-squares`, `mandel-point` kernels under OPcache JIT (#1931)
 
