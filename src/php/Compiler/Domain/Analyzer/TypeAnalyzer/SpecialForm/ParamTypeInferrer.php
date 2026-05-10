@@ -284,9 +284,9 @@ final class ParamTypeInferrer
      * `<`, `>`, `<=`, `>=`, `<=>` against a numeric literal hint that the
      * param is meant to be numeric. We treat the comparison as a soft
      * observation so a body that *also* concatenates the same param ends
-     * up with disagreeing observations and drops out — the runtime
-     * contract stays permissive in the face of a coerce-then-concat
-     * pattern (e.g. `(php/> x 0)` followed by `(php/. "" x)`).
+     * up with disagreeing observations and drops out, leaving the runtime
+     * contract permissive in the face of a coerce-then-concat pattern
+     * (e.g. `(php/> x 0)` followed by `(php/. "" x)`).
      */
     private function walkOrderingCall(CallNode $node): void
     {
@@ -336,7 +336,7 @@ final class ParamTypeInferrer
 
     /**
      * `(php/+ x ...)` and friends. We only commit to a numeric type when
-     * a literal in the same call disambiguates int vs float — without
+     * a literal in the same call disambiguates int vs float. Without
      * that hint, mixing call expressions for both operands (e.g.
      * `(php/+ (php/- zx2 zy2) cx)` in a float Mandelbrot kernel) would
      * over-narrow the param to int. Walking arg expressions still
@@ -404,8 +404,8 @@ final class ParamTypeInferrer
 
         // Phel convention: predicate names end in `?`. Calling one on a
         // param signals "this value can be of multiple types, I'm
-        // type-discriminating" — same intent as the explicit `assert*`
-        // guards, so mark the arg guarded.
+        // type-discriminating" (same intent as the explicit `assert*`
+        // guards), so mark the arg guarded.
         return $name !== '' && $name[strlen($name) - 1] === '?';
     }
 }

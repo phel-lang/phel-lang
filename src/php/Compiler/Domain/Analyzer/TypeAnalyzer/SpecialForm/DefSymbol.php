@@ -375,7 +375,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
     /**
      * Static-checker view of the params: a Phel vector with the same
      * arity, where each slot is the param's `:tag` (string) or `null`
-     * if untagged. The variadic tail is excluded — its `:tag` describes
+     * if untagged. The variadic tail is excluded; its `:tag` describes
      * element type, not the bound `Vector`.
      *
      * @return PersistentVectorInterface<mixed>
@@ -588,8 +588,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
      * param vector so `FnSymbol` can pick it up as the compiled signature's
      * return type. Skips arities that already declare their own vector `:tag`
      * (more local declaration wins).
-     */
-    /**
+     *
      * @param PersistentMapInterface<mixed, mixed> $meta
      */
     private function injectReturnTypeFromMeta(mixed $init, PersistentMapInterface $meta): mixed
