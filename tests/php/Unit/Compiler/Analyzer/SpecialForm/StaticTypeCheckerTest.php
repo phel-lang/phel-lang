@@ -102,14 +102,13 @@ final class StaticTypeCheckerTest extends TestCase
         $this->compile('(defn shout [x] (php/. x "!"))(shout 1)');
     }
 
-    public function test_inferred_param_does_not_emit_php_signature_hint(): void
+    public function test_inferred_param_emits_php_signature_hint(): void
     {
-        // Advisory inference must not change the runtime contract: the
-        // emitted PHP keeps the param untyped so callers that rely on
-        // PHP's int/float/string coercion still work.
+        // Inferred params now graft their tag onto the param Symbol, so
+        // the compiled PHP signature carries the type hint and OPcache
+        // JIT can specialise the function body.
         $php = $this->compile('(defn add1 [x] (php/+ x 1))');
-        self::assertStringNotContainsString('int $x', $php);
-        self::assertStringContainsString('__invoke($x)', $php);
+        self::assertStringContainsString('__invoke(int $x): int', $php);
     }
 
     public function test_branch_disagreement_drops_inferred_param(): void
@@ -134,6 +133,70 @@ final class StaticTypeCheckerTest extends TestCase
             "/Arg #1 to 'tag-wins' has type 'string' but param is tagged 'int'/",
         );
         $this->compile('(defn tag-wins [^int x] (php/. x "!"))(tag-wins "x")');
+    }
+
+    public function test_inferred_string_param_emits_php_signature_hint(): void
+    {
+        $php = $this->compile('(defn shout [x] (php/. x "!"))');
+        self::assertStringContainsString('__invoke(string $x)', $php);
+    }
+
+    public function test_nil_identity_guard_suppresses_inference(): void
+    {
+        // `(php/=== x nil)` signals "x can be nil", so we keep the
+        // signature untyped even though the else branch concatenates.
+        $php = $this->compile('(defn maybe [x] (if (php/=== x nil) "" (php/. "" x)))');
+        self::assertStringContainsString('__invoke($x)', $php);
+        self::assertStringNotContainsString('string $x', $php);
+    }
+
+    public function test_predicate_guard_suppresses_inference(): void
+    {
+        // `?`-suffixed Phel predicates are type-discriminating; the
+        // caller may legitimately pass a non-int and route through the
+        // else branch, so the signature stays untyped.
+        $php = $this->compile('(defn safe [x] (if (int? x) (php/+ x 1) 0))');
+        self::assertStringContainsString('__invoke($x)', $php);
+        self::assertStringNotContainsString('int $x', $php);
+    }
+
+    public function test_php_type_predicate_guard_suppresses_inference(): void
+    {
+        // `php/is_string` is a type-discriminating PHP guard; the
+        // sibling concat branch must not narrow the runtime contract.
+        $php = $this->compile(
+            '(defn coerce [x] (if (php/is_string x) x (php/. "" x)))',
+        );
+        self::assertStringContainsString('__invoke($x)', $php);
+        self::assertStringNotContainsString('string $x', $php);
+    }
+
+    public function test_numeric_then_string_use_drops_inference(): void
+    {
+        // Comparing against an int literal AND concatenating in the
+        // same body produces disagreeing observations, so neither tag
+        // wins and the signature stays untyped.
+        $php = $this->compile(
+            '(defn either [x] (if (php/> x 0) "pos" (php/. "" x)))',
+        );
+        self::assertStringContainsString('__invoke($x)', $php);
+    }
+
+    public function test_macro_params_are_not_tagged(): void
+    {
+        // Macro args bind to raw Phel forms regardless of how the body
+        // manipulates them; inference must not narrow the signature.
+        $php = $this->compile('(defmacro inc-form [x] (php/+ x 1))');
+        self::assertStringNotContainsString('int $x', $php);
+        self::assertStringNotContainsString('int $_AMPERSAND_form', $php);
+    }
+
+    public function test_variadic_tail_is_not_tagged(): void
+    {
+        // The `& rest` tail binds a Phel `Vector`, never a scalar.
+        $php = $this->compile('(defn sum-all [& xs] (apply php/+ xs))');
+        self::assertStringNotContainsString('int $xs', $php);
+        self::assertStringNotContainsString('string $xs', $php);
     }
 
     private function compile(string $source): string

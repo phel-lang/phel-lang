@@ -29,7 +29,7 @@ final class FnNode extends AbstractNode
         private readonly bool $recurs,
         ?SourceLocation $sourceLocation = null,
         private readonly ?Symbol $name = null,
-        private readonly ?string $returnType = null,
+        private ?string $returnType = null,
     ) {
         parent::__construct($env, $sourceLocation);
     }
@@ -37,6 +37,21 @@ final class FnNode extends AbstractNode
     public function getReturnType(): ?string
     {
         return $this->returnType;
+    }
+
+    /**
+     * Sets an inferred return type after construction, used by `DefSymbol`
+     * once param-tag grafting has filled the locals the inferrer reads.
+     * No-op if the fn already carries a declared or previously inferred
+     * type so we never weaken an explicit contract.
+     */
+    public function fillInferredReturnType(?string $returnType): self
+    {
+        if ($this->returnType === null && $returnType !== null && $returnType !== '') {
+            $this->returnType = $returnType;
+        }
+
+        return $this;
     }
 
     public function getName(): ?Symbol

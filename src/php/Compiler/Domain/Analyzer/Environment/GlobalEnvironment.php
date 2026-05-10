@@ -118,9 +118,9 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
             // Runtime meta wins because forms like `:inline` carry an
             // evaluated callable that the analyzer-time map only has
             // as a source-form `(fn ...)` list. The compile-time-only
-            // `:param-tags` and `:inferred-param-tags` channels are
-            // folded back in so the static type checker has its inputs
-            // even after the def has been evaluated into the registry.
+            // `:param-tags` channel is folded back in so the static
+            // type checker has its inputs even after the def has been
+            // evaluated into the registry.
             if ($compileMeta instanceof PersistentMapInterface) {
                 return $this->mergeCompileTimeChannels($registryMeta, $compileMeta);
             }
@@ -297,9 +297,9 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
     }
 
     /**
-     * Folds the compile-time-only static-checker channels (`:param-tags`,
-     * `:inferred-param-tags`) into the registry meta read at call sites,
-     * leaving every other key on the registry side untouched.
+     * Folds the compile-time-only `:param-tags` static-checker channel
+     * into the registry meta read at call sites, leaving every other
+     * key on the registry side untouched.
      *
      * @param PersistentMapInterface<mixed, mixed> $registryMeta
      * @param PersistentMapInterface<mixed, mixed> $compileMeta
@@ -310,12 +310,10 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         PersistentMapInterface $registryMeta,
         PersistentMapInterface $compileMeta,
     ): PersistentMapInterface {
-        foreach (['param-tags', 'inferred-param-tags'] as $channel) {
-            $key = Keyword::create($channel);
-            $value = $compileMeta->find($key);
-            if ($value !== null) {
-                $registryMeta = $registryMeta->put($key, $value);
-            }
+        $key = Keyword::create('param-tags');
+        $value = $compileMeta->find($key);
+        if ($value !== null) {
+            return $registryMeta->put($key, $value);
         }
 
         return $registryMeta;
