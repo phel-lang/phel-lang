@@ -11,17 +11,17 @@ All notable changes to this project will be documented in this file.
 - `^:async` metadata on `defn` wraps the body in `async`, returning an `Amp\Future` that callers `await` (#1924)
 
 #### Compiler
-- `:tag` metadata emits PHP type declarations on the compiled fn / defn signature: params, return slot, and per-arity. Reader shorthands `^int`, `^"?int"`, `^"\\Foo\\Bar"`, `^{:tag "..."}`. `:tag` on a defn name propagates to every arity unless the vector overrides it (#1916)
-- Return type inferred from a tail-position primitive op on tagged params (`(php/+ ...)` -> `int`, `(php/. ...)` -> `string`, comparisons -> `bool`; `if` / `let` / `loop` propagate). Explicit `:tag` always wins (#1932)
-- Return type inference also covers tail calls to globals with a `:tag` (cross-fn propagation) and a curated set of pure PHP built-ins (`strlen`, `intval`, `is_*`, `floatval`, `floor`, `ceil`, `round`, `boolval`, `strtolower`, `strtoupper`, `trim`, `sprintf`, …) (#1941)
-- Inferred return types now persist into the def's runtime meta as `:tag`, so cross-fn propagation cascades through callees that the user never tagged explicitly (#1941)
-- Param types inferred from primitive body uses (`(php/+ x ...)` implies `int`, `(php/. x ...)` implies `string`) feed the static checker as advisory contracts; emitted PHP signatures stay untyped so runtime coercion is preserved. Branch disagreement, comparisons, and explicit `:tag` declarations all skip inference (#1944)
-- Inferred param tags graft onto the compiled PHP signature by default (single-arity `defn`), so OPcache JIT can specialise on `int`/`string`/`float`. Type-discriminating guards suppress inference: `?`-suffixed Phel predicates, PHP `is_*` predicates, `php/=== x nil|true|false`, and disagreeing numeric/string observations. Macros, multi-arity, and the variadic tail are unaffected (#1949)
-- Static checker turns `:tag` mismatches into a Phel diagnostic at compile time instead of a runtime PHP `TypeError`: literal call args vs. param tags, `recur` args vs. binding tags, tail literal vs. declared return tag (#1933)
+- `:tag` metadata emits PHP type declarations on params, return slot, and per-arity. Reader shorthands `^int`, `^"?int"`, `^"\\Foo\\Bar"`, `^{:tag "..."}`; defn-name `:tag` propagates to every arity (#1916)
+- Return-type inference from tail-position primitive ops on tagged params; explicit `:tag` wins (#1932)
+- Return-type inference covers tail calls to globals with `:tag` and pure PHP built-ins (`strlen`, `intval`, `is_*`, `floatval`, `floor`, `ceil`, `round`, `boolval`, `strtolower`, `strtoupper`, `trim`, `sprintf`) (#1941)
+- Inferred return types persist into the def's runtime meta as `:tag` for cross-fn propagation (#1941)
+- Param-type inference from primitive body uses (`(php/+ x ...)` -> `int`, `(php/. x ...)` -> `string`) feeds the static checker (#1944)
+- Inferred param tags graft onto the compiled PHP signature for single-arity `defn`. Suppressed by `?`-suffixed predicates, PHP `is_*`, `(php/=== x nil|true|false)`, and disagreeing observations (#1949)
+- Static checker reports `:tag` mismatches at compile time: literal call args vs param tags, `recur` args vs binding tags, tail literal vs declared return tag (#1933)
 - `composer bench-jit-baseline` / `bench-jit-tracing` measure typed-vs-untyped `fib`, `sum-squares`, `mandel-point` kernels under OPcache JIT (#1931)
 
 #### Profile
-- `phel profile <path>` command: per-fn call counts and self/total/avg/max timings, plus compile-time phase costs (lex, parse, read, analyze, emit). Text table by default; `--format=json|both` and `--output=<file>` for tooling
+- `phel profile <path>`: per-fn call counts with self/total/avg/max timings plus compile-phase costs. `--format=json|both`, `--output=<file>`
 
 #### Test
 - `(is (= a b))` failures on collections render a unified diff block
@@ -38,16 +38,16 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 #### Compiler
-- Return-type inference no longer stamps a tag on a `loop` whose `recur` rebinds a binding to a different (or unknown) type, preventing runtime `TypeError`s when a loop accumulator widens (e.g. `*'` promoting to `BigInteger`)
+- Return-type inference skips loops whose `recur` rebinds to a different or unknown type
 
 #### Core
-- `memoize` / `memoize-lru` no longer drop entries that recursive calls add to the cache during a single invocation (#1915)
+- `memoize` / `memoize-lru` retain entries added by recursive calls during a single invocation (#1915)
 
 #### Test
 - Default reporter wraps dot output at 80 columns under `with-output-buffer`
 
 #### Api
-- `phel analyze` preloads namespaces required by the file under analysis, eliminating false `PHEL001 Cannot resolve symbol` diagnostics for aliased project symbols (#1919)
+- `phel analyze` preloads namespaces required by the file under analysis (#1919)
 
 ## [0.36.0](https://github.com/phel-lang/phel-lang/compare/v0.35.0...v0.36.0) - 2026-05-08
 
