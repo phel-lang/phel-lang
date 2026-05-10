@@ -11,29 +11,29 @@ All notable changes to this project will be documented in this file.
 - `^:async` metadata on `defn` wraps the body in `async`, returning an `Amp\Future` that callers `await` (#1924)
 
 #### Compiler
-- `:tag` metadata emits PHP type declarations on params, return slot, and per-arity. Reader shorthands `^int`, `^"?int"`, `^"\\Foo\\Bar"`, `^{:tag "..."}`; defn-name `:tag` propagates to every arity (#1916)
-- Return-type inference from tail-position primitive ops on tagged params; explicit `:tag` wins (#1932)
-- Return-type inference covers tail calls to globals with `:tag` and pure PHP built-ins (`strlen`, `intval`, `is_*`, `floatval`, `floor`, `ceil`, `round`, `boolval`, `strtolower`, `strtoupper`, `trim`, `sprintf`) (#1941)
-- Inferred return types persist into the def's runtime meta as `:tag` for cross-fn propagation (#1941)
-- Param-type inference from primitive body uses (`(php/+ x ...)` -> `int`, `(php/. x ...)` -> `string`) feeds the static checker (#1944)
-- Inferred param tags graft onto the compiled PHP signature for single-arity `defn`. Suppressed by `?`-suffixed predicates, PHP `is_*`, `(php/=== x nil|true|false)`, and disagreeing observations (#1949)
-- Static checker reports `:tag` mismatches at compile time: literal call args vs param tags, `recur` args vs binding tags, tail literal vs declared return tag (#1933)
-- `composer bench-jit-baseline` / `bench-jit-tracing` measure typed-vs-untyped `fib`, `sum-squares`, `mandel-point` kernels under OPcache JIT (#1931)
+- `:tag` metadata emits PHP type declarations; reader shorthands `^int`, `^"?int"`, `^"\\Foo\\Bar"`, `^{:tag "..."}` (#1916)
+- Return-type inference from tail primitive ops on tagged params (#1932)
+- Return-type inference covers tail calls to tagged globals and pure PHP built-ins (#1941)
+- Inferred return types persist as `:tag` in def meta for cross-fn propagation (#1941)
+- Param-type inference from primitive body uses feeds the static checker (#1944)
+- Inferred param tags graft onto the compiled PHP signature for single-arity `defn`; guards suppress (#1949)
+- Static checker reports `:tag` mismatches at compile time (#1933)
+- `composer bench-jit-baseline` / `bench-jit-tracing` for typed-vs-untyped JIT kernels (#1931)
 
 #### Profile
-- `phel profile <path>`: per-fn call counts with self/total/avg/max timings plus compile-phase costs. `--format=json|both`, `--output=<file>`
+- `phel profile <path>` command: per-fn timings and compile-phase costs (`--format`, `--output`)
 
 #### Test
-- `(is (= a b))` failures on collections render a unified diff block
-- `phel test --repeat=N`, `--seed=<int>`, and `--random-order` flags
+- Collection `(is (= a b))` failures render a unified diff
+- `phel test --repeat=N`, `--seed=<int>`, `--random-order`
 
 #### REPL
-- Eval errors show a short headline, optional hint, and a trace with internal frames hidden
+- Eval errors: headline, optional hint, trace with internal frames hidden
 
 ### Changed
 
 #### Compiler
-- Recursive global-fn calls inside their own body emit `$this(...)` instead of a registry lookup; ~3.66x faster on `fib(22)` (#1914)
+- Recursive self-calls emit `$this(...)`; ~3.66x faster on `fib(22)` (#1914)
 
 ### Fixed
 
