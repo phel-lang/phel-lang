@@ -44,11 +44,28 @@ final class ParamTypeInferrer
 
     private const string STRING_CONCAT_OP = '.';
 
+    /**
+     * Globals that signal "the function defensively rejects bad inputs at
+     * runtime". A param threaded through any of these escapes inference
+     * even when later used by a primitive op, so deliberate negative tests
+     * (e.g. `(bit-and nil 1)` against an `assert-non-nil` guard) keep
+     * compiling and reach the runtime guard.
+     *
+     * @var list<string>
+     */
+    private const array GUARD_GLOBALS = [
+        'assert-non-nil',
+        'assert',
+    ];
+
     /** @var array<string, list<string>> */
     private array $observations = [];
 
     /** @var array<string, true> */
     private array $params = [];
+
+    /** @var array<string, true> */
+    private array $guarded = [];
 
     /**
      * @param list<Symbol> $params
@@ -59,6 +76,7 @@ final class ParamTypeInferrer
     {
         $this->observations = [];
         $this->params = [];
+        $this->guarded = [];
 
         $lastIndex = $isVariadic ? count($params) - 1 : count($params);
         for ($i = 0; $i < $lastIndex; ++$i) {
@@ -76,6 +94,10 @@ final class ParamTypeInferrer
 
         $result = [];
         foreach ($this->observations as $name => $types) {
+            if (isset($this->guarded[$name])) {
+                continue;
+            }
+
             $unique = array_unique($types);
             if (count($unique) === 1) {
                 $result[$name] = $unique[0];
@@ -148,6 +170,15 @@ final class ParamTypeInferrer
         // fn-position itself from acting as a constraint source.
         $this->walk($fn);
 
+        if ($fn instanceof GlobalVarNode && $this->isGuardGlobal($fn)) {
+            foreach ($node->getArguments() as $arg) {
+                $this->markGuarded($arg);
+                $this->walk($arg);
+            }
+
+            return;
+        }
+
         if (!$fn instanceof PhpVarNode) {
             foreach ($node->getArguments() as $arg) {
                 $this->walk($arg);
@@ -210,5 +241,22 @@ final class ParamTypeInferrer
         }
 
         $this->observations[$name][] = $type;
+    }
+
+    private function isGuardGlobal(GlobalVarNode $fn): bool
+    {
+        return in_array($fn->getName()->getName(), self::GUARD_GLOBALS, true);
+    }
+
+    private function markGuarded(AbstractNode $arg): void
+    {
+        if (!$arg instanceof LocalVarNode) {
+            return;
+        }
+
+        $name = $arg->getName()->getName();
+        if (isset($this->params[$name])) {
+            $this->guarded[$name] = true;
+        }
     }
 }
