@@ -291,7 +291,7 @@ final class ParamTypeInferrer
     private function walkOrderingCall(CallNode $node): void
     {
         $args = $node->getArguments();
-        $type = $this->numericComparisonType($args);
+        $type = $this->literalNumericType($args);
 
         if ($type !== null) {
             $this->walkArgs($node, fn(AbstractNode $a) => $this->constrainArgAsScalar($a, $type));
@@ -302,9 +302,15 @@ final class ParamTypeInferrer
     }
 
     /**
+     * Reads a numeric type hint from the literal args of a call: `float`
+     * if any literal is float, `int` if any literal is int and none are
+     * float, otherwise `null`. Both `walkNumericCall` and
+     * `walkOrderingCall` need this so they only constrain a param when
+     * the call actually disambiguates the runtime type.
+     *
      * @param list<AbstractNode> $args
      */
-    private function numericComparisonType(array $args): ?string
+    private function literalNumericType(array $args): ?string
     {
         $hasFloat = false;
         $hasInt = false;
@@ -328,13 +334,25 @@ final class ParamTypeInferrer
         return $hasInt ? 'int' : null;
     }
 
+    /**
+     * `(php/+ x ...)` and friends. We only commit to a numeric type when
+     * a literal in the same call disambiguates int vs float — without
+     * that hint, mixing call expressions for both operands (e.g.
+     * `(php/+ (php/- zx2 zy2) cx)` in a float Mandelbrot kernel) would
+     * over-narrow the param to int. Walking arg expressions still
+     * captures any nested operator without polluting the local.
+     */
     private function walkNumericCall(CallNode $node): void
     {
         $args = $node->getArguments();
-        $hasFloat = array_any($args, static fn($arg): bool => $arg instanceof LiteralNode && is_float($arg->getValue()));
+        $type = $this->literalNumericType($args);
 
-        $type = $hasFloat ? 'float' : 'int';
-        $this->walkArgs($node, fn(AbstractNode $a) => $this->constrainArgAsScalar($a, $type));
+        if ($type !== null) {
+            $this->walkArgs($node, fn(AbstractNode $a) => $this->constrainArgAsScalar($a, $type));
+            return;
+        }
+
+        $this->walkArgs($node);
     }
 
     /**
