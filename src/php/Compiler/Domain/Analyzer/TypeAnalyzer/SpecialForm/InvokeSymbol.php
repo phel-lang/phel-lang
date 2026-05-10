@@ -140,21 +140,21 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         ?PersistentVectorInterface $inferredTags,
         int $i,
     ): ?string {
-        $explicit = $explicitTags->get($i);
-        if (is_string($explicit) && $explicit !== '') {
-            return $explicit;
-        }
+        return $this->tagAt($explicitTags, $i)
+            ?? $this->tagAt($inferredTags, $i);
+    }
 
-        if (!$inferredTags instanceof PersistentVectorInterface) {
+    /**
+     * @param PersistentVectorInterface<mixed>|null $vec
+     */
+    private function tagAt(?PersistentVectorInterface $vec, int $i): ?string
+    {
+        if (!$vec instanceof PersistentVectorInterface || $i >= count($vec)) {
             return null;
         }
 
-        if ($i >= count($inferredTags)) {
-            return null;
-        }
-
-        $inferred = $inferredTags->get($i);
-        return is_string($inferred) && $inferred !== '' ? $inferred : null;
+        $tag = $vec->get($i);
+        return is_string($tag) && $tag !== '' ? $tag : null;
     }
 
     /**

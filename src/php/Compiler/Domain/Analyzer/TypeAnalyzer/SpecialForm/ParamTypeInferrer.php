@@ -172,30 +172,19 @@ final class ParamTypeInferrer
         $this->walk($fn);
 
         if ($fn instanceof GlobalVarNode && $this->isGuardGlobal($fn)) {
-            foreach ($node->getArguments() as $arg) {
-                $this->markGuarded($arg);
-                $this->walk($arg);
-            }
-
+            $this->walkArgs($node, fn(AbstractNode $a) => $this->markGuarded($a));
             return;
         }
 
         if (!$fn instanceof PhpVarNode) {
-            foreach ($node->getArguments() as $arg) {
-                $this->walk($arg);
-            }
-
+            $this->walkArgs($node);
             return;
         }
 
         $op = $fn->getName();
 
         if ($op === self::STRING_CONCAT_OP) {
-            foreach ($node->getArguments() as $arg) {
-                $this->constrainArgAsScalar($arg, 'string');
-                $this->walk($arg);
-            }
-
+            $this->walkArgs($node, fn(AbstractNode $a) => $this->constrainArgAsScalar($a, 'string'));
             return;
         }
 
@@ -208,56 +197,60 @@ final class ParamTypeInferrer
         // arg expressions for nested operators without constraining the
         // local: PHP comparisons coerce both sides at runtime, and
         // unknown functions could accept anything.
-        foreach ($node->getArguments() as $arg) {
-            $this->walk($arg);
-        }
+        $this->walkArgs($node);
     }
 
     private function walkNumericCall(CallNode $node): void
     {
         $args = $node->getArguments();
-        $hasFloat = false;
-        foreach ($args as $arg) {
-            if ($arg instanceof LiteralNode && is_float($arg->getValue())) {
-                $hasFloat = true;
-            }
-        }
+        $hasFloat = array_any($args, static fn($arg): bool => $arg instanceof LiteralNode && is_float($arg->getValue()));
 
         $type = $hasFloat ? 'float' : 'int';
-        foreach ($args as $arg) {
-            $this->constrainArgAsScalar($arg, $type);
+        $this->walkArgs($node, fn(AbstractNode $a) => $this->constrainArgAsScalar($a, $type));
+    }
+
+    /**
+     * @param (callable(AbstractNode): void)|null $observe
+     */
+    private function walkArgs(CallNode $node, ?callable $observe = null): void
+    {
+        foreach ($node->getArguments() as $arg) {
+            if ($observe !== null) {
+                $observe($arg);
+            }
+
             $this->walk($arg);
         }
     }
 
     private function constrainArgAsScalar(AbstractNode $arg, string $type): void
     {
+        $name = $this->paramNameOf($arg);
+        if ($name !== null) {
+            $this->observations[$name][] = $type;
+        }
+    }
+
+    private function markGuarded(AbstractNode $arg): void
+    {
+        $name = $this->paramNameOf($arg);
+        if ($name !== null) {
+            $this->guarded[$name] = true;
+        }
+    }
+
+    private function paramNameOf(AbstractNode $arg): ?string
+    {
         if (!$arg instanceof LocalVarNode) {
-            return;
+            return null;
         }
 
         $name = $arg->getName()->getName();
-        if (!isset($this->params[$name])) {
-            return;
-        }
-
-        $this->observations[$name][] = $type;
+        return isset($this->params[$name]) ? $name : null;
     }
 
     private function isGuardGlobal(GlobalVarNode $fn): bool
     {
         return in_array($fn->getName()->getName(), self::GUARD_GLOBALS, true);
-    }
-
-    private function markGuarded(AbstractNode $arg): void
-    {
-        if (!$arg instanceof LocalVarNode) {
-            return;
-        }
-
-        $name = $arg->getName()->getName();
-        if (isset($this->params[$name])) {
-            $this->guarded[$name] = true;
-        }
     }
 }
