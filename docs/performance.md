@@ -75,4 +75,5 @@ Full suite (4 440 tests) dropped from ~76 s to ~61 s after enabling opcache CLI.
 ## Related
 
 - [`docs/internals/benchmarks.md`](internals/benchmarks.md): PHPBench suite for tracking regressions in the Phel compiler itself
+- [Profile Guide](profile-guide.md): instrument a script to find hot fns
 - PHP manual: [opcache configuration](https://www.php.net/manual/en/opcache.configuration.php)

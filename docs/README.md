@@ -25,6 +25,7 @@ Coming from Clojure? Read [Clojure Migration](clojure-migration.md).
 - [Watch](watch-guide.md): hot-reload changed namespaces
 - [CLI Builder](cli-guide.md): build CLIs with `phel.cli`
 - [Performance](performance.md): opcache setup, cache reset
+- [Profile](profile-guide.md): `phel profile` per-fn timings and compile-phase costs
 - [Mocking](mocking-guide.md): test seams for PHP calls
 
 ## Modules
