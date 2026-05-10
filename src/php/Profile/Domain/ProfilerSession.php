@@ -8,12 +8,17 @@ use Phel\Lang\AbstractFn;
 use Phel\Lang\ProfilerHookInterface;
 
 use function array_pop;
-use function count;
 use function hrtime;
 
 final class ProfilerSession implements ProfilerHookInterface
 {
-    /** @var list<array{name:string, enter:int, sub:int}> */
+    /**
+     * Positional tuple per frame: [name, enterNs, childInclusiveNs]. Keyed
+     * arrays would allocate a hash slot per call; the positional layout
+     * keeps `enter` to a single push on every fn invocation.
+     *
+     * @var list<array{0:string, 1:int, 2:int}>
+     */
     private array $stack = [];
 
     /** @var array<string, array{calls:int, totalNs:int, selfNs:int, maxNs:int}> */
@@ -21,6 +26,8 @@ final class ProfilerSession implements ProfilerHookInterface
 
     /** @var array<string, array<string, float>> */
     private array $phaseMs = [];
+
+    private int $depth = 0;
 
     private readonly int $startedAtNs;
 
@@ -40,7 +47,8 @@ final class ProfilerSession implements ProfilerHookInterface
 
     public function enter(string $name): void
     {
-        $this->stack[] = ['name' => $name, 'enter' => hrtime(true), 'sub' => 0];
+        $this->stack[] = [$name, hrtime(true), 0];
+        ++$this->depth;
     }
 
     public function exit(): void
@@ -50,13 +58,13 @@ final class ProfilerSession implements ProfilerHookInterface
             return;
         }
 
-        $inclusive = hrtime(true) - $frame['enter'];
-        $this->recordCall($frame['name'], $inclusive, $inclusive - $frame['sub']);
+        --$this->depth;
+        $inclusive = hrtime(true) - $frame[1];
+        $this->recordCall($frame[0], $inclusive, $inclusive - $frame[2]);
 
-        $depth = count($this->stack);
-        if ($depth > 0) {
+        if ($this->depth > 0) {
             /** @psalm-suppress PropertyTypeCoercion */
-            $this->stack[$depth - 1]['sub'] += $inclusive;
+            $this->stack[$this->depth - 1][2] += $inclusive;
         }
     }
 
@@ -76,15 +84,20 @@ final class ProfilerSession implements ProfilerHookInterface
 
     private function recordCall(string $name, int $inclusive, int $self): void
     {
+        // Bind a reference to the bucket so the four hot-path mutations
+        // touch a single hash slot instead of re-resolving `$name` each
+        // time. Tight inner loops compound these lookups quickly.
         if (!isset($this->fnStats[$name])) {
             $this->fnStats[$name] = ['calls' => 0, 'totalNs' => 0, 'selfNs' => 0, 'maxNs' => 0];
         }
 
-        ++$this->fnStats[$name]['calls'];
-        $this->fnStats[$name]['totalNs'] += $inclusive;
-        $this->fnStats[$name]['selfNs'] += $self;
-        if ($inclusive > $this->fnStats[$name]['maxNs']) {
-            $this->fnStats[$name]['maxNs'] = $inclusive;
+        /** @psalm-suppress UnsupportedPropertyReferenceUsage */
+        $stat = &$this->fnStats[$name];
+        ++$stat['calls'];
+        $stat['totalNs'] += $inclusive;
+        $stat['selfNs'] += $self;
+        if ($inclusive > $stat['maxNs']) {
+            $stat['maxNs'] = $inclusive;
         }
     }
 }
