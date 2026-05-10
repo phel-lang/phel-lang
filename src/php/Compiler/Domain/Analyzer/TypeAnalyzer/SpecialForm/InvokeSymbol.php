@@ -92,39 +92,58 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         array $args,
         PersistentListInterface $list,
     ): void {
-        $paramTags = $f->getMeta()->find(Keyword::create('param-tags'));
+        $meta = $f->getMeta();
+        $paramTags = $meta->find(Keyword::create('param-tags'));
         if (!$paramTags instanceof PersistentVectorInterface) {
             return;
         }
 
+        $inferredTags = $meta->find(Keyword::create('inferred-param-tags'));
         $tagsCount = count($paramTags);
         foreach ($args as $i => $arg) {
             if ($i >= $tagsCount) {
                 return;
             }
 
-            $tag = $paramTags->get($i);
-            if (!is_string($tag)) {
-                continue;
-            }
-
-            if ($tag === '') {
-                continue;
-            }
-
-            $literalType = TagCompatibility::literalTypeOf($arg);
-            if ($literalType === null) {
-                continue;
-            }
-
-            if (!TagCompatibility::accepts($tag, $literalType)) {
-                throw AnalyzerException::withLocation(
-                    'Arg #' . ($i + 1) . " to '" . $f->getName()->getName()
-                    . sprintf("' has type '%s' but param is tagged '%s'", $literalType, $tag),
-                    $list,
-                );
+            // Explicit `:param-tags` wins; the inferred companion is
+            // consulted only when the explicit slot is empty.
+            $tag = $this->tagAt($paramTags, $i) ?? $this->tagAt($inferredTags, $i);
+            if ($tag !== null) {
+                $this->ensureLiteralMatchesTag($f, $list, $i, $arg, $tag);
             }
         }
+    }
+
+    /**
+     * @param PersistentListInterface<mixed> $list
+     */
+    private function ensureLiteralMatchesTag(
+        GlobalVarNode $f,
+        PersistentListInterface $list,
+        int $i,
+        AbstractNode $arg,
+        string $tag,
+    ): void {
+        $literalType = TagCompatibility::literalTypeOf($arg);
+        if ($literalType === null || TagCompatibility::accepts($tag, $literalType)) {
+            return;
+        }
+
+        throw AnalyzerException::withLocation(
+            'Arg #' . ($i + 1) . " to '" . $f->getName()->getName()
+            . sprintf("' has type '%s' but param is tagged '%s'", $literalType, $tag),
+            $list,
+        );
+    }
+
+    private function tagAt(mixed $vec, int $i): ?string
+    {
+        if (!$vec instanceof PersistentVectorInterface || $i >= count($vec)) {
+            return null;
+        }
+
+        $tag = $vec->get($i);
+        return is_string($tag) && $tag !== '' ? $tag : null;
     }
 
     /**

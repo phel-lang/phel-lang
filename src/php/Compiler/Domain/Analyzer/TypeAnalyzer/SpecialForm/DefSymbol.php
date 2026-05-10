@@ -23,6 +23,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 
 use function array_map;
+use function array_pop;
 use function array_slice;
 use function assert;
 use function count;
@@ -100,12 +101,25 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
         // `compile`-only flows never populate). The runtime `$meta`
         // built below intentionally omits `:param-tags` so the emitted
         // PHP keeps its existing shape.
+        //
+        // `:inferred-param-tags` is the advisory companion: a same-shape
+        // vector filled in for params that have no user `:tag` but show
+        // an unambiguous primitive use in the body. It rides the same
+        // compile-time channel and is folded back into the meta read by
+        // `InvokeSymbol`, but the emitter never sees it so PHP signatures
+        // stay coercion-friendly.
         if ($initNode instanceof FnNode) {
-            $this->analyzer->setCompileTimeMeta(
-                $namespace,
-                $nameSymbol,
-                $metaMap->put(Keyword::create('param-tags'), $this->buildParamTags($initNode, $skip)),
-            );
+            $paramTags = $this->buildParamTags($initNode, $skip);
+            $compileTimeMeta = $metaMap->put(Keyword::create('param-tags'), $paramTags);
+            $inferredTags = $this->buildInferredParamTags($initNode, $paramTags, $skip);
+            if ($inferredTags instanceof PersistentVectorInterface) {
+                $compileTimeMeta = $compileTimeMeta->put(
+                    Keyword::create('inferred-param-tags'),
+                    $inferredTags,
+                );
+            }
+
+            $this->analyzer->setCompileTimeMeta($namespace, $nameSymbol, $compileTimeMeta);
         } else {
             $this->analyzer->setCompileTimeMeta($namespace, $nameSymbol, $metaMap);
         }
@@ -378,22 +392,95 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
      */
     private function buildParamTags(FnNode $fnNode, int $skipFirst = 0): PersistentVectorInterface
     {
+        $params = $this->scalarParamSlice($fnNode, $skipFirst);
+        $tags = array_map(
+            TagCompatibility::extractParamTag(...),
+            $params,
+        );
+
+        return Phel::vector($tags);
+    }
+
+    /**
+     * Companion vector to `:param-tags` filled by walking the fn body
+     * with `ParamTypeInferrer`. Slots stay `null` for params the user
+     * already tagged or that the inferrer could not resolve, so the
+     * call-site checker can use `:inferred-param-tags` only as a
+     * fallback when no explicit tag is present.
+     *
+     * Returns `null` when the inferrer found nothing — keeps the
+     * compile-time meta map free of empty advisory data.
+     *
+     * @param PersistentVectorInterface<mixed> $explicitTags
+     *
+     * @return PersistentVectorInterface<mixed>|null
+     */
+    private function buildInferredParamTags(
+        FnNode $fnNode,
+        PersistentVectorInterface $explicitTags,
+        int $skipFirst = 0,
+    ): ?PersistentVectorInterface {
+        $params = $this->scalarParamSlice($fnNode, $skipFirst);
+        if ($params === []) {
+            return null;
+        }
+
+        $inferred = new ParamTypeInferrer()->infer(
+            $fnNode->getBody(),
+            $params,
+            $fnNode->isVariadic(),
+        );
+
+        if ($inferred === []) {
+            return null;
+        }
+
+        $tags = [];
+        $any = false;
+        foreach ($params as $i => $param) {
+            // User tag wins; never overwrite an explicit declaration.
+            if ($this->hasExplicitTag($explicitTags, $i)) {
+                $tags[] = null;
+                continue;
+            }
+
+            $tag = $inferred[$param->getName()] ?? null;
+            $any = $any || $tag !== null;
+            $tags[] = $tag;
+        }
+
+        return $any ? Phel::vector($tags) : null;
+    }
+
+    /**
+     * Skips the leading macro implicit params (`&form`, `&env`) and the
+     * variadic tail. Both `:param-tags` consumers operate on this slice
+     * because the variadic tail's `:tag` describes the element type, not
+     * the bound `Vector`.
+     *
+     * @return list<Symbol>
+     */
+    private function scalarParamSlice(FnNode $fnNode, int $skipFirst): array
+    {
         $params = $fnNode->getParams();
         if ($skipFirst > 0) {
             $params = array_slice($params, $skipFirst);
         }
 
-        $count = count($params);
-        if ($fnNode->isVariadic() && $count > 0) {
-            --$count;
+        if ($fnNode->isVariadic() && $params !== []) {
+            array_pop($params);
         }
 
-        $tags = [];
-        for ($i = 0; $i < $count; ++$i) {
-            $tags[] = TagCompatibility::extractParamTag($params[$i]);
-        }
+        return $params;
+    }
 
-        return Phel::vector($tags);
+    /**
+     * @param PersistentVectorInterface<mixed> $explicitTags
+     */
+    private function hasExplicitTag(PersistentVectorInterface $explicitTags, int $i): bool
+    {
+        $tag = $explicitTags->get($i);
+        return is_string($tag) && $tag !== '';
     }
 
     private function buildMultiFnNodeArglists(MultiFnNode $multiFnNode, int $skipFirst = 0): string

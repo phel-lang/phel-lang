@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - Return type inferred from a tail-position primitive op on tagged params (`(php/+ ...)` -> `int`, `(php/. ...)` -> `string`, comparisons -> `bool`; `if` / `let` / `loop` propagate). Explicit `:tag` always wins (#1932)
 - Return type inference also covers tail calls to globals with a `:tag` (cross-fn propagation) and a curated set of pure PHP built-ins (`strlen`, `intval`, `is_*`, `floatval`, `floor`, `ceil`, `round`, `boolval`, `strtolower`, `strtoupper`, `trim`, `sprintf`, …) (#1941)
 - Inferred return types now persist into the def's runtime meta as `:tag`, so cross-fn propagation cascades through callees that the user never tagged explicitly (#1941)
+- Param types inferred from primitive body uses (`(php/+ x ...)` implies `int`, `(php/. x ...)` implies `string`) feed the static checker as advisory contracts; emitted PHP signatures stay untyped so runtime coercion is preserved. Branch disagreement, comparisons, and explicit `:tag` declarations all skip inference (#1944)
 - Static checker turns `:tag` mismatches into a Phel diagnostic at compile time instead of a runtime PHP `TypeError`: literal call args vs. param tags, `recur` args vs. binding tags, tail literal vs. declared return tag (#1933)
 - `composer bench-jit-baseline` / `bench-jit-tracing` measure typed-vs-untyped `fib`, `sum-squares`, `mandel-point` kernels under OPcache JIT (#1931)
 

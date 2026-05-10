@@ -86,6 +86,56 @@ final class StaticTypeCheckerTest extends TestCase
         self::assertStringContainsString('?int', $php);
     }
 
+    public function test_inferred_int_param_flags_string_literal_at_call_site(): void
+    {
+        $this->expectExceptionMessageMatches(
+            "/Arg #1 to 'add1' has type 'string' but param is tagged 'int'/",
+        );
+        $this->compile('(defn add1 [x] (php/+ x 1))(add1 "x")');
+    }
+
+    public function test_inferred_string_param_flags_int_literal_at_call_site(): void
+    {
+        $this->expectExceptionMessageMatches(
+            "/Arg #1 to 'shout' has type 'int' but param is tagged 'string'/",
+        );
+        $this->compile('(defn shout [x] (php/. x "!"))(shout 1)');
+    }
+
+    public function test_inferred_param_does_not_emit_php_signature_hint(): void
+    {
+        // Advisory inference must not change the runtime contract: the
+        // emitted PHP keeps the param untyped so callers that rely on
+        // PHP's int/float/string coercion still work.
+        $php = $this->compile('(defn add1 [x] (php/+ x 1))');
+        self::assertStringNotContainsString('int $x', $php);
+        self::assertStringContainsString('__invoke($x)', $php);
+    }
+
+    public function test_branch_disagreement_drops_inferred_param(): void
+    {
+        // `x` is used as both int and string across branches, so the
+        // inferrer must not commit to either; both call shapes compile
+        // without a diagnostic.
+        $php = $this->compile(
+            '(defn mixed [x flag] (if flag (php/+ x 1) (php/. x "!")))'
+            . '(mixed 1 true)'
+            . '(mixed "x" false)',
+        );
+        self::assertStringContainsString('mixed', $php);
+    }
+
+    public function test_explicit_param_tag_wins_over_inferred(): void
+    {
+        // The body suggests `string` for `x` via `php/.`, but the
+        // explicit `^int` declaration is the authoritative contract;
+        // the diagnostic must use the explicit tag.
+        $this->expectExceptionMessageMatches(
+            "/Arg #1 to 'tag-wins' has type 'string' but param is tagged 'int'/",
+        );
+        $this->compile('(defn tag-wins [^int x] (php/. x "!"))(tag-wins "x")');
+    }
+
     private function compile(string $source): string
     {
         BuildFacade::enableBuildMode();
