@@ -243,10 +243,9 @@ final class ParamTypeInferrer
             return;
         }
 
-        // Everything else (`aget`, unknown PHP fns)
-        // walks arg expressions for nested operators without constraining
-        // the local: PHP comparisons coerce both sides at runtime, and
-        // unknown functions could accept anything.
+        // Everything else (`aget`, unknown PHP fns) walks arg expressions
+        // for nested operators without constraining the local: unknown
+        // functions could accept anything.
         $this->walkArgs($node);
     }
 
