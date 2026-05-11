@@ -38,9 +38,16 @@ Prefix PHP functions with `php/`:
 ;; Namespaced functions: keep the original casing
 (php/Amp\trapSignal [php/SIGINT php/SIGTERM])
 (php/\Monolog\Logger\Utils\detectAndCleanUtf8 "input")
+
+;; Backslash-free alternatives — `.` and `/` are also accepted as namespace
+;; separators, so the same call can be written without escaping in `.cljc`
+;; files or shared snippets:
+(php/Amp.ByteStream/getStdout)
+(php/Amp.ByteStream.getStdout)
+(php/Monolog.Logger.Utils.detectAndCleanUtf8 "input")
 ```
 
-The `php/` prefix resolves any global or namespaced PHP function. The name after `php/` is the full PHP path (use `\\` to disambiguate from the root namespace). Case is preserved: `php/Amp\trapSignal` compiles to `\Amp\trapSignal(...)`.
+The `php/` prefix resolves any global or namespaced PHP function. The name after `php/` is the full PHP path; `\`, `.`, and `/` are interchangeable as namespace separators, so `php/Amp\trapSignal`, `php/Amp.trapSignal`, and `php/Amp/trapSignal` all compile to `\Amp\trapSignal(...)`. Case is preserved.
 
 Capture references with `def` to shorten calls:
 
