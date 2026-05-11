@@ -77,18 +77,15 @@ New feature: add the file, add one `:require` in `app/boot.phel`, run `phel expo
 ```php
 <?php
 
-use Phel\Config\PhelBuildConfig;
 use Phel\Config\PhelConfig;
-use Phel\Config\PhelExportConfig;
 
 return PhelConfig::forProject()
-    ->setSrcDirs(['phel'])
-    ->setTestDirs(['tests-phel'])
-    ->setBuildConfig((new PhelBuildConfig())->setDestDir('build'))
-    ->setExportConfig((new PhelExportConfig())
-        ->setFromDirectories(['phel'])
-        ->setNamespacePrefix('App\\PhelGenerated')
-        ->setTargetDirectory(__DIR__ . '/app/PhelGenerated'));
+    ->withSrcDirs(['phel'])
+    ->withTestDirs(['tests-phel'])
+    ->withBuildDestDir('build')
+    ->withExportFromDirectories(['phel'])
+    ->withExportNamespacePrefix('App\\PhelGenerated')
+    ->withExportTargetDirectory(__DIR__ . '/app/PhelGenerated');
 ```
 
 `app/Providers/PhelServiceProvider.php` (loads the boot ns once, all wrappers ready):
@@ -153,18 +150,15 @@ final class CheckoutController
 ```php
 <?php
 
-use Phel\Config\PhelBuildConfig;
 use Phel\Config\PhelConfig;
-use Phel\Config\PhelExportConfig;
 
 return PhelConfig::forProject()
-    ->setSrcDirs(['phel'])
-    ->setTestDirs(['tests/phel'])
-    ->setBuildConfig((new PhelBuildConfig())->setDestDir('build'))
-    ->setExportConfig((new PhelExportConfig())
-        ->setFromDirectories(['phel'])
-        ->setNamespacePrefix('App\\PhelGenerated')
-        ->setTargetDirectory(__DIR__ . '/src/PhelGenerated'));
+    ->withSrcDirs(['phel'])
+    ->withTestDirs(['tests/phel'])
+    ->withBuildDestDir('build')
+    ->withExportFromDirectories(['phel'])
+    ->withExportNamespacePrefix('App\\PhelGenerated')
+    ->withExportTargetDirectory(__DIR__ . '/src/PhelGenerated');
 ```
 
 Default `App\ → src/` PSR-4 covers `App\PhelGenerated\`.
@@ -205,13 +199,12 @@ Controllers use any wrapper: `App\PhelGenerated\Reports\Daily`, `App\PhelGenerat
 ```php
 <?php
 
-use Phel\Config\PhelBuildConfig;
 use Phel\Config\PhelConfig;
 
 return PhelConfig::forProject(mainNamespace: 'app\\boot')
-    ->setSrcDirs(['phel'])
-    ->setTestDirs(['tests/phel'])
-    ->setBuildConfig((new PhelBuildConfig())->setDestDir('build'));
+    ->withSrcDirs(['phel'])
+    ->withTestDirs(['tests/phel'])
+    ->withBuildDestDir('build');
 ```
 
 Entry script:
@@ -243,7 +236,7 @@ echo $greet('World') . "\n";
 - Hyphens become camelCase: `(ns my-lib\core)` to `App\PhelGenerated\MyLib\Core`; `apply-discount` to `applyDiscount`.
 - Prod path (`require build/app/boot.php`): self-contained, no Gacela bootstrap, no compiler. Just `\Phel::addDefinition()` calls.
 - Dev path (`\Phel::run()`) boots Gacela and compiles to temp files on first call. Guard with a static flag; never call from Laravel `register()` or per-request hot paths.
-- `setBuildConfig()` dest dir is relative to the project root.
+- `withBuildDestDir()` is relative to the project root.
 - Commit `build/` in the deploy artifact, or run `phel build` in CI. Skip committing in dev so `is_file()` is false and `\Phel::run()` kicks in.
 - Add `vendor/bin/phel test` to CI alongside `phpunit`.
 

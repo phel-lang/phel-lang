@@ -9,21 +9,29 @@ This module does **not** follow Gacela internally — no Facade, Factory, or Dep
 ## Key Classes
 
 ### `PhelConfig` (main)
-Factory: `PhelConfig::forProject(?string $mainNamespace)` — creates config with optional namespace.
 
-**Directory config**: `setSrcDirs()`, `setTestDirs()`, `setVendorDir()`, `setFormatDirs()`
-**Build config**: `setBuildConfig(PhelBuildConfig)`, `setMainPhelNamespace()`, `setBuildDestDir()`
-**Export config**: `setExportConfig(PhelExportConfig)`, `setExportNamespacePrefix()`, `setExportTargetDirectory()`
-**Cache**: `setCacheDir()`, `setTempDir()`, `setEnableNamespaceCache()`, `setEnableCompiledCodeCache()`
-**Other**: `setIgnoreWhenBuilding()`, `setNoCacheWhenBuilding()`, `setKeepGeneratedTempFiles()`, `setEnableAsserts()`, `setWarnDeprecations()`
+Immutable `final readonly class`. Every mutation returns a new instance.
+
+Factory: `PhelConfig::forProject(string $mainNamespace = '', ?ProjectLayout $layout = null)` — creates config with optional namespace; auto-detects layout from cwd when omitted.
+
+**Directory**: `withSrcDirs()`, `withTestDirs()`, `withVendorDir()`, `withFormatDirs()`
+**Layout**: `withLayout(ProjectLayout)`
+**Build (flat on root)**: `withMainPhelNamespace()`, `withMainPhpPath()`, `withBuildDestDir()`, `withBuildConfig(PhelBuildConfig)` (escape hatch)
+**Export (flat on root)**: `withExportNamespacePrefix()`, `withExportTargetDirectory()`, `withExportFromDirectories()`, `withExportConfig(PhelExportConfig)` (escape hatch)
+**Cache**: `withCacheDir()`, `withTempDir()`, `withEnableNamespaceCache()`, `withEnableCompiledCodeCache()`, `withPhelDir()`
+**Other**: `withIgnoreWhenBuilding()`, `withNoCacheWhenBuilding()`, `withKeepGeneratedTempFiles()`, `withEnableAsserts()`, `withWarnDeprecations()`, `withErrorLogFile()`
 **Validation**: `validate(): array` — returns list of errors
 **Serialization**: `jsonSerialize(): array` — implements `JsonSerializable`
 
+**Deprecated (since 0.37, removed in future major)**: every `setX()` and `useLayout()`/`useNestedLayout()`/`useFlatLayout()` shim to its `withX()` / `withLayout()` counterpart. Annotated with `#[Deprecated]`.
+
 ### `PhelBuildConfig`
-Build-specific: `setMainPhelNamespace()`, `setMainPhpPath()`, `setDestDir()`, `shouldCreateEntryPointPhpFile()`
+
+Immutable value object. Constructor accepts named args: `mainPhelNamespace`, `mainPhpPath`, `destDir`. Use `withMainPhelNamespace()`, `withMainPhpPath()`, `withDestDir()` for chained updates. Setters retained as `#[Deprecated]` shims.
 
 ### `PhelExportConfig`
-Export/interop: `setFromDirectories()`, `setNamespacePrefix()`, `setTargetDirectory()`
+
+Immutable value object. Constructor accepts named args: `fromDirectories`, `namespacePrefix`, `targetDirectory`. `withFromDirectories()`, `withNamespacePrefix()`, `withTargetDirectory()` for updates. Setters retained as `#[Deprecated]` shims.
 
 ### `ProjectLayout` (enum)
 - `Flat` — `src`, `tests` (default)
@@ -41,5 +49,6 @@ None. This is a leaf module with zero internal dependencies.
 ## Key Constraints
 
 - Config constants (e.g. `PhelConfig::SRC_DIRS`) are used as keys throughout Gacela's config system
-- Default source dirs: `['src/phel']`, test dirs: `['tests/phel']` (changed by `useLayout`)
+- `jsonSerialize()` wire shape on all three classes is the contract with Gacela's `AbstractConfig::get()` — never change keys/casing
 - Auto-detection in `Phel.php` checks for nested (`src/phel`) vs flat (`src`) layout when no `phel-config.php` exists
+- Every `with*()` returns a new instance; callers must capture the return value (`$config = $config->withX(...)`), never call for side effect

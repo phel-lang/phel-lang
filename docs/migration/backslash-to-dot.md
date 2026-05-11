@@ -25,7 +25,7 @@ PHEL_WARN_DEPRECATIONS=1 vendor/bin/phel run src/app.phel
 
 ```php
 return PhelConfig::forProject()
-    ->setWarnDeprecations(true);
+    ->withWarnDeprecations(true);
 ```
 
 When enabled, the compiler emits one `E_USER_DEPRECATED` per unique `(file, symbol)` pair so large projects do not drown in duplicates. `--warn-deprecations` is consumed by the `phel` bootstrap before Symfony's per-command parsers run, so it works with every subcommand.
