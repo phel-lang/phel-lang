@@ -79,3 +79,8 @@ Clojure's `(==)` and `(== x)` return `true` for any single argument. Phel's `==`
 | Predicate | `int?`, `bigint?`, `ratio?`, `bigdec?`, `decimal?`, `float?`, `number?` |
 | Numerator / denominator | `numerator`, `denominator` |
 | Float to exact | `rationalize` |
+
+## See also
+
+- [Clojure Migration](clojure-migration.md): numeric differences
+- Core predicates: `int?`, `bigint?`, `ratio?`, `bigdec?`

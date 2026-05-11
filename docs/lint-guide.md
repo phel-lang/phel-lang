@@ -34,7 +34,7 @@
 
 ## Configuration
 
-Drop a `phel-lint.phel` at your repo root:
+Drop `phel-lint.phel` at the project root (resolved from the working directory when you run `phel lint`).
 
 ```phel
 {:rules

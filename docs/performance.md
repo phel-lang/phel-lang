@@ -13,11 +13,11 @@ opcache.max_accelerated_files=20000
 opcache.interned_strings_buffer=16
 ```
 
-Create the directory once: `mkdir -p /tmp/php-opcache`. Restart your shell. Repeat runs of `bin/phel test` drop from ~12 s to sub-second on warm cache.
+Create the directory once: `mkdir -p /tmp/php-opcache`. Restart your shell. Repeat runs of `./vendor/bin/phel test` drop from ~12 s to sub-second on warm cache.
 
 ## Why it is slow without opcache
 
-Every `bin/phel` invocation is a fresh PHP process. Without CLI opcache, PHP re-parses every `.php` file every run: `vendor/`, Phel compiler, Symfony console, project classes. With `opcache.file_cache`, compiled bytecode persists across processes.
+Every `./vendor/bin/phel` invocation is a fresh PHP process. Without CLI opcache, PHP re-parses every `.php` file every run: `vendor/`, Phel compiler, Symfony console, project classes. With `opcache.file_cache`, compiled bytecode persists across processes.
 
 Phel also maintains a compiled-code cache (under `sys_get_temp_dir() . '/phel'` by default) memoizing Phel-to-PHP compilation per source hash. The two caches complement each other: Phel's cache skips recompilation; opcache skips re-parsing the resulting PHP.
 
@@ -27,10 +27,10 @@ For hot numeric / string fns, add `:tag` annotations on params and return slot (
 
 ## Memory limit
 
-`bin/phel` raises `memory_limit` to `-1` automatically. If you invoke PHP directly (`php bin/phel ...`) or embed Phel, bump the limit yourself. The compiler's `token_get_all` validation can exceed 128M on large projects.
+`./vendor/bin/phel` raises `memory_limit` to `-1` automatically. If you invoke PHP directly (`php ./vendor/bin/phel ...`) or embed Phel, bump the limit yourself. The compiler's `token_get_all` validation can exceed 128M on large projects.
 
 ```bash
-php -d memory_limit=-1 bin/phel test
+php -d memory_limit=-1 ./vendor/bin/phel test
 ```
 
 ## Finding your php.ini

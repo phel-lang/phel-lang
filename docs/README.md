@@ -1,5 +1,7 @@
 # Phel Documentation
 
+**Prerequisites**: PHP >= 8.4, Composer.
+
 ## Start here
 
 1. [Quick Start](quickstart.md): install, REPL, first script

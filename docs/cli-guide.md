@@ -29,7 +29,7 @@
 Run:
 
 ```bash
-./vendor/bin/phel run my-tool/main greet alice
+./vendor/bin/phel run my-tool.main greet alice
 # [OK] Hello, alice!
 ```
 
@@ -253,6 +253,4 @@ Only needed under `phel run`. A standalone binary built with `phel build` uses `
 
 ## See also
 
-- [`phel.router`](../src/phel/router.phel): companion for HTTP apps
-- [`phel.http-client`](../src/phel/http-client.phel): outbound HTTP
 - [symfony/console docs](https://symfony.com/doc/current/components/console.html): underlying API

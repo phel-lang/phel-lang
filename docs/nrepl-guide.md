@@ -7,8 +7,11 @@
 ```bash
 ./vendor/bin/phel nrepl                    # port 7888, 127.0.0.1
 ./vendor/bin/phel nrepl --port=0           # bind a random free port
+./vendor/bin/phel nrepl -p 7888            # short form of --port
 ./vendor/bin/phel nrepl --host=0.0.0.0 --port=7888
 ```
+
+Short form: `-p`.
 
 The server prints the bound port to stdout for client auto-discovery.
 

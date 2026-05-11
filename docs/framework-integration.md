@@ -6,9 +6,9 @@ Add Phel to a PHP project without touching `app/` or `src/`.
 
 1. Keep Phel sources under `phel/`.
 2. Mark public functions with `{:export true}`.
-3. Create one boot namespace (`app\boot`) that `:require`s every feature namespace. Loading it registers all exported functions at once.
+3. Create one main namespace (`app.main`) that `:require`s every feature namespace. Loading it registers all exported functions at once.
 4. Export PHP wrappers under your framework's `App\` PSR-4 root via `phel export`.
-5. Prod: `phel build` at deploy, `require 'build/app/boot.php'` at boot. Dev: `\Phel::run($root, 'app\\boot')` compiles on first call.
+5. Prod: `phel build` at deploy, `require 'build/app/main.php'` at boot. Dev: `\Phel::run($root, 'app.main')` compiles on first call.
 
 Two ways to call Phel from PHP:
 
@@ -21,10 +21,10 @@ Two load modes, same provider/kernel hook:
 
 | Mode | What | Per-request cost |
 |------|------|------------------|
-| Prod (AOT) | `require 'build/app/boot.php'`, precompiled | Zero compile, one `require` |
-| Dev (JIT) | `\Phel::run($root, 'app\\boot')` | Gacela bootstrap + compile on first call |
+| Prod (AOT) | `require 'build/app/main.php'`, precompiled | Zero compile, one `require` |
+| Dev (JIT) | `\Phel::run($root, 'app.main')` | Gacela bootstrap + compile on first call |
 
-Namespaces need at least two segments (`shop\pricing`, not `pricing`).
+Namespaces need at least two segments (`shop.pricing`, not `pricing`).
 
 Install: `composer require phel-lang/phel-lang`
 
@@ -32,33 +32,33 @@ Build artifacts on deploy (Composer runs both):
 
 ```json
 "scripts": {
-    "post-install-cmd": ["phel export", "phel build"],
-    "post-update-cmd": ["phel export", "phel build"]
+    "post-install-cmd": ["./vendor/bin/phel export", "./vendor/bin/phel build"],
+    "post-update-cmd": ["./vendor/bin/phel export", "./vendor/bin/phel build"]
 }
 ```
 
 ---
 
-## Boot namespace pattern
+## Main namespace pattern
 
 ```
 phel/
-├── app/boot.phel          ; lists every feature ns
+├── app/main.phel          ; main namespace, lists every feature ns
 ├── shop/pricing.phel
 ├── reports/daily.phel
 └── auth/tokens.phel
 ```
 
-`phel/app/boot.phel`:
+`phel/app/main.phel`:
 
 ```phel
-(ns app\boot
-  (:require shop\pricing)
-  (:require reports\daily)
-  (:require auth\tokens))
+(ns app.main
+  (:require shop.pricing)
+  (:require reports.daily)
+  (:require auth.tokens))
 ```
 
-Loading `app\boot` (via `require` or `\Phel::run()`) registers every exported function across all three namespaces. Any controller can call any wrapper:
+Loading `app.main` (via `require` or `\Phel::run()`) registers every exported function across all three namespaces. Any controller can call any wrapper:
 
 ```php
 App\PhelGenerated\Shop\Pricing::applyDiscount(...)
@@ -66,7 +66,7 @@ App\PhelGenerated\Reports\Daily::summary(...)
 App\PhelGenerated\Auth\Tokens::makeToken(...)
 ```
 
-New feature: add the file, add one `:require` in `app/boot.phel`, run `phel export` + `phel build`.
+New feature: add the file, add one `:require` in `app/main.phel`, run `phel export` + `phel build`.
 
 ---
 
@@ -88,7 +88,7 @@ return PhelConfig::forProject()
     ->withExportTargetDirectory(__DIR__ . '/app/PhelGenerated');
 ```
 
-`app/Providers/PhelServiceProvider.php` (loads the boot ns once, all wrappers ready):
+`app/Providers/PhelServiceProvider.php` (loads the main ns once, all wrappers ready):
 
 ```php
 namespace App\Providers;
@@ -105,12 +105,12 @@ final class PhelServiceProvider extends ServiceProvider
             return;
         }
 
-        $built = base_path('build/app/boot.php');
+        $built = base_path('build/app/main.php');
 
         if (is_file($built)) {
             require $built;
         } else {
-            \Phel::run(base_path(), 'app\\boot');
+            \Phel::run(base_path(), 'app.main');
         }
 
         self::$loaded = true;
@@ -176,19 +176,19 @@ public function boot(): void
         return;
     }
 
-    $built = $this->getProjectDir() . '/build/app/boot.php';
+    $built = $this->getProjectDir() . '/build/app/main.php';
 
     if (is_file($built)) {
         require $built;
     } else {
-        \Phel::run($this->getProjectDir(), 'app\\boot');
+        \Phel::run($this->getProjectDir(), 'app.main');
     }
 
     self::$phelLoaded = true;
 }
 ```
 
-Controllers use any wrapper: `App\PhelGenerated\Reports\Daily`, `App\PhelGenerated\Shop\Pricing`, etc. All registered by the boot load.
+Controllers use any wrapper: `App\PhelGenerated\Reports\Daily`, `App\PhelGenerated\Shop\Pricing`, etc. All registered by the main load.
 
 ---
 
@@ -201,7 +201,7 @@ Controllers use any wrapper: `App\PhelGenerated\Reports\Daily`, `App\PhelGenerat
 
 use Phel\Config\PhelConfig;
 
-return PhelConfig::forProject(mainNamespace: 'app\\boot')
+return PhelConfig::forProject(mainNamespace: 'app.main')
     ->withSrcDirs(['phel'])
     ->withTestDirs(['tests/phel'])
     ->withBuildDestDir('build');
@@ -214,16 +214,16 @@ Entry script:
 
 require __DIR__ . '/vendor/autoload.php';
 
-$built = __DIR__ . '/build/app/boot.php';
+$built = __DIR__ . '/build/app/main.php';
 
 if (is_file($built)) {
     require $built;
 } else {
-    \Phel::run(__DIR__, 'app\\boot');
+    \Phel::run(__DIR__, 'app.main');
 }
 
 // Call anything
-$greet = \Phel::getDefinition('app\\main', 'greet');
+$greet = \Phel::getDefinition('app.main', 'greet');
 echo $greet('World') . "\n";
 ```
 
@@ -231,10 +231,10 @@ echo $greet('World') . "\n";
 
 ## Notes
 
-- **Boot namespace**: `phel/app/boot.phel` lists one `(:require other\ns)` per feature namespace. The build walks requires transitively, so `build/app/boot.php` `require_once`s every dependency. Loading it from the provider/kernel registers every `{:export true}` function. Controllers call any wrapper without knowing which Phel files exist. New feature: create the `.phel` file, add one `:require` in `app/boot.phel`, rerun `phel export` + `phel build`.
-- Namespace path matches directory: `phel/shop/pricing.phel` to `(ns shop\pricing)`. Single-segment ns exports invalid PHP; use at least two segments.
-- Hyphens become camelCase: `(ns my-lib\core)` to `App\PhelGenerated\MyLib\Core`; `apply-discount` to `applyDiscount`.
-- Prod path (`require build/app/boot.php`): self-contained, no Gacela bootstrap, no compiler. Just `\Phel::addDefinition()` calls.
+- **Main namespace**: `phel/app/main.phel` lists one `(:require other.ns)` per feature namespace. The build walks requires transitively, so `build/app/main.php` `require_once`s every dependency. Loading it from the provider/kernel registers every `{:export true}` function. Controllers call any wrapper without knowing which Phel files exist. New feature: create the `.phel` file, add one `:require` in `app/main.phel`, rerun `phel export` + `phel build`.
+- Namespace path matches directory: `phel/shop/pricing.phel` to `(ns shop.pricing)`. Single-segment ns exports invalid PHP; use at least two segments.
+- Hyphens become camelCase: `(ns my-lib.core)` to `App\PhelGenerated\MyLib\Core`; `apply-discount` to `applyDiscount`.
+- Prod path (`require build/app/main.php`): self-contained, no Gacela bootstrap, no compiler. Just `\Phel::addDefinition()` calls.
 - Dev path (`\Phel::run()`) boots Gacela and compiles to temp files on first call. Guard with a static flag; never call from Laravel `register()` or per-request hot paths.
 - `withBuildDestDir()` is relative to the project root.
 - Commit `build/` in the deploy artifact, or run `phel build` in CI. Skip committing in dev so `is_file()` is false and `\Phel::run()` kicks in.

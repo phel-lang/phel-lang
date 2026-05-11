@@ -16,6 +16,7 @@ Functions for manipulating Phel's immutable data structures: vectors, maps, sets
 - [Phel-Specific Extensions](#phel-specific-extensions)
 - [Quick Reference](#quick-reference)
 - [Deprecated Functions](#deprecated-functions)
+- [Summary](#summary)
 
 ## Introduction
 
@@ -604,41 +605,6 @@ Phel ships both `persistent` and `persistent!` (alias). Don't use the transient 
 ## Phel-Specific Extensions ⭐
 
 Functions not in Clojure core.
-
-### `dissoc-in` - Nested Dissociation
-
-Removes keys from nested structures without manual path traversal.
-
-```phel
-(dissoc-in {:a {:b {:c 1 :d 2} :e 3}} [:a :b :c])
-;; => {:a {:b {:d 2} :e 3}}
-```
-
----
-
-### `deep-merge` - Recursive Merge
-
-Recursively merges nested structures of the same type.
-
-```phel
-;; Nested maps
-(deep-merge
-  {:config {:db {:host "localhost" :port 5432}
-            :cache {:ttl 300}}}
-  {:config {:db {:port 3306}
-            :logging {:level "debug"}}})
-;; => {:config {:db {:host "localhost" :port 3306}
-;;              :cache {:ttl 300}
-;;              :logging {:level "debug"}}}
-
-;; Nested sets
-(deep-merge {:tags #{:a :b}} {:tags #{:b :c}})
-;; => {:tags #{:a :b :c}}
-```
-
-Useful for configuration merging and defaults.
-
----
 
 ### `pairs` - Get Key-Value Pairs
 

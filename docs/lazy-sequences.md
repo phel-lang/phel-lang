@@ -115,11 +115,12 @@ When building recursive infinite sequences, use `cons` instead:
 ### Chunked Processing
 
 ```phel
+; assumes (:require phel.string :as str)
 ;; Process a large dataset lazily
 (defn process-records [records]
   (->> records
        (filter (fn [x] (not (empty? x))))
-       (map (fn [x] (phel.string/trim x)))
+       (map (fn [x] (str/trim x)))
        (map parse-record)))
 
 ;; Only processes records as needed
@@ -263,6 +264,8 @@ Side effects run on realization, not creation:
 
 ## Further Reading
 
-- Examples: `docs/examples/`
+- [Lazy sequences examples](examples/README.md)
+- [Transducers](transducers.md)
+- [Async Guide](async-guide.md)
 - Core function reference: docstrings in `src/phel/core/`
 - Clojure lazy sequences: https://clojure.org/reference/sequences

@@ -1,5 +1,7 @@
 # Mocking in Phel
 
+`phel.mock` ships with phel-lang — no separate install. Require it only in test namespaces.
+
 Replace dependencies with controlled stand-ins for testing.
 
 ```phel

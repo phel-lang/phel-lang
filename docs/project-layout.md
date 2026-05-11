@@ -13,6 +13,8 @@ by Git via a self-seeded `.phel/.gitignore` (`*`).
 | `.phel/error.log`               | Runtime          | Error log (was `/tmp/phel-error.log`) |
 | `out/`                          | Build            | Compiled PHP entry points (build artifacts; lifecycle differs) |
 
+- `out/`: gitignore in source repos; commit only when shipping the compiled PHP.
+
 ## Overrides
 
 - **Relocate everything**: `$config->withPhelDir('/var/cache/phel')` in

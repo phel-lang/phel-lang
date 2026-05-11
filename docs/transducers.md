@@ -250,3 +250,9 @@ Every dual-purpose function has two modes:
 (transduce xf + [1 2 3 4 5 6])      ; => 15
 (into #{} xf [1 2 3 4 5 6])         ; => #{3 5 7}
 ```
+
+## See also
+
+- [Lazy Sequences](lazy-sequences.md)
+- [Data Structures](data-structures-guide.md) (`into`, `reduce`)
+- [Common Patterns](patterns.md)

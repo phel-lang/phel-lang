@@ -300,7 +300,7 @@ $response->send();
 (reduce (fn [acc x] (conj acc (* x 2))) [] large-list)
 
 ;; Fast: mutable during build
-(persistent
+(persistent!
   (reduce (fn [acc x] (conj acc (* x 2))) (transient []) large-list))
 ```
 

@@ -55,7 +55,6 @@ Compiler errors, unresolved symbols, arity mismatches, and lint violations. Publ
 ## Pitfalls
 
 - The server scans files under the project root. Keep `phel-config.php` current for require resolution.
-- Large projects benefit from running `phel index` to warm the symbol cache.
 - LSP runs in its own PHP process. REPL state is not shared with a running `phel nrepl`.
 
 ## See also

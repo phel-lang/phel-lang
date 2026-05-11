@@ -38,6 +38,8 @@ Supported providers:
 | `:timeout` | `120` | HTTP timeout in seconds |
 | `:max-retries` | `2` | Retry 429/5xx with exponential backoff |
 
+Default model evolves with `src/phel/ai.phel`; check there for the current value.
+
 Every per-call `opts` map on `chat`, `complete`, `chat-with-tools`, `extract`, and `extract-many` accepts the same keys (including `:max-retries`) for per-request overrides.
 
 ```phel

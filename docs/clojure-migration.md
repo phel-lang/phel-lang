@@ -34,7 +34,7 @@ Most of Clojure's core library works identically:
 - **Metadata**: `meta`, `with-meta`, `vary-meta`, `^:keyword` reader syntax
 - **Atoms**: `atom`, `deref` / `@`, `swap!`, `reset!`, `add-watch`, `remove-watch`, `set-validator!`
 - **Taps**: `tap>`, `add-tap`, `remove-tap` (synchronous dispatch; no background queue)
-- **Delays and futures**: `delay`, `force`, `delay?`, `realized?`, `future`, `future-cancel`, `future-cancelled?`, `future-done?` (fiber-based via AMPHP)
+- **Futures**: Futures via `future`/`future-fiber` (in `phel.core`). Note: `delay` in Phel lives in `phel.async` and is a sleep, not a Clojure-style lazy thunk; `force`/`delay?` do not exist.
 - **Exceptions**: `ex-info`, `ex-data`, `ex-message`, `ex-cause`, `throw`, `try` / `catch` / `finally`
 - **Transducers**: `transduce`, `into` (3-arg), `sequence`, `completing`, `cat`, plus transducer arities for `map`, `filter`, `take`, `drop`, `keep`, `distinct`, `dedupe`, `mapcat`, `interpose`, and more
 - **Testing**: `deftest`, `is`, `testing`, `are`, `do-report`, extensible `assert-expr` (in `phel.test`)
@@ -81,6 +81,8 @@ Phel uses `.` as the namespace separator, matching Clojure. The legacy `\` separ
 ;; Legacy (deprecated, still parses):
 (ns my\app (:require phel\string :as str))
 ```
+
+See [backslash-to-dot migration](migration/backslash-to-dot.md) for details.
 
 **Automatic aliasing**: `clojure.*` namespaces in `:require` resolve to `phel.*` when the target exists. `.cljc` files using `(:require [clojure.string :as str])` work unchanged.
 
@@ -171,7 +173,7 @@ Some Clojure features don't translate to PHP:
 |-----------------|----------------|-------------|
 | **Refs / STM** | No concurrent transactions in PHP | Use `atom` for mutable state |
 | **Agents** | No background threads | PHP job queues via interop |
-| **core.async** | No goroutines/CSP, but fiber primitives (`promise`, `deliver`, `future-fiber`) cover CSP-lite handoffs, all in `phel.core`, no require needed | See [docs/async-guide.md](async-guide.md) |
+| **core.async** | No goroutines/CSP, but fiber primitives (`promise`, `deliver`, `future-fiber`) cover CSP-lite handoffs, all in `phel.core` except `delay` (requires `phel.async`). | See [docs/async-guide.md](async-guide.md) |
 | **BigInt / BigDecimal / Ratio** | First-class `Phel\Lang\BigInteger`, `Phel\Lang\BigDecimal`, `Phel\Lang\Rational` ship in core | Use literals `1N`, `1.5M`, `1/2` or constructors `bigint`, `bigdec`, `rationalize`. See [numeric-tower.md](numeric-tower.md) |
 | **Character type** | PHP has no char type | Character literals (`\a`) and `char` / `char?` are supported but compile to single-character strings |
 | **Spec** | Not ported | Use runtime assertions or PHP validation |

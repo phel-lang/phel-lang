@@ -24,7 +24,7 @@ On each change, `phel watch` reloads the changed namespace and its dependents in
 
 ```phel
 (ns dev.watcher
-  (:require phel.watch :refer [watch!]))
+  (:require phel.watch :refer [watch! register-on-reload]))
 
 (watch! ["src/" "tests/"])
 ```

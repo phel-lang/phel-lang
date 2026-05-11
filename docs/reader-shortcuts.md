@@ -121,11 +121,11 @@ Tagged literals convert a form to a value at read time. Three ship built-in:
 #uuid "550e8400-e29b-41d4-a716-446655440000"  ; reads as Phel\Lang\Uuid
 ```
 
-Register your own with `phel\reader/register-tag`:
+Register your own with `phel.reader/register-tag`:
 
 ```phel
-(ns my-app\main
-  (:require phel\reader :refer [register-tag]))
+(ns my-app.main
+  (:require phel.reader :refer [register-tag]))
 
 (register-tag "money" (fn [s] {:kind :money :raw s}))
 
@@ -138,13 +138,13 @@ For project-wide tags, drop a `data-readers.phel` at any source root. It's auto-
 
 ```phel
 ;; src/phel/data-readers.phel
-(ns my-app\data-readers
-  (:require phel\reader :refer [register-tag]))
+(ns my-app.data-readers
+  (:require phel.reader :refer [register-tag]))
 
 (register-tag "point" (fn [[x y]] {:x x :y y}))
 ```
 
-Related helpers in `phel\reader`: `tag-registered?`, `unregister-tag`, `registered-tags`.
+Related helpers in `phel.reader`: `tag-registered?`, `unregister-tag`, `registered-tags`.
 
 ## Regex Literals `#"..."`
 

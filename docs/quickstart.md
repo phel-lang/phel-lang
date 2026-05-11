@@ -9,7 +9,7 @@ composer require phel-lang/phel-lang
 ./vendor/bin/phel init
 ```
 
-`phel init` writes `phel-config.php`, `src/phel/main.phel`, and `tests/phel/main_test.phel`. Flags: `--minimal` (single-file root layout), `--flat` (drop the `phel/` subdirectory), `--dry-run` (preview).
+`phel init` writes `phel-config.php`, `src/main.phel`, and `tests/main_test.phel` (Flat layout, the default). Flags: `--nested` (use `src/phel/` + `tests/phel/`), `--minimal` (single-file root layout), `--dry-run` (preview), `--no-tests`, `--no-gitignore`.
 
 Already have a PHP project? Write `phel-config.php` by hand:
 
@@ -18,7 +18,7 @@ Already have a PHP project? Write `phel-config.php` by hand:
 
 use Phel\Config\PhelConfig;
 
-return PhelConfig::forProject();          // auto-detects layout and namespace
+return PhelConfig::forProject();          // defaults to Flat layout
 ```
 
 ## Hello World
@@ -44,8 +44,7 @@ Run it:
 Or evaluate a snippet without a file:
 ```bash
 ./vendor/bin/phel eval '(println "Hello, World!")'
-echo '(println "from stdin")' | ./vendor/bin/phel eval -
-./vendor/bin/phel eval - < src/hello.phel
+./vendor/bin/phel eval - < src/hello.phel    # read from stdin
 ```
 
 ## REPL
@@ -57,7 +56,7 @@ Start the REPL:
 
 Try it out:
 ```phel
-Welcome to the Phel Repl (v0.34.0)
+Welcome to the Phel Repl (vX.Y.Z)
 Type "exit" or press Ctrl-D to exit.
 user:1> (+ 1 2 3)
 6
@@ -185,7 +184,7 @@ Full HTTP example: [Framework Integration](framework-integration.md).
 
 ## Tests
 
-`tests/hello_test.phel`:
+`tests/hello-test.phel`:
 
 ```phel
 (ns tests.hello-test
@@ -234,4 +233,8 @@ Clojure devs: PHP interop uses `php/` prefix or shortcuts (`.method`, `.-field`,
 
 ## Next Steps
 
-Guide index: [docs/README.md](README.md).
+- [Common Patterns](patterns.md): daily idioms
+- [PHP/Phel Interop](php-interop.md): call PHP from Phel and back
+- [REPL & nREPL](nrepl-guide.md): editor integration
+- [Project Layout](project-layout.md): directory conventions
+- Full guide index: [docs/README.md](README.md)

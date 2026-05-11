@@ -21,7 +21,7 @@ Every directory under `src/php/` is a [Gacela](https://gacela-project.com/) modu
 | `Lang/` | Runtime types: persistent collections, `Symbol`, `Keyword`, `Variable`, `Registry`. Foundational, no facade. |
 | `Compiler/` | Lex → Parse → Read → Analyze → Emit → Eval. See [compiler.md](compiler.md). |
 | `Printer/` | Render Phel values. |
-| `Run/` | `phel run`, REPL (`Run/Domain/Repl/`), namespace bootstrap (`Run/Runtime/`). |
+| `Run/` | `phel run`, REPL (`Run/Domain/Repl/`), namespace bootstrap (`Run/Runtime/PhelSourceLoader.php`). |
 | `Build/` | Compile project to PHP on disk; namespace dependency order. |
 | `Command/` | CLI command registry. |
 | `Console/` | Symfony Console wiring; binary entry. |
