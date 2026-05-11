@@ -609,34 +609,13 @@ final readonly class PhelConfig implements JsonSerializable
     }
 
     /**
-     * Returns a new instance with the supplied fields overridden. Internal
-     * plumbing for every `with*()` method — keeps each wither one line.
+     * Returns a new instance with the supplied fields overridden.
      *
      * @param array<string, mixed> $overrides
      */
     private function with(array $overrides): self
     {
-        $base = [
-            'srcDirs' => $this->srcDirs,
-            'testDirs' => $this->testDirs,
-            'vendorDir' => $this->vendorDir,
-            'errorLogFile' => $this->errorLogFile,
-            'exportConfig' => $this->exportConfig,
-            'buildConfig' => $this->buildConfig,
-            'ignoreWhenBuilding' => $this->ignoreWhenBuilding,
-            'noCacheWhenBuilding' => $this->noCacheWhenBuilding,
-            'keepGeneratedTempFiles' => $this->keepGeneratedTempFiles,
-            'tempDir' => $this->tempDir,
-            'cacheDir' => $this->cacheDir,
-            'formatDirs' => $this->formatDirs,
-            'enableAsserts' => $this->enableAsserts,
-            'warnDeprecations' => $this->warnDeprecations,
-            'enableNamespaceCache' => $this->enableNamespaceCache,
-            'enableCompiledCodeCache' => $this->enableCompiledCodeCache,
-            'phelDir' => $this->phelDir,
-        ];
-
-        return new self(...[...$base, ...$overrides]);
+        return new self(...[...get_object_vars($this), ...$overrides]);
     }
 
     /**
