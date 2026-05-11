@@ -77,7 +77,9 @@ final readonly class FileRunner
      * evaluates it last so it lands in the user-visible namespace. Walking
      * the dependency graph this way avoids handing `dirname($filename)` to
      * the recursive extractor, which would emit duplicate-namespace warnings
-     * for unrelated siblings sitting next to the script.
+     * for unrelated siblings sitting next to the script. DFS post-order
+     * guarantees each dep is appended after its own deps, so multi-hop
+     * ad-hoc chains (a -> b -> c) evaluate in dependency-first order.
      *
      * @param array<string, NamespaceInformation> $alreadyResolved
      *
@@ -88,38 +90,48 @@ final readonly class FileRunner
         string $fallbackDir,
         array $alreadyResolved,
     ): array {
-        $queue = $scriptInfo->getDependencies();
         $found = [];
         $seen = $alreadyResolved + [$scriptInfo->getNamespace() => true];
 
-        while ($queue !== []) {
-            $ns = array_shift($queue);
-            if (isset($seen[$ns])) {
-                continue;
-            }
-
-            $seen[$ns] = true;
-
-            $path = $this->namespaceToFile($fallbackDir, $ns);
-            if ($path === null) {
-                continue;
-            }
-
-            try {
-                $info = $this->buildFacade->getNamespaceFromFile($path);
-            } catch (Throwable) {
-                continue;
-            }
-
-            $found[] = $info;
-            foreach ($info->getDependencies() as $dep) {
-                if (!isset($seen[$dep])) {
-                    $queue[] = $dep;
-                }
-            }
+        foreach ($scriptInfo->getDependencies() as $dep) {
+            $this->collectAdHocDep($dep, $fallbackDir, $seen, $found);
         }
 
         return $found;
+    }
+
+    /**
+     * @param array<string, mixed>       $seen
+     * @param list<NamespaceInformation> $found
+     */
+    private function collectAdHocDep(
+        string $namespace,
+        string $fallbackDir,
+        array &$seen,
+        array &$found,
+    ): void {
+        if (isset($seen[$namespace])) {
+            return;
+        }
+
+        $seen[$namespace] = true;
+
+        $path = $this->namespaceToFile($fallbackDir, $namespace);
+        if ($path === null) {
+            return;
+        }
+
+        try {
+            $info = $this->buildFacade->getNamespaceFromFile($path);
+        } catch (Throwable) {
+            return;
+        }
+
+        foreach ($info->getDependencies() as $dep) {
+            $this->collectAdHocDep($dep, $fallbackDir, $seen, $found);
+        }
+
+        $found[] = $info;
     }
 
     /**

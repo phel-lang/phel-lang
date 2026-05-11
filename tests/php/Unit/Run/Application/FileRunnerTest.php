@@ -154,4 +154,50 @@ final class FileRunnerTest extends TestCase
             'Eval order: phel.core then fallback deps then script',
         );
     }
+
+    public function test_two_hop_ad_hoc_chain_evals_in_dependency_first_order(): void
+    {
+        $script = $this->tmpDir . '/demo.phel';
+        $helper = $this->tmpDir . '/helper.phel';
+        $subHelper = $this->tmpDir . '/sub-helper.phel';
+        file_put_contents($script, "(ns demo (:require helper))\n");
+        file_put_contents($helper, "(ns helper (:require sub-helper))\n");
+        file_put_contents($subHelper, "(ns sub-helper)\n");
+
+        $scriptInfo = new NamespaceInformation($script, 'demo', ['helper'], true);
+        $helperInfo = new NamespaceInformation($helper, 'helper', ['sub-helper'], true);
+        $subHelperInfo = new NamespaceInformation($subHelper, 'sub-helper', [], true);
+        $coreInfo = new NamespaceInformation('/phel/core.phel', 'phel.core', [], true);
+
+        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $buildFacade->method('getNamespaceFromFile')->willReturnCallback(
+            static fn(string $path): NamespaceInformation => match ($path) {
+                $script => $scriptInfo,
+                $helper => $helperInfo,
+                $subHelper => $subHelperInfo,
+                default => throw new RuntimeException('unexpected getNamespaceFromFile: ' . $path),
+            },
+        );
+        $buildFacade->method('getDependenciesForNamespace')->willReturn([$coreInfo]);
+
+        $evalled = [];
+        $buildFacade->method('evalFile')->willReturnCallback(
+            static function (string $file) use (&$evalled): CompiledFile {
+                $evalled[] = $file;
+                return new CompiledFile($file, '', '', false);
+            },
+        );
+
+        $commandFacade = $this->createMock(CommandFacadeInterface::class);
+        $commandFacade->method('getSourceDirectories')->willReturn([$this->primarySrc]);
+        $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
+
+        new FileRunner($buildFacade, $commandFacade)->run($script);
+
+        self::assertSame(
+            ['/phel/core.phel', $subHelper, $helper, $script],
+            $evalled,
+            'DFS post-order: sub-helper must eval before helper, helper before script',
+        );
+    }
 }
