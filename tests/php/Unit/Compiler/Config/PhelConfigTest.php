@@ -20,7 +20,7 @@ final class PhelConfigTest extends TestCase
             PhelConfig::SRC_DIRS => ['src'],
             PhelConfig::TEST_DIRS => ['tests'],
             PhelConfig::VENDOR_DIR => 'vendor',
-            PhelConfig::ERROR_LOG_FILE => '/tmp/phel-error.log',
+            PhelConfig::ERROR_LOG_FILE => '.phel/error.log',
             PhelConfig::BUILD_CONFIG => [
                 PhelBuildConfig::MAIN_PHEL_NAMESPACE => '',
                 PhelBuildConfig::DEST_DIR => 'out',
@@ -41,7 +41,8 @@ final class PhelConfigTest extends TestCase
             PhelConfig::WARN_DEPRECATIONS => false,
             PhelConfig::ENABLE_NAMESPACE_CACHE => true,
             PhelConfig::ENABLE_COMPILED_CODE_CACHE => true,
-            PhelConfig::CACHE_DIR => sys_get_temp_dir() . '/phel/cache',
+            PhelConfig::CACHE_DIR => '.phel/cache',
+            PhelConfig::PHEL_DIR => '',
         ];
 
         self::assertSame($expected, $config->jsonSerialize());
@@ -247,9 +248,19 @@ final class PhelConfigTest extends TestCase
             PhelConfig::ENABLE_NAMESPACE_CACHE => true,
             PhelConfig::ENABLE_COMPILED_CODE_CACHE => true,
             PhelConfig::CACHE_DIR => '.cache',
+            PhelConfig::PHEL_DIR => '',
         ];
 
         self::assertSame($expected, $config->jsonSerialize());
+    }
+
+    public function test_set_phel_dir_persists_in_json(): void
+    {
+        $config = new PhelConfig();
+        $config->setPhelDir('/var/cache/phel');
+
+        self::assertSame('/var/cache/phel', $config->getPhelDir());
+        self::assertSame('/var/cache/phel', $config->jsonSerialize()[PhelConfig::PHEL_DIR]);
     }
 
     public function test_getters(): void
@@ -259,7 +270,7 @@ final class PhelConfigTest extends TestCase
         self::assertSame(['src'], $config->getSrcDirs());
         self::assertSame(['tests'], $config->getTestDirs());
         self::assertSame('vendor', $config->getVendorDir());
-        self::assertSame('/tmp/phel-error.log', $config->getErrorLogFile());
+        self::assertSame('.phel/error.log', $config->getErrorLogFile());
         self::assertInstanceOf(PhelBuildConfig::class, $config->getBuildConfig());
         self::assertInstanceOf(PhelExportConfig::class, $config->getExportConfig());
         self::assertSame([], $config->getIgnoreWhenBuilding());
@@ -313,16 +324,20 @@ final class PhelConfigTest extends TestCase
         self::assertStringContainsString('Vendor directory', $errors[0]);
     }
 
-    public function test_temp_dir_uses_single_base_path(): void
+    public function test_temp_dir_default_lives_under_system_temp(): void
     {
         $config = new PhelConfig();
 
         $tempDir = $config->getTempDir();
-        $cacheDir = $config->getCacheDir();
 
         self::assertStringContainsString('/phel/', $tempDir);
-        self::assertStringContainsString('/phel/', $cacheDir);
         self::assertStringEndsWith('/tmp', $tempDir);
-        self::assertStringEndsWith('/cache', $cacheDir);
+    }
+
+    public function test_cache_dir_default_is_relative_to_project_root(): void
+    {
+        $config = new PhelConfig();
+
+        self::assertSame('.phel/cache', $config->getCacheDir());
     }
 }

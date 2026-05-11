@@ -6,6 +6,7 @@ namespace Phel\Lint\Infrastructure\Command;
 
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
+use Phel\Filesystem\Application\PhelProjectDirectory;
 use Phel\Lint\Application\Cache\LintCache;
 use Phel\Lint\Application\Config\RuleSettings;
 use Phel\Lint\Application\Formatter\HumanFormatter;
@@ -194,7 +195,8 @@ final class LintCommand extends Command
             return null;
         }
 
-        $cacheDir = rtrim($cwd, '/') . '/' . LintConfig::defaultCacheDir();
+        PhelProjectDirectory::ensure($cwd);
+        $cacheDir = PhelProjectDirectory::path($cwd, LintConfig::CACHE_SUBPATH);
 
         return $this->getFacade()->createCache($cacheDir);
     }

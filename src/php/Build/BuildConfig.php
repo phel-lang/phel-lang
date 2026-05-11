@@ -7,6 +7,9 @@ namespace Phel\Build;
 use Gacela\Framework\AbstractConfig;
 use Phel\Config\PhelBuildConfig;
 use Phel\Config\PhelConfig;
+use Phel\Filesystem\Application\PhelProjectDirectory;
+
+use function is_string;
 
 final class BuildConfig extends AbstractConfig implements BuildConfigInterface
 {
@@ -63,41 +66,20 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
 
     public function getCacheDir(): string
     {
-        $cacheDir = (string) $this->get(PhelConfig::CACHE_DIR, 'cache');
-
-        // If absolute path, use as-is; otherwise relative to app root
-        if ($this->isAbsolutePath($cacheDir)) {
-            return $cacheDir;
+        $envOverride = getenv('PHEL_CACHE_DIR');
+        if (is_string($envOverride) && $envOverride !== '') {
+            return $envOverride;
         }
 
-        return $this->getAppRootDir() . '/' . $cacheDir;
+        $cacheDir = (string) $this->get(PhelConfig::CACHE_DIR, '.phel/cache');
+        $phelDir = (string) $this->get(PhelConfig::PHEL_DIR, '');
+
+        return PhelProjectDirectory::resolve($this->getAppRootDir(), $cacheDir, $phelDir);
     }
 
     public function getNamespaceCacheFile(): string
     {
         return $this->getCacheDir() . '/namespace-cache.php';
-    }
-
-    /**
-     * Cross-platform absolute-path detection so Windows cache dirs
-     * (drive letters, UNC shares) aren't mistaken for relative paths
-     * and prefixed with the app root.
-     */
-    private function isAbsolutePath(string $path): bool
-    {
-        if ($path === '') {
-            return false;
-        }
-
-        if ($path[0] === '/' || $path[0] === '\\') {
-            return true;
-        }
-
-        if (str_starts_with($path, 'phar://')) {
-            return true;
-        }
-
-        return (bool) preg_match('~^[A-Za-z]:[\\\\/]~', $path);
     }
 
     /**

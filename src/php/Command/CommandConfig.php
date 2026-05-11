@@ -8,6 +8,7 @@ use Gacela\Framework\AbstractConfig;
 use Phel\Command\Domain\CodeDirectories;
 use Phel\Config\PhelBuildConfig;
 use Phel\Config\PhelConfig;
+use Phel\Filesystem\Application\PhelProjectDirectory;
 
 use function dirname;
 
@@ -57,6 +58,9 @@ final class CommandConfig extends AbstractConfig
 
     public function getErrorLogFile(): string
     {
-        return (string) $this->get(PhelConfig::ERROR_LOG_FILE, self::DEFAULT_ERROR_LOG_FILE);
+        $path = (string) $this->get(PhelConfig::ERROR_LOG_FILE, self::DEFAULT_ERROR_LOG_FILE);
+        $phelDir = (string) $this->get(PhelConfig::PHEL_DIR, '');
+
+        return PhelProjectDirectory::resolve($this->getAppRootDir(), $path, $phelDir);
     }
 }

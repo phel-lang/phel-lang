@@ -15,6 +15,8 @@ final class LintConfig extends AbstractConfig
 
     public const string CACHE_DIR = '.phel/lint-cache';
 
+    public const string CACHE_SUBPATH = 'lint-cache';
+
     /**
      * Default severities for every rule shipped in v1. Rules not listed
      * here are disabled by default and must be opted into via config.

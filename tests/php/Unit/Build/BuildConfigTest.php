@@ -73,6 +73,34 @@ final class BuildConfigTest extends TestCase
         self::assertNotSame('cache', $config->getCacheDir());
     }
 
+    public function test_phel_cache_dir_env_overrides_configured_value(): void
+    {
+        $this->bootstrapWithCacheDir('/configured/cache');
+        putenv('PHEL_CACHE_DIR=/env/override/cache');
+
+        try {
+            $config = new BuildConfig();
+
+            self::assertSame('/env/override/cache', $config->getCacheDir());
+        } finally {
+            putenv('PHEL_CACHE_DIR');
+        }
+    }
+
+    public function test_phel_cache_dir_env_ignored_when_empty(): void
+    {
+        $this->bootstrapWithCacheDir('/configured/cache');
+        putenv('PHEL_CACHE_DIR=');
+
+        try {
+            $config = new BuildConfig();
+
+            self::assertSame('/configured/cache', $config->getCacheDir());
+        } finally {
+            putenv('PHEL_CACHE_DIR');
+        }
+    }
+
     private function bootstrapWithCacheDir(string $cacheDir): void
     {
         Gacela::bootstrap(__DIR__, static function (GacelaConfig $config) use ($cacheDir): void {
