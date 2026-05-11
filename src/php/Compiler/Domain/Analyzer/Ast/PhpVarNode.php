@@ -108,8 +108,8 @@ final class PhpVarNode extends AbstractNode
         }
 
         // `.` and `/` are also infix PHP operators (string concat / division);
-        // only treat them as namespace separators on multi-segment names.
-        if (in_array($this->name, self::INFIX_OPERATORS, true)) {
+        // a single-token infix is never a namespaced reference.
+        if ($this->isInfix()) {
             return false;
         }
 
