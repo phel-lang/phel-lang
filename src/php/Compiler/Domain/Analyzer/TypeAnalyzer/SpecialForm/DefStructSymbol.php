@@ -11,10 +11,10 @@ use Phel\Compiler\Domain\Analyzer\Ast\DefStructNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\MungeInterface;
 use ReflectionMethod;
 
 use function count;

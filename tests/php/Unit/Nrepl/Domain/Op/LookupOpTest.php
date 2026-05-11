@@ -7,12 +7,13 @@ namespace PhelTest\Unit\Nrepl\Domain\Op;
 use Phel\Api\Transfer\PhelFunction;
 use Phel\Nrepl\Application\Op\LookupOp;
 use Phel\Nrepl\Domain\Op\OpRequest;
+use Phel\Nrepl\Domain\Session\SessionRegistry;
 use Phel\Shared\Facade\ApiFacadeInterface;
 use PHPUnit\Framework\TestCase;
 
 final class LookupOpTest extends TestCase
 {
-    public function test_it_returns_info_for_qualified_symbol(): void
+    public function test_it_returns_info_when_symbol_is_resolved(): void
     {
         $fn = new PhelFunction(
             namespace: 'string',
@@ -25,7 +26,7 @@ final class LookupOpTest extends TestCase
         );
 
         $api = $this->createStub(ApiFacadeInterface::class);
-        $api->method('getPhelFunctions')->willReturn([$fn]);
+        $api->method('findSymbolMetadata')->willReturn($fn);
 
         $op = new LookupOp($api);
         $responses = $op->handle(new OpRequest('lookup', 'r1', null, [
@@ -42,32 +43,10 @@ final class LookupOpTest extends TestCase
         self::assertSame(10, $info['line']);
     }
 
-    public function test_it_returns_info_for_core_symbol_without_namespace(): void
-    {
-        $fn = new PhelFunction(
-            namespace: 'core',
-            name: 'map',
-            doc: 'Maps',
-            signatures: ['(map f xs)'],
-            description: '',
-        );
-
-        $api = $this->createStub(ApiFacadeInterface::class);
-        $api->method('getPhelFunctions')->willReturn([$fn]);
-
-        $op = new LookupOp($api);
-        $responses = $op->handle(new OpRequest('lookup', 'r1', null, [
-            'op' => 'lookup',
-            'sym' => 'map',
-        ]));
-
-        self::assertSame('map', $responses[0]->payload['info']['name']);
-    }
-
-    public function test_it_reports_no_info_for_unknown_symbol(): void
+    public function test_it_reports_no_info_when_finder_returns_null(): void
     {
         $api = $this->createStub(ApiFacadeInterface::class);
-        $api->method('getPhelFunctions')->willReturn([]);
+        $api->method('findSymbolMetadata')->willReturn(null);
 
         $op = new LookupOp($api);
         $responses = $op->handle(new OpRequest('lookup', 'r1', null, [
@@ -93,5 +72,61 @@ final class LookupOpTest extends TestCase
 
         $op2 = new LookupOp($this->createStub(ApiFacadeInterface::class), 'eldoc');
         self::assertSame('eldoc', $op2->name());
+    }
+
+    public function test_it_uses_session_namespace_when_resolving_bare_symbols(): void
+    {
+        $sessions = new SessionRegistry();
+        $session = $sessions->create();
+        $session->setNamespace('my.app');
+
+        $api = $this->createMock(ApiFacadeInterface::class);
+        $api->expects(self::once())
+            ->method('findSymbolMetadata')
+            ->with('helper', 'my.app')
+            ->willReturn(null);
+
+        $op = new LookupOp($api, 'lookup', $sessions);
+        $op->handle(new OpRequest('lookup', 'r1', $session->id, [
+            'op' => 'lookup',
+            'sym' => 'helper',
+            'session' => $session->id,
+        ]));
+    }
+
+    public function test_explicit_ns_param_overrides_session(): void
+    {
+        $sessions = new SessionRegistry();
+        $session = $sessions->create();
+        $session->setNamespace('my.app');
+
+        $api = $this->createMock(ApiFacadeInterface::class);
+        $api->expects(self::once())
+            ->method('findSymbolMetadata')
+            ->with('helper', 'other.ns')
+            ->willReturn(null);
+
+        $op = new LookupOp($api, 'lookup', $sessions);
+        $op->handle(new OpRequest('lookup', 'r1', $session->id, [
+            'op' => 'lookup',
+            'sym' => 'helper',
+            'ns' => 'other.ns',
+            'session' => $session->id,
+        ]));
+    }
+
+    public function test_it_defaults_to_user_namespace_without_session(): void
+    {
+        $api = $this->createMock(ApiFacadeInterface::class);
+        $api->expects(self::once())
+            ->method('findSymbolMetadata')
+            ->with('helper', 'user')
+            ->willReturn(null);
+
+        $op = new LookupOp($api);
+        $op->handle(new OpRequest('lookup', 'r1', null, [
+            'op' => 'lookup',
+            'sym' => 'helper',
+        ]));
     }
 }

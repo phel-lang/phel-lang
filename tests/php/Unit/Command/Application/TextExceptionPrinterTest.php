@@ -9,12 +9,12 @@ use Phel\Command\Domain\ErrorLogInterface;
 use Phel\Command\Domain\Exceptions\ExceptionArgsPrinterInterface;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
 use Phel\Shared\ColorStyleInterface;
+use Phel\Shared\MungeInterface;
 use PHPUnit\Framework\TestCase;
 use TypeError;
 

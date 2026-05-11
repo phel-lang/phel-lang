@@ -1,7 +1,7 @@
 (in-ns phel.core)
 
 (use Phel)
-(use Phel.Compiler.Application.Munge)
+(use Phel.Shared.Munge)
 (use Phel.Compiler.CompilerFacade)
 (use Phel.Compiler.Infrastructure.CompileOptions)
 (use Phel.Compiler.Infrastructure.GlobalEnvironmentSingleton)

@@ -1,6 +1,6 @@
 (in-ns phel.core)
 
-(use Phel.Compiler.Application.Munge)
+(use Phel.Shared.Munge)
 (use Phel.Lang.PhelVar)
 (use Phel.Lang.Symbol)
 

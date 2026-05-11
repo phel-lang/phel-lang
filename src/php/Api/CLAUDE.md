@@ -15,6 +15,7 @@ Tooling support layer: REPL autocompletion, function introspection, documentatio
 - `replComplete(string $input): list<string>` — basic REPL autocompletion
 - `replCompleteWithTypes(string $input): list<CompletionResultTransfer>` — extended completion with type annotations
 - `getPhelFunctions(array $namespaces = []): list<PhelFunction>` — all public Phel functions
+- `findSymbolMetadata(string $symbol, string $currentNs = 'user'): ?PhelFunction` — single-symbol resolver consulting the runtime registry first (for session-defined `defn`s + library defs) and the static catalog second (native special forms)
 
 **User-code Semantic Analysis**
 - `analyzeSource(string $source, string $uri): list<Diagnostic>` — run Parser + Analyzer, return semantic diagnostics

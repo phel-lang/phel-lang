@@ -2,7 +2,7 @@
 
 (use InvalidArgumentException)
 (use Phel)
-(use Phel.Compiler.Application.Munge)
+(use Phel.Shared.Munge)
 (use Phel.Compiler.CompilerFacade)
 (use Phel.Compiler.Domain.Analyzer.Environment.NodeEnvironment)
 (use Phel.Compiler.Infrastructure.GlobalEnvironmentSingleton)

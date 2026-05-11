@@ -2,9 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Application;
-
-use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
+namespace Phel\Shared;
 
 final readonly class Munge implements MungeInterface
 {

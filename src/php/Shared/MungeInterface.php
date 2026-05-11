@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
+namespace Phel\Shared;
 
 interface MungeInterface
 {

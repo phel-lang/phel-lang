@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer;
 
 use Phel;
-use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
@@ -53,6 +52,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\VarSymbol;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Munge;
 
 use function count;
 use function in_array;

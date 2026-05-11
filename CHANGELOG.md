@@ -55,6 +55,9 @@ All notable changes to this project will be documented in this file.
 #### Api
 - `phel analyze` preloads namespaces required by the file under analysis (#1919)
 
+#### Nrepl
+- `lookup` / `info` / `eldoc` resolve session-defined definitions (e.g. `(defn greet ...)`), not just core/library functions; honor the request `ns` param and fall back to the session's current namespace
+
 #### Build
 - Entry-point `main.php` `require_once` resolves dotted main namespaces to nested paths (#1956)
 - `PhpNamespaceCache` evicts entries under always-excluded segments at load time, so policy changes take effect without manual cache wipe (#1962)

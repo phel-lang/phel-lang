@@ -6,7 +6,6 @@ namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 
 use Phel;
 use Phel\Compiler\Application\Analyzer;
-use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\DefStructNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
@@ -15,6 +14,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DefStructSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\MethodBodyAnalyzer;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Symbol;
+use Phel\Shared\Munge;
 use PHPUnit\Framework\TestCase;
 
 final class DefStructSymbolTest extends TestCase

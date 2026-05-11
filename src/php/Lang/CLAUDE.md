@@ -51,13 +51,14 @@ This is a **foundational module** with no Facade, Factory, or DependencyProvider
 - **HashSet/** — `PersistentHashSet` (implements `PersistentHashSetInterface`)
 - **Queue/** — `PersistentQueue` (banker's queue: front list + reversed rear list)
 - **LazySeq/** — `LazySeq` (implements `LazySeqInterface`)
-- **Struct/** — `AbstractPersistentStruct`, `StructKeyEncoder` (mirrors compiler name-mangling)
+- **Struct/** — `AbstractPersistentStruct` (delegates key encoding to `Phel\Shared\Munge`)
 
 ## Dependencies
 
-This module aims to be a **leaf module** with no dependencies on other modules.
+This module aims to be a **leaf module** with no dependencies on other modules. `Phel\Shared` is the one exception: it is itself a leaf, so depending on it does not introduce a cycle. Current outbound imports:
 
-The only remaining outbound import is `AbstractType::__toString()` calling `Phel\Printer\Printer::readable()` to render collection types; collapsing that edge requires installing a printer adapter at bootstrap and is tracked separately.
+- `AbstractType::__toString()` calls `Phel\Printer\Printer::readable()` to render collection types; collapsing that edge requires installing a printer adapter at bootstrap and is tracked separately.
+- `AbstractPersistentStruct` uses `Phel\Shared\Munge` for struct-key encoding so the mangling stays in lockstep with the compiler emitter without duplicating the mapping.
 
 ## Used By
 

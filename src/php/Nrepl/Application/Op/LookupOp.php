@@ -9,6 +9,8 @@ use Phel\Nrepl\Domain\Op\OpHandlerInterface;
 use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Op\OpResponse;
 use Phel\Nrepl\Domain\Op\OpStatus;
+use Phel\Nrepl\Domain\Session\Session;
+use Phel\Nrepl\Domain\Session\SessionRegistry;
 use Phel\Shared\Facade\ApiFacadeInterface;
 
 use function implode;
@@ -17,14 +19,14 @@ use function implode;
  * Shared implementation for `lookup`, `info`, and `eldoc` ops.
  * They all translate a symbol name to its documentation/signature record.
  */
-final class LookupOp implements OpHandlerInterface
+final readonly class LookupOp implements OpHandlerInterface
 {
-    /** @var list<PhelFunction>|null */
-    private ?array $cache = null;
+    private const string DEFAULT_NAMESPACE = 'user';
 
     public function __construct(
-        private readonly ApiFacadeInterface $apiFacade,
-        private readonly string $opName = 'lookup',
+        private ApiFacadeInterface $apiFacade,
+        private string $opName = 'lookup',
+        private ?SessionRegistry $sessions = null,
     ) {}
 
     public function name(): string
@@ -47,7 +49,8 @@ final class LookupOp implements OpHandlerInterface
             )];
         }
 
-        $fn = $this->findFunction($symbol);
+        $fn = $this->apiFacade->findSymbolMetadata($symbol, $this->resolveCurrentNamespace($request));
+
         if (!$fn instanceof PhelFunction) {
             return [OpResponse::forRequest(
                 $request,
@@ -72,22 +75,20 @@ final class LookupOp implements OpHandlerInterface
         )];
     }
 
-    private function findFunction(string $symbol): ?PhelFunction
+    private function resolveCurrentNamespace(OpRequest $request): string
     {
-        if ($this->cache === null) {
-            $this->cache = $this->apiFacade->getPhelFunctions();
+        $explicit = $request->stringParam('ns');
+        if ($explicit !== '') {
+            return $explicit;
         }
 
-        foreach ($this->cache as $fn) {
-            if ($fn->nameWithNamespace() === $symbol) {
-                return $fn;
-            }
-
-            if ($fn->name === $symbol && ($fn->namespace === 'core' || $fn->namespace === '')) {
-                return $fn;
+        if ($this->sessions instanceof SessionRegistry && $request->session !== null) {
+            $session = $this->sessions->get($request->session);
+            if ($session instanceof Session) {
+                return $session->namespace();
             }
         }
 
-        return null;
+        return self::DEFAULT_NAMESPACE;
     }
 }

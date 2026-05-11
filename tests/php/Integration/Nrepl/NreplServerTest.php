@@ -111,6 +111,72 @@ final class NreplServerTest extends TestCase
         $server->stop();
     }
 
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
+    public function test_it_returns_lookup_info_for_session_defined_symbols(): void
+    {
+        Phel::bootstrap(__DIR__);
+        Phel::clear();
+        Symbol::resetGen();
+        GlobalEnvironmentSingleton::initializeNew();
+
+        $facade = new NreplFacade();
+        $facade->loadPhelNamespaces();
+
+        $server = $facade->createSocketServer(0, '127.0.0.1');
+        $server->start();
+
+        $client = @stream_socket_client(
+            sprintf('tcp://127.0.0.1:%d', $server->port()),
+            $errno,
+            $errstr,
+            2.0,
+        );
+        if ($client === false) {
+            $server->stop();
+            self::fail(sprintf('Could not connect to server: %s', $errstr));
+        }
+
+        stream_set_blocking($client, false);
+        stream_set_timeout($client, 2);
+
+        $encoder = new BencodeEncoder();
+        $decoder = new BencodeStreamDecoder();
+
+        $this->writeMessage($client, $encoder->encode(['op' => 'clone', 'id' => 'c1']));
+        $this->pump($server);
+        $clone = $this->readUntil($client, $decoder, $server, 1);
+        $sessionId = $clone[0]['new-session'];
+
+        $this->writeMessage($client, $encoder->encode([
+            'op' => 'eval',
+            'id' => 'e1',
+            'session' => $sessionId,
+            'code' => '(defn greet [n] (str "hello " n))',
+        ]));
+        $this->pump($server);
+        $this->readUntil($client, $decoder, $server, 2);
+
+        $this->writeMessage($client, $encoder->encode([
+            'op' => 'lookup',
+            'id' => 'l1',
+            'session' => $sessionId,
+            'sym' => 'greet',
+        ]));
+        $this->pump($server);
+        $lookup = $this->readUntil($client, $decoder, $server, 1);
+
+        $info = $lookup[0]['info'] ?? null;
+        self::assertNotNull($info, 'lookup response should include info dict');
+        self::assertSame('greet', $info['name']);
+        self::assertSame('user', $info['ns']);
+        self::assertSame('(greet n)', $info['arglists-str']);
+        self::assertContains('done', $lookup[0]['status']);
+
+        fclose($client);
+        $server->stop();
+    }
+
     /**
      * @param resource $client
      */

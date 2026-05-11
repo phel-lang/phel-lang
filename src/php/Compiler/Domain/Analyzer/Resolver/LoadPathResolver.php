@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\Resolver;
 
 use InvalidArgumentException;
-use Phel\Compiler\Application\Munge;
+use Phel\Shared\Munge;
 
 use function explode;
 use function implode;
