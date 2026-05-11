@@ -10,7 +10,7 @@ final class NamespacePathTransformer
     {
         return strtr(
             $namespace,
-            ['\\' => '/', '-' => '_'],
+            ['\\' => '/', '.' => '/', '-' => '_'],
         );
     }
 }

@@ -50,6 +50,9 @@ All notable changes to this project will be documented in this file.
 #### Api
 - `phel analyze` preloads namespaces required by the file under analysis (#1919)
 
+#### Build
+- Entry-point `main.php` `require_once` resolves dotted main namespaces to nested paths (#1956)
+
 ## [0.36.0](https://github.com/phel-lang/phel-lang/compare/v0.35.0...v0.36.0) - 2026-05-08
 
 ### Added
