@@ -112,7 +112,7 @@ rsync -a "$REPO_ROOT/" "$WORK_DIR/" \
   --exclude='data' \
   --exclude='vendor' \
   --exclude='build' \
-  --exclude='resources' \
+  --exclude='resources/agents' \
   --exclude='tools' \
   --exclude='examples' \
   --exclude='fixtures' \

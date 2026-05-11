@@ -57,6 +57,11 @@ All notable changes to this project will be documented in this file.
 
 #### Build
 - Entry-point `main.php` `require_once` resolves dotted main namespaces to nested paths (#1956)
+- `PhpNamespaceCache` evicts entries under always-excluded segments at load time, so policy changes take effect without manual cache wipe (#1962)
+
+#### Run
+- `phel run <file>` resolves the script's `(:require ...)` from configured `srcDirs`/vendor first; sibling files in the script's directory only resolve as a name-matched fallback (#1962)
+- REPL `startup.phel` lives at `resources/repl/startup.phel`, outside default `srcDirs = ['src']` (#1962)
 
 ## [0.36.0](https://github.com/phel-lang/phel-lang/compare/v0.35.0...v0.36.0) - 2026-05-08
 
