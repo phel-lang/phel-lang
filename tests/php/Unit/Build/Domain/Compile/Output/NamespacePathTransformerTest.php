@@ -55,4 +55,12 @@ final class NamespacePathTransformerTest extends TestCase
             $this->transformer->transform('test-ns\hello'),
         );
     }
+
+    public function test_dot_to_forward_slash(): void
+    {
+        self::assertSame(
+            'cli_skeleton/main',
+            $this->transformer->transform('cli-skeleton.main'),
+        );
+    }
 }
