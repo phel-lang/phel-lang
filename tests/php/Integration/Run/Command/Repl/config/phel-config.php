@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-return [
-    'src-dirs' => [
-        '../../../../../../src/phel/',
-    ],
-    'test-dirs' => [],
-    'vendor-dir' => 'vendor',
-];
+use Phel\Config\PhelConfig;
+
+return new PhelConfig()
+    ->withSrcDirs(['../../../../../../../src/phel/'])
+    ->withTestDirs(['Fixtures'])
+    ->withVendorDir('')
+    ->withErrorLogFile('data/error.log');
