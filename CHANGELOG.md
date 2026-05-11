@@ -38,7 +38,7 @@ All notable changes to this project will be documented in this file.
 
 #### DX
 - Runtime state (cache, REPL history, error log) consolidated under `.phel/`; relocate via `withPhelDir()` or `PHEL_DIR` env (#1954)
-- Module boundaries: pure cross-cutting utilities (`CompileOptions`, `PhelProjectDirectory`, `VersionFinder`) moved to `Phel\Shared`; `GlobalEnvironment` and `DebugLineTap` now reached via `CompilerFacade` methods instead of direct singleton/class imports. Factory rule documented in `.claude/rules/php.md`
+- `Munge`, `CompileOptions`, `PhelProjectDirectory`, `VersionFinder` moved to `Phel\Shared`; `GlobalEnvironment` and `DebugLineTap` reached via `CompilerFacade`; factory boundary rule codified in `.claude/rules/php.md` (#1963, #1964)
 - `PhelConfig`, `PhelBuildConfig`, `PhelExportConfig` immutable via `withX()` chain; build/export fields flat on root config; old `setX()` shims deprecated
 - **Breaking:** `PhelConfig::forProject(ProjectLayout $layout = Flat, string $mainNamespace = '')` — layout first, Flat default; migrate `forProject('ns')` to `forProject()->withMainPhelNamespace('ns')`
 
@@ -57,7 +57,7 @@ All notable changes to this project will be documented in this file.
 - `phel analyze` preloads namespaces required by the file under analysis (#1919)
 
 #### Nrepl
-- `lookup` / `info` / `eldoc` resolve session-defined definitions (e.g. `(defn greet ...)`), not just core/library functions; honor the request `ns` param and fall back to the session's current namespace
+- `lookup` / `info` / `eldoc` resolve session-defined `defn`s, honoring the request `ns` param or session namespace (#1963)
 
 #### Build
 - Entry-point `main.php` `require_once` resolves dotted main namespaces to nested paths (#1956)
