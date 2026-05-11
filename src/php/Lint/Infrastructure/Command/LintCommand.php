@@ -196,7 +196,7 @@ final class LintCommand extends Command
         }
 
         PhelProjectDirectory::ensure($cwd);
-        $cacheDir = rtrim($cwd, '/') . '/' . LintConfig::defaultCacheDir();
+        $cacheDir = PhelProjectDirectory::path($cwd, LintConfig::CACHE_SUBPATH);
 
         return $this->getFacade()->createCache($cacheDir);
     }

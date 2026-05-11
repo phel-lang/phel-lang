@@ -40,10 +40,14 @@ final class PhelConfig implements JsonSerializable
 
     public const string CACHE_DIR = 'cache-dir';
 
+    public const string PHEL_DIR = 'phel-dir';
+
     /** @var list<string> */
     public const array DEFAULT_SRC_DIRS = ['src'];
 
     private const string PHEL_TEMP_SUBDIR = '/phel';
+
+    private const string DEFAULT_CACHE_DIR = '.phel/cache';
 
     /** @var list<string> */
     private array $srcDirs = self::DEFAULT_SRC_DIRS;
@@ -53,7 +57,7 @@ final class PhelConfig implements JsonSerializable
 
     private string $vendorDir = 'vendor';
 
-    private string $errorLogFile = '/tmp/phel-error.log';
+    private string $errorLogFile = '.phel/error.log';
 
     private PhelExportConfig $exportConfig;
 
@@ -69,7 +73,9 @@ final class PhelConfig implements JsonSerializable
 
     private string $tempDir;
 
-    private string $cacheDir;
+    // Cache lives under <projectRoot>/.phel/cache by default — BuildConfig
+    // resolves relative paths against the app root.
+    private string $cacheDir = self::DEFAULT_CACHE_DIR;
 
     /** @var list<string> */
     private array $formatDirs = ['src', 'tests'];
@@ -82,15 +88,20 @@ final class PhelConfig implements JsonSerializable
 
     private bool $enableCompiledCodeCache = true;
 
+    /**
+     * Custom location for the per-project `.phel/` state directory.
+     * Empty string keeps the default (`.phel/` next to the project root).
+     * Absolute paths are honored verbatim. Overridden at runtime by the
+     * `PHEL_DIR` environment variable.
+     */
+    private string $phelDir = '';
+
     public function __construct()
     {
         $this->exportConfig = new PhelExportConfig();
         $this->buildConfig = new PhelBuildConfig();
 
-        // Single syscall for temp directory
-        $baseTemp = sys_get_temp_dir() . self::PHEL_TEMP_SUBDIR;
-        $this->tempDir = $baseTemp . '/tmp';
-        $this->cacheDir = $baseTemp . '/cache';
+        $this->tempDir = sys_get_temp_dir() . self::PHEL_TEMP_SUBDIR . '/tmp';
     }
 
     /**
@@ -402,6 +413,25 @@ final class PhelConfig implements JsonSerializable
     }
 
     /**
+     * Redirect the entire per-project state directory (`.phel/` by default)
+     * to a different location. Useful when the project lives behind a web
+     * server: e.g. a WordPress plugin can move state out of the document
+     * root via `$config->setPhelDir('/var/cache/phel')`. Honors `PHEL_DIR`
+     * env var as a higher-priority override.
+     */
+    public function setPhelDir(string $dir): self
+    {
+        $this->phelDir = $dir;
+
+        return $this;
+    }
+
+    public function getPhelDir(): string
+    {
+        return $this->phelDir;
+    }
+
+    /**
      * @param list<string> $list
      */
     public function setFormatDirs(array $list): self
@@ -496,6 +526,7 @@ final class PhelConfig implements JsonSerializable
             self::ENABLE_NAMESPACE_CACHE => $this->enableNamespaceCache,
             self::ENABLE_COMPILED_CODE_CACHE => $this->enableCompiledCodeCache,
             self::CACHE_DIR => $this->cacheDir,
+            self::PHEL_DIR => $this->phelDir,
         ];
     }
 

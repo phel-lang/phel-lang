@@ -6,10 +6,12 @@ namespace Phel;
 
 use Closure;
 use Gacela\Framework\Bootstrap\GacelaConfig;
+use Gacela\Framework\Config\Config;
 use Gacela\Framework\Gacela;
 use Phar;
 use Phel\Config\PhelConfig;
 use Phel\Config\ProjectLayout;
+use Phel\Filesystem\Application\PhelProjectDirectory;
 use Phel\Filesystem\FilesystemFacade;
 use Phel\Run\RunFacade;
 use RuntimeException;
@@ -88,6 +90,8 @@ class Phel
         }
 
         Gacela::bootstrap($projectRootDir, self::configFn());
+
+        self::mirrorPhelDirToEnv();
     }
 
     /**
@@ -173,6 +177,27 @@ class Phel
     public static function resetAutoDetectedConfig(): void
     {
         self::$autoDetectedConfig = null;
+    }
+
+    /**
+     * Mirror `PhelConfig::PHEL_DIR` (configured via `setPhelDir()` in
+     * `phel-config.php`) into the `PHEL_DIR` env var so every consumer
+     * — including CLI commands that don't read Gacela config directly —
+     * sees one source of truth. Any pre-existing env value wins.
+     */
+    private static function mirrorPhelDirToEnv(): void
+    {
+        if (getenv(PhelProjectDirectory::DIR_ENV) !== false) {
+            return;
+        }
+
+        $configured = (string) Config::getInstance()
+            ->get(PhelConfig::PHEL_DIR, '');
+        if ($configured === '') {
+            return;
+        }
+
+        putenv(PhelProjectDirectory::DIR_ENV . '=' . $configured);
     }
 
     /**

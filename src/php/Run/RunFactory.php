@@ -15,6 +15,7 @@ use Phel\Run\Application\FileRunner;
 use Phel\Run\Application\NamespaceLoader;
 use Phel\Run\Application\NamespaceRunner;
 use Phel\Run\Application\NamespacesLoader;
+use Phel\Run\Application\ReplHistoryPathResolver;
 use Phel\Run\Application\StructuredEvaluator;
 use Phel\Run\Domain\Repl\Hint\ArgumentCountHint;
 use Phel\Run\Domain\Repl\Hint\NotCallableHint;
@@ -98,7 +99,7 @@ class RunFactory extends AbstractFactory
     {
         if (extension_loaded('readline')) {
             return new ReplCommandSystemIo(
-                $this->getConfig()->getPhelReplHistory(),
+                $this->createReplHistoryPathResolver()->resolve(),
                 $this->getCommandFacade(),
                 $this->getApiFacade(),
                 $this->createReplErrorFormatter(),
@@ -109,6 +110,11 @@ class RunFactory extends AbstractFactory
             $this->getCommandFacade(),
             $this->createReplErrorFormatter(),
         );
+    }
+
+    public function createReplHistoryPathResolver(): ReplHistoryPathResolver
+    {
+        return new ReplHistoryPathResolver($this->getConfig()->getAppRootDir());
     }
 
     public function createReplErrorFormatter(): ReplErrorFormatter

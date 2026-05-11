@@ -37,7 +37,7 @@ All notable changes to this project will be documented in this file.
 - Recursive self-calls emit `$this(...)`; ~3.66x faster on `fib(22)` (#1914)
 
 #### DX
-- Auto-write `.phel/.gitignore` (`*`) on first directory creation; user edits preserved (#1954)
+- Runtime state consolidated under `.phel/` (cache, REPL history, last-failed, error log) with self-seeded `.gitignore`; legacy `.phel-repl-history` auto-migrated; relocate the whole directory via `setPhelDir()` or `PHEL_DIR` env, narrow cache override via `PHEL_CACHE_DIR` (#1954)
 
 ### Fixed
 

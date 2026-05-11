@@ -70,7 +70,7 @@ final class TestCommand extends Command
 
     private const string OPT_RANDOM_ORDER = 'random-order';
 
-    private const string LAST_FAILED_FILE = '.phel/last-failed.txt';
+    private const string LAST_FAILED_FILENAME = 'last-failed.txt';
 
     protected function configure(): void
     {
@@ -142,7 +142,7 @@ final class TestCommand extends Command
                 self::OPT_LAST_FAILED,
                 null,
                 InputOption::VALUE_NONE,
-                'Re-run only tests that failed on the previous run. Reads ' . self::LAST_FAILED_FILE . ' from the current directory. Combine with --repeat to hammer flaky tests.',
+                'Re-run only tests that failed on the previous run. Reads `<phel-dir>/last-failed.txt` from the current project. Combine with --repeat to hammer flaky tests.',
             )->addOption(
                 self::OPT_SLOWEST,
                 null,
@@ -280,11 +280,10 @@ final class TestCommand extends Command
         $listOnly = (bool) $input->getOption(self::OPT_LIST);
         $lastFailed = (bool) $input->getOption(self::OPT_LAST_FAILED);
 
-        if (!$listOnly) {
-            $cwd = getcwd();
-            if (is_string($cwd)) {
-                PhelProjectDirectory::ensure($cwd);
-            }
+        $lastFailedFile = $this->lastFailedFilePath();
+
+        if (!$listOnly && $lastFailedFile !== null) {
+            PhelProjectDirectory::ensure((string) getcwd());
         }
 
         return [
@@ -300,12 +299,22 @@ final class TestCommand extends Command
             TestCommandOptions::FILTERS => (array) $input->getOption(self::OPT_FILTER),
             TestCommandOptions::LIST_ONLY => $listOnly,
             TestCommandOptions::ONLY_TESTS => $lastFailed ? $this->readLastFailed() : [],
-            TestCommandOptions::LAST_FAILED_FILE => $listOnly ? null : self::LAST_FAILED_FILE,
+            TestCommandOptions::LAST_FAILED_FILE => $listOnly ? null : $lastFailedFile,
             TestCommandOptions::SLOWEST => (int) $input->getOption(self::OPT_SLOWEST),
             TestCommandOptions::REPEAT => $this->parseRepeat($input),
             TestCommandOptions::SEED => $this->parseSeed($input),
             TestCommandOptions::RANDOM_ORDER => (bool) $input->getOption(self::OPT_RANDOM_ORDER),
         ];
+    }
+
+    private function lastFailedFilePath(): ?string
+    {
+        $cwd = getcwd();
+        if (!is_string($cwd)) {
+            return null;
+        }
+
+        return PhelProjectDirectory::path($cwd, self::LAST_FAILED_FILENAME);
     }
 
     private function parseRepeat(InputInterface $input): int
@@ -341,11 +350,12 @@ final class TestCommand extends Command
      */
     private function readLastFailed(): array
     {
-        if (!is_file(self::LAST_FAILED_FILE)) {
+        $path = $this->lastFailedFilePath();
+        if ($path === null || !is_file($path)) {
             return [];
         }
 
-        $contents = @file_get_contents(self::LAST_FAILED_FILE);
+        $contents = @file_get_contents($path);
         if (!is_string($contents) || $contents === '') {
             return [];
         }

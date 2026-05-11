@@ -48,7 +48,7 @@ Runtime execution: runs Phel namespaces/files, REPL, evaluation, testing, and al
 
 ```
 Run/
-├── Application/        BundledNamespaces, EntryPointDetector, EvalExecutor, FileRunner, NamespaceLoader, NamespaceRunner, NamespacesLoader, StructuredEvaluator
+├── Application/        BundledNamespaces, EntryPointDetector, EvalExecutor, FileRunner, NamespaceLoader, NamespaceRunner, NamespacesLoader, ReplHistoryPathResolver, StructuredEvaluator
 ├── Domain/
 │   ├── Init/           NamespaceNormalizer, ProjectTemplateGenerator
 │   ├── Repl/           EvalResult, EvalError, ReplCommandIoInterface, ReplErrorFormatter, ReplFormattedError, ReplHistory, ReplPrompt, startup.phel, Hint/
@@ -67,6 +67,7 @@ Run/
 - `EvalResult` uses static constructors: `success()`, `incomplete()`, `failure()` — never throws
 - REPL supports environment snapshot/restore on eval failure
 - `ReplCommandSystemIo` requires PHP `readline` extension; falls back to `ReplCommandFallbackIo`
+- `ReplHistoryPathResolver` returns `<projectRoot>/.phel/repl-history`; transparently migrates a legacy `<projectRoot>/.phel-repl-history` (rename + one-line stderr notice unless `PHEL_QUIET_MIGRATION=1`)
 - `ReplHistory` registers `*1`/`*2`/`*3`/`*e` in `phel\core` after REPL boot; updates on every eval/exception
 - `ReplPrompt` reads `GlobalEnvironmentSingleton::getNs()` to render the current namespace in the prompt
 - `ReplErrorFormatter` renders eval-time `Throwable`s for REPL output: short headline, optional hint, trace with internal compiler/run/build/command frames hidden. `Hint/` holds `ReplHintInterface` implementations (`NotCallableHint`, `ArgumentCountHint`, `UndefinedSymbolHint`); register new hints via `RunFactory::createReplHints`

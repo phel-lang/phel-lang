@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Filesystem\Application;
 
-use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
 use Phel\Filesystem\Application\PhelProjectDirectory;
 use PHPUnit\Framework\TestCase;
 
@@ -16,23 +15,13 @@ final class PhelProjectDirectoryTest extends TestCase
     {
         $this->projectRoot = sys_get_temp_dir() . '/phel-proj-' . uniqid('', true);
         mkdir($this->projectRoot);
+        putenv(PhelProjectDirectory::DIR_ENV);
     }
 
     protected function tearDown(): void
     {
-        $phelDir = $this->projectRoot . '/' . PhelProjectDirectory::DIRECTORY_NAME;
-        $gitignore = $phelDir . '/.gitignore';
-        if (is_file($gitignore)) {
-            unlink($gitignore);
-        }
-
-        if (is_dir($phelDir)) {
-            rmdir($phelDir);
-        }
-
-        if (is_dir($this->projectRoot)) {
-            rmdir($this->projectRoot);
-        }
+        putenv(PhelProjectDirectory::DIR_ENV);
+        $this->removeTree($this->projectRoot);
     }
 
     public function test_creates_directory_and_seeds_gitignore_on_first_call(): void
@@ -78,17 +67,104 @@ final class PhelProjectDirectoryTest extends TestCase
         self::assertSame($this->projectRoot . '/' . PhelProjectDirectory::DIRECTORY_NAME, $dir);
     }
 
-    public function test_throws_when_directory_cannot_be_created(): void
+    public function test_best_effort_returns_path_when_directory_cannot_be_created(): void
     {
         $unwritable = sys_get_temp_dir() . '/phel-unwritable-' . uniqid('', true);
         mkdir($unwritable, 0o555);
 
         try {
-            $this->expectException(FileException::class);
-            PhelProjectDirectory::ensure($unwritable);
+            $dir = @PhelProjectDirectory::ensure($unwritable);
+
+            self::assertSame(
+                $unwritable . '/' . PhelProjectDirectory::DIRECTORY_NAME,
+                $dir,
+            );
+            self::assertDirectoryDoesNotExist($dir);
         } finally {
             chmod($unwritable, 0o755);
             rmdir($unwritable);
         }
+    }
+
+    public function test_env_var_relocates_directory_to_absolute_path(): void
+    {
+        $relocated = sys_get_temp_dir() . '/phel-elsewhere-' . uniqid('', true);
+        putenv(PhelProjectDirectory::DIR_ENV . '=' . $relocated);
+
+        try {
+            $dir = PhelProjectDirectory::ensure($this->projectRoot);
+
+            self::assertSame($relocated, $dir);
+            self::assertDirectoryExists($relocated);
+            self::assertDirectoryDoesNotExist($this->projectRoot . '/' . PhelProjectDirectory::DIRECTORY_NAME);
+        } finally {
+            $this->removeTree($relocated);
+        }
+    }
+
+    public function test_path_with_configured_dir_resolves_against_project_root(): void
+    {
+        $dir = PhelProjectDirectory::path($this->projectRoot, 'cache', 'state');
+
+        self::assertSame($this->projectRoot . '/state/cache', $dir);
+    }
+
+    public function test_env_wins_over_configured_dir(): void
+    {
+        $relocated = sys_get_temp_dir() . '/phel-env-wins-' . uniqid('', true);
+        putenv(PhelProjectDirectory::DIR_ENV . '=' . $relocated);
+
+        try {
+            $dir = PhelProjectDirectory::path($this->projectRoot, '', '/ignored/configured');
+
+            self::assertSame($relocated, $dir);
+        } finally {
+            if (is_dir($relocated)) {
+                rmdir($relocated);
+            }
+        }
+    }
+
+    public function test_resolve_rewrites_phel_prefixed_config_paths(): void
+    {
+        putenv(PhelProjectDirectory::DIR_ENV . '=/foo');
+
+        try {
+            self::assertSame('/foo/cache', PhelProjectDirectory::resolve($this->projectRoot, '.phel/cache'));
+            self::assertSame('/foo', PhelProjectDirectory::resolve($this->projectRoot, '.phel'));
+            self::assertSame('/etc/phel-cache', PhelProjectDirectory::resolve($this->projectRoot, '/etc/phel-cache'));
+            self::assertSame(
+                $this->projectRoot . '/custom-cache',
+                PhelProjectDirectory::resolve($this->projectRoot, 'custom-cache'),
+            );
+        } finally {
+            putenv(PhelProjectDirectory::DIR_ENV);
+        }
+    }
+
+    private function removeTree(string $path): void
+    {
+        if (!file_exists($path)) {
+            return;
+        }
+
+        if (is_file($path) || is_link($path)) {
+            unlink($path);
+            return;
+        }
+
+        foreach (scandir($path) ?: [] as $entry) {
+            if ($entry === '.') {
+                continue;
+            }
+
+            if ($entry === '..') {
+                continue;
+            }
+
+            $this->removeTree($path . '/' . $entry);
+        }
+
+        rmdir($path);
     }
 }
