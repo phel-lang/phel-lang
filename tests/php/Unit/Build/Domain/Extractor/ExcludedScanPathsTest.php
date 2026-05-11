@@ -109,4 +109,30 @@ final class ExcludedScanPathsTest extends TestCase
 
         self::assertTrue($paths->contains('/not/yet/built/phel/core.phel', '/scan'));
     }
+
+    public function test_is_always_excluded_matches_worktree_paths(): void
+    {
+        self::assertTrue(ExcludedScanPaths::isAlwaysExcluded(
+            '/repo/.claude/worktrees/agent-xyz/src/phel/http-client.phel',
+        ));
+        self::assertTrue(ExcludedScanPaths::isAlwaysExcluded(
+            '/repo/worktrees/foo/src/phel/util.phel',
+        ));
+    }
+
+    public function test_is_always_excluded_matches_vendor_and_dot_dirs(): void
+    {
+        self::assertTrue(ExcludedScanPaths::isAlwaysExcluded('/repo/vendor/phel/core.phel'));
+        self::assertTrue(ExcludedScanPaths::isAlwaysExcluded('/repo/.git/objects/foo'));
+        self::assertTrue(ExcludedScanPaths::isAlwaysExcluded('/repo/node_modules/x/y.phel'));
+        self::assertTrue(ExcludedScanPaths::isAlwaysExcluded('/repo/.agents/x/y.phel'));
+        self::assertTrue(ExcludedScanPaths::isAlwaysExcluded('/repo/resources/agents/todo/src/phel/x.phel'));
+    }
+
+    public function test_is_always_excluded_returns_false_for_normal_paths(): void
+    {
+        self::assertFalse(ExcludedScanPaths::isAlwaysExcluded('/repo/src/phel/core.phel'));
+        self::assertFalse(ExcludedScanPaths::isAlwaysExcluded('/repo/tests/phel/foo.phel'));
+        self::assertFalse(ExcludedScanPaths::isAlwaysExcluded('/repo/resources/repl/startup.phel'));
+    }
 }

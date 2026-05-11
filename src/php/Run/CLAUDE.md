@@ -51,7 +51,7 @@ Run/
 ├── Application/        BundledNamespaces, EntryPointDetector, EvalExecutor, FileRunner, NamespaceLoader, NamespaceRunner, NamespacesLoader, ReplHistoryPathResolver, StructuredEvaluator
 ├── Domain/
 │   ├── Init/           NamespaceNormalizer, ProjectTemplateGenerator
-│   ├── Repl/           EvalResult, EvalError, ReplCommandIoInterface, ReplErrorFormatter, ReplFormattedError, ReplHistory, ReplPrompt, startup.phel, Hint/
+│   ├── Repl/           EvalResult, EvalError, ReplCommandIoInterface, ReplErrorFormatter, ReplFormattedError, ReplHistory, ReplPrompt, Hint/ (startup.phel lives at <repo>/resources/repl/)
 │   ├── Runner/         NamespaceCollector, NamespaceRunnerInterface
 │   ├── Test/           TestCommandOptions, CannotFindAnyTestsException
 │   └── StdinReaderInterface

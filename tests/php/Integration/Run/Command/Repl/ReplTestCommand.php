@@ -134,7 +134,7 @@ final class ReplTestCommand extends AbstractTestCommand
 
     private function createReplCommandWithCoreLib(): ReplCommand
     {
-        $replStartupFile = __DIR__ . '/../../../../../../src/php/Run/Domain/Repl/startup.phel';
+        $replStartupFile = __DIR__ . '/../../../../../../resources/repl/startup.phel';
 
         return new ReplCommand()->setReplStartupFile($replStartupFile);
     }

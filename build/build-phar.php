@@ -285,6 +285,7 @@ final class PharBuilder
             $phar->startBuffering();
 
             $this->addFiles($phar);
+            $this->addReplStartupFile($phar);
             $this->setStub($phar);
             $this->compressPhar($phar);
             $phar->setSignatureAlgorithm(Phar::SHA256);
@@ -539,6 +540,26 @@ final class PharBuilder
 
         $this->stats['files_added'] = \count($added);
         $this->stats['total_size'] = $totalSize;
+    }
+
+    /**
+     * `resources/` is excluded from the generic walker, but the REPL
+     * bootstrap must ship inside the PHAR for `phel repl` to find it.
+     */
+    private function addReplStartupFile(Phar $phar): void
+    {
+        $startup = $this->root . '/resources/repl/startup.phel';
+        if (!is_file($startup)) {
+            return;
+        }
+
+        $phar->addFile($startup, 'resources/repl/startup.phel');
+        ++$this->stats['files_added'];
+
+        $size = @filesize($startup);
+        if ($size !== false) {
+            $this->stats['total_size'] += $size;
+        }
     }
 
     /**
