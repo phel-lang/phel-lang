@@ -28,9 +28,10 @@ final class EntryPointPhpFileTest extends TestCase
 
     public function test_multi_segment_namespace_points_at_nested_path(): void
     {
-        $buildConfig = new PhelBuildConfig()
-            ->setMainPhelNamespace('cli-skeleton.main')
-            ->setMainPhpPath('out/main.php');
+        $buildConfig = new PhelBuildConfig(
+            mainPhelNamespace: 'cli-skeleton.main',
+            mainPhpPath: 'out/main.php',
+        );
 
         $entry = new EntryPointPhpFile(
             $buildConfig,

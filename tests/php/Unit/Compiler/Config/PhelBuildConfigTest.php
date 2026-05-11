@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Config;
 
 use Phel\Config\PhelBuildConfig;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
 final class PhelBuildConfigTest extends TestCase
@@ -23,10 +24,28 @@ final class PhelBuildConfigTest extends TestCase
         self::assertSame($expected, $config->jsonSerialize());
     }
 
+    public function test_named_arg_constructor(): void
+    {
+        $config = new PhelBuildConfig(
+            mainPhelNamespace: 'test-ns/boot',
+            mainPhpPath: 'custom/index.php',
+            destDir: 'custom',
+        );
+
+        $expected = [
+            PhelBuildConfig::MAIN_PHEL_NAMESPACE => 'test-ns/boot',
+            PhelBuildConfig::DEST_DIR => 'custom',
+            PhelBuildConfig::MAIN_PHP_FILENAME => 'index.php',
+            PhelBuildConfig::MAIN_PHP_PATH => 'custom/index.php',
+        ];
+
+        self::assertSame($expected, $config->jsonSerialize());
+    }
+
     public function test_defined_phel_ns(): void
     {
         $config = new PhelBuildConfig()
-            ->setMainPhelNamespace('test-ns/boot');
+            ->withMainPhelNamespace('test-ns/boot');
 
         $expected = [
             PhelBuildConfig::MAIN_PHEL_NAMESPACE => 'test-ns/boot',
@@ -41,7 +60,7 @@ final class PhelBuildConfigTest extends TestCase
     public function test_dest_dir(): void
     {
         $config = new PhelBuildConfig()
-            ->setDestDir('custom-out');
+            ->withDestDir('custom-out');
 
         $expected = [
             PhelBuildConfig::MAIN_PHEL_NAMESPACE => '',
@@ -56,8 +75,8 @@ final class PhelBuildConfigTest extends TestCase
     public function test_dest_dir_and_main_php_path(): void
     {
         $config = new PhelBuildConfig()
-            ->setDestDir('custom-out')
-            ->setMainPhpPath('custom-out/custom-index.php');
+            ->withDestDir('custom-out')
+            ->withMainPhpPath('custom-out/custom-index.php');
 
         $expected = [
             PhelBuildConfig::MAIN_PHEL_NAMESPACE => '',
@@ -72,22 +91,7 @@ final class PhelBuildConfigTest extends TestCase
     public function test_main_php_path_takes_precedence(): void
     {
         $config = new PhelBuildConfig()
-            ->setMainPhpPath('custom-out/custom-index.php');
-
-        $expected = [
-            PhelBuildConfig::MAIN_PHEL_NAMESPACE => '',
-            PhelBuildConfig::DEST_DIR => 'custom-out',
-            PhelBuildConfig::MAIN_PHP_FILENAME => 'custom-index.php',
-            PhelBuildConfig::MAIN_PHP_PATH => 'custom-out/custom-index.php',
-        ];
-
-        self::assertSame($expected, $config->jsonSerialize());
-    }
-
-    public function test_main_php_path(): void
-    {
-        $config = new PhelBuildConfig()
-            ->setMainPhpPath('custom-out/custom-index.php');
+            ->withMainPhpPath('custom-out/custom-index.php');
 
         $expected = [
             PhelBuildConfig::MAIN_PHEL_NAMESPACE => '',
@@ -102,7 +106,7 @@ final class PhelBuildConfigTest extends TestCase
     public function test_main_php_path_without_ext(): void
     {
         $config = new PhelBuildConfig()
-            ->setMainPhpPath('custom-flip');
+            ->withMainPhpPath('custom-flip');
 
         $expected = [
             PhelBuildConfig::MAIN_PHEL_NAMESPACE => '',
@@ -117,7 +121,7 @@ final class PhelBuildConfigTest extends TestCase
     public function test_main_php_path_bug_when_not_dir_defined(): void
     {
         $config = new PhelBuildConfig()
-            ->setMainPhpPath('custom-index');
+            ->withMainPhpPath('custom-index');
 
         $expected = [
             PhelBuildConfig::MAIN_PHEL_NAMESPACE => '',
@@ -132,7 +136,7 @@ final class PhelBuildConfigTest extends TestCase
     public function test_main_php_path_bug_when_nested_dir_defined(): void
     {
         $config = new PhelBuildConfig()
-            ->setMainPhpPath('custom-dir1/dir2/custom-index');
+            ->withMainPhpPath('custom-dir1/dir2/custom-index');
 
         $expected = [
             PhelBuildConfig::MAIN_PHEL_NAMESPACE => '',
@@ -142,5 +146,32 @@ final class PhelBuildConfigTest extends TestCase
         ];
 
         self::assertSame($expected, $config->jsonSerialize());
+    }
+
+    public function test_with_methods_are_immutable(): void
+    {
+        $original = new PhelBuildConfig();
+        $updated = $original->withMainPhelNamespace('app\\core');
+
+        self::assertNotSame($original, $updated);
+        self::assertSame('', $original->getMainPhelNamespace());
+        self::assertSame('app\\core', $updated->getMainPhelNamespace());
+    }
+
+    #[Group('deprecated')]
+    public function test_deprecated_setters_still_work(): void
+    {
+        /** @psalm-suppress DeprecatedMethod */
+        $legacy = new PhelBuildConfig()
+            ->setMainPhelNamespace('app\\boot')
+            ->setMainPhpPath('dist/main.php')
+            ->setDestDir('dist');
+
+        $modern = new PhelBuildConfig()
+            ->withMainPhelNamespace('app\\boot')
+            ->withMainPhpPath('dist/main.php')
+            ->withDestDir('dist');
+
+        self::assertSame($modern->jsonSerialize(), $legacy->jsonSerialize());
     }
 }
