@@ -12,7 +12,7 @@ This module does **not** follow Gacela internally — no Facade, Factory, or Dep
 
 Immutable `final readonly class`. Every mutation returns a new instance.
 
-Factory: `PhelConfig::forProject(string $mainNamespace = '', ?ProjectLayout $layout = null)` — creates config with optional namespace; auto-detects layout from cwd when omitted.
+Factory: `PhelConfig::forProject(ProjectLayout $layout = ProjectLayout::Flat, string $mainNamespace = '')` — defaults to Flat layout. `$mainNamespace` optional; chain `->withMainPhelNamespace()` as an alternative.
 
 **Directory**: `withSrcDirs()`, `withTestDirs()`, `withVendorDir()`, `withFormatDirs()`
 **Layout**: `withLayout(ProjectLayout)`

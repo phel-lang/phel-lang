@@ -96,8 +96,8 @@ final class InitCommandTest extends TestCase
 
         $configContent = (string) file_get_contents($this->testDir . '/phel-config.php');
 
-        self::assertStringContainsString("mainNamespace: 'sandbox\\main'", $configContent);
-        self::assertStringContainsString('layout: ProjectLayout::Root', $configContent);
+        self::assertStringContainsString('PhelConfig::forProject(ProjectLayout::Root)', $configContent);
+        self::assertStringContainsString("->withMainPhelNamespace('sandbox\\main')", $configContent);
     }
 
     public function test_minimal_main_file_uses_main_namespace(): void
@@ -195,8 +195,9 @@ final class InitCommandTest extends TestCase
         $configContent = (string) file_get_contents($this->testDir . '/phel-config.php');
 
         self::assertStringContainsString('use Phel\\Config\\PhelConfig;', $configContent);
-        self::assertStringContainsString("PhelConfig::forProject(mainNamespace: 'myapp\\main')", $configContent);
-        self::assertStringNotContainsString('ProjectLayout::', $configContent);
+        self::assertStringContainsString('use Phel\\Config\\ProjectLayout;', $configContent);
+        self::assertStringContainsString('PhelConfig::forProject(ProjectLayout::Flat)', $configContent);
+        self::assertStringContainsString("->withMainPhelNamespace('myapp\\main')", $configContent);
     }
 
     public function test_generated_config_uses_nested_layout(): void
@@ -212,8 +213,8 @@ final class InitCommandTest extends TestCase
 
         $configContent = (string) file_get_contents($this->testDir . '/phel-config.php');
 
-        self::assertStringContainsString("mainNamespace: 'testproject\\main'", $configContent);
-        self::assertStringContainsString('layout: ProjectLayout::Nested', $configContent);
+        self::assertStringContainsString('PhelConfig::forProject(ProjectLayout::Nested)', $configContent);
+        self::assertStringContainsString("->withMainPhelNamespace('testproject\\main')", $configContent);
     }
 
     public function test_generated_main_file_contains_namespace(): void
@@ -274,7 +275,8 @@ final class InitCommandTest extends TestCase
         $command->run(new ArrayInput([]), $output);
 
         $configContent = (string) file_get_contents($this->testDir . '/phel-config.php');
-        self::assertStringContainsString("PhelConfig::forProject(mainNamespace: 'app\\main')", $configContent);
+        self::assertStringContainsString('PhelConfig::forProject(ProjectLayout::Flat)', $configContent);
+        self::assertStringContainsString("->withMainPhelNamespace('app\\main')", $configContent);
 
         $mainContent = file_get_contents($this->testDir . '/src/main.phel');
         self::assertStringContainsString('(ns app\\main)', (string) $mainContent);
