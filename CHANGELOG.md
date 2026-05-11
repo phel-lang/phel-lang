@@ -37,9 +37,9 @@ All notable changes to this project will be documented in this file.
 - Recursive self-calls emit `$this(...)`; ~3.66x faster on `fib(22)` (#1914)
 
 #### DX
-- Runtime state consolidated under `.phel/` (cache, REPL history, last-failed, error log) with self-seeded `.gitignore`; legacy `.phel-repl-history` auto-migrated; relocate the whole directory via `withPhelDir()` or `PHEL_DIR` env, narrow cache override via `PHEL_CACHE_DIR` (#1954)
-- `PhelConfig`, `PhelBuildConfig`, `PhelExportConfig` are now immutable. Use `withX()` chain on `PhelConfig`; build/export fields flat on the root config (no nested `new PhelBuildConfig()->set...()`). Legacy `setX()` and `useLayout`/`useNestedLayout`/`useFlatLayout` retained as `#[Deprecated]` shims, removed in a future major.
-- **Breaking:** `PhelConfig::forProject()` signature changed: `ProjectLayout` is now the first argument (defaults to `Flat`), `$mainNamespace` optional second. Migrate `forProject('my-app\main')` to `forProject()->withMainPhelNamespace('my-app\main')`.
+- Runtime state (cache, REPL history, error log) consolidated under `.phel/`; relocate via `withPhelDir()` or `PHEL_DIR` env (#1954)
+- `PhelConfig`, `PhelBuildConfig`, `PhelExportConfig` immutable via `withX()` chain; build/export fields flat on root config; old `setX()` shims deprecated
+- **Breaking:** `PhelConfig::forProject(ProjectLayout $layout = Flat, string $mainNamespace = '')` — layout first, Flat default; migrate `forProject('ns')` to `forProject()->withMainPhelNamespace('ns')`
 
 ### Fixed
 
