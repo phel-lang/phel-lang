@@ -7,6 +7,7 @@ namespace PhelTest\Unit\Nrepl\Domain\Op;
 use Phel\Api\Transfer\PhelFunction;
 use Phel\Nrepl\Application\Op\LookupOp;
 use Phel\Nrepl\Domain\Op\OpRequest;
+use Phel\Nrepl\Domain\Session\SessionRegistry;
 use Phel\Shared\Facade\ApiFacadeInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -93,5 +94,76 @@ final class LookupOpTest extends TestCase
 
         $op2 = new LookupOp($this->createStub(ApiFacadeInterface::class), 'eldoc');
         self::assertSame('eldoc', $op2->name());
+    }
+
+    public function test_it_falls_back_to_find_symbol_metadata_for_session_defined_symbols(): void
+    {
+        $fn = new PhelFunction(
+            namespace: 'user',
+            name: 'greet',
+            doc: 'Greets',
+            signatures: ['(greet n)'],
+            description: '',
+        );
+
+        $api = $this->createMock(ApiFacadeInterface::class);
+        $api->method('getPhelFunctions')->willReturn([]);
+        $api->expects(self::once())
+            ->method('findSymbolMetadata')
+            ->with('greet', 'user')
+            ->willReturn($fn);
+
+        $op = new LookupOp($api);
+        $responses = $op->handle(new OpRequest('lookup', 'r1', null, [
+            'op' => 'lookup',
+            'sym' => 'greet',
+        ]));
+
+        self::assertCount(1, $responses);
+        self::assertSame('greet', $responses[0]->payload['info']['name']);
+        self::assertSame('user', $responses[0]->payload['info']['ns']);
+    }
+
+    public function test_it_uses_session_namespace_when_resolving_bare_symbols(): void
+    {
+        $sessions = new SessionRegistry();
+        $session = $sessions->create();
+        $session->setNamespace('my.app');
+
+        $api = $this->createMock(ApiFacadeInterface::class);
+        $api->method('getPhelFunctions')->willReturn([]);
+        $api->expects(self::once())
+            ->method('findSymbolMetadata')
+            ->with('helper', 'my.app')
+            ->willReturn(null);
+
+        $op = new LookupOp($api, 'lookup', $sessions);
+        $op->handle(new OpRequest('lookup', 'r1', $session->id, [
+            'op' => 'lookup',
+            'sym' => 'helper',
+            'session' => $session->id,
+        ]));
+    }
+
+    public function test_explicit_ns_param_overrides_session(): void
+    {
+        $sessions = new SessionRegistry();
+        $session = $sessions->create();
+        $session->setNamespace('my.app');
+
+        $api = $this->createMock(ApiFacadeInterface::class);
+        $api->method('getPhelFunctions')->willReturn([]);
+        $api->expects(self::once())
+            ->method('findSymbolMetadata')
+            ->with('helper', 'other.ns')
+            ->willReturn(null);
+
+        $op = new LookupOp($api, 'lookup', $sessions);
+        $op->handle(new OpRequest('lookup', 'r1', $session->id, [
+            'op' => 'lookup',
+            'sym' => 'helper',
+            'ns' => 'other.ns',
+            'session' => $session->id,
+        ]));
     }
 }

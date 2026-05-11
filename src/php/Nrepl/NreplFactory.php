@@ -54,9 +54,9 @@ final class NreplFactory extends AbstractFactory
         $dispatcher->register(new LoadFileOp($this->getRunFacade(), $responder));
         $dispatcher->register(new InterruptOp());
         $dispatcher->register(new CompletionsOp($this->getApiFacade()));
-        $dispatcher->register(new LookupOp($this->getApiFacade(), 'lookup'));
-        $dispatcher->register(new LookupOp($this->getApiFacade(), 'info'));
-        $dispatcher->register(new LookupOp($this->getApiFacade(), 'eldoc'));
+        $dispatcher->register(new LookupOp($this->getApiFacade(), 'lookup', $sessions));
+        $dispatcher->register(new LookupOp($this->getApiFacade(), 'info', $sessions));
+        $dispatcher->register(new LookupOp($this->getApiFacade(), 'eldoc', $sessions));
 
         // Describe needs to inspect known ops, register last.
         $dispatcher->register(new DescribeOp($dispatcher, $this->getRunFacade()));

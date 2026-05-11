@@ -1,0 +1,193 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Phel\Api\Application;
+
+use Phel;
+use Phel\Api\Domain\SymbolMetadataFinderInterface;
+use Phel\Api\Transfer\PhelFunction;
+use Phel\Compiler\Application\Munge;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Keyword;
+
+use function preg_split;
+use function strrpos;
+use function substr;
+use function trim;
+
+/**
+ * Resolves a Phel symbol to its `PhelFunction` snapshot by consulting the
+ * runtime registry. Covers session-defined definitions (`defn` in the
+ * REPL/nREPL) as well as core and library functions loaded at runtime.
+ */
+final readonly class SymbolMetadataFinder implements SymbolMetadataFinderInterface
+{
+    private const string CORE_NAMESPACE = 'phel.core';
+
+    public function __construct(
+        private MungeInterface $munge,
+    ) {}
+
+    public function find(string $symbol, string $currentNs = 'user'): ?PhelFunction
+    {
+        if ($symbol === '') {
+            return null;
+        }
+
+        [$ns, $name] = $this->splitSymbol($symbol);
+
+        if ($ns !== null) {
+            return $this->lookupQualified($ns, $name);
+        }
+
+        foreach ($this->candidateNamespacesFor($currentNs) as $candidate) {
+            $found = $this->lookupQualified($candidate, $name);
+            if ($found instanceof PhelFunction) {
+                return $found;
+            }
+        }
+
+        return $this->scanAllNamespaces($name);
+    }
+
+    /**
+     * @return array{0:?string,1:string}
+     */
+    private function splitSymbol(string $symbol): array
+    {
+        $pos = strrpos($symbol, '/');
+        if ($pos === false) {
+            return [null, $symbol];
+        }
+
+        return [substr($symbol, 0, $pos), substr($symbol, $pos + 1)];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function candidateNamespacesFor(string $currentNs): array
+    {
+        $canonical = Munge::canonicalNs($currentNs);
+        if ($canonical === self::CORE_NAMESPACE) {
+            return [self::CORE_NAMESPACE];
+        }
+
+        return [$canonical, self::CORE_NAMESPACE];
+    }
+
+    private function lookupQualified(string $ns, string $name): ?PhelFunction
+    {
+        $canonical = Munge::canonicalNs($ns);
+        $encodedNs = $this->munge->encodeRegistryKey($canonical);
+        $encodedName = $this->munge->encode($name);
+
+        $meta = Phel::getDefinitionMetaData($encodedNs, $encodedName);
+        if (!$meta instanceof PersistentMapInterface) {
+            return null;
+        }
+
+        return $this->toPhelFunction($canonical, $name, $meta);
+    }
+
+    private function scanAllNamespaces(string $name): ?PhelFunction
+    {
+        $encodedName = $this->munge->encode($name);
+
+        foreach (Phel::getNamespaces() as $registryNs) {
+            $meta = Phel::getDefinitionMetaData($registryNs, $encodedName);
+            if ($meta instanceof PersistentMapInterface) {
+                return $this->toPhelFunction(
+                    $this->munge->decodeNs($registryNs),
+                    $name,
+                    $meta,
+                );
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param PersistentMapInterface<mixed, mixed> $meta
+     */
+    private function toPhelFunction(string $namespace, string $name, PersistentMapInterface $meta): PhelFunction
+    {
+        $doc = (string) ($meta[Keyword::create('doc')] ?? '');
+        $signatures = $this->extractSignatures($meta, $doc, $name);
+
+        $file = '';
+        $line = 0;
+        $location = $meta[Keyword::create('start-location')] ?? null;
+        if ($location instanceof PersistentMapInterface) {
+            $file = (string) ($location[Keyword::create('file')] ?? '');
+            $line = (int) ($location[Keyword::create('line')] ?? 0);
+        }
+
+        return new PhelFunction(
+            namespace: $namespace,
+            name: $name,
+            doc: $doc,
+            signatures: $signatures,
+            description: '',
+            file: $file,
+            line: $line,
+        );
+    }
+
+    /**
+     * @param PersistentMapInterface<mixed, mixed> $meta
+     *
+     * @return list<string>
+     */
+    private function extractSignatures(PersistentMapInterface $meta, string $doc, string $name): array
+    {
+        $arglists = $meta['arglists'] ?? null;
+        if ($arglists !== null && $arglists !== '') {
+            return $this->splitArglists((string) $arglists, $name);
+        }
+
+        return DocstringSignatureParser::parse($doc)['signatures'];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function splitArglists(string $arglists, string $name): array
+    {
+        $lines = preg_split('/\R/', trim($arglists)) ?: [];
+
+        $signatures = [];
+        foreach ($lines as $line) {
+            $trimmed = trim($line);
+            if ($trimmed === '') {
+                continue;
+            }
+
+            $signatures[] = $this->normalizeSignature($trimmed, $name);
+        }
+
+        return $signatures;
+    }
+
+    /**
+     * The runtime stores params-only arglists (e.g. `[n]` or `[& xs]`).
+     * Wrap them in `(name args)` form so signatures match the convention
+     * used by docstring-parsed signatures like `(map f & colls)`.
+     */
+    private function normalizeSignature(string $signature, string $name): string
+    {
+        if ($signature === '' || $signature[0] === '(') {
+            return $signature;
+        }
+
+        if ($signature[0] !== '[') {
+            return $signature;
+        }
+
+        $inner = trim(substr($signature, 1, -1));
+        return $inner === '' ? '(' . $name . ')' : '(' . $name . ' ' . $inner . ')';
+    }
+}

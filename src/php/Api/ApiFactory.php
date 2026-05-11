@@ -16,6 +16,7 @@ use Phel\Api\Application\ReferenceFinder;
 use Phel\Api\Application\ReplCompleter;
 use Phel\Api\Application\SourceAnalyzer;
 use Phel\Api\Application\SymbolExtractor;
+use Phel\Api\Application\SymbolMetadataFinder;
 use Phel\Api\Application\SymbolResolver;
 use Phel\Api\Domain\PhelFnGroupKeyGeneratorInterface;
 use Phel\Api\Domain\PhelFnLoaderInterface;
@@ -25,10 +26,12 @@ use Phel\Api\Domain\ProjectIndexerInterface;
 use Phel\Api\Domain\ReferenceFinderInterface;
 use Phel\Api\Domain\ReplCompleterInterface;
 use Phel\Api\Domain\SourceAnalyzerInterface;
+use Phel\Api\Domain\SymbolMetadataFinderInterface;
 use Phel\Api\Domain\SymbolResolverInterface;
 use Phel\Api\Infrastructure\Daemon\ApiDaemon;
 use Phel\Api\Infrastructure\PhelFnLoader;
 use Phel\Api\Infrastructure\PhelFunctionRuntimeLoader;
+use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
@@ -103,6 +106,11 @@ final class ApiFactory extends AbstractFactory
         return new SymbolExtractor(
             $this->getCompilerFacade(),
         );
+    }
+
+    public function createSymbolMetadataFinder(): SymbolMetadataFinderInterface
+    {
+        return new SymbolMetadataFinder(new Munge());
     }
 
     public function getRunFacade(): RunFacadeInterface

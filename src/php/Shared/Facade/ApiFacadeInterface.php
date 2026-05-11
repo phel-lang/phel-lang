@@ -29,4 +29,10 @@ interface ApiFacadeInterface
      * @return list<CompletionResultTransfer>
      */
     public function replCompleteWithTypes(string $input): array;
+
+    /**
+     * Resolve a symbol against the runtime registry. Returns metadata for
+     * session-defined definitions in addition to core/library functions.
+     */
+    public function findSymbolMetadata(string $symbol, string $currentNs = 'user'): ?PhelFunction;
 }

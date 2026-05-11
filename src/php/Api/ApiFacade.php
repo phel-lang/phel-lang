@@ -116,4 +116,11 @@ final class ApiFacade extends AbstractFacade implements ApiFacadeInterface
     {
         return $this->getFactory()->createApiDaemon($this);
     }
+
+    public function findSymbolMetadata(string $symbol, string $currentNs = 'user'): ?PhelFunction
+    {
+        return $this->getFactory()
+            ->createSymbolMetadataFinder()
+            ->find($symbol, $currentNs);
+    }
 }

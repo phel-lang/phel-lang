@@ -9,6 +9,8 @@ use Phel\Nrepl\Domain\Op\OpHandlerInterface;
 use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Op\OpResponse;
 use Phel\Nrepl\Domain\Op\OpStatus;
+use Phel\Nrepl\Domain\Session\Session;
+use Phel\Nrepl\Domain\Session\SessionRegistry;
 use Phel\Shared\Facade\ApiFacadeInterface;
 
 use function implode;
@@ -19,12 +21,15 @@ use function implode;
  */
 final class LookupOp implements OpHandlerInterface
 {
+    private const string DEFAULT_NAMESPACE = 'user';
+
     /** @var list<PhelFunction>|null */
     private ?array $cache = null;
 
     public function __construct(
         private readonly ApiFacadeInterface $apiFacade,
         private readonly string $opName = 'lookup',
+        private readonly ?SessionRegistry $sessions = null,
     ) {}
 
     public function name(): string
@@ -47,7 +52,11 @@ final class LookupOp implements OpHandlerInterface
             )];
         }
 
-        $fn = $this->findFunction($symbol);
+        $currentNs = $this->resolveCurrentNamespace($request);
+
+        $fn = $this->findInCache($symbol)
+            ?? $this->apiFacade->findSymbolMetadata($symbol, $currentNs);
+
         if (!$fn instanceof PhelFunction) {
             return [OpResponse::forRequest(
                 $request,
@@ -72,7 +81,24 @@ final class LookupOp implements OpHandlerInterface
         )];
     }
 
-    private function findFunction(string $symbol): ?PhelFunction
+    private function resolveCurrentNamespace(OpRequest $request): string
+    {
+        $explicit = $request->stringParam('ns');
+        if ($explicit !== '') {
+            return $explicit;
+        }
+
+        if ($this->sessions instanceof SessionRegistry && $request->session !== null) {
+            $session = $this->sessions->get($request->session);
+            if ($session instanceof Session) {
+                return $session->namespace();
+            }
+        }
+
+        return self::DEFAULT_NAMESPACE;
+    }
+
+    private function findInCache(string $symbol): ?PhelFunction
     {
         if ($this->cache === null) {
             $this->cache = $this->apiFacade->getPhelFunctions();
