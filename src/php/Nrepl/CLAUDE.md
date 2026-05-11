@@ -22,12 +22,12 @@ nREPL protocol server: bencode-over-TCP wire protocol for editor tooling (Cursiv
 ## Supported Ops
 
 - Core: `clone`, `close`, `describe`, `eval`, `load-file`, `interrupt`
-- Tooling: `completions` (via `ApiFacade::replCompleteWithTypes`), `lookup`, `info`, `eldoc` (via `ApiFacade::getPhelFunctions`)
+- Tooling: `completions` (via `ApiFacade::replCompleteWithTypes`), `lookup`, `info`, `eldoc` (via `ApiFacade::findSymbolMetadata` — covers session-defined `defn`s, library defs, and native special forms)
 
 ## Dependencies
 
 - **Run** (`RunFacade`) — `structuredEval`, `getVersion`, `loadPhelNamespaces`
-- **Api** (`ApiFacade`) — `replCompleteWithTypes`, `getPhelFunctions`
+- **Api** (`ApiFacade`) — `replCompleteWithTypes`, `findSymbolMetadata`
 - **Printer** — `Printer::readable()` for serialising eval results
 - **Shared** — `RunFacadeInterface`, `ApiFacadeInterface`
 
@@ -51,5 +51,6 @@ Nrepl/
 - Each op is a single-responsibility class implementing `OpHandlerInterface`; dispatch is a name-to-handler map
 - The accept loop uses PHP Fibers: one Fiber per connected client, cooperative yielding via `Fiber::suspend`
 - Eval delegates to `RunFacade::structuredEval` — never reimplements the compiler
+- `LookupOp` resolves the active namespace in this order: explicit `ns` request param → session's namespace (when a `SessionRegistry` is provided) → `"user"`
 - Session state tracks id, namespace, and the last evaluated value (for future `*1`/`*2`/`*3` wiring)
 - `NreplSocketServer::run($maxIterations)` takes an iteration cap for test-driven runs; `0` means unbounded

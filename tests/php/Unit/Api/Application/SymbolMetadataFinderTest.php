@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Api\Application;
 
 use Phel\Api\Application\SymbolMetadataFinder;
+use Phel\Api\Domain\PhelFnNormalizerInterface;
+use Phel\Api\Transfer\PhelFunction;
 use Phel\Compiler\Application\Munge;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
@@ -23,7 +25,9 @@ final class SymbolMetadataFinderTest extends TestCase
     protected function setUp(): void
     {
         Registry::getInstance()->clear();
-        $this->finder = new SymbolMetadataFinder(new Munge());
+        $catalog = $this->createStub(PhelFnNormalizerInterface::class);
+        $catalog->method('getPhelFunctions')->willReturn([]);
+        $this->finder = new SymbolMetadataFinder(new Munge(), $catalog);
     }
 
     public function test_it_returns_null_for_empty_symbol(): void
@@ -132,6 +136,28 @@ final class SymbolMetadataFinderTest extends TestCase
 
         self::assertNotNull($fn);
         self::assertSame('totally.elsewhere', $fn->namespace);
+    }
+
+    public function test_it_falls_back_to_static_catalog_for_native_special_forms(): void
+    {
+        $native = new PhelFunction(
+            namespace: 'core',
+            name: 'def',
+            doc: 'Binds a value',
+            signatures: ['(def name meta? value)'],
+            description: '',
+        );
+
+        $catalog = $this->createStub(PhelFnNormalizerInterface::class);
+        $catalog->method('getPhelFunctions')->willReturn([$native]);
+
+        $finder = new SymbolMetadataFinder(new Munge(), $catalog);
+
+        $fn = $finder->find('def', 'user');
+
+        self::assertNotNull($fn);
+        self::assertSame('def', $fn->name);
+        self::assertSame('core', $fn->namespace);
     }
 
     /**

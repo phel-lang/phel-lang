@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Api\Application;
 
 use Phel;
+use Phel\Api\Domain\PhelFnNormalizerInterface;
 use Phel\Api\Domain\SymbolMetadataFinderInterface;
 use Phel\Api\Transfer\PhelFunction;
 use Phel\Compiler\Application\Munge;
@@ -18,16 +19,23 @@ use function substr;
 use function trim;
 
 /**
- * Resolves a Phel symbol to its `PhelFunction` snapshot by consulting the
- * runtime registry. Covers session-defined definitions (`defn` in the
- * REPL/nREPL) as well as core and library functions loaded at runtime.
+ * Resolves a Phel symbol to its `PhelFunction` snapshot.
+ *
+ * Probes the runtime registry first so session-defined definitions (`defn`
+ * in the REPL/nREPL) and library functions loaded at runtime resolve, then
+ * falls back to the static documented-symbol catalog for native special
+ * forms (`def`, `fn`, `if`, ...) which never live in the registry.
  */
-final readonly class SymbolMetadataFinder implements SymbolMetadataFinderInterface
+final class SymbolMetadataFinder implements SymbolMetadataFinderInterface
 {
     private const string CORE_NAMESPACE = 'phel.core';
 
+    /** @var list<PhelFunction>|null */
+    private ?array $catalogCache = null;
+
     public function __construct(
-        private MungeInterface $munge,
+        private readonly MungeInterface $munge,
+        private readonly PhelFnNormalizerInterface $catalog,
     ) {}
 
     public function find(string $symbol, string $currentNs = 'user'): ?PhelFunction
@@ -36,6 +44,12 @@ final readonly class SymbolMetadataFinder implements SymbolMetadataFinderInterfa
             return null;
         }
 
+        return $this->lookupInRegistry($symbol, $currentNs)
+            ?? $this->lookupInCatalog($symbol);
+    }
+
+    private function lookupInRegistry(string $symbol, string $currentNs): ?PhelFunction
+    {
         [$ns, $name] = $this->splitSymbol($symbol);
 
         if ($ns !== null) {
@@ -50,6 +64,23 @@ final readonly class SymbolMetadataFinder implements SymbolMetadataFinderInterfa
         }
 
         return $this->scanAllNamespaces($name);
+    }
+
+    private function lookupInCatalog(string $symbol): ?PhelFunction
+    {
+        $this->catalogCache ??= $this->catalog->getPhelFunctions();
+
+        foreach ($this->catalogCache as $fn) {
+            if ($fn->nameWithNamespace() === $symbol) {
+                return $fn;
+            }
+
+            if ($fn->name === $symbol && ($fn->namespace === 'core' || $fn->namespace === '')) {
+                return $fn;
+            }
+        }
+
+        return null;
     }
 
     /**

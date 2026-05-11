@@ -19,17 +19,14 @@ use function implode;
  * Shared implementation for `lookup`, `info`, and `eldoc` ops.
  * They all translate a symbol name to its documentation/signature record.
  */
-final class LookupOp implements OpHandlerInterface
+final readonly class LookupOp implements OpHandlerInterface
 {
     private const string DEFAULT_NAMESPACE = 'user';
 
-    /** @var list<PhelFunction>|null */
-    private ?array $cache = null;
-
     public function __construct(
-        private readonly ApiFacadeInterface $apiFacade,
-        private readonly string $opName = 'lookup',
-        private readonly ?SessionRegistry $sessions = null,
+        private ApiFacadeInterface $apiFacade,
+        private string $opName = 'lookup',
+        private ?SessionRegistry $sessions = null,
     ) {}
 
     public function name(): string
@@ -52,10 +49,7 @@ final class LookupOp implements OpHandlerInterface
             )];
         }
 
-        $currentNs = $this->resolveCurrentNamespace($request);
-
-        $fn = $this->findInCache($symbol)
-            ?? $this->apiFacade->findSymbolMetadata($symbol, $currentNs);
+        $fn = $this->apiFacade->findSymbolMetadata($symbol, $this->resolveCurrentNamespace($request));
 
         if (!$fn instanceof PhelFunction) {
             return [OpResponse::forRequest(
@@ -96,24 +90,5 @@ final class LookupOp implements OpHandlerInterface
         }
 
         return self::DEFAULT_NAMESPACE;
-    }
-
-    private function findInCache(string $symbol): ?PhelFunction
-    {
-        if ($this->cache === null) {
-            $this->cache = $this->apiFacade->getPhelFunctions();
-        }
-
-        foreach ($this->cache as $fn) {
-            if ($fn->nameWithNamespace() === $symbol) {
-                return $fn;
-            }
-
-            if ($fn->name === $symbol && ($fn->namespace === 'core' || $fn->namespace === '')) {
-                return $fn;
-            }
-        }
-
-        return null;
     }
 }

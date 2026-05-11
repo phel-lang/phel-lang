@@ -13,7 +13,7 @@ use PHPUnit\Framework\TestCase;
 
 final class LookupOpTest extends TestCase
 {
-    public function test_it_returns_info_for_qualified_symbol(): void
+    public function test_it_returns_info_when_symbol_is_resolved(): void
     {
         $fn = new PhelFunction(
             namespace: 'string',
@@ -26,7 +26,7 @@ final class LookupOpTest extends TestCase
         );
 
         $api = $this->createStub(ApiFacadeInterface::class);
-        $api->method('getPhelFunctions')->willReturn([$fn]);
+        $api->method('findSymbolMetadata')->willReturn($fn);
 
         $op = new LookupOp($api);
         $responses = $op->handle(new OpRequest('lookup', 'r1', null, [
@@ -43,32 +43,10 @@ final class LookupOpTest extends TestCase
         self::assertSame(10, $info['line']);
     }
 
-    public function test_it_returns_info_for_core_symbol_without_namespace(): void
-    {
-        $fn = new PhelFunction(
-            namespace: 'core',
-            name: 'map',
-            doc: 'Maps',
-            signatures: ['(map f xs)'],
-            description: '',
-        );
-
-        $api = $this->createStub(ApiFacadeInterface::class);
-        $api->method('getPhelFunctions')->willReturn([$fn]);
-
-        $op = new LookupOp($api);
-        $responses = $op->handle(new OpRequest('lookup', 'r1', null, [
-            'op' => 'lookup',
-            'sym' => 'map',
-        ]));
-
-        self::assertSame('map', $responses[0]->payload['info']['name']);
-    }
-
-    public function test_it_reports_no_info_for_unknown_symbol(): void
+    public function test_it_reports_no_info_when_finder_returns_null(): void
     {
         $api = $this->createStub(ApiFacadeInterface::class);
-        $api->method('getPhelFunctions')->willReturn([]);
+        $api->method('findSymbolMetadata')->willReturn(null);
 
         $op = new LookupOp($api);
         $responses = $op->handle(new OpRequest('lookup', 'r1', null, [
@@ -96,34 +74,6 @@ final class LookupOpTest extends TestCase
         self::assertSame('eldoc', $op2->name());
     }
 
-    public function test_it_falls_back_to_find_symbol_metadata_for_session_defined_symbols(): void
-    {
-        $fn = new PhelFunction(
-            namespace: 'user',
-            name: 'greet',
-            doc: 'Greets',
-            signatures: ['(greet n)'],
-            description: '',
-        );
-
-        $api = $this->createMock(ApiFacadeInterface::class);
-        $api->method('getPhelFunctions')->willReturn([]);
-        $api->expects(self::once())
-            ->method('findSymbolMetadata')
-            ->with('greet', 'user')
-            ->willReturn($fn);
-
-        $op = new LookupOp($api);
-        $responses = $op->handle(new OpRequest('lookup', 'r1', null, [
-            'op' => 'lookup',
-            'sym' => 'greet',
-        ]));
-
-        self::assertCount(1, $responses);
-        self::assertSame('greet', $responses[0]->payload['info']['name']);
-        self::assertSame('user', $responses[0]->payload['info']['ns']);
-    }
-
     public function test_it_uses_session_namespace_when_resolving_bare_symbols(): void
     {
         $sessions = new SessionRegistry();
@@ -131,7 +81,6 @@ final class LookupOpTest extends TestCase
         $session->setNamespace('my.app');
 
         $api = $this->createMock(ApiFacadeInterface::class);
-        $api->method('getPhelFunctions')->willReturn([]);
         $api->expects(self::once())
             ->method('findSymbolMetadata')
             ->with('helper', 'my.app')
@@ -152,7 +101,6 @@ final class LookupOpTest extends TestCase
         $session->setNamespace('my.app');
 
         $api = $this->createMock(ApiFacadeInterface::class);
-        $api->method('getPhelFunctions')->willReturn([]);
         $api->expects(self::once())
             ->method('findSymbolMetadata')
             ->with('helper', 'other.ns')
@@ -164,6 +112,21 @@ final class LookupOpTest extends TestCase
             'sym' => 'helper',
             'ns' => 'other.ns',
             'session' => $session->id,
+        ]));
+    }
+
+    public function test_it_defaults_to_user_namespace_without_session(): void
+    {
+        $api = $this->createMock(ApiFacadeInterface::class);
+        $api->expects(self::once())
+            ->method('findSymbolMetadata')
+            ->with('helper', 'user')
+            ->willReturn(null);
+
+        $op = new LookupOp($api);
+        $op->handle(new OpRequest('lookup', 'r1', null, [
+            'op' => 'lookup',
+            'sym' => 'helper',
         ]));
     }
 }
