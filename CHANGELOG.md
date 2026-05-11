@@ -37,7 +37,8 @@ All notable changes to this project will be documented in this file.
 - Recursive self-calls emit `$this(...)`; ~3.66x faster on `fib(22)` (#1914)
 
 #### DX
-- Runtime state consolidated under `.phel/` (cache, REPL history, last-failed, error log) with self-seeded `.gitignore`; legacy `.phel-repl-history` auto-migrated; relocate the whole directory via `setPhelDir()` or `PHEL_DIR` env, narrow cache override via `PHEL_CACHE_DIR` (#1954)
+- Runtime state consolidated under `.phel/` (cache, REPL history, last-failed, error log) with self-seeded `.gitignore`; legacy `.phel-repl-history` auto-migrated; relocate the whole directory via `withPhelDir()` or `PHEL_DIR` env, narrow cache override via `PHEL_CACHE_DIR` (#1954)
+- `PhelConfig`, `PhelBuildConfig`, `PhelExportConfig` are now immutable. Use `withX()` chain on `PhelConfig`; build/export fields flat on the root config (no nested `new PhelBuildConfig()->set...()`). Legacy `setX()` and `useLayout`/`useNestedLayout`/`useFlatLayout` retained as `#[Deprecated]` shims, removed in a future major.
 
 ### Fixed
 

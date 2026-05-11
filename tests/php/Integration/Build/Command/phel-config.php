@@ -2,15 +2,12 @@
 
 declare(strict_types=1);
 
-use Phel\Config\PhelBuildConfig;
 use Phel\Config\PhelConfig;
 
 return new PhelConfig()
-    ->setSrcDirs([__DIR__ . '/src'])
-    ->setVendorDir('')
-    ->setBuildConfig(new PhelBuildConfig()
-        ->setMainPhelNamespace('test-ns\hello')
-        ->setMainPhpPath('out/main.php'))
-    ->setIgnoreWhenBuilding(['local.phel', 'failing.phel'])
-    ->setNoCacheWhenBuilding(['no-cache.phel'])
-;
+    ->withSrcDirs([__DIR__ . '/src'])
+    ->withVendorDir('')
+    ->withMainPhelNamespace('test-ns\hello')
+    ->withMainPhpPath('out/main.php')
+    ->withIgnoreWhenBuilding(['local.phel', 'failing.phel'])
+    ->withNoCacheWhenBuilding(['no-cache.phel']);

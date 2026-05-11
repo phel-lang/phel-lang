@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Config;
 
+use Deprecated;
 use JsonSerializable;
 
-final class PhelConfig implements JsonSerializable
+final readonly class PhelConfig implements JsonSerializable
 {
     public const string SRC_DIRS = 'src-dirs';
 
@@ -49,59 +50,37 @@ final class PhelConfig implements JsonSerializable
 
     private const string DEFAULT_CACHE_DIR = '.phel/cache';
 
-    /** @var list<string> */
-    private array $srcDirs = self::DEFAULT_SRC_DIRS;
-
-    /** @var list<string> */
-    private array $testDirs = ['tests'];
-
-    private string $vendorDir = 'vendor';
-
-    private string $errorLogFile = '.phel/error.log';
-
-    private PhelExportConfig $exportConfig;
-
-    private PhelBuildConfig $buildConfig;
-
-    /** @var list<string> */
-    private array $ignoreWhenBuilding = [];
-
-    /** @var list<string> */
-    private array $noCacheWhenBuilding = [];
-
-    private bool $keepGeneratedTempFiles = false;
-
-    private string $tempDir;
-
-    // Cache lives under <projectRoot>/.phel/cache by default — BuildConfig
-    // resolves relative paths against the app root.
-    private string $cacheDir = self::DEFAULT_CACHE_DIR;
-
-    /** @var list<string> */
-    private array $formatDirs = ['src', 'tests'];
-
-    private bool $enableAsserts = true;
-
-    private bool $warnDeprecations = false;
-
-    private bool $enableNamespaceCache = true;
-
-    private bool $enableCompiledCodeCache = true;
+    public string $tempDir;
 
     /**
-     * Custom location for the per-project `.phel/` state directory.
-     * Empty string keeps the default (`.phel/` next to the project root).
-     * Absolute paths are honored verbatim. Overridden at runtime by the
-     * `PHEL_DIR` environment variable.
+     * @param list<string> $srcDirs
+     * @param list<string> $testDirs
+     * @param list<string> $ignoreWhenBuilding
+     * @param list<string> $noCacheWhenBuilding
+     * @param list<string> $formatDirs
      */
-    private string $phelDir = '';
-
-    public function __construct()
-    {
-        $this->exportConfig = new PhelExportConfig();
-        $this->buildConfig = new PhelBuildConfig();
-
-        $this->tempDir = sys_get_temp_dir() . self::PHEL_TEMP_SUBDIR . '/tmp';
+    public function __construct(
+        public array $srcDirs = self::DEFAULT_SRC_DIRS,
+        public array $testDirs = ['tests'],
+        public string $vendorDir = 'vendor',
+        public string $errorLogFile = '.phel/error.log',
+        public PhelExportConfig $exportConfig = new PhelExportConfig(),
+        public PhelBuildConfig $buildConfig = new PhelBuildConfig(),
+        public array $ignoreWhenBuilding = [],
+        public array $noCacheWhenBuilding = [],
+        public bool $keepGeneratedTempFiles = false,
+        ?string $tempDir = null,
+        public string $cacheDir = self::DEFAULT_CACHE_DIR,
+        public array $formatDirs = ['src', 'tests'],
+        public bool $enableAsserts = true,
+        public bool $warnDeprecations = false,
+        public bool $enableNamespaceCache = true,
+        public bool $enableCompiledCodeCache = true,
+        public string $phelDir = '',
+    ) {
+        $this->tempDir = $tempDir === null
+            ? sys_get_temp_dir() . self::PHEL_TEMP_SUBDIR . '/tmp'
+            : rtrim($tempDir, DIRECTORY_SEPARATOR);
     }
 
     /**
@@ -114,7 +93,7 @@ final class PhelConfig implements JsonSerializable
      *   from `core.phel` / `main.phel` at the configured source roots.
      *
      * Examples:
-     *   return PhelConfig::forProject();                                 // zero-config, auto-detects layout + namespace
+     *   return PhelConfig::forProject();                                 // zero-config
      *   return PhelConfig::forProject('my-app\core');                    // explicit namespace
      *   return PhelConfig::forProject(layout: ProjectLayout::Root);      // single-file / scratch project
      *   return PhelConfig::forProject('my-app\main', ProjectLayout::Nested);
@@ -123,11 +102,10 @@ final class PhelConfig implements JsonSerializable
         string $mainNamespace = '',
         ?ProjectLayout $layout = null,
     ): self {
-        $config = new self();
-        $config->useLayout($layout ?? self::detectLayout());
+        $config = new self()->withLayout($layout ?? self::detectLayout());
 
         if ($mainNamespace !== '') {
-            $config->setMainPhelNamespace($mainNamespace);
+            return $config->withMainPhelNamespace($mainNamespace);
         }
 
         return $config;
@@ -232,258 +210,358 @@ final class PhelConfig implements JsonSerializable
         return $this->enableCompiledCodeCache;
     }
 
+    public function getPhelDir(): string
+    {
+        return $this->phelDir;
+    }
+
     // ========================================
-    // Layout Configuration
+    // Layout
     // ========================================
 
     /**
-     * Apply a project layout (nested or flat).
+     * Apply a project layout (nested or flat). Returns a new instance with src,
+     * test, format, and export-from directories aligned with the layout.
      */
+    public function withLayout(ProjectLayout $layout): self
+    {
+        return $this->with([
+            'srcDirs' => [$layout->getSrcDir()],
+            'testDirs' => [$layout->getTestDir()],
+            'formatDirs' => $layout->getFormatDirs(),
+            'exportConfig' => $this->exportConfig->withFromDirectories($layout->getExportFromDirs()),
+        ]);
+    }
+
+    #[Deprecated(message: 'since 0.37, use withLayout()')]
     public function useLayout(ProjectLayout $layout): self
     {
-        $this->srcDirs = [$layout->getSrcDir()];
-        $this->testDirs = [$layout->getTestDir()];
-        $this->formatDirs = $layout->getFormatDirs();
-        $this->exportConfig->setFromDirectories($layout->getExportFromDirs());
-
-        return $this;
+        return $this->withLayout($layout);
     }
 
-    /**
-     * Use nested directory layout: src/phel and tests/phel.
-     * Useful when the project also hosts PHP sources alongside Phel.
-     */
+    #[Deprecated(message: 'since 0.37, use withLayout(ProjectLayout::Nested)')]
     public function useNestedLayout(): self
     {
-        return $this->useLayout(ProjectLayout::Nested);
+        return $this->withLayout(ProjectLayout::Nested);
     }
 
-    /**
-     * Use flat directory layout: src and tests (default, simpler projects).
-     */
+    #[Deprecated(message: 'since 0.37, use withLayout(ProjectLayout::Flat)')]
     public function useFlatLayout(): self
     {
-        return $this->useLayout(ProjectLayout::Flat);
+        return $this->withLayout(ProjectLayout::Flat);
     }
 
     // ========================================
-    // Convenience Setters
+    // Immutable with*() API
     // ========================================
 
     /**
-     * Direct setter for the main Phel namespace (convenience method).
-     * Automatically configures build output to out/index.php.
+     * @param list<string> $list
      */
-    public function setMainPhelNamespace(string $namespace): self
+    public function withSrcDirs(array $list): self
     {
-        $this->buildConfig->setMainPhelNamespace($namespace);
-        if ($this->buildConfig->getMainPhpPath() === 'out/index.php' || $this->buildConfig->getMainPhpPath() === '') {
-            $this->buildConfig->setMainPhpPath('out/index.php');
+        return $this->with(['srcDirs' => $list]);
+    }
+
+    /**
+     * @param list<string> $list
+     */
+    public function withTestDirs(array $list): self
+    {
+        return $this->with(['testDirs' => $list]);
+    }
+
+    public function withVendorDir(string $dir): self
+    {
+        return $this->with(['vendorDir' => $dir]);
+    }
+
+    public function withErrorLogFile(string $filepath): self
+    {
+        return $this->with(['errorLogFile' => $filepath]);
+    }
+
+    public function withBuildConfig(PhelBuildConfig $buildConfig): self
+    {
+        return $this->with(['buildConfig' => $buildConfig]);
+    }
+
+    public function withExportConfig(PhelExportConfig $exportConfig): self
+    {
+        return $this->with(['exportConfig' => $exportConfig]);
+    }
+
+    /**
+     * Flattens the build namespace onto PhelConfig. Sets the entry-point PHP
+     * path to `out/index.php` when none has been configured yet.
+     */
+    public function withMainPhelNamespace(string $namespace): self
+    {
+        $build = $this->buildConfig->withMainPhelNamespace($namespace);
+        $currentPath = $this->buildConfig->getMainPhpPath();
+        if ($currentPath === 'out/index.php' || $currentPath === '') {
+            $build = $build->withMainPhpPath('out/index.php');
         }
 
-        return $this;
+        return $this->with(['buildConfig' => $build]);
     }
 
-    /**
-     * Direct setter for the main PHP output path (convenience method).
-     */
-    public function setMainPhpPath(string $path): self
+    public function withMainPhpPath(string $path): self
     {
-        $this->buildConfig->setMainPhpPath($path);
-
-        return $this;
+        return $this->with(['buildConfig' => $this->buildConfig->withMainPhpPath($path)]);
     }
 
-    /**
-     * Direct setter for the build destination directory (convenience method).
-     */
-    public function setBuildDestDir(string $dir): self
+    public function withBuildDestDir(string $dir): self
     {
-        $this->buildConfig->setDestDir($dir);
-
-        return $this;
+        return $this->with(['buildConfig' => $this->buildConfig->withDestDir($dir)]);
     }
 
-    /**
-     * Direct setter for export namespace prefix (convenience method).
-     */
-    public function setExportNamespacePrefix(string $prefix): self
+    public function withExportNamespacePrefix(string $prefix): self
     {
-        $this->exportConfig->setNamespacePrefix($prefix);
-
-        return $this;
+        return $this->with(['exportConfig' => $this->exportConfig->withNamespacePrefix($prefix)]);
     }
 
-    /**
-     * Direct setter for export target directory (convenience method).
-     */
-    public function setExportTargetDirectory(string $dir): self
+    public function withExportTargetDirectory(string $dir): self
     {
-        $this->exportConfig->setTargetDirectory($dir);
-
-        return $this;
+        return $this->with(['exportConfig' => $this->exportConfig->withTargetDirectory($dir)]);
     }
 
     /**
-     * Direct setter for export from directories (convenience method).
-     *
      * @param list<string> $dirs
      */
-    public function setExportFromDirectories(array $dirs): self
+    public function withExportFromDirectories(array $dirs): self
     {
-        $this->exportConfig->setFromDirectories($dirs);
-
-        return $this;
-    }
-
-    // ========================================
-    // Standard Setters
-    // ========================================
-
-    /**
-     * @param list<string> $list
-     */
-    public function setSrcDirs(array $list): self
-    {
-        $this->srcDirs = $list;
-
-        return $this;
+        return $this->with(['exportConfig' => $this->exportConfig->withFromDirectories($dirs)]);
     }
 
     /**
      * @param list<string> $list
      */
-    public function setTestDirs(array $list): self
+    public function withIgnoreWhenBuilding(array $list): self
     {
-        $this->testDirs = $list;
-
-        return $this;
-    }
-
-    public function setVendorDir(string $dir): self
-    {
-        $this->vendorDir = $dir;
-
-        return $this;
-    }
-
-    public function setExportConfig(PhelExportConfig $exportConfig): self
-    {
-        $this->exportConfig = $exportConfig;
-
-        return $this;
-    }
-
-    public function setErrorLogFile(string $filepath): self
-    {
-        $this->errorLogFile = $filepath;
-
-        return $this;
-    }
-
-    public function setBuildConfig(PhelBuildConfig $buildConfig): self
-    {
-        $this->buildConfig = $buildConfig;
-
-        return $this;
+        return $this->with(['ignoreWhenBuilding' => $list]);
     }
 
     /**
      * @param list<string> $list
      */
-    public function setIgnoreWhenBuilding(array $list): self
+    public function withNoCacheWhenBuilding(array $list): self
     {
-        $this->ignoreWhenBuilding = $list;
-
-        return $this;
+        return $this->with(['noCacheWhenBuilding' => $list]);
     }
 
-    public function setKeepGeneratedTempFiles(bool $flag): self
+    public function withKeepGeneratedTempFiles(bool $flag = true): self
     {
-        $this->keepGeneratedTempFiles = $flag;
-
-        return $this;
+        return $this->with(['keepGeneratedTempFiles' => $flag]);
     }
 
-    public function setTempDir(string $dir): self
+    public function withTempDir(string $dir): self
     {
-        $this->tempDir = rtrim($dir, DIRECTORY_SEPARATOR);
+        return $this->with(['tempDir' => rtrim($dir, DIRECTORY_SEPARATOR)]);
+    }
 
-        return $this;
+    public function withCacheDir(string $dir): self
+    {
+        return $this->with(['cacheDir' => rtrim($dir, DIRECTORY_SEPARATOR)]);
+    }
+
+    /**
+     * @param list<string> $list
+     */
+    public function withFormatDirs(array $list): self
+    {
+        return $this->with(['formatDirs' => $list]);
+    }
+
+    public function withEnableAsserts(bool $flag = true): self
+    {
+        return $this->with(['enableAsserts' => $flag]);
+    }
+
+    public function withWarnDeprecations(bool $flag = true): self
+    {
+        return $this->with(['warnDeprecations' => $flag]);
+    }
+
+    public function withEnableNamespaceCache(bool $flag = true): self
+    {
+        return $this->with(['enableNamespaceCache' => $flag]);
+    }
+
+    public function withEnableCompiledCodeCache(bool $flag = true): self
+    {
+        return $this->with(['enableCompiledCodeCache' => $flag]);
     }
 
     /**
      * Redirect the entire per-project state directory (`.phel/` by default)
      * to a different location. Useful when the project lives behind a web
      * server: e.g. a WordPress plugin can move state out of the document
-     * root via `$config->setPhelDir('/var/cache/phel')`. Honors `PHEL_DIR`
-     * env var as a higher-priority override.
+     * root via `withPhelDir('/var/cache/phel')`. Honors `PHEL_DIR` env var
+     * as a higher-priority override.
      */
-    public function setPhelDir(string $dir): self
+    public function withPhelDir(string $dir): self
     {
-        $this->phelDir = $dir;
-
-        return $this;
+        return $this->with(['phelDir' => $dir]);
     }
 
-    public function getPhelDir(): string
+    // ========================================
+    // Deprecated mutating setters (shim → with*())
+    // ========================================
+    /**
+     * @param list<string> $list
+     */
+    #[Deprecated(message: 'since 0.37, use withSrcDirs()')]
+    public function setSrcDirs(array $list): self
     {
-        return $this->phelDir;
+        return $this->withSrcDirs($list);
     }
 
     /**
      * @param list<string> $list
      */
-    public function setFormatDirs(array $list): self
+    #[Deprecated(message: 'since 0.37, use withTestDirs()')]
+    public function setTestDirs(array $list): self
     {
-        $this->formatDirs = $list;
+        return $this->withTestDirs($list);
+    }
 
-        return $this;
+    #[Deprecated(message: 'since 0.37, use withVendorDir()')]
+    public function setVendorDir(string $dir): self
+    {
+        return $this->withVendorDir($dir);
+    }
+
+    #[Deprecated(message: 'since 0.37, use withErrorLogFile()')]
+    public function setErrorLogFile(string $filepath): self
+    {
+        return $this->withErrorLogFile($filepath);
+    }
+
+    #[Deprecated(message: 'since 0.37, use withBuildConfig()')]
+    public function setBuildConfig(PhelBuildConfig $buildConfig): self
+    {
+        return $this->withBuildConfig($buildConfig);
+    }
+
+    #[Deprecated(message: 'since 0.37, use withExportConfig()')]
+    public function setExportConfig(PhelExportConfig $exportConfig): self
+    {
+        return $this->withExportConfig($exportConfig);
+    }
+
+    #[Deprecated(message: 'since 0.37, use withMainPhelNamespace()')]
+    public function setMainPhelNamespace(string $namespace): self
+    {
+        return $this->withMainPhelNamespace($namespace);
+    }
+
+    #[Deprecated(message: 'since 0.37, use withMainPhpPath()')]
+    public function setMainPhpPath(string $path): self
+    {
+        return $this->withMainPhpPath($path);
+    }
+
+    #[Deprecated(message: 'since 0.37, use withBuildDestDir()')]
+    public function setBuildDestDir(string $dir): self
+    {
+        return $this->withBuildDestDir($dir);
+    }
+
+    #[Deprecated(message: 'since 0.37, use withExportNamespacePrefix()')]
+    public function setExportNamespacePrefix(string $prefix): self
+    {
+        return $this->withExportNamespacePrefix($prefix);
+    }
+
+    #[Deprecated(message: 'since 0.37, use withExportTargetDirectory()')]
+    public function setExportTargetDirectory(string $dir): self
+    {
+        return $this->withExportTargetDirectory($dir);
+    }
+
+    /**
+     * @param list<string> $dirs
+     */
+    #[Deprecated(message: 'since 0.37, use withExportFromDirectories()')]
+    public function setExportFromDirectories(array $dirs): self
+    {
+        return $this->withExportFromDirectories($dirs);
     }
 
     /**
      * @param list<string> $list
      */
+    #[Deprecated(message: 'since 0.37, use withIgnoreWhenBuilding()')]
+    public function setIgnoreWhenBuilding(array $list): self
+    {
+        return $this->withIgnoreWhenBuilding($list);
+    }
+
+    /**
+     * @param list<string> $list
+     */
+    #[Deprecated(message: 'since 0.37, use withNoCacheWhenBuilding()')]
     public function setNoCacheWhenBuilding(array $list): self
     {
-        $this->noCacheWhenBuilding = $list;
-
-        return $this;
+        return $this->withNoCacheWhenBuilding($list);
     }
 
-    public function setEnableAsserts(bool $flag): self
+    #[Deprecated(message: 'since 0.37, use withKeepGeneratedTempFiles()')]
+    public function setKeepGeneratedTempFiles(bool $flag): self
     {
-        $this->enableAsserts = $flag;
-
-        return $this;
+        return $this->withKeepGeneratedTempFiles($flag);
     }
 
-    public function setWarnDeprecations(bool $flag): self
+    #[Deprecated(message: 'since 0.37, use withTempDir()')]
+    public function setTempDir(string $dir): self
     {
-        $this->warnDeprecations = $flag;
-
-        return $this;
+        return $this->withTempDir($dir);
     }
 
-    public function setEnableNamespaceCache(bool $flag): self
-    {
-        $this->enableNamespaceCache = $flag;
-
-        return $this;
-    }
-
-    public function setEnableCompiledCodeCache(bool $flag): self
-    {
-        $this->enableCompiledCodeCache = $flag;
-
-        return $this;
-    }
-
+    #[Deprecated(message: 'since 0.37, use withCacheDir()')]
     public function setCacheDir(string $dir): self
     {
-        $this->cacheDir = rtrim($dir, DIRECTORY_SEPARATOR);
+        return $this->withCacheDir($dir);
+    }
 
-        return $this;
+    /**
+     * @param list<string> $list
+     */
+    #[Deprecated(message: 'since 0.37, use withFormatDirs()')]
+    public function setFormatDirs(array $list): self
+    {
+        return $this->withFormatDirs($list);
+    }
+
+    #[Deprecated(message: 'since 0.37, use withEnableAsserts()')]
+    public function setEnableAsserts(bool $flag): self
+    {
+        return $this->withEnableAsserts($flag);
+    }
+
+    #[Deprecated(message: 'since 0.37, use withWarnDeprecations()')]
+    public function setWarnDeprecations(bool $flag): self
+    {
+        return $this->withWarnDeprecations($flag);
+    }
+
+    #[Deprecated(message: 'since 0.37, use withEnableNamespaceCache()')]
+    public function setEnableNamespaceCache(bool $flag): self
+    {
+        return $this->withEnableNamespaceCache($flag);
+    }
+
+    #[Deprecated(message: 'since 0.37, use withEnableCompiledCodeCache()')]
+    public function setEnableCompiledCodeCache(bool $flag): self
+    {
+        return $this->withEnableCompiledCodeCache($flag);
+    }
+
+    #[Deprecated(message: 'since 0.37, use withPhelDir()')]
+    public function setPhelDir(string $dir): self
+    {
+        return $this->withPhelDir($dir);
     }
 
     // ========================================
@@ -528,6 +606,37 @@ final class PhelConfig implements JsonSerializable
             self::CACHE_DIR => $this->cacheDir,
             self::PHEL_DIR => $this->phelDir,
         ];
+    }
+
+    /**
+     * Returns a new instance with the supplied fields overridden. Internal
+     * plumbing for every `with*()` method — keeps each wither one line.
+     *
+     * @param array<string, mixed> $overrides
+     */
+    private function with(array $overrides): self
+    {
+        $base = [
+            'srcDirs' => $this->srcDirs,
+            'testDirs' => $this->testDirs,
+            'vendorDir' => $this->vendorDir,
+            'errorLogFile' => $this->errorLogFile,
+            'exportConfig' => $this->exportConfig,
+            'buildConfig' => $this->buildConfig,
+            'ignoreWhenBuilding' => $this->ignoreWhenBuilding,
+            'noCacheWhenBuilding' => $this->noCacheWhenBuilding,
+            'keepGeneratedTempFiles' => $this->keepGeneratedTempFiles,
+            'tempDir' => $this->tempDir,
+            'cacheDir' => $this->cacheDir,
+            'formatDirs' => $this->formatDirs,
+            'enableAsserts' => $this->enableAsserts,
+            'warnDeprecations' => $this->warnDeprecations,
+            'enableNamespaceCache' => $this->enableNamespaceCache,
+            'enableCompiledCodeCache' => $this->enableCompiledCodeCache,
+            'phelDir' => $this->phelDir,
+        ];
+
+        return new self(...[...$base, ...$overrides]);
     }
 
     /**

@@ -8,6 +8,7 @@ use Phel\Config\PhelBuildConfig;
 use Phel\Config\PhelConfig;
 use Phel\Config\PhelExportConfig;
 use Phel\Config\ProjectLayout;
+use PHPUnit\Framework\Attributes\Group;
 use PHPUnit\Framework\TestCase;
 
 final class PhelConfigTest extends TestCase
@@ -147,9 +148,9 @@ final class PhelConfigTest extends TestCase
         }
     }
 
-    public function test_use_flat_layout(): void
+    public function test_with_layout_flat(): void
     {
-        $config = new PhelConfig()->useFlatLayout();
+        $config = new PhelConfig()->withLayout(ProjectLayout::Flat);
 
         $serialized = $config->jsonSerialize();
 
@@ -159,9 +160,9 @@ final class PhelConfigTest extends TestCase
         self::assertSame(['src'], $serialized[PhelConfig::EXPORT_CONFIG][PhelExportConfig::FROM_DIRECTORIES]);
     }
 
-    public function test_use_nested_layout(): void
+    public function test_with_layout_nested(): void
     {
-        $config = new PhelConfig()->useFlatLayout()->useNestedLayout();
+        $config = new PhelConfig()->withLayout(ProjectLayout::Nested);
 
         $serialized = $config->jsonSerialize();
 
@@ -171,12 +172,12 @@ final class PhelConfigTest extends TestCase
         self::assertSame(['src/phel'], $serialized[PhelConfig::EXPORT_CONFIG][PhelExportConfig::FROM_DIRECTORIES]);
     }
 
-    public function test_direct_setters_for_build_config(): void
+    public function test_with_main_phel_namespace_sets_default_php_path(): void
     {
         $config = new PhelConfig()
-            ->setMainPhelNamespace('my-app\\main')
-            ->setMainPhpPath('build/app.php')
-            ->setBuildDestDir('build');
+            ->withMainPhelNamespace('my-app\\main')
+            ->withMainPhpPath('build/app.php')
+            ->withBuildDestDir('build');
 
         $serialized = $config->jsonSerialize();
 
@@ -185,12 +186,12 @@ final class PhelConfigTest extends TestCase
         self::assertSame('build', $serialized[PhelConfig::BUILD_CONFIG][PhelBuildConfig::DEST_DIR]);
     }
 
-    public function test_direct_setters_for_export_config(): void
+    public function test_with_export_proxy_methods(): void
     {
         $config = new PhelConfig()
-            ->setExportNamespacePrefix('MyGenerated')
-            ->setExportTargetDirectory('generated')
-            ->setExportFromDirectories(['lib/phel']);
+            ->withExportNamespacePrefix('MyGenerated')
+            ->withExportTargetDirectory('generated')
+            ->withExportFromDirectories(['lib/phel']);
 
         $serialized = $config->jsonSerialize();
 
@@ -199,28 +200,26 @@ final class PhelConfigTest extends TestCase
         self::assertSame(['lib/phel'], $serialized[PhelConfig::EXPORT_CONFIG][PhelExportConfig::FROM_DIRECTORIES]);
     }
 
-    public function test_custom_json_serialize(): void
+    public function test_custom_json_serialize_with_immutable_api(): void
     {
         $config = new PhelConfig()
-            ->setSrcDirs(['some/directory'])
-            ->setTestDirs(['another/directory'])
-            ->setVendorDir('vendor')
-            ->setErrorLogFile('error-log.file')
-            ->setBuildConfig(new PhelBuildConfig()
-                ->setMainPhpPath('out/custom-index.php')
-                ->setMainPhelNamespace('test-ns/boot'))
-            ->setExportConfig(new PhelExportConfig()
-                ->setFromDirectories(['some/other/dir'])
-                ->setNamespacePrefix('Generated')
-                ->setTargetDirectory('src/Generated'))
-            ->setIgnoreWhenBuilding(['src/ignore.me'])
-            ->setNoCacheWhenBuilding(['should-not-be-cached'])
-            ->setKeepGeneratedTempFiles(true)
-            ->setTempDir('/tmp/custom')
-            ->setFormatDirs(['src', 'tests', 'phel'])
-            ->setEnableAsserts(false)
-            ->setWarnDeprecations(true)
-            ->setCacheDir('.cache');
+            ->withSrcDirs(['some/directory'])
+            ->withTestDirs(['another/directory'])
+            ->withVendorDir('vendor')
+            ->withErrorLogFile('error-log.file')
+            ->withMainPhelNamespace('test-ns/boot')
+            ->withMainPhpPath('out/custom-index.php')
+            ->withExportFromDirectories(['some/other/dir'])
+            ->withExportNamespacePrefix('Generated')
+            ->withExportTargetDirectory('src/Generated')
+            ->withIgnoreWhenBuilding(['src/ignore.me'])
+            ->withNoCacheWhenBuilding(['should-not-be-cached'])
+            ->withKeepGeneratedTempFiles(true)
+            ->withTempDir('/tmp/custom')
+            ->withFormatDirs(['src', 'tests', 'phel'])
+            ->withEnableAsserts(false)
+            ->withWarnDeprecations(true)
+            ->withCacheDir('.cache');
 
         $expected = [
             PhelConfig::SRC_DIRS => ['some/directory'],
@@ -254,13 +253,74 @@ final class PhelConfigTest extends TestCase
         self::assertSame($expected, $config->jsonSerialize());
     }
 
-    public function test_set_phel_dir_persists_in_json(): void
+    public function test_boolean_withers_default_to_true(): void
     {
-        $config = new PhelConfig();
-        $config->setPhelDir('/var/cache/phel');
+        $config = new PhelConfig()
+            ->withWarnDeprecations()
+            ->withKeepGeneratedTempFiles()
+            ->withEnableAsserts(false)
+            ->withEnableNamespaceCache(false)
+            ->withEnableCompiledCodeCache(false);
+
+        self::assertTrue($config->shouldWarnDeprecations());
+        self::assertTrue($config->getKeepGeneratedTempFiles());
+        self::assertFalse($config->isAssertsEnabled());
+        self::assertFalse($config->isNamespaceCacheEnabled());
+        self::assertFalse($config->isCompiledCodeCacheEnabled());
+    }
+
+    public function test_with_phel_dir_persists_in_json(): void
+    {
+        $config = new PhelConfig()->withPhelDir('/var/cache/phel');
 
         self::assertSame('/var/cache/phel', $config->getPhelDir());
         self::assertSame('/var/cache/phel', $config->jsonSerialize()[PhelConfig::PHEL_DIR]);
+    }
+
+    public function test_with_methods_return_new_instance(): void
+    {
+        $original = new PhelConfig();
+        $updated = $original->withVendorDir('custom-vendor');
+
+        self::assertNotSame($original, $updated);
+        self::assertSame('vendor', $original->getVendorDir());
+        self::assertSame('custom-vendor', $updated->getVendorDir());
+    }
+
+    public function test_immutability_of_build_config_via_proxy(): void
+    {
+        $original = new PhelConfig();
+        $updated = $original->withMainPhelNamespace('app\\boot');
+
+        self::assertNotSame($original, $updated);
+        self::assertNotSame($original->getBuildConfig(), $updated->getBuildConfig());
+        self::assertSame('', $original->getBuildConfig()->getMainPhelNamespace());
+        self::assertSame('app\\boot', $updated->getBuildConfig()->getMainPhelNamespace());
+    }
+
+    public function test_with_build_config_replaces_whole_value_object(): void
+    {
+        $build = new PhelBuildConfig(
+            mainPhelNamespace: 'lib\\entry',
+            mainPhpPath: 'dist/app.php',
+        );
+
+        $config = new PhelConfig()->withBuildConfig($build);
+
+        self::assertSame($build, $config->getBuildConfig());
+    }
+
+    public function test_with_export_config_replaces_whole_value_object(): void
+    {
+        $export = new PhelExportConfig(
+            fromDirectories: ['lib'],
+            namespacePrefix: 'Generated',
+            targetDirectory: 'gen',
+        );
+
+        $config = new PhelConfig()->withExportConfig($export);
+
+        self::assertSame($export, $config->getExportConfig());
     }
 
     public function test_getters(): void
@@ -285,18 +345,16 @@ final class PhelConfigTest extends TestCase
 
     public function test_validate_passes_for_relative_paths(): void
     {
-        $config = new PhelConfig();
-        $errors = $config->validate();
+        $errors = new PhelConfig()->validate();
 
         self::assertSame([], $errors);
     }
 
     public function test_validate_fails_for_absolute_src_dir(): void
     {
-        $config = new PhelConfig();
-        $config->setSrcDirs(['/absolute/path']);
-
-        $errors = $config->validate();
+        $errors = new PhelConfig()
+            ->withSrcDirs(['/absolute/path'])
+            ->validate();
 
         self::assertCount(1, $errors);
         self::assertStringContainsString('should be relative', $errors[0]);
@@ -304,10 +362,9 @@ final class PhelConfigTest extends TestCase
 
     public function test_validate_fails_for_absolute_test_dir(): void
     {
-        $config = new PhelConfig();
-        $config->setTestDirs(['/absolute/tests']);
-
-        $errors = $config->validate();
+        $errors = new PhelConfig()
+            ->withTestDirs(['/absolute/tests'])
+            ->validate();
 
         self::assertCount(1, $errors);
         self::assertStringContainsString('Test directory', $errors[0]);
@@ -315,10 +372,9 @@ final class PhelConfigTest extends TestCase
 
     public function test_validate_fails_for_absolute_vendor_dir(): void
     {
-        $config = new PhelConfig();
-        $config->setVendorDir('/absolute/vendor');
-
-        $errors = $config->validate();
+        $errors = new PhelConfig()
+            ->withVendorDir('/absolute/vendor')
+            ->validate();
 
         self::assertCount(1, $errors);
         self::assertStringContainsString('Vendor directory', $errors[0]);
@@ -326,9 +382,7 @@ final class PhelConfigTest extends TestCase
 
     public function test_temp_dir_default_lives_under_system_temp(): void
     {
-        $config = new PhelConfig();
-
-        $tempDir = $config->getTempDir();
+        $tempDir = new PhelConfig()->getTempDir();
 
         self::assertStringContainsString('/phel/', $tempDir);
         self::assertStringEndsWith('/tmp', $tempDir);
@@ -336,8 +390,55 @@ final class PhelConfigTest extends TestCase
 
     public function test_cache_dir_default_is_relative_to_project_root(): void
     {
-        $config = new PhelConfig();
+        self::assertSame('.phel/cache', new PhelConfig()->getCacheDir());
+    }
 
-        self::assertSame('.phel/cache', $config->getCacheDir());
+    #[Group('deprecated')]
+    public function test_deprecated_setters_still_produce_equivalent_output(): void
+    {
+        /** @psalm-suppress DeprecatedMethod */
+        $legacy = new PhelConfig()
+            ->setSrcDirs(['lib'])
+            ->setVendorDir('vendor-x')
+            ->setBuildConfig(new PhelBuildConfig()
+                ->setMainPhelNamespace('app\\boot')
+                ->setMainPhpPath('dist/app.php'))
+            ->setExportConfig(new PhelExportConfig()
+                ->setFromDirectories(['lib'])
+                ->setNamespacePrefix('Gen')
+                ->setTargetDirectory('gen'))
+            ->setIgnoreWhenBuilding(['skip.phel'])
+            ->setEnableAsserts(false);
+
+        $modern = new PhelConfig()
+            ->withSrcDirs(['lib'])
+            ->withVendorDir('vendor-x')
+            ->withMainPhelNamespace('app\\boot')
+            ->withMainPhpPath('dist/app.php')
+            ->withExportFromDirectories(['lib'])
+            ->withExportNamespacePrefix('Gen')
+            ->withExportTargetDirectory('gen')
+            ->withIgnoreWhenBuilding(['skip.phel'])
+            ->withEnableAsserts(false);
+
+        self::assertSame($modern->jsonSerialize(), $legacy->jsonSerialize());
+    }
+
+    #[Group('deprecated')]
+    public function test_deprecated_layout_shortcuts_match_with_layout(): void
+    {
+        /** @psalm-suppress DeprecatedMethod */
+        $legacyFlat = new PhelConfig()->useFlatLayout();
+        /** @psalm-suppress DeprecatedMethod */
+        $legacyNested = new PhelConfig()->useNestedLayout();
+
+        self::assertSame(
+            new PhelConfig()->withLayout(ProjectLayout::Flat)->jsonSerialize(),
+            $legacyFlat->jsonSerialize(),
+        );
+        self::assertSame(
+            new PhelConfig()->withLayout(ProjectLayout::Nested)->jsonSerialize(),
+            $legacyNested->jsonSerialize(),
+        );
     }
 }

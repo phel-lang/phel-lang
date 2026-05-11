@@ -114,13 +114,13 @@ class Phel
 
         // Determine layout based on detected structure
         if ($hasSrcPhel || $hasTestsPhel) {
-            $config->useLayout(ProjectLayout::Nested);
+            $config = $config->withLayout(ProjectLayout::Nested);
         } elseif ($hasSrc || $hasTests) {
-            $config->useLayout(ProjectLayout::Flat);
+            $config = $config->withLayout(ProjectLayout::Flat);
         }
 
         if ($hasVendor) {
-            $config->setVendorDir('vendor');
+            return $config->withVendorDir('vendor');
         }
 
         return $config;
