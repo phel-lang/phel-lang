@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\CallEmitter;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class CallEmitterTest extends TestCase
@@ -131,9 +132,10 @@ final class CallEmitterTest extends TestCase
         $this->expectOutputString('return print("abc");');
     }
 
-    public function test_namespaced_php_function_is_emitted_as_fully_qualified(): void
+    #[DataProvider('providerNamespacedPhpFunctionForms')]
+    public function test_namespaced_php_function_is_emitted_as_fully_qualified(string $name): void
     {
-        $node = new PhpVarNode(NodeEnvironment::empty(), 'Amp\\File\\write');
+        $node = new PhpVarNode(NodeEnvironment::empty(), $name);
         $args = [
             new LiteralNode(NodeEnvironment::empty()->withExpressionContext(), 'foo.txt'),
             new LiteralNode(NodeEnvironment::empty()->withExpressionContext(), 'data'),
@@ -145,4 +147,10 @@ final class CallEmitterTest extends TestCase
         $this->expectOutputString('\Amp\File\write("foo.txt", "data");');
     }
 
+    public static function providerNamespacedPhpFunctionForms(): iterable
+    {
+        yield 'backslash separators' => ['Amp\\File\\write'];
+        yield 'dotted namespace, slash before fn' => ['Amp.File/write'];
+        yield 'fully dotted' => ['Amp.File.write'];
+    }
 }

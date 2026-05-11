@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - `^:async` metadata on `defn` wraps the body in `async`, returning an `Amp\Future` that callers `await` (#1924)
 
 #### Compiler
+- `php/Foo.Bar/baz` and `php/Foo.Bar.baz` accepted as backslash-free aliases for `php/Foo\Bar\baz` (#1952)
 - `:tag` metadata emits PHP type declarations; reader shorthands `^int`, `^"?int"`, `^"\\Foo\\Bar"`, `^{:tag "..."}` (#1916)
 - Return-type inference from tail primitive ops on tagged params (#1932)
 - Return-type inference covers tail calls to tagged globals and pure PHP built-ins (#1941)
