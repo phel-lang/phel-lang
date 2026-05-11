@@ -10,6 +10,7 @@ use InvalidArgumentException;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Filesystem\Application\PhelProjectDirectory;
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Run\Domain\Test\TestNamespacePruner;
 use Phel\Run\RunFacade;
@@ -22,6 +23,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
 use function count;
+use function getcwd;
 use function is_numeric;
 use function is_string;
 use function sprintf;
@@ -277,6 +279,13 @@ final class TestCommand extends Command
         $output = $input->getOption(self::OPT_OUTPUT);
         $listOnly = (bool) $input->getOption(self::OPT_LIST);
         $lastFailed = (bool) $input->getOption(self::OPT_LAST_FAILED);
+
+        if (!$listOnly) {
+            $cwd = getcwd();
+            if (is_string($cwd)) {
+                PhelProjectDirectory::ensure($cwd);
+            }
+        }
 
         return [
             TestCommandOptions::FILTER => null,

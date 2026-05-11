@@ -36,6 +36,9 @@ All notable changes to this project will be documented in this file.
 #### Compiler
 - Recursive self-calls emit `$this(...)`; ~3.66x faster on `fib(22)` (#1914)
 
+#### DX
+- Auto-write `.phel/.gitignore` (`*`) on first directory creation; user edits preserved (#1954)
+
 ### Fixed
 
 #### Compiler
