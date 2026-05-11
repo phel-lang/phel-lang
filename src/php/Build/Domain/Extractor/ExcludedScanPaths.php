@@ -77,7 +77,10 @@ final readonly class ExcludedScanPaths
      */
     public static function isAlwaysExcluded(string $path): bool
     {
-        return array_any(self::ALWAYS_EXCLUDED_SEGMENTS, static fn($segment): bool => str_contains($path, (string) $segment));
+        return array_any(
+            self::ALWAYS_EXCLUDED_SEGMENTS,
+            static fn(string $segment): bool => str_contains($path, $segment),
+        );
     }
 
     /**

@@ -24,7 +24,6 @@ final readonly class FileRunner
     public function run(string $filename): void
     {
         $scriptInfo = $this->buildFacade->getNamespaceFromFile($filename);
-        $namespace = $scriptInfo->getNamespace();
         $scriptDir = dirname($filename);
 
         $primaryDirs = [
@@ -41,24 +40,18 @@ final readonly class FileRunner
         // be missed even when they live under configured `srcDirs`/vendor.
         $primaryInfos = $this->buildFacade->getDependenciesForNamespace(
             $primaryDirs,
-            [$namespace, 'phel.core', ...$scriptInfo->getDependencies()],
+            [$scriptInfo->getNamespace(), 'phel.core', ...$scriptInfo->getDependencies()],
         );
 
-        $resolved = [];
-        foreach ($primaryInfos as $info) {
-            $resolved[$info->getNamespace()] = $info;
-        }
+        $resolved = $this->indexByNamespace($primaryInfos);
 
-        if (isset($resolved[$namespace])) {
+        if (isset($resolved[$scriptInfo->getNamespace()])) {
             $this->evalAll($primaryInfos);
             return;
         }
 
         $fallbackInfos = $this->resolveAdHocFallback($scriptInfo, $scriptDir, $resolved);
-
-        $this->evalAll($primaryInfos);
-        $this->evalAll($fallbackInfos);
-        $this->buildFacade->evalFile($scriptInfo->getFile());
+        $this->evalAll([...$primaryInfos, ...$fallbackInfos, $scriptInfo]);
     }
 
     /**
@@ -69,6 +62,21 @@ final readonly class FileRunner
         foreach ($infos as $info) {
             $this->buildFacade->evalFile($info->getFile());
         }
+    }
+
+    /**
+     * @param list<NamespaceInformation> $infos
+     *
+     * @return array<string, NamespaceInformation>
+     */
+    private function indexByNamespace(array $infos): array
+    {
+        $indexed = [];
+        foreach ($infos as $info) {
+            $indexed[$info->getNamespace()] = $info;
+        }
+
+        return $indexed;
     }
 
     /**
