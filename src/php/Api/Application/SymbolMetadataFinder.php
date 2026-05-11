@@ -185,7 +185,12 @@ final class SymbolMetadataFinder implements SymbolMetadataFinderInterface
      */
     private function extractSignatures(PersistentMapInterface $meta, string $doc, string $name): array
     {
-        $arglists = $meta['arglists'] ?? null;
+        // `DefSymbol` currently writes the arglist under the plain string key
+        // `"arglists"`. Probe the `:arglists` keyword form too so a future
+        // switch to keyword keys (matching the rest of def-meta) keeps the
+        // runtime signature path live instead of silently degrading to the
+        // docstring fallback.
+        $arglists = $meta['arglists'] ?? $meta[Keyword::create('arglists')] ?? null;
         if ($arglists !== null && $arglists !== '') {
             return $this->splitArglists((string) $arglists, $name);
         }

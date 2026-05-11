@@ -138,6 +138,26 @@ final class SymbolMetadataFinderTest extends TestCase
         self::assertSame('totally.elsewhere', $fn->namespace);
     }
 
+    public function test_it_reads_arglists_stored_under_keyword_key(): void
+    {
+        $munge = new Munge();
+        $meta = TypeFactory::getInstance()->persistentMapFromKVs(
+            Keyword::create('arglists'),
+            '(kw-form n)',
+        );
+        Registry::getInstance()->addDefinition(
+            $munge->encodeRegistryKey('user'),
+            $munge->encode('kw-form'),
+            null,
+            $meta,
+        );
+
+        $fn = $this->finder->find('kw-form', 'user');
+
+        self::assertNotNull($fn);
+        self::assertSame(['(kw-form n)'], $fn->signatures);
+    }
+
     public function test_it_falls_back_to_static_catalog_for_native_special_forms(): void
     {
         $native = new PhelFunction(
