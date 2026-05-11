@@ -38,6 +38,7 @@ All notable changes to this project will be documented in this file.
 
 #### DX
 - Runtime state (cache, REPL history, error log) consolidated under `.phel/`; relocate via `withPhelDir()` or `PHEL_DIR` env (#1954)
+- Module boundaries: pure cross-cutting utilities (`CompileOptions`, `PhelProjectDirectory`, `VersionFinder`) moved to `Phel\Shared`; `GlobalEnvironment` and `DebugLineTap` now reached via `CompilerFacade` methods instead of direct singleton/class imports. Factory rule documented in `.claude/rules/php.md`
 - `PhelConfig`, `PhelBuildConfig`, `PhelExportConfig` immutable via `withX()` chain; build/export fields flat on root config; old `setX()` shims deprecated
 - **Breaking:** `PhelConfig::forProject(ProjectLayout $layout = Flat, string $mainNamespace = '')` — layout first, Flat default; migrate `forProject('ns')` to `forProject()->withMainPhelNamespace('ns')`
 

@@ -11,9 +11,9 @@ use Gacela\Framework\Gacela;
 use Phar;
 use Phel\Config\PhelConfig;
 use Phel\Config\ProjectLayout;
-use Phel\Filesystem\Application\PhelProjectDirectory;
 use Phel\Filesystem\FilesystemFacade;
 use Phel\Run\RunFacade;
+use Phel\Shared\PhelProjectDirectory;
 use RuntimeException;
 
 use function dirname;

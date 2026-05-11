@@ -6,6 +6,7 @@ namespace Phel\Shared\Facade;
 
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Emitter\EmitterResult;
@@ -20,8 +21,8 @@ use Phel\Compiler\Domain\Parser\ParserNode\FileNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
-use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\CompileOptions;
 
 interface CompilerFacadeInterface
 {
@@ -118,6 +119,42 @@ interface CompilerFacadeInterface
      * Resets the GlobalEnvironment to an uninitialized state.
      */
     public function resetGlobalEnvironment(): void;
+
+    /**
+     * True when a GlobalEnvironment singleton has been bootstrapped.
+     * Cross-module callers use this to decide whether to snapshot the
+     * env before a transient operation that might replace it.
+     */
+    public function isGlobalEnvironmentInitialized(): bool;
+
+    /**
+     * Returns the current GlobalEnvironment, auto-creating a throwaway one
+     * if none has been initialized. Use this when downstream code only
+     * reads state (e.g. `getNs()`, definition lookups).
+     */
+    public function getGlobalEnvironment(): GlobalEnvironmentInterface;
+
+    /**
+     * Clears the Phel registry and installs a fresh GlobalEnvironment.
+     * Used by tooling that needs to load namespaces in isolation and then
+     * restore the previous env via {@see self::setGlobalEnvironment()}.
+     */
+    public function initializeNewGlobalEnvironment(): GlobalEnvironmentInterface;
+
+    /**
+     * Replace the GlobalEnvironment singleton with a previously captured
+     * instance. Pairs with {@see self::initializeNewGlobalEnvironment()}
+     * for transient snapshot/restore workflows.
+     */
+    public function setGlobalEnvironment(GlobalEnvironmentInterface $env): void;
+
+    /**
+     * Toggle line-by-line PHP execution tracing for compiled Phel code.
+     * Used by `phel run --debug=<filter>`; idempotent on repeated enables.
+     */
+    public function enableDebugLineTap(?string $phelFileFilter = null, string $logPath = './phel-debug.log'): void;
+
+    public function disableDebugLineTap(): void;
 
     /**
      * Expands a macro form once. Returns the expanded Phel form,

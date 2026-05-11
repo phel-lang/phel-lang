@@ -8,6 +8,7 @@ use Gacela\Framework\AbstractFacade;
 use Gacela\Framework\Attribute\Cacheable;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Emitter\EmitterResult;
@@ -22,8 +23,8 @@ use Phel\Compiler\Domain\Parser\ParserNode\FileNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
-use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\CompileOptions;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
 /**
@@ -179,6 +180,48 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
         $this->getFactory()
             ->createGlobalEnvironmentManager()
             ->reset();
+    }
+
+    public function isGlobalEnvironmentInitialized(): bool
+    {
+        return $this->getFactory()
+            ->createGlobalEnvironmentManager()
+            ->isInitialized();
+    }
+
+    public function getGlobalEnvironment(): GlobalEnvironmentInterface
+    {
+        return $this->getFactory()
+            ->createGlobalEnvironmentManager()
+            ->getInstance();
+    }
+
+    public function initializeNewGlobalEnvironment(): GlobalEnvironmentInterface
+    {
+        return $this->getFactory()
+            ->createGlobalEnvironmentManager()
+            ->initializeNew();
+    }
+
+    public function setGlobalEnvironment(GlobalEnvironmentInterface $env): void
+    {
+        $this->getFactory()
+            ->createGlobalEnvironmentManager()
+            ->setInstance($env);
+    }
+
+    public function enableDebugLineTap(?string $phelFileFilter = null, string $logPath = './phel-debug.log'): void
+    {
+        $this->getFactory()
+            ->createDebugLineTapController()
+            ->enable($phelFileFilter, $logPath);
+    }
+
+    public function disableDebugLineTap(): void
+    {
+        $this->getFactory()
+            ->createDebugLineTapController()
+            ->disable();
     }
 
     public function macroexpand1(

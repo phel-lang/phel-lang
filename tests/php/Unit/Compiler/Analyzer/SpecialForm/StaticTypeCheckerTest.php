@@ -7,9 +7,9 @@ namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 use Phel;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\CompilerFacade;
-use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
+use Phel\Shared\CompileOptions;
 use PHPUnit\Framework\TestCase;
 
 final class StaticTypeCheckerTest extends TestCase

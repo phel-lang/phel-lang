@@ -6,7 +6,7 @@
   (:use Phel.Command.CommandFacade)
   (:use Phel.Shared.Munge)
   (:use Phel.Compiler.CompilerFacade)
-  (:use Phel.Compiler.Infrastructure.CompileOptions)
+  (:use Phel.Shared.CompileOptions)
   (:use Phel.Compiler.Infrastructure.GlobalEnvironmentSingleton)
   (:use Phel.Compiler.Domain.Analyzer.Environment.NodeEnvironment)
   (:use Phel.Lang.FnInterface)

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Filesystem\Application;
 
-use Phel\Filesystem\Application\PhelProjectDirectory;
+use Phel\Shared\PhelProjectDirectory;
 use PHPUnit\Framework\TestCase;
 
 final class PhelProjectDirectoryTest extends TestCase

@@ -9,9 +9,9 @@ use Phel\Build\BuildFacade;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
-use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Symbol;
+use Phel\Shared\CompileOptions;
 use PHPUnit\Framework\TestCase;
 
 final class PhpNewRuntimeTest extends TestCase

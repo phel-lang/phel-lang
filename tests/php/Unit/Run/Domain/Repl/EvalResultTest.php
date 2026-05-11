@@ -5,19 +5,20 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Run\Domain\Repl;
 
 use ParseError;
+use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
-use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Run\Domain\Repl\EvalError;
 use Phel\Run\Domain\Repl\EvalResult;
 use Phel\Run\Domain\Repl\StackFrame;
+use Phel\Shared\CompileOptions;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use PHPUnit\Framework\TestCase;
 use RuntimeException;
@@ -90,7 +91,7 @@ final class EvalResultTest extends TestCase
 
     public function test_from_eval_success(): void
     {
-        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willReturn(42);
 
         $result = EvalResult::fromEval($facade, '(+ 1 1)');
@@ -102,7 +103,7 @@ final class EvalResultTest extends TestCase
 
     public function test_from_eval_captures_printed_output(): void
     {
-        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willReturnCallback(static function (): mixed {
             echo "hello\n";
 
@@ -122,7 +123,7 @@ final class EvalResultTest extends TestCase
         $snippet = new CodeSnippet($loc, $loc, '(+ 1');
         $token = new Token(Token::T_EOF, '', $loc, $loc);
 
-        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willThrowException(
             UnfinishedParserException::forSnippet($snippet, $token, 'Unexpected end of input'),
         );
@@ -152,7 +153,7 @@ final class EvalResultTest extends TestCase
 
         $compilerException = new CompilerException($nested, $snippet);
 
-        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willThrowException($compilerException);
 
         $result = EvalResult::fromEval($facade, '(unknown-fn)');
@@ -174,7 +175,7 @@ final class EvalResultTest extends TestCase
         $prev = new ParseError('syntax error', 0);
         $exception = CompiledCodeIsMalformedException::fromThrowable($prev);
 
-        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willThrowException($exception);
 
         $result = EvalResult::fromEval($facade, 'bad code');
@@ -187,7 +188,7 @@ final class EvalResultTest extends TestCase
 
     public function test_from_eval_runtime_exception(): void
     {
-        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willThrowException(new RuntimeException('division by zero'));
 
         $result = EvalResult::fromEval($facade, '(/ 1 0)', new CompileOptions());
@@ -202,7 +203,7 @@ final class EvalResultTest extends TestCase
 
     public function test_from_eval_captures_output_on_failure(): void
     {
-        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willReturnCallback(static function (): never {
             echo 'partial output';
             throw new RuntimeException('boom');
@@ -217,7 +218,7 @@ final class EvalResultTest extends TestCase
 
     public function test_from_eval_preserves_nested_output_buffering(): void
     {
-        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willReturnCallback(static function (): mixed {
             echo 'inner';
 
@@ -236,7 +237,7 @@ final class EvalResultTest extends TestCase
 
     public function test_runtime_exception_produces_non_empty_frames(): void
     {
-        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willThrowException(new RuntimeException('division by zero'));
 
         $result = EvalResult::fromEval($facade, '(/ 1 0)');
@@ -248,7 +249,7 @@ final class EvalResultTest extends TestCase
 
     public function test_runtime_exception_frames_have_file_and_line(): void
     {
-        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willThrowException(new RuntimeException('error'));
 
         $result = EvalResult::fromEval($facade, '(error)');
@@ -273,7 +274,7 @@ final class EvalResultTest extends TestCase
         $snippet = new CodeSnippet($startLoc, $endLoc, '(unknown-fn)');
         $compilerException = new CompilerException($nested, $snippet);
 
-        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willThrowException($compilerException);
 
         $result = EvalResult::fromEval($facade, '(unknown-fn)');
@@ -288,7 +289,7 @@ final class EvalResultTest extends TestCase
         $prev = new ParseError('syntax error', 0);
         $exception = CompiledCodeIsMalformedException::fromThrowable($prev);
 
-        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willThrowException($exception);
 
         $result = EvalResult::fromEval($facade, 'bad code');
@@ -330,7 +331,7 @@ final class EvalResultTest extends TestCase
         $env->setNs('test-ns');
         $env->addRequireAlias('test-ns', Symbol::create('a'), Symbol::create('alias-ns'));
 
-        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willReturnCallback(static function () use ($env): mixed {
             $env->addRequireAlias('test-ns', Symbol::create('b'), Symbol::create('other-ns'));
 
@@ -349,7 +350,7 @@ final class EvalResultTest extends TestCase
         $env = GlobalEnvironmentSingleton::initializeNew();
         $env->setNs('original-ns');
 
-        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willReturnCallback(static function () use ($env): never {
             $env->setNs('dirty-ns');
             throw new RuntimeException('boom');
@@ -372,7 +373,7 @@ final class EvalResultTest extends TestCase
         $snippet = new CodeSnippet($startLoc, $endLoc, '(ns ...)');
         $compilerException = new CompilerException($nested, $snippet);
 
-        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willReturnCallback(static function () use ($env, $compilerException): never {
             $env->addRequireAlias('test-ns', Symbol::create('dirty'), Symbol::create('dirty-ns'));
             throw $compilerException;
@@ -392,7 +393,7 @@ final class EvalResultTest extends TestCase
         $prev = new ParseError('syntax error', 0);
         $exception = CompiledCodeIsMalformedException::fromThrowable($prev);
 
-        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willReturnCallback(static function () use ($env, $exception): never {
             $env->addUseAlias('test-ns', Symbol::create('DirtyClass'), Symbol::create('\\Dirty\\Class'));
             throw $exception;
@@ -408,12 +409,29 @@ final class EvalResultTest extends TestCase
     {
         GlobalEnvironmentSingleton::reset();
 
-        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade = $this->compilerFacadeMock();
         $facade->method('eval')->willThrowException(new RuntimeException('boom'));
 
         $result = EvalResult::fromEval($facade, '(/ 1 0)');
 
         self::assertFalse($result->success);
         self::assertSame('RuntimeException', $result->error->exceptionClass);
+    }
+
+    /**
+     * Build a `CompilerFacadeInterface` mock whose env-related methods read
+     * straight from the live `GlobalEnvironmentSingleton`, so callers can
+     * stub `eval()` while the snapshot/restore path keeps observing the
+     * environment the test set up.
+     */
+    private function compilerFacadeMock(): CompilerFacadeInterface
+    {
+        $facade = $this->createMock(CompilerFacadeInterface::class);
+        $facade->method('isGlobalEnvironmentInitialized')
+            ->willReturnCallback(static fn(): bool => GlobalEnvironmentSingleton::isInitialized());
+        $facade->method('getGlobalEnvironment')
+            ->willReturnCallback(static fn(): GlobalEnvironmentInterface => GlobalEnvironmentSingleton::getInstance());
+
+        return $facade;
     }
 }

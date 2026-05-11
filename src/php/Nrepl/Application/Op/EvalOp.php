@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Nrepl\Application\Op;
 
-use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Nrepl\Domain\Op\OpHandlerInterface;
 use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Op\OpResponse;
 use Phel\Nrepl\Domain\Op\OpStatus;
+use Phel\Shared\CompileOptions;
 use Phel\Shared\Facade\RunFacadeInterface;
 
 final readonly class EvalOp implements OpHandlerInterface

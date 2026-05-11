@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Run\Application;
 
-use Phel\Filesystem\Application\PhelProjectDirectory;
 use Phel\Run\Application\ReplHistoryPathResolver;
+use Phel\Shared\PhelProjectDirectory;
 use PHPUnit\Framework\TestCase;
 
 use function is_resource;

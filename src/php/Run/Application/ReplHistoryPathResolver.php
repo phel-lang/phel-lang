@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Run\Application;
 
-use Phel\Filesystem\Application\PhelProjectDirectory;
+use Phel\Shared\PhelProjectDirectory;
 
 use function defined;
 use function sprintf;

@@ -26,10 +26,10 @@ use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Domain\Reader\ReaderInterface;
-use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Lang\ProfilerHookInterface;
 use Phel\Lang\Registry;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\CompileOptions;
 
 use function hrtime;
 

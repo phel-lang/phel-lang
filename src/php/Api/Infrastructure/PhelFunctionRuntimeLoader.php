@@ -7,9 +7,9 @@ namespace Phel\Api\Infrastructure;
 use Phar;
 use Phel;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
 use RuntimeException;
 
@@ -26,6 +26,7 @@ final readonly class PhelFunctionRuntimeLoader
 {
     public function __construct(
         private RunFacadeInterface $runFacade,
+        private CompilerFacadeInterface $compilerFacade,
     ) {}
 
     /**
@@ -33,8 +34,8 @@ final readonly class PhelFunctionRuntimeLoader
      */
     public function load(array $namespaces): void
     {
-        $previousEnv = GlobalEnvironmentSingleton::isInitialized()
-            ? GlobalEnvironmentSingleton::getInstance()
+        $previousEnv = $this->compilerFacade->isGlobalEnvironmentInitialized()
+            ? $this->compilerFacade->getGlobalEnvironment()
             : null;
         $previousRegistry = $previousEnv instanceof GlobalEnvironmentInterface
             ? Registry::getInstance()->snapshot()
@@ -43,7 +44,7 @@ final readonly class PhelFunctionRuntimeLoader
 
         Phel::clear();
         Symbol::resetGen();
-        GlobalEnvironmentSingleton::initializeNew();
+        $this->compilerFacade->initializeNewGlobalEnvironment();
 
         [$phelFile, $tempDir] = $this->writeDocumentSource($namespaces);
 
@@ -113,7 +114,7 @@ final readonly class PhelFunctionRuntimeLoader
             'definitionsMetaData' => $mergedMeta,
         ]);
 
-        GlobalEnvironmentSingleton::setInstance($previousEnv);
+        $this->compilerFacade->setGlobalEnvironment($previousEnv);
         if ($previousNs !== null && $previousNs !== '') {
             $previousEnv->setNs($previousNs);
         }

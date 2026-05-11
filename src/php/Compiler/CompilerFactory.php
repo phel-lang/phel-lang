@@ -7,6 +7,7 @@ namespace Phel\Compiler;
 use Gacela\Framework\AbstractFactory;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Application\CodeCompiler;
+use Phel\Compiler\Application\DebugLineTapController;
 use Phel\Compiler\Application\EvalCompiler;
 use Phel\Compiler\Application\GlobalEnvironmentManager;
 use Phel\Compiler\Application\Lexer;
@@ -40,12 +41,12 @@ use Phel\Compiler\Domain\Parser\ParserInterface;
 use Phel\Compiler\Domain\Reader\ExpressionReaderFactory;
 use Phel\Compiler\Domain\Reader\QuasiquoteTransformer;
 use Phel\Compiler\Domain\Reader\ReaderInterface;
-use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Filesystem\FilesystemFacadeInterface;
 use Phel\Lang\TagHandlers\BuiltinTagHandlers;
 use Phel\Lang\TagRegistry;
 use Phel\Printer\Printer;
+use Phel\Shared\CompileOptions;
 use Phel\Shared\Munge;
 use Phel\Shared\MungeInterface;
 
@@ -182,6 +183,11 @@ final class CompilerFactory extends AbstractFactory
     public function createGlobalEnvironmentManager(): GlobalEnvironmentManager
     {
         return new GlobalEnvironmentManager();
+    }
+
+    public function createDebugLineTapController(): DebugLineTapController
+    {
+        return new DebugLineTapController();
     }
 
     private function createFileEmitterForCache(bool $enableSourceMaps = false): FileEmitterInterface
