@@ -253,6 +253,22 @@ final class PhelConfigTest extends TestCase
         self::assertSame($expected, $config->jsonSerialize());
     }
 
+    public function test_boolean_withers_default_to_true(): void
+    {
+        $config = new PhelConfig()
+            ->withWarnDeprecations()
+            ->withKeepGeneratedTempFiles()
+            ->withEnableAsserts(false)
+            ->withEnableNamespaceCache(false)
+            ->withEnableCompiledCodeCache(false);
+
+        self::assertTrue($config->shouldWarnDeprecations());
+        self::assertTrue($config->getKeepGeneratedTempFiles());
+        self::assertFalse($config->isAssertsEnabled());
+        self::assertFalse($config->isNamespaceCacheEnabled());
+        self::assertFalse($config->isCompiledCodeCacheEnabled());
+    }
+
     public function test_with_phel_dir_persists_in_json(): void
     {
         $config = new PhelConfig()->withPhelDir('/var/cache/phel');

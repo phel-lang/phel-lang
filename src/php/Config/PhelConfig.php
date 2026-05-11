@@ -350,7 +350,7 @@ final readonly class PhelConfig implements JsonSerializable
         return $this->with(['noCacheWhenBuilding' => $list]);
     }
 
-    public function withKeepGeneratedTempFiles(bool $flag): self
+    public function withKeepGeneratedTempFiles(bool $flag = true): self
     {
         return $this->with(['keepGeneratedTempFiles' => $flag]);
     }
@@ -373,22 +373,22 @@ final readonly class PhelConfig implements JsonSerializable
         return $this->with(['formatDirs' => $list]);
     }
 
-    public function withEnableAsserts(bool $flag): self
+    public function withEnableAsserts(bool $flag = true): self
     {
         return $this->with(['enableAsserts' => $flag]);
     }
 
-    public function withWarnDeprecations(bool $flag): self
+    public function withWarnDeprecations(bool $flag = true): self
     {
         return $this->with(['warnDeprecations' => $flag]);
     }
 
-    public function withEnableNamespaceCache(bool $flag): self
+    public function withEnableNamespaceCache(bool $flag = true): self
     {
         return $this->with(['enableNamespaceCache' => $flag]);
     }
 
-    public function withEnableCompiledCodeCache(bool $flag): self
+    public function withEnableCompiledCodeCache(bool $flag = true): self
     {
         return $this->with(['enableCompiledCodeCache' => $flag]);
     }
