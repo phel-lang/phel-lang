@@ -84,25 +84,20 @@ final readonly class PhelConfig implements JsonSerializable
     }
 
     /**
-     * Quick factory for typical project setup.
-     *
-     * - Pass `$layout` to force a specific layout. When omitted, the layout is
-     *   auto-detected from the current working directory: `src/phel/` →
-     *   Nested, `src/` → Flat, otherwise → Root.
-     * - `$mainNamespace` is optional; when left blank, the build step infers it
-     *   from `core.phel` / `main.phel` at the configured source roots.
+     * Quick factory for typical project setup. Defaults to Flat layout (src/, tests/).
      *
      * Examples:
-     *   return PhelConfig::forProject();                                 // zero-config
-     *   return PhelConfig::forProject('my-app\core');                    // explicit namespace
-     *   return PhelConfig::forProject(layout: ProjectLayout::Root);      // single-file / scratch project
-     *   return PhelConfig::forProject('my-app\main', ProjectLayout::Nested);
+     *   return PhelConfig::forProject();                           // zero-config, Flat layout
+     *   return PhelConfig::forProject(ProjectLayout::Root);        // single-file / scratch project
+     *   return PhelConfig::forProject(ProjectLayout::Nested, 'my-app\main');
+     *   return PhelConfig::forProject(ProjectLayout::Nested)
+     *       ->withMainPhelNamespace('my-app\main');
      */
     public static function forProject(
+        ProjectLayout $layout = ProjectLayout::Flat,
         string $mainNamespace = '',
-        ?ProjectLayout $layout = null,
     ): self {
-        $config = new self()->withLayout($layout ?? self::detectLayout());
+        $config = new self()->withLayout($layout);
 
         if ($mainNamespace !== '') {
             return $config->withMainPhelNamespace($mainNamespace);
@@ -639,12 +634,4 @@ final readonly class PhelConfig implements JsonSerializable
         return new self(...[...$base, ...$overrides]);
     }
 
-    /**
-     * Auto-detect the most likely layout from the current working directory.
-     * Falls back to Flat when the cwd is not available or probing fails.
-     */
-    private static function detectLayout(): ProjectLayout
-    {
-        return new ProjectLayoutDetector()->detectFromCurrentWorkingDirectory();
-    }
 }

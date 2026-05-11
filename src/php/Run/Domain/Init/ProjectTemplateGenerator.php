@@ -15,8 +15,10 @@ final class ProjectTemplateGenerator
 <?php
 
 use Phel\\Config\\PhelConfig;
+use Phel\\Config\\ProjectLayout;
 
-return PhelConfig::forProject(mainNamespace: '{$namespace}');
+return PhelConfig::forProject(ProjectLayout::Flat)
+    ->withMainPhelNamespace('{$namespace}');
 
 PHP,
             ProjectLayout::Nested => <<<PHP
@@ -25,7 +27,8 @@ PHP,
 use Phel\\Config\\PhelConfig;
 use Phel\\Config\\ProjectLayout;
 
-return PhelConfig::forProject(mainNamespace: '{$namespace}', layout: ProjectLayout::Nested);
+return PhelConfig::forProject(ProjectLayout::Nested)
+    ->withMainPhelNamespace('{$namespace}');
 
 PHP,
             ProjectLayout::Root => <<<PHP
@@ -34,7 +37,8 @@ PHP,
 use Phel\\Config\\PhelConfig;
 use Phel\\Config\\ProjectLayout;
 
-return PhelConfig::forProject(mainNamespace: '{$namespace}', layout: ProjectLayout::Root);
+return PhelConfig::forProject(ProjectLayout::Root)
+    ->withMainPhelNamespace('{$namespace}');
 
 PHP,
         };

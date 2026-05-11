@@ -22,8 +22,9 @@ final class ProjectTemplateGeneratorTest extends TestCase
         $config = $this->generator->generateConfig('myapp\\main', ProjectLayout::Flat);
 
         self::assertStringContainsString('use Phel\\Config\\PhelConfig;', $config);
-        self::assertStringContainsString("PhelConfig::forProject(mainNamespace: 'myapp\\main')", $config);
-        self::assertStringNotContainsString('ProjectLayout::', $config);
+        self::assertStringContainsString('use Phel\\Config\\ProjectLayout;', $config);
+        self::assertStringContainsString('PhelConfig::forProject(ProjectLayout::Flat)', $config);
+        self::assertStringContainsString("->withMainPhelNamespace('myapp\\main')", $config);
     }
 
     public function test_generate_config_nested_layout(): void
@@ -32,8 +33,8 @@ final class ProjectTemplateGeneratorTest extends TestCase
 
         self::assertStringContainsString('use Phel\\Config\\PhelConfig;', $config);
         self::assertStringContainsString('use Phel\\Config\\ProjectLayout;', $config);
-        self::assertStringContainsString("mainNamespace: 'myapp\\main'", $config);
-        self::assertStringContainsString('layout: ProjectLayout::Nested', $config);
+        self::assertStringContainsString('PhelConfig::forProject(ProjectLayout::Nested)', $config);
+        self::assertStringContainsString("->withMainPhelNamespace('myapp\\main')", $config);
     }
 
     public function test_generate_config_root_layout(): void
@@ -42,8 +43,8 @@ final class ProjectTemplateGeneratorTest extends TestCase
 
         self::assertStringContainsString('use Phel\\Config\\PhelConfig;', $config);
         self::assertStringContainsString('use Phel\\Config\\ProjectLayout;', $config);
-        self::assertStringContainsString("mainNamespace: 'sandbox\\main'", $config);
-        self::assertStringContainsString('layout: ProjectLayout::Root', $config);
+        self::assertStringContainsString('PhelConfig::forProject(ProjectLayout::Root)', $config);
+        self::assertStringContainsString("->withMainPhelNamespace('sandbox\\main')", $config);
     }
 
     public function test_generate_main_file(): void

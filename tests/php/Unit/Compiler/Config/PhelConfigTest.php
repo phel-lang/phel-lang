@@ -51,7 +51,8 @@ final class PhelConfigTest extends TestCase
 
     public function test_for_project_factory(): void
     {
-        $config = PhelConfig::forProject('my-app\\core', ProjectLayout::Nested);
+        $config = PhelConfig::forProject(ProjectLayout::Nested)
+            ->withMainPhelNamespace('my-app\\core');
 
         $serialized = $config->jsonSerialize();
 
@@ -63,7 +64,8 @@ final class PhelConfigTest extends TestCase
 
     public function test_for_project_factory_with_flat_layout(): void
     {
-        $config = PhelConfig::forProject('my-app\\main', ProjectLayout::Flat);
+        $config = PhelConfig::forProject(ProjectLayout::Flat)
+            ->withMainPhelNamespace('my-app\\main');
 
         $serialized = $config->jsonSerialize();
 
@@ -76,7 +78,8 @@ final class PhelConfigTest extends TestCase
 
     public function test_for_project_factory_with_root_layout(): void
     {
-        $config = PhelConfig::forProject('sandbox\\main', ProjectLayout::Root);
+        $config = PhelConfig::forProject(ProjectLayout::Root)
+            ->withMainPhelNamespace('sandbox\\main');
 
         $serialized = $config->jsonSerialize();
 
@@ -89,9 +92,7 @@ final class PhelConfigTest extends TestCase
 
     public function test_for_project_factory_without_namespace(): void
     {
-        // Without a layout arg, auto-detect runs against the current cwd.
-        // PHPUnit runs from the phel-lang repo root, which has src/phel → Nested.
-        $config = PhelConfig::forProject();
+        $config = PhelConfig::forProject(ProjectLayout::Nested);
 
         $serialized = $config->jsonSerialize();
 
@@ -99,53 +100,14 @@ final class PhelConfigTest extends TestCase
         self::assertSame(['src/phel'], $serialized[PhelConfig::SRC_DIRS]);
     }
 
-    public function test_for_project_factory_auto_detects_root_layout_from_tmp_dir(): void
+    public function test_for_project_factory_defaults_to_flat_layout(): void
     {
-        $tmp = sys_get_temp_dir() . '/phel-for-project-test-' . uniqid();
-        mkdir($tmp, 0755, true);
+        $config = PhelConfig::forProject();
 
-        $previousCwd = getcwd();
-        chdir($tmp);
+        $serialized = $config->jsonSerialize();
 
-        try {
-            $config = PhelConfig::forProject();
-
-            $serialized = $config->jsonSerialize();
-
-            self::assertSame(['.'], $serialized[PhelConfig::SRC_DIRS]);
-            self::assertSame(['.'], $serialized[PhelConfig::TEST_DIRS]);
-        } finally {
-            if ($previousCwd !== false) {
-                chdir($previousCwd);
-            }
-
-            rmdir($tmp);
-        }
-    }
-
-    public function test_for_project_factory_auto_detects_flat_layout_from_tmp_dir(): void
-    {
-        $tmp = sys_get_temp_dir() . '/phel-for-project-test-' . uniqid();
-        mkdir($tmp . '/src', 0755, true);
-
-        $previousCwd = getcwd();
-        chdir($tmp);
-
-        try {
-            $config = PhelConfig::forProject();
-
-            $serialized = $config->jsonSerialize();
-
-            self::assertSame(['src'], $serialized[PhelConfig::SRC_DIRS]);
-            self::assertSame(['tests'], $serialized[PhelConfig::TEST_DIRS]);
-        } finally {
-            if ($previousCwd !== false) {
-                chdir($previousCwd);
-            }
-
-            rmdir($tmp . '/src');
-            rmdir($tmp);
-        }
+        self::assertSame(['src'], $serialized[PhelConfig::SRC_DIRS]);
+        self::assertSame(['tests'], $serialized[PhelConfig::TEST_DIRS]);
     }
 
     public function test_with_layout_flat(): void
