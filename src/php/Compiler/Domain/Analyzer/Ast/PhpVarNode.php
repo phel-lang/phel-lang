@@ -74,15 +74,10 @@ final class PhpVarNode extends AbstractNode
     }
 
     /**
-     * Returns the name suitable for emitting as a PHP function reference.
-     *
-     * Namespaced PHP functions are returned as fully qualified names with a
-     * single leading backslash so they resolve against the global namespace,
-     * regardless of any active `namespace ...;` declaration in the emitted
-     * PHP file. Dot (`.`) and forward-slash (`/`) inside the name are treated
-     * as namespace separators and rewritten to backslashes, so that the same
-     * function can be referenced as `php/Amp\ByteStream\getStdout`,
-     * `php/Amp.ByteStream/getStdout`, or `php/Amp.ByteStream.getStdout`.
+     * Fully qualified PHP name for emission. Backslash, dot, and forward
+     * slash are interchangeable namespace separators in the source name; a
+     * leading `\` ensures resolution against the root namespace regardless
+     * of the surrounding `namespace ...;` declaration in emitted PHP.
      */
     public function getAbsoluteName(): string
     {

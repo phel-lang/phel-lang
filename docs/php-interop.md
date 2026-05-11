@@ -39,7 +39,7 @@ Prefix PHP functions with `php/`:
 (php/Amp\trapSignal [php/SIGINT php/SIGTERM])
 (php/\Monolog\Logger\Utils\detectAndCleanUtf8 "input")
 
-;; Backslash-free alternatives — `.` and `/` are also accepted as namespace
+;; Backslash-free alternatives: `.` and `/` are also accepted as namespace
 ;; separators, so the same call can be written without escaping in `.cljc`
 ;; files or shared snippets:
 (php/Amp.ByteStream/getStdout)
