@@ -102,8 +102,8 @@ we should use "phel" once GitHub accept phel coloring too
 
 ```clojure
 (defmacro unless [pred & body]
-  `(if (not ,pred)
-     (do ,@body)))
+  `(if (not ~pred)
+     (do ~@body)))
 
 (unless (zero? 1)
   (println "not zero"))
@@ -161,14 +161,14 @@ echo '(println "hi")' | ./vendor/bin/phel eval -
 
 ## Documentation
 
-- [Quick Start](docs/quickstart.md) — install, REPL, first script (5 min)
-- [Documentation Index](docs/README.md) — every guide, grouped by purpose
-- [phel-lang.org](https://phel-lang.org) — tutorials, exercises, blog
+- [Quick Start](docs/quickstart.md): install, REPL, first script (5 min)
+- [Documentation Index](docs/README.md): every guide, grouped by purpose
+- [phel-lang.org](https://phel-lang.org): tutorials, exercises, blog
 - [Repository Guidelines](AGENTS.md) · [Packagist](https://packagist.org/packages/phel-lang/phel-lang)
 
 **AI coding agents**
-- [resources/agents/](resources/agents/README.md) — Claude Code, Cursor, Codex, Gemini, Copilot, Aider
-- `./vendor/bin/phel agent-install [platform] [--all]` — install skill file for your agent
+- [resources/agents/](resources/agents/README.md): Claude Code, Cursor, Codex, Gemini, Copilot, Aider
+- `./vendor/bin/phel agent-install [platform] [--all]`: install skill file for your agent
 
 ## Build PHAR
 
