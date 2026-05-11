@@ -34,6 +34,7 @@ use Phel\Api\Infrastructure\PhelFunctionRuntimeLoader;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
+use Phel\Shared\Munge;
 
 /**
  * @extends AbstractFactory<ApiConfig>
@@ -110,7 +111,7 @@ final class ApiFactory extends AbstractFactory
     public function createSymbolMetadataFinder(): SymbolMetadataFinderInterface
     {
         return new SymbolMetadataFinder(
-            $this->getCompilerFacade()->createMunge(),
+            new Munge(),
             $this->createPhelFnNormalizer(),
         );
     }

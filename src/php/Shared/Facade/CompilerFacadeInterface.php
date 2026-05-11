@@ -9,7 +9,6 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Emitter\EmitterResult;
-use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
@@ -105,13 +104,6 @@ interface CompilerFacadeInterface
     public function parseAll(TokenStream $tokenStream): FileNode;
 
     public function encodeNs(string $namespace): string;
-
-    /**
-     * Expose the namespace/symbol encoder used by the compiler. Cross-module
-     * callers (e.g. tooling that walks the runtime registry) use it to
-     * derive registry keys without duplicating mangling rules.
-     */
-    public function createMunge(): MungeInterface;
 
     public function hasBalancedParentheses(string $code): bool;
 

@@ -8,9 +8,9 @@ use Phel;
 use Phel\Api\Domain\PhelFnNormalizerInterface;
 use Phel\Api\Domain\SymbolMetadataFinderInterface;
 use Phel\Api\Transfer\PhelFunction;
-use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
+use Phel\Shared\MungeInterface;
 
 use function preg_split;
 use function strrpos;

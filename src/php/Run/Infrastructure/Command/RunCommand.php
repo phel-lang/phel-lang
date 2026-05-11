@@ -6,11 +6,11 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
-use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Infrastructure\Service\DebugLineTap;
 use Phel\Phel;
 use Phel\Run\RunFacade;
+use Phel\Shared\Munge;
 use Phel\Shared\ResourceUsageFormatter;
 
 use Symfony\Component\Console\Command\Command;

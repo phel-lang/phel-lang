@@ -8,7 +8,6 @@ use Phel\Command\Domain\ErrorLogInterface;
 use Phel\Command\Domain\Exceptions\ExceptionArgsPrinterInterface;
 use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
-use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
 use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Compiler\Domain\Exceptions\ErrorCode;
@@ -16,6 +15,7 @@ use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Phel\Lang\FnInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Shared\ColorStyleInterface;
+use Phel\Shared\MungeInterface;
 use ReflectionClass;
 use Throwable;
 

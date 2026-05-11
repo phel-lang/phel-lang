@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Application;
 
-use Phel\Compiler\Application\Munge;
+use Phel\Shared\Munge;
 use PHPUnit\Framework\TestCase;
 
 final class MungeTest extends TestCase

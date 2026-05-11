@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Repl;
 
-use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Shared\Munge;
 
 use function sprintf;
 

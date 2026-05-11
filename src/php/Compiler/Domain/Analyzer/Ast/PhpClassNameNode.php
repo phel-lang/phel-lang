@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Analyzer\Ast;
 
-use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Shared\Munge;
 use ReflectionClass;
 
 final class PhpClassNameNode extends AbstractNode

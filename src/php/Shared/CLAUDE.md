@@ -32,6 +32,7 @@ Located in `Facade/` subdirectory. Each module implements its corresponding inte
 - **ColorStyle** (implements `ColorStyleInterface`) — ANSI terminal colors: `green()`, `yellow()`, `blue()`, `red()`
   - Factory: `ColorStyle::withStyles()` / `ColorStyle::noStyles()`
 - **ResourceUsageFormatter** — `resourceUsageSinceStartOfRequest()` returns `Time: HH:MM:SS.mmm, Memory: X.XX MB` (used by `run --with-time`, `test`, `build`)
+- **Munge** (implements `MungeInterface`) — namespace and symbol name encoder; `encode()`, `encodePhpNs()`, `encodeRegistryKey()`, `decodeNs()`, plus static helpers `canonicalNs()` / `displayNs()`. Pure stateless. Used by Compiler emitter and analyzer, plus every module that resolves user-typed namespaces against the runtime registry (`Api`, `Run`, `Command`, `Profile`, `Build`, `Interop`).
 
 ## Dependencies
 

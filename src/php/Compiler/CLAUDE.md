@@ -32,7 +32,7 @@ Core compilation pipeline: Phel source -> tokens -> AST -> analyzed nodes -> PHP
 - `getNamespaceEnvironmentData(string $ns): array` / `restoreNamespaceEnvironmentData(string $ns, array $data): void`
 
 **Utility**
-- `encodeNs(string $namespace): string` — PHP-form encoder (delegates to `Munge::encodePhpNs`); used for build/path resolution
+- `encodeNs(string $namespace): string` — PHP-form encoder (delegates to `\Phel\Shared\Munge::encodePhpNs`); used for build/path resolution
 - `hasBalancedParentheses(string $code): bool`
 
 ## Dependencies
@@ -56,7 +56,7 @@ Core compilation pipeline: Phel source -> tokens -> AST -> analyzed nodes -> PHP
 
 ```
 Compiler/
-├── Application/        Analyzer, CodeCompiler, EvalCompiler, GlobalEnvironmentManager, Lexer, Parser, Reader, MacroExpander, Munge
+├── Application/        Analyzer, CodeCompiler, EvalCompiler, GlobalEnvironmentManager, Lexer, Parser, Reader, MacroExpander
 ├── Domain/
 │   ├── Analyzer/       AST nodes, special form handlers, environments
 │   ├── Compiler/       CodeCompilerInterface, EvalCompilerInterface
@@ -81,7 +81,7 @@ Compiler/
 
 ## Namespace Encoding
 
-`Munge` exposes two encoders, used at different boundaries:
+Namespace and symbol encoding is owned by `Phel\Shared\Munge` (see `src/php/Shared/CLAUDE.md`). The compiler consumes it via `CompilerFactory::createMunge()` and exposes the PHP-form encoder through `CompilerFacade::encodeNs()`. Two encoders, used at different boundaries:
 
 | Encoder | Form | Used by |
 |---|---|---|

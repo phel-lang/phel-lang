@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel;
-use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\InNsNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Shared\Munge;
 
 use function addslashes;
 use function assert;

@@ -11,7 +11,6 @@ use Phel\Compiler\Application\EvalCompiler;
 use Phel\Compiler\Application\GlobalEnvironmentManager;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\Application\MacroExpander;
-use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Application\NamespaceEnvironmentSerializer;
 use Phel\Compiler\Application\ParenthesesChecker;
 use Phel\Compiler\Application\Parser;
@@ -25,7 +24,6 @@ use Phel\Compiler\Domain\Emitter\FileEmitter;
 use Phel\Compiler\Domain\Emitter\FileEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\EmitMode;
-use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterFactory;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\OutputEmitterOptions;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapGenerator;
@@ -48,6 +46,8 @@ use Phel\Filesystem\FilesystemFacadeInterface;
 use Phel\Lang\TagHandlers\BuiltinTagHandlers;
 use Phel\Lang\TagRegistry;
 use Phel\Printer\Printer;
+use Phel\Shared\Munge;
+use Phel\Shared\MungeInterface;
 
 /**
  * @extends AbstractFactory<CompilerConfig>

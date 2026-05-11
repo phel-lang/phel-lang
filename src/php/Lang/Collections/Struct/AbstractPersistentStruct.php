@@ -12,6 +12,8 @@ use Phel\Lang\Collections\Map\AbstractPersistentMap;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\TypeFactory;
+use Phel\Shared\Munge;
+use Phel\Shared\MungeInterface;
 use Traversable;
 
 use function count;
@@ -27,7 +29,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
 {
     protected const array ALLOWED_KEYS = [];
 
-    private StructKeyEncoder $keyEncoder;
+    private MungeInterface $keyEncoder;
 
     public function __construct()
     {
@@ -36,7 +38,7 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
             TypeFactory::getInstance()->getEqualizer(),
             null,
         );
-        $this->keyEncoder = new StructKeyEncoder();
+        $this->keyEncoder = new Munge();
     }
 
     /**

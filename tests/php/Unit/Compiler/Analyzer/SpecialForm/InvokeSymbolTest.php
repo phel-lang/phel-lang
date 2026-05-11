@@ -7,7 +7,6 @@ namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 use Exception;
 use Phel;
 use Phel\Compiler\Application\Analyzer;
-use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
@@ -20,6 +19,7 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\InvokeSymbol;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
+use Phel\Shared\Munge;
 use PHPUnit\Framework\TestCase;
 
 final class InvokeSymbolTest extends TestCase

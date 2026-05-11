@@ -11,7 +11,6 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Emitter\EmitterResult;
-use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
@@ -159,11 +158,6 @@ final class CompilerFacade extends AbstractFacade implements CompilerFacadeInter
     public function encodeNs(string $namespace): string
     {
         return $this->cached(fn(): string => $this->getFactory()->createMunge()->encodePhpNs($namespace));
-    }
-
-    public function createMunge(): MungeInterface
-    {
-        return $this->getFactory()->createMunge();
     }
 
     public function hasBalancedParentheses(string $code): bool

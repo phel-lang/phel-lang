@@ -8,13 +8,13 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\LiteralEmitter;
-use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterFactory;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\OutputEmitterOptions;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapState;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Printer\PrinterInterface;
+use Phel\Shared\MungeInterface;
 
 use function count;
 use function is_null;

@@ -4,7 +4,7 @@
   (:use Phel.Lang.Registry)
   (:use Phel.Build.BuildFacade)
   (:use Phel.Command.CommandFacade)
-  (:use Phel.Compiler.Application.Munge)
+  (:use Phel.Shared.Munge)
   (:use Phel.Compiler.CompilerFacade)
   (:use Phel.Compiler.Infrastructure.CompileOptions)
   (:use Phel.Compiler.Infrastructure.GlobalEnvironmentSingleton)
