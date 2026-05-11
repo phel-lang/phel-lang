@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Run\Domain\Repl;
 
+use Gacela\Framework\Gacela;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Run\Domain\Repl\ReplPrompt;
@@ -15,6 +16,7 @@ final class ReplPromptTest extends TestCase
 
     protected function setUp(): void
     {
+        Gacela::bootstrap(__DIR__);
         GlobalEnvironmentSingleton::reset();
         $this->compilerFacade = new CompilerFacade();
     }
