@@ -33,6 +33,7 @@ final class CommandFactory extends AbstractFactory
             $this->createExceptionPrinter(),
             new ErrorLog($this->getConfig()->getErrorLogFile()),
             new FilePositionExtractor(new SourceMapExtractor()),
+            $this->getConfig()->getStaleOutputHint(),
         );
     }
 

@@ -30,6 +30,7 @@ final class CommandExceptionWriterTest extends TestCase
             $this->createStub(ExceptionPrinterInterface::class),
             $this->createStub(ErrorLogInterface::class),
             $extractor,
+            'stale compiled output? try `rm -rf out /var/state/cache` and rebuild.',
         );
 
         $output = new BufferedOutput();
@@ -56,6 +57,7 @@ final class CommandExceptionWriterTest extends TestCase
             $this->createStub(ExceptionPrinterInterface::class),
             $this->createStub(ErrorLogInterface::class),
             $extractor,
+            'stale compiled output? try `rm -rf out /var/state/cache` and rebuild.',
         );
 
         $output = new BufferedOutput();
@@ -65,7 +67,7 @@ final class CommandExceptionWriterTest extends TestCase
 
         self::assertStringContainsString('boom', $text);
         self::assertStringContainsString('at /proj/out/phel/http.php:12', $text);
-        self::assertStringContainsString('rm -rf out/ .phel/cache/', $text);
+        self::assertStringContainsString('rm -rf out /var/state/cache', $text);
     }
 
     public function test_internal_phel_lang_source_does_not_invoke_extractor(): void
@@ -77,6 +79,7 @@ final class CommandExceptionWriterTest extends TestCase
             $this->createStub(ExceptionPrinterInterface::class),
             $this->createStub(ErrorLogInterface::class),
             $extractor,
+            'stale compiled output? try `rm -rf out /var/state/cache` and rebuild.',
         );
 
         $output = new BufferedOutput();

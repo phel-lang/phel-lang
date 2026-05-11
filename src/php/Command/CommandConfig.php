@@ -11,6 +11,7 @@ use Phel\Config\PhelConfig;
 use Phel\Filesystem\Application\PhelProjectDirectory;
 
 use function dirname;
+use function sprintf;
 
 final class CommandConfig extends AbstractConfig
 {
@@ -62,5 +63,27 @@ final class CommandConfig extends AbstractConfig
         $phelDir = (string) $this->get(PhelConfig::PHEL_DIR, '');
 
         return PhelProjectDirectory::resolve($this->getAppRootDir(), $path, $phelDir);
+    }
+
+    /**
+     * Recipe for clearing build state when compiled output is corrupted.
+     * Uses the configured output and state directories so the hint reflects
+     * the project's actual layout (`withBuildDestDir()`, `withCacheDir()`,
+     * `withPhelDir()`).
+     */
+    public function getStaleOutputHint(): string
+    {
+        $buildConfig = $this->get(PhelConfig::BUILD_CONFIG, []);
+        $outputDir = (string) ($buildConfig[PhelBuildConfig::DEST_DIR] ?? self::DEFAULT_OUTPUT_DIR);
+
+        $cacheDir = (string) $this->get(PhelConfig::CACHE_DIR, '.phel/cache');
+        $phelDir = (string) $this->get(PhelConfig::PHEL_DIR, '');
+        $resolvedCacheDir = PhelProjectDirectory::resolve($this->getAppRootDir(), $cacheDir, $phelDir);
+
+        return sprintf(
+            'stale compiled output? try `rm -rf %s %s` and rebuild.',
+            rtrim($outputDir, '/'),
+            rtrim($resolvedCacheDir, '/'),
+        );
     }
 }

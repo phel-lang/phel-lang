@@ -22,43 +22,17 @@ final readonly class CommandExceptionWriter implements CommandExceptionWriterInt
         private ExceptionPrinterInterface $exceptionPrinter,
         private ErrorLogInterface $errorLog,
         private FilePositionExtractorInterface $filePositionExtractor,
+        private string $staleOutputHint,
     ) {}
 
-    public function writeStackTrace(
-        OutputInterface $output,
-        Throwable $e,
-    ): void {
+    public function writeStackTrace(OutputInterface $output, Throwable $e): void
+    {
         $cause = $e->getPrevious() ?? $e;
-        $message = $cause->getMessage();
-        $file = $cause->getFile();
-        $line = $cause->getLine();
 
-        if (str_contains($file, 'phel-lang/src')) {
-            $output->writeln($message);
-            $this->errorLog->writeln($this->getStackTraceString($e));
-            return;
-        }
-
-        $output->writeln($message);
-
-        if (str_ends_with($file, '.php')) {
-            $position = $this->filePositionExtractor->getOriginal($file, $line);
-            $resolvedToPhel = $position->filename() !== $file;
-
-            if ($resolvedToPhel) {
-                $output->writeln(sprintf(
-                    '  at %s:%d (compiled: %s:%d)',
-                    $position->filename(),
-                    $position->line(),
-                    $file,
-                    $line,
-                ));
-            } else {
-                $output->writeln(sprintf('  at %s:%d', $file, $line));
-                $output->writeln('  hint: stale compiled output? try `rm -rf out/ .phel/cache/` and rebuild.');
-            }
+        if (str_contains($cause->getFile(), 'phel-lang/src')) {
+            $output->writeln($cause->getMessage());
         } else {
-            $output->writeln(sprintf('  at %s:%d', $file, $line));
+            $this->writeUserError($output, $cause);
         }
 
         $this->errorLog->writeln($this->getStackTraceString($e));
@@ -80,5 +54,30 @@ final readonly class CommandExceptionWriter implements CommandExceptionWriterInt
     public function getStackTraceString(Throwable $e): string
     {
         return $this->exceptionPrinter->getStackTraceString($e);
+    }
+
+    private function writeUserError(OutputInterface $output, Throwable $cause): void
+    {
+        $file = $cause->getFile();
+        $line = $cause->getLine();
+        $position = $this->filePositionExtractor->getOriginal($file, $line);
+
+        $output->writeln($cause->getMessage());
+
+        if ($position->filename() !== $file) {
+            $output->writeln(sprintf(
+                '  at %s:%d (compiled: %s:%d)',
+                $position->filename(),
+                $position->line(),
+                $file,
+                $line,
+            ));
+            return;
+        }
+
+        $output->writeln(sprintf('  at %s:%d', $file, $line));
+        if (str_ends_with($file, '.php')) {
+            $output->writeln('  hint: ' . $this->staleOutputHint);
+        }
     }
 }
