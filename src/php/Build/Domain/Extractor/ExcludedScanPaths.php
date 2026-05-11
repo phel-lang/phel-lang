@@ -69,6 +69,18 @@ final readonly class ExcludedScanPaths
     }
 
     /**
+     * Tests an absolute path against the segments that are always excluded
+     * from namespace scans (vendor, .git, node_modules, worktrees, .agents,
+     * resources/agents). Stateless: no scan root and no per-instance
+     * configuration needed, so caches and other path consumers can reuse
+     * the same policy without holding a scan instance.
+     */
+    public static function isAlwaysExcluded(string $path): bool
+    {
+        return array_any(self::ALWAYS_EXCLUDED_SEGMENTS, static fn($segment): bool => str_contains($path, (string) $segment));
+    }
+
+    /**
      * Returns `true` when a directory entry must be skipped at descent time
      * during a recursive scan. Pruning here is much cheaper than discarding
      * files emitted by the underlying iterator.

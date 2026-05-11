@@ -10,6 +10,9 @@ final class RunConfig extends AbstractConfig
 {
     public function getReplStartupFile(): string
     {
-        return __DIR__ . '/Domain/Repl/startup.phel';
+        // Lives outside `src/` so the default `srcDirs = ['src']` walk
+        // never picks up the bundled REPL bootstrap as a primary
+        // `(ns user)` definition for downstream projects dogfooding Phel.
+        return __DIR__ . '/../../../resources/repl/startup.phel';
     }
 }

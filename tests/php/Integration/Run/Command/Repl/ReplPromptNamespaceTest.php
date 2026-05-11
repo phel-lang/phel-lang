@@ -103,7 +103,7 @@ final class ReplPromptNamespaceTest extends AbstractTestCommand
         );
         $this->prepareRunFactory($io);
 
-        $replStartupFile = __DIR__ . '/../../../../../../src/php/Run/Domain/Repl/startup.phel';
+        $replStartupFile = __DIR__ . '/../../../../../../resources/repl/startup.phel';
         ob_start();
         try {
             new ReplCommand()->setReplStartupFile($replStartupFile)->run(

@@ -6,6 +6,7 @@ namespace Phel\Build\Infrastructure\Cache;
 
 use Phel\Build\Domain\Cache\NamespaceCacheEntry;
 use Phel\Build\Domain\Cache\NamespaceCacheInterface;
+use Phel\Build\Domain\Extractor\ExcludedScanPaths;
 
 use function dirname;
 use function function_exists;
@@ -28,6 +29,13 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
         private readonly string $cacheFile,
     ) {
         $this->entries = $this->loadEntriesFromFile();
+
+        // `loadEntriesFromFile` may evict entries under always-excluded
+        // segments; persist that cleanup at shutdown even if no put/remove
+        // happens during the run.
+        if ($this->dirty) {
+            $this->registerShutdown();
+        }
     }
 
     public function get(string $file): ?NamespaceCacheEntry
@@ -132,6 +140,16 @@ final class PhpNamespaceCache implements NamespaceCacheInterface
 
         $entries = [];
         foreach ($data['entries'] ?? [] as $file => $entryData) {
+            // Drop entries whose path now lives under an always-excluded
+            // segment (vendor/, worktrees/, .agents/, ...). Without this,
+            // pre-existing cache entries resurface as primary definitions
+            // and trigger duplicate-namespace warnings against real sources
+            // every time the exclusion policy gains a new prefix.
+            if (is_string($file) && ExcludedScanPaths::isAlwaysExcluded($file)) {
+                $this->dirty = true;
+                continue;
+            }
+
             if (is_array($entryData)
                 && isset($entryData['mtime'], $entryData['namespace'], $entryData['dependencies'])
                 && is_int($entryData['mtime'])
