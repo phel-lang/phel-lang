@@ -7,65 +7,60 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 #### Core
-- `^:memoize` and `^{:memoize-lru N}` metadata on `defn` wrap the fn with `memoize` / `memoize-lru` (#1915)
-- `^:async` metadata on `defn` wraps the body in `async`, returning an `Amp\Future` that callers `await` (#1924)
+- `defn` metadata: `^:memoize`, `^{:memoize-lru N}` wrap body in `memoize` / `memoize-lru` (#1915); `^:async` wraps in `async` returning `Amp\Future` (#1924)
 
 #### Compiler
-- `php/Foo.Bar/baz` and `php/Foo.Bar.baz` accepted as backslash-free aliases for `php/Foo\Bar\baz` (#1952)
 - `:tag` metadata emits PHP type declarations; reader shorthands `^int`, `^"?int"`, `^"\\Foo\\Bar"`, `^{:tag "..."}` (#1916)
-- Return-type inference from tail primitive ops on tagged params (#1932)
-- Return-type inference covers tail calls to tagged globals and pure PHP built-ins (#1941)
-- Inferred return types persist as `:tag` in def meta for cross-fn propagation (#1941)
-- Param-type inference from primitive body uses feeds the static checker (#1944)
-- Inferred param tags graft onto the compiled PHP signature for single-arity `defn`; guards suppress (#1949)
+- Tag inference: return types from tail primitive ops and tail calls to tagged globals / pure PHP built-ins (#1932, #1941); param types from primitive body uses (#1944); inferred tags persist in def meta and graft onto compiled PHP signatures for single-arity `defn` (#1941, #1949)
 - Static checker reports `:tag` mismatches at compile time (#1933)
+- `php/Foo.Bar/baz` and `php/Foo.Bar.baz` accepted as backslash-free aliases for `php/Foo\Bar\baz` (#1952)
 - `composer bench-jit-baseline` / `bench-jit-tracing` for typed-vs-untyped JIT kernels (#1931)
 
 #### Profile
-- `phel profile <path>` command: per-fn timings and compile-phase costs (`--format`, `--output`)
+- `phel profile <path>`: per-fn timings and compile-phase costs (`--format`, `--output`)
 
 #### Test
-- Collection `(is (= a b))` failures render a unified diff
+- Unified diff on `(is (= a b))` collection failures
 - `phel test --repeat=N`, `--seed=<int>`, `--random-order`
 
 #### REPL
-- Eval errors: headline, optional hint, trace with internal frames hidden
+- Eval-error rendering: headline, optional hint, trace with internal frames hidden
 
 ### Changed
 
 #### Compiler
-- Recursive self-calls emit `$this(...)`; ~3.66x faster on `fib(22)` (#1914)
+- Recursive self-calls emit `$this(...)`: ~3.66x faster (#1914)
 
 #### DX
 - Runtime state (cache, REPL history, error log) consolidated under `.phel/`; relocate via `withPhelDir()` or `PHEL_DIR` env (#1954)
-- `Munge`, `CompileOptions`, `PhelProjectDirectory`, `VersionFinder` moved to `Phel\Shared`; `GlobalEnvironment` and `DebugLineTap` reached via `CompilerFacade`; factory boundary rule codified in `.claude/rules/php.md` (#1963, #1964)
-- `PhelConfig`, `PhelBuildConfig`, `PhelExportConfig` immutable via `withX()` chain; build/export fields flat on root config; old `setX()` shims deprecated
-- **Breaking:** `PhelConfig::forProject(ProjectLayout $layout = Flat, string $mainNamespace = '')` — layout first, Flat default; migrate `forProject('ns')` to `forProject()->withMainPhelNamespace('ns')`
+- Module boundary tightening: `Munge`, `CompileOptions`, `PhelProjectDirectory`, `VersionFinder` moved to `Phel\Shared`; `GlobalEnvironment`, `DebugLineTap` exposed via `CompilerFacade` (#1963, #1964)
+- `PhelConfig` immutable via `withX()` chain; build/export fields flat on root; old `setX()` shims deprecated
+- **Breaking:** `PhelConfig::forProject(ProjectLayout $layout = Flat, string $mainNamespace = '')`: layout first, Flat default
 
 ### Fixed
 
 #### Compiler
-- Return-type inference skips loops whose `recur` rebinds to a different or unknown type
+- Return-type inference skips loops whose `recur` rebinds to a different/unknown type
 
 #### Core
-- `memoize` / `memoize-lru` retain entries added by recursive calls during a single invocation (#1915)
+- `memoize` / `memoize-lru` retain entries from recursive calls within a single invocation (#1915)
 
 #### Test
 - Default reporter wraps dot output at 80 columns under `with-output-buffer`
 
 #### Api
-- `phel analyze` preloads namespaces required by the file under analysis (#1919)
+- `phel analyze` preloads namespaces required by the analyzed file (#1919)
 
 #### Nrepl
-- `lookup` / `info` / `eldoc` resolve session-defined `defn`s, honoring the request `ns` param or session namespace (#1963)
+- `lookup` / `info` / `eldoc` resolve session-defined `defn`s, honoring request `ns` param or session namespace (#1963)
 
 #### Build
 - Entry-point `main.php` `require_once` resolves dotted main namespaces to nested paths (#1956)
-- `PhpNamespaceCache` evicts entries under always-excluded segments at load time, so policy changes take effect without manual cache wipe (#1962)
+- `PhpNamespaceCache` evicts always-excluded segments at load time; policy changes take effect without manual cache wipe (#1962)
 
 #### Run
-- `phel run <file>` resolves the script's `(:require ...)` from configured `srcDirs`/vendor first; sibling files in the script's directory only resolve as a name-matched fallback (#1962)
-- REPL `startup.phel` lives at `resources/repl/startup.phel`, outside default `srcDirs = ['src']` (#1962)
+- `phel run <file>` resolves `(:require ...)` from configured `srcDirs`/vendor first; sibling files resolve only as name-matched fallback (#1962)
+- REPL `startup.phel` lives at `resources/repl/startup.phel`, outside default `srcDirs` (#1962)
 
 ## [0.36.0](https://github.com/phel-lang/phel-lang/compare/v0.35.0...v0.36.0) - 2026-05-08
 
