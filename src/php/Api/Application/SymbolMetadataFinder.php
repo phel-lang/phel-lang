@@ -8,7 +8,6 @@ use Phel;
 use Phel\Api\Domain\PhelFnNormalizerInterface;
 use Phel\Api\Domain\SymbolMetadataFinderInterface;
 use Phel\Api\Transfer\PhelFunction;
-use Phel\Compiler\Application\Munge;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
@@ -84,6 +83,17 @@ final class SymbolMetadataFinder implements SymbolMetadataFinderInterface
     }
 
     /**
+     * Canonical (dot) namespace form. Mirrors `Munge::canonicalNs()` without
+     * importing the concrete class — `encodeRegistryKey()` already
+     * canonicalises internally; this is only used to populate the human-
+     * readable namespace on the returned `PhelFunction`.
+     */
+    private function canonicalNs(string $ns): string
+    {
+        return str_replace('\\', '.', $ns);
+    }
+
+    /**
      * @return array{0:?string,1:string}
      */
     private function splitSymbol(string $symbol): array
@@ -101,7 +111,7 @@ final class SymbolMetadataFinder implements SymbolMetadataFinderInterface
      */
     private function candidateNamespacesFor(string $currentNs): array
     {
-        $canonical = Munge::canonicalNs($currentNs);
+        $canonical = $this->canonicalNs($currentNs);
         if ($canonical === self::CORE_NAMESPACE) {
             return [self::CORE_NAMESPACE];
         }
@@ -111,7 +121,7 @@ final class SymbolMetadataFinder implements SymbolMetadataFinderInterface
 
     private function lookupQualified(string $ns, string $name): ?PhelFunction
     {
-        $canonical = Munge::canonicalNs($ns);
+        $canonical = $this->canonicalNs($ns);
         $encodedNs = $this->munge->encodeRegistryKey($canonical);
         $encodedName = $this->munge->encode($name);
 

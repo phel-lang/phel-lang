@@ -31,8 +31,6 @@ use Phel\Api\Domain\SymbolResolverInterface;
 use Phel\Api\Infrastructure\Daemon\ApiDaemon;
 use Phel\Api\Infrastructure\PhelFnLoader;
 use Phel\Api\Infrastructure\PhelFunctionRuntimeLoader;
-use Phel\Compiler\Application\Munge;
-use Phel\Compiler\Domain\Emitter\OutputEmitter\MungeInterface;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
@@ -112,7 +110,7 @@ final class ApiFactory extends AbstractFactory
     public function createSymbolMetadataFinder(): SymbolMetadataFinderInterface
     {
         return new SymbolMetadataFinder(
-            $this->createMunge(),
+            $this->getCompilerFacade()->createMunge(),
             $this->createPhelFnNormalizer(),
         );
     }
@@ -123,11 +121,6 @@ final class ApiFactory extends AbstractFactory
         $facade = $this->getProvidedDependency(ApiProvider::FACADE_RUN);
 
         return $facade;
-    }
-
-    private function createMunge(): MungeInterface
-    {
-        return new Munge();
     }
 
     private function createPhelFnLoader(): PhelFnLoaderInterface
