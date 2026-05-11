@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Run\Application;
 
-use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Run\Domain\Repl\EvalResult;
+use Phel\Shared\CompileOptions;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
 final readonly class StructuredEvaluator

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Console\Application;
 
-use Phel\Console\Application\VersionFinder;
+use Phel\Shared\VersionFinder;
 use PHPUnit\Framework\TestCase;
 
 final class VersionFinderTest extends TestCase

@@ -8,7 +8,7 @@ use Gacela\Framework\AbstractConfig;
 use Phel\Command\Domain\CodeDirectories;
 use Phel\Config\PhelBuildConfig;
 use Phel\Config\PhelConfig;
-use Phel\Filesystem\Application\PhelProjectDirectory;
+use Phel\Shared\PhelProjectDirectory;
 
 use function dirname;
 use function sprintf;

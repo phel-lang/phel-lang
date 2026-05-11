@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Filesystem\Application;
+namespace Phel\Shared;
 
 use function is_string;
 use function strlen;

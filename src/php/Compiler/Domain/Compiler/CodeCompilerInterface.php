@@ -8,8 +8,8 @@ use Phel\Compiler\Domain\Emitter\EmitterResult;
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
-use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\CompileOptions;
 
 interface CodeCompilerInterface
 {

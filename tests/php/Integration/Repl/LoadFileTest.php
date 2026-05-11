@@ -7,7 +7,7 @@ namespace PhelTest\Integration\Repl;
 use Phel;
 use Phel\Build\BuildFacade;
 use Phel\Compiler\CompilerFacade;
-use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Shared\CompileOptions;
 use PHPUnit\Framework\Attributes\PreserveGlobalState;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;

@@ -3,7 +3,7 @@
 (use Phel)
 (use Phel.Shared.Munge)
 (use Phel.Compiler.CompilerFacade)
-(use Phel.Compiler.Infrastructure.CompileOptions)
+(use Phel.Shared.CompileOptions)
 (use Phel.Compiler.Infrastructure.GlobalEnvironmentSingleton)
 (use Phel.Lang.PhelVar)
 (use Phel.Lang.Symbol)

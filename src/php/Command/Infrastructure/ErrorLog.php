@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Command\Infrastructure;
 
 use Phel\Command\Domain\ErrorLogInterface;
-use Phel\Filesystem\Application\PhelProjectDirectory;
+use Phel\Shared\PhelProjectDirectory;
 
 use function dirname;
 

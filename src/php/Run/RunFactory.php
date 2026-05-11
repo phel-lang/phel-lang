@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Run;
 
 use Gacela\Framework\AbstractFactory;
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Printer\Printer;
 use Phel\Printer\PrinterInterface;
 use Phel\Run\Application\BundledNamespaces;
@@ -140,12 +139,12 @@ class RunFactory extends AbstractFactory
 
     public function createReplHistory(): ReplHistory
     {
-        return new ReplHistory(GlobalEnvironmentSingleton::getInstance());
+        return new ReplHistory($this->getCompilerFacade()->getGlobalEnvironment());
     }
 
     public function createReplPrompt(): ReplPrompt
     {
-        return new ReplPrompt();
+        return new ReplPrompt($this->getCompilerFacade());
     }
 
     public function createNamespacesLoader(): NamespacesLoader
@@ -181,6 +180,7 @@ class RunFactory extends AbstractFactory
         return new NamespaceLoader(
             $this->getBuildFacade(),
             $this->getCommandFacade(),
+            $this->getCompilerFacade(),
             $this->createBundledNamespaces(),
             $this->getConfig()->getReplStartupFile(),
         );

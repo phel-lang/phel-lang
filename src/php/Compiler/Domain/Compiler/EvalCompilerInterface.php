@@ -6,7 +6,7 @@ namespace Phel\Compiler\Domain\Compiler;
 
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
-use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Shared\CompileOptions;
 
 interface EvalCompilerInterface
 {

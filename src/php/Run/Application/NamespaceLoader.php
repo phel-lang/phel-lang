@@ -6,10 +6,10 @@ namespace Phel\Run\Application;
 
 use Phel;
 use Phel\Compiler\Domain\Analyzer\Resolver\LoadClasspath;
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Shared\CompilerConstants;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 
 use function array_unique;
 use function array_values;
@@ -27,6 +27,7 @@ final class NamespaceLoader
     public function __construct(
         private readonly BuildFacadeInterface $buildFacade,
         private readonly CommandFacadeInterface $commandFacade,
+        private readonly CompilerFacadeInterface $compilerFacade,
         private readonly BundledNamespaces $bundledNamespaces,
         private readonly string $defaultReplStartupFile,
     ) {}
@@ -73,7 +74,7 @@ final class NamespaceLoader
      */
     private function restoreStartupNamespace(string $namespace): void
     {
-        GlobalEnvironmentSingleton::getInstance()->setNs($namespace);
+        $this->compilerFacade->getGlobalEnvironment()->setNs($namespace);
     }
 
     /**

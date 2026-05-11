@@ -8,7 +8,6 @@ use Composer\InstalledVersions;
 use Gacela\Framework\AbstractProvider;
 use Gacela\Framework\Attribute\Provides;
 use Gacela\Framework\Container\Container;
-use Phel\Console\Application\VersionFinder;
 use Phel\Console\Domain\ConsoleCommandProviderInterface;
 use Phel\Console\Infrastructure\Command\ApiCommands;
 use Phel\Console\Infrastructure\Command\BuildCommands;
@@ -22,6 +21,7 @@ use Phel\Console\Infrastructure\Command\ProfileCommands;
 use Phel\Console\Infrastructure\Command\RunCommands;
 use Phel\Console\Infrastructure\Command\WatchCommands;
 use Phel\Filesystem\FilesystemFacade;
+use Phel\Shared\VersionFinder;
 use Symfony\Component\Console\Command\Command;
 
 final class ConsoleProvider extends AbstractProvider

@@ -31,9 +31,9 @@ use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
 use Phel\Build\Infrastructure\Cache\DependencyTracker;
 use Phel\Build\Infrastructure\Cache\PhpNamespaceCache;
 use Phel\Build\Infrastructure\IO\SystemFileIo;
-use Phel\Console\Application\VersionFinder;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\VersionFinder;
 
 /**
  * @extends AbstractFactory<BuildConfig>

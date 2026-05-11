@@ -6,8 +6,8 @@ namespace Phel\Shared\Facade;
 
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
-use Phel\Compiler\Infrastructure\CompileOptions;
 use Phel\Run\Domain\Repl\EvalResult;
+use Phel\Shared\CompileOptions;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 

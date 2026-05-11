@@ -4,14 +4,18 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Repl;
 
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Munge;
 
 use function sprintf;
 
-final class ReplPrompt
+final readonly class ReplPrompt
 {
     private const string DEFAULT_NAMESPACE = 'user';
+
+    public function __construct(
+        private CompilerFacadeInterface $compilerFacade,
+    ) {}
 
     public function initial(int $lineNumber): string
     {
@@ -25,11 +29,11 @@ final class ReplPrompt
 
     private function currentNamespace(): string
     {
-        if (!GlobalEnvironmentSingleton::isInitialized()) {
+        if (!$this->compilerFacade->isGlobalEnvironmentInitialized()) {
             return self::DEFAULT_NAMESPACE;
         }
 
-        $ns = GlobalEnvironmentSingleton::getInstance()->getNs();
+        $ns = $this->compilerFacade->getGlobalEnvironment()->getNs();
 
         return $ns !== '' ? Munge::displayNs($ns) : self::DEFAULT_NAMESPACE;
     }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Console\Application;
+namespace Phel\Shared;
 
 use function in_array;
 

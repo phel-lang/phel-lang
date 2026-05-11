@@ -8,8 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
-use Phel\Compiler\Infrastructure\CompileOptions;
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Shared\CompileOptions;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Throwable;
 
@@ -43,7 +42,7 @@ final readonly class EvalResult
         string $phelCode,
         CompileOptions $compileOptions = new CompileOptions(),
     ): self {
-        $env = self::captureEnvironment();
+        $env = self::captureEnvironment($compilerFacade);
         $snapshot = $env?->snapshot();
 
         ob_start();
@@ -152,10 +151,10 @@ final readonly class EvalResult
         return $frames;
     }
 
-    private static function captureEnvironment(): ?GlobalEnvironmentInterface
+    private static function captureEnvironment(CompilerFacadeInterface $compilerFacade): ?GlobalEnvironmentInterface
     {
-        return GlobalEnvironmentSingleton::isInitialized()
-            ? GlobalEnvironmentSingleton::getInstance()
+        return $compilerFacade->isGlobalEnvironmentInitialized()
+            ? $compilerFacade->getGlobalEnvironment()
             : null;
     }
 

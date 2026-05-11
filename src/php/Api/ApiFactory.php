@@ -31,7 +31,6 @@ use Phel\Api\Domain\SymbolResolverInterface;
 use Phel\Api\Infrastructure\Daemon\ApiDaemon;
 use Phel\Api\Infrastructure\PhelFnLoader;
 use Phel\Api\Infrastructure\PhelFunctionRuntimeLoader;
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
 use Phel\Shared\Munge;
@@ -46,7 +45,7 @@ final class ApiFactory extends AbstractFactory
         return new ReplCompleter(
             $this->createPhelFnLoader(),
             $this->getConfig()->allNamespaces(),
-            GlobalEnvironmentSingleton::getInstance(),
+            $this->getCompilerFacade()->getGlobalEnvironment(),
         );
     }
 
@@ -127,7 +126,7 @@ final class ApiFactory extends AbstractFactory
     private function createPhelFnLoader(): PhelFnLoaderInterface
     {
         return new PhelFnLoader(
-            new PhelFunctionRuntimeLoader($this->getRunFacade()),
+            new PhelFunctionRuntimeLoader($this->getRunFacade(), $this->getCompilerFacade()),
         );
     }
 

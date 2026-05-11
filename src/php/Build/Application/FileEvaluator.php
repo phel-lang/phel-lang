@@ -14,7 +14,7 @@ use Phel\Build\Infrastructure\Cache\DependencyTracker;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
-use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Shared\CompileOptions;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use RuntimeException;
 use Throwable;

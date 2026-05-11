@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Watch\Application;
 
-use Phel\Compiler\Infrastructure\CompileOptions;
+use Phel\Shared\CompileOptions;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\RunFacadeInterface;
 use Phel\Watch\Domain\NamespaceResolverInterface;

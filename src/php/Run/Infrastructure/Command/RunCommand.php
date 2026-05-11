@@ -7,7 +7,6 @@ namespace Phel\Run\Infrastructure\Command;
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use Phel\Compiler\Domain\Exceptions\CompilerException;
-use Phel\Compiler\Infrastructure\Service\DebugLineTap;
 use Phel\Phel;
 use Phel\Run\RunFacade;
 use Phel\Shared\Munge;
@@ -70,7 +69,7 @@ final class RunCommand extends Command
         $debugOption = $input->getOption('debug');
         if ($debugOption !== false) {
             $phelFileFilter = is_string($debugOption) && $debugOption !== '' ? $debugOption : null;
-            DebugLineTap::enable($phelFileFilter);
+            $this->getFacade()->enableDebugLineTap($phelFileFilter);
 
             if ($output->isVerbose()) {
                 $output->writeln('<info>Debug tracing enabled. Logging to: ./phel-debug.log</info>');
@@ -124,7 +123,7 @@ final class RunCommand extends Command
                 $output->writeln(new ResourceUsageFormatter()->resourceUsageSinceStartOfRequest());
             }
 
-            DebugLineTap::disable();
+            $this->getFacade()->disableDebugLineTap();
 
             return self::SUCCESS;
         } catch (CompilerException $e) {
@@ -132,7 +131,7 @@ final class RunCommand extends Command
         } catch (Throwable $e) {
             $this->getFacade()->writeStackTrace($output, $e);
         } finally {
-            DebugLineTap::disable();
+            $this->getFacade()->disableDebugLineTap();
         }
 
         return self::FAILURE;
