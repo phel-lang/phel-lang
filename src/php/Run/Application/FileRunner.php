@@ -35,9 +35,13 @@ final readonly class FileRunner
         LoadClasspath::publish([...$primaryDirs, $scriptDir]);
         new DataReadersLoader($this->buildFacade)->load($primaryDirs);
 
+        // Seed the dependency walk with both the script namespace and its
+        // direct requires: an ad-hoc script (in dirname rather than srcDirs)
+        // is not itself discoverable, so its transitive deps would otherwise
+        // be missed even when they live under configured `srcDirs`/vendor.
         $primaryInfos = $this->buildFacade->getDependenciesForNamespace(
             $primaryDirs,
-            [$namespace, 'phel.core'],
+            [$namespace, 'phel.core', ...$scriptInfo->getDependencies()],
         );
 
         $resolved = [];
