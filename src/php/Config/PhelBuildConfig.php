@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Config;
 
+use Deprecated;
 use JsonSerializable;
 
 use function count;
 use function sprintf;
 
-final class PhelBuildConfig implements JsonSerializable
+final readonly class PhelBuildConfig implements JsonSerializable
 {
     public const string DEST_DIR = 'dir';
 
@@ -23,31 +24,28 @@ final class PhelBuildConfig implements JsonSerializable
 
     private const string DEFAULT_PHP_FILENAME = 'index.php';
 
-    private string $mainPhelNamespace = '';
+    public string $mainPhpPath;
 
-    private string $destDir = '';
-
-    private string $mainPhpPath = '';
+    public function __construct(
+        public string $mainPhelNamespace = '',
+        string $mainPhpPath = '',
+        public string $destDir = '',
+    ) {
+        $this->mainPhpPath = $mainPhpPath === ''
+            ? ''
+            : $this->normalizePhpExtension($mainPhpPath);
+    }
 
     /**
      * @param array<string, mixed> $array
      */
     public static function fromArray(array $array): self
     {
-        $self = new self();
-        if (isset($array[self::MAIN_PHEL_NAMESPACE])) {
-            $self->mainPhelNamespace = $array[self::MAIN_PHEL_NAMESPACE];
-        }
-
-        if (isset($array[self::DEST_DIR])) {
-            $self->destDir = $array[self::DEST_DIR];
-        }
-
-        if (isset($array[self::MAIN_PHP_PATH])) {
-            $self->mainPhpPath = $array[self::MAIN_PHP_PATH];
-        }
-
-        return $self;
+        return new self(
+            mainPhelNamespace: (string) ($array[self::MAIN_PHEL_NAMESPACE] ?? ''),
+            mainPhpPath: (string) ($array[self::MAIN_PHP_PATH] ?? ''),
+            destDir: (string) ($array[self::DEST_DIR] ?? ''),
+        );
     }
 
     /**
@@ -63,10 +61,15 @@ final class PhelBuildConfig implements JsonSerializable
         ];
     }
 
+    public function withMainPhelNamespace(string $namespace): self
+    {
+        return new self($namespace, $this->mainPhpPath, $this->destDir);
+    }
+
+    #[Deprecated(message: 'since 0.37, use withMainPhelNamespace()')]
     public function setMainPhelNamespace(string $namespace): self
     {
-        $this->mainPhelNamespace = $namespace;
-        return $this;
+        return $this->withMainPhelNamespace($namespace);
     }
 
     public function getMainPhelNamespace(): string
@@ -74,10 +77,15 @@ final class PhelBuildConfig implements JsonSerializable
         return $this->mainPhelNamespace;
     }
 
+    public function withMainPhpPath(string $path): self
+    {
+        return new self($this->mainPhelNamespace, $path, $this->destDir);
+    }
+
+    #[Deprecated(message: 'since 0.37, use withMainPhpPath()')]
     public function setMainPhpPath(string $path): self
     {
-        $this->mainPhpPath = $this->normalizePhpExtension($path);
-        return $this;
+        return $this->withMainPhpPath($path);
     }
 
     public function getMainPhpPath(): string
@@ -93,10 +101,15 @@ final class PhelBuildConfig implements JsonSerializable
         );
     }
 
+    public function withDestDir(string $dir): self
+    {
+        return new self($this->mainPhelNamespace, $this->mainPhpPath, $dir);
+    }
+
+    #[Deprecated(message: 'since 0.37, use withDestDir()')]
     public function setDestDir(string $dir): self
     {
-        $this->destDir = $dir;
-        return $this;
+        return $this->withDestDir($dir);
     }
 
     public function shouldCreateEntryPointPhpFile(): bool

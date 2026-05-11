@@ -42,7 +42,7 @@ final class BuildConfig extends AbstractConfig implements BuildConfigInterface
         if ($config->getMainPhelNamespace() === '') {
             $detected = $this->autoDetectMainNamespace();
             if ($detected !== '') {
-                $config->setMainPhelNamespace($detected);
+                $config = $config->withMainPhelNamespace($detected);
             }
         }
 

@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Phel\Config;
 
+use Deprecated;
 use JsonSerializable;
 
-final class PhelExportConfig implements JsonSerializable
+final readonly class PhelExportConfig implements JsonSerializable
 {
     public const string FROM_DIRECTORIES = 'from-directories';
 
@@ -14,35 +15,52 @@ final class PhelExportConfig implements JsonSerializable
 
     public const string TARGET_DIRECTORY = 'target-directory';
 
-    /** @var list<string> */
-    private array $fromDirectories = ['src'];
-
-    private string $namespacePrefix = 'PhelGenerated';
-
-    private string $targetDirectory = 'src/PhelGenerated';
+    /**
+     * @param list<string> $fromDirectories
+     */
+    public function __construct(
+        public array $fromDirectories = ['src'],
+        public string $namespacePrefix = 'PhelGenerated',
+        public string $targetDirectory = 'src/PhelGenerated',
+    ) {}
 
     /**
      * @param list<string> $list
      */
+    public function withFromDirectories(array $list): self
+    {
+        return new self($list, $this->namespacePrefix, $this->targetDirectory);
+    }
+
+    /**
+     * @param list<string> $list
+     */
+    #[Deprecated(message: 'since 0.37, use withFromDirectories()')]
     public function setFromDirectories(array $list): self
     {
-        $this->fromDirectories = $list;
-
-        return $this;
+        return $this->withFromDirectories($list);
     }
 
+    public function withNamespacePrefix(string $prefix): self
+    {
+        return new self($this->fromDirectories, $prefix, $this->targetDirectory);
+    }
+
+    #[Deprecated(message: 'since 0.37, use withNamespacePrefix()')]
     public function setNamespacePrefix(string $prefix): self
     {
-        $this->namespacePrefix = $prefix;
-
-        return $this;
+        return $this->withNamespacePrefix($prefix);
     }
 
+    public function withTargetDirectory(string $dir): self
+    {
+        return new self($this->fromDirectories, $this->namespacePrefix, $dir);
+    }
+
+    #[Deprecated(message: 'since 0.37, use withTargetDirectory()')]
     public function setTargetDirectory(string $dir): self
     {
-        $this->targetDirectory = $dir;
-
-        return $this;
+        return $this->withTargetDirectory($dir);
     }
 
     /**
