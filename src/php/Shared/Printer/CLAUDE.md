@@ -32,6 +32,7 @@ Each implements `TypePrinterInterface`. Selected at runtime based on value type:
 | `BigDecimalPrinter` | BigDecimal values (appends the `M` suffix so the readable form round-trips through the reader) |
 | `UuidPrinter` | UUID values (rendered as `#uuid "..."`) |
 | `VariablePrinter` | Variable objects (recursive) |
+| `VarPrinter` | `PhelVar` handles, rendered as `#'ns/name` |
 | `PersistentListPrinter` | Lists (recursive) |
 | `PersistentVectorPrinter` | Vectors (recursive) |
 | `PersistentMapPrinter` | Maps (recursive) |
@@ -60,7 +61,7 @@ Printer/
 └── TypePrinter/                One class per type
     ├── TypePrinterInterface.php
     ├── WithColorTrait.php      ANSI color support
-    └── ...20 printer classes
+    └── ...25 printer classes
 ```
 
 ## Key Constraints
