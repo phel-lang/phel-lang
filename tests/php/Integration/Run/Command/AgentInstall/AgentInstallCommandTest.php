@@ -220,6 +220,61 @@ final class AgentInstallCommandTest extends TestCase
         self::assertMatchesRegularExpression('/aider\s+.+\s+current \(v\d+\.\d+\.\d+\)/', $output->fetch());
     }
 
+    public function test_uninstall_removes_skill_file_when_no_backup(): void
+    {
+        $this->install(['platform' => 'aider', '--force' => true]);
+        self::assertFileExists($this->testDir . '/CONVENTIONS.md');
+
+        $this->install(['platform' => 'aider', '--uninstall' => true]);
+
+        self::assertFileDoesNotExist($this->testDir . '/CONVENTIONS.md');
+    }
+
+    public function test_uninstall_restores_backup_when_present(): void
+    {
+        file_put_contents($this->testDir . '/CONVENTIONS.md', 'user-original');
+        $this->install(['platform' => 'aider']);
+
+        $this->install(['platform' => 'aider', '--uninstall' => true]);
+
+        self::assertSame('user-original', file_get_contents($this->testDir . '/CONVENTIONS.md'));
+        self::assertFileDoesNotExist($this->testDir . '/CONVENTIONS.md.pre-phel.bak');
+    }
+
+    public function test_uninstall_all_removes_every_installed_file(): void
+    {
+        $this->install(['--all' => true]);
+
+        $this->install(['--all' => true, '--uninstall' => true]);
+
+        foreach (['AGENTS.md', 'GEMINI.md', 'CONVENTIONS.md'] as $f) {
+            self::assertFileDoesNotExist($this->testDir . '/' . $f);
+        }
+
+        self::assertFileDoesNotExist($this->testDir . '/.claude/skills/phel-lang/SKILL.md');
+        self::assertFileDoesNotExist($this->testDir . '/.cursor/rules/phel.mdc');
+        self::assertFileDoesNotExist($this->testDir . '/.github/copilot-instructions.md');
+    }
+
+    public function test_uninstall_with_docs_removes_agents_tree(): void
+    {
+        $this->install(['platform' => 'claude', '--with-docs' => true]);
+        self::assertDirectoryExists($this->testDir . '/.agents');
+
+        $this->install(['platform' => 'claude', '--uninstall' => true, '--with-docs' => true]);
+
+        self::assertDirectoryDoesNotExist($this->testDir . '/.agents');
+    }
+
+    public function test_uninstall_on_unknown_platform_is_noop(): void
+    {
+        $output = new BufferedOutput();
+        $result = $this->install(['platform' => 'aider', '--uninstall' => true], $output);
+
+        self::assertSame(Command::SUCCESS, $result);
+        self::assertStringContainsString('aider    not installed', $output->fetch());
+    }
+
     public function test_check_reports_unstamped_when_file_has_no_stamp(): void
     {
         mkdir($this->testDir . '/.github', 0o755, true);

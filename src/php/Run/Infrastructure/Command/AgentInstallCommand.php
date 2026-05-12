@@ -25,7 +25,11 @@ use function file_put_contents;
 use function implode;
 use function is_dir;
 use function is_file;
+use function rename;
+use function rmdir;
 use function sprintf;
+use function str_repeat;
+use function unlink;
 
 final class AgentInstallCommand extends Command
 {
@@ -42,6 +46,8 @@ final class AgentInstallCommand extends Command
     private const string OPT_CHECK = 'check';
 
     private const string OPT_LIST = 'list';
+
+    private const string OPT_UNINSTALL = 'uninstall';
 
     private const string AGENTS_DIR = '.agents';
 
@@ -71,7 +77,8 @@ final class AgentInstallCommand extends Command
             ->addOption(self::OPT_FORCE, null, InputOption::VALUE_NONE, 'Overwrite existing files (default: backup to ' . self::BACKUP_SUFFIX . ')')
             ->addOption(self::OPT_DRY_RUN, null, InputOption::VALUE_NONE, 'Print what would be written without changing files')
             ->addOption(self::OPT_CHECK, null, InputOption::VALUE_NONE, 'Report install status and version drift per platform; exit 1 if any drift')
-            ->addOption(self::OPT_LIST, null, InputOption::VALUE_NONE, 'List supported platforms with source template, install target, and current state');
+            ->addOption(self::OPT_LIST, null, InputOption::VALUE_NONE, 'List supported platforms with source template, install target, and current state')
+            ->addOption(self::OPT_UNINSTALL, null, InputOption::VALUE_NONE, 'Remove installed skill file(s); restores ' . self::BACKUP_SUFFIX . ' if present');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -96,6 +103,18 @@ final class AgentInstallCommand extends Command
         $dryRun = (bool) $input->getOption(self::OPT_DRY_RUN);
         $force = (bool) $input->getOption(self::OPT_FORCE);
 
+        if ((bool) $input->getOption(self::OPT_UNINSTALL)) {
+            foreach ($platforms as $platformKey) {
+                $this->uninstallPlatform($output, $projectRoot, $this->registry->get($platformKey), $dryRun);
+            }
+
+            if ((bool) $input->getOption(self::OPT_WITH_DOCS)) {
+                $this->removeDocs($output, $projectRoot, $dryRun);
+            }
+
+            return Command::SUCCESS;
+        }
+
         foreach ($platforms as $platformKey) {
             $this->installPlatform($output, $sourceRoot, $projectRoot, $this->registry->get($platformKey), $force, $dryRun, $stamper);
         }
@@ -105,6 +124,69 @@ final class AgentInstallCommand extends Command
         }
 
         return Command::SUCCESS;
+    }
+
+    private function uninstallPlatform(OutputInterface $output, string $projectRoot, AgentPlatform $platform, bool $dryRun): void
+    {
+        $dst = $projectRoot . '/' . $platform->target;
+        $backup = $dst . self::BACKUP_SUFFIX;
+
+        if (!is_file($dst)) {
+            $output->writeln(sprintf('  %-8s not installed; skip', $platform->key));
+            return;
+        }
+
+        if ($dryRun) {
+            $output->writeln(sprintf('[dry-run] remove %s', $dst));
+            if (is_file($backup)) {
+                $output->writeln(sprintf('[dry-run] restore %s -> %s', $backup, $dst));
+            }
+
+            return;
+        }
+
+        unlink($dst);
+        if (is_file($backup)) {
+            rename($backup, $dst);
+            $output->writeln(sprintf('<info>Restored backup</info> %s', $dst));
+            return;
+        }
+
+        $output->writeln(sprintf('<info>Removed</info> %s skill: %s', $platform->key, $dst));
+    }
+
+    private function removeDocs(OutputInterface $output, string $projectRoot, bool $dryRun): void
+    {
+        $dst = $projectRoot . '/' . self::AGENTS_DIR;
+        if (!is_dir($dst)) {
+            return;
+        }
+
+        if ($dryRun) {
+            $output->writeln(sprintf('[dry-run] remove %s', $dst));
+            return;
+        }
+
+        $this->recursiveRemove($dst);
+        $output->writeln(sprintf('<info>Removed docs tree</info> %s', $dst));
+    }
+
+    private function recursiveRemove(string $dir): void
+    {
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
+        );
+
+        foreach ($iterator as $item) {
+            if ($item->isDir()) {
+                rmdir($item->getPathname());
+            } else {
+                unlink($item->getPathname());
+            }
+        }
+
+        rmdir($dir);
     }
 
     private function runList(OutputInterface $output, string $projectRoot, AgentVersionStamper $stamper): int
