@@ -13,7 +13,6 @@ use Phel\Compiler\Domain\Parser\ParserNode\QuoteNode;
 use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
 use Phel\Compiler\Domain\Parser\ParserNode\TaggedLiteralNode;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
-use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\NotValidQuoteNodeException;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
@@ -23,6 +22,7 @@ use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use RuntimeException;
 
 final class Reader implements ReaderInterface
@@ -54,7 +54,7 @@ final class Reader implements ReaderInterface
 
         return new ReaderResult(
             $this->readExpression($node, $node),
-            CodeSnippet::fromNode($node),
+            new CodeSnippet($node->getStartLocation(), $node->getEndLocation(), $node->getCode()),
         );
     }
 

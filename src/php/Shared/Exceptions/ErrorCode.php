@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Domain\Exceptions;
+namespace Phel\Shared\Exceptions;
 
 /**
  * Error codes for Phel compiler errors.

@@ -6,8 +6,8 @@ namespace Phel\Interop\Infrastructure\Command;
 
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
-use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Interop\InteropFacade;
+use Phel\Shared\Exceptions\CompilerException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;

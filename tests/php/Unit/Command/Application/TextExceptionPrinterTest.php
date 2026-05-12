@@ -10,11 +10,11 @@ use Phel\Command\Domain\Exceptions\ExceptionArgsPrinterInterface;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
-use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Phel\Lang\AbstractType;
 use Phel\Lang\SourceLocation;
 use Phel\Shared\ColorStyleInterface;
 use Phel\Shared\MungeInterface;
+use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use PHPUnit\Framework\TestCase;
 use TypeError;
 

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Compiler;
 
-use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Shared\CompileOptions;
+use Phel\Shared\Exceptions\CompilerException;
 
 interface EvalCompilerInterface
 {

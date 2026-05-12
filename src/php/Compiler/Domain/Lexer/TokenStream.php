@@ -6,7 +6,7 @@ namespace Phel\Compiler\Domain\Lexer;
 
 use Generator;
 use Iterator;
-use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
+use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use RuntimeException;
 
 use function count;

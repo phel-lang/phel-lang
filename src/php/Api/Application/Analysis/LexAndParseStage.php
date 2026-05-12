@@ -6,11 +6,11 @@ namespace Phel\Api\Application\Analysis;
 
 use Phel\Api\Domain\AnalysisStageInterface;
 use Phel\Api\Transfer\Diagnostic;
-use Phel\Compiler\Domain\Exceptions\ErrorCode;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
+use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
 /**

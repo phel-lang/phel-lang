@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Domain\Exceptions;
+namespace Phel\Shared\Exceptions;
 
-use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
+use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use RuntimeException;
 
 final class CompilerException extends RuntimeException

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Filesystem\Application;
 
-use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
 use Phel\Filesystem\Domain\FileIoInterface;
+use Phel\Shared\Exceptions\FileException;
 
 final class TempDirFinder
 {

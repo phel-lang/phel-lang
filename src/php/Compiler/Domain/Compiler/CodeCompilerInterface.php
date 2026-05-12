@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Compiler;
 
 use Phel\Compiler\Domain\Emitter\EmitterResult;
-use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
-use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
-use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\CompileOptions;
+use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Shared\Exceptions\CompilerException;
+use Phel\Shared\Exceptions\FileException;
 
 interface CodeCompilerInterface
 {

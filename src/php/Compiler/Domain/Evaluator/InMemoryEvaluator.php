@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Evaluator;
 
 use ParseError;
-use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
 use Phel\Compiler\Infrastructure\Service\DebugLineTap;
+use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
 use Throwable;
 
 /**

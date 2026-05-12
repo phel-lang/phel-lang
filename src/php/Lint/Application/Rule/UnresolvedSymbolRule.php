@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Phel\Lint\Application\Rule;
 
 use Phel\Api\Transfer\Diagnostic;
-use Phel\Compiler\Domain\Exceptions\ErrorCode;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
@@ -14,6 +13,7 @@ use Phel\Lang\TypeInterface;
 use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function count;
 use function explode;

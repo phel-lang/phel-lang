@@ -9,13 +9,13 @@ use Phel\Command\Domain\Exceptions\ExceptionArgsPrinterInterface;
 use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
 use Phel\Command\Domain\Exceptions\Extractor\FilePositionExtractorInterface;
 use Phel\Compiler\Domain\Evaluator\Exceptions\EvaluatedCodeException;
-use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
-use Phel\Compiler\Domain\Exceptions\ErrorCode;
-use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Phel\Lang\FnInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Shared\ColorStyleInterface;
+use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\MungeInterface;
+use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use ReflectionClass;
 use Throwable;
 

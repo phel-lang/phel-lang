@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Phel\Run\Domain\Repl;
 
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
-use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
-use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
 use Phel\Shared\CompileOptions;
+use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Throwable;
 

@@ -27,6 +27,22 @@ Located in `Facade/` subdirectory. Each module implements its corresponding inte
 - **BuildConstants** — `BUILD_MODE = '*build-mode*'`
 - **ReplConstants** — `REPL_MODE = '*repl-mode*'`
 
+## Exception Classes
+
+Located in `Exceptions/`. Cross-module exceptions previously living under `Phel\Compiler\Domain\Exceptions` and `Phel\Compiler\Domain\Evaluator\Exceptions`:
+
+- `CompilerException` — wraps an `AbstractLocatedException` with a `CodeSnippet`
+- `AbstractLocatedException` — base for located errors (start/end `SourceLocation`, `ErrorCode`)
+- `ErrorCode` enum — `PHEL001..PHEL310` for analyzer/parser/reader/lexer errors
+- `FileException` — file/directory failures from the evaluator (`canNotCreateFile`, etc.)
+- `CompiledCodeIsMalformedException` — wraps `ParseError`/`Throwable` from `eval()` of compiled PHP
+
+Backward-compat `class_alias`es for the old FQNs are registered in `Shared/_aliases.php` (autoloaded via Composer `files`); old-name imports still resolve for one release.
+
+## Parser Model
+
+- `Parser/ReadModel/CodeSnippet` — `SourceLocation` start/end + raw source string; used by `CompilerException` and `ReaderException`. Pure data, no Parser/Compiler imports.
+
 ## Utility Classes
 
 - **ColorStyle** (implements `ColorStyleInterface`) — ANSI terminal colors: `green()`, `yellow()`, `blue()`, `red()`

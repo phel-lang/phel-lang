@@ -6,11 +6,11 @@ namespace Phel\Compiler\Domain\Analyzer\Exceptions;
 
 use Exception;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
-use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
-use Phel\Compiler\Domain\Exceptions\ErrorCode;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\TypeInterface;
 use Phel\Printer\Printer;
+use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Exceptions\ErrorCode;
 
 use function count;
 use function get_debug_type;

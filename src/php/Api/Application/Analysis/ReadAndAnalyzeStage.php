@@ -8,9 +8,9 @@ use Phel\Api\Domain\AnalysisStageInterface;
 use Phel\Api\Transfer\Diagnostic;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Domain\Exceptions\ErrorCode;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
+use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 
 /**

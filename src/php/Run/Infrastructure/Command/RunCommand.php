@@ -6,9 +6,9 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
-use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Phel;
 use Phel\Run\RunFacade;
+use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Munge;
 use Phel\Shared\ResourceUsageFormatter;
 

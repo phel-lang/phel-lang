@@ -49,9 +49,9 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ThrowSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\TrySymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\UseSymbol;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\VarSymbol;
-use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Munge;
 
 use function count;

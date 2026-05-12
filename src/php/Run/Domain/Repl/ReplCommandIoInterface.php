@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Repl;
 
-use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
-use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
+use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use Throwable;
 
 interface ReplCommandIoInterface

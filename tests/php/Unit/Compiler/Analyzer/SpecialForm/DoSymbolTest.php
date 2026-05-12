@@ -11,8 +11,8 @@ use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\DoSymbol;
-use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\AbstractLocatedException;
 use PHPUnit\Framework\TestCase;
 
 final class DoSymbolTest extends TestCase

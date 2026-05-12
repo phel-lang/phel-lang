@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Filesystem\Application;
 
-use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
 use Phel\Filesystem\Application\TempDirFinder;
 use Phel\Filesystem\Domain\FileIoInterface;
+use Phel\Shared\Exceptions\FileException;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\TestCase;
 

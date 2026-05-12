@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Compiler\Domain\Evaluator\Exceptions;
+namespace Phel\Shared\Exceptions;
 
 use RuntimeException;
 
