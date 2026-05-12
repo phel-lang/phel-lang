@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace Phel\Build\Application;
 
 use ParseError;
+use Phel\Build\Domain\Cache\CompiledCodeCacheInterface;
 use Phel\Build\Domain\Cache\DependencyTrackerInterface;
 use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Build\Domain\Extractor\FirstFormExtractor;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
-use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
-use Phel\Build\Infrastructure\Cache\DependencyTracker;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
@@ -36,7 +35,7 @@ final class FileEvaluator
     public function __construct(
         private readonly CompilerFacadeInterface $compilerFacade,
         private readonly NamespaceExtractorInterface $namespaceExtractor,
-        private readonly ?CompiledCodeCache $compiledCodeCache = null,
+        private readonly ?CompiledCodeCacheInterface $compiledCodeCache = null,
         private readonly FirstFormExtractor $firstFormExtractor = new FirstFormExtractor(),
         private readonly ?DependencyTrackerInterface $dependencyTracker = null,
     ) {}
@@ -65,7 +64,7 @@ final class FileEvaluator
         $namespaceInfo = $this->namespaceExtractor->getNamespaceFromFile($src);
         $namespace = $namespaceInfo->getNamespace();
 
-        if ($this->compiledCodeCache instanceof CompiledCodeCache) {
+        if ($this->compiledCodeCache instanceof CompiledCodeCacheInterface) {
             $sourceHash = md5($code);
             $cachedPath = $this->compiledCodeCache->get($src, $sourceHash);
 
@@ -94,7 +93,7 @@ final class FileEvaluator
                     $this->compiledCodeCache->invalidate($src);
                     throw $e;
                 }
-            } elseif ($this->dependencyTracker instanceof DependencyTracker
+            } elseif ($this->dependencyTracker instanceof DependencyTrackerInterface
                 && $this->compiledCodeCache->has($src)
             ) {
                 // Stale cache entry — source changed. Cascade invalidation to dependents.

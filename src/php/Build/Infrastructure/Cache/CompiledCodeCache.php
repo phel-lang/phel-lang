@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Build\Infrastructure\Cache;
 
 use ParseError;
+use Phel\Build\Domain\Cache\CompiledCodeCacheInterface;
 
 use function array_key_exists;
 use function count;
@@ -24,7 +25,7 @@ use const TOKEN_PARSE;
  * Environment data (refers/aliases) is keyed by namespace because it
  * is shared across all files of the namespace.
  */
-final class CompiledCodeCache
+final class CompiledCodeCache implements CompiledCodeCacheInterface
 {
     private const string VERSION = '1.2';
 
