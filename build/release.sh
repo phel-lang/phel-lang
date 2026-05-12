@@ -10,7 +10,7 @@ REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 source "$SCRIPT_DIR/release-lib.sh"
 
 # File paths
-VERSION_FILE="$REPO_ROOT/src/php/Console/Application/VersionFinder.php"
+VERSION_FILE="$REPO_ROOT/src/php/Shared/VersionFinder.php"
 CHANGELOG_FILE="$REPO_ROOT/CHANGELOG.md"
 AGENTS_VERSION_FILE="$REPO_ROOT/resources/agents/VERSION"
 PHAR_SCRIPT="$SCRIPT_DIR/phar.sh"
