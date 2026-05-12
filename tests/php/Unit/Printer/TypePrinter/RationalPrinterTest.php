@@ -6,8 +6,8 @@ namespace PhelTest\Unit\Printer\TypePrinter;
 
 use Generator;
 use Phel\Lang\Rational;
-use Phel\Printer\Printer;
-use Phel\Printer\TypePrinter\RationalPrinter;
+use Phel\Shared\Printer\Printer;
+use Phel\Shared\Printer\TypePrinter\RationalPrinter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

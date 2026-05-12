@@ -1,0 +1,32 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Phel\Shared\Printer\TypePrinter;
+
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Shared\Printer\PrinterInterface;
+
+/**
+ * @implements TypePrinterInterface<PersistentListInterface<mixed>>
+ */
+final readonly class PersistentListPrinter implements TypePrinterInterface
+{
+    public function __construct(private PrinterInterface $printer) {}
+
+    /**
+     * @param PersistentListInterface<mixed> $form
+     */
+    public function print(mixed $form): string
+    {
+        $prefix = '(';
+        $suffix = ')';
+
+        $values = [];
+        foreach ($form as $element) {
+            $values[] = $this->printer->print($element);
+        }
+
+        return $prefix . implode(' ', $values) . $suffix;
+    }
+}

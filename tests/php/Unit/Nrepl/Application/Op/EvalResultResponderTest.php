@@ -7,9 +7,9 @@ namespace PhelTest\Unit\Nrepl\Application\Op;
 use Phel\Nrepl\Application\Op\EvalResultResponder;
 use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Session\SessionRegistry;
-use Phel\Printer\PrinterInterface;
 use Phel\Run\Domain\Repl\EvalError;
 use Phel\Run\Domain\Repl\EvalResult;
+use Phel\Shared\Printer\PrinterInterface;
 use PHPUnit\Framework\TestCase;
 
 final class EvalResultResponderTest extends TestCase

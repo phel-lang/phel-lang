@@ -28,7 +28,7 @@ final class TypeStringifier
         }
 
         try {
-            $printerClass = implode('\\', ['Phel', 'Printer', 'Printer']);
+            $printerClass = implode('\\', ['Phel', 'Shared', 'Printer', 'Printer']);
             if (class_exists($printerClass)) {
                 return $printerClass::readable()->print($value);
             }

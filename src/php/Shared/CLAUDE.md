@@ -37,11 +37,19 @@ Located in `Exceptions/`. Cross-module exceptions previously living under `Phel\
 - `FileException` — file/directory failures from the evaluator (`canNotCreateFile`, etc.)
 - `CompiledCodeIsMalformedException` — wraps `ParseError`/`Throwable` from `eval()` of compiled PHP
 
-Backward-compat `class_alias`es for the old FQNs are registered in `Shared/_aliases.php` (autoloaded via Composer `files`); old-name imports still resolve for one release.
-
 ## Parser Model
 
 - `Parser/ReadModel/CodeSnippet` — `SourceLocation` start/end + raw source string; used by `CompilerException` and `ReaderException`. Pure data, no Parser/Compiler imports.
+
+## Printer
+
+`Printer/` holds the readable/non-readable printer used by REPL output, eval-result serialisation, exception args, and `__toString()` of `Phel\Lang\AbstractType`. Pure utility — no module state, no I/O wiring — so consumers `new` it directly (`Printer::readable()` / `Printer::nonReadable()`) without crossing a module boundary.
+
+| Class | Purpose |
+|-------|---------|
+| `Printer` | Factory + dispatcher over `TypePrinter/` strategies |
+| `PrinterInterface` | Single `print($x): string` method |
+| `TypePrinter/*` | One per Phel/PHP type; `WithColorTrait` for ANSI variants |
 
 ## Utility Classes
 

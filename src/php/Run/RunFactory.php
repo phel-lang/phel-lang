@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Phel\Run;
 
 use Gacela\Framework\AbstractFactory;
-use Phel\Printer\Printer;
-use Phel\Printer\PrinterInterface;
 use Phel\Run\Application\BundledNamespaces;
 use Phel\Run\Application\EntryPointDetector;
 use Phel\Run\Application\EvalExecutor;
@@ -37,6 +35,8 @@ use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use Phel\Shared\Facade\ConsoleFacadeInterface;
+use Phel\Shared\Printer\Printer;
+use Phel\Shared\Printer\PrinterInterface;
 
 use function extension_loaded;
 

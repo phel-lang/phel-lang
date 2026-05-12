@@ -18,9 +18,9 @@ use Phel\Command\Domain\Finder\VendorDirectoriesFinderInterface;
 use Phel\Command\Infrastructure\ComposerVendorDirectoriesFinder;
 use Phel\Command\Infrastructure\ErrorLog;
 use Phel\Command\Infrastructure\SourceMapExtractor;
-use Phel\Printer\Printer;
 use Phel\Shared\ColorStyle;
 use Phel\Shared\Munge;
+use Phel\Shared\Printer\Printer;
 
 /**
  * @extends AbstractFactory<CommandConfig>

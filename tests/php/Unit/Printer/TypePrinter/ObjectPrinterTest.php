@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Printer\TypePrinter;
 
 use Generator;
-use Phel\Printer\TypePrinter\ObjectPrinter;
+use Phel\Shared\Printer\TypePrinter\ObjectPrinter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use stdClass;

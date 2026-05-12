@@ -44,6 +44,9 @@ All notable changes to this project will be documented in this file.
 - Module boundary tightening: `Munge`, `CompileOptions`, `PhelProjectDirectory`, `VersionFinder` moved to `Phel\Shared`; `GlobalEnvironment`, `DebugLineTap` exposed via `CompilerFacade` (#1963, #1964)
 - `PhelConfig` immutable via `withX()` chain; build/export fields flat on root; old `setX()` shims deprecated
 - **Breaking:** `PhelConfig::forProject(ProjectLayout $layout = Flat, string $mainNamespace = '')`: layout first, Flat default
+- **Breaking:** Cross-module exceptions + `CodeSnippet` moved from `Phel\Compiler\Domain\Exceptions` / `Phel\Compiler\Domain\Evaluator\Exceptions` / `Phel\Compiler\Domain\Parser\ReadModel` to `Phel\Shared\Exceptions` / `Phel\Shared\Parser\ReadModel` (#1975)
+- **Breaking:** `Phel\Printer` moved to `Phel\Shared\Printer`. Phel sources should now `(:use Phel.Shared.Printer.Printer)`; old path no longer resolves
+- **Upgrade note**: clear compiled caches after upgrading (`./vendor/bin/phel cache:clear`, or delete `.phel/cache/`). Cached PHP from earlier installs references the old FQNs and will fail to load otherwise. Both Phel sources and compiled fixtures in this repo are regenerated; downstream projects must rebuild theirs.
 
 ### Fixed
 

@@ -7,8 +7,8 @@ namespace PhelTest\Unit\Printer\TypePrinter;
 use Generator;
 use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
 use Phel\Lang\Keyword;
-use Phel\Printer\Printer;
-use Phel\Printer\TypePrinter\StructPrinter;
+use Phel\Shared\Printer\Printer;
+use Phel\Shared\Printer\TypePrinter\StructPrinter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

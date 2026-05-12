@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Command\Domain\Exceptions;
 
-use Phel\Printer\PrinterInterface;
+use Phel\Shared\Printer\PrinterInterface;
 
 use function is_array;
 use function is_bool;

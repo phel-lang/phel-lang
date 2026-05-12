@@ -1,0 +1,199 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Phel\Shared\Printer;
+
+use Phel\Lang\BigDecimal;
+use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
+use Phel\Lang\Collections\LazySeq\LazySeqInterface;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Queue\PersistentQueue;
+use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use Phel\Lang\FnInterface;
+use Phel\Lang\Keyword;
+use Phel\Lang\PhelVar;
+use Phel\Lang\Rational;
+use Phel\Lang\Symbol;
+use Phel\Lang\TypeInterface;
+use Phel\Lang\TypeStringifier;
+use Phel\Lang\Uuid;
+use Phel\Lang\Variable;
+use Phel\Shared\Printer\TypePrinter\AnonymousClassPrinter;
+use Phel\Shared\Printer\TypePrinter\ArrayPrinter;
+use Phel\Shared\Printer\TypePrinter\BigDecimalPrinter;
+use Phel\Shared\Printer\TypePrinter\BooleanPrinter;
+use Phel\Shared\Printer\TypePrinter\FnPrinter;
+use Phel\Shared\Printer\TypePrinter\KeywordPrinter;
+use Phel\Shared\Printer\TypePrinter\LazySeqPrinter;
+use Phel\Shared\Printer\TypePrinter\NonPrintableClassPrinter;
+use Phel\Shared\Printer\TypePrinter\NullPrinter;
+use Phel\Shared\Printer\TypePrinter\NumberPrinter;
+use Phel\Shared\Printer\TypePrinter\ObjectPrinter;
+use Phel\Shared\Printer\TypePrinter\PersistentHashSetPrinter;
+use Phel\Shared\Printer\TypePrinter\PersistentListPrinter;
+use Phel\Shared\Printer\TypePrinter\PersistentMapPrinter;
+use Phel\Shared\Printer\TypePrinter\PersistentQueuePrinter;
+use Phel\Shared\Printer\TypePrinter\PersistentVectorPrinter;
+use Phel\Shared\Printer\TypePrinter\RationalPrinter;
+use Phel\Shared\Printer\TypePrinter\ResourcePrinter;
+use Phel\Shared\Printer\TypePrinter\StringPrinter;
+use Phel\Shared\Printer\TypePrinter\StructPrinter;
+use Phel\Shared\Printer\TypePrinter\SymbolPrinter;
+use Phel\Shared\Printer\TypePrinter\ToStringPrinter;
+use Phel\Shared\Printer\TypePrinter\TypePrinterInterface;
+use Phel\Shared\Printer\TypePrinter\UuidPrinter;
+use Phel\Shared\Printer\TypePrinter\VariablePrinter;
+use Phel\Shared\Printer\TypePrinter\VarPrinter;
+use ReflectionClass;
+use RuntimeException;
+
+use function gettype;
+use function is_object;
+
+final readonly class Printer implements PrinterInterface
+{
+    public function __construct(
+        private bool $readable,
+        private bool $withColor = false,
+    ) {}
+
+    public static function installAsTypeStringifier(): void
+    {
+        TypeStringifier::install(
+            static fn(TypeInterface $value): string => self::readable()->print($value),
+        );
+    }
+
+    public static function readable(): self
+    {
+        return new self(readable: true);
+    }
+
+    public static function readableWithColor(): self
+    {
+        return new self(readable: true, withColor: true);
+    }
+
+    public static function nonReadable(): self
+    {
+        return new self(readable: false);
+    }
+
+    /**
+     * Converts a form to a printable string.
+     */
+    public function print(mixed $form): string
+    {
+        return $this->createTypePrinter($form)->print($form);
+    }
+
+    /**
+     * @return TypePrinterInterface<mixed>
+     */
+    private function createTypePrinter(mixed $form): TypePrinterInterface
+    {
+        if (is_object($form)) {
+            return $this->createObjectTypePrinter($form);
+        }
+
+        return $this->createScalarTypePrinter($form);
+    }
+
+    /**
+     * @return TypePrinterInterface<mixed>
+     */
+    private function createObjectTypePrinter(object $form): TypePrinterInterface
+    {
+        if ($form instanceof AbstractPersistentStruct) {
+            return new StructPrinter($this);
+        }
+
+        if ($form instanceof PersistentListInterface) {
+            return new PersistentListPrinter($this);
+        }
+
+        if ($form instanceof PersistentVectorInterface) {
+            return new PersistentVectorPrinter($this);
+        }
+
+        if ($form instanceof PersistentMapInterface) {
+            return new PersistentMapPrinter($this);
+        }
+
+        if ($form instanceof PersistentHashSetInterface) {
+            return new PersistentHashSetPrinter($this);
+        }
+
+        if ($form instanceof LazySeqInterface) {
+            return new LazySeqPrinter($this);
+        }
+
+        if ($form instanceof PersistentQueue) {
+            return new PersistentQueuePrinter($this);
+        }
+
+        if ($form instanceof Keyword) {
+            return new KeywordPrinter($this->withColor);
+        }
+
+        if ($form instanceof Symbol) {
+            return new SymbolPrinter($this->withColor);
+        }
+
+        if ($form instanceof Variable) {
+            return new VariablePrinter($this);
+        }
+
+        if ($form instanceof PhelVar) {
+            return new VarPrinter($this->withColor);
+        }
+
+        if ($form instanceof Rational) {
+            return new RationalPrinter($this->withColor);
+        }
+
+        if ($form instanceof BigDecimal) {
+            return new BigDecimalPrinter($this->withColor);
+        }
+
+        if ($form instanceof Uuid) {
+            return new UuidPrinter($this->withColor);
+        }
+
+        if ($form instanceof FnInterface) {
+            return new FnPrinter();
+        }
+
+        if (method_exists($form, '__toString')) {
+            return new ToStringPrinter();
+        }
+
+        if (new ReflectionClass($form)->isAnonymous()) {
+            return new AnonymousClassPrinter();
+        }
+
+        return new NonPrintableClassPrinter($this->withColor);
+    }
+
+    /**
+     * @return TypePrinterInterface<mixed>
+     */
+    private function createScalarTypePrinter(mixed $form): TypePrinterInterface
+    {
+        $printerName = gettype($form);
+
+        return match (true) {
+            $printerName === 'string' => new StringPrinter($this->readable, $this->withColor),
+            $printerName === 'integer' || $printerName === 'double' => new NumberPrinter($this->withColor),
+            $printerName === 'boolean' => new BooleanPrinter($this->withColor),
+            $printerName === 'NULL' => new NullPrinter($this->withColor),
+            $printerName === 'array' => new ArrayPrinter($this, $this->withColor),
+            $printerName === 'resource' && !$this->readable => new ResourcePrinter(),
+            !$this->readable => new ObjectPrinter(),
+            default => throw new RuntimeException('Printer cannot print this type: ' . $printerName),
+        };
+    }
+}

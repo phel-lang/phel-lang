@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Printer\TypePrinter;
 
 use DateTime;
 use Generator;
-use Phel\Printer\TypePrinter\NonPrintableClassPrinter;
+use Phel\Shared\Printer\TypePrinter\NonPrintableClassPrinter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use stdClass;

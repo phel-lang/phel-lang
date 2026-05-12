@@ -10,7 +10,7 @@
   (:use Phel.Compiler.Infrastructure.GlobalEnvironmentSingleton)
   (:use Phel.Compiler.Domain.Analyzer.Environment.NodeEnvironment)
   (:use Phel.Lang.FnInterface)
-  (:use Phel.Printer.Printer)
+  (:use Phel.Shared.Printer.Printer)
   (:require phel.ai :as ai)
   (:require phel.test :as t))
 
