@@ -66,7 +66,7 @@ Run/
 - REPL supports environment snapshot/restore on eval failure
 - `ReplCommandSystemIo` requires PHP `readline` extension; falls back to `ReplCommandFallbackIo`
 - `ReplHistoryPathResolver` returns `.phel/repl-history`; transparently migrates legacy `.phel-repl-history`
-- `ReplHistory` registers `*1`/`*2`/`*3`/`*e` in `phel\core` after REPL boot
+- `ReplHistory` registers `*1`/`*2`/`*3`/`*e` in `phel.core` after REPL boot
 - `ReplErrorFormatter` renders eval-time `Throwable`s with short headline, hints, and filtered trace
 - New `ReplHint` implementations register via `RunFactory::createReplHints()`
 - `BundledNamespaces` lists every `phel.*` module; loader uses it as eager seeds so fully qualified refs (`phel.json/encode`) resolve without explicit `(:require ...)`

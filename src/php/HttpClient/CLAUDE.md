@@ -1,12 +1,12 @@
 # HttpClient Module
 
-Outbound HTTP support for `phel\http-client`. Two standalone classes consumed directly from the Phel core library; no Gacela Facade because there is no module state, no config, no cross-module collaboration.
+Outbound HTTP support for `phel.http-client`. Two standalone classes consumed directly from the Phel core library; no Gacela Facade because there is no module state, no config, no cross-module collaboration.
 
 ## Public surface
 
 | Class | Purpose |
 |-------|---------|
-| `StreamTransport` | Performs the actual `fopen`/`stream_context_create` request, returns headers + body. Used by `phel\http-client/{get,post,put,patch,delete,head}` via `(php/new \Phel\HttpClient\StreamTransport ...)`. |
+| `StreamTransport` | Performs the actual `fopen`/`stream_context_create` request, returns headers + body. Used by `phel.http-client/{get,post,put,patch,delete,head}` via `(php/new \Phel\HttpClient\StreamTransport ...)`. |
 | `ResponseParser` | Parses PHP's `$http_response_header` array into `{status, headers}`. Pure utility. |
 
 ## Why no Facade
@@ -29,4 +29,4 @@ HttpClient/
 
 - Both classes must remain `final` (Phel core does not subclass them) and have stable public APIs : they are addressable from user Phel code through interop.
 - Never block on a single host; honour the `:timeout` option Phel passes through.
-- `StreamTransport` must surface fopen failures as `RuntimeException`; Phel core wraps them into `phel\http-client/error?` results.
+- `StreamTransport` must surface fopen failures as `RuntimeException`; Phel core wraps them into `phel.http-client/error?` results.

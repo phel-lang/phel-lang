@@ -6,7 +6,7 @@ Tooling support layer: REPL autocompletion, function introspection, documentatio
 
 - **Facade**: `ApiFacade` implements `ApiFacadeInterface`
 - **Factory**: `ApiFactory` extends `AbstractFactory<ApiConfig>`
-- **Config**: `ApiConfig` : lists all documented namespaces (`phel\core`, `phel\string`, etc.)
+- **Config**: `ApiConfig` : lists all documented namespaces (`phel.core`, `phel.string`, etc.)
 - **Provider**: `ApiProvider` : injects `RunFacade` (`FACADE_RUN`) and `CompilerFacade` (`FACADE_COMPILER`)
 
 ## Public API (Facade)

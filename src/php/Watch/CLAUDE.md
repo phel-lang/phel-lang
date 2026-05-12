@@ -62,6 +62,6 @@ Watch/
 
 - Debounce coalesces events in a 100ms window so editor double-saves trigger a single reload cycle
 - `PollingWatcher` is exercised in CI; `fswatch`/`inotify` probed at runtime but not unit-tested (external binaries)
-- `ReloadOrchestrator` is the side-effect surface: reload, run `phel\watch/run-on-reload-hooks`, re-index, publish
+- `ReloadOrchestrator` is the side-effect surface: reload, run `phel.watch/run-on-reload-hooks`, re-index, publish
 - `NullReloadEventPublisher` is the default; swap in an nREPL-aware publisher when the watcher runs inside nREPL
 - `NamespaceResolver` uses lightweight regex (not full parser) for performance on every file change
