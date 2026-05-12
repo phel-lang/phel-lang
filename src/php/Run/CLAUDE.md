@@ -17,7 +17,9 @@ Runtime execution: runs Phel namespaces/files, REPL, evaluation, testing, and al
 - `getNamespaceFromFile(string): NamespaceInformation`
 - `getDependenciesForNamespace(array, array): array` : topologically sorted
 - `getDependenciesFromPaths(array): array`
-- `evalFile(string): void`
+- `evalFile(NamespaceInformation): void`
+- `eval(string, CompileOptions = new CompileOptions()): mixed` : compile + execute a Phel snippet
+- `structuredEval(string, CompileOptions = new CompileOptions()): EvalResult` : eval returning success/incomplete/failure result
 - `loadPhelNamespaces(?string = null): void` : load core + startup
 
 **Query**
