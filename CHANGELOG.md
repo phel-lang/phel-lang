@@ -39,6 +39,7 @@ All notable changes to this project will be documented in this file.
 - `phel agent-install --uninstall` removes skill file(s) and restores `.pre-phel.bak` if present; `--with-docs` also drops `.agents/`
 - `phel agent-install --auto` installs skills only for agents already used in the project (detects `.claude/`, `.cursor/`, `AGENTS.md`, `GEMINI.md`, etc.)
 - `phel doctor` now reports installed agent skills and surfaces stale versions in one place
+- New agent task recipes: `tasks/async.md`, `tasks/memoize.md`, `tasks/write-macros.md`; common-gotchas trimmed to non-duplicative items; module table cross-links to tasks
 - Runtime state (cache, REPL history, error log) consolidated under `.phel/`; relocate via `withPhelDir()` or `PHEL_DIR` env (#1954)
 - Module boundary tightening: `Munge`, `CompileOptions`, `PhelProjectDirectory`, `VersionFinder` moved to `Phel\Shared`; `GlobalEnvironment`, `DebugLineTap` exposed via `CompilerFacade` (#1963, #1964)
 - `PhelConfig` immutable via `withX()` chain; build/export fields flat on root; old `setX()` shims deprecated
