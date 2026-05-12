@@ -6,8 +6,6 @@ namespace Phel\Lsp;
 
 use Gacela\Framework\AbstractFactory;
 use Phel\Api\ApiFacade;
-use Phel\Command\CommandFacade;
-use Phel\Compiler\CompilerFacade;
 use Phel\Formatter\FormatterFacade;
 use Phel\Lint\LintFacade;
 use Phel\Lsp\Application\Convert\CompletionConverter;
@@ -211,16 +209,6 @@ final class LspFactory extends AbstractFactory
     public function getFormatterFacade(): FormatterFacade
     {
         return $this->getProvidedDependency(LspProvider::FACADE_FORMATTER);
-    }
-
-    public function getCompilerFacade(): CompilerFacade
-    {
-        return $this->getProvidedDependency(LspProvider::FACADE_COMPILER);
-    }
-
-    public function getCommandFacade(): CommandFacade
-    {
-        return $this->getProvidedDependency(LspProvider::FACADE_COMMAND);
     }
 
     public function getRunFacade(): RunFacade

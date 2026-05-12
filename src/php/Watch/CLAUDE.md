@@ -7,7 +7,7 @@ Hot-reload and file-watch: detects `.phel` changes and re-evaluates the affected
 - **Facade**: `WatchFacade` extends `AbstractFacade<WatchFactory>`
 - **Factory**: `WatchFactory` extends `AbstractFactory<WatchConfig>`
 - **Config**: `WatchConfig` - default poll interval (500ms), debounce (100ms), backend `auto`
-- **Provider**: `WatchProvider` - injects `FACADE_RUN`, `FACADE_BUILD`, `FACADE_API`, `FACADE_COMPILER`, `FACADE_COMMAND`
+- **Provider**: `WatchProvider` - injects `FACADE_RUN`, `FACADE_BUILD`, `FACADE_API`, `FACADE_COMMAND`
 
 ## Public API (Facade)
 
@@ -38,7 +38,6 @@ All three implement `FileWatcherInterface { watch(list<string> $paths, callable 
 - **Run** (`RunFacade`) - `evalFile`, `structuredEval`, `loadPhelNamespaces`
 - **Build** (`BuildFacade`) - `getDependenciesForNamespace`
 - **Api** (`ApiFacade`) - `indexProject` for incremental re-index
-- **Compiler** (`CompilerFacade`) - CompileOptions
 - **Command** (`CommandFacade`) - source-directory defaults
 
 ## Structure

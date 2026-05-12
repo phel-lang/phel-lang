@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Formatter\Infrastructure\IO;
+namespace Phel\Formatter\Domain\IO;
 
 use Phel\Formatter\Domain\Exception\FilePathException;
 

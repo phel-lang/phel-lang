@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Formatter\Infrastructure\IO;
 
 use Phel\Formatter\Domain\Exception\FilePathException;
+use Phel\Formatter\Domain\IO\FileIoInterface;
 use RuntimeException;
 
 use function sprintf;

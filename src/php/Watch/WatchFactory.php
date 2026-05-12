@@ -8,7 +8,6 @@ use Gacela\Framework\AbstractFactory;
 use Phel\Api\ApiFacade;
 use Phel\Build\BuildFacade;
 use Phel\Command\CommandFacade;
-use Phel\Compiler\CompilerFacade;
 use Phel\Run\RunFacade;
 use Phel\Watch\Application\ApiProjectReindexer;
 use Phel\Watch\Application\MtimeFileSystemScanner;
@@ -104,11 +103,6 @@ final class WatchFactory extends AbstractFactory
     public function getApiFacade(): ApiFacade
     {
         return $this->getProvidedDependency(WatchProvider::FACADE_API);
-    }
-
-    public function getCompilerFacade(): CompilerFacade
-    {
-        return $this->getProvidedDependency(WatchProvider::FACADE_COMPILER);
     }
 
     public function getCommandFacade(): CommandFacade
