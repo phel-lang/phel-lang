@@ -259,35 +259,17 @@ final class AgentInstallCommand extends Command
      */
     private function selectPlatforms(InputInterface $input, OutputInterface $output): ?array
     {
-        $platform = $input->getArgument(self::ARG_PLATFORM);
-        $installAll = (bool) $input->getOption(self::OPT_ALL);
-        $auto = (bool) $input->getOption(self::OPT_AUTO);
-
-        if ($auto) {
-            $detected = new AgentPlatformDetector($this->registry)->detect((string) getcwd());
-            if ($detected === []) {
-                $output->writeln('<comment>No agent traces detected; nothing to install. Use --all or pass a platform.</comment>');
-                return null;
-            }
-
-            $output->writeln(sprintf('Detected: <info>%s</info>', implode(', ', $detected)));
-            return $detected;
+        if ((bool) $input->getOption(self::OPT_AUTO)) {
+            return $this->selectAutoDetected($output);
         }
 
-        if ($installAll) {
+        if ((bool) $input->getOption(self::OPT_ALL)) {
             return $this->registry->keys();
         }
 
+        $platform = $input->getArgument(self::ARG_PLATFORM);
         if ($platform === null) {
-            $detected = new AgentPlatformDetector($this->registry)->detect((string) getcwd());
-            if ($detected !== []) {
-                $output->writeln(sprintf('Detected installed agents: <info>%s</info>', implode(', ', $detected)));
-                $output->writeln('Run <comment>agent-install --auto</comment> to install skills for detected agents, or <comment>--all</comment> for every platform.');
-                return null;
-            }
-
-            $output->writeln('<error>Provide a platform or use --all</error>');
-            $output->writeln(sprintf('Platforms: %s', implode(', ', $this->registry->keys())));
+            $this->reportMissingPlatform($output);
             return null;
         }
 
@@ -297,6 +279,42 @@ final class AgentInstallCommand extends Command
         }
 
         return [$platform];
+    }
+
+    /**
+     * @return list<string>|null
+     */
+    private function selectAutoDetected(OutputInterface $output): ?array
+    {
+        $detected = $this->detectAgents();
+        if ($detected === []) {
+            $output->writeln('<comment>No agent traces detected; nothing to install. Use --all or pass a platform.</comment>');
+            return null;
+        }
+
+        $output->writeln(sprintf('Detected: <info>%s</info>', implode(', ', $detected)));
+        return $detected;
+    }
+
+    private function reportMissingPlatform(OutputInterface $output): void
+    {
+        $detected = $this->detectAgents();
+        if ($detected !== []) {
+            $output->writeln(sprintf('Detected installed agents: <info>%s</info>', implode(', ', $detected)));
+            $output->writeln('Run <comment>agent-install --auto</comment> to install skills for detected agents, or <comment>--all</comment> for every platform.');
+            return;
+        }
+
+        $output->writeln('<error>Provide a platform or use --all</error>');
+        $output->writeln(sprintf('Platforms: %s', implode(', ', $this->registry->keys())));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function detectAgents(): array
+    {
+        return new AgentPlatformDetector($this->registry)->detect((string) getcwd());
     }
 
     private function installPlatform(
