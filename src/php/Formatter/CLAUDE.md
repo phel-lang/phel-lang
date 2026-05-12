@@ -33,8 +33,8 @@ Code formatting for Phel source files: parses code into AST, applies formatting 
 ```
 Formatter/
 ├── Application/        Formatter, PathsFormatter, PhelPathFilter
-├── Domain/             FormatterInterface, PathFilterInterface, RuleInterface, rules, indenters
-├── Infrastructure/     FormatCommand (CLI), SystemFileIo
+├── Domain/             FormatterInterface, PathFilterInterface, RuleInterface, IO/FileIoInterface, rules, indenters
+├── Infrastructure/     FormatCommand (CLI), IO/SystemFileIo
 └── Gacela files        FormatterFacade, FormatterFactory, FormatterProvider, FormatterConfig
 ```
 

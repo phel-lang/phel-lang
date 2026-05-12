@@ -7,7 +7,7 @@ Read-only semantic linter built on top of `ApiFacade`: emits diagnostics on Phel
 - **Facade**: `LintFacade` extends `AbstractFacade<LintFactory>`
 - **Factory**: `LintFactory` extends `AbstractFactory<LintConfig>`
 - **Config**: `LintConfig` — default severities, cache dir, config filename
-- **Provider**: `LintProvider` — injects `FACADE_API`, `FACADE_COMPILER`, `FACADE_COMMAND`
+- **Provider**: `LintProvider` — injects `FACADE_API`, `FACADE_COMPILER`, `FACADE_COMMAND`, `FACADE_RUN`
 
 ## Public API (Facade)
 
@@ -67,6 +67,7 @@ Formatters implement `DiagnosticFormatterInterface` and are registered on `Forma
 - **Api** (`ApiFacade`) — `analyzeSource`, `indexProject`
 - **Compiler** (`CompilerFacade`) — `lexString`, `parseNext`, `read`
 - **Command** (`CommandFacade`) — default source directories
+- **Run** (`RunFacade`) — `loadPhelNamespaces()` before linting so resolved symbols exist
 
 ## Structure
 

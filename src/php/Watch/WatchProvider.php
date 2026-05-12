@@ -10,7 +10,6 @@ use Gacela\Framework\Container\Container;
 use Phel\Api\ApiFacade;
 use Phel\Build\BuildFacade;
 use Phel\Command\CommandFacade;
-use Phel\Compiler\CompilerFacade;
 use Phel\Run\RunFacade;
 
 final class WatchProvider extends AbstractProvider
@@ -20,8 +19,6 @@ final class WatchProvider extends AbstractProvider
     public const string FACADE_BUILD = 'FACADE_BUILD';
 
     public const string FACADE_API = 'FACADE_API';
-
-    public const string FACADE_COMPILER = 'FACADE_COMPILER';
 
     public const string FACADE_COMMAND = 'FACADE_COMMAND';
 
@@ -41,12 +38,6 @@ final class WatchProvider extends AbstractProvider
     public function apiFacade(Container $container): ApiFacade
     {
         return $container->getLocator()->getRequired(ApiFacade::class);
-    }
-
-    #[Provides(self::FACADE_COMPILER)]
-    public function compilerFacade(Container $container): CompilerFacade
-    {
-        return $container->getLocator()->getRequired(CompilerFacade::class);
     }
 
     #[Provides(self::FACADE_COMMAND)]

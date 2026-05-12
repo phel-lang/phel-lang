@@ -10,6 +10,7 @@ use Phel\Formatter\Application\Formatter;
 use Phel\Formatter\Application\PathsFormatter;
 use Phel\Formatter\Application\PhelPathFilter;
 use Phel\Formatter\Domain\FormatterInterface;
+use Phel\Formatter\Domain\IO\FileIoInterface;
 use Phel\Formatter\Domain\PathFilterInterface;
 use Phel\Formatter\Domain\Rules\AlignPairsRule;
 use Phel\Formatter\Domain\Rules\Indenter\BlockIndenter;
@@ -18,7 +19,6 @@ use Phel\Formatter\Domain\Rules\IndentRule;
 use Phel\Formatter\Domain\Rules\RemoveSurroundingWhitespaceRule;
 use Phel\Formatter\Domain\Rules\RemoveTrailingWhitespaceRule;
 use Phel\Formatter\Domain\Rules\UnindentRule;
-use Phel\Formatter\Infrastructure\IO\FileIoInterface;
 use Phel\Formatter\Infrastructure\IO\SystemFileIo;
 use Phel\Shared\Facade\CommandFacadeInterface;
 

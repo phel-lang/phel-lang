@@ -7,7 +7,7 @@ Language Server Protocol v3.17 over stdio (JSON-RPC 2.0 with `Content-Length` fr
 - **Facade**: `LspFacade` extends `AbstractFacade<LspFactory>`
 - **Factory**: `LspFactory` extends `AbstractFactory<LspConfig>`
 - **Config**: `LspConfig` — default debounce interval, server name/version
-- **Provider**: `LspProvider` — injects `FACADE_API`, `FACADE_LINT`, `FACADE_FORMATTER`, `FACADE_COMPILER`, `FACADE_COMMAND`, `FACADE_RUN`
+- **Provider**: `LspProvider` — injects `FACADE_API`, `FACADE_LINT`, `FACADE_FORMATTER`, `FACADE_RUN`
 
 ## Public API (Facade)
 
@@ -41,8 +41,6 @@ Diagnostics are published via `textDocument/publishDiagnostics` on didOpen/didCh
 - **Api** (`ApiFacade`) — semantic analysis, project index, resolve, references, completion
 - **Lint** (`LintFacade`) — rule-based diagnostics
 - **Formatter** (`FormatterFacade`) — `formatString()`
-- **Compiler** (`CompilerFacade`) — indirectly via Api
-- **Command** (`CommandFacade`) — default source directories
 - **Run** (`RunFacade`) — `loadPhelNamespaces()` so core symbols resolve
 
 ## Structure
