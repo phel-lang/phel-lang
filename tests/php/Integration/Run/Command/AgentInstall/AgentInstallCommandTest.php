@@ -159,6 +159,54 @@ final class AgentInstallCommandTest extends TestCase
         self::assertStringContainsString('quick-syntax.md', $content);
     }
 
+    public function test_check_reports_not_installed_for_fresh_project(): void
+    {
+        $output = new BufferedOutput();
+        $result = $this->install(['--check' => true], $output);
+
+        self::assertSame(Command::SUCCESS, $result);
+        $rendered = $output->fetch();
+        self::assertStringContainsString('claude   not installed', $rendered);
+        self::assertStringContainsString('cursor   not installed', $rendered);
+    }
+
+    public function test_check_reports_current_for_freshly_installed(): void
+    {
+        $this->install(['platform' => 'aider']);
+
+        $output = new BufferedOutput();
+        $result = $this->install(['--check' => true], $output);
+
+        self::assertSame(Command::SUCCESS, $result);
+        self::assertMatchesRegularExpression('/aider\s+v\d+\.\d+\.\d+/', $output->fetch());
+    }
+
+    public function test_check_returns_failure_when_stamp_is_stale(): void
+    {
+        $this->install(['platform' => 'aider']);
+        $path = $this->testDir . '/CONVENTIONS.md';
+        $original = (string) file_get_contents($path);
+        file_put_contents($path, preg_replace('/<!-- phel-agents v[^>]*-->/', '<!-- phel-agents v0.0.1 -->', $original));
+
+        $output = new BufferedOutput();
+        $result = $this->install(['--check' => true], $output);
+
+        self::assertSame(Command::FAILURE, $result);
+        self::assertStringContainsString('v0.0.1', $output->fetch());
+    }
+
+    public function test_check_reports_unstamped_when_file_has_no_stamp(): void
+    {
+        mkdir($this->testDir . '/.github', 0o755, true);
+        file_put_contents($this->testDir . '/.github/copilot-instructions.md', "# manual content\nno stamp here\n");
+
+        $output = new BufferedOutput();
+        $result = $this->install(['--check' => true], $output);
+
+        self::assertSame(Command::FAILURE, $result);
+        self::assertStringContainsString('copilot  file exists but has no version stamp', $output->fetch());
+    }
+
     /**
      * @param array<string, mixed> $args
      */
