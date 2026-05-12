@@ -32,6 +32,8 @@ All notable changes to this project will be documented in this file.
 - Recursive self-calls emit `$this(...)`: ~3.66x faster (#1914)
 
 #### DX
+- `phel agent-install` stamps installed skill files with `<!-- phel-agents vX.Y.Z -->` from `VERSION`; idempotent on re-install
+- Slimmer Claude skill (89 → 36 lines); shared syntax cheatsheet moved to `resources/agents/quick-syntax.md`; aider/codex/gemini/copilot/cursor pointers unified
 - Runtime state (cache, REPL history, error log) consolidated under `.phel/`; relocate via `withPhelDir()` or `PHEL_DIR` env (#1954)
 - Module boundary tightening: `Munge`, `CompileOptions`, `PhelProjectDirectory`, `VersionFinder` moved to `Phel\Shared`; `GlobalEnvironment`, `DebugLineTap` exposed via `CompilerFacade` (#1963, #1964)
 - `PhelConfig` immutable via `withX()` chain; build/export fields flat on root; old `setX()` shims deprecated
