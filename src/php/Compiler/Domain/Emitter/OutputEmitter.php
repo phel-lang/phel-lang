@@ -13,8 +13,8 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\OutputEmitterOptions;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapState;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
-use Phel\Printer\PrinterInterface;
 use Phel\Shared\MungeInterface;
+use Phel\Shared\Printer\PrinterInterface;
 
 use function count;
 use function is_null;

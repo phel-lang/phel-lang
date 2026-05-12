@@ -7,8 +7,8 @@ namespace PhelTest\Unit\Printer\TypePrinter;
 use Generator;
 use Phel;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
-use Phel\Printer\Printer;
-use Phel\Printer\TypePrinter\PersistentListPrinter;
+use Phel\Shared\Printer\Printer;
+use Phel\Shared\Printer\TypePrinter\PersistentListPrinter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

@@ -8,7 +8,7 @@ use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\LiteralEmitter;
 use Phel\Lang\BigInteger;
 use Phel\Lang\Rational;
-use Phel\Printer\Printer;
+use Phel\Shared\Printer\Printer;
 use PHPUnit\Framework\TestCase;
 
 final class LiteralEmitterTest extends TestCase

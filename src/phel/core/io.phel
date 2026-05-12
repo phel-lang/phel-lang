@@ -3,7 +3,7 @@
 (use InvalidArgumentException)
 (use Phel)
 (use Phel.Lang.Seq)
-(use Phel.Printer.Printer)
+(use Phel.Shared.Printer.Printer)
 
 ;; I/O: stdout/formatting (`print`, `println`, `pr`, `prn`, `print-str`,
 ;; `format`, `printf`, `with-output-buffer`); file helpers (`slurp`, `spit`,

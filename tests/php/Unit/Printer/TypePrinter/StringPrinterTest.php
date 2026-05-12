@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Printer\TypePrinter;
 
-use Phel\Printer\TypePrinter\StringPrinter;
+use Phel\Shared\Printer\TypePrinter\StringPrinter;
 use PHPUnit\Framework\TestCase;
 
 final class StringPrinterTest extends TestCase

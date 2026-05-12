@@ -8,9 +8,9 @@ use Exception;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\TypeInterface;
-use Phel\Printer\Printer;
 use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Exceptions\ErrorCode;
+use Phel\Shared\Printer\Printer;
 
 use function count;
 use function get_debug_type;

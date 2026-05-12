@@ -3,7 +3,7 @@
   (:use Phel.Lang.SourceLocationInterface)
   (:use Phel.Shared.Munge)
   (:use Phel.Command.CommandFacade)
-  (:use Phel.Printer.Printer)
+  (:use Phel.Shared.Printer.Printer)
   (:require phel.string :as s)
   (:require phel.test.selector :as selector))
 

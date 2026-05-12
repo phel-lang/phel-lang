@@ -20,7 +20,7 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\TypeInterface;
-use Phel\Printer\Printer;
+use Phel\Shared\Printer\Printer;
 use RuntimeException;
 
 use function count;

@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Phel\Run\Application;
 
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
-use Phel\Printer\PrinterInterface;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Shared\ColorStyleInterface;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\Printer\PrinterInterface;
 use Throwable;
 
 use function array_reverse;

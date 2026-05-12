@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Printer\TypePrinter;
 
-use Phel\Printer\TypePrinter\NullPrinter;
+use Phel\Shared\Printer\TypePrinter\NullPrinter;
 use PHPUnit\Framework\TestCase;
 
 final class NullPrinterTest extends TestCase

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Printer\TypePrinter;
 
-use Phel\Printer\TypePrinter\ResourcePrinter;
+use Phel\Shared\Printer\TypePrinter\ResourcePrinter;
 use PHPUnit\Framework\TestCase;
 
 final class ResourcePrinterTest extends TestCase

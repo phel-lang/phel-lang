@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Printer\TypePrinter;
 
 use Generator;
 use Phel\Lang\Keyword;
-use Phel\Printer\TypePrinter\KeywordPrinter;
+use Phel\Shared\Printer\TypePrinter\KeywordPrinter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

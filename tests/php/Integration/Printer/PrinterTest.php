@@ -7,8 +7,8 @@ namespace PhelTest\Integration\Printer;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Phel;
-use Phel\Printer\Printer;
 use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\Printer\Printer;
 use PHPUnit\Framework\TestCase;
 
 final class PrinterTest extends TestCase

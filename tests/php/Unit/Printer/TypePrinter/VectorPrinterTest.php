@@ -7,8 +7,8 @@ namespace PhelTest\Unit\Printer\TypePrinter;
 use Generator;
 use Phel;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
-use Phel\Printer\Printer;
-use Phel\Printer\TypePrinter\PersistentVectorPrinter;
+use Phel\Shared\Printer\Printer;
+use Phel\Shared\Printer\TypePrinter\PersistentVectorPrinter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 

@@ -16,7 +16,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\Rational;
 use Phel\Lang\Symbol;
 use Phel\Lang\Uuid;
-use Phel\Printer\PrinterInterface;
+use Phel\Shared\Printer\PrinterInterface;
 use RuntimeException;
 
 use function addslashes;

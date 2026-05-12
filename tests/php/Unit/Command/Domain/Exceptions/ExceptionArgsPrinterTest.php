@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Command\Domain\Exceptions;
 
 use Generator;
 use Phel\Command\Domain\Exceptions\ExceptionArgsPrinter;
-use Phel\Printer\PrinterInterface;
+use Phel\Shared\Printer\PrinterInterface;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use stdClass;

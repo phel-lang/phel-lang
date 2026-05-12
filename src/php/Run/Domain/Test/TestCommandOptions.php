@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Test;
 
-use Phel\Printer\Printer;
+use Phel\Shared\Printer\Printer;
 
 use function is_array;
 use function is_int;

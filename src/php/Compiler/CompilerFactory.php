@@ -44,10 +44,10 @@ use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Filesystem\FilesystemFacadeInterface;
 use Phel\Lang\TagHandlers\BuiltinTagHandlers;
 use Phel\Lang\TagRegistry;
-use Phel\Printer\Printer;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Munge;
 use Phel\Shared\MungeInterface;
+use Phel\Shared\Printer\Printer;
 
 /**
  * @extends AbstractFactory<CompilerConfig>

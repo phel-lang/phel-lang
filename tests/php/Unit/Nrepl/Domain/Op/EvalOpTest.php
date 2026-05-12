@@ -8,11 +8,11 @@ use Phel\Nrepl\Application\Op\EvalOp;
 use Phel\Nrepl\Application\Op\EvalResultResponder;
 use Phel\Nrepl\Domain\Op\OpRequest;
 use Phel\Nrepl\Domain\Session\SessionRegistry;
-use Phel\Printer\PrinterInterface;
 use Phel\Run\Domain\Repl\EvalError;
 use Phel\Run\Domain\Repl\EvalResult;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Facade\RunFacadeInterface;
+use Phel\Shared\Printer\PrinterInterface;
 use PHPUnit\Framework\TestCase;
 
 final class EvalOpTest extends TestCase

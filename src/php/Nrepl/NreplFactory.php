@@ -20,9 +20,9 @@ use Phel\Nrepl\Domain\Bencode\BencodeEncoder;
 use Phel\Nrepl\Domain\Op\OpDispatcher;
 use Phel\Nrepl\Domain\Session\SessionRegistry;
 use Phel\Nrepl\Infrastructure\NreplSocketServer;
-use Phel\Printer\Printer;
-use Phel\Printer\PrinterInterface;
 use Phel\Run\RunFacade;
+use Phel\Shared\Printer\Printer;
+use Phel\Shared\Printer\PrinterInterface;
 
 /**
  * @extends AbstractFactory<NreplConfig>

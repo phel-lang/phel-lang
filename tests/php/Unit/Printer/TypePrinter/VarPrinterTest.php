@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Printer\TypePrinter;
 
 use Phel\Lang\PhelVar;
-use Phel\Printer\TypePrinter\VarPrinter;
+use Phel\Shared\Printer\TypePrinter\VarPrinter;
 use PHPUnit\Framework\TestCase;
 
 final class VarPrinterTest extends TestCase
