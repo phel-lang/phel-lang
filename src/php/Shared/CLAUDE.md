@@ -4,7 +4,7 @@ Contract layer: facade interfaces and cross-cutting constants for inter-module c
 
 ## No Gacela Pattern
 
-This is a **pure contract module** — no Facade, Factory, or DependencyProvider. It defines the interfaces that other modules implement.
+This is a **pure contract module** : no Facade, Factory, or DependencyProvider. It defines the interfaces that other modules implement.
 
 ## Facade Interfaces (8 total)
 
@@ -23,27 +23,27 @@ Located in `Facade/` subdirectory. Each module implements its corresponding inte
 
 ## Constants
 
-- **CompilerConstants** — `PHEL_CORE_NAMESPACE = 'phel.core'`
-- **BuildConstants** — `BUILD_MODE = '*build-mode*'`
-- **ReplConstants** — `REPL_MODE = '*repl-mode*'`
+- **CompilerConstants** : `PHEL_CORE_NAMESPACE = 'phel.core'`
+- **BuildConstants** : `BUILD_MODE = '*build-mode*'`
+- **ReplConstants** : `REPL_MODE = '*repl-mode*'`
 
-## Exception Classes
+## Exception Classes (Exceptions/)
 
-Located in `Exceptions/`. Cross-module exceptions previously living under `Phel\Compiler\Domain\Exceptions` and `Phel\Compiler\Domain\Evaluator\Exceptions`:
+Moved from `Phel\Compiler\Domain\*` for cross-module access:
 
-- `CompilerException` — wraps an `AbstractLocatedException` with a `CodeSnippet`
-- `AbstractLocatedException` — base for located errors (start/end `SourceLocation`, `ErrorCode`)
-- `ErrorCode` enum — `PHEL001..PHEL310` for analyzer/parser/reader/lexer errors
-- `FileException` — file/directory failures from the evaluator (`canNotCreateFile`, etc.)
-- `CompiledCodeIsMalformedException` — wraps `ParseError`/`Throwable` from `eval()` of compiled PHP
+- `CompilerException` : wraps `AbstractLocatedException` with `CodeSnippet`
+- `AbstractLocatedException` : base for located errors with `SourceLocation` and `ErrorCode`
+- `ErrorCode` enum : `PHEL001..PHEL310` for analyzer/parser/reader/lexer errors
+- `FileException` : file/directory failures (`canNotCreateFile`, etc.)
+- `CompiledCodeIsMalformedException` : wraps `ParseError` from compiled PHP `eval()`
 
-## Parser Model
+## Parser Model (Parser/)
 
-- `Parser/ReadModel/CodeSnippet` — `SourceLocation` start/end + raw source string; used by `CompilerException` and `ReaderException`. Pure data, no Parser/Compiler imports.
+- `ReadModel/CodeSnippet` : `SourceLocation` start/end + raw source string. Pure data, no Parser/Compiler imports.
 
 ## Printer
 
-`Printer/` holds the readable/non-readable printer used by REPL output, eval-result serialisation, exception args, and `__toString()` of `Phel\Lang\AbstractType`. Pure utility — no module state, no I/O wiring — so consumers `new` it directly (`Printer::readable()` / `Printer::nonReadable()`) without crossing a module boundary.
+`Printer/` holds the readable/non-readable printer used by REPL output, eval-result serialisation, exception args, and `__toString()` of `Phel\Lang\AbstractType`. Pure utility : no module state, no I/O wiring : so consumers `new` it directly (`Printer::readable()` / `Printer::nonReadable()`) without crossing a module boundary.
 
 | Class | Purpose |
 |-------|---------|
@@ -53,10 +53,9 @@ Located in `Exceptions/`. Cross-module exceptions previously living under `Phel\
 
 ## Utility Classes
 
-- **ColorStyle** (implements `ColorStyleInterface`) — ANSI terminal colors: `green()`, `yellow()`, `blue()`, `red()`
-  - Factory: `ColorStyle::withStyles()` / `ColorStyle::noStyles()`
-- **ResourceUsageFormatter** — `resourceUsageSinceStartOfRequest()` returns `Time: HH:MM:SS.mmm, Memory: X.XX MB` (used by `run --with-time`, `test`, `build`)
-- **Munge** (implements `MungeInterface`) — namespace and symbol name encoder; `encode()`, `encodePhpNs()`, `encodeRegistryKey()`, `decodeNs()`, plus static helpers `canonicalNs()` / `displayNs()`. Pure stateless. Used by Compiler emitter and analyzer, plus every module that resolves user-typed namespaces against the runtime registry (`Api`, `Run`, `Command`, `Profile`, `Build`, `Interop`).
+- **ColorStyle**: ANSI terminal colors (`green()`, `yellow()`, `blue()`, `red()`). Factory: `withStyles()` / `noStyles()`
+- **ResourceUsageFormatter**: `resourceUsageSinceStartOfRequest()` returns `Time: HH:MM:SS.mmm, Memory: X.XX MB` (used by `run --with-time`, `test`, `build`)
+- **Munge**: namespace/symbol encoder; `encode()`, `encodePhpNs()`, `encodeRegistryKey()`, `decodeNs()`, `canonicalNs()`, `displayNs()`. Pure stateless. Used by Compiler and all modules resolving namespaces against the runtime registry
 
 ## Dependencies
 
@@ -64,10 +63,11 @@ None outward. Imports types from other modules only in interface signatures (Com
 
 ## Used By
 
-**Every module** depends on Shared for its facade interface contract. This enables dependency inversion — modules depend on interfaces, not implementations.
+**Every module** depends on Shared for its facade interface contract. This enables dependency inversion : modules depend on interfaces, not implementations.
 
 ## Key Constraints
 
-- This module must remain a **leaf dependency** — it defines contracts, never implements business logic
-- Adding a new module requires adding its `FacadeInterface` here
-- Facade interfaces import domain types (e.g. `CompilerException`, `TypeInterface`) — keep these imports minimal
+- Remains a leaf dependency: defines contracts, never implements business logic
+- New modules require adding their `FacadeInterface` here
+- Facade interfaces import domain types only as needed; keep imports minimal
+- Exceptions are cross-module: defined here, thrown/caught everywhere

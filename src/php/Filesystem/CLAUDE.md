@@ -6,20 +6,20 @@ File system abstraction for compilation: temp directory management and compiled 
 
 - **Facade**: `FilesystemFacade` implements `FilesystemFacadeInterface`
 - **Factory**: `FilesystemFactory` extends `AbstractFactory<FilesystemConfig>`
-- **Config**: `FilesystemConfig` — reads `KEEP_GENERATED_TEMP_FILES` (bool) and `TEMP_DIR` (string)
-- **No Provider** — no inter-module dependencies
+- **Config**: `FilesystemConfig` : reads `KEEP_GENERATED_TEMP_FILES` (bool) and `TEMP_DIR` (string)
+- **No Provider** : no inter-module dependencies
 
 ## Public API (Facade)
 
-- `addFile(string $file): void` — register a compiled file for tracking
-- `clearAll(): void` — delete all tracked files
-- `getTempDir(): string` — get or create temporary directory
-- `getHealthCheck(): ModuleHealthCheckInterface` — Gacela health check that verifies the temp dir exists and is writable; consumed by `phel doctor`
+- `addFile(string $file): void` : register a compiled file for tracking
+- `clearAll(): void` : delete all tracked files
+- `getTempDir(): string` : get or create temporary directory
+- `getHealthCheck(): ModuleHealthCheckInterface` : Gacela health check that verifies the temp dir exists and is writable; consumed by `phel doctor`
 
 ## Dependencies
 
-- **Config** (`PhelConfig`) — configuration values
-- **Compiler** (`FileException`) — exception type from `Compiler/Domain/Evaluator/Exceptions`
+- **Config** (`PhelConfig`) : configuration values
+- **Shared** : `FileException` exception type
 
 ## Structure
 
@@ -33,8 +33,7 @@ Filesystem/
 
 ## Key Constraints
 
-- **Strategy pattern**: `RealFilesystem` (normal) vs `NullFilesystem` (when `KEEP_GENERATED_TEMP_FILES` is true)
-- `RealFilesystem` uses a static array to track files — `clearAll()` deletes them all
-- `TempDirFinder` creates/validates temp directory and throws `FileException` on permission failures
-- `PhelProjectDirectory::ensure(string $projectRoot)` is the single entry point for creating `<projectRoot>/.phel/`. Best-effort: never throws. Seeds `.phel/.gitignore` (`*`) on first create; preserves user edits. On read-only filesystems (Lambda, PHAR running over a `:ro` mount, sandbox runners) it silently no-ops and returns the intended path — callers attempt the actual write and surface OS-level errors there.
-- This is a small, focused module — keep it minimal
+- **Strategy pattern**: `RealFilesystem` (normal) vs `NullFilesystem` (when `KEEP_GENERATED_TEMP_FILES = true`)
+- `RealFilesystem` uses a static array to track files
+- `TempDirFinder` throws `FileException` on permission failures
+- `PhelProjectDirectory::ensure()` is the single entry point for creating `.phel/`. Best-effort: never throws. Seeds `.gitignore` on first create. On read-only filesystems, silently no-ops.

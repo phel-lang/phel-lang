@@ -5,28 +5,28 @@ CLI application entry point: bootstraps Symfony Console, registers commands, det
 ## Gacela Pattern
 
 - **Facade**: `ConsoleFacade` implements `ConsoleFacadeInterface`
-- **Factory**: `ConsoleFactory` — creates `ConsoleBootstrap`, `VersionFinder`, `ArgvInputSanitizer`
-- **Provider**: `ConsoleProvider` — injects `COMMANDS` (12 CLI commands), `FACADE_FILESYSTEM`, `TAG_COMMIT_HASH`, `CURRENT_COMMIT`
+- **Factory**: `ConsoleFactory` : creates `ConsoleBootstrap`, `VersionFinder`, `ArgvInputSanitizer`
+- **Provider**: `ConsoleProvider` : injects `COMMANDS` (12 CLI commands), `FACADE_FILESYSTEM`, `TAG_COMMIT_HASH`, `CURRENT_COMMIT`
 
 ## Public API (Facade)
 
-- `getVersion(): string` — full version (`v0.30.0`) or beta with hash (`v0.30.0-beta#abc1234`)
-- `runConsole(): void` — execute the CLI application
+- `getVersion(): string` : full version (`v0.30.0`) or beta with hash (`v0.30.0-beta#abc1234`)
+- `runConsole(): void` : execute the CLI application
 
-## CLI Commands (registered via Provider)
+## CLI Commands
 
-Phel commands: `InitCommand`, `AgentInstallCommand`, `ExportCommand`, `FormatCommand`, `NsCommand`, `ReplCommand`, `EvalCommand`, `RunCommand`, `TestCommand`, `DocCommand`, `BuildCommand`, `CacheClearCommand`, `DoctorCommand`.
-
-Gacela 1.13 commands re-exposed under the `phel` CLI: `CacheWarmCommand`, `DebugContainerCommand`, `DebugDependenciesCommand`, `DebugModulesCommand`, `ListModulesCommand`, `ProfileReportCommand`, `ValidateConfigCommand`.
+Registered via `ConsoleProvider::COMMANDS`:
+- Phel: InitCommand, AgentInstallCommand, ExportCommand, FormatCommand, NsCommand, ReplCommand, EvalCommand, RunCommand, TestCommand, DocCommand, BuildCommand, CacheClearCommand, DoctorCommand
+- Gacela 1.13 re-exposed: CacheWarmCommand, DebugContainerCommand, DebugDependenciesCommand, DebugModulesCommand, ListModulesCommand, ProfileReportCommand, ValidateConfigCommand
 
 ## Dependencies
 
-- **Filesystem** (`FilesystemFacade`) — cleanup after execution
-- **Build** — `BuildCommand`, `CacheClearCommand`
-- **Run** — `InitCommand`, `EvalCommand`, `ReplCommand`, `NsCommand`, `RunCommand`, `TestCommand`, `DoctorCommand`
-- **Api** — `DocCommand`
-- **Formatter** — `FormatCommand`
-- **Interop** — `ExportCommand`
+- **Filesystem** (`FilesystemFacade`) : cleanup after execution
+- **Build** : `BuildCommand`, `CacheClearCommand`
+- **Run** : `InitCommand`, `EvalCommand`, `ReplCommand`, `NsCommand`, `RunCommand`, `TestCommand`, `DoctorCommand`
+- **Api** : `DocCommand`
+- **Formatter** : `FormatCommand`
+- **Interop** : `ExportCommand`
 
 ## Structure
 

@@ -6,27 +6,27 @@ Core build orchestrator: compiles Phel projects to PHP with dependency resolutio
 
 - **Facade**: `BuildFacade` implements `BuildFacadeInterface`
 - **Factory**: `BuildFactory` extends `AbstractFactory<BuildConfig>`
-- **Config**: `BuildConfig` — cache settings, paths to ignore, temp/cache dirs, entry point detection
-- **Provider**: `BuildProvider` — injects `CompilerFacade` (`FACADE_COMPILER`) and `CommandFacade` (`FACADE_COMMAND`)
+- **Config**: `BuildConfig` : cache settings, paths to ignore, temp/cache dirs, entry point detection
+- **Provider**: `BuildProvider` : injects `CompilerFacade` (`FACADE_COMPILER`) and `CommandFacade` (`FACADE_COMMAND`)
 
 ## Public API (Facade)
 
-- `enableBuildMode()` / `disableBuildMode()` — toggle build mode flag
-- `getNamespaceFromFile(string $filename): NamespaceInformation` — extract namespace from file
-- `getNamespaceFromDirectories(array $dirs): array` — extract all namespaces from directories
-- `getDependenciesForNamespace(array $dirs, array $ns): array` — topologically sorted dependencies
-- `compileFile(string $src, string $dest): CompiledFile` — compile single file to PHP
-- `evalFile(string $src): CompiledFile` — evaluate without writing output
-- `compileProject(BuildOptions $options): array` — compile entire project
-- `writeLocatedException(OutputInterface $output, CompilerException $e): void`
-- `writeStackTrace(OutputInterface $output, Throwable $e): void`
-- `clearCache(): array` — clear all build caches
-- `getHealthCheck(): ModuleHealthCheckInterface` — checks cache dir, output dir, and configured source dirs; consumed by `phel doctor`
+- `getNamespaceFromFile(string): NamespaceInformation` : extract namespace from file
+- `getNamespaceFromDirectories(array): array` : extract all namespaces from directories
+- `getDependenciesForNamespace(array, array): array` : topologically sorted dependencies
+- `compileFile(string, string): CompiledFile` : compile single file to PHP
+- `evalFile(string): CompiledFile` : evaluate without writing output
+- `compileProject(BuildOptions): array` : compile entire project
+- `writeLocatedException(OutputInterface, CompilerException): void`
+- `writeStackTrace(OutputInterface, Throwable): void`
+- `clearCache(): array` : clear all build caches
+- `getOutputDirectory(): string`
+- `getHealthCheck(): ModuleHealthCheckInterface` : cache + output + source dir checks
 
 ## Dependencies
 
-- **Compiler** (`CompilerFacade`) — Phel-to-PHP compilation, environment init
-- **Command** (`CommandFacade`) — source/output directories, error formatting
+- **Compiler** (`CompilerFacade`) : Phel-to-PHP compilation, environment init
+- **Command** (`CommandFacade`) : source/output directories, error formatting
 
 ## Structure
 
@@ -40,9 +40,8 @@ Build/
 
 ## Key Constraints
 
-- Two-level caching: namespace extraction cache + compiled code cache
+- Two-level caching: namespace extraction + compiled code
 - `TopologicalNamespaceSorter` ensures correct compilation order
-- `CachedNamespaceExtractor` decorates `NamespaceExtractor` with caching
 - `BuildOptions` controls source maps and cache behavior
 - Auto-detects main namespace from `core.phel` or `main.phel`
-- Namespace extractors prune the build output from recursive scans (absolute excluded dirs + per-scan-root `<dest_dir>/` subtree) to avoid duplicate-namespace shadowing when `FileCompiler::writeSourceReference` mirrors sources next to compiled files
+- Namespace extractors prune `<dest_dir>/` from recursive scans to avoid shadowing

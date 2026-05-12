@@ -6,8 +6,8 @@ Foundational infrastructure: error reporting, exception formatting, and project 
 
 - **Facade**: `CommandFacade` implements `CommandFacadeInterface`
 - **Factory**: `CommandFactory` extends `AbstractFactory<CommandConfig>`
-- **Config**: `CommandConfig` — source dirs (`src`), test dirs (`tests`), vendor, output, error log
-- **Provider**: `CommandProvider` — injects `PHP_CONFIG_READER` from container
+- **Config**: `CommandConfig` : source dirs (`src`), test dirs (`tests`), vendor, output, error log
+- **Provider**: `CommandProvider` : injects `PHP_CONFIG_READER` from container
 
 ## Public API (Facade)
 
@@ -16,18 +16,18 @@ Foundational infrastructure: error reporting, exception formatting, and project 
 - `getExceptionString(AbstractLocatedException, CodeSnippet): string`
 - `getStackTraceString(Throwable): string`
 - `getExceptionPrinter(): ExceptionPrinterInterface`
-- `getAllPhelDirectories(): array` — all source + test + vendor directories
-- `getSourceDirectories(): array` / `getTestDirectories(): array` / `getVendorSourceDirectories(): array`
-- `getProjectSourceDirectories(): array` — user-configured src dirs only (excludes phel's own bundled stdlib dir)
+- `getAllPhelDirectories(): array` : source + test + vendor
+- `getSourceDirectories(): array`
+- `getProjectSourceDirectories(): array` : user-configured only (excludes bundled stdlib)
+- `getTestDirectories(): array`
+- `getVendorSourceDirectories(): array`
 - `getOutputDirectory(): string`
 - `readPhelConfig(string): array`
 
 ## Dependencies
 
-- **Compiler** — `AbstractLocatedException`, `ErrorCode`, `CodeSnippet`, `MungeInterface`, `SourceLocation`
-- **Shared** — `CommandFacadeInterface`, `ColorStyleInterface`
-- **Printer** — `Printer` for readable output
-- **Config** — `PhelConfig`, `PhelBuildConfig`
+- **Shared** : `AbstractLocatedException`, `ErrorCode`, `CodeSnippet`, `Printer`, `ColorStyle`, `Munge`
+- **Config** : `PhelConfig`
 
 ## Structure
 
@@ -41,7 +41,7 @@ Command/
 
 ## Key Constraints
 
-- Many modules depend on this for error formatting — changes here ripple widely
+- Many modules depend on this for error formatting and directories
 - `DirectoryFinder` resolves absolute paths and handles PHAR archives
 - `SourceMapExtractor` maps generated PHP back to Phel source locations
-- `TextExceptionPrinter` renders exceptions with syntax highlighting and source pointers
+- `TextExceptionPrinter` renders exceptions with syntax highlighting + source pointers

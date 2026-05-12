@@ -4,10 +4,10 @@
 
 ## Gacela Pattern
 
-- **Facade**: `ProfileFacade` — `startSession()`, `renderTable()`, `renderJson()`
-- **Factory**: `ProfileFactory` — creates `ProfilerSession`, formatters; exposes `RunFacade`
-- **Config**: `ProfileConfig` — format/sort constants and defaults
-- **Provider**: `ProfileProvider` — injects `RunFacade` (`FACADE_RUN`)
+- **Facade**: `ProfileFacade` : `startSession()`, `renderTable()`, `renderJson()`
+- **Factory**: `ProfileFactory` : creates `ProfilerSession`, formatters; exposes `RunFacade`
+- **Config**: `ProfileConfig` : format/sort constants and defaults
+- **Provider**: `ProfileProvider` : injects `RunFacade` (`FACADE_RUN`)
 
 ## Public API (Facade)
 
@@ -17,9 +17,9 @@
 
 ## Hook Strategy
 
-`Phel\Lang\Registry` carries an optional `static ?ProfilerHookInterface $profilerHook`. When set, `Registry::addDefinition` wraps every `AbstractFn` value in a `ProfilingFn` proxy before storing. `GlobalVarEmitter` already routes every global-fn call through `\Phel::getDefinition(...)`, so no emitter or fixture changes are needed.
+`Phel\Lang\Registry` carries an optional `static ?ProfilerHookInterface $profilerHook`. When set, `Registry::addDefinition` wraps every `AbstractFn` in a `ProfilingFn` proxy before storing. `GlobalVarEmitter` already routes all global-fn calls through `\Phel::getDefinition(...)`, so no emitter changes are needed.
 
-Off-state cost: one null-check per `addDefinition` call. Zero call-site overhead when the profiler is off.
+Off-state cost: one null-check per `addDefinition`. Zero call-site overhead when off.
 
 ## Structure
 
@@ -42,15 +42,15 @@ Profile/
 
 ## Dependencies
 
-- **Run** (`RunFacade`) — `runFile`, `runNamespace`, `autoDetectEntryPoint`, `writeLocatedException`, `writeStackTrace`
-- **Compiler** (`Munge`) — namespace canonicalisation
-- **Lang** (`AbstractFn`, `ProfilerHookInterface`, `Registry`) — fn proxy and hook installation
+- **Run** (`RunFacade`) : `runFile`, `runNamespace`, `autoDetectEntryPoint`, `writeLocatedException`, `writeStackTrace`
+- **Compiler** (`Munge`) : namespace canonicalisation
+- **Lang** (`AbstractFn`, `ProfilerHookInterface`, `Registry`) : fn proxy and hook installation
 
 ## Key Constraints
 
-- The hook only wraps fns at definition time; values that aren't `AbstractFn` pass through unchanged
-- `ProfilingFn` extends `AbstractFn` so any `instanceof AbstractFn` check downstream still succeeds
-- `ProfilingFn::__construct` copies inner meta to the proxy so `getMeta` / `withMeta` still work via `MetaTrait`
+- Hook wraps fns at definition time only; non-`AbstractFn` values pass through unchanged
+- `ProfilingFn` extends `AbstractFn` so downstream `instanceof` checks still succeed
+- `ProfilingFn::__construct` copies inner meta so `getMeta()` / `withMeta()` work via `MetaTrait`
 - Self time is computed by maintaining a per-call stack and subtracting child inclusive time from parent
-- Self-recursive calls bypass the proxy (commit `bee78ffe` emits `$this(...)` instead of a registry lookup); the entry from outside is counted but recursive depth isn't. Cross-fn recursion is fully profiled
-- The hook is installed by `ProfileCommand` before invoking the run, and cleared in a `finally` block; do not leave it set across commands
+- Self-recursive calls bypass the proxy (`$this(...)` vs registry lookup); entry from outside is counted but recursive depth isn't
+- Hook is installed by `ProfileCommand` before invoking the run, cleared in a `finally` block

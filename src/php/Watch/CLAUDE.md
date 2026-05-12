@@ -11,13 +11,13 @@ Hot-reload and file-watch: detects `.phel` changes and re-evaluates the affected
 
 ## Public API (Facade)
 
-- `watch(list<string> $paths, array $options = []): void` - blocking watch loop
-- `createFileWatcher(?string $backend, ?int $poll, ?int $debounce): FileWatcherInterface`
-- `createFileWatcherFactory(?int $poll, ?int $debounce): FileWatcherFactory`
-- `createReloadOrchestrator(?ReloadEventPublisherInterface $publisher): ReloadOrchestratorInterface`
+- `watch(array, array = []): void` : blocking watch loop
+- `createFileWatcher(?string, ?int, ?int): FileWatcherInterface`
+- `createFileWatcherBuilder(?int = null, ?int = null): FileWatcherBuilder`
+- `createReloadOrchestrator(?ReloadEventPublisherInterface = null): ReloadOrchestratorInterface`
 - `createNamespaceResolver(): NamespaceResolverInterface`
 
-`$options`: `backend` (`auto|inotify|fswatch|polling`), `poll` (ms), `debounce` (ms), `publisher` (optional `ReloadEventPublisherInterface`).
+`watch()` options: `backend` (`auto|inotify|fswatch|polling`), `poll` (ms), `debounce` (ms), `publisher` (optional).
 
 ## CLI Command
 
@@ -35,10 +35,10 @@ All three implement `FileWatcherInterface { watch(list<string> $paths, callable 
 
 ## Dependencies
 
-- **Run** (`RunFacade`) - `evalFile`, `structuredEval`, `loadPhelNamespaces`
-- **Build** (`BuildFacade`) - `getDependenciesForNamespace`
-- **Api** (`ApiFacade`) - `indexProject` for incremental re-index
-- **Command** (`CommandFacade`) - source-directory defaults
+- **Run** (`FACADE_RUN`) : `evalFile`, `structuredEval`, `loadPhelNamespaces`
+- **Build** (`FACADE_BUILD`) : `getDependenciesForNamespace`
+- **Api** (`FACADE_API`) : `indexProject` for incremental re-index
+- **Command** (`FACADE_COMMAND`) : source-directory defaults
 
 ## Structure
 
@@ -60,8 +60,8 @@ Watch/
 
 ## Key Constraints
 
-- Debounce coalesces events in a 100ms window so editor saves that touch the same file twice trigger a single reload cycle
-- `PollingWatcher` is the only backend exercised in CI; `fswatch`/`inotify` availability is probed at runtime but their behaviour relies on external binaries and is not unit-tested
-- `ReloadOrchestrator` is the only side-effect surface: reload, run `phel\watch/run-on-reload-hooks`, re-index, publish
-- `NullReloadEventPublisher` is the default; swap in an nREPL-aware publisher when the watcher runs inside an nREPL process
-- `NamespaceResolver` uses a lightweight regex (not the full parser) since this runs on every file change
+- Debounce coalesces events in a 100ms window so editor double-saves trigger a single reload cycle
+- `PollingWatcher` is exercised in CI; `fswatch`/`inotify` probed at runtime but not unit-tested (external binaries)
+- `ReloadOrchestrator` is the side-effect surface: reload, run `phel\watch/run-on-reload-hooks`, re-index, publish
+- `NullReloadEventPublisher` is the default; swap in an nREPL-aware publisher when the watcher runs inside nREPL
+- `NamespaceResolver` uses lightweight regex (not full parser) for performance on every file change

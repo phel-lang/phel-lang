@@ -5,28 +5,29 @@ Code formatting for Phel source files: parses code into AST, applies formatting 
 ## Gacela Pattern
 
 - **Facade**: `FormatterFacade` implements `FormatterFacadeInterface`
-- **Factory**: `FormatterFactory` — creates `PathsFormatter`, `Formatter`, individual rules
-- **Config**: `FormatterConfig` — `getFormatDirs()` (default: `['src', 'tests']`)
-- **Provider**: `FormatterProvider` — injects `CompilerFacade` (`FACADE_COMPILER`) and `CommandFacade` (`FACADE_COMMAND`)
+- **Factory**: `FormatterFactory` : creates `PathsFormatter`, `Formatter`, individual rules
+- **Config**: `FormatterConfig` : `getFormatDirs()` (default: `['src', 'tests']`)
+- **Provider**: `FormatterProvider` : injects `CompilerFacade` (`FACADE_COMPILER`) and `CommandFacade` (`FACADE_COMMAND`)
 
 ## Public API (Facade)
 
-- `format(array $paths, OutputInterface $output, bool $dryRun = false): array` — format files, returns list of paths whose contents changed (or would change under `$dryRun`). When `$dryRun`, files are left untouched.
+- `format(array, OutputInterface, bool = false): array` : format files, returns paths with changes (or would change in dry-run)
+- `formatString(string): string` : format a code string
 
 ## Formatting Rules (applied in order)
 
 1. `RemoveSurroundingWhitespaceRule`
 2. `UnindentRule`
-3. `IndentRule` — uses specialized indenters:
-   - `InnerIndenter` — for `def`, `defn`, `defmacro`, `deftest`, `fn`
-   - `BlockIndenter` — for `if`, `do`, `let`, `try`, `case`, `cond`, etc.
+3. `IndentRule` : uses specialized indenters:
+   - `InnerIndenter` : for `def`, `defn`, `defmacro`, `deftest`, `fn`
+   - `BlockIndenter` : for `if`, `do`, `let`, `try`, `case`, `cond`, etc.
    - `LineIndenter`, `ListIndenter`
 4. `RemoveTrailingWhitespaceRule`
 
 ## Dependencies
 
-- **Compiler** (`CompilerFacade`) — lexing and parsing Phel code
-- **Command** (`CommandFacade`) — error reporting and CLI output
+- **Compiler** (`CompilerFacade`) : lexing and parsing Phel code
+- **Command** (`CommandFacade`) : error reporting and CLI output
 
 ## Structure
 

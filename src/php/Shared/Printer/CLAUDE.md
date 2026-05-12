@@ -4,17 +4,17 @@ Converts Phel data structures and values into readable string representations. S
 
 ## No Gacela Pattern
 
-Standalone strategy-pattern submodule. No Facade/Factory/Provider — `Printer` class is the entry point. Stateless, no module config, no I/O wiring.
+Standalone strategy-pattern submodule. No Facade/Factory/Provider : `Printer` class is the entry point. Stateless, no module config, no I/O wiring.
 
 ## Public API
 
 **Factory methods** (on `Printer` class):
-- `Printer::readable()` — readable output without colors
-- `Printer::readableWithColor()` — readable output with ANSI colors
-- `Printer::nonReadable()` — machine-oriented output
+- `Printer::readable()` : readable output without colors
+- `Printer::readableWithColor()` : readable output with ANSI colors
+- `Printer::nonReadable()` : machine-oriented output
 
 **Instance method**:
-- `print(mixed $form): string` — convert any value to string
+- `print(mixed $form): string` : convert any value to string
 
 ## Type Printers (Strategy pattern)
 
@@ -50,7 +50,7 @@ Each implements `TypePrinterInterface`. Selected at runtime based on value type:
 
 ## Dependencies
 
-- **Lang** — `Keyword`, `Symbol`, `Variable`, `FnInterface`, all collection interfaces
+- **Lang** : `Keyword`, `Symbol`, `Variable`, `FnInterface`, all collection interfaces
 
 ## Structure
 
@@ -67,5 +67,5 @@ Printer/
 ## Key Constraints
 
 - Recursive printers receive `PrinterInterface` via constructor for nested structures
-- `WithColorTrait` provides `$withColor` boolean — each printer controls its own color output
-- `Printer` is `final readonly` — extend via new `TypePrinter` implementations, not subclassing
+- `WithColorTrait` provides `$withColor` boolean : each printer controls its own color output
+- `Printer` is `final readonly` : extend via new `TypePrinter` implementations, not subclassing

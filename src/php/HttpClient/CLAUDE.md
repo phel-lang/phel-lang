@@ -27,6 +27,6 @@ HttpClient/
 
 ## Key Constraints
 
-- Both classes must remain `final` (Phel core does not subclass them) and have stable public APIs — they are addressable from user Phel code through interop.
+- Both classes must remain `final` (Phel core does not subclass them) and have stable public APIs : they are addressable from user Phel code through interop.
 - Never block on a single host; honour the `:timeout` option Phel passes through.
 - `StreamTransport` must surface fopen failures as `RuntimeException`; Phel core wraps them into `phel\http-client/error?` results.

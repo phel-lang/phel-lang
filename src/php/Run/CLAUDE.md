@@ -6,29 +6,29 @@ Runtime execution: runs Phel namespaces/files, REPL, evaluation, testing, and al
 
 - **Facade**: `RunFacade` implements `RunFacadeInterface`
 - **Factory**: `RunFactory` extends `AbstractFactory<RunConfig>`
-- **Config**: `RunConfig` — REPL history path, startup file path
-- **Provider**: `RunProvider` — injects 5 facades: `CommandFacade`, `CompilerFacade`, `BuildFacade`, `ApiFacade`, `ConsoleFacade`
+- **Config**: `RunConfig` : REPL history path, startup file path
+- **Provider**: `RunProvider` : injects 5 facades: `CommandFacade`, `CompilerFacade`, `BuildFacade`, `ApiFacade`, `ConsoleFacade`
 
 ## Public API (Facade)
 
 **Execution**
-- `runNamespace(string $namespace): void` — execute a namespace with dependencies
-- `runFile(string $filename): void` — execute a Phel file
-- `eval(string $phelCode, CompileOptions): mixed` — evaluate code (may throw)
-- `structuredEval(string $phelCode, CompileOptions): EvalResult` — evaluate with error capture (never throws)
+- `runNamespace(string): void` : execute a namespace with dependencies
+- `runFile(string): void` : execute a Phel file
+- `getNamespaceFromFile(string): NamespaceInformation`
+- `getDependenciesForNamespace(array, array): array` : topologically sorted
+- `getDependenciesFromPaths(array): array`
+- `evalFile(string): void`
+- `loadPhelNamespaces(?string = null): void` : load core + startup
 
-**Namespace Resolution**
-- `getNamespaceFromFile(string $fileOrPath): NamespaceInformation`
-- `getDependenciesForNamespace(array $dirs, array $ns): list<NamespaceInformation>`
-- `getDependenciesFromPaths(array $paths): list<NamespaceInformation>`
-- `evalFile(NamespaceInformation $info): void`
-- `loadPhelNamespaces(?string $replStartupFile): void` — load core + startup namespaces
-- `getLoadedNamespaces(): list<NamespaceInformation>`
-
-**Directory & Version**
+**Query**
 - `getAllPhelDirectories(): array`
+- `getLoadedNamespaces(): array`
 - `getVersion(): string`
-- `autoDetectEntryPoint(): ?string` — find `core.phel` or `main.phel`
+- `autoDetectEntryPoint(): ?string` : find `core.phel` or `main.phel`
+
+**Debugging**
+- `enableDebugLineTap(): void`
+- `disableDebugLineTap(): void`
 
 **Error Handling**
 - `writeLocatedException(OutputInterface, CompilerException): void`
@@ -36,11 +36,11 @@ Runtime execution: runs Phel namespaces/files, REPL, evaluation, testing, and al
 
 ## Dependencies
 
-- **Build** (`BuildFacade`) — namespace extraction, dependency resolution, file evaluation
-- **Compiler** (`CompilerFacade`) — compilation, evaluation, environment management
-- **Command** (`CommandFacade`) — directories, error formatting
-- **Console** (`ConsoleFacade`) — version info
-- **Api** (`ApiFacade`) — REPL autocompletion
+- **Build** (`BuildFacade`) : namespace extraction, dependency resolution, file evaluation
+- **Compiler** (`CompilerFacade`) : compilation, evaluation, environment management
+- **Command** (`CommandFacade`) : directories, error formatting
+- **Console** (`ConsoleFacade`) : version info
+- **Api** (`ApiFacade`) : REPL autocompletion
 
 ## Structure
 
@@ -62,13 +62,12 @@ Run/
 
 ## Key Constraints
 
-- `EvalResult` uses static constructors: `success()`, `incomplete()`, `failure()` — never throws
+- `EvalResult` uses static constructors: `success()`, `incomplete()`, `failure()` : never throws
 - REPL supports environment snapshot/restore on eval failure
 - `ReplCommandSystemIo` requires PHP `readline` extension; falls back to `ReplCommandFallbackIo`
-- `ReplHistoryPathResolver` returns `<projectRoot>/.phel/repl-history`; transparently migrates a legacy `<projectRoot>/.phel-repl-history` (rename + one-line stderr notice unless `PHEL_QUIET_MIGRATION=1`)
-- `ReplHistory` registers `*1`/`*2`/`*3`/`*e` in `phel\core` after REPL boot; updates on every eval/exception
-- `ReplPrompt` reads the current namespace via `CompilerFacade::getGlobalEnvironment()->getNs()` to render the prompt
-- `ReplErrorFormatter` renders eval-time `Throwable`s for REPL output: short headline, optional hint, trace with internal compiler/run/build/command frames hidden. `Hint/` holds `ReplHintInterface` implementations (`NotCallableHint`, `ArgumentCountHint`, `UndefinedSymbolHint`); register new hints via `RunFactory::createReplHints`
-- `NamespaceRunner` resolves full dependency tree before executing
-- `BundledNamespaces` lists every `phel.*` module shipped by Phel/installed Phel packages; `NamespaceLoader` and `NamespaceCollector` use it as eager seeds so fully qualified references (`phel.async/delay`, `phel.json/encode`) resolve without explicit `(:require ...)`. `NamespaceLoader` restores the startup namespace via `CompilerFacade::getGlobalEnvironment()->setNs(...)` after seeding so the REPL/eval session lands in the expected scope.
-- This is the **most connected module** — depends on 7 other modules via Provider
+- `ReplHistoryPathResolver` returns `.phel/repl-history`; transparently migrates legacy `.phel-repl-history`
+- `ReplHistory` registers `*1`/`*2`/`*3`/`*e` in `phel\core` after REPL boot
+- `ReplErrorFormatter` renders eval-time `Throwable`s with short headline, hints, and filtered trace
+- New `ReplHint` implementations register via `RunFactory::createReplHints()`
+- `BundledNamespaces` lists every `phel.*` module; loader uses it as eager seeds so fully qualified refs (`phel.json/encode`) resolve without explicit `(:require ...)`
+- This is the most connected module: 5 Provider dependencies

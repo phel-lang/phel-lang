@@ -6,14 +6,14 @@ PHP-Phel interoperability: generates PHP wrapper classes for Phel functions mark
 
 - **Facade**: `InteropFacade` implements `InteropFacadeInterface`
 - **Factory**: `InteropFactory` extends `AbstractFactory<InteropConfig>`
-- **Config**: `InteropConfig` — export dirs (`src`), namespace prefix (`PhelGenerated`), target dir (`src/PhelGenerated`)
-- **Provider**: `InteropProvider` — injects `CommandFacade` (`FACADE_COMMAND`) and `BuildFacade` (`FACADE_BUILD`)
+- **Config**: `InteropConfig` : export dirs (`src`), namespace prefix (`PhelGenerated`), target dir (`src/PhelGenerated`)
+- **Provider**: `InteropProvider` : injects `CommandFacade` (`FACADE_COMMAND`) and `BuildFacade` (`FACADE_BUILD`)
 
 ## Public API (Facade)
 
-- `generateExportCode(): array<Wrapper>` — orchestrates full export pipeline
-- `writeLocatedException(OutputInterface, CompilerException): void` — delegates to Command
-- `writeStackTrace(OutputInterface, Throwable): void` — delegates to Command
+- `generateExportCode(): array` : orchestrates full export pipeline (returns wrappers)
+- `writeLocatedException(OutputInterface, CompilerException): void`
+- `writeStackTrace(OutputInterface, Throwable): void`
 
 ## Export Workflow
 
@@ -25,8 +25,8 @@ PHP-Phel interoperability: generates PHP wrapper classes for Phel functions mark
 
 ## Dependencies
 
-- **Command** (`CommandFacade`) — error output
-- **Build** (`BuildFacade`) — namespace extraction, compilation, evaluation
+- **Command** (`CommandFacade`) : error output
+- **Build** (`BuildFacade`) : namespace extraction, compilation, evaluation
 
 ## Structure
 
@@ -47,6 +47,6 @@ Interop/
 ## Key Constraints
 
 - Only functions with `^{:export true}` metadata are exported
-- Phel namespaces are converted to PHP: hyphens to CamelCase (e.g. `my-lib` -> `MyLib`)
+- Phel namespaces convert to PHP: hyphens to CamelCase (`my-lib` -> `MyLib`)
 - Generated classes use `PhelCallerTrait` which caches resolved definitions
-- The entire export directory is wiped and regenerated on each run
+- Export directory is wiped and regenerated on each run

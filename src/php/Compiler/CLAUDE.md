@@ -6,41 +6,51 @@ Core compilation pipeline: Phel source -> tokens -> AST -> analyzed nodes -> PHP
 
 - **Facade**: `CompilerFacade` implements `CompilerFacadeInterface`
 - **Factory**: `CompilerFactory` extends `AbstractFactory<CompilerConfig>`
-- **Config**: `CompilerConfig` — `assertsEnabled()` flag
-- **Provider**: `CompilerProvider` — injects `FilesystemFacade` (`FACADE_FILESYSTEM`)
+- **Config**: `CompilerConfig` : `assertsEnabled()` flag
+- **Provider**: `CompilerProvider` : injects `FilesystemFacade` (`FACADE_FILESYSTEM`)
 
 ## Public API (Facade)
 
 **Compilation & Evaluation**
-- `compile(string $phelCode, CompileOptions): EmitterResult`
-- `compileForCache(string $phelCode, CompileOptions): EmitterResult`
-- `compileForm(TypeInterface|...|null $form, CompileOptions): EmitterResult`
-- `eval(string $phelCode, CompileOptions): mixed`
-- `evalForm(TypeInterface|...|null $form, CompileOptions): mixed`
+- `compile(string, CompileOptions): EmitterResult`
+- `compileForCache(string, CompileOptions): EmitterResult`
+- `compileForm(TypeInterface|...|null, CompileOptions): EmitterResult`
+- `eval(string, CompileOptions): mixed`
+- `evalForm(TypeInterface|...|null, CompileOptions): mixed`
 
 **Pipeline Phases**
-- `lexString(string $code, ...): TokenStream`
-- `parseNext(TokenStream): ?NodeInterface` / `parseAll(TokenStream): FileNode`
-- `read(NodeInterface $parseTree): ReaderResult`
-- `analyze(TypeInterface|...|null $x, NodeEnvironmentInterface $env): AbstractNode`
+- `lexString(string): TokenStream`
+- `parseNext(TokenStream): ?NodeInterface`
+- `parseAll(TokenStream): FileNode`
+- `read(NodeInterface): ReaderResult`
+- `analyze(TypeInterface|...|null, NodeEnvironmentInterface): AbstractNode`
 
 **Macros**
-- `macroexpand1($form)` / `macroexpand($form)`
+- `macroexpand1(mixed): TypeInterface|...|null`
+- `macroexpand(mixed): TypeInterface|...|null`
 
-**Environment**
-- `initializeGlobalEnvironment()` / `resetGlobalEnvironment()`
-- `getNamespaceEnvironmentData(string $ns): array` / `restoreNamespaceEnvironmentData(string $ns, array $data): void`
+**Environment Management**
+- `initializeGlobalEnvironment(): void`
+- `resetGlobalEnvironment(): void`
+- `isGlobalEnvironmentInitialized(): bool`
+- `getGlobalEnvironment(): GlobalEnvironmentInterface`
+- `initializeNewGlobalEnvironment(): GlobalEnvironmentInterface`
+- `setGlobalEnvironment(GlobalEnvironmentInterface): void`
+- `getNamespaceEnvironmentData(string): array`
+- `restoreNamespaceEnvironmentData(string, array): void`
+
+**Debugging**
+- `enableDebugLineTap(): void`
+- `disableDebugLineTap(): void`
 
 **Utility**
-- `encodeNs(string $namespace): string` — PHP-form encoder (delegates to `\Phel\Shared\Munge::encodePhpNs`); used for build/path resolution
-- `hasBalancedParentheses(string $code): bool`
+- `encodeNs(string): string` : PHP-form encoder via `Phel\Shared\Munge::encodePhpNs()`
+- `hasBalancedParentheses(string): bool`
 
 ## Dependencies
 
-- **Filesystem** (`FilesystemFacade`) — file I/O operations
-- **Lang** (`TypeInterface`) — Phel types
-- **Printer** — readable output
-- **Config** (`PhelConfig`) — configuration
+- **Filesystem** (`FilesystemFacade`) : file I/O
+- **Shared** : exceptions, printer, munge utility
 
 ## Phase Pipeline
 
@@ -56,34 +66,34 @@ Core compilation pipeline: Phel source -> tokens -> AST -> analyzed nodes -> PHP
 
 ```
 Compiler/
-├── Application/        Analyzer, CodeCompiler, EvalCompiler, GlobalEnvironmentManager, Lexer, Parser, Reader, MacroExpander
+├── Application/        Analyzer, CodeCompiler, EvalCompiler, GlobalEnvironmentManager, Lexer,
+│                       Parser, Reader, MacroExpander
 ├── Domain/
-│   ├── Analyzer/       AST nodes, special form handlers, environments, GlobalEnvironmentManagerInterface + GlobalEnvironmentRegistry
+│   ├── Analyzer/       AST nodes, special form handlers, GlobalEnvironmentManagerInterface +
+│   │                   GlobalEnvironmentRegistry
 │   ├── Compiler/       CodeCompilerInterface, EvalCompilerInterface
 │   ├── Emitter/        OutputEmitter, FileEmitter, StatementEmitter, node emitters
-│   ├── Evaluator/      InMemoryEvaluator, RequireEvaluator (cross-module exceptions live in Phel\Shared\Exceptions)
+│   ├── Evaluator/      InMemoryEvaluator, RequireEvaluator
 │   ├── Lexer/          Token, TokenStream
-│   ├── Parser/         NodeInterface, ExpressionParserFactory (CodeSnippet lives in Phel\Shared\Parser\ReadModel)
+│   ├── Parser/         NodeInterface, ExpressionParserFactory
 │   └── Reader/         ReaderInterface, QuasiquoteTransformer
-├── Infrastructure/     CompileOptions, GlobalEnvironmentSingleton (ABI-compat shim for emitted PHP)
-└── Gacela files
+├── Infrastructure/     CompileOptions, GlobalEnvironmentSingleton (ABI shim)
+└── Gacela files        CompilerFacade, CompilerFactory, CompilerConfig, CompilerProvider
 ```
 
 ## Key Constraints
 
-- Never bypass a phase — each consumes only output of the previous
+- Never bypass a phase : each consumes only output of the previous
 - Analyzer nodes must carry `NodeEnvironment` with correct context
-- Emitter must handle every node type — missing cases must throw, not silently skip
-- Special forms are registered centrally — no ad-hoc handling in the analyzer loop
+- Emitter must handle every node type : missing cases must throw, not silently skip
+- Special forms are registered centrally : no ad-hoc handling in the analyzer loop
 - Source locations must propagate through all phases for error reporting
 
 ## Global Environment
 
-The single compile-time `GlobalEnvironmentInterface` is owned by `Application/GlobalEnvironmentManager` (implements `Domain/Analyzer/Environment/GlobalEnvironmentManagerInterface`). New collaborators inject the interface and call instance methods (`initialize()`, `getInstance()`, `reset()`).
+State lives in `Domain/Analyzer/Environment/GlobalEnvironmentRegistry` (process-wide static). The Application's `GlobalEnvironmentManager` and the infrastructure's `GlobalEnvironmentSingleton` both read/write the same slot.
 
-State lives in `Domain/Analyzer/Environment/GlobalEnvironmentRegistry` (process-wide static slot). Both the Application manager and the legacy `Infrastructure/GlobalEnvironmentSingleton` read/write the same slot, so neither layer imports the other.
-
-`GlobalEnvironmentSingleton` is retained because the emitter writes literal `\Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton::getInstance()` calls into generated PHP — cached `.phel` artefacts depend on that exact FQN. Every static method on the singleton forwards to the registry.
+`GlobalEnvironmentSingleton` is retained as an ABI shim: the emitter writes literal `\Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton::getInstance()` calls into generated PHP. Cached `.phel` files depend on that exact FQN. All static methods forward to the registry.
 
 ## Namespace Encoding
 
@@ -94,4 +104,4 @@ Namespace and symbol encoding is owned by `Phel\Shared\Munge` (see `src/php/Shar
 | `encodePhpNs` | backslash | PHP `namespace ...;` declaration, class FQNs, `BOUND_TO`, `(load ...)` filename derivation |
 | `encodeRegistryKey` | dot | `\Phel::addDefinition` first arg, `\Phel::getDefinition` first arg, `\Phel::setVar` first arg, in-mem registry lookups |
 
-`Munge::canonicalNs` and `Munge::displayNs` both translate backslash to dot — dot is the canonical form. The analyzer's internal namespace string (`GlobalEnvironment::$ns`, `definitions[$ns]`, `requireAliases[$ns]`) is dot-separated; PHP-emission paths route the same string through `encodePhpNs` when emitting PHP class FQNs / `namespace ...;` declarations.
+`Munge::canonicalNs` and `Munge::displayNs` both translate backslash to dot : dot is the canonical form. The analyzer's internal namespace string (`GlobalEnvironment::$ns`, `definitions[$ns]`, `requireAliases[$ns]`) is dot-separated; PHP-emission paths route the same string through `encodePhpNs` when emitting PHP class FQNs / `namespace ...;` declarations.

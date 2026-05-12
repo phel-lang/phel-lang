@@ -6,8 +6,8 @@ Read-only semantic linter built on top of `ApiFacade`: emits diagnostics on Phel
 
 - **Facade**: `LintFacade` extends `AbstractFacade<LintFactory>`
 - **Factory**: `LintFactory` extends `AbstractFactory<LintConfig>`
-- **Config**: `LintConfig` — default severities, cache dir, config filename
-- **Provider**: `LintProvider` — injects `FACADE_API`, `FACADE_COMPILER`, `FACADE_COMMAND`, `FACADE_RUN`
+- **Config**: `LintConfig` : default severities, cache dir, config filename
+- **Provider**: `LintProvider` : injects `FACADE_API`, `FACADE_COMPILER`, `FACADE_COMMAND`, `FACADE_RUN`
 
 ## Public API (Facade)
 
@@ -36,11 +36,11 @@ Exit codes: `0` = clean or warnings only, `1` = one or more errors, `2` = invoca
 - `phel/redundant-do` (warning)
 - `phel/discouraged-var` (warning)
 
-Each rule is a single `LintRuleInterface` class in `Application/Rule/`. Adding a rule is `new RuleClass()` in `LintFactory::createRules()` plus a code constant in `RuleRegistry` — no edits to existing rules.
+Each rule is a single `LintRuleInterface` class in `Application/Rule/`. Adding a rule is `new RuleClass()` in `LintFactory::createRules()` plus a code constant in `RuleRegistry` : no edits to existing rules.
 
 ## Config File
 
-`phel-lint.phel` in the project root (override with `--config`). EDN-like Phel map parsed by the existing reader:
+`phel-lint.phel` (override with `--config`). Phel map parsed by the reader:
 
 ```phel
 {:rules {:phel/unused-binding :off
@@ -48,7 +48,7 @@ Each rule is a single `LintRuleInterface` class in `Application/Rule/`. Adding a
  :exclude {:phel/unused-binding ["src/phel/local.phel" "phel.experimental.*"]}}
 ```
 
-Severities: `:error`, `:warning`, `:info`, `:hint`, `:off`. Exclude patterns match file path when they contain `/` or `.phel`, otherwise they match the namespace name via `fnmatch`.
+Severities: `:error`, `:warning`, `:info`, `:hint`, `:off`. Patterns match file path (if containing `/` or `.phel`) or namespace name (via `fnmatch`).
 
 ## Cache
 
@@ -56,18 +56,18 @@ Optional, enabled by default. Stores per-file diagnostics under `.phel/lint-cach
 
 ## Output Formats
 
-- `human` — `file:line:col [severity] code message` plus a summary line
-- `json` — stable JSON array of `Diagnostic` objects
-- `github` — `::warning file=X,line=Y,col=Z,title=CODE::message` annotations
+- `human` : `file:line:col [severity] code message` plus a summary line
+- `json` : stable JSON array of `Diagnostic` objects
+- `github` : `::warning file=X,line=Y,col=Z,title=CODE::message` annotations
 
 Formatters implement `DiagnosticFormatterInterface` and are registered on `FormatterRegistry`.
 
 ## Dependencies
 
-- **Api** (`ApiFacade`) — `analyzeSource`, `indexProject`
-- **Compiler** (`CompilerFacade`) — `lexString`, `parseNext`, `read`
-- **Command** (`CommandFacade`) — default source directories
-- **Run** (`RunFacade`) — `loadPhelNamespaces()` before linting so resolved symbols exist
+- **Api** (`ApiFacade`) : `analyzeSource`, `indexProject`
+- **Compiler** (`CompilerFacade`) : `lexString`, `parseNext`, `read`
+- **Command** (`CommandFacade`) : default source directories
+- **Run** (`RunFacade`) : `loadPhelNamespaces()` before linting so resolved symbols exist
 
 ## Structure
 
@@ -92,6 +92,6 @@ Lint/
 - Semantic diagnostics (`unresolved-symbol`, analyzer-detected `arity-mismatch`) are fetched via `ApiFacade::analyzeSource` and shared across rules through `FileAnalysis::$semanticDiagnostics` so the analyzer runs once per file
 - Rule pipeline is open/closed: `LintFactory::createRules()` is the only edit point to add a rule
 - `FormatterRegistry` is also open/closed: register new formatter names without editing existing ones
-- `LintCache` fingerprint is derived from `RuleRegistry::allCodes()` — adding/removing rules auto-invalidates the cache
+- `LintCache` fingerprint is derived from `RuleRegistry::allCodes()` : adding/removing rules auto-invalidates the cache
 - Failing rules are isolated in `RulePipeline`: one bad rule never kills the run
 - `DuplicateKeyRule` scans the parse tree (not read forms) because the reader silently de-duplicates map literals
