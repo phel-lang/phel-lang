@@ -37,6 +37,12 @@ final class AgentInstallCommand extends Command
 
     private const string OPT_DRY_RUN = 'dry-run';
 
+    private const string AGENTS_DIR = '.agents';
+
+    private const string VERSION_FILE = 'VERSION';
+
+    private const string BACKUP_SUFFIX = '.pre-phel.bak';
+
     private const string STAMP_PATTERN = '/\n?<!-- phel-agents v[^>]*-->\s*$/';
 
     /** @var array<string, array{source: string, target: string}> */
@@ -78,34 +84,24 @@ final class AgentInstallCommand extends Command
             )
             ->addOption(self::OPT_ALL, null, InputOption::VALUE_NONE, 'Install all supported platforms')
             ->addOption(self::OPT_WITH_DOCS, null, InputOption::VALUE_NONE, 'Also copy the bundled agent docs tree to .agents/')
-            ->addOption(self::OPT_FORCE, null, InputOption::VALUE_NONE, 'Overwrite existing files (default: backup to .pre-phel.bak)')
+            ->addOption(self::OPT_FORCE, null, InputOption::VALUE_NONE, 'Overwrite existing files (default: backup to ' . self::BACKUP_SUFFIX . ')')
             ->addOption(self::OPT_DRY_RUN, null, InputOption::VALUE_NONE, 'Print what would be written without changing files');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $platform = $input->getArgument(self::ARG_PLATFORM);
-        $installAll = (bool) $input->getOption(self::OPT_ALL);
-
-        if ($platform === null && !$installAll) {
-            $output->writeln('<error>Provide a platform or use --all</error>');
-            $output->writeln(sprintf('Platforms: %s', implode(', ', array_keys(self::PLATFORMS))));
+        $platforms = $this->selectPlatforms($input, $output);
+        if ($platforms === null) {
             return Command::INVALID;
         }
 
-        $platforms = $installAll ? array_keys(self::PLATFORMS) : [$platform];
         $sourceRoot = $this->agentsRoot();
         $projectRoot = (string) getcwd();
         $dryRun = (bool) $input->getOption(self::OPT_DRY_RUN);
         $force = (bool) $input->getOption(self::OPT_FORCE);
 
-        foreach ($platforms as $p) {
-            if (!isset(self::PLATFORMS[$p])) {
-                $output->writeln(sprintf('<error>Unknown platform: %s</error>', $p));
-                return Command::INVALID;
-            }
-
-            $this->installPlatform($output, $sourceRoot, $projectRoot, $p, $force, $dryRun);
+        foreach ($platforms as $platform) {
+            $this->installPlatform($output, $sourceRoot, $projectRoot, $platform, $force, $dryRun);
         }
 
         if ((bool) $input->getOption(self::OPT_WITH_DOCS)) {
@@ -113,6 +109,32 @@ final class AgentInstallCommand extends Command
         }
 
         return Command::SUCCESS;
+    }
+
+    /**
+     * @return list<string>|null list of platform keys, or null on invalid input
+     */
+    private function selectPlatforms(InputInterface $input, OutputInterface $output): ?array
+    {
+        $platform = $input->getArgument(self::ARG_PLATFORM);
+        $installAll = (bool) $input->getOption(self::OPT_ALL);
+
+        if ($installAll) {
+            return array_keys(self::PLATFORMS);
+        }
+
+        if ($platform === null) {
+            $output->writeln('<error>Provide a platform or use --all</error>');
+            $output->writeln(sprintf('Platforms: %s', implode(', ', array_keys(self::PLATFORMS))));
+            return null;
+        }
+
+        if (!isset(self::PLATFORMS[$platform])) {
+            $output->writeln(sprintf('<error>Unknown platform: %s</error>', $platform));
+            return null;
+        }
+
+        return [$platform];
     }
 
     private function installPlatform(
@@ -136,26 +158,28 @@ final class AgentInstallCommand extends Command
             return;
         }
 
-        $dstDir = dirname($dst);
-        if (!is_dir($dstDir) && !mkdir($dstDir, 0o755, true) && !is_dir($dstDir)) {
-            throw new RuntimeException(sprintf('Cannot create directory: %s', $dstDir));
-        }
-
-        if (is_file($dst) && !$force) {
-            $backup = $dst . '.pre-phel.bak';
-            copy($dst, $backup);
-            $output->writeln(sprintf('Backed up existing -> %s', $backup));
-        }
+        $this->ensureDir(dirname($dst));
+        $this->backupIfExists($output, $dst, $force);
 
         $contents = (string) file_get_contents($src);
-        $stamped = $this->stampVersion($contents, $sourceRoot);
-        file_put_contents($dst, $stamped);
+        file_put_contents($dst, $this->stampVersion($contents, $sourceRoot));
         $output->writeln(sprintf('<info>Installed</info> %s skill: %s', $platform, $dst));
+    }
+
+    private function backupIfExists(OutputInterface $output, string $dst, bool $force): void
+    {
+        if (!is_file($dst) || $force) {
+            return;
+        }
+
+        $backup = $dst . self::BACKUP_SUFFIX;
+        copy($dst, $backup);
+        $output->writeln(sprintf('Backed up existing -> %s', $backup));
     }
 
     private function stampVersion(string $contents, string $sourceRoot): string
     {
-        $versionFile = $sourceRoot . '/VERSION';
+        $versionFile = $sourceRoot . '/' . self::VERSION_FILE;
         if (!is_file($versionFile)) {
             return $contents;
         }
@@ -176,7 +200,7 @@ final class AgentInstallCommand extends Command
         bool $force,
         bool $dryRun,
     ): void {
-        $dst = $projectRoot . '/.agents';
+        $dst = $projectRoot . '/' . self::AGENTS_DIR;
         if ($dryRun) {
             $output->writeln(sprintf('[dry-run] copy %s -> %s', $agentsRoot, $dst));
             return;
@@ -193,9 +217,7 @@ final class AgentInstallCommand extends Command
 
     private function recursiveCopy(string $src, string $dst): void
     {
-        if (!is_dir($dst) && !mkdir($dst, 0o755, true) && !is_dir($dst)) {
-            throw new RuntimeException(sprintf('Cannot create directory: %s', $dst));
-        }
+        $this->ensureDir($dst);
 
         $iterator = new RecursiveIteratorIterator(
             new RecursiveDirectoryIterator($src, FilesystemIterator::SKIP_DOTS),
@@ -205,12 +227,21 @@ final class AgentInstallCommand extends Command
         foreach ($iterator as $item) {
             $target = $dst . '/' . $iterator->getSubPathname();
             if ($item->isDir()) {
-                if (!is_dir($target) && !mkdir($target, 0o755, true) && !is_dir($target)) {
-                    throw new RuntimeException(sprintf('Cannot create directory: %s', $target));
-                }
+                $this->ensureDir($target);
             } else {
                 copy($item->getPathname(), $target);
             }
+        }
+    }
+
+    private function ensureDir(string $dir): void
+    {
+        if (is_dir($dir)) {
+            return;
+        }
+
+        if (!mkdir($dir, 0o755, true) && !is_dir($dir)) {
+            throw new RuntimeException(sprintf('Cannot create directory: %s', $dir));
         }
     }
 
