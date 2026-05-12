@@ -6,6 +6,7 @@ namespace Phel\Run\Infrastructure\Command;
 
 use FilesystemIterator;
 use Phel\Run\Application\Agent\AgentInstallStatusInspector;
+use Phel\Run\Application\Agent\AgentPlatformDetector;
 use Phel\Run\Application\Agent\AgentVersionStamper;
 use Phel\Run\Domain\Agent\AgentPlatform;
 use Phel\Run\Domain\Agent\AgentPlatformRegistry;
@@ -49,6 +50,8 @@ final class AgentInstallCommand extends Command
 
     private const string OPT_UNINSTALL = 'uninstall';
 
+    private const string OPT_AUTO = 'auto';
+
     private const string AGENTS_DIR = '.agents';
 
     private const string BACKUP_SUFFIX = '.pre-phel.bak';
@@ -78,7 +81,8 @@ final class AgentInstallCommand extends Command
             ->addOption(self::OPT_DRY_RUN, null, InputOption::VALUE_NONE, 'Print what would be written without changing files')
             ->addOption(self::OPT_CHECK, null, InputOption::VALUE_NONE, 'Report install status and version drift per platform; exit 1 if any drift')
             ->addOption(self::OPT_LIST, null, InputOption::VALUE_NONE, 'List supported platforms with source template, install target, and current state')
-            ->addOption(self::OPT_UNINSTALL, null, InputOption::VALUE_NONE, 'Remove installed skill file(s); restores ' . self::BACKUP_SUFFIX . ' if present');
+            ->addOption(self::OPT_UNINSTALL, null, InputOption::VALUE_NONE, 'Remove installed skill file(s); restores ' . self::BACKUP_SUFFIX . ' if present')
+            ->addOption(self::OPT_AUTO, null, InputOption::VALUE_NONE, 'Auto-detect agents already present in the project (.claude/, .cursor/, AGENTS.md, ...) and install for them');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -257,12 +261,31 @@ final class AgentInstallCommand extends Command
     {
         $platform = $input->getArgument(self::ARG_PLATFORM);
         $installAll = (bool) $input->getOption(self::OPT_ALL);
+        $auto = (bool) $input->getOption(self::OPT_AUTO);
+
+        if ($auto) {
+            $detected = new AgentPlatformDetector($this->registry)->detect((string) getcwd());
+            if ($detected === []) {
+                $output->writeln('<comment>No agent traces detected; nothing to install. Use --all or pass a platform.</comment>');
+                return null;
+            }
+
+            $output->writeln(sprintf('Detected: <info>%s</info>', implode(', ', $detected)));
+            return $detected;
+        }
 
         if ($installAll) {
             return $this->registry->keys();
         }
 
         if ($platform === null) {
+            $detected = new AgentPlatformDetector($this->registry)->detect((string) getcwd());
+            if ($detected !== []) {
+                $output->writeln(sprintf('Detected installed agents: <info>%s</info>', implode(', ', $detected)));
+                $output->writeln('Run <comment>agent-install --auto</comment> to install skills for detected agents, or <comment>--all</comment> for every platform.');
+                return null;
+            }
+
             $output->writeln('<error>Provide a platform or use --all</error>');
             $output->writeln(sprintf('Platforms: %s', implode(', ', $this->registry->keys())));
             return null;

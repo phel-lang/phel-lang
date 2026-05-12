@@ -266,6 +266,44 @@ final class AgentInstallCommandTest extends TestCase
         self::assertDirectoryDoesNotExist($this->testDir . '/.agents');
     }
 
+    public function test_auto_installs_only_for_detected_agents(): void
+    {
+        mkdir($this->testDir . '/.claude', 0o755, true);
+        mkdir($this->testDir . '/.cursor', 0o755, true);
+
+        $output = new BufferedOutput();
+        $result = $this->install(['--auto' => true], $output);
+
+        self::assertSame(Command::SUCCESS, $result);
+        self::assertFileExists($this->testDir . '/.claude/skills/phel-lang/SKILL.md');
+        self::assertFileExists($this->testDir . '/.cursor/rules/phel.mdc');
+        self::assertFileDoesNotExist($this->testDir . '/AGENTS.md');
+        self::assertFileDoesNotExist($this->testDir . '/GEMINI.md');
+        self::assertStringContainsString('Detected:', $output->fetch());
+    }
+
+    public function test_auto_with_no_detection_returns_invalid(): void
+    {
+        $output = new BufferedOutput();
+        $result = $this->install(['--auto' => true], $output);
+
+        self::assertSame(Command::INVALID, $result);
+        self::assertStringContainsString('No agent traces detected', $output->fetch());
+    }
+
+    public function test_no_args_suggests_auto_when_agents_detected(): void
+    {
+        mkdir($this->testDir . '/.claude', 0o755, true);
+
+        $output = new BufferedOutput();
+        $result = $this->install([], $output);
+
+        self::assertSame(Command::INVALID, $result);
+        $rendered = $output->fetch();
+        self::assertStringContainsString('Detected installed agents', $rendered);
+        self::assertStringContainsString('agent-install --auto', $rendered);
+    }
+
     public function test_uninstall_on_unknown_platform_is_noop(): void
     {
         $output = new BufferedOutput();
