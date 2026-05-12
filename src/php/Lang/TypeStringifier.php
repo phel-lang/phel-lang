@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang;
 
+use Phel\Shared\Printer\Printer;
 use Throwable;
 
 use function get_debug_type;
@@ -28,13 +29,9 @@ final class TypeStringifier
         }
 
         try {
-            $printerClass = implode('\\', ['Phel', 'Shared', 'Printer', 'Printer']);
-            if (class_exists($printerClass)) {
-                return $printerClass::readable()->print($value);
-            }
+            return Printer::readable()->print($value);
         } catch (Throwable) {
+            return '#object[' . get_debug_type($value) . ']';
         }
-
-        return '#object[' . get_debug_type($value) . ']';
     }
 }
