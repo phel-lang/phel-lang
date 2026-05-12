@@ -34,13 +34,13 @@ nREPL protocol server: bencode-over-TCP wire protocol for editor tooling (Cursiv
 
 ```
 Nrepl/
-|-- Application/Op/      CloneOp, CloseOp, DescribeOp, EvalOp, LoadFileOp, InterruptOp, CompletionsOp, LookupOp
+|-- Application/Op/      one class per nREPL op + EvalResultResponder
 |-- Domain/
-|   |-- Bencode/         BencodeEncoder, BencodeDecoder, BencodeStreamDecoder, BencodeException
-|   |-- Op/              OpDispatcher, OpHandlerInterface, OpRequest, OpResponse
+|   |-- Bencode/         pure bencode codec (encoder, decoder, stream decoder, exception)
+|   |-- Op/              dispatcher, request/response, OpHandlerInterface
 |   |-- Session/         Session, SessionRegistry
 |   +-- Transport/       ClientConnection
-|-- Infrastructure/      NreplSocketServer, Command/NreplCommand
+|-- Infrastructure/      NreplSocketServer, ClientFiberPool, Command/NreplCommand
 +-- Gacela files         NreplFacade, NreplFactory, NreplConfig, NreplProvider
 ```
 

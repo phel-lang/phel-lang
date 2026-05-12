@@ -48,17 +48,10 @@ Runtime execution: runs Phel namespaces/files, REPL, evaluation, testing, and al
 
 ```
 Run/
-├── Application/        BundledNamespaces, EntryPointDetector, EvalExecutor, FileRunner, NamespaceLoader, NamespaceRunner, NamespacesLoader, ReplHistoryPathResolver, StructuredEvaluator
-├── Domain/
-│   ├── Init/           NamespaceNormalizer, ProjectTemplateGenerator
-│   ├── Repl/           EvalResult, EvalError, ReplCommandIoInterface, ReplErrorFormatter, ReplFormattedError, ReplHistory, ReplPrompt, Hint/ (startup.phel lives at <repo>/resources/repl/)
-│   ├── Runner/         NamespaceCollector, NamespaceRunnerInterface
-│   ├── Test/           TestCommandOptions, CannotFindAnyTestsException
-│   └── StdinReaderInterface
-├── Infrastructure/
-│   ├── Command/        AgentInstallCommand, DoctorCommand, EvalCommand, InitCommand, NsCommand, ReplCommand, RunCommand, TestCommand
-│   ├── Service/        DebugLineTap
-│   └── PhpStdinReader
+├── Application/        runners, loaders, REPL infrastructure, Agent/ install helpers
+├── Domain/             Agent/, Init/, Repl/ (+ Hint/), Runner/, Test/, stdin/loader interfaces
+├── Infrastructure/     Command/ (8 Symfony commands), PhpStdinReader
+├── Runtime/            PhelSourceLoader (cached-PHP boot entry)
 └── Gacela files        RunFacade, RunFactory, RunConfig, RunProvider
 ```
 

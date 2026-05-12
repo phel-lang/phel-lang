@@ -32,9 +32,9 @@ Core build orchestrator: compiles Phel projects to PHP with dependency resolutio
 
 ```
 Build/
-├── Application/        ProjectCompiler, FileCompiler, FileEvaluator, NamespaceExtractor, CacheClearer
-├── Domain/             Interfaces + value objects (NamespaceInformation, CompiledFile, BuildOptions)
-├── Infrastructure/     SystemFileIo, PhpNamespaceCache, CompiledCodeCache, TopologicalNamespaceSorter
+├── Application/        compilers, extractors, cache clearer, health check
+├── Domain/             Cache/, Compile/, Extractor/, IO/ (interfaces + value objects)
+├── Infrastructure/     Cache/, Command/, IO/ (concrete cache + file IO + CLI)
 └── Gacela files        BuildFacade, BuildFactory, BuildConfig, BuildProvider
 ```
 

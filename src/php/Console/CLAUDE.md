@@ -5,8 +5,8 @@ CLI application entry point: bootstraps Symfony Console, registers commands, det
 ## Gacela Pattern
 
 - **Facade**: `ConsoleFacade` implements `ConsoleFacadeInterface`
-- **Factory**: `ConsoleFactory` : creates `ConsoleBootstrap`, `VersionFinder`, `ArgvInputSanitizer`
-- **Provider**: `ConsoleProvider` : injects `COMMANDS` (12 CLI commands), `FACADE_FILESYSTEM`, `TAG_COMMIT_HASH`, `CURRENT_COMMIT`
+- **Factory**: `ConsoleFactory` : creates `ConsoleBootstrap`, `ArgvInputSanitizer`, `WarnDeprecationsFlag`; reads `VersionFinder` from `Phel\Shared`
+- **Provider**: `ConsoleProvider` : injects `COMMANDS` (21 Phel + 7 framework), `FACADE_FILESYSTEM`, `TAG_COMMIT_HASH`, `CURRENT_COMMIT`
 
 ## Public API (Facade)
 
@@ -15,25 +15,35 @@ CLI application entry point: bootstraps Symfony Console, registers commands, det
 
 ## CLI Commands
 
-Registered via `ConsoleProvider::COMMANDS`:
-- Phel: InitCommand, AgentInstallCommand, ExportCommand, FormatCommand, NsCommand, ReplCommand, EvalCommand, RunCommand, TestCommand, DocCommand, BuildCommand, CacheClearCommand, DoctorCommand
-- Gacela 1.13 re-exposed: CacheWarmCommand, DebugContainerCommand, DebugDependenciesCommand, DebugModulesCommand, ListModulesCommand, ProfileReportCommand, ValidateConfigCommand
+Registered via `ConsoleProvider::COMMANDS` (aggregated from per-module `ConsoleCommandProviderInterface` impls in `Infrastructure/Command/*Commands.php`):
+
+- **Run**: `init`, `agent-install`, `ns`, `repl`, `eval`, `run`, `test`, `doctor`
+- **Api**: `doc`, `analyze`, `index`, `api-daemon`
+- **Build**: `build`, `cache:clear`
+- **Formatter**: `format`
+- **Interop**: `export`
+- **Lint**: `lint`
+- **Lsp**: `lsp`
+- **Nrepl**: `nrepl`
+- **Profile**: `profile`
+- **Watch**: `watch`
+- **Gacela framework re-exposed**: `cache:warm`, `debug:container`, `debug:dependencies`, `debug:modules`, `list:modules`, `profile:report`, `validate:config`
 
 ## Dependencies
 
 - **Filesystem** (`FilesystemFacade`) : cleanup after execution
-- **Build** : `BuildCommand`, `CacheClearCommand`
-- **Run** : `InitCommand`, `EvalCommand`, `ReplCommand`, `NsCommand`, `RunCommand`, `TestCommand`, `DoctorCommand`
-- **Api** : `DocCommand`
-- **Formatter** : `FormatCommand`
-- **Interop** : `ExportCommand`
+
+Sibling Command classes are wired via per-module `*Commands.php` providers, not via Facade injection.
 
 ## Structure
 
 ```
 Console/
-├── Application/        VersionFinder, ArgvInputSanitizer
-├── Infrastructure/     ConsoleBootstrap (extends Symfony Application)
+├── Application/        ArgvInputSanitizer, WarnDeprecationsFlag
+├── Domain/             ConsoleCommandProviderInterface
+├── Infrastructure/
+│   ├── ConsoleBootstrap (extends Symfony Application)
+│   └── Command/        per-module *Commands providers (Run, Api, Build, Lint, ...)
 └── Gacela files        ConsoleFacade, ConsoleFactory, ConsoleProvider
 ```
 

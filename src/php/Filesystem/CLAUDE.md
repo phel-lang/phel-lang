@@ -25,7 +25,7 @@ File system abstraction for compilation: temp directory management and compiled 
 
 ```
 Filesystem/
-├── Application/        FileIo (wraps is_writable), TempDirFinder, PhelProjectDirectory
+├── Application/        FileIo (wraps is_writable), TempDirFinder, TempDirHealthCheck
 ├── Domain/             FilesystemInterface, FileIoInterface, NullFilesystem
 ├── Infrastructure/     RealFilesystem (tracks files in static array)
 └── Gacela files        FilesystemFacade, FilesystemFactory, FilesystemConfig
@@ -36,4 +36,4 @@ Filesystem/
 - **Strategy pattern**: `RealFilesystem` (normal) vs `NullFilesystem` (when `KEEP_GENERATED_TEMP_FILES = true`)
 - `RealFilesystem` uses a static array to track files
 - `TempDirFinder` throws `FileException` on permission failures
-- `PhelProjectDirectory::ensure()` is the single entry point for creating `.phel/`. Best-effort: never throws. Seeds `.gitignore` on first create. On read-only filesystems, silently no-ops.
+- `Phel\Shared\PhelProjectDirectory::ensure()` is the single entry point for creating `.phel/`. Best-effort: never throws. Seeds `.gitignore` on first create. On read-only filesystems, silently no-ops.
