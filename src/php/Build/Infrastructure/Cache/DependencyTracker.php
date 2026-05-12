@@ -7,6 +7,7 @@ namespace Phel\Build\Infrastructure\Cache;
 use Gacela\Framework\Cache\CycleDetectedException;
 use Gacela\Framework\Cache\FileCache;
 use Gacela\Framework\Cache\ScopedCache;
+use Phel\Build\Domain\Cache\CompiledCodeCacheInterface;
 use Phel\Build\Domain\Cache\DependencyTrackerInterface;
 
 use function is_string;
@@ -83,7 +84,7 @@ final readonly class DependencyTracker implements DependencyTrackerInterface
      *
      * @return list<string> Source paths of invalidated dependents
      */
-    public function invalidateDependentsOf(string $namespace, CompiledCodeCache $compiledCodeCache): array
+    public function invalidateDependentsOf(string $namespace, CompiledCodeCacheInterface $compiledCodeCache): array
     {
         $nsKey = $this->nsKey($namespace);
         if (!$this->cache->has($nsKey)) {

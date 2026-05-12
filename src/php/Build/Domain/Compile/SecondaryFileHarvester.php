@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Compile;
 
+use Phel\Build\Domain\Cache\CompiledCodeCacheInterface;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Build\Domain\IO\FileIoInterface;
-use Phel\Build\Infrastructure\Cache\CompiledCodeCache;
 use RuntimeException;
 
 use function dirname;
@@ -29,7 +29,7 @@ use function sprintf;
 final readonly class SecondaryFileHarvester
 {
     public function __construct(
-        private CompiledCodeCache $compiledCodeCache,
+        private CompiledCodeCacheInterface $compiledCodeCache,
         private CompiledTargetPathResolver $targetPathResolver,
         private FileIoInterface $fileIo,
     ) {}
