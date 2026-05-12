@@ -43,6 +43,18 @@ final class DoctorCommandTest extends TestCase
         );
     }
 
+    public function test_doctor_includes_agent_install_section(): void
+    {
+        $command = new DoctorCommand();
+
+        $this->expectOutputRegex('/AI agent skills \(phel-agents v/');
+
+        $command->run(
+            $this->createStub(InputInterface::class),
+            $this->stubOutput(),
+        );
+    }
+
     private function stubOutput(): OutputInterface
     {
         $output = $this->createStub(OutputInterface::class);
