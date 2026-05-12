@@ -12,18 +12,12 @@ use Phel\Build\BuildFacade;
 use Phel\Command\CommandFacade;
 use Phel\Compiler\CompilerFacade;
 use Phel\Console\ConsoleFacade;
-use Phel\Formatter\FormatterFacade;
-use Phel\Interop\InteropFacade;
 
 final class RunProvider extends AbstractProvider
 {
     public const string FACADE_COMMAND = 'FACADE_COMMAND';
 
     public const string FACADE_COMPILER = 'FACADE_COMPILER';
-
-    public const string FACADE_FORMATTER = 'FACADE_FORMATTER';
-
-    public const string FACADE_INTEROP = 'FACADE_INTEROP';
 
     public const string FACADE_BUILD = 'FACADE_BUILD';
 
@@ -41,18 +35,6 @@ final class RunProvider extends AbstractProvider
     public function compilerFacade(Container $container): CompilerFacade
     {
         return $container->getLocator()->getRequired(CompilerFacade::class);
-    }
-
-    #[Provides(self::FACADE_FORMATTER)]
-    public function formatterFacade(Container $container): FormatterFacade
-    {
-        return $container->getLocator()->getRequired(FormatterFacade::class);
-    }
-
-    #[Provides(self::FACADE_INTEROP)]
-    public function interopFacade(Container $container): InteropFacade
-    {
-        return $container->getLocator()->getRequired(InteropFacade::class);
     }
 
     #[Provides(self::FACADE_BUILD)]

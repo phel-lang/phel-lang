@@ -7,7 +7,7 @@ Runtime execution: runs Phel namespaces/files, REPL, evaluation, testing, and al
 - **Facade**: `RunFacade` implements `RunFacadeInterface`
 - **Factory**: `RunFactory` extends `AbstractFactory<RunConfig>`
 - **Config**: `RunConfig` — REPL history path, startup file path
-- **Provider**: `RunProvider` — injects 7 facades: `CommandFacade`, `CompilerFacade`, `FormatterFacade`, `InteropFacade`, `BuildFacade`, `ApiFacade`, `ConsoleFacade`
+- **Provider**: `RunProvider` — injects 5 facades: `CommandFacade`, `CompilerFacade`, `BuildFacade`, `ApiFacade`, `ConsoleFacade`
 
 ## Public API (Facade)
 
@@ -41,8 +41,6 @@ Runtime execution: runs Phel namespaces/files, REPL, evaluation, testing, and al
 - **Command** (`CommandFacade`) — directories, error formatting
 - **Console** (`ConsoleFacade`) — version info
 - **Api** (`ApiFacade`) — REPL autocompletion
-- **Formatter** (`FormatterFacade`) — declared but currently unused
-- **Interop** (`InteropFacade`) — declared but currently unused
 
 ## Structure
 
