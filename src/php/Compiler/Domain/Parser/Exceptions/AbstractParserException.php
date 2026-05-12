@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Parser\Exceptions;
 
-use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
-use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Phel\Lang\SourceLocation;
+use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Parser\ReadModel\CodeSnippet;
 
 abstract class AbstractParserException extends AbstractLocatedException
 {

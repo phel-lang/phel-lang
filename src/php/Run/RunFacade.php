@@ -6,9 +6,9 @@ namespace Phel\Run;
 
 use Gacela\Framework\AbstractFacade;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
-use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Run\Domain\Repl\EvalResult;
 use Phel\Shared\CompileOptions;
+use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Facade\RunFacadeInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;

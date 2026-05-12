@@ -7,12 +7,12 @@ namespace Phel\Interop\Domain\ExportFinder;
 use Phel;
 use Phel\Build\Domain\Extractor\ExtractorException;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
-use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
-use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
-use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Interop\Domain\ReadModel\FunctionToExport;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
+use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Shared\Exceptions\CompilerException;
+use Phel\Shared\Exceptions\FileException;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 

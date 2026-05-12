@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Parser\Exceptions;
 
-use Phel\Compiler\Domain\Exceptions\ErrorCode;
 use Phel\Compiler\Domain\Lexer\Token;
-use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
+use Phel\Shared\Exceptions\ErrorCode;
+use Phel\Shared\Parser\ReadModel\CodeSnippet;
 
 final class UnfinishedParserException extends AbstractParserException
 {

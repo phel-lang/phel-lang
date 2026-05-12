@@ -8,8 +8,8 @@ use Phel;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidatorInterface;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor\VectorBindingDeconstructor;
-use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
 use Phel\Lang\Symbol;
+use Phel\Shared\Exceptions\AbstractLocatedException;
 use PHPUnit\Framework\TestCase;
 
 final class VectorBindingDeconstructorTest extends TestCase

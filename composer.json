@@ -46,6 +46,9 @@
         },
         "classmap": [
             "src/Phel.php"
+        ],
+        "files": [
+            "src/php/Shared/_aliases.php"
         ]
     },
     "autoload-dev": {

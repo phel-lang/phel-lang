@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Evaluator;
 
-use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
-use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
+use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Shared\Exceptions\FileException;
 
 interface EvaluatorInterface
 {

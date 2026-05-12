@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Exceptions;
 
-use Phel\Compiler\Domain\Exceptions\ErrorCode;
+use Phel\Shared\Exceptions\ErrorCode;
 use PHPUnit\Framework\TestCase;
 
 use function count;

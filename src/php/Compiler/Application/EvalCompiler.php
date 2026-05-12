@@ -11,9 +11,6 @@ use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Compiler\EvalCompilerInterface;
 use Phel\Compiler\Domain\Emitter\StatementEmitterInterface;
 use Phel\Compiler\Domain\Evaluator\EvaluatorInterface;
-use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
-use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
-use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Lexer\LexerInterface;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
@@ -25,6 +22,9 @@ use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\CompileOptions;
+use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Shared\Exceptions\CompilerException;
+use Phel\Shared\Exceptions\FileException;
 
 use function is_object;
 

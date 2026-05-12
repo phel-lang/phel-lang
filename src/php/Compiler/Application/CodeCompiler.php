@@ -13,9 +13,6 @@ use Phel\Compiler\Domain\Emitter\EmitterResult;
 use Phel\Compiler\Domain\Emitter\FileEmitterInterface;
 use Phel\Compiler\Domain\Emitter\StatementEmitterInterface;
 use Phel\Compiler\Domain\Evaluator\EvaluatorInterface;
-use Phel\Compiler\Domain\Evaluator\Exceptions\CompiledCodeIsMalformedException;
-use Phel\Compiler\Domain\Evaluator\Exceptions\FileException;
-use Phel\Compiler\Domain\Exceptions\CompilerException;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Lexer\LexerInterface;
 use Phel\Compiler\Domain\Lexer\TokenStream;
@@ -30,6 +27,9 @@ use Phel\Lang\ProfilerHookInterface;
 use Phel\Lang\Registry;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\CompileOptions;
+use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
+use Phel\Shared\Exceptions\CompilerException;
+use Phel\Shared\Exceptions\FileException;
 
 use function hrtime;
 

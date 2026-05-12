@@ -61,10 +61,9 @@ Compiler/
 │   ├── Analyzer/       AST nodes, special form handlers, environments
 │   ├── Compiler/       CodeCompilerInterface, EvalCompilerInterface
 │   ├── Emitter/        OutputEmitter, FileEmitter, StatementEmitter, node emitters
-│   ├── Evaluator/      InMemoryEvaluator, RequireEvaluator
-│   ├── Exceptions/     CompilerException, AbstractLocatedException, ErrorCode
+│   ├── Evaluator/      InMemoryEvaluator, RequireEvaluator (cross-module exceptions live in Phel\Shared\Exceptions)
 │   ├── Lexer/          Token, TokenStream
-│   ├── Parser/         NodeInterface, ExpressionParserFactory
+│   ├── Parser/         NodeInterface, ExpressionParserFactory (CodeSnippet lives in Phel\Shared\Parser\ReadModel)
 │   └── Reader/         ReaderInterface, QuasiquoteTransformer
 ├── Infrastructure/     CompileOptions, GlobalEnvironmentSingleton
 └── Gacela files

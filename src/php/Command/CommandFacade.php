@@ -7,9 +7,9 @@ namespace Phel\Command;
 use Gacela\Framework\AbstractFacade;
 use Gacela\Framework\Attribute\Cacheable;
 use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
-use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
-use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
+use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Facade\CommandFacadeInterface;
+use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 

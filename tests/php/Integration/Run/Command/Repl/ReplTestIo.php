@@ -5,14 +5,14 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Run\Command\Repl;
 
 use Phel\Command\Domain\Exceptions\ExceptionPrinterInterface;
-use Phel\Compiler\Domain\Exceptions\AbstractLocatedException;
-use Phel\Compiler\Domain\Parser\ReadModel\CodeSnippet;
 use Phel\Run\Domain\Repl\Hint\ArgumentCountHint;
 use Phel\Run\Domain\Repl\Hint\NotCallableHint;
 use Phel\Run\Domain\Repl\Hint\UndefinedSymbolHint;
 use Phel\Run\Domain\Repl\ReplCommandIoInterface;
 use Phel\Run\Domain\Repl\ReplErrorFormatter;
 use Phel\Shared\ColorStyle;
+use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use Throwable;
 
 use function array_slice;
