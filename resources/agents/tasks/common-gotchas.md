@@ -1,143 +1,88 @@
 # Common gotchas
 
-Pitfalls encountered during real-world Phel app development. Read before writing your first app.
+Pitfalls hit during real-world Phel app development. Read before writing your first app. Rules in [`RULES.md`](../RULES.md); this file adds the example each rule's one-liner doesn't show.
 
 ## 1. CLI argument access
 
-**Wrong** — `php/$argv` is `null` inside `phel run`:
+`php/$argv` is `null` inside `phel run`. Use `*argv*`:
 
 ```phel
-;; DON'T: this fails at runtime
-(let [args php/$argv] ...)
-```
-
-**Right** — use `*argv*`, which returns a Phel vector of strings (args after the script path):
-
-```phel
-(let [args *argv*]
+(let [args *argv*]                ; Phel vector of strings after the script path
   (println "First arg:" (first args)))
 ```
 
-For the full `phel\cli` module (subcommands, options, prompts), see `tasks/cli-tool.md`.
+Full CLI: `tasks/cli-tool.md`.
 
 ## 2. `transduce` with `max` / `min`
 
-`max` and `min` don't support 0-arity (no identity value), so they can't be used as bare reducing functions with `transduce`:
+`max` and `min` lack a 0-arity init. Wrap and pass an explicit seed:
 
 ```phel
-;; DON'T: fails — max needs 2 args, transduce calls (max) for init
+;; bad
 (transduce (map :score) max items)
-
-;; DO: wrap and provide init
+;; good
 (transduce (map :score) (fn [a b] (max a b)) 0 items)
 ```
 
 ## 3. `for` vs `doseq`
 
-`for` is a **list comprehension** — it builds a lazy sequence. `doseq` is for **side effects**.
+`for` builds a lazy sequence; `doseq` runs for side effects.
 
 ```phel
-;; DON'T: for returns a sequence, side effects are incidental
-(for [t :in todos] (println t))
-
-;; DO: doseq when you want side effects
-(doseq [t :in todos] (println t))
-
-;; DO: for when you want to build a collection
-(for [x :in xs :when (odd? x)] (* x x))
+(doseq [t :in todos] (println t))            ; side effects
+(for   [x :in xs :when (odd? x)] (* x x))    ; build a collection
 ```
 
-## 4. `phel.string` (not `phel.str`)
+## 4. Top-level side effects break `phel build`
 
-Since v0.33, the string module is `phel.string`:
-
-```phel
-;; DON'T
-(:require phel.str :as str)
-
-;; DO
-(:require phel.string :as string)
-```
-
-(`\` separator still parses but is deprecated.)
-
-## 5. Namespace segment count
-
-Namespaces need at least 2 segments. Single-segment namespaces cause a compile error:
+Top-level code runs at compile time. Guard:
 
 ```phel
-;; DON'T
-(ns main)
-
-;; DO
-(ns my-app\main)
-```
-
-## 6. Top-level side effects and `phel build`
-
-Code at the top level runs during compilation. Wrap side effects:
-
-```phel
-;; DON'T: breaks phel build
-(println "starting...")
-(start-server)
-
-;; DO
 (when-not *build-mode*
-  (println "starting...")
   (start-server))
 ```
 
-## 7. Converting PHP arrays to Phel collections
+## 5. PHP arrays vs Phel collections
 
-PHP arrays from interop are not Phel collections. Convert them:
+PHP interop returns raw PHP arrays, not Phel collections. Convert:
 
 ```phel
-;; PHP array → Phel vector
-(vec (php/explode "," "a,b,c"))
-
-;; Phel collection → PHP array (for passing to PHP functions)
-(to-php-array ["a" "b" "c"])
+(vec (php/explode "," "a,b,c"))   ; PHP array  → Phel vector
+(to-php-array ["a" "b" "c"])      ; Phel vec   → PHP indexed array
+(php-array-to-map arr)            ; PHP assoc  → Phel map
 ```
 
-Don't try `to-list` (doesn't exist) or `to-vec` (doesn't exist). Use `vec`.
+`to-list` and `to-vec` don't exist. Use `vec` / `to-php-array`.
 
-## 8. Record fields are accessed with `get`
-
-`defrecord` fields use keyword access via `get`, not dot notation:
+## 6. Record fields use `get`, not `.-prop`
 
 ```phel
 (defrecord Point [x y])
 (let [p (->Point 1 2)]
-  ;; DON'T: (.-x p); this is PHP property access
-  ;; DO:
-  (get p :x))
+  (get p :x))                     ; not (.-x p) — that's PHP property access
 ```
 
-## 9. `:tag` literal-arg mismatch is a compile error
+## 7. `:tag` literal mismatch is a compile error
 
 ```phel
 (defn ^int square [^int x] (* x x))
-
-;; DON'T: literal mismatch fails at compile time, not runtime
-(square "abc")
-
-;; DO: pass an int, or widen the tag
-(square 7)
-(defn ^int square [^"int|string" x] ...)   ; if you really want both
+(square "abc")                    ; :phel/static-type at compile time, not runtime
 ```
 
-Same for `recur` args vs. binding tags and tail literal vs. declared return tag. See `tasks/typed-defn.md`.
+Same for `recur` args vs binding tags and tail literal vs declared return tag. See `tasks/typed-defn.md`.
 
-## 10. `^` tags one symbol; map form for unusual types
+## 8. `^` tags one symbol; map form for unusual types
 
 ```phel
-;; DON'T: ^?int parses as a symbol named "?int"
-(defn parse [^?int s] ...)
-
-;; DO: quote the type string
-(defn parse [^"?int" s] ...)
-(defn parse [^{:tag "?int"} s] ...)
+(defn parse [^"?int" s] ...)              ; quote the type string
+(defn parse [^{:tag "?int"} s] ...)       ; map form
+(defn now   [^"\\DateTimeImmutable"] ...) ; class FQN needs leading \\
 ```
 
-Class FQNs need leading `\\`: `^"\\App\\User"`.
+`^?int` parses as a symbol named `?int`, not a nullable-int tag.
+
+## See also
+
+- [`RULES.md`](../RULES.md) for the one-liner rule each gotcha references.
+- [`tasks/debug-errors.md`](debug-errors.md) — error categories and fixes.
+- [`tasks/typed-defn.md`](typed-defn.md) — typing rules in depth.

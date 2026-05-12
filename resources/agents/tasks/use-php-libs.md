@@ -81,6 +81,6 @@ composer require guzzlehttp/guzzle
 - PHP warnings don't throw; `(php/error_get_last)` to check.
 - Hot loops: prefer `php/array_map` over round-tripping.
 
-## Next
+## See also
 
-`docs/php-interop.md`, `docs/framework-integration.md`
+- `docs/php-interop.md`, `docs/framework-integration.md`

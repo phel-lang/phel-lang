@@ -214,6 +214,8 @@ For a trivial script without subcommands, drop `phel\cli`:
 
 Example: `.agents/examples/cli-wordcount/`.
 
-## Next
+## See also
 
-`docs/cli-guide.md`, `src/phel/cli.phel`, `tasks/add-tests.md`, `docs/framework-integration.md`
+- `tasks/add-tests.md` — test fixtures for handler fns
+- `docs/cli-guide.md`, `docs/framework-integration.md`
+- `src/phel/cli.phel`
