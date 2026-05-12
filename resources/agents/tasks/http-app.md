@@ -177,6 +177,8 @@ Swap `\Phel::run(...)` for `require` of compiled boot file.
 - Nil response from a matched handler triggers `:not-acceptable` (HTTP 406).
 - `:default-handler` is a fallback for any 404/405/406 not covered by a specific override.
 
-## Next
+## See also
 
-`src/phel/router.phel`, `src/phel/http.phel`, `src/phel/http-client.phel`, `tasks/use-php-libs.md`, `docs/framework-integration.md`
+- `tasks/use-php-libs.md`, `tasks/add-tests.md`
+- `src/phel/router.phel`, `src/phel/http.phel`, `src/phel/http-client.phel`
+- `docs/framework-integration.md`

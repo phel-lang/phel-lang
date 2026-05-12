@@ -5,8 +5,7 @@ Agent-agnostic docs for AI assistants building apps **with** Phel.
 This tree is source material for `phel agent-install`. In user projects, `--with-docs` installs it as `.agents/`, so
 references inside adapter files intentionally point to `.agents/...`.
 
-Repo-maintenance guidance for phel-lang itself lives in the root `AGENTS.md`, `.codex/`, `.claude/`, `.agents/`, and
-`src/php/**/CLAUDE.md`.
+Repo-maintenance guidance for phel-lang itself lives in the root `AGENTS.md`, `.codex/`, `.claude/`, and `src/php/**/CLAUDE.md`.
 
 ## Install
 

@@ -102,24 +102,26 @@ Core: `(str a b c)`, `(name :k)`, `(keyword "x")`, `(symbol "x")`.
 
 ## Bundled modules
 
-| Module | Purpose |
-|--------|---------|
-| `phel\core` | collections, threading, state, predicates |
-| `phel\string` (`:as str`) | string ops |
-| `phel\json` | encode / decode |
-| `phel\pprint` | pretty-print |
-| `phel\walk` | tree traversal |
-| `phel\base64` | base64 encode/decode (URL-safe variants) |
-| `phel\http` | request/response structs, `request-from-globals`, `emit-response` |
-| `phel\router` | nested routes, middleware, URL gen, `compiled-router` |
-| `phel\http-client` | outbound HTTP: `get`, `post`, `put`, `patch`, `delete`, `head` |
-| `phel\cli` | Symfony-console wrapper — see `tasks/cli-tool.md` |
-| `phel\html` | HTML templating |
-| `phel\test` | `deftest`, `is`, `are`, `testing`, fixtures |
-| `phel\mock` | `with-mocks`, `mock`, `spy`, `called-with?` |
-| `phel\async` | `future`, `async`, `await`, `delay` (AMPHP-backed fibers) |
-| `phel\ai` | LLM client (`complete`, `chat`, `configure`) |
-| `phel\repl` | REPL utilities |
+| Module | Purpose | Task |
+|--------|---------|------|
+| `phel\core` | collections, threading, state, predicates | — |
+| `phel\string` (`:as str`) | string ops | — |
+| `phel\json` | encode / decode | — |
+| `phel\pprint` | pretty-print | — |
+| `phel\walk` | tree traversal | — |
+| `phel\base64` | base64 encode/decode (URL-safe variants) | — |
+| `phel\http` | request/response structs, `request-from-globals`, `emit-response` | [`http-app.md`](http-app.md) |
+| `phel\router` | nested routes, middleware, URL gen, `compiled-router` | [`http-app.md`](http-app.md) |
+| `phel\http-client` | outbound HTTP: `get`, `post`, `put`, `patch`, `delete`, `head` | [`http-app.md`](http-app.md) § Outbound |
+| `phel\cli` | Symfony-console wrapper | [`cli-tool.md`](cli-tool.md) |
+| `phel\html` | HTML templating | — |
+| `phel\test` | `deftest`, `is`, `are`, `testing`, fixtures | [`add-tests.md`](add-tests.md) |
+| `phel\mock` | `with-mocks`, `mock`, `spy`, `called-with?` | [`add-tests.md`](add-tests.md) § Mocking |
+| `phel\async` | `future`, `async`, `await`, `delay` (AMPHP-backed fibers) | [`async.md`](async.md) |
+| `phel\match` | data-shape pattern matching | [`pattern-match.md`](pattern-match.md) |
+| `phel\schema` | validate / coerce / generate | [`validate-with-schema.md`](validate-with-schema.md) |
+| `phel\ai` | LLM client (`complete`, `chat`, `configure`) | — |
+| `phel\repl` | REPL utilities | [`repl-workflow.md`](repl-workflow.md) |
 
 ## When to use what
 
@@ -153,6 +155,7 @@ Hot or public `defn`: tag params + return. PHP type emission, JIT-friendly call 
 
 Detail: [`tasks/typed-defn.md`](typed-defn.md). Find candidates: `phel profile <path>`.
 
-## Next
+## See also
 
-`docs/patterns.md`, `docs/data-structures-guide.md`, `docs/lazy-sequences.md`, `docs/transducers.md`, `docs/cli-guide.md`, `tasks/http-app.md`, `tasks/cli-tool.md`, `tasks/typed-defn.md`
+- `tasks/typed-defn.md`, `tasks/http-app.md`, `tasks/cli-tool.md`, `tasks/async.md`, `tasks/memoize.md`
+- `docs/patterns.md`, `docs/data-structures-guide.md`, `docs/lazy-sequences.md`, `docs/transducers.md`

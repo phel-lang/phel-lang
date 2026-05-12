@@ -70,6 +70,7 @@ Errors print trace and keep REPL alive. `(try expr (catch php\Foo e (.getMessage
 
 Per-fn call counts and self/total/avg/max plus compile-phase costs. Use to pick fns worth tagging (`tasks/typed-defn.md`).
 
-## Next
+## See also
 
-`tasks/use-core-lib.md`, `tasks/debug-errors.md`, `tasks/typed-defn.md`, `src/phel/repl.phel`
+- `tasks/use-core-lib.md`, `tasks/debug-errors.md`, `tasks/typed-defn.md`
+- `src/phel/repl.phel`, `docs/nrepl-guide.md`

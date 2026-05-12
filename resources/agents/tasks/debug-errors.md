@@ -106,6 +106,7 @@ Check `~`, `` ` ``, auto-gensym `name#`.
 - PHP fatal errors bypass Phel `catch`.
 - `"a\\b"` is `a\b`.
 
-## Next
+## See also
 
-`docs/patterns.md` § Error Handling, `docs/php-interop.md` § Error Handling, `tasks/repl-workflow.md`, `tasks/typed-defn.md`
+- `tasks/repl-workflow.md`, `tasks/typed-defn.md`, `tasks/write-macros.md`
+- `docs/patterns.md` § Error Handling, `docs/php-interop.md` § Error Handling

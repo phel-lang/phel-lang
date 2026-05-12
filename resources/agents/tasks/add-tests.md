@@ -108,6 +108,8 @@ Full: `docs/mocking-guide.md`.
 - No `:reload`. Restart REPL or run `phel test`.
 - Typed fn under test: literal arg mismatch is now a compile error in the test file too. Cast or use a non-literal binding to test runtime paths.
 
-## Next
+## See also
 
-`src/phel/test.phel`, `docs/mocking-guide.md`, `tests/phel/*.phel`, `tasks/typed-defn.md`
+- `tasks/typed-defn.md` — typed fns under test
+- `docs/mocking-guide.md`
+- `src/phel/test.phel`, `tests/phel/*.phel`
