@@ -41,6 +41,8 @@ final class AgentInstallCommand extends Command
 
     private const string OPT_CHECK = 'check';
 
+    private const string OPT_LIST = 'list';
+
     private const string AGENTS_DIR = '.agents';
 
     private const string BACKUP_SUFFIX = '.pre-phel.bak';
@@ -68,7 +70,8 @@ final class AgentInstallCommand extends Command
             ->addOption(self::OPT_WITH_DOCS, null, InputOption::VALUE_NONE, 'Also copy the bundled agent docs tree to .agents/')
             ->addOption(self::OPT_FORCE, null, InputOption::VALUE_NONE, 'Overwrite existing files (default: backup to ' . self::BACKUP_SUFFIX . ')')
             ->addOption(self::OPT_DRY_RUN, null, InputOption::VALUE_NONE, 'Print what would be written without changing files')
-            ->addOption(self::OPT_CHECK, null, InputOption::VALUE_NONE, 'Report install status and version drift per platform; exit 1 if any drift');
+            ->addOption(self::OPT_CHECK, null, InputOption::VALUE_NONE, 'Report install status and version drift per platform; exit 1 if any drift')
+            ->addOption(self::OPT_LIST, null, InputOption::VALUE_NONE, 'List supported platforms with source template, install target, and current state');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -79,6 +82,10 @@ final class AgentInstallCommand extends Command
 
         if ((bool) $input->getOption(self::OPT_CHECK)) {
             return $this->runCheck($output, $projectRoot, $stamper);
+        }
+
+        if ((bool) $input->getOption(self::OPT_LIST)) {
+            return $this->runList($output, $projectRoot, $stamper);
         }
 
         $platforms = $this->selectPlatforms($input, $output);
@@ -98,6 +105,36 @@ final class AgentInstallCommand extends Command
         }
 
         return Command::SUCCESS;
+    }
+
+    private function runList(OutputInterface $output, string $projectRoot, AgentVersionStamper $stamper): int
+    {
+        $inspector = new AgentInstallStatusInspector($this->registry, $stamper);
+        $statuses = $inspector->inspect($projectRoot);
+
+        $output->writeln(sprintf('<info>Platform</info>  <info>Source</info>%s  <info>Target</info>%s  <info>State</info>', str_repeat(' ', 36), str_repeat(' ', 30)));
+        foreach ($statuses as $status) {
+            $output->writeln(sprintf(
+                '  %-8s  %-40s  %-34s  %s',
+                $status->platform->key,
+                $status->platform->source,
+                $status->platform->target,
+                $this->stateLabel($status),
+            ));
+        }
+
+        return Command::SUCCESS;
+    }
+
+    private function stateLabel(AgentPlatformStatus $status): string
+    {
+        return match ($status->state) {
+            AgentPlatformStatus::CURRENT => sprintf('current (v%s)', $status->installedVersion ?? '?'),
+            AgentPlatformStatus::STALE => sprintf('stale (v%s, current v%s)', $status->installedVersion ?? '?', $status->currentVersion),
+            AgentPlatformStatus::UNSTAMPED => 'unstamped',
+            AgentPlatformStatus::NOT_INSTALLED => 'not installed',
+            default => $status->state,
+        };
     }
 
     private function runCheck(OutputInterface $output, string $projectRoot, AgentVersionStamper $stamper): int

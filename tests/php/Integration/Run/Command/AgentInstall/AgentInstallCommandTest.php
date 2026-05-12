@@ -195,6 +195,31 @@ final class AgentInstallCommandTest extends TestCase
         self::assertStringContainsString('v0.0.1', $output->fetch());
     }
 
+    public function test_list_shows_all_supported_platforms_with_targets(): void
+    {
+        $output = new BufferedOutput();
+        $result = $this->install(['--list' => true], $output);
+
+        self::assertSame(Command::SUCCESS, $result);
+        $rendered = $output->fetch();
+        foreach (['claude', 'cursor', 'codex', 'gemini', 'copilot', 'aider'] as $key) {
+            self::assertStringContainsString($key, $rendered);
+        }
+
+        self::assertStringContainsString('.claude/skills/phel-lang/SKILL.md', $rendered);
+        self::assertStringContainsString('not installed', $rendered);
+    }
+
+    public function test_list_reflects_installed_state(): void
+    {
+        $this->install(['platform' => 'aider']);
+
+        $output = new BufferedOutput();
+        $this->install(['--list' => true], $output);
+
+        self::assertMatchesRegularExpression('/aider\s+.+\s+current \(v\d+\.\d+\.\d+\)/', $output->fetch());
+    }
+
     public function test_check_reports_unstamped_when_file_has_no_stamp(): void
     {
         mkdir($this->testDir . '/.github', 0o755, true);
