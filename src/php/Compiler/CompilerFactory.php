@@ -41,7 +41,6 @@ use Phel\Compiler\Domain\Parser\ParserInterface;
 use Phel\Compiler\Domain\Reader\ExpressionReaderFactory;
 use Phel\Compiler\Domain\Reader\QuasiquoteTransformer;
 use Phel\Compiler\Domain\Reader\ReaderInterface;
-use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Filesystem\FilesystemFacadeInterface;
 use Phel\Lang\TagHandlers\BuiltinTagHandlers;
 use Phel\Lang\TagRegistry;
@@ -217,10 +216,6 @@ final class CompilerFactory extends AbstractFactory
 
     private function getGlobalEnvironment(): GlobalEnvironmentInterface
     {
-        if (!GlobalEnvironmentSingleton::isInitialized()) {
-            return GlobalEnvironmentSingleton::initializeNew();
-        }
-
-        return GlobalEnvironmentSingleton::getInstance();
+        return $this->createGlobalEnvironmentManager()->initialize();
     }
 }
