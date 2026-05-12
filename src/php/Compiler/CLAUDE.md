@@ -58,14 +58,14 @@ Core compilation pipeline: Phel source -> tokens -> AST -> analyzed nodes -> PHP
 Compiler/
 ├── Application/        Analyzer, CodeCompiler, EvalCompiler, GlobalEnvironmentManager, Lexer, Parser, Reader, MacroExpander
 ├── Domain/
-│   ├── Analyzer/       AST nodes, special form handlers, environments
+│   ├── Analyzer/       AST nodes, special form handlers, environments, GlobalEnvironmentManagerInterface + GlobalEnvironmentRegistry
 │   ├── Compiler/       CodeCompilerInterface, EvalCompilerInterface
 │   ├── Emitter/        OutputEmitter, FileEmitter, StatementEmitter, node emitters
 │   ├── Evaluator/      InMemoryEvaluator, RequireEvaluator (cross-module exceptions live in Phel\Shared\Exceptions)
 │   ├── Lexer/          Token, TokenStream
 │   ├── Parser/         NodeInterface, ExpressionParserFactory (CodeSnippet lives in Phel\Shared\Parser\ReadModel)
 │   └── Reader/         ReaderInterface, QuasiquoteTransformer
-├── Infrastructure/     CompileOptions, GlobalEnvironmentSingleton
+├── Infrastructure/     CompileOptions, GlobalEnvironmentSingleton (ABI-compat shim for emitted PHP)
 └── Gacela files
 ```
 
@@ -76,7 +76,14 @@ Compiler/
 - Emitter must handle every node type — missing cases must throw, not silently skip
 - Special forms are registered centrally — no ad-hoc handling in the analyzer loop
 - Source locations must propagate through all phases for error reporting
-- `GlobalEnvironmentSingleton` manages the single global compile-time environment
+
+## Global Environment
+
+The single compile-time `GlobalEnvironmentInterface` is owned by `Application/GlobalEnvironmentManager` (implements `Domain/Analyzer/Environment/GlobalEnvironmentManagerInterface`). New collaborators inject the interface and call instance methods (`initialize()`, `getInstance()`, `reset()`).
+
+State lives in `Domain/Analyzer/Environment/GlobalEnvironmentRegistry` (process-wide static slot). Both the Application manager and the legacy `Infrastructure/GlobalEnvironmentSingleton` read/write the same slot, so neither layer imports the other.
+
+`GlobalEnvironmentSingleton` is retained because the emitter writes literal `\Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton::getInstance()` calls into generated PHP — cached `.phel` artefacts depend on that exact FQN. Every static method on the singleton forwards to the registry.
 
 ## Namespace Encoding
 
