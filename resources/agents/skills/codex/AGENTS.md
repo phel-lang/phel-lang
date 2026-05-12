@@ -1,24 +1,27 @@
 # AGENTS.md: Phel project
 
-Phel is a Lisp dialect that compiles to PHP. This file follows the AGENTS.md convention and covers tools that honor it (Codex, Aider, generic LLMs).
+Phel is a Lisp dialect that compiles to PHP. Follows the AGENTS.md convention; honored by Codex, Aider, and generic LLM tools.
 
 ## Load order
 
-1. `.agents/RULES.md` — hard rules, CLI cheatsheet, workflow
-2. `.agents/index.md` — task map
-3. `.agents/tasks/<intent>.md` — recipe for the current task
-4. `src/phel/` and `docs/` only when a recipe points there
+1. `.agents/RULES.md` — hard rules, modern features, CLI cheatsheet
+2. `.agents/tasks/common-gotchas.md` — read BEFORE writing code
+3. `.agents/index.md` — task map; pick `.agents/tasks/<intent>.md`
+4. `.agents/quick-syntax.md` — one-screen syntax cheatsheet
+5. `src/phel/` and `docs/` only when a recipe points there
 
-## Modern features to prefer
+## Before suggesting code
 
-- `:tag` types on `defn` params + return for PHP type emission, JIT-friendly call shape, compile-time mismatch diagnostics. See `.agents/tasks/typed-defn.md`.
+- Verify fn names in `src/phel/core/` or `./vendor/bin/phel doc <fn>`. Never invent.
+- Hot or public `defn`: add `:tag` to params + return. See `.agents/tasks/typed-defn.md`.
 - Opt-in defn metadata: `^:async`, `^:memoize`, `^{:memoize-lru N}`.
-- `phel profile <path>` to locate hot fns before tagging.
+- `phel profile <path>` locates hot fns before tagging.
+- Namespace separator: prefer `.` (`app.main`); `\` still parses but is deprecated.
 
 ## Working examples
 
-`.agents/examples/{todo-app, http-json-api, cli-wordcount}/`; copy, adapt, run.
+`.agents/examples/{todo-app, http-json-api, cli-wordcount}/` — copy, adapt, run.
 
-## Commit conventions
+## Commits
 
-Conventional commits (`feat:`, `fix:`, `ref:`, `chore:`, `docs:`, `test:`). No AI or LLM references in messages.
+Conventional (`feat:`, `fix:`, `ref:`, `chore:`, `docs:`, `test:`). No AI or LLM references in messages.

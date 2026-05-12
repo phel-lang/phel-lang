@@ -24,7 +24,7 @@ Rules + CLI: [`RULES.md`](RULES.md).
 | Lint code | — | `docs/lint-guide.md` |
 | Editor integration | — | `docs/lsp-guide.md`, `docs/nrepl-guide.md` |
 | Hot-reload | — | `docs/watch-guide.md` |
-| Syntax reference | — | `docs/quickstart.md`, `docs/reader-shortcuts.md` |
+| Syntax reference | [`quick-syntax.md`](quick-syntax.md) | `docs/quickstart.md`, `docs/reader-shortcuts.md` |
 | Idioms | — | `docs/patterns.md`, `docs/examples/` |
 | Call Phel from PHP | — | `docs/framework-integration.md` |
 | Data structures | — | `docs/data-structures-guide.md`, `docs/lazy-sequences.md` |

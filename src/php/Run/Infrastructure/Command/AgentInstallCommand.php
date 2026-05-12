@@ -16,9 +16,14 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function dirname;
+use function file_get_contents;
+use function file_put_contents;
 use function is_dir;
 use function is_file;
+use function preg_replace;
+use function rtrim;
 use function sprintf;
+use function trim;
 
 final class AgentInstallCommand extends Command
 {
@@ -31,6 +36,8 @@ final class AgentInstallCommand extends Command
     private const string OPT_FORCE = 'force';
 
     private const string OPT_DRY_RUN = 'dry-run';
+
+    private const string STAMP_PATTERN = '/\n?<!-- phel-agents v[^>]*-->\s*$/';
 
     /** @var array<string, array{source: string, target: string}> */
     private const array PLATFORMS = [
@@ -140,8 +147,26 @@ final class AgentInstallCommand extends Command
             $output->writeln(sprintf('Backed up existing -> %s', $backup));
         }
 
-        copy($src, $dst);
+        $contents = (string) file_get_contents($src);
+        $stamped = $this->stampVersion($contents, $sourceRoot);
+        file_put_contents($dst, $stamped);
         $output->writeln(sprintf('<info>Installed</info> %s skill: %s', $platform, $dst));
+    }
+
+    private function stampVersion(string $contents, string $sourceRoot): string
+    {
+        $versionFile = $sourceRoot . '/VERSION';
+        if (!is_file($versionFile)) {
+            return $contents;
+        }
+
+        $version = trim((string) file_get_contents($versionFile));
+        if ($version === '') {
+            return $contents;
+        }
+
+        $stripped = (string) preg_replace(self::STAMP_PATTERN, '', $contents);
+        return rtrim($stripped) . sprintf("\n\n<!-- phel-agents v%s -->\n", $version);
     }
 
     private function copyDocs(

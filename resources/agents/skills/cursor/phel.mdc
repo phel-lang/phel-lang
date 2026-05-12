@@ -4,15 +4,23 @@ globs: ["**/*.phel", "**/phel-config.php"]
 alwaysApply: false
 ---
 
-Phel is a Lisp dialect that compiles to PHP. Hard rules, CLI cheatsheet, and workflow live in `.agents/RULES.md`. Task recipes in `.agents/tasks/`. Route by intent via `.agents/index.md`.
+Phel is a Lisp dialect that compiles to PHP.
 
-Before suggesting code:
-- Verify fn names in `src/phel/core/` or `(phel doc <fn>)`.
-- Collections are immutable. Rebind with `def`/`let`.
+## Load order
+
+1. `.agents/RULES.md` — hard rules, modern features (`:tag`, `^:async`, `^:memoize`), CLI cheatsheet
+2. `.agents/tasks/common-gotchas.md` — read BEFORE writing code
+3. `.agents/index.md` — task map; pick `.agents/tasks/<intent>.md`
+4. `.agents/quick-syntax.md` — one-screen syntax cheatsheet
+
+## Before suggesting code
+
+- Verify fn names in `src/phel/core/` or `./vendor/bin/phel doc <fn>`. Never invent.
+- Collections immutable. Rebind with `def`/`let` or use `atom`.
 - PHP interop prefix `php/`. See `.agents/RULES.md` for full syntax.
-- Guard top-level side effects with `(when-not *build-mode* ...)`.
-- Hot or public `defn`: add `:tag` to params + return (`^int`, `^string`, `^"?int"`, `^"\\Foo\\Bar"`, `^{:tag "..."}`). See `.agents/tasks/typed-defn.md`.
+- Top-level side effects: guard with `(when-not *build-mode* ...)`.
+- Hot or public `defn`: add `:tag` (`^int`, `^string`, `^"?int"`, `^"\\Foo\\Bar"`). See `.agents/tasks/typed-defn.md`.
 - Opt-in defn metadata: `^:async`, `^:memoize`, `^{:memoize-lru N}`.
-- Prefer `.` ns separator (`app.main`); `\` still parses but is deprecated.
+- Namespace separator: prefer `.` (`app.main`); `\` still parses but is deprecated.
 
 Working examples: `.agents/examples/{todo-app, http-json-api, cli-wordcount}/`.

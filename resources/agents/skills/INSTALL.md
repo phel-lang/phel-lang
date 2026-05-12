@@ -5,9 +5,12 @@
 ./vendor/bin/phel agent-install --all                # every platform
 ./vendor/bin/phel agent-install --all --with-docs    # also install docs into .agents/
 ./vendor/bin/phel agent-install --dry-run claude     # preview
+./vendor/bin/phel agent-install --force claude       # overwrite without backup
 ```
 
 Existing targets back up to `<path>.pre-phel.bak`. `--force` skips backup.
+
+Each installed file gets a footer `<!-- phel-agents vX.Y.Z -->` stamped from `resources/agents/VERSION`. Re-running `agent-install` after `composer update phel-lang/phel-lang` refreshes the stamp.
 
 ## Destinations
 
@@ -19,6 +22,12 @@ Existing targets back up to `<path>.pre-phel.bak`. `--force` skips backup.
 | Gemini CLI | `skills/gemini/GEMINI.md` | `GEMINI.md` |
 | GitHub Copilot | `skills/copilot/copilot-instructions.md` | `.github/copilot-instructions.md` |
 | Aider | `skills/aider/CONVENTIONS.md` | `CONVENTIONS.md` |
+
+## Recommended setup
+
+1. `./vendor/bin/phel agent-install --all --with-docs` — installs every skill plus the `.agents/` reference tree.
+2. Commit `.agents/` and the per-platform files so teammates' agents share the same context.
+3. After upgrading phel-lang, re-run `agent-install --all --force` to refresh content and version stamp.
 
 ## Manual fallback
 
