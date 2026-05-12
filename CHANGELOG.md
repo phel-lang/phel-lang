@@ -34,6 +34,11 @@ All notable changes to this project will be documented in this file.
 #### DX
 - `phel agent-install` stamps installed skill files with `<!-- phel-agents vX.Y.Z -->` from `VERSION`; idempotent on re-install
 - Slimmer Claude skill (89 → 36 lines); shared syntax cheatsheet moved to `resources/agents/quick-syntax.md`; aider/codex/gemini/copilot/cursor pointers unified
+- `phel agent-install --check` reports installed vs current skill version per platform; exits 1 on drift
+- `phel agent-install --list` enumerates platforms, source templates, install targets, and current state
+- `phel agent-install --uninstall` removes skill file(s) and restores `.pre-phel.bak` if present; `--with-docs` also drops `.agents/`
+- `phel agent-install --auto` installs skills only for agents already used in the project (detects `.claude/`, `.cursor/`, `AGENTS.md`, `GEMINI.md`, etc.)
+- `phel doctor` now reports installed agent skills and surfaces stale versions in one place
 - Runtime state (cache, REPL history, error log) consolidated under `.phel/`; relocate via `withPhelDir()` or `PHEL_DIR` env (#1954)
 - Module boundary tightening: `Munge`, `CompileOptions`, `PhelProjectDirectory`, `VersionFinder` moved to `Phel\Shared`; `GlobalEnvironment`, `DebugLineTap` exposed via `CompilerFacade` (#1963, #1964)
 - `PhelConfig` immutable via `withX()` chain; build/export fields flat on root; old `setX()` shims deprecated

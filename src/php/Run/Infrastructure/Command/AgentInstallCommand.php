@@ -5,12 +5,17 @@ declare(strict_types=1);
 namespace Phel\Run\Infrastructure\Command;
 
 use FilesystemIterator;
+use Phel\Run\Application\Agent\AgentInstallStatusInspector;
+use Phel\Run\Application\Agent\AgentPlatformDetector;
+use Phel\Run\Application\Agent\AgentVersionStamper;
+use Phel\Run\Domain\Agent\AgentPlatform;
+use Phel\Run\Domain\Agent\AgentPlatformRegistry;
+use Phel\Run\Domain\Agent\AgentPlatformStatus;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use RuntimeException;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
-
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -18,12 +23,14 @@ use Symfony\Component\Console\Output\OutputInterface;
 use function dirname;
 use function file_get_contents;
 use function file_put_contents;
+use function implode;
 use function is_dir;
 use function is_file;
-use function preg_replace;
-use function rtrim;
+use function rename;
+use function rmdir;
 use function sprintf;
-use function trim;
+use function str_repeat;
+use function unlink;
 
 final class AgentInstallCommand extends Command
 {
@@ -37,71 +44,83 @@ final class AgentInstallCommand extends Command
 
     private const string OPT_DRY_RUN = 'dry-run';
 
-    private const string AGENTS_DIR = '.agents';
+    private const string OPT_CHECK = 'check';
 
-    private const string VERSION_FILE = 'VERSION';
+    private const string OPT_LIST = 'list';
+
+    private const string OPT_UNINSTALL = 'uninstall';
+
+    private const string OPT_AUTO = 'auto';
+
+    private const string AGENTS_DIR = '.agents';
 
     private const string BACKUP_SUFFIX = '.pre-phel.bak';
 
-    private const string STAMP_PATTERN = '/\n?<!-- phel-agents v[^>]*-->\s*$/';
+    private readonly AgentPlatformRegistry $registry;
 
-    /** @var array<string, array{source: string, target: string}> */
-    private const array PLATFORMS = [
-        'claude' => [
-            'source' => 'skills/claude/phel-lang/SKILL.md',
-            'target' => '.claude/skills/phel-lang/SKILL.md',
-        ],
-        'cursor' => [
-            'source' => 'skills/cursor/phel.mdc',
-            'target' => '.cursor/rules/phel.mdc',
-        ],
-        'codex' => [
-            'source' => 'skills/codex/AGENTS.md',
-            'target' => 'AGENTS.md',
-        ],
-        'gemini' => [
-            'source' => 'skills/gemini/GEMINI.md',
-            'target' => 'GEMINI.md',
-        ],
-        'copilot' => [
-            'source' => 'skills/copilot/copilot-instructions.md',
-            'target' => '.github/copilot-instructions.md',
-        ],
-        'aider' => [
-            'source' => 'skills/aider/CONVENTIONS.md',
-            'target' => 'CONVENTIONS.md',
-        ],
-    ];
+    public function __construct()
+    {
+        $this->registry = new AgentPlatformRegistry();
+        parent::__construct();
+    }
 
     protected function configure(): void
     {
+        $platformList = implode(', ', $this->registry->keys());
+
         $this->setName('agent-install')
             ->setDescription('Install agent skill files (Claude, Cursor, Codex, Gemini, Copilot, Aider) into the current project')
             ->addArgument(
                 self::ARG_PLATFORM,
                 InputArgument::OPTIONAL,
-                sprintf('Platform: %s', implode(', ', array_keys(self::PLATFORMS))),
+                sprintf('Platform: %s', $platformList),
             )
             ->addOption(self::OPT_ALL, null, InputOption::VALUE_NONE, 'Install all supported platforms')
             ->addOption(self::OPT_WITH_DOCS, null, InputOption::VALUE_NONE, 'Also copy the bundled agent docs tree to .agents/')
             ->addOption(self::OPT_FORCE, null, InputOption::VALUE_NONE, 'Overwrite existing files (default: backup to ' . self::BACKUP_SUFFIX . ')')
-            ->addOption(self::OPT_DRY_RUN, null, InputOption::VALUE_NONE, 'Print what would be written without changing files');
+            ->addOption(self::OPT_DRY_RUN, null, InputOption::VALUE_NONE, 'Print what would be written without changing files')
+            ->addOption(self::OPT_CHECK, null, InputOption::VALUE_NONE, 'Report install status and version drift per platform; exit 1 if any drift')
+            ->addOption(self::OPT_LIST, null, InputOption::VALUE_NONE, 'List supported platforms with source template, install target, and current state')
+            ->addOption(self::OPT_UNINSTALL, null, InputOption::VALUE_NONE, 'Remove installed skill file(s); restores ' . self::BACKUP_SUFFIX . ' if present')
+            ->addOption(self::OPT_AUTO, null, InputOption::VALUE_NONE, 'Auto-detect agents already present in the project (.claude/, .cursor/, AGENTS.md, ...) and install for them');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
+        $sourceRoot = $this->agentsRoot();
+        $projectRoot = (string) getcwd();
+        $stamper = new AgentVersionStamper($sourceRoot);
+
+        if ((bool) $input->getOption(self::OPT_CHECK)) {
+            return $this->runCheck($output, $projectRoot, $stamper);
+        }
+
+        if ((bool) $input->getOption(self::OPT_LIST)) {
+            return $this->runList($output, $projectRoot, $stamper);
+        }
+
         $platforms = $this->selectPlatforms($input, $output);
         if ($platforms === null) {
             return Command::INVALID;
         }
 
-        $sourceRoot = $this->agentsRoot();
-        $projectRoot = (string) getcwd();
         $dryRun = (bool) $input->getOption(self::OPT_DRY_RUN);
         $force = (bool) $input->getOption(self::OPT_FORCE);
 
-        foreach ($platforms as $platform) {
-            $this->installPlatform($output, $sourceRoot, $projectRoot, $platform, $force, $dryRun);
+        if ((bool) $input->getOption(self::OPT_UNINSTALL)) {
+            foreach ($platforms as $platformKey) {
+                $this->uninstallPlatform($output, $projectRoot, $this->registry->get($platformKey), $dryRun);
+            }
+
+            if ((bool) $input->getOption(self::OPT_WITH_DOCS)) {
+                $this->removeDocs($output, $projectRoot, $dryRun);
+            }
+
+            return Command::SUCCESS;
+        }
+
+        foreach ($platforms as $platformKey) {
+            $this->installPlatform($output, $sourceRoot, $projectRoot, $this->registry->get($platformKey), $force, $dryRun, $stamper);
         }
 
         if ((bool) $input->getOption(self::OPT_WITH_DOCS)) {
@@ -111,25 +130,150 @@ final class AgentInstallCommand extends Command
         return Command::SUCCESS;
     }
 
+    private function uninstallPlatform(OutputInterface $output, string $projectRoot, AgentPlatform $platform, bool $dryRun): void
+    {
+        $dst = $projectRoot . '/' . $platform->target;
+        $backup = $dst . self::BACKUP_SUFFIX;
+
+        if (!is_file($dst)) {
+            $output->writeln(sprintf('  %-8s not installed; skip', $platform->key));
+            return;
+        }
+
+        if ($dryRun) {
+            $output->writeln(sprintf('[dry-run] remove %s', $dst));
+            if (is_file($backup)) {
+                $output->writeln(sprintf('[dry-run] restore %s -> %s', $backup, $dst));
+            }
+
+            return;
+        }
+
+        unlink($dst);
+        if (is_file($backup)) {
+            rename($backup, $dst);
+            $output->writeln(sprintf('<info>Restored backup</info> %s', $dst));
+            return;
+        }
+
+        $output->writeln(sprintf('<info>Removed</info> %s skill: %s', $platform->key, $dst));
+    }
+
+    private function removeDocs(OutputInterface $output, string $projectRoot, bool $dryRun): void
+    {
+        $dst = $projectRoot . '/' . self::AGENTS_DIR;
+        if (!is_dir($dst)) {
+            return;
+        }
+
+        if ($dryRun) {
+            $output->writeln(sprintf('[dry-run] remove %s', $dst));
+            return;
+        }
+
+        $this->recursiveRemove($dst);
+        $output->writeln(sprintf('<info>Removed docs tree</info> %s', $dst));
+    }
+
+    private function recursiveRemove(string $dir): void
+    {
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($dir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
+        );
+
+        foreach ($iterator as $item) {
+            if ($item->isDir()) {
+                rmdir($item->getPathname());
+            } else {
+                unlink($item->getPathname());
+            }
+        }
+
+        rmdir($dir);
+    }
+
+    private function runList(OutputInterface $output, string $projectRoot, AgentVersionStamper $stamper): int
+    {
+        $inspector = new AgentInstallStatusInspector($this->registry, $stamper);
+        $statuses = $inspector->inspect($projectRoot);
+
+        $output->writeln(sprintf('<info>Platform</info>  <info>Source</info>%s  <info>Target</info>%s  <info>State</info>', str_repeat(' ', 36), str_repeat(' ', 30)));
+        foreach ($statuses as $status) {
+            $output->writeln(sprintf(
+                '  %-8s  %-40s  %-34s  %s',
+                $status->platform->key,
+                $status->platform->source,
+                $status->platform->target,
+                $this->stateLabel($status),
+            ));
+        }
+
+        return Command::SUCCESS;
+    }
+
+    private function stateLabel(AgentPlatformStatus $status): string
+    {
+        return match ($status->state) {
+            AgentPlatformStatus::CURRENT => sprintf('current (v%s)', $status->installedVersion ?? '?'),
+            AgentPlatformStatus::STALE => sprintf('stale (v%s, current v%s)', $status->installedVersion ?? '?', $status->currentVersion),
+            AgentPlatformStatus::UNSTAMPED => 'unstamped',
+            AgentPlatformStatus::NOT_INSTALLED => 'not installed',
+            default => $status->state,
+        };
+    }
+
+    private function runCheck(OutputInterface $output, string $projectRoot, AgentVersionStamper $stamper): int
+    {
+        $inspector = new AgentInstallStatusInspector($this->registry, $stamper);
+        $statuses = $inspector->inspect($projectRoot);
+
+        $output->writeln(sprintf('phel-agents target version: <info>%s</info>', $stamper->currentVersion() ?? 'unknown'));
+        $output->writeln('');
+
+        $hasDrift = false;
+        foreach ($statuses as $status) {
+            $output->writeln($this->formatStatusLine($status));
+            $hasDrift = $hasDrift || $status->isDrift();
+        }
+
+        return $hasDrift ? Command::FAILURE : Command::SUCCESS;
+    }
+
+    private function formatStatusLine(AgentPlatformStatus $status): string
+    {
+        $key = $status->platform->key;
+        $installed = $status->installedVersion ?? '?';
+
+        return match ($status->state) {
+            AgentPlatformStatus::CURRENT => sprintf('  <info>✓</info> %-8s v%s', $key, $installed),
+            AgentPlatformStatus::STALE => sprintf('  <comment>!</comment> %-8s v%s (current v%s) — run `agent-install %s --force` to refresh', $key, $installed, $status->currentVersion, $key),
+            AgentPlatformStatus::UNSTAMPED => sprintf('  <comment>?</comment> %-8s file exists but has no version stamp — run `agent-install %s --force` to refresh', $key, $key),
+            AgentPlatformStatus::NOT_INSTALLED => sprintf('    %-8s not installed', $key),
+            default => sprintf('  %-8s unknown state: %s', $key, $status->state),
+        };
+    }
+
     /**
      * @return list<string>|null list of platform keys, or null on invalid input
      */
     private function selectPlatforms(InputInterface $input, OutputInterface $output): ?array
     {
-        $platform = $input->getArgument(self::ARG_PLATFORM);
-        $installAll = (bool) $input->getOption(self::OPT_ALL);
-
-        if ($installAll) {
-            return array_keys(self::PLATFORMS);
+        if ((bool) $input->getOption(self::OPT_AUTO)) {
+            return $this->selectAutoDetected($output);
         }
 
+        if ((bool) $input->getOption(self::OPT_ALL)) {
+            return $this->registry->keys();
+        }
+
+        $platform = $input->getArgument(self::ARG_PLATFORM);
         if ($platform === null) {
-            $output->writeln('<error>Provide a platform or use --all</error>');
-            $output->writeln(sprintf('Platforms: %s', implode(', ', array_keys(self::PLATFORMS))));
+            $this->reportMissingPlatform($output);
             return null;
         }
 
-        if (!isset(self::PLATFORMS[$platform])) {
+        if (!$this->registry->has($platform)) {
             $output->writeln(sprintf('<error>Unknown platform: %s</error>', $platform));
             return null;
         }
@@ -137,17 +281,53 @@ final class AgentInstallCommand extends Command
         return [$platform];
     }
 
+    /**
+     * @return list<string>|null
+     */
+    private function selectAutoDetected(OutputInterface $output): ?array
+    {
+        $detected = $this->detectAgents();
+        if ($detected === []) {
+            $output->writeln('<comment>No agent traces detected; nothing to install. Use --all or pass a platform.</comment>');
+            return null;
+        }
+
+        $output->writeln(sprintf('Detected: <info>%s</info>', implode(', ', $detected)));
+        return $detected;
+    }
+
+    private function reportMissingPlatform(OutputInterface $output): void
+    {
+        $detected = $this->detectAgents();
+        if ($detected !== []) {
+            $output->writeln(sprintf('Detected installed agents: <info>%s</info>', implode(', ', $detected)));
+            $output->writeln('Run <comment>agent-install --auto</comment> to install skills for detected agents, or <comment>--all</comment> for every platform.');
+            return;
+        }
+
+        $output->writeln('<error>Provide a platform or use --all</error>');
+        $output->writeln(sprintf('Platforms: %s', implode(', ', $this->registry->keys())));
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function detectAgents(): array
+    {
+        return new AgentPlatformDetector($this->registry)->detect((string) getcwd());
+    }
+
     private function installPlatform(
         OutputInterface $output,
         string $sourceRoot,
         string $projectRoot,
-        string $platform,
+        AgentPlatform $platform,
         bool $force,
         bool $dryRun,
+        AgentVersionStamper $stamper,
     ): void {
-        $spec = self::PLATFORMS[$platform];
-        $src = $sourceRoot . '/' . $spec['source'];
-        $dst = $projectRoot . '/' . $spec['target'];
+        $src = $sourceRoot . '/' . $platform->source;
+        $dst = $projectRoot . '/' . $platform->target;
 
         if (!is_file($src)) {
             throw new RuntimeException(sprintf('Source skill file not found: %s', $src));
@@ -162,8 +342,8 @@ final class AgentInstallCommand extends Command
         $this->backupIfExists($output, $dst, $force);
 
         $contents = (string) file_get_contents($src);
-        file_put_contents($dst, $this->stampVersion($contents, $sourceRoot));
-        $output->writeln(sprintf('<info>Installed</info> %s skill: %s', $platform, $dst));
+        file_put_contents($dst, $stamper->stamp($contents));
+        $output->writeln(sprintf('<info>Installed</info> %s skill: %s', $platform->key, $dst));
     }
 
     private function backupIfExists(OutputInterface $output, string $dst, bool $force): void
@@ -175,22 +355,6 @@ final class AgentInstallCommand extends Command
         $backup = $dst . self::BACKUP_SUFFIX;
         copy($dst, $backup);
         $output->writeln(sprintf('Backed up existing -> %s', $backup));
-    }
-
-    private function stampVersion(string $contents, string $sourceRoot): string
-    {
-        $versionFile = $sourceRoot . '/' . self::VERSION_FILE;
-        if (!is_file($versionFile)) {
-            return $contents;
-        }
-
-        $version = trim((string) file_get_contents($versionFile));
-        if ($version === '') {
-            return $contents;
-        }
-
-        $stripped = (string) preg_replace(self::STAMP_PATTERN, '', $contents);
-        return rtrim($stripped) . sprintf("\n\n<!-- phel-agents v%s -->\n", $version);
     }
 
     private function copyDocs(
