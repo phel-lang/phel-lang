@@ -1,0 +1,55 @@
+(ns phel-test.reflect
+  (:use DateTime)
+  (:use ArrayObject)
+  (:use Countable)
+  (:use Traversable)
+  (:require phel.reflect :as r)
+  (:require phel.test :refer [deftest is testing]))
+
+(deftest class-info-by-string-or-object
+  (let [from-string (r/class-info "DateTime")
+        from-object (r/class-info (php/new DateTime))]
+    (is (= "DateTime" (get from-string :name))
+        "class-info accepts class name string")
+    (is (= "DateTime" (get from-object :name))
+        "class-info accepts an instance")))
+
+(deftest class-info-shape
+  (let [info (r/class-info "DateTime")]
+    (testing "carries the canonical key set"
+      (is (contains? info :name))
+      (is (contains? info :methods))
+      (is (contains? info :properties))
+      (is (contains? info :parents))
+      (is (contains? info :interfaces)))
+    (testing "values are persistent collections, not raw PHP arrays"
+      (is (vector? (get info :methods)))
+      (is (vector? (get info :properties)))
+      (is (vector? (get info :parents)))
+      (is (vector? (get info :interfaces))))))
+
+(deftest methods-returns-rich-maps
+  (let [ms     (r/methods "DateTime")
+        format (first (filter (fn [m] (= "format" (get m :name))) ms))]
+    (is (some? format) "DateTime exposes a format method")
+    (is (= :public (get format :visibility)))
+    (is (false? (get format :static?)))
+    (is (vector? (get format :params)))))
+
+(deftest properties-returns-rich-maps
+  (let [ps   (r/properties "ArrayObject")]
+    (is (vector? ps))
+    (is (every? (fn [p]
+                  (and (contains? p :name)
+                       (contains? p :static?)
+                       (contains? p :readonly?)
+                       (contains? p :visibility)))
+                ps))))
+
+(deftest supers-includes-parents-and-interfaces
+  (let [sset (r/supers "ArrayObject")]
+    (is (set? sset) "supers returns a Phel set")
+    (is (contains? sset "Countable")
+        "ArrayObject implements Countable")
+    (is (contains? sset "Traversable")
+        "ArrayObject implements Traversable")))
