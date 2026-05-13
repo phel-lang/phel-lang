@@ -7,24 +7,24 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 #### Formatter
-- `AlignPairsRule` no longer pads `cond` / `case` / `condp` values when the test/key spans multiple lines, which previously inflated whitespace by hundreds of columns (#1986)
+- `AlignPairsRule` skips alignment when a `cond` / `case` / `condp` key spans multiple lines (#1986)
 
 ### Added
 
-#### Tests
-- Regression coverage for namespaced keyword alias resolution: `::foo` resolves to the current namespace, `::alias/bar` resolves through `(:require [other.ns :as alias])` to the aliased namespace, and `::unknown/bar` raises a clear `KeywordParserException`. Phel-level test exercises `name` / `namespace` / `full-name` round-trips and equality with the absolute keyword form (#1983)
-
 #### Reflect
-- New `phel\reflect` module wrapping PHP reflection in idiomatic Phel: `class-info`, `methods`, `properties`, and `supers` accept either a class-name string or an object instance and return persistent vectors / maps / sets instead of raw `Reflection*` objects. Method maps carry `:name`, `:params`, `:return-type`, `:static?`, and `:visibility`; property maps add `:type` and `:readonly?`. Parameter maps include `:type`, `:optional`, and `:variadic` (#1984)
+- New `phel\reflect` module: `class-info`, `methods`, `properties`, `supers` over PHP reflection, returning persistent collections (#1984)
 
 #### Compiler
-- `ParamTypeInferrer` cross-fn channels: callee `:param-tags` propagation (Step 1), PHP host fn signature table (`random_int`, `intdiv`, `strlen`, `mb_strlen`, `str_repeat`, `count`) (Step 2), expected-type back-pressure into nested numeric calls (Step 3), `:int-stable` allowlist on `phel.core` arithmetic (`+`, `-`, `*`, `inc`, `dec`) propagating `int` when an `int` expectation flows from above and bailing on `BigInteger` / `Rational` / float literal siblings (Step 4) (#1978)
+- `ParamTypeInferrer` cross-fn channels: callee `:param-tags` propagation, PHP host fn signature table, expected-type back-pressure, `:int-stable` allowlist on `phel.core` arithmetic (#1978)
 - `ReturnTypeInferrer` recognises `random_int` and `intdiv` as `int`-returning
-- Both inferrers skip self-references against the def being analyzed so a redefinition cannot inherit stale `:tag` / `:param-tags` carried in the runtime registry
+- Inferrers skip self-references to avoid stale `:tag` / `:param-tags` from the registry
 
 #### Core
-- Multimethods: `prefer-method`, `prefers`, and `prefers?` for resolving ambiguous dispatch when multiple methods match via the hierarchy and neither is more specific. Preferences are transitive; cycles and self-preferences are rejected. Dispatch with truly ambiguous matches and no preference now throws a clear error instead of silently picking one (#1980)
-- Transducers: `eduction` returns a reducible/iterable view that applies its transducer chain freshly on every consumption. Works with `into`, `reduce`, `doseq`/`foreach`, and short-circuits via `take`. Backed by a new `Phel\Lang\Eduction` PHP class implementing `IteratorAggregate` (#1981)
+- Multimethods: `prefer-method`, `prefers`, `prefers?` resolve ambiguous dispatch; ambiguity without preference throws (#1980)
+- Transducers: `eduction` returns a reusable iterable view; backed by `Phel\Lang\Eduction` (#1981)
+
+#### Tests
+- Coverage for namespaced keyword alias resolution: `::foo`, `::alias/bar`, unknown-alias error, `name` / `namespace` / `full-name` round-trips (#1983)
 
 ## [0.37.0](https://github.com/phel-lang/phel-lang/compare/v0.36.0...v0.37.0) - 2026-05-12
 
