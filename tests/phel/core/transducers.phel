@@ -209,3 +209,44 @@
   (let [v (volatile! 10)]
     (vswap! v + 3 4)
     (is (= 17 @v) "vswap! passes extra args")))
+
+;; --------
+;; eduction
+;; --------
+
+(deftest test-eduction-into
+  (is (= [2 3 4] (into [] (eduction (map inc) [1 2 3])))
+      "single transducer + into"))
+
+(deftest test-eduction-composes-multiple-xforms
+  (is (= [3 5] (into [] (eduction (map inc) (filter odd?) [1 2 3 4])))
+      "multiple transducers compose left-to-right"))
+
+(deftest test-eduction-reduce
+  (is (= 8 (reduce + 0 (eduction (map inc) (filter odd?) [1 2 3 4])))
+      "reduce works on eduction"))
+
+(deftest test-eduction-doseq
+  (let [seen (atom [])]
+    (doseq [x (eduction (map inc) [10 20 30])]
+      (swap! seen conj x))
+    (is (= [11 21 31] @seen) "doseq iterates eduction")))
+
+(deftest test-eduction-reiterates-without-cache
+  (let [calls (atom 0)
+        ed    (eduction (map (fn [x] (swap! calls inc) (inc x))) [1 2 3])]
+    (into [] ed)
+    (into [] ed)
+    (is (= 6 @calls) "transducer runs fresh each consumption (no caching)")))
+
+(deftest test-eduction-no-xforms
+  (is (= [1 2 3] (into [] (eduction [1 2 3])))
+      "no xforms = identity, yields source elements"))
+
+(deftest test-eduction-take-short-circuits
+  (is (= [0 1 2] (into [] (eduction (take 3) (range))))
+      "take 3 over infinite range terminates"))
+
+(deftest test-eduction-with-filter-only
+  (is (= [2 4] (into [] (eduction (filter even?) [1 2 3 4])))
+      "single filter transducer"))

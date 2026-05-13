@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 
 #### Core
 - Multimethods: `prefer-method`, `prefers`, and `prefers?` for resolving ambiguous dispatch when multiple methods match via the hierarchy and neither is more specific. Preferences are transitive; cycles and self-preferences are rejected. Dispatch with truly ambiguous matches and no preference now throws a clear error instead of silently picking one (#1980)
+- Transducers: `eduction` returns a reducible/iterable view that applies its transducer chain freshly on every consumption. Works with `into`, `reduce`, `doseq`/`foreach`, and short-circuits via `take`. Backed by a new `Phel\Lang\Eduction` PHP class implementing `IteratorAggregate` (#1981)
 
 ## [0.37.0](https://github.com/phel-lang/phel-lang/compare/v0.36.0...v0.37.0) - 2026-05-12
 

@@ -2,6 +2,7 @@
 
 (use InvalidArgumentException)
 (use Phel)
+(use Phel.Lang.Eduction)
 (use Phel.Lang.Collections.HashSet.PersistentHashSetInterface)
 (use Phel.Lang.Collections.HashSet.TransientHashSetInterface)
 (use Phel.Lang.Collections.LazySeq.LazySeq)
@@ -1233,6 +1234,21 @@
    :see-also ["transduce" "into"]}
   [xform coll]
   (into [] xform coll))
+
+(defn eduction
+  "Returns a reducible/iterable applying transducers to `coll`. The last
+  argument is the source collection; preceding arguments are transducers
+  composed left-to-right. The transformation is re-run on each consumption
+  (no caching), so the result is safe to reduce or iterate multiple times."
+  {:example "(reduce + (eduction (map inc) (filter odd?) [1 2 3 4])) ; => 8"
+   :see-also ["transduce" "into" "sequence"]}
+  [& args]
+  (let [coll  (last args)
+        xs    (butlast args)
+        xform (if (or (nil? xs) (empty? xs))
+                identity
+                (apply comp xs))]
+    (php/new Eduction xform coll)))
 
 (defn compact
   "Returns a lazy sequence with specified values removed from `coll`.
