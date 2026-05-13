@@ -1,0 +1,31 @@
+--PHEL--
+(defn size [xs] (php/count xs))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "size",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\size";
+
+    public function __invoke(array $xs): int {
+      return count($xs);
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("doc"), "```phel\n(size xs)\n```\n",
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-infer-php-count-arg.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-infer-php-count-arg.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 31
+    ),
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[xs]",
+    \Phel::keyword("tag"), "int"
+  )
+);

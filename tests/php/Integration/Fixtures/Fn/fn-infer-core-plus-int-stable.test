@@ -1,0 +1,31 @@
+--PHEL--
+(defn add-pair [x y] (php/random_int 0 (+ x y)))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "add-pair",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\add_pair";
+
+    public function __invoke(int $x, int $y): int {
+      return random_int(0, (\Phel::getDefinition("phel.core", "+"))($x, $y));
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("doc"), "```phel\n(add-pair x y)\n```\n",
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-infer-core-plus-int-stable.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-infer-core-plus-int-stable.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 48
+    ),
+    "min-arity", 2,
+    "is-variadic", false,
+    "arglists", "[x y]",
+    \Phel::keyword("tag"), "int"
+  )
+);

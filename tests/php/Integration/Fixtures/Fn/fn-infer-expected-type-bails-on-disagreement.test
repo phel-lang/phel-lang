@@ -1,0 +1,31 @@
+--PHEL--
+(defn weird [a] (php/. a (php/random_int 0 a)))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "weird",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\weird";
+
+    public function __invoke($a): string {
+      return ($a . random_int(0, $a));
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("doc"), "```phel\n(weird a)\n```\n",
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-infer-expected-type-bails-on-disagreement.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-infer-expected-type-bails-on-disagreement.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 47
+    ),
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[a]",
+    \Phel::keyword("tag"), "string"
+  )
+);

@@ -74,6 +74,8 @@ final class ReturnTypeInferrer
         'intval' => 'int',
         'mb_strlen' => 'int',
         'count' => 'int',
+        'random_int' => 'int',
+        'intdiv' => 'int',
         'floatval' => 'float',
         'doubleval' => 'float',
         'floor' => 'float',
@@ -112,15 +114,32 @@ final class ReturnTypeInferrer
      */
     private bool $sawOperator = false;
 
+    private ?string $selfNamespace = null;
+
+    private ?string $selfName = null;
+
     /**
+     * `$selfNamespace` / `$selfName` short-circuit `:tag` lookup for the
+     * def currently being analyzed. The runtime registry can still hold
+     * a `:tag` from a previous compile/eval of the same name; treating
+     * any self-referencing call as untagged keeps a redefinition from
+     * inheriting that stale signal.
+     *
      * @param list<Symbol> $params
      *
      * @psalm-suppress RedundantCondition `inferNode` mutates `sawOperator`
      */
-    public function infer(AbstractNode $body, array $params, bool $isVariadic = false): ?string
-    {
+    public function infer(
+        AbstractNode $body,
+        array $params,
+        bool $isVariadic = false,
+        ?string $selfNamespace = null,
+        ?string $selfName = null,
+    ): ?string {
         $paramTypes = $this->collectParamTypes($params, $isVariadic);
         $this->sawOperator = false;
+        $this->selfNamespace = $selfNamespace;
+        $this->selfName = $selfName;
         $type = $this->inferNode($body, $paramTypes);
 
         if (!$this->sawOperator) {
@@ -346,6 +365,14 @@ final class ReturnTypeInferrer
      */
     private function inferGlobalCall(GlobalVarNode $fn): ?string
     {
+        if ($this->selfNamespace !== null
+            && $this->selfName !== null
+            && $fn->getNamespace() === $this->selfNamespace
+            && $fn->getName()->getName() === $this->selfName
+        ) {
+            return null;
+        }
+
         $tag = $this->tagFromMeta($fn->getMeta());
         return $tag === null ? null : $this->publish($tag);
     }

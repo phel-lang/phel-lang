@@ -1,0 +1,31 @@
+--PHEL--
+(defn rec [n] (php/random_int 0 (rec (php/- n 1))))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "rec",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\rec";
+
+    public function __invoke(int $n): int {
+      return random_int(0, $this(($n - 1)));
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("doc"), "```phel\n(rec n)\n```\n",
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-infer-expected-type-recursion-cycle.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-infer-expected-type-recursion-cycle.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 51
+    ),
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[n]",
+    \Phel::keyword("tag"), "int"
+  )
+);
