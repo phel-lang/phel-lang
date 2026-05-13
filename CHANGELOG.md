@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+#### Tests
+- Regression coverage for namespaced keyword alias resolution: `::foo` resolves to the current namespace, `::alias/bar` resolves through `(:require [other.ns :as alias])` to the aliased namespace, and `::unknown/bar` raises a clear `KeywordParserException`. Phel-level test exercises `name` / `namespace` / `full-name` round-trips and equality with the absolute keyword form (#1983)
+
 #### Compiler
 - `ParamTypeInferrer` cross-fn channels: callee `:param-tags` propagation (Step 1), PHP host fn signature table (`random_int`, `intdiv`, `strlen`, `mb_strlen`, `str_repeat`, `count`) (Step 2), expected-type back-pressure into nested numeric calls (Step 3), `:int-stable` allowlist on `phel.core` arithmetic (`+`, `-`, `*`, `inc`, `dec`) propagating `int` when an `int` expectation flows from above and bailing on `BigInteger` / `Rational` / float literal siblings (Step 4) (#1978)
 - `ReturnTypeInferrer` recognises `random_int` and `intdiv` as `int`-returning

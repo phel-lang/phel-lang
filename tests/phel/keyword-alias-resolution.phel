@@ -1,0 +1,27 @@
+(ns phel-test.keyword-alias-resolution
+  (:require phel.string :as s)
+  (:require phel.test :refer [deftest is]))
+
+(deftest auto-ns-keyword-resolves-to-current-ns
+  (is (= "phel-test.keyword-alias-resolution" (namespace ::foo))
+      "::foo carries current ns")
+  (is (= "foo" (name ::foo))
+      "::foo name extracted")
+  (is (= "phel-test.keyword-alias-resolution/foo" (full-name ::foo))
+      "::foo full-name round-trip"))
+
+(deftest aliased-keyword-resolves-via-require-alias
+  (is (= "phel.string" (namespace ::s/blank))
+      "::s/blank resolves via require alias to phel.string")
+  (is (= "blank" (name ::s/blank))
+      "name on aliased keyword"))
+
+(deftest absolute-namespaced-keyword-preserves-namespace
+  (is (= "other.ns" (namespace :other.ns/bar))
+      "single-colon keyword uses literal namespace")
+  (is (= "bar" (name :other.ns/bar))
+      "name on absolute namespaced keyword"))
+
+(deftest aliased-keyword-equality
+  (is (= ::s/blank :phel.string/blank)
+      "::alias/kw is equal to expanded :ns/kw"))

@@ -170,6 +170,22 @@ final class AtomParserTest extends TestCase
         );
     }
 
+    public function test_parse_keyword_with_unknown_alias_throws(): void
+    {
+        $this->expectException(KeywordParserException::class);
+        $this->expectExceptionMessage("Can not resolve alias 'missing' in keyword: ::missing/foo");
+
+        $env = new GlobalEnvironment();
+        $env->setNs('user');
+
+        $parser = new AtomParser($env);
+        $start = new SourceLocation('string', 0, 0);
+        $end = new SourceLocation('string', 0, 14);
+        $parser->parse(
+            new Token(Token::T_ATOM, '::missing/foo', $start, $end),
+        );
+    }
+
     public function test_parse_binary_number(): void
     {
         $parser = new AtomParser(new GlobalEnvironment());
