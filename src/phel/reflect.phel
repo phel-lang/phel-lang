@@ -1,0 +1,100 @@
+(ns phel.reflect
+  (:require phel.core)
+  (:use ReflectionClass))
+
+;; Idiomatic Phel wrappers around PHP reflection.
+;; All public functions accept either a class name string or an object
+;; instance, and return Phel persistent collections (vectors / maps / sets)
+;; instead of raw PHP arrays of `Reflection*` objects.
+
+(defn- reflection-class
+  "Returns a ReflectionClass for `class-or-name` (string FQN or object)."
+  [class-or-name]
+  (php/new ReflectionClass class-or-name))
+
+(defn- type-string
+  "Renders a ReflectionType (named, union, or intersection) as a string.
+  Returns nil when the reflection type itself is nil (no declaration)."
+  [rt]
+  (when rt (php/-> rt (__toString))))
+
+(defn- visibility-of [m]
+  (cond
+    (php/-> m (isPrivate))   :private
+    (php/-> m (isProtected)) :protected
+    true                     :public))
+
+(defn- parameter->map [p]
+  {:name     (php/-> p (getName))
+   :type     (type-string (php/-> p (getType)))
+   :optional (php/-> p (isOptional))
+   :variadic (php/-> p (isVariadic))})
+
+(defn- method->map [m]
+  {:name        (php/-> m (getName))
+   :params      (vec (for [p :in (php/-> m (getParameters))]
+                       (parameter->map p)))
+   :return-type (type-string (php/-> m (getReturnType)))
+   :static?     (php/-> m (isStatic))
+   :visibility  (visibility-of m)})
+
+(defn- property->map [p]
+  {:name       (php/-> p (getName))
+   :type       (type-string (php/-> p (getType)))
+   :static?    (php/-> p (isStatic))
+   :readonly?  (php/-> p (isReadonly))
+   :visibility (visibility-of p)})
+
+(defn methods
+  "Returns a vector of method maps for `class-or-name`. Each map contains
+  `:name`, `:params`, `:return-type`, `:static?`, and `:visibility`."
+  {:example "(methods DateTime)"}
+  [class-or-name]
+  (let [rc (reflection-class class-or-name)]
+    (vec (for [m :in (php/-> rc (getMethods))]
+           (method->map m)))))
+
+(defn properties
+  "Returns a vector of property maps for `class-or-name`. Each map contains
+  `:name`, `:type`, `:static?`, `:readonly?`, and `:visibility`."
+  {:example "(properties \\DateInterval)"}
+  [class-or-name]
+  (let [rc (reflection-class class-or-name)]
+    (vec (for [p :in (php/-> rc (getProperties))]
+           (property->map p)))))
+
+(defn supers
+  "Returns a set of fully qualified parent classes and implemented
+  interfaces for `class-or-name`."
+  {:example "(supers \\RuntimeException)"}
+  [class-or-name]
+  (let [rc      (reflection-class class-or-name)
+        names   (transient (hash-set))
+        names   (loop [parent (php/-> rc (getParentClass))
+                       acc    names]
+                  (if parent
+                    (recur (php/-> parent (getParentClass))
+                           (conj! acc (php/-> parent (getName))))
+                    acc))]
+    (foreach [iface (php/-> rc (getInterfaceNames))]
+      (conj! names iface))
+    (persistent! names)))
+
+(defn class-info
+  "Returns a map describing `class-or-name` with `:name`, `:methods`,
+  `:properties`, `:parents`, and `:interfaces` keys."
+  {:example "(class-info \\DateTime)"
+   :see-also ["methods" "properties" "supers"]}
+  [class-or-name]
+  (let [rc     (reflection-class class-or-name)
+        parent (php/-> rc (getParentClass))]
+    {:name       (php/-> rc (getName))
+     :methods    (methods class-or-name)
+     :properties (properties class-or-name)
+     :parents    (vec (loop [p   parent
+                             acc []]
+                        (if p
+                          (recur (php/-> p (getParentClass))
+                                 (conj acc (php/-> p (getName))))
+                          acc)))
+     :interfaces (vec (php/-> rc (getInterfaceNames)))}))
