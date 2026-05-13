@@ -1,5 +1,4 @@
 (ns phel.reflect
-  (:require phel.core)
   (:use ReflectionClass))
 
 ;; Idiomatic Phel wrappers around PHP reflection.
