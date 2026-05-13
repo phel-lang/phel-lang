@@ -36,6 +36,9 @@ final readonly class PairAligner
         }
 
         $maxKeyWidth = $this->maxKeyWidth($children, $pairs);
+        if ($maxKeyWidth === null) {
+            return $children;
+        }
 
         return $this->rebuild($children, $pairs, $maxKeyWidth);
     }
@@ -94,11 +97,16 @@ final readonly class PairAligner
      * @param list<NodeInterface>   $children
      * @param list<array{int, int}> $pairs
      */
-    private function maxKeyWidth(array $children, array $pairs): int
+    private function maxKeyWidth(array $children, array $pairs): ?int
     {
         $max = 0;
         foreach ($pairs as [$keyIdx]) {
-            $width = strlen($children[$keyIdx]->getCode());
+            $code = $children[$keyIdx]->getCode();
+            if (str_contains($code, "\n")) {
+                return null;
+            }
+
+            $width = strlen($code);
             if ($width > $max) {
                 $max = $width;
             }

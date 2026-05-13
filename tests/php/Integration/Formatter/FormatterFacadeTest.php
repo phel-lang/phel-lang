@@ -303,6 +303,40 @@ final class FormatterFacadeTest extends TestCase
             ],
         ];
 
+        yield 'Cond with multi-line key not aligned (regression #1986)' => [
+            [
+                '(cond',
+                '  (some (fn [k] (contains? query k)) ks) :set-op',
+                '  (and (contains? query :values)',
+                '       (not (contains? query :select))) :values-only',
+                '  :else :select)',
+            ],
+            [
+                '(cond',
+                '  (some (fn [k] (contains? query k)) ks) :set-op',
+                '  (and (contains? query :values)',
+                '       (not (contains? query :select))) :values-only',
+                '  :else :select)',
+            ],
+        ];
+
+        yield 'Case with multi-line key not aligned (regression #1986)' => [
+            [
+                '(case x',
+                '  (foo',
+                '   bar) :first',
+                '  :baz :second',
+                '  :default)',
+            ],
+            [
+                '(case x',
+                '  (foo',
+                '   bar) :first',
+                '  :baz :second',
+                '  :default)',
+            ],
+        ];
+
         yield 'Indent def block' => [
             [
                 '(def foo',
