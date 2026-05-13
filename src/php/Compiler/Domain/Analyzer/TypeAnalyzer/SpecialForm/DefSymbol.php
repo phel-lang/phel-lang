@@ -83,7 +83,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
             // body manipulates them, so a primitive-op observation in
             // the macro body must not type-narrow the runtime signature.
             if (!$isMacro) {
-                $this->graftInferredParamTags($initNode, $skip);
+                $this->graftInferredParamTags($initNode, $skip, $namespace, $nameSymbol->getName());
             }
 
             $metaMap = $metaMap->put('min-arity', max(0, $initNode->getMinArity() - $skip));
@@ -405,8 +405,12 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
      * locals and the fn surfaces a return-type declaration when it
      * could not before.
      */
-    private function graftInferredParamTags(FnNode $fnNode, int $skipFirst = 0): void
-    {
+    private function graftInferredParamTags(
+        FnNode $fnNode,
+        int $skipFirst = 0,
+        ?string $selfNamespace = null,
+        ?string $selfName = null,
+    ): void {
         $params = $this->scalarParamSlice($fnNode, $skipFirst);
         if ($params === []) {
             return;
@@ -416,6 +420,8 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
             $fnNode->getBody(),
             $params,
             $fnNode->isVariadic(),
+            $selfNamespace,
+            $selfName,
         );
 
         if ($inferred === []) {
@@ -448,6 +454,8 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
                     $fnNode->getBody(),
                     $fnNode->getParams(),
                     $fnNode->isVariadic(),
+                    $selfNamespace,
+                    $selfName,
                 ),
             );
         }

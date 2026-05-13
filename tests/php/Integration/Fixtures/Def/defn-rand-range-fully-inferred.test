@@ -1,0 +1,31 @@
+--PHEL--
+(defn rand-range [lo hi]
+  (+ lo (rand-int (- hi lo))))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "rand-range",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\rand_range";
+
+    public function __invoke(int $lo, int $hi) {
+      return (\Phel::getDefinition("phel.core", "+"))($lo, (\Phel::getDefinition("phel.core", "rand-int"))((\Phel::getDefinition("phel.core", "-"))($hi, $lo)));
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("doc"), "```phel\n(rand-range lo hi)\n```\n",
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/defn-rand-range-fully-inferred.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Def/defn-rand-range-fully-inferred.test",
+      \Phel::keyword("line"), 2,
+      \Phel::keyword("column"), 30
+    ),
+    "min-arity", 2,
+    "is-variadic", false,
+    "arglists", "[lo hi]"
+  )
+);

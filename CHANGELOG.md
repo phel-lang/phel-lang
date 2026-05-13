@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+#### Compiler
+- `ParamTypeInferrer` cross-fn channels: callee `:param-tags` propagation (Step 1), PHP host fn signature table (`random_int`, `intdiv`, `strlen`, `mb_strlen`, `str_repeat`, `count`) (Step 2), expected-type back-pressure into nested numeric calls (Step 3), `:int-stable` allowlist on `phel.core` arithmetic (`+`, `-`, `*`, `inc`, `dec`) propagating `int` when an `int` expectation flows from above and bailing on `BigInteger` / `Rational` / float literal siblings (Step 4) (#1978)
+- `ReturnTypeInferrer` recognises `random_int` and `intdiv` as `int`-returning
+- Both inferrers skip self-references against the def being analyzed so a redefinition cannot inherit stale `:tag` / `:param-tags` carried in the runtime registry
+
 ## [0.37.0](https://github.com/phel-lang/phel-lang/compare/v0.36.0...v0.37.0) - 2026-05-12
 
 ### Added

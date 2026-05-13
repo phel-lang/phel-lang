@@ -165,11 +165,14 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
             }
         }
 
+        [$selfNs, $selfNameStr] = $this->splitBoundTo($env->getBoundTo());
         $returnType = $declaredReturnType
             ?? $this->returnTypeInferrer->infer(
                 $body,
                 $fnSymbolTuple->params(),
                 $fnSymbolTuple->isVariadic(),
+                $selfNs,
+                $selfNameStr,
             );
 
         return new FnNode(
@@ -183,6 +186,34 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
             $effectiveName,
             $returnType,
         );
+    }
+
+    /**
+     * Splits a `boundTo` string of the form `"namespace\\name"` (set by
+     * `DefSymbol` when analyzing a `(defn ...)` body) into the analyzer's
+     * dot-separated namespace + bare name. Returns `[null, null]` when
+     * the fn is anonymous: cross-fn self-skip needs both halves to fire.
+     *
+     * @return array{0: ?string, 1: ?string}
+     */
+    private function splitBoundTo(string $boundTo): array
+    {
+        if ($boundTo === '') {
+            return [null, null];
+        }
+
+        $pos = strrpos($boundTo, '\\');
+        if ($pos === false) {
+            return [null, null];
+        }
+
+        $ns = str_replace('\\', '.', substr($boundTo, 0, $pos));
+        $name = substr($boundTo, $pos + 1);
+        if ($ns === '' || $name === '') {
+            return [null, null];
+        }
+
+        return [$ns, $name];
     }
 
     private function extractReturnType(mixed $paramVector): ?string

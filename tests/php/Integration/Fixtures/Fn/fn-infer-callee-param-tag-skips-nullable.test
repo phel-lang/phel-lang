@@ -1,0 +1,58 @@
+--PHEL--
+(defn maybe [^?int a] a)
+(defn caller [x] (maybe x))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "maybe",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\maybe";
+
+    public function __invoke(?int $a) {
+      return $a;
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("doc"), "```phel\n(maybe a)\n```\n",
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-infer-callee-param-tag-skips-nullable.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-infer-callee-param-tag-skips-nullable.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 24
+    ),
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[a]"
+  )
+);
+\Phel::addDefinition(
+  "user",
+  "caller",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\caller";
+
+    public function __invoke($x) {
+      return (\Phel::getDefinition("user", "maybe"))($x);
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("doc"), "```phel\n(caller x)\n```\n",
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-infer-callee-param-tag-skips-nullable.test",
+      \Phel::keyword("line"), 2,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-infer-callee-param-tag-skips-nullable.test",
+      \Phel::keyword("line"), 2,
+      \Phel::keyword("column"), 27
+    ),
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[x]"
+  )
+);

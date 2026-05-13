@@ -1,0 +1,31 @@
+--PHEL--
+(defn caller [x] (php/random_int 0 (+ x 99999999999999999999N)))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "caller",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\caller";
+
+    public function __invoke($x): int {
+      return random_int(0, (\Phel::getDefinition("phel.core", "+"))($x, \Phel\Lang\BigInteger::fromString("99999999999999999999")));
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("doc"), "```phel\n(caller x)\n```\n",
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-infer-core-plus-bails-on-bigint-literal.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Fn/fn-infer-core-plus-bails-on-bigint-literal.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 64
+    ),
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[x]",
+    \Phel::keyword("tag"), "int"
+  )
+);
