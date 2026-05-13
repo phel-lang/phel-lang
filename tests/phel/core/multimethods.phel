@@ -96,3 +96,75 @@
     (is (not (= false err)) "throws when dispatch-fn missing (string as dispatch)")
     (is (php/str_contains err "requires a callable dispatch-fn")
         "error mentions callable dispatch-fn")))
+
+;; -------------------------------------------
+;; prefer-method: ambiguity resolution
+;; -------------------------------------------
+
+;; Distinct keyword prefixes per test to avoid hierarchy state leaking.
+
+(derive :pm1-rect :pm1-shape)
+(derive :pm1-rect :pm1-drawable)
+
+(defmulti pm1-render identity)
+(defmethod pm1-render :pm1-shape    [_] "shape")
+(defmethod pm1-render :pm1-drawable [_] "drawable")
+
+(deftest test-prefer-method-ambiguity-throws-without-preference
+  (let [err (try (pm1-render :pm1-rect) false
+                 (catch \InvalidArgumentException e (php/-> e (getMessage))))]
+    (is (not (= false err)) "ambiguous dispatch throws")
+    (is (php/str_contains err "Multiple methods match dispatch value")
+        "error message identifies ambiguity")))
+
+(deftest test-prefer-method-resolves-ambiguity
+  (prefer-method pm1-render :pm1-drawable :pm1-shape)
+  (is (= "drawable" (pm1-render :pm1-rect))
+      "after prefer-method, ambiguous dispatch resolves to preferred branch"))
+
+(deftest test-prefers-returns-preference-map
+  (let [pmap (prefers pm1-render)]
+    (is (contains? pmap :pm1-drawable) "preference map contains preferred key")
+    (is (contains? (get pmap :pm1-drawable) :pm1-shape)
+        "preferred-over set contains the dominated key")))
+
+;; Transitive preference
+
+(derive :pm2-c :pm2-a)
+(derive :pm2-c :pm2-b)
+(derive :pm2-c :pm2-d)
+
+(defmulti pm2-pick identity)
+(defmethod pm2-pick :pm2-a [_] "a")
+(defmethod pm2-pick :pm2-b [_] "b")
+(defmethod pm2-pick :pm2-d [_] "d")
+
+(deftest test-prefer-method-transitive
+  (prefer-method pm2-pick :pm2-a :pm2-b)
+  (prefer-method pm2-pick :pm2-b :pm2-d)
+  (is (= "a" (pm2-pick :pm2-c))
+      "transitive preference: a > b > d => a wins"))
+
+;; Cycle detection
+
+(derive :pm3-c :pm3-a)
+(derive :pm3-c :pm3-b)
+
+(defmulti pm3-cycle identity)
+(defmethod pm3-cycle :pm3-a [_] "a")
+(defmethod pm3-cycle :pm3-b [_] "b")
+
+(deftest test-prefer-method-cycle-throws
+  (prefer-method pm3-cycle :pm3-a :pm3-b)
+  (let [err (try (prefer-method pm3-cycle :pm3-b :pm3-a) false
+                 (catch \InvalidArgumentException e (php/-> e (getMessage))))]
+    (is (not (= false err)) "cycle creation throws")
+    (is (php/str_contains err "already preferred")
+        "error explains the cycle")))
+
+(deftest test-prefer-method-self-throws
+  (let [err (try (prefer-method pm3-cycle :pm3-a :pm3-a) false
+                 (catch \InvalidArgumentException e (php/-> e (getMessage))))]
+    (is (not (= false err)) "preferring value to itself throws")
+    (is (php/str_contains err "cannot prefer dispatch value to itself")
+        "error explains self-preference")))

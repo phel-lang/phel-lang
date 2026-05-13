@@ -327,33 +327,64 @@
                            all-children)]
          (when (not (empty? result)) result))))))
 
+(defn prefers?
+  "Returns true if dispatch value `x` is preferred over `y` in `prefers-map`,
+  considering transitive preferences. Used by multimethod dispatch when
+  multiple methods match and the hierarchy does not pick a unique winner."
+  {:see-also ["prefer-method" "prefers"]}
+  [prefers-map x y]
+  (let [direct (get prefers-map x #{})]
+    (cond
+      (contains? direct y) true
+      (empty? direct)      false
+      :else                (boolean
+                             (some (fn [p] (prefers? prefers-map p y))
+                                   direct)))))
+
+(defn- dominates?
+  "Returns true when candidate `x` is more specific than `y` for multimethod
+  dispatch: either `x` derives from `y` in the hierarchy, or `x` is preferred
+  over `y` via `prefer-method`."
+  [prefers-map parents-map x y]
+  (or (isa-in? parents-map x y)
+      (prefers? prefers-map x y)))
+
 (defn find-hierarchy-method
   "Finds the best matching method for dispatch-val using the global hierarchy.
-  Returns the method function or nil. Used internally by defmulti."
-  [methods dispatch-val]
-  (let [parents-map (get @*hierarchy* :parents)
-        method-keys (keys methods)
-        candidates  (persistent
-                     (reduce
-                      (fn [acc k]
-                        (if (and (not= k :default)
-                                 (not= k dispatch-val)
-                                 (isa-in? parents-map dispatch-val k))
-                          (conj acc k)
-                          acc))
-                      (transient [])
-                      method-keys))]
-    (when (not (empty? candidates))
-      (if (= 1 (count candidates))
-        (get methods (first candidates))
-        (let [best (reduce
-                    (fn [best k]
-                      (if (isa-in? parents-map k best)
-                        k
-                        best))
-                    (first candidates)
-                    (rest candidates))]
-          (get methods best))))))
+  Returns the method function or nil. Used internally by defmulti. When
+  multiple methods match and none is more specific, consults `prefers-map`
+  (built by `prefer-method`); if still ambiguous, throws."
+  ([methods dispatch-val]
+   (find-hierarchy-method methods dispatch-val {}))
+  ([methods dispatch-val prefers-map]
+   (let [parents-map (get @*hierarchy* :parents)
+         method-keys (keys methods)
+         candidates  (persistent
+                      (reduce
+                       (fn [acc k]
+                         (if (and (not= k :default)
+                                  (not= k dispatch-val)
+                                  (isa-in? parents-map dispatch-val k))
+                           (conj acc k)
+                           acc))
+                       (transient [])
+                       method-keys))]
+     (when (not (empty? candidates))
+       (if (= 1 (count candidates))
+         (get methods (first candidates))
+         (let [best (reduce
+                     (fn [best k]
+                       (cond
+                         (dominates? prefers-map parents-map k best) k
+                         (dominates? prefers-map parents-map best k) best
+                         :else
+                         (throw (php/new \InvalidArgumentException
+                                         (str "Multiple methods match dispatch value: "
+                                              dispatch-val " -> " k " and " best
+                                              ", and neither is preferred")))))
+                     (first candidates)
+                     (rest candidates))]
+           (get methods best)))))))
 
 ;; ---------
 ;; Protocols
@@ -702,6 +733,7 @@
                            "' expects (defmulti name docstring? dispatch-fn), got "
                            (inc arg-count) " arguments."))))
     (let [methods-name  (php/:: Symbol (create (php/. (php/-> name (getName)) "-methods")))
+          prefers-name  (php/:: Symbol (create (php/. (php/-> name (getName)) "-prefers")))
           dispatch-name (php/:: Symbol (create (php/. (php/-> name (getName)) "-dispatch")))
           name-str      (php/-> name (getName))
           df-sym        (gensym)
@@ -711,7 +743,7 @@
                                method#       (get methods# dispatch-val#)]
                            (if method#
                              (apply method# ~args-sym)
-                             (let [hierarchy-method# (find-hierarchy-method methods# dispatch-val#)]
+                             (let [hierarchy-method# (find-hierarchy-method methods# dispatch-val# (deref ~prefers-name))]
                                (if hierarchy-method#
                                  (apply hierarchy-method# ~args-sym)
                                  (let [default-method# (get methods# :default)]
@@ -721,6 +753,7 @@
                                                      (str "No method for dispatch value: " dispatch-val#)))))))))]
       `(do
          (def ~methods-name (atom {}))
+         (def ~prefers-name (atom {}))
          (def ~dispatch-name {:private true}
            (let [~df-sym ~dispatch-fn]
              (when (and (string? ~df-sym) (not (php/is_callable ~df-sym)))
@@ -749,6 +782,48 @@
                                      multi-ns
                                      (php/. (php/-> multi-name (getName)) "-methods")))]
     `(swap! ~methods-name assoc ~dispatch-val (fn ~@fn-tail))))
+
+(defmacro prefer-method
+  "Causes the multimethod to prefer matches of `dispatch-val-x` over
+  `dispatch-val-y` when there is an ambiguity (both match via the hierarchy
+  and neither is more specific). Preferences are transitive.
+
+  Throws if the new preference would create a cycle, i.e. `y` is already
+  (transitively) preferred over `x`."
+  {:example "(prefer-method draw :drawable :shape)"
+   :see-also ["defmulti" "defmethod" "prefers"]}
+  [multi-name dispatch-val-x dispatch-val-y]
+  (let [multi-ns     (php/-> multi-name (getNamespace))
+        multi-str    (php/-> multi-name (getName))
+        prefers-name (php/:: Symbol (createForNamespace
+                                     multi-ns
+                                     (php/. multi-str "-prefers")))]
+    `(let [x#    ~dispatch-val-x
+           y#    ~dispatch-val-y
+           pmap# (deref ~prefers-name)]
+       (when (= x# y#)
+         (throw (php/new \InvalidArgumentException
+                         (str "prefer-method: cannot prefer dispatch value to itself: " x#))))
+       (when (prefers? pmap# y# x#)
+         (throw (php/new \InvalidArgumentException
+                         (str "Preference conflict: " y# " is already preferred to " x#
+                              " in multimethod '" ~multi-str "'"))))
+       (swap! ~prefers-name update x#
+              (fn [s#] (if s# (conj s# y#) (hash-set y#))))
+       nil)))
+
+(defmacro prefers
+  "Returns the preference map for a multimethod (built by `prefer-method`).
+  Keys are dispatch values; values are sets of dispatch values they are
+  preferred over (directly; preference is transitive when consulted)."
+  {:example "(prefers draw)"
+   :see-also ["prefer-method" "defmulti"]}
+  [multi-name]
+  (let [multi-ns     (php/-> multi-name (getNamespace))
+        prefers-name (php/:: Symbol (createForNamespace
+                                     multi-ns
+                                     (php/. (php/-> multi-name (getName)) "-prefers")))]
+    `(deref ~prefers-name)))
 
 (defmacro if-let
   "If test is true, evaluates then with binding-form bound to the value of test,
