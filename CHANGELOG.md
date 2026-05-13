@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+#### Formatter
+- `AlignPairsRule` no longer pads `cond` / `case` / `condp` values when the test/key spans multiple lines, which previously inflated whitespace by hundreds of columns (#1986)
+
 ### Added
 
 #### Compiler
