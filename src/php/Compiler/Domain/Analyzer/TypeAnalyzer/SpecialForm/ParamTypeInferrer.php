@@ -309,7 +309,7 @@ final class ParamTypeInferrer
         $this->walk($fn);
 
         if ($fn instanceof GlobalVarNode && $this->isGuardGlobal($fn)) {
-            $this->walkArgs($node, fn(AbstractNode $a) => $this->markGuarded($a));
+            $this->walkArgsAsGuarded($node);
             return;
         }
 
@@ -326,9 +326,7 @@ final class ParamTypeInferrer
         // Unknown call position (call against a literal, vector, etc.):
         // walk args plainly so any nested operator still observes its
         // locals.
-        foreach ($node->getArguments() as $arg) {
-            $this->walk($arg);
-        }
+        $this->walkArgsExpecting($node, null);
     }
 
     private function walkPhpCall(CallNode $node, PhpVarNode $fn, ?string $expected): void
@@ -336,15 +334,12 @@ final class ParamTypeInferrer
         $op = $fn->getName();
 
         if (in_array($op, self::GUARD_PHP_FNS, true)) {
-            $this->walkArgs($node, fn(AbstractNode $a) => $this->markGuarded($a));
+            $this->walkArgsAsGuarded($node);
             return;
         }
 
         if ($op === self::STRING_CONCAT_OP) {
-            foreach ($node->getArguments() as $arg) {
-                $this->walk($arg, 'string');
-            }
-
+            $this->walkArgsExpecting($node, 'string');
             return;
         }
 
@@ -364,25 +359,20 @@ final class ParamTypeInferrer
         }
 
         if (isset(self::PHP_FN_SIGNATURES[$op])) {
-            $this->walkPhpFnBySignature($node, self::PHP_FN_SIGNATURES[$op]);
+            $this->walkArgsBySignature($node, self::PHP_FN_SIGNATURES[$op]);
             return;
         }
 
         // Everything else (`aget`, unknown PHP fns) walks arg expressions
         // for nested operators without constraining the local: unknown
         // functions could accept anything.
-        foreach ($node->getArguments() as $arg) {
-            $this->walk($arg);
-        }
+        $this->walkArgsExpecting($node, null);
     }
 
     private function walkGlobalCall(CallNode $node, GlobalVarNode $fn, ?string $expected): void
     {
         if ($this->isSelfReference($fn)) {
-            foreach ($node->getArguments() as $arg) {
-                $this->walk($arg);
-            }
-
+            $this->walkArgsExpecting($node, null);
             return;
         }
 
@@ -390,17 +380,11 @@ final class ParamTypeInferrer
             && $this->isIntStableCoreFn($fn)
             && !$this->hasNonIntLiteralArg($node)
         ) {
-            foreach ($node->getArguments() as $arg) {
-                $this->walk($arg, 'int');
-            }
-
+            $this->walkArgsExpecting($node, 'int');
             return;
         }
 
-        $expectations = $this->calleeParamExpectations($fn);
-        foreach ($node->getArguments() as $i => $arg) {
-            $this->walk($arg, $expectations[$i] ?? null);
-        }
+        $this->walkArgsBySignature($node, $this->calleeParamExpectations($fn));
     }
 
     private function isSelfReference(GlobalVarNode $fn): bool
@@ -449,18 +433,6 @@ final class ParamTypeInferrer
     }
 
     /**
-     * @param list<?string> $paramTypes
-     */
-    private function walkPhpFnBySignature(CallNode $node, array $paramTypes): void
-    {
-        $count = count($paramTypes);
-        foreach ($node->getArguments() as $i => $arg) {
-            $argExpected = $i < $count ? $paramTypes[$i] : null;
-            $this->walk($arg, $argExpected);
-        }
-    }
-
-    /**
      * `(php/=== x nil)` and friends are how Phel code type-discriminates
      * before concatenating or arithmetic'ing the value. When a param is
      * compared to `nil`, `true`, or `false`, the body branches that
@@ -471,19 +443,18 @@ final class ParamTypeInferrer
      */
     private function walkIdentityCall(CallNode $node): void
     {
-        $args = $node->getArguments();
         $hasNullableLiteral = array_any(
-            $args,
+            $node->getArguments(),
             static fn(AbstractNode $a): bool => $a instanceof LiteralNode
                 && self::isNullableLiteral($a->getValue()),
         );
 
         if ($hasNullableLiteral) {
-            $this->walkArgs($node, fn(AbstractNode $a) => $this->markGuarded($a));
+            $this->walkArgsAsGuarded($node);
             return;
         }
 
-        $this->walkArgs($node);
+        $this->walkArgsExpecting($node, null);
     }
 
     private static function isNullableLiteral(mixed $value): bool
@@ -501,15 +472,8 @@ final class ParamTypeInferrer
      */
     private function walkOrderingCall(CallNode $node): void
     {
-        $args = $node->getArguments();
-        $type = $this->literalNumericType($args);
-
-        if ($type !== null) {
-            $this->walkArgs($node, fn(AbstractNode $a) => $this->constrainArgAsScalar($a, $type));
-            return;
-        }
-
-        $this->walkArgs($node);
+        $type = $this->literalNumericType($node->getArguments());
+        $this->walkArgsExpecting($node, $type);
     }
 
     /**
@@ -556,36 +520,42 @@ final class ParamTypeInferrer
      */
     private function walkNumericCall(CallNode $node, ?string $expected = null): void
     {
-        $args = $node->getArguments();
-        $type = $this->literalNumericType($args);
-
+        $type = $this->literalNumericType($node->getArguments());
         if ($type === null && ($expected === 'int' || $expected === 'float')) {
             $type = $expected;
         }
 
-        if ($type !== null) {
-            foreach ($args as $arg) {
-                $this->walk($arg, $type);
-            }
+        $this->walkArgsExpecting($node, $type);
+    }
 
-            return;
-        }
-
-        foreach ($args as $arg) {
-            $this->walk($arg);
+    /**
+     * Walks every arg with the same expectation. `null` flows through
+     * unchanged so callers that just want to traverse nested operators
+     * without constraining a slot share the same path as callers that
+     * push a concrete primitive tag down.
+     */
+    private function walkArgsExpecting(CallNode $node, ?string $expected): void
+    {
+        foreach ($node->getArguments() as $arg) {
+            $this->walk($arg, $expected);
         }
     }
 
     /**
-     * @param (callable(AbstractNode): void)|null $observe
+     * @param list<?string> $expectations
      */
-    private function walkArgs(CallNode $node, ?callable $observe = null): void
+    private function walkArgsBySignature(CallNode $node, array $expectations): void
+    {
+        $count = count($expectations);
+        foreach ($node->getArguments() as $i => $arg) {
+            $this->walk($arg, $i < $count ? $expectations[$i] : null);
+        }
+    }
+
+    private function walkArgsAsGuarded(CallNode $node): void
     {
         foreach ($node->getArguments() as $arg) {
-            if ($observe !== null) {
-                $observe($arg);
-            }
-
+            $this->markGuarded($arg);
             $this->walk($arg);
         }
     }
