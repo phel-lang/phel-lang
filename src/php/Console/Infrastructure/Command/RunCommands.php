@@ -13,6 +13,7 @@ use Phel\Run\Infrastructure\Command\NsCommand;
 use Phel\Run\Infrastructure\Command\ReplCommand;
 use Phel\Run\Infrastructure\Command\RunCommand;
 use Phel\Run\Infrastructure\Command\TestCommand;
+use Phel\Run\Infrastructure\Command\TestWorkerCommand;
 
 final class RunCommands implements ConsoleCommandProviderInterface
 {
@@ -26,6 +27,7 @@ final class RunCommands implements ConsoleCommandProviderInterface
             new EvalCommand(),
             new RunCommand(),
             new TestCommand(),
+            new TestWorkerCommand(),
             new DoctorCommand(),
         ];
     }

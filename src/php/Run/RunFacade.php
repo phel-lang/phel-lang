@@ -6,6 +6,8 @@ namespace Phel\Run;
 
 use Gacela\Framework\AbstractFacade;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
+use Phel\Run\Application\Test\CpuCountDetector;
+use Phel\Run\Application\Test\ParallelTestOrchestrator;
 use Phel\Run\Domain\Repl\EvalResult;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Exceptions\CompilerException;
@@ -149,5 +151,15 @@ final class RunFacade extends AbstractFacade implements RunFacadeInterface
         return $this->getFactory()
             ->createEntryPointDetector()
             ->detect();
+    }
+
+    public function createParallelTestOrchestrator(): ParallelTestOrchestrator
+    {
+        return $this->getFactory()->createParallelTestOrchestrator();
+    }
+
+    public function createCpuCountDetector(): CpuCountDetector
+    {
+        return $this->getFactory()->createCpuCountDetector();
     }
 }

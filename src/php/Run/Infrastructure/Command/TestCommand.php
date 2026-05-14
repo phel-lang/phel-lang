@@ -8,6 +8,8 @@ use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
 use InvalidArgumentException;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
+use Phel\Lang\ProfilerHookInterface;
+use Phel\Lang\Registry;
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Run\Domain\Test\TestNamespacePruner;
 use Phel\Run\RunFacade;
@@ -24,9 +26,11 @@ use Throwable;
 
 use function count;
 use function getcwd;
+use function in_array;
 use function is_numeric;
 use function is_string;
 use function sprintf;
+use function strtolower;
 
 /**
  * @method RunFacade getFacade()
@@ -69,6 +73,8 @@ final class TestCommand extends Command
     private const string OPT_SEED = 'seed';
 
     private const string OPT_RANDOM_ORDER = 'random-order';
+
+    private const string OPT_PARALLEL = 'parallel';
 
     private const string LAST_FAILED_FILENAME = 'last-failed.txt';
 
@@ -165,6 +171,11 @@ final class TestCommand extends Command
                 null,
                 InputOption::VALUE_NONE,
                 'Shuffle the order of tests within each namespace. Uses --seed when provided, otherwise picks a fresh random seed.',
+            )->addOption(
+                self::OPT_PARALLEL,
+                null,
+                InputOption::VALUE_REQUIRED,
+                'Run namespaces in parallel using subprocess workers. Accepts an integer worker count or "auto" (CPU detection, capped at 8). Auto-disabled for --reporter=tap, --list, or when a profiler hook is installed.',
             );
     }
 
@@ -215,7 +226,24 @@ final class TestCommand extends Command
                 return ($compileErrors === []) ? self::SUCCESS : self::FAILURE;
             }
 
-            $phelCode = $this->generatePhelTestCode($input, $filteredNamespaces);
+            $workerCount = $this->decideParallelism($input);
+            $options = $this->collectOptions($input);
+
+            if ($workerCount !== null) {
+                $success = $this->getFacade()
+                    ->createParallelTestOrchestrator()
+                    ->run($filteredNamespaces, $options, $workerCount, $output);
+
+                $output->writeln(new ResourceUsageFormatter()->resourceUsageSinceStartOfRequest());
+
+                if ($compileErrors !== []) {
+                    return self::FAILURE;
+                }
+
+                return $success ? self::SUCCESS : self::FAILURE;
+            }
+
+            $phelCode = $this->generatePhelTestCodeFromOptions($options, $filteredNamespaces);
             $compileOptions = new CompileOptions()->setIsEnabledSourceMaps(false);
             $result = $this->getFacade()->eval($phelCode, $compileOptions);
 
@@ -260,15 +288,65 @@ final class TestCommand extends Command
     }
 
     /**
+     * @param array<string, mixed>       $options
      * @param list<NamespaceInformation> $namespacesInformation
      */
-    private function generatePhelTestCode(InputInterface $input, array $namespacesInformation): string
+    private function generatePhelTestCodeFromOptions(array $options, array $namespacesInformation): string
     {
         return sprintf(
             '(do (phel\test/run-tests %s %s) (phel\test/successful?))',
-            TestCommandOptions::fromArray($this->collectOptions($input))->asPhelHashMap(),
+            TestCommandOptions::fromArray($options)->asPhelHashMap(),
             $this->namespacesAsString($namespacesInformation),
         );
+    }
+
+    /**
+     * Returns the parallel worker count, or null when the run must stay
+     * serial. Auto-disable rules:
+     *  - `--parallel` not passed
+     *  - `--parallel=1` (explicit one-worker run)
+     *  - `--reporter=tap` (TAP requires monotonic counter across all tests)
+     *  - `--list` (discovery only, no execution)
+     *  - Registry profiler hook installed (counts run in parent only)
+     */
+    private function decideParallelism(InputInterface $input): ?int
+    {
+        $raw = $input->getOption(self::OPT_PARALLEL);
+        if ($raw === null || $raw === '') {
+            return null;
+        }
+
+        if ((bool) $input->getOption(self::OPT_LIST)) {
+            return null;
+        }
+
+        /** @var list<string> $reporters */
+        $reporters = (array) $input->getOption(self::OPT_REPORTER);
+        if (in_array('tap', $reporters, true)) {
+            return null;
+        }
+
+        if (Registry::$profilerHook instanceof ProfilerHookInterface) {
+            return null;
+        }
+
+        if (is_string($raw) && strtolower($raw) === 'auto') {
+            return $this->getFacade()->createCpuCountDetector()->detect();
+        }
+
+        if (!is_numeric($raw)) {
+            throw new InvalidArgumentException(sprintf(
+                '--parallel must be an integer >= 1 or "auto", got %s.',
+                is_string($raw) ? $raw : (string) $raw,
+            ));
+        }
+
+        $value = (int) $raw;
+        if ($value < 1) {
+            throw new InvalidArgumentException('--parallel must be >= 1.');
+        }
+
+        return $value === 1 ? null : $value;
     }
 
     /**

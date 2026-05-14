@@ -1471,3 +1471,11 @@
   {:example "(restore-stats saved)"}
   [saved]
   (reset! stats saved))
+
+(defn get-failed-tests
+  "Returns the names (`ns/test-name`) of tests that failed or errored
+  in the last run. Used by `--parallel` orchestration to aggregate
+  last-failed lists across worker processes."
+  {:example "(get-failed-tests) ; => [\"my-app/foo-test\"]"}
+  []
+  (deref failed-tests))
