@@ -32,11 +32,11 @@ final readonly class WorkerResult
     public static function fromFrame(array $frame): self
     {
         return new self(
-            (int) ($frame['index'] ?? -1),
-            (string) ($frame['ns'] ?? ''),
-            (bool) ($frame['ok'] ?? false),
-            (string) ($frame['output'] ?? ''),
-            self::extractStringList($frame['failed-tests'] ?? null),
+            (int) ($frame[FrameKey::INDEX] ?? -1),
+            (string) ($frame[FrameKey::NS] ?? ''),
+            (bool) ($frame[FrameKey::OK] ?? false),
+            (string) ($frame[FrameKey::OUTPUT] ?? ''),
+            self::extractStringList($frame[FrameKey::FAILED_TESTS] ?? null),
         );
     }
 

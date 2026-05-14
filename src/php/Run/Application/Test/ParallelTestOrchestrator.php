@@ -33,7 +33,12 @@ use function stream_select;
  */
 final readonly class ParallelTestOrchestrator
 {
-    private const int SELECT_TIMEOUT_MICROS = 1_000_000;
+    /**
+     * Tight enough that an idle pool wakes up snappily when a worker
+     * crashes; loose enough that we don't burn CPU on syscall churn
+     * while every worker is busy.
+     */
+    private const int SELECT_TIMEOUT_MICROS = 100_000;
 
     public function __construct(
         private string $phpBinary,
@@ -53,9 +58,17 @@ final readonly class ParallelTestOrchestrator
 
         $effectiveWorkerCount = max(1, min($workerCount, $total));
         $optionsPhel = $this->preparePhelOptionsForWorker($options);
+
+        $output->writeln(sprintf(
+            'Running %d namespace(s) across %d parallel worker(s)...',
+            $total,
+            $effectiveWorkerCount,
+        ));
+
         $workers = $this->spawnWorkers($effectiveWorkerCount);
         $buffer = new OrderedResultBuffer($total, $output);
 
+        $startedAt = microtime(true);
         try {
             $this->runDispatchLoop($workers, $namespaces, $optionsPhel, $buffer);
         } finally {
@@ -67,7 +80,12 @@ final readonly class ParallelTestOrchestrator
         $this->persistLastFailed($options, $buffer->allFailedTests());
 
         $output->writeln('');
-        $output->writeln(sprintf('Ran %d namespace(s) across %d worker(s).', $total, $effectiveWorkerCount));
+        $output->writeln(sprintf(
+            'Ran %d namespace(s) across %d worker(s) in %.2fs.',
+            $total,
+            $effectiveWorkerCount,
+            microtime(true) - $startedAt,
+        ));
 
         return $buffer->overallOk();
     }
@@ -120,20 +138,13 @@ final readonly class ParallelTestOrchestrator
         }
 
         while (!$buffer->isComplete()) {
-            $busyHandles = $this->busyWorkerHandles($workers);
-            if ($busyHandles === []) {
+            $busyByStream = $this->mapBusyWorkersByStream($workers);
+            if ($busyByStream === []) {
                 return;
             }
 
-            $this->waitForReadyWorker($busyHandles);
-
-            foreach ($workers as $worker) {
-                if ($worker->isIdle()) {
-                    continue;
-                }
-
-                $consumed = $this->consumeWorker($worker, $buffer);
-                if (!$consumed) {
+            foreach ($this->waitForReadyWorkers($busyByStream) as $worker) {
+                if (!$this->consumeWorker($worker, $buffer)) {
                     continue;
                 }
 
@@ -146,30 +157,63 @@ final readonly class ParallelTestOrchestrator
     }
 
     /**
+     * Stream-resource id → worker. Lets us route a `stream_select` wake
+     * straight to the worker that produced data instead of iterating the
+     * whole pool.
+     *
      * @param list<TestWorkerHandle> $workers
      *
-     * @return list<resource>
+     * @return array<int, TestWorkerHandle>
      */
-    private function busyWorkerHandles(array $workers): array
+    private function mapBusyWorkersByStream(array $workers): array
     {
-        $reads = [];
+        $map = [];
         foreach ($workers as $worker) {
-            if (!$worker->isIdle()) {
-                $reads[] = $worker->stdoutHandle();
+            if ($worker->isIdle()) {
+                continue;
             }
+
+            /** @psalm-suppress InvalidArgument resource → int cast for use as array key */
+            $map[(int) $worker->stdoutHandle()] = $worker;
         }
 
-        return $reads;
+        return $map;
     }
 
     /**
-     * @param list<resource> $reads
+     * Block on `stream_select` until at least one of the busy workers
+     * has data ready (or the timeout fires). Returns the ready workers
+     * in the order their streams came back.
+     *
+     * @param array<int, TestWorkerHandle> $busyByStream
+     *
+     * @return list<TestWorkerHandle>
      */
-    private function waitForReadyWorker(array $reads): void
+    private function waitForReadyWorkers(array $busyByStream): array
     {
+        $reads = [];
+        foreach ($busyByStream as $worker) {
+            $reads[] = $worker->stdoutHandle();
+        }
+
         $writes = null;
         $exceptions = null;
-        @stream_select($reads, $writes, $exceptions, 0, self::SELECT_TIMEOUT_MICROS);
+        $ready = @stream_select($reads, $writes, $exceptions, 0, self::SELECT_TIMEOUT_MICROS);
+        if ($ready === false || $ready === 0) {
+            // No data; let callers re-evaluate liveness on the next loop.
+            return array_values($busyByStream);
+        }
+
+        $out = [];
+        foreach ($reads as $stream) {
+            /** @psalm-suppress InvalidArgument resource → int cast for use as array key */
+            $key = (int) $stream;
+            if (isset($busyByStream[$key])) {
+                $out[] = $busyByStream[$key];
+            }
+        }
+
+        return $out;
     }
 
     /**
@@ -201,10 +245,10 @@ final readonly class ParallelTestOrchestrator
     private function dispatch(TestWorkerHandle $worker, NamespaceInformation $info, int $index, string $optionsPhel): void
     {
         $frame = WorkerFrame::encode([
-            'index' => $index,
-            'ns' => $info->getNamespace(),
-            'file' => $info->getFile(),
-            'options' => $optionsPhel,
+            FrameKey::INDEX => $index,
+            FrameKey::NS => $info->getNamespace(),
+            FrameKey::FILE => $info->getFile(),
+            FrameKey::OPTIONS => $optionsPhel,
         ]);
         $worker->assign($index, $info->getNamespace(), $frame);
     }

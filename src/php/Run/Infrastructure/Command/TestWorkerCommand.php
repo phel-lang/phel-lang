@@ -6,7 +6,9 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
+use Phel\Run\Application\Test\FrameKey;
 use Phel\Run\Application\Test\WorkerFrame;
+use Phel\Run\Application\Test\WorkRequest;
 use Phel\Run\RunFacade;
 use Phel\Shared\CompileOptions;
 use Symfony\Component\Console\Command\Command;
@@ -103,12 +105,12 @@ final class TestWorkerCommand extends Command
             $captured = (string) ob_get_clean();
 
             return $request->baseResponse() + [
-                'ok' => false,
-                'output' => $captured . "\n"
+                FrameKey::OK => false,
+                FrameKey::OUTPUT => $captured . "\n"
                     . sprintf('<error>Failed running %s: %s</error>', $request->ns, $throwable->getMessage())
                     . "\n",
-                'failed-tests' => [],
-                'error' => $throwable->getMessage(),
+                FrameKey::FAILED_TESTS => [],
+                FrameKey::ERROR => $throwable->getMessage(),
             ];
         }
     }
@@ -149,10 +151,10 @@ final class TestWorkerCommand extends Command
         $ok = is_array($parsed) && (bool) ($parsed['ok'] ?? false);
 
         return [
-            'ok' => $ok,
-            'output' => $captured,
-            'failed-tests' => $this->extractFailedTests($parsed),
-            'error' => null,
+            FrameKey::OK => $ok,
+            FrameKey::OUTPUT => $captured,
+            FrameKey::FAILED_TESTS => $this->extractFailedTests($parsed),
+            FrameKey::ERROR => null,
         ];
     }
 

@@ -226,7 +226,7 @@ final class TestCommand extends Command
                 return ($compileErrors === []) ? self::SUCCESS : self::FAILURE;
             }
 
-            $workerCount = $this->decideParallelism($input);
+            $workerCount = $this->decideParallelism($input, $output);
             $options = $this->collectOptions($input);
 
             if ($workerCount !== null) {
@@ -309,24 +309,19 @@ final class TestCommand extends Command
      *  - `--list` (discovery only, no execution)
      *  - Registry profiler hook installed (counts run in parent only)
      */
-    private function decideParallelism(InputInterface $input): ?int
+    private function decideParallelism(InputInterface $input, OutputInterface $output): ?int
     {
         $raw = $input->getOption(self::OPT_PARALLEL);
         if ($raw === null || $raw === '') {
             return null;
         }
 
-        if ((bool) $input->getOption(self::OPT_LIST)) {
-            return null;
-        }
+        $disabledReason = $this->parallelDisabledReason($input);
+        if ($disabledReason !== null) {
+            if ($output->isVerbose()) {
+                $output->writeln(sprintf('<comment>Ignoring --parallel: %s.</comment>', $disabledReason));
+            }
 
-        /** @var list<string> $reporters */
-        $reporters = (array) $input->getOption(self::OPT_REPORTER);
-        if (in_array('tap', $reporters, true)) {
-            return null;
-        }
-
-        if (Registry::$profilerHook instanceof ProfilerHookInterface) {
             return null;
         }
 
@@ -347,6 +342,25 @@ final class TestCommand extends Command
         }
 
         return $value === 1 ? null : $value;
+    }
+
+    private function parallelDisabledReason(InputInterface $input): ?string
+    {
+        if ((bool) $input->getOption(self::OPT_LIST)) {
+            return '--list bypasses execution';
+        }
+
+        /** @var list<string> $reporters */
+        $reporters = (array) $input->getOption(self::OPT_REPORTER);
+        if (in_array('tap', $reporters, true)) {
+            return 'TAP reporter requires a monotonic test counter';
+        }
+
+        if (Registry::$profilerHook instanceof ProfilerHookInterface) {
+            return 'profiler hook only collects counts in the parent process';
+        }
+
+        return null;
     }
 
     /**

@@ -73,6 +73,63 @@ final class ParallelTestRunnerTest extends TestCase
     }
 
     /**
+     * Sanity: the pre-run header announces the worker count and the
+     * footer reports wall time. Stable feedback users can grep in CI.
+     */
+    public function test_emits_pre_run_header_and_wall_time_footer(): void
+    {
+        $project = $this->projectRoot();
+
+        [$status, $stdout] = $this->runPhel(
+            ['test', '--parallel=2', 'tests/phel/walk.phel'],
+            $project,
+        );
+
+        self::assertSame(0, $status, 'expected success exit, stdout was: ' . $stdout);
+        self::assertMatchesRegularExpression(
+            '/Running \d+ namespace\(s\) across 2 parallel worker\(s\)\.{3}/',
+            $stdout,
+        );
+        self::assertMatchesRegularExpression(
+            '/Ran \d+ namespace\(s\) across 2 worker\(s\) in \d+\.\d{2}s\./',
+            $stdout,
+        );
+    }
+
+    /**
+     * `--parallel=2 --reporter=tap` auto-disables parallel mode (TAP
+     * needs a monotonic test counter). Verify (a) success exit, (b)
+     * parallel marker absent, (c) `-v` surfaces the reason.
+     */
+    public function test_tap_reporter_auto_disables_parallel_with_verbose_hint(): void
+    {
+        $project = $this->projectRoot();
+
+        [$status, $stdout] = $this->runPhel(
+            ['test', '--parallel=2', '--reporter=tap', '-v', 'tests/phel/walk.phel'],
+            $project,
+        );
+
+        self::assertSame(0, $status, 'expected success exit, stdout was: ' . $stdout);
+        self::assertStringNotContainsString('parallel worker(s)', $stdout);
+        self::assertStringContainsString('Ignoring --parallel', $stdout);
+        self::assertStringContainsString('TAP reporter', $stdout);
+    }
+
+    public function test_rejects_invalid_parallel_value(): void
+    {
+        $project = $this->projectRoot();
+
+        [$status, $combined] = $this->runPhel(
+            ['test', '--parallel=banana', 'tests/phel/walk.phel'],
+            $project,
+        );
+
+        self::assertSame(1, $status, 'expected failure exit, combined was: ' . $combined);
+        self::assertStringContainsString('--parallel must be an integer >= 1 or "auto"', $combined);
+    }
+
+    /**
      * @param list<string> $args
      *
      * @return array{int, string}

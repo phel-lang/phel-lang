@@ -124,40 +124,15 @@ final class TestWorkerHandle
 
     /**
      * Try to read one complete frame off the worker stdout. Returns null
-     * if a full frame is not yet available; throws when the worker has
-     * exited mid-frame.
+     * if a full frame is not yet buffered.
      *
      * @return array<string, mixed>|null
      */
     public function tryReadFrame(): ?array
     {
-        /** @psalm-suppress PossiblyInvalidArgument */
-        $chunk = @fread($this->stdout, 65_536);
-        if ($chunk === false) {
-            return null;
-        }
+        $this->pumpReadBuffer();
 
-        if ($chunk !== '') {
-            $this->readBuffer .= $chunk;
-        }
-
-        $headerSize = WorkerFrame::headerSize();
-        if (strlen($this->readBuffer) < $headerSize) {
-            return null;
-        }
-
-        $hex = substr($this->readBuffer, 0, $headerSize - 1);
-        $length = (int) hexdec($hex);
-        $total = $headerSize + $length;
-
-        if (strlen($this->readBuffer) < $total) {
-            return null;
-        }
-
-        $body = substr($this->readBuffer, $headerSize, $length);
-        $this->readBuffer = substr($this->readBuffer, $total);
-
-        return WorkerFrame::decodeBody($body);
+        return $this->extractFrame();
     }
 
     public function readStderrNonBlocking(): string
@@ -212,6 +187,39 @@ final class TestWorkerHandle
                 @fclose($pipe);
             }
         }
+    }
+
+    private function pumpReadBuffer(): void
+    {
+        /** @psalm-suppress PossiblyInvalidArgument */
+        $chunk = @fread($this->stdout, 65_536);
+        if ($chunk === false || $chunk === '') {
+            return;
+        }
+
+        $this->readBuffer .= $chunk;
+    }
+
+    /**
+     * @return array<string, mixed>|null
+     */
+    private function extractFrame(): ?array
+    {
+        $headerSize = WorkerFrame::headerSize();
+        if (strlen($this->readBuffer) < $headerSize) {
+            return null;
+        }
+
+        $length = (int) hexdec(substr($this->readBuffer, 0, $headerSize - 1));
+        $total = $headerSize + $length;
+        if (strlen($this->readBuffer) < $total) {
+            return null;
+        }
+
+        $body = substr($this->readBuffer, $headerSize, $length);
+        $this->readBuffer = substr($this->readBuffer, $total);
+
+        return WorkerFrame::decodeBody($body);
     }
 
     private function writeAll(string $data): void
