@@ -4,28 +4,21 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-### Fixed
-
-#### Formatter
-- `AlignPairsRule` skips alignment when a `cond` / `case` / `condp` key spans multiple lines (#1986)
-
 ### Added
 
-#### Reflect
-- New `phel\reflect` module: `class-info`, `methods`, `properties`, `supers` over PHP reflection, returning persistent collections (#1984)
+- `phel\reflect` module: `class-info`, `methods`, `properties`, `supers` over PHP reflection (#1984)
+- `phel test --parallel=<N|auto|max>` fans namespaces out over a subprocess worker pool (#1991, see [docs/parallel-tests.md](docs/parallel-tests.md))
+- Multimethods: `prefer-method`, `prefers`, `prefers?` resolve ambiguous dispatch (#1980)
+- Transducers: `eduction` returns a reusable iterable view (#1981)
+- Compiler: `ParamTypeInferrer` cross-fn propagation + `:int-stable` allowlist on `phel.core` arithmetic (#1978); `ReturnTypeInferrer` recognises `random_int` / `intdiv` as `int`
 
-#### Compiler
-- `ParamTypeInferrer` cross-fn channels: callee `:param-tags` propagation, PHP host fn signature table, expected-type back-pressure, `:int-stable` allowlist on `phel.core` arithmetic (#1978)
-- `ReturnTypeInferrer` recognises `random_int` and `intdiv` as `int`-returning
-- Inferrers skip self-references to avoid stale `:tag` / `:param-tags` from the registry
+### Fixed
 
-#### Core
-- Multimethods: `prefer-method`, `prefers`, `prefers?` resolve ambiguous dispatch; ambiguity without preference throws (#1980)
-- Transducers: `eduction` returns a reusable iterable view; backed by `Phel\Lang\Eduction` (#1981)
+- Formatter: `AlignPairsRule` skips alignment when a `cond` / `case` / `condp` key spans multiple lines (#1986)
 
-#### Tests
-- Coverage for namespaced keyword alias resolution: `::foo`, `::alias/bar`, unknown-alias error, `name` / `namespace` / `full-name` round-trips (#1983)
-- `phel test --parallel=<N|auto|max>` runs namespaces across a subprocess worker pool. `auto` caps at 8 workers; `max` uses every core the kernel reports; integers pin an exact count. Output is a live `Symfony\ProgressBar` plus a single aggregate `Passed/Failed/Error/Total` summary; per-namespace failure blocks render under their own header. Buffered output flushes in input order so on-screen text stays deterministic. Auto-disabled for `--reporter=tap`, `--list`, and when a profiler hook is installed. See [docs/parallel-tests.md](docs/parallel-tests.md).
+### Tests
+
+- Namespaced keyword alias resolution (`::foo`, `::alias/bar`, unknown-alias error, `name` / `namespace` / `full-name` round-trips) (#1983)
 
 ## [0.37.0](https://github.com/phel-lang/phel-lang/compare/v0.36.0...v0.37.0) - 2026-05-12
 
