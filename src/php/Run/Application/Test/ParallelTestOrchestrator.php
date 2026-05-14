@@ -9,21 +9,18 @@ use Phel\Run\Domain\Test\TestCommandOptions;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function array_unique;
+use function array_values;
 use function count;
 use function dirname;
 use function file_put_contents;
 use function implode;
-use function is_array;
 use function is_dir;
 use function is_string;
 use function max;
+use function min;
 use function mkdir;
 use function sprintf;
-
 use function stream_select;
-use function strlen;
-
-use const PHP_EOL;
 
 /**
  * Drives a pool of {@see TestWorkerHandle} subprocesses, dispatching one
@@ -54,141 +51,151 @@ final readonly class ParallelTestOrchestrator
             return true;
         }
 
-        // Workers will write their own last-failed list back to the parent;
-        // disable per-worker writes so they don't race on the same file.
-        $optionsForWorker = $options;
-        $lastFailedFile = $optionsForWorker[TestCommandOptions::LAST_FAILED_FILE] ?? null;
-        $optionsForWorker[TestCommandOptions::LAST_FAILED_FILE] = null;
-        $optionsPhel = TestCommandOptions::fromArray($optionsForWorker)->asPhelHashMap();
-
         $effectiveWorkerCount = max(1, min($workerCount, $total));
-
-        /** @var list<TestWorkerHandle> $workers */
-        $workers = [];
-        for ($i = 0; $i < $effectiveWorkerCount; ++$i) {
-            $workers[] = TestWorkerHandle::spawn($this->phpBinary, $this->phelBinary);
-        }
-
-        /** @var array<int, array{ns: string, ok: bool, output: string, failed: list<string>}|null> $slots */
-        $slots = array_fill(0, $total, null);
-        $nextToFlush = 0;
-        $nextToDispatch = 0;
-        $overallOk = true;
-        $allFailedTests = [];
+        $optionsPhel = $this->preparePhelOptionsForWorker($options);
+        $workers = $this->spawnWorkers($effectiveWorkerCount);
+        $buffer = new OrderedResultBuffer($total, $output);
 
         try {
-            // Prime each worker with a first work item.
-            foreach ($workers as $worker) {
-                if ($nextToDispatch >= $total) {
-                    break;
-                }
-
-                $this->dispatch($worker, $namespaces[$nextToDispatch], $nextToDispatch, $optionsPhel);
-                ++$nextToDispatch;
-            }
-
-            $completed = 0;
-            while ($completed < $total) {
-                $reads = [];
-                foreach ($workers as $worker) {
-                    if (!$worker->isIdle()) {
-                        $reads[] = $worker->stdoutHandle();
-                    }
-                }
-
-                if ($reads === []) {
-                    // Either we dispatched everything and are draining, or
-                    // workers all died. Either way, drop out.
-                    break;
-                }
-
-                $writes = null;
-                $exceptions = null;
-                @stream_select($reads, $writes, $exceptions, 0, self::SELECT_TIMEOUT_MICROS);
-
-                foreach ($workers as $worker) {
-                    if ($worker->isIdle()) {
-                        continue;
-                    }
-
-                    $frame = $worker->tryReadFrame();
-                    if ($frame === null) {
-                        if (!$worker->isAlive() && $worker->tryReadFrame() === null) {
-                            $this->handleDeadWorker($worker, $slots);
-                            ++$completed;
-                            $worker->clearAssignment();
-                        }
-
-                        continue;
-                    }
-
-                    $index = (int) ($frame['index'] ?? -1);
-                    $ns = (string) ($frame['ns'] ?? '');
-                    $ok = (bool) ($frame['ok'] ?? false);
-                    $captured = (string) ($frame['output'] ?? '');
-                    $failed = $this->extractStringList($frame['failed-tests'] ?? []);
-
-                    $slots[$index] = [
-                        'ns' => $ns,
-                        'ok' => $ok,
-                        'output' => $captured,
-                        'failed' => $failed,
-                    ];
-                    $worker->clearAssignment();
-                    ++$completed;
-
-                    if (!$ok) {
-                        $overallOk = false;
-                    }
-
-                    foreach ($failed as $name) {
-                        $allFailedTests[] = $name;
-                    }
-
-                    if ($nextToDispatch < $total) {
-                        $this->dispatch($worker, $namespaces[$nextToDispatch], $nextToDispatch, $optionsPhel);
-                        ++$nextToDispatch;
-                    }
-
-                    while ($nextToFlush < $total && $slots[$nextToFlush] !== null) {
-                        $this->flushSlot($output, $slots[$nextToFlush], $nextToFlush, $total);
-                        $slots[$nextToFlush] = null;
-                        ++$nextToFlush;
-                    }
-                }
-            }
+            $this->runDispatchLoop($workers, $namespaces, $optionsPhel, $buffer);
         } finally {
             foreach ($workers as $worker) {
                 $worker->terminate();
             }
         }
 
-        if (is_string($lastFailedFile) && $lastFailedFile !== '') {
-            $this->writeLastFailed($lastFailedFile, $allFailedTests);
-        }
+        $this->persistLastFailed($options, $buffer->allFailedTests());
 
         $output->writeln('');
         $output->writeln(sprintf('Ran %d namespace(s) across %d worker(s).', $total, $effectiveWorkerCount));
 
-        return $overallOk;
+        return $buffer->overallOk();
     }
 
     /**
-     * @param array{ns: string, ok: bool, output: string, failed: list<string>} $slot
+     * @param array<string, mixed> $options
      */
-    private function flushSlot(OutputInterface $output, array $slot, int $index, int $total): void
+    private function preparePhelOptionsForWorker(array $options): string
     {
-        $header = sprintf('--- [%d/%d] %s ---', $index + 1, $total, $slot['ns']);
-        $output->writeln($header);
+        // Workers must not race on the shared last-failed.txt; the parent
+        // aggregates the union of failed tests once all workers finish.
+        $options[TestCommandOptions::LAST_FAILED_FILE] = null;
 
-        $captured = $slot['output'];
-        if ($captured !== '' && str_ends_with($captured, PHP_EOL)) {
-            $captured = substr($captured, 0, -strlen(PHP_EOL));
+        return TestCommandOptions::fromArray($options)->asPhelHashMap();
+    }
+
+    /**
+     * @return list<TestWorkerHandle>
+     */
+    private function spawnWorkers(int $count): array
+    {
+        $workers = [];
+        for ($i = 0; $i < $count; ++$i) {
+            $workers[] = TestWorkerHandle::spawn($this->phpBinary, $this->phelBinary);
         }
 
-        if ($captured !== '') {
-            $output->writeln($captured);
+        return $workers;
+    }
+
+    /**
+     * @param list<TestWorkerHandle>     $workers
+     * @param list<NamespaceInformation> $namespaces
+     */
+    private function runDispatchLoop(
+        array $workers,
+        array $namespaces,
+        string $optionsPhel,
+        OrderedResultBuffer $buffer,
+    ): void {
+        $total = count($namespaces);
+        $nextToDispatch = 0;
+
+        foreach ($workers as $worker) {
+            if ($nextToDispatch >= $total) {
+                break;
+            }
+
+            $this->dispatch($worker, $namespaces[$nextToDispatch], $nextToDispatch, $optionsPhel);
+            ++$nextToDispatch;
         }
+
+        while (!$buffer->isComplete()) {
+            $busyHandles = $this->busyWorkerHandles($workers);
+            if ($busyHandles === []) {
+                return;
+            }
+
+            $this->waitForReadyWorker($busyHandles);
+
+            foreach ($workers as $worker) {
+                if ($worker->isIdle()) {
+                    continue;
+                }
+
+                $consumed = $this->consumeWorker($worker, $buffer);
+                if (!$consumed) {
+                    continue;
+                }
+
+                if ($nextToDispatch < $total) {
+                    $this->dispatch($worker, $namespaces[$nextToDispatch], $nextToDispatch, $optionsPhel);
+                    ++$nextToDispatch;
+                }
+            }
+        }
+    }
+
+    /**
+     * @param list<TestWorkerHandle> $workers
+     *
+     * @return list<resource>
+     */
+    private function busyWorkerHandles(array $workers): array
+    {
+        $reads = [];
+        foreach ($workers as $worker) {
+            if (!$worker->isIdle()) {
+                $reads[] = $worker->stdoutHandle();
+            }
+        }
+
+        return $reads;
+    }
+
+    /**
+     * @param list<resource> $reads
+     */
+    private function waitForReadyWorker(array $reads): void
+    {
+        $writes = null;
+        $exceptions = null;
+        @stream_select($reads, $writes, $exceptions, 0, self::SELECT_TIMEOUT_MICROS);
+    }
+
+    /**
+     * Drain a worker that became readable. Returns true when a result was
+     * recorded (worker is now free to take the next assignment).
+     */
+    private function consumeWorker(TestWorkerHandle $worker, OrderedResultBuffer $buffer): bool
+    {
+        $frame = $worker->tryReadFrame();
+        if ($frame !== null) {
+            $buffer->record(WorkerResult::fromFrame($frame));
+            $worker->clearAssignment();
+            return true;
+        }
+
+        if (!$worker->isAlive() && $worker->tryReadFrame() === null) {
+            $buffer->recordCrash(
+                $worker->assignedIndex(),
+                $worker->assignedNamespace() ?? '<unknown>',
+                $worker->readStderrNonBlocking(),
+            );
+            $worker->clearAssignment();
+            return true;
+        }
+
+        return false;
     }
 
     private function dispatch(TestWorkerHandle $worker, NamespaceInformation $info, int $index, string $optionsPhel): void
@@ -203,53 +210,18 @@ final readonly class ParallelTestOrchestrator
     }
 
     /**
-     * @param array<int, array{ns: string, ok: bool, output: string, failed: list<string>}|null> $slots
+     * @param array<string, mixed> $options
+     * @param list<string>         $failed
      */
-    private function handleDeadWorker(TestWorkerHandle $worker, array &$slots): void
+    private function persistLastFailed(array $options, array $failed): void
     {
-        $index = $worker->assignedIndex();
-        $ns = $worker->assignedNamespace() ?? '<unknown>';
-        if ($index === null) {
+        $path = $options[TestCommandOptions::LAST_FAILED_FILE] ?? null;
+        if (!is_string($path) || $path === '') {
             return;
         }
 
-        $stderr = $worker->readStderrNonBlocking();
-        $slots[$index] = [
-            'ns' => $ns,
-            'ok' => false,
-            'output' => sprintf("Worker died while running %s.\n%s", $ns, $stderr),
-            'failed' => [],
-        ];
-    }
-
-    /**
-     * @param mixed $raw
-     *
-     * @return list<string>
-     */
-    private function extractStringList($raw): array
-    {
-        if (!is_array($raw)) {
-            return [];
-        }
-
-        $out = [];
-        foreach ($raw as $entry) {
-            if (is_string($entry) && $entry !== '') {
-                $out[] = $entry;
-            }
-        }
-
-        return $out;
-    }
-
-    /**
-     * @param list<string> $failed
-     */
-    private function writeLastFailed(string $path, array $failed): void
-    {
         $dir = dirname($path);
-        if ($dir !== '' && !is_dir($dir)) {
+        if (!is_dir($dir)) {
             @mkdir($dir, 0755, true);
         }
 

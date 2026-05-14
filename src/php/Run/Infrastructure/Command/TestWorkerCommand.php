@@ -14,7 +14,6 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 
-use function addslashes;
 use function fclose;
 use function fopen;
 use function fwrite;
@@ -76,8 +75,7 @@ final class TestWorkerCommand extends Command
                     return self::SUCCESS;
                 }
 
-                $response = $this->handleWork($frame);
-                fwrite($stdout, WorkerFrame::encode($response));
+                fwrite($stdout, WorkerFrame::encode($this->handleWork($frame)));
             }
         } finally {
             @fclose($stdin);
@@ -92,70 +90,88 @@ final class TestWorkerCommand extends Command
      */
     private function handleWork(array $frame): array
     {
-        $ns = (string) ($frame['ns'] ?? '');
-        $index = (int) ($frame['index'] ?? -1);
-        $file = (string) ($frame['file'] ?? '');
-        $options = (string) ($frame['options'] ?? '{}');
-
-        $base = [
-            'type' => 'result',
-            'index' => $index,
-            'ns' => $ns,
-        ];
+        $request = WorkRequest::fromFrame($frame);
 
         ob_start();
         try {
-            foreach ($this->getFacade()->getDependenciesFromPaths([$file]) as $info) {
-                $this->getFacade()->evalFile($info);
-            }
-
-            $phelCode = sprintf(
-                "(do (phel\\test/run-tests %s '%s) "
-                . '(phel\\json/encode {"ok" (phel\\test/successful?) '
-                . '"failed-tests" (phel\\test/get-failed-tests)}))',
-                $options,
-                $ns,
-            );
-
-            $resultJson = $this->getFacade()->eval(
-                $phelCode,
-                new CompileOptions()->setIsEnabledSourceMaps(false),
-            );
-
+            $this->preloadDependencies($request->file);
+            $resultJson = $this->runTestsForNamespace($request);
             $captured = (string) ob_get_clean();
 
-            $parsed = is_string($resultJson) ? json_decode($resultJson, true) : null;
-            $ok = is_array($parsed) && (bool) ($parsed['ok'] ?? false);
-            /** @var list<string> $failedTests */
-            $failedTests = [];
-            if (is_array($parsed) && isset($parsed['failed-tests']) && is_array($parsed['failed-tests'])) {
-                foreach ($parsed['failed-tests'] as $name) {
-                    if (is_string($name)) {
-                        $failedTests[] = $name;
-                    }
-                }
-            }
-
-            return $base + [
-                'ok' => $ok,
-                'output' => $captured,
-                'failed-tests' => $failedTests,
-                'error' => null,
-            ];
+            return $request->baseResponse() + $this->parseResult($resultJson, $captured);
         } catch (Throwable $throwable) {
-            $captured = ob_get_clean();
-            if (!is_string($captured)) {
-                $captured = '';
-            }
+            $captured = (string) ob_get_clean();
 
-            $message = sprintf('<error>Failed running %s: %s</error>', $ns, $throwable->getMessage());
-
-            return $base + [
+            return $request->baseResponse() + [
                 'ok' => false,
-                'output' => $captured . "\n" . $message . "\n",
+                'output' => $captured . "\n"
+                    . sprintf('<error>Failed running %s: %s</error>', $request->ns, $throwable->getMessage())
+                    . "\n",
                 'failed-tests' => [],
-                'error' => addslashes($throwable->getMessage()),
+                'error' => $throwable->getMessage(),
             ];
         }
+    }
+
+    private function preloadDependencies(string $file): void
+    {
+        if ($file === '') {
+            return;
+        }
+
+        foreach ($this->getFacade()->getDependenciesFromPaths([$file]) as $info) {
+            $this->getFacade()->evalFile($info);
+        }
+    }
+
+    private function runTestsForNamespace(WorkRequest $request): mixed
+    {
+        $phelCode = sprintf(
+            "(do (phel\\test/run-tests %s '%s) "
+            . '(phel\\json/encode {"ok" (phel\\test/successful?) '
+            . '"failed-tests" (phel\\test/get-failed-tests)}))',
+            $request->options,
+            $request->ns,
+        );
+
+        return $this->getFacade()->eval(
+            $phelCode,
+            new CompileOptions()->setIsEnabledSourceMaps(false),
+        );
+    }
+
+    /**
+     * @return array{ok: bool, output: string, failed-tests: list<string>, error: null}
+     */
+    private function parseResult(mixed $resultJson, string $captured): array
+    {
+        $parsed = is_string($resultJson) ? json_decode($resultJson, true) : null;
+        $ok = is_array($parsed) && (bool) ($parsed['ok'] ?? false);
+
+        return [
+            'ok' => $ok,
+            'output' => $captured,
+            'failed-tests' => $this->extractFailedTests($parsed),
+            'error' => null,
+        ];
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function extractFailedTests(mixed $parsed): array
+    {
+        if (!is_array($parsed) || !isset($parsed['failed-tests']) || !is_array($parsed['failed-tests'])) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($parsed['failed-tests'] as $name) {
+            if (is_string($name)) {
+                $out[] = $name;
+            }
+        }
+
+        return $out;
     }
 }

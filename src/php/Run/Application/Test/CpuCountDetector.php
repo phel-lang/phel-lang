@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Run\Application\Test;
 
-use function escapeshellarg;
 use function fgets;
 use function file_exists;
 use function file_get_contents;
@@ -45,11 +44,6 @@ final class CpuCountDetector
         $detected = $this->detectFromSystem();
 
         return max(1, min($detected, self::DEFAULT_CAP));
-    }
-
-    public static function escapeForShell(string $value): string
-    {
-        return escapeshellarg($value);
     }
 
     private function detectFromSystem(): int
