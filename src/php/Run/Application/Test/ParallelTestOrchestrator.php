@@ -77,17 +77,36 @@ final readonly class ParallelTestOrchestrator
             }
         }
 
+        $buffer->finishProgress();
         $this->persistLastFailed($options, $buffer->allFailedTests());
+        $this->printSummary($output, $buffer->totals(), $total, $effectiveWorkerCount, microtime(true) - $startedAt);
 
+        return $buffer->overallOk();
+    }
+
+    private function printSummary(
+        OutputInterface $output,
+        Counts $totals,
+        int $namespacesRun,
+        int $workerCount,
+        float $wallSeconds,
+    ): void {
+        $output->writeln('');
+        $output->writeln(sprintf('Passed:  %d', $totals->pass));
+        $output->writeln(sprintf('Failed:  %d', $totals->failed));
+        $output->writeln(sprintf('Error:   %d', $totals->error));
+        if ($totals->skipped > 0) {
+            $output->writeln(sprintf('Skipped: %d', $totals->skipped));
+        }
+
+        $output->writeln(sprintf('Total:   %d', $totals->total));
         $output->writeln('');
         $output->writeln(sprintf(
             'Ran %d namespace(s) across %d worker(s) in %.2fs.',
-            $total,
-            $effectiveWorkerCount,
-            microtime(true) - $startedAt,
+            $namespacesRun,
+            $workerCount,
+            $wallSeconds,
         ));
-
-        return $buffer->overallOk();
     }
 
     /**

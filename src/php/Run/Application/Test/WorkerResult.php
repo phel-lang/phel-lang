@@ -24,6 +24,7 @@ final readonly class WorkerResult
         public bool $ok,
         public string $output,
         public array $failedTests,
+        public Counts $counts,
     ) {}
 
     /**
@@ -31,12 +32,15 @@ final readonly class WorkerResult
      */
     public static function fromFrame(array $frame): self
     {
+        $rawCounts = $frame[FrameKey::COUNTS] ?? [];
+
         return new self(
             (int) ($frame[FrameKey::INDEX] ?? -1),
             (string) ($frame[FrameKey::NS] ?? ''),
             (bool) ($frame[FrameKey::OK] ?? false),
             (string) ($frame[FrameKey::OUTPUT] ?? ''),
             self::extractStringList($frame[FrameKey::FAILED_TESTS] ?? null),
+            is_array($rawCounts) ? Counts::fromArray($rawCounts) : new Counts(),
         );
     }
 
@@ -52,6 +56,7 @@ final readonly class WorkerResult
             false,
             sprintf("Worker died while running %s.\n%s", $ns, $stderr),
             [],
+            new Counts(error: 1, total: 1),
         );
     }
 

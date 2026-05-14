@@ -29,5 +29,17 @@ final class FrameKey
 
     public const string ERROR = 'error';
 
+    public const string COUNTS = 'counts';
+
+    public const string COUNT_PASS = 'pass';
+
+    public const string COUNT_FAILED = 'failed';
+
+    public const string COUNT_ERROR = 'error';
+
+    public const string COUNT_SKIPPED = 'skipped';
+
+    public const string COUNT_TOTAL = 'total';
+
     public const string TYPE_RESULT = 'result';
 }

@@ -130,6 +130,28 @@ final class ParallelTestRunnerTest extends TestCase
     }
 
     /**
+     * Live progress + aggregate summary is the on-screen view users
+     * actually look at. Lock in the wire shape so the UX can't silently
+     * regress: progress bar percentage marker + Passed/Failed/Error/Total
+     * block.
+     */
+    public function test_emits_progress_bar_and_aggregate_summary_block(): void
+    {
+        $project = $this->projectRoot();
+
+        [$status, $stdout] = $this->runPhel(
+            ['test', '--parallel=2', 'tests/phel/walk.phel'],
+            $project,
+        );
+
+        self::assertSame(0, $status, 'expected success exit, stdout was: ' . $stdout);
+        self::assertMatchesRegularExpression('/\[=+\]\s*100%/', $stdout, 'progress bar should reach 100%');
+        self::assertMatchesRegularExpression('/Passed:\s+\d+/', $stdout);
+        self::assertMatchesRegularExpression('/Failed:\s+0/', $stdout);
+        self::assertMatchesRegularExpression('/Total:\s+\d+/', $stdout);
+    }
+
+    /**
      * @param list<string> $args
      *
      * @return array{int, string}

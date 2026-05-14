@@ -20,6 +20,8 @@ use function fclose;
 use function fopen;
 use function fwrite;
 use function is_array;
+use function is_int;
+use function is_numeric;
 use function is_string;
 use function ob_get_clean;
 use function ob_start;
@@ -131,7 +133,8 @@ final class TestWorkerCommand extends Command
         $phelCode = sprintf(
             "(do (phel\\test/run-tests %s '%s) "
             . '(phel\\json/encode {"ok" (phel\\test/successful?) '
-            . '"failed-tests" (phel\\test/get-failed-tests)}))',
+            . '"failed-tests" (phel\\test/get-failed-tests) '
+            . '"counts" (get (phel\\test/get-stats) :counts)}))',
             $request->options,
             $request->ns,
         );
@@ -143,7 +146,7 @@ final class TestWorkerCommand extends Command
     }
 
     /**
-     * @return array{ok: bool, output: string, failed-tests: list<string>, error: null}
+     * @return array{ok: bool, output: string, failed-tests: list<string>, counts: array<string, int>, error: null}
      */
     private function parseResult(mixed $resultJson, string $captured): array
     {
@@ -154,6 +157,7 @@ final class TestWorkerCommand extends Command
             FrameKey::OK => $ok,
             FrameKey::OUTPUT => $captured,
             FrameKey::FAILED_TESTS => $this->extractFailedTests($parsed),
+            FrameKey::COUNTS => $this->extractCounts($parsed),
             FrameKey::ERROR => null,
         ];
     }
@@ -171,6 +175,25 @@ final class TestWorkerCommand extends Command
         foreach ($parsed['failed-tests'] as $name) {
             if (is_string($name)) {
                 $out[] = $name;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * @return array<string, int>
+     */
+    private function extractCounts(mixed $parsed): array
+    {
+        if (!is_array($parsed) || !isset($parsed['counts']) || !is_array($parsed['counts'])) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($parsed['counts'] as $key => $value) {
+            if (is_string($key) && (is_int($value) || is_numeric($value))) {
+                $out[$key] = (int) $value;
             }
         }
 
