@@ -68,8 +68,8 @@
     (is (every? (fn [v] (contains? (hash-set :a :b) v)) vs))))
 
 (deftest test-frequency
-  (let [vs (g/sample (g/frequency [[99 (g/return :hit)] [1 (g/return :miss)]])
-                     200 {:seed fixed-seed})
+  (let [vs   (g/sample (g/frequency [[99 (g/return :hit)] [1 (g/return :miss)]])
+                       200 {:seed fixed-seed})
         hits (count (filter (fn [v] (= :hit v)) vs))]
     (is (> hits 150) "weighted pick favours heavy bucket")))
 
@@ -81,7 +81,7 @@
   (let [vs (g/sample (g/such-that even? g/nat) 20 {:size 50 :seed fixed-seed})]
     (is (every? even? vs)))
   (is (thrown? \RuntimeException
-        (g/generate (g/such-that (fn [_] false) g/nat 5)))))
+               (g/generate (g/such-that (fn [_] false) g/nat 5)))))
 
 (deftest test-tuple-variadic
   (let [v (g/generate (g/tuple (g/return 1) (g/return :a) (g/return "z")))]
@@ -89,8 +89,8 @@
 
 (deftest test-tuple-vector-arg
   (testing "vector of generators is accepted for backward compatibility"
-    (let [v (g/generate (g/tuple [(g/return 1) (g/return :a)]))]
-      (is (= [1 :a] v)))))
+           (let [v (g/generate (g/tuple [(g/return 1) (g/return :a)]))]
+             (is (= [1 :a] v)))))
 
 ;; ------------
 ;; Collections
@@ -98,15 +98,15 @@
 
 (deftest test-vector-of
   (testing "default length in [0, size]"
-    (let [vs (g/sample (g/vector-of g/nat) 30 {:size 5 :seed fixed-seed})]
-      (is (every? vector? vs))
-      (is (every? (fn [v] (<= (count v) 5)) vs))))
+           (let [vs (g/sample (g/vector-of g/nat) 30 {:size 5 :seed fixed-seed})]
+             (is (every? vector? vs))
+             (is (every? (fn [v] (<= (count v) 5)) vs))))
   (testing "fixed length"
-    (let [v (g/generate (g/vector-of (g/return :x) 4))]
-      (is (= [:x :x :x :x] v))))
+           (let [v (g/generate (g/vector-of (g/return :x) 4))]
+             (is (= [:x :x :x :x] v))))
   (testing "ranged length"
-    (let [vs (g/sample (g/vector-of (g/return 0) 2 4) 20 {:seed fixed-seed})]
-      (is (every? (fn [v] (and (<= 2 (count v)) (<= (count v) 4))) vs)))))
+           (let [vs (g/sample (g/vector-of (g/return 0) 2 4) 20 {:seed fixed-seed})]
+             (is (every? (fn [v] (and (<= 2 (count v)) (<= (count v) 4))) vs)))))
 
 (deftest test-list-of
   (let [vs (g/sample (g/list-of g/nat) 10 {:size 4 :seed fixed-seed})]
@@ -127,24 +127,24 @@
 
 (deftest test-quick-check-pass
   (let [res (g/quick-check 50 (g/tuple g/int g/int)
-              (fn [a b] (= (+ a b) (+ b a)))
-              {:seed fixed-seed})]
+                           (fn [a b] (= (+ a b) (+ b a)))
+                           {:seed fixed-seed})]
     (is (= :pass (:result res)))
     (is (= 50 (:num-tests res)))
     (is (int? (:seed res)))))
 
 (deftest test-quick-check-fail
   (let [res (g/quick-check 100 (g/tuple g/nat)
-              (fn [n] (< n 0))
-              {:seed fixed-seed})]
+                           (fn [n] (< n 0))
+                           {:seed fixed-seed})]
     (is (= :failed (:result res)))
     (is (some? (:args res)))
     (is (int? (:seed res)))))
 
 (deftest test-quick-check-error
   (let [res (g/quick-check 10 (g/tuple (g/return 0))
-              (fn [_] (throw (php/new \RuntimeException "boom")))
-              {:seed fixed-seed})]
+                           (fn [_] (throw (php/new \RuntimeException "boom")))
+                           {:seed fixed-seed})]
     (is (= :error (:result res)))
     (is (some? (:exception res)))))
 
@@ -154,11 +154,11 @@
     (is (= s1 s2))))
 
 (g/defspec spec-reverse-involution
-  {:num-tests 50 :size 10 :seed fixed-seed}
-  (g/tuple (g/vector-of g/int))
-  (fn [v] (= v (reverse (reverse v)))))
+           {:num-tests 50 :size 10 :seed fixed-seed}
+           (g/tuple (g/vector-of g/int))
+           (fn [v] (= v (reverse (reverse v)))))
 
 (g/defspec spec-int-identity
-  {:num-tests 30 :seed fixed-seed}
-  (g/tuple g/int)
-  (fn [n] (= n (+ n 0))))
+           {:num-tests 30 :seed fixed-seed}
+           (g/tuple g/int)
+           (fn [n] (= n (+ n 0))))

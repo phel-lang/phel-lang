@@ -11,10 +11,10 @@
 
 (deftest are-accepts-mixed-templates
   (testing "atom accepts a quoted symbol and other values"
-    (are [v] (let [the-atom (atom v)]
-               (= v (deref the-atom)))
-      'sym
-      42
-      "hello"
-      [1 2 3]
-      {:a 1})))
+           (are [v] (let [the-atom (atom v)]
+                      (= v (deref the-atom)))
+                'sym
+                42
+                "hello"
+                [1 2 3]
+                {:a 1})))

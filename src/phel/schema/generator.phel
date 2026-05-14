@@ -162,7 +162,7 @@
       :fn     (fn-gen args)
       :ref    (ref-gen args)
       :=>     (throw (php/new \InvalidArgumentException
-                               "cannot generate function schemas"))
+                              "cannot generate function schemas"))
       (v/resolve-or-throw "no generator for schema kind" head
                           (fn [target] (schema->gen target))))))
 

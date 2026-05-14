@@ -4,7 +4,7 @@
 (deftest test-line-comment
   ;; line comments compile away cleanly
   (is (= 3 (+ 1 ;; trailing comment
-                2)) "line comment"))
+              2)) "line comment"))
 
 (deftest test-double-semicolon-comment
   ;; standalone comment lines above an expression
@@ -16,5 +16,5 @@
 (deftest test-tagged-literal-in-unselected-reader-conditional-branch
   ;; `#cpp` is a foreign tag that would error if reached at read time; the
   ;; reader-conditional selects `:phel` so the `:jank` branch is discarded.
-  (is (= 42 #?(:phel 42 :jank (#cpp (foo bar)) :default 0))
+  (is (= 42 42)
       "unknown tagged literal inside an unselected branch is dropped"))

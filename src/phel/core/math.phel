@@ -568,13 +568,13 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
    :see-also ["bigdec?" "decimal?" "rationalize"]}
   [x]
   (cond
-    (php/instanceof x BigDecimal)  x
-    (php/is_int x)                 (php/:: BigDecimal (fromInt x))
-    (php/is_float x)               (php/:: BigDecimal (fromFloat x))
-    (php/instanceof x BigInteger)  (php/:: BigDecimal (fromBigInteger x))
-    (php/instanceof x Rational)    (php/-> (php/:: BigDecimal (fromBigInteger (php/-> x (numerator))))
-                                           (divideExact (php/:: BigDecimal (fromBigInteger (php/-> x (denominator))))))
-    (string? x)                    (php/:: BigDecimal (fromString x))
+    (php/instanceof x BigDecimal) x
+    (php/is_int x)                (php/:: BigDecimal (fromInt x))
+    (php/is_float x)              (php/:: BigDecimal (fromFloat x))
+    (php/instanceof x BigInteger) (php/:: BigDecimal (fromBigInteger x))
+    (php/instanceof x Rational)   (php/-> (php/:: BigDecimal (fromBigInteger (php/-> x (numerator))))
+                                          (divideExact (php/:: BigDecimal (fromBigInteger (php/-> x (denominator))))))
+    (string? x)                   (php/:: BigDecimal (fromString x))
     :else
     (throw (php/new \InvalidArgumentException
                     (php/. "bigdec expects a BigDecimal, int, float, BigInteger, Rational, or numeric string, got "

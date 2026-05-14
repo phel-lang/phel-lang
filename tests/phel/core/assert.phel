@@ -13,7 +13,7 @@
   (is (thrown? \InvalidArgumentException (assert nil))
       "assert throws on nil")
   (is (thrown-with-msg? \InvalidArgumentException "Assert failed: must be positive"
-        (assert false "must be positive"))
+                        (assert false "must be positive"))
       "assert includes custom message"))
 
 (deftest test-assert-var-default

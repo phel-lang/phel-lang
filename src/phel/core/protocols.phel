@@ -338,8 +338,8 @@
       (contains? direct y) true
       (empty? direct)      false
       :else                (boolean
-                             (some (fn [p] (prefers? prefers-map p y))
-                                   direct)))))
+                            (some (fn [p] (prefers? prefers-map p y))
+                                  direct)))))
 
 (defn- dominates?
   "Returns true when candidate `x` is more specific than `y` for multimethod

@@ -7,9 +7,9 @@
 
 (deftest test-are-two-variables
   (are [x y] (= x y)
-    2 (+ 1 1)
-    4 (* 2 2)
-    0 (- 1 1)))
+       2 (+ 1 1)
+       4 (* 2 2)
+       0 (- 1 1)))
 
 ;; ---------------------------------------------------------------------------
 ;; Single variable
@@ -17,9 +17,9 @@
 
 (deftest test-are-single-variable
   (are [x] (true? x)
-    true
-    (= 1 1)
-    (< 1 2)))
+       true
+       (= 1 1)
+       (< 1 2)))
 
 ;; ---------------------------------------------------------------------------
 ;; Three variables
@@ -27,10 +27,10 @@
 
 (deftest test-are-three-variables
   (are [x y z] (= z (+ x y))
-    1 2 3
-    4 5 9
-    0 0 0
-    -1 1 0))
+       1 2 3
+       4 5 9
+       0 0 0
+       -1 1 0))
 
 ;; ---------------------------------------------------------------------------
 ;; Works inside testing context
@@ -38,9 +38,9 @@
 
 (deftest test-are-inside-testing
   (testing "arithmetic identities"
-    (are [x y] (= x y)
-      0 (* 0 1)
-      1 (* 1 1))))
+           (are [x y] (= x y)
+                0 (* 0 1)
+                1 (* 1 1))))
 
 ;; ---------------------------------------------------------------------------
 ;; Works alongside regular `is` assertions
@@ -49,9 +49,9 @@
 (deftest test-are-mixed-with-is
   (is (= 1 1) "regular is before are")
   (are [x] (pos? x)
-    1
-    42
-    100)
+       1
+       42
+       100)
   (is (= 2 2) "regular is after are"))
 
 ;; ---------------------------------------------------------------------------
@@ -59,14 +59,14 @@
 ;; ---------------------------------------------------------------------------
 
 (deftest test-are-records-individual-failures
-  (let [saved (get-stats)
-        _ (reset-stats)
-        _ (with-output-buffer
-            (are [x y] (= x y)
-              1 1
-              2 3
-              4 4
-              5 6))
+  (let [saved  (get-stats)
+        _      (reset-stats)
+        _      (with-output-buffer
+                (are [x y] (= x y)
+                     1 1
+                     2 3
+                     4 4
+                     5 6))
         counts (get (get-stats) :counts)]
     (restore-stats saved)
     (is (= 2 (:pass counts)) "two groups pass")
@@ -77,13 +77,13 @@
 ;; ---------------------------------------------------------------------------
 
 (deftest test-are-drops-incomplete-trailing-group
-  (let [saved (get-stats)
-        _ (reset-stats)
-        _ (with-output-buffer
-            (are [x y] (= x y)
-              1 1
-              2 2
-              3))
+  (let [saved  (get-stats)
+        _      (reset-stats)
+        _      (with-output-buffer
+                (are [x y] (= x y)
+                     1 1
+                     2 2
+                     3))
         counts (get (get-stats) :counts)]
     (restore-stats saved)
     (is (= 2 (:pass counts)) "only complete groups are asserted")
@@ -95,9 +95,9 @@
 
 (deftest test-are-with-predicate-template
   (are [x y] (< x y)
-    1 2
-    0 100
-    -5 -4))
+       1 2
+       0 100
+       -5 -4))
 
 ;; ---------------------------------------------------------------------------
 ;; Works with nil values in arguments
@@ -105,18 +105,18 @@
 
 (deftest test-are-with-nil-values
   (are [x] (nil? x)
-    nil
-    nil))
+       nil
+       nil))
 
 ;; ---------------------------------------------------------------------------
 ;; Zero args produces no assertions
 ;; ---------------------------------------------------------------------------
 
 (deftest test-are-zero-args
-  (let [saved (get-stats)
-        _ (reset-stats)
-        _ (with-output-buffer
-            (are [x y] (= x y)))
+  (let [saved  (get-stats)
+        _      (reset-stats)
+        _      (with-output-buffer
+                (are [x y] (= x y)))
         counts (get (get-stats) :counts)]
     (restore-stats saved)
     (is (= 0 (:total counts)) "no assertions generated")))
@@ -131,25 +131,25 @@
 
 (deftest test-are-empty-list-cell
   (are [expected coll] (= expected coll)
-    () ()
-    () (list)))
+       () ()
+       () (list)))
 
 (deftest test-are-literal-list-cell
   (are [expected coll] (= expected coll)
-    '(1 2 3) '(1 2 3)
-    '(:a :b) (list :a :b)))
+       '(1 2 3) '(1 2 3)
+       '(:a :b) (list :a :b)))
 
 (deftest test-are-nested-literal-list-in-vector
   ;; Vector cells must not trigger eager evaluation of the argv symbols they
   ;; contain when the expression is expanded.
   (are [expected coll] (= expected coll)
-    [[:x] 2] [[:x] 2]
-    [:a :b] [:a :b]))
+       [[:x] 2] [[:x] 2]
+       [:a :b] [:a :b]))
 
 (deftest test-are-form-cell-still-evaluates
   ;; A non-literal form like `(range 10)` in a cell must still evaluate at
   ;; runtime — only the argv symbols are substituted, other lists are left
   ;; alone so they compile as ordinary expressions.
   (are [expected n coll] (= expected (vec (take-nth n coll)))
-    [0 2 4 6 8] 2 (range 10)
-    [] 2 nil))
+       [0 2 4 6 8] 2 (range 10)
+       [] 2 nil))

@@ -207,10 +207,10 @@
         mock-syms (map (fn [_] (gensym "mock")) values)]
     `(let [~@(interleave mock-syms values)]
        (with-redefs [~@(interleave symbols mock-syms)]
-         (try
-           (do ~@body)
-           (finally
-             ~@(map (fn [m] `(reset-mock! ~m)) mock-syms)))))))
+                    (try
+                      (do ~@body)
+                      (finally
+                        ~@(map (fn [m] `(reset-mock! ~m)) mock-syms)))))))
 
 (defmacro with-mock-wrapper
   "Like with-mocks but for wrapped mocks (interop scenarios).
@@ -240,7 +240,7 @@
     `(let [~@(interleave mock-syms mocks)
            ~@(interleave wrapper-syms wrappers)]
        (with-redefs [~@(interleave symbols wrapper-syms)]
-         (try
-           (do ~@body)
-           (finally
-             ~@reset-forms))))))
+                    (try
+                      (do ~@body)
+                      (finally
+                        ~@reset-forms))))))

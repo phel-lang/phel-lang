@@ -20,19 +20,19 @@
 ;; ---------------------------------------------------------------------------
 
 (defmethod phel.test/assert-expr 'approx= [form message]
-  (let [a (second form)
-        b (second (next form))
-        epsilon 0.001]
-    `(is (< (php/abs (- ~a ~b)) ~epsilon) ~message)))
+           (let [a       (second form)
+                 b       (second (next form))
+                 epsilon 0.001]
+             `(is (< (php/abs (- ~a ~b)) ~epsilon) ~message)))
 
 (deftest test-approx-equal-passes-within-epsilon
   (is (approx= 1.0 1.0001) "approx= passes when difference < epsilon")
   (is (approx= 0.0 0.0009) "approx= passes for tiny difference"))
 
 (deftest test-approx-equal-fails-outside-epsilon
-  (let [saved (get-stats)
-        _ (reset-stats)
-        _ (with-output-buffer (is (approx= 1.0 2.0)))
+  (let [saved  (get-stats)
+        _      (reset-stats)
+        _      (with-output-buffer (is (approx= 1.0 2.0)))
         counts (get (get-stats) :counts)]
     (restore-stats saved)
     (is (= 1 (:failed counts)) "approx= records a failure when outside epsilon")))
@@ -42,9 +42,9 @@
 ;; ---------------------------------------------------------------------------
 
 (defmethod phel.test/assert-expr 'divisible? [form message]
-  (let [n (second form)
-        d (second (next form))]
-    `(is (zero? (php/% ~n ~d)) ~message)))
+           (let [n (second form)
+                 d (second (next form))]
+             `(is (zero? (php/% ~n ~d)) ~message)))
 
 (deftest test-divisible-passes-when-divisible
   (is (divisible? 10 5) "10 is divisible by 5")
@@ -52,9 +52,9 @@
   (is (divisible? 0 7) "0 is divisible by anything"))
 
 (deftest test-divisible-fails-when-not-divisible
-  (let [saved (get-stats)
-        _ (reset-stats)
-        _ (with-output-buffer (is (divisible? 10 3)))
+  (let [saved  (get-stats)
+        _      (reset-stats)
+        _      (with-output-buffer (is (divisible? 10 3)))
         counts (get (get-stats) :counts)]
     (restore-stats saved)
     (is (= 1 (:failed counts)) "non-divisible records a failure")))
@@ -64,19 +64,19 @@
 ;; ---------------------------------------------------------------------------
 
 (defmethod phel.test/assert-expr 'even-positive? [form message]
-  (let [n (second form)]
-    `(is (and (pos? ~n) (even? ~n)) ~message)))
+           (let [n (second form)]
+             `(is (and (pos? ~n) (even? ~n)) ~message)))
 
 (deftest test-even-positive-passes-for-positive-evens
   (is (even-positive? 2) "2 is positive and even")
   (is (even-positive? 100) "100 is positive and even"))
 
 (deftest test-even-positive-fails-for-odd-or-non-positive
-  (let [saved (get-stats)
-        _ (reset-stats)
-        _ (with-output-buffer (is (even-positive? 3)))
-        _ (with-output-buffer (is (even-positive? -2)))
-        _ (with-output-buffer (is (even-positive? 0)))
+  (let [saved  (get-stats)
+        _      (reset-stats)
+        _      (with-output-buffer (is (even-positive? 3)))
+        _      (with-output-buffer (is (even-positive? -2)))
+        _      (with-output-buffer (is (even-positive? 0)))
         counts (get (get-stats) :counts)]
     (restore-stats saved)
     (is (= 3 (:failed counts)) "odd, negative, and zero all fail")))
@@ -88,12 +88,12 @@
 ;; ---------------------------------------------------------------------------
 
 (defmethod phel.test/assert-expr 'always-throws [_form _message]
-  `(throw (php/new \RuntimeException "boom from custom assertion")))
+           `(throw (php/new \RuntimeException "boom from custom assertion")))
 
 (deftest test-custom-method-exception-is-reported-as-error
-  (let [saved (get-stats)
-        _ (reset-stats)
-        _ (with-output-buffer (is (always-throws)))
+  (let [saved  (get-stats)
+        _      (reset-stats)
+        _      (with-output-buffer (is (always-throws)))
         counts (get (get-stats) :counts)]
     (restore-stats saved)
     (is (= 1 (:error counts)) "throw from custom method is reported as :error")
@@ -121,7 +121,7 @@
 ;; ---------------------------------------------------------------------------
 
 (defmethod phel.test/assert-expr 'tagged= [form message]
-  `(is (= ~(second form) ~(second (next form))) ~message))
+           `(is (= ~(second form) ~(second (next form))) ~message))
 
 (deftest test-custom-dispatch-routes-through-new-method
   (is (tagged= 1 1) "tagged= dispatches through registered method")

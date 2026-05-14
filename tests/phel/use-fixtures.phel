@@ -9,17 +9,17 @@
 (def once-run-count (atom 0))
 
 (use-fixtures :once
-  (fn [t]
-    (swap! once-run-count inc)
-    (swap! events conj :once-before)
-    (t)
-    (swap! events conj :once-after)))
+              (fn [t]
+                (swap! once-run-count inc)
+                (swap! events conj :once-before)
+                (t)
+                (swap! events conj :once-after)))
 
 (use-fixtures :each
-  (fn [t]
-    (swap! events conj :each-before)
-    (t)
-    (swap! events conj :each-after)))
+              (fn [t]
+                (swap! events conj :each-before)
+                (t)
+                (swap! events conj :each-after)))
 
 (deftest test-each-fixture-runs-around-test-body
   (swap! events conj :body-1)

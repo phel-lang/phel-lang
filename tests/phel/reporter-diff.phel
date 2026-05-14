@@ -25,10 +25,10 @@
   [expected actual]
   (let [rep (t/resolve-reporter :default)]
     (with-output-buffer
-      (rep {:type :begin-test-run})
-      (rep (failure-event expected actual))
-      (rep {:type :summary :total 1 :pass 0 :failed 1 :error 0
-            :failures [(failure-event expected actual)]}))))
+     (rep {:type :begin-test-run})
+     (rep (failure-event expected actual))
+     (rep {:type :summary :total 1 :pass 0 :failed 1 :error 0
+           :failures [(failure-event expected actual)]}))))
 
 ;; ---------------------------------------------------------------------------
 ;; Threshold: small primitive failures keep the legacy single-line summary
@@ -52,8 +52,8 @@
 
 (deftest test-map-diff-marks-added-removed-and-changed-keys
   (let [out (run-default-reporter
-              {:a 1 :b 2 :c 3 :d 4}
-              {:a 1 :b 99 :c 3 :e 5})]
+             {:a 1 :b 2 :c 3 :d 4}
+             {:a 1 :b 99 :c 3 :e 5})]
     (is (php/preg_match "/Diff:/" out) "Diff block is rendered")
     (is (php/preg_match "/- :d 4/" out) "removed key is prefixed with -")
     (is (php/preg_match "/\\+ :e 5/" out) "added key is prefixed with +")
@@ -79,8 +79,8 @@
 
 (deftest test-set-diff-shows-symmetric-difference
   (let [out (run-default-reporter
-              (hash-set 1 2 3 4 5)
-              (hash-set 2 3 4 5 6))]
+             (hash-set 1 2 3 4 5)
+             (hash-set 2 3 4 5 6))]
     (is (php/preg_match "/Diff:/" out) "Diff block is rendered")
     (is (php/preg_match "/- 1/" out) "item only in expected is prefixed with -")
     (is (php/preg_match "/\\+ 6/" out) "item only in actual is prefixed with +")))
@@ -100,8 +100,8 @@
 
 (deftest test-nested-map-diff-prints-inner-readable-form
   (let [out (run-default-reporter
-              {:a {:x 1 :y 2 :z 3} :b 2 :c [1 2 3 4] :d "kept"}
-              {:a {:x 1 :y 99 :z 3} :b 2 :c [1 2 9 4] :d "kept"})]
+             {:a {:x 1 :y 2 :z 3} :b 2 :c [1 2 3 4] :d "kept"}
+             {:a {:x 1 :y 99 :z 3} :b 2 :c [1 2 9 4] :d "kept"})]
     (is (php/preg_match "/Diff:/" out)
         "outer Diff block is rendered for the top-level map")
     (is (php/preg_match "/~ :a/" out)
@@ -119,14 +119,14 @@
   (let [rep   (t/resolve-reporter :default)
         equal (vec (range 5))
         out   (with-output-buffer
-                (rep {:type :begin-test-run})
-                (rep {:type :binary :state :failed
-                      :pred 'not= :expected equal :actual 'actual-form
-                      :result equal
-                      :form '(not= expected actual)
-                      :location {:file "diff.phel" :line 1}})
-                (rep {:type :summary :total 1 :pass 0 :failed 1 :error 0
-                      :failures []}))]
+               (rep {:type :begin-test-run})
+               (rep {:type :binary :state :failed
+                     :pred 'not= :expected equal :actual 'actual-form
+                     :result equal
+                     :form '(not= expected actual)
+                     :location {:file "diff.phel" :line 1}})
+               (rep {:type :summary :total 1 :pass 0 :failed 1 :error 0
+                     :failures []}))]
     (is (= 0 (php/preg_match "/Diff:/" out))
         "no diff block for not= failures: the values are equal")))
 
@@ -149,8 +149,8 @@
   ;; Phel's default comparator refuses to sort across keyword/string/int
   ;; together. The diff sorts on the readable form so it stays robust.
   (let [out (run-default-reporter
-              {:a 1 "b" 2 3 :three :extra 9}
-              {:a 1 "b" 99 3 :three :other 7})]
+             {:a 1 "b" 2 3 :three :extra 9}
+             {:a 1 "b" 99 3 :three :other 7})]
     (is (php/preg_match "/Diff:/" out)
         "diff renders for maps with mixed-type keys")
     (is (php/preg_match "/~ \"b\" 2 -> 99/" out)

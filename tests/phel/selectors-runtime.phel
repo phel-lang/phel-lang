@@ -21,7 +21,7 @@
                                (conj (vec (:reporters options)) capture))]
     (t/reset-stats)
     (with-output-buffer
-      (t/run-tests run-options fixture-ns))
+     (t/run-tests run-options fixture-ns))
     (let [snapshot (t/get-stats)]
       (t/set-reporters! saved-reporters)
       (t/restore-stats saved-stats)
@@ -59,8 +59,8 @@
         capture         (fn [e] (swap! events conj e))]
     (t/reset-stats)
     (with-output-buffer
-      (t/run-tests {:reporters [capture]} fixture-ns)
-      (t/run-tests {:reporters [capture]} fixture-ns))
+     (t/run-tests {:reporters [capture]} fixture-ns)
+     (t/run-tests {:reporters [capture]} fixture-ns))
     (let [summaries (events-of (deref events) :summary)]
       (t/set-reporters! saved-reporters)
       (t/restore-stats saved-stats)

@@ -17,16 +17,16 @@
 (deftest class-info-shape
   (let [info (r/class-info "DateTime")]
     (testing "carries the canonical key set"
-      (is (contains? info :name))
-      (is (contains? info :methods))
-      (is (contains? info :properties))
-      (is (contains? info :parents))
-      (is (contains? info :interfaces)))
+             (is (contains? info :name))
+             (is (contains? info :methods))
+             (is (contains? info :properties))
+             (is (contains? info :parents))
+             (is (contains? info :interfaces)))
     (testing "values are persistent collections, not raw PHP arrays"
-      (is (vector? (get info :methods)))
-      (is (vector? (get info :properties)))
-      (is (vector? (get info :parents)))
-      (is (vector? (get info :interfaces))))))
+             (is (vector? (get info :methods)))
+             (is (vector? (get info :properties)))
+             (is (vector? (get info :parents)))
+             (is (vector? (get info :interfaces))))))
 
 (deftest methods-returns-rich-maps
   (let [ms     (r/methods "DateTime")

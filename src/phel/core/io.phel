@@ -443,9 +443,9 @@
          (do
            (foreach [~v-sym ~x-sym ~m-sym]
              (php/:: \Phel
-                    (setVar (php/-> ~v-sym (getNamespace))
-                            (php/-> ~v-sym (getName))
-                            ~x-sym)))
+                     (setVar (php/-> ~v-sym (getNamespace))
+                             (php/-> ~v-sym (getName))
+                             ~x-sym)))
            (php/:: \Phel (commitAndRunBindingFrame (fn [] ~@body))))
          (finally
            (php/:: \Phel (abortBindingFrameIfOpen)))))))

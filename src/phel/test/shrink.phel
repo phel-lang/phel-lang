@@ -23,7 +23,7 @@
 
 (defn- shrink-string-tree [s]
   (let [chars      (into [] (for [i :range [0 (php/strlen s)]]
-                         (php/substr s i 1)))
+                              (php/substr s i 1)))
         char-trees (into [] (map r/rose-pure chars))]
     (r/rose-string char-trees)))
 

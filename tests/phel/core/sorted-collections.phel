@@ -33,8 +33,8 @@
   (is (hash-map? (sorted-map :a 1)) "hash-map? returns true for sorted map"))
 
 (deftest test-sorted-map-merge
-  (let [m1 (sorted-map 1 "a" 3 "c")
-        m2 (sorted-map 2 "b" 4 "d")
+  (let [m1     (sorted-map 1 "a" 3 "c")
+        m2     (sorted-map 2 "b" 4 "d")
         merged (php/-> m1 (merge m2))]
     (is (= [1 2 3 4] (keys merged)) "map merge maintains order")))
 

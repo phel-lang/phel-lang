@@ -6,20 +6,20 @@
   (php/instanceof x \DateTimeImmutable))
 
 (deftest test-inst-returns-datetime
-  (let [dt #inst "2026-04-20T12:00:00Z"]
+  (let [dt #inst"2026-04-20T12:00:00Z"]
     (is (datetime? dt))
     (is (= "2026-04-20T12:00:00+00:00" (php/-> dt (format "c"))))))
 
 (deftest test-inst-defaults-to-utc
-  (let [dt #inst "2026-04-20T12:00:00"]
+  (let [dt #inst"2026-04-20T12:00:00"]
     (is (= "+00:00" (php/-> dt (format "P"))))))
 
 (deftest test-uuid-regression
   (is (= "550e8400-e29b-41d4-a716-446655440000"
-         (str #uuid "550E8400-E29B-41D4-A716-446655440000"))))
+         (str #uuid"550E8400-E29B-41D4-A716-446655440000"))))
 
 (deftest test-regex-literal-tag
-  (is (= "/[a-z]+/" #regex "[a-z]+")))
+  (is (= "/[a-z]+/" #regex"[a-z]+")))
 
 (deftest test-tag-registered
   (is (reader/tag-registered? "inst"))

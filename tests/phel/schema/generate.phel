@@ -8,9 +8,9 @@
 (defn- generates-valid? [schema n]
   (loop [i 0]
     (cond
-      (>= i n) true
+      (>= i n)                                      true
       (not (s/validate schema (s/generate schema))) false
-      :else (recur (+ i 1)))))
+      :else                                         (recur (+ i 1)))))
 
 (deftest test-generate-scalar-kinds
   (is (generates-valid? :int 20))
@@ -45,7 +45,7 @@
         (recur (+ i 1))))))
 
 (deftest test-generate-enum
-  (let [schema [:enum :red :green :blue]
+  (let [schema  [:enum :red :green :blue]
         samples (into [] (for [_ :range [0 30]] (s/generate schema)))]
     (is (every? (fn [v] (s/validate schema v)) samples))))
 
@@ -84,6 +84,6 @@
 
 (deftest test-generate-reproducible-with-seed
   (let [schema :int
-        a (s/generate schema {:seed 42})
-        b (s/generate schema {:seed 42})]
+        a      (s/generate schema {:seed 42})
+        b      (s/generate schema {:seed 42})]
     (is (= a b) "same seed -> same value")))

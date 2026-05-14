@@ -143,13 +143,13 @@
     (require '[phel\\string :as str :refer [blank?]])"
   {:example "(require '[phel\\string :as str]) ; => phel\\string"}
   [sym & args]
-  (let [unquoted        (unquote-sym sym)
+  (let [unquoted         (unquote-sym sym)
         [ns-sym opt-seq] (if (vector? unquoted)
                            [(first unquoted) (or (next unquoted) [])]
                            [unquoted args])
-        options         (apply hash-map opt-seq)
-        alias           (extract-alias ns-sym options)
-        refers          (or (:refer options) [])]
+        options          (apply hash-map opt-seq)
+        alias            (extract-alias ns-sym options)
+        refers           (or (:refer options) [])]
     `(require-namespace '~ns-sym '~alias '~refers)))
 
 (defn- use-namespace

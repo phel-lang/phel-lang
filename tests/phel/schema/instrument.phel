@@ -51,14 +51,14 @@
 
 (deftest test-instrument-and-unstrument
   (testing "instrument! returns wrapped fn"
-    (let [wrapped (s/instrument! :add bare-add [:=> [:int :int] :int])]
-      (is (= 7 (wrapped 3 4)))))
+           (let [wrapped (s/instrument! :add bare-add [:=> [:int :int] :int])]
+             (is (= 7 (wrapped 3 4)))))
   (testing "instrumented? reflects state"
-    (is (s/instrumented? :add)))
+           (is (s/instrumented? :add)))
   (testing "unstrument! returns the original"
-    (let [original (s/unstrument! :add)]
-      (is (= 5 (original 2 3))))
-    (is (not (s/instrumented? :add)))))
+           (let [original (s/unstrument! :add)]
+             (is (= 5 (original 2 3))))
+           (is (not (s/instrumented? :add)))))
 
 (deftest test-wrap-with-schema-arity-mismatch
   (let [wrapped (s/wrap-with-schema bare-add [:int :int] :int)
@@ -89,7 +89,7 @@
   (s/set-schema-check! true)
   (let [caught (try
                  (s/with-schema-check false
-                   (fn [] (throw (php/new \RuntimeException "oops"))))
+                                      (fn [] (throw (php/new \RuntimeException "oops"))))
                  :no-throw
                  (catch \RuntimeException _ :caught))]
     (is (= :caught caught))

@@ -190,7 +190,7 @@
         "(rand) returns a number in [0, 1)")))
 
 (deftest test-rand-with-limit-bounds
-  (let [limit 0.01
+  (let [limit   0.01
         samples (repeatedly 200 #(rand limit))]
     (is (every? #(and (>= % 0) (< % limit)) samples)
         "(rand n) returns a number in [0, n)")))
@@ -474,7 +474,7 @@
     (is (false? (= 6 b)) "(= int bigint) is false on mismatch")))
 
 (deftest test-equality-bigint-large-symmetric
-  (let [big (php/:: \Phel\Lang\BigInteger (fromString "1000000000000000000000000"))
+  (let [big     (php/:: \Phel\Lang\BigInteger (fromString "1000000000000000000000000"))
         product (* 100000000 100000000 100000000)]
     (is (= big product) "(= bigint product) is true when values match")
     (is (= product big) "(= product bigint) is true when values match")))

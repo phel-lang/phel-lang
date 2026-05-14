@@ -6,7 +6,7 @@
 
 (deftest test-nested-php-object-call
   (let [xml-string "<root><user id='1'><name>John</name></user></root>"
-        xml (php/new \SimpleXMLElement xml-string)]
+        xml        (php/new \SimpleXMLElement xml-string)]
     (is (= "John" (str (php/-> xml user name))))))
 
 (deftest test-def-duplication

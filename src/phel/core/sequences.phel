@@ -155,7 +155,7 @@
 
   ([coll index not-found]
    (cond
-     (nil? coll)          not-found
+     (nil? coll)            not-found
 
      (php/is_string coll)
      (if (in-bounds? index (php/mb_strlen coll "UTF-8"))

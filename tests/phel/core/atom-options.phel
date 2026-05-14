@@ -23,7 +23,7 @@
     (is (= 0 (deref a)) "atom :validator does not change value")))
 
 (deftest test-atom-validator-rejects-on-set
-  (let [a (atom 0 :validator even?)
+  (let [a         (atom 0 :validator even?)
         rejected? (atom false)]
     (try
       (reset! a 3)

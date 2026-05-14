@@ -44,10 +44,10 @@
 
 (deftest test-future-lifecycle-helpers-are-available-without-require
   (let [result (await (async
-                        (let [f (future (do (php/amp\delay 0.5) 42))]
-                          (future-cancel f)
-                          {:cancelled (future-cancelled? f)
-                           :done      (future-done? f)})))]
+                       (let [f (future (do (php/amp\delay 0.5) 42))]
+                         (future-cancel f)
+                         {:cancelled (future-cancelled? f)
+                          :done      (future-done? f)})))]
     (is (= true (get result :cancelled)) "future-cancelled? in core")
     (is (= true (get result :done)) "future-done? in core")))
 

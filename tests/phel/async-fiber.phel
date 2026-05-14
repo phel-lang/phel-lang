@@ -25,12 +25,12 @@
     (is (nil? (deliver p 8)) "deliver returns nil when already delivered")))
 
 (deftest test-deref-with-timeout-returns-fallback
-  (let [p (promise)
+  (let [p      (promise)
         result (deref p 5 :timeout)]
     (is (= :timeout result) "deref with timeout returns fallback when unrealized")))
 
 (deftest test-deref-with-zero-timeout
-  (let [p (promise)
+  (let [p      (promise)
         result (deref p 0 :fallback)]
     (is (= :fallback result) "deref with zero timeout returns fallback immediately")))
 

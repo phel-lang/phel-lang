@@ -217,19 +217,19 @@
   (if (not (map? value))
     false
     (let [keys-ok?  (loop [es (seq entries)]
-                     (cond
-                       (nil? es) true
-                       :else
-                       (let [entry (first es)
-                             k     (get entry 0)
-                             inner (map-entry-schema entry)
-                             opt?  (map-entry-optional? entry)]
-                         (cond
-                           (not (contains? value k))
-                           (if opt? (recur (next es)) false)
-                           (not (valid? inner (get value k)))
-                           false
-                           :else                              (recur (next es))))))
+                      (cond
+                        (nil? es) true
+                        :else
+                        (let [entry (first es)
+                              k     (get entry 0)
+                              inner (map-entry-schema entry)
+                              opt?  (map-entry-optional? entry)]
+                          (cond
+                            (not (contains? value k))
+                            (if opt? (recur (next es)) false)
+                            (not (valid? inner (get value k)))
+                            false
+                            :else                              (recur (next es))))))
           extra-ok? (if closed?
                       (let [declared (into (hash-set) (map (fn [e] (get e 0)) entries))]
                         (loop [ks (seq (keys value))]
@@ -288,20 +288,20 @@
       :map-of (validate-map-of value (get args 0) (get args 1))
       :tuple  (validate-tuple value args)
       :map    (validate-map value args
-                             (true? (get (schema-options schema) :closed)))
+                            (true? (get (schema-options schema) :closed)))
       :enum   (validate-enum value args)
       :and    (validate-and value args)
       :or     (validate-or value args)
       :maybe  (or (nil? value) (valid? (get args 0) value))
       :re     (valid-regex? (get args 0) value)
       :fn     (try
-                 (boolean ((get args 0) value))
-                 (catch \Throwable _ false))
+                (boolean ((get args 0) value))
+                (catch \Throwable _ false))
       :ref    (let [target (reg/deref-ref (get args 0))]
-                 (when (nil? target)
-                   (throw (php/new \InvalidArgumentException
-                                   (str "schema ref not registered: " (get args 0)))))
-                 (valid? target value))
+                (when (nil? target)
+                  (throw (php/new \InvalidArgumentException
+                                  (str "schema ref not registered: " (get args 0)))))
+                (valid? target value))
       :=>     true
       (resolve-or-throw "unknown schema kind" head
                         (fn [target] (valid? target value))))))

@@ -42,7 +42,7 @@
       ":or works in fn parameter destructuring")
   ;; :or works in defn destructuring
   (is (= 7 (let [f (fn [{:keys [a b] :or {b 3}}] (+ a b))]
-              (f {:a 4})))
+             (f {:a 4})))
       ":or works in defn-style destructuring"))
 
 (deftest destructure-hash-map-strs

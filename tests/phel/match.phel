@@ -4,19 +4,19 @@
 
 (deftest test-literal-patterns
   (testing "integers"
-    (is (= :one   (match [1]   [1] :one :else :else))     "match int")
-    (is (= :else  (match [2]   [1] :one :else :else))     "no match int"))
+           (is (= :one   (match [1]   [1] :one :else :else))     "match int")
+           (is (= :else  (match [2]   [1] :one :else :else))     "no match int"))
   (testing "strings"
-    (is (= :hi    (match ["x"] ["x"] :hi :else :else))    "match string")
-    (is (= :else  (match ["y"] ["x"] :hi :else :else))    "no match string"))
+           (is (= :hi    (match ["x"] ["x"] :hi :else :else))    "match string")
+           (is (= :else  (match ["y"] ["x"] :hi :else :else))    "no match string"))
   (testing "keywords"
-    (is (= :kw    (match [:a]  [:a] :kw :else :else))     "match keyword")
-    (is (= :else  (match [:b]  [:a] :kw :else :else))     "no match keyword"))
+           (is (= :kw    (match [:a]  [:a] :kw :else :else))     "match keyword")
+           (is (= :else  (match [:b]  [:a] :kw :else :else))     "no match keyword"))
   (testing "booleans and nil"
-    (is (= :t     (match [true]  [true]  :t :else :else)) "match true")
-    (is (= :f     (match [false] [false] :f :else :else)) "match false")
-    (is (= :n     (match [nil]   [nil]   :n :else :else)) "match nil")
-    (is (= :else  (match [nil]   [false] :n :else :else)) "false and nil are distinct")))
+           (is (= :t     (match [true]  [true]  :t :else :else)) "match true")
+           (is (= :f     (match [false] [false] :f :else :else)) "match false")
+           (is (= :n     (match [nil]   [nil]   :n :else :else)) "match nil")
+           (is (= :else  (match [nil]   [false] :n :else :else)) "false and nil are distinct")))
 
 (deftest test-wildcard
   (is (= :any (match [42]  [_] :any :else :else))   "wildcard matches int")
@@ -29,17 +29,17 @@
 
 (deftest test-vector-pattern
   (testing "fixed length"
-    (is (= 15 (match [[5 10]] [[a b]] (+ a b) :else :else)) "two-element destructure")
-    (is (= :else (match [[1 2 3]] [[a b]] :matched :else :else)) "length mismatch falls through")
-    (is (= :else (match [[1]]     [[a b]] :matched :else :else)) "too-short falls through"))
+           (is (= 15 (match [[5 10]] [[a b]] (+ a b) :else :else)) "two-element destructure")
+           (is (= :else (match [[1 2 3]] [[a b]] :matched :else :else)) "length mismatch falls through")
+           (is (= :else (match [[1]]     [[a b]] :matched :else :else)) "too-short falls through"))
   (testing "ignore vs bind"
-    (is (= 4 (match [[1 2 3]] [[a _ b]] (+ a b) :else :else)) "wildcard mid-vector binds around it"))
+           (is (= 4 (match [[1 2 3]] [[a _ b]] (+ a b) :else :else)) "wildcard mid-vector binds around it"))
   (testing "non-vector target"
-    (is (= :else (match ["abc"] [[a b c]] :matched :else :else)) "string is not a vector")
-    (is (= :else (match [nil]   [[a]]     :matched :else :else)) "nil is not a vector"))
+           (is (= :else (match ["abc"] [[a b c]] :matched :else :else)) "string is not a vector")
+           (is (= :else (match [nil]   [[a]]     :matched :else :else)) "nil is not a vector"))
   (testing "list target still matches"
-    (is (= [1 2 3] (match [(list 1 2 3)] [[a b c]] [a b c] :else :else))
-        "vector pattern matches lists too")))
+           (is (= [1 2 3] (match [(list 1 2 3)] [[a b c]] [a b c] :else :else))
+               "vector pattern matches lists too")))
 
 (deftest test-nested-vector
   (is (= [1 2 3 4] (match [[[1 2] [3 4]]] [[[a b] [c d]]] [a b c d] :else :else))
@@ -51,48 +51,48 @@
 
 (deftest test-map-pattern
   (testing "key presence"
-    (is (= 3 (match [{:x 1 :y 2}] [{:x a :y b}] (+ a b) :else :else)) "both keys present")
-    (is (= :else (match [{:x 1}] [{:x a :y b}] :matched :else :else)) "missing key falls through")
-    (is (= 1 (match [{:x 1 :z 99}] [{:x a}] a :else :else)) "extra keys ignored"))
+           (is (= 3 (match [{:x 1 :y 2}] [{:x a :y b}] (+ a b) :else :else)) "both keys present")
+           (is (= :else (match [{:x 1}] [{:x a :y b}] :matched :else :else)) "missing key falls through")
+           (is (= 1 (match [{:x 1 :z 99}] [{:x a}] a :else :else)) "extra keys ignored"))
   (testing "non-map target"
-    (is (= :else (match [[1 2]] [{:x a}] :matched :else :else)) "vector is not a map")
-    (is (= :else (match [nil]   [{:x a}] :matched :else :else)) "nil is not a map"))
+           (is (= :else (match [[1 2]] [{:x a}] :matched :else :else)) "vector is not a map")
+           (is (= :else (match [nil]   [{:x a}] :matched :else :else)) "nil is not a map"))
   (testing "nested map"
-    (is (= 2 (match [{:user {:id 1 :count 2}}]
-                    [{:user {:id _ :count c}}] c :else :else)))))
+           (is (= 2 (match [{:user {:id 1 :count 2}}]
+                           [{:user {:id _ :count c}}] c :else :else)))))
 
 (deftest test-guard-pattern
   (testing "predicate pass/fail"
-    (is (= 5  (match [5]  [(x :guard pos?)] x :else :else))     "guard passes")
-    (is (= :else (match [-3] [(x :guard pos?)] x :else :else))  "guard fails falls through")
-    (is (= :neg (match [-3]
-                       [(x :guard pos?)] :pos
-                       [(x :guard neg?)] :neg
-                       :else :else))
-        "second guard matches"))
+           (is (= 5  (match [5]  [(x :guard pos?)] x :else :else))     "guard passes")
+           (is (= :else (match [-3] [(x :guard pos?)] x :else :else))  "guard fails falls through")
+           (is (= :neg (match [-3]
+                              [(x :guard pos?)] :pos
+                              [(x :guard neg?)] :neg
+                              :else :else))
+               "second guard matches"))
   (testing "guard uses bound symbol"
-    (is (= 20 (match [10] [(x :guard (fn [v] (> v 5)))] (* 2 x) :else :else))))
+           (is (= 20 (match [10] [(x :guard (fn [v] (> v 5)))] (* 2 x) :else :else))))
   (testing "guard on wildcard"
-    (is (= :ok (match [42] [(_ :guard even?)] :ok :else :else))
-        "guard composes with wildcard")))
+           (is (= :ok (match [42] [(_ :guard even?)] :ok :else :else))
+               "guard composes with wildcard")))
 
 (deftest test-as-pattern
   (testing "binds whole value"
-    (is (= [1 2 [1 2]] (match [[1 2]] [([a b] :as v)] [a b v] :else :else)))
-    (is (= {:x 1 :y 2} (match [{:x 1 :y 2}]
-                              [({:x _ :y _} :as m)] m :else :else))))
+           (is (= [1 2 [1 2]] (match [[1 2]] [([a b] :as v)] [a b v] :else :else)))
+           (is (= {:x 1 :y 2} (match [{:x 1 :y 2}]
+                                     [({:x _ :y _} :as m)] m :else :else))))
   (testing ":as + shape mismatch still fails"
-    (is (= :else (match [[1]] [([a b] :as v)] v :else :else)))))
+           (is (= :else (match [[1]] [([a b] :as v)] v :else :else)))))
 
 (deftest test-or-pattern
   (testing "alternatives"
-    (is (= :ok (match [1] [(:or 1 2 3)] :ok :else :else))  "first alternative")
-    (is (= :ok (match [2] [(:or 1 2 3)] :ok :else :else))  "middle alternative")
-    (is (= :ok (match [3] [(:or 1 2 3)] :ok :else :else))  "last alternative")
-    (is (= :else (match [4] [(:or 1 2 3)] :ok :else :else)) "no alternative"))
+           (is (= :ok (match [1] [(:or 1 2 3)] :ok :else :else))  "first alternative")
+           (is (= :ok (match [2] [(:or 1 2 3)] :ok :else :else))  "middle alternative")
+           (is (= :ok (match [3] [(:or 1 2 3)] :ok :else :else))  "last alternative")
+           (is (= :else (match [4] [(:or 1 2 3)] :ok :else :else)) "no alternative"))
   (testing "mixed alternatives"
-    (is (= :kw (match [:a] [(:or :a :b)] :kw :else :else)))
-    (is (= :str (match ["x"] [(:or "x" "y")] :str :else :else)))))
+           (is (= :kw (match [:a] [(:or :a :b)] :kw :else :else)))
+           (is (= :str (match ["x"] [(:or "x" "y")] :str :else :else)))))
 
 (deftest test-rest-binding
   (is (= [1 [2 3 4 5]] (match [[1 2 3 4 5]] [[a & more]] [a more] :else :else))
@@ -178,51 +178,51 @@
 
 (deftest test-deeply-nested-patterns
   (testing "three levels of vector nesting"
-    (is (= [1 2 3 4]
-           (match [[[1 [2 [3 [4]]]]]]
-                  [[[a [b [c [d]]]]]] [a b c d]
-                  :else :else))
-        "triple-nested vectors destructure to leaves"))
+           (is (= [1 2 3 4]
+                  (match [[[1 [2 [3 [4]]]]]]
+                         [[[a [b [c [d]]]]]] [a b c d]
+                         :else :else))
+               "triple-nested vectors destructure to leaves"))
   (testing "map-inside-vector-inside-map"
-    (is (= [:root 1 2]
-           (match [{:tag :root :cells [{:id 1} {:id 2}]}]
-                  [{:tag t :cells [{:id a} {:id b}]}] [t a b]
-                  :else :else))
-        "three-level mixed structure"))
+           (is (= [:root 1 2]
+                  (match [{:tag :root :cells [{:id 1} {:id 2}]}]
+                         [{:tag t :cells [{:id a} {:id b}]}] [t a b]
+                         :else :else))
+               "three-level mixed structure"))
   (testing "nested :or inside vector"
-    (is (= :hit (match [[:a]] [[(:or :a :b)]] :hit :else :else))
-        "or alternative inside outer vector"))
+           (is (= :hit (match [[:a]] [[(:or :a :b)]] :hit :else :else))
+               "or alternative inside outer vector"))
   (testing "nested guard inside map"
-    (is (= :ok
-           (match [{:n 7}]
-                  [{:n (x :guard odd?)}] :ok
-                  :else :else))
-        "guard survives map destructure"))
+           (is (= :ok
+                  (match [{:n 7}]
+                         [{:n (x :guard odd?)}] :ok
+                         :else :else))
+               "guard survives map destructure"))
   (testing "nested as inside vector with outer pattern"
-    (is (= [:k [1 2]]
-           (match [[:k [1 2]]]
-                  [[tag ([a b] :as inner)]] [tag inner]
-                  :else :else)))))
+           (is (= [:k [1 2]]
+                  (match [[:k [1 2]]]
+                         [[tag ([a b] :as inner)]] [tag inner]
+                         :else :else)))))
 
 (deftest test-pattern-fall-through-to-else
   (testing "vector shape mismatch hits :else"
-    (is (= :else
-           (match [42]
-                  [[a]] :vector
-                  [{:k _}] :map
-                  :else :else))
-        "int is neither vector nor map"))
+           (is (= :else
+                  (match [42]
+                         [[a]] :vector
+                         [{:k _}] :map
+                         :else :else))
+               "int is neither vector nor map"))
   (testing "every clause shape-fails"
-    (is (= :fallback
-           (match [nil]
-                  [[_ _]] :two-vec
-                  [[_]] :one-vec
-                  [{:a _}] :map
-                  :else :fallback))
-        "nil falls through all structural clauses"))
+           (is (= :fallback
+                  (match [nil]
+                         [[_ _]] :two-vec
+                         [[_]] :one-vec
+                         [{:a _}] :map
+                         :else :fallback))
+               "nil falls through all structural clauses"))
   (testing "rest-binding does not match non-sequential"
-    (is (= :else (match ["abc"] [[a & r]] :seq :else :else))
-        "string target against vector pattern with rest")))
+           (is (= :else (match ["abc"] [[a & r]] :seq :else :else))
+               "string target against vector pattern with rest")))
 
 (deftest test-empty-target-vector
   ;; A zero-target match is legal — the pattern list must also be zero-length.
@@ -235,18 +235,18 @@
 
 (deftest test-or-pattern-shape-mix
   (testing ":or with literal alternatives of different scalar types"
-    (is (= :ok (match [nil] [(:or nil false 0)] :ok :else :else))
-        "nil alternative matches")
-    (is (= :ok (match [false] [(:or nil false 0)] :ok :else :else))
-        "false alternative matches")
-    (is (= :ok (match [0] [(:or nil false 0)] :ok :else :else))
-        "zero alternative matches")
-    (is (= :else (match [1] [(:or nil false 0)] :ok :else :else))
-        "no alternative matches"))
+           (is (= :ok (match [nil] [(:or nil false 0)] :ok :else :else))
+               "nil alternative matches")
+           (is (= :ok (match [false] [(:or nil false 0)] :ok :else :else))
+               "false alternative matches")
+           (is (= :ok (match [0] [(:or nil false 0)] :ok :else :else))
+               "zero alternative matches")
+           (is (= :else (match [1] [(:or nil false 0)] :ok :else :else))
+               "no alternative matches"))
   (testing ":or requires at least one alternative"
-    (is (thrown? \InvalidArgumentException
-                 (macroexpand-1 '(phel.match/match [1] [(:or)] :x :else :y)))
-        "empty :or raises at expansion")))
+           (is (thrown? \InvalidArgumentException
+                        (macroexpand-1 '(phel.match/match [1] [(:or)] :x :else :y)))
+               "empty :or raises at expansion")))
 
 (deftest test-or-pattern-rejects-binding-alternatives
   (is (thrown? \InvalidArgumentException
@@ -255,29 +255,29 @@
 
 (deftest test-as-pattern-bindings-accumulate
   (testing ":as plus nested vector binding both resolve"
-    (is (= [1 2 [1 2]]
-           (match [[1 2]] [([a b] :as whole)] [a b whole] :else :else))
-        "whole binding plus inner bindings")))
+           (is (= [1 2 [1 2]]
+                  (match [[1 2]] [([a b] :as whole)] [a b whole] :else :else))
+               "whole binding plus inner bindings")))
 
 (deftest test-guard-with-nested-destructure
   (testing "guard predicate sees bindings from nested patterns"
-    (is (= [:pair 3 4]
-           (match [[3 4]]
-                  [([a b] :guard (fn [v] (> (get v 0) 0)))] [:pair a b]
-                  :else :else))
-        "guard runs after inner bindings")))
+           (is (= [:pair 3 4]
+                  (match [[3 4]]
+                         [([a b] :guard (fn [v] (> (get v 0) 0)))] [:pair a b]
+                         :else :else))
+               "guard runs after inner bindings")))
 
 (deftest test-rest-binding-with-wildcards
   (testing "rest works after wildcard head"
-    (is (= [:ok [2 3]]
-           (match [[1 2 3]] [[_ & tail]] [:ok tail] :else :else))))
+           (is (= [:ok [2 3]]
+                  (match [[1 2 3]] [[_ & tail]] [:ok tail] :else :else))))
   (testing "rest position must be symbol"
-    (is (thrown? \InvalidArgumentException
-                 (macroexpand-1 '(phel.match/match [[1 2]] [[a & 3]] :x :else :y)))
-        "non-symbol rest binding raises")
-    (is (thrown? \InvalidArgumentException
-                 (macroexpand-1 '(phel.match/match [[1 2]] [[a & b c]] :x :else :y)))
-        "multiple items after & raises")))
+           (is (thrown? \InvalidArgumentException
+                        (macroexpand-1 '(phel.match/match [[1 2]] [[a & 3]] :x :else :y)))
+               "non-symbol rest binding raises")
+           (is (thrown? \InvalidArgumentException
+                        (macroexpand-1 '(phel.match/match [[1 2]] [[a & b c]] :x :else :y)))
+               "multiple items after & raises")))
 
 (deftest test-map-pattern-with-string-keys
   (is (= 7 (match [{"x" 3 "y" 4}] [{"x" a "y" b}] (+ a b) :else :else))
@@ -285,6 +285,6 @@
 
 (deftest test-match-inside-function
   (testing "match macro expands cleanly when wrapped in fn"
-    (let [classify (fn [v] (match [v] [0] :zero [_] :nonzero))]
-      (is (= :zero (classify 0)))
-      (is (= :nonzero (classify 42))))))
+           (let [classify (fn [v] (match [v] [0] :zero [_] :nonzero))]
+             (is (= :zero (classify 0)))
+             (is (= :nonzero (classify 42))))))

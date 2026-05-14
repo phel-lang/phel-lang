@@ -543,7 +543,7 @@
       (is (= {"a" [1 {"b" 2}]} (php->phel arr)) "phel->php -> php->phel roundtrip"))))
 
 (deftest test-php-phel-roundtrip
-  (let [m (php/array)
+  (let [m     (php/array)
         inner (php/array)]
     (php/aset inner "b" 2)
     (php/aset m "a" (php/array 1 inner))

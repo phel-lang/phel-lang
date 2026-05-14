@@ -25,7 +25,7 @@
     (is (queue? q) "conj on queue returns a queue")
     (is (= 1 (peek q)) "front is unchanged after conj")
     (is (= 4 (count (conj (queue 1 2 3) 4))) "conj increases count"))
-  (let [drained (loop [q (conj (queue 1 2) 3 4)
+  (let [drained (loop [q   (conj (queue 1 2) 3 4)
                        out []]
                   (if (= 0 (count q))
                     out
@@ -40,7 +40,7 @@
       "queue built via conj equals queue built via constructor"))
 
 (deftest test-queue-iteration
-  (let [seen (loop [q (queue :a :b :c)
+  (let [seen (loop [q   (queue :a :b :c)
                     acc []]
                (if (= 0 (count q))
                  acc

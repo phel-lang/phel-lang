@@ -188,17 +188,17 @@
   [coll value]
   (cond
     (php/=== coll nil)                            (list value)
-    (php/instanceof coll PersistentListInterface)  (cons value coll)
-    (php/instanceof coll LazySeqInterface)         (cons value coll)
-    (php/is_array coll)                            (do (php/apush coll value) coll)
-    (vector-target? coll)                          (php/-> coll (append value))
-    (set-target? coll)                             (php/-> coll (add value))
-    (map-target? coll)                             (conj-map-entry coll value)
+    (php/instanceof coll PersistentListInterface) (cons value coll)
+    (php/instanceof coll LazySeqInterface)        (cons value coll)
+    (php/is_array coll)                           (do (php/apush coll value) coll)
+    (vector-target? coll)                         (php/-> coll (append value))
+    (set-target? coll)                            (php/-> coll (add value))
+    (map-target? coll)                            (conj-map-entry coll value)
     ;; MapEntry degrades to a 3-vector when grown; the result is no longer
     ;; an entry. Matches Clojure's MapEntry under conj.
     (php/instanceof coll MapEntry)
     (php/-> [(php/-> coll (key)) (php/-> coll (value))] (append value))
-    (php/instanceof coll PushInterface)            (php/-> coll (push value))
+    (php/instanceof coll PushInterface)           (php/-> coll (push value))
     :else
     (throw (php/new InvalidArgumentException
                     (str "Cannot conj on type " (type coll))))))
@@ -285,7 +285,7 @@
   [ds ks & [opt]]
   (if (empty? ks)
     ds
-    (loop [res ds
+    (loop [res  ds
            path ks]
       (cond
         (empty? path)
@@ -393,12 +393,12 @@
   [coll]
   (cond
     (or (php/=== coll nil) (empty? coll)) nil
-    (seq? coll) (loop [s coll]
-                  (let [n (next s)]
-                    (if (nil? n)
-                      (first s)
-                      (recur n))))
-    :else (peek coll)))
+    (seq? coll)                           (loop [s coll]
+                                            (let [n (next s)]
+                                              (if (nil? n)
+                                                (first s)
+                                                (recur n))))
+    :else                                 (peek coll)))
 
 (defn butlast
   "Returns all but the last item in `coll`. Returns `nil` when `coll` is
@@ -505,7 +505,7 @@
     1 (let [coll (first args)
             s    (seq coll)]
         (cond
-          (nil? s)      []
+          (nil? s)     []
           (php/<= n 0) (copy-meta coll (lazy-seq-from-generator (php/:: Seq (repeat (first s)))))
           :else        (let [result (lazy-seq-from-generator (php/:: Seq (takeNth n coll)))]
                          (copy-meta coll (or result [])))))
@@ -836,10 +836,10 @@
     (fn [a b]
       (let [result (cmp a b)]
         (cond
-          (int? result)        result
-          result               -1
-          (cmp b a)            1
-          :else                0)))))
+          (int? result) result
+          result        -1
+          (cmp b a)     1
+          :else         0)))))
 
 (defn- sorted-vector
   [coll comp]
@@ -1137,7 +1137,7 @@
   (cond
     (nil? left)  (when-not (nil? right) (conj {} right))
     (nil? right) (if (map? left) left (conj left right))
-    :else (conj left right)))
+    :else        (conj left right)))
 
 (defn merge
   "Merges multiple maps into one new map.

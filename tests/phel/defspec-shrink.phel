@@ -29,17 +29,17 @@
   ;; Small helper duplicating what `defspec` does so this test file can
   ;; exercise the reporter path without registering its own deftests.
   (t/do-report
-    (merge
-      {:type          :defspec-failed
-       :test-name     name-str
-       :seed          (:seed outcome)
-       :num-tests     (:num-tests outcome)
-       :result        (:result outcome)
-       :args          (:args outcome)
-       :original-args (:original-args outcome)
-       :shrunk-args   (:shrunk-args outcome)
-       :shrink-steps  (:shrink-steps outcome)}
-      (when-let [ex (:exception outcome)] {:exception ex}))))
+   (merge
+    {:type          :defspec-failed
+     :test-name     name-str
+     :seed          (:seed outcome)
+     :num-tests     (:num-tests outcome)
+     :result        (:result outcome)
+     :args          (:args outcome)
+     :original-args (:original-args outcome)
+     :shrunk-args   (:shrunk-args outcome)
+     :shrink-steps  (:shrink-steps outcome)}
+    (when-let [ex (:exception outcome)] {:exception ex}))))
 
 (defn- run-spec-with-shrink [spec-name args-gen property options]
   (let [outcome (g/quick-check (or (:num-tests options) 50)
@@ -56,11 +56,11 @@
 
 (deftest test-defspec-shrinks-int-counterexample
   (let [ev (capture-defspec-failure
-             (fn []
-               (run-spec-with-shrink "failing-int"
-                                     (g/tuple g/int)
-                                     (fn [n] (< n 100))
-                                     {:seed 1 :size 1000 :num-tests 50})))]
+            (fn []
+              (run-spec-with-shrink "failing-int"
+                                    (g/tuple g/int)
+                                    (fn [n] (< n 100))
+                                    {:seed 1 :size 1000 :num-tests 50})))]
     (is (some? ev) "failure event was emitted")
     (is (= "failing-int" (:test-name ev)))
     (is (= [100] (:shrunk-args ev))
@@ -74,11 +74,11 @@
 
 (deftest test-defspec-shrinks-vector-counterexample
   (let [ev (capture-defspec-failure
-             (fn []
-               (run-spec-with-shrink "failing-vec"
-                                     (g/tuple (g/vector-of g/int))
-                                     (fn [_] false)
-                                     {:seed 1 :size 10 :num-tests 20})))]
+            (fn []
+              (run-spec-with-shrink "failing-vec"
+                                    (g/tuple (g/vector-of g/int))
+                                    (fn [_] false)
+                                    {:seed 1 :size 10 :num-tests 20})))]
     (is (some? ev))
     (is (= [[]] (:shrunk-args ev))
         "always-failing property shrinks to the empty vector")))
@@ -89,11 +89,11 @@
 
 (deftest test-defspec-shrink-option-false-skips-shrinking
   (let [ev (capture-defspec-failure
-             (fn []
-               (run-spec-with-shrink "no-shrink-option"
-                                     (g/tuple g/int)
-                                     (fn [_] false)
-                                     {:seed 1 :size 1000 :num-tests 20 :shrink? false})))]
+            (fn []
+              (run-spec-with-shrink "no-shrink-option"
+                                    (g/tuple g/int)
+                                    (fn [_] false)
+                                    {:seed 1 :size 1000 :num-tests 20 :shrink? false})))]
     (is (some? ev))
     (is (nil? (:shrunk-args ev)))
     (is (nil? (:original-args ev)))))
@@ -104,11 +104,11 @@
 
 (deftest test-defspec-passing-emits-no-failure-event
   (let [ev (capture-defspec-failure
-             (fn []
-               (run-spec-with-shrink "always-pass"
-                                     (g/tuple g/int)
-                                     (fn [_] true)
-                                     {:seed 1 :num-tests 20})))]
+            (fn []
+              (run-spec-with-shrink "always-pass"
+                                    (g/tuple g/int)
+                                    (fn [_] true)
+                                    {:seed 1 :num-tests 20})))]
     (is (nil? ev) "no :defspec-failed event is emitted on pass")))
 
 ;; -------------------------
@@ -116,9 +116,9 @@
 ;; -------------------------
 
 (g/defspec ^{:no-shrink true :skip true} _always-fails-no-shrink-disabled
-  {:num-tests 5 :seed 1 :size 1000}
-  (g/tuple g/int)
-  (fn [_] true))
+           {:num-tests 5 :seed 1 :size 1000}
+           (g/tuple g/int)
+           (fn [_] true))
 
 (deftest test-defspec-with-no-shrink-meta-compiles-and-registers
   ;; The macro honours `^:no-shrink` by threading `:shrink? false` into

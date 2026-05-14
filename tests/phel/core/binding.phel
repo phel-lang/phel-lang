@@ -24,13 +24,13 @@
 
 (deftest test-with-redefs-on-any-var
   (with-redefs [*my-redef-target* 99]
-    (is (= 99 *my-redef-target*) "with-redefs swaps the root for any var"))
+               (is (= 99 *my-redef-target*) "with-redefs swaps the root for any var"))
   (is (= 10 *my-redef-target*) "with-redefs restores the root on exit"))
 
 (deftest test-with-redefs-restores-on-throw
   (let [threw? (try
                  (with-redefs [*my-redef-target* 42]
-                   (throw (php/new \RuntimeException "boom")))
+                              (throw (php/new \RuntimeException "boom")))
                  false
                  (catch \Throwable _ true))]
     (is threw? "with-redefs lets the body's exception propagate")

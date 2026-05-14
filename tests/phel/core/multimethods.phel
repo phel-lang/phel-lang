@@ -28,13 +28,13 @@
 (defmulti area (fn [shape] (get shape :type)))
 
 (defmethod area :circle [shape]
-  (let [r (get shape :radius)]
-    (* r r)))
+           (let [r (get shape :radius)]
+             (* r r)))
 
 (defmethod area :rectangle [shape]
-  (let [w (get shape :width)
-        h (get shape :height)]
-    (* w h)))
+           (let [w (get shape :width)
+                 h (get shape :height)]
+             (* w h)))
 
 (deftest test-area-dispatch
   (is (= 9 (area {:type :circle :radius 3})) "circle area (r squared)")
@@ -75,8 +75,8 @@
 ;; --------------------------------
 
 (defmulti documented-area
-  "Area of a shape dispatched by :type."
-  (fn [shape] (get shape :type)))
+          "Area of a shape dispatched by :type."
+          (fn [shape] (get shape :type)))
 
 (defmethod documented-area :square [{:side s}] (* s s))
 

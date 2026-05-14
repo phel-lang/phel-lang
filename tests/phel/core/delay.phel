@@ -3,7 +3,7 @@
 
 (deftest test-delay-caches-result
   (let [counter (atom 0)
-        d (delay (swap! counter inc) 42)]
+        d       (delay (swap! counter inc) 42)]
     (is (= 42 (force d)) "force returns the value")
     (is (= 42 (force d)) "force returns cached value on second call")
     (is (= 1 (deref counter)) "body was only evaluated once")))

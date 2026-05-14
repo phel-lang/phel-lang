@@ -158,7 +158,7 @@
     (is (indexed? results) "find-fn returns a vector")))
 
 (deftest test-find-fn-results-have-required-keys
-  (let [results (find-fn "map")
+  (let [results      (find-fn "map")
         first-result (first results)]
     (is (not (nil? (get first-result :ns))) "result contains :ns key")
     (is (not (nil? (get first-result :name))) "result contains :name key")
@@ -172,7 +172,7 @@
 
 (deftest test-find-fn-searches-docstrings
   (let [results (find-fn "concatenat")
-        names (for [r :in results] (get r :name))]
+        names   (for [r :in results] (get r :name))]
     (is (> (count results) 0) "find-fn finds functions by docstring match")))
 
 ;; -------
@@ -251,8 +251,8 @@
 
 (deftest test-eval-str-def-defines-var
   (do (eval-str "(def test-eval-var 42)")
-    (is (= 42 (eval-str "test-eval-var"))
-        "eval-str def defines a var accessible in subsequent eval")))
+      (is (= 42 (eval-str "test-eval-var"))
+          "eval-str def defines a var accessible in subsequent eval")))
 
 (deftest test-eval-str-multiple-expressions
   (is (= 10 (eval-str "(+ 1 2) (+ 3 7)"))
@@ -338,7 +338,7 @@
     (is (not (= 'defn (first expanded))) "defn macro is expanded (head is no longer defn)")))
 
 (deftest test-macroexpand-1-form-non-macro-unchanged
-  (let [form '(php/+ 1 2)
+  (let [form     '(php/+ 1 2)
         expanded (macroexpand-1-form form)]
     (is (= form expanded) "non-macro form is returned unchanged")))
 
@@ -357,7 +357,7 @@
     (is (= 'def (first expanded)) "defn fully expands to def")))
 
 (deftest test-macroexpand-form-non-macro-unchanged
-  (let [form '(php/+ 1 2)
+  (let [form     '(php/+ 1 2)
         expanded (macroexpand-form form)]
     (is (= form expanded) "non-macro form is returned unchanged")))
 

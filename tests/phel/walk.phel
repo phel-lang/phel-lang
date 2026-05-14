@@ -1,7 +1,7 @@
 (ns phel-test.walk
   (:require phel.test :refer [deftest is])
   (:require phel.walk :refer [walk postwalk prewalk postwalk-replace
-                               prewalk-replace keywordize-keys stringify-keys]))
+                              prewalk-replace keywordize-keys stringify-keys]))
 
 (defstruct point [x y])
 
@@ -30,7 +30,7 @@
       "walk applies inner to set elements"))
 
 (deftest test-walk-struct
-  (let [p (point 1 2)
+  (let [p      (point 1 2)
         result (walk #(if (number? %) (inc %) %) identity p)]
     (is (= {:x 2 :y 3} result)
         "walk applies inner to struct values")))

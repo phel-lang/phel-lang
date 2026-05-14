@@ -35,8 +35,8 @@
   [& body]
   `(let [frame# (php/:: \Phel (snapshotDynamicBindings))]
      (php/amp\async
-       (fn []
-         (php/:: \Phel (withDynamicBindings frame# (fn [] ~@body)))))))
+      (fn []
+        (php/:: \Phel (withDynamicBindings frame# (fn [] ~@body)))))))
 
 (defn- unwrap-future
   "Returns the raw Amp\\Future for either a `PhelFuture` wrapper or

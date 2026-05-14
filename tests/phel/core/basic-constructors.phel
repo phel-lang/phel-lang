@@ -236,7 +236,7 @@
     (is (= 0 (php/count cloned)) "aclone of empty array is empty")))
 
 (deftest test-aclone-from-php-indexed-array
-  (let [src (php-indexed-array "a" "b" "c")
+  (let [src    (php-indexed-array "a" "b" "c")
         cloned (aclone src)]
     (is (php/is_array cloned) "aclone of php-indexed-array returns a PHP array")
     (is (= 3 (php/count cloned)) "aclone preserves length")
@@ -250,17 +250,17 @@
 
 (deftest test-alength
   (are [n arr] (= n (alength arr))
-    0 (object-array 0)
-    3 (object-array 3)
-    3 (int-array [1 2 3])
-    4 (php-indexed-array :a :b :c :d)))
+       0 (object-array 0)
+       3 (object-array 3)
+       3 (int-array [1 2 3])
+       4 (php-indexed-array :a :b :c :d)))
 
 (deftest test-alength-rejects-non-array
   (are [arr] (thrown? \InvalidArgumentException (alength arr))
-    [1 2 3]
-    nil
-    "abc"
-    {:a 1}))
+       [1 2 3]
+       nil
+       "abc"
+       {:a 1}))
 
 (deftest test-int-array-from-size
   (let [arr (int-array 3)]
@@ -391,23 +391,23 @@
     (is (= 3 (xs 2)) "list invocation supports other indices")))
 
 (deftest test-hash-map-put-17th-notice-issue-786
-  (let [m {""              1
-           "0Mlq3z"        1
-           "bTOQLr"        1
-           "P0dH3t"        1
-           "1238924228357" 1
-           "AB18924230123" 1
-           "BC1892423005"  1
-           "A7I8924230I8"  1
-           "987182423015"  1
-           "9871892423017" 1
-           "JF0010"        1
-           "JF1102"        1
-           "JF1017"        1
-           "JF1015"        1
-           "JF1260"        1
-           "JF1261"        1
-           "jiKUic"        1}
+  (let [m      {""              1
+                "0Mlq3z"        1
+                "bTOQLr"        1
+                "P0dH3t"        1
+                "1238924228357" 1
+                "AB18924230123" 1
+                "BC1892423005"  1
+                "A7I8924230I8"  1
+                "987182423015"  1
+                "9871892423017" 1
+                "JF0010"        1
+                "JF1102"        1
+                "JF1017"        1
+                "JF1015"        1
+                "JF1260"        1
+                "JF1261"        1
+                "jiKUic"        1}
         result (put m "PU4NVO" 1)]
     (is (= 18 (count result)))
     (is (= 1 (result "PU4NVO")))))

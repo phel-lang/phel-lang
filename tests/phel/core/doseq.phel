@@ -2,7 +2,7 @@
   (:require phel.test :refer [deftest is]))
 
 (deftest test-doseq-range-side-effects
-  (let [sum (atom 0)
+  (let [sum    (atom 0)
         result (doseq [x :range [0 3]]
                       (swap! sum + x))]
     (is (nil? result) "doseq returns nil")
@@ -49,7 +49,7 @@
         "doseq yields [k v] pair vectors when iterating a map"))
   (let [acc (atom {})]
     (doseq [[k v] {:a 0 :b 1}]
-      (swap! acc assoc k v))
+           (swap! acc assoc k v))
     (is (= {:a 0 :b 1} @acc)
         "doseq [k v] destructuring over a map with (swap! acc assoc k v)")))
 

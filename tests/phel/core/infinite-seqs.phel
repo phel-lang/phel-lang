@@ -137,7 +137,7 @@
       "filter on empty collection should return empty vector"))
 
 (deftest test-filter-preserves-metadata
-  (let [m {:foo "bar"}
+  (let [m    {:foo "bar"}
         data (set-meta! [1 2 3 4] m)]
     (is (= m (meta (filter even? data)))
         "filter should preserve metadata")))
@@ -163,7 +163,7 @@
       "take on empty collection should return empty vector"))
 
 (deftest test-take-preserves-metadata
-  (let [m {:foo "bar"}
+  (let [m    {:foo "bar"}
         data (set-meta! [1 2 3 4 5] m)]
     (is (= m (meta (take 3 data)))
         "take should preserve metadata")))
@@ -189,7 +189,7 @@
       "drop on empty collection should return empty vector"))
 
 (deftest test-drop-preserves-metadata
-  (let [m {:foo "bar"}
+  (let [m    {:foo "bar"}
         data (set-meta! [1 2 3 4 5] m)]
     (is (= m (meta (drop 2 data)))
         "drop should preserve metadata")))
@@ -215,7 +215,7 @@
       "drop-while should return full sequence when no elements match"))
 
 (deftest test-drop-while-preserves-metadata
-  (let [m {:foo "bar"}
+  (let [m    {:foo "bar"}
         data (set-meta! [1 2 3 4 5] m)]
     (is (= m (meta (drop-while #(< % 3) data)))
         "drop-while should preserve metadata")))
@@ -241,7 +241,7 @@
       "take-while should return full sequence when all elements match"))
 
 (deftest test-take-while-preserves-metadata
-  (let [m {:foo "bar"}
+  (let [m    {:foo "bar"}
         data (set-meta! [1 2 3 4 5] m)]
     (is (= m (meta (take-while #(< % 3) data)))
         "take-while should preserve metadata")))
@@ -273,7 +273,7 @@
       "take-nth with a negative step should repeat the first element lazily"))
 
 (deftest test-take-nth-preserves-metadata
-  (let [m {:foo "bar"}
+  (let [m    {:foo "bar"}
         data (set-meta! [1 2 3 4 5 6] m)]
     (is (= m (meta (take-nth 2 data)))
         "take-nth should preserve metadata")))

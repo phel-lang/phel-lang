@@ -9,7 +9,7 @@
 
 (deftest test-ex-info-with-cause
   (let [cause (php/new \Exception "root cause")
-        ex (ex-info "wrapped" {:code 42} cause)]
+        ex    (ex-info "wrapped" {:code 42} cause)]
     (is (= "wrapped" (ex-message ex)) "ex-message on wrapped exception")
     (is (= {:code 42} (ex-data ex)) "ex-data on wrapped exception")
     (is (= "root cause" (ex-message (ex-cause ex))) "ex-cause returns the original")))
@@ -20,7 +20,7 @@
            (throw (ex-info "boom" {:x 1}))
            (catch \Exception e
              "caught")))
-       "ex-info exception can be caught"))
+      "ex-info exception can be caught"))
 
 (deftest test-ex-data-on-caught-exception
   (is (= {:x 1}
@@ -28,7 +28,7 @@
            (throw (ex-info "boom" {:x 1}))
            (catch \Exception e
              (ex-data e))))
-       "ex-data works inside catch block"))
+      "ex-data works inside catch block"))
 
 (deftest test-ex-data-on-regular-exception
   (let [ex (php/new \Exception "plain")]

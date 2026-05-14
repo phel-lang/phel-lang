@@ -148,9 +148,9 @@
          (php/:: Phel (isDefined encoded-ns (core-munge-name raw-name)))
          (php/:: Phel (getDefinition encoded-ns (core-munge-name raw-name)))
 
-         true not-found))
+         true                                                            not-found))
 
-     true not-found)))
+     true                            not-found)))
 
 (defn find-var
   "Returns the `Var` named by the fully-qualified symbol, or nil if no
@@ -170,7 +170,7 @@
         (php/:: Phel (isDefined encoded-ns (core-munge-name raw-name)))
         (php/:: Phel (getVar encoded-ns (core-munge-name raw-name)))
 
-        true nil))))
+        true                                                            nil))))
 
 (defn ns-publics
   "Returns a hash-map of {name => value} for all public definitions in the

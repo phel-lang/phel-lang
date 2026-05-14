@@ -47,7 +47,7 @@
     (is (str-contains? result "\n") "nested structure wraps")))
 
 (deftest test-pprint-deeply-nested
-  (let [data {:a {:b {:c [1 2 3]}}}
+  (let [data   {:a {:b {:c [1 2 3]}}}
         result (pprint-str data 15)]
     (is (str-contains? result "\n") "deeply nested structure wraps")))
 

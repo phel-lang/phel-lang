@@ -29,8 +29,8 @@
 (deftest test-with-config-restores-original
   (let [original @ai/config]
     (ai/with-config {:provider :openai :model "gpt-4o"}
-      (is (= :openai (get @ai/config :provider)) "provider switched inside body")
-      (is (= "gpt-4o" (get @ai/config :model)) "model switched inside body"))
+                    (is (= :openai (get @ai/config :provider)) "provider switched inside body")
+                    (is (= "gpt-4o" (get @ai/config :model)) "model switched inside body"))
     (is (= (get original :provider) (get @ai/config :provider)) "provider restored")
     (is (= (get original :model) (get @ai/config :model)) "model restored")))
 
@@ -38,18 +38,18 @@
   (let [original @ai/config]
     (try
       (ai/with-config {:provider :openai}
-        (throw (php/new \RuntimeException "boom")))
+                      (throw (php/new \RuntimeException "boom")))
       (catch \RuntimeException _e nil))
     (is (= (get original :provider) (get @ai/config :provider)) "config restored after throw")))
 
 (deftest test-with-config-nests
   (let [original @ai/config]
     (ai/with-config {:provider :openai :model "gpt-4o"}
-      (is (= :openai (get @ai/config :provider)) "outer scope: openai")
-      (ai/with-config {:model "gpt-4o-mini"}
-        (is (= :openai (get @ai/config :provider)) "inner: provider preserved")
-        (is (= "gpt-4o-mini" (get @ai/config :model)) "inner: model overridden"))
-      (is (= "gpt-4o" (get @ai/config :model)) "outer model restored after inner exits"))
+                    (is (= :openai (get @ai/config :provider)) "outer scope: openai")
+                    (ai/with-config {:model "gpt-4o-mini"}
+                                    (is (= :openai (get @ai/config :provider)) "inner: provider preserved")
+                                    (is (= "gpt-4o-mini" (get @ai/config :model)) "inner: model overridden"))
+                    (is (= "gpt-4o" (get @ai/config :model)) "outer model restored after inner exits"))
     (is (= (get original :model) (get @ai/config :model)) "fully restored")))
 
 (deftest test-with-config-returns-body-result
@@ -120,14 +120,14 @@
 
 (deftest test-tool-schema-with-string-shorthand
   (let [t (ai/tool "search" "Searches" {:query "search query string"
-                                         :limit "integer"})]
+                                        :limit "integer"})]
     (let [props (get (get t :input_schema) :properties)]
       (is (= "string" (get (get props :query) :type)) "string shorthand creates string type")
       (is (= "search query string" (get (get props :query) :description)) "description preserved")
       (is (= "integer" (get (get props :limit) :type)) "integer shorthand creates integer type"))))
 
 (deftest test-tool-schema-required-fields
-  (let [t (ai/tool "test" "Test" {:a "string" :b "integer"})
+  (let [t        (ai/tool "test" "Test" {:a "string" :b "integer"})
         required (get (get t :input_schema) :required)]
     (is (= 2 (count required)) "all fields are required")))
 
@@ -137,7 +137,7 @@
   (let [response {:content [{:type "text" :text "Let me check."}
                             {:type "tool_use" :name "get-weather" :id "call-1"
                              :input {:city "Paris"}}]}
-        calls (ai/tool-calls response)]
+        calls    (ai/tool-calls response)]
     (is (= 1 (count calls)) "extracts one tool call")
     (is (= "get-weather" (get (first calls) :name)) "extracts tool name")
     (is (= "call-1" (get (first calls) :id)) "extracts tool id")
@@ -150,7 +150,7 @@
 (deftest test-tool-calls-handles-multiple-calls
   (let [response {:content [{:type "tool_use" :name "a" :id "1" :input {}}
                             {:type "tool_use" :name "b" :id "2" :input {}}]}
-        calls (ai/tool-calls response)]
+        calls    (ai/tool-calls response)]
     (is (= 2 (count calls)) "extracts multiple tool calls")))
 
 (deftest test-tool-calls-handles-nil-content
@@ -164,7 +164,7 @@
                                                      :type "function"
                                                      :function {:name "get-weather"
                                                                 :arguments "{\"city\":\"Paris\"}"}}]}}]}
-        calls (ai/tool-calls response)]
+        calls    (ai/tool-calls response)]
     (is (= 1 (count calls)) "extracts openai tool call")
     (is (= "get-weather" (get (first calls) :name)) "extracts openai tool name")
     (is (= "call_openai" (get (first calls) :id)) "extracts openai tool id")
@@ -213,7 +213,7 @@
     (let [saved-key (php/getenv "ANTHROPIC_API_KEY")]
       (php/putenv "ANTHROPIC_API_KEY=")
       (is (thrown? \RuntimeException
-                  (ai/extract {:name "string"} "John Smith"))
+                   (ai/extract {:name "string"} "John Smith"))
           "extract throws without API key")
       (when saved-key
         (php/putenv (str "ANTHROPIC_API_KEY=" saved-key))))
@@ -225,8 +225,8 @@
     (let [saved-key (php/getenv "ANTHROPIC_API_KEY")]
       (php/putenv "ANTHROPIC_API_KEY=")
       (is (thrown? \RuntimeException
-                  (ai/chat-with-tools [{:role "user" :content "test"}]
-                                      [(ai/tool "t" "test" {:a "string"})]))
+                   (ai/chat-with-tools [{:role "user" :content "test"}]
+                                       [(ai/tool "t" "test" {:a "string"})]))
           "chat-with-tools throws without API key")
       (when saved-key
         (php/putenv (str "ANTHROPIC_API_KEY=" saved-key))))
@@ -283,10 +283,10 @@
 ;; --- Nearest ---
 
 (deftest test-nearest-returns-sorted-results
-  (let [query [1 0]
-        index [{:text "a" :embedding [1 0]}
-               {:text "b" :embedding [0 1]}
-               {:text "c" :embedding [0.7 0.7]}]
+  (let [query   [1 0]
+        index   [{:text "a" :embedding [1 0]}
+                 {:text "b" :embedding [0 1]}
+                 {:text "c" :embedding [0.7 0.7]}]
         results (ai/nearest query index 2)]
     (is (= 2 (count results)) "returns k results")
     (is (= "a" (get (first results) :text)) "most similar item first")
@@ -294,9 +294,9 @@
         "results sorted by descending similarity")))
 
 (deftest test-nearest-with-default-k
-  (let [query [1 0]
-        index [{:text "a" :embedding [1 0]}
-               {:text "b" :embedding [0 1]}]
+  (let [query   [1 0]
+        index   [{:text "a" :embedding [1 0]}
+                 {:text "b" :embedding [0 1]}]
         results (ai/nearest query index)]
     (is (= 2 (count results)) "returns all items when k > index size")))
 
@@ -471,7 +471,7 @@
     (binding [ai/*http-post* fake]
       (let [history [{:role "user" :content "hi"}
                      {:role "assistant" :content "hello"}]
-            result (ai/chat-with-history history "again?" {:api-key "k" :provider :openai})]
+            result  (ai/chat-with-history history "again?" {:api-key "k" :provider :openai})]
         (is (= "yo" (get (last result) :content)) "provider override flows into chat-with-history")
         (is (php/str_contains (url-of (first-call fake)) "api.openai.com") "openai endpoint hit")))))
 
@@ -487,7 +487,7 @@
     (binding [ai/*http-post* fake]
       (let [history [{:role "user" :content "hi"}
                      {:role "assistant" :content "hello"}]
-            result (ai/chat-with-history history "how are you?" {:api-key "k"})]
+            result  (ai/chat-with-history history "how are you?" {:api-key "k"})]
         (is (= 4 (count result)) "returns history with new user + assistant appended")
         (is (= "user" (get (nth result 2) :role)) "appends user message before assistant")
         (is (= "how are you?" (get (nth result 2) :content)) "new user message included")
@@ -564,7 +564,7 @@
       (ai/chat-with-tools [{:role "user" :content "hi"}]
                           [(ai/tool "t1" "desc" {:a "string"})]
                           {:api-key "k"})
-      (let [body (body-of (first-call fake))
+      (let [body  (body-of (first-call fake))
             tools (get body :tools)]
         (is (= 1 (count tools)) "one tool sent")
         (is (= "t1" (get (first tools) :name)) "tool name preserved for anthropic")))))
@@ -586,7 +586,7 @@
         (is (= 1 (count (get result :tool-calls))) "one openai tool call parsed")
         (is (= "t1" (get (first (get result :tool-calls)) :name)) "openai tool name")
         (is (= "x" (get (get (first (get result :tool-calls)) :input) :a)) "openai arguments json decoded")
-        (let [body (body-of (first-call fake))
+        (let [body  (body-of (first-call fake))
               tools (get body :tools)]
           (is (= "function" (get (first tools) :type)) "openai tool uses function shape")
           (is (= "t1" (get-in (first tools) [:function :name])) "function name set"))))))
@@ -598,10 +598,10 @@
                                        :stop_reason "tool_use"})
                          (ok-response {:content [{:type "text" :text "all done"}]
                                        :stop_reason "end_turn"})])
-        fake (mock-fn (fn [_ _]
-                        (let [r (first @responses)]
-                          (swap! responses rest)
-                          r)))]
+        fake      (mock-fn (fn [_ _]
+                             (let [r (first @responses)]
+                               (swap! responses rest)
+                               r)))]
     (binding [ai/*http-post* fake]
       (let [result (ai/run-tools [{:role "user" :content "echo hello"}]
                                  [(ai/tool "echo" "Echoes input" {:msg "string"})]
@@ -640,10 +640,10 @@
                                        :stop_reason "tool_use"})
                          (ok-response {:content [{:type "text" :text "summed"}]
                                        :stop_reason "end_turn"})])
-        fake (mock-fn (fn [_ _]
-                        (let [r (first @responses)]
-                          (swap! responses rest)
-                          r)))]
+        fake      (mock-fn (fn [_ _]
+                             (let [r (first @responses)]
+                               (swap! responses rest)
+                               r)))]
     (binding [ai/*http-post* fake]
       (let [result (ai/run-tools [{:role "user" :content "add 1 and 2"}]
                                  [(ai/tool "add" "Adds n" {:n "integer"})]
@@ -665,7 +665,7 @@
 ;; --- Retry / backoff ---
 
 (deftest test-retry-recovers-from-429
-  (let [n (atom 0)
+  (let [n    (atom 0)
         fake (mock-fn (fn [_ _]
                         (swap! n + 1)
                         (if (= @n 1)
@@ -676,7 +676,7 @@
       (is (= 2 (call-count fake)) "makes exactly 2 calls"))))
 
 (deftest test-retry-recovers-from-500
-  (let [n (atom 0)
+  (let [n    (atom 0)
         fake (mock-fn (fn [_ _]
                         (swap! n + 1)
                         (if (<= @n 2)
@@ -776,16 +776,16 @@
 
 (deftest test-search-ranks-by-similarity
   (let [responses (atom [(raw-ok "{\"data\":[{\"embedding\":[0.99,0.01]}]}")])
-        fake (mock-fn (fn [_ _]
-                        (let [r (first @responses)]
-                          (swap! responses rest)
-                          r)))]
+        fake      (mock-fn (fn [_ _]
+                             (let [r (first @responses)]
+                               (swap! responses rest)
+                               r)))]
     (binding [ai/*http-post* fake]
       (let [original @ai/config]
         (ai/configure {:provider :openai :api-key "k"})
-        (let [index [{:text "east" :embedding [1 0]}
-                     {:text "north" :embedding [0 1]}
-                     {:text "diag" :embedding [0.7071 0.7071]}]
+        (let [index   [{:text "east" :embedding [1 0]}
+                       {:text "north" :embedding [0 1]}
+                       {:text "diag" :embedding [0.7071 0.7071]}]
               results (ai/search "toward east" index {:k 2})]
           (is (= 2 (count results)) "returns k results")
           (is (= "east" (get (first results) :text)) "most similar first"))

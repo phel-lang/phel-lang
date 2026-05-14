@@ -24,6 +24,6 @@
   `(let [frame# (php/:: \Phel (snapshotDynamicBindings))]
      (php/new \Phel\Lang\PhelFuture
               (php/amp\async
-                (fn []
-                  (php/:: \Phel (withDynamicBindings frame# (fn [] ~@body)))))
+               (fn []
+                 (php/:: \Phel (withDynamicBindings frame# (fn [] ~@body)))))
               (php/new \Amp\DeferredCancellation))))

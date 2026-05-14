@@ -67,14 +67,14 @@
   interfaces for `class-or-name`."
   {:example "(supers \\RuntimeException)"}
   [class-or-name]
-  (let [rc      (reflection-class class-or-name)
-        names   (transient (hash-set))
-        names   (loop [parent (php/-> rc (getParentClass))
-                       acc    names]
-                  (if parent
-                    (recur (php/-> parent (getParentClass))
-                           (conj! acc (php/-> parent (getName))))
-                    acc))]
+  (let [rc    (reflection-class class-or-name)
+        names (transient (hash-set))
+        names (loop [parent (php/-> rc (getParentClass))
+                     acc    names]
+                (if parent
+                  (recur (php/-> parent (getParentClass))
+                         (conj! acc (php/-> parent (getName))))
+                  acc))]
     (foreach [iface (php/-> rc (getInterfaceNames))]
       (conj! names iface))
     (persistent! names)))

@@ -4,10 +4,10 @@
 ;; --- Protocol definitions ---
 
 (defprotocol Speakable
-  (speak [this]))
+             (speak [this]))
 
 (defprotocol Nameable
-  (get-name [this]))
+             (get-name [this]))
 
 ;; --- Single protocol, single method ---
 
@@ -19,8 +19,8 @@
 
 (deftest test-reify-multiple-protocols
   (let [obj (reify
-              Speakable (speak [this] "hi")
-              Nameable (get-name [this] "Bob"))]
+             Speakable (speak [this] "hi")
+             Nameable (get-name [this] "Bob"))]
     (is (= "hi" (speak obj)) "first protocol")
     (is (= "Bob" (get-name obj)) "second protocol")))
 
@@ -28,7 +28,7 @@
 
 (deftest test-reify-closes-over-locals
   (let [greeting "Hola"
-        obj (reify Speakable (speak [this] greeting))]
+        obj      (reify Speakable (speak [this] greeting))]
     (is (= "Hola" (speak obj)) "closes over local")))
 
 ;; --- satisfies? ---
@@ -41,7 +41,7 @@
 ;; --- Multi-arg methods ---
 
 (defprotocol Greeter
-  (greet [this name]))
+             (greet [this name]))
 
 (deftest test-reify-multi-arg
   (let [obj (reify Greeter (greet [this name] (str "Hello, " name "!")))]
@@ -60,22 +60,22 @@
 
 (deftest test-reify-multi-expression-body
   (let [obj (reify Speakable
-              (speak [this]
-                (let [a "hello"
-                      b " world"]
-                  (str a b))))]
+                   (speak [this]
+                          (let [a "hello"
+                                b " world"]
+                            (str a b))))]
     (is (= "hello world" (speak obj)) "multi-expression body")))
 
 ;; --- Multiple methods on same protocol ---
 
 (defprotocol Describable
-  (label [this])
-  (detail [this]))
+             (label [this])
+             (detail [this]))
 
 (deftest test-reify-multi-method-protocol
   (let [obj (reify Describable
-              (label [this] "my-label")
-              (detail [this] "my-detail"))]
+                   (label [this] "my-label")
+                   (detail [this] "my-detail"))]
     (is (= "my-label" (label obj)) "first method")
     (is (= "my-detail" (detail obj)) "second method")
     (is (true? (satisfies? Describable obj)) "satisfies multi-method protocol")))
@@ -84,9 +84,9 @@
 
 (deftest test-reify-shared-closure-var
   (let [prefix ">"
-        obj (reify
-              Speakable (speak [this] (str prefix "speak"))
-              Nameable (get-name [this] (str prefix "name")))]
+        obj    (reify
+                Speakable (speak [this] (str prefix "speak"))
+                Nameable (get-name [this] (str prefix "name")))]
     (is (= ">speak" (speak obj)) "first method captures shared var")
     (is (= ">name" (get-name obj)) "second method captures shared var")))
 
@@ -101,13 +101,13 @@
 ;; --- Method using this reference ---
 
 (defprotocol HasTag
-  (tag [this])
-  (tagged-message [this msg]))
+             (tag [this])
+             (tagged-message [this msg]))
 
 (deftest test-reify-method-calls-sibling-method
   (let [obj (reify HasTag
-              (tag [this] "INFO")
-              (tagged-message [this msg] (str "[" (tag this) "] " msg)))]
+                   (tag [this] "INFO")
+                   (tagged-message [this msg] (str "[" (tag this) "] " msg)))]
     (is (= "INFO" (tag obj)) "tag method")
     (is (= "[INFO] hello" (tagged-message obj "hello"))
         "method dispatches through protocol on this")))

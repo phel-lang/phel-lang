@@ -117,7 +117,7 @@
     (php/instanceof x PhpClass) x
     (php/is_object x)           (php/:: PhpClass (ofValue x))
     (php/is_string x)           (php/:: PhpClass (fromName x))
-    :else (throw-class-type-error "class" "an object or class-name string" x)))
+    :else                       (throw-class-type-error "class" "an object or class-name string" x)))
 
 (defn class-name
   "Returns the FQN string of `c` (a `Phel\\Lang\\PhpClass`). Leading

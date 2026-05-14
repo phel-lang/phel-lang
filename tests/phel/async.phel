@@ -48,7 +48,7 @@
     (is (= 42 result) "await-any returns the first resolved value")))
 
 (deftest test-async-concurrent-execution
-  (let [start (php/microtime true)
+  (let [start   (php/microtime true)
         results (await-all [(async (delay 0.05) :a)
                             (async (delay 0.05) :b)
                             (async (delay 0.05) :c)])
@@ -90,7 +90,7 @@
       "pmap requires at least one collection"))
 
 (deftest test-pmap-is-concurrent
-  (let [start (php/microtime true)
+  (let [start   (php/microtime true)
         results (pmap (fn [x] (delay 0.05) x) [:a :b :c :d])
         elapsed (- (php/microtime true) start)]
     (is (= [:a :b :c :d] results) "pmap returns all results")
@@ -113,35 +113,35 @@
 
 (deftest test-future-realized?
   (let [result (await (async
-                        (let [f (future (do (delay 0.02) 42))
-                              _ (deref f)]
-                          (realized? f))))]
+                       (let [f (future (do (delay 0.02) 42))
+                             _ (deref f)]
+                         (realized? f))))]
     (is (= true result) "future is realized after deref")))
 
 (deftest test-future-realized?-false-before-deref
   (let [result (await (async
-                        (let [f (future (do (delay 0.05) 42))]
-                          (realized? f))))]
+                       (let [f (future (do (delay 0.05) 42))]
+                         (realized? f))))]
     (is (= false result) "future is not realized before its body completes")))
 
 (deftest test-future-exception-propagation
   (let [raised? (await (async
-                         (try
-                           (deref (future (throw (php/new \RuntimeException "boom"))))
-                           false
-                           (catch \RuntimeException _e true))))]
+                        (try
+                          (deref (future (throw (php/new \RuntimeException "boom"))))
+                          false
+                          (catch \RuntimeException _e true))))]
     (is (= true raised?) "deref re-raises the future's exception")))
 
 (deftest test-future-concurrent-execution
-  (let [result (await (async
-                        (let [start (php/microtime true)
-                              f1 (future (do (delay 0.05) 1))
-                              f2 (future (do (delay 0.05) 2))
-                              f3 (future (do (delay 0.05) 3))
-                              vs [(deref f1) (deref f2) (deref f3)]
+  (let [result  (await (async
+                        (let [start   (php/microtime true)
+                              f1      (future (do (delay 0.05) 1))
+                              f2      (future (do (delay 0.05) 2))
+                              f3      (future (do (delay 0.05) 3))
+                              vs      [(deref f1) (deref f2) (deref f3)]
                               elapsed (- (php/microtime true) start)]
                           [vs elapsed])))
-        vs (first result)
+        vs      (first result)
         elapsed (get result 1)]
     (is (= [1 2 3] vs) "all futures return correct values")
     (is (< elapsed 0.15) "three 50ms futures run in parallel (~50ms, not 150ms)")))
@@ -158,29 +158,29 @@
 
 (deftest test-future-deref-with-timeout-fast
   (let [result (await (async
-                        (let [f (future 42)]
-                          (deref f 1000 :timed-out))))]
+                       (let [f (future 42)]
+                         (deref f 1000 :timed-out))))]
     (is (= 42 result) "deref with timeout returns value when future completes quickly")))
 
 (deftest test-future-deref-with-timeout-slow
   (let [result (await (async
-                        (let [f (future (do (delay 0.5) 42))]
-                          (deref f 10 :timed-out))))]
+                       (let [f (future (do (delay 0.5) 42))]
+                         (deref f 10 :timed-out))))]
     (is (= :timed-out result) "deref with timeout returns fallback when future is slow")))
 
 (deftest test-future-deref-with-timeout-zero
   (let [result (await (async
-                        (let [f (future 42)]
-                          (deref f 0 :fallback))))]
+                       (let [f (future 42)]
+                         (deref f 0 :fallback))))]
     (is (= :fallback result) "deref with zero timeout returns fallback immediately")))
 
 (deftest test-future-cancel
   (let [result (await (async
-                        (let [f (future (do (delay 0.5) 42))]
-                          (future-cancel f)
-                          {:cancelled (future-cancelled? f)
-                           :done (future-done? f)
-                           :realized (realized? f)})))]
+                       (let [f (future (do (delay 0.5) 42))]
+                         (future-cancel f)
+                         {:cancelled (future-cancelled? f)
+                          :done (future-done? f)
+                          :realized (realized? f)})))]
     (is (= true (get result :cancelled)) "cancelled flag set")
     (is (= true (get result :done)) "cancelled future is done")
     (is (= true (get result :realized)) "cancelled future is realized")))
@@ -191,25 +191,25 @@
 
 (deftest test-future-cancel-idempotent
   (let [result (await (async
-                        (let [f (future 1)]
-                          (future-cancel f)
-                          (future-cancel f)
-                          (future-cancelled? f))))]
+                       (let [f (future 1)]
+                         (future-cancel f)
+                         (future-cancel f)
+                         (future-cancelled? f))))]
     (is (= true result) "future-cancel is idempotent")))
 
 (deftest test-future-done?-alias-for-realized?
   (let [result (await (async
-                        (let [f (future 99)
-                              _ (deref f)]
-                          {:realized (realized? f)
-                           :done (future-done? f)})))]
+                       (let [f (future 99)
+                             _ (deref f)]
+                         {:realized (realized? f)
+                          :done (future-done? f)})))]
     (is (= (get result :realized) (get result :done))
         "future-done? matches realized?")))
 
 (deftest test-future-deref-with-timeout-returns-fallback-after-cancel
   (let [result (await (async
-                        (let [f (future (do (delay 0.5) 42))]
-                          (future-cancel f)
-                          (deref f 1000 :cancelled))))]
+                       (let [f (future (do (delay 0.5) 42))]
+                         (future-cancel f)
+                         (deref f 1000 :cancelled))))]
     (is (= :cancelled result)
         "deref with timeout returns fallback when future was cancelled")))

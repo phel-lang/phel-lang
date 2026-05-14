@@ -366,16 +366,16 @@
   category so `(compare 1 1.5)` works."
   [x]
   (cond
-    (php/=== x nil)                              :nil
-    (php/is_bool x)                              :bool
-    (comparable-number? x)                       :number
-    (php/is_string x)                            :string
-    (php/instanceof x Keyword)                   :keyword
-    (php/instanceof x Symbol)                    :symbol
-    (comparable-sequential? x)                   :sequential
-    (php/instanceof x PersistentMapInterface)    :map
+    (php/=== x nil)                               :nil
+    (php/is_bool x)                               :bool
+    (comparable-number? x)                        :number
+    (php/is_string x)                             :string
+    (php/instanceof x Keyword)                    :keyword
+    (php/instanceof x Symbol)                     :symbol
+    (comparable-sequential? x)                    :sequential
+    (php/instanceof x PersistentMapInterface)     :map
     (php/instanceof x PersistentHashSetInterface) :set
-    :else                                        :other))
+    :else                                         :other))
 
 (declare compare)
 

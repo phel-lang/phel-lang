@@ -32,22 +32,22 @@
 
 (deftest test-some-fn-short-circuits-preds
   (let [calls (atom 0)
-        p1 (fn [x] (swap! calls inc) (even? x))
-        p2 (fn [_] (throw (php/new \Exception "should not be called")))]
+        p1    (fn [x] (swap! calls inc) (even? x))
+        p2    (fn [_] (throw (php/new \Exception "should not be called")))]
     (is (true? ((some-fn p1 p2) 2)) "some-fn short-circuits on first truthy pred")
     (is (= 1 (deref calls)) "second pred was not invoked")))
 
 (deftest test-some-fn-short-circuits-args
   (let [calls (atom 0)
-        p (fn [x] (swap! calls inc) (even? x))]
+        p     (fn [x] (swap! calls inc) (even? x))]
     (is (true? ((some-fn p) 1 2 3 4)) "some-fn short-circuits on first truthy arg")
     (is (= 2 (deref calls)) "pred only called until first truthy result")))
 
 (deftest test-some-fn-pred-order
   ;; All preds are tried on all args before moving to next pred
   (let [log (atom [])
-        p1 (fn [x] (swap! log push [:p1 x]) nil)
-        p2 (fn [x] (swap! log push [:p2 x]) (= x :match))]
+        p1  (fn [x] (swap! log push [:p1 x]) nil)
+        p2  (fn [x] (swap! log push [:p2 x]) (= x :match))]
     ((some-fn p1 p2) :a :match)
     (is (= [[:p1 :a] [:p1 :match] [:p2 :a] [:p2 :match]] (deref log))
         "some-fn tries each pred on all args before advancing")))
@@ -75,7 +75,7 @@
         "fnil replaces first nil arg")))
 
 (deftest test-fnil-with-update-in
-  (let [m {:a 1}
+  (let [m      {:a 1}
         result (update-in m [:b] (fnil inc 0))]
     (is (= 1 (get result :b))
         "fnil works with update-in for missing keys")))
@@ -87,7 +87,7 @@
 
 (deftest test-memoize
   (let [counter (atom 0)
-        f (memoize (fn [x] (swap! counter inc) (+ x 1)))]
+        f       (memoize (fn [x] (swap! counter inc) (+ x 1)))]
     (is (= 2 (f 1)) "first call")
     (is (= 2 (f 1)) "cached call")
     (is (= 3 (f 2)) "different arg")
@@ -95,7 +95,7 @@
 
 (deftest test-memoize-lru-basic
   (let [counter (atom 0)
-        f (memoize-lru (fn [x] (swap! counter inc) (+ x 1)) 10)]
+        f       (memoize-lru (fn [x] (swap! counter inc) (+ x 1)) 10)]
     (is (= 2 (f 1)) "first call returns correct value")
     (is (= 2 (f 1)) "cached call returns same value")
     (is (= 3 (f 2)) "different arg returns correct value")
@@ -103,7 +103,7 @@
 
 (deftest test-memoize-lru-eviction
   (let [counter (atom 0)
-        f (memoize-lru (fn [x] (swap! counter inc) (* x 10)) 3)]
+        f       (memoize-lru (fn [x] (swap! counter inc) (* x 10)) 3)]
     ;; Fill the cache with 3 entries
     (is (= 10 (f 1)) "first entry")
     (is (= 20 (f 2)) "second entry")
@@ -124,7 +124,7 @@
 
 (deftest test-memoize-lru-default-size
   (let [counter (atom 0)
-        f (memoize-lru (fn [x] (swap! counter inc) x))]
+        f       (memoize-lru (fn [x] (swap! counter inc) x))]
     ;; Test that default size works (should be 128)
     (is (= 1 (f 1)) "first call works")
     (is (= 1 (f 1)) "cached call works")
@@ -132,7 +132,7 @@
 
 (deftest test-memoize-lru-multi-arg
   (let [counter (atom 0)
-        f (memoize-lru (fn [x y] (swap! counter inc) (+ x y)) 5)]
+        f       (memoize-lru (fn [x y] (swap! counter inc) (+ x y)) 5)]
     (is (= 3 (f 1 2)) "multi-arg call")
     (is (= 3 (f 1 2)) "cached multi-arg call")
     (is (= 7 (f 3 4)) "different multi-arg call")

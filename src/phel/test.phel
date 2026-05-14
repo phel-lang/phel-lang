@@ -913,10 +913,10 @@
         line    (or (:line loc) 0)
         body    (junit-testcase-body event)
         opening (str "<testcase "
-                      (junit-attr :name tname) " "
-                      (junit-attr :classname ns-name) " "
-                      (junit-attr :file file) " "
-                      (junit-attr :line line) ">")]
+                     (junit-attr :name tname) " "
+                     (junit-attr :classname ns-name) " "
+                     (junit-attr :file file) " "
+                     (junit-attr :line line) ">")]
     (str opening
          (or body "")
          "</testcase>")))
@@ -1072,9 +1072,9 @@
   [snapshot]
   (let [{:failed failed :error error :pass pass :skipped skipped}
         (:counts snapshot)
-        failures (:failed snapshot)
-        skips    (:skipped snapshot)
-        total    (+ failed error pass)]
+        failures                                                  (:failed snapshot)
+        skips                                                     (:skipped snapshot)
+        total                                                     (+ failed error pass)]
     {:type :summary
      :failures failures
      :skips skips

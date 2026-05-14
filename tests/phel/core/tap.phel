@@ -3,7 +3,7 @@
 
 (deftest tap-single-listener
   (let [seen (atom [])
-        f (fn [x] (swap! seen conj x))]
+        f    (fn [x] (swap! seen conj x))]
     (add-tap f)
     (is (true? (tap> 1)) "tap> returns true")
     (tap> 2)
@@ -12,8 +12,8 @@
     (is (= [1 2] (deref seen)) "values after remove-tap are not delivered")))
 
 (deftest tap-multiple-listeners
-  (let [a (atom 0)
-        b (atom 0)
+  (let [a  (atom 0)
+        b  (atom 0)
         fa (fn [x] (swap! a + x))
         fb (fn [x] (swap! b + x))]
     (add-tap fa)
@@ -27,7 +27,7 @@
 
 (deftest tap-swallows-exceptions
   (let [seen (atom 0)
-        bad (fn [_] (throw (php/new \RuntimeException "boom")))
+        bad  (fn [_] (throw (php/new \RuntimeException "boom")))
         good (fn [_] (swap! seen inc))]
     (add-tap bad)
     (add-tap good)
@@ -38,7 +38,7 @@
 
 (deftest add-tap-is-idempotent
   (let [seen (atom 0)
-        f (fn [_] (swap! seen inc))]
+        f    (fn [_] (swap! seen inc))]
     (add-tap f)
     (add-tap f)
     (tap> :x)

@@ -49,9 +49,9 @@
 
 (deftest test-default-command
   (let [app (cli/application
-              {:name     "mytool"
-               :default  "greet"
-               :commands [{:name "greet" :run (fn [ctx] (cli/writeln ctx "hola"))}]})
+             {:name     "mytool"
+              :default  "greet"
+              :commands [{:name "greet" :run (fn [ctx] (cli/writeln ctx "hola"))}]})
         res (run-app app [])]
     (is (cli/output-contains? res "hola"))))
 
@@ -111,18 +111,18 @@
 (deftest test-before-hook-fires
   (let [fired (atom false)
         app   (cli/application
-                {:name     "mytool"
-                 :before   (fn [_] (reset! fired true))
-                 :commands [{:name "go" :run (fn [ctx] (cli/writeln ctx "ok"))}]})]
+               {:name     "mytool"
+                :before   (fn [_] (reset! fired true))
+                :commands [{:name "go" :run (fn [ctx] (cli/writeln ctx "ok"))}]})]
     (run-app app ["go"])
     (is (= true @fired))))
 
 (deftest test-after-hook-fires
   (let [fired (atom false)
         app   (cli/application
-                {:name     "mytool"
-                 :after    (fn [_] (reset! fired true))
-                 :commands [{:name "go" :run (fn [ctx] (cli/writeln ctx "ok"))}]})]
+               {:name     "mytool"
+                :after    (fn [_] (reset! fired true))
+                :commands [{:name "go" :run (fn [ctx] (cli/writeln ctx "ok"))}]})]
     (run-app app ["go"])
     (is (= true @fired))))
 

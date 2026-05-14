@@ -86,8 +86,8 @@
     (is (not= uuid (random-uuid)) "random-uuid generates unique values")))
 
 (deftest test-uuid?
-  (is (true? (uuid? #uuid "00000000-0000-0000-0000-000000000000")) "uuid? accepts nil UUID literal")
-  (is (true? (uuid? #uuid "550e8400-e29b-41d4-a716-446655440000")) "uuid? accepts v4 literal")
+  (is (true? (uuid? #uuid"00000000-0000-0000-0000-000000000000")) "uuid? accepts nil UUID literal")
+  (is (true? (uuid? #uuid"550e8400-e29b-41d4-a716-446655440000")) "uuid? accepts v4 literal")
   (is (true? (uuid? (random-uuid))) "uuid? accepts random-uuid output")
   (is (false? (uuid? "550e8400-e29b-41d4-a716-446655440000")) "uuid? rejects raw canonical string")
   (is (false? (uuid? "not-a-uuid")) "uuid? rejects non-canonical string")
@@ -97,46 +97,46 @@
 (deftest test-parse-uuid
   (is (uuid? (parse-uuid "550e8400-e29b-41d4-a716-446655440000"))
       "parse-uuid returns a Uuid value")
-  (is (= #uuid "550e8400-e29b-41d4-a716-446655440000"
+  (is (= #uuid"550e8400-e29b-41d4-a716-446655440000"
          (parse-uuid "550E8400-E29B-41D4-A716-446655440000"))
       "parse-uuid lowercases uppercase input")
-  (is (= #uuid "550e8400-e29b-41d4-a716-446655440000"
-         (parse-uuid #uuid "550e8400-e29b-41d4-a716-446655440000"))
+  (is (= #uuid"550e8400-e29b-41d4-a716-446655440000"
+         (parse-uuid #uuid"550e8400-e29b-41d4-a716-446655440000"))
       "parse-uuid passes Uuid values through")
   (is (nil? (parse-uuid "not-a-uuid")) "parse-uuid returns nil on invalid")
   (is (nil? (parse-uuid "")) "parse-uuid returns nil on empty")
   (is (nil? (parse-uuid nil)) "parse-uuid returns nil on nil"))
 
 (deftest test-uuid-tagged-literal
-  (is (uuid? #uuid "00000000-0000-0000-0000-000000000000")
+  (is (uuid? #uuid"00000000-0000-0000-0000-000000000000")
       "#uuid produces a Uuid value")
   (is (= "00000000-0000-0000-0000-000000000000"
-         (str #uuid "00000000-0000-0000-0000-000000000000"))
+         (str #uuid"00000000-0000-0000-0000-000000000000"))
       "#uuid stringifies to the canonical form")
   (is (= "550e8400-e29b-41d4-a716-446655440000"
-         (str #uuid "550E8400-E29B-41D4-A716-446655440000"))
+         (str #uuid"550E8400-E29B-41D4-A716-446655440000"))
       "#uuid lowercases uppercase hex"))
 
 (deftest test-uuid=
-  (is (true? (uuid= #uuid "550E8400-E29B-41D4-A716-446655440000"
-                    #uuid "550e8400-e29b-41d4-a716-446655440000"))
+  (is (true? (uuid= #uuid"550E8400-E29B-41D4-A716-446655440000"
+                    #uuid"550e8400-e29b-41d4-a716-446655440000"))
       "uuid= is case-insensitive (canonical form is lowercase)")
-  (is (true? (uuid= #uuid "550e8400-e29b-41d4-a716-446655440000"
-                    #uuid "550e8400-e29b-41d4-a716-446655440000"))
+  (is (true? (uuid= #uuid"550e8400-e29b-41d4-a716-446655440000"
+                    #uuid"550e8400-e29b-41d4-a716-446655440000"))
       "uuid= matches identical Uuids")
-  (is (false? (uuid= #uuid "00000000-0000-0000-0000-000000000000"
-                     #uuid "550e8400-e29b-41d4-a716-446655440000"))
+  (is (false? (uuid= #uuid"00000000-0000-0000-0000-000000000000"
+                     #uuid"550e8400-e29b-41d4-a716-446655440000"))
       "uuid= distinguishes different Uuids")
-  (is (false? (uuid= #uuid "550e8400-e29b-41d4-a716-446655440000"
+  (is (false? (uuid= #uuid"550e8400-e29b-41d4-a716-446655440000"
                      "550e8400-e29b-41d4-a716-446655440000"))
       "uuid= rejects raw string operand")
-  (is (false? (uuid= nil #uuid "550e8400-e29b-41d4-a716-446655440000"))
+  (is (false? (uuid= nil #uuid"550e8400-e29b-41d4-a716-446655440000"))
       "uuid= rejects nil"))
 
 (deftest test-uuid-nil?
-  (is (true? (uuid-nil? #uuid "00000000-0000-0000-0000-000000000000"))
+  (is (true? (uuid-nil? #uuid"00000000-0000-0000-0000-000000000000"))
       "uuid-nil? accepts nil UUID")
-  (is (false? (uuid-nil? #uuid "550e8400-e29b-41d4-a716-446655440000"))
+  (is (false? (uuid-nil? #uuid"550e8400-e29b-41d4-a716-446655440000"))
       "uuid-nil? rejects non-nil UUID")
   (is (false? (uuid-nil? "00000000-0000-0000-0000-000000000000"))
       "uuid-nil? rejects raw string")
@@ -144,9 +144,9 @@
       "uuid-nil? rejects nil"))
 
 (deftest test-uuid-version
-  (is (= 4 (uuid-version #uuid "550e8400-e29b-41d4-a716-446655440000"))
+  (is (= 4 (uuid-version #uuid"550e8400-e29b-41d4-a716-446655440000"))
       "uuid-version reads v4")
-  (is (= 1 (uuid-version #uuid "00000000-0000-1000-8000-000000000000"))
+  (is (= 1 (uuid-version #uuid"00000000-0000-1000-8000-000000000000"))
       "uuid-version reads v1")
   (is (= 4 (uuid-version (random-uuid)))
       "uuid-version on random-uuid is 4")
@@ -156,15 +156,15 @@
       "uuid-version returns nil on nil"))
 
 (deftest test-uuid-variant
-  (is (= :rfc-4122 (uuid-variant #uuid "550e8400-e29b-41d4-a716-446655440000"))
+  (is (= :rfc-4122 (uuid-variant #uuid"550e8400-e29b-41d4-a716-446655440000"))
       "RFC 4122 variant (high nibble 1010)")
   (is (= :rfc-4122 (uuid-variant (random-uuid)))
       "random-uuid is RFC 4122")
-  (is (= :ncs (uuid-variant #uuid "00000000-0000-0000-0000-000000000000"))
+  (is (= :ncs (uuid-variant #uuid"00000000-0000-0000-0000-000000000000"))
       "nil UUID has NCS variant (high nibble 0xxx)")
-  (is (= :microsoft (uuid-variant #uuid "00000000-0000-0000-c000-000000000000"))
+  (is (= :microsoft (uuid-variant #uuid"00000000-0000-0000-c000-000000000000"))
       "Microsoft variant (high nibble 110x)")
-  (is (= :reserved (uuid-variant #uuid "00000000-0000-0000-e000-000000000000"))
+  (is (= :reserved (uuid-variant #uuid"00000000-0000-0000-e000-000000000000"))
       "Reserved variant (high nibble 111x)")
   (is (nil? (uuid-variant "550e8400-e29b-41d4-a716-446655440000"))
       "uuid-variant returns nil on raw string"))

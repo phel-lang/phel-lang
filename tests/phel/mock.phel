@@ -28,7 +28,7 @@
 
 (deftest test-spy-preserves-behavior
   (let [original (fn [x] (* x 2))
-        spied (spy original)]
+        spied    (spy original)]
     (is (= 10 (spied 5)) "preserves original behavior")
     (is (= [[5]] (calls spied)) "tracks calls")))
 
@@ -64,7 +64,7 @@
 ;; -----------
 
 (deftest test-mock-predicate
-  (let [my-mock (mock :result)
+  (let [my-mock    (mock :result)
         regular-fn (fn [] :result)]
     (is (= true (mock? my-mock)) "identifies mock")
     (is (= false (mock? regular-fn)) "identifies non-mock")))
@@ -175,7 +175,7 @@
 
 (deftest test-with-mocks-macro
   (let [mock-http (mock {:status 200})
-        mock-db (mock :ok)]
+        mock-db   (mock :ok)]
     (with-mocks [fetch-user (fn [_ _] (mock-http))
                  save-user  (fn [_] (mock-db))]
                 (is (= {:status 200} (fetch-user nil 1)) "uses first mock")
@@ -186,7 +186,7 @@
 (deftest test-with-mocks-auto-reset
   ;; Create mocks outside and use them inside with-mocks bindings directly
   (let [mock-http (mock {:id 1})
-        mock-db (mock :ok)]
+        mock-db   (mock :ok)]
     ;; First call - mocks get used
     (with-mocks [fetch-user mock-http
                  save-user mock-db]
@@ -240,7 +240,7 @@
 (deftest test-with-mock-wrapper-multiple
   ;; Test multiple wrappers with auto-reset
   (let [mock-http (mock {:status 200})
-        mock-db (mock :ok)]
+        mock-db   (mock :ok)]
     (with-mock-wrapper [fetch-user mock-http (fn [_ id] (mock-http id))
                         save-user mock-db (fn [user] (mock-db user))]
                        (fetch-user nil 123)
@@ -257,9 +257,9 @@
   ;; This verifies the fix for the bug where reset-forms would create a new mock
   (let [call-count-atom (atom 0)
         ;; Create a mock factory that tracks how many times it's called
-        counted-mock (fn []
-                       (swap! call-count-atom inc)
-                       (mock {:id (deref call-count-atom)}))]
+        counted-mock    (fn []
+                          (swap! call-count-atom inc)
+                          (mock {:id (deref call-count-atom)}))]
 
     ;; Use inline mock creation - should only call counted-mock once
     (with-mock-wrapper [fetch-user (counted-mock)
@@ -287,9 +287,9 @@
   (let [mock-email (mock :sent)]
     (with-redefs [send-email (fn [_ to subject body] (mock-email to subject body))]
                  (register-user nil {:email "user@example.com"})
-             (is (called-once? mock-email) "sends exactly one email")
-             (is (called-with? mock-email "user@example.com" "Welcome!" "Thanks for signing up")
-                 "sends correct email"))))
+                 (is (called-once? mock-email) "sends exactly one email")
+                 (is (called-with? mock-email "user@example.com" "Welcome!" "Thanks for signing up")
+                     "sends correct email"))))
 
 (defn fetch-from-api [url]
   "Simulates API call"
@@ -298,9 +298,9 @@
 (deftest test-api-failure-with-mock-throwing
   (let [mock-api (mock-throwing (php/new \RuntimeException "API unavailable"))]
     (with-redefs [fetch-from-api (fn [url] (mock-api url))]
-             (is (thrown? \RuntimeException (fetch-from-api "http://api.example.com"))
-                 "throws when API fails")
-             (is (called-with? mock-api "http://api.example.com") "attempted call with URL"))))
+                 (is (thrown? \RuntimeException (fetch-from-api "http://api.example.com"))
+                     "throws when API fails")
+                 (is (called-with? mock-api "http://api.example.com") "attempted call with URL"))))
 
 (defn retry-fetch [fetch-fn url max-retries]
   "Simulates retry logic"
@@ -314,13 +314,13 @@
 (deftest test-retry-logic-with-mock-returning
   (let [mock-api (mock-returning [nil nil {:status 200}])]
     (with-redefs [fetch-from-api (fn [url]
-                               (let [result (mock-api url)]
-                                 (when (nil? result)
-                                   (throw (php/new \Exception "Failed")))
-                                 result))]
-             (is (= {:status 200} (retry-fetch fetch-from-api "http://api.example.com" 3))
-                 "succeeds after retries")
-             (is (= 3 (call-count mock-api)) "retries correct number of times"))))
+                                   (let [result (mock-api url)]
+                                     (when (nil? result)
+                                       (throw (php/new \Exception "Failed")))
+                                     result))]
+                 (is (= {:status 200} (retry-fetch fetch-from-api "http://api.example.com" 3))
+                     "succeeds after retries")
+                 (is (= 3 (call-count mock-api)) "retries correct number of times"))))
 
 ;; -----------
 ;; Interop/External Function Mocking Tests
@@ -334,6 +334,6 @@
   (let [mock-external (mock {:success true :data "mocked response"})]
     ;; Mock an external/foreign function by wrapping it
     (with-redefs [call-external-service (fn [_ endpoint] (mock-external endpoint))]
-             (let [result (call-external-service nil "/api/data")]
-               (is (= {:success true :data "mocked response"} result) "returns mocked response")
-               (is (called-with? mock-external "/api/data") "verifies external call was made")))))
+                 (let [result (call-external-service nil "/api/data")]
+                   (is (= {:success true :data "mocked response"} result) "returns mocked response")
+                   (is (called-with? mock-external "/api/data") "verifies external call was made")))))

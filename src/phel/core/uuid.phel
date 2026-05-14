@@ -36,10 +36,10 @@
   [s]
   (cond
     (php/instanceof s Uuid) s
-    (string? s) (try
-                  (php/:: Uuid (fromString s))
-                  (catch \InvalidArgumentException _ nil))
-    :else nil))
+    (string? s)             (try
+                              (php/:: Uuid (fromString s))
+                              (catch \InvalidArgumentException _ nil))
+    :else                   nil))
 
 (defn uuid=
   "Returns true if `a` and `b` are `Phel\\Lang\\Uuid` values with the

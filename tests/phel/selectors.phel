@@ -177,24 +177,24 @@
 
 (deftest test-keep-test-all-gates-and
   (testing "all gates specified and satisfied"
-    (is (selector/keep-test? {:include [:integration]
-                              :exclude [:slow]
-                              :ns-patterns ["phel.http.*"]
-                              :filters ["get"]}
-                             "phel.http.client"
-                             {:integration true :test-name "test-get-url"})
-        "passes every gate"))
+           (is (selector/keep-test? {:include [:integration]
+                                     :exclude [:slow]
+                                     :ns-patterns ["phel.http.*"]
+                                     :filters ["get"]}
+                                    "phel.http.client"
+                                    {:integration true :test-name "test-get-url"})
+               "passes every gate"))
   (testing "any one gate failing drops the test"
-    (is (not (selector/keep-test? {:include [:integration]
-                                   :ns-patterns ["phel.http.*"]}
-                                  "phel.core"
-                                  {:integration true :test-name "t"}))
-        "ns gate fails")
-    (is (not (selector/keep-test? {:include [:integration]
-                                   :filters ["^never-matches$"]}
-                                  "phel.http.client"
-                                  {:integration true :test-name "test-get"}))
-        "filter gate fails")))
+           (is (not (selector/keep-test? {:include [:integration]
+                                          :ns-patterns ["phel.http.*"]}
+                                         "phel.core"
+                                         {:integration true :test-name "t"}))
+               "ns gate fails")
+           (is (not (selector/keep-test? {:include [:integration]
+                                          :filters ["^never-matches$"]}
+                                         "phel.http.client"
+                                         {:integration true :test-name "test-get"}))
+               "filter gate fails")))
 
 ;; ---------------------------------------------------------------------------
 ;; has-selectors?

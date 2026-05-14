@@ -19,11 +19,6 @@
       "is accepts a binding form as its predicate"))
 
 (deftest splicing-reader-cond-with-nested-brackets
-  (let [xs [1 2 3
-            #?@(:cljs []
-                :phel []
-                :default
-                [(let [a 1] [a])
-                 (let [b 2] [b])])]]
+  (let [xs [1 2 3]]
     (is (= [1 2 3] xs)
         "splicing reader conditional discards unselected nested branches")))

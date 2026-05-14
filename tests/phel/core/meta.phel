@@ -20,7 +20,7 @@
 (deftest meta-on-local-binding
   ;; Regression for clojure-test-suite: `(meta local)` in a function/let body must
   ;; return the metadata attached to the local's value, not a def lookup on its name.
-  (let [m {:tag :test}
+  (let [m    {:tag :test}
         data (with-meta {:a 1} m)]
     (is (= m (meta data)) "meta on a let-bound value returns its metadata"))
   (is (= {:tag :test}
@@ -34,8 +34,8 @@
   (is (= nil (meta [])) "meta on object without metadata returns nil"))
 
 (deftest sequence-functions-preserve-meta
-  (let [m {:foo "bar"}
-        data (set-meta! [3 1 2] m)
+  (let [m      {:foo "bar"}
+        data   (set-meta! [3 1 2] m)
         nested (set-meta! [[1] [2]] m)]
     (is (= m (meta (map identity data))) "map preserves metadata")
     (is (= m (meta (map + data data))) "map with multiple sequences preserves metadata")
@@ -65,7 +65,7 @@
       "vary-meta with dissoc"))
 
 (deftest associative-functions-preserve-meta
-  (let [m {:foo "bar"}
+  (let [m    {:foo "bar"}
         data (set-meta! {:a 1 :b 2} m)]
     (is (= m (meta (keys data))) "keys preserves metadata")
     (is (= m (meta (values data))) "values preserves metadata")
