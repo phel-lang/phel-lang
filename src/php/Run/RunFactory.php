@@ -14,6 +14,8 @@ use Phel\Run\Application\NamespaceRunner;
 use Phel\Run\Application\NamespacesLoader;
 use Phel\Run\Application\ReplHistoryPathResolver;
 use Phel\Run\Application\StructuredEvaluator;
+use Phel\Run\Application\Test\CpuCountDetector;
+use Phel\Run\Application\Test\ParallelTestOrchestrator;
 use Phel\Run\Domain\Repl\Hint\ArgumentCountHint;
 use Phel\Run\Domain\Repl\Hint\NotCallableHint;
 use Phel\Run\Domain\Repl\Hint\ReplHintInterface;
@@ -211,5 +213,28 @@ class RunFactory extends AbstractFactory
     public function createStdinReader(): StdinReaderInterface
     {
         return new PhpStdinReader();
+    }
+
+    public function createParallelTestOrchestrator(): ParallelTestOrchestrator
+    {
+        return new ParallelTestOrchestrator(
+            PHP_BINARY,
+            $this->resolvePhelBinaryPath(),
+        );
+    }
+
+    public function createCpuCountDetector(): CpuCountDetector
+    {
+        return new CpuCountDetector();
+    }
+
+    private function resolvePhelBinaryPath(): string
+    {
+        $script = $_SERVER['SCRIPT_FILENAME'] ?? $_SERVER['argv'][0] ?? '';
+        if ($script !== '') {
+            return $script;
+        }
+
+        return __DIR__ . '/../../../bin/phel';
     }
 }

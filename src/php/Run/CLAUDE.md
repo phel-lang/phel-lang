@@ -32,6 +32,10 @@ Runtime execution: runs Phel namespaces/files, REPL, evaluation, testing, and al
 - `enableDebugLineTap(): void`
 - `disableDebugLineTap(): void`
 
+**Parallel testing**
+- `createParallelTestOrchestrator(): ParallelTestOrchestrator` : process-pool runner that spawns `phel _test-worker` subprocesses, dispatches one ns per work frame, buffers per-ns output, flushes in input order
+- `createCpuCountDetector(): CpuCountDetector` : honours `PHEL_TEST_WORKERS` env var, falls back to `nproc` / `sysctl` / `/proc/cpuinfo`, caps at 8
+
 **Error Handling**
 - `writeLocatedException(OutputInterface, CompilerException): void`
 - `writeStackTrace(OutputInterface, Throwable): void`
@@ -48,12 +52,14 @@ Runtime execution: runs Phel namespaces/files, REPL, evaluation, testing, and al
 
 ```
 Run/
-├── Application/        runners, loaders, REPL infrastructure, Agent/ install helpers
+├── Application/        runners, loaders, REPL infrastructure, Agent/ install helpers, Test/ (parallel runner)
 ├── Domain/             Agent/, Init/, Repl/ (+ Hint/), Runner/, Test/, stdin/loader interfaces
-├── Infrastructure/     Command/ (8 Symfony commands), PhpStdinReader
+├── Infrastructure/     Command/ (9 Symfony commands; one hidden `_test-worker`), PhpStdinReader
 ├── Runtime/            PhelSourceLoader (cached-PHP boot entry)
 └── Gacela files        RunFacade, RunFactory, RunConfig, RunProvider
 ```
+
+`Application/Test/`: `ParallelTestOrchestrator` (proc_open pool), `TestWorkerHandle` (one live subprocess), `WorkerFrame` (length-prefixed JSON framing), `CpuCountDetector` (cross-platform CPU autodetect, capped at 8).
 
 ## Key Constraints
 
