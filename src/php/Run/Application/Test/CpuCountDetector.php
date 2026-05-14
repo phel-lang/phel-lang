@@ -27,8 +27,13 @@ use function trim;
  *   4. /proc/cpuinfo line count (Linux without nproc)
  *   5. Hardcoded fallback of 4
  *
- * Result is clamped between 1 and {@see DEFAULT_CAP}; an explicit env
- * override above the cap is honoured to allow power users to opt out.
+ * `detect()` clamps to {@see DEFAULT_CAP} so default `--parallel=auto`
+ * runs stay friendly to laptops and shared CI runners. `detectMax()`
+ * skips the cap for `--parallel=max` (power-user opt-in: use every
+ * core the kernel reports).
+ *
+ * An explicit `PHEL_TEST_WORKERS` env var always overrides both paths
+ * and ignores the cap.
  */
 final class CpuCountDetector
 {
@@ -36,14 +41,32 @@ final class CpuCountDetector
 
     public function detect(): int
     {
-        $override = $this->parseInt(getenv('PHEL_TEST_WORKERS'));
+        $override = $this->envOverride();
         if ($override !== null) {
-            return max(1, $override);
+            return $override;
         }
 
-        $detected = $this->detectFromSystem();
+        return max(1, min($this->detectFromSystem(), self::DEFAULT_CAP));
+    }
 
-        return max(1, min($detected, self::DEFAULT_CAP));
+    public function detectMax(): int
+    {
+        $override = $this->envOverride();
+        if ($override !== null) {
+            return $override;
+        }
+
+        return max(1, $this->detectFromSystem());
+    }
+
+    private function envOverride(): ?int
+    {
+        $value = $this->parseInt(getenv('PHEL_TEST_WORKERS'));
+        if ($value === null) {
+            return null;
+        }
+
+        return max(1, $value);
     }
 
     private function detectFromSystem(): int

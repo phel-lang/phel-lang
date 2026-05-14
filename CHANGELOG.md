@@ -25,7 +25,7 @@ All notable changes to this project will be documented in this file.
 
 #### Tests
 - Coverage for namespaced keyword alias resolution: `::foo`, `::alias/bar`, unknown-alias error, `name` / `namespace` / `full-name` round-trips (#1983)
-- `phel test --parallel=<N|auto>` runs namespaces across a subprocess worker pool, buffering each namespace's output and flushing in input order so on-screen output stays deterministic; auto-disabled for `--reporter=tap`, `--list`, and when a profiler hook is installed
+- `phel test --parallel=<N|auto|max>` runs namespaces across a subprocess worker pool. `auto` caps at 8 workers; `max` uses every core the kernel reports; integers pin an exact count. Output is a live `Symfony\ProgressBar` plus a single aggregate `Passed/Failed/Error/Total` summary; per-namespace failure blocks render under their own header. Buffered output flushes in input order so on-screen text stays deterministic. Auto-disabled for `--reporter=tap`, `--list`, and when a profiler hook is installed. See [docs/parallel-tests.md](docs/parallel-tests.md).
 
 ## [0.37.0](https://github.com/phel-lang/phel-lang/compare/v0.36.0...v0.37.0) - 2026-05-12
 

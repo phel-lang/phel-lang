@@ -175,7 +175,7 @@ final class TestCommand extends Command
                 self::OPT_PARALLEL,
                 null,
                 InputOption::VALUE_REQUIRED,
-                'Run namespaces in parallel using subprocess workers. Accepts an integer worker count or "auto" (CPU detection, capped at 8). Auto-disabled for --reporter=tap, --list, or when a profiler hook is installed.',
+                'Run namespaces in parallel using subprocess workers. Accepts an integer worker count, "auto" (CPU detection capped at 8), or "max" (every core the kernel reports, uncapped). Auto-disabled for --reporter=tap, --list, or when a profiler hook is installed.',
             );
     }
 
@@ -325,13 +325,20 @@ final class TestCommand extends Command
             return null;
         }
 
-        if (is_string($raw) && strtolower($raw) === 'auto') {
-            return $this->getFacade()->createCpuCountDetector()->detect();
+        if (is_string($raw)) {
+            $keyword = strtolower($raw);
+            if ($keyword === 'auto') {
+                return $this->getFacade()->createCpuCountDetector()->detect();
+            }
+
+            if ($keyword === 'max') {
+                return $this->getFacade()->createCpuCountDetector()->detectMax();
+            }
         }
 
         if (!is_numeric($raw)) {
             throw new InvalidArgumentException(sprintf(
-                '--parallel must be an integer >= 1 or "auto", got %s.',
+                '--parallel must be an integer >= 1, "auto", or "max", got %s.',
                 is_string($raw) ? $raw : (string) $raw,
             ));
         }

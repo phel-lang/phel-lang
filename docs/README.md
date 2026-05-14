@@ -29,6 +29,7 @@ Coming from Clojure? Read [Clojure Migration](clojure-migration.md).
 - [Performance](performance.md): opcache setup, cache reset
 - [Profile](profile-guide.md): `phel profile` per-fn timings and compile-phase costs
 - [Mocking](mocking-guide.md): test seams for PHP calls
+- [Parallel Tests](parallel-tests.md): `phel test --parallel=<N|auto|max>` worker pool
 
 ## Modules
 

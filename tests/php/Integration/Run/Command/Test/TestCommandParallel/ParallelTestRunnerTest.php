@@ -126,7 +126,25 @@ final class ParallelTestRunnerTest extends TestCase
         );
 
         self::assertSame(1, $status, 'expected failure exit, combined was: ' . $combined);
-        self::assertStringContainsString('--parallel must be an integer >= 1 or "auto"', $combined);
+        self::assertStringContainsString('--parallel must be an integer >= 1, "auto", or "max"', $combined);
+    }
+
+    /**
+     * `--parallel=max` skips CpuCountDetector::DEFAULT_CAP so power
+     * users can recruit every core. Verify it runs to completion and
+     * reports a worker count >= 1 in the footer.
+     */
+    public function test_max_worker_count_uses_uncapped_detection(): void
+    {
+        $project = $this->projectRoot();
+
+        [$status, $stdout] = $this->runPhel(
+            ['test', '--parallel=max', 'tests/phel/walk.phel'],
+            $project,
+        );
+
+        self::assertSame(0, $status, 'expected success exit, stdout was: ' . $stdout);
+        self::assertMatchesRegularExpression('/Ran \d+ namespace\(s\) across \d+ worker\(s\)/', $stdout);
     }
 
     /**

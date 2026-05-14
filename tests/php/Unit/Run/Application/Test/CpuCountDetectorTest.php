@@ -58,6 +58,23 @@ final class CpuCountDetectorTest extends TestCase
         self::assertLessThanOrEqual(CpuCountDetector::DEFAULT_CAP, $count);
     }
 
+    public function test_detect_max_skips_the_default_cap(): void
+    {
+        $detector = new CpuCountDetector();
+        $capped = $detector->detect();
+        $uncapped = $detector->detectMax();
+
+        self::assertGreaterThanOrEqual(1, $uncapped);
+        self::assertGreaterThanOrEqual($capped, $uncapped);
+    }
+
+    public function test_detect_max_honours_env_override(): void
+    {
+        putenv('PHEL_TEST_WORKERS=12');
+
+        self::assertSame(12, new CpuCountDetector()->detectMax());
+    }
+
     public function test_invalid_env_var_falls_back_to_detection(): void
     {
         putenv('PHEL_TEST_WORKERS=notanumber');

@@ -199,9 +199,10 @@ Full HTTP example: [Framework Integration](framework-integration.md).
 ./vendor/bin/phel test                       # all tests
 ./vendor/bin/phel test --filter greet        # name regex
 ./vendor/bin/phel test --reporter=testdox    # also: dot, tap, junit-xml
+./vendor/bin/phel test --parallel=auto       # fan out namespaces across CPU cores
 ```
 
-Tag tests with `^{:tags [:integration]}` and select via `--include`/`--exclude`.
+Tag tests with `^{:tags [:integration]}` and select via `--include`/`--exclude`. For parallel runs and tuning, see [Parallel Test Runner](parallel-tests.md).
 
 ## REPL Workflow
 
