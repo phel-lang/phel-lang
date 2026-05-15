@@ -35,10 +35,9 @@
   </a>
 </p>
 
-
 ---
 
-Functional, Lisp-inspired language compiling to PHP. Macros, persistent data structures, REPL.
+Lisp for PHP — macros, persistent data structures, REPL.
 
 ### Example
 <!--
@@ -48,7 +47,8 @@ we should use "phel" once GitHub accept phel coloring too
 ```clojure
 (ns my.example)
 
-(defn greet [name] (str "Hello, " name "!"))
+(defn greet [name] 
+  (str "Hello, " name "!"))
 
 (println (greet "Phel"))
 ;; => Hello, Phel!
@@ -164,16 +164,14 @@ echo '(println "hi")' | ./vendor/bin/phel eval -
 - [Quick Start](docs/quickstart.md): install, REPL, first script (5 min)
 - [Documentation Index](docs/README.md): every guide, grouped by purpose
 - [phel-lang.org](https://phel-lang.org): tutorials, exercises, blog
-- [Repository Guidelines](AGENTS.md) · [Packagist](https://packagist.org/packages/phel-lang/phel-lang)
+- [Packagist](https://packagist.org/packages/phel-lang/phel-lang)
+- [CONTRIBUTING.md](.github/CONTRIBUTING.md): setup and workflow
+- [AGENTS.md](AGENTS.md): architecture and review expectations
 
-**AI coding agents**
-- [resources/agents/](resources/agents/README.md): Claude Code, Cursor, Codex, Gemini, Copilot, Aider
-- `./vendor/bin/phel agent-install [platform] [--all]`: install skill file for your agent
+## AI Coding Agents
 
-## Build PHAR
+Skill files for Claude Code, Cursor, Codex, Gemini, Copilot, Aider: [resources/agents/](resources/agents/README.md)
 
-`./build/phar.sh` produces `build/out/phel.phar`.
-
-## Contribute
-
-Setup and workflow: [CONTRIBUTING.md](.github/CONTRIBUTING.md). Architecture and review expectations: [AGENTS.md](AGENTS.md).
+```sh
+./vendor/bin/phel agent-install [platform] [--all]   # install skill file for your agent
+```
