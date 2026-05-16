@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.38.0](https://github.com/phel-lang/phel-lang/compare/v0.37.0...v0.38.0) - 2026-05-16
+
 ### Added
 
 - `lazy-seq?` predicate distinguishes lazy seqs from lists (#1992)
