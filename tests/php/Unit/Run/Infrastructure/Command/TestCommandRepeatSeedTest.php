@@ -42,6 +42,14 @@ final class TestCommandRepeatSeedTest extends TestCase
         $this->collectAndPrint(['--repeat' => '-2']);
     }
 
+    public function test_repeat_non_numeric_throws(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('--repeat must be a positive integer, got abc');
+
+        $this->collectAndPrint(['--repeat' => 'abc']);
+    }
+
     public function test_seed_flag_appears_in_phel_hash_map(): void
     {
         $printed = $this->collectAndPrint(['--seed' => '777']);
