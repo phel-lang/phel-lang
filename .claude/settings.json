@@ -38,6 +38,11 @@
                         "type": "command",
                         "command": ".claude/hooks/format-php.sh",
                         "timeout": 30
+                    },
+                    {
+                        "type": "command",
+                        "command": ".claude/hooks/format-phel.sh",
+                        "timeout": 30
                     }
                 ]
             }
