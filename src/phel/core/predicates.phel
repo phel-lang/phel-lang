@@ -399,10 +399,20 @@
 
 (defn seq?
   "Returns true if `x` is a seq (a list or a lazy sequence)."
-  {:see-also ["seq" "lazy-seq"]}
+  {:see-also ["seq" "lazy-seq" "lazy-seq?"]}
   [x]
   (or (php/instanceof x LazySeqInterface)
       (php/instanceof x PersistentListInterface)))
+
+(defn lazy-seq?
+  "Returns true if `x` is a lazy sequence, false otherwise.
+
+  Unlike `seq?`, this predicate is true only for lazy sequences, not for
+  realized lists. Use `seq?` if you want to accept either."
+  {:example "(lazy-seq? (map inc [1 2 3])) ; => true\n(lazy-seq? '(1 2 3))         ; => false\n(lazy-seq? [1 2 3])          ; => false"
+   :see-also ["seq?" "realized?" "lazy-seq"]}
+  [x]
+  (php/instanceof x LazySeqInterface))
 
 (defn empty?
   "Returns true if x would be 0, \"\" or empty collection, false otherwise.
