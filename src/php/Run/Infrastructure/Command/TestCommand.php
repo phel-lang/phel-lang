@@ -419,15 +419,14 @@ final class TestCommand extends Command
     private function parseRepeat(InputInterface $input): int
     {
         $raw = $input->getOption(self::OPT_REPEAT);
-        $value = is_numeric($raw) ? (int) $raw : 1;
-        if ($value < 1) {
+        if (!is_numeric($raw) || (int) $raw < 1) {
             throw new InvalidArgumentException(sprintf(
                 '--repeat must be a positive integer, got %s.',
-                is_string($raw) ? $raw : (string) $value,
+                (string) $raw,
             ));
         }
 
-        return $value;
+        return (int) $raw;
     }
 
     private function parseSeed(InputInterface $input): ?int

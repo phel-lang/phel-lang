@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- `phel test`: `--testdox` no longer prints "no test message found" placeholder when an assertion has no message
+- `phel test`: `--repeat=<non-numeric>` now errors instead of silently falling back to 1
+- `phel test`: `--seed=<N>` alone now shuffles tests (previously printed the seed but kept order deterministic)
+- `phel test`: `--reporter=junit-xml` no longer emits empty `<testsuite>` entries for loaded dependency namespaces that contain no tests
+
 ## [0.38.0](https://github.com/phel-lang/phel-lang/compare/v0.37.0...v0.38.0) - 2026-05-16
 
 ### Added

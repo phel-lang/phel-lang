@@ -33,3 +33,7 @@ Every public function should have metadata:
 ## Macros
 
 Editing a `defmacro` body or `` ` `` quasiquote? Load [macro-hygiene.md](macro-hygiene.md) first — local `let` names can silently shadow globals.
+
+## Formatting
+
+`*.phel` files auto-formatted by `.claude/hooks/format-phel.sh` after Edit/Write (runs `./bin/phel format <file>`). No manual run needed. Check without writing: `./bin/phel format --dry-run <file>`.

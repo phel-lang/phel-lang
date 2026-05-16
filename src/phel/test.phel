@@ -764,8 +764,10 @@
       (let [state  (:state event)
             marker (case state :failed "✘" :error "E" "✔")
             tname  (or (:test-name event) "")
-            msg    (or (:message event) "no test message found")]
-        (println marker (str tname ": " msg)))
+            msg    (:message event)]
+        (println marker (if (s/blank? msg)
+                          tname
+                          (str tname ": " msg))))
 
       (= type :skipped)
       (let [tname (or (:test-name event) "")]
@@ -946,11 +948,17 @@
 
 (defn- junit-finalize-current [state]
   (let [current (:current state)]
-    (if current
-      (-> state
-          (assoc :testsuites (conj (get state :testsuites) current))
-          (assoc :current nil))
-      state)))
+    (cond
+      (nil? current)
+      state
+
+      (zero? (:tests current))
+      (assoc state :current nil)
+
+      :else
+      (assoc state
+             :testsuites (conj (:testsuites state) current)
+             :current nil))))
 
 (defn- junit-start-ns [state ns-name]
   (-> state
@@ -1240,11 +1248,12 @@
   (swap! timings conj {:ns ns :test-name test-name :duration-ms duration-ms}))
 
 (defn- maybe-shuffle-tests
-  "Returns `tests` shuffled when `:random-order` is set in `options`, or
-  unchanged otherwise. The active seed (`:seed-resolved`) reseeds PHP's
-  Mersenne Twister so the resulting order is reproducible."
+  "Returns `tests` shuffled when `:random-order` is set in `options` (or
+  an explicit `:seed` is supplied), or unchanged otherwise. The active
+  seed (`:seed-resolved`) reseeds PHP's Mersenne Twister so the resulting
+  order is reproducible."
   [options tests]
-  (if (:random-order options)
+  (if (or (:random-order options) (:seed options))
     (do
       (when-let [seed (:seed-resolved options)]
         (php/mt_srand seed))
