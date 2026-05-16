@@ -6,9 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- `lazy-seq?` predicate in `phel\core` distinguishes lazy sequences from lists/other seqables
+- `lazy-seq?` predicate distinguishes lazy seqs from lists (#1992)
 - `phel\reflect` module: `class-info`, `methods`, `properties`, `supers` over PHP reflection (#1984)
-- `phel test --parallel=<N|auto|max>` fans namespaces out over a subprocess worker pool (#1991, see [docs/parallel-tests.md](docs/parallel-tests.md))
+- `phel test --parallel=<N|auto|max>` fans namespaces out over a subprocess worker pool (#1991)
 - Multimethods: `prefer-method`, `prefers`, `prefers?` resolve ambiguous dispatch (#1980)
 - Transducers: `eduction` returns a reusable iterable view (#1981)
 - Compiler: `ParamTypeInferrer` cross-fn propagation + `:int-stable` allowlist on `phel.core` arithmetic (#1978); `ReturnTypeInferrer` recognises `random_int` / `intdiv` as `int`
