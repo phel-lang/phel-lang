@@ -34,7 +34,7 @@ use Phel\Lang\Uuid;
  * defaults: defaults are registered before user uses, so re-registration
  * with the same short name wins last.
  */
-final readonly class DefaultLangAliasesRegistrar
+final class DefaultLangAliasesRegistrar
 {
     /** @var array<string, string> */
     public const array DEFAULT_USE_ALIASES = [
@@ -57,16 +57,37 @@ final readonly class DefaultLangAliasesRegistrar
         'Uuid' => Uuid::class,
     ];
 
-    public function __construct(private AnalyzerInterface $analyzer) {}
+    /**
+     * Pre-built `(alias, target)` symbol pairs. Built lazily on first
+     * register call; `Symbol::create` is not interned, so caching keeps
+     * `(ns ...)` / `(in-ns ...)` declarations from allocating 34 fresh
+     * Symbols every time.
+     *
+     * @var list<array{Symbol, Symbol}>|null
+     */
+    private static ?array $cachedPairs = null;
 
-    public function register(string $ns): void
+    public static function register(AnalyzerInterface $analyzer, string $ns): void
     {
-        foreach (self::DEFAULT_USE_ALIASES as $shortName => $fqn) {
-            $this->analyzer->addUseAlias(
-                $ns,
-                Symbol::create($shortName),
-                Symbol::create('\\' . $fqn),
-            );
+        foreach (self::pairs() as [$alias, $target]) {
+            $analyzer->addUseAlias($ns, $alias, $target);
         }
+    }
+
+    /**
+     * @return list<array{Symbol, Symbol}>
+     */
+    private static function pairs(): array
+    {
+        if (self::$cachedPairs === null) {
+            $pairs = [];
+            foreach (self::DEFAULT_USE_ALIASES as $shortName => $fqn) {
+                $pairs[] = [Symbol::create($shortName), Symbol::create('\\' . $fqn)];
+            }
+
+            self::$cachedPairs = $pairs;
+        }
+
+        return self::$cachedPairs;
     }
 }
