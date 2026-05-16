@@ -152,6 +152,17 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
         )->cons($first);
     }
 
+    /**
+     * Returns a realized empty `LazySeq` whose thunk yields `null`. Used
+     * as a sentinel tail when no further elements remain.
+     *
+     * @return self<mixed>
+     */
+    public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
+    {
+        return new self($hasher, $equalizer, static fn(): null => null);
+    }
+
     public function isRealized(): bool
     {
         return $this->fn === null;
@@ -209,23 +220,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
      */
     public function nextSeq(): ?LazyCons
     {
-        $cdr = $this->cdr();
-
-        if (!$cdr instanceof LazySeqInterface) {
-            return null;
-        }
-
-        $nextFirst = $cdr->first();
-        if ($nextFirst === null) {
-            return null;
-        }
-
-        $nextRest = $cdr->cdr();
-        if (!$nextRest instanceof LazySeqInterface) {
-            $nextRest = new self($this->hasher, $this->equalizer, static fn(): null => null);
-        }
-
-        return new LazyCons($this->hasher, $this->equalizer, $nextFirst, $nextRest);
+        return LazyCons::fromCdr($this->hasher, $this->equalizer, $this->cdr());
     }
 
     /**
@@ -233,14 +228,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
      */
     public function rest(): self|LazySeqInterface
     {
-        $cdr = $this->cdr();
-
-        if (!$cdr instanceof LazySeqInterface) {
-            // Return empty LazySeq
-            return new self($this->hasher, $this->equalizer, static fn(): null => null);
-        }
-
-        return $cdr;
+        return $this->cdr() ?? self::empty($this->hasher, $this->equalizer);
     }
 
     /**

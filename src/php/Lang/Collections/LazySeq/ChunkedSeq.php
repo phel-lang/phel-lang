@@ -186,38 +186,15 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
      */
     public function nextSeq(): ?LazyCons
     {
-        $cdr = $this->cdr();
-
-        if (!$cdr instanceof LazySeqInterface) {
-            return null;
-        }
-
-        $nextFirst = $cdr->first();
-        if ($nextFirst === null) {
-            return null;
-        }
-
-        $nextRest = $cdr->cdr();
-        if (!$nextRest instanceof LazySeqInterface) {
-            $nextRest = new LazySeq($this->hasher, $this->equalizer, static fn(): null => null);
-        }
-
-        return new LazyCons($this->hasher, $this->equalizer, $nextFirst, $nextRest);
+        return LazyCons::fromCdr($this->hasher, $this->equalizer, $this->cdr());
     }
 
     /**
      * @return LazySeqInterface<T>
      */
-    public function rest(): LazySeq|LazySeqInterface
+    public function rest(): LazySeqInterface
     {
-        $cdr = $this->cdr();
-
-        if (!$cdr instanceof LazySeqInterface) {
-            // Return empty LazySeq
-            return new LazySeq($this->hasher, $this->equalizer, static fn(): null => null);
-        }
-
-        return $cdr;
+        return $this->cdr() ?? LazySeq::empty($this->hasher, $this->equalizer);
     }
 
     /**

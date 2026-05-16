@@ -68,6 +68,36 @@ final class LazyCons extends AbstractType implements SeqInterface, IteratorAggre
     }
 
     /**
+     * Builds a realized cons cell from a lazy `$cdr` by forcing one element
+     * of the head. Returns `null` when `$cdr` is null or empty. Shared
+     * helper for `LazySeq::nextSeq()`, `ChunkedSeq::nextSeq()`, and
+     * `LazyCons::nextSeq()`.
+     *
+     * @param LazySeqInterface<mixed>|null $cdr
+     *
+     * @return self<mixed>|null
+     */
+    public static function fromCdr(
+        HasherInterface $hasher,
+        EqualizerInterface $equalizer,
+        ?LazySeqInterface $cdr,
+    ): ?self {
+        if (!$cdr instanceof LazySeqInterface) {
+            return null;
+        }
+
+        $head = $cdr->first();
+        if ($head === null) {
+            return null;
+        }
+
+        /** @var LazySeqInterface<mixed> $tail */
+        $tail = $cdr->cdr() ?? LazySeq::empty($hasher, $equalizer);
+
+        return new self($hasher, $equalizer, $head, $tail);
+    }
+
+    /**
      * Returns the next realized cons cell (head + lazy tail) or `null` when
      * the lazy tail is exhausted. The returned cell's head is the tail's
      * first element so callers do not skip an item.
@@ -76,18 +106,7 @@ final class LazyCons extends AbstractType implements SeqInterface, IteratorAggre
      */
     public function nextSeq(): ?self
     {
-        $head = $this->rest->first();
-        if ($head === null) {
-            return null;
-        }
-
-        $tail = $this->rest->cdr();
-        if (!$tail instanceof LazySeqInterface) {
-            $tail = new LazySeq($this->hasher, $this->equalizer, static fn(): null => null);
-        }
-
-        /** @var T $head */
-        return new self($this->hasher, $this->equalizer, $head, $tail);
+        return self::fromCdr($this->hasher, $this->equalizer, $this->rest);
     }
 
     /**
