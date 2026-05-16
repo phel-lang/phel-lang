@@ -57,6 +57,7 @@ TXT;
         $this->assertValidNamespace($parts, $nsSymbol);
 
         $this->analyzer->setNamespace($ns);
+        new DefaultLangAliasesRegistrar($this->analyzer)->register($ns);
 
         $requireNs = [];
         $requireFiles = [];

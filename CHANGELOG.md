@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- Auto-refer 17 common `Phel\Lang\*` PHP types in every Phel namespace without an explicit `(:use ...)` line. The `Interface` suffix is dropped at the Phel level: `(php/instanceof x LazySeq)`, `(php/instanceof x PersistentVector)`, `(php/instanceof x Keyword)` all work out of the box. User `(:use ...)` declarations with the same short name still override the default (#1996)
+
 ### Fixed
 
 - LazySeq: `(next lazy-seq)` now returns a realized `LazyCons` cell (or nil) instead of another `LazySeq`, matching Clojure's `(next s)` contract `(not (lazy-seq? (next s)))` (#1994)

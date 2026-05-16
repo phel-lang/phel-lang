@@ -15,6 +15,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\NsSymbol;
+use Phel\Lang\Collections\LazySeq\LazySeqInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Registry;
 use Phel\Lang\SourceLocation;
@@ -177,6 +178,42 @@ final class NsSymbolTest extends TestCase
         ]);
 
         new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+    }
+
+    public function test_ns_registers_default_lang_aliases_without_explicit_use(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('foo\\bar'),
+        ]);
+
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+
+        $aliases = $this->globalEnv->getUseAliases('foo.bar');
+        self::assertArrayHasKey('LazySeq', $aliases);
+        self::assertSame('\\' . LazySeqInterface::class, $aliases['LazySeq']->getName());
+        self::assertArrayHasKey('PersistentVector', $aliases);
+        self::assertArrayHasKey('Keyword', $aliases);
+        self::assertArrayHasKey('Uuid', $aliases);
+    }
+
+    public function test_user_use_overrides_default_alias(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_NS),
+            Symbol::create('foo\\bar'),
+            Phel::list([
+                Keyword::create('use'),
+                Symbol::create('stdClass'),
+                Keyword::create('as'),
+                Symbol::create('Keyword'),
+            ]),
+        ]);
+
+        new NsSymbol($this->analyzer)->analyze($list, NodeEnvironment::empty());
+
+        $aliases = $this->globalEnv->getUseAliases('foo.bar');
+        self::assertSame('\\stdClass', $aliases['Keyword']->getName());
     }
 
     public function test_require_first_argument_must_be_symbol(): void

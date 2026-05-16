@@ -70,6 +70,7 @@ final class InNsSymbol implements SpecialFormAnalyzerInterface
         $ns = str_replace('\\', '.', $rawNs);
 
         $this->analyzer->setNamespace($ns);
+        new DefaultLangAliasesRegistrar($this->analyzer)->register($ns);
 
         ReplReferInjector::injectIfReplMode($this->analyzer, $ns);
 
