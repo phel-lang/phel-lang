@@ -178,6 +178,34 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
     }
 
     /**
+     * Mirrors Clojure's `(next s)` semantics: returns a realized `LazyCons`
+     * holding the next head and a lazy tail, or `null` when exhausted. The
+     * returned value is never a `LazySeqInterface`.
+     *
+     * @return LazyCons<mixed>|null
+     */
+    public function nextSeq(): ?LazyCons
+    {
+        $cdr = $this->cdr();
+
+        if (!$cdr instanceof LazySeqInterface) {
+            return null;
+        }
+
+        $nextFirst = $cdr->first();
+        if ($nextFirst === null) {
+            return null;
+        }
+
+        $nextRest = $cdr->cdr();
+        if (!$nextRest instanceof LazySeqInterface) {
+            $nextRest = new LazySeq($this->hasher, $this->equalizer, static fn(): null => null);
+        }
+
+        return new LazyCons($this->hasher, $this->equalizer, $nextFirst, $nextRest);
+    }
+
+    /**
      * @return LazySeqInterface<T>
      */
     public function rest(): LazySeq|LazySeqInterface

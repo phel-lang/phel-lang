@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Lang\Collections\LazySeq;
 
 use Generator;
+use Phel\Lang\Collections\LazySeq\LazyCons;
 use Phel\Lang\Collections\LazySeq\LazySeq;
 use Phel\Lang\Collections\LazySeq\LazySeqInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -120,13 +121,63 @@ final class LazySeqTest extends TestCase
         $this->assertSame(2, $rest->first());
     }
 
-    public function test_cdr_returns_lazy_sequence_or_null(): void
+    public function test_cdr_returns_lazy_tail_without_realizing_its_head(): void
     {
-        $lazySeq = LazySeq::fromArray($this->hasher, $this->equalizer, [1]);
+        $callCount = 0;
+        $tail = new LazySeq(
+            $this->hasher,
+            $this->equalizer,
+            static function () use (&$callCount): null {
+                ++$callCount;
+                return null;
+            },
+        );
 
-        $cdr = $lazySeq->cdr();
+        $head = $tail->cons(1);
 
-        $this->assertNotInstanceOf(LazySeqInterface::class, $cdr);
+        $cdr = $head->cdr();
+
+        self::assertInstanceOf(LazySeqInterface::class, $cdr);
+        self::assertSame(0, $callCount, 'cdr must not force the tail');
+    }
+
+    public function test_next_seq_returns_lazy_cons_not_lazy_seq(): void
+    {
+        $lazySeq = LazySeq::fromArray($this->hasher, $this->equalizer, [1, 2, 3]);
+
+        $next = $lazySeq->nextSeq();
+
+        self::assertNotNull($next);
+        self::assertInstanceOf(LazyCons::class, $next);
+        self::assertNotInstanceOf(LazySeqInterface::class, $next);
+        self::assertSame(2, $next->first());
+    }
+
+    public function test_next_seq_returns_null_for_single_element_seq(): void
+    {
+        $lazySeq = LazySeq::fromArray($this->hasher, $this->equalizer, [42]);
+
+        self::assertNull($lazySeq->nextSeq());
+    }
+
+    public function test_rest_keeps_tail_unrealized(): void
+    {
+        $callCount = 0;
+        $tail = new LazySeq(
+            $this->hasher,
+            $this->equalizer,
+            static function () use (&$callCount): null {
+                ++$callCount;
+                return null;
+            },
+        );
+
+        $head = $tail->cons(1);
+
+        $rest = $head->rest();
+
+        self::assertFalse($rest->isRealized(), 'rest must not force the tail');
+        self::assertSame(0, $callCount);
     }
 
     public function test_cons_prepends_element(): void
