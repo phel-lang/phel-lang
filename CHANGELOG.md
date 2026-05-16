@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- LazySeq: `(next lazy-seq)` now returns a realized `LazyCons` cell (or nil) instead of another `LazySeq`, matching Clojure's `(next s)` contract `(not (lazy-seq? (next s)))` (#1994)
+- LazySeq: `(rest lazy-seq)` and `(cdr lazy-seq)` no longer force the head of the tail, restoring true laziness — `(realized? (rest s))` now stays `false` when the consumer only walked the spine (#1995)
 - `phel test`: `--testdox` no longer prints "no test message found" placeholder when an assertion has no message
 - `phel test`: `--repeat=<non-numeric>` now errors instead of silently falling back to 1
 - `phel test`: `--seed=<N>` alone now shuffles tests (previously printed the seed but kept order deterministic)

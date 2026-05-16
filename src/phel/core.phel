@@ -3,6 +3,8 @@
   (:use Phel)
   (:use Phel.Lang.CdrInterface)
   (:use Phel.Lang.Collections.HashSet.PersistentHashSetInterface)
+  (:use Phel.Lang.Collections.LazySeq.LazyCons)
+  (:use Phel.Lang.Collections.LazySeq.LazySeqInterface)
   (:use Phel.Lang.Collections.Map.MapEntry)
   (:use Phel.Lang.Collections.Map.PersistentMapInterface)
   (:use Phel.Lang.ConcatInterface)
@@ -95,24 +97,28 @@
   (fn [xs]
     (if (php/=== xs nil)
       nil
-      (if (php/instanceof xs CdrInterface)
-        (php/-> xs (cdr))
-        (if (php/is_string xs)
-          (let [chars (php/mb_str_split xs)]
-            (if (php/<= (php/count chars) 1)
-              nil
-              (php/:: Phel (vector (php/array_slice chars 1)))))
-          (if (php/is_array xs)
-            (let [sliced (php/array_slice xs 1)]
-              (if (php/empty sliced)
-                nil
-                sliced))
-            (if (php/instanceof xs PersistentHashSetInterface)
-              (next-of-set xs)
-              (if (php/instanceof xs PersistentMapInterface)
-                (next-of-map xs)
-                (throw (php/new InvalidArgumentException
-                                (php/. "cannot call 'next on " (php/gettype xs))))))))))))
+      (if (php/instanceof xs LazySeqInterface)
+        (php/-> xs (nextSeq))
+        (if (php/instanceof xs LazyCons)
+          (php/-> xs (nextSeq))
+          (if (php/instanceof xs CdrInterface)
+            (php/-> xs (cdr))
+            (if (php/is_string xs)
+              (let [chars (php/mb_str_split xs)]
+                (if (php/<= (php/count chars) 1)
+                  nil
+                  (php/:: Phel (vector (php/array_slice chars 1)))))
+              (if (php/is_array xs)
+                (let [sliced (php/array_slice xs 1)]
+                  (if (php/empty sliced)
+                    nil
+                    sliced))
+                (if (php/instanceof xs PersistentHashSetInterface)
+                  (next-of-set xs)
+                  (if (php/instanceof xs PersistentMapInterface)
+                    (next-of-map xs)
+                    (throw (php/new InvalidArgumentException
+                                    (php/. "cannot call 'next on " (php/gettype xs))))))))))))))
 
 (def first-map-entry
   {:private true

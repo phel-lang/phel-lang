@@ -152,6 +152,17 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
         )->cons($first);
     }
 
+    /**
+     * Returns a realized empty `LazySeq` whose thunk yields `null`. Used
+     * as a sentinel tail when no further elements remain.
+     *
+     * @return self<mixed>
+     */
+    public static function empty(HasherInterface $hasher, EqualizerInterface $equalizer): self
+    {
+        return new self($hasher, $equalizer, static fn(): null => null);
+    }
+
     public function isRealized(): bool
     {
         return $this->fn === null;
@@ -172,6 +183,10 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     }
 
     /**
+     * Returns the tail seq without forcing the head of that tail. Callers
+     * who need to know whether the tail is empty must probe with `first()`
+     * or use `nextSeq()`.
+     *
      * @return LazySeqInterface<T>|null
      */
     public function cdr(): LazySeqInterface|self|null
@@ -188,16 +203,6 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
             return null;
         }
 
-        // Check if rest is empty
-        if ($rest instanceof SeqInterface) {
-            $first = $rest->first();
-            if ($first === null) {
-                // Empty sequence
-                return null;
-            }
-        }
-
-        // Wrap the rest in a LazySeq to maintain laziness
         if ($rest instanceof LazySeqInterface) {
             return $rest;
         }
@@ -206,18 +211,24 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     }
 
     /**
+     * Mirrors Clojure's `(next s)` semantics: returns a realized cons cell
+     * (`LazyCons`) holding the next head and a lazy tail, or `null` when
+     * the tail is exhausted. The returned value is never a
+     * `LazySeqInterface`.
+     *
+     * @return LazyCons<mixed>|null
+     */
+    public function nextSeq(): ?LazyCons
+    {
+        return LazyCons::fromCdr($this->hasher, $this->equalizer, $this->cdr());
+    }
+
+    /**
      * @return LazySeqInterface<T>
      */
     public function rest(): self|LazySeqInterface
     {
-        $cdr = $this->cdr();
-
-        if (!$cdr instanceof LazySeqInterface) {
-            // Return empty LazySeq
-            return new self($this->hasher, $this->equalizer, static fn(): null => null);
-        }
-
-        return $cdr;
+        return $this->cdr() ?? self::empty($this->hasher, $this->equalizer);
     }
 
     /**
@@ -227,70 +238,14 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
      */
     public function cons($x): self
     {
+        $hasher = $this->hasher;
+        $equalizer = $this->equalizer;
         $self = $this;
 
         return new self(
-            $this->hasher,
-            $this->equalizer,
-            /** @psalm-suppress InvalidReturnType, InvalidReturnStatement */
-            static fn(): SeqInterface // Create a simple cons cell
-            => new readonly class($x, $self) implements SeqInterface {
-                /**
-                 * @param LazySeqInterface<mixed> $rest
-                 */
-                public function __construct(
-                    private mixed $first,
-                    private LazySeqInterface $rest,
-                ) {}
-
-                public function first()
-                {
-                    return $this->first;
-                }
-
-                /**
-                 * @return LazySeqInterface<mixed>
-                 */
-                public function cdr(): LazySeqInterface
-                {
-                    return $this->rest;
-                }
-
-                /**
-                 * @return LazySeqInterface<mixed>
-                 */
-                public function rest(): LazySeqInterface
-                {
-                    return $this->rest;
-                }
-
-                public function toArray(): array
-                {
-                    // Iterative implementation to avoid stack overflow
-                    $result = [$this->first];
-                    $current = $this->rest;
-
-                    // Walk through the sequence iteratively
-                    /** @phpstan-ignore instanceof.alwaysTrue */
-                    while ($current instanceof LazySeqInterface) {
-                        $realized = $current->first();
-                        if ($realized === null) {
-                            break;
-                        }
-
-                        $result[] = $realized;
-
-                        $next = $current->cdr();
-                        if ($next === null) {
-                            break;
-                        }
-
-                        $current = $next;
-                    }
-
-                    return $result;
-                }
-            },
+            $hasher,
+            $equalizer,
+            static fn(): LazyCons => new LazyCons($hasher, $equalizer, $x, $self),
             $this->meta,
         );
     }
@@ -325,7 +280,6 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
             // Handle both LazySeq and other SeqInterface implementations
             if ($next instanceof self) {
                 $seq = $next;
-                /** @phpstan-ignore instanceof.alwaysTrue */
             } elseif ($next instanceof SeqInterface) {
                 // Realize remaining non-lazy sequence
                 $remaining = $next->toArray();
