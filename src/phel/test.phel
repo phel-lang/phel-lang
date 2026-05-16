@@ -765,9 +765,9 @@
             marker (case state :failed "✘" :error "E" "✔")
             tname  (or (:test-name event) "")
             msg    (:message event)]
-        (println marker (if (and msg (not= msg ""))
-                          (str tname ": " msg)
-                          tname)))
+        (println marker (if (s/blank? msg)
+                          tname
+                          (str tname ": " msg))))
 
       (= type :skipped)
       (let [tname (or (:test-name event) "")]
@@ -956,9 +956,9 @@
       (assoc state :current nil)
 
       :else
-      (-> state
-          (assoc :testsuites (conj (get state :testsuites) current))
-          (assoc :current nil)))))
+      (assoc state
+             :testsuites (conj (:testsuites state) current)
+             :current nil))))
 
 (defn- junit-start-ns [state ns-name]
   (-> state
