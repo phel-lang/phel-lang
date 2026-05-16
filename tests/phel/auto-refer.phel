@@ -1,0 +1,35 @@
+(ns phel-test.auto-refer
+  (:require phel.test :refer [deftest is]))
+
+;; Verifies the curated `Phel\Lang\*` aliases are pre-registered in every
+;; namespace without any explicit `(:use ...)` line. See issue #1996.
+
+(deftest test-lazy-seq-alias-resolves-without-explicit-use
+  (is (php/instanceof (lazy-seq (cons 1 nil)) LazySeq))
+  (is (php/instanceof (next (lazy-seq (cons 1 (lazy-seq (cons 2 nil))))) LazyCons)))
+
+(deftest test-persistent-vector-alias
+  (is (php/instanceof [1 2 3] PersistentVector))
+  (is (not (php/instanceof '(1 2 3) PersistentVector))))
+
+(deftest test-persistent-list-alias
+  (is (php/instanceof '(1 2 3) PersistentList)))
+
+(deftest test-persistent-map-alias
+  (is (php/instanceof {:a 1} PersistentMap))
+  (is (php/instanceof (php/:: \Phel\Lang\Collections\Map\MapEntry (create :k :v)) MapEntry)))
+
+(deftest test-persistent-hash-set-alias
+  (is (php/instanceof (hash-set 1 2 3) PersistentHashSet)))
+
+(deftest test-keyword-and-symbol-aliases
+  (is (php/instanceof :foo Keyword))
+  (is (php/instanceof 'foo Symbol)))
+
+(deftest test-uuid-alias
+  (is (php/instanceof (random-uuid) Uuid)))
+
+(deftest test-numeric-tower-aliases
+  (is (php/instanceof (bigint 1) BigInteger))
+  (is (php/instanceof (bigdec "1.5") BigDecimal))
+  (is (php/instanceof (rationalize 1/3) Rational)))
