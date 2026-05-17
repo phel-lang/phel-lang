@@ -342,8 +342,8 @@
        []))
 
 (deftest test-ratio?
-  (is (true? (ratio? 1/2)) "ratio? on a Rational literal")
-  (is (true? (ratio? 3/4)) "ratio? on a non-collapsing Rational")
+  (is (true? (ratio? 1/2)) "ratio? on a Ratio literal")
+  (is (true? (ratio? 3/4)) "ratio? on a non-collapsing Ratio")
   (are [x] (false? (ratio? x))
        0.5
        1
@@ -378,8 +378,8 @@
 (deftest test-rationalize
   (is (= 1/2 (rationalize 0.5)) "rationalize 0.5 -> 1/2")
   (is (= 5 (rationalize 5)) "rationalize int returns int")
-  (is (= 1/2 (rationalize 1/2)) "rationalize Rational returns Rational")
-  (is (true? (ratio? (rationalize 0.25))) "rationalize float returns a Rational")
+  (is (= 1/2 (rationalize 1/2)) "rationalize Ratio returns Ratio")
+  (is (true? (ratio? (rationalize 0.25))) "rationalize float returns a Ratio")
   (is (thrown? \InvalidArgumentException (rationalize ##Inf))
       "rationalize rejects ##Inf")
   (is (thrown? \InvalidArgumentException (rationalize ##NaN))
@@ -402,7 +402,7 @@
   (is (false? (instance? clojure.lang.BigInt 0))
       "clojure.lang.BigInt does not match a native int")
   (is (true? (instance? clojure.lang.Ratio 1/2))
-      "clojure.lang.Ratio resolves to Phel\\Lang\\Rational")
+      "clojure.lang.Ratio resolves to Phel\\Lang\\Ratio")
   (is (true? (instance? clojure.lang.Keyword :foo))
       "clojure.lang.Keyword auto-aliases to Phel\\Lang\\Keyword")
   (is (true? (instance? clojure.lang.Symbol 'foo))

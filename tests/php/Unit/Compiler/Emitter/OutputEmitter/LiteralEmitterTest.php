@@ -7,7 +7,7 @@ namespace PhelTest\Unit\Compiler\Emitter\OutputEmitter;
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\LiteralEmitter;
 use Phel\Lang\BigInt;
-use Phel\Lang\Rational;
+use Phel\Lang\Ratio;
 use Phel\Shared\Printer\Printer;
 use PHPUnit\Framework\TestCase;
 
@@ -42,13 +42,13 @@ final class LiteralEmitterTest extends TestCase
 
     public function test_emit_rational_uses_create_factory_with_big_integer_arguments(): void
     {
-        $rational = Rational::create(BigInt::fromString('1'), BigInt::fromString('2'));
-        self::assertInstanceOf(Rational::class, $rational);
+        $rational = Ratio::create(BigInt::fromString('1'), BigInt::fromString('2'));
+        self::assertInstanceOf(Ratio::class, $rational);
 
         $this->literalEmitter->emitLiteral($rational);
 
         $this->expectOutputString(
-            '\\' . Rational::class . '::create('
+            '\\' . Ratio::class . '::create('
             . '\\' . BigInt::class . '::fromString("1"), '
             . '\\' . BigInt::class . '::fromString("2")'
             . ')',
@@ -57,13 +57,13 @@ final class LiteralEmitterTest extends TestCase
 
     public function test_emit_negative_rational(): void
     {
-        $rational = Rational::create(BigInt::fromString('-3'), BigInt::fromString('4'));
-        self::assertInstanceOf(Rational::class, $rational);
+        $rational = Ratio::create(BigInt::fromString('-3'), BigInt::fromString('4'));
+        self::assertInstanceOf(Ratio::class, $rational);
 
         $this->literalEmitter->emitLiteral($rational);
 
         $this->expectOutputString(
-            '\\' . Rational::class . '::create('
+            '\\' . Ratio::class . '::create('
             . '\\' . BigInt::class . '::fromString("-3"), '
             . '\\' . BigInt::class . '::fromString("4")'
             . ')',

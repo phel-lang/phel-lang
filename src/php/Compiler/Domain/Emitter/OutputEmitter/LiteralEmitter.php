@@ -13,7 +13,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Keyword;
-use Phel\Lang\Rational;
+use Phel\Lang\Ratio;
 use Phel\Lang\Symbol;
 use Phel\Lang\UUID;
 use Phel\Shared\Printer\PrinterInterface;
@@ -63,8 +63,8 @@ final readonly class LiteralEmitter
             $this->emitList($x);
         } elseif ($x instanceof DateTimeImmutable) {
             $this->emitDateTime($x);
-        } elseif ($x instanceof Rational) {
-            $this->emitRational($x);
+        } elseif ($x instanceof Ratio) {
+            $this->emitRatio($x);
         } elseif ($x instanceof BigInt) {
             $this->emitBigInt($x);
         } elseif ($x instanceof BigDecimal) {
@@ -111,10 +111,10 @@ final readonly class LiteralEmitter
         );
     }
 
-    private function emitRational(Rational $x): void
+    private function emitRatio(Ratio $x): void
     {
         $this->outputEmitter->emitStr(
-            '\Phel\Lang\Rational::create('
+            '\Phel\Lang\Ratio::create('
             . '\Phel\Lang\BigInt::fromString("' . $x->numerator()->__toString() . '"), '
             . '\Phel\Lang\BigInt::fromString("' . $x->denominator()->__toString() . '")'
             . ')',

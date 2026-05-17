@@ -18,7 +18,7 @@
 
 (defn delay
   "Suspends execution for `seconds`. Accepts any number (int, float, or
-  `Rational`); sub-second precision such as `0.05` is supported.
+  `Ratio`); sub-second precision such as `0.05` is supported.
 
   At the top level this behaves like `php/sleep` / `php/usleep`: it
   blocks the script for the given duration. Inside an `async`/`future`

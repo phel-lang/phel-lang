@@ -6,7 +6,7 @@
   {:add (+ a b)
    :subtract (- a b)
    :multiply (* a b)
-   :divide (/ a b)             ; integer division returns a Rational when not even
+   :divide (/ a b)             ; integer division returns a Ratio when not even
    :quotient (quot a b)        ; integer truncation toward zero
    :remainder (rem a b)
    :average (/ (+ a b) 2)

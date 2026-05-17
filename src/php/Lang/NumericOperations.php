@@ -18,7 +18,7 @@ use function sprintf;
 
 /**
  * Runtime numeric dispatch for `+ - * /` and friends across native PHP
- * numbers, {@see BigInt}, and {@see Rational}. Native PHP operators
+ * numbers, {@see BigInt}, and {@see Ratio}. Native PHP operators
  * cannot dispatch on objects, so the compiler routes Phel arithmetic
  * through these helpers.
  *
@@ -27,9 +27,9 @@ use function sprintf;
  *  - any op float                        -> float (highest priority; BigDecimal
  *                                                  cannot represent Inf/NaN)
  *  - BigDecimal op BigDecimal/int        -> BigDecimal
- *  - Rational op Rational/int/BigInt -> Rational (auto-collapsed)
+ *  - Ratio op Ratio/int/BigInt -> Ratio (auto-collapsed)
  *  - BigInt op BigInt/int        -> BigInt (auto-collapsed)
- *  - int op int                          -> int (or Rational for non-integer divisions)
+ *  - int op int                          -> int (or Ratio for non-integer divisions)
  */
 final class NumericOperations
 {
@@ -49,11 +49,11 @@ final class NumericOperations
             return self::toBigDecimal($a)->add(self::toBigDecimal($b));
         }
 
-        if ($a instanceof Rational) {
+        if ($a instanceof Ratio) {
             return $a->add(self::rationalOperand($b));
         }
 
-        if ($b instanceof Rational) {
+        if ($b instanceof Ratio) {
             return $b->add(self::rationalOperand($a));
         }
 
@@ -81,11 +81,11 @@ final class NumericOperations
             return self::toBigDecimal($a)->subtract(self::toBigDecimal($b));
         }
 
-        if ($a instanceof Rational) {
+        if ($a instanceof Ratio) {
             return $a->subtract(self::rationalOperand($b));
         }
 
-        if ($b instanceof Rational) {
+        if ($b instanceof Ratio) {
             // a - b == -(b - a)
             return self::negate($b->subtract(self::rationalOperand($a)));
         }
@@ -114,11 +114,11 @@ final class NumericOperations
             return self::toBigDecimal($a)->multiply(self::toBigDecimal($b));
         }
 
-        if ($a instanceof Rational) {
+        if ($a instanceof Ratio) {
             return $a->multiply(self::rationalOperand($b));
         }
 
-        if ($b instanceof Rational) {
+        if ($b instanceof Ratio) {
             return $b->multiply(self::rationalOperand($a));
         }
 
@@ -135,7 +135,7 @@ final class NumericOperations
 
     /**
      * Division with rational promotion: int/int with non-zero remainder
-     * returns a {@see Rational} rather than a float.
+     * returns a {@see Ratio} rather than a float.
      */
     public static function divide(mixed $a, mixed $b): mixed
     {
@@ -160,17 +160,17 @@ final class NumericOperations
             return self::toBigDecimal($a)->divideExact(self::toBigDecimal($b));
         }
 
-        if ($a instanceof Rational) {
+        if ($a instanceof Ratio) {
             return $a->divide(self::rationalOperand($b));
         }
 
-        if ($b instanceof Rational) {
+        if ($b instanceof Ratio) {
             // a / (n/d) == (a * d) / n
             return self::divide(self::multiply($a, $b->denominator()), $b->numerator());
         }
 
         if ($a instanceof BigInt || $b instanceof BigInt) {
-            return Rational::create(self::toBigInt($a), self::toBigInt($b));
+            return Ratio::create(self::toBigInt($a), self::toBigInt($b));
         }
 
         if ($b === 0) {
@@ -181,14 +181,14 @@ final class NumericOperations
             return intdiv($a, $b);
         }
 
-        return Rational::create($a, $b);
+        return Ratio::create($a, $b);
     }
 
     public static function negate(mixed $a): mixed
     {
         self::ensureNumeric($a);
 
-        if ($a instanceof Rational) {
+        if ($a instanceof Ratio) {
             return $a->negate();
         }
 
@@ -216,11 +216,11 @@ final class NumericOperations
             return self::toBigDecimal($a)->compareTo(self::toBigDecimal($b));
         }
 
-        if ($a instanceof Rational) {
+        if ($a instanceof Ratio) {
             return $a->compareTo(self::rationalOperand($b));
         }
 
-        if ($b instanceof Rational) {
+        if ($b instanceof Ratio) {
             return -$b->compareTo(self::rationalOperand($a));
         }
 
@@ -244,11 +244,11 @@ final class NumericOperations
             return self::toFloat($a) === self::toFloat($b);
         }
 
-        if ($a instanceof Rational) {
+        if ($a instanceof Ratio) {
             return $a->equals($b);
         }
 
-        if ($b instanceof Rational) {
+        if ($b instanceof Ratio) {
             return $b->equals($a);
         }
 
@@ -261,8 +261,8 @@ final class NumericOperations
 
     public static function isZero(mixed $a): bool
     {
-        if ($a instanceof Rational) {
-            // Rational::create collapses true zeros to int 0, so a Rational
+        if ($a instanceof Ratio) {
+            // Ratio::create collapses true zeros to int 0, so a Ratio
             // instance is always non-zero.
             return false;
         }
@@ -282,7 +282,7 @@ final class NumericOperations
     {
         self::ensureNumeric($a);
 
-        if ($a instanceof Rational) {
+        if ($a instanceof Ratio) {
             return $a->abs();
         }
 
@@ -310,13 +310,13 @@ final class NumericOperations
 
         // Float exponent or float base falls back to native ** for parity
         // with PHP semantics, including fractional exponents.
-        if (is_float($base) || is_float($exp) || $exp instanceof Rational) {
+        if (is_float($base) || is_float($exp) || $exp instanceof Ratio) {
             return self::toFloat($base) ** self::toFloat($exp);
         }
 
         $exponent = self::toIntExponent($exp);
 
-        if ($base instanceof Rational) {
+        if ($base instanceof Ratio) {
             return self::rationalPower($base, $exponent);
         }
 
@@ -325,7 +325,7 @@ final class NumericOperations
         $baseBig = self::toBigInt($base);
 
         if ($exponent < 0) {
-            return Rational::create(BigInt::one(), $baseBig->pow(-$exponent));
+            return Ratio::create(BigInt::one(), $baseBig->pow(-$exponent));
         }
 
         return self::collapseBigInt($baseBig->pow($exponent));
@@ -357,7 +357,7 @@ final class NumericOperations
             );
         }
 
-        if ($a instanceof Rational || $b instanceof Rational) {
+        if ($a instanceof Ratio || $b instanceof Ratio) {
             $quotient = self::divide($a, $b);
             return self::truncateToInt($quotient);
         }
@@ -394,7 +394,7 @@ final class NumericOperations
             return $aBig->subtract($bBig->multiply($q));
         }
 
-        if ($a instanceof Rational || $b instanceof Rational) {
+        if ($a instanceof Ratio || $b instanceof Ratio) {
             $q = self::quot($a, $b);
             return self::subtract($a, self::multiply($b, $q));
         }
@@ -488,7 +488,7 @@ final class NumericOperations
             return;
         }
 
-        if ($value instanceof BigInt || $value instanceof Rational || $value instanceof BigDecimal) {
+        if ($value instanceof BigInt || $value instanceof Ratio || $value instanceof BigDecimal) {
             return;
         }
 
@@ -528,7 +528,7 @@ final class NumericOperations
             return BigDecimal::fromFloat($value);
         }
 
-        if ($value instanceof Rational) {
+        if ($value instanceof Ratio) {
             return BigDecimal::fromBigInt($value->numerator())
                 ->divideExact(BigDecimal::fromBigInt($value->denominator()));
         }
@@ -540,7 +540,7 @@ final class NumericOperations
 
     private static function toFloat(mixed $value): float
     {
-        if ($value instanceof Rational) {
+        if ($value instanceof Ratio) {
             return $value->toFloat();
         }
 
@@ -566,9 +566,9 @@ final class NumericOperations
         );
     }
 
-    private static function rationalOperand(mixed $value): Rational|BigInt|int
+    private static function rationalOperand(mixed $value): Ratio|BigInt|int
     {
-        if ($value instanceof Rational || $value instanceof BigInt || is_int($value)) {
+        if ($value instanceof Ratio || $value instanceof BigInt || is_int($value)) {
             return $value;
         }
 
@@ -582,7 +582,7 @@ final class NumericOperations
         return $value->fitsInPhpInt() ? $value->toInt() : $value;
     }
 
-    private static function rationalPower(Rational $base, int $exponent): mixed
+    private static function rationalPower(Ratio $base, int $exponent): mixed
     {
         if ($exponent === 0) {
             return 1;
@@ -590,8 +590,8 @@ final class NumericOperations
 
         if ($exponent < 0) {
             // (n/d)^(-k) = (d/n)^k.
-            $reciprocal = Rational::create($base->denominator(), $base->numerator());
-            if ($reciprocal instanceof Rational) {
+            $reciprocal = Ratio::create($base->denominator(), $base->numerator());
+            if ($reciprocal instanceof Ratio) {
                 return self::rationalPower($reciprocal, -$exponent);
             }
 
@@ -600,7 +600,7 @@ final class NumericOperations
 
         $num = $base->numerator()->pow($exponent);
         $den = $base->denominator()->pow($exponent);
-        return Rational::create($num, $den);
+        return Ratio::create($num, $den);
     }
 
     private static function toIntExponent(mixed $value): int
@@ -628,7 +628,7 @@ final class NumericOperations
             return $value;
         }
 
-        if ($value instanceof Rational) {
+        if ($value instanceof Ratio) {
             return self::collapseBigInt($value->numerator()->divide($value->denominator()));
         }
 

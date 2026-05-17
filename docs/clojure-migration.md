@@ -55,7 +55,7 @@ Clojure reader syntax is accepted wholesale. Older Phel-specific forms still wor
 | `##Inf`, `##-Inf`, `##NaN` | Symbolic numeric literal | |
 | `2r1111`, `16rFF` | Radix literal (bases 2 to 36) | |
 | `1N`, `1.5M` | BigInt / BigDecimal suffix (read as `Phel\Lang\BigInt` / `Phel\Lang\BigDecimal`) | |
-| `1/2`, `-3/4` | Ratio literal (read as `Phel\Lang\Rational`; integer-valued ratios collapse to `int`/`BigInt`) | |
+| `1/2`, `-3/4` | Ratio literal (read as `Phel\Lang\Ratio`; integer-valued ratios collapse to `int`/`BigInt`) | |
 | `#"regex"` | Regex literal | |
 | `#?(...)`, `#?@(...)` | Reader conditionals (for `.cljc`) | |
 | `#<tag> form` | Tagged literal dispatch | |
@@ -174,7 +174,7 @@ Some Clojure features don't translate to PHP:
 | **Refs / STM** | No concurrent transactions in PHP | Use `atom` for mutable state |
 | **Agents** | No background threads | PHP job queues via interop |
 | **core.async** | No goroutines/CSP, but fiber primitives (`promise`, `deliver`, `future-fiber`) cover CSP-lite handoffs, all in `phel.core` except `delay` (requires `phel.async`). | See [docs/async-guide.md](async-guide.md) |
-| **BigInt / BigDecimal / Ratio** | First-class `Phel\Lang\BigInt`, `Phel\Lang\BigDecimal`, `Phel\Lang\Rational` ship in core | Use literals `1N`, `1.5M`, `1/2` or constructors `bigint`, `bigdec`, `rationalize`. See [numeric-tower.md](numeric-tower.md) |
+| **BigInt / BigDecimal / Ratio** | First-class `Phel\Lang\BigInt`, `Phel\Lang\BigDecimal`, `Phel\Lang\Ratio` ship in core | Use literals `1N`, `1.5M`, `1/2` or constructors `bigint`, `bigdec`, `rationalize`. See [numeric-tower.md](numeric-tower.md) |
 | **Character type** | PHP has no char type | Character literals (`\a`) and `char` / `char?` are supported but compile to single-character strings |
 | **Spec** | Not ported | Use runtime assertions or PHP validation |
 | **`alter-var-root`** | Available: `(alter-var-root #'sym f)` re-roots the global binding | Use `with-redefs` for scoped overrides; `add-watch`/`remove-watch` on vars for change tracking |

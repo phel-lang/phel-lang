@@ -17,7 +17,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
 use Phel\Lang\BigDecimal;
 use Phel\Lang\BigInt;
 use Phel\Lang\Keyword;
-use Phel\Lang\Rational;
+use Phel\Lang\Ratio;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use PHPUnit\Framework\TestCase;
@@ -803,7 +803,7 @@ final class AtomParserTest extends TestCase
 
         self::assertInstanceOf(NumberNode::class, $node);
         $value = $node->getValue();
-        self::assertInstanceOf(Rational::class, $value);
+        self::assertInstanceOf(Ratio::class, $value);
         self::assertSame('1', (string) $value->numerator());
         self::assertSame('2', (string) $value->denominator());
     }
@@ -817,7 +817,7 @@ final class AtomParserTest extends TestCase
 
         self::assertInstanceOf(NumberNode::class, $node);
         $value = $node->getValue();
-        self::assertInstanceOf(Rational::class, $value);
+        self::assertInstanceOf(Ratio::class, $value);
         self::assertSame('-3', (string) $value->numerator());
         self::assertSame('4', (string) $value->denominator());
     }
@@ -853,7 +853,7 @@ final class AtomParserTest extends TestCase
 
         self::assertInstanceOf(NumberNode::class, $node);
         $value = $node->getValue();
-        self::assertInstanceOf(Rational::class, $value);
+        self::assertInstanceOf(Ratio::class, $value);
         self::assertSame('1', (string) $value->numerator());
         self::assertSame('3', (string) $value->denominator());
     }

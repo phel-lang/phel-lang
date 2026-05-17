@@ -22,7 +22,7 @@
 (use Phel.Lang.Keyword)
 (use Phel.Lang.MetaInterface)
 (use Phel.Lang.PhelVar)
-(use Phel.Lang.Rational)
+(use Phel.Lang.Ratio)
 (use Phel.Lang.Symbol)
 (use Phel.Lang.Atom)
 
@@ -78,7 +78,7 @@
     (php/instanceof x Symbol)                     :symbol
     (php/instanceof x Atom)                       :atom
     (php/instanceof x PhelVar)                    :var
-    (php/instanceof x Rational)                   :ratio
+    (php/instanceof x Ratio)                   :ratio
     (php/instanceof x BigInt)                 :bigint
     (php/instanceof x BigDecimal)                 :bigdec
     (php/instanceof x UUID)                       :uuid
@@ -152,7 +152,7 @@
 
 (defn- compare-to-zero
   "Returns the sign comparison of `x` against zero across the numeric tower
-  (PHP int, BigInt, Rational, float). Negative for x<0, 0 for x=0,
+  (PHP int, BigInt, Ratio, float). Negative for x<0, 0 for x=0,
   positive for x>0."
   [x]
   (php/:: NumericOperations (compare x 0)))
@@ -182,22 +182,22 @@
   (and (integer? x) (php/>= (compare-to-zero x) 0)))
 
 (defn number?
-  "Returns true if `x` is a number: int, float, `Rational`, `BigInt`, or `BigDecimal`."
+  "Returns true if `x` is a number: int, float, `Ratio`, `BigInt`, or `BigDecimal`."
   [x]
   (or (php/is_int x)
       (php/is_float x)
-      (php/instanceof x Rational)
+      (php/instanceof x Ratio)
       (php/instanceof x BigInt)
       (php/instanceof x BigDecimal)))
 
 (defn ratio?
-  "Returns true if `x` is a `Rational` value. Integer-valued rationals
+  "Returns true if `x` is a `Ratio` value. Integer-valued rationals
   auto-collapse to `int`/`BigInt` at construction time, so `(ratio? 2/2)`
   is `false`."
   {:example "(ratio? 1/2) ; => true\n(ratio? 0.5) ; => false"
    :see-also ["number?" "numerator" "denominator" "rationalize"]}
   [x]
-  (php/instanceof x Rational))
+  (php/instanceof x Ratio))
 
 (defn double?
   "Returns true if `x` is a floating-point number, false otherwise.

@@ -19,7 +19,7 @@ use Phel\Lang\Delay;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelFuture;
 use Phel\Lang\PhelVar;
-use Phel\Lang\Rational;
+use Phel\Lang\Ratio;
 use Phel\Lang\Reduced;
 use Phel\Lang\Symbol;
 use Phel\Lang\UUID;
@@ -55,7 +55,7 @@ final class DefaultLangAliasesRegistrar
         // Numeric tower (Clojure-aligned names)
         'BigInt' => BigInt::class,
         'BigDecimal' => BigDecimal::class,
-        'Ratio' => Rational::class,
+        'Ratio' => Ratio::class,
         // Concurrency primitives (Clojure-aligned names)
         'Atom' => Atom::class,
         'Var' => PhelVar::class,

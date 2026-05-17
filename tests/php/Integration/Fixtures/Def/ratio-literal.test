@@ -4,7 +4,7 @@
 \Phel::addDefinition(
   "user",
   "x",
-  \Phel\Lang\Rational::create(\Phel\Lang\BigInt::fromString("1"), \Phel\Lang\BigInt::fromString("2")),
+  \Phel\Lang\Ratio::create(\Phel\Lang\BigInt::fromString("1"), \Phel\Lang\BigInt::fromString("2")),
   \Phel::map(
     \Phel::keyword("start-location"), \Phel::map(
       \Phel::keyword("file"), "Def/ratio-literal.test",

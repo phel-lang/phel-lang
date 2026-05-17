@@ -17,7 +17,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
 use Phel\Lang\BigDecimal;
 use Phel\Lang\BigInt;
 use Phel\Lang\Keyword;
-use Phel\Lang\Rational;
+use Phel\Lang\Ratio;
 use Phel\Lang\Symbol;
 
 use function is_float;
@@ -56,7 +56,7 @@ final readonly class AtomParser
 
     /**
      * Ratio literal, e.g. `1/2`, `-3/4`, `0/5`. Parsed into an exact
-     * {@see Rational} (or collapsed int / BigInt when integral).
+     * {@see Ratio} (or collapsed int / BigInt when integral).
      * Zero denominators are rejected at parse time.
      */
     private const string REGEX_RATIO_LITERAL = '/^([+-]?\d+(?:_\d+)*)\/(\d+(?:_\d+)*)$/';
@@ -356,7 +356,7 @@ final readonly class AtomParser
 
     /**
      * Parses a ratio literal `N/M` into an exact value. The result is a
-     * {@see Rational} when irreducible, a {@see BigInt} when the
+     * {@see Ratio} when irreducible, a {@see BigInt} when the
      * normalised numerator no longer fits in a PHP int, otherwise a
      * native int. Zero denominators are rejected at parse time.
      *
@@ -373,7 +373,7 @@ final readonly class AtomParser
             );
         }
 
-        $value = Rational::create($numerator, $denominator);
+        $value = Ratio::create($numerator, $denominator);
 
         return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
     }

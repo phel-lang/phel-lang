@@ -5,13 +5,13 @@
 (use Phel.Lang.BigDecimal)
 (use Phel.Lang.BigInt)
 (use Phel.Lang.NumericOperations)
-(use Phel.Lang.Rational)
+(use Phel.Lang.Ratio)
 
 ;; Numeric operations: arithmetic (`+`, `-`, `*`, `/`, `%`, `**`), bit ops
 ;; (`bit-and`, `bit-or`, `bit-xor`, `bit-shift-*`, `bit-set`, `bit-test`, …),
 ;; successor/predecessor (`inc`, `dec`), and constants (`NAN`). Arithmetic
 ;; fns route through `Phel\Lang\NumericOperations` so they dispatch on
-;; `Rational` and `BigInt` values; bit ops still rely on PHP integers.
+;; `Ratio` and `BigInt` values; bit ops still rely on PHP integers.
 
 ;; ---
 ;; Math helpers
@@ -137,7 +137,7 @@ numbers. If `xs` is empty, return 1."
   "Returns the nominator divided by all the denominators. If `xs` is empty,
 returns 1. If `xs` has one value, returns the reciprocal of x.
 
-  Integer division with a non-zero remainder returns a `Rational`
+  Integer division with a non-zero remainder returns a `Ratio`
   (e.g. `(/ 1 2) => 1/2`). Use `(/ 1.0 2)` or `(double ...)` for float
   division."
   [& xs]
@@ -312,7 +312,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
                     (str "abs expects a number, got " (type x))))))
 
 (defn int
-  "Coerces `x` to an integer. `Rational` and `BigDecimal` values truncate
+  "Coerces `x` to an integer. `Ratio` and `BigDecimal` values truncate
    toward zero (`(int 1/10)` is `0`, `(int -1.1M)` is `-1`); `BigInt`
    and `float` values collapse to their PHP int value or throw
    `OverflowException` when outside the PHP int range (`NaN`/`Inf` floats
@@ -322,7 +322,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
    :see-also ["float" "double" "int?" "number?"]}
   [x]
   (cond
-    (or (php/instanceof x Rational)
+    (or (php/instanceof x Ratio)
         (php/instanceof x BigInt)
         (php/instanceof x BigDecimal)) (php/-> x (toInt))
     (php/is_float x)                   (php/-> (php/:: BigInt (fromFloat x)) (toInt))
@@ -330,7 +330,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 
 (defn float
   "Coerces `x` to a float. In PHP there is no distinction between float and
-   double; both map to the same native PHP float type. `Rational`,
+   double; both map to the same native PHP float type. `Ratio`,
    `BigInt`, and `BigDecimal` values collapse to their float value;
    everything else delegates to PHP's `floatval`, so non-numeric strings
    return `0.0` and `nil` returns `0.0`."
@@ -338,7 +338,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
    :see-also ["double" "int?" "number?"]}
   [x]
   (cond
-    (php/instanceof x Rational)   (php/-> x (toFloat))
+    (php/instanceof x Ratio)   (php/-> x (toFloat))
     (php/instanceof x BigInt) (php/floatval (str x))
     (php/instanceof x BigDecimal) (php/-> x (toFloat))
     :else                         (php/floatval x)))
@@ -361,7 +361,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 
 (defn short
   "Coerces `x` to a signed 16-bit integer in the range `-32768..32767`.
-   Decimal values are truncated toward zero. `Rational` and `BigInt`
+   Decimal values are truncated toward zero. `Ratio` and `BigInt`
    values are accepted (truncate toward zero, then range-check). Values
    outside the range or non-numeric inputs raise `InvalidArgumentException`.
    Phel has no dedicated short type, so the result is a plain PHP int."
@@ -378,7 +378,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 
 (defn byte
   "Coerces `x` to a signed 8-bit integer in the range `-128..127`.
-   Decimal values are truncated toward zero. `Rational` and `BigInt`
+   Decimal values are truncated toward zero. `Ratio` and `BigInt`
    values are accepted (truncate toward zero, then range-check). Values
    outside the range or non-numeric inputs raise `InvalidArgumentException`.
    Phel has no dedicated byte type, so the result is a plain PHP int."
@@ -534,7 +534,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
         (php/fdiv (+ (php/aget arr (dec mid)) (php/aget arr mid)) 2)))))
 
 ;; -----------------------
-;; Rational / BigInt predicates and accessors
+;; Ratio / BigInt predicates and accessors
 ;; -----------------------
 
 (defn bigint?
@@ -561,7 +561,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 (defn bigdec
   "Coerces `x` to a `Phel\\Lang\\BigDecimal`. Accepts `BigDecimal` (returned
   as-is), ints, floats (via the shortest round-trip decimal of the
-  float), `BigInt`, `Rational` (computed via exact decimal division;
+  float), `BigInt`, `Ratio` (computed via exact decimal division;
   throws `ArithmeticError` when the expansion does not terminate,
   matching `(bigdec 1/3)`), and numeric strings."
   {:example "(bigdec 1.5) ; => 1.5M\n(bigdec 1/2) ; => 0.5M\n(bigdec \"3.14\") ; => 3.14M"
@@ -572,12 +572,12 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
     (php/is_int x)                (php/:: BigDecimal (fromInt x))
     (php/is_float x)              (php/:: BigDecimal (fromFloat x))
     (php/instanceof x BigInt) (php/:: BigDecimal (fromBigInt x))
-    (php/instanceof x Rational)   (php/-> (php/:: BigDecimal (fromBigInt (php/-> x (numerator))))
+    (php/instanceof x Ratio)   (php/-> (php/:: BigDecimal (fromBigInt (php/-> x (numerator))))
                                           (divideExact (php/:: BigDecimal (fromBigInt (php/-> x (denominator))))))
     (string? x)                   (php/:: BigDecimal (fromString x))
     :else
     (throw (php/new \InvalidArgumentException
-                    (php/. "bigdec expects a BigDecimal, int, float, BigInt, Rational, or numeric string, got "
+                    (php/. "bigdec expects a BigDecimal, int, float, BigInt, Ratio, or numeric string, got "
                            (php/get_debug_type x))))))
 
 (defn numerator
@@ -588,7 +588,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
    :see-also ["denominator" "rationalize" "ratio?"]}
   [r]
   (cond
-    (php/instanceof r Rational)
+    (php/instanceof r Ratio)
     (let [n (php/-> r (numerator))]
       (if (php/-> n (fitsInPhpInt))
         (php/-> n (toInt))
@@ -609,7 +609,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
    :see-also ["numerator" "rationalize" "ratio?"]}
   [r]
   (cond
-    (php/instanceof r Rational)
+    (php/instanceof r Ratio)
     (let [d (php/-> r (denominator))]
       (if (php/-> d (fitsInPhpInt))
         (php/-> d (toInt))
@@ -634,7 +634,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
         (recur (php/+ p 1))))))
 
 (defn- decimal-string->rational
-  "Parses a decimal or scientific-notation string into a Rational
+  "Parses a decimal or scientific-notation string into a Ratio
   (auto-collapsed to int / BigInt when integral)."
   [s]
   (let [lower      (php/strtolower s)
@@ -657,12 +657,12 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
         eff-exp    (php/- exponent (php/strlen frac-part))]
     (if (php/>= eff-exp 0)
       (let [scale (php/-> (php/:: BigInt (fromInt 10)) (pow eff-exp))]
-        (php/:: Rational (create (php/-> num (multiply scale)) 1)))
+        (php/:: Ratio (create (php/-> num (multiply scale)) 1)))
       (let [denom (php/-> (php/:: BigInt (fromInt 10)) (pow (php/- 0 eff-exp)))]
-        (php/:: Rational (create num denom))))))
+        (php/:: Ratio (create num denom))))))
 
 (defn- float->rational
-  "Converts a finite float to a Rational using its shortest round-trip
+  "Converts a finite float to a Ratio using its shortest round-trip
   decimal expansion. Non-finite floats are rejected."
   [x]
   (when (or (php/is_infinite x) (php/is_nan x))
@@ -671,7 +671,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   (decimal-string->rational (float-shortest-decimal x)))
 
 (defn rationalize
-  "Converts `x` to a `Rational`. Floats use the shortest decimal expansion
+  "Converts `x` to a `Ratio`. Floats use the shortest decimal expansion
   that round-trips back to the same float, so `(rationalize 0.1)` is `1/10`
   rather than the float-noise denominator. Ints, `BigInt`, and
   integer-valued `BigDecimal` values become `n/1` and auto-collapse, so
@@ -681,7 +681,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
    :see-also ["numerator" "denominator" "ratio?"]}
   [x]
   (cond
-    (php/instanceof x Rational)   x
+    (php/instanceof x Ratio)   x
     (php/instanceof x BigInt) x
     (php/is_int x)                x
     (php/is_float x)              (float->rational x)
@@ -725,7 +725,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
                     (str "expected a number, got " (type x))))))
 
 (defn- rational-floor
-  ;; floor(n/d) = (n - mod(n,d)) / d; Rational denominators are positive.
+  ;; floor(n/d) = (n - mod(n,d)) / d; Ratio denominators are positive.
   [r]
   (let [n (numerator r)
         d (denominator r)]
@@ -733,7 +733,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 
 (defn floor
   "Returns the largest integer not greater than `x`. Ints and `BigInt`
-  values are returned unchanged. Rationals collapse via floor division.
+  values are returned unchanged. Ratios collapse via floor division.
   Floats route through PHP's `floor`."
   {:example "(floor 1.7) ; => 1.0\n(floor -1.2) ; => -2.0\n(floor 7/3) ; => 2"
    :see-also ["ceil" "round" "quot"]}
@@ -742,7 +742,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   (cond
     (php/is_int x)                x
     (php/instanceof x BigInt) x
-    (php/instanceof x Rational)   (rational-floor x)
+    (php/instanceof x Ratio)   (rational-floor x)
     (php/is_float x)              (php/floor x)
     :else
     (throw (php/new InvalidArgumentException
@@ -750,7 +750,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 
 (defn ceil
   "Returns the smallest integer not less than `x`. Ints and `BigInt`
-  values are returned unchanged. Rationals collapse via ceiling division.
+  values are returned unchanged. Ratios collapse via ceiling division.
   Floats route through PHP's `ceil`."
   {:example "(ceil 1.2) ; => 2.0\n(ceil -1.7) ; => -1.0\n(ceil 7/3) ; => 3"
    :see-also ["floor" "round" "quot"]}
@@ -759,7 +759,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   (cond
     (php/is_int x)                x
     (php/instanceof x BigInt) x
-    (php/instanceof x Rational)   (- (rational-floor (- x)))
+    (php/instanceof x Ratio)   (- (rational-floor (- x)))
     (php/is_float x)              (php/ceil x)
     :else
     (throw (php/new InvalidArgumentException
@@ -767,7 +767,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 
 (defn round
   "Rounds `x` to the nearest integer using PHP's `round` (half away from
-  zero). Ints and `BigInt` values are returned unchanged. Rationals
+  zero). Ints and `BigInt` values are returned unchanged. Ratios
   and floats return floats."
   {:example "(round 1.5) ; => 2.0\n(round -1.5) ; => -2.0\n(round 5) ; => 5"
    :see-also ["floor" "ceil"]}

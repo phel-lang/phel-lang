@@ -16,7 +16,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\SymbolResolver;
 use Phel\Lang\BigInt;
 use Phel\Lang\Keyword;
-use Phel\Lang\Rational;
+use Phel\Lang\Ratio;
 use Phel\Lang\Registry;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
@@ -391,7 +391,7 @@ final class SymbolResolverTest extends TestCase
         $nodeEnv = NodeEnvironment::empty();
 
         self::assertEquals(
-            new PhpClassNameNode($nodeEnv, Symbol::create('\\' . Rational::class)),
+            new PhpClassNameNode($nodeEnv, Symbol::create('\\' . Ratio::class)),
             $this->resolver->resolve(Symbol::create('clojure.lang.Ratio'), $nodeEnv),
         );
     }

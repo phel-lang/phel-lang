@@ -9,7 +9,7 @@ use InvalidArgumentException;
 use Phel\Lang\BigDecimal;
 use Phel\Lang\BigInt;
 use Phel\Lang\NumericOperations;
-use Phel\Lang\Rational;
+use Phel\Lang\Ratio;
 use PHPUnit\Framework\TestCase;
 
 final class NumericOperationsTest extends TestCase
@@ -26,18 +26,18 @@ final class NumericOperationsTest extends TestCase
 
     public function test_add_rational_rational(): void
     {
-        $half = Rational::create(1, 2);
-        $third = Rational::create(1, 3);
+        $half = Ratio::create(1, 2);
+        $third = Ratio::create(1, 3);
 
         $result = NumericOperations::add($half, $third);
 
-        self::assertInstanceOf(Rational::class, $result);
+        self::assertInstanceOf(Ratio::class, $result);
         self::assertSame('5/6', (string) $result);
     }
 
     public function test_add_rational_int_collapses_to_int(): void
     {
-        $half = Rational::create(1, 2);
+        $half = Ratio::create(1, 2);
 
         $result = NumericOperations::add($half, $half);
 
@@ -46,14 +46,14 @@ final class NumericOperationsTest extends TestCase
 
     public function test_add_int_rational_is_commutative(): void
     {
-        $half = Rational::create(1, 2);
+        $half = Ratio::create(1, 2);
 
         self::assertSame((string) NumericOperations::add($half, 3), (string) NumericOperations::add(3, $half));
     }
 
     public function test_add_rational_float_returns_float(): void
     {
-        $half = Rational::create(1, 2);
+        $half = Ratio::create(1, 2);
 
         self::assertSame(1.5, NumericOperations::add($half, 1.0));
     }
@@ -67,39 +67,39 @@ final class NumericOperationsTest extends TestCase
 
     public function test_subtract_rational(): void
     {
-        $half = Rational::create(1, 2);
-        $third = Rational::create(1, 3);
+        $half = Ratio::create(1, 2);
+        $third = Ratio::create(1, 3);
 
         $result = NumericOperations::subtract($half, $third);
 
-        self::assertInstanceOf(Rational::class, $result);
+        self::assertInstanceOf(Ratio::class, $result);
         self::assertSame('1/6', (string) $result);
     }
 
     public function test_subtract_int_rational(): void
     {
-        $half = Rational::create(1, 2);
+        $half = Ratio::create(1, 2);
 
         $result = NumericOperations::subtract(1, $half);
 
-        self::assertInstanceOf(Rational::class, $result);
+        self::assertInstanceOf(Ratio::class, $result);
         self::assertSame('1/2', (string) $result);
     }
 
     public function test_multiply_rational(): void
     {
-        $half = Rational::create(1, 2);
-        $third = Rational::create(1, 3);
+        $half = Ratio::create(1, 2);
+        $third = Ratio::create(1, 3);
 
         $result = NumericOperations::multiply($half, $third);
 
-        self::assertInstanceOf(Rational::class, $result);
+        self::assertInstanceOf(Ratio::class, $result);
         self::assertSame('1/6', (string) $result);
     }
 
     public function test_multiply_int_rational_collapses(): void
     {
-        $half = Rational::create(1, 2);
+        $half = Ratio::create(1, 2);
 
         self::assertSame(1, NumericOperations::multiply($half, 2));
     }
@@ -113,7 +113,7 @@ final class NumericOperationsTest extends TestCase
     {
         $result = NumericOperations::divide(1, 2);
 
-        self::assertInstanceOf(Rational::class, $result);
+        self::assertInstanceOf(Ratio::class, $result);
         self::assertSame('1/2', (string) $result);
     }
 
@@ -121,7 +121,7 @@ final class NumericOperationsTest extends TestCase
     {
         $result = NumericOperations::divide(-1, 2);
 
-        self::assertInstanceOf(Rational::class, $result);
+        self::assertInstanceOf(Ratio::class, $result);
         self::assertSame('-1/2', (string) $result);
     }
 
@@ -155,7 +155,7 @@ final class NumericOperationsTest extends TestCase
 
     public function test_divide_int_rational(): void
     {
-        $half = Rational::create(1, 2);
+        $half = Ratio::create(1, 2);
 
         self::assertSame(2, NumericOperations::divide(1, $half));
     }
@@ -167,7 +167,7 @@ final class NumericOperationsTest extends TestCase
 
         $result = NumericOperations::divide($a, $b);
 
-        self::assertInstanceOf(Rational::class, $result);
+        self::assertInstanceOf(Ratio::class, $result);
         self::assertSame('5/2', (string) $result);
     }
 
@@ -178,38 +178,38 @@ final class NumericOperationsTest extends TestCase
 
     public function test_negate_rational(): void
     {
-        $half = Rational::create(1, 2);
+        $half = Ratio::create(1, 2);
 
         $result = NumericOperations::negate($half);
 
-        self::assertInstanceOf(Rational::class, $result);
+        self::assertInstanceOf(Ratio::class, $result);
         self::assertSame('-1/2', (string) $result);
     }
 
     public function test_compare_rational_int(): void
     {
-        $half = Rational::create(1, 2);
+        $half = Ratio::create(1, 2);
 
         self::assertSame(-1, NumericOperations::compare($half, 1));
-        self::assertSame(0, NumericOperations::compare($half, Rational::create(2, 4)));
+        self::assertSame(0, NumericOperations::compare($half, Ratio::create(2, 4)));
         self::assertSame(1, NumericOperations::compare(1, $half));
     }
 
     public function test_compare_mixed_with_float(): void
     {
-        $half = Rational::create(1, 2);
+        $half = Ratio::create(1, 2);
 
         self::assertSame(0, NumericOperations::compare($half, 0.5));
     }
 
     public function test_is_equal_rational_int(): void
     {
-        $one = Rational::create(2, 2); // collapses to int 1
+        $one = Ratio::create(2, 2); // collapses to int 1
         self::assertSame(1, $one);
 
         // Genuinely non-collapsed rational equality
-        $half = Rational::create(1, 2);
-        self::assertTrue(NumericOperations::isEqual($half, Rational::create(2, 4)));
+        $half = Ratio::create(1, 2);
+        self::assertTrue(NumericOperations::isEqual($half, Ratio::create(2, 4)));
         self::assertFalse(NumericOperations::isEqual($half, 1));
     }
 
@@ -223,17 +223,17 @@ final class NumericOperationsTest extends TestCase
     {
         self::assertTrue(NumericOperations::isZero(0));
         self::assertTrue(NumericOperations::isZero(0.0));
-        self::assertFalse(NumericOperations::isZero(Rational::create(1, 2)));
+        self::assertFalse(NumericOperations::isZero(Ratio::create(1, 2)));
         self::assertTrue(NumericOperations::isZero(BigInt::fromInt(0)));
     }
 
     public function test_abs_rational(): void
     {
-        $neg = Rational::create(-1, 2);
+        $neg = Ratio::create(-1, 2);
 
         $result = NumericOperations::abs($neg);
 
-        self::assertInstanceOf(Rational::class, $result);
+        self::assertInstanceOf(Ratio::class, $result);
         self::assertSame('1/2', (string) $result);
     }
 
@@ -249,11 +249,11 @@ final class NumericOperationsTest extends TestCase
 
     public function test_power_rational(): void
     {
-        $half = Rational::create(1, 2);
+        $half = Ratio::create(1, 2);
 
         $result = NumericOperations::power($half, 2);
 
-        self::assertInstanceOf(Rational::class, $result);
+        self::assertInstanceOf(Ratio::class, $result);
         self::assertSame('1/4', (string) $result);
     }
 
@@ -261,7 +261,7 @@ final class NumericOperationsTest extends TestCase
     {
         $result = NumericOperations::power(2, -1);
 
-        self::assertInstanceOf(Rational::class, $result);
+        self::assertInstanceOf(Ratio::class, $result);
         self::assertSame('1/2', (string) $result);
     }
 
@@ -272,7 +272,7 @@ final class NumericOperationsTest extends TestCase
 
     public function test_quot_rational(): void
     {
-        $half = Rational::create(7, 2); // 3.5
+        $half = Ratio::create(7, 2); // 3.5
 
         self::assertSame(3, NumericOperations::quot($half, 1));
     }
