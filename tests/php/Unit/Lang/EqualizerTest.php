@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Lang;
 
 use Phel\Lang\BigInt;
 use Phel\Lang\Equalizer;
-use Phel\Lang\Rational;
+use Phel\Lang\Ratio;
 use PHPUnit\Framework\TestCase;
 
 final class EqualizerTest extends TestCase
@@ -74,8 +74,8 @@ final class EqualizerTest extends TestCase
 
     public function test_it_returns_false_for_rational_and_int(): void
     {
-        // Rational instances are by construction non-integral.
-        $half = Rational::create(1, 2);
+        // Ratio instances are by construction non-integral.
+        $half = Ratio::create(1, 2);
 
         self::assertFalse($this->equalizer->equals($half, 1));
         self::assertFalse($this->equalizer->equals(1, $half));
@@ -83,7 +83,7 @@ final class EqualizerTest extends TestCase
 
     public function test_it_returns_false_for_rational_and_bigint(): void
     {
-        $half = Rational::create(1, 2);
+        $half = Ratio::create(1, 2);
         $big = BigInt::fromInt(1);
 
         self::assertFalse($this->equalizer->equals($half, $big));
@@ -92,9 +92,9 @@ final class EqualizerTest extends TestCase
 
     public function test_it_compares_two_rationals(): void
     {
-        $half = Rational::create(1, 2);
-        $sameHalf = Rational::create(2, 4);
-        $third = Rational::create(1, 3);
+        $half = Ratio::create(1, 2);
+        $sameHalf = Ratio::create(2, 4);
+        $third = Ratio::create(1, 3);
 
         self::assertTrue($this->equalizer->equals($half, $sameHalf));
         self::assertTrue($this->equalizer->equals($sameHalf, $half));

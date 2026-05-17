@@ -22,7 +22,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
-use Phel\Lang\Rational;
+use Phel\Lang\Ratio;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Lang\UUID;
@@ -177,7 +177,7 @@ final class Analyzer implements AnalyzerInterface
             || is_bool($x)
             || $x === null
             || $x instanceof Keyword
-            || $x instanceof Rational
+            || $x instanceof Ratio
             || $x instanceof BigInt
             || $x instanceof BigDecimal
             || $x instanceof UUID

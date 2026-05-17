@@ -12,15 +12,15 @@ use function is_int;
 use function sprintf;
 
 /**
- * Rational number n/d held in canonical form: denominator > 0 and
+ * Ratio number n/d held in canonical form: denominator > 0 and
  * gcd(|numerator|, denominator) = 1.
  *
  * Construction goes through {@see self::create()}, which auto-collapses
  * integral results to native PHP int (or {@see BigInt} if outside the
- * PHP int range). As a consequence `Rational::create(4, 2)` returns
- * `int 2`, never a `Rational`.
+ * PHP int range). As a consequence `Ratio::create(4, 2)` returns
+ * `int 2`, never a `Ratio`.
  */
-final readonly class Rational implements Stringable, TypeInterface
+final readonly class Ratio implements Stringable, TypeInterface
 {
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
@@ -41,7 +41,7 @@ final readonly class Rational implements Stringable, TypeInterface
     /**
      * Builds a normalised rational. Returns native int / BigInt when
      * the result is an integer (denominator collapses to 1), otherwise a
-     * Rational. Throws on a zero denominator.
+     * Ratio. Throws on a zero denominator.
      */
     public static function create(
         BigInt|int $numerator,
@@ -51,7 +51,7 @@ final readonly class Rational implements Stringable, TypeInterface
         $den = is_int($denominator) ? BigInt::fromInt($denominator) : $denominator;
 
         if ($den->isZero()) {
-            throw new DivisionByZeroError('Rational denominator must be non-zero');
+            throw new DivisionByZeroError('Ratio denominator must be non-zero');
         }
 
         if ($num->isZero()) {

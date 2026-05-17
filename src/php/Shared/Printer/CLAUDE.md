@@ -28,7 +28,7 @@ Each implements `TypePrinterInterface`. Selected at runtime based on value type:
 | `NullPrinter` | null |
 | `KeywordPrinter` | Keyword objects |
 | `SymbolPrinter` | Symbol objects |
-| `RationalPrinter` | Rational numbers (`n/d`) |
+| `RatioPrinter` | Ratio numbers (`n/d`) |
 | `BigDecimalPrinter` | BigDecimal values (appends the `M` suffix so the readable form round-trips through the reader) |
 | `UUIDPrinter` | UUID values (rendered as `#uuid "..."`) |
 | `AtomPrinter` | Atom objects (recursive) |

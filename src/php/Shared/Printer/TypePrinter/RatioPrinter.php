@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Printer\TypePrinter;
 
-use Phel\Lang\Rational;
+use Phel\Lang\Ratio;
 
 use function sprintf;
 
 /**
- * @implements TypePrinterInterface<Rational>
+ * @implements TypePrinterInterface<Ratio>
  */
-final class RationalPrinter implements TypePrinterInterface
+final class RatioPrinter implements TypePrinterInterface
 {
     use WithColorTrait;
 
     /**
-     * @param Rational $form
+     * @param Ratio $form
      */
     public function print(mixed $form): string
     {

@@ -16,7 +16,7 @@ use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
-use Phel\Lang\Rational;
+use Phel\Lang\Ratio;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
 use Phel\Lang\TagHandlers\BuiltinTagHandlers;
@@ -81,7 +81,7 @@ final class ReaderTest extends TestCase
     {
         $value = $this->read('1/2');
 
-        self::assertInstanceOf(Rational::class, $value);
+        self::assertInstanceOf(Ratio::class, $value);
         self::assertSame('1', (string) $value->numerator());
         self::assertSame('2', (string) $value->denominator());
     }

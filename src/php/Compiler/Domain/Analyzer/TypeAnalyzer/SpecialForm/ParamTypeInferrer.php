@@ -109,7 +109,7 @@ final class ParamTypeInferrer
      * is `int`. The inferrer treats them as conditional numeric ops:
      * propagation only fires when an `int` expectation flows in from
      * above. Without that expectation we leave the runtime contract
-     * permissive so `BigInt` / `Rational` polymorphism keeps
+     * permissive so `BigInt` / `Ratio` polymorphism keeps
      * working at the call site.
      *
      * @var list<string>
@@ -602,7 +602,7 @@ final class ParamTypeInferrer
 
     /**
      * Detects literal args that the int-stable core fns explicitly
-     * accept via runtime polymorphism (`BigInt`, `Rational`,
+     * accept via runtime polymorphism (`BigInt`, `Ratio`,
      * `BigDecimal`, floats). Their presence signals that the caller
      * is deliberately routing through `NumericOperations`, so the
      * sibling param's runtime contract must stay permissive even when

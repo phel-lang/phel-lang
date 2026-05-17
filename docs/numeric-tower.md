@@ -6,7 +6,7 @@ Phel has a numeric tower built around five scalar shapes:
 |------|---------------------|-------|
 | `int` | Native PHP `int` | 64-bit signed on common platforms |
 | `Phel\Lang\BigInt` | `bigint`, `+'`, `*'`, etc. | Arbitrary-precision signed integer |
-| `Phel\Lang\Rational` | `1/2` literals, `/`, `rationalize` | Always normalised; collapses to `int`/`BigInt` when integral |
+| `Phel\Lang\Ratio` | `1/2` literals, `/`, `rationalize` | Always normalised; collapses to `int`/`BigInt` when integral |
 | `Phel\Lang\BigDecimal` | `1.5M` literal, `bigdec` | Arbitrary-precision exact decimal |
 | `float` | Native PHP `float` (IEEE-754 double) | Inexact |
 
@@ -64,7 +64,7 @@ Clojure's `(==)` and `(== x)` return `true` for any single argument. Phel's `==`
 
 ### `rationalize` uses shortest round-trip decimal
 
-`(rationalize 0.1) ; => 1/10`, not `10000000000000001/100000000000000000`. The conversion picks the shortest decimal expansion that round-trips back to the same `float`, so binary-noise digits do not leak into the result. Floats whose exact value has no short decimal representation (e.g. `(/ 1.0 3.0)`) keep that round-trip representation as a `Rational`.
+`(rationalize 0.1) ; => 1/10`, not `10000000000000001/100000000000000000`. The conversion picks the shortest decimal expansion that round-trips back to the same `float`, so binary-noise digits do not leak into the result. Floats whose exact value has no short decimal representation (e.g. `(/ 1.0 3.0)`) keep that round-trip representation as a `Ratio`.
 
 `(rationalize ##Inf)`, `(rationalize ##-Inf)`, and `(rationalize ##NaN)` throw `InvalidArgumentException`.
 
@@ -73,7 +73,7 @@ Clojure's `(==)` and `(== x)` return `true` for any single argument. Phel's `==`
 | Need | Use |
 |------|-----|
 | Exact integer beyond PHP `int` | `(bigint "...")` or promoting ops `+'`, `*'` |
-| Exact non-integer ratio | `Rational` literal `1/2`, `(/ a b)`, `(rationalize x)` |
+| Exact non-integer ratio | `Ratio` literal `1/2`, `(/ a b)`, `(rationalize x)` |
 | Exact decimal (money, etc.) | `BigDecimal` literal `1.5M`, `(bigdec "...")` |
 | Inexact decimal | native `float` |
 | Predicate | `int?`, `bigint?`, `ratio?`, `bigdec?`, `decimal?`, `float?`, `number?` |

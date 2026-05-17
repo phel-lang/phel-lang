@@ -17,7 +17,7 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\FnInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelVar;
-use Phel\Lang\Rational;
+use Phel\Lang\Ratio;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Lang\TypeStringifier;
@@ -40,7 +40,7 @@ use Phel\Shared\Printer\TypePrinter\PersistentListPrinter;
 use Phel\Shared\Printer\TypePrinter\PersistentMapPrinter;
 use Phel\Shared\Printer\TypePrinter\PersistentQueuePrinter;
 use Phel\Shared\Printer\TypePrinter\PersistentVectorPrinter;
-use Phel\Shared\Printer\TypePrinter\RationalPrinter;
+use Phel\Shared\Printer\TypePrinter\RatioPrinter;
 use Phel\Shared\Printer\TypePrinter\ResourcePrinter;
 use Phel\Shared\Printer\TypePrinter\StringPrinter;
 use Phel\Shared\Printer\TypePrinter\StructPrinter;
@@ -157,8 +157,8 @@ final readonly class Printer implements PrinterInterface
             return new VarPrinter($this->withColor);
         }
 
-        if ($form instanceof Rational) {
-            return new RationalPrinter($this->withColor);
+        if ($form instanceof Ratio) {
+            return new RatioPrinter($this->withColor);
         }
 
         if ($form instanceof BigDecimal) {

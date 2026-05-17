@@ -11,7 +11,7 @@
 (use Phel.Lang.IdenticalInterface)
 (use Phel.Lang.Keyword)
 (use Phel.Lang.NumericOperations)
-(use Phel.Lang.Rational)
+(use Phel.Lang.Ratio)
 (use Phel.Lang.Symbol)
 (use Phel.Lang.Truthy)
 
@@ -115,7 +115,7 @@
 (defn- num? [x]
   (or (php/is_int x)
       (php/is_float x)
-      (php/instanceof x Rational)
+      (php/instanceof x Ratio)
       (php/instanceof x BigInt)
       (php/instanceof x BigDecimal)))
 
@@ -159,7 +159,7 @@
 
 (defn- numeric-object?
   [x]
-  (or (php/instanceof x Rational)
+  (or (php/instanceof x Ratio)
       (php/instanceof x BigInt)
       (php/instanceof x BigDecimal)))
 
@@ -227,7 +227,7 @@
 
 (defn <=>
   "Alias for the spaceship PHP operator in ascending order. Returns an int.
-  Dispatches on `Rational` and `BigInt` so numeric ordering stays correct
+  Dispatches on `Ratio` and `BigInt` so numeric ordering stays correct
   for those types."
   [a b]
   (if (or (numeric-object? a) (numeric-object? b))
@@ -348,7 +348,7 @@
   [x]
   (or (php/is_int x)
       (php/is_float x)
-      (php/instanceof x Rational)
+      (php/instanceof x Ratio)
       (php/instanceof x BigInt)))
 
 (defn- comparable-sequential?
