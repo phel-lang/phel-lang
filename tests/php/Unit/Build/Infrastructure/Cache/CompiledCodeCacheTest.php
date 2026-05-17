@@ -124,7 +124,7 @@ final class CompiledCodeCacheTest extends TestCase
         $cache->invalidate($fileA);
         $cache->put($fileB, 'shared\\ns', 'hashB2', '// B2');
 
-        // After invalidating A and putting B again, A must stay invalidated —
+        // After invalidating A and putting B again, A must stay invalidated;
         // earlier the disk merge in saveEntries() would resurrect A's entry.
         self::assertFalse($cache->has($fileA));
         self::assertNull($cache->get($fileA, 'hashA'));
