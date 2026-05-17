@@ -40,7 +40,7 @@ Schedules `body` on the AMPHP event loop in a fresh fiber. Returns `Amp\Future`.
 (await future)
 ```
 
-Blocks the current fiber until the Future resolves, then returns its value. Accepts a raw `Amp\Future` or a `PhelFuture` wrapper. Must be called from inside a fiber.
+Blocks the current fiber until the Future resolves, then returns its value. Accepts a raw `Amp\Future` or a `Future` wrapper. Must be called from inside a fiber.
 
 ### `^:async` on `defn`
 
@@ -105,7 +105,7 @@ Concurrent `map` via fibers; results in input order. PHP fibers are cooperative 
 (future body...)
 ```
 
-Wraps `body` in `Amp\Future`, returns a `PhelFuture` supporting `deref`, `realized?`, 3-arg `deref` timeouts, `future-cancel`, `future-cancelled?`, `future-done?`. Requires a fiber context (call inside `async` or an AMPHP loop).
+Wraps `body` in `Amp\Future`, returns a `Future` supporting `deref`, `realized?`, 3-arg `deref` timeouts, `future-cancel`, `future-cancelled?`, `future-done?`. Requires a fiber context (call inside `async` or an AMPHP loop).
 
 ```phel
 (async
@@ -176,7 +176,7 @@ Macro over `future-call`. Write `@(future-fiber (expensive))` without an outer `
 (future? x)
 ```
 
-Returns `true` if `x` is a fiber-future or `PhelFuture`. Useful when receiving Futures from code that may use either layer.
+Returns `true` if `x` is a fiber-future or `Future`. Useful when receiving Futures from code that may use either layer.
 
 ## Shared primitives
 
@@ -186,7 +186,7 @@ Returns `true` if `x` is a fiber-future or `PhelFuture`. Useful when receiving F
 |------|----------|
 | `(deref x)` / `@x` | Block until realized. Fiber path suspends cooperatively; AMPHP path awaits via the event loop |
 | `(deref x timeout-ms timeout-val)` | Return `timeout-val` if not realized within `timeout-ms`. Fiber path uses a deadline poll; AMPHP path uses `Future::await` with `TimeoutCancellation` |
-| `(realized? x)` | `true` once a value is available. Works for promises, fiber futures, `PhelFuture` |
+| `(realized? x)` | `true` once a value is available. Works for promises, fiber futures, `Future` |
 | `(future-done? x)` | For fiber futures, checks `isDone`; otherwise falls back to `realized?`. Use for "terminal state including cancellation", not just "value present" |
 
 ## Error and cancellation model

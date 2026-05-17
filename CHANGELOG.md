@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - BC break: rename `Phel\Lang\Uuid` to `Phel\Lang\UUID` (plus `UuidPrinter` → `UUIDPrinter` and `UuidTagHandler` → `UUIDTagHandler`) so the PHP class name matches the Clojure-aligned alias from #1996. Phel sources that still write `(:use Phel.Lang.Uuid)` need to switch to `UUID` (or drop the `(:use ...)` line — `UUID` is auto-referred) (#2000)
 - BC break: rename `Phel\Lang\BigInteger` to `Phel\Lang\BigInt` so the PHP class name matches the Clojure-aligned alias from #1996. Phel sources that still write `(:use Phel.Lang.BigInteger)` or `(php/instanceof x BigInteger)` need to switch to `BigInt` (or drop the `(:use ...)` line — `BigInt` is auto-referred) (#2000)
 - BC break: rename `Phel\Lang\Rational` to `Phel\Lang\Ratio` (plus `RationalPrinter` → `RatioPrinter`) so the PHP class name matches the Clojure-aligned alias from #1996. Phel sources that still write `(:use Phel.Lang.Rational)` or `(php/instanceof x Rational)` need to switch to `Ratio` (or drop the `(:use ...)` line — `Ratio` is auto-referred) (#2000)
+- BC break: rename `Phel\Lang\PhelFuture` to `Phel\Lang\Future` so the PHP class name matches the Clojure-aligned alias from #1996. The unrelated `Phel\Fiber\Domain\Future` keeps its FQN (different namespace). Phel sources that still write `(:use Phel.Lang.PhelFuture)` or `(php/instanceof x PhelFuture)` need to switch to `Future` (or drop the `(:use ...)` line — `Future` is auto-referred) (#2000)
 
 ### Fixed
 
