@@ -8,9 +8,6 @@ use Exception;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Throwable;
 
-/**
- * Exception that carries a data map, matching Clojure's ex-info semantics.
- */
 final class ExceptionInfo extends Exception
 {
     /**
