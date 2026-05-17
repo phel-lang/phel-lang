@@ -30,7 +30,7 @@ use function substr;
  * 10^9 keeps any single multiplication of two digits inside 64-bit signed
  * integer range with margin (10^18 < 9.22e18 = PHP_INT_MAX).
  */
-final readonly class BigInteger implements TypeInterface, Stringable
+final readonly class BigInt implements TypeInterface, Stringable
 {
     private const int BASE = 1_000_000_000;
 
@@ -143,7 +143,7 @@ final readonly class BigInteger implements TypeInterface, Stringable
     }
 
     /**
-     * Converts a finite float to a BigInteger via its shortest round-trip
+     * Converts a finite float to a BigInt via its shortest round-trip
      * decimal representation, truncating fractional digits toward zero.
      * Floats too large to represent every digit (e.g. `PHP_FLOAT_MAX`)
      * round-trip through ~17 significant digits and pad with trailing
@@ -154,7 +154,7 @@ final readonly class BigInteger implements TypeInterface, Stringable
     {
         if (!is_finite($value)) {
             throw new InvalidArgumentException(
-                sprintf("Cannot convert non-finite float '%s' to BigInteger", $value),
+                sprintf("Cannot convert non-finite float '%s' to BigInt", $value),
             );
         }
 
@@ -169,7 +169,7 @@ final readonly class BigInteger implements TypeInterface, Stringable
     {
         if (preg_match('/^-?(0|[1-9]\d*)$/', $value) !== 1) {
             throw new InvalidArgumentException(
-                sprintf("Invalid BigInteger string: '%s'", $value),
+                sprintf("Invalid BigInt string: '%s'", $value),
             );
         }
 
@@ -402,7 +402,7 @@ final readonly class BigInteger implements TypeInterface, Stringable
     {
         if (!$this->fitsInPhpInt()) {
             throw new OverflowException(
-                sprintf("BigInteger value '%s' exceeds PHP int range", $this),
+                sprintf("BigInt value '%s' exceeds PHP int range", $this),
             );
         }
 

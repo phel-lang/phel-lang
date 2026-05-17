@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Lang;
 
 use DivisionByZeroError;
-use Phel\Lang\BigInteger;
+use Phel\Lang\BigInt;
 use Phel\Lang\Rational;
 use PHPUnit\Framework\TestCase;
 
@@ -63,10 +63,10 @@ final class RationalTest extends TestCase
 
     public function test_create_collapses_to_big_integer_when_too_large(): void
     {
-        $big = BigInteger::fromString('123456789012345678901234567890');
+        $big = BigInt::fromString('123456789012345678901234567890');
         $result = Rational::create($big, 1);
 
-        self::assertInstanceOf(BigInteger::class, $result);
+        self::assertInstanceOf(BigInt::class, $result);
         self::assertSame('123456789012345678901234567890', (string) $result);
     }
 
@@ -78,8 +78,8 @@ final class RationalTest extends TestCase
 
     public function test_create_accepts_big_integers(): void
     {
-        $num = BigInteger::fromString('1000000000000');
-        $den = BigInteger::fromString('500000000000');
+        $num = BigInt::fromString('1000000000000');
+        $den = BigInt::fromString('500000000000');
 
         self::assertSame(2, Rational::create($num, $den));
     }
@@ -114,7 +114,7 @@ final class RationalTest extends TestCase
     public function test_add_with_big_integer(): void
     {
         $a = Rational::create(1, 2);
-        $big = BigInteger::fromInt(3);
+        $big = BigInt::fromInt(3);
 
         $result = $a->add($big);
         self::assertInstanceOf(Rational::class, $result);
@@ -218,8 +218,8 @@ final class RationalTest extends TestCase
     {
         $a = Rational::create(3, 2);
 
-        self::assertSame(1, $a->compareTo(BigInteger::fromInt(1)));
-        self::assertSame(-1, $a->compareTo(BigInteger::fromInt(2)));
+        self::assertSame(1, $a->compareTo(BigInt::fromInt(1)));
+        self::assertSame(-1, $a->compareTo(BigInt::fromInt(2)));
     }
 
     public function test_equals_canonical_form(): void
@@ -292,7 +292,7 @@ final class RationalTest extends TestCase
     public function test_arithmetic_with_big_integer_arguments(): void
     {
         $a = Rational::create(1, 3);
-        $bigOther = BigInteger::fromString('1000000000000000000');
+        $bigOther = BigInt::fromString('1000000000000000000');
 
         $result = $a->multiply($bigOther);
         self::assertInstanceOf(Rational::class, $result);
@@ -301,7 +301,7 @@ final class RationalTest extends TestCase
 
     public function test_arithmetic_no_overflow_with_large_values(): void
     {
-        $big = BigInteger::fromString('100000000000000000');
+        $big = BigInt::fromString('100000000000000000');
         $a = Rational::create($big, 3);
         $b = Rational::create($big, 7);
 

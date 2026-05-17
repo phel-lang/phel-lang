@@ -16,7 +16,7 @@ use function sprintf;
  * gcd(|numerator|, denominator) = 1.
  *
  * Construction goes through {@see self::create()}, which auto-collapses
- * integral results to native PHP int (or {@see BigInteger} if outside the
+ * integral results to native PHP int (or {@see BigInt} if outside the
  * PHP int range). As a consequence `Rational::create(4, 2)` returns
  * `int 2`, never a `Rational`.
  */
@@ -26,8 +26,8 @@ final readonly class Rational implements Stringable, TypeInterface
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
     private function __construct(
-        private BigInteger $numerator,
-        private BigInteger $denominator,
+        private BigInt $numerator,
+        private BigInt $denominator,
         private ?PersistentMapInterface $meta = null,
         private ?SourceLocation $startLocation = null,
         private ?SourceLocation $endLocation = null,
@@ -39,16 +39,16 @@ final readonly class Rational implements Stringable, TypeInterface
     }
 
     /**
-     * Builds a normalised rational. Returns native int / BigInteger when
+     * Builds a normalised rational. Returns native int / BigInt when
      * the result is an integer (denominator collapses to 1), otherwise a
      * Rational. Throws on a zero denominator.
      */
     public static function create(
-        BigInteger|int $numerator,
-        BigInteger|int $denominator,
-    ): self|BigInteger|int {
-        $num = is_int($numerator) ? BigInteger::fromInt($numerator) : $numerator;
-        $den = is_int($denominator) ? BigInteger::fromInt($denominator) : $denominator;
+        BigInt|int $numerator,
+        BigInt|int $denominator,
+    ): self|BigInt|int {
+        $num = is_int($numerator) ? BigInt::fromInt($numerator) : $numerator;
+        $den = is_int($denominator) ? BigInt::fromInt($denominator) : $denominator;
 
         if ($den->isZero()) {
             throw new DivisionByZeroError('Rational denominator must be non-zero');
@@ -77,17 +77,17 @@ final readonly class Rational implements Stringable, TypeInterface
         return new self($num, $den);
     }
 
-    public function numerator(): BigInteger
+    public function numerator(): BigInt
     {
         return $this->numerator;
     }
 
-    public function denominator(): BigInteger
+    public function denominator(): BigInt
     {
         return $this->denominator;
     }
 
-    public function add(self|BigInteger|int $other): self|BigInteger|int
+    public function add(self|BigInt|int $other): self|BigInt|int
     {
         [$num, $den] = $this->extractNumDen($other);
         // a/b + c/d = (a*d + c*b) / (b*d)
@@ -96,7 +96,7 @@ final readonly class Rational implements Stringable, TypeInterface
         return self::create($resultNum, $resultDen);
     }
 
-    public function subtract(self|BigInteger|int $other): self|BigInteger|int
+    public function subtract(self|BigInt|int $other): self|BigInt|int
     {
         [$num, $den] = $this->extractNumDen($other);
         $resultNum = $this->numerator->multiply($den)->subtract($num->multiply($this->denominator));
@@ -104,7 +104,7 @@ final readonly class Rational implements Stringable, TypeInterface
         return self::create($resultNum, $resultDen);
     }
 
-    public function multiply(self|BigInteger|int $other): self|BigInteger|int
+    public function multiply(self|BigInt|int $other): self|BigInt|int
     {
         [$num, $den] = $this->extractNumDen($other);
         return self::create(
@@ -113,7 +113,7 @@ final readonly class Rational implements Stringable, TypeInterface
         );
     }
 
-    public function divide(self|BigInteger|int $other): self|BigInteger|int
+    public function divide(self|BigInt|int $other): self|BigInt|int
     {
         [$num, $den] = $this->extractNumDen($other);
         if ($num->isZero()) {
@@ -140,7 +140,7 @@ final readonly class Rational implements Stringable, TypeInterface
         return new self($this->numerator->negate(), $this->denominator);
     }
 
-    public function compareTo(self|BigInteger|int $other): int
+    public function compareTo(self|BigInt|int $other): int
     {
         [$num, $den] = $this->extractNumDen($other);
         // a/b vs c/d  →  sign(a*d - c*b) since b,d > 0
@@ -156,12 +156,12 @@ final readonly class Rational implements Stringable, TypeInterface
                 && $this->denominator->equals($other->denominator);
         }
 
-        if ($other instanceof BigInteger) {
+        if ($other instanceof BigInt) {
             return $this->denominator->isOne() && $this->numerator->equals($other);
         }
 
         if (is_int($other)) {
-            return $this->denominator->isOne() && $this->numerator->equals(BigInteger::fromInt($other));
+            return $this->denominator->isOne() && $this->numerator->equals(BigInt::fromInt($other));
         }
 
         return false;
@@ -252,18 +252,18 @@ final readonly class Rational implements Stringable, TypeInterface
     }
 
     /**
-     * @return array{0: BigInteger, 1: BigInteger}
+     * @return array{0: BigInt, 1: BigInt}
      */
-    private function extractNumDen(self|BigInteger|int $value): array
+    private function extractNumDen(self|BigInt|int $value): array
     {
         if ($value instanceof self) {
             return [$value->numerator, $value->denominator];
         }
 
-        if ($value instanceof BigInteger) {
-            return [$value, BigInteger::one()];
+        if ($value instanceof BigInt) {
+            return [$value, BigInt::one()];
         }
 
-        return [BigInteger::fromInt($value), BigInteger::one()];
+        return [BigInt::fromInt($value), BigInt::one()];
     }
 }

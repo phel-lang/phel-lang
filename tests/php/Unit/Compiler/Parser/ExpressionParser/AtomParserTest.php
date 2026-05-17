@@ -15,7 +15,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\NilNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NumberNode;
 use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
 use Phel\Lang\BigDecimal;
-use Phel\Lang\BigInteger;
+use Phel\Lang\BigInt;
 use Phel\Lang\Keyword;
 use Phel\Lang\Rational;
 use Phel\Lang\SourceLocation;
@@ -640,7 +640,7 @@ final class AtomParserTest extends TestCase
 
         self::assertInstanceOf(NumberNode::class, $node);
         $value = $node->getValue();
-        self::assertInstanceOf(BigInteger::class, $value);
+        self::assertInstanceOf(BigInt::class, $value);
         self::assertSame('9223372036854775808', (string) $value);
     }
 
@@ -653,7 +653,7 @@ final class AtomParserTest extends TestCase
 
         self::assertInstanceOf(NumberNode::class, $node);
         $value = $node->getValue();
-        self::assertInstanceOf(BigInteger::class, $value);
+        self::assertInstanceOf(BigInt::class, $value);
         self::assertSame('-9223372036854775809', (string) $value);
     }
 
@@ -869,7 +869,7 @@ final class AtomParserTest extends TestCase
 
         self::assertInstanceOf(NumberNode::class, $node);
         $value = $node->getValue();
-        self::assertInstanceOf(BigInteger::class, $value);
+        self::assertInstanceOf(BigInt::class, $value);
         self::assertSame('10000000000000000000', (string) $value);
     }
 

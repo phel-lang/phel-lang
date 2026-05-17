@@ -4,7 +4,7 @@
 (defn ^string shout [^string message]
   (str message "!!!"))
 
-;; `*'` auto-promotes to BigInteger if PHP int overflows: factorial(21) needs it.
+;; `*'` auto-promotes to BigInt if PHP int overflows: factorial(21) needs it.
 (defn factorial [^int n]
   (if (<= n 1)
     1

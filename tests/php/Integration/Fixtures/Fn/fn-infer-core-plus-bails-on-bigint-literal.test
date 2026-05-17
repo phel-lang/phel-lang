@@ -8,7 +8,7 @@
     public const BOUND_TO = "user\\caller";
 
     public function __invoke($x): int {
-      return random_int(0, (\Phel::getDefinition("phel.core", "+"))($x, \Phel\Lang\BigInteger::fromString("99999999999999999999")));
+      return random_int(0, (\Phel::getDefinition("phel.core", "+"))($x, \Phel\Lang\BigInt::fromString("99999999999999999999")));
     }
   },
   \Phel::map(

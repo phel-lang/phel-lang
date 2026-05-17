@@ -27,7 +27,7 @@
     (println "Working with numbers:")
     (for [[op value] :pairs results]
       (println (str (name op) ": " value)))
-    (println "product 10^20 (BigInteger):" (product 100000 100000 100000 100000))
+    (println "product 10^20 (BigInt):" (product 100000 100000 100000 100000))
     (println "tax-rate (BigDecimal):" tax-rate)))
 
 (main)

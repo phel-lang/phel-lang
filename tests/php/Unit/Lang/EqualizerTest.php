@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lang;
 
-use Phel\Lang\BigInteger;
+use Phel\Lang\BigInt;
 use Phel\Lang\Equalizer;
 use Phel\Lang\Rational;
 use PHPUnit\Framework\TestCase;
@@ -33,7 +33,7 @@ final class EqualizerTest extends TestCase
 
     public function test_it_compares_bigint_and_int_symmetrically(): void
     {
-        $big = BigInteger::fromInt(5);
+        $big = BigInt::fromInt(5);
 
         self::assertTrue($this->equalizer->equals($big, 5));
         self::assertTrue($this->equalizer->equals(5, $big));
@@ -41,7 +41,7 @@ final class EqualizerTest extends TestCase
 
     public function test_it_returns_false_for_bigint_and_unequal_int(): void
     {
-        $big = BigInteger::fromInt(5);
+        $big = BigInt::fromInt(5);
 
         self::assertFalse($this->equalizer->equals($big, 6));
         self::assertFalse($this->equalizer->equals(6, $big));
@@ -49,9 +49,9 @@ final class EqualizerTest extends TestCase
 
     public function test_it_compares_two_bigints(): void
     {
-        $a = BigInteger::fromString('12345678901234567890');
-        $b = BigInteger::fromString('12345678901234567890');
-        $c = BigInteger::fromString('12345678901234567891');
+        $a = BigInt::fromString('12345678901234567890');
+        $b = BigInt::fromString('12345678901234567890');
+        $c = BigInt::fromString('12345678901234567891');
 
         self::assertTrue($this->equalizer->equals($a, $b));
         self::assertFalse($this->equalizer->equals($a, $c));
@@ -66,7 +66,7 @@ final class EqualizerTest extends TestCase
 
     public function test_it_returns_false_for_bigint_and_float(): void
     {
-        $big = BigInteger::fromInt(5);
+        $big = BigInt::fromInt(5);
 
         self::assertFalse($this->equalizer->equals($big, 5.0));
         self::assertFalse($this->equalizer->equals(5.0, $big));
@@ -84,7 +84,7 @@ final class EqualizerTest extends TestCase
     public function test_it_returns_false_for_rational_and_bigint(): void
     {
         $half = Rational::create(1, 2);
-        $big = BigInteger::fromInt(1);
+        $big = BigInt::fromInt(1);
 
         self::assertFalse($this->equalizer->equals($half, $big));
         self::assertFalse($this->equalizer->equals($big, $half));

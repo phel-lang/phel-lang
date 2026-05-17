@@ -4,7 +4,7 @@
 \Phel::addDefinition(
   "user",
   "x",
-  \Phel\Lang\BigInteger::fromString("9223372036854775808"),
+  \Phel\Lang\BigInt::fromString("9223372036854775808"),
   \Phel::map(
     \Phel::keyword("start-location"), \Phel::map(
       \Phel::keyword("file"), "Def/bigint-literal-oversize.test",

@@ -23,7 +23,7 @@ use function substr;
 /**
  * Arbitrary-precision signed decimal number.
  *
- * Internal representation: an unscaled `BigInteger` mantissa plus a
+ * Internal representation: an unscaled `BigInt` mantissa plus a
  * non-negative `scale` indicating the number of digits to the right
  * of the decimal point. The numeric value is `mantissa * 10^(-scale)`.
  *
@@ -38,7 +38,7 @@ final readonly class BigDecimal implements TypeInterface, Stringable
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
     private function __construct(
-        private BigInteger $mantissa,
+        private BigInt $mantissa,
         private int $scale,
         private ?PersistentMapInterface $meta = null,
         private ?SourceLocation $startLocation = null,
@@ -83,17 +83,17 @@ final readonly class BigDecimal implements TypeInterface, Stringable
         $digits = ltrim($digits, '0');
         $digits = $digits === '' ? '0' : $digits;
 
-        $mantissa = BigInteger::fromString($sign . $digits);
+        $mantissa = BigInt::fromString($sign . $digits);
 
         return new self($mantissa, $scale);
     }
 
     public static function fromInt(int $value): self
     {
-        return new self(BigInteger::fromInt($value), 0);
+        return new self(BigInt::fromInt($value), 0);
     }
 
-    public static function fromBigInteger(BigInteger $value): self
+    public static function fromBigInt(BigInt $value): self
     {
         return new self($value, 0);
     }
@@ -120,7 +120,7 @@ final readonly class BigDecimal implements TypeInterface, Stringable
         return self::fromString(sprintf('%.17g', $value));
     }
 
-    public function mantissa(): BigInteger
+    public function mantissa(): BigInt
     {
         return $this->mantissa;
     }
@@ -174,7 +174,7 @@ final readonly class BigDecimal implements TypeInterface, Stringable
             throw new ArithmeticError('Division by zero');
         }
 
-        $ten = BigInteger::fromInt(10);
+        $ten = BigInt::fromInt(10);
         $resultScale = $this->scale - $other->scale;
         $dividend = $this->mantissa;
         $divisor = $other->mantissa;
@@ -222,7 +222,7 @@ final readonly class BigDecimal implements TypeInterface, Stringable
             return 0;
         }
 
-        return $this->mantissa->compareTo(BigInteger::fromInt(0));
+        return $this->mantissa->compareTo(BigInt::fromInt(0));
     }
 
     /**
@@ -233,7 +233,7 @@ final readonly class BigDecimal implements TypeInterface, Stringable
     {
         $integerPart = $this->scale === 0
             ? $this->mantissa
-            : $this->mantissa->divide(BigInteger::fromInt(10)->pow($this->scale));
+            : $this->mantissa->divide(BigInt::fromInt(10)->pow($this->scale));
 
         if (!$integerPart->fitsInPhpInt()) {
             throw new OverflowException(
@@ -351,7 +351,7 @@ final readonly class BigDecimal implements TypeInterface, Stringable
      * Aligns the two mantissas to a common scale, returning
      * `[leftMantissa, rightMantissa, sharedScale]`.
      *
-     * @return array{0: BigInteger, 1: BigInteger, 2: int}
+     * @return array{0: BigInt, 1: BigInt, 2: int}
      */
     private function align(self $other): array
     {
@@ -360,11 +360,11 @@ final readonly class BigDecimal implements TypeInterface, Stringable
         }
 
         if ($this->scale > $other->scale) {
-            $factor = BigInteger::fromInt(10)->pow($this->scale - $other->scale);
+            $factor = BigInt::fromInt(10)->pow($this->scale - $other->scale);
             return [$this->mantissa, $other->mantissa->multiply($factor), $this->scale];
         }
 
-        $factor = BigInteger::fromInt(10)->pow($other->scale - $this->scale);
+        $factor = BigInt::fromInt(10)->pow($other->scale - $this->scale);
         return [$this->mantissa->multiply($factor), $other->mantissa, $other->scale];
     }
 }

@@ -15,7 +15,7 @@ use Phel\Compiler\Domain\Parser\ParserNode\NilNode;
 use Phel\Compiler\Domain\Parser\ParserNode\NumberNode;
 use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
 use Phel\Lang\BigDecimal;
-use Phel\Lang\BigInteger;
+use Phel\Lang\BigInt;
 use Phel\Lang\Keyword;
 use Phel\Lang\Rational;
 use Phel\Lang\Symbol;
@@ -56,7 +56,7 @@ final readonly class AtomParser
 
     /**
      * Ratio literal, e.g. `1/2`, `-3/4`, `0/5`. Parsed into an exact
-     * {@see Rational} (or collapsed int / BigInteger when integral).
+     * {@see Rational} (or collapsed int / BigInt when integral).
      * Zero denominators are rejected at parse time.
      */
     private const string REGEX_RATIO_LITERAL = '/^([+-]?\d+(?:_\d+)*)\/(\d+(?:_\d+)*)$/';
@@ -325,16 +325,16 @@ final readonly class AtomParser
     /**
      * Parses an `N`-suffixed integer literal (e.g. `42N`, `9223372036854775808N`).
      * Returns a native PHP int when the value fits in the PHP int range,
-     * otherwise a {@see BigInteger}, mirroring the auto-collapse used by
+     * otherwise a {@see BigInt}, mirroring the auto-collapse used by
      * arithmetic overflow promotion.
      *
      * @param array<int|string, string> $matches
      */
     private function parseBigintLiteral(array $matches, string $word, Token $token): NumberNode
     {
-        // BigInteger::fromString rejects an explicit `+` sign; strip it.
+        // BigInt::fromString rejects an explicit `+` sign; strip it.
         $digits = ltrim(str_replace('_', '', (string) $matches[1]), '+');
-        $bigInt = BigInteger::fromString($digits);
+        $bigInt = BigInt::fromString($digits);
         $value = $bigInt->fitsInPhpInt() ? $bigInt->toInt() : $bigInt;
 
         return new NumberNode($word, $token->getStartLocation(), $token->getEndLocation(), $value);
@@ -356,7 +356,7 @@ final readonly class AtomParser
 
     /**
      * Parses a ratio literal `N/M` into an exact value. The result is a
-     * {@see Rational} when irreducible, a {@see BigInteger} when the
+     * {@see Rational} when irreducible, a {@see BigInt} when the
      * normalised numerator no longer fits in a PHP int, otherwise a
      * native int. Zero denominators are rejected at parse time.
      *
@@ -364,8 +364,8 @@ final readonly class AtomParser
      */
     private function parseRatioLiteral(array $matches, string $word, Token $token): NumberNode
     {
-        $numerator = BigInteger::fromString(str_replace('_', '', (string) $matches[1]));
-        $denominator = BigInteger::fromString(str_replace('_', '', (string) $matches[2]));
+        $numerator = BigInt::fromString(str_replace('_', '', (string) $matches[1]));
+        $denominator = BigInt::fromString(str_replace('_', '', (string) $matches[2]));
 
         if ($denominator->isZero()) {
             throw new ZeroDenominatorRatioParserException(

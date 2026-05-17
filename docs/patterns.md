@@ -379,7 +379,7 @@ Without `:else`, `match` throws `RuntimeException` when nothing fits. Add `:else
 ### Simple Recursion
 
 ```phel
-;; Note: `*'` auto-promotes to BigInteger if PHP int overflows.
+;; Note: `*'` auto-promotes to BigInt if PHP int overflows.
 (defn factorial [^int n]
   (if (<= n 1)
     1

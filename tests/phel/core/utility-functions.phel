@@ -24,7 +24,7 @@
 
 (deftest test-abs-php-int-min-promotes
   (let [r (abs php/PHP_INT_MIN)]
-    (is (bigint? r) "(abs PHP_INT_MIN) promotes to BigInteger to keep exactness")
+    (is (bigint? r) "(abs PHP_INT_MIN) promotes to BigInt to keep exactness")
     (is (= (bigint "9223372036854775808") r) "(abs PHP_INT_MIN) equals 2^63")))
 
 ;; --- Map utilities ---

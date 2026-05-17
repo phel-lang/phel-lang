@@ -5,8 +5,8 @@ Phel has a numeric tower built around five scalar shapes:
 | Type | Where it comes from | Notes |
 |------|---------------------|-------|
 | `int` | Native PHP `int` | 64-bit signed on common platforms |
-| `Phel\Lang\BigInteger` | `bigint`, `+'`, `*'`, etc. | Arbitrary-precision signed integer |
-| `Phel\Lang\Rational` | `1/2` literals, `/`, `rationalize` | Always normalised; collapses to `int`/`BigInteger` when integral |
+| `Phel\Lang\BigInt` | `bigint`, `+'`, `*'`, etc. | Arbitrary-precision signed integer |
+| `Phel\Lang\Rational` | `1/2` literals, `/`, `rationalize` | Always normalised; collapses to `int`/`BigInt` when integral |
 | `Phel\Lang\BigDecimal` | `1.5M` literal, `bigdec` | Arbitrary-precision exact decimal |
 | `float` | Native PHP `float` (IEEE-754 double) | Inexact |
 
@@ -30,12 +30,12 @@ Phel has a numeric tower built around five scalar shapes:
 Promote with the explicit constructors:
 
 ```phel
-(bigint 42)         ; => 42N (a BigInteger)
+(bigint 42)         ; => 42N (a BigInt)
 (bigint "1000000000000000000000")
 (rationalize 0.1)   ; => 1/10
 ```
 
-The promoting arithmetic ops (`+'`, `-'`, `*'`, `inc'`, `dec'`) auto-promote to `BigInteger` on overflow, so use them whenever overflow is possible:
+The promoting arithmetic ops (`+'`, `-'`, `*'`, `inc'`, `dec'`) auto-promote to `BigInt` on overflow, so use them whenever overflow is possible:
 
 ```phel
 (*' 1000000000 1000000000 1000000000)  ; => big enough to overflow PHP int
