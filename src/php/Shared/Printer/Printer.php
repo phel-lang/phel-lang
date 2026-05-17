@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Printer;
 
+use Phel\Lang\Atom;
 use Phel\Lang\BigDecimal;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LazySeq\LazyCons;
@@ -21,9 +22,9 @@ use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Lang\TypeStringifier;
 use Phel\Lang\Uuid;
-use Phel\Lang\Variable;
 use Phel\Shared\Printer\TypePrinter\AnonymousClassPrinter;
 use Phel\Shared\Printer\TypePrinter\ArrayPrinter;
+use Phel\Shared\Printer\TypePrinter\AtomPrinter;
 use Phel\Shared\Printer\TypePrinter\BigDecimalPrinter;
 use Phel\Shared\Printer\TypePrinter\BooleanPrinter;
 use Phel\Shared\Printer\TypePrinter\FnPrinter;
@@ -47,7 +48,6 @@ use Phel\Shared\Printer\TypePrinter\SymbolPrinter;
 use Phel\Shared\Printer\TypePrinter\ToStringPrinter;
 use Phel\Shared\Printer\TypePrinter\TypePrinterInterface;
 use Phel\Shared\Printer\TypePrinter\UuidPrinter;
-use Phel\Shared\Printer\TypePrinter\VariablePrinter;
 use Phel\Shared\Printer\TypePrinter\VarPrinter;
 use ReflectionClass;
 use RuntimeException;
@@ -149,8 +149,8 @@ final readonly class Printer implements PrinterInterface
             return new SymbolPrinter($this->withColor);
         }
 
-        if ($form instanceof Variable) {
-            return new VariablePrinter($this);
+        if ($form instanceof Atom) {
+            return new AtomPrinter($this);
         }
 
         if ($form instanceof PhelVar) {

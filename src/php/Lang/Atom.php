@@ -12,7 +12,7 @@ use Phel\Lang\Collections\Map\PersistentMapInterface;
  *
  * @extends AbstractType<T>
  */
-final class Variable extends AbstractType
+final class Atom extends AbstractType
 {
     use MetaTrait;
 
@@ -100,7 +100,7 @@ final class Variable extends AbstractType
     {
         $fn = $validator ?? $this->validator;
         if ($fn !== null && !Truthy::isTruthy($fn($value))) {
-            throw new InvalidArgumentException('Variable validator rejected the value');
+            throw new InvalidArgumentException('Atom validator rejected the value');
         }
     }
 

@@ -8,7 +8,7 @@
 (use Phel.Lang.Hasher)
 (use Phel.Lang.PhelVar)
 (use Phel.Lang.Seq)
-(use Phel.Lang.Variable)
+(use Phel.Lang.Atom)
 
 ;; Mutable reference cells (`atom`), first-class `Var` handles for global
 ;; definitions, their mutation protocol (`reset!`, `swap!`, `deref`,
@@ -33,14 +33,14 @@
   (let [pairs (apply hash-map opts)
         m     (get pairs :meta)
         vf    (get pairs :validator)
-        v     (php/:: Phel (variable value m))]
+        v     (php/:: Phel (atom value m))]
     (when vf (php/-> v (setValidator vf)))
     v))
 
 (defn atom?
   "Returns true if the given value is an atom."
   [x]
-  (php/instanceof x Variable))
+  (php/instanceof x Atom))
 
 (defn var?
   "Returns true if the given value is a `Var`, the first-class handle to a

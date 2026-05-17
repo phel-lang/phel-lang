@@ -4,7 +4,7 @@ Compile-time function. Takes Phel forms, returns Phel forms. Analyzer replaces t
 
 ## Mechanism
 
-`(defmacro when [test & body] ...)` is a `def` whose `Variable` carries `:macro true`. At runtime it is a function. At compile time, the analyzer:
+`(defmacro when [test & body] ...)` is a `def` whose `Atom` carries `:macro true`. At runtime it is a function. At compile time, the analyzer:
 
 1. Sees `(when x y)`.
 2. Resolves head to `GlobalVarNode`.

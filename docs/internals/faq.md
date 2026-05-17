@@ -18,7 +18,7 @@ Grouped by reader.
 
 ## Coming from Clojure
 
-**Missing features.** No agents, no STM/refs (use `Variable` + `swap!`), no `core.async` (Phel has fibers + futures via `Fiber/`, see [async-guide.md](../async-guide.md)), no protocols (use `definterface`), no records (use `defstruct`).
+**Missing features.** No agents, no STM/refs (use `Atom` + `swap!`), no `core.async` (Phel has fibers + futures via `Fiber/`, see [async-guide.md](../async-guide.md)), no protocols (use `definterface`), no records (use `defstruct`).
 
 **Real persistent collections?** Yes. `PersistentVector` (32-way trie), `PersistentHashMap` (HAMT), `LazySeq` (per-element realisation). Under `Lang/Collections/`.
 

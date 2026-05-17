@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Phel\Lang\Atom;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -13,7 +14,6 @@ use Phel\Lang\PhelVarStateRegistry;
 use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeFactory;
-use Phel\Lang\Variable;
 use Phel\Phel as InternalPhel;
 
 /**
@@ -377,14 +377,14 @@ final class Phel extends InternalPhel
     /**
      * @template T
      *
-     * @param T                                         $value The initial value of the variable
+     * @param T                                         $value The initial value of the atom
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      *
-     * @return Variable<T>
+     * @return Atom<T>
      */
-    public static function variable($value, ?PersistentMapInterface $meta = null): Variable
+    public static function atom($value, ?PersistentMapInterface $meta = null): Atom
     {
-        return new Variable($meta, $value);
+        return new Atom($meta, $value);
     }
 
     public static function symbol(string $name): Symbol
