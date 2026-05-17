@@ -32,6 +32,15 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
     /** @var array<string, array{namespace: string, source_hash: string, compiled_path: string, last_accessed: int}> */
     private array $entries = [];
 
+    /**
+     * Source paths invalidated in this process that have not been re-`put`.
+     * Used as tombstones so the disk-merge in `saveEntries()` cannot
+     * resurrect entries that downstream cascades meant to remove.
+     *
+     * @var array<string, true>
+     */
+    private array $tombstones = [];
+
     private bool $loaded = false;
 
     /**
@@ -127,6 +136,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
             'compiled_path' => $compiledPath,
             'last_accessed' => time(),
         ];
+        unset($this->tombstones[$sourcePath]);
 
         $this->evictLRU();
         $this->saveEntries();
@@ -209,6 +219,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
         }
 
         unset($this->entries[$sourcePath]);
+        $this->tombstones[$sourcePath] = true;
         $this->saveEntries();
     }
 
@@ -228,6 +239,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
         }
 
         $this->entries = [];
+        $this->tombstones = [];
         $this->saveEntries();
         $this->envMemo = [];
     }
@@ -341,6 +353,9 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
         }
 
         $diskEntries = $this->parseIndexContent($currentContent);
+        foreach (array_keys($this->tombstones) as $tombstoned) {
+            unset($diskEntries[$tombstoned]);
+        }
 
         return array_merge($diskEntries, $this->entries);
     }
