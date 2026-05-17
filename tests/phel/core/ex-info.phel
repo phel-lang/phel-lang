@@ -32,7 +32,7 @@
 
 (deftest test-ex-data-on-regular-exception
   (let [ex (php/new \Exception "plain")]
-    (is (nil? (ex-data ex)) "ex-data returns nil for non-ExInfoException")))
+    (is (nil? (ex-data ex)) "ex-data returns nil for non-ExceptionInfo")))
 
 (deftest test-ex-message-on-regular-exception
   (let [ex (php/new \Exception "hello")]

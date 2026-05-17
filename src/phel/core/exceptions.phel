@@ -1,11 +1,10 @@
 (in-ns phel.core)
 
 (use Phel)
-(use Phel.Lang.ExInfoException)
 
 ;; Structured exceptions: the `ex-info` constructor and the `ex-data` /
 ;; `ex-message` / `ex-cause` accessors for carrying a data map alongside
-;; a thrown error. Thin wrapper over `Phel\Lang\ExInfoException`.
+;; a thrown error. Thin wrapper over `Phel\Lang\ExceptionInfo`.
 
 ;; --- Rich exceptions ---
 
@@ -14,15 +13,15 @@
   {:example "(throw (ex-info \"Invalid input\" {:field :email}))"
    :see-also ["ex-data" "ex-message" "ex-cause"]}
   ([msg data]
-   (php/new \Phel\Lang\ExInfoException msg data))
+   (php/new \Phel\Lang\ExceptionInfo msg data))
   ([msg data cause]
-   (php/new \Phel\Lang\ExInfoException msg data cause)))
+   (php/new \Phel\Lang\ExceptionInfo msg data cause)))
 
 (defn ex-data
-  "Returns the data map from an ex-info exception, or nil if not an ExInfoException."
+  "Returns the data map from an ex-info exception, or nil if not an ExceptionInfo."
   {:see-also ["ex-info" "ex-message" "ex-cause"]}
   [ex]
-  (when (php/instanceof ex ExInfoException)
+  (when (php/instanceof ex ExceptionInfo)
     (php/-> ex (getData))))
 
 (defn ex-message

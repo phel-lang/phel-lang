@@ -10,11 +10,13 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- BC break: rename `Phel\Lang\Variable` to `Phel\Lang\Atom` (and `Phel\Shared\Printer\TypePrinter\VariablePrinter` to `AtomPrinter`) to match the Clojure-aligned default alias added in #1996; the public static helper `\Phel::variable(...)` is now `\Phel::atom(...)`. Phel sources that still write `(:use Phel.Lang.Variable)` or `(php/instanceof x Variable)` need to switch to `Atom` (or drop the `(:use ...)` line — `Atom` is auto-referred) (#2000)
-- BC break: rename `Phel\Lang\Uuid` to `Phel\Lang\UUID` (plus `UuidPrinter` → `UUIDPrinter` and `UuidTagHandler` → `UUIDTagHandler`) so the PHP class name matches the Clojure-aligned alias from #1996. Phel sources that still write `(:use Phel.Lang.Uuid)` need to switch to `UUID` (or drop the `(:use ...)` line — `UUID` is auto-referred) (#2000)
-- BC break: rename `Phel\Lang\BigInteger` to `Phel\Lang\BigInt` so the PHP class name matches the Clojure-aligned alias from #1996. Phel sources that still write `(:use Phel.Lang.BigInteger)` or `(php/instanceof x BigInteger)` need to switch to `BigInt` (or drop the `(:use ...)` line — `BigInt` is auto-referred) (#2000)
-- BC break: rename `Phel\Lang\Rational` to `Phel\Lang\Ratio` (plus `RationalPrinter` → `RatioPrinter`) so the PHP class name matches the Clojure-aligned alias from #1996. Phel sources that still write `(:use Phel.Lang.Rational)` or `(php/instanceof x Rational)` need to switch to `Ratio` (or drop the `(:use ...)` line — `Ratio` is auto-referred) (#2000)
-- BC break: rename `Phel\Lang\PhelFuture` to `Phel\Lang\Future` so the PHP class name matches the Clojure-aligned alias from #1996. The unrelated `Phel\Fiber\Domain\Future` keeps its FQN (different namespace). Phel sources that still write `(:use Phel.Lang.PhelFuture)` or `(php/instanceof x PhelFuture)` need to switch to `Future` (or drop the `(:use ...)` line — `Future` is auto-referred) (#2000)
+- BC break: rename `Phel\Lang\*` types to match Clojure-aligned aliases from #1996. Each new short name is auto-referred (drop the `(:use ...)` line or rewrite to the new name):
+  - `Variable` → `Atom` (also `VariablePrinter` → `AtomPrinter`, `\Phel::variable` → `\Phel::atom`) (#2000)
+  - `Uuid` → `UUID` (also `UuidPrinter` → `UUIDPrinter`, `UuidTagHandler` → `UUIDTagHandler`) (#2002)
+  - `BigInteger` → `BigInt` (#2003)
+  - `Rational` → `Ratio` (also `RationalPrinter` → `RatioPrinter`) (#2004)
+  - `PhelFuture` → `Future` (unrelated `Phel\Fiber\Domain\Future` keeps its FQN) (#2005)
+  - `ExInfoException` → `ExceptionInfo` (matches `clojure.lang.ExceptionInfo` thrown by `ex-info`)
 
 ### Fixed
 

@@ -6,7 +6,7 @@
 
 (deftest test-lazy-seq-alias-resolves-without-explicit-use
   (is (php/instanceof (lazy-seq (cons 1 nil)) LazySeq))
-  (is (php/instanceof (next (lazy-seq (cons 1 (lazy-seq (cons 2 nil))))) LazyCons)))
+  (is (php/instanceof (next (lazy-seq (cons 1 (lazy-seq (cons 2 nil))))) Cons)))
 
 (deftest test-persistent-vector-alias
   (is (php/instanceof [1 2 3] PersistentVector))
@@ -39,5 +39,3 @@
   (is (php/instanceof (delay 1) Delay))
   (is (php/instanceof (volatile! 1) Volatile)))
 
-(deftest test-cons-alias-mirrors-lazy-cons
-  (is (php/instanceof (next (lazy-seq (cons 1 (lazy-seq (cons 2 nil))))) Cons)))
