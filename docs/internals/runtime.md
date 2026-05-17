@@ -25,7 +25,7 @@ Three concerns: types, per-namespace `Registry`, value equality + hashing.
 | `Delay` | One-shot lazy value (not a sequence). |
 | `Volatile` | Mutable box for transducer state. |
 | `Reduced` | Early-termination sentinel for `reduce`/`transduce`. |
-| `PhelFuture` | Promise/future for `Fiber/`. |
+| `Future` | Promise/future for `Fiber/`. |
 | `SourceLocation` | File + line + column on every readable form. |
 
 All types implement `TypeInterface` (composes `MetaInterface`, `SourceLocationInterface`, `EqualsInterface`, `HashableInterface`).

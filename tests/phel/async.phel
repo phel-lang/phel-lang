@@ -100,8 +100,8 @@
 
 (deftest test-future-returns-phel-future
   (let [f (await (async (future 42)))]
-    (is (= true (php/instanceof f \Phel\Lang\PhelFuture))
-        "future returns a PhelFuture wrapper")))
+    (is (= true (php/instanceof f \Phel\Lang\Future))
+        "future returns a Future wrapper")))
 
 (deftest test-future-deref
   (let [result (await (async (deref (future 42))))]
@@ -148,11 +148,11 @@
 
 (deftest test-future-interops-with-await-all
   (let [result (await (async (await-all [(future 1) (future 2) (future 3)])))]
-    (is (= [1 2 3] result) "await-all transparently unwraps PhelFutures")))
+    (is (= [1 2 3] result) "await-all transparently unwraps Futures")))
 
 (deftest test-future-interops-with-await
   (let [result (await (async (await (future 99))))]
-    (is (= 99 result) "await accepts a PhelFuture wrapper")))
+    (is (= 99 result) "await accepts a Future wrapper")))
 
 ;; --- 3-arg deref / future-cancel / future-done? tests ---
 

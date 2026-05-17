@@ -16,8 +16,8 @@ use Phel\Lang\Collections\Map\MapEntry;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Delay;
+use Phel\Lang\Future;
 use Phel\Lang\Keyword;
-use Phel\Lang\PhelFuture;
 use Phel\Lang\PhelVar;
 use Phel\Lang\Ratio;
 use Phel\Lang\Reduced;
@@ -62,7 +62,7 @@ final class DefaultLangAliasesRegistrar
         'Volatile' => Volatile::class,
         'Reduced' => Reduced::class,
         'Delay' => Delay::class,
-        'Future' => PhelFuture::class,
+        'Future' => Future::class,
         // Misc value types
         'UUID' => UUID::class,
     ];

@@ -71,7 +71,7 @@
   (case (count args)
     0 (php/-> variable (deref))
     2 (cond
-        (php/instanceof variable \Phel\Lang\PhelFuture)
+        (php/instanceof variable \Phel\Lang\Future)
         (php/-> variable (derefWithTimeout (first args) (get args 1)))
         (php/instanceof variable \Phel\Fiber\Domain\Future)
         (php/-> variable (derefWithTimeout (first args) (get args 1)))

@@ -3,7 +3,7 @@
 ;; AMPHP-backed and fiber-backed async primitives, kept in core so that
 ;; `.cljc` portable code mirrors `clojure.core`'s default availability
 ;; (see #1537 for the analogous `future` move). The classes referenced
-;; below (`\Phel\Fiber\FiberFacade`, `\Phel\Lang\PhelFuture`, `Amp\\…`)
+;; below (`\Phel\Fiber\FiberFacade`, `\Phel\Lang\Future`, `Amp\\…`)
 ;; are autoloaded only when these functions are actually called, so
 ;; namespaces that don't use them pay no runtime cost.
 ;;
@@ -39,16 +39,16 @@
         (php/:: \Phel (withDynamicBindings frame# (fn [] ~@body)))))))
 
 (defn- unwrap-future
-  "Returns the raw Amp\\Future for either a `PhelFuture` wrapper or
+  "Returns the raw Amp\\Future for either a `Future` wrapper or
   a bare `Amp\\Future`."
   [future]
-  (if (php/instanceof future \Phel\Lang\PhelFuture)
+  (if (php/instanceof future \Phel\Lang\Future)
     (php/-> future (unwrap))
     future))
 
 (defn await
   "Blocks the current fiber until the Future resolves and returns its value.
-  Accepts either a raw `Amp\\Future` or a `PhelFuture` wrapper."
+  Accepts either a raw `Amp\\Future` or a `Future` wrapper."
   {:example "(await (async (+ 1 2)))"
    :see-also ["async" "await-all" "await-any"]}
   [future]
@@ -56,7 +56,7 @@
 
 (defn await-all
   "Awaits all Futures in the given collection. Returns a vector of results.
-  Accepts a mix of raw `Amp\\Future` and `PhelFuture` wrappers."
+  Accepts a mix of raw `Amp\\Future` and `Future` wrappers."
   {:example "(await-all [(async 1) (async 2)])"
    :see-also ["await" "await-any" "pmap"]}
   [futures]
@@ -66,7 +66,7 @@
 
 (defn await-any
   "Awaits the first Future to resolve. Returns its value.
-  Accepts a mix of raw `Amp\\Future` and `PhelFuture` wrappers."
+  Accepts a mix of raw `Amp\\Future` and `Future` wrappers."
   {:example "(await-any [(async 1) (async 2)])"
    :see-also ["await" "await-all"]}
   [futures]
@@ -118,7 +118,7 @@
 
   Dispatches on type: for a `\\Phel\\Fiber\\Domain\\Future` (fiber-backed)
   it calls `isDone`; for any other value it falls back to `realized?`.
-  This lets the same predicate serve both the AMPHP `PhelFuture` wrapper
+  This lets the same predicate serve both the AMPHP `Future` wrapper
   and the cooperative fiber future."
   {:example "(future-done? f)"
    :see-also ["realized?" "future-cancel" "future" "future-fiber"]}
@@ -185,9 +185,9 @@
 
 (defn future?
   "Returns true if `x` is a fiber-future (from `future-call`/`future-fiber`)
-  or a `PhelFuture` (from the AMPHP-backed `future` macro)."
+  or a `Future` (from the AMPHP-backed `future` macro)."
   {:example "(future? (future-call (fn [] 1))) ; => true"
    :see-also ["future" "future-call" "future-fiber"]}
   [x]
   (or (php/instanceof x \Phel\Fiber\Domain\Future)
-      (php/instanceof x \Phel\Lang\PhelFuture)))
+      (php/instanceof x \Phel\Lang\Future)))

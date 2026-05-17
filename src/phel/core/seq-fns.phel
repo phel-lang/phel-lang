@@ -1087,7 +1087,7 @@
     (php/instanceof coll LazySeqInterface) (php/-> coll (isRealized))
     (php/instanceof coll PersistentListInterface) true
     (php/instanceof coll Delay) (php/-> coll (isRealized))
-    (php/instanceof coll \Phel\Lang\PhelFuture) (php/-> coll (isRealized))
+    (php/instanceof coll \Phel\Lang\Future) (php/-> coll (isRealized))
     (php/instanceof coll \Phel\Fiber\Domain\Future) (php/-> coll (isRealized))
     (php/instanceof coll \Phel\Fiber\Domain\Promise) (php/-> coll (isRealized))
     true))

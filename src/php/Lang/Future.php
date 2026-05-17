@@ -7,7 +7,7 @@ namespace Phel\Lang;
 use Amp\CancelledException;
 use Amp\CompositeCancellation;
 use Amp\DeferredCancellation;
-use Amp\Future;
+use Amp\Future as AmpFuture;
 use Amp\TimeoutCancellation;
 
 /**
@@ -21,7 +21,7 @@ use Amp\TimeoutCancellation;
  *
  * Note: `deref` must be called from inside a fiber (an `async` block or the event
  * loop), matching Amphp's cooperative-concurrency model. Calling `deref` on a
- * PhelFuture outside a fiber context is an Amphp runtime error by design.
+ * Future outside a fiber context is an Amphp runtime error by design.
  *
  * Cancellation semantics: `cancel()` signals the internal Amphp `DeferredCancellation`
  * token. Any pending or subsequent `deref()` call raises `CancelledException`, and
@@ -31,15 +31,15 @@ use Amp\TimeoutCancellation;
  * the underlying work may still complete in the background. This differs slightly
  * from Clojure's JVM-thread interrupt semantics.
  */
-final class PhelFuture
+final class Future
 {
     private bool $cancelled = false;
 
     /**
-     * @param Future<mixed> $future
+     * @param AmpFuture<mixed> $future
      */
     public function __construct(
-        private readonly Future $future,
+        private readonly AmpFuture $future,
         private readonly DeferredCancellation $cancellation,
     ) {}
 
@@ -103,9 +103,9 @@ final class PhelFuture
      * Exposes the underlying Amp\Future for interop with code that expects
      * the raw Amphp type (e.g. `await-all`, `await-any`).
      *
-     * @return Future<mixed>
+     * @return AmpFuture<mixed>
      */
-    public function unwrap(): Future
+    public function unwrap(): AmpFuture
     {
         return $this->future;
     }
