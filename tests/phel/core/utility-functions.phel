@@ -79,7 +79,7 @@
 
 (deftest test-random-uuid
   (let [uuid (random-uuid)]
-    (is (uuid? uuid) "random-uuid returns a Uuid value")
+    (is (uuid? uuid) "random-uuid returns a UUID value")
     (is (= 36 (php/strlen (str uuid))) "random-uuid prints to 36 characters")
     (is (truthy? (php/preg_match "/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/" (str uuid)))
         "random-uuid matches UUID v4 format")
@@ -96,20 +96,20 @@
 
 (deftest test-parse-uuid
   (is (uuid? (parse-uuid "550e8400-e29b-41d4-a716-446655440000"))
-      "parse-uuid returns a Uuid value")
+      "parse-uuid returns a UUID value")
   (is (= #uuid"550e8400-e29b-41d4-a716-446655440000"
          (parse-uuid "550E8400-E29B-41D4-A716-446655440000"))
       "parse-uuid lowercases uppercase input")
   (is (= #uuid"550e8400-e29b-41d4-a716-446655440000"
          (parse-uuid #uuid"550e8400-e29b-41d4-a716-446655440000"))
-      "parse-uuid passes Uuid values through")
+      "parse-uuid passes UUID values through")
   (is (nil? (parse-uuid "not-a-uuid")) "parse-uuid returns nil on invalid")
   (is (nil? (parse-uuid "")) "parse-uuid returns nil on empty")
   (is (nil? (parse-uuid nil)) "parse-uuid returns nil on nil"))
 
 (deftest test-uuid-tagged-literal
   (is (uuid? #uuid"00000000-0000-0000-0000-000000000000")
-      "#uuid produces a Uuid value")
+      "#uuid produces a UUID value")
   (is (= "00000000-0000-0000-0000-000000000000"
          (str #uuid"00000000-0000-0000-0000-000000000000"))
       "#uuid stringifies to the canonical form")
@@ -123,10 +123,10 @@
       "uuid= is case-insensitive (canonical form is lowercase)")
   (is (true? (uuid= #uuid"550e8400-e29b-41d4-a716-446655440000"
                     #uuid"550e8400-e29b-41d4-a716-446655440000"))
-      "uuid= matches identical Uuids")
+      "uuid= matches identical UUIDs")
   (is (false? (uuid= #uuid"00000000-0000-0000-0000-000000000000"
                      #uuid"550e8400-e29b-41d4-a716-446655440000"))
-      "uuid= distinguishes different Uuids")
+      "uuid= distinguishes different UUIDs")
   (is (false? (uuid= #uuid"550e8400-e29b-41d4-a716-446655440000"
                      "550e8400-e29b-41d4-a716-446655440000"))
       "uuid= rejects raw string operand")

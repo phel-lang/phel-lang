@@ -15,7 +15,7 @@ use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Keyword;
 use Phel\Lang\Rational;
 use Phel\Lang\Symbol;
-use Phel\Lang\Uuid;
+use Phel\Lang\UUID;
 use Phel\Shared\Printer\PrinterInterface;
 use RuntimeException;
 
@@ -69,8 +69,8 @@ final readonly class LiteralEmitter
             $this->emitBigInteger($x);
         } elseif ($x instanceof BigDecimal) {
             $this->emitBigDecimal($x);
-        } elseif ($x instanceof Uuid) {
-            $this->emitUuid($x);
+        } elseif ($x instanceof UUID) {
+            $this->emitUUID($x);
         } elseif (is_array($x)) {
             $this->emitArray($x);
         } else {
@@ -95,10 +95,10 @@ final readonly class LiteralEmitter
         );
     }
 
-    private function emitUuid(Uuid $x): void
+    private function emitUUID(UUID $x): void
     {
         $this->outputEmitter->emitStr(
-            '\Phel\Lang\Uuid::fromString("' . $x->__toString() . '")',
+            '\Phel\Lang\UUID::fromString("' . $x->__toString() . '")',
             $x->getStartLocation(),
         );
     }

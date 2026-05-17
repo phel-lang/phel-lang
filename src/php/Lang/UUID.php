@@ -26,7 +26,7 @@ use function substr;
  * Constructed only via the static factories, which validate the
  * `8-4-4-4-12` hexadecimal shape and lowercase the input.
  */
-final readonly class Uuid implements TypeInterface, Stringable
+final readonly class UUID implements TypeInterface, Stringable
 {
     private const string CANONICAL_REGEX = '/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i';
 
@@ -46,7 +46,7 @@ final readonly class Uuid implements TypeInterface, Stringable
     }
 
     /**
-     * Builds a `Uuid` from a canonical string. Throws when the string
+     * Builds a `UUID` from a canonical string. Throws when the string
      * does not match the `8-4-4-4-12` hexadecimal shape.
      */
     public static function fromString(string $value): self

@@ -18,7 +18,7 @@
 (use Phel.Lang.FnInterface)
 (use Phel.Lang.NumericOperations)
 (use Phel.Lang.PhpClass)
-(use Phel.Lang.Uuid)
+(use Phel.Lang.UUID)
 (use Phel.Lang.Keyword)
 (use Phel.Lang.MetaInterface)
 (use Phel.Lang.PhelVar)
@@ -81,7 +81,7 @@
     (php/instanceof x Rational)                   :ratio
     (php/instanceof x BigInteger)                 :bigint
     (php/instanceof x BigDecimal)                 :bigdec
-    (php/instanceof x Uuid)                       :uuid
+    (php/instanceof x UUID)                       :uuid
     (php/instanceof x PhpClass)                   :php/class
     (php/is_int x)                                :int
     (php/is_float x)                              :float

@@ -30,7 +30,7 @@ Each implements `TypePrinterInterface`. Selected at runtime based on value type:
 | `SymbolPrinter` | Symbol objects |
 | `RationalPrinter` | Rational numbers (`n/d`) |
 | `BigDecimalPrinter` | BigDecimal values (appends the `M` suffix so the readable form round-trips through the reader) |
-| `UuidPrinter` | UUID values (rendered as `#uuid "..."`) |
+| `UUIDPrinter` | UUID values (rendered as `#uuid "..."`) |
 | `AtomPrinter` | Atom objects (recursive) |
 | `VarPrinter` | `PhelVar` handles, rendered as `#'ns/name` |
 | `PersistentListPrinter` | Lists (recursive) |

@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Printer\TypePrinter;
 
-use Phel\Lang\Uuid;
+use Phel\Lang\UUID;
 
 use function sprintf;
 
 /**
- * @implements TypePrinterInterface<Uuid>
+ * @implements TypePrinterInterface<UUID>
  */
-final class UuidPrinter implements TypePrinterInterface
+final class UUIDPrinter implements TypePrinterInterface
 {
     use WithColorTrait;
 
     /**
-     * @param Uuid $form
+     * @param UUID $form
      */
     public function print(mixed $form): string
     {
