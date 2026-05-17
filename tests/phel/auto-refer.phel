@@ -27,9 +27,17 @@
   (is (php/instanceof 'foo Symbol)))
 
 (deftest test-uuid-alias
-  (is (php/instanceof (random-uuid) Uuid)))
+  (is (php/instanceof (random-uuid) UUID)))
 
 (deftest test-numeric-tower-aliases
-  (is (php/instanceof (bigint 1) BigInteger))
+  (is (php/instanceof (bigint 1) BigInt))
   (is (php/instanceof (bigdec "1.5") BigDecimal))
-  (is (php/instanceof (rationalize 1/3) Rational)))
+  (is (php/instanceof (rationalize 1/3) Ratio)))
+
+(deftest test-concurrency-aliases
+  (is (php/instanceof (atom 1) Atom))
+  (is (php/instanceof (delay 1) Delay))
+  (is (php/instanceof (volatile! 1) Volatile)))
+
+(deftest test-cons-alias-mirrors-lazy-cons
+  (is (php/instanceof (next (lazy-seq (cons 1 (lazy-seq (cons 2 nil))))) Cons)))

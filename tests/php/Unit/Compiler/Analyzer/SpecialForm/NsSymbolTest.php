@@ -194,7 +194,13 @@ final class NsSymbolTest extends TestCase
         self::assertSame('\\' . LazySeqInterface::class, $aliases['LazySeq']->getName());
         self::assertArrayHasKey('PersistentVector', $aliases);
         self::assertArrayHasKey('Keyword', $aliases);
-        self::assertArrayHasKey('Uuid', $aliases);
+        self::assertArrayHasKey('UUID', $aliases);
+        self::assertArrayHasKey('Atom', $aliases);
+        self::assertArrayHasKey('Var', $aliases);
+        self::assertArrayHasKey('Future', $aliases);
+        self::assertArrayHasKey('BigInt', $aliases);
+        self::assertArrayHasKey('Ratio', $aliases);
+        self::assertArrayHasKey('Cons', $aliases);
     }
 
     public function test_user_use_overrides_default_alias(): void

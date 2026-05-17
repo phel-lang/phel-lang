@@ -8,21 +8,22 @@ use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Lang\BigDecimal;
 use Phel\Lang\BigInteger;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
-use Phel\Lang\Collections\HashSet\TransientHashSetInterface;
 use Phel\Lang\Collections\LazySeq\LazyCons;
 use Phel\Lang\Collections\LazySeq\LazySeqInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\MapEntry;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
-use Phel\Lang\Collections\Map\TransientMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
-use Phel\Lang\Collections\Vector\TransientVectorInterface;
 use Phel\Lang\Delay;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelFuture;
+use Phel\Lang\PhelVar;
 use Phel\Lang\Rational;
+use Phel\Lang\Reduced;
 use Phel\Lang\Symbol;
 use Phel\Lang\Uuid;
+use Phel\Lang\Variable;
+use Phel\Lang\Volatile;
 
 /**
  * Pre-registers a curated set of `Phel\Lang\*` PHP class/interface aliases
@@ -39,24 +40,31 @@ final class DefaultLangAliasesRegistrar
 {
     /** @var array<string, string> */
     public const array DEFAULT_USE_ALIASES = [
-        'LazyCons' => LazyCons::class,
+        // Sequence types
         'LazySeq' => LazySeqInterface::class,
+        'LazyCons' => LazyCons::class,
+        'Cons' => LazyCons::class,
         'PersistentList' => PersistentListInterface::class,
         'PersistentVector' => PersistentVectorInterface::class,
         'PersistentMap' => PersistentMapInterface::class,
         'PersistentHashSet' => PersistentHashSetInterface::class,
-        'TransientVector' => TransientVectorInterface::class,
-        'TransientMap' => TransientMapInterface::class,
-        'TransientHashSet' => TransientHashSetInterface::class,
         'MapEntry' => MapEntry::class,
+        // Names
         'Keyword' => Keyword::class,
         'Symbol' => Symbol::class,
-        'BigInteger' => BigInteger::class,
+        // Numeric tower (Clojure-aligned names)
+        'BigInt' => BigInteger::class,
         'BigDecimal' => BigDecimal::class,
-        'Rational' => Rational::class,
-        'PhelFuture' => PhelFuture::class,
+        'Ratio' => Rational::class,
+        // Concurrency primitives (Clojure-aligned names)
+        'Atom' => Variable::class,
+        'Var' => PhelVar::class,
+        'Volatile' => Volatile::class,
+        'Reduced' => Reduced::class,
         'Delay' => Delay::class,
-        'Uuid' => Uuid::class,
+        'Future' => PhelFuture::class,
+        // Misc value types
+        'UUID' => Uuid::class,
     ];
 
     /**
