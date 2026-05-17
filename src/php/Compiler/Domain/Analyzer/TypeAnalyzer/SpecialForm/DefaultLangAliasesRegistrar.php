@@ -16,6 +16,7 @@ use Phel\Lang\Collections\Map\MapEntry;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Delay;
+use Phel\Lang\ExceptionInfo;
 use Phel\Lang\Future;
 use Phel\Lang\Keyword;
 use Phel\Lang\PhelVar;
@@ -42,7 +43,6 @@ final class DefaultLangAliasesRegistrar
     public const array DEFAULT_USE_ALIASES = [
         // Sequence types
         'LazySeq' => LazySeqInterface::class,
-        'LazyCons' => LazyCons::class,
         'Cons' => LazyCons::class,
         'PersistentList' => PersistentListInterface::class,
         'PersistentVector' => PersistentVectorInterface::class,
@@ -52,11 +52,11 @@ final class DefaultLangAliasesRegistrar
         // Names
         'Keyword' => Keyword::class,
         'Symbol' => Symbol::class,
-        // Numeric tower (Clojure-aligned names)
+        // Numeric tower
         'BigInt' => BigInt::class,
         'BigDecimal' => BigDecimal::class,
         'Ratio' => Ratio::class,
-        // Concurrency primitives (Clojure-aligned names)
+        // Concurrency primitives
         'Atom' => Atom::class,
         'Var' => PhelVar::class,
         'Volatile' => Volatile::class,
@@ -65,6 +65,8 @@ final class DefaultLangAliasesRegistrar
         'Future' => Future::class,
         // Misc value types
         'UUID' => UUID::class,
+        // Exceptions
+        'ExceptionInfo' => ExceptionInfo::class,
     ];
 
     /**

@@ -37,7 +37,7 @@ Symbols flowing through the analyzer's `SymbolResolver` or the `ns`-form analyze
 - **Namespace declarations** (Phase 1b): `(ns phel\foo)` becomes `(ns phel.foo)`
 - **`:require` targets** (Phase 1b, flat and `[ns :as alias]` vector forms): `(:require phel\walk)` becomes `(:require phel.walk)`
 - **Fully-qualified call sites** (Phase 1a): `(phel\core/map inc xs)` becomes `(phel.core/map inc xs)`
-- **Leading-backslash class FQNs** (Phase 1a): `\Phel\Lang\ExInfoException` becomes `Phel.Lang.ExInfoException`. Dot alias landed in [#1553](https://github.com/phel-lang/phel-lang/issues/1553).
+- **Leading-backslash class FQNs** (Phase 1a): `\Phel\Lang\ExceptionInfo` becomes `Phel.Lang.ExceptionInfo`. Dot alias landed in [#1553](https://github.com/phel-lang/phel-lang/issues/1553).
 - **`:use` targets**: `(:use Phel\Lang\Foo)` becomes `(:use Phel.Lang.Foo)`. The analyzer already accepted the dot form; the warning makes the migration target explicit.
 
 ## What is NOT yet detected

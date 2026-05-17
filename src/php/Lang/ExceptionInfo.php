@@ -11,7 +11,7 @@ use Throwable;
 /**
  * Exception that carries a data map, matching Clojure's ex-info semantics.
  */
-final class ExInfoException extends Exception
+final class ExceptionInfo extends Exception
 {
     /**
      * @param PersistentMapInterface<mixed, mixed> $data
