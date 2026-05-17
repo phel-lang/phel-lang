@@ -1,6 +1,6 @@
 --PHEL--
 (ns test
-  (:use Phel.Lang.SourceLocation Phel.Lang.Variable :as V))
+  (:use Phel.Lang.SourceLocation Phel.Lang.Atom :as V))
 
 (php/new SourceLocation "f" 1 1)
 (php/new V nil 42)
@@ -17,4 +17,4 @@ require_once __DIR__ . '/phel/core.php';
   "*ns*",
   "test"
 );
-(new \Phel\Lang\SourceLocation("f", 1, 1));(new \Phel\Lang\Variable(null, 42));
+(new \Phel\Lang\SourceLocation("f", 1, 1));(new \Phel\Lang\Atom(null, 42));

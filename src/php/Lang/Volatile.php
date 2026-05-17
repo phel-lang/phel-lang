@@ -6,7 +6,7 @@ namespace Phel\Lang;
 
 /**
  * A lightweight mutable container for transducer state.
- * Unlike Variable, has no watches or validators.
+ * Unlike Atom, has no watches or validators.
  *
  * @template T
  */

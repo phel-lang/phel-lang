@@ -10,7 +10,7 @@ This is a **foundational module** with no Facade, Factory, or DependencyProvider
 
 - **Symbol** : names with optional namespace; special constants for language forms (`def`, `fn`, `if`, etc.)
 - **Keyword** : interned with pool; callable as functions to access map values (implements `FnInterface`)
-- **Variable** : mutable box (atom) with watches, validators, deref
+- **Atom** : mutable box with watches, validators, deref (Clojure-aligned name; was `Variable`)
 - **PhelVar** : first-class handle to a global definition (`def`); produced by `Registry::addDefinition`/`getVar` and the `(var sym)` / `#'sym` forms; offers `deref`, `meta`, `alterRoot`, `addWatch`/`removeWatch`, `alterMeta`/`resetMeta`, and cached `isDynamic`; implements `FnInterface` so handles are callable (`__invoke` forwards to the current root value)
 - **PhelVarStateRegistry** : singleton side table for per-var watches, metadata overrides, and dynamic-flag cache keyed by `(ns, name)`; lets `PhelVar` stay `readonly` while `alter-meta!` / `add-watch` mutate canonical state
 - **BigInteger** : pure-PHP arbitrary-precision signed integer (`final readonly`); base-10^9 magnitude with sign; `fromInt`, `fromFloat` (truncate toward zero, reject NaN/Inf), `fromString`, `add/subtract/multiply/divide/mod/gcd/pow/negate/abs`, `compareTo/equals`, `hash`, `toInt`/`fitsInPhpInt`. Implements `TypeInterface` (with optional source location and meta) so `N`-suffix literals beyond `PHP_INT_MAX` flow through reader/analyzer/emitter as first-class values. No I/O, no static state.
@@ -69,6 +69,6 @@ Every module: Compiler (AST representation), Printer (value display), Build (nam
 - All collection types are **persistent** (immutable) with transient variants for bulk building
 - `Keyword` uses an intern pool for memory efficiency : identical keywords share the same instance
 - `Registry` is a singleton; `TypeFactory` is a singleton : both use `getInstance()`
-- Keyword callability, ex-info exceptions, atom-style mutation on `Variable`, first-class `PhelVar` for global defs
+- Keyword callability, ex-info exceptions, atom-style mutation on `Atom`, first-class `PhelVar` for global defs
 - Source locations must be preserved via `SourceLocationInterface` for error reporting
 - `Registry` keys are dot-separated: `phel.core`, `my-app.lib` (after `-` → `_` munge → `my_app.lib`). Compiler emitters and analyzer feed the registry through `Munge::encodeRegistryKey`. `Symbol::getFullName` returns the dot form for Phel symbols; symbols whose namespace is a PHP class FQN (leading `\`) keep backslash so static-method shorthand still resolves.

@@ -201,7 +201,7 @@ final readonly class SymbolResolver
     /**
      * Maps `clojure.lang.X` references to the matching Phel runtime class.
      * Auto-resolves when `\Phel\Lang\X` exists (covers `Symbol`, `Keyword`,
-     * `Variable`, etc.); a small rename table handles cases where Phel
+     * `Atom`, etc.); a small rename table handles cases where Phel
      * diverged from the Clojure name (`BigInt` vs `BigInteger`, `Ratio` vs
      * `Rational`). Returns null when no Phel counterpart exists.
      */

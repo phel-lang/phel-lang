@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
+use Phel\Lang\Atom;
 use Phel\Lang\BigDecimal;
 use Phel\Lang\BigInteger;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
@@ -22,7 +23,6 @@ use Phel\Lang\Rational;
 use Phel\Lang\Reduced;
 use Phel\Lang\Symbol;
 use Phel\Lang\Uuid;
-use Phel\Lang\Variable;
 use Phel\Lang\Volatile;
 
 /**
@@ -57,7 +57,7 @@ final class DefaultLangAliasesRegistrar
         'BigDecimal' => BigDecimal::class,
         'Ratio' => Rational::class,
         // Concurrency primitives (Clojure-aligned names)
-        'Atom' => Variable::class,
+        'Atom' => Atom::class,
         'Var' => PhelVar::class,
         'Volatile' => Volatile::class,
         'Reduced' => Reduced::class,

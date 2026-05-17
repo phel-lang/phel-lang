@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - Auto-refer 17 common `Phel\Lang\*` PHP types in every Phel namespace without an explicit `(:use ...)` line. The `Interface` suffix is dropped at the Phel level: `(php/instanceof x LazySeq)`, `(php/instanceof x PersistentVector)`, `(php/instanceof x Keyword)` all work out of the box. User `(:use ...)` declarations with the same short name still override the default (#1996)
 
+### Changed
+
+- BC break: rename `Phel\Lang\Variable` to `Phel\Lang\Atom` (and `Phel\Shared\Printer\TypePrinter\VariablePrinter` to `AtomPrinter`) to match the Clojure-aligned default alias added in #1996; the public static helper `\Phel::variable(...)` is now `\Phel::atom(...)`. Phel sources that still write `(:use Phel.Lang.Variable)` or `(php/instanceof x Variable)` need to switch to `Atom` (or drop the `(:use ...)` line — `Atom` is auto-referred) (#2000)
+
 ### Fixed
 
 - LazySeq: `(next lazy-seq)` now returns a realized `LazyCons` cell (or nil) instead of another `LazySeq`, matching Clojure's `(next s)` contract `(not (lazy-seq? (next s)))` (#1994)

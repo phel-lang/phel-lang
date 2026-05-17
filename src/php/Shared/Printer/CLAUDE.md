@@ -31,7 +31,7 @@ Each implements `TypePrinterInterface`. Selected at runtime based on value type:
 | `RationalPrinter` | Rational numbers (`n/d`) |
 | `BigDecimalPrinter` | BigDecimal values (appends the `M` suffix so the readable form round-trips through the reader) |
 | `UuidPrinter` | UUID values (rendered as `#uuid "..."`) |
-| `VariablePrinter` | Variable objects (recursive) |
+| `AtomPrinter` | Atom objects (recursive) |
 | `VarPrinter` | `PhelVar` handles, rendered as `#'ns/name` |
 | `PersistentListPrinter` | Lists (recursive) |
 | `PersistentVectorPrinter` | Vectors (recursive) |
@@ -50,7 +50,7 @@ Each implements `TypePrinterInterface`. Selected at runtime based on value type:
 
 ## Dependencies
 
-- **Lang** : `Keyword`, `Symbol`, `Variable`, `FnInterface`, all collection interfaces
+- **Lang** : `Keyword`, `Symbol`, `Atom`, `FnInterface`, all collection interfaces
 
 ## Structure
 

@@ -21,7 +21,7 @@ Three concerns: types, per-namespace `Registry`, value equality + hashing.
 |------|-------|
 | `Symbol` | Identifier with optional ns. `NAME_*` constants name special forms. |
 | `Keyword` | Interned `:foo`. Implements `FnInterface`, so `(:foo m)` is a map lookup. |
-| `Variable` | Mutable cell with watches/validators. `def` wraps values in one. |
+| `Atom` | Mutable cell with watches/validators. `(atom v)` and `swap!`/`reset!` produce/mutate it. |
 | `Delay` | One-shot lazy value (not a sequence). |
 | `Volatile` | Mutable box for transducer state. |
 | `Reduced` | Early-termination sentinel for `reduce`/`transduce`. |

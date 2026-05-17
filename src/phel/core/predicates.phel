@@ -24,7 +24,7 @@
 (use Phel.Lang.PhelVar)
 (use Phel.Lang.Rational)
 (use Phel.Lang.Symbol)
-(use Phel.Lang.Variable)
+(use Phel.Lang.Atom)
 
 ;; Type-dispatch primitives: the `type` function and every `*?` predicate
 ;; (`vector?`, `map?`, `list?`, `set?`, `keyword?`, `symbol?`, `int?`,
@@ -76,7 +76,7 @@
     (php/instanceof x PersistentQueue)            :queue
     (php/instanceof x Keyword)                    :keyword
     (php/instanceof x Symbol)                     :symbol
-    (php/instanceof x Variable)                   :atom
+    (php/instanceof x Atom)                       :atom
     (php/instanceof x PhelVar)                    :var
     (php/instanceof x Rational)                   :ratio
     (php/instanceof x BigInteger)                 :bigint
