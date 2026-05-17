@@ -22,7 +22,7 @@ use Phel\Lang\Symbol;
 use Phel\Lang\TagHandlers\BuiltinTagHandlers;
 use Phel\Lang\TagRegistry;
 use Phel\Lang\TypeInterface;
-use Phel\Lang\Uuid;
+use Phel\Lang\UUID;
 use Phel\Shared\Facade\CompilerFacadeInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -1338,7 +1338,7 @@ final class ReaderTest extends TestCase
     {
         $value = $this->read('#uuid "00000000-0000-0000-0000-000000000000"');
 
-        self::assertInstanceOf(Uuid::class, $value);
+        self::assertInstanceOf(UUID::class, $value);
         self::assertSame('00000000-0000-0000-0000-000000000000', (string) $value);
     }
 
@@ -1346,7 +1346,7 @@ final class ReaderTest extends TestCase
     {
         $value = $this->read('#uuid "550E8400-E29B-41D4-A716-446655440000"');
 
-        self::assertInstanceOf(Uuid::class, $value);
+        self::assertInstanceOf(UUID::class, $value);
         self::assertSame('550e8400-e29b-41d4-a716-446655440000', (string) $value);
     }
 

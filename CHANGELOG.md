@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - BC break: rename `Phel\Lang\Variable` to `Phel\Lang\Atom` (and `Phel\Shared\Printer\TypePrinter\VariablePrinter` to `AtomPrinter`) to match the Clojure-aligned default alias added in #1996; the public static helper `\Phel::variable(...)` is now `\Phel::atom(...)`. Phel sources that still write `(:use Phel.Lang.Variable)` or `(php/instanceof x Variable)` need to switch to `Atom` (or drop the `(:use ...)` line — `Atom` is auto-referred) (#2000)
+- BC break: rename `Phel\Lang\Uuid` to `Phel\Lang\UUID` (plus `UuidPrinter` → `UUIDPrinter` and `UuidTagHandler` → `UUIDTagHandler`) so the PHP class name matches the Clojure-aligned alias from #1996. Phel sources that still write `(:use Phel.Lang.Uuid)` need to switch to `UUID` (or drop the `(:use ...)` line — `UUID` is auto-referred) (#2000)
 
 ### Fixed
 

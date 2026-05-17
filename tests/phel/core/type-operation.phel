@@ -148,7 +148,7 @@
 
 (deftest test-uuid-type-keyword
   (is (= :uuid (type #uuid"00000000-0000-0000-0000-000000000000"))
-      "type of Uuid value is :uuid"))
+      "type of UUID value is :uuid"))
 
 (deftest test-map-entry-value-type
   (let [e (map-entry :k 1)]

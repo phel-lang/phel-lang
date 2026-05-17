@@ -27,6 +27,6 @@ final class BuiltinTagHandlers
     {
         $registry->register('inst', new InstTagHandler());
         $registry->register('regex', new RegexTagHandler());
-        $registry->register('uuid', new UuidTagHandler());
+        $registry->register('uuid', new UUIDTagHandler());
     }
 }

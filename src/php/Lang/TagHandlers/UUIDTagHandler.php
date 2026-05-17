@@ -6,7 +6,7 @@ namespace Phel\Lang\TagHandlers;
 
 use InvalidArgumentException;
 use Phel\Lang\TagHandlerException;
-use Phel\Lang\Uuid;
+use Phel\Lang\UUID;
 
 use function sprintf;
 
@@ -14,9 +14,9 @@ use function sprintf;
  * Built-in handler for the `#uuid "..."` tagged literal.
  *
  * Accepts a canonical UUID string (`8-4-4-4-12` hexadecimal groups) and
- * returns a {@see Uuid} value.
+ * returns a {@see UUID} value.
  */
-final readonly class UuidTagHandler extends AbstractStringTagHandler
+final readonly class UUIDTagHandler extends AbstractStringTagHandler
 {
     protected function tagName(): string
     {
@@ -28,10 +28,10 @@ final readonly class UuidTagHandler extends AbstractStringTagHandler
         return '#uuid "00000000-0000-0000-0000-000000000000"';
     }
 
-    protected function handleString(string $form): Uuid
+    protected function handleString(string $form): UUID
     {
         try {
-            return Uuid::fromString($form);
+            return UUID::fromString($form);
         } catch (InvalidArgumentException) {
             throw new TagHandlerException(sprintf(
                 '#uuid value "%s" is not a canonical UUID string.',

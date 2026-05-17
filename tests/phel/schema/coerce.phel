@@ -38,9 +38,9 @@
 
 (deftest test-coerce-uuid
   (let [coerced (s/coerce :uuid "550E8400-E29B-41D4-A716-446655440000")]
-    (is (uuid? coerced) "coerces canonical string to a Uuid value")
+    (is (uuid? coerced) "coerces canonical string to a UUID value")
     (is (= "550e8400-e29b-41d4-a716-446655440000" (str coerced))
-        "Uuid prints as the lowercased canonical form")))
+        "UUID prints as the lowercased canonical form")))
 
 (deftest test-coerce-inst-string-to-datetime
   (let [v (s/coerce :inst "2026-04-20T12:00:00Z")]

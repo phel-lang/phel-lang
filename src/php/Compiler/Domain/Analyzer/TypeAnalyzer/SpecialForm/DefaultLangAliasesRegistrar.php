@@ -22,7 +22,7 @@ use Phel\Lang\PhelVar;
 use Phel\Lang\Rational;
 use Phel\Lang\Reduced;
 use Phel\Lang\Symbol;
-use Phel\Lang\Uuid;
+use Phel\Lang\UUID;
 use Phel\Lang\Volatile;
 
 /**
@@ -64,7 +64,7 @@ final class DefaultLangAliasesRegistrar
         'Delay' => Delay::class,
         'Future' => PhelFuture::class,
         // Misc value types
-        'UUID' => Uuid::class,
+        'UUID' => UUID::class,
     ];
 
     /**

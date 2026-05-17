@@ -5,21 +5,21 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Lang;
 
 use InvalidArgumentException;
-use Phel\Lang\Uuid;
+use Phel\Lang\UUID;
 use PHPUnit\Framework\TestCase;
 
-final class UuidTest extends TestCase
+final class UUIDTest extends TestCase
 {
     public function test_from_string_lowercases_canonical_input(): void
     {
-        $uuid = Uuid::fromString('550E8400-E29B-41D4-A716-446655440000');
+        $uuid = UUID::fromString('550E8400-E29B-41D4-A716-446655440000');
 
         self::assertSame('550e8400-e29b-41d4-a716-446655440000', (string) $uuid);
     }
 
     public function test_from_string_accepts_lowercase(): void
     {
-        $uuid = Uuid::fromString('550e8400-e29b-41d4-a716-446655440000');
+        $uuid = UUID::fromString('550e8400-e29b-41d4-a716-446655440000');
 
         self::assertSame('550e8400-e29b-41d4-a716-446655440000', (string) $uuid);
     }
@@ -27,24 +27,24 @@ final class UuidTest extends TestCase
     public function test_from_string_rejects_short_value(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        Uuid::fromString('550e8400-e29b-41d4-a716-44665544000');
+        UUID::fromString('550e8400-e29b-41d4-a716-44665544000');
     }
 
     public function test_from_string_rejects_non_hex(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        Uuid::fromString('zzzzzzzz-e29b-41d4-a716-446655440000');
+        UUID::fromString('zzzzzzzz-e29b-41d4-a716-446655440000');
     }
 
     public function test_from_string_rejects_no_dashes(): void
     {
         $this->expectException(InvalidArgumentException::class);
-        Uuid::fromString('550e8400e29b41d4a716446655440000');
+        UUID::fromString('550e8400e29b41d4a716446655440000');
     }
 
     public function test_random_v4_matches_canonical_shape(): void
     {
-        $uuid = Uuid::randomV4();
+        $uuid = UUID::randomV4();
 
         self::assertMatchesRegularExpression(
             '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/',
@@ -54,53 +54,53 @@ final class UuidTest extends TestCase
 
     public function test_random_v4_returns_distinct_values(): void
     {
-        self::assertNotSame((string) Uuid::randomV4(), (string) Uuid::randomV4());
+        self::assertNotSame((string) UUID::randomV4(), (string) UUID::randomV4());
     }
 
     public function test_version_reads_v4(): void
     {
-        self::assertSame(4, Uuid::fromString('550e8400-e29b-41d4-a716-446655440000')->version());
+        self::assertSame(4, UUID::fromString('550e8400-e29b-41d4-a716-446655440000')->version());
     }
 
     public function test_version_reads_v1(): void
     {
-        self::assertSame(1, Uuid::fromString('00000000-0000-1000-8000-000000000000')->version());
+        self::assertSame(1, UUID::fromString('00000000-0000-1000-8000-000000000000')->version());
     }
 
     public function test_variant_rfc_4122(): void
     {
-        self::assertSame('rfc-4122', Uuid::fromString('550e8400-e29b-41d4-a716-446655440000')->variant());
+        self::assertSame('rfc-4122', UUID::fromString('550e8400-e29b-41d4-a716-446655440000')->variant());
     }
 
     public function test_variant_ncs_for_nil_uuid(): void
     {
-        self::assertSame('ncs', Uuid::fromString('00000000-0000-0000-0000-000000000000')->variant());
+        self::assertSame('ncs', UUID::fromString('00000000-0000-0000-0000-000000000000')->variant());
     }
 
     public function test_variant_microsoft(): void
     {
-        self::assertSame('microsoft', Uuid::fromString('00000000-0000-0000-c000-000000000000')->variant());
+        self::assertSame('microsoft', UUID::fromString('00000000-0000-0000-c000-000000000000')->variant());
     }
 
     public function test_variant_reserved(): void
     {
-        self::assertSame('reserved', Uuid::fromString('00000000-0000-0000-e000-000000000000')->variant());
+        self::assertSame('reserved', UUID::fromString('00000000-0000-0000-e000-000000000000')->variant());
     }
 
     public function test_is_nil_for_nil_uuid(): void
     {
-        self::assertTrue(Uuid::fromString('00000000-0000-0000-0000-000000000000')->isNil());
+        self::assertTrue(UUID::fromString('00000000-0000-0000-0000-000000000000')->isNil());
     }
 
     public function test_is_nil_false_for_non_nil(): void
     {
-        self::assertFalse(Uuid::fromString('550e8400-e29b-41d4-a716-446655440000')->isNil());
+        self::assertFalse(UUID::fromString('550e8400-e29b-41d4-a716-446655440000')->isNil());
     }
 
     public function test_equals_same_canonical_value(): void
     {
-        $a = Uuid::fromString('550e8400-e29b-41d4-a716-446655440000');
-        $b = Uuid::fromString('550E8400-E29B-41D4-A716-446655440000');
+        $a = UUID::fromString('550e8400-e29b-41d4-a716-446655440000');
+        $b = UUID::fromString('550E8400-E29B-41D4-A716-446655440000');
 
         self::assertTrue($a->equals($b));
         self::assertSame($a->hash(), $b->hash());
@@ -108,15 +108,15 @@ final class UuidTest extends TestCase
 
     public function test_equals_false_for_different_canonical(): void
     {
-        $a = Uuid::fromString('550e8400-e29b-41d4-a716-446655440000');
-        $b = Uuid::fromString('00000000-0000-0000-0000-000000000000');
+        $a = UUID::fromString('550e8400-e29b-41d4-a716-446655440000');
+        $b = UUID::fromString('00000000-0000-0000-0000-000000000000');
 
         self::assertFalse($a->equals($b));
     }
 
     public function test_equals_false_for_string_with_same_value(): void
     {
-        $uuid = Uuid::fromString('550e8400-e29b-41d4-a716-446655440000');
+        $uuid = UUID::fromString('550e8400-e29b-41d4-a716-446655440000');
 
         self::assertFalse($uuid->equals('550e8400-e29b-41d4-a716-446655440000'));
     }

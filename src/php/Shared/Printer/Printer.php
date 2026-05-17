@@ -21,7 +21,7 @@ use Phel\Lang\Rational;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Lang\TypeStringifier;
-use Phel\Lang\Uuid;
+use Phel\Lang\UUID;
 use Phel\Shared\Printer\TypePrinter\AnonymousClassPrinter;
 use Phel\Shared\Printer\TypePrinter\ArrayPrinter;
 use Phel\Shared\Printer\TypePrinter\AtomPrinter;
@@ -47,7 +47,7 @@ use Phel\Shared\Printer\TypePrinter\StructPrinter;
 use Phel\Shared\Printer\TypePrinter\SymbolPrinter;
 use Phel\Shared\Printer\TypePrinter\ToStringPrinter;
 use Phel\Shared\Printer\TypePrinter\TypePrinterInterface;
-use Phel\Shared\Printer\TypePrinter\UuidPrinter;
+use Phel\Shared\Printer\TypePrinter\UUIDPrinter;
 use Phel\Shared\Printer\TypePrinter\VarPrinter;
 use ReflectionClass;
 use RuntimeException;
@@ -165,8 +165,8 @@ final readonly class Printer implements PrinterInterface
             return new BigDecimalPrinter($this->withColor);
         }
 
-        if ($form instanceof Uuid) {
-            return new UuidPrinter($this->withColor);
+        if ($form instanceof UUID) {
+            return new UUIDPrinter($this->withColor);
         }
 
         if ($form instanceof FnInterface) {

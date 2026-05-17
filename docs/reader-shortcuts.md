@@ -118,7 +118,7 @@ Tagged literals convert a form to a value at read time. Three ship built-in:
 ```phel
 #inst "2026-01-01T00:00:00Z"     ; reads as \DateTimeImmutable
 #regex "\\d+"                     ; reads as a PCRE pattern string
-#uuid "550e8400-e29b-41d4-a716-446655440000"  ; reads as Phel\Lang\Uuid
+#uuid "550e8400-e29b-41d4-a716-446655440000"  ; reads as Phel\Lang\UUID
 ```
 
 Register your own with `phel.reader/register-tag`:
