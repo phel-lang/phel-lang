@@ -14,7 +14,7 @@
 (use Phel.Lang.Collections.Struct.AbstractPersistentStruct)
 (use Phel.Lang.Collections.Vector.PersistentVectorInterface)
 (use Phel.Lang.BigDecimal)
-(use Phel.Lang.BigInteger)
+(use Phel.Lang.BigInt)
 (use Phel.Lang.FnInterface)
 (use Phel.Lang.NumericOperations)
 (use Phel.Lang.PhpClass)
@@ -79,7 +79,7 @@
     (php/instanceof x Atom)                       :atom
     (php/instanceof x PhelVar)                    :var
     (php/instanceof x Rational)                   :ratio
-    (php/instanceof x BigInteger)                 :bigint
+    (php/instanceof x BigInt)                 :bigint
     (php/instanceof x BigDecimal)                 :bigdec
     (php/instanceof x UUID)                       :uuid
     (php/instanceof x PhpClass)                   :php/class
@@ -137,14 +137,14 @@
 
 (defn integer?
   "Returns true if `x` is a mathematical integer: a fixed-precision PHP
-   `int` or a `BigInteger`."
+   `int` or a `BigInt`."
   {:see-also ["int?" "bigint?"]}
   [x]
   (or (php/is_int x)
-      (php/instanceof x BigInteger)))
+      (php/instanceof x BigInt)))
 
 (defn int?
-  "Returns true if `x` is a fixed-precision PHP integer. `BigInteger`
+  "Returns true if `x` is a fixed-precision PHP integer. `BigInt`
    values return false; use `integer?` to accept either."
   {:see-also ["integer?" "bigint?"]}
   [x]
@@ -152,14 +152,14 @@
 
 (defn- compare-to-zero
   "Returns the sign comparison of `x` against zero across the numeric tower
-  (PHP int, BigInteger, Rational, float). Negative for x<0, 0 for x=0,
+  (PHP int, BigInt, Rational, float). Negative for x<0, 0 for x=0,
   positive for x>0."
   [x]
   (php/:: NumericOperations (compare x 0)))
 
 (defn neg-int?
   "Returns true if `x` is a negative integer. Accepts both fixed-precision
-  PHP `int` and arbitrary-precision `BigInteger` values."
+  PHP `int` and arbitrary-precision `BigInt` values."
   {:example "(neg-int? -1) ; => true\n(neg-int? 0) ; => false\n(neg-int? (bigint -5)) ; => true"
    :see-also ["int?" "integer?" "pos-int?" "nat-int?"]}
   [x]
@@ -167,7 +167,7 @@
 
 (defn pos-int?
   "Returns true if `x` is a positive integer (greater than zero). Accepts both
-  fixed-precision PHP `int` and arbitrary-precision `BigInteger` values."
+  fixed-precision PHP `int` and arbitrary-precision `BigInt` values."
   {:example "(pos-int? 1) ; => true\n(pos-int? 0) ; => false\n(pos-int? (bigint 5)) ; => true"
    :see-also ["int?" "integer?" "neg-int?" "nat-int?"]}
   [x]
@@ -175,24 +175,24 @@
 
 (defn nat-int?
   "Returns true if `x` is a non-negative integer (zero or positive). Accepts
-  both fixed-precision PHP `int` and arbitrary-precision `BigInteger` values."
+  both fixed-precision PHP `int` and arbitrary-precision `BigInt` values."
   {:example "(nat-int? 0) ; => true\n(nat-int? 1) ; => true\n(nat-int? (bigint 5)) ; => true"
    :see-also ["int?" "integer?" "pos-int?" "neg-int?"]}
   [x]
   (and (integer? x) (php/>= (compare-to-zero x) 0)))
 
 (defn number?
-  "Returns true if `x` is a number: int, float, `Rational`, `BigInteger`, or `BigDecimal`."
+  "Returns true if `x` is a number: int, float, `Rational`, `BigInt`, or `BigDecimal`."
   [x]
   (or (php/is_int x)
       (php/is_float x)
       (php/instanceof x Rational)
-      (php/instanceof x BigInteger)
+      (php/instanceof x BigInt)
       (php/instanceof x BigDecimal)))
 
 (defn ratio?
   "Returns true if `x` is a `Rational` value. Integer-valued rationals
-  auto-collapse to `int`/`BigInteger` at construction time, so `(ratio? 2/2)`
+  auto-collapse to `int`/`BigInt` at construction time, so `(ratio? 2/2)`
   is `false`."
   {:example "(ratio? 1/2) ; => true\n(ratio? 0.5) ; => false"
    :see-also ["number?" "numerator" "denominator" "rationalize"]}

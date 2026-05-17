@@ -23,8 +23,8 @@ final class Equalizer implements EqualizerInterface
             return true;
         }
 
-        // Symmetric numeric-tower equality across {int, BigInteger}.
-        // Floats are a separate category and never equal an int/BigInteger
+        // Symmetric numeric-tower equality across {int, BigInt}.
+        // Floats are a separate category and never equal an int/BigInt
         // under `=` (use `==` for cross-category comparison).
         if ($this->isIntegralNumber($a) && $this->isIntegralNumber($b)) {
             return $this->integralEquals($a, $b);
@@ -44,17 +44,17 @@ final class Equalizer implements EqualizerInterface
 
     private function isIntegralNumber(mixed $value): bool
     {
-        return is_int($value) || $value instanceof BigInteger;
+        return is_int($value) || $value instanceof BigInt;
     }
 
-    private function integralEquals(int|BigInteger $a, int|BigInteger $b): bool
+    private function integralEquals(int|BigInt $a, int|BigInt $b): bool
     {
-        if ($a instanceof BigInteger) {
+        if ($a instanceof BigInt) {
             return $a->equals($b);
         }
 
-        // $a is int; $b must be BigInteger here (the int === int case is
+        // $a is int; $b must be BigInt here (the int === int case is
         // handled by the strict-equality fast path).
-        return $b instanceof BigInteger && $b->equals($a);
+        return $b instanceof BigInt && $b->equals($a);
     }
 }

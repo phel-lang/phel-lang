@@ -7,7 +7,7 @@ namespace PhelTest\Unit\Lang;
 use DivisionByZeroError;
 use InvalidArgumentException;
 use Phel\Lang\BigDecimal;
-use Phel\Lang\BigInteger;
+use Phel\Lang\BigInt;
 use Phel\Lang\NumericOperations;
 use Phel\Lang\Rational;
 use PHPUnit\Framework\TestCase;
@@ -60,7 +60,7 @@ final class NumericOperationsTest extends TestCase
 
     public function test_add_bigint_int(): void
     {
-        $big = BigInteger::fromInt(10);
+        $big = BigInt::fromInt(10);
 
         self::assertSame(13, NumericOperations::add($big, 3));
     }
@@ -162,8 +162,8 @@ final class NumericOperationsTest extends TestCase
 
     public function test_divide_bigint(): void
     {
-        $a = BigInteger::fromInt(10);
-        $b = BigInteger::fromInt(4);
+        $a = BigInt::fromInt(10);
+        $b = BigInt::fromInt(4);
 
         $result = NumericOperations::divide($a, $b);
 
@@ -224,7 +224,7 @@ final class NumericOperationsTest extends TestCase
         self::assertTrue(NumericOperations::isZero(0));
         self::assertTrue(NumericOperations::isZero(0.0));
         self::assertFalse(NumericOperations::isZero(Rational::create(1, 2)));
-        self::assertTrue(NumericOperations::isZero(BigInteger::fromInt(0)));
+        self::assertTrue(NumericOperations::isZero(BigInt::fromInt(0)));
     }
 
     public function test_abs_rational(): void
@@ -291,7 +291,7 @@ final class NumericOperationsTest extends TestCase
     {
         $result = NumericOperations::abs(PHP_INT_MIN);
 
-        self::assertInstanceOf(BigInteger::class, $result);
+        self::assertInstanceOf(BigInt::class, $result);
         self::assertSame(bcmul((string) PHP_INT_MIN, '-1'), (string) $result);
     }
 
@@ -318,7 +318,7 @@ final class NumericOperationsTest extends TestCase
     {
         $result = NumericOperations::add(PHP_INT_MAX, 1);
 
-        self::assertInstanceOf(BigInteger::class, $result);
+        self::assertInstanceOf(BigInt::class, $result);
         self::assertSame(bcadd((string) PHP_INT_MAX, '1'), (string) $result);
     }
 
@@ -326,7 +326,7 @@ final class NumericOperationsTest extends TestCase
     {
         $result = NumericOperations::add(PHP_INT_MIN, -1);
 
-        self::assertInstanceOf(BigInteger::class, $result);
+        self::assertInstanceOf(BigInt::class, $result);
         self::assertSame(bcadd((string) PHP_INT_MIN, '-1'), (string) $result);
     }
 
@@ -334,7 +334,7 @@ final class NumericOperationsTest extends TestCase
     {
         $result = NumericOperations::subtract(PHP_INT_MIN, 1);
 
-        self::assertInstanceOf(BigInteger::class, $result);
+        self::assertInstanceOf(BigInt::class, $result);
         self::assertSame(bcsub((string) PHP_INT_MIN, '1'), (string) $result);
     }
 
@@ -342,7 +342,7 @@ final class NumericOperationsTest extends TestCase
     {
         $result = NumericOperations::subtract(PHP_INT_MAX, -1);
 
-        self::assertInstanceOf(BigInteger::class, $result);
+        self::assertInstanceOf(BigInt::class, $result);
         self::assertSame(bcsub((string) PHP_INT_MAX, '-1'), (string) $result);
     }
 
@@ -351,7 +351,7 @@ final class NumericOperationsTest extends TestCase
         // 100000000 ^ 3 = 1e24, well outside PHP int range.
         $result = NumericOperations::multiply(NumericOperations::multiply(100000000, 100000000), 100000000);
 
-        self::assertInstanceOf(BigInteger::class, $result);
+        self::assertInstanceOf(BigInt::class, $result);
         self::assertSame('1000000000000000000000000', (string) $result);
     }
 
@@ -359,7 +359,7 @@ final class NumericOperationsTest extends TestCase
     {
         $result = NumericOperations::multiply(PHP_INT_MIN, -1);
 
-        self::assertInstanceOf(BigInteger::class, $result);
+        self::assertInstanceOf(BigInt::class, $result);
         self::assertSame(bcmul((string) PHP_INT_MIN, '-1'), (string) $result);
     }
 
@@ -375,7 +375,7 @@ final class NumericOperationsTest extends TestCase
     {
         $result = NumericOperations::multiply(PHP_INT_MIN, 2);
 
-        self::assertInstanceOf(BigInteger::class, $result);
+        self::assertInstanceOf(BigInt::class, $result);
         self::assertSame(bcmul((string) PHP_INT_MIN, '2'), (string) $result);
     }
 
@@ -383,7 +383,7 @@ final class NumericOperationsTest extends TestCase
     {
         $result = NumericOperations::power(2, 64);
 
-        self::assertInstanceOf(BigInteger::class, $result);
+        self::assertInstanceOf(BigInt::class, $result);
         self::assertSame('18446744073709551616', (string) $result);
     }
 

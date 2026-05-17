@@ -14,7 +14,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\MagicConstantResolver;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\SymbolResolver;
-use Phel\Lang\BigInteger;
+use Phel\Lang\BigInt;
 use Phel\Lang\Keyword;
 use Phel\Lang\Rational;
 use Phel\Lang\Registry;
@@ -381,7 +381,7 @@ final class SymbolResolverTest extends TestCase
         $nodeEnv = NodeEnvironment::empty();
 
         self::assertEquals(
-            new PhpClassNameNode($nodeEnv, Symbol::create('\\' . BigInteger::class)),
+            new PhpClassNameNode($nodeEnv, Symbol::create('\\' . BigInt::class)),
             $this->resolver->resolve(Symbol::create('clojure.lang.BigInt'), $nodeEnv),
         );
     }

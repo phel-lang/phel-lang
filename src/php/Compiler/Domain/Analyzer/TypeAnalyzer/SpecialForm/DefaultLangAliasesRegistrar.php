@@ -7,7 +7,7 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Lang\Atom;
 use Phel\Lang\BigDecimal;
-use Phel\Lang\BigInteger;
+use Phel\Lang\BigInt;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LazySeq\LazyCons;
 use Phel\Lang\Collections\LazySeq\LazySeqInterface;
@@ -53,7 +53,7 @@ final class DefaultLangAliasesRegistrar
         'Keyword' => Keyword::class,
         'Symbol' => Symbol::class,
         // Numeric tower (Clojure-aligned names)
-        'BigInt' => BigInteger::class,
+        'BigInt' => BigInt::class,
         'BigDecimal' => BigDecimal::class,
         'Ratio' => Rational::class,
         // Concurrency primitives (Clojure-aligned names)

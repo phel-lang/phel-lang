@@ -18,7 +18,7 @@ use function sprintf;
 
 /**
  * Runtime numeric dispatch for `+ - * /` and friends across native PHP
- * numbers, {@see BigInteger}, and {@see Rational}. Native PHP operators
+ * numbers, {@see BigInt}, and {@see Rational}. Native PHP operators
  * cannot dispatch on objects, so the compiler routes Phel arithmetic
  * through these helpers.
  *
@@ -27,8 +27,8 @@ use function sprintf;
  *  - any op float                        -> float (highest priority; BigDecimal
  *                                                  cannot represent Inf/NaN)
  *  - BigDecimal op BigDecimal/int        -> BigDecimal
- *  - Rational op Rational/int/BigInteger -> Rational (auto-collapsed)
- *  - BigInteger op BigInteger/int        -> BigInteger (auto-collapsed)
+ *  - Rational op Rational/int/BigInt -> Rational (auto-collapsed)
+ *  - BigInt op BigInt/int        -> BigInt (auto-collapsed)
  *  - int op int                          -> int (or Rational for non-integer divisions)
  */
 final class NumericOperations
@@ -57,12 +57,12 @@ final class NumericOperations
             return $b->add(self::rationalOperand($a));
         }
 
-        if ($a instanceof BigInteger || $b instanceof BigInteger) {
+        if ($a instanceof BigInt || $b instanceof BigInt) {
             return self::collapseBigInt(self::toBigInt($a)->add(self::toBigInt($b)));
         }
 
         if (self::addOverflows($a, $b)) {
-            return self::collapseBigInt(BigInteger::fromInt($a)->add(BigInteger::fromInt($b)));
+            return self::collapseBigInt(BigInt::fromInt($a)->add(BigInt::fromInt($b)));
         }
 
         return $a + $b;
@@ -90,12 +90,12 @@ final class NumericOperations
             return self::negate($b->subtract(self::rationalOperand($a)));
         }
 
-        if ($a instanceof BigInteger || $b instanceof BigInteger) {
+        if ($a instanceof BigInt || $b instanceof BigInt) {
             return self::collapseBigInt(self::toBigInt($a)->subtract(self::toBigInt($b)));
         }
 
         if (self::subtractOverflows($a, $b)) {
-            return self::collapseBigInt(BigInteger::fromInt($a)->subtract(BigInteger::fromInt($b)));
+            return self::collapseBigInt(BigInt::fromInt($a)->subtract(BigInt::fromInt($b)));
         }
 
         return $a - $b;
@@ -122,12 +122,12 @@ final class NumericOperations
             return $b->multiply(self::rationalOperand($a));
         }
 
-        if ($a instanceof BigInteger || $b instanceof BigInteger) {
+        if ($a instanceof BigInt || $b instanceof BigInt) {
             return self::collapseBigInt(self::toBigInt($a)->multiply(self::toBigInt($b)));
         }
 
         if (self::multiplyOverflows($a, $b)) {
-            return self::collapseBigInt(BigInteger::fromInt($a)->multiply(BigInteger::fromInt($b)));
+            return self::collapseBigInt(BigInt::fromInt($a)->multiply(BigInt::fromInt($b)));
         }
 
         return $a * $b;
@@ -169,7 +169,7 @@ final class NumericOperations
             return self::divide(self::multiply($a, $b->denominator()), $b->numerator());
         }
 
-        if ($a instanceof BigInteger || $b instanceof BigInteger) {
+        if ($a instanceof BigInt || $b instanceof BigInt) {
             return Rational::create(self::toBigInt($a), self::toBigInt($b));
         }
 
@@ -192,7 +192,7 @@ final class NumericOperations
             return $a->negate();
         }
 
-        if ($a instanceof BigInteger) {
+        if ($a instanceof BigInt) {
             return self::collapseBigInt($a->negate());
         }
 
@@ -224,7 +224,7 @@ final class NumericOperations
             return -$b->compareTo(self::rationalOperand($a));
         }
 
-        if ($a instanceof BigInteger || $b instanceof BigInteger) {
+        if ($a instanceof BigInt || $b instanceof BigInt) {
             return self::toBigInt($a)->compareTo(self::toBigInt($b));
         }
 
@@ -252,7 +252,7 @@ final class NumericOperations
             return $b->equals($a);
         }
 
-        if ($a instanceof BigInteger || $b instanceof BigInteger) {
+        if ($a instanceof BigInt || $b instanceof BigInt) {
             return self::toBigInt($a)->equals(self::toBigInt($b));
         }
 
@@ -267,7 +267,7 @@ final class NumericOperations
             return false;
         }
 
-        if ($a instanceof BigInteger) {
+        if ($a instanceof BigInt) {
             return $a->isZero();
         }
 
@@ -286,7 +286,7 @@ final class NumericOperations
             return $a->abs();
         }
 
-        if ($a instanceof BigInteger) {
+        if ($a instanceof BigInt) {
             return self::collapseBigInt($a->abs());
         }
 
@@ -295,9 +295,9 @@ final class NumericOperations
         }
 
         // |PHP_INT_MIN| overflows the PHP int range; native abs() drops
-        // to float, so promote to BigInteger to preserve exactness.
+        // to float, so promote to BigInt to preserve exactness.
         if ($a === PHP_INT_MIN) {
-            return BigInteger::fromInt($a)->abs();
+            return BigInt::fromInt($a)->abs();
         }
 
         return abs($a);
@@ -320,12 +320,12 @@ final class NumericOperations
             return self::rationalPower($base, $exponent);
         }
 
-        // Route int^int and BigInteger^int through BigInteger so overflow
+        // Route int^int and BigInt^int through BigInt so overflow
         // auto-promotes; cheap exponents collapse back to int.
         $baseBig = self::toBigInt($base);
 
         if ($exponent < 0) {
-            return Rational::create(BigInteger::one(), $baseBig->pow(-$exponent));
+            return Rational::create(BigInt::one(), $baseBig->pow(-$exponent));
         }
 
         return self::collapseBigInt($baseBig->pow($exponent));
@@ -362,7 +362,7 @@ final class NumericOperations
             return self::truncateToInt($quotient);
         }
 
-        if ($a instanceof BigInteger || $b instanceof BigInteger) {
+        if ($a instanceof BigInt || $b instanceof BigInt) {
             return self::collapseBigInt(self::toBigInt($a)->divide(self::toBigInt($b)));
         }
 
@@ -399,7 +399,7 @@ final class NumericOperations
             return self::subtract($a, self::multiply($b, $q));
         }
 
-        if ($a instanceof BigInteger || $b instanceof BigInteger) {
+        if ($a instanceof BigInt || $b instanceof BigInt) {
             $aBig = self::toBigInt($a);
             $bBig = self::toBigInt($b);
             $q = $aBig->divide($bBig);
@@ -488,7 +488,7 @@ final class NumericOperations
             return;
         }
 
-        if ($value instanceof BigInteger || $value instanceof Rational || $value instanceof BigDecimal) {
+        if ($value instanceof BigInt || $value instanceof Rational || $value instanceof BigDecimal) {
             return;
         }
 
@@ -504,10 +504,10 @@ final class NumericOperations
     private static function truncateBigDecimalQuot(BigDecimal $a, BigDecimal $b): BigDecimal
     {
         $scale = max($a->scale(), $b->scale());
-        $aLifted = $a->mantissa()->multiply(BigInteger::fromInt(10)->pow($scale - $a->scale()));
-        $bLifted = $b->mantissa()->multiply(BigInteger::fromInt(10)->pow($scale - $b->scale()));
+        $aLifted = $a->mantissa()->multiply(BigInt::fromInt(10)->pow($scale - $a->scale()));
+        $bLifted = $b->mantissa()->multiply(BigInt::fromInt(10)->pow($scale - $b->scale()));
 
-        return BigDecimal::fromBigInteger($aLifted->divide($bLifted));
+        return BigDecimal::fromBigInt($aLifted->divide($bLifted));
     }
 
     private static function toBigDecimal(mixed $value): BigDecimal
@@ -516,8 +516,8 @@ final class NumericOperations
             return $value;
         }
 
-        if ($value instanceof BigInteger) {
-            return BigDecimal::fromBigInteger($value);
+        if ($value instanceof BigInt) {
+            return BigDecimal::fromBigInt($value);
         }
 
         if (is_int($value)) {
@@ -529,8 +529,8 @@ final class NumericOperations
         }
 
         if ($value instanceof Rational) {
-            return BigDecimal::fromBigInteger($value->numerator())
-                ->divideExact(BigDecimal::fromBigInteger($value->denominator()));
+            return BigDecimal::fromBigInt($value->numerator())
+                ->divideExact(BigDecimal::fromBigInt($value->denominator()));
         }
 
         throw new InvalidArgumentException(
@@ -544,31 +544,31 @@ final class NumericOperations
             return $value->toFloat();
         }
 
-        if ($value instanceof BigInteger || $value instanceof BigDecimal) {
+        if ($value instanceof BigInt || $value instanceof BigDecimal) {
             return (float) (string) $value;
         }
 
         return (float) $value;
     }
 
-    private static function toBigInt(mixed $value): BigInteger
+    private static function toBigInt(mixed $value): BigInt
     {
-        if ($value instanceof BigInteger) {
+        if ($value instanceof BigInt) {
             return $value;
         }
 
         if (is_int($value)) {
-            return BigInteger::fromInt($value);
+            return BigInt::fromInt($value);
         }
 
         throw new InvalidArgumentException(
-            sprintf('Cannot lift %s to BigInteger', get_debug_type($value)),
+            sprintf('Cannot lift %s to BigInt', get_debug_type($value)),
         );
     }
 
-    private static function rationalOperand(mixed $value): Rational|BigInteger|int
+    private static function rationalOperand(mixed $value): Rational|BigInt|int
     {
-        if ($value instanceof Rational || $value instanceof BigInteger || is_int($value)) {
+        if ($value instanceof Rational || $value instanceof BigInt || is_int($value)) {
             return $value;
         }
 
@@ -577,7 +577,7 @@ final class NumericOperations
         );
     }
 
-    private static function collapseBigInt(BigInteger $value): BigInteger|int
+    private static function collapseBigInt(BigInt $value): BigInt|int
     {
         return $value->fitsInPhpInt() ? $value->toInt() : $value;
     }
@@ -609,7 +609,7 @@ final class NumericOperations
             return $value;
         }
 
-        if ($value instanceof BigInteger) {
+        if ($value instanceof BigInt) {
             if (!$value->fitsInPhpInt()) {
                 throw new InvalidArgumentException('Exponent does not fit in PHP int range');
             }
@@ -624,7 +624,7 @@ final class NumericOperations
 
     private static function truncateToInt(mixed $value): mixed
     {
-        if (is_int($value) || $value instanceof BigInteger) {
+        if (is_int($value) || $value instanceof BigInt) {
             return $value;
         }
 

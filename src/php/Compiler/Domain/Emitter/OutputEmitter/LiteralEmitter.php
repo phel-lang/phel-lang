@@ -7,7 +7,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
 use DateTimeImmutable;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 use Phel\Lang\BigDecimal;
-use Phel\Lang\BigInteger;
+use Phel\Lang\BigInt;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -65,8 +65,8 @@ final readonly class LiteralEmitter
             $this->emitDateTime($x);
         } elseif ($x instanceof Rational) {
             $this->emitRational($x);
-        } elseif ($x instanceof BigInteger) {
-            $this->emitBigInteger($x);
+        } elseif ($x instanceof BigInt) {
+            $this->emitBigInt($x);
         } elseif ($x instanceof BigDecimal) {
             $this->emitBigDecimal($x);
         } elseif ($x instanceof UUID) {
@@ -88,10 +88,10 @@ final readonly class LiteralEmitter
         $this->outputEmitter->emitStr('(new \\DateTimeImmutable("' . addslashes($iso) . '"))');
     }
 
-    private function emitBigInteger(BigInteger $x): void
+    private function emitBigInt(BigInt $x): void
     {
         $this->outputEmitter->emitStr(
-            '\Phel\Lang\BigInteger::fromString("' . $x->__toString() . '")',
+            '\Phel\Lang\BigInt::fromString("' . $x->__toString() . '")',
         );
     }
 
@@ -115,8 +115,8 @@ final readonly class LiteralEmitter
     {
         $this->outputEmitter->emitStr(
             '\Phel\Lang\Rational::create('
-            . '\Phel\Lang\BigInteger::fromString("' . $x->numerator()->__toString() . '"), '
-            . '\Phel\Lang\BigInteger::fromString("' . $x->denominator()->__toString() . '")'
+            . '\Phel\Lang\BigInt::fromString("' . $x->numerator()->__toString() . '"), '
+            . '\Phel\Lang\BigInt::fromString("' . $x->denominator()->__toString() . '")'
             . ')',
             $x->getStartLocation(),
         );

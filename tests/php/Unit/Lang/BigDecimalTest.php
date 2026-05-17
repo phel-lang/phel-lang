@@ -8,7 +8,7 @@ use ArithmeticError;
 use InvalidArgumentException;
 use OverflowException;
 use Phel\Lang\BigDecimal;
-use Phel\Lang\BigInteger;
+use Phel\Lang\BigInt;
 use PHPUnit\Framework\TestCase;
 
 final class BigDecimalTest extends TestCase
@@ -54,9 +54,9 @@ final class BigDecimalTest extends TestCase
 
     public function test_from_big_integer(): void
     {
-        $bi = BigInteger::fromString('100000000000000000000');
+        $bi = BigInt::fromString('100000000000000000000');
 
-        self::assertSame('100000000000000000000', (string) BigDecimal::fromBigInteger($bi));
+        self::assertSame('100000000000000000000', (string) BigDecimal::fromBigInt($bi));
     }
 
     public function test_from_float_uses_shortest_round_trip(): void

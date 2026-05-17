@@ -54,7 +54,7 @@
   (is (true? (int? 10)) "int? on 10")
   (is (true? (int? 0)) "int? on 10")
   (is (false? (int? (bigint "9999999999999999999999999")))
-      "int? on BigInteger is false: only fixed-precision PHP int qualifies"))
+      "int? on BigInt is false: only fixed-precision PHP int qualifies"))
 
 (deftest test-integer?
   (is (false? (integer? 10.0)) "integer? on 10.0")
@@ -62,7 +62,7 @@
   (is (true? (integer? 10)) "integer? on 10")
   (is (true? (integer? 0)) "integer? on 10")
   (is (true? (integer? (bigint "9999999999999999999999999")))
-      "integer? on BigInteger is true: any mathematical integer qualifies"))
+      "integer? on BigInt is true: any mathematical integer qualifies"))
 
 (deftest test-neg-int?
   (is (true? (neg-int? -1)) "neg-int? on -1")
@@ -90,18 +90,18 @@
   (is (false? (nat-int? nil)) "nat-int? on nil"))
 
 (deftest test-int-predicates-bigint
-  (is (true? (pos-int? (bigint 5))) "pos-int? on BigInteger 5")
-  (is (false? (pos-int? (bigint -5))) "pos-int? on BigInteger -5")
-  (is (false? (pos-int? (bigint 0))) "pos-int? on BigInteger 0")
-  (is (true? (neg-int? (bigint -5))) "neg-int? on BigInteger -5")
-  (is (false? (neg-int? (bigint 5))) "neg-int? on BigInteger 5")
-  (is (true? (nat-int? (bigint 0))) "nat-int? on BigInteger 0")
-  (is (true? (nat-int? (bigint 5))) "nat-int? on BigInteger 5")
-  (is (false? (nat-int? (bigint -5))) "nat-int? on BigInteger -5")
+  (is (true? (pos-int? (bigint 5))) "pos-int? on BigInt 5")
+  (is (false? (pos-int? (bigint -5))) "pos-int? on BigInt -5")
+  (is (false? (pos-int? (bigint 0))) "pos-int? on BigInt 0")
+  (is (true? (neg-int? (bigint -5))) "neg-int? on BigInt -5")
+  (is (false? (neg-int? (bigint 5))) "neg-int? on BigInt 5")
+  (is (true? (nat-int? (bigint 0))) "nat-int? on BigInt 0")
+  (is (true? (nat-int? (bigint 5))) "nat-int? on BigInt 5")
+  (is (false? (nat-int? (bigint -5))) "nat-int? on BigInt -5")
   (is (true? (pos-int? (bigint "100000000000000000000")))
-      "pos-int? on huge BigInteger")
+      "pos-int? on huge BigInt")
   (is (true? (neg-int? (bigint "-100000000000000000000")))
-      "neg-int? on huge negative BigInteger"))
+      "neg-int? on huge negative BigInt"))
 
 (deftest test-map-entry?
   (is (true? (map-entry? [:a 1])) "map-entry? on 2-element vector")
@@ -352,8 +352,8 @@
        "1/2"))
 
 (deftest test-bigint?
-  (is (true? (bigint? (php/:: \Phel\Lang\BigInteger (fromString "100000000000000000000000"))))
-      "bigint? on a BigInteger value")
+  (is (true? (bigint? (php/:: \Phel\Lang\BigInt (fromString "100000000000000000000000"))))
+      "bigint? on a BigInt value")
   (are [x] (false? (bigint? x))
        1
        1.0
@@ -398,7 +398,7 @@
 
 (deftest test-instance-clojure-lang-aliases
   (is (true? (instance? clojure.lang.BigInt (bigint 0)))
-      "clojure.lang.BigInt resolves to Phel\\Lang\\BigInteger")
+      "clojure.lang.BigInt resolves to Phel\\Lang\\BigInt")
   (is (false? (instance? clojure.lang.BigInt 0))
       "clojure.lang.BigInt does not match a native int")
   (is (true? (instance? clojure.lang.Ratio 1/2))

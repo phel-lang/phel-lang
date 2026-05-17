@@ -2,7 +2,7 @@
 
 (use InvalidArgumentException)
 (use Phel.Lang.BigDecimal)
-(use Phel.Lang.BigInteger)
+(use Phel.Lang.BigInt)
 (use Phel.Lang.Collections.HashSet.PersistentHashSetInterface)
 (use Phel.Lang.Collections.LinkedList.PersistentListInterface)
 (use Phel.Lang.Collections.Map.PersistentMapInterface)
@@ -116,7 +116,7 @@
   (or (php/is_int x)
       (php/is_float x)
       (php/instanceof x Rational)
-      (php/instanceof x BigInteger)
+      (php/instanceof x BigInt)
       (php/instanceof x BigDecimal)))
 
 (defn- num-equals1 [a b]
@@ -160,7 +160,7 @@
 (defn- numeric-object?
   [x]
   (or (php/instanceof x Rational)
-      (php/instanceof x BigInteger)
+      (php/instanceof x BigInt)
       (php/instanceof x BigDecimal)))
 
 (defn- lt2 [a b]
@@ -227,7 +227,7 @@
 
 (defn <=>
   "Alias for the spaceship PHP operator in ascending order. Returns an int.
-  Dispatches on `Rational` and `BigInteger` so numeric ordering stays correct
+  Dispatches on `Rational` and `BigInt` so numeric ordering stays correct
   for those types."
   [a b]
   (if (or (numeric-object? a) (numeric-object? b))
@@ -349,7 +349,7 @@
   (or (php/is_int x)
       (php/is_float x)
       (php/instanceof x Rational)
-      (php/instanceof x BigInteger)))
+      (php/instanceof x BigInt)))
 
 (defn- comparable-sequential?
   [x]

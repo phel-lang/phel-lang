@@ -30,7 +30,7 @@ final readonly class SymbolResolver
      * up by the auto-resolution fallback below and need no entry here.
      */
     private const array CLOJURE_CLASS_RENAMES = [
-        'BigInt' => 'BigInteger',
+        'BigInt' => 'BigInt',
         'Ratio' => 'Rational',
     ];
 
@@ -202,7 +202,7 @@ final readonly class SymbolResolver
      * Maps `clojure.lang.X` references to the matching Phel runtime class.
      * Auto-resolves when `\Phel\Lang\X` exists (covers `Symbol`, `Keyword`,
      * `Atom`, etc.); a small rename table handles cases where Phel
-     * diverged from the Clojure name (`BigInt` vs `BigInteger`, `Ratio` vs
+     * diverged from the Clojure name (`BigInt` vs `BigInt`, `Ratio` vs
      * `Rational`). Returns null when no Phel counterpart exists.
      */
     private function remapClojureClassFqn(string $name): ?string
