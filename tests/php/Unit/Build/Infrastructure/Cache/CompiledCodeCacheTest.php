@@ -113,6 +113,39 @@ final class CompiledCodeCacheTest extends TestCase
         self::assertNotNull($cache->get($fileB, 'hashB'));
     }
 
+    public function test_invalidate_then_put_other_file_does_not_resurrect_invalidated_entry(): void
+    {
+        $cache = new CompiledCodeCache($this->cacheDir);
+        $fileA = $this->cacheDir . '/a.phel';
+        $fileB = $this->cacheDir . '/b.phel';
+        $cache->put($fileA, 'shared\\ns', 'hashA', '// A');
+        $cache->put($fileB, 'shared\\ns', 'hashB', '// B');
+
+        $cache->invalidate($fileA);
+        $cache->put($fileB, 'shared\\ns', 'hashB2', '// B2');
+
+        // After invalidating A and putting B again, A must stay invalidated —
+        // earlier the disk merge in saveEntries() would resurrect A's entry.
+        self::assertFalse($cache->has($fileA));
+        self::assertNull($cache->get($fileA, 'hashA'));
+    }
+
+    public function test_invalidated_entry_does_not_resurrect_across_new_instance_after_put(): void
+    {
+        $cache1 = new CompiledCodeCache($this->cacheDir);
+        $fileA = $this->cacheDir . '/a.phel';
+        $fileB = $this->cacheDir . '/b.phel';
+        $cache1->put($fileA, 'shared\\ns', 'hashA', '// A');
+        $cache1->put($fileB, 'shared\\ns', 'hashB', '// B');
+        $cache1->invalidate($fileA);
+        $cache1->put($fileB, 'shared\\ns', 'hashB2', '// B2');
+
+        $cache2 = new CompiledCodeCache($this->cacheDir);
+
+        self::assertFalse($cache2->has($fileA));
+        self::assertNotNull($cache2->get($fileB, 'hashB2'));
+    }
+
     public function test_clear_removes_all_entries(): void
     {
         $cache = new CompiledCodeCache($this->cacheDir);
