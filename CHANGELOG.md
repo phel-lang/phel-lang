@@ -4,21 +4,27 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
-### Fixed
-
-- `phel lint`: cache fingerprint now includes the resolved `RuleSettings` (severities + exclude patterns), so editing `phel-lint.phel` automatically invalidates stale cache entries without requiring `--no-cache`. (#2027)
-
 ### Added
 
-- `phel.edn`: eval-free EDN read/write. See [docs/data-formats.md](docs/data-formats.md). (#2008)
-- `phel.transit`: Transit+JSON-Verbose read/write. See [docs/data-formats.md](docs/data-formats.md). (#2009)
-- Lexer: tagged literals accept namespaced symbols (`#my.app/Person`).
-- `tools/upgrade-ecosystem.sh`: one-shot bump of `phel-lang/phel-lang` across every sibling ecosystem repo via Claude Code (composer update + tests + commit/push/PR). See [tools/README.md](tools/README.md).
-- `composer test-tools`: runs bashunit suites under `tools/*-test.sh`.
+- `phel.edn`: eval-free EDN read/write (#2008)
+- `phel.transit`: Transit+JSON-Verbose read/write (#2009)
+- Lexer: namespaced tagged literals (`#my.app/Person`)
+- `tools/upgrade-ecosystem.sh`: bumps phel-lang across sibling repos via Claude Code
+- `composer test-tools`: bashunit runner for `tools/*-test.sh`
+- `CITATION.cff` for academic citation (#2016)
 
 ### Changed
 
-- BC: release tooling moved from `build/` to `tools/`. `./build/release.sh` is now `./tools/release.sh`; same for `validate-agents.sh`. `build/` is now phar-only.
+- BC: release tooling moved from `build/` to `tools/`; `build/` is now phar-only
+
+### Fixed
+
+- `phel lint`: cache invalidates when `phel-lint.phel` changes (#2027)
+- `phel lint`: `unused-binding` no longer flags symbols used in later let bindings (#2018)
+- `phel doctor`: auto-bootstraps temp dir; passes on fresh installs (#2020)
+- `Phel::run()`: backslash namespaces normalize to dot-form, matching CLI (#2021)
+- `phel format`: appends trailing newline (POSIX / EditorConfig) (#2022)
+- `phel test`: non-zero exit when `--filter` matches zero tests (#2023)
 
 ## [0.39.0](https://github.com/phel-lang/phel-lang/compare/v0.38.0...v0.39.0) - 2026-05-19
 
