@@ -9,6 +9,12 @@ All notable changes to this project will be documented in this file.
 - `phel.edn`: eval-free EDN read/write. See [docs/data-formats.md](docs/data-formats.md). (#2008)
 - `phel.transit`: Transit+JSON-Verbose read/write. See [docs/data-formats.md](docs/data-formats.md). (#2009)
 - Lexer: tagged literals accept namespaced symbols (`#my.app/Person`).
+- `tools/upgrade-ecosystem.sh`: one-shot bump of `phel-lang/phel-lang` across every sibling ecosystem repo via Claude Code (composer update + tests + commit/push/PR). See [tools/README.md](tools/README.md).
+- `composer test-tools`: runs bashunit suites under `tools/*-test.sh`.
+
+### Changed
+
+- BC: release tooling moved from `build/` to `tools/`. `./build/release.sh` is now `./tools/release.sh`; same for `validate-agents.sh`. `build/` is now phar-only.
 
 ## [0.39.0](https://github.com/phel-lang/phel-lang/compare/v0.38.0...v0.39.0) - 2026-05-19
 

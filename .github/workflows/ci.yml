@@ -366,4 +366,4 @@ jobs:
         run: composer install --no-interaction --no-ansi --no-progress
 
       - name: Run Bashunit tests
-        run: tools/bashunit tests/bash/* --simple
+        run: tools/bashunit tools/*-test.sh --simple

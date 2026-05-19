@@ -15,6 +15,7 @@ vendor/
 build/.phar-cache/
 build/out/
 build/workdir/
+tools/.upgrade-logs/
 
 # Test cache directories
 tests/**/cache/

@@ -7,8 +7,8 @@ Guide to creating a new release for Phel.
 Run the release script from the repository root:
 
 ```bash
-./build/release.sh          # Auto-increments minor version (0.28.0 → 0.29.0)
-./build/release.sh 0.29.0   # Or specify explicit version
+./tools/release.sh          # Auto-increments minor version (0.28.0 → 0.29.0)
+./tools/release.sh 0.29.0   # Or specify explicit version
 ```
 
 That's it. The script handles everything: version bumps, changelog updates, PHAR build, git tag, and GitHub release creation.
@@ -26,16 +26,16 @@ Before releasing, ensure you have:
 
 ```bash
 # Standard release
-./build/release.sh 0.29.0
+./tools/release.sh 0.29.0
 
 # Preview changes without modifying anything
-./build/release.sh --dry-run 0.29.0
+./tools/release.sh --dry-run 0.29.0
 
 # Skip prompts for CI automation
-./build/release.sh --force 0.29.0
+./tools/release.sh --force 0.29.0
 
 # Skip PHAR build (useful for quick patch releases)
-./build/release.sh --skip-phar 0.29.0
+./tools/release.sh --skip-phar 0.29.0
 ```
 
 ### What the Script Does

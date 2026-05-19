@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
 # Bashunit tests for release-lib.sh
-# Run with: tools/bashunit tests/bash/release-test.sh
+# Run with: tools/bashunit tools/release-test.sh
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(dirname "$(dirname "$SCRIPT_DIR")")"
+REPO_ROOT="$(dirname "$SCRIPT_DIR")"
 
 # Source the release library
-source "$REPO_ROOT/build/release-lib.sh"
+source "$SCRIPT_DIR/release-lib.sh"
 
 # Test fixtures
 TEMP_DIR=""

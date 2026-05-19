@@ -13,8 +13,8 @@ source "$SCRIPT_DIR/release-lib.sh"
 VERSION_FILE="$REPO_ROOT/src/php/Shared/VersionFinder.php"
 CHANGELOG_FILE="$REPO_ROOT/CHANGELOG.md"
 AGENTS_VERSION_FILE="$REPO_ROOT/resources/agents/VERSION"
-PHAR_SCRIPT="$SCRIPT_DIR/phar.sh"
-PHAR_OUTPUT="$SCRIPT_DIR/out/phel.phar"
+PHAR_SCRIPT="$REPO_ROOT/build/phar.sh"
+PHAR_OUTPUT="$REPO_ROOT/build/out/phel.phar"
 
 # Backup directory
 BACKUP_DIR=""
