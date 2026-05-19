@@ -37,7 +37,25 @@
 
 ---
 
-Lisp for PHP — macros, persistent data structures, REPL.
+Lisp for PHP, macros, persistent data structures, REPL.
+
+### Try it in 30 seconds
+
+```sh
+composer require phel-lang/phel-lang
+./vendor/bin/phel repl
+```
+
+```clojure
+phel:1:> (->> [1 2 3 4 5] (filter odd?) (map #(* % %)) (reduce +))
+35
+phel:2:> (defn greet [name] (str "Hello, " name "!"))
+| user/greet
+phel:3:> (greet "Phel")
+| "Hello, Phel!"
+```
+
+> Prefer a project template? [`web-skeleton`](https://github.com/phel-lang/web-skeleton) or [`cli-skeleton`](https://github.com/phel-lang/cli-skeleton): click **Use this template** for a one-click start.
 
 ### Example
 <!--
