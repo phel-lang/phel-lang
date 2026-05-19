@@ -1,0 +1,24 @@
+cff-version: 1.2.0
+message: "If you use Phel in your research, please cite it as below."
+title: "Phel"
+abstract: "Phel is a functional programming language that compiles to PHP. It is a dialect of Lisp inspired by Clojure and Janet."
+type: software
+authors:
+  - family-names: Haase
+    given-names: Jens
+    email: je.haase@gmail.com
+  - family-names: Valera Reales
+    given-names: Jose M.
+    email: phel@chemaclass.es
+    website: "https://chemaclass.com"
+repository-code: "https://github.com/phel-lang/phel-lang"
+url: "https://phel-lang.org"
+license: MIT
+keywords:
+  - phel
+  - lisp
+  - functional-programming
+  - php
+  - clojure
+  - language
+  - compiler
