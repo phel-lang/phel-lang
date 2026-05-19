@@ -1,0 +1,6 @@
+(ns fixtures\let-sequential-binding)
+
+(defn foo []
+  (let [n   (+ 1 2)
+        msg (str "n=" n)]
+    (println msg)))
