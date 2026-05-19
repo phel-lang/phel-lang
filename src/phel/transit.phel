@@ -46,9 +46,14 @@
 ;; Writer extensibility is intentionally left out of this first
 ;; iteration to keep the surface small.
 
+;; Transit reserves three leading characters in JSON strings:
+;;   `~` opens a tag (`~:foo`, `~#set`, `~~` escape)
+;;   `^` is the cache marker in non-verbose mode
+;;   `` ` `` is reserved for future use
+;; A plain Phel string starting with any of them must be re-escaped on
+;; write so the reader does not mistake it for a tag.
 (def- ESC "~")
-(def- SUB "^")
-(def- RESERVED-LETTERS #{"#" SUB "`"})
+(def- RESERVED-LETTERS #{"~" "^" "`"})
 
 (def- json-flags
   (bit-or JSON_UNESCAPED_SLASHES JSON_UNESCAPED_UNICODE))
@@ -105,9 +110,8 @@
   [pairs opts]
   (let [acc (transient {})]
     (loop [items pairs]
-      (cond
-        (or (php/=== items nil) (zero? (count items))) (persistent acc)
-        :else
+      (if (empty? items)
+        (persistent acc)
         (let [k (decode (first items) opts)
               v (decode (first (next items)) opts)]
           (php/-> acc (put k v))
@@ -157,18 +161,17 @@
   "Recursive Transit decoder over a `json_decode` result tree."
   [x opts]
   (cond
-    (php/=== x nil)         nil
-    (php/is_bool x)         x
-    (php/is_int x)          x
-    (php/is_float x)        x
-    (and (php/is_string x)
-         (starts-with? x ESC)) (decode-tagged-scalar x opts)
-    (php/is_string x)       x
+    (nil? x)                     nil
+    (php/is_bool x)              x
+    (php/is_int x)               x
+    (php/is_float x)             x
+    (starts-with? x ESC)         (decode-tagged-scalar x opts)
+    (php/is_string x)            x
     ;; PHP's json_decode with assoc=true returns associative or indexed
     ;; PHP arrays. `array_is_list` distinguishes them.
     (and (php/is_array x)
-         (php/array_is_list x)) (decode-array x opts)
-    (php/is_array x)        (decode-object x opts)
+         (php/array_is_list x))  (decode-array x opts)
+    (php/is_array x)             (decode-object x opts)
     :else
     (throw (php/new \InvalidArgumentException
                     (str "Cannot decode Transit value of type "
@@ -204,10 +207,9 @@
   "Escapes a plain Phel string so that an existing leading `~`, `^`, or
   `` ` `` is not mistaken for a Transit tag by the reader."
   [s]
-  (let [head (php/substr s 0 1)]
-    (if (or (php/=== ESC head) (contains? RESERVED-LETTERS head))
-      (str ESC s)
-      s)))
+  (if (contains? RESERVED-LETTERS (php/substr s 0 1))
+    (str ESC s)
+    s))
 
 (defn- encode-keyword [k]
   (str "~:" (full-name k)))
@@ -224,11 +226,7 @@
 (defn- string-keys?
   "True when every key in `m` is a plain Phel string."
   [m]
-  (let [ok (atom true)]
-    (foreach [k _ m]
-      (when-not (php/is_string k)
-        (reset! ok false)))
-    @ok))
+  (every? string? (keys m)))
 
 (defn- encode-map [m]
   (if (string-keys? m)
