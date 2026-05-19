@@ -28,13 +28,11 @@ final readonly class TempDirHealthCheck implements ModuleHealthCheckInterface
     #[Override]
     public function checkHealth(): HealthStatus
     {
-        if (!is_dir($this->tempDir)) {
-            if (!@mkdir($this->tempDir, 0777, true) && !is_dir($this->tempDir)) {
-                return HealthStatus::unhealthy(
-                    sprintf('Temp dir could not be created: %s', $this->tempDir),
-                    ['path' => $this->tempDir],
-                );
-            }
+        if (!is_dir($this->tempDir) && (!@mkdir($this->tempDir, 0777, true) && !is_dir($this->tempDir))) {
+            return HealthStatus::unhealthy(
+                sprintf('Temp dir could not be created: %s', $this->tempDir),
+                ['path' => $this->tempDir],
+            );
         }
 
         if (!is_writable($this->tempDir)) {
