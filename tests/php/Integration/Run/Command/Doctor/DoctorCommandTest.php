@@ -43,6 +43,31 @@ final class DoctorCommandTest extends TestCase
         );
     }
 
+    public function test_doctor_succeeds_when_temp_dir_does_not_exist_yet(): void
+    {
+        $this->resetContainer();
+        $nonExistentTempDir = sys_get_temp_dir() . '/phel-doctor-fresh-' . uniqid('', true);
+
+        Gacela::bootstrap(__DIR__, static function (GacelaConfig $config) use ($nonExistentTempDir): void {
+            $config->addAppConfigKeyValue(PhelConfig::TEMP_DIR, $nonExistentTempDir);
+        });
+
+        self::assertDirectoryDoesNotExist($nonExistentTempDir);
+
+        $command = new DoctorCommand();
+        $exitCode = $command->run(
+            $this->createStub(InputInterface::class),
+            $this->stubOutput(),
+        );
+
+        // Cleanup the bootstrapped dir before assertions can fail
+        if (is_dir($nonExistentTempDir)) {
+            rmdir($nonExistentTempDir);
+        }
+
+        self::assertSame(0, $exitCode, 'doctor should exit 0 even when temp dir did not exist beforehand');
+    }
+
     public function test_doctor_includes_agent_install_section(): void
     {
         $command = new DoctorCommand();
