@@ -17,12 +17,32 @@ SCRIPT="$SCRIPT_DIR/upgrade-ecosystem.sh"
 source "$SCRIPT_DIR/upgrade-ecosystem-lib.sh"
 
 TEMP_DIR=""
+ORIGINAL_PATH=""
+
+# Install a no-op stub for the named binary in $TEMP_DIR/bin and prepend it
+# to PATH. Lets the script's preflight `command -v <bin>` checks pass in
+# environments (such as the CI runner) where the real binary is not
+# installed. The stub exits 0 immediately; tests never exercise code paths
+# that actually invoke claude.
+function _stub_bin() {
+    local name="$1"
+    cat > "$TEMP_DIR/bin/$name" <<'STUB'
+#!/usr/bin/env bash
+exit 0
+STUB
+    chmod +x "$TEMP_DIR/bin/$name"
+}
 
 function set_up() {
     TEMP_DIR="$(mktemp -d)"
+    ORIGINAL_PATH="$PATH"
+    mkdir -p "$TEMP_DIR/bin"
+    _stub_bin claude
+    PATH="$TEMP_DIR/bin:$PATH"
 }
 
 function tear_down() {
+    PATH="$ORIGINAL_PATH"
     [[ -n "$TEMP_DIR" ]] && rm -rf "$TEMP_DIR"
 }
 
