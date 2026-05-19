@@ -253,7 +253,16 @@ final class TestCommand extends Command
                 return self::FAILURE;
             }
 
-            return ($result) ? self::SUCCESS : self::FAILURE;
+            $successful = (bool) $result[0];
+            $total = (int) $result[1];
+
+            if ($this->isNoMatchWithSelectors($total, $options)) {
+                $output->writeln('<error>No tests matched the given selectors.</error>');
+
+                return self::FAILURE;
+            }
+
+            return $successful ? self::SUCCESS : self::FAILURE;
         } catch (CompilerException $e) {
             $this->getFacade()->writeLocatedException($output, $e);
         } catch (Throwable $e) {
@@ -261,6 +270,33 @@ final class TestCommand extends Command
         }
 
         return self::FAILURE;
+    }
+
+    /**
+     * Returns true when at least one test-narrowing selector was active AND zero tests ran.
+     * Only selectors that narrow the test set are checked (--filter, --ns, --include,
+     * --exclude, --last-failed / --only-tests). Structural options (--fail-fast, --reporter,
+     * etc.) are ignored.
+     *
+     * @param array<string, mixed> $options
+     */
+    private function isNoMatchWithSelectors(int $total, array $options): bool
+    {
+        if ($total > 0) {
+            return false;
+        }
+
+        $filters = $options[TestCommandOptions::FILTERS] ?? [];
+        $nsPatterns = $options[TestCommandOptions::NS_PATTERNS] ?? [];
+        $includes = $options[TestCommandOptions::INCLUDE] ?? [];
+        $excludes = $options[TestCommandOptions::EXCLUDE] ?? [];
+        $onlyTests = $options[TestCommandOptions::ONLY_TESTS] ?? [];
+
+        return $filters !== []
+            || $nsPatterns !== []
+            || $includes !== []
+            || $excludes !== []
+            || $onlyTests !== [];
     }
 
     /**
@@ -294,7 +330,7 @@ final class TestCommand extends Command
     private function generatePhelTestCodeFromOptions(array $options, array $namespacesInformation): string
     {
         return sprintf(
-            '(do (phel\test/run-tests %s %s) (phel\test/successful?))',
+            '(do (phel\test/run-tests %s %s) [(phel\test/successful?) (get (get (phel\test/get-stats) :counts) :total)])',
             TestCommandOptions::fromArray($options)->asPhelHashMap(),
             $this->namespacesAsString($namespacesInformation),
         );
