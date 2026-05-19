@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 - `phel.edn` namespace: read and write [Extensible Data Notation](https://github.com/edn-format/edn) without going through `eval`. Public API: `read-string`, `read-string-all`, `write-string`, `write-string-all`. Supports per-call `:readers` for custom tag handlers and an `:eof` option for empty input. (#2008)
 - Lexer: tagged literals now accept namespaced symbols (`#my.app/Person`, `#myapp/double`) and dot-separated namespaces (`#my.app.module`), matching EDN's tag grammar. Unqualified tags (`#uuid`, `#inst`) continue to work unchanged.
+- `phel.transit` namespace: read and write [Transit+JSON-Verbose](https://github.com/cognitect/transit-format). Public API: `read-string`, `write-string`. Type-mapping covers nil, booleans, numbers, strings (with `~`/`^`/`` ` `` escaping), keywords (`~:`), symbols (`~$`), UUIDs (`~u`), `DateTimeImmutable` (`~t`), vectors, lists (`~#list`), sets (`~#set`), and maps (string-keyed maps as JSON objects, composite-key maps as `~#cmap`). Reader extensibility via `:handlers` (`{tag-string fn}`) and `:default-handler` `(fn [tag rep] …)` for unknown tags. (#2009)
 
 ## [0.39.0](https://github.com/phel-lang/phel-lang/compare/v0.38.0...v0.39.0) - 2026-05-19
 

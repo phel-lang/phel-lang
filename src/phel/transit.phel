@@ -1,0 +1,289 @@
+(ns phel.transit
+  (:use Phel.Lang.Keyword)
+  (:use Phel.Lang.Symbol)
+  (:use Phel.Lang.UUID)
+  (:use \JSON_UNESCAPED_SLASHES)
+  (:use \JSON_UNESCAPED_UNICODE))
+
+;; phel.transit: read and write Transit+JSON-Verbose data.
+;;
+;; Spec: https://github.com/cognitect/transit-format
+;;
+;; Transit is a Clojure-aligned data transfer format that layers a
+;; semantic type system on top of JSON. This module implements the
+;; "JSON-Verbose" encoding (no key caching, maps with string keys
+;; emitted as standard JSON objects), which is what Transit's
+;; reference documentation uses for examples and what is easiest to
+;; debug.
+;;
+;; Type mapping (Phel <-> Transit):
+;;
+;;   nil          <-> null
+;;   bool         <-> true / false
+;;   int          <-> JSON number
+;;   float        <-> JSON number
+;;   string       <-> JSON string (with `~` escape)
+;;   keyword      <-> "~:name"
+;;   symbol       <-> "~$name"
+;;   UUID         <-> "~uXXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+;;   DateTime     <-> "~tISO-8601"
+;;   vector       <-> JSON array  [a, b, c]
+;;   list         <-> ["~#list", [a, b, c]]
+;;   set          <-> ["~#set", [a, b, c]]
+;;   map          <-> JSON object when every key is a string; otherwise
+;;                    ["~#cmap", [k1, v1, k2, v2, …]]
+;;
+;; Reader extensibility:
+;;
+;;   (read-string s {:handlers {"point" (fn [rep] ...)}
+;;                   :default-handler (fn [tag rep] ...)})
+;;
+;;   `:handlers` maps tag strings (without the leading "~#" or "~")
+;;   to a 1-arg fn receiving the already-decoded representation. The
+;;   `:default-handler` is invoked for unknown tags with `[tag rep]`
+;;   and may return any Phel value; if absent, unknown tags throw.
+;;
+;; Writer extensibility is intentionally left out of this first
+;; iteration to keep the surface small.
+
+;; Transit reserves three leading characters in JSON strings:
+;;   `~` opens a tag (`~:foo`, `~#set`, `~~` escape)
+;;   `^` is the cache marker in non-verbose mode
+;;   `` ` `` is reserved for future use
+;; A plain Phel string starting with any of them must be re-escaped on
+;; write so the reader does not mistake it for a tag.
+(def- ESC "~")
+(def- RESERVED-LETTERS #{"~" "^" "`"})
+
+(def- json-flags
+  (bit-or JSON_UNESCAPED_SLASHES JSON_UNESCAPED_UNICODE))
+
+;; ---------------------------------------------------------------------------
+;; Reading
+;; ---------------------------------------------------------------------------
+
+(declare decode)
+
+(defn- starts-with?
+  "True when `s` begins with the single character `c`."
+  [s c]
+  (and (php/is_string s)
+       (php/=== c (php/substr s 0 1))))
+
+(defn- tag-string
+  "Returns the tag portion of a `~#tag`-encoded array marker, or nil
+  when `s` is not such a marker."
+  [s]
+  (when (and (php/is_string s)
+             (php/=== "~#" (php/substr s 0 2)))
+    (php/substr s 2)))
+
+(defn- decode-tagged-scalar
+  "Decodes a `~`-prefixed string. Returns the decoded value, or the
+  original string when the prefix is one of the escape forms."
+  [s opts]
+  (let [marker (php/substr s 1 1)
+        rep    (php/substr s 2)]
+    (case marker
+      ":" (keyword rep)
+      "$" (symbol rep)
+      "u" (php/:: UUID (fromString rep))
+      "t" (php/new \DateTimeImmutable rep)
+      "?" (php/=== rep "t")
+      "i" (php/intval rep)
+      "d" (php/floatval rep)
+      "s" rep
+      "~" (str "~" rep)
+      "^" (str "^" rep)
+      "`" (str "`" rep)
+      ;; Fallback: hand off to the user-supplied :default-handler if
+      ;; present; otherwise throw with a clear message.
+      (let [default (get opts :default-handler)]
+        (if default
+          (default (str marker) rep)
+          (throw (php/new \InvalidArgumentException
+                          (str "Unknown Transit scalar tag '~" marker "'"))))))))
+
+(defn- decode-cmap
+  "Decodes a `~#cmap` payload — a flat sequence of alternating key/value
+  representations — into a persistent map."
+  [pairs opts]
+  (let [acc (transient {})]
+    (loop [items pairs]
+      (if (empty? items)
+        (persistent acc)
+        (let [k (decode (first items) opts)
+              v (decode (first (next items)) opts)]
+          (php/-> acc (put k v))
+          (recur (next (next items))))))))
+
+(defn- decode-tagged-array
+  "Decodes a `[\"~#tag\", rep]` array. Handles built-in collection tags
+  (`set`, `list`, `cmap`) and falls back to `:handlers` / `:default-handler`."
+  [tag rep opts]
+  (case tag
+    "set"  (apply hash-set (for [x :in (decode rep opts)] x))
+    "list" (apply list     (for [x :in (decode rep opts)] x))
+    "cmap" (decode-cmap rep opts)
+    (let [handlers (or (get opts :handlers) {})
+          handler  (get handlers tag)
+          default  (get opts :default-handler)]
+      (cond
+        handler (handler (decode rep opts))
+        default (default tag (decode rep opts))
+        :else
+        (throw (php/new \InvalidArgumentException
+                        (str "Unknown Transit tag '~#" tag "'")))))))
+
+(defn- decode-array
+  "Decodes a JSON array. Detects `[\"~#tag\", rep]` markers before
+  falling back to a positional vector decode."
+  [arr opts]
+  (let [head (php/aget arr 0)
+        tag  (tag-string head)]
+    (if tag
+      (decode-tagged-array tag (php/aget arr 1) opts)
+      (let [acc (transient [])]
+        (foreach [x arr]
+          (conj! acc (decode x opts)))
+        (persistent acc)))))
+
+(defn- decode-object
+  "Decodes a JSON object (as PHP associative array) into a Phel map.
+  String keys may themselves be Transit-encoded (e.g. `\"~:foo\"`)."
+  [obj opts]
+  (let [acc (transient {})]
+    (foreach [k v obj]
+      (php/-> acc (put (decode k opts) (decode v opts))))
+    (persistent acc)))
+
+(defn- decode
+  "Recursive Transit decoder over a `json_decode` result tree."
+  [x opts]
+  (cond
+    (nil? x)                     nil
+    (php/is_bool x)              x
+    (php/is_int x)               x
+    (php/is_float x)             x
+    (starts-with? x ESC)         (decode-tagged-scalar x opts)
+    (php/is_string x)            x
+    ;; PHP's json_decode with assoc=true returns associative or indexed
+    ;; PHP arrays. `array_is_list` distinguishes them.
+    (and (php/is_array x)
+         (php/array_is_list x))  (decode-array x opts)
+    (php/is_array x)             (decode-object x opts)
+    :else
+    (throw (php/new \InvalidArgumentException
+                    (str "Cannot decode Transit value of type "
+                         (php/gettype x))))))
+
+(defn read-string
+  "Reads one Transit+JSON-Verbose value from string `s`.
+
+  Options:
+    :handlers         map of tag-string to 1-arg fn for `~#tag` extensions
+    :default-handler  2-arg fn `(fn [tag rep] ...)` invoked for any
+                      unknown tag (both scalar and array forms). Receives
+                      the bare tag name (e.g. \"point\", \":\", \"~\") and
+                      the already-decoded representation."
+  {:example "(read-string \"[\\\"~:foo\\\", 1]\") ; => [:foo 1]"
+   :see-also ["write-string"]}
+  ([s] (read-string s {}))
+  ([s opts]
+   (let [raw (php/json_decode s true)
+         err (php/json_last_error)]
+     (when-not (zero? err)
+       (throw (php/new \InvalidArgumentException
+                       (str "Invalid Transit JSON: " (php/json_last_error_msg)))))
+     (decode raw opts))))
+
+;; ---------------------------------------------------------------------------
+;; Writing
+;; ---------------------------------------------------------------------------
+
+(declare encode)
+
+(defn- escape-string
+  "Escapes a plain Phel string so that an existing leading `~`, `^`, or
+  `` ` `` is not mistaken for a Transit tag by the reader."
+  [s]
+  (if (contains? RESERVED-LETTERS (php/substr s 0 1))
+    (str ESC s)
+    s))
+
+(defn- encode-keyword [k]
+  (str "~:" (full-name k)))
+
+(defn- encode-symbol [s]
+  (str "~$" (full-name s)))
+
+(defn- encode-uuid [u]
+  (str "~u" (str u)))
+
+(defn- encode-datetime [d]
+  (str "~t" (php/-> d (format "Y-m-d\\TH:i:s.vP"))))
+
+(defn- string-keys?
+  "True when every key in `m` is a plain Phel string."
+  [m]
+  (every? string? (keys m)))
+
+(defn- encode-map [m]
+  (if (string-keys? m)
+    (let [obj (php/array)]
+      (foreach [k v m]
+        (php/aset obj k (encode v)))
+      obj)
+    (let [pairs (php/array)]
+      (foreach [k v m]
+        (php/apush pairs (encode k))
+        (php/apush pairs (encode v)))
+      (php-indexed-array "~#cmap" pairs))))
+
+(defn- encode-vector [v]
+  (let [arr (php/array)]
+    (foreach [x v]
+      (php/apush arr (encode x)))
+    arr))
+
+(defn- encode-set [s]
+  (let [arr (php/array)]
+    (foreach [x s]
+      (php/apush arr (encode x)))
+    (php-indexed-array "~#set" arr)))
+
+(defn- encode-list [l]
+  (let [arr (php/array)]
+    (foreach [x l]
+      (php/apush arr (encode x)))
+    (php-indexed-array "~#list" arr)))
+
+(defn- encode
+  "Encodes a Phel value into the PHP-array shape consumed by
+  `json_encode`. Strings carrying a Transit-sensitive prefix are
+  escaped with a leading `~`."
+  [x]
+  (cond
+    (nil? x)                              nil
+    (php/is_bool x)                       x
+    (php/is_int x)                        x
+    (php/is_float x)                      x
+    (keyword? x)                          (encode-keyword x)
+    (symbol? x)                           (encode-symbol x)
+    (php/instanceof x UUID)               (encode-uuid x)
+    (php/instanceof x \DateTimeInterface) (encode-datetime x)
+    (php/is_string x)                     (escape-string x)
+    (set? x)                              (encode-set x)
+    (vector? x)                           (encode-vector x)
+    (list? x)                             (encode-list x)
+    (map? x)                              (encode-map x)
+    :else
+    (throw (php/new \InvalidArgumentException
+                    (str "Cannot encode value of type " (php/gettype x) " to Transit")))))
+
+(defn write-string
+  "Serialises `value` to a Transit+JSON-Verbose string."
+  {:example "(write-string {:a 1}) ; => \"{\\\"~:a\\\":1}\""
+   :see-also ["read-string"]}
+  [value]
+  (php/json_encode (encode value) json-flags))
