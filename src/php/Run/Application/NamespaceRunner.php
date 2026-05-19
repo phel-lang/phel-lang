@@ -8,6 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Resolver\LoadClasspath;
 use Phel\Run\Domain\Runner\NamespaceRunnerInterface;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
+use Phel\Shared\Munge;
 
 final readonly class NamespaceRunner implements NamespaceRunnerInterface
 {
@@ -18,6 +19,10 @@ final readonly class NamespaceRunner implements NamespaceRunnerInterface
 
     public function run(string $namespace): void
     {
+        // Normalize backslash form (e.g. `foo\bar`) to dot form (`foo.bar`) so
+        // that both separators work consistently, matching the CLI RunCommand.
+        $namespace = Munge::canonicalNs($namespace);
+
         $srcDirectories = [
             ...$this->commandFacade->getSourceDirectories(),
             ...$this->commandFacade->getVendorSourceDirectories(),
