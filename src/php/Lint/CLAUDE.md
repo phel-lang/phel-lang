@@ -15,7 +15,7 @@ Read-only semantic linter built on top of `ApiFacade`: emits diagnostics on Phel
 - `loadSettings(string $configPath, RuleSettings $defaults): RuleSettings`
 - `defaultSettings(): RuleSettings`
 - `formatters(): FormatterRegistry`
-- `createCache(string $baseDir): LintCache`
+- `createCache(string $baseDir, RuleSettings $settings): LintCache`
 
 ## CLI Command
 
@@ -92,6 +92,6 @@ Lint/
 - Semantic diagnostics (`unresolved-symbol`, analyzer-detected `arity-mismatch`) are fetched via `ApiFacade::analyzeSource` and shared across rules through `FileAnalysis::$semanticDiagnostics` so the analyzer runs once per file
 - Rule pipeline is open/closed: `LintFactory::createRules()` is the only edit point to add a rule
 - `FormatterRegistry` is also open/closed: register new formatter names without editing existing ones
-- `LintCache` fingerprint is derived from `RuleRegistry::allCodes()` : adding/removing rules auto-invalidates the cache
+- `LintCache` fingerprint combines `RuleRegistry::allCodes()` with `RuleSettings::fingerprint()` (severities + exclude patterns): adding/removing rules OR editing `phel-lint.phel` auto-invalidates the cache
 - Failing rules are isolated in `RulePipeline`: one bad rule never kills the run
 - `DuplicateKeyRule` scans the parse tree (not read forms) because the reader silently de-duplicates map literals

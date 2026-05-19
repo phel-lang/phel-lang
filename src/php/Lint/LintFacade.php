@@ -42,8 +42,8 @@ final class LintFacade extends AbstractFacade
         return $this->getFactory()->createFormatterRegistry();
     }
 
-    public function createCache(string $baseDir): LintCache
+    public function createCache(string $baseDir, RuleSettings $settings): LintCache
     {
-        return $this->getFactory()->createLintCache($baseDir);
+        return $this->getFactory()->createLintCache($baseDir, $settings);
     }
 }

@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- `phel lint`: cache fingerprint now includes the resolved `RuleSettings` (severities + exclude patterns), so editing `phel-lint.phel` automatically invalidates stale cache entries without requiring `--no-cache`. (#2027)
+
 ### Added
 
 - `phel.edn`: eval-free EDN read/write. See [docs/data-formats.md](docs/data-formats.md). (#2008)

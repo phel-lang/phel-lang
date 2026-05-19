@@ -107,9 +107,9 @@ final class LintFactory extends AbstractFactory
         return new FileCollector();
     }
 
-    public function createLintCache(string $cacheDir): LintCache
+    public function createLintCache(string $cacheDir, RuleSettings $settings): LintCache
     {
-        return new LintCache($cacheDir, $this->ruleFingerprint());
+        return new LintCache($cacheDir, $this->ruleFingerprint($settings));
     }
 
     public function getApiFacade(): ApiFacade
@@ -133,14 +133,15 @@ final class LintFactory extends AbstractFactory
     }
 
     /**
-     * Deterministic fingerprint covering the rule set. Drives cache
-     * invalidation when rules are added, removed, or reordered.
+     * Deterministic fingerprint covering the rule set AND the resolved
+     * settings (severities + exclude patterns). Drives cache invalidation
+     * when rules are added/removed OR when phel-lint.phel is edited.
      */
-    private function ruleFingerprint(): string
+    private function ruleFingerprint(RuleSettings $settings): string
     {
         $codes = RuleRegistry::allCodes();
         sort($codes);
 
-        return md5(implode('|', $codes));
+        return md5(implode('|', $codes) . '|' . $settings->fingerprint());
     }
 }

@@ -9,6 +9,11 @@ use Phel\Api\Transfer\Diagnostic;
 use function array_key_exists;
 use function fnmatch;
 use function in_array;
+use function json_encode;
+use function ksort;
+use function md5;
+
+use const JSON_THROW_ON_ERROR;
 
 /**
  * Per-rule severities plus opt-out patterns. Values are the constants
@@ -35,6 +40,22 @@ final readonly class RuleSettings
         public array $severities,
         public array $excludeGlobs = [],
     ) {}
+
+    /**
+     * Deterministic hash of the effective settings (severities + exclude
+     * patterns). Used by LintCache to detect config changes independently of
+     * which rule codes are registered.
+     */
+    public function fingerprint(): string
+    {
+        $severities = $this->severities;
+        ksort($severities);
+
+        $globs = $this->excludeGlobs;
+        ksort($globs);
+
+        return md5(json_encode([$severities, $globs], JSON_THROW_ON_ERROR));
+    }
 
     /**
      * @param array<string, string> $map

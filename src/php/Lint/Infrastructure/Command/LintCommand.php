@@ -115,7 +115,7 @@ final class LintCommand extends Command
         }
 
         $settings = $this->loadSettings($input);
-        $cache = $this->maybeCache($input);
+        $cache = $this->maybeCache($input, $settings);
 
         // Load phel core so analyzeSource() resolves core symbols like
         // `defn`, `let`, etc. Without this the linter's first diagnostic
@@ -184,7 +184,7 @@ final class LintCommand extends Command
         return rtrim($cwd, '/') . '/' . LintConfig::defaultConfigFilename();
     }
 
-    private function maybeCache(InputInterface $input): ?LintCache
+    private function maybeCache(InputInterface $input, RuleSettings $settings): ?LintCache
     {
         if ($input->getOption(self::OPT_NO_CACHE)) {
             return null;
@@ -198,6 +198,6 @@ final class LintCommand extends Command
         PhelProjectDirectory::ensure($cwd);
         $cacheDir = PhelProjectDirectory::path($cwd, LintConfig::CACHE_SUBPATH);
 
-        return $this->getFacade()->createCache($cacheDir);
+        return $this->getFacade()->createCache($cacheDir, $settings);
     }
 }
