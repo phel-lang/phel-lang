@@ -3,7 +3,7 @@
 (use Countable)
 (use Phel)
 (use Phel.Lang.Collections.HashSet.PersistentHashSetInterface)
-(use Phel.Lang.Collections.LazySeq.LazyCons)
+(use Phel.Lang.Collections.LazySeq.Cons)
 (use Phel.Lang.Collections.LazySeq.LazySeqInterface)
 (use Phel.Lang.Collections.LinkedList.PersistentListInterface)
 (use Phel.Lang.Collections.Map.MapEntry)
@@ -400,11 +400,11 @@
 
 (defn seq?
   "Returns true if `x` is a seq (a list, a lazy sequence, or a realized
-  `LazyCons` cell returned by `(next some-lazy-seq)`)."
+  `Cons` cell returned by `(next some-lazy-seq)`)."
   {:see-also ["seq" "lazy-seq" "lazy-seq?"]}
   [x]
   (or (php/instanceof x LazySeqInterface)
-      (php/instanceof x LazyCons)
+      (php/instanceof x Cons)
       (php/instanceof x PersistentListInterface)))
 
 (defn lazy-seq?
@@ -425,7 +425,7 @@
     (php/is_numeric x)                  (= 0 x)
     (php/is_string x)                   (true? (php/empty x))
     (php/instanceof x LazySeqInterface) (nil? (first x))
-    (php/instanceof x LazyCons)         false
+    (php/instanceof x Cons)         false
     :else                               (= 0 (count x))))
 
 (defn not-empty

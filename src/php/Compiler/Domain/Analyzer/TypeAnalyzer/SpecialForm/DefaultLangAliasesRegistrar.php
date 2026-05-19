@@ -9,7 +9,7 @@ use Phel\Lang\Atom;
 use Phel\Lang\BigDecimal;
 use Phel\Lang\BigInt;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
-use Phel\Lang\Collections\LazySeq\LazyCons;
+use Phel\Lang\Collections\LazySeq\Cons;
 use Phel\Lang\Collections\LazySeq\LazySeqInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\MapEntry;
@@ -43,7 +43,7 @@ final class DefaultLangAliasesRegistrar
     public const array DEFAULT_USE_ALIASES = [
         // Sequence types
         'LazySeq' => LazySeqInterface::class,
-        'Cons' => LazyCons::class,
+        'Cons' => Cons::class,
         'PersistentList' => PersistentListInterface::class,
         'PersistentVector' => PersistentVectorInterface::class,
         'PersistentMap' => PersistentMapInterface::class,
