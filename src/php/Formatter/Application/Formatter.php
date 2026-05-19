@@ -31,8 +31,9 @@ final readonly class Formatter implements FormatterInterface
     {
         $tokenStream = $this->compilerFacade->lexString($string, $source);
         $fileNode = $this->compilerFacade->parseAll($tokenStream);
+        $formatted = $this->formatNode($fileNode)->getCode();
 
-        return $this->formatNode($fileNode)->getCode();
+        return rtrim($formatted, "\n") . "\n";
     }
 
     /**

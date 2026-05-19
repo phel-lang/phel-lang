@@ -31,7 +31,7 @@ final class FormatterFacadeTest extends TestCase
             ->createFormatter()
             ->format(implode("\n", $actualLines));
 
-        self::assertEquals($expectedLines, explode("\n", $formatted));
+        self::assertEquals($expectedLines, explode("\n", rtrim($formatted, "\n")));
     }
 
     public static function providerIndent(): Generator
@@ -473,6 +473,26 @@ final class FormatterFacadeTest extends TestCase
             ],
             ['(foo)'],
         ];
+    }
+
+    public function test_format_appends_trailing_newline_when_missing(): void
+    {
+        $formatted = $this->formatterFactory
+            ->createFormatter()
+            ->format("(ns demo)\n(defn foo []\n  (println 1))");
+
+        self::assertStringEndsWith("\n", $formatted);
+    }
+
+    public function test_format_does_not_double_trailing_newline_when_already_present(): void
+    {
+        $source = "(ns demo)\n(defn foo []\n  (println 1))\n";
+        $formatted = $this->formatterFactory
+            ->createFormatter()
+            ->format($source);
+
+        self::assertStringEndsWith("\n", $formatted);
+        self::assertStringEndsNotWith("\n\n", $formatted);
     }
 
     public static function providerRemoveTrailingWhitespaceRule(): Generator
