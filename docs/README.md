@@ -36,6 +36,7 @@ Coming from Clojure? Read [Clojure Migration](clojure-migration.md).
 - [Async](async-guide.md): fibers, promises, futures, AMPHP
 - [Schema](schema-guide.md): validate, coerce, generate
 - [AI](ai-guide.md): `chat-with-tools`, OpenAI tool use
+- [Data Interchange Formats](data-formats.md): `phel.edn`, `phel.transit`
 
 ## Apps
 
