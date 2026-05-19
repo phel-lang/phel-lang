@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.39.0](https://github.com/phel-lang/phel-lang/compare/v0.38.0...v0.39.0) - 2026-05-19
+
 ### Added
 
 - Auto-refer common `Phel\Lang\*` types in every namespace without `(:use ...)`. `Interface` suffix dropped: `(php/instanceof x LazySeq)`, `(php/instanceof x PersistentVector)`, etc. User `(:use ...)` still overrides (#1996)
