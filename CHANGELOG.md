@@ -6,28 +6,28 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Auto-refer 17 common `Phel\Lang\*` PHP types in every Phel namespace without an explicit `(:use ...)` line. The `Interface` suffix is dropped at the Phel level: `(php/instanceof x LazySeq)`, `(php/instanceof x PersistentVector)`, `(php/instanceof x Keyword)` all work out of the box. User `(:use ...)` declarations with the same short name still override the default (#1996)
+- Auto-refer common `Phel\Lang\*` types in every namespace without `(:use ...)`. `Interface` suffix dropped: `(php/instanceof x LazySeq)`, `(php/instanceof x PersistentVector)`, `(php/instanceof x Keyword)`. User `(:use ...)` overrides still win (#1996)
 
 ### Changed
 
-- BC break: rename `Phel\Lang\*` types to match Clojure-aligned aliases from #1996. Each new short name is auto-referred (drop the `(:use ...)` line or rewrite to the new name):
-  - `Variable` → `Atom` (also `VariablePrinter` → `AtomPrinter`, `\Phel::variable` → `\Phel::atom`) (#2000)
-  - `Uuid` → `UUID` (also `UuidPrinter` → `UUIDPrinter`, `UuidTagHandler` → `UUIDTagHandler`) (#2002)
+- BC: rename core types for Clojure alignment (auto-referred; drop old `(:use ...)` or rename usages):
+  - `Variable` → `Atom` (also `VariablePrinter`, `\Phel::variable`) (#2000)
+  - `Uuid` → `UUID` (also `UuidPrinter`, `UuidTagHandler`) (#2002)
   - `BigInteger` → `BigInt` (#2003)
-  - `Rational` → `Ratio` (also `RationalPrinter` → `RatioPrinter`) (#2004)
-  - `PhelFuture` → `Future` (unrelated `Phel\Fiber\Domain\Future` keeps its FQN) (#2005)
-  - `ExInfoException` → `ExceptionInfo` (matches `clojure.lang.ExceptionInfo` thrown by `ex-info`)
-  - `LazyCons` → `Cons` (also `LazyConsPrinter` → `ConsPrinter`; matches `clojure.lang.Cons`. The class is a realized cons cell, not itself lazy)
+  - `Rational` → `Ratio` (also `RationalPrinter`) (#2004)
+  - `PhelFuture` → `Future` (#2005)
+  - `ExInfoException` → `ExceptionInfo` (#2006)
+  - `LazyCons` → `Cons` (also `LazyConsPrinter`; realized cons cell, not lazy) (#2010)
 
 ### Fixed
 
-- `bin/phel build`: secondary `(in-ns ...)` files are no longer dropped from the build output when stale `.phel/cache` entries trigger cascade invalidation. `CompiledCodeCache` now tombstones invalidated keys so the disk merge in `saveEntries()` cannot resurrect them, which previously caused each `(load ...)` to re-run the cascade and unlink the prior secondary's freshly compiled file (#1998)
-- LazySeq: `(next lazy-seq)` now returns a realized `Cons` cell (or nil) instead of another `LazySeq`, matching Clojure's `(next s)` contract `(not (lazy-seq? (next s)))` (#1994)
-- LazySeq: `(rest lazy-seq)` and `(cdr lazy-seq)` no longer force the head of the tail, restoring true laziness — `(realized? (rest s))` now stays `false` when the consumer only walked the spine (#1995)
-- `phel test`: `--testdox` no longer prints "no test message found" placeholder when an assertion has no message
-- `phel test`: `--repeat=<non-numeric>` now errors instead of silently falling back to 1
-- `phel test`: `--seed=<N>` alone now shuffles tests (previously printed the seed but kept order deterministic)
-- `phel test`: `--reporter=junit-xml` no longer emits empty `<testsuite>` entries for loaded dependency namespaces that contain no tests
+- `bin/phel build`: secondary `(in-ns ...)` files no longer dropped when stale cache triggers cascade invalidation (#1998)
+- LazySeq: `(next s)` returns realized `Cons` (or nil), matching Clojure's `(next s)` (#1994)
+- LazySeq: `(rest s)` / `(cdr s)` no longer force the head; spine walks stay unrealized (#1995)
+- `phel test --testdox`: drop "no test message found" placeholder when assertion has no message (#1993)
+- `phel test --repeat=<non-numeric>`: errors instead of falling back to 1 (#1993)
+- `phel test --seed=<N>`: now shuffles tests (was deterministic order) (#1993)
+- `phel test --reporter=junit-xml`: drop empty `<testsuite>` for dependency-only namespaces (#1993)
 
 ## [0.38.0](https://github.com/phel-lang/phel-lang/compare/v0.37.0...v0.38.0) - 2026-05-16
 
