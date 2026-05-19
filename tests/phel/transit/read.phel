@@ -1,0 +1,73 @@
+(ns phel-test.transit.read
+  (:require phel.transit :as transit)
+  (:require phel.test :refer [deftest is]))
+
+(deftest test-read-scalars
+  (is (= nil   (transit/read-string "null")))
+  (is (= true  (transit/read-string "true")))
+  (is (= false (transit/read-string "false")))
+  (is (= 42    (transit/read-string "42")))
+  (is (= -7    (transit/read-string "-7")))
+  (is (= 3.14  (transit/read-string "3.14")))
+  (is (= "hi"  (transit/read-string "\"hi\""))))
+
+(deftest test-read-keyword
+  (is (= :foo (transit/read-string "\"~:foo\"")))
+  (is (= :ns/foo (transit/read-string "\"~:ns/foo\""))))
+
+(deftest test-read-symbol
+  (is (= 'bar (transit/read-string "\"~$bar\""))))
+
+(deftest test-read-uuid
+  (let [u (transit/read-string "\"~u550e8400-e29b-41d4-a716-446655440000\"")]
+    (is (php/instanceof u \Phel\Lang\UUID))
+    (is (= "550e8400-e29b-41d4-a716-446655440000" (str u)))))
+
+(deftest test-read-instant
+  (let [d (transit/read-string "\"~t2026-05-19T12:00:00+00:00\"")]
+    (is (php/instanceof d \DateTimeImmutable))
+    (is (= "2026-05-19T12:00:00+00:00" (php/-> d (format "c"))))))
+
+(deftest test-read-vector
+  (is (= [1 2 3] (transit/read-string "[1,2,3]")))
+  (is (= [] (transit/read-string "[]")))
+  (is (= [:a :b] (transit/read-string "[\"~:a\",\"~:b\"]"))))
+
+(deftest test-read-set
+  (is (= #{1 2 3} (transit/read-string "[\"~#set\",[1,2,3]]")))
+  (is (= #{} (transit/read-string "[\"~#set\",[]]"))))
+
+(deftest test-read-list
+  (is (= '(1 2 3) (transit/read-string "[\"~#list\",[1,2,3]]"))))
+
+(deftest test-read-map-string-keys
+  (is (= {"a" 1 "b" 2} (transit/read-string "{\"a\":1,\"b\":2}"))))
+
+(deftest test-read-map-keyword-keys
+  (is (= {:a 1 :b 2} (transit/read-string "{\"~:a\":1,\"~:b\":2}"))))
+
+(deftest test-read-cmap
+  (let [m (transit/read-string "[\"~#cmap\",[\"~:a\",1,[1,2],\"vec-key\"]]")]
+    (is (= 1 (get m :a)))
+    (is (= "vec-key" (get m [1 2])))))
+
+(deftest test-read-escaped-strings
+  (is (= "~hello" (transit/read-string "\"~~hello\"")) "~~ unescapes to ~")
+  (is (= "^foo" (transit/read-string "\"~^foo\"")) "~^ unescapes to ^"))
+
+(deftest test-read-custom-handler
+  (is (= "Point[1,2]"
+         (transit/read-string "[\"~#point\",[1,2]]"
+                              {:handlers {"point" (fn [rep]
+                                                    (str "Point[" (first rep) "," (second rep) "]"))}}))))
+
+(deftest test-read-default-handler
+  (is (= [:unknown "myapp/Person" [1 2]]
+         (transit/read-string "[\"~#myapp/Person\",[1,2]]"
+                              {:default-handler (fn [tag rep] [:unknown tag rep])}))))
+
+(deftest test-read-nested
+  (is (= {:users [{:name "Alice" :tags #{:admin :active}}
+                  {:name "Bob"   :tags #{:guest}}]}
+         (transit/read-string
+          "{\"~:users\":[{\"~:name\":\"Alice\",\"~:tags\":[\"~#set\",[\"~:admin\",\"~:active\"]]},{\"~:name\":\"Bob\",\"~:tags\":[\"~#set\",[\"~:guest\"]]}]}"))))
