@@ -6,28 +6,25 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Auto-refer common `Phel\Lang\*` types in every namespace without `(:use ...)`. `Interface` suffix dropped: `(php/instanceof x LazySeq)`, `(php/instanceof x PersistentVector)`, `(php/instanceof x Keyword)`. User `(:use ...)` overrides still win (#1996)
+- Auto-refer common `Phel\Lang\*` types in every namespace without `(:use ...)`. `Interface` suffix dropped: `(php/instanceof x LazySeq)`, `(php/instanceof x PersistentVector)`, etc. User `(:use ...)` still overrides (#1996)
 
 ### Changed
 
-- BC: rename core types for Clojure alignment (auto-referred; drop old `(:use ...)` or rename usages):
-  - `Variable` → `Atom` (also `VariablePrinter`, `\Phel::variable`) (#2000)
-  - `Uuid` → `UUID` (also `UuidPrinter`, `UuidTagHandler`) (#2002)
+- BC: rename core types for Clojure alignment (printers and helpers renamed accordingly):
+  - `Variable` → `Atom` (#2000)
+  - `Uuid` → `UUID` (#2002)
   - `BigInteger` → `BigInt` (#2003)
-  - `Rational` → `Ratio` (also `RationalPrinter`) (#2004)
+  - `Rational` → `Ratio` (#2004)
   - `PhelFuture` → `Future` (#2005)
   - `ExInfoException` → `ExceptionInfo` (#2006)
-  - `LazyCons` → `Cons` (also `LazyConsPrinter`; realized cons cell, not lazy) (#2010)
+  - `LazyCons` → `Cons` (#2010)
 
 ### Fixed
 
-- `bin/phel build`: secondary `(in-ns ...)` files no longer dropped when stale cache triggers cascade invalidation (#1998)
-- LazySeq: `(next s)` returns realized `Cons` (or nil), matching Clojure's `(next s)` (#1994)
+- `bin/phel build`: secondary `(in-ns ...)` files no longer dropped on stale-cache cascade invalidation (#1998)
+- LazySeq: `(next s)` returns realized `Cons` or nil, matching Clojure (#1994)
 - LazySeq: `(rest s)` / `(cdr s)` no longer force the head; spine walks stay unrealized (#1995)
-- `phel test --testdox`: drop "no test message found" placeholder when assertion has no message (#1993)
-- `phel test --repeat=<non-numeric>`: errors instead of falling back to 1 (#1993)
-- `phel test --seed=<N>`: now shuffles tests (was deterministic order) (#1993)
-- `phel test --reporter=junit-xml`: drop empty `<testsuite>` for dependency-only namespaces (#1993)
+- `phel test`: fix `--testdox` placeholder, `--repeat` non-numeric, `--seed` shuffle, `--reporter=junit-xml` empty-suite (#1993)
 
 ## [0.38.0](https://github.com/phel-lang/phel-lang/compare/v0.37.0...v0.38.0) - 2026-05-16
 
