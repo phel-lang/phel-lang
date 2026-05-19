@@ -40,8 +40,8 @@
     (symbol? tag)  (full-name tag)
     (keyword? tag) (name tag)
     :else          (throw (php/new \InvalidArgumentException
-                          (str "EDN reader tag must be a symbol, keyword, or string, got: "
-                               (php/gettype tag))))))
+                                   (str "EDN reader tag must be a symbol, keyword, or string, got: "
+                                        (php/gettype tag))))))
 
 (defn- snapshot-tags
   "Captures the existing handler for each tag key so it can be restored
@@ -72,7 +72,7 @@
   "Runs `thunk` with `readers` temporarily installed on the tag registry.
   Restores prior state in a `finally` so exceptions still clean up."
   [readers thunk]
-  (if (or (php/=== readers nil) (zero? (count readers)))
+  (if (empty? readers)
     (thunk)
     (let [reg      (tag-registry)
           tag-keys (for [tag :keys readers] (tag-key tag))
@@ -91,9 +91,9 @@
   (loop []
     (let [node (php/-> cf (parseNext token-stream))]
       (cond
-        (php/=== nil node)                       nil
+        (php/=== nil node)                        nil
         (php/instanceof node TriviaNodeInterface) (recur)
-        :else (php/-> (php/-> cf (read node)) (getAst))))))
+        :else                                     (php/-> (php/-> cf (read node)) (getAst))))))
 
 (defn- parse-one [s]
   (let [cf           (compiler-facade)
@@ -139,6 +139,8 @@
    (let [readers (get opts :readers)]
      (with-readers* readers #(parse-all s)))))
 
+(def- readable-printer (php/:: Printer (readable)))
+
 (defn write-string
   "Serialises `value` to its EDN string representation. Uses Phel's
   readable printer so the output round-trips through `read-string` for
@@ -148,8 +150,7 @@
   {:example "(write-string {:a 1}) ; => \"{:a 1}\""
    :see-also ["read-string" "write-string-all"]}
   [value]
-  (let [printer (php/:: Printer (readable))]
-    (php/-> printer (print value))))
+  (php/-> readable-printer (print value)))
 
 (defn write-string-all
   "Serialises a sequence of values to EDN, separating top-level forms
