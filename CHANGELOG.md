@@ -16,6 +16,32 @@ All notable changes to this project will be documented in this file.
 
 - BC: release tooling moved from `build/` to `tools/`. `./build/release.sh` is now `./tools/release.sh`; same for `validate-agents.sh`. `build/` is now phar-only.
 
+## [0.40.0](https://github.com/phel-lang/phel-lang/compare/v0.39.0...v0.40.0) (2026-05-19)
+
+
+### Features
+
+* DX improvements (release-please, CITATION, README hero) ([#2016](https://github.com/phel-lang/phel-lang/issues/2016)) ([df724a2](https://github.com/phel-lang/phel-lang/commit/df724a2cd133a31c90b28464b7a9be81e2e01dcd))
+* **edn:** add phel.edn namespace for EDN read/write ([#2012](https://github.com/phel-lang/phel-lang/issues/2012)) ([958f967](https://github.com/phel-lang/phel-lang/commit/958f967772977b35a793ae355c18340345c05565))
+* **tools:** add upgrade-ecosystem script and reorganize tools ([d961928](https://github.com/phel-lang/phel-lang/commit/d9619283cd08c015b6c26c4148708d772efdcc0c))
+* **transit:** add phel.transit namespace for Transit+JSON-Verbose ([#2013](https://github.com/phel-lang/phel-lang/issues/2013)) ([40a947a](https://github.com/phel-lang/phel-lang/commit/40a947a1eb233bb995971600ce20758c82cf6ed9))
+
+
+### Bug Fixes
+
+* **doctor:** bootstrap temp dir before filesystem check ([#2026](https://github.com/phel-lang/phel-lang/issues/2026)) ([19f07cf](https://github.com/phel-lang/phel-lang/commit/19f07cf9ec3998357b37f1430c0491d03069894f))
+* **format:** append trailing newline to formatted files ([#2022](https://github.com/phel-lang/phel-lang/issues/2022)) ([#2029](https://github.com/phel-lang/phel-lang/issues/2029)) ([a3114d9](https://github.com/phel-lang/phel-lang/commit/a3114d9fec4351fb222622553b4974cc11d05821))
+* **lint:** count later let-binding-vector exprs as uses ([#2018](https://github.com/phel-lang/phel-lang/issues/2018)) ([#2025](https://github.com/phel-lang/phel-lang/issues/2025)) ([c841e12](https://github.com/phel-lang/phel-lang/commit/c841e12ec42fd20310c0fbce7ee035c88cb470f0))
+* **run:** normalize backslash namespaces in Phel::run() facade ([#2021](https://github.com/phel-lang/phel-lang/issues/2021)) ([#2028](https://github.com/phel-lang/phel-lang/issues/2028)) ([5c23b59](https://github.com/phel-lang/phel-lang/commit/5c23b59fa787ebcf0c614705715729e9df70fb4d))
+* **test:** non-zero exit when --filter matches zero tests ([#2023](https://github.com/phel-lang/phel-lang/issues/2023)) ([#2030](https://github.com/phel-lang/phel-lang/issues/2030)) ([ed7d946](https://github.com/phel-lang/phel-lang/commit/ed7d946289a7178c35824a8d1258dc4643bee714))
+
+
+### Documentation
+
+* add README to tools/git-hooks and resources/agents/tasks ([cce6dce](https://github.com/phel-lang/phel-lang/commit/cce6dce5fddb76389ef0769efbbe3e92e838349b))
+* condense Unreleased entries and add data-formats guide ([#2014](https://github.com/phel-lang/phel-lang/issues/2014)) ([4029454](https://github.com/phel-lang/phel-lang/commit/40294543b7abdb36548e2195ad240a28dd0c2f11))
+* trim redundancy from patterns and data-structures guides ([#2015](https://github.com/phel-lang/phel-lang/issues/2015)) ([434ab9d](https://github.com/phel-lang/phel-lang/commit/434ab9d288146eef62260d6a1238cdfbfd385091))
+
 ## [0.39.0](https://github.com/phel-lang/phel-lang/compare/v0.38.0...v0.39.0) - 2026-05-19
 
 ### Added
