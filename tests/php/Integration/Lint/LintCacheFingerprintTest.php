@@ -166,9 +166,11 @@ final class LintCacheFingerprintTest extends TestCase
             if ($entry === '.') {
                 continue;
             }
+
             if ($entry === '..') {
                 continue;
             }
+
             $path = $dir . '/' . $entry;
             if (is_dir($path)) {
                 $this->removeDir($path);
