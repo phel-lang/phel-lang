@@ -1,19 +1,5 @@
 # Common Patterns and Idioms
 
-## Table of Contents
-
-- [Working with Nil](#working-with-nil)
-- [Collection Transformations](#collection-transformations)
-- [Threading Macros](#threading-macros)
-- [Pattern Matching](#pattern-matching)
-- [Error Handling](#error-handling)
-- [State Management](#state-management)
-- [Recursion and Looping](#recursion-and-looping)
-- [Destructuring](#destructuring)
-- [Data Validation](#data-validation)
-- [Writing Macros](#writing-macros)
-- [Build-safe Entry Points](#build-safe-entry-points)
-
 ## Working with Nil
 
 ### Safe Navigation
@@ -622,64 +608,6 @@ Every `defmacro` body has two implicit symbols:
 When the dispatch symbol has no registered method (e.g. `(is (= 1 1))`), the `:default` arm handles binary equality and predicate forms.
 
 > Cross-namespace registration must use fully-qualified `phel.test/assert-expr` so the methods table resolves in `phel.test`, not the local namespace.
-
-## Tips for Writing Idiomatic Phel
-
-### Prefer Higher-Order Functions
-
-```phel
-;; Loop
-(loop [coll [1 2 3 4] result []]
-  (if (empty? coll)
-    result
-    (recur (rest coll) (conj result (* 2 (first coll))))))
-
-;; map
-(map #(* % 2) [1 2 3 4])
-```
-
-### Use Threading for Readability
-
-```phel
-;; Hard to read
-(reduce + (map #(* % 2) (filter even? numbers)))
-
-;; Pipeline
-(->> numbers
-     (filter even?)
-     (map #(* % 2))
-     (reduce +))
-```
-
-### Keep Functions Small
-
-```phel
-(defn process-order [order]
-  (-> order
-      validate-order
-      calculate-total
-      apply-discounts
-      generate-invoice
-      send-confirmation))
-```
-
-### Use Descriptive Names
-
-```phel
-;; Good
-(defn find-active-users [users]
-  (filter :active users))
-
-;; Better
-(defn active-users [users]
-  (filter :active users))
-
-;; Best (with docstring)
-(defn active-users
-  "Returns only active users from the collection."
-  [users]
-  (filter :active users))
-```
 
 ## Build-safe Entry Points
 

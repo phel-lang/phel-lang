@@ -1,30 +1,6 @@
 # Data Structures Manipulation Guide
 
-Functions for manipulating Phel's immutable data structures: vectors, maps, sets, and lists.
-
-## Contents
-
-- [Introduction](#introduction)
-- [String Iteration](#string-iteration)
-- [Adding & Building Collections](#adding--building-collections)
-- [Accessing Elements](#accessing-elements)
-- [Modifying Collections](#modifying-collections)
-- [Combining Maps](#combining-maps)
-- [Analysis Functions](#analysis-functions)
-- [Working with Nested Structures](#working-with-nested-structures)
-- [Transient Collections](#transient-collections)
-- [Phel-Specific Extensions](#phel-specific-extensions)
-- [Quick Reference](#quick-reference)
-- [Deprecated Functions](#deprecated-functions)
-- [Summary](#summary)
-
-## Introduction
-
-Phel's data structures are **immutable** and **persistent**. Operations return new versions while sharing structure with the original. Reads stay O(1) amortized; updates cost log32(n).
-
-Function names follow common Lisp conventions (`conj`, `assoc`, `dissoc`, `merge`, `update`, `get`, `keys`, `vals`, `into`, `group-by`, `frequencies`, ...). See the [quick reference](#quick-reference).
-
----
+Functions for manipulating Phel's immutable, persistent data structures: vectors, maps, sets, lists. Operations return new versions while sharing structure with the original. Reads stay O(1) amortized; updates cost log32(n). Function names follow Clojure conventions (`conj`, `assoc`, `dissoc`, `merge`, `update`, `get`, `keys`, `vals`, `into`, `group-by`, `frequencies`, …). See the [quick reference](#quick-reference).
 
 ## String Iteration
 
@@ -705,13 +681,4 @@ Signatures and behavior are identical; replace the name.
 
 ---
 
-## Summary
-
-- `conj`: universal add
-- `assoc`: set key-value
-- `*-in`: nested operations
-- `deep-merge`, `dissoc-in`: Phel extensions for nested work
-- Transients: batch update performance
-- Migrate deprecated names to Clojure-compatible ones
-
-See `docs/examples/05_data-structures.phel`.
+See `docs/examples/05_data-structures.phel` for runnable code.
