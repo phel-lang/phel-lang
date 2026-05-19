@@ -10,6 +10,7 @@ use Override;
 
 use function is_dir;
 use function is_writable;
+use function mkdir;
 use function sprintf;
 
 final readonly class TempDirHealthCheck implements ModuleHealthCheckInterface
@@ -28,10 +29,12 @@ final readonly class TempDirHealthCheck implements ModuleHealthCheckInterface
     public function checkHealth(): HealthStatus
     {
         if (!is_dir($this->tempDir)) {
-            return HealthStatus::unhealthy(
-                sprintf('Temp dir does not exist: %s', $this->tempDir),
-                ['path' => $this->tempDir],
-            );
+            if (!@mkdir($this->tempDir, 0777, true) && !is_dir($this->tempDir)) {
+                return HealthStatus::unhealthy(
+                    sprintf('Temp dir could not be created: %s', $this->tempDir),
+                    ['path' => $this->tempDir],
+                );
+            }
         }
 
         if (!is_writable($this->tempDir)) {
