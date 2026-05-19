@@ -431,8 +431,12 @@
               (fn? (get spec :on-error)))
       (php/-> app (setDispatcher (build-dispatcher spec))))
     (register-signals app (or (get spec :on-signal) {}))
-    (foreach [c (get spec :commands [])]
-      (php/-> app (add (command c))))
+    (let [has-add-command (php/method_exists app "addCommand")]
+      (foreach [c (get spec :commands [])]
+        (let [cmd (command c)]
+          (if has-add-command
+            (php/-> app (addCommand cmd))
+            (php/-> app (add cmd))))))
     (when-let [d (get spec :default)]
       (php/-> app (setDefaultCommand d)))
     app))

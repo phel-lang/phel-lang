@@ -157,3 +157,25 @@
 (deftest test-output-contains-with-string
   (is (cli/output-contains? "foo bar baz" "bar"))
   (is (not (cli/output-contains? "foo bar baz" "qux"))))
+
+;; ---------------------------------------------------------------------------
+;; Symfony 8 compatibility: addCommand() preferred over deprecated add()
+;; ---------------------------------------------------------------------------
+
+(deftest test-application-uses-addcommand-when-available
+  ; Symfony 7.4 deprecated add() in favour of addCommand().
+  ; Capture any deprecation triggered while building the application and
+  ; assert that none mention Application::add().
+  ; Use an atom so the error-handler closure captures a reference-stable cell.
+  (let [deprecations (atom [])
+        _            (php/set_error_handler
+                      (fn [_ msg _ _]
+                        (swap! deprecations conj msg)
+                        true))
+        _            (cli/application {:name "t"
+                                       :commands [{:name "hi"
+                                                   :run  (fn [_] 0)}]})
+        _            (php/restore_error_handler)
+        found        (filter (fn [msg] (php/str_contains msg "Application::add()"))
+                             @deprecations)]
+    (is (= [] found) "no deprecation for Application::add() — addCommand() used instead")))

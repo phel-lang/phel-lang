@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `phel.cli`: `application` now calls `Application::addCommand()` (Symfony 8 compat) instead of the deprecated `add()` (#2033)
 - `phel lint`: cache invalidates when `phel-lint.phel` changes (#2027)
 - `phel lint`: `unused-binding` no longer flags symbols used in later let bindings (#2018)
 - `phel doctor`: auto-bootstraps temp dir; passes on fresh installs (#2020)
