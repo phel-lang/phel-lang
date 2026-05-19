@@ -71,4 +71,43 @@ final class RuleSettingsTest extends TestCase
         self::assertSame(RuleSettings::SEVERITY_OFF, $settings->severityFor('phel/nope'));
         self::assertFalse($settings->isEnabled('phel/nope'));
     }
+
+    public function test_fingerprint_is_stable_for_identical_settings(): void
+    {
+        $a = new RuleSettings(
+            severities: [RuleRegistry::UNUSED_BINDING => Diagnostic::SEVERITY_WARNING],
+            excludeGlobs: [RuleRegistry::UNUSED_BINDING => ['src/*.phel']],
+        );
+        $b = new RuleSettings(
+            severities: [RuleRegistry::UNUSED_BINDING => Diagnostic::SEVERITY_WARNING],
+            excludeGlobs: [RuleRegistry::UNUSED_BINDING => ['src/*.phel']],
+        );
+
+        self::assertSame($a->fingerprint(), $b->fingerprint());
+    }
+
+    public function test_fingerprint_changes_when_severity_changes(): void
+    {
+        $base = new RuleSettings(
+            severities: [RuleRegistry::UNUSED_BINDING => Diagnostic::SEVERITY_WARNING],
+        );
+        $changed = new RuleSettings(
+            severities: [RuleRegistry::UNUSED_BINDING => RuleSettings::SEVERITY_OFF],
+        );
+
+        self::assertNotSame($base->fingerprint(), $changed->fingerprint());
+    }
+
+    public function test_fingerprint_changes_when_exclude_pattern_added(): void
+    {
+        $base = new RuleSettings(
+            severities: [RuleRegistry::UNUSED_BINDING => Diagnostic::SEVERITY_WARNING],
+        );
+        $withExclude = new RuleSettings(
+            severities: [RuleRegistry::UNUSED_BINDING => Diagnostic::SEVERITY_WARNING],
+            excludeGlobs: [RuleRegistry::UNUSED_BINDING => ['src/*.phel']],
+        );
+
+        self::assertNotSame($base->fingerprint(), $withExclude->fingerprint());
+    }
 }
