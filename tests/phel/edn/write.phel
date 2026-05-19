@@ -1,0 +1,58 @@
+(ns phel-test.edn.write
+  (:require phel.edn)
+  (:require phel.test :refer [deftest is]))
+
+(deftest test-write-nil
+  (is (= "nil" (edn/write-string nil))))
+
+(deftest test-write-booleans
+  (is (= "true"  (edn/write-string true)))
+  (is (= "false" (edn/write-string false))))
+
+(deftest test-write-numbers
+  (is (= "42"   (edn/write-string 42)))
+  (is (= "-7"   (edn/write-string -7)))
+  (is (= "3.14" (edn/write-string 3.14))))
+
+(deftest test-write-string
+  (is (= "\"hello\"" (edn/write-string "hello"))))
+
+(deftest test-write-keyword
+  (is (= ":foo"    (edn/write-string :foo)))
+  (is (= ":ns/foo" (edn/write-string :ns/foo))))
+
+(deftest test-write-symbol
+  (is (= "foo" (edn/write-string 'foo))))
+
+(deftest test-write-vector
+  (is (= "[1 2 3]" (edn/write-string [1 2 3])))
+  (is (= "[]"      (edn/write-string []))))
+
+(deftest test-write-list
+  (is (= "(1 2 3)" (edn/write-string '(1 2 3)))))
+
+(deftest test-write-map-round-trip
+  (is (= {:a 1 :b 2}
+         (edn/read-string (edn/write-string {:a 1 :b 2})))))
+
+(deftest test-write-set-round-trip
+  (is (= #{1 2 3}
+         (edn/read-string (edn/write-string #{1 2 3})))))
+
+(deftest test-write-uuid-round-trip
+  (let [u             (php/:: \Phel\Lang\UUID (fromString "550e8400-e29b-41d4-a716-446655440000"))
+        round-tripped (edn/read-string (edn/write-string u))]
+    (is (php/instanceof round-tripped \Phel\Lang\UUID))
+    (is (= (str u) (str round-tripped)) "UUID round-trips through EDN")))
+
+(deftest test-write-string-all
+  (is (= "1 2 3" (edn/write-string-all [1 2 3])))
+  (is (= ""      (edn/write-string-all [])))
+  (is (= ":a {:b 1}"
+         (edn/write-string-all [:a {:b 1}]))))
+
+(deftest test-round-trip-complex
+  (let [v {:users [{:id 1 :name "Alice"}
+                   {:id 2 :name "Bob"}]
+           :total 2}]
+    (is (= v (edn/read-string (edn/write-string v))))))

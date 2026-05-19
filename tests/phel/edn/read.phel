@@ -1,0 +1,90 @@
+(ns phel-test.edn.read
+  (:require phel.edn)
+  (:require phel.test :refer [deftest is]))
+
+(deftest test-read-nil
+  (is (= nil (edn/read-string "nil")) "nil literal")
+  (is (= nil (edn/read-string "")) "empty input returns nil")
+  (is (= :eof (edn/read-string "" {:eof :eof})) "empty input honors :eof option"))
+
+(deftest test-read-booleans
+  (is (= true (edn/read-string "true")))
+  (is (= false (edn/read-string "false"))))
+
+(deftest test-read-numbers
+  (is (= 42 (edn/read-string "42")))
+  (is (= -7 (edn/read-string "-7")))
+  (is (= 3.14 (edn/read-string "3.14")))
+  (is (= -1.5 (edn/read-string "-1.5"))))
+
+(deftest test-read-strings
+  (is (= "hello" (edn/read-string "\"hello\"")))
+  (is (= "with \"quote\"" (edn/read-string "\"with \\\"quote\\\"\""))))
+
+(deftest test-read-keywords
+  (is (= :foo (edn/read-string ":foo")))
+  (is (= :ns/foo (edn/read-string ":ns/foo"))))
+
+(deftest test-read-symbols
+  (is (= 'foo (edn/read-string "foo")))
+  (is (= 'ns/foo (edn/read-string "ns/foo"))))
+
+(deftest test-read-list
+  (is (= '(1 2 3) (edn/read-string "(1 2 3)")))
+  (is (= '() (edn/read-string "()"))))
+
+(deftest test-read-vector
+  (is (= [1 2 3] (edn/read-string "[1 2 3]")))
+  (is (= [] (edn/read-string "[]"))))
+
+(deftest test-read-map
+  (is (= {:a 1 :b 2} (edn/read-string "{:a 1 :b 2}")))
+  (is (= {} (edn/read-string "{}"))))
+
+(deftest test-read-set
+  (is (= #{1 2 3} (edn/read-string "#{1 2 3}")))
+  (is (= #{} (edn/read-string "#{}"))))
+
+(deftest test-read-nested
+  (is (= {:users [{:name "Alice" :age 30}
+                  {:name "Bob"   :age 25}]}
+         (edn/read-string
+          "{:users [{:name \"Alice\" :age 30} {:name \"Bob\" :age 25}]}"))))
+
+(deftest test-read-discard
+  (is (= [1 3] (edn/read-string "[1 #_2 3]")) "#_ discards next form"))
+
+(deftest test-read-comments
+  (is (= 1 (edn/read-string "; comment\n1"))))
+
+(deftest test-read-string-all
+  (is (= [1 2 3] (edn/read-string-all "1 2 3")))
+  (is (= [] (edn/read-string-all "")))
+  (is (= [:a {:b 1} [2 3]] (edn/read-string-all ":a {:b 1} [2 3]"))))
+
+(deftest test-read-builtin-tags
+  (let [uuid (edn/read-string "#uuid \"550e8400-e29b-41d4-a716-446655440000\"")]
+    (is (php/instanceof uuid \Phel\Lang\UUID) "#uuid returns UUID")
+    (is (= "550e8400-e29b-41d4-a716-446655440000" (php/-> uuid (__toString))))))
+
+(deftest test-read-custom-tag
+  (is (= 84
+         (edn/read-string "#myapp/double 42"
+                          {:readers {'myapp/double (fn [v] (* v 2))}}))
+      ":readers handler runs for tagged value")
+  (is (= [84]
+         (edn/read-string "[#myapp/double 42]"
+                          {:readers {'myapp/double (fn [v] (* v 2))}}))
+      "custom tag inside collection"))
+
+(deftest test-read-custom-tag-by-string
+  (is (= 6 (edn/read-string "#triple 2"
+                            {:readers {"triple" (fn [v] (* v 3))}}))
+      ":readers accepts string keys"))
+
+(deftest test-read-readers-restored-after-call
+  (edn/read-string "1" {:readers {'myapp/x (fn [v] v)}})
+  (is (false?
+       (php/-> (php/:: \Phel\Lang\TagRegistry (getInstance))
+               (has "myapp/x")))
+      "custom reader unregistered after call"))
