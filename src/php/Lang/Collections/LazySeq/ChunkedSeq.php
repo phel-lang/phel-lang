@@ -178,15 +178,15 @@ final class ChunkedSeq extends AbstractType implements LazySeqInterface, Countab
     }
 
     /**
-     * Mirrors Clojure's `(next s)` semantics: returns a realized `LazyCons`
+     * Mirrors Clojure's `(next s)` semantics: returns a realized `Cons`
      * holding the next head and a lazy tail, or `null` when exhausted. The
      * returned value is never a `LazySeqInterface`.
      *
-     * @return LazyCons<mixed>|null
+     * @return Cons<mixed>|null
      */
-    public function nextSeq(): ?LazyCons
+    public function nextSeq(): ?Cons
     {
-        return LazyCons::fromCdr($this->hasher, $this->equalizer, $this->cdr());
+        return Cons::fromCdr($this->hasher, $this->equalizer, $this->cdr());
     }
 
     /**

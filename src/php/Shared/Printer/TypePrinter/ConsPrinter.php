@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Printer\TypePrinter;
 
-use Phel\Lang\Collections\LazySeq\LazyCons;
+use Phel\Lang\Collections\LazySeq\Cons;
 use Phel\Lang\Collections\LazySeq\LazySeqConfig;
 use Phel\Shared\Printer\PrinterInterface;
 
 /**
- * @implements TypePrinterInterface<LazyCons<mixed>>
+ * @implements TypePrinterInterface<Cons<mixed>>
  */
-final readonly class LazyConsPrinter implements TypePrinterInterface
+final readonly class ConsPrinter implements TypePrinterInterface
 {
     public function __construct(private PrinterInterface $printer) {}
 
     /**
-     * @param LazyCons<mixed> $form
+     * @param Cons<mixed> $form
      *
      * @psalm-suppress MoreSpecificImplementedParamType
      */

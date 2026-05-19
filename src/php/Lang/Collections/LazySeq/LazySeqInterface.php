@@ -25,13 +25,13 @@ interface LazySeqInterface extends TypeInterface, SeqInterface, ConsInterface
     public function isRealized(): bool;
 
     /**
-     * Realizes one step beyond the head and returns a `LazyCons` cell whose
+     * Realizes one step beyond the head and returns a `Cons` cell whose
      * `cdr` is the lazy tail, or `null` when the tail is empty. Mirrors
      * Clojure's `(next s)`; the returned value is never a `LazySeqInterface`.
      *
-     * @return LazyCons<mixed>|null
+     * @return Cons<mixed>|null
      */
-    public function nextSeq(): ?LazyCons;
+    public function nextSeq(): ?Cons;
 
     /**
      * Forces realization of the entire sequence and returns it as an array.

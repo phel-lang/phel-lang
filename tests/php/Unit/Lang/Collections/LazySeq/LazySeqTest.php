@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Lang\Collections\LazySeq;
 
 use Generator;
-use Phel\Lang\Collections\LazySeq\LazyCons;
+use Phel\Lang\Collections\LazySeq\Cons;
 use Phel\Lang\Collections\LazySeq\LazySeq;
 use Phel\Lang\Collections\LazySeq\LazySeqInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -141,14 +141,14 @@ final class LazySeqTest extends TestCase
         self::assertSame(0, $callCount, 'cdr must not force the tail');
     }
 
-    public function test_next_seq_returns_lazy_cons_not_lazy_seq(): void
+    public function test_next_seq_returns_cons_not_lazy_seq(): void
     {
         $lazySeq = LazySeq::fromArray($this->hasher, $this->equalizer, [1, 2, 3]);
 
         $next = $lazySeq->nextSeq();
 
         self::assertNotNull($next);
-        self::assertInstanceOf(LazyCons::class, $next);
+        self::assertInstanceOf(Cons::class, $next);
         self::assertNotInstanceOf(LazySeqInterface::class, $next);
         self::assertSame(2, $next->first());
     }

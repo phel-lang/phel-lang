@@ -14,10 +14,10 @@ use Phel\Lang\SeqInterface;
 use Traversable;
 
 /**
- * A realized cons cell: a concrete head paired with a lazy tail. Returned
- * by `LazySeq::nextSeq()` and `ChunkedSeq::nextSeq()` so callers receive a
- * seq view that is not itself a `LazySeqInterface`, matching Clojure's
- * `(next some-lazy-seq)` contract.
+ * A realized cons cell: a concrete head paired with a lazy tail, matching
+ * Clojure's `clojure.lang.Cons` and `(next some-lazy-seq)` contract.
+ * Returned by `LazySeq::nextSeq()` and `ChunkedSeq::nextSeq()` so callers
+ * receive a seq view that is not itself a `LazySeqInterface`.
  *
  * @template T
  *
@@ -26,7 +26,7 @@ use Traversable;
  *
  * @extends AbstractType<SeqInterface<T, LazySeqInterface>>
  */
-final class LazyCons extends AbstractType implements SeqInterface, IteratorAggregate
+final class Cons extends AbstractType implements SeqInterface, IteratorAggregate
 {
     private int $hashCache = 0;
 
@@ -71,7 +71,7 @@ final class LazyCons extends AbstractType implements SeqInterface, IteratorAggre
      * Builds a realized cons cell from a lazy `$cdr` by forcing one element
      * of the head. Returns `null` when `$cdr` is null or empty. Shared
      * helper for `LazySeq::nextSeq()`, `ChunkedSeq::nextSeq()`, and
-     * `LazyCons::nextSeq()`.
+     * `Cons::nextSeq()`.
      *
      * @param LazySeqInterface<mixed>|null $cdr
      *
@@ -102,7 +102,7 @@ final class LazyCons extends AbstractType implements SeqInterface, IteratorAggre
      * the lazy tail is exhausted. The returned cell's head is the tail's
      * first element so callers do not skip an item.
      *
-     * @return LazyCons<T>|null
+     * @return Cons<T>|null
      */
     public function nextSeq(): ?self
     {

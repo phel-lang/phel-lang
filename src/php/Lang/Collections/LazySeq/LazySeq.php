@@ -212,15 +212,15 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
 
     /**
      * Mirrors Clojure's `(next s)` semantics: returns a realized cons cell
-     * (`LazyCons`) holding the next head and a lazy tail, or `null` when
+     * (`Cons`) holding the next head and a lazy tail, or `null` when
      * the tail is exhausted. The returned value is never a
      * `LazySeqInterface`.
      *
-     * @return LazyCons<mixed>|null
+     * @return Cons<mixed>|null
      */
-    public function nextSeq(): ?LazyCons
+    public function nextSeq(): ?Cons
     {
-        return LazyCons::fromCdr($this->hasher, $this->equalizer, $this->cdr());
+        return Cons::fromCdr($this->hasher, $this->equalizer, $this->cdr());
     }
 
     /**
@@ -245,7 +245,7 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
         return new self(
             $hasher,
             $equalizer,
-            static fn(): LazyCons => new LazyCons($hasher, $equalizer, $x, $self),
+            static fn(): Cons => new Cons($hasher, $equalizer, $x, $self),
             $this->meta,
         );
     }

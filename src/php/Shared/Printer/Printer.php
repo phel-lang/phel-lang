@@ -7,7 +7,7 @@ namespace Phel\Shared\Printer;
 use Phel\Lang\Atom;
 use Phel\Lang\BigDecimal;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
-use Phel\Lang\Collections\LazySeq\LazyCons;
+use Phel\Lang\Collections\LazySeq\Cons;
 use Phel\Lang\Collections\LazySeq\LazySeqInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -27,9 +27,9 @@ use Phel\Shared\Printer\TypePrinter\ArrayPrinter;
 use Phel\Shared\Printer\TypePrinter\AtomPrinter;
 use Phel\Shared\Printer\TypePrinter\BigDecimalPrinter;
 use Phel\Shared\Printer\TypePrinter\BooleanPrinter;
+use Phel\Shared\Printer\TypePrinter\ConsPrinter;
 use Phel\Shared\Printer\TypePrinter\FnPrinter;
 use Phel\Shared\Printer\TypePrinter\KeywordPrinter;
-use Phel\Shared\Printer\TypePrinter\LazyConsPrinter;
 use Phel\Shared\Printer\TypePrinter\LazySeqPrinter;
 use Phel\Shared\Printer\TypePrinter\NonPrintableClassPrinter;
 use Phel\Shared\Printer\TypePrinter\NullPrinter;
@@ -129,8 +129,8 @@ final readonly class Printer implements PrinterInterface
             return new PersistentHashSetPrinter($this);
         }
 
-        if ($form instanceof LazyCons) {
-            return new LazyConsPrinter($this);
+        if ($form instanceof Cons) {
+            return new ConsPrinter($this);
         }
 
         if ($form instanceof LazySeqInterface) {

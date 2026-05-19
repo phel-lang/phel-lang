@@ -3,7 +3,7 @@
   (:use Phel)
   (:use Phel.Lang.CdrInterface)
   (:use Phel.Lang.Collections.HashSet.PersistentHashSetInterface)
-  (:use Phel.Lang.Collections.LazySeq.LazyCons)
+  (:use Phel.Lang.Collections.LazySeq.Cons)
   (:use Phel.Lang.Collections.LazySeq.LazySeqInterface)
   (:use Phel.Lang.Collections.Map.MapEntry)
   (:use Phel.Lang.Collections.Map.PersistentMapInterface)
@@ -99,7 +99,7 @@
       nil
       (if (php/instanceof xs LazySeqInterface)
         (php/-> xs (nextSeq))
-        (if (php/instanceof xs LazyCons)
+        (if (php/instanceof xs Cons)
           (php/-> xs (nextSeq))
           (if (php/instanceof xs CdrInterface)
             (php/-> xs (cdr))
