@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- `phel.edn` namespace: read and write [Extensible Data Notation](https://github.com/edn-format/edn) without going through `eval`. Public API: `read-string`, `read-string-all`, `write-string`, `write-string-all`. Supports per-call `:readers` for custom tag handlers and an `:eof` option for empty input. (#2008)
+- Lexer: tagged literals now accept namespaced symbols (`#my.app/Person`, `#myapp/double`) and dot-separated namespaces (`#my.app.module`), matching EDN's tag grammar. Unqualified tags (`#uuid`, `#inst`) continue to work unchanged.
+
 ## [0.39.0](https://github.com/phel-lang/phel-lang/compare/v0.38.0...v0.39.0) - 2026-05-19
 
 ### Added

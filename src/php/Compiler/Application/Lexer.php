@@ -51,7 +51,7 @@ final class Lexer implements LexerInterface
         '(#\?\()', // reader conditional (index: 25 = T_READER_COND)
         '(#\?@\()', // reader conditional splicing (index: 26 = T_READER_COND_SPLICING)
         '(##(?:-?Inf|NaN)(?![A-Za-z0-9_\-]))', // symbolic number literal (index: 27 = T_SYMBOLIC_NUMBER) - Clojure-style ##Inf, ##-Inf, ##NaN
-        '(#[A-Za-z][A-Za-z0-9_\-]*)', // tagged literal start (index: 28 = T_TAGGED_LITERAL) - e.g. #cpp, #uuid, #inst
+        '(#[A-Za-z][A-Za-z0-9_\-]*(?:\.[A-Za-z0-9_\-]+)*(?:\/[A-Za-z][A-Za-z0-9_\-]*(?:\.[A-Za-z0-9_\-]+)*)?)', // tagged literal start (index: 28 = T_TAGGED_LITERAL) - e.g. #cpp, #uuid, #inst, #my.app/Person (EDN-style namespaced tags)
         "(#')", // var-quote prefix (index: 29 = T_VAR_QUOTE) - `#'foo` expands to `(var foo)` in the reader, yielding a `PhelVar` handle to the named definition
     ];
 
