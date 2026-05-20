@@ -18,15 +18,15 @@ All notable changes to this project will be documented in this file.
 
 - BC: release tooling moved from `build/` to `tools/`; `build/` is now phar-only
 - CI: split `ci.yml` into `quality.yml` / `tests.yml` / `smoke.yml` with a shared `setup-phel` composite action; add concurrency cancellation and least-privilege perms (#2039)
-- Compiler: pure vector/map/set literals inside a fn body are now hoisted to a per-fn `static` cache, so each invocation reuses the same persistent collection instead of rebuilding it
-- Compiler: `if` / `?:` skip the `Truthy::isTruthy` wrap when the test is a known-bool expression (literal `true`/`false`, infix comparison, `is_int`/`is_a`/etc.), emitting a direct PHP conditional and saving one assign + two comparisons per branch
-- Compiler: `recur` emits direct param assignments when no expression reads a recur param that an earlier expression has already overwritten, skipping the per-arg `$__phel_N` temp shuffle in the common case
+- Compiler: hoist pure vector/map/set literals to a per-fn `static` cache
+- Compiler: skip `Truthy::isTruthy` wrap in `if`/`?:` when the test is known-bool
+- Compiler: `recur` skips the `$__phel_N` temp shuffle when no aliasing is possible
 - `phel agent-install`: copy the `.agents/` docs tree by default; `--with-docs` is replaced by `--no-docs` to opt out
 
 ### Fixed
 
-- Dev: vendored Psalm 6.16.1 now patched on `composer install` / `composer update` to avoid the PHP 8.5 "NAN coerced to string" crash in `TLiteralFloat`
-- Compiler: `ConstantScope` uses `SplObjectStorage::offsetExists()` instead of the PHP 8.5-deprecated `contains()`, so deprecation notices no longer leak into emitted code
+- Dev: patch vendored Psalm 6.16.1 on install/update for PHP 8.5 NAN-coercion crash in `TLiteralFloat`
+- Compiler: use `SplObjectStorage::offsetExists()` in `ConstantScope` to silence PHP 8.5 deprecation in emitted code
 - `phel.cli`: `application` now calls `Application::addCommand()` (Symfony 8 compat) instead of the deprecated `add()` (#2033)
 - `phel lint`: cache invalidates when `phel-lint.phel` changes (#2027)
 - `phel lint`: `unused-binding` no longer flags symbols used in later let bindings (#2018)
