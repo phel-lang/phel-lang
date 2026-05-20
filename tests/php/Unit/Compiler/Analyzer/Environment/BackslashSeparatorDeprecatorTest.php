@@ -130,6 +130,16 @@ final class BackslashSeparatorDeprecatorTest extends TestCase
         self::assertSame([], $this->captured);
     }
 
+    public function test_emits_for_leading_backslash_when_internal_separator_present(): void
+    {
+        $deprecator = $this->deprecator(enabled: true);
+        $deprecator->maybeWarn($this->locatedSymbol(null, '\\Foo\\Bar', '/app/user.phel'));
+
+        self::assertCount(1, $this->captured);
+        self::assertStringContainsString("'\\Foo\\Bar'", $this->captured[0]);
+        self::assertStringContainsString("'Foo.Bar'", $this->captured[0]);
+    }
+
     public function test_suppresses_when_location_is_missing(): void
     {
         $deprecator = $this->deprecator(enabled: true);
