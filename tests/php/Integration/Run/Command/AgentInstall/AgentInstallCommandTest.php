@@ -45,7 +45,7 @@ final class AgentInstallCommandTest extends TestCase
 
     public function test_install_single_platform_only_creates_that_target(): void
     {
-        $this->install(['platform' => 'claude']);
+        $this->install(['platform' => 'claude', '--no-docs' => true]);
 
         self::assertFileExists($this->testDir . '/.claude/skills/phel-lang/SKILL.md');
         self::assertFileDoesNotExist($this->testDir . '/AGENTS.md');
@@ -127,9 +127,9 @@ final class AgentInstallCommandTest extends TestCase
         );
     }
 
-    public function test_with_docs_copies_agents_tree(): void
+    public function test_install_copies_agents_tree_by_default(): void
     {
-        $this->install(['platform' => 'claude', '--with-docs' => true]);
+        $this->install(['platform' => 'claude']);
 
         self::assertDirectoryExists($this->testDir . '/.agents');
         self::assertFileExists($this->testDir . '/.agents/RULES.md');
@@ -139,13 +139,20 @@ final class AgentInstallCommandTest extends TestCase
         self::assertDirectoryExists($this->testDir . '/.agents/examples');
     }
 
-    public function test_with_docs_skips_when_agents_dir_already_exists(): void
+    public function test_no_docs_skips_agents_tree(): void
+    {
+        $this->install(['platform' => 'claude', '--no-docs' => true]);
+
+        self::assertDirectoryDoesNotExist($this->testDir . '/.agents');
+    }
+
+    public function test_install_skips_docs_when_agents_dir_already_exists(): void
     {
         mkdir($this->testDir . '/.agents', 0o755, true);
         file_put_contents($this->testDir . '/.agents/marker.txt', 'keep me');
 
         $output = new BufferedOutput();
-        $this->install(['platform' => 'claude', '--with-docs' => true], $output);
+        $this->install(['platform' => 'claude'], $output);
 
         self::assertFileExists($this->testDir . '/.agents/marker.txt');
         self::assertStringContainsString('.agents/ already exists', $output->fetch());
@@ -153,7 +160,7 @@ final class AgentInstallCommandTest extends TestCase
 
     public function test_claude_skill_references_quick_syntax(): void
     {
-        $this->install(['platform' => 'claude']);
+        $this->install(['platform' => 'claude', '--no-docs' => true]);
 
         $content = (string) file_get_contents($this->testDir . '/.claude/skills/phel-lang/SKILL.md');
         self::assertStringContainsString('quick-syntax.md', $content);
@@ -222,10 +229,10 @@ final class AgentInstallCommandTest extends TestCase
 
     public function test_uninstall_removes_skill_file_when_no_backup(): void
     {
-        $this->install(['platform' => 'aider', '--force' => true]);
+        $this->install(['platform' => 'aider', '--force' => true, '--no-docs' => true]);
         self::assertFileExists($this->testDir . '/CONVENTIONS.md');
 
-        $this->install(['platform' => 'aider', '--uninstall' => true]);
+        $this->install(['platform' => 'aider', '--uninstall' => true, '--no-docs' => true]);
 
         self::assertFileDoesNotExist($this->testDir . '/CONVENTIONS.md');
     }
@@ -233,9 +240,9 @@ final class AgentInstallCommandTest extends TestCase
     public function test_uninstall_restores_backup_when_present(): void
     {
         file_put_contents($this->testDir . '/CONVENTIONS.md', 'user-original');
-        $this->install(['platform' => 'aider']);
+        $this->install(['platform' => 'aider', '--no-docs' => true]);
 
-        $this->install(['platform' => 'aider', '--uninstall' => true]);
+        $this->install(['platform' => 'aider', '--uninstall' => true, '--no-docs' => true]);
 
         self::assertSame('user-original', file_get_contents($this->testDir . '/CONVENTIONS.md'));
         self::assertFileDoesNotExist($this->testDir . '/CONVENTIONS.md.pre-phel.bak');
@@ -243,9 +250,9 @@ final class AgentInstallCommandTest extends TestCase
 
     public function test_uninstall_all_removes_every_installed_file(): void
     {
-        $this->install(['--all' => true]);
+        $this->install(['--all' => true, '--no-docs' => true]);
 
-        $this->install(['--all' => true, '--uninstall' => true]);
+        $this->install(['--all' => true, '--uninstall' => true, '--no-docs' => true]);
 
         foreach (['AGENTS.md', 'GEMINI.md', 'CONVENTIONS.md'] as $f) {
             self::assertFileDoesNotExist($this->testDir . '/' . $f);
@@ -256,14 +263,24 @@ final class AgentInstallCommandTest extends TestCase
         self::assertFileDoesNotExist($this->testDir . '/.github/copilot-instructions.md');
     }
 
-    public function test_uninstall_with_docs_removes_agents_tree(): void
+    public function test_uninstall_removes_agents_tree_by_default(): void
     {
-        $this->install(['platform' => 'claude', '--with-docs' => true]);
+        $this->install(['platform' => 'claude']);
         self::assertDirectoryExists($this->testDir . '/.agents');
 
-        $this->install(['platform' => 'claude', '--uninstall' => true, '--with-docs' => true]);
+        $this->install(['platform' => 'claude', '--uninstall' => true]);
 
         self::assertDirectoryDoesNotExist($this->testDir . '/.agents');
+    }
+
+    public function test_uninstall_no_docs_keeps_agents_tree(): void
+    {
+        $this->install(['platform' => 'claude']);
+        self::assertDirectoryExists($this->testDir . '/.agents');
+
+        $this->install(['platform' => 'claude', '--uninstall' => true, '--no-docs' => true]);
+
+        self::assertDirectoryExists($this->testDir . '/.agents');
     }
 
     public function test_auto_installs_only_for_detected_agents(): void

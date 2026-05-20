@@ -38,7 +38,7 @@ final class AgentInstallCommand extends Command
 
     private const string OPT_ALL = 'all';
 
-    private const string OPT_WITH_DOCS = 'with-docs';
+    private const string OPT_NO_DOCS = 'no-docs';
 
     private const string OPT_FORCE = 'force';
 
@@ -76,7 +76,7 @@ final class AgentInstallCommand extends Command
                 sprintf('Platform: %s', $platformList),
             )
             ->addOption(self::OPT_ALL, null, InputOption::VALUE_NONE, 'Install all supported platforms')
-            ->addOption(self::OPT_WITH_DOCS, null, InputOption::VALUE_NONE, 'Also copy the bundled agent docs tree to .agents/')
+            ->addOption(self::OPT_NO_DOCS, null, InputOption::VALUE_NONE, 'Skip copying the bundled agent docs tree to .agents/ (copied by default)')
             ->addOption(self::OPT_FORCE, null, InputOption::VALUE_NONE, 'Overwrite existing files (default: backup to ' . self::BACKUP_SUFFIX . ')')
             ->addOption(self::OPT_DRY_RUN, null, InputOption::VALUE_NONE, 'Print what would be written without changing files')
             ->addOption(self::OPT_CHECK, null, InputOption::VALUE_NONE, 'Report install status and version drift per platform; exit 1 if any drift')
@@ -107,12 +107,14 @@ final class AgentInstallCommand extends Command
         $dryRun = (bool) $input->getOption(self::OPT_DRY_RUN);
         $force = (bool) $input->getOption(self::OPT_FORCE);
 
+        $copyDocs = !(bool) $input->getOption(self::OPT_NO_DOCS);
+
         if ((bool) $input->getOption(self::OPT_UNINSTALL)) {
             foreach ($platforms as $platformKey) {
                 $this->uninstallPlatform($output, $projectRoot, $this->registry->get($platformKey), $dryRun);
             }
 
-            if ((bool) $input->getOption(self::OPT_WITH_DOCS)) {
+            if ($copyDocs) {
                 $this->removeDocs($output, $projectRoot, $dryRun);
             }
 
@@ -123,7 +125,7 @@ final class AgentInstallCommand extends Command
             $this->installPlatform($output, $sourceRoot, $projectRoot, $this->registry->get($platformKey), $force, $dryRun, $stamper);
         }
 
-        if ((bool) $input->getOption(self::OPT_WITH_DOCS)) {
+        if ($copyDocs) {
             $this->copyDocs($output, $sourceRoot, $projectRoot, $force, $dryRun);
         }
 
