@@ -5,12 +5,15 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\Cache\BodyConstantScanner;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\Cache\ConstantScope;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 
 use function count;
+use function implode;
 use function is_string;
 
 final readonly class MethodEmitter
@@ -18,6 +21,7 @@ final readonly class MethodEmitter
     public function __construct(
         private OutputEmitterInterface $outputEmitter,
         private ClosureEmitterHelper $closureHelper,
+        private BodyConstantScanner $constantScanner = new BodyConstantScanner(),
     ) {}
 
     public function emit(string $methodName, FnNode $node): void
@@ -29,7 +33,7 @@ final readonly class MethodEmitter
         $this->emitMethodParametersExtraction($node);
         $this->emitSelfNameBinding($node);
         $this->emitMethodVariadicParameters($node);
-        $this->emitMethodBody($node);
+        $this->emitBodyWithConstantScope($node);
         $this->emitMethodEnd($node);
     }
 
@@ -84,7 +88,44 @@ final readonly class MethodEmitter
         }
 
         $this->emitMethodVariadicParameters($node);
-        $this->emitMethodBody($node);
+        $this->emitBodyWithConstantScope($node);
+    }
+
+    /**
+     * Wraps {@see emitMethodBody()} with a {@see ConstantScope} so the
+     * emitters for {@see VectorNode}, {@see MapNode}, and {@see SetNode}
+     * can hoist pure literals to per-fn `static` variables.
+     */
+    private function emitBodyWithConstantScope(FnNode $node): void
+    {
+        $scope = new ConstantScope();
+        $this->constantScanner->scan($node->getBody(), $scope);
+        $this->outputEmitter->pushConstantScope($scope);
+
+        try {
+            $this->emitConstantStatics($scope, $node);
+            $this->emitMethodBody($node);
+        } finally {
+            $this->outputEmitter->popConstantScope();
+        }
+    }
+
+    private function emitConstantStatics(ConstantScope $scope, FnNode $node): void
+    {
+        $count = $scope->count();
+        if ($count === 0) {
+            return;
+        }
+
+        $parts = [];
+        for ($i = 0; $i < $count; ++$i) {
+            $parts[] = '$__phel_const_' . $i;
+        }
+
+        $this->outputEmitter->emitLine(
+            'static ' . implode(', ', $parts) . ';',
+            $node->getStartSourceLocation(),
+        );
     }
 
     private function extractTypeTag(mixed $meta): ?string

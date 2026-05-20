@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Emitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\Cache\ConstantScope;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\OutputEmitterOptions;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\SourceMapState;
 use Phel\Lang\SourceLocation;
@@ -13,6 +14,12 @@ use Phel\Lang\Symbol;
 
 interface OutputEmitterInterface
 {
+    public function pushConstantScope(ConstantScope $scope): void;
+
+    public function popConstantScope(): void;
+
+    public function currentConstantScope(): ?ConstantScope;
+
     public function resetIndentLevel(): void;
 
     public function resetSourceMapState(): void;

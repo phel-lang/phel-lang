@@ -19,10 +19,22 @@ final class SetEmitter implements NodeEmitterInterface
     {
         assert($node instanceof SetNode);
 
+        $slot = $this->outputEmitter->currentConstantScope()?->lookup($node);
         $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-        $this->outputEmitter->emitStr('\\' . Phel::class . '::set([', $node->getStartSourceLocation());
-        $this->outputEmitter->emitArgList($node->getValues(), $node->getStartSourceLocation());
-        $this->outputEmitter->emitStr('])', $node->getStartSourceLocation());
+
+        if ($slot !== null) {
+            $this->outputEmitter->emitStr(
+                '($__phel_const_' . $slot . ' ??= \\' . Phel::class . '::set([',
+                $node->getStartSourceLocation(),
+            );
+            $this->outputEmitter->emitArgList($node->getValues(), $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr(']))', $node->getStartSourceLocation());
+        } else {
+            $this->outputEmitter->emitStr('\\' . Phel::class . '::set([', $node->getStartSourceLocation());
+            $this->outputEmitter->emitArgList($node->getValues(), $node->getStartSourceLocation());
+            $this->outputEmitter->emitStr('])', $node->getStartSourceLocation());
+        }
+
         $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 }

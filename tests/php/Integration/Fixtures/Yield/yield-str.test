@@ -10,8 +10,9 @@
     public const BOUND_TO = "user\\yield_generator_str";
 
     public function __invoke() {
-      return (function() {
-        foreach (\Phel\Lang\Seq::toIterable((\Phel::getDefinition("phel.core", "range"))(...\Phel\Lang\Seq::toApplyArguments(\Phel::vector([0, 3])))) as $i) {
+      static $__phel_const_0;
+      return (function() use(&$__phel_const_0) {
+        foreach (\Phel\Lang\Seq::toIterable((\Phel::getDefinition("phel.core", "range"))(...\Phel\Lang\Seq::toApplyArguments(($__phel_const_0 ??= \Phel::vector([0, 3]))))) as $i) {
           yield $i;
         }
         return null;

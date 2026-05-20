@@ -19,11 +19,30 @@ final class MapEmitter implements NodeEmitterInterface
     {
         assert($node instanceof MapNode);
 
+        $slot = $this->outputEmitter->currentConstantScope()?->lookup($node);
+        $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
+
+        if ($slot !== null) {
+            $this->outputEmitter->emitStr(
+                '($__phel_const_' . $slot . ' ??= \Phel::map(',
+                $node->getStartSourceLocation(),
+            );
+            $this->emitEntries($node);
+            $this->outputEmitter->emitStr('))', $node->getStartSourceLocation());
+        } else {
+            $this->outputEmitter->emitStr('\Phel::map(', $node->getStartSourceLocation());
+            $this->emitEntries($node);
+            $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
+        }
+
+        $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
+    }
+
+    private function emitEntries(MapNode $node): void
+    {
         $keyValues = $node->getKeyValues();
         $countKeyValues = count($keyValues);
 
-        $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-        $this->outputEmitter->emitStr('\Phel::map(', $node->getStartSourceLocation());
         if ($countKeyValues > 0) {
             $this->outputEmitter->increaseIndentLevel();
             $this->outputEmitter->emitLine();
@@ -46,8 +65,5 @@ final class MapEmitter implements NodeEmitterInterface
         if ($countKeyValues > 0) {
             $this->outputEmitter->decreaseIndentLevel();
         }
-
-        $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
-        $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 }
