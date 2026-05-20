@@ -87,6 +87,13 @@ final readonly class BodyConstantScanner
     }
 
     /**
+     * Manual node-type registry. Any AST node added in the future that can
+     * contain a child collection literal must be listed here, otherwise the
+     * scanner silently produces no children for it and literals nested in
+     * the new node will never be hoisted (safe miss, not wrong code).
+     * Auditing the {@see \Phel\Compiler\Domain\Analyzer\Ast} namespace when
+     * introducing a new node type keeps this list current.
+     *
      * @return list<AbstractNode>
      */
     private function children(AbstractNode $node): array
