@@ -6,11 +6,10 @@
 (function(int $n) {
   $acc_1 = $n;
   while (true) {
-    if (($__truthy = ($acc_1 <= 1)) !== null && $__truthy !== false) {
+    if ((($acc_1 <= 1))) {
       return $acc_1;
     } else {
-      $__phel_2 = ("x" . $acc_1);
-      $acc_1 = $__phel_2;
+      $acc_1 = ("x" . $acc_1);
       continue;
 
     }

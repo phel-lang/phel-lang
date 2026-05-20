@@ -6,11 +6,10 @@
 --PHP--
 (function($x) {
   while (true) {
-    if (($__truthy = ($x == 0)) !== null && $__truthy !== false) {
+    if ((($x == 0))) {
       return $x;
     } else {
-      $__phel_1 = ($x - 1);
-      $x = $__phel_1;
+      $x = ($x - 1);
       continue;
 
     }

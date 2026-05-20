@@ -1,7 +1,5 @@
 --PHEL--
-(def x (fn []
-  (foreach [v [1 2 3]]
-    (php/+ v v))))
+(def x (fn [] {:a 1 :b 2}))
 --PHP--
 \Phel::addDefinition(
   "user",
@@ -11,24 +9,22 @@
 
     public function __invoke() {
       static $__phel_const_0;
-      return (function() use(&$__phel_const_0) {
-        foreach (\Phel\Lang\Seq::toIterable(($__phel_const_0 ??= \Phel::vector([1, 2, 3]))) as $v) {
-          ($v + $v);
-        }
-        return null;
-      })();
+      return ($__phel_const_0 ??= \Phel::map(
+        \Phel::keyword("a"), 1,
+        \Phel::keyword("b"), 2
+      ));
     }
   },
   \Phel::map(
     \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Foreach/foreach-expr.test",
+      \Phel::keyword("file"), "ConstantHoisting/map-in-fn-body.test",
       \Phel::keyword("line"), 1,
       \Phel::keyword("column"), 0
     ),
     \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Foreach/foreach-expr.test",
-      \Phel::keyword("line"), 3,
-      \Phel::keyword("column"), 18
+      \Phel::keyword("file"), "ConstantHoisting/map-in-fn-body.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 27
     ),
     "min-arity", 0,
     "is-variadic", false,

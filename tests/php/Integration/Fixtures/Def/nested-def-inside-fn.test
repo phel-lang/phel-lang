@@ -8,11 +8,12 @@
     public const BOUND_TO = "user\\f";
 
     public function __invoke() {
+      static $__phel_const_0;
       \Phel::addDefinition(
         "user",
         "x",
         1,
-        \Phel::map(
+        ($__phel_const_0 ??= \Phel::map(
           \Phel::keyword("start-location"), \Phel::map(
             \Phel::keyword("file"), "Def/nested-def-inside-fn.test",
             \Phel::keyword("line"), 1,
@@ -23,7 +24,7 @@
             \Phel::keyword("line"), 1,
             \Phel::keyword("column"), 23
           )
-        )
+        ))
       );
 
       return \Phel::getDefinition("user", "x");

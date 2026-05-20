@@ -33,7 +33,7 @@ interface IPlayer {
     public const BOUND_TO = "interface_instance\\choose";
 
     public function __invoke($p) {
-      if (($__truthy = is_a($p, "interface_instance\\IPlayer")) !== null && $__truthy !== false) {
+      if ((is_a($p, "interface_instance\\IPlayer"))) {
         return (function() use($p) {
           $target_1 = $p;
           return $target_1->choose();
@@ -69,7 +69,7 @@ interface IPlayer {
     public const BOUND_TO = "interface_instance\\update_strategy";
 
     public function __invoke($p, $me, $you) {
-      if (($__truthy = is_a($p, "interface_instance\\IPlayer")) !== null && $__truthy !== false) {
+      if ((is_a($p, "interface_instance\\IPlayer"))) {
         return (function() use($p,$me,$you) {
           $target_2 = $p;
           return $target_2->update_strategy($me, $you);

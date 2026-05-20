@@ -28,13 +28,11 @@ while (true) {
   $__phel_7_12 = $__phel_6_10;
   $xs_13 = $__phel_7_12;
   if (($__truthy = $x_11) !== null && $__truthy !== false) {
-    if (($__truthy = ($x_11 == null)) !== null && $__truthy !== false) {
+    if ((($x_11 == null))) {
       $sum_3;
     } else {
-      $__phel_14 = $xs_13;
-      $__phel_15 = ($sum_3 + $x_11);
-      $__phel_1_2 = $__phel_14;
-      $sum_3 = $__phel_15;
+      $__phel_1_2 = $xs_13;
+      $sum_3 = ($sum_3 + $x_11);
       continue;
 
     }

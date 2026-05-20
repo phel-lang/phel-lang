@@ -1,0 +1,36 @@
+--PHEL--
+(def f (fn [b]
+  (if b [1 2] [3 4])))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "f",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\f";
+
+    public function __invoke($b) {
+      static $__phel_const_0, $__phel_const_1;
+      if (($__truthy = $b) !== null && $__truthy !== false) {
+        return ($__phel_const_0 ??= \Phel::vector([1, 2]));
+      } else {
+        return ($__phel_const_1 ??= \Phel::vector([3, 4]));
+      }
+
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "ConstantHoisting/multiple-pure-literals.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "ConstantHoisting/multiple-pure-literals.test",
+      \Phel::keyword("line"), 2,
+      \Phel::keyword("column"), 22
+    ),
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[b]"
+  )
+);

@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Emitter;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\Cache\ConstantScope;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\LiteralEmitter;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterFactory;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\OutputEmitterOptions;
@@ -16,7 +17,10 @@ use Phel\Lang\Symbol;
 use Phel\Shared\MungeInterface;
 use Phel\Shared\Printer\PrinterInterface;
 
+use function array_pop;
+use function array_values;
 use function count;
+use function end;
 use function is_null;
 use function strlen;
 
@@ -29,6 +33,9 @@ final class OutputEmitter implements OutputEmitterInterface
     /** @var array<int, string> */
     private array $indentCache = [];
 
+    /** @var list<ConstantScope> */
+    private array $constantScopes = [];
+
     public function __construct(
         private readonly bool $enableSourceMaps,
         private readonly NodeEmitterFactory $nodeEmitterFactory,
@@ -37,6 +44,47 @@ final class OutputEmitter implements OutputEmitterInterface
         private readonly SourceMapState $sourceMapState,
         private readonly OutputEmitterOptions $options,
     ) {}
+
+    public function pushConstantScope(ConstantScope $scope): void
+    {
+        $this->constantScopes[] = $scope;
+    }
+
+    public function popConstantScope(): void
+    {
+        array_pop($this->constantScopes);
+    }
+
+    public function currentConstantScope(): ?ConstantScope
+    {
+        if ($this->constantScopes === []) {
+            return null;
+        }
+
+        return end($this->constantScopes);
+    }
+
+    /**
+     * Opens a constant-cache wrap for `$node` and returns `true` when a
+     * slot was reserved for it. Callers must pair a `true` return with a
+     * matching {@see emitConstantSlotSuffix()} call after the inner
+     * expression has been emitted; a `false` return is a no-op.
+     */
+    public function emitConstantSlotPrefix(AbstractNode $node, ?SourceLocation $loc = null): bool
+    {
+        $slot = $this->currentConstantScope()?->lookup($node);
+        if ($slot === null) {
+            return false;
+        }
+
+        $this->emitStr('($__phel_const_' . $slot . ' ??= ', $loc);
+        return true;
+    }
+
+    public function emitConstantSlotSuffix(?SourceLocation $loc = null): void
+    {
+        $this->emitStr(')', $loc);
+    }
 
     public function getOptions(): OutputEmitterOptions
     {
@@ -135,10 +183,15 @@ final class OutputEmitter implements OutputEmitterInterface
     public function emitFnWrapPrefix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null): void
     {
         $this->emitStr('(function()', $sl);
-        if ($env->getLocals() !== []) {
+
+        $locals = array_values($env->getLocals());
+        $constantSlots = $this->currentConstantScope()?->count() ?? 0;
+
+        if ($locals !== [] || $constantSlots > 0) {
             $this->emitStr(' use(', $sl);
 
-            foreach (array_values($env->getLocals()) as $i => $l) {
+            $localsCount = count($locals);
+            foreach ($locals as $i => $l) {
                 $shadowed = $env->getShadowed($l);
                 if ($shadowed instanceof Symbol) {
                     $this->emitPhpVariable($shadowed, $sl);
@@ -146,7 +199,14 @@ final class OutputEmitter implements OutputEmitterInterface
                     $this->emitPhpVariable($l, $sl);
                 }
 
-                if ($i < count($env->getLocals()) - 1) {
+                if ($i < $localsCount - 1 || $constantSlots > 0) {
+                    $this->emitStr(',', $sl);
+                }
+            }
+
+            for ($i = 0; $i < $constantSlots; ++$i) {
+                $this->emitStr('&$__phel_const_' . $i, $sl);
+                if ($i < $constantSlots - 1) {
                     $this->emitStr(',', $sl);
                 }
             }

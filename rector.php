@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Rector\CodingStyle\Rector\String_\UseClassKeywordForClassNameResolutionRector;
 use Rector\Config\RectorConfig;
+use Rector\Php84\Rector\Foreach_\ForeachToArrayAllRector;
 use Rector\PHPUnit\CodeQuality\Rector\Class_\PreferPHPUnitThisCallRector;
 use Rector\PHPUnit\Set\PHPUnitSetList;
 use Rector\Privatization\Rector\Property\PrivatizeFinalClassPropertyRector;
@@ -25,6 +26,12 @@ return RectorConfig::configure()
         __DIR__ . '/tests/php/*/PhelGenerated/*',
         __DIR__ . '/tests/php/*/gacela-class-names.php',
         __DIR__ . '/tests/php/*/gacela-custom-services.php',
+        // The `foreach` here mutates a referenced `$names` parameter;
+        // converting to `array_all` with an arrow fn would silently
+        // drop the reference because arrow functions capture by value.
+        ForeachToArrayAllRector::class => [
+            __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/Cache/LocalVarReferences.php',
+        ],
         ReturnTypeFromReturnNewRector::class => [
             __DIR__ . '/tests/php/Unit/Interop/Generator/CompiledPhpMethodBuilderTest.php',
         ],

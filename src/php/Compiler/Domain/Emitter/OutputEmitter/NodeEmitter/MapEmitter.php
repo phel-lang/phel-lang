@@ -18,12 +18,25 @@ final class MapEmitter implements NodeEmitterInterface
     public function emit(AbstractNode $node): void
     {
         assert($node instanceof MapNode);
+        $loc = $node->getStartSourceLocation();
 
+        $this->outputEmitter->emitContextPrefix($node->getEnv(), $loc);
+        $cached = $this->outputEmitter->emitConstantSlotPrefix($node, $loc);
+        $this->outputEmitter->emitStr('\Phel::map(', $loc);
+        $this->emitEntries($node);
+        $this->outputEmitter->emitStr(')', $loc);
+        if ($cached) {
+            $this->outputEmitter->emitConstantSlotSuffix($loc);
+        }
+
+        $this->outputEmitter->emitContextSuffix($node->getEnv(), $loc);
+    }
+
+    private function emitEntries(MapNode $node): void
+    {
         $keyValues = $node->getKeyValues();
         $countKeyValues = count($keyValues);
 
-        $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-        $this->outputEmitter->emitStr('\Phel::map(', $node->getStartSourceLocation());
         if ($countKeyValues > 0) {
             $this->outputEmitter->increaseIndentLevel();
             $this->outputEmitter->emitLine();
@@ -46,8 +59,5 @@ final class MapEmitter implements NodeEmitterInterface
         if ($countKeyValues > 0) {
             $this->outputEmitter->decreaseIndentLevel();
         }
-
-        $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
-        $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
     }
 }

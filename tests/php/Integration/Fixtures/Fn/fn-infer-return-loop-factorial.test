@@ -9,7 +9,7 @@
   $i_1 = $n;
   $acc_2 = 1;
   while (true) {
-    if (($__truthy = ($i_1 <= 1)) !== null && $__truthy !== false) {
+    if ((($i_1 <= 1))) {
       return $acc_2;
     } else {
       $__phel_3 = ($i_1 - 1);

@@ -8,7 +8,7 @@
     public const BOUND_TO = "user\\rec";
 
     public function __invoke(int $n) {
-      if (($__truthy = ($n == 0)) !== null && $__truthy !== false) {
+      if ((($n == 0))) {
         return $n;
       } else {
         return $this(($n - 1));

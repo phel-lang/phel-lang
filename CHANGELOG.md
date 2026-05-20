@@ -18,10 +18,15 @@ All notable changes to this project will be documented in this file.
 
 - BC: release tooling moved from `build/` to `tools/`; `build/` is now phar-only
 - CI: split `ci.yml` into `quality.yml` / `tests.yml` / `smoke.yml` with a shared `setup-phel` composite action; add concurrency cancellation and least-privilege perms (#2039)
+- Compiler: hoist pure vector/map/set literals to a per-fn `static` cache
+- Compiler: skip `Truthy::isTruthy` wrap in `if`/`?:` when the test is known-bool
+- Compiler: `recur` skips the `$__phel_N` temp shuffle when no aliasing is possible
 - `phel agent-install`: copy the `.agents/` docs tree by default; `--with-docs` is replaced by `--no-docs` to opt out
 
 ### Fixed
 
+- Dev: patch vendored Psalm 6.16.1 on install/update for PHP 8.5 NAN-coercion crash in `TLiteralFloat`
+- Compiler: use `SplObjectStorage::offsetExists()` in `ConstantScope` to silence PHP 8.5 deprecation in emitted code
 - `phel.cli`: `application` now calls `Application::addCommand()` (Symfony 8 compat) instead of the deprecated `add()` (#2033)
 - `phel lint`: cache invalidates when `phel-lint.phel` changes (#2027)
 - `phel lint`: `unused-binding` no longer flags symbols used in later let bindings (#2018)
