@@ -7,6 +7,8 @@ namespace PhelTest\Unit\Compiler\Domain\Emitter\OutputEmitter\ConstantHoisting;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\MethodCallNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectCallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\Cache\LocalVarReferences;
@@ -15,6 +17,26 @@ use PHPUnit\Framework\TestCase;
 
 final class LocalVarReferencesTest extends TestCase
 {
+    public function test_local_inside_method_call_is_collected(): void
+    {
+        // Mirrors `(-> more (get i))` from the `aset` macro body: a
+        // local nested in a `MethodCallNode` must still be reachable.
+        $methodCall = new MethodCallNode(
+            NodeEnvironment::empty(),
+            Symbol::create('get'),
+            [new LocalVarNode(NodeEnvironment::empty(), Symbol::create('i'))],
+        );
+        $objCall = new PhpObjectCallNode(
+            NodeEnvironment::empty(),
+            new LocalVarNode(NodeEnvironment::empty(), Symbol::create('more')),
+            $methodCall,
+            isStatic: false,
+            isMethodCall: true,
+        );
+
+        self::assertSame(['more', 'i'], LocalVarReferences::collect($objCall));
+    }
+
     public function test_collects_single_local_var(): void
     {
         $node = new LocalVarNode(NodeEnvironment::empty(), Symbol::create('x'));

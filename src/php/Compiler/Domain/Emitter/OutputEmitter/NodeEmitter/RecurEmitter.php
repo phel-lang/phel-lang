@@ -106,7 +106,15 @@ final class RecurEmitter implements NodeEmitterInterface
         }
 
         foreach ($node->getExpressions() as $i => $expr) {
-            foreach (LocalVarReferences::collect($expr) as $referencedName) {
+            $refs = LocalVarReferences::collect($expr);
+            if ($refs === null) {
+                // Scanner saw a node it does not enumerate; assume the
+                // expression could reference any param and fall back to
+                // the temp-var path.
+                return false;
+            }
+
+            foreach ($refs as $referencedName) {
                 $refIdx = array_search($referencedName, $paramNames, true);
                 if ($refIdx !== false && $refIdx < $i) {
                     return false;
