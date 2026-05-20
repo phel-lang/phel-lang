@@ -41,6 +41,7 @@ Run the **minimum** test scope for your changes:
 ## Git
 
 - Conventional commits: `feat:`, `fix:`, `ref:`, `chore:`, `docs:`, `test:`
+- Never put emojis in commit messages (subject or body). PR titles on GitHub may carry the emoji prefix from the PR template, but strip it before merge so the squash-commit subject stays plain conventional-commit form
 - Never mention AI tooling in commit messages
 - After code changes, provide a one-liner commit message to copy/paste
 - Branch prefixes: `feat/`, `fix/`, `ref/`, `docs/`
