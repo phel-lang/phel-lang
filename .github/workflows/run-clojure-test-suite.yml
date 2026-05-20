@@ -1,0 +1,63 @@
+name: clojure-test-suite
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      suite-ref:
+        description: 'Ref of phel-lang/clojure-test-suite to run'
+        required: false
+        default: 'main'
+
+jobs:
+  run-clojure-test-suite:
+    name: Run clojure-test-suite (PHP 8.4)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout phel-lang
+        uses: actions/checkout@v4
+        with:
+          path: phel
+
+      - name: Checkout clojure-test-suite
+        uses: actions/checkout@v4
+        with:
+          repository: phel-lang/clojure-test-suite
+          ref: ${{ github.event.inputs.suite-ref || 'main' }}
+          path: clojure-test-suite
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.4
+          coverage: none
+          tools: composer
+
+      - name: Get composer cache directory
+        id: composer-cache
+        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+
+      - name: Cache dependencies
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.composer-cache.outputs.dir }}
+          key: ${{ runner.os }}-composer-suite-${{ hashFiles('clojure-test-suite/composer.json') }}
+          restore-keys: ${{ runner.os }}-composer-suite-
+
+      - name: Point suite at local Phel checkout
+        working-directory: clojure-test-suite
+        run: |
+          composer config repositories.phel-local path ../phel
+          composer config minimum-stability dev
+          composer config prefer-stable true
+          composer require --no-update phel-lang/phel-lang:@dev
+
+      - name: Install suite dependencies
+        working-directory: clojure-test-suite
+        run: composer update --no-interaction --no-ansi --no-progress
+
+      - name: Run clojure-test-suite
+        working-directory: clojure-test-suite
+        run: composer test

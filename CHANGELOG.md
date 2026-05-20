@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 - `tools/upgrade-ecosystem.sh`: bumps phel-lang across sibling repos via Claude Code
 - `composer test-tools`: bashunit runner for `tools/*-test.sh`
 - `CITATION.cff` for academic citation (#2016)
+- CI: `clojure-test-suite` workflow runs `phel-lang/clojure-test-suite` against dev HEAD on every PR (non-blocking) (#2036)
 
 ### Changed
 
