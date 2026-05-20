@@ -6,7 +6,7 @@
 $n_1 = 10;
 $sum_2 = 0;
 while (true) {
-  if (($__truthy = ($n_1 <= 0)) !== null && $__truthy !== false) {
+  if ((($n_1 <= 0))) {
     $sum_2;
   } else {
     $__phel_3 = ($n_1 - 1);

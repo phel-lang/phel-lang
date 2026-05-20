@@ -8,13 +8,13 @@
 (function(int $n): int {
   $outer_1 = $n;
   while (true) {
-    if (($__truthy = ($outer_1 <= 0)) !== null && $__truthy !== false) {
+    if ((($outer_1 <= 0))) {
       return $outer_1;
     } else {
       $__phel_3 = (function() use($n,$outer_1) {
         $inner_2 = $outer_1;
         while (true) {
-          if (($__truthy = ($inner_2 <= 1)) !== null && $__truthy !== false) {
+          if ((($inner_2 <= 1))) {
             return $inner_2;
           } else {
             $__phel_4 = ($inner_2 - 1);
