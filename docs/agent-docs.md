@@ -6,10 +6,12 @@
 
 ```bash
 composer require phel-lang/phel-lang
-./vendor/bin/phel agent-install --all              # every platform
-./vendor/bin/phel agent-install claude             # single platform
-./vendor/bin/phel agent-install --all --with-docs  # also install docs into .agents/
+./vendor/bin/phel agent-install --all              # every platform + .agents/ docs
+./vendor/bin/phel agent-install claude             # single platform + .agents/ docs
+./vendor/bin/phel agent-install claude --no-docs   # skip the .agents/ docs tree
 ```
+
+`.agents/` (task recipes, examples, rules) is copied by default. Pass `--no-docs` to skip it.
 
 Platforms: `claude`, `cursor`, `codex`, `gemini`, `copilot`, `aider`.
 

@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 
 - BC: release tooling moved from `build/` to `tools/`; `build/` is now phar-only
 - CI: split `ci.yml` into `quality.yml` / `tests.yml` / `smoke.yml` with a shared `setup-phel` composite action; add concurrency cancellation and least-privilege perms (#2039)
+- `phel agent-install`: copy the `.agents/` docs tree by default; `--with-docs` is replaced by `--no-docs` to opt out
 
 ### Fixed
 
