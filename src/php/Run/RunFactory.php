@@ -6,6 +6,7 @@ namespace Phel\Run;
 
 use Gacela\Framework\AbstractFactory;
 use Phel\Run\Application\BundledNamespaces;
+use Phel\Run\Application\CompileExecutor;
 use Phel\Run\Application\EntryPointDetector;
 use Phel\Run\Application\EvalExecutor;
 use Phel\Run\Application\FileRunner;
@@ -173,6 +174,13 @@ class RunFactory extends AbstractFactory
             $this->createReplCommandIo(),
             $this->createColorStyle(),
             $this->createPrinter(),
+            $this->getCompilerFacade(),
+        );
+    }
+
+    public function createCompileExecutor(): CompileExecutor
+    {
+        return new CompileExecutor(
             $this->getCompilerFacade(),
         );
     }

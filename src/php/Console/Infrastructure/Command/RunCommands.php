@@ -6,6 +6,7 @@ namespace Phel\Console\Infrastructure\Command;
 
 use Phel\Console\Domain\ConsoleCommandProviderInterface;
 use Phel\Run\Infrastructure\Command\AgentInstallCommand;
+use Phel\Run\Infrastructure\Command\CompileCommand;
 use Phel\Run\Infrastructure\Command\DoctorCommand;
 use Phel\Run\Infrastructure\Command\EvalCommand;
 use Phel\Run\Infrastructure\Command\InitCommand;
@@ -25,6 +26,7 @@ final class RunCommands implements ConsoleCommandProviderInterface
             new NsCommand(),
             new ReplCommand(),
             new EvalCommand(),
+            new CompileCommand(),
             new RunCommand(),
             new TestCommand(),
             new TestWorkerCommand(),
