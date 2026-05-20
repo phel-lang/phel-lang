@@ -28,7 +28,7 @@ final class ConstantScope
 
     public function reserve(AbstractNode $node): int
     {
-        if (!$this->slots->contains($node)) {
+        if (!$this->slots->offsetExists($node)) {
             $this->slots[$node] = $this->nextId++;
         }
 
@@ -39,7 +39,7 @@ final class ConstantScope
 
     public function lookup(AbstractNode $node): ?int
     {
-        if (!$this->slots->contains($node)) {
+        if (!$this->slots->offsetExists($node)) {
             return null;
         }
 
