@@ -11,21 +11,19 @@
     if ((($outer_1 <= 0))) {
       return $outer_1;
     } else {
-      $__phel_3 = (function() use($n,$outer_1) {
+      $outer_1 = (function() use($n,$outer_1) {
         $inner_2 = $outer_1;
         while (true) {
           if ((($inner_2 <= 1))) {
             return $inner_2;
           } else {
-            $__phel_4 = ($inner_2 - 1);
-            $inner_2 = $__phel_4;
+            $inner_2 = ($inner_2 - 1);
             continue;
 
           }
           break;
         }
       })();
-      $outer_1 = $__phel_3;
       continue;
 
     }

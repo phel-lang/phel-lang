@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - CI: split `ci.yml` into `quality.yml` / `tests.yml` / `smoke.yml` with a shared `setup-phel` composite action; add concurrency cancellation and least-privilege perms (#2039)
 - Compiler: pure vector/map/set literals inside a fn body are now hoisted to a per-fn `static` cache, so each invocation reuses the same persistent collection instead of rebuilding it
 - Compiler: `if` / `?:` skip the `Truthy::isTruthy` wrap when the test is a known-bool expression (literal `true`/`false`, infix comparison, `is_int`/`is_a`/etc.), emitting a direct PHP conditional and saving one assign + two comparisons per branch
+- Compiler: `recur` emits direct param assignments when no expression reads a recur param that an earlier expression has already overwritten, skipping the per-arg `$__phel_N` temp shuffle in the common case
 - `phel agent-install`: copy the `.agents/` docs tree by default; `--with-docs` is replaced by `--no-docs` to opt out
 
 ### Fixed

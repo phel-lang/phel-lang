@@ -9,8 +9,7 @@
     if ((($acc_1 <= 1))) {
       return $acc_1;
     } else {
-      $__phel_2 = $stop;
-      $acc_1 = $__phel_2;
+      $acc_1 = $stop;
       continue;
 
     }

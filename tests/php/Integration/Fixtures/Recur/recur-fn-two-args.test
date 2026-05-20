@@ -9,10 +9,8 @@
     if ((($x == 0))) {
       return $x;
     } else {
-      $__phel_1 = ($x - 1);
-      $__phel_2 = ($y + 1);
-      $x = $__phel_1;
-      $y = $__phel_2;
+      $x = ($x - 1);
+      $y = ($y + 1);
       continue;
 
     }

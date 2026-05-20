@@ -1,0 +1,17 @@
+--PHEL--
+(fn [a b]
+  (if (php/== a 0) b (recur (php/- a 1) (php/+ b 1))))
+--PHP--
+(function($a, $b) {
+  while (true) {
+    if ((($a == 0))) {
+      return $b;
+    } else {
+      $a = ($a - 1);
+      $b = ($b + 1);
+      continue;
+
+    }
+    break;
+  }
+});
