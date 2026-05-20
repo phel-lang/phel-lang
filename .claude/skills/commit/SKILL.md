@@ -57,6 +57,7 @@ If any step fails, fix the issue and re-run from that step. Do NOT proceed to co
    - Prefixes: `feat:`, `fix:`, `ref:`, `chore:`, `docs:`, `test:`
    - Add `(<scope>)` when changes are scoped to a single module
    - **NEVER mention AI tooling in the message**
+   - **NEVER include emojis in the subject or body.** PR titles on GitHub may keep the emoji prefix required by `.github/PULL_REQUEST_TEMPLATE.md`, but strip it from the commit subject before merging — GitHub squash-merges copy the PR title verbatim, so emoji in the PR title leaks into history unless removed
 
 8. **Commit**:
    ```bash
