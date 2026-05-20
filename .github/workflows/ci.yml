@@ -27,26 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: 8.4
-          coverage: none
-          tools: composer
-
-      - name: Get composer cache directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
-
-      - name: Install dependencies
-        run: composer install --no-interaction --no-ansi --no-progress
+      - uses: ./.github/actions/setup-phel
 
       - name: Run friendsofphp/php-cs-fixer
         run: ./vendor/bin/php-cs-fixer fix --allow-risky=yes --dry-run --show-progress=dots --using-cache=no --verbose
@@ -59,26 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: 8.4
-          coverage: none
-          tools: composer
-
-      - name: Get composer cache directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
-
-      - name: Install dependencies
-        run: composer install --no-interaction --no-ansi --no-progress
+      - uses: ./.github/actions/setup-phel
 
       - name: Run Psalm on internal code
         run: ./vendor/bin/psalm --config=psalm.xml --no-progress --shepherd --show-info=false --stats --php-version=${{ matrix.php }}
@@ -95,26 +57,9 @@ jobs:
         php: [ '8.4', '8.5' ]
     steps:
       - uses: actions/checkout@v4
-
-      - uses: shivammathur/setup-php@v2
+      - uses: ./.github/actions/setup-phel
         with:
           php-version: ${{ matrix.php }}
-          coverage: none
-          tools: composer
-
-      - name: Get composer cache directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
-
-      - name: Install dependencies
-        run: composer install --no-interaction --no-ansi --no-progress
 
       - name: Run unit tests to the compiler itself
         run: vendor/bin/phpunit --testsuite unit
@@ -131,26 +76,9 @@ jobs:
         php: [ '8.4', '8.5' ]
     steps:
       - uses: actions/checkout@v4
-
-      - uses: shivammathur/setup-php@v2
+      - uses: ./.github/actions/setup-phel
         with:
           php-version: ${{ matrix.php }}
-          coverage: none
-          tools: composer
-
-      - name: Get composer cache directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
-
-      - name: Install dependencies
-        run: composer install --no-interaction --no-ansi --no-progress
 
       - name: Run tests to the core library
         run: composer run-script test-core
@@ -160,26 +88,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: 8.4
-          coverage: none
-          tools: composer
-
-      - name: Get composer cache directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
-
-      - name: Install dependencies
-        run: composer install --no-interaction --no-ansi --no-progress
+      - uses: ./.github/actions/setup-phel
 
       - name: Run PHPBench
         run: vendor/bin/phpbench run --iterations=3 --warmup=1 --report=aggregate
@@ -189,26 +98,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: 8.4
-          coverage: none
-          tools: composer
-
-      - name: Get composer cache directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
-
-      - name: Install dependencies
-        run: composer install --no-interaction --no-ansi --no-progress
+      - uses: ./.github/actions/setup-phel
 
       - name: Run all example scripts
         run: |
@@ -227,26 +117,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: 8.4
-          coverage: none
-          tools: composer
-
-      - name: Get composer cache directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
-
-      - name: Install dependencies
-        run: composer install --no-interaction --no-ansi --no-progress
+      - uses: ./.github/actions/setup-phel
 
       - name: Validate .agents/ examples and core reference drift
         run: composer test-agents
@@ -256,27 +127,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: shivammathur/setup-php@v2
+      - uses: ./.github/actions/setup-phel
         with:
-          php-version: 8.4
-          coverage: none
-          tools: composer
           ini-values: phar.readonly=0
-
-      - name: Get composer cache directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
-
-      - name: Install dependencies
-        run: composer install --no-interaction --no-ansi --no-progress
 
       - name: Build PHAR
         run: ./build/phar.sh
@@ -344,26 +197,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: 8.4
-          coverage: none
-          tools: composer
-
-      - name: Get composer cache directory
-        id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
-
-      - name: Cache dependencies
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.composer-cache.outputs.dir }}
-          key: ${{ runner.os }}-composer-${{ hashFiles('**/composer.lock') }}
-          restore-keys: ${{ runner.os }}-composer-
-
-      - name: Install dependencies
-        run: composer install --no-interaction --no-ansi --no-progress
+      - uses: ./.github/actions/setup-phel
 
       - name: Run Bashunit tests
         run: tools/bashunit tools/*-test.sh --simple
