@@ -7,6 +7,32 @@ allowed-tools: "Bash(composer *), Bash(./vendor/bin/phpunit *), Bash(./bin/phel 
 
 # Quick Test Runner
 
+## Scope mapping
+
+Run the **minimum** scope for the changed files. Prefer narrow over broad.
+
+| Changed                  | Command                                       | Notes                              |
+|--------------------------|-----------------------------------------------|------------------------------------|
+| `src/php/**`             | `composer test-compiler`                      | PHPUnit unit + integration         |
+| `src/phel/**`            | `composer test-core`                          | Phel core tests                    |
+| `src/php/Compiler/**`    | `composer test-compiler`                      | Full compiler suite                |
+| Single PHP module        | `./vendor/bin/phpunit --filter=ModuleName`    | Fastest for focused work           |
+| Single Phel file         | `./bin/phel test tests/phel/<file>`           | Target a specific test             |
+| Any `.php` style change  | `composer test-quality`                       | Static analysis only               |
+| Mixed PHP + Phel         | `composer test`                               | Run everything                     |
+
+Available `composer` scripts:
+
+```bash
+composer test              # All tests (quality + compiler + core)
+composer test-quality      # Static analysis: cs-fixer, psalm, phpstan, rector
+composer test-compiler     # PHPUnit unit + integration tests
+composer test-core         # Phel core tests (./bin/phel test)
+composer fix               # Auto-fix: rector + cs-fixer
+```
+
+## Instructions
+
 1. If `$ARGUMENTS` is empty or `all`:
    ```bash
    composer test

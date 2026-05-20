@@ -14,35 +14,19 @@ build/         → PHAR build scripts, release tooling
 
 Each module in `src/php/` has a `CLAUDE.md` — **read it before modifying a module**. It documents the Gacela pattern, public API, dependencies, and constraints.
 
-## Testing
+## Skills (slash commands)
 
-```bash
-composer test              # All tests (quality + compiler + core)
-composer test-quality      # Static analysis: cs-fixer, psalm, phpstan, rector
-composer test-compiler     # PHPUnit unit + integration tests
-composer test-core         # Phel core tests (./bin/phel test)
-composer fix               # Auto-fix: rector + cs-fixer
-```
+Authoritative for their topic — load the skill before guessing. Match the workflow first, then fall back to plain commands.
 
-### Test Mapping
+- `/test [scope]` → run tests, scope mapping (`.claude/skills/test/SKILL.md`)
+- `/commit [msg]` → quality gates + conventional commit (`.claude/skills/commit/SKILL.md`)
+- `/pr [issue]` → push + open PR from template (`.claude/skills/pr/SKILL.md`)
+- `/changelog [entry]` → update `## Unreleased` (`.claude/skills/changelog/SKILL.md`)
+- `/fix`, `/refactor-check`, `/benchmark`, `/integration-fixture`, `/module-new`, `/gh-issue`, `/release` → other workflows under `.claude/skills/`
 
-Run the **minimum** test scope for your changes:
+## Conventions
 
-| Changed | Command | Notes |
-|---------|---------|-------|
-| `src/php/**` | `composer test-compiler` | PHPUnit unit + integration |
-| `src/phel/**` | `composer test-core` | Phel core tests |
-| `src/php/Compiler/**` | `composer test-compiler` | Full compiler suite |
-| Single PHP module | `./vendor/bin/phpunit --filter=ModuleName` | Fastest for focused work |
-| Single Phel file | `./bin/phel test tests/phel/<file>` | Target specific test |
-| Any `.php` style change | `composer test-quality` | Static analysis only |
-| Mixed PHP + Phel | `composer test` | Run everything |
-
-## Git
-
-- Conventional commits: `feat:`, `fix:`, `ref:`, `chore:`, `docs:`, `test:`
-- Never mention AI tooling in commit messages
-- After code changes, provide a one-liner commit message to copy/paste
-- Branch prefixes: `feat/`, `fix/`, `ref/`, `docs/`
-- PRs: read `.github/PULL_REQUEST_TEMPLATE.md` and follow exactly (including emoji prefixes); assign `@me`; label from: `bug`, `enhancement`, `refactoring`, `documentation`, `pure testing`, `dependencies`
-- Update `## Unreleased` in `CHANGELOG.md` for user-facing changes
+- Conventional commits: `feat:`, `fix:`, `ref:`, `chore:`, `docs:`, `test:` (full rules in `/commit`)
+- Branch prefixes match the commit type: `feat/`, `fix/`, `ref/`, `docs/`
+- Never mention AI tooling in commit messages, PR bodies, or code comments
+- Module-specific rules live in `.claude/rules/*.md` (php, phel, compiler, modules, macro-hygiene, integration-tests)
