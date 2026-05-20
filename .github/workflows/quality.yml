@@ -1,10 +1,18 @@
 # https://help.github.com/en/categories/automating-your-workflow-with-github-actions
 
-on:
-  - pull_request
-  - push
-
 name: Quality
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   composer-validate:
@@ -43,7 +51,7 @@ jobs:
       - uses: ./.github/actions/setup-phel
 
       - name: Run Psalm on internal code
-        run: ./vendor/bin/psalm --config=psalm.xml --no-progress --shepherd --show-info=false --stats --php-version=${{ matrix.php }}
+        run: ./vendor/bin/psalm --config=psalm.xml --no-progress --shepherd --show-info=false --stats --php-version=8.4
 
       - name: Run PHPStan on internal code
         run: ./vendor/bin/phpstan --memory-limit=516M --debug -vvv

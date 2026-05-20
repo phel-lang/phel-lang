@@ -11,6 +11,13 @@ on:
         required: false
         default: 'main'
 
+permissions:
+  contents: read
+
+concurrency:
+  group: clojure-test-suite-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   run-clojure-test-suite:
     name: Run clojure-test-suite (PHP 8.4)
