@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 ### Changed
 
 - BC: release tooling moved from `build/` to `tools/`; `build/` is now phar-only
+- CI: split `ci.yml` into `quality.yml` / `tests.yml` / `smoke.yml` with a shared `setup-phel` composite action; add concurrency cancellation and least-privilege perms (#2039)
 
 ### Fixed
 

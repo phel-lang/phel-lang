@@ -1,0 +1,114 @@
+# https://help.github.com/en/categories/automating-your-workflow-with-github-actions
+
+name: Smoke
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: smoke-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  examples:
+    name: Run examples
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-phel
+
+      - name: Run all example scripts
+        run: |
+          find docs/examples -name "*.phel" -type f | \
+            sort | \
+            xargs -I {} bash -c '
+              echo "=== Running: {} ===" && \
+              ./bin/phel run {} && \
+              echo "" || \
+              (echo "❌ ERROR in {}" && exit 1)
+            '
+
+  agents-tests:
+    name: Agent docs validation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-phel
+
+      - name: Validate .agents/ examples and core reference drift
+        run: composer test-agents
+
+  phar-smoke:
+    name: PHAR smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-phel
+        with:
+          ini-values: phar.readonly=0
+
+      - name: Build PHAR
+        run: ./build/phar.sh
+
+      - name: Assert PHAR exists and is under size budget
+        run: |
+          test -x build/out/phel.phar
+          size=$(stat -c%s build/out/phel.phar)
+          echo "PHAR size: $size bytes"
+          test "$size" -lt 2097152  # 2 MiB budget
+
+      - name: Boot PHAR from a clean directory
+        working-directory: /tmp
+        run: |
+          PHAR=$GITHUB_WORKSPACE/build/out/phel.phar
+          "$PHAR" --version
+          result=$("$PHAR" eval '(apply + [1 2 3 4])')
+          echo "$result"
+          echo "$result" | grep -q '10'
+
+      - name: Happy-path smoke for major PHAR commands
+        run: |
+          PHAR=$GITHUB_WORKSPACE/build/out/phel.phar
+          WORK=$(mktemp -d)
+          cd "$WORK"
+
+          echo "::group::phel init (flat layout)"
+          "$PHAR" init --no-interaction
+          test -f phel-config.php
+          test -d src
+          test -d tests
+          echo "::endgroup::"
+
+          echo "::group::phel doctor"
+          "$PHAR" doctor
+          echo "::endgroup::"
+
+          echo "::group::phel test (scaffolded tests must pass)"
+          "$PHAR" test
+          echo "::endgroup::"
+
+          echo "::group::phel build"
+          "$PHAR" build
+          echo "::endgroup::"
+
+          echo "::group::phel lint"
+          "$PHAR" lint src/
+          echo "::endgroup::"
+
+          echo "::group::phel format --dry-run (scaffolded project is already formatted)"
+          "$PHAR" format --dry-run src/
+          echo "::endgroup::"
+
+          echo "::group::phel eval - (stdin)"
+          result=$(echo '(println (+ 1 2 3))' | "$PHAR" eval -)
+          echo "$result" | grep -q '6'
+          echo "::endgroup::"
+
+          echo "::group::phel analyze (JSON diagnostics)"
+          "$PHAR" analyze src/main.phel > /tmp/analyze.json
+          echo "::endgroup::"
