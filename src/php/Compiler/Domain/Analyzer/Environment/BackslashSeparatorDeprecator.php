@@ -154,9 +154,15 @@ final class BackslashSeparatorDeprecator
             || str_starts_with($normalized, $stdlibRoot . '/');
     }
 
+    /**
+     * True only when `\` separates two non-empty segments. A leading-only `\`
+     * (PHP's global-namespace marker on top-level symbols like
+     * `\JSON_UNESCAPED_SLASHES`, `\strlen`, `\DateTimeInterface`) is not a
+     * Phel namespace separator and must not warn.
+     */
     private function containsBackslashSeparator(string $fullName): bool
     {
-        return str_contains($fullName, '\\');
+        return str_contains(ltrim($fullName, '\\'), '\\');
     }
 
     private function buildMessage(string $original, string $file, int $line): string
