@@ -82,12 +82,8 @@ final class CompileCommand extends Command
             ->createCompileExecutor()
             ->execute(
                 $source,
-                static function (string $chunk) use ($output): void {
-                    $output->write($chunk);
-                },
-                static function (string $chunk) use ($stderr): void {
-                    $stderr->write($chunk);
-                },
+                static fn(string $chunk) => $output->write($chunk),
+                static fn(string $chunk) => $stderr->write($chunk),
             );
 
         return $ok ? self::SUCCESS : self::FAILURE;

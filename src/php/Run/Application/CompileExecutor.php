@@ -30,6 +30,10 @@ final readonly class CompileExecutor
      */
     public function execute(string $source, callable $stdout, callable $stderr): bool
     {
+        if ($source === '') {
+            return true;
+        }
+
         if (!$this->compilerFacade->hasBalancedParentheses($source)) {
             $stderr("Unbalanced parentheses.\n");
             return false;
