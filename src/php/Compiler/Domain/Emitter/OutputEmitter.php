@@ -64,6 +64,28 @@ final class OutputEmitter implements OutputEmitterInterface
         return end($this->constantScopes);
     }
 
+    /**
+     * Opens a constant-cache wrap for `$node` and returns `true` when a
+     * slot was reserved for it. Callers must pair a `true` return with a
+     * matching {@see emitConstantSlotSuffix()} call after the inner
+     * expression has been emitted; a `false` return is a no-op.
+     */
+    public function emitConstantSlotPrefix(AbstractNode $node, ?SourceLocation $loc = null): bool
+    {
+        $slot = $this->currentConstantScope()?->lookup($node);
+        if ($slot === null) {
+            return false;
+        }
+
+        $this->emitStr('($__phel_const_' . $slot . ' ??= ', $loc);
+        return true;
+    }
+
+    public function emitConstantSlotSuffix(?SourceLocation $loc = null): void
+    {
+        $this->emitStr(')', $loc);
+    }
+
     public function getOptions(): OutputEmitterOptions
     {
         return $this->options;

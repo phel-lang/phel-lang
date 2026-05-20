@@ -20,6 +20,10 @@ interface OutputEmitterInterface
 
     public function currentConstantScope(): ?ConstantScope;
 
+    public function emitConstantSlotPrefix(AbstractNode $node, ?SourceLocation $loc = null): bool;
+
+    public function emitConstantSlotSuffix(?SourceLocation $loc = null): void;
+
     public function resetIndentLevel(): void;
 
     public function resetSourceMapState(): void;

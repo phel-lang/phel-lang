@@ -18,24 +18,18 @@ final class MapEmitter implements NodeEmitterInterface
     public function emit(AbstractNode $node): void
     {
         assert($node instanceof MapNode);
+        $loc = $node->getStartSourceLocation();
 
-        $slot = $this->outputEmitter->currentConstantScope()?->lookup($node);
-        $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-
-        if ($slot !== null) {
-            $this->outputEmitter->emitStr(
-                '($__phel_const_' . $slot . ' ??= \Phel::map(',
-                $node->getStartSourceLocation(),
-            );
-            $this->emitEntries($node);
-            $this->outputEmitter->emitStr('))', $node->getStartSourceLocation());
-        } else {
-            $this->outputEmitter->emitStr('\Phel::map(', $node->getStartSourceLocation());
-            $this->emitEntries($node);
-            $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
+        $this->outputEmitter->emitContextPrefix($node->getEnv(), $loc);
+        $cached = $this->outputEmitter->emitConstantSlotPrefix($node, $loc);
+        $this->outputEmitter->emitStr('\Phel::map(', $loc);
+        $this->emitEntries($node);
+        $this->outputEmitter->emitStr(')', $loc);
+        if ($cached) {
+            $this->outputEmitter->emitConstantSlotSuffix($loc);
         }
 
-        $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitContextSuffix($node->getEnv(), $loc);
     }
 
     private function emitEntries(MapNode $node): void
