@@ -4,95 +4,9 @@ on:
   - pull_request
   - push
 
-name: CI
+name: Smoke
 
 jobs:
-  composer-validate:
-    name: Validate composer configuration
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: 8.4
-          coverage: none
-          tools: composer
-
-      - name: Validate composer configuration
-        run: composer validate --strict --quiet --no-interaction --no-check-all --no-check-lock
-
-  coding-guidelines:
-    name: Coding Guidelines
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-phel
-
-      - name: Run friendsofphp/php-cs-fixer
-        run: ./vendor/bin/php-cs-fixer fix --allow-risky=yes --dry-run --show-progress=dots --using-cache=no --verbose
-
-      - name: Run rector/rector
-        run: ./vendor/bin/rector process --dry-run --config=rector.php
-
-  type-checker:
-    name: Type Checker
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-phel
-
-      - name: Run Psalm on internal code
-        run: ./vendor/bin/psalm --config=psalm.xml --no-progress --shepherd --show-info=false --stats --php-version=${{ matrix.php }}
-
-      - name: Run PHPStan on internal code
-        run: ./vendor/bin/phpstan --memory-limit=516M --debug -vvv
-
-  compiler-tests:
-    name: Compiler tests on PHP ${{ matrix.php }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        php: [ '8.4', '8.5' ]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-phel
-        with:
-          php-version: ${{ matrix.php }}
-
-      - name: Run unit tests to the compiler itself
-        run: vendor/bin/phpunit --testsuite unit
-
-      - name: Run integration tests to the compiler itself
-        run: vendor/bin/phpunit --testsuite integration
-
-  core-tests:
-    name: Core tests on PHP ${{ matrix.php }}
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        php: [ '8.4', '8.5' ]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-phel
-        with:
-          php-version: ${{ matrix.php }}
-
-      - name: Run tests to the core library
-        run: composer run-script test-core
-
-  bench-tests:
-    name: Bench tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-phel
-
-      - name: Run PHPBench
-        run: vendor/bin/phpbench run --iterations=3 --warmup=1 --report=aggregate
-
   examples:
     name: Run examples
     runs-on: ubuntu-latest
@@ -110,7 +24,6 @@ jobs:
               echo "" || \
               (echo "❌ ERROR in {}" && exit 1)
             '
-
 
   agents-tests:
     name: Agent docs validation
@@ -191,13 +104,3 @@ jobs:
           echo "::group::phel analyze (JSON diagnostics)"
           "$PHAR" analyze src/main.phel > /tmp/analyze.json
           echo "::endgroup::"
-
-  bash-tests:
-    name: Bash tests
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-phel
-
-      - name: Run Bashunit tests
-        run: tools/bashunit tools/*-test.sh --simple

@@ -1,0 +1,49 @@
+# https://help.github.com/en/categories/automating-your-workflow-with-github-actions
+
+on:
+  - pull_request
+  - push
+
+name: Quality
+
+jobs:
+  composer-validate:
+    name: Validate composer configuration
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.4
+          coverage: none
+          tools: composer
+
+      - name: Validate composer configuration
+        run: composer validate --strict --quiet --no-interaction --no-check-all --no-check-lock
+
+  coding-guidelines:
+    name: Coding Guidelines
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-phel
+
+      - name: Run friendsofphp/php-cs-fixer
+        run: ./vendor/bin/php-cs-fixer fix --allow-risky=yes --dry-run --show-progress=dots --using-cache=no --verbose
+
+      - name: Run rector/rector
+        run: ./vendor/bin/rector process --dry-run --config=rector.php
+
+  type-checker:
+    name: Type Checker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-phel
+
+      - name: Run Psalm on internal code
+        run: ./vendor/bin/psalm --config=psalm.xml --no-progress --shepherd --show-info=false --stats --php-version=${{ matrix.php }}
+
+      - name: Run PHPStan on internal code
+        run: ./vendor/bin/phpstan --memory-limit=516M --debug -vvv

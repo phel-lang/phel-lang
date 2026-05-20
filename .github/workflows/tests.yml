@@ -1,0 +1,63 @@
+# https://help.github.com/en/categories/automating-your-workflow-with-github-actions
+
+on:
+  - pull_request
+  - push
+
+name: Tests
+
+jobs:
+  compiler-tests:
+    name: Compiler tests on PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '8.4', '8.5' ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-phel
+        with:
+          php-version: ${{ matrix.php }}
+
+      - name: Run unit tests to the compiler itself
+        run: vendor/bin/phpunit --testsuite unit
+
+      - name: Run integration tests to the compiler itself
+        run: vendor/bin/phpunit --testsuite integration
+
+  core-tests:
+    name: Core tests on PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [ '8.4', '8.5' ]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-phel
+        with:
+          php-version: ${{ matrix.php }}
+
+      - name: Run tests to the core library
+        run: composer run-script test-core
+
+  bench-tests:
+    name: Bench tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-phel
+
+      - name: Run PHPBench
+        run: vendor/bin/phpbench run --iterations=3 --warmup=1 --report=aggregate
+
+  bash-tests:
+    name: Bash tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-phel
+
+      - name: Run Bashunit tests
+        run: tools/bashunit tools/*-test.sh --simple
