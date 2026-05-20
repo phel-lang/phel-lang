@@ -18,9 +18,12 @@ All notable changes to this project will be documented in this file.
 
 - BC: release tooling moved from `build/` to `tools/`; `build/` is now phar-only
 - CI: split `ci.yml` into `quality.yml` / `tests.yml` / `smoke.yml` with a shared `setup-phel` composite action; add concurrency cancellation and least-privilege perms (#2039)
+- Compiler: pure vector/map/set literals inside a fn body are now hoisted to a per-fn `static` cache, so each invocation reuses the same persistent collection instead of rebuilding it
 
 ### Fixed
 
+- Dev: vendored Psalm 6.16.1 now patched on `composer install` / `composer update` to avoid the PHP 8.5 "NAN coerced to string" crash in `TLiteralFloat`
+- Compiler: `ConstantScope` uses `SplObjectStorage::offsetExists()` instead of the PHP 8.5-deprecated `contains()`, so deprecation notices no longer leak into emitted code
 - `phel.cli`: `application` now calls `Application::addCommand()` (Symfony 8 compat) instead of the deprecated `add()` (#2033)
 - `phel lint`: cache invalidates when `phel-lint.phel` changes (#2027)
 - `phel lint`: `unused-binding` no longer flags symbols used in later let bindings (#2018)
