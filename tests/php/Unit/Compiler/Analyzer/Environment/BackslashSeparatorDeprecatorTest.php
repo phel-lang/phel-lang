@@ -106,6 +106,40 @@ final class BackslashSeparatorDeprecatorTest extends TestCase
         self::assertStringContainsString("'my.project'", $this->captured[0]);
     }
 
+    public function test_no_warning_for_leading_only_backslash_php_global_constant(): void
+    {
+        $deprecator = $this->deprecator(enabled: true);
+        $deprecator->maybeWarn($this->locatedSymbol(null, '\\JSON_UNESCAPED_SLASHES', '/app/user.phel'));
+
+        self::assertSame([], $this->captured);
+    }
+
+    public function test_no_warning_for_leading_only_backslash_php_global_function(): void
+    {
+        $deprecator = $this->deprecator(enabled: true);
+        $deprecator->maybeWarn($this->locatedSymbol(null, '\\strlen', '/app/user.phel'));
+
+        self::assertSame([], $this->captured);
+    }
+
+    public function test_no_warning_for_leading_only_backslash_top_level_class(): void
+    {
+        $deprecator = $this->deprecator(enabled: true);
+        $deprecator->maybeWarn($this->locatedSymbol(null, '\\DateTimeInterface', '/app/user.phel'));
+
+        self::assertSame([], $this->captured);
+    }
+
+    public function test_emits_for_leading_backslash_when_internal_separator_present(): void
+    {
+        $deprecator = $this->deprecator(enabled: true);
+        $deprecator->maybeWarn($this->locatedSymbol(null, '\\Foo\\Bar', '/app/user.phel'));
+
+        self::assertCount(1, $this->captured);
+        self::assertStringContainsString("'\\Foo\\Bar'", $this->captured[0]);
+        self::assertStringContainsString("'Foo.Bar'", $this->captured[0]);
+    }
+
     public function test_suppresses_when_location_is_missing(): void
     {
         $deprecator = $this->deprecator(enabled: true);

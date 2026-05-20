@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file.
 - `Phel::run()`: backslash namespaces normalize to dot-form, matching CLI (#2021)
 - `phel format`: appends trailing newline (POSIX / EditorConfig) (#2022)
 - `phel test`: non-zero exit when `--filter` matches zero tests (#2023)
+- `BackslashSeparatorDeprecator`: no longer false-warns on top-level PHP symbols with a leading-only `\` (e.g. `\JSON_UNESCAPED_SLASHES`, `\strlen`, `\DateTimeInterface`) (#2038)
 
 ## [0.39.0](https://github.com/phel-lang/phel-lang/compare/v0.38.0...v0.39.0) - 2026-05-19
 
