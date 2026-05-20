@@ -39,10 +39,15 @@
 
 Lisp for PHP, macros, persistent data structures, REPL.
 
-### Try it in 30 seconds
+## Get Started
 
 ```sh
 composer require phel-lang/phel-lang
+```
+
+**1. Open a REPL**
+
+```sh
 ./vendor/bin/phel repl
 ```
 
@@ -55,22 +60,29 @@ phel:3:> (greet "Phel")
 | "Hello, Phel!"
 ```
 
-> Prefer a project template? [`web-skeleton`](https://github.com/phel-lang/web-skeleton) or [`cli-skeleton`](https://github.com/phel-lang/cli-skeleton): click **Use this template** for a one-click start.
+**2. Scaffold a project**
 
-### Example
-<!--
-using "clojure" here is just for the md coloring
-we should use "phel" once GitHub accept phel coloring too
--->
-```clojure
-(ns my.example)
-
-(defn greet [name] 
-  (str "Hello, " name "!"))
-
-(println (greet "Phel"))
-;; => Hello, Phel!
+```sh
+./vendor/bin/phel init         # add `--minimal` for a single-file layout
 ```
+
+Creates `phel-config.php`, `src/phel/main.phel`, `tests/phel/main_test.phel`. Then:
+
+```sh
+./vendor/bin/phel run src/phel/main.phel   # run
+./vendor/bin/phel test                     # tests
+./vendor/bin/phel build                    # compile to PHP
+```
+
+**3. Eval inline or via stdin**
+
+```sh
+./vendor/bin/phel eval '(+ 1 2)'           # prints 3
+echo '(println "hi")' | ./vendor/bin/phel eval -
+./vendor/bin/phel eval - < script.phel
+```
+
+> Prefer a project template? [`web-skeleton`](https://github.com/phel-lang/web-skeleton) or [`cli-skeleton`](https://github.com/phel-lang/cli-skeleton): click **Use this template** for a one-click start.
 
 <details>
 <summary><b>More examples →</b></summary>
@@ -152,30 +164,6 @@ we should use "phel" once GitHub accept phel coloring too
 </tr>
 </table>
 </details>
-
-## Getting Started
-
-```sh
-composer require phel-lang/phel-lang
-./vendor/bin/phel init                     # add `--minimal` for a single-file layout
-```
-
-Scaffolds `phel-config.php`, `src/phel/main.phel`, `tests/phel/main_test.phel`.
-
-```sh
-./vendor/bin/phel run src/phel/main.phel   # run
-./vendor/bin/phel test                     # tests
-./vendor/bin/phel repl                     # REPL
-./vendor/bin/phel build                    # compile to PHP
-```
-
-Eval inline or via stdin:
-
-```sh
-./vendor/bin/phel eval '(+ 1 2)'           # prints 3
-echo '(println "hi")' | ./vendor/bin/phel eval -
-./vendor/bin/phel eval - < script.phel
-```
 
 ## Documentation
 
