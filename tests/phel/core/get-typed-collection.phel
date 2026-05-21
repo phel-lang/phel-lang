@@ -1,0 +1,16 @@
+(ns phel-test.core.get-typed-collection
+  (:require phel.test :refer [deftest is]))
+
+(defn- read-vec [^"\Phel\Lang\Collections\Vector\PersistentVectorInterface" v ^int i]
+  (get v i))
+
+(defn- read-map [^"\Phel\Lang\Collections\Map\PersistentMapInterface" m k]
+  (get m k))
+
+(deftest test-get-on-typed-vector
+  (is (= 10 (read-vec [10 20 30] 0)) "specialised get hits PersistentVector::get")
+  (is (= 30 (read-vec [10 20 30] 2)) "specialised get at tail index"))
+
+(deftest test-get-on-typed-map-miss-returns-nil
+  (is (= 1 (read-map {:a 1 :b 2} :a)) "specialised get hits PersistentMap::find")
+  (is (nil? (read-map {:a 1} :missing)) "specialised get returns nil for missing key"))

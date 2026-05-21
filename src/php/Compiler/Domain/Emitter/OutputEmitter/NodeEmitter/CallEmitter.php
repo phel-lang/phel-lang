@@ -162,6 +162,10 @@ final class CallEmitter implements NodeEmitterInterface
             return;
         }
 
+        if ($this->tryEmitTypedGetAccess($node)) {
+            return;
+        }
+
         $useCallMethod = !$this->isSelfCall($node) && GlobalCallTarget::isGlobalFnCall($node);
 
         $this->emitDynamicFunctionName($node);
@@ -225,6 +229,33 @@ final class CallEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitNode($node->getArguments()[0]);
         $this->outputEmitter->emitStr('->find(', $loc);
         $this->outputEmitter->emitNode($node->getFn());
+        $this->outputEmitter->emitStr('))', $loc);
+        return true;
+    }
+
+    /**
+     * Specialise `(get coll k)` to a direct method call when the target
+     * carries a `PersistentVectorInterface` or `PersistentMapInterface`
+     * tag. Skips the cond chain in `phel.core/get`'s body (nil / set /
+     * seq / php-aget fallback) for the hot indexed-access shape.
+     *
+     * Two-arg form only: the three-arg `(get coll k default)` shape
+     * needs an explicit `contains?` probe to honour the default, so
+     * the cond chain is still the right path.
+     */
+    private function tryEmitTypedGetAccess(CallNode $node): bool
+    {
+        $method = CallSpecialization::typedGetAccessMethod($node);
+        if ($method === null) {
+            return false;
+        }
+
+        $args = $node->getArguments();
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($args[0]);
+        $this->outputEmitter->emitStr('->' . $method . '(', $loc);
+        $this->outputEmitter->emitNode($args[1]);
         $this->outputEmitter->emitStr('))', $loc);
         return true;
     }

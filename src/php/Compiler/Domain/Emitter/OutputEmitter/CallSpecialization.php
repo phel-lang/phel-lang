@@ -10,6 +10,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Shared\CompilerConstants;
 
@@ -34,7 +35,60 @@ final readonly class CallSpecialization
             return true;
         }
 
-        return self::isKeywordFind($node);
+        if (self::isKeywordFind($node)) {
+            return true;
+        }
+
+        return self::isTypedGetAccess($node);
+    }
+
+    /**
+     * `(get coll k)` with two args, where the analyser has tagged the
+     * target as either `PersistentVectorInterface` or
+     * `PersistentMapInterface`. The runtime `phel.core/get` body walks
+     * a `cond` chain covering nil, set, seq, and the generic
+     * `php/aget` fallback; for a typed indexed access every branch
+     * collapses to a single method call on the target collection.
+     */
+    public static function isTypedGetAccess(CallNode $node): bool
+    {
+        return self::typedGetAccessMethod($node) !== null;
+    }
+
+    /**
+     * Returns the PHP method name to call on the target collection for
+     * a `(get coll k)` call the emitter can specialise, or `null` when
+     * the call is not a typed get-access.
+     */
+    public static function typedGetAccessMethod(CallNode $node): ?string
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode) {
+            return null;
+        }
+
+        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
+            || $fn->getName()->getName() !== 'get'
+        ) {
+            return null;
+        }
+
+        $args = $node->getArguments();
+        if (count($args) !== 2) {
+            return null;
+        }
+
+        $target = $args[0];
+        if (!$target instanceof LocalVarNode) {
+            return null;
+        }
+
+        $tag = self::normalisedTag($target->getInferredType());
+        return match ($tag) {
+            PersistentVectorInterface::class => 'get',
+            PersistentMapInterface::class => 'find',
+            default => null,
+        };
     }
 
     /**
@@ -99,6 +153,11 @@ final readonly class CallSpecialization
 
     private static function isPersistentMapTag(?string $tag): bool
     {
-        return $tag !== null && ltrim($tag, '\\') === PersistentMapInterface::class;
+        return self::normalisedTag($tag) === PersistentMapInterface::class;
+    }
+
+    private static function normalisedTag(?string $tag): ?string
+    {
+        return $tag === null ? null : ltrim($tag, '\\');
     }
 }

@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file.
 - Persistent-collection `hash()` memo uses a `null` sentinel so empty maps / sets and `hash == 0` stop recomputing (#2050)
 - `LocalVarNode::getInferredType()` exposes the analyser `:tag` meta to the emitter; `IterableTarget` promotes #2047 to fire on `(defn f [^"array" arr] …)` annotations (#2052)
 - Collapse synthesised `defn` location maps into a single `\Phel::location(file, line, col)` call, shrinking compiled file size (#2053)
+- Specialise `(get coll k)` to a direct `$coll->get($k)` (vector) or `$coll->find($k)` (map) method call when the analyser has tagged `coll` as `PersistentVectorInterface` / `PersistentMapInterface`, collapsing the `phel.core/get` cond chain for the hot indexed-access shape (#2067)
 
 ### Changed
 

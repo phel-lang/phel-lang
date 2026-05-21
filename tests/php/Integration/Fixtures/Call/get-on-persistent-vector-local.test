@@ -1,0 +1,6 @@
+--PHEL--
+(fn [^"\\Phel\\Lang\\Collections\\Vector\\PersistentVectorInterface" v ^int i] (get v i))
+--PHP--
+(function(\Phel\Lang\Collections\Vector\PersistentVectorInterface $v, int $i) {
+  return ($v->get($i));
+});
