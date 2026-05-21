@@ -11,7 +11,6 @@ use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
-use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
@@ -321,6 +320,9 @@ final class FnSymbolTest extends TestCase
 
     public function test_pre_condition_returning_falsy_throws_exception_when_enabled(): void
     {
+        // The pre-condition expands to `(if <pred> ... (throw))`. A literal
+        // `false` predicate folds to the throw branch directly via the
+        // constant folder, collapsing the `if` away.
         $list = Phel::list([
             Symbol::create(Symbol::NAME_FN),
             Phel::vector([
@@ -340,13 +342,10 @@ final class FnSymbolTest extends TestCase
 
         $stmts = $body->getStmts();
         self::assertCount(1, $stmts);
-        $ifNode = $stmts[0];
-        self::assertInstanceOf(IfNode::class, $ifNode);
+        $throwNode = $stmts[0];
+        self::assertInstanceOf(ThrowNode::class, $throwNode);
 
-        $elseExpr = $ifNode->getElseExpr();
-        self::assertInstanceOf(ThrowNode::class, $elseExpr);
-
-        $exceptionExpr = $elseExpr->getExceptionExpr();
+        $exceptionExpr = $throwNode->getExceptionExpr();
         self::assertInstanceOf(PhpNewNode::class, $exceptionExpr);
         self::assertInstanceOf(LiteralNode::class, $exceptionExpr->getClassExpr());
         self::assertSame(RuntimeException::class, $exceptionExpr->getClassExpr()->getValue());

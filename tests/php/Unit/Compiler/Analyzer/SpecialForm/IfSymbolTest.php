@@ -7,7 +7,9 @@ namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 use Generator;
 use Phel;
 use Phel\Compiler\Application\Analyzer;
+use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\IfSymbol;
@@ -56,6 +58,26 @@ final class IfSymbolTest extends TestCase
 
     public function test_analyze(): void
     {
+        // The test is a `do` form so the constant folder leaves the IfNode
+        // intact; pure literal tests are exercised in
+        // {@see self::test_analyze_folds_literal_test()}.
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_IF),
+            Phel::list([Symbol::create(Symbol::NAME_DO), true]),
+            'then-expression',
+            'else-expression',
+        ]);
+
+        $actual = $this->analyze($list);
+
+        self::assertInstanceOf(IfNode::class, $actual);
+        self::assertSame('then-expression', $actual->getThenExpr()->getValue());
+        self::assertSame('else-expression', $actual->getElseExpr()->getValue());
+        self::assertEquals(NodeEnvironment::empty(), $actual->getEnv());
+    }
+
+    public function test_analyze_folds_literal_truthy_test_to_then_branch(): void
+    {
         $list = Phel::list([
             Symbol::create(Symbol::NAME_IF),
             true,
@@ -63,15 +85,28 @@ final class IfSymbolTest extends TestCase
             'else-expression',
         ]);
 
-        $actual = $this->analyze($list);
+        $folded = $this->analyze($list);
 
-        self::assertTrue($actual->getTestExpr()->getValue());
-        self::assertSame('then-expression', $actual->getThenExpr()->getValue());
-        self::assertSame('else-expression', $actual->getElseExpr()->getValue());
-        self::assertEquals(NodeEnvironment::empty(), $actual->getEnv());
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame('then-expression', $folded->getValue());
     }
 
-    private function analyze(PersistentListInterface $list): IfNode
+    public function test_analyze_folds_literal_falsy_test_to_else_branch(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_IF),
+            false,
+            'then-expression',
+            'else-expression',
+        ]);
+
+        $folded = $this->analyze($list);
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame('else-expression', $folded->getValue());
+    }
+
+    private function analyze(PersistentListInterface $list): AbstractNode
     {
         $analyzer = new Analyzer(new GlobalEnvironment());
 
