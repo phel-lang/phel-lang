@@ -1,7 +1,7 @@
 --PHEL--
 (defonce counter 0)
 --PHP--
-if (!\Phel::hasDefinition("user", "counter")) {
+if (!\Phel::isDefined("user", "counter")) {
   \Phel::addDefinition(
     "user",
     "counter",

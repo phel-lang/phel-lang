@@ -49,7 +49,11 @@ final class DefEmitter implements NodeEmitterInterface
             // `defonce` keeps the existing binding intact across re-eval
             // — useful for REPL workflows where re-loading a file would
             // otherwise reset stateful atoms / connections / caches.
-            $this->outputEmitter->emitLine('if (!\\Phel::hasDefinition("' . $ns . '", "' . $name . '")) {');
+            // `isDefined` (not `hasDefinition`) is the correct guard: it
+            // routes to `Registry::isDefined`, which uses `array_key_exists`
+            // and so distinguishes a stored `null` from a missing entry.
+            // `hasDefinition` would overwrite `(defonce x nil)` on reload.
+            $this->outputEmitter->emitLine('if (!\\Phel::isDefined("' . $ns . '", "' . $name . '")) {');
             $this->outputEmitter->increaseIndentLevel();
         }
 

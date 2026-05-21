@@ -227,3 +227,10 @@
   (defonce defonce-test-target 999)
   (is (= 1 defonce-test-target)
       "defonce leaves the existing binding intact on re-evaluation"))
+
+(deftest test-defonce-preserves-nil-binding
+  (defonce defonce-nil-target nil)
+  (is (nil? defonce-nil-target) "defonce can bind nil as the initial value")
+  (defonce defonce-nil-target :reloaded)
+  (is (nil? defonce-nil-target)
+      "defonce treats a stored nil as a present binding, never overwrites"))
