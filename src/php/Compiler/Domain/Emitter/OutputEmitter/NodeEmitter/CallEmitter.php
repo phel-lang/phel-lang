@@ -8,19 +8,17 @@ use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
-use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\GlobalCallTarget;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\PhpStringEscape;
 use Phel\Lang\Symbol;
-use Phel\Shared\CompilerConstants;
 
 use function assert;
 use function count;
-use function is_string;
 
 final class CallEmitter implements NodeEmitterInterface
 {
@@ -156,6 +154,10 @@ final class CallEmitter implements NodeEmitterInterface
             return;
         }
 
+        if ($this->tryEmitKeywordFind($node)) {
+            return;
+        }
+
         if ($this->tryEmitStrConcat($node)) {
             return;
         }
@@ -172,40 +174,26 @@ final class CallEmitter implements NodeEmitterInterface
     }
 
     /**
-     * Specialise `(str "a" "b" "c")` to PHP `.` concatenation when every
-     * arg is a string literal. The runtime `phel.core/str` does a
-     * per-arg `val-to-str` dispatch plus a `StringBuilder`-style
-     * accumulator pass; for purely literal inputs the result is a
-     * compile-time constant string, so we emit a single `.` chain and
-     * skip both the registry lookup and the runtime walk.
+     * Specialise `(str ...)` to PHP `.` concatenation when every arg
+     * compiles to a string-typed expression. The runtime `phel.core/str`
+     * does a per-arg `val-to-str` dispatch plus a `StringBuilder`-style
+     * accumulator pass; when every arg is already a string the result is
+     * the same plain `.` chain, so we emit it directly and skip both the
+     * registry lookup and the runtime walk.
+     *
+     * Eligibility lives on {@see CallSpecialization::isStrConcat()} so the
+     * cache scanner can skip reserving a `static $__phel_call_N` slot for
+     * the call we are about to specialise.
      */
     private function tryEmitStrConcat(CallNode $node): bool
     {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode) {
+        if (!CallSpecialization::isStrConcat($node)) {
             return false;
-        }
-
-        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-            || $fn->getName()->getName() !== 'str'
-        ) {
-            return false;
-        }
-
-        $args = $node->getArguments();
-        if ($args === []) {
-            return false;
-        }
-
-        foreach ($args as $arg) {
-            if (!$arg instanceof LiteralNode || !is_string($arg->getValue())) {
-                return false;
-            }
         }
 
         $loc = $node->getStartSourceLocation();
         $this->outputEmitter->emitStr('(', $loc);
-        foreach ($args as $i => $arg) {
+        foreach ($node->getArguments() as $i => $arg) {
             if ($i > 0) {
                 $this->outputEmitter->emitStr(' . ', $loc);
             }
@@ -214,6 +202,30 @@ final class CallEmitter implements NodeEmitterInterface
         }
 
         $this->outputEmitter->emitStr(')', $loc);
+        return true;
+    }
+
+    /**
+     * Specialise `(:k m)` to `$m->find(\Phel::keyword("k"))` when the
+     * analyser has proved `m` to be a `PersistentMapInterface`. The
+     * runtime `Keyword::__invoke` dispatches on the target's runtime
+     * type to pick between `ArrayAccess`, `ContainsInterface`, and the
+     * `nil` fallback; a typed map collapses that dispatch to the single
+     * `find` call the map already exposes, returning `null` on miss to
+     * match the 1-arg keyword-accessor contract.
+     */
+    private function tryEmitKeywordFind(CallNode $node): bool
+    {
+        if (!CallSpecialization::isKeywordFind($node)) {
+            return false;
+        }
+
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($node->getArguments()[0]);
+        $this->outputEmitter->emitStr('->find(', $loc);
+        $this->outputEmitter->emitNode($node->getFn());
+        $this->outputEmitter->emitStr('))', $loc);
         return true;
     }
 

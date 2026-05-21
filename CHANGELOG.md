@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - Hoist keyword literals inside a fn body to per-fn `static $__phel_const_N` slots — one intern-pool lookup per call site (#2046)
 - Drop `Seq::toIterable` / `Seq::toApplyArguments` adapter wraps when the source is already iterable or a PHP array (#2047)
 - Specialise `(str ...)` to PHP `.` concat for all-literal args; emit `(php/instanceof x c)` over local bindings without the two-temp IIFE (#2048)
+- Extend `(str ...)` `.`-concat specialisation to args tagged `^string`; specialise `(:k m)` to `$m->find(\Phel::keyword("k"))` when `m` is tagged `^"\Phel\Lang\Collections\Map\PersistentMapInterface"`; both consumers share `CallSpecialization` so the cache scanner no longer reserves an orphan `static $__phel_call_N` for the specialised call (#2048)
 - Multi-arity fn dispatch via `match (\count($args)) { … }` instead of `switch` + post-`if`; variadic body folds into `default` (#2049)
 - Persistent-collection `hash()` memo uses a `null` sentinel so empty maps / sets and `hash == 0` stop recomputing (#2050)
 - `LocalVarNode::getInferredType()` exposes the analyser `:tag` meta to the emitter; `IterableTarget` promotes #2047 to fire on `(defn f [^"array" arr] …)` annotations (#2052)

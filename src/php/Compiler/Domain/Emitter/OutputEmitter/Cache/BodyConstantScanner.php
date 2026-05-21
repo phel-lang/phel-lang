@@ -31,6 +31,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\SetVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
 use Phel\Compiler\Domain\Analyzer\Ast\TryNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\GlobalCallTarget;
 use Phel\Lang\Keyword;
 
@@ -61,7 +62,11 @@ final readonly class BodyConstantScanner
             return;
         }
 
-        if ($cacheCalls && $node instanceof CallNode && GlobalCallTarget::isGlobalFnCall($node)) {
+        if ($cacheCalls
+            && $node instanceof CallNode
+            && GlobalCallTarget::isGlobalFnCall($node)
+            && !CallSpecialization::isSpecialized($node)
+        ) {
             $scope->reserveCallSlot($node);
             // Fall through so child args are still scanned for nested literals/calls.
         }
