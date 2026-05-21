@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - Compiler: `(str ...)` with all-string-literal args emits a PHP `.` concat chain instead of dispatching through `phel.core/str`, and `(php/instanceof x c)` with two local-binding args drops the two-temp IIFE for a direct `($x instanceof $c)` expression (#2048)
 - Compiler: multi-arity fn dispatch emits a `match (\count($args)) { … }` jump table instead of the previous `switch` + post-`if` block; the variadic body folds into the `default` arm (#2049)
 - Runtime: persistent collection `hash()` switches its memo sentinel from `0` to `null`, so empty maps / sets and the rare `hash == 0` value reuse the cached result on subsequent calls instead of recomputing (#2050)
+- Compiler: `LocalVarNode::getInferredType()` exposes the analyser's `:tag` meta to the emitter; `IterableTarget` consumes it so a `(defn f [^"array" arr] (foreach [x arr] …))` style annotation unlocks the same `foreach` / `apply` adapter skips as a literal would (#2052)
 
 ### Changed
 
