@@ -1,0 +1,6 @@
+--PHEL--
+(fn [^string a ^string b] (str "[" a b "]"))
+--PHP--
+(function(string $a, string $b) {
+  return ("[" . $a . $b . "]");
+});
