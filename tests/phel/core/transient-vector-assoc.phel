@@ -3,7 +3,7 @@
 
 (deftest test-assoc-bang-indexed-writes-survive-persistent
   ;; Build a 180-element vector, transient it, and overwrite every
-  ;; index. The persistent ancestor must stay untouched — the in-place
+  ;; index. The persistent ancestor must stay untouched: the in-place
   ;; transient update path relies on PHP COW to detach shared trie nodes.
   (let [base (apply vector (range 0 180))
         t    (transient base)]

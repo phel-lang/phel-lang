@@ -153,10 +153,10 @@ final class TransientVector implements TransientVectorInterface, Stringable
         if ($i >= 0 && $i < $this->count) {
             if ($i >= $this->tailOffset()) {
                 $this->tail[$i & self::INDEX_MASK] = $value;
-                return $this;
+            } else {
+                $this->updateInPlace($this->shift, $this->root, $i, $value);
             }
 
-            $this->updateInPlace($this->shift, $this->root, $i, $value);
             return $this;
         }
 
