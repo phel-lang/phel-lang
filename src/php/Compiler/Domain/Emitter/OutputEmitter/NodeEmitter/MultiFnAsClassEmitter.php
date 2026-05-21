@@ -126,14 +126,21 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
     }
 
     /**
+     * Multi-arity dispatch via a `match` jump table instead of the
+     * previous `switch` + post-`if`. PHP compiles `match` to a single
+     * branchless table when every arm is a constant `int`, and the
+     * variadic tail collapses into the `default` arm — same semantics,
+     * fewer instructions on every call.
+     *
      * @param list<FnNode> $fnNodes
      */
     private function emitInvoke(MultiFnNode $node, array $fnNodes): void
     {
-        $this->outputEmitter->emitLine('public function __invoke(...$args) {', $node->getStartSourceLocation());
+        $loc = $node->getStartSourceLocation();
+
+        $this->outputEmitter->emitLine('public function __invoke(...$args) {', $loc);
         $this->outputEmitter->increaseIndentLevel();
-        $this->outputEmitter->emitLine('$argc = \count($args);', $node->getStartSourceLocation());
-        $this->outputEmitter->emitLine('switch ($argc) {', $node->getStartSourceLocation());
+        $this->outputEmitter->emitLine('return match (\count($args)) {', $loc);
         $this->outputEmitter->increaseIndentLevel();
 
         $variadicIndex = null;
@@ -144,31 +151,36 @@ final readonly class MultiFnAsClassEmitter implements NodeEmitterInterface
             }
 
             $arity = count($fnNode->getParams());
-            $this->outputEmitter->emitLine('case ' . $arity . ':', $node->getStartSourceLocation());
-            $this->outputEmitter->increaseIndentLevel();
             $params = [];
             for ($p = 0; $p < $arity; ++$p) {
                 $params[] = '$args[' . $p . ']';
             }
 
-            $this->outputEmitter->emitLine('return ($this->fn' . $i . ')(' . implode(', ', $params) . ');', $node->getStartSourceLocation());
-            $this->outputEmitter->decreaseIndentLevel();
+            $this->outputEmitter->emitLine(
+                $arity . ' => ($this->fn' . $i . ')(' . implode(', ', $params) . '),',
+                $loc,
+            );
         }
-
-        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
 
         if ($variadicIndex !== null) {
             $min = $fnNodes[$variadicIndex]->getMinArity();
-            $this->outputEmitter->emitLine('if ($argc >= ' . $min . ') {', $node->getStartSourceLocation());
-            $this->outputEmitter->increaseIndentLevel();
-            $this->outputEmitter->emitLine('return ($this->fn' . $variadicIndex . ')(...$args);', $node->getStartSourceLocation());
-            $this->outputEmitter->decreaseIndentLevel();
-            $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
+            $this->outputEmitter->emitLine(
+                'default => \count($args) >= ' . $min
+                . ' ? ($this->fn' . $variadicIndex . ')(...$args)'
+                . ' : throw new \\InvalidArgumentException("No matching function arity"),',
+                $loc,
+            );
+        } else {
+            $this->outputEmitter->emitLine(
+                'default => throw new \\InvalidArgumentException("No matching function arity"),',
+                $loc,
+            );
         }
 
-        $this->outputEmitter->emitLine('throw new \\InvalidArgumentException("No matching function arity");', $node->getStartSourceLocation());
         $this->outputEmitter->decreaseIndentLevel();
-        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
+        $this->outputEmitter->emitLine('};', $loc);
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine('}', $loc);
     }
 
     private function emitClassEnd(MultiFnNode $node): void

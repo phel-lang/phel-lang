@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - Compiler: keyword literals (`:foo`, `:my.app/bar`) inside a fn body are hoisted to per-fn `static $__phel_const_N` slots, skipping the `Keyword` intern-pool lookup on every call after the first (#2046)
 - Compiler: drop `Seq::toIterable` from `foreach` over Phel collection / `(php/array …)` literals and drop `Seq::toApplyArguments` from `apply` when the final arg is a `(php/array …)` result — the adapters were no-ops on those shapes (#2047)
 - Compiler: `(str ...)` with all-string-literal args emits a PHP `.` concat chain instead of dispatching through `phel.core/str`, and `(php/instanceof x c)` with two local-binding args drops the two-temp IIFE for a direct `($x instanceof $c)` expression (#2048)
+- Compiler: multi-arity fn dispatch emits a `match (\count($args)) { … }` jump table instead of the previous `switch` + post-`if` block; the variadic body folds into the `default` arm (#2049)
 
 ### Changed
 

@@ -18,13 +18,10 @@ new class() extends \Phel\Lang\AbstractFn {
   }
 
   public function __invoke(...$args) {
-    $argc = \count($args);
-    switch ($argc) {
-      case 1:
-        return ($this->fn0)($args[0]);
-      case 2:
-        return ($this->fn1)($args[0], $args[1]);
-      }
-      throw new \InvalidArgumentException("No matching function arity");
-    }
-  };
+    return match (\count($args)) {
+      1 => ($this->fn0)($args[0]),
+      2 => ($this->fn1)($args[0], $args[1]),
+      default => throw new \InvalidArgumentException("No matching function arity"),
+    };
+  }
+};
