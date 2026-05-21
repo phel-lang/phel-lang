@@ -1,0 +1,6 @@
+--PHEL--
+(fn [^"\\Phel\\Lang\\Collections\\Map\\PersistentMapInterface" m k] (get m k))
+--PHP--
+(function(\Phel\Lang\Collections\Map\PersistentMapInterface $m, $k) {
+  return ($m->find($k));
+});
