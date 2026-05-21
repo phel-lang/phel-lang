@@ -1,0 +1,6 @@
+--PHEL--
+(fn [^int x] (>= x 0))
+--PHP--
+(function(int $x): bool {
+  return ($x >= 0);
+});

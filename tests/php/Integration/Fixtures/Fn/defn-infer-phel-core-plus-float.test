@@ -8,8 +8,7 @@
     public const BOUND_TO = "user\\inc_by_one_tenth";
 
     public function __invoke(float $a) {
-      static $__phel_call_0;
-      return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($a, 1.1);
+      return ($a + 1.1);
     }
   },
   \Phel::map(

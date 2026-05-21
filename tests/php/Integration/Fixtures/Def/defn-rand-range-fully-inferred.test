@@ -9,8 +9,8 @@
     public const BOUND_TO = "user\\rand_range";
 
     public function __invoke(int $lo, int $hi) {
-      static $__phel_call_0, $__phel_call_1, $__phel_call_2;
-      return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($lo, ($__phel_call_1 ??= \Phel::getDefinition("phel.core", "rand-int"))->__invoke(($__phel_call_2 ??= \Phel::getDefinition("phel.core", "-"))->__invoke($hi, $lo)));
+      static $__phel_call_0, $__phel_call_1;
+      return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($lo, ($__phel_call_1 ??= \Phel::getDefinition("phel.core", "rand-int"))->__invoke(($hi - $lo)));
     }
   },
   \Phel::map(

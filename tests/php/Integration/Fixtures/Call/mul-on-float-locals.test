@@ -1,0 +1,6 @@
+--PHEL--
+(fn [^float a ^float b] (* a b))
+--PHP--
+(function(float $a, float $b) {
+  return ($a * $b);
+});
