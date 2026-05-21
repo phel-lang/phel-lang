@@ -18,19 +18,28 @@ All notable changes to this project will be documented in this file.
 
 ### Performance
 
+Dispatch / call sites:
 - Cache global fn call sites in build mode via per-fn `static $__phel_call_N` slots; route known `AbstractFn` callees through direct `->__invoke(...)` to skip magic dispatch (#2044)
+- Multi-arity fn dispatch via `match (\count($args))`; variadic body folds into `default` (#2049)
+
+Compile-time folding / hoisting:
 - Constant-fold pure `phel.core` arithmetic (`+ - * inc dec`) on literal args; short-circuit `if` with a literal test (#2045)
 - Hoist keyword literals to per-fn `static $__phel_const_N` slots; one intern-pool lookup per call site (#2046)
+
+Type-driven call specialisation (shared `CallSpecialization` keeps the cache scanner aligned):
+- Surface analyser `:tag` meta via `LocalVarNode::getInferredType()`; `IterableTarget` consumes it for `^"array"` params (#2052)
 - Drop `Seq::toIterable` / `Seq::toApplyArguments` wraps when the source is already iterable or a PHP array (#2047)
-- Surface analyser `:tag` meta via `LocalVarNode::getInferredType()`; `IterableTarget` promotes #2047 to fire on `^"array"` params (#2052)
-- `ParamTypeInferrer` observes `phel.core` arithmetic and ordering wrappers (`+`, `-`, `*`, `<`, `<=`, `>`, `>=`, `<=>`) when a float literal sibling makes the float path inevitable: `(+ a 1.5)` auto-tags `a` as `^float`. Int literals stay ambiguous on the wrapper to keep `BigInt` / `Ratio` polymorphism intact. `=` against `nil` / `true` / `false` keeps the existing guard semantics (#2078)
-- Specialise two-arg `phel.core` arithmetic (`+`, `-`, `*`) and comparison (`<`, `<=`, `>`, `>=`, `=`) wrappers to native PHP ops when both args are statically primitive: int / float literals or `LocalVarNode`s tagged `int` / `float` (plus `bool` / `string` for `=`). `(defn step [^int a ^int b] (+ a b))` emits `($a + $b)` instead of routing through the runtime defn (#2079)
-- Specialise `(str ...)` to PHP `.` concat for literal and `^string`-tagged args; skip the two-temp IIFE for `(php/instanceof x c)` between locals; specialise `(:k m)` to `$m->find(...)` when `m` is `^PersistentMapInterface`. Shared `CallSpecialization` keeps the cache scanner aligned (#2048)
+- Auto-tag `^float` on params used under `phel.core` arithmetic / ordering wrappers (`+ - * < <= > >= <=>`) when a float literal sibling makes the float path inevitable. Int literals stay ambiguous to preserve `BigInt` / `Ratio` polymorphism (#2078)
+- Specialise two-arg `phel.core` `+ - * < <= > >= =` to native PHP ops when both args are int / float literals or `^int|^float` locals (`=` also accepts `^bool|^string`): `(+ ^int a ^int b)` → `($a + $b)` (#2079)
+- Specialise `(str ...)` to PHP `.` concat for literal and `^string` args; skip the two-temp IIFE for `(php/instanceof x c)` between locals; specialise `(:k m)` to `$m->find(...)` when `m` is `^PersistentMapInterface` (#2048)
 - Specialise `(get coll k)` to `$coll->get($k)` / `$coll->find($k)` when `coll` is `^PersistentVectorInterface` / `^PersistentMapInterface` (#2067)
-- Multi-arity fn dispatch via `match (\count($args))`; variadic body folds into `default` (#2049)
+
+Runtime data structures:
 - Persistent-collection `hash()` memo uses a `null` sentinel so empty maps / sets and `hash == 0` stop recomputing (#2050)
-- Collapse synthesised `defn` location maps into one `\Phel::location(...)` call (#2053)
 - `TransientVector::update()` mutates the trie in place via a by-reference walk; PHP COW still detaches shared nodes from the persistent ancestor on first write (#2069)
+
+Emit size:
+- Collapse synthesised `defn` location maps into one `\Phel::location(...)` call (#2053)
 
 ### Changed
 
