@@ -1,0 +1,6 @@
+--PHEL--
+(fn [^:reference parts] (php/array_push parts "x"))
+--PHP--
+(function(&$parts) {
+  return array_push($parts, "x");
+});
