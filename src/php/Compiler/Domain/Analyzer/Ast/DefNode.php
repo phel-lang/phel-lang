@@ -17,6 +17,7 @@ final class DefNode extends AbstractNode
         private readonly MapNode $meta,
         private readonly AbstractNode $init,
         ?SourceLocation $sourceLocation = null,
+        private readonly bool $defonce = false,
     ) {
         parent::__construct($env, $sourceLocation);
     }
@@ -39,5 +40,16 @@ final class DefNode extends AbstractNode
     public function getInit(): AbstractNode
     {
         return $this->init;
+    }
+
+    /**
+     * `true` when the def came from a `defonce*` special form. The
+     * emitter wraps the `addDefinition` call so the binding is left
+     * untouched if it already exists in the registry — a no-op on
+     * subsequent file evaluations / REPL reloads.
+     */
+    public function isDefonce(): bool
+    {
+        return $this->defonce;
     }
 }

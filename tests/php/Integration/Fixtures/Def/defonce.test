@@ -1,0 +1,14 @@
+--PHEL--
+(defonce counter 0)
+--PHP--
+if (!\Phel::hasDefinition("user", "counter")) {
+  \Phel::addDefinition(
+    "user",
+    "counter",
+    0,
+    \Phel::map(
+      \Phel::keyword("start-location"), \Phel::location("Def/defonce.test", 1, 0),
+      \Phel::keyword("end-location"), \Phel::location("Def/defonce.test", 1, 19)
+    )
+  );
+}

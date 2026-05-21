@@ -41,13 +41,25 @@ final class DefEmitter implements NodeEmitterInterface
         }
 
         $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
+
+        $ns = PhpStringEscape::doubleQuoted($this->outputEmitter->mungeEncodeRegistryKey($node->getNamespace()));
+        $name = PhpStringEscape::doubleQuoted($node->getName()->getName());
+
+        if ($node->isDefonce()) {
+            // `defonce` keeps the existing binding intact across re-eval
+            // — useful for REPL workflows where re-loading a file would
+            // otherwise reset stateful atoms / connections / caches.
+            $this->outputEmitter->emitLine('if (!\\Phel::hasDefinition("' . $ns . '", "' . $name . '")) {');
+            $this->outputEmitter->increaseIndentLevel();
+        }
+
         $this->outputEmitter->emitLine('\\Phel::addDefinition(');
         $this->outputEmitter->increaseIndentLevel();
         $this->outputEmitter->emitStr('"');
-        $this->outputEmitter->emitStr(PhpStringEscape::doubleQuoted($this->outputEmitter->mungeEncodeRegistryKey($node->getNamespace())));
+        $this->outputEmitter->emitStr($ns);
         $this->outputEmitter->emitLine('",');
         $this->outputEmitter->emitStr('"');
-        $this->outputEmitter->emitStr(PhpStringEscape::doubleQuoted($node->getName()->getName()));
+        $this->outputEmitter->emitStr($name);
         $this->outputEmitter->emitLine('",');
         $this->outputEmitter->emitNode($node->getInit());
         if ($node->getMeta()->getKeyValues() !== []) {
@@ -58,5 +70,10 @@ final class DefEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitLine();
         $this->outputEmitter->decreaseIndentLevel();
         $this->outputEmitter->emitLine(');');
+
+        if ($node->isDefonce()) {
+            $this->outputEmitter->decreaseIndentLevel();
+            $this->outputEmitter->emitLine('}');
+        }
     }
 }

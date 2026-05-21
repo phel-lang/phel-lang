@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel;
+use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DefNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
@@ -12,7 +13,6 @@ use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MultiFnNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
@@ -38,14 +38,23 @@ use function max;
  *
  * Defines a global variable in the current namespace.
  */
-final class DefSymbol implements SpecialFormAnalyzerInterface
+final readonly class DefSymbol implements SpecialFormAnalyzerInterface
 {
-    use WithAnalyzerTrait;
-
     private const array POSSIBLE_TUPLE_SIZES = [2, 3, 4];
 
     /** Number of implicit parameters (`&form` and `&env`) injected into macro fns. */
     private const int MACRO_IMPLICIT_PARAMS = 2;
+
+    /**
+     * `defonce`: `false` for the plain `def` special form (always
+     * overwrite the existing binding), `true` for `defonce*` (only
+     * initialise when the binding is absent — used by REPL workflows to
+     * keep stateful objects alive across file reloads).
+     */
+    public function __construct(
+        private AnalyzerInterface $analyzer,
+        private bool $defonce = false,
+    ) {}
 
     /**
      * @param PersistentListInterface<mixed> $list
@@ -124,6 +133,7 @@ final class DefSymbol implements SpecialFormAnalyzerInterface
             $meta,
             $initNode,
             $list->getStartLocation(),
+            $this->defonce,
         );
     }
 

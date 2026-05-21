@@ -75,6 +75,16 @@ This special form binds a value to a global symbol.',
             'desc' => 'This special form binds a value to a global symbol.',
             'example' => '(def my-value 42)',
         ],
+        Symbol::NAME_DEF_ONCE => [
+            'doc' => '```phel
+(defonce name meta? value)
+```
+Like `def`, but only binds the value when `name` is not already defined in the registry. Useful in REPL workflows where re-evaluating a file should not reset stateful holders (atoms, connections, caches).',
+            'docUrl' => '/documentation/global-and-local-bindings/#definition-def',
+            'signatures' => ['(defonce name meta? value)'],
+            'desc' => 'Like `def`, but only binds the value when `name` is not already defined.',
+            'example' => '(defonce app-state (atom {}))',
+        ],
         Symbol::NAME_DO => [
             'doc' => '```phel
 (do expr*)
