@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file.
 - `LocalVarNode::getInferredType()` exposes the analyser `:tag` meta to the emitter; `IterableTarget` promotes #2047 to fire on `(defn f [^"array" arr] …)` annotations (#2052)
 - Collapse synthesised `defn` location maps into a single `\Phel::location(file, line, col)` call, shrinking compiled file size (#2053)
 - Specialise `(get coll k)` to a direct `$coll->get($k)` (vector) or `$coll->find($k)` (map) method call when the analyser has tagged `coll` as `PersistentVectorInterface` / `PersistentMapInterface`, collapsing the `phel.core/get` cond chain for the hot indexed-access shape (#2067)
+- `TransientVector::update()` mutates the trie in place via a by-reference walk; indexed writes past the tail offset skip the per-level array-copy the previous `doUpdate` (a persistent-vector path-copy) carried on every `assoc!`. PHP COW still detaches trie nodes from the persistent ancestor on first write, so structural sharing semantics are preserved (#2069)
 
 ### Changed
 

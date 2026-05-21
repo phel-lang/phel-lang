@@ -153,10 +153,10 @@ final class TransientVector implements TransientVectorInterface, Stringable
         if ($i >= 0 && $i < $this->count) {
             if ($i >= $this->tailOffset()) {
                 $this->tail[$i & self::INDEX_MASK] = $value;
-                return $this;
+            } else {
+                $this->updateInPlace($this->shift, $this->root, $i, $value);
             }
 
-            $this->root = $this->doUpdate($this->shift, $this->root, $i, $value);
             return $this;
         }
 
@@ -293,22 +293,28 @@ final class TransientVector implements TransientVectorInterface, Stringable
     }
 
     /**
+     * Walks the trie from `$node` (passed by reference) down to the leaf
+     * that owns index `$i` and mutates the leaf slot in place. PHP arrays
+     * are copy-on-write, so any path nodes still shared with the
+     * originating persistent vector get detached automatically on the
+     * first mutation at each level; subsequent writes from the same
+     * transient mutate directly without re-copying the path. This
+     * collapses the per-level array-copy cost the previous `doUpdate`
+     * (a persistent-vector path-copy that the persistent `update` uses
+     * verbatim) carried on every `assoc!` past the tail offset.
+     *
      * @param array<int, mixed> $node
      * @param T                 $value
-     *
-     * @return array<int, mixed>
      */
-    private function doUpdate(int $level, array $node, int $i, mixed $value): array
+    private function updateInPlace(int $level, array &$node, int $i, mixed $value): void
     {
-        $ret = $node;
         if ($level === 0) {
-            $ret[$i & self::INDEX_MASK] = $value;
-        } else {
-            $subIndex = ($i >> $level) & self::INDEX_MASK;
-            $ret[$subIndex] = $this->doUpdate($level - self::SHIFT, $node[$subIndex], $i, $value);
+            $node[$i & self::INDEX_MASK] = $value;
+            return;
         }
 
-        return $ret;
+        $subIndex = ($i >> $level) & self::INDEX_MASK;
+        $this->updateInPlace($level - self::SHIFT, $node[$subIndex], $i, $value);
     }
 
     /**
