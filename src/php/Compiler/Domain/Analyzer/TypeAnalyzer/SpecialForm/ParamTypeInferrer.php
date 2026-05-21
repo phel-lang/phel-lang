@@ -118,13 +118,13 @@ final class ParamTypeInferrer
 
     /**
      * `phel.core` arithmetic wrappers whose dispatch reduces to a PHP
-     * numeric op when every arg is `int` / `float`. Observing them like
-     * `php/+`, `php/-`, ... lets idiomatic Phel code surface the same
-     * primitive tag that the raw PHP op would. The numeric-call walker
-     * still only commits to `int` / `float` when a literal sibling
-     * disambiguates (or an expectation flows in from above), so a body
-     * like `(+ a b)` with no literal anywhere stays untagged and
-     * preserves the BigInt / Ratio polymorphism.
+     * numeric op only when a literal sibling proves the operand is
+     * `float`. An `int` literal stays ambiguous (it coerces to float
+     * inside the runtime defn when the LocalVar is float at the call
+     * site), so the wrapper observer only commits when the literal is
+     * unambiguously float. `php/+`, `php/-` keep their own int
+     * inference path because the user reached for the PHP-native op
+     * directly.
      *
      * @var list<string>
      */
@@ -409,7 +409,7 @@ final class ParamTypeInferrer
         }
 
         if ($this->isCoreNumericObserver($fn) && !$this->hasNumericObjectLiteralArg($node)) {
-            $this->walkNumericCall($node, $expected);
+            $this->walkCoreNumericCall($node, $expected);
             return;
         }
 
@@ -448,6 +448,32 @@ final class ParamTypeInferrer
     {
         return $fn->getNamespace() === CompilerConstants::PHEL_CORE_NAMESPACE
             && $fn->getName()->getName() === '=';
+    }
+
+    /**
+     * `(+ a 1.5)`, `(- a 0.20)` etc. The literal is unambiguously
+     * float, so the LocalVar must be float-compatible at the call
+     * boundary. `(+ a 1)` and friends stay ambiguous (the runtime
+     * wrapper still works with int OR float at runtime), so an int
+     * literal does not commit a tag here. An `int` / `float`
+     * expectation flowing from above is honoured the same as in
+     * {@see self::walkNumericCall()}.
+     */
+    private function walkCoreNumericCall(CallNode $node, ?string $expected = null): void
+    {
+        $type = $this->literalNumericType($node->getArguments());
+
+        if ($type === 'float') {
+            $this->walkArgsExpecting($node, 'float');
+            return;
+        }
+
+        if ($expected === 'int' || $expected === 'float') {
+            $this->walkArgsExpecting($node, $expected);
+            return;
+        }
+
+        $this->walkArgsExpecting($node, null);
     }
 
     /**
