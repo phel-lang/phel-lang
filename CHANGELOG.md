@@ -6,46 +6,47 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- `phel.edn`: eval-free EDN read/write (#2008)
-- `phel.transit`: Transit+JSON-Verbose read/write (#2009)
+- `phel.edn` — eval-free EDN read/write (#2008)
+- `phel.transit` — Transit + JSON-Verbose read/write (#2009)
+- `phel compile` — new CLI command prints emitted PHP for a snippet / file / stdin without evaluating; `--target` reserved for future `ast` / `tokens` dumps (#2043)
+- `defonce` special form — binds a global only when the name is not already defined, surviving REPL file reloads (#2055)
 - Lexer: namespaced tagged literals (`#my.app/Person`)
-- `tools/upgrade-ecosystem.sh`: bumps phel-lang across sibling repos via Claude Code
-- `composer test-tools`: bashunit runner for `tools/*-test.sh`
+- CI: `clojure-test-suite` workflow runs against dev HEAD on every PR, non-blocking (#2036)
 - `CITATION.cff` for academic citation (#2016)
-- CI: `clojure-test-suite` workflow runs `phel-lang/clojure-test-suite` against dev HEAD on every PR (non-blocking) (#2036)
-- `phel compile`: new CLI command emits PHP from a Phel snippet, file, or stdin without evaluating; `--target` option reserved for future `ast`/`tokens` dumps (#2043)
-- Compiler: global fn call sites in build mode are hoisted to per-fn `static $__phel_call_N` slots, and known `AbstractFn` callees dispatch via the new non-magic `AbstractFn::call(...)`, skipping `__invoke` magic-method overhead on the hot path (#2044)
-- Compiler: constant folder evaluates pure `phel.core` arithmetic (`+`, `-`, `*`, `inc`, `dec`) on literal-only args at analyse time and short-circuits `if` with a literal test to the surviving branch, so the runtime call disappears entirely (#2045)
-- Compiler: keyword literals (`:foo`, `:my.app/bar`) inside a fn body are hoisted to per-fn `static $__phel_const_N` slots, skipping the `Keyword` intern-pool lookup on every call after the first (#2046)
-- Compiler: drop `Seq::toIterable` from `foreach` over Phel collection / `(php/array …)` literals and drop `Seq::toApplyArguments` from `apply` when the final arg is a `(php/array …)` result — the adapters were no-ops on those shapes (#2047)
-- Compiler: `(str ...)` with all-string-literal args emits a PHP `.` concat chain instead of dispatching through `phel.core/str`, and `(php/instanceof x c)` with two local-binding args drops the two-temp IIFE for a direct `($x instanceof $c)` expression (#2048)
-- Compiler: multi-arity fn dispatch emits a `match (\count($args)) { … }` jump table instead of the previous `switch` + post-`if` block; the variadic body folds into the `default` arm (#2049)
-- Runtime: persistent collection `hash()` switches its memo sentinel from `0` to `null`, so empty maps / sets and the rare `hash == 0` value reuse the cached result on subsequent calls instead of recomputing (#2050)
-- Compiler: `LocalVarNode::getInferredType()` exposes the analyser's `:tag` meta to the emitter; `IterableTarget` consumes it so a `(defn f [^"array" arr] (foreach [x arr] …))` style annotation unlocks the same `foreach` / `apply` adapter skips as a literal would (#2052)
-- Runtime + compiler: new `\Phel::location($file, $line, $column)` helper interns the `:file` / `:line` / `:column` keyword keys once per process; `MapEmitter` detects the synthesised `{:file <string> :line <int> :column <int>}` shape on every `addDefinition` site and emits a single `\Phel::location(...)` call instead of the three-entry `\Phel::map(…)`, shrinking compiled file size (#2053)
-- Language: new `defonce` special form binds a global only when the name is not already defined in the registry — Clojure-aligned REPL convenience for state holders that must survive file reloads (#2055)
+- Tooling: `tools/upgrade-ecosystem.sh` (bumps phel-lang across sibling repos) and `composer test-tools` (bashunit runner)
+
+### Performance
+
+- Hoist global fn call sites in build mode to per-fn `static $__phel_call_N` slots; emit known `AbstractFn` callees via direct `->__invoke(...)` to skip `__invoke` magic dispatch (#2044)
+- Constant-fold pure `phel.core` arithmetic (`+`, `-`, `*`, `inc`, `dec`) on literal-only args and short-circuit `if` with a literal test to the surviving branch (#2045)
+- Hoist keyword literals inside a fn body to per-fn `static $__phel_const_N` slots so the intern-pool lookup happens once per call site (#2046)
+- Drop the `Seq::toIterable` / `Seq::toApplyArguments` adapter wraps when the source is already an iterable or PHP array (#2047)
+- Specialise `(str ...)` to PHP `.` concat for all-literal args; emit `(php/instanceof x c)` over local bindings without the two-temp IIFE (#2048)
+- Multi-arity fn dispatch via `match (\count($args)) { … }` instead of `switch` + post-`if`; variadic body folds into the `default` arm (#2049)
+- Persistent-collection `hash()` memo switches to a `null` sentinel so empty maps / sets and `hash == 0` values stop recomputing (#2050)
+- `LocalVarNode::getInferredType()` exposes the analyser's `:tag` meta to the emitter; `IterableTarget` promotes #2047 to fire on `(defn f [^"array" arr] …)` annotations too (#2052)
+- Collapse synthesised `defn` location maps into a single `\Phel::location($file, $line, $column)` call (interns the three keyword keys once per process), shrinking compiled file size (#2053)
 
 ### Changed
 
 - BC: release tooling moved from `build/` to `tools/`; `build/` is now phar-only
-- CI: split `ci.yml` into `quality.yml` / `tests.yml` / `smoke.yml` with a shared `setup-phel` composite action; add concurrency cancellation and least-privilege perms (#2039)
+- CI: split `ci.yml` into `quality.yml` / `tests.yml` / `smoke.yml` with a shared `setup-phel` composite action; concurrency cancellation + least-privilege perms (#2039)
 - Compiler: hoist pure vector/map/set literals to a per-fn `static` cache
-- Compiler: skip `Truthy::isTruthy` wrap in `if`/`?:` when the test is known-bool
+- Compiler: skip `Truthy::isTruthy` wrap in `if` / `?:` when the test is known-bool
 - Compiler: `recur` skips the `$__phel_N` temp shuffle when no aliasing is possible
-- `phel agent-install`: copy the `.agents/` docs tree by default; `--with-docs` is replaced by `--no-docs` to opt out
+- `phel agent-install`: copy `.agents/` docs by default; `--with-docs` replaced by `--no-docs` opt-out
 
 ### Fixed
 
-- Dev: patch vendored Psalm 6.16.1 on install/update for PHP 8.5 NAN-coercion crash in `TLiteralFloat`
-- Compiler: use `SplObjectStorage::offsetExists()` in `ConstantScope` to silence PHP 8.5 deprecation in emitted code
-- `phel.cli`: `application` now calls `Application::addCommand()` (Symfony 8 compat) instead of the deprecated `add()` (#2033)
-- `phel lint`: cache invalidates when `phel-lint.phel` changes (#2027)
-- `phel lint`: `unused-binding` no longer flags symbols used in later let bindings (#2018)
+- Dev: patch vendored Psalm 6.16.1 on install / update for PHP 8.5 NAN-coercion crash in `TLiteralFloat`
+- Compiler: `ConstantScope` uses `SplObjectStorage::offsetExists()` to silence a PHP 8.5 deprecation in emitted code
+- `phel.cli`: register commands via `Application::addCommand()` for Symfony 8 compat (#2033)
+- `phel lint`: cache invalidates when `phel-lint.phel` changes (#2027); `unused-binding` no longer flags symbols used in later let bindings (#2018)
 - `phel doctor`: auto-bootstraps temp dir; passes on fresh installs (#2020)
-- `Phel::run()`: backslash namespaces normalize to dot-form, matching CLI (#2021)
+- `Phel::run()`: backslash namespaces normalise to dot-form, matching CLI (#2021)
 - `phel format`: appends trailing newline (POSIX / EditorConfig) (#2022)
 - `phel test`: non-zero exit when `--filter` matches zero tests (#2023)
-- `BackslashSeparatorDeprecator`: no longer false-warns on top-level PHP symbols with a leading-only `\` (e.g. `\JSON_UNESCAPED_SLASHES`, `\strlen`, `\DateTimeInterface`) (#2038)
+- `BackslashSeparatorDeprecator`: stop false-warning on top-level PHP symbols with a leading-only `\` (e.g. `\strlen`, `\DateTimeInterface`) (#2038)
 
 ## [0.39.0](https://github.com/phel-lang/phel-lang/compare/v0.38.0...v0.39.0) - 2026-05-19
 
