@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ApplyNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\IterableTarget;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Seq;
 
@@ -62,6 +63,15 @@ final class ApplyEmitter implements NodeEmitterInterface
 
     private function emitFinalArgument(ApplyNode $node, AbstractNode $arg): void
     {
+        // PHP `...$arr` spread already accepts native arrays positionally,
+        // so when the analyzer has proven the final arg is a `(php/array …)`
+        // result we drop the `Seq::toApplyArguments` walk entirely.
+        if (IterableTarget::isPhpArray($arg)) {
+            $this->outputEmitter->emitStr('...', $node->getStartSourceLocation());
+            $this->outputEmitter->emitNode($arg);
+            return;
+        }
+
         $this->outputEmitter->emitStr('...\\' . Seq::class . '::toApplyArguments(', $node->getStartSourceLocation());
         $this->outputEmitter->emitNode($arg);
         $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());

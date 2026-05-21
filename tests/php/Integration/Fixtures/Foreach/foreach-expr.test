@@ -12,7 +12,7 @@
     public function __invoke() {
       static $__phel_const_0;
       return (function() use(&$__phel_const_0) {
-        foreach (\Phel\Lang\Seq::toIterable(($__phel_const_0 ??= \Phel::vector([1, 2, 3]))) as $v) {
+        foreach (($__phel_const_0 ??= \Phel::vector([1, 2, 3])) as $v) {
           ($v + $v);
         }
         return null;

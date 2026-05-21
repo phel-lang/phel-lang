@@ -1,0 +1,6 @@
+--PHEL--
+(foreach [x [1 2 3]] (println x))
+--PHP--
+foreach (\Phel::vector([1, 2, 3]) as $x) {
+  (\Phel::getDefinition("phel.core", "println"))->__invoke($x);
+}
