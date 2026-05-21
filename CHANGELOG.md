@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - `phel compile`: new CLI command emits PHP from a Phel snippet, file, or stdin without evaluating; `--target` option reserved for future `ast`/`tokens` dumps (#2043)
 - Compiler: global fn call sites in build mode are hoisted to per-fn `static $__phel_call_N` slots, and known `AbstractFn` callees dispatch via the new non-magic `AbstractFn::call(...)`, skipping `__invoke` magic-method overhead on the hot path (#2044)
 - Compiler: constant folder evaluates pure `phel.core` arithmetic (`+`, `-`, `*`, `inc`, `dec`) on literal-only args at analyse time and short-circuits `if` with a literal test to the surviving branch, so the runtime call disappears entirely (#2045)
+- Compiler: keyword literals (`:foo`, `:my.app/bar`) inside a fn body are hoisted to per-fn `static $__phel_const_N` slots, skipping the `Keyword` intern-pool lookup on every call after the first (#2046)
 
 ### Changed
 
