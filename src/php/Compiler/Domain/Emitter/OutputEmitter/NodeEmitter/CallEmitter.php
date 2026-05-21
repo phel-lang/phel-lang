@@ -166,6 +166,10 @@ final class CallEmitter implements NodeEmitterInterface
             return;
         }
 
+        if ($this->tryEmitTypedBinaryOp($node)) {
+            return;
+        }
+
         $useCallMethod = !$this->isSelfCall($node) && GlobalCallTarget::isGlobalFnCall($node);
 
         $this->emitDynamicFunctionName($node);
@@ -230,6 +234,33 @@ final class CallEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('->find(', $loc);
         $this->outputEmitter->emitNode($node->getFn());
         $this->outputEmitter->emitStr('))', $loc);
+        return true;
+    }
+
+    /**
+     * Specialise two-arg `phel.core` arithmetic / comparison wrappers
+     * to the native PHP binary op when both args are statically proven
+     * primitive. The runtime defns route through `NumericOperations`
+     * to handle `BigInt` / `Ratio` polymorphism; for primitive-typed
+     * call sites that dispatch is wasted work and collapses to a
+     * single PHP operator.
+     *
+     * Eligibility lives on {@see CallSpecialization::typedBinaryOpName()}.
+     */
+    private function tryEmitTypedBinaryOp(CallNode $node): bool
+    {
+        $op = CallSpecialization::typedBinaryOpName($node);
+        if ($op === null) {
+            return false;
+        }
+
+        $args = $node->getArguments();
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($args[0]);
+        $this->outputEmitter->emitStr(' ' . $op . ' ', $loc);
+        $this->outputEmitter->emitNode($args[1]);
+        $this->outputEmitter->emitStr(')', $loc);
         return true;
     }
 

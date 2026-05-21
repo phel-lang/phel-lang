@@ -1,0 +1,6 @@
+--PHEL--
+(fn [^int a ^int b] (+ a b))
+--PHP--
+(function(int $a, int $b) {
+  return ($a + $b);
+});

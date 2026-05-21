@@ -1,0 +1,27 @@
+(ns phel-test.core.typed-binary-ops
+  (:require phel.test :refer [deftest is]))
+
+(defn- add-ints [^int a ^int b] (+ a b))
+(defn- sub-ints [^int a ^int b] (- a b))
+(defn- mul-floats [^float a ^float b] (* a b))
+(defn- lt-ints? [^int a ^int b] (< a b))
+(defn- gte-ints? [^int a ^int b] (>= a b))
+(defn- eq-ints? [^int a ^int b] (= a b))
+(defn- eq-strs? [^string a ^string b] (= a b))
+
+(deftest test-arithmetic-on-typed-locals
+  (is (= 5 (add-ints 2 3)))
+  (is (= -1 (sub-ints 2 3)))
+  (is (= 6.0 (mul-floats 2.0 3.0))))
+
+(deftest test-comparisons-on-typed-locals
+  (is (true? (lt-ints? 1 2)))
+  (is (false? (lt-ints? 2 1)))
+  (is (true? (gte-ints? 2 2)))
+  (is (false? (gte-ints? 1 2)))
+  (is (true? (eq-ints? 5 5)))
+  (is (false? (eq-ints? 5 6))))
+
+(deftest test-string-equality-on-typed-locals
+  (is (true? (eq-strs? "abc" "abc")))
+  (is (false? (eq-strs? "abc" "abd"))))

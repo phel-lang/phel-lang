@@ -15,6 +15,10 @@ use Phel\Lang\Keyword;
 use Phel\Shared\CompilerConstants;
 
 use function count;
+use function in_array;
+use function is_bool;
+use function is_float;
+use function is_int;
 use function is_string;
 use function ltrim;
 
@@ -27,6 +31,32 @@ use function ltrim;
  */
 final readonly class CallSpecialization
 {
+    /**
+     * Two-arg `phel.core` arithmetic / ordering ops whose dispatch
+     * reduces to a single PHP native op when both args are statically
+     * proven `int` / `float`. Maps the Phel name to the PHP operator
+     * the emitter splices between the args. `=` is handled separately
+     * because it accepts a wider set of primitive tags than the
+     * numeric ops.
+     *
+     * @var array<string, string>
+     */
+    private const array NUMERIC_BINARY_OPS = [
+        '+' => '+',
+        '-' => '-',
+        '*' => '*',
+        '<' => '<',
+        '<=' => '<=',
+        '>' => '>',
+        '>=' => '>=',
+    ];
+
+    /** @var list<string> */
+    private const array NUMERIC_PRIMITIVE_TAGS = ['int', 'float'];
+
+    /** @var list<string> */
+    private const array EQUALITY_PRIMITIVE_TAGS = ['int', 'float', 'bool', 'string'];
+
     private function __construct() {}
 
     public static function isSpecialized(CallNode $node): bool
@@ -39,7 +69,55 @@ final readonly class CallSpecialization
             return true;
         }
 
-        return self::isTypedGetAccess($node);
+        if (self::isTypedGetAccess($node)) {
+            return true;
+        }
+
+        return self::isTypedBinaryOp($node);
+    }
+
+    /**
+     * `(<op> a b)` against `phel.core` arithmetic / comparison ops
+     * where both args are statically proven primitive. Returns the PHP
+     * operator to emit between the args, or `null` when the call is
+     * not specialisable.
+     */
+    public static function typedBinaryOpName(CallNode $node): ?string
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode) {
+            return null;
+        }
+
+        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE) {
+            return null;
+        }
+
+        $args = $node->getArguments();
+        if (count($args) !== 2) {
+            return null;
+        }
+
+        $name = $fn->getName()->getName();
+
+        if (isset(self::NUMERIC_BINARY_OPS[$name])) {
+            return self::bothArgsHavePrimitiveTag($args, self::NUMERIC_PRIMITIVE_TAGS)
+                ? self::NUMERIC_BINARY_OPS[$name]
+                : null;
+        }
+
+        if ($name === '=') {
+            return self::bothArgsHavePrimitiveTag($args, self::EQUALITY_PRIMITIVE_TAGS)
+                ? '==='
+                : null;
+        }
+
+        return null;
+    }
+
+    public static function isTypedBinaryOp(CallNode $node): bool
+    {
+        return self::typedBinaryOpName($node) !== null;
     }
 
     /**
@@ -159,5 +237,64 @@ final readonly class CallSpecialization
     private static function normalisedTag(?string $tag): ?string
     {
         return $tag === null ? null : ltrim($tag, '\\');
+    }
+
+    /**
+     * `true` when every argument compiles to a PHP value the emitter
+     * can splice into a native binary op: a primitive literal of the
+     * accepted shape, or a `LocalVarNode` whose analyser tag is one of
+     * `$acceptedTags` (`int` / `float` for numeric ops, plus `bool` /
+     * `string` for equality).
+     *
+     * @param list<AbstractNode> $args
+     * @param list<string>       $acceptedTags
+     */
+    private static function bothArgsHavePrimitiveTag(array $args, array $acceptedTags): bool
+    {
+        return array_all(
+            $args,
+            static fn(AbstractNode $arg): bool => self::isPrimitiveOperand($arg, $acceptedTags),
+        );
+    }
+
+    /**
+     * @param list<string> $acceptedTags
+     */
+    private static function isPrimitiveOperand(AbstractNode $arg, array $acceptedTags): bool
+    {
+        if ($arg instanceof LiteralNode) {
+            return self::matchesLiteralPrimitive($arg->getValue(), $acceptedTags);
+        }
+
+        if (!$arg instanceof LocalVarNode) {
+            return false;
+        }
+
+        $tag = self::normalisedTag($arg->getInferredType());
+        return $tag !== null && in_array($tag, $acceptedTags, true);
+    }
+
+    /**
+     * @param list<string> $acceptedTags
+     */
+    private static function matchesLiteralPrimitive(mixed $value, array $acceptedTags): bool
+    {
+        if (is_int($value)) {
+            return in_array('int', $acceptedTags, true);
+        }
+
+        if (is_float($value)) {
+            return in_array('float', $acceptedTags, true);
+        }
+
+        if (is_bool($value)) {
+            return in_array('bool', $acceptedTags, true);
+        }
+
+        if (is_string($value)) {
+            return in_array('string', $acceptedTags, true);
+        }
+
+        return false;
     }
 }
