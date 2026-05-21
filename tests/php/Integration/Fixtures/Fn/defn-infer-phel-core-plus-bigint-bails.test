@@ -1,0 +1,23 @@
+--PHEL--
+(defn plus-big [a] (+ a 99999999999999999999N))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "plus-big",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\plus_big";
+
+    public function __invoke($a) {
+      static $__phel_call_0;
+      return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($a, \Phel\Lang\BigInt::fromString("99999999999999999999"));
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("doc"), "```phel\n(plus-big a)\n```\n",
+    \Phel::keyword("start-location"), \Phel::location("Fn/defn-infer-phel-core-plus-bigint-bails.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Fn/defn-infer-phel-core-plus-bigint-bails.test", 1, 47),
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[a]"
+  )
+);

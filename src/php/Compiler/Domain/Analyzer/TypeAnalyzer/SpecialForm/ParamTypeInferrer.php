@@ -408,7 +408,7 @@ final class ParamTypeInferrer
             return;
         }
 
-        if ($this->isCoreNumericObserver($fn) && !$this->hasNonIntLiteralArg($node)) {
+        if ($this->isCoreNumericObserver($fn) && !$this->hasNumericObjectLiteralArg($node)) {
             $this->walkNumericCall($node, $expected);
             return;
         }
@@ -448,6 +448,23 @@ final class ParamTypeInferrer
     {
         return $fn->getNamespace() === CompilerConstants::PHEL_CORE_NAMESPACE
             && $fn->getName()->getName() === '=';
+    }
+
+    /**
+     * `BigInt`, `Ratio`, `BigDecimal` literals route through
+     * `NumericOperations` at runtime; the int / float observer path
+     * must skip the call so the inferrer never narrows a param that
+     * a numeric-object literal disambiguates as polymorphic. Unlike
+     * {@see self::hasNonIntLiteralArg()}, a float literal is treated
+     * as a valid numeric signal here, not as noise.
+     */
+    private function hasNumericObjectLiteralArg(CallNode $node): bool
+    {
+        return array_any(
+            $node->getArguments(),
+            static fn(AbstractNode $arg): bool => $arg instanceof LiteralNode
+                && is_object($arg->getValue()),
+        );
     }
 
     private function isSelfReference(GlobalVarNode $fn): bool
