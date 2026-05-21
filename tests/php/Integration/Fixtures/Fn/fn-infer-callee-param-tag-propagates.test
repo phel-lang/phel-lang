@@ -37,7 +37,8 @@
     public const BOUND_TO = "user\\add_pair";
 
     public function __invoke(int $x, int $y): int {
-      return (\Phel::getDefinition("user", "sum"))($x, $y);
+      static $__phel_call_0;
+      return ($__phel_call_0 ??= \Phel::getDefinition("user", "sum"))->call($x, $y);
     }
   },
   \Phel::map(

@@ -31,5 +31,6 @@
   )
 );
 (function($x): bool {
-  return (\Phel::getDefinition("user", "check"))($x);
+  static $__phel_call_0;
+  return ($__phel_call_0 ??= \Phel::getDefinition("user", "check"))->call($x);
 });

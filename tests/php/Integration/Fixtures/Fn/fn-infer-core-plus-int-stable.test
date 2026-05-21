@@ -8,7 +8,8 @@
     public const BOUND_TO = "user\\add_pair";
 
     public function __invoke(int $x, int $y): int {
-      return random_int(0, (\Phel::getDefinition("phel.core", "+"))($x, $y));
+      static $__phel_call_0;
+      return random_int(0, ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->call($x, $y));
     }
   },
   \Phel::map(

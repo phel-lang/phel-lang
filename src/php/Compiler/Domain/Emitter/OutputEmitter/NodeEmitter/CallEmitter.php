@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
+use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\GlobalCallTarget;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\PhpStringEscape;
 use Phel\Lang\Symbol;
 
 use function assert;
@@ -133,11 +136,19 @@ final class CallEmitter implements NodeEmitterInterface
             }
 
             $this->emitPhpFunctionName($fnNode);
-        } else {
-            $this->emitDynamicFunctionName($node);
+            $this->emitFunctionArguments($node);
+            return;
         }
 
-        $this->emitFunctionArguments($node);
+        $useCallMethod = !$this->isSelfCall($node) && GlobalCallTarget::isGlobalFnCall($node);
+
+        $this->emitDynamicFunctionName($node);
+
+        if ($useCallMethod) {
+            $this->emitCallMethodArguments($node);
+        } else {
+            $this->emitFunctionArguments($node);
+        }
     }
 
     private function emitPhpFunctionName(PhpVarNode $fnNode): void
@@ -175,9 +186,34 @@ final class CallEmitter implements NodeEmitterInterface
             return;
         }
 
+        $fn = $node->getFn();
+        $slot = $this->outputEmitter->callSlotFor($node);
+
+        if ($slot !== null && $fn instanceof GlobalVarNode) {
+            $this->emitCachedGlobalFn($node, $fn, $slot);
+            return;
+        }
+
         $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
-        $this->outputEmitter->emitNode($node->getFn());
+        $this->outputEmitter->emitNode($fn);
         $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
+    }
+
+    /**
+     * Emit the build-mode call-site cache for `$node`. After the first
+     * dispatch, `$__phel_call_N` holds the resolved `AbstractFn` and
+     * subsequent calls in this fn body skip the registry lookup entirely.
+     */
+    private function emitCachedGlobalFn(CallNode $node, GlobalVarNode $fn, int $slot): void
+    {
+        $loc = $node->getStartSourceLocation();
+        $ns = PhpStringEscape::doubleQuoted($this->outputEmitter->mungeEncodeRegistryKey($fn->getNamespace()));
+        $name = PhpStringEscape::doubleQuoted($fn->getName()->getName());
+
+        $this->outputEmitter->emitStr(
+            '($__phel_call_' . $slot . ' ??= \\' . Phel::class . '::getDefinition("' . $ns . '", "' . $name . '"))',
+            $loc,
+        );
     }
 
     /**
@@ -185,28 +221,17 @@ final class CallEmitter implements NodeEmitterInterface
      * whose body we are currently emitting. In that case `$this` already
      * references the AbstractFn instance, so we skip the registry lookup.
      *
-     * `let` and `loop` extend boundTo with a `.<sym>` suffix while analysing
-     * their inits, so an exact match is not enough.
-     *
-     * Memoised defs deliberately leave boundTo unset in `DefSymbol`, so self
-     * recursion routes through the registry (and therefore the memo wrapper)
-     * rather than `$this`.
+     * Detection lives in {@see GlobalCallTarget::isSelfCall()} so the
+     * call-site cache scanner and the emitter stay aligned. Memoised defs
+     * deliberately leave boundTo unset in `DefSymbol`, so self recursion
+     * routes through the registry (and therefore the memo wrapper) rather
+     * than `$this`.
      */
     private function isSelfCall(CallNode $node): bool
     {
         $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode) {
-            return false;
-        }
-
-        $boundTo = $node->getEnv()->getBoundTo();
-        if ($boundTo === '') {
-            return false;
-        }
-
-        $expected = $fn->getNamespace() . '\\' . $fn->getName()->getName();
-        return $boundTo === $expected
-            || str_starts_with($boundTo, $expected . '.');
+        return $fn instanceof GlobalVarNode
+            && GlobalCallTarget::isSelfCall($fn, $node);
     }
 
     private function emitFunctionArguments(CallNode $node): void
@@ -217,5 +242,13 @@ final class CallEmitter implements NodeEmitterInterface
             $node->getStartSourceLocation(),
         );
         $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
+    }
+
+    private function emitCallMethodArguments(CallNode $node): void
+    {
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('->call(', $loc);
+        $this->outputEmitter->emitArgList($node->getArguments(), $loc);
+        $this->outputEmitter->emitStr(')', $loc);
     }
 }

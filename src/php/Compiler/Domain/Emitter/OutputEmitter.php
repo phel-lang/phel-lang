@@ -86,6 +86,11 @@ final class OutputEmitter implements OutputEmitterInterface
         $this->emitStr(')', $loc);
     }
 
+    public function callSlotFor(AbstractNode $node): ?int
+    {
+        return $this->currentConstantScope()?->lookupCallSlot($node);
+    }
+
     public function getOptions(): OutputEmitterOptions
     {
         return $this->options;
@@ -183,37 +188,7 @@ final class OutputEmitter implements OutputEmitterInterface
     public function emitFnWrapPrefix(NodeEnvironmentInterface $env, ?SourceLocation $sl = null): void
     {
         $this->emitStr('(function()', $sl);
-
-        $locals = array_values($env->getLocals());
-        $constantSlots = $this->currentConstantScope()?->count() ?? 0;
-
-        if ($locals !== [] || $constantSlots > 0) {
-            $this->emitStr(' use(', $sl);
-
-            $localsCount = count($locals);
-            foreach ($locals as $i => $l) {
-                $shadowed = $env->getShadowed($l);
-                if ($shadowed instanceof Symbol) {
-                    $this->emitPhpVariable($shadowed, $sl);
-                } else {
-                    $this->emitPhpVariable($l, $sl);
-                }
-
-                if ($i < $localsCount - 1 || $constantSlots > 0) {
-                    $this->emitStr(',', $sl);
-                }
-            }
-
-            for ($i = 0; $i < $constantSlots; ++$i) {
-                $this->emitStr('&$__phel_const_' . $i, $sl);
-                if ($i < $constantSlots - 1) {
-                    $this->emitStr(',', $sl);
-                }
-            }
-
-            $this->emitStr(')', $sl);
-        }
-
+        $this->emitUseClauseForWrap($env, $sl);
         $this->emitLine(' {', $sl);
         $this->increaseIndentLevel();
     }
@@ -283,5 +258,47 @@ final class OutputEmitter implements OutputEmitterInterface
     public function isInsideClassScope(): bool
     {
         return $this->classScopeDepth > 0;
+    }
+
+    private function emitUseClauseForWrap(NodeEnvironmentInterface $env, ?SourceLocation $sl): void
+    {
+        $locals = array_values($env->getLocals());
+        $scope = $this->currentConstantScope();
+        $constantSlots = $scope?->count() ?? 0;
+        $callSlots = $scope?->callSlotCount() ?? 0;
+
+        if ($locals === [] && $constantSlots === 0 && $callSlots === 0) {
+            return;
+        }
+
+        $this->emitStr(' use(', $sl);
+
+        $first = true;
+        foreach ($locals as $local) {
+            $first = $this->emitUseSeparator($first, $sl);
+            $shadowed = $env->getShadowed($local);
+            $this->emitPhpVariable($shadowed instanceof Symbol ? $shadowed : $local, $sl);
+        }
+
+        for ($i = 0; $i < $constantSlots; ++$i) {
+            $first = $this->emitUseSeparator($first, $sl);
+            $this->emitStr('&$__phel_const_' . $i, $sl);
+        }
+
+        for ($i = 0; $i < $callSlots; ++$i) {
+            $first = $this->emitUseSeparator($first, $sl);
+            $this->emitStr('&$__phel_call_' . $i, $sl);
+        }
+
+        $this->emitStr(')', $sl);
+    }
+
+    private function emitUseSeparator(bool $first, ?SourceLocation $sl): bool
+    {
+        if (!$first) {
+            $this->emitStr(',', $sl);
+        }
+
+        return false;
     }
 }

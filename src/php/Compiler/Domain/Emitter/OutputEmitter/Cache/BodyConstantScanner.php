@@ -30,21 +30,24 @@ use Phel\Compiler\Domain\Analyzer\Ast\SetVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
 use Phel\Compiler\Domain\Analyzer\Ast\TryNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\GlobalCallTarget;
 
 /**
  * Walks a fn body looking for *outermost* pure collection literals so the
- * emitter can hoist them to a per-fn `static` cache. Stops at nested
- * function boundaries (FnNode / MultiFnNode / ReifyNode method bodies)
- * because each has its own static scope.
+ * emitter can hoist them to a per-fn `static` cache. Also reserves a
+ * per-fn `static $__phel_call_N` slot for each global-fn call site when
+ * call-site caching is enabled. Stops at nested function boundaries
+ * (FnNode / MultiFnNode / ReifyNode method bodies) because each has its
+ * own static scope.
  */
 final readonly class BodyConstantScanner
 {
-    public function scan(AbstractNode $body, ConstantScope $scope): void
+    public function scan(AbstractNode $body, ConstantScope $scope, bool $cacheCalls = false): void
     {
-        $this->walk($body, $scope);
+        $this->walk($body, $scope, $cacheCalls);
     }
 
-    private function walk(AbstractNode $node, ConstantScope $scope): void
+    private function walk(AbstractNode $node, ConstantScope $scope, bool $cacheCalls): void
     {
         // Nested function bodies own their own scope; skip.
         if ($node instanceof FnNode || $node instanceof MultiFnNode || $node instanceof ReifyNode) {
@@ -56,8 +59,13 @@ final readonly class BodyConstantScanner
             return;
         }
 
+        if ($cacheCalls && $node instanceof CallNode && GlobalCallTarget::isGlobalFnCall($node)) {
+            $scope->reserveCallSlot($node);
+            // Fall through so child args are still scanned for nested literals/calls.
+        }
+
         foreach ($this->children($node) as $child) {
-            $this->walk($child, $scope);
+            $this->walk($child, $scope, $cacheCalls);
         }
     }
 

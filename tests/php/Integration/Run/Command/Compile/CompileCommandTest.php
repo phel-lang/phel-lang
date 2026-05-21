@@ -32,7 +32,7 @@ final class CompileCommandTest extends AbstractTestCommand
         $tester->execute(['source' => '(+ 1 2)']);
 
         $tester->assertCommandIsSuccessful();
-        self::assertStringContainsString(\Phel::class . '::getDefinition("phel.core", "+"))(1, 2)', $tester->getDisplay());
+        self::assertStringContainsString(\Phel::class . '::getDefinition("phel.core", "+"))->call(1, 2)', $tester->getDisplay());
     }
 
     public function test_compile_unbalanced_parentheses_fails(): void

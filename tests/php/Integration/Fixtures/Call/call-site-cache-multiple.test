@@ -1,0 +1,12 @@
+--PHEL--
+(fn [x]
+  (+ x 1)
+  (+ x 2)
+  (* x 3))
+--PHP--
+(function($x) {
+  static $__phel_call_0, $__phel_call_1, $__phel_call_2;
+  ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->call($x, 1);
+  ($__phel_call_1 ??= \Phel::getDefinition("phel.core", "+"))->call($x, 2);
+  return ($__phel_call_2 ??= \Phel::getDefinition("phel.core", "*"))->call($x, 3);
+});
