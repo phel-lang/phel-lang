@@ -13,16 +13,8 @@
   },
   \Phel::map(
     \Phel::keyword("doc"), "```phel\n(add x y)\n```\n",
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/defn-typed-params.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/defn-typed-params.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 56
-    ),
+    \Phel::keyword("start-location"), \Phel::location("Def/defn-typed-params.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Def/defn-typed-params.test", 1, 56),
     "min-arity", 2,
     "is-variadic", false,
     "arglists", "[x y]",

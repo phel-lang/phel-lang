@@ -16,16 +16,8 @@
   },
   \Phel::map(
     \Phel::keyword("doc"), "```phel\n(yield_no_return)\n```\n",
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Yield/yield-return-context.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Yield/yield-return-context.test",
-      \Phel::keyword("line"), 3,
-      \Phel::keyword("column"), 18
-    ),
+    \Phel::keyword("start-location"), \Phel::location("Yield/yield-return-context.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Yield/yield-return-context.test", 3, 18),
     "min-arity", 0,
     "is-variadic", false,
     "arglists", "[]"

@@ -14,16 +14,8 @@
   \Phel::map(
     \Phel::keyword("tag"), "int",
     \Phel::keyword("doc"), "```phel\n(add x y)\n```\n",
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/defn-return-type-name.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/defn-return-type-name.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 43
-    ),
+    \Phel::keyword("start-location"), \Phel::location("Def/defn-return-type-name.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Def/defn-return-type-name.test", 1, 43),
     "min-arity", 2,
     "is-variadic", false,
     "arglists", "[x y]"

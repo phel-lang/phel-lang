@@ -6,15 +6,7 @@
   "uc",
   (function(...$args) { return \strtoupper(...$args);}),
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/def-php-function-reference.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/def-php-function-reference.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 24
-    )
+    \Phel::keyword("start-location"), \Phel::location("Def/def-php-function-reference.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Def/def-php-function-reference.test", 1, 24)
   )
 );

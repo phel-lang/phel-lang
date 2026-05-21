@@ -15,16 +15,8 @@
   },
   \Phel::map(
     \Phel::keyword("doc"), "```phel\n(rand-range lo hi)\n```\n",
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/defn-rand-range-fully-inferred.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/defn-rand-range-fully-inferred.test",
-      \Phel::keyword("line"), 2,
-      \Phel::keyword("column"), 30
-    ),
+    \Phel::keyword("start-location"), \Phel::location("Def/defn-rand-range-fully-inferred.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Def/defn-rand-range-fully-inferred.test", 2, 30),
     "min-arity", 2,
     "is-variadic", false,
     "arglists", "[lo hi]"

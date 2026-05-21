@@ -6,15 +6,7 @@
   "x",
   " ",
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/string-literal-unicode-escape.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/string-literal-unicode-escape.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 16
-    )
+    \Phel::keyword("start-location"), \Phel::location("Def/string-literal-unicode-escape.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Def/string-literal-unicode-escape.test", 1, 16)
   )
 );

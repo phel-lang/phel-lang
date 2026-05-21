@@ -7,16 +7,8 @@
   "x",
   1,
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "VarQuote/var-special-form.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "VarQuote/var-special-form.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 9
-    )
+    \Phel::keyword("start-location"), \Phel::location("VarQuote/var-special-form.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("VarQuote/var-special-form.test", 1, 9)
   )
 );
 \Phel\Lang\Registry::getInstance()->getVar("user", "x");

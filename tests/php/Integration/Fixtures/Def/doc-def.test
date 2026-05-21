@@ -7,15 +7,7 @@
   1,
   \Phel::map(
     \Phel::keyword("doc"), "my number",
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/doc-def.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/doc-def.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 21
-    )
+    \Phel::keyword("start-location"), \Phel::location("Def/doc-def.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Def/doc-def.test", 1, 21)
   )
 );

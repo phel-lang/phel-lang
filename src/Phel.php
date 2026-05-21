@@ -299,6 +299,26 @@ final class Phel extends InternalPhel
     }
 
     /**
+     * Source-location three-tuple used by `defn` / `def` to tag generated
+     * metadata. Centralised here so the compiler emits a single helper
+     * call per location, rather than three keyword interns plus a map
+     * allocation, on every `addDefinition` site. The keyword keys live in
+     * `static` slots so they intern once per process and are reused by
+     * every location map.
+     *
+     * @return PersistentMapInterface<mixed, mixed>
+     */
+    public static function location(string $file, int $line, int $column): PersistentMapInterface
+    {
+        static $kwFile, $kwLine, $kwColumn;
+        $kwFile ??= self::keyword('file');
+        $kwLine ??= self::keyword('line');
+        $kwColumn ??= self::keyword('column');
+
+        return self::map($kwFile, $file, $kwLine, $line, $kwColumn, $column);
+    }
+
+    /**
      * Create a persistent hash set from an array of values.
      *
      * @param list<mixed>|null $values

@@ -14,16 +14,8 @@
   },
   \Phel::map(
     \Phel::keyword("doc"), "```phel\n(add1 x)\n```\n",
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Fn/fn-param-infer-numeric.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Fn/fn-param-infer-numeric.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 27
-    ),
+    \Phel::keyword("start-location"), \Phel::location("Fn/fn-param-infer-numeric.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Fn/fn-param-infer-numeric.test", 1, 27),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[x]",

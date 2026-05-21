@@ -19,16 +19,8 @@
   },
   \Phel::map(
     \Phel::keyword("macro"), true,
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "MacroExpand/macro-expand.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "MacroExpand/macro-expand.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 38
-    ),
+    \Phel::keyword("start-location"), \Phel::location("MacroExpand/macro-expand.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("MacroExpand/macro-expand.test", 1, 38),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[n]"

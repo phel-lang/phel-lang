@@ -9,15 +9,7 @@
     return (3 + 4);
   })(),
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Do/do-in-expr.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Do/do-in-expr.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 36
-    )
+    \Phel::keyword("start-location"), \Phel::location("Do/do-in-expr.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Do/do-in-expr.test", 1, 36)
   )
 );
