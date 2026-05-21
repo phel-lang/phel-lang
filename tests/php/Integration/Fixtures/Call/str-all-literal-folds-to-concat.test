@@ -1,0 +1,4 @@
+--PHEL--
+(str "hello, " "world" "!")
+--PHP--
+("hello, " . "world" . "!");
