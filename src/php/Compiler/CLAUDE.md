@@ -89,6 +89,16 @@ Compiler/
 - Special forms are registered centrally : no ad-hoc handling in the analyzer loop
 - Source locations must propagate through all phases for error reporting
 
+## Inferred-type plumbing
+
+The analyser already tracks param types (`ParamTypeInferrer`), return types (`ReturnTypeInferrer`), and grafts them onto each binding `Symbol`'s `:tag` meta. Emitters that want to specialise on a known type read that meta via:
+
+- `LocalVarNode::getInferredType(): ?string` resolves the binding's tag by name walk through `NodeEnvironment::getLocals()`. Returns `null` for bindings without a tag.
+- `GlobalVarNode::getMeta()` carries `arglists` / `tag` for `defn`s — `GlobalCallTarget::isGlobalFnCall()` and `ConstantFolder` consume it directly.
+- `IterableTarget::isIterable` / `::isPhpArray` already consume the local tag for `foreach` / `apply` adapter skips.
+
+Add new consumers by extending those predicates (or adding a sibling under `Compiler/Domain/Emitter/OutputEmitter/`). The contract is: never fabricate a type — propagate only what the analyser already published.
+
 ## Global Environment
 
 State lives in `Domain/Analyzer/Environment/GlobalEnvironmentRegistry` (process-wide static). The Application's `GlobalEnvironmentManager` and the infrastructure's `GlobalEnvironmentSingleton` both read/write the same slot.

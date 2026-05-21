@@ -1,0 +1,36 @@
+--PHEL--
+(defn process [^"array" arr] (foreach [x arr] (println x)))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "process",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\process";
+
+    public function __invoke(array $arr) {
+      static $__phel_call_0;
+      return (function() use($arr,&$__phel_call_0) {
+        foreach ($arr as $x) {
+          ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "println"))->__invoke($x);
+        }
+        return null;
+      })();
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("doc"), "```phel\n(process arr)\n```\n",
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Foreach/foreach-tagged-array-param-skips-adapter.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Foreach/foreach-tagged-array-param-skips-adapter.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 59
+    ),
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[arr]"
+  )
+);
