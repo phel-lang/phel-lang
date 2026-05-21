@@ -5,4 +5,4 @@
 --PHP--
 $x_1 = 3;
 $y_2 = 20;
-(\Phel::getDefinition("phel.core", "-"))->call($y_2, $x_1);
+(\Phel::getDefinition("phel.core", "-"))->__invoke($y_2, $x_1);

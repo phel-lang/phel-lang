@@ -34,4 +34,4 @@
     "arglists", "[x flag]"
   )
 );
-(\Phel::getDefinition("user", "mixed"))->call("x", false);
+(\Phel::getDefinition("user", "mixed"))->__invoke("x", false);

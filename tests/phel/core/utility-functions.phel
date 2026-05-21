@@ -218,5 +218,5 @@
   (is (= 42 ((eval (fn [x] x)) 42)) "closure returned by eval is callable"))
 
 (deftest test-compile-form
-  (is (= "2;" (compile '(+ 1 1)))
-      "compile simple expression folds pure arithmetic to a literal"))
+  (is (= "" (compile '(+ 1 1)))
+      "fold elides pure top-level arithmetic"))

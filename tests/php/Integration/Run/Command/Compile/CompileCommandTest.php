@@ -34,7 +34,7 @@ final class CompileCommandTest extends AbstractTestCommand
         $tester->execute(['source' => '(+ (php/intval "1") 2)']);
 
         $tester->assertCommandIsSuccessful();
-        self::assertStringContainsString(\Phel::class . '::getDefinition("phel.core", "+"))->call(', $tester->getDisplay());
+        self::assertStringContainsString(\Phel::class . '::getDefinition("phel.core", "+"))->__invoke(', $tester->getDisplay());
     }
 
     public function test_compile_folds_pure_arithmetic_to_literal(): void
@@ -42,8 +42,10 @@ final class CompileCommandTest extends AbstractTestCommand
         $tester = new CommandTester(new CompileCommand());
         $tester->execute(['source' => '(+ 1 2)']);
 
+        // Folded literal is elided in statement context by `LiteralEmitter`,
+        // so no PHP statement reaches the output — the runtime call is gone.
         $tester->assertCommandIsSuccessful();
-        self::assertSame('3;', $tester->getDisplay());
+        self::assertSame('', $tester->getDisplay());
     }
 
     public function test_compile_unbalanced_parentheses_fails(): void

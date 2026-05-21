@@ -37,7 +37,7 @@
 
     public function __invoke($x) {
       static $__phel_call_0;
-      return ($__phel_call_0 ??= \Phel::getDefinition("user", "either"))->call($x);
+      return ($__phel_call_0 ??= \Phel::getDefinition("user", "either"))->__invoke($x);
     }
   },
   \Phel::map(

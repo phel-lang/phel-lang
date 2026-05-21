@@ -5,11 +5,11 @@
   $__phel_1 = \Phel::vector($__phel_1);
   static $__phel_call_0, $__phel_call_1, $__phel_call_2, $__phel_call_3;
   $__phel_2_7 = $__phel_1;
-  $__phel_3_8 = ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "first"))->call($__phel_2_7);
-  $__phel_4_9 = ($__phel_call_1 ??= \Phel::getDefinition("phel.core", "next"))->call($__phel_2_7);
+  $__phel_3_8 = ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "first"))->__invoke($__phel_2_7);
+  $__phel_4_9 = ($__phel_call_1 ??= \Phel::getDefinition("phel.core", "next"))->__invoke($__phel_2_7);
   $x_10 = $__phel_3_8;
-  $__phel_5_11 = ($__phel_call_2 ??= \Phel::getDefinition("phel.core", "first"))->call($__phel_4_9);
-  $__phel_6_12 = ($__phel_call_3 ??= \Phel::getDefinition("phel.core", "next"))->call($__phel_4_9);
+  $__phel_5_11 = ($__phel_call_2 ??= \Phel::getDefinition("phel.core", "first"))->__invoke($__phel_4_9);
+  $__phel_6_12 = ($__phel_call_3 ??= \Phel::getDefinition("phel.core", "next"))->__invoke($__phel_4_9);
   $y_13 = $__phel_5_11;
   return 1;
 });
