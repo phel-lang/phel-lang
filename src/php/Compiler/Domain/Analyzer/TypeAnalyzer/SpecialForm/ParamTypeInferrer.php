@@ -413,8 +413,8 @@ final class ParamTypeInferrer
             return;
         }
 
-        if ($this->isCoreOrderingObserver($fn)) {
-            $this->walkOrderingCall($node);
+        if ($this->isCoreOrderingObserver($fn) && !$this->hasNumericObjectLiteralArg($node)) {
+            $this->walkCoreNumericCall($node, $expected);
             return;
         }
 
@@ -451,13 +451,15 @@ final class ParamTypeInferrer
     }
 
     /**
-     * `(+ a 1.5)`, `(- a 0.20)` etc. The literal is unambiguously
-     * float, so the LocalVar must be float-compatible at the call
-     * boundary. `(+ a 1)` and friends stay ambiguous (the runtime
-     * wrapper still works with int OR float at runtime), so an int
-     * literal does not commit a tag here. An `int` / `float`
-     * expectation flowing from above is honoured the same as in
-     * {@see self::walkNumericCall()}.
+     * `(+ a 1.5)`, `(>= a 0.5)`, etc. — `phel.core` arithmetic and
+     * ordering wrappers stay polymorphic between `int`, `float`,
+     * `BigInt`, and `Ratio` at runtime, so the inferrer must not narrow
+     * to `int` from an int literal sibling: `(pos? 0.1)` already calls
+     * `(> x 0)` against a float in core. A `float` tag, on the other
+     * hand, is safe because PHP `float $x` widens to accept int callers
+     * via implicit coercion. We only commit when a float literal makes
+     * the runtime float path inevitable. Expectations flowing from
+     * above are still honoured.
      */
     private function walkCoreNumericCall(CallNode $node, ?string $expected = null): void
     {
