@@ -23,8 +23,15 @@ final class LiteralEmitter implements NodeEmitterInterface
             return;
         }
 
-        $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitContextPrefix($node->getEnv(), $loc);
+
+        $cached = $this->outputEmitter->emitConstantSlotPrefix($node, $loc);
         $this->outputEmitter->emitLiteral($node->getValue());
-        $this->outputEmitter->emitContextSuffix($node->getEnv(), $node->getStartSourceLocation());
+        if ($cached) {
+            $this->outputEmitter->emitConstantSlotSuffix($loc);
+        }
+
+        $this->outputEmitter->emitContextSuffix($node->getEnv(), $loc);
     }
 }

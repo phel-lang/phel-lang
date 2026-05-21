@@ -8,7 +8,8 @@
     public const BOUND_TO = "user\\ns_present?";
 
     public function __invoke($_AMPERSAND_form, $_AMPERSAND_env) {
-      if (($__truthy = (\Phel::keyword("ns"))($_AMPERSAND_env)) !== null && $__truthy !== false) {
+      static $__phel_const_0;
+      if (($__truthy = (($__phel_const_0 ??= \Phel::keyword("ns")))($_AMPERSAND_env)) !== null && $__truthy !== false) {
         return true;
       } else {
         return false;

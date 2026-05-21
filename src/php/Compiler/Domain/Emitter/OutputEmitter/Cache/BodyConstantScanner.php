@@ -14,6 +14,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ForeachNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
 use Phel\Compiler\Domain\Analyzer\Ast\MultiFnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpArrayGetNode;
@@ -31,14 +32,15 @@ use Phel\Compiler\Domain\Analyzer\Ast\ThrowNode;
 use Phel\Compiler\Domain\Analyzer\Ast\TryNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\GlobalCallTarget;
+use Phel\Lang\Keyword;
 
 /**
- * Walks a fn body looking for *outermost* pure collection literals so the
- * emitter can hoist them to a per-fn `static` cache. Also reserves a
- * per-fn `static $__phel_call_N` slot for each global-fn call site when
- * call-site caching is enabled. Stops at nested function boundaries
- * (FnNode / MultiFnNode / ReifyNode method bodies) because each has its
- * own static scope.
+ * Walks a fn body looking for *outermost* pure collection literals plus
+ * `Keyword` literals so the emitter can hoist them to a per-fn `static`
+ * cache, and reserves a per-fn `static $__phel_call_N` slot for each
+ * global-fn call site when call-site caching is enabled. Stops at nested
+ * function boundaries (FnNode / MultiFnNode / ReifyNode method bodies)
+ * because each has its own static scope.
  */
 final readonly class BodyConstantScanner
 {
@@ -54,7 +56,7 @@ final readonly class BodyConstantScanner
             return;
         }
 
-        if ($this->isCacheableCollection($node)) {
+        if ($this->isCacheableCollection($node) || $this->isCacheableKeyword($node)) {
             $scope->reserve($node);
             return;
         }
@@ -82,6 +84,17 @@ final readonly class BodyConstantScanner
         }
 
         return PureLiteralDetector::isPure($node);
+    }
+
+    /**
+     * A `LiteralNode` whose value is a {@see Keyword} is identity-shared
+     * via the interpreter's intern pool, but every call site still hits
+     * `\Phel::keyword("…")` afresh. Caching the resolved instance in a
+     * per-fn `static` slot skips the intern-pool hash on subsequent calls.
+     */
+    private function isCacheableKeyword(AbstractNode $node): bool
+    {
+        return $node instanceof LiteralNode && $node->getValue() instanceof Keyword;
     }
 
     private function isEmpty(AbstractNode $node): bool
