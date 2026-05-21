@@ -24,6 +24,8 @@ interface OutputEmitterInterface
 
     public function emitConstantSlotSuffix(?SourceLocation $loc = null): void;
 
+    public function callSlotFor(AbstractNode $node): ?int;
+
     public function resetIndentLevel(): void;
 
     public function resetSourceMapState(): void;

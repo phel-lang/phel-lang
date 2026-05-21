@@ -1,0 +1,24 @@
+--PHEL--
+(def k :a)
+(k {:a 1})
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "k",
+  \Phel::keyword("a"),
+  \Phel::map(
+    \Phel::keyword("start-location"), \Phel::map(
+      \Phel::keyword("file"), "Call/non-fn-global-call-skipped.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 0
+    ),
+    \Phel::keyword("end-location"), \Phel::map(
+      \Phel::keyword("file"), "Call/non-fn-global-call-skipped.test",
+      \Phel::keyword("line"), 1,
+      \Phel::keyword("column"), 10
+    )
+  )
+);
+(\Phel::getDefinition("user", "k"))(\Phel::map(
+  \Phel::keyword("a"), 1
+));

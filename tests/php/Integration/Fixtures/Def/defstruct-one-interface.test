@@ -35,8 +35,9 @@ class my_type_with_one_interface extends \Phel\Lang\Collections\Struct\AbstractP
 
   public function bar($a, $b) {
     $v = $this->v;
+    static $__phel_call_0;
     $this_2 = $this;
-    return (\Phel::getDefinition("phel.core", "+"))($a, $b, $v);
+    return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->call($a, $b, $v);
   }
 }
 }

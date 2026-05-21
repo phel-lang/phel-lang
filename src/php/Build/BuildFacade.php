@@ -42,6 +42,14 @@ final class BuildFacade extends AbstractFacade implements BuildFacadeInterface
         );
     }
 
+    public static function isBuildMode(): bool
+    {
+        return Registry::getInstance()->getDefinition(
+            CompilerConstants::PHEL_CORE_NAMESPACE,
+            BuildConstants::BUILD_MODE,
+        ) === true;
+    }
+
     /**
      * Extracts the namespace from a given file. It expects that the
      * first statement in the file is the 'ns statement.

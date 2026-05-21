@@ -1,4 +1,4 @@
 --PHEL--
 (% 2 1)
 --PHP--
-(\Phel::getDefinition("phel.core", "%"))(2, 1);
+(\Phel::getDefinition("phel.core", "%"))->call(2, 1);

@@ -86,6 +86,11 @@ final class OutputEmitter implements OutputEmitterInterface
         $this->emitStr(')', $loc);
     }
 
+    public function callSlotFor(AbstractNode $node): ?int
+    {
+        return $this->currentConstantScope()?->lookupCallSlot($node);
+    }
+
     public function getOptions(): OutputEmitterOptions
     {
         return $this->options;
@@ -185,9 +190,11 @@ final class OutputEmitter implements OutputEmitterInterface
         $this->emitStr('(function()', $sl);
 
         $locals = array_values($env->getLocals());
-        $constantSlots = $this->currentConstantScope()?->count() ?? 0;
+        $scope = $this->currentConstantScope();
+        $constantSlots = $scope?->count() ?? 0;
+        $callSlots = $scope?->callSlotCount() ?? 0;
 
-        if ($locals !== [] || $constantSlots > 0) {
+        if ($locals !== [] || $constantSlots > 0 || $callSlots > 0) {
             $this->emitStr(' use(', $sl);
 
             $localsCount = count($locals);
@@ -199,14 +206,21 @@ final class OutputEmitter implements OutputEmitterInterface
                     $this->emitPhpVariable($l, $sl);
                 }
 
-                if ($i < $localsCount - 1 || $constantSlots > 0) {
+                if ($i < $localsCount - 1 || $constantSlots > 0 || $callSlots > 0) {
                     $this->emitStr(',', $sl);
                 }
             }
 
             for ($i = 0; $i < $constantSlots; ++$i) {
                 $this->emitStr('&$__phel_const_' . $i, $sl);
-                if ($i < $constantSlots - 1) {
+                if ($i < $constantSlots - 1 || $callSlots > 0) {
+                    $this->emitStr(',', $sl);
+                }
+            }
+
+            for ($i = 0; $i < $callSlots; ++$i) {
+                $this->emitStr('&$__phel_call_' . $i, $sl);
+                if ($i < $callSlots - 1) {
                     $this->emitStr(',', $sl);
                 }
             }

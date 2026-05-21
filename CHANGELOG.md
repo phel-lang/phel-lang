@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - `CITATION.cff` for academic citation (#2016)
 - CI: `clojure-test-suite` workflow runs `phel-lang/clojure-test-suite` against dev HEAD on every PR (non-blocking) (#2036)
 - `phel compile`: new CLI command emits PHP from a Phel snippet, file, or stdin without evaluating; `--target` option reserved for future `ast`/`tokens` dumps (#2043)
+- Compiler: global fn call sites in build mode are hoisted to per-fn `static $__phel_call_N` slots, and known `AbstractFn` callees dispatch via the new non-magic `AbstractFn::call(...)`, skipping `__invoke` magic-method overhead on the hot path (#2044)
 
 ### Changed
 

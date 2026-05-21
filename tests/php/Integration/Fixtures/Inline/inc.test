@@ -1,4 +1,4 @@
 --PHEL--
 (inc 2)
 --PHP--
-(\Phel::getDefinition("phel.core", "inc"))(2);
+(\Phel::getDefinition("phel.core", "inc"))->call(2);

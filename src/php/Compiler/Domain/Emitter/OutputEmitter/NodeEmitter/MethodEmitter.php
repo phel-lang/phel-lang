@@ -10,7 +10,10 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\Cache\ConstantScope;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
+use Phel\Shared\BuildConstants;
+use Phel\Shared\CompilerConstants;
 
 use function count;
 use function implode;
@@ -94,12 +97,14 @@ final readonly class MethodEmitter
     /**
      * Wraps {@see emitMethodBody()} with a {@see ConstantScope} so the
      * emitters for {@see VectorNode}, {@see MapNode}, and {@see SetNode}
-     * can hoist pure literals to per-fn `static` variables.
+     * can hoist pure literals to per-fn `static` variables, and the
+     * {@see CallEmitter} can hoist global-fn call-site lookups to per-fn
+     * `static $__phel_call_N` slots when build mode is active.
      */
     private function emitBodyWithConstantScope(FnNode $node): void
     {
         $scope = new ConstantScope();
-        $this->constantScanner->scan($node->getBody(), $scope);
+        $this->constantScanner->scan($node->getBody(), $scope, $this->shouldCacheCallSites());
         $this->outputEmitter->pushConstantScope($scope);
 
         try {
@@ -110,16 +115,34 @@ final readonly class MethodEmitter
         }
     }
 
+    /**
+     * Read `*build-mode*` straight from the registry to avoid a hard
+     * compile-time dependency from the emitter onto `BuildFacade`.
+     * Caching call-site resolutions is only safe when redefinitions are
+     * not expected, which is exactly the contract of build mode.
+     */
+    private function shouldCacheCallSites(): bool
+    {
+        return Registry::getInstance()->getDefinition(
+            CompilerConstants::PHEL_CORE_NAMESPACE,
+            BuildConstants::BUILD_MODE,
+        ) === true;
+    }
+
     private function emitConstantStatics(ConstantScope $scope, FnNode $node): void
     {
-        $count = $scope->count();
-        if ($count === 0) {
-            return;
+        $parts = [];
+
+        for ($i = 0, $n = $scope->count(); $i < $n; ++$i) {
+            $parts[] = '$__phel_const_' . $i;
         }
 
-        $parts = [];
-        for ($i = 0; $i < $count; ++$i) {
-            $parts[] = '$__phel_const_' . $i;
+        for ($i = 0, $n = $scope->callSlotCount(); $i < $n; ++$i) {
+            $parts[] = '$__phel_call_' . $i;
+        }
+
+        if ($parts === []) {
+            return;
         }
 
         $this->outputEmitter->emitLine(

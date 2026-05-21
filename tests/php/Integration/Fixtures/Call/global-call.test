@@ -29,4 +29,4 @@
     "arglists", "[x]"
   )
 );
-(\Phel::getDefinition("user", "x"))(1);
+(\Phel::getDefinition("user", "x"))->call(1);

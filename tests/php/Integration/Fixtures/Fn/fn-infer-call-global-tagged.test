@@ -31,5 +31,6 @@
   )
 );
 (function(int $x): int {
-  return (\Phel::getDefinition("user", "sum"))($x, 1);
+  static $__phel_call_0;
+  return ($__phel_call_0 ??= \Phel::getDefinition("user", "sum"))->call($x, 1);
 });
