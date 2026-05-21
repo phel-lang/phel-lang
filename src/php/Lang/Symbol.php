@@ -21,6 +21,8 @@ final class Symbol extends AbstractType implements IdenticalInterface, FnInterfa
 
     public const string NAME_DEF = 'def';
 
+    public const string NAME_DEF_ONCE = 'defonce';
+
     public const string NAME_DEF_STRUCT = 'defstruct*';
 
     public const string NAME_DO = 'do';

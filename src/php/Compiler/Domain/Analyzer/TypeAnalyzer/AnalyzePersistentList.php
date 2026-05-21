@@ -304,6 +304,7 @@ final class AnalyzePersistentList
 
         $analyzer = match ($symbolName) {
             Symbol::NAME_DEF => new DefSymbol($this->analyzer),
+            Symbol::NAME_DEF_ONCE => new DefSymbol($this->analyzer, defonce: true),
             Symbol::NAME_NS => new NsSymbol($this->analyzer),
             Symbol::NAME_IN_NS => new InNsSymbol($this->analyzer),
             Symbol::NAME_USE => new UseSymbol($this->analyzer),

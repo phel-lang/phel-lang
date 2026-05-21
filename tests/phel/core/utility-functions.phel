@@ -220,3 +220,10 @@
 (deftest test-compile-form
   (is (= "" (compile '(+ 1 1)))
       "fold elides pure top-level arithmetic"))
+
+(deftest test-defonce
+  (defonce defonce-test-target 1)
+  (is (= 1 defonce-test-target) "defonce binds the initial value")
+  (defonce defonce-test-target 999)
+  (is (= 1 defonce-test-target)
+      "defonce leaves the existing binding intact on re-evaluation"))
