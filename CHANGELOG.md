@@ -6,11 +6,11 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- `phel.edn` — eval-free EDN read/write (#2008)
-- `phel.transit` — Transit + JSON-Verbose read/write (#2009)
-- `phel compile` — emit PHP for a snippet / file / stdin without evaluating; `--target` reserved for future `ast` / `tokens` dumps (#2043)
-- `defonce` special form — bind a global only when the name is not already defined, surviving REPL file reloads (#2055)
-- `^:by-ref` parameter hint — compiles a Phel fn param to PHP `&$param` so `php/aset` / `php/array_push` mutations on `(php/array)` buffers propagate back to the caller; pairs with the existing `^int` / `^string` tags. The historical undocumented `^:reference` keeps working as an alias (#2065)
+- `phel.edn`: eval-free EDN read/write (#2008)
+- `phel.transit`: Transit + JSON-Verbose read/write (#2009)
+- `phel compile`: emit PHP from a snippet, file, or stdin without evaluating. `--target` reserved for future `ast` / `tokens` dumps (#2043)
+- `defonce` special form: bind a global only when not already defined; survives REPL file reloads (#2055)
+- `^:by-ref` param hint compiles to PHP `&$param`, so `php/aset` / `php/array_push` on `(php/array)` buffers propagates to the caller. `^:reference` kept as alias (#2065)
 - Lexer: namespaced tagged literals (`#my.app/Person`)
 - CI: `clojure-test-suite` workflow runs against dev HEAD on every PR, non-blocking (#2036)
 - `CITATION.cff` for academic citation (#2016)
@@ -18,40 +18,39 @@ All notable changes to this project will be documented in this file.
 
 ### Performance
 
-- Hoist global fn call sites in build mode to per-fn `static $__phel_call_N` slots; emit known `AbstractFn` callees via direct `->__invoke(...)` to skip magic-method dispatch (#2044)
-- Constant-fold pure `phel.core` arithmetic (`+`, `-`, `*`, `inc`, `dec`) on literal-only args; short-circuit `if` with a literal test to the surviving branch (#2045)
-- Hoist keyword literals inside a fn body to per-fn `static $__phel_const_N` slots — one intern-pool lookup per call site (#2046)
-- Drop `Seq::toIterable` / `Seq::toApplyArguments` adapter wraps when the source is already iterable or a PHP array (#2047)
-- Specialise `(str ...)` to PHP `.` concat for all-literal args; emit `(php/instanceof x c)` over local bindings without the two-temp IIFE (#2048)
-- Extend `(str ...)` `.`-concat specialisation to args tagged `^string`; specialise `(:k m)` to `$m->find(\Phel::keyword("k"))` when `m` is tagged `^"\Phel\Lang\Collections\Map\PersistentMapInterface"`; both consumers share `CallSpecialization` so the cache scanner no longer reserves an orphan `static $__phel_call_N` for the specialised call (#2048)
-- Multi-arity fn dispatch via `match (\count($args)) { … }` instead of `switch` + post-`if`; variadic body folds into `default` (#2049)
+- Cache global fn call sites in build mode via per-fn `static $__phel_call_N` slots; route known `AbstractFn` callees through direct `->__invoke(...)` to skip magic dispatch (#2044)
+- Constant-fold pure `phel.core` arithmetic (`+ - * inc dec`) on literal args; short-circuit `if` with a literal test (#2045)
+- Hoist keyword literals to per-fn `static $__phel_const_N` slots; one intern-pool lookup per call site (#2046)
+- Drop `Seq::toIterable` / `Seq::toApplyArguments` wraps when the source is already iterable or a PHP array (#2047)
+- Surface analyser `:tag` meta via `LocalVarNode::getInferredType()`; `IterableTarget` promotes #2047 to fire on `^"array"` params (#2052)
+- Specialise `(str ...)` to PHP `.` concat for literal and `^string`-tagged args; skip the two-temp IIFE for `(php/instanceof x c)` between locals; specialise `(:k m)` to `$m->find(...)` when `m` is `^PersistentMapInterface`. Shared `CallSpecialization` keeps the cache scanner aligned (#2048)
+- Specialise `(get coll k)` to `$coll->get($k)` / `$coll->find($k)` when `coll` is `^PersistentVectorInterface` / `^PersistentMapInterface` (#2067)
+- Multi-arity fn dispatch via `match (\count($args))`; variadic body folds into `default` (#2049)
 - Persistent-collection `hash()` memo uses a `null` sentinel so empty maps / sets and `hash == 0` stop recomputing (#2050)
-- `LocalVarNode::getInferredType()` exposes the analyser `:tag` meta to the emitter; `IterableTarget` promotes #2047 to fire on `(defn f [^"array" arr] …)` annotations (#2052)
-- Collapse synthesised `defn` location maps into a single `\Phel::location(file, line, col)` call, shrinking compiled file size (#2053)
-- Specialise `(get coll k)` to a direct `$coll->get($k)` (vector) or `$coll->find($k)` (map) method call when the analyser has tagged `coll` as `PersistentVectorInterface` / `PersistentMapInterface`, collapsing the `phel.core/get` cond chain for the hot indexed-access shape (#2067)
-- `TransientVector::update()` mutates the trie in place via a by-reference walk; indexed writes past the tail offset skip the per-level array-copy the previous `doUpdate` (a persistent-vector path-copy) carried on every `assoc!`. PHP COW still detaches trie nodes from the persistent ancestor on first write, so structural sharing semantics are preserved (#2069)
+- Collapse synthesised `defn` location maps into one `\Phel::location(...)` call (#2053)
+- `TransientVector::update()` mutates the trie in place via a by-reference walk; PHP COW still detaches shared nodes from the persistent ancestor on first write (#2069)
 
 ### Changed
 
 - BC: release tooling moved from `build/` to `tools/`; `build/` is now phar-only
 - CI: split `ci.yml` into `quality.yml` / `tests.yml` / `smoke.yml` with a shared `setup-phel` composite action; concurrency cancellation + least-privilege perms (#2039)
-- Compiler: hoist pure vector/map/set literals to a per-fn `static` cache
+- Compiler: hoist pure vector / map / set literals to a per-fn `static` cache
 - Compiler: skip `Truthy::isTruthy` wrap in `if` / `?:` when the test is known-bool
 - Compiler: `recur` skips the `$__phel_N` temp shuffle when no aliasing is possible
 - `phel agent-install`: copy `.agents/` docs by default; `--with-docs` replaced by `--no-docs` opt-out
 
 ### Fixed
 
-- Compiler: map destructure now surfaces a targeted "Did you mean" suggestion when a Clojure-style `{local :keyword}` pair is seen instead of `{:keyword local}`; `:keys` / `:strs` / `:syms` with a non-vector value report a one-line shape error rather than being silently dropped (#2066)
-- Dev: patch vendored Psalm 6.16.1 on install / update for PHP 8.5 NAN-coercion crash in `TLiteralFloat`
-- Compiler: `ConstantScope` uses `SplObjectStorage::offsetExists()` to silence a PHP 8.5 deprecation in emitted code
+- Map destructure surfaces a "Did you mean" suggestion for the Clojure-style `{local :keyword}` pair; `:keys` / `:strs` / `:syms` with a non-vector value report a shape error instead of being silently dropped (#2066)
+- `ConstantScope` uses `SplObjectStorage::offsetExists()` to silence a PHP 8.5 deprecation in emitted code
 - `phel.cli`: register commands via `Application::addCommand()` for Symfony 8 compat (#2033)
-- `phel lint`: cache invalidates when `phel-lint.phel` changes (#2027); `unused-binding` no longer flags symbols used in later let bindings (#2018)
+- `phel lint`: cache invalidates when `phel-lint.phel` changes (#2027); `unused-binding` no longer flags symbols used in later `let` bindings (#2018)
 - `phel doctor`: auto-bootstraps temp dir; passes on fresh installs (#2020)
 - `Phel::run()`: backslash namespaces normalise to dot-form, matching CLI (#2021)
 - `phel format`: appends trailing newline (POSIX / EditorConfig) (#2022)
 - `phel test`: non-zero exit when `--filter` matches zero tests (#2023)
 - `BackslashSeparatorDeprecator`: stop false-warning on top-level PHP symbols with a leading-only `\` (e.g. `\strlen`, `\DateTimeInterface`) (#2038)
+- Dev: patch vendored Psalm 6.16.1 on install / update for PHP 8.5 NAN-coercion crash in `TLiteralFloat`
 
 ## [0.39.0](https://github.com/phel-lang/phel-lang/compare/v0.38.0...v0.39.0) - 2026-05-19
 
