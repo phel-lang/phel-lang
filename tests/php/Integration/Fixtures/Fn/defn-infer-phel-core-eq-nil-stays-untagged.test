@@ -1,0 +1,28 @@
+--PHEL--
+(defn nil-check [x] (if (= x nil) 0 1))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "nil-check",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\nil_check";
+
+    public function __invoke($x) {
+      static $__phel_call_0;
+      if (($__truthy = ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "="))->__invoke($x, null)) !== null && $__truthy !== false) {
+        return 0;
+      } else {
+        return 1;
+      }
+
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("doc"), "```phel\n(nil-check x)\n```\n",
+    \Phel::keyword("start-location"), \Phel::location("Fn/defn-infer-phel-core-eq-nil-stays-untagged.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Fn/defn-infer-phel-core-eq-nil-stays-untagged.test", 1, 39),
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[x]"
+  )
+);

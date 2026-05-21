@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - Hoist keyword literals to per-fn `static $__phel_const_N` slots; one intern-pool lookup per call site (#2046)
 - Drop `Seq::toIterable` / `Seq::toApplyArguments` wraps when the source is already iterable or a PHP array (#2047)
 - Surface analyser `:tag` meta via `LocalVarNode::getInferredType()`; `IterableTarget` promotes #2047 to fire on `^"array"` params (#2052)
+- `ParamTypeInferrer` observes `phel.core` arithmetic (`+`, `-`, `*`, `inc`, `dec`) and comparison (`<`, `<=`, `>`, `>=`, `<=>`, `=`) wrappers like their `php/*` counterparts; `(defn step [a] (+ a 1))` now auto-tags `a` as `^int` without a hand annotation. `=` against `nil` / `true` / `false` keeps the existing guard semantics (#2078)
 - Specialise `(str ...)` to PHP `.` concat for literal and `^string`-tagged args; skip the two-temp IIFE for `(php/instanceof x c)` between locals; specialise `(:k m)` to `$m->find(...)` when `m` is `^PersistentMapInterface`. Shared `CallSpecialization` keeps the cache scanner aligned (#2048)
 - Specialise `(get coll k)` to `$coll->get($k)` / `$coll->find($k)` when `coll` is `^PersistentVectorInterface` / `^PersistentMapInterface` (#2067)
 - Multi-arity fn dispatch via `match (\count($args))`; variadic body folds into `default` (#2049)

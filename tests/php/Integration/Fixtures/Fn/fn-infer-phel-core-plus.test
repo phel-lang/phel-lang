@@ -1,0 +1,23 @@
+--PHEL--
+(defn inc-by-one [a] (+ a 1))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "inc-by-one",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\inc_by_one";
+
+    public function __invoke(int $a) {
+      static $__phel_call_0;
+      return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($a, 1);
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("doc"), "```phel\n(inc-by-one a)\n```\n",
+    \Phel::keyword("start-location"), \Phel::location("Fn/fn-infer-phel-core-plus.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Fn/fn-infer-phel-core-plus.test", 1, 29),
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[a]"
+  )
+);

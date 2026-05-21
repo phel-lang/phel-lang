@@ -117,6 +117,30 @@ final class ParamTypeInferrer
     private const array INT_STABLE_CORE_FNS = ['+', '-', '*', 'inc', 'dec'];
 
     /**
+     * `phel.core` arithmetic wrappers whose dispatch reduces to a PHP
+     * numeric op when every arg is `int` / `float`. Observing them like
+     * `php/+`, `php/-`, ... lets idiomatic Phel code surface the same
+     * primitive tag that the raw PHP op would. The numeric-call walker
+     * still only commits to `int` / `float` when a literal sibling
+     * disambiguates (or an expectation flows in from above), so a body
+     * like `(+ a b)` with no literal anywhere stays untagged and
+     * preserves the BigInt / Ratio polymorphism.
+     *
+     * @var list<string>
+     */
+    private const array NUMERIC_CORE_OBSERVERS = ['+', '-', '*', 'inc', 'dec'];
+
+    /**
+     * `phel.core` ordering wrappers. Each one reduces to the matching
+     * `php/<`, `php/<=`, ... when no `BigInt` / `Ratio` shows up at
+     * runtime, so the ordering walker can lift a numeric tag the same
+     * way it does for the PHP-native op.
+     *
+     * @var list<string>
+     */
+    private const array ORDERING_CORE_OBSERVERS = ['<', '<=', '>', '>=', '<=>'];
+
+    /**
      * Static fallback for `phel.core` callees whose compile-time
      * `:param-tags` channel is not available (the runtime registry is
      * populated from a precompiled cache, so the analyzer never sees
@@ -384,7 +408,46 @@ final class ParamTypeInferrer
             return;
         }
 
+        if ($this->isCoreNumericObserver($fn) && !$this->hasNonIntLiteralArg($node)) {
+            $this->walkNumericCall($node, $expected);
+            return;
+        }
+
+        if ($this->isCoreOrderingObserver($fn)) {
+            $this->walkOrderingCall($node);
+            return;
+        }
+
+        if ($this->isCoreEqualityObserver($fn)) {
+            $this->walkIdentityCall($node);
+            return;
+        }
+
         $this->walkArgsBySignature($node, $this->calleeParamExpectations($fn));
+    }
+
+    private function isCoreNumericObserver(GlobalVarNode $fn): bool
+    {
+        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE) {
+            return false;
+        }
+
+        return in_array($fn->getName()->getName(), self::NUMERIC_CORE_OBSERVERS, true);
+    }
+
+    private function isCoreOrderingObserver(GlobalVarNode $fn): bool
+    {
+        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE) {
+            return false;
+        }
+
+        return in_array($fn->getName()->getName(), self::ORDERING_CORE_OBSERVERS, true);
+    }
+
+    private function isCoreEqualityObserver(GlobalVarNode $fn): bool
+    {
+        return $fn->getNamespace() === CompilerConstants::PHEL_CORE_NAMESPACE
+            && $fn->getName()->getName() === '=';
     }
 
     private function isSelfReference(GlobalVarNode $fn): bool
