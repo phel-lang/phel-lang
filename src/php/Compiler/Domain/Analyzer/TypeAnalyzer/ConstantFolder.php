@@ -164,7 +164,7 @@ final class ConstantFolder
 
         $head = array_shift($literals);
         if ($literals === []) {
-            return is_int($head) ? -$head : -$head;
+            return -$head;
         }
 
         $acc = $head;
