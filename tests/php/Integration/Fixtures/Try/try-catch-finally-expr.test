@@ -17,15 +17,7 @@
     }
   })(),
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Try/try-catch-finally-expr.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Try/try-catch-finally-expr.test",
-      \Phel::keyword("line"), 4,
-      \Phel::keyword("column"), 27
-    )
+    \Phel::keyword("start-location"), \Phel::location("Try/try-catch-finally-expr.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Try/try-catch-finally-expr.test", 4, 27)
   )
 );

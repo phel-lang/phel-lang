@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - Compiler: multi-arity fn dispatch emits a `match (\count($args)) { … }` jump table instead of the previous `switch` + post-`if` block; the variadic body folds into the `default` arm (#2049)
 - Runtime: persistent collection `hash()` switches its memo sentinel from `0` to `null`, so empty maps / sets and the rare `hash == 0` value reuse the cached result on subsequent calls instead of recomputing (#2050)
 - Compiler: `LocalVarNode::getInferredType()` exposes the analyser's `:tag` meta to the emitter; `IterableTarget` consumes it so a `(defn f [^"array" arr] (foreach [x arr] …))` style annotation unlocks the same `foreach` / `apply` adapter skips as a literal would (#2052)
+- Runtime + compiler: new `\Phel::location($file, $line, $column)` helper interns the `:file` / `:line` / `:column` keyword keys once per process; `MapEmitter` detects the synthesised `{:file <string> :line <int> :column <int>}` shape on every `addDefinition` site and emits a single `\Phel::location(...)` call instead of the three-entry `\Phel::map(…)`, shrinking compiled file size (#2053)
 
 ### Changed
 

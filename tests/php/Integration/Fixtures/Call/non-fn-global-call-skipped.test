@@ -7,16 +7,8 @@
   "k",
   \Phel::keyword("a"),
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Call/non-fn-global-call-skipped.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Call/non-fn-global-call-skipped.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 10
-    )
+    \Phel::keyword("start-location"), \Phel::location("Call/non-fn-global-call-skipped.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Call/non-fn-global-call-skipped.test", 1, 10)
   )
 );
 (\Phel::getDefinition("user", "k"))(\Phel::map(

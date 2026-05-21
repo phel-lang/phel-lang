@@ -8,15 +8,7 @@
   \Phel::map(
     \Phel::keyword("private"), true,
     \Phel::keyword("export"), true,
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/private-def-meta.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/private-def-meta.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 38
-    )
+    \Phel::keyword("start-location"), \Phel::location("Def/private-def-meta.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Def/private-def-meta.test", 1, 38)
   )
 );

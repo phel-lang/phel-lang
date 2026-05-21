@@ -6,15 +6,7 @@
   "x",
   "a",
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/char-literal-alpha.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/char-literal-alpha.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 10
-    )
+    \Phel::keyword("start-location"), \Phel::location("Def/char-literal-alpha.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Def/char-literal-alpha.test", 1, 10)
   )
 );

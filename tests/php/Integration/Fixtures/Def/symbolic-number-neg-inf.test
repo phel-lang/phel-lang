@@ -6,15 +6,7 @@
   "x",
   -INF,
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/symbolic-number-neg-inf.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/symbolic-number-neg-inf.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 14
-    )
+    \Phel::keyword("start-location"), \Phel::location("Def/symbolic-number-neg-inf.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Def/symbolic-number-neg-inf.test", 1, 14)
   )
 );

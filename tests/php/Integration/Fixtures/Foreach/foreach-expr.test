@@ -20,16 +20,8 @@
     }
   },
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Foreach/foreach-expr.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Foreach/foreach-expr.test",
-      \Phel::keyword("line"), 3,
-      \Phel::keyword("column"), 18
-    ),
+    \Phel::keyword("start-location"), \Phel::location("Foreach/foreach-expr.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Foreach/foreach-expr.test", 3, 18),
     "min-arity", 0,
     "is-variadic", false,
     "arglists", "[]"

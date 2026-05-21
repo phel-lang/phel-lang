@@ -6,15 +6,7 @@
   "x",
   -15,
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/radix-negative.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/radix-negative.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 15
-    )
+    \Phel::keyword("start-location"), \Phel::location("Def/radix-negative.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Def/radix-negative.test", 1, 15)
   )
 );

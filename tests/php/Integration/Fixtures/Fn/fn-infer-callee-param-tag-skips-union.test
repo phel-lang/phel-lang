@@ -14,16 +14,8 @@
   },
   \Phel::map(
     \Phel::keyword("doc"), "```phel\n(either a)\n```\n",
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Fn/fn-infer-callee-param-tag-skips-union.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Fn/fn-infer-callee-param-tag-skips-union.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 33
-    ),
+    \Phel::keyword("start-location"), \Phel::location("Fn/fn-infer-callee-param-tag-skips-union.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Fn/fn-infer-callee-param-tag-skips-union.test", 1, 33),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[a]"
@@ -42,16 +34,8 @@
   },
   \Phel::map(
     \Phel::keyword("doc"), "```phel\n(caller x)\n```\n",
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Fn/fn-infer-callee-param-tag-skips-union.test",
-      \Phel::keyword("line"), 2,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Fn/fn-infer-callee-param-tag-skips-union.test",
-      \Phel::keyword("line"), 2,
-      \Phel::keyword("column"), 28
-    ),
+    \Phel::keyword("start-location"), \Phel::location("Fn/fn-infer-callee-param-tag-skips-union.test", 2, 0),
+    \Phel::keyword("end-location"), \Phel::location("Fn/fn-infer-callee-param-tag-skips-union.test", 2, 28),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[x]"

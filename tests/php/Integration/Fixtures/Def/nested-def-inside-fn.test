@@ -14,16 +14,8 @@
         "x",
         1,
         ($__phel_const_0 ??= \Phel::map(
-          \Phel::keyword("start-location"), \Phel::map(
-            \Phel::keyword("file"), "Def/nested-def-inside-fn.test",
-            \Phel::keyword("line"), 1,
-            \Phel::keyword("column"), 14
-          ),
-          \Phel::keyword("end-location"), \Phel::map(
-            \Phel::keyword("file"), "Def/nested-def-inside-fn.test",
-            \Phel::keyword("line"), 1,
-            \Phel::keyword("column"), 23
-          )
+          \Phel::keyword("start-location"), \Phel::location("Def/nested-def-inside-fn.test", 1, 14),
+          \Phel::keyword("end-location"), \Phel::location("Def/nested-def-inside-fn.test", 1, 23)
         ))
       );
 
@@ -31,16 +23,8 @@
     }
   },
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/nested-def-inside-fn.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/nested-def-inside-fn.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 27
-    ),
+    \Phel::keyword("start-location"), \Phel::location("Def/nested-def-inside-fn.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Def/nested-def-inside-fn.test", 1, 27),
     "min-arity", 0,
     "is-variadic", false,
     "arglists", "[]"

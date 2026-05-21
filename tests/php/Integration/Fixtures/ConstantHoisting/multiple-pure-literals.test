@@ -19,16 +19,8 @@
     }
   },
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "ConstantHoisting/multiple-pure-literals.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "ConstantHoisting/multiple-pure-literals.test",
-      \Phel::keyword("line"), 2,
-      \Phel::keyword("column"), 22
-    ),
+    \Phel::keyword("start-location"), \Phel::location("ConstantHoisting/multiple-pure-literals.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("ConstantHoisting/multiple-pure-literals.test", 2, 22),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[b]"

@@ -46,16 +46,8 @@ interface IPlayer {
   },
   \Phel::map(
     \Phel::keyword("doc"), "```phel\n(choose p)\n```\nChoose docs",
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/definterface-instance-of.test",
-      \Phel::keyword("line"), 3,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/definterface-instance-of.test",
-      \Phel::keyword("line"), 5,
-      \Phel::keyword("column"), 31
-    ),
+    \Phel::keyword("start-location"), \Phel::location("Def/definterface-instance-of.test", 3, 0),
+    \Phel::keyword("end-location"), \Phel::location("Def/definterface-instance-of.test", 5, 31),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[p]"
@@ -82,16 +74,8 @@ interface IPlayer {
   },
   \Phel::map(
     \Phel::keyword("doc"), "```phel\n(update-strategy p me you)\n```\n",
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/definterface-instance-of.test",
-      \Phel::keyword("line"), 3,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/definterface-instance-of.test",
-      \Phel::keyword("line"), 5,
-      \Phel::keyword("column"), 31
-    ),
+    \Phel::keyword("start-location"), \Phel::location("Def/definterface-instance-of.test", 3, 0),
+    \Phel::keyword("end-location"), \Phel::location("Def/definterface-instance-of.test", 5, 31),
     "min-arity", 3,
     "is-variadic", false,
     "arglists", "[p me you]"

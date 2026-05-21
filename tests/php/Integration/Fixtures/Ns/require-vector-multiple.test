@@ -27,16 +27,8 @@ require_once __DIR__ . '/xyz/core2.php';
   "kw",
   \Phel::keyword("f1", "xyz.core"),
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Ns/require-vector-multiple.test",
-      \Phel::keyword("line"), 6,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Ns/require-vector-multiple.test",
-      \Phel::keyword("line"), 6,
-      \Phel::keyword("column"), 15
-    )
+    \Phel::keyword("start-location"), \Phel::location("Ns/require-vector-multiple.test", 6, 0),
+    \Phel::keyword("end-location"), \Phel::location("Ns/require-vector-multiple.test", 6, 15)
   )
 );
 \Phel::addDefinition(
@@ -44,15 +36,7 @@ require_once __DIR__ . '/xyz/core2.php';
   "kw2",
   \Phel::keyword("f3", "xyz.core2"),
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Ns/require-vector-multiple.test",
-      \Phel::keyword("line"), 7,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Ns/require-vector-multiple.test",
-      \Phel::keyword("line"), 7,
-      \Phel::keyword("column"), 17
-    )
+    \Phel::keyword("start-location"), \Phel::location("Ns/require-vector-multiple.test", 7, 0),
+    \Phel::keyword("end-location"), \Phel::location("Ns/require-vector-multiple.test", 7, 17)
   )
 );

@@ -15,16 +15,8 @@
   \Phel::map(
     \Phel::keyword("tag"), "int",
     \Phel::keyword("doc"), "```phel\n(sum a b)\n```\n",
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Fn/fn-infer-callee-param-tag-propagates.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Fn/fn-infer-callee-param-tag-propagates.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 43
-    ),
+    \Phel::keyword("start-location"), \Phel::location("Fn/fn-infer-callee-param-tag-propagates.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Fn/fn-infer-callee-param-tag-propagates.test", 1, 43),
     "min-arity", 2,
     "is-variadic", false,
     "arglists", "[a b]"
@@ -43,16 +35,8 @@
   },
   \Phel::map(
     \Phel::keyword("doc"), "```phel\n(add-pair x y)\n```\n",
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Fn/fn-infer-callee-param-tag-propagates.test",
-      \Phel::keyword("line"), 2,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Fn/fn-infer-callee-param-tag-propagates.test",
-      \Phel::keyword("line"), 2,
-      \Phel::keyword("column"), 31
-    ),
+    \Phel::keyword("start-location"), \Phel::location("Fn/fn-infer-callee-param-tag-propagates.test", 2, 0),
+    \Phel::keyword("end-location"), \Phel::location("Fn/fn-infer-callee-param-tag-propagates.test", 2, 31),
     "min-arity", 2,
     "is-variadic", false,
     "arglists", "[x y]",

@@ -6,15 +6,7 @@
   "x",
   NAN,
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/symbolic-number-nan.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/symbolic-number-nan.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 13
-    )
+    \Phel::keyword("start-location"), \Phel::location("Def/symbolic-number-nan.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Def/symbolic-number-nan.test", 1, 13)
   )
 );

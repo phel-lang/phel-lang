@@ -7,15 +7,7 @@
   1,
   \Phel::map(
     \Phel::keyword("private"), true,
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/private-def.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Def/private-def.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 18
-    )
+    \Phel::keyword("start-location"), \Phel::location("Def/private-def.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Def/private-def.test", 1, 18)
   )
 );

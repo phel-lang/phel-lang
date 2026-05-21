@@ -14,16 +14,8 @@
   },
   \Phel::map(
     \Phel::keyword("doc"), "```phel\n(greet x)\n```\n",
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Fn/fn-param-infer-string.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Fn/fn-param-infer-string.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 32
-    ),
+    \Phel::keyword("start-location"), \Phel::location("Fn/fn-param-infer-string.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Fn/fn-param-infer-string.test", 1, 32),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[x]",

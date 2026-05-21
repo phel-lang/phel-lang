@@ -15,16 +15,8 @@
   },
   \Phel::map(
     \Phel::keyword("macro"), true,
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "MacroExpand/return-array.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "MacroExpand/return-array.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 55
-    ),
+    \Phel::keyword("start-location"), \Phel::location("MacroExpand/return-array.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("MacroExpand/return-array.test", 1, 55),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[x]"
@@ -35,15 +27,7 @@
   "y",
   [0 => 1, 1 => 2, 2 => [0 => 3, 1 => 4]],
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "MacroExpand/return-array.test",
-      \Phel::keyword("line"), 3,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "MacroExpand/return-array.test",
-      \Phel::keyword("line"), 3,
-      \Phel::keyword("column"), 13
-    )
+    \Phel::keyword("start-location"), \Phel::location("MacroExpand/return-array.test", 3, 0),
+    \Phel::keyword("end-location"), \Phel::location("MacroExpand/return-array.test", 3, 13)
   )
 );

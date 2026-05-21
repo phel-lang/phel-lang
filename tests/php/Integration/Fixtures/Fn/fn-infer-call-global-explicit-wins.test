@@ -15,16 +15,8 @@
   \Phel::map(
     \Phel::keyword("tag"), "int",
     \Phel::keyword("doc"), "```phel\n(produce a)\n```\n",
-    \Phel::keyword("start-location"), \Phel::map(
-      \Phel::keyword("file"), "Fn/fn-infer-call-global-explicit-wins.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 0
-    ),
-    \Phel::keyword("end-location"), \Phel::map(
-      \Phel::keyword("file"), "Fn/fn-infer-call-global-explicit-wins.test",
-      \Phel::keyword("line"), 1,
-      \Phel::keyword("column"), 40
-    ),
+    \Phel::keyword("start-location"), \Phel::location("Fn/fn-infer-call-global-explicit-wins.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Fn/fn-infer-call-global-explicit-wins.test", 1, 40),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[a]"
