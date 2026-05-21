@@ -58,7 +58,7 @@
 
 (defn- pop*
   "Removes the last element of `coll`. Returns nil for nil or empty PHP arrays."
-  [^:reference coll]
+  [^:by-ref coll]
   (cond
     (nil? coll) nil
     (php-array? coll) (php/array_pop coll)

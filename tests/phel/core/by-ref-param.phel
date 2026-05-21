@@ -1,0 +1,22 @@
+(ns phel-test.core.by-ref-param
+  (:require phel.test :refer [deftest is]))
+
+(defn- paint-overlay! [^:by-ref parts msg]
+  (php/array_push parts msg))
+
+(deftest test-by-ref-param-propagates-mutation
+  (let [parts (php/array)]
+    (paint-overlay! parts "hello")
+    (paint-overlay! parts "world")
+    (is (= 2 (php/count parts)) "mutations via &$arg propagate to caller")
+    (is (= "hello" (php/aget parts 0)))
+    (is (= "world" (php/aget parts 1)))))
+
+(defn- reset-counter! [^:by-ref counter]
+  (php/aset counter "n" 0))
+
+(deftest test-by-ref-param-on-assoc-array
+  (let [counter (php/array)]
+    (php/aset counter "n" 5)
+    (reset-counter! counter)
+    (is (= 0 (php/aget counter "n")) "php/aset under ^:by-ref mutates caller")))

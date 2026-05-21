@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - `phel.transit` — Transit + JSON-Verbose read/write (#2009)
 - `phel compile` — emit PHP for a snippet / file / stdin without evaluating; `--target` reserved for future `ast` / `tokens` dumps (#2043)
 - `defonce` special form — bind a global only when the name is not already defined, surviving REPL file reloads (#2055)
+- `^:by-ref` parameter hint — compiles a Phel fn param to PHP `&$param` so `php/aset` / `php/array_push` mutations on `(php/array)` buffers propagate back to the caller; pairs with the existing `^int` / `^string` tags. The historical undocumented `^:reference` keeps working as an alias (#2065)
 - Lexer: namespaced tagged literals (`#my.app/Person`)
 - CI: `clojure-test-suite` workflow runs against dev HEAD on every PR, non-blocking (#2036)
 - `CITATION.cff` for academic citation (#2016)

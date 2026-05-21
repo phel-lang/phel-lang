@@ -70,7 +70,7 @@ final readonly class MethodEmitter
             if ($isVariadicTail) {
                 $this->outputEmitter->emitPhpVariable($symbol, $loc = null, $asReference = false, $isVariadic = true);
             } else {
-                $isReference = $meta instanceof PersistentMapInterface && $meta->find(Keyword::create('reference')) === true;
+                $isReference = $this->isByRef($meta);
                 $this->outputEmitter->emitPhpVariable($symbol, $loc = null, $isReference);
             }
 
@@ -163,6 +163,26 @@ final readonly class MethodEmitter
         }
 
         return is_string($tag) && $tag !== '' ? $tag : null;
+    }
+
+    /**
+     * `^:by-ref` (and the historical `^:reference` alias used inside
+     * `phel.core`) compiles the param to PHP `&$param` so mutations via
+     * `php/aset`, `php/array_push`, etc. propagate back to the caller's
+     * binding. Surfaces the `(php/array)` mutation pattern at the Phel
+     * level without forcing buffer-return-rebind dances.
+     */
+    private function isByRef(mixed $meta): bool
+    {
+        if (!$meta instanceof PersistentMapInterface) {
+            return false;
+        }
+
+        if ($meta->find(Keyword::create('by-ref')) === true) {
+            return true;
+        }
+
+        return $meta->find(Keyword::create('reference')) === true;
     }
 
     /**
