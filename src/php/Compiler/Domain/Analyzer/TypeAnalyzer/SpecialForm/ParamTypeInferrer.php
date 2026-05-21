@@ -117,6 +117,30 @@ final class ParamTypeInferrer
     private const array INT_STABLE_CORE_FNS = ['+', '-', '*', 'inc', 'dec'];
 
     /**
+     * `phel.core` arithmetic wrappers whose dispatch reduces to a PHP
+     * numeric op only when a literal sibling proves the operand is
+     * `float`. An `int` literal stays ambiguous (it coerces to float
+     * inside the runtime defn when the LocalVar is float at the call
+     * site), so the wrapper observer only commits when the literal is
+     * unambiguously float. `php/+`, `php/-` keep their own int
+     * inference path because the user reached for the PHP-native op
+     * directly.
+     *
+     * @var list<string>
+     */
+    private const array NUMERIC_CORE_OBSERVERS = ['+', '-', '*', 'inc', 'dec'];
+
+    /**
+     * `phel.core` ordering wrappers. Each one reduces to the matching
+     * `php/<`, `php/<=`, ... when no `BigInt` / `Ratio` shows up at
+     * runtime, so the ordering walker can lift a numeric tag the same
+     * way it does for the PHP-native op.
+     *
+     * @var list<string>
+     */
+    private const array ORDERING_CORE_OBSERVERS = ['<', '<=', '>', '>=', '<=>'];
+
+    /**
      * Static fallback for `phel.core` callees whose compile-time
      * `:param-tags` channel is not available (the runtime registry is
      * populated from a precompiled cache, so the analyzer never sees
@@ -384,7 +408,91 @@ final class ParamTypeInferrer
             return;
         }
 
+        if ($this->isCoreNumericObserver($fn) && !$this->hasNumericObjectLiteralArg($node)) {
+            $this->walkCoreNumericCall($node, $expected);
+            return;
+        }
+
+        if ($this->isCoreOrderingObserver($fn) && !$this->hasNumericObjectLiteralArg($node)) {
+            $this->walkCoreNumericCall($node, $expected);
+            return;
+        }
+
+        if ($this->isCoreEqualityObserver($fn)) {
+            $this->walkIdentityCall($node);
+            return;
+        }
+
         $this->walkArgsBySignature($node, $this->calleeParamExpectations($fn));
+    }
+
+    private function isCoreNumericObserver(GlobalVarNode $fn): bool
+    {
+        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE) {
+            return false;
+        }
+
+        return in_array($fn->getName()->getName(), self::NUMERIC_CORE_OBSERVERS, true);
+    }
+
+    private function isCoreOrderingObserver(GlobalVarNode $fn): bool
+    {
+        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE) {
+            return false;
+        }
+
+        return in_array($fn->getName()->getName(), self::ORDERING_CORE_OBSERVERS, true);
+    }
+
+    private function isCoreEqualityObserver(GlobalVarNode $fn): bool
+    {
+        return $fn->getNamespace() === CompilerConstants::PHEL_CORE_NAMESPACE
+            && $fn->getName()->getName() === '=';
+    }
+
+    /**
+     * `(+ a 1.5)`, `(>= a 0.5)`, etc. — `phel.core` arithmetic and
+     * ordering wrappers stay polymorphic between `int`, `float`,
+     * `BigInt`, and `Ratio` at runtime, so the inferrer must not narrow
+     * to `int` from an int literal sibling: `(pos? 0.1)` already calls
+     * `(> x 0)` against a float in core. A `float` tag, on the other
+     * hand, is safe because PHP `float $x` widens to accept int callers
+     * via implicit coercion. We only commit when a float literal makes
+     * the runtime float path inevitable. Expectations flowing from
+     * above are still honoured.
+     */
+    private function walkCoreNumericCall(CallNode $node, ?string $expected = null): void
+    {
+        $type = $this->literalNumericType($node->getArguments());
+
+        if ($type === 'float') {
+            $this->walkArgsExpecting($node, 'float');
+            return;
+        }
+
+        if ($expected === 'int' || $expected === 'float') {
+            $this->walkArgsExpecting($node, $expected);
+            return;
+        }
+
+        $this->walkArgsExpecting($node, null);
+    }
+
+    /**
+     * `BigInt`, `Ratio`, `BigDecimal` literals route through
+     * `NumericOperations` at runtime; the int / float observer path
+     * must skip the call so the inferrer never narrows a param that
+     * a numeric-object literal disambiguates as polymorphic. Unlike
+     * {@see self::hasNonIntLiteralArg()}, a float literal is treated
+     * as a valid numeric signal here, not as noise.
+     */
+    private function hasNumericObjectLiteralArg(CallNode $node): bool
+    {
+        return array_any(
+            $node->getArguments(),
+            static fn(AbstractNode $arg): bool => $arg instanceof LiteralNode
+                && is_object($arg->getValue()),
+        );
     }
 
     private function isSelfReference(GlobalVarNode $fn): bool

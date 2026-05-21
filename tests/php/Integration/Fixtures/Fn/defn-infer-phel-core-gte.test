@@ -1,0 +1,24 @@
+--PHEL--
+(defn at-least-half? [x] (>= x 0.5))
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "at-least-half?",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\at_least_half?";
+
+    public function __invoke(float $x): bool {
+      static $__phel_call_0;
+      return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", ">="))->__invoke($x, 0.5);
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("doc"), "```phel\n(at-least-half? x)\n```\n",
+    \Phel::keyword("start-location"), \Phel::location("Fn/defn-infer-phel-core-gte.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Fn/defn-infer-phel-core-gte.test", 1, 36),
+    "min-arity", 1,
+    "is-variadic", false,
+    "arglists", "[x]",
+    \Phel::keyword("tag"), "bool"
+  )
+);
