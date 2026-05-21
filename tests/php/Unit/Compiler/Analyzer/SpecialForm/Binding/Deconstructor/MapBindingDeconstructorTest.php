@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm\Binding\Deconstructor;
 
 use Phel;
+use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\BindingValidatorInterface;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor\MapBindingDeconstructor;
@@ -523,5 +524,87 @@ final class MapBindingDeconstructorTest extends TestCase
                 Symbol::create('__phel_2'),
             ],
         ], $bindings);
+    }
+
+    public function test_reversed_pair_suggests_did_you_mean(): void
+    {
+        // Clojure-style {local :keyword} should surface a targeted suggestion
+        // rather than the opaque "Cannot destructure Phel\\Lang\\Keyword".
+        $binding = Phel::map(
+            Symbol::create('tops'),
+            Keyword::create('tops'),
+        );
+
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage(
+            'Cannot destructure: expected map destructure pattern {:keyword local}, '
+            . "got reversed pair starting with symbol 'tops'.",
+        );
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
+    }
+
+    public function test_reversed_pair_message_renders_flipped_pair(): void
+    {
+        $binding = Phel::map(
+            Symbol::create('tops'),
+            Keyword::create('tops'),
+        );
+
+        try {
+            $bindings = [];
+            $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
+            self::fail('Expected AnalyzerException');
+        } catch (AnalyzerException $analyzerException) {
+            self::assertStringContainsString('{:tops tops}', $analyzerException->getMessage());
+            self::assertStringContainsString(
+                "Phel's destructure order is :keyword first, then local",
+                $analyzerException->getMessage(),
+            );
+        }
+    }
+
+    public function test_keys_directive_requires_a_vector(): void
+    {
+        // (let [{:keys foo} x]) — missing the vector around the keys.
+        $binding = Phel::map(
+            Keyword::create('keys'),
+            Symbol::create('foo'),
+        );
+
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('`{:keys [...]}` expects a vector of symbols');
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
+    }
+
+    public function test_strs_directive_requires_a_vector(): void
+    {
+        $binding = Phel::map(
+            Keyword::create('strs'),
+            Symbol::create('foo'),
+        );
+
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('`{:strs [...]}` expects a vector of symbols');
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
+    }
+
+    public function test_syms_directive_requires_a_vector(): void
+    {
+        $binding = Phel::map(
+            Keyword::create('syms'),
+            Symbol::create('foo'),
+        );
+
+        $this->expectException(AnalyzerException::class);
+        $this->expectExceptionMessage('`{:syms [...]}` expects a vector of symbols');
+
+        $bindings = [];
+        $this->deconstructor->deconstruct($bindings, $binding, Symbol::create('x'));
     }
 }

@@ -40,6 +40,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- Compiler: map destructure now surfaces a targeted "Did you mean" suggestion when a Clojure-style `{local :keyword}` pair is seen instead of `{:keyword local}`; `:keys` / `:strs` / `:syms` with a non-vector value report a one-line shape error rather than being silently dropped (#2066)
 - Dev: patch vendored Psalm 6.16.1 on install / update for PHP 8.5 NAN-coercion crash in `TLiteralFloat`
 - Compiler: `ConstantScope` uses `SplObjectStorage::offsetExists()` to silence a PHP 8.5 deprecation in emitted code
 - `phel.cli`: register commands via `Application::addCommand()` for Symfony 8 compat (#2033)
