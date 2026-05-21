@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Lang\Collections\Vector;
 
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
+use Phel\Lang\Collections\Vector\PersistentVector;
 use Phel\Lang\Collections\Vector\TransientVector;
 use PhelTest\Unit\Lang\Collections\ModuloHasher;
 use PhelTest\Unit\Lang\Collections\SimpleEqualizer;
@@ -105,6 +106,48 @@ final class TransientVectorTest extends TestCase
         $this->assertCount(33, $v2);
         $this->assertSame(20, $v1->get(0));
         $this->assertSame(20, $v2->get(0));
+    }
+
+    public function test_update_past_tail_does_not_corrupt_persistent_ancestor(): void
+    {
+        // 180 elements forces ~148 indexed writes through the trie (the
+        // transient's tail holds at most 32). The in-place mutation path
+        // must rely on PHP COW to detach shared trie nodes from the
+        // persistent ancestor on first write at each level.
+        $persistent = PersistentVector::fromArray(
+            new ModuloHasher(),
+            new SimpleEqualizer(),
+            range(0, 179),
+        );
+        $transient = $persistent->asTransient();
+
+        for ($i = 0; $i < 180; ++$i) {
+            $transient->update($i, $i * 10);
+        }
+
+        $this->assertSame(0, $persistent->get(0), 'persistent[0] unchanged after transient mutation');
+        $this->assertSame(100, $persistent->get(100), 'persistent[100] unchanged after transient mutation');
+        $this->assertSame(179, $persistent->get(179), 'persistent tail unchanged after transient mutation');
+        $this->assertSame(0, $transient->get(0));
+        $this->assertSame(1000, $transient->get(100));
+        $this->assertSame(1790, $transient->get(179));
+    }
+
+    public function test_update_repeatedly_at_same_indexed_position_mutates_in_place(): void
+    {
+        // The in-place mutation path should be idempotent under repeated
+        // writes at the same index past the tail offset.
+        $transient = TransientVector::fromArray(
+            new ModuloHasher(),
+            new SimpleEqualizer(),
+            range(0, 99),
+        );
+        for ($iter = 0; $iter < 5; ++$iter) {
+            $transient->update(50, 1000 + $iter);
+        }
+
+        $this->assertSame(1004, $transient->get(50));
+        $this->assertCount(100, $transient);
     }
 
     public function test_get_out_of_range(): void

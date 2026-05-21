@@ -1,0 +1,29 @@
+(ns phel-test.core.transient-vector-assoc
+  (:require phel.test :refer [deftest is]))
+
+(deftest test-assoc-bang-indexed-writes-survive-persistent
+  ;; Build a 180-element vector, transient it, and overwrite every
+  ;; index. The persistent ancestor must stay untouched — the in-place
+  ;; transient update path relies on PHP COW to detach shared trie nodes.
+  (let [base (apply vector (range 0 180))
+        t    (transient base)]
+    (loop [i 0]
+      (when (< i 180)
+        (assoc! t i (* i 10))
+        (recur (+ i 1))))
+    (is (= 0 (get base 0)) "persistent ancestor unchanged at head")
+    (is (= 100 (get base 100)) "persistent ancestor unchanged in trie body")
+    (is (= 179 (get base 179)) "persistent ancestor unchanged at tail")
+    (let [final (persistent! t)]
+      (is (= 0 (get final 0)))
+      (is (= 1000 (get final 100)))
+      (is (= 1790 (get final 179))))))
+
+(deftest test-assoc-bang-repeated-writes-at-same-index
+  (let [base (apply vector (range 0 100))
+        t    (transient base)]
+    (loop [iter 0]
+      (when (< iter 5)
+        (assoc! t 50 (+ 1000 iter))
+        (recur (+ iter 1))))
+    (is (= 1004 (get (persistent! t) 50)))))
