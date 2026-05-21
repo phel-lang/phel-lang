@@ -30,4 +30,4 @@
     \Phel::keyword("tag"), "int"
   )
 );
-(\Phel::getDefinition("user", "add1"))->call(42);
+(\Phel::getDefinition("user", "add1"))->__invoke(42);

@@ -32,5 +32,5 @@
 );
 (function(int $x): int {
   static $__phel_call_0;
-  return ($__phel_call_0 ??= \Phel::getDefinition("user", "add"))->call($x, 1);
+  return ($__phel_call_0 ??= \Phel::getDefinition("user", "add"))->__invoke($x, 1);
 });

@@ -30,4 +30,4 @@
     \Phel::keyword("tag"), "string"
   )
 );
-(\Phel::getDefinition("user", "greet"))->call("world");
+(\Phel::getDefinition("user", "greet"))->__invoke("world");

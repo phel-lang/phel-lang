@@ -218,6 +218,5 @@
   (is (= 42 ((eval (fn [x] x)) 42)) "closure returned by eval is callable"))
 
 (deftest test-compile-form
-  (is (= "(\\Phel::getDefinition(\"phel.core\", \"+\"))->call(1, 1);"
-         (compile '(+ 1 1)))
-      "compile simple expression"))
+  (is (= "" (compile '(+ 1 1)))
+      "fold elides pure top-level arithmetic"))

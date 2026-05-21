@@ -8,6 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\ConstantFolder;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 
@@ -25,17 +26,19 @@ final class IfSymbol implements SpecialFormAnalyzerInterface
     /**
      * @param PersistentListInterface<mixed> $list
      */
-    public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): IfNode
+    public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {
         $this->verifyArguments($list);
 
-        return new IfNode(
+        $node = new IfNode(
             $env,
             $this->testExpression($list, $env),
             $this->thenExpression($list, $env),
             $this->elseExpression($list, $env),
             $list->getStartLocation(),
         );
+
+        return new ConstantFolder()->foldIf($node) ?? $node;
     }
 
     /**

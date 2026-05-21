@@ -32,5 +32,5 @@
 );
 (function(int $x): bool {
   static $__phel_call_0;
-  return ($__phel_call_0 ??= \Phel::getDefinition("user", "produce"))->call($x);
+  return ($__phel_call_0 ??= \Phel::getDefinition("user", "produce"))->__invoke($x);
 });

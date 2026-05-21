@@ -1,8 +1,4 @@
 --PHEL--
 (if true (php/+ 1 1))
 --PHP--
-if ((true)) {
-  (1 + 1);
-} else {
-
-}
+(1 + 1);

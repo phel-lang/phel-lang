@@ -13,6 +13,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\QuoteNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\ConstantFolder;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -75,12 +76,14 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
             $this->verifyArgsAgainstParamTags($f, $args, $list);
         }
 
-        return new CallNode(
+        $call = new CallNode(
             $env,
             $f,
             $args,
             $list->getStartLocation(),
         );
+
+        return new ConstantFolder()->fold($call) ?? $call;
     }
 
     /**

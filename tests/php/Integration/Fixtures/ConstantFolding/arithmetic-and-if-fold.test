@@ -1,0 +1,8 @@
+--PHEL--
+(let [x (+ 1 2)
+      y (if true (* 4 5) 99)]
+  (- y x))
+--PHP--
+$x_1 = 3;
+$y_2 = 20;
+(\Phel::getDefinition("phel.core", "-"))->__invoke($y_2, $x_1);

@@ -42,8 +42,8 @@ final class CallSiteCacheTest extends TestCase
         $phel = '\\' . Phel::class;
 
         self::assertStringContainsString('static $__phel_call_0', $output);
-        self::assertStringContainsString('($__phel_call_0 ??= ' . $phel . '::getDefinition("phel.core", "+"))->call($x, 1);', $output);
-        self::assertStringContainsString('($__phel_call_1 ??= ' . $phel . '::getDefinition("phel.core", "+"))->call($x, 2);', $output);
+        self::assertStringContainsString('($__phel_call_0 ??= ' . $phel . '::getDefinition("phel.core", "+"))->__invoke($x, 1);', $output);
+        self::assertStringContainsString('($__phel_call_1 ??= ' . $phel . '::getDefinition("phel.core", "+"))->__invoke($x, 2);', $output);
     }
 
     public function test_build_mode_off_skips_cache_so_repl_redefine_still_wins(): void
@@ -54,8 +54,8 @@ final class CallSiteCacheTest extends TestCase
         $phel = '\\' . Phel::class;
 
         self::assertStringNotContainsString('$__phel_call_', $output);
-        self::assertStringContainsString('(' . $phel . '::getDefinition("phel.core", "+"))->call($x, 1);', $output);
-        self::assertStringContainsString('(' . $phel . '::getDefinition("phel.core", "+"))->call($x, 2);', $output);
+        self::assertStringContainsString('(' . $phel . '::getDefinition("phel.core", "+"))->__invoke($x, 1);', $output);
+        self::assertStringContainsString('(' . $phel . '::getDefinition("phel.core", "+"))->__invoke($x, 2);', $output);
     }
 
     public function test_call_method_dispatch_targets_only_known_fn_defs(): void
@@ -68,9 +68,9 @@ final class CallSiteCacheTest extends TestCase
 
         // `k` resolves to a Keyword (callable via __invoke), but the
         // analyzer has no `arglists` meta for it, so we keep the legacy
-        // magic-dispatch form rather than risk `->call` on a non-AbstractFn.
+        // magic-dispatch form rather than risk `->__invoke` on a non-AbstractFn.
         self::assertStringContainsString('(' . $phel . '::getDefinition("user", "k"))(', $output);
-        self::assertStringNotContainsString('(' . $phel . '::getDefinition("user", "k"))->call', $output);
+        self::assertStringNotContainsString('(' . $phel . '::getDefinition("user", "k"))->__invoke', $output);
     }
 
     private function compileSnippet(string $phel): string

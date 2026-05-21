@@ -28,11 +28,24 @@ final class CompileCommandTest extends AbstractTestCommand
 
     public function test_compile_known_core_call_uses_get_definition(): void
     {
+        // Pre-fold path: a non-foldable arg keeps the runtime call shape so
+        // the compile output still demonstrates the registry-cached form.
+        $tester = new CommandTester(new CompileCommand());
+        $tester->execute(['source' => '(+ (php/intval "1") 2)']);
+
+        $tester->assertCommandIsSuccessful();
+        self::assertStringContainsString(\Phel::class . '::getDefinition("phel.core", "+"))->__invoke(', $tester->getDisplay());
+    }
+
+    public function test_compile_folds_pure_arithmetic_to_literal(): void
+    {
         $tester = new CommandTester(new CompileCommand());
         $tester->execute(['source' => '(+ 1 2)']);
 
+        // Folded literal is elided in statement context by `LiteralEmitter`,
+        // so no PHP statement reaches the output — the runtime call is gone.
         $tester->assertCommandIsSuccessful();
-        self::assertStringContainsString(\Phel::class . '::getDefinition("phel.core", "+"))->call(1, 2)', $tester->getDisplay());
+        self::assertSame('', $tester->getDisplay());
     }
 
     public function test_compile_unbalanced_parentheses_fails(): void

@@ -29,4 +29,4 @@
     "arglists", "[f xs]"
   )
 );
-(\Phel::getDefinition("user", "reduce"))->call((function(...$args) { return array(...$args);}), \Phel::vector([1, 2, 3]));
+(\Phel::getDefinition("user", "reduce"))->__invoke((function(...$args) { return array(...$args);}), \Phel::vector([1, 2, 3]));

@@ -244,10 +244,17 @@ final class CallEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
     }
 
+    /**
+     * Emits `->__invoke(...)` rather than `->call(...)`: a direct method
+     * call on `__invoke` is *not* magic dispatch (magic only fires on the
+     * `$obj($args)` syntax), and it preserves the subclass's positional
+     * `__invoke` signature, avoiding the variadic-spread cost that the
+     * `call(...)` forwarder would introduce on every fn call.
+     */
     private function emitCallMethodArguments(CallNode $node): void
     {
         $loc = $node->getStartSourceLocation();
-        $this->outputEmitter->emitStr('->call(', $loc);
+        $this->outputEmitter->emitStr('->__invoke(', $loc);
         $this->outputEmitter->emitArgList($node->getArguments(), $loc);
         $this->outputEmitter->emitStr(')', $loc);
     }

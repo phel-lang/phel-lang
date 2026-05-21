@@ -104,9 +104,12 @@ final class AnalyzePersistentListTest extends TestCase
 
     public function test_symbol_with_name_if(): void
     {
+        // Wrap the test in `(do ...)` so the constant folder leaves the
+        // IfNode standing; literal-test folding has dedicated coverage in
+        // {@see IfSymbolTest}.
         $list = Phel::list([
             Symbol::create(Symbol::NAME_IF),
-            true,
+            Phel::list([Symbol::create(Symbol::NAME_DO), true]),
             true,
         ]);
         self::assertInstanceOf(IfNode::class, $this->listAnalyzer->analyze($list, NodeEnvironment::empty()));

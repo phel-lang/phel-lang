@@ -9,7 +9,7 @@
 
     public function __invoke($x): int {
       static $__phel_call_0;
-      return random_int(0, ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->call($x, \Phel\Lang\BigInt::fromString("99999999999999999999")));
+      return random_int(0, ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($x, \Phel\Lang\BigInt::fromString("99999999999999999999")));
     }
   },
   \Phel::map(
