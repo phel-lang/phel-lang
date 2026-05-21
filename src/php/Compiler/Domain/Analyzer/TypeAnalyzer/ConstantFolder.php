@@ -138,13 +138,17 @@ final class ConstantFolder
      * @param array{identity: int, op: 'add'|'mul'} $spec
      * @param list<float|int>                       $literals
      */
-    private function reduce(array $spec, array $literals): int|float
+    private function reduce(array $spec, array $literals): int|float|null
     {
         $acc = $spec['identity'];
         foreach ($literals as $literal) {
             $acc = $spec['op'] === 'add'
                 ? $this->add($acc, $literal)
                 : $this->mul($acc, $literal);
+
+            if ($acc === null) {
+                return null;
+            }
         }
 
         return $acc;
@@ -170,6 +174,9 @@ final class ConstantFolder
         $acc = $head;
         foreach ($literals as $n) {
             $acc = $this->sub($acc, $n);
+            if ($acc === null) {
+                return null;
+            }
         }
 
         return $acc;
@@ -189,34 +196,52 @@ final class ConstantFolder
 
     /**
      * Keep the int path when both operands are ints so the folded literal
-     * preserves Phel's numeric type. Cast to float otherwise — psalm's
-     * strict binary-operand mode refuses to mix int and float without an
-     * explicit cast.
+     * preserves Phel's numeric type. PHP silently widens `int op int` to
+     * `float` on overflow, but Phel's runtime `NumericOperations` promotes
+     * to `BigInt` to preserve exactness — so we sample the result in float
+     * space first and bail when it falls outside the PHP int range,
+     * leaving the call for the runtime to handle. Mixed `int|float`
+     * operands cast to float explicitly to satisfy psalm's strict
+     * binary-operand mode.
      */
-    private function add(int|float $a, int|float $b): int|float
+    private function add(int|float $a, int|float $b): int|float|null
     {
         if (is_int($a) && is_int($b)) {
-            return $a + $b;
+            return $this->checkedInt((float) $a + (float) $b);
         }
 
         return (float) $a + (float) $b;
     }
 
-    private function mul(int|float $a, int|float $b): int|float
+    private function mul(int|float $a, int|float $b): int|float|null
     {
         if (is_int($a) && is_int($b)) {
-            return $a * $b;
+            return $this->checkedInt((float) $a * (float) $b);
         }
 
         return (float) $a * (float) $b;
     }
 
-    private function sub(int|float $a, int|float $b): int|float
+    private function sub(int|float $a, int|float $b): int|float|null
     {
         if (is_int($a) && is_int($b)) {
-            return $a - $b;
+            return $this->checkedInt((float) $a - (float) $b);
         }
 
         return (float) $a - (float) $b;
+    }
+
+    /**
+     * Convert a float result back to int when it fits exactly in PHP's
+     * int range. Otherwise bail so the runtime can promote to `BigInt`.
+     */
+    private function checkedInt(float $value): ?int
+    {
+        if ($value < PHP_INT_MIN || $value > PHP_INT_MAX) {
+            return null;
+        }
+
+        $int = (int) $value;
+        return ((float) $int === $value) ? $int : null;
     }
 }
