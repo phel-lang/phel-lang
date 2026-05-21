@@ -18,7 +18,7 @@ use Traversable;
  */
 final class PersistentHashSet extends AbstractType implements PersistentHashSetInterface
 {
-    private int $hashCache = 0;
+    private ?int $hashCache = null;
 
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
@@ -120,13 +120,16 @@ final class PersistentHashSet extends AbstractType implements PersistentHashSetI
 
     public function hash(): int
     {
-        if ($this->hashCache === 0) {
-            foreach ($this->map as $value) {
-                $this->hashCache += $this->hasher->hash($value);
-            }
+        if ($this->hashCache !== null) {
+            return $this->hashCache;
         }
 
-        return $this->hashCache;
+        $hash = 0;
+        foreach ($this->map as $value) {
+            $hash += $this->hasher->hash($value);
+        }
+
+        return $this->hashCache = $hash;
     }
 
     /**

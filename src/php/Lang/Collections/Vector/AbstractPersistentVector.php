@@ -26,7 +26,7 @@ use function is_object;
  */
 abstract class AbstractPersistentVector extends AbstractType implements PersistentVectorInterface
 {
-    private int $hashCache = 0;
+    private ?int $hashCache = null;
 
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
@@ -78,14 +78,16 @@ abstract class AbstractPersistentVector extends AbstractType implements Persiste
 
     public function hash(): int
     {
-        if ($this->hashCache === 0) {
-            $this->hashCache = 1;
-            foreach ($this as $obj) {
-                $this->hashCache = 31 * $this->hashCache + $this->hasher->hash($obj);
-            }
+        if ($this->hashCache !== null) {
+            return $this->hashCache;
         }
 
-        return $this->hashCache;
+        $hash = 1;
+        foreach ($this as $obj) {
+            $hash = 31 * $hash + $this->hasher->hash($obj);
+        }
+
+        return $this->hashCache = $hash;
     }
 
     public function equals(mixed $other): bool

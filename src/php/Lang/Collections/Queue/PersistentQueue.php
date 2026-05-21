@@ -43,7 +43,7 @@ use function array_reverse;
  */
 final class PersistentQueue extends AbstractType implements TypeInterface, Countable, IteratorAggregate, FirstInterface, CdrInterface, ConsInterface, PushInterface, PopInterface
 {
-    private int $hashCache = 0;
+    private ?int $hashCache = null;
 
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
@@ -223,14 +223,16 @@ final class PersistentQueue extends AbstractType implements TypeInterface, Count
 
     public function hash(): int
     {
-        if ($this->hashCache === 0) {
-            $this->hashCache = 1;
-            foreach ($this as $value) {
-                $this->hashCache = 31 * $this->hashCache + $this->hasher->hash($value);
-            }
+        if ($this->hashCache !== null) {
+            return $this->hashCache;
         }
 
-        return $this->hashCache;
+        $hash = 1;
+        foreach ($this as $value) {
+            $hash = 31 * $hash + $this->hasher->hash($value);
+        }
+
+        return $this->hashCache = $hash;
     }
 
     /**
