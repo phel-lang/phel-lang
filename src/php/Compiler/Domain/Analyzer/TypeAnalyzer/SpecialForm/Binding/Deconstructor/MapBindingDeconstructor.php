@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
 
 use Phel;
+use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\Deconstructor;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -12,8 +13,10 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\Printer\Printer;
 
 use function array_key_exists;
+use function sprintf;
 
 final class MapBindingDeconstructor implements BindingDeconstructorInterface
 {
@@ -43,16 +46,19 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
 
         foreach ($binding as $key => $bindTo) {
             if ($key instanceof Keyword && $key->getName() === 'keys') {
+                $this->assertVectorOfSymbols($binding, $bindTo, ':keys');
                 $keys = $bindTo;
                 continue;
             }
 
             if ($key instanceof Keyword && $key->getName() === 'strs') {
+                $this->assertVectorOfSymbols($binding, $bindTo, ':strs');
                 $strs = $bindTo;
                 continue;
             }
 
             if ($key instanceof Keyword && $key->getName() === 'syms') {
+                $this->assertVectorOfSymbols($binding, $bindTo, ':syms');
                 $syms = $bindTo;
                 continue;
             }
@@ -67,6 +73,7 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
                 continue;
             }
 
+            $this->rejectReversedPair($binding, $key, $bindTo);
             $normalBindings[] = [$key, $bindTo];
         }
 
@@ -201,5 +208,58 @@ final class MapBindingDeconstructor implements BindingDeconstructorInterface
             $this->createAccessValue($binding, $key),
             $default,
         ])->copyLocationFrom($binding);
+    }
+
+    /**
+     * Catches Clojure-style `{local :keyword}` pairs at the top of map
+     * destructuring. Phel writes them the other way (`{:keyword local}`),
+     * so a `(Symbol, Keyword)` ordering is almost always a reflex typo
+     * from a Clojure user. Surface a targeted "did you mean" suggestion
+     * before downstream code blows up with the opaque
+     * "Cannot destructure Phel\\Lang\\Keyword".
+     *
+     * @param PersistentMapInterface<mixed, mixed> $binding
+     */
+    private function rejectReversedPair(
+        PersistentMapInterface $binding,
+        mixed $key,
+        mixed $bindTo,
+    ): void {
+        if (!$key instanceof Symbol || !$bindTo instanceof Keyword) {
+            return;
+        }
+
+        $flipped = Phel::map($bindTo, $key);
+        $message = sprintf(
+            'Cannot destructure: expected map destructure pattern {:keyword local}, '
+            . "got reversed pair starting with symbol '%s'.\n\n"
+            . "Did you mean:\n  %s\n\n"
+            . "(Phel's destructure order is :keyword first, then local — "
+            . "opposite of Clojure's {local :keyword}.)",
+            $key->getName(),
+            Printer::readable()->print($flipped),
+        );
+
+        throw AnalyzerException::withLocation($message, $binding);
+    }
+
+    /**
+     * `:keys`, `:strs`, `:syms` each take a vector of symbols. Anything
+     * else is rejected here with a one-line shape error rather than
+     * being silently dropped further down the deconstructor.
+     *
+     * @param PersistentMapInterface<mixed, mixed> $binding
+     */
+    private function assertVectorOfSymbols(
+        PersistentMapInterface $binding,
+        mixed $bindTo,
+        string $directive,
+    ): void {
+        if (!$bindTo instanceof PersistentVectorInterface) {
+            throw AnalyzerException::withLocation(
+                sprintf('`{%s [...]}` expects a vector of symbols', $directive),
+                $binding,
+            );
+        }
     }
 }
