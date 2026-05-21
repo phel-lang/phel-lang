@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ForeachNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\IterableTarget;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Seq;
 use Phel\Lang\Symbol;
@@ -26,9 +27,21 @@ final class ForeachEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
         }
 
-        $this->outputEmitter->emitStr('foreach (\\' . Seq::class . '::toIterable(', $node->getStartSourceLocation());
-        $this->outputEmitter->emitNode($node->getListExpr());
-        $this->outputEmitter->emitStr(') as ', $node->getStartSourceLocation());
+        // `Seq::toIterable` is only needed to coerce `nil` to `[]` and
+        // unwrap strings; for nodes the emitter has already proven are
+        // iterable, the adapter call is a no-op we skip.
+        $listExpr = $node->getListExpr();
+        $useAdapter = !IterableTarget::isIterable($listExpr);
+
+        if ($useAdapter) {
+            $this->outputEmitter->emitStr('foreach (\\' . Seq::class . '::toIterable(', $node->getStartSourceLocation());
+        } else {
+            $this->outputEmitter->emitStr('foreach (', $node->getStartSourceLocation());
+        }
+
+        $this->outputEmitter->emitNode($listExpr);
+
+        $this->outputEmitter->emitStr($useAdapter ? ') as ' : ' as ', $node->getStartSourceLocation());
         if ($node->getKeySymbol() instanceof Symbol) {
             $this->outputEmitter->emitPhpVariable($node->getKeySymbol());
             $this->outputEmitter->emitStr(' => ', $node->getStartSourceLocation());

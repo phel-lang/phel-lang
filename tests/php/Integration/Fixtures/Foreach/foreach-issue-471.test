@@ -8,7 +8,7 @@
   static $__phel_const_0, $__phel_call_0;
   $b_1 = 10;
   return (function() use($b_1,&$__phel_const_0,&$__phel_call_0) {
-    foreach (\Phel\Lang\Seq::toIterable(($__phel_const_0 ??= \Phel::vector([1, 2, 3]))) as $b) {
+    foreach (($__phel_const_0 ??= \Phel::vector([1, 2, 3])) as $b) {
       ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "println"))->__invoke($b);
     }
     return null;
