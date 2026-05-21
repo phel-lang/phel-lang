@@ -1,0 +1,6 @@
+--PHEL--
+(fn [x c] (php/instanceof x c))
+--PHP--
+(function($x, $c): bool {
+  return ($x instanceof $c);
+});

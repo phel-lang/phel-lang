@@ -8,15 +8,19 @@ use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\GlobalCallTarget;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\PhpStringEscape;
 use Phel\Lang\Symbol;
+use Phel\Shared\CompilerConstants;
 
 use function assert;
 use function count;
+use function is_string;
 
 final class CallEmitter implements NodeEmitterInterface
 {
@@ -93,6 +97,18 @@ final class CallEmitter implements NodeEmitterInterface
             return;
         }
 
+        // Both args being local variables means re-emitting them is a
+        // free, side-effect-free PHP variable reference, so we skip the
+        // two-temp IIFE the generic path falls back to.
+        if ($value instanceof LocalVarNode && $class instanceof LocalVarNode) {
+            $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
+            $this->outputEmitter->emitNode($value);
+            $this->outputEmitter->emitStr(' instanceof ', $node->getStartSourceLocation());
+            $this->outputEmitter->emitNode($class);
+            $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
+            return;
+        }
+
         $valueSym = Symbol::gen('instanceof_value_');
         $classSym = Symbol::gen('instanceof_class_');
 
@@ -140,6 +156,10 @@ final class CallEmitter implements NodeEmitterInterface
             return;
         }
 
+        if ($this->tryEmitStrConcat($node)) {
+            return;
+        }
+
         $useCallMethod = !$this->isSelfCall($node) && GlobalCallTarget::isGlobalFnCall($node);
 
         $this->emitDynamicFunctionName($node);
@@ -149,6 +169,52 @@ final class CallEmitter implements NodeEmitterInterface
         } else {
             $this->emitFunctionArguments($node);
         }
+    }
+
+    /**
+     * Specialise `(str "a" "b" "c")` to PHP `.` concatenation when every
+     * arg is a string literal. The runtime `phel.core/str` does a
+     * per-arg `val-to-str` dispatch plus a `StringBuilder`-style
+     * accumulator pass; for purely literal inputs the result is a
+     * compile-time constant string, so we emit a single `.` chain and
+     * skip both the registry lookup and the runtime walk.
+     */
+    private function tryEmitStrConcat(CallNode $node): bool
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode) {
+            return false;
+        }
+
+        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
+            || $fn->getName()->getName() !== 'str'
+        ) {
+            return false;
+        }
+
+        $args = $node->getArguments();
+        if ($args === []) {
+            return false;
+        }
+
+        foreach ($args as $arg) {
+            if (!$arg instanceof LiteralNode || !is_string($arg->getValue())) {
+                return false;
+            }
+        }
+
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        foreach ($args as $i => $arg) {
+            if ($i > 0) {
+                $this->outputEmitter->emitStr(' . ', $loc);
+            }
+
+            $this->outputEmitter->emitNode($arg);
+        }
+
+        $this->outputEmitter->emitStr(')', $loc);
+        return true;
     }
 
     private function emitPhpFunctionName(PhpVarNode $fnNode): void
