@@ -19,7 +19,7 @@ use Phel\Lang\HasherInterface;
  */
 abstract class AbstractPersistentMap extends AbstractType implements PersistentMapInterface
 {
-    private int $hashCache = 0;
+    private ?int $hashCache = null;
 
     /**
      * @param PersistentMapInterface<mixed, mixed>|null $meta
@@ -50,14 +50,16 @@ abstract class AbstractPersistentMap extends AbstractType implements PersistentM
 
     public function hash(): int
     {
-        if ($this->hashCache === 0) {
-            $this->hashCache = 1;
-            foreach ($this as $key => $value) {
-                $this->hashCache += $this->hasher->hash($key) ^ $this->hasher->hash($value);
-            }
+        if ($this->hashCache !== null) {
+            return $this->hashCache;
         }
 
-        return $this->hashCache;
+        $hash = 1;
+        foreach ($this as $key => $value) {
+            $hash += $this->hasher->hash($key) ^ $this->hasher->hash($value);
+        }
+
+        return $this->hashCache = $hash;
     }
 
     public function equals(mixed $other): bool
