@@ -127,7 +127,7 @@ final class AgentInstallCommandTest extends TestCase
         );
     }
 
-    public function test_install_copies_agents_tree_by_default(): void
+    public function test_install_copies_agents_tree_by_default_without_examples(): void
     {
         $this->install(['platform' => 'claude']);
 
@@ -136,7 +136,61 @@ final class AgentInstallCommandTest extends TestCase
         self::assertFileExists($this->testDir . '/.agents/index.md');
         self::assertFileExists($this->testDir . '/.agents/quick-syntax.md');
         self::assertDirectoryExists($this->testDir . '/.agents/tasks');
+        self::assertDirectoryDoesNotExist($this->testDir . '/.agents/examples');
+    }
+
+    public function test_install_with_examples_includes_sample_apps(): void
+    {
+        $this->install(['platform' => 'claude', '--with-examples' => true]);
+
         self::assertDirectoryExists($this->testDir . '/.agents/examples');
+        self::assertFileExists($this->testDir . '/.agents/examples/README.md');
+    }
+
+    public function test_install_default_announces_skipped_examples(): void
+    {
+        $output = new BufferedOutput();
+        $this->install(['platform' => 'claude'], $output);
+
+        self::assertStringContainsString('Skipped examples/', $output->fetch());
+    }
+
+    public function test_no_docs_with_examples_emits_conflict_notice(): void
+    {
+        $output = new BufferedOutput();
+        $this->install(['platform' => 'claude', '--no-docs' => true, '--with-examples' => true], $output);
+
+        $rendered = $output->fetch();
+        self::assertStringContainsString('--with-examples ignored', $rendered);
+        self::assertDirectoryDoesNotExist($this->testDir . '/.agents');
+    }
+
+    public function test_unknown_platform_suggests_near_match(): void
+    {
+        $output = new BufferedOutput();
+        $command = new AgentInstallCommand();
+        $command->run(new ArrayInput(['platform' => 'claud']), $output);
+
+        $rendered = $output->fetch();
+        self::assertStringContainsString('Did you mean', $rendered);
+        self::assertStringContainsString('claude', $rendered);
+        self::assertStringContainsString('Available:', $rendered);
+    }
+
+    public function test_install_prints_check_hint_on_success(): void
+    {
+        $output = new BufferedOutput();
+        $this->install(['platform' => 'claude', '--no-docs' => true], $output);
+
+        self::assertStringContainsString('agent-install --check', $output->fetch());
+    }
+
+    public function test_dry_run_does_not_print_check_hint(): void
+    {
+        $output = new BufferedOutput();
+        $this->install(['platform' => 'claude', '--dry-run' => true], $output);
+
+        self::assertStringNotContainsString('Done.', $output->fetch());
     }
 
     public function test_no_docs_skips_agents_tree(): void

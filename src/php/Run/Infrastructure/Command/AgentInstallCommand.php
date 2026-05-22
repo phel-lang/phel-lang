@@ -24,6 +24,7 @@ use function dirname;
 use function file_get_contents;
 use function file_put_contents;
 use function implode;
+use function in_array;
 use function is_dir;
 use function is_file;
 use function rename;
@@ -39,6 +40,10 @@ final class AgentInstallCommand extends Command
     private const string OPT_ALL = 'all';
 
     private const string OPT_NO_DOCS = 'no-docs';
+
+    private const string OPT_WITH_EXAMPLES = 'with-examples';
+
+    private const string EXAMPLES_SUBDIR = 'examples';
 
     private const string OPT_FORCE = 'force';
 
@@ -70,19 +75,39 @@ final class AgentInstallCommand extends Command
 
         $this->setName('agent-install')
             ->setDescription('Install agent skill files (Claude, Cursor, Codex, Gemini, Copilot, Aider) into the current project')
+            ->setHelp(<<<HELP
+Installs per-platform skill files plus a shared <comment>.agents/</comment> docs tree
+(rules, recipes, quick-syntax reference). Examples projects are excluded
+by default to keep the install slim; pass <comment>--with-examples</comment> to include them.
+
+<info>Common uses:</info>
+  <comment>phel agent-install --auto</comment>             Install for agents detected in this project
+  <comment>phel agent-install claude</comment>             Install only the Claude skill + docs
+  <comment>phel agent-install --all --force</comment>      Reinstall every platform, overwriting
+  <comment>phel agent-install --check</comment>            Report stamp drift; exit 1 if any
+  <comment>phel agent-install --list</comment>             Show source/target/state per platform
+  <comment>phel agent-install claude --uninstall</comment> Remove the Claude skill (restore backup)
+
+Existing files are backed up to <comment>.pre-phel.bak</comment> unless <comment>--force</comment> is used.
+HELP)
             ->addArgument(
                 self::ARG_PLATFORM,
                 InputArgument::OPTIONAL,
                 sprintf('Platform: %s', $platformList),
             )
-            ->addOption(self::OPT_ALL, null, InputOption::VALUE_NONE, 'Install all supported platforms')
-            ->addOption(self::OPT_NO_DOCS, null, InputOption::VALUE_NONE, 'Skip copying the bundled agent docs tree to .agents/ (copied by default)')
-            ->addOption(self::OPT_FORCE, null, InputOption::VALUE_NONE, 'Overwrite existing files (default: backup to ' . self::BACKUP_SUFFIX . ')')
+            // Selection
+            ->addOption(self::OPT_ALL, null, InputOption::VALUE_NONE, 'Install for every supported platform')
+            ->addOption(self::OPT_AUTO, null, InputOption::VALUE_NONE, 'Install only for agents detected in this project (.claude/, .cursor/, AGENTS.md, ...)')
+            // Docs scope
+            ->addOption(self::OPT_NO_DOCS, null, InputOption::VALUE_NONE, 'Skip copying the .agents/ docs tree (copied by default)')
+            ->addOption(self::OPT_WITH_EXAMPLES, null, InputOption::VALUE_NONE, 'Include example projects in .agents/examples/ (excluded by default)')
+            // Operation modifiers
+            ->addOption(self::OPT_FORCE, null, InputOption::VALUE_NONE, 'Overwrite existing files without creating ' . self::BACKUP_SUFFIX . ' backups')
             ->addOption(self::OPT_DRY_RUN, null, InputOption::VALUE_NONE, 'Print what would be written without changing files')
-            ->addOption(self::OPT_CHECK, null, InputOption::VALUE_NONE, 'Report install status and version drift per platform; exit 1 if any drift')
-            ->addOption(self::OPT_LIST, null, InputOption::VALUE_NONE, 'List supported platforms with source template, install target, and current state')
             ->addOption(self::OPT_UNINSTALL, null, InputOption::VALUE_NONE, 'Remove installed skill file(s); restores ' . self::BACKUP_SUFFIX . ' if present')
-            ->addOption(self::OPT_AUTO, null, InputOption::VALUE_NONE, 'Auto-detect agents already present in the project (.claude/, .cursor/, AGENTS.md, ...) and install for them');
+            // Queries
+            ->addOption(self::OPT_CHECK, null, InputOption::VALUE_NONE, 'Report install + version drift per platform; exit 1 if any drift')
+            ->addOption(self::OPT_LIST, null, InputOption::VALUE_NONE, 'Show source, target, and current state for every platform');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -108,6 +133,12 @@ final class AgentInstallCommand extends Command
         $force = (bool) $input->getOption(self::OPT_FORCE);
 
         $copyDocs = !(bool) $input->getOption(self::OPT_NO_DOCS);
+        $withExamples = (bool) $input->getOption(self::OPT_WITH_EXAMPLES);
+
+        if (!$copyDocs && $withExamples) {
+            $output->writeln('<comment>--with-examples ignored: --no-docs disables the docs tree entirely.</comment>');
+            $withExamples = false;
+        }
 
         if ((bool) $input->getOption(self::OPT_UNINSTALL)) {
             foreach ($platforms as $platformKey) {
@@ -126,7 +157,12 @@ final class AgentInstallCommand extends Command
         }
 
         if ($copyDocs) {
-            $this->copyDocs($output, $sourceRoot, $projectRoot, $force, $dryRun);
+            $this->copyDocs($output, $sourceRoot, $projectRoot, $force, $dryRun, $withExamples);
+        }
+
+        if (!$dryRun) {
+            $output->writeln('');
+            $output->writeln('<info>Done.</info> Verify with <comment>phel agent-install --check</comment>.');
         }
 
         return Command::SUCCESS;
@@ -230,7 +266,7 @@ final class AgentInstallCommand extends Command
         $inspector = new AgentInstallStatusInspector($this->registry, $stamper);
         $statuses = $inspector->inspect($projectRoot);
 
-        $output->writeln(sprintf('phel-agents target version: <info>%s</info>', $stamper->currentVersion() ?? 'unknown'));
+        $output->writeln(sprintf('Bundled agents docs version: <info>%s</info>', $stamper->currentVersion() ?? 'unknown'));
         $output->writeln('');
 
         $hasDrift = false;
@@ -277,10 +313,32 @@ final class AgentInstallCommand extends Command
 
         if (!$this->registry->has($platform)) {
             $output->writeln(sprintf('<error>Unknown platform: %s</error>', $platform));
+            $suggestion = $this->suggestPlatform($platform);
+            if ($suggestion !== null) {
+                $output->writeln(sprintf('Did you mean <comment>%s</comment>?', $suggestion));
+            }
+
+            $output->writeln(sprintf('Available: %s', implode(', ', $this->registry->keys())));
             return null;
         }
 
         return [$platform];
+    }
+
+    private function suggestPlatform(string $input): ?string
+    {
+        $best = null;
+        $bestDistance = PHP_INT_MAX;
+        $inputLower = strtolower($input);
+        foreach ($this->registry->keys() as $key) {
+            $distance = levenshtein($inputLower, $key);
+            if ($distance < $bestDistance) {
+                $best = $key;
+                $bestDistance = $distance;
+            }
+        }
+
+        return $bestDistance <= 3 ? $best : null;
     }
 
     /**
@@ -290,7 +348,8 @@ final class AgentInstallCommand extends Command
     {
         $detected = $this->detectAgents();
         if ($detected === []) {
-            $output->writeln('<comment>No agent traces detected; nothing to install. Use --all or pass a platform.</comment>');
+            $output->writeln('<comment>No agent traces detected; nothing to install.</comment>');
+            $output->writeln(sprintf('Pass a platform (%s) or use <comment>--all</comment>.', implode(', ', $this->registry->keys())));
             return null;
         }
 
@@ -307,7 +366,7 @@ final class AgentInstallCommand extends Command
             return;
         }
 
-        $output->writeln('<error>Provide a platform or use --all</error>');
+        $output->writeln('<error>Provide a platform or use --all / --auto</error>');
         $output->writeln(sprintf('Platforms: %s', implode(', ', $this->registry->keys())));
     }
 
@@ -365,10 +424,17 @@ final class AgentInstallCommand extends Command
         string $projectRoot,
         bool $force,
         bool $dryRun,
+        bool $withExamples,
     ): void {
         $dst = $projectRoot . '/' . self::AGENTS_DIR;
+        $skipTopLevel = $withExamples ? [] : [self::EXAMPLES_SUBDIR];
+
         if ($dryRun) {
             $output->writeln(sprintf('[dry-run] copy %s -> %s', $agentsRoot, $dst));
+            if (!$withExamples) {
+                $output->writeln('[dry-run] skip examples/ (use --with-examples to include)');
+            }
+
             return;
         }
 
@@ -377,11 +443,17 @@ final class AgentInstallCommand extends Command
             return;
         }
 
-        $this->recursiveCopy($agentsRoot, $dst);
+        $this->recursiveCopy($agentsRoot, $dst, $skipTopLevel);
         $output->writeln(sprintf('<info>Copied docs tree</info> -> %s', $dst));
+        if (!$withExamples) {
+            $output->writeln('<comment>Skipped examples/ (pass --with-examples to include sample apps).</comment>');
+        }
     }
 
-    private function recursiveCopy(string $src, string $dst): void
+    /**
+     * @param list<string> $skipTopLevel
+     */
+    private function recursiveCopy(string $src, string $dst, array $skipTopLevel = []): void
     {
         $this->ensureDir($dst);
 
@@ -391,7 +463,13 @@ final class AgentInstallCommand extends Command
         );
 
         foreach ($iterator as $item) {
-            $target = $dst . '/' . $iterator->getSubPathname();
+            $sub = $iterator->getSubPathname();
+            $top = explode('/', $sub, 2)[0];
+            if (in_array($top, $skipTopLevel, true)) {
+                continue;
+            }
+
+            $target = $dst . '/' . $sub;
             if ($item->isDir()) {
                 $this->ensureDir($target);
             } else {

@@ -49,6 +49,7 @@ Emit size:
 - Compiler: skip `Truthy::isTruthy` wrap in `if` / `?:` when the test is known-bool
 - Compiler: `recur` skips the `$__phel_N` temp shuffle when no aliasing is possible
 - `phel agent-install`: copy `.agents/` docs by default; `--with-docs` replaced by `--no-docs` opt-out
+- `phel agent-install`: skip `.agents/examples/` by default; opt in with `--with-examples`
 
 ### Fixed
 
