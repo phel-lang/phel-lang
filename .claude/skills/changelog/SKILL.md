@@ -32,11 +32,10 @@ allowed-tools: "Read, Edit, Bash(git *)"
    - Code in backticks: `` `(fn arg)` ``
    - Cap ~120 chars per entry; split or move detail to PR body if longer
    - PR ref at end: `(#NNNN)`. Multiple PRs same bullet → `(#A #B #C)`
-   - Drop filler: "now", "improved", "new", "simply", "basically", marketing voice ("blazing", "powerful")
+   - Drop filler ("now", "improved", "new") and marketing voice ("blazing", "powerful")
    - Lead with what changed, not why. Why → PR body.
    - Skip non-user-facing commits (`chore:`, CI internals, test-only refactors)
    - Prefix BC with `BC:` or **BREAKING**
-   - Drop redundant prefix when section implies it ("Compiler:" inside `### Performance` of compiler-only release). Keep when ambiguous.
 
 5. Performance section clustering (always on):
    Group bullets under sub-labels matching the change locus. Example labels (use what fits):

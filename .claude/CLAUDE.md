@@ -21,7 +21,7 @@ Authoritative for their topic — load the skill before guessing. Match the work
 - `/test [scope]` → run tests, scope mapping (`.claude/skills/test/SKILL.md`)
 - `/commit [msg]` → quality gates + conventional commit (`.claude/skills/commit/SKILL.md`)
 - `/pr [issue]` → push + open PR from template (`.claude/skills/pr/SKILL.md`)
-- `/changelog [entry|--optimize]` → update `## Unreleased`; auto-run `/changelog --optimize` after any `CHANGELOG.md` edit (`.claude/skills/changelog/SKILL.md`)
+- `/changelog [entry|--optimize]` → update `## Unreleased` (`.claude/skills/changelog/SKILL.md`)
 - `/fix`, `/refactor-check`, `/benchmark`, `/integration-fixture`, `/module-new`, `/gh-issue`, `/release` → other workflows under `.claude/skills/`
 
 ## Conventions
@@ -30,4 +30,4 @@ Authoritative for their topic — load the skill before guessing. Match the work
 - Branch prefixes match the commit type: `feat/`, `fix/`, `ref/`, `docs/`
 - Never mention AI tooling in commit messages, PR bodies, or code comments
 - Module-specific rules live in `.claude/rules/*.md` (php, phel, compiler, modules, macro-hygiene, integration-tests)
-- After editing `CHANGELOG.md`, run `/changelog --optimize` to enforce style (cap 120 chars, cluster Performance by theme, merge sibling PRs, drop filler)
+- Before committing `CHANGELOG.md` edits, run `/changelog --optimize`
