@@ -49,7 +49,10 @@ Each handler returns one `AbstractNode`. Emitter has 1:1 mapping to `*Emitter.ph
 
 ## Type definitions (low-level)
 
-Trailing `*` means not user-facing. Macros `defstruct`, `definterface`, `defexception`, `reify` expand into these.
+Trailing `*` means not user-facing. Macros `defstruct`, `definterface`,
+`defexception`, and `reify` expand into these directly. `defrecord` and
+`deftype` build on `defstruct`; the protocol macros register their dispatch
+tables through ordinary definitions and updates.
 
 | Form | Const | Handler | Node |
 |------|-------|---------|------|
@@ -75,7 +78,10 @@ Trailing `*` means not user-facing. Macros `defstruct`, `definterface`, `defexce
 ## Not special forms
 
 - `if-let`, `when`, `cond`, `case`, `match`, `->`, `->>`: macros in `phel.core`
-- `defn`, `defmacro`, `defstruct`, `definterface`, `defexception`, `reify`: macros over `*` forms
+- `defn`, `defmacro`, `defstruct`, `definterface`, `defexception`, `reify`:
+  macros over `*` forms
+- `defprotocol`, `extend-type`, `extend-protocol`, `defrecord`, `deftype`:
+  macros in `phel.core` that expand through definitions and the type macros
 - `+`, `-`, `=`, `map`, `filter`, ...: functions in `phel.core`
 
 Run `(macroexpand-1 'form)` to see the truth.
