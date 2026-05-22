@@ -1,6 +1,6 @@
 ---
-description: Update CHANGELOG.md unreleased section from recent commits or manual entry
-argument-hint: "[entry text]"
+description: Update CHANGELOG.md unreleased section from recent commits or manual entry; enforces simple, optimized notes
+argument-hint: "[entry text | --optimize]"
 disable-model-invocation: true
 allowed-tools: "Read, Edit, Bash(git *)"
 ---
@@ -15,19 +15,39 @@ allowed-tools: "Read, Edit, Bash(git *)"
 
 1. Read `CHANGELOG.md` to understand current state.
 
-2. If `$ARGUMENTS` is provided, add it as an entry under the appropriate category in `## Unreleased`.
+2. Mode select:
+   - `$ARGUMENTS` empty → draft entries from commits since last tag.
+   - `$ARGUMENTS == --optimize` → rewrite `## Unreleased` in place per style rules below. No new entries.
+   - Otherwise → treat `$ARGUMENTS` as entry text; place under correct category.
 
-3. If no arguments, analyze commits since last tag (see context) and draft entries:
-   - `### Added` — new functionality (`feat:` commits)
-   - `### Changed` — behavior changes (`ref:`, `perf:` commits)
-   - `### Fixed` — bug fixes (`fix:` commits)
+3. Categories:
+   - `### Added` — new functionality (`feat:`)
+   - `### Performance` — perf wins (`perf:`)
+   - `### Changed` — behavior changes (`ref:`, BC)
+   - `### Fixed` — bug fixes (`fix:`)
    - `### Removed` — removed features
 
-4. Entry format:
+4. Style rules (apply on every write, enforce on `--optimize`):
    - Imperative mood: "Add" not "Added"
    - Code in backticks: `` `(fn arg)` ``
-   - Under 100 chars per entry
-   - Skip non-user-facing commits (`chore:`, CI, internal refactoring)
-   - Prefix breaking changes with **BREAKING**
+   - Cap ~120 chars per entry; split or move detail to PR body if longer
+   - PR ref at end: `(#NNNN)`. Multiple PRs same bullet → `(#A #B #C)`
+   - Drop filler: "now", "improved", "new", "simply", "basically", marketing voice ("blazing", "powerful")
+   - Lead with what changed, not why. Why → PR body.
+   - Skip non-user-facing commits (`chore:`, CI internals, test-only refactors)
+   - Prefix BC with `BC:` or **BREAKING**
+   - Drop redundant prefix when section implies it ("Compiler:" inside `### Performance` of compiler-only release). Keep when ambiguous.
 
-5. Edit `CHANGELOG.md` to add the entries. Present draft before writing if generating from commits.
+5. Performance section clustering (always on):
+   Group bullets under sub-labels matching the change locus. Example labels (use what fits):
+   - `Dispatch / call sites:`
+   - `Compile-time folding / hoisting:`
+   - `Type-driven call specialisation:`
+   - `Runtime data structures:`
+   - `Emit size:`
+
+6. Combine sibling entries:
+   - N PRs touching same subsystem → 1 bullet, list PR refs at end.
+   - Same verb + same target across categories → merge.
+
+7. Edit `CHANGELOG.md`. Present draft before writing when generating from commits or running `--optimize`.
