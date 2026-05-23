@@ -27,6 +27,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: chemaclass/agnostic-ai-action@v1
-        with:
-          command: check
+      - name: Install agnostic-ai
+        run: |
+          set -euo pipefail
+          version="v0.25.0"
+          curl -sSfL -o agnostic-ai.tar.gz \
+            "https://github.com/Chemaclass/agnostic-ai/releases/download/${version}/agnostic-ai_linux_amd64.tar.gz"
+          tar -xzf agnostic-ai.tar.gz agnostic-ai
+          sudo mv agnostic-ai /usr/local/bin/
+          agnostic-ai --version
+
+      - name: Sync drift check
+        run: agnostic-ai sync --check
