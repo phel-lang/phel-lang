@@ -184,7 +184,7 @@ Skill files for Claude Code, Cursor, Codex, Gemini, Copilot, Aider: [resources/a
 
 ### Repo-level AI tooling
 
-This repo's per-tool AI configs (Claude Code agents/skills/rules, Codex subagents, Gemini commands, Cursor rules, etc.) are generated from a single source tree under [.agnostic-ai/](.agnostic-ai/) via [agnostic-ai](https://github.com/Chemaclass/agnostic-ai). The generated directories (`.claude/`, `.codex/`, `.gemini/`, ...) are gitignored; run `sync` after cloning to materialize them.
+Claude Code (`.claude/`) and Codex (`.codex/`, `.agents/`, `AGENTS.md`) configs generate from a single source tree under [.agnostic-ai/](.agnostic-ai/) via [agnostic-ai](https://github.com/Chemaclass/agnostic-ai). Those directories are gitignored; run `sync` after cloning to materialize them. Add more targets (Gemini, Cursor, ...) by appending to `targets:` in `agnostic-ai.yaml`.
 
 ```sh
 brew install Chemaclass/tap/agnostic-ai   # or: go install github.com/chemaclass/agnostic-ai/cmd/agnostic-ai@latest

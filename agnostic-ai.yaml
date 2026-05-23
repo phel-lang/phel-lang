@@ -12,16 +12,5 @@ sources:
 targets:
   - claude
   - codex
-  - gemini
-  - cursor
-  - copilot
-  - aider
-  - cline
-  - windsurf
-  - continue
-  - amp
-  - zed
-  - warp
-  - opencode
 
 on-unsupported: silent
