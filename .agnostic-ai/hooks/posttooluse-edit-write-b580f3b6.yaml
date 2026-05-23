@@ -1,7 +1,0 @@
-command:
-    - .claude/hooks/format-php.sh
-    - .claude/hooks/format-phel.sh
-event: PostToolUse
-matcher: Edit|Write
-name: posttooluse-edit-write-b580f3b6
-timeout: 30

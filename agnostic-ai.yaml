@@ -6,7 +6,6 @@ sources:
   skills: .agnostic-ai/skills
   rules: .agnostic-ai/rules
   hooks: .agnostic-ai/hooks
-  mcps: .agnostic-ai/mcps
   commands: .agnostic-ai/commands
 
 targets:

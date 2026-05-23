@@ -1,4 +1,4 @@
-command: '"$(git rev-parse --show-toplevel)/.codex/hooks/protect-files.sh"'
+command: .claude/hooks/protect-files.sh
 event: PreToolUse
 matcher: Bash|apply_patch|Edit|Write
 name: pretooluse-bash-apply-patch-edit-wr-dcd130ba
