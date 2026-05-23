@@ -1,7 +1,0 @@
-interface:
-  display_name: "Commit"
-  short_description: "Fix, test, stage, and commit changes."
-  default_prompt: "Use $commit to prepare and commit the current changes."
-
-policy:
-  allow_implicit_invocation: true

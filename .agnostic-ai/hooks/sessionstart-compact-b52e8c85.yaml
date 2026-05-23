@@ -1,0 +1,4 @@
+command: .claude/hooks/compact-context.sh
+event: SessionStart
+matcher: compact
+name: sessionstart-compact-b52e8c85

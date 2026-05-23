@@ -43,6 +43,7 @@ Emit size:
 
 ### Changed
 
+- AI tooling: per-tool configs (`.claude/`, `.codex/`, `.gemini/`, ...) gitignored and regenerated from a single source under `.agnostic-ai/` via [agnostic-ai](https://github.com/Chemaclass/agnostic-ai). Run `agnostic-ai sync` after clone; CI gate blocks drift
 - BC: release tooling moved from `build/` to `tools/`; `build/` is now phar-only
 - CI: split `ci.yml` into `quality.yml` / `tests.yml` / `smoke.yml` with a shared `setup-phel` composite action; concurrency cancellation + least-privilege perms (#2039)
 - Compiler: hoist pure vector / map / set literals to a per-fn `static` cache

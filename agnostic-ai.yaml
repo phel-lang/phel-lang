@@ -1,0 +1,27 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Chemaclass/agnostic-ai/main/docs/schemas/config.schema.json
+version: 1
+
+sources:
+  agents: .agnostic-ai/agents
+  skills: .agnostic-ai/skills
+  rules: .agnostic-ai/rules
+  hooks: .agnostic-ai/hooks
+  mcps: .agnostic-ai/mcps
+  commands: .agnostic-ai/commands
+
+targets:
+  - claude
+  - codex
+  - gemini
+  - cursor
+  - copilot
+  - aider
+  - cline
+  - windsurf
+  - continue
+  - amp
+  - zed
+  - warp
+  - opencode
+
+on-unsupported: silent

@@ -1,0 +1,32 @@
+name: agnostic-ai
+
+on:
+  pull_request:
+    paths:
+      - '.agnostic-ai/**'
+      - 'agnostic-ai.yaml'
+      - '.github/workflows/agnostic-ai.yml'
+  push:
+    branches: [ main ]
+    paths:
+      - '.agnostic-ai/**'
+      - 'agnostic-ai.yaml'
+      - '.github/workflows/agnostic-ai.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agnostic-ai-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  sync-check:
+    name: Sync drift check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: chemaclass/agnostic-ai-action@v1
+        with:
+          command: check
