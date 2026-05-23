@@ -69,42 +69,78 @@ final readonly class UnusedBindingRule implements LintRuleInterface
             return;
         }
 
-        $bindingSyms = [];
+        /** @var list<array{idx: int, sym: Symbol}> $bindingPairs */
+        $bindingPairs = [];
         $size = count($bindings);
         for ($i = 0; $i < $size; $i += 2) {
             $sym = $bindings->get($i);
             if ($sym instanceof Symbol && $this->trackable($sym->getName())) {
-                $bindingSyms[] = $sym;
+                $bindingPairs[] = ['idx' => $i, 'sym' => $sym];
             }
         }
 
-        if ($bindingSyms === []) {
+        if ($bindingPairs === []) {
             return;
         }
 
-        $usageCounts = [];
+        $bodyUsageCounts = [];
         $formSize = count($form);
         for ($i = 2; $i < $formSize; ++$i) {
             $body = $form->get($i);
-            FormWalker::walk($body, static function (mixed $val) use (&$usageCounts): void {
+            FormWalker::walk($body, static function (mixed $val) use (&$bodyUsageCounts): void {
                 if ($val instanceof Symbol && $val->getNamespace() === null) {
                     $name = $val->getName();
-                    $usageCounts[$name] = ($usageCounts[$name] ?? 0) + 1;
+                    $bodyUsageCounts[$name] = ($bodyUsageCounts[$name] ?? 0) + 1;
                 }
             });
         }
 
-        foreach ($bindingSyms as $sym) {
-            $name = $sym->getName();
-            if (!isset($usageCounts[$name])) {
-                $result[] = DiagnosticBuilder::fromForm(
-                    $this->code(),
-                    sprintf("Unused binding: '%s'.", $name),
-                    $uri,
-                    $sym,
-                );
+        foreach ($bindingPairs as $pair) {
+            $name = $pair['sym']->getName();
+            if (isset($bodyUsageCounts[$name])) {
+                continue;
+            }
+
+            if ($this->referencedInLaterBindingValues($bindings, $pair['idx'], $name, $size)) {
+                continue;
+            }
+
+            $result[] = DiagnosticBuilder::fromForm(
+                $this->code(),
+                sprintf("Unused binding: '%s'.", $name),
+                $uri,
+                $pair['sym'],
+            );
+        }
+    }
+
+    /**
+     * @param PersistentVectorInterface<mixed> $bindings
+     */
+    private function referencedInLaterBindingValues(
+        PersistentVectorInterface $bindings,
+        int $nameIdx,
+        string $name,
+        int $size,
+    ): bool {
+        $found = false;
+        for ($j = $nameIdx + 3; $j < $size; $j += 2) {
+            $value = $bindings->get($j);
+            FormWalker::walk($value, static function (mixed $val) use ($name, &$found): void {
+                if ($found) {
+                    return;
+                }
+
+                if ($val instanceof Symbol && $val->getNamespace() === null && $val->getName() === $name) {
+                    $found = true;
+                }
+            });
+            if ($found) {
+                return true;
             }
         }
+
+        return false;
     }
 
     private function trackable(string $name): bool
