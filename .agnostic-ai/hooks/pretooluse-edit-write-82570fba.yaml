@@ -1,0 +1,5 @@
+command: .claude/hooks/protect-files.sh
+event: PreToolUse
+matcher: Edit|Write
+name: pretooluse-edit-write-82570fba
+timeout: 5

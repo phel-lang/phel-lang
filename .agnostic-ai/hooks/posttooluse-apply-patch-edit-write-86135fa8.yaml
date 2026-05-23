@@ -1,0 +1,6 @@
+command: '"$(git rev-parse --show-toplevel)/.codex/hooks/format-php.sh"'
+event: PostToolUse
+matcher: apply_patch|Edit|Write
+name: posttooluse-apply-patch-edit-write-86135fa8
+statusMessage: Formatting touched PHP files
+timeout: 30

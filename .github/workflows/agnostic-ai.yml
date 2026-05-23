@@ -1,0 +1,49 @@
+name: agnostic-ai
+
+on:
+  pull_request:
+    paths:
+      - '.agnostic-ai/**'
+      - 'agnostic-ai.yaml'
+      - '.github/workflows/agnostic-ai.yml'
+  push:
+    branches: [ main ]
+    paths:
+      - '.agnostic-ai/**'
+      - 'agnostic-ai.yaml'
+      - '.github/workflows/agnostic-ai.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agnostic-ai-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  sync-check:
+    name: Sync drift check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install agnostic-ai
+        run: |
+          set -euo pipefail
+          version="v0.25.0"
+          curl -sSfL -o agnostic-ai.tar.gz \
+            "https://github.com/Chemaclass/agnostic-ai/releases/download/${version}/agnostic-ai_linux_amd64.tar.gz"
+          tar -xzf agnostic-ai.tar.gz agnostic-ai
+          sudo mv agnostic-ai /usr/local/bin/
+          agnostic-ai --version
+
+      - name: Validate specs
+        run: agnostic-ai validate
+
+      - name: Sync (emit to gitignored target dirs)
+        run: agnostic-ai sync
+
+      - name: Verify no drift in source specs
+        run: |
+          git diff --exit-code -- .agnostic-ai agnostic-ai.yaml \
+            || (echo "::error::sync rewrote tracked source files — re-run 'agnostic-ai sync' locally and commit the diff" && exit 1)
