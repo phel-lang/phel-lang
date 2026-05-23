@@ -37,5 +37,13 @@ jobs:
           sudo mv agnostic-ai /usr/local/bin/
           agnostic-ai --version
 
-      - name: Sync drift check
-        run: agnostic-ai sync --check
+      - name: Validate specs
+        run: agnostic-ai validate
+
+      - name: Sync (emit to gitignored target dirs)
+        run: agnostic-ai sync
+
+      - name: Verify no drift in source specs
+        run: |
+          git diff --exit-code -- .agnostic-ai agnostic-ai.yaml \
+            || (echo "::error::sync rewrote tracked source files — re-run 'agnostic-ai sync' locally and commit the diff" && exit 1)
