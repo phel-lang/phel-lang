@@ -35,27 +35,30 @@ final class CallSiteCacheTest extends TestCase
 
     public function test_build_mode_on_hoists_call_sites_to_static_slots(): void
     {
+        // Use a vector so both `+` call sites are live (the simplification
+        // pass drops pure non-tail expressions, which would otherwise
+        // remove the first call before the cache could see it).
         BuildFacade::enableBuildMode();
-        $output = $this->compileSnippet('(fn [x] (+ x 1) (+ x 2))');
+        $output = $this->compileSnippet('(fn [x] [(+ x 1) (+ x 2)])');
         BuildFacade::disableBuildMode();
 
         $phel = '\\' . Phel::class;
 
         self::assertStringContainsString('static $__phel_call_0', $output);
-        self::assertStringContainsString('($__phel_call_0 ??= ' . $phel . '::getDefinition("phel.core", "+"))->__invoke($x, 1);', $output);
-        self::assertStringContainsString('($__phel_call_1 ??= ' . $phel . '::getDefinition("phel.core", "+"))->__invoke($x, 2);', $output);
+        self::assertStringContainsString('($__phel_call_0 ??= ' . $phel . '::getDefinition("phel.core", "+"))->__invoke($x, 1)', $output);
+        self::assertStringContainsString('($__phel_call_1 ??= ' . $phel . '::getDefinition("phel.core", "+"))->__invoke($x, 2)', $output);
     }
 
     public function test_build_mode_off_skips_cache_so_repl_redefine_still_wins(): void
     {
         BuildFacade::disableBuildMode();
-        $output = $this->compileSnippet('(fn [x] (+ x 1) (+ x 2))');
+        $output = $this->compileSnippet('(fn [x] [(+ x 1) (+ x 2)])');
 
         $phel = '\\' . Phel::class;
 
         self::assertStringNotContainsString('$__phel_call_', $output);
-        self::assertStringContainsString('(' . $phel . '::getDefinition("phel.core", "+"))->__invoke($x, 1);', $output);
-        self::assertStringContainsString('(' . $phel . '::getDefinition("phel.core", "+"))->__invoke($x, 2);', $output);
+        self::assertStringContainsString('(' . $phel . '::getDefinition("phel.core", "+"))->__invoke($x, 1)', $output);
+        self::assertStringContainsString('(' . $phel . '::getDefinition("phel.core", "+"))->__invoke($x, 2)', $output);
     }
 
     public function test_call_method_dispatch_targets_only_known_fn_defs(): void
