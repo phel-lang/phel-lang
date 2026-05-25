@@ -72,7 +72,7 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
 
         $namespace = $this->analyzer->getNamespace();
 
-        $this->analyzer->addDefinition($namespace, $nameSymbol);
+        $this->analyzer->addDefinition($namespace, $nameSymbol, $this->defonce);
 
         [$metaMap, $init] = $this->createMetaMapAndInit($list);
 

@@ -71,11 +71,17 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         $this->ns = $ns;
     }
 
-    public function addDefinition(string $namespace, Symbol $name): void
+    public function addDefinition(string $namespace, Symbol $name, bool $allowRedefinition = false): void
     {
         $this->initializeNamespace($namespace);
 
         if ($this->shouldThrowOnDuplicateDefinition($namespace, $name)) {
+            if ($allowRedefinition) {
+                // `defonce` semantics: keep the existing binding,
+                // do not overwrite, do not raise.
+                return;
+            }
+
             throw DuplicateDefinitionException::forSymbol($namespace, $name);
         }
 

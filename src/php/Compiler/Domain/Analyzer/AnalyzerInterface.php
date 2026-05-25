@@ -34,7 +34,7 @@ interface AnalyzerInterface
      */
     public function addRefers(string $ns, array $referSymbols, Symbol $nsSymbol): void;
 
-    public function addDefinition(string $ns, Symbol $symbol): void;
+    public function addDefinition(string $ns, Symbol $symbol, bool $allowRedefinition = false): void;
 
     /**
      * @param PersistentMapInterface<mixed, mixed> $meta
