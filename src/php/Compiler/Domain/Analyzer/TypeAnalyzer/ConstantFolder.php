@@ -130,8 +130,11 @@ final class ConstantFolder
             '-' => $this->minus($literals),
             'inc' => $this->shift($literals, +1),
             'dec' => $this->shift($literals, -1),
-            '=' => $this->compareAll($literals, static fn($a, $b): bool => $a === $b || (float) $a === (float) $b),
-            'not=' => $this->negate($this->compareAll($literals, static fn($a, $b): bool => $a === $b || (float) $a === (float) $b)),
+            // Phel `=` is type-strict: `(= 1 1.0)` is `false`. Numeric
+            // promotion is reserved for `<` / `<=` / `>` / `>=` which
+            // compare values, not identities.
+            '=' => $this->compareAll($literals, static fn($a, $b): bool => $a === $b),
+            'not=' => $this->negate($this->compareAll($literals, static fn($a, $b): bool => $a === $b)),
             '<' => $this->compareAll($literals, static fn($a, $b): bool => $a < $b),
             '<=' => $this->compareAll($literals, static fn($a, $b): bool => $a <= $b),
             '>' => $this->compareAll($literals, static fn($a, $b): bool => $a > $b),

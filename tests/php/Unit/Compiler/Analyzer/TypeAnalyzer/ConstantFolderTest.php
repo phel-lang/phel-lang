@@ -108,12 +108,13 @@ final class ConstantFolderTest extends TestCase
         self::assertFalse($folded->getValue());
     }
 
-    public function test_fold_eq_mixed_int_float_compares_numerically(): void
+    public function test_fold_eq_is_type_strict_for_mixed_int_float(): void
     {
+        // Phel `=` is type-strict: `(= 1 1.0)` is `false`.
         $folded = new ConstantFolder()->fold($this->coreCall('=', [1, 1.0]));
 
         self::assertInstanceOf(LiteralNode::class, $folded);
-        self::assertTrue($folded->getValue());
+        self::assertFalse($folded->getValue());
     }
 
     public function test_fold_eq_variadic_all_equal(): void
