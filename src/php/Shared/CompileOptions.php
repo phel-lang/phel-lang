@@ -14,6 +14,20 @@ final class CompileOptions
 
     public const bool DEFAULT_EMIT_ONLY = false;
 
+    /**
+     * Roadmap of optimisation levels gated behind this option:
+     *
+     *  - `0` (default): every experimental optimisation phase is off
+     *  - `1`: Phase 5 — auto-inline single-expression private `defn-`
+     *  - `2`: Phase 6 — hoist loop-invariant exprs out of recur loops
+     *
+     * Phases that ship as default-on (e.g. `ConstantFolder`,
+     * `LetSimplifier`) do not consult this flag; only phases whose
+     * behaviour change is observable across stack traces / profiling
+     * output gate themselves here.
+     */
+    public const int DEFAULT_OPTIMIZATION_LEVEL = 0;
+
     private string $source = self::DEFAULT_SOURCE;
 
     private int $startingLine = self::DEFAULT_STARTING_LINE;
@@ -21,6 +35,8 @@ final class CompileOptions
     private bool $isEnableSourceMaps = self::DEFAULT_ENABLE_SOURCE_MAPS;
 
     private bool $emitOnly = self::DEFAULT_EMIT_ONLY;
+
+    private int $optimizationLevel = self::DEFAULT_OPTIMIZATION_LEVEL;
 
     public function getSource(): string
     {
@@ -66,6 +82,18 @@ final class CompileOptions
     public function setEmitOnly(bool $emitOnly): self
     {
         $this->emitOnly = $emitOnly;
+
+        return $this;
+    }
+
+    public function getOptimizationLevel(): int
+    {
+        return $this->optimizationLevel;
+    }
+
+    public function setOptimizationLevel(int $level): self
+    {
+        $this->optimizationLevel = max(0, $level);
 
         return $this;
     }
