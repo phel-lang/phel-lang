@@ -587,6 +587,109 @@ final class ConstantFolderTest extends TestCase
         self::assertNull(new ConstantFolder()->fold($node));
     }
 
+    public function test_fold_min_returns_smallest(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('min', [3, 1, 2]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(1, $folded->getValue());
+    }
+
+    public function test_fold_max_returns_largest(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('max', [3, 1, 2]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(3, $folded->getValue());
+    }
+
+    public function test_fold_min_mixed_int_float(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('min', [3, 1.5, 2]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(1.5, $folded->getValue());
+    }
+
+    public function test_fold_min_skips_nan(): void
+    {
+        // Phel returns ##NaN; we don't lift NaN to a literal here.
+        self::assertNull(new ConstantFolder()->fold($this->coreCall('min', [1.0, NAN])));
+    }
+
+    public function test_fold_min_skips_empty(): void
+    {
+        self::assertNull(new ConstantFolder()->fold($this->coreCall('min', [])));
+    }
+
+    public function test_fold_quot_truncates_toward_zero(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('quot', [-7, 3]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(-2, $folded->getValue());
+    }
+
+    public function test_fold_rem_keeps_dividend_sign(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('rem', [-7, 3]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(-1, $folded->getValue());
+    }
+
+    public function test_fold_mod_keeps_divisor_sign(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('mod', [-7, 3]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(2, $folded->getValue());
+    }
+
+    public function test_fold_mod_quot_rem_skip_zero_divisor(): void
+    {
+        // Preserves runtime DivisionByZeroError.
+        self::assertNull(new ConstantFolder()->fold($this->coreCall('quot', [7, 0])));
+        self::assertNull(new ConstantFolder()->fold($this->coreCall('rem', [7, 0])));
+        self::assertNull(new ConstantFolder()->fold($this->coreCall('mod', [7, 0])));
+    }
+
+    public function test_fold_mod_quot_rem_skip_float_args(): void
+    {
+        // Int-only fold; float semantics live in NumericOperations.
+        self::assertNull(new ConstantFolder()->fold($this->coreCall('mod', [7.5, 3])));
+        self::assertNull(new ConstantFolder()->fold($this->coreCall('quot', [7.5, 3])));
+    }
+
+    public function test_fold_abs_positive(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('abs', [-42]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(42, $folded->getValue());
+    }
+
+    public function test_fold_abs_float(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('abs', [-1.5]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(1.5, $folded->getValue());
+    }
+
+    public function test_fold_abs_skips_php_int_min(): void
+    {
+        // abs(PHP_INT_MIN) overflows to a float that would re-route
+        // through BigInt promotion at runtime.
+        self::assertNull(new ConstantFolder()->fold($this->coreCall('abs', [PHP_INT_MIN])));
+    }
+
+    public function test_fold_abs_skips_wrong_arity(): void
+    {
+        self::assertNull(new ConstantFolder()->fold($this->coreCall('abs', [])));
+        self::assertNull(new ConstantFolder()->fold($this->coreCall('abs', [1, 2])));
+    }
+
     public function test_fold_if_truthy_test_returns_then_branch(): void
     {
         $env = NodeEnvironment::empty()->withExpressionContext();
