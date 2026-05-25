@@ -314,6 +314,7 @@ final class CallEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('(', $loc);
         $this->outputEmitter->emitNode($args[0]);
         $this->outputEmitter->emitStr('->' . $spec['method'] . '(', $loc);
+
         $argCount = count($spec['args']);
         foreach ($spec['args'] as $i => $argIndex) {
             $this->outputEmitter->emitNode($args[$argIndex]);

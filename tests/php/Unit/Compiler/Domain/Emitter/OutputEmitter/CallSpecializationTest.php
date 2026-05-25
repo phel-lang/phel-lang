@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Domain\Emitter\OutputEmitter;
 
 use Phel;
+use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
@@ -68,7 +69,7 @@ final class CallSpecializationTest extends TestCase
     }
 
     /**
-     * @param list<Phel\Compiler\Domain\Analyzer\Ast\AbstractNode> $args
+     * @param list<AbstractNode> $args
      */
     private function coreCall(string $name, array $args): CallNode
     {
