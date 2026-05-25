@@ -179,3 +179,23 @@
         found        (filter (fn [msg] (php/str_contains msg "Application::add()"))
                              @deprecations)]
     (is (= [] found) "no deprecation for Application::add() — addCommand() used instead")))
+
+(deftest test-handler-closure-has-typed-symfony-params
+  ; Symfony 8 enforces named types on Command::setCode closure params.
+  ; Phel `(fn [input output] ...)` would lower to an untyped __invoke;
+  ; reflect on the closure handed to setCode (exposed via Command::getCode)
+  ; and assert each param carries the Symfony interface as a named type.
+  (let [cmd     (cli/command {:name "x" :run (fn [_] 0)})
+        closure (php/-> cmd (getCode))
+        rf      (php/new \ReflectionFunction closure)
+        params  (php/-> rf (getParameters))
+        p0      (php/aget params 0)
+        p1      (php/aget params 1)
+        t0      (php/-> p0 (getType))
+        t1      (php/-> p1 (getType))]
+    (is (not (nil? t0)) "input param must declare a named type")
+    (is (not (nil? t1)) "output param must declare a named type")
+    (is (= "Symfony\\Component\\Console\\Input\\InputInterface"
+           (php/-> t0 (getName))))
+    (is (= "Symfony\\Component\\Console\\Output\\OutputInterface"
+           (php/-> t1 (getName))))))

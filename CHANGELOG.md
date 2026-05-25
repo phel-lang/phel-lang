@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `phel.cli`: Symfony Console 8.0 compatibility. The handler closure registered via `Command::setCode` now carries explicit `InputInterface` / `OutputInterface` named types; previously Symfony 8 rejected the untyped `(fn [input output] ...)` lowering with `The parameter "$input" must have a named type`. Symfony 7.3 stops emitting the deprecation warning for the same reason (#2094)
 - `phel compile`: dry-run respects its "Does not evaluate" contract. Side-effecting forms (e.g. `(println ...)`, `(php/print ...)`) no longer execute during compilation; `CompileOptions` gains an `emitOnly` flag that skips the evaluator step (#2095)
 - `defonce`: same-file redefinition is now a silent no-op (matches the documented contract); previously the analyzer raised `DuplicateDefinitionException` (#2096)
 
