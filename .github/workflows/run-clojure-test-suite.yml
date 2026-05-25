@@ -67,4 +67,11 @@ jobs:
 
       - name: Run clojure-test-suite
         working-directory: clojure-test-suite
+        # Pin to a single worker: the parallel orchestrator's spawned
+        # PHP 8.4 subprocesses currently exit non-zero after a clean
+        # run, which propagates up as `composer test` exit 1 even though
+        # every test passes. Serial mode bypasses that and keeps the
+        # check honest.
+        env:
+          PHEL_TEST_WORKERS: '1'
         run: composer test
