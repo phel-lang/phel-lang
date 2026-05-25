@@ -521,6 +521,72 @@ final class ConstantFolderTest extends TestCase
         )));
     }
 
+    public function test_fold_str_empty_returns_empty_string(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('str', []));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame('', $folded->getValue());
+    }
+
+    public function test_fold_str_single_string(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('str', ['hello']));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame('hello', $folded->getValue());
+    }
+
+    public function test_fold_str_concat_mixed_literals(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('str', ['a', '-', 1, '-', true]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame('a-1-true', $folded->getValue());
+    }
+
+    public function test_fold_str_nil_is_empty(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('str', [null]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame('', $folded->getValue());
+    }
+
+    public function test_fold_str_false_renders_as_false_keyword(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('str', [false]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame('false', $folded->getValue());
+    }
+
+    public function test_fold_str_skips_float_arg(): void
+    {
+        // Float `val-to-str` semantics (NaN, Infinity, trailing .0) are
+        // intentionally not duplicated in the folder.
+        self::assertNull(new ConstantFolder()->fold($this->coreCall('str', [1.5])));
+    }
+
+    public function test_fold_str_skips_non_literal_arg(): void
+    {
+        $node = new CallNode(
+            NodeEnvironment::empty()->withExpressionContext(),
+            new GlobalVarNode(
+                NodeEnvironment::empty()->withExpressionContext(),
+                CompilerConstants::PHEL_CORE_NAMESPACE,
+                Symbol::create('str'),
+                Phel::map(),
+            ),
+            [
+                new LiteralNode(NodeEnvironment::empty()->withExpressionContext(), 'x'),
+                $this->globalVar('y'),
+            ],
+        );
+
+        self::assertNull(new ConstantFolder()->fold($node));
+    }
+
     public function test_fold_if_truthy_test_returns_then_branch(): void
     {
         $env = NodeEnvironment::empty()->withExpressionContext();

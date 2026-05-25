@@ -1,0 +1,14 @@
+--PHEL--
+(let [a (str)
+      b (str "hello")
+      c (str "a" "-" 1 "-" true)
+      d (str nil)
+      e (str false)]
+  [a b c d e])
+--PHP--
+$a_1 = "";
+$b_2 = "hello";
+$c_3 = "a-1-true";
+$d_4 = "";
+$e_5 = "false";
+\Phel::vector([$a_1, $b_2, $c_3, $d_4, $e_5]);
