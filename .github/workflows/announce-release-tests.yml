@@ -1,0 +1,30 @@
+name: announce-release tests
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/announce-release.mjs'
+      - 'scripts/announce-release/**'
+      - '.github/workflows/announce-release.yml'
+      - '.github/workflows/announce-release-tests.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/announce-release.mjs'
+      - 'scripts/announce-release/**'
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run unit tests
+        run: node --test scripts/announce-release/*.test.mjs

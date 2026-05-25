@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- CI: `announce-release.yml` workflow + `scripts/announce-release.mjs` build a copy-pasteable Twitter/X thread draft from the CHANGELOG section of the released tag. The workflow uploads `thread.md` and `thread.json` as artifacts; posting stays manual to avoid X API costs. Supports `workflow_dispatch` for back-fills
+
 ### Fixed
 
 - `phel.cli`: Symfony Console 8.0 compatibility. The handler closure registered via `Command::setCode` now carries explicit `InputInterface` / `OutputInterface` named types; previously Symfony 8 rejected the untyped `(fn [input output] ...)` lowering with `The parameter "$input" must have a named type`. Symfony 7.3 stops emitting the deprecation warning for the same reason (#2094)
