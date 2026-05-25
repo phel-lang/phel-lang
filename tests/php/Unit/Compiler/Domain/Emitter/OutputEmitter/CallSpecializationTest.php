@@ -14,6 +14,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\SeqInterface;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
 use PHPUnit\Framework\TestCase;
@@ -65,7 +66,7 @@ final class CallSpecializationTest extends TestCase
 
     public function test_first_on_typed_seq_specialises_to_first_method(): void
     {
-        $node = $this->coreCall('first', [$this->localWithTag('s', Phel\Lang\SeqInterface::class)]);
+        $node = $this->coreCall('first', [$this->localWithTag('s', SeqInterface::class)]);
 
         self::assertSame('first', CallSpecialization::typedSeqMethodName($node));
     }
@@ -90,7 +91,7 @@ final class CallSpecializationTest extends TestCase
         // `next` returns nil on empty rest; a bare method call cannot
         // reproduce that without a runtime probe, so the specialiser
         // stays out of it.
-        $node = $this->coreCall('next', [$this->localWithTag('s', Phel\Lang\SeqInterface::class)]);
+        $node = $this->coreCall('next', [$this->localWithTag('s', SeqInterface::class)]);
 
         self::assertNull(CallSpecialization::typedSeqMethodName($node));
     }

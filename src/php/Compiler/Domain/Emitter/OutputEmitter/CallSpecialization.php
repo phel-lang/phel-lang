@@ -9,9 +9,11 @@ use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\SeqInterface;
 use Phel\Shared\CompilerConstants;
 
 use function count;
@@ -65,9 +67,9 @@ final readonly class CallSpecialization
 
     /** @var array<string, true> Tags whose runtime types implement SeqInterface */
     private const array SEQ_TAGS = [
-        \Phel\Lang\SeqInterface::class => true,
+        SeqInterface::class => true,
         PersistentVectorInterface::class => true,
-        \Phel\Lang\Collections\LinkedList\PersistentListInterface::class => true,
+        PersistentListInterface::class => true,
     ];
 
     private function __construct() {}
