@@ -15,15 +15,20 @@ use Phel\Compiler\Domain\Analyzer\Ast\SetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Shared\CompilerConstants;
 
+use function abs;
 use function array_shift;
 use function array_slice;
 use function assert;
 use function count;
 use function implode;
 use function in_array;
+use function intdiv;
 use function is_float;
 use function is_int;
+use function is_nan;
 use function is_string;
+use function max;
+use function min;
 
 /**
  * Compile-time evaluation of pure core fns whose arguments are all literal.
@@ -477,6 +482,12 @@ final class ConstantFolder
             '<=' => $this->compareAll($literals, static fn($a, $b): bool => $a <= $b),
             '>' => $this->compareAll($literals, static fn($a, $b): bool => $a > $b),
             '>=' => $this->compareAll($literals, static fn($a, $b): bool => $a >= $b),
+            'min' => $this->extremum($literals, true),
+            'max' => $this->extremum($literals, false),
+            'mod' => $this->modFloor($literals),
+            'quot' => $this->quotTrunc($literals),
+            'rem' => $this->remTrunc($literals),
+            'abs' => $this->absolute($literals),
             default => null,
         };
     }
@@ -508,6 +519,138 @@ final class ConstantFolder
     private function negate(?bool $value): ?bool
     {
         return $value === null ? null : !$value;
+    }
+
+    /**
+     * `min` / `max` over int / float literals. Skips empty arity (Phel
+     * raises) and skips any `NaN` operand (Phel returns `##NaN` which
+     * we cannot reliably reify as a literal).
+     *
+     * @param list<float|int> $literals
+     */
+    private function extremum(array $literals, bool $useMin): int|float|null
+    {
+        if ($literals === []) {
+            return null;
+        }
+
+        foreach ($literals as $n) {
+            if (is_float($n) && is_nan($n)) {
+                return null;
+            }
+        }
+
+        return $useMin ? min($literals) : max($literals);
+    }
+
+    /**
+     * Phel `mod` is floor remainder: result has the sign of `divisor`.
+     * `(mod -7 3)` → `2`. Divisor `0` skips so the runtime
+     * `DivisionByZeroError` keeps its trigger point. Int-only — float
+     * floor-remainder would need to mirror `NumericOperations::mod`
+     * exactly.
+     *
+     * @param list<float|int> $literals
+     */
+    private function modFloor(array $literals): ?int
+    {
+        $pair = $this->twoIntPair($literals);
+        if ($pair === null) {
+            return null;
+        }
+
+        [$a, $b] = $pair;
+        if ($b === 0) {
+            return null;
+        }
+
+        $rem = $a % $b;
+        if ($rem !== 0 && (($rem < 0) !== ($b < 0))) {
+            return $rem + $b;
+        }
+
+        return $rem;
+    }
+
+    /**
+     * Phel `quot` truncates toward zero. PHP `intdiv` matches.
+     *
+     * @param list<float|int> $literals
+     */
+    private function quotTrunc(array $literals): ?int
+    {
+        $pair = $this->twoIntPair($literals);
+        if ($pair === null) {
+            return null;
+        }
+
+        [$a, $b] = $pair;
+        if ($b === 0) {
+            return null;
+        }
+
+        return intdiv($a, $b);
+    }
+
+    /**
+     * Phel `rem` has the sign of the dividend. PHP `%` matches.
+     *
+     * @param list<float|int> $literals
+     */
+    private function remTrunc(array $literals): ?int
+    {
+        $pair = $this->twoIntPair($literals);
+        if ($pair === null) {
+            return null;
+        }
+
+        [$a, $b] = $pair;
+        if ($b === 0) {
+            return null;
+        }
+
+        return $a % $b;
+    }
+
+    /**
+     * `abs` on `PHP_INT_MIN` overflows to a float in PHP, which would
+     * leak the runtime's `BigInt` promotion path through the fold —
+     * skip so the runtime keeps control there.
+     *
+     * @param list<float|int> $literals
+     */
+    private function absolute(array $literals): int|float|null
+    {
+        if (count($literals) !== 1) {
+            return null;
+        }
+
+        $value = $literals[0];
+
+        if (is_int($value) && $value === PHP_INT_MIN) {
+            return null;
+        }
+
+        return abs($value);
+    }
+
+    /**
+     * @param list<float|int> $literals
+     *
+     * @return array{0: int, 1: int}|null
+     */
+    private function twoIntPair(array $literals): ?array
+    {
+        if (count($literals) !== 2) {
+            return null;
+        }
+
+        [$a, $b] = $literals;
+        if (!is_int($a) || !is_int($b)) {
+            return null;
+        }
+
+        return [$a, $b];
     }
 
     /**
