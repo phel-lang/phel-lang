@@ -14,6 +14,7 @@ use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
+use Phel\Lang\SeqInterface;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
 use PHPUnit\Framework\TestCase;
@@ -63,6 +64,38 @@ final class CallSpecializationTest extends TestCase
         self::assertNull(CallSpecialization::typedVectorMethodCall($node));
     }
 
+    public function test_first_on_typed_seq_specialises_to_first_method(): void
+    {
+        $node = $this->coreCall('first', [$this->localWithTag('s', SeqInterface::class)]);
+
+        self::assertSame('first', CallSpecialization::typedSeqMethodName($node));
+    }
+
+    public function test_rest_on_typed_vector_specialises_to_rest_method(): void
+    {
+        $node = $this->coreCall('rest', [$this->localWithTag('v', PersistentVectorInterface::class)]);
+
+        self::assertSame('rest', CallSpecialization::typedSeqMethodName($node));
+    }
+
+    public function test_first_on_untyped_local_falls_back(): void
+    {
+        $env = $this->env();
+        $node = $this->coreCall('first', [new LocalVarNode($env, Symbol::create('s'))]);
+
+        self::assertNull(CallSpecialization::typedSeqMethodName($node));
+    }
+
+    public function test_next_is_not_specialised(): void
+    {
+        // `next` returns nil on empty rest; a bare method call cannot
+        // reproduce that without a runtime probe, so the specialiser
+        // stays out of it.
+        $node = $this->coreCall('next', [$this->localWithTag('s', SeqInterface::class)]);
+
+        self::assertNull(CallSpecialization::typedSeqMethodName($node));
+    }
+
     private function env(): NodeEnvironment
     {
         return NodeEnvironment::empty()->withExpressionContext();
@@ -87,8 +120,12 @@ final class CallSpecializationTest extends TestCase
 
     private function vectorLocal(string $name): LocalVarNode
     {
+        return $this->localWithTag($name, PersistentVectorInterface::class);
+    }
+
+    private function localWithTag(string $name, string $tag): LocalVarNode
+    {
         $sym = Symbol::create($name);
-        $tag = PersistentVectorInterface::class;
         $meta = Phel::map(Keyword::create('tag'), $tag);
         $locals = [$sym->withMeta($meta)];
 

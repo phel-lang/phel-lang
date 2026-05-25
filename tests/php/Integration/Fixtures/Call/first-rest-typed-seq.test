@@ -1,0 +1,6 @@
+--PHEL--
+(fn [^"\Phel\Lang\SeqInterface" s] [(first s) (rest s)])
+--PHP--
+(function(\Phel\Lang\SeqInterface $s) {
+  return \Phel::vector([($s->first()), ($s->rest())]);
+});
