@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - `CallSpecialization`: `(count v)` and `(nth v i)` lower to direct `$v->count()` / `$v->get($i)` method calls when the analyser has tagged `v` as `PersistentVectorInterface`. The runtime `phel.core/nth` body walks a `cond` over set / seq / vector / map / php-array; the typed path collapses every branch (#2090)
 - `CallSpecialization`: `(first s)` and `(rest s)` lower to `$s->first()` / `$s->rest()` when the target is tagged as a `SeqInterface`, `PersistentVectorInterface`, or `PersistentListInterface`. `next` stays generic because it needs a runtime empty-rest check that a single method call cannot reproduce (#2090)
 - `CallSpecialization`: 3-arg `(assoc m k v)` / `(assoc v i x)`, 2-arg `(conj v x)`, and 2-arg `(dissoc m k)` lower to direct persistent-collection method calls: `$m->put(...)` / `$v->update(...)` / `$v->append(...)` / `$m->remove(...)`. Variadic forms keep the runtime path (#2090)
+- `ApplyEmitter`: `(apply f [a b c])` lowers to a direct positional invocation `($f)->__invoke($a, $b, $c)` when `f` is a fixed-arity `GlobalVarNode` (per `min-arity` meta) and the final argument is a syntactic vector literal whose length matches the declared arity. Skips the `Seq::toApplyArguments` walk and `...` spread for that shape. Variadic fns or non-vector trailing args keep the generic spread path (#2090)
 
 ### Fixed
 

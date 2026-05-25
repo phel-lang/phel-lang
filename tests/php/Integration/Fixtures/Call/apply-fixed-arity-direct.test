@@ -1,0 +1,25 @@
+--PHEL--
+(defn add3 [a b c] (+ a b c))
+(apply add3 [1 2 3])
+--PHP--
+\Phel::addDefinition(
+  "user",
+  "add3",
+  new class() extends \Phel\Lang\AbstractFn {
+    public const BOUND_TO = "user\\add3";
+
+    public function __invoke($a, $b, $c) {
+      static $__phel_call_0;
+      return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($a, $b, $c);
+    }
+  },
+  \Phel::map(
+    \Phel::keyword("doc"), "```phel\n(add3 a b c)\n```\n",
+    \Phel::keyword("start-location"), \Phel::location("Call/apply-fixed-arity-direct.test", 1, 0),
+    \Phel::keyword("end-location"), \Phel::location("Call/apply-fixed-arity-direct.test", 1, 29),
+    "min-arity", 3,
+    "is-variadic", false,
+    "arglists", "[a b c]"
+  )
+);
+(\Phel::getDefinition("user", "add3"))->__invoke(1, 2, 3);
