@@ -8,7 +8,6 @@ use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification\DoSimplifier;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
@@ -60,13 +59,11 @@ final class DoSymbol implements SpecialFormAnalyzerInterface
             $stmts[] = $this->analyzer->analyze(null, $env);
         }
 
-        $node = new DoNode(
+        return new DoNode(
             $env,
             array_slice($stmts, 0, -1),
             $stmts[count($stmts) - 1],
             $list->getStartLocation(),
         );
-
-        return new DoSimplifier()->simplify($node);
     }
 }

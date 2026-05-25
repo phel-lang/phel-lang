@@ -74,8 +74,6 @@ final class DoSymbolTest extends TestCase
 
     public function test_with_two_scalar_value(): void
     {
-        // `1` is a pure literal in non-tail position, so the simplifier
-        // drops it; only the tail expression `2` survives.
         $env = NodeEnvironment::empty();
 
         $list = Phel::list([
@@ -86,7 +84,9 @@ final class DoSymbolTest extends TestCase
 
         $expected = new DoNode(
             $env,
-            [],
+            [
+                $this->analyzer->analyze(1, $env->withDisallowRecurFrame()),
+            ],
             $this->analyzer->analyze(2, $env),
             $list->getStartLocation(),
         );

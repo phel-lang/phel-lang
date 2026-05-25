@@ -1,4 +1,0 @@
---PHEL--
-(do 1 2 (println "x") 3)
---PHP--
-(\Phel::getDefinition("phel.core", "println"))->__invoke("x");
