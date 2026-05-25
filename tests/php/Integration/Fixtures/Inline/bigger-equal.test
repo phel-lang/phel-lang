@@ -1,6 +1,6 @@
 --PHEL--
-(< 1)
-(< 1 2)
-(< 1 2 3)
+(fn [^int a ^int b] (>= a b))
 --PHP--
-(\Phel::getDefinition("phel.core", "<"))->__invoke(1);(1 < 2);(\Phel::getDefinition("phel.core", "<"))->__invoke(1, 2, 3);
+(function(int $a, int $b): bool {
+  return ($a >= $b);
+});

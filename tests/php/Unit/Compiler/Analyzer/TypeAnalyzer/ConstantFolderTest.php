@@ -92,6 +92,128 @@ final class ConstantFolderTest extends TestCase
         self::assertNull(new ConstantFolder()->fold($node));
     }
 
+    public function test_fold_eq_two_equal_int_literals(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('=', [1, 1]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertTrue($folded->getValue());
+    }
+
+    public function test_fold_eq_two_unequal_int_literals(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('=', [1, 2]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertFalse($folded->getValue());
+    }
+
+    public function test_fold_eq_is_type_strict_for_mixed_int_float(): void
+    {
+        // Phel `=` is type-strict: `(= 1 1.0)` is `false`.
+        $folded = new ConstantFolder()->fold($this->coreCall('=', [1, 1.0]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertFalse($folded->getValue());
+    }
+
+    public function test_fold_eq_variadic_all_equal(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('=', [3, 3, 3]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertTrue($folded->getValue());
+    }
+
+    public function test_fold_eq_variadic_one_unequal(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('=', [3, 3, 4]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertFalse($folded->getValue());
+    }
+
+    public function test_fold_lt_strict_ascending(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('<', [1, 2, 3]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertTrue($folded->getValue());
+    }
+
+    public function test_fold_lt_equal_pair_is_false(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('<', [1, 1]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertFalse($folded->getValue());
+    }
+
+    public function test_fold_lte_non_strict(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('<=', [1, 1, 2]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertTrue($folded->getValue());
+    }
+
+    public function test_fold_gt_descending(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('>', [3, 2, 1]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertTrue($folded->getValue());
+    }
+
+    public function test_fold_gte_non_strict(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('>=', [3, 3, 2]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertTrue($folded->getValue());
+    }
+
+    public function test_fold_not_eq_negates_equality(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('not=', [1, 2]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertTrue($folded->getValue());
+    }
+
+    public function test_fold_comparison_single_arg_is_true(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('<', [42]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertTrue($folded->getValue());
+    }
+
+    public function test_fold_comparison_skips_zero_args(): void
+    {
+        // (=) is a runtime arity error; preserve that timing.
+        self::assertNull(new ConstantFolder()->fold($this->coreCall('=', [])));
+    }
+
+    public function test_fold_comparison_skips_when_any_arg_not_literal(): void
+    {
+        $node = new CallNode(
+            NodeEnvironment::empty()->withExpressionContext(),
+            new GlobalVarNode(
+                NodeEnvironment::empty()->withExpressionContext(),
+                CompilerConstants::PHEL_CORE_NAMESPACE,
+                Symbol::create('='),
+                Phel::map(),
+            ),
+            [
+                new LiteralNode(NodeEnvironment::empty()->withExpressionContext(), 1),
+                $this->globalVar('x'),
+            ],
+        );
+
+        self::assertNull(new ConstantFolder()->fold($node));
+    }
+
     public function test_fold_if_truthy_test_returns_then_branch(): void
     {
         $env = NodeEnvironment::empty()->withExpressionContext();

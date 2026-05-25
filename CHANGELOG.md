@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file.
 
 - CI: `announce-release.yml` workflow + `scripts/announce-release.mjs` build a copy-pasteable Twitter/X thread draft from the CHANGELOG section of the released tag. The workflow uploads `thread.md` and `thread.json` as artifacts; posting stays manual to avoid X API costs. Supports `workflow_dispatch` for back-fills
 
+### Performance
+
+- `ConstantFolder`: compile-time evaluate `phel.core` comparison ops (`=`, `not=`, `<`, `<=`, `>`, `>=`) on integer / float literals. Variadic semantics preserved (pairwise check, single-arg → `true`, empty → skip so the runtime arity error fires as before). `BigInt` / `Ratio` args stay un-folded to keep the runtime numeric dispatcher in charge (#2088)
+
 ### Fixed
 
 - `phel.cli`: Symfony Console 8.0 compatibility. The handler closure registered via `Command::setCode` now carries explicit `InputInterface` / `OutputInterface` named types; previously Symfony 8 rejected the untyped `(fn [input output] ...)` lowering with `The parameter "$input" must have a named type`. Symfony 7.3 stops emitting the deprecation warning for the same reason (#2094)

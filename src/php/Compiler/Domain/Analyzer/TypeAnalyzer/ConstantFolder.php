@@ -120,7 +120,7 @@ final class ConstantFolder
     /**
      * @param list<float|int> $literals
      */
-    private function compute(string $fnName, array $literals): int|float|null
+    private function compute(string $fnName, array $literals): int|float|bool|null
     {
         if (isset(self::NUMERIC_REDUCERS[$fnName])) {
             return $this->reduce(self::NUMERIC_REDUCERS[$fnName], $literals);
@@ -130,8 +130,46 @@ final class ConstantFolder
             '-' => $this->minus($literals),
             'inc' => $this->shift($literals, +1),
             'dec' => $this->shift($literals, -1),
+            // Phel `=` is type-strict: `(= 1 1.0)` is `false`. Numeric
+            // promotion is reserved for `<` / `<=` / `>` / `>=` which
+            // compare values, not identities.
+            '=' => $this->compareAll($literals, static fn($a, $b): bool => $a === $b),
+            'not=' => $this->negate($this->compareAll($literals, static fn($a, $b): bool => $a === $b)),
+            '<' => $this->compareAll($literals, static fn($a, $b): bool => $a < $b),
+            '<=' => $this->compareAll($literals, static fn($a, $b): bool => $a <= $b),
+            '>' => $this->compareAll($literals, static fn($a, $b): bool => $a > $b),
+            '>=' => $this->compareAll($literals, static fn($a, $b): bool => $a >= $b),
             default => null,
         };
+    }
+
+    /**
+     * N-ary pairwise comparison. Phel mirrors Clojure: `(=)` is an arity
+     * error (skip), `(= x)` is `true`, otherwise consecutive pairs must
+     * all satisfy `cmp`.
+     *
+     * @param list<float|int>                      $literals
+     * @param callable(float|int, float|int): bool $cmp
+     */
+    private function compareAll(array $literals, callable $cmp): ?bool
+    {
+        $count = count($literals);
+        if ($count === 0) {
+            return null;
+        }
+
+        for ($i = 0; $i < $count - 1; ++$i) {
+            if (!$cmp($literals[$i], $literals[$i + 1])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private function negate(?bool $value): ?bool
+    {
+        return $value === null ? null : !$value;
     }
 
     /**

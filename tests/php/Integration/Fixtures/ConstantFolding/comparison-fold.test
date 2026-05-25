@@ -1,0 +1,12 @@
+--PHEL--
+(let [a (= 1 1)
+      b (< 1 2 3)
+      c (>= 3 3 2)
+      d (not= 1 2)]
+  [a b c d])
+--PHP--
+$a_1 = true;
+$b_2 = true;
+$c_3 = true;
+$d_4 = true;
+\Phel::vector([$a_1, $b_2, $c_3, $d_4]);
