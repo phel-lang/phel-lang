@@ -73,7 +73,61 @@ final readonly class CallSpecialization
             return true;
         }
 
+        if (self::isTypedVectorAccessor($node)) {
+            return true;
+        }
+
         return self::isTypedBinaryOp($node);
+    }
+
+    /**
+     * `(nth v i)` / `(count v)` where the analyser has tagged the
+     * target as `PersistentVectorInterface`. The runtime `nth` body
+     * walks a `cond` over set / seq / vector / map / php-array; for a
+     * typed vector every branch collapses to a single method call.
+     *
+     * @return array{method: string, args: list<int>}|null list of arg
+     *                                                     indices to
+     *                                                     pass as
+     *                                                     method args
+     */
+    public static function typedVectorMethodCall(CallNode $node): ?array
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode) {
+            return null;
+        }
+
+        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE) {
+            return null;
+        }
+
+        $args = $node->getArguments();
+        $target = $args[0] ?? null;
+        if (!$target instanceof LocalVarNode) {
+            return null;
+        }
+
+        if (self::normalisedTag($target->getInferredType()) !== PersistentVectorInterface::class) {
+            return null;
+        }
+
+        $name = $fn->getName()->getName();
+
+        if ($name === 'count' && count($args) === 1) {
+            return ['method' => 'count', 'args' => []];
+        }
+
+        if ($name === 'nth' && count($args) === 2) {
+            return ['method' => 'get', 'args' => [1]];
+        }
+
+        return null;
+    }
+
+    public static function isTypedVectorAccessor(CallNode $node): bool
+    {
+        return self::typedVectorMethodCall($node) !== null;
     }
 
     /**
