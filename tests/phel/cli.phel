@@ -180,13 +180,26 @@
                              @deprecations)]
     (is (= [] found) "no deprecation for Application::add() — addCommand() used instead")))
 
+(defn- handler-closure [cmd]
+  ; Extract the Closure registered via Command::setCode across all supported
+  ; Symfony versions. Symfony 6 stores the raw Closure on `Command::$code`;
+  ; 7+ wraps it in an InvokableCommand whose own `$code` holds the Closure.
+  (let [rc  (php/new \ReflectionClass cmd)
+        cp  (php/-> rc (getProperty "code"))
+        raw (php/-> cp (getValue cmd))]
+    (if (php/instanceof raw \Closure)
+      raw
+      (let [icrc (php/new \ReflectionClass raw)
+            icp  (php/-> icrc (getProperty "code"))]
+        (php/-> icp (getValue raw))))))
+
 (deftest test-handler-closure-has-typed-symfony-params
   ; Symfony 8 enforces named types on Command::setCode closure params.
   ; Phel `(fn [input output] ...)` would lower to an untyped __invoke;
-  ; reflect on the closure handed to setCode (exposed via Command::getCode)
-  ; and assert each param carries the Symfony interface as a named type.
+  ; reflect on the registered Closure and assert each param carries the
+  ; Symfony interface as a named type. Works on Symfony 6, 7, and 8.
   (let [cmd     (cli/command {:name "x" :run (fn [_] 0)})
-        closure (php/-> cmd (getCode))
+        closure (handler-closure cmd)
         rf      (php/new \ReflectionFunction closure)
         params  (php/-> rf (getParameters))
         p0      (php/aget params 0)
