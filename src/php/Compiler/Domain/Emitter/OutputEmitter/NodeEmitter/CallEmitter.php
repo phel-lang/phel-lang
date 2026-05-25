@@ -170,6 +170,10 @@ final class CallEmitter implements NodeEmitterInterface
             return;
         }
 
+        if ($this->tryEmitTypedSeqAccessor($node)) {
+            return;
+        }
+
         if ($this->tryEmitTypedBinaryOp($node)) {
             return;
         }
@@ -292,6 +296,28 @@ final class CallEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('->' . $method . '(', $loc);
         $this->outputEmitter->emitNode($args[1]);
         $this->outputEmitter->emitStr('))', $loc);
+        return true;
+    }
+
+    /**
+     * Specialise `(first s)` / `(rest s)` to a direct method call on
+     * the tagged seq target. The runtime `phel.core/first` and
+     * `phel.core/rest` bodies walk cond chains over nil / string /
+     * php-array / set / map / seq; for a known seq tag every branch
+     * collapses to `$s->first()` / `$s->rest()`.
+     */
+    private function tryEmitTypedSeqAccessor(CallNode $node): bool
+    {
+        $method = CallSpecialization::typedSeqMethodName($node);
+        if ($method === null) {
+            return false;
+        }
+
+        $args = $node->getArguments();
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($args[0]);
+        $this->outputEmitter->emitStr('->' . $method . '())', $loc);
         return true;
     }
 
