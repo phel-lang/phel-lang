@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file.
 - `LetSimplifier`: inline `(let […, x <literal>] x)` to the literal when the body's tail is a `LocalVarNode` whose shadow matches the last binding and the shadow has exactly one reference in the body. Limited to `LiteralNode` inits today because every other node type would need an env rebase on the let's outer context that the analyser doesn't yet expose safely (#2089)
 - `CallSpecialization`: `(count v)` and `(nth v i)` lower to direct `$v->count()` / `$v->get($i)` method calls when the analyser has tagged `v` as `PersistentVectorInterface`. The runtime `phel.core/nth` body walks a `cond` over set / seq / vector / map / php-array; the typed path collapses every branch (#2090)
 - `CallSpecialization`: `(first s)` and `(rest s)` lower to `$s->first()` / `$s->rest()` when the target is tagged as a `SeqInterface`, `PersistentVectorInterface`, or `PersistentListInterface`. `next` stays generic because it needs a runtime empty-rest check that a single method call cannot reproduce (#2090)
+- `CallSpecialization`: 3-arg `(assoc m k v)` / `(assoc v i x)`, 2-arg `(conj v x)`, and 2-arg `(dissoc m k)` lower to direct persistent-collection method calls: `$m->put(...)` / `$v->update(...)` / `$v->append(...)` / `$m->remove(...)`. Variadic forms keep the runtime path (#2090)
 
 ### Fixed
 

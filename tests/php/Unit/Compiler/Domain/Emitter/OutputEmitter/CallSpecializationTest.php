@@ -96,6 +96,77 @@ final class CallSpecializationTest extends TestCase
         self::assertNull(CallSpecialization::typedSeqMethodName($node));
     }
 
+    public function test_assoc_on_typed_map_specialises_to_put(): void
+    {
+        $env = $this->env();
+        $node = $this->coreCall('assoc', [
+            $this->localWithTag('m', Phel\Lang\Collections\Map\PersistentMapInterface::class),
+            new LiteralNode($env, 'k'),
+            new LiteralNode($env, 1),
+        ]);
+
+        self::assertSame('put', CallSpecialization::typedAssocConjDissocMethod($node));
+    }
+
+    public function test_assoc_on_typed_vector_specialises_to_update(): void
+    {
+        $env = $this->env();
+        $node = $this->coreCall('assoc', [
+            $this->vectorLocal('v'),
+            new LiteralNode($env, 0),
+            new LiteralNode($env, 42),
+        ]);
+
+        self::assertSame('update', CallSpecialization::typedAssocConjDissocMethod($node));
+    }
+
+    public function test_conj_on_typed_vector_specialises_to_append(): void
+    {
+        $env = $this->env();
+        $node = $this->coreCall('conj', [
+            $this->vectorLocal('v'),
+            new LiteralNode($env, 99),
+        ]);
+
+        self::assertSame('append', CallSpecialization::typedAssocConjDissocMethod($node));
+    }
+
+    public function test_dissoc_on_typed_map_specialises_to_remove(): void
+    {
+        $env = $this->env();
+        $node = $this->coreCall('dissoc', [
+            $this->localWithTag('m', Phel\Lang\Collections\Map\PersistentMapInterface::class),
+            new LiteralNode($env, 'k'),
+        ]);
+
+        self::assertSame('remove', CallSpecialization::typedAssocConjDissocMethod($node));
+    }
+
+    public function test_variadic_assoc_is_not_specialised(): void
+    {
+        $env = $this->env();
+        $node = $this->coreCall('assoc', [
+            $this->localWithTag('m', Phel\Lang\Collections\Map\PersistentMapInterface::class),
+            new LiteralNode($env, 'k1'),
+            new LiteralNode($env, 1),
+            new LiteralNode($env, 'k2'),
+            new LiteralNode($env, 2),
+        ]);
+
+        self::assertNull(CallSpecialization::typedAssocConjDissocMethod($node));
+    }
+
+    public function test_conj_on_untyped_local_falls_back(): void
+    {
+        $env = $this->env();
+        $node = $this->coreCall('conj', [
+            new LocalVarNode($env, Symbol::create('v')),
+            new LiteralNode($env, 99),
+        ]);
+
+        self::assertNull(CallSpecialization::typedAssocConjDissocMethod($node));
+    }
+
     private function env(): NodeEnvironment
     {
         return NodeEnvironment::empty()->withExpressionContext();

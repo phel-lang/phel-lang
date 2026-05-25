@@ -96,6 +96,10 @@ final readonly class CallSpecialization
             return true;
         }
 
+        if (self::isTypedAssocConjDissoc($node)) {
+            return true;
+        }
+
         return self::isTypedBinaryOp($node);
     }
 
@@ -194,6 +198,69 @@ final readonly class CallSpecialization
     public static function isTypedSeqAccessor(CallNode $node): bool
     {
         return self::typedSeqMethodName($node) !== null;
+    }
+
+    /**
+     * `(assoc coll k v)` 3-arg / `(conj coll x)` 2-arg / `(dissoc coll k)` 2-arg
+     * specialise to a direct method call when the target carries an
+     * inferred persistent-collection tag:
+     *
+     *  - `PersistentMapInterface`  → `put` / `cons` (n/a) / `remove`
+     *  - `PersistentVectorInterface` → `update` / `append` / (n/a)
+     *
+     * Skips variadic / extra-arg arities — those need a loop the runtime
+     * dispatch handles separately.
+     */
+    public static function typedAssocConjDissocMethod(CallNode $node): ?string
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode) {
+            return null;
+        }
+
+        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE) {
+            return null;
+        }
+
+        $args = $node->getArguments();
+        $target = $args[0] ?? null;
+        if (!$target instanceof LocalVarNode) {
+            return null;
+        }
+
+        $tag = self::normalisedTag($target->getInferredType());
+        if ($tag === null) {
+            return null;
+        }
+
+        $name = $fn->getName()->getName();
+        $argCount = count($args);
+
+        if ($name === 'assoc' && $argCount === 3) {
+            return match ($tag) {
+                PersistentMapInterface::class => 'put',
+                PersistentVectorInterface::class => 'update',
+                default => null,
+            };
+        }
+
+        if ($name === 'conj' && $argCount === 2) {
+            return match ($tag) {
+                PersistentVectorInterface::class => 'append',
+                default => null,
+            };
+        }
+
+        if ($name === 'dissoc' && $argCount === 2 && $tag === PersistentMapInterface::class) {
+            return 'remove';
+        }
+
+        return null;
+    }
+
+    public static function isTypedAssocConjDissoc(CallNode $node): bool
+    {
+        return self::typedAssocConjDissocMethod($node) !== null;
     }
 
     /**
