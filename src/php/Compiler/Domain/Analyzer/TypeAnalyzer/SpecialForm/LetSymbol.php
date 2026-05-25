@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification\LetSimplifier;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\Binding\DeconstructorInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
@@ -105,13 +106,15 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
             $bodyEnv,
         );
 
-        return new LetNode(
+        $node = new LetNode(
             $env,
             $bindings,
             $bodyExpr,
             $isLoop = false,
             $list->getStartLocation(),
         );
+
+        return new LetSimplifier()->simplify($node);
     }
 
     /**
