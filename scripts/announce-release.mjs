@@ -1,9 +1,16 @@
 #!/usr/bin/env node
 /**
- * Build and post a Twitter/X thread announcing a Phel release.
+ * Build a copy-pasteable Twitter/X thread draft for a Phel release.
  *
- * The heavy lifting lives in scripts/announce-release/*.mjs; this file
- * is the thin entry point invoked by .github/workflows/announce-release.yml.
+ * Reads the matching section from CHANGELOG.md, groups bullets by
+ * category, packs them into <=280-char tweets, and writes:
+ *
+ *   - thread.md   human-readable draft with dividers and char counts
+ *   - thread.json machine-readable backup of the same data
+ *
+ * Posting is deliberately out of scope: the X API is paid, so the
+ * release announcer copy-pastes the draft into X (or Typefully /
+ * Buffer / Hypefury) manually.
  */
 
 import fs from 'node:fs';
@@ -11,8 +18,8 @@ import process from 'node:process';
 
 import { parseChangelog } from './announce-release/changelog.mjs';
 import { buildThread } from './announce-release/thread.mjs';
-import { postThread } from './announce-release/twitter.mjs';
-import { readRunOptions, readXCredentials, releaseUrlFor } from './announce-release/config.mjs';
+import { formatDraft } from './announce-release/draft.mjs';
+import { readRunOptions, releaseUrlFor } from './announce-release/config.mjs';
 
 function fail(message) {
     console.error(`announce-release: ${message}`);
@@ -26,7 +33,7 @@ function printThread(tweets) {
     });
 }
 
-async function main() {
+function main() {
     const options = readRunOptions();
     const version = options.tag.replace(/^v/, '');
     const releaseUrl = releaseUrlFor(options.repoSlug, version);
@@ -47,22 +54,21 @@ async function main() {
         docsUrl: options.docsUrl,
     });
 
-    fs.writeFileSync(options.threadOutputPath, JSON.stringify({ version, tweets }, null, 2));
-    printThread(tweets);
-
-    if (options.dryRun) {
-        console.log('\nDRY_RUN=true — not posting.');
-        return;
-    }
-
-    const postedIds = await postThread(tweets, { credentials: readXCredentials() });
+    const draft = formatDraft({ version, tweets });
+    fs.writeFileSync(options.threadDraftPath, draft);
     fs.writeFileSync(
-        options.threadOutputPath,
-        JSON.stringify({ version, tweets, postedIds }, null, 2),
+        options.threadJsonPath,
+        JSON.stringify({ version, releaseUrl, tweets }, null, 2),
     );
+
+    printThread(tweets);
+    console.log(`\nWrote ${options.threadDraftPath} and ${options.threadJsonPath}.`);
+    console.log(`Copy-paste tweets from ${options.threadDraftPath} into X.`);
 }
 
-main().catch((err) => {
+try {
+    main();
+} catch (err) {
     console.error(err);
     process.exit(1);
-});
+}

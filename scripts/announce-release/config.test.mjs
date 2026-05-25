@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { readRunOptions, readXCredentials, releaseUrlFor } from './config.mjs';
+import { readRunOptions, releaseUrlFor } from './config.mjs';
 
 describe('readRunOptions', () => {
     it('requires TAG', () => {
@@ -14,42 +14,24 @@ describe('readRunOptions', () => {
         assert.equal(opts.changelogPath, 'CHANGELOG.md');
         assert.equal(opts.repoSlug, 'phel-lang/phel-lang');
         assert.equal(opts.docsUrl, 'https://phel-lang.org');
-        assert.equal(opts.threadOutputPath, 'thread.json');
-        assert.equal(opts.dryRun, false);
+        assert.equal(opts.threadJsonPath, 'thread.json');
+        assert.equal(opts.threadDraftPath, 'thread.md');
     });
 
-    it('honors DRY_RUN=true', () => {
-        const opts = readRunOptions({ TAG: 'v1.0.0', DRY_RUN: 'true' });
-        assert.equal(opts.dryRun, true);
-    });
-
-    it('rejects any other DRY_RUN value as falsy', () => {
-        const opts = readRunOptions({ TAG: 'v1.0.0', DRY_RUN: '1' });
-        assert.equal(opts.dryRun, false);
-    });
-});
-
-describe('readXCredentials', () => {
-    it('reports every missing key', () => {
-        assert.throws(
-            () => readXCredentials({ X_APP_KEY: 'a' }),
-            /Missing X API env vars: X_APP_SECRET, X_ACCESS_TOKEN, X_ACCESS_SECRET/,
-        );
-    });
-
-    it('returns the credentials object when complete', () => {
-        const creds = readXCredentials({
-            X_APP_KEY: 'a',
-            X_APP_SECRET: 'b',
-            X_ACCESS_TOKEN: 'c',
-            X_ACCESS_SECRET: 'd',
+    it('honors overrides', () => {
+        const opts = readRunOptions({
+            TAG: 'v1.0.0',
+            CHANGELOG_PATH: 'docs/CHANGELOG.md',
+            REPO_SLUG: 'me/forked',
+            DOCS_URL: 'https://example.com',
+            THREAD_JSON_PATH: 'out/t.json',
+            THREAD_DRAFT_PATH: 'out/t.md',
         });
-        assert.deepEqual(creds, {
-            appKey: 'a',
-            appSecret: 'b',
-            accessToken: 'c',
-            accessSecret: 'd',
-        });
+        assert.equal(opts.changelogPath, 'docs/CHANGELOG.md');
+        assert.equal(opts.repoSlug, 'me/forked');
+        assert.equal(opts.docsUrl, 'https://example.com');
+        assert.equal(opts.threadJsonPath, 'out/t.json');
+        assert.equal(opts.threadDraftPath, 'out/t.md');
     });
 });
 

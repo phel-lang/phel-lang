@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- CI: `announce-release.yml` workflow + `scripts/announce-release.mjs` build a Twitter/X thread from the CHANGELOG section of the released tag and post it as a reply chain via the X API v2. Supports `workflow_dispatch` for back-fills and a `DRY_RUN` repo variable for safe rehearsal (uploads `thread.json` artifact)
+- CI: `announce-release.yml` workflow + `scripts/announce-release.mjs` build a copy-pasteable Twitter/X thread draft from the CHANGELOG section of the released tag. The workflow uploads `thread.md` and `thread.json` as artifacts; posting stays manual to avoid X API costs. Supports `workflow_dispatch` for back-fills
 
 ### Fixed
 
