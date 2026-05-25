@@ -12,6 +12,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SeqInterface;
@@ -100,7 +101,7 @@ final class CallSpecializationTest extends TestCase
     {
         $env = $this->env();
         $node = $this->coreCall('assoc', [
-            $this->localWithTag('m', Phel\Lang\Collections\Map\PersistentMapInterface::class),
+            $this->localWithTag('m', PersistentMapInterface::class),
             new LiteralNode($env, 'k'),
             new LiteralNode($env, 1),
         ]);
@@ -135,7 +136,7 @@ final class CallSpecializationTest extends TestCase
     {
         $env = $this->env();
         $node = $this->coreCall('dissoc', [
-            $this->localWithTag('m', Phel\Lang\Collections\Map\PersistentMapInterface::class),
+            $this->localWithTag('m', PersistentMapInterface::class),
             new LiteralNode($env, 'k'),
         ]);
 
@@ -146,7 +147,7 @@ final class CallSpecializationTest extends TestCase
     {
         $env = $this->env();
         $node = $this->coreCall('assoc', [
-            $this->localWithTag('m', Phel\Lang\Collections\Map\PersistentMapInterface::class),
+            $this->localWithTag('m', PersistentMapInterface::class),
             new LiteralNode($env, 'k1'),
             new LiteralNode($env, 1),
             new LiteralNode($env, 'k2'),

@@ -321,6 +321,7 @@ final class CallEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('(', $loc);
         $this->outputEmitter->emitNode($args[0]);
         $this->outputEmitter->emitStr('->' . $method . '(', $loc);
+
         $rest = array_slice($args, 1);
         $count = count($rest);
         foreach ($rest as $i => $arg) {
