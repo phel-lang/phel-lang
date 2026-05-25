@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Phel;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
+use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\BindingNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -35,7 +36,7 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
     /**
      * @param PersistentListInterface<mixed> $list
      */
-    public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): LetNode
+    public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {
         if (!($list->get(0) instanceof Symbol && $list->get(0)->getName() === Symbol::NAME_LET)) {
             throw AnalyzerException::withLocation("This is not a 'let.", $list);
@@ -72,7 +73,7 @@ final readonly class LetSymbol implements SpecialFormAnalyzerInterface
     /**
      * @param PersistentListInterface<mixed> $list
      */
-    private function analyzeLetOrLoop(PersistentListInterface $list, NodeEnvironmentInterface $env): LetNode
+    private function analyzeLetOrLoop(PersistentListInterface $list, NodeEnvironmentInterface $env): AbstractNode
     {
         /** @psalm-suppress PossiblyNullArgument */
         /** @var PersistentVectorInterface<mixed> $bindingVector */
