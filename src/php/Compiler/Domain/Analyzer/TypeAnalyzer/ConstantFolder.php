@@ -9,11 +9,15 @@ use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
+use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\SetNode;
+use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Shared\CompilerConstants;
 
 use function array_shift;
 use function array_slice;
+use function assert;
 use function count;
 use function in_array;
 use function is_float;
@@ -106,6 +110,11 @@ final class ConstantFolder
             return new LiteralNode($node->getEnv(), $result, $node->getStartSourceLocation());
         }
 
+        $accessorResult = $this->foldCollectionAccessor($fnName, $node);
+        if ($accessorResult instanceof AbstractNode) {
+            return $accessorResult;
+        }
+
         $numbers = $this->extractNumericLiterals($node->getArguments());
         if ($numbers === null) {
             return null;
@@ -134,6 +143,134 @@ final class ConstantFolder
         $truthy = $value !== null && $value !== false;
 
         return $truthy ? $node->getThenExpr() : $node->getElseExpr();
+    }
+
+    /**
+     * Compile-time evaluation of `count` / `first` / `last` / `nth` against
+     * literal collection nodes:
+     *
+     *  - `(count [a b c])` and `(count {:k v})` and `(count #{a b})` always
+     *    fold to the element-count literal.
+     *  - `(first [...])` / `(last [...])` / `(nth [...] i)` only fold when
+     *    every vector element is itself a `LiteralNode` (so substituting the
+     *    target element cannot drop a side-effect).
+     *  - Out-of-bounds `nth` keeps the call: Phel raises at runtime and we
+     *    refuse to lift that exception to compile time.
+     */
+    private function foldCollectionAccessor(string $fnName, CallNode $node): ?AbstractNode
+    {
+        $args = $node->getArguments();
+
+        if ($fnName === 'count') {
+            return $this->foldCount($args, $node);
+        }
+
+        if ($fnName === 'first' || $fnName === 'last') {
+            return $this->foldVectorPick($fnName, $args, $node);
+        }
+
+        if ($fnName === 'nth') {
+            return $this->foldNth($args, $node);
+        }
+
+        return null;
+    }
+
+    /**
+     * @param list<AbstractNode> $args
+     */
+    private function foldCount(array $args, CallNode $node): ?LiteralNode
+    {
+        if (count($args) !== 1) {
+            return null;
+        }
+
+        $arg = $args[0];
+        $size = match (true) {
+            $arg instanceof VectorNode => count($arg->getArgs()),
+            $arg instanceof SetNode => count($arg->getValues()),
+            $arg instanceof MapNode => intdiv(count($arg->getKeyValues()), 2),
+            default => null,
+        };
+
+        if ($size === null) {
+            return null;
+        }
+
+        return new LiteralNode($node->getEnv(), $size, $node->getStartSourceLocation());
+    }
+
+    /**
+     * @param list<AbstractNode> $args
+     */
+    private function foldVectorPick(string $fnName, array $args, CallNode $node): ?LiteralNode
+    {
+        if (count($args) !== 1) {
+            return null;
+        }
+
+        $arg = $args[0];
+        if (!$arg instanceof VectorNode) {
+            return null;
+        }
+
+        $elements = $arg->getArgs();
+        if (!$this->allLiteralNodes($elements)) {
+            return null;
+        }
+
+        if ($elements === []) {
+            // `(first [])` is `nil` in Phel; `(last [])` is `nil` too.
+            return new LiteralNode($node->getEnv(), null, $node->getStartSourceLocation());
+        }
+
+        $pick = $fnName === 'first' ? $elements[0] : $elements[count($elements) - 1];
+        assert($pick instanceof LiteralNode);
+
+        return new LiteralNode($node->getEnv(), $pick->getValue(), $node->getStartSourceLocation());
+    }
+
+    /**
+     * @param list<AbstractNode> $args
+     */
+    private function foldNth(array $args, CallNode $node): ?LiteralNode
+    {
+        if (count($args) !== 2) {
+            return null;
+        }
+
+        [$target, $index] = $args;
+        if (!$target instanceof VectorNode || !$index instanceof LiteralNode) {
+            return null;
+        }
+
+        $idx = $index->getValue();
+        if (!is_int($idx) || $idx < 0) {
+            return null;
+        }
+
+        $elements = $target->getArgs();
+        if (!$this->allLiteralNodes($elements)) {
+            return null;
+        }
+
+        if ($idx >= count($elements)) {
+            // Out-of-bounds → Phel raises at runtime. Don't lift that.
+            return null;
+        }
+
+        $pick = $elements[$idx];
+        assert($pick instanceof LiteralNode);
+
+        return new LiteralNode($node->getEnv(), $pick->getValue(), $node->getStartSourceLocation());
+    }
+
+    /**
+     * @param list<AbstractNode> $nodes
+     */
+    private function allLiteralNodes(array $nodes): bool
+    {
+        return array_all($nodes, static fn($n): bool => $n instanceof LiteralNode);
     }
 
     /**
