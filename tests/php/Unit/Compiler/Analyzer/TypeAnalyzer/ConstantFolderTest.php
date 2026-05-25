@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Analyzer\TypeAnalyzer;
 
 use Phel;
+use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
@@ -601,7 +602,7 @@ final class ConstantFolderTest extends TestCase
     }
 
     /**
-     * @param list<Phel\Compiler\Domain\Analyzer\Ast\AbstractNode> $argNodes
+     * @param list<AbstractNode> $argNodes
      */
     private function coreCallWithArgs(string $name, array $argNodes): CallNode
     {

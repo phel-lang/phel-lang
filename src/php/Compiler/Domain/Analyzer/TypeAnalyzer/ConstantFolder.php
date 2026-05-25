@@ -111,7 +111,7 @@ final class ConstantFolder
         }
 
         $accessorResult = $this->foldCollectionAccessor($fnName, $node);
-        if ($accessorResult !== null) {
+        if ($accessorResult instanceof AbstractNode) {
             return $accessorResult;
         }
 
@@ -270,13 +270,7 @@ final class ConstantFolder
      */
     private function allLiteralNodes(array $nodes): bool
     {
-        foreach ($nodes as $n) {
-            if (!$n instanceof LiteralNode) {
-                return false;
-            }
-        }
-
-        return true;
+        return array_all($nodes, static fn($n): bool => $n instanceof LiteralNode);
     }
 
     /**
