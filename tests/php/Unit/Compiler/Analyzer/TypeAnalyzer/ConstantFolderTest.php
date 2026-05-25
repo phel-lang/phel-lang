@@ -214,6 +214,126 @@ final class ConstantFolderTest extends TestCase
         self::assertNull(new ConstantFolder()->fold($node));
     }
 
+    public function test_fold_not_on_truthy_literal(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('not', [1]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertFalse($folded->getValue());
+    }
+
+    public function test_fold_not_on_false_literal(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('not', [false]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertTrue($folded->getValue());
+    }
+
+    public function test_fold_not_on_nil_literal(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('not', [null]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertTrue($folded->getValue());
+    }
+
+    public function test_fold_nil_pred_on_nil(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('nil?', [null]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertTrue($folded->getValue());
+    }
+
+    public function test_fold_nil_pred_on_int(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('nil?', [0]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertFalse($folded->getValue());
+    }
+
+    public function test_fold_true_pred_strict_on_true(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('true?', [true]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertTrue($folded->getValue());
+    }
+
+    public function test_fold_true_pred_rejects_truthy_non_true(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('true?', [1]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertFalse($folded->getValue());
+    }
+
+    public function test_fold_false_pred_strict_on_false(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('false?', [false]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertTrue($folded->getValue());
+    }
+
+    public function test_fold_false_pred_rejects_falsy_non_false(): void
+    {
+        // `nil` is falsy in Phel but `(false? nil)` is `false`.
+        $folded = new ConstantFolder()->fold($this->coreCall('false?', [null]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertFalse($folded->getValue());
+    }
+
+    public function test_fold_boolean_truthy(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('boolean', [0]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertTrue($folded->getValue());
+    }
+
+    public function test_fold_boolean_empty_string_is_truthy(): void
+    {
+        // Phel: only `nil` / `false` are falsy; `""` is truthy.
+        $folded = new ConstantFolder()->fold($this->coreCall('boolean', ['']));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertTrue($folded->getValue());
+    }
+
+    public function test_fold_boolean_falsy(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCall('boolean', [null]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertFalse($folded->getValue());
+    }
+
+    public function test_fold_bool_predicate_skips_when_arg_count_wrong(): void
+    {
+        self::assertNull(new ConstantFolder()->fold($this->coreCall('not', [])));
+        self::assertNull(new ConstantFolder()->fold($this->coreCall('not', [1, 2])));
+    }
+
+    public function test_fold_bool_predicate_skips_non_literal_arg(): void
+    {
+        $node = new CallNode(
+            NodeEnvironment::empty()->withExpressionContext(),
+            new GlobalVarNode(
+                NodeEnvironment::empty()->withExpressionContext(),
+                CompilerConstants::PHEL_CORE_NAMESPACE,
+                Symbol::create('not'),
+                Phel::map(),
+            ),
+            [$this->globalVar('x')],
+        );
+
+        self::assertNull(new ConstantFolder()->fold($node));
+    }
+
     public function test_fold_if_truthy_test_returns_then_branch(): void
     {
         $env = NodeEnvironment::empty()->withExpressionContext();

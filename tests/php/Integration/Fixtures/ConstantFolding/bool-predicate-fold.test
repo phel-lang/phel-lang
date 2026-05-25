@@ -1,0 +1,14 @@
+--PHEL--
+(let [a (not nil)
+      b (nil? nil)
+      c (true? true)
+      d (false? false)
+      e (boolean 0)]
+  [a b c d e])
+--PHP--
+$a_1 = true;
+$b_2 = true;
+$c_3 = true;
+$d_4 = true;
+$e_5 = true;
+\Phel::vector([$a_1, $b_2, $c_3, $d_4, $e_5]);

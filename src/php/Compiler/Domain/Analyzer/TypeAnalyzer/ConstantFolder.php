@@ -13,6 +13,7 @@ use Phel\Shared\CompilerConstants;
 
 use function array_shift;
 use function count;
+use function in_array;
 use function is_float;
 use function is_int;
 
@@ -52,6 +53,8 @@ final class ConstantFolder
         '*' => ['identity' => 1, 'op' => 'mul'],
     ];
 
+    private const array BOOL_PREDICATES = ['not', 'nil?', 'true?', 'false?', 'boolean'];
+
     public function fold(CallNode $node): ?AbstractNode
     {
         $fn = $node->getFn();
@@ -63,12 +66,23 @@ final class ConstantFolder
             return null;
         }
 
+        $fnName = $fn->getName()->getName();
+
+        if (in_array($fnName, self::BOOL_PREDICATES, true)) {
+            $result = $this->foldBoolPredicate($fnName, $node->getArguments());
+            if ($result === null) {
+                return null;
+            }
+
+            return new LiteralNode($node->getEnv(), $result, $node->getStartSourceLocation());
+        }
+
         $numbers = $this->extractNumericLiterals($node->getArguments());
         if ($numbers === null) {
             return null;
         }
 
-        $result = $this->compute($fn->getName()->getName(), $numbers);
+        $result = $this->compute($fnName, $numbers);
         if ($result === null) {
             return null;
         }
@@ -91,6 +105,36 @@ final class ConstantFolder
         $truthy = $value !== null && $value !== false;
 
         return $truthy ? $node->getThenExpr() : $node->getElseExpr();
+    }
+
+    /**
+     * Single-arg boolean predicates over any literal value. Phel truthiness:
+     * only `nil` and `false` are falsy; everything else (including `0`,
+     * `""`, empty collections) is truthy.
+     *
+     * @param list<AbstractNode> $args
+     */
+    private function foldBoolPredicate(string $fnName, array $args): ?bool
+    {
+        if (count($args) !== 1) {
+            return null;
+        }
+
+        $arg = $args[0];
+        if (!$arg instanceof LiteralNode) {
+            return null;
+        }
+
+        $value = $arg->getValue();
+
+        return match ($fnName) {
+            'not' => $value === null || $value === false,
+            'nil?' => $value === null,
+            'true?' => $value === true,
+            'false?' => $value === false,
+            'boolean' => $value !== null && $value !== false,
+            default => null,
+        };
     }
 
     /**
