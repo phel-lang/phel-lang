@@ -19,9 +19,11 @@ use function array_shift;
 use function array_slice;
 use function assert;
 use function count;
+use function implode;
 use function in_array;
 use function is_float;
 use function is_int;
+use function is_string;
 
 /**
  * Compile-time evaluation of pure core fns whose arguments are all literal.
@@ -113,6 +115,13 @@ final class ConstantFolder
         $accessorResult = $this->foldCollectionAccessor($fnName, $node);
         if ($accessorResult instanceof AbstractNode) {
             return $accessorResult;
+        }
+
+        if ($fnName === 'str') {
+            $strResult = $this->foldStr($node->getArguments());
+            if ($strResult !== null) {
+                return new LiteralNode($node->getEnv(), $strResult, $node->getStartSourceLocation());
+            }
         }
 
         $numbers = $this->extractNumericLiterals($node->getArguments());
@@ -271,6 +280,42 @@ final class ConstantFolder
     private function allLiteralNodes(array $nodes): bool
     {
         return array_all($nodes, static fn($n): bool => $n instanceof LiteralNode);
+    }
+
+    /**
+     * `(str ...)` over literal `int` / `bool` / `string` / `nil` args.
+     * Floats are skipped because Phel's `val-to-str` preserves trailing
+     * `.0`, handles `NaN` / `±Infinity` specially, and we don't want to
+     * duplicate that surface here.
+     *
+     * @param list<AbstractNode> $args
+     */
+    private function foldStr(array $args): ?string
+    {
+        $parts = [];
+        foreach ($args as $arg) {
+            if (!$arg instanceof LiteralNode) {
+                return null;
+            }
+
+            $value = $arg->getValue();
+            $part = match (true) {
+                $value === null => '',
+                $value === true => 'true',
+                $value === false => 'false',
+                is_int($value) => (string) $value,
+                is_string($value) => $value,
+                default => null,
+            };
+
+            if ($part === null) {
+                return null;
+            }
+
+            $parts[] = $part;
+        }
+
+        return implode('', $parts);
     }
 
     /**

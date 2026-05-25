@@ -1,7 +1,15 @@
 --PHEL--
-(str)
-(str "a")
-(str "a" "b")
-(str "a" "b" "c")
+(fn [^string a] (str))
+(fn [^string a] (str a))
+(fn [^string a ^string b] (str a b))
+(fn [^string a ^string b ^string c] (str a b c))
 --PHP--
-(\Phel::getDefinition("phel.core", "str"))->__invoke();("a");("a" . "b");("a" . "b" . "c");
+(function(string $a) {
+  return "";
+});(function(string $a) {
+  return ($a);
+});(function(string $a, string $b) {
+  return ($a . $b);
+});(function(string $a, string $b, string $c) {
+  return ($a . $b . $c);
+});
