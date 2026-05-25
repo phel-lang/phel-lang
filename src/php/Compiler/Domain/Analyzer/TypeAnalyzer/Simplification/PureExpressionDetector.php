@@ -42,7 +42,7 @@ final readonly class PureExpressionDetector
             // A call is pure iff the folder can compute its exact value.
             // That guarantees the call has no observable effect and no
             // runtime exception under its current arguments.
-            return $this->folder->fold($node) !== null;
+            return $this->folder->fold($node) instanceof AbstractNode;
         }
 
         return false;

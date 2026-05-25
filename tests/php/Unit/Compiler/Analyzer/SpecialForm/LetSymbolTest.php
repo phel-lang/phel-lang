@@ -156,6 +156,8 @@ final class LetSymbolTest extends TestCase
 
     public function test_with_two_body_expression(): void
     {
+        // The `do`-wrapped body has `1` as a pure literal in non-tail
+        // position; the simplifier drops it, leaving the tail `2`.
         $list = Phel::list([
             Symbol::create('let'),
             Phel::vector([]),
@@ -170,7 +172,7 @@ final class LetSymbolTest extends TestCase
                 [],
                 new DoNode(
                     $env->withReturnContext(),
-                    [new LiteralNode($env->withStatementContext()->withDisallowRecurFrame(), 1)],
+                    [],
                     new LiteralNode($env->withReturnContext(), 2),
                 ),
                 false,
