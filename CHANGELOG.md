@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 ### Performance
 
 - `ConstantFolder`: compile-time evaluate `phel.core` comparison ops (`=`, `not=`, `<`, `<=`, `>`, `>=`) on integer / float literals. Variadic semantics preserved (pairwise check, single-arg → `true`, empty → skip so the runtime arity error fires as before). `BigInt` / `Ratio` args stay un-folded to keep the runtime numeric dispatcher in charge (#2088)
+- `ConstantFolder`: compile-time evaluate `phel.core` boolean predicates (`not`, `nil?`, `true?`, `false?`, `boolean`) when the single argument is any literal value. Phel truthiness preserved: only `nil` / `false` are falsy, so `(boolean 0)` and `(boolean "")` still fold to `true` (#2088)
 
 ### Fixed
 
