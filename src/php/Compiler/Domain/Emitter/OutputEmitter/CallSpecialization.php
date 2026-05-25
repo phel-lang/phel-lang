@@ -100,6 +100,10 @@ final readonly class CallSpecialization
             return true;
         }
 
+        if (self::isNotEqPeephole($node)) {
+            return true;
+        }
+
         return self::isTypedBinaryOp($node);
     }
 
@@ -261,6 +265,50 @@ final readonly class CallSpecialization
     public static function isTypedAssocConjDissoc(CallNode $node): bool
     {
         return self::typedAssocConjDissocMethod($node) !== null;
+    }
+
+    /**
+     * `(not (= a b))` where the inner `=` is already typed-binary-op
+     * specialisable (`===` between two typed primitives). The
+     * peephole emits `($a !== $b)` directly, sparing the runtime
+     * `phel.core/not` dispatch and the `!` wrapper.
+     *
+     * Returns the inner `=` `CallNode` so the emitter can splice the
+     * args between `!==`.
+     */
+    public static function notEqPeepholeInner(CallNode $node): ?CallNode
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode) {
+            return null;
+        }
+
+        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
+            || $fn->getName()->getName() !== 'not'
+        ) {
+            return null;
+        }
+
+        $args = $node->getArguments();
+        if (count($args) !== 1) {
+            return null;
+        }
+
+        $inner = $args[0];
+        if (!$inner instanceof CallNode) {
+            return null;
+        }
+
+        if (self::typedBinaryOpName($inner) !== '===') {
+            return null;
+        }
+
+        return $inner;
+    }
+
+    public static function isNotEqPeephole(CallNode $node): bool
+    {
+        return self::notEqPeepholeInner($node) instanceof CallNode;
     }
 
     /**
