@@ -179,6 +179,10 @@ final class CallEmitter implements NodeEmitterInterface
             return;
         }
 
+        if ($this->tryEmitNotEqPeephole($node)) {
+            return;
+        }
+
         if ($this->tryEmitTypedBinaryOp($node)) {
             return;
         }
@@ -301,6 +305,30 @@ final class CallEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('->' . $method . '(', $loc);
         $this->outputEmitter->emitNode($args[1]);
         $this->outputEmitter->emitStr('))', $loc);
+        return true;
+    }
+
+    /**
+     * `(not (= a b))` peephole over the typed-`=` specialiser:
+     * emits `($a !== $b)` directly, skipping both `phel.core/not`
+     * and the explicit `!(($a === $b))` wrapper.
+     *
+     * Eligibility lives on {@see CallSpecialization::notEqPeepholeInner()}.
+     */
+    private function tryEmitNotEqPeephole(CallNode $node): bool
+    {
+        $inner = CallSpecialization::notEqPeepholeInner($node);
+        if ($inner === null) {
+            return false;
+        }
+
+        $args = $inner->getArguments();
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($args[0]);
+        $this->outputEmitter->emitStr(' !== ', $loc);
+        $this->outputEmitter->emitNode($args[1]);
+        $this->outputEmitter->emitStr(')', $loc);
         return true;
     }
 

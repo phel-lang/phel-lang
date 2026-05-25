@@ -168,6 +168,42 @@ final class CallSpecializationTest extends TestCase
         self::assertNull(CallSpecialization::typedAssocConjDissocMethod($node));
     }
 
+    public function test_not_eq_peephole_fires_when_inner_eq_is_typed(): void
+    {
+        $env = $this->env();
+        $inner = $this->coreCall('=', [
+            $this->localWithTag('a', 'int'),
+            $this->localWithTag('b', 'int'),
+        ]);
+        $outer = $this->coreCall('not', [$inner]);
+
+        self::assertSame($inner, CallSpecialization::notEqPeepholeInner($outer));
+    }
+
+    public function test_not_eq_peephole_skips_when_inner_eq_is_untyped(): void
+    {
+        $env = $this->env();
+        $inner = $this->coreCall('=', [
+            new LocalVarNode($env, Symbol::create('a')),
+            new LocalVarNode($env, Symbol::create('b')),
+        ]);
+        $outer = $this->coreCall('not', [$inner]);
+
+        self::assertNull(CallSpecialization::notEqPeepholeInner($outer));
+    }
+
+    public function test_not_eq_peephole_skips_when_outer_is_not_not(): void
+    {
+        $env = $this->env();
+        $inner = $this->coreCall('=', [
+            $this->localWithTag('a', 'int'),
+            $this->localWithTag('b', 'int'),
+        ]);
+        $outer = $this->coreCall('inc', [$inner]);
+
+        self::assertNull(CallSpecialization::notEqPeepholeInner($outer));
+    }
+
     private function env(): NodeEnvironment
     {
         return NodeEnvironment::empty()->withExpressionContext();
