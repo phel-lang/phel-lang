@@ -68,6 +68,11 @@ abstract class AbstractTestCommand extends TestCase
                 return false;
             }
 
+            public function isSilent(): bool
+            {
+                return false;
+            }
+
             public function isVerbose(): bool
             {
                 return false;

@@ -69,3 +69,19 @@ jobs:
 
       - name: Run Bashunit tests
         run: tools/bashunit tools/*-test.sh --simple
+
+  symfony-console-7-compat:
+    name: Compat tests on symfony/console ^7.0
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-phel
+
+      - name: Pin symfony/console to ^7.0 for this run
+        run: composer update --with "symfony/console:^7.0" --with-all-dependencies --no-interaction --no-ansi --no-progress
+
+      - name: Run core tests
+        run: composer run-script test-core
+
+      - name: Run compiler integration tests
+        run: php -d memory_limit=2G vendor/bin/phpunit --testsuite=integration
