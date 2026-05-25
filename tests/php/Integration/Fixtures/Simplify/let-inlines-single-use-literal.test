@@ -1,0 +1,4 @@
+--PHEL--
+[(let [x 5] x)]
+--PHP--
+\Phel::vector([5]);
