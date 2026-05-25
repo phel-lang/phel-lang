@@ -1,0 +1,44 @@
+name: Announce release on X
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag (e.g. v0.40.0)'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  tweet:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install --no-save twitter-api-v2@^1.18.0
+
+      - name: Build and post thread
+        env:
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+          X_APP_KEY: ${{ secrets.X_APP_KEY }}
+          X_APP_SECRET: ${{ secrets.X_APP_SECRET }}
+          X_ACCESS_TOKEN: ${{ secrets.X_ACCESS_TOKEN }}
+          X_ACCESS_SECRET: ${{ secrets.X_ACCESS_SECRET }}
+          DRY_RUN: ${{ vars.ANNOUNCE_DRY_RUN || 'false' }}
+        run: node scripts/announce-release.mjs
+
+      - name: Upload thread draft
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: thread-${{ github.event.release.tag_name || inputs.tag }}
+          path: thread.json
+          if-no-files-found: ignore
