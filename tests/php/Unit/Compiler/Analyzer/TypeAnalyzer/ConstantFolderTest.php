@@ -9,7 +9,10 @@ use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
+use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\SetNode;
+use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\ConstantFolder;
 use Phel\Lang\Symbol;
@@ -414,6 +417,109 @@ final class ConstantFolderTest extends TestCase
         self::assertNull(new ConstantFolder()->fold($this->phpInfixCall('&', [12])));
     }
 
+    public function test_fold_count_vector(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCallWithArgs('count', [$this->vector([1, 2, 3])]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(3, $folded->getValue());
+    }
+
+    public function test_fold_count_map_divides_by_two(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCallWithArgs('count', [$this->map([1, 2, 3, 4])]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(2, $folded->getValue());
+    }
+
+    public function test_fold_count_set(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCallWithArgs('count', [$this->set([1, 2, 3])]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(3, $folded->getValue());
+    }
+
+    public function test_fold_count_skips_non_collection_arg(): void
+    {
+        self::assertNull(new ConstantFolder()->fold($this->coreCall('count', [42])));
+    }
+
+    public function test_fold_first_returns_first_literal(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCallWithArgs('first', [$this->vector([10, 20, 30])]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(10, $folded->getValue());
+    }
+
+    public function test_fold_first_empty_vector_is_nil(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCallWithArgs('first', [$this->vector([])]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertNull($folded->getValue());
+    }
+
+    public function test_fold_last_returns_last_literal(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCallWithArgs('last', [$this->vector([10, 20, 30])]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(30, $folded->getValue());
+    }
+
+    public function test_fold_first_skips_non_literal_element(): void
+    {
+        // Mixed: one non-literal child blocks the fold so side effects stay.
+        $env = NodeEnvironment::empty()->withExpressionContext();
+        $args = [
+            new LiteralNode($env, 10),
+            $this->globalVar('side-effect'),
+        ];
+        $vec = new VectorNode($env, $args);
+        $node = $this->coreCallWithArgs('first', [$vec]);
+
+        self::assertNull(new ConstantFolder()->fold($node));
+    }
+
+    public function test_fold_nth_in_bounds_returns_element(): void
+    {
+        $folded = new ConstantFolder()->fold($this->coreCallWithArgs(
+            'nth',
+            [$this->vector([10, 20, 30]), $this->literal(1)],
+        ));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(20, $folded->getValue());
+    }
+
+    public function test_fold_nth_out_of_bounds_skips(): void
+    {
+        // Phel raises at runtime; preserve that timing.
+        self::assertNull(new ConstantFolder()->fold($this->coreCallWithArgs(
+            'nth',
+            [$this->vector([10, 20]), $this->literal(99)],
+        )));
+    }
+
+    public function test_fold_nth_negative_index_skips(): void
+    {
+        self::assertNull(new ConstantFolder()->fold($this->coreCallWithArgs(
+            'nth',
+            [$this->vector([10, 20]), $this->literal(-1)],
+        )));
+    }
+
+    public function test_fold_nth_non_literal_index_skips(): void
+    {
+        self::assertNull(new ConstantFolder()->fold($this->coreCallWithArgs(
+            'nth',
+            [$this->vector([10, 20]), $this->globalVar('i')],
+        )));
+    }
+
     public function test_fold_if_truthy_test_returns_then_branch(): void
     {
         $env = NodeEnvironment::empty()->withExpressionContext();
@@ -492,5 +598,73 @@ final class ConstantFolderTest extends TestCase
         }
 
         return new CallNode($env, new PhpVarNode($env, $op), $argNodes);
+    }
+
+    /**
+     * @param list<Phel\Compiler\Domain\Analyzer\Ast\AbstractNode> $argNodes
+     */
+    private function coreCallWithArgs(string $name, array $argNodes): CallNode
+    {
+        $env = NodeEnvironment::empty()->withExpressionContext();
+
+        return new CallNode(
+            $env,
+            new GlobalVarNode(
+                $env,
+                CompilerConstants::PHEL_CORE_NAMESPACE,
+                Symbol::create($name),
+                Phel::map(),
+            ),
+            $argNodes,
+        );
+    }
+
+    /**
+     * @param list<bool|float|int|string|null> $values
+     */
+    private function vector(array $values): VectorNode
+    {
+        $env = NodeEnvironment::empty()->withExpressionContext();
+        $nodes = [];
+        foreach ($values as $v) {
+            $nodes[] = new LiteralNode($env, $v);
+        }
+
+        return new VectorNode($env, $nodes);
+    }
+
+    /**
+     * @param list<bool|float|int|string|null> $values
+     */
+    private function set(array $values): SetNode
+    {
+        $env = NodeEnvironment::empty()->withExpressionContext();
+        $nodes = [];
+        foreach ($values as $v) {
+            $nodes[] = new LiteralNode($env, $v);
+        }
+
+        return new SetNode($env, $nodes);
+    }
+
+    /**
+     * Flat `[k0, v0, k1, v1, ...]` list of literals mirroring MapNode shape.
+     *
+     * @param list<bool|float|int|string|null> $flat
+     */
+    private function map(array $flat): MapNode
+    {
+        $env = NodeEnvironment::empty()->withExpressionContext();
+        $nodes = [];
+        foreach ($flat as $v) {
+            $nodes[] = new LiteralNode($env, $v);
+        }
+
+        return new MapNode($env, $nodes);
+    }
+
+    private function literal(bool|float|int|string|null $value): LiteralNode
+    {
+        return new LiteralNode(NodeEnvironment::empty()->withExpressionContext(), $value);
     }
 }

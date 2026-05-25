@@ -1,0 +1,16 @@
+--PHEL--
+(let [a (count [1 2 3])
+      b (count {:k 1 :v 2})
+      c (count #{1 2 3})
+      d (first [10 20 30])
+      e (last [10 20 30])
+      f (nth [10 20 30] 1)]
+  [a b c d e f])
+--PHP--
+$a_1 = 3;
+$b_2 = 2;
+$c_3 = 3;
+$d_4 = 10;
+$e_5 = 30;
+$f_6 = 20;
+\Phel::vector([$a_1, $b_2, $c_3, $d_4, $e_5, $f_6]);
