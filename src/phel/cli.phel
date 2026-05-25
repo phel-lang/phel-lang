@@ -320,12 +320,17 @@
    :style     (php/new SymfonyStyle input output)})
 
 (defn- set-handler [cmd spec]
+  ;; Symfony 8 (and 7.3 as a deprecation) requires named PHP types on
+  ;; Command::setCode closure params. Tagging here lowers the underlying
+  ;; AbstractFn `__invoke` to a typed signature so Symfony's reflection
+  ;; check passes on every supported version.
   (let [handler (get spec :run)]
     (php/-> cmd
             (setCode
              (php/:: \Closure
                      (fromCallable
-                      (fn [input output]
+                      (fn [^"\\Symfony\\Component\\Console\\Input\\InputInterface" input
+                           ^"\\Symfony\\Component\\Console\\Output\\OutputInterface" output]
                         (let [ctx (build-ctx input output spec)]
                           (try
                             (let [result (handler ctx)]
