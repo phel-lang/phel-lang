@@ -40,7 +40,8 @@ final readonly class CompileExecutor
         }
 
         try {
-            $result = $this->compilerFacade->compile($source, new CompileOptions());
+            $options = new CompileOptions()->setEmitOnly(true);
+            $result = $this->compilerFacade->compile($source, $options);
             $stdout($result->getPhpCode());
             return true;
         } catch (CompilerException $e) {
