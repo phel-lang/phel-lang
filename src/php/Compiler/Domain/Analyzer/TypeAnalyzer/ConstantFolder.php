@@ -176,7 +176,12 @@ final class ConstantFolder
                 '^' => $acc ^ $n,
                 '<<' => $acc << $n,
                 '>>' => $acc >> $n,
+                default => null,
             };
+
+            if ($acc === null) {
+                return null;
+            }
         }
 
         return $acc;
@@ -211,13 +216,7 @@ final class ConstantFolder
      */
     private function anyNegative(array $values): bool
     {
-        foreach ($values as $v) {
-            if ($v < 0) {
-                return true;
-            }
-        }
-
-        return false;
+        return array_any($values, static fn($v): bool => $v < 0);
     }
 
     /**
