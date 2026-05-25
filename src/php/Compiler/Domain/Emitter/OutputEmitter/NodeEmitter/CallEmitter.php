@@ -318,7 +318,7 @@ final class CallEmitter implements NodeEmitterInterface
     private function tryEmitNotEqPeephole(CallNode $node): bool
     {
         $inner = CallSpecialization::notEqPeepholeInner($node);
-        if ($inner === null) {
+        if (!$inner instanceof CallNode) {
             return false;
         }
 

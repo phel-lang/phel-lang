@@ -308,7 +308,7 @@ final readonly class CallSpecialization
 
     public static function isNotEqPeephole(CallNode $node): bool
     {
-        return self::notEqPeepholeInner($node) !== null;
+        return self::notEqPeepholeInner($node) instanceof CallNode;
     }
 
     /**
