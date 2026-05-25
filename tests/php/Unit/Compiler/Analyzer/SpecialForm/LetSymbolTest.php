@@ -7,7 +7,6 @@ namespace PhelTest\Unit\Compiler\Analyzer\SpecialForm;
 use Phel;
 use Phel\Compiler\Application\Analyzer;
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
-use Phel\Compiler\Domain\Analyzer\Ast\BindingNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
@@ -93,6 +92,9 @@ final class LetSymbolTest extends TestCase
 
     public function test_with_one_binding(): void
     {
+        // The body is empty (analyser inserts an implicit `nil`), so the
+        // binding `a` is unused and its literal init is pure — the
+        // simplifier drops the binding entirely.
         Symbol::resetGen();
         $list = Phel::list([
             Symbol::create('let'),
@@ -105,17 +107,7 @@ final class LetSymbolTest extends TestCase
         $this->assertEquals(
             new LetNode(
                 $env,
-                [
-                    new BindingNode(
-                        $env->withDisallowRecurFrame(),
-                        Symbol::create('a'),
-                        Symbol::create('a_1'),
-                        new LiteralNode(
-                            $env->withExpressionContext()->withDisallowRecurFrame()->withDisallowRecurFrame()->withBoundTo('.a'),
-                            1,
-                        ),
-                    ),
-                ],
+                [],
                 new DoNode(
                     $env->withLocals([Symbol::create('a')])->withShadowedLocal(Symbol::create('a'), Symbol::create('a_1')),
                     [],
