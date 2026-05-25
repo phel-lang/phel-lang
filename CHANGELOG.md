@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 
 - `ConstantFolder`: compile-time evaluate `phel.core` comparison ops (`=`, `not=`, `<`, `<=`, `>`, `>=`) on integer / float literals. Variadic semantics preserved (pairwise check, single-arg → `true`, empty → skip so the runtime arity error fires as before). `BigInt` / `Ratio` args stay un-folded to keep the runtime numeric dispatcher in charge (#2088)
 - `ConstantFolder`: compile-time evaluate `phel.core` boolean predicates (`not`, `nil?`, `true?`, `false?`, `boolean`) when the single argument is any literal value. Phel truthiness preserved: only `nil` / `false` are falsy, so `(boolean 0)` and `(boolean "")` still fold to `true` (#2088)
+- `ConstantFolder`: compile-time evaluate bitwise `php/` interop ops (`&`, `|`, `^`, `<<`, `>>`, `~`) on int literals. Covers user-written `(php/& 12 10)` and the `bit-and` / `bit-or` / `bit-xor` / `bit-shift-left` / `bit-shift-right` / `bit-not` core fns whose `:inline` lowers to those ops. Float args skip the fold (PHP would coerce; Phel core asserts int-only via `assert-non-nil`); negative shift amounts skip so the runtime `ArithmeticError` fires unchanged (#2088)
 
 ### Fixed
 

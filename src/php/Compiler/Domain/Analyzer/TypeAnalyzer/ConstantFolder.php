@@ -9,9 +9,11 @@ use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Shared\CompilerConstants;
 
 use function array_shift;
+use function array_slice;
 use function count;
 use function in_array;
 use function is_float;
@@ -55,9 +57,36 @@ final class ConstantFolder
 
     private const array BOOL_PREDICATES = ['not', 'nil?', 'true?', 'false?', 'boolean'];
 
+    /**
+     * Bitwise `php/` interop ops that `bit-and`, `bit-or`, `bit-xor`,
+     * `bit-shift-left`, `bit-shift-right`, and `bit-not` inline-expand to.
+     * Folding these covers both user-written `(php/& 12 10)` calls and the
+     * `bit-and`/`bit-or`/… core fns whose `:inline` lowers to them.
+     *
+     * @var array<string, true>
+     */
+    private const array PHP_BITWISE_OPS = [
+        '&' => true,
+        '|' => true,
+        '^' => true,
+        '<<' => true,
+        '>>' => true,
+        '~' => true,
+    ];
+
     public function fold(CallNode $node): ?AbstractNode
     {
         $fn = $node->getFn();
+
+        if ($fn instanceof PhpVarNode && isset(self::PHP_BITWISE_OPS[$fn->getName()])) {
+            $result = $this->foldBitwise($fn->getName(), $node->getArguments());
+            if ($result === null) {
+                return null;
+            }
+
+            return new LiteralNode($node->getEnv(), $result, $node->getStartSourceLocation());
+        }
+
         if (!$fn instanceof GlobalVarNode) {
             return null;
         }
@@ -105,6 +134,90 @@ final class ConstantFolder
         $truthy = $value !== null && $value !== false;
 
         return $truthy ? $node->getThenExpr() : $node->getElseExpr();
+    }
+
+    /**
+     * Bitwise fold over int literals. Skips when any arg is non-int
+     * (PHP would coerce, but Phel core asserts int-only via
+     * `assert-non-nil`), when shift amount is negative (runtime error
+     * preserved), and when the op is `~` and the arity is not 1.
+     *
+     * @param list<AbstractNode> $args
+     */
+    private function foldBitwise(string $op, array $args): ?int
+    {
+        $ints = $this->extractIntLiterals($args);
+        if ($ints === null) {
+            return null;
+        }
+
+        if ($op === '~') {
+            if (count($ints) !== 1) {
+                return null;
+            }
+
+            return ~$ints[0];
+        }
+
+        if (count($ints) < 2) {
+            return null;
+        }
+
+        if (($op === '<<' || $op === '>>') && $this->anyNegative(array_slice($ints, 1))) {
+            return null;
+        }
+
+        $acc = $ints[0];
+        $rest = array_slice($ints, 1);
+        foreach ($rest as $n) {
+            $acc = match ($op) {
+                '&' => $acc & $n,
+                '|' => $acc | $n,
+                '^' => $acc ^ $n,
+                '<<' => $acc << $n,
+                '>>' => $acc >> $n,
+            };
+        }
+
+        return $acc;
+    }
+
+    /**
+     * @param list<AbstractNode> $args
+     *
+     * @return list<int>|null
+     */
+    private function extractIntLiterals(array $args): ?array
+    {
+        $ints = [];
+        foreach ($args as $arg) {
+            if (!$arg instanceof LiteralNode) {
+                return null;
+            }
+
+            $value = $arg->getValue();
+            if (!is_int($value)) {
+                return null;
+            }
+
+            $ints[] = $value;
+        }
+
+        return $ints;
+    }
+
+    /**
+     * @param list<int> $values
+     */
+    private function anyNegative(array $values): bool
+    {
+        foreach ($values as $v) {
+            if ($v < 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
