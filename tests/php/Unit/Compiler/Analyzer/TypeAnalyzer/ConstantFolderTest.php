@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\ConstantFolder;
 use Phel\Lang\Symbol;
@@ -334,6 +335,85 @@ final class ConstantFolderTest extends TestCase
         self::assertNull(new ConstantFolder()->fold($node));
     }
 
+    public function test_fold_bitwise_and(): void
+    {
+        $folded = new ConstantFolder()->fold($this->phpInfixCall('&', [12, 10]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(8, $folded->getValue());
+    }
+
+    public function test_fold_bitwise_or(): void
+    {
+        $folded = new ConstantFolder()->fold($this->phpInfixCall('|', [12, 10]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(14, $folded->getValue());
+    }
+
+    public function test_fold_bitwise_xor(): void
+    {
+        $folded = new ConstantFolder()->fold($this->phpInfixCall('^', [12, 10]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(6, $folded->getValue());
+    }
+
+    public function test_fold_bitwise_not_unary(): void
+    {
+        $folded = new ConstantFolder()->fold($this->phpInfixCall('~', [5]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(-6, $folded->getValue());
+    }
+
+    public function test_fold_bitwise_shift_left(): void
+    {
+        $folded = new ConstantFolder()->fold($this->phpInfixCall('<<', [1, 3]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(8, $folded->getValue());
+    }
+
+    public function test_fold_bitwise_shift_right(): void
+    {
+        $folded = new ConstantFolder()->fold($this->phpInfixCall('>>', [32, 2]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(8, $folded->getValue());
+    }
+
+    public function test_fold_bitwise_variadic_and(): void
+    {
+        $folded = new ConstantFolder()->fold($this->phpInfixCall('&', [15, 12, 10]));
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(8, $folded->getValue());
+    }
+
+    public function test_fold_bitwise_skips_float_arg(): void
+    {
+        self::assertNull(new ConstantFolder()->fold($this->phpInfixCall('&', [12, 1.5])));
+    }
+
+    public function test_fold_bitwise_skips_negative_shift(): void
+    {
+        // PHP raises ArithmeticError on negative shift; preserve runtime timing.
+        self::assertNull(new ConstantFolder()->fold($this->phpInfixCall('<<', [1, -1])));
+        self::assertNull(new ConstantFolder()->fold($this->phpInfixCall('>>', [8, -2])));
+    }
+
+    public function test_fold_bitwise_not_skips_wrong_arity(): void
+    {
+        self::assertNull(new ConstantFolder()->fold($this->phpInfixCall('~', [])));
+        self::assertNull(new ConstantFolder()->fold($this->phpInfixCall('~', [1, 2])));
+    }
+
+    public function test_fold_bitwise_binary_skips_single_arg(): void
+    {
+        self::assertNull(new ConstantFolder()->fold($this->phpInfixCall('&', [12])));
+    }
+
     public function test_fold_if_truthy_test_returns_then_branch(): void
     {
         $env = NodeEnvironment::empty()->withExpressionContext();
@@ -398,5 +478,19 @@ final class ConstantFolderTest extends TestCase
             Symbol::create($name),
             Phel::map(),
         );
+    }
+
+    /**
+     * @param list<bool|float|int|string|null> $args
+     */
+    private function phpInfixCall(string $op, array $args): CallNode
+    {
+        $env = NodeEnvironment::empty()->withExpressionContext();
+        $argNodes = [];
+        foreach ($args as $arg) {
+            $argNodes[] = new LiteralNode($env, $arg);
+        }
+
+        return new CallNode($env, new PhpVarNode($env, $op), $argNodes);
     }
 }

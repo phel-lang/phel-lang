@@ -2,4 +2,3 @@
 (bit-shift-left 2 1)
 --PHP--
 (\Phel::getDefinition("phel.core", "assert-non-nil"))->__invoke(2, 1);
-(2 << 1);

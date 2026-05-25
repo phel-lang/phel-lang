@@ -3,5 +3,4 @@
 (bit-or 1 2 3)
 --PHP--
 (\Phel::getDefinition("phel.core", "assert-non-nil"))->__invoke(1, 2);
-(1 | 2);(\Phel::getDefinition("phel.core", "assert-non-nil"))->__invoke(1, 2, 3);
-(1 | 2 | 3);
+(\Phel::getDefinition("phel.core", "assert-non-nil"))->__invoke(1, 2, 3);
