@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - `ConstantFolder`: compile-time evaluate `count` on literal vector / map / set, plus `first` / `last` / `nth` on literal vectors whose elements are all literal. `nth` skips out-of-bounds and non-int / negative indices so the runtime `IndexOutOfBoundsException` keeps its trigger point (#2088)
 - `ConstantFolder`: compile-time evaluate `(str ...)` when every argument is a literal `int`, `bool`, `string`, or `nil`. Phel's `val-to-str` semantics are preserved: `nil` becomes `""`, `false` / `true` render as `"false"` / `"true"`. Float arguments stay un-folded so the runtime's `NaN` / `±Infinity` / trailing-`.0` formatting keeps control (#2088)
 - `ConstantFolder`: compile-time evaluate `min` / `max` / `mod` / `quot` / `rem` / `abs` on numeric literals. `min` / `max` skip when any operand is `NaN` (Phel returns `##NaN`, which we don't lift to a literal); `mod` / `quot` / `rem` are int-only and skip when divisor is `0` so the runtime `DivisionByZeroError` keeps its trigger point; `abs` skips `PHP_INT_MIN` so the runtime's `BigInt` promotion path retains control (#2088)
+- New `Compiler/Domain/Analyzer/TypeAnalyzer/Simplification/` pass: `DoSimplifier` drops pure expressions from `(do ...)` body non-tail positions; the tail expression and side-effecting calls stay. Purity is conservative: `CallNode` purity defers to `ConstantFolder`, so calls that would throw at runtime (`(abs nil)`, `(quot 1 0)`, …) are not dropped (#2089)
 
 ### Fixed
 

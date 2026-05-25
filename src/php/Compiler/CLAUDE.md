@@ -60,7 +60,10 @@ Core compilation pipeline: Phel source -> tokens -> AST -> analyzed nodes -> PHP
 | Parser | `Application/Parser` | `TokenStream` | `FileNode` (parse tree) |
 | Reader | `Application/Reader` | `NodeInterface` | `ReaderResult` (Phel data) |
 | Analyzer | `Application/Analyzer` | Phel data | `AbstractNode` (AST) |
+| Simplifier | `Domain/Analyzer/TypeAnalyzer/Simplification/` | `AbstractNode` | `AbstractNode` (smaller) |
 | Emitter | Domain/Emitter/ | `AbstractNode` | `EmitterResult` (PHP code) |
+
+The simplification pass runs **after** the analyser-level `ConstantFolder`. It currently drops pure non-tail expressions from `(do ...)` bodies; purity is decided by `PureExpressionDetector`, which delegates `CallNode` checks to `ConstantFolder` so a call is "pure" only when the folder can statically compute its value (calls that would throw at runtime stay un-dropped).
 
 ## Structure
 
