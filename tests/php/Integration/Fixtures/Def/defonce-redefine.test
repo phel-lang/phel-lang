@@ -1,0 +1,25 @@
+--PHEL--
+(defonce counter 0) (defonce counter 99)
+--PHP--
+if (!\Phel::isDefined("user", "counter")) {
+  \Phel::addDefinition(
+    "user",
+    "counter",
+    0,
+    \Phel::map(
+      \Phel::keyword("start-location"), \Phel::location("Def/defonce-redefine.test", 1, 0),
+      \Phel::keyword("end-location"), \Phel::location("Def/defonce-redefine.test", 1, 19)
+    )
+  );
+}
+if (!\Phel::isDefined("user", "counter")) {
+  \Phel::addDefinition(
+    "user",
+    "counter",
+    99,
+    \Phel::map(
+      \Phel::keyword("start-location"), \Phel::location("Def/defonce-redefine.test", 1, 20),
+      \Phel::keyword("end-location"), \Phel::location("Def/defonce-redefine.test", 1, 40)
+    )
+  );
+}
