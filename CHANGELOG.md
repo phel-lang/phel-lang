@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `phel compile`: dry-run respects its "Does not evaluate" contract. Side-effecting forms (e.g. `(println ...)`, `(php/print ...)`) no longer execute during compilation; `CompileOptions` gains an `emitOnly` flag that skips the evaluator step (#2095)
 - `defonce`: same-file redefinition is now a silent no-op (matches the documented contract); previously the analyzer raised `DuplicateDefinitionException` (#2096)
 
 ## [0.40.0](https://github.com/phel-lang/phel-lang/compare/v0.39.0...v0.40.0) - 2026-05-25

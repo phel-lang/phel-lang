@@ -144,6 +144,14 @@ final readonly class CodeCompiler implements CodeCompilerInterface
             ->emitNode($node, $compileOptions->isSourceMapsEnabled())
             ->getCodeWithSourceMap();
 
+        if ($compileOptions->isEmitOnly()) {
+            // `phel compile` advertises "Does not evaluate"; skipping the
+            // evaluator preserves the dry-run contract. Same-snippet
+            // defmacros will not be available to later forms in this
+            // mode, which is the documented trade-off.
+            return;
+        }
+
         $this->evaluator->eval($phpCode);
     }
 }

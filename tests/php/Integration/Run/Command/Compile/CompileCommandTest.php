@@ -105,6 +105,19 @@ final class CompileCommandTest extends AbstractTestCommand
         self::assertSame('', $tester->getDisplay());
     }
 
+    public function test_compile_does_not_evaluate_side_effecting_forms(): void
+    {
+        $tester = new CommandTester(new CompileCommand());
+
+        ob_start();
+        $tester->execute(['source' => '(println "compile-time-leak")']);
+        $phpStdout = (string) ob_get_clean();
+
+        $tester->assertCommandIsSuccessful();
+        self::assertStringNotContainsString('compile-time-leak', $phpStdout);
+        self::assertStringContainsString('"println"', $tester->getDisplay());
+    }
+
     private function stdinReader(string $contents): PhpStdinReader
     {
         $stream = fopen('php://memory', 'r+');

@@ -12,11 +12,15 @@ final class CompileOptions
 
     public const bool DEFAULT_ENABLE_SOURCE_MAPS = true;
 
+    public const bool DEFAULT_EMIT_ONLY = false;
+
     private string $source = self::DEFAULT_SOURCE;
 
     private int $startingLine = self::DEFAULT_STARTING_LINE;
 
     private bool $isEnableSourceMaps = self::DEFAULT_ENABLE_SOURCE_MAPS;
+
+    private bool $emitOnly = self::DEFAULT_EMIT_ONLY;
 
     public function getSource(): string
     {
@@ -50,6 +54,18 @@ final class CompileOptions
     public function setIsEnabledSourceMaps(bool $isEnableSourceMaps): self
     {
         $this->isEnableSourceMaps = $isEnableSourceMaps;
+
+        return $this;
+    }
+
+    public function isEmitOnly(): bool
+    {
+        return $this->emitOnly;
+    }
+
+    public function setEmitOnly(bool $emitOnly): self
+    {
+        $this->emitOnly = $emitOnly;
 
         return $this;
     }
