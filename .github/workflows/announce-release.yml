@@ -25,6 +25,9 @@ jobs:
       - name: Install dependencies
         run: npm install --no-save twitter-api-v2@^1.18.0
 
+      - name: Run unit tests
+        run: node --test scripts/announce-release/*.test.mjs
+
       - name: Build and post thread
         env:
           TAG: ${{ github.event.release.tag_name || inputs.tag }}
