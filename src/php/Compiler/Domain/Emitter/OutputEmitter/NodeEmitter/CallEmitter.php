@@ -17,6 +17,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\PhpStringEscape;
 use Phel\Lang\Symbol;
 
+use function array_slice;
 use function assert;
 use function count;
 
@@ -174,6 +175,10 @@ final class CallEmitter implements NodeEmitterInterface
             return;
         }
 
+        if ($this->tryEmitTypedAssocConjDissoc($node)) {
+            return;
+        }
+
         if ($this->tryEmitTypedBinaryOp($node)) {
             return;
         }
@@ -295,6 +300,37 @@ final class CallEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitNode($args[0]);
         $this->outputEmitter->emitStr('->' . $method . '(', $loc);
         $this->outputEmitter->emitNode($args[1]);
+        $this->outputEmitter->emitStr('))', $loc);
+        return true;
+    }
+
+    /**
+     * Specialise `(assoc m k v)` / `(assoc v i x)` / `(conj v x)` /
+     * `(dissoc m k)` to a direct persistent-collection method when the
+     * target tag is known. Skips variadic forms.
+     */
+    private function tryEmitTypedAssocConjDissoc(CallNode $node): bool
+    {
+        $method = CallSpecialization::typedAssocConjDissocMethod($node);
+        if ($method === null) {
+            return false;
+        }
+
+        $args = $node->getArguments();
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($args[0]);
+        $this->outputEmitter->emitStr('->' . $method . '(', $loc);
+
+        $rest = array_slice($args, 1);
+        $count = count($rest);
+        foreach ($rest as $i => $arg) {
+            $this->outputEmitter->emitNode($arg);
+            if ($i < $count - 1) {
+                $this->outputEmitter->emitStr(', ', $loc);
+            }
+        }
+
         $this->outputEmitter->emitStr('))', $loc);
         return true;
     }
