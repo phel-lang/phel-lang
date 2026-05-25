@@ -1,0 +1,6 @@
+--PHEL--
+(fn [^"\Phel\Lang\Collections\Vector\PersistentVectorInterface" v] [(count v) (nth v 0)])
+--PHP--
+(function(\Phel\Lang\Collections\Vector\PersistentVectorInterface $v) {
+  return \Phel::vector([($v->count()), ($v->get(0))]);
+});

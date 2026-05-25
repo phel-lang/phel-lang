@@ -166,6 +166,10 @@ final class CallEmitter implements NodeEmitterInterface
             return;
         }
 
+        if ($this->tryEmitTypedVectorAccessor($node)) {
+            return;
+        }
+
         if ($this->tryEmitTypedBinaryOp($node)) {
             return;
         }
@@ -287,6 +291,37 @@ final class CallEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitNode($args[0]);
         $this->outputEmitter->emitStr('->' . $method . '(', $loc);
         $this->outputEmitter->emitNode($args[1]);
+        $this->outputEmitter->emitStr('))', $loc);
+        return true;
+    }
+
+    /**
+     * Specialise `(nth v i)` / `(count v)` to a direct method call on
+     * the tagged `PersistentVectorInterface` target. The runtime
+     * `phel.core/nth` body walks a `cond` over set / seq / vector /
+     * map / php-array; for a typed vector every branch collapses to
+     * a single method call.
+     */
+    private function tryEmitTypedVectorAccessor(CallNode $node): bool
+    {
+        $spec = CallSpecialization::typedVectorMethodCall($node);
+        if ($spec === null) {
+            return false;
+        }
+
+        $args = $node->getArguments();
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($args[0]);
+        $this->outputEmitter->emitStr('->' . $spec['method'] . '(', $loc);
+        $argCount = count($spec['args']);
+        foreach ($spec['args'] as $i => $argIndex) {
+            $this->outputEmitter->emitNode($args[$argIndex]);
+            if ($i < $argCount - 1) {
+                $this->outputEmitter->emitStr(', ', $loc);
+            }
+        }
+
         $this->outputEmitter->emitStr('))', $loc);
         return true;
     }

@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - New `Compiler/Domain/Analyzer/TypeAnalyzer/Simplification/` pass + `PureExpressionDetector` purity oracle (defers `CallNode` purity to `ConstantFolder` so calls that would throw at runtime are not considered safe to drop) (#2089)
 - `LetSimplifier`: drops `let` bindings whose shadow name is never referenced from any later init nor from the body, **when** the dropped init is pure. Loop bindings stay (recur can rebind them). Bindings whose body subtree emits a closure (`fn` / `multi-fn` / `foreach` / `try`) stay too — those nodes carry a `use(...)` capture list fixed at analysis time that would dangle on a dropped binding (#2089)
 - `LetSimplifier`: inline `(let […, x <literal>] x)` to the literal when the body's tail is a `LocalVarNode` whose shadow matches the last binding and the shadow has exactly one reference in the body. Limited to `LiteralNode` inits today because every other node type would need an env rebase on the let's outer context that the analyser doesn't yet expose safely (#2089)
+- `CallSpecialization`: `(count v)` and `(nth v i)` lower to direct `$v->count()` / `$v->get($i)` method calls when the analyser has tagged `v` as `PersistentVectorInterface`. The runtime `phel.core/nth` body walks a `cond` over set / seq / vector / map / php-array; the typed path collapses every branch (#2090)
 
 ### Fixed
 
