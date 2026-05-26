@@ -6,6 +6,7 @@ namespace Phel\Run\Application;
 
 use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Compiler\Domain\Analyzer\Resolver\LoadClasspath;
+use Phel\Shared\CompilerConstants;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Throwable;
@@ -37,18 +38,9 @@ final readonly class FileRunner
         LoadClasspath::publish([...$primaryDirs, $scriptDir]);
         new DataReadersLoader($this->buildFacade)->load($primaryDirs);
 
-        // Seed the dependency walk with both the script namespace and its
-        // direct requires: an ad-hoc script (in dirname rather than srcDirs)
-        // is not itself discoverable, so its transitive deps would otherwise
-        // be missed even when they live under configured `srcDirs`/vendor.
         $primaryInfos = $this->buildFacade->getDependenciesForNamespace(
             $primaryDirs,
-            array_values(array_unique([
-                $scriptInfo->getNamespace(),
-                'phel.core',
-                ...$this->bundledNamespaces->all(),
-                ...$scriptInfo->getDependencies(),
-            ])),
+            $this->primarySeeds($scriptInfo),
         );
 
         $resolved = $this->indexByNamespace($primaryInfos);
@@ -60,6 +52,27 @@ final readonly class FileRunner
 
         $fallbackInfos = $this->resolveAdHocFallback($scriptInfo, $scriptDir, $resolved);
         $this->evalAll([...$primaryInfos, ...$fallbackInfos, $scriptInfo]);
+    }
+
+    /**
+     * Seed the dependency walk with the script namespace, every bundled
+     * `phel.*` module (so fully qualified refs like `phel.async/delay`
+     * resolve without an explicit require), and the script's direct
+     * requires. The script's direct requires are kept because an ad-hoc
+     * script in `dirname` rather than configured `srcDirs` is not itself
+     * discoverable, so its transitive deps would otherwise be missed even
+     * when they live under `srcDirs`/vendor.
+     *
+     * @return list<string>
+     */
+    private function primarySeeds(NamespaceInformation $scriptInfo): array
+    {
+        return array_values(array_unique([
+            $scriptInfo->getNamespace(),
+            CompilerConstants::PHEL_CORE_NAMESPACE,
+            ...$this->bundledNamespaces->all(),
+            ...$scriptInfo->getDependencies(),
+        ]));
     }
 
     /**
