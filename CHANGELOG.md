@@ -74,6 +74,8 @@ Control-flow lowering to PHP `match` (#2091):
 
 - `BooleanExprDetector`: recognise specialised predicate `CallNode`s (`nil?`, `some?`, `true?`, `false?`, `truthy?`, the numeric predicates on tagged numerics, the type predicates, `empty?`, `contains?`) as bool-returning. Lets `IfEmitter` splice the lowered expression straight into the `if` test slot without the Phel-truthy `($__truthy = …) !== null && $__truthy !== false` adapter — combined with the tail-ternary lowering, `(if (nil? x) a b)` becomes `return (($x === null) ? a : b);` (#2172)
 
+- `LetEmitter`: lower `(or …)` / `(and …)` in expression / return context to a nested PHP ternary that preserves the Phel value-semantics (return first truthy / last falsy value), skipping the IIFE wrap. Same restriction as the test-position lowerer in #2153: every operand must be a simple expression shape. `(or a b c)` returns the first truthy value through a `($__or = …)` cascade without allocating a closure (#2174)
+
 ### Fixed
 
 - `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)

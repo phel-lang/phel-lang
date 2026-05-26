@@ -13,6 +13,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 
 use function assert;
+use function count;
 use function in_array;
 use function is_string;
 use function ltrim;
@@ -29,6 +30,10 @@ final class LetEmitter implements NodeEmitterInterface
         assert($node instanceof LetNode);
 
         if ($this->tryEmitAsMatch($node)) {
+            return;
+        }
+
+        if ($this->tryEmitAsShortCircuit($node)) {
             return;
         }
 
@@ -111,6 +116,95 @@ final class LetEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitContextSuffix($env, $loc);
 
         return true;
+    }
+
+    /**
+     * Lower the expanded `(or …)` / `(and …)` macro shapes to a
+     * nested PHP ternary that preserves the Phel value-semantics
+     * (return the first truthy value / last falsy, not a bool).
+     * Skips the IIFE wrap the generic let-in-expression path emits.
+     *
+     * Statement-context lets do not benefit (no value is consumed),
+     * so we keep the generic emit there.
+     */
+    private function tryEmitAsShortCircuit(LetNode $node): bool
+    {
+        $env = $node->getEnv();
+        if ($env->isContext(NodeEnvironment::CONTEXT_STATEMENT)) {
+            return false;
+        }
+
+        $chain = AndOrShortCircuitLowerer::extractOrChain($node);
+        if ($chain !== null) {
+            $this->emitValuePositionChain($node, $chain, true);
+            return true;
+        }
+
+        $chain = AndOrShortCircuitLowerer::extractAndChain($node);
+        if ($chain !== null) {
+            $this->emitValuePositionChain($node, $chain, false);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @param list<AbstractNode> $operands
+     */
+    private function emitValuePositionChain(LetNode $node, array $operands, bool $isOr): void
+    {
+        $env = $node->getEnv();
+        $loc = $node->getStartSourceLocation();
+
+        $this->outputEmitter->emitContextPrefix($env, $loc);
+
+        $count = count($operands);
+        for ($i = 0; $i < $count - 1; ++$i) {
+            $this->outputEmitter->emitStr('((($__or = ', $loc);
+            $this->emitOperandAsExpression($operands[$i]);
+            $this->outputEmitter->emitStr(') !== null && $__or !== false) ? ', $loc);
+            if ($isOr) {
+                $this->outputEmitter->emitStr('$__or : ', $loc);
+            }
+        }
+
+        $this->emitOperandAsExpression($operands[$count - 1]);
+
+        $suffix = $isOr ? ')' : ' : $__or)';
+        for ($i = 0; $i < $count - 1; ++$i) {
+            $this->outputEmitter->emitStr($suffix, $loc);
+        }
+
+        $this->outputEmitter->emitContextSuffix($env, $loc);
+    }
+
+    /**
+     * Capture the emit output of a chain operand and strip the
+     * analyser's `return ` prefix / trailing `;` so the result fits
+     * inside the ternary expression. Same trick `IfEmitter` uses for
+     * test-position chains.
+     */
+    private function emitOperandAsExpression(AbstractNode $operand): void
+    {
+        ob_start();
+        try {
+            $this->outputEmitter->emitNode($operand);
+        } finally {
+            $buf = (string) ob_get_clean();
+        }
+
+        $stripped = preg_replace('/^return\s+/', '', $buf);
+        if ($stripped === null) {
+            $stripped = '';
+        }
+
+        $stripped = rtrim($stripped);
+        if ($stripped !== '' && str_ends_with($stripped, ';')) {
+            $stripped = substr($stripped, 0, -1);
+        }
+
+        $this->outputEmitter->emitStr($stripped, $operand->getStartSourceLocation());
     }
 
     /**
