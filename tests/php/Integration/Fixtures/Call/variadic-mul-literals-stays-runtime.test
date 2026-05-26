@@ -1,0 +1,7 @@
+--PHEL--
+(fn [] (* 100000000 100000000 100000000))
+--PHP--
+(function() {
+  static $__phel_call_0;
+  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "*"))->__invoke(100000000, 100000000, 100000000);
+});

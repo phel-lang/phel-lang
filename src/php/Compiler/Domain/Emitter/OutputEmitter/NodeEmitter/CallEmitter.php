@@ -183,6 +183,10 @@ final class CallEmitter implements NodeEmitterInterface
             return;
         }
 
+        if ($this->tryEmitTypedVariadicChain($node)) {
+            return;
+        }
+
         if ($this->tryEmitTypedBinaryOp($node)) {
             return;
         }
@@ -277,6 +281,51 @@ final class CallEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitNode($args[0]);
         $this->outputEmitter->emitStr(' ' . $op . ' ', $loc);
         $this->outputEmitter->emitNode($args[1]);
+        $this->outputEmitter->emitStr(')', $loc);
+        return true;
+    }
+
+    /**
+     * Variadic (N>=3) numeric / ordering ops over tagged numeric locals.
+     * `arith` ops chain as `($a + $b + $c)` (PHP is left-associative just
+     * like Phel's variadic `+`/`*`); `compare` ops expand to a pairwise
+     * `&&` chain `(($a < $b) && ($b < $c))` because PHP `<` does not
+     * thread its result through the next comparison the way Phel does.
+     *
+     * Eligibility lives on {@see CallSpecialization::typedVariadicChain()}.
+     */
+    private function tryEmitTypedVariadicChain(CallNode $node): bool
+    {
+        $spec = CallSpecialization::typedVariadicChain($node);
+        if ($spec === null) {
+            return false;
+        }
+
+        $args = $node->getArguments();
+        $loc = $node->getStartSourceLocation();
+        $op = $spec['op'];
+        $this->outputEmitter->emitStr('(', $loc);
+
+        if ($spec['kind'] === 'arith') {
+            $this->outputEmitter->emitNode($args[0]);
+            for ($i = 1, $n = count($args); $i < $n; ++$i) {
+                $this->outputEmitter->emitStr(' ' . $op . ' ', $loc);
+                $this->outputEmitter->emitNode($args[$i]);
+            }
+        } else {
+            for ($i = 0, $n = count($args) - 1; $i < $n; ++$i) {
+                if ($i > 0) {
+                    $this->outputEmitter->emitStr(' && ', $loc);
+                }
+
+                $this->outputEmitter->emitStr('(', $loc);
+                $this->outputEmitter->emitNode($args[$i]);
+                $this->outputEmitter->emitStr(' ' . $op . ' ', $loc);
+                $this->outputEmitter->emitNode($args[$i + 1]);
+                $this->outputEmitter->emitStr(')', $loc);
+            }
+        }
+
         $this->outputEmitter->emitStr(')', $loc);
         return true;
     }
