@@ -38,6 +38,8 @@ Control-flow lowering to PHP `match` (#2091):
 
 - `DefStructEmitter`: emit `defstruct`-generated classes as `final` to let PHP OPcache / JIT monomorphise method dispatch. `def-exception` keeps non-final (parent class is user-specified, subclassing chains stay valid); fn-as-class / multi-fn / reify already emit anonymous classes which are implicitly final (#2137)
 
+- `LetEmitter`: emit `/** @var T $shadow */` before each tagged `let` / `loop` binding init. Primitives (`int` / `float` / `bool` / `string` / `array`) pass through; class tags get a leading `\` so static analysers resolve from the global namespace. Function params already carry native PHP type hints via `MethodEmitter`, so they are unchanged. Runtime perf is unchanged — docblocks help static analysers (PHPStan / Psalm / IDEs) read the generated PHP, the PHP JIT itself infers types from opcodes (#2136)
+
 ### Fixed
 
 - `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)
