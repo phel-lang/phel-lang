@@ -80,6 +80,8 @@ Control-flow lowering to PHP `match` (#2091):
 
 - `CallSpecialization`: lower `(deref x)` (1-arg) and `(reset! v val)` to direct method calls (`$x->deref()` and `$v->set($val)`), skipping the registry lookup. The runtime fn body is itself a single `php/->` call, so the failure mode (method not found) is identical. The 3-arg `deref` overload (future / promise timeout) keeps the runtime dispatch (#2179)
 
+- `CallSpecialization`: infer return types of known `php/*` scalar functions (`cos`, `sin`, `sqrt`, `count`, `strlen`, `intval`, `floor`, `is_int`, `sprintf`, etc.) via a private `KnownPhpFunctionReturnTypes` table, plus propagate the result tag of typed-arith calls (`+` / `-` / `*` on `int`/`float`-tagged operands) so nested expressions chain. `(+ ^float angle (php/cos a))` now emits native `($angle + cos($a))` instead of runtime dispatch; `(+ sum (* d (php/cos angle)))` chains all the way to `($sum + ($d * cos($angle)))`. Unlisted PHP functions stay on the runtime dispatch. Path 2 (best-effort propagation through `php/aget` via an `:items-type` meta hint) is deferred (#2175)
+
 ### Fixed
 
 - `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)

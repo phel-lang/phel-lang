@@ -9,6 +9,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Lang\AbstractFn;
 use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
@@ -1135,12 +1136,8 @@ final readonly class CallSpecialization
             return true;
         }
 
-        if (!$arg instanceof LocalVarNode) {
-            return false;
-        }
-
-        $tag = $arg->getInferredType();
-        return $tag !== null && ltrim($tag, '\\') === 'string';
+        $tag = self::normalisedTag(self::inferredTypeOfNode($arg));
+        return $tag !== null && $tag === 'string';
     }
 
     private static function isPersistentMapTag(?string $tag): bool
@@ -1179,11 +1176,7 @@ final readonly class CallSpecialization
         return array_all(
             $args,
             static function (AbstractNode $arg): bool {
-                if (!$arg instanceof LocalVarNode) {
-                    return false;
-                }
-
-                $tag = self::normalisedTag($arg->getInferredType());
+                $tag = self::normalisedTag(self::inferredTypeOfNode($arg));
                 return $tag !== null && in_array($tag, self::NUMERIC_PRIMITIVE_TAGS, true);
             },
         );
@@ -1198,12 +1191,112 @@ final readonly class CallSpecialization
             return self::matchesLiteralPrimitive($arg->getValue(), $acceptedTags);
         }
 
-        if (!$arg instanceof LocalVarNode) {
-            return false;
+        $tag = self::normalisedTag(self::inferredTypeOfNode($arg));
+        return $tag !== null && in_array($tag, $acceptedTags, true);
+    }
+
+    /**
+     * Static type the emitter can attribute to `$arg`'s emitted PHP
+     * expression. Handles two shapes:
+     *
+     *  - `LocalVarNode` — analyser-resolved binding tag (`^int` / `^float`
+     *    / a class FQN). The numeric / equality specialiser was built
+     *    around this case in PR #2148.
+     *  - `CallNode` whose `fn` is a `PhpVarNode` listed in
+     *    {@see KnownPhpFunctionReturnTypes}. The fn name resolves to a
+     *    PHP scalar function whose return shape is fixed (`php/cos` →
+     *    `float`, `php/count` → `int`, etc.), so the call site can be
+     *    spliced into a native binary op the same way a tagged local
+     *    can. This is the path closing #2175 — real game / raycaster
+     *    code reads `(+ ^float angle (php/cos a))`, not
+     *    `(+ ^float a ^float b)`.
+     *
+     * Returns `null` when the node carries no usable type, which leaves
+     * the call site on the generic runtime dispatch.
+     */
+    private static function inferredTypeOfNode(AbstractNode $arg): ?string
+    {
+        if ($arg instanceof LocalVarNode) {
+            return $arg->getInferredType();
         }
 
-        $tag = self::normalisedTag($arg->getInferredType());
-        return $tag !== null && in_array($tag, $acceptedTags, true);
+        if (!$arg instanceof CallNode) {
+            return null;
+        }
+
+        $fn = $arg->getFn();
+        if ($fn instanceof PhpVarNode) {
+            return KnownPhpFunctionReturnTypes::returnTypeOf($fn->getName());
+        }
+
+        // Nested typed-arith / typed-equality calls keep their numeric tag so
+        // an outer specialiser fires on the chained shape. `(+ a (* b c))`
+        // with all-numeric operands lowers `(* b c)` to a native PHP product;
+        // the outer `+` must see that product as `float` (when any operand is
+        // float) or `int` so it can emit `($a + ($b * $c))` instead of a
+        // runtime dispatch around the inner native expression.
+        return self::numericTypeOfTypedBinaryCall($arg);
+    }
+
+    /**
+     * Result tag of a numeric typed-arith call (`+`, `-`, `*`) when every
+     * operand carries a known numeric tag. The promotion rule mirrors
+     * PHP's arithmetic operators: any `float` operand yields `float`,
+     * otherwise `int`. Comparison ops return `bool` and aren't covered
+     * here because the caller wants a numeric tag to splice into another
+     * arithmetic op; equality / comparison feed the boolean-expression
+     * detector instead.
+     *
+     * Recursion is bounded by AST depth — each call inspects strictly
+     * smaller subexpressions.
+     */
+    private static function numericTypeOfTypedBinaryCall(CallNode $node): ?string
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode
+            || $fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
+        ) {
+            return null;
+        }
+
+        $name = $fn->getName()->getName();
+        if (!in_array($name, ['+', '-', '*'], true)) {
+            return null;
+        }
+
+        $args = $node->getArguments();
+        if (count($args) < 2) {
+            return null;
+        }
+
+        $anyFloat = false;
+        foreach ($args as $arg) {
+            $tag = self::operandNumericTag($arg);
+            if ($tag === null) {
+                return null;
+            }
+
+            if ($tag === 'float') {
+                $anyFloat = true;
+            }
+        }
+
+        return $anyFloat ? 'float' : 'int';
+    }
+
+    private static function operandNumericTag(AbstractNode $arg): ?string
+    {
+        if ($arg instanceof LiteralNode) {
+            $value = $arg->getValue();
+            if (is_float($value)) {
+                return 'float';
+            }
+
+            return is_int($value) ? 'int' : null;
+        }
+
+        $tag = self::normalisedTag(self::inferredTypeOfNode($arg));
+        return in_array($tag, self::NUMERIC_PRIMITIVE_TAGS, true) ? $tag : null;
     }
 
     /**

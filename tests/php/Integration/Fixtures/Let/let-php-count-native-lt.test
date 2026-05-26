@@ -1,0 +1,6 @@
+--PHEL--
+(fn [^int i arr] (< i (php/count arr)))
+--PHP--
+(function(int $i, $arr): bool {
+  return ($i < count($arr));
+});

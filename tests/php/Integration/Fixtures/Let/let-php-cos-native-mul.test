@@ -1,0 +1,6 @@
+--PHEL--
+(fn [^float d ^float offset] (* d (php/cos offset)))
+--PHP--
+(function(float $d, float $offset) {
+  return ($d * cos($offset));
+});
