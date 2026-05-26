@@ -1,5 +1,6 @@
 (ns phel-test.assert-expr-extensibility
-  (:require phel.test :refer [deftest is get-stats reset-stats restore-stats]))
+  (:require phel.test :refer [deftest is get-stats reset-stats restore-stats]
+            [clojure.test :as t]))
 
 ;; Issue #1188: `phel.test/assert-expr` is a public multimethod, so users
 ;; can register custom assertion forms for the `is` macro from any
@@ -19,7 +20,7 @@
 ;; Custom binary assertion: approx= for near-equal floats
 ;; ---------------------------------------------------------------------------
 
-(defmethod phel.test/assert-expr 'approx= [form message]
+(defmethod phel.test/assert-expr 'approx= [message form]
            (let [a       (second form)
                  b       (second (next form))
                  epsilon 0.001]
@@ -41,7 +42,7 @@
 ;; Second custom method: divisible? — proves multiple methods coexist
 ;; ---------------------------------------------------------------------------
 
-(defmethod phel.test/assert-expr 'divisible? [form message]
+(defmethod phel.test/assert-expr 'divisible? [message form]
            (let [n (second form)
                  d (second (next form))]
              `(is (zero? (php/% ~n ~d)) ~message)))
@@ -63,7 +64,7 @@
 ;; Custom unary assertion: even-positive? — single-arg form
 ;; ---------------------------------------------------------------------------
 
-(defmethod phel.test/assert-expr 'even-positive? [form message]
+(defmethod phel.test/assert-expr 'even-positive? [message form]
            (let [n (second form)]
              `(is (and (pos? ~n) (even? ~n)) ~message)))
 
@@ -87,7 +88,7 @@
 ;; as :error rather than :failed.
 ;; ---------------------------------------------------------------------------
 
-(defmethod phel.test/assert-expr 'always-throws [_form _message]
+(defmethod phel.test/assert-expr 'always-throws [_message _form]
            `(throw (php/new \RuntimeException "boom from custom assertion")))
 
 (deftest test-custom-method-exception-is-reported-as-error
@@ -120,9 +121,33 @@
 ;; method (not through :default), proving dispatch precedence.
 ;; ---------------------------------------------------------------------------
 
-(defmethod phel.test/assert-expr 'tagged= [form message]
+(defmethod phel.test/assert-expr 'tagged= [message form]
            `(is (= ~(second form) ~(second (next form))) ~message))
 
 (deftest test-custom-dispatch-routes-through-new-method
   (is (tagged= 1 1) "tagged= dispatches through registered method")
   (is (tagged= "x" "x") "tagged= works for strings"))
+
+(defmethod t/assert-expr 'p/thrown? [message form]
+           (let [body (rest form)]
+             `(try
+                (let [result# (do ~@body)]
+                  (t/do-report {:type :fail
+                                :message ~message
+                                :expected '~form
+                                :actual result#}))
+                (catch ~'Throwable e#
+                  (t/do-report {:type :pass
+                                :message ~message
+                                :expected '~form
+                                :actual e#})
+                  e#))))
+
+(deftest test-custom-clojure-style-thrown-symbol-dispatches-through-new-method
+  (let [saved  (get-stats)
+        _      (reset-stats)
+        _      (with-output-buffer
+                 (t/is (p/thrown? (throw (php/new \RuntimeException "boom")))))
+        counts (get (get-stats) :counts)]
+    (restore-stats saved)
+    (is (= 1 (:pass counts)) "namespaced custom assert dispatch values do not require a resolved function")))
