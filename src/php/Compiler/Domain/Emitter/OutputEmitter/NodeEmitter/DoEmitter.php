@@ -19,7 +19,16 @@ final class DoEmitter implements NodeEmitterInterface
     {
         assert($node instanceof DoNode);
 
-        $isWrapFn = $node->getStmts() !== [] && $node->getEnv()->isContext(NodeEnvironment::CONTEXT_EXPRESSION);
+        // Wrap in an IIFE whenever we need to host a `return X;` inside an
+        // expression context. `stmts !== []` is the original signal: when the
+        // body has non-tail statements, `DoSymbol::analyze` promotes the tail
+        // expression to RETURN context for the emit step. The simplifier
+        // (`Simplification\DoSimplifier`) may drop every non-tail statement,
+        // so the ret's env is the authoritative source of truth, not the
+        // current `stmts` count.
+        $isExpression = $node->getEnv()->isContext(NodeEnvironment::CONTEXT_EXPRESSION);
+        $retNeedsReturn = $node->getRet()->getEnv()->isContext(NodeEnvironment::CONTEXT_RETURN);
+        $isWrapFn = $isExpression && ($node->getStmts() !== [] || $retNeedsReturn);
 
         if ($isWrapFn) {
             $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
