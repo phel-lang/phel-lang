@@ -104,6 +104,10 @@ final readonly class CallSpecialization
             return true;
         }
 
+        if (self::isTypedVariadicChain($node)) {
+            return true;
+        }
+
         return self::isTypedBinaryOp($node);
     }
 
@@ -356,6 +360,59 @@ final readonly class CallSpecialization
     }
 
     /**
+     * Variadic (N>=3 args) `phel.core` numeric / ordering ops where the
+     * analyser has tagged **every** operand as a primitive
+     * `LocalVarNode` (`^int` / `^float`). Returns the PHP operator to
+     * splice between consecutive operands together with a `kind`
+     * discriminating chained arithmetic from chained comparison emission.
+     *
+     * Literals are deliberately excluded for N>=3: a pure-literal int
+     * chain that the constant folder refused (because the product would
+     * exceed `PHP_INT_MAX`) must keep its runtime dispatch so
+     * `BigInt` / `Ratio` promotion still triggers. The user opts into the
+     * primitive-only trade-off by tagging the binding.
+     *
+     * @return array{op: string, kind: 'arith'|'compare'}|null
+     */
+    public static function typedVariadicChain(CallNode $node): ?array
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode) {
+            return null;
+        }
+
+        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE) {
+            return null;
+        }
+
+        $args = $node->getArguments();
+        if (count($args) < 3) {
+            return null;
+        }
+
+        if (!self::allArgsAreTaggedNumericLocals($args)) {
+            return null;
+        }
+
+        $name = $fn->getName()->getName();
+
+        if (in_array($name, ['+', '*'], true)) {
+            return ['op' => self::NUMERIC_BINARY_OPS[$name], 'kind' => 'arith'];
+        }
+
+        if (in_array($name, ['<', '<=', '>', '>='], true)) {
+            return ['op' => self::NUMERIC_BINARY_OPS[$name], 'kind' => 'compare'];
+        }
+
+        return null;
+    }
+
+    public static function isTypedVariadicChain(CallNode $node): bool
+    {
+        return self::typedVariadicChain($node) !== null;
+    }
+
+    /**
      * `(get coll k)` with two args, where the analyser has tagged the
      * target as either `PersistentVectorInterface` or
      * `PersistentMapInterface`. The runtime `phel.core/get` body walks
@@ -489,6 +546,24 @@ final readonly class CallSpecialization
         return array_all(
             $args,
             static fn(AbstractNode $arg): bool => self::isPrimitiveOperand($arg, $acceptedTags),
+        );
+    }
+
+    /**
+     * @param list<AbstractNode> $args
+     */
+    private static function allArgsAreTaggedNumericLocals(array $args): bool
+    {
+        return array_all(
+            $args,
+            static function (AbstractNode $arg): bool {
+                if (!$arg instanceof LocalVarNode) {
+                    return false;
+                }
+
+                $tag = self::normalisedTag($arg->getInferredType());
+                return $tag !== null && in_array($tag, self::NUMERIC_PRIMITIVE_TAGS, true);
+            },
         );
     }
 

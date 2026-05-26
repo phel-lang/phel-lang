@@ -204,6 +204,84 @@ final class CallSpecializationTest extends TestCase
         self::assertNull(CallSpecialization::notEqPeepholeInner($outer));
     }
 
+    public function test_variadic_mul_three_int_locals_chains_arith(): void
+    {
+        $node = $this->coreCall('*', [
+            $this->localWithTag('a', 'int'),
+            $this->localWithTag('b', 'int'),
+            $this->localWithTag('c', 'int'),
+        ]);
+
+        self::assertSame(
+            ['op' => '*', 'kind' => 'arith'],
+            CallSpecialization::typedVariadicChain($node),
+        );
+    }
+
+    public function test_variadic_lt_chains_compare(): void
+    {
+        $node = $this->coreCall('<', [
+            $this->localWithTag('a', 'int'),
+            $this->localWithTag('b', 'int'),
+            $this->localWithTag('c', 'int'),
+        ]);
+
+        self::assertSame(
+            ['op' => '<', 'kind' => 'compare'],
+            CallSpecialization::typedVariadicChain($node),
+        );
+    }
+
+    public function test_variadic_chain_rejects_literal_args(): void
+    {
+        // Pure-literal int chain must stay on the runtime path so the
+        // numeric dispatcher's BigInt / Ratio promotion still triggers.
+        $env = $this->env();
+        $node = $this->coreCall('*', [
+            new LiteralNode($env, 100000000),
+            new LiteralNode($env, 100000000),
+            new LiteralNode($env, 100000000),
+        ]);
+
+        self::assertNull(CallSpecialization::typedVariadicChain($node));
+    }
+
+    public function test_variadic_chain_rejects_two_args(): void
+    {
+        $node = $this->coreCall('*', [
+            $this->localWithTag('a', 'int'),
+            $this->localWithTag('b', 'int'),
+        ]);
+
+        self::assertNull(CallSpecialization::typedVariadicChain($node));
+    }
+
+    public function test_variadic_chain_rejects_eq_op(): void
+    {
+        // `=` would need a pairwise `&&` chain like `<`, but it also
+        // accepts `bool` / `string` which are not in NUMERIC_PRIMITIVE_TAGS;
+        // keep it 2-arg only for now.
+        $node = $this->coreCall('=', [
+            $this->localWithTag('a', 'int'),
+            $this->localWithTag('b', 'int'),
+            $this->localWithTag('c', 'int'),
+        ]);
+
+        self::assertNull(CallSpecialization::typedVariadicChain($node));
+    }
+
+    public function test_variadic_chain_rejects_untyped_local(): void
+    {
+        $env = $this->env();
+        $node = $this->coreCall('+', [
+            $this->localWithTag('a', 'int'),
+            new LocalVarNode($env, Symbol::create('b')),
+            $this->localWithTag('c', 'int'),
+        ]);
+
+        self::assertNull(CallSpecialization::typedVariadicChain($node));
+    }
+
     private function env(): NodeEnvironment
     {
         return NodeEnvironment::empty()->withExpressionContext();

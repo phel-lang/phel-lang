@@ -1,0 +1,6 @@
+--PHEL--
+(fn [^int a ^int b ^int c] (* a b c))
+--PHP--
+(function(int $a, int $b, int $c) {
+  return ($a * $b * $c);
+});
