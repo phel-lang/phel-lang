@@ -2,6 +2,7 @@
 (fn [^float x] (let [^float a 2.0] (* a x)))
 --PHP--
 (function(float $x) {
+  /** @var float $a_1 */
   $a_1 = 2.0;
   return ($a_1 * $x);
 });

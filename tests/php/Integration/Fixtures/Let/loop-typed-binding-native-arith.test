@@ -2,6 +2,7 @@
 (fn [^int n] (loop [^int i 0] (if (< i n) (recur (+ i 1)) i)))
 --PHP--
 (function(int $n) {
+  /** @var int $i_1 */
   $i_1 = 0;
   while (true) {
     if (($__truthy = ($i_1 < $n)) !== null && $__truthy !== false) {
