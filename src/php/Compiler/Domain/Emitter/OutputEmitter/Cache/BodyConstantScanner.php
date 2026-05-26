@@ -33,6 +33,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\TryNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\GlobalCallTarget;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\IfChainMatchLowerer;
 use Phel\Lang\Keyword;
 
 /**
@@ -62,6 +63,19 @@ final readonly class BodyConstantScanner
             return;
         }
 
+        // When a `LetNode` / `IfNode` will be lowered to a PHP `match`,
+        // its cond-test calls and arm-key literals are consumed by the
+        // lowerer (the arms are emitted via `emitLiteral`, never going
+        // through the per-fn cache). Reserving slots for them would
+        // leave orphan `$__phel_call_N` / `$__phel_const_N` declarations
+        // in the generated PHP — kept invisible by the runtime, but
+        // bloat in bytecode and OPcache.
+        $matchInit = $this->matchLoweredInit($node);
+        if ($matchInit instanceof AbstractNode) {
+            $this->walk($matchInit, $scope, $cacheCalls);
+            return;
+        }
+
         if ($cacheCalls
             && $node instanceof CallNode
             && GlobalCallTarget::isGlobalFnCall($node)
@@ -74,6 +88,29 @@ final readonly class BodyConstantScanner
         foreach ($this->children($node) as $child) {
             $this->walk($child, $scope, $cacheCalls);
         }
+    }
+
+    /**
+     * If `$node` will be lowered to a PHP `match` by
+     * `\Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter\IfChainMatchLowerer`,
+     * return the only sub-expression that still flows through the
+     * normal emit path — the matched init value. Everything else
+     * (cond tests, arm keys, arm bodies) is emitted via `emitLiteral`
+     * and never consumes a per-fn cache slot.
+     */
+    private function matchLoweredInit(AbstractNode $node): ?AbstractNode
+    {
+        if ($node instanceof LetNode) {
+            $shape = IfChainMatchLowerer::analyse($node);
+            return $shape['init'] ?? null;
+        }
+
+        if ($node instanceof IfNode) {
+            $shape = IfChainMatchLowerer::analyseIfChain($node);
+            return $shape['init'] ?? null;
+        }
+
+        return null;
     }
 
     private function isCacheableCollection(AbstractNode $node): bool
