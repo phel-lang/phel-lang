@@ -211,6 +211,10 @@ final class CallEmitter implements NodeEmitterInterface
             return;
         }
 
+        if ($this->tryEmitContainsCheck($node)) {
+            return;
+        }
+
         if ($this->tryEmitTypedVectorAccessor($node)) {
             return;
         }
@@ -508,6 +512,37 @@ final class CallEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('(($__truthy = ', $loc);
         $this->outputEmitter->emitNode($node->getArguments()[0]);
         $this->outputEmitter->emitStr(') !== null && $__truthy !== false)', $loc);
+        return true;
+    }
+
+    /**
+     * `(contains? coll k)` on a tagged target — emit the direct
+     * method or `array_key_exists` form.
+     */
+    private function tryEmitContainsCheck(CallNode $node): bool
+    {
+        $kind = CallSpecialization::containsCheckKind($node);
+        if ($kind === null) {
+            return false;
+        }
+
+        $args = $node->getArguments();
+        $loc = $node->getStartSourceLocation();
+
+        if ($kind === 'array') {
+            $this->outputEmitter->emitStr('array_key_exists(', $loc);
+            $this->outputEmitter->emitNode($args[1]);
+            $this->outputEmitter->emitStr(', ', $loc);
+            $this->outputEmitter->emitNode($args[0]);
+            $this->outputEmitter->emitStr(')', $loc);
+            return true;
+        }
+
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($args[0]);
+        $this->outputEmitter->emitStr('->contains(', $loc);
+        $this->outputEmitter->emitNode($args[1]);
+        $this->outputEmitter->emitStr('))', $loc);
         return true;
     }
 
