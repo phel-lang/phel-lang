@@ -216,6 +216,10 @@ final class CallEmitter implements NodeEmitterInterface
             return;
         }
 
+        if ($this->tryEmitAtomMethodCall($node)) {
+            return;
+        }
+
         if ($this->tryEmitTypedVectorAccessor($node)) {
             return;
         }
@@ -513,6 +517,38 @@ final class CallEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('(($__truthy = ', $loc);
         $this->outputEmitter->emitNode($node->getArguments()[0]);
         $this->outputEmitter->emitStr(') !== null && $__truthy !== false)', $loc);
+        return true;
+    }
+
+    /**
+     * `(deref x)` / `(reset! v val)` — emit the direct method call on
+     * the target, skipping the registry lookup. No tag required: the
+     * runtime body itself is a single `php/-> target (method ...)`, so
+     * the failure mode (method not found) is identical to today.
+     */
+    private function tryEmitAtomMethodCall(CallNode $node): bool
+    {
+        $shape = CallSpecialization::atomMethodCall($node);
+        if ($shape === null) {
+            return false;
+        }
+
+        [$method, $argIndices] = $shape;
+        $args = $node->getArguments();
+        $loc = $node->getStartSourceLocation();
+
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($args[0]);
+        $this->outputEmitter->emitStr('->' . $method . '(', $loc);
+        foreach ($argIndices as $i => $idx) {
+            if ($i > 0) {
+                $this->outputEmitter->emitStr(', ', $loc);
+            }
+
+            $this->outputEmitter->emitNode($args[$idx]);
+        }
+
+        $this->outputEmitter->emitStr('))', $loc);
         return true;
     }
 
