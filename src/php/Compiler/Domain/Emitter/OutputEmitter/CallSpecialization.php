@@ -88,6 +88,10 @@ final readonly class CallSpecialization
             return true;
         }
 
+        if (self::isTypedPhpArrayGet($node)) {
+            return true;
+        }
+
         if (self::isTypedVectorAccessor($node)) {
             return true;
         }
@@ -459,6 +463,40 @@ final readonly class CallSpecialization
             PersistentMapInterface::class => 'find',
             default => null,
         };
+    }
+
+    /**
+     * `(get arr k)` or `(get arr k default)` where the analyser has
+     * tagged `arr` as a PHP `array`. The runtime `get` body for the
+     * `:else` branch is `(let [res (php/aget ds k)] (if (nil? res) opt res))`,
+     * which is semantically `$arr[$k] ?? $default` — both absent keys
+     * and explicit null values fall through to the default.
+     */
+    public static function isTypedPhpArrayGet(CallNode $node): bool
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode) {
+            return false;
+        }
+
+        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
+            || $fn->getName()->getName() !== 'get'
+        ) {
+            return false;
+        }
+
+        $args = $node->getArguments();
+        $argc = count($args);
+        if ($argc !== 2 && $argc !== 3) {
+            return false;
+        }
+
+        $target = $args[0];
+        if (!$target instanceof LocalVarNode) {
+            return false;
+        }
+
+        return self::normalisedTag($target->getInferredType()) === 'array';
     }
 
     /**

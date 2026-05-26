@@ -40,6 +40,8 @@ Control-flow lowering to PHP `match` (#2091):
 
 - `LetEmitter`: emit `/** @var T $shadow */` before each tagged `let` / `loop` binding init. Primitives (`int` / `float` / `bool` / `string` / `array`) pass through; class tags get a leading `\` so static analysers resolve from the global namespace. Function params already carry native PHP type hints via `MethodEmitter`, so they are unchanged. Runtime perf is unchanged — docblocks help static analysers (PHPStan / Psalm / IDEs) read the generated PHP, the PHP JIT itself infers types from opcodes (#2136)
 
+- `CallSpecialization`: `(get arr k)` / `(get arr k default)` on a target tagged `array` → `($arr[$k] ?? $default)` native subscript. Skips the runtime `get` dispatch, the type guard cond chain, and the `php/aget` adapter. Matches the runtime semantics (both absent keys and explicit nulls fall through to the default) because the `:else` branch of the Phel `get` body is itself `(if (nil? res) opt res)` (#2139)
+
 ### Fixed
 
 - `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)

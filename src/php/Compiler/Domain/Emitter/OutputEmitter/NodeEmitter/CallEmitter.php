@@ -167,6 +167,10 @@ final class CallEmitter implements NodeEmitterInterface
             return;
         }
 
+        if ($this->tryEmitTypedPhpArrayGet($node)) {
+            return;
+        }
+
         if ($this->tryEmitTypedVectorAccessor($node)) {
             return;
         }
@@ -354,6 +358,37 @@ final class CallEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('->' . $method . '(', $loc);
         $this->outputEmitter->emitNode($args[1]);
         $this->outputEmitter->emitStr('))', $loc);
+        return true;
+    }
+
+    /**
+     * Specialise `(get arr k)` / `(get arr k default)` on a target
+     * tagged `array` to a native PHP subscript with the null-coalescing
+     * fallback. Matches the runtime `get` semantics for PHP arrays —
+     * `(php/aget ds k)` then "if nil return default" — because PHP's
+     * `??` treats both absent keys and explicit nulls as triggering
+     * the fallback.
+     */
+    private function tryEmitTypedPhpArrayGet(CallNode $node): bool
+    {
+        if (!CallSpecialization::isTypedPhpArrayGet($node)) {
+            return false;
+        }
+
+        $args = $node->getArguments();
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($args[0]);
+        $this->outputEmitter->emitStr('[', $loc);
+        $this->outputEmitter->emitNode($args[1]);
+        $this->outputEmitter->emitStr('] ?? ', $loc);
+        if (count($args) === 3) {
+            $this->outputEmitter->emitNode($args[2]);
+        } else {
+            $this->outputEmitter->emitStr('null', $loc);
+        }
+
+        $this->outputEmitter->emitStr(')', $loc);
         return true;
     }
 
