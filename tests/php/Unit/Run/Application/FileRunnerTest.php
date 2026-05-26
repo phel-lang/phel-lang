@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Run\Application;
 
 use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
+use Phel\Run\Application\BundledNamespaces;
 use Phel\Run\Application\FileRunner;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
@@ -78,7 +79,7 @@ final class FileRunnerTest extends TestCase
         $commandFacade->method('getSourceDirectories')->willReturn([$this->primarySrc]);
         $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
 
-        new FileRunner($buildFacade, $commandFacade)->run($script);
+        $this->createFileRunner($buildFacade, $commandFacade)->run($script);
 
         self::assertNotSame([], $observedDirsArgs);
         foreach ($observedDirsArgs as $dirs) {
@@ -137,7 +138,7 @@ final class FileRunnerTest extends TestCase
         $commandFacade->method('getSourceDirectories')->willReturn([$this->primarySrc]);
         $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
 
-        new FileRunner($buildFacade, $commandFacade)->run($script);
+        $this->createFileRunner($buildFacade, $commandFacade)->run($script);
 
         foreach ($observedDirsArgs as $dirs) {
             self::assertNotContains(
@@ -152,6 +153,50 @@ final class FileRunnerTest extends TestCase
             ['/phel/core.phel', $helper, $script],
             $evalled,
             'Eval order: phel.core then fallback deps then script',
+        );
+    }
+
+    public function test_seeds_bundled_namespaces_for_ad_hoc_script_runs(): void
+    {
+        $script = $this->tmpDir . '/demo.phel';
+        file_put_contents($script, "(ns demo)\n");
+
+        $scriptInfo = new NamespaceInformation($script, 'demo', [], true);
+        $coreInfo = new NamespaceInformation('/phel/core.phel', 'phel.core', [], true);
+        $asyncInfo = new NamespaceInformation('/phel/async.phel', 'phel.async', [], true);
+
+        $observedSeeds = [];
+
+        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $buildFacade->method('getNamespaceFromFile')->willReturn($scriptInfo);
+        $buildFacade->method('getNamespaceFromDirectories')->willReturn([$asyncInfo]);
+        $buildFacade->method('getDependenciesForNamespace')->willReturnCallback(
+            static function (array $dirs, array $ns) use (&$observedSeeds, $coreInfo, $asyncInfo): array {
+                $observedSeeds[] = $ns;
+                return [$coreInfo, $asyncInfo];
+            },
+        );
+
+        $evalled = [];
+        $buildFacade->method('evalFile')->willReturnCallback(
+            static function (string $file) use (&$evalled): CompiledFile {
+                $evalled[] = $file;
+                return new CompiledFile($file, '', '', false);
+            },
+        );
+
+        $commandFacade = $this->createMock(CommandFacadeInterface::class);
+        $commandFacade->method('getSourceDirectories')->willReturn([$this->primarySrc]);
+        $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
+
+        $this->createFileRunner($buildFacade, $commandFacade)->run($script);
+
+        self::assertNotSame([], $observedSeeds);
+        self::assertContains('phel.async', $observedSeeds[0]);
+        self::assertSame(
+            ['/phel/core.phel', '/phel/async.phel', $script],
+            $evalled,
+            'Eval order: bundled namespaces are evaluated before the ad-hoc script',
         );
     }
 
@@ -192,12 +237,23 @@ final class FileRunnerTest extends TestCase
         $commandFacade->method('getSourceDirectories')->willReturn([$this->primarySrc]);
         $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
 
-        new FileRunner($buildFacade, $commandFacade)->run($script);
+        $this->createFileRunner($buildFacade, $commandFacade)->run($script);
 
         self::assertSame(
             ['/phel/core.phel', $subHelper, $helper, $script],
             $evalled,
             'DFS post-order: sub-helper must eval before helper, helper before script',
+        );
+    }
+
+    private function createFileRunner(
+        BuildFacadeInterface $buildFacade,
+        CommandFacadeInterface $commandFacade,
+    ): FileRunner {
+        return new FileRunner(
+            $buildFacade,
+            $commandFacade,
+            new BundledNamespaces($buildFacade, $commandFacade),
         );
     }
 }

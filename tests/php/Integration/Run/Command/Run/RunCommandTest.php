@@ -76,6 +76,15 @@ final class RunCommandTest extends AbstractTestCommand
         unlink($tmpFile);
     }
 
+    public function test_run_by_filename_resolves_bundled_namespace_fqn_without_require(): void
+    {
+        $output = $this->captureRunOutput(
+            __DIR__ . '/Fixtures/phel-async-fqn-script.phel',
+        );
+
+        self::assertStringContainsString('phel.async/delay resolved', $output);
+    }
+
     public function test_pass_flag_arguments_to_script(): void
     {
         $output = $this->captureRunOutput(

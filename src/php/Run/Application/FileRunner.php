@@ -10,6 +10,8 @@ use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Throwable;
 
+use function array_unique;
+use function array_values;
 use function dirname;
 use function is_file;
 use function str_replace;
@@ -19,6 +21,7 @@ final readonly class FileRunner
     public function __construct(
         private BuildFacadeInterface $buildFacade,
         private CommandFacadeInterface $commandFacade,
+        private BundledNamespaces $bundledNamespaces,
     ) {}
 
     public function run(string $filename): void
@@ -40,7 +43,12 @@ final readonly class FileRunner
         // be missed even when they live under configured `srcDirs`/vendor.
         $primaryInfos = $this->buildFacade->getDependenciesForNamespace(
             $primaryDirs,
-            [$scriptInfo->getNamespace(), 'phel.core', ...$scriptInfo->getDependencies()],
+            array_values(array_unique([
+                $scriptInfo->getNamespace(),
+                'phel.core',
+                ...$this->bundledNamespaces->all(),
+                ...$scriptInfo->getDependencies(),
+            ])),
         );
 
         $resolved = $this->indexByNamespace($primaryInfos);
