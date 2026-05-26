@@ -55,6 +55,56 @@ final readonly class IfChainMatchLowerer
     private const string NOT_FOLDABLE = "\0NOT_FOLDABLE\0";
 
     /**
+     * Detects the lone-`if`-chain shape produced by `(cond (= x lit) e …)`
+     * with no outer `let`. Every test must reference the **same**
+     * `LocalVarNode` shadow.
+     *
+     * @return array{init: LocalVarNode, arms: list<array{key: mixed, expr: mixed}>, fallback: mixed}|null
+     */
+    public static function analyseIfChain(IfNode $root): ?array
+    {
+        $arms = [];
+        $shared = null;
+        $current = $root;
+
+        while ($current instanceof IfNode) {
+            $info = self::testInfo($current->getTestExpr());
+            if ($info === null) {
+                return null;
+            }
+
+            [$candidate, $key] = $info;
+
+            if ($shared === null) {
+                $shared = $candidate;
+            } elseif ($shared->getName()->getName() !== $candidate->getName()->getName()) {
+                return null;
+            }
+
+            $then = self::literalValue($current->getThenExpr());
+            if ($then === self::NOT_FOLDABLE) {
+                return null;
+            }
+
+            $arms[] = ['key' => $key, 'expr' => $then];
+            $current = $current->getElseExpr();
+        }
+
+        $fallback = self::literalValue($current);
+        // `count($arms) >= 2` guarantees the loop ran at least once
+        // and `$shared` was assigned during the first iteration.
+        if (count($arms) < 2 || $fallback === self::NOT_FOLDABLE) {
+            return null;
+        }
+
+        return [
+            'init' => $shared,
+            'arms' => $arms,
+            'fallback' => $fallback,
+        ];
+    }
+
+    /**
      * @return array{init: AbstractNode, arms: list<array{key: mixed, expr: mixed}>, fallback: mixed}|null
      */
     public static function analyse(LetNode $root): ?array
@@ -129,6 +179,54 @@ final readonly class IfChainMatchLowerer
             'arms' => $arms,
             'fallback' => $fallback,
         ];
+    }
+
+    /**
+     * @return array{0: LocalVarNode, 1: mixed}|null
+     */
+    private static function testInfo(AbstractNode $test): ?array
+    {
+        if (!$test instanceof CallNode) {
+            return null;
+        }
+
+        $fn = $test->getFn();
+        if (!$fn instanceof GlobalVarNode) {
+            return null;
+        }
+
+        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
+            || !in_array($fn->getName()->getName(), self::EQUALITY_FNS, true)
+        ) {
+            return null;
+        }
+
+        $args = $test->getArguments();
+        if (count($args) !== 2) {
+            return null;
+        }
+
+        [$lhs, $rhs] = $args;
+
+        if ($lhs instanceof LocalVarNode) {
+            $value = self::literalValue($rhs);
+            if ($value === self::NOT_FOLDABLE) {
+                return null;
+            }
+
+            return [$lhs, $value];
+        }
+
+        if ($rhs instanceof LocalVarNode) {
+            $value = self::literalValue($lhs);
+            if ($value === self::NOT_FOLDABLE) {
+                return null;
+            }
+
+            return [$rhs, $value];
+        }
+
+        return null;
     }
 
     private static function literalValue(AbstractNode $node): mixed

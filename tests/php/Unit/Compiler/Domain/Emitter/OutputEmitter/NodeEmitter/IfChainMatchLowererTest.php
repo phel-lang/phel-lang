@@ -110,6 +110,64 @@ final class IfChainMatchLowererTest extends TestCase
         self::assertNull(IfChainMatchLowerer::analyse($let));
     }
 
+    public function test_cond_chain_detects_two_arms_against_same_local(): void
+    {
+        $env = NodeEnvironment::empty()->withExpressionContext();
+        $x = Symbol::create('x');
+
+        $chain = new IfNode(
+            $env,
+            $this->equalityTest($env, $x, 1),
+            new LiteralNode($env, 'one'),
+            new IfNode(
+                $env,
+                $this->equalityTest($env, $x, 2),
+                new LiteralNode($env, 'two'),
+                new LiteralNode($env, 'other'),
+            ),
+        );
+
+        $shape = IfChainMatchLowerer::analyseIfChain($chain);
+
+        self::assertNotNull($shape);
+        self::assertCount(2, $shape['arms']);
+        self::assertSame(1, $shape['arms'][0]['key']);
+        self::assertSame('two', $shape['arms'][1]['expr']);
+        self::assertSame('other', $shape['fallback']);
+    }
+
+    public function test_cond_chain_rejects_when_tests_use_different_locals(): void
+    {
+        $env = NodeEnvironment::empty()->withExpressionContext();
+
+        $chain = new IfNode(
+            $env,
+            $this->equalityTest($env, Symbol::create('x'), 1),
+            new LiteralNode($env, 'one'),
+            new IfNode(
+                $env,
+                $this->equalityTest($env, Symbol::create('y'), 2),
+                new LiteralNode($env, 'two'),
+                new LiteralNode($env, 'other'),
+            ),
+        );
+
+        self::assertNull(IfChainMatchLowerer::analyseIfChain($chain));
+    }
+
+    public function test_cond_chain_rejects_single_arm(): void
+    {
+        $env = NodeEnvironment::empty()->withExpressionContext();
+        $chain = new IfNode(
+            $env,
+            $this->equalityTest($env, Symbol::create('x'), 1),
+            new LiteralNode($env, 'one'),
+            new LiteralNode($env, 'other'),
+        );
+
+        self::assertNull(IfChainMatchLowerer::analyseIfChain($chain));
+    }
+
     private function equalityTest(NodeEnvironment $env, Symbol $shadow, int $key): CallNode
     {
         return new CallNode(
