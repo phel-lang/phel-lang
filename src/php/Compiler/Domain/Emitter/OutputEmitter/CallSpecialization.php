@@ -80,6 +80,29 @@ final readonly class CallSpecialization
 
     private function __construct() {}
 
+    /**
+     * Subset of {@see self::isSpecialized()} that lowers to a bool-typed
+     * PHP expression. The `BooleanExprDetector` consults this so the
+     * `IfEmitter` can splice the call directly into the test slot
+     * without wrapping it in the Phel-truthy adapter.
+     */
+    public static function isBoolReturningSpecialisation(CallNode $node): bool
+    {
+        if (self::isNilCheck($node)
+            || self::isSomeCheck($node)
+            || self::isTrueCheck($node)
+            || self::isFalseCheck($node)
+            || self::isTruthyCheck($node)
+            || self::isTypePredicate($node)
+            || self::isEmptyCheck($node)
+            || self::isContainsCheck($node)
+        ) {
+            return true;
+        }
+
+        return self::isNumericPredicate($node) !== null;
+    }
+
     public static function isSpecialized(CallNode $node): bool
     {
         if (self::isStrConcat($node)) {
