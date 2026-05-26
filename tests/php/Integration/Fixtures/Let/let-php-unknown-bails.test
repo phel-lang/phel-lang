@@ -1,0 +1,7 @@
+--PHEL--
+(fn [^float a x] (+ a (php/some_unlisted_fn x)))
+--PHP--
+(function(float $a, $x) {
+  static $__phel_call_0;
+  return ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "+"))->__invoke($a, some_unlisted_fn($x));
+});

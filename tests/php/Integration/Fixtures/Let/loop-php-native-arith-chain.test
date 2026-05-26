@@ -1,0 +1,20 @@
+--PHEL--
+(fn [^float d ^float angle] (loop [^int i 0 ^float sum 0.0] (if (< i 10) (recur (+ i 1) (+ sum (* d (php/cos angle)))) sum)))
+--PHP--
+(function(float $d, float $angle) {
+  /** @var int $i_1 */
+  $i_1 = 0;
+  /** @var float $sum_2 */
+  $sum_2 = 0.0;
+  while (true) {
+    if (($__truthy = ($i_1 < 10)) !== null && $__truthy !== false) {
+      $i_1 = ($i_1 + 1);
+      $sum_2 = ($sum_2 + ($d * cos($angle)));
+      continue;
+
+    } else {
+      return $sum_2;
+    }
+    break;
+  }
+});

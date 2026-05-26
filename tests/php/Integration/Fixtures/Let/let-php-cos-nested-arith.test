@@ -1,0 +1,6 @@
+--PHEL--
+(fn [^float d ^float angle ^float sum] (+ sum (* d (php/cos angle))))
+--PHP--
+(function(float $d, float $angle, float $sum) {
+  return ($sum + ($d * cos($angle)));
+});
