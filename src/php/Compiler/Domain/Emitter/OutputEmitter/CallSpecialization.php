@@ -123,6 +123,10 @@ final readonly class CallSpecialization
             return true;
         }
 
+        if (self::isTypePredicate($node)) {
+            return true;
+        }
+
         if (self::isTypedVectorAccessor($node)) {
             return true;
         }
@@ -723,6 +727,47 @@ final readonly class CallSpecialization
     public static function isTruthyCheck(CallNode $node): bool
     {
         return self::isUnaryCoreCall($node, 'truthy?');
+    }
+
+    /**
+     * `(int? x)` / `(float? x)` / `(double? x)` / `(string? x)` /
+     * `(keyword? x)` / `(symbol? x)` / `(ratio? x)` — single-arg
+     * type predicates whose runtime body is a one-liner native
+     * check. Returns the PHP expression fragment to splice between
+     * the surrounding parens, or `null` when the call is not one of
+     * these predicates.
+     *
+     * The fragment expects `%s` substitution for the (already-emitted)
+     * argument expression.
+     */
+    public static function typePredicateFragment(CallNode $node): ?string
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode
+            || $fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
+        ) {
+            return null;
+        }
+
+        $args = $node->getArguments();
+        if (count($args) !== 1) {
+            return null;
+        }
+
+        return match ($fn->getName()->getName()) {
+            'int?' => 'is_int(%s)',
+            'float?', 'double?' => 'is_float(%s)',
+            'string?' => 'is_string(%s)',
+            'keyword?' => '(%s instanceof \\Phel\\Lang\\Keyword)',
+            'symbol?' => '(%s instanceof \\Phel\\Lang\\Symbol)',
+            'ratio?' => '(%s instanceof \\Phel\\Lang\\Ratio)',
+            default => null,
+        };
+    }
+
+    public static function isTypePredicate(CallNode $node): bool
+    {
+        return self::typePredicateFragment($node) !== null;
     }
 
     /**
