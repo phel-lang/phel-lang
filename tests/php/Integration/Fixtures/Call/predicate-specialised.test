@@ -1,0 +1,21 @@
+--PHEL--
+(fn [x] (true? x))
+(fn [x] (false? x))
+(fn [x] (truthy? x))
+(fn [^int n] (zero? n))
+(fn [^int n] (pos? n))
+(fn [^float n] (neg? n))
+--PHP--
+(function($x) {
+  return ($x === true);
+});(function($x) {
+  return ($x === false);
+});(function($x) {
+  return (($__truthy = $x) !== null && $__truthy !== false);
+});(function(int $n) {
+  return ($n === 0);
+});(function(int $n): bool {
+  return ($n > 0);
+});(function(float $n): bool {
+  return ($n < 0);
+});

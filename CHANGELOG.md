@@ -60,6 +60,8 @@ Control-flow lowering to PHP `match` (#2091):
 
 - `CallSpecialization`: lower 1-arg `(count arr)` on an `array`-tagged local to native `count($arr)`, matching the `(get arr k)` specialisation in #2139. The runtime cond chain over set / seq / vector / map collapses to the same `php/count` branch the native call already covers (#2158)
 
+- `CallSpecialization`: lower identity-strict bool predicates (`(true? x)` → `($x === true)`, `(false? x)` → `($x === false)`), the Phel-truthy probe (`(truthy? x)` → `(($__truthy = $x) !== null && $__truthy !== false)`), and the numeric predicates on `^int`/`^float` tagged locals (`(zero? x)` → `($x === 0)`, `(pos? x)` → `($x > 0)`, `(neg? x)` → `($x < 0)`). `BigInt` / `Ratio` / `BigDecimal` shapes stay on the runtime `NumericOperations` dispatch (#2160)
+
 ### Fixed
 
 - `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)

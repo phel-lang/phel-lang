@@ -183,6 +183,22 @@ final class CallEmitter implements NodeEmitterInterface
             return;
         }
 
+        if ($this->tryEmitTrueCheck($node)) {
+            return;
+        }
+
+        if ($this->tryEmitFalseCheck($node)) {
+            return;
+        }
+
+        if ($this->tryEmitTruthyCheck($node)) {
+            return;
+        }
+
+        if ($this->tryEmitNumericPredicate($node)) {
+            return;
+        }
+
         if ($this->tryEmitTypedVectorAccessor($node)) {
             return;
         }
@@ -436,6 +452,76 @@ final class CallEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('(', $loc);
         $this->outputEmitter->emitNode($node->getArguments()[0]);
         $this->outputEmitter->emitStr(' !== null)', $loc);
+        return true;
+    }
+
+    private function tryEmitTrueCheck(CallNode $node): bool
+    {
+        if (!CallSpecialization::isTrueCheck($node)) {
+            return false;
+        }
+
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($node->getArguments()[0]);
+        $this->outputEmitter->emitStr(' === true)', $loc);
+        return true;
+    }
+
+    private function tryEmitFalseCheck(CallNode $node): bool
+    {
+        if (!CallSpecialization::isFalseCheck($node)) {
+            return false;
+        }
+
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($node->getArguments()[0]);
+        $this->outputEmitter->emitStr(' === false)', $loc);
+        return true;
+    }
+
+    /**
+     * `(truthy? x)` — Phel-truthy probe inlined. Uses a fresh `$__truthy`
+     * binding so the result is a bool the caller can splice into any
+     * expression position.
+     */
+    private function tryEmitTruthyCheck(CallNode $node): bool
+    {
+        if (!CallSpecialization::isTruthyCheck($node)) {
+            return false;
+        }
+
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(($__truthy = ', $loc);
+        $this->outputEmitter->emitNode($node->getArguments()[0]);
+        $this->outputEmitter->emitStr(') !== null && $__truthy !== false)', $loc);
+        return true;
+    }
+
+    /**
+     * `(zero? x)` / `(pos? x)` / `(neg? x)` on an `int` / `float`
+     * tagged local — emit the native comparison directly.
+     */
+    private function tryEmitNumericPredicate(CallNode $node): bool
+    {
+        $name = CallSpecialization::isNumericPredicate($node);
+        if ($name === null) {
+            return false;
+        }
+
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($node->getArguments()[0]);
+
+        $op = match ($name) {
+            'zero?' => ' === 0',
+            'pos?' => ' > 0',
+            'neg?' => ' < 0',
+            default => ' === 0',
+        };
+
+        $this->outputEmitter->emitStr($op . ')', $loc);
         return true;
     }
 
