@@ -78,6 +78,8 @@ Control-flow lowering to PHP `match` (#2091):
 
 - `CallSpecialization`: extend the type-predicate table with the multi-instanceof shapes `map?` / `vector?` / `seq?`. `(map? x)` → `(($x instanceof PersistentMapInterface) && !($x instanceof AbstractPersistentStruct))`, `(vector? x)` → `(($x instanceof PersistentVectorInterface) \|\| ($x instanceof MapEntry))`, `(seq? x)` → 3-way `\|\|` chain over `LazySeqInterface` / `Cons` / `PersistentListInterface`. `list?` keeps the runtime dispatch (it also calls `$x->isList()`) (#2177)
 
+- `CallSpecialization`: lower `(deref x)` (1-arg) and `(reset! v val)` to direct method calls (`$x->deref()` and `$v->set($val)`), skipping the registry lookup. The runtime fn body is itself a single `php/->` call, so the failure mode (method not found) is identical. The 3-arg `deref` overload (future / promise timeout) keeps the runtime dispatch (#2179)
+
 ### Fixed
 
 - `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)
