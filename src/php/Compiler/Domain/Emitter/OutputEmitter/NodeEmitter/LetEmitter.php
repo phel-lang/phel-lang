@@ -8,12 +8,21 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Keyword;
+use Phel\Lang\Symbol;
 
 use function assert;
+use function in_array;
+use function is_string;
+use function ltrim;
 
 final class LetEmitter implements NodeEmitterInterface
 {
     use WithOutputEmitterTrait;
+
+    /** @var list<string> Tags that map straight to a PHP primitive type */
+    private const array PRIMITIVE_TAGS = ['int', 'float', 'bool', 'string', 'array'];
 
     public function emit(AbstractNode $node): void
     {
@@ -29,6 +38,14 @@ final class LetEmitter implements NodeEmitterInterface
         }
 
         foreach ($node->getBindings() as $bindingNode) {
+            $docType = $this->doctagType($bindingNode->getSymbol());
+            if ($docType !== null) {
+                $this->outputEmitter->emitLine(
+                    '/** @var ' . $docType . ' $' . $this->outputEmitter->mungeEncode($bindingNode->getShadow()->getName()) . ' */',
+                    $bindingNode->getStartSourceLocation(),
+                );
+            }
+
             $this->outputEmitter->emitPhpVariable($bindingNode->getShadow(), $bindingNode->getStartSourceLocation());
             $this->outputEmitter->emitStr(' = ', $node->getStartSourceLocation());
             $this->outputEmitter->emitNode($bindingNode->getInitExpr());
@@ -94,5 +111,35 @@ final class LetEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitContextSuffix($env, $loc);
 
         return true;
+    }
+
+    /**
+     * Map a binding symbol's `:tag` meta to a PHP doctag type string,
+     * or `null` when the binding carries no tag. Primitive tags pass
+     * through; anything else is treated as a class FQN and prefixed
+     * with `\` so static analysers resolve it from the global namespace.
+     */
+    private function doctagType(Symbol $symbol): ?string
+    {
+        $meta = $symbol->getMeta();
+        if (!$meta instanceof PersistentMapInterface) {
+            return null;
+        }
+
+        $tag = $meta->find(Keyword::create('tag'));
+        if ($tag instanceof Symbol) {
+            $tag = $tag->getName();
+        }
+
+        if (!is_string($tag) || $tag === '') {
+            return null;
+        }
+
+        $normalised = ltrim($tag, '\\');
+        if (in_array($normalised, self::PRIMITIVE_TAGS, true)) {
+            return $normalised;
+        }
+
+        return '\\' . $normalised;
     }
 }

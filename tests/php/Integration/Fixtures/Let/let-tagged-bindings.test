@@ -1,0 +1,19 @@
+--PHEL--
+(let [^int x 1
+      ^float y 2.5
+      ^bool z true
+      ^string s "hi"
+      ^\Phel\Lang\Collections\Vector\PersistentVectorInterface v [1 2 3]]
+  [x y z s v])
+--PHP--
+/** @var int $x_1 */
+$x_1 = 1;
+/** @var float $y_2 */
+$y_2 = 2.5;
+/** @var bool $z_3 */
+$z_3 = true;
+/** @var string $s_4 */
+$s_4 = "hi";
+/** @var \Phel\Lang\Collections\Vector\PersistentVectorInterface $v_5 */
+$v_5 = \Phel::vector([1, 2, 3]);
+\Phel::vector([$x_1, $y_2, $z_3, $s_4, $v_5]);
