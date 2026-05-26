@@ -6,35 +6,41 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- CI: `announce-release.yml` workflow + `scripts/announce-release.mjs` build a copy-pasteable Twitter/X thread draft from the CHANGELOG section of the released tag. The workflow uploads `thread.md` and `thread.json` as artifacts; posting stays manual to avoid X API costs. Supports `workflow_dispatch` for back-fills
+- CI: `announce-release.yml` + `scripts/announce-release.mjs` build a Twitter/X thread draft from the released tag's CHANGELOG; uploads `thread.md` / `thread.json` as artifacts. Manual posting; `workflow_dispatch` supports back-fills
+- `CompileOptions::setOptimizationLevel(int)` (defaults `0`). Reserved for future auto-inline (`1`) and loop-invariant hoist (`2`); no current consumer (#2092)
 
 ### Performance
 
-- `ConstantFolder`: compile-time evaluate `phel.core` comparison ops (`=`, `not=`, `<`, `<=`, `>`, `>=`) on integer / float literals. Variadic semantics preserved (pairwise check, single-arg → `true`, empty → skip so the runtime arity error fires as before). `BigInt` / `Ratio` args stay un-folded to keep the runtime numeric dispatcher in charge (#2088)
-- `ConstantFolder`: compile-time evaluate `phel.core` boolean predicates (`not`, `nil?`, `true?`, `false?`, `boolean`) when the single argument is any literal value. Phel truthiness preserved: only `nil` / `false` are falsy, so `(boolean 0)` and `(boolean "")` still fold to `true` (#2088)
-- `ConstantFolder`: compile-time evaluate bitwise `php/` interop ops (`&`, `|`, `^`, `<<`, `>>`, `~`) on int literals. Covers user-written `(php/& 12 10)` and the `bit-and` / `bit-or` / `bit-xor` / `bit-shift-left` / `bit-shift-right` / `bit-not` core fns whose `:inline` lowers to those ops. Float args skip the fold (PHP would coerce; Phel core asserts int-only via `assert-non-nil`); negative shift amounts skip so the runtime `ArithmeticError` fires unchanged (#2088)
-- `ConstantFolder`: compile-time evaluate `count` on literal vector / map / set, plus `first` / `last` / `nth` on literal vectors whose elements are all literal. `nth` skips out-of-bounds and non-int / negative indices so the runtime `IndexOutOfBoundsException` keeps its trigger point (#2088)
-- `ConstantFolder`: compile-time evaluate `(str ...)` when every argument is a literal `int`, `bool`, `string`, or `nil`. Phel's `val-to-str` semantics are preserved: `nil` becomes `""`, `false` / `true` render as `"false"` / `"true"`. Float arguments stay un-folded so the runtime's `NaN` / `±Infinity` / trailing-`.0` formatting keeps control (#2088)
-- `ConstantFolder`: compile-time evaluate `min` / `max` / `mod` / `quot` / `rem` / `abs` on numeric literals. `min` / `max` skip when any operand is `NaN` (Phel returns `##NaN`, which we don't lift to a literal); `mod` / `quot` / `rem` are int-only and skip when divisor is `0` so the runtime `DivisionByZeroError` keeps its trigger point; `abs` skips `PHP_INT_MIN` so the runtime's `BigInt` promotion path retains control (#2088)
-- New `Compiler/Domain/Analyzer/TypeAnalyzer/Simplification/` pass + `PureExpressionDetector` purity oracle (defers `CallNode` purity to `ConstantFolder` so calls that would throw at runtime are not considered safe to drop) (#2089)
-- `DoSimplifier`: drops pure non-tail expressions from a `(do ...)` body after analysis. Tail expression is preserved (it is the form's return value). Pure = anything `PureExpressionDetector` accepts; calls that could observe a side effect or throw at runtime stay (#2089)
-- `LetSimplifier`: drops `let` bindings whose shadow name is never referenced from any later init nor from the body, **when** the dropped init is pure. Loop bindings stay (recur can rebind them). Bindings whose body subtree emits a closure (`fn` / `multi-fn` / `foreach` / `try`) stay too — those nodes carry a `use(...)` capture list fixed at analysis time that would dangle on a dropped binding (#2089)
-- `LetSimplifier`: inline `(let […, x <literal>] x)` to the literal when the body's tail is a `LocalVarNode` whose shadow matches the last binding and the shadow has exactly one reference in the body. Limited to `LiteralNode` inits today because every other node type would need an env rebase on the let's outer context that the analyser doesn't yet expose safely (#2089)
-- `CallSpecialization`: `(count v)` and `(nth v i)` lower to direct `$v->count()` / `$v->get($i)` method calls when the analyser has tagged `v` as `PersistentVectorInterface`. The runtime `phel.core/nth` body walks a `cond` over set / seq / vector / map / php-array; the typed path collapses every branch (#2090)
-- `CallSpecialization`: `(first s)` and `(rest s)` lower to `$s->first()` / `$s->rest()` when the target is tagged as a `SeqInterface`, `PersistentVectorInterface`, or `PersistentListInterface`. `next` stays generic because it needs a runtime empty-rest check that a single method call cannot reproduce (#2090)
-- `CallSpecialization`: 3-arg `(assoc m k v)` / `(assoc v i x)`, 2-arg `(conj v x)`, and 2-arg `(dissoc m k)` lower to direct persistent-collection method calls: `$m->put(...)` / `$v->update(...)` / `$v->append(...)` / `$m->remove(...)`. Variadic forms keep the runtime path (#2090)
-- `ApplyEmitter`: `(apply f [a b c])` lowers to a direct positional invocation `($f)->__invoke($a, $b, $c)` when `f` is a fixed-arity `GlobalVarNode` (per `min-arity` meta) and the final argument is a syntactic vector literal whose length matches the declared arity. Skips the `Seq::toApplyArguments` walk and `...` spread for that shape. Variadic fns or non-vector trailing args keep the generic spread path (#2090)
-- `CallSpecialization`: `(not (= a b))` peephole emits `($a !== $b)` directly when the inner `=` is already specialisable to `===` (both operands typed primitives). Skips the `phel.core/not` dispatch and the `!` wrapper that would otherwise sit on top of the inline equality op (#2090)
-- `CallSpecialization`: variadic (N>=3) `+` / `*` / `<` / `<=` / `>` / `>=` over **tagged** numeric locals chain to a single PHP expression. `+` / `*` emit `($a + $b + $c)` (PHP is left-associative just like Phel's `reduce`); ordering ops emit a pairwise `&&` chain `(($a < $b) && ($b < $c))` because PHP `<` does not thread its result the way Phel's variadic compare does. Pure-literal int chains stay on the runtime dispatcher so `BigInt` / `Ratio` promotion still fires for inputs that would exceed `PHP_INT_MAX` (#2090)
-- `CompileOptions::setOptimizationLevel(int)` flag (defaults `0`). Reserved for Phase 5 / 6 of the emitter optimisation roadmap: `1` = auto-inline private `defn-`, `2` = hoist loop-invariant exprs out of recur loops. Today no caller consults the flag; it ships as the wiring infrastructure those phases need (#2092)
-- `LetEmitter`: lower a `case` / `cond` shape (nested `if` chain inside a `let` whose tests all compare the same shadow against primitive literal keys) to a single PHP `match` expression. Arm keys and arm bodies must reduce to primitive literals (`int` / `string` / `bool` / `Keyword`). Walks transitively through the per-arm let rebinds Phel's `case` macro generates. Skips `loop` lets and statement-context lets (#2091)
-- `IfEmitter`: same `match` lowering for a bare nested-`if` chain that compares the same `LocalVarNode` against primitive literal keys, with primitive-literal arm bodies and fallback. Covers `(cond (= x lit) e1 (= x lit2) e2 :else f)` without an outer `let` rebind (#2091)
+`ConstantFolder` — pure `phel.core` calls on literal args fold at compile time. Skips the fold whenever the runtime would throw or promote, preserving exception timing and `BigInt` / `Ratio` semantics (#2088):
+- comparison ops (`=`, `not=`, `<`, `<=`, `>`, `>=`) on int / float literals
+- boolean predicates (`not`, `nil?`, `true?`, `false?`, `boolean`)
+- bitwise `php/` ops (`&`, `|`, `^`, `<<`, `>>`, `~`) and the `bit-*` core fns whose `:inline` lowers to them
+- collection accessors `count` / `first` / `last` / `nth` on literal vector / map / set
+- `(str ...)` on `int` / `bool` / `string` / `nil` literals
+- `min` / `max` / `mod` / `quot` / `rem` / `abs` on numeric literals
+
+Simplification pass under `Compiler/Domain/Analyzer/TypeAnalyzer/Simplification/`, gated by `PureExpressionDetector` (delegates `CallNode` purity to `ConstantFolder`) (#2089):
+- `DoSimplifier`: drop pure non-tail exprs from `(do ...)` bodies; tail preserved
+- `LetSimplifier`: drop unused pure `let` bindings (loop bindings stay; closure-capturing bodies keep their bindings)
+- `LetSimplifier`: inline `(let [… x <literal>] x)` to the literal when the tail references the last binding exactly once
+
+`CallSpecialization` — analyser-tag-driven call-site lowering (#2090):
+- `count` / `nth` on `^PersistentVectorInterface` → `$v->count()` / `$v->get($i)`
+- `first` / `rest` on `^SeqInterface` / `^PersistentVectorInterface` / `^PersistentListInterface` → direct method call (`next` stays generic)
+- 3-arg `assoc`, 2-arg `conj` / `dissoc` on tagged persistents → `put` / `update` / `append` / `remove`
+- `(not (= a b))` peephole over the typed-`=` specialiser → `($a !== $b)`
+- variadic (N>=3) `+` / `*` / `<` / `<=` / `>` / `>=` over tagged numeric locals chain to `($a + $b + $c)` (arith) or `(($a < $b) && ($b < $c))` (compare). Pure-literal int chains stay on runtime dispatch so overflow still promotes to `BigInt`
+- `ApplyEmitter`: `(apply f [a b c])` → `($f)->__invoke($a, $b, $c)` when `f` is fixed-arity and the trailing arg is a vector literal matching declared arity
+
+Control-flow lowering to PHP `match` (#2091):
+- `LetEmitter`: `case` / `cond`-shaped nested `if` chain inside a `let` (tests compare the same shadow against primitive literal keys) → `match`. Arms restricted to primitive literals (`int` / `string` / `bool` / `Keyword`)
+- `IfEmitter`: same lowering for bare nested `if` chains comparing the same `LocalVarNode` against primitive literal keys
 
 ### Fixed
 
-- `phel.cli`: Symfony Console 8.0 compatibility. The handler closure registered via `Command::setCode` now carries explicit `InputInterface` / `OutputInterface` named types; previously Symfony 8 rejected the untyped `(fn [input output] ...)` lowering with `The parameter "$input" must have a named type`. Symfony 7.3 stops emitting the deprecation warning for the same reason (#2094)
-- `phel compile`: dry-run respects its "Does not evaluate" contract. Side-effecting forms (e.g. `(println ...)`, `(php/print ...)`) no longer execute during compilation; `CompileOptions` gains an `emitOnly` flag that skips the evaluator step (#2095)
-- `defonce`: same-file redefinition is now a silent no-op (matches the documented contract); previously the analyzer raised `DuplicateDefinitionException` (#2096)
+- `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)
+- `phel compile`: dry-run no longer executes side-effecting forms; new `CompileOptions` `emitOnly` flag skips the evaluator step (#2095)
+- `defonce`: same-file redefinition is a silent no-op (was `DuplicateDefinitionException`) (#2096)
 
 ## [0.40.0](https://github.com/phel-lang/phel-lang/compare/v0.39.0...v0.40.0) - 2026-05-25
 
