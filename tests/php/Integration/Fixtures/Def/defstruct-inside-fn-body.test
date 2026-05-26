@@ -12,7 +12,7 @@
     public function __invoke() {
       if (!class_exists('user\foo_inside')) {
         eval('namespace user;
-      class foo_inside extends \\Phel\\Lang\\Collections\\Struct\\AbstractPersistentStruct {
+      final class foo_inside extends \\Phel\\Lang\\Collections\\Struct\\AbstractPersistentStruct {
 
         protected const array ALLOWED_KEYS = [\'a\'];
 
