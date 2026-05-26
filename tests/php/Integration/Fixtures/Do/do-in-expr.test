@@ -9,7 +9,7 @@
     return (3 + 4);
   })(),
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::location("Do/do-in-expr.test", 1, 0),
-    \Phel::keyword("end-location"), \Phel::location("Do/do-in-expr.test", 1, 36)
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Do/do-in-expr.test", 1, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Do/do-in-expr.test", 1, 36)
   )
 );

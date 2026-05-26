@@ -8,8 +8,8 @@ PHPChildT
   "PHPChildT",
   \RecursiveArrayIterator::class,
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::location("Def/def-php-class-reference.test", 2, 0),
-    \Phel::keyword("end-location"), \Phel::location("Def/def-php-class-reference.test", 2, 38)
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/def-php-class-reference.test", 2, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/def-php-class-reference.test", 2, 38)
   )
 );
 \Phel::getDefinition("user", "PHPChildT");

@@ -12,12 +12,12 @@
     }
   },
   \Phel::map(
-    \Phel::keyword("doc"), "```phel\n(rec n)\n```\n",
-    \Phel::keyword("start-location"), \Phel::location("Fn/fn-infer-expected-type-recursion-cycle.test", 1, 0),
-    \Phel::keyword("end-location"), \Phel::location("Fn/fn-infer-expected-type-recursion-cycle.test", 1, 51),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(rec n)\n```\n",
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Fn/fn-infer-expected-type-recursion-cycle.test", 1, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Fn/fn-infer-expected-type-recursion-cycle.test", 1, 51),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[n]",
-    \Phel::keyword("tag"), "int"
+    \Phel\Lang\Keyword::create("tag"), "int"
   )
 );

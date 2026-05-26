@@ -3,5 +3,5 @@
 --PHP--
 (function(\Phel\Lang\Collections\Map\PersistentMapInterface $m) {
   static $__phel_const_0;
-  return ($m->find(($__phel_const_0 ??= \Phel::keyword("k"))));
+  return ($m->find(($__phel_const_0 ??= \Phel\Lang\Keyword::create("k"))));
 });

@@ -19,8 +19,8 @@
     }
   },
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::location("ConstantHoisting/multiple-pure-literals.test", 1, 0),
-    \Phel::keyword("end-location"), \Phel::location("ConstantHoisting/multiple-pure-literals.test", 2, 22),
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("ConstantHoisting/multiple-pure-literals.test", 1, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("ConstantHoisting/multiple-pure-literals.test", 2, 22),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[b]"

@@ -10,7 +10,7 @@
     return ($x_1 + $y_2);
   })(),
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::location("Let/let-expr.test", 1, 0),
-    \Phel::keyword("end-location"), \Phel::location("Let/let-expr.test", 1, 35)
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Let/let-expr.test", 1, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Let/let-expr.test", 1, 35)
   )
 );

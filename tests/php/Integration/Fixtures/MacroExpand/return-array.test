@@ -14,9 +14,9 @@
     }
   },
   \Phel::map(
-    \Phel::keyword("macro"), true,
-    \Phel::keyword("start-location"), \Phel::location("MacroExpand/return-array.test", 1, 0),
-    \Phel::keyword("end-location"), \Phel::location("MacroExpand/return-array.test", 1, 55),
+    \Phel\Lang\Keyword::create("macro"), true,
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("MacroExpand/return-array.test", 1, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("MacroExpand/return-array.test", 1, 55),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[x]"
@@ -27,7 +27,7 @@
   "y",
   [0 => 1, 1 => 2, 2 => [0 => 3, 1 => 4]],
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::location("MacroExpand/return-array.test", 3, 0),
-    \Phel::keyword("end-location"), \Phel::location("MacroExpand/return-array.test", 3, 13)
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("MacroExpand/return-array.test", 3, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("MacroExpand/return-array.test", 3, 13)
   )
 );

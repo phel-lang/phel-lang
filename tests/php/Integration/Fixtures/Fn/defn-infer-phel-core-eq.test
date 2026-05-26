@@ -13,9 +13,9 @@
     }
   },
   \Phel::map(
-    \Phel::keyword("doc"), "```phel\n(is-five? x)\n```\n",
-    \Phel::keyword("start-location"), \Phel::location("Fn/defn-infer-phel-core-eq.test", 1, 0),
-    \Phel::keyword("end-location"), \Phel::location("Fn/defn-infer-phel-core-eq.test", 1, 27),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(is-five? x)\n```\n",
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Fn/defn-infer-phel-core-eq.test", 1, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Fn/defn-infer-phel-core-eq.test", 1, 27),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[x]"

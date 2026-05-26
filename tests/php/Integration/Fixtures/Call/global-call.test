@@ -14,8 +14,8 @@
     }
   },
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::location("Call/global-call.test", 1, 0),
-    \Phel::keyword("end-location"), \Phel::location("Call/global-call.test", 1, 18),
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Call/global-call.test", 1, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Call/global-call.test", 1, 18),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[x]"

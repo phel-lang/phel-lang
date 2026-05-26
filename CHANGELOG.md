@@ -48,6 +48,8 @@ Control-flow lowering to PHP `match` (#2091):
 
 - `IfEmitter`: lower the expanded `(or …)` / `(and …)` macro shapes to native PHP `||` / `&&` chains when consumed as an `if` test. The recursive `(let [v expr] (if v v rest))` (`or`) / `(let [v expr] (if v rest v))` (`and`) shape collapses to a flat short-circuit chain where each operand is guarded by the inline Phel truthy adapter `(($__truthy = expr) !== null && $__truthy !== false)`. Skips the per-chain IIFE the macro expansion previously forced. Restricted to chains whose every operand is a simple expression (`LocalVarNode` / `LiteralNode` / `GlobalVarNode` / `PhpVarNode` / nested `CallNode` of simple args), so we never need to swap the analyser env on a `LetNode` / `IfNode` operand (#2132)
 
+- `LiteralEmitter`: emit keyword literals as `\Phel\Lang\Keyword::create("name")` directly instead of routing through the `\Phel::keyword(...)` facade. Same intern-pool semantics (identity is preserved), skips one static-call frame per cache miss and lets OPcache inline the factory (#2131)
+
 ### Fixed
 
 - `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)

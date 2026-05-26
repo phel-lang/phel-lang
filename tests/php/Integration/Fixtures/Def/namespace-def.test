@@ -20,7 +20,7 @@ require_once __DIR__ . '/../phel/core.php';
   "x",
   1,
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::location("Def/namespace-def.test", 3, 0),
-    \Phel::keyword("end-location"), \Phel::location("Def/namespace-def.test", 3, 9)
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/namespace-def.test", 3, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/namespace-def.test", 3, 9)
   )
 );

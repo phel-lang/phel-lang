@@ -22,36 +22,36 @@ require_once __DIR__ . '/xyz/foo.php';
 \Phel::addDefinition(
   "test",
   "a",
-  \Phel::keyword("bar"),
+  \Phel\Lang\Keyword::create("bar"),
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::location("Keyword/keywords.test", 3, 0),
-    \Phel::keyword("end-location"), \Phel::location("Keyword/keywords.test", 3, 12)
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Keyword/keywords.test", 3, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Keyword/keywords.test", 3, 12)
   )
 );
 \Phel::addDefinition(
   "test",
   "b",
-  \Phel::keyword("bar", "test"),
+  \Phel\Lang\Keyword::create("bar", "test"),
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::location("Keyword/keywords.test", 4, 0),
-    \Phel::keyword("end-location"), \Phel::location("Keyword/keywords.test", 4, 13)
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Keyword/keywords.test", 4, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Keyword/keywords.test", 4, 13)
   )
 );
 \Phel::addDefinition(
   "test",
   "c",
-  \Phel::keyword("bar", "xyz.foo"),
+  \Phel\Lang\Keyword::create("bar", "xyz.foo"),
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::location("Keyword/keywords.test", 5, 0),
-    \Phel::keyword("end-location"), \Phel::location("Keyword/keywords.test", 5, 17)
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Keyword/keywords.test", 5, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Keyword/keywords.test", 5, 17)
   )
 );
 \Phel::addDefinition(
   "test",
   "d",
-  \Phel::keyword("bar", "xyz\\foo"),
+  \Phel\Lang\Keyword::create("bar", "xyz\\foo"),
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::location("Keyword/keywords.test", 6, 0),
-    \Phel::keyword("end-location"), \Phel::location("Keyword/keywords.test", 6, 20)
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Keyword/keywords.test", 6, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Keyword/keywords.test", 6, 20)
   )
 );

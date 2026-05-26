@@ -7,8 +7,8 @@ if (!\Phel::isDefined("user", "counter")) {
     "counter",
     0,
     \Phel::map(
-      \Phel::keyword("start-location"), \Phel::location("Def/defonce.test", 1, 0),
-      \Phel::keyword("end-location"), \Phel::location("Def/defonce.test", 1, 19)
+      \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/defonce.test", 1, 0),
+      \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/defonce.test", 1, 19)
     )
   );
 }

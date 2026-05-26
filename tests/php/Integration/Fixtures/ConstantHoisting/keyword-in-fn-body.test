@@ -3,5 +3,5 @@
 --PHP--
 (function($m) {
   static $__phel_const_0, $__phel_const_1, $__phel_const_2;
-  return \Phel::vector([(($__phel_const_0 ??= \Phel::keyword("foo")))($m), (($__phel_const_1 ??= \Phel::keyword("foo")))($m), (($__phel_const_2 ??= \Phel::keyword("bar")))($m)]);
+  return \Phel::vector([(($__phel_const_0 ??= \Phel\Lang\Keyword::create("foo")))($m), (($__phel_const_1 ??= \Phel\Lang\Keyword::create("foo")))($m), (($__phel_const_2 ??= \Phel\Lang\Keyword::create("bar")))($m)]);
 });

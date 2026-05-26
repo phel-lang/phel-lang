@@ -12,10 +12,10 @@
     }
   },
   \Phel::map(
-    \Phel::keyword("export"), true,
-    \Phel::keyword("doc"), "```phel\n(identity x)\n```\n",
-    \Phel::keyword("start-location"), \Phel::location("Def/defn-meta.test", 1, 0),
-    \Phel::keyword("end-location"), \Phel::location("Def/defn-meta.test", 1, 36),
+    \Phel\Lang\Keyword::create("export"), true,
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(identity x)\n```\n",
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/defn-meta.test", 1, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/defn-meta.test", 1, 36),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[x]"

@@ -13,10 +13,10 @@
     }
   },
   \Phel::map(
-    \Phel::keyword("tag"), "int",
-    \Phel::keyword("doc"), "```phel\n(sum a b)\n```\n",
-    \Phel::keyword("start-location"), \Phel::location("Fn/fn-infer-call-global-tagged.test", 1, 0),
-    \Phel::keyword("end-location"), \Phel::location("Fn/fn-infer-call-global-tagged.test", 1, 43),
+    \Phel\Lang\Keyword::create("tag"), "int",
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(sum a b)\n```\n",
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Fn/fn-infer-call-global-tagged.test", 1, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Fn/fn-infer-call-global-tagged.test", 1, 43),
     "min-arity", 2,
     "is-variadic", false,
     "arglists", "[a b]"

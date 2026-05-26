@@ -6,7 +6,7 @@
   "x",
   "\n",
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::location("Def/char-literal-named-newline.test", 1, 0),
-    \Phel::keyword("end-location"), \Phel::location("Def/char-literal-named-newline.test", 1, 16)
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/char-literal-named-newline.test", 1, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/char-literal-named-newline.test", 1, 16)
   )
 );
