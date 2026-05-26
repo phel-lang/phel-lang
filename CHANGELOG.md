@@ -64,6 +64,8 @@ Control-flow lowering to PHP `match` (#2091):
 
 - `CallSpecialization`: lower the 1-arg type predicates `int?` / `float?` / `double?` / `string?` / `keyword?` / `symbol?` / `ratio?` to their native PHP one-liners (`is_int`, `is_float`, `is_string`, `instanceof Keyword`, `instanceof Symbol`, `instanceof Ratio`). Predicates with multi-shape runtime bodies (`integer?` covering `int|BigInt`, `number?` covering four numeric types) stay on the runtime dispatch (#2162)
 
+- `CallSpecialization`: lower `(name k)` and `(namespace k)` to the direct `$k->getName()` / `$k->getNamespace()` method call when the analyser has tagged `k` as `\Phel\Lang\Keyword` or `\Phel\Lang\Symbol`. Skips the runtime `(if (string? x) x (php/-> x (getName)))` cond chain (#2164)
+
 ### Fixed
 
 - `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)

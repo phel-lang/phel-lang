@@ -203,6 +203,10 @@ final class CallEmitter implements NodeEmitterInterface
             return;
         }
 
+        if ($this->tryEmitNamedAccessor($node)) {
+            return;
+        }
+
         if ($this->tryEmitTypedVectorAccessor($node)) {
             return;
         }
@@ -500,6 +504,25 @@ final class CallEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('(($__truthy = ', $loc);
         $this->outputEmitter->emitNode($node->getArguments()[0]);
         $this->outputEmitter->emitStr(') !== null && $__truthy !== false)', $loc);
+        return true;
+    }
+
+    /**
+     * `(name x)` / `(namespace x)` on a target tagged
+     * `\Phel\Lang\Keyword` or `\Phel\Lang\Symbol` — emit the direct
+     * method call, skipping the runtime cond chain.
+     */
+    private function tryEmitNamedAccessor(CallNode $node): bool
+    {
+        $method = CallSpecialization::namedAccessorMethod($node);
+        if ($method === null) {
+            return false;
+        }
+
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($node->getArguments()[0]);
+        $this->outputEmitter->emitStr('->' . $method . '())', $loc);
         return true;
     }
 

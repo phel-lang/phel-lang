@@ -16,6 +16,7 @@ use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\FnInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SeqInterface;
+use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
 
 use function array_slice;
@@ -124,6 +125,10 @@ final readonly class CallSpecialization
         }
 
         if (self::isTypePredicate($node)) {
+            return true;
+        }
+
+        if (self::isNamedAccessor($node)) {
             return true;
         }
 
@@ -727,6 +732,50 @@ final readonly class CallSpecialization
     public static function isTruthyCheck(CallNode $node): bool
     {
         return self::isUnaryCoreCall($node, 'truthy?');
+    }
+
+    /**
+     * `(name x)` / `(namespace x)` on a target tagged
+     * `\Phel\Lang\Keyword` or `\Phel\Lang\Symbol`. The runtime body
+     * for `name` is `(if (string? x) x (php/-> x (getName)))`; the
+     * tagged target always hits the second branch. Returns the
+     * method name (`getName` / `getNamespace`) when eligible, `null`
+     * otherwise.
+     */
+    public static function namedAccessorMethod(CallNode $node): ?string
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode
+            || $fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
+        ) {
+            return null;
+        }
+
+        $args = $node->getArguments();
+        if (count($args) !== 1) {
+            return null;
+        }
+
+        $target = $args[0];
+        if (!$target instanceof LocalVarNode) {
+            return null;
+        }
+
+        $tag = self::normalisedTag($target->getInferredType());
+        if ($tag !== Keyword::class && $tag !== Symbol::class) {
+            return null;
+        }
+
+        return match ($fn->getName()->getName()) {
+            'name' => 'getName',
+            'namespace' => 'getNamespace',
+            default => null,
+        };
+    }
+
+    public static function isNamedAccessor(CallNode $node): bool
+    {
+        return self::namedAccessorMethod($node) !== null;
     }
 
     /**
