@@ -10,9 +10,11 @@ use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Lang\AbstractFn;
+use Phel\Lang\Collections\HashSet\PersistentHashSetInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use Phel\Lang\ContainsInterface;
 use Phel\Lang\FnInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SeqInterface;
@@ -133,6 +135,10 @@ final readonly class CallSpecialization
         }
 
         if (self::isEmptyCheck($node)) {
+            return true;
+        }
+
+        if (self::isContainsCheck($node)) {
             return true;
         }
 
@@ -736,6 +742,63 @@ final readonly class CallSpecialization
     public static function isTruthyCheck(CallNode $node): bool
     {
         return self::isUnaryCoreCall($node, 'truthy?');
+    }
+
+    /**
+     * `(contains? coll k)` on a target tagged as a
+     * `\Phel\Lang\ContainsInterface`-implementing collection
+     * (PersistentMap / PersistentVector / PersistentHashSet) or as a
+     * PHP `array`. The runtime body walks
+     * `nil? → ContainsInterface → is_array → is_string → throw`; the
+     * tagged target collapses to one of the first two branches.
+     *
+     * Returns:
+     *  - `'method'` for ContainsInterface targets — emit `$coll->contains($k)`
+     *  - `'array'` for array tags                 — emit `array_key_exists($k, $coll)`
+     *  - `null` otherwise.
+     */
+    public static function containsCheckKind(CallNode $node): ?string
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode
+            || $fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
+            || $fn->getName()->getName() !== 'contains?'
+        ) {
+            return null;
+        }
+
+        $args = $node->getArguments();
+        if (count($args) !== 2) {
+            return null;
+        }
+
+        $target = $args[0];
+        if (!$target instanceof LocalVarNode) {
+            return null;
+        }
+
+        $tag = self::normalisedTag($target->getInferredType());
+        if ($tag === null) {
+            return null;
+        }
+
+        if ($tag === 'array') {
+            return 'array';
+        }
+
+        $containsInterfaces = [
+            PersistentMapInterface::class,
+            PersistentVectorInterface::class,
+            PersistentHashSetInterface::class,
+            ContainsInterface::class,
+        ];
+
+        return in_array($tag, $containsInterfaces, true) ? 'method' : null;
+    }
+
+    public static function isContainsCheck(CallNode $node): bool
+    {
+        return self::containsCheckKind($node) !== null;
     }
 
     /**

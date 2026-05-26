@@ -1,0 +1,12 @@
+--PHEL--
+(fn [^\Phel\Lang\Collections\Map\PersistentMapInterface m k] (contains? m k))
+(fn [^\Phel\Lang\Collections\Vector\PersistentVectorInterface v i] (contains? v i))
+(fn [^array a k] (contains? a k))
+--PHP--
+(function(\Phel\Lang\Collections\Map\PersistentMapInterface $m, $k) {
+  return ($m->contains($k));
+});(function(\Phel\Lang\Collections\Vector\PersistentVectorInterface $v, $i) {
+  return ($v->contains($i));
+});(function(array $a, $k) {
+  return array_key_exists($k, $a);
+});

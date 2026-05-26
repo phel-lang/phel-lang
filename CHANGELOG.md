@@ -70,6 +70,8 @@ Control-flow lowering to PHP `match` (#2091):
 
 - `CallSpecialization`: extend the type-predicate table with `struct?` / `set?` / `lazy-seq?` / `queue?`. All four runtime bodies are single `(php/instanceof x …)` expressions so they reduce to a direct `instanceof` check. Predicates with multi-condition bodies (`list?`, `seq?`, `map?`, `vector?`) stay on the runtime dispatch (#2168)
 
+- `CallSpecialization`: lower `(contains? coll k)` to the direct collection call when the target is tagged. `ContainsInterface`-implementing tags (`^PersistentMapInterface`, `^PersistentVectorInterface`, `^PersistentHashSetInterface`, `^ContainsInterface`) → `$coll->contains($k)`. `^array` → `array_key_exists($k, $coll)`. Untagged / string targets stay on the runtime cond chain (#2170)
+
 ### Fixed
 
 - `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)
