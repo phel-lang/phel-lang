@@ -1,0 +1,21 @@
+--PHEL--
+(fn [a b c] (if (or a b c) :truthy :falsy))
+(fn [a b c] (if (and a b c) :truthy :falsy))
+--PHP--
+(function($a, $b, $c) {
+  static $__phel_const_0, $__phel_const_1;
+  if ((($__truthy = $a) !== null && $__truthy !== false) || (($__truthy = $b) !== null && $__truthy !== false) || (($__truthy = $c) !== null && $__truthy !== false)) {
+    return ($__phel_const_0 ??= \Phel::keyword("truthy"));
+  } else {
+    return ($__phel_const_1 ??= \Phel::keyword("falsy"));
+  }
+
+});(function($a, $b, $c) {
+  static $__phel_const_0, $__phel_const_1;
+  if ((($__truthy = $a) !== null && $__truthy !== false) && (($__truthy = $b) !== null && $__truthy !== false) && (($__truthy = $c) !== null && $__truthy !== false)) {
+    return ($__phel_const_0 ??= \Phel::keyword("truthy"));
+  } else {
+    return ($__phel_const_1 ??= \Phel::keyword("falsy"));
+  }
+
+});

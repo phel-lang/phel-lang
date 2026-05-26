@@ -46,6 +46,8 @@ Control-flow lowering to PHP `match` (#2091):
 
 - `CallSpecialization`: detect nested `(assoc m k v)` / `(conj v x)` chains on a typed persistent target and emit them as a single transient round-trip — `($m->asTransient()->put($k1,$v1)->put($k2,$v2)->...->persistent())`. After thread-macro expansion `(-> m (assoc :a 1) (assoc :b 2) (assoc :c 3))` collapses to nested `CallNode`s with the leaf tagged `PersistentMapInterface`; previously each level created a new persistent map. Chains of length 1 stay on the existing single-call specialiser (no transient overhead). Same shape for `conj` chains on `PersistentVectorInterface` (#2143)
 
+- `IfEmitter`: lower the expanded `(or …)` / `(and …)` macro shapes to native PHP `||` / `&&` chains when consumed as an `if` test. The recursive `(let [v expr] (if v v rest))` (`or`) / `(let [v expr] (if v rest v))` (`and`) shape collapses to a flat short-circuit chain where each operand is guarded by the inline Phel truthy adapter `(($__truthy = expr) !== null && $__truthy !== false)`. Skips the per-chain IIFE the macro expansion previously forced. Restricted to chains whose every operand is a simple expression (`LocalVarNode` / `LiteralNode` / `GlobalVarNode` / `PhpVarNode` / nested `CallNode` of simple args), so we never need to swap the analyser env on a `LetNode` / `IfNode` operand (#2132)
+
 ### Fixed
 
 - `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)
