@@ -11,74 +11,38 @@ All notable changes to this project will be documented in this file.
 
 ### Performance
 
-`ConstantFolder` — pure `phel.core` calls on literal args fold at compile time. Skips the fold whenever the runtime would throw or promote, preserving exception timing and `BigInt` / `Ratio` semantics (#2088):
-- comparison ops (`=`, `not=`, `<`, `<=`, `>`, `>=`) on int / float literals
-- boolean predicates (`not`, `nil?`, `true?`, `false?`, `boolean`)
-- bitwise `php/` ops (`&`, `|`, `^`, `<<`, `>>`, `~`) and the `bit-*` core fns whose `:inline` lowers to them
-- collection accessors `count` / `first` / `last` / `nth` on literal vector / map / set
-- `(str ...)` on `int` / `bool` / `string` / `nil` literals
-- `min` / `max` / `mod` / `quot` / `rem` / `abs` on numeric literals
+Compile-time folding and simplification:
+- `ConstantFolder`: fold pure `phel.core` calls on literal args (comparisons, boolean predicates, bitwise / `bit-*`, `count` / `first` / `last` / `nth` on literal collections, `str`, `min` / `max` / `mod` / `quot` / `rem` / `abs`). Skipped when runtime would throw or promote (#2088)
+- `DoSimplifier` / `LetSimplifier`: drop pure non-tail exprs and unused bindings; inline `(let [x <lit>] x)` (#2089)
 
-Simplification pass under `Compiler/Domain/Analyzer/TypeAnalyzer/Simplification/`, gated by `PureExpressionDetector` (delegates `CallNode` purity to `ConstantFolder`) (#2089):
-- `DoSimplifier`: drop pure non-tail exprs from `(do ...)` bodies; tail preserved
-- `LetSimplifier`: drop unused pure `let` bindings (loop bindings stay; closure-capturing bodies keep their bindings)
-- `LetSimplifier`: inline `(let [… x <literal>] x)` to the literal when the tail references the last binding exactly once
+Call-site lowering (`CallSpecialization`, analyser-tag-driven):
+- Persistent collection methods: `count` / `nth` / `first` / `rest` / `assoc` / `conj` / `dissoc` on tagged persistents → direct method call (#2090)
+- Variadic (N>=3) `+` / `*` / `<` / `<=` / `>` / `>=` on tagged numeric locals → native chain; literal-int chains stay on runtime dispatch so overflow still promotes (#2090)
+- `(not (= a b))` peephole → `($a !== $b)` (#2090)
+- `(apply f [a b c])` with fixed-arity `f` and matching vector literal → direct `__invoke` (#2090)
+- `(get arr k [default])` on `^array` → native subscript with `??` (#2139)
+- Calls on `^AbstractFn` / `^FnInterface` locals → `$f->__invoke(...)` instead of magic dispatch (#2142)
+- Nested `assoc` / `conj` chains on typed persistents → single transient round-trip (#2143)
+- Predicates: `nil?` / `some?` (#2157), `true?` / `false?` / `truthy?` / numeric predicates on tagged numerics (#2160), 1-arg type predicates `int?` / `float?` / `double?` / `string?` / `keyword?` / `symbol?` / `ratio?` (#2162), `struct?` / `set?` / `lazy-seq?` / `queue?` (#2168), multi-instanceof `map?` / `vector?` / `seq?` (#2177)
+- `(count arr)` on `^array` → native `count()` (#2158)
+- `(name k)` / `(namespace k)` on `^Keyword` / `^Symbol` → direct method call (#2164)
+- `(empty? x)` → tag-specific native check (#2166)
+- `(contains? coll k)` → `$coll->contains($k)` / `array_key_exists(...)` (#2170)
+- `(deref x)` (1-arg) / `(reset! v val)` → direct method call (#2179)
 
-`CallSpecialization` — analyser-tag-driven call-site lowering (#2090):
-- `count` / `nth` on `^PersistentVectorInterface` → `$v->count()` / `$v->get($i)`
-- `first` / `rest` on `^SeqInterface` / `^PersistentVectorInterface` / `^PersistentListInterface` → direct method call (`next` stays generic)
-- 3-arg `assoc`, 2-arg `conj` / `dissoc` on tagged persistents → `put` / `update` / `append` / `remove`
-- `(not (= a b))` peephole over the typed-`=` specialiser → `($a !== $b)`
-- variadic (N>=3) `+` / `*` / `<` / `<=` / `>` / `>=` over tagged numeric locals chain to `($a + $b + $c)` (arith) or `(($a < $b) && ($b < $c))` (compare). Pure-literal int chains stay on runtime dispatch so overflow still promotes to `BigInt`
-- `ApplyEmitter`: `(apply f [a b c])` → `($f)->__invoke($a, $b, $c)` when `f` is fixed-arity and the trailing arg is a vector literal matching declared arity
+Control-flow lowering:
+- Nested `if` chains comparing one local against primitive literal keys → PHP `match`, in both `LetEmitter` and `IfEmitter` (#2091)
+- `(or …)` / `(and …)` in `if` test → flat `||` / `&&` chain, skipping the IIFE (#2132)
+- `(or …)` / `(and …)` in expression / return context → nested ternary preserving Phel value-semantics (#2174)
+- `if (…) { return a; } else { return b; }` with simple branches → `return (cond ? a : b);` (#2133)
+- Drop `else { null; }` branch when else is `nil` literal in statement context (#2134)
 
-Control-flow lowering to PHP `match` (#2091):
-- `LetEmitter`: `case` / `cond`-shaped nested `if` chain inside a `let` (tests compare the same shadow against primitive literal keys) → `match`. Arms restricted to primitive literals (`int` / `string` / `bool` / `Keyword`)
-- `IfEmitter`: same lowering for bare nested `if` chains comparing the same `LocalVarNode` against primitive literal keys
-
-- `DefStructEmitter`: emit `defstruct`-generated classes as `final` to let PHP OPcache / JIT monomorphise method dispatch. `def-exception` keeps non-final (parent class is user-specified, subclassing chains stay valid); fn-as-class / multi-fn / reify already emit anonymous classes which are implicitly final (#2137)
-
-- `LetEmitter`: emit `/** @var T $shadow */` before each tagged `let` / `loop` binding init. Primitives (`int` / `float` / `bool` / `string` / `array`) pass through; class tags get a leading `\` so static analysers resolve from the global namespace. Function params already carry native PHP type hints via `MethodEmitter`, so they are unchanged. Runtime perf is unchanged — docblocks help static analysers (PHPStan / Psalm / IDEs) read the generated PHP, the PHP JIT itself infers types from opcodes (#2136)
-
-- `CallSpecialization`: `(get arr k)` / `(get arr k default)` on a target tagged `array` → `($arr[$k] ?? $default)` native subscript. Skips the runtime `get` dispatch, the type guard cond chain, and the `php/aget` adapter. Matches the runtime semantics (both absent keys and explicit nulls fall through to the default) because the `:else` branch of the Phel `get` body is itself `(if (nil? res) opt res)` (#2139)
-
-- `CallEmitter`: invoke calls on a `LocalVarNode` tagged `\Phel\Lang\AbstractFn` (or `\Phel\Lang\FnInterface`) now route through `$f->__invoke(...)` instead of the implicit `$f($args)` magic dispatch. Same code path the global-fn specialiser already uses — removes one magic-method resolution per call site (#2142)
-
-- `CallSpecialization`: detect nested `(assoc m k v)` / `(conj v x)` chains on a typed persistent target and emit them as a single transient round-trip — `($m->asTransient()->put($k1,$v1)->put($k2,$v2)->...->persistent())`. After thread-macro expansion `(-> m (assoc :a 1) (assoc :b 2) (assoc :c 3))` collapses to nested `CallNode`s with the leaf tagged `PersistentMapInterface`; previously each level created a new persistent map. Chains of length 1 stay on the existing single-call specialiser (no transient overhead). Same shape for `conj` chains on `PersistentVectorInterface` (#2143)
-
-- `IfEmitter`: lower the expanded `(or …)` / `(and …)` macro shapes to native PHP `||` / `&&` chains when consumed as an `if` test. The recursive `(let [v expr] (if v v rest))` (`or`) / `(let [v expr] (if v rest v))` (`and`) shape collapses to a flat short-circuit chain where each operand is guarded by the inline Phel truthy adapter `(($__truthy = expr) !== null && $__truthy !== false)`. Skips the per-chain IIFE the macro expansion previously forced. Restricted to chains whose every operand is a simple expression (`LocalVarNode` / `LiteralNode` / `GlobalVarNode` / `PhpVarNode` / nested `CallNode` of simple args), so we never need to swap the analyser env on a `LetNode` / `IfNode` operand (#2132)
-
-- `LiteralEmitter`: emit keyword literals as `\Phel\Lang\Keyword::create("name")` directly instead of routing through the `\Phel::keyword(...)` facade. Same intern-pool semantics (identity is preserved), skips one static-call frame per cache miss and lets OPcache inline the factory (#2131)
-
-- `IfEmitter`: collapse `if (…) { return a; } else { return b; }` to `return (cond ? a : b);` when both branches are simple expressions (`LocalVarNode` / `LiteralNode` / `GlobalVarNode` / `PhpVarNode` / `CallNode` of simple args, optionally wrapped in a no-stmt `DoNode`). Smaller bytecode and one fewer basic block for the JIT (#2133)
-
-- `IfEmitter`: drop the redundant `else { null; }` branch when an `if` (e.g. expanded from `(when …)` / `(when-not …)`) is in statement context and the else branch is the `nil` literal. Saves three lines of generated PHP per call site (#2134)
-
-- `BodyConstantScanner`: skip slot reservations for the cond-test calls and arm-key literals of any `LetNode` / `IfNode` that `IfChainMatchLowerer` will lower to a PHP `match`. Closes the orphan-slot path that left a `static $__phel_call_N` / `$__phel_const_N` declaration in the generated PHP without any `??=` initialiser to fill it. Added `OrphanCallSlotAuditTest` as a regression guard that walks every integration fixture's `--PHP--` block (#2144)
-
-- `CallSpecialization`: lower `(nil? x)` and 1-arg `(some? x)` to the native `($x === null)` / `($x !== null)` comparisons, skipping the registry lookup + `id`/`not` adapters. Predicates this hot show up across virtually every Phel program (`(when (some? x) …)`, threaded `(when-let …)` chains, default-supplying `(if (nil? x) default …)`) (#2157)
-
-- `CallSpecialization`: lower 1-arg `(count arr)` on an `array`-tagged local to native `count($arr)`, matching the `(get arr k)` specialisation in #2139. The runtime cond chain over set / seq / vector / map collapses to the same `php/count` branch the native call already covers (#2158)
-
-- `CallSpecialization`: lower identity-strict bool predicates (`(true? x)` → `($x === true)`, `(false? x)` → `($x === false)`), the Phel-truthy probe (`(truthy? x)` → `(($__truthy = $x) !== null && $__truthy !== false)`), and the numeric predicates on `^int`/`^float` tagged locals (`(zero? x)` → `($x === 0)`, `(pos? x)` → `($x > 0)`, `(neg? x)` → `($x < 0)`). `BigInt` / `Ratio` / `BigDecimal` shapes stay on the runtime `NumericOperations` dispatch (#2160)
-
-- `CallSpecialization`: lower the 1-arg type predicates `int?` / `float?` / `double?` / `string?` / `keyword?` / `symbol?` / `ratio?` to their native PHP one-liners (`is_int`, `is_float`, `is_string`, `instanceof Keyword`, `instanceof Symbol`, `instanceof Ratio`). Predicates with multi-shape runtime bodies (`integer?` covering `int|BigInt`, `number?` covering four numeric types) stay on the runtime dispatch (#2162)
-
-- `CallSpecialization`: lower `(name k)` and `(namespace k)` to the direct `$k->getName()` / `$k->getNamespace()` method call when the analyser has tagged `k` as `\Phel\Lang\Keyword` or `\Phel\Lang\Symbol`. Skips the runtime `(if (string? x) x (php/-> x (getName)))` cond chain (#2164)
-
-- `CallSpecialization`: lower `(empty? x)` to a tag-specific native check — `($x === [])` for `^array`, `($x === '')` for `^string`, `($x === 0)` for `^int`, `($x->count() === 0)` for `^PersistentMapInterface` / `^PersistentVectorInterface`. Skips the runtime cond chain over numeric / string / lazyseq / cons / fallback (#2166)
-
-- `CallSpecialization`: extend the type-predicate table with `struct?` / `set?` / `lazy-seq?` / `queue?`. All four runtime bodies are single `(php/instanceof x …)` expressions so they reduce to a direct `instanceof` check. Predicates with multi-condition bodies (`list?`, `seq?`, `map?`, `vector?`) stay on the runtime dispatch (#2168)
-
-- `CallSpecialization`: lower `(contains? coll k)` to the direct collection call when the target is tagged. `ContainsInterface`-implementing tags (`^PersistentMapInterface`, `^PersistentVectorInterface`, `^PersistentHashSetInterface`, `^ContainsInterface`) → `$coll->contains($k)`. `^array` → `array_key_exists($k, $coll)`. Untagged / string targets stay on the runtime cond chain (#2170)
-
-- `BooleanExprDetector`: recognise specialised predicate `CallNode`s (`nil?`, `some?`, `true?`, `false?`, `truthy?`, the numeric predicates on tagged numerics, the type predicates, `empty?`, `contains?`) as bool-returning. Lets `IfEmitter` splice the lowered expression straight into the `if` test slot without the Phel-truthy `($__truthy = …) !== null && $__truthy !== false` adapter — combined with the tail-ternary lowering, `(if (nil? x) a b)` becomes `return (($x === null) ? a : b);` (#2172)
-
-- `LetEmitter`: lower `(or …)` / `(and …)` in expression / return context to a nested PHP ternary that preserves the Phel value-semantics (return first truthy / last falsy value), skipping the IIFE wrap. Same restriction as the test-position lowerer in #2153: every operand must be a simple expression shape. `(or a b c)` returns the first truthy value through a `($__or = …)` cascade without allocating a closure (#2174)
-
-- `CallSpecialization`: extend the type-predicate table with the multi-instanceof shapes `map?` / `vector?` / `seq?`. `(map? x)` → `(($x instanceof PersistentMapInterface) && !($x instanceof AbstractPersistentStruct))`, `(vector? x)` → `(($x instanceof PersistentVectorInterface) \|\| ($x instanceof MapEntry))`, `(seq? x)` → 3-way `\|\|` chain over `LazySeqInterface` / `Cons` / `PersistentListInterface`. `list?` keeps the runtime dispatch (it also calls `$x->isList()`) (#2177)
-
-- `CallSpecialization`: lower `(deref x)` (1-arg) and `(reset! v val)` to direct method calls (`$x->deref()` and `$v->set($val)`), skipping the registry lookup. The runtime fn body is itself a single `php/->` call, so the failure mode (method not found) is identical. The 3-arg `deref` overload (future / promise timeout) keeps the runtime dispatch (#2179)
+Emit-shape tweaks:
+- `DefStructEmitter`: emit `defstruct` classes as `final` for OPcache / JIT monomorphisation; `def-exception` stays open (#2137)
+- `LetEmitter`: emit `/** @var T $shadow */` for tagged `let` / `loop` bindings (static-analyser hint; runtime unchanged) (#2136)
+- `LiteralEmitter`: emit keyword literals as direct `\Phel\Lang\Keyword::create(...)` instead of `\Phel::keyword(...)` (#2131)
+- `BodyConstantScanner`: skip slot reservations for call/literal nodes that `IfChainMatchLowerer` will consume, closing the orphan-slot path; `OrphanCallSlotAuditTest` regression guard added (#2144)
+- `BooleanExprDetector`: recognise specialised predicate calls as bool-returning, so `IfEmitter` splices them into the test slot without the Phel-truthy adapter (#2172)
 
 - `CallSpecialization`: infer return types of known `php/*` scalar functions (`cos`, `sin`, `sqrt`, `count`, `strlen`, `intval`, `floor`, `is_int`, `sprintf`, etc.) via a private `KnownPhpFunctionReturnTypes` table, plus propagate the result tag of typed-arith calls (`+` / `-` / `*` on `int`/`float`-tagged operands) so nested expressions chain. `(+ ^float angle (php/cos a))` now emits native `($angle + cos($a))` instead of runtime dispatch; `(+ sum (* d (php/cos angle)))` chains all the way to `($sum + ($d * cos($angle)))`. Unlisted PHP functions stay on the runtime dispatch. Path 2 (best-effort propagation through `php/aget` via an `:items-type` meta hint) is deferred (#2175)
 
