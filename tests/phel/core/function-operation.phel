@@ -26,6 +26,10 @@
   (is (false? ((some-fn pos? even?) -1 -3)) "some-fn returns false when no pred matches")
   (is (true? ((some-fn neg? zero? pos?) 0)) "some-fn with three preds matches middle"))
 
+(deftest test-some-fn-zero-arity-throws-at-runtime
+  (is (thrown? \InvalidArgumentException (some-fn))
+      "some-fn with no predicates compiles and throws at runtime"))
+
 (deftest test-some-fn-returns-actual-value
   (is (= 10 ((some-fn #(when (> % 5) %)) 3 10 1)) "some-fn returns the truthy value from the predicate")
   (is (= :found ((some-fn (fn [_] :found)) 1)) "some-fn returns keyword truthy value"))

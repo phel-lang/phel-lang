@@ -588,14 +588,14 @@ Every `defmacro` body has two implicit symbols:
 
 ### Extending `is` with Custom Assertions
 
-`phel.test/assert-expr` is an open multimethod. Teach `is` to expand new assertion forms via `defmethod`. The method takes the original `form` and user-supplied `message`, and returns the code `is` should run:
+`phel.test/assert-expr` is an open multimethod. Teach `is` to expand new assertion forms via `defmethod`. The method takes the user-supplied `message` and original `form`, matching `clojure.test/assert-expr`, and returns the code `is` should run:
 
 ```phel
 (ns my-app.test.helpers
   (:require phel.test :refer [deftest is]))
 
 ;; Approximate equality for floats: expand to `is` over a tolerance check.
-(defmethod phel.test/assert-expr 'approx= [form message]
+(defmethod phel.test/assert-expr 'approx= [message form]
   (let [a (second form)
         b (second (next form))
         epsilon 0.001]

@@ -11,6 +11,7 @@
 (use Phel.Lang.Collections.Queue.PersistentQueue)
 (use Phel.Lang.Collections.Vector.PersistentVectorInterface)
 (use Phel.Lang.Collections.Vector.TransientVectorInterface)
+(use Phel.Lang.NumericOperations)
 (use Phel.Lang.PopInterface)
 
 ;; Indexed / associative access primitives used as building blocks by the
@@ -181,12 +182,12 @@
   {:example "(nthrest [1 2 3 4 5] 2) ; => (3 4 5)\n(nthrest [1 2] 5) ; => ()\n(nthrest nil 0) ; => nil\n(nthrest nil 3) ; => ()"
    :see-also ["nth" "nthnext" "drop"]}
   [coll n]
-  (if (php/< n 1)
+  (if (php/< (php/:: NumericOperations (compare n 1)) 0)
     coll
     (loop [i n
            s coll]
-      (if (and (php/> i 0) s)
-        (recur (php/- i 1) (next s))
+      (if (and (php/> (php/:: NumericOperations (compare i 0)) 0) s)
+        (recur (php/:: NumericOperations (subtract i 1)) (next s))
         (if (nil? s) '() s)))))
 
 (defn nthnext

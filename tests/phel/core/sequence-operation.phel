@@ -319,7 +319,9 @@
   (is (nil? (nthrest nil 0)) "nthrest on nil with 0 returns nil")
   (is (= '() (nthrest nil 3)) "nthrest on nil with positive n returns empty list")
   (is (= '() (nthrest [] 100)) "nthrest on empty vector returns empty list")
-  (is (= '() (nthrest (range 0 10) 10)) "nthrest exhausting a range returns empty list"))
+  (is (= '() (nthrest (range 0 10) 10)) "nthrest exhausting a range returns empty list")
+  (is (thrown? \InvalidArgumentException (nthrest (range 0 10) nil))
+      "nthrest with nil n compiles and throws at runtime"))
 
 (deftest test-nthnext
   (is (= [3 4 5] (nthnext [1 2 3 4 5] 2)) "nthnext drops first n")

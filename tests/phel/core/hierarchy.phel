@@ -3,6 +3,7 @@
   (:use RecursiveArrayIterator)
   (:use ArrayIterator)
   (:use RecursiveIterator)
+  (:use stdClass)
   (:use Traversable))
 
 ;; Each test uses unique keyword prefixes to avoid state leaking between tests.
@@ -10,52 +11,66 @@
 ;; --- derive / isa? ---
 
 (deftest test-derive-and-isa
-  (derive :d1-square :d1-shape)
-  (is (true? (isa? :d1-square :d1-shape)) "child isa parent")
-  (is (false? (isa? :d1-shape :d1-square)) "parent is not child")
-  (is (true? (isa? :d1-square :d1-square)) "identity: x isa x"))
+  (derive ::d1-square ::d1-shape)
+  (is (true? (isa? ::d1-square ::d1-shape)) "child isa parent")
+  (is (false? (isa? ::d1-shape ::d1-square)) "parent is not child")
+  (is (true? (isa? ::d1-square ::d1-square)) "identity: x isa x"))
 
 (deftest test-transitive-isa
-  (derive :t1-b :t1-a)
-  (derive :t1-c :t1-b)
-  (is (true? (isa? :t1-c :t1-a)) "transitive: c isa a via b")
-  (is (true? (isa? :t1-c :t1-b)) "direct: c isa b")
-  (is (false? (isa? :t1-a :t1-c)) "not reverse"))
+  (derive ::t1-b ::t1-a)
+  (derive ::t1-c ::t1-b)
+  (is (true? (isa? ::t1-c ::t1-a)) "transitive: c isa a via b")
+  (is (true? (isa? ::t1-c ::t1-b)) "direct: c isa b")
+  (is (false? (isa? ::t1-a ::t1-c)) "not reverse"))
 
 (deftest test-multiple-parents
-  (derive :mp-child :mp-parent1)
-  (derive :mp-child :mp-parent2)
-  (is (true? (isa? :mp-child :mp-parent1)) "isa first parent")
-  (is (true? (isa? :mp-child :mp-parent2)) "isa second parent"))
+  (derive ::mp-child ::mp-parent1)
+  (derive ::mp-child ::mp-parent2)
+  (is (true? (isa? ::mp-child ::mp-parent1)) "isa first parent")
+  (is (true? (isa? ::mp-child ::mp-parent2)) "isa second parent"))
 
 (deftest test-cyclic-derivation-throws
-  (derive :cy-a :cy-b)
-  (is (thrown? \InvalidArgumentException (derive :cy-b :cy-a))
+  (derive ::cy-a ::cy-b)
+  (is (thrown? \InvalidArgumentException (derive ::cy-b ::cy-a))
       "cyclic derivation throws"))
+
+(deftest test-global-derive-rejects-invalid-tags
+  (is (thrown? \InvalidArgumentException (derive nil nil))
+      "nil tags are rejected")
+  (is (thrown? \InvalidArgumentException (derive ::invalid-parent 42))
+      "scalar parents are rejected")
+  (is (thrown? \InvalidArgumentException (derive stdClass :invalid-parent))
+      "non-namespaced parents are rejected")
+  (is (nil? (parents stdClass))
+      "failed derives do not pollute global parents")
+  (is (nil? (descendants nil))
+      "failed derives do not pollute nil descendants")
+  (is (nil? (descendants 42))
+      "failed derives do not pollute scalar descendants"))
 
 ;; --- parents ---
 
 (deftest test-parents
-  (derive :p1-child :p1-parent)
-  (let [p (parents :p1-child)]
+  (derive ::p1-child ::p1-parent)
+  (let [p (parents ::p1-child)]
     (is (not (nil? p)) "parents returns non-nil")
-    (is (contains? p :p1-parent) "contains the parent")))
+    (is (contains? p ::p1-parent) "contains the parent")))
 
 (deftest test-parents-nil-for-root
-  (is (nil? (parents :p2-nonexistent)) "no parents returns nil"))
+  (is (nil? (parents ::p2-nonexistent)) "no parents returns nil"))
 
 ;; --- ancestors ---
 
 (deftest test-ancestors
-  (derive :a1-b :a1-a)
-  (derive :a1-c :a1-b)
-  (let [anc (ancestors :a1-c)]
+  (derive ::a1-b ::a1-a)
+  (derive ::a1-c ::a1-b)
+  (let [anc (ancestors ::a1-c)]
     (is (not (nil? anc)) "ancestors returns non-nil")
-    (is (contains? anc :a1-b) "contains direct parent")
-    (is (contains? anc :a1-a) "contains transitive ancestor")))
+    (is (contains? anc ::a1-b) "contains direct parent")
+    (is (contains? anc ::a1-a) "contains transitive ancestor")))
 
 (deftest test-ancestors-nil-for-root
-  (is (nil? (ancestors :a2-nonexistent)) "no ancestors returns nil"))
+  (is (nil? (ancestors ::a2-nonexistent)) "no ancestors returns nil"))
 
 ;; --- PHP class hierarchy ---
 
@@ -147,30 +162,34 @@
 ;; --- descendants ---
 
 (deftest test-descendants
-  (derive :dc-child :dc-root)
-  (derive :dc-grandchild :dc-child)
-  (let [desc (descendants :dc-root)]
+  (derive ::dc-child ::dc-root)
+  (derive ::dc-grandchild ::dc-child)
+  (let [desc (descendants ::dc-root)]
     (is (not (nil? desc)) "descendants returns non-nil")
-    (is (contains? desc :dc-child) "contains child")
-    (is (contains? desc :dc-grandchild) "contains grandchild")))
+    (is (contains? desc ::dc-child) "contains child")
+    (is (contains? desc ::dc-grandchild) "contains grandchild")))
 
 (deftest test-descendants-nil-for-leaf
-  (is (nil? (descendants :dc2-nonexistent)) "no descendants returns nil"))
+  (is (nil? (descendants ::dc2-nonexistent)) "no descendants returns nil"))
 
 ;; --- underive ---
 
 (deftest test-underive
-  (derive :u1-child :u1-parent)
-  (is (true? (isa? :u1-child :u1-parent)) "isa before underive")
-  (underive :u1-child :u1-parent)
-  (is (false? (isa? :u1-child :u1-parent)) "not isa after underive"))
+  (derive ::u1-child ::u1-parent)
+  (is (true? (isa? ::u1-child ::u1-parent)) "isa before underive")
+  (underive ::u1-child ::u1-parent)
+  (is (false? (isa? ::u1-child ::u1-parent)) "not isa after underive"))
 
 (deftest test-underive-preserves-other-parents
-  (derive :u2-child :u2-p1)
-  (derive :u2-child :u2-p2)
-  (underive :u2-child :u2-p1)
-  (is (false? (isa? :u2-child :u2-p1)) "removed parent gone")
-  (is (true? (isa? :u2-child :u2-p2)) "other parent preserved"))
+  (derive ::u2-child ::u2-p1)
+  (derive ::u2-child ::u2-p2)
+  (underive ::u2-child ::u2-p1)
+  (is (false? (isa? ::u2-child ::u2-p1)) "removed parent gone")
+  (is (true? (isa? ::u2-child ::u2-p2)) "other parent preserved"))
+
+(deftest test-underive-ignores-invalid-global-tags
+  (is (nil? (underive nil nil)) "nil tags do not throw")
+  (is (nil? (underive :not-derived :anything)) "unknown non-namespaced tags do not throw"))
 
 ;; --- make-hierarchy ---
 
@@ -186,84 +205,91 @@
 
 (deftest test-derive-hierarchy-returns-new-hierarchy
   (let [h  (make-hierarchy)
-        h' (derive h :hd-child :hd-parent)]
+        h' (derive h ::hd-child ::hd-parent)]
     (is (= {} (get h :parents)) "original hierarchy left untouched")
-    (is (contains? (get (get h' :parents) :hd-child) :hd-parent)
+    (is (contains? (get (get h' :parents) ::hd-child) ::hd-parent)
         "new hierarchy carries the parent link")
-    (is (contains? (get (get h' :ancestors) :hd-child) :hd-parent)
+    (is (contains? (get (get h' :ancestors) ::hd-child) ::hd-parent)
         "new hierarchy populates :ancestors")
-    (is (contains? (get (get h' :descendants) :hd-parent) :hd-child)
+    (is (contains? (get (get h' :descendants) ::hd-parent) ::hd-child)
         "new hierarchy populates :descendants")))
 
 (deftest test-derive-hierarchy-transitive-ancestors
   (let [h (-> (make-hierarchy)
-              (derive :hd2-c :hd2-b)
-              (derive :hd2-b :hd2-a))]
-    (is (contains? (get (get h :ancestors) :hd2-c) :hd2-a)
+              (derive ::hd2-c ::hd2-b)
+              (derive ::hd2-b ::hd2-a))]
+    (is (contains? (get (get h :ancestors) ::hd2-c) ::hd2-a)
         "ancestors map captures transitive parent")
-    (is (contains? (get (get h :descendants) :hd2-a) :hd2-c)
+    (is (contains? (get (get h :descendants) ::hd2-a) ::hd2-c)
         "descendants map captures transitive child")))
 
 (deftest test-derive-hierarchy-cyclic-throws
-  (let [h (derive (make-hierarchy) :hd3-a :hd3-b)]
-    (is (thrown? \InvalidArgumentException (derive h :hd3-b :hd3-a))
+  (let [h (derive (make-hierarchy) ::hd3-a ::hd3-b)]
+    (is (thrown? \InvalidArgumentException (derive h ::hd3-b ::hd3-a))
         "pure derive rejects cycles")))
 
 (deftest test-derive-hierarchy-does-not-touch-global
-  (let [_ (derive (make-hierarchy) :hd4-child :hd4-parent)]
-    (is (false? (isa? :hd4-child :hd4-parent))
+  (let [_ (derive (make-hierarchy) ::hd4-child ::hd4-parent)]
+    (is (false? (isa? ::hd4-child ::hd4-parent))
         "pure derive must not leak into the global hierarchy")))
 
+(deftest test-derive-hierarchy-allows-plain-tags
+  (let [h (derive (make-hierarchy) :plain-child :plain-parent)]
+    (is (true? (isa? h :plain-child :plain-parent))
+        "custom hierarchies can use plain tags without touching global state")
+    (is (false? (isa? :plain-child :plain-parent))
+        "plain tags stay local to the custom hierarchy")))
+
 (deftest test-underive-hierarchy-returns-new-hierarchy
-  (let [h  (derive (make-hierarchy) :hu-child :hu-parent)
-        h' (underive h :hu-child :hu-parent)]
-    (is (contains? (get (get h :parents) :hu-child) :hu-parent)
+  (let [h  (derive (make-hierarchy) ::hu-child ::hu-parent)
+        h' (underive h ::hu-child ::hu-parent)]
+    (is (contains? (get (get h :parents) ::hu-child) ::hu-parent)
         "original hierarchy preserved")
-    (is (nil? (get (get h' :parents) :hu-child))
+    (is (nil? (get (get h' :parents) ::hu-child))
         "parent link removed in new hierarchy")))
 
 (deftest test-underive-hierarchy-preserves-other-parents
   (let [h  (-> (make-hierarchy)
-               (derive :hu2-child :hu2-p1)
-               (derive :hu2-child :hu2-p2))
-        h' (underive h :hu2-child :hu2-p1)]
-    (is (false? (contains? (get (get h' :parents) :hu2-child) :hu2-p1))
+               (derive ::hu2-child ::hu2-p1)
+               (derive ::hu2-child ::hu2-p2))
+        h' (underive h ::hu2-child ::hu2-p1)]
+    (is (false? (contains? (get (get h' :parents) ::hu2-child) ::hu2-p1))
         "removed parent gone")
-    (is (contains? (get (get h' :parents) :hu2-child) :hu2-p2)
+    (is (contains? (get (get h' :parents) ::hu2-child) ::hu2-p2)
         "other parent preserved")))
 
 (deftest test-isa-hierarchy
   (let [h (-> (make-hierarchy)
-              (derive :hi-c :hi-b)
-              (derive :hi-b :hi-a))]
-    (is (true? (isa? h :hi-c :hi-a)) "transitive isa? in hierarchy")
-    (is (true? (isa? h :hi-c :hi-c)) "identity in hierarchy")
-    (is (false? (isa? h :hi-a :hi-c)) "no reverse in hierarchy")))
+              (derive ::hi-c ::hi-b)
+              (derive ::hi-b ::hi-a))]
+    (is (true? (isa? h ::hi-c ::hi-a)) "transitive isa? in hierarchy")
+    (is (true? (isa? h ::hi-c ::hi-c)) "identity in hierarchy")
+    (is (false? (isa? h ::hi-a ::hi-c)) "no reverse in hierarchy")))
 
 (deftest test-parents-hierarchy
-  (let [h (derive (make-hierarchy) :hp-child :hp-parent)]
-    (is (contains? (parents h :hp-child) :hp-parent)
+  (let [h (derive (make-hierarchy) ::hp-child ::hp-parent)]
+    (is (contains? (parents h ::hp-child) ::hp-parent)
         "parents in hierarchy")
-    (is (nil? (parents h :hp-unknown))
+    (is (nil? (parents h ::hp-unknown))
         "nil for unknown tag in hierarchy")))
 
 (deftest test-ancestors-hierarchy
   (let [h (-> (make-hierarchy)
-              (derive :ha-c :ha-b)
-              (derive :ha-b :ha-a))]
-    (let [anc (ancestors h :ha-c)]
-      (is (contains? anc :ha-b) "direct ancestor in hierarchy")
-      (is (contains? anc :ha-a) "transitive ancestor in hierarchy"))
-    (is (nil? (ancestors h :ha-unknown)) "nil for unknown tag")))
+              (derive ::ha-c ::ha-b)
+              (derive ::ha-b ::ha-a))]
+    (let [anc (ancestors h ::ha-c)]
+      (is (contains? anc ::ha-b) "direct ancestor in hierarchy")
+      (is (contains? anc ::ha-a) "transitive ancestor in hierarchy"))
+    (is (nil? (ancestors h ::ha-unknown)) "nil for unknown tag")))
 
 (deftest test-descendants-hierarchy
   (let [h (-> (make-hierarchy)
-              (derive :hdc-child :hdc-root)
-              (derive :hdc-grandchild :hdc-child))]
-    (let [desc (descendants h :hdc-root)]
-      (is (contains? desc :hdc-child) "direct descendant in hierarchy")
-      (is (contains? desc :hdc-grandchild) "transitive descendant in hierarchy"))
-    (is (nil? (descendants h :hdc-leaf)) "nil for leaf/unknown tag")))
+              (derive ::hdc-child ::hdc-root)
+              (derive ::hdc-grandchild ::hdc-child))]
+    (let [desc (descendants h ::hdc-root)]
+      (is (contains? desc ::hdc-child) "direct descendant in hierarchy")
+      (is (contains? desc ::hdc-grandchild) "transitive descendant in hierarchy"))
+    (is (nil? (descendants h ::hdc-leaf)) "nil for leaf/unknown tag")))
 
 (deftest test-hierarchy-queries-return-nil-for-invalid-hierarchy
   (is (nil? (parents "anything" "anything"))
@@ -276,27 +302,27 @@
 ;; --- multimethod with hierarchy dispatch ---
 
 ;; Multimethods must be top-level (defmulti expands to def)
-(derive :mh-circle :mh-shape)
-(derive :mh-square :mh-shape)
+(derive ::mh-circle ::mh-shape)
+(derive ::mh-square ::mh-shape)
 (defmulti mh-draw :type)
-(defmethod mh-draw :mh-shape [_] "generic shape")
-(defmethod mh-draw :mh-circle [_] "circle")
+(defmethod mh-draw ::mh-shape [_] "generic shape")
+(defmethod mh-draw ::mh-circle [_] "circle")
 
 (deftest test-multimethod-hierarchy-dispatch
-  (is (= "circle" (mh-draw {:type :mh-circle})) "exact match preferred")
-  (is (= "generic shape" (mh-draw {:type :mh-square})) "hierarchy dispatch"))
+  (is (= "circle" (mh-draw {:type ::mh-circle})) "exact match preferred")
+  (is (= "generic shape" (mh-draw {:type ::mh-square})) "hierarchy dispatch"))
 
-(derive :ms-rect :ms-shape)
-(derive :ms-colored-rect :ms-rect)
+(derive ::ms-rect ::ms-shape)
+(derive ::ms-colored-rect ::ms-rect)
 (defmulti ms-render :type)
-(defmethod ms-render :ms-shape [_] "shape")
-(defmethod ms-render :ms-rect [_] "rect")
+(defmethod ms-render ::ms-shape [_] "shape")
+(defmethod ms-render ::ms-rect [_] "rect")
 
 (deftest test-multimethod-hierarchy-prefers-specific
-  (is (= "rect" (ms-render {:type :ms-colored-rect})) "prefers most specific ancestor"))
+  (is (= "rect" (ms-render {:type ::ms-colored-rect})) "prefers most specific ancestor"))
 
 (defmulti mf-process :kind)
 (defmethod mf-process :default [m] "default")
 
 (deftest test-multimethod-default-fallback-with-hierarchy
-  (is (= "default" (mf-process {:kind :mf-unknown})) "falls back to default"))
+  (is (= "default" (mf-process {:kind ::mf-unknown})) "falls back to default"))
