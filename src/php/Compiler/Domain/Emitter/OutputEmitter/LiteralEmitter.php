@@ -185,12 +185,12 @@ final readonly class LiteralEmitter
     {
         if ($x->getNamespace() !== null) {
             $this->outputEmitter->emitStr(
-                '\Phel::keyword("' . PhpStringEscape::doubleQuoted($x->getName()) . '", "' . PhpStringEscape::doubleQuoted($x->getNamespace()) . '")',
+                '\Phel\Lang\Keyword::create("' . PhpStringEscape::doubleQuoted($x->getName()) . '", "' . PhpStringEscape::doubleQuoted($x->getNamespace()) . '")',
                 $x->getStartLocation(),
             );
         } else {
             $this->outputEmitter->emitStr(
-                '\Phel::keyword("' . PhpStringEscape::doubleQuoted($x->getName()) . '")',
+                '\Phel\Lang\Keyword::create("' . PhpStringEscape::doubleQuoted($x->getName()) . '")',
                 $x->getStartLocation(),
             );
         }

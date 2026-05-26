@@ -2,6 +2,6 @@
 (let [x (do 1 2 :foo)] x)
 --PHP--
 $x_1 = (function() {
-  return \Phel::keyword("foo");
+  return \Phel\Lang\Keyword::create("foo");
 })();
 $x_1;

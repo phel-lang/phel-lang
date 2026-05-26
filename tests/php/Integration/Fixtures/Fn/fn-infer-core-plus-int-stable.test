@@ -12,12 +12,12 @@
     }
   },
   \Phel::map(
-    \Phel::keyword("doc"), "```phel\n(add-pair x y)\n```\n",
-    \Phel::keyword("start-location"), \Phel::location("Fn/fn-infer-core-plus-int-stable.test", 1, 0),
-    \Phel::keyword("end-location"), \Phel::location("Fn/fn-infer-core-plus-int-stable.test", 1, 48),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(add-pair x y)\n```\n",
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Fn/fn-infer-core-plus-int-stable.test", 1, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Fn/fn-infer-core-plus-int-stable.test", 1, 48),
     "min-arity", 2,
     "is-variadic", false,
     "arglists", "[x y]",
-    \Phel::keyword("tag"), "int"
+    \Phel\Lang\Keyword::create("tag"), "int"
   )
 );

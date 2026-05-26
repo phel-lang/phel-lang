@@ -6,7 +6,7 @@
   "x",
   \Phel\Lang\BigInt::fromString("9223372036854775808"),
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::location("Def/bigint-literal-oversize.test", 1, 0),
-    \Phel::keyword("end-location"), \Phel::location("Def/bigint-literal-oversize.test", 1, 28)
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/bigint-literal-oversize.test", 1, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/bigint-literal-oversize.test", 1, 28)
   )
 );

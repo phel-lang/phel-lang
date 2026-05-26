@@ -12,12 +12,12 @@
     }
   },
   \Phel::map(
-    \Phel::keyword("doc"), "```phel\n(weird a)\n```\n",
-    \Phel::keyword("start-location"), \Phel::location("Fn/fn-infer-expected-type-bails-on-disagreement.test", 1, 0),
-    \Phel::keyword("end-location"), \Phel::location("Fn/fn-infer-expected-type-bails-on-disagreement.test", 1, 47),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(weird a)\n```\n",
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Fn/fn-infer-expected-type-bails-on-disagreement.test", 1, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Fn/fn-infer-expected-type-bails-on-disagreement.test", 1, 47),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[a]",
-    \Phel::keyword("tag"), "string"
+    \Phel\Lang\Keyword::create("tag"), "string"
   )
 );

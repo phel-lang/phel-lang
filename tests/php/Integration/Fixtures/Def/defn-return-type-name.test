@@ -12,10 +12,10 @@
     }
   },
   \Phel::map(
-    \Phel::keyword("tag"), "int",
-    \Phel::keyword("doc"), "```phel\n(add x y)\n```\n",
-    \Phel::keyword("start-location"), \Phel::location("Def/defn-return-type-name.test", 1, 0),
-    \Phel::keyword("end-location"), \Phel::location("Def/defn-return-type-name.test", 1, 43),
+    \Phel\Lang\Keyword::create("tag"), "int",
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(add x y)\n```\n",
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/defn-return-type-name.test", 1, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/defn-return-type-name.test", 1, 43),
     "min-arity", 2,
     "is-variadic", false,
     "arglists", "[x y]"

@@ -5,5 +5,5 @@
 --PHP--
 (function(\Phel\Lang\Collections\Map\PersistentMapInterface $m, \Phel\Lang\Collections\Vector\PersistentVectorInterface $v) {
   static $__phel_const_0, $__phel_const_1;
-  return \Phel::vector([($m->put(($__phel_const_0 ??= \Phel::keyword("k")), 1)), ($v->append(99)), ($m->remove(($__phel_const_1 ??= \Phel::keyword("k"))))]);
+  return \Phel::vector([($m->put(($__phel_const_0 ??= \Phel\Lang\Keyword::create("k")), 1)), ($v->append(99)), ($m->remove(($__phel_const_1 ??= \Phel\Lang\Keyword::create("k"))))]);
 });

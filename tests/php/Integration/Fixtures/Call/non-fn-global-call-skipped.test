@@ -5,12 +5,12 @@
 \Phel::addDefinition(
   "user",
   "k",
-  \Phel::keyword("a"),
+  \Phel\Lang\Keyword::create("a"),
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::location("Call/non-fn-global-call-skipped.test", 1, 0),
-    \Phel::keyword("end-location"), \Phel::location("Call/non-fn-global-call-skipped.test", 1, 10)
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Call/non-fn-global-call-skipped.test", 1, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Call/non-fn-global-call-skipped.test", 1, 10)
   )
 );
 (\Phel::getDefinition("user", "k"))(\Phel::map(
-  \Phel::keyword("a"), 1
+  \Phel\Lang\Keyword::create("a"), 1
 ));

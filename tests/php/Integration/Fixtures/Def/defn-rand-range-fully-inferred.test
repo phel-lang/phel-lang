@@ -14,9 +14,9 @@
     }
   },
   \Phel::map(
-    \Phel::keyword("doc"), "```phel\n(rand-range lo hi)\n```\n",
-    \Phel::keyword("start-location"), \Phel::location("Def/defn-rand-range-fully-inferred.test", 1, 0),
-    \Phel::keyword("end-location"), \Phel::location("Def/defn-rand-range-fully-inferred.test", 2, 30),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(rand-range lo hi)\n```\n",
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/defn-rand-range-fully-inferred.test", 1, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/defn-rand-range-fully-inferred.test", 2, 30),
     "min-arity", 2,
     "is-variadic", false,
     "arglists", "[lo hi]"

@@ -20,9 +20,9 @@
     }
   },
   \Phel::map(
-    \Phel::keyword("doc"), "```phel\n(yield_generator_str)\n```\n",
-    \Phel::keyword("start-location"), \Phel::location("Yield/yield-str.test", 1, 0),
-    \Phel::keyword("end-location"), \Phel::location("Yield/yield-str.test", 3, 23),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(yield_generator_str)\n```\n",
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Yield/yield-str.test", 1, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Yield/yield-str.test", 3, 23),
     "min-arity", 0,
     "is-variadic", false,
     "arglists", "[]"

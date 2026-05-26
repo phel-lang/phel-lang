@@ -3,5 +3,5 @@
 --PHP--
 (function($x) {
   static $__phel_const_0, $__phel_const_1, $__phel_const_2, $__phel_const_3, $__phel_call_0, $__phel_call_1, $__phel_call_2;
-  return match ($x) { 1 => \Phel::keyword("one"), 2 => \Phel::keyword("two"), 3 => \Phel::keyword("three"), default => \Phel::keyword("other") };
+  return match ($x) { 1 => \Phel\Lang\Keyword::create("one"), 2 => \Phel\Lang\Keyword::create("two"), 3 => \Phel\Lang\Keyword::create("three"), default => \Phel\Lang\Keyword::create("other") };
 });

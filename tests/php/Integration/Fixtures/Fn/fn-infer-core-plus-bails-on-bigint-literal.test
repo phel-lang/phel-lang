@@ -13,12 +13,12 @@
     }
   },
   \Phel::map(
-    \Phel::keyword("doc"), "```phel\n(caller x)\n```\n",
-    \Phel::keyword("start-location"), \Phel::location("Fn/fn-infer-core-plus-bails-on-bigint-literal.test", 1, 0),
-    \Phel::keyword("end-location"), \Phel::location("Fn/fn-infer-core-plus-bails-on-bigint-literal.test", 1, 64),
+    \Phel\Lang\Keyword::create("doc"), "```phel\n(caller x)\n```\n",
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Fn/fn-infer-core-plus-bails-on-bigint-literal.test", 1, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Fn/fn-infer-core-plus-bails-on-bigint-literal.test", 1, 64),
     "min-arity", 1,
     "is-variadic", false,
     "arglists", "[x]",
-    \Phel::keyword("tag"), "int"
+    \Phel\Lang\Keyword::create("tag"), "int"
   )
 );

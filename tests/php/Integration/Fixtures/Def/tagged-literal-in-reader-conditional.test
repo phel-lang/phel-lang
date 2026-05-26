@@ -6,7 +6,7 @@
   "x",
   42,
   \Phel::map(
-    \Phel::keyword("start-location"), \Phel::location("Def/tagged-literal-in-reader-conditional.test", 1, 0),
-    \Phel::keyword("end-location"), \Phel::location("Def/tagged-literal-in-reader-conditional.test", 1, 54)
+    \Phel\Lang\Keyword::create("start-location"), \Phel::location("Def/tagged-literal-in-reader-conditional.test", 1, 0),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Def/tagged-literal-in-reader-conditional.test", 1, 54)
   )
 );
