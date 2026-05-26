@@ -20,6 +20,7 @@ use Phel\Lang\Symbol;
 use function array_slice;
 use function assert;
 use function count;
+use function sprintf;
 
 final class CallEmitter implements NodeEmitterInterface
 {
@@ -588,8 +589,9 @@ final class CallEmitter implements NodeEmitterInterface
 
     /**
      * Splice the argument into the native predicate fragment from
-     * `CallSpecialization::typePredicateFragment`. Used for `int?` /
-     * `float?` / `string?` / `keyword?` / `symbol?` / `ratio?`.
+     * `CallSpecialization::typePredicateFragment`. The fragment uses
+     * `sprintf` placeholders so multi-instanceof predicates (`map?`,
+     * `vector?`, `seq?`) can reference the argument multiple times.
      */
     private function tryEmitTypePredicate(CallNode $node): bool
     {
@@ -599,12 +601,21 @@ final class CallEmitter implements NodeEmitterInterface
         }
 
         $loc = $node->getStartSourceLocation();
-        $parts = explode('%s', $fragment, 2);
-        assert(count($parts) === 2);
 
-        $this->outputEmitter->emitStr($parts[0], $loc);
-        $this->outputEmitter->emitNode($node->getArguments()[0]);
-        $this->outputEmitter->emitStr($parts[1], $loc);
+        ob_start();
+        try {
+            $this->outputEmitter->emitNode($node->getArguments()[0]);
+        } finally {
+            $argEmit = (string) ob_get_clean();
+        }
+
+        $argEmit = preg_replace('/^return\s+/', '', $argEmit) ?? '';
+        $argEmit = rtrim($argEmit);
+        if (str_ends_with($argEmit, ';')) {
+            $argEmit = substr($argEmit, 0, -1);
+        }
+
+        $this->outputEmitter->emitStr(sprintf($fragment, $argEmit), $loc);
         return true;
     }
 

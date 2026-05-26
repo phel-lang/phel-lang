@@ -1,0 +1,12 @@
+--PHEL--
+(fn [x] (map? x))
+(fn [x] (vector? x))
+(fn [x] (seq? x))
+--PHP--
+(function($x) {
+  return (($x instanceof \Phel\Lang\Collections\Map\PersistentMapInterface) && !($x instanceof \Phel\Lang\Collections\Struct\AbstractPersistentStruct));
+});(function($x): bool {
+  return (($x instanceof \Phel\Lang\Collections\Vector\PersistentVectorInterface) || ($x instanceof \Phel\Lang\Collections\Map\MapEntry));
+});(function($x): bool {
+  return (($x instanceof \Phel\Lang\Collections\LazySeq\LazySeqInterface) || ($x instanceof \Phel\Lang\Collections\LazySeq\Cons) || ($x instanceof \Phel\Lang\Collections\LinkedList\PersistentListInterface));
+});
