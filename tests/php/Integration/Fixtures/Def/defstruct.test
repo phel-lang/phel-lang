@@ -2,7 +2,7 @@
 (defstruct* my-type [a b c?])
 --PHP--
 if (!class_exists('user\my_type')) {
-class my_type extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
+final class my_type extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
 
   protected const array ALLOWED_KEYS = ['a', 'b', 'c?'];
 

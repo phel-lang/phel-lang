@@ -105,7 +105,7 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
     private function emitClassHeader(DefStructNode $node): void
     {
         $this->outputEmitter->emitStr(
-            'class ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct',
+            'final class ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct',
             $node->getStartSourceLocation(),
         );
 

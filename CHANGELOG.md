@@ -36,6 +36,8 @@ Control-flow lowering to PHP `match` (#2091):
 - `LetEmitter`: `case` / `cond`-shaped nested `if` chain inside a `let` (tests compare the same shadow against primitive literal keys) → `match`. Arms restricted to primitive literals (`int` / `string` / `bool` / `Keyword`)
 - `IfEmitter`: same lowering for bare nested `if` chains comparing the same `LocalVarNode` against primitive literal keys
 
+- `DefStructEmitter`: emit `defstruct`-generated classes as `final` to let PHP OPcache / JIT monomorphise method dispatch. `def-exception` keeps non-final (parent class is user-specified, subclassing chains stay valid); fn-as-class / multi-fn / reify already emit anonymous classes which are implicitly final (#2137)
+
 ### Fixed
 
 - `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)
