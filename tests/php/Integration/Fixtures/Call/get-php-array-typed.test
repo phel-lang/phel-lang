@@ -1,0 +1,10 @@
+--PHEL--
+(fn [^array a] (get a "k"))
+(fn [^array a] (get a "k" :missing))
+--PHP--
+(function(array $a) {
+  return ($a["k"] ?? null);
+});(function(array $a) {
+  static $__phel_const_0;
+  return ($a["k"] ?? ($__phel_const_0 ??= \Phel::keyword("missing")));
+});
