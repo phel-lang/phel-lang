@@ -2,10 +2,6 @@
 (fn [^int x] (if (php/< x 0) nil (php/+ x 1)))
 --PHP--
 (function(int $x) {
-  if ((($x < 0))) {
-    return null;
-  } else {
-    return ($x + 1);
-  }
+  return ((($x < 0)) ? null : ($x + 1));
 
 });

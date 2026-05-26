@@ -9,11 +9,7 @@
 
     public function __invoke($x) {
       static $__phel_call_0;
-      if (($__truthy = ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "="))->__invoke($x, null)) !== null && $__truthy !== false) {
-        return 0;
-      } else {
-        return 1;
-      }
+      return (($__truthy = ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "="))->__invoke($x, null)) !== null && $__truthy !== false ? 0 : 1);
 
     }
   },

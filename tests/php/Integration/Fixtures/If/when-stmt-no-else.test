@@ -1,0 +1,10 @@
+--PHEL--
+(fn [x] (when x (php/print "hi")) 42)
+--PHP--
+(function($x) {
+  if (($__truthy = $x) !== null && $__truthy !== false) {
+    print("hi");
+  }
+
+  return 42;
+});

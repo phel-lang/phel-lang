@@ -8,11 +8,7 @@
     public const BOUND_TO = "user\\fib";
 
     public function __invoke(int $n) {
-      if ((($n < 2))) {
-        return $n;
-      } else {
-        return ($this(($n - 1)) + $this(($n - 2)));
-      }
+      return ((($n < 2)) ? $n : ($this(($n - 1)) + $this(($n - 2))));
 
     }
   },

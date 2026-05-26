@@ -50,6 +50,10 @@ Control-flow lowering to PHP `match` (#2091):
 
 - `LiteralEmitter`: emit keyword literals as `\Phel\Lang\Keyword::create("name")` directly instead of routing through the `\Phel::keyword(...)` facade. Same intern-pool semantics (identity is preserved), skips one static-call frame per cache miss and lets OPcache inline the factory (#2131)
 
+- `IfEmitter`: collapse `if (…) { return a; } else { return b; }` to `return (cond ? a : b);` when both branches are simple expressions (`LocalVarNode` / `LiteralNode` / `GlobalVarNode` / `PhpVarNode` / `CallNode` of simple args, optionally wrapped in a no-stmt `DoNode`). Smaller bytecode and one fewer basic block for the JIT (#2133)
+
+- `IfEmitter`: drop the redundant `else { null; }` branch when an `if` (e.g. expanded from `(when …)` / `(when-not …)`) is in statement context and the else branch is the `nil` literal. Saves three lines of generated PHP per call site (#2134)
+
 ### Fixed
 
 - `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)
