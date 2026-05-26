@@ -132,6 +132,10 @@ final readonly class CallSpecialization
             return true;
         }
 
+        if (self::isEmptyCheck($node)) {
+            return true;
+        }
+
         if (self::isTypedVectorAccessor($node)) {
             return true;
         }
@@ -732,6 +736,57 @@ final readonly class CallSpecialization
     public static function isTruthyCheck(CallNode $node): bool
     {
         return self::isUnaryCoreCall($node, 'truthy?');
+    }
+
+    /**
+     * `(empty? x)` on a tagged local. Returns the PHP expression
+     * fragment with `%s` substitution for the (already-emitted)
+     * argument, or `null` when the call is not eligible.
+     *
+     *  - `^array x`                       → `(%s === [])`
+     *  - `^string x`                      → `(%s === '')`
+     *  - `^int x`                         → `(%s === 0)`
+     *  - `^PersistentMapInterface x`      → `(%s->count() === 0)`
+     *  - `^PersistentVectorInterface x`   → `(%s->count() === 0)`
+     */
+    public static function emptyCheckFragment(CallNode $node): ?string
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode
+            || $fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
+            || $fn->getName()->getName() !== 'empty?'
+        ) {
+            return null;
+        }
+
+        $args = $node->getArguments();
+        if (count($args) !== 1) {
+            return null;
+        }
+
+        $target = $args[0];
+        if (!$target instanceof LocalVarNode) {
+            return null;
+        }
+
+        $tag = self::normalisedTag($target->getInferredType());
+        if ($tag === null) {
+            return null;
+        }
+
+        return match ($tag) {
+            'array' => '(%s === [])',
+            'string' => "(%s === '')",
+            'int' => '(%s === 0)',
+            PersistentMapInterface::class,
+            PersistentVectorInterface::class => '(%s->count() === 0)',
+            default => null,
+        };
+    }
+
+    public static function isEmptyCheck(CallNode $node): bool
+    {
+        return self::emptyCheckFragment($node) !== null;
     }
 
     /**

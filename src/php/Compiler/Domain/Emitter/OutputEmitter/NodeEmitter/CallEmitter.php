@@ -207,6 +207,10 @@ final class CallEmitter implements NodeEmitterInterface
             return;
         }
 
+        if ($this->tryEmitEmptyCheck($node)) {
+            return;
+        }
+
         if ($this->tryEmitTypedVectorAccessor($node)) {
             return;
         }
@@ -504,6 +508,27 @@ final class CallEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('(($__truthy = ', $loc);
         $this->outputEmitter->emitNode($node->getArguments()[0]);
         $this->outputEmitter->emitStr(') !== null && $__truthy !== false)', $loc);
+        return true;
+    }
+
+    /**
+     * `(empty? x)` on a tagged local — emit the native check
+     * specific to the tag, skipping the runtime cond chain.
+     */
+    private function tryEmitEmptyCheck(CallNode $node): bool
+    {
+        $fragment = CallSpecialization::emptyCheckFragment($node);
+        if ($fragment === null) {
+            return false;
+        }
+
+        $loc = $node->getStartSourceLocation();
+        $parts = explode('%s', $fragment, 2);
+        assert(count($parts) === 2);
+
+        $this->outputEmitter->emitStr($parts[0], $loc);
+        $this->outputEmitter->emitNode($node->getArguments()[0]);
+        $this->outputEmitter->emitStr($parts[1], $loc);
         return true;
     }
 
