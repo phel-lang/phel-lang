@@ -6,6 +6,7 @@ namespace PhelTest\Unit\Run\Application;
 
 use Phel\Build\Domain\Compile\CompiledFile;
 use Phel\Build\Domain\Extractor\NamespaceInformation;
+use Phel\Run\Application\BundledNamespaceDetector;
 use Phel\Run\Application\BundledNamespaces;
 use Phel\Run\Application\FileRunner;
 use Phel\Shared\Facade\BuildFacadeInterface;
@@ -156,10 +157,10 @@ final class FileRunnerTest extends TestCase
         );
     }
 
-    public function test_seeds_bundled_namespaces_for_ad_hoc_script_runs(): void
+    public function test_seeds_bundled_namespace_when_script_references_fqn(): void
     {
         $script = $this->tmpDir . '/demo.phel';
-        file_put_contents($script, "(ns demo)\n");
+        file_put_contents($script, "(ns demo)\n(phel.async/delay 10)\n");
 
         $scriptInfo = new NamespaceInformation($script, 'demo', [], true);
         $coreInfo = new NamespaceInformation('/phel/core.phel', 'phel.core', [], true);
@@ -198,6 +199,47 @@ final class FileRunnerTest extends TestCase
             $evalled,
             'Eval order: bundled namespaces are evaluated before the ad-hoc script',
         );
+    }
+
+    public function test_skips_bundled_seeds_when_script_has_no_fqn_reference(): void
+    {
+        $script = $this->tmpDir . '/demo.phel';
+        file_put_contents($script, "(ns demo)\n");
+
+        $scriptInfo = new NamespaceInformation($script, 'demo', [], true);
+        $coreInfo = new NamespaceInformation('/phel/core.phel', 'phel.core', [], true);
+
+        $observedSeeds = [];
+        $bundledDiscoveryCalls = 0;
+
+        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $buildFacade->method('getNamespaceFromFile')->willReturn($scriptInfo);
+        $buildFacade->method('getNamespaceFromDirectories')->willReturnCallback(
+            static function () use (&$bundledDiscoveryCalls): array {
+                ++$bundledDiscoveryCalls;
+                return [];
+            },
+        );
+        $buildFacade->method('getDependenciesForNamespace')->willReturnCallback(
+            static function (array $dirs, array $ns) use (&$observedSeeds, $coreInfo, $scriptInfo): array {
+                $observedSeeds[] = $ns;
+                return [$coreInfo, $scriptInfo];
+            },
+        );
+        $buildFacade->method('evalFile')->willReturn(
+            new CompiledFile('', '', '', false),
+        );
+
+        $commandFacade = $this->createMock(CommandFacadeInterface::class);
+        $commandFacade->method('getSourceDirectories')->willReturn([$this->primarySrc]);
+        $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
+
+        $this->createFileRunner($buildFacade, $commandFacade)->run($script);
+
+        self::assertSame(0, $bundledDiscoveryCalls, 'Bundled discovery must be skipped when source has no FQN reference');
+        self::assertNotSame([], $observedSeeds);
+        self::assertNotContains('phel.async', $observedSeeds[0]);
+        self::assertNotContains('phel.json', $observedSeeds[0]);
     }
 
     public function test_two_hop_ad_hoc_chain_evals_in_dependency_first_order(): void
@@ -253,7 +295,7 @@ final class FileRunnerTest extends TestCase
         return new FileRunner(
             $buildFacade,
             $commandFacade,
-            new BundledNamespaces($buildFacade, $commandFacade),
+            new BundledNamespaceDetector(new BundledNamespaces($buildFacade, $commandFacade)),
         );
     }
 }

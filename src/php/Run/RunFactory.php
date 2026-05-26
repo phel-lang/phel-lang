@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Run;
 
 use Gacela\Framework\AbstractFactory;
+use Phel\Run\Application\BundledNamespaceDetector;
 use Phel\Run\Application\BundledNamespaces;
 use Phel\Run\Application\CompileExecutor;
 use Phel\Run\Application\EntryPointDetector;
@@ -84,6 +85,13 @@ class RunFactory extends AbstractFactory
         return new BundledNamespaces(
             $this->getBuildFacade(),
             $this->getCommandFacade(),
+        );
+    }
+
+    public function createBundledNamespaceDetector(): BundledNamespaceDetector
+    {
+        return new BundledNamespaceDetector(
+            $this->createBundledNamespaces(),
         );
     }
 
@@ -201,7 +209,7 @@ class RunFactory extends AbstractFactory
         return new FileRunner(
             $this->getBuildFacade(),
             $this->getCommandFacade(),
-            $this->createBundledNamespaces(),
+            $this->createBundledNamespaceDetector(),
         );
     }
 
