@@ -37,8 +37,6 @@ while (true) {
 
     }
 
-  } else {
-
   }
   break;
 }

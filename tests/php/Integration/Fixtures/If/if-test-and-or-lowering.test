@@ -4,18 +4,10 @@
 --PHP--
 (function($a, $b, $c) {
   static $__phel_const_0, $__phel_const_1;
-  if ((($__truthy = $a) !== null && $__truthy !== false) || (($__truthy = $b) !== null && $__truthy !== false) || (($__truthy = $c) !== null && $__truthy !== false)) {
-    return ($__phel_const_0 ??= \Phel\Lang\Keyword::create("truthy"));
-  } else {
-    return ($__phel_const_1 ??= \Phel\Lang\Keyword::create("falsy"));
-  }
+  return ((($__truthy = $a) !== null && $__truthy !== false) || (($__truthy = $b) !== null && $__truthy !== false) || (($__truthy = $c) !== null && $__truthy !== false) ? ($__phel_const_0 ??= \Phel\Lang\Keyword::create("truthy")) : ($__phel_const_1 ??= \Phel\Lang\Keyword::create("falsy")));
 
 });(function($a, $b, $c) {
   static $__phel_const_0, $__phel_const_1;
-  if ((($__truthy = $a) !== null && $__truthy !== false) && (($__truthy = $b) !== null && $__truthy !== false) && (($__truthy = $c) !== null && $__truthy !== false)) {
-    return ($__phel_const_0 ??= \Phel\Lang\Keyword::create("truthy"));
-  } else {
-    return ($__phel_const_1 ??= \Phel\Lang\Keyword::create("falsy"));
-  }
+  return ((($__truthy = $a) !== null && $__truthy !== false) && (($__truthy = $b) !== null && $__truthy !== false) && (($__truthy = $c) !== null && $__truthy !== false) ? ($__phel_const_0 ??= \Phel\Lang\Keyword::create("truthy")) : ($__phel_const_1 ??= \Phel\Lang\Keyword::create("falsy")));
 
 });

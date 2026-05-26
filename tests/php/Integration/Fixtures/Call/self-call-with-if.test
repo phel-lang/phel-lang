@@ -8,11 +8,7 @@
     public const BOUND_TO = "user\\rec";
 
     public function __invoke(int $n) {
-      if ((($n == 0))) {
-        return $n;
-      } else {
-        return $this(($n - 1));
-      }
+      return ((($n == 0)) ? $n : $this(($n - 1)));
 
     }
   },

@@ -5,7 +5,13 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
+use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
+use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\Cache\BooleanExprDetector;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
@@ -24,11 +30,108 @@ final class IfEmitter implements NodeEmitterInterface
             return;
         }
 
-        if ($node->getEnv()->isContext(NodeEnvironment::CONTEXT_EXPRESSION)) {
+        $env = $node->getEnv();
+        if ($env->isContext(NodeEnvironment::CONTEXT_EXPRESSION)) {
             $this->emitTernaryCondition($node);
-        } else {
-            $this->emitIfElseCondition($node);
+            return;
         }
+
+        if ($this->tryEmitReturnTernary($node)) {
+            return;
+        }
+
+        if ($this->tryEmitStatementWithoutNilElse($node)) {
+            return;
+        }
+
+        $this->emitIfElseCondition($node);
+    }
+
+    /**
+     * In RETURN context, if both branches emit as bare PHP expressions
+     * we can collapse the whole `if (…) { return a; } else { return b; }`
+     * to a single `return (cond ? a : b);` statement. Smaller bytecode
+     * and one fewer basic block for the JIT.
+     */
+    private function tryEmitReturnTernary(IfNode $node): bool
+    {
+        if (!$node->getEnv()->isContext(NodeEnvironment::CONTEXT_RETURN)) {
+            return false;
+        }
+
+        $then = $node->getThenExpr();
+        $else = $node->getElseExpr();
+        if (!self::isSimpleExpressionNode($then) || !self::isSimpleExpressionNode($else)) {
+            return false;
+        }
+
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('return (', $loc);
+        $this->emitTestExpr($node->getTestExpr());
+        $this->outputEmitter->emitStr(' ? ', $loc);
+        $this->emitNodeAsExpression($then);
+        $this->outputEmitter->emitStr(' : ', $loc);
+        $this->emitNodeAsExpression($else);
+        $this->outputEmitter->emitLine(');', $loc);
+
+        return true;
+    }
+
+    /**
+     * In statement context, drop the `else { … }` branch when it is
+     * just `nil` — that is the shape `(when …)` / `(when-not …)`
+     * expand to, and emitting `} else { null; }` is dead bytecode.
+     */
+    private function tryEmitStatementWithoutNilElse(IfNode $node): bool
+    {
+        if (!$node->getEnv()->isContext(NodeEnvironment::CONTEXT_STATEMENT)) {
+            return false;
+        }
+
+        $else = $node->getElseExpr();
+        if (!$else instanceof LiteralNode || $else->getValue() !== null) {
+            return false;
+        }
+
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('if (', $loc);
+        $this->emitTestExpr($node->getTestExpr());
+        $this->outputEmitter->emitLine(') {', $loc);
+        $this->outputEmitter->increaseIndentLevel();
+        $this->outputEmitter->emitNode($node->getThenExpr());
+        $this->outputEmitter->decreaseIndentLevel();
+        $this->outputEmitter->emitLine();
+        $this->outputEmitter->emitLine('}', $loc);
+
+        return true;
+    }
+
+    /**
+     * Chain leaves and ternary branches are emitted directly into a
+     * surrounding expression context, so each one must render as a
+     * single PHP expression — `LetNode` / `IfNode` in `RETURN`
+     * context expand to multi-statement bodies that the strip helper
+     * cannot safely flatten.
+     */
+    private static function isSimpleExpressionNode(AbstractNode $node): bool
+    {
+        if ($node instanceof DoNode) {
+            return $node->getStmts() === [] && self::isSimpleExpressionNode($node->getRet());
+        }
+
+        if ($node instanceof LocalVarNode
+            || $node instanceof LiteralNode
+            || $node instanceof GlobalVarNode
+            || $node instanceof PhpVarNode
+        ) {
+            return true;
+        }
+
+        if ($node instanceof CallNode) {
+            return array_all([$node->getFn(), ...$node->getArguments()], static fn(AbstractNode $child): bool => self::isSimpleExpressionNode($child));
+        }
+
+        return false;
     }
 
     /**

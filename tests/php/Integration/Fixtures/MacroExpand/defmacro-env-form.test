@@ -9,11 +9,7 @@
 
     public function __invoke($_AMPERSAND_form, $_AMPERSAND_env) {
       static $__phel_const_0;
-      if (($__truthy = (($__phel_const_0 ??= \Phel\Lang\Keyword::create("ns")))($_AMPERSAND_env)) !== null && $__truthy !== false) {
-        return true;
-      } else {
-        return false;
-      }
+      return (($__truthy = (($__phel_const_0 ??= \Phel\Lang\Keyword::create("ns")))($_AMPERSAND_env)) !== null && $__truthy !== false ? true : false);
 
     }
   },
