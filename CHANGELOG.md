@@ -41,6 +41,7 @@ Control-flow lowering to PHP `match` (#2091):
 - `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)
 - `phel compile`: dry-run no longer executes side-effecting forms; new `CompileOptions` `emitOnly` flag skips the evaluator step (#2095)
 - `defonce`: same-file redefinition is a silent no-op (was `DuplicateDefinitionException`) (#2096)
+- REPL startup now restores runtime `*ns*` to `user`, so `(require [phel.test :as t])` no longer leaves `*ns*` in the last loaded dependency namespace (#2125)
 
 ## [0.40.0](https://github.com/phel-lang/phel-lang/compare/v0.39.0...v0.40.0) - 2026-05-25
 

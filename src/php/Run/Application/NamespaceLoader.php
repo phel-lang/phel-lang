@@ -75,6 +75,7 @@ final class NamespaceLoader
     private function restoreStartupNamespace(string $namespace): void
     {
         $this->compilerFacade->getGlobalEnvironment()->setNs($namespace);
+        Phel::setVar(CompilerConstants::PHEL_CORE_NAMESPACE, '*ns*', $namespace);
     }
 
     /**
