@@ -107,6 +107,22 @@ final readonly class CallSpecialization
             return true;
         }
 
+        if (self::isTrueCheck($node)) {
+            return true;
+        }
+
+        if (self::isFalseCheck($node)) {
+            return true;
+        }
+
+        if (self::isTruthyCheck($node)) {
+            return true;
+        }
+
+        if (self::isNumericPredicate($node) !== null) {
+            return true;
+        }
+
         if (self::isTypedVectorAccessor($node)) {
             return true;
         }
@@ -681,6 +697,72 @@ final readonly class CallSpecialization
     public static function isSomeCheck(CallNode $node): bool
     {
         return self::isUnaryCoreCall($node, 'some?');
+    }
+
+    /**
+     * `(true? x)` — Phel `true?` is identity-strict (`(id x true)`),
+     * so the call collapses to `($x === true)` for any argument.
+     */
+    public static function isTrueCheck(CallNode $node): bool
+    {
+        return self::isUnaryCoreCall($node, 'true?');
+    }
+
+    /**
+     * `(false? x)` — `(id x false)`, collapses to `($x === false)`.
+     */
+    public static function isFalseCheck(CallNode $node): bool
+    {
+        return self::isUnaryCoreCall($node, 'false?');
+    }
+
+    /**
+     * `(truthy? x)` — Phel-truthy probe. The runtime body wraps
+     * `Truthy::isTruthy($x)`; the inline check is equivalent.
+     */
+    public static function isTruthyCheck(CallNode $node): bool
+    {
+        return self::isUnaryCoreCall($node, 'truthy?');
+    }
+
+    /**
+     * `(zero? x)` / `(pos? x)` / `(neg? x)` on an `int` / `float`
+     * tagged local. Other numeric shapes (`BigInt`, `Ratio`,
+     * `BigDecimal`) need the runtime `NumericOperations` dispatch
+     * because the native operators do not honour their equality
+     * semantics. Returns the predicate name when eligible, `null`
+     * otherwise.
+     */
+    public static function isNumericPredicate(CallNode $node): ?string
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode
+            || $fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
+        ) {
+            return null;
+        }
+
+        $name = $fn->getName()->getName();
+        if (!in_array($name, ['zero?', 'pos?', 'neg?'], true)) {
+            return null;
+        }
+
+        $args = $node->getArguments();
+        if (count($args) !== 1) {
+            return null;
+        }
+
+        $target = $args[0];
+        if (!$target instanceof LocalVarNode) {
+            return null;
+        }
+
+        $tag = self::normalisedTag($target->getInferredType());
+        if ($tag !== 'int' && $tag !== 'float') {
+            return null;
+        }
+
+        return $name;
     }
 
     /**
