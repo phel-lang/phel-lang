@@ -179,6 +179,10 @@ final class CallEmitter implements NodeEmitterInterface
             return;
         }
 
+        if ($this->tryEmitAssocConjChain($node)) {
+            return;
+        }
+
         if ($this->tryEmitTypedAssocConjDissoc($node)) {
             return;
         }
@@ -414,6 +418,46 @@ final class CallEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr(' !== ', $loc);
         $this->outputEmitter->emitNode($args[1]);
         $this->outputEmitter->emitStr(')', $loc);
+        return true;
+    }
+
+    /**
+     * Specialise a chain of `(assoc m k v)` calls (or `(conj v x)`
+     * calls) on a typed persistent target — after thread-macro
+     * expansion these are nested `CallNode`s of the same op rooted at
+     * a `LocalVarNode`. The runtime path goes through one persistent
+     * `put` / `append` per chain step, each allocating a new persistent
+     * map / vector. The transient path opens one transient at the leaf
+     * target, mutates it once per chain step, and snapshots back to a
+     * persistent at the end — N-1 persistent intermediates collapse to
+     * one.
+     */
+    private function tryEmitAssocConjChain(CallNode $node): bool
+    {
+        $chain = CallSpecialization::assocConjChain($node);
+        if ($chain === null) {
+            return false;
+        }
+
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('((', $loc);
+        $this->outputEmitter->emitNode($chain['target']);
+        $this->outputEmitter->emitStr(')->asTransient()', $loc);
+
+        foreach ($chain['groups'] as $group) {
+            $this->outputEmitter->emitStr('->' . $chain['method'] . '(', $loc);
+            foreach ($group as $i => $arg) {
+                if ($i > 0) {
+                    $this->outputEmitter->emitStr(', ', $loc);
+                }
+
+                $this->outputEmitter->emitNode($arg);
+            }
+
+            $this->outputEmitter->emitStr(')', $loc);
+        }
+
+        $this->outputEmitter->emitStr('->persistent())', $loc);
         return true;
     }
 

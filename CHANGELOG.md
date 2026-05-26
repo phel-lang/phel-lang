@@ -44,6 +44,8 @@ Control-flow lowering to PHP `match` (#2091):
 
 - `CallEmitter`: invoke calls on a `LocalVarNode` tagged `\Phel\Lang\AbstractFn` (or `\Phel\Lang\FnInterface`) now route through `$f->__invoke(...)` instead of the implicit `$f($args)` magic dispatch. Same code path the global-fn specialiser already uses — removes one magic-method resolution per call site (#2142)
 
+- `CallSpecialization`: detect nested `(assoc m k v)` / `(conj v x)` chains on a typed persistent target and emit them as a single transient round-trip — `($m->asTransient()->put($k1,$v1)->put($k2,$v2)->...->persistent())`. After thread-macro expansion `(-> m (assoc :a 1) (assoc :b 2) (assoc :c 3))` collapses to nested `CallNode`s with the leaf tagged `PersistentMapInterface`; previously each level created a new persistent map. Chains of length 1 stay on the existing single-call specialiser (no transient overhead). Same shape for `conj` chains on `PersistentVectorInterface` (#2143)
+
 ### Fixed
 
 - `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)

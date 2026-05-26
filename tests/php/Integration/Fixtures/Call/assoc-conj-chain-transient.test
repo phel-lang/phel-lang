@@ -1,0 +1,12 @@
+--PHEL--
+(fn [^\Phel\Lang\Collections\Map\PersistentMapInterface m]
+  (assoc (assoc (assoc m :a 1) :b 2) :c 3))
+(fn [^\Phel\Lang\Collections\Vector\PersistentVectorInterface v]
+  (conj (conj v 1) 2))
+--PHP--
+(function(\Phel\Lang\Collections\Map\PersistentMapInterface $m) {
+  static $__phel_const_0, $__phel_const_1, $__phel_const_2;
+  return (($m)->asTransient()->put(($__phel_const_0 ??= \Phel::keyword("a")), 1)->put(($__phel_const_1 ??= \Phel::keyword("b")), 2)->put(($__phel_const_2 ??= \Phel::keyword("c")), 3)->persistent());
+});(function(\Phel\Lang\Collections\Vector\PersistentVectorInterface $v) {
+  return (($v)->asTransient()->append(1)->append(2)->persistent());
+});

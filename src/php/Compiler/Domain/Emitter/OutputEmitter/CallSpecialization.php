@@ -18,6 +18,7 @@ use Phel\Lang\Keyword;
 use Phel\Lang\SeqInterface;
 use Phel\Shared\CompilerConstants;
 
+use function array_slice;
 use function count;
 use function in_array;
 use function is_bool;
@@ -103,6 +104,10 @@ final readonly class CallSpecialization
         }
 
         if (self::isTypedAssocConjDissoc($node)) {
+            return true;
+        }
+
+        if (self::isAssocConjChain($node)) {
             return true;
         }
 
@@ -275,6 +280,87 @@ final readonly class CallSpecialization
     public static function isTypedAssocConjDissoc(CallNode $node): bool
     {
         return self::typedAssocConjDissocMethod($node) !== null;
+    }
+
+    /**
+     * Detects an `(-> m (assoc k v) (assoc k v) ...)` or
+     * `(-> v (conj x) (conj y) ...)` chain — after thread-macro
+     * expansion these are nested `CallNode`s of the same op terminating
+     * at a `LocalVarNode` whose tag matches `PersistentMapInterface` or
+     * `PersistentVectorInterface`. A chain of length 1 is **not**
+     * batched: the existing single-call specialiser already lowers it
+     * to a direct method call, and a transient round-trip would just
+     * add work.
+     *
+     * Returns the leaf target, the transient method to spam, and the
+     * argument groups (`[k, v]` pairs for `assoc`, single-element
+     * `[x]` lists for `conj`) — `null` when the call is not a chain.
+     *
+     * @return array{
+     *     target: LocalVarNode,
+     *     method: 'append'|'put',
+     *     groups: list<list<AbstractNode>>
+     * }|null
+     */
+    public static function assocConjChain(CallNode $node): ?array
+    {
+        $shape = self::classifyChainHead($node);
+        if ($shape === null) {
+            return null;
+        }
+
+        [$opName, $expectedArgCount, $method, $expectedTag] = $shape;
+
+        $groups = [];
+        $current = $node;
+        while (true) {
+            $cFn = $current->getFn();
+            if (!$cFn instanceof GlobalVarNode) {
+                return null;
+            }
+
+            if ($cFn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
+                || $cFn->getName()->getName() !== $opName
+            ) {
+                return null;
+            }
+
+            $cArgs = $current->getArguments();
+            if (count($cArgs) !== $expectedArgCount) {
+                return null;
+            }
+
+            array_unshift($groups, array_slice($cArgs, 1));
+
+            $target = $cArgs[0];
+            if ($target instanceof CallNode) {
+                $current = $target;
+                continue;
+            }
+
+            if (!$target instanceof LocalVarNode) {
+                return null;
+            }
+
+            if (self::normalisedTag($target->getInferredType()) !== $expectedTag) {
+                return null;
+            }
+
+            if (count($groups) < 2) {
+                return null;
+            }
+
+            return [
+                'target' => $target,
+                'method' => $method,
+                'groups' => $groups,
+            ];
+        }
+    }
+
+    public static function isAssocConjChain(CallNode $node): bool
+    {
+        return self::assocConjChain($node) !== null;
     }
 
     /**
@@ -575,6 +661,25 @@ final readonly class CallSpecialization
         $arg = $args[0];
         return $arg instanceof LocalVarNode
             && self::isPersistentMapTag($arg->getInferredType());
+    }
+
+    /**
+     * @return array{0: string, 1: int, 2: 'append'|'put', 3: class-string}|null
+     */
+    private static function classifyChainHead(CallNode $node): ?array
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode
+            || $fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
+        ) {
+            return null;
+        }
+
+        return match ($fn->getName()->getName()) {
+            'assoc' => ['assoc', 3, 'put', PersistentMapInterface::class],
+            'conj' => ['conj', 2, 'append', PersistentVectorInterface::class],
+            default => null,
+        };
     }
 
     private static function isStringConcatable(AbstractNode $arg): bool
