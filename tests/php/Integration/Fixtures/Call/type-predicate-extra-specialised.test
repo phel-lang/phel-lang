@@ -1,0 +1,15 @@
+--PHEL--
+(fn [x] (struct? x))
+(fn [x] (set? x))
+(fn [x] (lazy-seq? x))
+(fn [x] (queue? x))
+--PHP--
+(function($x): bool {
+  return ($x instanceof \Phel\Lang\Collections\Struct\AbstractPersistentStruct);
+});(function($x): bool {
+  return ($x instanceof \Phel\Lang\Collections\HashSet\PersistentHashSetInterface);
+});(function($x): bool {
+  return ($x instanceof \Phel\Lang\Collections\LazySeq\LazySeqInterface);
+});(function($x): bool {
+  return ($x instanceof \Phel\Lang\Collections\Queue\PersistentQueue);
+});

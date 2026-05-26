@@ -865,6 +865,10 @@ final readonly class CallSpecialization
             'keyword?' => '(%s instanceof \\Phel\\Lang\\Keyword)',
             'symbol?' => '(%s instanceof \\Phel\\Lang\\Symbol)',
             'ratio?' => '(%s instanceof \\Phel\\Lang\\Ratio)',
+            'struct?' => '(%s instanceof \\Phel\\Lang\\Collections\\Struct\\AbstractPersistentStruct)',
+            'set?' => '(%s instanceof \\Phel\\Lang\\Collections\\HashSet\\PersistentHashSetInterface)',
+            'lazy-seq?' => '(%s instanceof \\Phel\\Lang\\Collections\\LazySeq\\LazySeqInterface)',
+            'queue?' => '(%s instanceof \\Phel\\Lang\\Collections\\Queue\\PersistentQueue)',
             default => null,
         };
     }

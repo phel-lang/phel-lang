@@ -68,6 +68,8 @@ Control-flow lowering to PHP `match` (#2091):
 
 - `CallSpecialization`: lower `(empty? x)` to a tag-specific native check — `($x === [])` for `^array`, `($x === '')` for `^string`, `($x === 0)` for `^int`, `($x->count() === 0)` for `^PersistentMapInterface` / `^PersistentVectorInterface`. Skips the runtime cond chain over numeric / string / lazyseq / cons / fallback (#2166)
 
+- `CallSpecialization`: extend the type-predicate table with `struct?` / `set?` / `lazy-seq?` / `queue?`. All four runtime bodies are single `(php/instanceof x …)` expressions so they reduce to a direct `instanceof` check. Predicates with multi-condition bodies (`list?`, `seq?`, `map?`, `vector?`) stay on the runtime dispatch (#2168)
+
 ### Fixed
 
 - `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)
