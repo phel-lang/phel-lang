@@ -92,6 +92,40 @@ final class ReplPromptNamespaceTest extends AbstractTestCommand
 
     #[RunInSeparateProcess]
     #[PreserveGlobalState(false)]
+    public function test_repl_require_preserves_current_runtime_namespace(): void
+    {
+        $io = $this->createReplTestIo();
+        $io->setInputs(
+            new InputLine('user:1> ', '*ns*'),
+            new InputLine('user:2> ', '(ns mordor.core)'),
+            new InputLine('mordor.core:3> ', '*ns*'),
+            new InputLine('mordor.core:4> ', '(require [phel.test :as t])'),
+            new InputLine('mordor.core:5> ', '*ns*'),
+            new InputLine('mordor.core:6> ', 'exit'),
+        );
+        $this->prepareRunFactory($io);
+
+        $replStartupFile = __DIR__ . '/../../../../../../resources/repl/startup.phel';
+        new ReplCommand()->setReplStartupFile($replStartupFile)->run(
+            $this->createStub(InputInterface::class),
+            $this->stubOutput(),
+        );
+
+        $outputs = $io->getRawOutputs();
+        self::assertSame('user:1> *ns*' . PHP_EOL, $outputs[2]);
+        self::assertSame('user', $outputs[3]);
+        self::assertSame('user:2> (ns mordor.core)' . PHP_EOL, $outputs[4]);
+        self::assertSame('nil', $outputs[5]);
+        self::assertSame('mordor.core:3> *ns*' . PHP_EOL, $outputs[6]);
+        self::assertSame('mordor.core', $outputs[7]);
+        self::assertSame('mordor.core:4> (require [phel.test :as t])' . PHP_EOL, $outputs[8]);
+        self::assertSame('phel.test', $outputs[9]);
+        self::assertSame('mordor.core:5> *ns*' . PHP_EOL, $outputs[10]);
+        self::assertSame('mordor.core', $outputs[11]);
+    }
+
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function test_test_runner_error_output_prints_empty_strings_readably(): void
     {
         $io = $this->createReplTestIo();
