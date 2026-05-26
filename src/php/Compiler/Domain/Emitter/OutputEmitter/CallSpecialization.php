@@ -9,9 +9,11 @@ use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Lang\AbstractFn;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use Phel\Lang\FnInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SeqInterface;
 use Phel\Shared\CompilerConstants;
@@ -463,6 +465,36 @@ final readonly class CallSpecialization
             PersistentMapInterface::class => 'find',
             default => null,
         };
+    }
+
+    /**
+     * Call whose target is a `LocalVarNode` tagged with the abstract Phel
+     * fn base class (`\Phel\Lang\AbstractFn`) or the marker interface
+     * (`\Phel\Lang\FnInterface`). The generic dispatch path emits
+     * `($f)($args)`, which goes through PHP's `__invoke` magic call.
+     * When the tag asserts the value is an `AbstractFn` (or anything that
+     * implements `FnInterface`), the emitter can call `__invoke` directly
+     * and skip the magic-method resolution.
+     *
+     * The runtime contract is the same `__invoke` signature emitted by
+     * `FnAsClassEmitter`, so a tag mismatch becomes a method-not-found
+     * error at runtime instead of silent fallback — that is a deliberate
+     * trade-off: tags are user-asserted, the emitter trusts them.
+     */
+    public static function isTypedAFnLocal(CallNode $node): bool
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof LocalVarNode) {
+            return false;
+        }
+
+        $tag = self::normalisedTag($fn->getInferredType());
+        if ($tag === null) {
+            return false;
+        }
+
+        return $tag === AbstractFn::class
+            || $tag === FnInterface::class;
     }
 
     /**

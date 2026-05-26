@@ -1,0 +1,9 @@
+--PHEL--
+(fn [^\Phel\Lang\AbstractFn f x] (f x))
+(fn [^\Phel\Lang\FnInterface g a b] (g a b))
+--PHP--
+(function(\Phel\Lang\AbstractFn $f, $x) {
+  return ($f)->__invoke($x);
+});(function(\Phel\Lang\FnInterface $g, $a, $b) {
+  return ($g)->__invoke($a, $b);
+});

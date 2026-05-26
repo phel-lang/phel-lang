@@ -42,6 +42,8 @@ Control-flow lowering to PHP `match` (#2091):
 
 - `CallSpecialization`: `(get arr k)` / `(get arr k default)` on a target tagged `array` → `($arr[$k] ?? $default)` native subscript. Skips the runtime `get` dispatch, the type guard cond chain, and the `php/aget` adapter. Matches the runtime semantics (both absent keys and explicit nulls fall through to the default) because the `:else` branch of the Phel `get` body is itself `(if (nil? res) opt res)` (#2139)
 
+- `CallEmitter`: invoke calls on a `LocalVarNode` tagged `\Phel\Lang\AbstractFn` (or `\Phel\Lang\FnInterface`) now route through `$f->__invoke(...)` instead of the implicit `$f($args)` magic dispatch. Same code path the global-fn specialiser already uses — removes one magic-method resolution per call site (#2142)
+
 ### Fixed
 
 - `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)
