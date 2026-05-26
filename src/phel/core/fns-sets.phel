@@ -115,10 +115,12 @@
    predicate, arguments are consulted left-to-right."
   {:example "((some-fn even? nil?) 1 2) ; => true\n((some-fn pos? even?) -3 -1) ; => false"
    :see-also ["some" "complement" "every?" "not-any?"]}
-  [p & ps]
-  (let [preds (cons p ps)]
-    (fn [& args]
-      (or (some (fn [pred] (some pred args)) preds) false))))
+  ([]
+   (throw (php/new \InvalidArgumentException "some-fn expects at least one predicate")))
+  ([p & ps]
+   (let [preds (cons p ps)]
+     (fn [& args]
+       (or (some (fn [pred] (some pred args)) preds) false)))))
 
 (defn juxt
   "Takes a list of functions and returns a new function that is the juxtaposition of those functions."

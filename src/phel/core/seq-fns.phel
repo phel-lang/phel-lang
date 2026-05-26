@@ -17,6 +17,7 @@
 (use Phel.Lang.Delay)
 (use Phel.Lang.Equalizer)
 (use Phel.Lang.Hasher)
+(use Phel.Lang.NumericOperations)
 (use Phel.Lang.PushInterface)
 (use Phel.Lang.Seq)
 (use Phel.Lang.SliceInterface)
@@ -466,10 +467,10 @@
    :see-also ["take" "drop-last"]}
   [n coll]
   (cond
-    (php/<= n 0) []
+    (php/<= (php/:: NumericOperations (compare n 0)) 0) []
     (nil? coll)    nil
     (or (php-array? coll)
-        (php/instanceof coll SliceInterface)) (slice coll (php/* -1 n))
+        (php/instanceof coll SliceInterface)) (slice coll (php/:: NumericOperations (subtract 0 n)))
     :else (take-last-buffered n coll)))
 
 (defn take-while
