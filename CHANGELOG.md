@@ -76,6 +76,8 @@ Control-flow lowering to PHP `match` (#2091):
 
 - `LetEmitter`: lower `(or …)` / `(and …)` in expression / return context to a nested PHP ternary that preserves the Phel value-semantics (return first truthy / last falsy value), skipping the IIFE wrap. Same restriction as the test-position lowerer in #2153: every operand must be a simple expression shape. `(or a b c)` returns the first truthy value through a `($__or = …)` cascade without allocating a closure (#2174)
 
+- `CallSpecialization`: extend the type-predicate table with the multi-instanceof shapes `map?` / `vector?` / `seq?`. `(map? x)` → `(($x instanceof PersistentMapInterface) && !($x instanceof AbstractPersistentStruct))`, `(vector? x)` → `(($x instanceof PersistentVectorInterface) \|\| ($x instanceof MapEntry))`, `(seq? x)` → 3-way `\|\|` chain over `LazySeqInterface` / `Cons` / `PersistentListInterface`. `list?` keeps the runtime dispatch (it also calls `$x->isList()`) (#2177)
+
 ### Fixed
 
 - `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)

@@ -955,6 +955,9 @@ final readonly class CallSpecialization
             'set?' => '(%s instanceof \\Phel\\Lang\\Collections\\HashSet\\PersistentHashSetInterface)',
             'lazy-seq?' => '(%s instanceof \\Phel\\Lang\\Collections\\LazySeq\\LazySeqInterface)',
             'queue?' => '(%s instanceof \\Phel\\Lang\\Collections\\Queue\\PersistentQueue)',
+            'map?' => '((%1$s instanceof \\Phel\\Lang\\Collections\\Map\\PersistentMapInterface) && !(%1$s instanceof \\Phel\\Lang\\Collections\\Struct\\AbstractPersistentStruct))',
+            'vector?' => '((%1$s instanceof \\Phel\\Lang\\Collections\\Vector\\PersistentVectorInterface) || (%1$s instanceof \\Phel\\Lang\\Collections\\Map\\MapEntry))',
+            'seq?' => '((%1$s instanceof \\Phel\\Lang\\Collections\\LazySeq\\LazySeqInterface) || (%1$s instanceof \\Phel\\Lang\\Collections\\LazySeq\\Cons) || (%1$s instanceof \\Phel\\Lang\\Collections\\LinkedList\\PersistentListInterface))',
             default => null,
         };
     }
