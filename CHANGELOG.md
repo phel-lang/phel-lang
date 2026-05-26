@@ -72,6 +72,8 @@ Control-flow lowering to PHP `match` (#2091):
 
 - `CallSpecialization`: lower `(contains? coll k)` to the direct collection call when the target is tagged. `ContainsInterface`-implementing tags (`^PersistentMapInterface`, `^PersistentVectorInterface`, `^PersistentHashSetInterface`, `^ContainsInterface`) → `$coll->contains($k)`. `^array` → `array_key_exists($k, $coll)`. Untagged / string targets stay on the runtime cond chain (#2170)
 
+- `BooleanExprDetector`: recognise specialised predicate `CallNode`s (`nil?`, `some?`, `true?`, `false?`, `truthy?`, the numeric predicates on tagged numerics, the type predicates, `empty?`, `contains?`) as bool-returning. Lets `IfEmitter` splice the lowered expression straight into the `if` test slot without the Phel-truthy `($__truthy = …) !== null && $__truthy !== false` adapter — combined with the tail-ternary lowering, `(if (nil? x) a b)` becomes `return (($x === null) ? a : b);` (#2172)
+
 ### Fixed
 
 - `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)

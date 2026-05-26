@@ -8,6 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
 
 use function in_array;
 use function is_bool;
@@ -81,18 +82,21 @@ final class BooleanExprDetector
         }
 
         $fn = $node->getFn();
-        if (!$fn instanceof PhpVarNode) {
-            return false;
+        if ($fn instanceof PhpVarNode) {
+            $name = $fn->getName();
+
+            if ($fn->isInfix() && in_array($name, self::BOOL_INFIX, true)) {
+                return true;
+            }
+
+            // Match both bare (`is_int`) and namespaced (`\is_int`) forms.
+            $bare = str_starts_with($name, '\\') ? substr($name, 1) : $name;
+            return in_array($bare, self::BOOL_PHP_FUNCTIONS, true);
         }
 
-        $name = $fn->getName();
-
-        if ($fn->isInfix() && in_array($name, self::BOOL_INFIX, true)) {
-            return true;
-        }
-
-        // Match both bare (`is_int`) and namespaced (`\is_int`) forms.
-        $bare = str_starts_with($name, '\\') ? substr($name, 1) : $name;
-        return in_array($bare, self::BOOL_PHP_FUNCTIONS, true);
+        // A `CallNode` that the `CallSpecialization` layer lowers to a
+        // bool-typed PHP expression is also a hard bool — `IfEmitter`
+        // can splice it into the test slot without the truthy adapter.
+        return CallSpecialization::isBoolReturningSpecialisation($node);
     }
 }

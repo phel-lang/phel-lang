@@ -1,0 +1,18 @@
+--PHEL--
+(fn [x] (if (nil? x) :yes :no))
+(fn [^int n] (if (zero? n) :z :nz))
+(fn [^array a] (if (empty? a) :e :ne))
+--PHP--
+(function($x) {
+  static $__phel_const_0, $__phel_const_1;
+  return ((($x === null)) ? ($__phel_const_0 ??= \Phel\Lang\Keyword::create("yes")) : ($__phel_const_1 ??= \Phel\Lang\Keyword::create("no")));
+
+});(function(int $n) {
+  static $__phel_const_0, $__phel_const_1;
+  return ((($n === 0)) ? ($__phel_const_0 ??= \Phel\Lang\Keyword::create("z")) : ($__phel_const_1 ??= \Phel\Lang\Keyword::create("nz")));
+
+});(function(array $a) {
+  static $__phel_const_0, $__phel_const_1;
+  return ((($a === [])) ? ($__phel_const_0 ??= \Phel\Lang\Keyword::create("e")) : ($__phel_const_1 ??= \Phel\Lang\Keyword::create("ne")));
+
+});
