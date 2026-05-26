@@ -201,6 +201,7 @@ class RunFactory extends AbstractFactory
         return new FileRunner(
             $this->getBuildFacade(),
             $this->getCommandFacade(),
+            $this->createBundledNamespaces(),
         );
     }
 

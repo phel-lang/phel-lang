@@ -42,6 +42,7 @@ Control-flow lowering to PHP `match` (#2091):
 - `phel compile`: dry-run no longer executes side-effecting forms; new `CompileOptions` `emitOnly` flag skips the evaluator step (#2095)
 - `defonce`: same-file redefinition is a silent no-op (was `DuplicateDefinitionException`) (#2096)
 - REPL startup now restores runtime `*ns*` to `user`, so `(require [phel.test :as t])` no longer leaves `*ns*` in the last loaded dependency namespace (#2125)
+- `phel run <file>` now preloads bundled `phel.*` namespaces, so fully qualified calls like `phel.async/delay` resolve without an explicit require (#2127)
 
 ## [0.40.0](https://github.com/phel-lang/phel-lang/compare/v0.39.0...v0.40.0) - 2026-05-25
 

@@ -1,0 +1,4 @@
+(ns phel-async-fqn-script)
+
+(when (function? phel.async/delay)
+  (println "phel.async/delay resolved"))
