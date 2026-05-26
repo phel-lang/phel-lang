@@ -1,0 +1,9 @@
+--PHEL--
+(fn [^\Phel\Lang\Keyword k] (name k))
+(fn [^\Phel\Lang\Symbol s] (namespace s))
+--PHP--
+(function(\Phel\Lang\Keyword $k) {
+  return ($k->getName());
+});(function(\Phel\Lang\Symbol $s) {
+  return ($s->getNamespace());
+});
