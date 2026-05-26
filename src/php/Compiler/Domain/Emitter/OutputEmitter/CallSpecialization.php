@@ -165,6 +165,10 @@ final readonly class CallSpecialization
             return true;
         }
 
+        if (self::isAtomMethodCall($node)) {
+            return true;
+        }
+
         if (self::isTypedVectorAccessor($node)) {
             return true;
         }
@@ -765,6 +769,43 @@ final readonly class CallSpecialization
     public static function isTruthyCheck(CallNode $node): bool
     {
         return self::isUnaryCoreCall($node, 'truthy?');
+    }
+
+    /**
+     * `(deref x)` 1-arg / `(reset! v val)` 2-arg — runtime bodies are
+     * single `php/->` method calls. Direct emission saves the registry
+     * lookup + adapter frame. The 3-arg deref overload (timeout) keeps
+     * the runtime dispatch because its body is a cond chain. Returns
+     * the (method, arg-indices-after-target) tuple, or `null`.
+     *
+     * @return array{0: string, 1: list<int>}|null
+     */
+    public static function atomMethodCall(CallNode $node): ?array
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode
+            || $fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
+        ) {
+            return null;
+        }
+
+        $name = $fn->getName()->getName();
+        $argc = count($node->getArguments());
+
+        if ($name === 'deref' && $argc === 1) {
+            return ['deref', []];
+        }
+
+        if ($name === 'reset!' && $argc === 2) {
+            return ['set', [1]];
+        }
+
+        return null;
+    }
+
+    public static function isAtomMethodCall(CallNode $node): bool
+    {
+        return self::atomMethodCall($node) !== null;
     }
 
     /**

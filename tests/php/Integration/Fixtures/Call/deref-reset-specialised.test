@@ -1,0 +1,9 @@
+--PHEL--
+(fn [a] (deref a))
+(fn [a v] (reset! a v))
+--PHP--
+(function($a) {
+  return ($a->deref());
+});(function($a, $v) {
+  return ($a->set($v));
+});
