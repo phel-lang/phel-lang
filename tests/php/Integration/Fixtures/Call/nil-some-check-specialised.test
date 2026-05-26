@@ -1,0 +1,12 @@
+--PHEL--
+(fn [x] (nil? x))
+(fn [x] (some? x))
+(fn [^array a] (count a))
+--PHP--
+(function($x) {
+  return ($x === null);
+});(function($x) {
+  return ($x !== null);
+});(function(array $a) {
+  return count($a);
+});

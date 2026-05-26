@@ -56,6 +56,10 @@ Control-flow lowering to PHP `match` (#2091):
 
 - `BodyConstantScanner`: skip slot reservations for the cond-test calls and arm-key literals of any `LetNode` / `IfNode` that `IfChainMatchLowerer` will lower to a PHP `match`. Closes the orphan-slot path that left a `static $__phel_call_N` / `$__phel_const_N` declaration in the generated PHP without any `??=` initialiser to fill it. Added `OrphanCallSlotAuditTest` as a regression guard that walks every integration fixture's `--PHP--` block (#2144)
 
+- `CallSpecialization`: lower `(nil? x)` and 1-arg `(some? x)` to the native `($x === null)` / `($x !== null)` comparisons, skipping the registry lookup + `id`/`not` adapters. Predicates this hot show up across virtually every Phel program (`(when (some? x) …)`, threaded `(when-let …)` chains, default-supplying `(if (nil? x) default …)`) (#2157)
+
+- `CallSpecialization`: lower 1-arg `(count arr)` on an `array`-tagged local to native `count($arr)`, matching the `(get arr k)` specialisation in #2139. The runtime cond chain over set / seq / vector / map collapses to the same `php/count` branch the native call already covers (#2158)
+
 ### Fixed
 
 - `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)
