@@ -74,6 +74,21 @@ final class NodeEnvironment implements NodeEnvironmentInterface
         return array_key_exists($local->getName(), $this->shadowed);
     }
 
+    public function findLocalByShadowedName(string $shadowedName): ?Symbol
+    {
+        foreach ($this->shadowed as $originalName => $shadowSymbol) {
+            if ($shadowSymbol->getName() === $shadowedName) {
+                foreach ($this->locals as $local) {
+                    if ($local->getName() === $originalName) {
+                        return $local;
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
     public function isContext(string $context): bool
     {
         return $this->context === $context;

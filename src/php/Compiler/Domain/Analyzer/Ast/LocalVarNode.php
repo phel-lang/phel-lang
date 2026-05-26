@@ -29,13 +29,17 @@ final class LocalVarNode extends AbstractNode
 
     /**
      * Inferred type for this reference, derived from the binding's `:tag`
-     * meta (set by `defn` param tags, `let` `^Type` annotations, and the
-     * `ParamTypeInferrer` pass). Returns `null` when the binding has no
-     * known type — the call site falls back to runtime dispatch.
+     * meta (set by `defn` param tags, `let` / `loop` `^Type` annotations,
+     * and the `ParamTypeInferrer` pass). Returns `null` when the binding
+     * has no known type - the call site falls back to runtime dispatch.
      *
      * `AnalyzeSymbol` builds the `LocalVarNode`'s own `Symbol` from the
-     * call-site syntax, which has no tag of its own, so the lookup walks
-     * the current environment's locals by name to find the typed binding.
+     * call-site syntax. For `fn` params the symbol matches the binding
+     * name verbatim; for `let` / `loop` bindings the symbol carries the
+     * **shadowed** name (e.g. `a_3` for `(let [a 0] ...)`). We therefore
+     * try a direct name match first, then fall back to the env's reverse
+     * shadow lookup so a shadowed reference still resolves to the typed
+     * binding meta.
      */
     public function getInferredType(): ?string
     {
@@ -44,6 +48,11 @@ final class LocalVarNode extends AbstractNode
             if ($local->getName() === $name) {
                 return $this->tagOf($local->getMeta());
             }
+        }
+
+        $shadowedSource = $this->getEnv()->findLocalByShadowedName($name);
+        if ($shadowedSource instanceof Symbol) {
+            return $this->tagOf($shadowedSource->getMeta());
         }
 
         return null;

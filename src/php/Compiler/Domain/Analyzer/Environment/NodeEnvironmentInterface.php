@@ -26,6 +26,19 @@ interface NodeEnvironmentInterface extends ContextualEnvironmentInterface
     public function isShadowed(Symbol $local): bool;
 
     /**
+     * Reverse-lookup helper: given the **shadowed** name of a binding
+     * (e.g. `a_3` for `(let [a 0] ...)`), return the original user-facing
+     * local `Symbol` (with its `:tag` meta intact) when one exists in
+     * scope; otherwise `null`.
+     *
+     * Lets a reference whose AST stores the shadowed identifier (as
+     * produced by {@see \Phel\Compiler\Domain\Analyzer\TypeAnalyzer\AnalyzeSymbol})
+     * still recover the binding's analyser metadata - in particular the
+     * `^int` / `^float` tag the call-site specialisers consult.
+     */
+    public function findLocalByShadowedName(string $shadowedName): ?Symbol;
+
+    /**
      * @param array<int, Symbol> $locals
      */
     public function withMergedLocals(array $locals): self;

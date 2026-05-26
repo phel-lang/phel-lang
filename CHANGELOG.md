@@ -81,6 +81,7 @@ Control-flow lowering to PHP `match` (#2091):
 - `defonce`: same-file redefinition is a silent no-op (was `DuplicateDefinitionException`) (#2096)
 - REPL startup now restores runtime `*ns*` to `user`, so `(require [phel.test :as t])` no longer leaves `*ns*` in the last loaded dependency namespace (#2125)
 - `phel run <file>` now preloads bundled `phel.*` namespaces, so fully qualified calls like `phel.async/delay` resolve without an explicit require (#2127)
+- Type-tag plumbing: `^int` / `^float` / `^string` annotations on `let` and `loop` bindings now propagate to references in the body, so the typed-arithmetic specialiser fires inside `let` / `loop` the same way it already does for `fn` params. `(loop [^int i 0] (if (< i n) (recur (+ i 1)) i))` now emits native `($i < $n)` / `($i + 1)` instead of runtime `\Phel::getDefinition("phel.core", "+")->__invoke(...)` dispatch (#2146)
 
 ## [0.40.0](https://github.com/phel-lang/phel-lang/compare/v0.39.0...v0.40.0) - 2026-05-25
 
