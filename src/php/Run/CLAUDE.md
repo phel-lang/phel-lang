@@ -70,5 +70,5 @@ Run/
 - `ReplHistory` registers `*1`/`*2`/`*3`/`*e` in `phel.core` after REPL boot
 - `ReplErrorFormatter` renders eval-time `Throwable`s with short headline, hints, and filtered trace
 - New `ReplHint` implementations register via `RunFactory::createReplHints()`
-- `BundledNamespaces` lists every `phel.*` module; loader uses it as eager seeds so fully qualified refs (`phel.json/encode`) resolve without explicit `(:require ...)`
+- `BundledNamespaces` lists every `phel.*` module; `NamespaceLoader` (REPL startup) uses it as eager seeds. `FileRunner` instead uses `BundledNamespaceDetector` to seed only the bundles referenced via fully qualified form (`phel.json/encode`) in the script source, avoiding the cold-start penalty for scripts that don't reach into bundled modules
 - This is the most connected module: 5 Provider dependencies

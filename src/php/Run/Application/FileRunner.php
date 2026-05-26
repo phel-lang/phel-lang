@@ -22,7 +22,7 @@ final readonly class FileRunner
     public function __construct(
         private BuildFacadeInterface $buildFacade,
         private CommandFacadeInterface $commandFacade,
-        private BundledNamespaces $bundledNamespaces,
+        private BundledNamespaceDetector $bundledNamespaceDetector,
     ) {}
 
     public function run(string $filename): void
@@ -40,7 +40,7 @@ final readonly class FileRunner
 
         $primaryInfos = $this->buildFacade->getDependenciesForNamespace(
             $primaryDirs,
-            $this->primarySeeds($scriptInfo),
+            $this->primarySeeds($scriptInfo, $filename),
         );
 
         $resolved = $this->indexByNamespace($primaryInfos);
@@ -55,22 +55,22 @@ final readonly class FileRunner
     }
 
     /**
-     * Seed the dependency walk with the script namespace, every bundled
-     * `phel.*` module (so fully qualified refs like `phel.async/delay`
-     * resolve without an explicit require), and the script's direct
-     * requires. The script's direct requires are kept because an ad-hoc
-     * script in `dirname` rather than configured `srcDirs` is not itself
-     * discoverable, so its transitive deps would otherwise be missed even
-     * when they live under `srcDirs`/vendor.
+     * Seed the dependency walk with the script namespace, only the bundled
+     * `phel.*` modules the script actually references via fully qualified
+     * form (so `phel.async/delay` resolves without an explicit require),
+     * and the script's direct requires. The script's direct requires are
+     * kept because an ad-hoc script in `dirname` rather than configured
+     * `srcDirs` is not itself discoverable, so its transitive deps would
+     * otherwise be missed even when they live under `srcDirs`/vendor.
      *
      * @return list<string>
      */
-    private function primarySeeds(NamespaceInformation $scriptInfo): array
+    private function primarySeeds(NamespaceInformation $scriptInfo, string $filename): array
     {
         return array_values(array_unique([
             $scriptInfo->getNamespace(),
             CompilerConstants::PHEL_CORE_NAMESPACE,
-            ...$this->bundledNamespaces->all(),
+            ...$this->bundledNamespaceDetector->detect($filename),
             ...$scriptInfo->getDependencies(),
         ]));
     }
