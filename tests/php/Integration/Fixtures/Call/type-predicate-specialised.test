@@ -1,0 +1,21 @@
+--PHEL--
+(fn [x] (int? x))
+(fn [x] (float? x))
+(fn [x] (string? x))
+(fn [x] (keyword? x))
+(fn [x] (symbol? x))
+(fn [x] (ratio? x))
+--PHP--
+(function($x): bool {
+  return is_int($x);
+});(function($x): bool {
+  return is_float($x);
+});(function($x): bool {
+  return is_string($x);
+});(function($x): bool {
+  return ($x instanceof \Phel\Lang\Keyword);
+});(function($x): bool {
+  return ($x instanceof \Phel\Lang\Symbol);
+});(function($x): bool {
+  return ($x instanceof \Phel\Lang\Ratio);
+});
