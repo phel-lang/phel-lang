@@ -1,0 +1,18 @@
+--PHEL--
+(fn [^array a] (empty? a))
+(fn [^string s] (empty? s))
+(fn [^int n] (empty? n))
+(fn [^\Phel\Lang\Collections\Map\PersistentMapInterface m] (empty? m))
+(fn [^\Phel\Lang\Collections\Vector\PersistentVectorInterface v] (empty? v))
+--PHP--
+(function(array $a) {
+  return ($a === []);
+});(function(string $s) {
+  return ($s === '');
+});(function(int $n) {
+  return ($n === 0);
+});(function(\Phel\Lang\Collections\Map\PersistentMapInterface $m) {
+  return ($m->count() === 0);
+});(function(\Phel\Lang\Collections\Vector\PersistentVectorInterface $v) {
+  return ($v->count() === 0);
+});

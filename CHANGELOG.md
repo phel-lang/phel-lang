@@ -66,6 +66,8 @@ Control-flow lowering to PHP `match` (#2091):
 
 - `CallSpecialization`: lower `(name k)` and `(namespace k)` to the direct `$k->getName()` / `$k->getNamespace()` method call when the analyser has tagged `k` as `\Phel\Lang\Keyword` or `\Phel\Lang\Symbol`. Skips the runtime `(if (string? x) x (php/-> x (getName)))` cond chain (#2164)
 
+- `CallSpecialization`: lower `(empty? x)` to a tag-specific native check — `($x === [])` for `^array`, `($x === '')` for `^string`, `($x === 0)` for `^int`, `($x->count() === 0)` for `^PersistentMapInterface` / `^PersistentVectorInterface`. Skips the runtime cond chain over numeric / string / lazyseq / cons / fallback (#2166)
+
 ### Fixed
 
 - `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)
