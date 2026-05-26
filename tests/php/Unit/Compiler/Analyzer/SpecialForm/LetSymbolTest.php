@@ -164,7 +164,7 @@ final class LetSymbolTest extends TestCase
                 [],
                 new DoNode(
                     $env->withReturnContext(),
-                    [new LiteralNode($env->withStatementContext()->withDisallowRecurFrame(), 1)],
+                    [],
                     new LiteralNode($env->withReturnContext(), 2),
                 ),
                 false,

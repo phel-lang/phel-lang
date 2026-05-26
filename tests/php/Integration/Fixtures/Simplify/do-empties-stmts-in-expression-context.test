@@ -1,0 +1,7 @@
+--PHEL--
+(let [x (do 1 2 :foo)] x)
+--PHP--
+$x_1 = (function() {
+  return \Phel::keyword("foo");
+})();
+$x_1;
