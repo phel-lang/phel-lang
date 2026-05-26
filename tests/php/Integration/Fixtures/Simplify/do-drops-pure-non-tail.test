@@ -1,0 +1,8 @@
+--PHEL--
+(fn [] (do 1 2 (println "x") 3))
+--PHP--
+(function() {
+  static $__phel_call_0;
+  ($__phel_call_0 ??= \Phel::getDefinition("phel.core", "println"))->__invoke("x");
+  return 3;
+});

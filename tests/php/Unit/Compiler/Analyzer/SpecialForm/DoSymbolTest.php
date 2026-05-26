@@ -84,9 +84,7 @@ final class DoSymbolTest extends TestCase
 
         $expected = new DoNode(
             $env,
-            [
-                $this->analyzer->analyze(1, $env->withDisallowRecurFrame()),
-            ],
+            [],
             $this->analyzer->analyze(2, $env),
             $list->getStartLocation(),
         );
