@@ -19,6 +19,10 @@ final class LetEmitter implements NodeEmitterInterface
     {
         assert($node instanceof LetNode);
 
+        if ($this->tryEmitAsMatch($node)) {
+            return;
+        }
+
         $isWrapFn = $node->getEnv()->isContext(NodeEnvironment::CONTEXT_EXPRESSION);
         if ($isWrapFn) {
             $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
@@ -47,5 +51,48 @@ final class LetEmitter implements NodeEmitterInterface
         if ($isWrapFn) {
             $this->outputEmitter->emitFnWrapSuffix($node->getStartSourceLocation());
         }
+    }
+
+    /**
+     * Lower a `case` / `cond`-shaped `LetNode` to a single PHP `match`
+     * expression. See {@see IfChainMatchLowerer} for the detection
+     * rules.
+     *
+     * Only fires when the let is in expression / return context — PHP
+     * `match` always evaluates the dispatch, so dropping the result
+     * in statement context is wasted work the generic if/else path
+     * handles cheaper.
+     */
+    private function tryEmitAsMatch(LetNode $node): bool
+    {
+        $env = $node->getEnv();
+        if ($env->isContext(NodeEnvironment::CONTEXT_STATEMENT)) {
+            return false;
+        }
+
+        $shape = IfChainMatchLowerer::analyse($node);
+        if ($shape === null) {
+            return false;
+        }
+
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitContextPrefix($env, $loc);
+        $this->outputEmitter->emitStr('match (', $loc);
+        $this->outputEmitter->emitNode($shape['init']);
+        $this->outputEmitter->emitStr(') { ', $loc);
+
+        foreach ($shape['arms'] as $arm) {
+            $this->outputEmitter->emitLiteral($arm['key']);
+            $this->outputEmitter->emitStr(' => ', $loc);
+            $this->outputEmitter->emitLiteral($arm['expr']);
+            $this->outputEmitter->emitStr(', ', $loc);
+        }
+
+        $this->outputEmitter->emitStr('default => ', $loc);
+        $this->outputEmitter->emitLiteral($shape['fallback']);
+        $this->outputEmitter->emitStr(' }', $loc);
+        $this->outputEmitter->emitContextSuffix($env, $loc);
+
+        return true;
     }
 }

@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - `ApplyEmitter`: `(apply f [a b c])` lowers to a direct positional invocation `($f)->__invoke($a, $b, $c)` when `f` is a fixed-arity `GlobalVarNode` (per `min-arity` meta) and the final argument is a syntactic vector literal whose length matches the declared arity. Skips the `Seq::toApplyArguments` walk and `...` spread for that shape. Variadic fns or non-vector trailing args keep the generic spread path (#2090)
 - `CallSpecialization`: `(not (= a b))` peephole emits `($a !== $b)` directly when the inner `=` is already specialisable to `===` (both operands typed primitives). Skips the `phel.core/not` dispatch and the `!` wrapper that would otherwise sit on top of the inline equality op (#2090)
 - `CompileOptions::setOptimizationLevel(int)` flag (defaults `0`). Reserved for Phase 5 / 6 of the emitter optimisation roadmap: `1` = auto-inline private `defn-`, `2` = hoist loop-invariant exprs out of recur loops. Today no caller consults the flag; it ships as the wiring infrastructure those phases need (#2092)
+- `LetEmitter`: lower a `case` / `cond` shape (nested `if` chain inside a `let` whose tests all compare the same shadow against primitive literal keys) to a single PHP `match` expression. Arm keys and arm bodies must reduce to primitive literals (`int` / `string` / `bool` / `Keyword`). Walks transitively through the per-arm let rebinds Phel's `case` macro generates. Skips `loop` lets and statement-context lets (#2091)
 
 ### Fixed
 
