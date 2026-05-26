@@ -1,0 +1,9 @@
+--PHEL--
+(fn [a b c] (or a b c))
+(fn [a b c] (and a b c))
+--PHP--
+(function($a, $b, $c) {
+  return ((($__or = $a) !== null && $__or !== false) ? $__or : ((($__or = $b) !== null && $__or !== false) ? $__or : $c));
+});(function($a, $b, $c) {
+  return ((($__or = $a) !== null && $__or !== false) ? ((($__or = $b) !== null && $__or !== false) ? $c : $__or) : $__or);
+});
