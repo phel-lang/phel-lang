@@ -95,6 +95,18 @@ final readonly class CallSpecialization
             return true;
         }
 
+        if (self::isTypedPhpArrayCount($node)) {
+            return true;
+        }
+
+        if (self::isNilCheck($node)) {
+            return true;
+        }
+
+        if (self::isSomeCheck($node)) {
+            return true;
+        }
+
         if (self::isTypedVectorAccessor($node)) {
             return true;
         }
@@ -618,6 +630,60 @@ final readonly class CallSpecialization
     }
 
     /**
+     * `(count arr)` where the analyser has tagged `arr` as a PHP
+     * `array`. The runtime `count` body walks a cond chain over the
+     * standard collection shapes before reaching `(php/count ds)`; for
+     * an `array`-tagged target the only branch that ever fires is the
+     * native one.
+     */
+    public static function isTypedPhpArrayCount(CallNode $node): bool
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode) {
+            return false;
+        }
+
+        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
+            || $fn->getName()->getName() !== 'count'
+        ) {
+            return false;
+        }
+
+        $args = $node->getArguments();
+        if (count($args) !== 1) {
+            return false;
+        }
+
+        $target = $args[0];
+        if (!$target instanceof LocalVarNode) {
+            return false;
+        }
+
+        return self::normalisedTag($target->getInferredType()) === 'array';
+    }
+
+    /**
+     * `(nil? x)` — single-arg identity check against `nil`. The runtime
+     * body is `(id x nil)` which routes through the registry; the
+     * specialised emit is the literal `($x === null)`.
+     */
+    public static function isNilCheck(CallNode $node): bool
+    {
+        return self::isUnaryCoreCall($node, 'nil?');
+    }
+
+    /**
+     * `(some? x)` (1-arg) — `(not (nil? x))`. Maps to `($x !== null)`.
+     * Skips the 2-arg overload (`(some? pred coll)`); that variant has
+     * a different shape and the specialised emit would not be a single
+     * native expression.
+     */
+    public static function isSomeCheck(CallNode $node): bool
+    {
+        return self::isUnaryCoreCall($node, 'some?');
+    }
+
+    /**
      * `(str ...)` whose every argument compiles to a string-typed
      * expression: string literals or `LocalVarNode`s tagged `string`.
      */
@@ -661,6 +727,22 @@ final readonly class CallSpecialization
         $arg = $args[0];
         return $arg instanceof LocalVarNode
             && self::isPersistentMapTag($arg->getInferredType());
+    }
+
+    private static function isUnaryCoreCall(CallNode $node, string $name): bool
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode) {
+            return false;
+        }
+
+        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
+            || $fn->getName()->getName() !== $name
+        ) {
+            return false;
+        }
+
+        return count($node->getArguments()) === 1;
     }
 
     /**

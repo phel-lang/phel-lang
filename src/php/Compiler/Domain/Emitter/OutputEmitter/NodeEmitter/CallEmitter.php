@@ -171,6 +171,18 @@ final class CallEmitter implements NodeEmitterInterface
             return;
         }
 
+        if ($this->tryEmitTypedPhpArrayCount($node)) {
+            return;
+        }
+
+        if ($this->tryEmitNilCheck($node)) {
+            return;
+        }
+
+        if ($this->tryEmitSomeCheck($node)) {
+            return;
+        }
+
         if ($this->tryEmitTypedVectorAccessor($node)) {
             return;
         }
@@ -374,6 +386,59 @@ final class CallEmitter implements NodeEmitterInterface
      * `??` treats both absent keys and explicit nulls as triggering
      * the fallback.
      */
+    /**
+     * Specialise `(count arr)` on a target tagged `array` to a native
+     * `count(\$arr)` call. The runtime body would walk a cond chain
+     * over the standard collection shapes before reaching the same
+     * `php/count` branch.
+     */
+    private function tryEmitTypedPhpArrayCount(CallNode $node): bool
+    {
+        if (!CallSpecialization::isTypedPhpArrayCount($node)) {
+            return false;
+        }
+
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('count(', $loc);
+        $this->outputEmitter->emitNode($node->getArguments()[0]);
+        $this->outputEmitter->emitStr(')', $loc);
+        return true;
+    }
+
+    /**
+     * `(nil? x)` — emit `($x === null)` directly, bypassing the
+     * registry lookup and `id` adapter.
+     */
+    private function tryEmitNilCheck(CallNode $node): bool
+    {
+        if (!CallSpecialization::isNilCheck($node)) {
+            return false;
+        }
+
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($node->getArguments()[0]);
+        $this->outputEmitter->emitStr(' === null)', $loc);
+        return true;
+    }
+
+    /**
+     * `(some? x)` 1-arg — emit `($x !== null)` directly. The 2-arg
+     * overload `(some? pred coll)` keeps the runtime dispatch.
+     */
+    private function tryEmitSomeCheck(CallNode $node): bool
+    {
+        if (!CallSpecialization::isSomeCheck($node)) {
+            return false;
+        }
+
+        $loc = $node->getStartSourceLocation();
+        $this->outputEmitter->emitStr('(', $loc);
+        $this->outputEmitter->emitNode($node->getArguments()[0]);
+        $this->outputEmitter->emitStr(' !== null)', $loc);
+        return true;
+    }
+
     private function tryEmitTypedPhpArrayGet(CallNode $node): bool
     {
         if (!CallSpecialization::isTypedPhpArrayGet($node)) {
