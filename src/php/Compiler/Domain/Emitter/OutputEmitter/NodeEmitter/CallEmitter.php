@@ -195,7 +195,8 @@ final class CallEmitter implements NodeEmitterInterface
             return;
         }
 
-        $useCallMethod = !$this->isSelfCall($node) && GlobalCallTarget::isGlobalFnCall($node);
+        $useCallMethod = !$this->isSelfCall($node)
+            && (GlobalCallTarget::isGlobalFnCall($node) || CallSpecialization::isTypedAFnLocal($node));
 
         $this->emitDynamicFunctionName($node);
 
