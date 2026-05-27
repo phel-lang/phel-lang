@@ -11,7 +11,7 @@ use Phel\Config\PhelConfig;
 use Phel\Run\Infrastructure\Command\DoctorCommand;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Output\BufferedOutput;
 
 final class DoctorCommandTest extends TestCase
 {
@@ -33,14 +33,14 @@ final class DoctorCommandTest extends TestCase
 
     public function test_doctor_command_outputs_success(): void
     {
-        $command = new DoctorCommand();
+        $output = new BufferedOutput();
 
-        $this->expectOutputRegex('/Your system meets all requirements/');
-
-        $command->run(
+        new DoctorCommand()->run(
             $this->createStub(InputInterface::class),
-            $this->stubOutput(),
+            $output,
         );
+
+        self::assertMatchesRegularExpression('/Your system meets all requirements/', $output->fetch());
     }
 
     public function test_doctor_succeeds_when_temp_dir_does_not_exist_yet(): void
@@ -54,13 +54,11 @@ final class DoctorCommandTest extends TestCase
 
         self::assertDirectoryDoesNotExist($nonExistentTempDir);
 
-        $command = new DoctorCommand();
-        $exitCode = $command->run(
+        $exitCode = new DoctorCommand()->run(
             $this->createStub(InputInterface::class),
-            $this->stubOutput(),
+            new BufferedOutput(),
         );
 
-        // Cleanup the bootstrapped dir before assertions can fail
         if (is_dir($nonExistentTempDir)) {
             rmdir($nonExistentTempDir);
         }
@@ -70,24 +68,13 @@ final class DoctorCommandTest extends TestCase
 
     public function test_doctor_includes_agent_install_section(): void
     {
-        $command = new DoctorCommand();
+        $output = new BufferedOutput();
 
-        $this->expectOutputRegex('/AI agent skills \(phel-agents v/');
-
-        $command->run(
+        new DoctorCommand()->run(
             $this->createStub(InputInterface::class),
-            $this->stubOutput(),
+            $output,
         );
-    }
 
-    private function stubOutput(): OutputInterface
-    {
-        $output = $this->createStub(OutputInterface::class);
-        $output->method('writeln')
-            ->willReturnCallback(static fn(string $str): int => print $str . PHP_EOL);
-        $output->method('write')
-            ->willReturnCallback(static fn(string $str): int => print $str);
-
-        return $output;
+        self::assertMatchesRegularExpression('/AI agent skills \(phel-agents v/', $output->fetch());
     }
 }
