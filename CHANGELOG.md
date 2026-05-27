@@ -61,6 +61,7 @@ Emit-shape tweaks:
 - `map` (#2188): `(map f nil)` / `(map f '())` return a `LazySeq` (not an empty vector); `(map identity {:k :v})` yields `[[:k :v]]` (pair vectors, not values-only). The map-of-pairs fix lives in `TransformGenerator::map`, so every Seq path hitting a `PersistentMap` sees pair entries
 - `LazySeq::getIterator` / `toArray` no longer drop `nil` values (latent bug, surfaced by #2187)
 - Reader meta on vector / map / set literals (`^{:k v} […]`, `^:k […]`) now survives compile/emit. `VectorNode` / `MapNode` / `SetNode` carry the literal meta; a shared `LiteralMetaAnalyzer` extracts it; emitters wrap with `->withMeta(…)`. Fixes `group-by` dropping element meta (#2189)
+- `BigInt::fromFloat` / `BigDecimal::fromFloat`: stop coercing `NAN` / `INF` to string when building the rejection message. PHP 8.5 emits a `unexpected NAN value was coerced to string` warning; new private `describeNonFinite` helper renders `NaN` / `Infinity` / `-Infinity` literals, silencing CI noise without changing exception type
 
 ## [0.40.0](https://github.com/phel-lang/phel-lang/compare/v0.39.0...v0.40.0) - 2026-05-25
 

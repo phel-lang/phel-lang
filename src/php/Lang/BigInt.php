@@ -154,7 +154,7 @@ final readonly class BigInt implements TypeInterface, Stringable
     {
         if (!is_finite($value)) {
             throw new InvalidArgumentException(
-                sprintf("Cannot convert non-finite float '%s' to BigInt", $value),
+                sprintf("Cannot convert non-finite float '%s' to BigInt", self::describeNonFinite($value)),
             );
         }
 
@@ -734,5 +734,14 @@ final readonly class BigInt implements TypeInterface, Stringable
         }
 
         return sprintf('%.17g', $value);
+    }
+
+    private static function describeNonFinite(float $value): string
+    {
+        if (is_nan($value)) {
+            return 'NaN';
+        }
+
+        return $value > 0 ? 'Infinity' : '-Infinity';
     }
 }
