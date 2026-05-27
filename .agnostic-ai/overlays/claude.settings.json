@@ -32,6 +32,6 @@
   "hooks": null,
   "statusLine": {
     "type": "command",
-    "command": "/bin/bash .claude/statusline.sh"
+    "command": "/bin/bash .agnostic-ai/scripts/claude/statusline.sh"
   }
 }
