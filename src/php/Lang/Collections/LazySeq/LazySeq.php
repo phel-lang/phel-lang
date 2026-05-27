@@ -267,10 +267,20 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
         /** @psalm-suppress RedundantCondition */
         /** @phpstan-ignore instanceof.alwaysTrue */
         while ($seq instanceof self) {
-            $first = $seq->first();
-            if ($first !== null) {
-                $result[] = $first;
+            // `realize() === null` is the only reliable "empty" signal;
+            // `first() === null` is ambiguous because the user may have
+            // stored `nil` as a legitimate value. Empty `Countable`
+            // collections (e.g. `(lazy-seq [])`) also count as empty.
+            $realized = $seq->realize();
+            if (!$realized instanceof SeqInterface) {
+                break;
             }
+
+            if ($realized instanceof Countable && count($realized) === 0) {
+                break;
+            }
+
+            $result[] = $realized->first();
 
             $next = $seq->cdr();
             if (!$next instanceof LazySeqInterface) {
@@ -301,14 +311,21 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
         $seq = $this;
 
         while ($seq instanceof self) {
-            $first = $seq->first();
-            if ($first !== null) {
-                yield $first;
+            // See `toArray()`: realize is the only nil-safe empty check.
+            $realized = $seq->realize();
+            if (!$realized instanceof SeqInterface) {
+                return;
             }
+
+            if ($realized instanceof Countable && count($realized) === 0) {
+                return;
+            }
+
+            yield $realized->first();
 
             $next = $seq->cdr();
             if (!$next instanceof LazySeqInterface) {
-                break;
+                return;
             }
 
             $seq = $next instanceof self ? $next : null;
