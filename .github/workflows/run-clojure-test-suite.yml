@@ -4,6 +4,8 @@ on:
   pull_request:
   push:
     branches: [ main ]
+  schedule:
+    - cron: '0 6 * * *'
   workflow_dispatch:
     inputs:
       suite-ref:
@@ -22,7 +24,6 @@ jobs:
   run-clojure-test-suite:
     name: Run clojure-test-suite (PHP 8.4)
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - name: Checkout phel-lang
         uses: actions/checkout@v6
