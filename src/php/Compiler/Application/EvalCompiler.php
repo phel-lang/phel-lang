@@ -51,6 +51,7 @@ final readonly class EvalCompiler implements EvalCompilerInterface
      */
     public function evalString(string $phelCode, CompileOptions $compileOptions): mixed
     {
+        $this->analyzer->setOptimizationLevel($compileOptions->getOptimizationLevel());
         $tokenStream = $this->lexer->lexString($phelCode, $compileOptions->getSource(), $compileOptions->getStartingLine());
 
         $result = null;
@@ -82,6 +83,7 @@ final readonly class EvalCompiler implements EvalCompilerInterface
             return $form;
         }
 
+        $this->analyzer->setOptimizationLevel($compileOptions->getOptimizationLevel());
         $node = $this->analyzer->analyze($form, NodeEnvironment::empty()->withReturnContext());
         return $this->evalNode($node, $compileOptions);
     }

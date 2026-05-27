@@ -7,9 +7,12 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - CI: `announce-release.yml` + `scripts/announce-release.mjs` build a Twitter/X thread draft from the released tag's CHANGELOG; uploads `thread.md` / `thread.json` as artifacts. Manual posting; `workflow_dispatch` supports back-fills
-- `CompileOptions::setOptimizationLevel(int)` (defaults `0`). Reserved for future auto-inline (`1`) and loop-invariant hoist (`2`); no current consumer (#2092)
+- `CompileOptions::setOptimizationLevel(int)` (defaults `0`). Reserved for future auto-inline (`1`) and the implicit tail-call rewrite (`2`) (#2092, #2141)
 
 ### Performance
+
+Opt-in (`CompileOptions::setOptimizationLevel(2)`):
+- `TailCallRewriter`: detect self-recursive `defn` calls in tail position and rewrite them into an implicit `recur` loop. Eliminates per-iteration PHP stack frames. Variadic and multi-arity defs are skipped. Stack-trace shape inside the loop changes from N frames to one (#2141)
 
 Compile-time folding and simplification:
 - `ConstantFolder`: fold pure `phel.core` calls on literal args (comparisons, boolean predicates, bitwise / `bit-*`, `count` / `first` / `last` / `nth` on literal collections, `str`, `min` / `max` / `mod` / `quot` / `rem` / `abs`). Skipped when runtime would throw or promote (#2088)

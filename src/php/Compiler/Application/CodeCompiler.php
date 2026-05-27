@@ -55,6 +55,7 @@ final readonly class CodeCompiler implements CodeCompilerInterface
     {
         $hook = Registry::$profilerHook;
         $source = $compileOptions->getSource();
+        $this->analyzer->setOptimizationLevel($compileOptions->getOptimizationLevel());
 
         $tokenStream = $this->timed($hook, 'lex', $source, fn(): TokenStream => $this->lexer->lexString(
             $phelCode,
@@ -91,6 +92,7 @@ final readonly class CodeCompiler implements CodeCompilerInterface
         float|bool|int|string|TypeInterface|null $form,
         CompileOptions $compileOptions,
     ): EmitterResult {
+        $this->analyzer->setOptimizationLevel($compileOptions->getOptimizationLevel());
         $this->fileEmitter->startFile($compileOptions->getSource());
         $node = $this->analyzer->analyze($form, NodeEnvironment::empty());
         $this->emitNode($node, $compileOptions);
