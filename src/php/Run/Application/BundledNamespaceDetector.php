@@ -9,6 +9,7 @@ use function array_values;
 use function file_get_contents;
 use function preg_match_all;
 use function str_replace;
+use function str_starts_with;
 use function substr;
 
 final readonly class BundledNamespaceDetector
@@ -59,5 +60,32 @@ final readonly class BundledNamespaceDetector
         }
 
         return array_values(array_intersect($bundled, array_keys($referenced)));
+    }
+
+    /**
+     * @param list<string> $dependencies
+     *
+     * @return list<string>
+     */
+    public function remapClojureDependencies(array $dependencies): array
+    {
+        $candidates = [];
+        foreach ($dependencies as $dependency) {
+            $normalized = str_replace('\\', '.', $dependency);
+            if (str_starts_with($normalized, 'clojure.')) {
+                $candidates['phel.' . substr($normalized, 8)] = true;
+            }
+        }
+
+        if ($candidates === []) {
+            return [];
+        }
+
+        $bundled = $this->bundledNamespaces->all();
+        if ($bundled === []) {
+            return [];
+        }
+
+        return array_values(array_intersect($bundled, array_keys($candidates)));
     }
 }
