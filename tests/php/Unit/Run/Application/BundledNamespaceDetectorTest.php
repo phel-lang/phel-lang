@@ -106,6 +106,38 @@ final class BundledNamespaceDetectorTest extends TestCase
         self::assertSame([], $detector->detect($this->tmpDir . '/does-not-exist.phel'));
     }
 
+    public function test_remaps_clojure_dependencies_to_existing_bundled_phel_namespaces(): void
+    {
+        $detector = $this->createDetector(['phel.test', 'phel.string']);
+
+        self::assertSame(
+            ['phel.string', 'phel.test'],
+            $detector->remapClojureDependencies(['clojure.test', 'clojure\\string', 'clojure.missing']),
+        );
+    }
+
+    public function test_remap_skips_bundled_discovery_when_no_clojure_dependencies_exist(): void
+    {
+        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $buildFacade->expects(self::never())->method('getNamespaceFromDirectories');
+
+        $commandFacade = $this->createStub(CommandFacadeInterface::class);
+
+        $detector = new BundledNamespaceDetector(new BundledNamespaces($buildFacade, $commandFacade));
+
+        self::assertSame([], $detector->remapClojureDependencies(['phel.test']));
+    }
+
+    public function test_remap_deduplicates_equivalent_clojure_dependencies(): void
+    {
+        $detector = $this->createDetector(['phel.test']);
+
+        self::assertSame(
+            ['phel.test'],
+            $detector->remapClojureDependencies(['clojure.test', 'clojure\\test', 'phel.test']),
+        );
+    }
+
     /**
      * @param list<string> $bundledNamespaces
      */

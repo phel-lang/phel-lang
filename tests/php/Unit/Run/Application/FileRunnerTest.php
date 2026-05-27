@@ -201,6 +201,41 @@ final class FileRunnerTest extends TestCase
         );
     }
 
+    public function test_seeds_phel_namespace_for_clojure_alias_dependency(): void
+    {
+        $script = $this->tmpDir . '/demo.phel';
+        file_put_contents($script, "(ns demo (:require [clojure.test :as t]))\n");
+
+        $scriptInfo = new NamespaceInformation($script, 'demo', ['clojure.test'], true);
+        $coreInfo = new NamespaceInformation('/phel/core.phel', 'phel.core', [], true);
+        $testInfo = new NamespaceInformation('/phel/test.phel', 'phel.test', [], true);
+
+        $observedSeeds = [];
+
+        $buildFacade = $this->createMock(BuildFacadeInterface::class);
+        $buildFacade->method('getNamespaceFromFile')->willReturn($scriptInfo);
+        $buildFacade->method('getNamespaceFromDirectories')->willReturn([$testInfo]);
+        $buildFacade->method('getDependenciesForNamespace')->willReturnCallback(
+            static function (array $dirs, array $ns) use (&$observedSeeds, $coreInfo, $testInfo): array {
+                $observedSeeds[] = $ns;
+                return [$coreInfo, $testInfo];
+            },
+        );
+        $buildFacade->method('evalFile')->willReturn(
+            new CompiledFile('', '', '', false),
+        );
+
+        $commandFacade = $this->createMock(CommandFacadeInterface::class);
+        $commandFacade->method('getSourceDirectories')->willReturn([$this->primarySrc]);
+        $commandFacade->method('getVendorSourceDirectories')->willReturn([]);
+
+        $this->createFileRunner($buildFacade, $commandFacade)->run($script);
+
+        self::assertNotSame([], $observedSeeds);
+        self::assertContains('phel.test', $observedSeeds[0]);
+        self::assertContains('clojure.test', $observedSeeds[0]);
+    }
+
     public function test_skips_bundled_seeds_when_script_has_no_fqn_reference(): void
     {
         $script = $this->tmpDir . '/demo.phel';

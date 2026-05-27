@@ -1,0 +1,23 @@
+(ns clojure-test-alias-assert-expr-script
+  (:require [clojure.test :as t]
+            [clojure.test :as p]))
+
+(defmethod t/assert-expr 'p/thrown?
+  [msg form]
+  (let [body (rest form)]
+    `(try
+       (let [result# (do ~@body)]
+         (t/do-report {:type :fail
+                       :message ~msg
+                       :expected '~form
+                       :actual result#}))
+       (catch ~'Throwable e#
+         (t/do-report {:type :pass
+                       :message ~msg
+                       :expected '~form
+                       :actual e#})
+         e#))))
+
+(t/is (p/thrown? (throw (php/new \RuntimeException "boom"))))
+
+(println "clojure-test-alias-ok")

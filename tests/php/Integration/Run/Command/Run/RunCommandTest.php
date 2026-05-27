@@ -85,6 +85,15 @@ final class RunCommandTest extends AbstractTestCommand
         self::assertStringContainsString('phel.async/delay resolved', $output);
     }
 
+    public function test_run_by_filename_resolves_clojure_test_alias_before_script_eval(): void
+    {
+        $output = $this->captureRunOutput(
+            __DIR__ . '/Fixtures/clojure-test-alias-assert-expr-script.phel',
+        );
+
+        self::assertStringContainsString('clojure-test-alias-ok', $output);
+    }
+
     public function test_pass_flag_arguments_to_script(): void
     {
         $output = $this->captureRunOutput(

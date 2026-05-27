@@ -67,11 +67,16 @@ final readonly class FileRunner
      */
     private function primarySeeds(NamespaceInformation $scriptInfo, string $filename): array
     {
+        $dependencies = $scriptInfo->getDependencies();
+
         return array_values(array_unique([
             $scriptInfo->getNamespace(),
             CompilerConstants::PHEL_CORE_NAMESPACE,
             ...$this->bundledNamespaceDetector->detect($filename),
-            ...$scriptInfo->getDependencies(),
+            ...$this->bundledNamespaceDetector->remapClojureDependencies($dependencies),
+            // Missing seeds are ignored by dependency resolution, so keeping
+            // raw `clojure.*` deps preserves user-defined Clojure namespaces.
+            ...$dependencies,
         ]));
     }
 
