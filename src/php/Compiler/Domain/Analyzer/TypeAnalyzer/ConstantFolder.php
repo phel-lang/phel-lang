@@ -23,6 +23,7 @@ use function count;
 use function implode;
 use function in_array;
 use function intdiv;
+use function is_bool;
 use function is_float;
 use function is_int;
 use function is_nan;
@@ -85,6 +86,30 @@ final class ConstantFolder
         '~' => true,
     ];
 
+    /**
+     * Whitelist of binary `phel.core` fns that can act as a `reduce`
+     * reducer at compile time. Each maps `(acc, elt)` to a new acc using
+     * the existing scalar `compute()` path, so a fold step that the
+     * folder already refuses (e.g. divide-by-zero on `quot`) blocks the
+     * whole reduction and the call stays in the runtime.
+     *
+     * Limited to numeric reducers whose two-arg variants do not produce
+     * a boolean (so `=` / `<` / `<=` / `>` / `>=` are excluded — those
+     * are pairwise predicates, not accumulating reducers).
+     *
+     * @var array<string, true>
+     */
+    private const array REDUCE_BINARY_OPS = [
+        '+' => true,
+        '*' => true,
+        '-' => true,
+        'min' => true,
+        'max' => true,
+        'mod' => true,
+        'quot' => true,
+        'rem' => true,
+    ];
+
     public function fold(CallNode $node): ?AbstractNode
     {
         $fn = $node->getFn();
@@ -120,6 +145,13 @@ final class ConstantFolder
         $accessorResult = $this->foldCollectionAccessor($fnName, $node);
         if ($accessorResult instanceof AbstractNode) {
             return $accessorResult;
+        }
+
+        if ($fnName === 'reduce') {
+            $reduceResult = $this->foldReduce($node);
+            if ($reduceResult instanceof AbstractNode) {
+                return $reduceResult;
+            }
         }
 
         if ($fnName === 'str') {
@@ -285,6 +317,84 @@ final class ConstantFolder
     private function allLiteralNodes(array $nodes): bool
     {
         return array_all($nodes, static fn($n): bool => $n instanceof LiteralNode);
+    }
+
+    /**
+     * `(reduce f init coll)` with `f` a whitelisted pure binary
+     * `phel.core` op, `init` a numeric literal, and `coll` a vector
+     * literal whose elements are all numeric literals.
+     *
+     * Out of scope (kept as runtime calls):
+     *  - the 2-arg `(reduce f coll)` variant — its empty-coll branch
+     *    calls `(f)`, which only makes sense for ops with an identity
+     *  - non-vector collections, `seq` / list / set literals
+     *  - any `(reduced x)` early-termination value in the input — the
+     *    fold computes step-by-step so it never observes one
+     */
+    private function foldReduce(CallNode $node): ?LiteralNode
+    {
+        $args = $node->getArguments();
+        if (count($args) !== 3) {
+            return null;
+        }
+
+        [$fnArg, $init, $coll] = $args;
+
+        if (!$fnArg instanceof GlobalVarNode) {
+            return null;
+        }
+
+        if ($fnArg->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE) {
+            return null;
+        }
+
+        $reducerName = $fnArg->getName()->getName();
+        if (!isset(self::REDUCE_BINARY_OPS[$reducerName])) {
+            return null;
+        }
+
+        if (!$init instanceof LiteralNode) {
+            return null;
+        }
+
+        $accValue = $init->getValue();
+        if (!is_int($accValue) && !is_float($accValue)) {
+            return null;
+        }
+
+        if (!$coll instanceof VectorNode) {
+            return null;
+        }
+
+        $elements = $coll->getArgs();
+        if (!$this->allLiteralNodes($elements)) {
+            return null;
+        }
+
+        if ($elements === []) {
+            // `(reduce f init [])` is `init`. Materialise a fresh literal
+            // so the source location maps to the reduce call, not the
+            // init expr — keeps error reports accurate for downstream
+            // passes that re-touch this node.
+            return new LiteralNode($node->getEnv(), $accValue, $node->getStartSourceLocation());
+        }
+
+        foreach ($elements as $element) {
+            assert($element instanceof LiteralNode);
+            $eltValue = $element->getValue();
+            if (!is_int($eltValue) && !is_float($eltValue)) {
+                return null;
+            }
+
+            $stepResult = $this->compute($reducerName, [$accValue, $eltValue]);
+            if ($stepResult === null || is_bool($stepResult)) {
+                return null;
+            }
+
+            $accValue = $stepResult;
+        }
+
+        return new LiteralNode($node->getEnv(), $accValue, $node->getStartSourceLocation());
     }
 
     /**

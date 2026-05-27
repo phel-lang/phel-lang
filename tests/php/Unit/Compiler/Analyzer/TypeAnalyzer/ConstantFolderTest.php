@@ -723,6 +723,157 @@ final class ConstantFolderTest extends TestCase
         self::assertNull(new ConstantFolder()->foldIf($node));
     }
 
+    public function test_fold_reduce_sums_literal_vector(): void
+    {
+        $node = $this->coreCallWithArgs('reduce', [
+            $this->globalCore('+'),
+            $this->literal(0),
+            $this->vector([1, 2, 3, 4]),
+        ]);
+
+        $folded = new ConstantFolder()->fold($node);
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(10, $folded->getValue());
+    }
+
+    public function test_fold_reduce_with_max(): void
+    {
+        $node = $this->coreCallWithArgs('reduce', [
+            $this->globalCore('max'),
+            $this->literal(0),
+            $this->vector([3, 7, 2, 9, 5]),
+        ]);
+
+        $folded = new ConstantFolder()->fold($node);
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(9, $folded->getValue());
+    }
+
+    public function test_fold_reduce_empty_vector_returns_init(): void
+    {
+        $node = $this->coreCallWithArgs('reduce', [
+            $this->globalCore('+'),
+            $this->literal(42),
+            $this->vector([]),
+        ]);
+
+        $folded = new ConstantFolder()->fold($node);
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(42, $folded->getValue());
+    }
+
+    public function test_fold_reduce_promotes_to_float(): void
+    {
+        $node = $this->coreCallWithArgs('reduce', [
+            $this->globalCore('+'),
+            $this->literal(1),
+            $this->vector([2, 0.5]),
+        ]);
+
+        $folded = new ConstantFolder()->fold($node);
+
+        self::assertInstanceOf(LiteralNode::class, $folded);
+        self::assertSame(3.5, $folded->getValue());
+    }
+
+    public function test_fold_reduce_skips_non_whitelisted_reducer(): void
+    {
+        $node = $this->coreCallWithArgs('reduce', [
+            $this->globalCore('='),
+            $this->literal(1),
+            $this->vector([1, 1]),
+        ]);
+
+        self::assertNull(new ConstantFolder()->fold($node));
+    }
+
+    public function test_fold_reduce_skips_user_reducer(): void
+    {
+        $node = $this->coreCallWithArgs('reduce', [
+            $this->globalVar('my-add'),
+            $this->literal(0),
+            $this->vector([1, 2]),
+        ]);
+
+        self::assertNull(new ConstantFolder()->fold($node));
+    }
+
+    public function test_fold_reduce_skips_non_literal_init(): void
+    {
+        NodeEnvironment::empty()->withExpressionContext();
+        $node = $this->coreCallWithArgs('reduce', [
+            $this->globalCore('+'),
+            $this->coreCall('inc', [0]),
+            $this->vector([1, 2]),
+        ]);
+
+        // The init is a CallNode the folder cannot fold; skip the reduce too.
+        self::assertNull(new ConstantFolder()->fold($node));
+    }
+
+    public function test_fold_reduce_skips_non_vector_coll(): void
+    {
+        $node = $this->coreCallWithArgs('reduce', [
+            $this->globalCore('+'),
+            $this->literal(0),
+            $this->literal('not a vector'),
+        ]);
+
+        self::assertNull(new ConstantFolder()->fold($node));
+    }
+
+    public function test_fold_reduce_skips_vector_with_non_literal_element(): void
+    {
+        $env = NodeEnvironment::empty()->withExpressionContext();
+        $node = $this->coreCallWithArgs('reduce', [
+            $this->globalCore('+'),
+            $this->literal(0),
+            new VectorNode($env, [
+                new LiteralNode($env, 1),
+                $this->coreCall('inc', [1]),
+            ]),
+        ]);
+
+        self::assertNull(new ConstantFolder()->fold($node));
+    }
+
+    public function test_fold_reduce_skips_when_step_would_divide_by_zero(): void
+    {
+        $node = $this->coreCallWithArgs('reduce', [
+            $this->globalCore('quot'),
+            $this->literal(10),
+            $this->vector([2, 0, 1]),
+        ]);
+
+        self::assertNull(new ConstantFolder()->fold($node));
+    }
+
+    public function test_fold_reduce_skips_wrong_arity(): void
+    {
+        // Two-arg `(reduce f coll)` and the seqs-of-init varieties stay
+        // un-folded because their empty-coll branch calls `(f)` which
+        // would need identity-element handling we don't model here.
+        $node = $this->coreCallWithArgs('reduce', [
+            $this->globalCore('+'),
+            $this->vector([1, 2, 3]),
+        ]);
+
+        self::assertNull(new ConstantFolder()->fold($node));
+    }
+
+    private function globalCore(string $name): GlobalVarNode
+    {
+        return new GlobalVarNode(
+            NodeEnvironment::empty()->withExpressionContext(),
+            CompilerConstants::PHEL_CORE_NAMESPACE,
+            Symbol::create($name),
+            Phel::map(),
+        );
+    }
+
     /**
      * @param list<bool|float|int|string|null> $args
      */

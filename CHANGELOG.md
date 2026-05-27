@@ -16,6 +16,7 @@ Opt-in (`CompileOptions::setOptimizationLevel(2)`):
 
 Compile-time folding and simplification:
 - `ConstantFolder`: fold pure `phel.core` calls on literal args (comparisons, boolean predicates, bitwise / `bit-*`, `count` / `first` / `last` / `nth` on literal collections, `str`, `min` / `max` / `mod` / `quot` / `rem` / `abs`). Skipped when runtime would throw or promote (#2088)
+- `ConstantFolder`: 3-arg `(reduce f init [literals…])` with `f` a whitelisted binary `phel.core` reducer (`+` / `*` / `-` / `min` / `max` / `mod` / `quot` / `rem`). Aborts the fold when any step would itself refuse (e.g. divide-by-zero) so runtime errors stay at runtime (#2140)
 - `DoSimplifier` / `LetSimplifier`: drop pure non-tail exprs and unused bindings; inline `(let [x <lit>] x)` (#2089)
 
 Call-site lowering (`CallSpecialization`, analyser-tag-driven):

@@ -1,13 +1,13 @@
 --PHEL--
-(def reduce (fn [f xs] (apply f xs)))
+(def custom-reduce (fn [f xs] (apply f xs)))
 
-(reduce php/array [1 2 3])
+(custom-reduce php/array [1 2 3])
 --PHP--
 \Phel::addDefinition(
   "user",
-  "reduce",
+  "custom-reduce",
   new class() extends \Phel\Lang\AbstractFn {
-    public const BOUND_TO = "user\\reduce";
+    public const BOUND_TO = "user\\custom_reduce";
 
     public function __invoke($f, $xs) {
       return ($f)(...\Phel\Lang\Seq::toApplyArguments($xs));
@@ -15,10 +15,10 @@
   },
   \Phel::map(
     \Phel\Lang\Keyword::create("start-location"), \Phel::location("Call/php-fn-reference.test", 1, 0),
-    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Call/php-fn-reference.test", 1, 37),
+    \Phel\Lang\Keyword::create("end-location"), \Phel::location("Call/php-fn-reference.test", 1, 44),
     "min-arity", 2,
     "is-variadic", false,
     "arglists", "[f xs]"
   )
 );
-(\Phel::getDefinition("user", "reduce"))->__invoke((function(...$args) { return array(...$args);}), \Phel::vector([1, 2, 3]));
+(\Phel::getDefinition("user", "custom-reduce"))->__invoke((function(...$args) { return array(...$args);}), \Phel::vector([1, 2, 3]));
