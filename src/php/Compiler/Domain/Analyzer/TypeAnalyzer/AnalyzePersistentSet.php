@@ -26,6 +26,8 @@ final class AnalyzePersistentSet
             $values[] = $this->analyzer->analyze($value, $envDisallowRecur);
         }
 
-        return new SetNode($env, $values, $set->getStartLocation());
+        $meta = LiteralMetaAnalyzer::analyze($this->analyzer, $set, $env);
+
+        return new SetNode($env, $values, $set->getStartLocation(), $meta);
     }
 }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 
@@ -24,6 +25,14 @@ final class VectorEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('\Phel::vector([', $loc);
         $this->outputEmitter->emitArgList($node->getArgs(), $loc);
         $this->outputEmitter->emitStr('])', $loc);
+
+        $meta = $node->getMeta();
+        if ($meta instanceof MapNode) {
+            $this->outputEmitter->emitStr('->withMeta(', $loc);
+            $this->outputEmitter->emitNode($meta);
+            $this->outputEmitter->emitStr(')', $loc);
+        }
+
         if ($cached) {
             $this->outputEmitter->emitConstantSlotSuffix($loc);
         }

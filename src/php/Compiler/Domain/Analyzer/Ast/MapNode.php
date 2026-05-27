@@ -16,6 +16,7 @@ final class MapNode extends AbstractNode
         NodeEnvironmentInterface $env,
         private readonly array $keyValues,
         ?SourceLocation $sourceLocation = null,
+        private readonly ?self $meta = null,
     ) {
         parent::__construct($env, $sourceLocation);
     }
@@ -26,5 +27,14 @@ final class MapNode extends AbstractNode
     public function getKeyValues(): array
     {
         return $this->keyValues;
+    }
+
+    /**
+     * Reader-attached metadata (`^{:k v} {…}`) for this map literal. Distinct
+     * from a node's `getMeta()` (which doesn't exist on `AbstractNode`).
+     */
+    public function getLiteralMeta(): ?self
+    {
+        return $this->meta;
     }
 }
