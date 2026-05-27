@@ -19,7 +19,7 @@ jobs:
     name: Run examples
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-phel
 
       - name: Run all example scripts
@@ -37,7 +37,7 @@ jobs:
     name: Agent docs validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-phel
 
       - name: Validate .agents/ examples and core reference drift
@@ -47,7 +47,7 @@ jobs:
     name: PHAR smoke test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-phel
         with:
           ini-values: phar.readonly=0
