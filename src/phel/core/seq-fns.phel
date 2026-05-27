@@ -909,7 +909,10 @@
    :see-also ["repeat" "iterate"]}
   [a & rest]
   (case (count rest)
-    0 (lazy-seq-from-generator (php/:: Seq (repeatedly a)))
+    0 (php/:: LazySeq (fromGenerator
+                       (php/new Hasher)
+                       (php/new Equalizer)
+                       (php/:: Seq (repeatedly a))))
     1 (let [n a
             f (get rest 0)]
         (for [i :range [n]] (f)))

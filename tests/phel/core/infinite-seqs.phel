@@ -9,6 +9,21 @@
   (is (= [:x :x :x] (take 3 (repeatedly (fn [] :x))))
       "(take 3 (repeatedly (fn [] :x)))"))
 
+; Regression test for https://github.com/phel-lang/phel-lang/issues/2186.
+; (repeatedly f) must not invoke f at construction; constructing with an
+; arity-incompatible fn (identity) must succeed because the seq is unrealized.
+(deftest test-repeatedly-defers-fn-call
+  (let [call (repeatedly identity)]
+    (is (false? (realized? call))
+        "(repeatedly identity) returns an unrealized lazy seq; identity is not called yet")))
+
+(deftest test-repeatedly-arity-one-yields-lazy-seq
+  (let [call (repeatedly (fn [] :z))]
+    (is (false? (realized? call))
+        "(repeatedly f) with arity-1 returns an unrealized lazy seq")
+    (is (= [:z :z :z :z] (take 4 call))
+        "values from a deferred (repeatedly f) are realized on demand")))
+
 (deftest test-range-infinite
   (is (= [0 1 2 3 4] (take 5 (range)))
       "(take 5 (range)) should return first 5 natural numbers")

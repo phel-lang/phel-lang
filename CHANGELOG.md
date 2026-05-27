@@ -57,6 +57,7 @@ Emit-shape tweaks:
 - Type-tag plumbing: `^int` / `^float` / `^string` annotations on `let` and `loop` bindings now propagate to references in the body, so the typed-arithmetic specialiser fires inside `let` / `loop` the same way it already does for `fn` params. `(loop [^int i 0] (if (< i n) (recur (+ i 1)) i))` now emits native `($i < $n)` / `($i + 1)` instead of runtime `\Phel::getDefinition("phel.core", "+")->__invoke(...)` dispatch (#2146)
 - `phel.test/assert-expr` now follows Clojure's `[message form]` extension signature, so `clojure.test` compatibility shims can register namespaced custom assertions like `p/thrown?` (#2129)
 - Clojure compatibility: global `derive` now rejects invalid tags before mutating hierarchy state, and `some-fn`, `take-last`, and `nthrest` invalid calls can be caught with `phel.test/thrown?` at runtime (#2129)
+- `repeatedly`: arity-1 form no longer invokes `f` at construction time; the returned lazy seq is unrealized until accessed, so `(repeatedly identity)` (or any arity-incompatible fn) constructs without error and `realized?` reports `false` (#2186)
 
 ## [0.40.0](https://github.com/phel-lang/phel-lang/compare/v0.39.0...v0.40.0) - 2026-05-25
 
