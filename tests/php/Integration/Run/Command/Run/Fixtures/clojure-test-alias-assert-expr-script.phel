@@ -1,5 +1,6 @@
 (ns clojure-test-alias-assert-expr-script
-  (:require [clojure.test :as t]))
+  (:require [clojure.test :as t]
+            [clojure.test :as p]))
 
 (defmethod t/assert-expr 'p/thrown?
   [msg form]
@@ -16,3 +17,7 @@
                        :expected '~form
                        :actual e#})
          e#))))
+
+(t/is (p/thrown? (throw (php/new \RuntimeException "boom"))))
+
+(println "clojure-test-alias-ok")

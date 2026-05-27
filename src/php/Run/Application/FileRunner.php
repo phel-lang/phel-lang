@@ -74,6 +74,8 @@ final readonly class FileRunner
             CompilerConstants::PHEL_CORE_NAMESPACE,
             ...$this->bundledNamespaceDetector->detect($filename),
             ...$this->bundledNamespaceDetector->remapClojureDependencies($dependencies),
+            // Missing seeds are ignored by dependency resolution, so keeping
+            // raw `clojure.*` deps preserves user-defined Clojure namespaces.
             ...$dependencies,
         ]));
     }

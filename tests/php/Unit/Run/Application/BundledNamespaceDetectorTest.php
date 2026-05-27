@@ -128,6 +128,16 @@ final class BundledNamespaceDetectorTest extends TestCase
         self::assertSame([], $detector->remapClojureDependencies(['phel.test']));
     }
 
+    public function test_remap_deduplicates_equivalent_clojure_dependencies(): void
+    {
+        $detector = $this->createDetector(['phel.test']);
+
+        self::assertSame(
+            ['phel.test'],
+            $detector->remapClojureDependencies(['clojure.test', 'clojure\\test', 'phel.test']),
+        );
+    }
+
     /**
      * @param list<string> $bundledNamespaces
      */

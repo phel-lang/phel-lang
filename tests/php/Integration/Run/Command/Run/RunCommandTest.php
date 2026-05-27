@@ -91,7 +91,7 @@ final class RunCommandTest extends AbstractTestCommand
             __DIR__ . '/Fixtures/clojure-test-alias-assert-expr-script.phel',
         );
 
-        self::assertSame('', $output);
+        self::assertStringContainsString('clojure-test-alias-ok', $output);
     }
 
     public function test_pass_flag_arguments_to_script(): void
