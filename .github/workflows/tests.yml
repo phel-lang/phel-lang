@@ -23,7 +23,7 @@ jobs:
       matrix:
         php: [ '8.4', '8.5' ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-phel
         with:
           php-version: ${{ matrix.php }}
@@ -42,7 +42,7 @@ jobs:
       matrix:
         php: [ '8.4', '8.5' ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-phel
         with:
           php-version: ${{ matrix.php }}
@@ -54,7 +54,7 @@ jobs:
     name: Bench tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-phel
 
       - name: Run PHPBench
@@ -64,7 +64,7 @@ jobs:
     name: Bash tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-phel
 
       - name: Run Bashunit tests
@@ -74,7 +74,7 @@ jobs:
     name: Compat tests on symfony/console ^7.0
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-phel
 
       - name: Pin symfony/console to ^7.0 for this run

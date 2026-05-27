@@ -25,12 +25,12 @@ jobs:
     continue-on-error: true
     steps:
       - name: Checkout phel-lang
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: phel
 
       - name: Checkout clojure-test-suite
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: phel-lang/clojure-test-suite
           ref: ${{ github.event.inputs.suite-ref || 'main' }}
@@ -47,7 +47,7 @@ jobs:
         run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
 
       - name: Cache dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: ${{ steps.composer-cache.outputs.dir }}
           key: ${{ runner.os }}-composer-suite-${{ hashFiles('clojure-test-suite/composer.json') }}

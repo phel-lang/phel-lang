@@ -19,7 +19,7 @@ jobs:
     name: Validate composer configuration
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: shivammathur/setup-php@v2
         with:
@@ -34,7 +34,7 @@ jobs:
     name: Coding Guidelines
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-phel
 
       - name: Run friendsofphp/php-cs-fixer
@@ -47,7 +47,7 @@ jobs:
     name: Type Checker
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-phel
 
       - name: Run Psalm on internal code
