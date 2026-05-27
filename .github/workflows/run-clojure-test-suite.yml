@@ -24,6 +24,10 @@ jobs:
   run-clojure-test-suite:
     name: Run clojure-test-suite (PHP 8.4)
     runs-on: ubuntu-latest
+    # Temporary: clojure-test-suite fork now mirrors jank-lang upstream
+    # exactly; the :phel compat patches live in jank-lang/clojure-test-suite#899.
+    # Drop this once that PR is merged.
+    continue-on-error: true
     steps:
       - name: Checkout phel-lang
         uses: actions/checkout@v6
