@@ -1,7 +1,6 @@
 name: clojure-test-suite
 
 on:
-  pull_request:
   push:
     branches: [ main ]
   schedule:
