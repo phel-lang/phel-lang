@@ -158,6 +158,29 @@
   (is (= '(0 1 2) (take 3 (filter (partial >= 5) (range))))
       "(take 3 (filter (partial >= 5) (range))) must not hang"))
 
+; Regression tests for https://github.com/phel-lang/phel-lang/issues/2191.
+; `concat` must return an unrealized lazy seq across all non-zero arities;
+; previously the result was eagerly chunked and `realized?` reported `true`.
+(deftest test-concat-arity-one-defers-realization
+  (is (false? (realized? (concat [1 2 3 4 5])))
+      "(concat coll) should be unrealized until accessed"))
+
+(deftest test-concat-arity-two-defers-realization
+  (is (false? (realized? (concat [1 2 3 4 5] [6 7 8 9 10])))
+      "(concat a b) should be unrealized until accessed"))
+
+(deftest test-concat-arity-many-defers-realization
+  (is (false? (realized? (concat (range 0 5) (range 5 10) (range 10 15))))
+      "(concat …) with 3+ colls should be unrealized until accessed"))
+
+(deftest test-concat-still-realizes-correct-values
+  (is (= [1 2 3 4 5 6] (doall (concat [1 2] [3 4] [5 6])))
+      "lazy concat must still produce the correct concatenated values"))
+
+(deftest test-concat-on-infinite-source-takes-lazily
+  (is (= [0 1 2 3 4] (take 5 (concat (range) (range))))
+      "(take n (concat (range) …)) must not hang"))
+
 (deftest test-filter-empty-collection
   (is (= [] (filter even? []))
       "filter on empty collection should return empty vector"))

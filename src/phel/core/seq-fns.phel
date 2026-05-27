@@ -960,13 +960,14 @@
   [& colls]
   (if (php/=== nil colls)
     '()
-    (let [result (lazy-seq-from-generator
-                  (php/call_user_func_array
-                   (php/array "\\Phel\\Lang\\Seq" "concat")
-                   (apply php/array colls)))]
-      (if (php/=== nil result)
-        '()
-        result))))
+    ;; Use LazySeq (not ChunkedSeq) so the head is not pre-realized:
+    ;; the result must not satisfy `realized?` until accessed.
+    (php/:: LazySeq (fromGenerator
+                     (php/new Hasher)
+                     (php/new Equalizer)
+                     (php/call_user_func_array
+                      (php/array "\\Phel\\Lang\\Seq" "concat")
+                      (apply php/array colls))))))
 
 (defn cat
   "A transducer that concatenates the contents of each input into the reduction."
