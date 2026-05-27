@@ -637,8 +637,13 @@
     1 (let [coll (first args)]
         (if (nil? coll)
           []
-          (let [result (lazy-seq-from-generator (php/:: Seq (distinct coll)))]
-            (copy-meta coll (or result [])))))
+          ;; LazySeq keeps the seq unrealized until accessed; ChunkedSeq
+          ;; would pre-pull 32 unique elements at construction.
+          (let [result (php/:: LazySeq (fromGenerator
+                                        (php/new Hasher)
+                                        (php/new Equalizer)
+                                        (php/:: Seq (distinct coll))))]
+            (copy-meta coll result))))
     (throw (php/new InvalidArgumentException "distinct expects 0 or 1 arguments"))))
 
 
