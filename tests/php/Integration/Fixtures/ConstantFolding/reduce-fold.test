@@ -1,8 +1,8 @@
 --PHEL--
-(let [a (reduce + 0 [1 2 3 4])
-      b (reduce * 1 [2 3 4])
-      c (reduce max 0 [3 7 2 9 5])
-      d (reduce + 100 [])]
+(let [a (phel.core/reduce + 0 [1 2 3 4])
+      b (phel.core/reduce * 1 [2 3 4])
+      c (phel.core/reduce max 0 [3 7 2 9 5])
+      d (phel.core/reduce + 100 [])]
   [a b c d])
 --PHP--
 $a_1 = 10;
