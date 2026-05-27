@@ -147,6 +147,17 @@
   (is (= [0 2 4 6 8] (take 5 (filter even? (iterate inc 0))))
       "filter on infinite sequence should work without hanging"))
 
+; Regression test for https://github.com/phel-lang/phel-lang/issues/2187.
+; A sparse-predicate filter over an infinite source used to hang because the
+; chunked seq tried to pre-realize 32 elements that would never arrive.
+(deftest test-remove-on-infinite-seq-with-bounded-result
+  (is (= '(0 1 2) (take 3 (remove (partial < 5) (range))))
+      "(take 3 (remove (partial < 5) (range))) must not hang"))
+
+(deftest test-filter-on-infinite-seq-with-bounded-result
+  (is (= '(0 1 2) (take 3 (filter (partial >= 5) (range))))
+      "(take 3 (filter (partial >= 5) (range))) must not hang"))
+
 (deftest test-filter-empty-collection
   (is (= [] (filter even? []))
       "filter on empty collection should return empty vector"))

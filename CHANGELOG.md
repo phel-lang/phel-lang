@@ -58,6 +58,7 @@ Emit-shape tweaks:
 - `phel.test/assert-expr` now follows Clojure's `[message form]` extension signature, so `clojure.test` compatibility shims can register namespaced custom assertions like `p/thrown?` (#2129)
 - Clojure compatibility: global `derive` now rejects invalid tags before mutating hierarchy state, and `some-fn`, `take-last`, and `nthrest` invalid calls can be caught with `phel.test/thrown?` at runtime (#2129)
 - `repeatedly`: arity-1 form no longer invokes `f` at construction time; the returned lazy seq is unrealized until accessed, so `(repeatedly identity)` (or any arity-incompatible fn) constructs without error and `realized?` reports `false` (#2186)
+- `filter` / `remove`: no longer hang on a sparse predicate over an infinite source. The arity-2 form now wraps the underlying generator in `LazySeq::fromGenerator` (instead of `ChunkedSeq`, which pre-pulled 32 elements at construction); `(take 3 (remove (partial < 5) (range)))` returns `(0 1 2)` instead of looping forever. Also fixes a latent `LazySeq` bug where `nil` values were dropped during `getIterator`/`toArray` (#2187)
 
 ## [0.40.0](https://github.com/phel-lang/phel-lang/compare/v0.39.0...v0.40.0) - 2026-05-25
 

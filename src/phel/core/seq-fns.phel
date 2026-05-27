@@ -522,10 +522,14 @@
     0 (fn [rf]
         (xf-step rf (fn [result input] (if (pred input) (rf result input) result))))
     1 (let [coll   (first args)
-            result (lazy-seq-from-generator (php/:: Seq (filter pred coll)))]
-        (if (nil? result)
-          []
-          (copy-meta coll result)))
+            ;; Use LazySeq (not ChunkedSeq) so the first chunk isn't
+            ;; pre-realized: a sparse predicate over an infinite source
+            ;; would otherwise loop forever trying to fill 32 matches.
+            result (php/:: LazySeq (fromGenerator
+                                    (php/new Hasher)
+                                    (php/new Equalizer)
+                                    (php/:: Seq (filter pred coll))))]
+        (copy-meta coll result))
     (throw (php/new InvalidArgumentException "filter expects 1 or 2 arguments"))))
 
 (defn remove
