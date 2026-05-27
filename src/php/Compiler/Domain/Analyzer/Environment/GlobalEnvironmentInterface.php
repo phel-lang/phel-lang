@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer\Environment;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Symbol;
 
@@ -20,6 +21,10 @@ interface GlobalEnvironmentInterface
      * @param PersistentMapInterface<mixed, mixed> $meta
      */
     public function setCompileTimeMeta(string $namespace, Symbol $name, PersistentMapInterface $meta): void;
+
+    public function setDefFnNode(string $namespace, Symbol $name, FnNode $node): void;
+
+    public function getDefFnNode(string $namespace, Symbol $name): ?FnNode;
 
     public function hasDefinition(string $namespace, Symbol $name): bool;
 

@@ -6,9 +6,11 @@ namespace PhelTest\Unit\Compiler\Analyzer\Environment;
 
 use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
+use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -582,5 +584,57 @@ final class GlobalEnvironmentTest extends TestCase
         $this->assertFalse($env->hasDefinition('test-ns', Symbol::create('new-def')));
         $this->assertTrue($env->hasRequireAlias('test-ns', Symbol::create('b')));
         $this->assertFalse($env->hasRequireAlias('test-ns', Symbol::create('c')));
+    }
+
+    public function test_def_fn_node_returns_null_when_unset(): void
+    {
+        $env = new GlobalEnvironment();
+
+        $this->assertNotInstanceOf(FnNode::class, $env->getDefFnNode('user', Symbol::create('missing')));
+    }
+
+    public function test_set_and_get_def_fn_node(): void
+    {
+        $env = new GlobalEnvironment();
+        $fnNode = new FnNode(
+            NodeEnvironment::empty(),
+            params: [Symbol::create('x')],
+            body: PhpVarNode::withReturnContext('$x'),
+            uses: [],
+            isVariadic: false,
+            recurs: false,
+        );
+
+        $env->setDefFnNode('user', Symbol::create('identity'), $fnNode);
+
+        $this->assertSame($fnNode, $env->getDefFnNode('user', Symbol::create('identity')));
+        $this->assertNotInstanceOf(FnNode::class, $env->getDefFnNode('user', Symbol::create('other')));
+        $this->assertNotInstanceOf(FnNode::class, $env->getDefFnNode('other-ns', Symbol::create('identity')));
+    }
+
+    public function test_set_def_fn_node_overwrites_existing(): void
+    {
+        $env = new GlobalEnvironment();
+        $first = new FnNode(
+            NodeEnvironment::empty(),
+            params: [],
+            body: PhpVarNode::withReturnContext('$a'),
+            uses: [],
+            isVariadic: false,
+            recurs: false,
+        );
+        $second = new FnNode(
+            NodeEnvironment::empty(),
+            params: [],
+            body: PhpVarNode::withReturnContext('$b'),
+            uses: [],
+            isVariadic: false,
+            recurs: false,
+        );
+
+        $env->setDefFnNode('user', Symbol::create('f'), $first);
+        $env->setDefFnNode('user', Symbol::create('f'), $second);
+
+        $this->assertSame($second, $env->getDefFnNode('user', Symbol::create('f')));
     }
 }
