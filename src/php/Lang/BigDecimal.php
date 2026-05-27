@@ -106,7 +106,7 @@ final readonly class BigDecimal implements TypeInterface, Stringable
     {
         if (!is_finite($value)) {
             throw new InvalidArgumentException(
-                sprintf("Cannot convert non-finite float '%s' to BigDecimal", $value),
+                sprintf("Cannot convert non-finite float '%s' to BigDecimal", self::describeNonFinite($value)),
             );
         }
 
@@ -366,5 +366,14 @@ final readonly class BigDecimal implements TypeInterface, Stringable
 
         $factor = BigInt::fromInt(10)->pow($other->scale - $this->scale);
         return [$this->mantissa->multiply($factor), $other->mantissa, $other->scale];
+    }
+
+    private static function describeNonFinite(float $value): string
+    {
+        if (is_nan($value)) {
+            return 'NaN';
+        }
+
+        return $value > 0 ? 'Infinity' : '-Infinity';
     }
 }
