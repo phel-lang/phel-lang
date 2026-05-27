@@ -6,6 +6,7 @@ namespace Phel\Compiler\Application;
 
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
@@ -97,6 +98,16 @@ final class Analyzer implements AnalyzerInterface
     public function setCompileTimeMeta(string $ns, Symbol $symbol, PersistentMapInterface $meta): void
     {
         $this->globalEnvironment->setCompileTimeMeta($ns, $symbol, $meta);
+    }
+
+    public function setDefFnNode(string $ns, Symbol $symbol, FnNode $node): void
+    {
+        $this->globalEnvironment->setDefFnNode($ns, $symbol, $node);
+    }
+
+    public function getDefFnNode(string $ns, Symbol $symbol): ?FnNode
+    {
+        return $this->globalEnvironment->getDefFnNode($ns, $symbol);
     }
 
     public function addInterface(string $ns, Symbol $name): void

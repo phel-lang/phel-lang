@@ -88,6 +88,7 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
 
         if ($initNode instanceof FnNode) {
             $initNode->markAsDefinition();
+            $this->analyzer->setDefFnNode($namespace, $nameSymbol, $initNode);
             // Macro args bind to raw Phel forms regardless of how the
             // body manipulates them, so a primitive-op observation in
             // the macro body must not type-narrow the runtime signature.
