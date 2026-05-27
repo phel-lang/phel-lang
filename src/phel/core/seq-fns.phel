@@ -65,17 +65,23 @@
   (case (count colls)
     0 (fn [rf]
         (xf-step rf (fn [result input] (rf result (f input)))))
-    1 (let [coll (first colls)]
-        (if (empty? coll)
-          []
-          (copy-meta coll (lazy-seq-from-generator (php/:: Seq (map f coll))))))
-    (let [result (lazy-seq-from-generator
-                  (php/call_user_func_array
-                   (php/array "\\Phel\\Lang\\Seq" "mapMulti")
-                   (php/array_merge (php/array f) (apply php/array colls))))]
-      (if (php/=== nil result)
-        []
-        (copy-meta (first colls) result)))))
+    1 (let [coll   (first colls)
+            ;; LazySeq keeps the seq unrealized until accessed; ChunkedSeq
+            ;; would eagerly materialise the first chunk. `Seq::map`
+            ;; yields `[k v]` pairs when `coll` is a `PersistentMap`
+            ;; (Clojure-aligned), otherwise it yields the elements.
+            result (php/:: LazySeq (fromGenerator
+                                    (php/new Hasher)
+                                    (php/new Equalizer)
+                                    (php/:: Seq (map f coll))))]
+        (copy-meta coll result))
+    (let [result (php/:: LazySeq (fromGenerator
+                                  (php/new Hasher)
+                                  (php/new Equalizer)
+                                  (php/call_user_func_array
+                                   (php/array "\\Phel\\Lang\\Seq" "mapMulti")
+                                   (php/array_merge (php/array f) (apply php/array colls)))))]
+      (copy-meta (first colls) result))))
 
 (defn comp
   "Takes a list of functions and returns a function that is the composition of those functions."
