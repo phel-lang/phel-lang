@@ -16,6 +16,7 @@ final class VectorNode extends AbstractNode
         NodeEnvironmentInterface $env,
         private readonly array $args,
         ?SourceLocation $sourceLocation = null,
+        private readonly ?MapNode $meta = null,
     ) {
         parent::__construct($env, $sourceLocation);
     }
@@ -26,5 +27,10 @@ final class VectorNode extends AbstractNode
     public function getArgs(): array
     {
         return $this->args;
+    }
+
+    public function getMeta(): ?MapNode
+    {
+        return $this->meta;
     }
 }

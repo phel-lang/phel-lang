@@ -28,6 +28,10 @@ final class AnalyzePersistentMap
             $keyValues[] = $this->analyzer->analyze($value, $kvEnv);
         }
 
-        return new MapNode($env, $keyValues, $map->getStartLocation());
+        // Pass the env (not the kv env) so the meta map is analyzed in
+        // the outer context. `null` if the literal carries no `^{…}` meta.
+        $meta = LiteralMetaAnalyzer::analyze($this->analyzer, $map, $env);
+
+        return new MapNode($env, $keyValues, $map->getStartLocation(), $meta);
     }
 }

@@ -16,6 +16,7 @@ final class SetNode extends AbstractNode
         NodeEnvironmentInterface $env,
         private readonly array $values,
         ?SourceLocation $sourceLocation = null,
+        private readonly ?MapNode $meta = null,
     ) {
         parent::__construct($env, $sourceLocation);
     }
@@ -26,5 +27,10 @@ final class SetNode extends AbstractNode
     public function getValues(): array
     {
         return $this->values;
+    }
+
+    public function getMeta(): ?MapNode
+    {
+        return $this->meta;
     }
 }

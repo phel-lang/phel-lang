@@ -409,6 +409,43 @@
   (is (= {1 ["a"] 2 ["as" "aa"] 3 ["asd"] 4 ["asdf" "qwer"]}
          (group-by php/strlen ["a" "as" "asd" "aa" "asdf" "qwer"])) "group-by"))
 
+; Regression test for https://github.com/phel-lang/phel-lang/issues/2189.
+; `group-by` must preserve element metadata. The root cause was reader-attached
+; meta `^{:k v} […]` being dropped during emit; group-by itself only proxies
+; the elements through. Both reader meta and `set-meta!` paths must round-trip.
+(deftest test-group-by-retains-element-metadata-via-reader-meta
+  (let [g (group-by first [^{:foo true} [[1] [2]] ^{:bar true} [[1] [3]]])]
+    (is (= {:foo true} (meta (first (get g [1]))))
+        "group-by preserves reader-attached meta on the first bucket element")
+    (is (= {:bar true} (meta (second (get g [1]))))
+        "group-by preserves reader-attached meta on the second bucket element")))
+
+(deftest test-group-by-retains-element-metadata-via-set-meta
+  (let [a (set-meta! [[1] [2]] {:foo true})
+        b (set-meta! [[1] [3]] {:bar true})
+        g (group-by first [a b])]
+    (is (= {:foo true} (meta (first (get g [1]))))
+        "group-by preserves set-meta! meta on the first bucket element")
+    (is (= {:bar true} (meta (second (get g [1]))))
+        "group-by preserves set-meta! meta on the second bucket element")))
+
+; Direct coverage of the underlying reader-meta-on-literal plumbing fix.
+(deftest test-reader-meta-on-vector-literal
+  (is (= {:foo true} (meta ^{:foo true} [1 2]))
+      "reader meta map on a vector literal survives compile/emit"))
+
+(deftest test-reader-meta-on-map-literal
+  (is (= {:tag :env} (meta ^{:tag :env} {:k :v}))
+      "reader meta map on a map literal survives compile/emit"))
+
+(deftest test-reader-meta-on-set-literal
+  (is (= {:tag :seen} (meta ^{:tag :seen} #{1 2 3}))
+      "reader meta map on a set literal survives compile/emit"))
+
+(deftest test-reader-keyword-meta-on-vector-literal
+  (is (= {:foo true} (meta ^:foo [1 2]))
+      "reader keyword shorthand `^:k` on a vector literal survives compile/emit"))
+
 (deftest test-zipcoll
   (is (= {:a 1 :b 2 :c 3} (zipcoll [:a :b :c] [1 2 3])) "zipcoll"))
 

@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
 use Phel\Compiler\Domain\Analyzer\Ast\SetNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 
@@ -25,6 +26,14 @@ final class SetEmitter implements NodeEmitterInterface
         $this->outputEmitter->emitStr('\\' . Phel::class . '::set([', $loc);
         $this->outputEmitter->emitArgList($node->getValues(), $loc);
         $this->outputEmitter->emitStr('])', $loc);
+
+        $meta = $node->getMeta();
+        if ($meta instanceof MapNode) {
+            $this->outputEmitter->emitStr('->withMeta(', $loc);
+            $this->outputEmitter->emitNode($meta);
+            $this->outputEmitter->emitStr(')', $loc);
+        }
+
         if ($cached) {
             $this->outputEmitter->emitConstantSlotSuffix($loc);
         }

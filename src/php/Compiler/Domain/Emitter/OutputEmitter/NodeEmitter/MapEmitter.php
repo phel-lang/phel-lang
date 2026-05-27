@@ -39,6 +39,13 @@ final class MapEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitStr(')', $loc);
         }
 
+        $meta = $node->getLiteralMeta();
+        if ($meta instanceof MapNode) {
+            $this->outputEmitter->emitStr('->withMeta(', $loc);
+            $this->outputEmitter->emitNode($meta);
+            $this->outputEmitter->emitStr(')', $loc);
+        }
+
         if ($cached) {
             $this->outputEmitter->emitConstantSlotSuffix($loc);
         }

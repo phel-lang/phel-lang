@@ -65,6 +65,7 @@ Emit-shape tweaks:
   - `(map f nil)` and `(map f '())` return a `LazySeq`, not an empty vector, so `lazy-seq?` is `true`
   - `(map f some-map)` now yields `[k v]` pair vectors instead of values only: `(map identity {:k :v}) ; => [[:k :v]]`. The fix lives in `TransformGenerator::map`, so any other Seq path that hits a `PersistentMap` also sees pair entries
 - `distinct`: the arity-1 result is no longer pre-realized — `(realized? (distinct coll))` is `false` until accessed, matching Clojure. Switched the wrapper from `ChunkedSeq` to `LazySeq::fromGenerator` (#2190)
+- Reader-attached metadata on vector / map / set literals now survives the compile pipeline. Previously `^{:k v} […]` parsed correctly but `VectorNode` / `MapNode` / `SetNode` discarded the meta, so the emitted `\Phel::vector(…)` call produced a fresh value with no meta. The three AST nodes now carry the literal meta, their analysers extract it via a shared `LiteralMetaAnalyzer`, and the emitters wrap the literal with `->withMeta(…)`. This fixes the underlying root cause of `group-by` losing element meta (#2189)
 
 ## [0.40.0](https://github.com/phel-lang/phel-lang/compare/v0.39.0...v0.40.0) - 2026-05-25
 

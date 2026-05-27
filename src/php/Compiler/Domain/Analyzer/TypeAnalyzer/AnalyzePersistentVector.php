@@ -26,6 +26,8 @@ final class AnalyzePersistentVector
             $args[] = $this->analyzer->analyze($arg, $envDisallowRecur);
         }
 
-        return new VectorNode($env, $args, $vector->getStartLocation());
+        $meta = LiteralMetaAnalyzer::analyze($this->analyzer, $vector, $env);
+
+        return new VectorNode($env, $args, $vector->getStartLocation(), $meta);
     }
 }
