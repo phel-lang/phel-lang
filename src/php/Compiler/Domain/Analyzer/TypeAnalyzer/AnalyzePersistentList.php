@@ -309,7 +309,11 @@ final class AnalyzePersistentList
             Symbol::NAME_IN_NS => new InNsSymbol($this->analyzer),
             Symbol::NAME_USE => new UseSymbol($this->analyzer),
             Symbol::NAME_LOAD => new LoadSymbol($this->analyzer),
-            Symbol::NAME_FN => new FnSymbol($this->analyzer, $this->assertsEnabled),
+            Symbol::NAME_FN => new FnSymbol(
+                $this->analyzer,
+                $this->assertsEnabled,
+                optimizationLevel: $this->analyzer->getOptimizationLevel(),
+            ),
             Symbol::NAME_QUOTE => new QuoteSymbol(),
             Symbol::NAME_VAR => new VarSymbol($this->analyzer),
             Symbol::NAME_DO => new DoSymbol($this->analyzer),

@@ -19,7 +19,9 @@ final class CompileOptions
      *
      *  - `0` (default): every experimental optimisation phase is off
      *  - `1`: Phase 5 — auto-inline single-expression private `defn-`
-     *  - `2`: Phase 6 — hoist loop-invariant exprs out of recur loops
+     *  - `2`: Phase 6 — rewrite self-recursive `defn` tail calls into an
+     *    implicit `recur` loop, eliminating per-iteration PHP stack frames
+     *    at the cost of a shorter stack trace inside the loop
      *
      * Phases that ship as default-on (e.g. `ConstantFolder`,
      * `LetSimplifier`) do not consult this flag; only phases whose

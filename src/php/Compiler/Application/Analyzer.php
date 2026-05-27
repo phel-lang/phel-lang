@@ -47,10 +47,26 @@ final class Analyzer implements AnalyzerInterface
 
     private ?AnalyzePersistentMap $mapAnalyzer = null;
 
+    private int $optimizationLevel = 0;
+
     public function __construct(
         private readonly GlobalEnvironmentInterface $globalEnvironment,
         private readonly bool $assertsEnabled = true,
     ) {}
+
+    public function setOptimizationLevel(int $level): void
+    {
+        // Resetting the cached list analyzer ensures the next analyze
+        // call reads the new level when wiring up special-form handlers
+        // (e.g. FnSymbol picks up the level at construction time).
+        $this->optimizationLevel = max(0, $level);
+        $this->listAnalyzer = null;
+    }
+
+    public function getOptimizationLevel(): int
+    {
+        return $this->optimizationLevel;
+    }
 
     public function resolve(Symbol $name, NodeEnvironmentInterface $env): ?AbstractNode
     {

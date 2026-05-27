@@ -46,6 +46,10 @@ interface AnalyzerInterface
 
     public function getDefFnNode(string $ns, Symbol $symbol): ?FnNode;
 
+    public function setOptimizationLevel(int $level): void;
+
+    public function getOptimizationLevel(): int;
+
     public function addInterface(string $ns, Symbol $name): void;
 
     /**

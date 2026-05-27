@@ -12,6 +12,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\MultiFnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\RecurFrame;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification\TailCallRewriter;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm\ReadModel\FnSymbolTuple;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -39,6 +40,8 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         private AnalyzerInterface $analyzer,
         private bool $assertsEnabled = true,
         private ReturnTypeInferrer $returnTypeInferrer = new ReturnTypeInferrer(),
+        private int $optimizationLevel = 0,
+        private TailCallRewriter $tailCallRewriter = new TailCallRewriter(),
     ) {}
 
     /**
@@ -166,6 +169,23 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         }
 
         [$selfNs, $selfNameStr] = $this->splitBoundTo($env->getBoundTo());
+
+        if ($this->optimizationLevel >= 2
+            && $selfNs !== null
+            && $selfNameStr !== null
+            && !$fnSymbolTuple->isVariadic()
+            && !$name instanceof Symbol
+        ) {
+            [$body] = $this->tailCallRewriter->rewrite(
+                $body,
+                $recurFrame,
+                $selfNs,
+                $selfNameStr,
+                count($fnSymbolTuple->params()),
+                $fnSymbolTuple->isVariadic(),
+            );
+        }
+
         $returnType = $declaredReturnType
             ?? $this->returnTypeInferrer->infer(
                 $body,
