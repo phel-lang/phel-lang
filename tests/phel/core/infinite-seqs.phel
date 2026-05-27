@@ -218,6 +218,17 @@
   (is (= [0 1 2 3 4] (take 5 (map identity (range))))
       "(take n (map f (range))) must not hang"))
 
+; Regression test for https://github.com/phel-lang/phel-lang/issues/2190.
+; `distinct` must produce an unrealized lazy seq; previously the result
+; was pre-chunked and `realized?` was true at construction.
+(deftest test-distinct-defers-realization
+  (let [s (distinct [1 1 1 2 1 2 1 2 3 1 2 3 1 2 3 4 1 2 3 4 5])]
+    (is (false? (realized? s))
+        "(distinct coll) must be unrealized until accessed"))
+  (is (= [1 2 3 4 5]
+         (doall (distinct [1 1 1 2 1 2 1 2 3 1 2 3 1 2 3 4 1 2 3 4 5])))
+      "distinct still removes duplicates when realized"))
+
 (deftest test-filter-empty-collection
   (is (= [] (filter even? []))
       "filter on empty collection should return empty vector"))

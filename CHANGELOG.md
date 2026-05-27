@@ -64,6 +64,7 @@ Emit-shape tweaks:
   - all non-transducer arities now return an unrealized lazy seq (`realized?` is `false` until accessed); previously the result was pre-chunked
   - `(map f nil)` and `(map f '())` return a `LazySeq`, not an empty vector, so `lazy-seq?` is `true`
   - `(map f some-map)` now yields `[k v]` pair vectors instead of values only: `(map identity {:k :v}) ; => [[:k :v]]`. The fix lives in `TransformGenerator::map`, so any other Seq path that hits a `PersistentMap` also sees pair entries
+- `distinct`: the arity-1 result is no longer pre-realized — `(realized? (distinct coll))` is `false` until accessed, matching Clojure. Switched the wrapper from `ChunkedSeq` to `LazySeq::fromGenerator` (#2190)
 
 ## [0.40.0](https://github.com/phel-lang/phel-lang/compare/v0.39.0...v0.40.0) - 2026-05-25
 
