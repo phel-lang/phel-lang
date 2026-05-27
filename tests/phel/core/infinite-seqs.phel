@@ -181,6 +181,43 @@
   (is (= [0 1 2 3 4] (take 5 (concat (range) (range))))
       "(take n (concat (range) …)) must not hang"))
 
+; Regression tests for https://github.com/phel-lang/phel-lang/issues/2188.
+; `map` must (a) defer realization across all non-transducer arities,
+; (b) produce a lazy seq even for nil/empty input, and (c) iterate maps
+; as `[k v]` pair vectors (not values-only).
+(deftest test-map-defers-realization-arity-2
+  (is (false? (realized? (map inc (range 5))))
+      "(map f coll) must be unrealized until accessed"))
+
+(deftest test-map-defers-realization-arity-3
+  (is (false? (realized? (map + (range 5) (range 5))))
+      "(map f a b) must be unrealized until accessed"))
+
+(deftest test-map-defers-realization-arity-many
+  (is (false? (realized? (map + (range 5) (range 5) (range 5))))
+      "(map f a b c …) must be unrealized until accessed"))
+
+(deftest test-map-of-nil-is-lazy-seq
+  (is (true? (lazy-seq? (map identity nil)))
+      "(map f nil) must return a lazy seq, not an empty vector"))
+
+(deftest test-map-of-empty-list-is-lazy-seq
+  (is (true? (lazy-seq? (map identity '())))
+      "(map f '()) must return a lazy seq, not an empty vector"))
+
+(deftest test-map-on-persistent-map-yields-pairs
+  (is (= [[:k :v]] (doall (map identity {:k :v})))
+      "(map identity {:k :v}) must yield [[:k :v]], not [:v]"))
+
+(deftest test-map-on-persistent-map-with-fn
+  (is (= [[:a 1] [:b 2]]
+         (sort-by first (doall (map identity {:a 1 :b 2}))))
+      "(map identity multi-entry-map) yields [k v] pairs for every entry"))
+
+(deftest test-map-on-infinite-source-takes-lazily
+  (is (= [0 1 2 3 4] (take 5 (map identity (range))))
+      "(take n (map f (range))) must not hang"))
+
 (deftest test-filter-empty-collection
   (is (= [] (filter even? []))
       "filter on empty collection should return empty vector"))

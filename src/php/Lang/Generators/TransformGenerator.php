@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Phel\Lang\Generators;
 
 use Generator;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\TypeFactory;
 
 /**
  * Element-wise transformation generators: map, filter, and their variants.
@@ -22,6 +24,10 @@ final class TransformGenerator
      *   map(fn($x) => $x * 2, [1, 2, 3])      // => [2, 4, 6]
      *   map(fn($c) => strtoupper($c), 'abc')  // => ['A', 'B', 'C']
      *
+     * For `PersistentMap` inputs the iteration yields `[k v]` pair vectors,
+     * matching Clojure's seq-on-a-map semantics: `(map identity {:k :v})`
+     * produces `[[:k :v]]`, not `[:v]`.
+     *
      * @template T
      * @template U
      *
@@ -32,6 +38,16 @@ final class TransformGenerator
      */
     public static function map(callable $f, mixed $iterable): Generator
     {
+        if ($iterable instanceof PersistentMapInterface) {
+            $typeFactory = TypeFactory::getInstance();
+            foreach ($iterable as $k => $v) {
+                /** @psalm-suppress InvalidArgument map entries are pair vectors, not `T` */
+                yield $f($typeFactory->persistentVectorFromArray([$k, $v]));
+            }
+
+            return;
+        }
+
         foreach (SequenceGenerator::toIterable($iterable) as $value) {
             yield $f($value);
         }

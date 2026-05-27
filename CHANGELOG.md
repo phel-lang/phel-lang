@@ -60,6 +60,10 @@ Emit-shape tweaks:
 - `repeatedly`: arity-1 form no longer invokes `f` at construction time; the returned lazy seq is unrealized until accessed, so `(repeatedly identity)` (or any arity-incompatible fn) constructs without error and `realized?` reports `false` (#2186)
 - `filter` / `remove`: no longer hang on a sparse predicate over an infinite source. The arity-2 form now wraps the underlying generator in `LazySeq::fromGenerator` (instead of `ChunkedSeq`, which pre-pulled 32 elements at construction); `(take 3 (remove (partial < 5) (range)))` returns `(0 1 2)` instead of looping forever. Also fixes a latent `LazySeq` bug where `nil` values were dropped during `getIterator`/`toArray` (#2187)
 - `concat`: the result is no longer pre-realized — `(realized? (concat …))` is `false` until accessed, matching Clojure. Switched the wrapper from `ChunkedSeq` (which eagerly pulls the first 32 elements) to `LazySeq::fromGenerator` (#2191)
+- `map`: three Clojure-alignment fixes (#2188):
+  - all non-transducer arities now return an unrealized lazy seq (`realized?` is `false` until accessed); previously the result was pre-chunked
+  - `(map f nil)` and `(map f '())` return a `LazySeq`, not an empty vector, so `lazy-seq?` is `true`
+  - `(map f some-map)` now yields `[k v]` pair vectors instead of values only: `(map identity {:k :v}) ; => [[:k :v]]`. The fix lives in `TransformGenerator::map`, so any other Seq path that hits a `PersistentMap` also sees pair entries
 
 ## [0.40.0](https://github.com/phel-lang/phel-lang/compare/v0.39.0...v0.40.0) - 2026-05-25
 
