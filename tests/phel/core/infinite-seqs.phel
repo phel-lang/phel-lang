@@ -24,6 +24,24 @@
     (is (= [:z :z :z :z] (take 4 call))
         "values from a deferred (repeatedly f) are realized on demand")))
 
+; Regression test for https://github.com/phel-lang/phel-lang/issues/2210.
+; (repeatedly n f) must defer invoking f until the seq is realized so
+; constructing with an arity-incompatible fn (identity) succeeds.
+(deftest test-repeatedly-arity-two-defers-fn-call
+  (let [call (repeatedly 1000 identity)]
+    (is (true? (lazy-seq? call))
+        "(repeatedly n f) returns a lazy seq")
+    (is (false? (realized? call))
+        "(repeatedly n f) does not invoke f at construction")))
+
+(deftest test-repeatedly-arity-two-realizes-bounded-values
+  (is (= [:z :z :z] (doall (repeatedly 3 (fn [] :z))))
+      "(repeatedly n f) realizes to n calls of f")
+  (is (= [] (doall (repeatedly 0 (fn [] :z))))
+      "(repeatedly 0 f) realizes to an empty sequence")
+  (is (= [] (doall (repeatedly -1 (fn [] :z))))
+      "(repeatedly -n f) realizes to an empty sequence"))
+
 (deftest test-range-infinite
   (is (= [0 1 2 3 4] (take 5 (range)))
       "(take 5 (range)) should return first 5 natural numbers")

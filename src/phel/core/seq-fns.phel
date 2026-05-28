@@ -930,7 +930,10 @@
                        (php/:: Seq (repeatedly a))))
     1 (let [n a
             f (get rest 0)]
-        (for [i :range [n]] (f)))
+        (php/new \Phel\Lang\Collections\LazySeq\LazySeq
+                 (php/new Hasher)
+                 (php/new Equalizer)
+                 (fn [] (for [i :range [n]] (f)))))
     (throw (php/new InvalidArgumentException "repeatedly expects one or two arguments"))))
 
 (defmacro lazy-seq
