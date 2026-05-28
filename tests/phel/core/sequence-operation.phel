@@ -312,6 +312,25 @@
   (is (thrown? OutOfBoundsException (nth (transient [1 2 3]) 5)) "nth throws on transient vector out of bounds")
   (is (thrown? OutOfBoundsException (nth "abc" 5)) "nth throws on string out of bounds"))
 
+; Regression tests for https://github.com/phel-lang/phel-lang/issues/2211.
+; `get` / `nth` on a vector with a non-int key used to leak a raw PHP
+; "could not be converted to int" warning from
+; AbstractPersistentVector::offsetExists / get.
+(deftest test-get-vector-non-int-key-returns-default
+  (is (nil? (get [1 2 3] :a)) "get on vector with keyword key returns nil")
+  (is (nil? (get [1 2 3] "x")) "get on vector with string key returns nil")
+  (is (nil? (get [1 2 3] [1 2])) "get on vector with vector key returns nil")
+  (is (= :default (get [1 2 3] :a :default)) "get on vector with non-int key honours default")
+  (is (= :default (get (transient [1 2 3]) :a :default))
+      "get on transient vector with non-int key honours default"))
+
+(deftest test-nth-vector-non-int-key
+  (is (thrown? OutOfBoundsException (nth [1 2 3] :a)) "nth on vector with keyword key throws")
+  (is (thrown? OutOfBoundsException (nth [1 2 3] [1])) "nth on vector with vector key throws")
+  (is (= :default (nth [1 2 3] :a :default)) "nth on vector with non-int key honours not-found")
+  (is (= :default (nth (transient [1 2 3]) :a :default))
+      "nth on transient vector with non-int key honours not-found"))
+
 (deftest test-nthrest
   (is (= [3 4 5] (nthrest [1 2 3 4 5] 2)) "nthrest drops first n")
   (is (= [1 2 3] (nthrest [1 2 3] 0)) "nthrest 0 returns coll")

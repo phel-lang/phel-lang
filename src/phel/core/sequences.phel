@@ -75,6 +75,22 @@
       `(let [~coll-sym ~coll]
          (pop* ~coll-sym)))))
 
+(defn- transient-vector?
+  [coll]
+  (php/instanceof coll TransientVectorInterface))
+
+(defn- indexed-vector?
+  [coll]
+  ;; Strict: persistent or transient `PersistentVectorInterface`. `MapEntry`
+  ;; is a vector to `vector?` callers but does not support `php/aget`, so
+  ;; `nth`/`get` must keep walking to their seq fallbacks for it.
+  (or (php/instanceof coll PersistentVectorInterface)
+      (transient-vector? coll)))
+
+(defn- in-bounds?
+  [index size]
+  (and (php/>= index 0) (php/< index size)))
+
 (defn get
   "Gets the value at key in a collection. Returns default if not found."
   {:example "(get {:a 1} :a) ; => 1"}
@@ -102,27 +118,17 @@
               res))
           (recur (php/- i 1) (next s)))))
 
+    ;; Vectors index by int only; reject non-int keys before they reach
+    ;; `php/aget`, which would otherwise trigger a raw PHP int-coercion
+    ;; warning on `PersistentVector::offsetExists`.
+    (and (indexed-vector? ds) (not (integer? k)))
+    opt
+
     :else
     (let [res (php/aget ds k)]
       (if (nil? res)
         opt
         res))))
-
-(defn- transient-vector?
-  [coll]
-  (php/instanceof coll TransientVectorInterface))
-
-(defn- indexed-vector?
-  [coll]
-  ;; Strict: persistent or transient `PersistentVectorInterface`. `MapEntry`
-  ;; is a vector to `vector?` callers but does not support `php/aget`, so
-  ;; `nth`/`get` must keep walking to their seq fallbacks for it.
-  (or (php/instanceof coll PersistentVectorInterface)
-      (transient-vector? coll)))
-
-(defn- in-bounds?
-  [index size]
-  (and (php/>= index 0) (php/< index size)))
 
 (defn nth
   "Returns the value at `index` in `coll`. Throws an
@@ -135,6 +141,9 @@
    (cond
      (nil? coll)
      nil
+
+     (not (integer? index))
+     (throw (php/new OutOfBoundsException (str "Index " index " is not an integer")))
 
      (php/is_string coll)
      (if (in-bounds? index (php/mb_strlen coll "UTF-8"))
@@ -157,6 +166,9 @@
   ([coll index not-found]
    (cond
      (nil? coll)            not-found
+
+     (not (integer? index))
+     not-found
 
      (php/is_string coll)
      (if (in-bounds? index (php/mb_strlen coll "UTF-8"))
