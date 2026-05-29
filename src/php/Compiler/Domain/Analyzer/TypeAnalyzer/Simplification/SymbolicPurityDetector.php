@@ -157,14 +157,8 @@ final readonly class SymbolicPurityDetector
 
     private function isPureCall(CallNode $node): bool
     {
-        if (!$this->isPureOperator($node->getFn())) {
-            return false;
-        }
-
-        return array_all(
-            $node->getArguments(),
-            fn(AbstractNode $arg): bool => $this->isPure($arg),
-        );
+        return $this->isPureOperator($node->getFn())
+            && $this->allPure($node->getArguments());
     }
 
     private function isPureOperator(AbstractNode $fn): bool
