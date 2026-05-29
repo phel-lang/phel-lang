@@ -53,6 +53,7 @@ Emit-shape tweaks:
 
 ### Fixed
 
+- `int` / `long` / `float` / `double`: passing a non-numeric object (keyword, vector, map, …) now throws `InvalidArgumentException` instead of leaking a raw PHP `"could not be converted to int/float"` warning and returning garbage. `nil` and numeric strings keep their documented coercion. `get` on a list with a non-integer key returns the default (Clojure parity); `assoc` / `update` on a vector with a non-integer key throws a clean `InvalidArgumentException` instead of PHP's int `TypeError`. Surfaced by the clojure-test-suite CI job (#2223)
 - `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)
 - `phel compile`: dry-run no longer executes side-effecting forms; new `CompileOptions` `emitOnly` flag skips the evaluator step (#2095)
 - `defonce`: same-file redefinition is a silent no-op (was `DuplicateDefinitionException`) (#2096)

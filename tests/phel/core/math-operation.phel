@@ -288,6 +288,16 @@
   (is (thrown? \InvalidArgumentException (int php/INF))
       "(int Inf) throws InvalidArgumentException"))
 
+(deftest test-int-non-coercible-objects
+  (is (thrown? \InvalidArgumentException (int :a))
+      "(int keyword) throws instead of leaking a PHP int-coercion warning")
+  (is (thrown? \InvalidArgumentException (int [0]))
+      "(int vector) throws instead of leaking a PHP int-coercion warning")
+  (is (thrown? \InvalidArgumentException (int {:a 1}))
+      "(int map) throws instead of leaking a PHP int-coercion warning")
+  (is (thrown? \InvalidArgumentException (long :a))
+      "(long keyword) throws (long aliases int)"))
+
 (deftest test-long-float-out-of-range
   (is (thrown? \OverflowException (long -9223372036854775809))
       "(long oversize-negative-literal) throws OverflowException after lexing as float")
@@ -317,6 +327,14 @@
   (is (= 0.0 (double nil)) "(double nil)")
   (is (= 0.5 (double 1/2)) "(double 1/2) collapses Ratio")
   (is (= 1.0 (double (bigint 1))) "(double (bigint 1)) collapses BigInt"))
+
+(deftest test-float-non-coercible-objects
+  (is (thrown? \InvalidArgumentException (float :a))
+      "(float keyword) throws instead of leaking a PHP float-coercion warning")
+  (is (thrown? \InvalidArgumentException (float [0]))
+      "(float vector) throws instead of leaking a PHP float-coercion warning")
+  (is (thrown? \InvalidArgumentException (double :a))
+      "(double keyword) throws (double aliases float)"))
 
 (deftest test-long
   (is (= 1 (long 1.9)) "(long 1.9) truncates toward zero")
