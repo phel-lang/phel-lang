@@ -6,11 +6,15 @@ namespace Phel\Lang\Generators;
 
 use ArrayIterator;
 use Generator;
+use InvalidArgumentException;
 use Iterator;
 
+use function get_debug_type;
 use function is_array;
+use function is_iterable;
 use function is_string;
 use function mb_str_split;
+use function sprintf;
 
 /**
  * Shared sequence utilities that do not belong to any specific operation family.
@@ -36,7 +40,18 @@ final class SequenceGenerator
             return mb_str_split($value);
         }
 
-        return $value ?? [];
+        if ($value === null) {
+            return [];
+        }
+
+        if (is_iterable($value)) {
+            return $value;
+        }
+
+        throw new InvalidArgumentException(sprintf(
+            'cannot iterate over a non-sequable value of type %s',
+            get_debug_type($value),
+        ));
     }
 
     /**

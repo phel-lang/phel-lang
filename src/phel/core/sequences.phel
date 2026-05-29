@@ -224,6 +224,12 @@
   [coll]
   (php/instanceof coll TransientHashSetInterface))
 
+;; The persistent ops `conj`/`assoc`/`dissoc` intentionally also accept
+;; transients: the fast `into`/`group-by` paths build by reducing `conj`/
+;; `assoc` over a transient accumulator, so this polymorphism is load-bearing.
+;; (Clojure throws here; Phel stays lenient by design — see clojure-test-suite
+;; :phel divergences.) Reuse after `persistent!` is still rejected via the
+;; transient's own invalidation guard.
 (defn- vector-target?
   [coll]
   (or (php/instanceof coll PersistentVectorInterface) (transient-vector? coll)))

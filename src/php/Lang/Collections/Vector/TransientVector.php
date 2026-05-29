@@ -7,6 +7,7 @@ namespace Phel\Lang\Collections\Vector;
 use InvalidArgumentException;
 use Phel\Lang\Collections\Exceptions\IndexOutOfBoundsException;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
+use Phel\Lang\Collections\TransientStateTrait;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 use RuntimeException;
@@ -22,6 +23,8 @@ use function count;
  */
 final class TransientVector implements TransientVectorInterface, Stringable
 {
+    use TransientStateTrait;
+
     private int $tailSize;
 
     /**
@@ -104,6 +107,8 @@ final class TransientVector implements TransientVectorInterface, Stringable
      */
     public function persistent(): PersistentVectorInterface
     {
+        $this->invalidateTransient();
+
         return new PersistentVector($this->hasher, $this->equalizer, null, $this->count, $this->shift, $this->root, $this->tail);
     }
 
@@ -114,6 +119,8 @@ final class TransientVector implements TransientVectorInterface, Stringable
      */
     public function append($value): TransientVectorInterface
     {
+        $this->ensureTransientActive();
+
         if ($this->tailSize < self::BRANCH_FACTOR) {
             // There is room for a new value in the tail.
             $this->tail[] = $value;
@@ -150,6 +157,8 @@ final class TransientVector implements TransientVectorInterface, Stringable
      */
     public function update(int $i, $value): TransientVectorInterface
     {
+        $this->ensureTransientActive();
+
         if ($i >= 0 && $i < $this->count) {
             if ($i >= $this->tailOffset()) {
                 $this->tail[$i & self::INDEX_MASK] = $value;
@@ -181,6 +190,8 @@ final class TransientVector implements TransientVectorInterface, Stringable
      */
     public function pop(): TransientVectorInterface
     {
+        $this->ensureTransientActive();
+
         if ($this->count === 0) {
             throw new RuntimeException("Can't pop on empty vector");
         }

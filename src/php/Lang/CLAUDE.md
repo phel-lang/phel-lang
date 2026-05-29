@@ -52,6 +52,7 @@ This is a **foundational module** with no Facade, Factory, or DependencyProvider
 - **Queue/** : `PersistentQueue` (banker's queue: front list + reversed rear list)
 - **LazySeq/** : `LazySeq` (implements `LazySeqInterface`)
 - **Struct/** : `AbstractPersistentStruct` (delegates key encoding to `Phel\Shared\Munge`)
+- **TransientStateTrait** : shared transient lifecycle guard. `persistent()` calls `invalidateTransient()`; every mutator calls `ensureTransientActive()`, so reuse after `persistent!` (or a second `persistent!`) throws. Used by `TransientVector`, `TransientMapWrapper` (covers hash/array maps + hash-sets), and `TransientSortedMap` (covers sorted maps + sets via delegation)
 
 ## Dependencies
 
