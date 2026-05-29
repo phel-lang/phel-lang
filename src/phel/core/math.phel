@@ -317,7 +317,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
    and `float` values collapse to their PHP int value or throw
    `OverflowException` when outside the PHP int range (`NaN`/`Inf` floats
    raise `InvalidArgumentException`). Numeric strings are parsed via PHP's
-   `intval`, and `nil` returns `0`."
+   `intval`, and `nil` returns `0`. Non-numeric objects such as keywords,
+   vectors, or maps raise `InvalidArgumentException` instead of leaking a
+   raw PHP int-coercion warning."
   {:example "(int 1.9) ; => 1\n(int \"42\") ; => 42\n(int 1/10) ; => 0"
    :see-also ["float" "double" "int?" "number?"]}
   [x]
@@ -326,21 +328,27 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
         (php/instanceof x BigInt)
         (php/instanceof x BigDecimal)) (php/-> x (toInt))
     (php/is_float x)                   (php/-> (php/:: BigInt (fromFloat x)) (toInt))
-    :else                              (php/intval x)))
+    (php/is_object x)                  (throw (php/new InvalidArgumentException
+                                                       (str "int expects a number, numeric string, or nil, got " (type x))))
+    :else                             (php/intval x)))
 
 (defn float
   "Coerces `x` to a float. In PHP there is no distinction between float and
    double; both map to the same native PHP float type. `Ratio`,
    `BigInt`, and `BigDecimal` values collapse to their float value;
    everything else delegates to PHP's `floatval`, so non-numeric strings
-   return `0.0` and `nil` returns `0.0`."
+   return `0.0` and `nil` returns `0.0`. Non-numeric objects such as
+   keywords, vectors, or maps raise `InvalidArgumentException` instead of
+   leaking a raw PHP float-coercion warning."
   {:example "(float 1) ; => 1.0\n(float 1/2) ; => 0.5"
    :see-also ["double" "int?" "number?"]}
   [x]
   (cond
-    (php/instanceof x Ratio)   (php/-> x (toFloat))
-    (php/instanceof x BigInt) (php/floatval (str x))
+    (php/instanceof x Ratio)      (php/-> x (toFloat))
+    (php/instanceof x BigInt)     (php/floatval (str x))
     (php/instanceof x BigDecimal) (php/-> x (toFloat))
+    (php/is_object x)             (throw (php/new InvalidArgumentException
+                                                  (str "float expects a number, numeric string, or nil, got " (type x))))
     :else                         (php/floatval x)))
 
 (defn double
@@ -571,9 +579,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
     (php/instanceof x BigDecimal) x
     (php/is_int x)                (php/:: BigDecimal (fromInt x))
     (php/is_float x)              (php/:: BigDecimal (fromFloat x))
-    (php/instanceof x BigInt) (php/:: BigDecimal (fromBigInt x))
-    (php/instanceof x Ratio)   (php/-> (php/:: BigDecimal (fromBigInt (php/-> x (numerator))))
-                                          (divideExact (php/:: BigDecimal (fromBigInt (php/-> x (denominator))))))
+    (php/instanceof x BigInt)     (php/:: BigDecimal (fromBigInt x))
+    (php/instanceof x Ratio)      (php/-> (php/:: BigDecimal (fromBigInt (php/-> x (numerator))))
+                                       (divideExact (php/:: BigDecimal (fromBigInt (php/-> x (denominator))))))
     (string? x)                   (php/:: BigDecimal (fromString x))
     :else
     (throw (php/new \InvalidArgumentException
@@ -681,8 +689,8 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
    :see-also ["numerator" "denominator" "ratio?"]}
   [x]
   (cond
-    (php/instanceof x Ratio)   x
-    (php/instanceof x BigInt) x
+    (php/instanceof x Ratio)      x
+    (php/instanceof x BigInt)     x
     (php/is_int x)                x
     (php/is_float x)              (float->rational x)
     (php/instanceof x BigDecimal) (decimal-string->rational (php/-> x (toPlainString)))
@@ -699,9 +707,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   [x]
   (cond
     (php/instanceof x BigInt) x
-    (php/is_int x)                (php/:: BigInt (fromInt x))
-    (php/is_float x)              (php/:: BigInt (fromFloat x))
-    (string? x)                   (php/:: BigInt (fromString x))
+    (php/is_int x)            (php/:: BigInt (fromInt x))
+    (php/is_float x)          (php/:: BigInt (fromFloat x))
+    (string? x)               (php/:: BigInt (fromString x))
     :else
     (throw (php/new InvalidArgumentException
                     (str "bigint expects an int, float, numeric string, or BigInt, got " (type x))))))
@@ -740,10 +748,10 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   [x]
   (assert-non-nil x)
   (cond
-    (php/is_int x)                x
+    (php/is_int x)            x
     (php/instanceof x BigInt) x
-    (php/instanceof x Ratio)   (rational-floor x)
-    (php/is_float x)              (php/floor x)
+    (php/instanceof x Ratio)  (rational-floor x)
+    (php/is_float x)          (php/floor x)
     :else
     (throw (php/new InvalidArgumentException
                     (str "floor expects a number, got " (type x))))))
@@ -757,10 +765,10 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   [x]
   (assert-non-nil x)
   (cond
-    (php/is_int x)                x
+    (php/is_int x)            x
     (php/instanceof x BigInt) x
-    (php/instanceof x Ratio)   (- (rational-floor (- x)))
-    (php/is_float x)              (php/ceil x)
+    (php/instanceof x Ratio)  (- (rational-floor (- x)))
+    (php/is_float x)          (php/ceil x)
     :else
     (throw (php/new InvalidArgumentException
                     (str "ceil expects a number, got " (type x))))))
@@ -774,9 +782,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   [x]
   (assert-non-nil x)
   (cond
-    (php/is_int x)                x
+    (php/is_int x)            x
     (php/instanceof x BigInt) x
-    :else                         (php/round (number->float x))))
+    :else                     (php/round (number->float x))))
 
 (defn sqrt
   "Returns the square root of `x` as a float. Negative inputs return

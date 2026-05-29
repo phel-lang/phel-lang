@@ -324,6 +324,14 @@
   (is (= :default (get (transient [1 2 3]) :a :default))
       "get on transient vector with non-int key honours default"))
 
+(deftest test-get-list-non-int-key-returns-default
+  ;; A non-integer key on a list/seq is simply absent (Clojure parity); it
+  ;; must not leak a raw PHP int-coercion warning from the index arithmetic.
+  (is (nil? (get '(1 2 3) :a)) "get on list with keyword key returns nil")
+  (is (nil? (get '(1 2 3) "x")) "get on list with string key returns nil")
+  (is (= :default (get '(1 2 3) :a :default)) "get on list with non-int key honours default")
+  (is (= 2 (get '(1 2 3) 1)) "get on list with int key still indexes"))
+
 (deftest test-nth-vector-non-int-key
   (is (thrown? OutOfBoundsException (nth [1 2 3] :a)) "nth on vector with keyword key throws")
   (is (thrown? OutOfBoundsException (nth [1 2 3] [1])) "nth on vector with vector key throws")
@@ -371,7 +379,12 @@
   (is (thrown? \InvalidArgumentException (assoc "abc" 0 "z")) "assoc: rejects strings")
   (is (thrown? \InvalidArgumentException (assoc '(1 2 3) 0 99)) "assoc: rejects lists")
   (is (thrown? \InvalidArgumentException (assoc #{1 2 3} 1 9)) "assoc: rejects sets")
-  (is (thrown? \InvalidArgumentException (assoc 42 :a 1)) "assoc: rejects scalars"))
+  (is (thrown? \InvalidArgumentException (assoc 42 :a 1)) "assoc: rejects scalars")
+  ;; A non-integer key on a vector must raise a clean `InvalidArgumentException`
+  ;; instead of leaking PHP's `update(): Argument #1 ($i) must be of type int`
+  ;; TypeError (or, on older builds, a raw int-coercion warning).
+  (is (thrown? \InvalidArgumentException (assoc [1 2 3] :k 9)) "assoc: rejects keyword key on vector")
+  (is (thrown? \InvalidArgumentException (assoc [1 2 3] "0" 9)) "assoc: rejects string key on vector"))
 
 (deftest test-unset
   (is (= {:b 2} (unset {:a 1 :b 2} :a)) "unset: remove key from map"))
