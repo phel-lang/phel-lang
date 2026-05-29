@@ -1,6 +1,8 @@
 name: clojure-test-suite
 
 on:
+  pull_request:
+    branches: [ main ]
   push:
     branches: [ main ]
   schedule:
@@ -8,9 +10,9 @@ on:
   workflow_dispatch:
     inputs:
       suite-ref:
-        description: 'Ref of phel-lang/clojure-test-suite to run'
+        description: 'Ref of phel-lang/clojure-test-suite to run (blank = pinned SHA on PR/push, main on the nightly schedule)'
         required: false
-        default: 'main'
+        default: ''
 
 permissions:
   contents: read
@@ -23,11 +25,6 @@ jobs:
   run-clojure-test-suite:
     name: Run clojure-test-suite (PHP 8.4)
     runs-on: ubuntu-latest
-    # Soft-gate while upstream :phel patches land at
-    # jank-lang/clojure-test-suite#899 and phel-side bugs (ConstantFolder
-    # on (repeatedly identity), group-by metadata) get fixed. Suite is
-    # informational on main/nightly until then. Drop once green.
-    continue-on-error: true
     steps:
       - name: Checkout phel-lang
         uses: actions/checkout@v6
@@ -38,7 +35,10 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: phel-lang/clojure-test-suite
-          ref: ${{ github.event.inputs.suite-ref || 'main' }}
+          # PR/push runs gate against a pinned, reproducible suite commit; the
+          # nightly cron tracks `main` to surface upstream drift; dispatch can
+          # override either way.
+          ref: ${{ github.event.inputs.suite-ref || (github.event_name == 'schedule' && 'main' || '7d3db18b7d55abcae3411dcfdede99049f1bfe8a') }}
           path: clojure-test-suite
 
       - uses: shivammathur/setup-php@v2
