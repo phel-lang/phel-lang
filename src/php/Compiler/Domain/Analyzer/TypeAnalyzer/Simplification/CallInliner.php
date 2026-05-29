@@ -67,6 +67,7 @@ final readonly class CallInliner
     public function __construct(
         private SymbolicPurityDetector $purity = new SymbolicPurityDetector(),
         private ConstantFolder $folder = new ConstantFolder(),
+        private LetSimplifier $letSimplifier = new LetSimplifier(),
     ) {}
 
     /**
@@ -166,7 +167,7 @@ final readonly class CallInliner
 
         $letNode = new LetNode($env, $bindings, $folded, false, $callLocation);
 
-        return new LetSimplifier()->simplify($letNode);
+        return $this->letSimplifier->simplify($letNode);
     }
 
     /**
