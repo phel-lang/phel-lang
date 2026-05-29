@@ -283,7 +283,7 @@
 
 (defn write-string
   "Serialises `value` to a Transit+JSON-Verbose string."
-  {:example "(write-string {:a 1}) ; => \"{\\\"~:a\\\":1}\""
+  {:example "(write-string {:a 1}) ; => \"[\\\"~#cmap\\\",[\\\"~:a\\\",1]]\""
    :see-also ["read-string"]}
   [value]
   (php/json_encode (encode value) json-flags))

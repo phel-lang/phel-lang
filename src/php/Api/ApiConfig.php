@@ -19,6 +19,7 @@ final class ApiConfig extends AbstractConfig
             'phel.base64',
             'phel.cli',
             'phel.core',
+            'phel.edn',
             'phel.html',
             'phel.http',
             'phel.json',
@@ -26,6 +27,7 @@ final class ApiConfig extends AbstractConfig
             'phel.mock',
             'phel.pprint',
             'phel.reader',
+            'phel.reflect',
             'phel.repl',
             'phel.router',
             'phel.schema',
@@ -35,6 +37,7 @@ final class ApiConfig extends AbstractConfig
             'phel.test.rose',
             'phel.test.selector',
             'phel.test.shrink',
+            'phel.transit',
             'phel.walk',
             'phel.watch',
         ];
