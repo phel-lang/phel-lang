@@ -81,12 +81,15 @@ final class CallInlineRuntimeTest extends TestCase
     public function test_side_effecting_callee_is_not_inlined(): void
     {
         $options = new CompileOptions()->setOptimizationLevel(2);
-        $this->compilerFacade->eval('(defn shout [x] (str x "!"))', $options);
 
-        // `str` is pure, so `shout` *is* inlinable — sanity that it runs.
+        // `str` is not in the purity allowlist, so `shout` is NOT inlined;
+        // the call keeps dispatching and still returns the right value.
+        $this->compilerFacade->eval('(defn shout [x] (str x "!"))', $options);
+        $shoutPhp = $this->compilerFacade->compile('(shout "hi")', $options)->getPhpCode();
+        self::assertStringContainsString('shout', $shoutPhp, 'non-allowlisted callee should still dispatch');
         self::assertSame('hi!', $this->compilerFacade->eval('(shout "hi")', $options));
 
-        // A genuinely side-effecting body must keep dispatching.
+        // A genuinely side-effecting body must keep dispatching too.
         $this->compilerFacade->eval('(defn log-it [x] (php/printf "%d" x))', $options);
         $php = $this->compilerFacade->compile('(log-it 5)', $options)->getPhpCode();
 
