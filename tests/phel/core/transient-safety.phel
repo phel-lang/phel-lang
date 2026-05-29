@@ -1,0 +1,48 @@
+(ns phel-test.core.transient-safety
+  (:require phel.test :refer [deftest is thrown? thrown-with-msg?]))
+
+;; A transient is invalidated by `persistent!`: any further mutation, or a
+;; second `persistent!`, throws instead of silently mutating shared structure.
+
+(deftest test-conj-bang-after-persistent-throws
+  (let [t (transient [1 2])]
+    (persistent! t)
+    (is (thrown-with-msg? \RuntimeException "Transient used after persistent! call"
+                          (conj! t 3)))))
+
+(deftest test-assoc-bang-after-persistent-throws
+  (let [tv (transient [1 2])
+        tm (transient {:a 1})]
+    (persistent! tv)
+    (persistent! tm)
+    (is (thrown? \RuntimeException (assoc! tv 0 9)))
+    (is (thrown? \RuntimeException (assoc! tm :b 2)))))
+
+(deftest test-dissoc-bang-after-persistent-throws
+  (let [t (transient {:a 1 :b 2})]
+    (persistent! t)
+    (is (thrown? \RuntimeException (dissoc! t :a)))))
+
+(deftest test-disj-bang-after-persistent-throws
+  (let [t (transient #{1 2 3})]
+    (persistent! t)
+    (is (thrown? \RuntimeException (disj! t 1)))))
+
+(deftest test-pop-bang-after-persistent-throws
+  (let [t (transient [1 2 3])]
+    (persistent! t)
+    (is (thrown? \RuntimeException (pop! t)))))
+
+(deftest test-persistent-bang-twice-throws
+  (let [t (transient {})]
+    (persistent! t)
+    (is (thrown? \RuntimeException (persistent! t)))))
+
+;; Persistent ops on a transient stay lenient by design (the fast `into`/
+;; `group-by` paths reduce `conj`/`assoc` over a transient accumulator).
+
+(deftest test-persistent-ops-on-transient-are-lenient
+  (is (some? (conj (transient [1 2]) 3)))
+  (is (some? (assoc (transient {:a 1}) :b 2)))
+  (is (= [1 2 3 4] (into [1] [2 3 4])))
+  (is (= {false [1 3] true [2 4]} (group-by even? [1 2 3 4]))))

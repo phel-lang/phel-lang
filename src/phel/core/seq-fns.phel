@@ -448,14 +448,16 @@
                               nn     (vreset! nv (php/- n 1))
                               result (if (php/> n 0) (rf result input) result)]
                           (if (php/<= nn 0) (ensure-reduced result) result))))))
-    1 (let [coll (first args)
-            n    (if (php/< n 0) 0 n)]
-        (if (php/=== n 0)
-          []
-          (let [result (lazy-seq-from-generator (php/:: Seq (take n coll)))]
-            (if (nil? result)
-              []
-              (copy-meta coll result)))))
+    1 (if (int? n)
+        (let [coll (first args)
+              n    (if (php/< n 0) 0 n)]
+          (if (php/=== n 0)
+            []
+            (let [result (lazy-seq-from-generator (php/:: Seq (take n coll)))]
+              (if (nil? result)
+                []
+                (copy-meta coll result)))))
+        (throw (php/new InvalidArgumentException (str "take expects an integer count, got " (type n)))))
     (throw (php/new InvalidArgumentException "take expects 1 or 2 arguments"))))
 
 (defn- take-last-buffered

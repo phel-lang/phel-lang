@@ -223,4 +223,42 @@ final class TransientVectorTest extends TestCase
         $this->assertCount($length, $v1);
         $this->assertCount($length, $v2);
     }
+
+    public function test_append_after_persistent_throws(): void
+    {
+        $v = TransientVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3]);
+        $v->persistent();
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Transient used after persistent! call');
+        $v->append(4);
+    }
+
+    public function test_update_after_persistent_throws(): void
+    {
+        $v = TransientVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3]);
+        $v->persistent();
+
+        $this->expectException(RuntimeException::class);
+        $v->update(0, 9);
+    }
+
+    public function test_pop_after_persistent_throws(): void
+    {
+        $v = TransientVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3]);
+        $v->persistent();
+
+        $this->expectException(RuntimeException::class);
+        $v->pop();
+    }
+
+    public function test_persistent_twice_throws(): void
+    {
+        $v = TransientVector::fromArray(new ModuloHasher(), new SimpleEqualizer(), [1, 2, 3]);
+        $v->persistent();
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Transient used after persistent! call');
+        $v->persistent();
+    }
 }

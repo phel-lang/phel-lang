@@ -1,0 +1,21 @@
+(ns phel-test.core.clean-type-errors
+  (:require phel.test :refer [deftest is thrown?]))
+
+;; `nan?` on nil returns false without leaking PHP's `is_nan(): Passing null`
+;; deprecation. A non-numeric string still throws cleanly.
+(deftest test-nan?-nil-is-false
+  (is (= false (nan? nil)))
+  (is (= false (nan? 0)))
+  (is (= true (nan? ##NaN))))
+
+;; `take`'s lazy (2-arg) form rejects a non-integer count with a clean Phel
+;; error instead of leaking PHP's `Seq::take(): Argument #1 must be int`.
+(deftest test-take-non-integer-count-throws-cleanly
+  (is (thrown? \InvalidArgumentException (take nil [1 2 3])))
+  (is (= [1 2] (take 2 [1 2 3]))))
+
+;; Non-seqable inputs to sequence fns raise a clean Phel error instead of
+;; leaking PHP's `SequenceGenerator::toIterable()` return-type TypeError.
+(deftest test-non-seqable-throws-cleanly
+  (is (thrown? \InvalidArgumentException (doall (remove even? 5))))
+  (is (thrown? \InvalidArgumentException (select-keys {} :a))))

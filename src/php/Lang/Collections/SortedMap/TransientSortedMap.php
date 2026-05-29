@@ -8,6 +8,7 @@ use Closure;
 use Phel\Lang\Collections\Exceptions\MethodNotSupportedException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Map\TransientMapInterface;
+use Phel\Lang\Collections\TransientStateTrait;
 use Phel\Lang\EqualizerInterface;
 use Phel\Lang\HasherInterface;
 
@@ -21,6 +22,8 @@ use function count;
  */
 final class TransientSortedMap implements TransientMapInterface
 {
+    use TransientStateTrait;
+
     private readonly Closure $effectiveComparator;
 
     /**
@@ -51,6 +54,7 @@ final class TransientSortedMap implements TransientMapInterface
      */
     public function put($key, $value): self
     {
+        $this->ensureTransientActive();
         $idx = SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator);
 
         if ($idx >= 0) {
@@ -76,6 +80,7 @@ final class TransientSortedMap implements TransientMapInterface
      */
     public function remove($key): self
     {
+        $this->ensureTransientActive();
         $idx = SortedArrayHelper::binarySearch($this->array, $key, $this->effectiveComparator);
 
         if ($idx < 0) {
@@ -132,6 +137,8 @@ final class TransientSortedMap implements TransientMapInterface
 
     public function persistent(): PersistentMapInterface
     {
+        $this->invalidateTransient();
+
         return new PersistentSortedMap($this->hasher, $this->equalizer, null, $this->array, $this->userComparator);
     }
 }

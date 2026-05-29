@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Lang\Collections\Map;
 
+use Phel\Lang\Collections\TransientStateTrait;
 use Stringable;
 
 /**
@@ -14,6 +15,8 @@ use Stringable;
  */
 final class TransientMapWrapper implements TransientMapInterface, Stringable
 {
+    use TransientStateTrait;
+
     /**
      * @param TransientMapInterface<K, V> $internal
      */
@@ -51,6 +54,7 @@ final class TransientMapWrapper implements TransientMapInterface, Stringable
      */
     public function put($key, $value): self
     {
+        $this->ensureTransientActive();
         $this->internal = $this->internal->put($key, $value);
 
         return $this;
@@ -63,6 +67,7 @@ final class TransientMapWrapper implements TransientMapInterface, Stringable
      */
     public function remove($key): self
     {
+        $this->ensureTransientActive();
         $this->internal = $this->internal->remove($key);
 
         return $this;
@@ -83,6 +88,8 @@ final class TransientMapWrapper implements TransientMapInterface, Stringable
      */
     public function persistent(): PersistentMapInterface
     {
+        $this->invalidateTransient();
+
         return $this->internal->persistent();
     }
 

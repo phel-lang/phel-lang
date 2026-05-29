@@ -285,7 +285,9 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 (defn nan?
   "Checks if `x` is not a number."
   [x]
-  (php/is_nan x))
+  (if (nil? x)
+    false
+    (php/is_nan x)))
 
 (defn NaN?
   "Checks if `x` is not a number. Alias for `nan?`, matching Clojure's `NaN?`."
@@ -581,7 +583,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
     (php/is_float x)              (php/:: BigDecimal (fromFloat x))
     (php/instanceof x BigInt)     (php/:: BigDecimal (fromBigInt x))
     (php/instanceof x Ratio)      (php/-> (php/:: BigDecimal (fromBigInt (php/-> x (numerator))))
-                                       (divideExact (php/:: BigDecimal (fromBigInt (php/-> x (denominator))))))
+                                          (divideExact (php/:: BigDecimal (fromBigInt (php/-> x (denominator))))))
     (string? x)                   (php/:: BigDecimal (fromString x))
     :else
     (throw (php/new \InvalidArgumentException
