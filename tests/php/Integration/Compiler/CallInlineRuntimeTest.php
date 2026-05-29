@@ -119,4 +119,59 @@ final class CallInlineRuntimeTest extends TestCase
         self::assertStringContainsString('my-inc0', $php);
         self::assertSame(6, $this->compilerFacade->eval('(my-inc0 5)', $options));
     }
+
+    public function test_impure_argument_is_evaluated_exactly_once(): void
+    {
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        $this->compilerFacade->eval('(def inline-calls (atom 0))', $options);
+        $this->compilerFacade->eval('(defn inline-bump [] (swap! inline-calls inc))', $options);
+        $this->compilerFacade->eval('(defn inline-twice [x] (+ x x))', $options);
+
+        // `inline-bump` is impure, so it is bound to a single `let` even
+        // though the body uses the param twice: one effect, result 1 + 1.
+        $result = $this->compilerFacade->eval('(inline-twice (inline-bump))', $options);
+
+        self::assertSame(2, $result);
+        self::assertSame(1, $this->compilerFacade->eval('(deref inline-calls)', $options));
+    }
+
+    public function test_impure_unused_argument_still_runs_once(): void
+    {
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        $this->compilerFacade->eval('(def inline-calls2 (atom 0))', $options);
+        $this->compilerFacade->eval('(defn inline-bump2 [] (swap! inline-calls2 inc))', $options);
+        $this->compilerFacade->eval('(defn inline-ignore [x] 42)', $options);
+
+        // The param is unused, but the impure arg must still evaluate once.
+        $result = $this->compilerFacade->eval('(inline-ignore (inline-bump2))', $options);
+
+        self::assertSame(42, $result);
+        self::assertSame(1, $this->compilerFacade->eval('(deref inline-calls2)', $options));
+    }
+
+    public function test_impure_arguments_keep_left_to_right_order(): void
+    {
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        $this->compilerFacade->eval('(def inline-log (atom []))', $options);
+        $this->compilerFacade->eval('(defn inline-mark [k] (swap! inline-log conj k) k)', $options);
+        $this->compilerFacade->eval('(defn inline-pair [a b] (+ a b))', $options);
+
+        $result = $this->compilerFacade->eval('(inline-pair (inline-mark 1) (inline-mark 2))', $options);
+
+        self::assertSame(3, $result);
+        self::assertTrue($this->compilerFacade->eval('(= [1 2] (deref inline-log))', $options));
+    }
+
+    public function test_pure_multi_use_argument_is_inlined_correctly(): void
+    {
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        $this->compilerFacade->eval('(defn inline-sq [x] (* x x))', $options);
+
+        $php = $this->compilerFacade->compile('(let [y 5] (inline-sq (+ y 1)))', $options)->getPhpCode();
+
+        // The callee frame is gone and the (pure, twice-used) argument is
+        // bound once instead of duplicating the addition.
+        self::assertStringNotContainsString('inline-sq', $php);
+        self::assertSame(36, $this->compilerFacade->eval('(let [y 5] (inline-sq (+ y 1)))', $options));
+    }
 }
