@@ -53,6 +53,7 @@ Emit-shape tweaks:
 
 ### Fixed
 
+- `phel.string`: passing a non-string to the string functions (`upper-case`, `lower-case`, `capitalize`, `reverse`, `trim` / `triml` / `trimr`, `split`, `escape`, `pad-left` / `pad-right` / `pad-both`, `replace` / `replace-first`, `chars`, `starts-with?` / `ends-with?` / `contains?` / `includes?`) now throws a clean exception instead of leaking a raw PHP `"Passing null to parameter ... of type string is deprecated"` warning (a hard `TypeError` in PHP 9) and returning nonsense. `blank?` keeps treating `nil` as blank (`true`) but rejects other non-strings. Surfaced by the clojure-test-suite CI job (#2223)
 - `int` / `long` / `float` / `double`: passing a non-numeric object (keyword, vector, map, …) now throws `InvalidArgumentException` instead of leaking a raw PHP `"could not be converted to int/float"` warning and returning garbage. `nil` and numeric strings keep their documented coercion. `get` on a list with a non-integer key returns the default (Clojure parity); `assoc` / `update` on a vector with a non-integer key throws a clean `InvalidArgumentException` instead of PHP's int `TypeError`. Surfaced by the clojure-test-suite CI job (#2223)
 - `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)
 - `phel compile`: dry-run no longer executes side-effecting forms; new `CompileOptions` `emitOnly` flag skips the evaluator step (#2095)
