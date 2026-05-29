@@ -571,6 +571,12 @@ final class ConstantFolder
     }
 
     /**
+     * The set of core fns this method can evaluate at compile time is the
+     * vetted, effect-free list that {@see Simplification\SymbolicPurityDetector}'s
+     * `PURE_CORE_FNS` mirrors (the detector applies them symbolically over
+     * free variables, not only literals). Keep the two in sync when adding
+     * a pure-but-not-foldable core fn.
+     *
      * @param list<float|int> $literals
      */
     private function compute(string $fnName, array $literals): int|float|bool|null

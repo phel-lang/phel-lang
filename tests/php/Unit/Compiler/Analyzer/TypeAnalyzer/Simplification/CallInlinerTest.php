@@ -205,6 +205,29 @@ final class CallInlinerTest extends TestCase
         self::assertNull($this->inline('my-inc', [new LiteralNode($this->env, 5)], $meta));
     }
 
+    public function test_inlines_pure_annotated_callee_with_unprovable_body(): void
+    {
+        // (defn ^:pure wrap [x] (helper x)) — the body calls a user fn, so
+        // it is not structurally pure; the :pure annotation inlines it anyway.
+        $this->seedDefn('wrap', ['x'], $this->userCallBody('helper', 'x'));
+
+        $result = $this->inline(
+            'wrap',
+            [new LiteralNode($this->env, 5)],
+            Phel::map(Keyword::create('pure'), true),
+        );
+
+        self::assertInstanceOf(CallNode::class, $result);
+    }
+
+    public function test_declines_unannotated_callee_with_impure_body(): void
+    {
+        // Same body without :pure: structural purity fails, so no inline.
+        $this->seedDefn('wrap2', ['x'], $this->userCallBody('helper', 'x'));
+
+        self::assertNull($this->inline('wrap2', [new LiteralNode($this->env, 5)]));
+    }
+
     /**
      * @param list<string> $paramNames
      */
@@ -242,6 +265,18 @@ final class CallInlinerTest extends TestCase
             new GlobalVarNode($this->env, CompilerConstants::PHEL_CORE_NAMESPACE, Symbol::create('+'), Phel::map()),
             [new LocalVarNode($this->env, Symbol::create($param)), new LiteralNode($this->env, $addend)],
         );
+    }
+
+    private function userCallBody(string $userFn, string $param): DoNode
+    {
+        // (<userFn> <param>) — a user call, impure to the structural detector.
+        $ret = new CallNode(
+            $this->env,
+            new GlobalVarNode($this->env, 'user', Symbol::create($userFn), Phel::map()),
+            [new LocalVarNode($this->env, Symbol::create($param))],
+        );
+
+        return new DoNode($this->env, [], $ret);
     }
 
     private function squareBody(string $param): DoNode

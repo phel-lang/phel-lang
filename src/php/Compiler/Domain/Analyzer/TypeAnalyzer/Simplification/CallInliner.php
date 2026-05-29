@@ -123,8 +123,13 @@ final readonly class CallInliner
             return null;
         }
 
+        // A `^:pure` callee asserts its own body is side-effect-free, so we
+        // trust the annotation instead of structurally proving the body
+        // pure. The rebaser still aborts on any unsupported node type.
         $ret = $body->getRet();
-        if (!$this->purity->isPure($ret)) {
+        if (!SymbolicPurityDetector::isPureAnnotated($f->getMeta())
+            && !$this->purity->isPure($ret)
+        ) {
             return null;
         }
 

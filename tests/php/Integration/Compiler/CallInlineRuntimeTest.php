@@ -196,4 +196,49 @@ final class CallInlineRuntimeTest extends TestCase
         self::assertStringNotContainsString('make-box', $php);
         self::assertTrue($this->compilerFacade->eval('(= {:val 5} (make-box 5))', $options));
     }
+
+    public function test_pure_annotated_callee_with_unprovable_body_is_inlined(): void
+    {
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        // `(php/intval s)` is not a structurally pure node, but the `^:pure`
+        // annotation asserts it is, so the call is inlined (frame gone).
+        $this->compilerFacade->eval('(defn ^:pure to-int [s] (php/intval s))', $options);
+
+        $php = $this->compilerFacade->compile('(to-int "42")', $options)->getPhpCode();
+
+        self::assertStringNotContainsString('to-int', $php);
+        self::assertSame(42, $this->compilerFacade->eval('(to-int "42")', $options));
+    }
+
+    public function test_call_to_pure_annotated_fn_inside_a_body_is_inlined(): void
+    {
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        // `psquare` has a `let` body the rebaser cannot splice, so it is
+        // never inlined as a callee — its call survives inside a body. The
+        // `^:pure` tag still makes that surviving call a pure operator, so
+        // `uses-pure` becomes inlinable; only its own frame disappears.
+        $this->compilerFacade->eval('(defn ^:pure psquare [x] (let [y x] (* y y)))', $options);
+        $this->compilerFacade->eval('(defn uses-pure [n] (+ (psquare n) 1))', $options);
+
+        $php = $this->compilerFacade->compile('(uses-pure 5)', $options)->getPhpCode();
+
+        self::assertStringNotContainsString('uses-pure', $php);
+        self::assertStringContainsString('psquare', $php);
+        self::assertSame(26, $this->compilerFacade->eval('(uses-pure 5)', $options));
+    }
+
+    public function test_unannotated_user_fn_in_body_keeps_dispatch(): void
+    {
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        // Same non-inlinable `let`-body shape but without `^:pure`: the call
+        // is impure to the detector, so `uses-plain`'s body is not provable
+        // pure and `uses-plain` keeps dispatching.
+        $this->compilerFacade->eval('(defn psquare-plain [x] (let [y x] (* y y)))', $options);
+        $this->compilerFacade->eval('(defn uses-plain [n] (+ (psquare-plain n) 1))', $options);
+
+        $php = $this->compilerFacade->compile('(uses-plain 5)', $options)->getPhpCode();
+
+        self::assertStringContainsString('uses-plain', $php);
+        self::assertSame(26, $this->compilerFacade->eval('(uses-plain 5)', $options));
+    }
 }
