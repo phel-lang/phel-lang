@@ -241,4 +241,33 @@ final class CallInlineRuntimeTest extends TestCase
         self::assertStringContainsString('uses-plain', $php);
         self::assertSame(26, $this->compilerFacade->eval('(uses-plain 5)', $options));
     }
+
+    public function test_multi_arity_defn_inlines_the_matching_arity(): void
+    {
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        $this->compilerFacade->eval('(defn poly ([x] (+ x 1)) ([x y] (+ x y)))', $options);
+
+        $php1 = $this->compilerFacade->compile('(poly 5)', $options)->getPhpCode();
+        $php2 = $this->compilerFacade->compile('(poly 2 3)', $options)->getPhpCode();
+
+        self::assertStringNotContainsString('poly', $php1);
+        self::assertStringNotContainsString('poly', $php2);
+        self::assertSame(6, $this->compilerFacade->eval('(poly 5)', $options));
+        self::assertSame(5, $this->compilerFacade->eval('(poly 2 3)', $options));
+    }
+
+    public function test_multi_arity_defn_does_not_inline_the_variadic_arity(): void
+    {
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        $this->compilerFacade->eval('(defn polyv ([x] (+ x 1)) ([x & xs] x))', $options);
+
+        // The fixed 1-arity call inlines; the variadic arity keeps dispatch.
+        $fixed = $this->compilerFacade->compile('(polyv 5)', $options)->getPhpCode();
+        $variadic = $this->compilerFacade->compile('(polyv 5 6 7)', $options)->getPhpCode();
+
+        self::assertStringNotContainsString('polyv', $fixed);
+        self::assertStringContainsString('polyv', $variadic);
+        self::assertSame(6, $this->compilerFacade->eval('(polyv 5)', $options));
+        self::assertSame(5, $this->compilerFacade->eval('(polyv 5 6 7)', $options));
+    }
 }

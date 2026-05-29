@@ -13,7 +13,7 @@ use function array_reduce;
 use function max;
 use function min;
 
-final class MultiFnNode extends AbstractNode
+final class MultiFnNode extends AbstractNode implements FnNodeInterface
 {
     /**
      * @param list<FnNode> $fnNodes
@@ -67,5 +67,17 @@ final class MultiFnNode extends AbstractNode
             static fn(bool $carry, FnNode $n): bool => $carry || $n->isVariadic(),
             false,
         );
+    }
+
+    public function arityFor(int $argCount): ?FnNode
+    {
+        foreach ($this->fnNodes as $fnNode) {
+            $match = $fnNode->arityFor($argCount);
+            if ($match instanceof FnNode) {
+                return $match;
+            }
+        }
+
+        return null;
     }
 }

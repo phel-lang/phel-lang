@@ -6,7 +6,7 @@ namespace Phel\Compiler\Application;
 
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
-use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
+use Phel\Compiler\Domain\Analyzer\Ast\FnNodeInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
@@ -116,12 +116,12 @@ final class Analyzer implements AnalyzerInterface
         $this->globalEnvironment->setCompileTimeMeta($ns, $symbol, $meta);
     }
 
-    public function setDefFnNode(string $ns, Symbol $symbol, FnNode $node): void
+    public function setDefFnNode(string $ns, Symbol $symbol, FnNodeInterface $node): void
     {
         $this->globalEnvironment->setDefFnNode($ns, $symbol, $node);
     }
 
-    public function getDefFnNode(string $ns, Symbol $symbol): ?FnNode
+    public function getDefFnNode(string $ns, Symbol $symbol): ?FnNodeInterface
     {
         return $this->globalEnvironment->getDefFnNode($ns, $symbol);
     }
