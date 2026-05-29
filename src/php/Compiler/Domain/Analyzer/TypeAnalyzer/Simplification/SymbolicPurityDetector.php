@@ -38,9 +38,13 @@ use function array_all;
 final readonly class SymbolicPurityDetector
 {
     /**
-     * Side-effect-free `phel.core` fns. Mirrors the scalar ops
-     * {@see ConstantFolder::compute()} and {@see ConstantFolder::BOOL_PREDICATES}
-     * already trust as pure enough to evaluate at compile time.
+     * Side-effect-free `phel.core` fns. Drawn from the scalar ops
+     * {@see \Phel\Compiler\Domain\Analyzer\TypeAnalyzer\ConstantFolder::compute()}
+     * and its boolean predicates already trust as pure enough to evaluate
+     * at compile time. This set is intentionally *wider* in applicability:
+     * the folder only fires on literal arguments, whereas the inliner
+     * accepts these ops over free variables too, so it must be updated
+     * separately when a new pure-but-not-foldable core fn appears.
      *
      * @var array<string, true>
      */

@@ -127,7 +127,9 @@ final readonly class CallInliner
             $paramMap[$param->getName()] = $args[$i];
         }
 
-        $inlined = $this->rebase($ret, $env, $env->getContext(), $callLocation, $paramMap, true);
+        // `rebase` can still abort (returning `null`) if the body holds a
+        // node type outside the whitelist or a non-parameter local.
+        $inlined = $this->rebase($ret, new RebaseContext($env, $env->getContext(), $callLocation, $paramMap, true));
         if (!$inlined instanceof AbstractNode) {
             return null;
         }
@@ -147,74 +149,55 @@ final readonly class CallInliner
 
     /**
      * Rebuilds a whitelisted node onto the call-site environment.
-     *
-     * `$inBody` distinguishes the two walks that share this logic: the
-     * callee body (where a `LocalVarNode` naming a parameter is replaced
-     * by its argument, and any other local aborts the inline) and an
-     * argument subtree (where every `LocalVarNode` is a caller-scope
-     * local and is kept verbatim). Switching to argument mode on
-     * substitution prevents a caller local that happens to share a
-     * parameter's name from being substituted a second time.
-     *
-     * @param array<string, AbstractNode> $paramMap
      */
-    private function rebase(
-        AbstractNode $node,
-        NodeEnvironmentInterface $env,
-        string $context,
-        ?SourceLocation $loc,
-        array $paramMap,
-        bool $inBody,
-    ): ?AbstractNode {
-        $targetEnv = $env->withContext($context);
-
+    private function rebase(AbstractNode $node, RebaseContext $ctx): ?AbstractNode
+    {
         if ($node instanceof LiteralNode) {
-            return new LiteralNode($targetEnv, $node->getValue(), $loc);
+            return new LiteralNode($ctx->targetEnv(), $node->getValue(), $ctx->loc);
         }
 
         if ($node instanceof GlobalVarNode) {
-            return new GlobalVarNode($targetEnv, $node->getNamespace(), $node->getName(), $node->getMeta(), $loc);
+            return new GlobalVarNode($ctx->targetEnv(), $node->getNamespace(), $node->getName(), $node->getMeta(), $ctx->loc);
         }
 
         if ($node instanceof PhpVarNode) {
-            return new PhpVarNode($targetEnv, $node->getName(), $loc);
+            return new PhpVarNode($ctx->targetEnv(), $node->getName(), $ctx->loc);
         }
 
         if ($node instanceof LocalVarNode) {
-            return $this->rebaseLocalVar($node, $env, $context, $loc, $paramMap, $inBody);
+            return $this->rebaseLocalVar($node, $ctx);
         }
 
         if ($node instanceof CallNode) {
-            return $this->rebaseCall($node, $env, $context, $loc, $paramMap, $inBody);
+            return $this->rebaseCall($node, $ctx);
         }
 
         if ($node instanceof IfNode) {
-            return $this->rebaseIf($node, $env, $context, $loc, $paramMap, $inBody);
+            return $this->rebaseIf($node, $ctx);
         }
 
         return null;
     }
 
     /**
-     * @param array<string, AbstractNode> $paramMap
+     * `$ctx->inBody` distinguishes the two walks that share the rebasing
+     * logic: the callee body (where a `LocalVarNode` naming a parameter
+     * is replaced by its argument, and any other local aborts the
+     * inline) and an argument subtree (where every `LocalVarNode` is a
+     * caller-scope local and is kept verbatim). Switching to argument
+     * mode on substitution prevents a caller local that happens to share
+     * a parameter's name from being substituted a second time.
      */
-    private function rebaseLocalVar(
-        LocalVarNode $node,
-        NodeEnvironmentInterface $env,
-        string $context,
-        ?SourceLocation $loc,
-        array $paramMap,
-        bool $inBody,
-    ): ?AbstractNode {
-        $name = $node->getName()->getName();
-
-        if (!$inBody) {
+    private function rebaseLocalVar(LocalVarNode $node, RebaseContext $ctx): ?AbstractNode
+    {
+        if (!$ctx->inBody) {
             // Caller-scope local inside an argument subtree: keep it.
-            return new LocalVarNode($env->withContext($context), $node->getName(), $loc);
+            return new LocalVarNode($ctx->targetEnv(), $node->getName(), $ctx->loc);
         }
 
-        if (array_key_exists($name, $paramMap)) {
-            return $this->rebase($paramMap[$name], $env, $context, $loc, $paramMap, false);
+        $name = $node->getName()->getName();
+        if (array_key_exists($name, $ctx->paramMap)) {
+            return $this->rebase($ctx->paramMap[$name], $ctx->asArgument());
         }
 
         // A non-parameter local in the callee body would reference a
@@ -222,25 +205,18 @@ final readonly class CallInliner
         return null;
     }
 
-    /**
-     * @param array<string, AbstractNode> $paramMap
-     */
-    private function rebaseCall(
-        CallNode $node,
-        NodeEnvironmentInterface $env,
-        string $context,
-        ?SourceLocation $loc,
-        array $paramMap,
-        bool $inBody,
-    ): ?AbstractNode {
-        $fn = $this->rebase($node->getFn(), $env, NodeEnvironment::CONTEXT_EXPRESSION, $loc, $paramMap, $inBody);
+    private function rebaseCall(CallNode $node, RebaseContext $ctx): ?AbstractNode
+    {
+        $subCtx = $ctx->withContext(NodeEnvironment::CONTEXT_EXPRESSION);
+
+        $fn = $this->rebase($node->getFn(), $subCtx);
         if (!$fn instanceof AbstractNode) {
             return null;
         }
 
         $args = [];
         foreach ($node->getArguments() as $arg) {
-            $rebased = $this->rebase($arg, $env, NodeEnvironment::CONTEXT_EXPRESSION, $loc, $paramMap, $inBody);
+            $rebased = $this->rebase($arg, $subCtx);
             if (!$rebased instanceof AbstractNode) {
                 return null;
             }
@@ -248,29 +224,20 @@ final readonly class CallInliner
             $args[] = $rebased;
         }
 
-        return new CallNode($env->withContext($context), $fn, $args, $loc);
+        return new CallNode($ctx->targetEnv(), $fn, $args, $ctx->loc);
     }
 
-    /**
-     * @param array<string, AbstractNode> $paramMap
-     */
-    private function rebaseIf(
-        IfNode $node,
-        NodeEnvironmentInterface $env,
-        string $context,
-        ?SourceLocation $loc,
-        array $paramMap,
-        bool $inBody,
-    ): ?AbstractNode {
-        $test = $this->rebase($node->getTestExpr(), $env, NodeEnvironment::CONTEXT_EXPRESSION, $loc, $paramMap, $inBody);
-        $then = $this->rebase($node->getThenExpr(), $env, $context, $loc, $paramMap, $inBody);
-        $else = $this->rebase($node->getElseExpr(), $env, $context, $loc, $paramMap, $inBody);
+    private function rebaseIf(IfNode $node, RebaseContext $ctx): ?AbstractNode
+    {
+        $test = $this->rebase($node->getTestExpr(), $ctx->withContext(NodeEnvironment::CONTEXT_EXPRESSION));
+        $then = $this->rebase($node->getThenExpr(), $ctx);
+        $else = $this->rebase($node->getElseExpr(), $ctx);
 
         if (!$test instanceof AbstractNode || !$then instanceof AbstractNode || !$else instanceof AbstractNode) {
             return null;
         }
 
-        return new IfNode($env->withContext($context), $test, $then, $else, $loc);
+        return new IfNode($ctx->targetEnv(), $test, $then, $else, $ctx->loc);
     }
 
     private function fold(AbstractNode $node): AbstractNode

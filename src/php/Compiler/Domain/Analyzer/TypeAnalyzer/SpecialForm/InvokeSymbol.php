@@ -76,9 +76,13 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
         if ($f instanceof GlobalVarNode) {
             $this->verifyArgsAgainstParamTags($f, $args, $list);
 
-            $inlined = new CallInliner()->tryInline($f, $args, $env, $this->analyzer, $list->getStartLocation());
-            if ($inlined instanceof AbstractNode) {
-                return $inlined;
+            // Skip the inliner allocation entirely on the default path;
+            // it only does work at optimization level >= 2.
+            if ($this->analyzer->getOptimizationLevel() >= 2) {
+                $inlined = new CallInliner()->tryInline($f, $args, $env, $this->analyzer, $list->getStartLocation());
+                if ($inlined instanceof AbstractNode) {
+                    return $inlined;
+                }
             }
         }
 
