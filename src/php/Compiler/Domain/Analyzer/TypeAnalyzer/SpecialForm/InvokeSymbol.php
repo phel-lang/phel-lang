@@ -14,6 +14,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\QuoteNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\ConstantFolder;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification\CallInliner;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -74,6 +75,11 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
 
         if ($f instanceof GlobalVarNode) {
             $this->verifyArgsAgainstParamTags($f, $args, $list);
+
+            $inlined = new CallInliner()->tryInline($f, $args, $env, $this->analyzer, $list->getStartLocation());
+            if ($inlined instanceof AbstractNode) {
+                return $inlined;
+            }
         }
 
         $call = new CallNode(
