@@ -116,6 +116,26 @@ final class SymbolicPurityDetectorTest extends TestCase
         self::assertFalse($this->detector->isPure($node));
     }
 
+    public function test_pure_annotated_user_call_is_pure(): void
+    {
+        // A user fn tagged `^:pure` is trusted as a pure operator.
+        $pureFn = new GlobalVarNode($this->env, 'user', Symbol::create('p'), Phel::map(Keyword::create('pure'), true));
+        $node = new CallNode($this->env, $pureFn, [new LocalVarNode($this->env, Symbol::create('x'))]);
+
+        self::assertTrue($this->detector->isPure($node));
+    }
+
+    public function test_pure_annotated_call_with_impure_argument_is_impure(): void
+    {
+        // The operator is trusted, but an impure argument still taints it.
+        $pureFn = new GlobalVarNode($this->env, 'user', Symbol::create('p'), Phel::map(Keyword::create('pure'), true));
+        $node = new CallNode($this->env, $pureFn, [
+            $this->coreCall('println', [new LocalVarNode($this->env, Symbol::create('x'))]),
+        ]);
+
+        self::assertFalse($this->detector->isPure($node));
+    }
+
     public function test_pure_call_with_impure_argument_is_impure(): void
     {
         // `(+ (println x) 1)` — operator is pure but an argument is not.

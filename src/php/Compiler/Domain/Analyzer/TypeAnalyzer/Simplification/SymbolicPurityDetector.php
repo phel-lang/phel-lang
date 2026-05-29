@@ -14,6 +14,8 @@ use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\SetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Keyword;
 use Phel\Shared\CompilerConstants;
 
 use function array_all;
@@ -148,6 +150,14 @@ final readonly class SymbolicPurityDetector
     }
 
     /**
+     * @param PersistentMapInterface<mixed, mixed> $meta
+     */
+    public function isPureAnnotated(PersistentMapInterface $meta): bool
+    {
+        return (bool) $meta[Keyword::create('pure')];
+    }
+
+    /**
      * @param array<int, AbstractNode> $nodes
      */
     private function allPure(array $nodes): bool
@@ -168,8 +178,16 @@ final readonly class SymbolicPurityDetector
         }
 
         if ($fn instanceof GlobalVarNode) {
-            return $fn->getNamespace() === CompilerConstants::PHEL_CORE_NAMESPACE
-                && isset(self::PURE_CORE_FNS[$fn->getName()->getName()]);
+            if ($fn->getNamespace() === CompilerConstants::PHEL_CORE_NAMESPACE
+                && isset(self::PURE_CORE_FNS[$fn->getName()->getName()])
+            ) {
+                return true;
+            }
+
+            // Opt-in trust: a `defn` tagged `^:pure` asserts that its calls
+            // are side-effect-free, so the inliner may treat them like the
+            // built-in pure ops. Mis-annotation is the author's responsibility.
+            return $this->isPureAnnotated($fn->getMeta());
         }
 
         return false;
