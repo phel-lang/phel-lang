@@ -174,4 +174,26 @@ final class CallInlineRuntimeTest extends TestCase
         self::assertStringNotContainsString('inline-sq', $php);
         self::assertSame(36, $this->compilerFacade->eval('(let [y 5] (inline-sq (+ y 1)))', $options));
     }
+
+    public function test_defn_returning_a_vector_is_inlined(): void
+    {
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        $this->compilerFacade->eval('(defn make-pair [a b] [a b])', $options);
+
+        $php = $this->compilerFacade->compile('(make-pair 1 2)', $options)->getPhpCode();
+
+        self::assertStringNotContainsString('make-pair', $php);
+        self::assertTrue($this->compilerFacade->eval('(= [1 2] (make-pair 1 2))', $options));
+    }
+
+    public function test_defn_returning_a_map_is_inlined(): void
+    {
+        $options = new CompileOptions()->setOptimizationLevel(2);
+        $this->compilerFacade->eval('(defn make-box [v] {:val v})', $options);
+
+        $php = $this->compilerFacade->compile('(make-box 5)', $options)->getPhpCode();
+
+        self::assertStringNotContainsString('make-box', $php);
+        self::assertTrue($this->compilerFacade->eval('(= {:val 5} (make-box 5))', $options));
+    }
 }

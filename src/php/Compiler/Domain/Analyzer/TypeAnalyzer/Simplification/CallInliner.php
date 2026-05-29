@@ -15,8 +15,11 @@ use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\RecurFrame;
+use Phel\Compiler\Domain\Analyzer\Ast\SetNode;
+use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\ConstantFolder;
@@ -210,7 +213,32 @@ final readonly class CallInliner
                 + $this->countUses($name, $node->getElseExpr());
         }
 
+        if ($node instanceof VectorNode) {
+            return $this->countUsesInAll($name, $node->getArgs());
+        }
+
+        if ($node instanceof SetNode) {
+            return $this->countUsesInAll($name, $node->getValues());
+        }
+
+        if ($node instanceof MapNode) {
+            return $this->countUsesInAll($name, $node->getKeyValues());
+        }
+
         return 0;
+    }
+
+    /**
+     * @param array<int, AbstractNode> $nodes
+     */
+    private function countUsesInAll(string $name, array $nodes): int
+    {
+        $count = 0;
+        foreach ($nodes as $node) {
+            $count += $this->countUses($name, $node);
+        }
+
+        return $count;
     }
 
     /**
@@ -252,7 +280,55 @@ final readonly class CallInliner
             return $this->rebaseIf($node, $ctx);
         }
 
+        if ($node instanceof VectorNode) {
+            $args = $this->rebaseElements($node->getArgs(), $ctx);
+
+            return $args === null ? null : new VectorNode($ctx->targetEnv(), $args, $ctx->loc);
+        }
+
+        if ($node instanceof SetNode) {
+            $values = $this->rebaseElements($node->getValues(), $ctx);
+
+            return $values === null ? null : new SetNode($ctx->targetEnv(), $values, $ctx->loc);
+        }
+
+        if ($node instanceof MapNode) {
+            $keyValues = $this->rebaseElements($node->getKeyValues(), $ctx);
+
+            return $keyValues === null ? null : new MapNode($ctx->targetEnv(), $keyValues, $ctx->loc);
+        }
+
         return null;
+    }
+
+    /**
+     * Rebases each element of a collection literal in expression context
+     * (collection elements always emit as expressions). Returns `null`
+     * as soon as any element falls outside the whitelist.
+     *
+     * Reader-attached meta is dropped intentionally: {@see SymbolicPurityDetector}
+     * only reports a meta-free collection as pure, so a node reaching
+     * here never carried any.
+     *
+     * @param array<int, AbstractNode> $nodes
+     *
+     * @return array<int, AbstractNode>|null
+     */
+    private function rebaseElements(array $nodes, RebaseContext $ctx): ?array
+    {
+        $subCtx = $ctx->withContext(NodeEnvironment::CONTEXT_EXPRESSION);
+
+        $rebased = [];
+        foreach ($nodes as $node) {
+            $element = $this->rebase($node, $subCtx);
+            if (!$element instanceof AbstractNode) {
+                return null;
+            }
+
+            $rebased[] = $element;
+        }
+
+        return $rebased;
     }
 
     /**
