@@ -10,7 +10,7 @@ use Phel\Lang\Symbol;
 
 use function count;
 
-final class FnNode extends AbstractNode
+final class FnNode extends AbstractNode implements FnNodeInterface
 {
     private bool $isDefinition = false;
 
@@ -122,5 +122,12 @@ final class FnNode extends AbstractNode
     public function getRecurs(): bool
     {
         return $this->recurs;
+    }
+
+    public function arityFor(int $argCount): ?self
+    {
+        return !$this->isVariadic && count($this->params) === $argCount
+            ? $this
+            : null;
     }
 }

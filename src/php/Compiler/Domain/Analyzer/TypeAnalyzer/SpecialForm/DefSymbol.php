@@ -100,6 +100,9 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
             $metaMap = $metaMap->put('is-variadic', $initNode->isVariadic());
             $metaMap = $metaMap->put('arglists', $this->buildFnNodeArglist($initNode, $skip));
         } elseif ($initNode instanceof MultiFnNode) {
+            // Stash multi-arity defs too so the inliner can select the
+            // arity matching a call's argument count (#2218).
+            $this->analyzer->setDefFnNode($namespace, $nameSymbol, $initNode);
             $metaMap = $metaMap->put('min-arity', max(0, $initNode->getMinArity() - $skip));
             $metaMap = $metaMap->put('is-variadic', $initNode->isVariadic());
             $maxArity = $initNode->getMaxArity();
