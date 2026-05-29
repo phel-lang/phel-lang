@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file.
 
 Opt-in (`CompileOptions::setOptimizationLevel(2)`):
 - `TailCallRewriter`: detect self-recursive `defn` calls in tail position and rewrite them into an implicit `recur` loop. Eliminates per-iteration PHP stack frames. Variadic and multi-arity defs are skipped. Stack-trace shape inside the loop changes from N frames to one (#2141)
-- `CallInliner`: splice the body of a single-arity pure `defn` at the call site instead of dispatching through the resolved `AbstractFn`, skipping one PHP frame and exposing the body to constant folding (e.g. `(my-inc 5)` → `6`). Only fires when every argument is pure (`SymbolicPurityDetector`) and the body is one pure expression; variadic, recursive, memoised and `^:async` defs are skipped (#2135)
+- `CallInliner`: splice the body of a single-arity pure `defn` at the call site instead of dispatching through the resolved `AbstractFn`, skipping one PHP frame and exposing the body to constant folding (e.g. `(my-inc 5)` → `6`). Pure arguments substitute directly; impure or multi-use arguments are bound to a fresh gensym `let` so each still evaluates exactly once, left to right (e.g. `(f (read-line))` for `(defn f [x] (+ x x))` reads once). The body must be one pure expression; variadic, recursive, memoised and `^:async` defs are skipped (#2135, #2215)
 
 Compile-time folding and simplification:
 - `ConstantFolder`: fold pure `phel.core` calls on literal args (comparisons, boolean predicates, bitwise / `bit-*`, `count` / `first` / `last` / `nth` on literal collections, `str`, `min` / `max` / `mod` / `quot` / `rem` / `abs`). Skipped when runtime would throw or promote (#2088)

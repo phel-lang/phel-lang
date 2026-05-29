@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
@@ -101,18 +102,51 @@ final class CallInlinerTest extends TestCase
         ]));
     }
 
-    public function test_declines_impure_argument(): void
+    public function test_binds_impure_argument_to_a_let(): void
     {
+        // (defn my-inc [x] (+ x 1)) called with the impure arg `(some-fn)`:
+        // the arg must be bound once, so the result wraps the body in a let.
         $this->seedDefn('my-inc', ['x'], $this->plusBody('x', 1));
 
-        // arg `(some-fn)` is a user call -> impure
         $impureArg = new CallNode(
             $this->env,
             new GlobalVarNode($this->env, 'user', Symbol::create('some-fn'), Phel::map()),
             [],
         );
 
-        self::assertNull($this->inline('my-inc', [$impureArg]));
+        $result = $this->inline('my-inc', [$impureArg]);
+
+        self::assertInstanceOf(LetNode::class, $result);
+        self::assertCount(1, $result->getBindings());
+        self::assertSame($impureArg, $result->getBindings()[0]->getInitExpr());
+    }
+
+    public function test_binds_pure_argument_used_more_than_once(): void
+    {
+        // (defn sq [x] (* x x)) called with `(+ y 1)` (pure, two uses):
+        // binding avoids duplicating the addition.
+        $this->seedDefn('sq', ['x'], $this->squareBody('x'));
+
+        $pureMultiUse = new CallNode(
+            $this->env,
+            new GlobalVarNode($this->env, CompilerConstants::PHEL_CORE_NAMESPACE, Symbol::create('+'), Phel::map()),
+            [new LocalVarNode($this->env, Symbol::create('y')), new LiteralNode($this->env, 1)],
+        );
+
+        $result = $this->inline('sq', [$pureMultiUse]);
+
+        self::assertInstanceOf(LetNode::class, $result);
+        self::assertCount(1, $result->getBindings());
+    }
+
+    public function test_substitutes_pure_single_use_argument_without_binding(): void
+    {
+        // A pure arg used once is substituted directly (no let wrapper).
+        $this->seedDefn('my-inc', ['x'], $this->plusBody('x', 1));
+
+        $result = $this->inline('my-inc', [new LocalVarNode($this->env, Symbol::create('y'))]);
+
+        self::assertInstanceOf(CallNode::class, $result);
     }
 
     public function test_declines_impure_body(): void
@@ -185,5 +219,20 @@ final class CallInlinerTest extends TestCase
             new GlobalVarNode($this->env, CompilerConstants::PHEL_CORE_NAMESPACE, Symbol::create('+'), Phel::map()),
             [new LocalVarNode($this->env, Symbol::create($param)), new LiteralNode($this->env, $addend)],
         );
+    }
+
+    private function squareBody(string $param): DoNode
+    {
+        // (* param param) -> the param is used twice.
+        $ret = new CallNode(
+            $this->env,
+            new GlobalVarNode($this->env, CompilerConstants::PHEL_CORE_NAMESPACE, Symbol::create('*'), Phel::map()),
+            [
+                new LocalVarNode($this->env, Symbol::create($param)),
+                new LocalVarNode($this->env, Symbol::create($param)),
+            ],
+        );
+
+        return new DoNode($this->env, [], $ret);
     }
 }

@@ -6,11 +6,13 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification;
 
 use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Domain\Analyzer\Ast\BindingNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
 use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
@@ -21,6 +23,7 @@ use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\ConstantFolder;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\SourceLocation;
+use Phel\Lang\Symbol;
 
 use function array_key_exists;
 use function count;
@@ -38,10 +41,15 @@ use function count;
  *
  * Soundness rests on three restrictions:
  *
- *  1. **Pure arguments only.** Each argument must be pure per
- *     {@see SymbolicPurityDetector}, so dropping (unused param),
- *     duplicating (param used more than once) or reordering it across
- *     the splice has no observable effect.
+ *  1. **Argument evaluation is preserved.** A *pure* argument
+ *     ({@see SymbolicPurityDetector}) can be dropped (unused param),
+ *     duplicated (param used more than once) or reordered with no
+ *     observable effect, so it is substituted into the body directly
+ *     (which also exposes it to constant folding). An *impure* argument,
+ *     or a pure one used more than once, is bound to a fresh gensym
+ *     `let` at the call site and the body references that binding — so
+ *     each argument still evaluates exactly once, left to right
+ *     (issue #2215).
  *  2. **Pure single-expression body.** The body must be one pure
  *     expression (a `DoNode` with no leading statements), so splicing it
  *     exactly once preserves the callee's semantics and effect count.
@@ -111,30 +119,97 @@ final readonly class CallInliner
             return null;
         }
 
-        foreach ($args as $arg) {
-            if (!$this->purity->isPure($arg)) {
-                return null;
-            }
-        }
-
         $ret = $body->getRet();
         if (!$this->purity->isPure($ret)) {
             return null;
         }
 
+        // Pure args substitute straight into the body (folding-friendly);
+        // impure or pure-but-multi-use args bind to a fresh gensym `let`
+        // so they evaluate exactly once, left to right.
+        $bindings = [];
         $paramMap = [];
         foreach ($params as $i => $param) {
-            $paramMap[$param->getName()] = $args[$i];
+            $arg = $args[$i];
+            $name = $param->getName();
+
+            if ($this->shouldBind($arg, $name, $ret)) {
+                $shadow = Symbol::gen($name . '_')->copyLocationFrom($param);
+                $bindings[] = new BindingNode($env, $param, $shadow, $arg, $callLocation);
+                $paramMap[$name] = new LocalVarNode($env, $shadow, $callLocation);
+
+                continue;
+            }
+
+            $paramMap[$name] = $arg;
         }
+
+        // The body of a binding-wrapping `let` emits under the let body's
+        // context (return when the call site is an expression, so the
+        // generated IIFE returns the value); the unwrapped splice keeps
+        // the call site's own context byte-for-byte.
+        $bodyContext = ($bindings !== [] && $env->isContext(NodeEnvironment::CONTEXT_EXPRESSION))
+            ? NodeEnvironment::CONTEXT_RETURN
+            : $env->getContext();
 
         // `rebase` can still abort (returning `null`) if the body holds a
         // node type outside the whitelist or a non-parameter local.
-        $inlined = $this->rebase($ret, new RebaseContext($env, $env->getContext(), $callLocation, $paramMap, true));
+        $inlined = $this->rebase($ret, new RebaseContext($env, $bodyContext, $callLocation, $paramMap, true));
         if (!$inlined instanceof AbstractNode) {
             return null;
         }
 
-        return $this->fold($inlined);
+        $folded = $this->fold($inlined);
+        if ($bindings === []) {
+            return $folded;
+        }
+
+        $letNode = new LetNode($env, $bindings, $folded, false, $callLocation);
+
+        return new LetSimplifier()->simplify($letNode);
+    }
+
+    /**
+     * A pure argument is substituted directly unless it is a non-literal
+     * used more than once in the body (then binding it avoids duplicating
+     * the computation). An impure argument always binds, so its single
+     * effect is preserved even when the param is unused or repeated.
+     */
+    private function shouldBind(AbstractNode $arg, string $paramName, AbstractNode $body): bool
+    {
+        if (!$this->purity->isPure($arg)) {
+            return true;
+        }
+
+        if ($arg instanceof LiteralNode) {
+            return false;
+        }
+
+        return $this->countUses($paramName, $body) > 1;
+    }
+
+    private function countUses(string $name, AbstractNode $node): int
+    {
+        if ($node instanceof LocalVarNode) {
+            return $node->getName()->getName() === $name ? 1 : 0;
+        }
+
+        if ($node instanceof CallNode) {
+            $count = $this->countUses($name, $node->getFn());
+            foreach ($node->getArguments() as $arg) {
+                $count += $this->countUses($name, $arg);
+            }
+
+            return $count;
+        }
+
+        if ($node instanceof IfNode) {
+            return $this->countUses($name, $node->getTestExpr())
+                + $this->countUses($name, $node->getThenExpr())
+                + $this->countUses($name, $node->getElseExpr());
+        }
+
+        return 0;
     }
 
     /**
