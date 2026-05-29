@@ -14,6 +14,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification\CallInliner;
@@ -147,6 +148,28 @@ final class CallInlinerTest extends TestCase
         $result = $this->inline('my-inc', [new LocalVarNode($this->env, Symbol::create('y'))]);
 
         self::assertInstanceOf(CallNode::class, $result);
+    }
+
+    public function test_inlines_defn_returning_a_vector(): void
+    {
+        // (defn pair [a b] [a b]) ; (pair y z) -> [y z], no dispatch.
+        $body = new DoNode($this->env, [], new VectorNode($this->env, [
+            new LocalVarNode($this->env, Symbol::create('a')),
+            new LocalVarNode($this->env, Symbol::create('b')),
+        ]));
+        $this->seedDefn('pair', ['a', 'b'], $body);
+
+        $result = $this->inline('pair', [
+            new LocalVarNode($this->env, Symbol::create('y')),
+            new LocalVarNode($this->env, Symbol::create('z')),
+        ]);
+
+        self::assertInstanceOf(VectorNode::class, $result);
+        $args = $result->getArgs();
+        self::assertInstanceOf(LocalVarNode::class, $args[0]);
+        self::assertInstanceOf(LocalVarNode::class, $args[1]);
+        self::assertSame('y', $args[0]->getName()->getName());
+        self::assertSame('z', $args[1]->getName()->getName());
     }
 
     public function test_declines_impure_body(): void

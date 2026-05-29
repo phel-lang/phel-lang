@@ -10,7 +10,10 @@ use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\IfNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\MapNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\SetNode;
+use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Shared\CompilerConstants;
 
 use function array_all;
@@ -125,19 +128,37 @@ final readonly class SymbolicPurityDetector
             return $this->isPureCall($node);
         }
 
+        // Building a persistent collection is side-effect-free, so a
+        // literal is pure when every element is. Reader-attached meta
+        // (`^{…}`) is treated as impure here so the classification stays
+        // in lockstep with what the call inliner can rebase.
+        if ($node instanceof VectorNode) {
+            return !$node->getMeta() instanceof MapNode && $this->allPure($node->getArgs());
+        }
+
+        if ($node instanceof SetNode) {
+            return !$node->getMeta() instanceof MapNode && $this->allPure($node->getValues());
+        }
+
+        if ($node instanceof MapNode) {
+            return !$node->getLiteralMeta() instanceof MapNode && $this->allPure($node->getKeyValues());
+        }
+
         return false;
+    }
+
+    /**
+     * @param array<int, AbstractNode> $nodes
+     */
+    private function allPure(array $nodes): bool
+    {
+        return array_all($nodes, fn(AbstractNode $node): bool => $this->isPure($node));
     }
 
     private function isPureCall(CallNode $node): bool
     {
-        if (!$this->isPureOperator($node->getFn())) {
-            return false;
-        }
-
-        return array_all(
-            $node->getArguments(),
-            fn(AbstractNode $arg): bool => $this->isPure($arg),
-        );
+        return $this->isPureOperator($node->getFn())
+            && $this->allPure($node->getArguments());
     }
 
     private function isPureOperator(AbstractNode $fn): bool
