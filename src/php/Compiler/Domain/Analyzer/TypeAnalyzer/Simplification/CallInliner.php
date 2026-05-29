@@ -127,7 +127,7 @@ final readonly class CallInliner
         // trust the annotation instead of structurally proving the body
         // pure. The rebaser still aborts on any unsupported node type.
         $ret = $body->getRet();
-        if (!SymbolicPurityDetector::isPureAnnotated($f->getMeta())
+        if (!$this->purity->isPureAnnotated($f->getMeta())
             && !$this->purity->isPure($ret)
         ) {
             return null;

@@ -152,7 +152,7 @@ final readonly class SymbolicPurityDetector
     /**
      * @param PersistentMapInterface<mixed, mixed> $meta
      */
-    public static function isPureAnnotated(PersistentMapInterface $meta): bool
+    public function isPureAnnotated(PersistentMapInterface $meta): bool
     {
         return (bool) $meta[Keyword::create('pure')];
     }
@@ -187,7 +187,7 @@ final readonly class SymbolicPurityDetector
             // Opt-in trust: a `defn` tagged `^:pure` asserts that its calls
             // are side-effect-free, so the inliner may treat them like the
             // built-in pure ops. Mis-annotation is the author's responsibility.
-            return self::isPureAnnotated($fn->getMeta());
+            return $this->isPureAnnotated($fn->getMeta());
         }
 
         return false;
