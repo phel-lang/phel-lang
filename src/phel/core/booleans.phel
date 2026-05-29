@@ -163,22 +163,35 @@
       (php/instanceof x BigInt)
       (php/instanceof x BigDecimal)))
 
+(defn- assert-non-nil
+  "Rejects `nil` operands so ordered comparisons fail loudly instead of
+  silently coercing `nil` to 0. Mirrors the arithmetic functions, which
+  already reject `nil`, and matches Clojure/JVM (which throws). Defined
+  locally because `booleans` loads before the arithmetic module."
+  [a b]
+  (when (or (php/=== nil a) (php/=== nil b))
+    (throw (php/new InvalidArgumentException "Comparison functions do not accept nil values"))))
+
 (defn- lt2 [a b]
+  (assert-non-nil a b)
   (if (or (numeric-object? a) (numeric-object? b))
     (php/< (php/:: NumericOperations (compare a b)) 0)
     (php/< a b)))
 
 (defn- lte2 [a b]
+  (assert-non-nil a b)
   (if (or (numeric-object? a) (numeric-object? b))
     (php/<= (php/:: NumericOperations (compare a b)) 0)
     (php/<= a b)))
 
 (defn- gt2 [a b]
+  (assert-non-nil a b)
   (if (or (numeric-object? a) (numeric-object? b))
     (php/> (php/:: NumericOperations (compare a b)) 0)
     (php/> a b)))
 
 (defn- gte2 [a b]
+  (assert-non-nil a b)
   (if (or (numeric-object? a) (numeric-object? b))
     (php/>= (php/:: NumericOperations (compare a b)) 0)
     (php/>= a b)))

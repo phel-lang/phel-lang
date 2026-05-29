@@ -126,6 +126,19 @@
   (is (false? (<= 10 20 15)) "(<= 10 20 15)")
   (is (true? (<= 10 20 20)) "(<= 10 20 20)"))
 
+(deftest test-comparison-nil-throws
+  ;; Ordered comparisons reject nil instead of silently coercing it to 0,
+  ;; matching the arithmetic functions and Clojure/JVM.
+  (is (thrown? \InvalidArgumentException (< nil 1)) "(< nil 1)")
+  (is (thrown? \InvalidArgumentException (< 1 nil)) "(< 1 nil)")
+  (is (thrown? \InvalidArgumentException (< 1 2 nil)) "(< 1 2 nil)")
+  (is (thrown? \InvalidArgumentException (<= nil 1)) "(<= nil 1)")
+  (is (thrown? \InvalidArgumentException (<= 1 nil)) "(<= 1 nil)")
+  (is (thrown? \InvalidArgumentException (> 1 nil)) "(> 1 nil)")
+  (is (thrown? \InvalidArgumentException (> nil 1)) "(> nil 1)")
+  (is (thrown? \InvalidArgumentException (>= 1 nil)) "(>= 1 nil)")
+  (is (thrown? \InvalidArgumentException (>= nil 1)) "(>= nil 1)"))
+
 (deftest test->
   (is (true? (> 10)) "(> 10)")
   (is (true? (> 20 10)) "(> 20 10)")
