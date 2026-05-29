@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Analyzer\TypeAnalyzer\SpecialForm;
 
 use Exception;
 use Phel;
+use Phel\Compiler\Domain\Analyzer\AnalyzerInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
@@ -14,7 +15,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\QuoteNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\ConstantFolder;
-use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\WithAnalyzerTrait;
+use Phel\Compiler\Domain\Analyzer\TypeAnalyzer\Simplification\CallInliner;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Collections\Vector\PersistentVectorInterface;
@@ -38,11 +39,18 @@ use function sprintf;
  *
  * Invokes a function or callable with the given arguments.
  */
-final class InvokeSymbol implements SpecialFormAnalyzerInterface
+final readonly class InvokeSymbol implements SpecialFormAnalyzerInterface
 {
-    use WithAnalyzerTrait;
-
     private const string UNHANDLED = "\0__phel_unhandled__";
+
+    private CallInliner $callInliner;
+
+    public function __construct(
+        private AnalyzerInterface $analyzer,
+        ?CallInliner $callInliner = null,
+    ) {
+        $this->callInliner = $callInliner ?? new CallInliner();
+    }
 
     /**
      * @param PersistentListInterface<mixed> $list
@@ -74,6 +82,15 @@ final class InvokeSymbol implements SpecialFormAnalyzerInterface
 
         if ($f instanceof GlobalVarNode) {
             $this->verifyArgsAgainstParamTags($f, $args, $list);
+
+            // Skip the inliner call on the default path; it only does
+            // work at optimization level >= 2.
+            if ($this->analyzer->getOptimizationLevel() >= 2) {
+                $inlined = $this->callInliner->tryInline($f, $args, $env, $this->analyzer, $list->getStartLocation());
+                if ($inlined instanceof AbstractNode) {
+                    return $inlined;
+                }
+            }
         }
 
         $call = new CallNode(

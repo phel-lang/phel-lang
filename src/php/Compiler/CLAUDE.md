@@ -65,6 +65,8 @@ Core compilation pipeline: Phel source -> tokens -> AST -> analyzed nodes -> PHP
 
 The simplification pass runs **after** the analyser-level `ConstantFolder`. It currently drops pure non-tail expressions from `(do ...)` bodies; purity is decided by `PureExpressionDetector`, which delegates `CallNode` checks to `ConstantFolder` so a call is "pure" only when the folder can statically compute its value (calls that would throw at runtime stay un-dropped).
 
+`Simplification/` also hosts the call inliner (opt level >= 2, issue #2135): `InvokeSymbol` calls `CallInliner::tryInline()` for a `GlobalVarNode` callee. When the callee is a single-arity, non-variadic, non-recursive, non-memoised pure `defn` (body read from the `GlobalEnvironment` `defFnNode` side-table) and every argument is pure, the body is spliced at the call site with parameters replaced by the argument nodes and envs rebased onto the caller. Purity here is structural via `SymbolicPurityDetector` (a closed allowlist of side-effect-free `phel.core` / `php/` ops), unlike `PureExpressionDetector` which proves purity by full evaluation. At opt level < 2 `tryInline` returns `null` immediately, so default output is unchanged.
+
 ## Structure
 
 ```
