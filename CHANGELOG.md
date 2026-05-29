@@ -12,70 +12,45 @@ All notable changes to this project will be documented in this file.
 ### Performance
 
 Opt-in (`CompileOptions::setOptimizationLevel(2)`):
-- `TailCallRewriter`: detect self-recursive `defn` calls in tail position and rewrite them into an implicit `recur` loop. Eliminates per-iteration PHP stack frames. Variadic and multi-arity defs are skipped. Stack-trace shape inside the loop changes from N frames to one (#2141)
-- `CallInliner`: splice the body of a single-arity pure `defn` at the call site instead of dispatching through the resolved `AbstractFn`, skipping one PHP frame and exposing the body to constant folding (e.g. `(my-inc 5)` → `6`). Pure arguments substitute directly; impure or multi-use arguments are bound to a fresh gensym `let` so each still evaluates exactly once, left to right (e.g. `(f (read-line))` for `(defn f [x] (+ x x))` reads once). The body must be one pure expression — now including vector / map / set literals, so data-constructor defns like `(defn pair [a b] [a b])` inline too. A `defn` tagged `^:pure` is trusted as side-effect-free, so it inlines even when its body cannot be structurally proven pure and its calls count as pure operators inside other inlinable bodies (mis-annotation is the author's responsibility). Multi-arity defns inline too — the fixed arity whose parameter count matches the call is selected (`(defn poly ([x] …) ([x y] …))`). Variadic, recursive, memoised and `^:async` defs (and the variadic arity of a multi-arity def) are skipped (#2135, #2215, #2216, #2217, #2218)
+- `TailCallRewriter`: rewrite self-recursive tail calls into a `recur` loop, dropping per-iteration PHP frames (variadic / multi-arity skipped) (#2141)
+- `CallInliner`: inline single-arity pure `defn` bodies at the call site, exposing them to constant folding; args still evaluate once; `^:pure` opts in; multi-arity inlines the matching arity; variadic / recursive / memoised / `^:async` skipped (#2135, #2215, #2216, #2217, #2218)
 
 Compile-time folding and simplification:
-- `ConstantFolder`: fold pure `phel.core` calls on literal args (comparisons, boolean predicates, bitwise / `bit-*`, `count` / `first` / `last` / `nth` on literal collections, `str`, `min` / `max` / `mod` / `quot` / `rem` / `abs`). Skipped when runtime would throw or promote (#2088)
-- `ConstantFolder`: 3-arg `(reduce f init [literals…])` with `f` a whitelisted binary `phel.core` reducer (`+` / `*` / `-` / `min` / `max` / `mod` / `quot` / `rem`). Aborts the fold when any step would itself refuse (e.g. divide-by-zero) so runtime errors stay at runtime (#2140)
+- `ConstantFolder`: fold pure `phel.core` calls on literal args, and 3-arg `reduce` with whitelisted binary reducers; aborts when runtime would throw or promote (#2088, #2140)
 - `DoSimplifier` / `LetSimplifier`: drop pure non-tail exprs and unused bindings; inline `(let [x <lit>] x)` (#2089)
 
 Call-site lowering (`CallSpecialization`, analyser-tag-driven):
-- Persistent collection methods: `count` / `nth` / `first` / `rest` / `assoc` / `conj` / `dissoc` on tagged persistents → direct method call (#2090)
-- Variadic (N>=3) `+` / `*` / `<` / `<=` / `>` / `>=` on tagged numeric locals → native chain; literal-int chains stay on runtime dispatch so overflow still promotes (#2090)
-- `(not (= a b))` peephole → `($a !== $b)` (#2090)
-- `(apply f [a b c])` with fixed-arity `f` and matching vector literal → direct `__invoke` (#2090)
-- `(get arr k [default])` on `^array` → native subscript with `??` (#2139)
-- Calls on `^AbstractFn` / `^FnInterface` locals → `$f->__invoke(...)` instead of magic dispatch (#2142)
-- Nested `assoc` / `conj` chains on typed persistents → single transient round-trip (#2143)
-- Predicates: `nil?` / `some?` (#2157), `true?` / `false?` / `truthy?` / numeric predicates on tagged numerics (#2160), 1-arg type predicates `int?` / `float?` / `double?` / `string?` / `keyword?` / `symbol?` / `ratio?` (#2162), `struct?` / `set?` / `lazy-seq?` / `queue?` (#2168), multi-instanceof `map?` / `vector?` / `seq?` (#2177)
-- `(count arr)` on `^array` → native `count()` (#2158)
-- `(name k)` / `(namespace k)` on `^Keyword` / `^Symbol` → direct method call (#2164)
-- `(empty? x)` → tag-specific native check (#2166)
-- `(contains? coll k)` → `$coll->contains($k)` / `array_key_exists(...)` (#2170)
-- `(deref x)` (1-arg) / `(reset! v val)` → direct method call (#2179)
+- Persistent collection methods, fn-handle (`^AbstractFn` / `^FnInterface`) calls, and nested `assoc` / `conj` chains → direct / native calls (#2090, #2142, #2143)
+- Variadic numeric ops on tagged locals → native chain (literal-int chains stay on dispatch so overflow promotes) (#2090)
+- Peepholes: `(not (= a b))`, `(apply f […])`, `(get arr k)` on `^array` (#2090, #2139)
+- Predicate specialisation: `nil?` / `some?`, bool, numeric, 1-arg type, `struct?` / `set?`, and `map?` / `vector?` / `seq?` predicates (#2157, #2160, #2162, #2168, #2177)
+- Direct calls on tagged values: `count` on `^array`, `name` / `namespace`, `empty?`, `contains?`, `deref` / `reset!` (#2158, #2164, #2166, #2170, #2179)
+- Known `php/*` scalar return-type inference + typed-arith result propagation, so nested expressions chain to native PHP (`(+ sum (* d (php/cos a)))` → `($sum + ($d * cos($a)))`) (#2175)
 
 Control-flow lowering:
-- Nested `if` chains comparing one local against primitive literal keys → PHP `match`, in both `LetEmitter` and `IfEmitter` (#2091)
-- `(or …)` / `(and …)` in `if` test → flat `||` / `&&` chain, skipping the IIFE (#2132)
-- `(or …)` / `(and …)` in expression / return context → nested ternary preserving Phel value-semantics (#2174)
-- `if (…) { return a; } else { return b; }` with simple branches → `return (cond ? a : b);` (#2133)
-- Drop `else { null; }` branch when else is `nil` literal in statement context (#2134)
+- `if` chains on literal keys → PHP `match`; `(or …)` / `(and …)` → `||` / `&&` / ternary preserving value-semantics; `if/else return` → ternary; drop redundant `else nil` (#2091, #2132, #2133, #2134, #2174)
 
 Emit-shape tweaks:
-- `DefStructEmitter`: emit `defstruct` classes as `final` for OPcache / JIT monomorphisation; `def-exception` stays open (#2137)
-- `LetEmitter`: emit `/** @var T $shadow */` for tagged `let` / `loop` bindings (static-analyser hint; runtime unchanged) (#2136)
-- `LiteralEmitter`: emit keyword literals as direct `\Phel\Lang\Keyword::create(...)` instead of `\Phel::keyword(...)` (#2131)
-- `BodyConstantScanner`: skip slot reservations for call/literal nodes that `IfChainMatchLowerer` will consume, closing the orphan-slot path; `OrphanCallSlotAuditTest` regression guard added (#2144)
-- `BooleanExprDetector`: recognise specialised predicate calls as bool-returning, so `IfEmitter` splices them into the test slot without the Phel-truthy adapter (#2172)
-
-- `CallSpecialization`: infer return types of known `php/*` scalar functions (`cos`, `sin`, `sqrt`, `count`, `strlen`, `intval`, `floor`, `is_int`, `sprintf`, etc.) via a private `KnownPhpFunctionReturnTypes` table, plus propagate the result tag of typed-arith calls (`+` / `-` / `*` on `int`/`float`-tagged operands) so nested expressions chain. `(+ ^float angle (php/cos a))` now emits native `($angle + cos($a))` instead of runtime dispatch; `(+ sum (* d (php/cos angle)))` chains all the way to `($sum + ($d * cos($angle)))`. Unlisted PHP functions stay on the runtime dispatch. Path 2 (best-effort propagation through `php/aget` via an `:items-type` meta hint) is deferred (#2175)
+- `defstruct` classes emitted `final` (`def-exception` stays open) (#2137); `@var` hints for tagged `let` / `loop` bindings (#2136); keyword literals via `Keyword::create` (#2131); orphan-slot fix + regression guard (#2144); specialised predicates recognised as bool-returning (#2172)
 
 ### Fixed
 
-- Ordered comparisons `<` / `<=` / `>` / `>=` now reject `nil` operands with `InvalidArgumentException` instead of silently coercing `nil` to `0` (e.g. `(<= nil 1)` was `true`). Matches the arithmetic functions, which already reject `nil`, and Clojure/JVM. Surfaced by the clojure-test-suite CI job (#2223)
-- Transients now reject reuse after `persistent!`: calling `conj!` / `assoc!` / `dissoc!` / `disj!` / `pop!` on a transient (or `persistent!` a second time) after it has been made persistent throws `RuntimeException` ("Transient used after persistent! call") instead of silently mutating structure shared with the persisted value. Matches Clojure's transient contract. Persistent ops on transients (`conj` / `assoc` / `dissoc`) stay lenient by design — the fast `into` / `group-by` paths rely on it. Surfaced by the clojure-test-suite CI job (#2223)
-- `nan?` / `NaN?` on `nil` now returns `false` cleanly instead of leaking a PHP `is_nan(): Passing null ... is deprecated` warning (#2223)
-- `take`'s lazy (2-arg) form now rejects a non-integer count with a clean `InvalidArgumentException` instead of leaking PHP's `Seq::take(): Argument #1 ($n) must be of type int` `TypeError` (#2223)
-- Sequence functions (`remove`, `select-keys`, and other `for` / generator consumers) now raise a clean `InvalidArgumentException` for a non-seqable argument instead of leaking PHP's `SequenceGenerator::toIterable(): Return value must be of type Traversable|array` `TypeError` (#2223)
-- `phel.string`: passing a non-string to the string functions (`upper-case`, `lower-case`, `capitalize`, `reverse`, `trim` / `triml` / `trimr`, `split`, `escape`, `pad-left` / `pad-right` / `pad-both`, `replace` / `replace-first`, `chars`, `starts-with?` / `ends-with?` / `contains?` / `includes?`) now throws a clean exception instead of leaking a raw PHP `"Passing null to parameter ... of type string is deprecated"` warning (a hard `TypeError` in PHP 9) and returning nonsense. `blank?` keeps treating `nil` as blank (`true`) but rejects other non-strings. Surfaced by the clojure-test-suite CI job (#2223)
-- `int` / `long` / `float` / `double`: passing a non-numeric object (keyword, vector, map, …) now throws `InvalidArgumentException` instead of leaking a raw PHP `"could not be converted to int/float"` warning and returning garbage. `nil` and numeric strings keep their documented coercion. `get` on a list with a non-integer key returns the default (Clojure parity); `assoc` / `update` on a vector with a non-integer key throws a clean `InvalidArgumentException` instead of PHP's int `TypeError`. Surfaced by the clojure-test-suite CI job (#2223)
-- `phel.cli`: Symfony Console 8.0 compat. `Command::setCode` closure now carries explicit `InputInterface` / `OutputInterface` types; clears the Symfony 7.3 deprecation warning for the same reason (#2094)
-- `phel compile`: dry-run no longer executes side-effecting forms; new `CompileOptions` `emitOnly` flag skips the evaluator step (#2095)
-- `defonce`: same-file redefinition is a silent no-op (was `DuplicateDefinitionException`) (#2096)
-- REPL startup now restores runtime `*ns*` to `user`, so `(require [phel.test :as t])` no longer leaves `*ns*` in the last loaded dependency namespace (#2125)
-- `phel run <file>` now preloads bundled `phel.*` namespaces, so fully qualified calls like `phel.async/delay` resolve without an explicit require (#2127)
-- `phel run <file>` only preloads the bundled `phel.*` namespaces the script actually references via fully qualified form. `BundledNamespaceDetector` scans the source for `phel.X/sym` tokens and seeds just those, recovering the pre-#2127 startup cost for scripts that don't reach into bundled modules (`bench_run_command` -54%; #2182)
-- Type-tag plumbing: `^int` / `^float` / `^string` annotations on `let` and `loop` bindings now propagate to references in the body, so the typed-arithmetic specialiser fires inside `let` / `loop` the same way it already does for `fn` params. `(loop [^int i 0] (if (< i n) (recur (+ i 1)) i))` now emits native `($i < $n)` / `($i + 1)` instead of runtime `\Phel::getDefinition("phel.core", "+")->__invoke(...)` dispatch (#2146)
-- `phel.test/assert-expr` now follows Clojure's `[message form]` extension signature, so `clojure.test` compatibility shims can register namespaced custom assertions like `p/thrown?` (#2129)
-- Clojure compatibility: global `derive` now rejects invalid tags before mutating hierarchy state, and `some-fn`, `take-last`, and `nthrest` invalid calls can be caught with `phel.test/thrown?` at runtime (#2129)
-- Clojure-aligned laziness: `repeatedly` (#2186), `filter` / `remove` (#2187), `concat` (#2191), `map` (#2188), `distinct` (#2190) no longer pre-realize their head. Switched from `ChunkedSeq` (which eagerly pulled 32 elements at construction) to `LazySeq::fromGenerator`. Side effects: `(repeatedly identity)` constructs without error; `(take 3 (remove (partial < 5) (range)))` no longer hangs; `(realized? …)` reports `false` until accessed
-- `repeatedly` 2-arg form `(repeatedly n f)` now returns a `LazySeq` instead of eagerly calling `f` n times at construction. Fixes `(repeatedly 1000 identity)` crashing because the eager `for` loop invoked `identity` with 0 args; matches Clojure semantics where both 1-arg and 2-arg forms are lazy (#2210)
-- `get` / `nth` on a `PersistentVector` with a non-int key no longer leak a raw PHP `could not be converted to int` warning from `AbstractPersistentVector::offsetExists`. `get` returns the supplied default (or `nil`); `nth` throws a typed `OutOfBoundsException` (or returns `not-found` in the 3-arg form). Keyed by `(integer? k)` guards in `phel.core/get` / `phel.core/nth` before reaching `php/aget` / `in-bounds?` (#2211)
-- `map` (#2188): `(map f nil)` / `(map f '())` return a `LazySeq` (not an empty vector); `(map identity {:k :v})` yields `[[:k :v]]` (pair vectors, not values-only). The map-of-pairs fix lives in `TransformGenerator::map`, so every Seq path hitting a `PersistentMap` sees pair entries
-- `LazySeq::getIterator` / `toArray` no longer drop `nil` values (latent bug, surfaced by #2187)
-- Reader meta on vector / map / set literals (`^{:k v} […]`, `^:k […]`) now survives compile/emit. `VectorNode` / `MapNode` / `SetNode` carry the literal meta; a shared `LiteralMetaAnalyzer` extracts it; emitters wrap with `->withMeta(…)`. Fixes `group-by` dropping element meta (#2189)
-- `BigInt::fromFloat` / `BigDecimal::fromFloat`: stop coercing `NAN` / `INF` to string when building the rejection message. PHP 8.5 emits a `unexpected NAN value was coerced to string` warning; new private `describeNonFinite` helper renders `NaN` / `Infinity` / `-Infinity` literals, silencing CI noise without changing exception type
+- Clojure-parity fixes surfaced by the clojure-test-suite CI job (#2223):
+  - `<` / `<=` / `>` / `>=` reject `nil` instead of coercing it to `0` (#2228)
+  - Transients reject reuse after `persistent!` — the bang ops and a second `persistent!` throw; persistent `conj` / `assoc` / `dissoc` on transients stay lenient (#2229)
+  - Clean errors instead of leaked PHP `TypeError` / deprecations: `nan?` on `nil`, `take` non-int count, `remove` / `select-keys` non-seqable (#2229); `phel.string` fns on non-strings (`blank?` still treats `nil` as blank) (#2226); `int` / `long` / `float` / `double` non-numeric objects and `get` / `assoc` / `update` non-int keys (#2224)
+- `phel.cli`: Symfony Console 8.0 compat (#2094)
+- `phel compile`: dry-run no longer evaluates forms; new `CompileOptions` `emitOnly` flag (#2095)
+- `defonce`: same-file redefinition is a silent no-op (#2096)
+- REPL restores `*ns*` to `user` after a require instead of leaving it in the last dependency namespace (#2125)
+- `phel run <file>`: preloads only the bundled `phel.*` namespaces the script references by fully qualified form (#2127, #2182)
+- `^int` / `^float` / `^string` tags on `let` / `loop` bindings propagate to the body, so typed-arith specialisation fires there too (#2146)
+- `phel.test/assert-expr` follows Clojure's `[message form]` signature; `derive` / `some-fn` / `take-last` / `nthrest` invalid calls are catchable via `thrown?` (#2129)
+- Clojure-aligned laziness: `repeatedly` / `filter` / `remove` / `concat` / `map` / `distinct` no longer pre-realize their head (#2186, #2187, #2188, #2190, #2191, #2210)
+- `map` over `nil` / empty returns a lazy seq; over a map yields pair entries; `LazySeq` no longer drops `nil` values (#2188, #2187)
+- `get` / `nth` on a vector with a non-int key return the default / throw `OutOfBoundsException` instead of leaking a PHP warning (#2211)
+- Reader meta on vector / map / set literals survives compile/emit, fixing `group-by` element-meta loss (#2189)
+- `BigInt` / `BigDecimal::fromFloat` render `NaN` / `Infinity` in rejection messages instead of coercing to string (PHP 8.5 warning)
 
 ## [0.40.0](https://github.com/phel-lang/phel-lang/compare/v0.39.0...v0.40.0) - 2026-05-25
 
