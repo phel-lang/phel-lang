@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Analyzer;
 
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
-use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
+use Phel\Compiler\Domain\Analyzer\Ast\FnNodeInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -42,9 +42,9 @@ interface AnalyzerInterface
      */
     public function setCompileTimeMeta(string $ns, Symbol $symbol, PersistentMapInterface $meta): void;
 
-    public function setDefFnNode(string $ns, Symbol $symbol, FnNode $node): void;
+    public function setDefFnNode(string $ns, Symbol $symbol, FnNodeInterface $node): void;
 
-    public function getDefFnNode(string $ns, Symbol $symbol): ?FnNode;
+    public function getDefFnNode(string $ns, Symbol $symbol): ?FnNodeInterface;
 
     public function setOptimizationLevel(int $level): void;
 

@@ -94,14 +94,17 @@ final readonly class CallInliner
             return null;
         }
 
-        // The side-table only holds single-arity `defn` bodies; a `null`
-        // here means the callee is unknown, multi-arity, or not a `defn`.
-        $fnNode = $analyzer->getDefFnNode($f->getNamespace(), $f->getName());
+        // The side-table holds single-arity (`FnNode`) and multi-arity
+        // (`MultiFnNode`) defs; `arityFor` resolves the fixed arity whose
+        // parameter count matches the call (#2218), or `null` when the
+        // callee is unknown, not a `defn`, or only matches a variadic
+        // arity.
+        $fnNode = $analyzer->getDefFnNode($f->getNamespace(), $f->getName())?->arityFor(count($args));
         if (!$fnNode instanceof FnNode) {
             return null;
         }
 
-        if ($fnNode->isVariadic() || $fnNode->getRecurs()) {
+        if ($fnNode->getRecurs()) {
             return null;
         }
 
@@ -114,9 +117,6 @@ final readonly class CallInliner
         }
 
         $params = $fnNode->getParams();
-        if (count($params) !== count($args)) {
-            return null;
-        }
 
         $body = $fnNode->getBody();
         if (!$body instanceof DoNode || $body->getStmts() !== []) {

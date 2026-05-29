@@ -14,6 +14,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\MultiFnNode;
 use Phel\Compiler\Domain\Analyzer\Ast\VectorNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
@@ -228,6 +229,34 @@ final class CallInlinerTest extends TestCase
         self::assertNull($this->inline('wrap2', [new LiteralNode($this->env, 5)]));
     }
 
+    public function test_inlines_the_matching_arity_of_a_multi_arity_defn(): void
+    {
+        // (defn poly ([x] (+ x 1)) ([a b] (+ a b)))
+        $arity1 = new FnNode($this->env, [Symbol::create('x')], $this->plusBody('x', 1), [], false, false);
+        $arity2 = new FnNode($this->env, [Symbol::create('a'), Symbol::create('b')], $this->sumBody('a', 'b'), [], false, false);
+        $this->analyzer->setDefFnNode('user', Symbol::create('poly'), new MultiFnNode($this->env, [$arity1, $arity2]));
+
+        $one = $this->inline('poly', [new LiteralNode($this->env, 5)]);
+        self::assertInstanceOf(LiteralNode::class, $one);
+        self::assertSame(6, $one->getValue());
+
+        $two = $this->inline('poly', [new LiteralNode($this->env, 2), new LiteralNode($this->env, 3)]);
+        self::assertInstanceOf(LiteralNode::class, $two);
+        self::assertSame(5, $two->getValue());
+    }
+
+    public function test_declines_when_no_arity_matches(): void
+    {
+        $arity1 = new FnNode($this->env, [Symbol::create('x')], $this->plusBody('x', 1), [], false, false);
+        $this->analyzer->setDefFnNode('user', Symbol::create('mono'), new MultiFnNode($this->env, [$arity1]));
+
+        // Two args, but the only arity takes one.
+        self::assertNull($this->inline('mono', [
+            new LiteralNode($this->env, 1),
+            new LiteralNode($this->env, 2),
+        ]));
+    }
+
     /**
      * @param list<string> $paramNames
      */
@@ -274,6 +303,21 @@ final class CallInlinerTest extends TestCase
             $this->env,
             new GlobalVarNode($this->env, 'user', Symbol::create($userFn), Phel::map()),
             [new LocalVarNode($this->env, Symbol::create($param))],
+        );
+
+        return new DoNode($this->env, [], $ret);
+    }
+
+    private function sumBody(string $a, string $b): DoNode
+    {
+        // (+ a b)
+        $ret = new CallNode(
+            $this->env,
+            new GlobalVarNode($this->env, CompilerConstants::PHEL_CORE_NAMESPACE, Symbol::create('+'), Phel::map()),
+            [
+                new LocalVarNode($this->env, Symbol::create($a)),
+                new LocalVarNode($this->env, Symbol::create($b)),
+            ],
         );
 
         return new DoNode($this->env, [], $ret);

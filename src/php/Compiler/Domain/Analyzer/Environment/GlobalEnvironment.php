@@ -6,7 +6,7 @@ namespace Phel\Compiler\Domain\Analyzer\Environment;
 
 use Phel;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
-use Phel\Compiler\Domain\Analyzer\Ast\FnNode;
+use Phel\Compiler\Domain\Analyzer\Ast\FnNodeInterface;
 use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Exceptions\DuplicateDefinitionException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
@@ -38,12 +38,12 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
 
     /**
      * Compile-time AST stash for `defn` bodies analyzed in the current
-     * session, keyed by `(namespace, name)`. Populated by `DefSymbol`
-     * whenever the init expression is a single-arity `FnNode`. Consumers
-     * (e.g. a future inliner / constant folder) can read the analysed
-     * body from here without re-analysing the source form.
+     * session, keyed by `(namespace, name)`. Populated by `DefSymbol` for
+     * both single-arity (`FnNode`) and multi-arity (`MultiFnNode`) inits;
+     * the call inliner reads the analysed body from here (selecting the
+     * matching arity) without re-analysing the source form.
      *
-     * @var array<string, array<string, FnNode>>
+     * @var array<string, array<string, FnNodeInterface>>
      */
     private array $defFnNodes = [];
 
@@ -108,12 +108,12 @@ final class GlobalEnvironment implements GlobalEnvironmentInterface
         $this->compileTimeMeta[$namespace][$name->getName()] = $meta;
     }
 
-    public function setDefFnNode(string $namespace, Symbol $name, FnNode $node): void
+    public function setDefFnNode(string $namespace, Symbol $name, FnNodeInterface $node): void
     {
         $this->defFnNodes[$namespace][$name->getName()] = $node;
     }
 
-    public function getDefFnNode(string $namespace, Symbol $name): ?FnNode
+    public function getDefFnNode(string $namespace, Symbol $name): ?FnNodeInterface
     {
         return $this->defFnNodes[$namespace][$name->getName()] ?? null;
     }
