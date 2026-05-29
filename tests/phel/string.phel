@@ -210,3 +210,52 @@
 (deftest test-pad-both
   (is (= " foo " (s/pad-both "foo" 5)))
   (is (= "0foo0" (s/pad-both "foo" 5 "0"))))
+
+;; `n`/`k`/`i` are bound (not literals) so the compile-time string-param tag
+;; check doesn't fire; this exercises the runtime guard the way the
+;; clojure-test-suite does (values flow in through an `are` binding).
+(deftest test-non-string-input-throws
+  ;; Non-string input must throw cleanly instead of leaking a raw PHP
+  ;; "Passing null to parameter ... of type string is deprecated" warning
+  ;; (a hard TypeError in PHP 9). Functions whose param Phel infers as
+  ;; `string` already raise a native TypeError; the rest are guarded and
+  ;; raise InvalidArgumentException. Both are \Throwable, matching the
+  ;; suite's `p/thrown?`.
+  (let [n nil k :a i 1]
+    (is (thrown? \Throwable (s/upper-case n)) "upper-case nil")
+    (is (thrown? \Throwable (s/lower-case n)) "lower-case nil")
+    (is (thrown? \Throwable (s/capitalize n)) "capitalize nil")
+    (is (thrown? \Throwable (s/reverse n)) "reverse nil")
+    (is (thrown? \Throwable (s/trim n)) "trim nil")
+    (is (thrown? \Throwable (s/triml n)) "triml nil")
+    (is (thrown? \Throwable (s/trimr n)) "trimr nil")
+    (is (thrown? \Throwable (s/trim-newline n)) "trim-newline nil")
+    (is (thrown? \Throwable (s/repeat n 3)) "repeat nil")
+    (is (thrown? \Throwable (s/chars n)) "chars nil")
+    (is (thrown? \Throwable (s/subs n 0)) "subs nil")
+    (is (thrown? \Throwable (s/split n "/,/")) "split nil")
+    (is (thrown? \Throwable (s/escape n {})) "escape nil")
+    (is (thrown? \Throwable (s/index-of n "a")) "index-of nil")
+    (is (thrown? \Throwable (s/last-index-of n "a")) "last-index-of nil")
+    (is (thrown? \Throwable (s/pad-left n 5)) "pad-left nil")
+    (is (thrown? \Throwable (s/replace n "a" "b")) "replace nil")
+    (is (thrown? \Throwable (s/upper-case k)) "upper-case keyword")
+    (is (thrown? \Throwable (s/upper-case i)) "upper-case int")))
+
+(deftest test-predicate-non-string-args-throw
+  (let [n nil k :a]
+    (is (thrown? \InvalidArgumentException (s/starts-with? n "a")) "starts-with? nil s")
+    (is (thrown? \InvalidArgumentException (s/starts-with? "ab" n)) "starts-with? nil substr")
+    (is (thrown? \InvalidArgumentException (s/starts-with? "ab" k)) "starts-with? keyword substr")
+    (is (thrown? \InvalidArgumentException (s/ends-with? n "a")) "ends-with? nil s")
+    (is (thrown? \InvalidArgumentException (s/ends-with? "ab" n)) "ends-with? nil substr")
+    (is (thrown? \InvalidArgumentException (s/contains? n "a")) "contains? nil s")
+    (is (thrown? \InvalidArgumentException (s/includes? n "a")) "includes? nil s")))
+
+(deftest test-blank?-nil-and-non-string
+  (let [n nil k :a i 1]
+    (is (true? (s/blank? n)) "blank? nil is true")
+    (is (true? (s/blank? "   ")) "blank? whitespace is true")
+    (is (false? (s/blank? "x")) "blank? non-blank is false")
+    (is (thrown? \InvalidArgumentException (s/blank? i)) "blank? int throws")
+    (is (thrown? \InvalidArgumentException (s/blank? k)) "blank? keyword throws")))
