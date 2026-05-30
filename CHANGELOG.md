@@ -6,32 +6,32 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- CI: `announce-release.yml` + `scripts/announce-release.mjs` build a Twitter/X thread draft from the released tag's CHANGELOG; uploads `thread.md` / `thread.json` as artifacts. Manual posting; `workflow_dispatch` supports back-fills
-- `CompileOptions::setOptimizationLevel(int)` (defaults `0`). Reserved for future auto-inline (`1`) and the implicit tail-call rewrite (`2`) (#2092, #2141)
+- CI: `announce-release.yml` + `scripts/announce-release.mjs` draft a Twitter/X thread from the released tag's CHANGELOG (manual posting; `workflow_dispatch` back-fills)
+- `CompileOptions::setOptimizationLevel(int)` (default `0`); reserved for auto-inline (`1`) and tail-call rewrite (`2`) (#2092, #2141)
 
 ### Performance
 
-Opt-in (`CompileOptions::setOptimizationLevel(2)`):
-- `TailCallRewriter`: rewrite self-recursive tail calls into a `recur` loop, dropping per-iteration PHP frames (variadic / multi-arity skipped) (#2141)
-- `CallInliner`: inline single-arity pure `defn` bodies at the call site, exposing them to constant folding; args still evaluate once; `^:pure` opts in; multi-arity inlines the matching arity; variadic / recursive / memoised / `^:async` skipped (#2135, #2215, #2216, #2217, #2218)
+Opt-in (`setOptimizationLevel(2)`):
+- `TailCallRewriter`: self-recursive tail calls → `recur` loop (variadic / multi-arity skipped) (#2141)
+- `CallInliner`: inline pure single-arity `defn` bodies at the call site for folding; args evaluate once; `^:pure` opts in; multi-arity inlines the matching arity; variadic / recursive / memoised / `^:async` skipped (#2135, #2215, #2216, #2217, #2218)
 
-Compile-time folding and simplification:
-- `ConstantFolder`: fold pure `phel.core` calls on literal args, and 3-arg `reduce` with whitelisted binary reducers; aborts when runtime would throw or promote (#2088, #2140)
-- `DoSimplifier` / `LetSimplifier`: drop pure non-tail exprs and unused bindings; inline `(let [x <lit>] x)` (#2089)
+Compile-time folding:
+- `ConstantFolder`: fold pure `phel.core` calls on literals + 3-arg `reduce` with whitelisted reducers; aborts when runtime would throw/promote (#2088, #2140)
+- `DoSimplifier` / `LetSimplifier`: drop pure non-tail exprs + unused bindings; inline `(let [x <lit>] x)` (#2089)
 
-Call-site lowering (`CallSpecialization`, analyser-tag-driven):
-- Persistent collection methods, fn-handle (`^AbstractFn` / `^FnInterface`) calls, and nested `assoc` / `conj` chains → direct / native calls (#2090, #2142, #2143)
-- Variadic numeric ops on tagged locals → native chain (literal-int chains stay on dispatch so overflow promotes) (#2090)
+Call-site lowering (`CallSpecialization`, tag-driven):
+- Persistent collection methods, fn-handle calls, nested `assoc` / `conj` chains → native calls (#2090, #2142, #2143)
+- Variadic numeric ops on tagged locals → native chain (literal-int chains stay on dispatch for overflow) (#2090)
 - Peepholes: `(not (= a b))`, `(apply f […])`, `(get arr k)` on `^array` (#2090, #2139)
-- Predicate specialisation: `nil?` / `some?`, bool, numeric, 1-arg type, `struct?` / `set?`, and `map?` / `vector?` / `seq?` predicates (#2157, #2160, #2162, #2168, #2177)
+- Predicate specialisation: nil/some, bool, numeric, type, `struct?` / `set?` / `map?` / `vector?` / `seq?` (#2157, #2160, #2162, #2168, #2177)
 - Direct calls on tagged values: `count` on `^array`, `name` / `namespace`, `empty?`, `contains?`, `deref` / `reset!` (#2158, #2164, #2166, #2170, #2179)
-- Known `php/*` scalar return-type inference + typed-arith result propagation, so nested expressions chain to native PHP (`(+ sum (* d (php/cos a)))` → `($sum + ($d * cos($a)))`) (#2175)
+- `php/*` scalar return-type inference + typed-arith propagation → nested native chains (#2175)
 
 Control-flow lowering:
-- `if` chains on literal keys → PHP `match`; `(or …)` / `(and …)` → `||` / `&&` / ternary preserving value-semantics; `if/else return` → ternary; drop redundant `else nil` (#2091, #2132, #2133, #2134, #2174)
+- Literal-key `if` chains → `match`; `(or …)` / `(and …)` → `||` / `&&` / ternary; `if/else return` → ternary; drop `else nil` (#2091, #2132, #2133, #2134, #2174)
 
-Emit-shape tweaks:
-- `defstruct` classes emitted `final` (`def-exception` stays open) (#2137); `@var` hints for tagged `let` / `loop` bindings (#2136); keyword literals via `Keyword::create` (#2131); orphan-slot fix + regression guard (#2144); specialised predicates recognised as bool-returning (#2172)
+Emit shape:
+- `defstruct` emitted `final` (#2137); `@var` hints for tagged `let` / `loop` (#2136); keywords via `Keyword::create` (#2131); orphan-slot fix (#2144); specialised predicates marked bool-returning (#2172)
 
 ### Fixed
 
@@ -51,7 +51,7 @@ Emit-shape tweaks:
 - `get` / `nth` on a vector with a non-int key return the default / throw `OutOfBoundsException` instead of leaking a PHP warning (#2211)
 - Reader meta on vector / map / set literals survives compile/emit, fixing `group-by` element-meta loss (#2189)
 - `BigInt` / `BigDecimal::fromFloat` render `NaN` / `Infinity` in rejection messages instead of coercing to string (PHP 8.5 warning)
-- `phel build`: LRU eviction in the compiled-code cache no longer drops a `(load ...)` secondary the current build still needs, which could ship a `phel/core.php` whose `(load "core/meta")` had no compiled sibling and failed at runtime away from the source tree; a build never evicts entries it produced this run
+- `phel build`: the compiled-code cache no longer evicts a `(load ...)` secondary the running build still needs, which shipped a `phel/core.php` with a sibling-less `(load "core/meta")` that failed away from the source tree (#2231)
 
 ## [0.40.0](https://github.com/phel-lang/phel-lang/compare/v0.39.0...v0.40.0) - 2026-05-25
 
