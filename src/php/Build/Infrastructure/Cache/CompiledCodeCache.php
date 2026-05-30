@@ -41,6 +41,17 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
      */
     private array $tombstones = [];
 
+    /**
+     * Source paths put or read in this process. A build `(load ...)`s its
+     * secondaries into the cache and the `SecondaryFileHarvester` reads them
+     * back at the end of the same run; LRU eviction triggered by a later
+     * `put` must never delete a file this run still needs, or the build
+     * would ship a `(load ...)` with no compiled sibling.
+     *
+     * @var array<string, true>
+     */
+    private array $touchedThisProcess = [];
+
     private bool $loaded = false;
 
     /**
@@ -95,6 +106,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
         }
 
         $this->entries[$sourcePath]['last_accessed'] = time();
+        $this->touchedThisProcess[$sourcePath] = true;
 
         return $compiledPath;
     }
@@ -136,6 +148,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
             'compiled_path' => $compiledPath,
             'last_accessed' => time(),
         ];
+        $this->touchedThisProcess[$sourcePath] = true;
         unset($this->tombstones[$sourcePath]);
 
         $this->evictLRU();
@@ -218,7 +231,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
             @unlink($compiledPath);
         }
 
-        unset($this->entries[$sourcePath]);
+        unset($this->entries[$sourcePath], $this->touchedThisProcess[$sourcePath]);
         $this->tombstones[$sourcePath] = true;
         $this->saveEntries();
     }
@@ -240,6 +253,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
 
         $this->entries = [];
         $this->tombstones = [];
+        $this->touchedThisProcess = [];
         $this->saveEntries();
         $this->envMemo = [];
     }
@@ -455,6 +469,13 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
     /**
      * Evicts least-recently-used entries when the entry count exceeds
      * `$maxEntries`. Removes ~10% of the oldest entries.
+     *
+     * Entries touched in this process are never evicted: a build loads its
+     * secondaries into the cache and the `SecondaryFileHarvester` reads them
+     * back at the end of the same run, so dropping one mid-build would ship
+     * a `(load ...)` with no compiled sibling. This makes `maxEntries` a soft
+     * cap for the current run; stale entries from earlier runs reclaim space
+     * on the next process.
      */
     private function evictLRU(): void
     {
@@ -470,6 +491,10 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
         foreach (array_keys($this->entries) as $sourcePath) {
             if ($evicted >= $evictCount) {
                 break;
+            }
+
+            if (isset($this->touchedThisProcess[$sourcePath])) {
+                continue;
             }
 
             $entry = $this->entries[$sourcePath];

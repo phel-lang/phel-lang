@@ -259,16 +259,21 @@ final class CompiledCodeCacheTest extends TestCase
 
     public function test_lru_eviction_removes_oldest_entries(): void
     {
-        $cache = new CompiledCodeCache($this->cacheDir, '', 5);
-
+        // Seed entries in one process, then let a fresh instance evict.
+        // Entries are only evictable once a *later* process inherits them
+        // from disk without touching them; the producing process protects
+        // its own working set (see test_entries_touched_this_process_are_not_evicted).
+        $seed = new CompiledCodeCache($this->cacheDir, '', 5);
         for ($i = 1; $i <= 5; ++$i) {
-            $cache->put($this->cacheDir . sprintf('/ns%d.phel', $i), 'ns' . $i, 'hash' . $i, '// code ' . $i);
+            $seed->put($this->cacheDir . sprintf('/ns%d.phel', $i), 'ns' . $i, 'hash' . $i, '// code ' . $i);
         }
 
-        // Access ns3 to mark it recently used
+        $cache = new CompiledCodeCache($this->cacheDir, '', 5);
+
+        // Access ns3 to mark it recently used in this process
         $cache->get($this->cacheDir . '/ns3.phel', 'hash3');
 
-        // Add a 6th entry — should evict the oldest (ns1)
+        // Add a 6th entry — should evict the oldest untouched entry (ns1)
         $cache->put($this->cacheDir . '/ns6.phel', 'ns6', 'hash6', '// code 6');
 
         self::assertNull($cache->get($this->cacheDir . '/ns1.phel', 'hash1'));
@@ -278,18 +283,38 @@ final class CompiledCodeCacheTest extends TestCase
 
     public function test_lru_eviction_deletes_files(): void
     {
-        $cache = new CompiledCodeCache($this->cacheDir, '', 3);
+        $seed = new CompiledCodeCache($this->cacheDir, '', 3);
+        $seed->put($this->cacheDir . '/ns1.phel', 'ns1', 'hash1', '// code 1');
+        $seed->put($this->cacheDir . '/ns2.phel', 'ns2', 'hash2', '// code 2');
+        $seed->put($this->cacheDir . '/ns3.phel', 'ns3', 'hash3', '// code 3');
 
-        $cache->put($this->cacheDir . '/ns1.phel', 'ns1', 'hash1', '// code 1');
-        $cache->put($this->cacheDir . '/ns2.phel', 'ns2', 'hash2', '// code 2');
-        $cache->put($this->cacheDir . '/ns3.phel', 'ns3', 'hash3', '// code 3');
-
-        $path1 = $cache->getCompiledPath($this->cacheDir . '/ns1.phel', 'ns1');
+        $path1 = $seed->getCompiledPath($this->cacheDir . '/ns1.phel', 'ns1');
         self::assertFileExists($path1);
 
+        $cache = new CompiledCodeCache($this->cacheDir, '', 3);
         $cache->put($this->cacheDir . '/ns4.phel', 'ns4', 'hash4', '// code 4');
 
         self::assertFileDoesNotExist($path1);
+    }
+
+    public function test_entries_touched_this_process_are_not_evicted(): void
+    {
+        // A build `(load ...)`s its secondaries into the cache and the
+        // SecondaryFileHarvester reads them back at the end of the same run.
+        // Even when the run exceeds maxEntries, none of its own entries may
+        // be dropped, or the build would ship a `(load ...)` with no sibling.
+        $cache = new CompiledCodeCache($this->cacheDir, '', 3);
+
+        for ($i = 1; $i <= 6; ++$i) {
+            $cache->put($this->cacheDir . sprintf('/ns%d.phel', $i), 'ns' . $i, 'hash' . $i, '// code ' . $i);
+        }
+
+        for ($i = 1; $i <= 6; ++$i) {
+            self::assertNotNull(
+                $cache->get($this->cacheDir . sprintf('/ns%d.phel', $i), 'hash' . $i),
+                sprintf('Entry ns%d produced this process must survive eviction', $i),
+            );
+        }
     }
 
     public function test_no_eviction_when_under_max_entries(): void
