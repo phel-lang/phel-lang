@@ -51,6 +51,7 @@ Emit-shape tweaks:
 - `get` / `nth` on a vector with a non-int key return the default / throw `OutOfBoundsException` instead of leaking a PHP warning (#2211)
 - Reader meta on vector / map / set literals survives compile/emit, fixing `group-by` element-meta loss (#2189)
 - `BigInt` / `BigDecimal::fromFloat` render `NaN` / `Infinity` in rejection messages instead of coercing to string (PHP 8.5 warning)
+- `phel build`: LRU eviction in the compiled-code cache no longer drops a `(load ...)` secondary the current build still needs, which could ship a `phel/core.php` whose `(load "core/meta")` had no compiled sibling and failed at runtime away from the source tree; a build never evicts entries it produced this run
 
 ## [0.40.0](https://github.com/phel-lang/phel-lang/compare/v0.39.0...v0.40.0) - 2026-05-25
 
