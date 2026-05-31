@@ -365,7 +365,7 @@ Without `:else`, `match` throws `RuntimeException` when nothing fits. Add `:else
 ### Simple Recursion
 
 ```phel
-;; Note: `*'` auto-promotes to BigInt if PHP int overflows.
+;; Note: `*'` always returns BigInt for integer results.
 (defn factorial [^int n]
   (if (<= n 1)
     1
@@ -518,13 +518,13 @@ Without `:else`, `match` throws `RuntimeException` when nothing fits. Add `:else
 
 (defn validate-with-spec [spec data]
   (let [errors
-        (reduce-kv
-          (fn [acc key validators]
-            (if (validate-field validators (get data key))
+        (reduce
+          (fn [acc key]
+            (if (validate-field (get spec key) (get data key))
               acc
               (assoc acc key "Validation failed")))
           {}
-          spec)]
+          (keys spec))]
     (if (empty? errors)
       {:ok data}
       {:errors errors})))

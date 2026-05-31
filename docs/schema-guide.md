@@ -15,7 +15,7 @@
    [:age   [:maybe :int]]])
 
 (s/validate User {:id 1 :email "a@b.co"})   ; => true
-(s/explain  User {:id "x" :email "a@b"})    ; => {:errors [...]}
+(s/explain  User {:id "x" :email "a@b"})    ; => {:schema User :value {...} :errors [...]}
 (s/coerce   User {"id" "1" "email" "a@b.co"})
 ```
 
@@ -38,7 +38,7 @@
 | Fn | Purpose |
 |----|---------|
 | `(validate schema value)` | boolean |
-| `(explain schema value)` | `nil` on success, map on failure |
+| `(explain schema value)` | `nil` on success, `{:schema s :value v :errors [...]}` on failure |
 | `(conform schema value)` | coerced value or `:phel.schema/invalid` |
 | `(coerce schema value)` | type-coerce to required shape |
 | `(generate schema)` | random value conforming to schema |
@@ -54,7 +54,7 @@
 
 ```phel
 (defn ^int add [^int a ^int b] (+ a b))
-(s/instrument! 'add add [:=> [:int :int] :int])
+(s/instrument! :add add [:=> [:int :int] :int])
 ;; (add "x" 2)  ; throws with schema failure
 ```
 

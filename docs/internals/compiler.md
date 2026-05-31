@@ -1,6 +1,6 @@
 # Compiler
 
-Six-stage pipeline. Each stage consumes only the previous stage's output. Source locations propagate end-to-end.
+Seven-stage pipeline. Each stage consumes only the previous stage's output. Source locations propagate end-to-end.
 
 | Stage | Class | In | Out |
 |-------|-------|----|-----|
@@ -8,6 +8,7 @@ Six-stage pipeline. Each stage consumes only the previous stage's output. Source
 | Parser | `Application/Parser.php` | `TokenStream` | parse tree (`NodeInterface`) |
 | Reader | `Application/Reader.php` | parse tree | `ReaderResult` (Phel data) |
 | Analyzer | `Application/Analyzer.php` | Phel data | `AbstractNode` |
+| Simplifier | `Domain/Analyzer/TypeAnalyzer/Simplification/` | `AbstractNode` | `AbstractNode` (simplified) |
 | Emitter | `Domain/Emitter/OutputEmitter.php` | `AbstractNode` | PHP `string` |
 | Evaluator | `Domain/Evaluator/` | PHP `string` | values / side effects |
 
@@ -32,7 +33,7 @@ T_STRING            "\"hi\""
 T_CLOSE_PARENTHESIS ")"
 ```
 
-**Parser**: sub-parsers under `Domain/Parser/ExpressionParser/` (`ListParser`, `VectorParser`, `MapParser`, ...) wired by `ExpressionParserFactory`. Tree retains trivia.
+**Parser**: sub-parsers under `Domain/Parser/ExpressionParser/` (`ListParser`, `AtomParser`, `CharParser`, `StringParser`, `MetaParser`, `QuoteParser`, `RegexParser`, ...) wired by `ExpressionParserFactory`. Tree retains trivia.
 
 ```text
 ListNode → SymbolNode("print"), WhitespaceNode, StringNode("\"hi\"")
@@ -59,9 +60,9 @@ Wrong context yields wrong PHP. Emitter trusts what analyzer wrote.
 
 **Emitter**: one `*Emitter.php` per AST node under `Domain/Emitter/OutputEmitter/NodeEmitter/`. Unknown node throws.
 
-- **Munge** (`Application/Munge.php`): `my-fn?` becomes `my_fn_QMARK_`, `+` becomes `_PLUS_`. Same algorithm in `Lang/Collections/Struct/StructKeyEncoder`.
+- **Munge** (`Shared/Munge.php`): `my-fn?` becomes `my_fn_QMARK_`, `+` becomes `_PLUS_`. Used by emitter and structs.
 - **Source maps** (`Domain/Emitter/OutputEmitter/SourceMap/`): emitted line back to Phel `SourceLocation`.
-- **Modes** (`EmitMode`): `STATEMENT` (REPL, `eval`), `FILE` (cached compilation). `StatementEmitter` vs `FileEmitter`.
+- **Modes** (`EmitMode`): `Statement` (REPL, `eval`), `File` (normal compilation), `Cache` (cached output).
 
 ```php
 (\Phel::getDefinition("phel.core", "print"))("hi");

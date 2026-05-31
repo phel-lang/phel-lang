@@ -10,7 +10,7 @@
 ./vendor/bin/phel profile               # auto-detects entry point
 ```
 
-Without an argument the command runs `core.phel` / `main.phel` if `phel-config.php` declares one.
+Without an argument the command auto-detects the entry point, trying `main.phel` first, then `core.phel`.
 
 ## Sample output
 

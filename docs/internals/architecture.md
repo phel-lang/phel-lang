@@ -10,7 +10,7 @@ tests/phel/   Phel tests via `./bin/phel test`
 build/        PHAR + release tooling
 ```
 
-Compiler is PHP. Stdlib is Phel: bulk in `src/phel/core.phel`.
+Compiler is PHP. Stdlib is Phel: `src/phel/core.phel` bootstraps the core namespace by loading sub-files from `src/phel/core/`.
 
 ## Modules
 
@@ -19,8 +19,8 @@ Every directory under `src/php/` is a [Gacela](https://gacela-project.com/) modu
 | Module | Purpose |
 |--------|---------|
 | `Lang/` | Runtime types: persistent collections, `Symbol`, `Keyword`, `Atom`, `Registry`. Foundational, no facade. |
-| `Compiler/` | Lex → Parse → Read → Analyze → Emit → Eval. See [compiler.md](compiler.md). |
-| `Printer/` | Render Phel values. |
+| `Compiler/` | Lex → Parse → Read → Analyze → Simplify → Emit → Eval. See [compiler.md](compiler.md). |
+| `Shared/Printer/` | Render Phel values (lives in `Shared/`, not a top-level module). |
 | `Run/` | `phel run`, REPL (`Run/Domain/Repl/`), namespace bootstrap (`Run/Runtime/PhelSourceLoader.php`). |
 | `Build/` | Compile project to PHP on disk; namespace dependency order. |
 | `Command/` | CLI command registry. |
@@ -32,6 +32,7 @@ Every directory under `src/php/` is a [Gacela](https://gacela-project.com/) modu
 | `Lsp/` | LSP over stdio. |
 | `Nrepl/` | nREPL bencode/TCP. |
 | `Watch/` | Hot reload watcher. |
+| `Profile/` | `phel profile` instrumentation and report. |
 | `HttpClient/`, `Fiber/`, `Filesystem/`, `Config/`, `Shared/` | Helpers. |
 | `Phel.php` | Static facade called by *emitted* PHP: `\Phel::addDefinition(...)`, `\Phel::keyword(...)`. |
 
@@ -79,11 +80,11 @@ Each module ships `CLAUDE.md` with API + constraints. Read it before editing.
         Compiler ◄── Api ◄── Lsp / Nrepl
             │
             ▼
-          Lang  ◄── Printer
+          Lang
 ```
 
 - Everything depends on `Compiler/` and `Lang/`.
-- `Lang/` is a leaf (one outbound `__toString()` to `Printer`).
+- `Lang/` is a leaf; `Shared/Printer/` depends on `Lang/` (not the other way).
 - `Lsp/`, `Nrepl/`, `Watch/` reuse the compiler facade; not on the compile path.
 
 ## Compile-time vs runtime

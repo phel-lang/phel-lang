@@ -14,7 +14,7 @@ Phel is a Lisp compiling to PHP. If you know Clojure, you know most of Phel. Thi
 | `(:import [java.util Date])` | `(:use DateTime)` in the `ns` form | Imports a PHP class by short name; also works with FQNs: `(:use Phel\Lang\Symbol)` |
 | `(instance? Type x)` | `(instance? Type x)` or `(php/instanceof x Type)` | Phel ships an `instance?` macro that wraps `php/instanceof` with Clojure's argument order |
 | `(class x)` | `(type x)` | Returns a keyword like `:string`, `:int`, `:hash-map` |
-| `(subs s start end)` | `(phel.string/slice s start end)` | Substring |
+| `(subs s start end)` | `(phel.string/subs s start end)` | Substring |
 | `(clojure.string/upper-case s)` | `(phel.string/upper-case s)` | String utils in `phel.string` |
 
 ## What's the same

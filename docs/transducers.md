@@ -158,26 +158,26 @@ A transducer takes a reducing function `rf` and returns a new one. The returned 
 - **1** (completion): return `(rf result)`, optionally flush state
 - **2** (step): the transformation logic
 
-Nested multi-arity `fn` is not supported, so use variadic `[& args]` with `case (count args)` dispatch.
+Use multi-arity `fn` to dispatch on arity, or variadic `[& args]` with `case (count args)`.
 
-### Using `xf-step` (recommended)
-
-`xf-step` handles 0/1 arity boilerplate. Write only the 2-arity step:
+### Multi-arity fn (recommended)
 
 ```phel
 ;; A transducer that doubles every element
 (defn map-double []
   (fn [rf]
-    (xf-step rf (fn [result input]
-                  (rf result (* 2 input))))))
+    (fn
+      ([] (rf))
+      ([result] (rf result))
+      ([result input] (rf result (* 2 input))))))
 
 (sequence (map-double) [1 2 3])
 ; => [2 4 6]
 ```
 
-### Full manual example
+### Full manual example with variadic dispatch
 
-For custom completion logic (e.g. flushing buffered state), write all three arities:
+For custom completion logic (e.g. flushing buffered state):
 
 ```phel
 ;; A transducer that batches elements into groups of n

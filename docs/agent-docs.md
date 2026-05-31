@@ -34,7 +34,7 @@ Each installed file routes the agent to `.agents/index.md` for task recipes: sca
 
 `resources/agents/examples/` ships three projects:
 
-- `todo-app/`: HTTP CRUD on `phel\router`, atom store, tests
+- `todo-app/`: HTTP CRUD on `phel.router`, atom store, tests
 - `http-json-api/`: three JSON endpoints
 - `cli-wordcount/`: stdin + argv, PHP shim binary
 

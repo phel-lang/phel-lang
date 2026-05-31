@@ -15,16 +15,16 @@
 
 | Rule | Catches |
 |------|---------|
-| `unresolved-symbol` | reference to an unknown binding |
-| `arity-mismatch` | call with wrong number of args |
-| `unused-binding` | `let`/`fn` bindings never referenced |
-| `unused-require` | imported ns never used |
-| `unused-import` | imported PHP class never used |
-| `shadowed-binding` | inner binding hides an outer one |
-| `redundant-do` | `do` with a single child form |
-| `duplicate-key` | map or let has the same key twice |
-| `invalid-destructuring` | malformed destructure pattern |
-| `discouraged-var` | use of deprecated or banned symbols |
+| `phel/unresolved-symbol` | reference to an unknown binding |
+| `phel/arity-mismatch` | call with wrong number of args |
+| `phel/unused-binding` | `let`/`fn` bindings never referenced |
+| `phel/unused-require` | imported ns never used |
+| `phel/unused-import` | imported PHP class never used |
+| `phel/shadowed-binding` | inner binding hides an outer one |
+| `phel/redundant-do` | `do` with a single child form |
+| `phel/duplicate-key` | map or let has the same key twice |
+| `phel/invalid-destructuring` | malformed destructure pattern |
+| `phel/discouraged-var` | use of deprecated or banned symbols |
 
 ## Output formats
 
@@ -38,11 +38,14 @@ Drop `phel-lint.phel` at the project root (resolved from the working directory w
 
 ```phel
 {:rules
- {:unused-binding   {:enabled? true  :severity :warning}
-  :shadowed-binding {:enabled? false}
-  :discouraged-var  {:vars     ['println 'prn]}}
- :ignore-paths ["build/" "vendor/"]}
+ {:phel/unused-binding   :warning
+  :phel/shadowed-binding :off
+  :phel/arity-mismatch   :error}
+ :exclude
+ {:phel/unused-binding ["src/phel/local.phel" "phel.experimental.*"]}}
 ```
+
+Severities: `:error`, `:warning`, `:info`, `:hint`, `:off`. Patterns in `:exclude` match file paths (if containing `/` or `.phel`) or namespace names via `fnmatch`.
 
 Pass a custom path with `--config=path/to/lint.phel`.
 

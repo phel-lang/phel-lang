@@ -63,8 +63,8 @@ Strings work with all sequence functions:
 
 **`phel.string/chars`** - String to character vector:
 ```phel
-(use phel.string)
-(chars "hello")
+(ns app.example (:require phel.string :as str))
+(str/chars "hello")
 ;; => ["h" "e" "l" "l" "o"]
 ```
 
@@ -608,17 +608,17 @@ Useful for APIs that expect key-value arguments.
 
 ### `find-index` - Find with Index
 
-Returns the index of the first item where the predicate (called with index and item) is true.
+Returns the index of the first item where the predicate (called with the item) is true.
 
 ```phel
-(find-index #(> %2 5) [1 3 7 2 9])
+(find-index #(> % 5) [1 3 7 2 9])
 ;; => 2  (index of 7)
 
-(find-index #(even? %1) [:a :b :c :d])
-;; => 1  (first even index)
+(find-index even? [1 3 4 6])
+;; => 2  (index of first even item)
 ```
 
-The predicate receives `%1` (index) and `%2` (item).
+The predicate receives one argument: the item.
 
 ---
 

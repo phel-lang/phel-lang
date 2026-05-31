@@ -240,6 +240,7 @@ Attaches metadata to the following form:
 | `#?@()`     | Conditional splice | Splice by platform                             | `#?@(:phel [1 2])` |
 | `#<tag>`    | Tagged literal     | Call the tag's reader function                 | `#inst "2026-01-01T00:00:00Z"` |
 | `@`         | Deref              | Dereference an atom                            | `@my-atom`         |
+| `#'`        | Var-quote          | Get the `PhelVar` handle for a def             | `#'my-fn`          |
 | `#"..."`    | Regex literal      | PCRE pattern                                   | `#"\\d+"`          |
 | `#(...)`    | Lambda             | Anonymous function (`%` args)                  | `#(+ %1 %2)`       |
 | `\|()`      | Lambda (old)       | Anonymous function (`$` args) **(deprecated)** | `\|(+ $1 $2)`      |

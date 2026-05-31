@@ -1,6 +1,6 @@
 # Runtime
 
-What emitted PHP runs against. `src/php/Lang/` plus `src/php/Phel.php`. Independent of `Compiler/`: usable from plain PHP.
+What emitted PHP runs against. `src/php/Lang/` plus `src/Phel.php` (the public static facade). Independent of `Compiler/`: usable from plain PHP.
 
 ## Shape of emitted code
 
@@ -43,9 +43,9 @@ Immutable. "Modify" returns a new value with structural sharing.
 | Lazy seq | `LazySeq`: realise + cache per element |
 | Struct | `AbstractPersistentStruct`: fixed-key map, subclassed by `defstruct` |
 
-Transients for bulk building: `as-transient`, mutate, `persistent!`. Never let a transient escape its scope.
+Transients for bulk building: `transient`, mutate, `persistent!`. Never let a transient escape its scope.
 
-`TypeFactory` (singleton): `emptyVector()`, `emptyMap()`, `vectorFromArray()`. Compiler emits via `\Phel::vector(...)`, `\Phel::map(...)`, `\Phel::set(...)`.
+`TypeFactory` (singleton): `persistentVectorFromArray()`, `persistentMapFromKVs()`, `persistentHashSetFromArray()`. Compiler emits via `\Phel::vector(...)`, `\Phel::map(...)`, `\Phel::set(...)`.
 
 ## Equality + hashing
 
@@ -67,18 +67,17 @@ Each top-level form compiles + evaluates before the next is analysed, so both st
 
 ## `\Phel` static facade
 
-`src/php/Phel.php` is the runtime ABI. Cached `.php` files in the wild call into it. Signature changes are breaking.
+`src/Phel.php` is the runtime ABI. Cached `.php` files in the wild call into it. Signature changes are breaking.
 
 - `addDefinition($ns, $name, $value, $meta = null)`
-- `keyword($name)` / `namespacedKeyword($ns, $name)` / `symbol($name)`
+- `keyword($name, $namespace = null)` / `symbol($name)`
 - `vector(...$items)` / `map(...$kvs)` / `set(...$items)`
-- `ns($name)`: switch current namespace
 
 Changing a signature requires auditing `Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/*Emitter.php`.
 
 ## Reader tags (`#tag`)
 
-`Lang/TagHandlers/` implementations registered in `Lang/TagRegistry.php`. Built-ins: `#inst`, `#regex`, `#php`. Add: `TagRegistry::register('mything', new MyHandler())`.
+`Lang/TagHandlers/` implementations registered in `Lang/TagRegistry.php`. Built-ins: `#inst` (`InstTagHandler`), `#regex` (`RegexTagHandler`), `#uuid` (`UUIDTagHandler`). The `#php` tag is handled directly in the reader, not via `TagRegistry`. Add custom tags: `TagRegistry::register('mything', new MyHandler())`.
 
 ## Source locations
 

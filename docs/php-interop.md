@@ -176,8 +176,8 @@ Phel uses `.` as the namespace separator, matching Clojure. The legacy `\` separ
 
 ```phel
 ;; PHP arrays to Phel collections
-(php-array-to-map $php_assoc_array)  ; => {:key value}
-(vals $php_indexed_array)            ; => [val1 val2 val3]
+(php-array-to-map php-assoc-array)   ; => {:key value}
+(vals php-indexed-array)             ; => [val1 val2 val3]
 
 ;; Indexed PHP array to vector
 [1 2 3]                           ; Already works as Phel vector

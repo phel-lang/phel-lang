@@ -95,7 +95,7 @@ generating one big Phel expression for every namespace, it spawns N
 subprocesses (`phel _test-worker`, hidden), each holding open over
 stdin / stdout. The parent sends one work frame per namespace
 (length-prefixed JSON: `{index, ns, file, options}`); each worker
-loads the namespace, runs `(phel\test/run-tests ...)` in a captured
+loads the namespace, runs `(phel.test/run-tests ...)` in a captured
 output buffer, and writes back a result frame (`{index, ns, ok,
 output, failed-tests, counts, error}`). The parent keeps results
 indexed by their input position and flushes them to the terminal in
@@ -106,7 +106,7 @@ and `stream_select`. Works on Linux and macOS. Windows is untested.
 
 ## Caveats
 
-- **Each worker pays one-time bootstrap cost** to `(phel\test/run-tests ...)` so very small suites may run slower in parallel mode than serial.
+- **Each worker pays one-time bootstrap cost** to `(phel.test/run-tests ...)` so very small suites may run slower in parallel mode than serial.
 - **Stateful per-namespace fixtures** (DB seeding, port binding, shared file) need to be made worker-safe or you have to keep `--parallel=1` for that suite.
 - **TAP / profiler combos auto-disable**; junit-xml works fine.
 - **Cross-worker `--fail-fast` not yet wired** — fail-fast within a worker still works, but the parent does not cancel sibling workers on first failure.

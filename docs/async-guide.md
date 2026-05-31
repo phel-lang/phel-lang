@@ -28,7 +28,7 @@ Rule of thumb: fiber layer for plain scripts; AMPHP layer when IO, timers, or AM
 (async body...)
 ```
 
-Schedules `body` on the AMPHP event loop in a fresh fiber. Returns `Amp\Future`. Needs an active event loop (call inside `Amp\Loop::run` or a command that opens one). Exceptions in the body surface when awaited.
+Schedules `body` on the AMPHP event loop in a fresh fiber. Returns `Amp\Future`. Amp v3 manages the event loop automatically; no explicit `Loop::run` call needed. Exceptions in the body surface when awaited.
 
 ```phel
 (await (async (+ 1 2))) ;; => 3
@@ -160,7 +160,7 @@ Delivers `value` to promise `p`. Returns `p` on first delivery, `nil` if already
 (future-call f)
 ```
 
-Runs zero-arg `f` in a new fiber via the cooperative scheduler. Returns `PhelFiberFuture` supporting `deref`, `realized?`, `future-done?`, `future-cancel`. `f` must be zero-arg; use a closure to capture state.
+Runs zero-arg `f` in a new fiber via the cooperative scheduler. Returns a `Future` supporting `deref`, `realized?`, `future-done?`, `future-cancel`. `f` must be zero-arg; use a closure to capture state.
 
 ### `future-fiber`
 

@@ -71,7 +71,7 @@ user:5> (/ 1 0)
 user:6> *e                        ; last exception
 ```
 
-The prompt shows the current namespace; it switches on `(ns ...)` / `(in-ns ...)`. `*1`, `*2`, `*3` hold the last three REPL results; `*e` holds the last exception. Type `(exit)` or press Ctrl-D to quit.
+The prompt shows the current namespace; it switches on `(ns ...)` / `(in-ns ...)`. `*1`, `*2`, `*3` hold the last three REPL results; `*e` holds the last exception. Type `exit` or press Ctrl-D to quit.
 
 ## Collections
 

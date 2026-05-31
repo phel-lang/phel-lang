@@ -19,7 +19,7 @@ Create the directory once: `mkdir -p /tmp/php-opcache`. Restart your shell. Repe
 
 Every `./vendor/bin/phel` invocation is a fresh PHP process. Without CLI opcache, PHP re-parses every `.php` file every run: `vendor/`, Phel compiler, Symfony console, project classes. With `opcache.file_cache`, compiled bytecode persists across processes.
 
-Phel also maintains a compiled-code cache (under `sys_get_temp_dir() . '/phel'` by default) memoizing Phel-to-PHP compilation per source hash. The two caches complement each other: Phel's cache skips recompilation; opcache skips re-parsing the resulting PHP.
+Phel also maintains a compiled-code cache under `.phel/cache/` memoizing Phel-to-PHP compilation per source hash. The two caches complement each other: Phel's cache skips recompilation; opcache skips re-parsing the resulting PHP.
 
 Cache invalidation is automatic. Each run hashes the `.phel` source (`md5`) against the stored entry. On mismatch, the file is recompiled and transitive dependents are invalidated. No manual clear is needed after editing a `.phel` file. Fresh compiles also call `opcache_compile_file()` on the generated PHP. Use the reset steps below only if something gets wedged.
 
@@ -54,7 +54,7 @@ Prints `bool(true)` when CLI opcache is on.
 If a run behaves oddly (stale compiled code, missing definitions, cache-hit crashes), wipe both caches and retry:
 
 ```bash
-rm -rf "$(php -r 'echo sys_get_temp_dir();')/phel"
+rm -rf .phel/cache
 rm -rf /tmp/php-opcache
 ```
 
@@ -62,7 +62,7 @@ Next invocation repopulates cleanly.
 
 ## Benchmarks (reference)
 
-Measured locally on 6-test file `tests/phel/core/var-quote.phel`:
+Measured locally on `tests/phel/core/var-quote.phel`:
 
 | State | Time |
 |---|---|
