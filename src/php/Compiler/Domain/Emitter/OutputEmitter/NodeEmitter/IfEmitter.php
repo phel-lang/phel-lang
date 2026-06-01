@@ -194,32 +194,17 @@ final class IfEmitter implements NodeEmitterInterface
     }
 
     /**
-     * Emit a node and strip the analyser's `return ` prefix / trailing
-     * `;` from the captured output — the same node may sit deep inside
+     * Emit a node as a bare expression — the same node may sit deep inside
      * a chain whose original env is RETURN, but our chunk is consumed
      * as a bare expression in the surrounding `if (…)` test position,
      * so the context decoration would produce invalid PHP.
      */
     private function emitNodeAsExpression(AbstractNode $node): void
     {
-        ob_start();
-        try {
-            $this->outputEmitter->emitNode($node);
-        } finally {
-            $buf = (string) ob_get_clean();
-        }
-
-        $buf = preg_replace('/^return\s+/', '', $buf);
-        if ($buf === null) {
-            $buf = '';
-        }
-
-        $buf = rtrim($buf);
-        if ($buf !== '' && str_ends_with($buf, ';')) {
-            $buf = substr($buf, 0, -1);
-        }
-
-        $this->outputEmitter->emitStr($buf, $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr(
+            $this->outputEmitter->captureNodeAsExpression($node),
+            $node->getStartSourceLocation(),
+        );
     }
 
     /**

@@ -180,31 +180,16 @@ final class LetEmitter implements NodeEmitterInterface
     }
 
     /**
-     * Capture the emit output of a chain operand and strip the
-     * analyser's `return ` prefix / trailing `;` so the result fits
-     * inside the ternary expression. Same trick `IfEmitter` uses for
+     * Emit a chain operand as a bare expression so the result fits inside
+     * the ternary expression. Same trick `IfEmitter` uses for
      * test-position chains.
      */
     private function emitOperandAsExpression(AbstractNode $operand): void
     {
-        ob_start();
-        try {
-            $this->outputEmitter->emitNode($operand);
-        } finally {
-            $buf = (string) ob_get_clean();
-        }
-
-        $stripped = preg_replace('/^return\s+/', '', $buf);
-        if ($stripped === null) {
-            $stripped = '';
-        }
-
-        $stripped = rtrim($stripped);
-        if ($stripped !== '' && str_ends_with($stripped, ';')) {
-            $stripped = substr($stripped, 0, -1);
-        }
-
-        $this->outputEmitter->emitStr($stripped, $operand->getStartSourceLocation());
+        $this->outputEmitter->emitStr(
+            $this->outputEmitter->captureNodeAsExpression($operand),
+            $operand->getStartSourceLocation(),
+        );
     }
 
     /**
