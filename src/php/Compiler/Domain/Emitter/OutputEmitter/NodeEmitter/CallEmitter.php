@@ -19,6 +19,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NilAndBooleanCheckSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\PhpStringEscape;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\TypedCollectionMethodSpecialization;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\TypePredicateSpecialization;
 use Phel\Lang\Symbol;
 
 use function array_slice;
@@ -629,13 +630,13 @@ final class CallEmitter implements NodeEmitterInterface
 
     /**
      * Splice the argument into the native predicate fragment from
-     * `CallSpecialization::typePredicateFragment`. The fragment uses
+     * `TypePredicateSpecialization::typePredicateFragment`. The fragment uses
      * `sprintf` placeholders so multi-instanceof predicates (`map?`,
      * `vector?`, `seq?`) can reference the argument multiple times.
      */
     private function tryEmitTypePredicate(CallNode $node): bool
     {
-        $fragment = CallSpecialization::typePredicateFragment($node);
+        $fragment = TypePredicateSpecialization::typePredicateFragment($node);
         if ($fragment === null) {
             return false;
         }
@@ -654,7 +655,7 @@ final class CallEmitter implements NodeEmitterInterface
      */
     private function tryEmitNumericPredicate(CallNode $node): bool
     {
-        $name = CallSpecialization::isNumericPredicate($node);
+        $name = TypePredicateSpecialization::isNumericPredicate($node);
         if ($name === null) {
             return false;
         }
