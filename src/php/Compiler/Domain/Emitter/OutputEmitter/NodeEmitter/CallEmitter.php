@@ -17,6 +17,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\GlobalCallTarget;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NilAndBooleanCheckSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\PhpStringEscape;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\TypedCollectionMethodSpecialization;
 use Phel\Lang\Symbol;
 
 use function array_slice;
@@ -799,7 +800,7 @@ final class CallEmitter implements NodeEmitterInterface
      */
     private function tryEmitTypedSeqAccessor(CallNode $node): bool
     {
-        $method = CallSpecialization::typedSeqMethodName($node);
+        $method = TypedCollectionMethodSpecialization::typedSeqMethodName($node);
         if ($method === null) {
             return false;
         }
@@ -821,7 +822,7 @@ final class CallEmitter implements NodeEmitterInterface
      */
     private function tryEmitTypedVectorAccessor(CallNode $node): bool
     {
-        $spec = CallSpecialization::typedVectorMethodCall($node);
+        $spec = TypedCollectionMethodSpecialization::typedVectorMethodCall($node);
         if ($spec === null) {
             return false;
         }
