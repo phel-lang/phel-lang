@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file.
 - Compiler internals: extracted the `assoc` / `conj` / `dissoc` method lowering and the transient `(-> coll (assoc …) …)` chain detection out of `CallSpecialization` into a focused `AssocConjSpecialization` collaborator (no change to generated code)
 - Compiler internals: extracted the single-arg type predicates (`int?` / `keyword?` / `map?` / … ) and numeric predicates (`zero?` / `pos?` / `neg?`) out of `CallSpecialization` into a focused `TypePredicateSpecialization` collaborator (no change to generated code)
 - Compiler internals: extracted the tagged-target value ops (`contains?` / `empty?` / `name` / `namespace` / keyword-find) out of `CallSpecialization` into a focused `TypedValueSpecialization` collaborator (no change to generated code)
+- Compiler internals: extracted the typed numeric / comparison / equality operator lowering (incl. the variadic chain, not-eq peephole, and node type inference) out of `CallSpecialization` into a focused `NumericOperationSpecialization` collaborator, completing the god-class split (no change to generated code)
 
 ## [0.41.0](https://github.com/phel-lang/phel-lang/compare/v0.40.0...v0.41.0) - 2026-06-01
 

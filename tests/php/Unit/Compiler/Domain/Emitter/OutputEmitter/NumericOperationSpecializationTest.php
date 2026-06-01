@@ -11,13 +11,13 @@ use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
-use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NumericOperationSpecialization;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Shared\CompilerConstants;
 use PHPUnit\Framework\TestCase;
 
-final class CallSpecializationTest extends TestCase
+final class NumericOperationSpecializationTest extends TestCase
 {
     public function test_not_eq_peephole_fires_when_inner_eq_is_typed(): void
     {
@@ -28,7 +28,7 @@ final class CallSpecializationTest extends TestCase
         ]);
         $outer = $this->coreCall('not', [$inner]);
 
-        self::assertSame($inner, CallSpecialization::notEqPeepholeInner($outer));
+        self::assertSame($inner, NumericOperationSpecialization::notEqPeepholeInner($outer));
     }
 
     public function test_not_eq_peephole_skips_when_inner_eq_is_untyped(): void
@@ -40,7 +40,7 @@ final class CallSpecializationTest extends TestCase
         ]);
         $outer = $this->coreCall('not', [$inner]);
 
-        self::assertNull(CallSpecialization::notEqPeepholeInner($outer));
+        self::assertNull(NumericOperationSpecialization::notEqPeepholeInner($outer));
     }
 
     public function test_not_eq_peephole_skips_when_outer_is_not_not(): void
@@ -52,7 +52,7 @@ final class CallSpecializationTest extends TestCase
         ]);
         $outer = $this->coreCall('inc', [$inner]);
 
-        self::assertNull(CallSpecialization::notEqPeepholeInner($outer));
+        self::assertNull(NumericOperationSpecialization::notEqPeepholeInner($outer));
     }
 
     public function test_variadic_mul_three_int_locals_chains_arith(): void
@@ -65,7 +65,7 @@ final class CallSpecializationTest extends TestCase
 
         self::assertSame(
             ['op' => '*', 'kind' => 'arith'],
-            CallSpecialization::typedVariadicChain($node),
+            NumericOperationSpecialization::typedVariadicChain($node),
         );
     }
 
@@ -79,7 +79,7 @@ final class CallSpecializationTest extends TestCase
 
         self::assertSame(
             ['op' => '<', 'kind' => 'compare'],
-            CallSpecialization::typedVariadicChain($node),
+            NumericOperationSpecialization::typedVariadicChain($node),
         );
     }
 
@@ -94,7 +94,7 @@ final class CallSpecializationTest extends TestCase
             new LiteralNode($env, 100000000),
         ]);
 
-        self::assertNull(CallSpecialization::typedVariadicChain($node));
+        self::assertNull(NumericOperationSpecialization::typedVariadicChain($node));
     }
 
     public function test_variadic_chain_rejects_two_args(): void
@@ -104,7 +104,7 @@ final class CallSpecializationTest extends TestCase
             $this->localWithTag('b', 'int'),
         ]);
 
-        self::assertNull(CallSpecialization::typedVariadicChain($node));
+        self::assertNull(NumericOperationSpecialization::typedVariadicChain($node));
     }
 
     public function test_variadic_chain_rejects_eq_op(): void
@@ -118,7 +118,7 @@ final class CallSpecializationTest extends TestCase
             $this->localWithTag('c', 'int'),
         ]);
 
-        self::assertNull(CallSpecialization::typedVariadicChain($node));
+        self::assertNull(NumericOperationSpecialization::typedVariadicChain($node));
     }
 
     public function test_variadic_chain_rejects_untyped_local(): void
@@ -130,7 +130,7 @@ final class CallSpecializationTest extends TestCase
             $this->localWithTag('c', 'int'),
         ]);
 
-        self::assertNull(CallSpecialization::typedVariadicChain($node));
+        self::assertNull(NumericOperationSpecialization::typedVariadicChain($node));
     }
 
     private function env(): NodeEnvironment
