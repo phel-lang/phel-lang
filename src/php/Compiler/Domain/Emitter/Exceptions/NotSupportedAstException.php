@@ -12,6 +12,11 @@ final class NotSupportedAstException extends RuntimeException
 {
     public static function withClassName(string $astNodeClassName): self
     {
-        return new self(sprintf("Not supported AstClassName: '%s'", $astNodeClassName));
+        return new self(sprintf(
+            "No node emitter is registered for AST node '%s'. "
+            . 'The analyzer produced a node the emitter cannot handle; '
+            . 'register an emitter for it in NodeEmitterFactory::instantiateEmitter().',
+            $astNodeClassName,
+        ));
     }
 }
