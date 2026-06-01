@@ -1,7 +1,9 @@
 ---
 name: bench-regression
 description: Runs PHPBench against the baseline tag and reports compiler performance regressions. Use after changes to lexer, parser, analyzer, emitter, or core runtime.
-model: sonnet
+model:
+  claude: sonnet
+  codex: o4-mini
 maxTurns: 10
 allowed_tools:
   - Read

@@ -5,7 +5,9 @@ allowed_tools:
     - Bash(git log:*)
     - Bash(git describe:*)
 description: Maintains CHANGELOG.md by analyzing commits since last release. Use when updating changelog, preparing releases, or reviewing what changed.
-model: haiku
+model:
+  claude: haiku
+  codex: o4-mini
 name: changelog-keeper
 x-codex:
     model_reasoning_effort: medium

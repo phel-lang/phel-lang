@@ -1,6 +1,9 @@
 ---
 description: Read-only Phel repository explorer for finding files, usages, module boundaries, and compiler/runtime structure.
 name: phel-explorer
+model:
+  claude: haiku
+  codex: o4-mini
 x-codex:
     model_reasoning_effort: medium
     name: phel_explorer

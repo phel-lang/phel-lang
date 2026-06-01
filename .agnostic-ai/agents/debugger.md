@@ -1,7 +1,9 @@
 ---
 name: debugger
 description: Diagnoses Phel compilation and runtime errors by tracing through compiler phases. Use when compilation fails, tests produce unexpected output, or runtime errors are unclear.
-model: sonnet
+model:
+  claude: opus
+  codex: o3
 maxTurns: 20
 allowed_tools:
   - Read

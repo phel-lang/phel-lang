@@ -1,7 +1,9 @@
 ---
 name: fixture-reviewer
 description: Audits .test integration fixtures under tests/php/Integration/Fixtures for drift against the current compiler output. Use after lexer, parser, analyzer, or emitter changes.
-model: sonnet
+model:
+  claude: sonnet
+  codex: o4-mini
 maxTurns: 15
 allowed_tools:
   - Read

@@ -1,6 +1,9 @@
 ---
 description: Debugger for Phel compilation, runtime, REPL, and test failures.
 name: phel-debugger
+model:
+  claude: opus
+  codex: o3
 x-codex:
     model_reasoning_effort: high
     name: phel_debugger

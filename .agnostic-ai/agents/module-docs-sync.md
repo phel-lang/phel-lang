@@ -1,7 +1,9 @@
 ---
 name: module-docs-sync
 description: Audits and updates CLAUDE.md files in src/php/ modules to match the actual code. Use after large refactors, new modules, or periodic maintenance.
-model: haiku
+model:
+  claude: haiku
+  codex: o4-mini
 memory: project
 allowed_tools:
   - Read

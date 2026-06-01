@@ -1,6 +1,9 @@
 ---
 description: Benchmark specialist for PHPBench baselines and compiler/runtime performance regression reports.
 name: phel-benchmark
+model:
+  claude: sonnet
+  codex: o4-mini
 x-codex:
     model_reasoning_effort: medium
     name: phel_benchmark
