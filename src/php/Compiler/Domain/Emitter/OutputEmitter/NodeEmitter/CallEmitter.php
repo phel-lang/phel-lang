@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\AssocConjSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\AtomMethodSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\GlobalCallTarget;
@@ -733,7 +734,7 @@ final class CallEmitter implements NodeEmitterInterface
      */
     private function tryEmitAssocConjChain(CallNode $node): bool
     {
-        $chain = CallSpecialization::assocConjChain($node);
+        $chain = AssocConjSpecialization::assocConjChain($node);
         if ($chain === null) {
             return false;
         }
@@ -767,7 +768,7 @@ final class CallEmitter implements NodeEmitterInterface
      */
     private function tryEmitTypedAssocConjDissoc(CallNode $node): bool
     {
-        $method = CallSpecialization::typedAssocConjDissocMethod($node);
+        $method = AssocConjSpecialization::typedAssocConjDissocMethod($node);
         if ($method === null) {
             return false;
         }

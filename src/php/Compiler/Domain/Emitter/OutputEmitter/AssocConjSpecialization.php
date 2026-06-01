@@ -1,0 +1,192 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Phel\Compiler\Domain\Emitter\OutputEmitter;
+
+use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
+use Phel\Compiler\Domain\Analyzer\Ast\CallNode;
+use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
+use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
+use Phel\Shared\CompilerConstants;
+
+use function array_slice;
+use function array_unshift;
+use function count;
+
+/**
+ * Call-site eligibility for `assoc` / `conj` / `dissoc` on a
+ * `LocalVarNode` tagged with a persistent-collection type, which
+ * {@see NodeEmitter\CallEmitter}
+ * lowers to a direct method call (single call) or a batched transient
+ * chain (`(-> coll (assoc …) (assoc …) …)`).
+ */
+final readonly class AssocConjSpecialization
+{
+    private function __construct() {}
+
+    /**
+     * `(assoc coll k v)` 3-arg / `(conj coll x)` 2-arg / `(dissoc coll k)` 2-arg
+     * specialise to a direct method call when the target carries an
+     * inferred persistent-collection tag:
+     *
+     *  - `PersistentMapInterface`  → `put` / `cons` (n/a) / `remove`
+     *  - `PersistentVectorInterface` → `update` / `append` / (n/a)
+     *
+     * Skips variadic / extra-arg arities — those need a loop the runtime
+     * dispatch handles separately.
+     */
+    public static function typedAssocConjDissocMethod(CallNode $node): ?string
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode) {
+            return null;
+        }
+
+        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE) {
+            return null;
+        }
+
+        $args = $node->getArguments();
+        $target = $args[0] ?? null;
+        if (!$target instanceof LocalVarNode) {
+            return null;
+        }
+
+        $tag = TagNormalizer::normalise($target->getInferredType());
+        if ($tag === null) {
+            return null;
+        }
+
+        $name = $fn->getName()->getName();
+        $argCount = count($args);
+
+        if ($name === 'assoc' && $argCount === 3) {
+            return match ($tag) {
+                PersistentMapInterface::class => 'put',
+                PersistentVectorInterface::class => 'update',
+                default => null,
+            };
+        }
+
+        if ($name === 'conj' && $argCount === 2) {
+            return match ($tag) {
+                PersistentVectorInterface::class => 'append',
+                default => null,
+            };
+        }
+
+        if ($name === 'dissoc' && $argCount === 2 && $tag === PersistentMapInterface::class) {
+            return 'remove';
+        }
+
+        return null;
+    }
+
+    public static function isTypedAssocConjDissoc(CallNode $node): bool
+    {
+        return self::typedAssocConjDissocMethod($node) !== null;
+    }
+
+    /**
+     * Detects an `(-> m (assoc k v) (assoc k v) ...)` or
+     * `(-> v (conj x) (conj y) ...)` chain — after thread-macro
+     * expansion these are nested `CallNode`s of the same op terminating
+     * at a `LocalVarNode` whose tag matches `PersistentMapInterface` or
+     * `PersistentVectorInterface`. A chain of length 1 is **not**
+     * batched: the existing single-call specialiser already lowers it
+     * to a direct method call, and a transient round-trip would just
+     * add work.
+     *
+     * Returns the leaf target, the transient method to spam, and the
+     * argument groups (`[k, v]` pairs for `assoc`, single-element
+     * `[x]` lists for `conj`) — `null` when the call is not a chain.
+     *
+     * @return array{
+     *     target: LocalVarNode,
+     *     method: 'append'|'put',
+     *     groups: list<list<AbstractNode>>
+     * }|null
+     */
+    public static function assocConjChain(CallNode $node): ?array
+    {
+        $shape = self::classifyChainHead($node);
+        if ($shape === null) {
+            return null;
+        }
+
+        [$opName, $expectedArgCount, $method, $expectedTag] = $shape;
+
+        $groups = [];
+        $current = $node;
+        while (true) {
+            $cFn = $current->getFn();
+            if (!$cFn instanceof GlobalVarNode) {
+                return null;
+            }
+
+            if ($cFn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
+                || $cFn->getName()->getName() !== $opName
+            ) {
+                return null;
+            }
+
+            $cArgs = $current->getArguments();
+            if (count($cArgs) !== $expectedArgCount) {
+                return null;
+            }
+
+            array_unshift($groups, array_slice($cArgs, 1));
+
+            $target = $cArgs[0];
+            if ($target instanceof CallNode) {
+                $current = $target;
+                continue;
+            }
+
+            if (!$target instanceof LocalVarNode) {
+                return null;
+            }
+
+            if (TagNormalizer::normalise($target->getInferredType()) !== $expectedTag) {
+                return null;
+            }
+
+            if (count($groups) < 2) {
+                return null;
+            }
+
+            return [
+                'target' => $target,
+                'method' => $method,
+                'groups' => $groups,
+            ];
+        }
+    }
+
+    public static function isAssocConjChain(CallNode $node): bool
+    {
+        return self::assocConjChain($node) !== null;
+    }
+
+    /**
+     * @return array{0: string, 1: int, 2: 'append'|'put', 3: class-string}|null
+     */
+    private static function classifyChainHead(CallNode $node): ?array
+    {
+        $fn = $node->getFn();
+        if (!$fn instanceof GlobalVarNode
+            || $fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
+        ) {
+            return null;
+        }
+
+        return match ($fn->getName()->getName()) {
+            'assoc' => ['assoc', 3, 'put', PersistentMapInterface::class],
+            'conj' => ['conj', 2, 'append', PersistentVectorInterface::class],
+            default => null,
+        };
+    }
+}
