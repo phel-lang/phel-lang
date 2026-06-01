@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Fixed
+
+- Lexer: error/source-map columns are now counted in code points instead of bytes, so locations are accurate for source containing multibyte (UTF-8) characters (ASCII-only code is unaffected)
+
 ### Added
 
 - Compiler internals: end-to-end regression test pinning that AST source locations survive every phase (lexer → parser → reader → analyzer)
