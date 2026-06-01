@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Changed
+
+- Compiler internals: extracted the `nil?` / `some?` / `true?` / `false?` / `truthy?` call-site eligibility checks out of `CallSpecialization` into a focused `NilAndBooleanCheckSpecialization` collaborator (no change to generated code)
+
 ## [0.41.0](https://github.com/phel-lang/phel-lang/compare/v0.40.0...v0.41.0) - 2026-06-01
 
 ### Added

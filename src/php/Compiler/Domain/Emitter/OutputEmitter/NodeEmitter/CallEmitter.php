@@ -13,6 +13,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\GlobalCallTarget;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NilAndBooleanCheckSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\PhpStringEscape;
 use Phel\Lang\Symbol;
@@ -448,7 +449,7 @@ final class CallEmitter implements NodeEmitterInterface
      */
     private function tryEmitNilCheck(CallNode $node): bool
     {
-        if (!CallSpecialization::isNilCheck($node)) {
+        if (!NilAndBooleanCheckSpecialization::isNilCheck($node)) {
             return false;
         }
 
@@ -465,7 +466,7 @@ final class CallEmitter implements NodeEmitterInterface
      */
     private function tryEmitSomeCheck(CallNode $node): bool
     {
-        if (!CallSpecialization::isSomeCheck($node)) {
+        if (!NilAndBooleanCheckSpecialization::isSomeCheck($node)) {
             return false;
         }
 
@@ -478,7 +479,7 @@ final class CallEmitter implements NodeEmitterInterface
 
     private function tryEmitTrueCheck(CallNode $node): bool
     {
-        if (!CallSpecialization::isTrueCheck($node)) {
+        if (!NilAndBooleanCheckSpecialization::isTrueCheck($node)) {
             return false;
         }
 
@@ -491,7 +492,7 @@ final class CallEmitter implements NodeEmitterInterface
 
     private function tryEmitFalseCheck(CallNode $node): bool
     {
-        if (!CallSpecialization::isFalseCheck($node)) {
+        if (!NilAndBooleanCheckSpecialization::isFalseCheck($node)) {
             return false;
         }
 
@@ -509,7 +510,7 @@ final class CallEmitter implements NodeEmitterInterface
      */
     private function tryEmitTruthyCheck(CallNode $node): bool
     {
-        if (!CallSpecialization::isTruthyCheck($node)) {
+        if (!NilAndBooleanCheckSpecialization::isTruthyCheck($node)) {
             return false;
         }
 

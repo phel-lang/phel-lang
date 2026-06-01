@@ -89,11 +89,11 @@ final readonly class CallSpecialization
      */
     public static function isBoolReturningSpecialisation(CallNode $node): bool
     {
-        if (self::isNilCheck($node)
-            || self::isSomeCheck($node)
-            || self::isTrueCheck($node)
-            || self::isFalseCheck($node)
-            || self::isTruthyCheck($node)
+        if (NilAndBooleanCheckSpecialization::isNilCheck($node)
+            || NilAndBooleanCheckSpecialization::isSomeCheck($node)
+            || NilAndBooleanCheckSpecialization::isTrueCheck($node)
+            || NilAndBooleanCheckSpecialization::isFalseCheck($node)
+            || NilAndBooleanCheckSpecialization::isTruthyCheck($node)
             || self::isTypePredicate($node)
             || self::isEmptyCheck($node)
             || self::isContainsCheck($node)
@@ -126,23 +126,23 @@ final readonly class CallSpecialization
             return true;
         }
 
-        if (self::isNilCheck($node)) {
+        if (NilAndBooleanCheckSpecialization::isNilCheck($node)) {
             return true;
         }
 
-        if (self::isSomeCheck($node)) {
+        if (NilAndBooleanCheckSpecialization::isSomeCheck($node)) {
             return true;
         }
 
-        if (self::isTrueCheck($node)) {
+        if (NilAndBooleanCheckSpecialization::isTrueCheck($node)) {
             return true;
         }
 
-        if (self::isFalseCheck($node)) {
+        if (NilAndBooleanCheckSpecialization::isFalseCheck($node)) {
             return true;
         }
 
-        if (self::isTruthyCheck($node)) {
+        if (NilAndBooleanCheckSpecialization::isTruthyCheck($node)) {
             return true;
         }
 
@@ -726,53 +726,6 @@ final readonly class CallSpecialization
     }
 
     /**
-     * `(nil? x)` — single-arg identity check against `nil`. The runtime
-     * body is `(id x nil)` which routes through the registry; the
-     * specialised emit is the literal `($x === null)`.
-     */
-    public static function isNilCheck(CallNode $node): bool
-    {
-        return self::isUnaryCoreCall($node, 'nil?');
-    }
-
-    /**
-     * `(some? x)` (1-arg) — `(not (nil? x))`. Maps to `($x !== null)`.
-     * Skips the 2-arg overload (`(some? pred coll)`); that variant has
-     * a different shape and the specialised emit would not be a single
-     * native expression.
-     */
-    public static function isSomeCheck(CallNode $node): bool
-    {
-        return self::isUnaryCoreCall($node, 'some?');
-    }
-
-    /**
-     * `(true? x)` — Phel `true?` is identity-strict (`(id x true)`),
-     * so the call collapses to `($x === true)` for any argument.
-     */
-    public static function isTrueCheck(CallNode $node): bool
-    {
-        return self::isUnaryCoreCall($node, 'true?');
-    }
-
-    /**
-     * `(false? x)` — `(id x false)`, collapses to `($x === false)`.
-     */
-    public static function isFalseCheck(CallNode $node): bool
-    {
-        return self::isUnaryCoreCall($node, 'false?');
-    }
-
-    /**
-     * `(truthy? x)` — Phel-truthy probe. The runtime body wraps
-     * `Truthy::isTruthy($x)`; the inline check is equivalent.
-     */
-    public static function isTruthyCheck(CallNode $node): bool
-    {
-        return self::isUnaryCoreCall($node, 'truthy?');
-    }
-
-    /**
      * `(deref x)` 1-arg / `(reset! v val)` 2-arg — runtime bodies are
      * single `php/->` method calls. Direct emission saves the registry
      * lookup + adapter frame. The 3-arg deref overload (timeout) keeps
@@ -1093,22 +1046,6 @@ final readonly class CallSpecialization
         $arg = $args[0];
         return $arg instanceof LocalVarNode
             && self::isPersistentMapTag($arg->getInferredType());
-    }
-
-    private static function isUnaryCoreCall(CallNode $node, string $name): bool
-    {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode) {
-            return false;
-        }
-
-        if ($fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-            || $fn->getName()->getName() !== $name
-        ) {
-            return false;
-        }
-
-        return count($node->getArguments()) === 1;
     }
 
     /**
