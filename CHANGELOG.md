@@ -4,8 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+### Added
+
+- Compiler internals: end-to-end regression test pinning that AST source locations survive every phase (lexer → parser → reader → analyzer)
+
 ### Changed
 
+- Compiler internals: documented `AbstractNode::getStartSourceLocation()`'s nullable contract
 - Compiler internals: extracted the `nil?` / `some?` / `true?` / `false?` / `truthy?` call-site eligibility checks out of `CallSpecialization` into a focused `NilAndBooleanCheckSpecialization` collaborator (no change to generated code)
 - Compiler internals: extracted the atom accessor (`deref` / `reset!`) call-site eligibility out of `CallSpecialization` into a focused `AtomMethodSpecialization` collaborator (no change to generated code)
 - Compiler internals: extracted the inferred-type-tag normalisation helpers out of `CallSpecialization` into a shared `TagNormalizer` (no change to generated code)

@@ -19,6 +19,15 @@ abstract class AbstractNode
         return $this->env;
     }
 
+    /**
+     * The source location of the form this node was analysed from, used
+     * by error reporting and source maps to point back at the original
+     * Phel. `null` for nodes the compiler synthesises without original
+     * source (macro expansion, simplification, inlining) and for a few
+     * resolver-built literals (e.g. `__DIR__` / `__FILE__`); analysers
+     * should propagate the location from the source form wherever one
+     * exists.
+     */
     public function getStartSourceLocation(): ?SourceLocation
     {
         return $this->startSourceLocation;
