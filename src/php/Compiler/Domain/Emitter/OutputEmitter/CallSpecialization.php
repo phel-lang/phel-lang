@@ -77,14 +77,14 @@ final readonly class CallSpecialization
             || NilAndBooleanCheckSpecialization::isTrueCheck($node)
             || NilAndBooleanCheckSpecialization::isFalseCheck($node)
             || NilAndBooleanCheckSpecialization::isTruthyCheck($node)
-            || self::isTypePredicate($node)
+            || TypePredicateSpecialization::isTypePredicate($node)
             || self::isEmptyCheck($node)
             || self::isContainsCheck($node)
         ) {
             return true;
         }
 
-        return self::isNumericPredicate($node) !== null;
+        return TypePredicateSpecialization::isNumericPredicate($node) !== null;
     }
 
     public static function isSpecialized(CallNode $node): bool
@@ -129,11 +129,11 @@ final readonly class CallSpecialization
             return true;
         }
 
-        if (self::isNumericPredicate($node) !== null) {
+        if (TypePredicateSpecialization::isNumericPredicate($node) !== null) {
             return true;
         }
 
-        if (self::isTypePredicate($node)) {
+        if (TypePredicateSpecialization::isTypePredicate($node)) {
             return true;
         }
 
@@ -617,94 +617,6 @@ final readonly class CallSpecialization
     public static function isNamedAccessor(CallNode $node): bool
     {
         return self::namedAccessorMethod($node) !== null;
-    }
-
-    /**
-     * `(int? x)` / `(float? x)` / `(double? x)` / `(string? x)` /
-     * `(keyword? x)` / `(symbol? x)` / `(ratio? x)` — single-arg
-     * type predicates whose runtime body is a one-liner native
-     * check. Returns the PHP expression fragment to splice between
-     * the surrounding parens, or `null` when the call is not one of
-     * these predicates.
-     *
-     * The fragment expects `%s` substitution for the (already-emitted)
-     * argument expression.
-     */
-    public static function typePredicateFragment(CallNode $node): ?string
-    {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode
-            || $fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-        ) {
-            return null;
-        }
-
-        $args = $node->getArguments();
-        if (count($args) !== 1) {
-            return null;
-        }
-
-        return match ($fn->getName()->getName()) {
-            'int?' => 'is_int(%s)',
-            'float?', 'double?' => 'is_float(%s)',
-            'string?' => 'is_string(%s)',
-            'keyword?' => '(%s instanceof \\Phel\\Lang\\Keyword)',
-            'symbol?' => '(%s instanceof \\Phel\\Lang\\Symbol)',
-            'ratio?' => '(%s instanceof \\Phel\\Lang\\Ratio)',
-            'struct?' => '(%s instanceof \\Phel\\Lang\\Collections\\Struct\\AbstractPersistentStruct)',
-            'set?' => '(%s instanceof \\Phel\\Lang\\Collections\\HashSet\\PersistentHashSetInterface)',
-            'lazy-seq?' => '(%s instanceof \\Phel\\Lang\\Collections\\LazySeq\\LazySeqInterface)',
-            'queue?' => '(%s instanceof \\Phel\\Lang\\Collections\\Queue\\PersistentQueue)',
-            'map?' => '((%1$s instanceof \\Phel\\Lang\\Collections\\Map\\PersistentMapInterface) && !(%1$s instanceof \\Phel\\Lang\\Collections\\Struct\\AbstractPersistentStruct))',
-            'vector?' => '((%1$s instanceof \\Phel\\Lang\\Collections\\Vector\\PersistentVectorInterface) || (%1$s instanceof \\Phel\\Lang\\Collections\\Map\\MapEntry))',
-            'seq?' => '((%1$s instanceof \\Phel\\Lang\\Collections\\LazySeq\\LazySeqInterface) || (%1$s instanceof \\Phel\\Lang\\Collections\\LazySeq\\Cons) || (%1$s instanceof \\Phel\\Lang\\Collections\\LinkedList\\PersistentListInterface))',
-            default => null,
-        };
-    }
-
-    public static function isTypePredicate(CallNode $node): bool
-    {
-        return self::typePredicateFragment($node) !== null;
-    }
-
-    /**
-     * `(zero? x)` / `(pos? x)` / `(neg? x)` on an `int` / `float`
-     * tagged local. Other numeric shapes (`BigInt`, `Ratio`,
-     * `BigDecimal`) need the runtime `NumericOperations` dispatch
-     * because the native operators do not honour their equality
-     * semantics. Returns the predicate name when eligible, `null`
-     * otherwise.
-     */
-    public static function isNumericPredicate(CallNode $node): ?string
-    {
-        $fn = $node->getFn();
-        if (!$fn instanceof GlobalVarNode
-            || $fn->getNamespace() !== CompilerConstants::PHEL_CORE_NAMESPACE
-        ) {
-            return null;
-        }
-
-        $name = $fn->getName()->getName();
-        if (!in_array($name, ['zero?', 'pos?', 'neg?'], true)) {
-            return null;
-        }
-
-        $args = $node->getArguments();
-        if (count($args) !== 1) {
-            return null;
-        }
-
-        $target = $args[0];
-        if (!$target instanceof LocalVarNode) {
-            return null;
-        }
-
-        $tag = TagNormalizer::normalise($target->getInferredType());
-        if ($tag !== 'int' && $tag !== 'float') {
-            return null;
-        }
-
-        return $name;
     }
 
     /**
