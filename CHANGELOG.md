@@ -14,15 +14,8 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
-- Compiler internals: documented `AbstractNode::getStartSourceLocation()`'s nullable contract
-- Compiler internals: extracted the `nil?` / `some?` / `true?` / `false?` / `truthy?` call-site eligibility checks out of `CallSpecialization` into a focused `NilAndBooleanCheckSpecialization` collaborator (no change to generated code)
-- Compiler internals: extracted the atom accessor (`deref` / `reset!`) call-site eligibility out of `CallSpecialization` into a focused `AtomMethodSpecialization` collaborator (no change to generated code)
-- Compiler internals: extracted the inferred-type-tag normalisation helpers out of `CallSpecialization` into a shared `TagNormalizer` (no change to generated code)
-- Compiler internals: extracted the typed persistent-collection accessor lowering (`count` / `nth` on vectors, `first` / `rest` on seqs) out of `CallSpecialization` into a focused `TypedCollectionMethodSpecialization` collaborator (no change to generated code)
-- Compiler internals: extracted the `assoc` / `conj` / `dissoc` method lowering and the transient `(-> coll (assoc …) …)` chain detection out of `CallSpecialization` into a focused `AssocConjSpecialization` collaborator (no change to generated code)
-- Compiler internals: extracted the single-arg type predicates (`int?` / `keyword?` / `map?` / … ) and numeric predicates (`zero?` / `pos?` / `neg?`) out of `CallSpecialization` into a focused `TypePredicateSpecialization` collaborator (no change to generated code)
-- Compiler internals: extracted the tagged-target value ops (`contains?` / `empty?` / `name` / `namespace` / keyword-find) out of `CallSpecialization` into a focused `TypedValueSpecialization` collaborator (no change to generated code)
-- Compiler internals: extracted the typed numeric / comparison / equality operator lowering (incl. the variadic chain, not-eq peephole, and node type inference) out of `CallSpecialization` into a focused `NumericOperationSpecialization` collaborator, completing the god-class split (no change to generated code)
+- Compiler internals: split the `CallSpecialization` call-site lowering god-class (1325 → ~330 LOC) into eight focused, independently tested collaborators — `NilAndBooleanCheckSpecialization`, `AtomMethodSpecialization`, `TagNormalizer` (shared tag helpers), `TypedCollectionMethodSpecialization`, `AssocConjSpecialization`, `TypePredicateSpecialization`, `TypedValueSpecialization`, and `NumericOperationSpecialization`; `CallSpecialization` now only aggregates them via `isSpecialized()` / `isBoolReturningSpecialisation()`. Pure refactor — generated PHP is unchanged.
+- Compiler internals: centralized the bare-expression capture used by the `If` / `Let` / `Call` emitters into `OutputEmitter::captureNodeAsExpression()`, and documented `AbstractNode::getStartSourceLocation()`'s nullable contract
 
 ## [0.41.0](https://github.com/phel-lang/phel-lang/compare/v0.40.0...v0.41.0) - 2026-06-01
 
