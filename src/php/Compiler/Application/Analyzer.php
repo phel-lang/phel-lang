@@ -56,9 +56,10 @@ final class Analyzer implements AnalyzerInterface
 
     public function setOptimizationLevel(int $level): void
     {
-        // Resetting the cached list analyzer ensures the next analyze
-        // call reads the new level when wiring up special-form handlers
-        // (e.g. FnSymbol picks up the level at construction time).
+        // Special-form handlers read the level live via
+        // $this->analyzer->getOptimizationLevel(), so no cached handler holds a
+        // stale level. The list-analyzer reset is kept as a cheap defensive
+        // guard in case a future handler ever captures the level at construction.
         $this->optimizationLevel = max(0, $level);
         $this->listAnalyzer = null;
     }

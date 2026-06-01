@@ -49,8 +49,8 @@ return RectorConfig::configure()
             __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/NsEmitter.php',
             __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/SetVarEmitter.php',
             __DIR__ . '/src/php/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/VectorEmitter.php',
-            __DIR__ . '/tests/php/Unit/Compiler/Emitter/OutputEmitter/NodeEmitter/ApplyEmitterTest.php',
-            __DIR__ . '/tests/php/Unit/Compiler/Emitter/OutputEmitter/NodeEmitter/FnAsClassEmitterTest.php',
+            __DIR__ . '/tests/php/Unit/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/ApplyEmitterTest.php',
+            __DIR__ . '/tests/php/Unit/Compiler/Domain/Emitter/OutputEmitter/NodeEmitter/FnAsClassEmitterTest.php',
         ],
         PrivatizeFinalClassPropertyRector::class => [
             __DIR__ . '/tests/php/Unit/Printer/TypePrinter/StubStruct.php',

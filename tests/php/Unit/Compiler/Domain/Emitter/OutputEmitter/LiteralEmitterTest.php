@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Compiler\Emitter\OutputEmitter;
+namespace PhelTest\Unit\Compiler\Domain\Emitter\OutputEmitter;
 
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\LiteralEmitter;

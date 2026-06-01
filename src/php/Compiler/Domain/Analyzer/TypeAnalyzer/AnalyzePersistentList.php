@@ -312,7 +312,6 @@ final class AnalyzePersistentList
             Symbol::NAME_FN => new FnSymbol(
                 $this->analyzer,
                 $this->assertsEnabled,
-                optimizationLevel: $this->analyzer->getOptimizationLevel(),
             ),
             Symbol::NAME_QUOTE => new QuoteSymbol(),
             Symbol::NAME_VAR => new VarSymbol($this->analyzer),

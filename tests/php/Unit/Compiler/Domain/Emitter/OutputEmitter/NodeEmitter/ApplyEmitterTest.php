@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Compiler\Emitter\OutputEmitter\NodeEmitter;
+namespace PhelTest\Unit\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Domain\Analyzer\Ast\ApplyNode;
