@@ -104,6 +104,8 @@ The analyser already tracks param types (`ParamTypeInferrer`), return types (`Re
 
 Add new consumers by extending those predicates (or adding a sibling under `Compiler/Domain/Emitter/OutputEmitter/`). The contract is: never fabricate a type — propagate only what the analyser already published.
 
+Call-site specialization eligibility lives in focused `*Specialization` collaborators under `OutputEmitter/` (`NumericOperation`, `TypePredicate`, `TypedValue`, `TypedCollectionMethod`, `AssocConj`, `AtomMethod`, `NilAndBooleanCheck`), with shared tag helpers in `TagNormalizer`; `CallSpecialization` only aggregates them via `isSpecialized()` / `isBoolReturningSpecialisation()`. Add a new family as its own `*Specialization` class and register it in that dispatch.
+
 ## Global Environment
 
 State lives in `Domain/Analyzer/Environment/GlobalEnvironmentRegistry` (process-wide static). The Application's `GlobalEnvironmentManager` and the infrastructure's `GlobalEnvironmentSingleton` both read/write the same slot.
