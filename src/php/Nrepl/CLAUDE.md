@@ -1,55 +1,55 @@
 # Nrepl Module
 
-nREPL protocol server: bencode-over-TCP wire protocol for editor tooling (Cursive, Calva, CIDER, Conjure).
+nREPL protocol server; bencode-over-TCP for editor tooling (Cursive, Calva, CIDER, Conjure).
 
 ## Gacela Pattern
 
-- **Facade**: `NreplFacade` extends `AbstractFacade<NreplFactory>`
-- **Factory**: `NreplFactory` extends `AbstractFactory<NreplConfig>`
-- **Config**: `NreplConfig` : default port `7888`, default host `127.0.0.1`
-- **Provider**: `NreplProvider` : injects `FACADE_RUN` and `FACADE_API`
+| Component | Class | Notes |
+|-----------|-------|-------|
+| Facade | `NreplFacade` | extends `AbstractFacade<NreplFactory>` |
+| Factory | `NreplFactory` | extends `AbstractFactory<NreplConfig>` |
+| Config | `NreplConfig` | port 7888, host 127.0.0.1 |
+| Provider | `NreplProvider` | injects Run and Api facades |
 
 ## Public API (Facade)
 
 - `createSocketServer(int $port, string $host, ?callable $logger): NreplSocketServer`
-- `createOpDispatcher(): OpDispatcher` : exposed for testing and for reuse from non-socket transports
-- `loadPhelNamespaces(): void` : delegates to `RunFacade::loadPhelNamespaces`
-
-## CLI Command
-
-`./bin/phel nrepl --port=<N> --host=<addr>` : starts the TCP server.
+- `createOpDispatcher(): OpDispatcher` (test/non-socket transport reuse)
+- `loadPhelNamespaces(): void` (delegates to RunFacade)
 
 ## Supported Ops
 
-- Core: `clone`, `close`, `describe`, `eval`, `load-file`, `interrupt`
-- Tooling: `completions` (via `ApiFacade::replCompleteWithTypes`), `lookup`, `info`, `eldoc` (via `ApiFacade::findSymbolMetadata` : covers session-defined `defn`s, library defs, and native special forms)
+| Op | Via |
+|----|-----|
+| `clone`, `close`, `describe`, `eval`, `load-file`, `interrupt` | Core |
+| `completions` | ApiFacade::replCompleteWithTypes |
+| `lookup`, `info`, `eldoc` | ApiFacade::findSymbolMetadata |
 
 ## Dependencies
 
-- **Run** (`FACADE_RUN`) : `structuredEval`, `getVersion`, `loadPhelNamespaces`
-- **Api** (`FACADE_API`) : `replCompleteWithTypes`, `findSymbolMetadata`
-- **Shared** : exceptions, printer
+- **Run** (FACADE_RUN): structuredEval, getVersion, loadPhelNamespaces
+- **Api** (FACADE_API): replCompleteWithTypes, findSymbolMetadata
 
 ## Structure
 
 ```
 Nrepl/
-|-- Application/Op/      one class per nREPL op + EvalResultResponder
+|-- Application/Op/      Op handlers + EvalResultResponder (one per nREPL op)
 |-- Domain/
-|   |-- Bencode/         pure bencode codec (encoder, decoder, stream decoder, exception)
-|   |-- Op/              dispatcher, request/response, OpHandlerInterface
-|   |-- Session/         Session, SessionRegistry
+|   |-- Bencode/         Pure encoder/decoder (Gacela-free)
+|   |-- Op/              Dispatcher, request/response, OpHandlerInterface
+|   |-- Session/         Registry and session state
 |   +-- Transport/       ClientConnection
-|-- Infrastructure/      NreplSocketServer, ClientFiberPool, Command/NreplCommand
-+-- Gacela files         NreplFacade, NreplFactory, NreplConfig, NreplProvider
+|-- Infrastructure/      SocketServer, ClientFiberPool, NreplCommand
++-- Gacela files
 ```
 
 ## Key Constraints
 
-- Bencode codec is pure: zero Gacela dependencies, reusable in isolation
-- Each op is a single `OpHandlerInterface` class; dispatch is a name-to-handler map
-- Accept loop uses PHP Fibers: one per client, cooperative yielding via `Fiber::suspend`
-- Eval delegates to `RunFacade::structuredEval` (never reimplements compiler)
-- `LookupOp` namespace resolution: explicit `ns` param → session namespace → `"user"`
-- Session tracks id, namespace, last evaluated value (for `*1`/`*2`/`*3` future wiring)
-- `NreplSocketServer::run(maxIterations)` for test-driven runs; `0` = unbounded
+- Bencode codec has zero dependencies; reusable standalone
+- Each nREPL op implements `OpHandlerInterface`; dispatcher maps name to handler
+- Client loop uses PHP Fibers (one per connection, cooperative suspend)
+- Eval always via RunFacade (no inline compilation)
+- LookupOp resolves namespace: explicit param, else session, else "user"
+- Session tracks id, namespace, last values (*1/*2/*3 wiring future)
+- `NreplSocketServer::run(maxIterations)` supports test iteration (0 = unbounded)

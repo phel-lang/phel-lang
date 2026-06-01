@@ -4,72 +4,109 @@ Core runtime type system: persistent data structures, language primitives, and c
 
 ## No Gacela Pattern
 
-This is a **foundational module** with no Facade, Factory, or DependencyProvider. Types are used directly by all other modules.
+Foundational leaf module with no Facade, Factory, or DependencyProvider. All types used directly by other modules.
 
 ## Core Types
 
-- **Symbol** : names with optional namespace; special constants for language forms (`def`, `fn`, `if`, etc.)
-- **Keyword** : interned with pool; callable as functions to access map values (implements `FnInterface`)
-- **Atom** : mutable box with watches, validators, deref (Clojure-aligned name; was `Variable`)
-- **PhelVar** : first-class handle to a global definition (`def`); produced by `Registry::addDefinition`/`getVar` and the `(var sym)` / `#'sym` forms; offers `deref`, `meta`, `alterRoot`, `addWatch`/`removeWatch`, `alterMeta`/`resetMeta`, and cached `isDynamic`; implements `FnInterface` so handles are callable (`__invoke` forwards to the current root value)
-- **PhelVarStateRegistry** : singleton side table for per-var watches, metadata overrides, and dynamic-flag cache keyed by `(ns, name)`; lets `PhelVar` stay `readonly` while `alter-meta!` / `add-watch` mutate canonical state
-- **BigInt** : pure-PHP arbitrary-precision signed integer (`final readonly`); base-10^9 magnitude with sign; `fromInt`, `fromFloat` (truncate toward zero, reject NaN/Inf), `fromString`, `add/subtract/multiply/divide/mod/gcd/pow/negate/abs`, `compareTo/equals`, `hash`, `toInt`/`fitsInPhpInt`. Implements `TypeInterface` (with optional source location and meta) so `N`-suffix literals beyond `PHP_INT_MAX` flow through reader/analyzer/emitter as first-class values. No I/O, no static state.
-- **Ratio** : exact rational `n/d` (`final readonly`, implements `TypeInterface`); always normalised (denominator > 0, `gcd(|num|, denom) = 1`). `Ratio::create($num, $den)` auto-collapses to `int` or `BigInt` when the result is integral, so `create(4, 2)` returns `int 2`, not a `Ratio`. Arithmetic accepts `Ratio | BigInt | int` and stays `Ratio` only while the result is non-integral.
-- **BigDecimal** : arbitrary-precision signed decimal (`final readonly`, implements `TypeInterface`); stored as `BigInt mantissa * 10^-scale`. Constructors: `fromString` (accepts optional sign, integer part, fraction, `eE` exponent, underscores), `fromInt`, `fromBigInt`, `fromFloat` (shortest round-trip; rejects NaN/Inf). Arithmetic: `add/subtract/multiply/divideExact/negate/abs/compareTo/isZero`. Equality is value-based via `compareTo` (so `1.20M` equals `1.2M`); `hash` uses the canonical decimal form. `divideExact` extends scale up to 100 digits before throwing on a non-terminating expansion. `__toString` renders the scale-respecting decimal form without an `M` suffix (e.g. `1.20M` stringifies to `"1.20"`, matching `java.math.BigDecimal.toString` and Clojure's `(str ...)` semantics). `toPlainString` is an alias for that form. The readable form (`Printer::readable()` / REPL output) appends the `M` suffix so values still round-trip through the reader. `M`-suffix literals (`1.5M`, `1.5e3M`) and the `phel.core/bigdec` constructor produce `BigDecimal` instances; `LiteralEmitter` emits them as `BigDecimal::fromString(...)` calls.
-- **UUID** : canonical 36-char UUID value (`final readonly`, implements `TypeInterface`); `UUID::fromString` validates + lowercases, `UUID::randomV4` generates a v4 value. Methods: `version`, `variant` (returns one of `ncs|rfc-4122|microsoft|reserved`), `isNil`, value-based `equals`/`hash`. `#uuid "..."` reader literal and `phel.core/random-uuid` produce `UUID` instances; `LiteralEmitter` emits them as `UUID::fromString(...)` calls.
-- **PhpClass** : typed wrapper around a PHP class or interface FQN (`final readonly`, implements `TypeInterface`); `PhpClass::fromName` validates the FQN exists and strips a leading backslash, `PhpClass::ofValue` returns the class of an object. `isInstance` performs runtime `is_a`. Backs the `phel.core/class`, `class?`, `class-name` fns and gives `derive`/`ancestors`/`parents` a value-typed alternative to bare FQN strings.
-- **PersistentQueue** (`Collections/Queue/PersistentQueue`) : persistent FIFO (`final readonly`, implements `TypeInterface, Countable, IteratorAggregate, FirstInterface, CdrInterface, ConsInterface, PushInterface, PopInterface`); two-stack (banker's queue) representation gives amortised O(1) `push` / `peek` / `pop`. `PersistentQueue::empty($h, $e)` and `::fromArray($h, $e, $values)` construct; `cons` is an alias for `push`. `phel.core/queue` constructs them; `peek`, `pop`, and `conj` route through their interfaces; `(type q)` returns `:queue`.
-- **MapEntry** (`Collections/Map/MapEntry`) : typed two-element entry (`final readonly`, implements `TypeInterface, Countable, IteratorAggregate, FirstInterface, CdrInterface`); equal by value to a 2-element `PersistentVectorInterface` in both directions (vector `equals` recognises `MapEntry`). `MapEntry::create($k, $v)` constructs; `key()`/`value()` accessors; `first()` returns the key and `cdr()` returns a 1-vector with the value so `[a b]` destructuring binds `a` to the key, `b` to the value. `(first m)` and `(next m)` produce `MapEntry` instances; `phel.core/map-entry` constructs them directly.
-- **NumericOperations** : runtime dispatch helper (static-only, `final`) for `+ - * /`, comparisons, and predicates across native PHP numbers, `BigInt`, and `Ratio`. Phel's arithmetic core fns route through this class because PHP's native operators do not dispatch on objects.
-- **Delay** : lazy evaluation with caching
-- **Volatile** : lightweight mutable container for transducer state
-- **Reduced** : signals early termination from reduce/transduce
+**Symbols, Keywords, Variables**
+- **Symbol**: names with optional namespace; special constants for language forms (`def`, `fn`, `if`, etc.)
+- **Keyword**: interned pool; callable to access map values; implements `FnInterface`
+- **Atom**: mutable box with watches, validators, `deref` (Clojure-aligned; was `Variable`)
+- **PhelVar**: first-class handle to global `def`. Methods: `deref`, `meta`, `alterRoot`, `addWatch`/`removeWatch`, `alterMeta`/`resetMeta`, `isDynamic` (cached). Callable via `__invoke` to current root. Produced by `Registry::addDefinition`/`getVar` and `(var sym)` form
+- **PhelVarStateRegistry**: singleton side table for per-var watches, metadata, dynamic-flag cache keyed by `(ns, name)`; enables `PhelVar` to stay `readonly` while `alter-meta!` and `add-watch` mutate canonical state
+
+**Numeric Types**
+- **BigInt**: arbitrary-precision signed integer (`final readonly`, `TypeInterface`); base-10^9 with sign. Methods: `fromInt`, `fromFloat`, `fromString`, `add`/`subtract`/`multiply`/`divide`/`mod`/`gcd`/`pow`/`negate`/`abs`, `compareTo`, `equals`, `hash`, `toInt`, `fitsInPhpInt`. No I/O or static state
+- **Ratio**: exact rational `n/d` (`final readonly`, `TypeInterface`); always normalized (denom > 0, gcd=1). `create($num, $den)` auto-collapses to `int`/`BigInt` if integral. Arithmetic preserves type over reals
+- **BigDecimal**: arbitrary-precision signed decimal (`final readonly`, `TypeInterface`); mantissa * 10^-scale. Constructors: `fromString`, `fromInt`, `fromBigInt`, `fromFloat` (shortest round-trip). Methods: `add`/`subtract`/`multiply`/`divideExact`/`negate`/`abs`/`compareTo`/`isZero`. Equality by value via `compareTo` (1.20M = 1.2M). `divideExact` extends scale to 100 digits. `__toString` outputs scale-respecting form without M suffix; `toPlainString` alias. REPL output appends M suffix for round-trip. Literals: `1.5M`, `1.5e3M`
+
+**Type Values**
+- **UUID**: canonical 36-char UUID (`final readonly`, `TypeInterface`). Methods: `fromString` (validates, lowercases), `randomV4`, `version`, `variant` (ncs, rfc-4122, microsoft, reserved), `isNil`, value-based `equals`/`hash`. Literal: `#uuid "..."`
+- **PhpClass**: typed wrapper for PHP class/interface FQN (`final readonly`, `TypeInterface`). Methods: `fromName` (validates, strips leading \), `ofValue` (get object class), `isInstance` (runtime `is_a`). Backs `phel.core/class`, `class?`, `class-name`
+
+**Collections (full types listed below)**
+- **PersistentQueue**: persistent FIFO (`final readonly`, `TypeInterface, Countable, IteratorAggregate, FirstInterface, CdrInterface, ConsInterface, PushInterface, PopInterface`). Two-stack banker's queue; O(1) amortized push/peek/pop. Constructor: `empty`, `fromArray`. `cons` alias for `push`. Type: `:queue`
+- **MapEntry**: typed two-element entry (`final readonly`, `TypeInterface, Countable, IteratorAggregate, FirstInterface, CdrInterface`). Equal by value to 2-element vector (both directions). Accessors: `key()`/`value()`; `first()` = key, `cdr()` = 1-vector with value
+
+**Lazy and Mutable**
+- **Delay**: lazy evaluation with caching
+- **Volatile**: lightweight mutable container for transducer state (no watches/validators)
+- **Reduced**: signals early termination from reduce/transduce
+- **Future**: Amphp adapter; exposes Phel deref/realized? protocol
+- **Eduction**: transducer composition helper
+- **LazySeq**: lazy sequence implementation with chunking
+
+**Utilities**
+- **NumericOperations**: static dispatch for `+`/`-`/`*`/`/`, comparisons, predicates across PHP numbers, `BigInt`, `Ratio`
+- **DynamicScope**: dynamic variable binding context
+- **Truthy**: coercion to boolean
+- **TypeStringifier**: `__toString` rendering
+- **Hasher**, **Equalizer**: collection hashing and equality; `HasherInterface`, `EqualizerInterface`
 
 ## Runtime Infrastructure
 
-- **Registry** (singleton) : manages definitions organized by namespace (values + metadata)
-- **TypeFactory** (singleton) : creates persistent collections; provides `Hasher` and `Equalizer`
-- **Seq** : static utility for sequence/generator operations (map, filter, take, drop, partition)
-- **Phel** : static helper for namespace/definition lookups (used by Api, Interop)
+- **Registry**: singleton managing definitions by namespace (values + metadata); `getInstance()`
+- **TypeFactory**: singleton creating persistent collections; provides `Hasher` and `Equalizer` singletons
+- **Seq**: static utility for sequence ops (map, filter, take, drop, partition)
+- **TagRegistry**: reader literal tag handler dispatch
+- **Phel**: static helper for namespace/definition lookups (used by Api, Interop)
 
 ## Interface Hierarchy
 
-**Top-level**: `TypeInterface` extends `MetaInterface`, `SourceLocationInterface`, `EqualsInterface`, `HashableInterface`
+**Core**
+- `TypeInterface`: extends `MetaInterface`, `SourceLocationInterface`, `EqualsInterface`, `HashableInterface`
+- `NamedInterface`: `getName()`, `getNamespace()`, `getFullName()`
+- `FnInterface`: marker for callable types
+- `IdenticalInterface`: identity-based equality (`===`)
+- `EqualsInterface`, `HashableInterface`: value-based equality and hashing
 
-**Named**: `NamedInterface` : `getName()`, `getNamespace()`, `getFullName()`
-**Callable**: `FnInterface` : marker for callable types
-**Identity**: `IdenticalInterface` : identity-based equality (`===`)
+**Collection Capabilities** (compose as needed)
+- `PushInterface`, `PopInterface`, `ConsInterface`, `CdrInterface`, `FirstInterface`
+- `ContainsInterface`, `RestInterface`, `ConcatInterface`, `SliceInterface`
+- `SeqInterface`: iterate; `AsTransientInterface`: convert to transient
 
-**Collection capabilities** (compose together):
-`PushInterface`, `PopInterface`, `ContainsInterface`, `FirstInterface`, `CdrInterface`, `ConsInterface`, `RestInterface`, `ConcatInterface`, `SliceInterface`, `SeqInterface`, `AsTransientInterface`
+## Collections Subdirectory Structure
 
-## Collections (`Collections/` subdirectory)
+| Name | Location | Interfaces |
+|------|----------|-----------|
+| **PersistentArrayMap** | `Map/` | `PersistentMapInterface` |
+| **PersistentHashMap** | `Map/` | `PersistentMapInterface` |
+| **PersistentSortedMap** | `SortedMap/` | `PersistentMapInterface` (sorted keys) |
+| **MapEntry** | `Map/` | `TypeInterface, FirstInterface, CdrInterface` |
+| **PersistentVector** | `Vector/` | `PersistentVectorInterface` |
+| **PersistentList** | `LinkedList/` | `PersistentListInterface` |
+| **PersistentQueue** | `Queue/` | `TypeInterface` (FIFO) |
+| **PersistentHashSet** | `HashSet/` | `PersistentHashSetInterface` |
+| **PersistentSortedSet** | `SortedSet/` | `PersistentHashSetInterface` (sorted elements) |
+| **LazySeq** | `LazySeq/` | `LazySeqInterface` (lazy chunking) |
+| **AbstractPersistentStruct** | `Struct/` | struct key encoding via `Phel\Shared\Munge` |
 
-- **Map/** : `PersistentArrayMap`, `PersistentHashMap` (implements `PersistentMapInterface`)
-- **Vector/** : `PersistentVector` (implements `PersistentVectorInterface`)
-- **LinkedList/** : `PersistentList` (implements `PersistentListInterface`)
-- **HashSet/** : `PersistentHashSet` (implements `PersistentHashSetInterface`)
-- **Queue/** : `PersistentQueue` (banker's queue: front list + reversed rear list)
-- **LazySeq/** : `LazySeq` (implements `LazySeqInterface`)
-- **Struct/** : `AbstractPersistentStruct` (delegates key encoding to `Phel\Shared\Munge`)
-- **TransientStateTrait** : shared transient lifecycle guard. `persistent()` calls `invalidateTransient()`; every mutator calls `ensureTransientActive()`, so reuse after `persistent!` (or a second `persistent!`) throws. Used by `TransientVector`, `TransientMapWrapper` (covers hash/array maps + hash-sets), and `TransientSortedMap` (covers sorted maps + sets via delegation)
+**Transients**: `TransientVector`, `TransientMapWrapper` (array/hash maps, hash-sets), `TransientSortedMap`/`TransientSortedSet` (sorted maps/sets via delegation). All share `TransientStateTrait`: `persistent()` invalidates; mutators call `ensureTransientActive()` to guard reuse after `persistent!`
+
+## Generators
+
+Sequence generators in `Generators/`: `CombineGenerator`, `DedupeGenerator`, `FileGenerator`, `InfiniteGenerator`, `PartitionGenerator`, `SequenceGenerator`, `SliceGenerator`, `TransformGenerator`
+
+## Tag Handlers
+
+Reader literals in `TagHandlers/`: builtin handlers for `#inst`, `#uuid`, regex literals. `AbstractStringTagHandler`, `BuiltinTagHandlers`, `InstTagHandler`, `RegexTagHandler`, `UUIDTagHandler`
 
 ## Dependencies
 
-This module aims to be a **leaf module** with no dependencies on other modules. `Phel\Shared` is the one exception: it is itself a leaf, so depending on it does not introduce a cycle. Current outbound imports:
-
-- `AbstractType::__toString()` calls `Phel\Shared\Printer\Printer::readable()` to render collection types; collapsing that edge requires installing a printer adapter at bootstrap and is tracked separately.
-- `AbstractPersistentStruct` uses `Phel\Shared\Munge` for struct-key encoding so the mangling stays in lockstep with the compiler emitter without duplicating the mapping.
+**Leaf module**; depends only on `Phel\Shared` (itself a leaf):
+- `AbstractType::__toString()` calls `Phel\Shared\Printer\Printer::readable()` for collection rendering
+- `AbstractPersistentStruct` uses `Phel\Shared\Munge` for key encoding (lockstep with compiler)
 
 ## Used By
 
-Every module: Compiler (AST representation), Printer (value display), Build (namespace extraction), Api (introspection), Interop (runtime interop), Run (evaluation).
+Every module: Compiler (AST), Printer, Build (namespace extraction), Api, Interop, Run (evaluation)
 
 ## Key Constraints
 
-- All collection types are **persistent** (immutable) with transient variants for bulk building
-- `Keyword` uses an intern pool for memory efficiency : identical keywords share the same instance
-- `Registry` is a singleton; `TypeFactory` is a singleton : both use `getInstance()`
-- Keyword callability, ex-info exceptions, atom-style mutation on `Atom`, first-class `PhelVar` for global defs
-- Source locations must be preserved via `SourceLocationInterface` for error reporting
-- `Registry` keys are dot-separated: `phel.core`, `my-app.lib` (after `-` → `_` munge → `my_app.lib`). Compiler emitters and analyzer feed the registry through `Munge::encodeRegistryKey`. `Symbol::getFullName` returns the dot form for Phel symbols; symbols whose namespace is a PHP class FQN (leading `\`) keep backslash so static-method shorthand still resolves.
+- All collections are **persistent** (immutable) with transient variants for bulk building
+- `Keyword` intern pool; identical keywords share instance for memory efficiency
+- `Registry`, `TypeFactory` are singletons; access via `getInstance()`
+- `Registry` keys are dot-separated: `phel.core`, `my-app.lib` (after `-` → `_` munge). Compiler feeds through `Munge::encodeRegistryKey`
+- `Symbol::getFullName` returns dot form; symbols with PHP class FQN namespace (leading `\`) keep backslash for static-method shorthand
+- Source locations preserved via `SourceLocationInterface` for error reporting
+- `PhelVar` implements `FnInterface` so handles are callable

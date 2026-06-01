@@ -5,8 +5,8 @@ CLI application entry point: bootstraps Symfony Console, registers commands, det
 ## Gacela Pattern
 
 - **Facade**: `ConsoleFacade` implements `ConsoleFacadeInterface`
-- **Factory**: `ConsoleFactory` : creates `ConsoleBootstrap`, `ArgvInputSanitizer`, `WarnDeprecationsFlag`; reads `VersionFinder` from `Phel\Shared`
-- **Provider**: `ConsoleProvider` : injects `COMMANDS` (21 Phel + 7 framework), `FACADE_FILESYSTEM`, `TAG_COMMIT_HASH`, `CURRENT_COMMIT`
+- **Factory**: `ConsoleFactory` creates `ConsoleBootstrap`, `ArgvInputSanitizer`, `VersionFinder` (from `Phel\Shared`)
+- **Provider**: `ConsoleProvider` injects `COMMANDS`, `FACADE_FILESYSTEM`, `TAG_COMMIT_HASH`, `CURRENT_COMMIT`
 
 ## Public API (Facade)
 
@@ -15,19 +15,19 @@ CLI application entry point: bootstraps Symfony Console, registers commands, det
 
 ## CLI Commands
 
-Registered via `ConsoleProvider::COMMANDS` (aggregated from per-module `ConsoleCommandProviderInterface` impls in `Infrastructure/Command/*Commands.php`):
+Registered via `ConsoleProvider::COMMANDS` from per-module `ConsoleCommandProviderInterface` impls in `Infrastructure/Command/*Commands.php`:
 
-- **Run**: `init`, `agent-install`, `ns`, `repl`, `eval`, `run`, `test`, `doctor`
-- **Api**: `doc`, `analyze`, `index`, `api-daemon`
-- **Build**: `build`, `cache:clear`
-- **Formatter**: `format`
-- **Interop**: `export`
-- **Lint**: `lint`
-- **Lsp**: `lsp`
-- **Nrepl**: `nrepl`
-- **Profile**: `profile`
-- **Watch**: `watch`
-- **Gacela framework re-exposed**: `cache:warm`, `debug:container`, `debug:dependencies`, `debug:modules`, `list:modules`, `profile:report`, `validate:config`
+- **Run**: init, agent-install, ns, repl, eval, compile, run, test, test-worker, doctor
+- **Api**: doc, analyze, index, api-daemon
+- **Build**: build, cache:clear
+- **Formatter**: format
+- **Interop**: export
+- **Lint**: lint
+- **Lsp**: lsp
+- **Nrepl**: nrepl
+- **Profile**: profile
+- **Watch**: watch
+- **Framework**: cache:warm, debug:container, debug:dependencies, debug:modules, list:modules, profile:report, validate:config
 
 ## Dependencies
 
@@ -50,6 +50,6 @@ Console/
 ## Key Constraints
 
 - Default command is `repl` (when no command specified)
-- `ConsoleBootstrap` runs with auto-exit disabled
-- `ArgvInputSanitizer` normalizes `phel run` arguments, separating script options from command arguments via `--`
-- `FilesystemFacade.clearAll()` is called after execution for cleanup
+- `ConsoleBootstrap.run()` calls `FilesystemFacade.clearAll()` then exits manually
+- `ArgvInputSanitizer` normalizes arguments, separating script options from command arguments via `--`
+- `WarnDeprecationsFlag.applyAndStrip()` processes deprecation notices from argv

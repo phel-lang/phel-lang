@@ -1,46 +1,52 @@
 # Lint Module
 
-Read-only semantic linter built on top of `ApiFacade`: emits diagnostics on Phel sources without rewriting files.
+Read-only semantic linter emitting diagnostics on Phel sources without rewriting.
 
 ## Gacela Pattern
 
-- **Facade**: `LintFacade` extends `AbstractFacade<LintFactory>`
-- **Factory**: `LintFactory` extends `AbstractFactory<LintConfig>`
-- **Config**: `LintConfig` : default severities, cache dir, config filename
-- **Provider**: `LintProvider` : injects `FACADE_API`, `FACADE_COMPILER`, `FACADE_COMMAND`, `FACADE_RUN`
+- **Facade**: `LintFacade`
+- **Factory**: `LintFactory`
+- **Config**: `LintConfig` (default severities, cache dir, config filename)
+- **Provider**: `LintProvider` (injects `FACADE_API`, `FACADE_COMPILER`, `FACADE_COMMAND`, `FACADE_RUN`)
 
 ## Public API (Facade)
 
-- `lint(list<string> $paths, RuleSettings $settings, ?LintCache $cache): LintResult`
-- `loadSettings(string $configPath, RuleSettings $defaults): RuleSettings`
-- `defaultSettings(): RuleSettings`
-- `formatters(): FormatterRegistry`
-- `createCache(string $baseDir, RuleSettings $settings): LintCache`
+| Method | Signature |
+|--------|-----------|
+| `lint` | `(list<string> $paths, RuleSettings $settings, ?LintCache $cache): LintResult` |
+| `loadSettings` | `(string $configPath, RuleSettings $defaults): RuleSettings` |
+| `defaultSettings` | `(): RuleSettings` |
+| `formatters` | `(): FormatterRegistry` |
+| `createCache` | `(string $baseDir, RuleSettings $settings): LintCache` |
 
 ## CLI Command
 
-`./bin/phel lint [paths]... [--format=human|json|github] [--config=path] [--no-cache]`
+```
+./bin/phel lint [paths]... [--format=human|json|github] [--config=path] [--no-cache]
+```
 
-Exit codes: `0` = clean or warnings only, `1` = one or more errors, `2` = invocation error.
+Exit codes: 0 = clean/warnings only; 1 = errors; 2 = invocation error.
 
 ## Rule Set (v1)
 
-- `phel/unresolved-symbol` (error)
-- `phel/arity-mismatch` (error)
-- `phel/invalid-destructuring` (error)
-- `phel/duplicate-key` (error)
-- `phel/unused-binding` (warning)
-- `phel/unused-require` (warning)
-- `phel/unused-import` (warning)
-- `phel/shadowed-binding` (warning)
-- `phel/redundant-do` (warning)
-- `phel/discouraged-var` (warning)
+| Code | Default |
+|------|---------|
+| `phel/unresolved-symbol` | error |
+| `phel/arity-mismatch` | error |
+| `phel/invalid-destructuring` | error |
+| `phel/duplicate-key` | error |
+| `phel/unused-binding` | warning |
+| `phel/unused-require` | warning |
+| `phel/unused-import` | warning |
+| `phel/shadowed-binding` | warning |
+| `phel/redundant-do` | warning |
+| `phel/discouraged-var` | warning |
 
-Each rule is a single `LintRuleInterface` class in `Application/Rule/`. Adding a rule is `new RuleClass()` in `LintFactory::createRules()` plus a code constant in `RuleRegistry` : no edits to existing rules.
+To add a rule: create `LintRuleInterface` class in `Application/Rule/`, add code constant to `RuleRegistry`, instantiate in `LintFactory::createRules()`. Do not edit existing rules.
 
 ## Config File
 
-`phel-lint.phel` (override with `--config`). Phel map parsed by the reader:
+File: `phel-lint.phel` (override via `--config`). Phel map parsed by reader:
 
 ```phel
 {:rules {:phel/unused-binding :off
@@ -48,50 +54,53 @@ Each rule is a single `LintRuleInterface` class in `Application/Rule/`. Adding a
  :exclude {:phel/unused-binding ["src/phel/local.phel" "phel.experimental.*"]}}
 ```
 
-Severities: `:error`, `:warning`, `:info`, `:hint`, `:off`. Patterns match file path (if containing `/` or `.phel`) or namespace name (via `fnmatch`).
+Severities: `:error`, `:warning`, `:info`, `:hint`, `:off`. Patterns match file path (if contains `/` or `.phel`) or namespace name via `fnmatch`.
 
 ## Cache
 
-Optional, enabled by default. Stores per-file diagnostics under `.phel/lint-cache/index.json` keyed by MD5 file hash + rule fingerprint. Disable with `--no-cache`.
+Optional, enabled by default. Stores per-file diagnostics at `.phel/lint-cache/index.json` keyed by MD5(file hash) + rule fingerprint. Disable with `--no-cache`.
 
 ## Output Formats
 
-- `human` : `file:line:col [severity] code message` plus a summary line
-- `json` : stable JSON array of `Diagnostic` objects
-- `github` : `::warning file=X,line=Y,col=Z,title=CODE::message` annotations
+| Format | Output |
+|--------|--------|
+| `human` | `file:line:col [severity] code message` plus summary |
+| `json` | JSON array of `Diagnostic` objects (stable) |
+| `github` | `::warning file=X,line=Y,col=Z,title=CODE::message` annotations |
 
-Formatters implement `DiagnosticFormatterInterface` and are registered on `FormatterRegistry`.
+Registered on `FormatterRegistry`, implement `DiagnosticFormatterInterface`.
 
 ## Dependencies
 
-- **Api** (`ApiFacade`) : `analyzeSource`, `indexProject`
-- **Compiler** (`CompilerFacade`) : `lexString`, `parseNext`, `read`
-- **Command** (`CommandFacade`) : default source directories
-- **Run** (`RunFacade`) : `loadPhelNamespaces()` before linting so resolved symbols exist
+| Module | Via | Purpose |
+|--------|-----|---------|
+| Api | `ApiFacade` | `analyzeSource` (semantic diagnostics), `indexProject` |
+| Compiler | `CompilerFacade` | `lexString`, `parseNext`, `read` |
+| Command | `CommandFacade` | Default source directories |
+| Run | `RunFacade` | `loadPhelNamespaces()` ensures symbols are resolved |
 
 ## Structure
 
 ```
 Lint/
 |-- Application/
-|   |-- Cache/           LintCache (file-hash + rule-fingerprint keyed JSON index)
+|   |-- Cache/           LintCache (MD5 hash + rule-fingerprint keyed JSON)
 |   |-- Config/          RuleRegistry, RuleSettings, ConfigLoader
 |   |-- Formatter/       HumanFormatter, JsonFormatter, GithubFormatter, FormatterRegistry
-|   |-- Rule/            One class per rule + FormWalker + DiagnosticBuilder
-|   |-- FileCollector, SourceReader, RulePipeline, LintRunner
+|   |-- Rule/            10 rule classes; FormWalker, DiagnosticBuilder, utilities
+|   +-- FileCollector, SourceReader, RulePipeline, LintRunner
 |-- Domain/              LintRuleInterface, DiagnosticFormatterInterface, FileAnalysis
-|-- Infrastructure/
-|   +-- Command/         LintCommand (Symfony console)
+|-- Infrastructure/Command/   LintCommand (Symfony console)
 |-- Transfer/            LintResult
-+-- Gacela files         LintFacade, LintFactory, LintConfig, LintProvider
++-- Gacela              LintFacade, LintFactory, LintConfig, LintProvider
 ```
 
 ## Key Constraints
 
-- Lint is **read-only**: never rewrites source; `fmt` owns whitespace/indent
-- Semantic diagnostics (`unresolved-symbol`, analyzer-detected `arity-mismatch`) are fetched via `ApiFacade::analyzeSource` and shared across rules through `FileAnalysis::$semanticDiagnostics` so the analyzer runs once per file
-- Rule pipeline is open/closed: `LintFactory::createRules()` is the only edit point to add a rule
-- `FormatterRegistry` is also open/closed: register new formatter names without editing existing ones
-- `LintCache` fingerprint combines `RuleRegistry::allCodes()` with `RuleSettings::fingerprint()` (severities + exclude patterns): adding/removing rules OR editing `phel-lint.phel` auto-invalidates the cache
-- Failing rules are isolated in `RulePipeline`: one bad rule never kills the run
-- `DuplicateKeyRule` scans the parse tree (not read forms) because the reader silently de-duplicates map literals
+- Read-only: never rewrites source (fmt owns whitespace/indent)
+- Semantic diagnostics (`unresolved-symbol`, `arity-mismatch`) shared via `FileAnalysis::$semanticDiagnostics` so analyzer runs once per file via `ApiFacade::analyzeSource`
+- Rule pipeline open/closed: `LintFactory::createRules()` only edit point for new rules
+- `FormatterRegistry` open/closed: register new formatters without editing existing ones
+- Cache fingerprint = MD5(all rule codes + severity + exclude patterns); adding/removing rules or editing `phel-lint.phel` invalidates cache
+- `RulePipeline` isolates failing rules; one bad rule does not kill run
+- `DuplicateKeyRule` scans parse tree (not read forms); reader silently deduplicates map literals

@@ -1,71 +1,73 @@
-# Printer (Phel\Shared\Printer)
+# Printer
 
-Converts Phel data structures and values into readable string representations. Sub-module of `Phel\Shared` so any module Factory may `new Printer::readable()` without crossing a module boundary.
+Converts Phel data structures into readable string representations. Stateless strategy pattern, no I/O wiring, no module boundary; consumers instantiate via factory methods.
 
 ## No Gacela Pattern
 
-Standalone strategy-pattern submodule. No Facade/Factory/Provider : `Printer` class is the entry point. Stateless, no module config, no I/O wiring.
+Entry point: `Printer` class. Stateless, no config, no dependencies from other modules.
 
 ## Public API
 
-**Factory methods** (on `Printer` class):
-- `Printer::readable()` : readable output without colors
-- `Printer::readableWithColor()` : readable output with ANSI colors
-- `Printer::nonReadable()` : machine-oriented output
+**Printer class factory methods**:
+- `Printer::readable()`: readable text, no ANSI colors
+- `Printer::readableWithColor()`: readable text with ANSI colors
+- `Printer::nonReadable()`: machine-oriented output
+- `Printer::installAsTypeStringifier()`: install as global `TypeStringifier` (used at startup)
 
 **Instance method**:
-- `print(mixed $form): string` : convert any value to string
+- `print(mixed $form): string`: convert any value to string
 
-## Type Printers (Strategy pattern)
+## Type Printers (26 strategies)
 
-Each implements `TypePrinterInterface`. Selected at runtime based on value type:
+Each implements `TypePrinterInterface` and handles one type. Runtime dispatch based on `gettype()` and `instanceof`. Recursive printers receive `PrinterInterface` via constructor.
 
 | Printer | Handles |
 |---------|---------|
-| `StringPrinter` | Strings (escape sequences, UTF-8) |
+| `StringPrinter` | Strings; handles escape sequences and UTF-8 |
 | `NumberPrinter` | Integers, floats |
-| `BooleanPrinter` | true/false |
+| `BooleanPrinter` | true, false |
 | `NullPrinter` | null |
 | `KeywordPrinter` | Keyword objects |
 | `SymbolPrinter` | Symbol objects |
-| `RatioPrinter` | Ratio numbers (`n/d`) |
-| `BigDecimalPrinter` | BigDecimal values (appends the `M` suffix so the readable form round-trips through the reader) |
-| `UUIDPrinter` | UUID values (rendered as `#uuid "..."`) |
-| `AtomPrinter` | Atom objects (recursive) |
-| `VarPrinter` | `PhelVar` handles, rendered as `#'ns/name` |
-| `PersistentListPrinter` | Lists (recursive) |
-| `PersistentVectorPrinter` | Vectors (recursive) |
-| `PersistentMapPrinter` | Maps (recursive) |
-| `PersistentHashSetPrinter` | Sets (recursive) |
-| `PersistentQueuePrinter` | Queues (recursive, rendered as `<-(...)-<` so the FIFO direction reads left-to-right) |
-| `StructPrinter` | Structs (recursive) |
-| `LazySeqPrinter` | Lazy sequences (recursive) |
-| `ArrayPrinter` | PHP arrays (recursive) |
-| `FnPrinter` | Functions |
-| `ToStringPrinter` | Objects with `__toString()` |
-| `ObjectPrinter` | Generic objects (non-readable) |
+| `RatioPrinter` | Ratio numbers (n/d) |
+| `BigDecimalPrinter` | BigDecimal; appends M suffix for reader round-trip |
+| `UUIDPrinter` | UUID objects; rendered as #uuid "..." |
+| `AtomPrinter` | Atom objects; recursive |
+| `VarPrinter` | PhelVar handles; rendered as #'ns/name |
+| `ConsPrinter` | Cons cells (LazySeq head); recursive |
+| `PersistentListPrinter` | Lists; recursive |
+| `PersistentVectorPrinter` | Vectors; recursive |
+| `PersistentMapPrinter` | Maps; recursive |
+| `PersistentHashSetPrinter` | Sets; recursive |
+| `PersistentQueuePrinter` | Queues; recursive; rendered as <-(...)-< to show FIFO direction |
+| `StructPrinter` | Structs; recursive |
+| `LazySeqPrinter` | Lazy sequences; recursive |
+| `ArrayPrinter` | PHP arrays; recursive |
+| `FnPrinter` | Functions; non-readable |
+| `ToStringPrinter` | Objects with __toString() |
+| `ObjectPrinter` | Generic objects; non-readable |
 | `AnonymousClassPrinter` | Anonymous classes |
 | `NonPrintableClassPrinter` | Non-printable objects |
 | `ResourcePrinter` | PHP resources |
 
 ## Dependencies
 
-- **Lang** : `Keyword`, `Symbol`, `Atom`, `FnInterface`, all collection interfaces
+Lang module: Keyword, Symbol, Atom, FnInterface, PhelVar, Ratio, BigDecimal, UUID, all collection interfaces (PersistentListInterface, PersistentVectorInterface, etc.).
 
 ## Structure
 
 ```
 Printer/
-├── Printer.php                 Main class (final readonly)
-├── PrinterInterface.php        Core interface
-└── TypePrinter/                One class per type
+├── Printer.php
+├── PrinterInterface.php
+└── TypePrinter/
     ├── TypePrinterInterface.php
-    ├── WithColorTrait.php      ANSI color support
-    └── ...25 printer classes
+    ├── WithColorTrait.php (constructor: $withColor bool)
+    └── 26 printer classes
 ```
 
 ## Key Constraints
 
-- Recursive printers receive `PrinterInterface` via constructor for nested structures
-- `WithColorTrait` provides `$withColor` boolean : each printer controls its own color output
-- `Printer` is `final readonly` : extend via new `TypePrinter` implementations, not subclassing
+- Recursive printers construct child `PrinterInterface` at call site (reenters `Printer` dispatch)
+- `WithColorTrait` provides $withColor boolean; each printer controls own color output
+- `Printer` is final readonly; extend via new TypePrinter implementations only

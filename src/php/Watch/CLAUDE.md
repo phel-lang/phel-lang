@@ -1,67 +1,57 @@
 # Watch Module
 
-Hot-reload and file-watch: detects `.phel` changes and re-evaluates the affected namespaces in dependency order.
+Hot-reload and file-watch: detects `.phel` changes and re-evaluates affected namespaces in dependency order.
 
 ## Gacela Pattern
 
-- **Facade**: `WatchFacade` extends `AbstractFacade<WatchFactory>`
-- **Factory**: `WatchFactory` extends `AbstractFactory<WatchConfig>`
-- **Config**: `WatchConfig` - default poll interval (500ms), debounce (100ms), backend `auto`
-- **Provider**: `WatchProvider` - injects `FACADE_RUN`, `FACADE_BUILD`, `FACADE_API`, `FACADE_COMMAND`
+`WatchFacade` → `WatchFactory` → `WatchConfig`. Provider injects Run, Build, Api, Command facades.
 
 ## Public API (Facade)
 
-- `watch(array, array = []): void` : blocking watch loop
-- `createFileWatcher(?string, ?int, ?int): FileWatcherInterface`
-- `createFileWatcherBuilder(?int = null, ?int = null): FileWatcherBuilder`
-- `createReloadOrchestrator(?ReloadEventPublisherInterface = null): ReloadOrchestratorInterface`
+- `watch(array $paths, array $options = []): void`: blocking watch loop; options: `backend` (auto|inotify|fswatch|polling), `poll` (ms), `debounce` (ms), `publisher` (optional ReloadEventPublisherInterface)
+- `createFileWatcher(?string $preferred, ?int $pollMs, ?int $debounceMs): FileWatcherInterface`
+- `createFileWatcherBuilder(?int $pollMs, ?int $debounceMs): FileWatcherBuilder`
+- `createReloadOrchestrator(?ReloadEventPublisherInterface $publisher): ReloadOrchestratorInterface`
 - `createNamespaceResolver(): NamespaceResolverInterface`
 
-`watch()` options: `backend` (`auto|inotify|fswatch|polling`), `poll` (ms), `debounce` (ms), `publisher` (optional).
+## CLI
 
-## CLI Command
-
-`./bin/phel watch [paths]... [-b backend] [--poll=500] [--debounce=100]` - starts the watcher.
-
-## Watcher Backends
-
-Strategy pattern. The factory picks the best available:
-
-- `InotifyWatcher` - Linux, shells out to `inotifywait`
-- `FswatchWatcher` - macOS/BSD, shells out to `fswatch`
-- `PollingWatcher` - portable fallback, mtime + size diff every poll interval
-
-All three implement `FileWatcherInterface { watch(list<string> $paths, callable $onChange): void; stop(): void; name(): string }`.
+`./bin/phel watch [paths]... [-b backend] [--poll=500] [--debounce=100]`
 
 ## Dependencies
 
-- **Run** (`FACADE_RUN`) : `evalFile`, `structuredEval`, `loadPhelNamespaces`
-- **Build** (`FACADE_BUILD`) : `getDependenciesForNamespace`
-- **Api** (`FACADE_API`) : `indexProject` for incremental re-index
-- **Command** (`FACADE_COMMAND`) : source-directory defaults
+| Module | Constant | Use |
+|--------|----------|-----|
+| Run | `FACADE_RUN` | `evalFile`, `structuredEval`, `loadPhelNamespaces` |
+| Build | `FACADE_BUILD` | `getDependenciesForNamespace` |
+| Api | `FACADE_API` | `indexProject` for incremental re-index |
+| Command | `FACADE_COMMAND` | source directory defaults |
 
 ## Structure
 
 ```
 Watch/
 |-- Application/
-|   |-- Watcher/                 InotifyWatcher, FswatchWatcher, PollingWatcher, FileWatcherFactory
-|   |-- NamespaceResolver        parses `ns`/`in-ns` from source
-|   |-- ReloadOrchestrator       resolves ns, reloads in dep order, publishes event, re-indexes
-|   |-- MtimeFileSystemScanner   mtime + size snapshot
-|   |-- SystemClock, NullReloadEventPublisher
-|-- Domain/                      FileWatcherInterface, ClockInterface, FileSystemScannerInterface,
-|                                NamespaceResolverInterface, ReloadOrchestratorInterface,
-|                                ReloadEventPublisherInterface
-|-- Infrastructure/Command/      WatchCommand (Symfony console)
-|-- Transfer/                    WatchEvent
-+-- Gacela files                 WatchFacade, WatchFactory, WatchConfig, WatchProvider
+|   |-- Watcher/
+|   |   +-- InotifyWatcher, FswatchWatcher, PollingWatcher (strategy pattern)
+|   |   +-- FileWatcherBuilder, EventDebouncer, AbstractShellWatcher
+|   |-- NamespaceResolver, ReloadOrchestrator
+|   |-- MtimeFileSystemScanner, ApiProjectReindexer
+|   |-- SystemClock, NullReloadEventPublisher, WatchRunner
+|-- Domain/
+|   +-- FileWatcherInterface, NamespaceResolverInterface, ReloadOrchestratorInterface
+|   +-- ClockInterface, FileSystemScannerInterface, ReloadEventPublisherInterface, ProjectReindexerInterface
+|-- Infrastructure/Command/
+|   +-- WatchCommand (Symfony console entry point)
+|-- Transfer/
+|   +-- WatchEvent
 ```
 
 ## Key Constraints
 
-- Debounce coalesces events in a 100ms window so editor double-saves trigger a single reload cycle
-- `PollingWatcher` is exercised in CI; `fswatch`/`inotify` probed at runtime but not unit-tested (external binaries)
-- `ReloadOrchestrator` is the side-effect surface: reload, run `phel.watch/run-on-reload-hooks`, re-index, publish
-- `NullReloadEventPublisher` is the default; swap in an nREPL-aware publisher when the watcher runs inside nREPL
-- `NamespaceResolver` uses lightweight regex (not full parser) for performance on every file change
+- Poll interval default 500ms; debounce default 100ms (ConfigWatch)
+- Debounce coalesces rapid file changes, so editor double-save triggers single reload
+- PollingWatcher exercised in CI; inotify/fswatch probed at runtime but not unit-tested (requires external binaries)
+- ReloadOrchestrator side-effect surface: reload in dep order, run phel.watch/run-on-reload-hooks, re-index, publish event
+- NullReloadEventPublisher is default; swap in nREPL-aware publisher for nREPL context
+- NamespaceResolver uses lightweight regex for performance on every file change; not full parser

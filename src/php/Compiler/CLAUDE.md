@@ -1,124 +1,81 @@
 # Compiler Module
 
-Core compilation pipeline: Phel source -> tokens -> AST -> analyzed nodes -> PHP code.
+Core compilation pipeline: Phel source to tokens to AST to analyzed nodes to PHP code.
 
 ## Gacela Pattern
 
 - **Facade**: `CompilerFacade` implements `CompilerFacadeInterface`
 - **Factory**: `CompilerFactory` extends `AbstractFactory<CompilerConfig>`
-- **Config**: `CompilerConfig` : `assertsEnabled()` flag
-- **Provider**: `CompilerProvider` : injects `FilesystemFacade` (`FACADE_FILESYSTEM`)
+- **Config**: `CompilerConfig` exposes `assertsEnabled()`, `warnDeprecationsEnabled()`
+- **Provider**: `CompilerProvider` injects `FilesystemFacade` via `FACADE_FILESYSTEM`
 
 ## Public API (Facade)
 
-**Compilation & Evaluation**
-- `compile(string, CompileOptions): EmitterResult`
-- `compileForCache(string, CompileOptions): EmitterResult`
-- `compileForm(TypeInterface|...|null, CompileOptions): EmitterResult`
-- `eval(string, CompileOptions): mixed`
-- `evalForm(TypeInterface|...|null, CompileOptions): mixed`
-
-**Pipeline Phases**
-- `lexString(string): TokenStream`
-- `parseNext(TokenStream): ?NodeInterface`
-- `parseAll(TokenStream): FileNode`
-- `read(NodeInterface): ReaderResult`
-- `analyze(TypeInterface|...|null, NodeEnvironmentInterface): AbstractNode`
-
-**Macros**
-- `macroexpand1(mixed): TypeInterface|...|null`
-- `macroexpand(mixed): TypeInterface|...|null`
-
-**Environment Management**
-- `initializeGlobalEnvironment(): void`
-- `resetGlobalEnvironment(): void`
-- `isGlobalEnvironmentInitialized(): bool`
-- `getGlobalEnvironment(): GlobalEnvironmentInterface`
-- `initializeNewGlobalEnvironment(): GlobalEnvironmentInterface`
-- `setGlobalEnvironment(GlobalEnvironmentInterface): void`
-- `getNamespaceEnvironmentData(string): array`
-- `restoreNamespaceEnvironmentData(string, array): void`
-
-**Debugging**
-- `enableDebugLineTap(): void`
-- `disableDebugLineTap(): void`
-
-**Utility**
-- `encodeNs(string): string` : PHP-form encoder via `Phel\Shared\Munge::encodePhpNs()`
-- `hasBalancedParentheses(string): bool`
+| Category | Methods |
+|----------|---------|
+| Compilation | `compile(string, CompileOptions): EmitterResult`, `compileForCache(...)`, `compileForm(mixed, CompileOptions): EmitterResult` |
+| Evaluation | `eval(string, CompileOptions): mixed`, `evalForm(mixed, CompileOptions): mixed` |
+| Pipeline | `lexString(string, ...): TokenStream`, `parseNext(TokenStream): ?NodeInterface`, `parseAll(TokenStream): FileNode`, `read(NodeInterface): ReaderResult`, `analyze(mixed, NodeEnvironmentInterface): AbstractNode` |
+| Macros | `macroexpand1(mixed): mixed`, `macroexpand(mixed): mixed` |
+| Environment | `initializeGlobalEnvironment(): void`, `resetGlobalEnvironment(): void`, `isGlobalEnvironmentInitialized(): bool`, `getGlobalEnvironment(): GlobalEnvironmentInterface`, `initializeNewGlobalEnvironment(): GlobalEnvironmentInterface`, `setGlobalEnvironment(GlobalEnvironmentInterface): void` |
+| Namespace state | `getNamespaceEnvironmentData(string): array`, `restoreNamespaceEnvironmentData(string, array): void` |
+| Debugging | `enableDebugLineTap(?string, string): void`, `disableDebugLineTap(): void` |
+| Utility | `encodeNs(string): string` (PHP-form via `Munge::encodePhpNs`), `hasBalancedParentheses(string): bool` |
 
 ## Dependencies
 
-- **Filesystem** (`FilesystemFacade`) : file I/O
-- **Shared** : exceptions, printer, munge utility
+- **Filesystem**: `FilesystemFacade` for file I/O
+- **Shared**: `Munge`, `Printer`, exceptions
 
 ## Phase Pipeline
 
-| Phase | Class | Input | Output |
-|-------|-------|-------|--------|
-| Lexer | `Application/Lexer` | Phel source string | `TokenStream` |
-| Parser | `Application/Parser` | `TokenStream` | `FileNode` (parse tree) |
-| Reader | `Application/Reader` | `NodeInterface` | `ReaderResult` (Phel data) |
-| Analyzer | `Application/Analyzer` | Phel data | `AbstractNode` (AST) |
-| Simplifier | `Domain/Analyzer/TypeAnalyzer/Simplification/` | `AbstractNode` | `AbstractNode` (smaller) |
-| Emitter | Domain/Emitter/ | `AbstractNode` | `EmitterResult` (PHP code) |
+| Phase | Input | Output |
+|-------|-------|--------|
+| Lexer | Phel source string | `TokenStream` |
+| Parser | `TokenStream` | `FileNode` (parse tree) |
+| Reader | `NodeInterface` | `ReaderResult` (Phel data) |
+| Analyzer | Phel data | `AbstractNode` (AST with `NodeEnvironment`) |
+| Simplifier | `AbstractNode` | `AbstractNode` (optimized) |
+| Emitter | `AbstractNode` | `EmitterResult` (PHP code) |
 
-The simplification pass runs **after** the analyser-level `ConstantFolder`. It currently drops pure non-tail expressions from `(do ...)` bodies; purity is decided by `PureExpressionDetector`, which delegates `CallNode` checks to `ConstantFolder` so a call is "pure" only when the folder can statically compute its value (calls that would throw at runtime stay un-dropped).
-
-`Simplification/` also hosts the call inliner (opt level >= 2, issues #2135, #2215, #2216, #2218): `InvokeSymbol` calls `CallInliner::tryInline()` for a `GlobalVarNode` callee. The `defFnNode` side-table stores both single-arity (`FnNode`) and multi-arity (`MultiFnNode`) defs behind the shared `FnNodeInterface`; `FnNodeInterface::arityFor(int)` resolves the fixed arity whose parameter count matches the call (the variadic arity is never inlined). When the resolved arity is a non-recursive, non-memoised `defn` with a single pure body expression, the body is spliced at the call site with parameters replaced by the argument nodes and envs rebased onto the caller. The rebaser handles `Literal` / `LocalVar` / `GlobalVar` / `PhpVar` / `Call` / `If` plus vector / map / set literals (their elements rebased in expression context); any other node type aborts the inline. Pure arguments (`SymbolicPurityDetector`) substitute directly so they stay foldable; impure or multi-use arguments are bound to a fresh gensym `let` (via `BindingNode` + `LetNode`, then run through `LetSimplifier`) so each evaluates exactly once, left to right. Purity here is structural via `SymbolicPurityDetector` (a closed allowlist of side-effect-free `phel.core` / `php/` ops), unlike `PureExpressionDetector` which proves purity by full evaluation. A `defn` tagged `^:pure` opts into trust: `SymbolicPurityDetector` treats its calls as pure operators, and `CallInliner` skips the structural body-purity gate for it (the rebaser still aborts on unsupported node types). `^:pure` is an author assertion — mis-annotation is the author's responsibility. At opt level < 2 `tryInline` returns `null` immediately, so default output is unchanged.
+**Simplification pass** (runs after `ConstantFolder`): drops pure non-tail expressions from `(do ...)` via `PureExpressionDetector`; inlines calls at opt level >= 2 via `CallInliner` (delegates purity to `ConstantFolder` for known calls, `SymbolicPurityDetector` for structural checks). `^:pure` metadata opts a `defn` into inlining trust (author responsibility for correctness).
 
 ## Structure
 
 ```
 Compiler/
-├── Application/        Analyzer, CodeCompiler, EvalCompiler, GlobalEnvironmentManager, Lexer,
-│                       Parser, Reader, MacroExpander
+├── Application/           Analyzer, CodeCompiler, EvalCompiler, Lexer, Parser, Reader, 
+│                         GlobalEnvironmentManager, MacroExpander, NamespaceEnvironmentSerializer
 ├── Domain/
-│   ├── Analyzer/       AST nodes, special form handlers, GlobalEnvironmentManagerInterface +
-│   │                   GlobalEnvironmentRegistry
-│   ├── Compiler/       CodeCompilerInterface, EvalCompilerInterface
-│   ├── Emitter/        OutputEmitter, FileEmitter, StatementEmitter, node emitters
-│   ├── Evaluator/      InMemoryEvaluator, RequireEvaluator
-│   ├── Lexer/          Token, TokenStream
-│   ├── Parser/         NodeInterface, ExpressionParserFactory
-│   └── Reader/         ReaderInterface, QuasiquoteTransformer
-├── Infrastructure/     CompileOptions, GlobalEnvironmentSingleton (ABI shim)
-└── Gacela files        CompilerFacade, CompilerFactory, CompilerConfig, CompilerProvider
+│   ├── Analyzer/         AST nodes, ConstantFolder, TypeAnalyzer, special form handlers,
+│   │                     GlobalEnvironmentRegistry/Interface, SymbolSuggestionProvider
+│   ├── Compiler/         CodeCompilerInterface, EvalCompilerInterface
+│   ├── Emitter/          OutputEmitter, FileEmitter, StatementEmitter, *Specialization classes
+│   ├── Evaluator/        InMemoryEvaluator, RequireEvaluator
+│   ├── Lexer/            Token, TokenStream
+│   ├── Parser/           ExpressionParserFactory, NodeInterface
+│   └── Reader/           ReaderInterface, QuasiquoteTransformer, ExpressionReaderFactory
+├── Infrastructure/       GlobalEnvironmentSingleton (ABI shim for generated PHP), DebugLineTap
+└── Gacela files          CompilerFacade, CompilerFactory, CompilerConfig, CompilerProvider
 ```
 
 ## Key Constraints
 
-- Never bypass a phase : each consumes only output of the previous
+- Never bypass a phase; each consumes only output of the previous
 - Analyzer nodes must carry `NodeEnvironment` with correct context
-- Emitter must handle every node type : missing cases must throw, not silently skip
-- Special forms are registered centrally : no ad-hoc handling in the analyzer loop
+- Emitter must handle every node type; missing cases throw, not silently skip
+- Special forms registered centrally; no ad-hoc handling in analyzer loop
 - Source locations must propagate through all phases for error reporting
+- `GlobalEnvironmentSingleton` FQN is baked into cached `.phel` files; do not rename
 
-## Inferred-type plumbing
+## Type-Specialized Emission
 
-The analyser already tracks param types (`ParamTypeInferrer`), return types (`ReturnTypeInferrer`), and grafts them onto each binding `Symbol`'s `:tag` meta. Emitters that want to specialise on a known type read that meta via:
-
-- `LocalVarNode::getInferredType(): ?string` resolves the binding's tag by name walk through `NodeEnvironment::getLocals()`. Returns `null` for bindings without a tag.
-- `GlobalVarNode::getMeta()` carries `arglists` / `tag` for `defn`s — `GlobalCallTarget::isGlobalFnCall()` and `ConstantFolder` consume it directly.
-- `IterableTarget::isIterable` / `::isPhpArray` already consume the local tag for `foreach` / `apply` adapter skips.
-
-Add new consumers by extending those predicates (or adding a sibling under `Compiler/Domain/Emitter/OutputEmitter/`). The contract is: never fabricate a type — propagate only what the analyser already published.
-
-Call-site specialization eligibility lives in focused `*Specialization` collaborators under `OutputEmitter/` (`NumericOperation`, `TypePredicate`, `TypedValue`, `TypedCollectionMethod`, `AssocConj`, `AtomMethod`, `NilAndBooleanCheck`), with shared tag helpers in `TagNormalizer`; `CallSpecialization` only aggregates them via `isSpecialized()` / `isBoolReturningSpecialisation()`. Add a new family as its own `*Specialization` class and register it in that dispatch.
+Analyzer tracks param and return types via `ParamTypeInferrer`, `ReturnTypeInferrer`, grafting `:tag` meta onto binding symbols. Call-site specialization via `*Specialization` classes (`NumericOperationSpecialization`, `TypePredicateSpecialization`, `TypedValueSpecialization`, `TypedCollectionMethodSpecialization`, `AssocConjSpecialization`, `AtomMethodSpecialization`, `NilAndBooleanCheckSpecialization`); `CallSpecialization` aggregates them. Add new specialization family as its own class and register in `CallSpecialization::isSpecialized()`. Contract: propagate only analyzer-published types, never fabricate.
 
 ## Global Environment
 
-State lives in `Domain/Analyzer/Environment/GlobalEnvironmentRegistry` (process-wide static). The Application's `GlobalEnvironmentManager` and the infrastructure's `GlobalEnvironmentSingleton` both read/write the same slot.
-
-`GlobalEnvironmentSingleton` is retained as an ABI shim: the emitter writes literal `\Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton::getInstance()` calls into generated PHP. Cached `.phel` files depend on that exact FQN. All static methods forward to the registry.
+Process-wide singleton in `Domain/Analyzer/Environment/GlobalEnvironmentRegistry`. `GlobalEnvironmentManager` (Application) and `GlobalEnvironmentSingleton` (Infrastructure) both read/write the same slot. `GlobalEnvironmentSingleton` is retained as ABI shim; emitter writes literal calls to `\Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton::getInstance()` into generated PHP (baked into cached `.phel` files).
 
 ## Namespace Encoding
 
-Namespace and symbol encoding is owned by `Phel\Shared\Munge` (see `src/php/Shared/CLAUDE.md`). The compiler consumes it via `CompilerFactory::createMunge()` and exposes the PHP-form encoder through `CompilerFacade::encodeNs()`. Two encoders, used at different boundaries:
-
-| Encoder | Form | Used by |
-|---|---|---|
-| `encodePhpNs` | backslash | PHP `namespace ...;` declaration, class FQNs, `BOUND_TO`, `(load ...)` filename derivation |
-| `encodeRegistryKey` | dot | `\Phel::addDefinition` first arg, `\Phel::getDefinition` first arg, `\Phel::setVar` first arg, in-mem registry lookups |
-
-`Munge::canonicalNs` and `Munge::displayNs` both translate backslash to dot : dot is the canonical form. The analyzer's internal namespace string (`GlobalEnvironment::$ns`, `definitions[$ns]`, `requireAliases[$ns]`) is dot-separated; PHP-emission paths route the same string through `encodePhpNs` when emitting PHP class FQNs / `namespace ...;` declarations.
+Owned by `Phel\Shared\Munge` (see `src/php/Shared/CLAUDE.md`). Two encoders at different boundaries: `encodePhpNs` (backslash form, PHP `namespace` declarations and class FQNs) and `encodeRegistryKey` (dot form, Phel registry lookups). Analyzer uses dot-separated namespace internally; emission routes through `encodePhpNs` for PHP output.

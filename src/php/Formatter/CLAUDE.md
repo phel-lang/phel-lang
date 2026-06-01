@@ -1,47 +1,46 @@
 # Formatter Module
 
-Code formatting for Phel source files: parses code into AST, applies formatting rules, writes back.
+Parses Phel source into AST, applies formatting rules, writes back.
 
 ## Gacela Pattern
 
 - **Facade**: `FormatterFacade` implements `FormatterFacadeInterface`
-- **Factory**: `FormatterFactory` : creates `PathsFormatter`, `Formatter`, individual rules
-- **Config**: `FormatterConfig` : `getFormatDirs()` (default: `['src', 'tests']`)
-- **Provider**: `FormatterProvider` : injects `CompilerFacade` (`FACADE_COMPILER`) and `CommandFacade` (`FACADE_COMMAND`)
+- **Factory**: `FormatterFactory` creates `PathsFormatter`, `Formatter`, rules and indenters
+- **Config**: `FormatterConfig.getFormatDirs()` (default: `['src', 'tests']`)
+- **Provider**: `FormatterProvider` injects `CompilerFacade` (`FACADE_COMPILER`) and `CommandFacade` (`FACADE_COMMAND`)
 
 ## Public API (Facade)
 
-- `format(array, OutputInterface, bool = false): array` : format files, returns paths with changes (or would change in dry-run)
-- `formatString(string): string` : format a code string
+- `format(array $paths, OutputInterface $output, bool $dryRun = false): array` returns paths with changes
+- `formatString(string $source, string $uri = '...'): string` formats code in memory
 
-## Formatting Rules (applied in order)
+## Formatting Rules (in order)
 
 1. `RemoveSurroundingWhitespaceRule`
 2. `UnindentRule`
-3. `IndentRule` : uses specialized indenters:
-   - `InnerIndenter` : for `def`, `defn`, `defmacro`, `deftest`, `fn`
-   - `BlockIndenter` : for `if`, `do`, `let`, `try`, `case`, `cond`, etc.
-   - `LineIndenter`, `ListIndenter`
-4. `RemoveTrailingWhitespaceRule`
+3. `IndentRule` with indenters:
+   - `InnerIndenter`: `def`, `def-`, `defn`, `defn-`, `defmacro`, `defmacro-`, `deftest`, `fn`
+   - `BlockIndenter`: `catch`, `do`, `if`, `if-not`, `foreach`, `for`, `dofor`, `let`, `ns`, `loop`, `case`, `cond`, `condp`, `try`, `finally`, `when`, `when-not`, `when-let`, `when-some`, `if-let`, `if-some`, `binding`
+4. `AlignPairsRule`
+5. `RemoveTrailingWhitespaceRule`
 
 ## Dependencies
 
-- **Compiler** (`CompilerFacade`) : lexing and parsing Phel code
-- **Command** (`CommandFacade`) : error reporting and CLI output
+- **Compiler**: `CompilerFacade` for lexing and parsing
+- **Command**: `CommandFacadeInterface` for CLI output
 
 ## Structure
 
 ```
 Formatter/
-├── Application/        Formatter, PathsFormatter, PhelPathFilter
-├── Domain/             FormatterInterface, PathFilterInterface, RuleInterface, IO/FileIoInterface, rules, indenters
-├── Infrastructure/     FormatCommand (CLI), IO/SystemFileIo
-└── Gacela files        FormatterFacade, FormatterFactory, FormatterProvider, FormatterConfig
+├── Application/         Formatter, PathsFormatter, PhelPathFilter
+├── Domain/              FormatterInterface, PathFilterInterface, RuleInterface, IO/FileIoInterface, rules, indenters
+├── Infrastructure/      Command/FormatCommand, IO/SystemFileIo
+└── Gacela files         FormatterFacade, FormatterFactory, FormatterProvider, FormatterConfig
 ```
 
 ## Key Constraints
 
-- Uses **Zipper pattern** (`ParseTreeZipper`, `AbstractZipper`) for tree navigation and transformation
-- `PhelPathFilter` recursively discovers `.phel` files from given paths
-- The formatter reads file -> lexes/parses via Compiler -> applies rules to AST -> writes back
-- Adding new indenters requires updating `FormatterFactory.createFormatter()`
+- Zipper pattern (`ParseTreeZipper`) for AST traversal and transformation
+- `PhelPathFilter` recursively discovers `.phel` files
+- Adding new indenters requires updating `FormatterFactory.createIndentRule()`

@@ -1,21 +1,20 @@
 # HttpClient Module
 
-Outbound HTTP support for `phel.http-client`. Two standalone classes consumed directly from the Phel core library; no Gacela Facade because there is no module state, no config, no cross-module collaboration.
+Outbound HTTP support for `phel.http-client`. No Gacela Facade: pure stateless utility classes consumed directly by Phel core via PHP interop.
 
-## Public surface
+## No Gacela Pattern
 
-| Class | Purpose |
-|-------|---------|
-| `StreamTransport` | Performs the actual `fopen`/`stream_context_create` request, returns headers + body. Used by `phel.http-client/{get,post,put,patch,delete,head}` via `(php/new \Phel\HttpClient\StreamTransport ...)`. |
-| `ResponseParser` | Parses PHP's `$http_response_header` array into `{status, headers}`. Pure utility. |
+Stateless, no module config, no registry, no cross-module dependencies. Facade would add ceremony without value.
 
-## Why no Facade
+## Public API
 
-- Stateless: no module config, no registry, no I/O wiring.
-- No cross-module deps: imports only PHP std lib.
-- Phel core (`src/phel/http-client.phel`) is the sole consumer and instantiates the classes directly via PHP interop, which is the intended API.
+**`StreamTransport::send(string $method, string $url, array<string, string> $headers, ?string $body, array<string, mixed> $options): array`**
 
-If a future feature needs `phel-config.php` knobs (proxies, default headers, TLS roots), promote to a Gacela facade then. Until then a Facade would be ceremony without value.
+Performs HTTP request via PHP stream context. Returns `{status: int, headers: array<string, string>, body: string, version: string, reason: string}`. Throws `RuntimeException` on fopen failure.
+
+**`ResponseParser::parse(array<string> $rawHeaders): array`**
+
+Parses PHP `$http_response_header` into `{status: int, version: string, reason: string, headers: array<string, string>}`. Handles redirect chains by resetting on new HTTP status line. Lowercases header names; keeps last value for duplicates.
 
 ## Structure
 
@@ -27,6 +26,6 @@ HttpClient/
 
 ## Key Constraints
 
-- Both classes must remain `final` (Phel core does not subclass them) and have stable public APIs : they are addressable from user Phel code through interop.
-- Never block on a single host; honour the `:timeout` option Phel passes through.
-- `StreamTransport` must surface fopen failures as `RuntimeException`; Phel core wraps them into `phel.http-client/error?` results.
+- Both classes `final`; stable public APIs (addressable from user Phel via interop).
+- `StreamTransport` honors `:timeout` option; throws `RuntimeException` on request failure.
+- `ResponseParser` must handle redirect chains (status line resets on new response).

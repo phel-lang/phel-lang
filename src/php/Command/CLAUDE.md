@@ -1,47 +1,47 @@
 # Command Module
 
-Foundational infrastructure: error reporting, exception formatting, and project directory management.
+Error reporting, exception formatting, directory discovery.
 
 ## Gacela Pattern
 
 - **Facade**: `CommandFacade` implements `CommandFacadeInterface`
-- **Factory**: `CommandFactory` extends `AbstractFactory<CommandConfig>`
-- **Config**: `CommandConfig` : source dirs (`src`), test dirs (`tests`), vendor, output, error log
-- **Provider**: `CommandProvider` : injects `PHP_CONFIG_READER` from container
+- **Factory**: `CommandFactory`
+- **Config**: `CommandConfig` with code dirs, vendor dir, error log path, stale output hint
+- **Provider**: `CommandProvider` provides `PHP_CONFIG_READER`
 
 ## Public API (Facade)
 
-- `writeLocatedException(OutputInterface, AbstractLocatedException, CodeSnippet): void`
-- `writeStackTrace(OutputInterface, Throwable): void`
-- `getExceptionString(AbstractLocatedException, CodeSnippet): string`
-- `getStackTraceString(Throwable): string`
-- `getExceptionPrinter(): ExceptionPrinterInterface`
-- `getAllPhelDirectories(): array` : source + test + vendor
-- `getSourceDirectories(): array`
-- `getProjectSourceDirectories(): array` : user-configured only (excludes bundled stdlib)
-- `getTestDirectories(): array`
-- `getVendorSourceDirectories(): array`
-- `getOutputDirectory(): string`
-- `readPhelConfig(string): array`
+| Method | Returns |
+|--------|---------|
+| `writeLocatedException(OutputInterface, AbstractLocatedException, CodeSnippet)` | `void` |
+| `writeStackTrace(OutputInterface, Throwable)` | `void` |
+| `getExceptionString(AbstractLocatedException, CodeSnippet)` | `string` |
+| `getStackTraceString(Throwable)` | `string` |
+| `getExceptionPrinter()` | `ExceptionPrinterInterface` |
+| `getAllPhelDirectories()` | `array` (internal phel + project + vendor) |
+| `getSourceDirectories()` | `array` (project + vendor) |
+| `getProjectSourceDirectories()` | `array` (user-configured only) |
+| `getTestDirectories()` | `array` |
+| `getVendorSourceDirectories()` | `array` |
+| `getOutputDirectory()` | `string` |
+| `readPhelConfig(string)` | `array` |
 
 ## Dependencies
 
-- **Shared** : `AbstractLocatedException`, `ErrorCode`, `CodeSnippet`, `Printer`, `ColorStyle`, `Munge`
-- **Config** : `PhelConfig`
+**Shared**: `AbstractLocatedException`, `CodeSnippet`, `Printer`, `ColorStyle`, `Munge`
+**Config**: `PhelConfig`, `PhelBuildConfig`
 
 ## Structure
 
 ```
-Command/
-├── Application/        CommandExceptionWriter, DirectoryFinder, TextExceptionPrinter
-├── Domain/             CodeDirectories, interfaces, Exceptions/ (extractors, printers)
-├── Infrastructure/     ComposerVendorDirectoriesFinder, ErrorLog, SourceMapExtractor
-└── Gacela files        CommandFacade, CommandFactory, CommandConfig, CommandProvider
+Application/     CommandExceptionWriter, DirectoryFinder, TextExceptionPrinter
+Domain/          CodeDirectories, CommandExceptionWriterInterface, Exceptions/, Finder/
+Infrastructure/  ComposerVendorDirectoriesFinder, ErrorLog, SourceMapExtractor
 ```
 
 ## Key Constraints
 
-- Many modules depend on this for error formatting and directories
-- `DirectoryFinder` resolves absolute paths and handles PHAR archives
-- `SourceMapExtractor` maps generated PHP back to Phel source locations
-- `TextExceptionPrinter` renders exceptions with syntax highlighting + source pointers
+- `DirectoryFinder`: resolves paths, handles PHAR archives, caches results
+- `SourceMapExtractor`: maps compiled PHP back to Phel source locations
+- `TextExceptionPrinter`: renders with syntax highlighting and source pointers
+- Config includes stale output recovery hint for corrupted build state

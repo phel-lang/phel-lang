@@ -1,52 +1,46 @@
 # Interop Module
 
-PHP-Phel interoperability: generates PHP wrapper classes for Phel functions marked with `^{:export true}`.
+Generates PHP wrapper classes for Phel functions marked with `^{:export true}`.
 
 ## Gacela Pattern
 
 - **Facade**: `InteropFacade` implements `InteropFacadeInterface`
-- **Factory**: `InteropFactory` extends `AbstractFactory<InteropConfig>`
-- **Config**: `InteropConfig` : export dirs (`src`), namespace prefix (`PhelGenerated`), target dir (`src/PhelGenerated`)
-- **Provider**: `InteropProvider` : injects `CommandFacade` (`FACADE_COMMAND`) and `BuildFacade` (`FACADE_BUILD`)
+- **Factory**: `InteropFactory`
+- **Config**: `InteropConfig` exposes export dirs, namespace prefix, target directory
+- **Provider**: injects `CommandFacade` (FACADE_COMMAND), `BuildFacade` (FACADE_BUILD)
 
 ## Public API (Facade)
 
-- `generateExportCode(): array` : orchestrates full export pipeline (returns wrappers)
+- `generateExportCode(): list<Wrapper>` orchestrates full pipeline
 - `writeLocatedException(OutputInterface, CompilerException): void`
 - `writeStackTrace(OutputInterface, Throwable): void`
 
-## Export Workflow
-
-1. Remove old export directory
-2. Discover Phel functions marked with `^{:export true}` metadata
-3. Compile and evaluate all dependent namespaces
-4. Generate PHP wrapper class per namespace (e.g. `my-lib` -> `PhelGenerated\MyLib`)
-5. Write wrapper files to target directory
-
 ## Dependencies
 
-- **Command** (`CommandFacade`) : error output
-- **Build** (`BuildFacade`) : namespace extraction, compilation, evaluation
+| Module | Usage |
+|--------|-------|
+| Command | Error/exception output via CommandFacade |
+| Build | Namespace extraction, compilation, evaluation |
 
 ## Structure
 
 ```
 Interop/
-├── Application/        ExportCodeGenerator (main orchestrator)
+├── Application/           ExportCodeGenerator (orchestrator)
 ├── Domain/
-│   ├── DirectoryRemover/   Cleans target export dir
-│   ├── ExportFinder/       FunctionsToExportFinder (scans for :export metadata)
-│   ├── FileCreator/        Writes Wrapper objects to filesystem
-│   ├── Generator/          WrapperGenerator, CompiledPhpClassBuilder, CompiledPhpMethodBuilder
-│   └── ReadModel/          Wrapper, FunctionToExport
-├── Infrastructure/     ExportCommand (CLI), FileSystemIo
-├── PhelCallerTrait.php     Used in generated wrappers: callPhel(ns, def, ...args)
+│   ├── DirectoryRemover/  Removes stale export dir
+│   ├── ExportFinder/      Scans for :export metadata (FunctionsToExportFinder)
+│   ├── FileCreator/       Writes Wrapper to filesystem
+│   ├── Generator/         WrapperGenerator, CompiledPhpClassBuilder, CompiledPhpMethodBuilder
+│   └── ReadModel/         Wrapper, FunctionToExport
+├── Infrastructure/        ExportCommand (CLI), FileSystemIo
+├── PhelCallerTrait.php    In generated wrappers; callPhel(ns, def, ...args)
 └── Gacela files
 ```
 
 ## Key Constraints
 
-- Only functions with `^{:export true}` metadata are exported
-- Phel namespaces convert to PHP: hyphens to CamelCase (`my-lib` -> `MyLib`)
-- Generated classes use `PhelCallerTrait` which caches resolved definitions
-- Export directory is wiped and regenerated on each run
+- Only functions with `^{:export true}` metadata exported
+- Phel namespaces to PHP: hyphens become CamelCase (my-lib -> MyLib)
+- Generated classes use PhelCallerTrait for cached definition resolution
+- Export directory wiped and regenerated each run
