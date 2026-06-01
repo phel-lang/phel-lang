@@ -12,6 +12,7 @@ use Phel\Compiler\Domain\Lexer\TokenStream;
 use Phel\Lang\SourceLocation;
 
 use function count;
+use function mb_strlen;
 use function sprintf;
 use function strlen;
 
@@ -158,15 +159,19 @@ final class Lexer implements LexerInterface
 
     private function moveCursor(string $str): void
     {
-        $len = strlen($str);
-        $this->cursor += $len;
+        // The cursor indexes into the raw byte string (it feeds preg_match's
+        // offset and substr), so it must advance by the byte length. Columns,
+        // however, are reported in code points so error locations line up with
+        // what a user sees in multibyte (UTF-8) source. For ASCII the two are
+        // identical, so column numbers are unchanged for ASCII-only code.
+        $this->cursor += strlen($str);
         $lastNewLinePos = strrpos($str, "\n");
 
         if ($lastNewLinePos !== false) {
             $this->line += substr_count($str, "\n");
-            $this->column = $len - $lastNewLinePos - 1;
+            $this->column = mb_strlen(substr($str, $lastNewLinePos + 1), 'UTF-8');
         } else {
-            $this->column += $len;
+            $this->column += mb_strlen($str, 'UTF-8');
         }
     }
 

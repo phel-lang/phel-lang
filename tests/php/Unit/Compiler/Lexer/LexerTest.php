@@ -34,6 +34,36 @@ final class LexerTest extends TestCase
         );
     }
 
+    public function test_multibyte_atom_columns_are_counted_in_code_points(): void
+    {
+        // `café` is 4 code points but 5 bytes (é = 2 bytes). Columns must
+        // advance by code points so the following tokens line up with what a
+        // user sees, not with the byte offset.
+        self::assertEquals(
+            [
+                new Token(Token::T_ATOM, 'café', new SourceLocation('string', 1, 0), new SourceLocation('string', 1, 4)),
+                new Token(Token::T_WHITESPACE, ' ', new SourceLocation('string', 1, 4), new SourceLocation('string', 1, 5)),
+                new Token(Token::T_ATOM, 'x', new SourceLocation('string', 1, 5), new SourceLocation('string', 1, 6)),
+                new Token(Token::T_EOF, '', new SourceLocation('string', 1, 6), new SourceLocation('string', 1, 6)),
+            ],
+            $this->lex('café x'),
+        );
+    }
+
+    public function test_multibyte_after_newline_in_token_is_counted_in_code_points(): void
+    {
+        // A string literal spanning a newline whose trailing segment contains
+        // a multibyte char: the end column counts the trailing code points
+        // (`é"` = 2), not its 3 bytes.
+        self::assertEquals(
+            [
+                new Token(Token::T_STRING, "\"a\né\"", new SourceLocation('string', 1, 0), new SourceLocation('string', 2, 2)),
+                new Token(Token::T_EOF, '', new SourceLocation('string', 2, 2), new SourceLocation('string', 2, 2)),
+            ],
+            $this->lex("\"a\né\""),
+        );
+    }
+
     public function test_read_comment_without_text(): void
     {
         self::assertEquals(
