@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\GlobalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LocalVarNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpVarNode;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\AtomMethodSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\GlobalCallTarget;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NilAndBooleanCheckSpecialization;
@@ -529,7 +530,7 @@ final class CallEmitter implements NodeEmitterInterface
      */
     private function tryEmitAtomMethodCall(CallNode $node): bool
     {
-        $shape = CallSpecialization::atomMethodCall($node);
+        $shape = AtomMethodSpecialization::atomMethodCall($node);
         if ($shape === null) {
             return false;
         }
