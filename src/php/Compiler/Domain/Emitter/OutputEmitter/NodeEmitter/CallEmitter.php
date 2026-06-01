@@ -17,6 +17,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\CallSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\GlobalCallTarget;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NilAndBooleanCheckSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\NumericOperationSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\PhpStringEscape;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\TypedCollectionMethodSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\TypedValueSpecialization;
@@ -330,11 +331,11 @@ final class CallEmitter implements NodeEmitterInterface
      * call sites that dispatch is wasted work and collapses to a
      * single PHP operator.
      *
-     * Eligibility lives on {@see CallSpecialization::typedBinaryOpName()}.
+     * Eligibility lives on {@see NumericOperationSpecialization::typedBinaryOpName()}.
      */
     private function tryEmitTypedBinaryOp(CallNode $node): bool
     {
-        $op = CallSpecialization::typedBinaryOpName($node);
+        $op = NumericOperationSpecialization::typedBinaryOpName($node);
         if ($op === null) {
             return false;
         }
@@ -356,11 +357,11 @@ final class CallEmitter implements NodeEmitterInterface
      * `&&` chain `(($a < $b) && ($b < $c))` because PHP `<` does not
      * thread its result through the next comparison the way Phel does.
      *
-     * Eligibility lives on {@see CallSpecialization::typedVariadicChain()}.
+     * Eligibility lives on {@see NumericOperationSpecialization::typedVariadicChain()}.
      */
     private function tryEmitTypedVariadicChain(CallNode $node): bool
     {
-        $spec = CallSpecialization::typedVariadicChain($node);
+        $spec = NumericOperationSpecialization::typedVariadicChain($node);
         if ($spec === null) {
             return false;
         }
@@ -704,11 +705,11 @@ final class CallEmitter implements NodeEmitterInterface
      * emits `($a !== $b)` directly, skipping both `phel.core/not`
      * and the explicit `!(($a === $b))` wrapper.
      *
-     * Eligibility lives on {@see CallSpecialization::notEqPeepholeInner()}.
+     * Eligibility lives on {@see NumericOperationSpecialization::notEqPeepholeInner()}.
      */
     private function tryEmitNotEqPeephole(CallNode $node): bool
     {
-        $inner = CallSpecialization::notEqPeepholeInner($node);
+        $inner = NumericOperationSpecialization::notEqPeepholeInner($node);
         if (!$inner instanceof CallNode) {
             return false;
         }
