@@ -53,6 +53,7 @@ use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Shared\Exceptions\AbstractLocatedException;
 use Phel\Shared\Munge;
+use Phel\Shared\MungeInterface;
 
 use function count;
 use function in_array;
@@ -70,6 +71,7 @@ final class AnalyzePersistentList
     public function __construct(
         private readonly AnalyzerInterface $analyzer,
         private readonly bool $assertsEnabled,
+        private readonly MungeInterface $munge = new Munge(),
     ) {}
 
     /**
@@ -335,7 +337,7 @@ final class AnalyzePersistentList
             Symbol::NAME_THROW => new ThrowSymbol($this->analyzer),
             Symbol::NAME_LOOP => new LoopSymbol($this->analyzer, new BindingValidator()),
             Symbol::NAME_FOREACH => new ForeachSymbol($this->analyzer),
-            Symbol::NAME_DEF_STRUCT => new DefStructSymbol($this->analyzer, new Munge(), new MethodBodyAnalyzer($this->analyzer)),
+            Symbol::NAME_DEF_STRUCT => new DefStructSymbol($this->analyzer, $this->munge, new MethodBodyAnalyzer($this->analyzer)),
             Symbol::NAME_DEF_EXCEPTION => new DefExceptionSymbol($this->analyzer),
             Symbol::NAME_PHP_OBJECT_SET => new PhpOSetSymbol($this->analyzer),
             Symbol::NAME_SET_VAR => new SetVarSymbol($this->analyzer),
