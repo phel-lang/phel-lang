@@ -36,6 +36,14 @@ interface OutputEmitterInterface
 
     public function emitNode(AbstractNode $node): void;
 
+    /**
+     * Emit a node into a temporary buffer and return it as a bare PHP
+     * expression string, stripping a leading `return` (with its following
+     * whitespace) and a single trailing `;` so the chunk can be spliced
+     * into a surrounding expression position.
+     */
+    public function captureNodeAsExpression(AbstractNode $node): string;
+
     public function emitLine(string $str = '', ?SourceLocation $sl = null): void;
 
     public function emitStr(string $str, ?SourceLocation $sl = null): void;

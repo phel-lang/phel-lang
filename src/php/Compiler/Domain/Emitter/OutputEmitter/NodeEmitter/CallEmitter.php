@@ -638,18 +638,7 @@ final class CallEmitter implements NodeEmitterInterface
 
         $loc = $node->getStartSourceLocation();
 
-        ob_start();
-        try {
-            $this->outputEmitter->emitNode($node->getArguments()[0]);
-        } finally {
-            $argEmit = (string) ob_get_clean();
-        }
-
-        $argEmit = preg_replace('/^return\s+/', '', $argEmit) ?? '';
-        $argEmit = rtrim($argEmit);
-        if (str_ends_with($argEmit, ';')) {
-            $argEmit = substr($argEmit, 0, -1);
-        }
+        $argEmit = $this->outputEmitter->captureNodeAsExpression($node->getArguments()[0]);
 
         $this->outputEmitter->emitStr(sprintf($fragment, $argEmit), $loc);
         return true;

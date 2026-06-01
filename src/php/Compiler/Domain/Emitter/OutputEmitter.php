@@ -117,6 +117,29 @@ final class OutputEmitter implements OutputEmitterInterface
         $nodeEmitter->emit($node);
     }
 
+    public function captureNodeAsExpression(AbstractNode $node): string
+    {
+        ob_start();
+        try {
+            $this->emitNode($node);
+        } finally {
+            $buf = (string) ob_get_clean();
+        }
+
+        // The node's baked-in env may be RETURN (so it emits `return …;`), but
+        // the caller splices the chunk into a surrounding expression position
+        // (ternary arm, `if (…)` test, native-op fragment), where a `return`
+        // prefix or trailing `;` would be invalid PHP. Strip both so the
+        // chunk renders as a bare expression.
+        $buf = preg_replace('/^return\s+/', '', $buf) ?? '';
+        $buf = rtrim($buf);
+        if ($buf !== '' && str_ends_with($buf, ';')) {
+            return substr($buf, 0, -1);
+        }
+
+        return $buf;
+    }
+
     public function emitLine(string $str = '', ?SourceLocation $sl = null): void
     {
         if ($str !== '') {
