@@ -2,17 +2,19 @@
 
 Agent-agnostic docs for AI assistants building apps **with** Phel.
 
-This tree is source material for `phel agent-install`. In user projects, `--with-docs` installs it as `.agents/`, so
-references inside adapter files intentionally point to `.agents/...`.
+This tree is source material for `phel agent-install`. In user projects it installs as `.agents/` by default (pass
+`--no-docs` to skip), so references inside adapter files intentionally point to `.agents/...`.
 
 Repo-maintenance guidance for phel-lang itself lives in the root `AGENTS.md`, `.codex/`, `.claude/`, and `src/php/**/CLAUDE.md`.
 
 ## Install
 
 ```bash
-./vendor/bin/phel agent-install --all                # every platform
-./vendor/bin/phel agent-install claude               # single platform
-./vendor/bin/phel agent-install --all --with-docs    # also mirror this tree
+./vendor/bin/phel agent-install --all                  # every platform + .agents/ docs
+./vendor/bin/phel agent-install claude                 # single platform + .agents/ docs
+./vendor/bin/phel agent-install --auto                 # only agents detected in this project
+./vendor/bin/phel agent-install --all --no-docs        # skill files only, skip the docs tree
+./vendor/bin/phel agent-install --all --with-examples  # also copy runnable example apps
 ```
 
 Targets: [`skills/INSTALL.md`](skills/INSTALL.md).

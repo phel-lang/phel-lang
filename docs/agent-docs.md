@@ -6,16 +6,22 @@
 
 ```bash
 composer require phel-lang/phel-lang
-./vendor/bin/phel agent-install --all              # every platform + .agents/ docs
-./vendor/bin/phel agent-install claude             # single platform + .agents/ docs
-./vendor/bin/phel agent-install claude --no-docs   # skip the .agents/ docs tree
+./vendor/bin/phel agent-install --all                  # every platform + .agents/ docs
+./vendor/bin/phel agent-install claude                 # single platform + .agents/ docs
+./vendor/bin/phel agent-install --auto                 # only agents detected in this project
+./vendor/bin/phel agent-install claude --no-docs       # skip the .agents/ docs tree
+./vendor/bin/phel agent-install --all --with-examples  # also copy runnable example apps
 ```
 
-`.agents/` (task recipes, examples, rules) is copied by default. Pass `--no-docs` to skip it.
+`.agents/` (rules, task recipes, quick-syntax) is copied by default; pass `--no-docs` to skip it. Example apps are
+**excluded** by default to keep installs slim — add `--with-examples` to include `.agents/examples/`.
 
-Platforms: `claude`, `cursor`, `codex`, `gemini`, `copilot`, `aider`.
+Platforms: `claude`, `cursor`, `codex`, `gemini`, `copilot`, `aider`. Omit the platform and use `--auto` to install
+only for agents already present in the project (`.claude/`, `.cursor/`, `AGENTS.md`, ...).
 
-Existing targets back up to `<path>.pre-phel.bak`. `--force` skips backup, `--dry-run` previews.
+Existing targets back up to `<path>.pre-phel.bak`. `--force` skips backup, `--dry-run` previews,
+`--uninstall` removes a skill (restoring any backup). Inspect state with `--list`; `--check` reports version drift
+and exits non-zero if any.
 
 ## Destinations
 
@@ -32,7 +38,7 @@ Each installed file routes the agent to `.agents/index.md` for task recipes: sca
 
 ## Examples
 
-`resources/agents/examples/` ships three projects:
+`resources/agents/examples/` ships three projects (installed only with `--with-examples`):
 
 - `todo-app/`: HTTP CRUD on `phel.router`, atom store, tests
 - `http-json-api/`: three JSON endpoints

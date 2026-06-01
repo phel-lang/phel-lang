@@ -179,7 +179,9 @@ echo '(println "hi")' | ./vendor/bin/phel eval -
 Skill files for Claude Code, Cursor, Codex, Gemini, Copilot, Aider: [resources/agents/](resources/agents/README.md)
 
 ```sh
-./vendor/bin/phel agent-install [platform] [--all]   # install skill file for your agent
+./vendor/bin/phel agent-install [platform]   # install skill file for one agent (claude, cursor, ...)
+./vendor/bin/phel agent-install --auto       # only agents detected in this project
+./vendor/bin/phel agent-install --all        # every supported platform
 ```
 
 ### Repo-level AI tooling
