@@ -19,6 +19,7 @@ use Phel\Compiler\Domain\Emitter\OutputEmitter\NilAndBooleanCheckSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\PhpStringEscape;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\TypedCollectionMethodSpecialization;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\TypedValueSpecialization;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\TypePredicateSpecialization;
 use Phel\Lang\Symbol;
 
@@ -308,7 +309,7 @@ final class CallEmitter implements NodeEmitterInterface
      */
     private function tryEmitKeywordFind(CallNode $node): bool
     {
-        if (!CallSpecialization::isKeywordFind($node)) {
+        if (!TypedValueSpecialization::isKeywordFind($node)) {
             return false;
         }
 
@@ -563,7 +564,7 @@ final class CallEmitter implements NodeEmitterInterface
      */
     private function tryEmitContainsCheck(CallNode $node): bool
     {
-        $kind = CallSpecialization::containsCheckKind($node);
+        $kind = TypedValueSpecialization::containsCheckKind($node);
         if ($kind === null) {
             return false;
         }
@@ -594,7 +595,7 @@ final class CallEmitter implements NodeEmitterInterface
      */
     private function tryEmitEmptyCheck(CallNode $node): bool
     {
-        $fragment = CallSpecialization::emptyCheckFragment($node);
+        $fragment = TypedValueSpecialization::emptyCheckFragment($node);
         if ($fragment === null) {
             return false;
         }
@@ -616,7 +617,7 @@ final class CallEmitter implements NodeEmitterInterface
      */
     private function tryEmitNamedAccessor(CallNode $node): bool
     {
-        $method = CallSpecialization::namedAccessorMethod($node);
+        $method = TypedValueSpecialization::namedAccessorMethod($node);
         if ($method === null) {
             return false;
         }
