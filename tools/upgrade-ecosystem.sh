@@ -430,6 +430,9 @@ process_repo() {
 
     local PR_BODY="Automated bump of \`phel-lang/phel-lang\` to ${VERSION} via build/upgrade-ecosystem.sh from the phel-lang repo. Tests passed locally before push."
     local PR_URL=""
+    # Ensure the label exists; gh pr create aborts the whole PR if --label is missing.
+    ( cd "$REPO_PATH" && gh label create dependencies \
+        --color 0366d6 --description "Dependency updates" 2>>"$LOG_FILE" ) || true
     # Capture the URL directly from gh pr create's stdout (no race with gh pr view).
     PR_URL="$( cd "$REPO_PATH" && gh pr create \
                  --assignee @me \
@@ -474,7 +477,8 @@ else
       pids=()
     fi
   done
-  for p in "${pids[@]}"; do wait "$p" 2>/dev/null || true; done
+  # bash 3.2 + set -u: expanding an empty array is "unbound"; guard the final drain.
+  (( ${#pids[@]} )) && for p in "${pids[@]}"; do wait "$p" 2>/dev/null || true; done
 fi
 
 # Re-collate results in original REPOS order
