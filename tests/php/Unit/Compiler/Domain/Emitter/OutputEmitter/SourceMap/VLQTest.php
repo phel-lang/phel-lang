@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PhelTest\Unit\Compiler\Emitter\OutputEmitter\SourceMap;
+namespace PhelTest\Unit\Compiler\Domain\Emitter\OutputEmitter\SourceMap;
 
 use Phel\Compiler\Domain\Emitter\OutputEmitter\SourceMap\VLQ;
 use PHPUnit\Framework\TestCase;

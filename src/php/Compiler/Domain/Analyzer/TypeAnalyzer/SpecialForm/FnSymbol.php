@@ -40,7 +40,6 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
         private AnalyzerInterface $analyzer,
         private bool $assertsEnabled = true,
         private ReturnTypeInferrer $returnTypeInferrer = new ReturnTypeInferrer(),
-        private int $optimizationLevel = 0,
         private TailCallRewriter $tailCallRewriter = new TailCallRewriter(),
     ) {}
 
@@ -170,7 +169,7 @@ final readonly class FnSymbol implements SpecialFormAnalyzerInterface
 
         [$selfNs, $selfNameStr] = $this->splitBoundTo($env->getBoundTo());
 
-        if ($this->optimizationLevel >= 2
+        if ($this->analyzer->getOptimizationLevel() >= 2
             && $selfNs !== null
             && $selfNameStr !== null
             && !$fnSymbolTuple->isVariadic()
