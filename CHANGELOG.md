@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+## [0.41.0](https://github.com/phel-lang/phel-lang/compare/v0.40.0...v0.41.0) - 2026-06-01
+
 ### Added
 
 - CI: `announce-release.yml` + `scripts/announce-release.mjs` draft a Twitter/X thread from the released tag's CHANGELOG (manual posting; `workflow_dispatch` back-fills)
