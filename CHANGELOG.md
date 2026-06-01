@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Compiler internals: extracted the atom accessor (`deref` / `reset!`) call-site eligibility out of `CallSpecialization` into a focused `AtomMethodSpecialization` collaborator (no change to generated code)
 - Compiler internals: extracted the inferred-type-tag normalisation helpers out of `CallSpecialization` into a shared `TagNormalizer` (no change to generated code)
 - Compiler internals: extracted the typed persistent-collection accessor lowering (`count` / `nth` on vectors, `first` / `rest` on seqs) out of `CallSpecialization` into a focused `TypedCollectionMethodSpecialization` collaborator (no change to generated code)
+- Compiler internals: extracted the `assoc` / `conj` / `dissoc` method lowering and the transient `(-> coll (assoc …) …)` chain detection out of `CallSpecialization` into a focused `AssocConjSpecialization` collaborator (no change to generated code)
 
 ## [0.41.0](https://github.com/phel-lang/phel-lang/compare/v0.40.0...v0.41.0) - 2026-06-01
 
