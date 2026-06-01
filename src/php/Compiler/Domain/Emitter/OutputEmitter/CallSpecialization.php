@@ -29,7 +29,6 @@ use function is_bool;
 use function is_float;
 use function is_int;
 use function is_string;
-use function ltrim;
 
 /**
  * Syntactic predicates for `CallNode` instances the `CallEmitter`
@@ -225,7 +224,7 @@ final readonly class CallSpecialization
             return null;
         }
 
-        if (self::normalisedTag($target->getInferredType()) !== PersistentVectorInterface::class) {
+        if (TagNormalizer::normalise($target->getInferredType()) !== PersistentVectorInterface::class) {
             return null;
         }
 
@@ -281,7 +280,7 @@ final readonly class CallSpecialization
             return null;
         }
 
-        $tag = self::normalisedTag($target->getInferredType());
+        $tag = TagNormalizer::normalise($target->getInferredType());
         if ($tag === null || !isset(self::SEQ_TAGS[$tag])) {
             return null;
         }
@@ -322,7 +321,7 @@ final readonly class CallSpecialization
             return null;
         }
 
-        $tag = self::normalisedTag($target->getInferredType());
+        $tag = TagNormalizer::normalise($target->getInferredType());
         if ($tag === null) {
             return null;
         }
@@ -417,7 +416,7 @@ final readonly class CallSpecialization
                 return null;
             }
 
-            if (self::normalisedTag($target->getInferredType()) !== $expectedTag) {
+            if (TagNormalizer::normalise($target->getInferredType()) !== $expectedTag) {
                 return null;
             }
 
@@ -620,7 +619,7 @@ final readonly class CallSpecialization
             return null;
         }
 
-        $tag = self::normalisedTag($target->getInferredType());
+        $tag = TagNormalizer::normalise($target->getInferredType());
         return match ($tag) {
             PersistentVectorInterface::class => 'get',
             PersistentMapInterface::class => 'find',
@@ -649,7 +648,7 @@ final readonly class CallSpecialization
             return false;
         }
 
-        $tag = self::normalisedTag($fn->getInferredType());
+        $tag = TagNormalizer::normalise($fn->getInferredType());
         if ($tag === null) {
             return false;
         }
@@ -689,7 +688,7 @@ final readonly class CallSpecialization
             return false;
         }
 
-        return self::normalisedTag($target->getInferredType()) === 'array';
+        return TagNormalizer::normalise($target->getInferredType()) === 'array';
     }
 
     /**
@@ -722,7 +721,7 @@ final readonly class CallSpecialization
             return false;
         }
 
-        return self::normalisedTag($target->getInferredType()) === 'array';
+        return TagNormalizer::normalise($target->getInferredType()) === 'array';
     }
 
     /**
@@ -758,7 +757,7 @@ final readonly class CallSpecialization
             return null;
         }
 
-        $tag = self::normalisedTag($target->getInferredType());
+        $tag = TagNormalizer::normalise($target->getInferredType());
         if ($tag === null) {
             return null;
         }
@@ -813,7 +812,7 @@ final readonly class CallSpecialization
             return null;
         }
 
-        $tag = self::normalisedTag($target->getInferredType());
+        $tag = TagNormalizer::normalise($target->getInferredType());
         if ($tag === null) {
             return null;
         }
@@ -860,7 +859,7 @@ final readonly class CallSpecialization
             return null;
         }
 
-        $tag = self::normalisedTag($target->getInferredType());
+        $tag = TagNormalizer::normalise($target->getInferredType());
         if ($tag !== Keyword::class && $tag !== Symbol::class) {
             return null;
         }
@@ -957,7 +956,7 @@ final readonly class CallSpecialization
             return null;
         }
 
-        $tag = self::normalisedTag($target->getInferredType());
+        $tag = TagNormalizer::normalise($target->getInferredType());
         if ($tag !== 'int' && $tag !== 'float') {
             return null;
         }
@@ -1008,7 +1007,7 @@ final readonly class CallSpecialization
 
         $arg = $args[0];
         return $arg instanceof LocalVarNode
-            && self::isPersistentMapTag($arg->getInferredType());
+            && TagNormalizer::isPersistentMap($arg->getInferredType());
     }
 
     /**
@@ -1036,18 +1035,8 @@ final readonly class CallSpecialization
             return true;
         }
 
-        $tag = self::normalisedTag(self::inferredTypeOfNode($arg));
+        $tag = TagNormalizer::normalise(self::inferredTypeOfNode($arg));
         return $tag !== null && $tag === 'string';
-    }
-
-    private static function isPersistentMapTag(?string $tag): bool
-    {
-        return self::normalisedTag($tag) === PersistentMapInterface::class;
-    }
-
-    private static function normalisedTag(?string $tag): ?string
-    {
-        return $tag === null ? null : ltrim($tag, '\\');
     }
 
     /**
@@ -1076,7 +1065,7 @@ final readonly class CallSpecialization
         return array_all(
             $args,
             static function (AbstractNode $arg): bool {
-                $tag = self::normalisedTag(self::inferredTypeOfNode($arg));
+                $tag = TagNormalizer::normalise(self::inferredTypeOfNode($arg));
                 return $tag !== null && in_array($tag, self::NUMERIC_PRIMITIVE_TAGS, true);
             },
         );
@@ -1091,7 +1080,7 @@ final readonly class CallSpecialization
             return self::matchesLiteralPrimitive($arg->getValue(), $acceptedTags);
         }
 
-        $tag = self::normalisedTag(self::inferredTypeOfNode($arg));
+        $tag = TagNormalizer::normalise(self::inferredTypeOfNode($arg));
         return $tag !== null && in_array($tag, $acceptedTags, true);
     }
 
@@ -1195,7 +1184,7 @@ final readonly class CallSpecialization
             return is_int($value) ? 'int' : null;
         }
 
-        $tag = self::normalisedTag(self::inferredTypeOfNode($arg));
+        $tag = TagNormalizer::normalise(self::inferredTypeOfNode($arg));
         return in_array($tag, self::NUMERIC_PRIMITIVE_TAGS, true) ? $tag : null;
     }
 
