@@ -6,20 +6,20 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
-- Lexer: error/source-map columns are now counted in code points instead of bytes, so locations are accurate for source containing multibyte (UTF-8) characters (ASCII-only code is unaffected)
-- Printer: struct values now print with the `.` namespace separator (`(my.ns.point 1 2)`) instead of `\` (#2255)
-- Docs: function `:example` outputs now match what the REPL actually prints, so `phel doc` and the phel-lang.org API reference are accurate. Fixed `bigint`'s phantom `N` suffix, the deprecated `\` separator in `resolve`/`require`/`symbol-info`, whole-number floats showing `.0`, sequence/map/PHP-array formatting, and a wrong `shrink-int-towards` result
+- Lexer: error/source-map columns are now counted in code points, not bytes, so locations are correct for multibyte (UTF-8) source
+- Printer: structs print with the `.` separator (`(my.ns.point 1 2)`) instead of `\` (#2255)
+- Docs: function `:example` outputs now match what the REPL prints, so `phel doc` and the phel-lang.org API reference are accurate
 
 ### Added
 
-- Compiler internals: end-to-end regression test pinning that AST source locations survive every phase (lexer → parser → reader → analyzer)
+- Compiler internals: regression test pinning that AST source locations survive every phase
 
 ### Changed
 
-- Compiler internals: split the `CallSpecialization` call-site lowering god-class (1325 → ~330 LOC) into eight focused, independently tested collaborators — `NilAndBooleanCheckSpecialization`, `AtomMethodSpecialization`, `TagNormalizer` (shared tag helpers), `TypedCollectionMethodSpecialization`, `AssocConjSpecialization`, `TypePredicateSpecialization`, `TypedValueSpecialization`, and `NumericOperationSpecialization`; `CallSpecialization` now only aggregates them via `isSpecialized()` / `isBoolReturningSpecialisation()`. Pure refactor — generated PHP is unchanged.
-- Compiler internals: centralized the bare-expression capture used by the `If` / `Let` / `Call` emitters into `OutputEmitter::captureNodeAsExpression()`, and documented `AbstractNode::getStartSourceLocation()`'s nullable contract
-- Tests: `RegistryTest` and `PhelVarTest` now snapshot and restore the global `Registry` instead of leaving it wiped, fixing intermittent order-dependent `phel.core` failures in the suite (#2256)
-- Docs: condensed every guide under `docs/` (~17% smaller), verified each against the runtime, fixed broken examples, and cross-linked them to the full docs on phel-lang.org
+- Compiler internals: split the 1325-LOC `CallSpecialization` god-class into eight focused collaborators (pure refactor, output unchanged)
+- Compiler internals: centralized the emitters' bare-expression capture into `OutputEmitter::captureNodeAsExpression()`
+- Tests: `RegistryTest` and `PhelVarTest` snapshot and restore the global `Registry`, fixing order-dependent `phel.core` suite failures (#2256)
+- Docs: condensed every `docs/` guide (~17% smaller), verified against the runtime, and cross-linked to phel-lang.org
 
 ## [0.41.0](https://github.com/phel-lang/phel-lang/compare/v0.40.0...v0.41.0) - 2026-06-01
 
