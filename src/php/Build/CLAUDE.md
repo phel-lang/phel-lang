@@ -41,6 +41,9 @@ Build/
 ├── Application/        ProjectCompiler, FileCompiler, FileEvaluator, NamespaceExtractor (cached)
 ├── Domain/             Cache/, Compile/, Extractor/, IO/ (interfaces, value objects, sorters)
 ├── Infrastructure/     Cache/, IO/ (concrete implementations)
+│                       Cache/ `CompiledCodeCache` is the policy orchestrator; it delegates to
+│                       `CacheDirectory` (layout), `CacheIndexFile` (index load/save/merge),
+│                       `NamespaceEnvironmentStore` (env data), `CachePathResolver`, `AtomicFileWriter`
 └── Gacela files        Facade, Factory, Config, Provider
 ```
 
