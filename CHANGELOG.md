@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- `phel.http`: `request-from-globals` decodes `application/json` request bodies into `:parsed-body` (nil for an empty or malformed body); `request-from-globals-args` gains an optional trailing `raw-body` arg
 - Compiler internals: regression test pinning that AST source locations survive every phase
 
 ### Changed
