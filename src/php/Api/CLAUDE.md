@@ -43,7 +43,9 @@ Api/
 ├── Infrastructure/
 │   ├── Command/                CLI commands (Doc, Analyze, Index)
 │   ├── Daemon/                 ApiDaemon (JSON-RPC server)
-│   └── phel/                   Phel-native helpers
+│   ├── phel/                   Phel-native helpers
+│   ├── PhelFnLoader            Merges runtime + native symbol metadata (thin loader)
+│   └── NativeSymbolCatalog     Static doc table for special forms / built-ins (no .phel source)
 ├── Transfer/                   DTO contracts (PhelFunction, Diagnostic, Definition, ProjectIndex, etc.)
 └── Gacela files                ApiFacade, ApiFactory, ApiConfig, ApiProvider
 ```
