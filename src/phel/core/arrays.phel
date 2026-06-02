@@ -17,7 +17,7 @@
 
 (defn php-indexed-array
   "Creates a PHP indexed array from the given values."
-  {:example "(php-indexed-array 1 2 3) ; => (PHP array [1, 2, 3])"}
+  {:example "(php-indexed-array 1 2 3) ; => <PHP-Array [1, 2, 3]>"}
   [& xs]
   (apply php/array xs))
 
@@ -26,7 +26,7 @@
 
   Arguments:
     Key-value pairs (must be even number of arguments)"
-  {:example "(php-associative-array \"name\" \"Alice\" \"age\" 30) ; => (PHP array [\"name\" => \"Alice\", \"age\" => 30])"}
+  {:example "(php-associative-array \"name\" \"Alice\" \"age\" 30) ; => <PHP-Array [\"name\":\"Alice\", \"age\":30]>"}
   [& xs]
   (let [cnt (php/count xs)
         res (php/array)]
@@ -45,7 +45,7 @@
   `object-array` for `.cljc` interop — in Phel the result is a plain PHP
   array (accessible via `php/aget`/`php/aset`) since PHP has no typed
   array distinction."
-  {:example "(object-array 3) ; => a PHP array [nil, nil, nil]\n(object-array [1 2 3]) ; => a PHP array [1, 2, 3]"
+  {:example "(object-array 3) ; => <PHP-Array [nil, nil, nil]>\n(object-array [1 2 3]) ; => <PHP-Array [1, 2, 3]>"
    :see-also ["php-indexed-array" "to-php-array"]}
   [size-or-seq]
   (if (php/is_int size-or-seq)
@@ -61,7 +61,7 @@
   collection (vector, list, set, map, PHP array) or `nil`, which yields
   an empty PHP array. Matches Clojure's `to-array` for `.cljc` interop —
   in Phel the result is a plain PHP array since PHP has no `Object[]`."
-  {:example "(to-array [1 2 3]) ; => a PHP array [1, 2, 3]\n(to-array nil) ; => a PHP array []"
+  {:example "(to-array [1 2 3]) ; => <PHP-Array [1, 2, 3]>\n(to-array nil) ; => <PHP-Array []>"
    :see-also ["to-php-array" "object-array"]}
   [coll]
   (if (php/=== coll nil)
@@ -76,7 +76,7 @@
   so the result is always a plain PHP array. Use the dedicated coercion
   helpers (`int-array`, `long-array`, `float-array`, `double-array`,
   `short-array`) when element coercion is actually required."
-  {:example "(into-array [1 2 3]) ; => a PHP array [1, 2, 3]\n(into-array :Object [:a :b]) ; => a PHP array [:a, :b]"
+  {:example "(into-array [1 2 3]) ; => <PHP-Array [1, 2, 3]>\n(into-array :Object [:a :b]) ; => <PHP-Array [:a, :b]>"
    :see-also ["to-array" "object-array" "int-array"]}
   ([aseq] (to-array aseq))
   ([_type aseq] (to-array aseq)))
@@ -96,7 +96,7 @@
   interop; raises `InvalidArgumentException` on non-array inputs since
   Phel's persistent collections are already immutable and don't need
   cloning."
-  {:example "(aclone (object-array 3)) ; => a fresh PHP array [nil, nil, nil]"
+  {:example "(aclone (object-array 3)) ; => <PHP-Array [nil, nil, nil]>"
    :see-also ["object-array" "to-array"]}
   [arr]
   (php/array_merge (ensure-php-array "aclone" arr)))
@@ -161,7 +161,7 @@
     slots are zero-padded.
 
   PHP has no typed arrays, so the result is a plain PHP array."
-  {:example "(int-array 3) ; => PHP array [0, 0, 0]\n(int-array [1.5 2.7]) ; => PHP array [1, 2]\n(int-array 4 7) ; => PHP array [7, 7, 7, 7]\n(int-array 5 [10 20]) ; => PHP array [10, 20, 0, 0, 0]"
+  {:example "(int-array 3) ; => <PHP-Array [0, 0, 0]>\n(int-array [1.5 2.7]) ; => <PHP-Array [1, 2]>\n(int-array 4 7) ; => <PHP-Array [7, 7, 7, 7]>\n(int-array 5 [10 20]) ; => <PHP-Array [10, 20, 0, 0, 0]>"
    :see-also ["long-array" "float-array" "double-array" "short-array" "object-array"]}
   ([size-or-seq] (typed-array php/intval 0 size-or-seq))
   ([size init-val-or-seq] (typed-array php/intval 0 size init-val-or-seq)))
@@ -169,7 +169,7 @@
 (defn long-array
   "Creates a PHP array of longs (same as int-array in PHP). Accepts the same
   arities and semantics as `int-array`."
-  {:example "(long-array 3) ; => PHP array [0, 0, 0]\n(long-array 4 7) ; => PHP array [7, 7, 7, 7]"
+  {:example "(long-array 3) ; => <PHP-Array [0, 0, 0]>\n(long-array 4 7) ; => <PHP-Array [7, 7, 7, 7]>"
    :see-also ["int-array" "float-array" "double-array" "short-array"]}
   ([size-or-seq] (typed-array php/intval 0 size-or-seq))
   ([size init-val-or-seq] (typed-array php/intval 0 size init-val-or-seq)))
@@ -177,7 +177,7 @@
 (defn float-array
   "Creates a PHP array of floats. Accepts the same arities as `int-array`;
   coerces elements to float via `floatval` and zero-pads with `0.0`."
-  {:example "(float-array 3) ; => PHP array [0.0, 0.0, 0.0]\n(float-array 4 1.5) ; => PHP array [1.5, 1.5, 1.5, 1.5]"
+  {:example "(float-array 3) ; => <PHP-Array [0, 0, 0]>\n(float-array 4 1.5) ; => <PHP-Array [1.5, 1.5, 1.5, 1.5]>"
    :see-also ["double-array" "int-array" "long-array" "short-array"]}
   ([size-or-seq] (typed-array php/floatval 0.0 size-or-seq))
   ([size init-val-or-seq] (typed-array php/floatval 0.0 size init-val-or-seq)))
@@ -185,7 +185,7 @@
 (defn double-array
   "Creates a PHP array of doubles (same as float-array in PHP). Accepts the same
   arities and semantics as `float-array`."
-  {:example "(double-array 3) ; => PHP array [0.0, 0.0, 0.0]\n(double-array 4 1.5) ; => PHP array [1.5, 1.5, 1.5, 1.5]"
+  {:example "(double-array 3) ; => <PHP-Array [0, 0, 0]>\n(double-array 4 1.5) ; => <PHP-Array [1.5, 1.5, 1.5, 1.5]>"
    :see-also ["float-array" "int-array" "long-array" "short-array"]}
   ([size-or-seq] (typed-array php/floatval 0.0 size-or-seq))
   ([size init-val-or-seq] (typed-array php/floatval 0.0 size init-val-or-seq)))
@@ -193,7 +193,7 @@
 (defn short-array
   "Creates a PHP array of shorts (16-bit integers). Accepts the same arities
   and semantics as `int-array`."
-  {:example "(short-array 3) ; => PHP array [0, 0, 0]\n(short-array 4 7) ; => PHP array [7, 7, 7, 7]"
+  {:example "(short-array 3) ; => <PHP-Array [0, 0, 0]>\n(short-array 4 7) ; => <PHP-Array [7, 7, 7, 7]>"
    :see-also ["int-array" "long-array" "float-array" "double-array"]}
   ([size-or-seq] (typed-array php/intval 0 size-or-seq))
   ([size init-val-or-seq] (typed-array php/intval 0 size init-val-or-seq)))
