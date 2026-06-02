@@ -73,7 +73,7 @@
 
 (defn rose-children
   "Returns the lazy sequence of immediate child rose trees."
-  {:example "(rose-children (rose-pure 1)) ; => ()"
+  {:example "(rose-children (rose-pure 1)) ; => @[]"
    :see-also ["rose-root" "rose-shrinks"]}
   [t]
   (or (get t :children) (lazy-seq nil)))
@@ -81,7 +81,7 @@
 (defn rose-shrinks
   "Alias for `rose-children`: the lazy sequence of immediate smaller
   variants of the current root."
-  {:example "(rose-shrinks (rose-pure 1)) ; => ()"
+  {:example "(rose-shrinks (rose-pure 1)) ; => @[]"
    :see-also ["rose-children"]}
   [t]
   (rose-children t))
@@ -191,7 +191,7 @@
 (defn shrink-int-towards
   "Returns a seq of integer candidates strictly closer to `target` than
   `n`. Yields the target first, then halving steps."
-  {:example "(shrink-int-towards 0 10) ; => (0 5 7 8 9)"
+  {:example "(shrink-int-towards 0 10) ; => [0 5 8 9]"
    :see-also ["shrink-int" "int-rose-tree"]}
   [target n]
   (if (= target n)
