@@ -13,20 +13,13 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - `phel.http`: `request-from-globals` decodes `application/json` request bodies into `:parsed-body` (nil for an empty or malformed body); `request-from-globals-args` gains an optional trailing `raw-body` arg
-- `phel.http`: `json-response` and `html-response` builders set the content-type header and (for JSON) encode the body, so apps stop hand-rolling the header map (#2271). The `http-json-api` example now uses them instead of a private copy
+- `phel.http`: `json-response` and `html-response` builders set the content-type header and encode the body, so apps stop hand-rolling the header map; the `http-json-api` example now uses them (#2271)
 - Compiler internals: regression test pinning that AST source locations survive every phase
 
 ### Changed
 
 - Architecture: modular-architecture cleanup of `src/php/` (#2261, #2262, #2263, #2264) — relocated leaky cross-module value objects to their proper homes (`NamespaceInformation`, the parse-tree nodes + lexer `Token`, and the stateful `LoadClasspath`) and split four oversized analyzer/command classes (`DefSymbol`, `ParamTypeInferrer`, `TestCommand`, and `ConstantFolder`/`FnSymbol`) into focused collaborators. Pure refactors, no behavior change
-- Compiler internals: split the 1325-LOC `CallSpecialization` god-class into eight focused collaborators (pure refactor, output unchanged)
-- Compiler internals: split the 959-LOC `CallEmitter` god-class into eight per-family `Specialized/*CallEmitter` collaborators behind a thin dispatcher (pure refactor, emitted PHP unchanged)
-- Build internals: split the 510-LOC `CompiledCodeCache` god-class into `CacheDirectory`, `CacheIndexFile`, and `NamespaceEnvironmentStore` collaborators, leaving the cache as a thin policy orchestrator and de-duplicating the index entry-normalization (pure refactor, cache behavior unchanged)
-- Lang internals: split the 747-LOC `BigInt` god-class by extracting the sign-agnostic base-10^9 digit-array kernels into a stateless `BigIntMagnitude`, leaving `BigInt` as the signed value object (pure refactor, arithmetic unchanged; guarded by new algebraic-invariant property tests)
-- Lang internals: split the 637-LOC `NumericOperations` god-class by extracting numeric type lifting into `NumericCoercion` and native-int overflow detection into `IntegerOverflow`, leaving the dispatch table to own only the contagion ladders (pure refactor, arithmetic unchanged; new units covered by direct unit tests)
-- Api internals: split the 514-LOC `PhelFnLoader` god-class by moving the native special-form / built-in documentation table into a dedicated `NativeSymbolCatalog`, leaving `PhelFnLoader` as the thin runtime+native metadata loader (pure refactor, output unchanged)
-- Compiler internals: extracted reader-conditional parsing (`#?` / `#?@`) from `Parser` into a dedicated `ReaderConditionalParser` sub-parser, de-duplicating the two near-identical branch-selection loops (pure refactor, parse tree unchanged)
-- Compiler internals: centralized the emitters' bare-expression capture into `OutputEmitter::captureNodeAsExpression()`
+- Internals: split seven oversized god-classes into focused single-responsibility collaborators across the compiler, runtime, build, and api modules (pure refactors, behavior unchanged): `CallSpecialization`, `CallEmitter` (#2273), `CompiledCodeCache` (#2274), `BigInt` (#2275), `NumericOperations` (#2276), `PhelFnLoader` (#2277), and `Parser` (#2278); also centralized the emitters' bare-expression capture into `OutputEmitter::captureNodeAsExpression()`
 - Tests: `RegistryTest` and `PhelVarTest` snapshot and restore the global `Registry`, fixing order-dependent `phel.core` suite failures (#2256)
 - Docs: condensed every `docs/` guide (~17% smaller), verified against the runtime, and cross-linked to phel-lang.org
 
