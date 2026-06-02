@@ -1,8 +1,6 @@
 # AI Module Guide
 
-`phel.ai` is a small, provider-agnostic client for LLM chat, structured extraction, tool use, embeddings, and semantic search.
-
-Supported providers:
+`phel.ai` is a provider-agnostic client for LLM chat, structured extraction, tool use, embeddings, and semantic search.
 
 | Provider | Chat | Tools | Embeddings |
 |----------|------|-------|------------|
@@ -20,13 +18,12 @@ Supported providers:
 ;; or configure explicitly:
 (ai/configure {:api-key "sk-ant-..."})
 
-(ai/complete "Say hi in one word")
-; => "Hi"
+(ai/complete "Say hi in one word")   ; => "Hi"
 ```
 
 ## Configuration
 
-`configure` merges options into a shared atom `ai/config`.
+`configure` merges options into the shared atom `ai/config`.
 
 | Key | Default | Purpose |
 |-----|---------|---------|
@@ -35,12 +32,12 @@ Supported providers:
 | `:max-tokens` | `1024` | Output token cap |
 | `:api-key` | `nil` | Falls back to env var |
 | `:base-url` | `nil` | Override endpoint (proxies, self-hosted) |
-| `:timeout` | `120` | HTTP timeout in seconds |
+| `:timeout` | `120` | HTTP timeout (seconds) |
 | `:max-retries` | `2` | Retry 429/5xx with exponential backoff |
 
 Default model evolves with `src/phel/ai.phel`; check there for the current value.
 
-Every per-call `opts` map on `chat`, `complete`, `chat-with-tools`, `extract`, and `extract-many` accepts the same keys (including `:max-retries`) for per-request overrides.
+Every per-call `opts` map (on `chat`, `complete`, `chat-with-tools`, `extract`, `extract-many`) accepts the same keys for per-request overrides:
 
 ```phel
 (ai/complete "Summarize the news" {:provider :openai :model "gpt-4o-mini"})
@@ -73,7 +70,7 @@ Multi-turn via `chat-with-history`:
 
 ## Structured extraction
 
-Populate a schema:
+Populate a schema; `extract-many` returns a vector when the input has multiple items:
 
 ```phel
 (ai/extract
@@ -82,11 +79,9 @@ Populate a schema:
 ; => {:name "Alice" :age 30 :email "alice@example.com"}
 ```
 
-`extract-many` returns a vector when the input contains multiple items.
-
 ## Tool use
 
-Define tools with provider-agnostic `tool`, then drive the loop manually with `chat-with-tools` + `tool-result`, or hand off to `run-tools`.
+Define tools with provider-agnostic `tool`, then either hand off to `run-tools` or drive the loop manually with `chat-with-tools` + `tool-result`.
 
 ```phel
 (def tools
@@ -98,13 +93,11 @@ Define tools with provider-agnostic `tool`, then drive the loop manually with `c
   {"get-weather" (fn [args] (str "72F sunny in " (get args :city)))})
 
 (ai/run-tools [{:role "user" :content "weather in Paris?"}]
-              tools
-              handlers
-              {:max-turns 5})
+              tools handlers {:max-turns 5})
 ;; => "It's 72F and sunny in Paris."
 ```
 
-`run-tools` sends the conversation, resolves tool calls via `handlers` (map of tool name to fn), feeds results back, and stops when the model returns plain text or `:max-turns` is reached. Anthropic-only.
+`run-tools` sends the conversation, resolves tool calls via `handlers` (tool name to fn), feeds results back, and stops when the model returns plain text or `:max-turns` is reached. Anthropic-only.
 
 For finer control, use `chat-with-tools` directly:
 
@@ -117,7 +110,7 @@ For finer control, use `chat-with-tools` directly:
 `chat-with-tools` returns:
 
 ```phel
-{:text       "..."    ; assistant text (may be nil if only tool calls)
+{:text       "..."    ; assistant text (nil if only tool calls)
  :tool-calls [{:name "..." :id "..." :input {...}}]
  :stop-reason "..."
  :raw        {...}}   ; full provider body
@@ -133,11 +126,11 @@ For finer control, use `chat-with-tools` directly:
 ; => [{:text "cats purr" :embedding [...] :similarity 0.87}]
 ```
 
-Vector math primitives for custom pipelines: `dot-product`, `magnitude`, `cosine-similarity`, `nearest`.
+Vector-math primitives for custom pipelines: `dot-product`, `magnitude`, `cosine-similarity`, `nearest`.
 
 ## Retry & timeouts
 
-`:max-retries` (default `2`) retries on HTTP 429 and 5xx with exponential backoff (500ms, 1s, 2s, ...). Network errors bubble up. Tune per call.
+`:max-retries` (default `2`) retries HTTP 429 and 5xx with exponential backoff (500ms, 1s, 2s, ...). Network errors bubble up. Tune per call:
 
 ```phel
 (ai/complete "long task" {:timeout 300 :max-retries 4})

@@ -4,7 +4,7 @@ Template for tracking how long each agent takes to build a representative app fr
 
 ## Scenario
 
-Fresh project, fresh chat session. Prompt: **"Build a todo HTTP API in Phel with tests."**
+Fresh project, fresh chat. Prompt: **"Build a todo HTTP API in Phel with tests."**
 
 Target:
 - HTTP endpoint for create/list/show/delete
@@ -34,7 +34,7 @@ Target:
 2. Run `composer require phel-lang/phel-lang`.
 3. For "yes" rows only: `./vendor/bin/phel agent-install <platform>`.
 4. Feed the prompt above. Time from send to green `phel test`.
-5. Open a PR updating this table with your result. Attach the transcript as a gist or comment link.
+5. Open a PR updating this table; attach the transcript as a gist or comment link.
 
 ## Why this matters
 

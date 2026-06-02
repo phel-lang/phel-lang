@@ -17,17 +17,11 @@ by Git via a self-seeded `.phel/.gitignore` (`*`).
 
 ## Overrides
 
-- **Relocate everything**: `$config->withPhelDir('/var/cache/phel')` in
-  `phel-config.php` moves cache, REPL history, last-failed file and error log
-  out of the project root. Useful for WordPress plugins, shared hosting, or
-  any setup where `.phel/` would otherwise sit under a web-accessible path.
-- **`PHEL_DIR` env var** — same effect at runtime; wins over `withPhelDir()`.
-- **`PhelConfig::withCacheDir($path)`** — narrower override for just the build
-  cache.
-- **`PHEL_CACHE_DIR` env var** — final cache override; wins over `PHEL_DIR`
-  and explicit `withCacheDir()`. Useful for CI / Nix builds.
-- **`PHEL_QUIET_MIGRATION=1`** — silences the one-line stderr notice emitted
-  when the legacy `.phel-repl-history` is migrated into `.phel/repl-history`.
+- **`$config->withPhelDir('/var/cache/phel')`** in `phel-config.php`: relocates the whole `.phel/` (cache, REPL history, last-failed, error log) out of the project root. Useful for WordPress plugins, shared hosting, or any web-accessible layout.
+- **`PHEL_DIR` env var**: same effect at runtime; wins over `withPhelDir()`.
+- **`PhelConfig::withCacheDir($path)`**: narrower override for just the build cache.
+- **`PHEL_CACHE_DIR` env var**: final cache override; wins over `PHEL_DIR` and `withCacheDir()`. Useful for CI / Nix builds.
+- **`PHEL_QUIET_MIGRATION=1`**: silences the stderr notice when legacy `.phel-repl-history` migrates into `.phel/repl-history`.
 
 ## Migration
 

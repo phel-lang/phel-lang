@@ -14,10 +14,12 @@
    [:email [:re #"^[^@]+@[^@]+$"]]
    [:age   [:maybe :int]]])
 
-(s/validate User {:id 1 :email "a@b.co"})   ; => true
-(s/explain  User {:id "x" :email "a@b"})    ; => {:schema User :value {...} :errors [...]}
-(s/coerce   User {"id" "1" "email" "a@b.co"})
+(s/validate User {:id 1 :email "a@b.co" :age nil})   ; => true
+(s/explain  User {:id "x" :email "a@b"})             ; => {:schema User :value {...} :errors [...]}
+(s/coerce   User {"id" "1" "email" "a@b.co" "age" nil})
 ```
+
+`[:maybe T]` makes the *value* nilable but the key is still required-present; omit it on a `{:closed? true}` map and validation fails with `:type :missing`.
 
 ## Schema kinds
 
@@ -47,7 +49,7 @@
 
 ```phel
 (s/register! :my/User User)
-(s/validate [:ref :my/User] {:id 1 :email "a@b.co"})
+(s/validate [:ref :my/User] {:id 1 :email "a@b.co" :age nil})
 ```
 
 ## Function instrumentation
@@ -61,6 +63,7 @@
 ## Pitfalls
 
 - `:map` is open by default; add `{:closed? true}` to reject extra keys
+- `[:maybe T]` allows a nil value but does not make the key optional
 - `[:re ...]` expects a `#"regex"` literal, not a string
 - `generate` may fail on over-constrained `[:and ...]` or `[:re ...]` schemas; pass `{:gen <gen-fn>}` in schema options to override
 

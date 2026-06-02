@@ -10,11 +10,11 @@
 
 (defn describe [x]
   (match [x]
-    [0]            "zero"
-    [(_ :guard pos?)] "positive"
-    [[a b]]        (str "pair " a " / " b)
+    [0]                   "zero"
+    [[a b]]               (str "pair " a " / " b)
     [{:type :err :msg m}] (str "error: " m)
-    :else          "other"))
+    [(n :guard pos?)]     "positive"
+    :else                 "other"))
 ```
 
 ## Pattern kinds
@@ -28,7 +28,7 @@
 | `{:k sym}` | map with key `:k`, bind value to `sym` |
 | `(:or a b c)` | any of the alternatives |
 | `(sym :as name)` | bind whole subject to `name` |
-| `(sym :guard pred)` | literal plus runtime predicate |
+| `(sym :guard pred)` | bind plus runtime predicate |
 
 ## Guards
 
@@ -50,7 +50,8 @@
 
 - Each pattern vector length must equal the target count
 - `:else` must be the final clause
-- Nested patterns bind in left-to-right order; a later binding shadows an earlier one with the same name
+- Nested patterns bind left-to-right; a later binding shadows an earlier one with the same name
+- A `:guard` predicate runs against the raw value. Numeric predicates like `pos?` coerce non-numbers in Phel (so `(pos? [1 2])` is truthy), so put literal/structural patterns before an open numeric guard.
 
 ## See also
 

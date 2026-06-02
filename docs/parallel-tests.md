@@ -1,21 +1,12 @@
 # Parallel Test Runner
 
-`phel test --parallel=<N|auto|max>` fans out test namespaces across a
-pool of subprocess workers, mirroring Clojure's
-[eftest](https://github.com/eftest/eftest) `:multithread? :namespaces`
-mode: opt-in, default workers ≈ CPU count, deterministic output,
-no impact on existing serial runs.
+`phel test --parallel=<N|auto|max>` fans out test namespaces across a pool of subprocess workers, mirroring Clojure's [eftest](https://github.com/eftest/eftest) `:multithread? :namespaces` mode: opt-in, default workers ≈ CPU count, deterministic output, no impact on serial runs.
 
 ## When to use it
 
-- A suite with non-trivial per-namespace work (DB-spinup, AST
-  benchmarks, heavy property tests).
-- CI where the wall clock dominates the queue cost of spawning more
-  workers.
+Use it for suites with non-trivial per-namespace work (DB spin-up, AST benchmarks, heavy property tests), or CI where wall clock dominates worker spawn cost.
 
-Skip it for very small suites or when a per-namespace fixture spins
-up a shared resource (DB, port, fixture file) that doesn't tolerate
-N concurrent loaders.
+Skip it for tiny suites, or when a per-namespace fixture spins up a shared resource (DB, port, fixture file) that can't tolerate N concurrent loaders.
 
 ## Usage
 
@@ -26,20 +17,17 @@ phel test --parallel=max       # every core the kernel reports, uncapped
 phel test --parallel=1         # collapses back to the serial path
 ```
 
-You can also set the worker count via env var:
+Set the worker count via env var instead; it overrides the cap on both `auto` and `max`:
 
 ```bash
 PHEL_TEST_WORKERS=12 phel test --parallel=auto
 ```
 
-The env var overrides the cap on both `auto` and `max`, so power
-users can dial in their own ceiling without touching the CLI.
-
 ## Output
 
 ```text
 Running 33 namespace(s) across 4 parallel worker(s)...
- 33/33 [============================] 100%   1 s — phel-test.are
+ 33/33 [============================] 100%   1 s  phel-test.are
 
 Passed:  55
 Failed:  0
@@ -49,27 +37,19 @@ Total:   55
 Ran 33 namespace(s) across 4 worker(s) in 1.49s.
 ```
 
-- A live `Symfony\ProgressBar` shows progress while workers run.
-- Passing namespaces just bump the bar.
-- Failing or erroring namespaces print their full captured block under
-  a `--- ns ---` header, so failure context is preserved.
-- A single aggregate `Passed / Failed / Error / [Skipped] / Total`
-  block is printed at the end, computed from per-worker counts.
+A live `Symfony\ProgressBar` advances as namespaces finish; passing namespaces just bump the bar. Failing/erroring namespaces print their full captured block under a `--- ns ---` header. A single aggregate `Passed / Failed / Error / [Skipped] / Total` block prints at the end, computed from per-worker counts.
 
-Output is **deterministic in input order**: workers complete in
-arbitrary order, but the parent buffers results per slot and only
-flushes a slot when every preceding namespace has finished. The same
-input always produces the same on-screen sequence.
+Output is **deterministic in input order**: workers complete in arbitrary order, but the parent buffers results per slot and flushes a slot only once every preceding namespace has finished. Same input, same on-screen sequence.
 
 ## Auto-disable rules
 
-`--parallel` is silently downgraded to serial when:
+`--parallel` silently downgrades to serial when:
 
-- `--reporter=tap` is selected — TAP needs a monotonic test counter.
-- `--list` is selected — discovery only, nothing to fan out.
-- A profiler hook is installed — counts only accrue in the parent.
+- `--reporter=tap`: TAP needs a monotonic test counter.
+- `--list`: discovery only, nothing to fan out.
+- A profiler hook is installed: counts only accrue in the parent.
 
-Run with `-v` to see why parallelism was skipped:
+Run with `-v` to see why:
 
 ```
 Ignoring --parallel: TAP reporter requires a monotonic test counter.
@@ -77,42 +57,31 @@ Ignoring --parallel: TAP reporter requires a monotonic test counter.
 
 ## CPU detection
 
-`--parallel=auto` and `--parallel=max` share a small fallback chain:
+`auto` and `max` share a fallback chain:
 
-1. `PHEL_TEST_WORKERS` env var (if set to a positive integer)
+1. `PHEL_TEST_WORKERS` (if a positive integer)
 2. `nproc` on PATH
 3. `sysctl -n hw.ncpu` (macOS/BSD)
 4. `/proc/cpuinfo` line count (Linux without `nproc`)
-5. Hardcoded fallback of `4`
+5. Hardcoded `4`
 
-`auto` clamps the result to a cap of 8 so a default run stays kind
-to laptops and shared CI runners. `max` skips the cap.
+`auto` clamps to a cap of 8 to stay kind to laptops and shared CI runners; `max` skips the cap.
 
-## Architecture (one-paragraph cheat sheet)
+## Architecture
 
-The parent process runs `phel test` as usual, but instead of
-generating one big Phel expression for every namespace, it spawns N
-subprocesses (`phel _test-worker`, hidden), each holding open over
-stdin / stdout. The parent sends one work frame per namespace
-(length-prefixed JSON: `{index, ns, file, options}`); each worker
-loads the namespace, runs `(phel.test/run-tests ...)` in a captured
-output buffer, and writes back a result frame (`{index, ns, ok,
-output, failed-tests, counts, error}`). The parent keeps results
-indexed by their input position and flushes them to the terminal in
-order; the live progress bar advances whenever a slot resolves.
+The parent runs `phel test` as usual but, instead of one big Phel expression per namespace, spawns N hidden `phel _test-worker` subprocesses held open over stdin/stdout. It sends one length-prefixed JSON work frame per namespace (`{index, ns, file, options}`); each worker loads the namespace, runs `(phel.test/run-tests ...)` in a captured buffer, and writes back a result frame (`{index, ns, ok, output, failed-tests, counts, error}`). The parent keeps results indexed by input position and flushes them in order; the progress bar advances as slots resolve.
 
-No `pcntl_fork`, no shared memory, no threads — just `proc_open`
-and `stream_select`. Works on Linux and macOS. Windows is untested.
+No `pcntl_fork`, no shared memory, no threads; just `proc_open` and `stream_select`. Works on Linux and macOS. Windows untested.
 
 ## Caveats
 
-- **Each worker pays one-time bootstrap cost** to `(phel.test/run-tests ...)` so very small suites may run slower in parallel mode than serial.
-- **Stateful per-namespace fixtures** (DB seeding, port binding, shared file) need to be made worker-safe or you have to keep `--parallel=1` for that suite.
+- **One-time bootstrap cost per worker**, so very small suites may run slower than serial.
+- **Stateful per-namespace fixtures** (DB seeding, port binding, shared file) must be worker-safe, else keep `--parallel=1` for that suite.
 - **TAP / profiler combos auto-disable**; junit-xml works fine.
-- **Cross-worker `--fail-fast` not yet wired** — fail-fast within a worker still works, but the parent does not cancel sibling workers on first failure.
+- **Cross-worker `--fail-fast` not yet wired**: fail-fast within a worker works, but the parent does not cancel siblings on first failure.
 
 ## See also
 
-- `phel test --help` — full flag reference
+- `phel test --help`: full flag reference
 - [Quickstart: Tests](quickstart.md#tests)
-- `src/php/Run/CLAUDE.md` — module-level architecture notes
+- `src/php/Run/CLAUDE.md`: module architecture notes

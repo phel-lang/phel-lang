@@ -5,7 +5,7 @@ Phel ships two eval-free interchange modules for talking to other Clojure-aligne
 - [`phel.edn`](#phel-edn): [Extensible Data Notation](https://github.com/edn-format/edn), the Clojure-native subset of reader syntax.
 - [`phel.transit`](#phel-transit): [Transit](https://github.com/cognitect/transit-format) layered on top of JSON.
 
-Neither module goes through `eval`, so they are safe to point at untrusted input.
+Neither goes through `eval`, so both are safe to point at untrusted input.
 
 ## `phel.edn`
 
@@ -14,7 +14,7 @@ Neither module goes through `eval`, so they are safe to point at untrusted input
 | Function | Purpose |
 |---|---|
 | `(read-string s)` / `(read-string s opts)` | Read the first EDN form from `s`. |
-| `(read-string-all s)` / `(read-string-all s opts)` | Read every form, returns a vector. |
+| `(read-string-all s)` / `(read-string-all s opts)` | Read every form; returns a vector. |
 | `(write-string v)` | Serialise `v` to EDN. |
 | `(write-string-all xs)` | Serialise a sequence; values joined by a single space. |
 
@@ -22,12 +22,14 @@ Neither module goes through `eval`, so they are safe to point at untrusted input
 
 | Key | Value | Behaviour |
 |---|---|---|
-| `:readers` | `{tag fn}` | Per-call tag handlers. Tags may be symbols, keywords, or strings. The handler receives the already-parsed form. The global `TagRegistry` is snapshotted before the call and restored in a `finally`. |
-| `:eof` | any | Returned by `read-string` when input is empty / whitespace-only / comment-only (default `nil`). |
+| `:readers` | `{tag fn}` | Per-call tag handlers. Tags may be symbols, keywords, or strings; the handler receives the already-parsed form. The global `TagRegistry` is snapshotted before the call and restored in a `finally`. |
+| `:eof` | any | Returned by `read-string` when input is empty, whitespace-only, or comment-only (default `nil`). |
 
 ### Type mapping
 
-`phel.edn` delegates reading to Phel's own reader and writing to `Printer::readable()`, so every value Phel can print readably round-trips. That includes nil, booleans, integers, floats, strings, characters, keywords, symbols, lists, vectors, maps, sets, the `#_` discard form, `;` comments, and built-in tagged literals (`#uuid`, `#inst`, `#regex`).
+`phel.edn` delegates reading to Phel's own reader and writing to `Printer::readable()`, so every value Phel can print readably round-trips: nil, booleans, integers, floats, strings, characters, keywords, symbols, lists, vectors, maps, sets, the `#_` discard form, `;` comments, and built-in tagged literals (`#uuid`, `#inst`, `#regex`).
+
+The lexer accepts EDN's full tag grammar, so namespaced tags (`#my.app/Person`, `#myapp/double`, `#my.app.module`) lex as a single tag. Unqualified tags (`#uuid`, `#inst`) work unchanged.
 
 ### Examples
 
@@ -54,10 +56,6 @@ Neither module goes through `eval`, so they are safe to point at untrusted input
 ;; => :no-data
 ```
 
-### Namespaced tags
-
-The lexer accepts EDN's full tag grammar, so `#my.app/Person`, `#myapp/double`, and `#my.app.module` lex as a single tag. Unqualified tags (`#uuid`, `#inst`) continue to work unchanged.
-
 ## `phel.transit`
 
 ### Public API
@@ -67,7 +65,7 @@ The lexer accepts EDN's full tag grammar, so `#my.app/Person`, `#myapp/double`, 
 | `(read-string s)` / `(read-string s opts)` | Decode one Transit+JSON-Verbose value. |
 | `(write-string v)` | Encode `v` to a Transit+JSON-Verbose string. |
 
-This first iteration implements **JSON-Verbose** only: maps with string keys serialise to ordinary JSON objects (no key caching), composite-key maps to `~#cmap`.
+This first iteration implements **JSON-Verbose** only: maps with string keys serialise to ordinary JSON objects (no key caching); any other map serialises as a `~#cmap`.
 
 ### Options map
 
@@ -102,9 +100,15 @@ Plain Phel strings whose first character is `~`, `^`, or `` ` `` are escaped on 
 (ns my-app.api
   (:require phel.transit :as transit))
 
-(transit/write-string {:users [{:name "Alice" :tags #{:admin}}]})
-;; => "{\"~:users\":[{\"~:name\":\"Alice\",\"~:tags\":[\"~#set\",[\"~:admin\"]]}]}"
+;; String-keyed map -> plain JSON object
+(transit/write-string {"name" "Alice"})
+;; => "{\"name\":\"Alice\"}"
 
+;; Keyword keys are composite keys, so the map becomes a ~#cmap
+(transit/write-string {:status :ok :count 42})
+;; => "[\"~#cmap\",[\"~:status\",\"~:ok\",\"~:count\",42]]"
+
+;; Reading a string-keyed object yields keyword keys back
 (transit/read-string "{\"~:status\":\"~:ok\",\"~:count\":42}")
 ;; => {:status :ok :count 42}
 
@@ -119,7 +123,7 @@ Plain Phel strings whose first character is `~`, `^`, or `` ` `` are escaped on 
 ;; => [:unknown "myapp/Foo" [1 2]]
 ```
 
-### What is intentionally out of scope (for now)
+### Intentionally out of scope (for now)
 
 - **Cached keys** (the non-verbose Transit+JSON encoding with `^` cache markers).
 - **Transit+MessagePack**.

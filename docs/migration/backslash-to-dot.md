@@ -1,4 +1,4 @@
-# Migration: backslash namespace separator to dot
+# Migration: Backslash Namespace Separator to Dot
 
 Phel historically used the PHP-style backslash (`\`) as the namespace separator in every position: `ns` forms, `:require`/`:use` clauses, fully-qualified call sites, and class FQNs. The dot (`.`) is the target form going forward. The backslash form is **deprecated** and will be removed in a future release.
 
