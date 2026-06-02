@@ -5,21 +5,21 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Compiler\Parser\ExpressionParser;
 
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironment;
-use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Parser\Exceptions\KeywordParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\ZeroDenominatorRatioParserException;
 use Phel\Compiler\Domain\Parser\ExpressionParser\AtomParser;
-use Phel\Compiler\Domain\Parser\ParserNode\BooleanNode;
-use Phel\Compiler\Domain\Parser\ParserNode\KeywordNode;
-use Phel\Compiler\Domain\Parser\ParserNode\NilNode;
-use Phel\Compiler\Domain\Parser\ParserNode\NumberNode;
-use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
 use Phel\Lang\BigDecimal;
 use Phel\Lang\BigInt;
 use Phel\Lang\Keyword;
 use Phel\Lang\Ratio;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Shared\Parser\Node\BooleanNode;
+use Phel\Shared\Parser\Node\KeywordNode;
+use Phel\Shared\Parser\Node\NilNode;
+use Phel\Shared\Parser\Node\NumberNode;
+use Phel\Shared\Parser\Node\SymbolNode;
+use Phel\Shared\Parser\Node\Token;
 use PHPUnit\Framework\TestCase;
 
 use function strlen;

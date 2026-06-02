@@ -6,8 +6,8 @@ namespace PhelTest\Benchmark\JIT;
 
 use Phel;
 use Phel\Build\BuildFacade;
-use Phel\Compiler\Domain\Analyzer\Resolver\LoadClasspath;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
+use Phel\Lang\LoadClasspath;
 use Phel\Lang\Registry;
 use Phel\Lang\Symbol;
 use PhpBench\Benchmark\Metadata\Annotations\BeforeMethods;

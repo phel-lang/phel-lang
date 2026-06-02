@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Reader\ExpressionReader;
 
-use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
 use Phel\Lang\Symbol;
+use Phel\Shared\Parser\Node\SymbolNode;
 
 final class SymbolReader
 {

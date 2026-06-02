@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Domain\Rules;
 
-use Phel\Compiler\Domain\Lexer\Token;
-use Phel\Compiler\Domain\Parser\ParserNode\InnerNodeInterface;
-use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
-use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
-use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Formatter\Domain\Rules\Pair\PairAligner;
+use Phel\Shared\Parser\Node\InnerNodeInterface;
+use Phel\Shared\Parser\Node\ListNode;
+use Phel\Shared\Parser\Node\NodeInterface;
+use Phel\Shared\Parser\Node\SymbolNode;
+use Phel\Shared\Parser\Node\Token;
+use Phel\Shared\Parser\Node\TriviaNodeInterface;
 
 use function in_array;
 

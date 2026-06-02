@@ -1,6 +1,6 @@
 (ns phel.edn
   (:use Phel.Compiler.CompilerFacade)
-  (:use Phel.Compiler.Domain.Parser.ParserNode.TriviaNodeInterface)
+  (:use Phel.Shared.Parser.Node.TriviaNodeInterface)
   (:use Phel.Lang.TagRegistry)
   (:use Phel.Shared.Printer.Printer))
 

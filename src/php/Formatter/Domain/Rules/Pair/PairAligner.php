@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Domain\Rules\Pair;
 
-use Phel\Compiler\Domain\Parser\ParserNode\CommentNode;
-use Phel\Compiler\Domain\Parser\ParserNode\NewlineNode;
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
-use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
-use Phel\Compiler\Domain\Parser\ParserNode\WhitespaceNode;
 use Phel\Lang\SourceLocation;
+use Phel\Shared\Parser\Node\CommentNode;
+use Phel\Shared\Parser\Node\NewlineNode;
+use Phel\Shared\Parser\Node\NodeInterface;
+use Phel\Shared\Parser\Node\TriviaNodeInterface;
+use Phel\Shared\Parser\Node\WhitespaceNode;
 
 use function array_slice;
 use function count;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Run\Application;
 
 use Phel;
-use Phel\Compiler\Domain\Analyzer\Resolver\LoadClasspath;
+use Phel\Lang\LoadClasspath;
 use Phel\Shared\CompilerConstants;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;

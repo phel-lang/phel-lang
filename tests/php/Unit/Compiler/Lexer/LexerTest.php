@@ -6,9 +6,9 @@ namespace PhelTest\Unit\Compiler\Lexer;
 
 use Phel\Compiler\CompilerFactory;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
-use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Shared\Parser\Node\Token;
 use PHPUnit\Framework\TestCase;
 
 final class LexerTest extends TestCase

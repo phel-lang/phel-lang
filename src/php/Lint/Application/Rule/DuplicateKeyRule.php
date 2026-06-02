@@ -5,20 +5,20 @@ declare(strict_types=1);
 namespace Phel\Lint\Application\Rule;
 
 use Phel\Api\Transfer\Diagnostic;
-use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Parser\Exceptions\AbstractParserException;
-use Phel\Compiler\Domain\Parser\ParserNode\InnerNodeInterface;
-use Phel\Compiler\Domain\Parser\ParserNode\KeywordNode;
-use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
-use Phel\Compiler\Domain\Parser\ParserNode\NumberNode;
-use Phel\Compiler\Domain\Parser\ParserNode\StringNode;
-use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
-use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Lint\Application\Config\RuleRegistry;
 use Phel\Lint\Domain\FileAnalysis;
 use Phel\Lint\Domain\LintRuleInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\Parser\Node\InnerNodeInterface;
+use Phel\Shared\Parser\Node\KeywordNode;
+use Phel\Shared\Parser\Node\ListNode;
+use Phel\Shared\Parser\Node\NodeInterface;
+use Phel\Shared\Parser\Node\NumberNode;
+use Phel\Shared\Parser\Node\StringNode;
+use Phel\Shared\Parser\Node\SymbolNode;
+use Phel\Shared\Parser\Node\Token;
+use Phel\Shared\Parser\Node\TriviaNodeInterface;
 
 use Throwable;
 

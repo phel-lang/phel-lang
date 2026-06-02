@@ -44,7 +44,8 @@ Located in `Exceptions/`:
 
 ## Parser Model
 
-`Parser/ReadModel/CodeSnippet`: `SourceLocation` (start/end) and source string; pure data, no dependencies.
+- `Parser/ReadModel/CodeSnippet`: `SourceLocation` (start/end) and source string; pure data, no dependencies.
+- `Parser/Node/*`: the parse-tree value objects (`FileNode`, `ListNode`, `SymbolNode`, `MetaNode`, trivia nodes, etc.) plus the lexer `Token`. Pure data consumed as a de-facto AST contract by Formatter, Lint, and Api; Compiler still produces them. Living here removes the `CompilerFacadeInterface -> Compiler\Domain` parse-tree references.
 
 ## Printer
 

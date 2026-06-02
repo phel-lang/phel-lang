@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Application;
 
-use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Lexer\TokenStream;
+use Phel\Shared\Parser\Node\Token;
 
 final readonly class ParenthesesChecker
 {

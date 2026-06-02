@@ -6,17 +6,17 @@ namespace Phel\Compiler\Domain\Reader\ExpressionReader;
 
 use Phel;
 use Phel\Compiler\Application\Reader;
-use Phel\Compiler\Domain\Lexer\Token;
-use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
-use Phel\Compiler\Domain\Parser\ParserNode\TaggedLiteralNode;
-use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TagHandlerException;
 use Phel\Lang\TagHandlers\BuiltinTagHandlers;
 use Phel\Lang\TagRegistry;
+use Phel\Shared\Parser\Node\ListNode;
+use Phel\Shared\Parser\Node\NodeInterface;
+use Phel\Shared\Parser\Node\TaggedLiteralNode;
+use Phel\Shared\Parser\Node\Token;
+use Phel\Shared\Parser\Node\TriviaNodeInterface;
 use Throwable;
 
 use function implode;

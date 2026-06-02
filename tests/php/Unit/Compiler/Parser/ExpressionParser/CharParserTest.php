@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Compiler\Parser\ExpressionParser;
 
-use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Parser\ExpressionParser\CharParser;
-use Phel\Compiler\Domain\Parser\ParserNode\StringNode;
 use Phel\Lang\SourceLocation;
+use Phel\Shared\Parser\Node\StringNode;
+use Phel\Shared\Parser\Node\Token;
 use PHPUnit\Framework\TestCase;
 
 use function strlen;

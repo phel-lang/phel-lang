@@ -6,7 +6,7 @@ namespace Phel\Compiler\Domain\Parser\ExpressionParser;
 
 use Phel\Compiler\Application\Parser;
 use Phel\Compiler\Domain\Lexer\TokenStream;
-use Phel\Compiler\Domain\Parser\ParserNode\QuoteNode;
+use Phel\Shared\Parser\Node\QuoteNode;
 
 final readonly class QuoteParser
 {

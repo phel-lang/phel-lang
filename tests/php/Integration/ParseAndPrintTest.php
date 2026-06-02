@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace PhelTest\Integration;
 
 use Phel\Compiler\CompilerFactory;
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Parser\Node\NodeInterface;
 use PHPUnit\Framework\TestCase;
 
 final class ParseAndPrintTest extends TestCase

@@ -7,8 +7,8 @@ namespace Phel\Compiler\Domain\Parser;
 use Phel\Compiler\Domain\Lexer\TokenStream;
 use Phel\Compiler\Domain\Parser\Exceptions\UnexpectedParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
-use Phel\Compiler\Domain\Parser\ParserNode\FileNode;
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
+use Phel\Shared\Parser\Node\FileNode;
+use Phel\Shared\Parser\Node\NodeInterface;
 
 interface ParserInterface
 {

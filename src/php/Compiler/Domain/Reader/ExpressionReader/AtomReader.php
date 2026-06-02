@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Reader\ExpressionReader;
 
-use Phel\Compiler\Domain\Parser\ParserNode\AbstractAtomNode;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\Parser\Node\AbstractAtomNode;
 
 final class AtomReader
 {

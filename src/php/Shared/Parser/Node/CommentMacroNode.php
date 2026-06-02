@@ -1,0 +1,30 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Phel\Shared\Parser\Node;
+
+use Phel\Lang\SourceLocation;
+
+final readonly class CommentMacroNode implements TriviaNodeInterface
+{
+    public function __construct(
+        private NodeInterface $node,
+        private SourceLocation $startLocation,
+    ) {}
+
+    public function getCode(): string
+    {
+        return '#_' . $this->node->getCode();
+    }
+
+    public function getStartLocation(): SourceLocation
+    {
+        return $this->startLocation;
+    }
+
+    public function getEndLocation(): SourceLocation
+    {
+        return $this->node->getEndLocation();
+    }
+}

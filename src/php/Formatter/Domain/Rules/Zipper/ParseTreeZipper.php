@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Phel\Formatter\Domain\Rules\Zipper;
 
 use Override;
-use Phel\Compiler\Domain\Parser\ParserNode\CommentNode;
-use Phel\Compiler\Domain\Parser\ParserNode\InnerNodeInterface;
-use Phel\Compiler\Domain\Parser\ParserNode\NewlineNode;
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
-use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
-use Phel\Compiler\Domain\Parser\ParserNode\WhitespaceNode;
+use Phel\Shared\Parser\Node\CommentNode;
+use Phel\Shared\Parser\Node\InnerNodeInterface;
+use Phel\Shared\Parser\Node\NewlineNode;
+use Phel\Shared\Parser\Node\NodeInterface;
+use Phel\Shared\Parser\Node\TriviaNodeInterface;
+use Phel\Shared\Parser\Node\WhitespaceNode;
 
 /**
  * @extends AbstractZipper<NodeInterface>

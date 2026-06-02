@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace Phel\Compiler\Domain\Reader\ExpressionReader;
 
 use Phel\Compiler\Application\Reader;
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
-use Phel\Compiler\Domain\Parser\ParserNode\QuoteNode;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Domain\Reader\Exceptions\SpliceNotInListException;
 use Phel\Compiler\Domain\Reader\QuasiquoteTransformerInterface;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\Parser\Node\NodeInterface;
+use Phel\Shared\Parser\Node\QuoteNode;
 
 final readonly class QuoasiquoteReader
 {
