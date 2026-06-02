@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file.
 - Compiler internals: split the 959-LOC `CallEmitter` god-class into eight per-family `Specialized/*CallEmitter` collaborators behind a thin dispatcher (pure refactor, emitted PHP unchanged)
 - Build internals: split the 510-LOC `CompiledCodeCache` god-class into `CacheDirectory`, `CacheIndexFile`, and `NamespaceEnvironmentStore` collaborators, leaving the cache as a thin policy orchestrator and de-duplicating the index entry-normalization (pure refactor, cache behavior unchanged)
 - Lang internals: split the 747-LOC `BigInt` god-class by extracting the sign-agnostic base-10^9 digit-array kernels into a stateless `BigIntMagnitude`, leaving `BigInt` as the signed value object (pure refactor, arithmetic unchanged; guarded by new algebraic-invariant property tests)
+- Lang internals: split the 637-LOC `NumericOperations` god-class by extracting numeric type lifting into `NumericCoercion` and native-int overflow detection into `IntegerOverflow`, leaving the dispatch table to own only the contagion ladders (pure refactor, arithmetic unchanged; new units covered by direct unit tests)
 - Compiler internals: centralized the emitters' bare-expression capture into `OutputEmitter::captureNodeAsExpression()`
 - Tests: `RegistryTest` and `PhelVarTest` snapshot and restore the global `Registry`, fixing order-dependent `phel.core` suite failures (#2256)
 - Docs: condensed every `docs/` guide (~17% smaller), verified against the runtime, and cross-linked to phel-lang.org

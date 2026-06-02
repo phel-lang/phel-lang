@@ -38,7 +38,9 @@ Foundational leaf module with no Facade, Factory, or DependencyProvider. All typ
 - **LazySeq**: lazy sequence implementation with chunking
 
 **Utilities**
-- **NumericOperations**: static dispatch for `+`/`-`/`*`/`/`, comparisons, predicates across PHP numbers, `BigInt`, `Ratio`
+- **NumericOperations**: static dispatch for `+`/`-`/`*`/`/`, comparisons, predicates across PHP numbers, `BigInt`, `Ratio`, `BigDecimal`. Owns only the contagion ladders; delegates type lifting to **NumericCoercion** and native-int overflow detection to **IntegerOverflow**
+- **NumericCoercion**: stateless numeric type lifting/validation (`ensureNumeric`, `toFloat`/`toBigInt`/`toBigDecimal`, `rationalOperand`, `collapseBigInt`, `toIntExponent`, `truncateToInt`) shared by `NumericOperations`
+- **IntegerOverflow**: pure native-int overflow predicates (`onAdd`/`onSubtract`/`onMultiply`); tells `NumericOperations` when to promote an int op to `BigInt`
 - **DynamicScope**: dynamic variable binding context
 - **Truthy**: coercion to boolean
 - **TypeStringifier**: `__toString` rendering
