@@ -1,5 +1,6 @@
 (ns phel-test.http
   (:require phel.http :as h)
+  (:require phel.json :as json)
   (:require phel.test :refer [deftest is]))
 
 ;; Tests adopted from nyholm/psr7-server
@@ -339,6 +340,21 @@
   (is (=
        (h/response 200 {} "test" "1.1" "OK")
        (h/response-from-string "test")) "response-from-string"))
+
+(deftest test-json-response
+  (let [res (h/json-response 200 {:message "pong"})]
+    (is (= 200 (:status res)) "json-response status")
+    (is (= "OK" (:reason res)) "json-response fills the reason phrase")
+    (is (= "application/json" (get-in res [:headers :content-type])) "json-response content-type")
+    (is (= {:message "pong"} (json/decode (:body res))) "json-response encodes the body"))
+  (is (= 400 (:status (h/json-response 400 {:error "nope"}))) "json-response arbitrary status"))
+
+(deftest test-html-response
+  (let [res (h/html-response 200 "<h1>Hi</h1>")]
+    (is (= 200 (:status res)) "html-response status")
+    (is (= "text/html; charset=utf-8" (get-in res [:headers :content-type])) "html-response content-type")
+    (is (= "<h1>Hi</h1>" (:body res)) "html-response passes the body through"))
+  (is (= 404 (:status (h/html-response 404 "nope"))) "html-response arbitrary status"))
 
 (def send-response-examples [["send body"
                               (h/response 200 {:content-type "text/plain"} "Content!" nil nil)

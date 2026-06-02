@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 
 - `phel.http`: `request-from-globals` decodes `application/json` request bodies into `:parsed-body` (nil for an empty or malformed body); `request-from-globals-args` gains an optional trailing `raw-body` arg
+- `phel.http`: `json-response` and `html-response` builders set the content-type header and (for JSON) encode the body, so apps stop hand-rolling the header map (#2271). The `http-json-api` example now uses them instead of a private copy
 - Compiler internals: regression test pinning that AST source locations survive every phase
 
 ### Changed
