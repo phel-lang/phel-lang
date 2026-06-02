@@ -7,11 +7,8 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - Lexer: error/source-map columns are now counted in code points instead of bytes, so locations are accurate for source containing multibyte (UTF-8) characters (ASCII-only code is unaffected)
-- Printer: struct values now render with the `.` namespace separator (`(my.ns.point 1 2)`) instead of the deprecated `\` (`(my\ns\point 1 2)`), matching the rest of the printer and the `\`-to-`.` direction (#2255)
-- Docs: corrected the `:example` metadata for `bigint`, `biginteger`, `+'`, `-'`, `*'`, `inc'`, and `dec'` in `phel.core` (showed a phantom `N` suffix, e.g. `(bigint 42) ; => 42N`); `BigInt` values print without a suffix, so the examples now read `=> 42`. This also fixes the auto-generated API reference on phel-lang.org and `phel doc` output
-- Docs: corrected stale `:example` outputs that no longer match the runtime: `resolve`, `require`, and `symbol-info` showed the deprecated `\` namespace separator in their results (now `phel.core` / `phel.string`), and `realized?` claimed `(take 5 (iterate inc 1))` was unrealized when that result is eager (now uses an actually-lazy `(lazy-seq (cons 1 nil))`)
-- Docs: aligned 92 `phel.core` `:example` outputs with the actual printer rendering so `phel doc` and the phel-lang.org API reference show what the REPL really prints: sequence results as `@[...]`, maps with comma separators (`{:a 1, :b 2}`), whole-number floats without a trailing `.0` (`(float 1) ; => 1`), and PHP arrays as `<PHP-Array [...]>`
-- Docs: aligned non-core module `:example` outputs with the actual printer rendering: `phel.ai/magnitude` and `phel.ai/cosine-similarity` (`5.0`/`0.0` → `5`/`0`), `phel.edn/read-string` (comma in map), `phel.test.rose/rose-children` and `rose-shrinks` (`()` → `@[]`), and corrected `phel.test.rose/shrink-int-towards`, whose example claimed `(0 5 7 8 9)` but actually returns `[0 5 8 9]`
+- Printer: struct values now print with the `.` namespace separator (`(my.ns.point 1 2)`) instead of `\` (#2255)
+- Docs: function `:example` outputs now match what the REPL actually prints, so `phel doc` and the phel-lang.org API reference are accurate. Fixed `bigint`'s phantom `N` suffix, the deprecated `\` separator in `resolve`/`require`/`symbol-info`, whole-number floats showing `.0`, sequence/map/PHP-array formatting, and a wrong `shrink-int-towards` result
 
 ### Added
 
@@ -21,8 +18,8 @@ All notable changes to this project will be documented in this file.
 
 - Compiler internals: split the `CallSpecialization` call-site lowering god-class (1325 → ~330 LOC) into eight focused, independently tested collaborators — `NilAndBooleanCheckSpecialization`, `AtomMethodSpecialization`, `TagNormalizer` (shared tag helpers), `TypedCollectionMethodSpecialization`, `AssocConjSpecialization`, `TypePredicateSpecialization`, `TypedValueSpecialization`, and `NumericOperationSpecialization`; `CallSpecialization` now only aggregates them via `isSpecialized()` / `isBoolReturningSpecialisation()`. Pure refactor — generated PHP is unchanged.
 - Compiler internals: centralized the bare-expression capture used by the `If` / `Let` / `Call` emitters into `OutputEmitter::captureNodeAsExpression()`, and documented `AbstractNode::getStartSourceLocation()`'s nullable contract
-- Tests: `RegistryTest` and `PhelVarTest` now snapshot and restore the global `Registry` around each test instead of clearing it (and clearing again in `tearDownAfterClass`). Leaving the singleton wiped leaked into later integration tests that recompile `phel.core` under a cold cache, producing intermittent `Cannot resolve symbol 'phel.core/apply'` / `Cannot locate core/meta` failures depending on test order (#2256)
-- Docs: condensed every guide under `docs/` (~17% smaller) and re-verified each against the live runtime; fixed broken examples (`transducers` custom-transducer form that emitted invalid PHP and a private `xf-step` call), corrected wrong claims (`bigint` prints without an `N` suffix, schema closed-map `:maybe` validation, `match` guard ordering with coercing predicates, transit `cmap` keyword-key encoding), and added the missing `numeric-tower` and `project-layout` entries to the docs index
+- Tests: `RegistryTest` and `PhelVarTest` now snapshot and restore the global `Registry` instead of leaving it wiped, fixing intermittent order-dependent `phel.core` failures in the suite (#2256)
+- Docs: condensed every guide under `docs/` (~17% smaller), verified each against the runtime, fixed broken examples, and cross-linked them to the full docs on phel-lang.org
 
 ## [0.41.0](https://github.com/phel-lang/phel-lang/compare/v0.40.0...v0.41.0) - 2026-06-01
 
