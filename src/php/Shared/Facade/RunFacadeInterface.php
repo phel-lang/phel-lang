@@ -27,7 +27,8 @@ interface RunFacadeInterface
      * Unlike eval(), this never throws — errors are captured in EvalResult.
      *
      * The returned {@see EvalResult} carries the failure details as an
-     * {@see EvalError}; both are sanctioned parts of this contract's value graph.
+     * {@see \Phel\Run\Domain\Repl\EvalError}; both are sanctioned parts of this
+     * contract's value graph.
      */
     public function structuredEval(string $phelCode, CompileOptions $compileOptions): EvalResult;
 
