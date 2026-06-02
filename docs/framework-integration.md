@@ -243,3 +243,7 @@ echo $greet('World') . "\n";
 
 - [PHP/Phel Interop](php-interop.md)
 - [Quickstart](quickstart.md)
+
+---
+
+📖 **Full guide:** [Build a Web App on phel-lang.org](https://phel-lang.org/documentation/guides/build-a-web-app/)

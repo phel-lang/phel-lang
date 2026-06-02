@@ -307,3 +307,7 @@ Not in Clojure core.
 Signatures and behavior are identical; just replace the name.
 
 See `docs/examples/05_data-structures.phel` for runnable code.
+
+---
+
+📖 **Full guide:** [Data Structures on phel-lang.org](https://phel-lang.org/documentation/language/data-structures/)

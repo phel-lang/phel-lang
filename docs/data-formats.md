@@ -137,3 +137,7 @@ Plain Phel strings whose first character is `~`, `^`, or `` ` `` are escaped on 
 | Talking to Clojure/Java/JS over HTTP, MessagePack-ready wire format | Transit |
 | Human-edited input with comments and `#_` discards | EDN |
 | Round-tripping JSON-shaped data with rich types | Transit |
+
+---
+
+📖 **Full guide:** [edn / transit / json API on phel-lang.org](https://phel-lang.org/documentation/reference/api/edn/)

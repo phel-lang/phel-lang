@@ -164,3 +164,7 @@ All failures throw `\RuntimeException`. Messages include HTTP status and provide
 
 - Source: `src/phel/ai.phel`
 - Tests: `tests/phel/ai.phel`
+
+---
+
+📖 **Full guide:** [ai API on phel-lang.org](https://phel-lang.org/documentation/reference/api/ai/)

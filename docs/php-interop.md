@@ -321,3 +321,7 @@ $response->send();
 - [Examples](examples/README.md)
 - [Reader Shortcuts](reader-shortcuts.md)
 - [Common Patterns](patterns.md)
+
+---
+
+📖 **Full guide:** [PHP Interop on phel-lang.org](https://phel-lang.org/documentation/php-interop/)

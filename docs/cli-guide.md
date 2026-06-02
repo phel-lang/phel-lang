@@ -252,3 +252,7 @@ Only needed under `phel run`. A standalone binary built with `phel build` reads 
 ## See also
 
 - [symfony/console docs](https://symfony.com/doc/current/components/console.html): underlying API
+
+---
+
+📖 **Full guide:** [cli API on phel-lang.org](https://phel-lang.org/documentation/reference/api/cli/)

@@ -57,3 +57,7 @@
 
 - `phel.schema`: shapes reusable across validation and matching
 - `cond`, `case`, `condp`: simpler dispatch without destructuring
+
+---
+
+📖 **Full guide:** [match API on phel-lang.org](https://phel-lang.org/documentation/reference/api/match/)

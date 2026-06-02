@@ -81,3 +81,7 @@ For long-running processes:
 ```
 
 See `tests/phel/mock.phel` for more examples.
+
+---
+
+📖 **Full guide:** [Testing on phel-lang.org](https://phel-lang.org/documentation/testing/)

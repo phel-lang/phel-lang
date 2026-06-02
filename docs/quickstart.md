@@ -227,3 +227,7 @@ Clojure devs: PHP interop uses `php/` prefix or shortcuts (`.method`, `.-field`,
 - [REPL & nREPL](nrepl-guide.md): editor integration
 - [Project Layout](project-layout.md): directory conventions
 - Full guide index: [docs/README.md](README.md)
+
+---
+
+📖 **Full guide:** [Getting Started on phel-lang.org](https://phel-lang.org/documentation/getting-started/)
