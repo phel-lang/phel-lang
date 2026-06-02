@@ -208,14 +208,9 @@
   [headers]
   (php/strtolower (php/trim (first (php/explode ";" (get headers :content-type "") 2)))))
 
-(defn- post-global-valid [method headers]
-  (and
-   (= method "POST")
-   (php/in_array (content-type-base headers)
-                 (php/array "application/x-www-form-urlencoded" "multipart/form-data"))))
-
-(defn- json-content-type? [headers]
-  (= (content-type-base headers) "application/json"))
+(defn- form-content-type? [content-type]
+  (php/in_array content-type
+                (php/array "application/x-www-form-urlencoded" "multipart/form-data")))
 
 (defn- decode-json-body
   "Decodes a JSON request body. Returns nil for an empty or malformed body so
@@ -225,12 +220,14 @@
     (try (json/decode raw-body) (catch \Throwable _ nil))))
 
 (defn- resolve-parsed-body
-  "Resolves `:parsed-body`: form data from `$_POST`, a decoded JSON body, or nil."
+  "Resolves `:parsed-body`: form data from `$_POST`, a decoded JSON body, or nil.
+  The `:content-type` header is parsed once and matched against both cases."
   [method headers post-parameter raw-body]
-  (cond
-    (post-global-valid method headers) (php-array-to-map post-parameter)
-    (json-content-type? headers)       (decode-json-body raw-body)
-    nil))
+  (let [content-type (content-type-base headers)]
+    (cond
+      (and (= method "POST") (form-content-type? content-type)) (php-array-to-map post-parameter)
+      (= content-type "application/json")                       (decode-json-body raw-body)
+      nil)))
 
 (defn request-from-globals-args
   "Extracts a request from args. The optional `raw-body` (the raw request body
@@ -257,13 +254,23 @@
      version
      {})))
 
+(defn- json-request-body
+  "Reads the raw request body from `php://input`, but only when the request
+  declares a JSON content type. Other requests never touch the input stream."
+  [server]
+  (let [content-type (php/strtolower (str (or (get server "CONTENT_TYPE")
+                                              (get server "HTTP_CONTENT_TYPE")
+                                              "")))]
+    (when (php/str_contains content-type "application/json")
+      (php/file_get_contents "php://input"))))
+
 (defn request-from-globals
   "Extracts a request from `$_SERVER`, `$_GET`, `$_POST`, `$_COOKIE`, `$_FILES`
-  and the raw request body (`php://input`, used for JSON payloads)."
+  and, for JSON requests, the raw request body (`php://input`)."
   {:example "(request-from-globals) ; => (request \"GET\" (uri ...) {...} nil {...} {...} {...} {...} \"1.1\" {})"}
   []
   (request-from-globals-args php/$_SERVER php/$_GET php/$_POST php/$_COOKIE php/$_FILES
-                             (php/file_get_contents "php://input")))
+                             (json-request-body php/$_SERVER)))
 
 (defn request-from-map
   "Creates a request struct from a map with optional keys :method, :uri, :headers, etc."
