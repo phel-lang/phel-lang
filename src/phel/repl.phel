@@ -141,7 +141,7 @@
     (require 'phel\\string :as str)
     (require '[phel\\string :as str])
     (require '[phel\\string :as str :refer [blank?]])"
-  {:example "(require '[phel\\string :as str]) ; => phel\\string"}
+  {:example "(require '[phel\\string :as str]) ; => phel.string"}
   [sym & args]
   (let [unquoted         (unquote-sym sym)
         [ns-sym opt-seq] (if (vector? unquoted)
@@ -269,7 +269,7 @@
 
   Keys: :doc, :file, :line, :column, :end-line, :end-column, :private,
         :deprecated, :min-arity, :max-arity, :is-variadic, :ns, :name"
-  {:example "(symbol-info map) ; => {:doc \"...\" :ns \"phel\\core\" :name \"map\" ...}"
+  {:example "(symbol-info map) ; => {:doc \"...\" :ns \"phel.core\" :name \"map\" ...}"
    :see-also ["doc" "dir" "apropos"]}
   [sym]
   (let [resolved-sym (resolve sym)]

@@ -1105,7 +1105,7 @@
 
 (defn realized?
   "Returns true if a lazy sequence, delay, promise, or future has been realized, false otherwise."
-  {:example "(realized? (take 5 (iterate inc 1))) ; => false"
+  {:example "(realized? (lazy-seq (cons 1 nil))) ; => false"
    :see-also ["delay" "force" "lazy-seq" "future"]}
   [coll]
   (cond
