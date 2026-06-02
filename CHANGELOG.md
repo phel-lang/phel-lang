@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file.
 
 - Architecture: relocated the `NamespaceInformation` value object from `Build\Domain\Extractor` to `Phel\Shared`, removing the `Shared -> foreign Domain` back-reference from the Build/Run facade interfaces; sourced `CompilerFacadeInterface::lexString`'s `DEFAULT_SOURCE` default from `Shared\CompilerConstants` instead of the `Application\Lexer` concrete; sanctioned `EvalError` in `RunFacadeInterface`'s value graph (pure relocations, no behavior change) (#2261)
 - Compiler internals: split the 1325-LOC `CallSpecialization` god-class into eight focused collaborators (pure refactor, output unchanged)
+- Architecture: split three multi-responsibility classes into focused stateless collaborators (pure refactor, behavior unchanged) (#2262): `DefSymbol` delegates macro `&form`/`&env` + `^:tag` form rewriting to `MacroFormRewriter` and `:arglists` formatting to `DefArglistBuilder`; `ParamTypeInferrer` delegates PHP-/`phel.core`-call shape analysis to `CallTypeExpectationResolver`; `TestCommand` delegates option parsing/coercion + the parallelism decision to `TestCommandOptionParser`
 - Compiler internals: centralized the emitters' bare-expression capture into `OutputEmitter::captureNodeAsExpression()`
 - Tests: `RegistryTest` and `PhelVarTest` snapshot and restore the global `Registry`, fixing order-dependent `phel.core` suite failures (#2256)
 - Docs: condensed every `docs/` guide (~17% smaller), verified against the runtime, and cross-linked to phel-lang.org
