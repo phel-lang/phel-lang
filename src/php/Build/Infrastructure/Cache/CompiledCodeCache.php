@@ -7,12 +7,8 @@ namespace Phel\Build\Infrastructure\Cache;
 use ParseError;
 use Phel\Build\Domain\Cache\CompiledCodeCacheInterface;
 
-use function array_key_exists;
 use function count;
 use function function_exists;
-use function is_array;
-use function is_string;
-
 use function token_get_all;
 
 use const TOKEN_PARSE;
@@ -22,19 +18,23 @@ use const TOKEN_PARSE;
  * validation. Multiple files that share a namespace via `(in-ns ...)`
  * each get their own cache entry, so they do not clobber one another.
  *
- * Environment data (refers/aliases) is keyed by namespace because it
- * is shared across all files of the namespace.
+ * This class owns the cache policy: the live entry index, LRU eviction, and
+ * the put-time PHP-validity gate. It delegates the on-disk concerns to
+ * collaborators: {@see CacheIndexFile} serialises the entry index,
+ * {@see NamespaceEnvironmentStore} stores per-namespace env data,
+ * {@see CachePathResolver} computes paths, {@see AtomicFileWriter} writes
+ * files, and {@see CacheDirectory} owns the directory layout.
+ *
+ * @phpstan-type CacheEntry array{namespace: string, source_hash: string, compiled_path: string, last_accessed: int}
  */
 final class CompiledCodeCache implements CompiledCodeCacheInterface
 {
-    private const string VERSION = '1.2';
-
-    /** @var array<string, array{namespace: string, source_hash: string, compiled_path: string, last_accessed: int}> */
+    /** @var array<string, CacheEntry> */
     private array $entries = [];
 
     /**
      * Source paths invalidated in this process that have not been re-`put`.
-     * Used as tombstones so the disk-merge in `saveEntries()` cannot
+     * Used as tombstones so the disk-merge in `CacheIndexFile::save()` cannot
      * resurrect entries that downstream cascades meant to remove.
      *
      * @var array<string, true>
@@ -54,29 +54,32 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
 
     private bool $loaded = false;
 
-    /**
-     * In-memory memo of per-namespace environment data, keyed by
-     * env-file path. Every secondary in a `(load ...)` chain for the
-     * same namespace would otherwise re-`require` the same env file,
-     * which without opcache is a fresh parse each time.
-     *
-     * @var array<string, array<string, mixed>|null>
-     */
-    private array $envMemo = [];
+    private readonly CacheDirectory $directory;
 
     private readonly CachePathResolver $pathResolver;
 
     private readonly AtomicFileWriter $fileWriter;
 
+    private readonly CacheIndexFile $indexFile;
+
+    private readonly NamespaceEnvironmentStore $environmentStore;
+
     public function __construct(
-        private readonly string $cacheDir,
-        private readonly string $phelVersion = '',
+        string $cacheDir,
+        string $phelVersion = '',
         private readonly int $maxEntries = 500,
         ?CachePathResolver $pathResolver = null,
         ?AtomicFileWriter $fileWriter = null,
+        ?CacheDirectory $directory = null,
+        ?CacheIndexFile $indexFile = null,
+        ?NamespaceEnvironmentStore $environmentStore = null,
     ) {
-        $this->pathResolver = $pathResolver ?? new CachePathResolver($this->cacheDir);
+        $this->directory = $directory ?? new CacheDirectory($cacheDir);
+        $this->pathResolver = $pathResolver ?? new CachePathResolver($cacheDir);
         $this->fileWriter = $fileWriter ?? new AtomicFileWriter();
+        $this->indexFile = $indexFile ?? new CacheIndexFile($this->directory, $phelVersion);
+        $this->environmentStore = $environmentStore
+            ?? new NamespaceEnvironmentStore($this->directory, $this->pathResolver, $this->fileWriter);
     }
 
     /**
@@ -129,7 +132,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
     public function put(string $sourcePath, string $namespace, string $sourceHash, string $phpCode): void
     {
         $this->loadEntries();
-        $this->ensureCacheDir();
+        $this->directory->ensure();
 
         $compiledPath = $this->getCompiledPath($sourcePath, $namespace);
         $fullPhpCode = "<?php\n" . $phpCode;
@@ -138,7 +141,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
             return;
         }
 
-        if (!$this->atomicWrite($compiledPath, $fullPhpCode)) {
+        if (!$this->fileWriter->write($compiledPath, $fullPhpCode)) {
             return;
         }
 
@@ -164,7 +167,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
      */
     public function getCompiledPath(string $sourcePath, string $namespace): string
     {
-        return $this->getCachePath($namespace, $sourcePath, '.php');
+        return $this->pathResolver->compiledPath($namespace, $sourcePath, '.php');
     }
 
     /**
@@ -174,7 +177,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
      */
     public function getEnvironmentPath(string $namespace): string
     {
-        return $this->pathResolver->environmentPath($namespace);
+        return $this->environmentStore->path($namespace);
     }
 
     /**
@@ -182,13 +185,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
      */
     public function putEnvironment(string $namespace, array $envData): void
     {
-        $this->ensureCacheDir();
-
-        $envPath = $this->getEnvironmentPath($namespace);
-        $content = '<?php return ' . var_export($envData, true) . ';';
-
-        $this->atomicWrite($envPath, $content);
-        $this->envMemo[$envPath] = $envData;
+        $this->environmentStore->put($namespace, $envData);
     }
 
     /**
@@ -196,20 +193,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
      */
     public function getEnvironment(string $namespace): ?array
     {
-        $envPath = $this->getEnvironmentPath($namespace);
-
-        if (array_key_exists($envPath, $this->envMemo)) {
-            return $this->envMemo[$envPath];
-        }
-
-        if (!file_exists($envPath)) {
-            return $this->envMemo[$envPath] = null;
-        }
-
-        /** @var array<string, mixed>|null $data */
-        $data = require $envPath;
-
-        return $this->envMemo[$envPath] = $data;
+        return $this->environmentStore->get($namespace);
     }
 
     /**
@@ -241,7 +225,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
      */
     public function clear(): void
     {
-        $compiledDir = $this->cacheDir . '/compiled';
+        $compiledDir = $this->directory->compiledDir();
         if (is_dir($compiledDir)) {
             $files = glob($compiledDir . '/*.php');
             if ($files !== false) {
@@ -255,12 +239,7 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
         $this->tombstones = [];
         $this->touchedThisProcess = [];
         $this->saveEntries();
-        $this->envMemo = [];
-    }
-
-    private function getCacheVersion(): string
-    {
-        return self::VERSION . ':' . $this->phelVersion;
+        $this->environmentStore->clearMemo();
     }
 
     private function loadEntries(): void
@@ -269,190 +248,13 @@ final class CompiledCodeCache implements CompiledCodeCacheInterface
             return;
         }
 
-        $indexFile = $this->getIndexFile();
-        if (!file_exists($indexFile)) {
-            $this->entries = [];
-            $this->loaded = true;
-            return;
-        }
-
-        $data = @include $indexFile;
-        if (!is_array($data) || !isset($data['version']) || $data['version'] !== $this->getCacheVersion()) {
-            $this->entries = [];
-            $this->loaded = true;
-            return;
-        }
-
-        $entries = [];
-        foreach ($data['entries'] ?? [] as $sourcePath => $entryData) {
-            if (is_array($entryData)
-                && isset($entryData['namespace'], $entryData['source_hash'], $entryData['compiled_path'])
-                && is_string($entryData['namespace'])
-                && is_string($entryData['source_hash'])
-                && is_string($entryData['compiled_path'])
-            ) {
-                $entries[$sourcePath] = [
-                    'namespace' => $entryData['namespace'],
-                    'source_hash' => $entryData['source_hash'],
-                    'compiled_path' => $entryData['compiled_path'],
-                    'last_accessed' => $entryData['last_accessed'] ?? time(),
-                ];
-            }
-        }
-
-        $this->entries = $entries;
+        $this->entries = $this->indexFile->load();
         $this->loaded = true;
     }
 
     private function saveEntries(): void
     {
-        $this->ensureCacheDir();
-
-        $dir = $this->cacheDir;
-        if (!is_dir($dir) || !is_writable($dir)) {
-            return;
-        }
-
-        $indexFile = $this->getIndexFile();
-        $handle = @fopen($indexFile, 'c+');
-        if ($handle === false) {
-            return;
-        }
-
-        if (!flock($handle, LOCK_EX)) {
-            fclose($handle);
-            return;
-        }
-
-        try {
-            // Merge on-disk entries with in-memory entries. A (load ...) form
-            // creates a nested cache instance that writes its own sub-file
-            // entries to disk; without this merge, the outer instance would
-            // truncate those entries when it saves its own, forcing sub-files
-            // to recompile on the next run.
-            $merged = $this->mergeWithDiskEntries($handle);
-
-            ftruncate($handle, 0);
-            rewind($handle);
-            $content = '<?php return ' . var_export([
-                'version' => $this->getCacheVersion(),
-                'entries' => $merged,
-            ], true) . ';';
-            fwrite($handle, $content);
-            $this->entries = $merged;
-        } finally {
-            flock($handle, LOCK_UN);
-            fclose($handle);
-        }
-
-        if (function_exists('opcache_invalidate')) {
-            @opcache_invalidate($indexFile, true);
-        }
-    }
-
-    /**
-     * Reads the current on-disk index and merges it with in-memory entries.
-     * In-memory entries win on conflict so a fresh `put` overrides older data.
-     *
-     * @param resource $handle Open, exclusively-locked file handle for the index file
-     *
-     * @return array<string, array{namespace: string, source_hash: string, compiled_path: string, last_accessed: int}>
-     */
-    private function mergeWithDiskEntries($handle): array
-    {
-        rewind($handle);
-        $currentContent = stream_get_contents($handle);
-        if ($currentContent === false || $currentContent === '') {
-            return $this->entries;
-        }
-
-        $diskEntries = $this->parseIndexContent($currentContent);
-        foreach (array_keys($this->tombstones) as $tombstoned) {
-            unset($diskEntries[$tombstoned]);
-        }
-
-        return array_merge($diskEntries, $this->entries);
-    }
-
-    /**
-     * @return array<string, array{namespace: string, source_hash: string, compiled_path: string, last_accessed: int}>
-     */
-    private function parseIndexContent(string $content): array
-    {
-        $tempFile = @tempnam(sys_get_temp_dir(), 'phel_cache_merge_');
-        if ($tempFile === false) {
-            return [];
-        }
-
-        try {
-            if (file_put_contents($tempFile, $content) === false) {
-                return [];
-            }
-
-            /** @psalm-suppress UnresolvableInclude */
-            $data = @include $tempFile;
-        } finally {
-            @unlink($tempFile);
-        }
-
-        if (!is_array($data) || !isset($data['version']) || $data['version'] !== $this->getCacheVersion()) {
-            return [];
-        }
-
-        $entries = [];
-        foreach ($data['entries'] ?? [] as $sourcePath => $entryData) {
-            if (is_array($entryData)
-                && isset($entryData['namespace'], $entryData['source_hash'], $entryData['compiled_path'])
-                && is_string($entryData['namespace'])
-                && is_string($entryData['source_hash'])
-                && is_string($entryData['compiled_path'])
-            ) {
-                $entries[$sourcePath] = [
-                    'namespace' => $entryData['namespace'],
-                    'source_hash' => $entryData['source_hash'],
-                    'compiled_path' => $entryData['compiled_path'],
-                    'last_accessed' => $entryData['last_accessed'] ?? time(),
-                ];
-            }
-        }
-
-        return $entries;
-    }
-
-    private function getIndexFile(): string
-    {
-        return $this->cacheDir . '/compiled-index.php';
-    }
-
-    /**
-     * Compiled-file path includes both the munged namespace (so files
-     * remain debuggable) and a short hash of the source path (so files
-     * sharing a namespace do not collide).
-     */
-    private function getCachePath(string $namespace, string $sourcePath, string $suffix): string
-    {
-        return $this->pathResolver->compiledPath($namespace, $sourcePath, $suffix);
-    }
-
-    /**
-     * @return bool True on success, false on failure
-     */
-    private function atomicWrite(string $path, string $content): bool
-    {
-        return $this->fileWriter->write($path, $content);
-    }
-
-    private function ensureCacheDir(): void
-    {
-        $compiledDir = $this->cacheDir . '/compiled';
-        if (!is_dir($compiledDir)) {
-            $oldUmask = umask(0);
-            try {
-                @mkdir($compiledDir, 0755, true);
-            } finally {
-                umask($oldUmask);
-            }
-        }
+        $this->entries = $this->indexFile->save($this->entries, $this->tombstones);
     }
 
     private function isValidPhp(string $phpCode): bool
