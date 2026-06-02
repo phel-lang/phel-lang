@@ -12,15 +12,19 @@ final class RegistryTest extends TestCase
 {
     private Registry $registry;
 
-    public static function tearDownAfterClass(): void
-    {
-        Registry::getInstance()->clear();
-    }
+    /** @var array{definitions: array<string, array<string, mixed>>, definitionsMetaData: array<string, array<string, mixed>>} */
+    private array $registrySnapshot;
 
     protected function setUp(): void
     {
         $this->registry = Registry::getInstance();
+        $this->registrySnapshot = $this->registry->snapshot();
         $this->registry->clear();
+    }
+
+    protected function tearDown(): void
+    {
+        $this->registry->restore($this->registrySnapshot);
     }
 
     public function test_null_when_non_existing_definition_by_value(): void
