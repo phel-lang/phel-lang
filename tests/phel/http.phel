@@ -347,3 +347,54 @@
 (deftest test-send-response
   (foreach [[name response result] send-response-examples]
     (is (output? result (h/emit-response response)) name)))
+
+;; ---
+;; Request body parsing
+;; ---
+
+(def json-req-server
+  (php-associative-array
+   "REQUEST_METHOD" "POST"
+   "CONTENT_TYPE"   "application/json"
+   "SERVER_NAME"    "phel-lang.org"
+   "REQUEST_URI"    "/api"))
+
+(defn- req-with-body [server raw-body]
+  (h/request-from-globals-args server (php/array) (php/array) (php/array) (php/array) raw-body))
+
+(deftest test-json-body-decoded
+  (is (= {:name "Alice" :age 30}
+         (:parsed-body (req-with-body json-req-server "{\"name\":\"Alice\",\"age\":30}")))
+      "application/json body is decoded into :parsed-body"))
+
+(deftest test-json-body-charset-tolerated
+  (let [server (php/array_merge json-req-server
+                                (php-associative-array "CONTENT_TYPE" "application/json; charset=utf-8"))]
+    (is (= {:ok true} (:parsed-body (req-with-body server "{\"ok\":true}")))
+        "content-type parameters are ignored")))
+
+(deftest test-json-body-malformed-is-nil
+  (is (nil? (:parsed-body (req-with-body json-req-server "{not json")))
+      "malformed JSON yields nil :parsed-body"))
+
+(deftest test-json-body-empty-is-nil
+  (is (nil? (:parsed-body (req-with-body json-req-server "")))
+      "empty body yields nil :parsed-body"))
+
+(deftest test-json-body-zero-string-preserved
+  (is (= 0 (:parsed-body (req-with-body json-req-server "0")))
+      "body \"0\" is valid JSON and not treated as empty"))
+
+(deftest test-form-body-unchanged
+  (let [server (php/array_merge json-req-server
+                                (php-associative-array "CONTENT_TYPE" "application/x-www-form-urlencoded"))
+        req    (h/request-from-globals-args
+                server (php/array) (php-associative-array "name" "Bob") (php/array) (php/array) "name=Bob")]
+    ;; form data keeps string keys (php-array-to-map), unlike JSON's keyword keys
+    (is (= {"name" "Bob"} (:parsed-body req))
+        "form-encoded body still comes from $_POST")))
+
+(deftest test-no-body-arg-back-compat
+  (is (nil? (:parsed-body (h/request-from-globals-args
+                           json-req-server (php/array) (php/array) (php/array) (php/array))))
+      "omitting raw-body keeps the 5-arg arity working"))
