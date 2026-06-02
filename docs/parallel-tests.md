@@ -85,3 +85,7 @@ No `pcntl_fork`, no shared memory, no threads; just `proc_open` and `stream_sele
 - `phel test --help`: full flag reference
 - [Quickstart: Tests](quickstart.md#tests)
 - `src/php/Run/CLAUDE.md`: module architecture notes
+
+---
+
+📖 **Full guide:** [Testing on phel-lang.org](https://phel-lang.org/documentation/testing/)

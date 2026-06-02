@@ -437,3 +437,7 @@ When the dispatch symbol has no registered method (e.g. `(is (= 1 1))`), the `:d
 - [Quick Start](quickstart.md)
 - [Reader Shortcuts](reader-shortcuts.md)
 - [Lazy Sequences](lazy-sequences.md)
+
+---
+
+📖 **Full guide:** [Cheat Sheet on phel-lang.org](https://phel-lang.org/documentation/reference/cheat-sheet/)

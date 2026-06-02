@@ -41,3 +41,7 @@ Blocks until interrupted (Ctrl+C). Reloads changed namespaces in dependency orde
 
 - [Linter Guide](./lint-guide.md)
 - [LSP Guide](./lsp-guide.md)
+
+---
+
+📖 **Full guide:** [watch API on phel-lang.org](https://phel-lang.org/documentation/reference/api/watch/)

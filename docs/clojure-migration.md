@@ -240,3 +240,7 @@ Extend `is` with custom assertions: `(defmethod phel.test/assert-expr 'my-form [
 4. Rewrite `(:import [java.util Date])` as `(:use DateTime)` in the `ns` form
 5. Replace concurrency primitives (refs, agents, core.async) with `atom` or the AMPHP-backed `phel.core` primitives (`future`, `pmap`, `promise`, `deliver`, ...); add `(:require phel.async :refer [delay])` only for the sleep primitive
 6. Run `./bin/phel test` to verify
+
+---
+
+📖 **Full guide:** [Coming from Clojure on phel-lang.org](https://phel-lang.org/documentation/guides/coming-from-clojure/)

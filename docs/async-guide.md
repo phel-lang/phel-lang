@@ -219,3 +219,7 @@ Wall time tracks the slowest branch, not the sum.
 
 - [Example: `docs/examples/11_async-concurrency.phel`](examples/11_async-concurrency.phel)
 - [`phel.http-client`](../src/phel/http-client.phel) for AMPHP-based HTTP calls
+
+---
+
+📖 **Full guide:** [async API on phel-lang.org](https://phel-lang.org/documentation/reference/api/async/)

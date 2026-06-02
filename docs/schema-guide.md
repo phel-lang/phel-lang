@@ -71,3 +71,7 @@
 
 - `phel.match` for destructuring matched shapes
 - `phel.test.gen` for property-based testing driven by schemas
+
+---
+
+📖 **Full guide:** [schema API on phel-lang.org](https://phel-lang.org/documentation/reference/api/schema/)
