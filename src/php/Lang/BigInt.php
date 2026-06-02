@@ -10,32 +10,23 @@ use OverflowException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Stringable;
 
-use function array_pop;
 use function count;
-use function intdiv;
 use function is_int;
 use function preg_match;
 use function sprintf;
-use function str_pad;
-use function str_split;
 use function strlen;
-use function strrev;
 use function substr;
 
 /**
  * Arbitrary-precision signed integer.
  *
  * Internal representation: sign (-1, 0, or 1) plus a magnitude expressed as
- * an array of base-1_000_000_000 digits, least-significant first. Choosing
- * 10^9 keeps any single multiplication of two digits inside 64-bit signed
- * integer range with margin (10^18 < 9.22e18 = PHP_INT_MAX).
+ * an array of base-1_000_000_000 digits, least-significant first. The
+ * sign-agnostic digit arithmetic lives in {@see BigIntMagnitude}; this class
+ * owns the sign, metadata, source locations, and the signed semantics.
  */
 final readonly class BigInt implements TypeInterface, Stringable
 {
-    private const int BASE = 1_000_000_000;
-
-    private const int BASE_DIGITS = 9;
-
     /**
      * @param int                                       $sign      -1, 0, or 1; must be 0 iff magnitude is empty
      * @param list<int>                                 $magnitude base-10^9 digits, least-significant first; no trailing zeros
@@ -55,12 +46,7 @@ final readonly class BigInt implements TypeInterface, Stringable
             return '0';
         }
 
-        $count = count($this->magnitude);
-        $highest = $this->magnitude[$count - 1];
-        $out = (string) $highest;
-        for ($i = $count - 2; $i >= 0; --$i) {
-            $out .= str_pad((string) $this->magnitude[$i], self::BASE_DIGITS, '0', STR_PAD_LEFT);
-        }
+        $out = BigIntMagnitude::toDecimalString($this->magnitude);
 
         return $this->sign < 0 ? '-' . $out : $out;
     }
@@ -129,17 +115,17 @@ final readonly class BigInt implements TypeInterface, Stringable
         }
 
         if ($value > 0) {
-            return new self(1, self::splitNonNegative($value));
+            return new self(1, BigIntMagnitude::split($value));
         }
 
         // Handle PHP_INT_MIN specially: negation overflows in PHP int.
         if ($value === PHP_INT_MIN) {
             // |PHP_INT_MIN| = PHP_INT_MAX + 1; build it digit-piecewise.
-            $magnitude = self::splitNonNegative(PHP_INT_MAX);
-            return new self(-1, self::trim(self::addMagnitudes($magnitude, [1])));
+            $magnitude = BigIntMagnitude::split(PHP_INT_MAX);
+            return new self(-1, BigIntMagnitude::trim(BigIntMagnitude::add($magnitude, [1])));
         }
 
-        return new self(-1, self::splitNonNegative(-$value));
+        return new self(-1, BigIntMagnitude::split(-$value));
     }
 
     /**
@@ -180,7 +166,7 @@ final readonly class BigInt implements TypeInterface, Stringable
             return self::zero();
         }
 
-        $magnitude = self::digitsToMagnitude($digits);
+        $magnitude = BigIntMagnitude::fromDecimalDigits($digits);
 
         return new self($isNegative ? -1 : 1, $magnitude);
     }
@@ -198,11 +184,11 @@ final readonly class BigInt implements TypeInterface, Stringable
         if ($this->sign === $other->sign) {
             return new self(
                 $this->sign,
-                self::addMagnitudes($this->magnitude, $other->magnitude),
+                BigIntMagnitude::add($this->magnitude, $other->magnitude),
             );
         }
 
-        $cmp = $this->compareMagnitudes($this->magnitude, $other->magnitude);
+        $cmp = BigIntMagnitude::compare($this->magnitude, $other->magnitude);
         if ($cmp === 0) {
             return self::zero();
         }
@@ -210,13 +196,13 @@ final readonly class BigInt implements TypeInterface, Stringable
         if ($cmp > 0) {
             return new self(
                 $this->sign,
-                $this->subtractMagnitudes($this->magnitude, $other->magnitude),
+                BigIntMagnitude::subtract($this->magnitude, $other->magnitude),
             );
         }
 
         return new self(
             $other->sign,
-            $this->subtractMagnitudes($other->magnitude, $this->magnitude),
+            BigIntMagnitude::subtract($other->magnitude, $this->magnitude),
         );
     }
 
@@ -233,7 +219,7 @@ final readonly class BigInt implements TypeInterface, Stringable
 
         return new self(
             $this->sign * $other->sign,
-            $this->multiplyMagnitudes($this->magnitude, $other->magnitude),
+            BigIntMagnitude::multiply($this->magnitude, $other->magnitude),
         );
     }
 
@@ -247,7 +233,7 @@ final readonly class BigInt implements TypeInterface, Stringable
             return self::zero();
         }
 
-        [$quotient] = $this->divModMagnitudes($this->magnitude, $other->magnitude);
+        [$quotient] = BigIntMagnitude::divMod($this->magnitude, $other->magnitude);
         if ($quotient === []) {
             return self::zero();
         }
@@ -265,7 +251,7 @@ final readonly class BigInt implements TypeInterface, Stringable
             return self::zero();
         }
 
-        [, $remainder] = $this->divModMagnitudes($this->magnitude, $other->magnitude);
+        [, $remainder] = BigIntMagnitude::divMod($this->magnitude, $other->magnitude);
         if ($remainder === []) {
             return self::zero();
         }
@@ -341,7 +327,7 @@ final readonly class BigInt implements TypeInterface, Stringable
             return 0;
         }
 
-        $magCmp = $this->compareMagnitudes($this->magnitude, $other->magnitude);
+        $magCmp = BigIntMagnitude::compare($this->magnitude, $other->magnitude);
 
         return $this->sign > 0 ? $magCmp : -$magCmp;
     }
@@ -392,10 +378,10 @@ final readonly class BigInt implements TypeInterface, Stringable
         }
 
         if ($this->sign > 0) {
-            return $this->compareMagnitudes($this->magnitude, $this->phpIntMaxMagnitude()) <= 0;
+            return BigIntMagnitude::compare($this->magnitude, $this->phpIntMaxMagnitude()) <= 0;
         }
 
-        return $this->compareMagnitudes($this->magnitude, $this->phpIntMinAbsMagnitude()) <= 0;
+        return BigIntMagnitude::compare($this->magnitude, $this->phpIntMinAbsMagnitude()) <= 0;
     }
 
     public function toInt(): int
@@ -412,257 +398,17 @@ final readonly class BigInt implements TypeInterface, Stringable
 
         // Materialise from base-10^9 digits without overflow.
         if ($this->sign < 0
-            && $this->compareMagnitudes($this->magnitude, $this->phpIntMinAbsMagnitude()) === 0
+            && BigIntMagnitude::compare($this->magnitude, $this->phpIntMinAbsMagnitude()) === 0
         ) {
             return PHP_INT_MIN;
         }
 
         $value = 0;
         for ($i = count($this->magnitude) - 1; $i >= 0; --$i) {
-            $value = $value * self::BASE + $this->magnitude[$i];
+            $value = $value * BigIntMagnitude::BASE + $this->magnitude[$i];
         }
 
         return $this->sign > 0 ? $value : -$value;
-    }
-
-    /**
-     * @param int<0, max> $value
-     *
-     * @return list<int>
-     */
-    private static function splitNonNegative(int $value): array
-    {
-        $magnitude = [];
-        while ($value > 0) {
-            $magnitude[] = $value % self::BASE;
-            $value = intdiv($value, self::BASE);
-        }
-
-        return $magnitude;
-    }
-
-    /**
-     * @return list<int>
-     */
-    private static function digitsToMagnitude(string $digits): array
-    {
-        // Process digits in chunks of BASE_DIGITS from the right.
-        $magnitude = [];
-        $reversed = strrev($digits);
-        $chunks = str_split($reversed, self::BASE_DIGITS);
-        foreach ($chunks as $chunk) {
-            $magnitude[] = (int) strrev($chunk);
-        }
-
-        return self::trim($magnitude);
-    }
-
-    /**
-     * @param list<int> $a
-     * @param list<int> $b
-     */
-    private function compareMagnitudes(array $a, array $b): int
-    {
-        $countA = count($a);
-        $countB = count($b);
-        if ($countA !== $countB) {
-            return $countA <=> $countB;
-        }
-
-        for ($i = $countA - 1; $i >= 0; --$i) {
-            if ($a[$i] !== $b[$i]) {
-                return $a[$i] <=> $b[$i];
-            }
-        }
-
-        return 0;
-    }
-
-    /**
-     * @param list<int> $a
-     * @param list<int> $b
-     *
-     * @return list<int>
-     */
-    private static function addMagnitudes(array $a, array $b): array
-    {
-        $result = [];
-        $carry = 0;
-        $max = max(count($a), count($b));
-        for ($i = 0; $i < $max; ++$i) {
-            $sum = ($a[$i] ?? 0) + ($b[$i] ?? 0) + $carry;
-            $result[] = $sum % self::BASE;
-            $carry = intdiv($sum, self::BASE);
-        }
-
-        if ($carry > 0) {
-            $result[] = $carry;
-        }
-
-        return self::trim($result);
-    }
-
-    /**
-     * Subtracts $b from $a; requires |a| >= |b|.
-     *
-     * @param list<int> $a
-     * @param list<int> $b
-     *
-     * @return list<int>
-     */
-    private function subtractMagnitudes(array $a, array $b): array
-    {
-        $result = [];
-        $borrow = 0;
-        $countA = count($a);
-        for ($i = 0; $i < $countA; ++$i) {
-            $diff = $a[$i] - ($b[$i] ?? 0) - $borrow;
-            if ($diff < 0) {
-                $diff += self::BASE;
-                $borrow = 1;
-            } else {
-                $borrow = 0;
-            }
-
-            $result[] = $diff;
-        }
-
-        return self::trim($result);
-    }
-
-    /**
-     * @param list<int> $a
-     * @param list<int> $b
-     *
-     * @return list<int>
-     */
-    private function multiplyMagnitudes(array $a, array $b): array
-    {
-        $countA = count($a);
-        $countB = count($b);
-        $result = array_fill(0, $countA + $countB, 0);
-        for ($i = 0; $i < $countA; ++$i) {
-            $carry = 0;
-            for ($j = 0; $j < $countB; ++$j) {
-                $product = $result[$i + $j] + $a[$i] * $b[$j] + $carry;
-                $result[$i + $j] = $product % self::BASE;
-                $carry = intdiv($product, self::BASE);
-            }
-
-            if ($carry > 0) {
-                $result[$i + $countB] += $carry;
-            }
-        }
-
-        /** @var list<int> $result */
-        return self::trim($result);
-    }
-
-    /**
-     * Long division of magnitudes; returns [$quotient, $remainder].
-     *
-     * @param list<int> $a
-     * @param list<int> $b
-     *
-     * @return array{0: list<int>, 1: list<int>}
-     */
-    private function divModMagnitudes(array $a, array $b): array
-    {
-        if ($this->compareMagnitudes($a, $b) < 0) {
-            return [[], $a];
-        }
-
-        // Single-digit divisor — fast path.
-        if (count($b) === 1) {
-            return $this->divModSingle($a, $b[0]);
-        }
-
-        $countA = count($a);
-        $remainder = [];
-        $quotient = array_fill(0, $countA, 0);
-
-        for ($i = $countA - 1; $i >= 0; --$i) {
-            // Prepend a[i] to remainder (least-significant first means index 0).
-            array_unshift($remainder, $a[$i]);
-            $remainder = self::trim($remainder);
-
-            if ($this->compareMagnitudes($remainder, $b) < 0) {
-                $quotient[$i] = 0;
-                continue;
-            }
-
-            $digit = $this->trialQuotientDigit($remainder, $b);
-            $product = $this->multiplyMagnitudes($b, [$digit]);
-            $remainder = $this->subtractMagnitudes($remainder, $product);
-            $quotient[$i] = $digit;
-        }
-
-        /** @var list<int> $quotient */
-        return [self::trim($quotient), $remainder];
-    }
-
-    /**
-     * Returns the largest base-digit q in [0, BASE) such that b*q <= remainder,
-     * via binary search. The remainder is guaranteed >= b at call time so
-     * q >= 1.
-     *
-     * @param list<int> $remainder
-     * @param list<int> $b
-     */
-    private function trialQuotientDigit(array $remainder, array $b): int
-    {
-        $lo = 1;
-        $hi = self::BASE - 1;
-        $best = 1;
-        while ($lo <= $hi) {
-            $mid = intdiv($lo + $hi, 2);
-            $product = $this->multiplyMagnitudes($b, [$mid]);
-            $cmp = $this->compareMagnitudes($product, $remainder);
-            if ($cmp <= 0) {
-                $best = $mid;
-                $lo = $mid + 1;
-            } else {
-                $hi = $mid - 1;
-            }
-        }
-
-        return $best;
-    }
-
-    /**
-     * @param list<int> $a
-     *
-     * @return array{0: list<int>, 1: list<int>}
-     */
-    private function divModSingle(array $a, int $divisor): array
-    {
-        $quotient = array_fill(0, count($a), 0);
-        $remainder = 0;
-        for ($i = count($a) - 1; $i >= 0; --$i) {
-            $current = $remainder * self::BASE + $a[$i];
-            $quotient[$i] = intdiv($current, $divisor);
-            $remainder = $current % $divisor;
-        }
-
-        /** @var list<int> $quotient */
-        return [
-            self::trim($quotient),
-            $remainder === 0 ? [] : [$remainder],
-        ];
-    }
-
-    /**
-     * @param list<int> $magnitude
-     *
-     * @return list<int>
-     */
-    private static function trim(array $magnitude): array
-    {
-        while ($magnitude !== [] && $magnitude[count($magnitude) - 1] === 0) {
-            array_pop($magnitude);
-        }
-
-        return $magnitude;
     }
 
     /**
@@ -672,7 +418,7 @@ final readonly class BigInt implements TypeInterface, Stringable
     {
         /** @var list<int>|null $cached */
         static $cached = null;
-        return $cached ??= self::splitNonNegative(PHP_INT_MAX);
+        return $cached ??= BigIntMagnitude::split(PHP_INT_MAX);
     }
 
     /**
@@ -682,7 +428,7 @@ final readonly class BigInt implements TypeInterface, Stringable
     {
         /** @var list<int>|null $cached */
         static $cached = null;
-        return $cached ??= self::trim(self::addMagnitudes($this->phpIntMaxMagnitude(), [1]));
+        return $cached ??= BigIntMagnitude::trim(BigIntMagnitude::add($this->phpIntMaxMagnitude(), [1]));
     }
 
     /**

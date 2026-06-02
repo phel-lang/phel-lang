@@ -8,7 +8,10 @@ use DivisionByZeroError;
 use InvalidArgumentException;
 use OverflowException;
 use Phel\Lang\BigInt;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
+
+use function sprintf;
 
 final class BigIntTest extends TestCase
 {
@@ -457,5 +460,172 @@ final class BigIntTest extends TestCase
     {
         self::assertSame('42', (string) BigInt::fromInt(42)->subtract(BigInt::zero()));
         self::assertSame('-42', (string) BigInt::zero()->subtract(BigInt::fromInt(42)));
+    }
+
+    /**
+     * Algebraic invariant: for any a and non-zero b, the division and
+     * modulo kernels must reconstruct the dividend: (a / b) * b + (a mod b) = a.
+     * This exercises divModMagnitudes (including the multi-digit trial-digit
+     * path) against the multiply/add kernels.
+     */
+    #[DataProvider('providerNonZeroDivisorPairs')]
+    public function test_property_div_mod_reconstructs_dividend(string $aStr, string $bStr): void
+    {
+        $a = BigInt::fromString($aStr);
+        $b = BigInt::fromString($bStr);
+
+        $quotient = $a->divide($b);
+        $remainder = $a->mod($b);
+
+        self::assertTrue(
+            $quotient->multiply($b)->add($remainder)->equals($a),
+            sprintf('(%s / %s) * %s + (%s mod %s) should equal %s', $aStr, $bStr, $bStr, $aStr, $bStr, $aStr),
+        );
+    }
+
+    /**
+     * Algebraic invariant: |a mod b| < |b| for non-zero b.
+     */
+    #[DataProvider('providerNonZeroDivisorPairs')]
+    public function test_property_remainder_magnitude_below_divisor(string $aStr, string $bStr): void
+    {
+        $remainder = BigInt::fromString($aStr)->mod(BigInt::fromString($bStr));
+        $divisorAbs = BigInt::fromString($bStr)->abs();
+
+        self::assertSame(
+            -1,
+            $remainder->abs()->compareTo($divisorAbs),
+            sprintf('|%s mod %s| should be < |%s|', $aStr, $bStr, $bStr),
+        );
+    }
+
+    /**
+     * Algebraic invariant: (a * b) / b = a and (a * b) / a = b for non-zero
+     * operands. Round-trips the multiply kernel through the divide kernel.
+     */
+    #[DataProvider('providerNonZeroPairs')]
+    public function test_property_multiply_then_divide_is_inverse(string $aStr, string $bStr): void
+    {
+        $a = BigInt::fromString($aStr);
+        $b = BigInt::fromString($bStr);
+        $product = $a->multiply($b);
+
+        self::assertTrue($product->divide($b)->equals($a), sprintf('(%s * %s) / %s should equal %s', $aStr, $bStr, $bStr, $aStr));
+        self::assertTrue($product->divide($a)->equals($b), sprintf('(%s * %s) / %s should equal %s', $aStr, $bStr, $aStr, $bStr));
+    }
+
+    /**
+     * Algebraic invariant: multiplication distributes over addition,
+     * a * (b + c) = a * b + a * c.
+     */
+    public function test_property_multiplication_is_distributive(): void
+    {
+        $a = BigInt::fromString('123456789012345678901');
+        $b = BigInt::fromString('987654321098765432109');
+        $c = BigInt::fromString('-555555555555555555555');
+
+        $left = $a->multiply($b->add($c));
+        $right = $a->multiply($b)->add($a->multiply($c));
+
+        self::assertTrue($left->equals($right));
+    }
+
+    /**
+     * `pow(n)` must equal n repeated multiplications.
+     */
+    public function test_property_pow_matches_repeated_multiply(): void
+    {
+        foreach (['2', '3', '-2', '7', '10'] as $baseStr) {
+            $base = BigInt::fromString($baseStr);
+            for ($exp = 0; $exp <= 12; ++$exp) {
+                $expected = BigInt::one();
+                for ($i = 0; $i < $exp; ++$i) {
+                    $expected = $expected->multiply($base);
+                }
+
+                self::assertTrue(
+                    $base->pow($exp)->equals($expected),
+                    sprintf('%s^%d should equal the repeated product', $baseStr, $exp),
+                );
+            }
+        }
+    }
+
+    /**
+     * Within PHP int range the kernels must agree with native integer
+     * arithmetic (intdiv truncates toward zero; `%` follows the dividend's
+     * sign, matching BigInt's semantics).
+     */
+    #[DataProvider('providerNativeIntPairs')]
+    public function test_property_matches_native_int_arithmetic(int $a, int $b): void
+    {
+        $bigA = BigInt::fromInt($a);
+        $bigB = BigInt::fromInt($b);
+
+        self::assertSame((string) ($a + $b), (string) $bigA->add($bigB));
+        self::assertSame((string) ($a - $b), (string) $bigA->subtract($bigB));
+        self::assertSame((string) ($a * $b), (string) $bigA->multiply($bigB));
+
+        if ($b !== 0) {
+            self::assertSame((string) intdiv($a, $b), (string) $bigA->divide($bigB));
+            self::assertSame((string) ($a % $b), (string) $bigA->mod($bigB));
+        }
+    }
+
+    /**
+     * `compareTo` must agree with the sign of `a - b`.
+     */
+    #[DataProvider('providerNonZeroDivisorPairs')]
+    public function test_property_compare_consistent_with_subtraction(string $aStr, string $bStr): void
+    {
+        $a = BigInt::fromString($aStr);
+        $b = BigInt::fromString($bStr);
+
+        self::assertSame(
+            $a->subtract($b)->signum(),
+            $a->compareTo($b) <=> 0,
+            sprintf('sign(%s - %s) should equal compareTo', $aStr, $bStr),
+        );
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function providerNonZeroDivisorPairs(): iterable
+    {
+        yield 'large / single-digit-base' => ['123456789012345678901234567890', '987654321'];
+        yield 'large / large' => ['98765432109876543210987654321', '12345678901234567890'];
+        yield 'negative dividend' => ['-123456789012345678901234567890', '987654321'];
+        yield 'negative divisor' => ['123456789012345678901234567890', '-987654321'];
+        yield 'both negative' => ['-98765432109876543210', '-1234567890'];
+        yield 'divisor near base boundary' => ['1000000000000000000000000', '999999999'];
+        yield 'dividend smaller than divisor' => ['123', '98765432109876543210'];
+        yield 'exact multiple' => ['1000000000000000000000', '1000000000'];
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function providerNonZeroPairs(): iterable
+    {
+        yield 'two large' => ['123456789012345678901', '987654321098765432109'];
+        yield 'positive and negative' => ['999999999999999999', '-1000000007'];
+        yield 'both negative' => ['-123456789', '-987654321987654321'];
+        yield 'single digits' => ['7', '13'];
+        yield 'base boundary operands' => ['999999999', '1000000000'];
+    }
+
+    /**
+     * @return iterable<string, array{int, int}>
+     */
+    public static function providerNativeIntPairs(): iterable
+    {
+        yield 'small positives' => [12345, 678];
+        yield 'mixed signs' => [-98765, 432];
+        yield 'both negative' => [-555, -7];
+        yield 'divisor one' => [987654321, 1];
+        yield 'zero dividend' => [0, 42];
+        yield 'negative dividend positive divisor' => [-1000000, 7];
+        yield 'positive dividend negative divisor' => [1000000, -7];
     }
 }
