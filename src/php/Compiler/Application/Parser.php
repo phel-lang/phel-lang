@@ -17,7 +17,6 @@ use Phel\Shared\Parser\Node\CommaNode;
 use Phel\Shared\Parser\Node\CommentMacroNode;
 use Phel\Shared\Parser\Node\CommentNode;
 use Phel\Shared\Parser\Node\FileNode;
-use Phel\Shared\Parser\Node\KeywordNode;
 use Phel\Shared\Parser\Node\ListNode;
 use Phel\Shared\Parser\Node\MetaNode;
 use Phel\Shared\Parser\Node\NewlineNode;
@@ -341,127 +340,18 @@ final readonly class Parser implements ParserInterface
             ->parse($tokenStream, $token->getType());
     }
 
-    /**
-     * Reads the next non-trivia expression inside a reader conditional.
-     * Returns null when only trivia remains before the closing paren (or EOF),
-     * letting the caller exit the branch loop cleanly.
-     */
-    private function readNonTriviaExpression(TokenStream $tokenStream): ?NodeInterface
-    {
-        while ($tokenStream->valid()) {
-            if ($tokenStream->current()->getType() === Token::T_CLOSE_PARENTHESIS) {
-                return null;
-            }
-
-            $node = $this->readExpression($tokenStream);
-            if (!$node instanceof TriviaNodeInterface) {
-                return $node;
-            }
-        }
-
-        return null;
-    }
-
     private function parseReaderCondNode(TokenStream $tokenStream, Token $openToken): NodeInterface
     {
-        $phelNode = null;
-        $defaultNode = null;
-
-        while ($tokenStream->valid()) {
-            $keywordNode = $this->readNonTriviaExpression($tokenStream);
-            if (!$keywordNode instanceof NodeInterface) {
-                break;
-            }
-
-            $formNode = $this->readNonTriviaExpression($tokenStream);
-            if (!$formNode instanceof NodeInterface) {
-                break;
-            }
-
-            // Check keyword
-            if ($keywordNode instanceof KeywordNode) {
-                $keywordCode = $keywordNode->getCode();
-                if ($keywordCode === ':phel') {
-                    $phelNode = $formNode;
-                } elseif ($keywordCode === ':default') {
-                    $defaultNode = $formNode;
-                }
-            }
-        }
-
-        // Consume the closing paren — throw if the stream is exhausted or missing ')'
-        if (!$tokenStream->valid() || $tokenStream->current()->getType() !== Token::T_CLOSE_PARENTHESIS) {
-            throw $this->createUnfinishedParserException($tokenStream, $openToken, 'Unterminated reader conditional #?()');
-        }
-
-        $tokenStream->next();
-
-        $matchedNode = $phelNode ?? $defaultNode;
-        if ($matchedNode instanceof NodeInterface) {
-            return $matchedNode;
-        }
-
-        // No matching branch → treated as trivia (dropped)
-        return CommentNode::createWithToken($openToken);
+        return $this->parserFactory
+            ->createReaderConditionalParser($this)
+            ->parseCond($tokenStream, $openToken);
     }
 
     private function parseReaderCondSplicingNode(TokenStream $tokenStream, Token $openToken): NodeInterface
     {
-        $phelNode = null;
-        $defaultNode = null;
-
-        while ($tokenStream->valid()) {
-            $keywordNode = $this->readNonTriviaExpression($tokenStream);
-            if (!$keywordNode instanceof NodeInterface) {
-                break;
-            }
-
-            $formNode = $this->readNonTriviaExpression($tokenStream);
-            if (!$formNode instanceof NodeInterface) {
-                break;
-            }
-
-            // Check keyword
-            if ($keywordNode instanceof KeywordNode) {
-                $keywordCode = $keywordNode->getCode();
-                if ($keywordCode === ':phel') {
-                    $phelNode = $formNode;
-                } elseif ($keywordCode === ':default') {
-                    $defaultNode = $formNode;
-                }
-            }
-        }
-
-        // Consume the closing paren
-        if (!$tokenStream->valid() || $tokenStream->current()->getType() !== Token::T_CLOSE_PARENTHESIS) {
-            throw $this->createUnfinishedParserException($tokenStream, $openToken, 'Unterminated reader conditional splicing #?@()');
-        }
-
-        $tokenStream->next();
-
-        $matchedNode = $phelNode ?? $defaultNode;
-        if ($matchedNode instanceof ListNode) {
-            return new ReaderCondSplicingNode(
-                $matchedNode->getChildren(),
-                $openToken->getStartLocation(),
-                $matchedNode->getEndLocation(),
-            );
-        }
-
-        if ($matchedNode instanceof NodeInterface) {
-            throw $this->createUnexceptedParserException(
-                $tokenStream,
-                $openToken,
-                'Reader conditional splicing #?@() requires a sequential collection (list or vector), got: ' . $matchedNode->getCode(),
-            );
-        }
-
-        // No matching branch → splice nothing
-        return new ReaderCondSplicingNode(
-            [],
-            $openToken->getStartLocation(),
-            $openToken->getEndLocation(),
-        );
+        return $this->parserFactory
+            ->createReaderConditionalParser($this)
+            ->parseCondSplicing($tokenStream, $openToken);
     }
 
     private function parseCommaNode(TokenStream $tokenStream): CommaNode
