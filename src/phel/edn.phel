@@ -118,7 +118,7 @@
   Options:
     :readers  map of tag (symbol, keyword, or string) to 1-arg handler fn
     :eof      value returned for empty input"
-  {:example "(read-string \"{:a 1 :b 2}\") ; => {:a 1 :b 2}"
+  {:example "(read-string \"{:a 1 :b 2}\") ; => {:a 1, :b 2}"
    :see-also ["read-string-all" "write-string"]}
   ([s] (read-string s {}))
   ([s opts]
