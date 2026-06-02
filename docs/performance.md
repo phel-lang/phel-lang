@@ -17,13 +17,13 @@ Create the directory once: `mkdir -p /tmp/php-opcache`. Restart your shell. Repe
 
 ## Why it is slow without opcache
 
-Every `./vendor/bin/phel` invocation is a fresh PHP process. Without CLI opcache, PHP re-parses every `.php` file every run: `vendor/`, Phel compiler, Symfony console, project classes. With `opcache.file_cache`, compiled bytecode persists across processes.
+Every `./vendor/bin/phel` invocation is a fresh PHP process. Without CLI opcache, PHP re-parses every `.php` file each run (`vendor/`, Phel compiler, Symfony console, project classes). `opcache.file_cache` persists compiled bytecode across processes.
 
-Phel also maintains a compiled-code cache under `.phel/cache/` memoizing Phel-to-PHP compilation per source hash. The two caches complement each other: Phel's cache skips recompilation; opcache skips re-parsing the resulting PHP.
+Phel adds a compiled-code cache under `.phel/cache/` memoizing Phel-to-PHP compilation per source hash. The two complement each other: Phel's cache skips recompilation; opcache skips re-parsing the resulting PHP.
 
-Cache invalidation is automatic. Each run hashes the `.phel` source (`md5`) against the stored entry. On mismatch, the file is recompiled and transitive dependents are invalidated. No manual clear is needed after editing a `.phel` file. Fresh compiles also call `opcache_compile_file()` on the generated PHP. Use the reset steps below only if something gets wedged.
+Invalidation is automatic: each run hashes the `.phel` source (`md5`) against the stored entry, and on mismatch recompiles the file and its transitive dependents. Fresh compiles also `opcache_compile_file()` the generated PHP. Use the reset steps below only if something gets wedged.
 
-For hot numeric / string fns, add `:tag` annotations on params and return slot (`^int`, `^float`, `^string`, `^bool`). The compiler emits the matching PHP type declarations and infers the return type from primitive ops in tail position, which lets the tracing JIT specialize the call. Tag mismatches surface as Phel diagnostics at compile time. Measure the win locally with `composer bench-jit-baseline` and `composer bench-jit-tracing` (see [`internals/benchmarks.md`](internals/benchmarks.md)).
+For hot numeric/string fns, add `:tag` annotations on params and the return slot (`^int`, `^float`, `^string`, `^bool`). The compiler emits matching PHP type declarations and infers the return type from primitive ops in tail position, letting the tracing JIT specialize the call. Tag mismatches surface as Phel diagnostics at compile time. Measure with `composer bench-jit-baseline` and `composer bench-jit-tracing` (see [`internals/benchmarks.md`](internals/benchmarks.md)).
 
 ## Memory limit
 

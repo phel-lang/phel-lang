@@ -43,7 +43,7 @@ JSON form:
 |---|---|---|
 | `--top=<N>` | `20` | Rows in the table; non-positive falls back to default |
 | `--format=table|json|both` | `table` | Stdout shape |
-| `--output=<file>` | — | Write JSON to a file (independent of `--format`) |
+| `--output=<file>` | (none) | Write JSON to a file (independent of `--format`) |
 | `--sort=self|total|calls|avg` | `self` | Table row ordering |
 | `--no-compile-phases` | off | Drop the per-source phase block |
 
@@ -55,16 +55,16 @@ Argv after the path is forwarded to the script:
 
 ## How it works
 
-The profiler is an **instrumentation** profiler, not a sampler.
+An **instrumentation** profiler, not a sampler.
 
-1. `Registry::$profilerHook` is set before the run starts. While set, `Registry::addDefinition` wraps every `AbstractFn` in a `ProfilingFn` proxy.
-2. `GlobalVarEmitter` already routes every global-fn call through `\Phel::getDefinition(...)`, so each call hits the proxy's `__invoke` without any emitter or fixture changes.
-3. Each `__invoke` notifies the session on entry / exit. The session keeps a per-call stack tracking `[name, enterNs, childInclusiveNs]`.
-4. On exit, total = `now - enterNs` and self = `total - childInclusiveNs`. The parent frame's `childInclusiveNs` is bumped so its self time stays accurate when it returns.
-5. Compile-phase timings come from the existing compiler hook (`recordPhase`), keyed by source file.
-6. The hook is cleared in a `finally` block so it never leaks across commands.
+1. `Registry::$profilerHook` is set before the run. While set, `Registry::addDefinition` wraps every `AbstractFn` in a `ProfilingFn` proxy.
+2. `GlobalVarEmitter` already routes every global-fn call through `\Phel::getDefinition(...)`, so each call hits the proxy's `__invoke`; no emitter or fixture changes.
+3. Each `__invoke` notifies the session on entry/exit; the session keeps a per-call stack of `[name, enterNs, childInclusiveNs]`.
+4. On exit, total = `now - enterNs`, self = `total - childInclusiveNs`; the parent frame's `childInclusiveNs` is bumped so its self time stays accurate.
+5. Compile-phase timings come from the compiler hook (`recordPhase`), keyed by source file.
+6. The hook is cleared in a `finally` block, so it never leaks across commands.
 
-The off-state cost is one null-check per `Registry::addDefinition`. Zero overhead at call sites when the profiler is not running.
+Off-state cost: one null-check per `Registry::addDefinition`. Zero overhead at call sites when not profiling.
 
 ## Caveats
 

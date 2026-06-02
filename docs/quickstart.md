@@ -9,7 +9,7 @@ composer require phel-lang/phel-lang
 ./vendor/bin/phel init
 ```
 
-`phel init` writes `phel-config.php`, `src/main.phel`, and `tests/main_test.phel` (Flat layout, the default). Flags: `--nested` (use `src/phel/` + `tests/phel/`), `--minimal` (single-file root layout), `--dry-run` (preview), `--no-tests`, `--no-gitignore`.
+`phel init` writes `phel-config.php`, `src/main.phel`, and `tests/main_test.phel` (Flat layout, the default). Flags: `--nested` (use `src/phel/` + `tests/phel/`), `-m`/`--minimal` (single-file root layout), `--dry-run` (preview), `--no-tests`, `--no-gitignore`, `--force`.
 
 Already have a PHP project? Write `phel-config.php` by hand:
 
@@ -31,30 +31,21 @@ Create `src/hello.phel`:
 (defn greet [name]
   (str "Hello, " name "!"))
 
-;; Call the function
 (println (greet "World"))
 ```
 
-Run it:
 ```bash
-./vendor/bin/phel run src/hello.phel
-# => Hello, World!
-```
-
-Or evaluate a snippet without a file:
-```bash
-./vendor/bin/phel eval '(println "Hello, World!")'
-./vendor/bin/phel eval - < src/hello.phel    # read from stdin
+./vendor/bin/phel run src/hello.phel          # => Hello, World!
+./vendor/bin/phel eval '(println "Hello!")'   # evaluate a snippet
+./vendor/bin/phel eval - < src/hello.phel     # read from stdin
 ```
 
 ## REPL
 
-Start the REPL:
 ```bash
 ./vendor/bin/phel repl
 ```
 
-Try it out:
 ```phel
 Welcome to the Phel Repl (vX.Y.Z)
 Type "exit" or press Ctrl-D to exit.
@@ -71,7 +62,7 @@ user:5> (/ 1 0)
 user:6> *e                        ; last exception
 ```
 
-The prompt shows the current namespace; it switches on `(ns ...)` / `(in-ns ...)`. `*1`, `*2`, `*3` hold the last three REPL results; `*e` holds the last exception. Type `exit` or press Ctrl-D to quit.
+The prompt shows the current namespace; it switches on `(ns ...)` / `(in-ns ...)`. `*1`, `*2`, `*3` hold the last three results; `*e` holds the last exception. Type `exit` or Ctrl-D to quit.
 
 ## Collections
 
@@ -108,15 +99,15 @@ The prompt shows the current namespace; it switches on `(ns ...)` / `(in-ns ...)
 ## Functions
 
 ```phel
-;; Define a function (^int :tag emits a PHP int return-type)
+;; ^int :tag emits a PHP int return-type
 (defn ^int square [^int x]
   (* x x))
 
 (square 5)                        ; => 25
 
 ;; Anonymous functions
-#(* % %)                          ; Short syntax
-(fn [x] (* x x))                  ; Long syntax
+#(* % %)                          ; short syntax
+(fn [x] (* x x))                  ; long syntax
 
 ;; Map, filter, reduce
 (map square [1 2 3 4])            ; => [1 4 9 16]
@@ -133,8 +124,7 @@ The prompt shows the current namespace; it switches on `(ns ...)` / `(in-ns ...)
 (def double #(* % 2))
 (def add-ten #(+ % 10))
 (def process (comp add-ten double))
-
-(process 5)                       ; => 20 (5 * 2 + 10)
+(process 5)                       ; => 20  (5 * 2 + 10)
 ```
 
 ## Pattern Matching
@@ -154,7 +144,7 @@ The prompt shows the current namespace; it switches on `(ns ...)` / `(in-ns ...)
 (route {:method "GET" :path ["users" "42"]})    ; => [:show-user "42"]
 ```
 
-See [Pattern Matching Guide](match-guide.md) for guards, destructuring, and more patterns.
+See [Pattern Matching Guide](match-guide.md) for guards, destructuring, and more.
 
 ## Calling Phel from PHP
 
@@ -178,9 +168,7 @@ require __DIR__ . '/../vendor/autoload.php';
 echo \Phel::getDefinition('app.greet', 'hello')('World');
 ```
 
-`getDefinition` resolves any Phel function as a PHP callable. Namespace hyphens become underscores in registry keys (`my-app.lib` becomes `my_app.lib`).
-
-Full HTTP example: [Framework Integration](framework-integration.md).
+`getDefinition` resolves any Phel function as a PHP callable. Namespace hyphens become underscores in registry keys (`my-app.lib` becomes `my_app.lib`). Full HTTP example: [Framework Integration](framework-integration.md).
 
 ## Tests
 
@@ -197,8 +185,8 @@ Full HTTP example: [Framework Integration](framework-integration.md).
 
 ```bash
 ./vendor/bin/phel test                       # all tests
-./vendor/bin/phel test --filter greet        # name regex
-./vendor/bin/phel test --reporter=testdox    # also: dot, tap, junit-xml
+./vendor/bin/phel test --filter greet        # name regex/substring
+./vendor/bin/phel test --reporter=testdox    # also: default, dot, tap, junit-xml
 ./vendor/bin/phel test --parallel=auto       # fan out namespaces across CPU cores
 ```
 
@@ -219,12 +207,12 @@ app.hello:5> (resolve 'map)        ; => #'phel.core/map
 ```phel
 ;; Functions need parens
 map square [1 2 3]              ; Error: not a function
-(map square [1 2 3])            ; => [1 4 9]
+(map square [1 2 3])           ; => [1 4 9]
 
 ;; Values are immutable; conj returns a new vector
 (def nums [1 2 3])
 (conj nums 4)                   ; => [1 2 3 4]
-nums                            ; => [1 2 3]
+nums                            ; => [1 2 3]  (unchanged)
 (def nums (conj nums 4))        ; rebind to keep the new value
 ```
 

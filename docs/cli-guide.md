@@ -1,6 +1,6 @@
 # Building CLIs with `phel.cli`
 
-`phel.cli` is a data-driven wrapper over [`symfony/console`](https://symfony.com/doc/current/components/console.html). Subcommands, arguments, options, prompts, tables, progress bars, shell completion, and signal handling all defined as plain Phel maps. No extra dependency; `symfony/console` ships with phel-lang.
+`phel.cli` is a data-driven wrapper over [`symfony/console`](https://symfony.com/doc/current/components/console.html) (which ships with phel-lang, no extra dependency). Subcommands, arguments, options, prompts, tables, progress bars, shell completion, and signal handling are all plain Phel maps.
 
 ## Quickstart
 
@@ -97,9 +97,7 @@ Your `:run` handler receives a **context map**:
  :style     <SymfonyStyle>}
 ```
 
-Return `nil` or `0` for success, any other `int` for an exit code.
-
-Uncaught `Throwable` becomes a red `<error>` line plus exit code `1`. With `-v`, the stack trace is written.
+Return `nil` or `0` for success, any other `int` for an exit code. An uncaught `Throwable` becomes a red `<error>` line plus exit code `1`; `-v` adds the stack trace.
 
 ## Writing to output
 
@@ -175,7 +173,7 @@ Available `:style` values: `:default`, `:borderless`, `:compact`, `:symfony`, `:
          :complete (fn [_input] ["dev" "staging" "prod"])}]}
 ```
 
-Symfony calls your completion function when the user presses `<TAB>` after installing the shell completion script:
+Symfony calls your completion function on `<TAB>` once the shell completion script is installed:
 
 ```bash
 my-tool _complete --generate-hook=bash > ~/.bash_completion.d/my-tool
@@ -201,7 +199,7 @@ my-tool _complete --generate-hook=bash > ~/.bash_completion.d/my-tool
 
 ## Testing your CLI
 
-Test helpers run handlers without spawning a process:
+Test helpers run handlers without spawning a process. `(cli/application "name" [specs])` is a two-arity shortcut for the map form:
 
 ```phel
 (ns my-tool-test.test.main
@@ -231,7 +229,7 @@ For prompt testing, pipe canned STDIN:
 
 ## Running under `phel run`
 
-When invoked via `./bin/phel run path/to/script.phel arg1 arg2`, Phel's own Symfony console occupies `$_SERVER['argv']`. User-facing arguments come through the Phel core var `argv`. Pass them to `cli/run` explicitly:
+Under `./bin/phel run path/to/script.phel arg1 arg2`, Phel's own console occupies `$_SERVER['argv']`; user args arrive through the core var `argv`. Pass them explicitly:
 
 ```phel
 ;; Bad: reads the wrapper's argv, so "run" looks like your first command.
@@ -241,7 +239,7 @@ When invoked via `./bin/phel run path/to/script.phel arg1 arg2`, Phel's own Symf
 (cli/run app (cli/argv argv))
 ```
 
-Only needed under `phel run`. A standalone binary built with `phel build` uses `$_SERVER['argv']` directly, so `(cli/run app)` is fine there.
+Only needed under `phel run`. A standalone binary built with `phel build` reads `$_SERVER['argv']` directly, so `(cli/run app)` is fine there.
 
 ## Best practices
 

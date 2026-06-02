@@ -13,15 +13,11 @@ composer require phel-lang/phel-lang
 ./vendor/bin/phel agent-install --all --with-examples  # also copy runnable example apps
 ```
 
-`.agents/` (rules, task recipes, quick-syntax) is copied by default; pass `--no-docs` to skip it. Example apps are
-**excluded** by default to keep installs slim — add `--with-examples` to include `.agents/examples/`.
+Platforms: `claude`, `cursor`, `codex`, `gemini`, `copilot`, `aider`. Omit the platform with `--auto` to install only for agents already present (`.claude/`, `.cursor/`, `AGENTS.md`, ...).
 
-Platforms: `claude`, `cursor`, `codex`, `gemini`, `copilot`, `aider`. Omit the platform and use `--auto` to install
-only for agents already present in the project (`.claude/`, `.cursor/`, `AGENTS.md`, ...).
+`.agents/` docs (rules, task recipes, quick-syntax) are copied by default; `--no-docs` skips them. Example apps are excluded by default; `--with-examples` includes `.agents/examples/`.
 
-Existing targets back up to `<path>.pre-phel.bak`. `--force` skips backup, `--dry-run` previews,
-`--uninstall` removes a skill (restoring any backup). Inspect state with `--list`; `--check` reports version drift
-and exits non-zero if any.
+Existing targets back up to `<path>.pre-phel.bak`. `--force` skips backup, `--dry-run` previews, `--uninstall` removes a skill (restoring any backup). `--list` shows source/target/state per platform; `--check` reports version drift and exits 1 on any.
 
 ## Destinations
 
@@ -46,7 +42,7 @@ Each installed file routes the agent to `.agents/index.md` for task recipes: sca
 
 ## Sync
 
-`resources/agents/VERSION` tracks the targeted phel-lang release. `composer test-agents` runs every example's tests against the current source; breaking a public API surfaces as a red build on PR.
+`resources/agents/VERSION` tracks the targeted phel-lang release. `composer test-agents` runs every example's tests against current source; breaking a public API surfaces as a red build on PR.
 
 ## Repository maintenance adapters
 

@@ -7,6 +7,7 @@
 1. [Quick Start](quickstart.md): install, REPL, first script
 2. [Common Patterns](patterns.md): everyday idioms
 3. [PHP/Phel Interop](php-interop.md): call PHP from Phel and back
+4. [Project Layout](project-layout.md): the `.phel/` directory and runtime state
 
 Coming from Clojure? Read [Clojure Migration](clojure-migration.md).
 
@@ -15,6 +16,7 @@ Coming from Clojure? Read [Clojure Migration](clojure-migration.md).
 - [Reader Shortcuts](reader-shortcuts.md): `#inst`, `#regex`, `#php`, anonymous fn `#(...)`
 - [Reader Conditionals](reader-conditionals.md): `.cljc` portability
 - [Data Structures](data-structures-guide.md): vectors, maps, sets, transients
+- [Numeric Tower](numeric-tower.md): `int`, `float`, `BigInt`, `BigDecimal`, `Ratio`
 - [Lazy Sequences](lazy-sequences.md): `lazy-seq`, infinite seqs, realization
 - [Transducers](transducers.md): composable transformations
 - [Pattern Matching](match-guide.md): `match` with guards and destructuring

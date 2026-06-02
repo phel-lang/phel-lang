@@ -4,75 +4,37 @@ Reader shortcuts are resolved by the reader during compilation.
 
 ## Collection Literals
 
-### Vectors `[]`
 ```phel
-[1 2 3]           ; Shortcut for (vector 1 2 3)
-[]                ; Empty vector
-```
-
-### Hash Maps `{}`
-```phel
-{:a 1 :b 2}       ; Shortcut for (hash-map :a 1 :b 2)
-{}                ; Empty hash map
-```
-
-### Sets `#{}`
-```phel
-#{1 2 3}          ; Shortcut for (hash-set 1 2 3)
-#{}               ; Empty set
-```
-
-### Lists `'()`
-```phel
-'(1 2 3)          ; Shortcut for (list 1 2 3)
-'()               ; Empty list (quote prevents evaluation)
+[1 2 3]       ; (vector 1 2 3)      [] empty vector
+{:a 1 :b 2}   ; (hash-map :a 1 :b 2) {} empty map
+#{1 2 3}      ; (hash-set 1 2 3)    #{} empty set
+'(1 2 3)      ; (list 1 2 3)        '() empty list
 ```
 
 ## Quote and Quasiquote
 
-### Quote `'`
-Prevents evaluation of the following form:
 ```phel
-'x                ; The symbol x (not evaluated)
-'(+ 1 2)          ; The list (+ 1 2), not the result 3
-'[1 2 3]          ; The vector [1 2 3]
+'x            ; the symbol x, not evaluated  (= (quote x))
+'(+ 1 2)      ; the list (+ 1 2), not 3
+'[1 2 3]      ; the vector [1 2 3]
 ```
 
-Equivalent to: `(quote x)`
+Quasiquote (`` ` ``) is like quote but allows selective evaluation with unquote (`~`) and unquote-splicing (`~@`):
 
-### Quasiquote `` ` ``
-Like quote, but allows selective evaluation with unquote:
 ```phel
-`(1 2 3)          ; => (1 2 3)
-`(1 ~(+ 1 1) 3)   ; => (1 2 3)
+`(1 2 3)                          ; => (1 2 3)
+(let [x 5] `(1 ~x 3))             ; => (1 5 3)     ; ~ evaluates one form
+(let [xs [2 3 4]] `(1 ~@xs 5))    ; => (1 2 3 4 5) ; ~@ splices a sequence
 ```
 
-Equivalent to: `(quasiquote ...)`
-
-### Unquote `~`
-Evaluates an expression within a quasiquote:
-```phel
-(let [x 5]
-  `(1 ~x 3))      ; => (1 5 3)
-```
-
-> **Deprecated:** `,` as an unquote reader macro. Use `~` instead.
-
-### Unquote-splicing `~@`
-Evaluates and splices a sequence into the containing form:
-```phel
-(let [xs [2 3 4]]
-  `(1 ~@xs 5))    ; => (1 2 3 4 5)
-```
-
-> **Deprecated:** `,@` as an unquote-splicing reader macro. Use `~@` instead.
+> **Deprecated:** `,` (unquote) and `,@` (unquote-splicing) reader macros. Use `~` and `~@`.
 
 ### Auto-gensym `name#`
+
 Inside a syntax-quote, a symbol ending in `#` expands to a fresh unique name. All occurrences of the same `name#` in one syntax-quote share that name, giving hygienic macros without calling `gensym`:
 
 ```phel
-(defmacro time
-  [expr]
+(defmacro time [expr]
   `(let [start# (php/microtime true)
          ret#   ~expr]
      (println "Elapsed:" (- (php/microtime true) start#) "secs")
@@ -81,34 +43,24 @@ Inside a syntax-quote, a symbol ending in `#` expands to a fresh unique name. Al
 
 Each expansion produces a fresh `start__123__auto__` / `ret__124__auto__` pair, so generated bindings can't collide with user code.
 
-> **Deprecated:** `name$` as an auto-gensym suffix. Use `name#` instead.
+> **Deprecated:** `name$` as an auto-gensym suffix. Use `name#`.
 
 ## Reader Conditionals
 
-### Platform Conditional `#?()`
-Selects a form based on the platform (resolved at parse time):
-```phel
-#?(:phel (php/time) :clj (System/currentTimeMillis))
-; => (php/time) when compiled by Phel
+Resolved at parse time. `#?()` selects one form by platform key; `#?@()` splices a collection. Phel selects `:phel`, falls back to `:default`.
 
-#?(:clj 99 :default 0)
-; => 0 (fallback when :phel is absent)
+```phel
+#?(:phel (php/time) :clj (System/currentTimeMillis))  ; => (php/time) in Phel
+#?(:clj 99 :default 0)                                 ; => 0
+[1 #?@(:phel [2 3]) 4]                                 ; => [1 2 3 4]
 ```
 
-### Platform Conditional Splicing `#?@()`
-Splices elements from a collection into the surrounding form:
-```phel
-[1 #?@(:phel [2 3]) 4]
-; => [1 2 3 4]
-```
-
-Only valid inside collections (lists, vectors, maps, sets). See [Reader Conditionals](reader-conditionals.md) for full documentation.
+`#?@()` is only valid inside a collection. See [Reader Conditionals](reader-conditionals.md) for full documentation.
 
 ## Deref `@`
 
-Shorthand for `(deref ...)`:
 ```phel
-@my-atom              ; Same as (deref my-atom)
+@my-atom              ; same as (deref my-atom)
 ```
 
 ## Tagged Literals `#<tag> form`
@@ -116,9 +68,9 @@ Shorthand for `(deref ...)`:
 Tagged literals convert a form to a value at read time. Three ship built-in:
 
 ```phel
-#inst "2026-01-01T00:00:00Z"     ; reads as \DateTimeImmutable
-#regex "\\d+"                     ; reads as a PCRE pattern string
-#uuid "550e8400-e29b-41d4-a716-446655440000"  ; reads as Phel\Lang\UUID
+#inst "2026-01-01T00:00:00Z"                   ; reads as \DateTimeImmutable
+#regex "\\d+"                                   ; reads as a PCRE pattern string
+#uuid "550e8400-e29b-41d4-a716-446655440000"   ; reads as Phel\Lang\UUID
 ```
 
 Register your own with `phel.reader/register-tag`:
@@ -129,12 +81,11 @@ Register your own with `phel.reader/register-tag`:
 
 (register-tag "money" (fn [s] {:kind :money :raw s}))
 
-;; Now the reader accepts:
 #money "10.00 EUR"
 ;; => {:kind :money :raw "10.00 EUR"}
 ```
 
-For project-wide tags, drop a `data-readers.phel` at any source root. It's auto-loaded and should register each tag explicitly:
+For project-wide tags, drop a `data-readers.phel` at any source root. It is auto-loaded and should register each tag explicitly:
 
 ```phel
 ;; src/phel/data-readers.phel
@@ -148,76 +99,52 @@ Related helpers in `phel.reader`: `tag-registered?`, `unregister-tag`, `register
 
 ## Regex Literals `#"..."`
 
-Creates a PCRE pattern string:
 ```phel
-#"\\d+"               ; Same as (re-pattern "\\d+")
-(re-find #"\\d+" "abc123")  ; => "123"
+#"\\d+"                       ; same as (re-pattern "\\d+")
+(re-find #"\\d+" "abc123")    ; => "123"
 ```
 
-## Anonymous Functions
+## Anonymous Functions `#(...)`
 
-### `#(...)` syntax
-Anonymous function with `%` parameter placeholders:
+`%` placeholders: `%` (or `%1`) is the first arg, `%2` the second, `%&` the rest:
+
 ```phel
-#(+ %1 %2)           ; Function taking 2 args
-#(* % %)             ; % is shorthand for %1
-#(apply str %&)       ; %& captures rest args
+#(* % %)             ; (fn [x] (* x x))
+#(+ %1 %2)           ; (fn [a b] (+ a b))
+#(apply str %&)      ; %& captures rest args
+
+(map #(* % 2) [1 2 3])         ; => [2 4 6]
+(filter #(> % 5) [3 6 2 8 4])  ; => [6 8]
+(reduce #(+ %1 %2) 0 [1 2 3 4]) ; => 10
 ```
 
 ### Short Function Syntax `|(...)` (Deprecated)
+
 > **Deprecated:** Use `#(...)` with `%` placeholders. `|(...)` will be removed in a future release.
 
-Anonymous function with positional parameters:
-```phel
-|(+ $1 $2)        ; Function taking 2 args
-|(* $1 $1)        ; Function squaring its argument
-|(apply f $&)     ; $& captures all arguments
-```
-
-**Parameters:**
-- `$1`, `$2`, `$3`, ...: positional arguments (1-indexed)
-- `$&`: rest args as a sequence
+Positional parameters `$1`, `$2`, ... (1-indexed), `$&` for rest args; `$` is shorthand for `$1`:
 
 ```phel
-(map |(* $ 2) [1 2 3])         ; => [2 4 6]
-(filter |(> $ 5) [3 6 2 8 4])  ; => [6 8]
-(reduce |(+ $1 $2) 0 [1 2 3 4]) ; => 10
-
-|(* $ $)        ; Same as (fn [x] (* x x))
-|(+ $1 $2)      ; Same as (fn [a b] (+ a b))
+|(* $ $)        ; (fn [x] (* x x))
+|(+ $1 $2)      ; (fn [a b] (+ a b))
+|(apply f $&)   ; $& captures all arguments
 ```
 
 ## Comments
 
-### Line Comments `;`
-Comment to end of line. Convention: `;;` for standalone lines, `;` inline after code:
 ```phel
-;; This is a standalone comment
+;; standalone comment
 (+ 1 2)           ; inline comment
-```
-
-> **Deprecated:** `#` as a line comment character. Use `;` instead.
-
-### Multiline Comments `#| |#` (Deprecated)
-> **Deprecated:** Use `(comment ...)` instead. `#| |#` will be removed in a future release.
-
-Comment blocks spanning multiple lines:
-```phel
-#|
-  This is a multiline comment.
-  Everything between #| and |# is ignored.
-|#
-```
-
-### Inline Comment `#_`
-Comments out the next form entirely:
-```phel
-(println 1 #_ 2 3)    ; => prints: 1 3
+(println 1 #_ 2 3)    ; #_ skips the next form  => prints: 1 3
 [1 #_(+ 2 3) 4]       ; => [1 4]
 ```
 
+> **Deprecated:** `#` as a line comment character (use `;`); `#| ... |#` multiline blocks (use `(comment ...)`).
+
 ## Metadata `^`
+
 Attaches metadata to the following form:
+
 ```phel
 ^{:doc "Example"} (defn foo [] ...)
 ^:private (def x 10)

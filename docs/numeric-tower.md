@@ -1,4 +1,4 @@
-# Numeric tower
+# Numeric Tower
 
 Phel has a numeric tower built around five scalar shapes:
 
@@ -16,7 +16,7 @@ Phel has a numeric tower built around five scalar shapes:
 
 ### Exact decimal literals: `1.5M`
 
-`M`-suffixed numerals read as `BigDecimal`. Use for monetary values and any computation where binary float drift is unacceptable.
+`M`-suffixed numerals read as `BigDecimal` and print with the `M` suffix. Use for monetary values and any computation where binary float drift is unacceptable.
 
 ```phel
 1.5M                ; => 1.5M (a BigDecimal)
@@ -27,10 +27,10 @@ Phel has a numeric tower built around five scalar shapes:
 
 ### Promoting integers: `bigint` and `+'`
 
-Promote with the explicit constructors:
+Promote with the explicit constructors. A `BigInt` prints as a plain integer (no `N` suffix):
 
 ```phel
-(bigint 42)         ; => 42N (a BigInt)
+(bigint 42)         ; => 42 (a BigInt)
 (bigint "1000000000000000000000")
 (rationalize 0.1)   ; => 1/10
 ```
@@ -38,8 +38,8 @@ Promote with the explicit constructors:
 The promoting arithmetic ops (`+'`, `-'`, `*'`, `inc'`, `dec'`) auto-promote to `BigInt` on overflow, so use them whenever overflow is possible:
 
 ```phel
-(*' 1000000000 1000000000 1000000000)  ; => big enough to overflow PHP int
-(inc' 9223372036854775807)             ; => 9223372036854775808N
+(*' 1000000000 1000000000 1000000000)  ; => 1000000000000000000000000000 (BigInt)
+(inc' 9223372036854775807)             ; => 9223372036854775808 (BigInt)
 ```
 
 ### Large integer literals lex as `float`

@@ -3,7 +3,7 @@
 ## Pages
 
 1. [Architecture](architecture.md): module layout, Gacela pattern, dependency map.
-2. [Compiler](compiler.md): six-stage pipeline with worked example.
+2. [Compiler](compiler.md): seven-stage pipeline with worked example.
 3. [Special forms](special-forms.md): list, dispatch, how to add one.
 4. [Macros](macros.md): `macroexpand`, quasiquote, auto-gensym.
 5. [Runtime](runtime.md): `Lang/`, persistent collections, `Registry`, `\Phel` facade.

@@ -10,6 +10,8 @@ Add Phel to a PHP project without touching `app/` or `src/`.
 4. Export PHP wrappers under your framework's `App\` PSR-4 root via `phel export`.
 5. Prod: `phel build` at deploy, `require 'build/app/main.php'` at boot. Dev: `\Phel::run($root, 'app.main')` compiles on first call.
 
+Namespaces need at least two segments (`shop.pricing`, not `pricing`); a single-segment ns exports invalid PHP.
+
 Two ways to call Phel from PHP:
 
 | Flavor | How | When |
@@ -23,8 +25,6 @@ Two load modes, same provider/kernel hook:
 |------|------|------------------|
 | Prod (AOT) | `require 'build/app/main.php'`, precompiled | Zero compile, one `require` |
 | Dev (JIT) | `\Phel::run($root, 'app.main')` | Gacela bootstrap + compile on first call |
-
-Namespaces need at least two segments (`shop.pricing`, not `pricing`).
 
 Install: `composer require phel-lang/phel-lang`
 
@@ -58,7 +58,7 @@ phel/
   (:require auth.tokens))
 ```
 
-Loading `app.main` (via `require` or `\Phel::run()`) registers every exported function across all three namespaces. Any controller can call any wrapper:
+Loading `app.main` (via `require` or `\Phel::run()`) registers every exported function across all three namespaces. The build walks requires transitively, so `build/app/main.php` `require_once`s every dependency. Any controller can then call any wrapper:
 
 ```php
 App\PhelGenerated\Shop\Pricing::applyDiscount(...)
@@ -66,7 +66,7 @@ App\PhelGenerated\Reports\Daily::summary(...)
 App\PhelGenerated\Auth\Tokens::makeToken(...)
 ```
 
-New feature: add the file, add one `:require` in `app/main.phel`, run `phel export` + `phel build`.
+New feature: add the `.phel` file, add one `:require` in `app/main.phel`, rerun `phel export` + `phel build`.
 
 ---
 
@@ -145,7 +145,7 @@ final class CheckoutController
 
 ## Symfony
 
-`phel-config.php`:
+`phel-config.php` (only the export target differs from Laravel):
 
 ```php
 <?php
@@ -161,7 +161,7 @@ return PhelConfig::forProject()
     ->withExportTargetDirectory(__DIR__ . '/src/PhelGenerated');
 ```
 
-Default `App\ → src/` PSR-4 covers `App\PhelGenerated\`.
+The default `App\ → src/` PSR-4 mapping covers `App\PhelGenerated\`.
 
 `src/Kernel.php`:
 
@@ -188,7 +188,7 @@ public function boot(): void
 }
 ```
 
-Controllers use any wrapper: `App\PhelGenerated\Reports\Daily`, `App\PhelGenerated\Shop\Pricing`, etc. All registered by the main load.
+Controllers use any wrapper (`App\PhelGenerated\Reports\Daily`, etc.), all registered by the main load.
 
 ---
 
@@ -231,11 +231,10 @@ echo $greet('World') . "\n";
 
 ## Notes
 
-- **Main namespace**: `phel/app/main.phel` lists one `(:require other.ns)` per feature namespace. The build walks requires transitively, so `build/app/main.php` `require_once`s every dependency. Loading it from the provider/kernel registers every `{:export true}` function. Controllers call any wrapper without knowing which Phel files exist. New feature: create the `.phel` file, add one `:require` in `app/main.phel`, rerun `phel export` + `phel build`.
-- Namespace path matches directory: `phel/shop/pricing.phel` to `(ns shop.pricing)`. Single-segment ns exports invalid PHP; use at least two segments.
+- Namespace path matches directory: `phel/shop/pricing.phel` to `(ns shop.pricing)`.
 - Hyphens become camelCase: `(ns my-lib.core)` to `App\PhelGenerated\MyLib\Core`; `apply-discount` to `applyDiscount`.
 - Prod path (`require build/app/main.php`): self-contained, no Gacela bootstrap, no compiler. Just `\Phel::addDefinition()` calls.
-- Dev path (`\Phel::run()`) boots Gacela and compiles to temp files on first call. Guard with a static flag; never call from Laravel `register()` or per-request hot paths.
+- Dev path (`\Phel::run()`) boots Gacela and compiles to temp files on first call. Guard with a static flag; never call from Laravel `register()` or a per-request hot path.
 - `withBuildDestDir()` is relative to the project root.
 - Commit `build/` in the deploy artifact, or run `phel build` in CI. Skip committing in dev so `is_file()` is false and `\Phel::run()` kicks in.
 - Add `vendor/bin/phel test` to CI alongside `phpunit`.

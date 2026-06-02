@@ -1,6 +1,6 @@
 # Clojure to Phel Migration Guide
 
-Phel is a Lisp compiling to PHP. If you know Clojure, you know most of Phel. This guide covers the differences. Jump to [Quick reference](#quick-reference) for the at-a-glance view.
+Phel is a Lisp compiling to PHP. If you know Clojure, you know most of Phel; this guide covers the differences.
 
 ## Quick reference
 
@@ -9,11 +9,11 @@ Phel is a Lisp compiling to PHP. If you know Clojure, you know most of Phel. Thi
 | `(ns my.app (:require [clojure.string :as str]))` | `(ns my.app (:require phel.string :as str))` | `.` separator (matches Clojure); `\` accepted for back-compat but deprecated |
 | `(.method obj arg)` | `(php/-> obj (method arg))` | Instance method |
 | `(Class/staticMethod arg)` | `(php/:: Class (method arg))` | Static method |
-| `(ClassName. arg)` | `(ClassName. arg)`, `(new ClassName arg)`, or `(php/new ClassName arg)` | `ClassName.` and `new` both read as `(php/new ClassName ...)` |
+| `(ClassName. arg)` | `(ClassName. arg)`, `(new ClassName arg)`, `(php/new ClassName arg)` | All read as `(php/new ClassName ...)` |
 | `(.-field obj)` | `(php/-> obj -field)` | Property access |
-| `(:import [java.util Date])` | `(:use DateTime)` in the `ns` form | Imports a PHP class by short name; also works with FQNs: `(:use Phel\Lang\Symbol)` |
-| `(instance? Type x)` | `(instance? Type x)` or `(php/instanceof x Type)` | Phel ships an `instance?` macro that wraps `php/instanceof` with Clojure's argument order |
-| `(class x)` | `(type x)` | Returns a keyword like `:string`, `:int`, `:hash-map` |
+| `(:import [java.util Date])` | `(:use DateTime)` in `ns` | Imports a PHP class by short name; FQNs too: `(:use Phel\Lang\Symbol)` |
+| `(instance? Type x)` | `(instance? Type x)` or `(php/instanceof x Type)` | `instance?` macro wraps `php/instanceof` with Clojure's arg order |
+| `(class x)` | `(type x)` | Returns a keyword: `:string`, `:int`, `:hash-map` |
 | `(subs s start end)` | `(phel.string/subs s start end)` | Substring |
 | `(clojure.string/upper-case s)` | `(phel.string/upper-case s)` | String utils in `phel.string` |
 
@@ -22,23 +22,23 @@ Phel is a Lisp compiling to PHP. If you know Clojure, you know most of Phel. Thi
 Most of Clojure's core library works identically:
 
 - **Data structures**: persistent vectors `[]`, maps `{}`, sets, lists `'()`, lazy-seqs, sorted collections (`sorted-map`, `sorted-map-by`, `sorted-set`, `sorted-set-by`)
-- **Collection API**: `conj`, `conj!`, `disj`, `into`, `assoc`, `dissoc`, `get`, `get-in`, `update`, `update-in`, `merge`, `select-keys`, `keys`, `vals`, `update-keys`, `update-vals`, `rename-keys`, `zipmap`, `frequencies`, `group-by`
-- **Sequence API**: `map`, `filter`, `remove`, `reduce`, `first`, `rest`, `next`, `cons`, `nth`, `last`, `butlast`, `take`, `drop`, `drop-last`, `partition`, `sort-by`, `min-key`, `max-key`, `run!`
+- **Collections**: `conj`, `conj!`, `disj`, `into`, `assoc`, `dissoc`, `get`, `get-in`, `update`, `update-in`, `merge`, `select-keys`, `keys`, `vals`, `update-keys`, `update-vals`, `rename-keys`, `zipmap`, `frequencies`, `group-by`
+- **Sequences**: `map`, `filter`, `remove`, `reduce`, `first`, `rest`, `next`, `cons`, `nth`, `last`, `butlast`, `take`, `drop`, `drop-last`, `partition`, `sort-by`, `min-key`, `max-key`, `run!`
 - **Higher-order**: `comp`, `partial`, `juxt`, `apply`, `fnil`, `some-fn`
 - **Predicates**: `some?`, `seq?`, `map?`, `set?`, `vector?`, `list?`, `coll?`, `counted?`, `sorted?`, `char?`, `integer?`, `boolean`, `nan?` / `NaN?`
 - **Coercions**: `str`, `keyword`, `symbol`, `name`, `namespace`, `vec`, `float`, `double`, `byte`, `char`, `array-map`, `to-array`, `object-array`, `aclone`
 - **Macros**: `defn`, `def`, `defmacro`, `let`, `letfn`, `if`, `when`, `cond`, `case`, `condp`, `->`, `->>`, `as->`, `some->`, `some->>`, `cond->`, `cond->>`, `and`, `or`, `not`, `loop`/`recur`, `doseq`, `dotimes`, `for`, `if-some`, `when-some`, `when-first`, `assert`
-- **Protocols and types**: `defprotocol`, `extend-type`, `extend-protocol`, `satisfies?`, `extends?`, `reify`, `defrecord`, `deftype`
+- **Protocols/types**: `defprotocol`, `extend-type`, `extend-protocol`, `satisfies?`, `extends?`, `reify`, `defrecord`, `deftype`
 - **Multimethods**: `defmulti`, `defmethod`, `isa?`, `derive`, `parents`, `ancestors`, `make-hierarchy`
 - **Destructuring**: vectors, maps, `:keys`, `:strs`, `:syms`, `:or`, `& rest`
 - **Metadata**: `meta`, `with-meta`, `vary-meta`, `^:keyword` reader syntax
 - **Atoms**: `atom`, `deref` / `@`, `swap!`, `reset!`, `add-watch`, `remove-watch`, `set-validator!`
 - **Taps**: `tap>`, `add-tap`, `remove-tap` (synchronous dispatch; no background queue)
-- **Futures**: Futures via `future`/`future-fiber` (in `phel.core`). Note: `delay` in Phel lives in `phel.async` and is a sleep, not a Clojure-style lazy thunk; `force`/`delay?` do not exist.
+- **Futures**: `future` / `future-fiber` (in `phel.core`). Note: `delay` lives in `phel.async` and is a sleep, not a lazy thunk; `force`/`delay?` do not exist.
 - **Exceptions**: `ex-info`, `ex-data`, `ex-message`, `ex-cause`, `throw`, `try` / `catch` / `finally`
 - **Transducers**: `transduce`, `into` (3-arg), `sequence`, `completing`, `cat`, plus transducer arities for `map`, `filter`, `take`, `drop`, `keep`, `distinct`, `dedupe`, `mapcat`, `interpose`, and more
 - **Testing**: `deftest`, `is`, `testing`, `are`, `do-report`, extensible `assert-expr` (in `phel.test`)
-- **String utils**: `phel.string` with `upper-case`, `lower-case`, `split`, `join`, `trim`, `replace`, `starts-with?`, `ends-with?`, and more
+- **Strings**: `phel.string` with `upper-case`, `lower-case`, `split`, `join`, `trim`, `replace`, `starts-with?`, `ends-with?`, and more
 - **Regex**: `re-find`, `re-matches`, `re-pattern`, `#"..."` literals
 
 ## Reader syntax
@@ -48,14 +48,14 @@ Clojure reader syntax is accepted wholesale. Older Phel-specific forms still wor
 | Syntax | Meaning | Old Phel form (deprecated) |
 |--------|---------|----------------------------|
 | `#(inc %)` | Anonymous fn shorthand | `\|(inc $)` |
-| `~x`, `~@xs` | Unquote and unquote-splicing | `,x`, `,@xs` |
+| `~x`, `~@xs` | Unquote / unquote-splicing | `,x`, `,@xs` |
 | `name#` | Auto-gensym suffix in syntax-quote | `name$` |
-| `#'foo` | Var-quote (read as bare symbol `foo`) | |
+| `#'foo` | Var-quote (first-class `Phel\Lang\Var`) | |
 | `\a`, `\space`, `\uNNNN`, `\oNNN` | Character literal (compiles to single-char PHP string) | |
 | `##Inf`, `##-Inf`, `##NaN` | Symbolic numeric literal | |
 | `2r1111`, `16rFF` | Radix literal (bases 2 to 36) | |
-| `1N`, `1.5M` | BigInt / BigDecimal suffix (read as `Phel\Lang\BigInt` / `Phel\Lang\BigDecimal`) | |
-| `1/2`, `-3/4` | Ratio literal (read as `Phel\Lang\Ratio`; integer-valued ratios collapse to `int`/`BigInt`) | |
+| `1N`, `1.5M` | BigInt / BigDecimal suffix (`Phel\Lang\BigInt` / `Phel\Lang\BigDecimal`) | |
+| `1/2`, `-3/4` | Ratio literal (`Phel\Lang\Ratio`; integer-valued ratios collapse to `int`/`BigInt`) | |
 | `#"regex"` | Regex literal | |
 | `#?(...)`, `#?@(...)` | Reader conditionals (for `.cljc`) | |
 | `#<tag> form` | Tagged literal dispatch | |
@@ -63,13 +63,13 @@ Clojure reader syntax is accepted wholesale. Older Phel-specific forms still wor
 Notes:
 
 - Named `fn` for self-recursion: `(fn fact [n] (if (zero? n) 1 (* n (fact (dec n)))))`. Multi-arity named fns resolve the name across arities.
-- `defmacro` bodies have `&form` (original macro call) and `&env` (locals at the call site), enabling dialect detection via `(:ns &env)` in `.cljc` sources.
-- `#'foo` reads as a first-class `Phel\Lang\Var` (see `var?`, `var-get`, `find-var`, `bound?`, `with-redefs`). No `Char` type: `\A` compiles to the single-character string `"A"`.
-- Unknown `#<tag>` literals inside unselected `#?` branches parse without error, so `.cljc` files with foreign tags like `#cpp` in non-`:phel` branches work.
+- `defmacro` bodies have `&form` (original call) and `&env` (locals at call site), enabling dialect detection via `(:ns &env)` in `.cljc`.
+- `#'foo` reads as a `Phel\Lang\Var` (see `var?`, `var-get`, `find-var`, `bound?`, `with-redefs`). No `Char` type: `\A` compiles to `"A"`.
+- Unknown `#<tag>` literals inside unselected `#?` branches parse without error, so `.cljc` files with foreign tags (e.g. `#cpp` in non-`:phel` branches) work.
 
 ## Namespace syntax
 
-Phel uses `.` as the namespace separator, matching Clojure. The legacy `\` separator is still accepted for back-compat but deprecated; new code should use `.`.
+Phel uses `.` as the separator, matching Clojure. The legacy `\` separator still parses but is deprecated.
 
 ```phel
 ;; Preferred (Clojure-style):
@@ -82,11 +82,11 @@ Phel uses `.` as the namespace separator, matching Clojure. The legacy `\` separ
 (ns my\app (:require phel\string :as str))
 ```
 
-See [backslash-to-dot migration](migration/backslash-to-dot.md) for details.
+See [backslash-to-dot migration](migration/backslash-to-dot.md).
 
 **Automatic aliasing**: `clojure.*` namespaces in `:require` resolve to `phel.*` when the target exists. `.cljc` files using `(:require [clojure.string :as str])` work unchanged.
 
-**Importing PHP classes**: use `(:use ...)` in the `ns` form (Phel's equivalent of `(:import ...)`). PHP class names keep `\` as their native separator:
+**Importing PHP classes**: use `(:use ...)` (Phel's equivalent of `(:import ...)`). PHP class names keep `\` as their native separator:
 
 ```phel
 (ns my.app
@@ -98,7 +98,7 @@ See [backslash-to-dot migration](migration/backslash-to-dot.md) for details.
 (php/:: Symbol (create "foo"))  ; FQN Phel\Lang\Symbol is aliased
 ```
 
-`:use` is optional. Classes can always be referenced by FQN: `(php/new \DateTime)`.
+`:use` is optional; classes can always be referenced by FQN: `(php/new \DateTime)`.
 
 ## PHP interop (vs Java interop)
 
@@ -115,14 +115,7 @@ See [backslash-to-dot migration](migration/backslash-to-dot.md) for details.
 | PHP function | N/A | `(php/strlen "hello")` |
 | String concat | `(str a b)` | `(str a b)` or `(php/. a b)` |
 
-Any PHP function works with the `php/` prefix:
-
-```phel
-(php/array_map f arr)
-(php/strtolower "HELLO")
-(php/json_encode {:a 1})
-(php/date "Y-m-d")
-```
+Any PHP function works with the `php/` prefix: `(php/array_map f arr)`, `(php/strtolower "HELLO")`, `(php/json_encode {:a 1})`, `(php/date "Y-m-d")`.
 
 ## .cljc cross-compilation
 
@@ -138,18 +131,15 @@ Any PHP function works with the `php/` prefix:
      :clj  (str "Hello, " name "!")))
 ```
 
-Platform tags: `:phel`, `:clj`, `:cljs`, `:default`. Phel selects `:phel` first, then `:default`.
-
-Splice variant for embedding multiple forms:
+Platform tags: `:phel`, `:clj`, `:cljs`, `:default`. Phel selects `:phel` first, then `:default`. Splice variant embeds multiple forms:
 
 ```clojure
-[1 2 #?@(:phel [3 4] :clj [5 6])]
-;; In Phel: [1 2 3 4]
+[1 2 #?@(:phel [3 4] :clj [5 6])]   ; In Phel: [1 2 3 4]
 ```
 
 ## Clojure-compatible renames
 
-Old Phel-specific names still work but are deprecated:
+Old Phel-specific names still work but are deprecated (removed in a future major):
 
 | Clojure name | Old Phel name |
 |--------------|---------------|
@@ -163,69 +153,59 @@ Old Phel-specific names still work but are deprecated:
 | `NaN?` | `nan?` |
 | `integer?` | `int?` (alias, not deprecated) |
 
-Deprecated names are removed in a future major version.
-
 ## What's not available (and why)
 
-Some Clojure features don't translate to PHP:
-
-| Clojure feature | Why it's absent | Alternative |
-|-----------------|----------------|-------------|
+| Clojure feature | Why absent | Alternative |
+|-----------------|------------|-------------|
 | **Refs / STM** | No concurrent transactions in PHP | Use `atom` for mutable state |
 | **Agents** | No background threads | PHP job queues via interop |
-| **core.async** | No goroutines/CSP, but fiber primitives (`promise`, `deliver`, `future-fiber`) cover CSP-lite handoffs, all in `phel.core` except `delay` (requires `phel.async`). | See [docs/async-guide.md](async-guide.md) |
-| **BigInt / BigDecimal / Ratio** | First-class `Phel\Lang\BigInt`, `Phel\Lang\BigDecimal`, `Phel\Lang\Ratio` ship in core | Use literals `1N`, `1.5M`, `1/2` or constructors `bigint`, `bigdec`, `rationalize`. See [numeric-tower.md](numeric-tower.md) |
-| **Character type** | PHP has no char type | Character literals (`\a`) and `char` / `char?` are supported but compile to single-character strings |
-| **Spec** | Not ported | Use runtime assertions or PHP validation |
-| **`alter-var-root`** | Available: `(alter-var-root #'sym f)` re-roots the global binding | Use `with-redefs` for scoped overrides; `add-watch`/`remove-watch` on vars for change tracking |
+| **core.async** | No goroutines/CSP; fiber primitives (`promise`, `deliver`, `future-fiber`) cover CSP-lite handoffs, all in `phel.core` except `delay` (needs `phel.async`) | See [async-guide.md](async-guide.md) |
+| **BigInt / BigDecimal / Ratio** | First-class `Phel\Lang\BigInt`, `Phel\Lang\BigDecimal`, `Phel\Lang\Ratio` ship in core | Literals `1N`, `1.5M`, `1/2` or constructors `bigint`, `bigdec`, `rationalize`. See [numeric-tower.md](numeric-tower.md) |
+| **Character type** | PHP has no char type | `\a` literals and `char` / `char?` compile to single-char strings |
+| **Spec** | Not ported | Runtime assertions or PHP validation (also `phel.schema`) |
+| **`alter-var-root`** | Available: `(alter-var-root #'sym f)` re-roots the global binding | `with-redefs` for scoped overrides; `add-watch`/`remove-watch` on vars for tracking |
 
-The async surface lives in `phel.core`, no require needed: `future`, `future-cancel`, `future-cancelled?`, `future-done?`, `future?`, `pmap`, `promise`, `deliver`, plus fiber combinators `async`, `await`, `await-all`, `await-any`, `future-call`, `future-fiber`, and `->closure`. Built on AMPHP fibers. Semantics match `future` where possible (including timeout-bounded `deref`), but cancellation is cooperative, and `pmap` is single-threaded (overlaps IO, does not parallelize CPU). Only `delay` needs `(:require phel.async)`, since Phel's `delay` is a sleep primitive while `clojure.core/delay` is a lazy thunk. See [docs/async-guide.md](async-guide.md).
+The async surface lives in `phel.core` (no require): `future`, `future-cancel`, `future-cancelled?`, `future-done?`, `future?`, `pmap`, `promise`, `deliver`, plus fiber combinators `async`, `await`, `await-all`, `await-any`, `future-call`, `future-fiber`, `->closure`. Built on AMPHP fibers. Semantics match `future` where possible (including timeout-bounded `deref`), but cancellation is cooperative and `pmap` is single-threaded (overlaps IO, does not parallelize CPU). Only `delay` needs `(:require phel.async)`, since Phel's `delay` is a sleep primitive. See [async-guide.md](async-guide.md).
 
 ## Structural differences
 
-### defstruct, defrecord, and deftype
+### defstruct, defrecord, deftype
 
-Phel's native type form is `defstruct`. `defrecord` and `deftype` are thin macros over `defstruct` and produce the `->Name` / `map->Name` factories:
+`defstruct` is Phel's native type form. `defrecord` and `deftype` are thin macros over it, producing `->Name` / `map->Name` factories:
 
 ```phel
 ;; defstruct (native)
 (defstruct Point [x y])
-(let [p (Point 1 2)]
-  (get p :x)) ;; => 1
+(let [p (Point 1 2)] (get p :x))   ;; => 1
 
 ;; defrecord (Clojure-compatible)
 (defrecord Point [x y])
-(->Point 1 2)            ;; positional factory
-(map->Point {:x 1 :y 2}) ;; map factory
+(->Point 1 2)             ;; positional factory
+(map->Point {:x 1 :y 2})  ;; map factory
 
-;; deftype
+;; deftype (no map-> counterpart)
 (deftype PointT [x y])
-(->PointT 1 2)           ;; positional factory (no map-> counterpart)
+(->PointT 1 2)
 ```
 
-Inline protocol methods work in both macro bodies (spliced into `extend-type`):
+Inline protocol methods work in both (spliced into `extend-type`); `reify` gives anonymous implementations:
 
 ```phel
-(defprotocol Drawable
-  (draw [this canvas]))
+(defprotocol Drawable (draw [this canvas]))
 
 (defrecord Shape [label]
   Drawable
   (draw [this canvas] (str canvas ":" (get this :label))))
-```
 
-`reify` supports anonymous protocol implementation:
-
-```phel
 (reify Drawable
   (draw [this canvas] (str canvas ":anon")))
 ```
 
-Phel's `deftype` shares the map-backed `defstruct` infrastructure: instances stay map-like (keys accessible via `get`). For Clojure's non-map `deftype`, fall back to native PHP interop.
+`deftype` shares `defstruct`'s map-backed infrastructure: instances stay map-like (keys via `get`). For Clojure's non-map `deftype`, fall back to native PHP interop.
 
 ### No lazy-seq by default
 
-Phel sequences are eager. Use `lazy-seq` when needed:
+Phel sequences are eager; use `lazy-seq` when needed. `(range)` with 0 args returns an infinite lazy sequence.
 
 ```phel
 (defn lazy-fib
@@ -233,11 +213,9 @@ Phel sequences are eager. Use `lazy-seq` when needed:
   ([a b] (lazy-seq (cons a (lazy-fib b (+ a b))))))
 ```
 
-`(range)` with 0 arguments returns an infinite lazy sequence.
-
 ### Test framework
 
-`phel.test` mirrors `clojure.test`:
+`phel.test` mirrors `clojure.test`. Run with `./bin/phel test`.
 
 ```phel
 (ns my-app.test
@@ -252,19 +230,13 @@ Phel sequences are eager. Use `lazy-seq` when needed:
       3 3 6)))
 ```
 
-Extend `is` with custom assertions via `phel.test/assert-expr`:
-
-```phel
-(defmethod phel.test/assert-expr 'my-form [msg form] ...)
-```
-
-Run tests with `./bin/phel test`.
+Extend `is` with custom assertions: `(defmethod phel.test/assert-expr 'my-form [msg form] ...)`.
 
 ## Migration checklist
 
 1. Rename `.clj` files to `.phel` (or `.cljc` for shared code)
-2. Keep namespace separators as `.` (e.g. `my.app.core`); the legacy `\` form still parses but is deprecated
+2. Use `.` namespace separators (e.g. `my.app.core`); legacy `\` still parses but is deprecated
 3. Replace Java interop with PHP interop (`(.method obj)` → `(php/-> obj (method))`)
-4. Rewrite `(:import [java.util Date])` clauses as `(:use DateTime)` in the `ns` form
-5. Replace concurrency primitives (refs, agents, core.async) with `atom` or the AMPHP-backed primitives in `phel.core` (`future`, `pmap`, `promise`, `deliver`, ...); add `(:require phel.async :refer [delay])` only for the sleep primitive
+4. Rewrite `(:import [java.util Date])` as `(:use DateTime)` in the `ns` form
+5. Replace concurrency primitives (refs, agents, core.async) with `atom` or the AMPHP-backed `phel.core` primitives (`future`, `pmap`, `promise`, `deliver`, ...); add `(:require phel.async :refer [delay])` only for the sleep primitive
 6. Run `./bin/phel test` to verify
