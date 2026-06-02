@@ -7,11 +7,11 @@ namespace PhelTest\Unit\Build\Domain\Extractor;
 use Phel\Build\Application\NamespaceExtractor;
 use Phel\Build\Domain\Extractor\ExcludedScanPaths;
 use Phel\Build\Domain\Extractor\ExtractorException;
-use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Build\Domain\Extractor\TopologicalNamespaceSorter;
 use Phel\Build\Infrastructure\IO\SystemFileIo;
 use Phel\Compiler\CompilerFacade;
 use Phel\Phel;
+use Phel\Shared\NamespaceInformation;
 use PHPUnit\Framework\TestCase;
 
 final class NamespaceExtractorTest extends TestCase

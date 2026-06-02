@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace PhelTest\Integration\Run\Command\Ns;
 
 use Phel;
-use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Run\Infrastructure\Command\NsCommand;
 use Phel\Shared\Facade\RunFacadeInterface;
+use Phel\Shared\NamespaceInformation;
 use PhelTest\Integration\Run\Command\AbstractTestCommand;
 use Symfony\Component\Console\Input\InputInterface;
 

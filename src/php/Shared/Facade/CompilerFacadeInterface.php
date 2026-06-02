@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Shared\Facade;
 
-use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Environment\GlobalEnvironmentInterface;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironmentInterface;
@@ -20,6 +19,7 @@ use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\TypeInterface;
 use Phel\Shared\CompileOptions;
+use Phel\Shared\CompilerConstants;
 use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Exceptions\FileException;
@@ -85,7 +85,7 @@ interface CompilerFacadeInterface
     /**
      * @throws LexerValueException
      */
-    public function lexString(string $code, string $source = Lexer::DEFAULT_SOURCE, bool $withLocation = true, int $startingLine = 1): TokenStream;
+    public function lexString(string $code, string $source = CompilerConstants::DEFAULT_SOURCE, bool $withLocation = true, int $startingLine = 1): TokenStream;
 
     /**
      * @throws UnexpectedParserException

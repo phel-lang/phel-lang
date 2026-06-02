@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace Phel\Build\Domain\Compile;
 
 use Phel\Build\Domain\Cache\CompiledCodeCacheInterface;
-use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Build\Domain\IO\FileIoInterface;
+use Phel\Shared\NamespaceInformation;
 use RuntimeException;
 
 use function dirname;

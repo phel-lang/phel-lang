@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Build\Application;
 
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
-use Phel\Build\Domain\Extractor\NamespaceInformation;
+use Phel\Shared\NamespaceInformation;
 
 use SplQueue;
 

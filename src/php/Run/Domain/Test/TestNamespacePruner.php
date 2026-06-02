@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain\Test;
 
-use Phel\Build\Domain\Extractor\NamespaceInformation;
+use Phel\Shared\NamespaceInformation;
 
 use function array_filter;
 use function array_keys;

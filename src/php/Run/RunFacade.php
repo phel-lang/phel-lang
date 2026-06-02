@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Phel\Run;
 
 use Gacela\Framework\AbstractFacade;
-use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Run\Application\Test\CpuCountDetector;
 use Phel\Run\Application\Test\ParallelTestOrchestrator;
 use Phel\Run\Domain\Repl\EvalResult;
 use Phel\Shared\CompileOptions;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Facade\RunFacadeInterface;
+use Phel\Shared\NamespaceInformation;
 use Symfony\Component\Console\Output\OutputInterface;
 use Throwable;
 

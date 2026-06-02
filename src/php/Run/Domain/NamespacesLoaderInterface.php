@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Run\Domain;
 
-use Phel\Build\Domain\Extractor\NamespaceInformation;
+use Phel\Shared\NamespaceInformation;
 
 interface NamespacesLoaderInterface
 {

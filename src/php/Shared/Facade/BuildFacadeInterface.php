@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Phel\Shared\Facade;
 
 use Phel\Build\Domain\Compile\CompiledFile;
-use Phel\Build\Domain\Extractor\NamespaceInformation;
+use Phel\Shared\NamespaceInformation;
 
 interface BuildFacadeInterface
 {

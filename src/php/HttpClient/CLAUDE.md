@@ -6,6 +6,8 @@ Outbound HTTP support for `phel.http-client`. No Gacela Facade: pure stateless u
 
 Stateless, no module config, no registry, no cross-module dependencies. Facade would add ceremony without value.
 
+**Public-surface decision (#2261):** kept as-is. No PHP module consumes these classes; the only caller is user-facing Phel interop (`src/phel/http-client.phel` calls `\Phel\HttpClient\StreamTransport` by FQCN), so a Facade would have zero internal callers and renaming for `Shared` would break the public interop class name. `Shared` is also reserved for I/O-free utilities, and `StreamTransport` performs network I/O — so it cannot move there.
+
 ## Public API
 
 **`StreamTransport::send(string $method, string $url, array<string, string> $headers, ?string $body, array<string, mixed> $options): array`**

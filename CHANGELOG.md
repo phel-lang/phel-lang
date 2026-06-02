@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 
 ### Changed
 
+- Architecture: relocated the `NamespaceInformation` value object from `Build\Domain\Extractor` to `Phel\Shared`, removing the `Shared -> foreign Domain` back-reference from the Build/Run facade interfaces; sourced `CompilerFacadeInterface::lexString`'s `DEFAULT_SOURCE` default from `Shared\CompilerConstants` instead of the `Application\Lexer` concrete; sanctioned `EvalError` in `RunFacadeInterface`'s value graph (pure relocations, no behavior change) (#2261)
 - Compiler internals: split the 1325-LOC `CallSpecialization` god-class into eight focused collaborators (pure refactor, output unchanged)
 - Compiler internals: centralized the emitters' bare-expression capture into `OutputEmitter::captureNodeAsExpression()`
 - Tests: `RegistryTest` and `PhelVarTest` snapshot and restore the global `Registry`, fixing order-dependent `phel.core` suite failures (#2256)

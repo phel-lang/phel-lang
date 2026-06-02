@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Phel\Build\Domain\Extractor;
+namespace Phel\Shared;
 
 final readonly class NamespaceInformation
 {

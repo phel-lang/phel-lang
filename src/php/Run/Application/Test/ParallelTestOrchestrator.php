@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Run\Application\Test;
 
-use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Run\Domain\Test\TestCommandOptions;
+use Phel\Shared\NamespaceInformation;
 use Symfony\Component\Console\Output\OutputInterface;
 
 use function array_unique;

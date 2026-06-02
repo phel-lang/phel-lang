@@ -6,7 +6,6 @@ namespace Phel\Interop\Domain\ExportFinder;
 
 use Phel;
 use Phel\Build\Domain\Extractor\ExtractorException;
-use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Interop\Domain\ReadModel\FunctionToExport;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
@@ -15,6 +14,7 @@ use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Exceptions\FileException;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
+use Phel\Shared\NamespaceInformation;
 
 final readonly class FunctionsToExportFinder implements FunctionsToExportFinderInterface
 {
