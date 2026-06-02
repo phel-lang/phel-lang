@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Shared\Printer\TypePrinter;
 
 use Phel\Lang\Collections\Struct\AbstractPersistentStruct;
+use Phel\Shared\Munge;
 use Phel\Shared\Printer\PrinterInterface;
 
 /**
@@ -24,6 +25,6 @@ final readonly class StructPrinter implements TypePrinterInterface
             $values[] = $this->printer->print($form[$key]);
         }
 
-        return '(' . $form::class . ' ' . implode(' ', $values) . ')';
+        return '(' . Munge::displayNs($form::class) . ' ' . implode(' ', $values) . ')';
     }
 }
