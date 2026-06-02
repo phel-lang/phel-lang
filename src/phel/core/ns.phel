@@ -130,7 +130,7 @@
   arguments, returns `not-found` instead, which lets callers disambiguate a
   stored nil from a missing definition. Returns `not-found` for non-symbol
   or unqualified inputs."
-  {:example "(var-get #'phel.core/map) ; => <fn>\n(var-get (intern \"user\" \"x\" 42)) ; => 42\n(var-get 'user/missing ::none) ; => ::none"
+  {:example "(var-get #'phel.core/map) ; => <function:map>\n(var-get (intern \"user\" \"x\" 42)) ; => 42\n(var-get 'user/missing ::none) ; => :user/none"
    :see-also ["find-var" "intern" "ns-interns" "find-ns"]}
   ([x] (var-get x nil))
   ([x not-found]

@@ -65,7 +65,7 @@
   With three arguments, and when `variable` is a future or promise, blocks
   for at most `timeout-ms` milliseconds waiting for it to resolve. If the
   awaitable has not completed within the timeout, returns `timeout-val`."
-  {:example "(deref (atom 42)) ; => 42\n(deref #'phel.core/map) ; => <fn>"
+  {:example "(deref (atom 42)) ; => 42\n(deref #'phel.core/map) ; => <function:map>"
    :see-also ["atom" "reset!" "swap!" "future" "var-get"]}
   [variable & args]
   (case (count args)
@@ -226,7 +226,7 @@
   "Creates a lazy sequence of numbers. With no arguments returns an infinite
   sequence starting at 0. With one argument returns (0..n). With two (start..end).
   With three (start..end step). Note: the infinite sequence is bounded by PHP_INT_MAX."
-  {:example "(range 5) ; => (0 1 2 3 4)"
+  {:example "(range 5) ; => @[0 1 2 3 4]"
    :see-also ["iterate" "repeat"]}
   [& args]
   (case (count args)

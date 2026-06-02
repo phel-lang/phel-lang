@@ -250,7 +250,7 @@
 
 (defn flatten
   "Flattens nested sequential structure into a lazy sequence of all leaf values."
-  {:example "(flatten [[1 2] [3 [4 5]] 6]) ; => (1 2 3 4 5 6)"}
+  {:example "(flatten [[1 2] [3 [4 5]] 6]) ; => @[1 2 3 4 5 6]"}
   [coll]
   (filter
    (complement indexed?)
@@ -298,7 +298,7 @@
 
 (defn update-keys
   "Returns a map with `f` applied to each key."
-  {:example "(update-keys {:a 1 :b 2} name) ; => {\"a\" 1 \"b\" 2}"
+  {:example "(update-keys {:a 1 :b 2} name) ; => {\"a\" 1, \"b\" 2}"
    :see-also ["update-vals" "keys" "update"]}
   [m f]
   (persistent
@@ -308,7 +308,7 @@
 
 (defn update-vals
   "Returns a map with `f` applied to each value."
-  {:example "(update-vals {:a 1 :b 2} inc) ; => {:a 2 :b 3}"
+  {:example "(update-vals {:a 1 :b 2} inc) ; => {:a 2, :b 3}"
    :see-also ["update-keys" "values" "update"]}
   [m f]
   (persistent

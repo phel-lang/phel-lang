@@ -118,7 +118,7 @@
    without a value is associated with `nil`. Raises
    `InvalidArgumentException` when `tcoll` is not a supported transient
    collection. Matches Clojure's `assoc!` semantics."
-  {:example "(persistent! (assoc! (transient {}) :a 1 :b 2)) ; => {:a 1 :b 2}"
+  {:example "(persistent! (assoc! (transient {}) :a 1 :b 2)) ; => {:a 1, :b 2}"
    :see-also ["assoc" "conj!" "transient" "persistent!"]}
   [tcoll key value & more]
   (loop [acc       (assoc-bang-pair tcoll key value)
