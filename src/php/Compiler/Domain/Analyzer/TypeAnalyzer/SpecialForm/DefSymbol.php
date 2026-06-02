@@ -27,7 +27,6 @@ use function array_pop;
 use function array_slice;
 use function assert;
 use function count;
-use function implode;
 use function in_array;
 use function is_scalar;
 use function is_string;
@@ -76,12 +75,13 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
 
         [$metaMap, $init] = $this->createMetaMapAndInit($list);
 
+        $rewriter = new MacroFormRewriter();
         $isMacro = $metaMap[Keyword::create('macro')] === true;
         if ($isMacro) {
-            $init = $this->injectMacroImplicitParams($init);
+            $init = $rewriter->injectImplicitParams($init);
         }
 
-        $init = $this->injectReturnTypeFromMeta($init, $metaMap);
+        $init = $rewriter->injectReturnTypeFromMeta($init, $metaMap);
 
         $initNode = $this->analyzeInit($init, $env, $namespace, $nameSymbol, $metaMap);
         $skip = $isMacro ? self::MACRO_IMPLICIT_PARAMS : 0;
@@ -98,7 +98,7 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
 
             $metaMap = $metaMap->put('min-arity', max(0, $initNode->getMinArity() - $skip));
             $metaMap = $metaMap->put('is-variadic', $initNode->isVariadic());
-            $metaMap = $metaMap->put('arglists', $this->buildFnNodeArglist($initNode, $skip));
+            $metaMap = $metaMap->put('arglists', new DefArglistBuilder()->buildFnNodeArglist($initNode, $skip));
         } elseif ($initNode instanceof MultiFnNode) {
             // Stash multi-arity defs too so the inliner can select the
             // arity matching a call's argument count (#2218).
@@ -107,7 +107,7 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
             $metaMap = $metaMap->put('is-variadic', $initNode->isVariadic());
             $maxArity = $initNode->getMaxArity();
             $metaMap = $metaMap->put('max-arity', $maxArity === null ? null : max(0, $maxArity - $skip));
-            $metaMap = $metaMap->put('arglists', $this->buildMultiFnNodeArglists($initNode, $skip));
+            $metaMap = $metaMap->put('arglists', new DefArglistBuilder()->buildMultiFnNodeArglists($initNode, $skip));
         }
 
         $metaMap = $this->persistInferredReturnTag($metaMap, $this->inferredReturnTypeOf($initNode));
@@ -321,11 +321,6 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
         return (bool) $meta[Keyword::create('memoize-lru')];
     }
 
-    private function buildFnNodeArglist(FnNode $fnNode, int $skipFirst = 0): string
-    {
-        return $this->formatParamsVector($fnNode->getParams(), $fnNode->isVariadic(), $skipFirst);
-    }
-
     /**
      * Inferred return type writes back to the def's runtime meta as `:tag`
      * so cross-fn inference can see it on the next call site without
@@ -495,240 +490,5 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
         }
 
         return $params;
-    }
-
-    private function buildMultiFnNodeArglists(MultiFnNode $multiFnNode, int $skipFirst = 0): string
-    {
-        $vectors = [];
-        foreach ($multiFnNode->getFnNodes() as $fnNode) {
-            $vectors[] = $this->formatParamsVector($fnNode->getParams(), $fnNode->isVariadic(), $skipFirst);
-        }
-
-        return '(' . implode(' ', $vectors) . ')';
-    }
-
-    /**
-     * @param list<Symbol> $params
-     */
-    private function formatParamsVector(array $params, bool $isVariadic, int $skipFirst = 0): string
-    {
-        if ($skipFirst > 0) {
-            $params = array_slice($params, $skipFirst);
-        }
-
-        $names = array_map(
-            static fn(Symbol $s): string => $s->getName(),
-            $params,
-        );
-
-        if ($isVariadic && $names !== []) {
-            $restParam = array_pop($names);
-            $names[] = '&';
-            $names[] = $restParam;
-        }
-
-        return '[' . implode(' ', $names) . ']';
-    }
-
-    /**
-     * Rewrites a `(fn ...)` init expression to prepend `&form` and `&env` to each arity's
-     * parameter vector. Supports both single-arity and multi-arity fn forms. Returns the
-     * init unchanged if it is not a `(fn ...)` list or if the implicit params are already
-     * present (idempotent / Clojure-style shadowing).
-     */
-    private function injectMacroImplicitParams(mixed $init): mixed
-    {
-        if (!$init instanceof PersistentListInterface) {
-            return $init;
-        }
-
-        $head = $init->first();
-        if (!$head instanceof Symbol || $head->getName() !== Symbol::NAME_FN) {
-            return $init;
-        }
-
-        $second = $init->get(1);
-        if ($second instanceof PersistentVectorInterface) {
-            return $this->rewriteSingleArityFn($init);
-        }
-
-        if ($second instanceof PersistentListInterface) {
-            return $this->rewriteMultiArityFn($init);
-        }
-
-        return $init;
-    }
-
-    /**
-     * @param PersistentListInterface<mixed> $fnList
-     *
-     * @return PersistentListInterface<mixed>
-     */
-    private function rewriteSingleArityFn(PersistentListInterface $fnList): PersistentListInterface
-    {
-        $items = $fnList->toArray();
-        /** @var PersistentVectorInterface<mixed> $params */
-        $params = $items[1];
-        $items[1] = $this->prependImplicitParams($params);
-
-        return Phel::list($items)->copyLocationFrom($fnList);
-    }
-
-    /**
-     * @param PersistentListInterface<mixed> $fnList
-     *
-     * @return PersistentListInterface<mixed>
-     */
-    private function rewriteMultiArityFn(PersistentListInterface $fnList): PersistentListInterface
-    {
-        $items = $fnList->toArray();
-        for ($i = 1, $n = count($items); $i < $n; ++$i) {
-            $arity = $items[$i];
-            if (!$arity instanceof PersistentListInterface) {
-                continue;
-            }
-
-            $arityItems = $arity->toArray();
-            if ($arityItems === []) {
-                continue;
-            }
-
-            if (!$arityItems[0] instanceof PersistentVectorInterface) {
-                continue;
-            }
-
-            $arityItems[0] = $this->prependImplicitParams($arityItems[0]);
-            $items[$i] = Phel::list($arityItems)->copyLocationFrom($arity);
-        }
-
-        return Phel::list($items)->copyLocationFrom($fnList);
-    }
-
-    /**
-     * When the def's metadata carries `:tag` (typically from the name symbol,
-     * e.g. `(defn ^int add [x y] ...)`), splice that tag onto each fn arity's
-     * param vector so `FnSymbol` can pick it up as the compiled signature's
-     * return type. Skips arities that already declare their own vector `:tag`
-     * (more local declaration wins).
-     *
-     * @param PersistentMapInterface<mixed, mixed> $meta
-     */
-    private function injectReturnTypeFromMeta(mixed $init, PersistentMapInterface $meta): mixed
-    {
-        $tag = $meta->find(Keyword::create('tag'));
-        if (!($tag instanceof Symbol) && !is_string($tag)) {
-            return $init;
-        }
-
-        if (!$init instanceof PersistentListInterface) {
-            return $init;
-        }
-
-        $head = $init->first();
-        if (!$head instanceof Symbol || $head->getName() !== Symbol::NAME_FN) {
-            return $init;
-        }
-
-        $second = $init->get(1);
-        if ($second instanceof PersistentVectorInterface) {
-            return $this->rewriteSingleArityWithTag($init, $tag);
-        }
-
-        if ($second instanceof PersistentListInterface) {
-            return $this->rewriteMultiArityWithTag($init, $tag);
-        }
-
-        return $init;
-    }
-
-    /**
-     * @param PersistentListInterface<mixed> $fnList
-     *
-     * @return PersistentListInterface<mixed>
-     */
-    private function rewriteSingleArityWithTag(PersistentListInterface $fnList, mixed $tag): PersistentListInterface
-    {
-        $items = $fnList->toArray();
-        /** @var PersistentVectorInterface<mixed> $params */
-        $params = $items[1];
-        $items[1] = $this->withReturnTypeTag($params, $tag);
-
-        return Phel::list($items)->copyLocationFrom($fnList);
-    }
-
-    /**
-     * @param PersistentListInterface<mixed> $fnList
-     *
-     * @return PersistentListInterface<mixed>
-     */
-    private function rewriteMultiArityWithTag(PersistentListInterface $fnList, mixed $tag): PersistentListInterface
-    {
-        $items = $fnList->toArray();
-        for ($i = 1, $n = count($items); $i < $n; ++$i) {
-            $arity = $items[$i];
-            if (!$arity instanceof PersistentListInterface) {
-                continue;
-            }
-
-            $arityItems = $arity->toArray();
-            if ($arityItems === []) {
-                continue;
-            }
-
-            if (!$arityItems[0] instanceof PersistentVectorInterface) {
-                continue;
-            }
-
-            $arityItems[0] = $this->withReturnTypeTag($arityItems[0], $tag);
-            $items[$i] = Phel::list($arityItems)->copyLocationFrom($arity);
-        }
-
-        return Phel::list($items)->copyLocationFrom($fnList);
-    }
-
-    /**
-     * @param PersistentVectorInterface<mixed> $params
-     *
-     * @return PersistentVectorInterface<mixed>
-     */
-    private function withReturnTypeTag(PersistentVectorInterface $params, mixed $tag): PersistentVectorInterface
-    {
-        $existing = $params->getMeta();
-        if ($existing instanceof PersistentMapInterface
-            && $existing->find(Keyword::create('tag')) !== null
-        ) {
-            return $params;
-        }
-
-        $merged = ($existing ?? Phel::map())->put(Keyword::create('tag'), $tag);
-
-        return $params->withMeta($merged);
-    }
-
-    /**
-     * @param PersistentVectorInterface<mixed> $params
-     *
-     * @return PersistentVectorInterface<mixed>
-     */
-    private function prependImplicitParams(PersistentVectorInterface $params): PersistentVectorInterface
-    {
-        // Idempotency / shadowing guard: if the first two params are already `&form` and `&env`,
-        // leave the vector untouched so users can explicitly shadow.
-        if (count($params) >= 2) {
-            $first = $params->get(0);
-            $second = $params->get(1);
-            if (
-                $first instanceof Symbol && $first->getName() === '&form'
-                && $second instanceof Symbol && $second->getName() === '&env'
-            ) {
-                return $params;
-            }
-        }
-
-        $formSymbol = Symbol::create('&form')->copyLocationFrom($params);
-        $envSymbol = Symbol::create('&env')->copyLocationFrom($params);
-
-        return Phel::vector([$formSymbol, $envSymbol, ...$params->toArray()])
-            ->copyLocationFrom($params);
     }
 }

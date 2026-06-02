@@ -7,8 +7,8 @@ namespace PhelTest\Unit\Run\Infrastructure\Command;
 use InvalidArgumentException;
 use Phel\Run\Domain\Test\TestCommandOptions;
 use Phel\Run\Infrastructure\Command\TestCommand;
+use Phel\Run\Infrastructure\Command\TestCommandOptionParser;
 use PHPUnit\Framework\TestCase;
-use ReflectionMethod;
 use Symfony\Component\Console\Input\ArrayInput;
 
 final class TestCommandRepeatSeedTest extends TestCase
@@ -107,10 +107,7 @@ final class TestCommandRepeatSeedTest extends TestCase
         $command = new TestCommand();
         $input = new ArrayInput($arguments, $command->getDefinition());
 
-        $method = new ReflectionMethod(TestCommand::class, 'collectOptions');
-
-        /** @var array<string, mixed> $collected */
-        $collected = $method->invoke($command, $input);
+        $collected = new TestCommandOptionParser()->collectOptions($input);
 
         return TestCommandOptions::fromArray($collected)->asPhelHashMap();
     }
