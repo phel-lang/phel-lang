@@ -307,7 +307,7 @@
   through each form for which the corresponding test expression is true.
   Note that, unlike `cond` branching, `cond->>` threading does not short-circuit
   after the first true test expression."
-  {:example "(cond->> [1 2 3] true (map inc) false (filter odd?)) ; => [2 3 4]"}
+  {:example "(cond->> [1 2 3] true (map inc) false (filter odd?)) ; => @[2 3 4]"}
   [expr & clauses]
   (let [g     (gensym)
         steps (map (fn [pair]
