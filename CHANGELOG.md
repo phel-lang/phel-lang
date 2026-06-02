@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 
 - Architecture: modular-architecture cleanup of `src/php/` (#2261, #2262, #2263, #2264) — relocated leaky cross-module value objects to their proper homes (`NamespaceInformation`, the parse-tree nodes + lexer `Token`, and the stateful `LoadClasspath`) and split four oversized analyzer/command classes (`DefSymbol`, `ParamTypeInferrer`, `TestCommand`, and `ConstantFolder`/`FnSymbol`) into focused collaborators. Pure refactors, no behavior change
 - Compiler internals: split the 1325-LOC `CallSpecialization` god-class into eight focused collaborators (pure refactor, output unchanged)
+- Compiler internals: split the 959-LOC `CallEmitter` god-class into eight per-family `Specialized/*CallEmitter` collaborators behind a thin dispatcher (pure refactor, emitted PHP unchanged)
 - Compiler internals: centralized the emitters' bare-expression capture into `OutputEmitter::captureNodeAsExpression()`
 - Tests: `RegistryTest` and `PhelVarTest` snapshot and restore the global `Registry`, fixing order-dependent `phel.core` suite failures (#2256)
 - Docs: condensed every `docs/` guide (~17% smaller), verified against the runtime, and cross-linked to phel-lang.org
