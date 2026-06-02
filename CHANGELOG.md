@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - Lexer: error/source-map columns are now counted in code points instead of bytes, so locations are accurate for source containing multibyte (UTF-8) characters (ASCII-only code is unaffected)
+- Docs: corrected the `:example` metadata for `bigint`, `biginteger`, `+'`, `-'`, `*'`, `inc'`, and `dec'` in `phel.core` (showed a phantom `N` suffix, e.g. `(bigint 42) ; => 42N`); `BigInt` values print without a suffix, so the examples now read `=> 42`. This also fixes the auto-generated API reference on phel-lang.org and `phel doc` output
 
 ### Added
 

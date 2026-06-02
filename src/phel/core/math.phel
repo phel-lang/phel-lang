@@ -215,7 +215,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   rationals pass through unchanged. Equivalent to `+` for overflow
   protection (Phel's `+` already auto-promotes on overflow), kept for
   `.cljc` interop."
-  {:example "(+' 1 2) ; => 3N"
+  {:example "(+' 1 2) ; => 3"
    :see-also ["+" "*'" "-'"]}
   [& xs]
   (promote-int->bigint (apply + xs)))
@@ -223,7 +223,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 (defn -'
   "Auto-promoting variant of `-`. Integer results are returned as
   `BigInt`; floats and rationals pass through unchanged."
-  {:example "(-' 5 2) ; => 3N"
+  {:example "(-' 5 2) ; => 3"
    :see-also ["-" "+'" "*'"]}
   [& xs]
   (promote-int->bigint (apply - xs)))
@@ -231,7 +231,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 (defn *'
   "Auto-promoting variant of `*`. Integer results are returned as
   `BigInt`; floats and rationals pass through unchanged."
-  {:example "(*' 2 3) ; => 6N"
+  {:example "(*' 2 3) ; => 6"
    :see-also ["*" "+'" "-'"]}
   [& xs]
   (promote-int->bigint (apply * xs)))
@@ -239,7 +239,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 (defn inc'
   "Auto-promoting variant of `inc`. Integer results are returned as
   `BigInt`; floats and rationals pass through unchanged."
-  {:example "(inc' 1) ; => 2N"
+  {:example "(inc' 1) ; => 2"
    :see-also ["inc" "dec'"]}
   [x]
   (promote-int->bigint (inc x)))
@@ -247,7 +247,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 (defn dec'
   "Auto-promoting variant of `dec`. Integer results are returned as
   `BigInt`; floats and rationals pass through unchanged."
-  {:example "(dec' 1) ; => 0N"
+  {:example "(dec' 1) ; => 0"
    :see-also ["dec" "inc'"]}
   [x]
   (promote-int->bigint (dec x)))
@@ -704,7 +704,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
   "Coerces `x` to a `Phel\\Lang\\BigInt`. Accepts ints, floats
   (truncated toward zero, rejecting `NaN`/`Inf`), numeric strings, and
   `BigInt` values."
-  {:example "(bigint 42) ; => 42N\n(bigint 1.9) ; => 1N\n(bigint \"123\") ; => 123N"
+  {:example "(bigint 42) ; => 42\n(bigint 1.9) ; => 1\n(bigint \"123\") ; => 123"
    :see-also ["bigint?" "int" "rationalize"]}
   [x]
   (cond
@@ -718,7 +718,7 @@ returns 1. If `xs` has one value, returns the reciprocal of x.
 
 (defn biginteger
   "Alias for `bigint`. Coerces `x` to a `Phel\\Lang\\BigInt`."
-  {:example "(biginteger 42) ; => 42N"
+  {:example "(biginteger 42) ; => 42"
    :see-also ["bigint" "bigint?"]}
   [x]
   (bigint x))
