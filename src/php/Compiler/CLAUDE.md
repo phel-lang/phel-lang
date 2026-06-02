@@ -54,7 +54,8 @@ Compiler/
 │   │                     NodeEmitter/ (per-AST emitters; Specialized/ holds the CallEmitter families)
 │   ├── Evaluator/        InMemoryEvaluator, RequireEvaluator
 │   ├── Lexer/            TokenStream (Token + parse-tree nodes live in Phel\Shared\Parser\Node)
-│   ├── Parser/           ExpressionParserFactory (produces Shared\Parser\Node\* parse tree)
+│   ├── Parser/           ExpressionParserFactory (produces Shared\Parser\Node\* parse tree);
+│   │                     ExpressionParser/ sub-parsers (Atom, String, List, Quote, Meta, ReaderConditional)
 │   └── Reader/           ReaderInterface, QuasiquoteTransformer, ExpressionReaderFactory
 ├── Infrastructure/       GlobalEnvironmentSingleton (ABI shim for generated PHP), DebugLineTap
 └── Gacela files          CompilerFacade, CompilerFactory, CompilerConfig, CompilerProvider

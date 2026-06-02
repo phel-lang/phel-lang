@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file.
 - Lang internals: split the 747-LOC `BigInt` god-class by extracting the sign-agnostic base-10^9 digit-array kernels into a stateless `BigIntMagnitude`, leaving `BigInt` as the signed value object (pure refactor, arithmetic unchanged; guarded by new algebraic-invariant property tests)
 - Lang internals: split the 637-LOC `NumericOperations` god-class by extracting numeric type lifting into `NumericCoercion` and native-int overflow detection into `IntegerOverflow`, leaving the dispatch table to own only the contagion ladders (pure refactor, arithmetic unchanged; new units covered by direct unit tests)
 - Api internals: split the 514-LOC `PhelFnLoader` god-class by moving the native special-form / built-in documentation table into a dedicated `NativeSymbolCatalog`, leaving `PhelFnLoader` as the thin runtime+native metadata loader (pure refactor, output unchanged)
+- Compiler internals: extracted reader-conditional parsing (`#?` / `#?@`) from `Parser` into a dedicated `ReaderConditionalParser` sub-parser, de-duplicating the two near-identical branch-selection loops (pure refactor, parse tree unchanged)
 - Compiler internals: centralized the emitters' bare-expression capture into `OutputEmitter::captureNodeAsExpression()`
 - Tests: `RegistryTest` and `PhelVarTest` snapshot and restore the global `Registry`, fixing order-dependent `phel.core` suite failures (#2256)
 - Docs: condensed every `docs/` guide (~17% smaller), verified against the runtime, and cross-linked to phel-lang.org

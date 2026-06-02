@@ -11,6 +11,7 @@ use Phel\Compiler\Domain\Parser\ExpressionParser\CharParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\ListParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\MetaParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\QuoteParser;
+use Phel\Compiler\Domain\Parser\ExpressionParser\ReaderConditionalParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\RegexParser;
 use Phel\Compiler\Domain\Parser\ExpressionParser\StringParser;
 
@@ -49,5 +50,10 @@ final class ExpressionParserFactory implements ExpressionParserFactoryInterface
     public function createMetaParser(Parser $parser): MetaParser
     {
         return new MetaParser($parser);
+    }
+
+    public function createReaderConditionalParser(Parser $parser): ReaderConditionalParser
+    {
+        return new ReaderConditionalParser($parser);
     }
 }
