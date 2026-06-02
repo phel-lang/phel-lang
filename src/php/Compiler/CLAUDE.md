@@ -50,7 +50,8 @@ Compiler/
 │   ├── Analyzer/         AST nodes, ConstantFolder, TypeAnalyzer, special form handlers,
 │   │                     GlobalEnvironmentRegistry/Interface, SymbolSuggestionProvider
 │   ├── Compiler/         CodeCompilerInterface, EvalCompilerInterface
-│   ├── Emitter/          OutputEmitter, FileEmitter, StatementEmitter, *Specialization classes
+│   ├── Emitter/          OutputEmitter, FileEmitter, StatementEmitter, *Specialization classes,
+│   │                     NodeEmitter/ (per-AST emitters; Specialized/ holds the CallEmitter families)
 │   ├── Evaluator/        InMemoryEvaluator, RequireEvaluator
 │   ├── Lexer/            TokenStream (Token + parse-tree nodes live in Phel\Shared\Parser\Node)
 │   ├── Parser/           ExpressionParserFactory (produces Shared\Parser\Node\* parse tree)
@@ -71,7 +72,7 @@ Compiler/
 
 ## Type-Specialized Emission
 
-Analyzer tracks param and return types via `ParamTypeInferrer`, `ReturnTypeInferrer`, grafting `:tag` meta onto binding symbols. Call-site specialization via `*Specialization` classes (`NumericOperationSpecialization`, `TypePredicateSpecialization`, `TypedValueSpecialization`, `TypedCollectionMethodSpecialization`, `AssocConjSpecialization`, `AtomMethodSpecialization`, `NilAndBooleanCheckSpecialization`); `CallSpecialization` aggregates them. Add new specialization family as its own class and register in `CallSpecialization::isSpecialized()`. Contract: propagate only analyzer-published types, never fabricate.
+Analyzer tracks param and return types via `ParamTypeInferrer`, `ReturnTypeInferrer`, grafting `:tag` meta onto binding symbols. Call-site *eligibility* lives on `*Specialization` classes (`NumericOperationSpecialization`, `TypePredicateSpecialization`, `TypedValueSpecialization`, `TypedCollectionMethodSpecialization`, `AssocConjSpecialization`, `AtomMethodSpecialization`, `NilAndBooleanCheckSpecialization`); `CallSpecialization` aggregates them. The matching PHP *emission* lives on per-family collaborators under `NodeEmitter/Specialized/` (one `*CallEmitter implements SpecializedCallEmitterInterface` per eligibility class); `CallEmitter` builds them once and dispatches by looping `tryEmit()` over them before the generic call path. Family predicates are disjoint, so chain order between families is not significant. Add a new specialization family as a `*Specialization` eligibility class, register it in `CallSpecialization::isSpecialized()`, and add the matching `Specialized/*CallEmitter` to `CallEmitter`'s ordered list. Contract: propagate only analyzer-published types, never fabricate.
 
 ## Global Environment
 
