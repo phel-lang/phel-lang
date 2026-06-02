@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - Lexer: error/source-map columns are now counted in code points instead of bytes, so locations are accurate for source containing multibyte (UTF-8) characters (ASCII-only code is unaffected)
+- Printer: struct values now render with the `.` namespace separator (`(my.ns.point 1 2)`) instead of the deprecated `\` (`(my\ns\point 1 2)`), matching the rest of the printer and the `\`-to-`.` direction (#2255)
 - Docs: corrected the `:example` metadata for `bigint`, `biginteger`, `+'`, `-'`, `*'`, `inc'`, and `dec'` in `phel.core` (showed a phantom `N` suffix, e.g. `(bigint 42) ; => 42N`); `BigInt` values print without a suffix, so the examples now read `=> 42`. This also fixes the auto-generated API reference on phel-lang.org and `phel doc` output
 - Docs: corrected stale `:example` outputs that no longer match the runtime: `resolve`, `require`, and `symbol-info` showed the deprecated `\` namespace separator in their results (now `phel.core` / `phel.string`), and `realized?` claimed `(take 5 (iterate inc 1))` was unrealized when that result is eager (now uses an actually-lazy `(lazy-seq (cons 1 nil))`)
 - Docs: aligned 92 `phel.core` `:example` outputs with the actual printer rendering so `phel doc` and the phel-lang.org API reference show what the REPL really prints: sequence results as `@[...]`, maps with comma separators (`{:a 1, :b 2}`), whole-number floats without a trailing `.0` (`(float 1) ; => 1`), and PHP arrays as `<PHP-Array [...]>`
