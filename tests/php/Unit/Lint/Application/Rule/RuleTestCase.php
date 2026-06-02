@@ -7,13 +7,13 @@ namespace PhelTest\Unit\Lint\Application\Rule;
 use Phel;
 use Phel\Api\Transfer\ProjectIndex;
 use Phel\Compiler\CompilerFacade;
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
-use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
 use Phel\Lint\Domain\FileAnalysis;
+use Phel\Shared\Parser\Node\NodeInterface;
+use Phel\Shared\Parser\Node\TriviaNodeInterface;
 use PHPUnit\Framework\TestCase;
 
 use function count;

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Reader\Exceptions;
 
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Lang\SourceLocation;
 use Phel\Shared\Exceptions\AbstractLocatedException;
+use Phel\Shared\Parser\Node\NodeInterface;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 
 final class ReaderException extends AbstractLocatedException

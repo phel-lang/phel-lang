@@ -6,10 +6,10 @@ namespace Phel\Compiler\Domain\Reader\ExpressionReader;
 
 use Phel;
 use Phel\Compiler\Application\Reader;
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
-use Phel\Compiler\Domain\Parser\ParserNode\QuoteNode;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Parser\Node\NodeInterface;
+use Phel\Shared\Parser\Node\QuoteNode;
 
 final readonly class WrapReader
 {

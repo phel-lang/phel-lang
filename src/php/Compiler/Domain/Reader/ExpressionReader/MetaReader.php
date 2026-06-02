@@ -6,13 +6,13 @@ namespace Phel\Compiler\Domain\Reader\ExpressionReader;
 
 use Phel;
 use Phel\Compiler\Application\Reader;
-use Phel\Compiler\Domain\Parser\ParserNode\MetaNode;
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
+use Phel\Shared\Parser\Node\MetaNode;
+use Phel\Shared\Parser\Node\NodeInterface;
 
 use function count;
 use function is_string;

@@ -7,9 +7,9 @@ namespace Phel\Compiler\Application;
 use Generator;
 use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Lexer\LexerInterface;
-use Phel\Compiler\Domain\Lexer\Token;
 use Phel\Compiler\Domain\Lexer\TokenStream;
 use Phel\Lang\SourceLocation;
+use Phel\Shared\Parser\Node\Token;
 
 use function count;
 use function mb_strlen;

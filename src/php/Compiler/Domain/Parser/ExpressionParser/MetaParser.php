@@ -6,8 +6,8 @@ namespace Phel\Compiler\Domain\Parser\ExpressionParser;
 
 use Phel\Compiler\Application\Parser;
 use Phel\Compiler\Domain\Lexer\TokenStream;
-use Phel\Compiler\Domain\Parser\ParserNode\MetaNode;
-use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
+use Phel\Shared\Parser\Node\MetaNode;
+use Phel\Shared\Parser\Node\TriviaNodeInterface;
 
 final readonly class MetaParser
 {

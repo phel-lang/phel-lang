@@ -49,6 +49,7 @@ Foundational leaf module with no Facade, Factory, or DependencyProvider. All typ
 - **TypeFactory**: singleton creating persistent collections; provides `Hasher` and `Equalizer` singletons
 - **Seq**: static utility for sequence ops (map, filter, take, drop, partition)
 - **TagRegistry**: reader literal tag handler dispatch
+- **LoadClasspath**: static accessor for the `(load ...)` classpath, stored in `Registry` under `phel.core/*load-classpath*`. Lives here (not Compiler) because its state is a `Registry` slot; `publish()`/`read()` consumed by Run, Build, and the emitted `(load ...)` lookup. FQN baked into generated PHP by `LoadEmitter`; do not rename.
 - **Phel**: static helper for namespace/definition lookups (used by Api, Interop)
 
 ## Interface Hierarchy

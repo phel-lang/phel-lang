@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Reader\Exceptions;
 
-use Phel\Compiler\Domain\Parser\ParserNode\QuoteNode;
+use Phel\Shared\Parser\Node\QuoteNode;
 use RuntimeException;
 
 final class NotValidQuoteNodeException extends RuntimeException

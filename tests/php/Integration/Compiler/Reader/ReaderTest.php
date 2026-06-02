@@ -9,8 +9,6 @@ use Phel;
 use Phel\Compiler\Application\Lexer;
 use Phel\Compiler\CompilerFacade;
 use Phel\Compiler\Domain\Parser\Exceptions\ZeroDenominatorRatioParserException;
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
-use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
@@ -24,6 +22,8 @@ use Phel\Lang\TagRegistry;
 use Phel\Lang\TypeInterface;
 use Phel\Lang\UUID;
 use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\Parser\Node\NodeInterface;
+use Phel\Shared\Parser\Node\TriviaNodeInterface;
 use PHPUnit\Framework\TestCase;
 
 use RuntimeException;

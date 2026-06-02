@@ -6,6 +6,7 @@ namespace Phel\Compiler\Domain\Lexer;
 
 use Generator;
 use Iterator;
+use Phel\Shared\Parser\Node\Token;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use RuntimeException;
 

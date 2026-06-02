@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Domain\Rules;
 
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Formatter\Domain\Rules\Zipper\ParseTreeZipper;
 use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
+use Phel\Shared\Parser\Node\NodeInterface;
 
 final class RemoveSurroundingWhitespaceRule implements RuleInterface
 {

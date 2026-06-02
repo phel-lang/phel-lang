@@ -4,15 +4,6 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Application;
 
-use Phel\Compiler\Domain\Lexer\Token;
-use Phel\Compiler\Domain\Parser\ParserNode\AbstractAtomNode;
-use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
-use Phel\Compiler\Domain\Parser\ParserNode\MetaNode;
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
-use Phel\Compiler\Domain\Parser\ParserNode\QuoteNode;
-use Phel\Compiler\Domain\Parser\ParserNode\SymbolNode;
-use Phel\Compiler\Domain\Parser\ParserNode\TaggedLiteralNode;
-use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\NotValidQuoteNodeException;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
@@ -22,6 +13,15 @@ use Phel\Compiler\Domain\Reader\ReaderInterface;
 use Phel\Lang\MetaInterface;
 use Phel\Lang\Symbol;
 use Phel\Lang\TypeInterface;
+use Phel\Shared\Parser\Node\AbstractAtomNode;
+use Phel\Shared\Parser\Node\ListNode;
+use Phel\Shared\Parser\Node\MetaNode;
+use Phel\Shared\Parser\Node\NodeInterface;
+use Phel\Shared\Parser\Node\QuoteNode;
+use Phel\Shared\Parser\Node\SymbolNode;
+use Phel\Shared\Parser\Node\TaggedLiteralNode;
+use Phel\Shared\Parser\Node\Token;
+use Phel\Shared\Parser\Node\TriviaNodeInterface;
 use Phel\Shared\Parser\ReadModel\CodeSnippet;
 use RuntimeException;
 

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Parser\ExpressionParser;
 
-use Phel\Compiler\Domain\Lexer\Token;
-use Phel\Compiler\Domain\Parser\ParserNode\StringNode;
+use Phel\Shared\Parser\Node\StringNode;
+use Phel\Shared\Parser\Node\Token;
 
 use function chr;
 use function hexdec;

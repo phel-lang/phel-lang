@@ -52,8 +52,8 @@ Compiler/
 │   ├── Compiler/         CodeCompilerInterface, EvalCompilerInterface
 │   ├── Emitter/          OutputEmitter, FileEmitter, StatementEmitter, *Specialization classes
 │   ├── Evaluator/        InMemoryEvaluator, RequireEvaluator
-│   ├── Lexer/            Token, TokenStream
-│   ├── Parser/           ExpressionParserFactory, NodeInterface
+│   ├── Lexer/            TokenStream (Token + parse-tree nodes live in Phel\Shared\Parser\Node)
+│   ├── Parser/           ExpressionParserFactory (produces Shared\Parser\Node\* parse tree)
 │   └── Reader/           ReaderInterface, QuasiquoteTransformer, ExpressionReaderFactory
 ├── Infrastructure/       GlobalEnvironmentSingleton (ABI shim for generated PHP), DebugLineTap
 └── Gacela files          CompilerFacade, CompilerFactory, CompilerConfig, CompilerProvider
@@ -67,6 +67,7 @@ Compiler/
 - Special forms registered centrally; no ad-hoc handling in analyzer loop
 - Source locations must propagate through all phases for error reporting
 - `GlobalEnvironmentSingleton` FQN is baked into cached `.phel` files; do not rename
+- `LoadEmitter` bakes `Phel\Lang\LoadClasspath::class` (the `(load ...)` classpath store) into generated PHP; the class lives in `Lang` because its state is the `*load-classpath*` slot in `Lang\Registry`. Do not rename.
 
 ## Type-Specialized Emission
 

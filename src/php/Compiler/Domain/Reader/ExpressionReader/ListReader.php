@@ -6,10 +6,10 @@ namespace Phel\Compiler\Domain\Reader\ExpressionReader;
 
 use Phel;
 use Phel\Compiler\Application\Reader;
-use Phel\Compiler\Domain\Parser\ParserNode\ListNode;
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
-use Phel\Compiler\Domain\Parser\ParserNode\TriviaNodeInterface;
 use Phel\Lang\Collections\LinkedList\PersistentListInterface;
+use Phel\Shared\Parser\Node\ListNode;
+use Phel\Shared\Parser\Node\NodeInterface;
+use Phel\Shared\Parser\Node\TriviaNodeInterface;
 
 final readonly class ListReader
 {

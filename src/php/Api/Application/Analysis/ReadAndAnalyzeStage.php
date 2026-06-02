@@ -8,10 +8,10 @@ use Phel\Api\Domain\AnalysisStageInterface;
 use Phel\Api\Transfer\Diagnostic;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
 use Phel\Compiler\Domain\Analyzer\Exceptions\AnalyzerException;
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Shared\Exceptions\ErrorCode;
 use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\Parser\Node\NodeInterface;
 
 /**
  * Second stage: read each parse tree into a Phel value, then analyze

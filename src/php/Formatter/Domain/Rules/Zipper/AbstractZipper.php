@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Formatter\Domain\Rules\Zipper;
 
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
+use Phel\Shared\Parser\Node\NodeInterface;
 use RuntimeException;
 
 use function assert;

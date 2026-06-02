@@ -13,8 +13,6 @@ use Phel\Compiler\Domain\Lexer\Exceptions\LexerValueException;
 use Phel\Compiler\Domain\Lexer\TokenStream;
 use Phel\Compiler\Domain\Parser\Exceptions\UnexpectedParserException;
 use Phel\Compiler\Domain\Parser\Exceptions\UnfinishedParserException;
-use Phel\Compiler\Domain\Parser\ParserNode\FileNode;
-use Phel\Compiler\Domain\Parser\ParserNode\NodeInterface;
 use Phel\Compiler\Domain\Parser\ReadModel\ReaderResult;
 use Phel\Compiler\Domain\Reader\Exceptions\ReaderException;
 use Phel\Lang\TypeInterface;
@@ -23,6 +21,8 @@ use Phel\Shared\CompilerConstants;
 use Phel\Shared\Exceptions\CompiledCodeIsMalformedException;
 use Phel\Shared\Exceptions\CompilerException;
 use Phel\Shared\Exceptions\FileException;
+use Phel\Shared\Parser\Node\FileNode;
+use Phel\Shared\Parser\Node\NodeInterface;
 
 interface CompilerFacadeInterface
 {
