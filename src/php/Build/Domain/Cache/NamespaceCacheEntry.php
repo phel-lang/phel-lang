@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Phel\Build\Domain\Cache;
 
-use Phel\Build\Domain\Extractor\NamespaceInformation;
+use Phel\Shared\NamespaceInformation;
 
 final readonly class NamespaceCacheEntry
 {

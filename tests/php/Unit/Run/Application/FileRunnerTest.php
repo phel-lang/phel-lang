@@ -5,12 +5,12 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Run\Application;
 
 use Phel\Build\Domain\Compile\CompiledFile;
-use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Run\Application\BundledNamespaceDetector;
 use Phel\Run\Application\BundledNamespaces;
 use Phel\Run\Application\FileRunner;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
+use Phel\Shared\NamespaceInformation;
 use PHPUnit\Framework\TestCase;
 
 use RuntimeException;

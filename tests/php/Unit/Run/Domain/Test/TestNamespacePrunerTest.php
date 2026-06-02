@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Run\Domain\Test;
 
-use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Run\Domain\Test\TestNamespacePruner;
+use Phel\Shared\NamespaceInformation;
 use PHPUnit\Framework\TestCase;
 
 final class TestNamespacePrunerTest extends TestCase

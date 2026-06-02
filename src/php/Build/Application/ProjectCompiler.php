@@ -13,10 +13,10 @@ use Phel\Build\Domain\Compile\FileCompilerInterface;
 use Phel\Build\Domain\Compile\Output\EntryPointPhpFileInterface;
 use Phel\Build\Domain\Compile\SecondaryFileHarvester;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
-use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Compiler\Domain\Analyzer\Resolver\LoadClasspath;
 use Phel\Shared\Facade\CommandFacadeInterface;
 use Phel\Shared\Facade\CompilerFacadeInterface;
+use Phel\Shared\NamespaceInformation;
 use RuntimeException;
 
 use function dirname;

@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace PhelTest\Unit\Build\Domain\Extractor;
 
 use Phel\Build\Domain\Extractor\NamespaceFileGrouper;
-use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Build\Domain\Extractor\NamespaceSorterInterface;
+use Phel\Shared\NamespaceInformation;
 use PHPUnit\Framework\TestCase;
 
 final class NamespaceFileGrouperTest extends TestCase

@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Run\Domain\Runner;
 
-use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Run\Domain\Runner\NamespaceCollector;
 use Phel\Shared\Facade\BuildFacadeInterface;
 use Phel\Shared\Facade\CommandFacadeInterface;
+use Phel\Shared\NamespaceInformation;
 use PHPUnit\Framework\TestCase;
 
 final class NamespaceCollectorTest extends TestCase

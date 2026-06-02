@@ -6,9 +6,9 @@ namespace Phel\Run\Infrastructure\Command;
 
 use Gacela\Framework\ServiceResolver\ServiceMap;
 use Gacela\Framework\ServiceResolverAwareTrait;
-use Phel\Build\Domain\Extractor\NamespaceInformation;
 use Phel\Run\RunFacade;
 use Phel\Shared\Munge;
+use Phel\Shared\NamespaceInformation;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;

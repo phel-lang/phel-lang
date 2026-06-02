@@ -25,6 +25,8 @@ Core orchestrator for compiling Phel projects to PHP: dependency resolution, cac
 | `getOutputDirectory()` | `string` | Delegate to Command facade |
 | `getHealthCheck()` | `ModuleHealthCheckInterface` | Cache, output, source dir health checks |
 
+> `NamespaceInformation` (the VO returned by the extraction methods above) lives in `Phel\Shared`, not this module. Build produces it; `Domain/Extractor/` imports it from Shared.
+
 ## Dependencies
 
 | Name | Injected as | Purpose |

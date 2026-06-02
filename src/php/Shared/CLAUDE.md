@@ -23,7 +23,7 @@ Located in `Facade/` subdirectory. Each module implements one:
 
 ## Constants
 
-- `CompilerConstants.PHEL_CORE_NAMESPACE = 'phel.core'`
+- `CompilerConstants.PHEL_CORE_NAMESPACE = 'phel.core'`, `DEFAULT_SOURCE = 'string'` (the `lexString` source label; `CompilerFacadeInterface` defaults to it so it no longer references the `Application\Lexer` concrete)
 - `BuildConstants.BUILD_MODE = '*build-mode*'`
 - `ReplConstants.REPL_MODE = '*repl-mode*'`
 - `CompileOptions.DEFAULT_SOURCE = 'string'`, `DEFAULT_STARTING_LINE = 1`, `DEFAULT_ENABLE_SOURCE_MAPS = true`, `DEFAULT_EMIT_ONLY = false`
@@ -37,6 +37,10 @@ Located in `Exceptions/`:
 - `ErrorCode`: enum for PHEL001-PHEL310 error codes (analyzer, parser, reader, lexer)
 - `FileException`: file/directory operations
 - `CompiledCodeIsMalformedException`: wraps PHP `eval()` parse errors
+
+## Value Objects
+
+- `NamespaceInformation`: pure `final readonly` DTO (`file`, `namespace`, `dependencies`, `isPrimaryDefinition`) produced by Build, consumed across Build/Run/Interop and returned by the Build/Run facade interfaces. Lives here so the Shared facade contracts no longer back-reference a foreign module's `Domain`.
 
 ## Parser Model
 

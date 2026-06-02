@@ -6,7 +6,7 @@ namespace PhelTest\Unit\Build\Application;
 
 use Phel\Build\Application\DependenciesForNamespace;
 use Phel\Build\Domain\Extractor\NamespaceExtractorInterface;
-use Phel\Build\Domain\Extractor\NamespaceInformation;
+use Phel\Shared\NamespaceInformation;
 use PHPUnit\Framework\TestCase;
 
 final class DependenciesForNamespaceTest extends TestCase

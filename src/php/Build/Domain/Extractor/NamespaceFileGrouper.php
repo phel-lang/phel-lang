@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Phel\Build\Domain\Extractor;
 
 use Closure;
+use Phel\Shared\NamespaceInformation;
 
 use function array_keys;
 use function array_map;
