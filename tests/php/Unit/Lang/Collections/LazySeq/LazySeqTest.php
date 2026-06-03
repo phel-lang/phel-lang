@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace PhelTest\Unit\Lang\Collections\LazySeq;
 
+use ArrayIterator;
 use Generator;
+use Iterator;
+use IteratorAggregate;
 use Phel\Lang\Collections\LazySeq\Cons;
 use Phel\Lang\Collections\LazySeq\LazySeq;
 use Phel\Lang\Collections\LazySeq\LazySeqInterface;
@@ -91,6 +94,58 @@ final class LazySeqTest extends TestCase
 
         $this->assertSame(1, $lazySeq->first());
         $this->assertSame([1, 2, 3], $lazySeq->toArray());
+    }
+
+    public function test_creates_from_traversable_iterator(): void
+    {
+        $lazySeq = LazySeq::fromTraversable($this->hasher, $this->equalizer, new ArrayIterator([1, 2, 3]));
+
+        $this->assertSame([1, 2, 3], $lazySeq->toArray());
+    }
+
+    public function test_creates_from_traversable_iterator_aggregate(): void
+    {
+        $aggregate = new class() implements IteratorAggregate {
+            public function getIterator(): Iterator
+            {
+                return new ArrayIterator(['a', 'b']);
+            }
+        };
+
+        $lazySeq = LazySeq::fromTraversable($this->hasher, $this->equalizer, $aggregate);
+
+        $this->assertSame(['a', 'b'], $lazySeq->toArray());
+    }
+
+    public function test_from_traversable_delegates_a_generator(): void
+    {
+        $generator = (static function (): Generator {
+            yield 1;
+            yield 2;
+        })();
+
+        $lazySeq = LazySeq::fromTraversable($this->hasher, $this->equalizer, $generator);
+
+        $this->assertSame([1, 2], $lazySeq->toArray());
+    }
+
+    public function test_from_traversable_pulls_lazily_from_an_infinite_iterator(): void
+    {
+        $pulled = 0;
+        $infinite = (static function () use (&$pulled): Generator {
+            $i = 0;
+            while (true) {
+                ++$pulled;
+                yield $i;
+                ++$i;
+            }
+        })();
+
+        $lazySeq = LazySeq::fromTraversable($this->hasher, $this->equalizer, $infinite);
+
+        $this->assertSame(0, $lazySeq->first());
+        $this->assertSame(1, $lazySeq->cdr()?->first());
+        $this->assertLessThan(5, $pulled, 'only the consumed elements are pulled, never the whole iterator');
     }
 
     public function test_first_returns_first_element(): void
