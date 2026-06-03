@@ -89,6 +89,7 @@ final readonly class DefInterfaceEmitter implements NodeEmitterInterface
     private function emitInterfaceBody(DefInterfaceNode $node): void
     {
         $sourceLocation = $node->getStartSourceLocation();
+        $this->emitDocBlock($node->getName()->getMeta(), $sourceLocation);
         $this->emitAttributes($node->getName()->getMeta(), $sourceLocation);
 
         $this->outputEmitter->emitLine(
@@ -108,6 +109,7 @@ final readonly class DefInterfaceEmitter implements NodeEmitterInterface
     private function emitMethod(DefInterfaceNode $node, DefInterfaceMethod $method): void
     {
         $sourceLocation = $node->getStartSourceLocation();
+        $this->emitDocBlock($method->getName()->getMeta(), $sourceLocation);
         $this->emitAttributes($method->getName()->getMeta(), $sourceLocation);
 
         $this->outputEmitter->emitStr('public function ', $sourceLocation);
@@ -151,6 +153,19 @@ final readonly class DefInterfaceEmitter implements NodeEmitterInterface
     {
         foreach ($this->phpAttributeLines($this->attributeRenderer, $meta) as $attribute) {
             $this->outputEmitter->emitLine($attribute, $sourceLocation);
+        }
+    }
+
+    /**
+     * Emits the `:php/doc` PHPDoc block carried by the symbol meta, before the
+     * annotated construct (above any attributes).
+     *
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
+    private function emitDocBlock(?PersistentMapInterface $meta, ?SourceLocation $sourceLocation): void
+    {
+        foreach ($this->phpDocLines($meta) as $line) {
+            $this->outputEmitter->emitLine($line, $sourceLocation);
         }
     }
 }

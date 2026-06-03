@@ -1,0 +1,14 @@
+(ns phel-test.core.phpdoc-emission
+  (:require phel.test :refer [deftest is]))
+
+(defstruct ^{:php/doc "@implements \\IteratorAggregate<int, string>"} bag
+  [^{:php/doc "@var list<int>"} items])
+
+(deftest class-and-property-docblocks-are-emitted
+  (let [rc       (php/new \ReflectionClass "phel_test\\core\\phpdoc_emission\\bag")
+        class-doc (php/-> rc (getDocComment))
+        prop-doc  (php/-> (php/-> rc (getProperty "items")) (getDocComment))]
+    (is (php/str_contains class-doc "@implements \\IteratorAggregate<int, string>")
+        "class docblock carries the :php/doc string")
+    (is (php/str_contains prop-doc "@var list<int>")
+        "property docblock carries the :php/doc string")))
