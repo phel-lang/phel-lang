@@ -145,3 +145,34 @@
                                  (conj acc (php/-> p (getName))))
                           acc)))
      :interfaces (vec (php/-> rc (getInterfaceNames)))}))
+
+;; Bridge native PHP enums (Symfony/Doctrine column enums, library enums)
+;; to Phel keywords and back. Works with `defenum`-generated enums and any
+;; native PHP enum.
+
+(defn enum->keyword
+  "Returns the keyword for a native PHP enum `enum-case`, using the case name
+  verbatim (`Status/Active` => `:Active`). Round-trips with `keyword->enum`."
+  {:example "(enum->keyword Status/Active)"
+   :see-also ["keyword->enum" "enum-values"]}
+  [enum-case]
+  (keyword (php/-> enum-case name)))
+
+(defn keyword->enum
+  "Returns the case of the native PHP enum `enum-class` (string FQN) whose name
+  matches keyword `kw`, or nil when no case matches. Inverse of `enum->keyword`."
+  {:example "(keyword->enum \\App\\Status :Active)"
+   :see-also ["enum->keyword" "enum-values"]}
+  [enum-class kw]
+  (let [case-name (name kw)]
+    (first (filter (fn [c] (= case-name (php/-> c name)))
+                   (php/:: enum-class (cases))))))
+
+(defn enum-values
+  "Returns a vector of keywords, one per case of the native PHP enum
+  `enum-class` (string FQN), in declaration order."
+  {:example "(enum-values \\App\\Status)"
+   :see-also ["enum->keyword" "keyword->enum"]}
+  [enum-class]
+  (vec (for [c :in (php/:: enum-class (cases))]
+         (enum->keyword c))))
