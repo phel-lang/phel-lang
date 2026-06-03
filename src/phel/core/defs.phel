@@ -128,14 +128,16 @@
        (defn ~is-name ~(php/. "Checks if `x` is an instance of the " name " struct.") [x] (php/is_a x ~class-name-str)))))
 
 (defmacro defexception
-  "Define a new exception."
-  [name]
+  "Define a new exception. Optionally pass a parent class to extend (defaults to
+  `\\Exception`), so frameworks can catch it by type, e.g.
+  `(defexception ProductNotFound \\RuntimeException)`."
+  [name & [parent]]
   (let [name-str       (php/-> name (getName))
         munge          (php/new Munge)
         class-name-str (php/. (php/-> munge (encodePhpNs *ns*)) "\\" (php/-> munge (encode name-str)))
         is-name        (php/:: Symbol (create (php/. name-str "?")))]
     `(do
-       (defexception* ~name)
+       (defexception* ~name ~@(if parent [parent] []))
        (defn ~name ~(php/. "Creates a new " name " exception.") [& args]
          (php/-> (php/new \ReflectionClass ~class-name-str)
                  (newInstanceArgs (to-php-array args))))

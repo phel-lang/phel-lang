@@ -1,0 +1,17 @@
+(ns phel-test.core.defexception-parent
+  (:require phel.test :refer [deftest is]))
+
+(defexception NotFound \RuntimeException)
+(defexception Plain)
+
+(deftest custom-parent-is-catchable-by-parent-type
+  (is (= "boom"
+         (try
+           (throw (NotFound "boom"))
+           (catch \RuntimeException e (php/-> e (getMessage)))))
+      "an exception with :extends parent is caught as that parent")
+  (is (instance? \RuntimeException (NotFound "x")) "instance of the custom parent")
+  (is (NotFound? (NotFound "x")) "its own predicate still works"))
+
+(deftest default-parent-is-exception
+  (is (instance? \Exception (Plain "y")) "without a parent it still extends \\Exception"))

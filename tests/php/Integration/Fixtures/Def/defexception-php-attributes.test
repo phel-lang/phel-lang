@@ -1,0 +1,11 @@
+--PHEL--
+(defexception* ^{:php/attr :My/Tag} TaggedError)
+--PHP--
+if (!class_exists('user\TaggedError')) {
+#[\My\Tag]
+class TaggedError extends \Exception {
+  public function __construct($message = "", $code = 0, ?\Throwable $previous = null) {
+    parent::__construct($message, $code, $previous);
+  }
+}
+}

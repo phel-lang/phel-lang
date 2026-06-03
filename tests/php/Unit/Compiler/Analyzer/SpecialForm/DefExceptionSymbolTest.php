@@ -28,16 +28,39 @@ final class DefExceptionSymbolTest extends TestCase
     public function test_with_wrong_number_of_arguments(): void
     {
         $this->expectException(AbstractLocatedException::class);
-        $this->expectExceptionMessage("Exact one argument is required for 'defexception");
+        $this->expectExceptionMessage("One or two arguments are required for 'defexception");
 
         $list = Phel::list([
             Symbol::create(Symbol::NAME_DEF_EXCEPTION),
             Symbol::create('A'),
             Symbol::create('B'),
+            Symbol::create('C'),
         ]);
 
         new DefExceptionSymbol($this->analyzer)
             ->analyze($list, NodeEnvironment::empty());
+    }
+
+    public function test_custom_parent_class(): void
+    {
+        $list = Phel::list([
+            Symbol::create(Symbol::NAME_DEF_EXCEPTION),
+            Symbol::create('MyExc'),
+            Symbol::create('\\RuntimeException'),
+        ]);
+
+        $defExceptionNode = new DefExceptionSymbol($this->analyzer)
+            ->analyze($list, NodeEnvironment::empty());
+
+        self::assertEquals(
+            new DefExceptionNode(
+                NodeEnvironment::empty(),
+                'user',
+                Symbol::create('MyExc'),
+                new PhpClassNameNode(NodeEnvironment::empty(), Symbol::create('\\RuntimeException')),
+            ),
+            $defExceptionNode,
+        );
     }
 
     public function test_first_arg_is_not_symbol(): void
