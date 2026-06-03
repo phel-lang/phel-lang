@@ -90,3 +90,15 @@
       "when-first with empty list")
   (is (= :a (when-first [x [:a :b]] x))
       "when-first with keyword vector"))
+
+;; Regression: these macros use an internal gensym binding. A user binding
+;; named `temp-sym` (the historical internal name) must not be shadowed.
+(deftest test-binding-macros-are-hygienic
+  (is (= 42 (let [temp-sym 42] (if-let [x 1] temp-sym)))
+      "if-let does not capture an outer temp-sym")
+  (is (= 42 (let [temp-sym 42] (when-let [x 1] temp-sym)))
+      "when-let does not capture an outer temp-sym")
+  (is (= 42 (let [temp-sym 42] (if-some [x 1] temp-sym)))
+      "if-some does not capture an outer temp-sym")
+  (is (= 42 (let [temp-sym 42] (when-first [x [1]] temp-sym)))
+      "when-first does not capture an outer temp-sym"))
