@@ -43,6 +43,30 @@ final class PhpAttributeRendererTest extends TestCase
         self::assertSame(['#[\ORM\Column]'], $this->renderer->render($specs));
     }
 
+    public function test_bare_keyword_is_a_single_zero_arg_attribute(): void
+    {
+        self::assertSame(['#[\ORM\Entity]'], $this->renderer->render(Keyword::create('Entity', 'ORM')));
+        self::assertSame(['#[\Route]'], $this->renderer->render(Keyword::create('Route')));
+    }
+
+    public function test_single_spec_vector_without_outer_wrapper(): void
+    {
+        // First element is the attribute-name keyword => one attribute.
+        $specs = $this->vec(
+            Keyword::create('Column', 'ORM'),
+            $this->map(Keyword::create('length'), 255),
+        );
+
+        self::assertSame(['#[\ORM\Column(length: 255)]'], $this->renderer->render($specs));
+    }
+
+    public function test_single_spec_zero_arg_without_outer_wrapper(): void
+    {
+        $specs = $this->vec(Keyword::create('Entity', 'ORM'));
+
+        self::assertSame(['#[\ORM\Entity]'], $this->renderer->render($specs));
+    }
+
     public function test_dotted_namespace_maps_to_backslash(): void
     {
         $specs = $this->vec($this->vec(

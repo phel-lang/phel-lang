@@ -41,8 +41,22 @@ final class PhpAttributeRenderer
      */
     public function render(mixed $specs): array
     {
+        // Bare keyword: a single zero-arg attribute (`^{:php/attr :ORM/Entity}`).
+        if ($specs instanceof Keyword) {
+            return ['#[' . $this->renderClassName($specs) . ']'];
+        }
+
         if (!$specs instanceof PersistentVectorInterface) {
             return [];
+        }
+
+        // A single spec is a vector whose first element is the attribute-name
+        // keyword (`[:ORM/Column {:length 255}]`); a list of specs has vectors
+        // as its elements (`[[:ORM/Id] [:ORM/Column]]`).
+        if ($this->firstElement($specs) instanceof Keyword) {
+            $line = $this->renderSpec($specs);
+
+            return $line === null ? [] : [$line];
         }
 
         $lines = [];
@@ -54,6 +68,18 @@ final class PhpAttributeRenderer
         }
 
         return $lines;
+    }
+
+    /**
+     * @param PersistentVectorInterface<mixed> $vector
+     */
+    private function firstElement(PersistentVectorInterface $vector): mixed
+    {
+        foreach ($vector as $element) {
+            return $element;
+        }
+
+        return null;
     }
 
     private function renderSpec(mixed $spec): ?string
