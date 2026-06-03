@@ -1,0 +1,22 @@
+(ns phel-test.core.tag-types
+  (:require phel.test :refer [deftest is]))
+
+;; Union type: PHP enforces int|string on the generated property
+(defstruct boxed [^{:tag (int string)} value])
+
+;; Nullable type
+(defstruct opt [^{:tag ?int} n])
+
+(deftest union-accepts-either-member
+  (is (= 1 ((boxed 1) :value)) "union property accepts an int")
+  (is (= "x" ((boxed "x") :value)) "union property accepts a string"))
+
+(deftest nullable-accepts-nil-and-value
+  (is (nil? ((opt nil) :n)) "nullable property accepts nil")
+  (is (= 3 ((opt 3) :n)) "nullable property accepts the int"))
+
+(deftest typed-struct-still-persistent
+  (let [a (boxed 1)
+        b (put a :value "two")]
+    (is (= 1 (a :value)) "original is unchanged")
+    (is (= "two" (b :value)) "put returns an updated copy")))

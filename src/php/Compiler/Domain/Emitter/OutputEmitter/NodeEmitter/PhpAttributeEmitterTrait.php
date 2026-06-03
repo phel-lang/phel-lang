@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 
+use Phel\Lang\Collections\LinkedList\PersistentListInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Collections\Vector\PersistentVectorInterface;
 use Phel\Lang\Keyword;
 use Phel\Lang\Symbol;
 use Phel\Shared\PhpAttributeRenderer;
 
+use function implode;
 use function is_string;
 
 /**
@@ -30,12 +33,51 @@ trait PhpAttributeEmitterTrait
             return null;
         }
 
-        $tag = $meta->find(Keyword::create('tag'));
+        return $this->renderTag($meta->find(Keyword::create('tag')));
+    }
+
+    /**
+     * Resolves a `:tag` value into a PHP type string. A bare symbol/string is
+     * used verbatim (so `?int`, `self`, `\DateTime` pass through); a list is a
+     * union (`(int string)` => `int|string`); a vector is an intersection
+     * (`[Countable Stringable]` => `Countable&Stringable`).
+     */
+    private function renderTag(mixed $tag): ?string
+    {
+        if ($tag instanceof PersistentListInterface) {
+            return $this->joinTagParts($tag, '|');
+        }
+
+        if ($tag instanceof PersistentVectorInterface) {
+            return $this->joinTagParts($tag, '&');
+        }
+
         if ($tag instanceof Symbol) {
             $tag = $tag->getName();
         }
 
         return is_string($tag) && $tag !== '' ? $tag : null;
+    }
+
+    /**
+     * Joins the symbol/string members of a composite tag with `$separator`.
+     *
+     * @param iterable<mixed> $parts
+     */
+    private function joinTagParts(iterable $parts, string $separator): ?string
+    {
+        $names = [];
+        foreach ($parts as $part) {
+            if ($part instanceof Symbol) {
+                $part = $part->getName();
+            }
+
+            if (is_string($part) && $part !== '') {
+                $names[] = $part;
+            }
+        }
+
+        return $names === [] ? null : implode($separator, $names);
     }
 
     /**

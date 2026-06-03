@@ -1,0 +1,9 @@
+--PHEL--
+(definterface* Repo
+  (^{:tag (int string)} find [this ^{:tag ?string} id]))
+--PHP--
+if (!interface_exists('user\Repo')) {
+interface Repo {
+  public function find(?string $id): int|string;
+}
+}

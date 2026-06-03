@@ -1,0 +1,17 @@
+--PHEL--
+(defstruct* wrap [^{:tag [Countable Stringable]} item])
+--PHP--
+if (!class_exists('user\wrap')) {
+final class wrap extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
+
+  protected const array ALLOWED_KEYS = ['item'];
+
+  protected Countable&Stringable $item;
+
+  public function __construct($item, $meta = null) {
+    parent::__construct();
+    $this->item = $item;
+    $this->meta = $meta;
+  }
+}
+}

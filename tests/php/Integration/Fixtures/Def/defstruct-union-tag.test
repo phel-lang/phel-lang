@@ -1,0 +1,17 @@
+--PHEL--
+(defstruct* boxed [^{:tag (int string)} value])
+--PHP--
+if (!class_exists('user\boxed')) {
+final class boxed extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
+
+  protected const array ALLOWED_KEYS = ['value'];
+
+  protected int|string $value;
+
+  public function __construct($value, $meta = null) {
+    parent::__construct();
+    $this->value = $value;
+    $this->meta = $meta;
+  }
+}
+}

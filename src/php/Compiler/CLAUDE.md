@@ -77,7 +77,7 @@ Analyzer tracks param and return types via `ParamTypeInferrer`, `ReturnTypeInfer
 
 ## Generated-Class Attributes & Typed Signatures
 
-`DefStructEmitter` and `DefInterfaceEmitter` read per-symbol metadata to enrich the PHP they generate, sharing `PhpAttributeEmitterTrait` (tag + `:php/attr` reading) and the pure `Phel\Shared\PhpAttributeRenderer`:
+`DefStructEmitter` and `DefInterfaceEmitter` read per-symbol metadata to enrich the PHP they generate, sharing `PhpAttributeEmitterTrait` (tag + `:php/attr` reading) and the pure `Phel\Shared\PhpAttributeRenderer`. A `:tag` value can be a bare symbol/string (verbatim, so `?int`/`self`/`\DateTime` pass through), a list (union → `a|b`), or a vector (intersection → `a&b`):
 
 - `defstruct`: a field's `^{:tag <type>}` emits a typed property (`protected int $id;`); `^{:php/attr [...]}` on the struct name (class-level) or a field (property-level) emits PHP 8 attributes. `^{:php/json true}` on the struct name implements `\JsonSerializable` (emitting a `jsonSerialize()` that returns the field map) and `^{:php/stringable true}` declares `\Stringable`.
 - `definterface`: a method's arg `^{:tag <type>}` emits a typed param and the method name's `:tag` the return type; `^{:php/attr [...]}` on the interface name or a method emits interface-/method-level attributes.

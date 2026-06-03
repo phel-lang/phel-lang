@@ -1,0 +1,19 @@
+--PHEL--
+(defstruct* opt [^{:tag ?int} a ^{:tag \DateTimeImmutable} b])
+--PHP--
+if (!class_exists('user\opt')) {
+final class opt extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
+
+  protected const array ALLOWED_KEYS = ['a', 'b'];
+
+  protected ?int $a;
+  protected \DateTimeImmutable $b;
+
+  public function __construct($a, $b, $meta = null) {
+    parent::__construct();
+    $this->a = $a;
+    $this->b = $b;
+    $this->meta = $meta;
+  }
+}
+}
