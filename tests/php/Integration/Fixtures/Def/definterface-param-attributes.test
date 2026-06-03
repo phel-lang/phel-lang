@@ -1,0 +1,11 @@
+--PHEL--
+(definterface* ProductController
+  (^{:tag string :php/attr [:Symfony.Component.Routing.Attribute/Route "/products/{id}"]}
+   show [this ^{:tag string :php/attr [:Autowire]} repo ^{:tag int} id]))
+--PHP--
+if (!interface_exists('user\ProductController')) {
+interface ProductController {
+  #[\Symfony\Component\Routing\Attribute\Route('/products/{id}')]
+  public function show(#[\Autowire] string $repo, int $id): string;
+}
+}
