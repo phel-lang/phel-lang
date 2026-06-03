@@ -86,7 +86,7 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
      */
     private function isUnquote($form): bool
     {
-        return $form instanceof PersistentListInterface && $form->get(0) == Symbol::NAME_UNQUOTE;
+        return $form instanceof PersistentListInterface && count($form) > 0 && $form->get(0) == Symbol::NAME_UNQUOTE;
     }
 
     /**
@@ -94,7 +94,7 @@ final readonly class QuasiquoteTransformer implements QuasiquoteTransformerInter
      */
     private function isUnquoteSplicing($form): bool
     {
-        return $form instanceof PersistentListInterface && $form->get(0) == Symbol::NAME_UNQUOTE_SPLICING;
+        return $form instanceof PersistentListInterface && count($form) > 0 && $form->get(0) == Symbol::NAME_UNQUOTE_SPLICING;
     }
 
     /**
