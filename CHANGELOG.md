@@ -16,17 +16,12 @@ All notable changes to this project will be documented in this file.
 - `phel.http`: JSON request bodies decode into `:parsed-body`, plus `json-response`/`html-response` builders (#2271)
 - Docs: runnable `docs/examples/13_database-crud.phel` and a maps-not-entities Persistence section in `framework-integration.md` (#2281, #2282)
 
-Richer PHP interop, for bridging Phel to typed PHP / framework code (all opt-in, untagged forms unchanged):
+Richer PHP interop for bridging Phel to typed PHP / framework code (all opt-in, untagged forms unchanged):
 
-- `^{:php/attr [...]}` emits PHP 8 attributes and `^{:tag <type>}` emits typed signatures on `defstruct`, `definterface`, and `phel export` wrappers; with keyword and single-spec shorthands (#2280, #2289)
-- `:tag` now accepts composite types: list = union (`int|string`), vector = intersection (`Countable&Stringable`) (#2293)
-- parameter-level `^{:php/attr [...]}` on `definterface` methods (`#[\Autowire]`) (#2294)
-- `^{:php/doc ...}` emits PHPDoc blocks so phpstan/psalm see generated classes as typed (#2295)
-- `defenum`: native PHP backed enum with a `Name?` predicate (#2291)
-- `defstruct`: opt-in `^{:php/json true}` / `^{:php/stringable true}` implement `\JsonSerializable` / `\Stringable` (#2292)
-- `defexception`: optional parent class to extend, plus `^{:php/attr [...]}` (#2297)
-- `php/ref`: pass a local by reference into a `php/->`/`php/::` call so output-parameter methods (PDO `bindColumn`) write back (#2299)
-- `hydrate`/`bean`: build a typed object from a map (constructor bypassed) and read public properties back into a map (#2296)
+- Generated classes carry opt-in metadata: `^{:php/attr}` PHP 8 attributes (class/method/parameter), `^{:tag}` typed signatures (incl. union/intersection), `^{:php/doc}` PHPDoc, and `^{:php/json}`/`^{:php/stringable}` on structs (#2280, #2289, #2292, #2293, #2294, #2295)
+- `defenum` native backed enums, and `defexception` with an optional parent class (#2291, #2297)
+- `php/ref` passes a local by reference into a `php/->`/`php/::` call (PDO `bindColumn`) (#2299)
+- `hydrate`/`bean` bridge a Phel map and a typed PHP object both ways (#2296)
 
 ### Changed
 
