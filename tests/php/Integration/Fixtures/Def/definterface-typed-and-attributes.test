@@ -1,0 +1,11 @@
+--PHEL--
+(definterface* ^{:php/attr [[:My/Marker]]} TypedRepo
+  (^{:tag int :php/attr [[:My/M]]} find-by-id [this ^{:tag string} id]))
+--PHP--
+if (!interface_exists('user\TypedRepo')) {
+#[\My\Marker]
+interface TypedRepo {
+  #[\My\M]
+  public function find_by_id(string $id): int;
+}
+}
