@@ -111,12 +111,13 @@ Evaluates the expressions in order and returns the value of the last expression.
         Symbol::NAME_DEF_EXCEPTION => [
             'doc' => '```phel
 (defexception my-ex)
+(defexception my-ex \RuntimeException)
 ```
-Define a new exception.',
+Define a new exception, optionally extending a custom parent class (defaults to \Exception).',
             'docUrl' => '/documentation/exceptions',
-            'signatures' => ['(defexception name)'],
-            'desc' => 'Defines a new exception.',
-            'example' => '(defexception my-error)',
+            'signatures' => ['(defexception name)', '(defexception name parent)'],
+            'desc' => 'Defines a new exception, optionally extending a custom parent class.',
+            'example' => '(defexception my-error \RuntimeException)',
         ],
         Symbol::NAME_DEF_INTERFACE => [
             'doc' => '```phel

@@ -28,8 +28,8 @@ final class DefExceptionSymbol implements SpecialFormAnalyzerInterface
      */
     public function analyze(PersistentListInterface $list, NodeEnvironmentInterface $env): DefExceptionNode
     {
-        if (count($list) !== 2) {
-            throw AnalyzerException::withLocation("Exact one argument is required for 'defexception", $list);
+        if (count($list) < 2 || count($list) > 3) {
+            throw AnalyzerException::withLocation("One or two arguments are required for 'defexception", $list);
         }
 
         $name = $list->get(1);
@@ -37,9 +37,17 @@ final class DefExceptionSymbol implements SpecialFormAnalyzerInterface
             throw AnalyzerException::wrongArgumentType("First argument of 'defexception", 'Symbol', $name, $list);
         }
 
+        $parentSymbol = Symbol::create('\\Exception');
+        if (count($list) === 3) {
+            $parentSymbol = $list->get(2);
+            if (!$parentSymbol instanceof Symbol) {
+                throw AnalyzerException::wrongArgumentType("Second argument of 'defexception", 'Symbol', $parentSymbol, $list);
+            }
+        }
+
         $parent = new PhpClassNameNode(
             $env,
-            Symbol::create('\\Exception'),
+            $parentSymbol,
             $list->getStartLocation(),
         );
 

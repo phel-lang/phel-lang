@@ -8,14 +8,19 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DefExceptionNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
+use Phel\Shared\PhpAttributeRenderer;
 
 use function assert;
 
 final readonly class DefExceptionEmitter implements NodeEmitterInterface
 {
     use EvalGuardedEmitterTrait;
+    use PhpAttributeEmitterTrait;
 
-    public function __construct(private OutputEmitterInterface $outputEmitter) {}
+    public function __construct(
+        private OutputEmitterInterface $outputEmitter,
+        private PhpAttributeRenderer $attributeRenderer = new PhpAttributeRenderer(),
+    ) {}
 
     public function emit(AbstractNode $node): void
     {
@@ -71,6 +76,10 @@ final readonly class DefExceptionEmitter implements NodeEmitterInterface
 
     private function emitClassBody(DefExceptionNode $node): void
     {
+        foreach ($this->phpAttributeLines($this->attributeRenderer, $node->getName()->getMeta()) as $attribute) {
+            $this->outputEmitter->emitLine($attribute, $node->getStartSourceLocation());
+        }
+
         $this->outputEmitter->emitStr(
             'class ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' extends ',
             $node->getStartSourceLocation(),
