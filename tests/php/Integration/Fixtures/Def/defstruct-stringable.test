@@ -1,0 +1,17 @@
+--PHEL--
+(defstruct* ^{:php/stringable true} label [text])
+--PHP--
+if (!class_exists('user\label')) {
+final class label extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct implements \Stringable {
+
+  protected const array ALLOWED_KEYS = ['text'];
+
+  protected $text;
+
+  public function __construct($text, $meta = null) {
+    parent::__construct();
+    $this->text = $text;
+    $this->meta = $meta;
+  }
+}
+}

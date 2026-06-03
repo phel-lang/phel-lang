@@ -1,0 +1,23 @@
+--PHEL--
+(defstruct* ^{:php/json true} point [x y])
+--PHP--
+if (!class_exists('user\point')) {
+final class point extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct implements \JsonSerializable {
+
+  protected const array ALLOWED_KEYS = ['x', 'y'];
+
+  protected $x;
+  protected $y;
+
+  public function __construct($x, $y, $meta = null) {
+    parent::__construct();
+    $this->x = $x;
+    $this->y = $y;
+    $this->meta = $meta;
+  }
+
+  public function jsonSerialize(): array {
+    return ['x' => $this->x, 'y' => $this->y];
+  }
+}
+}

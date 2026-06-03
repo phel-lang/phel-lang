@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - PHP interop: `^{:php/attr [...]}` emits PHP 8 attributes (e.g. `#[\ORM\Column(length: 255)]`) and `^{:tag <type>}` emits typed signatures on `defstruct`, `phel export` wrappers, and `definterface` — opt-in, untagged forms unchanged (#2280). The metadata also accepts terser shorthands: a bare keyword (`^{:php/attr :ORM/Entity}`) or a single spec without the outer vector (`^{:php/attr [:ORM/Column {:length 255}]}`) (#2289)
 - Docs: runnable `docs/examples/13_database-crud.phel` (maps-not-entities CRUD) and a Persistence section in `framework-integration.md` covering phel-sql + phel-pdo (#2281, #2282)
 - `defenum`: compiles to a native PHP backed enum (`enum Status: string { case active = 'active'; ... }`) with a generated `Name?` predicate; cases take an optional `int`/`string` value (all-or-none), and class-level `^{:php/attr [...]}` is supported (#2291)
+- `defstruct`: opt-in `^{:php/json true}` implements `\JsonSerializable` (emitting a `jsonSerialize()` that returns the field map, so `json_encode` works), and `^{:php/stringable true}` declares `\Stringable`; untagged structs are unchanged (#2292)
 
 ### Changed
 
