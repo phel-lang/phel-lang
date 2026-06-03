@@ -21,6 +21,9 @@ use function trim;
  *
  * The parser returns `{signatures, description}`; the surrounding
  * ```phel fence and trailing newline are stripped.
+ *
+ * The regex is forgiving: if the docstring lacks a ```phel code fence,
+ * `signatures` is empty and `description` is the entire docstring.
  */
 final class DocstringSignatureParser
 {

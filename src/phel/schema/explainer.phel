@@ -19,6 +19,7 @@
 
 (declare -explain)
 
+;; Builds one error entry for the `:errors` vector returned by `explain`.
 (defn- make-error
   [path in schema value type]
   {:path   path
@@ -27,6 +28,8 @@
    :value  value
    :type   type})
 
+;; Explains a keyword schema: resolves registered refs, otherwise emits a
+;; single `:mismatch` error when the scalar predicate rejects the value.
 (defn- -explain-kind-keyword
   [schema value path in]
   (if (v/valid? schema value)
@@ -35,6 +38,8 @@
       (-explain (reg/deref-ref schema) value path in)
       [(make-error path in schema value :mismatch)])))
 
+;; Explains a homogeneous collection: checks the container type, then
+;; recurses into each element, accumulating per-element errors.
 (defn- -explain-collection
   [schema value type-pred path in]
   (let [head (v/schema-head schema)
@@ -54,6 +59,8 @@
                     sub         (-explain elem-schema (get items i) nested-path nested-in)]
                 (recur (+ i 1) (into acc sub))))))))))
 
+;; Explains a `:map-of` schema: recurses into every key and value,
+;; accumulating errors from both the key and value sub-schemas.
 (defn- -explain-map-of
   [schema value path in]
   (if (not (map? value))
@@ -73,6 +80,8 @@
                 vsub  (-explain val-schema val (conj path :map-of 1) (conj in k))]
             (recur (+ i 1) (into (into acc ksub) vsub))))))))
 
+;; Explains a `:tuple` schema: checks the length matches, then recurses
+;; positionally into each element against its corresponding sub-schema.
 (defn- -explain-tuple
   [schema value path in]
   (if (not (vector? value))
@@ -88,6 +97,9 @@
                                 (conj in i))]
               (recur (+ i 1) (into acc sub)))))))))
 
+;; Explains a `:map` schema: reports `:missing` for absent required keys,
+;; recurses into present entries, and (when `:closed`) reports `:extra`
+;; for keys not declared in the schema.
 (defn- -explain-map
   [schema value path in]
   (if (not (map? value))
@@ -132,6 +144,8 @@
             [])]
       (into entry-errors extra-errors))))
 
+;; Explains an `:enum` schema: a single `:mismatch` error when the value
+;; is not one of the allowed members.
 (defn- -explain-enum
   [schema value path in]
   (let [args (v/schema-args schema)]
@@ -139,6 +153,8 @@
       []
       [(make-error path in schema value :mismatch)])))
 
+;; Explains an `:and` schema: collects errors from every conjoined
+;; sub-schema (all must pass), accumulating across all of them.
 (defn- -explain-and
   [schema value path in]
   (let [args (v/schema-args schema)]
@@ -151,6 +167,8 @@
             (recur (next sch) (+ idx 1) acc)
             (recur (next sch) (+ idx 1) (into acc sub))))))))
 
+;; Explains an `:or` schema: succeeds (no errors) if any branch matches;
+;; otherwise emits a top-level `:mismatch` plus each branch's errors.
 (defn- -explain-or
   [schema value path in]
   (let [args (v/schema-args schema)]
@@ -163,6 +181,8 @@
           (let [sub (-explain (first sch) value (conj path :or idx) in)]
             (recur (next sch) (+ idx 1) (into acc sub))))))))
 
+;; Explains a `:ref` schema: resolves the referenced schema and recurses
+;; into it; emits a `:mismatch` when the ref is not registered.
 (defn- -explain-ref
   [schema value path in]
   (let [name   (first (v/schema-args schema))

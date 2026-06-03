@@ -103,6 +103,11 @@ final class Scheduler
      * need every scheduled fiber to make progress. Fibers that re-suspend
      * during a tick are re-enqueued by the awaitable they block on, so this
      * loop terminates only when nothing is left to run.
+     *
+     * WARNING: a fiber that loops without ever calling Fiber::suspend() never
+     * leaves the ready queue, so this blocks indefinitely. Use it for test
+     * harnesses and top-level event loops, not for unbounded production async
+     * work.
      */
     public function runUntilIdle(): void
     {

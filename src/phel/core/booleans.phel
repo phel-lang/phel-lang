@@ -279,6 +279,8 @@
 (defn not-every?
   "Returns false if `(pred x)` is logical true for every `x` in collection `coll`
    or if `coll` is empty. Otherwise returns true."
+  {:example "(not-every? even? [2 3 4]) ; => true"
+   :see-also ["every?" "all?" "not-any?"]}
   [pred coll]
   (not (all? pred coll)))
 
@@ -299,6 +301,8 @@
 (defn not-any?
   "Returns true if `(pred x)` is logical false for every `x` in `coll`
    or if `coll` is empty. Otherwise returns false."
+  {:example "(not-any? even? [1 3 5]) ; => true"
+   :see-also ["some?" "some" "not-every?"]}
   [pred coll]
   (not (some? pred coll)))
 
@@ -437,9 +441,11 @@
   integer, zero, or a positive integer when `x` is less than, equal to, or
   greater than `y`.
 
-  `nil` is less than every non-nil value and equal to itself. Throws
-  `InvalidArgumentException` when `x` and `y` come from mutually incomparable
-  categories (e.g. `(compare 1 [])`)."
+  `nil` is less than every non-nil value and equal to itself. Numbers are
+  compared across the numeric tower (int, float, `Ratio`, `BigInt`,
+  `BigDecimal`). Throws `InvalidArgumentException` when `x` and `y` come from
+  mutually incomparable categories (e.g. `(compare 1 [])`)."
+  {:see-also ["<=>" "sort" "sort-by"]}
   [x y]
   (cond
     (php/=== x nil) (if (php/=== y nil) 0 -1)

@@ -17,6 +17,14 @@ use Throwable;
 
 final readonly class PathsFormatter
 {
+    /**
+     * @param CommandFacadeInterface $commandFacade Writes located exceptions and
+     *                                              stack traces to the CLI output
+     * @param FormatterInterface     $formatter     Formats a single file's source
+     * @param PathFilterInterface    $pathFilter    Expands the input paths into the
+     *                                              concrete `.phel` files to format
+     * @param FileIoInterface        $fileIo        Reads and writes file contents
+     */
     public function __construct(
         private CommandFacadeInterface $commandFacade,
         private FormatterInterface $formatter,

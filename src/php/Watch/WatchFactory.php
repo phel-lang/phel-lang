@@ -85,6 +85,10 @@ final class WatchFactory extends AbstractFactory
         return new SystemClock();
     }
 
+    /**
+     * The no-op publisher used in standalone watch mode. Override via the
+     * `$publisher` arguments above (or DI) to plug in an nREPL-aware publisher.
+     */
     public function createDefaultPublisher(): ReloadEventPublisherInterface
     {
         return new NullReloadEventPublisher();

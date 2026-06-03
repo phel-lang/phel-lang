@@ -24,7 +24,18 @@ use function strlen;
 final readonly class PairAligner
 {
     /**
+     * Returns $children unchanged unless the pairs span multiple lines and have
+     * a uniform single-line key column to align under.
+     *
      * @param list<NodeInterface> $children
+     * @param int                 $skipValueCount      Number of leading
+     *                                                 non-trivia children to
+     *                                                 exclude before pairing
+     *                                                 starts (e.g. the form head)
+     * @param bool                $allowTrailingSingle Whether an odd trailing
+     *                                                 value is permitted and
+     *                                                 dropped from pairing
+     *                                                 (e.g. a `cond` default)
      *
      * @return list<NodeInterface>
      */
@@ -57,11 +68,15 @@ final readonly class PairAligner
             }
         }
 
+        // Skip the leading non-trivia children (e.g. the form head/keyword)
+        // that are not part of the key/value pairs.
         $pairIndices = array_slice($valueIndices, $skipValueCount);
         if ($allowTrailingSingle && count($pairIndices) % 2 === 1) {
             array_pop($pairIndices);
         }
 
+        // Need at least two complete pairs (4 values) for alignment to matter;
+        // an odd count means the values are not key/value pairs at all.
         if (count($pairIndices) % 2 !== 0 || count($pairIndices) < 4) {
             return [];
         }

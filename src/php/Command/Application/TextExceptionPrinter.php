@@ -24,6 +24,12 @@ use function strlen;
 
 use const PHP_EOL;
 
+/**
+ * Renders Phel exceptions and stack traces as styled terminal text, with blue
+ * message headers, the offending code snippet, and a red caret pointer under the
+ * exact error span. Compiled PHP locations are mapped back to their Phel source
+ * via the {@see FilePositionExtractorInterface}.
+ */
 final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
 {
     public function __construct(
@@ -45,6 +51,15 @@ final readonly class TextExceptionPrinter implements ExceptionPrinterInterface
         $this->errorLog->writeln($this->getExceptionString($e, $codeSnippet));
     }
 
+    /**
+     * Builds the full error string: a styled message header, the source location,
+     * and each line of the code snippet prefixed with its absolute line number.
+     *
+     * The loop maps a snippet-relative offset (`$index`) to an absolute source line
+     * by adding the snippet's first line. A caret pointer is appended only when the
+     * error spans a single line and that line matches the one currently being
+     * printed; multi-line errors are not underlined.
+     */
     public function getExceptionString(AbstractLocatedException $e, CodeSnippet $codeSnippet): string
     {
         $str = '';

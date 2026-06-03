@@ -25,6 +25,14 @@ use function uasort;
 
 final class TableFormatter
 {
+    /**
+     * Build the multi-section report: an optional compile-phase table, the
+     * runtime fn table (top `$top` rows ordered by `$sort`), and a wall-clock
+     * footer. Empty sections are omitted.
+     *
+     * @param int  $top                  Maximum fn rows to show; the rest are truncated
+     * @param bool $includeCompilePhases Prepend the compile-phase table when phase data exists
+     */
     public function render(ProfileReport $report, int $top, SortOrder $sort, bool $includeCompilePhases): string
     {
         $out = '';

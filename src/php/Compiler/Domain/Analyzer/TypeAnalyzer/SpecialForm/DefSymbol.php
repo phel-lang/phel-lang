@@ -157,6 +157,14 @@ final readonly class DefSymbol implements SpecialFormAnalyzerInterface
     }
 
     /**
+     * Separates the def's compile-time metadata from its init expression.
+     *
+     * Returns `[$metaMap, $init]`. The meta map normalizes the explicit
+     * metadata form (string `:doc`, keyword flag, or map), then folds in
+     * flags attached to the name symbol (e.g. `^:dynamic`, `^:private`),
+     * any list-level meta, and the def's start/end source locations so
+     * runtime code and the emitter can read them off the var.
+     *
      * @param PersistentListInterface<mixed> $list
      *
      * @return array{0:PersistentMapInterface<mixed, mixed>, 1:mixed}

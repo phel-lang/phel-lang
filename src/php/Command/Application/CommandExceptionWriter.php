@@ -16,6 +16,11 @@ use Throwable;
 use function sprintf;
 use function str_ends_with;
 
+/**
+ * Delegates exception rendering to the {@see ExceptionPrinterInterface} and persists the
+ * full stack trace via the {@see ErrorLogInterface}, unwrapping compiled PHP locations
+ * back to the originating Phel source for user-facing errors.
+ */
 final readonly class CommandExceptionWriter implements CommandExceptionWriterInterface
 {
     public function __construct(
@@ -56,6 +61,15 @@ final readonly class CommandExceptionWriter implements CommandExceptionWriterInt
         return $this->exceptionPrinter->getStackTraceString($e);
     }
 
+    /**
+     * Renders a user-facing error, mapping the compiled PHP file/line back to its
+     * original Phel source via the source map when available.
+     *
+     * When the source map resolves to a different file, the original location is
+     * shown alongside the compiled one. Otherwise only the raw location is shown,
+     * and a stale-output hint is appended when the failing file is generated PHP
+     * (`.php`), since that usually signals an out-of-date build.
+     */
     private function writeUserError(OutputInterface $output, Throwable $cause): void
     {
         $file = $cause->getFile();

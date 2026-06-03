@@ -49,8 +49,10 @@
      call-history)))
 
 (defn spy
-  "Wraps an existing function to track calls while preserving original behavior."
-  {:example "(def original-fn (fn [x] (* x 2)))"}
+  "Wraps an existing function to track calls while preserving original behavior.
+  Alias for `mock-fn`."
+  {:example "(def original-fn (fn [x] (* x 2)))"
+   :see-also ["mock-fn"]}
   [f]
   (mock-fn f))
 

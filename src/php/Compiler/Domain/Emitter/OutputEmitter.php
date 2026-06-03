@@ -46,6 +46,13 @@ final class OutputEmitter implements OutputEmitterInterface
         private readonly OutputEmitterOptions $options,
     ) {}
 
+    /**
+     * Pushes a new constant-cache scope onto the stack.
+     *
+     * Scopes nest (fn bodies, let bindings, etc.); the innermost one is
+     * consulted by {@see currentConstantScope()} to decide which constants
+     * get a cached slot. Must be paired with a matching {@see popConstantScope()}.
+     */
     public function pushConstantScope(ConstantScope $scope): void
     {
         $this->constantScopes[] = $scope;

@@ -19,6 +19,10 @@ use function in_array;
  */
 final class ConsoleFactory extends AbstractFactory
 {
+    /**
+     * Application name passed to ConsoleBootstrap; shown in the Symfony Console
+     * header and the --version output.
+     */
     public const string CONSOLE_NAME = 'Phel';
 
     public function createConsoleBootstrap(): ConsoleBootstrap

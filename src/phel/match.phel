@@ -43,17 +43,23 @@
       (php/is_string form)
       (keyword? form)))
 
-(defn- or-pattern? [form]
+(defn- or-pattern?
+  "An `(:or alt ...)` list: matches when any alternative matches."
+  [form]
   (and (list? form)
        (not (empty? form))
        (= (first form) or-keyword)))
 
-(defn- guard-pattern? [form]
+(defn- guard-pattern?
+  "A `(pattern :guard pred)` list: matches `pattern` then tests `pred`."
+  [form]
   (and (list? form)
        (= (count form) 3)
        (= (get form 1) guard-keyword)))
 
-(defn- as-pattern? [form]
+(defn- as-pattern?
+  "A `(pattern :as sym)` list: matches `pattern` and binds it to `sym`."
+  [form]
   (and (list? form)
        (= (count form) 3)
        (= (get form 1) as-keyword)

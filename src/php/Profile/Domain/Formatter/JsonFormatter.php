@@ -13,6 +13,11 @@ use const JSON_UNESCAPED_SLASHES;
 
 final class JsonFormatter
 {
+    /**
+     * Serialize the report to a pretty-printed JSON string with top-level keys
+     * `wall_clock_ms`, `compile_phases` (per-source phase times) and `fns`
+     * (per-fn records exposing both nanosecond and millisecond figures).
+     */
     public function render(ProfileReport $report): string
     {
         $fns = [];

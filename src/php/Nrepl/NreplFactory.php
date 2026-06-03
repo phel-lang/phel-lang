@@ -58,7 +58,9 @@ final class NreplFactory extends AbstractFactory
         $dispatcher->register(new LookupOp($this->getApiFacade(), 'info', $sessions));
         $dispatcher->register(new LookupOp($this->getApiFacade(), 'eldoc', $sessions));
 
-        // Describe needs to inspect known ops, register last.
+        // DescribeOp reports the dispatcher's known ops, so it must be
+        // registered last (after every other handler); registering it earlier
+        // would omit later ops from the describe response.
         $dispatcher->register(new DescribeOp($dispatcher, $this->getRunFacade()));
 
         return $dispatcher;

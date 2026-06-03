@@ -36,6 +36,11 @@ abstract class AbstractLocatedException extends RuntimeException
         return $this->errorCode;
     }
 
+    /**
+     * Attaches a standardized error identifier to this exception. Subclasses
+     * call this (typically from their constructor) to tag the located error
+     * with its PHELxxx {@see ErrorCode} for reporting.
+     */
     protected function setErrorCode(ErrorCode $errorCode): void
     {
         $this->errorCode = $errorCode;

@@ -12,6 +12,11 @@ use Phel\Lang\Symbol;
  * symbols (`*file*`, `*ns*`). Their `:doc`/`:signatures`/`:example` metadata
  * cannot be read from the registry, so it is maintained here and merged by
  * {@see PhelFnLoader} with the runtime-loaded function metadata.
+ *
+ * Maintenance: adding a native symbol means appending an entry to the
+ * {@see self::DEFINITIONS} array by hand (there is no generator); if it
+ * introduces a new namespace, also register that namespace in
+ * {@see \Phel\Api\ApiConfig::allNamespaces()} so it is surfaced by the loader.
  */
 final class NativeSymbolCatalog
 {

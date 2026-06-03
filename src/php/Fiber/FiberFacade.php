@@ -15,6 +15,11 @@ use Phel\Fiber\Domain\Scheduler;
  * primitives used by Phel's async library: {@see Promise}, {@see Future},
  * and the shared {@see Scheduler}.
  *
+ * A Future body is enqueued on the process-wide {@see Scheduler} eagerly,
+ * the moment {@see Future()} constructs it; it is not deferred until
+ * {@see await()}. The body then runs cooperatively whenever any fiber ticks
+ * the scheduler.
+ *
  * @extends AbstractFacade<FiberFactory>
  */
 final class FiberFacade extends AbstractFacade implements FiberFacadeInterface

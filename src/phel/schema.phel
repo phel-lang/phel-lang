@@ -98,8 +98,9 @@
   (c/conform schema value))
 
 (def invalid-marker
-  "Sentinel returned by `conform` when a value cannot be made to fit a
-  schema."
+  "Sentinel value (`:phel.schema/invalid`) returned by `conform` when a
+  value cannot be coerced to fit a schema. `conform` returns this marker
+  instead of throwing, so compare against it to detect failure."
   c/invalid-marker)
 
 (defn generate

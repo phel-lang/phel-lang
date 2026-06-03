@@ -133,9 +133,12 @@
      fs)))
 
 (defn partial
-  "Takes a function `f` and fewer than normal arguments of `f` and returns a function
-  that a variable number of additional arguments. When call `f` will be called
-  with `args` and the additional arguments."
+  "Takes a function `f` and fewer than the normal number of arguments to `f`,
+  and returns a function that takes a variable number of additional arguments.
+  When called, `f` will be invoked with the bound `args` prepended to the
+  additional arguments."
+  {:example "((partial + 10) 1 2) ; => 13"
+   :see-also ["comp" "apply"]}
   [f & args]
   #(apply f (concat args %&)))
 

@@ -24,7 +24,7 @@ Immutable `final readonly class`. Every mutation returns new instance via `with*
 - Validation: `validate(): list<string>` (empty if valid)
 - Serialization: `jsonSerialize(): array<string, mixed>`
 
-**Deprecated (since 0.37)**: `setX()` and `useLayout()`/`useNestedLayout()`/`useFlatLayout()` shim to `with*()` counterparts (marked `#[Deprecated]`).
+**Deprecated (since 0.37)**: `setX()` and `useLayout()`/`useNestedLayout()`/`useFlatLayout()` shim to `with*()` counterparts (marked `#[Deprecated]`). These are permanent backward-compatibility aliases: they are not scheduled for removal in a minor release. Use `with*()` for new code; any eventual removal would require a major version bump.
 
 ### PhelBuildConfig
 

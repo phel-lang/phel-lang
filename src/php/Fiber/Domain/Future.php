@@ -38,6 +38,9 @@ final class Future implements Awaitable
     ) {
         $this->promise = new Promise($scheduler);
         $this->fiber = new Fiber(function () use ($body): void {
+            // Run the body and capture its outcome: a normal return is
+            // delivered as the promise value; a throw is recorded in
+            // $failed/$error and rethrown later on deref().
             try {
                 $result = $body();
                 $this->promise->deliver($result);

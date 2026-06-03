@@ -34,6 +34,9 @@ final readonly class EvalOp implements OpHandlerInterface
             )];
         }
 
+        // structuredEval compiles and evaluates the code in the session's
+        // current namespace. CompileOptions is left empty: there is currently
+        // no nREPL-specific tuning (no optimization flags) to pass through.
         $result = $this->runFacade->structuredEval($code, new CompileOptions());
 
         return $this->responder->respond($request, $result, 'Evaluation failed.');

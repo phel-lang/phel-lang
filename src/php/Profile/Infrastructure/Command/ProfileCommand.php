@@ -72,6 +72,11 @@ final class ProfileCommand extends Command
             ->addOption(self::OPT_NO_COMPILE_PHASES, null, InputOption::VALUE_NONE, 'Skip the compile-time phase report.');
     }
 
+    /**
+     * Resolve the target script, validate `--sort`/`--format`, run it under the
+     * profiler hook, then render the report. Returns FAILURE when the path is
+     * unresolved, an option is invalid, or the script throws; SUCCESS otherwise.
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $path = $this->resolvePath($input, $output);
@@ -107,6 +112,13 @@ final class ProfileCommand extends Command
         return self::SUCCESS;
     }
 
+    /**
+     * Run the target file or namespace with `Registry::$profilerHook` installed,
+     * always clearing the hook in `finally`. The hook is global and not
+     * reentrant, so this must not run inside another profiling context.
+     *
+     * @return ProfileReport|null The collected report, or null if the run threw
+     */
     private function runWithProfiler(string $path, OutputInterface $output): ?ProfileReport
     {
         $runFacade = $this->getFactory()->getRunFacade();

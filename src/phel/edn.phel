@@ -118,7 +118,7 @@
   Options:
     :readers  map of tag (symbol, keyword, or string) to 1-arg handler fn
     :eof      value returned for empty input"
-  {:example "(read-string \"{:a 1 :b 2}\") ; => {:a 1, :b 2}"
+  {:example "(read-string \"{:a 1 :b 2}\") ; => {:a 1, :b 2}\n(read-string \"\" {:eof :default}) ; => :default"
    :see-also ["read-string-all" "write-string"]}
   ([s] (read-string s {}))
   ([s opts]
@@ -155,7 +155,7 @@
 (defn write-string-all
   "Serialises a sequence of values to EDN, separating top-level forms
   with a single space. Inverse of `read-string-all`."
-  {:example "(write-string-all [1 2 3]) ; => \"1 2 3\""
+  {:example "(write-string-all [1 2 3]) ; => \"1 2 3\"\n(write-string-all [1 \"hi\" :kw]) ; => \"1 \\\"hi\\\" :kw\""
    :see-also ["read-string-all" "write-string"]}
   [xs]
   (php/implode " "

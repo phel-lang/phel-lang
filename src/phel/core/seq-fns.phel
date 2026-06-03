@@ -57,6 +57,8 @@
    followed by applying `f` to all the second items in each coll until anyone of the colls is exhausted.
 
   When given a single collection, applies the function to each element.
+  When applied to a map, iterates over entries as `[key value]` pairs,
+  matching Clojure semantics.
   With multiple collections, applies the function to corresponding elements from each collection,
   stopping when the shortest collection is exhausted."
   {:example "(map inc [1 2 3]) ; => @[2 3 4]"
