@@ -53,3 +53,29 @@
         "ArrayObject implements Countable")
     (is (contains? sset "Traversable")
         "ArrayObject implements Traversable")))
+
+(def- annotated "PhelTest\\Fixtures\\Reflection\\AnnotatedController")
+(def- route-attr "PhelTest\\Fixtures\\Reflection\\Route")
+
+(deftest class-attributes-reads-class-level-attributes
+  (let [attrs (r/class-attributes annotated)
+        attr  (first attrs)]
+    (is (= 1 (count attrs)) "one class-level attribute")
+    (is (= route-attr (get attr :name)) ":name is the attribute FQCN")
+    (testing "positional args are indexed, named args are keyword-keyed"
+             (is (= "/products" (get-in attr [:args 0])))
+             (is (= "GET" (get-in attr [:args :method]))))))
+
+(deftest method-attributes-reads-method-level-attributes
+  (let [attr (first (r/method-attributes annotated "create"))]
+    (is (= route-attr (get attr :name)))
+    (is (= "POST" (get-in attr [:args :method])) "method attribute named arg")))
+
+(deftest property-attributes-reads-property-level-attributes
+  (let [attr (first (r/property-attributes annotated "id"))]
+    (is (= route-attr (get attr :name)))
+    (is (= "/products/{id}" (get-in attr [:args 0])) "property attribute positional arg")))
+
+(deftest attributes-alias-works-on-an-instance
+  (let [attr (first (r/attributes (php/new annotated)))]
+    (is (= route-attr (get attr :name)) "an instance reflects its class' attributes")))

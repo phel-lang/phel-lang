@@ -79,6 +79,54 @@
       (conj! names iface))
     (persistent! names)))
 
+(defn- attribute-args
+  "Builds the `:args` map for a `ReflectionAttribute`: named arguments become
+  keyword keys, positional arguments keep their integer index."
+  [a]
+  (let [res (transient {})]
+    (foreach [k v (php/-> a (getArguments))]
+      (php/-> res (put (if (string? k) (keyword k) k) v)))
+    (persistent res)))
+
+(defn- attribute->map [a]
+  {:name (php/-> a (getName))
+   :args (attribute-args a)})
+
+(defn- attributes-of [reflectable]
+  (vec (for [a :in (php/-> reflectable (getAttributes))]
+         (attribute->map a))))
+
+(defn class-attributes
+  "Returns a vector of attribute maps for the class `class-or-name` (string FQN
+  or object). Each map is `{:name <attribute-fqcn> :args {...}}`, where `:args`
+  keys named arguments as keywords and positional arguments by index."
+  {:example "(class-attributes \\App\\Controller\\ProductController)"
+   :see-also ["method-attributes" "property-attributes" "attributes"]}
+  [class-or-name]
+  (attributes-of (reflection-class class-or-name)))
+
+(defn method-attributes
+  "Returns a vector of attribute maps for method `method-name` on `class-or-name`."
+  {:example "(method-attributes \\App\\Foo \"handle\")"
+   :see-also ["class-attributes" "property-attributes"]}
+  [class-or-name method-name]
+  (attributes-of (php/-> (reflection-class class-or-name) (getMethod method-name))))
+
+(defn property-attributes
+  "Returns a vector of attribute maps for property `property-name` on `class-or-name`."
+  {:example "(property-attributes \\App\\Foo \"id\")"
+   :see-also ["class-attributes" "method-attributes"]}
+  [class-or-name property-name]
+  (attributes-of (php/-> (reflection-class class-or-name) (getProperty property-name))))
+
+(defn attributes
+  "Returns the class-level attribute maps for `obj-or-class`; an instance uses
+  its class. Convenience alias of `class-attributes`."
+  {:example "(attributes my-controller)"
+   :see-also ["class-attributes" "method-attributes" "property-attributes"]}
+  [obj-or-class]
+  (class-attributes obj-or-class))
+
 (defn class-info
   "Returns a map describing `class-or-name` with `:name`, `:methods`,
   `:properties`, `:parents`, and `:interfaces` keys."

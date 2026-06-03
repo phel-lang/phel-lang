@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
+- `phel.reflect`: `class-attributes`/`method-attributes`/`property-attributes`/`attributes` read PHP 8 attributes off a class, method, or property as `{:name fqcn :args {...}}` maps (named args keyword-keyed, positional indexed), so Phel can consume attribute-annotated PHP/framework code (#2314)
 - `iterator-seq`: wraps a PHP `Traversable` (Iterator/Generator/IteratorAggregate) as a lazy seq, pulling one element at a time so a large or infinite cursor streams instead of materialising via `iterator_to_array` (#2312)
 - `phel.http`: JSON request bodies decode into `:parsed-body`, plus `json-response`/`html-response` builders (#2271)
 - Docs: runnable `docs/examples/13_database-crud.phel` and a maps-not-entities Persistence section in `framework-integration.md` (#2281, #2282)
