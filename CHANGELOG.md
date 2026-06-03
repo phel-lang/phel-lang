@@ -9,21 +9,24 @@ All notable changes to this project will be documented in this file.
 - Lexer: error/source-map columns are now counted in code points, not bytes, so locations are correct for multibyte (UTF-8) source
 - Printer: structs print with the `.` separator (`(my.ns.point 1 2)`) instead of `\` (#2255)
 - Docs: function `:example` outputs now match what the REPL prints, so `phel doc` and the phel-lang.org API reference are accurate
-- `phel->php`: maps with non-named keys (integers, strings) now convert correctly instead of throwing `getName() on int`; this unblocks int-keyed PHP arrays such as PDO option maps (`{\PDO/ATTR_TIMEOUT 5}`) (#2298)
+- `phel->php`: integer/string map keys now convert instead of throwing `getName() on int` (unblocks PDO option maps) (#2298)
 
 ### Added
 
-- `phel.http`: JSON request bodies decode into `:parsed-body`, plus `json-response`/`html-response` builders that set the content-type and encode the body (#2271)
-- PHP interop: `^{:php/attr [...]}` emits PHP 8 attributes (e.g. `#[\ORM\Column(length: 255)]`) and `^{:tag <type>}` emits typed signatures on `defstruct`, `phel export` wrappers, and `definterface` — opt-in, untagged forms unchanged (#2280). The metadata also accepts terser shorthands: a bare keyword (`^{:php/attr :ORM/Entity}`) or a single spec without the outer vector (`^{:php/attr [:ORM/Column {:length 255}]}`) (#2289)
-- Docs: runnable `docs/examples/13_database-crud.phel` (maps-not-entities CRUD) and a Persistence section in `framework-integration.md` covering phel-sql + phel-pdo (#2281, #2282)
-- `defenum`: compiles to a native PHP backed enum (`enum Status: string { case active = 'active'; ... }`) with a generated `Name?` predicate; cases take an optional `int`/`string` value (all-or-none), and class-level `^{:php/attr [...]}` is supported (#2291)
-- `defstruct`: opt-in `^{:php/json true}` implements `\JsonSerializable` (emitting a `jsonSerialize()` that returns the field map, so `json_encode` works), and `^{:php/stringable true}` declares `\Stringable`; untagged structs are unchanged (#2292)
-- `:tag` type hints (on `defstruct` fields and `definterface` params/returns) now accept composite types: a list is a union (`^{:tag (int string)}` => `int|string`) and a vector is an intersection (`^{:tag [Countable Stringable]}` => `Countable&Stringable`); nullable/`self`/`static`/FQN tags continue to pass through verbatim (#2293)
-- `definterface`: `^{:php/attr [...]}` on a method parameter now emits an inline PHP parameter attribute (`public function show(#[\Autowire] string $repo)`), complementing the existing method- and interface-level attributes (#2294)
-- `^{:php/doc ...}` emits a PHPDoc block on generated `defstruct` classes/fields and `definterface` interfaces/methods, so phpstan/psalm see Phel-generated code as typed; the value is a one-line string (`"@var list<int>"`) or a list/vector of strings for a multi-line block (#2295)
-- `hydrate`/`bean` bridge Phel maps and PHP objects: `hydrate` builds an instance of a class (bypassing its constructor, ORM/serializer style) and sets the declared properties from a map; `bean` reads a PHP object's public properties back into a keyword-keyed map (#2296)
-- `defexception`: takes an optional parent class to extend (`(defexception ProductNotFound \RuntimeException)`, defaults to `\Exception`) so frameworks can catch it by type, and `^{:php/attr [...]}` on the name emits class-level PHP attributes (#2297)
-- `php/ref`: marks a local as passed by reference in a `php/->`/`php/::` interop call (`(php/-> stmt (bindColumn 1 (php/ref out) ...))`), so the wrapping closure captures it with `use(&$out)` and an output-parameter PHP method writes back into the Phel binding (#2299)
+- `phel.http`: JSON request bodies decode into `:parsed-body`, plus `json-response`/`html-response` builders (#2271)
+- Docs: runnable `docs/examples/13_database-crud.phel` and a maps-not-entities Persistence section in `framework-integration.md` (#2281, #2282)
+
+Richer PHP interop, for bridging Phel to typed PHP / framework code (all opt-in, untagged forms unchanged):
+
+- `^{:php/attr [...]}` emits PHP 8 attributes and `^{:tag <type>}` emits typed signatures on `defstruct`, `definterface`, and `phel export` wrappers; with keyword and single-spec shorthands (#2280, #2289)
+- `:tag` now accepts composite types: list = union (`int|string`), vector = intersection (`Countable&Stringable`) (#2293)
+- parameter-level `^{:php/attr [...]}` on `definterface` methods (`#[\Autowire]`) (#2294)
+- `^{:php/doc ...}` emits PHPDoc blocks so phpstan/psalm see generated classes as typed (#2295)
+- `defenum`: native PHP backed enum with a `Name?` predicate (#2291)
+- `defstruct`: opt-in `^{:php/json true}` / `^{:php/stringable true}` implement `\JsonSerializable` / `\Stringable` (#2292)
+- `defexception`: optional parent class to extend, plus `^{:php/attr [...]}` (#2297)
+- `php/ref`: pass a local by reference into a `php/->`/`php/::` call so output-parameter methods (PDO `bindColumn`) write back (#2299)
+- `hydrate`/`bean`: build a typed object from a map (constructor bypassed) and read public properties back into a map (#2296)
 
 ### Changed
 
