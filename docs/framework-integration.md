@@ -271,7 +271,7 @@ phel-pdo can also wrap an existing PDO handle so its map-returning helpers run o
 
 ### Controllers, transactions, migrations
 
-- **Routes/commands:** an exported `defn` can carry `^{:php/attr [[:Symfony.Component.Routing.Attribute/Route "/products/{id}"]]}`, so `phel export` emits the `#[Route]` on the generated wrapper — no hand-written controller shim.
+- **Routes/commands:** an exported `defn` can carry `^{:php/attr [:Symfony.Component.Routing.Attribute/Route "/products/{id}"]}`, so `phel export` emits the `#[Route]` on the generated wrapper — no hand-written controller shim.
 - **Transactions:** wrap writes with phel-pdo's transaction helpers; keep the pure work outside the transaction and only the effect inside.
 - **Migrations:** stay in PHP-land — reuse `doctrine/migrations` or your framework's tool. Phel does not need its own.
 

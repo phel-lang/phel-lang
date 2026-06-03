@@ -1,0 +1,20 @@
+--PHEL--
+(defstruct* ^{:php/attr :ORM/Entity} my-short
+  [^{:tag int :php/attr [:ORM/Id]} id])
+--PHP--
+if (!class_exists('user\my_short')) {
+#[\ORM\Entity]
+final class my_short extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
+
+  protected const array ALLOWED_KEYS = ['id'];
+
+  #[\ORM\Id]
+  protected int $id;
+
+  public function __construct($id, $meta = null) {
+    parent::__construct();
+    $this->id = $id;
+    $this->meta = $meta;
+  }
+}
+}
