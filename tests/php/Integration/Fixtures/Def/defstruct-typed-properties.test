@@ -1,0 +1,19 @@
+--PHEL--
+(defstruct* my-typed-type [^{:tag int} a ^{:tag string} b])
+--PHP--
+if (!class_exists('user\my_typed_type')) {
+final class my_typed_type extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
+
+  protected const array ALLOWED_KEYS = ['a', 'b'];
+
+  protected int $a;
+  protected string $b;
+
+  public function __construct($a, $b, $meta = null) {
+    parent::__construct();
+    $this->a = $a;
+    $this->b = $b;
+    $this->meta = $meta;
+  }
+}
+}
