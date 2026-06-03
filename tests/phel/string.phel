@@ -180,12 +180,8 @@
   (is (= nil (s/index-of "ab" "abc")) "needle longer than s returns nil")
   (is (= 0 (s/index-of "abc" "a" 0)) "explicit from-index 0 finds a leading match")
   (is (= 2 (s/index-of "abc" "c" 2)) "from-index at the last char still matches")
-  ;; NOTE: empty haystack with the default from-index leaks a raw PHP
-  ;; ValueError from mb_strpos (offset out of range) instead of returning
-  ;; nil (see bugsFound). Locking in the current (buggy) behavior so a
-  ;; future fix flips this assertion intentionally.
-  (is (thrown? \Throwable (s/index-of "" "a"))
-      "empty haystack currently raises rather than returning nil"))
+  (is (= nil (s/index-of "" "a")) "empty haystack with a needle returns nil")
+  (is (= 0 (s/index-of "" "")) "empty haystack and empty needle match at index 0"))
 
 (deftest test-last-index-of-edge-cases
   (is (= 3 (s/last-index-of "abc" "")) "empty needle is found at the string length")
