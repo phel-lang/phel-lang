@@ -9,7 +9,11 @@ use Phel\Shared\Parser\Node\InnerNodeInterface;
 
 use function strlen;
 
-final class LineIndenter implements IndenterInterface
+/**
+ * Computes the left margin (indentation width) of a location by reconstructing
+ * the text of the line that precedes it and measuring that line's length.
+ */
+final readonly class LineIndenter implements IndenterInterface
 {
     public function getMargin(ParseTreeZipper $loc, int $indentWidth): int
     {

@@ -51,20 +51,19 @@
     (v/resolve-or-throw "no default generator for schema kind" head
                         (fn [target] (schema->gen target)))))
 
-(defn- vector-of-gen [args]
+(defn- collection-gen [type-ctor args]
   (if (empty? args)
-    (g/vector-of g/int)
-    (g/vector-of (schema->gen (first args)))))
+    (type-ctor g/int)
+    (type-ctor (schema->gen (first args)))))
+
+(defn- vector-of-gen [args]
+  (collection-gen g/vector-of args))
 
 (defn- list-of-gen [args]
-  (if (empty? args)
-    (g/list-of g/int)
-    (g/list-of (schema->gen (first args)))))
+  (collection-gen g/list-of args))
 
 (defn- set-of-gen [args]
-  (if (empty? args)
-    (g/set-of g/int)
-    (g/set-of (schema->gen (first args)))))
+  (collection-gen g/set-of args))
 
 (defn- map-of-gen [args]
   (g/map-of (schema->gen (get args 0))
