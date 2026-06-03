@@ -50,6 +50,20 @@
   (let [v (s/coerce :inst 1000000)]
     (is (= true (php/instanceof v \DateTimeInterface)))))
 
+(deftest test-coerce-inst-edge-cases
+  (testing "unparseable date string is returned unchanged for downstream validation"
+           (is (= "not-a-real-date" (s/coerce :inst "not-a-real-date"))
+               "invalid date string passes through as the original string")
+           (is (= "string" (php/gettype (s/coerce :inst "13/45/2026")))
+               "out-of-range date components stay a string"))
+  (testing "epoch boundary timestamps coerce to a DateTime"
+           (let [zero (s/coerce :inst 0)]
+             (is (= true (php/instanceof zero \DateTimeInterface)) "epoch 0 coerces")
+             (is (= "1970-01-01" (php/-> zero (format "Y-m-d"))) "epoch 0 is 1970-01-01"))
+           (let [neg (s/coerce :inst -1000000)]
+             (is (= true (php/instanceof neg \DateTimeInterface)) "negative epoch coerces")
+             (is (= "1969-12-20" (php/-> neg (format "Y-m-d"))) "negative epoch is before 1970"))))
+
 (deftest test-coerce-string
   (is (= "42" (s/coerce :string 42)))
   (is (= "1.5" (s/coerce :string 1.5)))

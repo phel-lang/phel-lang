@@ -539,6 +539,33 @@
       (is (thrown? \RuntimeException (ai/extract-many {:id "integer"} "text" {:api-key "k"}))
           "throws when response has no array"))))
 
+;; --- extract-json-from-response edge cases ---
+
+(deftest test-extract-json-surrounding-whitespace
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "  \n {\"x\":7} \n  "}]})))]
+    (binding [ai/*http-post* fake]
+      (is (= 7 (get (ai/extract {:x "integer"} "text" {:api-key "k"}) :x))
+          "leading/trailing whitespace is trimmed and bare json is parsed"))))
+
+(deftest test-extract-json-nested-object-via-substring
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "Result: {\"a\":{\"b\":1}} done"}]})))]
+    (binding [ai/*http-post* fake]
+      (let [result (ai/extract {:a "object"} "text" {:api-key "k"})]
+        (is (= 1 (get (get result :a) :b))
+            "substring extraction spans to the last brace, keeping a nested object intact")))))
+
+(deftest test-extract-json-fenced-block-without-language-tag
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "Here:\n```\n{\"x\":2}\n```"}]})))]
+    (binding [ai/*http-post* fake]
+      (is (= 2 (get (ai/extract {:x "integer"} "text" {:api-key "k"}) :x))
+          "fenced block without a json language tag is still parsed"))))
+
+(deftest test-extract-json-unclosed-brace-throws
+  (let [fake (mock-fn (fn [_ _] (ok-response {:content [{:type "text" :text "open {\"x\":1 but never closes"}]})))]
+    (binding [ai/*http-post* fake]
+      (is (thrown? \RuntimeException (ai/extract {:x "integer"} "text" {:api-key "k"}))
+          "an unclosed brace yields no extractable object and throws"))))
+
 ;; --- chat-with-tools (happy paths) ---
 
 (deftest test-chat-with-tools-anthropic-returns-normalized-map

@@ -57,6 +57,42 @@ final class MessageReaderTest extends TestCase
         $reader->read($stream);
     }
 
+    public function test_it_returns_empty_array_on_zero_content_length(): void
+    {
+        $stream = $this->memoryStreamWith("Content-Length: 0\r\n\r\n");
+
+        $reader = new MessageReader();
+        $message = $reader->read($stream);
+
+        self::assertSame([], $message);
+    }
+
+    public function test_it_returns_empty_array_when_no_content_length_header_present(): void
+    {
+        $stream = $this->memoryStreamWith("Content-Type: application/vscode-jsonrpc\r\n\r\n");
+
+        $reader = new MessageReader();
+        $message = $reader->read($stream);
+
+        self::assertSame([], $message);
+    }
+
+    public function test_it_throws_when_header_block_exceeds_maximum_size(): void
+    {
+        $header = '';
+        for ($i = 0; $i < 40; ++$i) {
+            $header .= "X-Custom-Header-{$i}: value\r\n";
+        }
+
+        $stream = $this->memoryStreamWith($header . "Content-Length: 17\r\n\r\n{\"method\":\"ping\"}");
+
+        $reader = new MessageReader();
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('LSP header block exceeded maximum size.');
+        $reader->read($stream);
+    }
+
     public function test_it_reads_two_messages_back_to_back(): void
     {
         $stream = $this->memoryStreamWith(
