@@ -1,0 +1,25 @@
+--PHEL--
+(defstruct* ^{:php/attr [[:ORM/Entity]]} my-entity
+  [^{:tag int :php/attr [[:ORM/Id] [:ORM/Column]]} id
+   ^{:tag string :php/attr [[:ORM/Column {:length 255}]]} name])
+--PHP--
+if (!class_exists('user\my_entity')) {
+#[\ORM\Entity]
+final class my_entity extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
+
+  protected const array ALLOWED_KEYS = ['id', 'name'];
+
+  #[\ORM\Id]
+  #[\ORM\Column]
+  protected int $id;
+  #[\ORM\Column(length: 255)]
+  protected string $name;
+
+  public function __construct($id, $name, $meta = null) {
+    parent::__construct();
+    $this->id = $id;
+    $this->name = $name;
+    $this->meta = $meta;
+  }
+}
+}

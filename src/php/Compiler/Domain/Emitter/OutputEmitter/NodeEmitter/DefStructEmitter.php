@@ -8,16 +8,22 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DefStructNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\Keyword;
+use Phel\Lang\SourceLocation;
 use Phel\Lang\Symbol;
+use Phel\Shared\PhpAttributeRenderer;
 
 use function assert;
 use function count;
+use function is_string;
 
 final readonly class DefStructEmitter implements NodeEmitterInterface
 {
     public function __construct(
         private OutputEmitterInterface $outputEmitter,
         private MethodEmitter $methodEmitter,
+        private PhpAttributeRenderer $attributeRenderer = new PhpAttributeRenderer(),
     ) {}
 
     public function emit(AbstractNode $node): void
@@ -104,6 +110,8 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
 
     private function emitClassHeader(DefStructNode $node): void
     {
+        $this->emitAttributes($node->getName()->getMeta(), $node->getStartSourceLocation());
+
         $this->outputEmitter->emitStr(
             'final class ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct',
             $node->getStartSourceLocation(),
@@ -149,12 +157,58 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
     {
         $params = $node->getParams();
         foreach ($params as $param) {
+            $meta = $param->getMeta();
+            $this->emitAttributes($meta, $node->getStartSourceLocation());
+
             $this->outputEmitter->emitStr('protected ');
+            $tag = $this->extractTag($meta);
+            if ($tag !== null) {
+                $this->outputEmitter->emitStr($tag . ' ');
+            }
+
             $this->outputEmitter->emitPhpVariable($param);
             $this->outputEmitter->emitLine(';');
         }
 
         $this->outputEmitter->emitLine();
+    }
+
+    /**
+     * Emits one `#[...]` line per `:php/attr` spec carried by the symbol meta,
+     * at the current indentation, before the annotated construct.
+     *
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
+    private function emitAttributes(?PersistentMapInterface $meta, ?SourceLocation $sourceLocation): void
+    {
+        if (!$meta instanceof PersistentMapInterface) {
+            return;
+        }
+
+        $specs = $meta->find(Keyword::create('attr', 'php'));
+        foreach ($this->attributeRenderer->render($specs) as $attribute) {
+            $this->outputEmitter->emitLine($attribute, $sourceLocation);
+        }
+    }
+
+    /**
+     * Reads the PHP type hint from a symbol's `:tag` meta, mirroring the
+     * convention used for typed function parameters. Returns null when absent.
+     *
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
+    private function extractTag(?PersistentMapInterface $meta): ?string
+    {
+        if (!$meta instanceof PersistentMapInterface) {
+            return null;
+        }
+
+        $tag = $meta->find(Keyword::create('tag'));
+        if ($tag instanceof Symbol) {
+            $tag = $tag->getName();
+        }
+
+        return is_string($tag) && $tag !== '' ? $tag : null;
     }
 
     private function emitConstructor(DefStructNode $node): void

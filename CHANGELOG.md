@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 
 - `phel.http`: `request-from-globals` decodes `application/json` request bodies into `:parsed-body` (nil for an empty or malformed body); `request-from-globals-args` gains an optional trailing `raw-body` arg
 - `phel.http`: `json-response` and `html-response` builders set the content-type header and encode the body, so apps stop hand-rolling the header map; the `http-json-api` example now uses them (#2271)
+- `defstruct`: fields tagged with `^{:tag <type>}` now emit a typed PHP property, and `^{:php/attr [...]}` metadata on the struct name or a field emits PHP 8 attributes (e.g. `#[\ORM\Column(length: 255)]`) on the generated class/property — both opt-in, untagged structs unchanged (#2280)
 - Compiler internals: regression test pinning that AST source locations survive every phase
 
 ### Changed

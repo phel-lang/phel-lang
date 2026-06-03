@@ -75,6 +75,10 @@ Compiler/
 
 Analyzer tracks param and return types via `ParamTypeInferrer`, `ReturnTypeInferrer`, grafting `:tag` meta onto binding symbols. Call-site *eligibility* lives on `*Specialization` classes (`NumericOperationSpecialization`, `TypePredicateSpecialization`, `TypedValueSpecialization`, `TypedCollectionMethodSpecialization`, `AssocConjSpecialization`, `AtomMethodSpecialization`, `NilAndBooleanCheckSpecialization`); `CallSpecialization` aggregates them. The matching PHP *emission* lives on per-family collaborators under `NodeEmitter/Specialized/` (one `*CallEmitter implements SpecializedCallEmitterInterface` per eligibility class); `CallEmitter` builds them once and dispatches by looping `tryEmit()` over them before the generic call path. Family predicates are disjoint, so chain order between families is not significant. Add a new specialization family as a `*Specialization` eligibility class, register it in `CallSpecialization::isSpecialized()`, and add the matching `Specialized/*CallEmitter` to `CallEmitter`'s ordered list. Contract: propagate only analyzer-published types, never fabricate.
 
+## Struct Attributes & Typed Properties
+
+`DefStructEmitter` reads per-symbol metadata to enrich the generated PHP class: a field's `^{:tag <type>}` emits a typed property (`protected int $id;`), and `^{:php/attr [...]}` on the struct name (class-level) or a field (property-level) emits PHP 8 attributes via the shared `Phel\Shared\PhpAttributeRenderer`. Both opt-in; untagged structs are byte-identical to before.
+
 ## Global Environment
 
 Process-wide singleton in `Domain/Analyzer/Environment/GlobalEnvironmentRegistry`. `GlobalEnvironmentManager` (Application) and `GlobalEnvironmentSingleton` (Infrastructure) both read/write the same slot. `GlobalEnvironmentSingleton` is retained as ABI shim; emitter writes literal calls to `\Phel\Compiler\Infrastructure\GlobalEnvironmentSingleton::getInstance()` into generated PHP (baked into cached `.phel` files).
