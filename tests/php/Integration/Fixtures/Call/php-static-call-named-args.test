@@ -1,0 +1,4 @@
+--PHEL--
+(php/:: \DateTime (createFromFormat :& :format "Y" :datetime "2024"))
+--PHP--
+(\DateTime::createFromFormat(format: "Y", datetime: "2024"));

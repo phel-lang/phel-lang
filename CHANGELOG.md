@@ -22,6 +22,7 @@ Richer PHP interop for bridging Phel to typed PHP / framework code (all opt-in, 
 - `defenum` native backed enums, and `defexception` with an optional parent class (#2291, #2297)
 - `php/ref` passes a local by reference into a `php/->`/`php/::` call (PDO `bindColumn`) (#2299), and now also into plain PHP function calls (`preg_match`, `sort`, `settype`, ...); the local is captured by reference even when the call is wrapped in a closure (#2310)
 - `hydrate`/`bean` bridge a Phel map and a typed PHP object both ways (#2296)
+- PHP 8 named arguments in interop via the `:&` marker: `(php/new \App\Mailer :& :host "smtp" :port 25)`, also in `php/->`/`php/::` and mixable after positional args (#2311)
 
 ### Changed
 

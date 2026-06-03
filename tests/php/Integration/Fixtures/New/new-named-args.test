@@ -1,0 +1,4 @@
+--PHEL--
+(php/new \ArrayObject :& :array (php/array 1 2) :flags 0)
+--PHP--
+(new \ArrayObject(array: array(1, 2), flags: 0));

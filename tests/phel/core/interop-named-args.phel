@@ -1,0 +1,27 @@
+(ns phel-test.core.interop-named-args
+  (:require phel.test :refer [deftest is]))
+
+(def by-ref-target "PhelTest\\Fixtures\\Interop\\ByRefTarget")
+
+(deftest php-new-with-named-args
+  (let [ao (php/new \ArrayObject :& :array (php/array 1 2 3))]
+    (is (= 3 (php/-> ao (count))) "named args bind to the constructor parameters")))
+
+(deftest php-new-with-positional-then-named-args
+  (let [dt (php/new \DateTime "2024-01-15 00:00:00" :& :timezone nil)]
+    (is (= "2024-01-15" (php/-> dt (format "Y-m-d"))) "positional args mix with trailing named args")))
+
+(deftest php-static-call-with-named-args
+  (let [dt (php/:: \DateTime (createFromFormat :& :format "Y-m-d" :datetime "2024-01-15"))]
+    (is (= "2024-01-15" (php/-> dt (format "Y-m-d"))) "static interop calls accept named args")))
+
+(deftest php-method-call-with-named-args
+  (let [ao (php/new \ArrayObject (php/array 1 2))]
+    (php/-> ao (setFlags :& :flags \ArrayObject/ARRAY_AS_PROPS))
+    (is (= 2 (php/-> ao (count))) "method interop calls accept named args")))
+
+(deftest php-ref-inside-a-named-arg-writes-back
+  (let [t   (php/new by-ref-target)
+        out "init"]
+    (php/-> t (writeInto :& :out (php/ref out) :value "written"))
+    (is (= "written" out) "php/ref still writes back when passed as a named argument")))
