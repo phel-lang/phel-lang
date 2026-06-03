@@ -9,3 +9,9 @@
   {:export true}
   [a b]
   (php/+ a b))
+
+(defn adder-3
+  {:export true
+   :php/attr [[:My.Routing/Route "/add"]]}
+  [a b]
+  (php/+ a b))
