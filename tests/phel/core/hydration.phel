@@ -1,0 +1,19 @@
+(ns phel-test.core.hydration
+  (:require phel.test :refer [deftest is]))
+
+(def target "PhelTest\\Fixtures\\Interop\\HydrationTarget")
+
+(deftest hydrate-sets-public-properties
+  (let [t (hydrate target {:id 7 :name "kb"})]
+    (is (instance? \PhelTest\Fixtures\Interop\HydrationTarget t)
+        "hydrate returns an instance of the target class")
+    (is (= 7 (php/-> t id)) "id property is set")
+    (is (= "kb" (php/-> t name)) "name property is set")))
+
+(deftest bean-reads-public-properties
+  (is (= {:id 7 :name "kb"} (bean (hydrate target {:id 7 :name "kb"})))
+      "bean is the inverse of hydrate for public properties"))
+
+(deftest hydrate-bypasses-the-constructor
+  (is (= {:id 0 :name ""} (bean (hydrate target {})))
+      "an empty map yields the class' property defaults, constructor not called"))

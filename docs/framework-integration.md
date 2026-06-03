@@ -269,6 +269,17 @@ $rows = $conn->executeQuery($sql, $params)->fetchAllAssociative();
 
 phel-pdo can also wrap an existing PDO handle so its map-returning helpers run on the host's pooled connection.
 
+### When you really need the object
+
+Some host APIs demand a concrete instance (a typed DTO, a value object a library type-hints). Bridge at the boundary instead of modeling your domain as objects: `hydrate` builds an instance from a map without running its constructor (the ORM/serializer pattern), and `bean` reads a public-property object back into a keyword-keyed map.
+
+```phel
+(def dto (hydrate "App\\Dto\\Product" {:id 1 :name "Keyboard" :price 49.9}))
+(bean dto)  ; => {:id 1 :name "Keyboard" :price 49.9}
+```
+
+Keep maps as the working representation; reach for `hydrate`/`bean` only at the edge where a typed object is unavoidable.
+
 ### Controllers, transactions, migrations
 
 - **Routes/commands:** an exported `defn` can carry `^{:php/attr [:Symfony.Component.Routing.Attribute/Route "/products/{id}"]}`, so `phel export` emits the `#[Route]` on the generated wrapper — no hand-written controller shim.

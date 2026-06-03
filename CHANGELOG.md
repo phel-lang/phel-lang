@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - `:tag` type hints (on `defstruct` fields and `definterface` params/returns) now accept composite types: a list is a union (`^{:tag (int string)}` => `int|string`) and a vector is an intersection (`^{:tag [Countable Stringable]}` => `Countable&Stringable`); nullable/`self`/`static`/FQN tags continue to pass through verbatim (#2293)
 - `definterface`: `^{:php/attr [...]}` on a method parameter now emits an inline PHP parameter attribute (`public function show(#[\Autowire] string $repo)`), complementing the existing method- and interface-level attributes (#2294)
 - `^{:php/doc ...}` emits a PHPDoc block on generated `defstruct` classes/fields and `definterface` interfaces/methods, so phpstan/psalm see Phel-generated code as typed; the value is a one-line string (`"@var list<int>"`) or a list/vector of strings for a multi-line block (#2295)
+- `hydrate`/`bean` bridge Phel maps and PHP objects: `hydrate` builds an instance of a class (bypassing its constructor, ORM/serializer style) and sets the declared properties from a map; `bean` reads a PHP object's public properties back into a keyword-keyed map (#2296)
 
 ### Changed
 
