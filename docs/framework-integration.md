@@ -229,6 +229,52 @@ echo $greet('World') . "\n";
 
 ---
 
+## Persistence: maps, not entities
+
+Phel models data as immutable values, not mutable identity-tracked objects. An ORM entity (Doctrine, Eloquent) is the opposite: a mutable object the framework hydrates and dirty-tracks. Trying to make a Phel struct *be* an ORM entity fights the language. The functional path keeps rows as plain maps and pushes the database write to the edge.
+
+Two small libraries cover it:
+
+- [phel-sql](https://github.com/phel-lang/phel-sql) — HoneySQL-style. Map in, `[sql params]` out. No driver.
+- [phel-pdo](https://github.com/phel-lang/phel-pdo) — runs `[sql params]`, returns rows as maps.
+
+```phel
+(ns shop.catalog
+  (:require phel.sql :as sql)
+  (:require phel.pdo :as pdo))
+
+(defn find-product [conn id]
+  (let [[query params] (sql/format {:select [:id :name :price]
+                                    :from   [:products]
+                                    :where  [:= :id id]})]
+    (-> (pdo/prepare conn query)
+        (pdo/execute params)
+        (pdo/fetch))))                       ; => {:id 1 :name "Keyboard" :price 49.9}
+
+(defn apply-discount [product pct]           ; pure: no DB, no mutation
+  (update product :price (fn [p] (* p (- 1 pct)))))
+```
+
+For a runnable, dependency-free version of this pattern (raw PDO + SQLite), see [`docs/examples/13_database-crud.phel`](examples/13_database-crud.phel).
+
+### Reuse the framework connection
+
+Don't open a second connection. phel-sql is driver-agnostic, so its `[sql params]` feeds straight into the connection your framework already configured — e.g. Doctrine DBAL in Symfony:
+
+```php
+// Symfony service, $conn injected (Doctrine\DBAL\Connection)
+[$sql, $params] = Catalog::buildProductQuery($id);   // exported Phel fn calling sql/format
+$rows = $conn->executeQuery($sql, $params)->fetchAllAssociative();
+```
+
+phel-pdo can also wrap an existing PDO handle so its map-returning helpers run on the host's pooled connection.
+
+### Controllers, transactions, migrations
+
+- **Routes/commands:** an exported `defn` can carry `^{:php/attr [[:Symfony.Component.Routing.Attribute/Route "/products/{id}"]]}`, so `phel export` emits the `#[Route]` on the generated wrapper — no hand-written controller shim.
+- **Transactions:** wrap writes with phel-pdo's transaction helpers; keep the pure work outside the transaction and only the effect inside.
+- **Migrations:** stay in PHP-land — reuse `doctrine/migrations` or your framework's tool. Phel does not need its own.
+
 ## Notes
 
 - Namespace path matches directory: `phel/shop/pricing.phel` to `(ns shop.pricing)`.
@@ -243,6 +289,8 @@ echo $greet('World') . "\n";
 
 - [PHP/Phel Interop](php-interop.md)
 - [Quickstart](quickstart.md)
+- [Database CRUD example](examples/13_database-crud.phel) — runnable maps-not-entities pattern
+- [phel-sql](https://github.com/phel-lang/phel-sql) and [phel-pdo](https://github.com/phel-lang/phel-pdo) — data-driven SQL + PDO wrapper
 
 ---
 

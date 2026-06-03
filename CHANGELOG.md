@@ -19,6 +19,7 @@ All notable changes to this project will be documented in this file.
 - `definterface`: method params/return tagged with `^{:tag <type>}` emit a typed PHP signature, and `^{:php/attr [...]}` on the interface name or a method emits PHP 8 attributes on the generated interface/method — completing the `:php/attr` + `:tag` support across `defstruct`, `phel export`, and `definterface` (#2280)
 - Compiler internals: regression test pinning that AST source locations survive every phase
 - `docs/examples/13_database-crud.phel`: runnable SQLite products CRUD demonstrating the FP persistence pattern — rows as immutable maps (not ORM entities), a repository boundary, and pure service transforms (#2281)
+- Docs: `framework-integration.md` gains a Persistence section — maps-not-entities rationale, phel-sql + phel-pdo stack, reusing a framework's DBAL connection, and `#[Route]` on exported wrappers (#2282)
 
 ### Changed
 
