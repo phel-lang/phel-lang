@@ -40,17 +40,7 @@ final class TempDirFinder
 
         $tempDir = $this->configTempDir;
 
-        if (!is_dir($tempDir)) {
-            $oldUmask = umask(0);
-            if (!mkdir($tempDir, 0777, true) && !is_dir($tempDir)) {
-                throw FileException::canNotCreateDirectory($tempDir);
-            }
-
-            umask($oldUmask);
-            if (!is_dir($tempDir)) {
-                throw FileException::canNotCreateDirectory($tempDir);
-            }
-        }
+        $this->ensureDirectoryExists($tempDir);
 
         // Directory exists but is not writable: try to broaden permissions
         // and re-check before failing.
@@ -66,5 +56,31 @@ final class TempDirFinder
         }
 
         return $this->cachedTempDir = $tempDir;
+    }
+
+    /**
+     * Creates the directory if it does not already exist.
+     *
+     * Idempotent: an already-existing directory (or one created concurrently
+     * between the mkdir attempt and the is_dir re-check) is tolerated. umask is
+     * reset to 0 around mkdir so the 0777 mode is applied as requested.
+     *
+     * @throws FileException if the directory cannot be created
+     */
+    private function ensureDirectoryExists(string $tempDir): void
+    {
+        if (is_dir($tempDir)) {
+            return;
+        }
+
+        $oldUmask = umask(0);
+        if (!mkdir($tempDir, 0777, true) && !is_dir($tempDir)) {
+            throw FileException::canNotCreateDirectory($tempDir);
+        }
+
+        umask($oldUmask);
+        if (!is_dir($tempDir)) {
+            throw FileException::canNotCreateDirectory($tempDir);
+        }
     }
 }

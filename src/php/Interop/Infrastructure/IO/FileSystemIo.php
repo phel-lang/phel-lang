@@ -9,7 +9,7 @@ use RuntimeException;
 
 use function sprintf;
 
-final class FileSystemIo implements FileIoInterface
+final readonly class FileSystemIo implements FileIoInterface
 {
     public function createDirectory(string $directory): void
     {
