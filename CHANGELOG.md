@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - Lexer: error/source-map columns are now counted in code points, not bytes, so locations are correct for multibyte (UTF-8) source
 - Printer: structs print with the `.` separator (`(my.ns.point 1 2)`) instead of `\` (#2255)
 - Docs: function `:example` outputs now match what the REPL prints, so `phel doc` and the phel-lang.org API reference are accurate
+- `phel->php`: maps with non-named keys (integers, strings) now convert correctly instead of throwing `getName() on int`; this unblocks int-keyed PHP arrays such as PDO option maps (`{\PDO/ATTR_TIMEOUT 5}`) (#2298)
 
 ### Added
 

@@ -781,6 +781,16 @@
     (persistent res)))
 
 
+(defn- phel->php-key
+  "Converts a Phel map key into a valid PHP array key: named keys
+  (keyword/symbol) use their name, scalar `int`/`string` keys pass through
+  unchanged, and anything else is stringified."
+  [k]
+  (cond
+    (or (keyword? k) (symbol? k)) (name k)
+    (or (int? k) (string? k))     k
+    true                          (str k)))
+
 (defn phel->php
   "Recursively converts a Phel data structure to a PHP array."
   {:example "(phel->php {:a [1 2 3] :b {:c 4}}) ; => <PHP-Array [\"a\":<PHP-Array [1, 2, 3]>, \"b\":<PHP-Array [\"c\":4]>]>"
@@ -802,7 +812,7 @@
     (associative? x)
     (let [arr (php/array)]
       (foreach [k v x]
-        (php/aset arr (name k) (phel->php v)))
+        (php/aset arr (phel->php-key k) (phel->php v)))
       arr)
 
     (set? x)
