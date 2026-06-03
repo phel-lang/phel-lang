@@ -12,6 +12,7 @@ Call PHP from Phel and Phel from PHP.
 | New instance | `new DateTime()` | `(php/new DateTime)`, `(new DateTime)`, or `(DateTime.)` |
 | Property access | `$obj->prop` | `(php/-> obj prop)` or `(.-prop obj)` |
 | Array access | `$arr[$key]` | `(php/aget arr key)` |
+| By-reference arg | `$obj->m($out)` (writes back into `$out`) | `(php/-> obj (m (php/ref out)))` |
 
 ## Calling PHP from Phel
 
@@ -74,6 +75,19 @@ Capture references with `def` to shorten calls:
 \DateTimeImmutable/ATOM
 ```
 
+### Output parameters (by reference)
+
+Some PHP methods write into an argument (`PDOStatement::bindColumn`, `bindParam`). Wrap the local in `php/ref` so the result is observable from Phel:
+
+```phel
+(let [out "INIT"]
+  (php/-> stmt (bindColumn 1 (php/ref out) \PDO/PARAM_STR))
+  (php/-> stmt (fetch \PDO/FETCH_BOUND))
+  out)                              ; => the fetched column value
+```
+
+`php/ref` takes a local binding and works in `php/->`/`php/::` calls.
+
 ### Working with PHP Arrays
 
 ```phel
@@ -131,6 +145,7 @@ Phel uses `.` as the namespace separator, matching Clojure. The legacy `\` separ
 (to-php-array [1 2 3])            ; => PHP [1, 2, 3]
 (to-php-array {:a 1 :b 2})        ; => PHP ["a" => 1, "b" => 2]
 (name :keyword)                   ; keyword => "keyword"
+(phel->php {1 "a" "b" 2})         ; => PHP [1 => "a", "b" => 2]  (recursive; any int/string key)
 ```
 
 ### PHP to Phel
@@ -138,6 +153,14 @@ Phel uses `.` as the namespace separator, matching Clojure. The legacy `\` separ
 ```phel
 (php-array-to-map php-assoc-array)   ; => {:key value}
 (vals php-indexed-array)             ; => [val1 val2 val3]
+(php->phel php-array)                ; => recursive: indexed => vector, assoc => map
+```
+
+### Maps and objects
+
+```phel
+(hydrate "App\\Dto\\Product" {:id 1})   ; map => instance (constructor bypassed)
+(bean obj)                              ; public properties => {:key value}
 ```
 
 ## Calling Phel from PHP

@@ -280,6 +280,30 @@ Some host APIs demand a concrete instance (a typed DTO, a value object a library
 
 Keep maps as the working representation; reach for `hydrate`/`bean` only at the edge where a typed object is unavoidable.
 
+### Typed PHP from Phel definitions
+
+When the generated PHP must satisfy a framework's type expectations, opt-in metadata enriches it. All are opt-in; untagged forms are unchanged.
+
+| Metadata | On | Emits |
+|---|---|---|
+| `^{:tag T}` | struct field, interface param/return | typed signature; `(a b)` = union `a\|b`, `[a b]` = intersection `a&b` |
+| `^{:php/attr [...]}` | struct/interface name, field, method, param, exported `defn` | PHP 8 `#[Attr]` |
+| `^{:php/doc "..."}` | struct/interface name, field, method | PHPDoc block (phpstan/psalm) |
+| `^{:php/json true}` / `^{:php/stringable true}` | struct name | implements `\JsonSerializable` / `\Stringable` |
+
+```phel
+(defstruct ^{:php/attr [:ORM/Entity] :php/json true} product
+  [^{:tag int :php/attr [:ORM/Id]} id
+   ^{:tag string} name])
+```
+
+Two related forms:
+
+- `(defenum Status :active "active" :inactive "inactive")` — native PHP backed enum (Doctrine/Symfony columns) plus a `Status?` predicate.
+- `(defexception NotFound \RuntimeException)` — exception extending a chosen parent, so framework `catch` blocks match by type.
+
+See the [PHP interop reference on phel-lang.org](https://phel-lang.org/documentation/php-interop/) for the full semantics.
+
 ### Controllers, transactions, migrations
 
 - **Routes/commands:** an exported `defn` can carry `^{:php/attr [:Symfony.Component.Routing.Attribute/Route "/products/{id}"]}`, so `phel export` emits the `#[Route]` on the generated wrapper — no hand-written controller shim.
