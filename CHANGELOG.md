@@ -12,14 +12,9 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- `phel.http`: `request-from-globals` decodes `application/json` request bodies into `:parsed-body` (nil for an empty or malformed body); `request-from-globals-args` gains an optional trailing `raw-body` arg
-- `phel.http`: `json-response` and `html-response` builders set the content-type header and encode the body, so apps stop hand-rolling the header map; the `http-json-api` example now uses them (#2271)
-- `defstruct`: fields tagged with `^{:tag <type>}` now emit a typed PHP property, and `^{:php/attr [...]}` metadata on the struct name or a field emits PHP 8 attributes (e.g. `#[\ORM\Column(length: 255)]`) on the generated class/property — both opt-in, untagged structs unchanged (#2280)
-- `phel export`: `^{:php/attr [...]}` metadata on an exported `defn` emits PHP 8 attributes (e.g. `#[\Symfony\Component\Routing\Attribute\Route('/p')]`) above the generated wrapper method, so exported Phel functions can carry framework attributes like routes and console-command markers (#2280)
-- `definterface`: method params/return tagged with `^{:tag <type>}` emit a typed PHP signature, and `^{:php/attr [...]}` on the interface name or a method emits PHP 8 attributes on the generated interface/method — completing the `:php/attr` + `:tag` support across `defstruct`, `phel export`, and `definterface` (#2280)
-- Compiler internals: regression test pinning that AST source locations survive every phase
-- `docs/examples/13_database-crud.phel`: runnable SQLite products CRUD demonstrating the FP persistence pattern — rows as immutable maps (not ORM entities), a repository boundary, and pure service transforms (#2281)
-- Docs: `framework-integration.md` gains a Persistence section — maps-not-entities rationale, phel-sql + phel-pdo stack, reusing a framework's DBAL connection, and `#[Route]` on exported wrappers (#2282)
+- `phel.http`: JSON request bodies decode into `:parsed-body`, plus `json-response`/`html-response` builders that set the content-type and encode the body (#2271)
+- PHP interop: `^{:php/attr [...]}` emits PHP 8 attributes (e.g. `#[\ORM\Column(length: 255)]`) and `^{:tag <type>}` emits typed signatures on `defstruct`, `phel export` wrappers, and `definterface` — opt-in, untagged forms unchanged (#2280)
+- Docs: runnable `docs/examples/13_database-crud.phel` (maps-not-entities CRUD) and a Persistence section in `framework-integration.md` covering phel-sql + phel-pdo (#2281, #2282)
 
 ### Changed
 
