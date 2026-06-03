@@ -96,4 +96,54 @@ trait PhpAttributeEmitterTrait
 
         return $renderer->render($meta->find(Keyword::create('attr', 'php')));
     }
+
+    /**
+     * Renders the `:php/doc` metadata into PHPDoc lines, so generated classes
+     * carry the phpstan/psalm annotations a mixed PHP codebase needs. The value
+     * is a verbatim string (one line => `/** ... *​/`) or a list/vector of
+     * strings (a multi-line block). Empty list when absent.
+     *
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     *
+     * @return list<string>
+     */
+    private function phpDocLines(?PersistentMapInterface $meta): array
+    {
+        if (!$meta instanceof PersistentMapInterface) {
+            return [];
+        }
+
+        $doc = $meta->find(Keyword::create('doc', 'php'));
+        if (is_string($doc) && $doc !== '') {
+            return ['/** ' . $doc . ' */'];
+        }
+
+        $lines = $this->docBlockBody($doc);
+        if ($lines === []) {
+            return [];
+        }
+
+        return ['/**', ...$lines, ' */'];
+    }
+
+    /**
+     * Maps the string members of a composite `:php/doc` value to ` * <line>`.
+     *
+     * @return list<string>
+     */
+    private function docBlockBody(mixed $doc): array
+    {
+        if (!$doc instanceof PersistentListInterface && !$doc instanceof PersistentVectorInterface) {
+            return [];
+        }
+
+        $lines = [];
+        foreach ($doc as $line) {
+            if (is_string($line) && $line !== '') {
+                $lines[] = ' * ' . $line;
+            }
+        }
+
+        return $lines;
+    }
 }

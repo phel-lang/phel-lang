@@ -1,0 +1,13 @@
+--PHEL--
+(definterface* Repo
+  (^{:php/doc ["@param list<int> $ids" "@return array<string>"]} find [this ids]))
+--PHP--
+if (!interface_exists('user\Repo')) {
+interface Repo {
+  /**
+   * @param list<int> $ids
+   * @return array<string>
+   */
+  public function find($ids);
+}
+}

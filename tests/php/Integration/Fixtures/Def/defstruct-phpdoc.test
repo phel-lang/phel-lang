@@ -1,0 +1,19 @@
+--PHEL--
+(defstruct* ^{:php/doc "@implements \\IteratorAggregate<int, string>"} bag [^{:php/doc "@var list<int>"} items])
+--PHP--
+if (!class_exists('user\bag')) {
+/** @implements \IteratorAggregate<int, string> */
+final class bag extends \Phel\Lang\Collections\Struct\AbstractPersistentStruct {
+
+  protected const array ALLOWED_KEYS = ['items'];
+
+  /** @var list<int> */
+  protected $items;
+
+  public function __construct($items, $meta = null) {
+    parent::__construct();
+    $this->items = $items;
+    $this->meta = $meta;
+  }
+}
+}
