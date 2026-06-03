@@ -219,7 +219,10 @@
   [s value & [from-index]]
   (let [from-index (or from-index 0)
         from-index (let [abs (php/abs from-index)
-                         v   (min abs (dec (php/mb_strlen s)))]
+                         ;; Clamp to a valid mb_strpos offset: (dec (mb_strlen s))
+                         ;; is -1 for an empty string, which would otherwise raise
+                         ;; a ValueError instead of yielding nil.
+                         v   (max 0 (min abs (dec (php/mb_strlen s))))]
                      (if (< from-index 0)
                        (* v -1)
                        v))
