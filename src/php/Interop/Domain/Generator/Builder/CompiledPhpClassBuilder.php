@@ -29,6 +29,13 @@ final readonly class CompiledPhpClassBuilder
         ], $this->classTemplate());
     }
 
+    /**
+     * Derives the PHP namespace for the wrapper from the Phel namespace.
+     *
+     * The last Phel segment names the class (built separately in buildClassName());
+     * the remaining segments become the PHP namespace after PascalCase conversion,
+     * prepended with the configured prefix namespace when one is set.
+     */
     private function buildNamespace(string $phelNs): string
     {
         $phelNsWords = $this->splitNamespace($phelNs);

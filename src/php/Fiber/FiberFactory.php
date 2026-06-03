@@ -40,6 +40,16 @@ final class FiberFactory extends AbstractFactory
         return new Future($this->scheduler(), $body);
     }
 
+    /**
+     * Block until $awaitable is realized.
+     *
+     * With $timeoutMs === null the wait is unbounded: it delegates to
+     * {@see Scheduler::await()}, which surfaces a failed Future's exception
+     * via its {@see Future::deref()}. With a timeout it delegates to
+     * {@see Awaitable::derefWithTimeout()}, returning null on timeout and
+     * rethrowing a failed Future's exception only once the Future is realized
+     * within the deadline.
+     */
     public function await(Awaitable $awaitable, ?int $timeoutMs = null): mixed
     {
         if ($timeoutMs === null) {

@@ -10,6 +10,21 @@ use RuntimeException;
 use function assert;
 
 /**
+ * Functional zipper for navigating and editing an immutable parse tree.
+ *
+ * A zipper represents a "location": the focused {@see self::$node} plus enough
+ * context (its $parent, and the $leftSiblings/$rightSiblings around it) to walk
+ * in any direction and rebuild the whole tree. Movement methods
+ * (left/right/up/down/next/prev) return a *new* location rather than mutating
+ * in place, so traversal is side-effect free.
+ *
+ * Edits (replace/insert/remove) set the {@see self::$hasChanged} flag on the
+ * location. When {@see self::up()} is called on a changed location,
+ * {@see self::reconstructParentFromChange()} rebuilds the parent node from the
+ * current siblings so the edit propagates upward; unchanged locations simply
+ * return the cached parent. {@see self::$isEnd} marks a completed depth-first
+ * walk (see {@see self::next()}).
+ *
  * @template T of NodeInterface
  *
  * @psalm-consistent-constructor

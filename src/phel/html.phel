@@ -150,8 +150,13 @@
   `(str ~@(compile-seq content)))
 
 (defmacro html
-  "Compiles Phel vectors to HTML strings."
-  {:example "(html [:div \"Hello\"]) ; => \"<div>Hello</div>\""}
+  "Compiles nested Phel vectors to HTML strings at compile-time. A vector
+  `[tag attrs? children*]` becomes an element; `tag` is a keyword or string,
+  the optional `attrs` is a map, and children are strings, keywords, raw
+  strings, or nested vectors. Special list forms `for`, `if`, `when`, and
+  `when-not` are supported for dynamic content."
+  {:example "(html [:div \"Hello\"]) ; => \"<div>Hello</div>\""
+   :see-also ["raw-string" "doctype"]}
   [& content]
   (apply compile-html content))
 
@@ -165,7 +170,9 @@
    :html5              "<!DOCTYPE html>\n"})
 
 (defn doctype
-  "Returns an HTML doctype declaration."
-  {:example "(doctype :html5) ; => \"<!DOCTYPE html>\\n\""}
+  "Returns an HTML doctype declaration for the given type. Supports `:html4`,
+  `:xhtml-strict`, `:xhtml-transitional`, and `:html5`. Defaults to `:html5`."
+  {:example "(doctype :html5) ; => \"<!DOCTYPE html>\\n\""
+   :see-also ["html"]}
   [type]
   (raw-string (get doctypes type (:html5 doctypes))))

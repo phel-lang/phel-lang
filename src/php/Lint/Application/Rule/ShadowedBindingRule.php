@@ -150,8 +150,11 @@ final readonly class ShadowedBindingRule implements LintRuleInterface
                 continue;
             }
 
-            // Each arity introduces its own scope extension at analyze-time;
-            // still flag inner shadowing of the outer scope.
+            // Each arity introduces its own independent scope at analyze-time,
+            // but shadowing is reported relative to the shared outer scope, so
+            // every additional arity is walked against the same $newScope and
+            // its result is intentionally discarded (only the first arity's
+            // scope is propagated to the caller).
             $this->walkParams($paramVector, $newScope, $uri, $result);
         }
 

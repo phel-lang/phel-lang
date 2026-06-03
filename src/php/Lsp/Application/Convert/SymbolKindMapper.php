@@ -12,12 +12,13 @@ use Phel\Api\Transfer\Definition;
  * `documentSymbol` and `workspace/symbol` responses consistent.
  *
  * Reference: LSP `SymbolKind` (1..26). Values used here:
- *  - 5  Class
- *  - 6  Method
- *  - 11 Interface
- *  - 12 Function
- *  - 13 Variable
- *  - 18 Struct
+ *  - 5  Class      (`defexception` — exceptions are class-like)
+ *  - 6  Method     (`defmacro` — macros expand at compile time, akin to a
+ *                   class-bound operation rather than a runtime callable)
+ *  - 11 Interface  (`defprotocol`, `definterface` — abstract contracts)
+ *  - 12 Function   (`defn` — runtime callable, the closest LSP analogue)
+ *  - 13 Variable   (default — `def` and any other plain binding)
+ *  - 18 Struct     (`defstruct` — record-like data shapes)
  */
 final class SymbolKindMapper
 {

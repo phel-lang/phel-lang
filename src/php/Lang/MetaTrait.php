@@ -20,6 +20,11 @@ trait MetaTrait
     }
 
     /**
+     * Mutates `$meta` in place and returns the same instance rather than a
+     * fresh copy. Callers that need value-immutability (e.g. when the receiver
+     * is interned or shared) must clone before calling, or a type using this
+     * trait must override this method.
+     *
      * @param PersistentMapInterface<mixed, mixed>|null $meta
      */
     public function withMeta(?PersistentMapInterface $meta): static

@@ -17,6 +17,11 @@ use Phel\Filesystem\Infrastructure\RealFilesystem;
  */
 final class FilesystemFactory extends AbstractFactory
 {
+    /**
+     * Selects the cleanup strategy: NullFilesystem when
+     * KEEP_GENERATED_TEMP_FILES is true (debug mode, files are kept),
+     * otherwise RealFilesystem (tracks and deletes files on demand).
+     */
     public function createFilesystem(): FilesystemInterface
     {
         if ($this->getConfig()->shouldKeepGeneratedTempFiles()) {

@@ -9,7 +9,13 @@ use Phel\Formatter\Domain\Rules\Zipper\ZipperException;
 use Phel\Shared\Parser\Node\NodeInterface;
 
 /**
- * This rule removes all indentations. It is used as a preprocessor for the IndentRule.
+ * Removes all existing indentation: every whitespace node that directly follows
+ * a line break is stripped (unless the next non-whitespace node is a comment,
+ * whose leading indentation is preserved).
+ *
+ * Runs as a preprocessor for IndentRule to normalize the tree to a known,
+ * unindented state. This is safe because IndentRule then recalculates every
+ * line's indentation from scratch.
  */
 final class UnindentRule implements RuleInterface
 {

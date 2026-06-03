@@ -19,6 +19,16 @@ final readonly class CompiledPhpMethodBuilder
         private PhpAttributeRenderer $attributeRenderer = new PhpAttributeRenderer(),
     ) {}
 
+    /**
+     * Generates the PHP source of a single wrapper method for an exported Phel function.
+     *
+     * The compiled Phel function is a class whose `BOUND_TO` constant holds its
+     * fully qualified Phel name; reflection on its `__invoke` method provides the
+     * parameter list and return type. These are rendered into the method template,
+     * replacing the `$ATTRIBUTES$`, `$METHOD_NAME$`, `$ARGS$`, `$RETURN_TYPE$`,
+     * `$PHEL_NAMESPACE$` and `$PHEL_FUNCTION_NAME$` tokens, so the generated method
+     * delegates to `self::callPhel(...)` at runtime.
+     */
     public function build(string $phelNs, FunctionToExport $functionToExport): string
     {
         $ref = new ReflectionClass($functionToExport->fn());

@@ -216,7 +216,11 @@ final readonly class PhelConfig implements JsonSerializable
 
     /**
      * Apply a project layout (nested or flat). Returns a new instance with src,
-     * test, format, and export-from directories aligned with the layout.
+     * test, format, and export-from directories fully reset to the layout's
+     * defaults. This is a complete directory reconfiguration, not a partial
+     * patch: any previously customised directory in those four groups is
+     * overwritten. Non-directory config (build, export prefix, caching, flags)
+     * is left untouched.
      */
     public function withLayout(ProjectLayout $layout): self
     {
@@ -287,8 +291,12 @@ final readonly class PhelConfig implements JsonSerializable
     }
 
     /**
-     * Flattens the build namespace onto PhelConfig. Sets the entry-point PHP
-     * path to `out/index.php` when none has been configured yet.
+     * Flattens the build namespace onto PhelConfig.
+     *
+     * Defaults the entry-point PHP path to `out/index.php` only when no custom
+     * path has been set yet, i.e. the current value is still empty or already
+     * the default `out/index.php`. Any other (custom) path is preserved, so
+     * calling this repeatedly is idempotent for zero-config projects.
      */
     public function withMainPhelNamespace(string $namespace): self
     {

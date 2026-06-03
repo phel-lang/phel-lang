@@ -49,6 +49,17 @@ abstract class AbstractShellWatcher implements FileWatcherInterface
 
     private bool $running = false;
 
+    /**
+     * @param FileSystemScannerInterface $scanner    primes the mtime snapshot
+     *                                               before streaming starts so
+     *                                               diffing resolvers have state
+     * @param ClockInterface             $clock      drives idle sleeps and
+     *                                               debounce timing
+     * @param string                     $binaryPath external tool to invoke
+     *                                               (e.g. fswatch, inotifywait)
+     * @param int                        $debounceMs window for coalescing rapid
+     *                                               events into one batch
+     */
     public function __construct(
         protected readonly FileSystemScannerInterface $scanner,
         protected readonly ClockInterface $clock,

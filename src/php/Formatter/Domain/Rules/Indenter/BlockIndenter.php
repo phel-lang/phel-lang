@@ -11,10 +11,22 @@ use Phel\Shared\Parser\Node\SymbolNode;
 
 use function is_null;
 
+/**
+ * Indents the body of a block form (e.g. `if`, `let`, `do`) under its symbol.
+ *
+ * When the form's head matches {@see self::$symbol}, the first
+ * {@see self::$index} value-nodes are treated as the form's "arguments" and
+ * stay on the head line; everything after them is indented as a block.
+ */
 final readonly class BlockIndenter implements IndenterInterface
 {
     private ListIndenter $listIndenter;
 
+    /**
+     * @param string $symbol The Phel form symbol to match (e.g. `if`, `let`)
+     * @param int    $index  Number of leading value-nodes to skip before the
+     *                       block indent applies (the form's fixed arguments)
+     */
     public function __construct(
         private string $symbol,
         private int $index,

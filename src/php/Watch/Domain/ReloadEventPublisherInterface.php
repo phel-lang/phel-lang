@@ -14,6 +14,11 @@ use Phel\Watch\Transfer\WatchEvent;
 interface ReloadEventPublisherInterface
 {
     /**
+     * Called once per non-empty file-change batch with the originating events
+     * and the namespaces that were successfully reloaded. It is still invoked
+     * when $reloadedNamespaces is empty (e.g. namespace resolution failed or
+     * every reload threw), so implementers must not assume a reload happened.
+     *
      * @param list<WatchEvent> $events
      * @param list<string>     $reloadedNamespaces
      */

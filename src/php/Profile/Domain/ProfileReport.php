@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 namespace Phel\Profile\Domain;
 
+/**
+ * Immutable snapshot of a profiling run: per-fn call stats (keyed by
+ * `BOUND_TO` name, times in nanoseconds), per-source compile-phase times
+ * (in milliseconds), and the total wall-clock time in milliseconds.
+ */
 final readonly class ProfileReport
 {
     /**
@@ -17,6 +22,8 @@ final readonly class ProfileReport
     ) {}
 
     /**
+     * Per-fn stats keyed by fn name; all `*Ns` values are nanoseconds.
+     *
      * @return array<string, array{calls:int, totalNs:int, selfNs:int, maxNs:int}>
      */
     public function fnStats(): array
@@ -25,6 +32,8 @@ final readonly class ProfileReport
     }
 
     /**
+     * Compile-phase times keyed by source then phase name, in milliseconds.
+     *
      * @return array<string, array<string, float>>
      */
     public function phaseMs(): array
@@ -32,6 +41,9 @@ final readonly class ProfileReport
         return $this->phaseMs;
     }
 
+    /**
+     * Total wall-clock time of the run, in milliseconds.
+     */
     public function wallClockMs(): float
     {
         return $this->wallClockMs;

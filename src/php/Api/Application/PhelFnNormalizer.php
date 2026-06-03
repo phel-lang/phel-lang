@@ -28,6 +28,16 @@ final readonly class PhelFnNormalizer implements PhelFnNormalizerInterface
     ) {}
 
     /**
+     * Normalizes raw Phel function metadata into a sorted, de-duplicated list.
+     *
+     * Pipeline:
+     * 1. Load metadata for the requested namespaces (defaults to all known).
+     * 2. Skip entries flagged `:private`.
+     * 3. Parse each docstring into signatures + description.
+     * 4. Group by generated group key, build {@see PhelFunction} DTOs, sort each group.
+     * 5. Prepend native symbols (special forms / built-ins) so they override
+     *    any homonymous runtime def, then drop duplicate `namespace/name` pairs.
+     *
      * @param list<string> $namespaces
      *
      * @return list<PhelFunction>

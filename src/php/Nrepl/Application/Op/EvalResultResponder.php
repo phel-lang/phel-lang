@@ -29,6 +29,11 @@ final readonly class EvalResultResponder
     ) {}
 
     /**
+     * @param OpRequest  $request              the nREPL request context (carries id/session routing)
+     * @param EvalResult $result               the evaluated result produced by RunFacade
+     * @param string     $errorFallbackMessage error text used when the failure carries no EvalError object
+     * @param ?string    $fileName             optional source file name, woven into the error framing for load-file ops
+     *
      * @return list<OpResponse>
      */
     public function respond(

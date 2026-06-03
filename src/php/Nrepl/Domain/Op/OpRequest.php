@@ -12,7 +12,10 @@ use function is_string;
 final readonly class OpRequest
 {
     /**
-     * @param array<string, mixed> $raw
+     * @param string               $op      the op name from the nREPL message
+     * @param ?string              $id      optional message id used to route responses back to the caller
+     * @param ?string              $session optional session id; when null the request applies globally
+     * @param array<string, mixed> $raw     the raw decoded message; prefer stringParam() over direct access
      */
     public function __construct(
         public string $op,
