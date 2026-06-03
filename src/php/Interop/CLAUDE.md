@@ -44,3 +44,4 @@ Interop/
 - Phel namespaces to PHP: hyphens become CamelCase (my-lib -> MyLib)
 - Generated classes use PhelCallerTrait for cached definition resolution
 - Export directory wiped and regenerated each run
+- `^{:php/attr [...]}` metadata on an exported `defn` is threaded through `FunctionToExport` and rendered (via `Phel\Shared\PhpAttributeRenderer`) as PHP 8 attributes above the wrapper method (e.g. `#[\…\Route('/p')]`)

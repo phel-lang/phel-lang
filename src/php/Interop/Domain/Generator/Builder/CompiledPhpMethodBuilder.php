@@ -5,12 +5,20 @@ declare(strict_types=1);
 namespace Phel\Interop\Domain\Generator\Builder;
 
 use Phel\Interop\Domain\ReadModel\FunctionToExport;
+use Phel\Shared\PhpAttributeRenderer;
 use ReflectionClass;
 use ReflectionMethod;
 use ReflectionParameter;
 
-final class CompiledPhpMethodBuilder
+use function array_map;
+use function implode;
+
+final readonly class CompiledPhpMethodBuilder
 {
+    public function __construct(
+        private PhpAttributeRenderer $attributeRenderer = new PhpAttributeRenderer(),
+    ) {}
+
     public function build(string $phelNs, FunctionToExport $functionToExport): string
     {
         $ref = new ReflectionClass($functionToExport->fn());
@@ -18,18 +26,34 @@ final class CompiledPhpMethodBuilder
         $refInvoke = $ref->getMethod('__invoke');
 
         return str_replace([
+            '$ATTRIBUTES$',
             '$METHOD_NAME$',
             '$ARGS$',
             '$RETURN_TYPE$',
             '$PHEL_NAMESPACE$',
             '$PHEL_FUNCTION_NAME$',
         ], [
+            $this->buildAttributes($functionToExport),
             $this->buildMethodName($boundTo),
             $this->buildArgs($refInvoke),
             $this->buildReturnType($refInvoke),
             str_replace(['_', '\\'], ['-', '\\\\'], $phelNs),
             $this->buildPhelFunctionName($boundTo),
         ], $this->methodTemplate());
+    }
+
+    /**
+     * Renders the function's `:php/attr` specs as indented PHP attribute lines
+     * placed directly above the generated method, or '' when none are present.
+     */
+    private function buildAttributes(FunctionToExport $functionToExport): string
+    {
+        $lines = $this->attributeRenderer->render($functionToExport->attributes());
+
+        return implode('', array_map(
+            static fn(string $line): string => '    ' . $line . "\n",
+            $lines,
+        ));
     }
 
     private function buildMethodName(string $boundTo): string
@@ -104,7 +128,7 @@ final class CompiledPhpMethodBuilder
     {
         return <<<'TXT'
 
-    public static function $METHOD_NAME$($ARGS$)$RETURN_TYPE$
+$ATTRIBUTES$    public static function $METHOD_NAME$($ARGS$)$RETURN_TYPE$
     {
         return self::callPhel('$PHEL_NAMESPACE$', '$PHEL_FUNCTION_NAME$', $ARGS$);
     }

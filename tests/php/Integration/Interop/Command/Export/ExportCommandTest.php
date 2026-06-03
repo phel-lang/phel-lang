@@ -43,6 +43,11 @@ final class ExportCommandTest extends TestCase
 
         self::assertSame(3, Adder::adder1(1, 2));
         self::assertSame(9, Multiplier::multiplier2(3, 3));
+
+        // `:php/attr` metadata is emitted as a PHP attribute above the method
+        $adder = (string) file_get_contents(__DIR__ . '/PhelGenerated/TestCmdExportMultiple/Adder.php');
+        self::assertStringContainsString("#[\\My\\Routing\\Route('/add')]", $adder);
+        self::assertSame(5, Adder::adder3(2, 3));
     }
 
     private function stubOutput(): OutputInterface

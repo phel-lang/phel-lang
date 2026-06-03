@@ -7,6 +7,8 @@ namespace PhelTest\Unit\Interop\Generator;
 use Phel\Interop\Domain\Generator\Builder\CompiledPhpMethodBuilder;
 use Phel\Interop\Domain\ReadModel\FunctionToExport;
 use Phel\Lang\FnInterface;
+use Phel\Lang\Keyword;
+use Phel\Lang\TypeFactory;
 use PHPUnit\Framework\TestCase;
 
 final class CompiledPhpMethodBuilderTest extends TestCase
@@ -82,5 +84,38 @@ final class CompiledPhpMethodBuilderTest extends TestCase
         $result = $this->methodBuilder->build('test_ns', $functionToExport);
 
         self::assertStringContainsString(': mixed', $result);
+    }
+
+    public function test_renders_php_attributes_above_method(): void
+    {
+        $typeFactory = TypeFactory::getInstance();
+        $functionToExport = new FunctionToExport(
+            new class() implements FnInterface {
+                public const BOUND_TO = 'test_ns\\show_product';
+
+                public function __invoke(): mixed
+                {
+                    return null;
+                }
+            },
+            $typeFactory->persistentVectorFromArray([
+                $typeFactory->persistentVectorFromArray([
+                    Keyword::create('Route', 'Symfony.Component.Routing.Attribute'),
+                    '/products/{id}',
+                    $typeFactory->persistentMapFromKVs(
+                        Keyword::create('methods'),
+                        $typeFactory->persistentVectorFromArray(['GET']),
+                    ),
+                ]),
+            ]),
+        );
+
+        $result = $this->methodBuilder->build('test_ns', $functionToExport);
+
+        self::assertStringContainsString(
+            "    #[\\Symfony\\Component\\Routing\\Attribute\\Route('/products/{id}', methods: ['GET'])]\n"
+            . '    public static function showProduct(',
+            $result,
+        );
     }
 }

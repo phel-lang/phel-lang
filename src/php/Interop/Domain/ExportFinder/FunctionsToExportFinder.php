@@ -80,9 +80,13 @@ final readonly class FunctionsToExportFinder implements FunctionsToExportFinderI
 
         foreach (Phel::getNamespaces() as $ns) {
             foreach (Phel::getDefinitionInNamespace($ns) as $fnName => $fn) {
-                if ($this->isExport($ns, $fnName)) {
+                $meta = $this->definitionMeta($ns, $fnName);
+                if ($this->isExport($meta)) {
                     $functionsToExport[$ns] ??= [];
-                    $functionsToExport[$ns][] = new FunctionToExport($fn);
+                    $functionsToExport[$ns][] = new FunctionToExport(
+                        $fn,
+                        $meta->find(Keyword::create('attr', 'php')),
+                    );
                 }
             }
         }
@@ -90,12 +94,23 @@ final readonly class FunctionsToExportFinder implements FunctionsToExportFinderI
         return $functionsToExport;
     }
 
-    private function isExport(string $ns, string $fnName): bool
+    /**
+     * @return PersistentMapInterface<mixed, mixed>
+     */
+    private function definitionMeta(string $ns, string $fnName): PersistentMapInterface
     {
         /** @var PersistentMapInterface<mixed, mixed> $meta */
         $meta = Phel::getDefinitionMetaData($ns, $fnName)
-            ?? Phel::list();
+            ?? Phel::map();
 
+        return $meta;
+    }
+
+    /**
+     * @param PersistentMapInterface<mixed, mixed> $meta
+     */
+    private function isExport(PersistentMapInterface $meta): bool
+    {
         return (bool) ($meta[Keyword::create('export')] ?? false);
     }
 }
