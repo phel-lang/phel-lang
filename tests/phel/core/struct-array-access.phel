@@ -1,0 +1,26 @@
+(ns phel-test.core.struct-array-access
+  (:require phel.test :refer [deftest is]))
+
+(defstruct point [x y])
+
+(deftest struct-reads-via-string-offset
+  (let [p (point 3 4)]
+    (is (= 3 (php/aget p "x")) "a plain PHP string offset reads the field")
+    (is (= 4 (php/aget p "y")) "string offset works for every field")))
+
+(deftest struct-keyword-offset-still-works
+  (let [p (point 3 4)]
+    (is (= 3 (php/aget p :x)) "keyword offset is unchanged")
+    (is (= 3 (get p :x)) "the map protocol is unchanged")))
+
+(deftest struct-satisfies-spl-interfaces
+  (let [p (point 3 4)]
+    (is (php/is_a p "Countable") "structs are Countable")
+    (is (php/is_a p "ArrayAccess") "structs are ArrayAccess")
+    (is (php/is_a p "IteratorAggregate") "structs are IteratorAggregate")
+    (is (= 2 (php/count p)) "count returns the field count")))
+
+(deftest struct-iteration-keeps-keyword-keys
+  (let [p (point 3 4)]
+    (is (= [:x :y] (keys p)) "iteration stays keyword-keyed (Phel map contract)")
+    (is (= {:x 3 :y 4} (into {} p)) "into a map keeps keyword keys")))

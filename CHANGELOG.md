@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Printer: structs print with the `.` separator (`(my.ns.point 1 2)`) instead of `\` (#2255)
 - Docs: function `:example` outputs now match what the REPL prints, so `phel doc` and the phel-lang.org API reference are accurate
 - `phel->php`: integer/string map keys now convert instead of throwing `getName() on int` (unblocks PDO option maps) (#2298)
+- Structs: `$struct['field']` array access now accepts a plain PHP string offset (previously threw `getName() on string`); structs already implement `\Countable`/`\ArrayAccess`/`\IteratorAggregate`, so `count`/`$s['x']`/`foreach` work from PHP. Iteration keeps keyword keys to preserve the Phel map contract (#2313)
 
 ### Added
 

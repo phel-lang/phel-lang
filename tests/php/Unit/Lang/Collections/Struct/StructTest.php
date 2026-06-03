@@ -69,6 +69,19 @@ final class StructTest extends TestCase
         $s[Keyword::create('c')];
     }
 
+    public function test_offset_get_with_string_key(): void
+    {
+        $s = FakeStruct::fromKVs(Keyword::create('a'), 1, Keyword::create('b'), 2);
+        self::assertSame(1, $s['a'], 'a plain PHP string offset reads the field');
+    }
+
+    public function test_offset_exists_with_string_key(): void
+    {
+        $s = FakeStruct::fromKVs(Keyword::create('a'), 1, Keyword::create('b'), 2);
+        self::assertArrayHasKey('a', $s, 'string offset exists for an allowed field');
+        self::assertArrayNotHasKey('c', $s, 'string offset is absent for an unknown field');
+    }
+
     public function test_count(): void
     {
         $s = FakeStruct::fromKVs(Keyword::create('a'), 1, Keyword::create('b'), 2);
