@@ -297,6 +297,8 @@ When the generated PHP must satisfy a framework's type expectations, opt-in meta
    ^{:tag string} name])
 ```
 
+Every struct already implements `\Countable`, `\ArrayAccess`, and `\IteratorAggregate` (no opt-in needed), so PHP code can `count($s)` and read fields by a plain string offset (`$s['name']`) as well as a keyword. Structs are immutable, so writing an offset throws. Iteration keeps Phel's map contract (keyword keys), so `(into {} s)` and `(keys s)` stay keyword-keyed.
+
 Two related forms:
 
 - `(defenum Status :active "active" :inactive "inactive")` — native PHP backed enum (Doctrine/Symfony columns) plus a `Status?` predicate.

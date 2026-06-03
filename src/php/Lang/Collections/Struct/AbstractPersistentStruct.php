@@ -18,6 +18,7 @@ use Traversable;
 
 use function count;
 use function in_array;
+use function is_string;
 use function sprintf;
 
 /**
@@ -85,6 +86,28 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
         return $this->{$stringKey};
     }
 
+    /**
+     * Accepts a PHP-idiomatic string offset (`$s['x']`) in addition to a
+     * keyword, so array access works from plain PHP. Keyword access is
+     * unchanged.
+     *
+     * @param Keyword|string $offset
+     */
+    #[Override]
+    public function offsetGet(mixed $offset): mixed
+    {
+        return $this->find($this->normalizeOffset($offset));
+    }
+
+    /**
+     * @param Keyword|string $offset
+     */
+    #[Override]
+    public function offsetExists(mixed $offset): bool
+    {
+        return $this->contains($this->normalizeOffset($offset));
+    }
+
     public function getIterator(): Traversable
     {
         foreach (static::ALLOWED_KEYS as $key) {
@@ -126,6 +149,17 @@ abstract class AbstractPersistentStruct extends AbstractPersistentMap
 
         $structName = static::class;
         throw new InvalidArgumentException(sprintf("This key '%s' is not allowed for struct %s", (string) $key, $structName));
+    }
+
+    /**
+     * Coerces a string field name to its keyword; passes other offsets
+     * through unchanged.
+     *
+     * @param Keyword|string $offset
+     */
+    private function normalizeOffset(mixed $offset): mixed
+    {
+        return is_string($offset) ? Phel::keyword($offset) : $offset;
     }
 
     /**
