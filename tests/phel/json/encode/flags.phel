@@ -2,7 +2,8 @@
   (:require phel.json)
   (:require phel.test :refer [deftest is])
   (:use \JSON_HEX_TAG)
-  (:use \JSON_HEX_AMP))
+  (:use \JSON_HEX_AMP)
+  (:use \JSON_PRETTY_PRINT))
 
 (deftest test-json-encode-invalid-flag
   (is (thrown-with-msg?
@@ -27,3 +28,11 @@
         {:comparison "a > b"  :and "a & b"}
         {:flags (bit-or JSON_HEX_AMP JSON_HEX_TAG)}))
       "It tests flags parameter with two flags."))
+
+(deftest test-json-encode-pretty-print
+  (is (=
+       "{\n    \"name\": \"Alice\"\n}"
+       (json/encode
+        {:name "Alice"}
+        {:flags JSON_PRETTY_PRINT}))
+      "It tests JSON_PRETTY_PRINT flag produces indented multi-line output."))
