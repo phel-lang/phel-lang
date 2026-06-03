@@ -8,12 +8,21 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DefInterfaceMethod;
 use Phel\Compiler\Domain\Analyzer\Ast\DefInterfaceNode;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
+use Phel\Compiler\Domain\Emitter\OutputEmitterInterface;
+use Phel\Lang\Collections\Map\PersistentMapInterface;
+use Phel\Lang\SourceLocation;
+use Phel\Shared\PhpAttributeRenderer;
 
 use function assert;
 
-final class DefInterfaceEmitter implements NodeEmitterInterface
+final readonly class DefInterfaceEmitter implements NodeEmitterInterface
 {
-    use WithOutputEmitterTrait;
+    use PhpAttributeEmitterTrait;
+
+    public function __construct(
+        private OutputEmitterInterface $outputEmitter,
+        private PhpAttributeRenderer $attributeRenderer = new PhpAttributeRenderer(),
+    ) {}
 
     public function emit(AbstractNode $node): void
     {
@@ -79,9 +88,12 @@ final class DefInterfaceEmitter implements NodeEmitterInterface
 
     private function emitInterfaceBody(DefInterfaceNode $node): void
     {
+        $sourceLocation = $node->getStartSourceLocation();
+        $this->emitAttributes($node->getName()->getMeta(), $sourceLocation);
+
         $this->outputEmitter->emitLine(
             'interface ' . $this->outputEmitter->mungeEncode($node->getName()->getName()) . ' {',
-            $node->getStartSourceLocation(),
+            $sourceLocation,
         );
         $this->outputEmitter->increaseIndentLevel();
 
@@ -90,27 +102,51 @@ final class DefInterfaceEmitter implements NodeEmitterInterface
         }
 
         $this->outputEmitter->decreaseIndentLevel();
-        $this->outputEmitter->emitLine('}', $node->getStartSourceLocation());
+        $this->outputEmitter->emitLine('}', $sourceLocation);
     }
 
     private function emitMethod(DefInterfaceNode $node, DefInterfaceMethod $method): void
     {
-        $this->outputEmitter->emitStr('public function ', $node->getStartSourceLocation());
+        $sourceLocation = $node->getStartSourceLocation();
+        $this->emitAttributes($method->getName()->getMeta(), $sourceLocation);
+
+        $this->outputEmitter->emitStr('public function ', $sourceLocation);
         $this->outputEmitter->emitStr(
             $this->outputEmitter->mungeEncode($method->getName()->getName()),
-            $node->getStartSourceLocation(),
+            $sourceLocation,
         );
-        $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr('(', $sourceLocation);
 
         foreach ($method->getArgumentsWithoutFirst() as $i => $argument) {
-            $this->outputEmitter->emitPhpVariable($argument, $node->getStartSourceLocation());
+            $argumentTag = $this->tagTypeFromMeta($argument->getMeta());
+            if ($argumentTag !== null) {
+                $this->outputEmitter->emitStr($argumentTag . ' ', $sourceLocation);
+            }
+
+            $this->outputEmitter->emitPhpVariable($argument, $sourceLocation);
 
             if ($i < $method->getArgumentCount() - 2) {
-                $this->outputEmitter->emitStr(', ', $node->getStartSourceLocation());
+                $this->outputEmitter->emitStr(', ', $sourceLocation);
             }
         }
 
-        $this->outputEmitter->emitStr(')', $node->getStartSourceLocation());
+        $this->outputEmitter->emitStr(')', $sourceLocation);
+
+        $returnTag = $this->tagTypeFromMeta($method->getName()->getMeta());
+        if ($returnTag !== null) {
+            $this->outputEmitter->emitStr(': ' . $returnTag, $sourceLocation);
+        }
+
         $this->outputEmitter->emitLine(';');
+    }
+
+    /**
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     */
+    private function emitAttributes(?PersistentMapInterface $meta, ?SourceLocation $sourceLocation): void
+    {
+        foreach ($this->phpAttributeLines($this->attributeRenderer, $meta) as $attribute) {
+            $this->outputEmitter->emitLine($attribute, $sourceLocation);
+        }
     }
 }
