@@ -1,0 +1,29 @@
+(ns phel-test.core.iterator-seq
+  (:require phel.test :refer [deftest is]))
+
+(defn- array-iterator [& xs]
+  (php/new \ArrayIterator (apply php/array xs)))
+
+(defn- naturals []
+  (loop [i 0]
+    (php/yield i)
+    (recur (inc i))))
+
+(deftest iterator-seq-over-a-finite-traversable
+  (is (= [1 2 3] (vec (iterator-seq (array-iterator 1 2 3))))
+      "wraps a PHP Traversable as a seq"))
+
+(deftest iterator-seq-is-composable-with-lazy-ops
+  (is (= [2 3 4] (vec (->> (array-iterator 1 2 3 4 5)
+                              (iterator-seq)
+                              (map inc)
+                              (take 3))))
+      "map/take compose over an iterator-seq"))
+
+(deftest iterator-seq-empty-traversable
+  (is (= [] (vec (iterator-seq (array-iterator))))
+      "an empty Traversable yields an empty seq"))
+
+(deftest iterator-seq-streams-an-infinite-generator
+  (is (= [0 1 2 3 4] (vec (take 5 (iterator-seq (naturals)))))
+      "take pulls only what it consumes, so an infinite generator terminates"))

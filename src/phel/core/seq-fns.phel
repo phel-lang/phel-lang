@@ -995,6 +995,17 @@
   [f x]
   (lazy-seq-from-generator (php/:: Seq (iterate f x))))
 
+(defn iterator-seq
+  "Returns a lazy sequence over a PHP `Traversable` (Iterator, Generator,
+  IteratorAggregate, ...), pulling one element at a time. Unlike the eager
+  coercion that materialises a `Traversable` via `iterator_to_array`, this
+  streams a large or infinite source (DB cursor, stream reader, paginated
+  API), so `take`/`map`/`filter` only pull what they consume."
+  {:example "(take 3 (iterator-seq (php/new \\ArrayIterator (php/array 1 2 3 4 5)))) ; => @[1 2 3]"
+   :see-also ["lazy-seq" "map" "take"]}
+  [traversable]
+  (php/:: LazySeq (fromTraversable (php/new Hasher) (php/new Equalizer) traversable)))
+
 (defn cycle
   "Returns an infinite lazy sequence that cycles through the elements of
   collection. Maps are iterated as `[key value]` pairs."

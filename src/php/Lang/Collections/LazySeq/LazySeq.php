@@ -90,6 +90,36 @@ final class LazySeq extends AbstractType implements LazySeqInterface, Countable,
     }
 
     /**
+     * Creates a LazySeq from any PHP Traversable (Iterator, Generator,
+     * IteratorAggregate, ...), pulling one element at a time.
+     *
+     * Unlike {@see fromIterable}, a non-array, non-Generator Traversable is
+     * NOT materialised eagerly, so a large or infinite cursor (DB result,
+     * stream reader, paginated API) streams lazily.
+     *
+     * @template U
+     *
+     * @param Traversable<mixed, U>                     $traversable
+     * @param PersistentMapInterface<mixed, mixed>|null $meta
+     *
+     * @return self<U>
+     */
+    public static function fromTraversable(
+        HasherInterface $hasher,
+        EqualizerInterface $equalizer,
+        Traversable $traversable,
+        ?PersistentMapInterface $meta = null,
+    ): self {
+        $generator = $traversable instanceof Generator
+            ? $traversable
+            : (static function () use ($traversable): Generator {
+                yield from $traversable;
+            })();
+
+        return self::fromGenerator($hasher, $equalizer, $generator, $meta);
+    }
+
+    /**
      * Creates a LazySeq from any iterable.
      *
      * @template U
