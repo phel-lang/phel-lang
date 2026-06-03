@@ -1,0 +1,71 @@
+(ns examples.database-crud)
+
+;; Products are plain immutable maps - never mutable ORM entities.
+;; Only the repository functions below touch the database; everything
+;; else is pure transformation over maps, and the single side effect
+;; (the SQL write) lives at the edge.
+;;
+;; Persistence here is raw PDO interop so the file runs standalone. A
+;; real app swaps this repository layer for phel-sql (data -> [sql params])
+;; + phel-pdo, reusing the framework's connection - see the "Persistence"
+;; section of docs/framework-integration.md.
+
+(def db
+  (let [pdo (php/new \PDO "sqlite::memory:")]
+    (php/-> pdo (exec "CREATE TABLE products (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, price REAL NOT NULL)"))
+    pdo))
+
+;; --- Repository: the only layer that talks to the database ---
+
+(defn- row->product
+  "Maps a raw DB row (string-keyed PHP array) to a domain map."
+  [row]
+  (let [m (php-array-to-map row)]
+    {:id (get m "id") :name (get m "name") :price (get m "price")}))
+
+(defn find-by-id [id]
+  (let [stmt (php/-> db (prepare "SELECT id, name, price FROM products WHERE id = ?"))]
+    (php/-> stmt (execute (php/array id)))
+    (let [row (php/-> stmt (fetch (php/:: \PDO FETCH_ASSOC)))]
+      (if row (row->product row) nil))))
+
+(defn all-products []
+  (let [stmt (php/-> db (query "SELECT id, name, price FROM products ORDER BY id"))]
+    (map row->product (php/-> stmt (fetchAll (php/:: \PDO FETCH_ASSOC))))))
+
+(defn create-product! [product]
+  (let [stmt (php/-> db (prepare "INSERT INTO products (name, price) VALUES (?, ?)"))]
+    (php/-> stmt (execute (php/array (get product :name) (get product :price))))
+    (find-by-id (php/-> db (lastInsertId)))))
+
+(defn update-price! [id new-price]
+  (let [stmt (php/-> db (prepare "UPDATE products SET price = ? WHERE id = ?"))]
+    (php/-> stmt (execute (php/array new-price id)))
+    (find-by-id id)))
+
+(defn delete-product! [id]
+  (let [stmt (php/-> db (prepare "DELETE FROM products WHERE id = ?"))]
+    (php/-> stmt (execute (php/array id)))
+    nil))
+
+;; --- Service: pure transformations over product maps ---
+
+(defn apply-discount
+  "Pure: a new product map with the price reduced by `pct` (0.0 .. 1.0)."
+  [product pct]
+  (update product :price (fn [p] (* p (- 1 pct)))))
+
+(defn main []
+  (let [keyboard (create-product! {:name "Keyboard" :price 49.9})
+        mouse    (create-product! {:name "Mouse" :price 19.9})]
+    (println "created:" keyboard)
+    (println "created:" mouse)
+    (println "all:" (all-products))
+    ;; transform purely, then persist the result at the edge
+    (let [discounted (apply-discount keyboard 0.10)]
+      (update-price! (get keyboard :id) (get discounted :price)))
+    (println "after discount:" (find-by-id (get keyboard :id)))
+    (delete-product! (get mouse :id))
+    (println "after delete:" (all-products))))
+
+(main)
