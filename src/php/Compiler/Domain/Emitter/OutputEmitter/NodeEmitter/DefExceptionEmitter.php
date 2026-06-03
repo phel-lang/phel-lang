@@ -13,6 +13,8 @@ use function assert;
 
 final readonly class DefExceptionEmitter implements NodeEmitterInterface
 {
+    use EvalGuardedEmitterTrait;
+
     public function __construct(private OutputEmitterInterface $outputEmitter) {}
 
     public function emit(AbstractNode $node): void
@@ -24,15 +26,6 @@ final readonly class DefExceptionEmitter implements NodeEmitterInterface
         } else {
             $this->emitInline($node);
         }
-    }
-
-    private function shouldEmitViaEval(): bool
-    {
-        if ($this->outputEmitter->getOptions()->isStatementEmitMode()) {
-            return true;
-        }
-
-        return $this->outputEmitter->isInsideClassScope();
     }
 
     /**

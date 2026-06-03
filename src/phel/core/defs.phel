@@ -141,6 +141,22 @@
                  (newInstanceArgs (to-php-array args))))
        (defn ~is-name ~(php/. "Checks if `x` is an instance of the " name " exception.") [x] (php/is_a x ~class-name-str)))))
 
+(defmacro defenum
+  "Defines a native PHP backed enum. Each case is named by a keyword followed
+  by an optional scalar value (all `int` or all `string`); value-less cases
+  produce a pure enum. Also defines a `Name?` predicate.
+
+      (defenum Status :active \"active\" :inactive \"inactive\")
+      (Status? Status/active) # => true"
+  [name & cases]
+  (let [name-str       (php/-> name (getName))
+        munge          (php/new Munge)
+        class-name-str (php/. (php/-> munge (encodePhpNs *ns*)) "\\" (php/-> munge (encode name-str)))
+        is-name        (php/:: Symbol (create (php/. name-str "?")))]
+    `(do
+       (defenum* ~name ~@cases)
+       (defn ~is-name ~(php/. "Checks if `x` is a case of the " name " enum.") [x] (php/is_a x ~class-name-str)))))
+
 (defmacro comment
   "Ignores the body of the comment."
   [&])

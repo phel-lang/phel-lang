@@ -1,0 +1,10 @@
+--PHEL--
+(defenum* Color :red :green :blue)
+--PHP--
+if (!enum_exists('user\Color')) {
+enum Color {
+  case red;
+  case green;
+  case blue;
+}
+}

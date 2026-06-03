@@ -99,6 +99,8 @@ final class Symbol extends AbstractType implements IdenticalInterface, FnInterfa
 
     public const string NAME_DEF_EXCEPTION = 'defexception*';
 
+    public const string NAME_DEF_ENUM = 'defenum*';
+
     public const string NAME_REIFY = 'reify*';
 
     public const string NAME_DOLLAR = '$';

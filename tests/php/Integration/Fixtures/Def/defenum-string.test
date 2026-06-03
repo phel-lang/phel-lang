@@ -1,0 +1,9 @@
+--PHEL--
+(defenum* Status :active "active" :inactive "inactive")
+--PHP--
+if (!enum_exists('user\Status')) {
+enum Status: string {
+  case active = 'active';
+  case inactive = 'inactive';
+}
+}

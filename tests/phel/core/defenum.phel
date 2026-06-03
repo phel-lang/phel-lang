@@ -1,0 +1,28 @@
+(ns phel-test.core.defenum
+  (:require phel.test :refer [deftest is]))
+
+;; String-backed enum
+(defenum Status :active "active" :inactive "inactive")
+
+;; Int-backed enum
+(defenum Priority :low 1 :high 10)
+
+;; Pure enum (no backing values)
+(defenum Color :red :green :blue)
+
+(deftest string-backed-enum
+  (let [active (php/:: \phel_test\core\defenum\Status (from "active"))]
+    (is (= "active" (php/-> active value)) "case carries its string value")
+    (is (= "active" (php/-> active name)) "case name matches the keyword")
+    (is (true? (Status? active)) "predicate recognises its own case")
+    (is (false? (Status? :active)) "predicate rejects a plain keyword")))
+
+(deftest int-backed-enum
+  (let [high (php/:: \phel_test\core\defenum\Priority (from 10))]
+    (is (= 10 (php/-> high value)) "int case carries its value")
+    (is (true? (Priority? high)) "int predicate works")))
+
+(deftest pure-enum
+  (let [cases (php/:: \phel_test\core\defenum\Color (cases))]
+    (is (= 3 (count cases)) "pure enum exposes all cases")
+    (is (true? (Color? (php/aget cases 0))) "pure case satisfies predicate")))

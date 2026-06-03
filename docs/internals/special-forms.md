@@ -49,13 +49,14 @@ Each handler returns one `AbstractNode`. Emitter has 1:1 mapping to `*Emitter.ph
 
 ## Type definitions (low-level)
 
-Trailing `*` means not user-facing. Macros `defstruct`, `definterface`, `defexception`, `reify` expand into these.
+Trailing `*` means not user-facing. Macros `defstruct`, `definterface`, `defexception`, `defenum`, `reify` expand into these.
 
 | Form | Const | Handler | Node |
 |------|-------|---------|------|
 | `defstruct*` | `NAME_DEF_STRUCT` | `DefStructSymbol` | `DefStructNode` |
 | `definterface*` | `NAME_DEF_INTERFACE` | `DefInterfaceSymbol` | `DefInterfaceNode` |
 | `defexception*` | `NAME_DEF_EXCEPTION` | `DefExceptionSymbol` | `DefExceptionNode` |
+| `defenum*` | `NAME_DEF_ENUM` | `DefEnumSymbol` | `DefEnumNode` |
 | `reify*` | `NAME_REIFY` | `ReifySymbol` | `ReifyNode` |
 
 ## PHP interop
@@ -75,7 +76,7 @@ Trailing `*` means not user-facing. Macros `defstruct`, `definterface`, `defexce
 ## Not special forms
 
 - `if-let`, `when`, `cond`, `case`, `match`, `->`, `->>`: macros in `phel.core`
-- `defn`, `defmacro`, `defstruct`, `definterface`, `defexception`, `reify`: macros over `*` forms
+- `defn`, `defmacro`, `defstruct`, `definterface`, `defexception`, `defenum`, `reify`: macros over `*` forms
 - `+`, `-`, `=`, `map`, `filter`, ...: functions in `phel.core`
 
 Run `(macroexpand-1 'form)` to see the truth.

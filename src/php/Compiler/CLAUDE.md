@@ -81,6 +81,7 @@ Analyzer tracks param and return types via `ParamTypeInferrer`, `ReturnTypeInfer
 
 - `defstruct`: a field's `^{:tag <type>}` emits a typed property (`protected int $id;`); `^{:php/attr [...]}` on the struct name (class-level) or a field (property-level) emits PHP 8 attributes.
 - `definterface`: a method's arg `^{:tag <type>}` emits a typed param and the method name's `:tag` the return type; `^{:php/attr [...]}` on the interface name or a method emits interface-/method-level attributes.
+- `defenum` (`defenum*`, `DefEnumSymbol`/`DefEnumNode`/`DefEnumEmitter`): emits a native PHP `enum`; cases are keyword-named with an optional `int`/`string` value (all-or-none → backed vs pure enum), and `^{:php/attr [...]}` on the enum name emits class-level attributes. Guarded by `enum_exists`.
 
 All opt-in; untagged forms are byte-identical to before. Export wrappers carry the same `:php/attr` via `Interop`'s `CompiledPhpMethodBuilder` (see `src/php/Interop/CLAUDE.md`).
 
