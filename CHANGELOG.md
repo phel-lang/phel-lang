@@ -6,6 +6,9 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `if-let`/`when-let`/`if-some`/`when-first`: now hygienic — a user binding named `temp-sym` is no longer shadowed by the macros' internal temporary
+- Quasiquote of an empty list (`` `() ``) no longer throws `Index out of bounds`; it yields an empty list, like empty vectors/maps already did
+- `str/index-of`: returns `nil` for an empty string instead of leaking a raw PHP `ValueError` (`(index-of "" "a")` => `nil`, `(index-of "" "")` => `0`)
 - Lexer: error/source-map columns are now counted in code points, not bytes, so locations are correct for multibyte (UTF-8) source
 - Printer: structs print with the `.` separator (`(my.ns.point 1 2)`) instead of `\` (#2255)
 - Docs: function `:example` outputs now match what the REPL prints, so `phel doc` and the phel-lang.org API reference are accurate
@@ -34,6 +37,7 @@ Richer PHP interop for bridging Phel to typed PHP / framework code (all opt-in, 
 - Internals: split seven oversized god-classes into focused single-responsibility collaborators across the compiler, runtime, build, and api modules (pure refactors, behavior unchanged): `CallSpecialization`, `CallEmitter` (#2273), `CompiledCodeCache` (#2274), `BigInt` (#2275), `NumericOperations` (#2276), `PhelFnLoader` (#2277), and `Parser` (#2278); also centralized the emitters' bare-expression capture into `OutputEmitter::captureNodeAsExpression()`
 - Tests: `RegistryTest` and `PhelVarTest` snapshot and restore the global `Registry`, fixing order-dependent `phel.core` suite failures (#2256)
 - Docs: condensed every `docs/` guide (~17% smaller), verified against the runtime, and cross-linked to phel-lang.org
+- Quality: repo-wide maintainability pass — explanatory docblocks and `:doc`/`:see-also`/`:example` metadata across modules, safe dead-code/type/naming cleanups, behavior-identical helper extractions, and ~40 new unit tests for previously untested utilities (no behavior change)
 
 ## [0.41.0](https://github.com/phel-lang/phel-lang/compare/v0.40.0...v0.41.0) - 2026-06-01
 
