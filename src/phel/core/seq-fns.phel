@@ -835,6 +835,31 @@
 
     true                   x))
 
+(defn bean
+  "Returns a Phel map of the public properties of PHP object `obj`, with
+  keyword keys. Inverse of `hydrate` for public-property objects."
+  {:example "(bean (hydrate \"My\\\\Dto\" {:id 1})) ; => {:id 1}"
+   :see-also ["hydrate" "php-array-to-map" "php->phel"]}
+  [obj]
+  (let [res (transient {})]
+    (foreach [k v (php/get_object_vars obj)]
+      (assoc res (keyword k) v))
+    (persistent res)))
+
+(defn hydrate
+  "Creates an instance of PHP class `class-name` (a class-string) without
+  invoking its constructor, then sets each declared property named by the
+  keyword keys of map `m`. Mirrors how ORMs/serializers rebuild entities from
+  raw data; pairs with `bean` for the reverse direction."
+  {:example "(hydrate \"My\\\\Dto\" {:id 1 :name \"x\"})"
+   :see-also ["bean"]}
+  [class-name m]
+  (let [rc  (php/new \ReflectionClass class-name)
+        obj (php/-> rc (newInstanceWithoutConstructor))]
+    (foreach [k v m]
+      (php/-> (php/-> rc (getProperty (name k))) (setValue obj v)))
+    obj))
+
 (defn contains-value?
   "Returns true if the value is present in the given collection, otherwise returns false."
   {:example "(contains-value? {:a 1 :b 2} 2) ; => true"
