@@ -1,7 +1,7 @@
 (ns phel-test.core.interop-named-args
   (:require phel.test :refer [deftest is]))
 
-(def by-ref-target "PhelTest\\Fixtures\\Interop\\ByRefTarget")
+(def- by-ref-target "PhelTest\\Fixtures\\Interop\\ByRefTarget")
 
 (deftest php-new-with-named-args
   (let [ao (php/new \ArrayObject :& :array (php/array 1 2 3))]
