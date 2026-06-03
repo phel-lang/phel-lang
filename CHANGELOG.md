@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 - Docs: runnable `docs/examples/13_database-crud.phel` (maps-not-entities CRUD) and a Persistence section in `framework-integration.md` covering phel-sql + phel-pdo (#2281, #2282)
 - `defenum`: compiles to a native PHP backed enum (`enum Status: string { case active = 'active'; ... }`) with a generated `Name?` predicate; cases take an optional `int`/`string` value (all-or-none), and class-level `^{:php/attr [...]}` is supported (#2291)
 - `defstruct`: opt-in `^{:php/json true}` implements `\JsonSerializable` (emitting a `jsonSerialize()` that returns the field map, so `json_encode` works), and `^{:php/stringable true}` declares `\Stringable`; untagged structs are unchanged (#2292)
+- `:tag` type hints (on `defstruct` fields and `definterface` params/returns) now accept composite types: a list is a union (`^{:tag (int string)}` => `int|string`) and a vector is an intersection (`^{:tag [Countable Stringable]}` => `Countable&Stringable`); nullable/`self`/`static`/FQN tags continue to pass through verbatim (#2293)
 
 ### Changed
 
