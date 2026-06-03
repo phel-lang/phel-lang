@@ -79,3 +79,24 @@
 (deftest attributes-alias-works-on-an-instance
   (let [attr (first (r/attributes (php/new annotated)))]
     (is (= route-attr (get attr :name)) "an instance reflects its class' attributes")))
+
+(def- status-class "PhelTest\\Fixtures\\Enum\\Status")
+(def- status-active (php/:: \PhelTest\Fixtures\Enum\Status Active))
+
+(deftest enum->keyword-uses-the-case-name
+  (is (= :Active (r/enum->keyword status-active))
+      "an enum case maps to a keyword of its case name"))
+
+(deftest keyword->enum-resolves-the-case
+  (is (= status-active (r/keyword->enum status-class :Active))
+      "a keyword resolves back to the matching case")
+  (is (nil? (r/keyword->enum status-class :Missing))
+      "an unknown keyword resolves to nil"))
+
+(deftest enum-keyword-round-trips
+  (is (= status-active (r/keyword->enum status-class (r/enum->keyword status-active)))
+      "enum->keyword then keyword->enum returns the original case"))
+
+(deftest enum-values-lists-every-case
+  (is (= [:Active :Inactive] (r/enum-values status-class))
+      "enum-values returns a keyword per case in declaration order"))
