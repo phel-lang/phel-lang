@@ -17,6 +17,7 @@ use function var_export;
 
 final readonly class DefEnumEmitter implements NodeEmitterInterface
 {
+    use EvalGuardedEmitterTrait;
     use PhpAttributeEmitterTrait;
 
     public function __construct(
@@ -33,20 +34,6 @@ final readonly class DefEnumEmitter implements NodeEmitterInterface
         } else {
             $this->emitInline($node);
         }
-    }
-
-    /**
-     * The enum declaration must be lifted into an `eval()` when it would
-     * otherwise land somewhere PHP forbids: inside a function wrapper in
-     * statement mode (namespace not allowed), or inside another class's body.
-     */
-    private function shouldEmitViaEval(): bool
-    {
-        if ($this->outputEmitter->getOptions()->isStatementEmitMode()) {
-            return true;
-        }
-
-        return $this->outputEmitter->isInsideClassScope();
     }
 
     private function emitViaEval(DefEnumNode $node): void

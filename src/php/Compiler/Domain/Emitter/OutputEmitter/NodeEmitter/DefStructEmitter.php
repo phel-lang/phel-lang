@@ -18,6 +18,7 @@ use function count;
 
 final readonly class DefStructEmitter implements NodeEmitterInterface
 {
+    use EvalGuardedEmitterTrait;
     use PhpAttributeEmitterTrait;
 
     public function __construct(
@@ -35,21 +36,6 @@ final readonly class DefStructEmitter implements NodeEmitterInterface
         } else {
             $this->emitInline($node);
         }
-    }
-
-    /**
-     * The class declaration must be lifted into an `eval()` when it would
-     * otherwise land somewhere PHP forbids: inside a function wrapper in
-     * statement mode (namespace not allowed), or inside another class's
-     * method body, e.g. `defrecord` used inside a `deftest` body.
-     */
-    private function shouldEmitViaEval(): bool
-    {
-        if ($this->outputEmitter->getOptions()->isStatementEmitMode()) {
-            return true;
-        }
-
-        return $this->outputEmitter->isInsideClassScope();
     }
 
     /**
