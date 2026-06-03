@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\DoNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\ByRefLocalCollector;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 
 use function assert;
@@ -31,7 +32,11 @@ final class DoEmitter implements NodeEmitterInterface
         $isWrapFn = $isExpression && ($node->getStmts() !== [] || $retNeedsReturn);
 
         if ($isWrapFn) {
-            $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
+            $this->outputEmitter->emitFnWrapPrefix(
+                $node->getEnv(),
+                $node->getStartSourceLocation(),
+                new ByRefLocalCollector()->collect($node),
+            );
         }
 
         foreach ($node->getStmts() as $stmt) {

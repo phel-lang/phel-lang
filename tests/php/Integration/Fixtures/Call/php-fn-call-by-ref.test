@@ -1,0 +1,5 @@
+--PHEL--
+(let [m nil] (php/preg_match "/(\d+)/" "abc123" (php/ref m)))
+--PHP--
+$m_1 = null;
+preg_match("/(\\d+)/", "abc123", $m_1);

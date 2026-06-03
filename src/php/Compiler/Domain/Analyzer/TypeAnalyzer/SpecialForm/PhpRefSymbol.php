@@ -17,9 +17,11 @@ use function count;
 /**
  * (php/ref local).
  *
- * Marks a local variable as passed by reference inside a PHP interop call.
- * Only valid in argument position of `php/->`/`php/::`; the inner form must be
- * a local binding so the emitted closure can capture it with `use(&$local)`.
+ * Marks a local variable as passed by reference inside a PHP interop call,
+ * for both method/static calls (`php/->`, `php/::`) and plain function calls
+ * (`php/preg_match`, `php/sort`, ...). The inner form must be a local binding;
+ * where the call site is wrapped in a closure, the local is captured with
+ * `use(&$local)` so a by-reference PHP parameter writes back into the binding.
  */
 final class PhpRefSymbol implements SpecialFormAnalyzerInterface
 {

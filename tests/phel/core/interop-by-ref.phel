@@ -14,3 +14,27 @@
         out "init"]
     (php/-> t (writeInto out "written"))
     (is (= "init" out) "a value-captured local is unaffected by the by-ref write")))
+
+(deftest php-ref-on-a-plain-function-call
+  (let [m nil]
+    (php/preg_match "/(\\d+)/" "abc123" (php/ref m))
+    (is (= "123" (php/aget m 1)) "preg_match writes its matches into the local")))
+
+(deftest php-ref-on-a-plain-function-mutating-in-place
+  (let [arr (php/array 3 1 2)]
+    (php/sort (php/ref arr))
+    (is (and (= 1 (php/aget arr 0)) (= 2 (php/aget arr 1)) (= 3 (php/aget arr 2)))
+        "sort reorders the local array in place")))
+
+(deftest php-ref-survives-an-enclosing-closure-wrap
+  (let [m nil]
+    ; the `do` sits in expression position, so the emitter wraps it in an IIFE;
+    ; the by-ref local must still be captured by reference through that wrap.
+    (php/intval (do (php/preg_match "/(\\d+)/" "abc123" (php/ref m)) 0))
+    (is (= "123" (php/aget m 1)) "by-ref survives an enclosing IIFE wrap")))
+
+(deftest php-method-ref-survives-an-enclosing-closure-wrap
+  (let [t   (php/new target)
+        out "init"]
+    (php/intval (do (php/-> t (writeInto (php/ref out) "written")) 0))
+    (is (= "written" out) "method by-ref survives an enclosing IIFE wrap")))

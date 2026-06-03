@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\ForeachNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\ByRefLocalCollector;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\IterableTarget;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Seq;
@@ -24,7 +25,11 @@ final class ForeachEmitter implements NodeEmitterInterface
 
         if (!$node->getEnv()->isContext(NodeEnvironment::CONTEXT_STATEMENT)) {
             $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
-            $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
+            $this->outputEmitter->emitFnWrapPrefix(
+                $node->getEnv(),
+                $node->getStartSourceLocation(),
+                new ByRefLocalCollector()->collect($node),
+            );
         }
 
         // `Seq::toIterable` is only needed to coerce `nil` to `[]` and

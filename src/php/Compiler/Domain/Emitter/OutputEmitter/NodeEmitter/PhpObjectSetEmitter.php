@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpObjectSetNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PropertyOrConstantAccessNode;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\ByRefLocalCollector;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Symbol;
 
@@ -27,7 +28,11 @@ final class PhpObjectSetEmitter implements NodeEmitterInterface
 
         $this->outputEmitter->emitContextPrefix($node->getEnv(), $node->getStartSourceLocation());
 
-        $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
+        $this->outputEmitter->emitFnWrapPrefix(
+            $node->getEnv(),
+            $node->getStartSourceLocation(),
+            new ByRefLocalCollector()->collect($node),
+        );
 
         $targetSym = Symbol::gen('target_');
         $this->outputEmitter->emitPhpVariable($targetSym, $node->getStartSourceLocation());

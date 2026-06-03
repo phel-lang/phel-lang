@@ -7,6 +7,7 @@ namespace Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitter;
 use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LetNode;
 use Phel\Compiler\Domain\Analyzer\Environment\NodeEnvironment;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\ByRefLocalCollector;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Collections\Map\PersistentMapInterface;
 use Phel\Lang\Keyword;
@@ -39,7 +40,11 @@ final class LetEmitter implements NodeEmitterInterface
 
         $isWrapFn = $node->getEnv()->isContext(NodeEnvironment::CONTEXT_EXPRESSION);
         if ($isWrapFn) {
-            $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
+            $this->outputEmitter->emitFnWrapPrefix(
+                $node->getEnv(),
+                $node->getStartSourceLocation(),
+                new ByRefLocalCollector()->collect($node),
+            );
         }
 
         foreach ($node->getBindings() as $bindingNode) {
