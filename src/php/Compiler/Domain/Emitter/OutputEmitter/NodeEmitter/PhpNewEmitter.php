@@ -8,6 +8,7 @@ use Phel\Compiler\Domain\Analyzer\Ast\AbstractNode;
 use Phel\Compiler\Domain\Analyzer\Ast\LiteralNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpClassNameNode;
 use Phel\Compiler\Domain\Analyzer\Ast\PhpNewNode;
+use Phel\Compiler\Domain\Emitter\OutputEmitter\ByRefLocalCollector;
 use Phel\Compiler\Domain\Emitter\OutputEmitter\NodeEmitterInterface;
 use Phel\Lang\Symbol;
 
@@ -37,7 +38,11 @@ final class PhpNewEmitter implements NodeEmitterInterface
             $this->outputEmitter->emitStr($classExpr->getAbsolutePhpName(), $classExpr->getName()->getStartLocation());
             $this->outputEmitter->emitStr('(', $node->getStartSourceLocation());
         } else {
-            $this->outputEmitter->emitFnWrapPrefix($node->getEnv(), $node->getStartSourceLocation());
+            $this->outputEmitter->emitFnWrapPrefix(
+                $node->getEnv(),
+                $node->getStartSourceLocation(),
+                new ByRefLocalCollector()->collect($node),
+            );
 
             $targetSym = Symbol::gen('target_');
             $this->outputEmitter->emitPhpVariable($targetSym, $node->getStartSourceLocation());

@@ -1,0 +1,8 @@
+--PHEL--
+(let [m nil] (php/intval (do (php/preg_match "/(\d+)/" "abc123" (php/ref m)) 0)))
+--PHP--
+$m_1 = null;
+intval((function() use(&$m_1) {
+  preg_match("/(\\d+)/", "abc123", $m_1);
+  return 0;
+})());

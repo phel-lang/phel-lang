@@ -86,7 +86,15 @@ Some PHP methods write into an argument (`PDOStatement::bindColumn`, `bindParam`
   out)                              ; => the fetched column value
 ```
 
-`php/ref` takes a local binding and works in `php/->`/`php/::` calls.
+It works the same way for plain PHP functions with output parameters (`preg_match`, `sort`, `settype`, `array_push`, ...):
+
+```phel
+(let [matches nil]
+  (php/preg_match "/(\\d+)/" "abc123" (php/ref matches))
+  (php/aget matches 1))             ; => "123"
+```
+
+`php/ref` takes a local binding and works in `php/->`/`php/::` and plain function calls. The local stays bound by reference even when the call sits inside an expression the compiler wraps in a closure.
 
 ### Working with PHP Arrays
 

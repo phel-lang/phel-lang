@@ -20,7 +20,7 @@ Richer PHP interop for bridging Phel to typed PHP / framework code (all opt-in, 
 
 - Generated classes carry opt-in metadata: `^{:php/attr}` PHP 8 attributes (class/method/parameter), `^{:tag}` typed signatures (incl. union/intersection), `^{:php/doc}` PHPDoc, and `^{:php/json}`/`^{:php/stringable}` on structs (#2280, #2289, #2292, #2293, #2294, #2295)
 - `defenum` native backed enums, and `defexception` with an optional parent class (#2291, #2297)
-- `php/ref` passes a local by reference into a `php/->`/`php/::` call (PDO `bindColumn`) (#2299)
+- `php/ref` passes a local by reference into a `php/->`/`php/::` call (PDO `bindColumn`) (#2299), and now also into plain PHP function calls (`preg_match`, `sort`, `settype`, ...); the local is captured by reference even when the call is wrapped in a closure (#2310)
 - `hydrate`/`bean` bridge a Phel map and a typed PHP object both ways (#2296)
 
 ### Changed
